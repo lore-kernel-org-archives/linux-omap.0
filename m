@@ -1,1128 +1,238 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/2] pinctrl: Introduce TI IOdelay configuration driver
-Date: Thu,  5 Jan 2017 10:54:14 -0800
-Message-ID: <20170105185414.27247-3-tony@atomide.com>
-References: <20170105185414.27247-1-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170105185414.27247-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Gary Bisson <gary.bisson-Q5RJGjKts06CY9SHAMCTRUEOCMrvLtNR@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] usb: musb: Add support for optional VBUS irq to dsps glue layer
+Date: Thu,  5 Jan 2017 11:12:59 -0800
+Message-ID: <20170105191259.28723-1-tony@atomide.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+We can now configure the PMIC interrupt to provide us VBUS
+events. In that case we don't need to constantly poll the
+status and can make it optional. This is only wired up
+for the mini-B interface on beaglebone.
 
-SoC family such as DRA7 family of processors have, in addition
-to the regular muxing of pins (as done by pinctrl-single), a separate
-hardware module called IODelay which is also expected to be configured.
-The "IODelay" module has it's own register space that is independent
-of the control module and the padconf register area.
+Note that eventually we should get also the connect status
+for the host interface when the am335x internal PM coprocessor
+provides us with an IRQ chip. For now, we still need to poll
+for the host mode status.
 
-With recent changes to the pinctrl framework, we can now support
-this hardware with a reasonably minimal driver by using #pinctrl-cells,
-GENERIC_PINCTRL_GROUPS and GENERIC_PINMUX_FUNCTIONS.
-
-It is advocated strongly in TI's official documentation considering
-the existing design of the DRA7 family of processors during mux or
-IODelay reconfiguration, there is a potential for a significant glitch
-which may cause functional impairment to certain hardware. It is
-hence recommended to do as little of muxing as absolutely necessary
-without I/O isolation (which can only be done in initial stages of
-bootloader).
-
-NOTE: with the system wide I/O isolation scheme present in DRA7 SoC
-family, it is not reasonable to do stop all I/O operations for every
-such pad configuration scheme. So, we will let it glitch when used in
-this mode.
-
-Even with the above limitation, certain functionality such as MMC has
-mandatory need for IODelay reconfiguration requirements, depending on
-speed of transfer. In these cases, with careful examination of usecase
-involved, the expected glitch can be controlled such that it does not
-impact functionality.
-
-In short, IODelay module support as a padconf driver being introduced
-here is not expected to do SoC wide I/O Isolation and is meant for
-a limited subset of IODelay configuration requirements that need to
-be dynamic and whose glitchy behavior will not cause functionality
-failure for that interface.
-
-IMPORTANT NOTE: we take the approach of keeping LOCK_BITs cleared
-to 0x0 at all times, even when configuring Manual IO Timing Modes.
-This is done by eliminating the LOCK_BIT=1 setting from Step
-of the Manual IO timing Mode configuration procedure. This option
-leaves the CFG_* registers unprotected from unintended writes to the
-CTRL_CORE_PAD_* registers while Manual IO Timing Modes are configured.
-
-This approach is taken to allow for a generic driver to exist in kernel
-world that has to be used carefully in required usecases.
-
-Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-[tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org: updated to use generic pinctrl functions, added
- binding documentation, updated comments]
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- .../devicetree/bindings/pinctrl/ti,iodelay.txt     |  47 +
- drivers/pinctrl/Kconfig                            |   1 +
- drivers/pinctrl/Makefile                           |   1 +
- drivers/pinctrl/ti/Kconfig                         |  10 +
- drivers/pinctrl/ti/Makefile                        |   1 +
- drivers/pinctrl/ti/pinctrl-ti-iodelay.c            | 944 +++++++++++++++++++++
- 6 files changed, 1004 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/pinctrl/ti,iodelay.txt
- create mode 100644 drivers/pinctrl/ti/Kconfig
- create mode 100644 drivers/pinctrl/ti/Makefile
- create mode 100644 drivers/pinctrl/ti/pinctrl-ti-iodelay.c
+ drivers/usb/musb/musb_dsps.c | 114 ++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 90 insertions(+), 24 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/pinctrl/ti,iodelay.txt b/Documentation/devicetree/bindings/pinctrl/ti,iodelay.txt
-new file mode 100644
---- /dev/null
-+++ b/Documentation/devicetree/bindings/pinctrl/ti,iodelay.txt
-@@ -0,0 +1,47 @@
-+* Pin configuration for TI IODELAY controller
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -118,6 +118,7 @@ struct dsps_glue {
+ 	struct device *dev;
+ 	struct platform_device *musb;	/* child musb pdev */
+ 	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
++	int vbus_irq;			/* optional vbus irq */
+ 	struct timer_list timer;	/* otg_workaround timer */
+ 	unsigned long last_timer;    /* last timer data for each instance */
+ 	bool sw_babble_enabled;
+@@ -145,6 +146,29 @@ static const struct debugfs_reg32 dsps_musb_regs[] = {
+ 	{ "mode",		0xe8 },
+ };
+ 
++static void dsps_mod_timer(struct dsps_glue *glue, int wait_ms)
++{
++	int wait;
 +
-+TI dra7 based SoCs such as am57xx have a controller for setting the IO delay
-+for each pin. For most part the IO delay values are programmed by the bootloader,
-+but some pins need to be configured dynamically by the kernel such as the
-+MMC pins.
++	if (wait_ms < 0)
++		wait = msecs_to_jiffies(glue->wrp->poll_timeout);
++	else
++		wait = msecs_to_jiffies(wait_ms);
 +
-+Required Properties:
++	mod_timer(&glue->timer, jiffies + wait);
++}
 +
-+  - compatible: Must be "ti,dra7-iodelay"
-+  - reg: Base address and length of the memory resource used
-+  - #address-cells: Number of address cells
-+  - #size-cells: Size of cells
-+  - #pinctrl-cells: Number of pinctrl cells, must be 2. See also
-+    Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
-+
-+Example
-+-------
-+
-+In the SoC specific dtsi file:
-+
-+	dra7_iodelay_core: padconf@4844a000 {
-+		compatible = "ti,dra7-iodelay";
-+		reg = <0x4844a000 0x0d1c>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		#pinctrl-cells = <2>;
-+	};
-+
-+In board-specific file:
-+
-+&dra7_iodelay_core {
-+	mmc2_iodelay_3v3_conf: mmc2_iodelay_3v3_conf {
-+		pinctrl-pin-array = <
-+		0x18c A_DELAY_PS(0) G_DELAY_PS(120)	/* CFG_GPMC_A19_IN */
-+		0x1a4 A_DELAY_PS(265) G_DELAY_PS(360)	/* CFG_GPMC_A20_IN */
-+		0x1b0 A_DELAY_PS(0) G_DELAY_PS(120)	/* CFG_GPMC_A21_IN */
-+		0x1bc A_DELAY_PS(0) G_DELAY_PS(120)	/* CFG_GPMC_A22_IN */
-+		0x1c8 A_DELAY_PS(287) G_DELAY_PS(420)	/* CFG_GPMC_A23_IN */
-+		0x1d4 A_DELAY_PS(144) G_DELAY_PS(240)	/* CFG_GPMC_A24_IN */
-+		0x1e0 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_GPMC_A25_IN */
-+		0x1ec A_DELAY_PS(120) G_DELAY_PS(0)	/* CFG_GPMC_A26_IN */
-+		0x1f8 A_DELAY_PS(120) G_DELAY_PS(180)	/* CFG_GPMC_A27_IN */
-+		0x360 A_DELAY_PS(0) G_DELAY_PS(0)	/* CFG_GPMC_CS1_IN */
-+		>;
-+	};
-+};
-diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
---- a/drivers/pinctrl/Kconfig
-+++ b/drivers/pinctrl/Kconfig
-@@ -300,6 +300,7 @@ source "drivers/pinctrl/spear/Kconfig"
- source "drivers/pinctrl/stm32/Kconfig"
- source "drivers/pinctrl/sunxi/Kconfig"
- source "drivers/pinctrl/tegra/Kconfig"
-+source "drivers/pinctrl/ti/Kconfig"
- source "drivers/pinctrl/uniphier/Kconfig"
- source "drivers/pinctrl/vt8500/Kconfig"
- source "drivers/pinctrl/mediatek/Kconfig"
-diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
---- a/drivers/pinctrl/Makefile
-+++ b/drivers/pinctrl/Makefile
-@@ -53,6 +53,7 @@ obj-$(CONFIG_PINCTRL_SH_PFC)	+= sh-pfc/
- obj-$(CONFIG_PINCTRL_SPEAR)	+= spear/
- obj-$(CONFIG_PINCTRL_STM32)	+= stm32/
- obj-$(CONFIG_PINCTRL_SUNXI)	+= sunxi/
-+obj-y				+= ti/
- obj-$(CONFIG_PINCTRL_UNIPHIER)	+= uniphier/
- obj-$(CONFIG_ARCH_VT8500)	+= vt8500/
- obj-$(CONFIG_PINCTRL_MTK)	+= mediatek/
-diff --git a/drivers/pinctrl/ti/Kconfig b/drivers/pinctrl/ti/Kconfig
-new file mode 100644
---- /dev/null
-+++ b/drivers/pinctrl/ti/Kconfig
-@@ -0,0 +1,10 @@
-+config PINCTRL_TI_IODELAY
-+	tristate "TI IODelay Module pinconf driver"
-+	depends on OF
-+	select GENERIC_PINCTRL_GROUPS
-+	select GENERIC_PINMUX_FUNCTIONS
-+	select GENERIC_PINCONF
-+	select REGMAP_MMIO
-+	help
-+	  Say Y here to support Texas Instruments' IO delay pinconf driver.
-+	  IO delay module is used for the DRA7 SoC family.
-diff --git a/drivers/pinctrl/ti/Makefile b/drivers/pinctrl/ti/Makefile
-new file mode 100644
---- /dev/null
-+++ b/drivers/pinctrl/ti/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_PINCTRL_TI_IODELAY)	+= pinctrl-ti-iodelay.o
-diff --git a/drivers/pinctrl/ti/pinctrl-ti-iodelay.c b/drivers/pinctrl/ti/pinctrl-ti-iodelay.c
-new file mode 100644
---- /dev/null
-+++ b/drivers/pinctrl/ti/pinctrl-ti-iodelay.c
-@@ -0,0 +1,944 @@
 +/*
-+ * Support for configuration of IO Delay module found on Texas Instruments SoCs
-+ * such as DRA7
-+ *
-+ * Copyright (C) 2015-2017 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public
-+ * License version 2. This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
++ * If no vbus irq from the PMIC is configured, we need to poll VBUS status.
 + */
-+
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/pinctrl/pinconf.h>
-+#include <linux/pinctrl/pinconf-generic.h>
-+#include <linux/pinctrl/pinctrl.h>
-+#include <linux/regmap.h>
-+#include <linux/slab.h>
-+
-+#include "../core.h"
-+#include "../devicetree.h"
-+
-+#define DRIVER_NAME	"ti-iodelay"
-+
-+/**
-+ * struct ti_iodelay_reg_data - Describes the registers for the iodelay instance
-+ * @signature_mask: CONFIG_REG mask for the signature bits (see TRM)
-+ * @signature_value: CONFIG_REG signature value to be written (see TRM)
-+ * @lock_mask: CONFIG_REG mask for the lock bits (see TRM)
-+ * @lock_val: CONFIG_REG lock value for the lock bits (see TRM)
-+ * @unlock_val:CONFIG_REG unlock value for the lock bits (see TRM)
-+ * @binary_data_coarse_mask: CONFIG_REG coarse mask (see TRM)
-+ * @binary_data_fine_mask: CONFIG_REG fine mask (see TRM)
-+ * @reg_refclk_offset: Refclk register offset
-+ * @refclk_period_mask: Refclk mask
-+ * @reg_coarse_offset: Coarse register configuration offset
-+ * @coarse_delay_count_mask: Coarse delay count mask
-+ * @coarse_ref_count_mask: Coarse ref count mask
-+ * @reg_fine_offset: Fine register configuration offset
-+ * @fine_delay_count_mask: Fine delay count mask
-+ * @fine_ref_count_mask: Fine ref count mask
-+ * @reg_global_lock_offset: Global iodelay module lock register offset
-+ * @global_lock_mask: Lock mask
-+ * @global_unlock_val: Unlock value
-+ * @global_lock_val: Lock value
-+ * @reg_start_offset: Offset to iodelay registers after the CONFIG_REG_0 to 8
-+ * @reg_nr_per_pin: Number of iodelay registers for each pin
-+ * @regmap_config: Regmap configuration for the IODelay region
-+ */
-+struct ti_iodelay_reg_data {
-+	u32 signature_mask;
-+	u32 signature_value;
-+	u32 lock_mask;
-+	u32 lock_val;
-+	u32 unlock_val;
-+	u32 binary_data_coarse_mask;
-+	u32 binary_data_fine_mask;
-+
-+	u32 reg_refclk_offset;
-+	u32 refclk_period_mask;
-+
-+	u32 reg_coarse_offset;
-+	u32 coarse_delay_count_mask;
-+	u32 coarse_ref_count_mask;
-+
-+	u32 reg_fine_offset;
-+	u32 fine_delay_count_mask;
-+	u32 fine_ref_count_mask;
-+
-+	u32 reg_global_lock_offset;
-+	u32 global_lock_mask;
-+	u32 global_unlock_val;
-+	u32 global_lock_val;
-+
-+	u32 reg_start_offset;
-+	u32 reg_nr_per_pin;
-+
-+	struct regmap_config *regmap_config;
-+};
-+
-+/**
-+ * struct ti_iodelay_reg_values - Computed io_reg configuration values (see TRM)
-+ * @coarse_ref_count: Coarse reference count
-+ * @coarse_delay_count: Coarse delay count
-+ * @fine_ref_count: Fine reference count
-+ * @fine_delay_count: Fine Delay count
-+ * @ref_clk_period: Reference Clock period
-+ * @cdpe: Coarse delay parameter
-+ * @fdpe: Fine delay parameter
-+ */
-+struct ti_iodelay_reg_values {
-+	u16 coarse_ref_count;
-+	u16 coarse_delay_count;
-+
-+	u16 fine_ref_count;
-+	u16 fine_delay_count;
-+
-+	u16 ref_clk_period;
-+
-+	u32 cdpe;
-+	u32 fdpe;
-+};
-+
-+/**
-+ * struct ti_iodelay_cfg - Description of each configuration parameters
-+ * @offset: Configuration register offset
-+ * @a_delay: Agnostic Delay (in ps)
-+ * @g_delay: Gnostic Delay (in ps)
-+ */
-+struct ti_iodelay_cfg {
-+	u16 offset;
-+	u16 a_delay;
-+	u16 g_delay;
-+};
-+
-+/**
-+ * struct ti_iodelay_pingroup - Structure that describes one group
-+ * @cfg: configuration array for the pin (from dt)
-+ * @ncfg: number of configuration values allocated
-+ * @config: pinconf "Config" - currently a dummy value
-+ */
-+struct ti_iodelay_pingroup {
-+	struct ti_iodelay_cfg *cfg;
-+	int ncfg;
-+	unsigned long config;
-+};
-+
-+/**
-+ * struct ti_iodelay_device - Represents information for a iodelay instance
-+ * @dev: Device pointer
-+ * @phys_base: Physical address base of the iodelay device
-+ * @reg_base: Virtual address base of the iodelay device
-+ * @regmap: Regmap for this iodelay instance
-+ * @pctl: Pinctrl device
-+ * @desc: pinctrl descriptor for pctl
-+ * @pa: pinctrl pin wise description
-+ * @reg_data: Register definition data for the IODelay instance
-+ * @reg_init_conf_values: Initial configuration values.
-+ */
-+struct ti_iodelay_device {
-+	struct device *dev;
-+	unsigned long phys_base;
-+	void __iomem *reg_base;
-+	struct regmap *regmap;
-+
-+	struct pinctrl_dev *pctl;
-+	struct pinctrl_desc desc;
-+	struct pinctrl_pin_desc *pa;
-+
-+	const struct ti_iodelay_reg_data *reg_data;
-+	struct ti_iodelay_reg_values reg_init_conf_values;
-+};
-+
-+/**
-+ * ti_iodelay_extract() - extract bits for a field
-+ * @val: Register value
-+ * @mask: Mask
-+ *
-+ * Return: extracted value which is appropriately shifted
-+ */
-+static inline u32 ti_iodelay_extract(u32 val, u32 mask)
++static void dsps_mod_timer_optional(struct dsps_glue *glue)
 +{
-+	return (val & mask) >> __ffs(mask);
-+}
-+
-+/**
-+ * ti_iodelay_compute_dpe() - Compute equation for delay parameter
-+ * @period: Period to use
-+ * @ref: Reference Count
-+ * @delay: Delay count
-+ * @delay_m: Delay multiplier
-+ *
-+ * Return: Computed delay parameter
-+ */
-+static inline u32 ti_iodelay_compute_dpe(u16 period, u16 ref, u16 delay,
-+					 u16 delay_m)
-+{
-+	u64 m, d;
-+
-+	/* Handle overflow conditions */
-+	m = 10 * (u64)period * (u64)ref;
-+	d = 2 * (u64)delay * (u64)delay_m;
-+
-+	/* Truncate result back to 32 bits */
-+	return div64_u64(m, d);
-+}
-+
-+/**
-+ * ti_iodelay_pinconf_set() - Configure the pin configuration
-+ * @iod: iodelay device
-+ * @cfg: Configuration
-+ *
-+ * Update the configuration register as per TRM and lockup once done.
-+ * *IMPORTANT NOTE* SoC TRM does recommend doing iodelay programmation only
-+ * while in Isolation. But, then, isolation also implies that every pin
-+ * on the SoC (including DDR) will be isolated out. The only benefit being
-+ * a glitchless configuration, However, the intent of this driver is purely
-+ * to support a "glitchy" configuration where applicable.
-+ *
-+ * Return: 0 in case of success, else appropriate error value
-+ */
-+static int ti_iodelay_pinconf_set(struct ti_iodelay_device *iod,
-+				  struct ti_iodelay_cfg *cfg)
-+{
-+	const struct ti_iodelay_reg_data *reg = iod->reg_data;
-+	struct ti_iodelay_reg_values *ival = &iod->reg_init_conf_values;
-+	struct device *dev = iod->dev;
-+	u32 g_delay_coarse, g_delay_fine;
-+	u32 a_delay_coarse, a_delay_fine;
-+	u32 c_elements, f_elements;
-+	u32 total_delay;
-+	u32 reg_mask, reg_val, tmp_val;
-+	int r;
-+
-+	/* NOTE: Truncation is expected in all division below */
-+	g_delay_coarse = cfg->g_delay / 920;
-+	g_delay_fine = ((cfg->g_delay % 920) * 10) / 60;
-+
-+	a_delay_coarse = cfg->a_delay / ival->cdpe;
-+	a_delay_fine = ((cfg->a_delay % ival->cdpe) * 10) / ival->fdpe;
-+
-+	c_elements = g_delay_coarse + a_delay_coarse;
-+	f_elements = (g_delay_fine + a_delay_fine) / 10;
-+
-+	if (f_elements > 22) {
-+		total_delay = c_elements * ival->cdpe + f_elements * ival->fdpe;
-+		c_elements = total_delay / ival->cdpe;
-+		f_elements = (total_delay % ival->cdpe) / ival->fdpe;
-+	}
-+
-+	reg_mask = reg->signature_mask;
-+	reg_val = reg->signature_value << __ffs(reg->signature_mask);
-+
-+	reg_mask |= reg->binary_data_coarse_mask;
-+	tmp_val = c_elements << __ffs(reg->binary_data_coarse_mask);
-+	if (tmp_val & ~reg->binary_data_coarse_mask) {
-+		dev_err(dev, "Masking overflow of coarse elements %08x\n",
-+			tmp_val);
-+		tmp_val &= reg->binary_data_coarse_mask;
-+	}
-+	reg_val |= tmp_val;
-+
-+	reg_mask |= reg->binary_data_fine_mask;
-+	tmp_val = f_elements << __ffs(reg->binary_data_fine_mask);
-+	if (tmp_val & ~reg->binary_data_fine_mask) {
-+		dev_err(dev, "Masking overflow of fine elements %08x\n",
-+			tmp_val);
-+		tmp_val &= reg->binary_data_fine_mask;
-+	}
-+	reg_val |= tmp_val;
-+
-+	/*
-+	 * NOTE: we leave the iodelay values unlocked - this is to work around
-+	 * situations such as those found with mmc mode change.
-+	 * However, this leaves open any unwarranted changes to padconf register
-+	 * impacting iodelay configuration. Use with care!
-+	 */
-+	reg_mask |= reg->lock_mask;
-+	reg_val |= reg->unlock_val << __ffs(reg->lock_mask);
-+	r = regmap_update_bits(iod->regmap, cfg->offset, reg_mask, reg_val);
-+
-+	dev_info(dev, "Set reg 0x%x Delay(a: %d g: %d), Elements(C=%d F=%d)0x%x\n",
-+		 cfg->offset, cfg->a_delay, cfg->g_delay, c_elements,
-+		 f_elements, reg_val);
-+
-+	return r;
-+}
-+
-+/**
-+ * ti_iodelay_pinconf_init_dev() - Initialize IODelay device
-+ * @iod: iodelay device
-+ *
-+ * Unlocks the iodelay region, computes the common parameters
-+ *
-+ * Return: 0 in case of success, else appropriate error value
-+ */
-+static int ti_iodelay_pinconf_init_dev(struct ti_iodelay_device *iod)
-+{
-+	const struct ti_iodelay_reg_data *reg = iod->reg_data;
-+	struct device *dev = iod->dev;
-+	struct ti_iodelay_reg_values *ival = &iod->reg_init_conf_values;
-+	u32 val;
-+	int r;
-+
-+	/* unlock the iodelay region */
-+	r = regmap_update_bits(iod->regmap, reg->reg_global_lock_offset,
-+			       reg->global_lock_mask, reg->global_unlock_val);
-+	if (r)
-+		return r;
-+
-+	/* Read up Recalibration sequence done by bootloader */
-+	r = regmap_read(iod->regmap, reg->reg_refclk_offset, &val);
-+	if (r)
-+		return r;
-+	ival->ref_clk_period = ti_iodelay_extract(val, reg->refclk_period_mask);
-+	dev_dbg(dev, "refclk_period=0x%04x\n", ival->ref_clk_period);
-+
-+	r = regmap_read(iod->regmap, reg->reg_coarse_offset, &val);
-+	if (r)
-+		return r;
-+	ival->coarse_ref_count =
-+	    ti_iodelay_extract(val, reg->coarse_ref_count_mask);
-+	ival->coarse_delay_count =
-+	    ti_iodelay_extract(val, reg->coarse_delay_count_mask);
-+	if (!ival->coarse_delay_count) {
-+		dev_err(dev, "Invalid Coarse delay count (0) (reg=0x%08x)\n",
-+			val);
-+		return -EINVAL;
-+	}
-+	ival->cdpe = ti_iodelay_compute_dpe(ival->ref_clk_period,
-+					    ival->coarse_ref_count,
-+					    ival->coarse_delay_count, 88);
-+	if (!ival->cdpe) {
-+		dev_err(dev, "Invalid cdpe computed params = %d %d %d\n",
-+			ival->ref_clk_period, ival->coarse_ref_count,
-+			ival->coarse_delay_count);
-+		return -EINVAL;
-+	}
-+	dev_dbg(iod->dev, "coarse: ref=0x%04x delay=0x%04x cdpe=0x%08x\n",
-+		ival->coarse_ref_count, ival->coarse_delay_count, ival->cdpe);
-+
-+	r = regmap_read(iod->regmap, reg->reg_fine_offset, &val);
-+	if (r)
-+		return r;
-+	ival->fine_ref_count =
-+	    ti_iodelay_extract(val, reg->fine_ref_count_mask);
-+	ival->fine_delay_count =
-+	    ti_iodelay_extract(val, reg->fine_delay_count_mask);
-+	if (!ival->fine_delay_count) {
-+		dev_err(dev, "Invalid Fine delay count (0) (reg=0x%08x)\n",
-+			val);
-+		return -EINVAL;
-+	}
-+	ival->fdpe = ti_iodelay_compute_dpe(ival->ref_clk_period,
-+					    ival->fine_ref_count,
-+					    ival->fine_delay_count, 264);
-+	if (!ival->fdpe) {
-+		dev_err(dev, "Invalid fdpe(0) computed params = %d %d %d\n",
-+			ival->ref_clk_period, ival->fine_ref_count,
-+			ival->fine_delay_count);
-+		return -EINVAL;
-+	}
-+	dev_dbg(iod->dev, "fine: ref=0x%04x delay=0x%04x fdpe=0x%08x\n",
-+		ival->fine_ref_count, ival->fine_delay_count, ival->fdpe);
-+
-+	return 0;
-+}
-+
-+/**
-+ * ti_iodelay_pinconf_deinit_dev() - deinit the iodelay device
-+ * @iod:	IODelay device
-+ *
-+ * Deinitialize the IODelay device (basically just lock the region back up.
-+ */
-+static void ti_iodelay_pinconf_deinit_dev(struct ti_iodelay_device *iod)
-+{
-+	const struct ti_iodelay_reg_data *reg = iod->reg_data;
-+
-+	/* lock the iodelay region back again */
-+	regmap_update_bits(iod->regmap, reg->reg_global_lock_offset,
-+			   reg->global_lock_mask, reg->global_lock_val);
-+}
-+
-+/**
-+ * ti_iodelay_get_pingroup() - Find the group mapped by a group selector
-+ * @iod: iodelay device
-+ * @selector: Group Selector
-+ *
-+ * Return: Corresponding group representing group selector
-+ */
-+static struct ti_iodelay_pingroup *
-+ti_iodelay_get_pingroup(struct ti_iodelay_device *iod, unsigned int selector)
-+{
-+	struct group_desc *g;
-+
-+	g = pinctrl_generic_get_group(iod->pctl, selector);
-+	if (!g) {
-+		dev_err(iod->dev, "%s could not find pingroup %i\n", __func__,
-+			selector);
-+
-+		return NULL;
-+	}
-+
-+	return g->data;
-+}
-+
-+/**
-+ * ti_iodelay_offset_to_pin() - get a pin index based on the register offset
-+ * @iod: iodelay driver instance
-+ * @offset: register offset from the base
-+ */
-+static int ti_iodelay_offset_to_pin(struct ti_iodelay_device *iod,
-+				    unsigned int offset)
-+{
-+	const struct ti_iodelay_reg_data *r = iod->reg_data;
-+	unsigned int index;
-+
-+	if (offset > r->regmap_config->max_register) {
-+		dev_err(iod->dev, "mux offset out of range: 0x%x (0x%x)\n",
-+			offset, r->regmap_config->max_register);
-+		return -EINVAL;
-+	}
-+
-+	index = (offset - r->reg_start_offset) / r->regmap_config->reg_stride;
-+	index /= r->reg_nr_per_pin;
-+
-+	return index;
-+}
-+
-+/**
-+ * ti_iodelay_node_iterator() - Iterate iodelay node
-+ * @pctldev: Pin controller driver
-+ * @np: Device node
-+ * @pinctrl_spec: Parsed arguments from device tree
-+ * @pins: Array of pins in the pin group
-+ * @pin_index: Pin index in the pin array
-+ * @data: Pin controller driver specific data
-+ *
-+ */
-+static int ti_iodelay_node_iterator(struct pinctrl_dev *pctldev,
-+				    struct device_node *np,
-+				    const struct of_phandle_args *pinctrl_spec,
-+				    int *pins, int pin_index, void *data)
-+{
-+	struct ti_iodelay_device *iod;
-+	struct ti_iodelay_cfg *cfg = data;
-+	const struct ti_iodelay_reg_data *r;
-+	struct pinctrl_pin_desc *pd;
-+	int pin;
-+
-+	iod = pinctrl_dev_get_drvdata(pctldev);
-+	if (!iod)
-+		return -EINVAL;
-+
-+	r = iod->reg_data;
-+
-+	if (pinctrl_spec->args_count < r->reg_nr_per_pin) {
-+		dev_err(iod->dev, "invalid args_count for spec: %i\n",
-+			pinctrl_spec->args_count);
-+
-+		return -EINVAL;
-+	}
-+
-+	/* Index plus two value cells */
-+	cfg[pin_index].offset = pinctrl_spec->args[0];
-+	cfg[pin_index].a_delay = pinctrl_spec->args[1] & 0xffff;
-+	cfg[pin_index].g_delay = pinctrl_spec->args[2] & 0xffff;
-+
-+	pin = ti_iodelay_offset_to_pin(iod, cfg[pin_index].offset);
-+	if (pin < 0) {
-+		dev_err(iod->dev, "could not add functions for %s %ux\n",
-+			np->name, cfg[pin_index].offset);
-+		return -ENODEV;
-+	}
-+	pins[pin_index] = pin;
-+
-+	pd = &iod->pa[pin];
-+	pd->drv_data = &cfg[pin_index];
-+
-+	dev_dbg(iod->dev, "%s offset=%x a_delay = %d g_delay = %d\n",
-+		np->name, cfg[pin_index].offset, cfg[pin_index].a_delay,
-+		cfg[pin_index].g_delay);
-+
-+	return 0;
-+}
-+
-+/**
-+ * ti_iodelay_dt_node_to_map() - Map a device tree node to appropriate group
-+ * @pctldev: pinctrl device representing IODelay device
-+ * @np: Node Pointer (device tree)
-+ * @map: Pinctrl Map returned back to pinctrl framework
-+ * @num_maps: Number of maps (1)
-+ *
-+ * Maps the device tree description into a group of configuration parameters
-+ * for iodelay block entry.
-+ *
-+ * Return: 0 in case of success, else appropriate error value
-+ */
-+static int ti_iodelay_dt_node_to_map(struct pinctrl_dev *pctldev,
-+				     struct device_node *np,
-+				     struct pinctrl_map **map,
-+				     unsigned int *num_maps)
-+{
-+	struct ti_iodelay_device *iod;
-+	struct ti_iodelay_cfg *cfg;
-+	struct ti_iodelay_pingroup *g;
-+	const char *name = "pinctrl-pin-array";
-+	int rows, *pins, error = -EINVAL, i;
-+
-+	iod = pinctrl_dev_get_drvdata(pctldev);
-+	if (!iod)
-+		return -EINVAL;
-+
-+	rows = pinctrl_count_index_with_args(np, name);
-+	if (rows == -EINVAL)
-+		return rows;
-+
-+	*map = devm_kzalloc(iod->dev, sizeof(**map), GFP_KERNEL);
-+	if (!*map)
-+		return -ENOMEM;
-+	*num_maps = 0;
-+
-+	g = devm_kzalloc(iod->dev, sizeof(*g), GFP_KERNEL);
-+	if (!g) {
-+		error = -ENOMEM;
-+		goto free_map;
-+	}
-+
-+	pins = devm_kzalloc(iod->dev, sizeof(*pins) * rows, GFP_KERNEL);
-+	if (!pins)
-+		goto free_group;
-+
-+	cfg = devm_kzalloc(iod->dev, sizeof(*cfg) * rows, GFP_KERNEL);
-+	if (!cfg) {
-+		error = -ENOMEM;
-+		goto free_pins;
-+	}
-+
-+	for (i = 0; i < rows; i++) {
-+		struct of_phandle_args pinctrl_spec;
-+
-+		error = pinctrl_parse_index_with_args(np, name, i,
-+						      &pinctrl_spec);
-+		if (error)
-+			goto free_data;
-+
-+		error = ti_iodelay_node_iterator(pctldev, np, &pinctrl_spec,
-+						 pins, i, cfg);
-+		if (error)
-+			goto free_data;
-+	}
-+
-+	g->cfg = cfg;
-+	g->ncfg = i;
-+	g->config = PIN_CONFIG_END;
-+
-+	error = pinctrl_generic_add_group(iod->pctl, np->name, pins, i, g);
-+	if (error < 0)
-+		goto free_data;
-+
-+	(*map)->type = PIN_MAP_TYPE_CONFIGS_GROUP;
-+	(*map)->data.configs.group_or_pin = np->name;
-+	(*map)->data.configs.configs = &g->config;
-+	(*map)->data.configs.num_configs = 1;
-+	*num_maps = 1;
-+
-+	return 0;
-+
-+free_data:
-+	devm_kfree(iod->dev, cfg);
-+free_pins:
-+	devm_kfree(iod->dev, pins);
-+free_group:
-+	devm_kfree(iod->dev, g);
-+free_map:
-+	devm_kfree(iod->dev, *map);
-+
-+	return error;
-+}
-+
-+/**
-+ * ti_iodelay_pinconf_group_get() - Get the group configuration
-+ * @pctldev: pinctrl device representing IODelay device
-+ * @selector: Group selector
-+ * @config: Configuration returned
-+ *
-+ * Return: The configuration if the group is valid, else returns -EINVAL
-+ */
-+static int ti_iodelay_pinconf_group_get(struct pinctrl_dev *pctldev,
-+					unsigned int selector,
-+					unsigned long *config)
-+{
-+	struct ti_iodelay_device *iod;
-+	struct device *dev;
-+	struct ti_iodelay_pingroup *group;
-+
-+	iod = pinctrl_dev_get_drvdata(pctldev);
-+	dev = iod->dev;
-+	group = ti_iodelay_get_pingroup(iod, selector);
-+
-+	if (!group)
-+		return -EINVAL;
-+
-+	*config = group->config;
-+	return 0;
-+}
-+
-+/**
-+ * ti_iodelay_pinconf_group_set() - Configure the groups of pins
-+ * @pctldev: pinctrl device representing IODelay device
-+ * @selector: Group selector
-+ * @configs: Configurations
-+ * @num_configs: Number of configurations
-+ *
-+ * Return: 0 if all went fine, else appropriate error value.
-+ */
-+static int ti_iodelay_pinconf_group_set(struct pinctrl_dev *pctldev,
-+					unsigned int selector,
-+					unsigned long *configs,
-+					unsigned int num_configs)
-+{
-+	struct ti_iodelay_device *iod;
-+	struct device *dev;
-+	struct ti_iodelay_pingroup *group;
-+	int i;
-+
-+	iod = pinctrl_dev_get_drvdata(pctldev);
-+	dev = iod->dev;
-+	group = ti_iodelay_get_pingroup(iod, selector);
-+
-+	if (num_configs != 1) {
-+		dev_err(dev, "Unsupported number of configurations %d\n",
-+			num_configs);
-+		return -EINVAL;
-+	}
-+
-+	if (*configs != PIN_CONFIG_END) {
-+		dev_err(dev, "Unsupported configuration\n");
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < group->ncfg; i++) {
-+		if (ti_iodelay_pinconf_set(iod, &group->cfg[i]))
-+			return -ENOTSUPP;
-+	}
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_DEBUG_FS
-+/**
-+ * ti_iodelay_pin_to_offset() - get pin register offset based on the pin index
-+ * @iod: iodelay driver instance
-+ * @selector: Pin index
-+ */
-+static unsigned int ti_iodelay_pin_to_offset(struct ti_iodelay_device *iod,
-+					     unsigned int selector)
-+{
-+	const struct ti_iodelay_reg_data *r = iod->reg_data;
-+	unsigned int offset;
-+
-+	offset = selector * r->regmap_config->reg_stride;
-+	offset *= r->reg_nr_per_pin;
-+	offset += r->reg_start_offset;
-+
-+	return offset;
-+}
-+
-+static void ti_iodelay_pin_dbg_show(struct pinctrl_dev *pctldev,
-+				    struct seq_file *s,
-+				    unsigned int pin)
-+{
-+	struct ti_iodelay_device *iod;
-+	struct pinctrl_pin_desc *pd;
-+	struct ti_iodelay_cfg *cfg;
-+	const struct ti_iodelay_reg_data *r;
-+	unsigned long offset;
-+	u32 in, oen, out;
-+
-+	iod = pinctrl_dev_get_drvdata(pctldev);
-+	r = iod->reg_data;
-+
-+	offset = ti_iodelay_pin_to_offset(iod, pin);
-+	if (pin < 0) {
-+		dev_err(iod->dev, "invalid pin offset for pin%i\n", pin);
-+
-+		return;
-+	}
-+
-+	pd = &iod->pa[pin];
-+	cfg = pd->drv_data;
-+
-+	regmap_read(iod->regmap, offset, &in);
-+	regmap_read(iod->regmap, offset + r->regmap_config->reg_stride, &oen);
-+	regmap_read(iod->regmap, offset + r->regmap_config->reg_stride * 2,
-+		    &out);
-+
-+	seq_printf(s, "%lx a: %i g: %i (%08x %08x %08x) %s ",
-+		   iod->phys_base + offset,
-+		   cfg ? cfg->a_delay : -1,
-+		   cfg ? cfg->g_delay : -1,
-+		   in, oen, out, DRIVER_NAME);
-+}
-+
-+/**
-+ * ti_iodelay_pinconf_group_dbg_show() - show the group information
-+ * @pctldev: Show the group information
-+ * @s: Sequence file
-+ * @selector: Group selector
-+ *
-+ * Provide the configuration information of the selected group
-+ */
-+static void ti_iodelay_pinconf_group_dbg_show(struct pinctrl_dev *pctldev,
-+					      struct seq_file *s,
-+					      unsigned int selector)
-+{
-+	struct ti_iodelay_device *iod;
-+	struct device *dev;
-+	struct ti_iodelay_pingroup *group;
-+	int i;
-+
-+	iod = pinctrl_dev_get_drvdata(pctldev);
-+	dev = iod->dev;
-+	group = ti_iodelay_get_pingroup(iod, selector);
-+	if (!group)
++	if (glue->vbus_irq)
 +		return;
 +
-+	for (i = 0; i < group->ncfg; i++) {
-+		struct ti_iodelay_cfg *cfg;
-+		u32 reg = 0;
-+
-+		cfg = &group->cfg[i];
-+		regmap_read(iod->regmap, cfg->offset, &reg),
-+			seq_printf(s, "\n\t0x%08x = 0x%08x (%3d, %3d)",
-+				   cfg->offset, reg, cfg->a_delay,
-+				   cfg->g_delay);
-+	}
-+}
-+#endif
-+
-+static struct pinctrl_ops ti_iodelay_pinctrl_ops = {
-+	.get_groups_count = pinctrl_generic_get_group_count,
-+	.get_group_name = pinctrl_generic_get_group_name,
-+	.get_group_pins = pinctrl_generic_get_group_pins,
-+#ifdef CONFIG_DEBUG_FS
-+	.pin_dbg_show = ti_iodelay_pin_dbg_show,
-+#endif
-+	.dt_node_to_map = ti_iodelay_dt_node_to_map,
-+};
-+
-+static struct pinconf_ops ti_iodelay_pinctrl_pinconf_ops = {
-+	.pin_config_group_get = ti_iodelay_pinconf_group_get,
-+	.pin_config_group_set = ti_iodelay_pinconf_group_set,
-+#ifdef CONFIG_DEBUG_FS
-+	.pin_config_group_dbg_show = ti_iodelay_pinconf_group_dbg_show,
-+#endif
-+};
-+
-+/**
-+ * ti_iodelay_alloc_pins() - Allocate structures needed for pins for iodelay
-+ * @dev: Device pointer
-+ * @iod: iodelay device
-+ * @base_phy: Base Physical Address
-+ *
-+ * Return: 0 if all went fine, else appropriate error value.
-+ */
-+static int ti_iodelay_alloc_pins(struct device *dev,
-+				 struct ti_iodelay_device *iod, u32 base_phy)
-+{
-+	const struct ti_iodelay_reg_data *r = iod->reg_data;
-+	struct pinctrl_pin_desc *pin;
-+	u32 phy_reg;
-+	int nr_pins, i;
-+
-+	nr_pins = ti_iodelay_offset_to_pin(iod, r->regmap_config->max_register);
-+	dev_dbg(dev, "Allocating %i pins\n", nr_pins);
-+
-+	iod->pa = devm_kzalloc(dev, sizeof(*iod->pa) * nr_pins, GFP_KERNEL);
-+	if (!iod->pa)
-+		return -ENOMEM;
-+
-+	iod->desc.pins = iod->pa;
-+	iod->desc.npins = nr_pins;
-+
-+	phy_reg = r->reg_start_offset + base_phy;
-+
-+	for (i = 0; i < nr_pins; i++, phy_reg += 4) {
-+		pin = &iod->pa[i];
-+		pin->number = i;
-+	}
-+
-+	return 0;
++	dsps_mod_timer(glue, -1);
 +}
 +
-+static struct regmap_config dra7_iodelay_regmap_config = {
-+	.reg_bits = 32,
-+	.reg_stride = 4,
-+	.val_bits = 32,
-+	.max_register = 0xd1c,
-+};
+ /**
+  * dsps_musb_enable - enable interrupts
+  */
+@@ -167,8 +191,7 @@ static void dsps_musb_enable(struct musb *musb)
+ 	/* start polling for ID change in dual-role idle mode */
+ 	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+ 			musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer(glue, -1);
+ }
+ 
+ /**
+@@ -199,6 +222,9 @@ static int dsps_check_status(struct musb *musb, void *unused)
+ 	u8 devctl;
+ 	int skip_session = 0;
+ 
++	if (glue->vbus_irq)
++		del_timer(&glue->timer);
 +
-+static struct ti_iodelay_reg_data dra7_iodelay_data = {
-+	.signature_mask = 0x0003f000,
-+	.signature_value = 0x29,
-+	.lock_mask = 0x00000400,
-+	.lock_val = 1,
-+	.unlock_val = 0,
-+	.binary_data_coarse_mask = 0x000003e0,
-+	.binary_data_fine_mask = 0x0000001f,
-+
-+	.reg_refclk_offset = 0x14,
-+	.refclk_period_mask = 0xffff,
-+
-+	.reg_coarse_offset = 0x18,
-+	.coarse_delay_count_mask = 0xffff0000,
-+	.coarse_ref_count_mask = 0x0000ffff,
-+
-+	.reg_fine_offset = 0x1C,
-+	.fine_delay_count_mask = 0xffff0000,
-+	.fine_ref_count_mask = 0x0000ffff,
-+
-+	.reg_global_lock_offset = 0x2c,
-+	.global_lock_mask = 0x0000ffff,
-+	.global_unlock_val = 0x0000aaaa,
-+	.global_lock_val = 0x0000aaab,
-+
-+	.reg_start_offset = 0x30,
-+	.reg_nr_per_pin = 3,
-+	.regmap_config = &dra7_iodelay_regmap_config,
-+};
-+
-+static const struct of_device_id ti_iodelay_of_match[] = {
-+	{.compatible = "ti,dra7-iodelay", .data = &dra7_iodelay_data},
-+	{ /* Hopefully no more.. */ },
-+};
-+MODULE_DEVICE_TABLE(of, ti_iodelay_of_match);
-+
-+/**
-+ * ti_iodelay_probe() - Standard probe
-+ * @pdev: platform device
-+ *
-+ * Return: 0 if all went fine, else appropriate error value.
-+ */
-+static int ti_iodelay_probe(struct platform_device *pdev)
+ 	/*
+ 	 * We poll because DSPS IP's won't expose several OTG-critical
+ 	 * status change events (from the transceiver) otherwise.
+@@ -209,8 +235,7 @@ static int dsps_check_status(struct musb *musb, void *unused)
+ 
+ 	switch (musb->xceiv->otg->state) {
+ 	case OTG_STATE_A_WAIT_VRISE:
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer_optional(glue);
+ 		break;
+ 	case OTG_STATE_A_WAIT_BCON:
+ 		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+@@ -219,17 +244,18 @@ static int dsps_check_status(struct musb *musb, void *unused)
+ 
+ 	case OTG_STATE_A_IDLE:
+ 	case OTG_STATE_B_IDLE:
+-		if (devctl & MUSB_DEVCTL_BDEVICE) {
+-			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+-			MUSB_DEV_MODE(musb);
+-		} else {
+-			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+-			MUSB_HST_MODE(musb);
++		if (!glue->vbus_irq) {
++			if (devctl & MUSB_DEVCTL_BDEVICE) {
++				musb->xceiv->otg->state = OTG_STATE_B_IDLE;
++				MUSB_DEV_MODE(musb);
++			} else {
++				musb->xceiv->otg->state = OTG_STATE_A_IDLE;
++				MUSB_HST_MODE(musb);
++			}
++			if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
++				musb_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
+ 		}
+-		if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
+-			musb_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer_optional(glue);
+ 		break;
+ 	case OTG_STATE_A_WAIT_VFALL:
+ 		musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+@@ -321,15 +347,13 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+ 			 */
+ 			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
+ 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VFALL;
+-			mod_timer(&glue->timer, jiffies +
+-					msecs_to_jiffies(wrp->poll_timeout));
++			dsps_mod_timer_optional(glue);
+ 			WARNING("VBUS error workaround (delay coming)\n");
+ 		} else if (drvvbus) {
+ 			MUSB_HST_MODE(musb);
+ 			musb->xceiv->otg->default_a = 1;
+ 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+-			mod_timer(&glue->timer, jiffies +
+-				  msecs_to_jiffies(wrp->poll_timeout));
++			dsps_mod_timer_optional(glue);
+ 		} else {
+ 			musb->is_active = 0;
+ 			MUSB_DEV_MODE(musb);
+@@ -353,8 +377,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+ 	switch (musb->xceiv->otg->state) {
+ 	case OTG_STATE_B_IDLE:
+ 	case OTG_STATE_A_WAIT_BCON:
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer_optional(glue);
+ 		break;
+ 	default:
+ 		break;
+@@ -458,8 +481,7 @@ static int dsps_musb_init(struct musb *musb)
+ 		musb_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
+ 	}
+ 
+-	mod_timer(&glue->timer, jiffies +
+-		  msecs_to_jiffies(glue->wrp->poll_timeout));
++	dsps_mod_timer(glue, -1);
+ 
+ 	return dsps_musb_dbg_init(musb, glue);
+ }
+@@ -753,6 +775,47 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
+ 	return ret;
+ }
+ 
++static irqreturn_t dsps_vbus_threaded_irq(int irq, void *priv)
 +{
-+	struct device *dev = &pdev->dev;
-+	struct device_node *np = of_node_get(dev->of_node);
-+	const struct of_device_id *match;
-+	struct resource *res;
-+	struct ti_iodelay_device *iod;
-+	int ret = 0;
++	struct dsps_glue *glue = priv;
++	struct musb *musb = platform_get_drvdata(glue->musb);
 +
-+	if (!np) {
-+		ret = -EINVAL;
-+		dev_err(dev, "No OF node\n");
-+		goto exit_out;
-+	}
++	if (!musb)
++		return IRQ_NONE;
 +
-+	match = of_match_device(ti_iodelay_of_match, dev);
-+	if (!match) {
-+		ret = -EINVAL;
-+		dev_err(dev, "No DATA match\n");
-+		goto exit_out;
-+	}
++	dev_dbg(glue->dev, "VBUS interrupt\n");
++	dsps_mod_timer(glue, 0);
 +
-+	iod = devm_kzalloc(dev, sizeof(*iod), GFP_KERNEL);
-+	if (!iod) {
-+		ret = -ENOMEM;
-+		goto exit_out;
-+	}
-+	iod->dev = dev;
-+	iod->reg_data = match->data;
-+
-+	/* So far We can assume there is only 1 bank of registers */
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_err(dev, "Missing MEM resource\n");
-+		ret = -ENODEV;
-+		goto exit_out;
-+	}
-+
-+	iod->phys_base = res->start;
-+	iod->reg_base = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(iod->reg_base)) {
-+		ret = PTR_ERR(iod->reg_base);
-+		goto exit_out;
-+	}
-+
-+	iod->regmap = devm_regmap_init_mmio(dev, iod->reg_base,
-+					    iod->reg_data->regmap_config);
-+	if (IS_ERR(iod->regmap)) {
-+		dev_err(dev, "Regmap MMIO init failed.\n");
-+		ret = PTR_ERR(iod->regmap);
-+		goto exit_out;
-+	}
-+
-+	if (ti_iodelay_pinconf_init_dev(iod))
-+		goto exit_out;
-+
-+	ret = ti_iodelay_alloc_pins(dev, iod, res->start);
-+	if (ret)
-+		goto exit_out;
-+
-+	iod->desc.pctlops = &ti_iodelay_pinctrl_ops;
-+	/* no pinmux ops - we are pinconf */
-+	iod->desc.confops = &ti_iodelay_pinctrl_pinconf_ops;
-+	iod->desc.name = dev_name(dev);
-+	iod->desc.owner = THIS_MODULE;
-+
-+	iod->pctl = pinctrl_register(&iod->desc, dev, iod);
-+	if (!iod->pctl) {
-+		dev_err(dev, "Failed to register pinctrl\n");
-+		ret = -ENODEV;
-+		goto exit_out;
-+	}
-+
-+	platform_set_drvdata(pdev, iod);
-+
-+exit_out:
-+	of_node_put(np);
-+	return ret;
++	return IRQ_HANDLED;
 +}
 +
-+/**
-+ * ti_iodelay_remove() - standard remove
-+ * @pdev: platform device
-+ *
-+ * Return: 0 if all went fine, else appropriate error value.
-+ */
-+static int ti_iodelay_remove(struct platform_device *pdev)
++static int dsps_setup_optional_vbus_irq(struct platform_device *pdev,
++					struct dsps_glue *glue)
 +{
-+	struct ti_iodelay_device *iod = platform_get_drvdata(pdev);
++	int error;
 +
-+	if (!iod)
++	glue->vbus_irq = platform_get_irq_byname(pdev, "vbus");
++	if (glue->vbus_irq == -EPROBE_DEFER)
++		return glue->vbus_irq;
++
++	if (glue->vbus_irq <= 0) {
++		glue->vbus_irq = 0;
 +		return 0;
++	}
 +
-+	if (iod->pctl)
-+		pinctrl_unregister(iod->pctl);
-+
-+	ti_iodelay_pinconf_deinit_dev(iod);
-+
-+	/* Expect other allocations to be freed by devm */
++	error = devm_request_threaded_irq(glue->dev, glue->vbus_irq,
++					  NULL, dsps_vbus_threaded_irq,
++					  IRQF_ONESHOT,
++					  "vbus", glue);
++	if (error) {
++		glue->vbus_irq = 0;
++		return error;
++	}
++	dev_dbg(glue->dev, "VBUS irq %i configured\n", glue->vbus_irq);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver ti_iodelay_driver = {
-+	.probe = ti_iodelay_probe,
-+	.remove = ti_iodelay_remove,
-+	.driver = {
-+		   .owner = THIS_MODULE,
-+		   .name = DRIVER_NAME,
-+		   .of_match_table = ti_iodelay_of_match,
-+	},
-+};
-+module_platform_driver(ti_iodelay_driver);
+ static int dsps_probe(struct platform_device *pdev)
+ {
+ 	const struct of_device_id *match;
+@@ -781,6 +844,10 @@ static int dsps_probe(struct platform_device *pdev)
+ 	glue->dev = &pdev->dev;
+ 	glue->wrp = wrp;
+ 
++	ret = dsps_setup_optional_vbus_irq(pdev, glue);
++	if (ret)
++		return ret;
 +
-+MODULE_AUTHOR("Texas Instruments, Inc.");
-+MODULE_DESCRIPTION("Pinconf driver for TI's IO Delay module");
-+MODULE_LICENSE("GPL v2");
+ 	platform_set_drvdata(pdev, glue);
+ 	pm_runtime_enable(&pdev->dev);
+ 	ret = dsps_create_musb_pdev(glue, pdev);
+@@ -891,8 +958,7 @@ static int dsps_resume(struct device *dev)
+ 	musb_writel(mbase, wrp->rx_mode, glue->context.rx_mode);
+ 	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+ 	    musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer(glue, -1);
+ 
+ 	return 0;
+ }
 -- 
 2.11.0
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
