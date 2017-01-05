@@ -1,34 +1,34 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/6] ARM: dts: am335x-phycore-som: Update NAND partition
- table
-Date: Thu, 5 Jan 2017 07:36:38 -0800
-Message-ID: <20170105153637.GA4310@atomide.com>
-References: <1483627851-17996-1-git-send-email-t.remmet@phytec.de>
- <1483627851-17996-2-git-send-email-t.remmet@phytec.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] n900 device tree: cleanup
+Date: Thu, 5 Jan 2017 08:15:14 -0800
+Message-ID: <20170105161514.GB4310@atomide.com>
+References: <20161011075416.GA22453@amd>
+ <20161011081243.GA24580@amd>
+ <20161207031048.pi7j4dms5uuco3yf@earth>
+ <201612141328.27244@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1483627851-17996-2-git-send-email-t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+In-Reply-To: <201612141328.27244@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, bcousson@baylibre.com, robh+dt@kernel.org, mark.rutland@arm.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org> [170105 06:57]:
-> To improve NAND safety we updated the partition layout.
-> Added barebox backup partition and removed kernel and oftree
-> partition. They are kept in ubi now.
+* Pali Rohár <pali.rohar@gmail.com> [161214 04:28]:
+> On Wednesday 07 December 2016 04:10:48 Sebastian Reichel wrote:
+> > Hi Tony,
+> > 
+> > It looks like this fell through the cracks. Apart from inconsistent
+> > patch subject:
+> > 
+> > Reviewed-By: Sebastian Reichel <sre@kernel.org>
+> 
+> Fine for me too. Reviewed-By: Pali Rohár <pali.rohar@gmail.com>
 
-What about the users with earlier partition tables?
-
-Please read about "flag day" changes, typically they are not
-acceptable.
-
-Regards,
+Fixing subject line to use "ARM: dts: n900: cleanup" and applying into
+omap-for-v4.11/dt.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
