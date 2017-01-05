@@ -1,55 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/3] ARM: dts: dra7-evm: pinmuxing updates
-Date: Thu, 5 Jan 2017 08:55:55 -0800
-Message-ID: <20170105165555.GH4310@atomide.com>
-References: <cover.1481628266.git.nsekhar@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: omap3: beagleboard-xm: dt: Add ethernet to the
+ device tree
+Date: Thu, 5 Jan 2017 08:51:18 -0800
+Message-ID: <20170105165118.GG4310@atomide.com>
+References: <1480713097-5931-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <CAL_Jsq+M7RWiytEA7zPZvR+7CK37WCxN5ZBOQkpjdswjLHL4fA@mail.gmail.com>
+ <20170105163928.GD4310@atomide.com>
+ <2557392.58vudoaMIY@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1481628266.git.nsekhar@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Kishon Vijay Abraham I <kishon@ti.com>
+In-Reply-To: <2557392.58vudoaMIY@avalon>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sekhar Nori <nsekhar@ti.com> [161213 03:30]:
-> Hi,
+* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [170105 08:49]:
+> On Thursday 05 Jan 2017 08:39:29 Tony Lindgren wrote:
+> > * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170105 08:28]:
+> > > On Fri, Dec 2, 2016 at 3:11 PM, Laurent Pinchart wrote:
+> > >> The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
+> > >> connected to port 2 of the OMAP EHCI controller. The board however has
+> > >> no EEPROM to store the ethernet MAC address, which is programmed by the
+> > >> boot loader.
+> > >> 
+> > >> To allow Linux to use the same MAC address as the boot loader (or for
+> > >> that matter any fixed MAC address), we need a node in the device tree
+> > >> for the ethernet controller that the boot loader can update at runtime
+> > >> with a local-mac-address property. Add it, along with an alias for the
+> > >> ethernet controller to let the boot loader locate it easily.
+> > >> 
+> > >> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> > >> ---
+> > >> Changes since v1:
+> > >> 
+> > >> - Renamed usb2 DT node to hub
+> > >> ---
+> > >> 
+> > >>  arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
+> > >>  1 file changed, 16 insertions(+)
+> > >> 
+> > >> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> > >> b/arch/arm/boot/dts/omap3-beagle-xm.dts index
+> > >> 85e297ed0ea1..673cee2234b2 100644
+> > >> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> > >> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+> > >> @@ -27,6 +27,7 @@
+> > >>         aliases {
+> > >>                 display0 = &dvi0;
+> > >>                 display1 = &tv0;
+> > >> +               ethernet = &ethernet;
+> > > 
+> > > Sorry, just noticed this, but this should be dropped. It's not used
+> > > nor do we want an alias here.
+> > 
+> > OK, will update locally as I have not pushed out yet.
 > 
-> This patch series drops most of the pinmuxing from dra7-evm
-> to satisfy erratum i869 and adds missing eMMC and SD card pinmuxing.
-> 
-> The patches apply to latest linux-next. Tested on DRA74x EVM Rev H
-> using U-Boot 2016.11. Boot tested using NFS and basic testing carried
-> out on SD card, eMMC, Audio capture and playback.
-> 
-> NAND on DRA72 EVM is already unusable due to a similar patch. A patch
-> included here disables the GPMC node.
-> 
-> v1 -> v2:
-> - Add a patch to disable GPMC node on DRA72x EVM
-> - Disable GPMC node on DRA74x EVM
-> 
-> Kishon Vijay Abraham I (1):
->   ARM: dts: dra7-evm: add pinmux configuration for mmc1/2
-> 
-> Sekhar Nori (2):
->   ARM: dts: dra7-evm: Remove pinmux configurations for erratum i869
->   ARM: dts: dra72-evm: drop NAND support
-> 
->  arch/arm/boot/dts/dra7-evm.dts          | 282 ++++----------------------------
->  arch/arm/boot/dts/dra72-evm-common.dtsi |   7 +-
->  2 files changed, 35 insertions(+), 254 deletions(-)
+> The ethernet alias is used by U-Boot to locate the ethernet controller and 
+> update the MAC address.
 
-Applying all into omap-for-v4.11/dt thanks.
+OK let's wait a bit on this one then.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
