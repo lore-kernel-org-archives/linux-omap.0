@@ -1,135 +1,126 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Myir AM437x Rico board support (DTS) for Linux mainline 4.9 and
- 4.4 Ti Processor SDK 03.02.00.05
-Date: Thu, 5 Jan 2017 14:12:52 -0800
-Message-ID: <20170105221252.GA2630@atomide.com>
-References: <201701051754.03159.ppisa@pikron.com>
+From: Murali Karicheri <m-karicheri2@ti.com>
+Subject: Re: [PATCH net-next 01/10] net: netcp: ethss: add support of
+ subsystem register region regmap
+Date: Thu, 5 Jan 2017 17:08:54 -0500
+Message-ID: <586EC3F6.4010109@ti.com>
+References: <1482271793-7671-1-git-send-email-m-karicheri2@ti.com>
+ <1482271793-7671-2-git-send-email-m-karicheri2@ti.com>
+ <20161222212409.arhurpl4bpqf2yw6@rob-hp-laptop> <586EAFBE.1000500@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <201701051754.03159.ppisa-hnFyeMMZ0rvQT0dZR+AlfA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Pisa <ppisa-hnFyeMMZ0rvQT0dZR+AlfA@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, Dan Murphy <DMurphy-l0cyMroinI0@public.gmane.org>, support-0A6ZgDe55FJWk0Htik3J/w@public.gmane.org, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jyri Sarha <jsarha-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <586EAFBE.1000500@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com, linux-kernel@vger.kernel.org, arnd@arndb.de, davem@davemloft.net, devicetree@vger.kernel.org, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 01/05/2017 03:42 PM, Murali Karicheri wrote:
+> Rob,
+> 
+> On 12/22/2016 04:24 PM, Rob Herring wrote:
+>> On Tue, Dec 20, 2016 at 05:09:44PM -0500, Murali Karicheri wrote:
+>>> From: WingMan Kwok <w-kwok2@ti.com>
+>>>
+>>> 10gbe phy driver needs to access the 10gbe subsystem control
+>>> register during phy initialization. To facilitate the shared
+>>> access of the subsystem register region between the 10gbe Ethernet
+>>> driver and the phy driver, this patch adds support of the
+>>> subsystem register region defined by a syscon node in the dts.
+>>>
+>>> Although there is no shared access to the gbe subsystem register
+>>> region, using syscon for that is for the sake of consistency.
+>>>
+>>> This change is backward compatible with previously released gbe
+>>> devicetree bindings.
+>>>
+>>> Signed-off-by: WingMan Kwok <w-kwok2@ti.com>
+>>> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+>>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>>> ---
+>>>  .../devicetree/bindings/net/keystone-netcp.txt     |  16 ++-
+>>>  drivers/net/ethernet/ti/netcp_ethss.c              | 140 +++++++++++++++++----
+>>>  2 files changed, 127 insertions(+), 29 deletions(-)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/net/keystone-netcp.txt b/Documentation/devicetree/bindings/net/keystone-netcp.txt
+>>> index 04ba1dc..0854a73 100644
+>>> --- a/Documentation/devicetree/bindings/net/keystone-netcp.txt
+>>> +++ b/Documentation/devicetree/bindings/net/keystone-netcp.txt
+>>> @@ -72,20 +72,24 @@ Required properties:
+>>>  		"ti,netcp-gbe-2" for 1GbE N NetCP 1.5 (N=2)
+>>>  		"ti,netcp-xgbe" for 10 GbE
+>>>  
+>>> +- syscon-subsys:	phandle to syscon node of the switch
+>>> +			subsystem registers.
+>>> +
+>>>  - reg:		register location and the size for the following register
+>>>  		regions in the specified order.
+>>>  		- switch subsystem registers
+>>> +		- sgmii module registers
+>>
+>> This needs to go on the end of the list. Otherwise, it is not backwards 
+>> compatible.
+> 
+> Thanks for your review! I assumed backward compatibility means new kernel
+> should work with old DTB. The driver code is adjusted to work with both
+> DTBs. Isn't that enough?
+Rob,
 
-* Pavel Pisa <ppisa-hnFyeMMZ0rvQT0dZR+AlfA@public.gmane.org> [170105 08:54]:
-> Hello Tony and others,
-> 
-> I have found some personal time during holydays[*] and proceed
-> furhers with RICO board support for perspective kernel versions.
-> 
-> I have prepared a device tree which provides quite complete
-> board support for the most of peripherals found on MyIR
-> AM437x Ricoboard. I have tested the kernel on the real board
-> which I have bought for myself to do testing and can contribute
-> previous work to to mainline.
-> 
-> LEDs, Ethernet, LEDs, SDcard, eMMC, onboard SPI NVM etc.
-> works. Generally the AM437x mainline support is great except
-> for SGX. It has been pleasant to work with it. I used TFTP boot
-> and ramdisk overlay over NFS exported Debian Jessie RO chroot
-> install.
+I will pull out 1/10 and 2/10 from the series as it needs more work and
+re-submit rest of the patches in my v1 spin. However please reply to my
+above backward compatibility question.
 
-OK nice. Please start sending the patches to linux-omap,
-linux-arm-kernel and devicetree mailing lists so we can
-start merging in the support :)
+Thanks and Regards,
 
-> Only significant missing piece is HDMI support. I have put
-> setup which I prepared for Ti kernels to device-tree.
-> But mainline supports SII9022 HDMI encoder only by
+Murali
 > 
->   drivers/gpu/drm/bridge/sii902x.c
+> Murali
 > 
-> but OMAP DSS changes "sil,sii9022" in device-tree
-> to omapdss,sil,sii9022 which seems to be customized
-> version found in Texas Instruments tree
+>>
+>>>  		- sgmii port3/4 module registers (only for NetCP 1.4)
+>>>  		- switch module registers
+>>>  		- serdes registers (only for 10G)
+>>>  
+>>>  		NetCP 1.4 ethss, here is the order
+>>> -			index #0 - switch subsystem registers
+>>> +			index #0 - sgmii module registers
+>>>  			index #1 - sgmii port3/4 module registers
+>>>  			index #2 - switch module registers
+>>>  
+>>>  		NetCP 1.5 ethss 9 port, 5 port and 2 port
+>>> -			index #0 - switch subsystem registers
+>>> +			index #0 - sgmii module registers
+>>>  			index #1 - switch module registers
+>>>  			index #2 - serdes registers
+>>>  
+>>> @@ -145,6 +149,11 @@ Optional properties:
+>>>  
+>>>  Example binding:
+>>>  
+>>> +gbe_subsys: subsys@2090000 {
+>>> +	compatible = "syscon";
+>>> +	reg = <0x02090000 0x100>;
+>>> +};
+>>> +
+>>>  netcp: netcp@2000000 {
+>>>  	reg = <0x2620110 0x8>;
+>>>  	reg-names = "efuse";
+>>> @@ -163,7 +172,8 @@ netcp: netcp@2000000 {
+>>>  		ranges;
+>>>  		gbe@90000 {
+>>>  			label = "netcp-gbe";
+>>> -			reg = <0x90000 0x300>, <0x90400 0x400>, <0x90800 0x700>;
+>>> +			syscon-subsys = <&gbe_subsys>;
+>>> +			reg = <0x90100 0x200>, <0x90400 0x200>, <0x90800 0x700>;
+>>>  			/* enable-ale; */
+>>>  			tx-queue = <648>;
+>>>  			tx-channel = <8>;
+>>
 > 
->   drivers/gpu/drm/omapdrm/displays/encoder-sii9022-video.c
 > 
-> Do you know if there are some plans to support combination
-> of this driver or include customized version in mainline
-> for OMAP?
-> 
-> I expect that non accelerated graphic with parallel
-> LCD panel would work with 4.9 mainline kernel and
-> the prepared device tree if #if 0 is changed to #if 1.
-> 
-> The 4.9 mainline support files can be found there
-> 
->   http://pikron.com/files/linux/rico/linux-4.9/am437x-myir-ricoboard.dts
->   http://pikron.com/files/linux/rico/linux-4.9/am437x-myir-ricoboard.dtb
->   
-> http://pikron.com/files/linux/rico/linux-4.9/config-4.9-mainline-myir-ricoboard
-
-Seems OK for the dts on a quick glance. Tomi and Jyri would
-know more about the HDMI support.
-
-> I would be happy if they can help others, some feedback
-> and cooperation would be great as well. I would be happy
-> to contribute DTS to mainline if it is found acceptable.
-
-Yeah let's do that first, then you can figure out the HDMI
-part.
-
-> I can prepare version without HDMI or complete DSS section
-> if actual untested/able section is unacceptable.
-> 
-> Because of missing HDMI support and attempt to test SGX
-> accelerated support, I have tried official Ti
-> Processor SDK image for AM437x (am437x-evm-linux-03.02.00.05).
-> I have prepared DTS and tested it with my overlay enabled
-> kernel and Debian and Ti root filesystems as well as with
-> original Ti kernel.
-> 
-> There are files for use with HDMI connected monitor
-> 
->   files/linux/rico/linux-ti-4.4/am437x-myir-ricoboard-hdmi.dts
->   files/linux/rico/linux-ti-4.4/am437x-myir-ricoboard-hdmi.dtb
->   files/linux/rico/linux-ti-4.4/config-ti-4.4-myir-ricoboard
-> 
-> and another set for parallel LCD panel (untested)
-> 
->   files/linux/rico/linux-ti-4.4/am437x-myir-ricoboard.dts
->   files/linux/rico/linux-ti-4.4/am437x-myir-ricoboard.dtb
-> 
-> I have managed to build SGX driver for my kernel configuration
-> and from the testing of Ti image it seem to be used same way
-> as for original Ti kernel build.
-> 
-> I have no luck with accelerated Xorg. But Ti release notes
-> states that Xorg support is missing in 03.02.00.05.
-> 
-> There is question if it is permanent status or if there is some
-> change.
-> 
-> Is there chance that Ti includes this prepared DTS in their
-> kernel branch?
-> 
-> For sure mainline 4.9 support is even more interesting
-> for me and future.
-
-No idea about the above really, but the basic support seem
-very much straight forward.
-
-Regards,
-
-Tony
 
 
-> [*] Our company partner cares mainly (and may be pays something)
-> for my work on maintenance of ancient MyIR Linux 3.12.10 kernel
-> in their products. And MyIR company does not seem to really
-> care about users and updates at all even if the enhancements
-> are sent them for free. Typical experience but great thing about
-> this board is that a schematic diagram is provided which makes
-> possible to develop proper support.
-> 
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Murali Karicheri
+Linux Kernel, Keystone
