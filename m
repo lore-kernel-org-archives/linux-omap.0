@@ -1,39 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pinctrl: Introduce TI IOdelay configuration driver
-Date: Thu, 5 Jan 2017 10:50:21 -0800
-Message-ID: <20170105185020.GQ4310@atomide.com>
-References: <20161230183732.5595-1-tony@atomide.com>
- <20161230183732.5595-3-tony@atomide.com>
- <20170102221228.GH9325@atomide.com>
- <41e171e7-4812-51fa-980c-197f7db7b5ef@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: omap3: beagleboard-xm: dt: Add ethernet to the
+ device tree
+Date: Thu, 5 Jan 2017 12:50:09 -0600
+Message-ID: <CAL_JsqKQLd2SFNVKwZDPTKL-spWknEe5aFDT5RZoCnV1qOP=4Q@mail.gmail.com>
+References: <1480713097-5931-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <CAL_Jsq+M7RWiytEA7zPZvR+7CK37WCxN5ZBOQkpjdswjLHL4fA@mail.gmail.com>
+ <20170105163928.GD4310@atomide.com> <2557392.58vudoaMIY@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <41e171e7-4812-51fa-980c-197f7db7b5ef@ti.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Gary Bisson <gary.bisson@boundarydevices.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Lokesh Vutla <lokeshvutla@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2557392.58vudoaMIY@avalon>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [170104 09:58]:
-> On 01/02/2017 04:12 PM, Tony Lindgren wrote:
-> [...]
-> 
-> I got the following warnings with kernel-doc:
-> > $ ./scripts/kernel-doc drivers/pinctrl/ti/pinctrl-ti-iodelay.c>/dev/null
-> > drivers/pinctrl/ti/pinctrl-ti-iodelay.c:132: warning: Excess struct/union/enum/typedef member 'name' description in 'ti_iodelay_pingroup'
-> > drivers/pinctrl/ti/pinctrl-ti-iodelay.c:132: warning: Excess struct/union/enum/typedef member 'map' description in 'ti_iodelay_pingroup'
-> > drivers/pinctrl/ti/pinctrl-ti-iodelay.c:159: warning: Excess struct/union/enum/typedef member 'names' description in 'ti_iodelay_device'
-> > drivers/pinctrl/ti/pinctrl-ti-iodelay.c:211: warning: No description found for parameter 'cfg'
-> > drivers/pinctrl/ti/pinctrl-ti-iodelay.c:211: warning: Excess function parameter 'val' description in 'ti_iodelay_pinconf_set'
-> > drivers/pinctrl/ti/pinctrl-ti-iodelay.c:418: warning: Cannot understand  *
-> >  on line 418 - I thought it was a doc line
-> 
-> Marking them below
+On Thu, Jan 5, 2017 at 10:48 AM, Laurent Pinchart
+<laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> wrote:
+> Hello,
+>
+> On Thursday 05 Jan 2017 08:39:29 Tony Lindgren wrote:
+>> * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170105 08:28]:
+>> > On Fri, Dec 2, 2016 at 3:11 PM, Laurent Pinchart wrote:
+>> >> The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
+>> >> connected to port 2 of the OMAP EHCI controller. The board however has
+>> >> no EEPROM to store the ethernet MAC address, which is programmed by the
+>> >> boot loader.
+>> >>
+>> >> To allow Linux to use the same MAC address as the boot loader (or for
+>> >> that matter any fixed MAC address), we need a node in the device tree
+>> >> for the ethernet controller that the boot loader can update at runtime
+>> >> with a local-mac-address property. Add it, along with an alias for the
+>> >> ethernet controller to let the boot loader locate it easily.
+>> >>
+>> >> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+>> >> ---
+>> >> Changes since v1:
+>> >>
+>> >> - Renamed usb2 DT node to hub
+>> >> ---
+>> >>
+>> >>  arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
+>> >>  1 file changed, 16 insertions(+)
+>> >>
+>> >> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> >> b/arch/arm/boot/dts/omap3-beagle-xm.dts index
+>> >> 85e297ed0ea1..673cee2234b2 100644
+>> >> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> >> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+>> >> @@ -27,6 +27,7 @@
+>> >>         aliases {
+>> >>                 display0 = &dvi0;
+>> >>                 display1 = &tv0;
+>> >> +               ethernet = &ethernet;
+>> >
+>> > Sorry, just noticed this, but this should be dropped. It's not used
+>> > nor do we want an alias here.
+>>
+>> OK, will update locally as I have not pushed out yet.
+>
+> The ethernet alias is used by U-Boot to locate the ethernet controller and
+> update the MAC address.
 
-OK thanks will repost v3 shortly.
+Okay. Though with only only one, I don't see why that is hard to find.
+Anyway, this is the least of u-boot's DT abuses.
 
-Regards,
+>> > P.S. The display ones are questionable, too. Only OMAP has them and
+>> > per platform alias names is not something we want.
+>>
+>> OK. What about the mmc ones? Otherwise the MMC devices keep moving
+>> around depending on the kernel version..
 
-Tony
+This is a solved problem. Consistent dev numbering is not a feature of
+the kernel and MMC is not special.
+
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
