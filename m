@@ -1,63 +1,74 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 3/3] ARM: dts: omap5-igep0050: Allow bootloader to configure USB Ethernet MAC
-Date: Thu,  5 Jan 2017 08:37:03 -0800
-Message-ID: <20170105163703.1982-4-tony@atomide.com>
-References: <20170105163703.1982-1-tony@atomide.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: omap3: beagleboard-xm: dt: Add ethernet to the device tree
+Date: Thu, 05 Jan 2017 18:48:38 +0200
+Message-ID: <2557392.58vudoaMIY@avalon>
+References: <1480713097-5931-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAL_Jsq+M7RWiytEA7zPZvR+7CK37WCxN5ZBOQkpjdswjLHL4fA@mail.gmail.com> <20170105163928.GD4310@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170105163703.1982-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170105163928.GD4310-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is slightly different wiring compared to omap5-uevm or pandaboard:
+Hello,
 
-/sys/bus/usb/devices/3-2	hub
-/sys/bus/usb/devices/3-2.3	7500
+On Thursday 05 Jan 2017 08:39:29 Tony Lindgren wrote:
+> * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170105 08:28]:
+> > On Fri, Dec 2, 2016 at 3:11 PM, Laurent Pinchart wrote:
+> >> The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
+> >> connected to port 2 of the OMAP EHCI controller. The board however has
+> >> no EEPROM to store the ethernet MAC address, which is programmed by the
+> >> boot loader.
+> >> 
+> >> To allow Linux to use the same MAC address as the boot loader (or for
+> >> that matter any fixed MAC address), we need a node in the device tree
+> >> for the ethernet controller that the boot loader can update at runtime
+> >> with a local-mac-address property. Add it, along with an alias for the
+> >> ethernet controller to let the boot loader locate it easily.
+> >> 
+> >> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> >> ---
+> >> Changes since v1:
+> >> 
+> >> - Renamed usb2 DT node to hub
+> >> ---
+> >> 
+> >>  arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
+> >>  1 file changed, 16 insertions(+)
+> >> 
+> >> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> >> b/arch/arm/boot/dts/omap3-beagle-xm.dts index
+> >> 85e297ed0ea1..673cee2234b2 100644
+> >> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> >> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+> >> @@ -27,6 +27,7 @@
+> >>         aliases {
+> >>                 display0 = &dvi0;
+> >>                 display1 = &tv0;
+> >> +               ethernet = &ethernet;
+> > 
+> > Sorry, just noticed this, but this should be dropped. It's not used
+> > nor do we want an alias here.
+> 
+> OK, will update locally as I have not pushed out yet.
 
-Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/boot/dts/omap5-igep0050.dts | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+The ethernet alias is used by U-Boot to locate the ethernet controller and 
+update the MAC address.
 
-diff --git a/arch/arm/boot/dts/omap5-igep0050.dts b/arch/arm/boot/dts/omap5-igep0050.dts
---- a/arch/arm/boot/dts/omap5-igep0050.dts
-+++ b/arch/arm/boot/dts/omap5-igep0050.dts
-@@ -19,6 +19,10 @@
- 		reg = <0x0 0x80000000 0 0x7f000000>;	/* 2032 MB */
- 	};
- 
-+	aliases {
-+		ethernet = &ethernet;
-+	};
-+
- 	gpio_keys {
- 		compatible = "gpio-keys";
- 		pinctrl-0 = <&power_button_pin>;
-@@ -116,3 +120,20 @@
- 		OMAP5_IOPAD(0x1ca, PIN_OUTPUT | MUX_MODE6)	/* perslimbus2_clock.gpio5_145 */
- 	>;
- };
-+
-+&usbhsehci {
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	hub@2 {
-+		compatible = "usb424,3503";
-+		reg = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		ethernet: usbether@3 {
-+			compatible = "usb424,7500";
-+			reg = <3>;
-+		};
-+	};
-+};
+> > P.S. The display ones are questionable, too. Only OMAP has them and
+> > per platform alias names is not something we want.
+> 
+> OK. What about the mmc ones? Otherwise the MMC devices keep moving
+> around depending on the kernel version..
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
+
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
