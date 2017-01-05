@@ -1,35 +1,55 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am335x-chilisom: Wakeup from RTC-only state by
- power on event
-Date: Thu, 5 Jan 2017 08:47:06 -0800
-Message-ID: <20170105164706.GE4310@atomide.com>
-References: <20161209113327.19727-1-m.niestroj@grinn-global.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 0/3] ARM: dts: dra7-evm: pinmuxing updates
+Date: Thu, 5 Jan 2017 08:55:55 -0800
+Message-ID: <20170105165555.GH4310@atomide.com>
+References: <cover.1481628266.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20161209113327.19727-1-m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <cover.1481628266.git.nsekhar@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Marcin Niestroj <m.niestroj-z3quKL4iOrmQ6ZAhV5LmOA@public.gmane.org> [161209 03:33]:
-> On chiliSOM TPS65217 nWAKEUP pin is connected to AM335x internal RTC
-> EXT_WAKEUP input. In RTC-only state TPS65217 is notifying about power on
-> events (such as power buton presses) by setting nWAKEUP output
-> low. After that it waits 5s for proper device boot. Currently it doesn't
-> happen, as the processor doesn't listen for such events. Consequently
-> TPS65217 changes state from SLEEP (RTC-only state) to OFF.
+* Sekhar Nori <nsekhar@ti.com> [161213 03:30]:
+> Hi,
 > 
-> Enable EXT_WAKEUP input of AM335x's RTC, so the processor can properly
-> detect power on events and recover immediately from RTC-only states,
-> without powering off RTC and losing time.
+> This patch series drops most of the pinmuxing from dra7-evm
+> to satisfy erratum i869 and adds missing eMMC and SD card pinmuxing.
+> 
+> The patches apply to latest linux-next. Tested on DRA74x EVM Rev H
+> using U-Boot 2016.11. Boot tested using NFS and basic testing carried
+> out on SD card, eMMC, Audio capture and playback.
+> 
+> NAND on DRA72 EVM is already unusable due to a similar patch. A patch
+> included here disables the GPMC node.
+> 
+> v1 -> v2:
+> - Add a patch to disable GPMC node on DRA72x EVM
+> - Disable GPMC node on DRA74x EVM
+> 
+> Kishon Vijay Abraham I (1):
+>   ARM: dts: dra7-evm: add pinmux configuration for mmc1/2
+> 
+> Sekhar Nori (2):
+>   ARM: dts: dra7-evm: Remove pinmux configurations for erratum i869
+>   ARM: dts: dra72-evm: drop NAND support
+> 
+>  arch/arm/boot/dts/dra7-evm.dts          | 282 ++++----------------------------
+>  arch/arm/boot/dts/dra72-evm-common.dtsi |   7 +-
+>  2 files changed, 35 insertions(+), 254 deletions(-)
 
-Applying into omap-for-v4.11/dt thanks.
+Applying all into omap-for-v4.11/dt thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
