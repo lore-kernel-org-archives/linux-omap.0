@@ -1,101 +1,187 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: Nokia N900 sound driver and ECI GPIOs
-Date: Wed, 4 Jan 2017 23:41:37 +0100
-Message-ID: <201701042341.37944@pali>
-References: <201701012054.54505@pali> <2036063.jAbaHqGlp2@saturn> <20170104222749.4xmyws6zcifeicz5@raspberrypi-2.musicnaut.iki.fi>
+From: Matt Ranostay <matt@ranostay.consulting>
+Subject: [PATCH v5] ASoC: omap-mcbsp: Add PM QoS support for
+	McBSP to prevent glitches
+Date: Wed,  4 Jan 2017 17:59:18 -0800
+Message-ID: <20170105015918.21621-1-matt@ranostay.consulting>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart8948303.7JE7sSu3do";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170104222749.4xmyws6zcifeicz5@raspberrypi-2.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: joerg Reisenweber <joerg@openmoko.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Tony Lindgren <tony@atomide.com>, Eduardo Valentin <edubezval@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, Nishanth Menon <nm@ti.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Matt Ranostay <matt@ranostay.consulting>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart8948303.7JE7sSu3do
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+We can get audio errors if hitting deeper idle states on omaps:
 
-On Wednesday 04 January 2017 23:27:49 Aaro Koskinen wrote:
-> Hi,
->=20
-> On Mon, Jan 02, 2017 at 10:05:39PM +0100, joerg Reisenweber wrote:
-> > On Mon 02 January 2017 21:01:01 Pali Roh=C3=A1r wrote:
-> > > On Monday 02 January 2017 19:49:45 Aaro Koskinen wrote:
-> > > > The schematic shows ECI(5:0), but only 3 are connected/used.
-> > > > There were 3 other GPIOs reserved but not used in the final
-> > > > product.
-> > >=20
-> > > Are you sure that this is truth (maybe you have some
-> > > information)? Or you just looked at schematic and deduced this
-> > > observation (as other people too)?
-> > >=20
-> > > Joerg already told us that RX51 schematic does not 100% match
-> > > production N900 and e.g. there is missing UART3 pins...
-> >=20
-> > We found this, see https://irclog.whitequark.org/neo900/2017-01-01
-> > (has a lot of possibly useful references/links)
-> > The question is if pin AA3 aka GPIO_178 is actually NotConnected in
-> > N900 or it's just an omission in schematics and there's actually
-> > some more 'stealth hardware' in N900 that doesn't show up in docs,
-> > just like the testpoint UART console
-> > http://wiki.maemo.org/N900_Hardware_Hacking#Debug_ports which also
-> > are missing in schematics.
-> >=20
-> > > What we know that gpio 178 is *already* controlled and changed by
-> > > production Nokia kernel running on production N900 devices (as I
-> > > wrote in first email).
-> >=20
-> > I could use one of the unpopulated N900 PCB and solder a wire to
-> > the OMAP AA3 pad, then try to make sure it's not connected to
-> > anything, or if it is then find out about the details of this.
-> > But I'm reluctant to do this, since it's an error prone and (in
-> > case of N/C) not verifiable procedure, so I'd appreciate any
-> > further info, whether from historical anecdote or from sourcecode
-> > review and conclusions, regarding that.
->=20
-> Even if the published production kernel source controls GPIO 178, it
-> does not mean the production device has it connected, as the same
-> kernel also supported many older in-house prototype versions of the
-> hardware (and some of those had it connected).
+[alsa.c:230] error: Fatal problem with alsa output, error -5.
+[audio.c:614] error: Error in writing audio (Input/output error?)!
 
-Yes, seems reasonable. Also in production kernel source there is on some=20
-places check for prototype hw revision and acts differently...
+This seems to happen with off mode idle enabled as power for the
+whole SoC may get cut off between filling the McBSP fifo using DMA.
+While active DMA blocks deeper idle states in hardware, McBSP
+activity does not seem to do so.
 
-> Probably the easiest test would be to take the final published
-> source, and then comment out all the GPIO 178 related code and build
-> and run the kernel on the production device. Then see if you can
-> observe any difference in behaviour.
+Basing the QoS latency calculation on the FIFO size, threshold,
+sample rate, and channels.
 
-Current mainline kernel does not control GPIO 178, so looks like audio=20
-somehow working... Jarkko sent driver to mainline so I asked in this=20
-thread if does not know something... But A/V cable detection is not in=20
-mainline (yet).
+Based on the original patch by Tony Lindgren
+Link: https://patchwork.kernel.org/patch/9305867/
 
-We can do that test to verify if production Maemo system is working as=20
-before. But result "nothing visible" does not prove that GPIO does not=20
-control anything. With this test we can just prove if system stops=20
-working as before.
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
+---
+Changes from v1:
+* add calculations for latency per number of FIFO locations
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Changes from v2:
+* add missing mcbsp.h header change
 
---nextPart8948303.7JE7sSu3do
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+Changes from v3:
+* base the latency calculations on threshold, buffer size, sample
+  rate, and channels
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Changes from v4:
+* using Peter Ujfalusi's suggestions for restoring a higher latency on
+  audio stream completion, or if not applicable remove the QoS request
 
-iEYEABECAAYFAlhteiEACgkQi/DJPQPkQ1LN2ACgzG5erLDHS226n7TyCAQ8Ed12
-UYAAnijKbbPynxDvRfvYORVn9z1y/wRz
-=ivmS
------END PGP SIGNATURE-----
+ sound/soc/omap/mcbsp.c      | 37 +++++++++++++++++++++++++++++++++++++
+ sound/soc/omap/mcbsp.h      |  3 +++
+ sound/soc/omap/omap-mcbsp.c | 11 ++++++++++-
+ 3 files changed, 50 insertions(+), 1 deletion(-)
 
---nextPart8948303.7JE7sSu3do--
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 06fec5699cc8..f079650b71e3 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -25,6 +25,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_qos.h>
+ 
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ 
+@@ -640,9 +641,28 @@ void omap_mcbsp_free(struct omap_mcbsp *mcbsp)
+  */
+ void omap_mcbsp_start(struct omap_mcbsp *mcbsp, int tx, int rx)
+ {
++	struct pm_qos_request *pm_qos_req = &mcbsp->pm_qos_req;
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
+ 	int enable_srg = 0;
++	int latency;
+ 	u16 w;
+ 
++	/* Prevent omap hardware from hitting off between FIFO fills */
++	if (!mcbsp->latency[stream2] ||
++			mcbsp->latency[stream1] < mcbsp->latency[stream2])
++		latency = mcbsp->latency[stream1];
++	else
++		latency = mcbsp->latency[stream2];
++
++	if (latency) {
++		if (pm_qos_request_active(pm_qos_req))
++			pm_qos_update_request(pm_qos_req, latency);
++		else
++			pm_qos_add_request(pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
++					   latency);
++	}
++
+ 	if (mcbsp->st_data)
+ 		omap_st_start(mcbsp);
+ 
+@@ -731,6 +751,20 @@ void omap_mcbsp_stop(struct omap_mcbsp *mcbsp, int tx, int rx)
+ 
+ 	if (mcbsp->st_data)
+ 		omap_st_stop(mcbsp);
++
++	if (pm_qos_request_active(&mcbsp->pm_qos_req)) {
++		int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK :
++			SNDRV_PCM_STREAM_CAPTURE;
++		int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE :
++			SNDRV_PCM_STREAM_PLAYBACK;
++
++		mcbsp->latency[stream1] = 0;
++		if (mcbsp->latency[stream2])
++			pm_qos_update_request(&mcbsp->pm_qos_req,
++					      mcbsp->latency[stream2]);
++		else
++			pm_qos_remove_request(&mcbsp->pm_qos_req);
++	}
+ }
+ 
+ int omap2_mcbsp_set_clks_src(struct omap_mcbsp *mcbsp, u8 fck_src_id)
+@@ -1098,6 +1132,9 @@ int omap_mcbsp_init(struct platform_device *pdev)
+ 
+ void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp)
+ {
++	if (pm_qos_request_active(&mcbsp->pm_qos_req))
++		pm_qos_remove_request(&mcbsp->pm_qos_req);
++
+ 	if (mcbsp->pdata->buffer_size)
+ 		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
+ 
+diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
+index 61e93b1c185d..46ae1269a698 100644
+--- a/sound/soc/omap/mcbsp.h
++++ b/sound/soc/omap/mcbsp.h
+@@ -323,8 +323,11 @@ struct omap_mcbsp {
+ 
+ 	unsigned int fmt;
+ 	unsigned int in_freq;
++	unsigned int latency[2];
+ 	int clk_div;
+ 	int wlen;
++
++	struct pm_qos_request pm_qos_req;
+ };
+ 
+ void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index d018e966e533..7e00938271c6 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -226,6 +226,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	int wlen, channels, wpf;
+ 	int pkt_size = 0;
+ 	unsigned int format, div, framesize, master;
++	unsigned int buffer_size = mcbsp->pdata->buffer_size;
+ 
+ 	dma_data = snd_soc_dai_get_dma_data(cpu_dai, substream);
+ 	channels = params_channels(params);
+@@ -240,7 +241,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	if (mcbsp->pdata->buffer_size) {
++	if (buffer_size) {
++		int latency;
++
+ 		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
+ 			int period_words, max_thrsh;
+ 			int divider = 0;
+@@ -271,6 +274,12 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 			/* Use packet mode for non mono streams */
+ 			pkt_size = channels;
+ 		}
++
++		latency = ((((buffer_size - pkt_size) / channels) * 1000)
++				 / (params->rate_num / params->rate_den));
++
++		mcbsp->latency[substream->stream] = latency;
++
+ 		omap_mcbsp_set_threshold(substream, pkt_size);
+ 	}
+ 
+-- 
+2.10.2
