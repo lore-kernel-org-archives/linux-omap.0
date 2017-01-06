@@ -1,120 +1,116 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v2 5/7] net: ethernet: ti: cpsw: add support for descs pool size configuration
-Date: Fri, 6 Jan 2017 14:07:33 -0600
-Message-ID: <20170106200735.4210-6-grygorii.strashko@ti.com>
-References: <20170106200735.4210-1-grygorii.strashko@ti.com>
+From: Murali Karicheri <m-karicheri2@ti.com>
+Subject: [net-next v1 1/8] net: netcp: extract eflag from desc for rx_hook handling
+Date: Fri, 6 Jan 2017 15:37:39 -0500
+Message-ID: <1483735066-14632-2-git-send-email-m-karicheri2@ti.com>
+References: <1483735066-14632-1-git-send-email-m-karicheri2@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170106200735.4210-1-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1483735066-14632-1-git-send-email-m-karicheri2@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, arnd@arndb.de, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, mugunthanvnm@ti.com, linux-omap@vger.kernel.org, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The CPSW CPDMA can process buffer descriptors placed as in internal
-CPPI RAM as in DDR. This patch adds support in CPSW and CPDMA for
-descs_pool_size mudule parameter, which defines total number of CPDMA CPPI
-descriptors to be used for both ingress/egress packets processing:
- - memory size, required for CPDMA descriptor pool, is calculated basing
-on number of descriptors specified by user in descs_pool_size and
-CPDMA descriptor size and allocated from coherent memory (CMA area);
- - CPDMA descriptor pool will be allocated in DDR if pool memory size >
-internal CPPI RAM or use internal CPPI RAM otherwise;
- - if descs_pool_size not specified in DT - the default value 256 will
-be used which will allow to place CPDMA descriptors pool into the
-internal CPPI RAM (current default behaviour);
- - CPDMA will ignore descs_pool_size if descs_pool_size = 0 for
-backward comaptiobility with davinci_emac.
+Extract the eflag bits from the received desc and pass it down
+the rx_hook chain to be available for netcp modules. Also the
+psdata and epib data has to be inspected by the netcp modules.
+So the desc can be freed only after returning from the rx_hook.
+So move knav_pool_desc_put() after the rx_hook processing.
 
-descs_pool_size is boot time setting and can't be changed once
-CPSW/CPDMA is initialized.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c          | 12 +++++++++---
- drivers/net/ethernet/ti/davinci_cpdma.c | 12 ++++++++++++
- drivers/net/ethernet/ti/davinci_cpdma.h |  1 +
- 3 files changed, 22 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/ti/netcp.h      |  1 +
+ drivers/net/ethernet/ti/netcp_core.c | 20 +++++++++++++++++---
+ include/linux/soc/ti/knav_dma.h      |  2 ++
+ 3 files changed, 20 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index b203143..d39875e 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -145,6 +145,7 @@ do {								\
- 		cpsw->data.active_slave)
- #define IRQ_NUM			2
- #define CPSW_MAX_QUEUES		8
-+#define CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT 256
+diff --git a/drivers/net/ethernet/ti/netcp.h b/drivers/net/ethernet/ti/netcp.h
+index 0f58c58..a92abd6 100644
+--- a/drivers/net/ethernet/ti/netcp.h
++++ b/drivers/net/ethernet/ti/netcp.h
+@@ -115,6 +115,7 @@ struct netcp_packet {
+ 	struct sk_buff		*skb;
+ 	__le32			*epib;
+ 	u32			*psdata;
++	u32			eflags;
+ 	unsigned int		psdata_len;
+ 	struct netcp_intf	*netcp;
+ 	struct netcp_tx_pipe	*tx_pipe;
+diff --git a/drivers/net/ethernet/ti/netcp_core.c b/drivers/net/ethernet/ti/netcp_core.c
+index c243335..a136c56 100644
+--- a/drivers/net/ethernet/ti/netcp_core.c
++++ b/drivers/net/ethernet/ti/netcp_core.c
+@@ -122,6 +122,13 @@ static void get_pkt_info(dma_addr_t *buff, u32 *buff_len, dma_addr_t *ndesc,
+ 	*ndesc = le32_to_cpu(desc->next_desc);
+ }
  
- static int debug_level;
- module_param(debug_level, int, 0);
-@@ -158,6 +159,10 @@ static int rx_packet_max = CPSW_MAX_PACKET_SIZE;
- module_param(rx_packet_max, int, 0);
- MODULE_PARM_DESC(rx_packet_max, "maximum receive packet size (bytes)");
- 
-+static int descs_pool_size = CPSW_CPDMA_DESCS_POOL_SIZE_DEFAULT;
-+module_param(descs_pool_size, int, 0444);
-+MODULE_PARM_DESC(descs_pool_size, "Number of CPDMA CPPI descriptors in pool");
++static void get_desc_info(u32 *desc_info, u32 *pkt_info,
++			  struct knav_dma_desc *desc)
++{
++	*desc_info = le32_to_cpu(desc->desc_info);
++	*pkt_info = le32_to_cpu(desc->packet_info);
++}
 +
- struct cpsw_wr_regs {
- 	u32	id_ver;
- 	u32	soft_reset;
-@@ -2969,6 +2974,7 @@ static int cpsw_probe(struct platform_device *pdev)
- 	dma_params.has_ext_regs		= true;
- 	dma_params.desc_hw_addr         = dma_params.desc_mem_phys;
- 	dma_params.bus_freq_mhz		= cpsw->bus_freq_mhz;
-+	dma_params.descs_pool_size	= descs_pool_size;
+ static u32 get_sw_data(int index, struct knav_dma_desc *desc)
+ {
+ 	/* No Endian conversion needed as this data is untouched by hw */
+@@ -653,6 +660,7 @@ static int netcp_process_one_rx_packet(struct netcp_intf *netcp)
+ 	struct netcp_packet p_info;
+ 	struct sk_buff *skb;
+ 	void *org_buf_ptr;
++	u32 tmp;
  
- 	cpsw->dma = cpdma_ctlr_create(&dma_params);
- 	if (!cpsw->dma) {
-@@ -3072,9 +3078,9 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_ale_ret;
+ 	dma_desc = knav_queue_pop(netcp->rx_queue, &dma_sz);
+ 	if (!dma_desc)
+@@ -724,9 +732,6 @@ static int netcp_process_one_rx_packet(struct netcp_intf *netcp)
+ 		knav_pool_desc_put(netcp->rx_pool, ndesc);
  	}
  
--	cpsw_notice(priv, probe, "initialized device (regs %pa, irq %d)\n",
--		    &ss_res->start, ndev->irq);
+-	/* Free the primary descriptor */
+-	knav_pool_desc_put(netcp->rx_pool, desc);
 -
-+	cpsw_notice(priv, probe,
-+		    "initialized device (regs %pa, irq %d, pool size %d)\n",
-+		    &ss_res->start, ndev->irq, dma_params.descs_pool_size);
- 	if (cpsw->data.dual_emac) {
- 		ret = cpsw_probe_dual_emac(priv);
- 		if (ret) {
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index b229bf3..65e2f12 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -219,6 +219,18 @@ int cpdma_desc_pool_create(struct cpdma_ctlr *ctlr)
- 				cpdma_params->desc_align);
- 	pool->num_desc	= pool->mem_size / pool->desc_size;
+ 	/* check for packet len and warn */
+ 	if (unlikely(pkt_sz != accum_sz))
+ 		dev_dbg(netcp->ndev_dev, "mismatch in packet size(%d) & sum of fragments(%d)\n",
+@@ -739,6 +744,11 @@ static int netcp_process_one_rx_packet(struct netcp_intf *netcp)
+ 	p_info.skb = skb;
+ 	skb->dev = netcp->ndev;
+ 	p_info.rxtstamp_complete = false;
++	get_desc_info(&tmp, &p_info.eflags, desc);
++	p_info.epib = desc->epib;
++	p_info.psdata = (u32 __force *)desc->psdata;
++	p_info.eflags = ((p_info.eflags >> KNAV_DMA_DESC_EFLAGS_SHIFT) &
++			 KNAV_DMA_DESC_EFLAGS_MASK);
+ 	list_for_each_entry(rx_hook, &netcp->rxhook_list_head, list) {
+ 		int ret;
  
-+	if (cpdma_params->descs_pool_size) {
-+		/* recalculate memory size required cpdma descriptor pool
-+		 * basing on number of descriptors specified by user and
-+		 * if memory size > CPPI internal RAM size (desc_mem_size)
-+		 * then switch to use DDR
-+		 */
-+		pool->num_desc = cpdma_params->descs_pool_size;
-+		pool->mem_size = pool->desc_size * pool->num_desc;
-+		if (pool->mem_size > cpdma_params->desc_mem_size)
-+			cpdma_params->desc_mem_phys = 0;
-+	}
-+
- 	pool->gen_pool = devm_gen_pool_create(ctlr->dev, ilog2(pool->desc_size),
- 					      -1, "cpdma");
- 	if (IS_ERR(pool->gen_pool)) {
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.h b/drivers/net/ethernet/ti/davinci_cpdma.h
-index 4a167db..cb45f8f 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.h
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.h
-@@ -37,6 +37,7 @@ struct cpdma_params {
- 	int			desc_mem_size;
- 	int			desc_align;
- 	u32			bus_freq_mhz;
-+	u32			descs_pool_size;
+@@ -748,10 +758,14 @@ static int netcp_process_one_rx_packet(struct netcp_intf *netcp)
+ 			dev_err(netcp->ndev_dev, "RX hook %d failed: %d\n",
+ 				rx_hook->order, ret);
+ 			netcp->ndev->stats.rx_errors++;
++			/* Free the primary descriptor */
++			knav_pool_desc_put(netcp->rx_pool, desc);
+ 			dev_kfree_skb(skb);
+ 			return 0;
+ 		}
+ 	}
++	/* Free the primary descriptor */
++	knav_pool_desc_put(netcp->rx_pool, desc);
  
- 	/*
- 	 * Some instances of embedded cpdma controllers have extra control and
+ 	netcp->ndev->stats.rx_packets++;
+ 	netcp->ndev->stats.rx_bytes += skb->len;
+diff --git a/include/linux/soc/ti/knav_dma.h b/include/linux/soc/ti/knav_dma.h
+index 35cb926..2b78826 100644
+--- a/include/linux/soc/ti/knav_dma.h
++++ b/include/linux/soc/ti/knav_dma.h
+@@ -41,6 +41,8 @@
+ #define KNAV_DMA_DESC_RETQ_SHIFT		0
+ #define KNAV_DMA_DESC_RETQ_MASK			MASK(14)
+ #define KNAV_DMA_DESC_BUF_LEN_MASK		MASK(22)
++#define KNAV_DMA_DESC_EFLAGS_MASK		MASK(4)
++#define KNAV_DMA_DESC_EFLAGS_SHIFT		20
+ 
+ #define KNAV_DMA_NUM_EPIB_WORDS			4
+ #define KNAV_DMA_NUM_PS_WORDS			16
 -- 
-2.10.1.dirty
+1.9.1
