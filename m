@@ -1,80 +1,74 @@
-From: Teresa Remmet <t.remmet@phytec.de>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH 1/6] ARM: dts: am335x-phycore-som: Update NAND partition
  table
-Date: Fri, 06 Jan 2017 10:27:29 +0100
-Message-ID: <1483694849.3634.6.camel@phytec.de>
+Date: Fri, 6 Jan 2017 08:02:23 -0800
+Message-ID: <20170106160222.GC2630@atomide.com>
 References: <1483627851-17996-1-git-send-email-t.remmet@phytec.de>
  <1483627851-17996-2-git-send-email-t.remmet@phytec.de>
- <20170105153637.GA4310@atomide.com> <20170105171845.GK4310@atomide.com>
+ <20170105153637.GA4310@atomide.com>
+ <20170105171845.GK4310@atomide.com>
  <20170105175619.GA56877@google.com>
+ <1483694849.3634.6.camel@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170105175619.GA56877@google.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Brian Norris <briannorris@chromium.org>, Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Brian Norris <computersforpeace@gmail.com>, Adam Ford <aford173@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1483694849.3634.6.camel-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Cc: Brian Norris <briannorris-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Adam Ford <aford173-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-SGVsbG8gQnJpYW4sCgpBbSBEb25uZXJzdGFnLCBkZW4gMDUuMDEuMjAxNywgMDk6NTYgLTA4MDAg
-c2NocmllYiBCcmlhbiBOb3JyaXM6Cj4gT24gVGh1LCBKYW4gMDUsIDIwMTcgYXQgMDk6MTg6NDVB
-TSAtMDgwMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+IAo+ID4gKiBUb255IExpbmRncmVuIDx0
-b255QGF0b21pZGUuY29tPiBbMTcwMTA1IDA3OjM3XToKPiA+ID4gCj4gPiA+ICogVGVyZXNhIFJl
-bW1ldCA8dC5yZW1tZXRAcGh5dGVjLmRlPiBbMTcwMTA1IDA2OjU3XToKPiA+ID4gPiAKPiA+ID4g
-PiBUbyBpbXByb3ZlIE5BTkQgc2FmZXR5IHdlIHVwZGF0ZWQgdGhlIHBhcnRpdGlvbiBsYXlvdXQu
-Cj4gPiA+ID4gQWRkZWQgYmFyZWJveCBiYWNrdXAgcGFydGl0aW9uIGFuZCByZW1vdmVkIGtlcm5l
-bCBhbmQgb2Z0cmVlCj4gPiA+ID4gcGFydGl0aW9uLiBUaGV5IGFyZSBrZXB0IGluIHViaSBub3cu
-Cj4gPiA+IFdoYXQgYWJvdXQgdGhlIHVzZXJzIHdpdGggZWFybGllciBwYXJ0aXRpb24gdGFibGVz
-Pwo+ID4gPiAKPiA+ID4gUGxlYXNlIHJlYWQgYWJvdXQgImZsYWcgZGF5IiBjaGFuZ2VzLCB0eXBp
-Y2FsbHkgdGhleSBhcmUgbm90Cj4gPiA+IGFjY2VwdGFibGUuCj4gPiBBZGRpbmcgQnJpYW4gYW5k
-IEFkYW0gdG8gQ2MuIENhbiB5b3UgZ3V5cyBjb21lIHVwIHdpdGggc29tZQo+ID4gc29sdXRpb24g
-b24gdGhpcz8KPiBJIGRvbid0IGhhdmUgbXVjaCBjb250ZXh0IGZvciB0aGlzIHRocmVhZCwgYW5k
-IG5vIEkgZG9uJ3QgcGxhbiB0bwo+IHNvbHZlCj4geW91ciBwcm9ibGVtcyBmb3IgeW91LiBCdXQg
-SSBjYW4gcHJvdmlkZSB0aXBzIQo+IAo+ID4gCj4gPiBJJ20gc3VnZ2VzdGluZyB3ZSBsZWF2ZSB0
-aGUga2VybmVsIG5vZGVzIGVtcHR5IGFuZCBsZXQgdS1ib290Cj4gPiBwb3B1bGF0ZSB0aGVtLCBz
-byBtYXliZSB5b3UgZ3V5cyBjYW4gZGlzY3VzcyB0aGlzIG9uIHRoZSByZWxhdGVkCj4gPiBsaXN0
-cy4KPiBUaGF0J3MgYW4gb3B0aW9uLiBJJ3ZlIHdvcmtlZCB3aXRoIHBsYXRmb3JtcyB0aGF0IGRp
-ZCBzb21ldGhpbmcgbGlrZQo+IHRoaXMsIGFuZCB0aGF0J3MgcmVhbGx5IG9uZSBvZiB0aGUgb25s
-eSB3YXlzIHlvdSBjYW4gaGFuZGxlIHB1dHRpbmcKPiBwYXJ0aXRpb24gaW5mb3JtYXRpb24gaW4g
-dGhlIGRldmljZSB0cmVlLiBZb3UncmUgcmVhbGx5IGhhbXN0cmluZ2luZwo+IHlvdXJzZWxmIHdo
-ZW4geW91IHB1dCBhbGwgdGhlIHBhcnRpdGlvbiBpbmZvcm1hdGlvbiBpbiB0aGUgZGV2aWNlCj4g
-dHJlZS4KPiBBbmQgaXQncyBqdXN0IGR1bWIgb25jZSB0aGF0IGdldHMgY29kaWZpZWQgaW4gdGhl
-IGtlcm5lbCBzb3VyY2UgdHJlZS4KPiAKCkluIG91ciBjYXNlIHRoZSBib290bG9hZGVyIGRvZXMg
-cGFzcyB0aGUgcGFydGl0aW9uIHRhYmxlIHRvIHRoZSBrZXJuZWwuClNvIGl0IGdldHMgb3Zlcndy
-aXR0ZW4gYW55d2F5LiBUaGlzIHdhcyBqdXN0IG1vcmUgZm9yIGJhY2t1cCzCoAppZiBzb21lb25l
-IHVzZXMgYSBkaWZmZXJlbnQgYm9vdGxvYWRlci4gQnV0IEknbSBmaW5lIHdpdGggcmVtb3Zpbmcg
-dGhlCm5hbmQgcGFydGl0aW9uIHRhYmxlIGNvbXBsZXRlbHkgZnJvbSB0aGUga2VybmVsIGRldmlj
-ZSB0cmVlLgpTYW1lIHdpdGggdGhlIFNQSSBub3IgcGFydGl0aW9uIHRhYmxlLgoKSSB3aWxsIHNl
-bmQgcGF0Y2hlcyBmb3IgdGhpcy4KClJlZ2FyZHMsClRlcmVzYQoKPiBUaGUgYmVzdCBzb2x1dGlv
-biB3b3VsZCBiZSB0byB0cnkgdG8gbWlncmF0ZSBhd2F5IGZyb20gc3RhdGljIGRldmljZQo+IHRy
-ZWUgcmVwcmVzZW50YXRpb25zIG9mIHBhcnRpdGlvbiBpbmZvIGVudGlyZWx5LiBVQkkgdm9sdW1l
-cyBhcmUgYmVzdAo+IHdoZXJlIHBvc3NpYmxlLiBJZiBub3QsIHRoZW4gc29tZSBvdGhlciBraW5k
-IG9mIG9uLWZsYXNoIGRhdGEKPiBzdHJ1Y3R1cmVzCj4gKGFsb25nIHRoZSBsaW5lcyBvZiBhIEdQ
-VCkgd2l0aCBhIGNvcnJlc3BvbmRpbmcgTVREIHBhcnRpdGlvbiBwYXJzZXIKPiBpcwo+IGFuIE9L
-IGFsdGVybmF0aXZlLiBVbmZvcnR1bmF0ZWx5LCB0aGVyZSBpc24ndCBhbnkgZ29vZCBzdGFuZGFy
-ZAo+IGZvcm1hdAo+IGZvciB0aGlzIG9uIE1URCwgc28gaXQncyB0eXBpY2FsbHkgYWxsIGN1c3Rv
-bSAtLSBhbmQgc28gcGVvcGxlIHVzZQo+IHRoZQo+IGVhc2llc3QgYXBwcm9hY2g6IGRldmljZSB0
-cmVlLiBBbmQgaXQncyBldmVuIG1vcmUgZGlmZmljdWx0IHdpdGgKPiBOQU5ELAo+IHdoaWNoIGhh
-cyByZWxpYWJpbGl0eSBwcm9ibGVtcywgZXNwZWNpYWxseSB3aXRoIHN0YXRpYyBkYXRhIChlLmcu
-LAo+IHJlYWQKPiBkaXN0dXJiKS4KPiAKPiBBbnl3YXksIHRoZSBwYXJzZXIgc29sdXRpb24gaXMg
-aGVscGZ1bCBvbmx5IGlmIG9uZSBjYW4gcHJvcGVybHkgZml4Cj4gdGhlCj4gImZsYWcgZGF5IiBm
-aXJzdC4gQW5kIGl0IHJlcXVpcmVzIGEgbGl0dGxlIGJpdCBtb3JlIHdvcmsgdG8gYmUKPiBnZW5l
-cmFsbHkKPiB1c2VmdWw7IEkgcG9zdGVkIHNvbWUgd29yayBmb3IgdGhpcyBvdmVyIGEgeWVhciBh
-Z28sIGJ1dCBiaWtlc2hlZGRpbmcKPiBicm91Z2h0IGl0IGRvd24uCj4gCj4gPiAKPiA+IFRoZSBy
-ZXN0IG9mIHRoZSBzZXJpZXMgbG9va3MgZmluZSB0byBtZSBzbyBhcHBseWluZyBpdCBpbnRvCj4g
-PiBvbWFwLWZvci12NC4xMS9kdC4KPiBCcmlhbgo+IAo+IF9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCj4gbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QK
-PiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKPiBodHRwOi8vbGlzdHMuaW5m
-cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwKCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFp
-bGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlz
-dHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+* Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org> [170106 01:28]:
+> Hello Brian,
+> 
+> Am Donnerstag, den 05.01.2017, 09:56 -0800 schrieb Brian Norris:
+> > On Thu, Jan 05, 2017 at 09:18:45AM -0800, Tony Lindgren wrote:
+> > > 
+> > > * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170105 07:37]:
+> > > > 
+> > > > * Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org> [170105 06:57]:
+> > > > > 
+> > > > > To improve NAND safety we updated the partition layout.
+> > > > > Added barebox backup partition and removed kernel and oftree
+> > > > > partition. They are kept in ubi now.
+> > > > What about the users with earlier partition tables?
+> > > > 
+> > > > Please read about "flag day" changes, typically they are not
+> > > > acceptable.
+> > > Adding Brian and Adam to Cc. Can you guys come up with some
+> > > solution on this?
+> > I don't have much context for this thread, and no I don't plan to
+> > solve
+> > your problems for you. But I can provide tips!
+> > 
+> > > 
+> > > I'm suggesting we leave the kernel nodes empty and let u-boot
+> > > populate them, so maybe you guys can discuss this on the related
+> > > lists.
+> > That's an option. I've worked with platforms that did something like
+> > this, and that's really one of the only ways you can handle putting
+> > partition information in the device tree. You're really hamstringing
+> > yourself when you put all the partition information in the device
+> > tree.
+> > And it's just dumb once that gets codified in the kernel source tree.
+> > 
+> 
+> In our case the bootloader does pass the partition table to the kernel.
+> So it gets overwritten anyway. This was just more for backup, 
+> if someone uses a different bootloader. But I'm fine with removing the
+> nand partition table completely from the kernel device tree.
+> Same with the SPI nor partition table.
+> 
+> I will send patches for this.
+
+OK thanks! Also thank you Brian for your comments.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
