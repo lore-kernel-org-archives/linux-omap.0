@@ -1,38 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP1: DMA: Correct the number of logical channels
-Date: Fri, 6 Jan 2017 08:33:35 -0800
-Message-ID: <20170106163335.GE2630@atomide.com>
-References: <20170103112234.19097-1-peter.ujfalusi@ti.com>
- <20170105214750.g7d6kbaq7q4vgrug@raspberrypi-2.musicnaut.iki.fi>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: omap3: beagleboard-xm: dt: Add ethernet to the
+ device tree
+Date: Fri, 6 Jan 2017 08:49:05 -0800
+Message-ID: <20170106164904.GG2630@atomide.com>
+References: <1480713097-5931-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <CAL_Jsq+M7RWiytEA7zPZvR+7CK37WCxN5ZBOQkpjdswjLHL4fA@mail.gmail.com>
+ <20170105163928.GD4310@atomide.com>
+ <2557392.58vudoaMIY@avalon>
+ <CAL_JsqKQLd2SFNVKwZDPTKL-spWknEe5aFDT5RZoCnV1qOP=4Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170105214750.g7d6kbaq7q4vgrug@raspberrypi-2.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <CAL_JsqKQLd2SFNVKwZDPTKL-spWknEe5aFDT5RZoCnV1qOP=4Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [170105 13:48]:
-> Hi,
+* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170105 10:51]:
+> On Thu, Jan 5, 2017 at 10:48 AM, Laurent Pinchart
+> <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> wrote:
+> > Hello,
+> >
+> > On Thursday 05 Jan 2017 08:39:29 Tony Lindgren wrote:
+> >> * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170105 08:28]:
+> >> > On Fri, Dec 2, 2016 at 3:11 PM, Laurent Pinchart wrote:
+> >> >> The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
+> >> >> connected to port 2 of the OMAP EHCI controller. The board however has
+> >> >> no EEPROM to store the ethernet MAC address, which is programmed by the
+> >> >> boot loader.
+> >> >>
+> >> >> To allow Linux to use the same MAC address as the boot loader (or for
+> >> >> that matter any fixed MAC address), we need a node in the device tree
+> >> >> for the ethernet controller that the boot loader can update at runtime
+> >> >> with a local-mac-address property. Add it, along with an alias for the
+> >> >> ethernet controller to let the boot loader locate it easily.
+> >> >>
+> >> >> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> >> >> ---
+> >> >> Changes since v1:
+> >> >>
+> >> >> - Renamed usb2 DT node to hub
+> >> >> ---
+> >> >>
+> >> >>  arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
+> >> >>  1 file changed, 16 insertions(+)
+> >> >>
+> >> >> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> >> >> b/arch/arm/boot/dts/omap3-beagle-xm.dts index
+> >> >> 85e297ed0ea1..673cee2234b2 100644
+> >> >> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
+> >> >> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+> >> >> @@ -27,6 +27,7 @@
+> >> >>         aliases {
+> >> >>                 display0 = &dvi0;
+> >> >>                 display1 = &tv0;
+> >> >> +               ethernet = &ethernet;
+> >> >
+> >> > Sorry, just noticed this, but this should be dropped. It's not used
+> >> > nor do we want an alias here.
+> >>
+> >> OK, will update locally as I have not pushed out yet.
+> >
+> > The ethernet alias is used by U-Boot to locate the ethernet controller and
+> > update the MAC address.
 > 
-> On Tue, Jan 03, 2017 at 01:22:34PM +0200, Peter Ujfalusi wrote:
-> > OMAP1510, OMAP5910 and OMAP310 have only 9 logical channels.
-> > OMAP1610, OMAP5912, OMAP1710, OMAP730, and OMAP850 have 16 logical channels
-> > available.
-> > 
-> > The wired 17 for the lch_count must have been used to cover the 16 + 1
-> > dedicated LCD channel, in reality we can only use 9 or 16 channels.
-> > 
-> > The d->chan_count is not used by the omap-dma stack, so we can skip the
-> > setup. chan_count was configured to the number of logical channels and not
-> > the actual number of physical channels anyways.
-> > 
-> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> 
-> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Okay. Though with only only one, I don't see why that is hard to find.
+> Anyway, this is the least of u-boot's DT abuses.
 
-Applying into omap-for-v4.10/fixes thanks.
+Applying Laurent's original patch then into omap-for-v4.11/dt.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
