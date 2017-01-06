@@ -1,126 +1,102 @@
-From: Murali Karicheri <m-karicheri2@ti.com>
-Subject: Re: [PATCH net-next 01/10] net: netcp: ethss: add support of
- subsystem register region regmap
-Date: Thu, 5 Jan 2017 17:08:54 -0500
-Message-ID: <586EC3F6.4010109@ti.com>
-References: <1482271793-7671-1-git-send-email-m-karicheri2@ti.com>
- <1482271793-7671-2-git-send-email-m-karicheri2@ti.com>
- <20161222212409.arhurpl4bpqf2yw6@rob-hp-laptop> <586EAFBE.1000500@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv3] mfd: cpcap: Add minimal support
+Date: Thu, 5 Jan 2017 16:08:23 -0800
+Message-ID: <20170106000823.GB2630@atomide.com>
+References: <20161206004856.11996-1-tony@atomide.com>
+ <20170103163515.GM2977@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <586EAFBE.1000500@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, grygorii.strashko@ti.com, mugunthanvnm@ti.com, linux-kernel@vger.kernel.org, arnd@arndb.de, davem@davemloft.net, devicetree@vger.kernel.org, mark.rutland@arm.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170103163515.GM2977@dell>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/05/2017 03:42 PM, Murali Karicheri wrote:
-> Rob,
+* Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [170103 08:32]:
+> On Mon, 05 Dec 2016, Tony Lindgren wrote:
+> > +static int cpcap_init_irq_chip(struct cpcap_ddata *cpcap, int irq_chip,
+> > +			       int irq_start, int nr_irqs)
+> > +{
+> > +	struct regmap_irq_chip *chip = &cpcap_irq_chip[irq_chip];
+> > +	int i, ret;
+> > +
+> > +	for (i = irq_start; i < irq_start + nr_irqs; i++) {
+> > +		struct regmap_irq *cpcap_irq = &cpcap->irqs[i];
+> > +
+> > +		cpcap_irq->reg_offset =
+> > +			((i - irq_start) / cpcap->regmap_conf->val_bits) *
+> > +			cpcap->regmap_conf->reg_stride;
+> > +		cpcap_irq->mask = BIT(i % cpcap->regmap_conf->val_bits);
 > 
-> On 12/22/2016 04:24 PM, Rob Herring wrote:
->> On Tue, Dec 20, 2016 at 05:09:44PM -0500, Murali Karicheri wrote:
->>> From: WingMan Kwok <w-kwok2@ti.com>
->>>
->>> 10gbe phy driver needs to access the 10gbe subsystem control
->>> register during phy initialization. To facilitate the shared
->>> access of the subsystem register region between the 10gbe Ethernet
->>> driver and the phy driver, this patch adds support of the
->>> subsystem register region defined by a syscon node in the dts.
->>>
->>> Although there is no shared access to the gbe subsystem register
->>> region, using syscon for that is for the sake of consistency.
->>>
->>> This change is backward compatible with previously released gbe
->>> devicetree bindings.
->>>
->>> Signed-off-by: WingMan Kwok <w-kwok2@ti.com>
->>> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
->>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->>> ---
->>>  .../devicetree/bindings/net/keystone-netcp.txt     |  16 ++-
->>>  drivers/net/ethernet/ti/netcp_ethss.c              | 140 +++++++++++++++++----
->>>  2 files changed, 127 insertions(+), 29 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/net/keystone-netcp.txt b/Documentation/devicetree/bindings/net/keystone-netcp.txt
->>> index 04ba1dc..0854a73 100644
->>> --- a/Documentation/devicetree/bindings/net/keystone-netcp.txt
->>> +++ b/Documentation/devicetree/bindings/net/keystone-netcp.txt
->>> @@ -72,20 +72,24 @@ Required properties:
->>>  		"ti,netcp-gbe-2" for 1GbE N NetCP 1.5 (N=2)
->>>  		"ti,netcp-xgbe" for 10 GbE
->>>  
->>> +- syscon-subsys:	phandle to syscon node of the switch
->>> +			subsystem registers.
->>> +
->>>  - reg:		register location and the size for the following register
->>>  		regions in the specified order.
->>>  		- switch subsystem registers
->>> +		- sgmii module registers
->>
->> This needs to go on the end of the list. Otherwise, it is not backwards 
->> compatible.
-> 
-> Thanks for your review! I assumed backward compatibility means new kernel
-> should work with old DTB. The driver code is adjusted to work with both
-> DTBs. Isn't that enough?
-Rob,
+> If a code segment takes more than a few seconds to work out, it's
+> either too cluttered (break it down), too complex (simplify it) or if
+> neither of the first two approaches are possible, then a comment is
+> required.
 
-I will pull out 1/10 and 2/10 from the series as it needs more work and
-re-submit rest of the patches in my v1 spin. However please reply to my
-above backward compatibility question.
+Hmm yeah I could not read that myself any longer :) Will split.
 
-Thanks and Regards,
+> > +static int cpcap_probe(struct spi_device *spi)
+> > +{
+> > +	const struct of_device_id *match;
+> > +	int ret = -EINVAL;
+> 
+> What is the purpose of initialising ret?
 
-Murali
-> 
-> Murali
-> 
->>
->>>  		- sgmii port3/4 module registers (only for NetCP 1.4)
->>>  		- switch module registers
->>>  		- serdes registers (only for 10G)
->>>  
->>>  		NetCP 1.4 ethss, here is the order
->>> -			index #0 - switch subsystem registers
->>> +			index #0 - sgmii module registers
->>>  			index #1 - sgmii port3/4 module registers
->>>  			index #2 - switch module registers
->>>  
->>>  		NetCP 1.5 ethss 9 port, 5 port and 2 port
->>> -			index #0 - switch subsystem registers
->>> +			index #0 - sgmii module registers
->>>  			index #1 - switch module registers
->>>  			index #2 - serdes registers
->>>  
->>> @@ -145,6 +149,11 @@ Optional properties:
->>>  
->>>  Example binding:
->>>  
->>> +gbe_subsys: subsys@2090000 {
->>> +	compatible = "syscon";
->>> +	reg = <0x02090000 0x100>;
->>> +};
->>> +
->>>  netcp: netcp@2000000 {
->>>  	reg = <0x2620110 0x8>;
->>>  	reg-names = "efuse";
->>> @@ -163,7 +172,8 @@ netcp: netcp@2000000 {
->>>  		ranges;
->>>  		gbe@90000 {
->>>  			label = "netcp-gbe";
->>> -			reg = <0x90000 0x300>, <0x90400 0x400>, <0x90800 0x700>;
->>> +			syscon-subsys = <&gbe_subsys>;
->>> +			reg = <0x90100 0x200>, <0x90400 0x200>, <0x90800 0x700>;
->>>  			/* enable-ale; */
->>>  			tx-queue = <648>;
->>>  			tx-channel = <8>;
->>
-> 
-> 
+Seems to be not needed.
 
+> > +	struct cpcap_ddata *cpcap;
+> > +
+> > +	match = of_match_device(of_match_ptr(cpcap_of_match), &spi->dev);
+> > +	if (!match)
+> > +		return -ENODEV;
+> > +
+> > +	cpcap = devm_kzalloc(&spi->dev, sizeof(*cpcap), GFP_KERNEL);
+> > +	if (!cpcap)
+> > +		return -ENOMEM;
+> > +
+> > +	cpcap->spi = spi;
+> > +	spi_set_drvdata(spi, cpcap);
+> > +
+> > +	spi->bits_per_word = 16;
+> > +	spi->mode = SPI_MODE_0 | SPI_CS_HIGH;
+> > +
+> > +	ret = spi_setup(spi);
+> > +	if (ret < 0)
+> > +		return ret;
+> 
+> Is it possible for spi_setup() to return >0?
+> 
+> If not, then "if (!ret)" will do.
 
--- 
-Murali Karicheri
-Linux Kernel, Keystone
+You're right, the kerneldoc for spi_setup() says:
+
+"Return: zero on success, else a negative error code."
+
+Need to use "if (ret)" to return on error though, not "if (!ret)".
+
+> > +static struct spi_driver cpcap_driver = {
+> > +	.driver = {
+> > +		.name = "cpcap-core",
+> > +		.of_match_table = cpcap_of_match,
+> 
+> of_match_ptr() ?
+
+Well there needs to be a platform specific init added at least in some
+cases. I have not quite yet deciphered what all it does for droid 4
+as it's already done for kexec based booting.
+
+> > + * Copyright (C) 2016 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>.
+> 
+> Actually, it's more traditional to place the CR at the top.
+
+Sure. Will repost v4 shortly.
+
+Thanks,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
