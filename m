@@ -1,78 +1,83 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: omap3: beagleboard-xm: dt: Add ethernet to the
- device tree
-Date: Fri, 6 Jan 2017 08:49:05 -0800
-Message-ID: <20170106164904.GG2630@atomide.com>
-References: <1480713097-5931-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <CAL_Jsq+M7RWiytEA7zPZvR+7CK37WCxN5ZBOQkpjdswjLHL4fA@mail.gmail.com>
- <20170105163928.GD4310@atomide.com>
- <2557392.58vudoaMIY@avalon>
- <CAL_JsqKQLd2SFNVKwZDPTKL-spWknEe5aFDT5RZoCnV1qOP=4Q@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH] net: phy: dp83867: fix irq generation
+Date: Fri, 6 Jan 2017 11:19:32 -0600
+Message-ID: <829fd019-af1a-8a8d-fc8e-02eb905f5588@ti.com>
+References: <20170105204807.25990-1-grygorii.strashko@ti.com>
+ <de3c3fb3-1244-76a5-ea5e-8ef1b83f25d4@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqKQLd2SFNVKwZDPTKL-spWknEe5aFDT5RZoCnV1qOP=4Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <de3c3fb3-1244-76a5-ea5e-8ef1b83f25d4@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>, netdev@vger.kernel.org, Dan Murphy <dmurphy@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170105 10:51]:
-> On Thu, Jan 5, 2017 at 10:48 AM, Laurent Pinchart
-> <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> wrote:
-> > Hello,
-> >
-> > On Thursday 05 Jan 2017 08:39:29 Tony Lindgren wrote:
-> >> * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170105 08:28]:
-> >> > On Fri, Dec 2, 2016 at 3:11 PM, Laurent Pinchart wrote:
-> >> >> The Beagleboard-xM has a LAN9514 USB hub and ethernet controller,
-> >> >> connected to port 2 of the OMAP EHCI controller. The board however has
-> >> >> no EEPROM to store the ethernet MAC address, which is programmed by the
-> >> >> boot loader.
-> >> >>
-> >> >> To allow Linux to use the same MAC address as the boot loader (or for
-> >> >> that matter any fixed MAC address), we need a node in the device tree
-> >> >> for the ethernet controller that the boot loader can update at runtime
-> >> >> with a local-mac-address property. Add it, along with an alias for the
-> >> >> ethernet controller to let the boot loader locate it easily.
-> >> >>
-> >> >> Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> >> >> ---
-> >> >> Changes since v1:
-> >> >>
-> >> >> - Renamed usb2 DT node to hub
-> >> >> ---
-> >> >>
-> >> >>  arch/arm/boot/dts/omap3-beagle-xm.dts | 16 ++++++++++++++++
-> >> >>  1 file changed, 16 insertions(+)
-> >> >>
-> >> >> diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts
-> >> >> b/arch/arm/boot/dts/omap3-beagle-xm.dts index
-> >> >> 85e297ed0ea1..673cee2234b2 100644
-> >> >> --- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-> >> >> +++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-> >> >> @@ -27,6 +27,7 @@
-> >> >>         aliases {
-> >> >>                 display0 = &dvi0;
-> >> >>                 display1 = &tv0;
-> >> >> +               ethernet = &ethernet;
-> >> >
-> >> > Sorry, just noticed this, but this should be dropped. It's not used
-> >> > nor do we want an alias here.
-> >>
-> >> OK, will update locally as I have not pushed out yet.
-> >
-> > The ethernet alias is used by U-Boot to locate the ethernet controller and
-> > update the MAC address.
-> 
-> Okay. Though with only only one, I don't see why that is hard to find.
-> Anyway, this is the least of u-boot's DT abuses.
 
-Applying Laurent's original patch then into omap-for-v4.11/dt.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 01/05/2017 04:10 PM, Florian Fainelli wrote:
+> On 01/05/2017 12:48 PM, Grygorii Strashko wrote:
+>> For proper IRQ generation by DP83867 phy the INT/PWDN pin has to be
+>> programmed as an interrupt output instead of a Powerdown input in
+>> Configuration Register 3 (CFG3), Address 0x001E, bit 7 INT_OE = 1. The
+>> current driver doesn't do this and as result IRQs will not be generated by
+>> DP83867 phy even if they are properly configured in DT.
+>>
+>> Hence, fix IRQ generation by properly configuring CFG3.INT_OE bit and
+>> ensure that Link Status Change (LINK_STATUS_CHNG_INT) and Auto-Negotiation
+>> Complete (AUTONEG_COMP_INT) interrupt are enabled. After this the DP83867
+>> driver will work properly in interrupt enabled mode.
+>>
+>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>> ---
+>>  drivers/net/phy/dp83867.c | 10 ++++++++++
+>>  1 file changed, 10 insertions(+)
+>>
+>> diff --git a/drivers/net/phy/dp83867.c b/drivers/net/phy/dp83867.c
+>> index 1b63924..e84ae08 100644
+>> --- a/drivers/net/phy/dp83867.c
+>> +++ b/drivers/net/phy/dp83867.c
+>> @@ -29,6 +29,7 @@
+>>  #define MII_DP83867_MICR	0x12
+>>  #define MII_DP83867_ISR		0x13
+>>  #define DP83867_CTRL		0x1f
+>> +#define DP83867_CFG3		0x1e
+>>
+>>  /* Extended Registers */
+>>  #define DP83867_RGMIICTL	0x0032
+>> @@ -98,6 +99,8 @@ static int dp83867_config_intr(struct phy_device *phydev)
+>>  		micr_status |=
+>>  			(MII_DP83867_MICR_AN_ERR_INT_EN |
+>>  			MII_DP83867_MICR_SPEED_CHNG_INT_EN |
+>> +			MII_DP83867_MICR_AUTONEG_COMP_INT_EN |
+>> +			MII_DP83867_MICR_LINK_STS_CHNG_INT_EN |
+>>  			MII_DP83867_MICR_DUP_MODE_CHNG_INT_EN |
+>>  			MII_DP83867_MICR_SLEEP_MODE_CHNG_INT_EN);
+>>
+>> @@ -214,6 +217,13 @@ static int dp83867_config_init(struct phy_device *phydev)
+>>  		}
+>>  	}
+>>
+>> +	/* Enable Interrupt output INT_OE in CFG3 register */
+>> +	if (phy_interrupt_is_valid(phydev)) {
+>> +		val = phy_read(phydev, DP83867_CFG3);
+>> +		val |= BIT(7);
+>> +		phy_write(phydev, DP83867_CFG3, val);
+>> +	}
+>
+> Don't you need to clear that bit in the case phy_interrupt_is_valid()
+> returns false?
+
+Not sure I need to touch it in this case - default value is 0
+and Linux will not configure any IRQ.
+
+>
+> Other than that:
+>
+> Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
+>
+
+-- 
+regards,
+-grygorii
