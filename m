@@ -1,224 +1,80 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/2] thermal: arm: dra752: Remove all TSHUT related definitions
-Date: Fri, 6 Jan 2017 11:31:43 +0530
-Message-ID: <1483682503-27803-3-git-send-email-j-keerthy@ti.com>
-References: <1483682503-27803-1-git-send-email-j-keerthy@ti.com>
+From: Teresa Remmet <t.remmet@phytec.de>
+Subject: Re: [PATCH 1/6] ARM: dts: am335x-phycore-som: Update NAND partition
+ table
+Date: Fri, 06 Jan 2017 10:27:29 +0100
+Message-ID: <1483694849.3634.6.camel@phytec.de>
+References: <1483627851-17996-1-git-send-email-t.remmet@phytec.de>
+ <1483627851-17996-2-git-send-email-t.remmet@phytec.de>
+ <20170105153637.GA4310@atomide.com> <20170105171845.GK4310@atomide.com>
+ <20170105175619.GA56877@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1483682503-27803-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: edubezval@gmail.com
-Cc: rui.zhang@intel.com, linux-kernel@vger.kernel.org, j-keerthy@ti.com, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, rk@ti.com, t-kristo@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170105175619.GA56877@google.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Brian Norris <briannorris@chromium.org>, Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-mtd@lists.infradead.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Brian Norris <computersforpeace@gmail.com>, Adam Ford <aford173@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-No configuration needs to be done for TSHUT from software.
-Hence remove all the unnecessary definitions.
-
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/thermal/ti-soc-thermal/dra752-bandgap.h    | 19 ----------------
- .../thermal/ti-soc-thermal/dra752-thermal-data.c   | 25 ----------------------
- 2 files changed, 44 deletions(-)
-
-diff --git a/drivers/thermal/ti-soc-thermal/dra752-bandgap.h b/drivers/thermal/ti-soc-thermal/dra752-bandgap.h
-index 6b0f2b1..a31e4b5 100644
---- a/drivers/thermal/ti-soc-thermal/dra752-bandgap.h
-+++ b/drivers/thermal/ti-soc-thermal/dra752-bandgap.h
-@@ -54,7 +54,6 @@
- #define DRA752_STD_FUSE_OPP_BGAP_CORE_OFFSET		0x8
- #define DRA752_TEMP_SENSOR_CORE_OFFSET			0x154
- #define DRA752_BANDGAP_THRESHOLD_CORE_OFFSET		0x1ac
--#define DRA752_BANDGAP_TSHUT_CORE_OFFSET		0x1b8
- #define DRA752_BANDGAP_CUMUL_DTEMP_CORE_OFFSET		0x1c4
- #define DRA752_DTEMP_CORE_0_OFFSET			0x208
- #define DRA752_DTEMP_CORE_1_OFFSET			0x20c
-@@ -66,7 +65,6 @@
- #define DRA752_STD_FUSE_OPP_BGAP_IVA_OFFSET		0x388
- #define DRA752_TEMP_SENSOR_IVA_OFFSET			0x398
- #define DRA752_BANDGAP_THRESHOLD_IVA_OFFSET		0x3a4
--#define DRA752_BANDGAP_TSHUT_IVA_OFFSET			0x3ac
- #define DRA752_BANDGAP_CUMUL_DTEMP_IVA_OFFSET		0x3b4
- #define DRA752_DTEMP_IVA_0_OFFSET			0x3d0
- #define DRA752_DTEMP_IVA_1_OFFSET			0x3d4
-@@ -78,7 +76,6 @@
- #define DRA752_STD_FUSE_OPP_BGAP_MPU_OFFSET		0x4
- #define DRA752_TEMP_SENSOR_MPU_OFFSET			0x14c
- #define DRA752_BANDGAP_THRESHOLD_MPU_OFFSET		0x1a4
--#define DRA752_BANDGAP_TSHUT_MPU_OFFSET			0x1b0
- #define DRA752_BANDGAP_CUMUL_DTEMP_MPU_OFFSET		0x1bc
- #define DRA752_DTEMP_MPU_0_OFFSET			0x1e0
- #define DRA752_DTEMP_MPU_1_OFFSET			0x1e4
-@@ -90,7 +87,6 @@
- #define DRA752_STD_FUSE_OPP_BGAP_DSPEVE_OFFSET			0x384
- #define DRA752_TEMP_SENSOR_DSPEVE_OFFSET			0x394
- #define DRA752_BANDGAP_THRESHOLD_DSPEVE_OFFSET			0x3a0
--#define DRA752_BANDGAP_TSHUT_DSPEVE_OFFSET			0x3a8
- #define DRA752_BANDGAP_CUMUL_DTEMP_DSPEVE_OFFSET		0x3b0
- #define DRA752_DTEMP_DSPEVE_0_OFFSET				0x3bc
- #define DRA752_DTEMP_DSPEVE_1_OFFSET				0x3c0
-@@ -102,7 +98,6 @@
- #define DRA752_STD_FUSE_OPP_BGAP_GPU_OFFSET		0x0
- #define DRA752_TEMP_SENSOR_GPU_OFFSET			0x150
- #define DRA752_BANDGAP_THRESHOLD_GPU_OFFSET		0x1a8
--#define DRA752_BANDGAP_TSHUT_GPU_OFFSET			0x1b4
- #define DRA752_BANDGAP_CUMUL_DTEMP_GPU_OFFSET		0x1c0
- #define DRA752_DTEMP_GPU_0_OFFSET			0x1f4
- #define DRA752_DTEMP_GPU_1_OFFSET			0x1f8
-@@ -173,10 +168,6 @@
- #define DRA752_BANDGAP_THRESHOLD_HOT_MASK		(0x3ff << 16)
- #define DRA752_BANDGAP_THRESHOLD_COLD_MASK		(0x3ff << 0)
- 
--/* DRA752.TSHUT_THRESHOLD */
--#define DRA752_TSHUT_THRESHOLD_MUXCTRL_MASK		BIT(31)
--#define DRA752_TSHUT_THRESHOLD_HOT_MASK			(0x3ff << 16)
--#define DRA752_TSHUT_THRESHOLD_COLD_MASK		(0x3ff << 0)
- 
- /* DRA752.BANDGAP_CUMUL_DTEMP_CORE */
- #define DRA752_BANDGAP_CUMUL_DTEMP_CORE_MASK		(0xffffffff << 0)
-@@ -216,8 +207,6 @@
- #define DRA752_GPU_MAX_TEMP				125000
- #define DRA752_GPU_HYST_VAL				5000
- /* interrupts thresholds */
--#define DRA752_GPU_TSHUT_HOT				915
--#define DRA752_GPU_TSHUT_COLD				900
- #define DRA752_GPU_T_HOT				800
- #define DRA752_GPU_T_COLD				795
- 
-@@ -230,8 +219,6 @@
- #define DRA752_MPU_MAX_TEMP				125000
- #define DRA752_MPU_HYST_VAL				5000
- /* interrupts thresholds */
--#define DRA752_MPU_TSHUT_HOT				915
--#define DRA752_MPU_TSHUT_COLD				900
- #define DRA752_MPU_T_HOT				800
- #define DRA752_MPU_T_COLD				795
- 
-@@ -244,8 +231,6 @@
- #define DRA752_CORE_MAX_TEMP				125000
- #define DRA752_CORE_HYST_VAL				5000
- /* interrupts thresholds */
--#define DRA752_CORE_TSHUT_HOT				915
--#define DRA752_CORE_TSHUT_COLD				900
- #define DRA752_CORE_T_HOT				800
- #define DRA752_CORE_T_COLD				795
- 
-@@ -258,8 +243,6 @@
- #define DRA752_DSPEVE_MAX_TEMP				125000
- #define DRA752_DSPEVE_HYST_VAL				5000
- /* interrupts thresholds */
--#define DRA752_DSPEVE_TSHUT_HOT				915
--#define DRA752_DSPEVE_TSHUT_COLD			900
- #define DRA752_DSPEVE_T_HOT				800
- #define DRA752_DSPEVE_T_COLD				795
- 
-@@ -272,8 +255,6 @@
- #define DRA752_IVA_MAX_TEMP				125000
- #define DRA752_IVA_HYST_VAL				5000
- /* interrupts thresholds */
--#define DRA752_IVA_TSHUT_HOT				915
--#define DRA752_IVA_TSHUT_COLD				900
- #define DRA752_IVA_T_HOT				800
- #define DRA752_IVA_T_COLD				795
- 
-diff --git a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-index 0a3f88d..118d7d8 100644
---- a/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-+++ b/drivers/thermal/ti-soc-thermal/dra752-thermal-data.c
-@@ -49,9 +49,6 @@
- 	.bgap_threshold = DRA752_BANDGAP_THRESHOLD_CORE_OFFSET,
- 	.threshold_thot_mask = DRA752_BANDGAP_THRESHOLD_HOT_MASK,
- 	.threshold_tcold_mask = DRA752_BANDGAP_THRESHOLD_COLD_MASK,
--	.tshut_threshold = DRA752_BANDGAP_TSHUT_CORE_OFFSET,
--	.tshut_hot_mask = DRA752_TSHUT_THRESHOLD_HOT_MASK,
--	.tshut_cold_mask = DRA752_TSHUT_THRESHOLD_COLD_MASK,
- 	.bgap_status = DRA752_BANDGAP_STATUS_1_OFFSET,
- 	.status_bgap_alert_mask = DRA752_BANDGAP_STATUS_1_ALERT_MASK,
- 	.status_hot_mask = DRA752_BANDGAP_STATUS_1_HOT_CORE_MASK,
-@@ -85,9 +82,6 @@
- 	.bgap_threshold = DRA752_BANDGAP_THRESHOLD_IVA_OFFSET,
- 	.threshold_thot_mask = DRA752_BANDGAP_THRESHOLD_HOT_MASK,
- 	.threshold_tcold_mask = DRA752_BANDGAP_THRESHOLD_COLD_MASK,
--	.tshut_threshold = DRA752_BANDGAP_TSHUT_IVA_OFFSET,
--	.tshut_hot_mask = DRA752_TSHUT_THRESHOLD_HOT_MASK,
--	.tshut_cold_mask = DRA752_TSHUT_THRESHOLD_COLD_MASK,
- 	.bgap_status = DRA752_BANDGAP_STATUS_2_OFFSET,
- 	.status_bgap_alert_mask = DRA752_BANDGAP_STATUS_1_ALERT_MASK,
- 	.status_hot_mask = DRA752_BANDGAP_STATUS_2_HOT_IVA_MASK,
-@@ -121,9 +115,6 @@
- 	.bgap_threshold = DRA752_BANDGAP_THRESHOLD_MPU_OFFSET,
- 	.threshold_thot_mask = DRA752_BANDGAP_THRESHOLD_HOT_MASK,
- 	.threshold_tcold_mask = DRA752_BANDGAP_THRESHOLD_COLD_MASK,
--	.tshut_threshold = DRA752_BANDGAP_TSHUT_MPU_OFFSET,
--	.tshut_hot_mask = DRA752_TSHUT_THRESHOLD_HOT_MASK,
--	.tshut_cold_mask = DRA752_TSHUT_THRESHOLD_COLD_MASK,
- 	.bgap_status = DRA752_BANDGAP_STATUS_1_OFFSET,
- 	.status_bgap_alert_mask = DRA752_BANDGAP_STATUS_1_ALERT_MASK,
- 	.status_hot_mask = DRA752_BANDGAP_STATUS_1_HOT_MPU_MASK,
-@@ -157,9 +148,6 @@
- 	.bgap_threshold = DRA752_BANDGAP_THRESHOLD_DSPEVE_OFFSET,
- 	.threshold_thot_mask = DRA752_BANDGAP_THRESHOLD_HOT_MASK,
- 	.threshold_tcold_mask = DRA752_BANDGAP_THRESHOLD_COLD_MASK,
--	.tshut_threshold = DRA752_BANDGAP_TSHUT_DSPEVE_OFFSET,
--	.tshut_hot_mask = DRA752_TSHUT_THRESHOLD_HOT_MASK,
--	.tshut_cold_mask = DRA752_TSHUT_THRESHOLD_COLD_MASK,
- 	.bgap_status = DRA752_BANDGAP_STATUS_2_OFFSET,
- 	.status_bgap_alert_mask = DRA752_BANDGAP_STATUS_1_ALERT_MASK,
- 	.status_hot_mask = DRA752_BANDGAP_STATUS_2_HOT_DSPEVE_MASK,
-@@ -193,9 +181,6 @@
- 	.bgap_threshold = DRA752_BANDGAP_THRESHOLD_GPU_OFFSET,
- 	.threshold_thot_mask = DRA752_BANDGAP_THRESHOLD_HOT_MASK,
- 	.threshold_tcold_mask = DRA752_BANDGAP_THRESHOLD_COLD_MASK,
--	.tshut_threshold = DRA752_BANDGAP_TSHUT_GPU_OFFSET,
--	.tshut_hot_mask = DRA752_TSHUT_THRESHOLD_HOT_MASK,
--	.tshut_cold_mask = DRA752_TSHUT_THRESHOLD_COLD_MASK,
- 	.bgap_status = DRA752_BANDGAP_STATUS_1_OFFSET,
- 	.status_bgap_alert_mask = DRA752_BANDGAP_STATUS_1_ALERT_MASK,
- 	.status_hot_mask = DRA752_BANDGAP_STATUS_1_HOT_GPU_MASK,
-@@ -211,8 +196,6 @@
- 
- /* Thresholds and limits for DRA752 MPU temperature sensor */
- static struct temp_sensor_data dra752_mpu_temp_sensor_data = {
--	.tshut_hot = DRA752_MPU_TSHUT_HOT,
--	.tshut_cold = DRA752_MPU_TSHUT_COLD,
- 	.t_hot = DRA752_MPU_T_HOT,
- 	.t_cold = DRA752_MPU_T_COLD,
- 	.min_freq = DRA752_MPU_MIN_FREQ,
-@@ -226,8 +209,6 @@
- 
- /* Thresholds and limits for DRA752 GPU temperature sensor */
- static struct temp_sensor_data dra752_gpu_temp_sensor_data = {
--	.tshut_hot = DRA752_GPU_TSHUT_HOT,
--	.tshut_cold = DRA752_GPU_TSHUT_COLD,
- 	.t_hot = DRA752_GPU_T_HOT,
- 	.t_cold = DRA752_GPU_T_COLD,
- 	.min_freq = DRA752_GPU_MIN_FREQ,
-@@ -241,8 +222,6 @@
- 
- /* Thresholds and limits for DRA752 CORE temperature sensor */
- static struct temp_sensor_data dra752_core_temp_sensor_data = {
--	.tshut_hot = DRA752_CORE_TSHUT_HOT,
--	.tshut_cold = DRA752_CORE_TSHUT_COLD,
- 	.t_hot = DRA752_CORE_T_HOT,
- 	.t_cold = DRA752_CORE_T_COLD,
- 	.min_freq = DRA752_CORE_MIN_FREQ,
-@@ -256,8 +235,6 @@
- 
- /* Thresholds and limits for DRA752 DSPEVE temperature sensor */
- static struct temp_sensor_data dra752_dspeve_temp_sensor_data = {
--	.tshut_hot = DRA752_DSPEVE_TSHUT_HOT,
--	.tshut_cold = DRA752_DSPEVE_TSHUT_COLD,
- 	.t_hot = DRA752_DSPEVE_T_HOT,
- 	.t_cold = DRA752_DSPEVE_T_COLD,
- 	.min_freq = DRA752_DSPEVE_MIN_FREQ,
-@@ -271,8 +248,6 @@
- 
- /* Thresholds and limits for DRA752 IVA temperature sensor */
- static struct temp_sensor_data dra752_iva_temp_sensor_data = {
--	.tshut_hot = DRA752_IVA_TSHUT_HOT,
--	.tshut_cold = DRA752_IVA_TSHUT_COLD,
- 	.t_hot = DRA752_IVA_T_HOT,
- 	.t_cold = DRA752_IVA_T_COLD,
- 	.min_freq = DRA752_IVA_MIN_FREQ,
--- 
-1.9.1
+SGVsbG8gQnJpYW4sCgpBbSBEb25uZXJzdGFnLCBkZW4gMDUuMDEuMjAxNywgMDk6NTYgLTA4MDAg
+c2NocmllYiBCcmlhbiBOb3JyaXM6Cj4gT24gVGh1LCBKYW4gMDUsIDIwMTcgYXQgMDk6MTg6NDVB
+TSAtMDgwMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+IAo+ID4gKiBUb255IExpbmRncmVuIDx0
+b255QGF0b21pZGUuY29tPiBbMTcwMTA1IDA3OjM3XToKPiA+ID4gCj4gPiA+ICogVGVyZXNhIFJl
+bW1ldCA8dC5yZW1tZXRAcGh5dGVjLmRlPiBbMTcwMTA1IDA2OjU3XToKPiA+ID4gPiAKPiA+ID4g
+PiBUbyBpbXByb3ZlIE5BTkQgc2FmZXR5IHdlIHVwZGF0ZWQgdGhlIHBhcnRpdGlvbiBsYXlvdXQu
+Cj4gPiA+ID4gQWRkZWQgYmFyZWJveCBiYWNrdXAgcGFydGl0aW9uIGFuZCByZW1vdmVkIGtlcm5l
+bCBhbmQgb2Z0cmVlCj4gPiA+ID4gcGFydGl0aW9uLiBUaGV5IGFyZSBrZXB0IGluIHViaSBub3cu
+Cj4gPiA+IFdoYXQgYWJvdXQgdGhlIHVzZXJzIHdpdGggZWFybGllciBwYXJ0aXRpb24gdGFibGVz
+Pwo+ID4gPiAKPiA+ID4gUGxlYXNlIHJlYWQgYWJvdXQgImZsYWcgZGF5IiBjaGFuZ2VzLCB0eXBp
+Y2FsbHkgdGhleSBhcmUgbm90Cj4gPiA+IGFjY2VwdGFibGUuCj4gPiBBZGRpbmcgQnJpYW4gYW5k
+IEFkYW0gdG8gQ2MuIENhbiB5b3UgZ3V5cyBjb21lIHVwIHdpdGggc29tZQo+ID4gc29sdXRpb24g
+b24gdGhpcz8KPiBJIGRvbid0IGhhdmUgbXVjaCBjb250ZXh0IGZvciB0aGlzIHRocmVhZCwgYW5k
+IG5vIEkgZG9uJ3QgcGxhbiB0bwo+IHNvbHZlCj4geW91ciBwcm9ibGVtcyBmb3IgeW91LiBCdXQg
+SSBjYW4gcHJvdmlkZSB0aXBzIQo+IAo+ID4gCj4gPiBJJ20gc3VnZ2VzdGluZyB3ZSBsZWF2ZSB0
+aGUga2VybmVsIG5vZGVzIGVtcHR5IGFuZCBsZXQgdS1ib290Cj4gPiBwb3B1bGF0ZSB0aGVtLCBz
+byBtYXliZSB5b3UgZ3V5cyBjYW4gZGlzY3VzcyB0aGlzIG9uIHRoZSByZWxhdGVkCj4gPiBsaXN0
+cy4KPiBUaGF0J3MgYW4gb3B0aW9uLiBJJ3ZlIHdvcmtlZCB3aXRoIHBsYXRmb3JtcyB0aGF0IGRp
+ZCBzb21ldGhpbmcgbGlrZQo+IHRoaXMsIGFuZCB0aGF0J3MgcmVhbGx5IG9uZSBvZiB0aGUgb25s
+eSB3YXlzIHlvdSBjYW4gaGFuZGxlIHB1dHRpbmcKPiBwYXJ0aXRpb24gaW5mb3JtYXRpb24gaW4g
+dGhlIGRldmljZSB0cmVlLiBZb3UncmUgcmVhbGx5IGhhbXN0cmluZ2luZwo+IHlvdXJzZWxmIHdo
+ZW4geW91IHB1dCBhbGwgdGhlIHBhcnRpdGlvbiBpbmZvcm1hdGlvbiBpbiB0aGUgZGV2aWNlCj4g
+dHJlZS4KPiBBbmQgaXQncyBqdXN0IGR1bWIgb25jZSB0aGF0IGdldHMgY29kaWZpZWQgaW4gdGhl
+IGtlcm5lbCBzb3VyY2UgdHJlZS4KPiAKCkluIG91ciBjYXNlIHRoZSBib290bG9hZGVyIGRvZXMg
+cGFzcyB0aGUgcGFydGl0aW9uIHRhYmxlIHRvIHRoZSBrZXJuZWwuClNvIGl0IGdldHMgb3Zlcndy
+aXR0ZW4gYW55d2F5LiBUaGlzIHdhcyBqdXN0IG1vcmUgZm9yIGJhY2t1cCzCoAppZiBzb21lb25l
+IHVzZXMgYSBkaWZmZXJlbnQgYm9vdGxvYWRlci4gQnV0IEknbSBmaW5lIHdpdGggcmVtb3Zpbmcg
+dGhlCm5hbmQgcGFydGl0aW9uIHRhYmxlIGNvbXBsZXRlbHkgZnJvbSB0aGUga2VybmVsIGRldmlj
+ZSB0cmVlLgpTYW1lIHdpdGggdGhlIFNQSSBub3IgcGFydGl0aW9uIHRhYmxlLgoKSSB3aWxsIHNl
+bmQgcGF0Y2hlcyBmb3IgdGhpcy4KClJlZ2FyZHMsClRlcmVzYQoKPiBUaGUgYmVzdCBzb2x1dGlv
+biB3b3VsZCBiZSB0byB0cnkgdG8gbWlncmF0ZSBhd2F5IGZyb20gc3RhdGljIGRldmljZQo+IHRy
+ZWUgcmVwcmVzZW50YXRpb25zIG9mIHBhcnRpdGlvbiBpbmZvIGVudGlyZWx5LiBVQkkgdm9sdW1l
+cyBhcmUgYmVzdAo+IHdoZXJlIHBvc3NpYmxlLiBJZiBub3QsIHRoZW4gc29tZSBvdGhlciBraW5k
+IG9mIG9uLWZsYXNoIGRhdGEKPiBzdHJ1Y3R1cmVzCj4gKGFsb25nIHRoZSBsaW5lcyBvZiBhIEdQ
+VCkgd2l0aCBhIGNvcnJlc3BvbmRpbmcgTVREIHBhcnRpdGlvbiBwYXJzZXIKPiBpcwo+IGFuIE9L
+IGFsdGVybmF0aXZlLiBVbmZvcnR1bmF0ZWx5LCB0aGVyZSBpc24ndCBhbnkgZ29vZCBzdGFuZGFy
+ZAo+IGZvcm1hdAo+IGZvciB0aGlzIG9uIE1URCwgc28gaXQncyB0eXBpY2FsbHkgYWxsIGN1c3Rv
+bSAtLSBhbmQgc28gcGVvcGxlIHVzZQo+IHRoZQo+IGVhc2llc3QgYXBwcm9hY2g6IGRldmljZSB0
+cmVlLiBBbmQgaXQncyBldmVuIG1vcmUgZGlmZmljdWx0IHdpdGgKPiBOQU5ELAo+IHdoaWNoIGhh
+cyByZWxpYWJpbGl0eSBwcm9ibGVtcywgZXNwZWNpYWxseSB3aXRoIHN0YXRpYyBkYXRhIChlLmcu
+LAo+IHJlYWQKPiBkaXN0dXJiKS4KPiAKPiBBbnl3YXksIHRoZSBwYXJzZXIgc29sdXRpb24gaXMg
+aGVscGZ1bCBvbmx5IGlmIG9uZSBjYW4gcHJvcGVybHkgZml4Cj4gdGhlCj4gImZsYWcgZGF5IiBm
+aXJzdC4gQW5kIGl0IHJlcXVpcmVzIGEgbGl0dGxlIGJpdCBtb3JlIHdvcmsgdG8gYmUKPiBnZW5l
+cmFsbHkKPiB1c2VmdWw7IEkgcG9zdGVkIHNvbWUgd29yayBmb3IgdGhpcyBvdmVyIGEgeWVhciBh
+Z28sIGJ1dCBiaWtlc2hlZGRpbmcKPiBicm91Z2h0IGl0IGRvd24uCj4gCj4gPiAKPiA+IFRoZSBy
+ZXN0IG9mIHRoZSBzZXJpZXMgbG9va3MgZmluZSB0byBtZSBzbyBhcHBseWluZyBpdCBpbnRvCj4g
+PiBvbWFwLWZvci12NC4xMS9kdC4KPiBCcmlhbgo+IAo+IF9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCj4gbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QK
+PiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKPiBodHRwOi8vbGlzdHMuaW5m
+cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFp
+bGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlz
+dHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
