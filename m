@@ -1,88 +1,38 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/6] ARM: dts: am335x-phycore-som: Update NAND partition
- table
-Date: Fri, 6 Jan 2017 08:14:22 -0800
-Message-ID: <20170106161421.GD2630@atomide.com>
-References: <1483627851-17996-1-git-send-email-t.remmet@phytec.de>
- <1483627851-17996-2-git-send-email-t.remmet@phytec.de>
- <20170105153637.GA4310@atomide.com>
- <20170105171845.GK4310@atomide.com>
- <20170105175619.GA56877@google.com>
- <1483694849.3634.6.camel@phytec.de>
- <20170106160222.GC2630@atomide.com>
- <CAHCN7xL2n0qsg61i85o7DczanMH1E=HWhNvqUtTH9UhEVBvd8g@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP1: DMA: Correct the number of logical channels
+Date: Fri, 6 Jan 2017 08:33:35 -0800
+Message-ID: <20170106163335.GE2630@atomide.com>
+References: <20170103112234.19097-1-peter.ujfalusi@ti.com>
+ <20170105214750.g7d6kbaq7q4vgrug@raspberrypi-2.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAHCN7xL2n0qsg61i85o7DczanMH1E=HWhNvqUtTH9UhEVBvd8g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adam Ford <aford173-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>, Brian Norris <briannorris-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Norris <computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <20170105214750.g7d6kbaq7q4vgrug@raspberrypi-2.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Adam Ford <aford173-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170106 08:06]:
-> On Fri, Jan 6, 2017 at 10:02 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > * Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org> [170106 01:28]:
-> >> Hello Brian,
-> >>
-> >> Am Donnerstag, den 05.01.2017, 09:56 -0800 schrieb Brian Norris:
-> >> > On Thu, Jan 05, 2017 at 09:18:45AM -0800, Tony Lindgren wrote:
-> >> > >
-> >> > > * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170105 07:37]:
-> >> > > >
-> >> > > > * Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org> [170105 06:57]:
-> >> > > > >
-> >> > > > > To improve NAND safety we updated the partition layout.
-> >> > > > > Added barebox backup partition and removed kernel and oftree
-> >> > > > > partition. They are kept in ubi now.
-> >> > > > What about the users with earlier partition tables?
-> >> > > >
-> >> > > > Please read about "flag day" changes, typically they are not
-> >> > > > acceptable.
-> >> > > Adding Brian and Adam to Cc. Can you guys come up with some
-> >> > > solution on this?
-> >> > I don't have much context for this thread, and no I don't plan to
-> >> > solve
-> >> > your problems for you. But I can provide tips!
-> >> >
-> >> > >
-> >> > > I'm suggesting we leave the kernel nodes empty and let u-boot
-> >> > > populate them, so maybe you guys can discuss this on the related
-> >> > > lists.
-> >> > That's an option. I've worked with platforms that did something like
-> >> > this, and that's really one of the only ways you can handle putting
-> >> > partition information in the device tree. You're really hamstringing
-> >> > yourself when you put all the partition information in the device
-> >> > tree.
-> >> > And it's just dumb once that gets codified in the kernel source tree.
-> >> >
-> >>
-> >> In our case the bootloader does pass the partition table to the kernel.
-> >> So it gets overwritten anyway. This was just more for backup,
-> >> if someone uses a different bootloader. But I'm fine with removing the
-> >> nand partition table completely from the kernel device tree.
-> >> Same with the SPI nor partition table.
-> >>
-> >> I will send patches for this.
-> >
-> > OK thanks! Also thank you Brian for your comments.
-> >
+* Aaro Koskinen <aaro.koskinen@iki.fi> [170105 13:48]:
+> Hi,
 > 
-> Tony - I tested leaving the partition info as-is with the updates from
-> the bootloader and it works.  Would you prefer that I match Brian and
-> remove the partition table completely, or should I just leave my board
-> alone?
+> On Tue, Jan 03, 2017 at 01:22:34PM +0200, Peter Ujfalusi wrote:
+> > OMAP1510, OMAP5910 and OMAP310 have only 9 logical channels.
+> > OMAP1610, OMAP5912, OMAP1710, OMAP730, and OMAP850 have 16 logical channels
+> > available.
+> > 
+> > The wired 17 for the lch_count must have been used to cover the 16 + 1
+> > dedicated LCD channel, in reality we can only use 9 or 16 channels.
+> > 
+> > The d->chan_count is not used by the omap-dma stack, so we can skip the
+> > setup. chan_count was configured to the number of logical channels and not
+> > the actual number of physical channels anyways.
+> > 
+> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > 
-> I am good either way.
+> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
-OK. How about let's remove the partitions from kernel for v4.11 as
-clean-up then for cases where the bootloader might change them?
-
-Regards,
+Applying into omap-for-v4.10/fixes thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
