@@ -1,40 +1,50 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH 1/4] net: ethernet: ti: cpsw: remove dual check from common res usage function
-Date: Sun,  8 Jan 2017 18:41:00 +0200
-Message-ID: <1483893663-15673-2-git-send-email-ivan.khoronzhuk@linaro.org>
-References: <1483893663-15673-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Subject: [PATCH] net: ethernet: ti: cpsw: extend limits for cpsw_get/set_ringparam
+Date: Sun,  8 Jan 2017 22:12:27 +0200
+Message-ID: <1483906347-7567-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1483893663-15673-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org, mugunthanvnm@ti.com
 Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Common res usage is possible only in case an interface is
-running. In case of not dual emac here can be only one interface,
-so while ndo_open and switch mode, only one interface can be opened,
-thus if open is called no any interface is running ... and no common
-res are used. So remove check on dual emac, it will simplify
-code/understanding and will match the name it's called.
+Allow to set number of descs close to possible values. In case of
+minimum limit it's equal to number of channels to be able to set
+at least one desc per channel. For maximum limit leave enough descs
+number for tx channels.
 
 Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 ---
- drivers/net/ethernet/ti/cpsw.c | 3 ---
- 1 file changed, 3 deletions(-)
+
+Based on net-next/master
+
+ drivers/net/ethernet/ti/cpsw.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index f339268..d261024 100644
+index 458298d..09e0ed6 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1240,9 +1240,6 @@ static int cpsw_common_res_usage_state(struct cpsw_common *cpsw)
- 	u32 i;
- 	u32 usage_count = 0;
+@@ -2474,8 +2474,7 @@ static void cpsw_get_ringparam(struct net_device *ndev,
+ 	/* not supported */
+ 	ering->tx_max_pending = 0;
+ 	ering->tx_pending = cpdma_get_num_tx_descs(cpsw->dma);
+-	/* Max 90% RX buffers */
+-	ering->rx_max_pending = (descs_pool_size * 9) / 10;
++	ering->rx_max_pending = descs_pool_size - CPSW_MAX_QUEUES;
+ 	ering->rx_pending = cpdma_get_num_rx_descs(cpsw->dma);
+ }
  
--	if (!cpsw->data.dual_emac)
--		return 0;
--
- 	for (i = 0; i < cpsw->data.slaves; i++)
- 		if (cpsw->slaves[i].open_stat)
- 			usage_count++;
+@@ -2490,8 +2489,8 @@ static int cpsw_set_ringparam(struct net_device *ndev,
+ 	/* ignore ering->tx_pending - only rx_pending adjustment is supported */
+ 
+ 	if (ering->rx_mini_pending || ering->rx_jumbo_pending ||
+-	    ering->rx_pending < (descs_pool_size / 10) ||
+-	    ering->rx_pending > ((descs_pool_size * 9) / 10))
++	    ering->rx_pending < CPSW_MAX_QUEUES ||
++	    ering->rx_pending > (descs_pool_size - CPSW_MAX_QUEUES))
+ 		return -EINVAL;
+ 
+ 	if (ering->rx_pending == cpdma_get_num_rx_descs(cpsw->dma))
 -- 
 2.7.4
