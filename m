@@ -1,41 +1,34 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 0/7] net: ethernet: ti: cpsw: support placing CPDMA
- descriptors into DDR
-Date: Sat, 07 Jan 2017 20:48:35 -0500 (EST)
-Message-ID: <20170107.204835.280172002099890013.davem@davemloft.net>
-References: <20170106200735.4210-1-grygorii.strashko@ti.com>
+Subject: Re: [net-next v1 0/8] netcp: enhancements and minor fixes
+Date: Sat, 07 Jan 2017 21:04:45 -0500 (EST)
+Message-ID: <20170107.210445.425360739645540040.davem@davemloft.net>
+References: <1483735066-14632-1-git-send-email-m-karicheri2@ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170106200735.4210-1-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, ivan.khoronzhuk@linaro.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1483735066-14632-1-git-send-email-m-karicheri2@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: m-karicheri2@ti.com
+Cc: arnd@arndb.de, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, mugunthanvnm@ti.com, linux-omap@vger.kernel.org, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Fri, 6 Jan 2017 14:07:28 -0600
+From: Murali Karicheri <m-karicheri2@ti.com>
+Date: Fri, 6 Jan 2017 15:37:38 -0500
 
-> This series intended to add support for placing CPDMA descriptors into DDR by
-> introducing new module parameter "descs_pool_size" to specify size of descriptor's
-> pool. The "descs_pool_size" defines total number of CPDMA
-> CPPI descriptors to be used for both ingress/egress packets
-> processing. If not specified - the default value 256 will be used
-> which will allow to place descriptor's pool into the internal CPPI
-> RAM.
+> This series is for net-next. This propagates enhancements and minor
+> bug fixes from internal version of the driver to keep the upstream
+> in sync. Please review and apply if this looks good.
 > 
-> In addition, added ability to re-split CPDMA pool of descriptors between RX and TX
-> path via ethtool '-G' command wich will allow to configure and fix number
-> of descriptors used by RX and TX path, which, then, will be split between
-> RX/TX channels proportionally depending on number of RX/TX channels and
-> its weight. 
+> Tested on all of K2HK/E/L boards with nfs rootfs.
+> Test logs below
+> K2HK-EVM: http://pastebin.ubuntu.com/23754106/
+> k2L-EVM: http://pastebin.ubuntu.com/23754143/
+> K2E-EVM: http://pastebin.ubuntu.com/23754159/
 > 
-> This allows significantly to reduce UDP packets drop rate
-> for bandwidth >301 Mbits/sec (am57x).  
-> 
-> Before enabling this feature, the am437x SoC has to be fixed as it's proved
-> that it's not working when CPDMA descriptors placed in DDR.
-> So, the patch 1 fixes this issue.
+> History:
+>   v1 - dropped 1/10 amd 2/10 of v0 based on comments from Rob as
+>        it needs more work before submission
+>   v0 - Initial version
 
-Series applied to net-next, thanks.
+Series applied, thanks.
