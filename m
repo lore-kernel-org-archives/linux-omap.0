@@ -1,34 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next v1 0/8] netcp: enhancements and minor fixes
-Date: Sat, 07 Jan 2017 21:04:45 -0500 (EST)
-Message-ID: <20170107.210445.425360739645540040.davem@davemloft.net>
-References: <1483735066-14632-1-git-send-email-m-karicheri2@ti.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1483735066-14632-1-git-send-email-m-karicheri2@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: m-karicheri2@ti.com
-Cc: arnd@arndb.de, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, mugunthanvnm@ti.com, linux-omap@vger.kernel.org, grygorii.strashko@ti.com
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH] net: ethernet: ti: cpsw: remove dual check from common res usage function
+Date: Sun,  8 Jan 2017 15:56:27 +0200
+Message-ID: <1483883787-13503-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, mugunthanvnm@ti.com
+Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Murali Karicheri <m-karicheri2@ti.com>
-Date: Fri, 6 Jan 2017 15:37:38 -0500
+Common res usage is possible only in case an interface is
+running. In case of not dual emac here can be only one interface,
+so while ndo_open and switch mode, only one interface can be opened,
+thus if open is called no any interface is running ... and no common
+res are used. So remove check on dual emac, it will simplify
+code/understanding and will match the name it's called.
 
-> This series is for net-next. This propagates enhancements and minor
-> bug fixes from internal version of the driver to keep the upstream
-> in sync. Please review and apply if this looks good.
-> 
-> Tested on all of K2HK/E/L boards with nfs rootfs.
-> Test logs below
-> K2HK-EVM: http://pastebin.ubuntu.com/23754106/
-> k2L-EVM: http://pastebin.ubuntu.com/23754143/
-> K2E-EVM: http://pastebin.ubuntu.com/23754159/
-> 
-> History:
->   v1 - dropped 1/10 amd 2/10 of v0 based on comments from Rob as
->        it needs more work before submission
->   v0 - Initial version
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
 
-Series applied, thanks.
+Based on linux-next/master
+
+ drivers/net/ethernet/ti/cpsw.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index b203143..91684f1 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -1235,9 +1235,6 @@ static int cpsw_common_res_usage_state(struct cpsw_common *cpsw)
+ 	u32 i;
+ 	u32 usage_count = 0;
+ 
+-	if (!cpsw->data.dual_emac)
+-		return 0;
+-
+ 	for (i = 0; i < cpsw->data.slaves; i++)
+ 		if (cpsw->slaves[i].open_stat)
+ 			usage_count++;
+-- 
+2.7.4
