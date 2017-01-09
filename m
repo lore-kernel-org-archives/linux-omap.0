@@ -1,225 +1,113 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v5] ASoC: omap-mcbsp: Add PM QoS support
- for McBSP to prevent glitches
-Date: Mon, 9 Jan 2017 15:12:01 +0200
-Message-ID: <1372efd2-5319-e6c4-629e-6ed5f2e2fe29@ti.com>
-References: <20170105015918.21621-1-matt@ranostay.consulting>
+Subject: [PATCH] dmaengine: omap-dma: Fix the port_window support
+Date: Mon, 9 Jan 2017 16:50:52 +0200
+Message-ID: <20170109145052.26837-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20170105015918.21621-1-matt@ranostay.consulting>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Matt Ranostay <matt@ranostay.consulting>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com, tony@atomide.com, linux@armlinux.org.uk
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
 
-On 01/05/2017 03:59 AM, Matt Ranostay wrote:
-> We can get audio errors if hitting deeper idle states on omaps:
-> =
+We do not yet have users of port_window. The following errors were found
+when converting the tusb6010_omap.c musb driver:
 
-> [alsa.c:230] error: Fatal problem with alsa output, error -5.
-> [audio.c:614] error: Error in writing audio (Input/output error?)!
-> =
+- The peripheral side must have SRC_/DST_PACKED disabled
+- when configuring the burst for the peripheral side the memory side
+  configuration were overwritten: d->csdp = ... -> d->csdp |= ...
+- The EI and FI were configured for the wrong sides of the transfers.
 
-> This seems to happen with off mode idle enabled as power for the
-> whole SoC may get cut off between filling the McBSP fifo using DMA.
-> While active DMA blocks deeper idle states in hardware, McBSP
-> activity does not seem to do so.
-> =
+With these changes and the converted tus6010_omap.c I was able to verify
+that things are working as they expected to work.
 
-> Basing the QoS latency calculation on the FIFO size, threshold,
-> sample rate, and channels.
+Fixes: 201ac4861c19 ("dmaengine: omap-dma: Support for slave devices with data port window")
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+Vinod,
 
-Looks good to me, thank you!
+finaly I got one n810 from Tony and managed to boot it up so I could verify the
+port_window support in omap-dma. Well, it almost worked for the first try ;)
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+This patch is fixing the port_window initial support in omap-dma.
 
-> Based on the original patch by Tony Lindgren
-> Link: https://patchwork.kernel.org/patch/9305867/
-> =
+It is intentional that it is done in one patch as these changes need to be done
+in order to get this mode working, we would not gain anything with separate
+patches regarding to bisect. But I can split it up if needed.
 
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
-> ---
-> Changes from v1:
-> * add calculations for latency per number of FIFO locations
-> =
+AFAIK the port_window support is introduced in 4.10. Would it be possible to
+send this patch also so for 4.11 I can start sending the tub6010_omap conversion
+to DMAengine?
 
-> Changes from v2:
-> * add missing mcbsp.h header change
-> =
+Regards,
+Peter
 
-> Changes from v3:
-> * base the latency calculations on threshold, buffer size, sample
->   rate, and channels
-> =
+ drivers/dma/omap-dma.c | 31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
-> Changes from v4:
-> * using Peter Ujfalusi's suggestions for restoring a higher latency on
->   audio stream completion, or if not applicable remove the QoS request
-> =
-
->  sound/soc/omap/mcbsp.c      | 37 +++++++++++++++++++++++++++++++++++++
->  sound/soc/omap/mcbsp.h      |  3 +++
->  sound/soc/omap/omap-mcbsp.c | 11 ++++++++++-
->  3 files changed, 50 insertions(+), 1 deletion(-)
-> =
-
-> diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-> index 06fec5699cc8..f079650b71e3 100644
-> --- a/sound/soc/omap/mcbsp.c
-> +++ b/sound/soc/omap/mcbsp.c
-> @@ -25,6 +25,7 @@
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pm_qos.h>
->  =
-
->  #include <linux/platform_data/asoc-ti-mcbsp.h>
->  =
-
-> @@ -640,9 +641,28 @@ void omap_mcbsp_free(struct omap_mcbsp *mcbsp)
->   */
->  void omap_mcbsp_start(struct omap_mcbsp *mcbsp, int tx, int rx)
->  {
-> +	struct pm_qos_request *pm_qos_req =3D &mcbsp->pm_qos_req;
-> +	int stream1 =3D tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTU=
-RE;
-> +	int stream2 =3D tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBA=
-CK;
->  	int enable_srg =3D 0;
-> +	int latency;
->  	u16 w;
->  =
-
-> +	/* Prevent omap hardware from hitting off between FIFO fills */
-> +	if (!mcbsp->latency[stream2] ||
-> +			mcbsp->latency[stream1] < mcbsp->latency[stream2])
-> +		latency =3D mcbsp->latency[stream1];
-> +	else
-> +		latency =3D mcbsp->latency[stream2];
-> +
-> +	if (latency) {
-> +		if (pm_qos_request_active(pm_qos_req))
-> +			pm_qos_update_request(pm_qos_req, latency);
-> +		else
-> +			pm_qos_add_request(pm_qos_req, PM_QOS_CPU_DMA_LATENCY,
-> +					   latency);
-> +	}
-> +
->  	if (mcbsp->st_data)
->  		omap_st_start(mcbsp);
->  =
-
-> @@ -731,6 +751,20 @@ void omap_mcbsp_stop(struct omap_mcbsp *mcbsp, int t=
-x, int rx)
->  =
-
->  	if (mcbsp->st_data)
->  		omap_st_stop(mcbsp);
-> +
-> +	if (pm_qos_request_active(&mcbsp->pm_qos_req)) {
-> +		int stream1 =3D tx ? SNDRV_PCM_STREAM_PLAYBACK :
-> +			SNDRV_PCM_STREAM_CAPTURE;
-> +		int stream2 =3D tx ? SNDRV_PCM_STREAM_CAPTURE :
-> +			SNDRV_PCM_STREAM_PLAYBACK;
-> +
-> +		mcbsp->latency[stream1] =3D 0;
-> +		if (mcbsp->latency[stream2])
-> +			pm_qos_update_request(&mcbsp->pm_qos_req,
-> +					      mcbsp->latency[stream2]);
-> +		else
-> +			pm_qos_remove_request(&mcbsp->pm_qos_req);
-> +	}
->  }
->  =
-
->  int omap2_mcbsp_set_clks_src(struct omap_mcbsp *mcbsp, u8 fck_src_id)
-> @@ -1098,6 +1132,9 @@ int omap_mcbsp_init(struct platform_device *pdev)
->  =
-
->  void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp)
->  {
-> +	if (pm_qos_request_active(&mcbsp->pm_qos_req))
-> +		pm_qos_remove_request(&mcbsp->pm_qos_req);
-> +
->  	if (mcbsp->pdata->buffer_size)
->  		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
->  =
-
-> diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
-> index 61e93b1c185d..46ae1269a698 100644
-> --- a/sound/soc/omap/mcbsp.h
-> +++ b/sound/soc/omap/mcbsp.h
-> @@ -323,8 +323,11 @@ struct omap_mcbsp {
->  =
-
->  	unsigned int fmt;
->  	unsigned int in_freq;
-> +	unsigned int latency[2];
->  	int clk_div;
->  	int wlen;
-> +
-> +	struct pm_qos_request pm_qos_req;
->  };
->  =
-
->  void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-> index d018e966e533..7e00938271c6 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -226,6 +226,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_su=
-bstream *substream,
->  	int wlen, channels, wpf;
->  	int pkt_size =3D 0;
->  	unsigned int format, div, framesize, master;
-> +	unsigned int buffer_size =3D mcbsp->pdata->buffer_size;
->  =
-
->  	dma_data =3D snd_soc_dai_get_dma_data(cpu_dai, substream);
->  	channels =3D params_channels(params);
-> @@ -240,7 +241,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_su=
-bstream *substream,
->  	default:
->  		return -EINVAL;
->  	}
-> -	if (mcbsp->pdata->buffer_size) {
-> +	if (buffer_size) {
-> +		int latency;
-> +
->  		if (mcbsp->dma_op_mode =3D=3D MCBSP_DMA_MODE_THRESHOLD) {
->  			int period_words, max_thrsh;
->  			int divider =3D 0;
-> @@ -271,6 +274,12 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_s=
-ubstream *substream,
->  			/* Use packet mode for non mono streams */
->  			pkt_size =3D channels;
->  		}
-> +
-> +		latency =3D ((((buffer_size - pkt_size) / channels) * 1000)
-> +				 / (params->rate_num / params->rate_den));
-> +
-> +		mcbsp->latency[substream->stream] =3D latency;
-> +
->  		omap_mcbsp_set_threshold(substream, pkt_size);
->  	}
->  =
-
-> =
-
-
--- =
-
-P=E9ter
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 4ad101a47e0a..daf479cce691 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -938,21 +938,14 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 		d->ccr |= CCR_DST_AMODE_POSTINC;
+ 		if (port_window) {
+ 			d->ccr |= CCR_SRC_AMODE_DBLIDX;
+-			d->ei = 1;
+-			/*
+-			 * One frame covers the port_window and by  configure
+-			 * the source frame index to be -1 * (port_window - 1)
+-			 * we instruct the sDMA that after a frame is processed
+-			 * it should move back to the start of the window.
+-			 */
+-			d->fi = -(port_window_bytes - 1);
+ 
+ 			if (port_window_bytes >= 64)
+-				d->csdp = CSDP_SRC_BURST_64 | CSDP_SRC_PACKED;
++				d->csdp |= CSDP_SRC_BURST_64;
+ 			else if (port_window_bytes >= 32)
+-				d->csdp = CSDP_SRC_BURST_32 | CSDP_SRC_PACKED;
++				d->csdp |= CSDP_SRC_BURST_32;
+ 			else if (port_window_bytes >= 16)
+-				d->csdp = CSDP_SRC_BURST_16 | CSDP_SRC_PACKED;
++				d->csdp |= CSDP_SRC_BURST_16;
++
+ 		} else {
+ 			d->ccr |= CCR_SRC_AMODE_CONSTANT;
+ 		}
+@@ -962,13 +955,21 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 		d->ccr |= CCR_SRC_AMODE_POSTINC;
+ 		if (port_window) {
+ 			d->ccr |= CCR_DST_AMODE_DBLIDX;
++			d->ei = 1;
++			/*
++			 * One frame covers the port_window and by  configure
++			 * the source frame index to be -1 * (port_window - 1)
++			 * we instruct the sDMA that after a frame is processed
++			 * it should move back to the start of the window.
++			 */
++			d->fi = -(port_window_bytes - 1);
+ 
+ 			if (port_window_bytes >= 64)
+-				d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
++				d->csdp |= CSDP_DST_BURST_64;
+ 			else if (port_window_bytes >= 32)
+-				d->csdp = CSDP_DST_BURST_32 | CSDP_DST_PACKED;
++				d->csdp |= CSDP_DST_BURST_32;
+ 			else if (port_window_bytes >= 16)
+-				d->csdp = CSDP_DST_BURST_16 | CSDP_DST_PACKED;
++				d->csdp |= CSDP_DST_BURST_16;
+ 		} else {
+ 			d->ccr |= CCR_DST_AMODE_CONSTANT;
+ 		}
+@@ -1017,7 +1018,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 		osg->addr = sg_dma_address(sgent);
+ 		osg->en = en;
+ 		osg->fn = sg_dma_len(sgent) / frame_bytes;
+-		if (port_window && dir == DMA_MEM_TO_DEV) {
++		if (port_window && dir == DMA_DEV_TO_MEM) {
+ 			osg->ei = 1;
+ 			/*
+ 			 * One frame covers the port_window and by  configure
+-- 
+2.11.0
