@@ -1,71 +1,41 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 1/2] dmaengine: cppi41: Fix list not empty warning on runtime suspend
-Date: Mon,  9 Jan 2017 18:03:36 +0100
-Message-ID: <20170109170337.6957-2-abailon@baylibre.com>
-References: <20170109170337.6957-1-abailon@baylibre.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170109170337.6957-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 0/4] net: ethernet: ti: cpsw: correct common res usage
+Date: Mon, 9 Jan 2017 11:11:04 -0600
+Message-ID: <b1190d93-ae4a-b10b-d780-0a5f0328e13b@ti.com>
+References: <1483893663-15673-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1483893663-15673-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, netdev@vger.kernel.org, mugunthanvnm@ti.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Sometime, a transfer may not be queued due to a race between runtime pm
-and cppi41_dma_issue_pending().
-Sometime, cppi41_runtime_resume() may be interrupted right before to
-update device PM state to RESUMED.
-When it happens, if a new dma transfer is issued, because the device is not
-in active state, the descriptor will be added to the pendding list.
-But because the descriptors in the pendding list are only queued to cppi41
-on runtime resume, the descriptor will not be queued.
-On runtime suspend, the list is not empty, which is causing a warning.
-Queue the descriptor if the device is active or resuming.
+Hi Ivan,
 
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
----
- drivers/dma/cppi41.c | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+On 01/08/2017 10:40 AM, Ivan Khoronzhuk wrote:
+> This series is intended to remove unneeded redundancies connected with
+> common resource usage function.
+>
+> Based on net-next/master
+> Tested on am572x idk
+>
+> Ivan Khoronzhuk (4):
+>   net: ethernet: ti: cpsw: remove dual check from common res usage
+>     function
+>   net: ethernet: ti: cpsw: don't disable interrupts in ndo_open
+>   net: ethernet: ti: cpsw: don't duplicate ndev_running
+>   net: ethernet: ti: cpsw: don't duplicate common res in rx handler
+>
 
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index d5ba43a..025fee4 100644
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -471,6 +471,8 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
- {
- 	struct cppi41_channel *c = to_cpp41_chan(chan);
- 	struct cppi41_dd *cdd = c->cdd;
-+	unsigned long flags;
-+	bool active;
- 	int error;
- 
- 	error = pm_runtime_get(cdd->ddev.dev);
-@@ -482,7 +484,21 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
- 		return;
- 	}
- 
--	if (likely(pm_runtime_active(cdd->ddev.dev)))
-+	active = pm_runtime_active(cdd->ddev.dev);
-+	if (!active) {
-+		/*
-+		 * Runtime resume may be interrupted before runtime_status
-+		 * has been updated. Test if device has resumed.
-+		 */
-+		if (error == -EINPROGRESS) {
-+			spin_lock_irqsave(&cdd->lock, flags);
-+			if (list_empty(&cdd->pending))
-+				active = true;
-+			spin_unlock_irqrestore(&cdd->lock, flags);
-+		}
-+	}
-+
-+	if (likely(active))
- 		push_desc_queue(c);
- 	else
- 		pending_desc(c);
+thanks for the patches - I'll need some time to review them.
+
+>  drivers/net/ethernet/ti/cpsw.c | 57 ++++++++++++++----------------------------
+>  1 file changed, 19 insertions(+), 38 deletions(-)
+>
+
 -- 
-2.10.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards,
+-grygorii
