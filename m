@@ -1,67 +1,50 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: Nokia N900 headset detection & MIC Bias + TVOUT
-Date: Mon, 9 Jan 2017 20:29:53 +0100
-Message-ID: <201701092029.53939@pali>
-References: <201701070007.49137@pali> <20170109131317.GD26301@pali> <20170109192201.l3mkro3epzf2ns27@sirena.org.uk>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: =?utf-8?B?5Zue5aSN77yaTXlpciBBTTQzN3gg?=
+ =?utf-8?Q?Rico_board_support_=28DTS?= =?utf-8?Q?=29?= for Linux mainline 4.9
+ and 4.4 Ti Processor SDK 03.02.00.05
+Date: Mon, 9 Jan 2017 11:37:48 -0800
+Message-ID: <20170109193747.GP2630@atomide.com>
+References: <201701051754.03159.ppisa@pikron.com>
+ <cb3b5798-e82e-4bb4-932b-1c02ece5d3e4.sunny.guo@myirtech.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1563104.WODxihMdno";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170109192201.l3mkro3epzf2ns27@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, joerg Reisenweber <joerg@openmoko.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <cb3b5798-e82e-4bb4-932b-1c02ece5d3e4.sunny.guo-0A6ZgDe55FJWk0Htik3J/w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sunny <sunny.guo-0A6ZgDe55FJWk0Htik3J/w@public.gmane.org>
+Cc: Pavel Pisa <ppisa-hnFyeMMZ0rvQT0dZR+AlfA@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org>, Dan Murphy <DMurphy-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, support-0A6ZgDe55FJWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---nextPart1563104.WODxihMdno
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Monday 09 January 2017 20:22:01 Mark Brown wrote:
-> On Mon, Jan 09, 2017 at 02:13:17PM +0100, Pali Roh=C3=A1r wrote:
-> > So... can I call snd_soc_dapm_mutex_lock(dapm) at function startup,
-> > start doing cable detection and when needed call this?
-> >=20
-> > snd_soc_dapm_enable_pin_unlocked(dapm, "HS Mic");
-> > snd_soc_dapm_sync_unlocked(dapm);
-> >=20
-> > And at the end of function revert back "HS Mic" pin status and call
-> > snd_soc_dapm_mutex_unlock(dapm)?
->=20
-> You shouldn't need to lock I'd expect, and you'll want to sync at any
-> point where you need an actual change.  Note that if something holds
-> the microphone bias on (like something using the microphone)
-> separately then that'll take effect so if you really need things to
-> get turned off then that won't work but you probably have trouble
-> anyway in that situation.
+* Sunny <sunny.guo-0A6ZgDe55FJWk0Htik3J/w@public.gmane.org> [170109 02:36]:
+> Hello Pavel and Tony,
+> 
+> This is Sunny from MYIR , and working as the software manager on RICO board. Very glad to see the great work that Pavel has done ,and sincerely appriciated to all the contributions and share. 
+> 
+> Our Linux release is not in the mailline release currently, and updates is following TI official release , may with some latency due need some time to make the update on RICO . We are planning and working on next update on RICO linux which will happen on April to Linux 4.4 or above.
+> 
+> I will look into detail and make some testings.  We will talk to you later on how we can share and help the engineers to benefit from your contribution.
 
-This is needed for cable/jack detection at time when jack is inserted.=20
-So before it there cannot be any user of (disconnected) microphone.
+Please let's coordinate the work on linux-arm-kernel and linux-omap
+mailing lists to avoid duplicate work.
 
-What I need is to enable mic bias, measure ADC of some time period,=20
-check status of some GPIOs. Then disable mic bias, measure ADC again and=20
-check GPIOs. I in this detection procedure I need to ensure that nobody=20
-changes mic bias. So I though that locking the whole procedure could=20
-ensure that.
+It seems the basic dts file is pretty much ready to go, then
+it's easy to make incremental patches to that.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+So maybe try to get get your engineers involved on the lists
+too?
 
---nextPart1563104.WODxihMdno
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+And if you want the community people to help then making
+few devices available to play with might get you some extra
+help.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Regards,
 
-iEYEABECAAYFAlhz5LEACgkQi/DJPQPkQ1J69ACgh6oUmL/M99wHg9bsuorhxlTP
-kNUAn2qUkO7OqhqtT+1uYJvQMYy7t64+
-=tJF5
------END PGP SIGNATURE-----
-
---nextPart1563104.WODxihMdno--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
