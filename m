@@ -1,7 +1,7 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 06/11] dmaengine: cppi41: Only configure am335x's registers on amm335x platform
-Date: Mon,  9 Jan 2017 17:06:51 +0100
-Message-ID: <20170109160656.3470-7-abailon@baylibre.com>
+Subject: [PATCH 01/11] dmaengine: cppi41: rename platform variables
+Date: Mon,  9 Jan 2017 17:06:46 +0100
+Message-ID: <20170109160656.3470-2-abailon@baylibre.com>
 References: <20170109160656.3470-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170109160656.3470-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
@@ -10,71 +10,75 @@ To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently, the driver configure some am335x's usb registers.
-Test if the driver is running on am335x before to configure
-these registers.
+Currently, only the am335x is supported by the driver.
+Though the driver has a glue layer to support different platforms,
+some platform variable names are not prefixed with the platform name.
+To facilitate the addition of a new platform,
+rename some variables owned by the am335x glue.
+
+Currently, only the am335x is supported by the driver.
+Though the driver provide a glue layer that should be used to support
+another platforms. Rename variable specifics to the am335x glue.
 
 Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- drivers/dma/cppi41.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ drivers/dma/cppi41.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index 58b27ef..939398e 100644
+index d5ba43a..25ee71d 100644
 --- a/drivers/dma/cppi41.c
 +++ b/drivers/dma/cppi41.c
-@@ -1077,7 +1077,9 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 		goto err_irq;
- 	}
+@@ -156,7 +156,7 @@ struct cppi41_dd {
+ };
  
--	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLER);
-+	if (is_am335x_cppi41(dev))
-+		cppi_writel(USBSS_IRQ_PD_COMP,
-+			    cdd->usbss_mem + USBSS_IRQ_ENABLER);
+ #define FIST_COMPLETION_QUEUE	93
+-static struct chan_queues usb_queues_tx[] = {
++static struct chan_queues am335x_usb_queues_tx[] = {
+ 	/* USB0 ENDP 1 */
+ 	[ 0] = { .submit = 32, .complete =  93},
+ 	[ 1] = { .submit = 34, .complete =  94},
+@@ -192,7 +192,7 @@ static struct chan_queues usb_queues_tx[] = {
+ 	[29] = { .submit = 90, .complete = 139},
+ };
  
- 	ret = devm_request_irq(&pdev->dev, irq, glue_info->isr, IRQF_SHARED,
- 			dev_name(dev), cdd);
-@@ -1102,7 +1104,8 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 	dma_async_device_unregister(&cdd->ddev);
- err_dma_reg:
- err_irq:
--	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
-+	if (is_am335x_cppi41(dev))
-+		cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
- 	cleanup_chans(cdd);
- err_chans:
- 	deinit_cppi41(dev, cdd);
-@@ -1131,7 +1134,8 @@ static int cppi41_dma_remove(struct platform_device *pdev)
- 	of_dma_controller_free(pdev->dev.of_node);
- 	dma_async_device_unregister(&cdd->ddev);
+-static const struct chan_queues usb_queues_rx[] = {
++static const struct chan_queues am335x_usb_queues_rx[] = {
+ 	/* USB0 ENDP 1 */
+ 	[ 0] = { .submit =  1, .complete = 109},
+ 	[ 1] = { .submit =  2, .complete = 110},
+@@ -918,8 +918,9 @@ static bool cpp41_dma_filter_fn(struct dma_chan *chan, void *param)
+ 	else
+ 		queues = cdd->queues_rx;
  
--	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
-+	if (is_am335x_cppi41(&pdev->dev))
-+		cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
- 	devm_free_irq(&pdev->dev, cdd->irq, cdd);
- 	cleanup_chans(cdd);
- 	deinit_cppi41(&pdev->dev, cdd);
-@@ -1150,7 +1154,8 @@ static int __maybe_unused cppi41_suspend(struct device *dev)
- 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+-	BUILD_BUG_ON(ARRAY_SIZE(usb_queues_rx) != ARRAY_SIZE(usb_queues_tx));
+-	if (WARN_ON(cchan->port_num > ARRAY_SIZE(usb_queues_rx)))
++	BUILD_BUG_ON(ARRAY_SIZE(am335x_usb_queues_rx) !=
++		     ARRAY_SIZE(am335x_usb_queues_tx));
++	if (WARN_ON(cchan->port_num > ARRAY_SIZE(am335x_usb_queues_rx)))
+ 		return false;
  
- 	cdd->dma_tdfdq = cppi_readl(cdd->ctrl_mem + DMA_TDFDQ);
--	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
-+	if (is_am335x_cppi41(dev))
-+		cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
- 	disable_sched(cdd);
- 
- 	return 0;
-@@ -1176,7 +1181,9 @@ static int __maybe_unused cppi41_resume(struct device *dev)
- 	cppi_writel(QMGR_SCRATCH_SIZE, cdd->qmgr_mem + QMGR_LRAM_SIZE);
- 	cppi_writel(0, cdd->qmgr_mem + QMGR_LRAM1_BASE);
- 
--	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLER);
-+	if (is_am335x_cppi41(dev))
-+		cppi_writel(USBSS_IRQ_PD_COMP,
-+			    cdd->usbss_mem + USBSS_IRQ_ENABLER);
- 
- 	return 0;
+ 	cchan->q_num = queues[cchan->port_num].submit;
+@@ -947,15 +948,15 @@ static struct dma_chan *cppi41_dma_xlate(struct of_phandle_args *dma_spec,
+ 			&dma_spec->args[0]);
  }
+ 
+-static const struct cppi_glue_infos usb_infos = {
++static const struct cppi_glue_infos am335x_usb_infos = {
+ 	.isr = cppi41_irq,
+-	.queues_rx = usb_queues_rx,
+-	.queues_tx = usb_queues_tx,
++	.queues_rx = am335x_usb_queues_rx,
++	.queues_tx = am335x_usb_queues_tx,
+ 	.td_queue = { .submit = 31, .complete = 0 },
+ };
+ 
+ static const struct of_device_id cppi41_dma_ids[] = {
+-	{ .compatible = "ti,am3359-cppi41", .data = &usb_infos},
++	{ .compatible = "ti,am3359-cppi41", .data = &am335x_usb_infos},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, cppi41_dma_ids);
 -- 
 2.10.2
 
