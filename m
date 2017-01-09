@@ -1,32 +1,64 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 17/21] mmc: omap: Don't use mmc_card_present() when
- validating for inserted card
-Date: Mon, 9 Jan 2017 19:24:17 +0100
-Message-ID: <CACRpkdbUR3g46BV2zyXG7uo-=6Vq-QRcrdqfgBrrEpn3+kn6aQ@mail.gmail.com>
-References: <1483102054-1752-1-git-send-email-ulf.hansson@linaro.org> <1483102054-1752-18-git-send-email-ulf.hansson@linaro.org>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH 1/3] ARM: dts: da850: Add the cppi41 dma node
+Date: Mon, 9 Jan 2017 21:26:08 +0300
+Message-ID: <811adb6b-00e4-bbc4-d6f5-7bf3ba85ab63@cogentembedded.com>
+References: <20170109162449.5012-1-abailon@baylibre.com>
+ <20170109162449.5012-2-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1483102054-1752-18-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Jaehoon Chung <jh80.chung@samsung.com>, Adrian Hunter <adrian.hunter@intel.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170109162449.5012-2-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, david-nq/r/kbU++upp/zk7JDF2g@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 30, 2016 at 1:47 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+Hello.
 
-> The mmc_card_present() function helps the mmc core to track an internal
-> state of the card device. More importantly, it's not intended to be used by
-> mmc host drivers to check for an inserted card. Therefore, let's stop using
-> it and instead rely on checking for a valid pointer to a struct mmc_card,
-> as it should be good enough.
+On 01/09/2017 07:24 PM, Alexandre Bailon wrote:
+
+> This adds the device tree node for the cppi41 dma
+> used by the usb otg controller present in the da850 family of SoC's.
 >
-> Cc: linux-omap@vger.kernel.org
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/da850.dtsi | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/da850.dtsi b/arch/arm/boot/dts/da850.dtsi
+> index 104155d..d6b406a 100644
+> --- a/arch/arm/boot/dts/da850.dtsi
+> +++ b/arch/arm/boot/dts/da850.dtsi
+> @@ -403,6 +403,22 @@
+>  			phy-names = "usb-phy";
+>  			status = "disabled";
+>  		};
+> +		cppi41dma: dma-controller@201000 {
+> +			compatible = "ti,da8xx-cppi41";
+> +			reg =  <0x200000 0x1000
 
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+    I don't remember any DA8xx glue regs having to do with the CPPI 4.1...
 
-Yours,
-Linus Walleij
+> +				0x201000 0x1000
+> +				0x202000 0x1000
+> +				0x204000 0x4000>;
+> +			reg-names = "glue", "controller",
+> +				    "scheduler", "queuemgr";
+> +			interrupts = <58>;
+> +			interrupt-names = "glue";
+> +			#dma-cells = <2>;
+> +			#dma-channels = <4>;
+> +			#dma-requests = <256>;
+> +			status = "disabled";
+
+    Why disabled? It doesn't use any external pins...
+
+[...]
+
+MBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
