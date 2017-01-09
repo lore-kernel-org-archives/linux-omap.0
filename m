@@ -1,120 +1,87 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: Nokia N900 headset detection & MIC Bias + TVOUT
-Date: Mon, 9 Jan 2017 21:32:51 +0100
-Message-ID: <201701092132.51414@pali>
-References: <201701070007.49137@pali> <201701092029.53939@pali> <20170109193828.rzpyzzl6g3v2nylk@sirena.org.uk>
+From: Matt Ranostay <matt@ranostay.consulting>
+Subject: Re: [PATCH v5] ASoC: omap-mcbsp: Add PM QoS support
+ for McBSP to prevent glitches
+Date: Mon, 9 Jan 2017 13:46:01 -0800
+Message-ID: <CAJ_EiSRiSSUxDoza0a5gHuP8mvOteZ=9Mi=G91r++QUbgaXpXA@mail.gmail.com>
+References: <20170105015918.21621-1-matt@ranostay.consulting>
+ <1372efd2-5319-e6c4-629e-6ed5f2e2fe29@ti.com>
+ <20170109192123.GN2630@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2181871.YleHOu7iZA";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170109193828.rzpyzzl6g3v2nylk@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, joerg Reisenweber <joerg@openmoko.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20170109192123.GN2630@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
---nextPart2181871.YleHOu7iZA
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Mon, Jan 9, 2017 at 11:21 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [170109 05:13]:
+>> On 01/05/2017 03:59 AM, Matt Ranostay wrote:
+>> > We can get audio errors if hitting deeper idle states on omaps:
+>> >
+>> > [alsa.c:230] error: Fatal problem with alsa output, error -5.
+>> > [audio.c:614] error: Error in writing audio (Input/output error?)!
+>> >
+>> > This seems to happen with off mode idle enabled as power for the
+>> > whole SoC may get cut off between filling the McBSP fifo using DMA.
+>> > While active DMA blocks deeper idle states in hardware, McBSP
+>> > activity does not seem to do so.
+>> >
+>> > Basing the QoS latency calculation on the FIFO size, threshold,
+>> > sample rate, and channels.
+>>
+>> Looks good to me, thank you!
+>>
+>> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>
+> Noticed the following about 10 seconds into playing an mp3 file with
+> mpg123 though:
+>
 
-On Monday 09 January 2017 20:38:28 Mark Brown wrote:
-> On Mon, Jan 09, 2017 at 08:29:53PM +0100, Pali Roh=C3=A1r wrote:
-> > On Monday 09 January 2017 20:22:01 Mark Brown wrote:
-> > > point where you need an actual change.  Note that if something
-> > > holds the microphone bias on (like something using the
-> > > microphone) separately then that'll take effect so if you really
-> > > need things to get turned off then that won't work but you
-> > > probably have trouble anyway in that situation.
-> >=20
-> > This is needed for cable/jack detection at time when jack is
-> > inserted. So before it there cannot be any user of (disconnected)
-> > microphone.
->=20
-> That's not going to stop userspace, consider what happens if the
-> headset gets removed and userspace is slow to stop a recording for
-> example.
+Didn't notice that happening for me. But haven't rebased for the last
+couple days.
+Does this happen 100% of the time?
 
-Ok. But in this case changing mic bias does not introduce any problems
-as userspace already trying to record from disconnected microphone.
-
-> > What I need is to enable mic bias, measure ADC of some time period,
-> > check status of some GPIOs. Then disable mic bias, measure ADC
-> > again and check GPIOs. I in this detection procedure I need to
-> > ensure that nobody changes mic bias. So I though that locking the
-> > whole procedure could ensure that.
->=20
-> That sounds racy and a bit unusual - what's the actual procedure
-> here?
-
-The whole old code for production Nokia N900 devices is there:
-https://github.com/pali/linux-n900/blob/v2.6.28-nokia/drivers/misc/nokia-av=
-=2Ec
-
-If it is usual/unusual/crazy/wtf/:-) I can just tell: it is working fine
-with that Maemo 2.6.28 production kernel. And there is no documentation
-for it, just code. So the best what we can do is reimplement that driver
-for mainline kernel and check if it is working. (Then we can maybe start
-changing logic if something make sense...).
-
-It is more complicated, but basic idea seems to be:
-
-Use interrupt handler when jack_detection_gpio changes. When 1 --> jack
-unplugged (no detection is needed), otherwise plugged and start
-detection.
-
-Start: set eci_sw_gpio to 1, enable mic bias, wait 20msec
-
-Detection point 1: if eci0_gpio is 1 then goto Detection point 3
-
-Detection point 2: measure ECI_ADC (thresholds define type) and goto Stop
-
-Detection point 3: set eci_sw_gpio to 0, wait 20msec, if eci1_gpio is 1 the=
-n goto Stop (open cable=20
-was inserted)
-
-Detection point 4: set eci_sw_gpio to 1, disable mic bias, measure ECI_ADC =
-until it stabilize=20
-(thresholds define type)
-
-Stop: set eci_sw_gpio to 1, revert mic bias
-
-Thresholds for Detection point 2 are defined as:
-#define THRESHOLD_GROUNDED	40		// HEADPHONES or line input cable or externa=
-l mic
-#define THRESHOLD_VIDEO_HI	150		// VIDEO_CABLE
-
-Thresholds for Detection point 4 are defined as:
-#define THRESHOLD_HEADSET_HI	1000	// BASIC_HEADSET
-
-(probably threshold for basic headset is not correct)
-
-The whole procedure is repeated 5-10 times. If open cable is detected
-then eci_sw_gpio is set to 0 and procedure is periodically repeated
-after some interval (looking at the code I think that interrupt for
-eci1_gpio could be used instead of busy waiting). Optionally if nothing
-(=3D unknown) after 5-10 times is detected then another procedure for ECI
-headsets could be used. As Joerg pointed that nokia-av.c code has
-incorrect detection for ECI it first needs to be investigated. But it
-will need to disable TVOUT (OMAP3430 TV_OUT1 and TV_VFB1 pins).
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart2181871.YleHOu7iZA
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlhz83MACgkQi/DJPQPkQ1KktQCgh1r6gMLNptLRNM7/CUjB5HQe
-YdoAn2qSpMfFKyoLzFQtj4Mo+HVBcGSv
-=28+U
------END PGP SIGNATURE-----
-
---nextPart2181871.YleHOu7iZA--
+> BUG: sleeping function called from invalid context at kernel/locking/rwsem.c:21
+> in_atomic(): 1, irqs_disabled(): 128, pid: 351, name: mpg123
+> 2 locks held by mpg123/351:
+>  #0:  (snd_pcm_link_rwlock){......}, at: [<bf0667dc>] snd_pcm_stream_lock+0x20/0x50 [snd_pcm]
+>  #1:  (&(&substream->self_group.lock)->rlock){......}, at: [<bf06dd70>] snd_pcm_lib_write1+0x1ac/0x30c [snd_pc]
+> irq event stamp: 20082
+> hardirqs last  enabled at (20081): [<bf0668e8>] snd_pcm_stream_unlock_irq+0x20/0x28 [snd_pcm]
+> hardirqs last disabled at (20082): [<bf066834>] snd_pcm_stream_lock_irq+0x28/0x38 [snd_pcm]
+> softirqs last  enabled at (17808): [<c013f124>] __do_softirq+0x240/0x564
+> softirqs last disabled at (17767): [<c013f7e0>] irq_exit+0xe4/0x160
+> CPU: 0 PID: 351 Comm: mpg123 Not tainted 4.10.0-rc2-next-20170109+ #726
+> Hardware name: Generic OMAP36xx (Flattened Device Tree)
+> [<c0110238>] (unwind_backtrace) from [<c010c2a8>] (show_stack+0x10/0x14)
+> [<c010c2a8>] (show_stack) from [<c04be4a0>] (dump_stack+0xac/0xe0)
+> [<c04be4a0>] (dump_stack) from [<c0165d60>] (___might_sleep+0x17c/0x2a4)
+> [<c0165d60>] (___might_sleep) from [<c0879444>] (down_read+0x20/0x90)
+> [<c0879444>] (down_read) from [<c015f62c>] (__blocking_notifier_call_chain+0x2c/0x60)
+> [<c015f62c>] (__blocking_notifier_call_chain) from [<c015f678>] (blocking_notifier_call_chain+0x18/0x20)
+> [<c015f678>] (blocking_notifier_call_chain) from [<c01a1c98>] (pm_qos_update_target+0x120/0x34c)
+> [<c01a1c98>] (pm_qos_update_target) from [<bf247188>] (omap_mcbsp_start+0x2a8/0x334 [snd_soc_omap_mcbsp])
+> [<bf247188>] (omap_mcbsp_start [snd_soc_omap_mcbsp]) from [<bf24533c>] (omap_mcbsp_dai_trigger+0x5c/0x90 [snd_)
+> [<bf24533c>] (omap_mcbsp_dai_trigger [snd_soc_omap_mcbsp]) from [<bf09bfa0>] (soc_pcm_trigger+0xd0/0x11c [snd_)
+> [<bf09bfa0>] (soc_pcm_trigger [snd_soc_core]) from [<bf066368>] (snd_pcm_action_single+0x38/0x78 [snd_pcm])
+> [<bf066368>] (snd_pcm_action_single [snd_pcm]) from [<bf06de8c>] (snd_pcm_lib_write1+0x2c8/0x30c [snd_pcm])
+> [<bf06de8c>] (snd_pcm_lib_write1 [snd_pcm]) from [<bf06df30>] (snd_pcm_lib_write+0x60/0x74 [snd_pcm])
+> [<bf06df30>] (snd_pcm_lib_write [snd_pcm]) from [<bf0692bc>] (snd_pcm_playback_ioctl1+0x38c/0x6f0 [snd_pcm])
+> [<bf0692bc>] (snd_pcm_playback_ioctl1 [snd_pcm]) from [<c02cbab8>] (do_vfs_ioctl+0x90/0xa0c)
+> [<c02cbab8>] (do_vfs_ioctl) from [<c02cc4a0>] (SyS_ioctl+0x6c/0x7c)
+> [<c02cc4a0>] (SyS_ioctl) from [<c01079a8>] (__sys_trace_return+0x0/0x10)
+>
+> Any ideas?
+>
+> Tony
