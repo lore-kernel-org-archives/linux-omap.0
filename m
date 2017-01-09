@@ -1,76 +1,84 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/4] usb: musb: da8xx: Use the right dma controller
-Date: Mon, 9 Jan 2017 11:06:19 -0800
-Message-ID: <20170109190619.GM2630@atomide.com>
-References: <20170109163902.5268-1-abailon@baylibre.com>
- <20170109163902.5268-2-abailon@baylibre.com>
- <7dcfe848-a421-d409-0e9a-659c095e4e31@cogentembedded.com>
- <20170109184352.GL2630@atomide.com>
- <5a002693-1ebf-550f-02df-b40e44f59751@cogentembedded.com>
+From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] dmaengine: cppi41: Ignore EINPROGRESS for PM
+ runtime in interrupt handler
+Date: Mon, 9 Jan 2017 13:11:22 -0600
+Message-ID: <7f446fd6-23ac-392c-6a2e-6b63843e0299@ti.com>
+References: <20170109170337.6957-1-abailon@baylibre.com>
+ <20170109170337.6957-3-abailon@baylibre.com>
+ <20170109183946.GK2630@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5a002693-1ebf-550f-02df-b40e44f59751-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <20170109183946.GK2630-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, b-liu-l0cyMroinI0@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, david-nq/r/kbU++upp/zk7JDF2g@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org> [170109 10:55]:
-> On 01/09/2017 09:43 PM, Tony Lindgren wrote:
+
+
+On 01/09/2017 12:39 PM, Tony Lindgren wrote:
+> * Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> [170109 09:04]:
+>> We can occasionally get -EINPROGRESS for pm_runtime_get.
+>> This is happening when an interrupt is fired before PM runtime had time
+>> to update the PM state to RESUMED.
+>> In that case, don't print any error.
 > 
-> > > > da8xx driver is registering and using the cppi dma controller but actually,
-> > > > the da8xx has a cppi41 dma controller.
-> > > > Update the driver to register and use the cppi41 dma controller.
-> > > > 
-> > > > Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> > > > ---
-> > > >  drivers/usb/musb/da8xx.c | 8 ++++----
-> > > >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-> > > > index e89708d..74dcc07 100644
-> > > > --- a/drivers/usb/musb/da8xx.c
-> > > > +++ b/drivers/usb/musb/da8xx.c
-> > > > @@ -458,14 +458,14 @@ static inline u8 get_vbus_power(struct device *dev)
-> > > >  }
-> > > > 
-> > > >  static const struct musb_platform_ops da8xx_ops = {
-> > > > -	.quirks		= MUSB_DMA_CPPI | MUSB_INDEXED_EP,
-> > > 
-> > >    Grr, MUSB_DMA_CPPI is certainly wrong! There's no CPPI 3.0 support for
-> > > DA8xx. Where have this come from?
-> > > 
-> > > > +	.quirks		= MUSB_DMA_CPPI41 | MUSB_INDEXED_EP,
-> > > >  	.init		= da8xx_musb_init,
-> > > >  	.exit		= da8xx_musb_exit,
-> > > > 
-> > > >  	.fifo_mode	= 2,
-> > > > -#ifdef CONFIG_USB_TI_CPPI_DMA
-> > > > -	.dma_init	= cppi_dma_controller_create,
-> > > > -	.dma_exit	= cppi_dma_controller_destroy,
-> > > 
-> > >    Likewise, WTF?
-> > >    I suggest that you fix this crap in a separate commit, to be backported
-> > > to -stable if needed.
-> > 
-> > Probably came from my DMA patch 7f6283ed6fe8 ("usb: musb: Set up function
+> Hmm if the cppi41 interrupt fires, the device has resumed :)
 > 
->    Too bad I missed it back then. Then certainly this should be fixed in a
-> separate patch. The first hunk was not a part of that commit, tho...
+> I think we should have a cppi41.c specific flag that we can set
+> at the end of cppi41_resume() instead of list_empty() or
+> pm_runtime_active().
 > 
-> > pointers for DMA"). At that point I thought da8xxx.c and davinci.c are just
-> > separate attempts of the same driver.. Sorry the number of musb glue layers
-> > is just too confusing.
+> Regars,
+> 
+> Tony
+> 
+> 
+>> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  drivers/dma/cppi41.c | 5 ++---
+>>  1 file changed, 2 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+>> index 025fee4..2306020 100644
+>> --- a/drivers/dma/cppi41.c
+>> +++ b/drivers/dma/cppi41.c
+>> @@ -320,7 +320,7 @@ static irqreturn_t cppi41_irq(int irq, void *data)
+>>  			int error;
+>>  
+>>  			error = pm_runtime_get(cdd->ddev.dev);
+>> -			if (error < 0)
+>> +			if ((error != -EINPROGRESS) && error < 0)
+>>  				dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
+>>  					__func__, error);
 
-Maybe from f8e9f34f80a2 ("usb: musb: Fix up DMA related macros")?
+Another question of curiosity :) -EINPROGRESS and pm_runtime_get() in general doesn't
+guarantee that device is powered on and accessible immediately after this call, but
+few lines below there are code which try to access registers 
+	desc = cppi41_pop_desc(cdd, q_num);
+Is it ok?
 
-Sorry obviously I have no idea how the da8xx.c should be configured for DMA.
+>>  
+>> @@ -492,8 +492,7 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
+>>  		 */
+>>  		if (error == -EINPROGRESS) {
+>>  			spin_lock_irqsave(&cdd->lock, flags);
+>> -			if (list_empty(&cdd->pending))
+>> -				active = true;
+>> +			active = !!list_empty(&cdd->pending);
+>>  			spin_unlock_irqrestore(&cdd->lock, flags);
+>>  		}
+>>  	}
+>> -- 
+>> 2.10.2
 
-Regards,
+> 
 
-Tony
+-- 
+regards,
+-grygorii
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
