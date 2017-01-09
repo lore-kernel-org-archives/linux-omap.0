@@ -1,84 +1,53 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 01/11] dmaengine: cppi41: rename platform variables
-Date: Mon,  9 Jan 2017 17:06:46 +0100
-Message-ID: <20170109160656.3470-2-abailon@baylibre.com>
-References: <20170109160656.3470-1-abailon@baylibre.com>
+Subject: [PATCH 00/11] dmaengine: cppi41: Add dma support to da8xx
+Date: Mon,  9 Jan 2017 17:06:45 +0100
+Message-ID: <20170109160656.3470-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170109160656.3470-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently, only the am335x is supported by the driver.
-Though the driver has a glue layer to support different platforms,
-some platform variable names are not prefixed with the platform name.
-To facilitate the addition of a new platform,
-rename some variables owned by the am335x glue.
+This series adds support of da8xx to cppi41 dma controller driver.
+This update the cppi41 driver to make it more generic (was only supporting
+the am335x), and implement the support for the da8xx.
+Some other changes are required in platform and musb drivers to make the dma
+work on da8xx (though, it should build correctly and should not cause
+any issues).
 
-Currently, only the am335x is supported by the driver.
-Though the driver provide a glue layer that should be used to support
-another platforms. Rename variable specifics to the am335x glue.
+The changes have been tested on the beaglebone black and omapl138-lcd.
+I haven't noticed any regression on beaglebone black
+(though I have noticed some performence issues since 4.9).
 
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
----
- drivers/dma/cppi41.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+On on da8xx, I have sometime some warnings happening during a teardown.
+I only got them while I was running some corner cases and I'm still trying
+to fix them. 
+Anyway, this warnings doesn't seem to cause any issues as usb keep working
+after they happen.
 
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index d5ba43a..25ee71d 100644
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -156,7 +156,7 @@ struct cppi41_dd {
- };
- 
- #define FIST_COMPLETION_QUEUE	93
--static struct chan_queues usb_queues_tx[] = {
-+static struct chan_queues am335x_usb_queues_tx[] = {
- 	/* USB0 ENDP 1 */
- 	[ 0] = { .submit = 32, .complete =  93},
- 	[ 1] = { .submit = 34, .complete =  94},
-@@ -192,7 +192,7 @@ static struct chan_queues usb_queues_tx[] = {
- 	[29] = { .submit = 90, .complete = 139},
- };
- 
--static const struct chan_queues usb_queues_rx[] = {
-+static const struct chan_queues am335x_usb_queues_rx[] = {
- 	/* USB0 ENDP 1 */
- 	[ 0] = { .submit =  1, .complete = 109},
- 	[ 1] = { .submit =  2, .complete = 110},
-@@ -918,8 +918,9 @@ static bool cpp41_dma_filter_fn(struct dma_chan *chan, void *param)
- 	else
- 		queues = cdd->queues_rx;
- 
--	BUILD_BUG_ON(ARRAY_SIZE(usb_queues_rx) != ARRAY_SIZE(usb_queues_tx));
--	if (WARN_ON(cchan->port_num > ARRAY_SIZE(usb_queues_rx)))
-+	BUILD_BUG_ON(ARRAY_SIZE(am335x_usb_queues_rx) !=
-+		     ARRAY_SIZE(am335x_usb_queues_tx));
-+	if (WARN_ON(cchan->port_num > ARRAY_SIZE(am335x_usb_queues_rx)))
- 		return false;
- 
- 	cchan->q_num = queues[cchan->port_num].submit;
-@@ -947,15 +948,15 @@ static struct dma_chan *cppi41_dma_xlate(struct of_phandle_args *dma_spec,
- 			&dma_spec->args[0]);
- }
- 
--static const struct cppi_glue_infos usb_infos = {
-+static const struct cppi_glue_infos am335x_usb_infos = {
- 	.isr = cppi41_irq,
--	.queues_rx = usb_queues_rx,
--	.queues_tx = usb_queues_tx,
-+	.queues_rx = am335x_usb_queues_rx,
-+	.queues_tx = am335x_usb_queues_tx,
- 	.td_queue = { .submit = 31, .complete = 0 },
- };
- 
- static const struct of_device_id cppi41_dma_ids[] = {
--	{ .compatible = "ti,am3359-cppi41", .data = &usb_infos},
-+	{ .compatible = "ti,am3359-cppi41", .data = &am335x_usb_infos},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, cppi41_dma_ids);
+I also got some issues related to pm runtime.
+I tried to fix them with the series "dmaengine: cppi41: PM runtime fixes",
+but I still get few warnings sometime (again, doesn't seem to cause any issue).
+
+Alexandre Bailon (11):
+  dmaengine: cppi41: rename platform variables
+  dmaengine: cppi41: Split out the interrupt handler
+  dmaengine: cppi41: Move some constants to glue layer
+  dmaengine: cppi41: init_sched(): Get number of channels from DT
+  dmaengine: cppi41: Add a way to test if the driver is running on
+    am335x
+  dmaengine: cppi41: Only configure am335x's registers on amm335x
+    platform
+  dt/bindings: da8xx-usb: Add binding for the cppi41 dma controller
+  dmaengine: cppi41: Implement the glue for da8xx
+  dmaengine: cppi41: Fix a race between PM runtime and channel abort
+  dmaengine: cppi41: Fix da8xx interrupt issue
+  dmaengine: cppi41: Fix teardown warnings
+
+ .../devicetree/bindings/usb/da8xx-usb.txt          |  39 ++++
+ drivers/dma/cppi41.c                               | 252 +++++++++++++++++----
+ 2 files changed, 247 insertions(+), 44 deletions(-)
+
 -- 
 2.10.2
 
