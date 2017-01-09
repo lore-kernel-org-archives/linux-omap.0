@@ -1,136 +1,54 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 3/4] net: ethernet: ti: cpsw: don't duplicate ndev_running
-Date: Mon, 9 Jan 2017 11:25:38 -0600
-Message-ID: <c6dfedc3-d346-b9a4-f398-96ac7e57d0b8@ti.com>
-References: <1483893663-15673-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <1483893663-15673-4-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v9 1/8] drivers:input:tsc2007: add new common binding
+ names, pre-calibration, flipping and rotation
+Date: Mon, 9 Jan 2017 11:43:44 -0600
+Message-ID: <20170109174344.5kvijgyhusboftx3@rob-hp-laptop>
+References: <cover.1482936802.git.hns@goldelico.com>
+ <9830dd21e6425e3a866fac6ed4cc73ddd58b719f.1482936802.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1483893663-15673-4-git-send-email-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, netdev@vger.kernel.org, mugunthanvnm@ti.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <9830dd21e6425e3a866fac6ed4cc73ddd58b719f.1482936802.git.hns@goldelico.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, Mika =?iso-8859-1?Q?Penttil=E4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Alexander Stein <alexander.stein@systec-electronic.com>, Eric Engestrom <eric@engestrom.ch>, Hans de Goede <hdegoede@redhat.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Petr
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 01/08/2017 10:41 AM, Ivan Khoronzhuk wrote:
-> No need to create additional vars to identify if interface is running.
-> So simplify code by removing redundant var and checking usage counter
-> instead.
+On Wed, Dec 28, 2016 at 03:53:16PM +0100, H. Nikolaus Schaller wrote:
+> commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
+> introduced common DT bindings for touchscreens [1] and a helper function to
+> parse the DT.
 > 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> commit ed7c9870c9bc ("Input: of_touchscreen - add support for inverted / swapped axes")
+> added another helper for parsing axis inversion and swapping
+> and applying them to x and y coordinates.
+> 
+> Both helpers have been integrated to accommodate any orientation of the
+> touch panel in relation to the LCD.
+> 
+> A new feature is to introduce scaling the min/max ADC values to the screen
+> size.
+> 
+> This makes it possible to pre-calibrate the touch so that is (almost)
+> exactly matches the LCD pixel coordinates it is glued onto. This allows to
+> well enough operate the touch before a user space calibration step can
+> improve the precision.
+> 
+> Please note that the old ti,fuzz properties have been removed since they
+> are replaced by the common bindings touchscreen-fuzz-x/y/z.
+> 
+> Finally, calculate_pressure has been renamed to calculate_resistance
+> because that is what it is doing.
+> 
+> [1]: Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 > ---
->  drivers/net/ethernet/ti/cpsw.c | 14 ++++----------
->  1 file changed, 4 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 40d7fc9..daae87f 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -357,7 +357,6 @@ struct cpsw_slave {
->  	struct phy_device		*phy;
->  	struct net_device		*ndev;
->  	u32				port_vlan;
-> -	u32				open_stat;
->  };
->  
->  static inline u32 slave_read(struct cpsw_slave *slave, u32 offset)
-> @@ -1241,7 +1240,7 @@ static int cpsw_common_res_usage_state(struct cpsw_common *cpsw)
->  	u32 usage_count = 0;
->  
->  	for (i = 0; i < cpsw->data.slaves; i++)
-> -		if (cpsw->slaves[i].open_stat)
-> +		if (netif_running(cpsw->slaves[i].ndev))
->  			usage_count++;
+>  .../bindings/input/touchscreen/tsc2007.txt         |  20 ++--
 
-Not sure this will work as you expected, but may be I've missed smth :(
+Acked-by: Rob Herring <robh@kernel.org>
 
-code in static int __dev_open(struct net_device *dev)
-..
-	set_bit(__LINK_STATE_START, &dev->state);
-
-	if (ops->ndo_validate_addr)
-		ret = ops->ndo_validate_addr(dev);
-
-	if (!ret && ops->ndo_open)
-		ret = ops->ndo_open(dev);
-
-	netpoll_poll_enable(dev);
-
-	if (ret)
-		clear_bit(__LINK_STATE_START, &dev->state);
-..
-
-so, netif_running(ndev) will start returning true before calling ops->ndo_open(dev);
-
->  
->  	return usage_count;
-> @@ -1502,7 +1501,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
->  		 CPSW_RTL_VERSION(reg));
->  
->  	/* initialize host and slave ports */
-> -	if (!cpsw_common_res_usage_state(cpsw))
-> +	if (cpsw_common_res_usage_state(cpsw) < 2)
-
-Ah. You've changed the condition here.
-
-I think it might be reasonable to hide this inside cpsw_common_res_usage_state()
-and seems it can be renamed to smth like cpsw_is_running().
-
-
->  		cpsw_init_host_port(priv);
->  	for_each_slave(priv, cpsw_slave_open, priv);
->  
-> @@ -1513,7 +1512,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
->  		cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
->  				  ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
->  
-> -	if (!cpsw_common_res_usage_state(cpsw)) {
-> +	if (cpsw_common_res_usage_state(cpsw) < 2) {
->  		/* disable priority elevation */
->  		__raw_writel(0, &cpsw->regs->ptype);
->  
-> @@ -1556,9 +1555,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
->  	cpdma_ctlr_start(cpsw->dma);
->  	cpsw_intr_enable(cpsw);
->  
-> -	if (cpsw->data.dual_emac)
-> -		cpsw->slaves[priv->emac_port].open_stat = true;
-> -
->  	return 0;
->  
->  err_cleanup:
-> @@ -1578,7 +1574,7 @@ static int cpsw_ndo_stop(struct net_device *ndev)
->  	netif_tx_stop_all_queues(priv->ndev);
->  	netif_carrier_off(priv->ndev);
->  
-> -	if (cpsw_common_res_usage_state(cpsw) <= 1) {
-> +	if (!cpsw_common_res_usage_state(cpsw)) {
-
-and here __LINK_STATE_START will be cleared before calling ops->ndo_stop(dev);
-So, from one side netif_running(ndev) usage will simplify cpsw_common_res_usage_state() internals,
-but from another side - it will make places where it's used even more entangled :( as for me,
-because when cpsw_common_res_usage_state() will return 1 in cpsw_ndo_open() it will mean
-"no interfaces is really running yet", but the same value 1 in cpsw_ndo_stop()
-will mean "there are still one is running".
-
->  		napi_disable(&cpsw->napi_rx);
->  		napi_disable(&cpsw->napi_tx);
->  		cpts_unregister(cpsw->cpts);
-> @@ -1592,8 +1588,6 @@ static int cpsw_ndo_stop(struct net_device *ndev)
->  		cpsw_split_res(ndev);
->  
->  	pm_runtime_put_sync(cpsw->dev);
-> -	if (cpsw->data.dual_emac)
-> -		cpsw->slaves[priv->emac_port].open_stat = false;
->  	return 0;
->  }
->  
-> 
-
--- 
-regards,
--grygorii
+>  drivers/input/touchscreen/tsc2007.c                | 120 +++++++++++++++++----
+>  include/linux/i2c/tsc2007.h                        |   8 ++
+>  3 files changed, 118 insertions(+), 30 deletions(-)
