@@ -1,101 +1,53 @@
-From: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
-Subject: [PATCH] ARM: dts: am335x-phycore-som: Remove partition tables
-Date: Mon, 9 Jan 2017 09:37:30 +0100
-Message-ID: <1483951050-46588-1-git-send-email-t.remmet@phytec.de>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Brian Norris <briannorris-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: Nokia N900 headset detection & MIC Bias + TVOUT
+Date: Mon, 9 Jan 2017 11:27:49 +0000
+Message-ID: <20170109112749.6gmtytxuqzfai57e@sirena.org.uk>
+References: <201701070007.49137@pali>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hoilff3dtlaga22e"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201701070007.49137@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lgirdwood@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Nishanth Menon <nm@ti.com>, Sebastian Reichel <sre@kernel.org>, Pavel Machek <pavel@ucw.cz>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, joerg Reisenweber <joerg@openmoko.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-As the bootloader passes the NAND and the SPI flash partition tables
-there is no need to keep them in the kernel device tree.
-Removed them.
 
-Signed-off-by: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
----
- arch/arm/boot/dts/am335x-phycore-som.dtsi | 58 -------------------------------
- 1 file changed, 58 deletions(-)
+--hoilff3dtlaga22e
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/boot/dts/am335x-phycore-som.dtsi b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-index 25f5449..14533ff 100644
---- a/arch/arm/boot/dts/am335x-phycore-som.dtsi
-+++ b/arch/arm/boot/dts/am335x-phycore-som.dtsi
-@@ -211,43 +211,6 @@
- 
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--
--		partition@0 {
--			label = "xload";
--			reg = <0x0 0x20000>;
--		};
--		partition@1 {
--			label = "xload_backup1";
--			reg = <0x20000 0x20000>;
--		};
--		partition@2 {
--			label = "xload_backup2";
--			reg = <0x40000 0x20000>;
--		};
--		partition@3 {
--			label = "xload_backup3";
--			reg = <0x60000 0x20000>;
--		};
--		partition@4 {
--			label = "barebox";
--			reg = <0x80000 0x80000>;
--		};
--		partition@5 {
--			label = "bareboxenv";
--			reg = <0x100000 0x40000>;
--		};
--		partition@6 {
--			label = "oftree";
--			reg = <0x140000 0x40000>;
--		};
--		partition@7 {
--			label = "kernel";
--			reg = <0x180000 0x800000>;
--		};
--		partition@8 {
--			label = "root";
--			reg = <0x980000 0x0>;
--		};
- 	};
- };
- 
-@@ -358,26 +321,5 @@
- 		status = "disabled";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
--
--		partition@0 {
--			label = "xload";
--			reg = <0x0 0x20000>;
--		};
--		partition@1 {
--			label = "barebox";
--			reg = <0x20000 0x80000>;
--		};
--		partition@2 {
--			label = "bareboxenv";
--			reg = <0xa0000 0x20000>;
--		};
--		partition@3 {
--			label = "oftree";
--			reg = <0xc0000 0x20000>;
--		};
--		partition@4 {
--			label = "kernel";
--			reg = <0xe0000 0x0>;
--		};
- 	};
- };
--- 
-1.9.1
+On Sat, Jan 07, 2017 at 12:07:49AM +0100, Pali Roh=E1r wrote:
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> All that is needed in N900 sound driver, file sound/soc/omap/rx51.c. Can=
+=20
+> you help me which functions should I call to enable/disable it=20
+> correctly? In headset detection code I need to be sure that nobody=20
+> (other kernel drivers or userspace via alsamixer) except current=20
+> function could change Bias settings.
+
+> MIC Bias is controlled by MICBIAS_CTRL in aic34 'B' part codec, file=20
+> tlv320aic3x.c.
+
+Microphone biases are normally controlled by supply widgets and managed
+via DAPM.  You can see quite a few examples of this in existing drivers.
+
+--hoilff3dtlaga22e
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlhzc7QACgkQJNaLcl1U
+h9DNHwf/VLdwIpzK10VDO+OdOSzja6pfolK0sdcpZGfzEp5ZMHU9SrrDUD93tKXj
+GYMILWCg0jEY0OQtzxoBZ03RpeDID325B6nf05gDMmJFoK65bgUCMCvMwfLg0D5F
+NheS8onu1cC2Nr3/UZrfHS6/3OhB8YiiIm+UADhdu3m3UU86dRAIhwGRgoelgX5C
+FAVCRDE56nbhwwCHs3IfOqSwLId3mn6RD9EMcXDbSzzQ7M1lBUe0FuK68REdk+bW
+SpvjJve3iu8ahlCR3bRVh0DCjfBHDqqO6bwj9uIhKZCTXo1DwpVPcaCHQXA9a4uB
+2qvQVHMYymO/ZcW/w7z+NkVmf4UpGw==
+=PaUv
+-----END PGP SIGNATURE-----
+
+--hoilff3dtlaga22e--
