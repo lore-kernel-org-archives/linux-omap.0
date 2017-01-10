@@ -1,57 +1,47 @@
-From: Chanwoo Choi <cw00.choi@samsung.com>
-Subject: Re: [PATCH v2 0/6] usb: Replace the deprecated extcon API
-Date: Tue, 10 Jan 2017 17:18:28 +0900
-Message-ID: <587498D4.4010207@samsung.com>
-References: <CGME20161230040816epcas5p4616cb93324a5d60bc2a763817e34e37d@epcas5p4.samsung.com>
- <1483070895-8213-1-git-send-email-cw00.choi@samsung.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v5] ASoC: omap-mcbsp: Add PM QoS support
+ for McBSP to prevent glitches
+Date: Tue, 10 Jan 2017 09:38:18 +0200
+Message-ID: <7ca677ec-e79d-2418-5435-3cbecb1da3e0@ti.com>
+References: <20170105015918.21621-1-matt@ranostay.consulting>
+ <1372efd2-5319-e6c4-629e-6ed5f2e2fe29@ti.com>
+ <20170109192123.GN2630@atomide.com>
+ <CAJ_EiSRiSSUxDoza0a5gHuP8mvOteZ=9Mi=G91r++QUbgaXpXA@mail.gmail.com>
+ <20170109215624.GQ2630@atomide.com>
+ <CAJ_EiSRCBQWZfMOE-jpXVsSok3nSPwNN-+LzhBa1pcgu36UEfw@mail.gmail.com>
+ <20170109235628.GR2630@atomide.com>
+ <CAJ_EiSR3aZQztVKhQsnmVQUAgdDo0mtBZZ1=9LrHGOimGr-qaA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1483070895-8213-1-git-send-email-cw00.choi@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, chanwoo@kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <CAJ_EiSR3aZQztVKhQsnmVQUAgdDo0mtBZZ1=9LrHGOimGr-qaA@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Matt Ranostay <matt@ranostay.consulting>, Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
-
-These patches have already acked-by tag from you.
-Could you please apply them if there is additional comment?
-
-On 2016년 12월 30일 13:08, Chanwoo Choi wrote:
-> This patches just replace the deprecated extcon API without any change
-> of extcon operation and use the resource-managed function for
-> extcon_register_notifier().
-> 
-> The new extcon API instead of deprecated API.
-> - extcon_set_cable_state_() -> extcon_set_state_sync();
-> - extcon_get_cable_state_() -> extcon_get_state();
-> 
-> Changes from v1:
-> - Rebase these patches based on v4.10-rc1.
-> - Add acked-by tag from usb maintainer and reviewer.
-> - Drop the phy/power-supply/chipidea patches.
-> 
-> Chanwoo Choi (6):
->   usb: dwc3: omap: Replace the extcon API
->   usb: phy: msm: Replace the extcon API
->   usb: phy: omap-otg: Replace the extcon API
->   usb: phy: qcom-8x16-usb: Replace the extcon API
->   usb: phy: tahvo: Replace the deprecated extcon API
->   usb: renesas_usbhs: Replace the deprecated extcon API
-> 
->  drivers/usb/dwc3/dwc3-omap.c        | 20 +++++++-------------
->  drivers/usb/phy/phy-msm-usb.c       | 33 +++++++++++----------------------
->  drivers/usb/phy/phy-omap-otg.c      | 24 ++++++------------------
->  drivers/usb/phy/phy-qcom-8x16-usb.c | 13 ++++---------
->  drivers/usb/phy/phy-tahvo.c         | 10 +++++-----
->  drivers/usb/renesas_usbhs/common.c  |  2 +-
->  6 files changed, 34 insertions(+), 68 deletions(-)
-> 
-
-
--- 
-Best Regards,
-Chanwoo Choi
-S/W Center, Samsung Electronics
+T24gMDEvMTAvMjAxNyAwNToyMyBBTSwgTWF0dCBSYW5vc3RheSB3cm90ZToKPiBZZWFoIEkgY2Fu
+IHJlcHJvZHVjZSB0aGUgaXNzdWUgeW91IGFyZSBtZW50aW9uaW5nLiBBbnlvbmUgaGF2ZSBhCj4g
+c3VnZ2VzdGlvbiBob3cgb24gdG8gcmVzb2x2ZT8gR3Vlc3NpbmcgdGhlIFFvUyBmdW5jdGlvbiBj
+YWxscyBuZWVkIHRvCj4gYmUgaW4gYW4gYXRvbWljIGNvbnRleHQgYW5kIHRoZSBvbWFwX21jYnNw
+XyogZnVuY3Rpb25zIGNhbiBzbGVlcAoKSSB0aGluayBpdCBpcyB0aGUgb3RoZXIgd2F5IGFyb3Vu
+ZDogd2UgY2FsbCBhIHNsZWVwaW5nIGZ1bmN0aW9uIGZyb20KYXRvbWljIGNvbnRleHQuIHBjbV90
+cmlnZ2VyIGlzIGF0b21pYy4KCk1vc3QgcHJvYmFibHkgd2Ugc2hvdWxkIGFkZCB0aGUgLnByZXBh
+cmUgY2FsbGJhY2sgdG8gbWNic3BfZGFpX29wcyBhbmQKZG8gdGhlIFFvUyB1cGRhdGUgd2hpY2gg
+aXMgZG9uZSBpbiBvbWFwX21jYnNwX3N0YXJ0KCkgdGhlcmUuIFRoZSB0aGluZ3MKd2UgZG8gaW4g
+b21hcF9tY2JzcF9zdG9wKCkgdGhlbiBjYW4gYmUgbW92ZWQgdG8gb21hcF9tY2JzcF9kYWlfc2h1
+dGRvd24oKS4KCkkgdGhpbmsgdGhlIGNvZGUgd291bGQgaGFuZGxlIGNhc2VzIHdoZW4gdXNlciBz
+cGFjZSBzdG9wcyB0aGUgc3RyZWFtLApyZS1jb25maWd1cmVzIGl0IGFuZCBzdGFydHMgaXQgd2l0
+aCBkaWZmZXJlbnQgcGFyYW1ldGVycyB3L28gY2xvc2luZyBpdC4KCi0tIApQw6l0ZXIKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWls
+aW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2Et
+cHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
