@@ -1,199 +1,259 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] pinctrl: core: Use delayed work for hogs
-Date: Tue, 10 Jan 2017 11:19:09 -0800
-Message-ID: <20170110191908.GV2630@atomide.com>
-References: <20161227172003.6517-1-tony@atomide.com>
- <20161227172003.6517-2-tony@atomide.com>
- <CAMuHMdVLbNXx23-wgLHcvktyHxWf6t75ggU3rM5A-DhtU9hn5w@mail.gmail.com>
- <20170110153045.GS2630@atomide.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] usb: musb: Add support for optional VBUS irq to dsps
+ glue layer
+Date: Tue, 10 Jan 2017 13:53:53 -0600
+Message-ID: <20170110195317.GB2479@uda0271908>
+References: <20170105191259.28723-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170110153045.GS2630@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+In-Reply-To: <20170105191259.28723-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170110 07:32]:
-> * Geert Uytterhoeven <geert@linux-m68k.org> [170110 06:09]:
-> > Hi Tony,
-> > 
-> > On Tue, Dec 27, 2016 at 6:19 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > > Having the pin control framework call pin controller functions
-> > > before it's probe has finished is not nice as the pin controller
-> > > device driver does not yet have struct pinctrl_dev handle.
-> > >
-> > > Let's fix this issue by adding deferred work for late init. This is
-> > > needed to be able to add pinctrl generic helper functions that expect
-> > > to know struct pinctrl_dev handle. Note that we now need to call
-> > > create_pinctrl() directly as we don't want to add the pin controller
-> > > to the list of controllers until the hogs are claimed. We also need
-> > > to pass the pinctrl_dev to the device tree parser functions as they
-> > > otherwise won't find the right controller at this point.
-> > >
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > I believe this patch causes a regression on r8a7740/armadillo, where the
-> > pin controller is also a GPIO controller, and lcd0 needs a hog
-> > (cfr. arch/arm/boot/dts/r8a7740-armadillo800eva.dts):
-> > 
-> > -GPIO line 176 (lcd0) hogged as output/high
-> > -sh-pfc e6050000.pfc: r8a7740_pfc handling gpio 0 -> 211
-> > +gpiochip_add_data: GPIOs 0..211 (r8a7740_pfc) failed to register
-> > +sh-pfc e6050000.pfc: failed to init GPIO chip, ignoring...
-> >  sh-pfc e6050000.pfc: r8a7740_pfc support registered
-> > 
-> > Hence all drivers using GPIOs fail to initialize because their GPIOs never
-> > become available.
-> > 
-> > Adding debug prints to the failure paths shows that the call to
-> > of_pinctrl_get() in of_gpiochip_add_pin_range() fails with -EPROBE_DEFER.
-> > Adding a debug print to the top of gpiochip_add_data() makes the problem go
-> > away, presumably because it introduces a delay that allows the delayed work
-> > to kick in...
+On Thu, Jan 05, 2017 at 11:12:59AM -0800, Tony Lindgren wrote:
+> We can now configure the PMIC interrupt to provide us VBUS
+> events. In that case we don't need to constantly poll the
+> status and can make it optional. This is only wired up
+> for the mini-B interface on beaglebone.
+
+Is it possible someone designed a board which hooks up the vbus of a
+dual-role/otg port to PMIC? The port wouldn't be able to detect the
+attach since no polling anymore.
+
 > 
-> OK. What if we added also an optional pinctrl function that the pin
-> controller driver could call to initialize hogs? Then the pin controller
-> driver could call it during or after probe as needed. That is after
-> there's a valid struct pinctrl_dev handle.
-...
-> We could also pass some flag if should always call pinctrl_late_init()
-> directly. But that does not remove the problem of struct pinctrl_dev handle
-> being uninitialized when the pin controller driver functionas are called.
+> Note that eventually we should get also the connect status
+> for the host interface when the am335x internal PM coprocessor
+> provides us with an IRQ chip. For now, we still need to poll
+> for the host mode status.
+> 
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_dsps.c | 114 ++++++++++++++++++++++++++++++++++---------
+>  1 file changed, 90 insertions(+), 24 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> --- a/drivers/usb/musb/musb_dsps.c
+> +++ b/drivers/usb/musb/musb_dsps.c
+> @@ -118,6 +118,7 @@ struct dsps_glue {
+>  	struct device *dev;
+>  	struct platform_device *musb;	/* child musb pdev */
+>  	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
+> +	int vbus_irq;			/* optional vbus irq */
+>  	struct timer_list timer;	/* otg_workaround timer */
+>  	unsigned long last_timer;    /* last timer data for each instance */
+>  	bool sw_babble_enabled;
+> @@ -145,6 +146,29 @@ static const struct debugfs_reg32 dsps_musb_regs[] = {
+>  	{ "mode",		0xe8 },
+>  };
+>  
+> +static void dsps_mod_timer(struct dsps_glue *glue, int wait_ms)
+> +{
+> +	int wait;
+> +
+> +	if (wait_ms < 0)
+> +		wait = msecs_to_jiffies(glue->wrp->poll_timeout);
+> +	else
+> +		wait = msecs_to_jiffies(wait_ms);
+> +
+> +	mod_timer(&glue->timer, jiffies + wait);
+> +}
+> +
+> +/*
+> + * If no vbus irq from the PMIC is configured, we need to poll VBUS status.
+> + */
+> +static void dsps_mod_timer_optional(struct dsps_glue *glue)
+> +{
+> +	if (glue->vbus_irq)
+> +		return;
+> +
+> +	dsps_mod_timer(glue, -1);
+> +}
+> +
+>  /**
+>   * dsps_musb_enable - enable interrupts
+>   */
+> @@ -167,8 +191,7 @@ static void dsps_musb_enable(struct musb *musb)
+>  	/* start polling for ID change in dual-role idle mode */
+>  	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+>  			musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+> -		mod_timer(&glue->timer, jiffies +
+> -				msecs_to_jiffies(wrp->poll_timeout));
+> +		dsps_mod_timer(glue, -1);
+>  }
+>  
+>  /**
+> @@ -199,6 +222,9 @@ static int dsps_check_status(struct musb *musb, void *unused)
+>  	u8 devctl;
+>  	int skip_session = 0;
+>  
+> +	if (glue->vbus_irq)
+> +		del_timer(&glue->timer);
+> +
+>  	/*
+>  	 * We poll because DSPS IP's won't expose several OTG-critical
+>  	 * status change events (from the transceiver) otherwise.
+> @@ -209,8 +235,7 @@ static int dsps_check_status(struct musb *musb, void *unused)
+>  
+>  	switch (musb->xceiv->otg->state) {
+>  	case OTG_STATE_A_WAIT_VRISE:
+> -		mod_timer(&glue->timer, jiffies +
+> -				msecs_to_jiffies(wrp->poll_timeout));
+> +		dsps_mod_timer_optional(glue);
+>  		break;
+>  	case OTG_STATE_A_WAIT_BCON:
+>  		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+> @@ -219,17 +244,18 @@ static int dsps_check_status(struct musb *musb, void *unused)
+>  
+>  	case OTG_STATE_A_IDLE:
+>  	case OTG_STATE_B_IDLE:
+> -		if (devctl & MUSB_DEVCTL_BDEVICE) {
+> -			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+> -			MUSB_DEV_MODE(musb);
+> -		} else {
+> -			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+> -			MUSB_HST_MODE(musb);
+> +		if (!glue->vbus_irq) {
+> +			if (devctl & MUSB_DEVCTL_BDEVICE) {
+> +				musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+> +				MUSB_DEV_MODE(musb);
+> +			} else {
+> +				musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+> +				MUSB_HST_MODE(musb);
+> +			}
+> +			if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
+> +				musb_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
 
-Looks like we need both a flag and a way for the pin controller driver
-to start things.
+Line is more than 80 chars long.
 
-Below is an experimental fix to intorduce pinctrl_start() that I've
-tested with pinctrl-single. Then we should probably make all pin controller
-drivers call pinctrl_start() to properly fix the issue of struct pinctrl_dev
-handle not being initialized before driver functions are called.
+>  		}
+> -		if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
+> -			musb_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
+> -		mod_timer(&glue->timer, jiffies +
+> -				msecs_to_jiffies(wrp->poll_timeout));
+> +		dsps_mod_timer_optional(glue);
+>  		break;
+>  	case OTG_STATE_A_WAIT_VFALL:
+>  		musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+> @@ -321,15 +347,13 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+>  			 */
+>  			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
+>  			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VFALL;
+> -			mod_timer(&glue->timer, jiffies +
+> -					msecs_to_jiffies(wrp->poll_timeout));
+> +			dsps_mod_timer_optional(glue);
+>  			WARNING("VBUS error workaround (delay coming)\n");
+>  		} else if (drvvbus) {
+>  			MUSB_HST_MODE(musb);
+>  			musb->xceiv->otg->default_a = 1;
+>  			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+> -			mod_timer(&glue->timer, jiffies +
+> -				  msecs_to_jiffies(wrp->poll_timeout));
+> +			dsps_mod_timer_optional(glue);
+>  		} else {
+>  			musb->is_active = 0;
+>  			MUSB_DEV_MODE(musb);
+> @@ -353,8 +377,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+>  	switch (musb->xceiv->otg->state) {
+>  	case OTG_STATE_B_IDLE:
+>  	case OTG_STATE_A_WAIT_BCON:
+> -		mod_timer(&glue->timer, jiffies +
+> -				msecs_to_jiffies(wrp->poll_timeout));
+> +		dsps_mod_timer_optional(glue);
+>  		break;
+>  	default:
+>  		break;
+> @@ -458,8 +481,7 @@ static int dsps_musb_init(struct musb *musb)
+>  		musb_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
+>  	}
+>  
+> -	mod_timer(&glue->timer, jiffies +
+> -		  msecs_to_jiffies(glue->wrp->poll_timeout));
+> +	dsps_mod_timer(glue, -1);
+>  
+>  	return dsps_musb_dbg_init(musb, glue);
+>  }
+> @@ -753,6 +775,47 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
+>  	return ret;
+>  }
+>  
+> +static irqreturn_t dsps_vbus_threaded_irq(int irq, void *priv)
+> +{
+> +	struct dsps_glue *glue = priv;
+> +	struct musb *musb = platform_get_drvdata(glue->musb);
+> +
+> +	if (!musb)
+> +		return IRQ_NONE;
+> +
+> +	dev_dbg(glue->dev, "VBUS interrupt\n");
+> +	dsps_mod_timer(glue, 0);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static int dsps_setup_optional_vbus_irq(struct platform_device *pdev,
+> +					struct dsps_glue *glue)
+> +{
+> +	int error;
+> +
+> +	glue->vbus_irq = platform_get_irq_byname(pdev, "vbus");
+> +	if (glue->vbus_irq == -EPROBE_DEFER)
+> +		return glue->vbus_irq;
 
-Or do you guys have any better ideas?
+It would be more obvious if return -EPROBE_DEFER directly.
 
 Regards,
+-Bin.
 
-Tony
-
-8< --------------------------------
-diff --git a/drivers/pinctrl/core.c b/drivers/pinctrl/core.c
---- a/drivers/pinctrl/core.c
-+++ b/drivers/pinctrl/core.c
-@@ -1962,6 +1962,17 @@ static void pinctrl_late_init(struct work_struct *work)
- 	pinctrl_init_device_debugfs(pctldev);
- }
- 
-+int pinctrl_start(struct pinctrl_dev *pctldev)
-+{
-+       if (!IS_ERR(pctldev->p))
-+               return -EEXIST;
-+
-+       pinctrl_late_init(&pctldev->late_init.work);
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL_GPL(pinctrl_start);
-+
- /**
-  * pinctrl_register() - register a pin controller device
-  * @pctldesc: descriptor for this pin controller
-@@ -2035,9 +2046,14 @@ struct pinctrl_dev *pinctrl_register(struct pinctrl_desc *pctldesc,
- 	/*
- 	 * If the device has hogs we want the probe() function of the driver
- 	 * to complete before we go in and hog them and add the pin controller
--	 * to the list of controllers. If it has no hogs, we can just complete
--	 * the registration immediately.
-+	 * to the list of controllers. If the pin controller driver initializes
-+	 * hogs, or the pin controller instance has no hogs, we can just
-+	 * complete the registration immediately.
- 	 */
-+
-+	if (pctldesc->flags & PINCTRL_DRIVER_START)
-+		return pctldev;
-+
- 	if (pinctrl_dt_has_hogs(pctldev))
- 		schedule_delayed_work(&pctldev->late_init, 0);
- 	else
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1741,6 +1741,7 @@ static int pcs_probe(struct platform_device *pdev)
- 	pcs->desc.pmxops = &pcs_pinmux_ops;
- 	if (PCS_HAS_PINCONF)
- 		pcs->desc.confops = &pcs_pinconf_ops;
-+	pcs->desc.flags = PINCTRL_DRIVER_START;
- 	pcs->desc.owner = THIS_MODULE;
- 
- 	ret = pcs_allocate_pin_table(pcs);
-@@ -1754,6 +1755,10 @@ static int pcs_probe(struct platform_device *pdev)
- 		goto free;
- 	}
- 
-+	ret = pinctrl_start(pcs->pctl);
-+	if (ret)
-+		goto free;
-+
- 	ret = pcs_add_gpio_func(np, pcs);
- 	if (ret < 0)
- 		goto free;
-diff --git a/drivers/pinctrl/sh-pfc/pinctrl.c b/drivers/pinctrl/sh-pfc/pinctrl.c
---- a/drivers/pinctrl/sh-pfc/pinctrl.c
-+++ b/drivers/pinctrl/sh-pfc/pinctrl.c
-@@ -815,7 +815,15 @@ int sh_pfc_register_pinctrl(struct sh_pfc *pfc)
- 	pmx->pctl_desc.confops = &sh_pfc_pinconf_ops;
- 	pmx->pctl_desc.pins = pmx->pins;
- 	pmx->pctl_desc.npins = pfc->info->nr_pins;
-+	pmx->pctl_desc.flags = PINCTRL_DRIVER_START;
- 
- 	pmx->pctl = devm_pinctrl_register(pfc->dev, &pmx->pctl_desc, pmx);
--	return PTR_ERR_OR_ZERO(pmx->pctl);
-+	if (IS_ERR(pmx->pctl))
-+		return PTR_ERR(pmx->pctl);
-+
-+	ret = pinctrl_start(pmx->pctl);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
- }
-diff --git a/include/linux/pinctrl/pinctrl.h b/include/linux/pinctrl/pinctrl.h
---- a/include/linux/pinctrl/pinctrl.h
-+++ b/include/linux/pinctrl/pinctrl.h
-@@ -104,6 +104,8 @@ struct pinctrl_ops {
- 			     struct pinctrl_map *map, unsigned num_maps);
- };
- 
-+#define PINCTRL_DRIVER_START		BIT(0)
-+
- /**
-  * struct pinctrl_desc - pin controller descriptor, register this to pin
-  * control subsystem
-@@ -112,6 +114,8 @@ struct pinctrl_ops {
-  *	this pin controller
-  * @npins: number of descriptors in the array, usually just ARRAY_SIZE()
-  *	of the pins field above
-+ * @flags: Optional pin controller feature flags
-+ *	handling is needed in the pin controller driver.
-  * @pctlops: pin control operation vtable, to support global concepts like
-  *	grouping of pins, this is optional.
-  * @pmxops: pinmux operations vtable, if you support pinmuxing in your driver
-@@ -129,6 +133,7 @@ struct pinctrl_desc {
- 	const char *name;
- 	const struct pinctrl_pin_desc *pins;
- 	unsigned int npins;
-+	unsigned int flags;
- 	const struct pinctrl_ops *pctlops;
- 	const struct pinmux_ops *pmxops;
- 	const struct pinconf_ops *confops;
-@@ -149,6 +154,7 @@ extern struct pinctrl_dev *devm_pinctrl_register(struct device *dev,
- 				void *driver_data);
- extern void devm_pinctrl_unregister(struct device *dev,
- 				struct pinctrl_dev *pctldev);
-+extern int pinctrl_start(struct pinctrl_dev *pctldev);
- 
- extern bool pin_is_valid(struct pinctrl_dev *pctldev, int pin);
- extern void pinctrl_add_gpio_range(struct pinctrl_dev *pctldev,
--- 
-2.11.0
+> +
+> +	if (glue->vbus_irq <= 0) {
+> +		glue->vbus_irq = 0;
+> +		return 0;
+> +	}
+> +
+> +	error = devm_request_threaded_irq(glue->dev, glue->vbus_irq,
+> +					  NULL, dsps_vbus_threaded_irq,
+> +					  IRQF_ONESHOT,
+> +					  "vbus", glue);
+> +	if (error) {
+> +		glue->vbus_irq = 0;
+> +		return error;
+> +	}
+> +	dev_dbg(glue->dev, "VBUS irq %i configured\n", glue->vbus_irq);
+> +
+> +	return 0;
+> +}
+> +
+>  static int dsps_probe(struct platform_device *pdev)
+>  {
+>  	const struct of_device_id *match;
+> @@ -781,6 +844,10 @@ static int dsps_probe(struct platform_device *pdev)
+>  	glue->dev = &pdev->dev;
+>  	glue->wrp = wrp;
+>  
+> +	ret = dsps_setup_optional_vbus_irq(pdev, glue);
+> +	if (ret)
+> +		return ret;
+> +
+>  	platform_set_drvdata(pdev, glue);
+>  	pm_runtime_enable(&pdev->dev);
+>  	ret = dsps_create_musb_pdev(glue, pdev);
+> @@ -891,8 +958,7 @@ static int dsps_resume(struct device *dev)
+>  	musb_writel(mbase, wrp->rx_mode, glue->context.rx_mode);
+>  	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+>  	    musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+> -		mod_timer(&glue->timer, jiffies +
+> -				msecs_to_jiffies(wrp->poll_timeout));
+> +		dsps_mod_timer(glue, -1);
+>  
+>  	return 0;
+>  }
+> -- 
+> 2.11.0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
