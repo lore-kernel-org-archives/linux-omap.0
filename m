@@ -1,51 +1,100 @@
-From: Matt Ranostay <matt@ranostay.consulting>
-Subject: Re: [PATCH v5] ASoC: omap-mcbsp: Add PM QoS support
- for McBSP to prevent glitches
-Date: Tue, 10 Jan 2017 09:27:23 -0800
-Message-ID: <CAJ_EiSQT7wJStObghibssvm0ShsDjTX87PCjs4PT4px5H=cN7w@mail.gmail.com>
-References: <20170105015918.21621-1-matt@ranostay.consulting>
- <1372efd2-5319-e6c4-629e-6ed5f2e2fe29@ti.com>
- <20170109192123.GN2630@atomide.com>
- <CAJ_EiSRiSSUxDoza0a5gHuP8mvOteZ=9Mi=G91r++QUbgaXpXA@mail.gmail.com>
- <20170109215624.GQ2630@atomide.com>
- <CAJ_EiSRCBQWZfMOE-jpXVsSok3nSPwNN-+LzhBa1pcgu36UEfw@mail.gmail.com>
- <20170109235628.GR2630@atomide.com>
- <CAJ_EiSR3aZQztVKhQsnmVQUAgdDo0mtBZZ1=9LrHGOimGr-qaA@mail.gmail.com>
- <7ca677ec-e79d-2418-5435-3cbecb1da3e0@ti.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH 08/11] dmaengine: cppi41: Implement the glue for da8xx
+Date: Tue, 10 Jan 2017 20:53:15 +0300
+Message-ID: <2d8b3a2b-859d-bfda-74cf-f22471927fc4@cogentembedded.com>
+References: <20170109160656.3470-1-abailon@baylibre.com>
+ <20170109160656.3470-9-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <7ca677ec-e79d-2418-5435-3cbecb1da3e0@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170109160656.3470-9-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCBKYW4gOSwgMjAxNyBhdCAxMTozOCBQTSwgUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVq
-ZmFsdXNpQHRpLmNvbT4gd3JvdGU6Cj4gT24gMDEvMTAvMjAxNyAwNToyMyBBTSwgTWF0dCBSYW5v
-c3RheSB3cm90ZToKPj4gWWVhaCBJIGNhbiByZXByb2R1Y2UgdGhlIGlzc3VlIHlvdSBhcmUgbWVu
-dGlvbmluZy4gQW55b25lIGhhdmUgYQo+PiBzdWdnZXN0aW9uIGhvdyBvbiB0byByZXNvbHZlPyBH
-dWVzc2luZyB0aGUgUW9TIGZ1bmN0aW9uIGNhbGxzIG5lZWQgdG8KPj4gYmUgaW4gYW4gYXRvbWlj
-IGNvbnRleHQgYW5kIHRoZSBvbWFwX21jYnNwXyogZnVuY3Rpb25zIGNhbiBzbGVlcAo+Cj4gSSB0
-aGluayBpdCBpcyB0aGUgb3RoZXIgd2F5IGFyb3VuZDogd2UgY2FsbCBhIHNsZWVwaW5nIGZ1bmN0
-aW9uIGZyb20KPiBhdG9taWMgY29udGV4dC4gcGNtX3RyaWdnZXIgaXMgYXRvbWljLgo+Cj4gTW9z
-dCBwcm9iYWJseSB3ZSBzaG91bGQgYWRkIHRoZSAucHJlcGFyZSBjYWxsYmFjayB0byBtY2JzcF9k
-YWlfb3BzIGFuZAo+IGRvIHRoZSBRb1MgdXBkYXRlIHdoaWNoIGlzIGRvbmUgaW4gb21hcF9tY2Jz
-cF9zdGFydCgpIHRoZXJlLiBUaGUgdGhpbmdzCj4gd2UgZG8gaW4gb21hcF9tY2JzcF9zdG9wKCkg
-dGhlbiBjYW4gYmUgbW92ZWQgdG8gb21hcF9tY2JzcF9kYWlfc2h1dGRvd24oKS4KClNlZW1zIHJl
-YXNvbmFibGUuIFdpbGwgcmV3b3JrIHBhdGNoc2V0IGFuZCByZXRlc3QuCgpUaGFua3MsCgpNYXR0
-Cgo+Cj4gSSB0aGluayB0aGUgY29kZSB3b3VsZCBoYW5kbGUgY2FzZXMgd2hlbiB1c2VyIHNwYWNl
-IHN0b3BzIHRoZSBzdHJlYW0sCj4gcmUtY29uZmlndXJlcyBpdCBhbmQgc3RhcnRzIGl0IHdpdGgg
-ZGlmZmVyZW50IHBhcmFtZXRlcnMgdy9vIGNsb3NpbmcgaXQuCj4KPiAtLQo+IFDDqXRlcgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1h
-aWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxz
-YS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
+On 01/09/2017 07:06 PM, Alexandre Bailon wrote:
+
+> The da8xx has a cppi41 dma controller.
+
+    It's called CPPI 4.1. :-)
+
+> This is add the glue layer required to make it work on da8xx,
+> as well some changes in driver (e.g to manage clock).
+>
+> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/dma/cppi41.c | 95 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 95 insertions(+)
+>
+> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+> index 939398e..4318e53 100644
+> --- a/drivers/dma/cppi41.c
+> +++ b/drivers/dma/cppi41.c
+[...]
+> @@ -86,10 +87,19 @@
+>
+>  #define USBSS_IRQ_PD_COMP	(1 <<  2)
+>
+> +/* USB DA8XX */
+> +#define DA8XX_INTR_SRC_MASKED	0x38
+> +#define DA8XX_END_OF_INTR	0x3c
+> +
+> +#define DA8XX_QMGR_PENDING_MASK	(0xf << 24)
+> +
+> +
+> +
+
+    One empty line is enough.
+
+>  /* Packet Descriptor */
+>  #define PD2_ZERO_LENGTH		(1 << 19)
+>
+>  #define AM335X_CPPI41		0
+> +#define DA8XX_CPPI41		1
+>
+>  struct cppi41_channel {
+>  	struct dma_chan chan;
+[...]
+> @@ -366,6 +393,26 @@ static irqreturn_t am335x_cppi41_irq(int irq, void *data)
+>  	return cppi41_irq(cdd);
+>  }
+>
+> +static irqreturn_t da8xx_cppi41_irq(int irq, void *data)
+> +{
+> +	struct cppi41_dd *cdd = data;
+> +	u32 status;
+> +	u32 usbss_status;
+> +
+> +	status = cppi_readl(cdd->qmgr_mem + QMGR_PEND(0));
+> +	if (status & DA8XX_QMGR_PENDING_MASK)
+> +		cppi41_irq(cdd);
+> +	else
+> +		return IRQ_NONE;
+
+    Seems correct...
+
+> +
+> +	/* Re-assert IRQ if there no usb core interrupts pending */
+> +	usbss_status = cppi_readl(cdd->usbss_mem + DA8XX_INTR_SRC_MASKED);
+> +	if (!usbss_status)
+> +		cppi_writel(0, cdd->usbss_mem + DA8XX_END_OF_INTR);
+
+    I don't understand this...
+
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+>  static dma_cookie_t cppi41_tx_submit(struct dma_async_tx_descriptor *tx)
+>  {
+>  	dma_cookie_t cookie;
+[...]
+
+MBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
