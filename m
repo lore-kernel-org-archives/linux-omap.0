@@ -1,107 +1,219 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 1/5] pinctrl: core: Use delayed work for hogs
-Date: Tue, 10 Jan 2017 15:08:40 +0100
-Message-ID: <CAMuHMdVLbNXx23-wgLHcvktyHxWf6t75ggU3rM5A-DhtU9hn5w@mail.gmail.com>
-References: <20161227172003.6517-1-tony@atomide.com> <20161227172003.6517-2-tony@atomide.com>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 08/11] dmaengine: cppi41: Implement the glue for da8xx
+Date: Tue, 10 Jan 2017 16:22:59 +0100
+Message-ID: <43b9585d-a22f-a2ff-15d4-5d878bd1586a@baylibre.com>
+References: <20170109160656.3470-1-abailon@baylibre.com>
+ <20170109160656.3470-9-abailon@baylibre.com>
+ <fbc7f9f3-9b14-bc7f-0b40-15a6fedd48ea@ti.com>
+ <b3f902e0-ed08-dbee-52b8-e81afda082ac@baylibre.com>
+ <53a40635-2652-64fc-b20d-1cd6d813eacb@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161227172003.6517-2-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <53a40635-2652-64fc-b20d-1cd6d813eacb-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On 01/10/2017 11:05 AM, Sekhar Nori wrote:
+> On Tuesday 10 January 2017 03:08 PM, Alexandre Bailon wrote:
+>> On 01/09/2017 07:08 PM, Grygorii Strashko wrote:
+>>>
+>>>
+>>> On 01/09/2017 10:06 AM, Alexandre Bailon wrote:
+>>>> The da8xx has a cppi41 dma controller.
+>>>> This is add the glue layer required to make it work on da8xx,
+>>>> as well some changes in driver (e.g to manage clock).
+>>>>
+>>>> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+>>>> ---
+>>>>  drivers/dma/cppi41.c | 95 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>>>  1 file changed, 95 insertions(+)
+>>>>
+>>>> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+>>>> index 939398e..4318e53 100644
+>>>> --- a/drivers/dma/cppi41.c
+>>>> +++ b/drivers/dma/cppi41.c
+>>>> @@ -1,3 +1,4 @@
+>>>> +#include <linux/clk.h>
+>>>>  #include <linux/delay.h>
+>>>>  #include <linux/dmaengine.h>
+>>>>  #include <linux/dma-mapping.h>
+>>>> @@ -86,10 +87,19 @@
+>>>>  
+>>>>  #define USBSS_IRQ_PD_COMP	(1 <<  2)
+>>>>  
+>>>> +/* USB DA8XX */
+>>>> +#define DA8XX_INTR_SRC_MASKED	0x38
+>>>> +#define DA8XX_END_OF_INTR	0x3c
+>>>> +
+>>>> +#define DA8XX_QMGR_PENDING_MASK	(0xf << 24)
+>>>> +
+>>>> +
+>>>> +
+>>>>  /* Packet Descriptor */
+>>>>  #define PD2_ZERO_LENGTH		(1 << 19)
+>>>>  
+>>>>  #define AM335X_CPPI41		0
+>>>> +#define DA8XX_CPPI41		1
+>>>>  
+>>>>  struct cppi41_channel {
+>>>>  	struct dma_chan chan;
+>>>> @@ -158,6 +168,9 @@ struct cppi41_dd {
+>>>>  
+>>>>  	/* context for suspend/resume */
+>>>>  	unsigned int dma_tdfdq;
+>>>> +
+>>>> +	/* da8xx clock */
+>>>> +	struct clk *clk;
+>>>>  };
+>>>>  
+>>>>  static struct chan_queues am335x_usb_queues_tx[] = {
+>>>> @@ -232,6 +245,20 @@ static const struct chan_queues am335x_usb_queues_rx[] = {
+>>>>  	[29] = { .submit = 30, .complete = 155},
+>>>>  };
+>>>>  
+>>>> +static const struct chan_queues da8xx_usb_queues_tx[] = {
+>>>> +	[0] = { .submit =  16, .complete = 24},
+>>>> +	[1] = { .submit =  18, .complete = 24},
+>>>> +	[2] = { .submit =  20, .complete = 24},
+>>>> +	[3] = { .submit =  22, .complete = 24},
+>>>> +};
+>>>> +
+>>>> +static const struct chan_queues da8xx_usb_queues_rx[] = {
+>>>> +	[0] = { .submit =  1, .complete = 26},
+>>>> +	[1] = { .submit =  3, .complete = 26},
+>>>> +	[2] = { .submit =  5, .complete = 26},
+>>>> +	[3] = { .submit =  7, .complete = 26},
+>>>> +};
+>>>> +
+>>>>  struct cppi_glue_infos {
+>>>>  	irqreturn_t (*isr)(int irq, void *data);
+>>>>  	const struct chan_queues *queues_rx;
+>>>> @@ -366,6 +393,26 @@ static irqreturn_t am335x_cppi41_irq(int irq, void *data)
+>>>>  	return cppi41_irq(cdd);
+>>>>  }
+>>>>  
+>>>> +static irqreturn_t da8xx_cppi41_irq(int irq, void *data)
+>>>> +{
+>>>> +	struct cppi41_dd *cdd = data;
+>>>> +	u32 status;
+>>>> +	u32 usbss_status;
+>>>> +
+>>>> +	status = cppi_readl(cdd->qmgr_mem + QMGR_PEND(0));
+>>>> +	if (status & DA8XX_QMGR_PENDING_MASK)
+>>>> +		cppi41_irq(cdd);
+>>>> +	else
+>>>> +		return IRQ_NONE;
+>>>> +
+>>>> +	/* Re-assert IRQ if there no usb core interrupts pending */
+>>>> +	usbss_status = cppi_readl(cdd->usbss_mem + DA8XX_INTR_SRC_MASKED);
+>>>> +	if (!usbss_status)
+>>>> +		cppi_writel(0, cdd->usbss_mem + DA8XX_END_OF_INTR);
+>>>> +
+>>>> +	return IRQ_HANDLED;
+>>>> +}
+>>>> +
+>>>>  static dma_cookie_t cppi41_tx_submit(struct dma_async_tx_descriptor *tx)
+>>>>  {
+>>>>  	dma_cookie_t cookie;
+>>>> @@ -972,8 +1019,19 @@ static const struct cppi_glue_infos am335x_usb_infos = {
+>>>>  	.platform = AM335X_CPPI41,
+>>>>  };
+>>>>  
+>>>> +static const struct cppi_glue_infos da8xx_usb_infos = {
+>>>> +	.isr = da8xx_cppi41_irq,
+>>>> +	.queues_rx = da8xx_usb_queues_rx,
+>>>> +	.queues_tx = da8xx_usb_queues_tx,
+>>>> +	.td_queue = { .submit = 31, .complete = 0 },
+>>>> +	.first_completion_queue = 24,
+>>>> +	.qmgr_num_pend = 2,
+>>>> +	.platform = DA8XX_CPPI41,
+>>>> +};
+>>>> +
+>>>>  static const struct of_device_id cppi41_dma_ids[] = {
+>>>>  	{ .compatible = "ti,am3359-cppi41", .data = &am335x_usb_infos},
+>>>> +	{ .compatible = "ti,da8xx-cppi41", .data = &da8xx_usb_infos},
+>>>>  	{},
+>>>>  };
+>>>>  MODULE_DEVICE_TABLE(of, cppi41_dma_ids);
+>>>> @@ -995,6 +1053,13 @@ static int is_am335x_cppi41(struct device *dev)
+>>>>  	return cdd->platform == AM335X_CPPI41;
+>>>>  }
+>>>>  
+>>>> +static int is_da8xx_cppi41(struct device *dev)
+>>>> +{
+>>>> +	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+>>>> +
+>>>> +	return cdd->platform == DA8XX_CPPI41;
+>>>> +}
+>>>> +
+>>>>  #define CPPI41_DMA_BUSWIDTHS	(BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) | \
+>>>>  				BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) | \
+>>>>  				BIT(DMA_SLAVE_BUSWIDTH_3_BYTES) | \
+>>>> @@ -1058,6 +1123,21 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+>>>>  	cdd->first_completion_queue = glue_info->first_completion_queue;
+>>>>  	cdd->platform = glue_info->platform;
+>>>>  
+>>>> +	if (is_da8xx_cppi41(dev)) {
+>>>> +		cdd->clk = devm_clk_get(&pdev->dev, "usb20");
+>>>> +		ret = PTR_ERR_OR_ZERO(cdd->clk);
+>>>> +		if (ret) {
+>>>> +			dev_err(&pdev->dev, "failed to get clock\n");
+>>>> +			goto err_clk_en;
+>>>> +		}
+>>>> +
+>>>> +		ret = clk_prepare_enable(cdd->clk);
+>>>> +		if (ret) {
+>>>> +			dev_err(dev, "failed to enable clock\n");
+>>>> +			goto err_clk_en;
+>>>> +		}
+>>>> +	}
+>>>
+>>> if this is functional clock then why not to use ./arch/arm/mach-davinci/pm_domain.c ?
+>>> wouldn't it work for use if you will just rename "usb20" -> "fck" -
+>>> so PM runtime should manage this clock for you?
+>> As is, I don't think it will work.
+>> The usb20 is shared by the cppi41 and the usb otg.
+>> So, if we rename "usb20" to "fck", clk_get() won't be able to find the
+>> clock.
+>> But may be adding "usb20" to "con_ids" in
+>> arch/arm/mach-davinci/pm_domain.c could work.
+>> But I think it will require some changes in da8xx musb driver.
+>> I will take look.
+> 
+> On DA8xx, CPPI 4.1 DMAengine is not an independent system resource, but
+> embedded within the USB 2.0 controller. So, I think all that is needed
+> is for MUSB DA8xx glue to trigger probe of CPPI 4.1 dmaengine driver
+> when it is ready. I am not sure all this DA850-specific clock handling
+> is really necessary.
+Actually, we have a circular dependency.
+USB core tries to get DMA channels during the probe, which fails because
+CPPI 4.1 driver is not ready.
+But it will never be ready because the USB clock must be enabled before
+DMA driver probe, what will not happen because USB driver have disabled
+the clock when probe failed.
 
-On Tue, Dec 27, 2016 at 6:19 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Having the pin control framework call pin controller functions
-> before it's probe has finished is not nice as the pin controller
-> device driver does not yet have struct pinctrl_dev handle.
->
-> Let's fix this issue by adding deferred work for late init. This is
-> needed to be able to add pinctrl generic helper functions that expect
-> to know struct pinctrl_dev handle. Note that we now need to call
-> create_pinctrl() directly as we don't want to add the pin controller
-> to the list of controllers until the hogs are claimed. We also need
-> to pass the pinctrl_dev to the device tree parser functions as they
-> otherwise won't find the right controller at this point.
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Someone in the office suggested me to use the component API,
+that could help me to probe the DMA from the USB probe.
 
-I believe this patch causes a regression on r8a7740/armadillo, where the
-pin controller is also a GPIO controller, and lcd0 needs a hog
-(cfr. arch/arm/boot/dts/r8a7740-armadillo800eva.dts):
-
--GPIO line 176 (lcd0) hogged as output/high
--sh-pfc e6050000.pfc: r8a7740_pfc handling gpio 0 -> 211
-+gpiochip_add_data: GPIOs 0..211 (r8a7740_pfc) failed to register
-+sh-pfc e6050000.pfc: failed to init GPIO chip, ignoring...
- sh-pfc e6050000.pfc: r8a7740_pfc support registered
-
-Hence all drivers using GPIOs fail to initialize because their GPIOs never
-become available.
-
-Adding debug prints to the failure paths shows that the call to
-of_pinctrl_get() in of_gpiochip_add_pin_range() fails with -EPROBE_DEFER.
-Adding a debug print to the top of gpiochip_add_data() makes the problem go
-away, presumably because it introduces a delay that allows the delayed work
-to kick in...
-
-Jon's fix ("pinctrl: core: Fix panic when pinctrl devices with hogs are
-unregistered") doesn't help, as it affects unregistration only.
-
-> --- a/drivers/pinctrl/core.c
-> +++ b/drivers/pinctrl/core.c
-
-> @@ -1800,32 +1847,10 @@ struct pinctrl_dev *pinctrl_register(struct pinctrl_desc *pctldesc,
->                 goto out_err;
->         }
->
-> -       mutex_lock(&pinctrldev_list_mutex);
-> -       list_add_tail(&pctldev->node, &pinctrldev_list);
-> -       mutex_unlock(&pinctrldev_list_mutex);
-> -
-> -       pctldev->p = pinctrl_get(pctldev->dev);
-> -
-> -       if (!IS_ERR(pctldev->p)) {
-> -               pctldev->hog_default =
-> -                       pinctrl_lookup_state(pctldev->p, PINCTRL_STATE_DEFAULT);
-> -               if (IS_ERR(pctldev->hog_default)) {
-> -                       dev_dbg(dev, "failed to lookup the default state\n");
-> -               } else {
-> -                       if (pinctrl_select_state(pctldev->p,
-> -                                               pctldev->hog_default))
-> -                               dev_err(dev,
-> -                                       "failed to select default state\n");
-> -               }
-> -
-> -               pctldev->hog_sleep =
-> -                       pinctrl_lookup_state(pctldev->p,
-> -                                                   PINCTRL_STATE_SLEEP);
-> -               if (IS_ERR(pctldev->hog_sleep))
-> -                       dev_dbg(dev, "failed to lookup the sleep state\n");
-> -       }
-> -
-> -       pinctrl_init_device_debugfs(pctldev);
-> +       if (pinctrl_dt_has_hogs(pctldev))
-
-Changing the above line to "if (0 && pinctrl_dt_has_hogs(pctldev))"
-fixes the issue for me.
-
-> +               schedule_delayed_work(&pctldev->late_init, 0);
-> +       else
-> +               pinctrl_late_init(&pctldev->late_init.work);
->
->         return pctldev;
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
+Another way to workaround the dependency would be to do defer the
+function calls that access to hardware to avoid to control clock from
+DMA driver.
+> 
+> Even in DT, the CPPI 4.1 node should be a child node of USB 2.0 node.
+I agree, it should a child but it would require some changes in CPPI 4.1
+driver. But except to have a better hardware description, I don't see
+any benefit to do it.
+> 
+> Thanks,
+> sekhar
+> 
+Thanks,
+Alexandre
 --
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
