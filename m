@@ -1,113 +1,161 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] pinctrl: core: Use delayed work for hogs
-Date: Tue, 10 Jan 2017 07:30:46 -0800
-Message-ID: <20170110153045.GS2630@atomide.com>
-References: <20161227172003.6517-1-tony@atomide.com>
- <20161227172003.6517-2-tony@atomide.com>
- <CAMuHMdVLbNXx23-wgLHcvktyHxWf6t75ggU3rM5A-DhtU9hn5w@mail.gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] Documentation: dt-bindings: Add binding documentation
+ for TI clkctrl clocks
+Date: Tue, 10 Jan 2017 07:44:01 -0800
+Message-ID: <20170110154400.GT2630@atomide.com>
+References: <20170109234226.9449-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAMuHMdVLbNXx23-wgLHcvktyHxWf6t75ggU3rM5A-DhtU9hn5w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+In-Reply-To: <20170109234226.9449-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Geert Uytterhoeven <geert@linux-m68k.org> [170110 06:09]:
-> Hi Tony,
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170109 15:43]:
+> Texas Instruments omap variant SoCs starting with omap4 have a clkctrl
+> clock controller instance for each interconnect target module. The clkctrl
+> controls functional and interface clocks for the module.
 > 
-> On Tue, Dec 27, 2016 at 6:19 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > Having the pin control framework call pin controller functions
-> > before it's probe has finished is not nice as the pin controller
-> > device driver does not yet have struct pinctrl_dev handle.
-> >
-> > Let's fix this issue by adding deferred work for late init. This is
-> > needed to be able to add pinctrl generic helper functions that expect
-> > to know struct pinctrl_dev handle. Note that we now need to call
-> > create_pinctrl() directly as we don't want to add the pin controller
-> > to the list of controllers until the hogs are claimed. We also need
-> > to pass the pinctrl_dev to the device tree parser functions as they
-> > otherwise won't find the right controller at this point.
-> >
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> The clkctrl clocks are currently handled by arch/arm/mach-omap2 hwmod code.
+> With this binding and a related clock device driver we can start moving the
+> clkctrl clock handling to live in drivers/clk/ti.
 > 
-> I believe this patch causes a regression on r8a7740/armadillo, where the
-> pin controller is also a GPIO controller, and lcd0 needs a hog
-> (cfr. arch/arm/boot/dts/r8a7740-armadillo800eva.dts):
+> For hardware reference, see omap4430 TRM "Table 3-1312. L4PER_CM2 Registers
+> Mapping Summary" for example. It show one instance of a clkctrl clock
+> controller with multiple clkctrl registers.
 > 
-> -GPIO line 176 (lcd0) hogged as output/high
-> -sh-pfc e6050000.pfc: r8a7740_pfc handling gpio 0 -> 211
-> +gpiochip_add_data: GPIOs 0..211 (r8a7740_pfc) failed to register
-> +sh-pfc e6050000.pfc: failed to init GPIO chip, ignoring...
->  sh-pfc e6050000.pfc: r8a7740_pfc support registered
+> Note that this binding allows keeping the clockdomain related parts out of
+> drivers/clock. The CLKCTCTRL and DYNAMICDEP registers can be handled by
+> using a separate driver in drivers/soc/ti and genpd. If the clockdomain
+> driver needs to know it's clocks, we can just set the the clkctrl device
+> instances to be children of the related clockdomain device.
 > 
-> Hence all drivers using GPIOs fail to initialize because their GPIOs never
-> become available.
+> On omap4 CM_L3INIT_USB_HOST_HS_CLKCTRL on omap5 has eight OPTFCLKEN bits.
+> So we need to shift the clock index to avoid index conflict for the clock
+> consumer binding with the next clkctrl offset on omap4.
 > 
-> Adding debug prints to the failure paths shows that the call to
-> of_pinctrl_get() in of_gpiochip_add_pin_range() fails with -EPROBE_DEFER.
-> Adding a debug print to the top of gpiochip_add_data() makes the problem go
-> away, presumably because it introduces a delay that allows the delayed work
-> to kick in...
+> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+> 
+> So here's what I was able to come up for the clkctr binding based on
+> all we've discussed so far. Can you guys please take a look and see
+> if it looks OK to you before we do the device driver?
+> 
+> Also, does anybody have better suggestions for addressing the optional
+> clocks in each clkctrl register?
 
-OK. What if we added also an optional pinctrl function that the pin
-controller driver could call to initialize hogs? Then the pin controller
-driver could call it during or after probe as needed. That is after
-there's a valid struct pinctrl_dev handle.
+The other option that might be worth considering is to make use of the
+#clock-cells property. Then the index of any optional clock could be passed
+in the second cell.
 
-> Jon's fix ("pinctrl: core: Fix panic when pinctrl devices with hogs are
-> unregistered") doesn't help, as it affects unregistration only.
-> 
-> > --- a/drivers/pinctrl/core.c
-> > +++ b/drivers/pinctrl/core.c
-> 
-> > @@ -1800,32 +1847,10 @@ struct pinctrl_dev *pinctrl_register(struct pinctrl_desc *pctldesc,
-> >                 goto out_err;
-> >         }
-> >
-> > -       mutex_lock(&pinctrldev_list_mutex);
-> > -       list_add_tail(&pctldev->node, &pinctrldev_list);
-> > -       mutex_unlock(&pinctrldev_list_mutex);
-> > -
-> > -       pctldev->p = pinctrl_get(pctldev->dev);
-> > -
-> > -       if (!IS_ERR(pctldev->p)) {
-> > -               pctldev->hog_default =
-> > -                       pinctrl_lookup_state(pctldev->p, PINCTRL_STATE_DEFAULT);
-> > -               if (IS_ERR(pctldev->hog_default)) {
-> > -                       dev_dbg(dev, "failed to lookup the default state\n");
-> > -               } else {
-> > -                       if (pinctrl_select_state(pctldev->p,
-> > -                                               pctldev->hog_default))
-> > -                               dev_err(dev,
-> > -                                       "failed to select default state\n");
-> > -               }
-> > -
-> > -               pctldev->hog_sleep =
-> > -                       pinctrl_lookup_state(pctldev->p,
-> > -                                                   PINCTRL_STATE_SLEEP);
-> > -               if (IS_ERR(pctldev->hog_sleep))
-> > -                       dev_dbg(dev, "failed to lookup the sleep state\n");
-> > -       }
-> > -
-> > -       pinctrl_init_device_debugfs(pctldev);
-> > +       if (pinctrl_dt_has_hogs(pctldev))
-> 
-> Changing the above line to "if (0 && pinctrl_dt_has_hogs(pctldev))"
-> fixes the issue for me.
-> 
-> > +               schedule_delayed_work(&pctldev->late_init, 0);
-> > +       else
-> > +               pinctrl_late_init(&pctldev->late_init.work);
-> >
-> >         return pctldev;
+The third cell could be used to set the modulemode for the clock (software
+controlled or hardware controlled) instead of using a custom property
+at the clock controllel level.
 
-We could also pass some flag if should always call pinctrl_late_init()
-directly. But that does not remove the problem of struct pinctrl_dev handle
-being uninitialized when the pin controller driver functionas are called.
+In that case clock consume usage would look like the following using
+#clock-cells = <3>:
+
+#define OMAP4_CLKCTRL_OFFSET		0x20
+#define MODULEMODE_HWCTRL		1
+#define MODULEMODE_SWCTRL		2
+
+#define OMAP_CLKCTRL_INDEX(offset)	((offset) - OMAP4_CLKCTRL_OFFSET)
+
+#define OMAP4_GPTIMER10_CLKTRL		OMAP_CLKCTRL_INDEX(0x28)
+#define OMAP4_GPTIMER11_CLKTRL		OMAP_CLKCTRL_INDEX(0x30)
+#define OMAP4_GPTIMER2_CLKTRL		OMAP_CLKCTRL_INDEX(0x38)
+...
+#define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
+...
+
+&gpio2 {
+	clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 0 MODULEMODE_HWCTRL
+		  &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL_DBCLK 1 0>;
+};
 
 Regards,
 
 Tony
+
+
+>  .../devicetree/bindings/clock/ti-clkctrl.txt       | 56 ++++++++++++++++++++++
+>  1 file changed, 56 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/clock/ti-clkctrl.txt b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+> new file mode 100644
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+> @@ -0,0 +1,56 @@
+> +Texas Instruments clkctrl clock binding
+> +
+> +Texas Instruments SoCs can have a clkctrl clock controller for each
+> +interconnect target module. The clkctrl clock controller manages functional
+> +and interface clocks for each module. Each clkctrl controller can also
+> +gate one or more optional functional clocks for a module. The clkctrl
+> +clock controller is typical for omap3 and later variants.
+> +
+> +The clock consumers can specify the index of the clkctrl clock using
+> +the hardware offset from the clkctrl instance register space. The optional
+> +functional clocks can be specified by clkctrl hardware offset plus the
+> +index of the optional clock. Please see the Linux clock framework binding
+> +at Documentation/devicetree/bindings/clock/clock-bindings.txt.
+> +
+> +Required properties :
+> +- compatible : shall be "ti,clkctrl"
+> +- #clock-cells : shall contain 1
+> +
+> +Optional properties :
+> +- "ti,modulemode-auto" : list of clkctrl offsets using automatic gating
+> +
+> +Example: Clock controller node:
+> +
+> +&cm_l4per {
+> +	cm_l4per_clkctrl: clk@20 {
+> +		compatible = "ti,clkctrl";
+> +		reg = <0x20 0x1b0>;
+> +		#clock-cells = 1;
+> +		ti,modulemode-auto = <OMAP4_GPIO2_CLKCTRL>;
+> +	};
+> +};
+> +
+> +Example: Preprocessor helper macros in dt-bindings/ti-clkctrl.h
+> +
+> +#define OMAP4_CLKCTRL_OFFSET		0x20
+> +
+> +#define OMAP_CLKCTRL_INDEX(offset)		\
+> +	(((offset) - OMAP4_CLKCTRL_OFFSET) << 8)
+> +
+> +#define OMAP_CLKCTRL_OPT_INDEX(offset, optclk)	\
+> +	(OMAP_CLKCTRL_INDEX(offset) + (optclk))
+> +
+> +#define OMAP4_GPTIMER10_CLKTRL		OMAP_CLKCTRL_INDEX(0x28)
+> +#define OMAP4_GPTIMER11_CLKTRL		OMAP_CLKCTRL_INDEX(0x30)
+> +#define OMAP4_GPTIMER2_CLKTRL		OMAP_CLKCTRL_INDEX(0x38)
+> +...
+> +#define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
+> +#define OMAP4_GPIO2_CLKCTRL_DBCLK	OMAP_CLKCTRL_OPT_INDEX(0x60, 1)
+> +...
+> +
+> +Example: Clock consumer node for GPIO2:
+> +
+> +&gpio2 {
+> +       clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL
+> +		 &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL_DBCLK>;
+> +};
+> -- 
+> 2.11.0
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
