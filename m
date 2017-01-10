@@ -1,161 +1,54 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] Documentation: dt-bindings: Add binding documentation
- for TI clkctrl clocks
-Date: Tue, 10 Jan 2017 07:44:01 -0800
-Message-ID: <20170110154400.GT2630@atomide.com>
-References: <20170109234226.9449-1-tony@atomide.com>
+Subject: Re: [PATCH 08/11] dmaengine: cppi41: Implement the glue for da8xx
+Date: Tue, 10 Jan 2017 07:49:29 -0800
+Message-ID: <20170110154929.GU2630@atomide.com>
+References: <20170109160656.3470-1-abailon@baylibre.com>
+ <20170109160656.3470-9-abailon@baylibre.com>
+ <fbc7f9f3-9b14-bc7f-0b40-15a6fedd48ea@ti.com>
+ <b3f902e0-ed08-dbee-52b8-e81afda082ac@baylibre.com>
+ <53a40635-2652-64fc-b20d-1cd6d813eacb@ti.com>
+ <43b9585d-a22f-a2ff-15d4-5d878bd1586a@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170109234226.9449-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <43b9585d-a22f-a2ff-15d4-5d878bd1586a-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170109 15:43]:
-> Texas Instruments omap variant SoCs starting with omap4 have a clkctrl
-> clock controller instance for each interconnect target module. The clkctrl
-> controls functional and interface clocks for the module.
+* Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> [170110 07:23]:
+> On 01/10/2017 11:05 AM, Sekhar Nori wrote:
+> > On DA8xx, CPPI 4.1 DMAengine is not an independent system resource, but
+> > embedded within the USB 2.0 controller. So, I think all that is needed
+> > is for MUSB DA8xx glue to trigger probe of CPPI 4.1 dmaengine driver
+> > when it is ready. I am not sure all this DA850-specific clock handling
+> > is really necessary.
+> Actually, we have a circular dependency.
+> USB core tries to get DMA channels during the probe, which fails because
+> CPPI 4.1 driver is not ready.
+> But it will never be ready because the USB clock must be enabled before
+> DMA driver probe, what will not happen because USB driver have disabled
+> the clock when probe failed.
 > 
-> The clkctrl clocks are currently handled by arch/arm/mach-omap2 hwmod code.
-> With this binding and a related clock device driver we can start moving the
-> clkctrl clock handling to live in drivers/clk/ti.
+> Someone in the office suggested me to use the component API,
+> that could help me to probe the DMA from the USB probe.
 > 
-> For hardware reference, see omap4430 TRM "Table 3-1312. L4PER_CM2 Registers
-> Mapping Summary" for example. It show one instance of a clkctrl clock
-> controller with multiple clkctrl registers.
-> 
-> Note that this binding allows keeping the clockdomain related parts out of
-> drivers/clock. The CLKCTCTRL and DYNAMICDEP registers can be handled by
-> using a separate driver in drivers/soc/ti and genpd. If the clockdomain
-> driver needs to know it's clocks, we can just set the the clkctrl device
-> instances to be children of the related clockdomain device.
-> 
-> On omap4 CM_L3INIT_USB_HOST_HS_CLKCTRL on omap5 has eight OPTFCLKEN bits.
-> So we need to shift the clock index to avoid index conflict for the clock
-> consumer binding with the next clkctrl offset on omap4.
-> 
-> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
-> 
-> So here's what I was able to come up for the clkctr binding based on
-> all we've discussed so far. Can you guys please take a look and see
-> if it looks OK to you before we do the device driver?
-> 
-> Also, does anybody have better suggestions for addressing the optional
-> clocks in each clkctrl register?
+> Another way to workaround the dependency would be to do defer the
+> function calls that access to hardware to avoid to control clock from
+> DMA driver.
 
-The other option that might be worth considering is to make use of the
-#clock-cells property. Then the index of any optional clock could be passed
-in the second cell.
+Or you really have some wrapper IP block around musb and cppi41 just
+like am335x has.
 
-The third cell could be used to set the modulemode for the clock (software
-controlled or hardware controlled) instead of using a custom property
-at the clock controllel level.
-
-In that case clock consume usage would look like the following using
-#clock-cells = <3>:
-
-#define OMAP4_CLKCTRL_OFFSET		0x20
-#define MODULEMODE_HWCTRL		1
-#define MODULEMODE_SWCTRL		2
-
-#define OMAP_CLKCTRL_INDEX(offset)	((offset) - OMAP4_CLKCTRL_OFFSET)
-
-#define OMAP4_GPTIMER10_CLKTRL		OMAP_CLKCTRL_INDEX(0x28)
-#define OMAP4_GPTIMER11_CLKTRL		OMAP_CLKCTRL_INDEX(0x30)
-#define OMAP4_GPTIMER2_CLKTRL		OMAP_CLKCTRL_INDEX(0x38)
-...
-#define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
-...
-
-&gpio2 {
-	clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 0 MODULEMODE_HWCTRL
-		  &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL_DBCLK 1 0>;
-};
+See drivers/usb/musb/musb_am335x.c and compatible properties for
+"ti,am33xx-usb" and it's children in am33xx.dtsi.
 
 Regards,
 
 Tony
-
-
->  .../devicetree/bindings/clock/ti-clkctrl.txt       | 56 ++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/clock/ti-clkctrl.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/clock/ti-clkctrl.txt b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
-> new file mode 100644
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
-> @@ -0,0 +1,56 @@
-> +Texas Instruments clkctrl clock binding
-> +
-> +Texas Instruments SoCs can have a clkctrl clock controller for each
-> +interconnect target module. The clkctrl clock controller manages functional
-> +and interface clocks for each module. Each clkctrl controller can also
-> +gate one or more optional functional clocks for a module. The clkctrl
-> +clock controller is typical for omap3 and later variants.
-> +
-> +The clock consumers can specify the index of the clkctrl clock using
-> +the hardware offset from the clkctrl instance register space. The optional
-> +functional clocks can be specified by clkctrl hardware offset plus the
-> +index of the optional clock. Please see the Linux clock framework binding
-> +at Documentation/devicetree/bindings/clock/clock-bindings.txt.
-> +
-> +Required properties :
-> +- compatible : shall be "ti,clkctrl"
-> +- #clock-cells : shall contain 1
-> +
-> +Optional properties :
-> +- "ti,modulemode-auto" : list of clkctrl offsets using automatic gating
-> +
-> +Example: Clock controller node:
-> +
-> +&cm_l4per {
-> +	cm_l4per_clkctrl: clk@20 {
-> +		compatible = "ti,clkctrl";
-> +		reg = <0x20 0x1b0>;
-> +		#clock-cells = 1;
-> +		ti,modulemode-auto = <OMAP4_GPIO2_CLKCTRL>;
-> +	};
-> +};
-> +
-> +Example: Preprocessor helper macros in dt-bindings/ti-clkctrl.h
-> +
-> +#define OMAP4_CLKCTRL_OFFSET		0x20
-> +
-> +#define OMAP_CLKCTRL_INDEX(offset)		\
-> +	(((offset) - OMAP4_CLKCTRL_OFFSET) << 8)
-> +
-> +#define OMAP_CLKCTRL_OPT_INDEX(offset, optclk)	\
-> +	(OMAP_CLKCTRL_INDEX(offset) + (optclk))
-> +
-> +#define OMAP4_GPTIMER10_CLKTRL		OMAP_CLKCTRL_INDEX(0x28)
-> +#define OMAP4_GPTIMER11_CLKTRL		OMAP_CLKCTRL_INDEX(0x30)
-> +#define OMAP4_GPTIMER2_CLKTRL		OMAP_CLKCTRL_INDEX(0x38)
-> +...
-> +#define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
-> +#define OMAP4_GPIO2_CLKCTRL_DBCLK	OMAP_CLKCTRL_OPT_INDEX(0x60, 1)
-> +...
-> +
-> +Example: Clock consumer node for GPIO2:
-> +
-> +&gpio2 {
-> +       clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL
-> +		 &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL_DBCLK>;
-> +};
-> -- 
-> 2.11.0
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
