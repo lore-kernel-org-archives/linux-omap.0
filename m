@@ -1,44 +1,169 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v2 08/12] mmc: omap: Don't use mmc_card_present() when validating for inserted card
-Date: Wed, 11 Jan 2017 12:51:14 +0100
-Message-ID: <1484135478-2077-9-git-send-email-ulf.hansson@linaro.org>
-References: <1484135478-2077-1-git-send-email-ulf.hansson@linaro.org>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1484135478-2077-1-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Jaehoon Chung <jh80.chung@samsung.com>, Adrian Hunter <adrian.hunter@intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 5/5] PCI: dwc: dra7xx: Group phy API invocations
+Date: Wed, 11 Jan 2017 17:36:55 +0530
+Message-ID: <1484136415-20798-6-git-send-email-kishon@ti.com>
+References: <1484136415-20798-1-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1484136415-20798-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The mmc_card_present() function helps the mmc core to track an internal
-state of the card device. More importantly, it's not intended to be used by
-mmc host drivers to check for an inserted card. Therefore, let's stop using
-it and instead rely on checking for a valid pointer to a struct mmc_card,
-as it should be good enough.
+No functional change. Phy APIs like phy_init/phy_power_on is
+being invoked from multiple places. Group all the phy APIs in
+dra7xx_pcie_enable_phy() and dra7xx_pcie_disable_phy() and use
+these functions for enabling or disabling the phy.
 
-Cc: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/mmc/host/omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/dwc/pci-dra7xx.c |   92 +++++++++++++++++++++++-------------------
+ 1 file changed, 51 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index be3c49f..bd49f34 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -893,7 +893,7 @@ static void mmc_omap_cover_handler(unsigned long param)
- 	 * If no card is inserted, we postpone polling until
- 	 * the cover has been closed.
- 	 */
--	if (slot->mmc->card == NULL || !mmc_card_present(slot->mmc->card))
-+	if (slot->mmc->card == NULL)
- 		return;
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index af330d7..ec5617a 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -324,6 +324,45 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+ 	return 0;
+ }
  
- 	mod_timer(&slot->cover_timer,
++static void dra7xx_pcie_disable_phy(struct dra7xx_pcie *dra7xx)
++{
++	int phy_count = dra7xx->phy_count;
++
++	while (phy_count--) {
++		phy_power_off(dra7xx->phy[phy_count]);
++		phy_exit(dra7xx->phy[phy_count]);
++	}
++}
++
++static int dra7xx_pcie_enable_phy(struct dra7xx_pcie *dra7xx)
++{
++	int phy_count = dra7xx->phy_count;
++	int ret;
++	int i;
++
++	for (i = 0; i < phy_count; i++) {
++		ret = phy_init(dra7xx->phy[i]);
++		if (ret < 0)
++			goto err_phy;
++
++		ret = phy_power_on(dra7xx->phy[i]);
++		if (ret < 0) {
++			phy_exit(dra7xx->phy[i]);
++			goto err_phy;
++		}
++	}
++
++	return 0;
++
++err_phy:
++	while (--i >= 0) {
++		phy_power_off(dra7xx->phy[i]);
++		phy_exit(dra7xx->phy[i]);
++	}
++
++	return ret;
++}
++
+ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ {
+ 	u32 reg;
+@@ -382,22 +421,18 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 		phy[i] = devm_phy_get(dev, name);
+ 		if (IS_ERR(phy[i]))
+ 			return PTR_ERR(phy[i]);
+-
+-		ret = phy_init(phy[i]);
+-		if (ret < 0)
+-			goto err_phy;
+-
+-		ret = phy_power_on(phy[i]);
+-		if (ret < 0) {
+-			phy_exit(phy[i]);
+-			goto err_phy;
+-		}
+ 	}
+ 
+ 	dra7xx->base = base;
+ 	dra7xx->phy = phy;
+ 	dra7xx->phy_count = phy_count;
+ 
++	ret = dra7xx_pcie_enable_phy(dra7xx);
++	if (ret) {
++		dev_err(dev, "failed to enable phy\n");
++		return ret;
++	}
++
+ 	pm_runtime_enable(dev);
+ 	ret = pm_runtime_get_sync(dev);
+ 	if (ret < 0) {
+@@ -432,12 +467,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 
+ err_get_sync:
+ 	pm_runtime_disable(dev);
+-
+-err_phy:
+-	while (--i >= 0) {
+-		phy_power_off(phy[i]);
+-		phy_exit(phy[i]);
+-	}
++	dra7xx_pcie_disable_phy(dra7xx);
+ 
+ 	return ret;
+ }
+@@ -474,12 +504,8 @@ static int dra7xx_pcie_resume(struct device *dev)
+ static int dra7xx_pcie_suspend_noirq(struct device *dev)
+ {
+ 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+-	int count = dra7xx->phy_count;
+ 
+-	while (count--) {
+-		phy_power_off(dra7xx->phy[count]);
+-		phy_exit(dra7xx->phy[count]);
+-	}
++	dra7xx_pcie_disable_phy(dra7xx);
+ 
+ 	return 0;
+ }
+@@ -487,31 +513,15 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
+ static int dra7xx_pcie_resume_noirq(struct device *dev)
+ {
+ 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+-	int phy_count = dra7xx->phy_count;
+ 	int ret;
+-	int i;
+-
+-	for (i = 0; i < phy_count; i++) {
+-		ret = phy_init(dra7xx->phy[i]);
+-		if (ret < 0)
+-			goto err_phy;
+ 
+-		ret = phy_power_on(dra7xx->phy[i]);
+-		if (ret < 0) {
+-			phy_exit(dra7xx->phy[i]);
+-			goto err_phy;
+-		}
++	ret = dra7xx_pcie_enable_phy(dra7xx);
++	if (ret) {
++		dev_err(dev, "failed to enable phy\n");
++		return ret;
+ 	}
+ 
+ 	return 0;
+-
+-err_phy:
+-	while (--i >= 0) {
+-		phy_power_off(dra7xx->phy[i]);
+-		phy_exit(dra7xx->phy[i]);
+-	}
+-
+-	return ret;
+ }
+ #endif
+ 
 -- 
-1.9.1
-
+1.7.9.5
