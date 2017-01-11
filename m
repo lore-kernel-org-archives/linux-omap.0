@@ -1,25 +1,36 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: net: ti: cpsw-phy-sel: RGMII is not working on AM335x
-Date: Wed, 11 Jan 2017 16:14:07 +0100
-Message-ID: <20170111151407.GW22820@lunn.ch>
-References: <1484122463.3777.1.camel@phytec.de>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/5] pinctrl: core: Use delayed work for hogs
+Date: Wed, 11 Jan 2017 16:33:43 +0100
+Message-ID: <CACRpkdaJmEcqMST30NRdtcLpEg5LhiAxOYsNDDUvYEYFjUBiHA@mail.gmail.com>
+References: <20161227172003.6517-1-tony@atomide.com> <20161227172003.6517-2-tony@atomide.com>
+ <CAMuHMdVLbNXx23-wgLHcvktyHxWf6t75ggU3rM5A-DhtU9hn5w@mail.gmail.com>
+ <20170110153045.GS2630@atomide.com> <20170110191908.GV2630@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1484122463.3777.1.camel@phytec.de>
-Sender: netdev-owner@vger.kernel.org
-To: Teresa Remmet <t.remmet@phytec.de>
-Cc: Alexandru Gagniuc <alex.g@adaptrum.com>, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170110191908.GV2630@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-> So I wonder what is correct now? As for me the patch makes RGMII unusable.
-> Has anyone an explanation?
+On Tue, Jan 10, 2017 at 8:19 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-Hi Teresa
+> Below is an experimental fix to intorduce pinctrl_start() that I've
+> tested with pinctrl-single. Then we should probably make all pin controller
+> drivers call pinctrl_start() to properly fix the issue of struct pinctrl_dev
+> handle not being initialized before driver functions are called.
 
-In your device tree, what phy-mode do you have?
+Hm I guess that could work, but can we keep pinctrl_register() with the old
+semantics and add a separate pinctrl_register_and_defer()
+for those who just wanna start it later by a separate call?
 
-And does your hardware require an RGMII delay in order that it works?
+Then we don't need any special flags.
 
-    Andrew
+> Or do you guys have any better ideas?
+
+Not really. So you mean revert the previous patch and apply something
+like this instead?
+
+Yours,
+Linus Walleij
