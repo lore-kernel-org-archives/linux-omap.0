@@ -1,169 +1,99 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 5/5] PCI: dwc: dra7xx: Group phy API invocations
-Date: Wed, 11 Jan 2017 17:36:55 +0530
-Message-ID: <1484136415-20798-6-git-send-email-kishon@ti.com>
+Subject: [PATCH 1/5] PCI: dwc: Add COMPILE_TEST to all designware based drivers
+Date: Wed, 11 Jan 2017 17:36:51 +0530
+Message-ID: <1484136415-20798-2-git-send-email-kishon@ti.com>
 References: <1484136415-20798-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1484136415-20798-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Phy APIs like phy_init/phy_power_on is
-being invoked from multiple places. Group all the phy APIs in
-dra7xx_pcie_enable_phy() and dra7xx_pcie_disable_phy() and use
-these functions for enabling or disabling the phy.
+Add COMPILE_TEST to all designware based drivers so that it is possible
+to perform compile test even when a particular architecture specific
+config symbol is not set.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c |   92 +++++++++++++++++++++++-------------------
- 1 file changed, 51 insertions(+), 41 deletions(-)
+ drivers/pci/dwc/Kconfig |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index af330d7..ec5617a 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -324,6 +324,45 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 	return 0;
- }
+diff --git a/drivers/pci/dwc/Kconfig b/drivers/pci/dwc/Kconfig
+index deae261..8b08519 100644
+--- a/drivers/pci/dwc/Kconfig
++++ b/drivers/pci/dwc/Kconfig
+@@ -29,21 +29,21 @@ config PCIE_DW_PLAT
  
-+static void dra7xx_pcie_disable_phy(struct dra7xx_pcie *dra7xx)
-+{
-+	int phy_count = dra7xx->phy_count;
-+
-+	while (phy_count--) {
-+		phy_power_off(dra7xx->phy[phy_count]);
-+		phy_exit(dra7xx->phy[phy_count]);
-+	}
-+}
-+
-+static int dra7xx_pcie_enable_phy(struct dra7xx_pcie *dra7xx)
-+{
-+	int phy_count = dra7xx->phy_count;
-+	int ret;
-+	int i;
-+
-+	for (i = 0; i < phy_count; i++) {
-+		ret = phy_init(dra7xx->phy[i]);
-+		if (ret < 0)
-+			goto err_phy;
-+
-+		ret = phy_power_on(dra7xx->phy[i]);
-+		if (ret < 0) {
-+			phy_exit(dra7xx->phy[i]);
-+			goto err_phy;
-+		}
-+	}
-+
-+	return 0;
-+
-+err_phy:
-+	while (--i >= 0) {
-+		phy_power_off(dra7xx->phy[i]);
-+		phy_exit(dra7xx->phy[i]);
-+	}
-+
-+	return ret;
-+}
-+
- static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- {
- 	u32 reg;
-@@ -382,22 +421,18 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 		phy[i] = devm_phy_get(dev, name);
- 		if (IS_ERR(phy[i]))
- 			return PTR_ERR(phy[i]);
--
--		ret = phy_init(phy[i]);
--		if (ret < 0)
--			goto err_phy;
--
--		ret = phy_power_on(phy[i]);
--		if (ret < 0) {
--			phy_exit(phy[i]);
--			goto err_phy;
--		}
- 	}
+ config PCI_EXYNOS
+ 	bool "Samsung Exynos PCIe controller"
+-	depends on SOC_EXYNOS5440
++	depends on SOC_EXYNOS5440 || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+ 	select PCIE_DW
  
- 	dra7xx->base = base;
- 	dra7xx->phy = phy;
- 	dra7xx->phy_count = phy_count;
+ config PCI_IMX6
+ 	bool "Freescale i.MX6 PCIe controller"
+-	depends on SOC_IMX6Q
++	depends on SOC_IMX6Q || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+ 	select PCIE_DW
  
-+	ret = dra7xx_pcie_enable_phy(dra7xx);
-+	if (ret) {
-+		dev_err(dev, "failed to enable phy\n");
-+		return ret;
-+	}
-+
- 	pm_runtime_enable(dev);
- 	ret = pm_runtime_get_sync(dev);
- 	if (ret < 0) {
-@@ -432,12 +467,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ config PCIE_SPEAR13XX
+ 	bool "STMicroelectronics SPEAr PCIe controller"
+-	depends on ARCH_SPEAR13XX
++	depends on ARCH_SPEAR13XX || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+ 	select PCIE_DW
+@@ -52,7 +52,7 @@ config PCIE_SPEAR13XX
  
- err_get_sync:
- 	pm_runtime_disable(dev);
--
--err_phy:
--	while (--i >= 0) {
--		phy_power_off(phy[i]);
--		phy_exit(phy[i]);
--	}
-+	dra7xx_pcie_disable_phy(dra7xx);
+ config PCI_KEYSTONE
+ 	bool "TI Keystone PCIe controller"
+-	depends on ARCH_KEYSTONE
++	depends on ARCH_KEYSTONE || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+ 	select PCIE_DW
+@@ -64,7 +64,7 @@ config PCI_KEYSTONE
  
- 	return ret;
- }
-@@ -474,12 +504,8 @@ static int dra7xx_pcie_resume(struct device *dev)
- static int dra7xx_pcie_suspend_noirq(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
--	int count = dra7xx->phy_count;
+ config PCI_LAYERSCAPE
+ 	bool "Freescale Layerscape PCIe controller"
+-	depends on OF && (ARM || ARCH_LAYERSCAPE)
++	depends on OF && (ARM || ARCH_LAYERSCAPE || COMPILE_TEST)
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select MFD_SYSCON
+ 	select PCIE_DW
+@@ -83,7 +83,7 @@ config PCI_HISI
  
--	while (count--) {
--		phy_power_off(dra7xx->phy[count]);
--		phy_exit(dra7xx->phy[count]);
--	}
-+	dra7xx_pcie_disable_phy(dra7xx);
+ config PCIE_QCOM
+ 	bool "Qualcomm PCIe controller"
+-	depends on ARCH_QCOM && OF
++	depends on (ARCH_QCOM || COMPILE_TEST) && OF
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+ 	select PCIE_DW
+@@ -94,7 +94,7 @@ config PCIE_QCOM
  
- 	return 0;
- }
-@@ -487,31 +513,15 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
- static int dra7xx_pcie_resume_noirq(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
--	int phy_count = dra7xx->phy_count;
- 	int ret;
--	int i;
--
--	for (i = 0; i < phy_count; i++) {
--		ret = phy_init(dra7xx->phy[i]);
--		if (ret < 0)
--			goto err_phy;
+ config PCIE_ARMADA_8K
+ 	bool "Marvell Armada-8K PCIe controller"
+-	depends on ARCH_MVEBU
++	depends on ARCH_MVEBU || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+ 	select PCIE_DW
+@@ -106,7 +106,7 @@ config PCIE_ARMADA_8K
  
--		ret = phy_power_on(dra7xx->phy[i]);
--		if (ret < 0) {
--			phy_exit(dra7xx->phy[i]);
--			goto err_phy;
--		}
-+	ret = dra7xx_pcie_enable_phy(dra7xx);
-+	if (ret) {
-+		dev_err(dev, "failed to enable phy\n");
-+		return ret;
- 	}
- 
- 	return 0;
--
--err_phy:
--	while (--i >= 0) {
--		phy_power_off(dra7xx->phy[i]);
--		phy_exit(dra7xx->phy[i]);
--	}
--
--	return ret;
- }
- #endif
- 
+ config PCIE_ARTPEC6
+ 	bool "Axis ARTPEC-6 PCIe controller"
+-	depends on MACH_ARTPEC6
++	depends on MACH_ARTPEC6 || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+ 	select PCIE_DW
 -- 
 1.7.9.5
