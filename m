@@ -1,44 +1,42 @@
-From: Alex <alex.g@adaptrum.com>
-Subject: Re: net: ti: cpsw-phy-sel: RGMII is not working on AM335x
-Date: Wed, 11 Jan 2017 12:18:54 -0800
-Message-ID: <fd690450-e2a2-9bc6-1dd5-59cfce4e9caf@adaptrum.com>
-References: <1484122463.3777.1.camel@phytec.de>
- <20170111151407.GW22820@lunn.ch> <1484150255.3777.13.camel@phytec.de>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 0/3] PCI: designware/dra7xx: misc fixes and cleanups
+Date: Wed, 11 Jan 2017 15:21:35 -0600
+Message-ID: <20170111212135.GN14532@bhelgaas-glaptop.roam.corp.google.com>
+References: <1483091774-8332-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1484150255.3777.13.camel@phytec.de>
-Sender: netdev-owner@vger.kernel.org
-To: Teresa Remmet <t.remmet@phytec.de>, Andrew Lunn <andrew@lunn.ch>
-Cc: "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1483091774-8332-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Teresa
+On Fri, Dec 30, 2016 at 03:26:11PM +0530, Kishon Vijay Abraham I wrote:
+> This series contains
+>         *) a patch to cleanup dra7xx probe
+>         *) a patch to force DRA7xx controller to work in GEN1 mode
+>         *) a patch to fix dra7xx driver so that even if CONFIG_PCI_MSI
+>            is enabled, dra7xx driver can service legacy interrupts
+>            (provided the device support only legacy interrupts).
+> 
+> Changes from v1:
+> *) rebased to 4.10-rc1 (and [1])
+> *) use existing dt property "max-link-speed" instead of creating a new
+>    TI specific dt property.
+> 
+> [1] -> https://lkml.org/lkml/2016/12/28/34
+> 
+> Kishon Vijay Abraham I (3):
+>   PCI: dra7xx: simplify the probe code
+>   PCI: dra7xx: Add support to force RC to work in GEN1 mode
+>   PCI: dra7xx: Enable MSI and legacy interrupts simultaneously
+> 
+>  drivers/pci/controller/pci-dra7xx.c |   81 ++++++++++++++++++++---------------
+>  1 file changed, 47 insertions(+), 34 deletions(-)
 
-On 01/11/2017 07:57 AM, Teresa Remmet wrote:
-> The phy we use is a KSZ9021. And yes we add delays to the
-> phy, as you can see. When looking to the dts documentation I probably
-> need to set the phy-mode to "rgmii-id" instead, as the phy is providing
-> the delays.
+Applied to pci/host-dra7xx for v4.11.  I haven't applied the directory
+rename yet, so I'll fix that up as necessary.
 
-Before the change I submitted, every "rgmii*" link was being set up as 
-"rgmii-id", regardless of phy-mode. I suspected there might have been 
-the odd board here or there that used "rgmii" when the actual mode is 
-"rgmii-id".
-
-What confused me the first time around was that I didn't realize the 
-delay applies to the phy, not the mac. So "-id" means "the PHY provides 
-the delays, so don't add delays on the MAC", just like you realized.
-
-> I make a quick test with that change and it is working. So this seems
-> to solve my problem. Thank you for the hint.
-
-I'm glad it was an easy fix. Last time I had issues with RGMII, I had to 
-pull out the oscilloscope.
-
-Alex
-
-> Regards,
-> Teresa
->
+Bjorn
