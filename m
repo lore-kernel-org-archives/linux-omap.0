@@ -1,66 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/5] pinctrl: core: Use delayed work for hogs
-Date: Wed, 11 Jan 2017 10:31:06 -0800
-Message-ID: <20170111183106.GY2630@atomide.com>
-References: <20161227172003.6517-1-tony@atomide.com>
- <20161227172003.6517-2-tony@atomide.com>
- <CAMuHMdVLbNXx23-wgLHcvktyHxWf6t75ggU3rM5A-DhtU9hn5w@mail.gmail.com>
- <20170110153045.GS2630@atomide.com>
- <20170110191908.GV2630@atomide.com>
- <CACRpkdaJmEcqMST30NRdtcLpEg5LhiAxOYsNDDUvYEYFjUBiHA@mail.gmail.com>
- <20170111162808.GW2630@atomide.com>
+From: Alex <alex.g@adaptrum.com>
+Subject: Re: net: ti: cpsw-phy-sel: RGMII is not working on AM335x
+Date: Wed, 11 Jan 2017 12:18:54 -0800
+Message-ID: <fd690450-e2a2-9bc6-1dd5-59cfce4e9caf@adaptrum.com>
+References: <1484122463.3777.1.camel@phytec.de>
+ <20170111151407.GW22820@lunn.ch> <1484150255.3777.13.camel@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170111162808.GW2630@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1484150255.3777.13.camel@phytec.de>
+Sender: netdev-owner@vger.kernel.org
+To: Teresa Remmet <t.remmet@phytec.de>, Andrew Lunn <andrew@lunn.ch>
+Cc: "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170111 08:29]:
-> * Linus Walleij <linus.walleij@linaro.org> [170111 07:34]:
-> > On Tue, Jan 10, 2017 at 8:19 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > 
-> > > Below is an experimental fix to intorduce pinctrl_start() that I've
-> > > tested with pinctrl-single. Then we should probably make all pin controller
-> > > drivers call pinctrl_start() to properly fix the issue of struct pinctrl_dev
-> > > handle not being initialized before driver functions are called.
-> > 
-> > Hm I guess that could work, but can we keep pinctrl_register() with the old
-> > semantics and add a separate pinctrl_register_and_defer()
-> > for those who just wanna start it later by a separate call?
-> > 
-> > Then we don't need any special flags.
-> 
-> OK I'll take a look.
-> 
-> > > Or do you guys have any better ideas?
-> > 
-> > Not really. So you mean revert the previous patch and apply something
-> > like this instead?
-> 
-> Let me first take a look to see if we can fix it by making drivers using
-> GENERIC_PINCTRL_GROUPS or GENERIC_PINMUX_FUNCTIONS register with
-> pinctrl_register_and_defer(). I'll post a patch for that today.
+Hi Teresa
 
-Yeah we can fix this by reverting the late_init parts of the earlier
-attempt and introducing a new pinctrl_register_and_init() for controllers
-to use:
+On 01/11/2017 07:57 AM, Teresa Remmet wrote:
+> The phy we use is a KSZ9021. And yes we add delays to the
+> phy, as you can see. When looking to the dts documentation I probably
+> need to set the phy-mode to "rgmii-id" instead, as the phy is providing
+> the delays.
 
-extern int pinctrl_register_and_init(struct pinctrl_desc *pctldesc,
-				     struct device *dev, void *driver_data,
-				     struct pinctrl_dev **pctldev);
+Before the change I submitted, every "rgmii*" link was being set up as 
+"rgmii-id", regardless of phy-mode. I suspected there might have been 
+the odd board here or there that used "rgmii" when the actual mode is 
+"rgmii-id".
 
-> Then maybe for v4.12 we can attempt to move all pin controller drivers
-> to using it so we can fix the problem for good.
+What confused me the first time around was that I didn't realize the 
+delay applies to the phy, not the mac. So "-id" means "the PHY provides 
+the delays, so don't add delays on the MAC", just like you realized.
 
-And that will also make converting existing drivers to use it later on
-trivial.
+> I make a quick test with that change and it is working. So this seems
+> to solve my problem. Thank you for the hint.
 
-Will post a patch shortly after some more testing.
+I'm glad it was an easy fix. Last time I had issues with RGMII, I had to 
+pull out the oscilloscope.
 
-Regards,
+Alex
 
-Tony
+> Regards,
+> Teresa
+>
