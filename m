@@ -1,42 +1,29 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] regulator: twl6030: fix range comparison, allowing vsel = 59
-Date: Wed, 11 Jan 2017 15:36:20 +0000
-Message-ID: <20170111153620.20342-1-colin.king@canonical.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: gpio: pcf857x: lockdep warning on v4.10-rc3
+Date: Wed, 11 Jan 2017 16:38:30 +0100
+Message-ID: <CACRpkdb0KUZabcgAqS1CzWnXt6fyA=CzE9ged1_Ed=+fZB+mqA@mail.gmail.com>
+References: <48bef841-5267-fcdb-2398-095f6f7ae51e@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <48bef841-5267-fcdb-2398-095f6f7ae51e@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Tue, Jan 10, 2017 at 1:18 PM, Roger Quadros <rogerq@ti.com> wrote:
 
-The range min_uV > 1350000 && min_uV <= 150000 is never reachable
-because of a typo in the previous range check and hence vsel = 59
-is never reached.  Fix the previous range check to enable the
-vsel = 59 setting.
+> Hi Linus,
+>
+> I see the following lockdep warning on v4.10-rc3 on TI's dra7-evm.
+>
+> reverting (d245b3f9bd3 "gpio: simplify adding threaded interrupts") seems to fix it.
 
-Fixes CoverityScan CID#728454 ("Logially dead code")
+I sent out a patch today:
+"gpio: provide lockdep keys for nested/unnested irqchips"
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/regulator/twl6030-regulator.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+could you test and see if it solves your problem?
 
-diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
-index 4864b9d..7161910 100644
---- a/drivers/regulator/twl6030-regulator.c
-+++ b/drivers/regulator/twl6030-regulator.c
-@@ -452,7 +452,7 @@ static int twl6030smps_map_voltage(struct regulator_dev *rdev, int min_uV,
- 			vsel = 62;
- 		else if ((min_uV > 1800000) && (min_uV <= 1900000))
- 			vsel = 61;
--		else if ((min_uV > 1350000) && (min_uV <= 1800000))
-+		else if ((min_uV > 1500000) && (min_uV <= 1800000))
- 			vsel = 60;
- 		else if ((min_uV > 1350000) && (min_uV <= 1500000))
- 			vsel = 59;
--- 
-2.10.2
+Yours,
+Linus Walleij
