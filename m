@@ -1,42 +1,35 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2 0/3] PCI: designware/dra7xx: misc fixes and cleanups
-Date: Wed, 11 Jan 2017 15:21:35 -0600
-Message-ID: <20170111212135.GN14532@bhelgaas-glaptop.roam.corp.google.com>
-References: <1483091774-8332-1-git-send-email-kishon@ti.com>
+From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] Adding DT support for TI HECC module
+Date: Wed, 11 Jan 2017 22:50:32 +0100
+Message-ID: <CAGm1_kvWXfZ_f3PPL1VJj8AhBf59Pax_GFHDVdejuMBRDu9y6Q@mail.gmail.com>
+References: <1484143521-4898-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1483091774-8332-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1484143521-4898-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Andrey Skvortsov <andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, hs-ynQEQJNshbs@public.gmane.org, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 30, 2016 at 03:26:11PM +0530, Kishon Vijay Abraham I wrote:
-> This series contains
->         *) a patch to cleanup dra7xx probe
->         *) a patch to force DRA7xx controller to work in GEN1 mode
->         *) a patch to fix dra7xx driver so that even if CONFIG_PCI_MSI
->            is enabled, dra7xx driver can service legacy interrupts
->            (provided the device support only legacy interrupts).
-> 
-> Changes from v1:
-> *) rebased to 4.10-rc1 (and [1])
-> *) use existing dt property "max-link-speed" instead of creating a new
->    TI specific dt property.
-> 
-> [1] -> https://lkml.org/lkml/2016/12/28/34
-> 
-> Kishon Vijay Abraham I (3):
->   PCI: dra7xx: simplify the probe code
->   PCI: dra7xx: Add support to force RC to work in GEN1 mode
->   PCI: dra7xx: Enable MSI and legacy interrupts simultaneously
-> 
->  drivers/pci/controller/pci-dra7xx.c |   81 ++++++++++++++++++++---------------
->  1 file changed, 47 insertions(+), 34 deletions(-)
+On Wed, Jan 11, 2017 at 3:05 PM,  <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> wrote:
+> From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+>
+> This is an attempt to revive DT support for TI HECC that was started in 2015.
+>
+> I haven't changed much because not all questions could be fully answered:
+>
+> * Should HECC use "am3505" as compatible?
 
-Applied to pci/host-dra7xx for v4.11.  I haven't applied the directory
-rename yet, so I'll fix that up as necessary.
+I mean "ti,am3505-hecc"
 
-Bjorn
+> * What should be done to the offsets (ti,scc-ram-offset, ti,hecc-ram-offset, ti,mbx-offset)?
+
+First submission and related comments:
+http://comments.gmane.org/gmane.linux.can/8616
+
+Yegor
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
