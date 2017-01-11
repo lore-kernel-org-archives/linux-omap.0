@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 4/5] PCI: dwc: dra7xx: Enable MSI and legacy interrupts simultaneously
-Date: Wed, 11 Jan 2017 17:36:54 +0530
-Message-ID: <1484136415-20798-5-git-send-email-kishon@ti.com>
+Subject: [PATCH 3/5] PCI: dwc: dra7xx: Add support to force RC to work in GEN1 mode
+Date: Wed, 11 Jan 2017 17:36:53 +0530
+Message-ID: <1484136415-20798-4-git-send-email-kishon@ti.com>
 References: <1484136415-20798-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,100 +12,92 @@ To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-pci-dra7xx driver had a bug in that if CONFIG_PCI_MSI config is enabled,
-it doesn't support legacy interrupt. Fix it here so that both MSI and
-legacy interrupts can be enabled simultaneously and the interrupt mechanism
-supported by the endpoint device will be used.
+PCIe in AM57x/DRA7x devices is by default
+configured to work in GEN2 mode.  However there
+may be situations when working in GEN1 mode is
+desired. One example is limitation i925 (PCIe GEN2
+mode not supported at junction temperatures < 0C).
+
+Add support to force Root Complex to work in GEN1
+mode if so desired, but don't force GEN1 mode on
+any board just yet.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c |   32 +++++++++++++-------------------
- 1 file changed, 13 insertions(+), 19 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
 diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 587b18c..af330d7 100644
+index f6d0c63..587b18c 100644
 --- a/drivers/pci/dwc/pci-dra7xx.c
 +++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -72,6 +72,7 @@ struct dra7xx_pcie {
+@@ -17,6 +17,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/of_gpio.h>
++#include <linux/of_pci.h>
+ #include <linux/pci.h>
+ #include <linux/phy/phy.h>
+ #include <linux/platform_device.h>
+@@ -63,11 +64,14 @@
+ #define	LINK_UP						BIT(16)
+ #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
+ 
++#define EXP_CAP_ID_OFFSET				0x70
++
+ struct dra7xx_pcie {
+ 	struct pcie_port	pp;
+ 	void __iomem		*base;		/* DT ti_conf */
  	int			phy_count;	/* DT phy-names count */
  	struct phy		**phy;
- 	int			link_gen;
-+	struct irq_domain	*irq_domain;
++	int			link_gen;
  };
  
  #define to_dra7xx_pcie(x)	container_of((x), struct dra7xx_pcie, pp)
-@@ -142,14 +143,8 @@ static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
- 			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
- 			   ~LEG_EP_INTERRUPTS & ~MSI);
--
--	if (IS_ENABLED(CONFIG_PCI_MSI))
--		dra7xx_pcie_writel(dra7xx,
--				   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI, MSI);
--	else
--		dra7xx_pcie_writel(dra7xx,
--				   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
--				   LEG_EP_INTERRUPTS);
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
-+			   MSI | LEG_EP_INTERRUPTS);
- }
- 
- static void dra7xx_pcie_host_init(struct pcie_port *pp)
-@@ -164,8 +159,7 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
- 	dw_pcie_setup_rc(pp);
- 
- 	dra7xx_pcie_establish_link(dra7xx);
--	if (IS_ENABLED(CONFIG_PCI_MSI))
--		dw_pcie_msi_init(pp);
-+	dw_pcie_msi_init(pp);
- 	dra7xx_pcie_enable_interrupts(dra7xx);
- }
- 
-@@ -190,6 +184,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
- static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
- {
+@@ -96,12 +100,33 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
+ 	struct pcie_port *pp = &dra7xx->pp;
  	struct device *dev = pp->dev;
-+	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
- 	struct device_node *node = dev->of_node;
- 	struct device_node *pcie_intc_node =  of_get_next_child(node, NULL);
+ 	u32 reg;
++	u32 exp_cap_off = EXP_CAP_ID_OFFSET;
  
-@@ -198,9 +193,9 @@ static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
- 		return -ENODEV;
+ 	if (dw_pcie_link_up(pp)) {
+ 		dev_err(dev, "link is already up\n");
+ 		return 0;
  	}
  
--	pp->irq_domain = irq_domain_add_linear(pcie_intc_node, 4,
--					       &intx_domain_ops, pp);
--	if (!pp->irq_domain) {
-+	dra7xx->irq_domain = irq_domain_add_linear(pcie_intc_node, 4,
-+						   &intx_domain_ops, pp);
-+	if (!dra7xx->irq_domain) {
- 		dev_err(dev, "Failed to get a INTx IRQ domain\n");
- 		return -ENODEV;
- 	}
-@@ -224,7 +219,8 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
- 	case INTB:
- 	case INTC:
- 	case INTD:
--		generic_handle_irq(irq_find_mapping(pp->irq_domain, ffs(reg)));
-+		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
-+						    ffs(reg)));
- 		break;
- 	}
++	if (dra7xx->link_gen == 1) {
++		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
++				 4, &reg);
++		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
++			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
++			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
++			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
++					  PCI_EXP_LNKCAP, 4, reg);
++		}
++
++		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
++				 2, &reg);
++		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
++			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
++			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
++			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
++					  PCI_EXP_LNKCTL2, 2, reg);
++		}
++	}
++
+ 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
+ 	reg |= LTSSM_EN;
+ 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+@@ -397,6 +422,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	reg &= ~LTSSM_EN;
+ 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
  
-@@ -310,11 +306,9 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 		return ret;
- 	}
- 
--	if (!IS_ENABLED(CONFIG_PCI_MSI)) {
--		ret = dra7xx_pcie_init_irq_domain(pp);
--		if (ret < 0)
--			return ret;
--	}
-+	ret = dra7xx_pcie_init_irq_domain(pp);
-+	if (ret < 0)
-+		return ret;
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "rc_dbics");
- 	pp->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
++	dra7xx->link_gen = of_pci_get_max_link_speed(np);
++	if (dra7xx->link_gen < 0 || dra7xx->link_gen > 2)
++		dra7xx->link_gen = 2;
++
+ 	ret = dra7xx_add_pcie_port(dra7xx, pdev);
+ 	if (ret < 0)
+ 		goto err_gpio;
 -- 
 1.7.9.5
