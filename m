@@ -1,50 +1,51 @@
-From: Teresa Remmet <t.remmet@phytec.de>
-Subject: Re: net: ti: cpsw-phy-sel: RGMII is not working on AM335x
-Date: Wed, 11 Jan 2017 16:57:35 +0100
-Message-ID: <1484150255.3777.13.camel@phytec.de>
-References: <1484122463.3777.1.camel@phytec.de>
-         <20170111151407.GW22820@lunn.ch>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/5] pinctrl: core: Use delayed work for hogs
+Date: Wed, 11 Jan 2017 08:28:08 -0800
+Message-ID: <20170111162808.GW2630@atomide.com>
+References: <20161227172003.6517-1-tony@atomide.com>
+ <20161227172003.6517-2-tony@atomide.com>
+ <CAMuHMdVLbNXx23-wgLHcvktyHxWf6t75ggU3rM5A-DhtU9hn5w@mail.gmail.com>
+ <20170110153045.GS2630@atomide.com>
+ <20170110191908.GV2630@atomide.com>
+ <CACRpkdaJmEcqMST30NRdtcLpEg5LhiAxOYsNDDUvYEYFjUBiHA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170111151407.GW22820@lunn.ch>
-Sender: netdev-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Alexandru Gagniuc <alex.g@adaptrum.com>, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdaJmEcqMST30NRdtcLpEg5LhiAxOYsNDDUvYEYFjUBiHA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGVsbG8gQW5kcmV3LAoKQW0gTWl0dHdvY2gsIGRlbiAxMS4wMS4yMDE3LCAxNjoxNCArMDEwMCBz
-Y2hyaWViIEFuZHJldyBMdW5uOgo+ID4gCj4gPiBTbyBJIHdvbmRlciB3aGF0IGlzIGNvcnJlY3Qg
-bm93PyBBcyBmb3IgbWUgdGhlIHBhdGNoIG1ha2VzIFJHTUlJCj4gPiB1bnVzYWJsZS4KPiA+IEhh
-cyBhbnlvbmUgYW4gZXhwbGFuYXRpb24/Cj4gSGkgVGVyZXNhCj4gCj4gSW4geW91ciBkZXZpY2Ug
-dHJlZSwgd2hhdCBwaHktbW9kZSBkbyB5b3UgaGF2ZT8KPiAKPiBBbmQgZG9lcyB5b3VyIGhhcmR3
-YXJlIHJlcXVpcmUgYW4gUkdNSUkgZGVsYXkgaW4gb3JkZXIgdGhhdCBpdCB3b3Jrcz8KCm15IGRl
-dmljZSB0cmVlIG5vZGUgZm9yIHRoZSBSR01JSSBsb29rcyBsaWtlIHRoaXM6CgomY3Bzd19lbWFj
-MSB7CsKgwqDCoMKgwqDCoMKgwqBwaHktaGFuZGxlID0gPCZwaHkxPjsKwqDCoMKgwqDCoMKgwqDC
-oHBoeS1tb2RlID0gInJnbWlpIjsKwqDCoMKgwqDCoMKgwqDCoGR1YWxfZW1hY19yZXNfdmxhbiA9
-IDwyPjsKwqDCoMKgwqDCoMKgwqDCoHN0YXR1cyA9ICJva2F5IjsKfTsKCiZkYXZpbmNpX21kaW8g
-ewrCoMKgwqDCoMKgwqDCoMKgcGh5MTogZXRoZXJuZXQtcGh5QDEgewrCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoHJlZyA9IDwyPjsKCsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgLyogUmVnaXN0ZXIgMjYwICgxMDRoKSDigJMgUkdNSUkgQ2xvY2sgYW5kIENvbnRyb2wgUGFk
-IFNrZXcgKi/CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJ4Yy1za2V3LXBzID0gPDE0
-MDA+OwrCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJ4ZHYtc2tldy1wcyA9IDwwPjsK
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB0eGMtc2tldy1wcyA9IDwxNDAwPjsKwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB0eGVuLXNrZXctcHMgPSA8MD47CsKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgLyogUmVnaXN0ZXIgMjYxICgxMDVoKSDigJMgUkdNSUkg
-UlggRGF0YSBQYWQgU2tldyAqLwrCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJ4ZDMt
-c2tldy1wcyA9IDwwPjsKwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByeGQyLXNrZXct
-cHMgPSA8MD47CsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcnhkMS1za2V3LXBzID0g
-PDA+OwrCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJ4ZDAtc2tldy1wcyA9IDwwPjsK
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAvKiBSZWdpc3RlciAyNjIgKDEwNmgpIOKA
-kyBSR01JSSBUWCBEYXRhIFBhZCBTa2V3ICovCsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgdHhkMy1za2V3LXBzID0gPDA+OwrCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHR4
-ZDItc2tldy1wcyA9IDwwPjsKwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB0eGQxLXNr
-ZXctcHMgPSA8MD47CsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgdHhkMC1za2V3LXBz
-ID0gPDA+OwrCoMKgwqDCoMKgwqDCoMKgfTsKfTsKClRoZSBwaHkgd2UgdXNlIGlzIGEgS1NaOTAy
-MS4gQW5kIHllcyB3ZSBhZGQgZGVsYXlzIHRvIHRoZQpwaHksIGFzIHlvdSBjYW4gc2VlLiBXaGVu
-IGxvb2tpbmcgdG8gdGhlIGR0cyBkb2N1bWVudGF0aW9uIEkgcHJvYmFibHkKbmVlZCB0byBzZXQg
-dGhlIHBoeS1tb2RlIHRvICJyZ21paS1pZCIgaW5zdGVhZCwgYXMgdGhlIHBoeSBpcyBwcm92aWRp
-bmcKdGhlIGRlbGF5cy4KSSBtYWtlIGEgcXVpY2sgdGVzdCB3aXRoIHRoYXQgY2hhbmdlIGFuZCBp
-dCBpcyB3b3JraW5nLiBTbyB0aGlzIHNlZW1zCnRvIHNvbHZlIG15IHByb2JsZW0uIFRoYW5rIHlv
-dSBmb3IgdGhlIGhpbnQuCgpSZWdhcmRzLApUZXJlc2EKCj4gCj4gwqDCoMKgwqBBbmRyZXc=
+* Linus Walleij <linus.walleij@linaro.org> [170111 07:34]:
+> On Tue, Jan 10, 2017 at 8:19 PM, Tony Lindgren <tony@atomide.com> wrote:
+> 
+> > Below is an experimental fix to intorduce pinctrl_start() that I've
+> > tested with pinctrl-single. Then we should probably make all pin controller
+> > drivers call pinctrl_start() to properly fix the issue of struct pinctrl_dev
+> > handle not being initialized before driver functions are called.
+> 
+> Hm I guess that could work, but can we keep pinctrl_register() with the old
+> semantics and add a separate pinctrl_register_and_defer()
+> for those who just wanna start it later by a separate call?
+> 
+> Then we don't need any special flags.
+
+OK I'll take a look.
+
+> > Or do you guys have any better ideas?
+> 
+> Not really. So you mean revert the previous patch and apply something
+> like this instead?
+
+Let me first take a look to see if we can fix it by making drivers using
+GENERIC_PINCTRL_GROUPS or GENERIC_PINMUX_FUNCTIONS register with
+pinctrl_register_and_defer(). I'll post a patch for that today.
+
+Then maybe for v4.12 we can attempt to move all pin controller drivers
+to using it so we can fix the problem for good.
+
+Regards,
+
+Tony
