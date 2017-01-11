@@ -1,139 +1,56 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v6] ASoC: omap-mcbsp: Add PM QoS support
- for McBSP to prevent glitches
-Date: Wed, 11 Jan 2017 09:26:47 +0200
-Message-ID: <340575c8-e515-28a9-64db-6d9a93b5158c@ti.com>
-References: <20170111054600.12982-1-matt@ranostay.consulting>
+From: Teresa Remmet <t.remmet@phytec.de>
+Subject: net: ti: cpsw-phy-sel: RGMII is not working on AM335x
+Date: Wed, 11 Jan 2017 09:14:23 +0100
+Message-ID: <1484122463.3777.1.camel@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20170111054600.12982-1-matt@ranostay.consulting>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Matt Ranostay <matt@ranostay.consulting>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Alexandru Gagniuc <alex.g@adaptrum.com>, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/11/2017 07:46 AM, Matt Ranostay wrote:
-> We can get audio errors if hitting deeper idle states on omaps:
-> =
+Hello,
 
-> [alsa.c:230] error: Fatal problem with alsa output, error -5.
-> [audio.c:614] error: Error in writing audio (Input/output error?)!
-> =
+I met a issue with the gmii_sel register on the AM335x when using
+RGMII. The patch,
 
-> This seems to happen with off mode idle enabled as power for the
-> whole SoC may get cut off between filling the McBSP fifo using DMA.
-> While active DMA blocks deeper idle states in hardware, McBSP
-> activity does not seem to do so.
-> =
+commit 74685b08fbb26ff5b8448fabe0941a53269dd33e
+Author: Alex <alex.g@adaptrum.com>
+Date:   Tue Dec 6 10:56:51 2016 -0800
 
-> Basing the QoS latency calculation on the FIFO size, threshold,
-> sample rate, and channels.
-> =
-
-> Based on the original patch by Tony Lindgren
-> Link: https://patchwork.kernel.org/patch/9305867/
-> =
-
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
-> ---
-> hanges from v1:
-> * add calculations for latency per number of FIFO locations
-> =
-
-> Changes from v2:
-> * add missing mcbsp.h header change
-> =
-
-> Changes from v3:
-> * base the latency calculations on threshold, buffer size, sample
->   rate, and channels
-> =
-
-> Changes from v4:
-> * using Peter Ujfalusi's suggestions for restoring a higher latency on
->   audio stream completion, or if not applicable remove the QoS request
-> =
-
-> Changes from v5:
-> * clean up latency checking logic
-> * move logic to .prepare and .shutdown to avoid functions that can sleep
-> =
-
->  sound/soc/omap/mcbsp.c      |  4 ++++
->  sound/soc/omap/mcbsp.h      |  3 +++
->  sound/soc/omap/omap-mcbsp.c | 44 +++++++++++++++++++++++++++++++++++++++=
-++++-
->  3 files changed, 50 insertions(+), 1 deletion(-)
-> =
-
-> diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-> index 06fec5699cc8..e1c3d21dc5ed 100644
-> --- a/sound/soc/omap/mcbsp.c
-> +++ b/sound/soc/omap/mcbsp.c
-> @@ -25,6 +25,7 @@
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pm_qos.h>
->  =
-
->  #include <linux/platform_data/asoc-ti-mcbsp.h>
->  =
-
-> @@ -1098,6 +1099,9 @@ int omap_mcbsp_init(struct platform_device *pdev)
->  =
-
->  void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp)
->  {
-> +	if (pm_qos_request_active(&mcbsp->pm_qos_req))
-> +		pm_qos_remove_request(&mcbsp->pm_qos_req);
-> +
-
-It might be better to do this in asoc_mcbsp_remove() in omap-mcbsp.c so
-the pm_qos stuff is handled within one file.
-
->  	if (mcbsp->pdata->buffer_size)
->  		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
->  =
-
-> diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
-> index 61e93b1c185d..46ae1269a698 100644
-> --- a/sound/soc/omap/mcbsp.h
-> +++ b/sound/soc/omap/mcbsp.h
-> @@ -323,8 +323,11 @@ struct omap_mcbsp {
->  =
-
->  	unsigned int fmt;
->  	unsigned int in_freq;
-> +	unsigned int latency[2];
->  	int clk_div;
->  	int wlen;
-> +
-> +	struct pm_qos_request pm_qos_req;
->  };
->  =
-
->  void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-> index d018e966e533..3814a234ef61 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-
-#include <linux/pm_qos.h> ?
+    drivers: net: cpsw-phy-sel: Clear RGMII_IDMODE on "rgmii" links
+    
+    Support for setting the RGMII_IDMODE bit was added in the commit
+    referenced below. However, that commit did not add the symmetrical
+    clearing of the bit by way of setting it in "mask". Add it here.
+    
+    Note that the documentation marks clearing this bit as "reserved",
+    however, according to TI, support for delaying the clock does exist in
+    the MAC, although it is not officially supported.
+    We tested this on a board with an RGMII to RGMII link that will not
+    work unless this bit is cleared.
+    
+    Fixes: 0fb26c3063ea ("drivers: net: cpsw-phy-sel: add support to configure rgmii int
+    Signed-off-by: Alexandru Gagniuc <alex.g@adaptrum.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
 
--- =
+is suppose to fix the RGMII mode with setting the RGMII0/1_ID_MODE
+bit to 0: "Reserved". I use RMII1 and RGMII2 on our custom 
+AM335x board. The RMII1 is still working with the patch but
+I do not get any data transfered on the RGMII2. When I revert
+the patch, everything works again.
+I tested this on 4.10-rc3.
 
-P=E9ter
+The AM335x TRM Rev. O notes on Chapter 14.3.6.4:
+"The RGMII0/1_ID_MODE bit value in the GMII_SEL register should
+only be set to 1 for 'no internal delay'.
+The device does not support internal delay mode for RGMII."
+
+So I wonder what is correct now? As for me the patch makes RGMII unusable.
+Has anyone an explanation?
+
+Regards,
+Teresa
