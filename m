@@ -1,103 +1,273 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 3/5] PCI: dwc: dra7xx: Add support to force RC to work in GEN1 mode
-Date: Wed, 11 Jan 2017 17:36:53 +0530
-Message-ID: <1484136415-20798-4-git-send-email-kishon@ti.com>
-References: <1484136415-20798-1-git-send-email-kishon@ti.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] usb: musb: Add support for optional VBUS irq to dsps
+ glue layer
+Date: Wed, 11 Jan 2017 07:41:51 -0600
+Message-ID: <20170111134151.GA18730@uda0271908>
+References: <20170105191259.28723-1-tony@atomide.com>
+ <20170110195317.GB2479@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1484136415-20798-1-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170110195317.GB2479@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-PCIe in AM57x/DRA7x devices is by default
-configured to work in GEN2 mode.  However there
-may be situations when working in GEN1 mode is
-desired. One example is limitation i925 (PCIe GEN2
-mode not supported at junction temperatures < 0C).
+On Tue, Jan 10, 2017 at 01:53:53PM -0600, Bin Liu wrote:
+> On Thu, Jan 05, 2017 at 11:12:59AM -0800, Tony Lindgren wrote:
+> > We can now configure the PMIC interrupt to provide us VBUS
+> > events. In that case we don't need to constantly poll the
+> > status and can make it optional. This is only wired up
+> > for the mini-B interface on beaglebone.
+> 
+> Is it possible someone designed a board which hooks up the vbus of a
+> dual-role/otg port to PMIC? The port wouldn't be able to detect the
+> attach since no polling anymore.
 
-Add support to force Root Complex to work in GEN1
-mode if so desired, but don't force GEN1 mode on
-any board just yet.
+I haven't seen any am335xx design other than the Beaglebone, that routes
+VBUS to PMIC, and I guess the reason that Beaglebone did this way is
+only for supporting bus-powered.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/dwc/pci-dra7xx.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+> 
+> > 
+> > Note that eventually we should get also the connect status
+> > for the host interface when the am335x internal PM coprocessor
+> > provides us with an IRQ chip. For now, we still need to poll
+> > for the host mode status.
+> > 
+> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > ---
+> >  drivers/usb/musb/musb_dsps.c | 114 ++++++++++++++++++++++++++++++++++---------
+> >  1 file changed, 90 insertions(+), 24 deletions(-)
+> > 
+> > diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+> > --- a/drivers/usb/musb/musb_dsps.c
+> > +++ b/drivers/usb/musb/musb_dsps.c
+> > @@ -118,6 +118,7 @@ struct dsps_glue {
+> >  	struct device *dev;
+> >  	struct platform_device *musb;	/* child musb pdev */
+> >  	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
+> > +	int vbus_irq;			/* optional vbus irq */
+> >  	struct timer_list timer;	/* otg_workaround timer */
+> >  	unsigned long last_timer;    /* last timer data for each instance */
+> >  	bool sw_babble_enabled;
+> > @@ -145,6 +146,29 @@ static const struct debugfs_reg32 dsps_musb_regs[] = {
+> >  	{ "mode",		0xe8 },
+> >  };
+> >  
+> > +static void dsps_mod_timer(struct dsps_glue *glue, int wait_ms)
+> > +{
+> > +	int wait;
+> > +
+> > +	if (wait_ms < 0)
+> > +		wait = msecs_to_jiffies(glue->wrp->poll_timeout);
+> > +	else
+> > +		wait = msecs_to_jiffies(wait_ms);
+> > +
+> > +	mod_timer(&glue->timer, jiffies + wait);
+> > +}
+> > +
+> > +/*
+> > + * If no vbus irq from the PMIC is configured, we need to poll VBUS status.
+> > + */
+> > +static void dsps_mod_timer_optional(struct dsps_glue *glue)
+> > +{
+> > +	if (glue->vbus_irq)
+> > +		return;
+> > +
+> > +	dsps_mod_timer(glue, -1);
+> > +}
+> > +
+> >  /**
+> >   * dsps_musb_enable - enable interrupts
+> >   */
+> > @@ -167,8 +191,7 @@ static void dsps_musb_enable(struct musb *musb)
+> >  	/* start polling for ID change in dual-role idle mode */
+> >  	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+> >  			musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+> > -		mod_timer(&glue->timer, jiffies +
+> > -				msecs_to_jiffies(wrp->poll_timeout));
+> > +		dsps_mod_timer(glue, -1);
+> >  }
+> >  
+> >  /**
+> > @@ -199,6 +222,9 @@ static int dsps_check_status(struct musb *musb, void *unused)
+> >  	u8 devctl;
+> >  	int skip_session = 0;
+> >  
+> > +	if (glue->vbus_irq)
+> > +		del_timer(&glue->timer);
+> > +
+> >  	/*
+> >  	 * We poll because DSPS IP's won't expose several OTG-critical
+> >  	 * status change events (from the transceiver) otherwise.
+> > @@ -209,8 +235,7 @@ static int dsps_check_status(struct musb *musb, void *unused)
+> >  
+> >  	switch (musb->xceiv->otg->state) {
+> >  	case OTG_STATE_A_WAIT_VRISE:
+> > -		mod_timer(&glue->timer, jiffies +
+> > -				msecs_to_jiffies(wrp->poll_timeout));
+> > +		dsps_mod_timer_optional(glue);
+> >  		break;
+> >  	case OTG_STATE_A_WAIT_BCON:
+> >  		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+> > @@ -219,17 +244,18 @@ static int dsps_check_status(struct musb *musb, void *unused)
+> >  
+> >  	case OTG_STATE_A_IDLE:
+> >  	case OTG_STATE_B_IDLE:
+> > -		if (devctl & MUSB_DEVCTL_BDEVICE) {
+> > -			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+> > -			MUSB_DEV_MODE(musb);
+> > -		} else {
+> > -			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+> > -			MUSB_HST_MODE(musb);
+> > +		if (!glue->vbus_irq) {
+> > +			if (devctl & MUSB_DEVCTL_BDEVICE) {
+> > +				musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+> > +				MUSB_DEV_MODE(musb);
+> > +			} else {
+> > +				musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+> > +				MUSB_HST_MODE(musb);
+> > +			}
+> > +			if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
+> > +				musb_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
+> 
+> Line is more than 80 chars long.
+> 
+> >  		}
+> > -		if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
+> > -			musb_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
+> > -		mod_timer(&glue->timer, jiffies +
+> > -				msecs_to_jiffies(wrp->poll_timeout));
+> > +		dsps_mod_timer_optional(glue);
+> >  		break;
+> >  	case OTG_STATE_A_WAIT_VFALL:
+> >  		musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+> > @@ -321,15 +347,13 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+> >  			 */
+> >  			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
+> >  			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VFALL;
+> > -			mod_timer(&glue->timer, jiffies +
+> > -					msecs_to_jiffies(wrp->poll_timeout));
+> > +			dsps_mod_timer_optional(glue);
+> >  			WARNING("VBUS error workaround (delay coming)\n");
+> >  		} else if (drvvbus) {
+> >  			MUSB_HST_MODE(musb);
+> >  			musb->xceiv->otg->default_a = 1;
+> >  			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+> > -			mod_timer(&glue->timer, jiffies +
+> > -				  msecs_to_jiffies(wrp->poll_timeout));
+> > +			dsps_mod_timer_optional(glue);
+> >  		} else {
+> >  			musb->is_active = 0;
+> >  			MUSB_DEV_MODE(musb);
+> > @@ -353,8 +377,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+> >  	switch (musb->xceiv->otg->state) {
+> >  	case OTG_STATE_B_IDLE:
+> >  	case OTG_STATE_A_WAIT_BCON:
+> > -		mod_timer(&glue->timer, jiffies +
+> > -				msecs_to_jiffies(wrp->poll_timeout));
+> > +		dsps_mod_timer_optional(glue);
+> >  		break;
+> >  	default:
+> >  		break;
+> > @@ -458,8 +481,7 @@ static int dsps_musb_init(struct musb *musb)
+> >  		musb_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
+> >  	}
+> >  
+> > -	mod_timer(&glue->timer, jiffies +
+> > -		  msecs_to_jiffies(glue->wrp->poll_timeout));
+> > +	dsps_mod_timer(glue, -1);
+> >  
+> >  	return dsps_musb_dbg_init(musb, glue);
+> >  }
+> > @@ -753,6 +775,47 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
+> >  	return ret;
+> >  }
+> >  
+> > +static irqreturn_t dsps_vbus_threaded_irq(int irq, void *priv)
+> > +{
+> > +	struct dsps_glue *glue = priv;
+> > +	struct musb *musb = platform_get_drvdata(glue->musb);
+> > +
+> > +	if (!musb)
+> > +		return IRQ_NONE;
+> > +
+> > +	dev_dbg(glue->dev, "VBUS interrupt\n");
+> > +	dsps_mod_timer(glue, 0);
+> > +
+> > +	return IRQ_HANDLED;
+> > +}
+> > +
+> > +static int dsps_setup_optional_vbus_irq(struct platform_device *pdev,
+> > +					struct dsps_glue *glue)
+> > +{
+> > +	int error;
+> > +
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index f6d0c63..587b18c 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -17,6 +17,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/of_gpio.h>
-+#include <linux/of_pci.h>
- #include <linux/pci.h>
- #include <linux/phy/phy.h>
- #include <linux/platform_device.h>
-@@ -63,11 +64,14 @@
- #define	LINK_UP						BIT(16)
- #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
- 
-+#define EXP_CAP_ID_OFFSET				0x70
-+
- struct dra7xx_pcie {
- 	struct pcie_port	pp;
- 	void __iomem		*base;		/* DT ti_conf */
- 	int			phy_count;	/* DT phy-names count */
- 	struct phy		**phy;
-+	int			link_gen;
- };
- 
- #define to_dra7xx_pcie(x)	container_of((x), struct dra7xx_pcie, pp)
-@@ -96,12 +100,33 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
- 	struct pcie_port *pp = &dra7xx->pp;
- 	struct device *dev = pp->dev;
- 	u32 reg;
-+	u32 exp_cap_off = EXP_CAP_ID_OFFSET;
- 
- 	if (dw_pcie_link_up(pp)) {
- 		dev_err(dev, "link is already up\n");
- 		return 0;
- 	}
- 
-+	if (dra7xx->link_gen == 1) {
-+		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
-+				 4, &reg);
-+		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
-+			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
-+			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
-+			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
-+					  PCI_EXP_LNKCAP, 4, reg);
-+		}
-+
-+		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
-+				 2, &reg);
-+		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
-+			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
-+			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
-+			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
-+					  PCI_EXP_LNKCTL2, 2, reg);
-+		}
-+	}
-+
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
- 	reg |= LTSSM_EN;
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
-@@ -397,6 +422,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	reg &= ~LTSSM_EN;
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
- 
-+	dra7xx->link_gen = of_pci_get_max_link_speed(np);
-+	if (dra7xx->link_gen < 0 || dra7xx->link_gen > 2)
-+		dra7xx->link_gen = 2;
-+
- 	ret = dra7xx_add_pcie_port(dra7xx, pdev);
- 	if (ret < 0)
- 		goto err_gpio;
--- 
-1.7.9.5
+How about check dr_mode at here, and simply return if dr_mode is not
+"peripheral". So this ensures this VBUS irq is only used for device
+mode, it clear my concern above.
+
+Regards,
+-Bin.
+
+> > +	glue->vbus_irq = platform_get_irq_byname(pdev, "vbus");
+> > +	if (glue->vbus_irq == -EPROBE_DEFER)
+> > +		return glue->vbus_irq;
+> 
+> It would be more obvious if return -EPROBE_DEFER directly.
+> 
+> Regards,
+> -Bin.
+> 
+> > +
+> > +	if (glue->vbus_irq <= 0) {
+> > +		glue->vbus_irq = 0;
+> > +		return 0;
+> > +	}
+> > +
+> > +	error = devm_request_threaded_irq(glue->dev, glue->vbus_irq,
+> > +					  NULL, dsps_vbus_threaded_irq,
+> > +					  IRQF_ONESHOT,
+> > +					  "vbus", glue);
+> > +	if (error) {
+> > +		glue->vbus_irq = 0;
+> > +		return error;
+> > +	}
+> > +	dev_dbg(glue->dev, "VBUS irq %i configured\n", glue->vbus_irq);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >  static int dsps_probe(struct platform_device *pdev)
+> >  {
+> >  	const struct of_device_id *match;
+> > @@ -781,6 +844,10 @@ static int dsps_probe(struct platform_device *pdev)
+> >  	glue->dev = &pdev->dev;
+> >  	glue->wrp = wrp;
+> >  
+> > +	ret = dsps_setup_optional_vbus_irq(pdev, glue);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> >  	platform_set_drvdata(pdev, glue);
+> >  	pm_runtime_enable(&pdev->dev);
+> >  	ret = dsps_create_musb_pdev(glue, pdev);
+> > @@ -891,8 +958,7 @@ static int dsps_resume(struct device *dev)
+> >  	musb_writel(mbase, wrp->rx_mode, glue->context.rx_mode);
+> >  	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+> >  	    musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+> > -		mod_timer(&glue->timer, jiffies +
+> > -				msecs_to_jiffies(wrp->poll_timeout));
+> > +		dsps_mod_timer(glue, -1);
+> >  
+> >  	return 0;
+> >  }
+> > -- 
+> > 2.11.0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
