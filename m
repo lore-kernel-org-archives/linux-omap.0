@@ -1,159 +1,195 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH 3/4] net: ethernet: ti: cpsw: don't duplicate ndev_running
-Date: Wed, 11 Jan 2017 03:56:20 +0200
-Message-ID: <20170111015619.GA20617@khorivan>
-References: <1483893663-15673-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <1483893663-15673-4-git-send-email-ivan.khoronzhuk@linaro.org>
- <c6dfedc3-d346-b9a4-f398-96ac7e57d0b8@ti.com>
+From: Matt Ranostay <matt@ranostay.consulting>
+Subject: [PATCH v6] ASoC: omap-mcbsp: Add PM QoS support for
+	McBSP to prevent glitches
+Date: Tue, 10 Jan 2017 21:46:00 -0800
+Message-ID: <20170111054600.12982-1-matt@ranostay.consulting>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <c6dfedc3-d346-b9a4-f398-96ac7e57d0b8@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: netdev@vger.kernel.org, mugunthanvnm@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Matt Ranostay <matt@ranostay.consulting>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 09, 2017 at 11:25:38AM -0600, Grygorii Strashko wrote:
-> 
-> 
-> On 01/08/2017 10:41 AM, Ivan Khoronzhuk wrote:
-> > No need to create additional vars to identify if interface is running.
-> > So simplify code by removing redundant var and checking usage counter
-> > instead.
-> > 
-> > Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> > ---
-> >  drivers/net/ethernet/ti/cpsw.c | 14 ++++----------
-> >  1 file changed, 4 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> > index 40d7fc9..daae87f 100644
-> > --- a/drivers/net/ethernet/ti/cpsw.c
-> > +++ b/drivers/net/ethernet/ti/cpsw.c
-> > @@ -357,7 +357,6 @@ struct cpsw_slave {
-> >  	struct phy_device		*phy;
-> >  	struct net_device		*ndev;
-> >  	u32				port_vlan;
-> > -	u32				open_stat;
-> >  };
-> >  
-> >  static inline u32 slave_read(struct cpsw_slave *slave, u32 offset)
-> > @@ -1241,7 +1240,7 @@ static int cpsw_common_res_usage_state(struct cpsw_common *cpsw)
-> >  	u32 usage_count = 0;
-> >  
-> >  	for (i = 0; i < cpsw->data.slaves; i++)
-> > -		if (cpsw->slaves[i].open_stat)
-> > +		if (netif_running(cpsw->slaves[i].ndev))
-> >  			usage_count++;
-> 
-> Not sure this will work as you expected, but may be I've missed smth :(
-I've changed conditions, will work.
+We can get audio errors if hitting deeper idle states on omaps:
 
-> 
-> code in static int __dev_open(struct net_device *dev)
-> ..
-> 	set_bit(__LINK_STATE_START, &dev->state);
-> 
-> 	if (ops->ndo_validate_addr)
-> 		ret = ops->ndo_validate_addr(dev);
-> 
-> 	if (!ret && ops->ndo_open)
-> 		ret = ops->ndo_open(dev);
-> 
-> 	netpoll_poll_enable(dev);
-> 
-> 	if (ret)
-> 		clear_bit(__LINK_STATE_START, &dev->state);
-> ..
-> 
-> so, netif_running(ndev) will start returning true before calling ops->ndo_open(dev);
-Yes, It's done bearing it in mind of course.
+[alsa.c:230] error: Fatal problem with alsa output, error -5.
+[audio.c:614] error: Error in writing audio (Input/output error?)!
 
-> 
-> >  
-> >  	return usage_count;
-> > @@ -1502,7 +1501,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
-> >  		 CPSW_RTL_VERSION(reg));
-> >  
-> >  	/* initialize host and slave ports */
-> > -	if (!cpsw_common_res_usage_state(cpsw))
-> > +	if (cpsw_common_res_usage_state(cpsw) < 2)
-> 
-> Ah. You've changed the condition here.
-> 
-> I think it might be reasonable to hide this inside cpsw_common_res_usage_state()
-> and seems it can be renamed to smth like cpsw_is_running().
-It probably needs to be renamed to smth a little different,
-like cpsw_get_usage_count ...or cpsw_get_open_ndev_count
+This seems to happen with off mode idle enabled as power for the
+whole SoC may get cut off between filling the McBSP fifo using DMA.
+While active DMA blocks deeper idle states in hardware, McBSP
+activity does not seem to do so.
 
-> 
-> 
-> >  		cpsw_init_host_port(priv);
-> >  	for_each_slave(priv, cpsw_slave_open, priv);
-> >  
-> > @@ -1513,7 +1512,7 @@ static int cpsw_ndo_open(struct net_device *ndev)
-> >  		cpsw_ale_add_vlan(cpsw->ale, cpsw->data.default_vlan,
-> >  				  ALE_ALL_PORTS, ALE_ALL_PORTS, 0, 0);
-> >  
-> > -	if (!cpsw_common_res_usage_state(cpsw)) {
-> > +	if (cpsw_common_res_usage_state(cpsw) < 2) {
-> >  		/* disable priority elevation */
-> >  		__raw_writel(0, &cpsw->regs->ptype);
-> >  
-> > @@ -1556,9 +1555,6 @@ static int cpsw_ndo_open(struct net_device *ndev)
-> >  	cpdma_ctlr_start(cpsw->dma);
-> >  	cpsw_intr_enable(cpsw);
-> >  
-> > -	if (cpsw->data.dual_emac)
-> > -		cpsw->slaves[priv->emac_port].open_stat = true;
-> > -
-> >  	return 0;
-> >  
-> >  err_cleanup:
-> > @@ -1578,7 +1574,7 @@ static int cpsw_ndo_stop(struct net_device *ndev)
-> >  	netif_tx_stop_all_queues(priv->ndev);
-> >  	netif_carrier_off(priv->ndev);
-> >  
-> > -	if (cpsw_common_res_usage_state(cpsw) <= 1) {
-> > +	if (!cpsw_common_res_usage_state(cpsw)) {
-> 
-> and here __LINK_STATE_START will be cleared before calling ops->ndo_stop(dev);
-Actually it's changed because of it.
+Basing the QoS latency calculation on the FIFO size, threshold,
+sample rate, and channels.
 
-> So, from one side netif_running(ndev) usage will simplify cpsw_common_res_usage_state() internals,
-> but from another side - it will make places where it's used even more entangled :( as for me,
-> because when cpsw_common_res_usage_state() will return 1 in cpsw_ndo_open() it will mean
-> "no interfaces is really running yet", but the same value 1 in cpsw_ndo_stop()
-why not? no interfaces running, except the one excuting ndo_open now.
-It's more clear then duplicating it and using two different ways in
-different places for identifing running devices. Current way more
-close to some testing code, not final version. Just to be consistent
-better to change it.
+Based on the original patch by Tony Lindgren
+Link: https://patchwork.kernel.org/patch/9305867/
 
-Yes, it returns different results when it's called from ndo_close and
-ndo_open. Maybe name for the function is not very close to an action
-it's doing, it declares more intention, and even not for every case.
-What about to rename it to some cpsw_get_open_ndev_count and add
-comments in several places explaining what it actually do.
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
+---
+hanges from v1:
+* add calculations for latency per number of FIFO locations
 
-> will mean "there are still one is running".
-> 
-> >  		napi_disable(&cpsw->napi_rx);
-> >  		napi_disable(&cpsw->napi_tx);
-> >  		cpts_unregister(cpsw->cpts);
-> > @@ -1592,8 +1588,6 @@ static int cpsw_ndo_stop(struct net_device *ndev)
-> >  		cpsw_split_res(ndev);
-> >  
-> >  	pm_runtime_put_sync(cpsw->dev);
-> > -	if (cpsw->data.dual_emac)
-> > -		cpsw->slaves[priv->emac_port].open_stat = false;
-> >  	return 0;
-> >  }
-> >  
-> > 
-> 
-> -- 
-> regards,
-> -grygorii
+Changes from v2:
+* add missing mcbsp.h header change
+
+Changes from v3:
+* base the latency calculations on threshold, buffer size, sample
+  rate, and channels
+
+Changes from v4:
+* using Peter Ujfalusi's suggestions for restoring a higher latency on
+  audio stream completion, or if not applicable remove the QoS request
+
+Changes from v5:
+* clean up latency checking logic
+* move logic to .prepare and .shutdown to avoid functions that can sleep
+
+ sound/soc/omap/mcbsp.c      |  4 ++++
+ sound/soc/omap/mcbsp.h      |  3 +++
+ sound/soc/omap/omap-mcbsp.c | 44 +++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 50 insertions(+), 1 deletion(-)
+
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 06fec5699cc8..e1c3d21dc5ed 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -25,6 +25,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_qos.h>
+ 
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ 
+@@ -1098,6 +1099,9 @@ int omap_mcbsp_init(struct platform_device *pdev)
+ 
+ void omap_mcbsp_cleanup(struct omap_mcbsp *mcbsp)
+ {
++	if (pm_qos_request_active(&mcbsp->pm_qos_req))
++		pm_qos_remove_request(&mcbsp->pm_qos_req);
++
+ 	if (mcbsp->pdata->buffer_size)
+ 		sysfs_remove_group(&mcbsp->dev->kobj, &additional_attr_group);
+ 
+diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
+index 61e93b1c185d..46ae1269a698 100644
+--- a/sound/soc/omap/mcbsp.h
++++ b/sound/soc/omap/mcbsp.h
+@@ -323,8 +323,11 @@ struct omap_mcbsp {
+ 
+ 	unsigned int fmt;
+ 	unsigned int in_freq;
++	unsigned int latency[2];
+ 	int clk_div;
+ 	int wlen;
++
++	struct pm_qos_request pm_qos_req;
+ };
+ 
+ void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index d018e966e533..3814a234ef61 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -157,6 +157,16 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_substream *substream,
+ 				    struct snd_soc_dai *cpu_dai)
+ {
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
++
++	mcbsp->latency[stream1] = 0;
++	if (mcbsp->latency[stream2])
++		pm_qos_update_request(&mcbsp->pm_qos_req,
++				      mcbsp->latency[stream2]);
++	else
++		pm_qos_remove_request(&mcbsp->pm_qos_req);
+ 
+ 	if (!cpu_dai->active) {
+ 		omap_mcbsp_free(mcbsp);
+@@ -164,6 +174,28 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_substream *substream,
+ 	}
+ }
+ 
++static int omap_mcbsp_dai_prepare(struct snd_pcm_substream *substream,
++				  struct snd_soc_dai *cpu_dai)
++{
++	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
++	struct pm_qos_request *pm_qos_req = &mcbsp->pm_qos_req;
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
++	int latency = mcbsp->latency[stream2];
++
++	/* Prevent omap hardware from hitting off between FIFO fills */
++	if (!latency || mcbsp->latency[stream1] < latency)
++		latency = mcbsp->latency[stream1];
++
++	if (pm_qos_request_active(pm_qos_req))
++		pm_qos_update_request(pm_qos_req, latency);
++	else if (latency)
++		pm_qos_add_request(pm_qos_req, PM_QOS_CPU_DMA_LATENCY, latency);
++
++	return 0;
++}
++
+ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
+ 				  struct snd_soc_dai *cpu_dai)
+ {
+@@ -226,6 +258,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	int wlen, channels, wpf;
+ 	int pkt_size = 0;
+ 	unsigned int format, div, framesize, master;
++	unsigned int buffer_size = mcbsp->pdata->buffer_size;
+ 
+ 	dma_data = snd_soc_dai_get_dma_data(cpu_dai, substream);
+ 	channels = params_channels(params);
+@@ -240,7 +273,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	if (mcbsp->pdata->buffer_size) {
++	if (buffer_size) {
++		int latency;
++
+ 		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
+ 			int period_words, max_thrsh;
+ 			int divider = 0;
+@@ -271,6 +306,12 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 			/* Use packet mode for non mono streams */
+ 			pkt_size = channels;
+ 		}
++
++		latency = ((((buffer_size - pkt_size) / channels) * 1000)
++				 / (params->rate_num / params->rate_den));
++
++		mcbsp->latency[substream->stream] = latency;
++
+ 		omap_mcbsp_set_threshold(substream, pkt_size);
+ 	}
+ 
+@@ -554,6 +595,7 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
+ static const struct snd_soc_dai_ops mcbsp_dai_ops = {
+ 	.startup	= omap_mcbsp_dai_startup,
+ 	.shutdown	= omap_mcbsp_dai_shutdown,
++	.prepare	= omap_mcbsp_dai_prepare,
+ 	.trigger	= omap_mcbsp_dai_trigger,
+ 	.delay		= omap_mcbsp_dai_delay,
+ 	.hw_params	= omap_mcbsp_dai_hw_params,
+-- 
+2.10.2
