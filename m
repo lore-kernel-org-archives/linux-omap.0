@@ -1,45 +1,44 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] ARM: dts: da850: Add the cppi41 dma node
-Date: Wed, 11 Jan 2017 15:19:42 +0530
-Message-ID: <38cb3979-0399-b5d3-890a-5c33cb097c3d@ti.com>
-References: <20170109162449.5012-1-abailon@baylibre.com>
- <20170109162449.5012-2-abailon@baylibre.com>
- <811adb6b-00e4-bbc4-d6f5-7bf3ba85ab63@cogentembedded.com>
- <885f6118-16e8-2386-3016-6056d3259ad9@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <885f6118-16e8-2386-3016-6056d3259ad9-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, david-nq/r/kbU++upp/zk7JDF2g@public.gmane.org
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: [PATCH v2 08/12] mmc: omap: Don't use mmc_card_present() when validating for inserted card
+Date: Wed, 11 Jan 2017 12:51:14 +0100
+Message-ID: <1484135478-2077-9-git-send-email-ulf.hansson@linaro.org>
+References: <1484135478-2077-1-git-send-email-ulf.hansson@linaro.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1484135478-2077-1-git-send-email-ulf.hansson@linaro.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Jaehoon Chung <jh80.chung@samsung.com>, Adrian Hunter <adrian.hunter@intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 10 January 2017 07:15 PM, Alexandre Bailon wrote:
-> On 01/09/2017 07:26 PM, Sergei Shtylyov wrote:
+The mmc_card_present() function helps the mmc core to track an internal
+state of the card device. More importantly, it's not intended to be used by
+mmc host drivers to check for an inserted card. Therefore, let's stop using
+it and instead rely on checking for a valid pointer to a struct mmc_card,
+as it should be good enough.
 
->>> +                0x201000 0x1000
->>> +                0x202000 0x1000
->>> +                0x204000 0x4000>;
->>> +            reg-names = "glue", "controller",
->>> +                    "scheduler", "queuemgr";
->>> +            interrupts = <58>;
->>> +            interrupt-names = "glue";
->>> +            #dma-cells = <2>;
->>> +            #dma-channels = <4>;
->>> +            #dma-requests = <256>;
->>> +            status = "disabled";
->>
->>    Why disabled? It doesn't use any external pins...
+Cc: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/mmc/host/omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Will fix it.
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index be3c49f..bd49f34 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -893,7 +893,7 @@ static void mmc_omap_cover_handler(unsigned long param)
+ 	 * If no card is inserted, we postpone polling until
+ 	 * the cover has been closed.
+ 	 */
+-	if (slot->mmc->card == NULL || !mmc_card_present(slot->mmc->card))
++	if (slot->mmc->card == NULL)
+ 		return;
+ 
+ 	mod_timer(&slot->cover_timer,
+-- 
+1.9.1
 
-Please keep it disabled. See the other thread on this.
-
-Thanks,
-Sekhar
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
