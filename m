@@ -1,56 +1,87 @@
-From: Teresa Remmet <t.remmet@phytec.de>
-Subject: net: ti: cpsw-phy-sel: RGMII is not working on AM335x
-Date: Wed, 11 Jan 2017 09:14:23 +0100
-Message-ID: <1484122463.3777.1.camel@phytec.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Alexandru Gagniuc <alex.g@adaptrum.com>, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org
+From: Matt Ranostay <matt@ranostay.consulting>
+Subject: Re: [PATCH v6] ASoC: omap-mcbsp: Add PM QoS support
+	for McBSP to prevent glitches
+Date: Wed, 11 Jan 2017 00:32:30 -0800
+Message-ID: <F30E56A9-992F-4E5B-9DAD-ACF30C29DD9B@ranostay.consulting>
+References: <20170111054600.12982-1-matt@ranostay.consulting>
+ <340575c8-e515-28a9-64db-6d9a93b5158c@ti.com>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <340575c8-e515-28a9-64db-6d9a93b5158c@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
-
-I met a issue with the gmii_sel register on the AM335x when using
-RGMII. The patch,
-
-commit 74685b08fbb26ff5b8448fabe0941a53269dd33e
-Author: Alex <alex.g@adaptrum.com>
-Date:   Tue Dec 6 10:56:51 2016 -0800
-
-    drivers: net: cpsw-phy-sel: Clear RGMII_IDMODE on "rgmii" links
-    
-    Support for setting the RGMII_IDMODE bit was added in the commit
-    referenced below. However, that commit did not add the symmetrical
-    clearing of the bit by way of setting it in "mask". Add it here.
-    
-    Note that the documentation marks clearing this bit as "reserved",
-    however, according to TI, support for delaying the clock does exist in
-    the MAC, although it is not officially supported.
-    We tested this on a board with an RGMII to RGMII link that will not
-    work unless this bit is cleared.
-    
-    Fixes: 0fb26c3063ea ("drivers: net: cpsw-phy-sel: add support to configure rgmii int
-    Signed-off-by: Alexandru Gagniuc <alex.g@adaptrum.com>
-    Signed-off-by: David S. Miller <davem@davemloft.net>
-
-
-is suppose to fix the RGMII mode with setting the RGMII0/1_ID_MODE
-bit to 0: "Reserved". I use RMII1 and RGMII2 on our custom 
-AM335x board. The RMII1 is still working with the patch but
-I do not get any data transfered on the RGMII2. When I revert
-the patch, everything works again.
-I tested this on 4.10-rc3.
-
-The AM335x TRM Rev. O notes on Chapter 14.3.6.4:
-"The RGMII0/1_ID_MODE bit value in the GMII_SEL register should
-only be set to 1 for 'no internal delay'.
-The device does not support internal delay mode for RGMII."
-
-So I wonder what is correct now? As for me the patch makes RGMII unusable.
-Has anyone an explanation?
-
-Regards,
-Teresa
+Cgo+IE9uIEphbiAxMCwgMjAxNywgYXQgMjM6MjYsIFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZh
+bHVzaUB0aS5jb20+IHdyb3RlOgo+IAo+PiBPbiAwMS8xMS8yMDE3IDA3OjQ2IEFNLCBNYXR0IFJh
+bm9zdGF5IHdyb3RlOgo+PiBXZSBjYW4gZ2V0IGF1ZGlvIGVycm9ycyBpZiBoaXR0aW5nIGRlZXBl
+ciBpZGxlIHN0YXRlcyBvbiBvbWFwczoKPj4gCj4+IFthbHNhLmM6MjMwXSBlcnJvcjogRmF0YWwg
+cHJvYmxlbSB3aXRoIGFsc2Egb3V0cHV0LCBlcnJvciAtNS4KPj4gW2F1ZGlvLmM6NjE0XSBlcnJv
+cjogRXJyb3IgaW4gd3JpdGluZyBhdWRpbyAoSW5wdXQvb3V0cHV0IGVycm9yPykhCj4+IAo+PiBU
+aGlzIHNlZW1zIHRvIGhhcHBlbiB3aXRoIG9mZiBtb2RlIGlkbGUgZW5hYmxlZCBhcyBwb3dlciBm
+b3IgdGhlCj4+IHdob2xlIFNvQyBtYXkgZ2V0IGN1dCBvZmYgYmV0d2VlbiBmaWxsaW5nIHRoZSBN
+Y0JTUCBmaWZvIHVzaW5nIERNQS4KPj4gV2hpbGUgYWN0aXZlIERNQSBibG9ja3MgZGVlcGVyIGlk
+bGUgc3RhdGVzIGluIGhhcmR3YXJlLCBNY0JTUAo+PiBhY3Rpdml0eSBkb2VzIG5vdCBzZWVtIHRv
+IGRvIHNvLgo+PiAKPj4gQmFzaW5nIHRoZSBRb1MgbGF0ZW5jeSBjYWxjdWxhdGlvbiBvbiB0aGUg
+RklGTyBzaXplLCB0aHJlc2hvbGQsCj4+IHNhbXBsZSByYXRlLCBhbmQgY2hhbm5lbHMuCj4+IAo+
+PiBCYXNlZCBvbiB0aGUgb3JpZ2luYWwgcGF0Y2ggYnkgVG9ueSBMaW5kZ3Jlbgo+PiBMaW5rOiBo
+dHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzkzMDU4NjcvCj4+IAo+PiBDYzogVG9u
+eSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPj4gQ2M6IFBldGVyIFVqZmFsdXNpIDxwZXRl
+ci51amZhbHVzaUB0aS5jb20+Cj4+IFNpZ25lZC1vZmYtYnk6IE1hdHQgUmFub3N0YXkgPG1hdHRA
+cmFub3N0YXkuY29uc3VsdGluZz4KPj4gLS0tCj4+IGhhbmdlcyBmcm9tIHYxOgo+PiAqIGFkZCBj
+YWxjdWxhdGlvbnMgZm9yIGxhdGVuY3kgcGVyIG51bWJlciBvZiBGSUZPIGxvY2F0aW9ucwo+PiAK
+Pj4gQ2hhbmdlcyBmcm9tIHYyOgo+PiAqIGFkZCBtaXNzaW5nIG1jYnNwLmggaGVhZGVyIGNoYW5n
+ZQo+PiAKPj4gQ2hhbmdlcyBmcm9tIHYzOgo+PiAqIGJhc2UgdGhlIGxhdGVuY3kgY2FsY3VsYXRp
+b25zIG9uIHRocmVzaG9sZCwgYnVmZmVyIHNpemUsIHNhbXBsZQo+PiAgcmF0ZSwgYW5kIGNoYW5u
+ZWxzCj4+IAo+PiBDaGFuZ2VzIGZyb20gdjQ6Cj4+ICogdXNpbmcgUGV0ZXIgVWpmYWx1c2kncyBz
+dWdnZXN0aW9ucyBmb3IgcmVzdG9yaW5nIGEgaGlnaGVyIGxhdGVuY3kgb24KPj4gIGF1ZGlvIHN0
+cmVhbSBjb21wbGV0aW9uLCBvciBpZiBub3QgYXBwbGljYWJsZSByZW1vdmUgdGhlIFFvUyByZXF1
+ZXN0Cj4+IAo+PiBDaGFuZ2VzIGZyb20gdjU6Cj4+ICogY2xlYW4gdXAgbGF0ZW5jeSBjaGVja2lu
+ZyBsb2dpYwo+PiAqIG1vdmUgbG9naWMgdG8gLnByZXBhcmUgYW5kIC5zaHV0ZG93biB0byBhdm9p
+ZCBmdW5jdGlvbnMgdGhhdCBjYW4gc2xlZXAKPj4gCj4+IHNvdW5kL3NvYy9vbWFwL21jYnNwLmMg
+ICAgICB8ICA0ICsrKysKPj4gc291bmQvc29jL29tYXAvbWNic3AuaCAgICAgIHwgIDMgKysrCj4+
+IHNvdW5kL3NvYy9vbWFwL29tYXAtbWNic3AuYyB8IDQ0ICsrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKystCj4+IDMgZmlsZXMgY2hhbmdlZCwgNTAgaW5zZXJ0aW9ucygr
+KSwgMSBkZWxldGlvbigtKQo+PiAKPj4gZGlmZiAtLWdpdCBhL3NvdW5kL3NvYy9vbWFwL21jYnNw
+LmMgYi9zb3VuZC9zb2Mvb21hcC9tY2JzcC5jCj4+IGluZGV4IDA2ZmVjNTY5OWNjOC4uZTFjM2Qy
+MWRjNWVkIDEwMDY0NAo+PiAtLS0gYS9zb3VuZC9zb2Mvb21hcC9tY2JzcC5jCj4+ICsrKyBiL3Nv
+dW5kL3NvYy9vbWFwL21jYnNwLmMKPj4gQEAgLTI1LDYgKzI1LDcgQEAKPj4gI2luY2x1ZGUgPGxp
+bnV4L2lvLmg+Cj4+ICNpbmNsdWRlIDxsaW51eC9zbGFiLmg+Cj4+ICNpbmNsdWRlIDxsaW51eC9w
+bV9ydW50aW1lLmg+Cj4+ICsjaW5jbHVkZSA8bGludXgvcG1fcW9zLmg+Cj4+IAo+PiAjaW5jbHVk
+ZSA8bGludXgvcGxhdGZvcm1fZGF0YS9hc29jLXRpLW1jYnNwLmg+Cj4+IAo+PiBAQCAtMTA5OCw2
+ICsxMDk5LDkgQEAgaW50IG9tYXBfbWNic3BfaW5pdChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
+ZGV2KQo+PiAKPj4gdm9pZCBvbWFwX21jYnNwX2NsZWFudXAoc3RydWN0IG9tYXBfbWNic3AgKm1j
+YnNwKQo+PiB7Cj4+ICsgICAgaWYgKHBtX3Fvc19yZXF1ZXN0X2FjdGl2ZSgmbWNic3AtPnBtX3Fv
+c19yZXEpKQo+PiArICAgICAgICBwbV9xb3NfcmVtb3ZlX3JlcXVlc3QoJm1jYnNwLT5wbV9xb3Nf
+cmVxKTsKPj4gKwo+IAo+IEl0IG1pZ2h0IGJlIGJldHRlciB0byBkbyB0aGlzIGluIGFzb2NfbWNi
+c3BfcmVtb3ZlKCkgaW4gb21hcC1tY2JzcC5jIHNvCj4gdGhlIHBtX3FvcyBzdHVmZiBpcyBoYW5k
+bGVkIHdpdGhpbiBvbmUgZmlsZS4KCkdvb2QgcG9pbnQgd2lsbCBJIHRlc3QgdG9tb3Jyb3cgZXNw
+IGlmIEkgaGF2ZSBhIGZvb3Qgb2Ygc25vdyBvdXRzaWRlLi4uCj4gCj4+ICAgIGlmIChtY2JzcC0+
+cGRhdGEtPmJ1ZmZlcl9zaXplKQo+PiAgICAgICAgc3lzZnNfcmVtb3ZlX2dyb3VwKCZtY2JzcC0+
+ZGV2LT5rb2JqLCAmYWRkaXRpb25hbF9hdHRyX2dyb3VwKTsKPj4gCj4+IGRpZmYgLS1naXQgYS9z
+b3VuZC9zb2Mvb21hcC9tY2JzcC5oIGIvc291bmQvc29jL29tYXAvbWNic3AuaAo+PiBpbmRleCA2
+MWU5M2IxYzE4NWQuLjQ2YWUxMjY5YTY5OCAxMDA2NDQKPj4gLS0tIGEvc291bmQvc29jL29tYXAv
+bWNic3AuaAo+PiArKysgYi9zb3VuZC9zb2Mvb21hcC9tY2JzcC5oCj4+IEBAIC0zMjMsOCArMzIz
+LDExIEBAIHN0cnVjdCBvbWFwX21jYnNwIHsKPj4gCj4+ICAgIHVuc2lnbmVkIGludCBmbXQ7Cj4+
+ICAgIHVuc2lnbmVkIGludCBpbl9mcmVxOwo+PiArICAgIHVuc2lnbmVkIGludCBsYXRlbmN5WzJd
+Owo+PiAgICBpbnQgY2xrX2RpdjsKPj4gICAgaW50IHdsZW47Cj4+ICsKPj4gKyAgICBzdHJ1Y3Qg
+cG1fcW9zX3JlcXVlc3QgcG1fcW9zX3JlcTsKPj4gfTsKPj4gCj4+IHZvaWQgb21hcF9tY2JzcF9j
+b25maWcoc3RydWN0IG9tYXBfbWNic3AgKm1jYnNwLAo+PiBkaWZmIC0tZ2l0IGEvc291bmQvc29j
+L29tYXAvb21hcC1tY2JzcC5jIGIvc291bmQvc29jL29tYXAvb21hcC1tY2JzcC5jCj4+IGluZGV4
+IGQwMThlOTY2ZTUzMy4uMzgxNGEyMzRlZjYxIDEwMDY0NAo+PiAtLS0gYS9zb3VuZC9zb2Mvb21h
+cC9vbWFwLW1jYnNwLmMKPj4gKysrIGIvc291bmQvc29jL29tYXAvb21hcC1tY2JzcC5jCj4gCj4g
+I2luY2x1ZGUgPGxpbnV4L3BtX3Fvcy5oPiA/Cj4gCj4gCj4gLS0gCj4gUMOpdGVyCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGlu
+ZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwOi8vbWFpbG1hbi5hbHNhLXBy
+b2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxzYS1kZXZlbAo=
