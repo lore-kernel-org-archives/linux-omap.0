@@ -1,119 +1,135 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 18/37] Documentation: PCI: Add specification for the *pci
- test* function device
-Date: Thu, 12 Jan 2017 15:56:07 +0530
-Message-ID: <1484216786-17292-19-git-send-email-kishon@ti.com>
+Subject: [PATCH 37/37] ARM: dts: DRA7: Add pcie1 dt node for EP mode
+Date: Thu, 12 Jan 2017 15:56:26 +0530
+Message-ID: <1484216786-17292-38-git-send-email-kishon@ti.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1484216786-17292-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, kishon@ti.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add specification for the *pci test* virtual function device. The endpoint
-function driver and the host pci driver should be created based on this
-specification.
+Add pcie1 dt node in order for the controller to operate in
+endpoint mode. However since none of the dra7 based boards have
+slots configured to operate in endpoint mode, keep EP mode
+disabled.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/PCI/00-INDEX                       |    2 +
- Documentation/PCI/endpoint/pci-test-function.txt |   66 ++++++++++++++++++++++
- 2 files changed, 68 insertions(+)
- create mode 100644 Documentation/PCI/endpoint/pci-test-function.txt
+ arch/arm/boot/dts/am572x-idk.dts                |    7 ++++++-
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi |    7 ++++++-
+ arch/arm/boot/dts/dra7-evm.dts                  |    4 ++++
+ arch/arm/boot/dts/dra7.dtsi                     |   22 +++++++++++++++++++++-
+ arch/arm/boot/dts/dra72-evm-common.dtsi         |    4 ++++
+ 5 files changed, 41 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-index f84a23c..4e5a283 100644
---- a/Documentation/PCI/00-INDEX
-+++ b/Documentation/PCI/00-INDEX
-@@ -16,3 +16,5 @@ endpoint/pci-endpoint.txt
- 	- guide to add endpoint controller driver and endpoint function driver.
- endpoint/pci-endpoint-cfs.txt
- 	- guide to use configfs to configure the pci endpoint function.
-+endpoint/pci-test-function.txt
-+	- specification of *pci test* function device.
-diff --git a/Documentation/PCI/endpoint/pci-test-function.txt b/Documentation/PCI/endpoint/pci-test-function.txt
-new file mode 100644
-index 0000000..1324376
---- /dev/null
-+++ b/Documentation/PCI/endpoint/pci-test-function.txt
-@@ -0,0 +1,66 @@
-+				PCI TEST
-+		    Kishon Vijay Abraham I <kishon@ti.com>
+diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
+index 1540f7a..2ca2839 100644
+--- a/arch/arm/boot/dts/am572x-idk.dts
++++ b/arch/arm/boot/dts/am572x-idk.dts
+@@ -88,6 +88,11 @@
+ 	load-gpios = <&gpio3 19 GPIO_ACTIVE_LOW>;
+ };
+ 
+-&pcie1 {
++&pcie1_rc {
++	status = "okay";
++	gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;
++};
 +
-+Traditionally PCI RC has always been validated by using standard
-+PCI cards like ethernet PCI cards or USB PCI cards or SATA PCI cards.
-+However with the addition of EP-core in linux kernel, it is possible
-+to configure a PCI controller that can operate in EP mode to work as
-+a test device.
++&pcie1_ep {
+ 	gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;
+ };
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+index 78bee26..079a7e1 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+@@ -556,7 +556,12 @@
+ 	};
+ };
+ 
+-&pcie1 {
++&pcie1_rc {
++	status = "ok";
++	gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
++};
 +
-+The PCI endpoint test device is a virtual device (defined in software)
-+used to test the endpoint functionality and serve as a sample driver
-+for other PCI endpoint devices (to use the EP framework).
++&pcie1_ep {
+ 	gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
+ };
+ 
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 132f2be..fd0aa3a 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -937,3 +937,7 @@
+ 		status = "okay";
+ 	};
+ };
 +
-+The PCI endpoint test device has the following registers:
++&pcie1_rc {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index addb753..bf9c668 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -272,7 +272,11 @@
+ 			#address-cells = <1>;
+ 			ranges = <0x51000000 0x51000000 0x3000
+ 				  0x0	     0x20000000 0x10000000>;
+-			pcie1: pcie@51000000 {
++			/**
++			 * To enable PCI endpoint mode, disable the pcie1_rc
++			 * node and enable pcie1_ep mode.
++			 */
++			pcie1_rc: pcie@51000000 {
+ 				compatible = "ti,dra7-pcie";
+ 				reg = <0x51000000 0x2000>, <0x51002000 0x14c>, <0x1000 0x2000>;
+ 				reg-names = "rc_dbics", "ti_conf", "config";
+@@ -293,12 +297,28 @@
+ 						<0 0 0 2 &pcie1_intc 2>,
+ 						<0 0 0 3 &pcie1_intc 3>,
+ 						<0 0 0 4 &pcie1_intc 4>;
++				status = "disabled";
+ 				pcie1_intc: interrupt-controller {
+ 					interrupt-controller;
+ 					#address-cells = <0>;
+ 					#interrupt-cells = <1>;
+ 				};
+ 			};
 +
-+	1) PCI_ENDPOINT_TEST_MAGIC
-+	2) PCI_ENDPOINT_TEST_COMMAND
-+	3) PCI_ENDPOINT_TEST_STATUS
-+	4) PCI_ENDPOINT_TEST_SRC_ADDR
-+	5) PCI_ENDPOINT_TEST_DST_ADDR
-+	6) PCI_ENDPOINT_TEST_SIZE
-+	7) PCI_ENDPOINT_TEST_CHECKSUM
++			pcie1_ep: pcie_ep@51000000 {
++				compatible = "ti,dra7-pcie-ep";
++				reg = <0x51000000 0x28>, <0x51002000 0x14c>, <0x51001000 0x28>, <0x1000 0x10000000>;
++				reg-names = "ep_dbics", "ti_conf", "ep_dbics2", "addr_space";
++				interrupts = <0 232 0x4>;
++				num-lanes = <1>;
++				num-ib-windows = <4>;
++				num-ob-windows = <16>;
++				ti,hwmods = "pcie1";
++				phys = <&pcie1_phy>;
++				phy-names = "pcie-phy0";
++				syscon-legacy-mode = <&scm_conf1 0x14 2>;
++				status = "disabled";
++			};
+ 		};
+ 
+ 		axi@1 {
+diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+index e50fbee..5d9762c 100644
+--- a/arch/arm/boot/dts/dra72-evm-common.dtsi
++++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+@@ -545,3 +545,7 @@
+ 		status = "okay";
+ 	};
+ };
 +
-+*) PCI_ENDPOINT_TEST_MAGIC
-+
-+This register will be used to test BAR0. A known pattern will be written
-+and read back from MAGIC register to verify BAR0.
-+
-+*) PCI_ENDPOINT_TEST_COMMAND:
-+
-+This register will be used by the host driver to indicate the function
-+that the endpoint device must perform.
-+
-+Bitfield Description:
-+  Bit 0		: raise legacy irq
-+  Bit 1		: raise MSI irq
-+  Bit 2 - 7	: MSI interrupt number
-+  Bit 8		: read command (read data from RC buffer)
-+  Bit 9		: write command (write data to RC buffer)
-+  Bit 10	: copy command (copy data from one RC buffer to another
-+		  RC buffer)
-+
-+*) PCI_ENDPOINT_TEST_STATUS
-+
-+This register reflects the status of the PCI endpoint device.
-+
-+Bitfield Description:
-+  Bit 0		: read success
-+  Bit 1		: read fail
-+  Bit 2		: write success
-+  Bit 3		: write fail
-+  Bit 4		: copy success
-+  Bit 5		: copy fail
-+  Bit 6		: irq raised
-+  Bit 7		: source address is invalid
-+  Bit 8		: destination address is invalid
-+
-+*) PCI_ENDPOINT_TEST_SRC_ADDR
-+
-+This register contains the source address (RC buffer address) for the
-+COPY/READ command.
-+
-+*) PCI_ENDPOINT_TEST_DST_ADDR
-+
-+This register contains the destination address (RC buffer address) for
-+the COPY/WRITE command.
++&pcie1_rc {
++	status = "okay";
++};
 -- 
 1.7.9.5
