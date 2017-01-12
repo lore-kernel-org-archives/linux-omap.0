@@ -1,72 +1,69 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 01/37] PCI: dwc: dra7xx: Group all host related setup in add_pcie_port
-Date: Thu, 12 Jan 2017 15:55:50 +0530
-Message-ID: <1484216786-17292-2-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 03/37] PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
+Date: Thu, 12 Jan 2017 15:55:52 +0530
+Message-ID: <1484216786-17292-4-git-send-email-kishon@ti.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1484216786-17292-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-VrBV9hrLPhE@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1484216786-17292-1-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, kishon@ti.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-commit 150645b94348 ("PCI: dra7xx: Move struct pcie_port
-setup to probe function") moved host related setup to the probe
-function. However instead of cluttering the probe function with
-host related setup, group all host related setup in add_pcie_port
-function. This way when endpoint support is added, all the
-endpoint related setup can be added in a separate function.
+Populate cpu_addr_fixup ops to extract the least 28 bits of the
+corresponding cpu address.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index ec5617a..fb37e09 100644
+index fb37e09..2073d46 100644
 --- a/drivers/pci/dwc/pci-dra7xx.c
 +++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -288,9 +288,13 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 				       struct platform_device *pdev)
- {
- 	int ret;
--	struct pcie_port *pp = &dra7xx->pp;
--	struct device *dev = pp->dev;
-+	struct pcie_port *pp;
- 	struct resource *res;
-+	struct device *dev = &pdev->dev;
+@@ -88,6 +88,11 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
+ 	writel(value, pcie->base + offset);
+ }
+ 
++static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
++{
++	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
++}
 +
-+	pp = &dra7xx->pp;
-+	pp->dev = dev;
-+	pp->ops = &dra7xx_pcie_host_ops;
+ static int dra7xx_pcie_link_up(struct pcie_port *pp)
+ {
+ 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+@@ -151,11 +156,6 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+ {
+ 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
  
- 	pp->irq = platform_get_irq(pdev, 1);
- 	if (pp->irq < 0) {
-@@ -374,7 +378,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	void __iomem *base;
- 	struct resource *res;
- 	struct dra7xx_pcie *dra7xx;
--	struct pcie_port *pp;
- 	struct device *dev = &pdev->dev;
- 	struct device_node *np = dev->of_node;
- 	char name[10];
-@@ -384,10 +387,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	if (!dra7xx)
- 		return -ENOMEM;
- 
--	pp = &dra7xx->pp;
--	pp->dev = dev;
--	pp->ops = &dra7xx_pcie_host_ops;
+-	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
+-	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
+-	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
+-	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
 -
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		dev_err(dev, "missing IRQ resource\n");
+ 	dw_pcie_setup_rc(pp);
+ 
+ 	dra7xx_pcie_establish_link(dra7xx);
+@@ -164,6 +164,7 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+ }
+ 
+ static struct pcie_host_ops dra7xx_pcie_host_ops = {
++	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
+ 	.link_up = dra7xx_pcie_link_up,
+ 	.host_init = dra7xx_pcie_host_init,
+ };
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
