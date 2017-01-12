@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 09/37] PCI: dwc: designware: Parse *num-lanes* property in dw_pcie_setup_rc
-Date: Thu, 12 Jan 2017 15:55:58 +0530
-Message-ID: <1484216786-17292-10-git-send-email-kishon@ti.com>
+Subject: [PATCH 30/37] dt-bindings: PCI: dra7xx: Add dt bindings to enable legacy mode
+Date: Thu, 12 Jan 2017 15:56:19 +0530
+Message-ID: <1484216786-17292-31-git-send-email-kishon@ti.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,90 +12,28 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao
 Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-*num-lanes* dt property is parsed in dw_pcie_host_init. However
-*num-lanes* property is applicable to both root complex mode and
-endpoint mode. As a first step, move the parsing of this property
-outside dw_pcie_host_init. This is in preparation for splitting
-pcie-designware.c to pcie-designware.c and pcie-designware-host.c
+Update device tree binding documentation of TI's dra7xx PCI
+controller to include property for enabling legacy mode.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pcie-designware.c |   18 +++++++++++-------
- drivers/pci/dwc/pcie-designware.h |    1 -
- 2 files changed, 11 insertions(+), 8 deletions(-)
+ Documentation/devicetree/bindings/pci/ti-pci.txt |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-index 00a0fdc..89cdb6b 100644
---- a/drivers/pci/dwc/pcie-designware.c
-+++ b/drivers/pci/dwc/pcie-designware.c
-@@ -551,10 +551,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
- 		}
- 	}
+diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+index 62f5f59..ed85e8e 100644
+--- a/Documentation/devicetree/bindings/pci/ti-pci.txt
++++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+@@ -39,6 +39,10 @@ DEVICE MODE
+  - interrupts : one interrupt entries must be specified for main interrupt.
+  - num-ib-windows : number of inbound address translation windows
+  - num-ob-windows : number of outbound address translation windows
++ - syscon-legacy-mode: phandle to the syscon dt node. The 1st argument should
++		       contain the register offset within syscon and the 2nd
++		       argument should contain the bit field for setting the
++		       legacy mode
  
--	ret = of_property_read_u32(np, "num-lanes", &pci->lanes);
--	if (ret)
--		pci->lanes = 0;
--
- 	ret = of_property_read_u32(np, "num-viewport", &pci->num_viewport);
- 	if (ret)
- 		pci->num_viewport = 2;
-@@ -751,18 +747,26 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
- 
- void dw_pcie_setup_rc(struct pcie_port *pp)
- {
-+	int ret;
-+	u32 lanes;
- 	u32 val;
- 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
-+	struct device *dev = pci->dev;
-+	struct device_node *np = dev->of_node;
- 
- 	/* get iATU unroll support */
- 	pci->iatu_unroll_enabled = dw_pcie_iatu_unroll_enabled(pci);
- 	dev_dbg(pci->dev, "iATU unroll: %s\n",
- 		pci->iatu_unroll_enabled ? "enabled" : "disabled");
- 
-+	ret = of_property_read_u32(np, "num-lanes", &lanes);
-+	if (ret)
-+		lanes = 0;
-+
- 	/* set the number of lanes */
- 	val = dw_pcie_readl_dbi(pci, PCIE_PORT_LINK_CONTROL);
- 	val &= ~PORT_LINK_MODE_MASK;
--	switch (pci->lanes) {
-+	switch (lanes) {
- 	case 1:
- 		val |= PORT_LINK_MODE_1_LANES;
- 		break;
-@@ -776,7 +780,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
- 		val |= PORT_LINK_MODE_8_LANES;
- 		break;
- 	default:
--		dev_err(pci->dev, "num-lanes %u: invalid value\n", pci->lanes);
-+		dev_err(pci->dev, "num-lanes %u: invalid value\n", lanes);
- 		return;
- 	}
- 	dw_pcie_writel_dbi(pci, PCIE_PORT_LINK_CONTROL, val);
-@@ -784,7 +788,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
- 	/* set link width speed control register */
- 	val = dw_pcie_readl_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL);
- 	val &= ~PORT_LOGIC_LINK_WIDTH_MASK;
--	switch (pci->lanes) {
-+	switch (lanes) {
- 	case 1:
- 		val |= PORT_LOGIC_LINK_WIDTH_1_LANES;
- 		break;
-diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index d4b3d43..491fbe3 100644
---- a/drivers/pci/dwc/pcie-designware.h
-+++ b/drivers/pci/dwc/pcie-designware.h
-@@ -148,7 +148,6 @@ struct dw_pcie_ops {
- struct dw_pcie {
- 	struct device		*dev;
- 	void __iomem		*dbi_base;
--	u32			lanes;
- 	u32			num_viewport;
- 	u8			iatu_unroll_enabled;
- 	struct pcie_port	pp;
+ Optional Property:
+  - gpios : Should be added if a gpio line is required to drive PERST# line
 -- 
 1.7.9.5
