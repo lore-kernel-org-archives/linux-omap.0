@@ -1,96 +1,88 @@
-From: Liam Breck <liam@networkimprov.net>
-Subject: Re: [PATCH 4/6] power: bq24190_charger: Don't read fault register
- outside irq_handle_thread()
-Date: Wed, 11 Jan 2017 18:11:53 -0800
-Message-ID: <CAKvHMgQ3=7xwG=QW7-04RE8Y2bW4vZabW9aYazHsO3D3Zfd0cw@mail.gmail.com>
-References: <20170112004154.31568-1-tony@atomide.com> <20170112004154.31568-5-tony@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 3/4] dt-bindings: power/supply: Update TPS65217 properties
+Date: Thu, 12 Jan 2017 04:47:04 +0100
+Message-ID: <20170112034704.4lgilyic5cj4nrxs@earth>
+References: <20161209062833.5768-1-woogyom.kim@gmail.com>
+ <20161209062833.5768-4-woogyom.kim@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170112004154.31568-5-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Liam Breck <kernel@networkimprov.net>, Matt Ranostay <matt@ranostay.consulting>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="s6a6e5z2na24jt6b"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161209062833.5768-4-woogyom.kim@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Milo Kim <woogyom.kim@gmail.com>
+Cc: bcousson@baylibre.com, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Lee Jones <lee.jones@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 11, 2017 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
-> From: Liam Breck <kernel@networkimprov.net>
->
-> Caching the fault register after a single read may not keep an accurate
-> value.
->
-> Fix the issue by doing two reads of the fault register as specified in the
-> data sheet. And let's do this only irq_handle_thread() to avoid accidentally
-> clearing the fault status as specified in the data sheet:
->
-> "When a fault occurs, the charger device sends out INT
->  and keeps the fault state in REG09 until the host reads the fault register.
->  Before the host reads REG09 and all the faults are cleared, the charger
->  device would not send any INT upon new faults. In order to read the
->  current fault status, the host has to read REG09 two times consecutively.
->  The 1st reads fault register status from the last read [1] and the 2nd reads
->  the current fault register status."
->
-> [1] presumably a typo; should be "last fault"
->
-> Fixes: d7bf353fd0aa3 ("bq24190_charger: Add support for TI BQ24190 Battery
-> Charger")
-> Cc: Mark A. Greer <mgreer@animalcreek.com>
-> Cc: Matt Ranostay <matt@ranostay.consulting>
-> Signed-off-by: Liam Breck <kernel@networkimprov.net>
-> [tony@atomide.com: cleaned up a bit]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/power/supply/bq24190_charger.c | 99 ++++++++++------------------------
->  1 file changed, 29 insertions(+), 70 deletions(-)
->
-> diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
-> --- a/drivers/power/supply/bq24190_charger.c
-> +++ b/drivers/power/supply/bq24190_charger.c
-> @@ -144,10 +144,7 @@
->   * so the first read after a fault returns the latched value and subsequent
->   * reads return the current value.  In order to return the fault status
->   * to the user, have the interrupt handler save the reg's value and retrieve
-> - * it in the appropriate health/status routine.  Each routine has its own
-> - * flag indicating whether it should use the value stored by the last run
-> - * of the interrupt handler or do an actual reg read.  That way each routine
-> - * can report back whatever fault may have occured.
-> + * it in the appropriate health/status routine.
->   */
->  struct bq24190_dev_info {
->         struct i2c_client               *client;
-> @@ -159,9 +156,6 @@ struct bq24190_dev_info {
->         unsigned int                    gpio_int;
->         unsigned int                    irq;
->         struct mutex                    f_reg_lock;
-> -       bool                            charger_health_valid;
-> -       bool                            battery_health_valid;
-> -       bool                            battery_status_valid;
->         u8                              f_reg;
->         u8                              ss_reg;
->         u8                              watchdog;
-> @@ -635,21 +629,11 @@ static int bq24190_charger_get_health(struct bq24190_dev_info *bdi,
->                 union power_supply_propval *val)
->  {
->         u8 v;
-> -       int health, ret;
-> +       int health;
->
->         mutex_lock(&bdi->f_reg_lock);
-> -
-> -       if (bdi->charger_health_valid) {
-> -               v = bdi->f_reg;
-> -               bdi->charger_health_valid = false;
-> -               mutex_unlock(&bdi->f_reg_lock);
-> -       } else {
-> -               mutex_unlock(&bdi->f_reg_lock);
-> -
-> -               ret = bq24190_read(bdi, BQ24190_REG_F, &v);
-> -               if (ret < 0)
-> -                       return ret;
-> -       }
-> +       v = bdi->f_reg;
-> +       mutex_unlock(&bdi->f_reg_lock);
 
-bdi->f_reg is the only thing protected by the mutex, and is only ever
-set or read. Is it OK to use an atomic type here?
+--s6a6e5z2na24jt6b
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Milo,
+
+On Fri, Dec 09, 2016 at 03:28:32PM +0900, Milo Kim wrote:
+> Add interrupt specifiers for USB and AC charger input. Interrupt numbers
+> are from the datasheet.
+> Fix wrong property for compatible string.
+>=20
+> Signed-off-by: Milo Kim <woogyom.kim@gmail.com>
+> ---
+>  .../devicetree/bindings/power/supply/tps65217_charger.txt          | 7 +=
++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/power/supply/tps65217_char=
+ger.txt b/Documentation/devicetree/bindings/power/supply/tps65217_charger.t=
+xt
+> index 98d131a..a11072c 100644
+> --- a/Documentation/devicetree/bindings/power/supply/tps65217_charger.txt
+> +++ b/Documentation/devicetree/bindings/power/supply/tps65217_charger.txt
+> @@ -2,11 +2,16 @@ TPS65217 Charger
+> =20
+>  Required Properties:
+>  -compatible: "ti,tps65217-charger"
+> +-interrupts: TPS65217 interrupt numbers for the AC and USB charger input=
+ change.
+> +             Should be <0> for the USB charger and <1> for the AC adapte=
+r.
+> +-interrupt-names: Should be "USB" and "AC"
+> =20
+>  This node is a subnode of the tps65217 PMIC.
+> =20
+>  Example:
+> =20
+>  	tps65217-charger {
+> -		compatible =3D "ti,tps65090-charger";
+> +		compatible =3D "ti,tps65217-charger";
+> +		interrupts =3D <0>, <1>;
+> +		interrupt-names =3D "USB", "AC";
+>  	};
+
+Thanks, I queued this into power-supply's for-next branch.
+
+-- Sebastian
+
+--s6a6e5z2na24jt6b
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlh2/DUACgkQ2O7X88g7
++pqcBRAAnvd9Z8Hpx0wKiHt+qcH+EsAiLrUPDI4Ax5jcMSwgG1zaoP8oxnquFUIo
+3SSXTHgBcCZyT1oHjdH41kTVn5N73rInmt2zaaHrpMfz3c19rUQAi0ACSmszRL/o
+D9CmKu0yNBC0kPK1xk1IP74VR8rm2ddILs56SN/GhtIp3ztES3AiobkCJW4V3HVB
+3WRpA7yzeuHD8pxq9cUPzQ9A4Y1+MzI4pQhcoOaAeoZighXGawn9wfiwT/jWKUP4
+3K4alPi26L/SVBMLmTV1RBVnc8ZfTzIjeu8vI5IgIyAecTgEp9u9GgJNlGRWe1Jo
+xRG2KuFxjQNQq1/818yXeXl/TYZps/QjyUov5Dx5wY2W26q1YOD9T+uJVXNh5E1T
+MzusSOck5DOP0wW2dnfqFcIocI+rkft/fIr7KoeDQS2c4MVRZdrs6Kymw18QtR+p
+o4GrohJNhUPoLAa8voEk9EY8i5HG5Vpo9rXdR4M1bw3+3IfxsyJu5+J2A8nunqcU
+hCooAIHL8x5lW97fJVf2RcP1MLyl4zqrQV1ZrgeqJvp7ZIhLW2UX6pZ1I4+csmfC
+phznoWdKyTQTLGyCIZlnirKM8lHsOhvj6I91l14pKiEJBW6xAG4pKtvtQTHSMSAL
+NhTtSW5vPI1LCsqfBArTNS1hxHNKlwJeb2qfHipn4GoosVFmMFw=
+=K9zX
+-----END PGP SIGNATURE-----
+
+--s6a6e5z2na24jt6b--
