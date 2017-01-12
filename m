@@ -1,88 +1,159 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 0/3] misc: sram: Introduce protect-exec region type
-Date: Thu, 12 Jan 2017 14:52:17 -0600
-Message-ID: <20170112205220.26325-1-d-gerlach@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/6] power: bq24190_charger: Call enable_irq() only at
+ the end of probe()
+Date: Thu, 12 Jan 2017 12:58:11 -0800
+Message-ID: <20170112205811.GJ2630@atomide.com>
+References: <20170112004154.31568-1-tony@atomide.com>
+ <20170112004154.31568-2-tony@atomide.com>
+ <20170112174435.fotlw2mrif4oubdt@earth>
+ <CAKvHMgRq3r-6dFTXdJcrUD94BvMzq6w8RRQFgodwoBX3uAZUKw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAKvHMgRq3r-6dFTXdJcrUD94BvMzq6w8RRQFgodwoBX3uAZUKw@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Liam Breck <liam@networkimprov.net>
+Cc: Sebastian Reichel <sre@kernel.org>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Liam Breck <kernel@networkimprov.net>, Matt Ranostay <matt@ranostay.consulting>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-There are several instances when one would want to execute out of on-chip
-SRAM, such as PM code on ARM platforms, so once again revisiting this
-series to allow that in a generic manner. Seems that having a solution for
-allowing SRAM to be mapped as executable will help clean up PM code on several
-ARM platforms that are using ARM internal __arm_ioremap_exec API
-and also open the door for PM support on new platforms like TI AM335x and
-AM437x.
+* Liam Breck <liam@networkimprov.net> [170112 12:25]:
+> On Thu, Jan 12, 2017 at 9:44 AM, Sebastian Reichel <sre@kernel.org> wrote:
+> > Hi Liam & Tony,
+> >
+> > On Wed, Jan 11, 2017 at 04:41:49PM -0800, Tony Lindgren wrote:
+> >> From: Liam Breck <kernel@networkimprov.net>
+> >>
+> >> The device specific data is not fully initialized after
+> >> request_threaded_irq().
+> >>
+> >> This causes problems when the IRQ handler tries to reference them.
+> >> Fix the issue by enabling IRQ only at the end of the probe.
+> >>
+> >> Fixes: d7bf353fd0aa3 ("bq24190_charger: Add support for TI BQ24190
+> >> Battery Charger")
+> >> Cc: Mark A. Greer <mgreer@animalcreek.com>
+> >> Cc: Matt Ranostay <matt@ranostay.consulting>
+> >> Signed-off-by: Liam Breck <kernel@networkimprov.net>
+> >> [tony@atomide.com: cleaned up patch description a bit]
+> >> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> >> ---
+> >>  drivers/power/supply/bq24190_charger.c | 3 +++
+> >>  1 file changed, 3 insertions(+)
+> >>
+> >> diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
+> >> --- a/drivers/power/supply/bq24190_charger.c
+> >> +++ b/drivers/power/supply/bq24190_charger.c
+> >> @@ -1392,6 +1392,7 @@ static int bq24190_probe(struct i2c_client *client,
+> >>               return -EINVAL;
+> >>       }
+> >>
+> >> +     irq_set_status_flags(bdi->irq, IRQ_NOAUTOEN);
+> >>       ret = devm_request_threaded_irq(dev, bdi->irq, NULL,
+> >>                       bq24190_irq_handler_thread,
+> >>                       IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+> >> @@ -1436,6 +1437,8 @@ static int bq24190_probe(struct i2c_client *client,
+> >>               goto out4;
+> >>       }
+> >>
+> >> +     enable_irq(bdi->irq);
+> >> +
+> >>       return 0;
+> >>
+> >>  out4:
+> >
+> > Can't you just move the irq request towards the end of the probe?
+> > That way it will also be released before the power-supply structure
+> > is released.
+> 
+> I did that in a first draft I showed Tony. He suggested this way.
+> Tony, rationale?
 
-Previously a generic solution was attempted by introducing a memremap
-executable API and then calling this from the generic sram driver here [1].
-Russell King brought up the point that we should not just be mapping
-memory as both writable and executable for security reasons which led to
-the solution proposed in this series. 
+Both will work for me just fine as long as done in a single patch
+with no other changes.
 
-The generic SRAM driver already has a concept of "partitions" which can be
-defined and flagged in the device tree, so this series introduces a new flag,
-protect-exec, which indicates the region of SRAM that has been blocked out in
-the DT is protected and executable. It will share the same capabilities of the
-already present sram "pool" which will allow allocation through the use of the
-genalloc framework but also be protected through the use of an "sram_exec_copy"
-helper function to handle the copying of data to the space and also the page
-attributes. In this context protected means the memory is managed such that
-it is *either* writeable and non-executable or read-only and executable through
-manipulation of the page attributes.
-
-Unforunately, unlike the previously proposed solution, this is not a drop in
-replacement for __arm_ioremap_exec, A large side effect of allocating
-executable SRAM as this series does is that it will require rework for some
-SRAM code as a lot of the assembly code I have seen makes use of PC relative
-memory locations at the end of the code for local variables. This will no
-longer be possible if we must maintain the read-only executable status of
-the memory. If that's required then SRAM code will need to use pointers to
-a separately allocated region of sram that is just a normal writable pool.
-
-As mentioned in previous series I still see several platforms (at-91,
-imx6, socfpga, omap3) that could make use of this although some rework may
-be required unlike with the last solution, and it will be needed for the
-forthcoming TI am335x and am437x PM code as portions of PM code are
-moving in to drivers. An example of this in use can be seen at [2] in the 
-drivers/memory/ti-emif-sram.c and drivers/soc/ti/pm33xx.c files.
+The first option is less changes if needed as a fix, up to Sebastian
+depending on what he prefers.
 
 Regards,
-Dave
 
-[1] http://www.spinics.net/lists/linux-omap/msg132728.html
-[2] https://github.com/dgerlach/linux-pm/tree/upstream/v4.10/sram-exec-copy-pm
+Tony
 
-Dave Gerlach (3):
-  misc: sram: Split sram data structures into local header
-  misc: sram: Introduce support code for protect-exec sram type
-  misc: sram: Integrate protect-exec reserved sram area type
+> It looks like this:
 
- Documentation/devicetree/bindings/sram/sram.txt |   6 ++
- drivers/misc/Kconfig                            |   4 +
- drivers/misc/Makefile                           |   1 +
- drivers/misc/sram-exec.c                        | 105 ++++++++++++++++++++++++
- drivers/misc/sram.c                             |  51 +++++-------
- drivers/misc/sram.h                             |  58 +++++++++++++
- include/linux/sram.h                            |  27 ++++++
- 7 files changed, 222 insertions(+), 30 deletions(-)
- create mode 100644 drivers/misc/sram-exec.c
- create mode 100644 drivers/misc/sram.h
- create mode 100644 include/linux/sram.h
+> diff --git a/drivers/power/bq24190_charger.c b/drivers/power/bq24190_charger.c
+> index b51eac1..54c8952 100644
+> --- a/drivers/power/bq24190_charger.c
+> +++ b/drivers/power/bq24190_charger.c
+> @@ -1366,22 +1366,13 @@ static int bq24190_probe(struct i2c_client *client,
+>  		return -EINVAL;
+>  	}
+>  
+> -	ret = devm_request_threaded_irq(dev, bdi->irq, NULL,
+> -			bq24190_irq_handler_thread,
+> -			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+> -			"bq24190-charger", bdi);
+> -	if (ret < 0) {
+> -		dev_err(dev, "Can't set up irq handler\n");
+> -		goto out1;
+> -	}
+> -
+>  	pm_runtime_enable(dev);
+>  	pm_runtime_resume(dev);
+>  
+>  	ret = bq24190_hw_init(bdi);
+>  	if (ret < 0) {
+>  		dev_err(dev, "Hardware init failed\n");
+> -		goto out2;
+> +		goto out1;
+>  	}
+>  
+>  	charger_cfg.drv_data = bdi;
+> @@ -1392,7 +1383,7 @@ static int bq24190_probe(struct i2c_client *client,
+>  	if (IS_ERR(bdi->charger)) {
+>  		dev_err(dev, "Can't register charger\n");
+>  		ret = PTR_ERR(bdi->charger);
+> -		goto out2;
+> +		goto out1;
+>  	}
+>  
+>  	battery_cfg.drv_data = bdi;
+> @@ -1401,24 +1392,34 @@ static int bq24190_probe(struct i2c_client *client,
+>  	if (IS_ERR(bdi->battery)) {
+>  		dev_err(dev, "Can't register battery\n");
+>  		ret = PTR_ERR(bdi->battery);
+> -		goto out3;
+> +		goto out2;
+>  	}
+>  
+>  	ret = bq24190_sysfs_create_group(bdi);
+>  	if (ret) {
+>  		dev_err(dev, "Can't create sysfs entries\n");
+> +		goto out3;
+> +	}
+> +
+> +	ret = devm_request_threaded_irq(dev, bdi->irq, NULL,
+> +			bq24190_irq_handler_thread,
+> +			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+> +			"bq24190-charger", bdi);
+> +	if (ret < 0) {
+> +		dev_err(dev, "Can't set up irq handler\n");
+>  		goto out4;
+>  	}
+>  
+>  	return 0;
+>  
+>  out4:
+> -	power_supply_unregister(bdi->battery);
+> +	bq24190_sysfs_remove_group(bdi);
+>  out3:
+> -	power_supply_unregister(bdi->charger);
+> +	power_supply_unregister(bdi->battery);
+>  out2:
+> -	pm_runtime_disable(dev);
+> +	power_supply_unregister(bdi->charger);
+>  out1:
+> +	pm_runtime_disable(dev);
+>  	if (bdi->gpio_int)
+>  		gpio_free(bdi->gpio_int);
 
--- 
-2.11.0
