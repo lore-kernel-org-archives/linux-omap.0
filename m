@@ -1,95 +1,119 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 1/6] power: bq24190_charger: Call enable_irq() only at
- the end of probe()
-Date: Thu, 12 Jan 2017 18:44:35 +0100
-Message-ID: <20170112174435.fotlw2mrif4oubdt@earth>
-References: <20170112004154.31568-1-tony@atomide.com>
- <20170112004154.31568-2-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] dmaengine: cppi41: Fix list not empty warning on
+ runtime suspend
+Date: Thu, 12 Jan 2017 09:45:16 -0800
+Message-ID: <20170112174515.GH2630@atomide.com>
+References: <20170109170337.6957-1-abailon@baylibre.com>
+ <20170109170337.6957-2-abailon@baylibre.com>
+ <20170109183416.GJ2630@atomide.com>
+ <20170112170900.GG2630@atomide.com>
+ <ac236cf1-d1e1-8f1f-fb62-b63cabf746d6@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="u62cscn3wbkwh7yk"
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170112004154.31568-2-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Liam Breck <kernel@networkimprov.net>, Matt Ranostay <matt@ranostay.consulting>
+In-Reply-To: <ac236cf1-d1e1-8f1f-fb62-b63cabf746d6-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [170112 09:24]:
+> On 01/12/2017 11:09 AM, Tony Lindgren wrote:
+> > Below is what seems to fix issues for me, not seeing any more warnings
+> > either.
+> > 
+> > Care to give it a try with your USB headset?
+> 
+> This looks more close to what is provided in Documentation\power\runtime_pm.txt
+> (example at the end of the file),
+> but as per this document custom locking is required to access .active var.
 
---u62cscn3wbkwh7yk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OK so sounds like we're on the right track then :) Here's a version
+using atomic.h.
 
-Hi Liam & Tony,
+Regards,
 
-On Wed, Jan 11, 2017 at 04:41:49PM -0800, Tony Lindgren wrote:
-> From: Liam Breck <kernel@networkimprov.net>
->=20
-> The device specific data is not fully initialized after
-> request_threaded_irq().
->=20
-> This causes problems when the IRQ handler tries to reference them.
-> Fix the issue by enabling IRQ only at the end of the probe.
->=20
-> Fixes: d7bf353fd0aa3 ("bq24190_charger: Add support for TI BQ24190
-> Battery Charger")
-> Cc: Mark A. Greer <mgreer@animalcreek.com>
-> Cc: Matt Ranostay <matt@ranostay.consulting>
-> Signed-off-by: Liam Breck <kernel@networkimprov.net>
-> [tony@atomide.com: cleaned up patch description a bit]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/power/supply/bq24190_charger.c | 3 +++
->  1 file changed, 3 insertions(+)
->=20
-> diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/suppl=
-y/bq24190_charger.c
-> --- a/drivers/power/supply/bq24190_charger.c
-> +++ b/drivers/power/supply/bq24190_charger.c
-> @@ -1392,6 +1392,7 @@ static int bq24190_probe(struct i2c_client *client,
->  		return -EINVAL;
->  	}
-> =20
-> +	irq_set_status_flags(bdi->irq, IRQ_NOAUTOEN);
->  	ret =3D devm_request_threaded_irq(dev, bdi->irq, NULL,
->  			bq24190_irq_handler_thread,
->  			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-> @@ -1436,6 +1437,8 @@ static int bq24190_probe(struct i2c_client *client,
->  		goto out4;
->  	}
-> =20
-> +	enable_irq(bdi->irq);
-> +
->  	return 0;
-> =20
->  out4:
+Tony
 
-Can't you just move the irq request towards the end of the probe?
-That way it will also be released before the power-supply structure
-is released.
-
--- Sebastian
-
---u62cscn3wbkwh7yk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlh3wIIACgkQ2O7X88g7
-+pqTvg/+PXkHHqWAVbJYpqrrhURzetpamY6yGXdVZ7JrRa9AiMQzhyz3isXWyD+N
-zT4VUtWql+EVsSy8o+3YE5m5B76h7NIcGUMmpPwP5NO6niXrF+CnsNqZqUw8Ja5+
-WUvNPNUFrZIS0ZMFkJlMoYadB881hn8rvZg2wMnXVnI5x0+sf4pzP2B1s/0/GRSn
-lxxyH7gdXR7x1M1GlIooivefhO2WqpWbApq0o17gVkDUOXQ2/8/KBxbmvlp6VTBN
-W4AAk63ucZh3vsdvBvi2EFR771RMnuuXLvlmpovyeb1qQuABnL3NdX0q58dVGMF5
-Bi4EMm208IuffwvGs9BtDKBuKfldcsYsMeNf3Ilg7LtC3g3LD45xOBl+MYVFADFC
-Wh3dvmMuLEWo0nUkXwEvrt6pdA2Q4Igyi5WXEZI2uMfCOF9YxffEvoLK5Iq1e5pZ
-YbFQJO2rIZfZEb4KMKLT2d3D61ORpiTW+qnXqiTr58e91ZaYqRsn1PR4O8sYhusa
-hVR3xXFFB9Q8J4o/YAVhKCHKEO4yZHWbsrkv2PaDI+1K+akQpXM/stGZh3UJXywE
-FNikNhlf4tqJX/DilBbvwscVRsPPdvjmzYQXmKcONt7Kwvn0gxzJB+bOk4bm4hqi
-znJJ2zUaEN217ZDrLqhwUe9hDGt6sojtlNIGGzozgyNGNnoG3W4=
-=Rsma
------END PGP SIGNATURE-----
-
---u62cscn3wbkwh7yk--
+8< -------------------
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -1,3 +1,4 @@
++#include <linux/atomic.h>
+ #include <linux/delay.h>
+ #include <linux/dmaengine.h>
+ #include <linux/dma-mapping.h>
+@@ -153,6 +154,8 @@ struct cppi41_dd {
+ 
+ 	/* context for suspend/resume */
+ 	unsigned int dma_tdfdq;
++
++	atomic_t active;
+ };
+ 
+ #define FIST_COMPLETION_QUEUE	93
+@@ -320,7 +323,8 @@ static irqreturn_t cppi41_irq(int irq, void *data)
+ 			int error;
+ 
+ 			error = pm_runtime_get(cdd->ddev.dev);
+-			if (error < 0)
++			if (((error != -EINPROGRESS) && error < 0) ||
++			    !atomic_read(&cdd->active))
+ 				dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
+ 					__func__, error);
+ 
+@@ -482,7 +486,7 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
+ 		return;
+ 	}
+ 
+-	if (likely(pm_runtime_active(cdd->ddev.dev)))
++	if (likely(atomic_read(&cdd->active)))
+ 		push_desc_queue(c);
+ 	else
+ 		pending_desc(c);
+@@ -1003,6 +1007,7 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+ 	cdd->ddev.dst_addr_widths = CPPI41_DMA_BUSWIDTHS;
+ 	cdd->ddev.residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
+ 	cdd->ddev.dev = dev;
++	atomic_set(&cdd->active, 0);
+ 	INIT_LIST_HEAD(&cdd->ddev.channels);
+ 	cpp41_dma_info.dma_cap = cdd->ddev.cap_mask;
+ 
+@@ -1151,6 +1156,7 @@ static int __maybe_unused cppi41_runtime_suspend(struct device *dev)
+ {
+ 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+ 
++	atomic_set(&cdd->active, 0);
+ 	WARN_ON(!list_empty(&cdd->pending));
+ 
+ 	return 0;
+@@ -1159,13 +1165,20 @@ static int __maybe_unused cppi41_runtime_suspend(struct device *dev)
+ static int __maybe_unused cppi41_runtime_resume(struct device *dev)
+ {
+ 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+-	struct cppi41_channel *c, *_c;
++	struct cppi41_channel *c;
+ 	unsigned long flags;
+ 
++	atomic_set(&cdd->active, 1);
++
+ 	spin_lock_irqsave(&cdd->lock, flags);
+-	list_for_each_entry_safe(c, _c, &cdd->pending, node) {
+-		push_desc_queue(c);
++	while (!list_empty(&cdd->pending)) {
++		c = list_first_entry(&cdd->pending,
++				     struct cppi41_channel,
++				     node);
+ 		list_del(&c->node);
++		spin_unlock_irqrestore(&cdd->lock, flags);
++		push_desc_queue(c);
++		spin_lock_irqsave(&cdd->lock, flags);
+ 	}
+ 	spin_unlock_irqrestore(&cdd->lock, flags);
+ 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
