@@ -1,45 +1,50 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] Adding DT support for TI HECC module
-Date: Wed, 11 Jan 2017 16:47:58 -0800
-Message-ID: <20170112004757.GZ2630@atomide.com>
-References: <1484143521-4898-1-git-send-email-yegorslists@googlemail.com>
- <CAGm1_kvWXfZ_f3PPL1VJj8AhBf59Pax_GFHDVdejuMBRDu9y6Q@mail.gmail.com>
+From: Liam Breck <liam@networkimprov.net>
+Subject: Re: [PATCH 4/6] power: bq24190_charger: Don't read fault register
+ outside irq_handle_thread()
+Date: Wed, 11 Jan 2017 17:32:54 -0800
+Message-ID: <CAKvHMgTrw4DqC5UUbnUXG5kpUAxTn2y5v8QvqHBtx40===xcew@mail.gmail.com>
+References: <20170112004154.31568-1-tony@atomide.com> <20170112004154.31568-5-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAGm1_kvWXfZ_f3PPL1VJj8AhBf59Pax_GFHDVdejuMBRDu9y6Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Cc: "linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Andrey Skvortsov <andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, hs-ynQEQJNshbs@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170112004154.31568-5-tony@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sre@kernel.org>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Liam Breck <kernel@networkimprov.net>, Matt Ranostay <matt@ranostay.consulting>
 List-Id: linux-omap@vger.kernel.org
 
-* Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> [170111 13:52]:
-> On Wed, Jan 11, 2017 at 3:05 PM,  <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> wrote:
-> > From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-> >
-> > This is an attempt to revive DT support for TI HECC that was started in 2015.
-> >
-> > I haven't changed much because not all questions could be fully answered:
-> >
-> > * Should HECC use "am3505" as compatible?
-> 
-> I mean "ti,am3505-hecc"
+On Wed, Jan 11, 2017 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
+> From: Liam Breck <kernel@networkimprov.net>
+>
+> Caching the fault register after a single read may not keep an accurate
+> value.
+>
+> Fix the issue by doing two reads of the fault register as specified in the
+> data sheet. And let's do this only irq_handle_thread() to avoid accidentally
+> clearing the fault status as specified in the data sheet:
+>
+> "When a fault occurs, the charger device sends out INT
+>  and keeps the fault state in REG09 until the host reads the fault register.
+>  Before the host reads REG09 and all the faults are cleared, the charger
+>  device would not send any INT upon new faults. In order to read the
+>  current fault status, the host has to read REG09 two times consecutively.
+>  The 1st reads fault register status from the last read [1] and the 2nd reads
+>  the current fault register status."
+>
+> [1] presumably a typo; should be "last fault"
+>
+> Fixes: d7bf353fd0aa3 ("bq24190_charger: Add support for TI BQ24190 Battery
+> Charger")
+> Cc: Mark A. Greer <mgreer@animalcreek.com>
+> Cc: Matt Ranostay <matt@ranostay.consulting>
+> Signed-off-by: Liam Breck <kernel@networkimprov.net>
+> [tony@atomide.com: cleaned up a bit]
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/power/supply/bq24190_charger.c | 99 ++++++++++------------------------
+>  1 file changed, 29 insertions(+), 70 deletions(-)
 
-Yeah it should use the device name for the driver.
+This got a bit mangled in transition, and the fix will prevent the
+following patches from applying.
 
-> > * What should be done to the offsets (ti,scc-ram-offset, ti,hecc-ram-offset, ti,mbx-offset)?
-
-The devicetree maintainers need to ack the binding doc. Maybe
-send that as a first patch?
-
-Regards,
-
-Tony
-
-> First submission and related comments:
-> http://comments.gmane.org/gmane.linux.can/8616
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll post a fix shortly.
