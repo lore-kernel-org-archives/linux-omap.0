@@ -1,110 +1,96 @@
 From: Liam Breck <liam@networkimprov.net>
-Subject: Re: [PATCH 5/6] power: bq24190_charger: Check the interrupt status on resume
-Date: Wed, 11 Jan 2017 18:05:56 -0800
-Message-ID: <CAKvHMgRbmAxHvJ3NoTs2JMkK3VN_mERtsmJxi7184KfbbnHkGg@mail.gmail.com>
-References: <20170112004154.31568-1-tony@atomide.com> <20170112004154.31568-6-tony@atomide.com>
+Subject: Re: [PATCH 4/6] power: bq24190_charger: Don't read fault register
+ outside irq_handle_thread()
+Date: Wed, 11 Jan 2017 18:11:53 -0800
+Message-ID: <CAKvHMgQ3=7xwG=QW7-04RE8Y2bW4vZabW9aYazHsO3D3Zfd0cw@mail.gmail.com>
+References: <20170112004154.31568-1-tony@atomide.com> <20170112004154.31568-5-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170112004154.31568-6-tony@atomide.com>
+In-Reply-To: <20170112004154.31568-5-tony@atomide.com>
 Sender: linux-pm-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Matt Ranostay <matt@ranostay.consulting>, Liam Breck <kernel@networkimprov.net>
+Cc: Sebastian Reichel <sre@kernel.org>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Liam Breck <kernel@networkimprov.net>, Matt Ranostay <matt@ranostay.consulting>
 List-Id: linux-omap@vger.kernel.org
 
 On Wed, Jan 11, 2017 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Some SoCs like omap3 can configure GPIO irqs to use Linux generic
-> dedicated wakeirq support. If the dedicated wakeirq is configured,
-> the SoC will use a always-on interrupt controller to produce wake-up
-> events.
+> From: Liam Breck <kernel@networkimprov.net>
 >
-> If bq24190 is configured for dedicated wakeirq, we need to check the
-> interrupt status on PM runtime resume. This is because the Linux
-> generic wakeirq will call pm_runtime_resume() on the device on a
-> wakeirq. And as the bq24190 interrupt is falling edge sensitive
-> and only active for 250 us, there will be no device interrupt seen
-> by the runtime SoC IRQ controller.
+> Caching the fault register after a single read may not keep an accurate
+> value.
 >
-> Note that this can cause spurious interrupts on omap3 devices with
-> bq24190 connected to gpio banks 2 - 5 as there's a glitch on those
-> pins waking from off mode as listed in "Advisory 1.45". Devices
-> with this issue should not configure the optional wakeirq interrupt
-> in the dts file.
+> Fix the issue by doing two reads of the fault register as specified in the
+> data sheet. And let's do this only irq_handle_thread() to avoid accidentally
+> clearing the fault status as specified in the data sheet:
 >
+> "When a fault occurs, the charger device sends out INT
+>  and keeps the fault state in REG09 until the host reads the fault register.
+>  Before the host reads REG09 and all the faults are cleared, the charger
+>  device would not send any INT upon new faults. In order to read the
+>  current fault status, the host has to read REG09 two times consecutively.
+>  The 1st reads fault register status from the last read [1] and the 2nd reads
+>  the current fault register status."
+>
+> [1] presumably a typo; should be "last fault"
+>
+> Fixes: d7bf353fd0aa3 ("bq24190_charger: Add support for TI BQ24190 Battery
+> Charger")
 > Cc: Mark A. Greer <mgreer@animalcreek.com>
 > Cc: Matt Ranostay <matt@ranostay.consulting>
-> Cc: Liam Breck <kernel@networkimprov.net>
+> Signed-off-by: Liam Breck <kernel@networkimprov.net>
+> [tony@atomide.com: cleaned up a bit]
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  drivers/power/supply/bq24190_charger.c | 58 ++++++++++++++++++++++++++++------
->  1 file changed, 49 insertions(+), 9 deletions(-)
+>  drivers/power/supply/bq24190_charger.c | 99 ++++++++++------------------------
+>  1 file changed, 29 insertions(+), 70 deletions(-)
 >
 > diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
 > --- a/drivers/power/supply/bq24190_charger.c
 > +++ b/drivers/power/supply/bq24190_charger.c
-> @@ -156,6 +156,8 @@ struct bq24190_dev_info {
+> @@ -144,10 +144,7 @@
+>   * so the first read after a fault returns the latched value and subsequent
+>   * reads return the current value.  In order to return the fault status
+>   * to the user, have the interrupt handler save the reg's value and retrieve
+> - * it in the appropriate health/status routine.  Each routine has its own
+> - * flag indicating whether it should use the value stored by the last run
+> - * of the interrupt handler or do an actual reg read.  That way each routine
+> - * can report back whatever fault may have occured.
+> + * it in the appropriate health/status routine.
+>   */
+>  struct bq24190_dev_info {
+>         struct i2c_client               *client;
+> @@ -159,9 +156,6 @@ struct bq24190_dev_info {
 >         unsigned int                    gpio_int;
 >         unsigned int                    irq;
 >         struct mutex                    f_reg_lock;
-> +       bool                            initialized;
-> +       bool                            irq_event;
+> -       bool                            charger_health_valid;
+> -       bool                            battery_health_valid;
+> -       bool                            battery_status_valid;
 >         u8                              f_reg;
 >         u8                              ss_reg;
 >         u8                              watchdog;
-> @@ -1157,9 +1159,8 @@ static const struct power_supply_desc bq24190_battery_desc = {
->         .property_is_writeable  = bq24190_battery_property_is_writeable,
->  };
->
-> -static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
-> +static void bq24190_check_status(struct bq24190_dev_info *bdi)
+> @@ -635,21 +629,11 @@ static int bq24190_charger_get_health(struct bq24190_dev_info *bdi,
+>                 union power_supply_propval *val)
 >  {
-> -       struct bq24190_dev_info *bdi = data;
->         const u8 battery_mask_ss = BQ24190_REG_SS_CHRG_STAT_MASK;
->         const u8 battery_mask_f = BQ24190_REG_F_BAT_FAULT_MASK |
->                 BQ24190_REG_F_NTC_FAULT_MASK;
-> @@ -1167,15 +1168,13 @@ static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
->         u8 ss_reg = 0, f_reg = 0;
->         int i, ret;
+>         u8 v;
+> -       int health, ret;
+> +       int health;
 >
-> -       pm_runtime_get_sync(bdi->dev);
+>         mutex_lock(&bdi->f_reg_lock);
 > -
->         /* We need to read f_reg twice if fault is set to get correct value */
->         i = 0;
->         do {
->                 ret = bq24190_read(bdi, BQ24190_REG_F, &f_reg);
->                 if (ret < 0) {
->                         dev_err(bdi->dev, "Can't read F reg: %d\n", ret);
-> -                       goto out;
-> +                       return;
->                 }
->         } while (f_reg && ++i < 2);
->
-> @@ -1231,11 +1230,18 @@ static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
->         if (alert_battery)
->                 power_supply_changed(bdi->battery);
->
-> -out:
-> -       pm_runtime_put_sync(bdi->dev);
+> -       if (bdi->charger_health_valid) {
+> -               v = bdi->f_reg;
+> -               bdi->charger_health_valid = false;
+> -               mutex_unlock(&bdi->f_reg_lock);
+> -       } else {
+> -               mutex_unlock(&bdi->f_reg_lock);
 > -
->         dev_dbg(bdi->dev, "ss_reg: 0x%02x, f_reg: 0x%02x\n", ss_reg, f_reg);
-> +}
->
-> +static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
-> +{
-> +       struct bq24190_dev_info *bdi = data;
-> +
-> +       bdi->irq_event = true;
-> +       pm_runtime_get_sync(bdi->dev);
-> +       bq24190_check_status(bdi);
-> +       pm_runtime_put_sync(bdi->dev);
-> +       bdi->irq_event = false;
->         return IRQ_HANDLED;
->  }
->
-> @@ -1404,6 +1410,7 @@ static int bq24190_probe(struct i2c_client *client,
->         }
->
->         enable_irq(bdi->irq);
-> +       bdi->initialized = 1;
+> -               ret = bq24190_read(bdi, BQ24190_REG_F, &v);
+> -               if (ret < 0)
+> -                       return ret;
+> -       }
+> +       v = bdi->f_reg;
+> +       mutex_unlock(&bdi->f_reg_lock);
 
-Should initialized be set before enable_irq()?
+bdi->f_reg is the only thing protected by the mutex, and is only ever
+set or read. Is it OK to use an atomic type here?
