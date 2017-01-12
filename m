@@ -1,60 +1,30 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
-Date: Thu, 12 Jan 2017 16:52:28 -0600
-Message-ID: <1c8967b7-d59b-e53d-feeb-80c71464fb94@ti.com>
-References: <20170112213016.19367-1-tony@atomide.com>
- <927792da-2e90-b2ae-1206-8fcb504d7551@ti.com>
- <20170112221933.GM2630@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: am57xx-beagle-x15: implement errata "Ethernet
+ RGMII2 Limited to 10/100 Mbps"
+Date: Thu, 12 Jan 2017 14:53:32 -0800
+Message-ID: <20170112225332.GR2630@atomide.com>
+References: <20170112171429.8106-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170112221933.GM2630-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170112171429.8106-1-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 01/12/2017 04:19 PM, Tony Lindgren wrote:
-> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [170112 13:54]:
->> On 01/12/2017 03:30 PM, Tony Lindgren wrote:
->>
->> Sry, but even if it looks better it might still race with PM runtime :(
->>
->>> -	if (likely(pm_runtime_active(cdd->ddev.dev)))
->>> +	if (likely(atomic_read(&cdd->active)))
->>>  		push_desc_queue(c);
->>>  	else
->>
->>
->> - CPU is here (-EINPROGRESS and active == 0) and then preempted 
->> - PM runtime will finish cppi41_runtime_resume and clean-up pending descs
->> - CPU return here and adds desc to the pending queue
->> - oops
->>
->> Am I wrong?
+* Grygorii Strashko <grygorii.strashko@ti.com> [170112 09:15]:
+> According to errata i880 description the speed of Ethernet port 1 on AM572x
+> SoCs rev 1.1 shuld be limited to 10/100Mbps, because RGMII2 Switching
+> Characteristics are not compatible with 1000 Mbps operation [1].
+> The issue is fixed with Rev 2.0 silicon.
 > 
-> We had cppi41_dma_issue_pending() getting called from atomic contex and
-> cppi41_runtime_resume() getting preempted where cppi41_dma_issue_pending()
-> would add to the queue.
-
-Again, I can be mistaken but cppi41_configure_channel() seems not atomic.
-cppi41_configure_channel()->dma_async_issue_pending()
-+ documentation says "This function can be called in an interrupt context"
-
-And definitely it will be preemptive on RT :(
-
+> Hence, rework Beagle-X15 and Begale-X15-revb1 to use phy-handle instead of
+> phy_id and apply corresponding limitation to the Ethernet Phy 1.
 > 
-> If what you're saying can happen in some cases, then we again see the
-> WARN_ON(!list_empty(&cdd->pending)) in cppi41_runtime_suspend(). At least
-> so far I have no longer been able to make happen today.
+> [1] http://www.ti.com/lit/er/sprz429j/sprz429j.pdf
 
--- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applying into omap-for-v4.11/dt thanks.
+
+Tony
