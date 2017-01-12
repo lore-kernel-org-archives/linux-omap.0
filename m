@@ -1,278 +1,49 @@
-From: Liam Breck <liam@networkimprov.net>
-Subject: Re: [PATCH 1/6] power: bq24190_charger: Call enable_irq() only at the
- end of probe()
-Date: Thu, 12 Jan 2017 14:17:10 -0800
-Message-ID: <CAKvHMgQir+Z5UKXRfXZEdsbfUqsnNU3vMmaw-_eT1a_+_6OXLA@mail.gmail.com>
-References: <20170112004154.31568-1-tony@atomide.com> <20170112004154.31568-2-tony@atomide.com>
- <20170112174435.fotlw2mrif4oubdt@earth> <CAKvHMgRq3r-6dFTXdJcrUD94BvMzq6w8RRQFgodwoBX3uAZUKw@mail.gmail.com>
- <20170112205811.GJ2630@atomide.com> <20170112214051.kx6oaghah5sxtwr3@earth>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
+Date: Thu, 12 Jan 2017 14:19:34 -0800
+Message-ID: <20170112221933.GM2630@atomide.com>
+References: <20170112213016.19367-1-tony@atomide.com>
+ <927792da-2e90-b2ae-1206-8fcb504d7551@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a114398ba2f35990545ed1469
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170112214051.kx6oaghah5sxtwr3@earth>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Liam Breck <kernel@networkimprov.net>, Matt Ranostay <matt@ranostay.consulting>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <927792da-2e90-b2ae-1206-8fcb504d7551-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---001a114398ba2f35990545ed1469
-Content-Type: text/plain; charset=UTF-8
-
-On Thu, Jan 12, 2017 at 1:40 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> Hi,
+* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [170112 13:54]:
+> On 01/12/2017 03:30 PM, Tony Lindgren wrote:
 >
-> On Thu, Jan 12, 2017 at 12:58:11PM -0800, Tony Lindgren wrote:
->> * Liam Breck <liam@networkimprov.net> [170112 12:25]:
->> > On Thu, Jan 12, 2017 at 9:44 AM, Sebastian Reichel <sre@kernel.org> wrote:
->> > > On Wed, Jan 11, 2017 at 04:41:49PM -0800, Tony Lindgren wrote:
->> > >> From: Liam Breck <kernel@networkimprov.net>
->> > >>
->> > >> The device specific data is not fully initialized after
->> > >> request_threaded_irq().
->> > >>
->> > >> This causes problems when the IRQ handler tries to reference them.
->> > >> Fix the issue by enabling IRQ only at the end of the probe.
->> > >>
->> > >> Fixes: d7bf353fd0aa3 ("bq24190_charger: Add support for TI BQ24190
->> > >> Battery Charger")
->> > >> Cc: Mark A. Greer <mgreer@animalcreek.com>
->> > >> Cc: Matt Ranostay <matt@ranostay.consulting>
->> > >> Signed-off-by: Liam Breck <kernel@networkimprov.net>
->> > >> [tony@atomide.com: cleaned up patch description a bit]
->> > >> Signed-off-by: Tony Lindgren <tony@atomide.com>
->> > >> ---
->> > >>  drivers/power/supply/bq24190_charger.c | 3 +++
->> > >>  1 file changed, 3 insertions(+)
->> > >>
->> > >> diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
->> > >> --- a/drivers/power/supply/bq24190_charger.c
->> > >> +++ b/drivers/power/supply/bq24190_charger.c
->> > >> @@ -1392,6 +1392,7 @@ static int bq24190_probe(struct i2c_client *client,
->> > >>               return -EINVAL;
->> > >>       }
->> > >>
->> > >> +     irq_set_status_flags(bdi->irq, IRQ_NOAUTOEN);
->> > >>       ret = devm_request_threaded_irq(dev, bdi->irq, NULL,
->> > >>                       bq24190_irq_handler_thread,
->> > >>                       IRQF_TRIGGER_RISING | IRQF_ONESHOT,
->> > >> @@ -1436,6 +1437,8 @@ static int bq24190_probe(struct i2c_client *client,
->> > >>               goto out4;
->> > >>       }
->> > >>
->> > >> +     enable_irq(bdi->irq);
->> > >> +
->> > >>       return 0;
->> > >>
->> > >>  out4:
->> > >
->> > > Can't you just move the irq request towards the end of the probe?
->> > > That way it will also be released before the power-supply structure
->> > > is released.
->> >
->> > I did that in a first draft I showed Tony. He suggested this way.
->> > Tony, rationale?
->>
->> Both will work for me just fine as long as done in a single patch
->> with no other changes.
->>
->> The first option is less changes if needed as a fix, up to Sebastian
->> depending on what he prefers.
->
-> Then please send the variant, which moves the block in the v2
-> patchset, since it behaves correctly during driver removal and
-> results in less lines of code.
+> Sry, but even if it looks better it might still race with PM runtime :(
+> 
+> > -	if (likely(pm_runtime_active(cdd->ddev.dev)))
+> > +	if (likely(atomic_read(&cdd->active)))
+> >  		push_desc_queue(c);
+> >  	else
+> 
+> 
+> - CPU is here (-EINPROGRESS and active == 0) and then preempted 
+> - PM runtime will finish cppi41_runtime_resume and clean-up pending descs
+> - CPU return here and adds desc to the pending queue
+> - oops
+> 
+> Am I wrong?
 
-OK.
+We had cppi41_dma_issue_pending() getting called from atomic contex and
+cppi41_runtime_resume() getting preempted where cppi41_dma_issue_pending()
+would add to the queue.
 
->> > diff --git a/drivers/power/bq24190_charger.c b/drivers/power/bq24190_charger.c
->
-> Also make sure, that you base your patches on power-supply's
-> for-next branch. Your base is way too *old*, since the driver
-> lives in drivers/power/supply/bq24190_charger.c nowadays.
+If what you're saying can happen in some cases, then we again see the
+WARN_ON(!list_empty(&cdd->pending)) in cppi41_runtime_suspend(). At least
+so far I have no longer been able to make happen today.
 
-Yep, that was from an old branch.
+Regards,
 
-Any other feedback on patches 1-4 in this set?
-Note #4 will become the following two patches:
-
---001a114398ba2f35990545ed1469
-Content-Type: text/plain; charset=US-ASCII; name="temp-paste.txt"
-Content-Disposition: attachment; filename="temp-paste.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ixuwzv8t1
-
-RnJvbSBlYTE1ZWZhZTZlY2ZhNTA0NWE5NWI0MTU4YTQ1YTA1NTQ0ZGNjMjU5IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQ0KRnJvbTogTGlhbSA8Z2l0aHViQG5ldHdvcmtpbXByb3YubmV0Pg0KRGF0
-ZTogV2VkLCAxMSBKYW4gMjAxNyAyMzoyMDoxNCAtMDgwMA0KU3ViamVjdDogW1BBVENIIDEvMl0g
-cG93ZXI6IGJxMjQxOTBfY2hhcmdlcjogRG9uJ3QgcmVhZCBmYXVsdCByZWdpc3RlciBvdXRzaWRl
-DQogaXJxX2hhbmRsZV90aHJlYWQoKQ0KDQpDYWNoaW5nIHRoZSBmYXVsdCByZWdpc3RlciBhZnRl
-ciBhIHNpbmdsZSBJMkMgcmVhZCBtYXkgbm90IGtlZXAgYW4gYWNjdXJhdGUNCnZhbHVlLg0KDQpG
-aXggYnkgZG9pbmcgdHdvIHJlYWRzIGluIGlycV9oYW5kbGVfdGhyZWFkKCkgYW5kIHVzaW5nIHRo
-ZSBjYWNoZWQgdmFsdWUNCmVsc2V3aGVyZS4gSWYgYSBzYWZldHkgdGltZXIgZmF1bHQgbGF0ZXIg
-Y2xlYXJzIGl0c2VsZiwgd2UgYXBwYXJlbnRseSBkb24ndCBnZXQNCmFuIGludGVycnVwdCAoSU5U
-KSwgaG93ZXZlciBvdGhlciBpbnRlcnJ1cHRzIHdvdWxkIHJlZnJlc2ggdGhlIHJlZ2lzdGVyIGNh
-Y2hlLg0KDQpGcm9tIHRoZSBtYW51YWw6ICJXaGVuIGEgZmF1bHQgb2NjdXJzLCB0aGUgY2hhcmdl
-ciBkZXZpY2Ugc2VuZHMgb3V0IElOVA0KIGFuZCBrZWVwcyB0aGUgZmF1bHQgc3RhdGUgaW4gUkVH
-MDkgdW50aWwgdGhlIGhvc3QgcmVhZHMgdGhlIGZhdWx0IHJlZ2lzdGVyLg0KIEJlZm9yZSB0aGUg
-aG9zdCByZWFkcyBSRUcwOSBhbmQgYWxsIHRoZSBmYXVsdHMgYXJlIGNsZWFyZWQsIHRoZSBjaGFy
-Z2VyDQogZGV2aWNlIHdvdWxkIG5vdCBzZW5kIGFueSBJTlQgdXBvbiBuZXcgZmF1bHRzLiBJbiBv
-cmRlciB0byByZWFkIHRoZQ0KIGN1cnJlbnQgZmF1bHQgc3RhdHVzLCB0aGUgaG9zdCBoYXMgdG8g
-cmVhZCBSRUcwOSB0d28gdGltZXMgY29uc2VjdXRpdmVseS4NCiBUaGUgMXN0IHJlYWRzIGZhdWx0
-IHJlZ2lzdGVyIHN0YXR1cyBmcm9tIHRoZSBsYXN0IHJlYWQgWzFdIGFuZCB0aGUgMm5kIHJlYWRz
-DQogdGhlIGN1cnJlbnQgZmF1bHQgcmVnaXN0ZXIgc3RhdHVzLiINCg0KWzFdIHByZXN1bWFibHkg
-YSB0eXBvOyBzaG91bGQgYmUgImxhc3QgZmF1bHQiDQoNCkZpeGVzOiBkN2JmMzUzZmQwYWEzICgi
-YnEyNDE5MF9jaGFyZ2VyOiBBZGQgc3VwcG9ydCBmb3IgVEkgQlEyNDE5MCBCYXR0ZXJ5IENoYXJn
-ZXIiKQ0KQ2M6IE1hcmsgQS4gR3JlZXIgPG1ncmVlckBhbmltYWxjcmVlay5jb20+DQpDYzogVG9u
-eSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NCkNjOiBNYXR0IFJhbm9zdGF5IDxtYXR0QHJh
-bm9zdGF5LmNvbnN1bHRpbmc+DQpTaWduZWQtb2ZmLWJ5OiBMaWFtIEJyZWNrIDxrZXJuZWxAbmV0
-d29ya2ltcHJvdi5uZXQ+DQotLS0NCiBkcml2ZXJzL3Bvd2VyL3N1cHBseS9icTI0MTkwX2NoYXJn
-ZXIuYyB8IDkzICsrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCiAxIGZpbGUgY2hh
-bmdlZCwgMjYgaW5zZXJ0aW9ucygrKSwgNjcgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9k
-cml2ZXJzL3Bvd2VyL3N1cHBseS9icTI0MTkwX2NoYXJnZXIuYyBiL2RyaXZlcnMvcG93ZXIvc3Vw
-cGx5L2JxMjQxOTBfY2hhcmdlci5jDQppbmRleCBiYTVhNWIyLi5hMzY3ODhjIDEwMDY0NA0KLS0t
-IGEvZHJpdmVycy9wb3dlci9zdXBwbHkvYnEyNDE5MF9jaGFyZ2VyLmMNCisrKyBiL2RyaXZlcnMv
-cG93ZXIvc3VwcGx5L2JxMjQxOTBfY2hhcmdlci5jDQpAQCAtMTQ0LDEwICsxNDQsNyBAQA0KICAq
-IHNvIHRoZSBmaXJzdCByZWFkIGFmdGVyIGEgZmF1bHQgcmV0dXJucyB0aGUgbGF0Y2hlZCB2YWx1
-ZSBhbmQgc3Vic2VxdWVudA0KICAqIHJlYWRzIHJldHVybiB0aGUgY3VycmVudCB2YWx1ZS4gIElu
-IG9yZGVyIHRvIHJldHVybiB0aGUgZmF1bHQgc3RhdHVzDQogICogdG8gdGhlIHVzZXIsIGhhdmUg
-dGhlIGludGVycnVwdCBoYW5kbGVyIHNhdmUgdGhlIHJlZydzIHZhbHVlIGFuZCByZXRyaWV2ZQ0K
-LSAqIGl0IGluIHRoZSBhcHByb3ByaWF0ZSBoZWFsdGgvc3RhdHVzIHJvdXRpbmUuICBFYWNoIHJv
-dXRpbmUgaGFzIGl0cyBvd24NCi0gKiBmbGFnIGluZGljYXRpbmcgd2hldGhlciBpdCBzaG91bGQg
-dXNlIHRoZSB2YWx1ZSBzdG9yZWQgYnkgdGhlIGxhc3QgcnVuDQotICogb2YgdGhlIGludGVycnVw
-dCBoYW5kbGVyIG9yIGRvIGFuIGFjdHVhbCByZWcgcmVhZC4gIFRoYXQgd2F5IGVhY2ggcm91dGlu
-ZQ0KLSAqIGNhbiByZXBvcnQgYmFjayB3aGF0ZXZlciBmYXVsdCBtYXkgaGF2ZSBvY2N1cmVkLg0K
-KyAqIGl0IGluIHRoZSBhcHByb3ByaWF0ZSBoZWFsdGgvc3RhdHVzIHJvdXRpbmUuDQogICovDQog
-c3RydWN0IGJxMjQxOTBfZGV2X2luZm8gew0KIAlzdHJ1Y3QgaTJjX2NsaWVudAkJKmNsaWVudDsN
-CkBAIC0xNTksOSArMTU2LDYgQEAgc3RydWN0IGJxMjQxOTBfZGV2X2luZm8gew0KIAl1bnNpZ25l
-ZCBpbnQJCQlncGlvX2ludDsNCiAJdW5zaWduZWQgaW50CQkJaXJxOw0KIAlzdHJ1Y3QgbXV0ZXgJ
-CQlmX3JlZ19sb2NrOw0KLQlib29sCQkJCWNoYXJnZXJfaGVhbHRoX3ZhbGlkOw0KLQlib29sCQkJ
-CWJhdHRlcnlfaGVhbHRoX3ZhbGlkOw0KLQlib29sCQkJCWJhdHRlcnlfc3RhdHVzX3ZhbGlkOw0K
-IAl1OAkJCQlmX3JlZzsNCiAJdTgJCQkJc3NfcmVnOw0KIAl1OAkJCQl3YXRjaGRvZzsNCkBAIC02
-MzUsMjEgKzYyOSwxMSBAQCBzdGF0aWMgaW50IGJxMjQxOTBfY2hhcmdlcl9nZXRfaGVhbHRoKHN0
-cnVjdCBicTI0MTkwX2Rldl9pbmZvICpiZGksDQogCQl1bmlvbiBwb3dlcl9zdXBwbHlfcHJvcHZh
-bCAqdmFsKQ0KIHsNCiAJdTggdjsNCi0JaW50IGhlYWx0aCwgcmV0Ow0KKwlpbnQgaGVhbHRoOw0K
-IA0KIAltdXRleF9sb2NrKCZiZGktPmZfcmVnX2xvY2spOw0KLQ0KLQlpZiAoYmRpLT5jaGFyZ2Vy
-X2hlYWx0aF92YWxpZCkgew0KLQkJdiA9IGJkaS0+Zl9yZWc7DQotCQliZGktPmNoYXJnZXJfaGVh
-bHRoX3ZhbGlkID0gZmFsc2U7DQotCQltdXRleF91bmxvY2soJmJkaS0+Zl9yZWdfbG9jayk7DQot
-CX0gZWxzZSB7DQotCQltdXRleF91bmxvY2soJmJkaS0+Zl9yZWdfbG9jayk7DQotDQotCQlyZXQg
-PSBicTI0MTkwX3JlYWQoYmRpLCBCUTI0MTkwX1JFR19GLCAmdik7DQotCQlpZiAocmV0IDwgMCkN
-Ci0JCQlyZXR1cm4gcmV0Ow0KLQl9DQorCXYgPSBiZGktPmZfcmVnOw0KKwltdXRleF91bmxvY2so
-JmJkaS0+Zl9yZWdfbG9jayk7DQogDQogCWlmICh2ICYgQlEyNDE5MF9SRUdfRl9CT09TVF9GQVVM
-VF9NQVNLKSB7DQogCQkvKg0KQEAgLTkzNiwxOCArOTIwLDggQEAgc3RhdGljIGludCBicTI0MTkw
-X2JhdHRlcnlfZ2V0X3N0YXR1cyhzdHJ1Y3QgYnEyNDE5MF9kZXZfaW5mbyAqYmRpLA0KIAlpbnQg
-c3RhdHVzLCByZXQ7DQogDQogCW11dGV4X2xvY2soJmJkaS0+Zl9yZWdfbG9jayk7DQotDQotCWlm
-IChiZGktPmJhdHRlcnlfc3RhdHVzX3ZhbGlkKSB7DQotCQljaHJnX2ZhdWx0ID0gYmRpLT5mX3Jl
-ZzsNCi0JCWJkaS0+YmF0dGVyeV9zdGF0dXNfdmFsaWQgPSBmYWxzZTsNCi0JCW11dGV4X3VubG9j
-aygmYmRpLT5mX3JlZ19sb2NrKTsNCi0JfSBlbHNlIHsNCi0JCW11dGV4X3VubG9jaygmYmRpLT5m
-X3JlZ19sb2NrKTsNCi0NCi0JCXJldCA9IGJxMjQxOTBfcmVhZChiZGksIEJRMjQxOTBfUkVHX0Ys
-ICZjaHJnX2ZhdWx0KTsNCi0JCWlmIChyZXQgPCAwKQ0KLQkJCXJldHVybiByZXQ7DQotCX0NCisJ
-Y2hyZ19mYXVsdCA9IGJkaS0+Zl9yZWc7DQorCW11dGV4X3VubG9jaygmYmRpLT5mX3JlZ19sb2Nr
-KTsNCiANCiAJY2hyZ19mYXVsdCAmPSBCUTI0MTkwX1JFR19GX0NIUkdfRkFVTFRfTUFTSzsNCiAJ
-Y2hyZ19mYXVsdCA+Pj0gQlEyNDE5MF9SRUdfRl9DSFJHX0ZBVUxUX1NISUZUOw0KQEAgLTk5NSwy
-MSArOTY5LDExIEBAIHN0YXRpYyBpbnQgYnEyNDE5MF9iYXR0ZXJ5X2dldF9oZWFsdGgoc3RydWN0
-IGJxMjQxOTBfZGV2X2luZm8gKmJkaSwNCiAJCXVuaW9uIHBvd2VyX3N1cHBseV9wcm9wdmFsICp2
-YWwpDQogew0KIAl1OCB2Ow0KLQlpbnQgaGVhbHRoLCByZXQ7DQorCWludCBoZWFsdGg7DQogDQog
-CW11dGV4X2xvY2soJmJkaS0+Zl9yZWdfbG9jayk7DQotDQotCWlmIChiZGktPmJhdHRlcnlfaGVh
-bHRoX3ZhbGlkKSB7DQotCQl2ID0gYmRpLT5mX3JlZzsNCi0JCWJkaS0+YmF0dGVyeV9oZWFsdGhf
-dmFsaWQgPSBmYWxzZTsNCi0JCW11dGV4X3VubG9jaygmYmRpLT5mX3JlZ19sb2NrKTsNCi0JfSBl
-bHNlIHsNCi0JCW11dGV4X3VubG9jaygmYmRpLT5mX3JlZ19sb2NrKTsNCi0NCi0JCXJldCA9IGJx
-MjQxOTBfcmVhZChiZGksIEJRMjQxOTBfUkVHX0YsICZ2KTsNCi0JCWlmIChyZXQgPCAwKQ0KLQkJ
-CXJldHVybiByZXQ7DQotCX0NCisJdiA9IGJkaS0+Zl9yZWc7DQorCW11dGV4X3VubG9jaygmYmRp
-LT5mX3JlZ19sb2NrKTsNCiANCiAJaWYgKHYgJiBCUTI0MTkwX1JFR19GX0JBVF9GQVVMVF9NQVNL
-KSB7DQogCQloZWFsdGggPSBQT1dFUl9TVVBQTFlfSEVBTFRIX09WRVJWT0xUQUdFOw0KQEAgLTEy
-MDEsNyArMTE2NSw3IEBAIHN0YXRpYyBpcnFyZXR1cm5fdCBicTI0MTkwX2lycV9oYW5kbGVyX3Ro
-cmVhZChpbnQgaXJxLCB2b2lkICpkYXRhKQ0KIAkJCQl8IEJRMjQxOTBfUkVHX0ZfTlRDX0ZBVUxU
-X01BU0s7DQogCWJvb2wgYWxlcnRfY2hhcmdlciA9IGZhbHNlLCBhbGVydF9iYXR0ZXJ5ID0gZmFs
-c2U7DQogCXU4IHNzX3JlZyA9IDAsIGZfcmVnID0gMDsNCi0JaW50IHJldDsNCisJaW50IGksIHJl
-dDsNCiANCiAJcG1fcnVudGltZV9nZXRfc3luYyhiZGktPmRldik7DQogDQpAQCAtMTIzMSwzMyAr
-MTE5NSwzNCBAQCBzdGF0aWMgaXJxcmV0dXJuX3QgYnEyNDE5MF9pcnFfaGFuZGxlcl90aHJlYWQo
-aW50IGlycSwgdm9pZCAqZGF0YSkNCiAJCQlhbGVydF9iYXR0ZXJ5ID0gdHJ1ZTsNCiAJCWlmICgo
-YmRpLT5zc19yZWcgJiB+YmF0dGVyeV9tYXNrX3NzKSAhPSAoc3NfcmVnICYgfmJhdHRlcnlfbWFz
-a19zcykpDQogCQkJYWxlcnRfY2hhcmdlciA9IHRydWU7DQotDQogCQliZGktPnNzX3JlZyA9IHNz
-X3JlZzsNCiAJfQ0KIA0KLQltdXRleF9sb2NrKCZiZGktPmZfcmVnX2xvY2spOw0KLQ0KLQlyZXQg
-PSBicTI0MTkwX3JlYWQoYmRpLCBCUTI0MTkwX1JFR19GLCAmZl9yZWcpOw0KLQlpZiAocmV0IDwg
-MCkgew0KLQkJbXV0ZXhfdW5sb2NrKCZiZGktPmZfcmVnX2xvY2spOw0KLQkJZGV2X2VycihiZGkt
-PmRldiwgIkNhbid0IHJlYWQgRiByZWc6ICVkXG4iLCByZXQpOw0KLQkJZ290byBvdXQ7DQotCX0N
-CisJaSA9IDA7DQorCWRvIHsNCisJCXJldCA9IGJxMjQxOTBfcmVhZChiZGksIEJRMjQxOTBfUkVH
-X0YsICZmX3JlZyk7DQorCQlpZiAocmV0IDwgMCkgew0KKwkJCWRldl9lcnIoYmRpLT5kZXYsICJD
-YW4ndCByZWFkIEYgcmVnOiAlZFxuIiwgcmV0KTsNCisJCQlnb3RvIG91dDsNCisJCX0NCisJfSB3
-aGlsZSAoZl9yZWcgJiYgKytpIDwgMik7DQogDQogCWlmIChmX3JlZyAhPSBiZGktPmZfcmVnKSB7
-DQorCQlkZXZfaW5mbyhiZGktPmRldiwgIkZhdWx0OiBib29zdCAlZCwgY2hhcmdlICVkLCBiYXR0
-ZXJ5ICVkLCBudGMgJWRcbiIsDQorCQkJISEoZl9yZWcgJiBCUTI0MTkwX1JFR19GX0JPT1NUX0ZB
-VUxUX01BU0spLA0KKwkJCSEhKGZfcmVnICYgQlEyNDE5MF9SRUdfRl9DSFJHX0ZBVUxUX01BU0sp
-LA0KKwkJCSEhKGZfcmVnICYgQlEyNDE5MF9SRUdfRl9CQVRfRkFVTFRfTUFTSyksDQorCQkJISEo
-Zl9yZWcgJiBCUTI0MTkwX1JFR19GX05UQ19GQVVMVF9NQVNLKSk7DQorCQkNCisJCW11dGV4X2xv
-Y2soJmJkaS0+Zl9yZWdfbG9jayk7DQogCQlpZiAoKGJkaS0+Zl9yZWcgJiBiYXR0ZXJ5X21hc2tf
-ZikgIT0gKGZfcmVnICYgYmF0dGVyeV9tYXNrX2YpKQ0KIAkJCWFsZXJ0X2JhdHRlcnkgPSB0cnVl
-Ow0KIAkJaWYgKChiZGktPmZfcmVnICYgfmJhdHRlcnlfbWFza19mKSAhPSAoZl9yZWcgJiB+YmF0
-dGVyeV9tYXNrX2YpKQ0KIAkJCWFsZXJ0X2NoYXJnZXIgPSB0cnVlOw0KLQ0KIAkJYmRpLT5mX3Jl
-ZyA9IGZfcmVnOw0KLQkJYmRpLT5jaGFyZ2VyX2hlYWx0aF92YWxpZCA9IHRydWU7DQotCQliZGkt
-PmJhdHRlcnlfaGVhbHRoX3ZhbGlkID0gdHJ1ZTsNCi0JCWJkaS0+YmF0dGVyeV9zdGF0dXNfdmFs
-aWQgPSB0cnVlOw0KKwkJbXV0ZXhfdW5sb2NrKCZiZGktPmZfcmVnX2xvY2spOw0KIAl9DQogDQot
-CW11dGV4X3VubG9jaygmYmRpLT5mX3JlZ19sb2NrKTsNCi0NCiAJaWYgKGFsZXJ0X2NoYXJnZXIp
-DQogCQlwb3dlcl9zdXBwbHlfY2hhbmdlZChiZGktPmNoYXJnZXIpOw0KIAlpZiAoYWxlcnRfYmF0
-dGVyeSkNCkBAIC0xMzc3LDkgKzEzNDIsNiBAQCBzdGF0aWMgaW50IGJxMjQxOTBfcHJvYmUoc3Ry
-dWN0IGkyY19jbGllbnQgKmNsaWVudCwNCiAJbXV0ZXhfaW5pdCgmYmRpLT5mX3JlZ19sb2NrKTsN
-CiAJYmRpLT5mX3JlZyA9IDA7DQogCWJkaS0+c3NfcmVnID0gQlEyNDE5MF9SRUdfU1NfVkJVU19T
-VEFUX01BU0s7DQotCWJkaS0+Y2hhcmdlcl9oZWFsdGhfdmFsaWQgPSBmYWxzZTsNCi0JYmRpLT5i
-YXR0ZXJ5X2hlYWx0aF92YWxpZCA9IGZhbHNlOw0KLQliZGktPmJhdHRlcnlfc3RhdHVzX3ZhbGlk
-ID0gZmFsc2U7DQogDQogCWkyY19zZXRfY2xpZW50ZGF0YShjbGllbnQsIGJkaSk7DQogDQpAQCAt
-MTQ5NCw5ICsxNDU2LDYgQEAgc3RhdGljIGludCBicTI0MTkwX3BtX3Jlc3VtZShzdHJ1Y3QgZGV2
-aWNlICpkZXYpDQogDQogCWJkaS0+Zl9yZWcgPSAwOw0KIAliZGktPnNzX3JlZyA9IEJRMjQxOTBf
-UkVHX1NTX1ZCVVNfU1RBVF9NQVNLOw0KLQliZGktPmNoYXJnZXJfaGVhbHRoX3ZhbGlkID0gZmFs
-c2U7DQotCWJkaS0+YmF0dGVyeV9oZWFsdGhfdmFsaWQgPSBmYWxzZTsNCi0JYmRpLT5iYXR0ZXJ5
-X3N0YXR1c192YWxpZCA9IGZhbHNlOw0KIA0KIAlwbV9ydW50aW1lX2dldF9zeW5jKGJkaS0+ZGV2
-KTsNCiAJYnEyNDE5MF9yZWdpc3Rlcl9yZXNldChiZGkpOw0KDQpGcm9tIGM2NWU3N2ViNGE4ZDYx
-ZDRlY2VkOGZhZDYxMzA1ZGQ3NGFlNDI1NTcgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxDQpGcm9t
-OiBMaWFtIDxnaXRodWJAbmV0d29ya2ltcHJvdi5uZXQ+DQpEYXRlOiBXZWQsIDExIEphbiAyMDE3
-IDIzOjM4OjIxIC0wODAwDQpTdWJqZWN0OiBbUEFUQ0ggMi8yXSBwb3dlcjogYnEyNDE5MF9jaGFy
-Z2VyOiBIYW5kbGUgZmF1bHQgYmVmb3JlIHN0YXR1cyBvbg0KIGludGVycnVwdA0KDQpSZWFkaW5n
-IGJvdGggZmF1bHQgYW5kIHN0YXR1cyByZWdpc3RlcnMgYW5kIGxvZ2dpbmcgYW55IGZhdWx0IHNo
-b3VsZA0KdGFrZSBwcmlvcml0eSBvdmVyIGhhbmRsaW5nIHN0YXR1cyByZWdpc3RlciB1cGRhdGUu
-DQoNCkZpeCBieSBtb3ZpbmcgdGhlIGZhdWx0IGhhbmRsaW5nIHRvIGVhcmxpZXIgaW4gaW50ZXJy
-dXB0IHJvdXRpbmUuDQoNCkZpeGVzOiBkN2JmMzUzZmQwYWEzICgiYnEyNDE5MF9jaGFyZ2VyOiBB
-ZGQgc3VwcG9ydCBmb3IgVEkgQlEyNDE5MCBCYXR0ZXJ5IENoYXJnZXIiKQ0KQ2M6IE1hcmsgQS4g
-R3JlZXIgPG1ncmVlckBhbmltYWxjcmVlay5jb20+DQpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBh
-dG9taWRlLmNvbT4NCkNjOiBNYXR0IFJhbm9zdGF5IDxtYXR0QHJhbm9zdGF5LmNvbnN1bHRpbmc+
-DQpTaWduZWQtb2ZmLWJ5OiBMaWFtIEJyZWNrIDxrZXJuZWxAbmV0d29ya2ltcHJvdi5uZXQ+DQot
-LS0NCiBkcml2ZXJzL3Bvd2VyL3N1cHBseS9icTI0MTkwX2NoYXJnZXIuYyB8IDQ2ICsrKysrKysr
-KysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0NCiAxIGZpbGUgY2hhbmdlZCwgMjMgaW5zZXJ0aW9u
-cygrKSwgMjMgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL3Bvd2VyL3N1cHBs
-eS9icTI0MTkwX2NoYXJnZXIuYyBiL2RyaXZlcnMvcG93ZXIvc3VwcGx5L2JxMjQxOTBfY2hhcmdl
-ci5jDQppbmRleCBhMzY3ODhjLi4xY2I3ZDE0IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9wb3dlci9z
-dXBwbHkvYnEyNDE5MF9jaGFyZ2VyLmMNCisrKyBiL2RyaXZlcnMvcG93ZXIvc3VwcGx5L2JxMjQx
-OTBfY2hhcmdlci5jDQpAQCAtMTE3NSwyOSArMTE3NSw2IEBAIHN0YXRpYyBpcnFyZXR1cm5fdCBi
-cTI0MTkwX2lycV9oYW5kbGVyX3RocmVhZChpbnQgaXJxLCB2b2lkICpkYXRhKQ0KIAkJZ290byBv
-dXQ7DQogCX0NCiANCi0JaWYgKHNzX3JlZyAhPSBiZGktPnNzX3JlZykgew0KLQkJLyoNCi0JCSAq
-IFRoZSBkZXZpY2UgaXMgaW4gaG9zdCBtb2RlIHNvIHdoZW4gUEdfU1RBVCBnb2VzIGZyb20gMS0+
-MA0KLQkJICogKGkuZS4sIHBvd2VyIHJlbW92ZWQpIEhJWiBuZWVkcyB0byBiZSBkaXNhYmxlZC4N
-Ci0JCSAqLw0KLQkJaWYgKChiZGktPnNzX3JlZyAmIEJRMjQxOTBfUkVHX1NTX1BHX1NUQVRfTUFT
-SykgJiYNCi0JCQkJIShzc19yZWcgJiBCUTI0MTkwX1JFR19TU19QR19TVEFUX01BU0spKSB7DQot
-CQkJcmV0ID0gYnEyNDE5MF93cml0ZV9tYXNrKGJkaSwgQlEyNDE5MF9SRUdfSVNDLA0KLQkJCQkJ
-QlEyNDE5MF9SRUdfSVNDX0VOX0hJWl9NQVNLLA0KLQkJCQkJQlEyNDE5MF9SRUdfSVNDX0VOX0hJ
-Wl9TSElGVCwNCi0JCQkJCTApOw0KLQkJCWlmIChyZXQgPCAwKQ0KLQkJCQlkZXZfZXJyKGJkaS0+
-ZGV2LCAiQ2FuJ3QgYWNjZXNzIElTQyByZWc6ICVkXG4iLA0KLQkJCQkJcmV0KTsNCi0JCX0NCi0N
-Ci0JCWlmICgoYmRpLT5zc19yZWcgJiBiYXR0ZXJ5X21hc2tfc3MpICE9IChzc19yZWcgJiBiYXR0
-ZXJ5X21hc2tfc3MpKQ0KLQkJCWFsZXJ0X2JhdHRlcnkgPSB0cnVlOw0KLQkJaWYgKChiZGktPnNz
-X3JlZyAmIH5iYXR0ZXJ5X21hc2tfc3MpICE9IChzc19yZWcgJiB+YmF0dGVyeV9tYXNrX3NzKSkN
-Ci0JCQlhbGVydF9jaGFyZ2VyID0gdHJ1ZTsNCi0JCWJkaS0+c3NfcmVnID0gc3NfcmVnOw0KLQl9
-DQotDQogCWkgPSAwOw0KIAlkbyB7DQogCQlyZXQgPSBicTI0MTkwX3JlYWQoYmRpLCBCUTI0MTkw
-X1JFR19GLCAmZl9yZWcpOw0KQEAgLTEyMjMsNiArMTIwMCwyOSBAQCBzdGF0aWMgaXJxcmV0dXJu
-X3QgYnEyNDE5MF9pcnFfaGFuZGxlcl90aHJlYWQoaW50IGlycSwgdm9pZCAqZGF0YSkNCiAJCW11
-dGV4X3VubG9jaygmYmRpLT5mX3JlZ19sb2NrKTsNCiAJfQ0KIA0KKwlpZiAoc3NfcmVnICE9IGJk
-aS0+c3NfcmVnKSB7DQorCQkvKg0KKwkJICogVGhlIGRldmljZSBpcyBpbiBob3N0IG1vZGUgc28g
-d2hlbiBQR19TVEFUIGdvZXMgZnJvbSAxLT4wDQorCQkgKiAoaS5lLiwgcG93ZXIgcmVtb3ZlZCkg
-SElaIG5lZWRzIHRvIGJlIGRpc2FibGVkLg0KKwkJICovDQorCQlpZiAoKGJkaS0+c3NfcmVnICYg
-QlEyNDE5MF9SRUdfU1NfUEdfU1RBVF9NQVNLKSAmJg0KKwkJCQkhKHNzX3JlZyAmIEJRMjQxOTBf
-UkVHX1NTX1BHX1NUQVRfTUFTSykpIHsNCisJCQlyZXQgPSBicTI0MTkwX3dyaXRlX21hc2soYmRp
-LCBCUTI0MTkwX1JFR19JU0MsDQorCQkJCQlCUTI0MTkwX1JFR19JU0NfRU5fSElaX01BU0ssDQor
-CQkJCQlCUTI0MTkwX1JFR19JU0NfRU5fSElaX1NISUZULA0KKwkJCQkJMCk7DQorCQkJaWYgKHJl
-dCA8IDApDQorCQkJCWRldl9lcnIoYmRpLT5kZXYsICJDYW4ndCBhY2Nlc3MgSVNDIHJlZzogJWRc
-biIsDQorCQkJCQlyZXQpOw0KKwkJfQ0KKw0KKwkJaWYgKChiZGktPnNzX3JlZyAmIGJhdHRlcnlf
-bWFza19zcykgIT0gKHNzX3JlZyAmIGJhdHRlcnlfbWFza19zcykpDQorCQkJYWxlcnRfYmF0dGVy
-eSA9IHRydWU7DQorCQlpZiAoKGJkaS0+c3NfcmVnICYgfmJhdHRlcnlfbWFza19zcykgIT0gKHNz
-X3JlZyAmIH5iYXR0ZXJ5X21hc2tfc3MpKQ0KKwkJCWFsZXJ0X2NoYXJnZXIgPSB0cnVlOw0KKwkJ
-YmRpLT5zc19yZWcgPSBzc19yZWc7DQorCX0NCisNCiAJaWYgKGFsZXJ0X2NoYXJnZXIpDQogCQlw
-b3dlcl9zdXBwbHlfY2hhbmdlZChiZGktPmNoYXJnZXIpOw0KIAlpZiAoYWxlcnRfYmF0dGVyeSkN
-Cg==
---001a114398ba2f35990545ed1469--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
