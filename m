@@ -1,53 +1,159 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/6] power: bq24190_charger: Call enable_irq() only at the end of probe()
-Date: Wed, 11 Jan 2017 16:41:49 -0800
-Message-ID: <20170112004154.31568-2-tony@atomide.com>
+Subject: [PATCH 5/6] power: bq24190_charger: Check the interrupt status on resume
+Date: Wed, 11 Jan 2017 16:41:53 -0800
+Message-ID: <20170112004154.31568-6-tony@atomide.com>
 References: <20170112004154.31568-1-tony@atomide.com>
 Return-path: <linux-pm-owner@vger.kernel.org>
 In-Reply-To: <20170112004154.31568-1-tony@atomide.com>
 Sender: linux-pm-owner@vger.kernel.org
 To: Sebastian Reichel <sre@kernel.org>
-Cc: "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Liam Breck <kernel@networkimprov.net>, Matt Ranostay <matt@ranostay.consulting>
+Cc: "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Matt Ranostay <matt@ranostay.consulting>, Liam Breck <kernel@networkimprov.net>
 List-Id: linux-omap@vger.kernel.org
 
-From: Liam Breck <kernel@networkimprov.net>
+Some SoCs like omap3 can configure GPIO irqs to use Linux generic
+dedicated wakeirq support. If the dedicated wakeirq is configured,
+the SoC will use a always-on interrupt controller to produce wake-up
+events.
 
-The device specific data is not fully initialized after
-request_threaded_irq().
+If bq24190 is configured for dedicated wakeirq, we need to check the
+interrupt status on PM runtime resume. This is because the Linux
+generic wakeirq will call pm_runtime_resume() on the device on a
+wakeirq. And as the bq24190 interrupt is falling edge sensitive
+and only active for 250 us, there will be no device interrupt seen
+by the runtime SoC IRQ controller.
 
-This causes problems when the IRQ handler tries to reference them.
-Fix the issue by enabling IRQ only at the end of the probe.
+Note that this can cause spurious interrupts on omap3 devices with
+bq24190 connected to gpio banks 2 - 5 as there's a glitch on those
+pins waking from off mode as listed in "Advisory 1.45". Devices
+with this issue should not configure the optional wakeirq interrupt
+in the dts file.
 
-Fixes: d7bf353fd0aa3 ("bq24190_charger: Add support for TI BQ24190
-Battery Charger")
 Cc: Mark A. Greer <mgreer@animalcreek.com>
 Cc: Matt Ranostay <matt@ranostay.consulting>
-Signed-off-by: Liam Breck <kernel@networkimprov.net>
-[tony@atomide.com: cleaned up patch description a bit]
+Cc: Liam Breck <kernel@networkimprov.net>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/power/supply/bq24190_charger.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/power/supply/bq24190_charger.c | 58 ++++++++++++++++++++++++++++------
+ 1 file changed, 49 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
 --- a/drivers/power/supply/bq24190_charger.c
 +++ b/drivers/power/supply/bq24190_charger.c
-@@ -1392,6 +1392,7 @@ static int bq24190_probe(struct i2c_client *client,
- 		return -EINVAL;
- 	}
+@@ -156,6 +156,8 @@ struct bq24190_dev_info {
+ 	unsigned int			gpio_int;
+ 	unsigned int			irq;
+ 	struct mutex			f_reg_lock;
++	bool				initialized;
++	bool				irq_event;
+ 	u8				f_reg;
+ 	u8				ss_reg;
+ 	u8				watchdog;
+@@ -1157,9 +1159,8 @@ static const struct power_supply_desc bq24190_battery_desc = {
+ 	.property_is_writeable	= bq24190_battery_property_is_writeable,
+ };
  
-+	irq_set_status_flags(bdi->irq, IRQ_NOAUTOEN);
- 	ret = devm_request_threaded_irq(dev, bdi->irq, NULL,
- 			bq24190_irq_handler_thread,
- 			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-@@ -1436,6 +1437,8 @@ static int bq24190_probe(struct i2c_client *client,
- 		goto out4;
- 	}
+-static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
++static void bq24190_check_status(struct bq24190_dev_info *bdi)
+ {
+-	struct bq24190_dev_info *bdi = data;
+ 	const u8 battery_mask_ss = BQ24190_REG_SS_CHRG_STAT_MASK;
+ 	const u8 battery_mask_f = BQ24190_REG_F_BAT_FAULT_MASK |
+ 		BQ24190_REG_F_NTC_FAULT_MASK;
+@@ -1167,15 +1168,13 @@ static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
+ 	u8 ss_reg = 0, f_reg = 0;
+ 	int i, ret;
  
-+	enable_irq(bdi->irq);
+-	pm_runtime_get_sync(bdi->dev);
+-
+ 	/* We need to read f_reg twice if fault is set to get correct value */
+ 	i = 0;
+ 	do {
+ 		ret = bq24190_read(bdi, BQ24190_REG_F, &f_reg);
+ 		if (ret < 0) {
+ 			dev_err(bdi->dev, "Can't read F reg: %d\n", ret);
+-			goto out;
++			return;
+ 		}
+ 	} while (f_reg && ++i < 2);
+ 
+@@ -1231,11 +1230,18 @@ static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
+ 	if (alert_battery)
+ 		power_supply_changed(bdi->battery);
+ 
+-out:
+-	pm_runtime_put_sync(bdi->dev);
+-
+ 	dev_dbg(bdi->dev, "ss_reg: 0x%02x, f_reg: 0x%02x\n", ss_reg, f_reg);
++}
+ 
++static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
++{
++	struct bq24190_dev_info *bdi = data;
 +
++	bdi->irq_event = true;
++	pm_runtime_get_sync(bdi->dev);
++	bq24190_check_status(bdi);
++	pm_runtime_put_sync(bdi->dev);
++	bdi->irq_event = false;
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -1404,6 +1410,7 @@ static int bq24190_probe(struct i2c_client *client,
+ 	}
+ 
+ 	enable_irq(bdi->irq);
++	bdi->initialized = 1;
+ 
  	return 0;
  
- out4:
+@@ -1439,6 +1446,35 @@ static int bq24190_remove(struct i2c_client *client)
+ 	return 0;
+ }
+ 
++static int bq24190_runtime_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
++
++	if (!bdi->initialized)
++		return 0;
++
++	dev_dbg(bdi->dev, "%s\n", __func__);
++
++	return 0;
++}
++
++static int bq24190_runtime_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
++
++	if (!bdi->initialized)
++		return 0;
++
++	if (!bdi->irq_event) {
++		dev_dbg(bdi->dev, "checking events on possible wakeirq\n");
++		bq24190_check_status(bdi);
++	}
++
++	return 0;
++}
++
+ #ifdef CONFIG_PM_SLEEP
+ static int bq24190_pm_suspend(struct device *dev)
+ {
+@@ -1474,7 +1510,11 @@ static int bq24190_pm_resume(struct device *dev)
+ }
+ #endif
+ 
+-static SIMPLE_DEV_PM_OPS(bq24190_pm_ops, bq24190_pm_suspend, bq24190_pm_resume);
++static const struct dev_pm_ops bq24190_pm_ops = {
++	SET_RUNTIME_PM_OPS(bq24190_runtime_suspend, bq24190_runtime_resume,
++			   NULL)
++	SET_SYSTEM_SLEEP_PM_OPS(bq24190_pm_suspend, bq24190_pm_resume)
++};
+ 
+ /*
+  * Only support the bq24190 right now.  The bq24192, bq24192i, and bq24193
 -- 
 2.11.0
