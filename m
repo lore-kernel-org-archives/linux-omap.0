@@ -1,155 +1,245 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
-Date: Thu, 12 Jan 2017 13:30:16 -0800
-Message-ID: <20170112213016.19367-1-tony@atomide.com>
+Subject: [PATCHv2] usb: musb: Add support for optional VBUS irq to dsps glue layer
+Date: Thu, 12 Jan 2017 13:40:46 -0800
+Message-ID: <20170112214046.20079-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
-together with recent MUSB changes allowed USB and DMA on BeagleBone to idle
-when no cable is connected. But looks like few corner case issues still
-remain.
+We can now configure the PMIC interrupt to provide us VBUS
+events. In that case we don't need to constantly poll the
+status and can make it optional. This is only wired up
+for the mini-B interface on beaglebone.
 
-Looks like just by repluging USB cable about ten or so times on BeagleBone
-when configured in USB peripheral mode we can get warnings and eventually
-trigger an oops in cppi41 DMA:
+Note that eventually we should get also the connect status
+for the host interface when the am335x internal PM coprocessor
+provides us with an IRQ chip. For now, we still need to poll
+for the host mode status.
 
-WARNING: CPU: 0 PID: 14 at drivers/dma/cppi41.c:1154 cppi41_runtime_suspend+
-x28/0x38 [cppi41]
-...
-
-WARNING: CPU: 0 PID: 14 at drivers/dma/cppi41.c:452
-push_desc_queue+0x94/0x9c [cppi41]
-...
-
-Unable to handle kernel NULL pointer dereference at virtual
-address 00000104
-pgd = c0004000
-[00000104] *pgd=00000000
-Internal error: Oops: 805 [#1] SMP ARM
-...
-[<bf0d92cc>] (cppi41_runtime_resume [cppi41]) from [<c0589838>]
-(__rpm_callback+0xc0/0x214)
-[<c0589838>] (__rpm_callback) from [<c05899ac>] (rpm_callback+0x20/0x80)
-[<c05899ac>] (rpm_callback) from [<c0589460>] (rpm_resume+0x504/0x78c)
-[<c0589460>] (rpm_resume) from [<c058a1a0>] (pm_runtime_work+0x60/0xa8)
-[<c058a1a0>] (pm_runtime_work) from [<c0156120>] (process_one_work+0x2b4/0x808)
-
-This is because of a race with PM runtime and cppi41_dma_issue_pending()
-as reported by Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> in earlier
-set of patches. Based on mailing list discussions we however came to the
-conclusion that a different fix from Alexandre's fix is needed in order
-to guarantee that DMA is really active when we try to use it.
-
-To fix the issue, we need to add a driver specific flag as we otherwise
-can have -EINPROGRESS state set by PM runtime and can't rely on
-pm_runtime_active() to tell us when we can use the DMA.
-
-For reference, this is also documented in Documentation/power/runtime_pm.txt
-in the example at the end of the file as pointed out by Grygorii Strashko
-<grygorii.strashko-l0cyMroinI0@public.gmane.org>.
-
-So let's fix the issue by introducing atomic_t active that gets toggled
-in runtime_suspend() and runtime_resume(). And then let's replace the
-pm_runtime_active() checks with atomic_read().
-
-Note that we may also get transactions queued while in -EINPROGRESS
-state. So we need to check for new elements in cppi41_runtime_resume()
-by replacing list_for_each_entry_safe() with the commonly used test for
-while (!list_empty(&cdd->pending)).
-
-Fixes: fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
-Cc: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Reported-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/dma/cppi41.c | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -1,3 +1,4 @@
-+#include <linux/atomic.h>
- #include <linux/delay.h>
- #include <linux/dmaengine.h>
- #include <linux/dma-mapping.h>
-@@ -153,6 +154,8 @@ struct cppi41_dd {
- 
- 	/* context for suspend/resume */
- 	unsigned int dma_tdfdq;
-+
-+	atomic_t active;
+Changes since v1:
+
+- Updated based on comments from Bin mostly to limit to peripheral
+  mode only
+
+---
+ drivers/usb/musb/musb_dsps.c | 117 ++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 93 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -118,6 +118,7 @@ struct dsps_glue {
+ 	struct device *dev;
+ 	struct platform_device *musb;	/* child musb pdev */
+ 	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
++	int vbus_irq;			/* optional vbus irq */
+ 	struct timer_list timer;	/* otg_workaround timer */
+ 	unsigned long last_timer;    /* last timer data for each instance */
+ 	bool sw_babble_enabled;
+@@ -145,6 +146,29 @@ static const struct debugfs_reg32 dsps_musb_regs[] = {
+ 	{ "mode",		0xe8 },
  };
  
- #define FIST_COMPLETION_QUEUE	93
-@@ -320,7 +323,8 @@ static irqreturn_t cppi41_irq(int irq, void *data)
- 			int error;
++static void dsps_mod_timer(struct dsps_glue *glue, int wait_ms)
++{
++	int wait;
++
++	if (wait_ms < 0)
++		wait = msecs_to_jiffies(glue->wrp->poll_timeout);
++	else
++		wait = msecs_to_jiffies(wait_ms);
++
++	mod_timer(&glue->timer, jiffies + wait);
++}
++
++/*
++ * If no vbus irq from the PMIC is configured, we need to poll VBUS status.
++ */
++static void dsps_mod_timer_optional(struct dsps_glue *glue)
++{
++	if (glue->vbus_irq)
++		return;
++
++	dsps_mod_timer(glue, -1);
++}
++
+ /**
+  * dsps_musb_enable - enable interrupts
+  */
+@@ -167,8 +191,7 @@ static void dsps_musb_enable(struct musb *musb)
+ 	/* start polling for ID change in dual-role idle mode */
+ 	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+ 			musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer(glue, -1);
+ }
  
- 			error = pm_runtime_get(cdd->ddev.dev);
--			if (error < 0)
-+			if (((error != -EINPROGRESS) && error < 0) ||
-+			    !atomic_read(&cdd->active))
- 				dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
- 					__func__, error);
+ /**
+@@ -199,6 +222,9 @@ static int dsps_check_status(struct musb *musb, void *unused)
+ 	u8 devctl;
+ 	int skip_session = 0;
  
-@@ -482,7 +486,7 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
- 		return;
++	if (glue->vbus_irq)
++		del_timer(&glue->timer);
++
+ 	/*
+ 	 * We poll because DSPS IP's won't expose several OTG-critical
+ 	 * status change events (from the transceiver) otherwise.
+@@ -209,8 +235,7 @@ static int dsps_check_status(struct musb *musb, void *unused)
+ 
+ 	switch (musb->xceiv->otg->state) {
+ 	case OTG_STATE_A_WAIT_VRISE:
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer_optional(glue);
+ 		break;
+ 	case OTG_STATE_A_WAIT_BCON:
+ 		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+@@ -219,17 +244,19 @@ static int dsps_check_status(struct musb *musb, void *unused)
+ 
+ 	case OTG_STATE_A_IDLE:
+ 	case OTG_STATE_B_IDLE:
+-		if (devctl & MUSB_DEVCTL_BDEVICE) {
+-			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+-			MUSB_DEV_MODE(musb);
+-		} else {
+-			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+-			MUSB_HST_MODE(musb);
++		if (!glue->vbus_irq) {
++			if (devctl & MUSB_DEVCTL_BDEVICE) {
++				musb->xceiv->otg->state = OTG_STATE_B_IDLE;
++				MUSB_DEV_MODE(musb);
++			} else {
++				musb->xceiv->otg->state = OTG_STATE_A_IDLE;
++				MUSB_HST_MODE(musb);
++			}
++			if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
++				musb_writeb(mregs, MUSB_DEVCTL,
++					    MUSB_DEVCTL_SESSION);
+ 		}
+-		if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
+-			musb_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer_optional(glue);
+ 		break;
+ 	case OTG_STATE_A_WAIT_VFALL:
+ 		musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+@@ -332,15 +359,13 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+ 			 */
+ 			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
+ 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VFALL;
+-			mod_timer(&glue->timer, jiffies +
+-					msecs_to_jiffies(wrp->poll_timeout));
++			dsps_mod_timer_optional(glue);
+ 			WARNING("VBUS error workaround (delay coming)\n");
+ 		} else if (drvvbus) {
+ 			MUSB_HST_MODE(musb);
+ 			musb->xceiv->otg->default_a = 1;
+ 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+-			mod_timer(&glue->timer, jiffies +
+-				  msecs_to_jiffies(wrp->poll_timeout));
++			dsps_mod_timer_optional(glue);
+ 		} else {
+ 			musb->is_active = 0;
+ 			MUSB_DEV_MODE(musb);
+@@ -364,8 +389,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+ 	switch (musb->xceiv->otg->state) {
+ 	case OTG_STATE_B_IDLE:
+ 	case OTG_STATE_A_WAIT_BCON:
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer_optional(glue);
+ 		break;
+ 	default:
+ 		break;
+@@ -469,8 +493,7 @@ static int dsps_musb_init(struct musb *musb)
+ 		musb_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
  	}
  
--	if (likely(pm_runtime_active(cdd->ddev.dev)))
-+	if (likely(atomic_read(&cdd->active)))
- 		push_desc_queue(c);
- 	else
- 		pending_desc(c);
-@@ -1003,6 +1007,7 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 	cdd->ddev.dst_addr_widths = CPPI41_DMA_BUSWIDTHS;
- 	cdd->ddev.residue_granularity = DMA_RESIDUE_GRANULARITY_BURST;
- 	cdd->ddev.dev = dev;
-+	atomic_set(&cdd->active, 0);
- 	INIT_LIST_HEAD(&cdd->ddev.channels);
- 	cpp41_dma_info.dma_cap = cdd->ddev.cap_mask;
+-	mod_timer(&glue->timer, jiffies +
+-		  msecs_to_jiffies(glue->wrp->poll_timeout));
++	dsps_mod_timer(glue, -1);
  
-@@ -1151,6 +1156,7 @@ static int __maybe_unused cppi41_runtime_suspend(struct device *dev)
+ 	return dsps_musb_dbg_init(musb, glue);
+ }
+@@ -765,6 +788,47 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
+ 	return ret;
+ }
+ 
++static irqreturn_t dsps_vbus_threaded_irq(int irq, void *priv)
++{
++	struct dsps_glue *glue = priv;
++	struct musb *musb = platform_get_drvdata(glue->musb);
++
++	if (!musb)
++		return IRQ_NONE;
++
++	dev_dbg(glue->dev, "VBUS interrupt\n");
++	dsps_mod_timer(glue, 0);
++
++	return IRQ_HANDLED;
++}
++
++static int dsps_setup_optional_vbus_irq(struct platform_device *pdev,
++					struct dsps_glue *glue)
++{
++	int error;
++
++	glue->vbus_irq = platform_get_irq_byname(pdev, "vbus");
++	if (glue->vbus_irq == -EPROBE_DEFER)
++		return -EPROBE_DEFER;
++
++	if (glue->vbus_irq <= 0) {
++		glue->vbus_irq = 0;
++		return 0;
++	}
++
++	error = devm_request_threaded_irq(glue->dev, glue->vbus_irq,
++					  NULL, dsps_vbus_threaded_irq,
++					  IRQF_ONESHOT,
++					  "vbus", glue);
++	if (error) {
++		glue->vbus_irq = 0;
++		return error;
++	}
++	dev_dbg(glue->dev, "VBUS irq %i configured\n", glue->vbus_irq);
++
++	return 0;
++}
++
+ static int dsps_probe(struct platform_device *pdev)
  {
- 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+ 	const struct of_device_id *match;
+@@ -793,6 +857,12 @@ static int dsps_probe(struct platform_device *pdev)
+ 	glue->dev = &pdev->dev;
+ 	glue->wrp = wrp;
  
-+	atomic_set(&cdd->active, 0);
- 	WARN_ON(!list_empty(&cdd->pending));
++	if (usb_get_dr_mode(&pdev->dev) == USB_DR_MODE_PERIPHERAL) {
++		ret = dsps_setup_optional_vbus_irq(pdev, glue);
++		if (ret)
++			return ret;
++	}
++
+ 	platform_set_drvdata(pdev, glue);
+ 	pm_runtime_enable(&pdev->dev);
+ 	ret = dsps_create_musb_pdev(glue, pdev);
+@@ -903,8 +973,7 @@ static int dsps_resume(struct device *dev)
+ 	musb_writel(mbase, wrp->rx_mode, glue->context.rx_mode);
+ 	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
+ 	    musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+-		mod_timer(&glue->timer, jiffies +
+-				msecs_to_jiffies(wrp->poll_timeout));
++		dsps_mod_timer(glue, -1);
  
  	return 0;
-@@ -1159,13 +1165,20 @@ static int __maybe_unused cppi41_runtime_suspend(struct device *dev)
- static int __maybe_unused cppi41_runtime_resume(struct device *dev)
- {
- 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
--	struct cppi41_channel *c, *_c;
-+	struct cppi41_channel *c;
- 	unsigned long flags;
- 
-+	atomic_set(&cdd->active, 1);
-+
- 	spin_lock_irqsave(&cdd->lock, flags);
--	list_for_each_entry_safe(c, _c, &cdd->pending, node) {
--		push_desc_queue(c);
-+	while (!list_empty(&cdd->pending)) {
-+		c = list_first_entry(&cdd->pending,
-+				     struct cppi41_channel,
-+				     node);
- 		list_del(&c->node);
-+		spin_unlock_irqrestore(&cdd->lock, flags);
-+		push_desc_queue(c);
-+		spin_lock_irqsave(&cdd->lock, flags);
- 	}
- 	spin_unlock_irqrestore(&cdd->lock, flags);
- 
+ }
 -- 
 2.11.0
 --
