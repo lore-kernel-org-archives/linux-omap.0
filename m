@@ -1,35 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: dts: dra72-evm-revc: enable irqs for dp83867
- eth phys
-Date: Thu, 12 Jan 2017 14:27:22 -0800
-Message-ID: <20170112222722.GN2630@atomide.com>
-References: <20170106205543.4748-1-grygorii.strashko@ti.com>
- <20170106215451.GI2630@atomide.com>
- <cd8cdb56-ca47-6e17-43b4-daedc7889612@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: am335x-phycore-som: Remove partition tables
+Date: Thu, 12 Jan 2017 14:28:28 -0800
+Message-ID: <20170112222827.GO2630@atomide.com>
+References: <1483951050-46588-1-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <cd8cdb56-ca47-6e17-43b4-daedc7889612@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, netdev@vger.kernel.org
+In-Reply-To: <1483951050-46588-1-git-send-email-t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Brian Norris <briannorris-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [170109 11:26]:
+* Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org> [170109 00:38]:
+> As the bootloader passes the NAND and the SPI flash partition tables
+> there is no need to keep them in the kernel device tree.
+> Removed them.
 > 
-> 
-> On 01/06/2017 03:54 PM, Tony Lindgren wrote:
-> > * Grygorii Strashko <grygorii.strashko@ti.com> [170106 12:56]:
-> > > TI DRA72-EVM Rev C has two DP83867 ethernet phys which support IRQ
-> > > generation in case of phy/link status changes. The INT/PWDN lines from both
-> > > DP83867 phys are wired to DRA7 gpio6.16, so reflect the same in DT.
-> > 
-> > Hmm not seeing the patch 1/2 here.. Can this one be queued separately?
-> > Is it for v4.11 or a fix?
-> 
-> This is for next (v4.11) and there is just a mistake in subj, Sry.
+> Signed-off-by: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
 
-OK applying into omap-for-v4.11/dt thanks.
+Applying into omap-for-v4.11/dt thanks.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
