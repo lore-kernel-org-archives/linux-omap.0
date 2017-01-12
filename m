@@ -1,44 +1,55 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH] ARM: dts: dra72-evm-revc: fix typo in ethernet-phy node
-Date: Thu, 12 Jan 2017 16:24:43 +0530
-Message-ID: <6027fbe6a797e840e57e25a35273aff39e2e00a7.1484218375.git.nsekhar@ti.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 0/3] PCI: designware/dra7xx: misc fixes and cleanups
+Date: Thu, 12 Jan 2017 07:15:52 -0600
+Message-ID: <20170112131552.GA23045@bhelgaas-glaptop.roam.corp.google.com>
+References: <1483091774-8332-1-git-send-email-kishon@ti.com>
+ <20170111212135.GN14532@bhelgaas-glaptop.roam.corp.google.com>
+ <587712B0.2030806@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <bcousson@baylibre.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <587712B0.2030806@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Fix a typo in impedance setting for ethernet-phy@3
+On Thu, Jan 12, 2017 at 10:52:56AM +0530, Kishon Vijay Abraham I wrote:
+> Hi Bjorn,
+> 
+> On Thursday 12 January 2017 02:51 AM, Bjorn Helgaas wrote:
+> > On Fri, Dec 30, 2016 at 03:26:11PM +0530, Kishon Vijay Abraham I wrote:
+> >> This series contains
+> >>         *) a patch to cleanup dra7xx probe
+> >>         *) a patch to force DRA7xx controller to work in GEN1 mode
+> >>         *) a patch to fix dra7xx driver so that even if CONFIG_PCI_MSI
+> >>            is enabled, dra7xx driver can service legacy interrupts
+> >>            (provided the device support only legacy interrupts).
+> >>
+> >> Changes from v1:
+> >> *) rebased to 4.10-rc1 (and [1])
+> >> *) use existing dt property "max-link-speed" instead of creating a new
+> >>    TI specific dt property.
+> >>
+> >> [1] -> https://lkml.org/lkml/2016/12/28/34
+> >>
+> >> Kishon Vijay Abraham I (3):
+> >>   PCI: dra7xx: simplify the probe code
+> >>   PCI: dra7xx: Add support to force RC to work in GEN1 mode
+> >>   PCI: dra7xx: Enable MSI and legacy interrupts simultaneously
+> >>
+> >>  drivers/pci/controller/pci-dra7xx.c |   81 ++++++++++++++++++++---------------
+> >>  1 file changed, 47 insertions(+), 34 deletions(-)
+> > 
+> > Applied to pci/host-dra7xx for v4.11.  I haven't applied the directory
+> > rename yet, so I'll fix that up as necessary.
+> 
+> I'd have liked that to be merged as well. Is that because Arnd hasn't Acked
+> that one yet?
 
-Fixes: b76db38cd8ae ("ARM: dts: dra72-evm-revc: add phy impedance settings")
-Cc: Mugunthan V N <mugunthanvnm@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- arch/arm/boot/dts/dra72-evm-revc.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Nope, I expect to do the rename in some form.  I'm just trying to
+clear out the easy stuff first before moving on to the harder patches
+in the queue.
 
-diff --git a/arch/arm/boot/dts/dra72-evm-revc.dts b/arch/arm/boot/dts/dra72-evm-revc.dts
-index c3d939c9666c..3f808a47df03 100644
---- a/arch/arm/boot/dts/dra72-evm-revc.dts
-+++ b/arch/arm/boot/dts/dra72-evm-revc.dts
-@@ -75,6 +75,6 @@
- 		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_25_NS>;
- 		ti,tx-internal-delay = <DP83867_RGMIIDCTL_250_PS>;
- 		ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_8_B_NIB>;
--		ti,min-output-imepdance;
-+		ti,min-output-impedance;
- 	};
- };
--- 
-2.9.0
+Bjorn
