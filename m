@@ -1,88 +1,39 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 34/37] tools: PCI: Add sample test script to invoke pcitest
-Date: Thu, 12 Jan 2017 15:56:23 +0530
-Message-ID: <1484216786-17292-35-git-send-email-kishon@ti.com>
+Subject: [PATCH 36/37] ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP
+Date: Thu, 12 Jan 2017 15:56:25 +0530
+Message-ID: <1484216786-17292-37-git-send-email-kishon@ti.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1484216786-17292-1-git-send-email-kishon@ti.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
 Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add a simple test script that invokes the pcitest userspace tool
-to perform all the PCI endpoint tests (BAR tests, interrupt tests,
-read tests, write tests and copy tests).
+The PCIe programming sequence in TRM suggests CLKSTCTRL of PCIe should
+be set to SW_WKUP. There are no issues when CLKSTCTRL is set to HW_AUTO
+in RC mode. However in EP mode, the host system is not able to access the
+MEMSPACE and setting the CLKSTCTRL to SW_WKUP fixes it.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- tools/pci/pcitest.sh |   56 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
- create mode 100644 tools/pci/pcitest.sh
+ arch/arm/mach-omap2/clockdomains7xx_data.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/pci/pcitest.sh b/tools/pci/pcitest.sh
-new file mode 100644
-index 0000000..5442bbe
---- /dev/null
-+++ b/tools/pci/pcitest.sh
-@@ -0,0 +1,56 @@
-+#!/bin/sh
-+
-+echo "BAR tests"
-+echo
-+
-+bar=0
-+
-+while [ $bar -lt 6 ]
-+do
-+	pcitest -b $bar
-+	bar=`expr $bar + 1`
-+done
-+echo
-+
-+echo "Interrupt tests"
-+echo
-+
-+pcitest -l
-+msi=1
-+
-+while [ $msi -lt 33 ]
-+do
-+        pcitest -m $msi
-+        msi=`expr $msi + 1`
-+done
-+echo
-+
-+echo "Read Tests"
-+echo
-+
-+pcitest -r -s 1
-+pcitest -r -s 1024
-+pcitest -r -s 1025
-+pcitest -r -s 1024000
-+pcitest -r -s 1024001
-+echo
-+
-+echo "Write Tests"
-+echo
-+
-+pcitest -w -s 1
-+pcitest -w -s 1024
-+pcitest -w -s 1025
-+pcitest -w -s 1024000
-+pcitest -w -s 1024001
-+echo
-+
-+echo "Copy Tests"
-+echo
-+
-+pcitest -c -s 1
-+pcitest -c -s 1024
-+pcitest -c -s 1025
-+pcitest -c -s 1024000
-+pcitest -c -s 1024001
-+echo
+diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+index 6c67965..67ebff8 100644
+--- a/arch/arm/mach-omap2/clockdomains7xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+@@ -524,7 +524,7 @@
+ 	.dep_bit	  = DRA7XX_PCIE_STATDEP_SHIFT,
+ 	.wkdep_srcs	  = pcie_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = pcie_wkup_sleep_deps,
+-	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++	.flags		  = CLKDM_CAN_SWSUP,
+ };
+ 
+ static struct clockdomain atl_7xx_clkdm = {
 -- 
 1.7.9.5
