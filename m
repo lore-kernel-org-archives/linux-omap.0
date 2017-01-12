@@ -1,253 +1,194 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 06/37] PCI: dwc: Rename cfg_read/cfg_write to read/write
-Date: Thu, 12 Jan 2017 15:55:55 +0530
-Message-ID: <1484216786-17292-7-git-send-email-kishon@ti.com>
+Subject: [PATCH 12/37] PCI: dwc: Create a new config symbol to enable pci dwc host
+Date: Thu, 12 Jan 2017 15:56:01 +0530
+Message-ID: <1484216786-17292-13-git-send-email-kishon@ti.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <1484216786-17292-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-samsung-soc-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, kishon@ti.com, Murali Karicheri <m-karicheri2@ti.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, Pratyush Anand <pratyush.anand@gmail.com>
+Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. dw_pcie_cfg_read/dw_pcie_cfg_write doesn't do
-anything specific to access configuration space. It can be just renamed
-to dw_pcie_read/dw_pcie_write and used to read/write data to dbi space.
-This is in preparation for added endpoint support to linux kernel.
+Now that pci designware host has a separate file, create a new
+config symbol to select the host only driver. This is in preparation
+to enable endpoint support to designware driver.
 
-Cc: Jingoo Han <jingoohan1@gmail.com>
-Cc: Murali Karicheri <m-karicheri2@ti.com>
-Cc: Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
-Cc: Pratyush Anand <pratyush.anand@gmail.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c      |   16 ++++++++--------
- drivers/pci/dwc/pci-exynos.c      |    4 ++--
- drivers/pci/dwc/pci-keystone-dw.c |    4 ++--
- drivers/pci/dwc/pcie-designware.c |   12 ++++++------
- drivers/pci/dwc/pcie-designware.h |    4 ++--
- drivers/pci/dwc/pcie-qcom.c       |    2 +-
- drivers/pci/dwc/pcie-spear13xx.c  |   24 ++++++++++++------------
- 7 files changed, 33 insertions(+), 33 deletions(-)
+ drivers/pci/dwc/Kconfig           |   26 +++++++++++++++-----------
+ drivers/pci/dwc/Makefile          |    3 ++-
+ drivers/pci/dwc/pcie-designware.h |   29 +++++++++++++++++++++++++----
+ 3 files changed, 42 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index aeeab74..38b0c9a 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -114,22 +114,22 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
- 	}
+diff --git a/drivers/pci/dwc/Kconfig b/drivers/pci/dwc/Kconfig
+index 8b08519..d0bdfb5 100644
+--- a/drivers/pci/dwc/Kconfig
++++ b/drivers/pci/dwc/Kconfig
+@@ -3,13 +3,17 @@ menu "DesignWare PCI Core Support"
  
- 	if (dra7xx->link_gen == 1) {
--		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
--				 4, &reg);
-+		dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
-+			     4, &reg);
- 		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
- 			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
- 			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
--			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
--					  PCI_EXP_LNKCAP, 4, reg);
-+			dw_pcie_write(pp->dbi_base + exp_cap_off +
-+				      PCI_EXP_LNKCAP, 4, reg);
- 		}
+ config PCIE_DW
+ 	bool
++
++config PCIE_DW_HOST
++        bool
+ 	depends on PCI_MSI_IRQ_DOMAIN
++        select PCIE_DW
  
--		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
--				 2, &reg);
-+		dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
-+			     2, &reg);
- 		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
- 			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
- 			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
--			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
--					  PCI_EXP_LNKCTL2, 2, reg);
-+			dw_pcie_write(pp->dbi_base + exp_cap_off +
-+				      PCI_EXP_LNKCTL2, 2, reg);
- 		}
- 	}
+ config PCI_DRA7XX
+ 	bool "TI DRA7xx PCIe controller"
+ 	depends on OF && HAS_IOMEM && TI_PIPE3
+ 	depends on PCI_MSI_IRQ_DOMAIN
+-	select PCIE_DW
++	select PCIE_DW_HOST
+ 	help
+ 	 Enables support for the PCIe controller in the DRA7xx SoC.  There
+ 	 are two instances of PCIe controller in DRA7xx.  This controller can
+@@ -18,7 +22,7 @@ config PCI_DRA7XX
+ config PCIE_DW_PLAT
+ 	bool "Platform bus based DesignWare PCIe Controller"
+ 	depends on PCI_MSI_IRQ_DOMAIN
+-	select PCIE_DW
++	select PCIE_DW_HOST
+ 	---help---
+ 	 This selects the DesignWare PCIe controller support. Select this if
+ 	 you have a PCIe controller on Platform bus.
+@@ -32,21 +36,21 @@ config PCI_EXYNOS
+ 	depends on SOC_EXYNOS5440 || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+-	select PCIE_DW
++	select PCIE_DW_HOST
  
-diff --git a/drivers/pci/dwc/pci-exynos.c b/drivers/pci/dwc/pci-exynos.c
-index c179e7a..e3fbff4 100644
---- a/drivers/pci/dwc/pci-exynos.c
-+++ b/drivers/pci/dwc/pci-exynos.c
-@@ -429,7 +429,7 @@ static int exynos_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
- 	int ret;
+ config PCI_IMX6
+ 	bool "Freescale i.MX6 PCIe controller"
+ 	depends on SOC_IMX6Q || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+-	select PCIE_DW
++	select PCIE_DW_HOST
  
- 	exynos_pcie_sideband_dbi_r_mode(exynos_pcie, true);
--	ret = dw_pcie_cfg_read(pp->dbi_base + where, size, val);
-+	ret = dw_pcie_read(pp->dbi_base + where, size, val);
- 	exynos_pcie_sideband_dbi_r_mode(exynos_pcie, false);
- 	return ret;
- }
-@@ -441,7 +441,7 @@ static int exynos_pcie_wr_own_conf(struct pcie_port *pp, int where, int size,
- 	int ret;
+ config PCIE_SPEAR13XX
+ 	bool "STMicroelectronics SPEAr PCIe controller"
+ 	depends on ARCH_SPEAR13XX || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+-	select PCIE_DW
++	select PCIE_DW_HOST
+ 	help
+ 	  Say Y here if you want PCIe support on SPEAr13XX SoCs.
  
- 	exynos_pcie_sideband_dbi_w_mode(exynos_pcie, true);
--	ret = dw_pcie_cfg_write(pp->dbi_base + where, size, val);
-+	ret = dw_pcie_write(pp->dbi_base + where, size, val);
- 	exynos_pcie_sideband_dbi_w_mode(exynos_pcie, false);
- 	return ret;
- }
-diff --git a/drivers/pci/dwc/pci-keystone-dw.c b/drivers/pci/dwc/pci-keystone-dw.c
-index 9397c46..4875334 100644
---- a/drivers/pci/dwc/pci-keystone-dw.c
-+++ b/drivers/pci/dwc/pci-keystone-dw.c
-@@ -444,7 +444,7 @@ int ks_dw_pcie_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
+@@ -55,7 +59,7 @@ config PCI_KEYSTONE
+ 	depends on ARCH_KEYSTONE || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+-	select PCIE_DW
++	select PCIE_DW_HOST
+ 	help
+ 	  Say Y here if you want to enable PCI controller support on Keystone
+ 	  SoCs. The PCI controller on Keystone is based on Designware hardware
+@@ -67,7 +71,7 @@ config PCI_LAYERSCAPE
+ 	depends on OF && (ARM || ARCH_LAYERSCAPE || COMPILE_TEST)
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select MFD_SYSCON
+-	select PCIE_DW
++	select PCIE_DW_HOST
+ 	help
+ 	  Say Y here if you want PCIe controller support on Layerscape SoCs.
  
- 	addr = ks_pcie_cfg_setup(ks_pcie, bus_num, devfn);
- 
--	return dw_pcie_cfg_read(addr + where, size, val);
-+	return dw_pcie_read(addr + where, size, val);
- }
- 
- int ks_dw_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
-@@ -456,7 +456,7 @@ int ks_dw_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
- 
- 	addr = ks_pcie_cfg_setup(ks_pcie, bus_num, devfn);
- 
--	return dw_pcie_cfg_write(addr + where, size, val);
-+	return dw_pcie_write(addr + where, size, val);
- }
- 
- /**
-diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-index 0b928dc..d0ea310 100644
---- a/drivers/pci/dwc/pcie-designware.c
-+++ b/drivers/pci/dwc/pcie-designware.c
-@@ -33,7 +33,7 @@
- 
- static struct pci_ops dw_pcie_ops;
- 
--int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val)
-+int dw_pcie_read(void __iomem *addr, int size, u32 *val)
- {
- 	if ((uintptr_t)addr & (size - 1)) {
- 		*val = 0;
-@@ -54,7 +54,7 @@ int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val)
- 	return PCIBIOS_SUCCESSFUL;
- }
- 
--int dw_pcie_cfg_write(void __iomem *addr, int size, u32 val)
-+int dw_pcie_write(void __iomem *addr, int size, u32 val)
- {
- 	if ((uintptr_t)addr & (size - 1))
- 		return PCIBIOS_BAD_REGISTER_NUMBER;
-@@ -108,7 +108,7 @@ static int dw_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
- 	if (pp->ops->rd_own_conf)
- 		return pp->ops->rd_own_conf(pp, where, size, val);
- 
--	return dw_pcie_cfg_read(pp->dbi_base + where, size, val);
-+	return dw_pcie_read(pp->dbi_base + where, size, val);
- }
- 
- static int dw_pcie_wr_own_conf(struct pcie_port *pp, int where, int size,
-@@ -117,7 +117,7 @@ static int dw_pcie_wr_own_conf(struct pcie_port *pp, int where, int size,
- 	if (pp->ops->wr_own_conf)
- 		return pp->ops->wr_own_conf(pp, where, size, val);
- 
--	return dw_pcie_cfg_write(pp->dbi_base + where, size, val);
-+	return dw_pcie_write(pp->dbi_base + where, size, val);
- }
- 
- static void dw_pcie_prog_outbound_atu(struct pcie_port *pp, int index,
-@@ -638,7 +638,7 @@ static int dw_pcie_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
- 	dw_pcie_prog_outbound_atu(pp, PCIE_ATU_REGION_INDEX1,
- 				  type, cpu_addr,
- 				  busdev, cfg_size);
--	ret = dw_pcie_cfg_read(va_cfg_base + where, size, val);
-+	ret = dw_pcie_read(va_cfg_base + where, size, val);
- 	if (pp->num_viewport <= 2)
- 		dw_pcie_prog_outbound_atu(pp, PCIE_ATU_REGION_INDEX1,
- 					  PCIE_ATU_TYPE_IO, pp->io_base,
-@@ -676,7 +676,7 @@ static int dw_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
- 	dw_pcie_prog_outbound_atu(pp, PCIE_ATU_REGION_INDEX1,
- 				  type, cpu_addr,
- 				  busdev, cfg_size);
--	ret = dw_pcie_cfg_write(va_cfg_base + where, size, val);
-+	ret = dw_pcie_write(va_cfg_base + where, size, val);
- 	if (pp->num_viewport <= 2)
- 		dw_pcie_prog_outbound_atu(pp, PCIE_ATU_REGION_INDEX1,
- 					  PCIE_ATU_TYPE_IO, pp->io_base,
+@@ -76,7 +80,7 @@ config PCI_HISI
+ 	bool "HiSilicon Hip05 and Hip06 SoCs PCIe controllers"
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+-	select PCIE_DW
++	select PCIE_DW_HOST
+ 	help
+ 	  Say Y here if you want PCIe controller support on HiSilicon
+ 	  Hip05 and Hip06 SoCs
+@@ -86,7 +90,7 @@ config PCIE_QCOM
+ 	depends on (ARCH_QCOM || COMPILE_TEST) && OF
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+-	select PCIE_DW
++	select PCIE_DW_HOST
+ 	help
+ 	  Say Y here to enable PCIe controller support on Qualcomm SoCs. The
+ 	  PCIe controller uses the Designware core plus Qualcomm-specific
+@@ -97,7 +101,7 @@ config PCIE_ARMADA_8K
+ 	depends on ARCH_MVEBU || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+-	select PCIE_DW
++	select PCIE_DW_HOST
+ 	help
+ 	  Say Y here if you want to enable PCIe controller support on
+ 	  Armada-8K SoCs. The PCIe controller on Armada-8K is based on
+@@ -109,7 +113,7 @@ config PCIE_ARTPEC6
+ 	depends on MACH_ARTPEC6 || COMPILE_TEST
+ 	depends on PCI_MSI_IRQ_DOMAIN
+ 	select PCIEPORTBUS
+-	select PCIE_DW
++	select PCIE_DW_HOST
+ 	help
+ 	  Say Y here to enable PCIe controller support on Axis ARTPEC-6
+ 	  SoCs.  This PCIe controller uses the DesignWare core.
+diff --git a/drivers/pci/dwc/Makefile b/drivers/pci/dwc/Makefile
+index 3b57e55..a2df13c 100644
+--- a/drivers/pci/dwc/Makefile
++++ b/drivers/pci/dwc/Makefile
+@@ -1,4 +1,5 @@
+-obj-$(CONFIG_PCIE_DW) += pcie-designware.o pcie-designware-host.o
++obj-$(CONFIG_PCIE_DW) += pcie-designware.o
++obj-$(CONFIG_PCIE_DW_HOST) += pcie-designware-host.o
+ obj-$(CONFIG_PCIE_DW_PLAT) += pcie-designware-plat.o
+ obj-$(CONFIG_PCI_DRA7XX) += pci-dra7xx.o
+ obj-$(CONFIG_PCI_EXYNOS) += pci-exynos.o
 diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index a6cf9262..b6ddb05 100644
+index 808d17b..8f3dcb2 100644
 --- a/drivers/pci/dwc/pcie-designware.h
 +++ b/drivers/pci/dwc/pcie-designware.h
-@@ -146,8 +146,8 @@ struct pcie_host_ops {
+@@ -162,10 +162,6 @@ struct dw_pcie {
  
- u32 dw_pcie_readl_rc(struct pcie_port *pp, u32 reg);
- void dw_pcie_writel_rc(struct pcie_port *pp, u32 reg, u32 val);
--int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val);
--int dw_pcie_cfg_write(void __iomem *addr, int size, u32 val);
-+int dw_pcie_read(void __iomem *addr, int size, u32 *val);
-+int dw_pcie_write(void __iomem *addr, int size, u32 val);
- irqreturn_t dw_handle_msi_irq(struct pcie_port *pp);
- void dw_pcie_msi_init(struct pcie_port *pp);
- int dw_pcie_wait_for_link(struct pcie_port *pp);
-diff --git a/drivers/pci/dwc/pcie-qcom.c b/drivers/pci/dwc/pcie-qcom.c
-index 2c24c45..d75fc02 100644
---- a/drivers/pci/dwc/pcie-qcom.c
-+++ b/drivers/pci/dwc/pcie-qcom.c
-@@ -630,7 +630,7 @@ static int qcom_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
- 		return PCIBIOS_SUCCESSFUL;
- 	}
+ int dw_pcie_read(void __iomem *addr, int size, u32 *val);
+ int dw_pcie_write(void __iomem *addr, int size, u32 val);
+-irqreturn_t dw_handle_msi_irq(struct pcie_port *pp);
+-void dw_pcie_msi_init(struct pcie_port *pp);
+-void dw_pcie_setup_rc(struct pcie_port *pp);
+-int dw_pcie_host_init(struct pcie_port *pp);
  
--	return dw_pcie_cfg_read(pp->dbi_base + where, size, val);
-+	return dw_pcie_read(pp->dbi_base + where, size, val);
- }
- 
- static struct pcie_host_ops qcom_pcie_dw_ops = {
-diff --git a/drivers/pci/dwc/pcie-spear13xx.c b/drivers/pci/dwc/pcie-spear13xx.c
-index 5970566..7acf91e 100644
---- a/drivers/pci/dwc/pcie-spear13xx.c
-+++ b/drivers/pci/dwc/pcie-spear13xx.c
-@@ -91,34 +91,34 @@ static int spear13xx_pcie_establish_link(struct spear13xx_pcie *spear13xx_pcie)
- 	 * default value in capability register is 512 bytes. So force
- 	 * it to 128 here.
- 	 */
--	dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, &val);
-+	dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, &val);
- 	val &= ~PCI_EXP_DEVCTL_READRQ;
--	dw_pcie_cfg_write(pp->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, val);
-+	dw_pcie_write(pp->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, val);
- 
--	dw_pcie_cfg_write(pp->dbi_base + PCI_VENDOR_ID, 2, 0x104A);
--	dw_pcie_cfg_write(pp->dbi_base + PCI_DEVICE_ID, 2, 0xCD80);
-+	dw_pcie_write(pp->dbi_base + PCI_VENDOR_ID, 2, 0x104A);
-+	dw_pcie_write(pp->dbi_base + PCI_DEVICE_ID, 2, 0xCD80);
- 
- 	/*
- 	 * if is_gen1 is set then handle it, so that some buggy card
- 	 * also works
- 	 */
- 	if (spear13xx_pcie->is_gen1) {
--		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
--					4, &val);
-+		dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
-+			     4, &val);
- 		if ((val & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
- 			val &= ~((u32)PCI_EXP_LNKCAP_SLS);
- 			val |= PCI_EXP_LNKCAP_SLS_2_5GB;
--			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
--				PCI_EXP_LNKCAP, 4, val);
-+			dw_pcie_write(pp->dbi_base + exp_cap_off +
-+				      PCI_EXP_LNKCAP, 4, val);
- 		}
- 
--		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
--					2, &val);
-+		dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
-+			     2, &val);
- 		if ((val & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
- 			val &= ~((u32)PCI_EXP_LNKCAP_SLS);
- 			val |= PCI_EXP_LNKCAP_SLS_2_5GB;
--			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
--					PCI_EXP_LNKCTL2, 2, val);
-+			dw_pcie_write(pp->dbi_base + exp_cap_off +
-+				      PCI_EXP_LNKCTL2, 2, val);
- 		}
- 	}
- 
+ u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg);
+ void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val);
+@@ -175,4 +171,29 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
+ 			       int type, u64 cpu_addr, u64 pci_addr,
+ 			       u32 size);
+ void dw_pcie_setup(struct dw_pcie *pci);
++
++#ifdef CONFIG_PCIE_DW_HOST
++irqreturn_t dw_handle_msi_irq(struct pcie_port *pp);
++void dw_pcie_msi_init(struct pcie_port *pp);
++void dw_pcie_setup_rc(struct pcie_port *pp);
++int dw_pcie_host_init(struct pcie_port *pp);
++#else
++static inline irqreturn_t dw_handle_msi_irq(struct pcie_port *pp)
++{
++	return IRQ_NONE;
++}
++
++static inline void dw_pcie_msi_init(struct pcie_port *pp)
++{
++}
++
++static inline void dw_pcie_setup_rc(struct pcie_port *pp)
++{
++}
++
++static inline int dw_pcie_host_init(struct pcie_port *pp)
++{
++	return 0;
++}
++#endif
+ #endif /* _PCIE_DESIGNWARE_H */
 -- 
 1.7.9.5
