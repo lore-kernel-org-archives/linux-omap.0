@@ -1,194 +1,67 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 12/37] PCI: dwc: Create a new config symbol to enable pci dwc host
-Date: Thu, 12 Jan 2017 15:56:01 +0530
-Message-ID: <1484216786-17292-13-git-send-email-kishon@ti.com>
+Subject: [PATCH 02/37] PCI: dwc: designware: Add new *ops* for cpu addr fixup
+Date: Thu, 12 Jan 2017 15:55:51 +0530
+Message-ID: <1484216786-17292-3-git-send-email-kishon@ti.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1484216786-17292-1-git-send-email-kishon@ti.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
+Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, kishon@ti.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Now that pci designware host has a separate file, create a new
-config symbol to select the host only driver. This is in preparation
-to enable endpoint support to designware driver.
+Some platforms (like dra7xx) require only the least 28 bits of the
+corresponding 32 bit CPU address to be programmed in the address
+translation unit. This modified address is stored in io_base/mem_base/
+cfg0_base/cfg1_base in dra7xx_pcie_host_init. While this is okay for
+host mode where the address range is fixed, device mode requires
+different addresses to be programmed based on the host buffer address.
+Add a new ops to get the least 28 bits of the corresponding 32 bit
+CPU address and invoke it before programming the address translation
+unit.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/Kconfig           |   26 +++++++++++++++-----------
- drivers/pci/dwc/Makefile          |    3 ++-
- drivers/pci/dwc/pcie-designware.h |   29 +++++++++++++++++++++++++----
- 3 files changed, 42 insertions(+), 16 deletions(-)
+ drivers/pci/dwc/pcie-designware.c |    3 +++
+ drivers/pci/dwc/pcie-designware.h |    1 +
+ 2 files changed, 4 insertions(+)
 
-diff --git a/drivers/pci/dwc/Kconfig b/drivers/pci/dwc/Kconfig
-index 8b08519..d0bdfb5 100644
---- a/drivers/pci/dwc/Kconfig
-+++ b/drivers/pci/dwc/Kconfig
-@@ -3,13 +3,17 @@ menu "DesignWare PCI Core Support"
+diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
+index bed1999..d68bc7b 100644
+--- a/drivers/pci/dwc/pcie-designware.c
++++ b/drivers/pci/dwc/pcie-designware.c
+@@ -195,6 +195,9 @@ static void dw_pcie_prog_outbound_atu(struct pcie_port *pp, int index,
+ {
+ 	u32 retries, val;
  
- config PCIE_DW
- 	bool
++	if (pp->ops->cpu_addr_fixup)
++		cpu_addr = pp->ops->cpu_addr_fixup(cpu_addr);
 +
-+config PCIE_DW_HOST
-+        bool
- 	depends on PCI_MSI_IRQ_DOMAIN
-+        select PCIE_DW
- 
- config PCI_DRA7XX
- 	bool "TI DRA7xx PCIe controller"
- 	depends on OF && HAS_IOMEM && TI_PIPE3
- 	depends on PCI_MSI_IRQ_DOMAIN
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 	help
- 	 Enables support for the PCIe controller in the DRA7xx SoC.  There
- 	 are two instances of PCIe controller in DRA7xx.  This controller can
-@@ -18,7 +22,7 @@ config PCI_DRA7XX
- config PCIE_DW_PLAT
- 	bool "Platform bus based DesignWare PCIe Controller"
- 	depends on PCI_MSI_IRQ_DOMAIN
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 	---help---
- 	 This selects the DesignWare PCIe controller support. Select this if
- 	 you have a PCIe controller on Platform bus.
-@@ -32,21 +36,21 @@ config PCI_EXYNOS
- 	depends on SOC_EXYNOS5440 || COMPILE_TEST
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select PCIEPORTBUS
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 
- config PCI_IMX6
- 	bool "Freescale i.MX6 PCIe controller"
- 	depends on SOC_IMX6Q || COMPILE_TEST
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select PCIEPORTBUS
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 
- config PCIE_SPEAR13XX
- 	bool "STMicroelectronics SPEAr PCIe controller"
- 	depends on ARCH_SPEAR13XX || COMPILE_TEST
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select PCIEPORTBUS
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 	help
- 	  Say Y here if you want PCIe support on SPEAr13XX SoCs.
- 
-@@ -55,7 +59,7 @@ config PCI_KEYSTONE
- 	depends on ARCH_KEYSTONE || COMPILE_TEST
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select PCIEPORTBUS
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 	help
- 	  Say Y here if you want to enable PCI controller support on Keystone
- 	  SoCs. The PCI controller on Keystone is based on Designware hardware
-@@ -67,7 +71,7 @@ config PCI_LAYERSCAPE
- 	depends on OF && (ARM || ARCH_LAYERSCAPE || COMPILE_TEST)
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select MFD_SYSCON
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 	help
- 	  Say Y here if you want PCIe controller support on Layerscape SoCs.
- 
-@@ -76,7 +80,7 @@ config PCI_HISI
- 	bool "HiSilicon Hip05 and Hip06 SoCs PCIe controllers"
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select PCIEPORTBUS
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 	help
- 	  Say Y here if you want PCIe controller support on HiSilicon
- 	  Hip05 and Hip06 SoCs
-@@ -86,7 +90,7 @@ config PCIE_QCOM
- 	depends on (ARCH_QCOM || COMPILE_TEST) && OF
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select PCIEPORTBUS
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 	help
- 	  Say Y here to enable PCIe controller support on Qualcomm SoCs. The
- 	  PCIe controller uses the Designware core plus Qualcomm-specific
-@@ -97,7 +101,7 @@ config PCIE_ARMADA_8K
- 	depends on ARCH_MVEBU || COMPILE_TEST
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select PCIEPORTBUS
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 	help
- 	  Say Y here if you want to enable PCIe controller support on
- 	  Armada-8K SoCs. The PCIe controller on Armada-8K is based on
-@@ -109,7 +113,7 @@ config PCIE_ARTPEC6
- 	depends on MACH_ARTPEC6 || COMPILE_TEST
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select PCIEPORTBUS
--	select PCIE_DW
-+	select PCIE_DW_HOST
- 	help
- 	  Say Y here to enable PCIe controller support on Axis ARTPEC-6
- 	  SoCs.  This PCIe controller uses the DesignWare core.
-diff --git a/drivers/pci/dwc/Makefile b/drivers/pci/dwc/Makefile
-index 3b57e55..a2df13c 100644
---- a/drivers/pci/dwc/Makefile
-+++ b/drivers/pci/dwc/Makefile
-@@ -1,4 +1,5 @@
--obj-$(CONFIG_PCIE_DW) += pcie-designware.o pcie-designware-host.o
-+obj-$(CONFIG_PCIE_DW) += pcie-designware.o
-+obj-$(CONFIG_PCIE_DW_HOST) += pcie-designware-host.o
- obj-$(CONFIG_PCIE_DW_PLAT) += pcie-designware-plat.o
- obj-$(CONFIG_PCI_DRA7XX) += pci-dra7xx.o
- obj-$(CONFIG_PCI_EXYNOS) += pci-exynos.o
+ 	if (pp->iatu_unroll_enabled) {
+ 		dw_pcie_writel_unroll(pp, index, PCIE_ATU_UNR_LOWER_BASE,
+ 			lower_32_bits(cpu_addr));
 diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index 808d17b..8f3dcb2 100644
+index a567ea2..32f4602 100644
 --- a/drivers/pci/dwc/pcie-designware.h
 +++ b/drivers/pci/dwc/pcie-designware.h
-@@ -162,10 +162,6 @@ struct dw_pcie {
+@@ -54,6 +54,7 @@ struct pcie_port {
+ };
  
- int dw_pcie_read(void __iomem *addr, int size, u32 *val);
- int dw_pcie_write(void __iomem *addr, int size, u32 val);
--irqreturn_t dw_handle_msi_irq(struct pcie_port *pp);
--void dw_pcie_msi_init(struct pcie_port *pp);
--void dw_pcie_setup_rc(struct pcie_port *pp);
--int dw_pcie_host_init(struct pcie_port *pp);
- 
- u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg);
- void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val);
-@@ -175,4 +171,29 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
- 			       int type, u64 cpu_addr, u64 pci_addr,
- 			       u32 size);
- void dw_pcie_setup(struct dw_pcie *pci);
-+
-+#ifdef CONFIG_PCIE_DW_HOST
-+irqreturn_t dw_handle_msi_irq(struct pcie_port *pp);
-+void dw_pcie_msi_init(struct pcie_port *pp);
-+void dw_pcie_setup_rc(struct pcie_port *pp);
-+int dw_pcie_host_init(struct pcie_port *pp);
-+#else
-+static inline irqreturn_t dw_handle_msi_irq(struct pcie_port *pp)
-+{
-+	return IRQ_NONE;
-+}
-+
-+static inline void dw_pcie_msi_init(struct pcie_port *pp)
-+{
-+}
-+
-+static inline void dw_pcie_setup_rc(struct pcie_port *pp)
-+{
-+}
-+
-+static inline int dw_pcie_host_init(struct pcie_port *pp)
-+{
-+	return 0;
-+}
-+#endif
- #endif /* _PCIE_DESIGNWARE_H */
+ struct pcie_host_ops {
++	u64 (*cpu_addr_fixup)(u64 cpu_addr);
+ 	u32 (*readl_rc)(struct pcie_port *pp, u32 reg);
+ 	void (*writel_rc)(struct pcie_port *pp, u32 reg, u32 val);
+ 	int (*rd_own_conf)(struct pcie_port *pp, int where, int size, u32 *val);
 -- 
 1.7.9.5
