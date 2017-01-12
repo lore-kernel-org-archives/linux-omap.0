@@ -1,114 +1,123 @@
-From: Liam Breck <liam@networkimprov.net>
-Subject: Re: [PATCH 1/6] power: bq24190_charger: Call enable_irq() only at the
- end of probe()
-Date: Thu, 12 Jan 2017 12:02:00 -0800
-Message-ID: <CAKvHMgRq3r-6dFTXdJcrUD94BvMzq6w8RRQFgodwoBX3uAZUKw@mail.gmail.com>
-References: <20170112004154.31568-1-tony@atomide.com> <20170112004154.31568-2-tony@atomide.com>
- <20170112174435.fotlw2mrif4oubdt@earth>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH 1/3] misc: sram: Split sram data structures into local header
+Date: Thu, 12 Jan 2017 14:52:18 -0600
+Message-ID: <20170112205220.26325-2-d-gerlach@ti.com>
+References: <20170112205220.26325-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a11470b38badda80545eb309c
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170112174435.fotlw2mrif4oubdt@earth>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Liam Breck <kernel@networkimprov.net>, Matt Ranostay <matt@ranostay.consulting>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170112205220.26325-1-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---001a11470b38badda80545eb309c
-Content-Type: text/plain; charset=UTF-8
+In preparation of a coming file split of the sram driver, move the
+common data structures into a local header file that can be shared
+between files related to the sram driver.
 
-On Thu, Jan 12, 2017 at 9:44 AM, Sebastian Reichel <sre@kernel.org> wrote:
-> Hi Liam & Tony,
->
-> On Wed, Jan 11, 2017 at 04:41:49PM -0800, Tony Lindgren wrote:
->> From: Liam Breck <kernel@networkimprov.net>
->>
->> The device specific data is not fully initialized after
->> request_threaded_irq().
->>
->> This causes problems when the IRQ handler tries to reference them.
->> Fix the issue by enabling IRQ only at the end of the probe.
->>
->> Fixes: d7bf353fd0aa3 ("bq24190_charger: Add support for TI BQ24190
->> Battery Charger")
->> Cc: Mark A. Greer <mgreer@animalcreek.com>
->> Cc: Matt Ranostay <matt@ranostay.consulting>
->> Signed-off-by: Liam Breck <kernel@networkimprov.net>
->> [tony@atomide.com: cleaned up patch description a bit]
->> Signed-off-by: Tony Lindgren <tony@atomide.com>
->> ---
->>  drivers/power/supply/bq24190_charger.c | 3 +++
->>  1 file changed, 3 insertions(+)
->>
->> diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
->> --- a/drivers/power/supply/bq24190_charger.c
->> +++ b/drivers/power/supply/bq24190_charger.c
->> @@ -1392,6 +1392,7 @@ static int bq24190_probe(struct i2c_client *client,
->>               return -EINVAL;
->>       }
->>
->> +     irq_set_status_flags(bdi->irq, IRQ_NOAUTOEN);
->>       ret = devm_request_threaded_irq(dev, bdi->irq, NULL,
->>                       bq24190_irq_handler_thread,
->>                       IRQF_TRIGGER_RISING | IRQF_ONESHOT,
->> @@ -1436,6 +1437,8 @@ static int bq24190_probe(struct i2c_client *client,
->>               goto out4;
->>       }
->>
->> +     enable_irq(bdi->irq);
->> +
->>       return 0;
->>
->>  out4:
->
-> Can't you just move the irq request towards the end of the probe?
-> That way it will also be released before the power-supply structure
-> is released.
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ drivers/misc/sram.c | 30 ++----------------------------
+ drivers/misc/sram.h | 39 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 28 deletions(-)
+ create mode 100644 drivers/misc/sram.h
 
-I did that in a first draft I showed Tony. He suggested this way.
-Tony, rationale?
-
-It looks like this:
-
---001a11470b38badda80545eb309c
-Content-Type: text/plain; charset=US-ASCII; name="temp-paste.txt"
-Content-Disposition: attachment; filename="temp-paste.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ixusv81f1
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvcG93ZXIvYnEyNDE5MF9jaGFyZ2VyLmMgYi9kcml2ZXJzL3Bv
-d2VyL2JxMjQxOTBfY2hhcmdlci5jDQppbmRleCBiNTFlYWMxLi41NGM4OTUyIDEwMDY0NA0KLS0t
-IGEvZHJpdmVycy9wb3dlci9icTI0MTkwX2NoYXJnZXIuYw0KKysrIGIvZHJpdmVycy9wb3dlci9i
-cTI0MTkwX2NoYXJnZXIuYw0KQEAgLTEzNjYsMjIgKzEzNjYsMTMgQEAgc3RhdGljIGludCBicTI0
-MTkwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsDQogCQlyZXR1cm4gLUVJTlZBTDsN
-CiAJfQ0KIA0KLQlyZXQgPSBkZXZtX3JlcXVlc3RfdGhyZWFkZWRfaXJxKGRldiwgYmRpLT5pcnEs
-IE5VTEwsDQotCQkJYnEyNDE5MF9pcnFfaGFuZGxlcl90aHJlYWQsDQotCQkJSVJRRl9UUklHR0VS
-X1JJU0lORyB8IElSUUZfT05FU0hPVCwNCi0JCQkiYnEyNDE5MC1jaGFyZ2VyIiwgYmRpKTsNCi0J
-aWYgKHJldCA8IDApIHsNCi0JCWRldl9lcnIoZGV2LCAiQ2FuJ3Qgc2V0IHVwIGlycSBoYW5kbGVy
-XG4iKTsNCi0JCWdvdG8gb3V0MTsNCi0JfQ0KLQ0KIAlwbV9ydW50aW1lX2VuYWJsZShkZXYpOw0K
-IAlwbV9ydW50aW1lX3Jlc3VtZShkZXYpOw0KIA0KIAlyZXQgPSBicTI0MTkwX2h3X2luaXQoYmRp
-KTsNCiAJaWYgKHJldCA8IDApIHsNCiAJCWRldl9lcnIoZGV2LCAiSGFyZHdhcmUgaW5pdCBmYWls
-ZWRcbiIpOw0KLQkJZ290byBvdXQyOw0KKwkJZ290byBvdXQxOw0KIAl9DQogDQogCWNoYXJnZXJf
-Y2ZnLmRydl9kYXRhID0gYmRpOw0KQEAgLTEzOTIsNyArMTM4Myw3IEBAIHN0YXRpYyBpbnQgYnEy
-NDE5MF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LA0KIAlpZiAoSVNfRVJSKGJkaS0+
-Y2hhcmdlcikpIHsNCiAJCWRldl9lcnIoZGV2LCAiQ2FuJ3QgcmVnaXN0ZXIgY2hhcmdlclxuIik7
-DQogCQlyZXQgPSBQVFJfRVJSKGJkaS0+Y2hhcmdlcik7DQotCQlnb3RvIG91dDI7DQorCQlnb3Rv
-IG91dDE7DQogCX0NCiANCiAJYmF0dGVyeV9jZmcuZHJ2X2RhdGEgPSBiZGk7DQpAQCAtMTQwMSwy
-NCArMTM5MiwzNCBAQCBzdGF0aWMgaW50IGJxMjQxOTBfcHJvYmUoc3RydWN0IGkyY19jbGllbnQg
-KmNsaWVudCwNCiAJaWYgKElTX0VSUihiZGktPmJhdHRlcnkpKSB7DQogCQlkZXZfZXJyKGRldiwg
-IkNhbid0IHJlZ2lzdGVyIGJhdHRlcnlcbiIpOw0KIAkJcmV0ID0gUFRSX0VSUihiZGktPmJhdHRl
-cnkpOw0KLQkJZ290byBvdXQzOw0KKwkJZ290byBvdXQyOw0KIAl9DQogDQogCXJldCA9IGJxMjQx
-OTBfc3lzZnNfY3JlYXRlX2dyb3VwKGJkaSk7DQogCWlmIChyZXQpIHsNCiAJCWRldl9lcnIoZGV2
-LCAiQ2FuJ3QgY3JlYXRlIHN5c2ZzIGVudHJpZXNcbiIpOw0KKwkJZ290byBvdXQzOw0KKwl9DQor
-DQorCXJldCA9IGRldm1fcmVxdWVzdF90aHJlYWRlZF9pcnEoZGV2LCBiZGktPmlycSwgTlVMTCwN
-CisJCQlicTI0MTkwX2lycV9oYW5kbGVyX3RocmVhZCwNCisJCQlJUlFGX1RSSUdHRVJfUklTSU5H
-IHwgSVJRRl9PTkVTSE9ULA0KKwkJCSJicTI0MTkwLWNoYXJnZXIiLCBiZGkpOw0KKwlpZiAocmV0
-IDwgMCkgew0KKwkJZGV2X2VycihkZXYsICJDYW4ndCBzZXQgdXAgaXJxIGhhbmRsZXJcbiIpOw0K
-IAkJZ290byBvdXQ0Ow0KIAl9DQogDQogCXJldHVybiAwOw0KIA0KIG91dDQ6DQotCXBvd2VyX3N1
-cHBseV91bnJlZ2lzdGVyKGJkaS0+YmF0dGVyeSk7DQorCWJxMjQxOTBfc3lzZnNfcmVtb3ZlX2dy
-b3VwKGJkaSk7DQogb3V0MzoNCi0JcG93ZXJfc3VwcGx5X3VucmVnaXN0ZXIoYmRpLT5jaGFyZ2Vy
-KTsNCisJcG93ZXJfc3VwcGx5X3VucmVnaXN0ZXIoYmRpLT5iYXR0ZXJ5KTsNCiBvdXQyOg0KLQlw
-bV9ydW50aW1lX2Rpc2FibGUoZGV2KTsNCisJcG93ZXJfc3VwcGx5X3VucmVnaXN0ZXIoYmRpLT5j
-aGFyZ2VyKTsNCiBvdXQxOg0KKwlwbV9ydW50aW1lX2Rpc2FibGUoZGV2KTsNCiAJaWYgKGJkaS0+
-Z3Bpb19pbnQpDQogCQlncGlvX2ZyZWUoYmRpLT5ncGlvX2ludCk7DQo=
---001a11470b38badda80545eb309c--
+diff --git a/drivers/misc/sram.c b/drivers/misc/sram.c
+index b33ab8ce47ab..4ef5affd03d7 100644
+--- a/drivers/misc/sram.c
++++ b/drivers/misc/sram.c
+@@ -31,35 +31,9 @@
+ #include <linux/mfd/syscon.h>
+ #include <soc/at91/atmel-secumod.h>
+ 
+-#define SRAM_GRANULARITY	32
+-
+-struct sram_partition {
+-	void __iomem *base;
+-
+-	struct gen_pool *pool;
+-	struct bin_attribute battr;
+-	struct mutex lock;
+-};
+-
+-struct sram_dev {
+-	struct device *dev;
+-	void __iomem *virt_base;
+-
+-	struct gen_pool *pool;
+-	struct clk *clk;
++#include "sram.h"
+ 
+-	struct sram_partition *partition;
+-	u32 partitions;
+-};
+-
+-struct sram_reserve {
+-	struct list_head list;
+-	u32 start;
+-	u32 size;
+-	bool export;
+-	bool pool;
+-	const char *label;
+-};
++#define SRAM_GRANULARITY	32
+ 
+ static ssize_t sram_read(struct file *filp, struct kobject *kobj,
+ 			 struct bin_attribute *attr,
+diff --git a/drivers/misc/sram.h b/drivers/misc/sram.h
+new file mode 100644
+index 000000000000..52501a84468c
+--- /dev/null
++++ b/drivers/misc/sram.h
+@@ -0,0 +1,39 @@
++/*
++ * Defines for the SRAM driver
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef __SRAM_H
++#define __SRAM_H
++
++struct sram_partition {
++	void __iomem *base;
++
++	struct gen_pool *pool;
++	struct bin_attribute battr;
++	struct mutex lock;
++	struct list_head list;
++};
++
++struct sram_dev {
++	struct device *dev;
++	void __iomem *virt_base;
++
++	struct gen_pool *pool;
++	struct clk *clk;
++
++	struct sram_partition *partition;
++	u32 partitions;
++};
++
++struct sram_reserve {
++	struct list_head list;
++	u32 start;
++	u32 size;
++	bool export;
++	bool pool;
++	const char *label;
++};
++#endif /* __SRAM_H */
+-- 
+2.11.0
