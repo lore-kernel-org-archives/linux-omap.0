@@ -1,43 +1,72 @@
-From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] Adding DT support for TI HECC module
-Date: Thu, 12 Jan 2017 08:59:40 +0100
-Message-ID: <CAGm1_kvNcmpayN-=mMmkCn1=wXaykhENUrHK2-MVmZLC+Cca0Q@mail.gmail.com>
-References: <1484143521-4898-1-git-send-email-yegorslists@googlemail.com>
- <CAGm1_kvWXfZ_f3PPL1VJj8AhBf59Pax_GFHDVdejuMBRDu9y6Q@mail.gmail.com> <20170112004757.GZ2630@atomide.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH] pinctrl: core: Fix regression caused by delayed work for hogs
+Date: Thu, 12 Jan 2017 09:43:21 +0100
+Message-ID: <CAMuHMdXGaDoBbNGkS8oYRiNUNbtUNand6qkNY-s4QNSt5Fj0ZQ@mail.gmail.com>
+References: <20170111221334.26194-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170112004757.GZ2630-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Andrey Skvortsov <andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, hs-ynQEQJNshbs@public.gmane.org, Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20170111221334.26194-1-tony@atomide.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Gary Bisson <gary.bisson@boundarydevices.com>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 12, 2017 at 1:47 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> * Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> [170111 13:52]:
->> On Wed, Jan 11, 2017 at 3:05 PM,  <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> wrote:
->> > From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
->> >
->> > This is an attempt to revive DT support for TI HECC that was started in 2015.
->> >
->> > I haven't changed much because not all questions could be fully answered:
->> >
->> > * Should HECC use "am3505" as compatible?
->>
->> I mean "ti,am3505-hecc"
->
-> Yeah it should use the device name for the driver.
->
->> > * What should be done to the offsets (ti,scc-ram-offset, ti,hecc-ram-offset, ti,mbx-offset)?
->
-> The devicetree maintainers need to ack the binding doc. Maybe
-> send that as a first patch?
+Hi Tony,
 
-The question is whether to place these settings into dtsi (as it was
-done in the original patch) or in the driver itself.
+On Wed, Jan 11, 2017 at 11:13 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Commit df61b366af26 ("pinctrl: core: Use delayed work for hogs") caused a
+> regression at least with sh-pfc that is also a GPIO controller as
+> noted by Geert Uytterhoeven <geert@linux-m68k.org>.
+>
+> As the original pinctrl_register() has issues calling pin controller
+> driver functions early before the controller has finished registering,
+> we can't just revert commit df61b366af26. That would break the drivers
+> using GENERIC_PINCTRL_GROUPS or GENERIC_PINMUX_FUNCTIONS.
+>
+> So let's fix the issue with the following steps as a single patch:
+>
+> 1. Revert the late_init parts of commit df61b366af26.
+>
+>    The late_init clearly won't work and we have to just give up
+>    on fixing pinctrl_register() for GENERIC_PINCTRL_GROUPS and
+>    GENERIC_PINMUX_FUNCTIONS.
+>
+> 2. Split pinctrl_register() into two parts
+>
+>    By splitting pinctrl_register() into pinctrl_init_controller()
+>    and pinctrl_create_and_start() we have better control over when
+>    it's safe to call pinctrl_create().
+>
+> 3. Introduce a new pinctrl_register_and_init() function
+>
+>    As suggested by Linus Walleij <linus.walleij@linaro.org>, we
+>    can just introduce a new function for the controllers that need
+>    pinctrl_create() called later.
+>
+> 4. Convert the four known problem cases to use new function
+>
+>    Let's convert pinctrl-imx, pinctrl-single, sh-pfc and ti-iodelay
+>    to use the new function to fix the issues. The rest of the drivers
+>    can be converted later. Let's also update Documentation/pinctrl.txt
+>    accordingly because of the known issues with pinctrl_register().
+>
+> Fixes: df61b366af26 ("pinctrl: core: Use delayed work for hogs")
+> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Gary Bisson <gary.bisson@boundarydevices.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Yegor
+Thanks, this fixes r8a7740/armadillo.
+
+Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
