@@ -1,69 +1,192 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 03/37] PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
-Date: Thu, 12 Jan 2017 15:55:52 +0530
-Message-ID: <1484216786-17292-4-git-send-email-kishon@ti.com>
+Subject: [PATCH 04/37] PCI: dwc: designware: Move the register defines to designware header file
+Date: Thu, 12 Jan 2017 15:55:53 +0530
+Message-ID: <1484216786-17292-5-git-send-email-kishon@ti.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1484216786-17292-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, kishon@ti.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Populate cpu_addr_fixup ops to extract the least 28 bits of the
-corresponding cpu address.
+No functional change. Move the register defines and other macros from
+pcie-designware.c to pcie-designware.h. This is in preparation to
+split the pcie-designware.c file into designware core file and host
+specific file.
+
+While at that also fix a checkpatch warning.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/pci/dwc/pcie-designware.c |   70 ------------------------------------
+ drivers/pci/dwc/pcie-designware.h |   71 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 71 insertions(+), 70 deletions(-)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index fb37e09..2073d46 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -88,6 +88,11 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
- 	writel(value, pcie->base + offset);
- }
+diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
+index d68bc7b..0b928dc 100644
+--- a/drivers/pci/dwc/pcie-designware.c
++++ b/drivers/pci/dwc/pcie-designware.c
+@@ -25,76 +25,6 @@
  
-+static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
-+{
-+	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
-+}
-+
- static int dra7xx_pcie_link_up(struct pcie_port *pp)
- {
- 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
-@@ -151,11 +156,6 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
- {
- 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pp);
+ #include "pcie-designware.h"
  
--	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
--	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
--	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
--	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
+-/* Parameters for the waiting for link up routine */
+-#define LINK_WAIT_MAX_RETRIES		10
+-#define LINK_WAIT_USLEEP_MIN		90000
+-#define LINK_WAIT_USLEEP_MAX		100000
 -
- 	dw_pcie_setup_rc(pp);
+-/* Parameters for the waiting for iATU enabled routine */
+-#define LINK_WAIT_MAX_IATU_RETRIES	5
+-#define LINK_WAIT_IATU_MIN		9000
+-#define LINK_WAIT_IATU_MAX		10000
+-
+-/* Synopsys-specific PCIe configuration registers */
+-#define PCIE_PORT_LINK_CONTROL		0x710
+-#define PORT_LINK_MODE_MASK		(0x3f << 16)
+-#define PORT_LINK_MODE_1_LANES		(0x1 << 16)
+-#define PORT_LINK_MODE_2_LANES		(0x3 << 16)
+-#define PORT_LINK_MODE_4_LANES		(0x7 << 16)
+-#define PORT_LINK_MODE_8_LANES		(0xf << 16)
+-
+-#define PCIE_LINK_WIDTH_SPEED_CONTROL	0x80C
+-#define PORT_LOGIC_SPEED_CHANGE		(0x1 << 17)
+-#define PORT_LOGIC_LINK_WIDTH_MASK	(0x1f << 8)
+-#define PORT_LOGIC_LINK_WIDTH_1_LANES	(0x1 << 8)
+-#define PORT_LOGIC_LINK_WIDTH_2_LANES	(0x2 << 8)
+-#define PORT_LOGIC_LINK_WIDTH_4_LANES	(0x4 << 8)
+-#define PORT_LOGIC_LINK_WIDTH_8_LANES	(0x8 << 8)
+-
+-#define PCIE_MSI_ADDR_LO		0x820
+-#define PCIE_MSI_ADDR_HI		0x824
+-#define PCIE_MSI_INTR0_ENABLE		0x828
+-#define PCIE_MSI_INTR0_MASK		0x82C
+-#define PCIE_MSI_INTR0_STATUS		0x830
+-
+-#define PCIE_ATU_VIEWPORT		0x900
+-#define PCIE_ATU_REGION_INBOUND		(0x1 << 31)
+-#define PCIE_ATU_REGION_OUTBOUND	(0x0 << 31)
+-#define PCIE_ATU_REGION_INDEX2		(0x2 << 0)
+-#define PCIE_ATU_REGION_INDEX1		(0x1 << 0)
+-#define PCIE_ATU_REGION_INDEX0		(0x0 << 0)
+-#define PCIE_ATU_CR1			0x904
+-#define PCIE_ATU_TYPE_MEM		(0x0 << 0)
+-#define PCIE_ATU_TYPE_IO		(0x2 << 0)
+-#define PCIE_ATU_TYPE_CFG0		(0x4 << 0)
+-#define PCIE_ATU_TYPE_CFG1		(0x5 << 0)
+-#define PCIE_ATU_CR2			0x908
+-#define PCIE_ATU_ENABLE			(0x1 << 31)
+-#define PCIE_ATU_BAR_MODE_ENABLE	(0x1 << 30)
+-#define PCIE_ATU_LOWER_BASE		0x90C
+-#define PCIE_ATU_UPPER_BASE		0x910
+-#define PCIE_ATU_LIMIT			0x914
+-#define PCIE_ATU_LOWER_TARGET		0x918
+-#define PCIE_ATU_BUS(x)			(((x) & 0xff) << 24)
+-#define PCIE_ATU_DEV(x)			(((x) & 0x1f) << 19)
+-#define PCIE_ATU_FUNC(x)		(((x) & 0x7) << 16)
+-#define PCIE_ATU_UPPER_TARGET		0x91C
+-
+-/*
+- * iATU Unroll-specific register definitions
+- * From 4.80 core version the address translation will be made by unroll
+- */
+-#define PCIE_ATU_UNR_REGION_CTRL1	0x00
+-#define PCIE_ATU_UNR_REGION_CTRL2	0x04
+-#define PCIE_ATU_UNR_LOWER_BASE		0x08
+-#define PCIE_ATU_UNR_UPPER_BASE		0x0C
+-#define PCIE_ATU_UNR_LIMIT		0x10
+-#define PCIE_ATU_UNR_LOWER_TARGET	0x14
+-#define PCIE_ATU_UNR_UPPER_TARGET	0x18
+-
+-/* Register address builder */
+-#define PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(region)  ((0x3 << 20) | (region << 9))
+-
+ /* PCIe Port Logic registers */
+ #define PLR_OFFSET			0x700
+ #define PCIE_PHY_DEBUG_R1		(PLR_OFFSET + 0x2c)
+diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+index 32f4602..a6cf9262 100644
+--- a/drivers/pci/dwc/pcie-designware.h
++++ b/drivers/pci/dwc/pcie-designware.h
+@@ -14,6 +14,77 @@
+ #ifndef _PCIE_DESIGNWARE_H
+ #define _PCIE_DESIGNWARE_H
  
- 	dra7xx_pcie_establish_link(dra7xx);
-@@ -164,6 +164,7 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
- }
- 
- static struct pcie_host_ops dra7xx_pcie_host_ops = {
-+	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
- 	.link_up = dra7xx_pcie_link_up,
- 	.host_init = dra7xx_pcie_host_init,
- };
++/* Parameters for the waiting for link up routine */
++#define LINK_WAIT_MAX_RETRIES		10
++#define LINK_WAIT_USLEEP_MIN		90000
++#define LINK_WAIT_USLEEP_MAX		100000
++
++/* Parameters for the waiting for iATU enabled routine */
++#define LINK_WAIT_MAX_IATU_RETRIES	5
++#define LINK_WAIT_IATU_MIN		9000
++#define LINK_WAIT_IATU_MAX		10000
++
++/* Synopsys-specific PCIe configuration registers */
++#define PCIE_PORT_LINK_CONTROL		0x710
++#define PORT_LINK_MODE_MASK		(0x3f << 16)
++#define PORT_LINK_MODE_1_LANES		(0x1 << 16)
++#define PORT_LINK_MODE_2_LANES		(0x3 << 16)
++#define PORT_LINK_MODE_4_LANES		(0x7 << 16)
++#define PORT_LINK_MODE_8_LANES		(0xf << 16)
++
++#define PCIE_LINK_WIDTH_SPEED_CONTROL	0x80C
++#define PORT_LOGIC_SPEED_CHANGE		(0x1 << 17)
++#define PORT_LOGIC_LINK_WIDTH_MASK	(0x1f << 8)
++#define PORT_LOGIC_LINK_WIDTH_1_LANES	(0x1 << 8)
++#define PORT_LOGIC_LINK_WIDTH_2_LANES	(0x2 << 8)
++#define PORT_LOGIC_LINK_WIDTH_4_LANES	(0x4 << 8)
++#define PORT_LOGIC_LINK_WIDTH_8_LANES	(0x8 << 8)
++
++#define PCIE_MSI_ADDR_LO		0x820
++#define PCIE_MSI_ADDR_HI		0x824
++#define PCIE_MSI_INTR0_ENABLE		0x828
++#define PCIE_MSI_INTR0_MASK		0x82C
++#define PCIE_MSI_INTR0_STATUS		0x830
++
++#define PCIE_ATU_VIEWPORT		0x900
++#define PCIE_ATU_REGION_INBOUND		(0x1 << 31)
++#define PCIE_ATU_REGION_OUTBOUND	(0x0 << 31)
++#define PCIE_ATU_REGION_INDEX2		(0x2 << 0)
++#define PCIE_ATU_REGION_INDEX1		(0x1 << 0)
++#define PCIE_ATU_REGION_INDEX0		(0x0 << 0)
++#define PCIE_ATU_CR1			0x904
++#define PCIE_ATU_TYPE_MEM		(0x0 << 0)
++#define PCIE_ATU_TYPE_IO		(0x2 << 0)
++#define PCIE_ATU_TYPE_CFG0		(0x4 << 0)
++#define PCIE_ATU_TYPE_CFG1		(0x5 << 0)
++#define PCIE_ATU_CR2			0x908
++#define PCIE_ATU_ENABLE			(0x1 << 31)
++#define PCIE_ATU_BAR_MODE_ENABLE	(0x1 << 30)
++#define PCIE_ATU_LOWER_BASE		0x90C
++#define PCIE_ATU_UPPER_BASE		0x910
++#define PCIE_ATU_LIMIT			0x914
++#define PCIE_ATU_LOWER_TARGET		0x918
++#define PCIE_ATU_BUS(x)			(((x) & 0xff) << 24)
++#define PCIE_ATU_DEV(x)			(((x) & 0x1f) << 19)
++#define PCIE_ATU_FUNC(x)		(((x) & 0x7) << 16)
++#define PCIE_ATU_UPPER_TARGET		0x91C
++
++/*
++ * iATU Unroll-specific register definitions
++ * From 4.80 core version the address translation will be made by unroll
++ */
++#define PCIE_ATU_UNR_REGION_CTRL1	0x00
++#define PCIE_ATU_UNR_REGION_CTRL2	0x04
++#define PCIE_ATU_UNR_LOWER_BASE		0x08
++#define PCIE_ATU_UNR_UPPER_BASE		0x0C
++#define PCIE_ATU_UNR_LIMIT		0x10
++#define PCIE_ATU_UNR_LOWER_TARGET	0x14
++#define PCIE_ATU_UNR_UPPER_TARGET	0x18
++
++/* Register address builder */
++#define PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(region)	\
++			((0x3 << 20) | ((region) << 9))
++
+ /*
+  * Maximum number of MSI IRQs can be 256 per controller. But keep
+  * it 32 as of now. Probably we will never need more than 32. If needed,
 -- 
 1.7.9.5
