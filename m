@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 04/37] PCI: dwc: designware: Move the register defines to designware header file
-Date: Thu, 12 Jan 2017 15:55:53 +0530
-Message-ID: <1484216786-17292-5-git-send-email-kishon@ti.com>
+Subject: [PATCH 06/37] PCI: dwc: Rename cfg_read/cfg_write to read/write
+Date: Thu, 12 Jan 2017 15:55:55 +0530
+Message-ID: <1484216786-17292-7-git-send-email-kishon@ti.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,184 +9,245 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1484216786-17292-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
+Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, kishon@ti.com, Murali Karicheri <m-karicheri2@ti.com>, Stanimir Varbanov <svarbanov@mm-sol.com>, Pratyush Anand <pratyush.anand@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Move the register defines and other macros from
-pcie-designware.c to pcie-designware.h. This is in preparation to
-split the pcie-designware.c file into designware core file and host
-specific file.
+No functional change. dw_pcie_cfg_read/dw_pcie_cfg_write doesn't do
+anything specific to access configuration space. It can be just renamed
+to dw_pcie_read/dw_pcie_write and used to read/write data to dbi space.
+This is in preparation for added endpoint support to linux kernel.
 
-While at that also fix a checkpatch warning.
-
+Cc: Jingoo Han <jingoohan1@gmail.com>
+Cc: Murali Karicheri <m-karicheri2@ti.com>
+Cc: Joao Pinto <Joao.Pinto@synopsys.com>
+Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
+Cc: Pratyush Anand <pratyush.anand@gmail.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pcie-designware.c |   70 ------------------------------------
- drivers/pci/dwc/pcie-designware.h |   71 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+), 70 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c      |   16 ++++++++--------
+ drivers/pci/dwc/pci-exynos.c      |    4 ++--
+ drivers/pci/dwc/pci-keystone-dw.c |    4 ++--
+ drivers/pci/dwc/pcie-designware.c |   12 ++++++------
+ drivers/pci/dwc/pcie-designware.h |    4 ++--
+ drivers/pci/dwc/pcie-qcom.c       |    2 +-
+ drivers/pci/dwc/pcie-spear13xx.c  |   24 ++++++++++++------------
+ 7 files changed, 33 insertions(+), 33 deletions(-)
 
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index aeeab74..38b0c9a 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -114,22 +114,22 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
+ 	}
+ 
+ 	if (dra7xx->link_gen == 1) {
+-		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
+-				 4, &reg);
++		dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
++			     4, &reg);
+ 		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+ 			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
+ 			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
+-			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
+-					  PCI_EXP_LNKCAP, 4, reg);
++			dw_pcie_write(pp->dbi_base + exp_cap_off +
++				      PCI_EXP_LNKCAP, 4, reg);
+ 		}
+ 
+-		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
+-				 2, &reg);
++		dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
++			     2, &reg);
+ 		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+ 			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
+ 			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
+-			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
+-					  PCI_EXP_LNKCTL2, 2, reg);
++			dw_pcie_write(pp->dbi_base + exp_cap_off +
++				      PCI_EXP_LNKCTL2, 2, reg);
+ 		}
+ 	}
+ 
+diff --git a/drivers/pci/dwc/pci-exynos.c b/drivers/pci/dwc/pci-exynos.c
+index c179e7a..e3fbff4 100644
+--- a/drivers/pci/dwc/pci-exynos.c
++++ b/drivers/pci/dwc/pci-exynos.c
+@@ -429,7 +429,7 @@ static int exynos_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
+ 	int ret;
+ 
+ 	exynos_pcie_sideband_dbi_r_mode(exynos_pcie, true);
+-	ret = dw_pcie_cfg_read(pp->dbi_base + where, size, val);
++	ret = dw_pcie_read(pp->dbi_base + where, size, val);
+ 	exynos_pcie_sideband_dbi_r_mode(exynos_pcie, false);
+ 	return ret;
+ }
+@@ -441,7 +441,7 @@ static int exynos_pcie_wr_own_conf(struct pcie_port *pp, int where, int size,
+ 	int ret;
+ 
+ 	exynos_pcie_sideband_dbi_w_mode(exynos_pcie, true);
+-	ret = dw_pcie_cfg_write(pp->dbi_base + where, size, val);
++	ret = dw_pcie_write(pp->dbi_base + where, size, val);
+ 	exynos_pcie_sideband_dbi_w_mode(exynos_pcie, false);
+ 	return ret;
+ }
+diff --git a/drivers/pci/dwc/pci-keystone-dw.c b/drivers/pci/dwc/pci-keystone-dw.c
+index 9397c46..4875334 100644
+--- a/drivers/pci/dwc/pci-keystone-dw.c
++++ b/drivers/pci/dwc/pci-keystone-dw.c
+@@ -444,7 +444,7 @@ int ks_dw_pcie_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
+ 
+ 	addr = ks_pcie_cfg_setup(ks_pcie, bus_num, devfn);
+ 
+-	return dw_pcie_cfg_read(addr + where, size, val);
++	return dw_pcie_read(addr + where, size, val);
+ }
+ 
+ int ks_dw_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
+@@ -456,7 +456,7 @@ int ks_dw_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
+ 
+ 	addr = ks_pcie_cfg_setup(ks_pcie, bus_num, devfn);
+ 
+-	return dw_pcie_cfg_write(addr + where, size, val);
++	return dw_pcie_write(addr + where, size, val);
+ }
+ 
+ /**
 diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-index d68bc7b..0b928dc 100644
+index 0b928dc..d0ea310 100644
 --- a/drivers/pci/dwc/pcie-designware.c
 +++ b/drivers/pci/dwc/pcie-designware.c
-@@ -25,76 +25,6 @@
+@@ -33,7 +33,7 @@
  
- #include "pcie-designware.h"
+ static struct pci_ops dw_pcie_ops;
  
--/* Parameters for the waiting for link up routine */
--#define LINK_WAIT_MAX_RETRIES		10
--#define LINK_WAIT_USLEEP_MIN		90000
--#define LINK_WAIT_USLEEP_MAX		100000
--
--/* Parameters for the waiting for iATU enabled routine */
--#define LINK_WAIT_MAX_IATU_RETRIES	5
--#define LINK_WAIT_IATU_MIN		9000
--#define LINK_WAIT_IATU_MAX		10000
--
--/* Synopsys-specific PCIe configuration registers */
--#define PCIE_PORT_LINK_CONTROL		0x710
--#define PORT_LINK_MODE_MASK		(0x3f << 16)
--#define PORT_LINK_MODE_1_LANES		(0x1 << 16)
--#define PORT_LINK_MODE_2_LANES		(0x3 << 16)
--#define PORT_LINK_MODE_4_LANES		(0x7 << 16)
--#define PORT_LINK_MODE_8_LANES		(0xf << 16)
--
--#define PCIE_LINK_WIDTH_SPEED_CONTROL	0x80C
--#define PORT_LOGIC_SPEED_CHANGE		(0x1 << 17)
--#define PORT_LOGIC_LINK_WIDTH_MASK	(0x1f << 8)
--#define PORT_LOGIC_LINK_WIDTH_1_LANES	(0x1 << 8)
--#define PORT_LOGIC_LINK_WIDTH_2_LANES	(0x2 << 8)
--#define PORT_LOGIC_LINK_WIDTH_4_LANES	(0x4 << 8)
--#define PORT_LOGIC_LINK_WIDTH_8_LANES	(0x8 << 8)
--
--#define PCIE_MSI_ADDR_LO		0x820
--#define PCIE_MSI_ADDR_HI		0x824
--#define PCIE_MSI_INTR0_ENABLE		0x828
--#define PCIE_MSI_INTR0_MASK		0x82C
--#define PCIE_MSI_INTR0_STATUS		0x830
--
--#define PCIE_ATU_VIEWPORT		0x900
--#define PCIE_ATU_REGION_INBOUND		(0x1 << 31)
--#define PCIE_ATU_REGION_OUTBOUND	(0x0 << 31)
--#define PCIE_ATU_REGION_INDEX2		(0x2 << 0)
--#define PCIE_ATU_REGION_INDEX1		(0x1 << 0)
--#define PCIE_ATU_REGION_INDEX0		(0x0 << 0)
--#define PCIE_ATU_CR1			0x904
--#define PCIE_ATU_TYPE_MEM		(0x0 << 0)
--#define PCIE_ATU_TYPE_IO		(0x2 << 0)
--#define PCIE_ATU_TYPE_CFG0		(0x4 << 0)
--#define PCIE_ATU_TYPE_CFG1		(0x5 << 0)
--#define PCIE_ATU_CR2			0x908
--#define PCIE_ATU_ENABLE			(0x1 << 31)
--#define PCIE_ATU_BAR_MODE_ENABLE	(0x1 << 30)
--#define PCIE_ATU_LOWER_BASE		0x90C
--#define PCIE_ATU_UPPER_BASE		0x910
--#define PCIE_ATU_LIMIT			0x914
--#define PCIE_ATU_LOWER_TARGET		0x918
--#define PCIE_ATU_BUS(x)			(((x) & 0xff) << 24)
--#define PCIE_ATU_DEV(x)			(((x) & 0x1f) << 19)
--#define PCIE_ATU_FUNC(x)		(((x) & 0x7) << 16)
--#define PCIE_ATU_UPPER_TARGET		0x91C
--
--/*
-- * iATU Unroll-specific register definitions
-- * From 4.80 core version the address translation will be made by unroll
-- */
--#define PCIE_ATU_UNR_REGION_CTRL1	0x00
--#define PCIE_ATU_UNR_REGION_CTRL2	0x04
--#define PCIE_ATU_UNR_LOWER_BASE		0x08
--#define PCIE_ATU_UNR_UPPER_BASE		0x0C
--#define PCIE_ATU_UNR_LIMIT		0x10
--#define PCIE_ATU_UNR_LOWER_TARGET	0x14
--#define PCIE_ATU_UNR_UPPER_TARGET	0x18
--
--/* Register address builder */
--#define PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(region)  ((0x3 << 20) | (region << 9))
--
- /* PCIe Port Logic registers */
- #define PLR_OFFSET			0x700
- #define PCIE_PHY_DEBUG_R1		(PLR_OFFSET + 0x2c)
+-int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val)
++int dw_pcie_read(void __iomem *addr, int size, u32 *val)
+ {
+ 	if ((uintptr_t)addr & (size - 1)) {
+ 		*val = 0;
+@@ -54,7 +54,7 @@ int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val)
+ 	return PCIBIOS_SUCCESSFUL;
+ }
+ 
+-int dw_pcie_cfg_write(void __iomem *addr, int size, u32 val)
++int dw_pcie_write(void __iomem *addr, int size, u32 val)
+ {
+ 	if ((uintptr_t)addr & (size - 1))
+ 		return PCIBIOS_BAD_REGISTER_NUMBER;
+@@ -108,7 +108,7 @@ static int dw_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
+ 	if (pp->ops->rd_own_conf)
+ 		return pp->ops->rd_own_conf(pp, where, size, val);
+ 
+-	return dw_pcie_cfg_read(pp->dbi_base + where, size, val);
++	return dw_pcie_read(pp->dbi_base + where, size, val);
+ }
+ 
+ static int dw_pcie_wr_own_conf(struct pcie_port *pp, int where, int size,
+@@ -117,7 +117,7 @@ static int dw_pcie_wr_own_conf(struct pcie_port *pp, int where, int size,
+ 	if (pp->ops->wr_own_conf)
+ 		return pp->ops->wr_own_conf(pp, where, size, val);
+ 
+-	return dw_pcie_cfg_write(pp->dbi_base + where, size, val);
++	return dw_pcie_write(pp->dbi_base + where, size, val);
+ }
+ 
+ static void dw_pcie_prog_outbound_atu(struct pcie_port *pp, int index,
+@@ -638,7 +638,7 @@ static int dw_pcie_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
+ 	dw_pcie_prog_outbound_atu(pp, PCIE_ATU_REGION_INDEX1,
+ 				  type, cpu_addr,
+ 				  busdev, cfg_size);
+-	ret = dw_pcie_cfg_read(va_cfg_base + where, size, val);
++	ret = dw_pcie_read(va_cfg_base + where, size, val);
+ 	if (pp->num_viewport <= 2)
+ 		dw_pcie_prog_outbound_atu(pp, PCIE_ATU_REGION_INDEX1,
+ 					  PCIE_ATU_TYPE_IO, pp->io_base,
+@@ -676,7 +676,7 @@ static int dw_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
+ 	dw_pcie_prog_outbound_atu(pp, PCIE_ATU_REGION_INDEX1,
+ 				  type, cpu_addr,
+ 				  busdev, cfg_size);
+-	ret = dw_pcie_cfg_write(va_cfg_base + where, size, val);
++	ret = dw_pcie_write(va_cfg_base + where, size, val);
+ 	if (pp->num_viewport <= 2)
+ 		dw_pcie_prog_outbound_atu(pp, PCIE_ATU_REGION_INDEX1,
+ 					  PCIE_ATU_TYPE_IO, pp->io_base,
 diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index 32f4602..a6cf9262 100644
+index a6cf9262..b6ddb05 100644
 --- a/drivers/pci/dwc/pcie-designware.h
 +++ b/drivers/pci/dwc/pcie-designware.h
-@@ -14,6 +14,77 @@
- #ifndef _PCIE_DESIGNWARE_H
- #define _PCIE_DESIGNWARE_H
+@@ -146,8 +146,8 @@ struct pcie_host_ops {
  
-+/* Parameters for the waiting for link up routine */
-+#define LINK_WAIT_MAX_RETRIES		10
-+#define LINK_WAIT_USLEEP_MIN		90000
-+#define LINK_WAIT_USLEEP_MAX		100000
-+
-+/* Parameters for the waiting for iATU enabled routine */
-+#define LINK_WAIT_MAX_IATU_RETRIES	5
-+#define LINK_WAIT_IATU_MIN		9000
-+#define LINK_WAIT_IATU_MAX		10000
-+
-+/* Synopsys-specific PCIe configuration registers */
-+#define PCIE_PORT_LINK_CONTROL		0x710
-+#define PORT_LINK_MODE_MASK		(0x3f << 16)
-+#define PORT_LINK_MODE_1_LANES		(0x1 << 16)
-+#define PORT_LINK_MODE_2_LANES		(0x3 << 16)
-+#define PORT_LINK_MODE_4_LANES		(0x7 << 16)
-+#define PORT_LINK_MODE_8_LANES		(0xf << 16)
-+
-+#define PCIE_LINK_WIDTH_SPEED_CONTROL	0x80C
-+#define PORT_LOGIC_SPEED_CHANGE		(0x1 << 17)
-+#define PORT_LOGIC_LINK_WIDTH_MASK	(0x1f << 8)
-+#define PORT_LOGIC_LINK_WIDTH_1_LANES	(0x1 << 8)
-+#define PORT_LOGIC_LINK_WIDTH_2_LANES	(0x2 << 8)
-+#define PORT_LOGIC_LINK_WIDTH_4_LANES	(0x4 << 8)
-+#define PORT_LOGIC_LINK_WIDTH_8_LANES	(0x8 << 8)
-+
-+#define PCIE_MSI_ADDR_LO		0x820
-+#define PCIE_MSI_ADDR_HI		0x824
-+#define PCIE_MSI_INTR0_ENABLE		0x828
-+#define PCIE_MSI_INTR0_MASK		0x82C
-+#define PCIE_MSI_INTR0_STATUS		0x830
-+
-+#define PCIE_ATU_VIEWPORT		0x900
-+#define PCIE_ATU_REGION_INBOUND		(0x1 << 31)
-+#define PCIE_ATU_REGION_OUTBOUND	(0x0 << 31)
-+#define PCIE_ATU_REGION_INDEX2		(0x2 << 0)
-+#define PCIE_ATU_REGION_INDEX1		(0x1 << 0)
-+#define PCIE_ATU_REGION_INDEX0		(0x0 << 0)
-+#define PCIE_ATU_CR1			0x904
-+#define PCIE_ATU_TYPE_MEM		(0x0 << 0)
-+#define PCIE_ATU_TYPE_IO		(0x2 << 0)
-+#define PCIE_ATU_TYPE_CFG0		(0x4 << 0)
-+#define PCIE_ATU_TYPE_CFG1		(0x5 << 0)
-+#define PCIE_ATU_CR2			0x908
-+#define PCIE_ATU_ENABLE			(0x1 << 31)
-+#define PCIE_ATU_BAR_MODE_ENABLE	(0x1 << 30)
-+#define PCIE_ATU_LOWER_BASE		0x90C
-+#define PCIE_ATU_UPPER_BASE		0x910
-+#define PCIE_ATU_LIMIT			0x914
-+#define PCIE_ATU_LOWER_TARGET		0x918
-+#define PCIE_ATU_BUS(x)			(((x) & 0xff) << 24)
-+#define PCIE_ATU_DEV(x)			(((x) & 0x1f) << 19)
-+#define PCIE_ATU_FUNC(x)		(((x) & 0x7) << 16)
-+#define PCIE_ATU_UPPER_TARGET		0x91C
-+
-+/*
-+ * iATU Unroll-specific register definitions
-+ * From 4.80 core version the address translation will be made by unroll
-+ */
-+#define PCIE_ATU_UNR_REGION_CTRL1	0x00
-+#define PCIE_ATU_UNR_REGION_CTRL2	0x04
-+#define PCIE_ATU_UNR_LOWER_BASE		0x08
-+#define PCIE_ATU_UNR_UPPER_BASE		0x0C
-+#define PCIE_ATU_UNR_LIMIT		0x10
-+#define PCIE_ATU_UNR_LOWER_TARGET	0x14
-+#define PCIE_ATU_UNR_UPPER_TARGET	0x18
-+
-+/* Register address builder */
-+#define PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(region)	\
-+			((0x3 << 20) | ((region) << 9))
-+
- /*
-  * Maximum number of MSI IRQs can be 256 per controller. But keep
-  * it 32 as of now. Probably we will never need more than 32. If needed,
+ u32 dw_pcie_readl_rc(struct pcie_port *pp, u32 reg);
+ void dw_pcie_writel_rc(struct pcie_port *pp, u32 reg, u32 val);
+-int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val);
+-int dw_pcie_cfg_write(void __iomem *addr, int size, u32 val);
++int dw_pcie_read(void __iomem *addr, int size, u32 *val);
++int dw_pcie_write(void __iomem *addr, int size, u32 val);
+ irqreturn_t dw_handle_msi_irq(struct pcie_port *pp);
+ void dw_pcie_msi_init(struct pcie_port *pp);
+ int dw_pcie_wait_for_link(struct pcie_port *pp);
+diff --git a/drivers/pci/dwc/pcie-qcom.c b/drivers/pci/dwc/pcie-qcom.c
+index 2c24c45..d75fc02 100644
+--- a/drivers/pci/dwc/pcie-qcom.c
++++ b/drivers/pci/dwc/pcie-qcom.c
+@@ -630,7 +630,7 @@ static int qcom_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
+ 		return PCIBIOS_SUCCESSFUL;
+ 	}
+ 
+-	return dw_pcie_cfg_read(pp->dbi_base + where, size, val);
++	return dw_pcie_read(pp->dbi_base + where, size, val);
+ }
+ 
+ static struct pcie_host_ops qcom_pcie_dw_ops = {
+diff --git a/drivers/pci/dwc/pcie-spear13xx.c b/drivers/pci/dwc/pcie-spear13xx.c
+index 5970566..7acf91e 100644
+--- a/drivers/pci/dwc/pcie-spear13xx.c
++++ b/drivers/pci/dwc/pcie-spear13xx.c
+@@ -91,34 +91,34 @@ static int spear13xx_pcie_establish_link(struct spear13xx_pcie *spear13xx_pcie)
+ 	 * default value in capability register is 512 bytes. So force
+ 	 * it to 128 here.
+ 	 */
+-	dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, &val);
++	dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, &val);
+ 	val &= ~PCI_EXP_DEVCTL_READRQ;
+-	dw_pcie_cfg_write(pp->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, val);
++	dw_pcie_write(pp->dbi_base + exp_cap_off + PCI_EXP_DEVCTL, 2, val);
+ 
+-	dw_pcie_cfg_write(pp->dbi_base + PCI_VENDOR_ID, 2, 0x104A);
+-	dw_pcie_cfg_write(pp->dbi_base + PCI_DEVICE_ID, 2, 0xCD80);
++	dw_pcie_write(pp->dbi_base + PCI_VENDOR_ID, 2, 0x104A);
++	dw_pcie_write(pp->dbi_base + PCI_DEVICE_ID, 2, 0xCD80);
+ 
+ 	/*
+ 	 * if is_gen1 is set then handle it, so that some buggy card
+ 	 * also works
+ 	 */
+ 	if (spear13xx_pcie->is_gen1) {
+-		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
+-					4, &val);
++		dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
++			     4, &val);
+ 		if ((val & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+ 			val &= ~((u32)PCI_EXP_LNKCAP_SLS);
+ 			val |= PCI_EXP_LNKCAP_SLS_2_5GB;
+-			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
+-				PCI_EXP_LNKCAP, 4, val);
++			dw_pcie_write(pp->dbi_base + exp_cap_off +
++				      PCI_EXP_LNKCAP, 4, val);
+ 		}
+ 
+-		dw_pcie_cfg_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
+-					2, &val);
++		dw_pcie_read(pp->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
++			     2, &val);
+ 		if ((val & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+ 			val &= ~((u32)PCI_EXP_LNKCAP_SLS);
+ 			val |= PCI_EXP_LNKCAP_SLS_2_5GB;
+-			dw_pcie_cfg_write(pp->dbi_base + exp_cap_off +
+-					PCI_EXP_LNKCTL2, 2, val);
++			dw_pcie_write(pp->dbi_base + exp_cap_off +
++				      PCI_EXP_LNKCTL2, 2, val);
+ 		}
+ 	}
+ 
 -- 
 1.7.9.5
