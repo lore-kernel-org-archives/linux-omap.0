@@ -1,43 +1,98 @@
-From: Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [PATCH 04/37] PCI: dwc: designware: Move the register defines to
- designware header file
-Date: Fri, 13 Jan 2017 16:35:03 +0000
-Message-ID: <0913dcb3-ecb8-b926-981d-f5d3baa9d8b7@synopsys.com>
-References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-5-git-send-email-kishon@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] Documentation: dt-bindings: Add binding documentation
+ for TI clkctrl clocks
+Date: Fri, 13 Jan 2017 10:36:47 -0600
+Message-ID: <20170113163647.6xbhoafb5xddtvnz@rob-hp-laptop>
+References: <20170109234226.9449-1-tony@atomide.com>
+ <20170110154400.GT2630@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1484216786-17292-5-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170110154400.GT2630-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-Às 10:25 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
-> No functional change. Move the register defines and other macros from
-> pcie-designware.c to pcie-designware.h. This is in preparation to
-> split the pcie-designware.c file into designware core file and host
-> specific file.
+On Tue, Jan 10, 2017 at 07:44:01AM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170109 15:43]:
+> > Texas Instruments omap variant SoCs starting with omap4 have a clkctrl
+> > clock controller instance for each interconnect target module. The clkctrl
+> > controls functional and interface clocks for the module.
+> > 
+> > The clkctrl clocks are currently handled by arch/arm/mach-omap2 hwmod code.
+> > With this binding and a related clock device driver we can start moving the
+> > clkctrl clock handling to live in drivers/clk/ti.
+> > 
+> > For hardware reference, see omap4430 TRM "Table 3-1312. L4PER_CM2 Registers
+> > Mapping Summary" for example. It show one instance of a clkctrl clock
+> > controller with multiple clkctrl registers.
+> > 
+> > Note that this binding allows keeping the clockdomain related parts out of
+> > drivers/clock. The CLKCTCTRL and DYNAMICDEP registers can be handled by
+> > using a separate driver in drivers/soc/ti and genpd. If the clockdomain
+> > driver needs to know it's clocks, we can just set the the clkctrl device
+> > instances to be children of the related clockdomain device.
+> > 
+> > On omap4 CM_L3INIT_USB_HOST_HS_CLKCTRL on omap5 has eight OPTFCLKEN bits.
+> > So we need to shift the clock index to avoid index conflict for the clock
+> > consumer binding with the next clkctrl offset on omap4.
+> > 
+> > Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> > Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > ---
+> > 
+> > So here's what I was able to come up for the clkctr binding based on
+> > all we've discussed so far. Can you guys please take a look and see
+> > if it looks OK to you before we do the device driver?
+> > 
+> > Also, does anybody have better suggestions for addressing the optional
+> > clocks in each clkctrl register?
 > 
-> While at that also fix a checkpatch warning.
+> The other option that might be worth considering is to make use of the
+> #clock-cells property. Then the index of any optional clock could be passed
+> in the second cell.
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/pci/dwc/pcie-designware.c |   70 ------------------------------------
->  drivers/pci/dwc/pcie-designware.h |   71 +++++++++++++++++++++++++++++++++++++
->  2 files changed, 71 insertions(+), 70 deletions(-)
+> The third cell could be used to set the modulemode for the clock (software
+> controlled or hardware controlled) instead of using a custom property
+> at the clock controllel level.
+
+I guess I prefer this way. Or you could do a mixture of both proposals 
+with 2 cells. The first being the clock id and the 2nd flags. 
+
+What's the max optional clocks in theory? B picked from the current 
+worst case seems a bit worrying. Why not 16? Upper half is offset, lower 
+half is index. 
+
+> In that case clock consume usage would look like the following using
+> #clock-cells = <3>:
 > 
-> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-> index d68bc7b..0b928dc 100644
-> --- a/drivers/pci/dwc/pcie-designware.c
-> +++ b/drivers/pci/dwc/pcie-designware.c
-> @@ -25,76 +25,6 @@
->  
->  #include "pcie-designware.h"
+> #define OMAP4_CLKCTRL_OFFSET		0x20
+> #define MODULEMODE_HWCTRL		1
+> #define MODULEMODE_SWCTRL		2
 
-Make sense.
+Can you make one of these 0 instead or is both being set valid?
 
-Reviewed-By: Joao Pinto <jpinto@synopsys.com>
+> 
+> #define OMAP_CLKCTRL_INDEX(offset)	((offset) - OMAP4_CLKCTRL_OFFSET)
+> 
+> #define OMAP4_GPTIMER10_CLKTRL		OMAP_CLKCTRL_INDEX(0x28)
+> #define OMAP4_GPTIMER11_CLKTRL		OMAP_CLKCTRL_INDEX(0x30)
+> #define OMAP4_GPTIMER2_CLKTRL		OMAP_CLKCTRL_INDEX(0x38)
+> ...
+> #define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
+> ...
+> 
+> &gpio2 {
+> 	clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 0 MODULEMODE_HWCTRL
+> 		  &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL_DBCLK 1 0>;
+
+Drop the _DBCLK here, right?
+
+Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
