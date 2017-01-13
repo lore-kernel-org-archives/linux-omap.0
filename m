@@ -1,64 +1,50 @@
-From: Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [PATCH 05/37] PCI: dwc: Add platform_set_drvdata
-Date: Fri, 13 Jan 2017 17:16:15 +0000
-Message-ID: <dbaae6f0-f76f-1558-5a49-a17530459cdb@synopsys.com>
-References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-6-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: OMAP5 / DRA7: indicate that SATA port 0 is
+ available.
+Date: Fri, 13 Jan 2017 09:19:37 -0800
+Message-ID: <20170113171936.GA2630@atomide.com>
+References: <1483964535-4298-1-git-send-email-jjhiblot@ti.com>
+ <20170112223007.GP2630@atomide.com>
+ <20170112223627.GQ2630@atomide.com>
+ <423304d1-ffe3-ce7e-74d9-9707c391d501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1484216786-17292-6-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, Richard Zhu <hongxing.zhu@nxp.com>, Lucas Stach <l.stach@pengutronix.de>, Murali Karicheri <m-karicheri2@ti.com>, Minghuan Lian <minghuan.Lian@freescale.com>, Mingkai Hu <mingkai.hu@freescale.com>, Roy Zang <tie-fei.zang@freescale.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Niklas Cassel <niklas.cassel@axis.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Zhou Wang <wangzhou1@hisilicon.com>, Gabrie
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <423304d1-ffe3-ce7e-74d9-9707c391d501@ti.com>
+Sender: stable-owner@vger.kernel.org
+To: Jean-Jacques Hiblot <jjhiblot@ti.com>
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-Hi,
-
-Às 10:25 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
-> Add platform_set_drvdata in all designware based drivers to store the
-> private data structure of the driver so that dev_set_drvdata can be
-> used to get back private data pointer in add_pcie_port/host_init.
-> This is in preparation for splitting struct pcie_port into core and
-> host only structures. After the split pcie_port will not be part of
-> the driver's private data structure and *container_of* used now
-> to get the private data pointer cannot be used.
+* Jean-Jacques Hiblot <jjhiblot@ti.com> [170113 00:00]:
 > 
-> Cc: Jingoo Han <jingoohan1@gmail.com>
-> Cc: Richard Zhu <hongxing.zhu@nxp.com>
-> Cc: Lucas Stach <l.stach@pengutronix.de>
-> Cc: Murali Karicheri <m-karicheri2@ti.com>
-> Cc: Minghuan Lian <minghuan.Lian@freescale.com>
-> Cc: Mingkai Hu <mingkai.hu@freescale.com>
-> Cc: Roy Zang <tie-fei.zang@freescale.com>
-> Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-> Cc: Niklas Cassel <niklas.cassel@axis.com>
-> Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-> Cc: Joao Pinto <Joao.Pinto@synopsys.com>
-> Cc: Zhou Wang <wangzhou1@hisilicon.com>
-> Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> Cc: Stanimir Varbanov <svarbanov@mm-sol.com>
-> Cc: Pratyush Anand <pratyush.anand@gmail.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/pci/dwc/pci-dra7xx.c           |    3 ++-
->  drivers/pci/dwc/pci-exynos.c           |    3 ++-
->  drivers/pci/dwc/pci-imx6.c             |    3 ++-
->  drivers/pci/dwc/pci-keystone.c         |    2 ++
->  drivers/pci/dwc/pci-layerscape.c       |    2 ++
->  drivers/pci/dwc/pcie-armada8k.c        |    2 ++
->  drivers/pci/dwc/pcie-artpec6.c         |    2 ++
->  drivers/pci/dwc/pcie-designware-plat.c |    2 ++
->  drivers/pci/dwc/pcie-hisi.c            |    2 ++
->  drivers/pci/dwc/pcie-qcom.c            |    2 ++
->  drivers/pci/dwc/pcie-spear13xx.c       |    3 ++-
->  11 files changed, 22 insertions(+), 4 deletions(-)
 > 
+> On 12/01/2017 23:36, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [170112 14:31]:
+> > > * Jean-Jacques Hiblot <jjhiblot@ti.com> [170109 04:23]:
+> > > > AHCI provides the register PORTS_IMPL to let the software know which port
+> > > > is supported. The register must be initialized by the bootloader. However
+> > > > in some cases u-boot doesn't properly initialize this value (if it is not
+> > > > compiled with SATA support for example or if the SATA initialization fails).
+> > > > The DTS entry "ports-implemented" can be used to override the value in
+> > > > PORTS_IMPL.
+> > > > Adding this entry in the dts allows us no to worry about what is done by
+> > > > the bootloader.
+> > > Adding into omap-for-v4.11/dt thanks.
+> > Actually not applying just yet as I just noticed you tagged this for stable.
+> > 
+> > Care to describe what breaks and on which devices without this patch?
+> Hi tony,
+> 
+> Without this patch the SATA will not work in the following two cases:
+> * if there has been a failure to initialize SATA in u-boot.
+> * if ahci_platform module has been removed and re-inserted. The reason is
+> that the content of PORTS_IMPL is lost after the module is removed. I
+> suspect that it's because the controller is reset by the hwmod.
 
-This is an example of a change that could be merged with another patch that
-gives it more meaning, like I wrote in the review of patch 9/37.
+OK I'll add that to the comments and apply into omap-for-v4.10/fixes.
 
 Thanks,
-Joao
+
+Tony
