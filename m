@@ -1,15 +1,15 @@
 From: Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [PATCH 11/37] PCI: dwc: Split pcie-designware.c into host and
- core files
-Date: Fri, 13 Jan 2017 16:49:44 +0000
-Message-ID: <4a89fb45-af84-d660-5ef0-12227b141cda@synopsys.com>
+Subject: Re: [PATCH 09/37] PCI: dwc: designware: Parse *num-lanes* property in
+ dw_pcie_setup_rc
+Date: Fri, 13 Jan 2017 17:13:12 +0000
+Message-ID: <c3c55af3-29d1-dc59-3ae4-9a4132c99092@synopsys.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-12-git-send-email-kishon@ti.com>
+ <1484216786-17292-10-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1484216786-17292-12-git-send-email-kishon@ti.com>
+In-Reply-To: <1484216786-17292-10-git-send-email-kishon@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,116 +23,115 @@ To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>,
 Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-=C0s 10:26 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
-> Split pcie-designware.c into pcie-designware-host.c that contains
-> the host specific parts of the driver and pcie-designware.c that
-> contains the parts used by both host driver and endpoint driver.
+Hi,
+
+=C0s 10:25 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
+> *num-lanes* dt property is parsed in dw_pcie_host_init. However
+> *num-lanes* property is applicable to both root complex mode and
+> endpoint mode. As a first step, move the parsing of this property
+> outside dw_pcie_host_init. This is in preparation for splitting
+> pcie-designware.c to pcie-designware.c and pcie-designware-host.c
 > =
 
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->  drivers/pci/dwc/Makefile               |    2 +-
->  drivers/pci/dwc/pcie-designware-host.c |  619 ++++++++++++++++++++++++++=
-++++++
->  drivers/pci/dwc/pcie-designware.c      |  613 +-------------------------=
------
->  drivers/pci/dwc/pcie-designware.h      |    8 +
->  4 files changed, 634 insertions(+), 608 deletions(-)
->  create mode 100644 drivers/pci/dwc/pcie-designware-host.c
+>  drivers/pci/dwc/pcie-designware.c |   18 +++++++++++-------
+>  drivers/pci/dwc/pcie-designware.h |    1 -
+>  2 files changed, 11 insertions(+), 8 deletions(-)
 > =
 
-> diff --git a/drivers/pci/dwc/Makefile b/drivers/pci/dwc/Makefile
-> index 7d27c14..3b57e55 100644
-> --- a/drivers/pci/dwc/Makefile
-> +++ b/drivers/pci/dwc/Makefile
-> @@ -1,4 +1,4 @@
-
-(snip...)
-
-> -static void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
-> -				      int type, u64 cpu_addr, u64 pci_addr,
-> -				      u32 size)
-> +void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
-> +			       u64 cpu_addr, u64 pci_addr, u32 size)
->  {
->  	u32 retries, val;
+> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-des=
+ignware.c
+> index 00a0fdc..89cdb6b 100644
+> --- a/drivers/pci/dwc/pcie-designware.c
+> +++ b/drivers/pci/dwc/pcie-designware.c
+> @@ -551,10 +551,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
+>  		}
+>  	}
 >  =
 
-> @@ -186,220 +151,6 @@ static void dw_pcie_prog_outbound_atu(struct dw_pci=
-e *pci, int index,
->  	dev_err(pci->dev, "iATU is not being enabled\n");
->  }
-
-Kishon, iATU only makes sense in The Root Complex (host), so it should be i=
-nside
-the pcie-designware-host.
-
+> -	ret =3D of_property_read_u32(np, "num-lanes", &pci->lanes);
+> -	if (ret)
+> -		pci->lanes =3D 0;
+> -
+>  	ret =3D of_property_read_u32(np, "num-viewport", &pci->num_viewport);
+>  	if (ret)
+>  		pci->num_viewport =3D 2;
+> @@ -751,18 +747,26 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32=
+ devfn,
 >  =
 
-> -static struct irq_chip dw_msi_irq_chip =3D {
-> -	.name =3D "PCI-MSI",
-> -	.irq_enable =3D pci_msi_unmask_irq,
-> -	.irq_disable =3D pci_msi_mask_irq,
-> -	.irq_mask =3D pci_msi_mask_irq,
-> -	.irq_unmask =3D pci_msi_unmask_irq,
-> -};
-> -
-
-(snip...)
-
-> -
-> -static const struct irq_domain_ops msi_domain_ops =3D {
-> -	.map =3D dw_pcie_msi_map,
-> -};
-> -
->  static u8 dw_pcie_iatu_unroll_enabled(struct dw_pcie *pci)
+>  void dw_pcie_setup_rc(struct pcie_port *pp)
 >  {
+> +	int ret;
+> +	u32 lanes;
 >  	u32 val;
-> @@ -454,303 +192,11 @@ static u8 dw_pcie_iatu_unroll_enabled(struct dw_pc=
-ie *pci)
->  	return 0;
->  }
+>  	struct dw_pcie *pci =3D to_dw_pcie_from_pp(pp);
+> +	struct device *dev =3D pci->dev;
+> +	struct device_node *np =3D dev->of_node;
+>  =
 
-Kishon, iATU only makes sense in The Root Complex (host), so it should be i=
-nside
-the pcie-designware-host.
+>  	/* get iATU unroll support */
+>  	pci->iatu_unroll_enabled =3D dw_pcie_iatu_unroll_enabled(pci);
+>  	dev_dbg(pci->dev, "iATU unroll: %s\n",
+>  		pci->iatu_unroll_enabled ? "enabled" : "disabled");
+>  =
 
-(snip...)
+> +	ret =3D of_property_read_u32(np, "num-lanes", &lanes);
+> +	if (ret)
+> +		lanes =3D 0;
 
+You moved from host_init to root complex setup function, which in my opinio=
+n did
+not improve (in this scope).
+
+I suggest that instead of making so much intermediary patches, which is nic=
+e to
+understand your development sequence, but hard to review. Wouldn't be bette=
+r to
+condense some of the patches? We would have a cloear vision of the final pr=
+oduct :)
+
+Joao
+
+> +
+>  	/* set the number of lanes */
+>  	val =3D dw_pcie_readl_dbi(pci, PCIE_PORT_LINK_CONTROL);
+>  	val &=3D ~PORT_LINK_MODE_MASK;
+> -	switch (pci->lanes) {
+> +	switch (lanes) {
+>  	case 1:
+>  		val |=3D PORT_LINK_MODE_1_LANES;
+>  		break;
+> @@ -776,7 +780,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
+>  		val |=3D PORT_LINK_MODE_8_LANES;
+>  		break;
+>  	default:
+> -		dev_err(pci->dev, "num-lanes %u: invalid value\n", pci->lanes);
+> +		dev_err(pci->dev, "num-lanes %u: invalid value\n", lanes);
+>  		return;
+>  	}
+>  	dw_pcie_writel_dbi(pci, PCIE_PORT_LINK_CONTROL, val);
+> @@ -784,7 +788,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
+>  	/* set link width speed control register */
+>  	val =3D dw_pcie_readl_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL);
+>  	val &=3D ~PORT_LOGIC_LINK_WIDTH_MASK;
+> -	switch (pci->lanes) {
+> +	switch (lanes) {
+>  	case 1:
+>  		val |=3D PORT_LOGIC_LINK_WIDTH_1_LANES;
+>  		break;
 > diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-des=
 ignware.h
-> index 491fbe3..808d17b 100644
+> index d4b3d43..491fbe3 100644
 > --- a/drivers/pci/dwc/pcie-designware.h
 > +++ b/drivers/pci/dwc/pcie-designware.h
-> @@ -14,6 +14,10 @@
->  #ifndef _PCIE_DESIGNWARE_H
->  #define _PCIE_DESIGNWARE_H
->  =
-
-> +#include <linux/irq.h>
-> +#include <linux/msi.h>
-> +#include <linux/pci.h>
-> +
->  /* Parameters for the waiting for link up routine */
->  #define LINK_WAIT_MAX_RETRIES		10
->  #define LINK_WAIT_USLEEP_MIN		90000
-> @@ -167,4 +171,8 @@ struct dw_pcie {
->  void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val);
->  int dw_pcie_link_up(struct dw_pcie *pci);
->  int dw_pcie_wait_for_link(struct dw_pcie *pci);
-> +void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
-> +			       int type, u64 cpu_addr, u64 pci_addr,
-> +			       u32 size);
-> +void dw_pcie_setup(struct dw_pcie *pci);
-
-
-Kishon, iATU only makes sense in The Root Complex (host), so it should be i=
-nside
-the pcie-designware-host as static.
-
->  #endif /* _PCIE_DESIGNWARE_H */
+> @@ -148,7 +148,6 @@ struct dw_pcie_ops {
+>  struct dw_pcie {
+>  	struct device		*dev;
+>  	void __iomem		*dbi_base;
+> -	u32			lanes;
+>  	u32			num_viewport;
+>  	u8			iatu_unroll_enabled;
+>  	struct pcie_port	pp;
 > =
-
-
-Thanks,
-Joao
