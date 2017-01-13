@@ -1,7 +1,7 @@
 From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] ARM: dts: dra72x-evm: increase QSPI SPL partition size
-Date: Fri, 13 Jan 2017 18:10:34 +0530
-Message-ID: <1484311234-21978-3-git-send-email-ravibabu@ti.com>
+Subject: [PATCH 1/2] ARM: dts: dra7-evm: increase QSPI SPL partition size
+Date: Fri, 13 Jan 2017 18:10:33 +0530
+Message-ID: <1484311234-21978-2-git-send-email-ravibabu@ti.com>
 References: <1484311234-21978-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,23 +12,23 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76
 Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nsekhar-uAqBSO/uNfhBDgjK7y7TUQ@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The SPL size for DRA72x platform has increased and
+The SPL size for DRA74x platform has increased and
 is now more than 64KB. Increase QSPI SPL partition
-size to 256KB for DRA72x EVM.
+size to 256KB for DRA74x EVM.
 
-QSPI partition numbers change because of this.
+QSPI partition numbering changes because of this.
 
 Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dra72-evm-common.dtsi | 24 ++++++------------------
+ arch/arm/boot/dts/dra7-evm.dts | 24 ++++++------------------
  1 file changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index e50fbee..ae1a663 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
-@@ -439,41 +439,29 @@
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 132f2be..2784241 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -681,41 +681,29 @@
  		 */
  		partition@0 {
  			label = "QSPI.SPL";
