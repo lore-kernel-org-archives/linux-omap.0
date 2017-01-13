@@ -1,44 +1,61 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v3 11/15] mmc: omap: Don't use mmc_card_present() when validating for inserted card
-Date: Fri, 13 Jan 2017 14:14:12 +0100
-Message-ID: <1484313256-25993-12-git-send-email-ulf.hansson@linaro.org>
-References: <1484313256-25993-1-git-send-email-ulf.hansson@linaro.org>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1484313256-25993-1-git-send-email-ulf.hansson@linaro.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Jaehoon Chung <jh80.chung@samsung.com>, Adrian Hunter <adrian.hunter@intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] pinctrl: core: Fix regression caused by delayed work for hogs
+Date: Fri, 13 Jan 2017 16:26:23 +0100
+Message-ID: <CACRpkdaWo54ByCa=1Mr1v_O4ANR=OXehsR0Hg65pj9M9jzMDtg@mail.gmail.com>
+References: <20170111221334.26194-1-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170111221334.26194-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Gary Bisson <gary.bisson@boundarydevices.com>
 List-Id: linux-omap@vger.kernel.org
 
-The mmc_card_present() function helps the mmc core to track an internal
-state of the card device. More importantly, it's not intended to be used by
-mmc host drivers to check for an inserted card. Therefore, let's stop using
-it and instead rely on checking for a valid pointer to a struct mmc_card,
-as it should be good enough.
+On Wed, Jan 11, 2017 at 11:13 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-Cc: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
----
- drivers/mmc/host/omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Commit df61b366af26 ("pinctrl: core: Use delayed work for hogs") caused a
+> regression at least with sh-pfc that is also a GPIO controller as
+> noted by Geert Uytterhoeven <geert@linux-m68k.org>.
+>
+> As the original pinctrl_register() has issues calling pin controller
+> driver functions early before the controller has finished registering,
+> we can't just revert commit df61b366af26. That would break the drivers
+> using GENERIC_PINCTRL_GROUPS or GENERIC_PINMUX_FUNCTIONS.
+>
+> So let's fix the issue with the following steps as a single patch:
+>
+> 1. Revert the late_init parts of commit df61b366af26.
+>
+>    The late_init clearly won't work and we have to just give up
+>    on fixing pinctrl_register() for GENERIC_PINCTRL_GROUPS and
+>    GENERIC_PINMUX_FUNCTIONS.
+>
+> 2. Split pinctrl_register() into two parts
+>
+>    By splitting pinctrl_register() into pinctrl_init_controller()
+>    and pinctrl_create_and_start() we have better control over when
+>    it's safe to call pinctrl_create().
+>
+> 3. Introduce a new pinctrl_register_and_init() function
+>
+>    As suggested by Linus Walleij <linus.walleij@linaro.org>, we
+>    can just introduce a new function for the controllers that need
+>    pinctrl_create() called later.
+>
+> 4. Convert the four known problem cases to use new function
+>
+>    Let's convert pinctrl-imx, pinctrl-single, sh-pfc and ti-iodelay
+>    to use the new function to fix the issues. The rest of the drivers
+>    can be converted later. Let's also update Documentation/pinctrl.txt
+>    accordingly because of the known issues with pinctrl_register().
+>
+> Fixes: df61b366af26 ("pinctrl: core: Use delayed work for hogs")
+> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Gary Bisson <gary.bisson@boundarydevices.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index be3c49f..bd49f34 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -893,7 +893,7 @@ static void mmc_omap_cover_handler(unsigned long param)
- 	 * If no card is inserted, we postpone polling until
- 	 * the cover has been closed.
- 	 */
--	if (slot->mmc->card == NULL || !mmc_card_present(slot->mmc->card))
-+	if (slot->mmc->card == NULL)
- 		return;
- 
- 	mod_timer(&slot->cover_timer,
--- 
-1.9.1
+OK patch applied.
 
+Yours,
+Linus Walleij
