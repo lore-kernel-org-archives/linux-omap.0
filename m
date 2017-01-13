@@ -1,61 +1,138 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
-Date: Fri, 13 Jan 2017 08:44:00 -0800
-Message-ID: <20170113164400.GX2630@atomide.com>
-References: <20170112213016.19367-1-tony@atomide.com>
- <927792da-2e90-b2ae-1206-8fcb504d7551@ti.com>
- <20170112221933.GM2630@atomide.com>
- <1c8967b7-d59b-e53d-feeb-80c71464fb94@ti.com>
- <20170112230456.GS2630@atomide.com>
- <aafe7afb-6d8a-2fef-acdd-bd331151d16a@ti.com>
- <20170113000314.GU2630@atomide.com>
- <20170113161731.GV2630@atomide.com>
+From: Joao Pinto <Joao.Pinto@synopsys.com>
+Subject: Re: [PATCH 11/37] PCI: dwc: Split pcie-designware.c into host and
+ core files
+Date: Fri, 13 Jan 2017 16:49:44 +0000
+Message-ID: <4a89fb45-af84-d660-5ef0-12227b141cda@synopsys.com>
+References: <1484216786-17292-1-git-send-email-kishon@ti.com>
+ <1484216786-17292-12-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170113161731.GV2630-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1484216786-17292-12-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170113 08:27]:
-> @@ -316,11 +318,12 @@ static irqreturn_t cppi41_irq(int irq, void *data)
->  			__iormb();
->  
->  		while (val) {
-> +			unsigned long flags;
->  			u32 desc, len;
->  			int error;
->  
->  			error = pm_runtime_get(cdd->ddev.dev);
-> -			if (error < 0)
-> +			if ((error != -EINPROGRESS) && error < 0)
->  				dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
->  					__func__, error);
->  
-> @@ -340,6 +343,11 @@ static irqreturn_t cppi41_irq(int irq, void *data)
->  			else
->  				len = pd_trans_len(c->desc->pd0);
->  
-> +			/* This warning should never trigger */
-> +			spin_lock_irqsave(&cdd->lock, flags);
-> +			WARN_ON(cdd->is_suspended);
-> +			spin_unlock_irqrestore(&cdd->lock, flags);
+=C0s 10:26 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
+> Split pcie-designware.c into pcie-designware-host.c that contains
+> the host specific parts of the driver and pcie-designware.c that
+> contains the parts used by both host driver and endpoint driver.
+> =
+
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/dwc/Makefile               |    2 +-
+>  drivers/pci/dwc/pcie-designware-host.c |  619 ++++++++++++++++++++++++++=
+++++++
+>  drivers/pci/dwc/pcie-designware.c      |  613 +-------------------------=
+-----
+>  drivers/pci/dwc/pcie-designware.h      |    8 +
+>  4 files changed, 634 insertions(+), 608 deletions(-)
+>  create mode 100644 drivers/pci/dwc/pcie-designware-host.c
+> =
+
+> diff --git a/drivers/pci/dwc/Makefile b/drivers/pci/dwc/Makefile
+> index 7d27c14..3b57e55 100644
+> --- a/drivers/pci/dwc/Makefile
+> +++ b/drivers/pci/dwc/Makefile
+> @@ -1,4 +1,4 @@
+
+(snip...)
+
+> -static void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
+> -				      int type, u64 cpu_addr, u64 pci_addr,
+> -				      u32 size)
+> +void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
+> +			       u64 cpu_addr, u64 pci_addr, u32 size)
+>  {
+>  	u32 retries, val;
+>  =
+
+> @@ -186,220 +151,6 @@ static void dw_pcie_prog_outbound_atu(struct dw_pci=
+e *pci, int index,
+>  	dev_err(pci->dev, "iATU is not being enabled\n");
+>  }
+
+Kishon, iATU only makes sense in The Root Complex (host), so it should be i=
+nside
+the pcie-designware-host.
+
+>  =
+
+> -static struct irq_chip dw_msi_irq_chip =3D {
+> -	.name =3D "PCI-MSI",
+> -	.irq_enable =3D pci_msi_unmask_irq,
+> -	.irq_disable =3D pci_msi_mask_irq,
+> -	.irq_mask =3D pci_msi_mask_irq,
+> -	.irq_unmask =3D pci_msi_unmask_irq,
+> -};
+> -
+
+(snip...)
+
+> -
+> -static const struct irq_domain_ops msi_domain_ops =3D {
+> -	.map =3D dw_pcie_msi_map,
+> -};
+> -
+>  static u8 dw_pcie_iatu_unroll_enabled(struct dw_pcie *pci)
+>  {
+>  	u32 val;
+> @@ -454,303 +192,11 @@ static u8 dw_pcie_iatu_unroll_enabled(struct dw_pc=
+ie *pci)
+>  	return 0;
+>  }
+
+Kishon, iATU only makes sense in The Root Complex (host), so it should be i=
+nside
+the pcie-designware-host.
+
+(snip...)
+
+> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-des=
+ignware.h
+> index 491fbe3..808d17b 100644
+> --- a/drivers/pci/dwc/pcie-designware.h
+> +++ b/drivers/pci/dwc/pcie-designware.h
+> @@ -14,6 +14,10 @@
+>  #ifndef _PCIE_DESIGNWARE_H
+>  #define _PCIE_DESIGNWARE_H
+>  =
+
+> +#include <linux/irq.h>
+> +#include <linux/msi.h>
+> +#include <linux/pci.h>
 > +
->  			c->residue = pd_trans_len(c->desc->pd6) - len;
->  			dma_cookie_complete(&c->txd);
->  			dmaengine_desc_get_callback_invoke(&c->txd, NULL);
+>  /* Parameters for the waiting for link up routine */
+>  #define LINK_WAIT_MAX_RETRIES		10
+>  #define LINK_WAIT_USLEEP_MIN		90000
+> @@ -167,4 +171,8 @@ struct dw_pcie {
+>  void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val);
+>  int dw_pcie_link_up(struct dw_pcie *pci);
+>  int dw_pcie_wait_for_link(struct dw_pcie *pci);
+> +void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
+> +			       int type, u64 cpu_addr, u64 pci_addr,
+> +			       u32 size);
+> +void dw_pcie_setup(struct dw_pcie *pci);
 
-Hmm this check needs to be before cppi41_pop_desc() already as that does
-cppi_readl(). And the spinlocks here don't help anything, we just want
-to see a warning if we hit a bug somewhere else.
 
-Regards,
+Kishon, iATU only makes sense in The Root Complex (host), so it should be i=
+nside
+the pcie-designware-host as static.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  #endif /* _PCIE_DESIGNWARE_H */
+> =
+
+
+Thanks,
+Joao
