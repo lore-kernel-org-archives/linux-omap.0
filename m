@@ -1,61 +1,36 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] pinctrl: core: Fix regression caused by delayed work for hogs
-Date: Fri, 13 Jan 2017 16:26:23 +0100
-Message-ID: <CACRpkdaWo54ByCa=1Mr1v_O4ANR=OXehsR0Hg65pj9M9jzMDtg@mail.gmail.com>
-References: <20170111221334.26194-1-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
+Date: Fri, 13 Jan 2017 08:19:43 -0800
+Message-ID: <20170113161943.GW2630@atomide.com>
+References: <20170112213016.19367-1-tony@atomide.com>
+ <17c98bce-b8fd-33d9-f9f1-65f114306eed@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170111221334.26194-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Gary Bisson <gary.bisson@boundarydevices.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <17c98bce-b8fd-33d9-f9f1-65f114306eed-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 11, 2017 at 11:13 PM, Tony Lindgren <tony@atomide.com> wrote:
+* Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org> [170113 01:25]:
+> > @@ -320,7 +323,8 @@ static irqreturn_t cppi41_irq(int irq, void *data)
+> >  			int error;
+> > 
+> >  			error = pm_runtime_get(cdd->ddev.dev);
+> > -			if (error < 0)
+> > +			if (((error != -EINPROGRESS) && error < 0) ||
+> 
+>    Hum, the innermost parens are inconsistent: around != but not around <.
 
-> Commit df61b366af26 ("pinctrl: core: Use delayed work for hogs") caused a
-> regression at least with sh-pfc that is also a GPIO controller as
-> noted by Geert Uytterhoeven <geert@linux-m68k.org>.
->
-> As the original pinctrl_register() has issues calling pin controller
-> driver functions early before the controller has finished registering,
-> we can't just revert commit df61b366af26. That would break the drivers
-> using GENERIC_PINCTRL_GROUPS or GENERIC_PINMUX_FUNCTIONS.
->
-> So let's fix the issue with the following steps as a single patch:
->
-> 1. Revert the late_init parts of commit df61b366af26.
->
->    The late_init clearly won't work and we have to just give up
->    on fixing pinctrl_register() for GENERIC_PINCTRL_GROUPS and
->    GENERIC_PINMUX_FUNCTIONS.
->
-> 2. Split pinctrl_register() into two parts
->
->    By splitting pinctrl_register() into pinctrl_init_controller()
->    and pinctrl_create_and_start() we have better control over when
->    it's safe to call pinctrl_create().
->
-> 3. Introduce a new pinctrl_register_and_init() function
->
->    As suggested by Linus Walleij <linus.walleij@linaro.org>, we
->    can just introduce a new function for the controllers that need
->    pinctrl_create() called later.
->
-> 4. Convert the four known problem cases to use new function
->
->    Let's convert pinctrl-imx, pinctrl-single, sh-pfc and ti-iodelay
->    to use the new function to fix the issues. The rest of the drivers
->    can be converted later. Let's also update Documentation/pinctrl.txt
->    accordingly because of the known issues with pinctrl_register().
->
-> Fixes: df61b366af26 ("pinctrl: core: Use delayed work for hogs")
-> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Cc: Gary Bisson <gary.bisson@boundarydevices.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Oops just noticed I missed this one in the latest version, will
+update for the next revision. The typos I already fixed.
 
-OK patch applied.
+Regards,
 
-Yours,
-Linus Walleij
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
