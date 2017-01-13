@@ -1,57 +1,47 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 1/3] serial: 8250: omap: pause DMA only if DMA transfer in progress
-Date: Fri, 13 Jan 2017 13:31:59 +0530
-Message-ID: <20170113080201.6515-2-vigneshr@ti.com>
-References: <20170113080201.6515-1-vigneshr@ti.com>
+From: Jean-Jacques Hiblot <jjhiblot@ti.com>
+Subject: Re: [PATCH] ARM: dts: OMAP5 / DRA7: indicate that SATA port 0 is
+ available.
+Date: Fri, 13 Jan 2017 08:59:24 +0100
+Message-ID: <423304d1-ffe3-ce7e-74d9-9707c391d501@ti.com>
+References: <1483964535-4298-1-git-send-email-jjhiblot@ti.com>
+ <20170112223007.GP2630@atomide.com> <20170112223627.GQ2630@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170113080201.6515-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170112223627.GQ2630@atomide.com>
+Sender: stable-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: bcousson@baylibre.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, rogerq@ti.com, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-It is possible that DMA transfer is already complete but, completion
-handler is yet to be called, when dmaengine_pause() is called in case of
-error condition(like break/rx timeout). This leads to dmaengine_pause()
-API to return EINVAL (as descriptor is already NULL) causing
-rx_dma_broken flag to be set and effectively disabling RX DMA.
-Fix this by calling dmaengine_pause() only when transfer is in progress.
 
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
- drivers/tty/serial/8250/8250_omap.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index 61ad6c3b20a0..4ad1934ef6ed 100644
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -790,6 +790,7 @@ static void omap_8250_rx_dma_flush(struct uart_8250_port *p)
- {
- 	struct omap8250_priv	*priv = p->port.private_data;
- 	struct uart_8250_dma	*dma = p->dma;
-+	struct dma_tx_state     state;
- 	unsigned long		flags;
- 	int ret;
- 
-@@ -800,10 +801,12 @@ static void omap_8250_rx_dma_flush(struct uart_8250_port *p)
- 		return;
- 	}
- 
--	ret = dmaengine_pause(dma->rxchan);
--	if (WARN_ON_ONCE(ret))
--		priv->rx_dma_broken = true;
--
-+	ret = dmaengine_tx_status(dma->rxchan, dma->rx_cookie, &state);
-+	if (ret == DMA_IN_PROGRESS) {
-+		ret = dmaengine_pause(dma->rxchan);
-+		if (WARN_ON_ONCE(ret))
-+			priv->rx_dma_broken = true;
-+	}
- 	spin_unlock_irqrestore(&priv->rx_dma_lock, flags);
- 
- 	__dma_rx_do_complete(p);
--- 
-2.11.0
+On 12/01/2017 23:36, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [170112 14:31]:
+>> * Jean-Jacques Hiblot <jjhiblot@ti.com> [170109 04:23]:
+>>> AHCI provides the register PORTS_IMPL to let the software know which port
+>>> is supported. The register must be initialized by the bootloader. However
+>>> in some cases u-boot doesn't properly initialize this value (if it is not
+>>> compiled with SATA support for example or if the SATA initialization fails).
+>>> The DTS entry "ports-implemented" can be used to override the value in
+>>> PORTS_IMPL.
+>>> Adding this entry in the dts allows us no to worry about what is done by
+>>> the bootloader.
+>> Adding into omap-for-v4.11/dt thanks.
+> Actually not applying just yet as I just noticed you tagged this for stable.
+>
+> Care to describe what breaks and on which devices without this patch?
+Hi tony,
+
+Without this patch the SATA will not work in the following two cases:
+* if there has been a failure to initialize SATA in u-boot.
+* if ahci_platform module has been removed and re-inserted. The reason 
+is that the content of PORTS_IMPL is lost after the module is removed. I 
+suspect that it's because the controller is reset by the hwmod.
+
+Jean-Jacques
+>
+> Regards,
+>
+> Tony
