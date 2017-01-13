@@ -1,83 +1,71 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
-Date: Thu, 12 Jan 2017 16:03:15 -0800
-Message-ID: <20170113000314.GU2630@atomide.com>
-References: <20170112213016.19367-1-tony@atomide.com>
- <927792da-2e90-b2ae-1206-8fcb504d7551@ti.com>
- <20170112221933.GM2630@atomide.com>
- <1c8967b7-d59b-e53d-feeb-80c71464fb94@ti.com>
- <20170112230456.GS2630@atomide.com>
- <aafe7afb-6d8a-2fef-acdd-bd331151d16a@ti.com>
+From: Matt Ranostay <matt@ranostay.consulting>
+Subject: Re: [PATCH v6] ASoC: omap-mcbsp: Add PM QoS support
+ for McBSP to prevent glitches
+Date: Thu, 12 Jan 2017 19:21:25 -0800
+Message-ID: <CAJ_EiSR_2OBbW=HYNSJbghAv=DceiWkvL2FA1v-fx3Nkn9MsYg@mail.gmail.com>
+References: <20170112073541.30765-1-matt@ranostay.consulting>
+ <12e553d8-705f-8308-3f34-e461813068fc@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <aafe7afb-6d8a-2fef-acdd-bd331151d16a-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <12e553d8-705f-8308-3f34-e461813068fc@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [170112 15:43]:
-> @@ -457,38 +449,36 @@ static void push_desc_queue(struct cppi41_channel *c)
->         cppi_writel(reg, cdd->qmgr_mem + QMGR_QUEUE_D(c->q_num));
->  }
->  
-> -static void pending_desc(struct cppi41_channel *c)
-> +static void cppi41_dma_issue_pending(struct dma_chan *chan)
->  {
-> +       struct cppi41_channel *c = to_cpp41_chan(chan);
->         struct cppi41_dd *cdd = c->cdd;
-> +       int error;
-> +       struct cppi41_channel *_c;
->         unsigned long flags;
->  
->         spin_lock_irqsave(&cdd->lock, flags);
->         list_add_tail(&c->node, &cdd->pending);
-> -       spin_unlock_irqrestore(&cdd->lock, flags);
-> -}
-> -
-> -static void cppi41_dma_issue_pending(struct dma_chan *chan)
-> -{
-> -       struct cppi41_channel *c = to_cpp41_chan(chan);
-> -       struct cppi41_dd *cdd = c->cdd;
-> -       int error;
->  
->         error = pm_runtime_get(cdd->ddev.dev);
-> -       if ((error != -EINPROGRESS) && error < 0) {
-> +       if (error < 0) {
->                 pm_runtime_put_noidle(cdd->ddev.dev);
->                 dev_err(cdd->ddev.dev, "Failed to pm_runtime_get: %i\n",
->                         error);
-> -
-> +               spin_unlock_irqrestore(&cdd->lock, flags);
->                 return;
->         }
->  
-> -       if (likely(pm_runtime_active(cdd->ddev.dev)))
-> -               push_desc_queue(c);
-> -       else
-> -               pending_desc(c);
-> +       if (!cdd->is_suspended) {
-> +               list_for_each_entry_safe(c, _c, &cdd->pending, node) {
-> +                       push_desc_queue(c);
-> +                       list_del(&c->node);
-> +               };
-> +       }
->  
->         pm_runtime_mark_last_busy(cdd->ddev.dev);
->         pm_runtime_put_autosuspend(cdd->ddev.dev);
-> +       spin_lock_irqsave(&cdd->lock, flags);
->  }
-
-So always add to the queue no matter, then always flush the queue
-directly if active? Yeah that might work :)
-
-Don't we need spinlock in the list_for_each_entry_safe() to prevent
-it racing with runtime_resume() though?
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gV2VkLCBKYW4gMTEsIDIwMTcgYXQgMTE6NTUgUE0sIFBldGVyIFVqZmFsdXNpIDxwZXRlci51
+amZhbHVzaUB0aS5jb20+IHdyb3RlOgo+IE9uIDAxLzEyLzIwMTcgMDk6MzUgQU0sIE1hdHQgUmFu
+b3N0YXkgd3JvdGU6Cj4+IFdlIGNhbiBnZXQgYXVkaW8gZXJyb3JzIGlmIGhpdHRpbmcgZGVlcGVy
+IGlkbGUgc3RhdGVzIG9uIG9tYXBzOgo+Pgo+PiBbYWxzYS5jOjIzMF0gZXJyb3I6IEZhdGFsIHBy
+b2JsZW0gd2l0aCBhbHNhIG91dHB1dCwgZXJyb3IgLTUuCj4+IFthdWRpby5jOjYxNF0gZXJyb3I6
+IEVycm9yIGluIHdyaXRpbmcgYXVkaW8gKElucHV0L291dHB1dCBlcnJvcj8pIQo+Pgo+PiBUaGlz
+IHNlZW1zIHRvIGhhcHBlbiB3aXRoIG9mZiBtb2RlIGlkbGUgZW5hYmxlZCBhcyBwb3dlciBmb3Ig
+dGhlCj4+IHdob2xlIFNvQyBtYXkgZ2V0IGN1dCBvZmYgYmV0d2VlbiBmaWxsaW5nIHRoZSBNY0JT
+UCBmaWZvIHVzaW5nIERNQS4KPj4gV2hpbGUgYWN0aXZlIERNQSBibG9ja3MgZGVlcGVyIGlkbGUg
+c3RhdGVzIGluIGhhcmR3YXJlLCBNY0JTUAo+PiBhY3Rpdml0eSBkb2VzIG5vdCBzZWVtIHRvIGRv
+IHNvLgo+Pgo+PiBCYXNpbmcgdGhlIFFvUyBsYXRlbmN5IGNhbGN1bGF0aW9uIG9uIHRoZSBGSUZP
+IHNpemUsIHRocmVzaG9sZCwKPj4gc2FtcGxlIHJhdGUsIGFuZCBjaGFubmVscy4KPj4KPj4gQmFz
+ZWQgb24gdGhlIG9yaWdpbmFsIHBhdGNoIGJ5IFRvbnkgTGluZGdyZW4KPj4gTGluazogaHR0cHM6
+Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85MzA1ODY3Lwo+Pgo+PiBDYzogVG9ueSBMaW5k
+Z3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPj4gQ2M6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZh
+bHVzaUB0aS5jb20+Cj4+IFNpZ25lZC1vZmYtYnk6IE1hdHQgUmFub3N0YXkgPG1hdHRAcmFub3N0
+YXkuY29uc3VsdGluZz4KPj4gLS0tCj4+IENoYW5nZXMgZnJvbSB2MToKPj4gKiBhZGQgY2FsY3Vs
+YXRpb25zIGZvciBsYXRlbmN5IHBlciBudW1iZXIgb2YgRklGTyBsb2NhdGlvbnMKPj4KPj4gQ2hh
+bmdlcyBmcm9tIHYyOgo+PiAqIGFkZCBtaXNzaW5nIG1jYnNwLmggaGVhZGVyIGNoYW5nZQo+Pgo+
+PiBDaGFuZ2VzIGZyb20gdjM6Cj4+ICogYmFzZSB0aGUgbGF0ZW5jeSBjYWxjdWxhdGlvbnMgb24g
+dGhyZXNob2xkLCBidWZmZXIgc2l6ZSwgc2FtcGxlCj4+ICAgcmF0ZSwgYW5kIGNoYW5uZWxzCj4+
+Cj4+IENoYW5nZXMgZnJvbSB2NDoKPj4gKiB1c2luZyBQZXRlciBVamZhbHVzaSdzIHN1Z2dlc3Rp
+b25zIGZvciByZXN0b3JpbmcgYSBoaWdoZXIgbGF0ZW5jeSBvbgo+PiBhdWRpbyBzdHJlYW0gY29t
+cGxldGlvbiwgb3IgaWYgbm90IGFwcGxpY2FibGUgcmVtb3ZlIHRoZSBRb1MgcmVxdWVzdAo+Pgo+
+PiBDaGFuZ2VzIGZyb20gdjU6Cj4+ICogY2xlYW4gdXAgbGF0ZW5jeSBjaGVja2luZyBsb2dpYwo+
+PiAqIG1vdmUgbG9naWMgdG8gLnByZXBhcmUgYW5kIC5zaHV0ZG93biB0byBhdm9pZCBmdW5jdGlv
+bnMgdGhhdCBjYW4gc2xlZXAKPj4KPj4gQ2hhbmdlcyBmcm9tIHY2Ogo+PiAqIG1vdmUgUW9TIHJl
+bW92YWwgdG8gYXNvY19tY2JzcF9yZW1vdmUgZnJvbSBvbWFwX21jYnNwX2NsZWFudXAKPgo+IExv
+b2tzIGdvb2QuCj4KPiBZb3UgY2FuIGFkZCBteQo+IEFja2VkLWJ5OiBQZXRlciBVamZhbHVzaSA8
+cGV0ZXIudWpmYWx1c2lAdGkuY29tPgo+Cj4gdG8gdjcuLi4KCldpbGwgZG8uCj4KPj4KPj4gIHNv
+dW5kL3NvYy9vbWFwL21jYnNwLmMgICAgICB8ICAxICsKPj4gIHNvdW5kL3NvYy9vbWFwL21jYnNw
+LmggICAgICB8ICAzICsrKwo+PiAgc291bmQvc29jL29tYXAvb21hcC1tY2JzcC5jIHwgNDcgKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystCj4+ICAzIGZpbGVzIGNo
+YW5nZWQsIDUwIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKPj4KPj4gZGlmZiAtLWdpdCBh
+L3NvdW5kL3NvYy9vbWFwL21jYnNwLmMgYi9zb3VuZC9zb2Mvb21hcC9tY2JzcC5jCj4+IGluZGV4
+IDA2ZmVjNTY5OWNjOC4uOGZkYjk0OWEyNjZlIDEwMDY0NAo+PiAtLS0gYS9zb3VuZC9zb2Mvb21h
+cC9tY2JzcC5jCj4+ICsrKyBiL3NvdW5kL3NvYy9vbWFwL21jYnNwLmMKPj4gQEAgLTI1LDYgKzI1
+LDcgQEAKPj4gICNpbmNsdWRlIDxsaW51eC9pby5oPgo+PiAgI2luY2x1ZGUgPGxpbnV4L3NsYWIu
+aD4KPj4gICNpbmNsdWRlIDxsaW51eC9wbV9ydW50aW1lLmg+Cj4+ICsjaW5jbHVkZSA8bGludXgv
+cG1fcW9zLmg+Cj4KPiBXaGljaCB3b3VsZCBub3QgYWRkIHRoaXMgaW5jbHVkZSBsaW5lIDspCj4K
+Ckdvb2QgZ29kIGhvdyBkaWQgSSBtaXNzIHRoYXQ/ICoqZmFjZXBhbG0qKiBXaWxsIGZpeCBpbiB0
+aGUgZmluYWwgdjcgOikKCj4+Cj4+ICAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGF0YS9hc29j
+LXRpLW1jYnNwLmg+Cj4+Cj4KPiAtLQo+IFDDqXRlcgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVs
+QGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
