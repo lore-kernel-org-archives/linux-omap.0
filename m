@@ -1,137 +1,56 @@
-From: Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [PATCH 09/37] PCI: dwc: designware: Parse *num-lanes* property in
- dw_pcie_setup_rc
-Date: Fri, 13 Jan 2017 17:13:12 +0000
-Message-ID: <c3c55af3-29d1-dc59-3ae4-9a4132c99092@synopsys.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 36/37] ARM: DRA7: clockdomain: Change the CLKTRCTRL of
+ CM_PCIE_CLKSTCTRL to SW_WKUP
+Date: Fri, 13 Jan 2017 09:15:37 -0800
+Message-ID: <20170113171537.GZ2630@atomide.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-10-git-send-email-kishon@ti.com>
+ <1484216786-17292-37-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1484216786-17292-10-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1484216786-17292-37-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Kishon Vijay Abraham I <kishon@ti.com> [170112 02:35]:
+> The PCIe programming sequence in TRM suggests CLKSTCTRL of PCIe should
+> be set to SW_WKUP. There are no issues when CLKSTCTRL is set to HW_AUTO
+> in RC mode. However in EP mode, the host system is not able to access the
+> MEMSPACE and setting the CLKSTCTRL to SW_WKUP fixes it.
 
-=C0s 10:25 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
-> *num-lanes* dt property is parsed in dw_pcie_host_init. However
-> *num-lanes* property is applicable to both root complex mode and
-> endpoint mode. As a first step, move the parsing of this property
-> outside dw_pcie_host_init. This is in preparation for splitting
-> pcie-designware.c to pcie-designware.c and pcie-designware-host.c
-> =
+I guess ideally in the long run we would set this dynamically based on
+the selected mode, right?
+
+Regards,
+
+Tony
 
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->  drivers/pci/dwc/pcie-designware.c |   18 +++++++++++-------
->  drivers/pci/dwc/pcie-designware.h |    1 -
->  2 files changed, 11 insertions(+), 8 deletions(-)
-> =
-
-> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-des=
-ignware.c
-> index 00a0fdc..89cdb6b 100644
-> --- a/drivers/pci/dwc/pcie-designware.c
-> +++ b/drivers/pci/dwc/pcie-designware.c
-> @@ -551,10 +551,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
->  		}
->  	}
->  =
-
-> -	ret =3D of_property_read_u32(np, "num-lanes", &pci->lanes);
-> -	if (ret)
-> -		pci->lanes =3D 0;
-> -
->  	ret =3D of_property_read_u32(np, "num-viewport", &pci->num_viewport);
->  	if (ret)
->  		pci->num_viewport =3D 2;
-> @@ -751,18 +747,26 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32=
- devfn,
->  =
-
->  void dw_pcie_setup_rc(struct pcie_port *pp)
->  {
-> +	int ret;
-> +	u32 lanes;
->  	u32 val;
->  	struct dw_pcie *pci =3D to_dw_pcie_from_pp(pp);
-> +	struct device *dev =3D pci->dev;
-> +	struct device_node *np =3D dev->of_node;
->  =
-
->  	/* get iATU unroll support */
->  	pci->iatu_unroll_enabled =3D dw_pcie_iatu_unroll_enabled(pci);
->  	dev_dbg(pci->dev, "iATU unroll: %s\n",
->  		pci->iatu_unroll_enabled ? "enabled" : "disabled");
->  =
-
-> +	ret =3D of_property_read_u32(np, "num-lanes", &lanes);
-> +	if (ret)
-> +		lanes =3D 0;
-
-You moved from host_init to root complex setup function, which in my opinio=
-n did
-not improve (in this scope).
-
-I suggest that instead of making so much intermediary patches, which is nic=
-e to
-understand your development sequence, but hard to review. Wouldn't be bette=
-r to
-condense some of the patches? We would have a cloear vision of the final pr=
-oduct :)
-
-Joao
-
-> +
->  	/* set the number of lanes */
->  	val =3D dw_pcie_readl_dbi(pci, PCIE_PORT_LINK_CONTROL);
->  	val &=3D ~PORT_LINK_MODE_MASK;
-> -	switch (pci->lanes) {
-> +	switch (lanes) {
->  	case 1:
->  		val |=3D PORT_LINK_MODE_1_LANES;
->  		break;
-> @@ -776,7 +780,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
->  		val |=3D PORT_LINK_MODE_8_LANES;
->  		break;
->  	default:
-> -		dev_err(pci->dev, "num-lanes %u: invalid value\n", pci->lanes);
-> +		dev_err(pci->dev, "num-lanes %u: invalid value\n", lanes);
->  		return;
->  	}
->  	dw_pcie_writel_dbi(pci, PCIE_PORT_LINK_CONTROL, val);
-> @@ -784,7 +788,7 @@ void dw_pcie_setup_rc(struct pcie_port *pp)
->  	/* set link width speed control register */
->  	val =3D dw_pcie_readl_dbi(pci, PCIE_LINK_WIDTH_SPEED_CONTROL);
->  	val &=3D ~PORT_LOGIC_LINK_WIDTH_MASK;
-> -	switch (pci->lanes) {
-> +	switch (lanes) {
->  	case 1:
->  		val |=3D PORT_LOGIC_LINK_WIDTH_1_LANES;
->  		break;
-> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-des=
-ignware.h
-> index d4b3d43..491fbe3 100644
-> --- a/drivers/pci/dwc/pcie-designware.h
-> +++ b/drivers/pci/dwc/pcie-designware.h
-> @@ -148,7 +148,6 @@ struct dw_pcie_ops {
->  struct dw_pcie {
->  	struct device		*dev;
->  	void __iomem		*dbi_base;
-> -	u32			lanes;
->  	u32			num_viewport;
->  	u8			iatu_unroll_enabled;
->  	struct pcie_port	pp;
-> =
+>  arch/arm/mach-omap2/clockdomains7xx_data.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+> index 6c67965..67ebff8 100644
+> --- a/arch/arm/mach-omap2/clockdomains7xx_data.c
+> +++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+> @@ -524,7 +524,7 @@
+>  	.dep_bit	  = DRA7XX_PCIE_STATDEP_SHIFT,
+>  	.wkdep_srcs	  = pcie_wkup_sleep_deps,
+>  	.sleepdep_srcs	  = pcie_wkup_sleep_deps,
+> -	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+> +	.flags		  = CLKDM_CAN_SWSUP,
+>  };
+>  
+>  static struct clockdomain atl_7xx_clkdm = {
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
