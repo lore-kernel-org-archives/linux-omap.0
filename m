@@ -1,70 +1,43 @@
 From: Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [PATCH 02/37] PCI: dwc: designware: Add new *ops* for cpu addr
- fixup
-Date: Fri, 13 Jan 2017 16:34:26 +0000
-Message-ID: <68f59de0-104f-41aa-886d-52d43ecd8e6b@synopsys.com>
+Subject: Re: [PATCH 04/37] PCI: dwc: designware: Move the register defines to
+ designware header file
+Date: Fri, 13 Jan 2017 16:35:03 +0000
+Message-ID: <0913dcb3-ecb8-b926-981d-f5d3baa9d8b7@synopsys.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-3-git-send-email-kishon@ti.com>
+ <1484216786-17292-5-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1484216786-17292-3-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1484216786-17292-5-git-send-email-kishon@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
 Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
-Hi Kishon,
-
 Às 10:25 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
-> Some platforms (like dra7xx) require only the least 28 bits of the
-> corresponding 32 bit CPU address to be programmed in the address
-> translation unit. This modified address is stored in io_base/mem_base/
-> cfg0_base/cfg1_base in dra7xx_pcie_host_init. While this is okay for
-> host mode where the address range is fixed, device mode requires
-> different addresses to be programmed based on the host buffer address.
-> Add a new ops to get the least 28 bits of the corresponding 32 bit
-> CPU address and invoke it before programming the address translation
-> unit.
+> No functional change. Move the register defines and other macros from
+> pcie-designware.c to pcie-designware.h. This is in preparation to
+> split the pcie-designware.c file into designware core file and host
+> specific file.
+> 
+> While at that also fix a checkpatch warning.
 > 
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->  drivers/pci/dwc/pcie-designware.c |    3 +++
->  drivers/pci/dwc/pcie-designware.h |    1 +
->  2 files changed, 4 insertions(+)
+>  drivers/pci/dwc/pcie-designware.c |   70 ------------------------------------
+>  drivers/pci/dwc/pcie-designware.h |   71 +++++++++++++++++++++++++++++++++++++
+>  2 files changed, 71 insertions(+), 70 deletions(-)
 > 
 > diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-> index bed1999..d68bc7b 100644
+> index d68bc7b..0b928dc 100644
 > --- a/drivers/pci/dwc/pcie-designware.c
 > +++ b/drivers/pci/dwc/pcie-designware.c
-> @@ -195,6 +195,9 @@ static void dw_pcie_prog_outbound_atu(struct pcie_port *pp, int index,
->  {
->  	u32 retries, val;
+> @@ -25,76 +25,6 @@
 >  
-> +	if (pp->ops->cpu_addr_fixup)
-> +		cpu_addr = pp->ops->cpu_addr_fixup(cpu_addr);
-> +
->  	if (pp->iatu_unroll_enabled) {
->  		dw_pcie_writel_unroll(pp, index, PCIE_ATU_UNR_LOWER_BASE,
->  			lower_32_bits(cpu_addr));
-> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-> index a567ea2..32f4602 100644
-> --- a/drivers/pci/dwc/pcie-designware.h
-> +++ b/drivers/pci/dwc/pcie-designware.h
-> @@ -54,6 +54,7 @@ struct pcie_port {
->  };
->  
->  struct pcie_host_ops {
-> +	u64 (*cpu_addr_fixup)(u64 cpu_addr);
->  	u32 (*readl_rc)(struct pcie_port *pp, u32 reg);
->  	void (*writel_rc)(struct pcie_port *pp, u32 reg, u32 val);
->  	int (*rd_own_conf)(struct pcie_port *pp, int where, int size, u32 *val);
-> 
+>  #include "pcie-designware.h"
 
-I think this is an acceptable fixup, I am ok with it.
+Make sense.
 
 Reviewed-By: Joao Pinto <jpinto@synopsys.com>
-
-Joao
