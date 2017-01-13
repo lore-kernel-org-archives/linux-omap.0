@@ -1,71 +1,59 @@
-From: Matt Ranostay <matt@ranostay.consulting>
-Subject: Re: [PATCH v6] ASoC: omap-mcbsp: Add PM QoS support
- for McBSP to prevent glitches
-Date: Thu, 12 Jan 2017 19:21:25 -0800
-Message-ID: <CAJ_EiSR_2OBbW=HYNSJbghAv=DceiWkvL2FA1v-fx3Nkn9MsYg@mail.gmail.com>
-References: <20170112073541.30765-1-matt@ranostay.consulting>
- <12e553d8-705f-8308-3f34-e461813068fc@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 2/3] tty: serial: 8250_omap: Add OMAP_DMA_TX_KICK quirk for AM437x
+Date: Fri, 13 Jan 2017 13:32:00 +0530
+Message-ID: <20170113080201.6515-3-vigneshr@ti.com>
+References: <20170113080201.6515-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <12e553d8-705f-8308-3f34-e461813068fc@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170113080201.6515-1-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCBKYW4gMTEsIDIwMTcgYXQgMTE6NTUgUE0sIFBldGVyIFVqZmFsdXNpIDxwZXRlci51
-amZhbHVzaUB0aS5jb20+IHdyb3RlOgo+IE9uIDAxLzEyLzIwMTcgMDk6MzUgQU0sIE1hdHQgUmFu
-b3N0YXkgd3JvdGU6Cj4+IFdlIGNhbiBnZXQgYXVkaW8gZXJyb3JzIGlmIGhpdHRpbmcgZGVlcGVy
-IGlkbGUgc3RhdGVzIG9uIG9tYXBzOgo+Pgo+PiBbYWxzYS5jOjIzMF0gZXJyb3I6IEZhdGFsIHBy
-b2JsZW0gd2l0aCBhbHNhIG91dHB1dCwgZXJyb3IgLTUuCj4+IFthdWRpby5jOjYxNF0gZXJyb3I6
-IEVycm9yIGluIHdyaXRpbmcgYXVkaW8gKElucHV0L291dHB1dCBlcnJvcj8pIQo+Pgo+PiBUaGlz
-IHNlZW1zIHRvIGhhcHBlbiB3aXRoIG9mZiBtb2RlIGlkbGUgZW5hYmxlZCBhcyBwb3dlciBmb3Ig
-dGhlCj4+IHdob2xlIFNvQyBtYXkgZ2V0IGN1dCBvZmYgYmV0d2VlbiBmaWxsaW5nIHRoZSBNY0JT
-UCBmaWZvIHVzaW5nIERNQS4KPj4gV2hpbGUgYWN0aXZlIERNQSBibG9ja3MgZGVlcGVyIGlkbGUg
-c3RhdGVzIGluIGhhcmR3YXJlLCBNY0JTUAo+PiBhY3Rpdml0eSBkb2VzIG5vdCBzZWVtIHRvIGRv
-IHNvLgo+Pgo+PiBCYXNpbmcgdGhlIFFvUyBsYXRlbmN5IGNhbGN1bGF0aW9uIG9uIHRoZSBGSUZP
-IHNpemUsIHRocmVzaG9sZCwKPj4gc2FtcGxlIHJhdGUsIGFuZCBjaGFubmVscy4KPj4KPj4gQmFz
-ZWQgb24gdGhlIG9yaWdpbmFsIHBhdGNoIGJ5IFRvbnkgTGluZGdyZW4KPj4gTGluazogaHR0cHM6
-Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85MzA1ODY3Lwo+Pgo+PiBDYzogVG9ueSBMaW5k
-Z3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPj4gQ2M6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZh
-bHVzaUB0aS5jb20+Cj4+IFNpZ25lZC1vZmYtYnk6IE1hdHQgUmFub3N0YXkgPG1hdHRAcmFub3N0
-YXkuY29uc3VsdGluZz4KPj4gLS0tCj4+IENoYW5nZXMgZnJvbSB2MToKPj4gKiBhZGQgY2FsY3Vs
-YXRpb25zIGZvciBsYXRlbmN5IHBlciBudW1iZXIgb2YgRklGTyBsb2NhdGlvbnMKPj4KPj4gQ2hh
-bmdlcyBmcm9tIHYyOgo+PiAqIGFkZCBtaXNzaW5nIG1jYnNwLmggaGVhZGVyIGNoYW5nZQo+Pgo+
-PiBDaGFuZ2VzIGZyb20gdjM6Cj4+ICogYmFzZSB0aGUgbGF0ZW5jeSBjYWxjdWxhdGlvbnMgb24g
-dGhyZXNob2xkLCBidWZmZXIgc2l6ZSwgc2FtcGxlCj4+ICAgcmF0ZSwgYW5kIGNoYW5uZWxzCj4+
-Cj4+IENoYW5nZXMgZnJvbSB2NDoKPj4gKiB1c2luZyBQZXRlciBVamZhbHVzaSdzIHN1Z2dlc3Rp
-b25zIGZvciByZXN0b3JpbmcgYSBoaWdoZXIgbGF0ZW5jeSBvbgo+PiBhdWRpbyBzdHJlYW0gY29t
-cGxldGlvbiwgb3IgaWYgbm90IGFwcGxpY2FibGUgcmVtb3ZlIHRoZSBRb1MgcmVxdWVzdAo+Pgo+
-PiBDaGFuZ2VzIGZyb20gdjU6Cj4+ICogY2xlYW4gdXAgbGF0ZW5jeSBjaGVja2luZyBsb2dpYwo+
-PiAqIG1vdmUgbG9naWMgdG8gLnByZXBhcmUgYW5kIC5zaHV0ZG93biB0byBhdm9pZCBmdW5jdGlv
-bnMgdGhhdCBjYW4gc2xlZXAKPj4KPj4gQ2hhbmdlcyBmcm9tIHY2Ogo+PiAqIG1vdmUgUW9TIHJl
-bW92YWwgdG8gYXNvY19tY2JzcF9yZW1vdmUgZnJvbSBvbWFwX21jYnNwX2NsZWFudXAKPgo+IExv
-b2tzIGdvb2QuCj4KPiBZb3UgY2FuIGFkZCBteQo+IEFja2VkLWJ5OiBQZXRlciBVamZhbHVzaSA8
-cGV0ZXIudWpmYWx1c2lAdGkuY29tPgo+Cj4gdG8gdjcuLi4KCldpbGwgZG8uCj4KPj4KPj4gIHNv
-dW5kL3NvYy9vbWFwL21jYnNwLmMgICAgICB8ICAxICsKPj4gIHNvdW5kL3NvYy9vbWFwL21jYnNw
-LmggICAgICB8ICAzICsrKwo+PiAgc291bmQvc29jL29tYXAvb21hcC1tY2JzcC5jIHwgNDcgKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystCj4+ICAzIGZpbGVzIGNo
-YW5nZWQsIDUwIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKPj4KPj4gZGlmZiAtLWdpdCBh
-L3NvdW5kL3NvYy9vbWFwL21jYnNwLmMgYi9zb3VuZC9zb2Mvb21hcC9tY2JzcC5jCj4+IGluZGV4
-IDA2ZmVjNTY5OWNjOC4uOGZkYjk0OWEyNjZlIDEwMDY0NAo+PiAtLS0gYS9zb3VuZC9zb2Mvb21h
-cC9tY2JzcC5jCj4+ICsrKyBiL3NvdW5kL3NvYy9vbWFwL21jYnNwLmMKPj4gQEAgLTI1LDYgKzI1
-LDcgQEAKPj4gICNpbmNsdWRlIDxsaW51eC9pby5oPgo+PiAgI2luY2x1ZGUgPGxpbnV4L3NsYWIu
-aD4KPj4gICNpbmNsdWRlIDxsaW51eC9wbV9ydW50aW1lLmg+Cj4+ICsjaW5jbHVkZSA8bGludXgv
-cG1fcW9zLmg+Cj4KPiBXaGljaCB3b3VsZCBub3QgYWRkIHRoaXMgaW5jbHVkZSBsaW5lIDspCj4K
-Ckdvb2QgZ29kIGhvdyBkaWQgSSBtaXNzIHRoYXQ/ICoqZmFjZXBhbG0qKiBXaWxsIGZpeCBpbiB0
-aGUgZmluYWwgdjcgOikKCj4+Cj4+ICAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGF0YS9hc29j
-LXRpLW1jYnNwLmg+Cj4+Cj4KPiAtLQo+IFDDqXRlcgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVs
-QGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
+UART uses as EDMA as dma engine on AM437x SoC and therefore, requires
+OMAP_DMA_TX_KICK quirk just like AM33xx. So, enable OMAP_DMA_TX_KICK
+quirk for AM437x platform as well. While at that, drop use of
+of_machine_is_compatible() and instead pass quirks via device data.
+
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/tty/serial/8250/8250_omap.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index 4ad1934ef6ed..97766dcd67d4 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -1078,15 +1078,15 @@ static int omap8250_no_handle_irq(struct uart_port *port)
+ }
+ 
+ static const u8 am3352_habit = OMAP_DMA_TX_KICK | UART_ERRATA_CLOCK_DISABLE;
+-static const u8 am4372_habit = UART_ERRATA_CLOCK_DISABLE;
++static const u8 dra742_habit = UART_ERRATA_CLOCK_DISABLE;
+ 
+ static const struct of_device_id omap8250_dt_ids[] = {
+ 	{ .compatible = "ti,omap2-uart" },
+ 	{ .compatible = "ti,omap3-uart" },
+ 	{ .compatible = "ti,omap4-uart" },
+ 	{ .compatible = "ti,am3352-uart", .data = &am3352_habit, },
+-	{ .compatible = "ti,am4372-uart", .data = &am4372_habit, },
+-	{ .compatible = "ti,dra742-uart", .data = &am4372_habit, },
++	{ .compatible = "ti,am4372-uart", .data = &am3352_habit, },
++	{ .compatible = "ti,dra742-uart", .data = &dra742_habit, },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, omap8250_dt_ids);
+@@ -1221,9 +1221,6 @@ static int omap8250_probe(struct platform_device *pdev)
+ 			priv->omap8250_dma.rx_size = RX_TRIGGER;
+ 			priv->omap8250_dma.rxconf.src_maxburst = RX_TRIGGER;
+ 			priv->omap8250_dma.txconf.dst_maxburst = TX_TRIGGER;
+-
+-			if (of_machine_is_compatible("ti,am33xx"))
+-				priv->habit |= OMAP_DMA_TX_KICK;
+ 			/*
+ 			 * pause is currently not supported atleast on omap-sdma
+ 			 * and edma on most earlier kernels.
+-- 
+2.11.0
