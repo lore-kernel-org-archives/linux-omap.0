@@ -1,170 +1,61 @@
-From: Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [PATCH 10/37] PCI: dwc: designware: Fix style errors in
- pcie-designware.c
-Date: Fri, 13 Jan 2017 16:38:24 +0000
-Message-ID: <a138b0fb-f584-8953-658f-cf476e3d16e7@synopsys.com>
-References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-11-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
+Date: Fri, 13 Jan 2017 08:44:00 -0800
+Message-ID: <20170113164400.GX2630@atomide.com>
+References: <20170112213016.19367-1-tony@atomide.com>
+ <927792da-2e90-b2ae-1206-8fcb504d7551@ti.com>
+ <20170112221933.GM2630@atomide.com>
+ <1c8967b7-d59b-e53d-feeb-80c71464fb94@ti.com>
+ <20170112230456.GS2630@atomide.com>
+ <aafe7afb-6d8a-2fef-acdd-bd331151d16a@ti.com>
+ <20170113000314.GU2630@atomide.com>
+ <20170113161731.GV2630@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1484216786-17292-11-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170113161731.GV2630-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Às 10:25 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
-> No functional change. Fix all checkpatch warnings and check errors
-> in pcie-designware.c
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/pci/dwc/pcie-designware.c |   42 ++++++++++++++++++-------------------
->  1 file changed, 21 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-> index 89cdb6b..ff04074 100644
-> --- a/drivers/pci/dwc/pcie-designware.c
-> +++ b/drivers/pci/dwc/pcie-designware.c
-> @@ -40,13 +40,13 @@ int dw_pcie_read(void __iomem *addr, int size, u32 *val)
->  		return PCIBIOS_BAD_REGISTER_NUMBER;
->  	}
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170113 08:27]:
+> @@ -316,11 +318,12 @@ static irqreturn_t cppi41_irq(int irq, void *data)
+>  			__iormb();
 >  
-> -	if (size == 4)
-> +	if (size == 4) {
->  		*val = readl(addr);
-> -	else if (size == 2)
-> +	} else if (size == 2) {
->  		*val = readw(addr);
-> -	else if (size == 1)
-> +	} else if (size == 1) {
->  		*val = readb(addr);
-> -	else {
-> +	} else {
->  		*val = 0;
->  		return PCIBIOS_BAD_REGISTER_NUMBER;
->  	}
-> @@ -203,16 +203,15 @@ irqreturn_t dw_handle_msi_irq(struct pcie_port *pp)
+>  		while (val) {
+> +			unsigned long flags;
+>  			u32 desc, len;
+>  			int error;
 >  
->  	for (i = 0; i < MAX_MSI_CTRLS; i++) {
->  		dw_pcie_rd_own_conf(pp, PCIE_MSI_INTR0_STATUS + i * 12, 4,
-> -				(u32 *)&val);
-> +				    (u32 *)&val);
->  		if (val) {
->  			ret = IRQ_HANDLED;
->  			pos = 0;
->  			while ((pos = find_next_bit(&val, 32, pos)) != 32) {
->  				irq = irq_find_mapping(pp->irq_domain,
-> -						i * 32 + pos);
-> -				dw_pcie_wr_own_conf(pp,
-> -						PCIE_MSI_INTR0_STATUS + i * 12,
-> -						4, 1 << pos);
-> +						       i * 32 + pos);
-> +				dw_pcie_wr_own_conf(pp, PCIE_MSI_INTR0_STATUS +
-> +						    i * 12, 4, 1 << pos);
->  				generic_handle_irq(irq);
->  				pos++;
->  			}
-> @@ -278,8 +277,9 @@ static void dw_pcie_msi_set_irq(struct pcie_port *pp, int irq)
->  static int assign_irq(int no_irqs, struct msi_desc *desc, int *pos)
->  {
->  	int irq, pos0, i;
-> -	struct pcie_port *pp = (struct pcie_port *) msi_desc_to_pci_sysdata(desc);
-> +	struct pcie_port *pp;
+>  			error = pm_runtime_get(cdd->ddev.dev);
+> -			if (error < 0)
+> +			if ((error != -EINPROGRESS) && error < 0)
+>  				dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
+>  					__func__, error);
 >  
-> +	pp  = (struct pcie_port *)msi_desc_to_pci_sysdata(desc);
->  	pos0 = bitmap_find_free_region(pp->msi_irq_in_use, MAX_MSI_IRQS,
->  				       order_base_2(no_irqs));
->  	if (pos0 < 0)
-> @@ -341,7 +341,7 @@ static void dw_msi_setup_msg(struct pcie_port *pp, unsigned int irq, u32 pos)
->  }
+> @@ -340,6 +343,11 @@ static irqreturn_t cppi41_irq(int irq, void *data)
+>  			else
+>  				len = pd_trans_len(c->desc->pd0);
 >  
->  static int dw_msi_setup_irq(struct msi_controller *chip, struct pci_dev *pdev,
-> -			struct msi_desc *desc)
-> +			    struct msi_desc *desc)
->  {
->  	int irq, pos;
->  	struct pcie_port *pp = pdev->bus->sysdata;
-> @@ -389,7 +389,7 @@ static void dw_msi_teardown_irq(struct msi_controller *chip, unsigned int irq)
->  {
->  	struct irq_data *data = irq_get_irq_data(irq);
->  	struct msi_desc *msi = irq_data_get_msi_desc(data);
-> -	struct pcie_port *pp = (struct pcie_port *) msi_desc_to_pci_sysdata(msi);
-> +	struct pcie_port *pp = (struct pcie_port *)msi_desc_to_pci_sysdata(msi);
->  
->  	clear_irq_range(pp, irq, 1, data->hwirq);
->  }
-> @@ -431,7 +431,7 @@ int dw_pcie_link_up(struct dw_pcie *pci)
->  }
->  
->  static int dw_pcie_msi_map(struct irq_domain *domain, unsigned int irq,
-> -			irq_hw_number_t hwirq)
-> +			   irq_hw_number_t hwirq)
->  {
->  	irq_set_chip_and_handler(irq, &dw_msi_irq_chip, handle_simple_irq);
->  	irq_set_chip_data(irq, domain->host_data);
-> @@ -468,8 +468,8 @@ int dw_pcie_host_init(struct pcie_port *pp)
->  
->  	cfg_res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "config");
->  	if (cfg_res) {
-> -		pp->cfg0_size = resource_size(cfg_res)/2;
-> -		pp->cfg1_size = resource_size(cfg_res)/2;
-> +		pp->cfg0_size = resource_size(cfg_res) / 2;
-> +		pp->cfg1_size = resource_size(cfg_res) / 2;
->  		pp->cfg0_base = cfg_res->start;
->  		pp->cfg1_base = cfg_res->start + pp->cfg0_size;
->  	} else if (!pp->va_cfg0_base) {
-> @@ -508,8 +508,8 @@ int dw_pcie_host_init(struct pcie_port *pp)
->  			break;
->  		case 0:
->  			pp->cfg = win->res;
-> -			pp->cfg0_size = resource_size(pp->cfg)/2;
-> -			pp->cfg1_size = resource_size(pp->cfg)/2;
-> +			pp->cfg0_size = resource_size(pp->cfg) / 2;
-> +			pp->cfg1_size = resource_size(pp->cfg) / 2;
->  			pp->cfg0_base = pp->cfg->start;
->  			pp->cfg1_base = pp->cfg->start + pp->cfg0_size;
->  			break;
-> @@ -615,7 +615,7 @@ int dw_pcie_host_init(struct pcie_port *pp)
->  }
->  
->  static int dw_pcie_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
-> -		u32 devfn, int where, int size, u32 *val)
-> +				 u32 devfn, int where, int size, u32 *val)
->  {
->  	int ret, type;
->  	u32 busdev, cfg_size;
-> @@ -654,7 +654,7 @@ static int dw_pcie_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
->  }
->  
->  static int dw_pcie_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
-> -		u32 devfn, int where, int size, u32 val)
-> +				 u32 devfn, int where, int size, u32 val)
->  {
->  	int ret, type;
->  	u32 busdev, cfg_size;
-> @@ -711,7 +711,7 @@ static int dw_pcie_valid_device(struct pcie_port *pp, struct pci_bus *bus,
->  }
->  
->  static int dw_pcie_rd_conf(struct pci_bus *bus, u32 devfn, int where,
-> -			int size, u32 *val)
-> +			   int size, u32 *val)
->  {
->  	struct pcie_port *pp = bus->sysdata;
->  
-> @@ -727,7 +727,7 @@ static int dw_pcie_rd_conf(struct pci_bus *bus, u32 devfn, int where,
->  }
->  
->  static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
-> -			int where, int size, u32 val)
-> +			   int where, int size, u32 val)
->  {
->  	struct pcie_port *pp = bus->sysdata;
->  
-> 
+> +			/* This warning should never trigger */
+> +			spin_lock_irqsave(&cdd->lock, flags);
+> +			WARN_ON(cdd->is_suspended);
+> +			spin_unlock_irqrestore(&cdd->lock, flags);
+> +
+>  			c->residue = pd_trans_len(c->desc->pd6) - len;
+>  			dma_cookie_complete(&c->txd);
+>  			dmaengine_desc_get_callback_invoke(&c->txd, NULL);
 
-Always good to make clean up! Thanks!
+Hmm this check needs to be before cppi41_pop_desc() already as that does
+cppi_readl(). And the spinlocks here don't help anything, we just want
+to see a warning if we hit a bug somewhere else.
 
-Acked-By: Joao Pinto <jpinto@synopsys.com>
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
