@@ -1,116 +1,60 @@
-From: Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
-Subject: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
-Date: Sun, 15 Jan 2017 14:19:14 +0100
-Message-ID: <1484486354-4585-1-git-send-email-lukma@denx.de>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: Nokia N900: mixers changed between 4.9 and 4.10-rc3, no longer
+ can use in-call speaker
+Date: Sun, 15 Jan 2017 21:08:12 +0200
+Message-ID: <40dbce4e-d99d-d77d-e682-5b004c70ca40@bitmer.com>
+References: <20170112181826.GA28290@amd> <201701121934.19810@pali>
+ <20170114225614.GA25321@amd> <201701150100.54214@pali>
+ <20170115100533.GA15816@amd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170115100533.GA15816@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, helen.koike@collabora.co.uk, lars@metafoo.de, broonie@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Some devices (due to e.g. bad PCIe signal integrity) require to run
-with forced GEN1 speed on PCIe bus.
+On 01/15/2017 12:05 PM, Pavel Machek wrote:
+>>> So regression seems to be between v4.9 and v4.10. Any ideas?
+>>
+>> Interesting... seems there are no sound relevant changes after v4.9.
+>>
+>> Looks like there are only three commits after v4.9 for sound/soc which 
+>> are built for Nokia N900:
+>>
+>> e411b0b5eb9b65257a050eac333d181d6e00e2c6
+>> e7aa450fe17890e59db7d3c2d8eff5b6b41fc531
+>> 63c3194b82530bd71fd49db84eb7ab656b8d404a
+>>
+>> Maybe something not related to sound/soc could broke it?
+> 
+> Lets see.
+> 
+> a9042defa29a01cc538b742eab047848e9b5ae14 -- works ok.
+> ce38207f161513ee3d2bd3860489f07ebe65bc78 --
+> 
+> alsactl: set_control:1328: failed to obtain info for control #229 (No
+> such file or directory)
+> 
+I'm unable to test older kernels at the moment since modules don't load
+by some reason (bluetooth: Unknown symbol _GLOBAL_OFFSET_TABLE_ (err
+0)). Probably some recent regression in my debian/testing installation
+since the same configs were working before.
 
-This patch changes the speed explicitly on dra7 based devices when
-proper device tree attribute is defined for the PCIe controller.
+However v4.9.4 works and with it I can see there is an issue with these
+aic3x controls:
 
-Signed-off-by: Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
----
+amixer: Unable to find simple control 'Left DAC_L1 Mixer Line',0
 
-Patch applies on newest origin/master
-SHA1: f4d3935e4f4884ba80561db5549394afb8eef8f7
 
-Tested at AM5728
 
----
- Documentation/devicetree/bindings/pci/ti-pci.txt |  1 +
- drivers/pci/host/pci-dra7xx.c                    | 23 +++++++++++++++++++++++
- drivers/pci/host/pcie-designware.h               |  1 +
- 3 files changed, 25 insertions(+)
+amixer: Unable to find simple control 'Right DAC_R1 Mixer Line',0
 
-diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-index 60e2516..9f97409 100644
---- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-+++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-@@ -25,6 +25,7 @@ PCIe Designware Controller
- 
- Optional Property:
-  - gpios : Should be added if a gpio line is required to drive PERST# line
-+ - to,pcie-is-gen1: Indicates that forced gen1 port operation is needed.
- 
- Example:
- axi {
-diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-index 9595fad..eec5fae 100644
---- a/drivers/pci/host/pci-dra7xx.c
-+++ b/drivers/pci/host/pci-dra7xx.c
-@@ -63,6 +63,13 @@
- #define	LINK_UP						BIT(16)
- #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
- 
-+#define         PCIECTRL_EP_DBICS_LNK_CAP                       0x007C
-+#define         MAX_LINK_SPEEDS_MASK				GENMASK(3, 0)
-+#define         MAX_LINK_SPEEDS_GEN1                            BIT(0)
-+
-+#define         PCIECTRL_PL_WIDTH_SPEED_CTL                     0x080C
-+#define         CFG_DIRECTED_SPEED_CHANGE                       BIT(17)
-+
- struct dra7xx_pcie {
- 	struct pcie_port	pp;
- 	void __iomem		*base;		/* DT ti_conf */
-@@ -270,6 +277,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 	struct pcie_port *pp = &dra7xx->pp;
- 	struct device *dev = pp->dev;
- 	struct resource *res;
-+	u32 val;
- 
- 	pp->irq = platform_get_irq(pdev, 1);
- 	if (pp->irq < 0) {
-@@ -296,6 +304,18 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 	if (!pp->dbi_base)
- 		return -ENOMEM;
- 
-+	if (pp->is_gen1) {
-+		dev_info(dev, "GEN1 forced\n");
-+
-+		val = readl(pp->dbi_base + PCIECTRL_EP_DBICS_LNK_CAP);
-+		set_mask_bits(&val, MAX_LINK_SPEEDS_MASK, MAX_LINK_SPEEDS_GEN1);
-+		writel(val, pp->dbi_base + PCIECTRL_EP_DBICS_LNK_CAP);
-+
-+		val = readl(pp->dbi_base + PCIECTRL_PL_WIDTH_SPEED_CTL);
-+		val &= ~CFG_DIRECTED_SPEED_CHANGE;
-+		writel(val, pp->dbi_base + PCIECTRL_PL_WIDTH_SPEED_CTL);
-+	}
-+
- 	ret = dw_pcie_host_init(pp);
- 	if (ret) {
- 		dev_err(dev, "failed to initialize host\n");
-@@ -404,6 +424,9 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 		goto err_gpio;
- 	}
- 
-+	if (of_property_read_bool(np, "ti,pcie-is-gen1"))
-+		pp->is_gen1 = true;
-+
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
- 	reg &= ~LTSSM_EN;
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
-diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
-index a567ea2..2fb0b18 100644
---- a/drivers/pci/host/pcie-designware.h
-+++ b/drivers/pci/host/pcie-designware.h
-@@ -50,6 +50,7 @@ struct pcie_port {
- 	struct irq_domain	*irq_domain;
- 	unsigned long		msi_data;
- 	u8			iatu_unroll_enabled;
-+	u8                      is_gen1;
- 	DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
- };
- 
+
+At quick look I don't see why above commits could cause it. Maybe
+regression happened earlier between v4.6 and v4.9?
+
 -- 
-2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jarkko
