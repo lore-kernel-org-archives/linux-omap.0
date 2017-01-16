@@ -1,42 +1,103 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] thermal: ti-soc-thermal: Remove CPU_THERMAL Dependency from TI_THERMAL
-Date: Mon, 16 Jan 2017 15:43:02 +0530
-Message-ID: <1484561582-5101-1-git-send-email-j-keerthy@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
+Date: Mon, 16 Jan 2017 15:43:58 +0530
+Message-ID: <587C9CE6.8040001@ti.com>
+References: <1484486354-4585-1-git-send-email-lukma@denx.de>
+ <587C6A40.8070608@ti.com> <20170116074927.086418f4@jawa>
+ <587C8088.80905@ti.com> <20170116103136.21c899ac@jawa>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: edubezval@gmail.com
-Cc: linux-omap@vger.kernel.org, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, rui.zhang@intel.com, j-keerthy@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20170116103136.21c899ac@jawa>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lukasz Majewski <lukma@denx.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently when CPU_THERMAL is not defined the thermal sensors
-are not even exposed consequently no cooling is possible. CPU_THERMAL
-eventually depends on CPUFREQ. CPPUFREQ is not the only cooling
-for CPU.
++ Joao, Jingoo
 
-The thermal shutdown for critical temperatures is another
-cooling solution which will currently not get enabled if CPU_THERMAL
-is not defined. Remove this dependency so as to have the last level
-of thermal protection working even without CPUFREQ defined.
+Hi,
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/thermal/ti-soc-thermal/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
+On Monday 16 January 2017 03:01 PM, Lukasz Majewski wrote:
+> Hi Kishon,
+> 
+>> Hi Łukasz,
+>>
+>> On Monday 16 January 2017 12:19 PM, Lukasz Majewski wrote:
+>>> Hi Kishon,
+>>>
+>>>> Hi,
+>>>>
+>>>> On Sunday 15 January 2017 06:49 PM, Lukasz Majewski wrote:
+>>>>> Some devices (due to e.g. bad PCIe signal integrity) require to
+>>>>> run with forced GEN1 speed on PCIe bus.
+>>>>>
+>>>>> This patch changes the speed explicitly on dra7 based devices when
+>>>>> proper device tree attribute is defined for the PCIe controller.
+>>>>>
+>>>>> Signed-off-by: Lukasz Majewski <lukma@denx.de>
+>>>>
+>>>> Bjorn has already queued a patch to do the same thing
+>>>> https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=pci/host-dra7xx
+>>>
+>>> It seems like Bjorn only modifies CAP registers.
+>>
+>> The patch also modifies the LNKCTL2 register.
+>>>
+>>> He also needs to change register with 0x080C offset to actually
+>>> ( PCIECTRL_PL_WIDTH_SPEED_CTL )
+>>
+>> This bit is used to initiate speed change (after the link is
+>> initialized in GEN1). Resetting the bit (like what you have done
+>> here) prevents speed change.
+> 
+> This is strange, but e2e advised me to do things as I did in the patch
+> to _force_ GEN1 operation on PCIe2 port [1] (AM5728)
+> 
+> Link:
+> [1] https://e2e.ti.com/support/arm/sitara_arm/f/791/t/566421
+> 
+> Both patches modify 0x5180 007C register to set GEN1 capability
+> (PCI_EXP_LNKCAP_SLS_2_5GB)
+> 
+> The problem is with second register (in your patch):
+> 
+> From SPRUHZ6G TRM:
+> 
+> PCIECTRL_EP_DBICS_LNK_CAS_2 (0x5180 00A0)
+> - TRGT_LINK_SPEED (Reset 0x1) - "Target Link Speed" - no more
+>   description in TRM
+> 
+> It is set to PCI_EXP_LNKCAP_SLS_2_5GB = 0x1, which is the same as
+> default /reset value.
 
-diff --git a/drivers/thermal/ti-soc-thermal/Kconfig b/drivers/thermal/ti-soc-thermal/Kconfig
-index ea8283f..fe0e877 100644
---- a/drivers/thermal/ti-soc-thermal/Kconfig
-+++ b/drivers/thermal/ti-soc-thermal/Kconfig
-@@ -11,7 +11,6 @@ config TI_SOC_THERMAL
- config TI_THERMAL
- 	bool "Texas Instruments SoCs thermal framework support"
- 	depends on TI_SOC_THERMAL
--	depends on CPU_THERMAL
- 	help
- 	  If you say yes here you want to get support for generic thermal
- 	  framework for the Texas Instruments on die bandgap temperature sensor.
--- 
-1.9.1
+The default value is 0x2 (or else none of the cards would have enumerated in GEN2)
+> 
+> 
+> Could you clarify which way to _force_ PCIe GEN1 operation is correct?
+> Mine shows differences in lspci output (as posted in [1]).
 
+You'll see the difference even with the patch in Bjorn's tree ;-)
+
+I think these are 2 different approaches to keep the link at GEN1. Joao or
+Jingoo, do you have any suggestion here?
+
+> 
+>>
+>> IMO the better way is to set the LNKCTL2 to GEN1 instead of hacking
+>> the IP register.
+> 
+> From the original patch description:
+> 
+> "Add support to force Root Complex to work in GEN1 mode if so desired,
+> but don't force GEN1 mode on any board just yet."
+> 
+> Are there any (floating around) patches allowing forcing GEN1 operation
+> on any board (I would like to reuse/port them to my current solution)?
+
+For setting to GEN1 mode, "max-link-speed" should be set to 1 in dt with the
+patch in Bjorn's tree.
+
+Thanks
+Kishon
