@@ -1,122 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Documentation: dt-bindings: Add binding documentation
- for TI clkctrl clocks
-Date: Mon, 16 Jan 2017 09:07:47 -0800
-Message-ID: <20170116170746.GA7403@atomide.com>
-References: <20170109234226.9449-1-tony@atomide.com>
- <7acb6824-0e64-960b-1490-9b7a8b867b3b@ti.com>
+Subject: Re: [PATCH v2 0/3] Adding DT support for TI HECC module
+Date: Mon, 16 Jan 2017 09:38:44 -0800
+Message-ID: <20170116173844.GD7403@atomide.com>
+References: <1484143521-4898-1-git-send-email-yegorslists@googlemail.com>
+ <CAGm1_kvWXfZ_f3PPL1VJj8AhBf59Pax_GFHDVdejuMBRDu9y6Q@mail.gmail.com>
+ <20170112004757.GZ2630@atomide.com>
+ <CAGm1_kvNcmpayN-=mMmkCn1=wXaykhENUrHK2-MVmZLC+Cca0Q@mail.gmail.com>
+ <20170112154155.GA2630@atomide.com>
+ <CAGm1_kvSeFDjtb4=it4uwXywrKj0S=Df4u5Aozh0ALOjwvHNDw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <linux-can-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <7acb6824-0e64-960b-1490-9b7a8b867b3b@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, devicetree@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Rob Herring <robh@kernel.org>
+In-Reply-To: <CAGm1_kvSeFDjtb4=it4uwXywrKj0S=Df4u5Aozh0ALOjwvHNDw@mail.gmail.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Yegor Yefremov <yegorslists@googlemail.com>
+Cc: "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, robh+dt@kernel.org, Andrey Skvortsov <andrej.skvortzov@gmail.com>, hs@denx.de, Marc Kleine-Budde <mkl@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [170116 07:20]:
-> On 10/01/17 01:42, Tony Lindgren wrote:
-> > +Example: Clock controller node:
-> > +
-> > +&cm_l4per {
-> > +	cm_l4per_clkctrl: clk@20 {
-> > +		compatible = "ti,clkctrl";
-> > +		reg = <0x20 0x1b0>;
-> > +		#clock-cells = 1;
-> > +		ti,modulemode-auto = <OMAP4_GPIO2_CLKCTRL>;
-> > +	};
-> > +};
+* Yegor Yefremov <yegorslists@googlemail.com> [170116 01:36]:
+> On Thu, Jan 12, 2017 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Yegor Yefremov <yegorslists@googlemail.com> [170112 00:00]:
+> >> On Thu, Jan 12, 2017 at 1:47 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >> > * Yegor Yefremov <yegorslists@googlemail.com> [170111 13:52]:
+> >> >> On Wed, Jan 11, 2017 at 3:05 PM,  <yegorslists@googlemail.com> wrote:
+> >> >> > From: Yegor Yefremov <yegorslists@googlemail.com>
+> >> >> >
+> >> >> > This is an attempt to revive DT support for TI HECC that was started in 2015.
+> >> >> >
+> >> >> > I haven't changed much because not all questions could be fully answered:
+> >> >> >
+> >> >> > * Should HECC use "am3505" as compatible?
+> >> >>
+> >> >> I mean "ti,am3505-hecc"
+> >> >
+> >> > Yeah it should use the device name for the driver.
+> >> >
+> >> >> > * What should be done to the offsets (ti,scc-ram-offset, ti,hecc-ram-offset, ti,mbx-offset)?
+> >> >
+> >> > The devicetree maintainers need to ack the binding doc. Maybe
+> >> > send that as a first patch?
+> >>
+> >> The question is whether to place these settings into dtsi (as it was
+> >> done in the original patch) or in the driver itself.
+> >
+> > Well where are they on the SoC? Each driver should only access registers
+> > that belong to the driver module.
+> >
+> > If the ti,scc-ram-offset and ti,hecc-ram-offset are not within the ECC
+> > driver module, probably you should use a separate driver for them
+> > such as drivers/misc/sram.c.
+> >
+> > Also, sounds like the ti,mbx-offset should just be using the mailbox
+> > framework like remoteproc is doing with include/linux/omap-mailbox.h?
 > 
-> So, in this example, what would cm_l4per be? Is it a clockdomain? Or is it
-> just an arbitrary interconnect instance, and the clockdomain would also be a
-> separate node under cm_l4per?
+> AFAIK all offsets are in RAM and belong to ioremapped space:
+> 
+>         mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>         if (!mem) {
+>                 dev_err(&pdev->dev, "No mem resources\n");
+>                 goto probe_exit;
+>         }
+>         irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+>         if (!irq) {
+>                 dev_err(&pdev->dev, "No irq resource\n");
+>                 goto probe_exit;
+>         }
+>         if (!request_mem_region(mem->start, resource_size(mem), pdev->name)) {
+>                 dev_err(&pdev->dev, "HECC region already claimed\n");
+>                 err = -EBUSY;
+>                 goto probe_exit;
+>         }
+>         addr = ioremap(mem->start, resource_size(mem));
+>         if (!addr) {
+>                 dev_err(&pdev->dev, "ioremap failed\n");
+>                 err = -ENOMEM;
+>                 goto probe_exit_free_region;
 
-Good question. It's not a clockdomain, those are the CLKSTCTRL registers.
-And for example "3.11.33.1 CORE_CM2 Register Summary" for core_cm2 has
-multiple clockdomains under it.
-
-Looking at the interconnect target module for cm2, it's range is from
-0x4a008000 - 0x4a009fff as listed in "Table 2-3. L4_CFG Memory Space
-Mapping". So that's the cm2 parent module, and whatever we can clearly
-set up as separate devices under that will make things easier to
-understand.
-
-The various device instances under cm2 can be seen in "3.11.29 CM2
-Instance Summary".
-
-So how about the following would describe that hardware using the
-#clock-cells = <3> as discussed:
-
-&cm2 {	/* 0x4a008000 */
-	compatible = "ti,interconnect-socket-cm", "simple-pm-bus";
-	reg = <0 0x2000>;
-	ranges;
-	...
-
-	ckgen_cm2: cm@100 {
-		reg = <0x100 0x100>;
-		compatible = <"ti,clockmanager", "simple-pm-bus">;
-		ranges;
-		...
-	};
-
-	always_on_cm2: cm@600 {
-		reg = <0x100 0x100>;
-		compatible = <"ti,clockmanager", "simple-pm-bus">;
-		ranges;
-		...
-	};
-
-	...
-
-	l4per: cm@1400 {
-		reg = <0x1400 0x200>;
-		compatible = <"ti,clockmanager", "simple-pm-bus">;
-		ranges;
-		...
-
-		/* drivers/soc/ti/clockdomain.c */
-		cm_l4per@0 {
-			compatible = "ti,clockdomain";
-			reg = <0 0x200>;
-			ranges;
-			...
-
-			/* drivers/clk/ti/clkctrl.c */
-			cm_l4per_clkctrl: clk@20 {
-				compatible = "ti,clkctrl";
-				reg = <0x20 0x1b0>;
-				#clock-cells = <3>;
-			};
-
-			...
-
-		}
-
-		...
-	};
-
-	...
-};
-
-Then on am335x we need to set the ranges at the "ti,clockmanager" level
-as the registers are partially sorted and most of the CLKSTCTRL registers
-are at the beginning for all the clockdomains. With the ranges we can
-have each clkctrl instance be a child of the related clockdomain.
-
-> Shall we add power-domains = <&cm_l4per_clkdm>; entry under the
-> cm_l4per_clkctrl in this example? (My thinking is that we will represent
-> both OMAP clock and power domains as generic power domains within kernel /
-> DT.)
-
-Yeah it seems we can represent both the clock and power domains with just
-a single "power-domains" property.
-
-To me it seems the "power-domains" property would then belong to the
-"ti,clockdomain" node above. As the clkctrl clock instances are children
-of each clockdomain then "simple-pm-bus" should automatically manage
-PM runtime usecount for each clockdomain.
+If these are all within the HECC address space, then all you need
+is just multiple reg entries and "reg-names" property.
+Then the driver can get the reg entry by name and no custom properties
+are needed for those.
 
 Regards,
 
