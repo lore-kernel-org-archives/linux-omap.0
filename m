@@ -1,184 +1,149 @@
-From: Lukasz Majewski <lukma@denx.de>
-Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
-Date: Mon, 16 Jan 2017 22:44:37 +0100
-Message-ID: <20170116224437.67b5a0c5@jawa>
-References: <1484486354-4585-1-git-send-email-lukma@denx.de>
-        <587C6A40.8070608@ti.com>
-        <20170116074927.086418f4@jawa>
-        <587C8088.80905@ti.com>
-        <20170116103136.21c899ac@jawa>
-        <587C9CE6.8040001@ti.com>
-        <76d18446-78c9-87f2-22ad-f7ea38771285@synopsys.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
+Date: Mon, 16 Jan 2017 15:33:30 -0800
+Message-ID: <20170116233329.GF7403@atomide.com>
+References: <20170113180132.9188-1-tony@atomide.com>
+ <d6fddff7-3d00-1de1-ebbf-ee2a949a6284@ti.com>
+ <20170113190126.GE2630@atomide.com>
+ <c80b51a2-1acd-914c-17b8-32754ea9ce3e@ti.com>
+ <c58cebdf-5752-098a-8b3e-de99f6af14af@ti.com>
+ <c1bbb731-940e-6d04-f127-222050d831b8@ti.com>
+ <20170113215936.GF2630@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <76d18446-78c9-87f2-22ad-f7ea38771285@synopsys.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, "jingoohan1@gmail.com" <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170113215936.GF2630-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joao,
-
-> 
-> Hi,
-> 
-> Às 10:13 AM de 1/16/2017, Kishon Vijay Abraham I escreveu:
-> > + Joao, Jingoo
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170113 14:00]:
+> * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [170113 13:37]:
+> > > Simplified diff with fix on top of your patch:
+> > > 
+> > > diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+> > > index ce37a1a..9e9403a 100644
+> > > --- a/drivers/dma/cppi41.c
+> > > +++ b/drivers/dma/cppi41.c
+> > > @@ -319,12 +319,6 @@ static irqreturn_t cppi41_irq(int irq, void *data)
+> > >  
+> > >  		while (val) {
+> > >  			u32 desc, len;
+> > > -			int error;
+> > > -
+> > > -			error = pm_runtime_get(cdd->ddev.dev);
+> > > -			if ((error != -EINPROGRESS) && (error < 0))
+> > > -				dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
+> > > -					__func__, error);
+> > >  
+> > >  			/* This warning should never trigger */
+> > >  			WARN_ON(cdd->is_suspended);
+> > > @@ -500,7 +494,6 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
+> > >  	spin_unlock_irqrestore(&cdd->lock, flags);
+> > >  
+> > >  	pm_runtime_mark_last_busy(cdd->ddev.dev);
+> > > -	pm_runtime_put_autosuspend(cdd->ddev.dev);
+> > >  }
+> > >  
+> > >  static u32 get_host_pd0(u32 length)
+> > > 
 > > 
-> > Hi,
+> > Ok. this is incorrect in case of USB hub and will just hide the problem
+> > by incrementing PM runtime usage counter every time USB host is connected :(
+> 
+> Yeah if anything changes in those two nested loops, the pm_runtime counts
+> get unbalanced.
+> 
+> > Once USB hub is connected the PM runtime usage counter will became 1 and stay
+> > 1 after disconnection. Which means that some descriptor was pushed in Q, but IRQ
+> > was not triggered.
 > > 
-> > On Monday 16 January 2017 03:01 PM, Lukasz Majewski wrote:
-> >> Hi Kishon,
-> >>
-> >>> Hi Łukasz,
-> >>>
-> >>> On Monday 16 January 2017 12:19 PM, Lukasz Majewski wrote:
-> >>>> Hi Kishon,
-> >>>>
-> >>>>> Hi,
-> >>>>>
-> >>>>> On Sunday 15 January 2017 06:49 PM, Lukasz Majewski wrote:
-> >>>>>> Some devices (due to e.g. bad PCIe signal integrity) require to
-> >>>>>> run with forced GEN1 speed on PCIe bus.
-> >>>>>>
-> >>>>>> This patch changes the speed explicitly on dra7 based devices
-> >>>>>> when proper device tree attribute is defined for the PCIe
-> >>>>>> controller.
-> >>>>>>
-> >>>>>> Signed-off-by: Lukasz Majewski <lukma@denx.de>
-> >>>>>
-> >>>>> Bjorn has already queued a patch to do the same thing
-> >>>>> https://urldefense.proofpoint.com/v2/url?u=https-3A__git.kernel.org_cgit_linux_kernel_git_helgaas_pci.git_log_-3Fh-3Dpci_host-2Ddra7xx&d=DwIDaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=zD82T5n4WcL7Ga-NSY2NI7KE75xQ99hN-mW2yX46wQk&s=E8zk1CbKxGH-f3fw_WpXxFU-A8BLkgA8NusCaxk1SvA&e= 
-> >>>>
-> >>>> It seems like Bjorn only modifies CAP registers.
-> >>>
-> >>> The patch also modifies the LNKCTL2 register.
-> >>>>
-> >>>> He also needs to change register with 0x080C offset to actually
-> >>>> ( PCIECTRL_PL_WIDTH_SPEED_CTL )
-> >>>
-> >>> This bit is used to initiate speed change (after the link is
-> >>> initialized in GEN1). Resetting the bit (like what you have done
-> >>> here) prevents speed change.
-> >>
-> >> This is strange, but e2e advised me to do things as I did in the
-> >> patch to _force_ GEN1 operation on PCIe2 port [1] (AM5728)
-> >>
-> >> Link:
-> >> [1]
-> >> https://urldefense.proofpoint.com/v2/url?u=https-3A__e2e.ti.com_support_arm_sitara-5Farm_f_791_t_566421&d=DwIDaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=zD82T5n4WcL7Ga-NSY2NI7KE75xQ99hN-mW2yX46wQk&s=uXLwglyRYqKpwp1JSxkOWmKpQ2wjfhgofpm8DCfquNw&e= 
-> >>
-> >> Both patches modify 0x5180 007C register to set GEN1 capability
-> >> (PCI_EXP_LNKCAP_SLS_2_5GB)
-> >>
-> >> The problem is with second register (in your patch):
-> >>
-> >> From SPRUHZ6G TRM:
-> >>
-> >> PCIECTRL_EP_DBICS_LNK_CAS_2 (0x5180 00A0)
-> >> - TRGT_LINK_SPEED (Reset 0x1) - "Target Link Speed" - no more
-> >>   description in TRM
-> >>
-> >> It is set to PCI_EXP_LNKCAP_SLS_2_5GB = 0x1, which is the same as
-> >> default /reset value.
-> > 
-> > The default value is 0x2 (or else none of the cards would have
-> > enumerated in GEN2)
-> >>
-> >>
-> >> Could you clarify which way to _force_ PCIe GEN1 operation is
-> >> correct? Mine shows differences in lspci output (as posted in [1]).
-> > 
-> > You'll see the difference even with the patch in Bjorn's tree ;-)
-> > 
-> > I think these are 2 different approaches to keep the link at GEN1.
-> > Joao or Jingoo, do you have any suggestion here?
+> > Don't know how to proceed as I'm not so familiar with musb :(
 > 
-> I studied the Databook,
+> I'm now playing with saving the queue manager value and kicking the
+> PM runtime if we have transfers in progress. Looks like the dma
+> registers are zero while there are transfers in progress, or at least
+> I have not yet found any hardware registers that would tell that.
 
-Could you reveal which databook do you have in mind? Is that the TRM for
-AM5728?
+Looks like drivers/usb/musb/musb_cppi41.c is not properly terminating
+dma transactions.. The following additional patch makes things behave
+without warnings for me.
 
-> and both approaches seem to be right,
-> dependently of the Core configuration and setup.
-> 
-> The standard manual speed change sequence is:
-> a) Write to PCIE_CAP_TARGET_LINK_SPEED (indicating desired speed)
+I'll fold the drivers/dma/cppi41.c changes to $subject patch and repost,
+then will post a separate musb fix for drivers/usb/musb/musb_cppi41.c
+that avoids the warning after some more investigating.
 
-Do you mean TRGT_LINK_SPEED @ 0x5180 00A0 ?
+Luckily the warning is harmless in this case as musb and cppi41 are
+in the same device so the common parent is powered and cppi41 is
+getting clocked.
 
-> b) Clear "Directed Speed Change"
+Regards,
 
-CFG_DIRECTED_SPEED_CHANGE @ 0x5180 080C 
+Tony
 
-> c) Set "Directed Speed Change"
-> 
-> If "Directed Speed Change" is set (DEFAULT_GEN2_SPEED_CHANGE is the
-> default value), it will execute LTSSM to initiate speed change to
-> Gen2 or Gen3, after link is started in Gen1, and then the bit is
-> automatically cleared.
-
-Ok, so with default settings (after reset) we do have Gen1 speed link
-and when we enable LTSSM (with LTSSM_EN bit setting) we negotiate to
-Gen2/Gen3.
-
-> 
-> Lukasz is reseting this bit, in order to avoid the LTSSM to be
-> executed, which is correct. 
-
-So with CFG_DIRECTED_SPEED_CHANGE = 0, when I start LTSSM (with
-LTSSM_EN) the state machine returns immediately and leaves link in the
-Gen1?
-
-The pci-dra7 driver always sets LTSSM_EN bit to start link negotiation.
-
-> There is another way to prevent this
-> automatic speed change, which is to set GEN1 speed before link up
-> which might be difficult in some setups, so Kishon's also right.
-> 
-> In my opinion Lukasz approach would be the one that might be more
-> universal and more "secure".
-
-The robustness is the key here since there are some devices, which on
-particular HW must only work with Gen1 speed. When we start LTSSM state
-machine and hence start negotiation to Gen2, not always the result of
-LTSSM is correct and device is properly recognized.
-
-> 
-> Joao
-> 
-> 
-> > 
-> >>
-> >>>
-> >>> IMO the better way is to set the LNKCTL2 to GEN1 instead of
-> >>> hacking the IP register.
-> >>
-> >> From the original patch description:
-> >>
-> >> "Add support to force Root Complex to work in GEN1 mode if so
-> >> desired, but don't force GEN1 mode on any board just yet."
-> >>
-> >> Are there any (floating around) patches allowing forcing GEN1
-> >> operation on any board (I would like to reuse/port them to my
-> >> current solution)?
-> > 
-> > For setting to GEN1 mode, "max-link-speed" should be set to 1 in dt
-> > with the patch in Bjorn's tree.
-> > 
-> > Thanks
-> > Kishon
-> > 
-> 
-
-Best regards,
-
-Lukasz Majewski
-
+8< ---------------------------
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -705,19 +705,31 @@ static int cppi41_stop_chan(struct dma_chan *chan)
+ 	u32 desc_phys;
+ 	int ret;
+ 
++	ret = pm_runtime_get(cdd->ddev.dev);
++	if ((ret != -EINPROGRESS) && (ret < 0))
++		dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
++			__func__, ret);
++	WARN_ON(cdd->is_suspended);
++
+ 	desc_phys = lower_32_bits(c->desc_phys);
+ 	desc_num = (desc_phys - cdd->descs_phys) / sizeof(struct cppi41_desc);
+-	if (!cdd->chan_busy[desc_num])
+-		return 0;
++	if (!cdd->chan_busy[desc_num]) {
++		ret = 0;
++		goto out;
++	}
+ 
+ 	ret = cppi41_tear_down_chan(c);
+ 	if (ret)
+-		return ret;
++		goto out;
+ 
+ 	WARN_ON(!cdd->chan_busy[desc_num]);
+ 	cdd->chan_busy[desc_num] = NULL;
+ 
+-	return 0;
++out:
++	pm_runtime_mark_last_busy(cdd->ddev.dev);
++	pm_runtime_put_autosuspend(cdd->ddev.dev);
++
++	return ret;
+ }
+ 
+ static void cleanup_chans(struct cppi41_dd *cdd)
+diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
+--- a/drivers/usb/musb/musb_cppi41.c
++++ b/drivers/usb/musb/musb_cppi41.c
+@@ -445,9 +445,16 @@ static struct dma_channel *cppi41_dma_channel_allocate(struct dma_controller *c,
+ static void cppi41_dma_channel_release(struct dma_channel *channel)
+ {
+ 	struct cppi41_dma_channel *cppi41_channel = channel->private_data;
++	struct musb_hw_ep *hw_ep = cppi41_channel->hw_ep;
++	int error;
+ 
+ 	trace_musb_cppi41_free(cppi41_channel);
+ 	if (cppi41_channel->is_allocated) {
++		error = dmaengine_terminate_all(cppi41_channel->dc);
++		if (error)
++			dev_err(hw_ep->musb->controller,
++				"dma terminate failed: %i\n",
++				error);
+ 		cppi41_channel->is_allocated = 0;
+ 		channel->status = MUSB_DMA_STATUS_FREE;
+ 		channel->actual_len = 0;
 --
-
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
