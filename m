@@ -1,98 +1,100 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: [PATCH v2 2/3] can: ti_hecc: Add TI HECC DT binding documentation
-Date: Mon, 16 Jan 2017 11:59:17 +0100
-Message-ID: <CAGm1_ksspvFG+ScMjtw6uXAL2cAuB5ZsawaH1nYPVwQEQVE9HA@mail.gmail.com>
-References: <1484143521-4898-1-git-send-email-yegorslists@googlemail.com>
- <1484143521-4898-3-git-send-email-yegorslists@googlemail.com> <20170113195633.7igh7fdlcsw5ov6g@rob-hp-laptop>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 11/37] PCI: dwc: Split pcie-designware.c into host and
+ core files
+Date: Mon, 16 Jan 2017 17:00:05 +0530
+Message-ID: <587CAEBD.1010803@ti.com>
+References: <1484216786-17292-1-git-send-email-kishon@ti.com>
+ <1484216786-17292-12-git-send-email-kishon@ti.com>
+ <4a89fb45-af84-d660-5ef0-12227b141cda@synopsys.com> <587C586C.6070003@ti.com>
+ <0a16c862-312f-655e-3d66-bdb0c1f78584@synopsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <20170113195633.7igh7fdlcsw5ov6g@rob-hp-laptop>
-Sender: linux-can-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, Andrey Skvortsov <andrej.skvortzov@gmail.com>, hs@denx.de, Anton Glukhov <anton.a.glukhov@gmail.com>, Marc Kleine-Budde <mkl@pengutronix.de>, "Grim, Dennis" <dennis.grim@teejet.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <0a16c862-312f-655e-3d66-bdb0c1f78584@synopsys.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joao Pinto <Joao.Pinto@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 13, 2017 at 8:56 PM, Rob Herring <robh@kernel.org> wrote:
-> On Wed, Jan 11, 2017 at 03:05:20PM +0100, yegorslists@googlemail.com wrote:
->> From: Anton Glukhov <anton.a.glukhov@gmail.com>
+Hi Joao,
+
+On Monday 16 January 2017 03:57 PM, Joao Pinto wrote:
+> =
+
+> Hi,
+> =
+
+> =C0s 5:21 AM de 1/16/2017, Kishon Vijay Abraham I escreveu:
+>> Hi Joao,
 >>
->> DT binding documentation for TI High End CAN Controller
+>> On Friday 13 January 2017 10:19 PM, Joao Pinto wrote:
+>>> =C0s 10:26 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
+>>>> Split pcie-designware.c into pcie-designware-host.c that contains
+>>>> the host specific parts of the driver and pcie-designware.c that
+>>>> contains the parts used by both host driver and endpoint driver.
+>>>>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> ---
+>>>>  drivers/pci/dwc/Makefile               |    2 +-
+>>>>  drivers/pci/dwc/pcie-designware-host.c |  619 +++++++++++++++++++++++=
++++++++++
+>>>>  drivers/pci/dwc/pcie-designware.c      |  613 +----------------------=
+--------
+>>>>  drivers/pci/dwc/pcie-designware.h      |    8 +
+>>>>  4 files changed, 634 insertions(+), 608 deletions(-)
+>>>>  create mode 100644 drivers/pci/dwc/pcie-designware-host.c
+>>>>
+>>>> diff --git a/drivers/pci/dwc/Makefile b/drivers/pci/dwc/Makefile
+>>>> index 7d27c14..3b57e55 100644
+>>>> --- a/drivers/pci/dwc/Makefile
+>>>> +++ b/drivers/pci/dwc/Makefile
+>>>> @@ -1,4 +1,4 @@
+>>>
+>>> (snip...)
+>>>
+>>>> -static void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
+>>>> -				      int type, u64 cpu_addr, u64 pci_addr,
+>>>> -				      u32 size)
+>>>> +void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int ty=
+pe,
+>>>> +			       u64 cpu_addr, u64 pci_addr, u32 size)
+>>>>  {
+>>>>  	u32 retries, val;
+>>>>  =
+
+>>>> @@ -186,220 +151,6 @@ static void dw_pcie_prog_outbound_atu(struct dw_=
+pcie *pci, int index,
+>>>>  	dev_err(pci->dev, "iATU is not being enabled\n");
+>>>>  }
+>>>
+>>> Kishon, iATU only makes sense in The Root Complex (host), so it should =
+be inside
+>>> the pcie-designware-host.
 >>
->> Signed-off-by: Anton Glukhov <anton.a.glukhov@gmail.com>
->> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
->> ---
->> Changes v1 -> v2:
->>       change compatible to "ti,am3505"
->>
->>  .../devicetree/bindings/net/can/ti_hecc.txt        | 31 ++++++++++++++++++++++
->>  1 file changed, 31 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/net/can/ti_hecc.txt
->>
->> diff --git a/Documentation/devicetree/bindings/net/can/ti_hecc.txt b/Documentation/devicetree/bindings/net/can/ti_hecc.txt
->> new file mode 100644
->> index 0000000..ce015cf
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/net/can/ti_hecc.txt
->> @@ -0,0 +1,31 @@
->> +* Texas Instruments High End CAN Controller (HECC)
->> +
->> +This file provides information, what the device node
->> +for the hecc interface contains.
->> +
->> +Required properties:
->> +- compatible: "ti,am3505"
->> +- reg: offset and length of the register set for the device
->> +- interrupts: interrupt mapping for the hecc interrupts sources
->> +- clocks: clock phandles (see clock bindings for details)
->
->> +- ti,scc-ram-offset: offset to scc module ram
->> +- ti,hecc-ram-offset: offset to hecc module ram
->> +- ti,mbx-offset: offset to mailbox ram
->
-> Is there not a common case that would be the default?
+>> That is not true. Outbound ATU should be programmed to access host side =
+buffers
+>> and inbound ATU should be programmed for the host to access EP mem space.
+> =
 
-So far HECC is only implemented in two SoCs am3505/am3517. Both are
-identical in this regard and differ in having/not having a 3D graphics
-engine. So perhaps it makes sense just to move these offsets to the
-driver itself?
+> Sorry, I was not clear enough. What I was trying to suggest is, since the=
+ ATU
+> programming is done by the host, wouldn't be better to include it in the
+> pcie-designware-host? It is just an architectural detail.
 
->> +
->> +Optional properties:
->> +- ti,int-line: interrupt line
+ATU programming is required in EP mode. See "[PATCH 24/37] PCI: dwc:
+designware: Add EP mode support" in this patch series.
 
-Marc suggested to convert this option to bool. Though it should be
-also renamed then. HECC has basically two interrupts HECC0 and HECC1.
-The one is for mailbox interrupts the other for system interrupts. But
-one can map all interrupts to one "pin". This is also made in the
-driver. The user can decide which one to use for all interrupts.
+Anything that's required by both EP mode and RC mode, I've placed in
+pcie-designware.c
 
-I'd suggest following name:
-
-ti,use-hecc1int: if provided configures HECC to produce all interrupts
-on HECC1INT interrupt line. By default HECC0INT interrupt line will be
-used.
-
-Yegor
-
-> Needs a better description. What are valid values? This is some internal
-> setting about which pin to route the interrupt output to I'm guessing.
->
->> +
->> +Example:
->> +
->> +For am3517evm board:
->> +     hecc: can@0x5c050000 {
->> +             compatible = "ti,am3505";
->> +             status = "disabled";
->> +             reg = <0x5c050000 0x4000>;
->> +             interrupts = <24>;
->> +             clocks = <&hecc_ck>;
->> +             ti,scc-ram-offset = <0x3000>;
->> +             ti,hecc-ram-offset = <0x3000>;
->> +             ti,mbx-offset = <0x2000>;
->> +             ti,int-line = <0>;
->> +     };
->> --
->> 2.1.4
->>
+Thanks
+Kishon
