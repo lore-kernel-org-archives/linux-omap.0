@@ -1,228 +1,107 @@
-From: Lukasz Majewski <lukma@denx.de>
-Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
-Date: Mon, 16 Jan 2017 10:31:36 +0100
-Message-ID: <20170116103136.21c899ac@jawa>
-References: <1484486354-4585-1-git-send-email-lukma@denx.de>
-        <587C6A40.8070608@ti.com>
-        <20170116074927.086418f4@jawa>
-        <587C8088.80905@ti.com>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: [PATCH v2 0/3] Adding DT support for TI HECC module
+Date: Mon, 16 Jan 2017 10:34:46 +0100
+Message-ID: <CAGm1_kvSeFDjtb4=it4uwXywrKj0S=Df4u5Aozh0ALOjwvHNDw@mail.gmail.com>
+References: <1484143521-4898-1-git-send-email-yegorslists@googlemail.com>
+ <CAGm1_kvWXfZ_f3PPL1VJj8AhBf59Pax_GFHDVdejuMBRDu9y6Q@mail.gmail.com>
+ <20170112004757.GZ2630@atomide.com> <CAGm1_kvNcmpayN-=mMmkCn1=wXaykhENUrHK2-MVmZLC+Cca0Q@mail.gmail.com>
+ <20170112154155.GA2630@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <587C8088.80905@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <20170112154155.GA2630@atomide.com>
+Sender: linux-can-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, robh+dt@kernel.org, Andrey Skvortsov <andrej.skvortzov@gmail.com>, hs@denx.de, Marc Kleine-Budde <mkl@pengutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kishon,
+On Thu, Jan 12, 2017 at 4:41 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Yegor Yefremov <yegorslists@googlemail.com> [170112 00:00]:
+>> On Thu, Jan 12, 2017 at 1:47 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Yegor Yefremov <yegorslists@googlemail.com> [170111 13:52]:
+>> >> On Wed, Jan 11, 2017 at 3:05 PM,  <yegorslists@googlemail.com> wrote:
+>> >> > From: Yegor Yefremov <yegorslists@googlemail.com>
+>> >> >
+>> >> > This is an attempt to revive DT support for TI HECC that was started in 2015.
+>> >> >
+>> >> > I haven't changed much because not all questions could be fully answered:
+>> >> >
+>> >> > * Should HECC use "am3505" as compatible?
+>> >>
+>> >> I mean "ti,am3505-hecc"
+>> >
+>> > Yeah it should use the device name for the driver.
+>> >
+>> >> > * What should be done to the offsets (ti,scc-ram-offset, ti,hecc-ram-offset, ti,mbx-offset)?
+>> >
+>> > The devicetree maintainers need to ack the binding doc. Maybe
+>> > send that as a first patch?
+>>
+>> The question is whether to place these settings into dtsi (as it was
+>> done in the original patch) or in the driver itself.
+>
+> Well where are they on the SoC? Each driver should only access registers
+> that belong to the driver module.
+>
+> If the ti,scc-ram-offset and ti,hecc-ram-offset are not within the ECC
+> driver module, probably you should use a separate driver for them
+> such as drivers/misc/sram.c.
+>
+> Also, sounds like the ti,mbx-offset should just be using the mailbox
+> framework like remoteproc is doing with include/linux/omap-mailbox.h?
 
-> Hi Łukasz,
-> 
-> On Monday 16 January 2017 12:19 PM, Lukasz Majewski wrote:
-> > Hi Kishon,
-> > 
-> >> Hi,
-> >>
-> >> On Sunday 15 January 2017 06:49 PM, Lukasz Majewski wrote:
-> >>> Some devices (due to e.g. bad PCIe signal integrity) require to
-> >>> run with forced GEN1 speed on PCIe bus.
-> >>>
-> >>> This patch changes the speed explicitly on dra7 based devices when
-> >>> proper device tree attribute is defined for the PCIe controller.
-> >>>
-> >>> Signed-off-by: Lukasz Majewski <lukma@denx.de>
-> >>
-> >> Bjorn has already queued a patch to do the same thing
-> >> https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=pci/host-dra7xx
-> > 
-> > It seems like Bjorn only modifies CAP registers.
-> 
-> The patch also modifies the LNKCTL2 register.
-> > 
-> > He also needs to change register with 0x080C offset to actually
-> > ( PCIECTRL_PL_WIDTH_SPEED_CTL )
-> 
-> This bit is used to initiate speed change (after the link is
-> initialized in GEN1). Resetting the bit (like what you have done
-> here) prevents speed change.
+AFAIK all offsets are in RAM and belong to ioremapped space:
 
-This is strange, but e2e advised me to do things as I did in the patch
-to _force_ GEN1 operation on PCIe2 port [1] (AM5728)
+        mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+        if (!mem) {
+                dev_err(&pdev->dev, "No mem resources\n");
+                goto probe_exit;
+        }
+        irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+        if (!irq) {
+                dev_err(&pdev->dev, "No irq resource\n");
+                goto probe_exit;
+        }
+        if (!request_mem_region(mem->start, resource_size(mem), pdev->name)) {
+                dev_err(&pdev->dev, "HECC region already claimed\n");
+                err = -EBUSY;
+                goto probe_exit;
+        }
+        addr = ioremap(mem->start, resource_size(mem));
+        if (!addr) {
+                dev_err(&pdev->dev, "ioremap failed\n");
+                err = -ENOMEM;
+                goto probe_exit_free_region;
+        }
 
-Link:
-[1] https://e2e.ti.com/support/arm/sitara_arm/f/791/t/566421
+hecc_ram_offset usage:
 
-Both patches modify 0x5180 007C register to set GEN1 capability
-(PCI_EXP_LNKCAP_SLS_2_5GB)
+static inline void hecc_write_lam(struct ti_hecc_priv *priv, u32 mbxno, u32 val)
+{
+        __raw_writel(val, priv->base + priv->hecc_ram_offset + mbxno * 4);
+}
 
-The problem is with second register (in your patch):
+mbx_offset usage:
 
->From SPRUHZ6G TRM:
+static inline void hecc_write_mbx(struct ti_hecc_priv *priv, u32 mbxno,
+        u32 reg, u32 val)
+{
+        __raw_writel(val, priv->base + priv->mbx_offset + mbxno * 0x10 +
+                        reg);
+}
 
-PCIECTRL_EP_DBICS_LNK_CAS_2 (0x5180 00A0)
-- TRGT_LINK_SPEED (Reset 0x1) - "Target Link Speed" - no more
-  description in TRM
+static inline u32 hecc_read_mbx(struct ti_hecc_priv *priv, u32 mbxno, u32 reg)
+{
+        return __raw_readl(priv->base + priv->mbx_offset + mbxno * 0x10 +
+                        reg);
+}
 
-It is set to PCI_EXP_LNKCAP_SLS_2_5GB = 0x1, which is the same as
-default /reset value.
+scc_ram_offset won't be used at all. CAN controller will be used in
+HECC mode only:
 
+        /* SCC compat mode NOT supported (and not needed too) */
+        hecc_set_bit(priv, HECC_CANMC, HECC_CANMC_SCM);
 
-Could you clarify which way to _force_ PCIe GEN1 operation is correct?
-Mine shows differences in lspci output (as posted in [1]).
+@Marc is mailbox infra applicable here?
 
-> 
-> IMO the better way is to set the LNKCTL2 to GEN1 instead of hacking
-> the IP register.
-
->From the original patch description:
-
-"Add support to force Root Complex to work in GEN1 mode if so desired,
-but don't force GEN1 mode on any board just yet."
-
-Are there any (floating around) patches allowing forcing GEN1 operation
-on any board (I would like to reuse/port them to my current solution)?
-
-Thanks in advance,
-Łukasz Majewski
-
-> 
-> Thanks
-> Kishon
-> 
-> > 
-> > Best regards,
-> > Łukasz
-> > 
-> >>
-> >> Thanks
-> >> Kishon
-> >>
-> >>> ---
-> >>>
-> >>> Patch applies on newest origin/master
-> >>> SHA1: f4d3935e4f4884ba80561db5549394afb8eef8f7
-> >>>
-> >>> Tested at AM5728
-> >>>
-> >>> ---
-> >>>  Documentation/devicetree/bindings/pci/ti-pci.txt |  1 +
-> >>>  drivers/pci/host/pci-dra7xx.c                    | 23
-> >>> +++++++++++++++++++++++
-> >>> drivers/pci/host/pcie-designware.h               |  1 + 3 files
-> >>> changed, 25 insertions(+)
-> >>>
-> >>> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt
-> >>> b/Documentation/devicetree/bindings/pci/ti-pci.txt index
-> >>> 60e2516..9f97409 100644 ---
-> >>> a/Documentation/devicetree/bindings/pci/ti-pci.txt +++
-> >>> b/Documentation/devicetree/bindings/pci/ti-pci.txt @@ -25,6 +25,7
-> >>> @@ PCIe Designware Controller 
-> >>>  Optional Property:
-> >>>   - gpios : Should be added if a gpio line is required to drive
-> >>> PERST# line
-> >>> + - to,pcie-is-gen1: Indicates that forced gen1 port operation is
-> >>> needed. 
-> >>>  Example:
-> >>>  axi {
-> >>> diff --git a/drivers/pci/host/pci-dra7xx.c
-> >>> b/drivers/pci/host/pci-dra7xx.c index 9595fad..eec5fae 100644
-> >>> --- a/drivers/pci/host/pci-dra7xx.c
-> >>> +++
-> >>> b/drivers/pci/host/pci-https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=pci/host-dra7xxdra7xx.c
-> >>> @@ -63,6 +63,13 @@ #define
-> >>> LINK_UP						BIT(16)
-> >>> #define
-> >>> DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
-> >>> +#define         PCIECTRL_EP_DBICS_LNK_CAP
-> >>> 0x007C +#define
-> >>> MAX_LINK_SPEEDS_MASK				GENMASK(3, 0)
-> >>> +#define         MAX_LINK_SPEEDS_GEN1
-> >>> BIT(0) + +#define
-> >>> PCIECTRL_PL_WIDTH_SPEED_CTL                     0x080C
-> >>> +#define         CFG_DIRECTED_SPEED_CHANGE
-> >>> BIT(17) + struct dra7xx_pcie { struct pcie_port	pp;
-> >>>  	void __iomem		*base;		/* DT
-> >>> ti_conf */ @@ -270,6 +277,7 @@ static int __init
-> >>> dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx, struct pcie_port
-> >>> *pp = &dra7xx->pp; struct device *dev = pp->dev;
-> >>>  	struct resource *res;
-> >>> +	u32 val;
-> >>>  
-> >>>  	pp->irq = platform_get_irq(pdev, 1);
-> >>>  	if (pp->irq < 0) {
-> >>> @@ -296,6 +304,18 @@ static int __init dra7xx_add_pcie_port(struct
-> >>> dra7xx_pcie *dra7xx, if (!pp->dbi_base)
-> >>>  		return -ENOMEM;
-> >>>  
-> >>> +	if (pp->is_gen1) {
-> >>> +		dev_info(dev, "GEN1 forced\n");
-> >>> +
-> >>> +		val = readl(pp->dbi_base +
-> >>> PCIECTRL_EP_DBICS_LNK_CAP);
-> >>> +		set_mask_bits(&val, MAX_LINK_SPEEDS_MASK,
-> >>> MAX_LINK_SPEEDS_GEN1);
-> >>> +		writel(val, pp->dbi_base +
-> >>> PCIECTRL_EP_DBICS_LNK_CAP); +
-> >>> +		val = readl(pp->dbi_base +
-> >>> PCIECTRL_PL_WIDTH_SPEED_CTL);
-> >>> +		val &= ~CFG_DIRECTED_SPEED_CHANGE;
-> >>> +		writel(val, pp->dbi_base +
-> >>> PCIECTRL_PL_WIDTH_SPEED_CTL);
-> >>> +	}
-> >>> +
-> >>>  	ret = dw_pcie_host_init(pp);
-> >>>  	if (ret) {
-> >>>  		dev_err(dev, "failed to initialize host\n");
-> >>> @@ -404,6 +424,9 @@ static int __init dra7xx_pcie_probe(struct
-> >>> platform_device *pdev) goto err_gpio;
-> >>>  	}
-> >>>  
-> >>> +	if (of_property_read_bool(np, "ti,pcie-is-gen1"))
-> >>> +		pp->is_gen1 = true;
-> >>> +
-> >>>  	reg = dra7xx_pcie_readl(dra7xx,
-> >>> PCIECTRL_DRA7XX_CONF_DEVICE_CMD); reg &= ~LTSSM_EN;
-> >>>  	dra7xx_pcie_writel(dra7xx,
-> >>> PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg); diff --git
-> >>> a/drivers/pci/host/pcie-designware.h
-> >>> b/drivers/pci/host/pcie-designware.h index a567ea2..2fb0b18 100644
-> >>> --- a/drivers/pci/host/pcie-designware.h +++
-> >>> b/drivers/pci/host/pcie-designware.h @@ -50,6 +50,7 @@ struct
-> >>> pcie_port { struct irq_domain	*irq_domain;
-> >>>  	unsigned long		msi_data;
-> >>>  	u8			iatu_unroll_enabled;
-> >>> +	u8                      is_gen1;
-> >>>  	DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
-> >>>  };
-> >>>  
-> >>>
-> > 
-> > 
-> > 
-> > 
-> > Best regards,
-> > 
-> > Lukasz Majewski
-> > 
-> > --
-> > 
-> > DENX Software Engineering GmbH,      Managing Director: Wolfgang
-> > Denk HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell,
-> > Germany Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email:
-> > wd@denx.de
-> > 
-
-
-
-
-Best regards,
-
-Lukasz Majewski
-
---
-
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
+Yegor
