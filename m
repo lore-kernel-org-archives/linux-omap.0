@@ -1,114 +1,135 @@
-From: Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
-Date: Mon, 16 Jan 2017 13:40:10 +0000
-Message-ID: <2adac46e-b7b3-d41a-b3c4-1edec48dcf83@synopsys.com>
-References: <1484486354-4585-1-git-send-email-lukma@denx.de>
- <587C6A40.8070608@ti.com> <20170116074927.086418f4@jawa>
- <587C8088.80905@ti.com> <20170116103136.21c899ac@jawa>
- <587C9CE6.8040001@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] Documentation: dt-bindings: Add binding documentation for
+ TI clkctrl clocks
+Date: Mon, 16 Jan 2017 17:19:33 +0200
+Message-ID: <7acb6824-0e64-960b-1490-9b7a8b867b3b@ti.com>
+References: <20170109234226.9449-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <587C9CE6.8040001@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Lukasz Majewski <lukma@denx.de>, Joao Pinto <Joao.Pinto@synopsys.com>, "jingoohan1@gmail.com" <jingoohan1@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170109234226.9449-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 10/01/17 01:42, Tony Lindgren wrote:
+> Texas Instruments omap variant SoCs starting with omap4 have a clkctrl
+> clock controller instance for each interconnect target module. The clkctrl
+> controls functional and interface clocks for the module.
+>
+> The clkctrl clocks are currently handled by arch/arm/mach-omap2 hwmod code.
+> With this binding and a related clock device driver we can start moving the
+> clkctrl clock handling to live in drivers/clk/ti.
+>
+> For hardware reference, see omap4430 TRM "Table 3-1312. L4PER_CM2 Registers
+> Mapping Summary" for example. It show one instance of a clkctrl clock
+> controller with multiple clkctrl registers.
+>
+> Note that this binding allows keeping the clockdomain related parts out of
+> drivers/clock. The CLKCTCTRL and DYNAMICDEP registers can be handled by
+> using a separate driver in drivers/soc/ti and genpd. If the clockdomain
+> driver needs to know it's clocks, we can just set the the clkctrl device
+> instances to be children of the related clockdomain device.
+>
+> On omap4 CM_L3INIT_USB_HOST_HS_CLKCTRL on omap5 has eight OPTFCLKEN bits.
+> So we need to shift the clock index to avoid index conflict for the clock
+> consumer binding with the next clkctrl offset on omap4.
+>
+> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>
+> So here's what I was able to come up for the clkctr binding based on
+> all we've discussed so far. Can you guys please take a look and see
+> if it looks OK to you before we do the device driver?
+>
+> Also, does anybody have better suggestions for addressing the optional
+> clocks in each clkctrl register?
+>
+> ---
+>  .../devicetree/bindings/clock/ti-clkctrl.txt       | 56 ++++++++++++++++++++++
+>  1 file changed, 56 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+>
+> diff --git a/Documentation/devicetree/bindings/clock/ti-clkctrl.txt b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+> new file mode 100644
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+> @@ -0,0 +1,56 @@
+> +Texas Instruments clkctrl clock binding
+> +
+> +Texas Instruments SoCs can have a clkctrl clock controller for each
+> +interconnect target module. The clkctrl clock controller manages functional
+> +and interface clocks for each module. Each clkctrl controller can also
+> +gate one or more optional functional clocks for a module. The clkctrl
+> +clock controller is typical for omap3 and later variants.
+> +
+> +The clock consumers can specify the index of the clkctrl clock using
+> +the hardware offset from the clkctrl instance register space. The optional
+> +functional clocks can be specified by clkctrl hardware offset plus the
+> +index of the optional clock. Please see the Linux clock framework binding
+> +at Documentation/devicetree/bindings/clock/clock-bindings.txt.
+> +
+> +Required properties :
+> +- compatible : shall be "ti,clkctrl"
+> +- #clock-cells : shall contain 1
+> +
+> +Optional properties :
+> +- "ti,modulemode-auto" : list of clkctrl offsets using automatic gating
+> +
+> +Example: Clock controller node:
+> +
+> +&cm_l4per {
+> +	cm_l4per_clkctrl: clk@20 {
+> +		compatible = "ti,clkctrl";
+> +		reg = <0x20 0x1b0>;
+> +		#clock-cells = 1;
+> +		ti,modulemode-auto = <OMAP4_GPIO2_CLKCTRL>;
+> +	};
+> +};
 
-Hi,
+So, in this example, what would cm_l4per be? Is it a clockdomain? Or is 
+it just an arbitrary interconnect instance, and the clockdomain would 
+also be a separate node under cm_l4per?
 
-Às 10:13 AM de 1/16/2017, Kishon Vijay Abraham I escreveu:
-> + Joao, Jingoo
-> 
-> Hi,
-> 
-> On Monday 16 January 2017 03:01 PM, Lukasz Majewski wrote:
->> Hi Kishon,
->>
->>> Hi Łukasz,
->>>
->>> On Monday 16 January 2017 12:19 PM, Lukasz Majewski wrote:
->>>> Hi Kishon,
->>>>
->>>>> Hi,
->>>>>
->>>>> On Sunday 15 January 2017 06:49 PM, Lukasz Majewski wrote:
->>>>>> Some devices (due to e.g. bad PCIe signal integrity) require to
->>>>>> run with forced GEN1 speed on PCIe bus.
->>>>>>
->>>>>> This patch changes the speed explicitly on dra7 based devices when
->>>>>> proper device tree attribute is defined for the PCIe controller.
->>>>>>
->>>>>> Signed-off-by: Lukasz Majewski <lukma@denx.de>
->>>>>
->>>>> Bjorn has already queued a patch to do the same thing
->>>>> https://urldefense.proofpoint.com/v2/url?u=https-3A__git.kernel.org_cgit_linux_kernel_git_helgaas_pci.git_log_-3Fh-3Dpci_host-2Ddra7xx&d=DwIDaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=zD82T5n4WcL7Ga-NSY2NI7KE75xQ99hN-mW2yX46wQk&s=E8zk1CbKxGH-f3fw_WpXxFU-A8BLkgA8NusCaxk1SvA&e= 
->>>>
->>>> It seems like Bjorn only modifies CAP registers.
->>>
->>> The patch also modifies the LNKCTL2 register.
->>>>
->>>> He also needs to change register with 0x080C offset to actually
->>>> ( PCIECTRL_PL_WIDTH_SPEED_CTL )
->>>
->>> This bit is used to initiate speed change (after the link is
->>> initialized in GEN1). Resetting the bit (like what you have done
->>> here) prevents speed change.
->>
->> This is strange, but e2e advised me to do things as I did in the patch
->> to _force_ GEN1 operation on PCIe2 port [1] (AM5728)
->>
->> Link:
->> [1] https://urldefense.proofpoint.com/v2/url?u=https-3A__e2e.ti.com_support_arm_sitara-5Farm_f_791_t_566421&d=DwIDaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=zD82T5n4WcL7Ga-NSY2NI7KE75xQ99hN-mW2yX46wQk&s=uXLwglyRYqKpwp1JSxkOWmKpQ2wjfhgofpm8DCfquNw&e= 
->>
->> Both patches modify 0x5180 007C register to set GEN1 capability
->> (PCI_EXP_LNKCAP_SLS_2_5GB)
->>
->> The problem is with second register (in your patch):
->>
->> From SPRUHZ6G TRM:
->>
->> PCIECTRL_EP_DBICS_LNK_CAS_2 (0x5180 00A0)
->> - TRGT_LINK_SPEED (Reset 0x1) - "Target Link Speed" - no more
->>   description in TRM
->>
->> It is set to PCI_EXP_LNKCAP_SLS_2_5GB = 0x1, which is the same as
->> default /reset value.
-> 
-> The default value is 0x2 (or else none of the cards would have enumerated in GEN2)
->>
->>
->> Could you clarify which way to _force_ PCIe GEN1 operation is correct?
->> Mine shows differences in lspci output (as posted in [1]).
-> 
-> You'll see the difference even with the patch in Bjorn's tree ;-)
-> 
-> I think these are 2 different approaches to keep the link at GEN1. Joao or
-> Jingoo, do you have any suggestion here?
+Shall we add power-domains = <&cm_l4per_clkdm>; entry under the 
+cm_l4per_clkctrl in this example? (My thinking is that we will represent 
+both OMAP clock and power domains as generic power domains within kernel 
+/ DT.)
 
-I am going to check this and come back soon with a fundamented opinion.
+-Tero
 
-Thanks.
+> +
+> +Example: Preprocessor helper macros in dt-bindings/ti-clkctrl.h
+> +
+> +#define OMAP4_CLKCTRL_OFFSET		0x20
+> +
+> +#define OMAP_CLKCTRL_INDEX(offset)		\
+> +	(((offset) - OMAP4_CLKCTRL_OFFSET) << 8)
+> +
+> +#define OMAP_CLKCTRL_OPT_INDEX(offset, optclk)	\
+> +	(OMAP_CLKCTRL_INDEX(offset) + (optclk))
+> +
+> +#define OMAP4_GPTIMER10_CLKTRL		OMAP_CLKCTRL_INDEX(0x28)
+> +#define OMAP4_GPTIMER11_CLKTRL		OMAP_CLKCTRL_INDEX(0x30)
+> +#define OMAP4_GPTIMER2_CLKTRL		OMAP_CLKCTRL_INDEX(0x38)
+> +...
+> +#define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
+> +#define OMAP4_GPIO2_CLKCTRL_DBCLK	OMAP_CLKCTRL_OPT_INDEX(0x60, 1)
+> +...
+> +
+> +Example: Clock consumer node for GPIO2:
+> +
+> +&gpio2 {
+> +       clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL
+> +		 &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL_DBCLK>;
+> +};
+>
 
-> 
->>
->>>
->>> IMO the better way is to set the LNKCTL2 to GEN1 instead of hacking
->>> the IP register.
->>
->> From the original patch description:
->>
->> "Add support to force Root Complex to work in GEN1 mode if so desired,
->> but don't force GEN1 mode on any board just yet."
->>
->> Are there any (floating around) patches allowing forcing GEN1 operation
->> on any board (I would like to reuse/port them to my current solution)?
-> 
-> For setting to GEN1 mode, "max-link-speed" should be set to 1 in dt with the
-> patch in Bjorn's tree.
-> 
-> Thanks
-> Kishon
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
