@@ -1,149 +1,98 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
-Date: Tue, 17 Jan 2017 11:05:51 +0530
-Message-ID: <587DAD37.5030201@ti.com>
-References: <1484486354-4585-1-git-send-email-lukma@denx.de>
- <587C6A40.8070608@ti.com> <20170116074927.086418f4@jawa>
- <587C8088.80905@ti.com> <20170116103136.21c899ac@jawa>
- <587C9CE6.8040001@ti.com> <76d18446-78c9-87f2-22ad-f7ea38771285@synopsys.com>
+From: Matt Ranostay <matt@ranostay.consulting>
+Subject: Re: [PATCH v7] ASoC: omap-mcbsp: Add PM QoS support
+ for McBSP to prevent glitches
+Date: Mon, 16 Jan 2017 11:30:52 -0800
+Message-ID: <CAJ_EiSTStr1TfGE2zVspFF0DkkXLOCDmiqD_jZkzue-GfsTm+Q@mail.gmail.com>
+References: <20170113035432.6723-1-matt@ranostay.consulting>
+ <20170113152049.GD5696@atomide.com>
+ <CAJ_EiSR-R=5qUKOfHWTTrjj+ZD6Q6BBf1yPj3atf84Q6K03NZg@mail.gmail.com>
+ <20170116171743.GB7403@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <76d18446-78c9-87f2-22ad-f7ea38771285-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>, "jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20170116171743.GB7403@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joao,
+On Mon, Jan 16, 2017 at 9:17 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Matt Ranostay <matt@ranostay.consulting> [170113 21:16]:
+>> On Fri, Jan 13, 2017 at 7:20 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Matt Ranostay <matt@ranostay.consulting> [170112 19:55]:
+>> >> We can get audio errors if hitting deeper idle states on omaps:
+>> >>
+>> >> [alsa.c:230] error: Fatal problem with alsa output, error -5.
+>> >> [audio.c:614] error: Error in writing audio (Input/output error?)!
+>> >>
+>> >> This seems to happen with off mode idle enabled as power for the
+>> >> whole SoC may get cut off between filling the McBSP fifo using DMA.
+>> >> While active DMA blocks deeper idle states in hardware, McBSP
+>> >> activity does not seem to do so.
+>> >>
+>> >> Basing the QoS latency calculation on the FIFO size, threshold,
+>> >> sample rate, and channels.
+>> >>
+>> >> Based on the original patch by Tony Lindgren
+>> >> Link: https://patchwork.kernel.org/patch/9305867/
+>> >>
+>> >> Cc: Tony Lindgren <tony@atomide.com>
+>> >> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> >> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> >> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
+>> >> ---
+>> >> Changes from v1:
+>> >> * add calculations for latency per number of FIFO locations
+>> >>
+>> >> Changes from v2:
+>> >> * add missing mcbsp.h header change
+>> >>
+>> >> Changes from v3:
+>> >> * base the latency calculations on threshold, buffer size, sample
+>> >>   rate, and channels
+>> >>
+>> >> Changes from v4:
+>> >> * using Peter Ujfalusi's suggestions for restoring a higher latency on
+>> >>   audio stream completion, or if not applicable remove the QoS request
+>> >>
+>> >> Changes from v5:
+>> >> * clean up latency checking logic
+>> >> * move logic to .prepare and .shutdown to avoid functions that can sleep
+>> >>
+>> >> Changes from v6:
+>> >> * move QoS removal to asoc_mcbsp_remove from omap_mcbsp_cleanup
+>> >> * also remove header include that is unneeded
+>> >
+>> > Hmm now I'm seeing these when starting or stopping playback:
+>>
+>> Ok I can't reproduce but I have an idea why it is happening. There is
+>> likely a race condition between pm_qos_remove_request() and
+>> omap_mcbsp_dai_shutdown()... Should we do a pm_qos_request_active
+>> check in omap_mcbsp_dai_shutdown? That seems to be hacking around the
+>> issue.
+>
+> OK. Again this is with next using omap2plus_defconfig and:
+>
+> CONFIG_DEBUG_LOCKDEP=y
+> CONFIG_DEBUG_ATOMIC_SLEEP=y
 
-On Monday 16 January 2017 10:31 PM, Joao Pinto wrote:
-> 
-> Hi,
-> 
-> Às 10:13 AM de 1/16/2017, Kishon Vijay Abraham I escreveu:
->> + Joao, Jingoo
->>
->> Hi,
->>
->> On Monday 16 January 2017 03:01 PM, Lukasz Majewski wrote:
->>> Hi Kishon,
->>>
->>>> Hi Łukasz,
->>>>
->>>> On Monday 16 January 2017 12:19 PM, Lukasz Majewski wrote:
->>>>> Hi Kishon,
->>>>>
->>>>>> Hi,
->>>>>>
->>>>>> On Sunday 15 January 2017 06:49 PM, Lukasz Majewski wrote:
->>>>>>> Some devices (due to e.g. bad PCIe signal integrity) require to
->>>>>>> run with forced GEN1 speed on PCIe bus.
->>>>>>>
->>>>>>> This patch changes the speed explicitly on dra7 based devices when
->>>>>>> proper device tree attribute is defined for the PCIe controller.
->>>>>>>
->>>>>>> Signed-off-by: Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
->>>>>>
->>>>>> Bjorn has already queued a patch to do the same thing
->>>>>> https://urldefense.proofpoint.com/v2/url?u=https-3A__git.kernel.org_cgit_linux_kernel_git_helgaas_pci.git_log_-3Fh-3Dpci_host-2Ddra7xx&d=DwIDaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=zD82T5n4WcL7Ga-NSY2NI7KE75xQ99hN-mW2yX46wQk&s=E8zk1CbKxGH-f3fw_WpXxFU-A8BLkgA8NusCaxk1SvA&e= 
->>>>>
->>>>> It seems like Bjorn only modifies CAP registers.
->>>>
->>>> The patch also modifies the LNKCTL2 register.
->>>>>
->>>>> He also needs to change register with 0x080C offset to actually
->>>>> ( PCIECTRL_PL_WIDTH_SPEED_CTL )
->>>>
->>>> This bit is used to initiate speed change (after the link is
->>>> initialized in GEN1). Resetting the bit (like what you have done
->>>> here) prevents speed change.
->>>
->>> This is strange, but e2e advised me to do things as I did in the patch
->>> to _force_ GEN1 operation on PCIe2 port [1] (AM5728)
->>>
->>> Link:
->>> [1] https://urldefense.proofpoint.com/v2/url?u=https-3A__e2e.ti.com_support_arm_sitara-5Farm_f_791_t_566421&d=DwIDaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=zD82T5n4WcL7Ga-NSY2NI7KE75xQ99hN-mW2yX46wQk&s=uXLwglyRYqKpwp1JSxkOWmKpQ2wjfhgofpm8DCfquNw&e= 
->>>
->>> Both patches modify 0x5180 007C register to set GEN1 capability
->>> (PCI_EXP_LNKCAP_SLS_2_5GB)
->>>
->>> The problem is with second register (in your patch):
->>>
->>> From SPRUHZ6G TRM:
->>>
->>> PCIECTRL_EP_DBICS_LNK_CAS_2 (0x5180 00A0)
->>> - TRGT_LINK_SPEED (Reset 0x1) - "Target Link Speed" - no more
->>>   description in TRM
->>>
->>> It is set to PCI_EXP_LNKCAP_SLS_2_5GB = 0x1, which is the same as
->>> default /reset value.
->>
->> The default value is 0x2 (or else none of the cards would have enumerated in GEN2)
->>>
->>>
->>> Could you clarify which way to _force_ PCIe GEN1 operation is correct?
->>> Mine shows differences in lspci output (as posted in [1]).
->>
->> You'll see the difference even with the patch in Bjorn's tree ;-)
->>
->> I think these are 2 different approaches to keep the link at GEN1. Joao or
->> Jingoo, do you have any suggestion here?
-> 
-> I studied the Databook, and both approaches seem to be right, dependently of the
-> Core configuration and setup.
-> 
-> The standard manual speed change sequence is:
-> a) Write to PCIE_CAP_TARGET_LINK_SPEED (indicating desired speed)
-> b) Clear "Directed Speed Change"
-> c) Set "Directed Speed Change"
-> 
-> If "Directed Speed Change" is set (DEFAULT_GEN2_SPEED_CHANGE is the default
-> value), it will execute LTSSM to initiate speed change to Gen2 or Gen3, after
-> link is started in Gen1, and then the bit is automatically cleared.
-> 
-> Lukasz is reseting this bit, in order to avoid the LTSSM to be executed, which
-> is correct. There is another way to prevent this automatic speed change, which
-> is to set GEN1 speed before link up which might be difficult in some setups, so
-> Kishon's also right.
+Yep I was testing with that enabled. Not sure why I'm not getting it
+all... maybe different side effects like sample rate of the audio
+being played?
 
-Just for my understanding, why do you think this will be difficult in some setups?
-> 
-> In my opinion Lukasz approach would be the one that might be more universal and
-> more "secure".
+Peter, is there chance that there is race condition is possible
+between pm_qos_remove_request and omap_mcbsp_dai_shutdown?
 
-IMHO setting link control in the standard PCIe header space should be more
-universal. I'm not sure about the secure part though.
-
-Thanks
-Kishon
-> 
-> Joao
-> 
-> 
->>
->>>
->>>>
->>>> IMO the better way is to set the LNKCTL2 to GEN1 instead of hacking
->>>> the IP register.
->>>
->>> From the original patch description:
->>>
->>> "Add support to force Root Complex to work in GEN1 mode if so desired,
->>> but don't force GEN1 mode on any board just yet."
->>>
->>> Are there any (floating around) patches allowing forcing GEN1 operation
->>> on any board (I would like to reuse/port them to my current solution)?
->>
->> For setting to GEN1 mode, "max-link-speed" should be set to 1 in dt with the
->> patch in Bjorn's tree.
->>
->> Thanks
->> Kishon
->>
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Regards,
+>
+> Tony
