@@ -1,60 +1,106 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: Nokia N900: mixers changed between 4.9 and 4.10-rc3, no longer
- can use in-call speaker
-Date: Sun, 15 Jan 2017 21:08:12 +0200
-Message-ID: <40dbce4e-d99d-d77d-e682-5b004c70ca40@bitmer.com>
-References: <20170112181826.GA28290@amd> <201701121934.19810@pali>
- <20170114225614.GA25321@amd> <201701150100.54214@pali>
- <20170115100533.GA15816@amd>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 09/37] PCI: dwc: designware: Parse *num-lanes* property in
+ dw_pcie_setup_rc
+Date: Mon, 16 Jan 2017 10:49:57 +0530
+Message-ID: <587C57FD.7050601@ti.com>
+References: <1484216786-17292-1-git-send-email-kishon@ti.com>
+ <1484216786-17292-10-git-send-email-kishon@ti.com>
+ <c3c55af3-29d1-dc59-3ae4-9a4132c99092@synopsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170115100533.GA15816@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, helen.koike@collabora.co.uk, lars@metafoo.de, broonie@kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <c3c55af3-29d1-dc59-3ae4-9a4132c99092@synopsys.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joao Pinto <Joao.Pinto@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: devicetree@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/15/2017 12:05 PM, Pavel Machek wrote:
->>> So regression seems to be between v4.9 and v4.10. Any ideas?
+Hi,
+
+On Friday 13 January 2017 10:43 PM, Joao Pinto wrote:
+> Hi,
+> =
+
+> =C0s 10:25 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
+>> *num-lanes* dt property is parsed in dw_pcie_host_init. However
+>> *num-lanes* property is applicable to both root complex mode and
+>> endpoint mode. As a first step, move the parsing of this property
+>> outside dw_pcie_host_init. This is in preparation for splitting
+>> pcie-designware.c to pcie-designware.c and pcie-designware-host.c
 >>
->> Interesting... seems there are no sound relevant changes after v4.9.
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  drivers/pci/dwc/pcie-designware.c |   18 +++++++++++-------
+>>  drivers/pci/dwc/pcie-designware.h |    1 -
+>>  2 files changed, 11 insertions(+), 8 deletions(-)
 >>
->> Looks like there are only three commits after v4.9 for sound/soc which 
->> are built for Nokia N900:
->>
->> e411b0b5eb9b65257a050eac333d181d6e00e2c6
->> e7aa450fe17890e59db7d3c2d8eff5b6b41fc531
->> 63c3194b82530bd71fd49db84eb7ab656b8d404a
->>
->> Maybe something not related to sound/soc could broke it?
-> 
-> Lets see.
-> 
-> a9042defa29a01cc538b742eab047848e9b5ae14 -- works ok.
-> ce38207f161513ee3d2bd3860489f07ebe65bc78 --
-> 
-> alsactl: set_control:1328: failed to obtain info for control #229 (No
-> such file or directory)
-> 
-I'm unable to test older kernels at the moment since modules don't load
-by some reason (bluetooth: Unknown symbol _GLOBAL_OFFSET_TABLE_ (err
-0)). Probably some recent regression in my debian/testing installation
-since the same configs were working before.
+>> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-de=
+signware.c
+>> index 00a0fdc..89cdb6b 100644
+>> --- a/drivers/pci/dwc/pcie-designware.c
+>> +++ b/drivers/pci/dwc/pcie-designware.c
+>> @@ -551,10 +551,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
+>>  		}
+>>  	}
+>>  =
 
-However v4.9.4 works and with it I can see there is an issue with these
-aic3x controls:
+>> -	ret =3D of_property_read_u32(np, "num-lanes", &pci->lanes);
+>> -	if (ret)
+>> -		pci->lanes =3D 0;
+>> -
+>>  	ret =3D of_property_read_u32(np, "num-viewport", &pci->num_viewport);
+>>  	if (ret)
+>>  		pci->num_viewport =3D 2;
+>> @@ -751,18 +747,26 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u3=
+2 devfn,
+>>  =
 
-amixer: Unable to find simple control 'Left DAC_L1 Mixer Line',0
+>>  void dw_pcie_setup_rc(struct pcie_port *pp)
+>>  {
+>> +	int ret;
+>> +	u32 lanes;
+>>  	u32 val;
+>>  	struct dw_pcie *pci =3D to_dw_pcie_from_pp(pp);
+>> +	struct device *dev =3D pci->dev;
+>> +	struct device_node *np =3D dev->of_node;
+>>  =
 
+>>  	/* get iATU unroll support */
+>>  	pci->iatu_unroll_enabled =3D dw_pcie_iatu_unroll_enabled(pci);
+>>  	dev_dbg(pci->dev, "iATU unroll: %s\n",
+>>  		pci->iatu_unroll_enabled ? "enabled" : "disabled");
+>>  =
 
+>> +	ret =3D of_property_read_u32(np, "num-lanes", &lanes);
+>> +	if (ret)
+>> +		lanes =3D 0;
+> =
 
-amixer: Unable to find simple control 'Right DAC_R1 Mixer Line',0
+> You moved from host_init to root complex setup function, which in my opin=
+ion did
+> not improve (in this scope).
+> =
 
+> I suggest that instead of making so much intermediary patches, which is n=
+ice to
+> understand your development sequence, but hard to review. Wouldn't be bet=
+ter to
+> condense some of the patches? We would have a cloear vision of the final =
+product :)
 
-At quick look I don't see why above commits could cause it. Maybe
-regression happened earlier between v4.6 and v4.9?
+I thought the other way. If squashing patches is easier to review, I'll do =
+it.
 
--- 
-Jarkko
+Btw, thanks for reviewing.
+
+Cheers
+Kishon
