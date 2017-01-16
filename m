@@ -1,103 +1,102 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
-Date: Mon, 16 Jan 2017 15:43:58 +0530
-Message-ID: <587C9CE6.8040001@ti.com>
-References: <1484486354-4585-1-git-send-email-lukma@denx.de>
- <587C6A40.8070608@ti.com> <20170116074927.086418f4@jawa>
- <587C8088.80905@ti.com> <20170116103136.21c899ac@jawa>
+From: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 09/37] PCI: dwc: designware: Parse *num-lanes* property in
+ dw_pcie_setup_rc
+Date: Mon, 16 Jan 2017 10:23:10 +0000
+Message-ID: <3f9d931f-a57f-2ea7-b821-ea9846ad0aa4@synopsys.com>
+References: <1484216786-17292-1-git-send-email-kishon@ti.com>
+ <1484216786-17292-10-git-send-email-kishon@ti.com>
+ <c3c55af3-29d1-dc59-3ae4-9a4132c99092@synopsys.com> <587C57FD.7050601@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170116103136.21c899ac@jawa>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lukasz Majewski <lukma@denx.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <587C57FD.7050601-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-VrBV9hrLPhE@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-+ Joao, Jingoo
 
 Hi,
 
-On Monday 16 January 2017 03:01 PM, Lukasz Majewski wrote:
-> Hi Kishon,
+Às 5:19 AM de 1/16/2017, Kishon Vijay Abraham I escreveu:
+> Hi,
 > 
->> Hi Åukasz,
+> On Friday 13 January 2017 10:43 PM, Joao Pinto wrote:
+>> Hi,
 >>
->> On Monday 16 January 2017 12:19 PM, Lukasz Majewski wrote:
->>> Hi Kishon,
+>> Às 10:25 AM de 1/12/2017, Kishon Vijay Abraham I escreveu:
+>>> *num-lanes* dt property is parsed in dw_pcie_host_init. However
+>>> *num-lanes* property is applicable to both root complex mode and
+>>> endpoint mode. As a first step, move the parsing of this property
+>>> outside dw_pcie_host_init. This is in preparation for splitting
+>>> pcie-designware.c to pcie-designware.c and pcie-designware-host.c
 >>>
->>>> Hi,
->>>>
->>>> On Sunday 15 January 2017 06:49 PM, Lukasz Majewski wrote:
->>>>> Some devices (due to e.g. bad PCIe signal integrity) require to
->>>>> run with forced GEN1 speed on PCIe bus.
->>>>>
->>>>> This patch changes the speed explicitly on dra7 based devices when
->>>>> proper device tree attribute is defined for the PCIe controller.
->>>>>
->>>>> Signed-off-by: Lukasz Majewski <lukma@denx.de>
->>>>
->>>> Bjorn has already queued a patch to do the same thing
->>>> https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=pci/host-dra7xx
+>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>>> ---
+>>>  drivers/pci/dwc/pcie-designware.c |   18 +++++++++++-------
+>>>  drivers/pci/dwc/pcie-designware.h |    1 -
+>>>  2 files changed, 11 insertions(+), 8 deletions(-)
 >>>
->>> It seems like Bjorn only modifies CAP registers.
+>>> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
+>>> index 00a0fdc..89cdb6b 100644
+>>> --- a/drivers/pci/dwc/pcie-designware.c
+>>> +++ b/drivers/pci/dwc/pcie-designware.c
+>>> @@ -551,10 +551,6 @@ int dw_pcie_host_init(struct pcie_port *pp)
+>>>  		}
+>>>  	}
+>>>  
+>>> -	ret = of_property_read_u32(np, "num-lanes", &pci->lanes);
+>>> -	if (ret)
+>>> -		pci->lanes = 0;
+>>> -
+>>>  	ret = of_property_read_u32(np, "num-viewport", &pci->num_viewport);
+>>>  	if (ret)
+>>>  		pci->num_viewport = 2;
+>>> @@ -751,18 +747,26 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
+>>>  
+>>>  void dw_pcie_setup_rc(struct pcie_port *pp)
+>>>  {
+>>> +	int ret;
+>>> +	u32 lanes;
+>>>  	u32 val;
+>>>  	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+>>> +	struct device *dev = pci->dev;
+>>> +	struct device_node *np = dev->of_node;
+>>>  
+>>>  	/* get iATU unroll support */
+>>>  	pci->iatu_unroll_enabled = dw_pcie_iatu_unroll_enabled(pci);
+>>>  	dev_dbg(pci->dev, "iATU unroll: %s\n",
+>>>  		pci->iatu_unroll_enabled ? "enabled" : "disabled");
+>>>  
+>>> +	ret = of_property_read_u32(np, "num-lanes", &lanes);
+>>> +	if (ret)
+>>> +		lanes = 0;
 >>
->> The patch also modifies the LNKCTL2 register.
->>>
->>> He also needs to change register with 0x080C offset to actually
->>> ( PCIECTRL_PL_WIDTH_SPEED_CTL )
+>> You moved from host_init to root complex setup function, which in my opinion did
+>> not improve (in this scope).
 >>
->> This bit is used to initiate speed change (after the link is
->> initialized in GEN1). Resetting the bit (like what you have done
->> here) prevents speed change.
+>> I suggest that instead of making so much intermediary patches, which is nice to
+>> understand your development sequence, but hard to review. Wouldn't be better to
+>> condense some of the patches? We would have a cloear vision of the final product :)
 > 
-> This is strange, but e2e advised me to do things as I did in the patch
-> to _force_ GEN1 operation on PCIe2 port [1] (AM5728)
-> 
-> Link:
-> [1] https://e2e.ti.com/support/arm/sitara_arm/f/791/t/566421
-> 
-> Both patches modify 0x5180 007C register to set GEN1 capability
-> (PCI_EXP_LNKCAP_SLS_2_5GB)
-> 
-> The problem is with second register (in your patch):
-> 
-> From SPRUHZ6G TRM:
-> 
-> PCIECTRL_EP_DBICS_LNK_CAS_2 (0x5180 00A0)
-> - TRGT_LINK_SPEED (Reset 0x1) - "Target Link Speed" - no more
->   description in TRM
-> 
-> It is set to PCI_EXP_LNKCAP_SLS_2_5GB = 0x1, which is the same as
-> default /reset value.
+> I thought the other way. If squashing patches is easier to review, I'll do it.
 
-The default value is 0x2 (or else none of the cards would have enumerated in GEN2)
-> 
-> 
-> Could you clarify which way to _force_ PCIe GEN1 operation is correct?
-> Mine shows differences in lspci output (as posted in [1]).
+I understand. To break it in small pieces is good to understand clearly what is
+done and how was done, but I would break too much. That's a personal opinion of
+course, lets see what others say :).
 
-You'll see the difference even with the patch in Bjorn's tree ;-)
-
-I think these are 2 different approaches to keep the link at GEN1. Joao or
-Jingoo, do you have any suggestion here?
+Thanks,
+Joao
 
 > 
->>
->> IMO the better way is to set the LNKCTL2 to GEN1 instead of hacking
->> the IP register.
+> Btw, thanks for reviewing.
 > 
-> From the original patch description:
+> Cheers
+> Kishon
 > 
-> "Add support to force Root Complex to work in GEN1 mode if so desired,
-> but don't force GEN1 mode on any board just yet."
-> 
-> Are there any (floating around) patches allowing forcing GEN1 operation
-> on any board (I would like to reuse/port them to my current solution)?
 
-For setting to GEN1 mode, "max-link-speed" should be set to 1 in dt with the
-patch in Bjorn's tree.
-
-Thanks
-Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
