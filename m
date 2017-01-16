@@ -1,140 +1,98 @@
-From: Lukasz Majewski <lukma@denx.de>
-Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
-Date: Mon, 16 Jan 2017 11:34:01 +0100
-Message-ID: <20170116113401.1364b079@jawa>
-References: <1484486354-4585-1-git-send-email-lukma@denx.de>
-        <587C6A40.8070608@ti.com>
-        <20170116074927.086418f4@jawa>
-        <587C8088.80905@ti.com>
-        <20170116103136.21c899ac@jawa>
-        <587C9CE6.8040001@ti.com>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: [PATCH v2 2/3] can: ti_hecc: Add TI HECC DT binding documentation
+Date: Mon, 16 Jan 2017 11:59:17 +0100
+Message-ID: <CAGm1_ksspvFG+ScMjtw6uXAL2cAuB5ZsawaH1nYPVwQEQVE9HA@mail.gmail.com>
+References: <1484143521-4898-1-git-send-email-yegorslists@googlemail.com>
+ <1484143521-4898-3-git-send-email-yegorslists@googlemail.com> <20170113195633.7igh7fdlcsw5ov6g@rob-hp-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <587C9CE6.8040001@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Joao Pinto <Joao.Pinto@synopsys.com>, "jingoohan1@gmail.com" <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <20170113195633.7igh7fdlcsw5ov6g@rob-hp-laptop>
+Sender: linux-can-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, devicetree@vger.kernel.org, Andrey Skvortsov <andrej.skvortzov@gmail.com>, hs@denx.de, Anton Glukhov <anton.a.glukhov@gmail.com>, Marc Kleine-Budde <mkl@pengutronix.de>, "Grim, Dennis" <dennis.grim@teejet.com>
 List-Id: linux-omap@vger.kernel.org
 
-Dear All,
+On Fri, Jan 13, 2017 at 8:56 PM, Rob Herring <robh@kernel.org> wrote:
+> On Wed, Jan 11, 2017 at 03:05:20PM +0100, yegorslists@googlemail.com wrote:
+>> From: Anton Glukhov <anton.a.glukhov@gmail.com>
+>>
+>> DT binding documentation for TI High End CAN Controller
+>>
+>> Signed-off-by: Anton Glukhov <anton.a.glukhov@gmail.com>
+>> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+>> ---
+>> Changes v1 -> v2:
+>>       change compatible to "ti,am3505"
+>>
+>>  .../devicetree/bindings/net/can/ti_hecc.txt        | 31 ++++++++++++++++++++++
+>>  1 file changed, 31 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/net/can/ti_hecc.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/can/ti_hecc.txt b/Documentation/devicetree/bindings/net/can/ti_hecc.txt
+>> new file mode 100644
+>> index 0000000..ce015cf
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/net/can/ti_hecc.txt
+>> @@ -0,0 +1,31 @@
+>> +* Texas Instruments High End CAN Controller (HECC)
+>> +
+>> +This file provides information, what the device node
+>> +for the hecc interface contains.
+>> +
+>> +Required properties:
+>> +- compatible: "ti,am3505"
+>> +- reg: offset and length of the register set for the device
+>> +- interrupts: interrupt mapping for the hecc interrupts sources
+>> +- clocks: clock phandles (see clock bindings for details)
+>
+>> +- ti,scc-ram-offset: offset to scc module ram
+>> +- ti,hecc-ram-offset: offset to hecc module ram
+>> +- ti,mbx-offset: offset to mailbox ram
+>
+> Is there not a common case that would be the default?
 
-> + Joao, Jingoo
-> 
-> Hi,
-> 
-> On Monday 16 January 2017 03:01 PM, Lukasz Majewski wrote:
-> > Hi Kishon,
-> > 
-> >> Hi Łukasz,
-> >>
-> >> On Monday 16 January 2017 12:19 PM, Lukasz Majewski wrote:
-> >>> Hi Kishon,
-> >>>
-> >>>> Hi,
-> >>>>
-> >>>> On Sunday 15 January 2017 06:49 PM, Lukasz Majewski wrote:
-> >>>>> Some devices (due to e.g. bad PCIe signal integrity) require to
-> >>>>> run with forced GEN1 speed on PCIe bus.
-> >>>>>
-> >>>>> This patch changes the speed explicitly on dra7 based devices
-> >>>>> when proper device tree attribute is defined for the PCIe
-> >>>>> controller.
-> >>>>>
-> >>>>> Signed-off-by: Lukasz Majewski <lukma@denx.de>
-> >>>>
-> >>>> Bjorn has already queued a patch to do the same thing
-> >>>> https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=pci/host-dra7xx
-> >>>
-> >>> It seems like Bjorn only modifies CAP registers.
-> >>
-> >> The patch also modifies the LNKCTL2 register.
-> >>>
-> >>> He also needs to change register with 0x080C offset to actually
-> >>> ( PCIECTRL_PL_WIDTH_SPEED_CTL )
-> >>
-> >> This bit is used to initiate speed change (after the link is
-> >> initialized in GEN1). Resetting the bit (like what you have done
-> >> here) prevents speed change.
-> > 
-> > This is strange, but e2e advised me to do things as I did in the
-> > patch to _force_ GEN1 operation on PCIe2 port [1] (AM5728)
-> > 
-> > Link:
-> > [1] https://e2e.ti.com/support/arm/sitara_arm/f/791/t/566421
-> > 
-> > Both patches modify 0x5180 007C register to set GEN1 capability
-> > (PCI_EXP_LNKCAP_SLS_2_5GB)
-> > 
-> > The problem is with second register (in your patch):
-> > 
-> > From SPRUHZ6G TRM:
-> > 
-> > PCIECTRL_EP_DBICS_LNK_CAS_2 (0x5180 00A0)
-> > - TRGT_LINK_SPEED (Reset 0x1) - "Target Link Speed" - no more
-> >   description in TRM
-> > 
-> > It is set to PCI_EXP_LNKCAP_SLS_2_5GB = 0x1, which is the same as
-> > default /reset value.
-> 
-> The default value is 0x2 (or else none of the cards would have
-> enumerated in GEN2)
+So far HECC is only implemented in two SoCs am3505/am3517. Both are
+identical in this regard and differ in having/not having a 3D graphics
+engine. So perhaps it makes sense just to move these offsets to the
+driver itself?
 
-SPRUHZ6G – October 2014 – Revised June 2016 - page 6313. Maybe TRM is
-not up to date?
+>> +
+>> +Optional properties:
+>> +- ti,int-line: interrupt line
 
-> > 
-> > 
-> > Could you clarify which way to _force_ PCIe GEN1 operation is
-> > correct? Mine shows differences in lspci output (as posted in [1]).
-> 
-> You'll see the difference even with the patch in Bjorn's tree ;-)
+Marc suggested to convert this option to bool. Though it should be
+also renamed then. HECC has basically two interrupts HECC0 and HECC1.
+The one is for mailbox interrupts the other for system interrupts. But
+one can map all interrupts to one "pin". This is also made in the
+driver. The user can decide which one to use for all interrupts.
 
-:-) 
+I'd suggest following name:
 
-The details of my test cases and output are in the post [1].
+ti,use-hecc1int: if provided configures HECC to produce all interrupts
+on HECC1INT interrupt line. By default HECC0INT interrupt line will be
+used.
 
-> 
-> I think these are 2 different approaches to keep the link at GEN1.
-> Joao or Jingoo, do you have any suggestion here?
+Yegor
 
-Please read through thread [1]
-
-[1] https://e2e.ti.com/support/arm/sitara_arm/f/791/t/566421
-
-> 
-> > 
-> >>
-> >> IMO the better way is to set the LNKCTL2 to GEN1 instead of hacking
-> >> the IP register.
-> > 
-> > From the original patch description:
-> > 
-> > "Add support to force Root Complex to work in GEN1 mode if so
-> > desired, but don't force GEN1 mode on any board just yet."
-> > 
-> > Are there any (floating around) patches allowing forcing GEN1
-> > operation on any board (I would like to reuse/port them to my
-> > current solution)?
-> 
-> For setting to GEN1 mode, "max-link-speed" should be set to 1 in dt
-> with the patch in Bjorn's tree.
-
-Ah.... ok.
-> 
-> Thanks
-> Kishon
-
-
-
-
-Best regards,
-
-Lukasz Majewski
-
---
-
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
+> Needs a better description. What are valid values? This is some internal
+> setting about which pin to route the interrupt output to I'm guessing.
+>
+>> +
+>> +Example:
+>> +
+>> +For am3517evm board:
+>> +     hecc: can@0x5c050000 {
+>> +             compatible = "ti,am3505";
+>> +             status = "disabled";
+>> +             reg = <0x5c050000 0x4000>;
+>> +             interrupts = <24>;
+>> +             clocks = <&hecc_ck>;
+>> +             ti,scc-ram-offset = <0x3000>;
+>> +             ti,hecc-ram-offset = <0x3000>;
+>> +             ti,mbx-offset = <0x2000>;
+>> +             ti,int-line = <0>;
+>> +     };
+>> --
+>> 2.1.4
+>>
