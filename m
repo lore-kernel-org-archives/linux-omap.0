@@ -1,16 +1,16 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 16/37] PCI: endpoint: Introduce configfs entry for
- configuring EP functions
-Date: Mon, 16 Jan 2017 11:31:23 +0530
-Message-ID: <587C61B3.3070107@ti.com>
+Subject: Re: [PATCH 36/37] ARM: DRA7: clockdomain: Change the CLKTRCTRL of
+ CM_PCIE_CLKSTCTRL to SW_WKUP
+Date: Mon, 16 Jan 2017 11:35:02 +0530
+Message-ID: <587C628E.7070804@ti.com>
 References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-17-git-send-email-kishon@ti.com>
- <20170113180602.GA30346@infradead.org>
+ <1484216786-17292-37-git-send-email-kishon@ti.com>
+ <20170113171537.GZ2630@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170113180602.GA30346@infradead.org>
+In-Reply-To: <20170113171537.GZ2630@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,31 +20,57 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Christoph Hellwig <hch@infradead.org>
+To: Tony Lindgren <tony@atomide.com>
 Cc: devicetree@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org, Jingoo Han <jingoohan1@gmail.com>, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, linux-samsung-soc@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Christoph,
+Hi Tony,
 
-On Friday 13 January 2017 11:36 PM, Christoph Hellwig wrote:
-> Hi Kishon,
+On Friday 13 January 2017 10:45 PM, Tony Lindgren wrote:
+> * Kishon Vijay Abraham I <kishon@ti.com> [170112 02:35]:
+>> The PCIe programming sequence in TRM suggests CLKSTCTRL of PCIe should
+>> be set to SW_WKUP. There are no issues when CLKSTCTRL is set to HW_AUTO
+>> in RC mode. However in EP mode, the host system is not able to access the
+>> MEMSPACE and setting the CLKSTCTRL to SW_WKUP fixes it.
 > 
-> a couple comments on the configfs layout based on my experiments with
-> your previous drop to implement a NVMe device using it.
+> I guess ideally in the long run we would set this dynamically based on
+> the selected mode, right?
 
-Thanks for trying it out!
-> 
-> I don't think most of these configfs files should be present here, as
-> they are properties of the implemented PCIe devices.  E.g. for my
-> NVMe device they will be sort of hardcoded most of the time, as they
-> would be for other devices that would always have a fixed vendor/device/
-> class ID, cacheline size, etc.
-
-Actually not all devices have hardcoded headers. E.g the platform I'm using
-doesn't have hardcoded headers and it can be configured based on the function
-the user would like to use. If the devices are hardcoded, then using configfs
-can be skipped altogether. In such cases, APIs like pci_epf_create() can
-directly be used by the drivers instead of going via configfs.
+The programming sequence mentioned in the TRM w.r.t clock programming is same
+for both host mode or device mode. Though we never faced any issues in host
+mode when HW_AUTO is set, it's better to follow TRM recommended settings IMHO.
 
 Thanks
 Kishon
+
+> 
+> Regards,
+> 
+> Tony
+> 
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/clockdomains7xx_data.c |    2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+>> index 6c67965..67ebff8 100644
+>> --- a/arch/arm/mach-omap2/clockdomains7xx_data.c
+>> +++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+>> @@ -524,7 +524,7 @@
+>>  	.dep_bit	  = DRA7XX_PCIE_STATDEP_SHIFT,
+>>  	.wkdep_srcs	  = pcie_wkup_sleep_deps,
+>>  	.sleepdep_srcs	  = pcie_wkup_sleep_deps,
+>> -	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+>> +	.flags		  = CLKDM_CAN_SWSUP,
+>>  };
+>>  
+>>  static struct clockdomain atl_7xx_clkdm = {
+>> -- 
+>> 1.7.9.5
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
