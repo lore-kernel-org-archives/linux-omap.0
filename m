@@ -1,164 +1,125 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH v9 0/8] drivers: touchscreen: tsc2007 and ads7846/tsc2046 improvements (use common touchscreen bindings, pre-calibration, spi fix and provide iio raw values)
-Date: Mon, 16 Jan 2017 07:34:12 +0100
-Message-ID: <BB8421B2-6626-4A95-BCD0-25C4CAF30F61@goldelico.com>
-References: <cover.1482936802.git.hns@goldelico.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1482936802.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?utf-8?Q?Mika_Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede@>
-Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
+Date: Mon, 16 Jan 2017 12:07:52 +0530
+Message-ID: <587C6A40.8070608@ti.com>
+References: <1484486354-4585-1-git-send-email-lukma@denx.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1484486354-4585-1-git-send-email-lukma@denx.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lukasz Majewski <lukma@denx.de>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-ping
+Hi,
 
-> Am 28.12.2016 um 15:53 schrieb H. Nikolaus Schaller =
-<hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
->=20
-> Changes V9:
-> * added explicit CONFIG for TSC2007_IIO and simplified Makefile =
-(suggested by Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>)
-> * make the tsc2007 iio patch the last one in this sequence
->=20
-> 2016-11-22 15:02:42: Changes V8:
-> * fix compilation for CONFIG_IIO=3Dm (reported by Jonathan Cameron =
-<jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
-> * add some more Reviewed-by: and Acked-by:
-> * mutiple improvements suggested by Dmitry Torokhov =
-<dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
-> ** drop patch "send pendown and penup only once" (input core does take =
-care of it now)
-> ** remove not necessary EXPORT_SYMBOL
-> ** remove explicit file names from comment header
-> ** move tsc2007_iio_configure() to the end of the probe process and =
-simplify the error path again
-> ** remove unnecessary input_unregister_device()=20
-> ** improvement for compilation with CONFIG_IIO=3Dm and =
-CONFIG_TSC2007=3Dy
->=20
-> 2016-11-11 20:02:11: Changes V7:
-> * rearranged the include files (asked for by Jonathan Cameron =
-<jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
-> * forward reference struct iio_dev * instead of condition in tsc2007.h =
-(asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
-> * add some Acked-by:
->=20
-> 2016-10-27 10:44:29: Changes V6:
-> * iio patch (no changes elsewhere)
-> 	- tsc2007_iio: fix a missing return 0 for non-iio case (found by =
-kbuid test robot)
-> 	- tsc2007_core: group error return paths so that =
-tsc2007_iio_unconfigure is called at only one place
-> 	- tsc2007_iio: fix copyright (this file is 100% original work)
->=20
-> 2016-10-25 21:26:46: Changes V5:
-> * ads7846: remove an empty line (suggested by Andrew F. Davis =
-<afd-l0cyMroinI0@public.gmane.org>)
-> * ads7846: remove MODULE_ALIAS for SPI (suggested by Andrew F. Davis =
-<afd-l0cyMroinI0@public.gmane.org>)
-> * tsc2007: fix a bug from swapping patch 3/n and patch 4/n (found by =
-kbuild test robot)
-> * refactored tsc2007 into tsc2007_core and tsc2007_iio (asked for by =
-Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
->=20
-> 2016-10-17 16:00:02: Changes V4:
-> * fix a merge/squash issue resulting in a non-bisectable patch set =
-(suggested by kbuid test robot)
-> * remove some unnecessary #include (suggested by Jonathan Cameron =
-<jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
-> * make the iio extension depend on CONFIG_IIO rather than selecting it =
-(suggested by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
-> * swapped patch 3/n and patch 4/n to remove internal dependency
->=20
-> 2016-09-23 14:41:23: Changes V3:
-> * fix an issue with swapping
-> * remove hard clipping to min/max rectangle - some systems expect to =
-handle negative coordinates
-> * make use of commit ed7c9870c9bc ("Input: of_touchscreen - add =
-support for inverted / swapped axes")
->=20
-> 2015-11-13 21:36:07: Changes V2:
-> * add a patch to make drivers still recognise the old "ti,swap-xy" =
-property (suggested by Rob Herring)
->=20
-> 2015-11-06 16:14:53: V1: This patch series improves the drivers for =
-the tsc2007 and
-> ads7846/tsc2046 touchscreen controllers which are e.g. used by the =
-GTA04
-> OpenPandora and Pyra devices.
->=20
-> New common bindings have been defined by
-> commit b98abe52fa8e ("Input: add common DT binding for touchscreens"):
->=20
-> 	=
-Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
->=20
-> which also defines a helper function to parse the DT. These new =
-parameters
-> allow to specify the fuzz factors (jitter suppression), inversion of x =
-or y axis and
-> swapping of x and y to achieve inversion and rotation so that the =
-touch
-> coordinate axes match the natural orientation of the display panel.
->=20
-> Another improvement is to better use the min/max ADC values and
-> scale to the screen size as defined by the DT. This allows to coarsely
-> calibrate the touch to match the LCD to which it is glued on so that =
-the
-> touch can quite precisely be operated before any user-space =
-fine-calibration
-> can be (and needs to be) started.
->=20
-> For the adc7846 we fix an issue with the spi module table.
->=20
-> Finally we add an iio interface for the AUX and temperature ADC =
-channels of
-> the tsc2007 and also provide the touch screen raw values. This allows =
-to read
-> an optional ambient light sensor installed on the gta04 board and =
-improves
-> calibration and hardware monitoring.
->=20
->=20
-> H. Nikolaus Schaller (8):
->  drivers:input:tsc2007: add new common binding names, pre-calibration,
->    flipping and rotation
->  drivers:input:tsc2007: check for presence and power down tsc2007
->    during probe
->  DT:omap3+tsc2007: use new common touchscreen bindings
->  drivers:input:ads7846(+tsc2046): add new common binding names,
->    pre-calibration and flipping
->  dt-bindings: input: move ads7846 bindings to touchscreen subdirectory
->  drivers:input:ads7846(+tsc2046): fix spi module table
->  DT:omap3+ads7846: use new common touchscreen bindings
->  drivers:input:tsc2007: add iio interface to read external ADC input
->    and temperature
->=20
-> .../bindings/input/{ =3D> touchscreen}/ads7846.txt   |   9 +-
-> .../bindings/input/touchscreen/tsc2007.txt         |  20 +-
-> arch/arm/boot/dts/omap3-gta04.dtsi                 |  25 ++-
-> arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |   2 +-
-> arch/arm/boot/dts/omap3-pandora-common.dtsi        |  17 +-
-> .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   3 +-
-> drivers/input/touchscreen/Kconfig                  |  10 +
-> drivers/input/touchscreen/Makefile                 |   2 +
-> drivers/input/touchscreen/ads7846.c                |  71 ++++++--
-> drivers/input/touchscreen/tsc2007.h                | 116 ++++++++++++
-> .../touchscreen/{tsc2007.c =3D> tsc2007_core.c}      | 201 =
-++++++++++++---------
-> drivers/input/touchscreen/tsc2007_iio.c            | 150 =
-+++++++++++++++
-> include/linux/i2c/tsc2007.h                        |   8 +
-> 13 files changed, 520 insertions(+), 114 deletions(-)
-> rename Documentation/devicetree/bindings/input/{ =3D> =
-touchscreen}/ads7846.txt (90%)
-> create mode 100644 drivers/input/touchscreen/tsc2007.h
-> rename drivers/input/touchscreen/{tsc2007.c =3D> tsc2007_core.c} (74%)
-> create mode 100644 drivers/input/touchscreen/tsc2007_iio.c
->=20
-> --=20
-> 2.7.3
->=20
+On Sunday 15 January 2017 06:49 PM, Lukasz Majewski wrote:
+> Some devices (due to e.g. bad PCIe signal integrity) require to run
+> with forced GEN1 speed on PCIe bus.
+> 
+> This patch changes the speed explicitly on dra7 based devices when
+> proper device tree attribute is defined for the PCIe controller.
+> 
+> Signed-off-by: Lukasz Majewski <lukma@denx.de>
+
+Bjorn has already queued a patch to do the same thing
+https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/log/?h=pci/host-dra7xx
+
+Thanks
+Kishon
+
+> ---
+> 
+> Patch applies on newest origin/master
+> SHA1: f4d3935e4f4884ba80561db5549394afb8eef8f7
+> 
+> Tested at AM5728
+> 
+> ---
+>  Documentation/devicetree/bindings/pci/ti-pci.txt |  1 +
+>  drivers/pci/host/pci-dra7xx.c                    | 23 +++++++++++++++++++++++
+>  drivers/pci/host/pcie-designware.h               |  1 +
+>  3 files changed, 25 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> index 60e2516..9f97409 100644
+> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> @@ -25,6 +25,7 @@ PCIe Designware Controller
+>  
+>  Optional Property:
+>   - gpios : Should be added if a gpio line is required to drive PERST# line
+> + - to,pcie-is-gen1: Indicates that forced gen1 port operation is needed.
+>  
+>  Example:
+>  axi {
+> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
+> index 9595fad..eec5fae 100644
+> --- a/drivers/pci/host/pci-dra7xx.c
+> +++ b/drivers/pci/host/pci-dra7xx.c
+> @@ -63,6 +63,13 @@
+>  #define	LINK_UP						BIT(16)
+>  #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
+>  
+> +#define         PCIECTRL_EP_DBICS_LNK_CAP                       0x007C
+> +#define         MAX_LINK_SPEEDS_MASK				GENMASK(3, 0)
+> +#define         MAX_LINK_SPEEDS_GEN1                            BIT(0)
+> +
+> +#define         PCIECTRL_PL_WIDTH_SPEED_CTL                     0x080C
+> +#define         CFG_DIRECTED_SPEED_CHANGE                       BIT(17)
+> +
+>  struct dra7xx_pcie {
+>  	struct pcie_port	pp;
+>  	void __iomem		*base;		/* DT ti_conf */
+> @@ -270,6 +277,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+>  	struct pcie_port *pp = &dra7xx->pp;
+>  	struct device *dev = pp->dev;
+>  	struct resource *res;
+> +	u32 val;
+>  
+>  	pp->irq = platform_get_irq(pdev, 1);
+>  	if (pp->irq < 0) {
+> @@ -296,6 +304,18 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+>  	if (!pp->dbi_base)
+>  		return -ENOMEM;
+>  
+> +	if (pp->is_gen1) {
+> +		dev_info(dev, "GEN1 forced\n");
+> +
+> +		val = readl(pp->dbi_base + PCIECTRL_EP_DBICS_LNK_CAP);
+> +		set_mask_bits(&val, MAX_LINK_SPEEDS_MASK, MAX_LINK_SPEEDS_GEN1);
+> +		writel(val, pp->dbi_base + PCIECTRL_EP_DBICS_LNK_CAP);
+> +
+> +		val = readl(pp->dbi_base + PCIECTRL_PL_WIDTH_SPEED_CTL);
+> +		val &= ~CFG_DIRECTED_SPEED_CHANGE;
+> +		writel(val, pp->dbi_base + PCIECTRL_PL_WIDTH_SPEED_CTL);
+> +	}
+> +
+>  	ret = dw_pcie_host_init(pp);
+>  	if (ret) {
+>  		dev_err(dev, "failed to initialize host\n");
+> @@ -404,6 +424,9 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  		goto err_gpio;
+>  	}
+>  
+> +	if (of_property_read_bool(np, "ti,pcie-is-gen1"))
+> +		pp->is_gen1 = true;
+> +
+>  	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
+>  	reg &= ~LTSSM_EN;
+>  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
+> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+> index a567ea2..2fb0b18 100644
+> --- a/drivers/pci/host/pcie-designware.h
+> +++ b/drivers/pci/host/pcie-designware.h
+> @@ -50,6 +50,7 @@ struct pcie_port {
+>  	struct irq_domain	*irq_domain;
+>  	unsigned long		msi_data;
+>  	u8			iatu_unroll_enabled;
+> +	u8                      is_gen1;
+>  	DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
+>  };
+>  
+> 
