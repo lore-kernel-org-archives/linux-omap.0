@@ -1,38 +1,32 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 16/37] PCI: endpoint: Introduce configfs entry for
- configuring EP functions
-Date: Mon, 16 Jan 2017 07:51:10 -0800
-Message-ID: <20170116155110.GA13495@infradead.org>
-References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-17-git-send-email-kishon@ti.com>
- <20170113180602.GA30346@infradead.org> <587C61B3.3070107@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <587C61B3.3070107@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: devicetree@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, Christoph Hellwig <hch@infradead.org>, linux-samsung-soc@vger.kernel.org, Jingoo Han <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Subject: [PATCH 0/6] ARM: dts: am335x-sl50: Update to new hardware
+Date: Mon, 16 Jan 2017 17:57:30 +0100
+Message-ID: <20170116165736.17197-1-enric.balletbo@collabora.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@armlinux.org.uk>
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 16, 2017 at 11:31:23AM +0530, Kishon Vijay Abraham I wrote:
-> Actually not all devices have hardcoded headers. E.g the platform I'm using
-> doesn't have hardcoded headers and it can be configured based on the function
-> the user would like to use. If the devices are hardcoded, then using configfs
-> can be skipped altogether. In such cases, APIs like pci_epf_create() can
-> directly be used by the drivers instead of going via configfs.
+Hi Tony,
 
-That's exactly what I meant - the IDs need to be set by the driver for
-the implemented PCI device, and it's not up to the gadget core to configur
-e them, it's up to the implementation of the PCIe device which PCI it
-exposes.
+The following patches updates the device tree file for the SL50 device, there
+are few v1 boards and IMHO doesn't make sense to maintain the device tree
+for these old devices, so mostly of the updates are related to changes done in
+the next hardware revision v2 (the one that will go out).
+
+Best regards,
+
+Enric Balletbo i Serra (6):
+  ARM: dts: am335x-sl50: Remove I2C1 node.
+  ARM: dts: am335x-sl50: Enable UART1.
+  ARM: dts: am335x-sl50: Enable SPI0 interface and Flash Memory.
+  ARM: dts: am335x-sl50: Enable BQ32000 Real Time Clock.
+  ARM: dts: am335x-sl50: Enable the MCP23017 GPIO Expander.
+  ARM: dts: am335x-sl50: Enable the Ambient Light Sensor.
+
+ arch/arm/boot/dts/am335x-sl50.dts | 70 ++++++++++++++++++++++++++++++++-------
+ 1 file changed, 58 insertions(+), 12 deletions(-)
+
+-- 
+2.9.3
