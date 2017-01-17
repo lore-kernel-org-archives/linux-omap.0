@@ -1,7 +1,7 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 5/7] dmaengine: cppi41: Move some constants to glue layer
-Date: Tue, 17 Jan 2017 14:45:38 +0100
-Message-ID: <20170117134540.9988-6-abailon@baylibre.com>
+Subject: [PATCH v2 1/7] usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in dsps
+Date: Tue, 17 Jan 2017 14:45:34 +0100
+Message-ID: <20170117134540.9988-2-abailon@baylibre.com>
 References: <20170117134540.9988-1-abailon@baylibre.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170117134540.9988-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
@@ -10,106 +10,241 @@ To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public
 Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Some constants are defined and use by the driver whereas they are
-specifics to AM335x.
-Add new variables to the glue layer, initialize them with the constants,
-and use them in the driver.
+Despite the CPPI 4.1 is a generic DMA, it is tied to USB.
+On the dsps, CPPI 4.1 interrupt's registers are in USBSS (the MUSB glue).
+Currently, to enable / disable and clear interrupts, the CPPI 4.1 driver
+maps and accesses to USBSS's register, which making CPPI 4.1 driver not
+really generic.
+Move the interrupt management to dsps driver.
 
 Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- drivers/dma/cppi41.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ drivers/dma/cppi41.c         | 28 +++++------------
+ drivers/usb/musb/musb_dsps.c | 73 ++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 78 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index 5527376..3b2f57f 100644
+index d5ba43a..4999e7d 100644
 --- a/drivers/dma/cppi41.c
 +++ b/drivers/dma/cppi41.c
-@@ -68,7 +68,6 @@
- #define QMGR_MEMCTRL_IDX_SH	16
- #define QMGR_MEMCTRL_DESC_SH	8
+@@ -79,14 +79,6 @@
+ #define QMGR_QUEUE_C(n)	(0x2008 + (n) * 0x10)
+ #define QMGR_QUEUE_D(n)	(0x200c + (n) * 0x10)
  
--#define QMGR_NUM_PEND	5
- #define QMGR_PEND(x)	(0x90 + (x) * 4)
+-/* Glue layer specific */
+-/* USBSS  / USB AM335x */
+-#define USBSS_IRQ_STATUS	0x28
+-#define USBSS_IRQ_ENABLER	0x2c
+-#define USBSS_IRQ_CLEARR	0x30
+-
+-#define USBSS_IRQ_PD_COMP	(1 <<  2)
+-
+ /* Packet Descriptor */
+ #define PD2_ZERO_LENGTH		(1 << 19)
  
- #define QMGR_PENDING_SLOT_Q(x)	(x / 32)
-@@ -138,6 +137,8 @@ struct cppi41_dd {
- 	const struct chan_queues *queues_rx;
- 	const struct chan_queues *queues_tx;
- 	struct chan_queues td_queue;
-+	u16 first_completion_queue;
-+	u16 qmgr_num_pend;
- 
- 	struct list_head pending;	/* Pending queued transfers */
- 	spinlock_t lock;		/* Lock for pending list */
-@@ -146,7 +147,6 @@ struct cppi41_dd {
- 	unsigned int dma_tdfdq;
- };
- 
--#define FIST_COMPLETION_QUEUE	93
- static struct chan_queues am335x_usb_queues_tx[] = {
- 	/* USB0 ENDP 1 */
- 	[ 0] = { .submit = 32, .complete =  93},
-@@ -224,6 +224,8 @@ struct cppi_glue_infos {
- 	const struct chan_queues *queues_rx;
- 	const struct chan_queues *queues_tx;
- 	struct chan_queues td_queue;
-+	u16 first_completion_queue;
-+	u16 qmgr_num_pend;
- };
- 
- static struct cppi41_channel *to_cpp41_chan(struct dma_chan *c)
-@@ -278,19 +280,21 @@ static u32 cppi41_pop_desc(struct cppi41_dd *cdd, unsigned queue_num)
- static irqreturn_t cppi41_irq(int irq, void *data)
+@@ -288,14 +280,8 @@ static irqreturn_t cppi41_irq(int irq, void *data)
  {
  	struct cppi41_dd *cdd = data;
-+	u16 first_completion_queue = cdd->first_completion_queue;
-+	u16 qmgr_num_pend = cdd->qmgr_num_pend;
  	struct cppi41_channel *c;
+-	u32 status;
  	int i;
  
--	for (i = QMGR_PENDING_SLOT_Q(FIST_COMPLETION_QUEUE); i < QMGR_NUM_PEND;
-+	for (i = QMGR_PENDING_SLOT_Q(first_completion_queue); i < qmgr_num_pend;
+-	status = cppi_readl(cdd->usbss_mem + USBSS_IRQ_STATUS);
+-	if (!(status & USBSS_IRQ_PD_COMP))
+-		return IRQ_NONE;
+-	cppi_writel(status, cdd->usbss_mem + USBSS_IRQ_STATUS);
+-
+ 	for (i = QMGR_PENDING_SLOT_Q(FIST_COMPLETION_QUEUE); i < QMGR_NUM_PEND;
  			i++) {
  		u32 val;
- 		u32 q_num;
+@@ -599,6 +585,7 @@ static void cppi41_compute_td_desc(struct cppi41_desc *d)
  
- 		val = cppi_readl(cdd->qmgr_mem + QMGR_PEND(i));
--		if (i == QMGR_PENDING_SLOT_Q(FIST_COMPLETION_QUEUE) && val) {
-+		if (i == QMGR_PENDING_SLOT_Q(first_completion_queue) && val) {
- 			u32 mask;
- 			/* set corresponding bit for completetion Q 93 */
--			mask = 1 << QMGR_PENDING_BIT_Q(FIST_COMPLETION_QUEUE);
-+			mask = 1 << QMGR_PENDING_BIT_Q(first_completion_queue);
- 			/* not set all bits for queues less than Q 93 */
- 			mask--;
- 			/* now invert and keep only Q 93+ set */
-@@ -862,7 +866,7 @@ static int init_cppi41(struct device *dev, struct cppi41_dd *cdd)
- 		return -ENOMEM;
+ static int cppi41_tear_down_chan(struct cppi41_channel *c)
+ {
++	struct dmaengine_result abort_result;
+ 	struct cppi41_dd *cdd = c->cdd;
+ 	struct cppi41_desc *td;
+ 	u32 reg;
+@@ -682,6 +669,12 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
+ 	c->td_seen = 0;
+ 	c->td_desc_seen = 0;
+ 	cppi_writel(0, c->gcr_reg);
++
++	/* Invoke the callback to do the necessary clean-up */
++	abort_result.result = DMA_TRANS_ABORTED;
++	dma_cookie_complete(&c->txd);
++	dmaengine_desc_get_callback_invoke(&c->txd, &abort_result);
++
+ 	return 0;
+ }
  
- 	cppi_writel(cdd->scratch_phys, cdd->qmgr_mem + QMGR_LRAM0_BASE);
--	cppi_writel(QMGR_SCRATCH_SIZE, cdd->qmgr_mem + QMGR_LRAM_SIZE);
-+	cppi_writel(TOTAL_DESCS_NUM, cdd->qmgr_mem + QMGR_LRAM_SIZE);
+@@ -1044,8 +1037,6 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+ 		goto err_irq;
+ 	}
+ 
+-	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLER);
+-
+ 	ret = devm_request_irq(&pdev->dev, irq, glue_info->isr, IRQF_SHARED,
+ 			dev_name(dev), cdd);
+ 	if (ret)
+@@ -1069,7 +1060,6 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+ 	dma_async_device_unregister(&cdd->ddev);
+ err_dma_reg:
+ err_irq:
+-	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
+ 	cleanup_chans(cdd);
+ err_chans:
+ 	deinit_cppi41(dev, cdd);
+@@ -1097,7 +1087,6 @@ static int cppi41_dma_remove(struct platform_device *pdev)
+ 	of_dma_controller_free(pdev->dev.of_node);
+ 	dma_async_device_unregister(&cdd->ddev);
+ 
+-	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
+ 	devm_free_irq(&pdev->dev, cdd->irq, cdd);
+ 	cleanup_chans(cdd);
+ 	deinit_cppi41(&pdev->dev, cdd);
+@@ -1116,7 +1105,6 @@ static int __maybe_unused cppi41_suspend(struct device *dev)
+ 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+ 
+ 	cdd->dma_tdfdq = cppi_readl(cdd->ctrl_mem + DMA_TDFDQ);
+-	cppi_writel(0, cdd->usbss_mem + USBSS_IRQ_CLEARR);
+ 	disable_sched(cdd);
+ 
+ 	return 0;
+@@ -1142,8 +1130,6 @@ static int __maybe_unused cppi41_resume(struct device *dev)
+ 	cppi_writel(QMGR_SCRATCH_SIZE, cdd->qmgr_mem + QMGR_LRAM_SIZE);
  	cppi_writel(0, cdd->qmgr_mem + QMGR_LRAM1_BASE);
  
- 	ret = init_descs(dev, cdd);
-@@ -945,6 +949,8 @@ static const struct cppi_glue_infos am335x_usb_infos = {
- 	.queues_rx = am335x_usb_queues_rx,
- 	.queues_tx = am335x_usb_queues_tx,
- 	.td_queue = { .submit = 31, .complete = 0 },
-+	.first_completion_queue = 93,
-+	.qmgr_num_pend = 5,
+-	cppi_writel(USBSS_IRQ_PD_COMP, cdd->usbss_mem + USBSS_IRQ_ENABLER);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 9f125e1..2a20eef 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -121,6 +121,7 @@ struct dsps_glue {
+ 	struct timer_list timer;	/* otg_workaround timer */
+ 	unsigned long last_timer;    /* last timer data for each instance */
+ 	bool sw_babble_enabled;
++	void __iomem *usbss_base;
+ 
+ 	struct dsps_context context;
+ 	struct debugfs_regset32 regset;
+@@ -145,6 +146,13 @@ static const struct debugfs_reg32 dsps_musb_regs[] = {
+ 	{ "mode",		0xe8 },
  };
  
- static const struct of_device_id cppi41_dma_ids[] = {
-@@ -1021,6 +1027,8 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 	cdd->queues_rx = glue_info->queues_rx;
- 	cdd->queues_tx = glue_info->queues_tx;
- 	cdd->td_queue = glue_info->td_queue;
-+	cdd->qmgr_num_pend = glue_info->qmgr_num_pend;
-+	cdd->first_completion_queue = glue_info->first_completion_queue;
++/* USBSS  / USB AM335x */
++#define USBSS_IRQ_STATUS	0x28
++#define USBSS_IRQ_ENABLER	0x2c
++#define USBSS_IRQ_CLEARR	0x30
++
++#define USBSS_IRQ_PD_COMP	(1 <<  2)
++
+ /**
+  * dsps_musb_enable - enable interrupts
+  */
+@@ -619,14 +627,68 @@ static void dsps_read_fifo32(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+ 	}
+ }
  
- 	ret = init_cppi41(dev, cdd);
- 	if (ret)
++static void dsps_dma_controller_callback(struct musb *musb);
++
++static struct dma_controller *
++dsps_dma_controller_create(struct musb *musb, void __iomem *base)
++{
++	struct dma_controller *controller;
++	struct dsps_glue *glue = dev_get_drvdata(musb->controller->parent);
++	void __iomem *usbss_base = glue->usbss_base;
++
++	controller = cppi41_dma_controller_create(musb, base);
++	if (!IS_ERR_OR_NULL(controller)) {
++		musb_writel(usbss_base, USBSS_IRQ_ENABLER, USBSS_IRQ_PD_COMP);
++		cppi41_register_dma_callback(controller,
++					     dsps_dma_controller_callback);
++	}
++
++	return controller;
++}
++
++static void dsps_dma_controller_destroy(struct dma_controller *c)
++{
++	struct musb *musb = cppi41_dma_controller_to_musb(c);
++	struct dsps_glue *glue = dev_get_drvdata(musb->controller->parent);
++	void __iomem *usbss_base = glue->usbss_base;
++
++	musb_writel(usbss_base, USBSS_IRQ_CLEARR, USBSS_IRQ_PD_COMP);
++	cppi41_dma_controller_destroy(c);
++}
++
++static void dsps_dma_controller_suspend(struct dsps_glue *glue)
++{
++	void __iomem *usbss_base = glue->usbss_base;
++
++	musb_writel(usbss_base, USBSS_IRQ_CLEARR, USBSS_IRQ_PD_COMP);
++}
++
++static void dsps_dma_controller_resume(struct dsps_glue *glue)
++{
++	void __iomem *usbss_base = glue->usbss_base;
++
++	musb_writel(usbss_base, USBSS_IRQ_ENABLER, USBSS_IRQ_PD_COMP);
++}
++
++static void dsps_dma_controller_callback(struct musb *musb)
++{
++	struct dsps_glue *glue = dev_get_drvdata(musb->controller->parent);
++	void __iomem *usbss_base = glue->usbss_base;
++	u32 status;
++
++	status = musb_readl(usbss_base, USBSS_IRQ_STATUS);
++	if (status & USBSS_IRQ_PD_COMP)
++		musb_writel(usbss_base, USBSS_IRQ_STATUS, USBSS_IRQ_PD_COMP);
++}
++
+ static struct musb_platform_ops dsps_ops = {
+ 	.quirks		= MUSB_DMA_CPPI41 | MUSB_INDEXED_EP,
+ 	.init		= dsps_musb_init,
+ 	.exit		= dsps_musb_exit,
+ 
+ #ifdef CONFIG_USB_TI_CPPI41_DMA
+-	.dma_init	= cppi41_dma_controller_create,
+-	.dma_exit	= cppi41_dma_controller_destroy,
++	.dma_init	= dsps_dma_controller_create,
++	.dma_exit	= dsps_dma_controller_destroy,
+ #endif
+ 	.enable		= dsps_musb_enable,
+ 	.disable	= dsps_musb_disable,
+@@ -792,6 +854,9 @@ static int dsps_probe(struct platform_device *pdev)
+ 
+ 	glue->dev = &pdev->dev;
+ 	glue->wrp = wrp;
++	glue->usbss_base = of_iomap(pdev->dev.parent->of_node, 0);
++	if (!glue->usbss_base)
++		return -ENXIO;
+ 
+ 	platform_set_drvdata(pdev, glue);
+ 	pm_runtime_enable(&pdev->dev);
+@@ -880,6 +945,8 @@ static int dsps_suspend(struct device *dev)
+ 	glue->context.tx_mode = musb_readl(mbase, wrp->tx_mode);
+ 	glue->context.rx_mode = musb_readl(mbase, wrp->rx_mode);
+ 
++	dsps_dma_controller_suspend(glue);
++
+ 	return 0;
+ }
+ 
+@@ -893,6 +960,8 @@ static int dsps_resume(struct device *dev)
+ 	if (!musb)
+ 		return 0;
+ 
++	dsps_dma_controller_resume(glue);
++
+ 	mbase = musb->ctrl_base;
+ 	musb_writel(mbase, wrp->control, glue->context.control);
+ 	musb_writel(mbase, wrp->epintr_set, glue->context.epintr);
 -- 
 2.10.2
 
