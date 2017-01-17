@@ -1,29 +1,28 @@
 From: Joao Pinto <Joao.Pinto@synopsys.com>
 Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
-Date: Tue, 17 Jan 2017 10:19:53 +0000
-Message-ID: <24cff7e5-42d6-66e2-6f10-a6ea4ceb8899@synopsys.com>
+Date: Tue, 17 Jan 2017 10:43:17 +0000
+Message-ID: <4b18d08a-c2cc-3c32-35ed-8f4a759ef235@synopsys.com>
 References: <1484486354-4585-1-git-send-email-lukma@denx.de>
  <587C6A40.8070608@ti.com> <20170116074927.086418f4@jawa>
  <587C8088.80905@ti.com> <20170116103136.21c899ac@jawa>
  <587C9CE6.8040001@ti.com> <76d18446-78c9-87f2-22ad-f7ea38771285@synopsys.com>
- <587DAD37.5030201@ti.com>
+ <20170116224437.67b5a0c5@jawa>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <587DAD37.5030201@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Lukasz Majewski <lukma@denx.de>, "jingoohan1@gmail.com" <jingoohan1@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20170116224437.67b5a0c5@jawa>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lukasz Majewski <lukma@denx.de>, Joao Pinto <Joao.Pinto@synopsys.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, "jingoohan1@gmail.com" <jingoohan1@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
-Hi,
+Hi Lukasz,
 
-Às 5:35 AM de 1/17/2017, Kishon Vijay Abraham I escreveu:
+Às 9:44 PM de 1/16/2017, Lukasz Majewski escreveu:
 > Hi Joao,
 > 
-> On Monday 16 January 2017 10:31 PM, Joao Pinto wrote:
 >>
 >> Hi,
 >>
@@ -46,8 +45,9 @@ Hi,
 >>>>>>>> Some devices (due to e.g. bad PCIe signal integrity) require to
 >>>>>>>> run with forced GEN1 speed on PCIe bus.
 >>>>>>>>
->>>>>>>> This patch changes the speed explicitly on dra7 based devices when
->>>>>>>> proper device tree attribute is defined for the PCIe controller.
+>>>>>>>> This patch changes the speed explicitly on dra7 based devices
+>>>>>>>> when proper device tree attribute is defined for the PCIe
+>>>>>>>> controller.
 >>>>>>>>
 >>>>>>>> Signed-off-by: Lukasz Majewski <lukma@denx.de>
 >>>>>>>
@@ -65,11 +65,12 @@ Hi,
 >>>>> initialized in GEN1). Resetting the bit (like what you have done
 >>>>> here) prevents speed change.
 >>>>
->>>> This is strange, but e2e advised me to do things as I did in the patch
->>>> to _force_ GEN1 operation on PCIe2 port [1] (AM5728)
+>>>> This is strange, but e2e advised me to do things as I did in the
+>>>> patch to _force_ GEN1 operation on PCIe2 port [1] (AM5728)
 >>>>
 >>>> Link:
->>>> [1] https://urldefense.proofpoint.com/v2/url?u=https-3A__e2e.ti.com_support_arm_sitara-5Farm_f_791_t_566421&d=DwIDaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=zD82T5n4WcL7Ga-NSY2NI7KE75xQ99hN-mW2yX46wQk&s=uXLwglyRYqKpwp1JSxkOWmKpQ2wjfhgofpm8DCfquNw&e= 
+>>>> [1]
+>>>> https://urldefense.proofpoint.com/v2/url?u=https-3A__e2e.ti.com_support_arm_sitara-5Farm_f_791_t_566421&d=DwIDaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=zD82T5n4WcL7Ga-NSY2NI7KE75xQ99hN-mW2yX46wQk&s=uXLwglyRYqKpwp1JSxkOWmKpQ2wjfhgofpm8DCfquNw&e= 
 >>>>
 >>>> Both patches modify 0x5180 007C register to set GEN1 capability
 >>>> (PCI_EXP_LNKCAP_SLS_2_5GB)
@@ -85,50 +86,81 @@ Hi,
 >>>> It is set to PCI_EXP_LNKCAP_SLS_2_5GB = 0x1, which is the same as
 >>>> default /reset value.
 >>>
->>> The default value is 0x2 (or else none of the cards would have enumerated in GEN2)
+>>> The default value is 0x2 (or else none of the cards would have
+>>> enumerated in GEN2)
 >>>>
 >>>>
->>>> Could you clarify which way to _force_ PCIe GEN1 operation is correct?
->>>> Mine shows differences in lspci output (as posted in [1]).
+>>>> Could you clarify which way to _force_ PCIe GEN1 operation is
+>>>> correct? Mine shows differences in lspci output (as posted in [1]).
 >>>
 >>> You'll see the difference even with the patch in Bjorn's tree ;-)
 >>>
->>> I think these are 2 different approaches to keep the link at GEN1. Joao or
->>> Jingoo, do you have any suggestion here?
+>>> I think these are 2 different approaches to keep the link at GEN1.
+>>> Joao or Jingoo, do you have any suggestion here?
 >>
->> I studied the Databook, and both approaches seem to be right, dependently of the
->> Core configuration and setup.
+>> I studied the Databook,
+> 
+> Could you reveal which databook do you have in mind? Is that the TRM for
+> AM5728?
+
+I checked the Designware PCIe Databook, since it is based on this IP.
+
+> 
+>> and both approaches seem to be right,
+>> dependently of the Core configuration and setup.
 >>
 >> The standard manual speed change sequence is:
 >> a) Write to PCIE_CAP_TARGET_LINK_SPEED (indicating desired speed)
+> 
+> Do you mean TRGT_LINK_SPEED @ 0x5180 00A0 ?
+
+Correct.
+
+> 
 >> b) Clear "Directed Speed Change"
+> 
+> CFG_DIRECTED_SPEED_CHANGE @ 0x5180 080C 
+
+Correct.
+
+> 
 >> c) Set "Directed Speed Change"
 >>
->> If "Directed Speed Change" is set (DEFAULT_GEN2_SPEED_CHANGE is the default
->> value), it will execute LTSSM to initiate speed change to Gen2 or Gen3, after
->> link is started in Gen1, and then the bit is automatically cleared.
+>> If "Directed Speed Change" is set (DEFAULT_GEN2_SPEED_CHANGE is the
+>> default value), it will execute LTSSM to initiate speed change to
+>> Gen2 or Gen3, after link is started in Gen1, and then the bit is
+>> automatically cleared.
+> 
+> Ok, so with default settings (after reset) we do have Gen1 speed link
+> and when we enable LTSSM (with LTSSM_EN bit setting) we negotiate to
+> Gen2/Gen3.
+
+Yes, that's the expected behavior. I submited this direct question to R&D and
+will have your doubt answered soon.
+
+> 
 >>
->> Lukasz is reseting this bit, in order to avoid the LTSSM to be executed, which
->> is correct. There is another way to prevent this automatic speed change, which
->> is to set GEN1 speed before link up which might be difficult in some setups, so
->> Kishon's also right.
+>> Lukasz is reseting this bit, in order to avoid the LTSSM to be
+>> executed, which is correct. 
 > 
-> Just for my understanding, why do you think this will be difficult in some setups?
-
-It depends on the way some PCI Cores are configured.
-
+> So with CFG_DIRECTED_SPEED_CHANGE = 0, when I start LTSSM (with
+> LTSSM_EN) the state machine returns immediately and leaves link in the
+> Gen1?
+> 
+> The pci-dra7 driver always sets LTSSM_EN bit to start link negotiation.
+> 
+>> There is another way to prevent this
+>> automatic speed change, which is to set GEN1 speed before link up
+>> which might be difficult in some setups, so Kishon's also right.
 >>
->> In my opinion Lukasz approach would be the one that might be more universal and
->> more "secure".
+>> In my opinion Lukasz approach would be the one that might be more
+>> universal and more "secure".
 > 
-> IMHO setting link control in the standard PCIe header space should be more
-> universal. I'm not sure about the secure part though.
-
-When I said secure, I misleaded you, sorry. I meant more robust.
-
+> The robustness is the key here since there are some devices, which on
+> particular HW must only work with Gen1 speed. When we start LTSSM state
+> machine and hence start negotiation to Gen2, not always the result of
+> LTSSM is correct and device is properly recognized.
 > 
-> Thanks
-> Kishon
 >>
 >> Joao
 >>
@@ -136,21 +168,33 @@ When I said secure, I misleaded you, sorry. I meant more robust.
 >>>
 >>>>
 >>>>>
->>>>> IMO the better way is to set the LNKCTL2 to GEN1 instead of hacking
->>>>> the IP register.
+>>>>> IMO the better way is to set the LNKCTL2 to GEN1 instead of
+>>>>> hacking the IP register.
 >>>>
 >>>> From the original patch description:
 >>>>
->>>> "Add support to force Root Complex to work in GEN1 mode if so desired,
->>>> but don't force GEN1 mode on any board just yet."
+>>>> "Add support to force Root Complex to work in GEN1 mode if so
+>>>> desired, but don't force GEN1 mode on any board just yet."
 >>>>
->>>> Are there any (floating around) patches allowing forcing GEN1 operation
->>>> on any board (I would like to reuse/port them to my current solution)?
+>>>> Are there any (floating around) patches allowing forcing GEN1
+>>>> operation on any board (I would like to reuse/port them to my
+>>>> current solution)?
 >>>
->>> For setting to GEN1 mode, "max-link-speed" should be set to 1 in dt with the
->>> patch in Bjorn's tree.
+>>> For setting to GEN1 mode, "max-link-speed" should be set to 1 in dt
+>>> with the patch in Bjorn's tree.
 >>>
 >>> Thanks
 >>> Kishon
 >>>
 >>
+> 
+> Best regards,
+> 
+> Lukasz Majewski
+> 
+> --
+> 
+> DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
+> HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+> Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
+> 
