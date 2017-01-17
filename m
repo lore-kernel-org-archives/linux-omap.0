@@ -1,7 +1,7 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 4/7] dmaengine: cppi41: rename platform variables
-Date: Tue, 17 Jan 2017 14:45:37 +0100
-Message-ID: <20170117134540.9988-5-abailon@baylibre.com>
+Subject: [PATCH v2 7/7] dmaengine: cppi41: Fix a race between PM runtime and channel abort
+Date: Tue, 17 Jan 2017 14:45:40 +0100
+Message-ID: <20170117134540.9988-8-abailon@baylibre.com>
 References: <20170117134540.9988-1-abailon@baylibre.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170117134540.9988-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
@@ -10,71 +10,59 @@ To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public
 Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently, only the AM335x is supported by the driver.
-Though the driver has a glue layer to support different platforms,
-some platform variable names are not prefixed with the platform name.
-To facilitate the addition of a new platform,
-rename some variables owned by the AM335x glue.
+cppi41_dma_issue_pending() may be called while the device is runtime
+suspended. In that case, the descriptor will be pushed to the pending
+list and then be queued to hardware queue.
+But if cppi41_stop_chan() is called before the device got time to
+resume, then the descriptor will remain in the pending list and be
+queued to hardware queue after the teardown.
+During the channel stop, check if there is a pending descriptor
+and if so, remove it.
 
 Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- drivers/dma/cppi41.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/dma/cppi41.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index ecccf7b..5527376 100644
+index 303ccee..0bc4f1a 100644
 --- a/drivers/dma/cppi41.c
 +++ b/drivers/dma/cppi41.c
-@@ -147,7 +147,7 @@ struct cppi41_dd {
- };
+@@ -687,10 +687,17 @@ static int cppi41_stop_chan(struct dma_chan *chan)
+ {
+ 	struct cppi41_channel *c = to_cpp41_chan(chan);
+ 	struct cppi41_dd *cdd = c->cdd;
++	unsigned long flags;
+ 	u32 desc_num;
+ 	u32 desc_phys;
+ 	int ret;
  
- #define FIST_COMPLETION_QUEUE	93
--static struct chan_queues usb_queues_tx[] = {
-+static struct chan_queues am335x_usb_queues_tx[] = {
- 	/* USB0 ENDP 1 */
- 	[ 0] = { .submit = 32, .complete =  93},
- 	[ 1] = { .submit = 34, .complete =  94},
-@@ -183,7 +183,7 @@ static struct chan_queues usb_queues_tx[] = {
- 	[29] = { .submit = 90, .complete = 139},
- };
++	/* Remove pending descriptor that haven't been pushed to queue */
++	spin_lock_irqsave(&cdd->lock, flags);
++	if (!list_empty(&c->node))
++		list_del_init(&c->node);
++	spin_unlock_irqrestore(&cdd->lock, flags);
++
+ 	desc_phys = lower_32_bits(c->desc_phys);
+ 	desc_num = (desc_phys - cdd->descs_phys) / sizeof(struct cppi41_desc);
+ 	if (!cdd->chan_busy[desc_num])
+@@ -748,6 +755,7 @@ static int cppi41_add_chans(struct device *dev, struct cppi41_dd *cdd)
+ 		cchan->desc_phys = cdd->descs_phys;
+ 		cchan->desc_phys += i * sizeof(struct cppi41_desc);
+ 		cchan->chan.device = &cdd->ddev;
++		INIT_LIST_HEAD(&cchan->node);
+ 		list_add_tail(&cchan->chan.device_node, &cdd->ddev.channels);
+ 	}
+ 	cdd->first_td_desc = n_chans;
+@@ -1163,7 +1171,7 @@ static int __maybe_unused cppi41_runtime_resume(struct device *dev)
+ 	spin_lock_irqsave(&cdd->lock, flags);
+ 	list_for_each_entry_safe(c, _c, &cdd->pending, node) {
+ 		push_desc_queue(c);
+-		list_del(&c->node);
++		list_del_init(&c->node);
+ 	}
+ 	spin_unlock_irqrestore(&cdd->lock, flags);
  
--static const struct chan_queues usb_queues_rx[] = {
-+static const struct chan_queues am335x_usb_queues_rx[] = {
- 	/* USB0 ENDP 1 */
- 	[ 0] = { .submit =  1, .complete = 109},
- 	[ 1] = { .submit =  2, .complete = 110},
-@@ -910,8 +910,9 @@ static bool cpp41_dma_filter_fn(struct dma_chan *chan, void *param)
- 	else
- 		queues = cdd->queues_rx;
- 
--	BUILD_BUG_ON(ARRAY_SIZE(usb_queues_rx) != ARRAY_SIZE(usb_queues_tx));
--	if (WARN_ON(cchan->port_num > ARRAY_SIZE(usb_queues_rx)))
-+	BUILD_BUG_ON(ARRAY_SIZE(am335x_usb_queues_rx) !=
-+		     ARRAY_SIZE(am335x_usb_queues_tx));
-+	if (WARN_ON(cchan->port_num > ARRAY_SIZE(am335x_usb_queues_rx)))
- 		return false;
- 
- 	cchan->q_num = queues[cchan->port_num].submit;
-@@ -939,15 +940,15 @@ static struct dma_chan *cppi41_dma_xlate(struct of_phandle_args *dma_spec,
- 			&dma_spec->args[0]);
- }
- 
--static const struct cppi_glue_infos usb_infos = {
-+static const struct cppi_glue_infos am335x_usb_infos = {
- 	.isr = cppi41_irq,
--	.queues_rx = usb_queues_rx,
--	.queues_tx = usb_queues_tx,
-+	.queues_rx = am335x_usb_queues_rx,
-+	.queues_tx = am335x_usb_queues_tx,
- 	.td_queue = { .submit = 31, .complete = 0 },
- };
- 
- static const struct of_device_id cppi41_dma_ids[] = {
--	{ .compatible = "ti,am3359-cppi41", .data = &usb_infos},
-+	{ .compatible = "ti,am3359-cppi41", .data = &am335x_usb_infos},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, cppi41_dma_ids);
 -- 
 2.10.2
 
