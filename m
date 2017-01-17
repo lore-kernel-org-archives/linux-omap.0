@@ -1,53 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] i2c: busses: constify dev_pm_ops structures
-Date: Tue, 17 Jan 2017 15:23:49 -0800
-Message-ID: <20170117232349.GY7403@atomide.com>
-References: <1484474381-1064-1-git-send-email-bhumirks@gmail.com>
+Subject: Re: [PATCH 1/2] ARM: dts: dra7-evm: increase QSPI SPL partition size
+Date: Tue, 17 Jan 2017 15:27:44 -0800
+Message-ID: <20170117232743.GA7403@atomide.com>
+References: <1484311234-21978-1-git-send-email-ravibabu@ti.com>
+ <1484311234-21978-2-git-send-email-ravibabu@ti.com>
+ <20170113181239.GC2630@atomide.com>
+ <6C6B28D4DC342643927BEAFCE8707BF6C0A8C367@DBDE04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1484474381-1064-1-git-send-email-bhumirks@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, wsa@the-dreams.de, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <6C6B28D4DC342643927BEAFCE8707BF6C0A8C367@DBDE04.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "B, Ravi" <ravibabu@ti.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "nsekhar@list.ti.com" <nsekhar@list.ti.com>, "Nori, Sekhar" <nsekhar@ti.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Bhumika Goyal <bhumirks@gmail.com> [170115 02:00]:
-> Declare dev_pm_ops structures as const as they are only stored in the pm
-> field of a device_driver structure. This field is of type const, so
-> dev_pm_ops structures having similar properties can be declared const
-> too.
+* B, Ravi <ravibabu@ti.com> [170117 00:15]:
+> Hi Tony
 > 
-> File size before: drivers/i2c/busses/i2c-omap.o
->    text	   data	    bss	    dec	    hex	filename
->    6814	    584	      0	   7398	   1ce6	drivers/i2c/busses/i2c-omap.o
+> >* Ravi Babu <ravibabu@ti.com> [170113 04:41]:
+> >> The SPL size for DRA74x platform has increased and is now more than 
+> >> 64KB. Increase QSPI SPL partition size to 256KB for DRA74x EVM.
+> >> 
+> >> QSPI partition numbering changes because of this.
 > 
-> File size after: drivers/i2c/busses/i2c-omap.o
->    text	   data	    bss	    dec	    hex	filename
->    7006	    392	      0	   7398	   1ce6	drivers/i2c/busses/i2c-omap.o
+> >And this will break the existing partitions potentially..
+> >See what was discussed on the list few days ago in thread "[PATCH 1/6] ARM: dts: am335x-phycore-som: Update NAND partition table".
 > 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> >It's best to have these left empty or as they originally were and let u-boot configure the partitions.
+> 
+> Agree with you. For dra7xx platform the SPL size has been increased to 256KB and hence the existing QSPI SPL partition in kernel (64K size) will break when latest mainline u-boot is used. 
+> Here only SPL partition has been changed and other partition & size is NOT changed and kept intact. I feel it will not break the existing partitions for dra7xx platform.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+What about the renumbering of partitions in your patch?
 
-> ---
->  drivers/i2c/busses/i2c-omap.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index c7da0c4..1ebb5e9 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1504,7 +1504,7 @@ static int omap_i2c_runtime_resume(struct device *dev)
->  	return 0;
->  }
->  
-> -static struct dev_pm_ops omap_i2c_pm_ops = {
-> +static const struct dev_pm_ops omap_i2c_pm_ops = {
->  	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
->  			   omap_i2c_runtime_resume, NULL)
->  };
-> -- 
-> 1.9.1
-> 
+Probably just best to make the partition information empty in the
+kernel as discussed.
+
+Regards,
+
+Tony
