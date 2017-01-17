@@ -1,60 +1,52 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 4/5] ARM: dts: am57xx: Add stdout-path property
-Date: Wed, 18 Jan 2017 09:33:25 +0530
-Message-ID: <20170118040326.29259-5-lokeshvutla@ti.com>
-References: <20170118040326.29259-1-lokeshvutla@ti.com>
+From: Matt Ranostay <matt@ranostay.consulting>
+Subject: Re: [PATCH v7] ASoC: omap-mcbsp: Add PM QoS support
+ for McBSP to prevent glitches
+Date: Tue, 17 Jan 2017 15:04:22 -0800
+Message-ID: <CAJ_EiSTCo7ZYTfwFomXfyauEP65REp3Vd7jCCGf-OsT8N0rU7A@mail.gmail.com>
+References: <20170113035432.6723-1-matt@ranostay.consulting>
+ <20170113152049.GD5696@atomide.com>
+ <CAJ_EiSR-R=5qUKOfHWTTrjj+ZD6Q6BBf1yPj3atf84Q6K03NZg@mail.gmail.com>
+ <20170116171743.GB7403@atomide.com>
+ <CAJ_EiSTStr1TfGE2zVspFF0DkkXLOCDmiqD_jZkzue-GfsTm+Q@mail.gmail.com>
+ <d35dbc1b-da5b-a482-3688-f7b20278d5fb@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170118040326.29259-1-lokeshvutla-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <d35dbc1b-da5b-a482-3688-f7b20278d5fb@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add stdout-path property in /chosen node so that earlycon can be
-used by just adding earlycon in bootargs.
-
-Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 4 ++++
- arch/arm/boot/dts/am57xx-idk-common.dtsi        | 4 ++++
- 2 files changed, 8 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-index 78bee26361f1..3a95db7da71f 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-@@ -22,6 +22,10 @@
- 		display0 = &hdmi0;
- 	};
- 
-+	chosen {
-+		stdout-path = &uart3;
-+	};
-+
- 	memory@0 {
- 		device_type = "memory";
- 		reg = <0x0 0x80000000 0x0 0x80000000>;
-diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-index 814a720d5c3d..0d341c545b01 100644
---- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-@@ -14,6 +14,10 @@
- 		rtc1 = &rtc;
- 	};
- 
-+	chosen {
-+		stdout-path = &uart3;
-+	};
-+
- 	vmain: fixedregulator-vmain {
- 		compatible = "regulator-fixed";
- 		regulator-name = "VMAIN";
--- 
-2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlLCBKYW4gMTcsIDIwMTcgYXQgNDozNCBBTSwgUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVq
+ZmFsdXNpQHRpLmNvbT4gd3JvdGU6Cj4gT24gMDEvMTYvMjAxNyAwOTozMCBQTSwgTWF0dCBSYW5v
+c3RheSB3cm90ZToKPj4gWWVwIEkgd2FzIHRlc3Rpbmcgd2l0aCB0aGF0IGVuYWJsZWQuIE5vdCBz
+dXJlIHdoeSBJJ20gbm90IGdldHRpbmcgaXQKPj4gYWxsLi4uIG1heWJlIGRpZmZlcmVudCBzaWRl
+IGVmZmVjdHMgbGlrZSBzYW1wbGUgcmF0ZSBvZiB0aGUgYXVkaW8KPj4gYmVpbmcgcGxheWVkPwo+
+Pgo+PiBQZXRlciwgaXMgdGhlcmUgY2hhbmNlIHRoYXQgdGhlcmUgaXMgcmFjZSBjb25kaXRpb24g
+aXMgcG9zc2libGUKPj4gYmV0d2VlbiBwbV9xb3NfcmVtb3ZlX3JlcXVlc3QgYW5kIG9tYXBfbWNi
+c3BfZGFpX3NodXRkb3duPwo+Cj4gTm90IHdpdGggbXkga25vd2xlZGdlLgo+IEhvd2V2ZXIgb25l
+IHRoaW5nIG1pZ2h0IGhhcHBlbiB3aGljaCBpcyBub3QgaGFuZGxlZDoKPiBhcHBsaWNhdGlvbiBv
+cGVucyB1cCB0aGUgYXVkaW8gY2FyZCwgZG9lcyBzb21lIGh3X3BhcmFtIHNldHVwLCB0aGVuIGl0
+Cj4gZGVjaWRlcyB0byBjbG9zZSB0aGUgY2FyZC4gSW4gdGhpcyBjYXNlIHRoZSBwbV9xb3MgaXMg
+bm90IHBsYWNlZCwgYnV0IGluCj4gZGFpX3NodXRkb3duIHdlIHRyeSB0byByZW1vdmUgaXQgLT4g
+V0FSTigpLgo+Cj4gSSB0aGluayB3ZSBuZWVkIHRvIGNoZWNrIGVpdGhlciBpZiB0aGUgcG1fcW9z
+IGlzIGFjdGl2ZSBhbmQgb25seSB0aGVuCj4gYm90aGVyIHdpdGggdGhlIHJlbW92YWwvdXBkYXRl
+ZCBvciB3ZSBjYW4gY2hlY2sgaWYgdGhlCj4gbWNic3AtPmxhdGVuY3lbc3RyZWFtMV0gaXMgbm90
+IDAsIHdoaWNoIHNob3VsZCBiZSB0aGUgc2FtZSBhcyBjaGVja2luZwo+IGZvciB0aGUgcG1fcW9z
+IGFjdGl2ZQoKT2sgbWFrZXMgc2Vuc2UuIFdlaXJkIEknbSBub3Qgc2VlaW5nIGl0IGJ1dCBJIHdh
+bnRlZCB0byBiZSBzdXJlIGFkZGluZwpjaGVja3Mgd2Fzbid0IGp1c3QgaGlkaW5nIGEgaXNzdWUu
+CldpbGwgc3VibWl0IHY4Li4uICBhbmQgaG9wZWZ1bGx5IHRoYXQgaXMgdGhlIGZpbmFsIG9uZSEg
+KmZpbmdlcnMgY3Jvc3NlZCoKCj4KPiAtLQo+IFDDqXRlcgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRl
+dmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
