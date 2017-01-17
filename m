@@ -1,70 +1,50 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
-Date: Tue, 17 Jan 2017 10:48:46 -0600
-Message-ID: <20170117164846.GG31716@uda0271908>
-References: <c80b51a2-1acd-914c-17b8-32754ea9ce3e@ti.com>
- <c58cebdf-5752-098a-8b3e-de99f6af14af@ti.com>
- <c1bbb731-940e-6d04-f127-222050d831b8@ti.com>
- <20170113215936.GF2630@atomide.com>
- <20170116233329.GF7403@atomide.com>
- <20170116235428.GG7403@atomide.com>
- <20170117125919.GA31716@uda0271908>
- <20170117161138.GJ7403@atomide.com>
- <20170117162152.GE31716@uda0271908>
- <20170117163103.GO7403@atomide.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v2 0/7] dmaengine: cppi41: Make CPPI 4.1 driver more
+ generic
+Date: Tue, 17 Jan 2017 19:51:22 +0300
+Message-ID: <94296cdb-4816-f58a-5e2b-d5bea4c67b68@cogentembedded.com>
+References: <20170117134540.9988-1-abailon@baylibre.com>
+ <20170117155545.GI7403@atomide.com>
+ <28b57293-4395-4281-0c64-19f299e6eaf6@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170117163103.GO7403-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <28b57293-4395-4281-0c64-19f299e6eaf6-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 17, 2017 at 08:31:03AM -0800, Tony Lindgren wrote:
-> * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170117 08:22]:
-> > On Tue, Jan 17, 2017 at 08:11:39AM -0800, Tony Lindgren wrote:
-> > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170117 05:00]:
-> > > > On Mon, Jan 16, 2017 at 03:54:29PM -0800, Tony Lindgren wrote:
-> > > > > Anyways, for the -rc series oops, we can just leave out the WARN_ON
-> > > > > parts for now until drivers/usb/musb/musb_cppi41.c is fixed too.
-> > > > 
-> > > > Giving that cppi is a submodule inside the usb subsysytem and it does't
-> > > > have separate power rail or clock, what is the benefit to adding runtime
-> > > > PM in the cppi driver?
-> > > 
-> > > Good question. We need at least minimal support to enable things for
-> > > probe and then idle cppi41 properly if only cppi41.ko is loaded with no
-> > > USB modules.
-> > > 
-> > > But yeah now that musb does runtime PM based on the cable detection, we
-> > > pretty much guarantee that cppi41 is always enabled when USB is in use.
-> > > 
-> > > And if there are no other devices using cppi41 dma on davinci, we can
-> > > simplify the PM runtime a bit for cppi41.
-> > 
-> > This might be a good idea. I didn't have much time to play with this
-> > cppi41 runtime PM, but it seems I am having more issues than you and
-> > others seeing.
-> 
-> What kind of additional issues are you seeing not described in the $subject
-> patch?
+On 01/17/2017 07:05 PM, Sergei Shtylyov wrote:
 
-I didn't take a note and don't remember if those are in the $subject
-patch. But
+>>> Most of the patch of this series were part of
+>>> "[PATCH 00/11] dmaengine: cppi41: Add dma support to da8xx"
+>>>
+>>> This series intend to make the CPPI 4.1 more generic in order to
+>>> add a new platform (the DA8xx).
+>>> To achieve that, all the IRQ code present in CPPI 4.1 driver has been moved
+>>> to MUSB DSPS driver.
+>>> Other changes mainly update the glue layer and platform code to make the
+>>> whole driver more generic.
+>>
+>> So does da8xx use CPPI 4.1 DMA for other devices also in addition to
+>> musb?
+>
+>    No. DA8xx CPPI 4.1 is implemented as a part of the MUSB peripheral.
+> But there were a SoC (support for which never got merged upstream) where CPPI
+> 4.1 DMA is not limited to USB.
 
-- enumeration begining with a reset that the device doesn't accept
-  address X, error code -71; or
+    FWIW, the SoC was called TI Puma5, the support for it was filed by TI into 
+arch/arm/mach-avalanche/...
 
-- console fooding with cppi error code -115 after thumb drive enumeration.
+>> Regards,
+>>
+>> Tony
 
-Again, I only tried for a few minutes and didn't take a note, since I
-don't have time to look at this ATM.
+MBR, Sergei
 
-Regards,
--Bin.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
