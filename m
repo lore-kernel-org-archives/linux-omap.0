@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/5] ARM: dts: am33xx: Add stdout-path property
-Date: Tue, 17 Jan 2017 09:33:33 +0530
-Message-ID: <20170117040336.21700-3-lokeshvutla@ti.com>
+Subject: [PATCH 5/5] ARM: dts: dra7xx: Add stdout-path property
+Date: Tue, 17 Jan 2017 09:33:36 +0530
+Message-ID: <20170117040336.21700-6-lokeshvutla@ti.com>
 References: <20170117040336.21700-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -15,58 +15,43 @@ List-Id: linux-omap@vger.kernel.org
 Add stdout-path property in /chosen node so that earlycon can be
 used by just adding earlycon in bootargs.
 
+Tested-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am335x-evm.dts   | 4 ++++
- arch/arm/boot/dts/am335x-evmsk.dts | 4 ++++
- arch/arm/boot/dts/am335x-icev2.dts | 4 ++++
- 3 files changed, 12 insertions(+)
+ arch/arm/boot/dts/dra7-evm.dts          | 4 ++++
+ arch/arm/boot/dts/dra72-evm-common.dtsi | 4 ++++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index c2186ec2834b..1c37a7c1ea17 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -25,6 +25,10 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
+diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+index 132f2be10889..b3923c049edb 100644
+--- a/arch/arm/boot/dts/dra7-evm.dts
++++ b/arch/arm/boot/dts/dra7-evm.dts
+@@ -21,6 +21,10 @@
+ 		reg = <0x0 0x80000000 0x0 0x60000000>; /* 1536 MB */
  	};
  
 +	chosen {
-+		stdout-path = &uart0;
++		stdout-path = &uart1;
 +	};
 +
- 	vbat: fixedregulator0 {
+ 	evm_3v3_sd: fixedregulator-sd {
  		compatible = "regulator-fixed";
- 		regulator-name = "vbat";
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index e2548d1ce753..9e43c443738a 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -32,6 +32,10 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 		regulator-name = "evm_3v3_sd";
+diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
+index e50fbeea96e0..45b62138cbde 100644
+--- a/arch/arm/boot/dts/dra72-evm-common.dtsi
++++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+@@ -18,6 +18,10 @@
+ 		display0 = &hdmi0;
  	};
  
 +	chosen {
-+		stdout-path = &uart0;
++		stdout-path = &uart1;
 +	};
 +
- 	vbat: fixedregulator0 {
+ 	evm_12v0: fixedregulator-evm12v0 {
+ 		/* main supply */
  		compatible = "regulator-fixed";
- 		regulator-name = "vbat";
-diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
-index 1463df3b5b19..ff9417ce93c0 100644
---- a/arch/arm/boot/dts/am335x-icev2.dts
-+++ b/arch/arm/boot/dts/am335x-icev2.dts
-@@ -24,6 +24,10 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
- 
-+	chosen {
-+		stdout-path = &uart3;
-+	};
-+
- 	vbat: fixedregulator0 {
- 		compatible = "regulator-fixed";
- 		regulator-name = "vbat";
 -- 
 2.11.0
 
