@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/5] ARM: dts: am57xx: Add stdout-path property
-Date: Tue, 17 Jan 2017 09:33:35 +0530
-Message-ID: <20170117040336.21700-5-lokeshvutla@ti.com>
+Subject: [PATCH 2/5] ARM: dts: am33xx: Add stdout-path property
+Date: Tue, 17 Jan 2017 09:33:33 +0530
+Message-ID: <20170117040336.21700-3-lokeshvutla@ti.com>
 References: <20170117040336.21700-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,40 +17,56 @@ used by just adding earlycon in bootargs.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 4 ++++
- arch/arm/boot/dts/am57xx-idk-common.dtsi        | 4 ++++
- 2 files changed, 8 insertions(+)
+ arch/arm/boot/dts/am335x-evm.dts   | 4 ++++
+ arch/arm/boot/dts/am335x-evmsk.dts | 4 ++++
+ arch/arm/boot/dts/am335x-icev2.dts | 4 ++++
+ 3 files changed, 12 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-index 78bee26361f1..3a95db7da71f 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-@@ -22,6 +22,10 @@
- 		display0 = &hdmi0;
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index c2186ec2834b..1c37a7c1ea17 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -25,6 +25,10 @@
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
  	};
  
 +	chosen {
-+		stdout-path = &uart3;
++		stdout-path = &uart0;
 +	};
 +
- 	memory@0 {
- 		device_type = "memory";
- 		reg = <0x0 0x80000000 0x0 0x80000000>;
-diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-index 814a720d5c3d..0d341c545b01 100644
---- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-@@ -14,6 +14,10 @@
- 		rtc1 = &rtc;
- 	};
- 
-+	chosen {
-+		stdout-path = &uart3;
-+	};
-+
- 	vmain: fixedregulator-vmain {
+ 	vbat: fixedregulator0 {
  		compatible = "regulator-fixed";
- 		regulator-name = "VMAIN";
+ 		regulator-name = "vbat";
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index e2548d1ce753..9e43c443738a 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -32,6 +32,10 @@
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
+ 
++	chosen {
++		stdout-path = &uart0;
++	};
++
+ 	vbat: fixedregulator0 {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vbat";
+diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
+index 1463df3b5b19..ff9417ce93c0 100644
+--- a/arch/arm/boot/dts/am335x-icev2.dts
++++ b/arch/arm/boot/dts/am335x-icev2.dts
+@@ -24,6 +24,10 @@
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
+ 
++	chosen {
++		stdout-path = &uart3;
++	};
++
+ 	vbat: fixedregulator0 {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vbat";
 -- 
 2.11.0
 
