@@ -1,51 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: dts: dra7-evm: increase QSPI SPL partition size
-Date: Tue, 17 Jan 2017 15:27:44 -0800
-Message-ID: <20170117232743.GA7403@atomide.com>
-References: <1484311234-21978-1-git-send-email-ravibabu@ti.com>
- <1484311234-21978-2-git-send-email-ravibabu@ti.com>
- <20170113181239.GC2630@atomide.com>
- <6C6B28D4DC342643927BEAFCE8707BF6C0A8C367@DBDE04.ent.ti.com>
+Subject: Re: [PATCH 0/3] tty: serial: 8250_omap: Enable DMA support
+Date: Tue, 17 Jan 2017 15:25:37 -0800
+Message-ID: <20170117232536.GZ7403@atomide.com>
+References: <20170113080201.6515-1-vigneshr@ti.com>
+ <20170113182021.GD2630@atomide.com>
+ <b27b95a9-40b8-ebef-3457-ce87db6b26e5@ti.com>
+ <f978273d-39eb-e5d7-a95e-4a2e4be9e23c@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <6C6B28D4DC342643927BEAFCE8707BF6C0A8C367@DBDE04.ent.ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "B, Ravi" <ravibabu@ti.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "nsekhar@list.ti.com" <nsekhar@list.ti.com>, "Nori, Sekhar" <nsekhar@ti.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <f978273d-39eb-e5d7-a95e-4a2e4be9e23c@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* B, Ravi <ravibabu@ti.com> [170117 00:15]:
-> Hi Tony
+* Vignesh R <vigneshr@ti.com> [170117 02:06]:
 > 
-> >* Ravi Babu <ravibabu@ti.com> [170113 04:41]:
-> >> The SPL size for DRA74x platform has increased and is now more than 
-> >> 64KB. Increase QSPI SPL partition size to 256KB for DRA74x EVM.
-> >> 
-> >> QSPI partition numbering changes because of this.
 > 
-> >And this will break the existing partitions potentially..
-> >See what was discussed on the list few days ago in thread "[PATCH 1/6] ARM: dts: am335x-phycore-som: Update NAND partition table".
+> On Tuesday 17 January 2017 11:36 AM, Vignesh R wrote:
+> > 
+> > 
+> > On Friday 13 January 2017 11:50 PM, Tony Lindgren wrote:
+> >> * Vignesh R <vigneshr@ti.com> [170113 00:03]:
+> >>> This patch series re enables DMA support for UART 8250_omap driver.
+> >>>
+> >>> Tested on AM335x, AM437x that use EDMA and OMAP5 and DRA74 EVM with
+> >>> SDMA.
+> >>
+> >> Is 8250_omap serial console working for you on omap5 in general?
+> >>
+> >> I've noticed that it's really unresponsive for me as if the FIFO
+> >> interrupt was not working. For example logging in might take several
+> >> attempts and a long time with each character showing up much later
+> >> after some timeout.
+> >>
+> > 
+> > Yes, I did face the same issue on omap5 using 8250_omap driver for
+> > console. Looks like this bug has existed all along.
+> > 
 > 
-> >It's best to have these left empty or as they originally were and let u-boot configure the partitions.
-> 
-> Agree with you. For dra7xx platform the SPL size has been increased to 256KB and hence the existing QSPI SPL partition in kernel (64K size) will break when latest mainline u-boot is used. 
-> Here only SPL partition has been changed and other partition & size is NOT changed and kept intact. I feel it will not break the existing partitions for dra7xx platform.
+> This looks a separate issue, I don't see any errata specific errata wrt
+> UART on OMAP5. I will try to debug further.
 
-What about the renumbering of partitions in your patch?
+OK maybe it's something configured or not configured by the bootloader
+that we're missing in the Linux driver?
 
-Probably just best to make the partition information empty in the
-kernel as discussed.
+Other than the omap5 issue, 8250_OMAP seems to behave on all variants
+that I've tried it with so far.
 
 Regards,
 
