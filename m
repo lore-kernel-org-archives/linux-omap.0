@@ -1,55 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] tty: serial: 8250_omap: Enable DMA support
-Date: Tue, 17 Jan 2017 15:25:37 -0800
-Message-ID: <20170117232536.GZ7403@atomide.com>
-References: <20170113080201.6515-1-vigneshr@ti.com>
- <20170113182021.GD2630@atomide.com>
- <b27b95a9-40b8-ebef-3457-ce87db6b26e5@ti.com>
- <f978273d-39eb-e5d7-a95e-4a2e4be9e23c@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/5] ARM: OMAP2+: omap_hwmod: Add support for earlycon
+Date: Tue, 17 Jan 2017 15:23:10 -0800
+Message-ID: <20170117232310.GX7403@atomide.com>
+References: <20170117040336.21700-1-lokeshvutla@ti.com>
+ <20170117040336.21700-2-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f978273d-39eb-e5d7-a95e-4a2e4be9e23c@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Peter Hurley <peter@hurleysoftware.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+In-Reply-To: <20170117040336.21700-2-lokeshvutla-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Vignesh R <vigneshr@ti.com> [170117 02:06]:
-> 
-> 
-> On Tuesday 17 January 2017 11:36 AM, Vignesh R wrote:
-> > 
-> > 
-> > On Friday 13 January 2017 11:50 PM, Tony Lindgren wrote:
-> >> * Vignesh R <vigneshr@ti.com> [170113 00:03]:
-> >>> This patch series re enables DMA support for UART 8250_omap driver.
-> >>>
-> >>> Tested on AM335x, AM437x that use EDMA and OMAP5 and DRA74 EVM with
-> >>> SDMA.
-> >>
-> >> Is 8250_omap serial console working for you on omap5 in general?
-> >>
-> >> I've noticed that it's really unresponsive for me as if the FIFO
-> >> interrupt was not working. For example logging in might take several
-> >> attempts and a long time with each character showing up much later
-> >> after some timeout.
-> >>
-> > 
-> > Yes, I did face the same issue on omap5 using 8250_omap driver for
-> > console. Looks like this bug has existed all along.
-> > 
-> 
-> This looks a separate issue, I don't see any errata specific errata wrt
-> UART on OMAP5. I will try to debug further.
+* Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170116 20:06]:
+> Hwmod core tries to reset and idles each IP that is registered with hwmod.
+> In case of earlycon, that specific uart IP cannot be reset or keep it in
+> idle state else earlycon hangs once hwmod resets that uart IP. So add support
+> to not reset uart that is being used as earlycon only if CONFIG_SERIAL_EARLYCON
+> is enabled.
 
-OK maybe it's something configured or not configured by the bootloader
-that we're missing in the Linux driver?
+Nice :)
 
-Other than the omap5 issue, 8250_OMAP seems to behave on all variants
-that I've tried it with so far.
+I guess this has no dependency to SERIAL_OMAP vs 8250_OMAP selection?
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
