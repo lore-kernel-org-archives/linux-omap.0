@@ -1,37 +1,55 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 0/3] dmaengine: cppi41: Add dma support to da8xx
-Date: Tue, 17 Jan 2017 15:20:13 +0100
-Message-ID: <20170117142016.11163-1-abailon@baylibre.com>
+Subject: [PATCH v2 3/3] dmaengine: cppi41: Fix teardown warnings
+Date: Tue, 17 Jan 2017 15:20:16 +0100
+Message-ID: <20170117142016.11163-4-abailon@baylibre.com>
+References: <20170117142016.11163-1-abailon@baylibre.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170117142016.11163-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This series add support of DA8xx to CPPI 4.1 driver.
-As the CPPI 4.1 is now generic, we only had to add the glue for DA8xx.
+During the teardown of a RX channel, because there is only one
+completion queue available for RX channel, descriptor of another
+channel may be popped which will cause 2 warnings:
+- the first one because we popped a wrong descriptor
+  (neither the channel's descriptor, nor the teardown descriptor).
+- the second one happen during the teardown of another channel,
+  because we can't find the channel descriptor
+  (that is, the one that caused the first warning).
+To avoid that, use one free queue instead of a transmit completion queue.
 
-This serie should applied on top of 
-"[PATCH v2 0/7] dmaengine: cppi41: Make CPPI 4.1 driver more generic".
+Note that fix doesn't fix all the teardown warnings:
+I still get some when I run some corner case.
 
-Changes in v2:
-- most of patches of v1 has been moved to the series
-  "[PATCH v2 0/7] dmaengine: cppi41: Make CPPI 4.1 driver more generic".
-- some patches of v1 has been removed because they were no required
-  anymore because CPPI 4.1 driver has been made more generic.
-- In v1, the driver were managing the clock for DA8xx paltform.
-  This is not needed as CPPI 4.1 will be a child of MUSB DA8xx glue,
-  we can use PM runtime and let the DA8xx glue driver manage it.
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/dma/cppi41.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Alexandre Bailon (3):
-  dt/bindings: da8xx-usb: Add binding for the CPPI 4.1 DMA controller
-  dmaengine: cppi41: Implement the glue for DA8xx
-  dmaengine: cppi41: Fix teardown warnings
-
- .../devicetree/bindings/usb/da8xx-usb.txt          | 42 ++++++++++++++++++++++
- drivers/dma/cppi41.c                               | 28 +++++++++++++--
- 2 files changed, 68 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+index aab1e5a..aba741c 100644
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -630,7 +630,7 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
+ 		if (!c->is_tx) {
+ 			reg |= GCR_STARV_RETRY;
+ 			reg |= GCR_DESC_TYPE_HOST;
+-			reg |= c->q_comp_num;
++			reg |= cdd->td_queue.complete;
+ 		}
+ 		reg |= GCR_TEARDOWN;
+ 		cppi_writel(reg, c->gcr_reg);
+@@ -641,7 +641,7 @@ static int cppi41_tear_down_chan(struct cppi41_channel *c)
+ 	if (!c->td_seen || !c->td_desc_seen) {
+ 
+ 		desc_phys = cppi41_pop_desc(cdd, cdd->td_queue.complete);
+-		if (!desc_phys)
++		if (!desc_phys && c->is_tx)
+ 			desc_phys = cppi41_pop_desc(cdd, c->q_comp_num);
+ 
+ 		if (desc_phys == c->desc_phys) {
 -- 
 2.10.2
 
