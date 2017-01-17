@@ -1,54 +1,125 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: [PATCH] ARM:DTS:OMAP3:Fix Card Detect and Write Protect on Logic PD SOM-LV
-Date: Tue, 17 Jan 2017 13:34:06 -0600
-Message-ID: <1484681646-16124-1-git-send-email-aford173@gmail.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, stable@vger.kernel.org
-Cc: tony@atomide.com, adam.ford@logicpd.com, Adam Ford <aford173@gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
+Date: Tue, 17 Jan 2017 12:40:22 -0800
+Message-ID: <20170117204022.GS7403@atomide.com>
+References: <20170113215936.GF2630@atomide.com>
+ <20170116233329.GF7403@atomide.com>
+ <20170116235428.GG7403@atomide.com>
+ <20170117125919.GA31716@uda0271908>
+ <20170117161138.GJ7403@atomide.com>
+ <20170117162152.GE31716@uda0271908>
+ <20170117163103.GO7403@atomide.com>
+ <20170117164846.GG31716@uda0271908>
+ <20170117173922.GR7403@atomide.com>
+ <20170117194614.GB17480@uda0271908>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170117194614.GB17480@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This fixes commit ab8dd3aed011 ("ARM: DTS: Add minimal Support for
-Logic PD DM3730 SOM-LV") where the Card Detect and Write Protect
-pins were improperly configured.
+* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170117 11:47]:
+> On Tue, Jan 17, 2017 at 09:39:23AM -0800, Tony Lindgren wrote:
+> > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170117 08:49]:
+> > > On Tue, Jan 17, 2017 at 08:31:03AM -0800, Tony Lindgren wrote:
+> > > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170117 08:22]:
+> > > > > On Tue, Jan 17, 2017 at 08:11:39AM -0800, Tony Lindgren wrote:
+> > > > > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170117 05:00]:
+> > > > > > > On Mon, Jan 16, 2017 at 03:54:29PM -0800, Tony Lindgren wrote:
+> > > > > > > > Anyways, for the -rc series oops, we can just leave out the WARN_ON
+> > > > > > > > parts for now until drivers/usb/musb/musb_cppi41.c is fixed too.
+> > > > > > > 
+> > > > > > > Giving that cppi is a submodule inside the usb subsysytem and it does't
+> > > > > > > have separate power rail or clock, what is the benefit to adding runtime
+> > > > > > > PM in the cppi driver?
+> > > > > > 
+> > > > > > Good question. We need at least minimal support to enable things for
+> > > > > > probe and then idle cppi41 properly if only cppi41.ko is loaded with no
+> > > > > > USB modules.
+> > > > > > 
+> > > > > > But yeah now that musb does runtime PM based on the cable detection, we
+> > > > > > pretty much guarantee that cppi41 is always enabled when USB is in use.
+> > > > > > 
+> > > > > > And if there are no other devices using cppi41 dma on davinci, we can
+> > > > > > simplify the PM runtime a bit for cppi41.
+> > > > > 
+> > > > > This might be a good idea. I didn't have much time to play with this
+> > > > > cppi41 runtime PM, but it seems I am having more issues than you and
+> > > > > others seeing.
+> > > > 
+> > > > What kind of additional issues are you seeing not described in the $subject
+> > > > patch?
+> > > 
+> > > I didn't take a note and don't remember if those are in the $subject
+> > > patch. But
+> > > 
+> > > - enumeration begining with a reset that the device doesn't accept
+> > >   address X, error code -71; or
+> > 
+> > Some of this could be fixed by $subject patch if caused by a race.
+> > Some of it I'm suspecting might be a different issue where cppi41 dma
+> > will just hang until the device is disconnected on 1 sized in dma transfer.
+> > See the experimental patch below.
+> > 
+> > > - console fooding with cppi error code -115 after thumb drive enumeration.
+> > 
+> > This should get fixed with the $subject patch if we additionally set
+> > the autosuspend_delay to something sufficient, like 1000.
+> > 
+> > > Again, I only tried for a few minutes and didn't take a note, since I
+> > > don't have time to look at this ATM.
+> > 
+> > Well I'll post what I think we should fix for the -rc series for cppi41.
+> > If you can then please test that a bit and see if it works. Assuming
+> > things work, then all the other changes can be done later on with no
+> > rush.
+> 
+> Sure, I will spend some time on this tomorrow morning, and let you know.
+> 
+> > 
+> > Regards,
+> > 
+> > Tony
+> > 
+> > 8< ----------------------------------------
+> > diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+> > --- a/drivers/usb/musb/musb_host.c
+> > +++ b/drivers/usb/musb/musb_host.c
+> > @@ -751,6 +751,15 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
+> >  		hw_ep->tx_channel = NULL;
+> >  	}
+> >  
+> > +	/*
+> > +	 * At least cppi41 in dma will just hang with size of 1 until the
+> > +	 * device is connected. For sizes less than 8 it seems to take a
+> > +	 * long time to complete. Let's use minimum size of 16 to avoid
+> > +	 * tiny in DMA transfers.
+> > +	 */
+> > +	if (!is_out && (len < 16))
+> > +		use_dma = 0;
+> 
+> I think you also need to add more cleanup in here when not use dma,
+> as in musb_ep_program():
+> 
+> 746         if (is_out && !len) {                                                   
+> 747                 use_dma = 0;                                                    
+> 748                 csr = musb_readw(epio, MUSB_TXCSR);                             
+> 749                 csr &= ~MUSB_TXCSR_DMAENAB;                                     
+> 750                 musb_writew(epio, MUSB_TXCSR, csr);                             
+> 751                 hw_ep->tx_channel = NULL;                                       
+> 752         }
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
+Oh OK. Yeah this one is in the mysteries to unravel category. And I noticed
+the -71 resets with another USB mass storage device I tried with this patch
+so clearly not the right fix for that one.
 
-diff --git a/arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts b/arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts
-index da85984..38faa90 100644
---- a/arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts
-+++ b/arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts
-@@ -158,7 +158,7 @@
- &mmc1 {
- 	interrupts-extended = <&intc 83 &omap3_pmx_core 0x11a>;
- 	pinctrl-names = "default";
--	pinctrl-0 = <&mmc1_pins &mmc1_cd>;
-+	pinctrl-0 = <&mmc1_pins>;
- 	wp-gpios = <&gpio4 30 GPIO_ACTIVE_HIGH>;		/* gpio_126 */
- 	cd-gpios = <&gpio4 14 IRQ_TYPE_LEVEL_LOW>;		/* gpio_110 */
- 	vmmc-supply = <&vmmc1>;
-@@ -193,7 +193,8 @@
- 			OMAP3_CORE1_IOPAD(0x214a, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat1.sdmmc1_dat1 */
- 			OMAP3_CORE1_IOPAD(0x214c, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat2.sdmmc1_dat2 */
- 			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT | MUX_MODE0)	/* sdmmc1_dat3.sdmmc1_dat3 */
--			OMAP3_CORE1_IOPAD(0x2132, PIN_INPUT_PULLUP | MUX_MODE4)	/* cam_strobe.gpio_126 sdmmc1_wp*/
-+			OMAP3_CORE1_IOPAD(0x2132, PIN_INPUT_PULLUP | MUX_MODE4)	/* cam_strobe.gpio_126 */
-+			OMAP3_CORE1_IOPAD(0x212c, PIN_INPUT_PULLUP | MUX_MODE4)	/* cam_d11.gpio_110 */
- 		>;
- 	};
- 
-@@ -242,12 +243,6 @@
- 			OMAP3_WKUP_IOPAD(0x2a16, PIN_OUTPUT | PIN_OFF_OUTPUT_LOW | MUX_MODE4)       /* sys_boot6.gpio_8 */
- 		>;
- 	};
--
--	mmc1_cd: pinmux_mmc1_cd {
--		pinctrl-single,pins = <
--			OMAP3_WKUP_IOPAD(0x212c, PIN_INPUT_PULLUP | MUX_MODE4)	/* cam_d11.gpio_110 */
--		>;
--	};
- };
- 
- 
--- 
-2.7.4
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
