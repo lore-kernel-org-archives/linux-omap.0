@@ -1,107 +1,111 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
-Date: Tue, 17 Jan 2017 06:59:19 -0600
-Message-ID: <20170117125919.GA31716@uda0271908>
-References: <20170113180132.9188-1-tony@atomide.com>
- <d6fddff7-3d00-1de1-ebbf-ee2a949a6284@ti.com>
- <20170113190126.GE2630@atomide.com>
- <c80b51a2-1acd-914c-17b8-32754ea9ce3e@ti.com>
- <c58cebdf-5752-098a-8b3e-de99f6af14af@ti.com>
- <c1bbb731-940e-6d04-f127-222050d831b8@ti.com>
- <20170113215936.GF2630@atomide.com>
- <20170116233329.GF7403@atomide.com>
- <20170116235428.GG7403@atomide.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH v4 1/4] PM / OPP: Expose _of_get_opp_desc_node as dev_pm_opp
+ API
+Date: Tue, 17 Jan 2017 07:18:05 -0600
+Message-ID: <20170117131808.29798-2-d-gerlach@ti.com>
+References: <20170117131808.29798-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170116235428.GG7403-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170117131808.29798-1-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rob Herring <robh+dt@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+Rename _of_get_opp_desc_node to dev_pm_opp_of_get_opp_desc_node and add it
+to include/linux/pm_opp.h to allow other drivers, such as platform OPP
+and cpufreq drivers, to make use of it.
 
-On Mon, Jan 16, 2017 at 03:54:29PM -0800, Tony Lindgren wrote:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170116 15:36]:
-> > * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170113 14:00]:
-> > > * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [170113 13:37]:
-> > > > > Simplified diff with fix on top of your patch:
-> > > > > 
-> > > > > diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-> > > > > index ce37a1a..9e9403a 100644
-> > > > > --- a/drivers/dma/cppi41.c
-> > > > > +++ b/drivers/dma/cppi41.c
-> > > > > @@ -319,12 +319,6 @@ static irqreturn_t cppi41_irq(int irq, void *data)
-> > > > >  
-> > > > >  		while (val) {
-> > > > >  			u32 desc, len;
-> > > > > -			int error;
-> > > > > -
-> > > > > -			error = pm_runtime_get(cdd->ddev.dev);
-> > > > > -			if ((error != -EINPROGRESS) && (error < 0))
-> > > > > -				dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
-> > > > > -					__func__, error);
-> > > > >  
-> > > > >  			/* This warning should never trigger */
-> > > > >  			WARN_ON(cdd->is_suspended);
-> > > > > @@ -500,7 +494,6 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
-> > > > >  	spin_unlock_irqrestore(&cdd->lock, flags);
-> > > > >  
-> > > > >  	pm_runtime_mark_last_busy(cdd->ddev.dev);
-> > > > > -	pm_runtime_put_autosuspend(cdd->ddev.dev);
-> > > > >  }
-> > > > >  
-> > > > >  static u32 get_host_pd0(u32 length)
-> > > > > 
-> > > > 
-> > > > Ok. this is incorrect in case of USB hub and will just hide the problem
-> > > > by incrementing PM runtime usage counter every time USB host is connected :(
-> > > 
-> > > Yeah if anything changes in those two nested loops, the pm_runtime counts
-> > > get unbalanced.
-> > > 
-> > > > Once USB hub is connected the PM runtime usage counter will became 1 and stay
-> > > > 1 after disconnection. Which means that some descriptor was pushed in Q, but IRQ
-> > > > was not triggered.
-> > > > 
-> > > > Don't know how to proceed as I'm not so familiar with musb :(
-> > > 
-> > > I'm now playing with saving the queue manager value and kicking the
-> > > PM runtime if we have transfers in progress. Looks like the dma
-> > > registers are zero while there are transfers in progress, or at least
-> > > I have not yet found any hardware registers that would tell that.
-> > 
-> > Looks like drivers/usb/musb/musb_cppi41.c is not properly terminating
-> > dma transactions.. The following additional patch makes things behave
-> > without warnings for me.
-> > 
-> > I'll fold the drivers/dma/cppi41.c changes to $subject patch and repost,
-> > then will post a separate musb fix for drivers/usb/musb/musb_cppi41.c
-> > that avoids the warning after some more investigating.
-> > 
-> > Luckily the warning is harmless in this case as musb and cppi41 are
-> > in the same device so the common parent is powered and cppi41 is
-> > getting clocked.
-> 
-> Sorry actually it's after these fixes when we still need to implement
-> something for cppi41 PM runtime usecount that makes sense as the
-> calls will finally be paired. For testing, reverting 098de42ad670
-> ("dmaengine: cppi41: Fix unpaired pm runtime when only a USB hub
-> is connected") can be done. But I don't like that as it's still
-> unpaired pm_runtime_calls potentially if something goes wrong.
-> 
-> Anyways, for the -rc series oops, we can just leave out the WARN_ON
-> parts for now until drivers/usb/musb/musb_cppi41.c is fixed too.
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+v3->v4:
+	Export dev_pm_opp_of_get_opp_desc_node for use in modules.
+	
+ drivers/base/power/opp/of.c | 9 +++++----
+ include/linux/pm_opp.h      | 6 ++++++
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
-Giving that cppi is a submodule inside the usb subsysytem and it does't
-have separate power rail or clock, what is the benefit to adding runtime
-PM in the cppi driver?
-
-Thanks,
--Bin.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/base/power/opp/of.c b/drivers/base/power/opp/of.c
+index 3f7d2591b173..fe14d231f1db 100644
+--- a/drivers/base/power/opp/of.c
++++ b/drivers/base/power/opp/of.c
+@@ -243,7 +243,7 @@ void dev_pm_opp_of_remove_table(struct device *dev)
+ EXPORT_SYMBOL_GPL(dev_pm_opp_of_remove_table);
+ 
+ /* Returns opp descriptor node for a device, caller must do of_node_put() */
+-static struct device_node *_of_get_opp_desc_node(struct device *dev)
++struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev)
+ {
+ 	/*
+ 	 * TODO: Support for multiple OPP tables.
+@@ -254,6 +254,7 @@ static struct device_node *_of_get_opp_desc_node(struct device *dev)
+ 
+ 	return of_parse_phandle(dev->of_node, "operating-points-v2", 0);
+ }
++EXPORT_SYMBOL_GPL(dev_pm_opp_of_get_opp_desc_node);
+ 
+ /**
+  * _opp_add_static_v2() - Allocate static OPPs (As per 'v2' DT bindings)
+@@ -495,7 +496,7 @@ int dev_pm_opp_of_add_table(struct device *dev)
+ 	 * OPPs have two version of bindings now. The older one is deprecated,
+ 	 * try for the new binding first.
+ 	 */
+-	opp_np = _of_get_opp_desc_node(dev);
++	opp_np = dev_pm_opp_of_get_opp_desc_node(dev);
+ 	if (!opp_np) {
+ 		/*
+ 		 * Try old-deprecated bindings for backward compatibility with
+@@ -605,7 +606,7 @@ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev,
+ 	int cpu, ret = 0;
+ 
+ 	/* Get OPP descriptor node */
+-	np = _of_get_opp_desc_node(cpu_dev);
++	np = dev_pm_opp_of_get_opp_desc_node(cpu_dev);
+ 	if (!np) {
+ 		dev_dbg(cpu_dev, "%s: Couldn't find opp node.\n", __func__);
+ 		return -ENOENT;
+@@ -630,7 +631,7 @@ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev,
+ 		}
+ 
+ 		/* Get OPP descriptor node */
+-		tmp_np = _of_get_opp_desc_node(tcpu_dev);
++		tmp_np = dev_pm_opp_of_get_opp_desc_node(tcpu_dev);
+ 		if (!tmp_np) {
+ 			dev_err(tcpu_dev, "%s: Couldn't find opp node.\n",
+ 				__func__);
+diff --git a/include/linux/pm_opp.h b/include/linux/pm_opp.h
+index 0edd88f93904..a5b1aaeae229 100644
+--- a/include/linux/pm_opp.h
++++ b/include/linux/pm_opp.h
+@@ -270,6 +270,7 @@ void dev_pm_opp_of_remove_table(struct device *dev);
+ int dev_pm_opp_of_cpumask_add_table(const struct cpumask *cpumask);
+ void dev_pm_opp_of_cpumask_remove_table(const struct cpumask *cpumask);
+ int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev, struct cpumask *cpumask);
++struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev);
+ #else
+ static inline int dev_pm_opp_of_add_table(struct device *dev)
+ {
+@@ -293,6 +294,11 @@ static inline int dev_pm_opp_of_get_sharing_cpus(struct device *cpu_dev, struct
+ {
+ 	return -ENOTSUPP;
+ }
++
++static inline struct device_node *dev_pm_opp_of_get_opp_desc_node(struct device *dev)
++{
++	return NULL;
++}
+ #endif
+ 
+ #endif		/* __LINUX_OPP_H__ */
+-- 
+2.11.0
