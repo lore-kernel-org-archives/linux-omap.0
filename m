@@ -1,83 +1,46 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] ARM: dts: am33x, da816x, da814x: Remove useless register address
-Date: Tue, 17 Jan 2017 14:54:20 +0100
-Message-ID: <20170117135420.10197-1-abailon@baylibre.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v7] ASoC: omap-mcbsp: Add PM QoS support
+ for McBSP to prevent glitches
+Date: Tue, 17 Jan 2017 14:34:36 +0200
+Message-ID: <d35dbc1b-da5b-a482-3688-f7b20278d5fb@ti.com>
+References: <20170113035432.6723-1-matt@ranostay.consulting>
+ <20170113152049.GD5696@atomide.com>
+ <CAJ_EiSR-R=5qUKOfHWTTrjj+ZD6Q6BBf1yPj3atf84Q6K03NZg@mail.gmail.com>
+ <20170116171743.GB7403@atomide.com>
+ <CAJ_EiSTStr1TfGE2zVspFF0DkkXLOCDmiqD_jZkzue-GfsTm+Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <CAJ_EiSTStr1TfGE2zVspFF0DkkXLOCDmiqD_jZkzue-GfsTm+Q@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Matt Ranostay <matt@ranostay.consulting>, Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-In order to make CPPI 4.1 DMA driver more generic, accesses to USBSS
-have been removed. So it is not required anymore to define "glue"
-register's address and size in DT.
-Remove "glue" register from cppi41dma node.
-
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
----
- arch/arm/boot/dts/am33xx.dtsi | 5 ++---
- arch/arm/boot/dts/dm814x.dtsi | 5 ++---
- arch/arm/boot/dts/dm816x.dtsi | 5 ++---
- 3 files changed, 6 insertions(+), 9 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9e96d60..2466ed5 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -659,11 +659,10 @@
- 
- 			cppi41dma: dma-controller@47402000 {
- 				compatible = "ti,am3359-cppi41";
--				reg =  <0x47400000 0x1000
--					0x47402000 0x1000
-+				reg =  <0x47402000 0x1000
- 					0x47403000 0x1000
- 					0x47404000 0x4000>;
--				reg-names = "glue", "controller", "scheduler", "queuemgr";
-+				reg-names = "controller", "scheduler", "queuemgr";
- 				interrupts = <17>;
- 				interrupt-names = "glue";
- 				#dma-cells = <2>;
-diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
-index 9708157..2dd727a 100644
---- a/arch/arm/boot/dts/dm814x.dtsi
-+++ b/arch/arm/boot/dts/dm814x.dtsi
-@@ -156,11 +156,10 @@
- 
- 			cppi41dma: dma-controller@47402000 {
- 				compatible = "ti,am3359-cppi41";
--				reg =  <0x47400000 0x1000
--					0x47402000 0x1000
-+				reg =  <0x47402000 0x1000
- 					0x47403000 0x1000
- 					0x47404000 0x4000>;
--				reg-names = "glue", "controller", "scheduler", "queuemgr";
-+				reg-names = "controller", "scheduler", "queuemgr";
- 				interrupts = <17>;
- 				interrupt-names = "glue";
- 				#dma-cells = <2>;
-diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
-index 276211e..bb78511 100644
---- a/arch/arm/boot/dts/dm816x.dtsi
-+++ b/arch/arm/boot/dts/dm816x.dtsi
-@@ -493,11 +493,10 @@
- 
- 			cppi41dma: dma-controller@47402000 {
- 				compatible = "ti,am3359-cppi41";
--				reg =  <0x47400000 0x1000
--					0x47402000 0x1000
-+				reg =  <0x47402000 0x1000
- 					0x47403000 0x1000
- 					0x47404000 0x4000>;
--				reg-names = "glue", "controller", "scheduler", "queuemgr";
-+				reg-names = "controller", "scheduler", "queuemgr";
- 				interrupts = <17>;
- 				interrupt-names = "glue";
- 				#dma-cells = <2>;
--- 
-2.10.2
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMDEvMTYvMjAxNyAwOTozMCBQTSwgTWF0dCBSYW5vc3RheSB3cm90ZToKPiBZZXAgSSB3YXMg
+dGVzdGluZyB3aXRoIHRoYXQgZW5hYmxlZC4gTm90IHN1cmUgd2h5IEknbSBub3QgZ2V0dGluZyBp
+dAo+IGFsbC4uLiBtYXliZSBkaWZmZXJlbnQgc2lkZSBlZmZlY3RzIGxpa2Ugc2FtcGxlIHJhdGUg
+b2YgdGhlIGF1ZGlvCj4gYmVpbmcgcGxheWVkPwo+IAo+IFBldGVyLCBpcyB0aGVyZSBjaGFuY2Ug
+dGhhdCB0aGVyZSBpcyByYWNlIGNvbmRpdGlvbiBpcyBwb3NzaWJsZQo+IGJldHdlZW4gcG1fcW9z
+X3JlbW92ZV9yZXF1ZXN0IGFuZCBvbWFwX21jYnNwX2RhaV9zaHV0ZG93bj8KCk5vdCB3aXRoIG15
+IGtub3dsZWRnZS4KSG93ZXZlciBvbmUgdGhpbmcgbWlnaHQgaGFwcGVuIHdoaWNoIGlzIG5vdCBo
+YW5kbGVkOgphcHBsaWNhdGlvbiBvcGVucyB1cCB0aGUgYXVkaW8gY2FyZCwgZG9lcyBzb21lIGh3
+X3BhcmFtIHNldHVwLCB0aGVuIGl0CmRlY2lkZXMgdG8gY2xvc2UgdGhlIGNhcmQuIEluIHRoaXMg
+Y2FzZSB0aGUgcG1fcW9zIGlzIG5vdCBwbGFjZWQsIGJ1dCBpbgpkYWlfc2h1dGRvd24gd2UgdHJ5
+IHRvIHJlbW92ZSBpdCAtPiBXQVJOKCkuCgpJIHRoaW5rIHdlIG5lZWQgdG8gY2hlY2sgZWl0aGVy
+IGlmIHRoZSBwbV9xb3MgaXMgYWN0aXZlIGFuZCBvbmx5IHRoZW4KYm90aGVyIHdpdGggdGhlIHJl
+bW92YWwvdXBkYXRlZCBvciB3ZSBjYW4gY2hlY2sgaWYgdGhlCm1jYnNwLT5sYXRlbmN5W3N0cmVh
+bTFdIGlzIG5vdCAwLCB3aGljaCBzaG91bGQgYmUgdGhlIHNhbWUgYXMgY2hlY2tpbmcKZm9yIHRo
+ZSBwbV9xb3MgYWN0aXZlLgoKLS0gClDDqXRlcgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFs
+c2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2Fsc2EtZGV2ZWwK
