@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 5/5] ARM: dts: dra7xx: Add stdout-path property
-Date: Tue, 17 Jan 2017 09:33:36 +0530
-Message-ID: <20170117040336.21700-6-lokeshvutla@ti.com>
+Subject: [PATCH 3/5] ARM: dts: am43xx: Add stdout-path property
+Date: Tue, 17 Jan 2017 09:33:34 +0530
+Message-ID: <20170117040336.21700-4-lokeshvutla@ti.com>
 References: <20170117040336.21700-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -15,43 +15,74 @@ List-Id: linux-omap@vger.kernel.org
 Add stdout-path property in /chosen node so that earlycon can be
 used by just adding earlycon in bootargs.
 
-Tested-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dra7-evm.dts          | 4 ++++
- arch/arm/boot/dts/dra72-evm-common.dtsi | 4 ++++
- 2 files changed, 8 insertions(+)
+ arch/arm/boot/dts/am437x-gp-evm.dts  | 4 ++++
+ arch/arm/boot/dts/am437x-idk-evm.dts | 4 ++++
+ arch/arm/boot/dts/am437x-sk-evm.dts  | 4 ++++
+ arch/arm/boot/dts/am43x-epos-evm.dts | 4 ++++
+ 4 files changed, 16 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 132f2be10889..b3923c049edb 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -21,6 +21,10 @@
- 		reg = <0x0 0x80000000 0x0 0x60000000>; /* 1536 MB */
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 957840cc7b78..a4f31739057f 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -23,6 +23,10 @@
+ 		display0 = &lcd0;
  	};
  
 +	chosen {
-+		stdout-path = &uart1;
++		stdout-path = &uart0;
 +	};
 +
- 	evm_3v3_sd: fixedregulator-sd {
+ 	evm_v3_3d: fixedregulator-v3_3d {
  		compatible = "regulator-fixed";
- 		regulator-name = "evm_3v3_sd";
-diff --git a/arch/arm/boot/dts/dra72-evm-common.dtsi b/arch/arm/boot/dts/dra72-evm-common.dtsi
-index e50fbeea96e0..45b62138cbde 100644
---- a/arch/arm/boot/dts/dra72-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra72-evm-common.dtsi
+ 		regulator-name = "evm_v3_3d";
+diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
+index b76a7c0264a5..c1f7f9336e64 100644
+--- a/arch/arm/boot/dts/am437x-idk-evm.dts
++++ b/arch/arm/boot/dts/am437x-idk-evm.dts
 @@ -18,6 +18,10 @@
- 		display0 = &hdmi0;
+ 	model = "TI AM437x Industrial Development Kit";
+ 	compatible = "ti,am437x-idk-evm","ti,am4372","ti,am43";
+ 
++	chosen {
++		stdout-path = &uart0;
++	};
++
+ 	v24_0d: fixed-regulator-v24_0d {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "V24_0D";
+diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
+index 319d94205350..4dc54bee2f36 100644
+--- a/arch/arm/boot/dts/am437x-sk-evm.dts
++++ b/arch/arm/boot/dts/am437x-sk-evm.dts
+@@ -24,6 +24,10 @@
+ 		display0 = &lcd0;
  	};
  
 +	chosen {
-+		stdout-path = &uart1;
++		stdout-path = &uart0;
 +	};
 +
- 	evm_12v0: fixedregulator-evm12v0 {
- 		/* main supply */
+ 	/* fixed 32k external oscillator clock */
+ 	clk_32k_rtc: clk_32k_rtc {
+ 		#clock-cells = <0>;
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 9d35c3f07cad..9acd4ccdec4e 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -24,6 +24,10 @@
+ 		display0 = &lcd0;
+ 	};
+ 
++	chosen {
++		stdout-path = &uart0;
++	};
++
+ 	vmmcsd_fixed: fixedregulator-sd {
  		compatible = "regulator-fixed";
+ 		regulator-name = "vmmcsd_fixed";
 -- 
 2.11.0
 
