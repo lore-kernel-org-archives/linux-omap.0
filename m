@@ -1,63 +1,68 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: constify dev_pm_ops structures
-Date: Tue, 17 Jan 2017 08:43:16 -0600
-Message-ID: <20170117144316.GD31716@uda0271908>
-References: <1484481646-28544-1-git-send-email-bhumirks@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1484481646-28544-1-git-send-email-bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: julia.lawall-L2FTfq7BK8M@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v2] ARM: dts: da850: Add the CPPI 4.1 DMA to the USB OTG controller
+Date: Tue, 17 Jan 2017 16:32:57 +0100
+Message-ID: <20170117153257.12550-1-abailon@baylibre.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jan 15, 2017 at 05:30:46PM +0530, Bhumika Goyal wrote:
-> Declare dev_pm_ops structures as const as they are only stored in the pm
-> field of a device_driver structure. This field is of type const, so
-> dev_pm_ops structures having similar properties can be declared const
-> too.
-> 
-> Size details after cross compiling the .o file for arm
-> architecture.
-> 
-> File size before: drivers/usb/musb/omap2430.o
->    text	   data	    bss	    dec	    hex	filename
->    4141	    400	      8	   4549	   11c5	usb/musb/omap2430.o
-> 
-> File size after: drivers/usb/musb/omap2430.o
->    text	   data	    bss	    dec	    hex	filename
->    4333	    200	      8	   4541	   11bd	usb/musb/omap2430.o
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+This adds the CPPI 4.1 DMA controller to the USB OTG controller.
 
-Applied. Thanks.
-[b-liu-l0cyMroinI0@public.gmane.org: added omap2430 in commit subject prefix]
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ arch/arm/boot/dts/da850.dtsi | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
--Bin.
+diff --git a/arch/arm/boot/dts/da850.dtsi b/arch/arm/boot/dts/da850.dtsi
+index 104155d..35f1af4 100644
+--- a/arch/arm/boot/dts/da850.dtsi
++++ b/arch/arm/boot/dts/da850.dtsi
+@@ -396,12 +396,39 @@
+ 		usb0: usb@200000 {
+ 			compatible = "ti,da830-musb";
+ 			reg = <0x200000 0x10000>;
++			ranges;
+ 			interrupts = <58>;
+ 			interrupt-names = "mc";
+ 			dr_mode = "otg";
+ 			phys = <&usb_phy 0>;
+ 			phy-names = "usb-phy";
+ 			status = "disabled";
++
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			dmas = <&cppi41dma 0 0 &cppi41dma 1 0
++				&cppi41dma 2 0 &cppi41dma 3 0
++				&cppi41dma 0 1 &cppi41dma 1 1
++				&cppi41dma 2 1 &cppi41dma 3 1>;
++			dma-names =
++				"rx1", "rx2", "rx3", "rx4",
++				"tx1", "tx2", "tx3", "tx4";
++
++			cppi41dma: dma-controller@201000 {
++				compatible = "ti,da8xx-cppi41";
++				reg =  <0x201000 0x1000
++					0x202000 0x1000
++					0x204000 0x4000>;
++				reg-names = "glue", "controller",
++					    "scheduler", "queuemgr";
++				interrupts = <58>;
++				interrupt-names = "glue";
++				#dma-cells = <2>;
++				#dma-channels = <4>;
++				#dma-requests = <256>;
++				status = "okay";
++			};
+ 		};
+ 		mdio: mdio@224000 {
+ 			compatible = "ti,davinci_mdio";
+-- 
+2.10.2
 
-> ---
->  drivers/usb/musb/omap2430.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 8b73214..456f3e6 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -575,7 +575,7 @@ static int omap2430_runtime_resume(struct device *dev)
->  	return 0;
->  }
->  
-> -static struct dev_pm_ops omap2430_pm_ops = {
-> +static const struct dev_pm_ops omap2430_pm_ops = {
->  	.runtime_suspend = omap2430_runtime_suspend,
->  	.runtime_resume = omap2430_runtime_resume,
->  };
-> -- 
-> 1.9.1
-> 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
