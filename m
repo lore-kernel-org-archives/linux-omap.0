@@ -1,65 +1,111 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 1/2] ARM: dts: dra7-evm: increase QSPI SPL partition size
-Date: Wed, 18 Jan 2017 17:28:15 +0530
-Message-ID: <b586537d-49b6-50a6-ae60-11faf25b26f9@ti.com>
-References: <1484311234-21978-1-git-send-email-ravibabu@ti.com>
- <1484311234-21978-2-git-send-email-ravibabu@ti.com>
- <20170113181239.GC2630@atomide.com>
- <6C6B28D4DC342643927BEAFCE8707BF6C0A8C367@DBDE04.ent.ti.com>
- <20170117232743.GA7403@atomide.com>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] dt/bindings: da8xx-usb: Add binding for the CPPI
+ 4.1 DMA controller
+Date: Wed, 18 Jan 2017 14:04:18 +0100
+Message-ID: <3f01b354-22ec-04de-4a11-1e8317a92a5b@baylibre.com>
+References: <20170117142016.11163-1-abailon@baylibre.com>
+ <20170117142016.11163-2-abailon@baylibre.com>
+ <d2d19518-5758-1af1-71cd-ab38f26734e7@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170117232743.GA7403@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, "B, Ravi" <ravibabu@ti.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, "bcousson@baylibre.com" <bcousson@baylibre.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <d2d19518-5758-1af1-71cd-ab38f26734e7-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Wednesday 18 January 2017 04:57 AM, Tony Lindgren wrote:
-> * B, Ravi <ravibabu@ti.com> [170117 00:15]:
->> Hi Tony
->>
->>> * Ravi Babu <ravibabu@ti.com> [170113 04:41]:
->>>> The SPL size for DRA74x platform has increased and is now more than 
->>>> 64KB. Increase QSPI SPL partition size to 256KB for DRA74x EVM.
->>>>
->>>> QSPI partition numbering changes because of this.
->>
->>> And this will break the existing partitions potentially..
->>> See what was discussed on the list few days ago in thread "[PATCH 1/6] ARM: dts: am335x-phycore-som: Update NAND partition table".
->>
->>> It's best to have these left empty or as they originally were and let u-boot configure the partitions.
->>
->> Agree with you. For dra7xx platform the SPL size has been increased to 256KB and hence the existing QSPI SPL partition in kernel (64K size) will break when latest mainline u-boot is used. 
->> Here only SPL partition has been changed and other partition & size is NOT changed and kept intact. I feel it will not break the existing partitions for dra7xx platform.
+On 01/17/2017 06:14 PM, Sergei Shtylyov wrote:
+> On 01/17/2017 05:20 PM, Alexandre Bailon wrote:
 > 
-> What about the renumbering of partitions in your patch?
-
-Thats true, partitions will get renumbered. But mtd numbering can change
-depending on probe order of devices anyway. So usespace which uses
-hardcoded mtd partition numbers is pretty fragile already, I guess.
-
+>> DT binding for the TI DA8xx/OMAP-L1x/AM17xx/AM18xx cppi41 dma controller.
 > 
-> Probably just best to make the partition information empty in the
-> kernel as discussed.
-
-Given that existing dtbs already have the partition information, wont
-this be treated as a regression for someone upgrading to new kernel?
-
-Going forward, is the preference that new boards shall not have
-partition information in DT?
-
-Thanks,
-Sekhar
+>    "CPPI 4.1 DMA" again.
+> 
+>>
+>> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  .../devicetree/bindings/usb/da8xx-usb.txt          | 42
+>> ++++++++++++++++++++++
+>>  1 file changed, 42 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+>> b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+>> index ccb844a..aed3169 100644
+>> --- a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+>> +++ b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+>> @@ -18,10 +18,26 @@ Required properties:
+>>
+>>   - phy-names: Should be "usb-phy"
+>>
+>> + - dmas: specifies the dma channels
+>> +
+>> + - dma-names: specifies the names of the channels. Use "rxN" for receive
+>> +   and "txN" for transmit endpoints. N specifies the endpoint number.
+>> +
+>>  Optional properties:
+>>  ~~~~~~~~~~~~~~~~~~~~
+>>   - vbus-supply: Phandle to a regulator providing the USB bus power.
+>>
+>> +DMA
+>> +~~~
+>> +- compatible: ti,da8xx-cppi41
+>> +- reg: offset and length of the following register spaces: CPPI DMA
+>> Controller,
+>> +  CPPI DMA Scheduler, Queue Manager
+>> +- reg-names: "controller", "scheduler", "queuemgr"
+>> +- #dma-cells: should be set to 2. The first number represents the
+>> +  channel number (0 … 3 for endpoints 1 … 4).
+>> +  The second number is 0 for RX and 1 for TX transfers.
+>> +- #dma-channels: should be set to 4 representing the 4 endpoints.
+> 
+>    Shouldn't the # of channels be a part of the glue data?
+TBH I don't think know. For AM33xx, the number of channels is defined
+so I did the same for DA850.
+> 
+> [...]
+>> @@ -39,5 +58,28 @@ Example:
+>>          phys = <&usb_phy 0>;
+>>          phy-names = "usb-phy";
+>>
+>> +        dmas = <&cppi41dma 0 0 &cppi41dma 1 0
+>> +            &cppi41dma 2 0 &cppi41dma 3 0
+>> +            &cppi41dma 0 1 &cppi41dma 1 1
+>> +            &cppi41dma 2 1 &cppi41dma 3 1>;
+>> +        dma-names =
+>> +            "rx1", "rx2", "rx3", "rx4",
+>> +            "tx1", "tx2", "tx3", "tx4";
+>> +
+>>          status = "okay";
+>> +
+>> +        cppi41dma: dma-controller@201000 {
+>> +            compatible = "ti,da8xx-cppi41";
+>> +            reg =  <0x201000 0x1000
+>> +                0x202000 0x1000
+>> +                0x204000 0x4000>;
+>> +            reg-names = "controller", "scheduler", "queuemgr";
+>> +            interrupts = <58>;
+>> +            interrupt-names = "glue";
+>> +            #dma-cells = <2>;
+>> +            #dma-channels = <4>;
+>> +            #dma-requests = <256>;
+> 
+>    Not seeing this prop documented...
+Right. Actually, this prop is not even used so I will just remove it.
+> 
+>> +            status = "okay";
+> 
+>    Can be omitted.
+> 
+>> +        };
+>> +
+>>      };
+>>
+> 
+Best Regards,
+Alexandre
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
