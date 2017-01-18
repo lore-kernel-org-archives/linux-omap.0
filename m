@@ -1,94 +1,95 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] dt/bindings: da8xx-usb: Add binding for the CPPI
- 4.1 DMA controller
-Date: Wed, 18 Jan 2017 13:37:59 +0300
-Message-ID: <bc554229-87a7-530d-7bba-837f4269c22e@cogentembedded.com>
-References: <20170117142016.11163-1-abailon@baylibre.com>
- <20170117142016.11163-2-abailon@baylibre.com>
- <aa9b6761-c8de-13ea-1a62-9810ad92a6d4@cogentembedded.com>
- <710c724c-3831-e9d1-406b-76bdfed7b948@ti.com>
- <d544f4f2-9303-8d68-0350-af9c53ff19aa@cogentembedded.com>
- <69908f47-1920-b3f8-a307-2c9cb93c2c26@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH] ARM: OMAP5: Add HWMOD_SWSUP_SIDLE_ACT flag for UART
+Date: Wed, 18 Jan 2017 17:18:07 +0530
+Message-ID: <20170118114807.9543-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <69908f47-1920-b3f8-a307-2c9cb93c2c26-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 1/18/2017 1:21 PM, Sekhar Nori wrote:
+According to the commit ca43ea345de9 ("ARM: OMAP2+: hwmod: Add a new
+flag to handle SIDLE in SWSUP only in active"), UART IP needs the sidle
+mode to be controlled in SW only while they are active. Once inactive,
+the IP needs to be put back in HW control so they are also wakeup
+capable. The flag HWMOD_SWSUP_SIDLE takes care of this. So add this flag
+to all instances of UART.
 
->>>>> DT binding for the TI DA8xx/OMAP-L1x/AM17xx/AM18xx cppi41 dma
->>>>> controller.
->>>>>
->>>>> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
->>>>> ---
->>>>>  .../devicetree/bindings/usb/da8xx-usb.txt          | 42
->>>>> ++++++++++++++++++++++
->>>>>  1 file changed, 42 insertions(+)
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
->>>>> b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
->>>>> index ccb844a..aed3169 100644
->>>>> --- a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
->>>>> +++ b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
->>>>> @@ -18,10 +18,26 @@ Required properties:
->>>>>
->>>>>   - phy-names: Should be "usb-phy"
->>>>>
->>>>> + - dmas: specifies the dma channels
->>>>> +
->>>>> + - dma-names: specifies the names of the channels. Use "rxN" for
->>>>> receive
->>>>> +   and "txN" for transmit endpoints. N specifies the endpoint number.
->>>>> +
->>>>>  Optional properties:
->>>>>  ~~~~~~~~~~~~~~~~~~~~
->>>>>   - vbus-supply: Phandle to a regulator providing the USB bus power.
->>>>>
->>>>> +DMA
->>>>> +~~~
->>>>> +- compatible: ti,da8xx-cppi41
->>>>
->>>>    Almost missed this -- wildcards in this property are forbidden.
->>>> We should use "ti,da830-cppi41" as a least common denominator.
->>>
->>> Documentation/devicetree/bindings/submitting-patches.txt states:
->>>
->>> "
->>>   5) The wildcard "<chip>" may be used in compatible strings, as in
->>>      the following example:
->>>
->>>          - compatible: Must contain '"nvidia,<chip>-pcie",
->>>            "nvidia,tegra20-pcie"' where <chip> is tegra30, tegra132, ...
->>> "
->>>
->>> I take this to mean that using wildcards to denote an SoC family on
->>> which the same IP is present is okay to do.> With that understanding, I
->>> think using ti,da8xx-cppi41 is fine too.
->>
->>    It doesn't really follow. I repeat, x's are not allowed.
->
-> Can you clarify here? If x's are indeed not allowed,
+With this change, 8250 UART now gives out proper RX Timeout interrupts
+and is usable as console.
 
-    I have no idea where you got that they are allowed.
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
 
-> then I think the
-> document is being ambiguous about what constitutes "The wildcard "<chip>""
+Tested on OMAP5 uEVM.
 
-    There 's no ambiguity because the wildcard is the word "<chip>" itself, 
-not anything other. Even if "<chip>" is used in the bindings, its possible 
-values should be documented anyway.
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-> Thanks,
-> Sekhar
-
-MBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+index 8cdfd9b7ab4f..a2d763a4cc57 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -1748,6 +1748,7 @@ static struct omap_hwmod omap54xx_uart1_hwmod = {
+ 	.name		= "uart1",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
++	.flags		= HWMOD_SWSUP_SIDLE_ACT,
+ 	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -1763,6 +1764,7 @@ static struct omap_hwmod omap54xx_uart2_hwmod = {
+ 	.name		= "uart2",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
++	.flags		= HWMOD_SWSUP_SIDLE_ACT,
+ 	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -1778,7 +1780,7 @@ static struct omap_hwmod omap54xx_uart3_hwmod = {
+ 	.name		= "uart3",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.flags		= DEBUG_OMAP4UART3_FLAGS,
++	.flags		= DEBUG_OMAP4UART3_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
+ 	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -1794,7 +1796,7 @@ static struct omap_hwmod omap54xx_uart4_hwmod = {
+ 	.name		= "uart4",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
+-	.flags		= DEBUG_OMAP4UART4_FLAGS,
++	.flags		= DEBUG_OMAP4UART4_FLAGS | HWMOD_SWSUP_SIDLE_ACT,
+ 	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -1810,6 +1812,7 @@ static struct omap_hwmod omap54xx_uart5_hwmod = {
+ 	.name		= "uart5",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
++	.flags		= HWMOD_SWSUP_SIDLE_ACT,
+ 	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+@@ -1825,6 +1828,7 @@ static struct omap_hwmod omap54xx_uart6_hwmod = {
+ 	.name		= "uart6",
+ 	.class		= &omap54xx_uart_hwmod_class,
+ 	.clkdm_name	= "l4per_clkdm",
++	.flags		= HWMOD_SWSUP_SIDLE_ACT,
+ 	.main_clk	= "func_48m_fclk",
+ 	.prcm = {
+ 		.omap4 = {
+-- 
+2.11.0
