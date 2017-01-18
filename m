@@ -1,35 +1,116 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv3] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
-Date: Wed, 18 Jan 2017 11:54:28 -0800
-Message-ID: <20170118195427.GM7403@atomide.com>
-References: <20170117175524.3484-1-tony@atomide.com>
- <20170118142501.GA10928@uda0271908>
- <20170118165308.GC7403@atomide.com>
- <f33ba3b1-a35d-8d63-35ec-db1e0ca96c54@ti.com>
- <20170118181541.GJ7403@atomide.com>
- <e2141ca4-7294-cd65-e94a-27d4f8f67adb@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Nokia N900: mixers changed between 4.9 and 4.10-rc3, no longer
+ can use in-call speaker
+Date: Wed, 18 Jan 2017 21:44:59 +0100
+Message-ID: <20170118204459.GA5622@amd>
+References: <20170112181826.GA28290@amd> <201701121934.19810@pali>
+ <20170114225614.GA25321@amd> <201701150100.54214@pali>
+ <20170116211540.GA19736@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <e2141ca4-7294-cd65-e94a-27d4f8f67adb-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============2665983654667026390=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170116211540.GA19736@amd>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, kuninori.morimoto.gx@renesas.com
+Cc: alsa-devel@alsa-project.org, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, broonie@kernel.org, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, lars@metafoo.de, abcloriens@gmail.com, jarkko.nikula@bitmer.com, helen.koike@collabora.co.uk, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [170118 11:18]:
-> Just thinking, may be cppi41 should not be platform device at all
-> and it might be reasonable to have it as lib with cppi41_init()/cppi41_remove(),
-> so musb SoC glue layer will initialize it, because it provides services to
-> other HW blocks withing musb only.
 
-Nah, we already have things almost working :) And if some TI SoC with
-general purpose cppi41 pops up like a DSP running Linux, we're in big
-trouble. And musb is already a mess as is..
+--===============2665983654667026390==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
+Content-Disposition: inline
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--0F1p//8PRICkK4MW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > > So regression seems to be between v4.9 and v4.10. Any ideas?
+> >=20
+> > Interesting... seems there are no sound relevant changes after v4.9.
+> >=20
+> > Looks like there are only three commits after v4.9 for sound/soc which=
+=20
+> > are built for Nokia N900:
+=2E..
+> Its definitely caused by something merged here:
+>=20
+> commit ce38207f161513ee3d2bd3860489f07ebe65bc78
+> Merge: a9042de 995c6a7
+> Author: Linus Torvalds <torvalds@linux-foundation.org>
+> Date:   Wed Dec 14 11:14:28 2016 -0800
+>=20
+> So it should be easy to find out..
+
+Doing git bisect now. Hmmm.
+
+pavel@amd:/data/l/linux-n900$ git bisect bad
+1a653aa44725668590b36bbe2d7fe4736a69f055 is the first bad commit
+commit 1a653aa44725668590b36bbe2d7fe4736a69f055
+Author: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Date:   Wed Nov 30 06:22:55 2016 +0000
+
+    ASoC: core: replace aux_comp_list to component_dev_list
+
+    Now, Card has component_dev_list, we can replace aux_comp_list
+        to component_dev_list with new auxiliary flags
+
+    Signed-off-by: Kuninori Morimoto
+    <kuninori.morimoto.gx@renesas.com>
+        Signed-off-by: Mark Brown <broonie@kernel.org>
+
+:040000 040000 a571fa05e5ce8e00b73bbc3f1e30e26775d619e8
+e9336929cacf2d7bc94da99acfc10c9a7f513b8b M	include
+:040000 040000 87976e9406d452e791870cc12e27cb67ba04fd12
+60d36f685642621c0e3ebb61ba7a14186d8b3eb0 M	sound
+pavel@amd:/data/l/linux-n900$
+
+I'll try reverting this patch on top of 4.10-rc, next. Any other ideas?
+
+Best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--0F1p//8PRICkK4MW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlh/08sACgkQMOfwapXb+vLzlACfWMQo2Aio2Co5C8wb2G8XFAIY
+YbkAn2mdZVLaCxfptoTU3ZFr6eFm1W7z
+=3oyu
+-----END PGP SIGNATURE-----
+
+--0F1p//8PRICkK4MW--
+
+
+--===============2665983654667026390==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============2665983654667026390==--
