@@ -1,34 +1,44 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/5] ARM: OMAP2+: omap_hwmod: Add support for earlycon
-Date: Tue, 17 Jan 2017 15:23:10 -0800
-Message-ID: <20170117232310.GX7403@atomide.com>
-References: <20170117040336.21700-1-lokeshvutla@ti.com>
- <20170117040336.21700-2-lokeshvutla@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170117040336.21700-2-lokeshvutla-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH] net: ethernet: ti: davinci_cpdma: correct check on NULL in set rate
+Date: Wed, 18 Jan 2017 02:28:06 +0200
+Message-ID: <1484699286-6197-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170116 20:06]:
-> Hwmod core tries to reset and idles each IP that is registered with hwmod.
-> In case of earlycon, that specific uart IP cannot be reset or keep it in
-> idle state else earlycon hangs once hwmod resets that uart IP. So add support
-> to not reset uart that is being used as earlycon only if CONFIG_SERIAL_EARLYCON
-> is enabled.
+Check "ch" on NULL first, then get ctlr.
 
-Nice :)
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
 
-I guess this has no dependency to SERIAL_OMAP vs 8250_OMAP selection?
+Based on net-next/master
 
-Regards,
+ drivers/net/ethernet/ti/davinci_cpdma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index d80bff1..7ecc6b7 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -835,8 +835,8 @@ EXPORT_SYMBOL_GPL(cpdma_chan_get_min_rate);
+  */
+ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
+ {
+-	struct cpdma_ctlr *ctlr = ch->ctlr;
+ 	unsigned long flags, ch_flags;
++	struct cpdma_ctlr *ctlr;
+ 	int ret, prio_mode;
+ 	u32 rmask;
+ 
+@@ -846,6 +846,7 @@ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
+ 	if (ch->rate == rate)
+ 		return rate;
+ 
++	ctlr = ch->ctlr;
+ 	spin_lock_irqsave(&ctlr->lock, flags);
+ 	spin_lock_irqsave(&ch->lock, ch_flags);
+ 
+-- 
+2.7.4
