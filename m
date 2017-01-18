@@ -1,75 +1,191 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] dt/bindings: da8xx-usb: Add binding for the CPPI
- 4.1 DMA controller
-Date: Wed, 18 Jan 2017 14:03:44 +0530
-Message-ID: <710c724c-3831-e9d1-406b-76bdfed7b948@ti.com>
-References: <20170117142016.11163-1-abailon@baylibre.com>
- <20170117142016.11163-2-abailon@baylibre.com>
- <aa9b6761-c8de-13ea-1a62-9810ad92a6d4@cogentembedded.com>
+From: Matt Ranostay <matt@ranostay.consulting>
+Subject: [PATCH v8] ASoC: omap-mcbsp: Add PM QoS support for
+	McBSP to prevent glitches
+Date: Tue, 17 Jan 2017 23:26:00 -0800
+Message-ID: <20170118072600.15239-1-matt@ranostay.consulting>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <aa9b6761-c8de-13ea-1a62-9810ad92a6d4-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Matt Ranostay <matt@ranostay.consulting>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 17 January 2017 10:46 PM, Sergei Shtylyov wrote:
-> On 01/17/2017 05:20 PM, Alexandre Bailon wrote:
-> 
->> DT binding for the TI DA8xx/OMAP-L1x/AM17xx/AM18xx cppi41 dma controller.
->>
->> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
->> ---
->>  .../devicetree/bindings/usb/da8xx-usb.txt          | 42
->> ++++++++++++++++++++++
->>  1 file changed, 42 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
->> b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
->> index ccb844a..aed3169 100644
->> --- a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
->> +++ b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
->> @@ -18,10 +18,26 @@ Required properties:
->>
->>   - phy-names: Should be "usb-phy"
->>
->> + - dmas: specifies the dma channels
->> +
->> + - dma-names: specifies the names of the channels. Use "rxN" for receive
->> +   and "txN" for transmit endpoints. N specifies the endpoint number.
->> +
->>  Optional properties:
->>  ~~~~~~~~~~~~~~~~~~~~
->>   - vbus-supply: Phandle to a regulator providing the USB bus power.
->>
->> +DMA
->> +~~~
->> +- compatible: ti,da8xx-cppi41
-> 
->    Almost missed this -- wildcards in this property are forbidden.
-> We should use "ti,da830-cppi41" as a least common denominator.
+We can get audio errors if hitting deeper idle states on omaps:
 
-Documentation/devicetree/bindings/submitting-patches.txt states:
+[alsa.c:230] error: Fatal problem with alsa output, error -5.
+[audio.c:614] error: Error in writing audio (Input/output error?)!
 
-"
-  5) The wildcard "<chip>" may be used in compatible strings, as in
-     the following example:
+This seems to happen with off mode idle enabled as power for the
+whole SoC may get cut off between filling the McBSP fifo using DMA.
+While active DMA blocks deeper idle states in hardware, McBSP
+activity does not seem to do so.
 
-         - compatible: Must contain '"nvidia,<chip>-pcie",
-           "nvidia,tegra20-pcie"' where <chip> is tegra30, tegra132, ...
-"
+Basing the QoS latency calculation on the FIFO size, threshold,
+sample rate, and channels.
 
-I take this to mean that using wildcards to denote an SoC family on
-which the same IP is present is okay to do. With that understanding, I
-think using ti,da8xx-cppi41 is fine too. Although I have no objections
-against using the more specific ti,da830-cppi41
+Based on the original patch by Tony Lindgren
+Link: https://patchwork.kernel.org/patch/9305867/
 
-Thanks,
-Sekhar
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
+---
+Changes from v1:
+* add calculations for latency per number of FIFO locations
+
+Changes from v2:
+* add missing mcbsp.h header change
+
+Changes from v3:
+* base the latency calculations on threshold, buffer size, sample
+  rate, and channels
+
+Changes from v4:
+* using Peter Ujfalusi's suggestions for restoring a higher latency on
+  audio stream completion, or if not applicable remove the QoS request
+
+Changes from v5:
+* clean up latency checking logic
+* move logic to .prepare and .shutdown to avoid functions that can sleep
+
+Changes from v6:
+* move QoS removal to asoc_mcbsp_remove from omap_mcbsp_cleanup
+* also remove header include that is unneeded
+
+Changes from v7:
+* fix issue reported by Tony Lindgreen that a player application could close the
+  card after hw_params, and cause an invalid pm_qos_remove_request()
+
+ sound/soc/omap/mcbsp.h      |  3 +++
+ sound/soc/omap/omap-mcbsp.c | 48 ++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 50 insertions(+), 1 deletion(-)
+
+diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
+index 61e93b1c185d..46ae1269a698 100644
+--- a/sound/soc/omap/mcbsp.h
++++ b/sound/soc/omap/mcbsp.h
+@@ -323,8 +323,11 @@ struct omap_mcbsp {
+ 
+ 	unsigned int fmt;
+ 	unsigned int in_freq;
++	unsigned int latency[2];
+ 	int clk_div;
+ 	int wlen;
++
++	struct pm_qos_request pm_qos_req;
+ };
+ 
+ void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index d018e966e533..6b40bdbef336 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -157,6 +157,17 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_substream *substream,
+ 				    struct snd_soc_dai *cpu_dai)
+ {
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
++
++	if (mcbsp->latency[stream2])
++		pm_qos_update_request(&mcbsp->pm_qos_req,
++				      mcbsp->latency[stream2]);
++	else if (mcbsp->latency[stream1])
++		pm_qos_remove_request(&mcbsp->pm_qos_req);
++
++	mcbsp->latency[stream1] = 0;
+ 
+ 	if (!cpu_dai->active) {
+ 		omap_mcbsp_free(mcbsp);
+@@ -164,6 +175,28 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_substream *substream,
+ 	}
+ }
+ 
++static int omap_mcbsp_dai_prepare(struct snd_pcm_substream *substream,
++				  struct snd_soc_dai *cpu_dai)
++{
++	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
++	struct pm_qos_request *pm_qos_req = &mcbsp->pm_qos_req;
++	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
++	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
++	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
++	int latency = mcbsp->latency[stream2];
++
++	/* Prevent omap hardware from hitting off between FIFO fills */
++	if (!latency || mcbsp->latency[stream1] < latency)
++		latency = mcbsp->latency[stream1];
++
++	if (pm_qos_request_active(pm_qos_req))
++		pm_qos_update_request(pm_qos_req, latency);
++	else if (latency)
++		pm_qos_add_request(pm_qos_req, PM_QOS_CPU_DMA_LATENCY, latency);
++
++	return 0;
++}
++
+ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
+ 				  struct snd_soc_dai *cpu_dai)
+ {
+@@ -226,6 +259,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	int wlen, channels, wpf;
+ 	int pkt_size = 0;
+ 	unsigned int format, div, framesize, master;
++	unsigned int buffer_size = mcbsp->pdata->buffer_size;
+ 
+ 	dma_data = snd_soc_dai_get_dma_data(cpu_dai, substream);
+ 	channels = params_channels(params);
+@@ -240,7 +274,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	if (mcbsp->pdata->buffer_size) {
++	if (buffer_size) {
++		int latency;
++
+ 		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
+ 			int period_words, max_thrsh;
+ 			int divider = 0;
+@@ -271,6 +307,12 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 			/* Use packet mode for non mono streams */
+ 			pkt_size = channels;
+ 		}
++
++		latency = ((((buffer_size - pkt_size) / channels) * 1000)
++				 / (params->rate_num / params->rate_den));
++
++		mcbsp->latency[substream->stream] = latency;
++
+ 		omap_mcbsp_set_threshold(substream, pkt_size);
+ 	}
+ 
+@@ -554,6 +596,7 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
+ static const struct snd_soc_dai_ops mcbsp_dai_ops = {
+ 	.startup	= omap_mcbsp_dai_startup,
+ 	.shutdown	= omap_mcbsp_dai_shutdown,
++	.prepare	= omap_mcbsp_dai_prepare,
+ 	.trigger	= omap_mcbsp_dai_trigger,
+ 	.delay		= omap_mcbsp_dai_delay,
+ 	.hw_params	= omap_mcbsp_dai_hw_params,
+@@ -835,6 +878,9 @@ static int asoc_mcbsp_remove(struct platform_device *pdev)
+ 	if (mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+ 		mcbsp->pdata->ops->free(mcbsp->id);
+ 
++	if (pm_qos_request_active(&mcbsp->pm_qos_req))
++		pm_qos_remove_request(&mcbsp->pm_qos_req);
++
+ 	omap_mcbsp_cleanup(mcbsp);
+ 
+ 	clk_put(mcbsp->fclk);
+-- 
+2.10.2
