@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 1/5] ARM: OMAP2+: omap_hwmod: Add support for earlycon
-Date: Wed, 18 Jan 2017 09:33:22 +0530
-Message-ID: <20170118040326.29259-2-lokeshvutla@ti.com>
+Subject: [PATCH v2 4/5] ARM: dts: am57xx: Add stdout-path property
+Date: Wed, 18 Jan 2017 09:33:25 +0530
+Message-ID: <20170118040326.29259-5-lokeshvutla@ti.com>
 References: <20170118040326.29259-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,68 +12,45 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mai
 Cc: Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hwmod core tries to reset and idles each IP that is registered with hwmod.
-In case of earlycon, that specific uart IP cannot be reset or keep it in
-idle state else earlycon hangs once hwmod resets that uart IP. So add support
-to not reset uart that is being used as earlycon only if CONFIG_SERIAL_EARLYCON
-is enabled.
+Add stdout-path property in /chosen node so that earlycon can be
+used by just adding earlycon in bootargs.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 4 ++++
+ arch/arm/boot/dts/am57xx-idk-common.dtsi        | 4 ++++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e8b988714a09..0da4f2ea76c4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3249,6 +3249,36 @@ int __init omap_hwmod_setup_one(const char *oh_name)
- }
+diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+index 78bee26361f1..3a95db7da71f 100644
+--- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+@@ -22,6 +22,10 @@
+ 		display0 = &hdmi0;
+ 	};
  
- /**
-+ * omap_hwmod_setup_earlycon_flags - set up flags for early console
-+ *
-+ * Enable DEBUG_OMAPUART_FLAGS for uart hwmod that is being used as
-+ * early concole so that hwmod core doesn't reset and keep it in idle
-+ * that specific uart.
-+ */
-+#ifdef CONFIG_SERIAL_EARLYCON
-+static void __init omap_hwmod_setup_earlycon_flags(void)
-+{
-+	struct device_node *np;
-+	struct omap_hwmod *oh;
-+	const char *uart;
++	chosen {
++		stdout-path = &uart3;
++	};
 +
-+	np = of_find_node_by_path("/chosen");
-+	if (np) {
-+		uart = of_get_property(np, "stdout-path", NULL);
-+		if (uart) {
-+			np = of_find_node_by_path(uart);
-+			if (np) {
-+				uart = of_get_property(np, "ti,hwmods", NULL);
-+				oh = omap_hwmod_lookup(uart);
-+				if (oh)
-+					oh->flags |= DEBUG_OMAPUART_FLAGS;
-+			}
-+		}
-+	}
-+}
-+#endif
+ 	memory@0 {
+ 		device_type = "memory";
+ 		reg = <0x0 0x80000000 0x0 0x80000000>;
+diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+index 814a720d5c3d..0d341c545b01 100644
+--- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+@@ -14,6 +14,10 @@
+ 		rtc1 = &rtc;
+ 	};
+ 
++	chosen {
++		stdout-path = &uart3;
++	};
 +
-+/**
-  * omap_hwmod_setup_all - set up all registered IP blocks
-  *
-  * Initialize and set up all IP blocks registered with the hwmod code.
-@@ -3261,6 +3291,9 @@ static int __init omap_hwmod_setup_all(void)
- 	_ensure_mpu_hwmod_is_setup(NULL);
- 
- 	omap_hwmod_for_each(_init, NULL);
-+#ifdef CONFIG_SERIAL_EARLYCON
-+	omap_hwmod_setup_earlycon_flags();
-+#endif
- 	omap_hwmod_for_each(_setup, NULL);
- 
- 	return 0;
+ 	vmain: fixedregulator-vmain {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "VMAIN";
 -- 
 2.11.0
 
