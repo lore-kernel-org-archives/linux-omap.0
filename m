@@ -1,35 +1,24 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 25/37] dt-bindings: PCI: Add dt bindings for pci
- designware EP mode
-Date: Wed, 18 Jan 2017 15:36:31 -0600
-Message-ID: <20170118213631.vvdjc4g3gt6zy2c5@rob-hp-laptop>
-References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-26-git-send-email-kishon@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ethernet: ti: davinci_cpdma: correct check on
+ NULL in set rate
+Date: Wed, 18 Jan 2017 16:38:25 -0500 (EST)
+Message-ID: <20170118.163825.1109172903256378954.davem@davemloft.net>
+References: <1484699286-6197-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1484216786-17292-26-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: devicetree@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org, Jingoo Han <jingoohan1@gmail.com>, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, linux-samsung-soc@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1484699286-6197-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ivan.khoronzhuk@linaro.org
+Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 12, 2017 at 03:56:14PM +0530, Kishon Vijay Abraham I wrote:
-> Add device tree binding documentation for pci designware EP mode.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  .../devicetree/bindings/pci/designware-pcie.txt    |   26 ++++++++++++++------
->  1 file changed, 18 insertions(+), 8 deletions(-)
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Date: Wed, 18 Jan 2017 02:28:06 +0200
 
-Acked-by: Rob Herring <robh@kernel.org>
+> Check "ch" on NULL first, then get ctlr.
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+
+Applied, thanks.
