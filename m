@@ -1,117 +1,74 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Nokia N900: mixers changed between 4.9 and 4.10-rc3, no longer
- can use in-call speaker
-Date: Wed, 18 Jan 2017 22:55:49 +0100
-Message-ID: <20170118215549.GA25865@amd>
-References: <20170112181826.GA28290@amd> <201701121934.19810@pali>
- <20170114225614.GA25321@amd> <201701150100.54214@pali>
- <20170116211540.GA19736@amd> <20170118204459.GA5622@amd>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv3] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
+Date: Wed, 18 Jan 2017 12:48:40 -0600
+Message-ID: <20170118184840.GD10928@uda0271908>
+References: <20170117175524.3484-1-tony@atomide.com>
+ <20170118142501.GA10928@uda0271908>
+ <20170118165308.GC7403@atomide.com>
+ <f33ba3b1-a35d-8d63-35ec-db1e0ca96c54@ti.com>
+ <20170118181541.GJ7403@atomide.com>
+ <20170118184432.GK7403@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5747860993221808956=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170118204459.GA5622@amd>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, kuninori.morimoto.gx@renesas.com
-Cc: alsa-devel@alsa-project.org, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, broonie@kernel.org, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, lars@metafoo.de, abcloriens@gmail.com, jarkko.nikula@bitmer.com, helen.koike@collabora.co.uk, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170118184432.GK7403-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
---===============5747860993221808956==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
-Content-Disposition: inline
-
-
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-> > > > So regression seems to be between v4.9 and v4.10. Any ideas?
-> > >=20
-> > > Interesting... seems there are no sound relevant changes after v4.9.
-> > >=20
-> > > Looks like there are only three commits after v4.9 for sound/soc whic=
-h=20
-> > > are built for Nokia N900:
+On Wed, Jan 18, 2017 at 10:44:32AM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170118 10:15]:
+> > * Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [170118 10:05]:
+> > > 
+> > > 
+> > > On 01/18/2017 10:53 AM, Tony Lindgren wrote:
+> > > > Hi,
+> > > > 
+> > > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170118 06:26]:
+> > > >> With this v3, I still get -71 error when a device is plugged to a hub to
+> > > >> musb. It doesn't happen though if the device is already plugged to the hub
+> > > >> before attaching the hub to musb.
+> > > >>
+> > > >> [  177.579300] usb 1-1: reset high-speed USB device number 2 using musb-hdrc
+> > > >> [  177.719308] usb 1-1: device descriptor read/64, error -71
+> > > >> [  178.350297] usb 1-1.1: new high-speed USB device number 4 using musb-hdrc
+> > > > 
+> > > > I think the -71 issue is a different regression. I've verified that v4.8.y
+> > > > does not have this, but v4.9.y does have it.
+> > > > 
+> > > > So far the easiest way for me to reproduce the -71 problem is by plugging
+> > > > a USB drive into a connected hub. If I connect the hub with USB drive already
+> > > > plugged into the hub, it does not happen.
 > ...
-> > Its definitely caused by something merged here:
-> >=20
-> > commit ce38207f161513ee3d2bd3860489f07ebe65bc78
-> > Merge: a9042de 995c6a7
-> > Author: Linus Torvalds <torvalds@linux-foundation.org>
-> > Date:   Wed Dec 14 11:14:28 2016 -0800
-> >=20
-> > So it should be easy to find out..
->=20
-> Doing git bisect now. Hmmm.
->=20
-> pavel@amd:/data/l/linux-n900$ git bisect bad
-> 1a653aa44725668590b36bbe2d7fe4736a69f055 is the first bad commit
-> commit 1a653aa44725668590b36bbe2d7fe4736a69f055
-> Author: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-> Date:   Wed Nov 30 06:22:55 2016 +0000
->=20
->     ASoC: core: replace aux_comp_list to component_dev_list
->=20
->     Now, Card has component_dev_list, we can replace aux_comp_list
->         to component_dev_list with new auxiliary flags
->=20
->     Signed-off-by: Kuninori Morimoto
->     <kuninori.morimoto.gx@renesas.com>
->         Signed-off-by: Mark Brown <broonie@kernel.org>
->=20
-> :040000 040000 a571fa05e5ce8e00b73bbc3f1e30e26775d619e8
-> e9336929cacf2d7bc94da99acfc10c9a7f513b8b M	include
-> :040000 040000 87976e9406d452e791870cc12e27cb67ba04fd12
-> 60d36f685642621c0e3ebb61ba7a14186d8b3eb0 M	sound
-> pavel@amd:/data/l/linux-n900$
->=20
-> I'll try reverting this patch on top of 4.10-rc, next. Any other ideas?
+> 
+> > > Sry, but wouldn't be more simple and safe just to drop PM runtime from this driver,
+> > > as it is part of musb and musb PM state expected to be handled properly by PM runtime now.
+> > 
+> > Well we still need PM runtime in cppi41 to initialize it when it gets
+> > probed and idle it when not used even if musb modules are not loaded.
+> > 
+> > Unfortunately until musb_cppi41.c dma calls are fixed, we can't do
+> > any sane use counting in cppi41.c without adding timeout handling
+> > to it.
+> > 
+> > > More over, There is another possibility related to the current PM runtime implementation and autosuspend
+> > > - it might introduce delay between time when musb request desc push and time when cppi will actually
+> > > put this desc in HW queue if cppi was not active.
+> > > For example, there might not be -71 error seen if CPPI autosuspend is disabled
+> > > (cppi is active all the time) before plug-in hub and then USB drive.
+> > 
+> > I already checked that. The -71 error seems to be a separate issue.
+> 
+> OK found it. I can make v4.8.17 produce -71 errors with just commit
+> 467d5c980709 ("usb: musb: Implement session bit based runtime PM for
+> musb-core") applied on top of it. So looks like we're missing some
+> musb quirk handling for the devctl session bit.
 
-Reverting that fixed the issue, but when I re-checked current -rc4, it
-seems it has similar fix there, too. GOod.
+Nice!
 
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---YiEDa0DAkWCtVeE4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlh/5GUACgkQMOfwapXb+vIakACeO4Ufp9/2Z/YrKlUMJNxV8MOi
-Q+MAoMKxBCtBUBYG6h5PgJKWHNdIs9j1
-=inZ8
------END PGP SIGNATURE-----
-
---YiEDa0DAkWCtVeE4--
-
-
---===============5747860993221808956==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============5747860993221808956==--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
