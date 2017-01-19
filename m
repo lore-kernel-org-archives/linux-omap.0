@@ -1,92 +1,178 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: dwc3 gadget breaks on system suspend/resume
-Date: Thu, 19 Jan 2017 13:46:02 +0200
-Message-ID: <54bdc1b7-69ed-d580-fd17-3e7499ac1c27@ti.com>
+From: Vivek Gautam <vivek.gautam@codeaurora.org>
+Subject: Re: [PATCH v11 08/14] usb: otg: add OTG/dual-role core
+Date: Thu, 19 Jan 2017 17:26:49 +0530
+Message-ID: <CAFp+6iEpnHTWQe196zWPJu3vqb+L=47rfU_8nfuUNC=Gjvc8Gg@mail.gmail.com>
+References: <1465564043-27163-1-git-send-email-rogerq@ti.com>
+ <1465564043-27163-9-git-send-email-rogerq@ti.com> <575E672E.5070603@ti.com>
+ <87h9coxq04.fsf@linux.intel.com> <20160620114904.GC26936@shlinux2>
+ <8737o8qd00.fsf@linux.intel.com> <20160621060517.GA5108@shlinux2>
+ <877fdjovef.fsf@linux.intel.com> <20160621090738.GD5108@shlinux2>
+ <87h9cmoo4s.fsf@linux.intel.com> <20160621130512.GF5108@shlinux2>
+ <87por9lnjd.fsf@linux.intel.com> <576A4321.6020209@ti.com>
+ <87fus5ljwf.fsf@linux.intel.com> <576A4C95.4080202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <576A4C95.4080202@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@kernel.org>
+Cc: Peter Chen <hzpeterchen@gmail.com>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, peter.chen@freescale.com, Tony Lindgren <tony@atomide.com>, Greg KH <gregkh@linuxfoundation.org>, dan.j.williams@intel.com, Mathias Nyman <mathias.nyman@linux.intel.com>, Joao.Pinto@synopsys.com, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, jun.li@freescale.com, grygorii.strashko@ti.com, Rob Herring <robh@kernel.org>, nsekhar@ti.com, b-liu@ti.com, Joe Perches <joe@perches.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+Hi,
 
-We have system suspend resume working on dra7-evm in v4.10-rc but
-dwc3 gadget breaks after system suspend resume.
 
-Any hints how to fix it? Full backtrace below.
+On Wed, Jun 22, 2016 at 2:00 PM, Roger Quadros <rogerq@ti.com> wrote:
 
-Another message that looks worry-some is
-"[   61.495313] omap-dwc3 48880000.omap_dwc3_1: runtime PM trying to suspend device but active child"
+Luckily hit this thread while checking about DRD role functionality for DWC3.
 
-If I unload gadget, then suspend/resume system then load gadget everything works fine.
+> On 22/06/16 11:14, Felipe Balbi wrote:
+>>
+>> Hi,
+>>
+>> Roger Quadros <rogerq@ti.com> writes:
+>>>>>>>>>>> For the real use case, some Carplay platforms need it.
+>>>>>>>>>>
+>>>>>>>>>> Carplay does *NOT* rely on OTG. Apple has its own proprietary and closed
+>>>>>>>>>> specification which is not OTG-compliant.
+>>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> Yes, it is not OTG-compliant, but it can co-work with some standard OTG FSM
+>>>>>>>>> states to finish role swap.
+>>>>>>>>
+>>>>>>>> What are you referring to as "finish role swap"? I don't get that.
+>>>>>>>
+>>>>>>> Change current role from host to peripheral.
+>>>>>>
+>>>>>> Okay, we have two scenarios here:
+>>>>>>
+>>>>>> 1. You need full OTG compliance
+>>>>>>
+>>>>>>   For this, granted, you need the state machine if your HW doesn't
+>>>>>>   track it. This is a given. With only one user, however, perhaps
+>>>>>>   we don't need a generic layer. There are not enough different
+>>>>>>   setups to design a good enough generic layer. We will end up
+>>>>>>   with a pseudo-generic framework which is coupled with its only
+>>>>>>   user.
+>>>>>>
+>>>>>> 2. Dual-role support, without OTG compliance
+>>>>>>
+>>>>>>   In this case, you don't need a stack. All you need is a signal
+>>>>>>   to tell you state of ID pin and another to tell you state of
+>>>>>>   VBUS level. If you have those, you don't need to walk an OTG
+>>>>>>   state machine at all. You don't need any of those quirky OTG
+>>>>>>   timers, agreed?
+>>>>>>
+>>>>>>   Given the above, why would you even want to use a subset of OTG
+>>>>>>   state machine to implement something that's _usually_ as simple
+>>>>>>   as:
+>>>>>>
+>>>>>> 8<----------------------------------------------------------------------
+>>>>>>   vbus = read(VBUS_STATE); /* could be a gpio_get_value() */
+>>>>>>         id = read(ID_STATE); /* could be a gpio_get_value() */
+>>>>>>
+>>>>>>         set_role(id);
+>>>>>>         set_vbus(vbus);
+>>>>>> ------------------------------------------------------------------------
+>>>>>>
+>>>>>
+>>>>> In fact, the individual driver can do it by itself. The chipidea driver
+>>>>> handles OTG and dual-role well currently. By considering this OTG/DRD
+>>>>> framework is worthwhile or not, we would like to see if it can
+>>>>> simplify DRD design for each driver, and can benefit the platforms which
+>>>>> has different drivers for host and peripheral to finish the role switch
+>>>>> well.
+>>>>
+>>>> simplify how?  By adding unnecessary workqueues and a level indirection
+>>>> that just goes back to the same driver?
+>>>
+>>> What do you mean by same driver?
+>>
+>> dwc3 registers to OTG layer. dwc3 also registers as UDC to UDC
+>> layer. When dwc3 OTG IRQ fires, dwc3 tells OTG layer about it and OTG
+>> layer jumps to a callback that goes back to dwc3 to e.g. start
+>> peripheral side.
+>>
+>> See ?!? Starts on dwc3, goes to OTG layer, goes back to DWC3.
+>>
+>>> Gadget driver, host driver and PHY (or MUX) driver (for ID/VBUS) can
+>>> be 3 totally independent drivers unlike dwc3 where you have a single
+>>> driver in control of both host and gadget.
+>>
+>> That's a totally different issue and one not being tackled by OTG
+>> layer, because there are no such users yet. We can't design anything
+>> based solely on speculation of what might happen.
+>>
+>> If there aren't enough users, there is no way to design a good generic
+>> layer.
+>>
+>>> Questions not clear to me are:
+>>>
+>>> 1) Which driver handles ID/VBUS events and makes a decision to do the
+>>> role swap?  Probably the PHY/MUX driver?
+>>
+>> This is implementation dependent. For TI's USB subsystem, we have PMIC
+>> sampling VBUS/ID that and using EXTCON to tell dwc3-omap to program UTMI
+>> mailbox. The same mailbox can be used in HW-mode (see AM437x) where SW
+>> has no intervention.
+>>
+>> For Intel's USB subsystem, we have PMIC sampling VBUS/ID with an
+>> internal mux (much like TI's UTMI mailbox, but slightly different) to
+>> switch between a separate XHCI or a separate dwc3. The same mux can be
+>> put in HW-mode where SW has no intervention.
+>>
+>> In any case, for Intel's stuff most of the magic happens in ASL. Our PHY
+>> driver just detects role (at least for Type-C based plats) and executes
+>> _DSM with correct arguments [1]. _DSM will program internal MUX, toggle
+>> VBUS and, for type-C, toggle VCONN when needed.
+>>
+>>> 2) How does it perform the role swap? Probably a register write to the
+>>> PHY/MUX without needing to stop/start controllers? Easy case is both
+>>> controllers can run in co-existence without interference. Is there any
+>>> platform other than dwc3 where this is not the case?
+>>
+>> Again speculation. But to answer your question, only dwc3 is in such a
+>> case today. But even for dwc3 we can have DRD with a much, much simpler
+>> setup as I have already explained.
+>>
+>>> 3) Even if host and gadget controllers can operate in coexistence,
+>>> there is no need for both to be running for embedded applications
+>>> which are usually power conservative.  How can we achieve that?
+>>
+>> Now you're also speculating that you're running on embedded applications
+>> and that we _can_ power off parts of the IP. I happen to know that we
+>> can't power off XHCI part of dwc3 in TI's SoC because that's fed by same
+>> Clocks and power rails as the peripheral side.
+>>
+>> [1] https://lkml.org/lkml/2016/6/21/658
+>>
+> For TI's case it is dwc3 and you are implementing the role swap in the dwc3
+> driver where you do intend to remove the XHCI platform device. So I'm not
+> much concerned about that.
+>
+> I was concerned about other platforms. I guess I'll let the other platform
+> people speak up as to what they need.
 
-cheers,
--roger
+I will talk about the msm platforms using dwc3 hardware.
+DWC3 controller on msm doesn't seem to have full otg functionality,
+and the driver makes use of switching between host and device
+using PRTCAPDIR register in of the core [1].
 
-rtcwake: wakeup from "mem" using /dev/rtc0 at Sat Jan  1 00:01:01 2000
-[   61.434863] PM: Syncing filesystems ... done.
-[   61.439563] PM: Preparing system for sleep (mem)
-[   61.445966] Freezing user space processes ... (elapsed 0.001 seconds) done.
-[   61.455285] Freezing remaining freezable tasks ... (elapsed 0.001 seconds) done.
-[   61.464617] PM: Suspending system (mem)
-[   61.468641] Suspending console(s) (use no_console_suspend to debug)
-[   61.490595] PM: suspend of devices complete after 13.582 msecs
-[   61.494404] PM: late suspend of devices complete after 3.799 msecs
-[   61.495313] omap-dwc3 48880000.omap_dwc3_1: runtime PM trying to suspend device but active child
-[   61.495348] omap-dwc3 488c0000.omap_dwc3_2: runtime PM trying to suspend device but active child
-[   61.497601] omap-ocp2scp 4a080000.ocp2scp: runtime PM trying to suspend device but active child
-[   61.497634] ahci 4a140000.sata: runtime PM trying to suspend device but active child
-[   61.497660] omap-ocp2scp 4a090000.ocp2scp: runtime PM trying to suspend device but active child
-[   61.498454] PM: noirq suspend of devices complete after 4.042 msecs
-[   61.498458] Disabling non-boot CPUs ...
-[   61.499492] CPU1: shutdown
-[   61.554081] Successfully put all powerdomains to target state
-[   61.554081] Suspended for 3.833 seconds
-[   61.554094] Enabling non-boot CPUs ...
-[   61.583410] CPU1: smp_ops.cpu_die() returned, trying to resuscitate
-[   61.583753] CPU1 is up
-[   61.585775] PM: noirq resume of devices complete after 2.013 msecs
-[   61.588224] PM: early resume of devices complete after 1.981 msecs
-[   61.590256] net eth0: initializing cpsw version 1.15 (0)
-[   61.696078] Generic PHY 48485000.mdio:02: attached PHY driver [Generic PHY] (mii_bus:phy_addr=48485000.mdio:02, irq=-1)
-[   61.707591] PM: resume of devices complete after 119.358 msecs
-[   61.816446] zero gadget: suspend
-[   61.816450] zero gadget: zero_suspend
-[   61.846681] PM: Finishing wakeup.
-[   61.850156] Restarting tasks ... done.
-root@rockdesk:~# [   61.925469] ata1: SATA link down (SStatus 0 SControl 300)
-[   61.945352] zero gadget: reset config
-[   61.949199] ------------[ cut here ]------------
-[   61.954065] WARNING: CPU: 1 PID: 2127 at drivers/usb/dwc3/gadget.c:2384 dwc3_stop_active_transfer.constprop.4+0xc4/0xe4 [dwc3]
-[   61.966015] Modules linked in: usb_f_ss_lb g_zero libcomposite xhci_plat_hcd xhci_hcd usbcore dwc3 udc_core snd_soc_tlv320aic3x snd_soc_simple_card snd_soc_davinci_mcasp evdev snd_soc_simple_card_utils m25p8e
-[   62.013916] CPU: 1 PID: 2127 Comm: irq/457-dwc3 Tainted: G        W       4.10.0-rc4-00108-gfb1d8e0 #1084
-[   62.023951] Hardware name: Generic DRA74X (Flattened Device Tree)
-[   62.030357] [<c0110194>] (unwind_backtrace) from [<c010c300>] (show_stack+0x10/0x14)
-[   62.038483] [<c010c300>] (show_stack) from [<c04a0758>] (dump_stack+0xac/0xe0)
-[   62.046068] [<c04a0758>] (dump_stack) from [<c013706c>] (__warn+0xd8/0x104)
-[   62.053376] [<c013706c>] (__warn) from [<c0137144>] (warn_slowpath_null+0x20/0x28)
-[   62.061347] [<c0137144>] (warn_slowpath_null) from [<bf2b684c>] (dwc3_stop_active_transfer.constprop.4+0xc4/0xe4 [dwc3])
-[   62.072800] [<bf2b684c>] (dwc3_stop_active_transfer.constprop.4 [dwc3]) from [<bf2b9b14>] (__dwc3_gadget_ep_disable+0x64/0x528 [dwc3])
-[   62.085516] [<bf2b9b14>] (__dwc3_gadget_ep_disable [dwc3]) from [<bf2bb27c>] (dwc3_gadget_ep_disable+0x3c/0xc8 [dwc3])
-[   62.096779] [<bf2bb27c>] (dwc3_gadget_ep_disable [dwc3]) from [<bf280428>] (usb_ep_disable+0x11c/0x18c [udc_core])
-[   62.107665] [<bf280428>] (usb_ep_disable [udc_core]) from [<bf386774>] (disable_ep+0x18/0x54 [usb_f_ss_lb])
-[   62.117907] [<bf386774>] (disable_ep [usb_f_ss_lb]) from [<bf3877b0>] (disable_endpoints+0x18/0x50 [usb_f_ss_lb])
-[   62.128681] [<bf3877b0>] (disable_endpoints [usb_f_ss_lb]) from [<bf387814>] (disable_source_sink+0x2c/0x34 [usb_f_ss_lb])
-[   62.140291] [<bf387814>] (disable_source_sink [usb_f_ss_lb]) from [<bf36ca9c>] (reset_config+0x48/0x7c [libcomposite])
-[   62.151552] [<bf36ca9c>] (reset_config [libcomposite]) from [<bf36cafc>] (composite_disconnect+0x2c/0x54 [libcomposite])
-[   62.162980] [<bf36cafc>] (composite_disconnect [libcomposite]) from [<bf2827dc>] (usb_gadget_udc_reset+0x10/0x34 [udc_core])
-[   62.174778] [<bf2827dc>] (usb_gadget_udc_reset [udc_core]) from [<bf2b5d70>] (dwc3_gadget_reset_interrupt+0x64/0x698 [dwc3])
-[   62.186580] [<bf2b5d70>] (dwc3_gadget_reset_interrupt [dwc3]) from [<bf2b852c>] (dwc3_thread_interrupt+0x618/0x1a3c [dwc3])
-[   62.198284] [<bf2b852c>] (dwc3_thread_interrupt [dwc3]) from [<c01a7cd8>] (irq_thread_fn+0x1c/0x54)
-[   62.207777] [<c01a7cd8>] (irq_thread_fn) from [<c01a7fac>] (irq_thread+0x120/0x1f0)
-[   62.215817] [<c01a7fac>] (irq_thread) from [<c015ba08>] (kthread+0xf8/0x138)
-[   62.223221] [<c015ba08>] (kthread) from [<c01078f0>] (ret_from_fork+0x14/0x24)
-[   62.230792] ---[ end trace bf9da8b9a4f9b671 ]---
-[   63.759582] cpsw 48484000.ethernet eth0: Link is Up - 100Mbps/Full - flow control rx/tx
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We plan to support this DRD role switching (swapping host and device
+functionality based on id/vbus interrupts) in upstream.
+
+Do we see a valid case to have this framework?
+Or, may be add a 'drd' layer for dwc3 that handles
+role switching (using PRTCAPDIR) based on the id/vbus extcon notifications.
+
+
+[1] https://source.codeaurora.org/quic/la/kernel/msm-3.18/tree/drivers/usb/dwc3/dwc3-msm.c?h=msm-3.18
+     "dwc3_otg_start_host()"
+     "dwc3_otg_start_peripheral()"
+
+
+Regards
+Vivek
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
