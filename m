@@ -1,55 +1,48 @@
-From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/5] ARM: OMAP2+: omap_hwmod: Add support for earlycon
-Date: Thu, 19 Jan 2017 15:35:22 +0530
-Message-ID: <61578446-3a10-55ab-dac9-0a95b6e2c77c@ti.com>
-References: <20170117040336.21700-1-lokeshvutla@ti.com>
- <20170117040336.21700-2-lokeshvutla@ti.com>
- <20170117232310.GX7403@atomide.com>
- <88830967-6e83-33fc-8a1c-d776fd694e2f@ti.com>
- <20170118170033.GD7403@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170118170033.GD7403-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v3 0/4]  dmaengine: cppi41: Make CPPI 4.1 driver more generic
+Date: Thu, 19 Jan 2017 11:37:01 +0100
+Message-ID: <20170119103705.13532-1-abailon@baylibre.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Most of the patch of this series were part of
+"[PATCH 00/11] dmaengine: cppi41: Add dma support to da8xx"
 
+This series intend to make the CPPI 4.1 more generic in order to
+add a new platform (the DA8xx).
+To achieve that, all the IRQ code present in CPPI 4.1 driver has been moved
+to MUSB DSPS driver.
+Other changes mainly update the glue layer and platform code to make the
+whole driver more generic.
 
-On Wednesday 18 January 2017 10:30 PM, Tony Lindgren wrote:
-> * Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170117 19:50]:
->>
->>
->> On Wednesday 18 January 2017 04:53 AM, Tony Lindgren wrote:
->>> * Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170116 20:06]:
->>>> Hwmod core tries to reset and idles each IP that is registered with hwmod.
->>>> In case of earlycon, that specific uart IP cannot be reset or keep it in
->>>> idle state else earlycon hangs once hwmod resets that uart IP. So add support
->>>> to not reset uart that is being used as earlycon only if CONFIG_SERIAL_EARLYCON
->>>> is enabled.
->>>
->>> Nice :)
->>>
->>> I guess this has no dependency to SERIAL_OMAP vs 8250_OMAP selection?
->>
->> Unfortunately SERIAL_OMAP does not support earlycon yet. As I mentioned
->> in my cover letter, I verified this series only with 8250_OMAP.
-> 
-> OK. So just to understand why it would not work with omap-serial, do we
-> need something implemented in drivers/tty/serial/earlycon.c for non 8250
-> drivers to make it work? Or are there other dependencies?
+This series is to apply on top of 
+"[PATCH v3 0/3] usb: musb: cppi41: Add a way to manage DMA irq".
 
-Yeah,  OF_EARLYCON_DECLARE should be declared for omap-serial. Just
-posted a patch[1] adding support for earlycon in omap-serial.
+Changes in v3:
+- To prevent build error report from kbuild test robot, move the first
+  patch of v2 to another patchset.
+- Make CPPI 4.1 driver compatible with old and new binddings.
+- Remove the patch updating the am33xx-usb binddings.
+- Remove useless changes in patch 4
+- Remove a patch that was fixing PM runtime issue that was happenning
+  during a teardown. Tony Lindgren's patches fix the issue.
 
-[1] https://patchwork.kernel.org/patch/9525377/
+Alexandre Bailon (4):
+  dmaengine: cppi41: Remove usbss_mem
+  dmaengine: cppi41: rename platform variables
+  dmaengine: cppi41: Move some constants to glue layer
+  dmaengine: cppi41: init_sched(): Get number of channels from DT
 
-Thanks and regards,
-Lokesh
+ drivers/dma/cppi41.c | 81 +++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 48 insertions(+), 33 deletions(-)
+
+-- 
+2.10.2
+
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
