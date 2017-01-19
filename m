@@ -1,206 +1,176 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v2 5/5] net: ethernet: ti: cpsw: clarify ethtool ops changing num of descs
-Date: Thu, 19 Jan 2017 18:58:27 +0200
-Message-ID: <1484845107-30331-6-git-send-email-ivan.khoronzhuk@linaro.org>
-References: <1484845107-30331-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1484845107-30331-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Sender: netdev-owner@vger.kernel.org
-To: mugunthanvnm@ti.com
-Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 2/2] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
+Date: Thu, 19 Jan 2017 08:49:08 -0800
+Message-ID: <20170119164908.9472-3-tony@atomide.com>
+References: <20170119164908.9472-1-tony@atomide.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170119164908.9472-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-After adding cpsw_set_ringparam ethtool op, better to carry out
-common parts of similar ops splitting descriptors in runtime. It
-allows to reuse these parts and shows what the ops actually do.
+Commit fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
+together with recent MUSB changes allowed USB and DMA on BeagleBone to idle
+when no cable is connected. But looks like few corner case issues still
+remain.
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Looks like just by re-plugging USB cable about ten or so times on BeagleBone
+when configured in USB peripheral mode we can get warnings and eventually
+trigger an oops in cppi41 DMA:
+
+WARNING: CPU: 0 PID: 14 at drivers/dma/cppi41.c:1154 cppi41_runtime_suspend+
+x28/0x38 [cppi41]
+...
+
+WARNING: CPU: 0 PID: 14 at drivers/dma/cppi41.c:452
+push_desc_queue+0x94/0x9c [cppi41]
+...
+
+Unable to handle kernel NULL pointer dereference at virtual
+address 00000104
+pgd = c0004000
+[00000104] *pgd=00000000
+Internal error: Oops: 805 [#1] SMP ARM
+...
+[<bf0d92cc>] (cppi41_runtime_resume [cppi41]) from [<c0589838>]
+(__rpm_callback+0xc0/0x214)
+[<c0589838>] (__rpm_callback) from [<c05899ac>] (rpm_callback+0x20/0x80)
+[<c05899ac>] (rpm_callback) from [<c0589460>] (rpm_resume+0x504/0x78c)
+[<c0589460>] (rpm_resume) from [<c058a1a0>] (pm_runtime_work+0x60/0xa8)
+[<c058a1a0>] (pm_runtime_work) from [<c0156120>] (process_one_work+0x2b4/0x808)
+
+This is because of a race with runtime PM and cppi41_dma_issue_pending()
+as reported by Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> in earlier
+set of patches. Based on mailing list discussions we however came to the
+conclusion that a different fix from Alexandre's fix is needed in order
+to guarantee that DMA is really active when we try to use it.
+
+To fix the issue, we need to add a driver specific flag as we otherwise
+can have -EINPROGRESS state set by runtime PM and can't rely on
+pm_runtime_active() to tell us when we can use the DMA.
+
+And we need to make sure the DMA transfers get triggered in the queued
+order. So let's always queue the transfers, then flush the queue
+from both cppi41_dma_issue_pending() and cppi41_runtime_resume()
+as suggested by Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> in an
+earlier example patch.
+
+For reference, this is also documented in Documentation/power/runtime_pm.txt
+in the example at the end of the file as pointed out by Grygorii Strashko
+<grygorii.strashko-l0cyMroinI0@public.gmane.org>.
+
+Based on earlier patches from Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+and Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> modified based on
+testing and what was discussed on the mailing lists.
+
+Fixes: fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
+Cc: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Reported-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/net/ethernet/ti/cpsw.c | 132 ++++++++++++++++++-----------------------
- 1 file changed, 59 insertions(+), 73 deletions(-)
+ drivers/dma/cppi41.c | 40 +++++++++++++++++++++++++---------------
+ 1 file changed, 25 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 1f14afd..897ebbe 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -2358,17 +2358,11 @@ static int cpsw_update_channels(struct cpsw_priv *priv,
- 	return 0;
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -153,6 +153,8 @@ struct cppi41_dd {
+ 
+ 	/* context for suspend/resume */
+ 	unsigned int dma_tdfdq;
++
++	bool is_suspended;
+ };
+ 
+ #define FIST_COMPLETION_QUEUE	93
+@@ -470,20 +472,26 @@ static void push_desc_queue(struct cppi41_channel *c)
+ 	cppi_writel(reg, cdd->qmgr_mem + QMGR_QUEUE_D(c->q_num));
  }
  
--static int cpsw_set_channels(struct net_device *ndev,
--			     struct ethtool_channels *chs)
-+static void cpsw_suspend_data_pass(struct net_device *ndev)
+-static void pending_desc(struct cppi41_channel *c)
++/*
++ * Caller must hold cdd->lock to prevent push_desc_queue()
++ * getting called out of order. We have both cppi41_dma_issue_pending()
++ * and cppi41_runtime_resume() call this function.
++ */
++static void cppi41_run_queue(struct cppi41_dd *cdd)
  {
--	struct cpsw_priv *priv = netdev_priv(ndev);
--	struct cpsw_common *cpsw = priv->cpsw;
-+	struct cpsw_common *cpsw = ndev_to_cpsw(ndev);
- 	struct cpsw_slave *slave;
--	int i, ret;
--
--	ret = cpsw_check_ch_settings(cpsw, chs);
--	if (ret < 0)
--		return ret;
-+	int i;
+-	struct cppi41_dd *cdd = c->cdd;
+-	unsigned long flags;
++	struct cppi41_channel *c, *_c;
  
- 	/* Disable NAPI scheduling */
- 	cpsw_intr_disable(cpsw);
-@@ -2386,6 +2380,51 @@ static int cpsw_set_channels(struct net_device *ndev,
- 
- 	/* Handle rest of tx packets and stop cpdma channels */
- 	cpdma_ctlr_stop(cpsw->dma);
-+}
-+
-+static int cpsw_resume_data_pass(struct net_device *ndev)
-+{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpsw_common *cpsw = priv->cpsw;
-+	struct cpsw_slave *slave;
-+	int i, ret;
-+
-+	/* Allow rx packets handling */
-+	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++)
-+		if (slave->ndev && netif_running(slave->ndev))
-+			netif_dormant_off(slave->ndev);
-+
-+	/* After this receive is started */
-+	if (cpsw_get_usage_count(cpsw)) {
-+		ret = cpsw_fill_rx_channels(priv);
-+		if (ret)
-+			return ret;
-+
-+		cpdma_ctlr_start(cpsw->dma);
-+		cpsw_intr_enable(cpsw);
+-	spin_lock_irqsave(&cdd->lock, flags);
+-	list_add_tail(&c->node, &cdd->pending);
+-	spin_unlock_irqrestore(&cdd->lock, flags);
++	list_for_each_entry_safe(c, _c, &cdd->pending, node) {
++		push_desc_queue(c);
++		list_del(&c->node);
 +	}
-+
-+	/* Resume transmit for every affected interface */
-+	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++)
-+		if (slave->ndev && netif_running(slave->ndev))
-+			netif_tx_start_all_queues(slave->ndev);
-+
-+	return 0;
-+}
-+
-+static int cpsw_set_channels(struct net_device *ndev,
-+			     struct ethtool_channels *chs)
-+{
-+	struct cpsw_priv *priv = netdev_priv(ndev);
-+	struct cpsw_common *cpsw = priv->cpsw;
-+	struct cpsw_slave *slave;
-+	int i, ret;
-+
-+	ret = cpsw_check_ch_settings(cpsw, chs);
-+	if (ret < 0)
-+		return ret;
-+
-+	cpsw_suspend_data_pass(ndev);
- 	ret = cpsw_update_channels(priv, chs);
- 	if (ret)
- 		goto err;
-@@ -2408,30 +2447,14 @@ static int cpsw_set_channels(struct net_device *ndev,
- 			dev_err(priv->dev, "cannot set real number of rx queues\n");
- 			goto err;
- 		}
--
--		/* Enable rx packets handling */
--		netif_dormant_off(slave->ndev);
+ }
+ 
+ static void cppi41_dma_issue_pending(struct dma_chan *chan)
+ {
+ 	struct cppi41_channel *c = to_cpp41_chan(chan);
+ 	struct cppi41_dd *cdd = c->cdd;
++	unsigned long flags;
+ 	int error;
+ 
+ 	error = pm_runtime_get(cdd->ddev.dev);
+@@ -495,10 +503,11 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
+ 		return;
  	}
  
--	if (cpsw_get_usage_count(cpsw)) {
--		ret = cpsw_fill_rx_channels(priv);
--		if (ret)
--			goto err;
--
-+	if (cpsw_get_usage_count(cpsw))
- 		cpsw_split_res(ndev);
+-	if (likely(pm_runtime_active(cdd->ddev.dev)))
+-		push_desc_queue(c);
+-	else
+-		pending_desc(c);
++	spin_lock_irqsave(&cdd->lock, flags);
++	list_add_tail(&c->node, &cdd->pending);
++	if (!cdd->is_suspended)
++		cppi41_run_queue(cdd);
++	spin_unlock_irqrestore(&cdd->lock, flags);
  
--		/* After this receive is started */
--		cpdma_ctlr_start(cpsw->dma);
--		cpsw_intr_enable(cpsw);
--	}
--
--	/* Resume transmit for every affected interface */
--	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++) {
--		if (!(slave->ndev && netif_running(slave->ndev)))
--			continue;
--		netif_tx_start_all_queues(slave->ndev);
--	}
--	return 0;
-+	ret = cpsw_resume_data_pass(ndev);
-+	if (!ret)
-+		return 0;
- err:
- 	dev_err(priv->dev, "cannot update channels number, closing device\n");
- 	dev_close(ndev);
-@@ -2492,8 +2515,7 @@ static int cpsw_set_ringparam(struct net_device *ndev,
+ 	pm_runtime_mark_last_busy(cdd->ddev.dev);
+ 	pm_runtime_put_autosuspend(cdd->ddev.dev);
+@@ -1166,8 +1175,12 @@ static int __maybe_unused cppi41_resume(struct device *dev)
+ static int __maybe_unused cppi41_runtime_suspend(struct device *dev)
  {
- 	struct cpsw_priv *priv = netdev_priv(ndev);
- 	struct cpsw_common *cpsw = priv->cpsw;
--	struct cpsw_slave *slave;
--	int i, ret;
-+	int ret;
+ 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
++	unsigned long flags;
  
- 	/* ignore ering->tx_pending - only rx_pending adjustment is supported */
++	spin_lock_irqsave(&cdd->lock, flags);
++	cdd->is_suspended = true;
+ 	WARN_ON(!list_empty(&cdd->pending));
++	spin_unlock_irqrestore(&cdd->lock, flags);
  
-@@ -2505,54 +2527,18 @@ static int cpsw_set_ringparam(struct net_device *ndev,
- 	if (ering->rx_pending == cpdma_get_num_rx_descs(cpsw->dma))
- 		return 0;
- 
--	/* Disable NAPI scheduling */
--	cpsw_intr_disable(cpsw);
--
--	/* Stop all transmit queues for every network device.
--	 * Disable re-using rx descriptors with dormant_on.
--	 */
--	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++) {
--		if (!(slave->ndev && netif_running(slave->ndev)))
--			continue;
--
--		netif_tx_stop_all_queues(slave->ndev);
--		netif_dormant_on(slave->ndev);
--	}
--
--	/* Handle rest of tx packets and stop cpdma channels */
--	cpdma_ctlr_stop(cpsw->dma);
-+	cpsw_suspend_data_pass(ndev);
- 
- 	cpdma_set_num_rx_descs(cpsw->dma, ering->rx_pending);
- 
--	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++) {
--		if (!(slave->ndev && netif_running(slave->ndev)))
--			continue;
--
--		/* Enable rx packets handling */
--		netif_dormant_off(slave->ndev);
--	}
--
--	if (cpsw_get_usage_count(cpsw)) {
-+	if (cpsw_get_usage_count(cpsw))
- 		cpdma_chan_split_pool(cpsw->dma);
- 
--		ret = cpsw_fill_rx_channels(priv);
--		if (ret)
--			goto err;
--
--		/* After this receive is started */
--		cpdma_ctlr_start(cpsw->dma);
--		cpsw_intr_enable(cpsw);
--	}
-+	ret = cpsw_resume_data_pass(ndev);
-+	if (!ret)
-+		return 0;
- 
--	/* Resume transmit for every affected interface */
--	for (i = cpsw->data.slaves, slave = cpsw->slaves; i; i--, slave++) {
--		if (!(slave->ndev && netif_running(slave->ndev)))
--			continue;
--		netif_tx_start_all_queues(slave->ndev);
--	}
--	return 0;
--err:
--	dev_err(priv->dev, "cannot set ring params, closing device\n");
-+	dev_err(&ndev->dev, "cannot set ring params, closing device\n");
- 	dev_close(ndev);
- 	return ret;
+ 	return 0;
  }
+@@ -1175,14 +1188,11 @@ static int __maybe_unused cppi41_runtime_suspend(struct device *dev)
+ static int __maybe_unused cppi41_runtime_resume(struct device *dev)
+ {
+ 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
+-	struct cppi41_channel *c, *_c;
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&cdd->lock, flags);
+-	list_for_each_entry_safe(c, _c, &cdd->pending, node) {
+-		push_desc_queue(c);
+-		list_del(&c->node);
+-	}
++	cdd->is_suspended = false;
++	cppi41_run_queue(cdd);
+ 	spin_unlock_irqrestore(&cdd->lock, flags);
+ 
+ 	return 0;
 -- 
-2.7.4
+2.11.0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
