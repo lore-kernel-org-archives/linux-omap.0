@@ -1,93 +1,88 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH] serial: omap: Add omapserial earlycon
-Date: Thu, 19 Jan 2017 15:29:38 +0530
-Message-ID: <20170119095938.30976-1-lokeshvutla@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
-Cc: linux-kernel@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-serial@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Lokesh Vutla <lokeshvutla@ti.com>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v3 1/3] usb: musb: dma: Add a DMA completion platform callback
+Date: Thu, 19 Jan 2017 11:06:57 +0100
+Message-ID: <20170119100659.11370-2-abailon@baylibre.com>
+References: <20170119100659.11370-1-abailon@baylibre.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170119100659.11370-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: b-liu-l0cyMroinI0@public.gmane.org
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add DT earlycon for omap_serial driver. This boot console is included
-with CONFIG_SERIAL_EARLYCON=y, CONFIG_OF=y, CONFIG_SERIAL_OMAP=y, and
-CONFIG_OF_EARLY_FLATTREE=y.
+Currently, the CPPI 4.1 driver is not completely generic and
+only work on dsps. This is because of IRQ management.
+Add a callback to dma_controller that could be invoked on DMA completion
+to acknodlege the IRQ.
 
-This boot console is enabled with the command line option "earlycon"
-(without "=<name>...") when the DT 'stdout-path' property matches a
-compatible uart.
-
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- drivers/tty/serial/omap-serial.c | 55 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ drivers/usb/musb/musb_cppi41.c | 7 +++++--
+ drivers/usb/musb/musb_dma.h    | 4 ++++
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index a2a529994ba5..3bbc4b5b6245 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -1234,6 +1234,61 @@ static int serial_omap_poll_get_char(struct uart_port *port)
+diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
+index 1636385..f7d3d27 100644
+--- a/drivers/usb/musb/musb_cppi41.c
++++ b/drivers/usb/musb/musb_cppi41.c
+@@ -217,6 +217,10 @@ static void cppi41_dma_callback(void *private_data)
+ 	int is_hs = 0;
+ 	bool empty;
  
- #ifdef CONFIG_SERIAL_OMAP_CONSOLE
++	controller = cppi41_channel->controller;
++	if (controller->controller.dma_callback)
++		controller->controller.dma_callback(&controller->controller);
++
+ 	spin_lock_irqsave(&musb->lock, flags);
  
-+#ifdef CONFIG_SERIAL_EARLYCON
-+static unsigned int __init omap_serial_early_in(struct uart_port *port,
-+						int offset)
-+{
-+	offset <<= port->regshift;
-+	return readw(port->membase + offset);
-+}
-+
-+static void __init omap_serial_early_out(struct uart_port *port, int offset,
-+					 int value)
-+{
-+	offset <<= port->regshift;
-+	writew(value, port->membase + offset);
-+}
-+
-+static void __init omap_serial_early_putc(struct uart_port *port, int c)
-+{
-+	unsigned int status;
-+
-+	for (;;) {
-+		status = omap_serial_early_in(port, UART_LSR);
-+		if ((status & BOTH_EMPTY) == BOTH_EMPTY)
-+			break;
-+		cpu_relax();
-+	}
-+	omap_serial_early_out(port, UART_TX, c);
-+}
-+
-+static void __init early_omap_serial_write(struct console *console,
-+					   const char *s, unsigned int count)
-+{
-+	struct earlycon_device *device = console->data;
-+	struct uart_port *port = &device->port;
-+
-+	uart_console_write(port, s, count, omap_serial_early_putc);
-+}
-+
-+static int __init early_omap_serial_setup(struct earlycon_device *device,
-+					  const char *options)
-+{
-+	struct uart_port *port = &device->port;
-+
-+	if (!(device->port.membase || device->port.iobase))
-+		return -ENODEV;
-+
-+	port->regshift = 2;
-+	device->con->write = early_omap_serial_write;
-+	return 0;
-+}
-+
-+OF_EARLYCON_DECLARE(omapserial, "ti,omap2-uart", early_omap_serial_setup);
-+OF_EARLYCON_DECLARE(omapserial, "ti,omap3-uart", early_omap_serial_setup);
-+OF_EARLYCON_DECLARE(omapserial, "ti,omap4-uart", early_omap_serial_setup);
-+#endif /* CONFIG_SERIAL_EARLYCON */
-+
- static struct uart_omap_port *serial_omap_console_ports[OMAP_MAX_HSUART_PORTS];
+ 	dmaengine_tx_status(cppi41_channel->dc, cppi41_channel->cookie,
+@@ -249,8 +253,6 @@ static void cppi41_dma_callback(void *private_data)
+ 	 * We spin on HS (no longer than than 25us and setup a timer on
+ 	 * FS to check for the bit and complete the transfer.
+ 	 */
+-	controller = cppi41_channel->controller;
+-
+ 	if (is_host_active(musb)) {
+ 		if (musb->port1_status & USB_PORT_STAT_HIGH_SPEED)
+ 			is_hs = 1;
+@@ -695,6 +697,7 @@ cppi41_dma_controller_create(struct musb *musb, void __iomem *base)
+ 	controller->controller.channel_program = cppi41_dma_channel_program;
+ 	controller->controller.channel_abort = cppi41_dma_channel_abort;
+ 	controller->controller.is_compatible = cppi41_is_compatible;
++	controller->controller.musb = musb;
  
- static struct uart_driver serial_omap_reg;
+ 	ret = cppi41_dma_controller_start(controller);
+ 	if (ret)
+diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma.h
+index 46357e1..8bea0cd 100644
+--- a/drivers/usb/musb/musb_dma.h
++++ b/drivers/usb/musb/musb_dma.h
+@@ -181,10 +181,13 @@ dma_channel_status(struct dma_channel *c)
+  * @channel_release: call this to release a DMA channel
+  * @channel_abort: call this to abort a pending DMA transaction,
+  *	returning it to FREE (but allocated) state
++ * @platform_dma_callback: invoked on DMA completion, useful to run platform
++ *	code such IRQ acknowledgment.
+  *
+  * Controllers manage dma channels.
+  */
+ struct dma_controller {
++	struct musb *musb;
+ 	struct dma_channel	*(*channel_alloc)(struct dma_controller *,
+ 					struct musb_hw_ep *, u8 is_tx);
+ 	void			(*channel_release)(struct dma_channel *);
+@@ -196,6 +199,7 @@ struct dma_controller {
+ 	int			(*is_compatible)(struct dma_channel *channel,
+ 							u16 maxpacket,
+ 							void *buf, u32 length);
++	void			(*dma_callback)(struct dma_controller *);
+ };
+ 
+ /* called after channel_program(), may indicate a fault */
 -- 
-2.11.0
+2.10.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
