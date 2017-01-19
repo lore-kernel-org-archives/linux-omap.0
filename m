@@ -1,72 +1,57 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/7] usb: usb: dsps: update device tree bindings
-Date: Thu, 19 Jan 2017 12:15:12 -0600
-Message-ID: <20170119181512.pb3znkxqscnrpmnz@rob-hp-laptop>
-References: <20170117134540.9988-1-abailon@baylibre.com>
- <20170117134540.9988-3-abailon@baylibre.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] usb: musb: Size 1 dma in transfers won't complete
+ with cpp41
+Date: Thu, 19 Jan 2017 09:13:46 -0600
+Message-ID: <20170119151346.GB22265@uda0271908>
+References: <20170119022959.30793-1-tony@atomide.com>
+ <20170119022959.30793-3-tony@atomide.com>
+ <20170119034130.GA22265@uda0271908>
+ <20170119150457.GS7403@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170117134540.9988-3-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170119150457.GS7403-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 17, 2017 at 02:45:35PM +0100, Alexandre Bailon wrote:
-> In order to make CPPI 4.1 DMA driver more generic, accesses to USBSS
-> have been removed. So it is not required anymore to define "glue"
-> register's address and size in DT.
-> Update dsps device tree bindings.
-
-Looks like you are breaking compatibility here.
-
-Are the glue registers already in the USB node? If so, then the DMA 
-driver just needs to ignore the first reg entry when 4 entries are 
-present. Or add a fixup to the DT somewhere.
-
+On Thu, Jan 19, 2017 at 07:04:57AM -0800, Tony Lindgren wrote:
+> * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170118 19:42]:
+> > On Wed, Jan 18, 2017 at 06:29:59PM -0800, Tony Lindgren wrote:
+> > > At least with the cppi41 dma, size 1 in dma transfers will just wait
+> > 
+> > In which case do you see the size 1 transfer? using testusb?
+> > 
+> > > until the device is disconnected. This causes timeouts in cppi41 dma
+> > > runtime PM.
+> > > 
+> > > Also the initial size 8 transfers take about 200ms to complete when
+> > > plugging a USB mass storage device to a hub. But we probably want to
+> > > keep those to avoid using PIO.
+> > > 
+> > > Fix the issue by adding a quirk for cppi41 and skip size 1 in dma if
+> > > set.
+> > 
+> > It is fine to bypass dma for size 1 transfers, due to the dma setup
+> > overhead. But I'd like to know the test case to understand why it hangs.
 > 
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/usb/am33xx-usb.txt | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> index 20c2ff2..ef89010 100644
-> --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> @@ -54,9 +54,9 @@ node.
->  DMA
->  ~~~
->  - compatible: ti,am3359-cppi41
-> -- reg: offset and length of the following register spaces: USBSS, USB
-> +- reg: offset and length of the following register spaces: USB
->    CPPI DMA Controller, USB CPPI DMA Scheduler, USB Queue Manager
-> -- reg-names: glue, controller, scheduler, queuemgr
-> +- reg-names: controller, scheduler, queuemgr
->  - #dma-cells: should be set to 2. The first number represents the
->    endpoint number (0 … 14 for endpoints 1 … 15 on instance 0 and 15 … 29
->    for endpoints 1 … 15 on instance 1). The second number is 0 for RX and
-> @@ -183,11 +183,10 @@ usb: usb@47400000 {
->  
->  	cppi41dma: dma-controller@07402000 {
->  		compatible = "ti,am3359-cppi41";
-> -		reg =  <0x47400000 0x1000
-> -			0x47402000 0x1000
-> +		reg =  <0x47402000 0x1000
->  			0x47403000 0x1000
->  			0x47404000 0x4000>;
-> -		reg-names = "glue", "controller", "scheduler", "queuemgr";
-> +		reg-names = "controller", "scheduler", "queuemgr";
->  		interrupts = <17>;
->  		interrupt-names = "glue";
->  		#dma-cells = <2>;
-> -- 
-> 2.10.2
-> 
+> The test case is the same old connect a USB mass storage device to a hub.
+> There we see the initial size 1 transfer in the beginning. That transfer
+> seems to never complete with cppi41 and the transfer will stay active
+> until the device is disconnected. Currently we don't seem to have any
+> timeout mechanism in cppi41 for that.
+
+Ok, I will take a look maybe sometime next week to understand the
+traffic.
+
+BTY, it seems you missed my comment at the end which is about limiting
+the transfer size.
+
+Regards,
+-Bin.
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
