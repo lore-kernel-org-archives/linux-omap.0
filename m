@@ -1,58 +1,115 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] usb: musb: Size 1 dma in transfers won't complete
- with cpp41
-Date: Thu, 19 Jan 2017 07:45:45 -0800
-Message-ID: <20170119154544.GT7403@atomide.com>
-References: <20170119022959.30793-1-tony@atomide.com>
- <20170119022959.30793-3-tony@atomide.com>
- <20170119034130.GA22265@uda0271908>
- <20170119150457.GS7403@atomide.com>
- <20170119151346.GB22265@uda0271908>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 3/5] usb: musb: Add support of CPPI 4.1 DMA controller
+ to DA8xx
+Date: Thu, 19 Jan 2017 16:56:50 +0100
+Message-ID: <b7afea7a-850d-fa2f-cf23-fc331c59b53f@baylibre.com>
+References: <20170119140835.18981-1-abailon@baylibre.com>
+ <20170119140835.18981-4-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170119151346.GB22265@uda0271908>
+In-Reply-To: <20170119140835.18981-4-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: b-liu-l0cyMroinI0@public.gmane.org
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170119 07:14]:
-> On Thu, Jan 19, 2017 at 07:04:57AM -0800, Tony Lindgren wrote:
-> > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170118 19:42]:
-> > > On Wed, Jan 18, 2017 at 06:29:59PM -0800, Tony Lindgren wrote:
-> > > > At least with the cppi41 dma, size 1 in dma transfers will just wait
-> > > 
-> > > In which case do you see the size 1 transfer? using testusb?
-> > > 
-> > > > until the device is disconnected. This causes timeouts in cppi41 dma
-> > > > runtime PM.
-> > > > 
-> > > > Also the initial size 8 transfers take about 200ms to complete when
-> > > > plugging a USB mass storage device to a hub. But we probably want to
-> > > > keep those to avoid using PIO.
-> > > > 
-> > > > Fix the issue by adding a quirk for cppi41 and skip size 1 in dma if
-> > > > set.
-> > > 
-> > > It is fine to bypass dma for size 1 transfers, due to the dma setup
-> > > overhead. But I'd like to know the test case to understand why it hangs.
-> > 
-> > The test case is the same old connect a USB mass storage device to a hub.
-> > There we see the initial size 1 transfer in the beginning. That transfer
-> > seems to never complete with cppi41 and the transfer will stay active
-> > until the device is disconnected. Currently we don't seem to have any
-> > timeout mechanism in cppi41 for that.
+On 01/19/2017 03:08 PM, Alexandre Bailon wrote:
+> Currently, only the PIO mode is supported.
+> This add support of CPPI 4.1 to DA8xx.
+> As the In DA8xx the CPPI 4.1 DMA is a part of the USB.
+> Create the CPPI 4.1 device as a child of USB.
 > 
-> Ok, I will take a look maybe sometime next week to understand the
-> traffic.
+> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/usb/musb/Kconfig |  4 ++--
+>  drivers/usb/musb/da8xx.c | 35 ++++++++++++++++++++++++++++++++++-
+>  2 files changed, 36 insertions(+), 3 deletions(-)
 > 
-> BTY, it seems you missed my comment at the end which is about limiting
-> the transfer size.
+> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+> index 72a2a50..5506a9c 100644
+> --- a/drivers/usb/musb/Kconfig
+> +++ b/drivers/usb/musb/Kconfig
+> @@ -160,8 +160,8 @@ config USB_TI_CPPI_DMA
+>  	  Enable DMA transfers when TI CPPI DMA is available.
+>  
+>  config USB_TI_CPPI41_DMA
+> -	bool 'TI CPPI 4.1 (AM335x)'
+> -	depends on ARCH_OMAP && DMADEVICES
+> +	bool 'TI CPPI 4.1'
+> +	depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX) && DMADEVICES
+>  	select TI_CPPI41
+>  
+>  config USB_TUSB_OMAP_DMA
+> diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+> index cd3d763..5f50a78 100644
+> --- a/drivers/usb/musb/da8xx.c
+> +++ b/drivers/usb/musb/da8xx.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/err.h>
+>  #include <linux/io.h>
+> +#include <linux/of_platform.h>
+>  #include <linux/phy/phy.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/dma-mapping.h>
+> @@ -457,12 +458,40 @@ static inline u8 get_vbus_power(struct device *dev)
+>  	return current_uA / 1000 / 2;
+>  }
+>  
+> +#ifdef CONFIG_USB_TI_CPPI41_DM
+There is a typo here...
+> +static void da8xx_dma_controller_callback(struct dma_controller *c)
+> +{
+> +	struct musb *musb = c->musb;
+> +	void __iomem *reg_base = musb->ctrl_base;
+> +
+> +	musb_writel(reg_base, DA8XX_USB_END_OF_INTR_REG, 0);
+> +}
+> +
+> +static struct dma_controller *
+> +da8xx_dma_controller_create(struct musb *musb, void __iomem *base)
+> +{
+> +	struct dma_controller *controller;
+> +
+> +	controller = cppi41_dma_controller_create(musb, base);
+> +	if (IS_ERR_OR_NULL(controller))
+> +		return controller;
+> +
+> +	controller->dma_callback = da8xx_dma_controller_callback;
+> +
+> +	return controller;
+> +}
+> +#endif
+> +
+>  static const struct musb_platform_ops da8xx_ops = {
+> -	.quirks		= MUSB_INDEXED_EP,
+> +	.quirks		= MUSB_INDEXED_EP | MUSB_DMA_CPPI41,
+>  	.init		= da8xx_musb_init,
+>  	.exit		= da8xx_musb_exit,
+>  
+>  	.fifo_mode	= 2,
+> +#ifdef CONFIG_USB_TI_CPPI41_DMA
+> +	.dma_init	= da8xx_dma_controller_create,
+> +	.dma_exit	= cppi41_dma_controller_destroy,
+> +#endif
+>  	.enable		= da8xx_musb_enable,
+>  	.disable	= da8xx_musb_disable,
+>  
+> @@ -534,6 +563,10 @@ static int da8xx_probe(struct platform_device *pdev)
+>  	}
+>  	platform_set_drvdata(pdev, glue);
+>  
+> +	ret = of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
+> +	if (ret)
+> +		return ret;
+> +
+>  	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+>  			ARRAY_SIZE(musb_resources));
+>  
+> 
 
-Oops sorry yeah you're right, -ENOTENOUGHCOFFEEYET.
-
-Tony
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
