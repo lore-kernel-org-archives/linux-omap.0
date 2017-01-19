@@ -1,69 +1,51 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v3 4/4] dmaengine: cppi41: init_sched(): Get number of
- channels from DT
-Date: Thu, 19 Jan 2017 14:03:16 +0300
-Message-ID: <88701e2c-1c1e-e8a9-980a-bc80a47734c2@cogentembedded.com>
-References: <20170119103705.13532-1-abailon@baylibre.com>
- <20170119103705.13532-5-abailon@baylibre.com>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] arm: davinci: Make the usb20 clock available to PM
+ runtime
+Date: Thu, 19 Jan 2017 16:08:27 +0100
+Message-ID: <628c4afa-20c0-812c-1172-873391b27f1f@baylibre.com>
+References: <20170119140944.19051-1-abailon@baylibre.com>
+ <cba200b6-1858-22e7-8d5a-f017c311c832@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170119103705.13532-5-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <cba200b6-1858-22e7-8d5a-f017c311c832-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Cc: khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 1/19/2017 1:37 PM, Alexandre Bailon wrote:
-
-> Despite the driver is already using DT to get the number of channels,
-> init_sched() is using an hardcoded value to get it.
-> Use DT to get the number of channels.
->
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/dma/cppi41.c | 26 +++++++++++++++-----------
->  1 file changed, 15 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-> index 5a40653..9767b97 100644
-> --- a/drivers/dma/cppi41.c
-> +++ b/drivers/dma/cppi41.c
-[...]
-> @@ -832,7 +829,7 @@ static int init_descs(struct device *dev, struct cppi41_dd *cdd)
->  	return 0;
->  }
->
-> -static void init_sched(struct cppi41_dd *cdd)
-> +static void init_sched(struct device *dev, struct cppi41_dd *cdd)
-
-    I don't see where 'dev' is used...
-
->  {
->  	unsigned ch;
->  	unsigned word;
-> @@ -840,7 +837,7 @@ static void init_sched(struct cppi41_dd *cdd)
->
->  	word = 0;
->  	cppi_writel(0, cdd->sched_mem + DMA_SCHED_CTRL);
-> -	for (ch = 0; ch < 15 * 2; ch += 2) {
-> +	for (ch = 0; ch < cdd->n_chans; ch += 2) {
->
->  		reg = SCHED_ENTRY0_CHAN(ch);
->  		reg |= SCHED_ENTRY1_CHAN(ch) | SCHED_ENTRY1_IS_RX;
-> @@ -850,7 +847,7 @@ static void init_sched(struct cppi41_dd *cdd)
->  		cppi_writel(reg, cdd->sched_mem + DMA_SCHED_WORD(word));
->  		word++;
->  	}
-> -	reg = 15 * 2 * 2 - 1;
-> +	reg = cdd->n_chans * 2 - 1;
->  	reg |= DMA_SCHED_CTRL_EN;
->  	cppi_writel(reg, cdd->sched_mem + DMA_SCHED_CTRL);
->  }
-[...]
-
-MBR, Sergei
+On 01/19/2017 03:48 PM, Sekhar Nori wrote:
+> On Thursday 19 January 2017 07:39 PM, Alexandre Bailon wrote:
+>> Add usb20 to the list of clock supported by PM runtime.
+>>
+>> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  arch/arm/mach-davinci/pm_domain.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/mach-davinci/pm_domain.c b/arch/arm/mach-davinci/pm_domain.c
+>> index 78eac2c..66471f2 100644
+>> --- a/arch/arm/mach-davinci/pm_domain.c
+>> +++ b/arch/arm/mach-davinci/pm_domain.c
+>> @@ -23,7 +23,7 @@ static struct dev_pm_domain davinci_pm_domain = {
+>>  
+>>  static struct pm_clk_notifier_block platform_bus_notifier = {
+>>  	.pm_domain = &davinci_pm_domain,
+>> -	.con_ids = { "fck", "master", "slave", NULL },
+>> +	.con_ids = { "fck", "master", "slave", "usb20", NULL },
+> 
+> Instead of doing this, can we drop the con_id from musb clock? Looking
+> at the USB clocking diagram in the TRM. There is a single clock input to
+> the USB 2.0 subsystem. There is no real need for a con_id at all.
+Currently, the con_id is required to get the usb20 clock from usb-da8xx.c
+I will try to figure out which changes are required remove con_id.
+> 
+> Thanks,
+> Sekhar
+> 
+Thanks,
+Alexandre
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
