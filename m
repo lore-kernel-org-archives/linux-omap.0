@@ -1,8 +1,8 @@
 From: Teresa Remmet <t.remmet@phytec.de>
-Subject: [PATCH 3/3] ARM: configs: omap2plus_defconfig: Enable support for RTC
- M41T80
-Date: Thu, 19 Jan 2017 14:07:50 +0100
-Message-ID: <1484831270-7251-3-git-send-email-t.remmet@phytec.de>
+Subject: [PATCH 2/3] ARM: configs: omap2plus_defconfig: Enable support for
+ micrell phys
+Date: Thu, 19 Jan 2017 14:07:49 +0100
+Message-ID: <1484831270-7251-2-git-send-email-t.remmet@phytec.de>
 References: <1484831270-7251-1-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,9 +22,9 @@ To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lis
 Cc: Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Wadim Egorov <w.egorov@phytec.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-The phyCORE-AM335x SoM has a RV4162 RTC populated which is supported
-by the M41T80 driver. Enabled it so make the RTC support on the SoM
-available.
+The phyCORE-AM335x SoM with PCM-953 carrierboard has a
+KSZ9021 phy mounted. To add support for this we need to enable
+the micrell phy driver in the config.
 
 Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
 ---
@@ -32,16 +32,16 @@ Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 0c2bf2d..75b5b73 100644
+index 195c98b..0c2bf2d 100644
 --- a/arch/arm/configs/omap2plus_defconfig
 +++ b/arch/arm/configs/omap2plus_defconfig
-@@ -414,6 +414,7 @@ CONFIG_LEDS_TRIGGER_GPIO=m
- CONFIG_LEDS_TRIGGER_DEFAULT_ON=m
- CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_DS1307=m
-+CONFIG_RTC_DRV_M41T80=m
- CONFIG_RTC_DRV_TWL92330=y
- CONFIG_RTC_DRV_TWL4030=m
- CONFIG_RTC_DRV_PALMAS=m
+@@ -168,6 +168,7 @@ CONFIG_TI_CPTS=y
+ # CONFIG_NET_VENDOR_VIA is not set
+ # CONFIG_NET_VENDOR_WIZNET is not set
+ CONFIG_AT803X_PHY=y
++CONFIG_MICREL_PHY=y
+ CONFIG_SMSC_PHY=y
+ CONFIG_USB_USBNET=m
+ CONFIG_USB_NET_SMSC75XX=m
 -- 
 1.9.1
