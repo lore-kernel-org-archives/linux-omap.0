@@ -1,175 +1,78 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/2] dmaengine: cppi41: Fix oops in cppi41_runtime_resume
-Date: Thu, 19 Jan 2017 08:49:08 -0800
-Message-ID: <20170119164908.9472-3-tony@atomide.com>
-References: <20170119164908.9472-1-tony@atomide.com>
+Subject: Re: [PATCH 2/2] usb: musb: Size 1 dma in transfers won't complete
+ with cpp41
+Date: Thu, 19 Jan 2017 09:18:07 -0800
+Message-ID: <20170119171807.GY7403@atomide.com>
+References: <20170119022959.30793-1-tony@atomide.com>
+ <20170119022959.30793-3-tony@atomide.com>
+ <20170119034130.GA22265@uda0271908>
+ <20170119150457.GS7403@atomide.com>
+ <20170119151346.GB22265@uda0271908>
+ <20170119154544.GT7403@atomide.com>
+ <20170119161545.GU7403@atomide.com>
+ <20170119171557.GA24524@uda0271908>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170119164908.9472-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170119171557.GA24524@uda0271908>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
-together with recent MUSB changes allowed USB and DMA on BeagleBone to idle
-when no cable is connected. But looks like few corner case issues still
-remain.
+* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170119 09:16]:
+> On Thu, Jan 19, 2017 at 08:15:45AM -0800, Tony Lindgren wrote:
+> > * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170119 07:57]:
+> > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170119 07:14]:
+> > > > On Thu, Jan 19, 2017 at 07:04:57AM -0800, Tony Lindgren wrote:
+> > > > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170118 19:42]:
+> > > > > > On Wed, Jan 18, 2017 at 06:29:59PM -0800, Tony Lindgren wrote:
+> > > > > > > At least with the cppi41 dma, size 1 in dma transfers will just wait
+> > > > > > 
+> > > > > > In which case do you see the size 1 transfer? using testusb?
+> > > > > > 
+> > > > > > > until the device is disconnected. This causes timeouts in cppi41 dma
+> > > > > > > runtime PM.
+> > > > > > > 
+> > > > > > > Also the initial size 8 transfers take about 200ms to complete when
+> > > > > > > plugging a USB mass storage device to a hub. But we probably want to
+> > > > > > > keep those to avoid using PIO.
+> > > > > > > 
+> > > > > > > Fix the issue by adding a quirk for cppi41 and skip size 1 in dma if
+> > > > > > > set.
+> > > > > > 
+> > > > > > It is fine to bypass dma for size 1 transfers, due to the dma setup
+> > > > > > overhead. But I'd like to know the test case to understand why it hangs.
+> > > > > 
+> > > > > The test case is the same old connect a USB mass storage device to a hub.
+> > > > > There we see the initial size 1 transfer in the beginning. That transfer
+> > > > > seems to never complete with cppi41 and the transfer will stay active
+> > > > > until the device is disconnected. Currently we don't seem to have any
+> > > > > timeout mechanism in cppi41 for that.
+> > > > 
+> > > > Ok, I will take a look maybe sometime next week to understand the
+> > > > traffic.
+> > > > 
+> > > > BTY, it seems you missed my comment at the end which is about limiting
+> > > > the transfer size.
+> > > 
+> > > Oops sorry yeah you're right, -ENOTENOUGHCOFFEEYET.
+> > 
+> > Oh and testing that fix made me notice that this patch 2/2 problem is now
+> > gone with my current cppi41 dma fixes. So let's drop this patch 2/2, it
+> > seems to be just a workaround for a runtime PM autosuspend delay getting
+> > timed out for the dma transfer.
+> > 
+> > Patch 1/2 of this series should be still applied for the -rc cycle.
+> 
+> Sounds good. I wil do more check on 1/2 then send it to Greg.
 
-Looks like just by re-plugging USB cable about ten or so times on BeagleBone
-when configured in USB peripheral mode we can get warnings and eventually
-trigger an oops in cppi41 DMA:
+OK thanks. I just also posted the two cppi41 dma regression fixes, the
+first patch in that series makes patch 2/2 of this series obsolete.
 
-WARNING: CPU: 0 PID: 14 at drivers/dma/cppi41.c:1154 cppi41_runtime_suspend+
-x28/0x38 [cppi41]
-...
+Regards,
 
-WARNING: CPU: 0 PID: 14 at drivers/dma/cppi41.c:452
-push_desc_queue+0x94/0x9c [cppi41]
-...
-
-Unable to handle kernel NULL pointer dereference at virtual
-address 00000104
-pgd = c0004000
-[00000104] *pgd=00000000
-Internal error: Oops: 805 [#1] SMP ARM
-...
-[<bf0d92cc>] (cppi41_runtime_resume [cppi41]) from [<c0589838>]
-(__rpm_callback+0xc0/0x214)
-[<c0589838>] (__rpm_callback) from [<c05899ac>] (rpm_callback+0x20/0x80)
-[<c05899ac>] (rpm_callback) from [<c0589460>] (rpm_resume+0x504/0x78c)
-[<c0589460>] (rpm_resume) from [<c058a1a0>] (pm_runtime_work+0x60/0xa8)
-[<c058a1a0>] (pm_runtime_work) from [<c0156120>] (process_one_work+0x2b4/0x808)
-
-This is because of a race with runtime PM and cppi41_dma_issue_pending()
-as reported by Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> in earlier
-set of patches. Based on mailing list discussions we however came to the
-conclusion that a different fix from Alexandre's fix is needed in order
-to guarantee that DMA is really active when we try to use it.
-
-To fix the issue, we need to add a driver specific flag as we otherwise
-can have -EINPROGRESS state set by runtime PM and can't rely on
-pm_runtime_active() to tell us when we can use the DMA.
-
-And we need to make sure the DMA transfers get triggered in the queued
-order. So let's always queue the transfers, then flush the queue
-from both cppi41_dma_issue_pending() and cppi41_runtime_resume()
-as suggested by Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> in an
-earlier example patch.
-
-For reference, this is also documented in Documentation/power/runtime_pm.txt
-in the example at the end of the file as pointed out by Grygorii Strashko
-<grygorii.strashko-l0cyMroinI0@public.gmane.org>.
-
-Based on earlier patches from Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-and Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> modified based on
-testing and what was discussed on the mailing lists.
-
-Fixes: fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
-Cc: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Reported-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/dma/cppi41.c | 40 +++++++++++++++++++++++++---------------
- 1 file changed, 25 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -153,6 +153,8 @@ struct cppi41_dd {
- 
- 	/* context for suspend/resume */
- 	unsigned int dma_tdfdq;
-+
-+	bool is_suspended;
- };
- 
- #define FIST_COMPLETION_QUEUE	93
-@@ -470,20 +472,26 @@ static void push_desc_queue(struct cppi41_channel *c)
- 	cppi_writel(reg, cdd->qmgr_mem + QMGR_QUEUE_D(c->q_num));
- }
- 
--static void pending_desc(struct cppi41_channel *c)
-+/*
-+ * Caller must hold cdd->lock to prevent push_desc_queue()
-+ * getting called out of order. We have both cppi41_dma_issue_pending()
-+ * and cppi41_runtime_resume() call this function.
-+ */
-+static void cppi41_run_queue(struct cppi41_dd *cdd)
- {
--	struct cppi41_dd *cdd = c->cdd;
--	unsigned long flags;
-+	struct cppi41_channel *c, *_c;
- 
--	spin_lock_irqsave(&cdd->lock, flags);
--	list_add_tail(&c->node, &cdd->pending);
--	spin_unlock_irqrestore(&cdd->lock, flags);
-+	list_for_each_entry_safe(c, _c, &cdd->pending, node) {
-+		push_desc_queue(c);
-+		list_del(&c->node);
-+	}
- }
- 
- static void cppi41_dma_issue_pending(struct dma_chan *chan)
- {
- 	struct cppi41_channel *c = to_cpp41_chan(chan);
- 	struct cppi41_dd *cdd = c->cdd;
-+	unsigned long flags;
- 	int error;
- 
- 	error = pm_runtime_get(cdd->ddev.dev);
-@@ -495,10 +503,11 @@ static void cppi41_dma_issue_pending(struct dma_chan *chan)
- 		return;
- 	}
- 
--	if (likely(pm_runtime_active(cdd->ddev.dev)))
--		push_desc_queue(c);
--	else
--		pending_desc(c);
-+	spin_lock_irqsave(&cdd->lock, flags);
-+	list_add_tail(&c->node, &cdd->pending);
-+	if (!cdd->is_suspended)
-+		cppi41_run_queue(cdd);
-+	spin_unlock_irqrestore(&cdd->lock, flags);
- 
- 	pm_runtime_mark_last_busy(cdd->ddev.dev);
- 	pm_runtime_put_autosuspend(cdd->ddev.dev);
-@@ -1166,8 +1175,12 @@ static int __maybe_unused cppi41_resume(struct device *dev)
- static int __maybe_unused cppi41_runtime_suspend(struct device *dev)
- {
- 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
-+	unsigned long flags;
- 
-+	spin_lock_irqsave(&cdd->lock, flags);
-+	cdd->is_suspended = true;
- 	WARN_ON(!list_empty(&cdd->pending));
-+	spin_unlock_irqrestore(&cdd->lock, flags);
- 
- 	return 0;
- }
-@@ -1175,14 +1188,11 @@ static int __maybe_unused cppi41_runtime_suspend(struct device *dev)
- static int __maybe_unused cppi41_runtime_resume(struct device *dev)
- {
- 	struct cppi41_dd *cdd = dev_get_drvdata(dev);
--	struct cppi41_channel *c, *_c;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&cdd->lock, flags);
--	list_for_each_entry_safe(c, _c, &cdd->pending, node) {
--		push_desc_queue(c);
--		list_del(&c->node);
--	}
-+	cdd->is_suspended = false;
-+	cppi41_run_queue(cdd);
- 	spin_unlock_irqrestore(&cdd->lock, flags);
- 
- 	return 0;
--- 
-2.11.0
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
