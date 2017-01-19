@@ -1,110 +1,237 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] usb: musb: Size 1 dma in transfers won't complete
- with cpp41
-Date: Wed, 18 Jan 2017 21:41:30 -0600
-Message-ID: <20170119034130.GA22265@uda0271908>
-References: <20170119022959.30793-1-tony@atomide.com>
- <20170119022959.30793-3-tony@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v8] ASoC: omap-mcbsp: Add PM QoS support
+ for McBSP to prevent glitches
+Date: Thu, 19 Jan 2017 09:52:52 +0200
+Message-ID: <d2d41f3a-6f65-16e2-964e-1afb17b45b76@ti.com>
+References: <20170118072600.15239-1-matt@ranostay.consulting>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170119022959.30793-3-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20170118072600.15239-1-matt@ranostay.consulting>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Matt Ranostay <matt@ranostay.consulting>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 06:29:59PM -0800, Tony Lindgren wrote:
-> At least with the cppi41 dma, size 1 in dma transfers will just wait
 
-In which case do you see the size 1 transfer? using testusb?
+On 01/18/2017 09:26 AM, Matt Ranostay wrote:
+> We can get audio errors if hitting deeper idle states on omaps:
+> =
 
-> until the device is disconnected. This causes timeouts in cppi41 dma
-> runtime PM.
-> 
-> Also the initial size 8 transfers take about 200ms to complete when
-> plugging a USB mass storage device to a hub. But we probably want to
-> keep those to avoid using PIO.
-> 
-> Fix the issue by adding a quirk for cppi41 and skip size 1 in dma if
-> set.
+> [alsa.c:230] error: Fatal problem with alsa output, error -5.
+> [audio.c:614] error: Error in writing audio (Input/output error?)!
+> =
 
-It is fine to bypass dma for size 1 transfers, due to the dma setup
-overhead. But I'd like to know the test case to understand why it hangs.
+> This seems to happen with off mode idle enabled as power for the
+> whole SoC may get cut off between filling the McBSP fifo using DMA.
+> While active DMA blocks deeper idle states in hardware, McBSP
+> activity does not seem to do so.
+> =
 
-> 
-> Note that additional cpp41 patches are needed to avoid error -115
-> messages, but that can be applied separately.
-> 
-> Fixes: fdea2d09b997 ("dmaengine: cppi41: Add basic PM runtime support")
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Basing the QoS latency calculation on the FIFO size, threshold,
+> sample rate, and channels.
+> =
+
+> Based on the original patch by Tony Lindgren
+> Link: https://patchwork.kernel.org/patch/9305867/
+
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> =
+
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
 > ---
->  drivers/usb/musb/musb_cppi41.c |  1 +
->  drivers/usb/musb/musb_dma.h    |  3 +++
->  drivers/usb/musb/musb_host.c   | 16 +++++++++++++++-
->  3 files changed, 19 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-> --- a/drivers/usb/musb/musb_cppi41.c
-> +++ b/drivers/usb/musb/musb_cppi41.c
-> @@ -695,6 +695,7 @@ cppi41_dma_controller_create(struct musb *musb, void __iomem *base)
->  	controller->controller.channel_program = cppi41_dma_channel_program;
->  	controller->controller.channel_abort = cppi41_dma_channel_abort;
->  	controller->controller.is_compatible = cppi41_is_compatible;
-> +	controller->controller.quirks = MUSB_DMA_QUIRK_CPPI41_IN;
->  
->  	ret = cppi41_dma_controller_start(controller);
->  	if (ret)
-> diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma.h
-> --- a/drivers/usb/musb/musb_dma.h
-> +++ b/drivers/usb/musb/musb_dma.h
-> @@ -171,6 +171,8 @@ dma_channel_status(struct dma_channel *c)
->  	return (is_dma_capable() && c) ? c->status : MUSB_DMA_STATUS_UNKNOWN;
->  }
->  
-> +#define MUSB_DMA_QUIRK_CPPI41_IN	BIT(0)
+> Changes from v1:
+> * add calculations for latency per number of FIFO locations
+> =
+
+> Changes from v2:
+> * add missing mcbsp.h header change
+> =
+
+> Changes from v3:
+> * base the latency calculations on threshold, buffer size, sample
+>   rate, and channels
+> =
+
+> Changes from v4:
+> * using Peter Ujfalusi's suggestions for restoring a higher latency on
+>   audio stream completion, or if not applicable remove the QoS request
+> =
+
+> Changes from v5:
+> * clean up latency checking logic
+> * move logic to .prepare and .shutdown to avoid functions that can sleep
+> =
+
+> Changes from v6:
+> * move QoS removal to asoc_mcbsp_remove from omap_mcbsp_cleanup
+> * also remove header include that is unneeded
+> =
+
+> Changes from v7:
+> * fix issue reported by Tony Lindgreen that a player application could cl=
+ose the
+>   card after hw_params, and cause an invalid pm_qos_remove_request()
+> =
+
+>  sound/soc/omap/mcbsp.h      |  3 +++
+>  sound/soc/omap/omap-mcbsp.c | 48 +++++++++++++++++++++++++++++++++++++++=
++++++-
+>  2 files changed, 50 insertions(+), 1 deletion(-)
+> =
+
+> diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
+> index 61e93b1c185d..46ae1269a698 100644
+> --- a/sound/soc/omap/mcbsp.h
+> +++ b/sound/soc/omap/mcbsp.h
+> @@ -323,8 +323,11 @@ struct omap_mcbsp {
+>  =
+
+>  	unsigned int fmt;
+>  	unsigned int in_freq;
+> +	unsigned int latency[2];
+>  	int clk_div;
+>  	int wlen;
 > +
->  /**
->   * struct dma_controller - A DMA Controller.
->   * @start: call this to start a DMA controller;
-> @@ -196,6 +198,7 @@ struct dma_controller {
->  	int			(*is_compatible)(struct dma_channel *channel,
->  							u16 maxpacket,
->  							void *buf, u32 length);
-> +	unsigned int quirks;
+> +	struct pm_qos_request pm_qos_req;
 >  };
->  
->  /* called after channel_program(), may indicate a fault */
-> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> --- a/drivers/usb/musb/musb_host.c
-> +++ b/drivers/usb/musb/musb_host.c
-> @@ -743,6 +743,8 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
->  
->  	musb_ep_select(mbase, epnum);
->  
-> +	dma_controller = musb->dma_controller;
+>  =
+
+>  void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
+> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+> index d018e966e533..6b40bdbef336 100644
+> --- a/sound/soc/omap/omap-mcbsp.c
+> +++ b/sound/soc/omap/omap-mcbsp.c
+> @@ -157,6 +157,17 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_s=
+ubstream *substream,
+>  				    struct snd_soc_dai *cpu_dai)
+>  {
+>  	struct omap_mcbsp *mcbsp =3D snd_soc_dai_get_drvdata(cpu_dai);
+> +	int tx =3D (substream->stream =3D=3D SNDRV_PCM_STREAM_PLAYBACK);
+> +	int stream1 =3D tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTU=
+RE;
+> +	int stream2 =3D tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBA=
+CK;
 > +
->  	if (is_out && !len) {
->  		use_dma = 0;
->  		csr = musb_readw(epio, MUSB_TXCSR);
-> @@ -751,8 +753,20 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
->  		hw_ep->tx_channel = NULL;
+> +	if (mcbsp->latency[stream2])
+> +		pm_qos_update_request(&mcbsp->pm_qos_req,
+> +				      mcbsp->latency[stream2]);
+> +	else if (mcbsp->latency[stream1])
+> +		pm_qos_remove_request(&mcbsp->pm_qos_req);
+> +
+> +	mcbsp->latency[stream1] =3D 0;
+>  =
+
+>  	if (!cpu_dai->active) {
+>  		omap_mcbsp_free(mcbsp);
+> @@ -164,6 +175,28 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_s=
+ubstream *substream,
 >  	}
->  
-> +	/*
-> +	 * At least cppi41 in dma will just hang with size of 1 until the
-> +	 * device is disconnected.
-> +	 */
-> +	if (!is_out && dma_controller &&
-> +	    (dma_controller->quirks & MUSB_DMA_QUIRK_CPPI41_IN)) {
+>  }
+>  =
 
-Forget to add size constraint here?
+> +static int omap_mcbsp_dai_prepare(struct snd_pcm_substream *substream,
+> +				  struct snd_soc_dai *cpu_dai)
+> +{
+> +	struct omap_mcbsp *mcbsp =3D snd_soc_dai_get_drvdata(cpu_dai);
+> +	struct pm_qos_request *pm_qos_req =3D &mcbsp->pm_qos_req;
+> +	int tx =3D (substream->stream =3D=3D SNDRV_PCM_STREAM_PLAYBACK);
+> +	int stream1 =3D tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTU=
+RE;
+> +	int stream2 =3D tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBA=
+CK;
+> +	int latency =3D mcbsp->latency[stream2];
+> +
+> +	/* Prevent omap hardware from hitting off between FIFO fills */
+> +	if (!latency || mcbsp->latency[stream1] < latency)
+> +		latency =3D mcbsp->latency[stream1];
+> +
+> +	if (pm_qos_request_active(pm_qos_req))
+> +		pm_qos_update_request(pm_qos_req, latency);
+> +	else if (latency)
+> +		pm_qos_add_request(pm_qos_req, PM_QOS_CPU_DMA_LATENCY, latency);
+> +
+> +	return 0;
+> +}
+> +
+>  static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, i=
+nt cmd,
+>  				  struct snd_soc_dai *cpu_dai)
+>  {
+> @@ -226,6 +259,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_su=
+bstream *substream,
+>  	int wlen, channels, wpf;
+>  	int pkt_size =3D 0;
+>  	unsigned int format, div, framesize, master;
+> +	unsigned int buffer_size =3D mcbsp->pdata->buffer_size;
+>  =
 
-Regards,
--Bin.
+>  	dma_data =3D snd_soc_dai_get_dma_data(cpu_dai, substream);
+>  	channels =3D params_channels(params);
+> @@ -240,7 +274,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_su=
+bstream *substream,
+>  	default:
+>  		return -EINVAL;
+>  	}
+> -	if (mcbsp->pdata->buffer_size) {
+> +	if (buffer_size) {
+> +		int latency;
+> +
+>  		if (mcbsp->dma_op_mode =3D=3D MCBSP_DMA_MODE_THRESHOLD) {
+>  			int period_words, max_thrsh;
+>  			int divider =3D 0;
+> @@ -271,6 +307,12 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_s=
+ubstream *substream,
+>  			/* Use packet mode for non mono streams */
+>  			pkt_size =3D channels;
+>  		}
+> +
+> +		latency =3D ((((buffer_size - pkt_size) / channels) * 1000)
+> +				 / (params->rate_num / params->rate_den));
+> +
+> +		mcbsp->latency[substream->stream] =3D latency;
+> +
+>  		omap_mcbsp_set_threshold(substream, pkt_size);
+>  	}
+>  =
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -554,6 +596,7 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_s=
+oc_dai *cpu_dai,
+>  static const struct snd_soc_dai_ops mcbsp_dai_ops =3D {
+>  	.startup	=3D omap_mcbsp_dai_startup,
+>  	.shutdown	=3D omap_mcbsp_dai_shutdown,
+> +	.prepare	=3D omap_mcbsp_dai_prepare,
+>  	.trigger	=3D omap_mcbsp_dai_trigger,
+>  	.delay		=3D omap_mcbsp_dai_delay,
+>  	.hw_params	=3D omap_mcbsp_dai_hw_params,
+> @@ -835,6 +878,9 @@ static int asoc_mcbsp_remove(struct platform_device *=
+pdev)
+>  	if (mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+>  		mcbsp->pdata->ops->free(mcbsp->id);
+>  =
+
+> +	if (pm_qos_request_active(&mcbsp->pm_qos_req))
+> +		pm_qos_remove_request(&mcbsp->pm_qos_req);
+> +
+>  	omap_mcbsp_cleanup(mcbsp);
+>  =
+
+>  	clk_put(mcbsp->fclk);
+> =
+
+
+-- =
+
+P=E9ter
