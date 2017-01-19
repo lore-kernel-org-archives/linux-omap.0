@@ -1,62 +1,49 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/5] ARM: OMAP2+: omap_hwmod: Add support for earlycon
-Date: Thu, 19 Jan 2017 06:56:50 -0800
-Message-ID: <20170119145649.GR7403@atomide.com>
-References: <20170117040336.21700-1-lokeshvutla@ti.com>
- <20170117040336.21700-2-lokeshvutla@ti.com>
- <20170117232310.GX7403@atomide.com>
- <88830967-6e83-33fc-8a1c-d776fd694e2f@ti.com>
- <20170118170033.GD7403@atomide.com>
- <61578446-3a10-55ab-dac9-0a95b6e2c77c@ti.com>
+Subject: Re: [PATCH 2/2] usb: musb: Size 1 dma in transfers won't complete
+ with cpp41
+Date: Thu, 19 Jan 2017 07:04:57 -0800
+Message-ID: <20170119150457.GS7403@atomide.com>
+References: <20170119022959.30793-1-tony@atomide.com>
+ <20170119022959.30793-3-tony@atomide.com>
+ <20170119034130.GA22265@uda0271908>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <61578446-3a10-55ab-dac9-0a95b6e2c77c-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20170119034130.GA22265@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170119 02:08]:
+* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170118 19:42]:
+> On Wed, Jan 18, 2017 at 06:29:59PM -0800, Tony Lindgren wrote:
+> > At least with the cppi41 dma, size 1 in dma transfers will just wait
 > 
+> In which case do you see the size 1 transfer? using testusb?
 > 
-> On Wednesday 18 January 2017 10:30 PM, Tony Lindgren wrote:
-> > * Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170117 19:50]:
-> >>
-> >>
-> >> On Wednesday 18 January 2017 04:53 AM, Tony Lindgren wrote:
-> >>> * Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170116 20:06]:
-> >>>> Hwmod core tries to reset and idles each IP that is registered with hwmod.
-> >>>> In case of earlycon, that specific uart IP cannot be reset or keep it in
-> >>>> idle state else earlycon hangs once hwmod resets that uart IP. So add support
-> >>>> to not reset uart that is being used as earlycon only if CONFIG_SERIAL_EARLYCON
-> >>>> is enabled.
-> >>>
-> >>> Nice :)
-> >>>
-> >>> I guess this has no dependency to SERIAL_OMAP vs 8250_OMAP selection?
-> >>
-> >> Unfortunately SERIAL_OMAP does not support earlycon yet. As I mentioned
-> >> in my cover letter, I verified this series only with 8250_OMAP.
+> > until the device is disconnected. This causes timeouts in cppi41 dma
+> > runtime PM.
 > > 
-> > OK. So just to understand why it would not work with omap-serial, do we
-> > need something implemented in drivers/tty/serial/earlycon.c for non 8250
-> > drivers to make it work? Or are there other dependencies?
+> > Also the initial size 8 transfers take about 200ms to complete when
+> > plugging a USB mass storage device to a hub. But we probably want to
+> > keep those to avoid using PIO.
+> > 
+> > Fix the issue by adding a quirk for cppi41 and skip size 1 in dma if
+> > set.
 > 
-> Yeah,  OF_EARLYCON_DECLARE should be declared for omap-serial. Just
-> posted a patch[1] adding support for earlycon in omap-serial.
+> It is fine to bypass dma for size 1 transfers, due to the dma setup
+> overhead. But I'd like to know the test case to understand why it hangs.
 
-OK great. And with Vignesh's fix for omap5, I think we then have 8250-omap
-and omap-serial behaving the same way on all SoC variants.
+The test case is the same old connect a USB mass storage device to a hub.
+There we see the initial size 1 transfer in the beginning. That transfer
+seems to never complete with cppi41 and the transfer will stay active
+until the device is disconnected. Currently we don't seem to have any
+timeout mechanism in cppi41 for that.
 
 Regards,
 
 Tony
-
-> [1] https://patchwork.kernel.org/patch/9525377/
-
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
