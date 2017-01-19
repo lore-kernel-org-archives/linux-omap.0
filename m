@@ -1,70 +1,90 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v3 1/3] usb: musb: dma: Add a DMA completion platform
- callback
-Date: Thu, 19 Jan 2017 13:38:17 +0300
-Message-ID: <fb051107-b4cf-a14b-fc3b-447fd6644bc9@cogentembedded.com>
-References: <20170119100659.11370-1-abailon@baylibre.com>
- <20170119100659.11370-2-abailon@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v3 2/3] dmaengine: cppi41: Add support of DA8xx to CPPI 4.1
+Date: Thu, 19 Jan 2017 12:13:33 +0100
+Message-ID: <20170119111334.14718-3-abailon@baylibre.com>
+References: <20170119111334.14718-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170119100659.11370-2-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170119111334.14718-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, b-liu-l0cyMroinI0@public.gmane.org
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello!
+The DA8xx has a CPPI 4.1 DMA controller.
+This is add the glue layer required to make it work on DA8xx.
 
-On 1/19/2017 1:06 PM, Alexandre Bailon wrote:
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/dma/Kconfig  |  6 +++---
+ drivers/dma/cppi41.c | 24 ++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 3 deletions(-)
 
-> Currently, the CPPI 4.1 driver is not completely generic and
-> only work on dsps. This is because of IRQ management.
-
-    Works. DSPS.
-
-> Add a callback to dma_controller that could be invoked on DMA completion
-> to acknodlege the IRQ.
-
-     Acknowledge.
-
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-[...]
-> diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma.h
-> index 46357e1..8bea0cd 100644
-> --- a/drivers/usb/musb/musb_dma.h
-> +++ b/drivers/usb/musb/musb_dma.h
-> @@ -181,10 +181,13 @@ dma_channel_status(struct dma_channel *c)
->   * @channel_release: call this to release a DMA channel
->   * @channel_abort: call this to abort a pending DMA transaction,
->   *	returning it to FREE (but allocated) state
-> + * @platform_dma_callback: invoked on DMA completion, useful to run platform
-
-    It's called just dma_callback below.
-
-> + *	code such IRQ acknowledgment.
->   *
->   * Controllers manage dma channels.
->   */
->  struct dma_controller {
-> +	struct musb *musb;
-
-    You forgot to document this above.
-
->  	struct dma_channel	*(*channel_alloc)(struct dma_controller *,
->  					struct musb_hw_ep *, u8 is_tx);
->  	void			(*channel_release)(struct dma_channel *);
-> @@ -196,6 +199,7 @@ struct dma_controller {
->  	int			(*is_compatible)(struct dma_channel *channel,
->  							u16 maxpacket,
->  							void *buf, u32 length);
-> +	void			(*dma_callback)(struct dma_controller *);
->  };
->
->  /* called after channel_program(), may indicate a fault */
-
-MBR, Sergei
+diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+index 0d6a96e..03ae2a1 100644
+--- a/drivers/dma/Kconfig
++++ b/drivers/dma/Kconfig
+@@ -514,12 +514,12 @@ config TIMB_DMA
+ 	  Enable support for the Timberdale FPGA DMA engine.
+ 
+ config TI_CPPI41
+-	tristate "AM33xx CPPI41 DMA support"
+-	depends on ARCH_OMAP
++	tristate "CPPI41 DMA support"
++	depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX)
+ 	select DMA_ENGINE
+ 	help
+ 	  The Communications Port Programming Interface (CPPI) 4.1 DMA engine
+-	  is currently used by the USB driver on AM335x platforms.
++	  is currently used by the USB driver on AM335x and DA8xx platforms.
+ 
+ config TI_DMA_CROSSBAR
+ 	bool
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+index 9767b97..f6f2d84 100644
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -221,6 +221,20 @@ static const struct chan_queues am335x_usb_queues_rx[] = {
+ 	[29] = { .submit = 30, .complete = 155},
+ };
+ 
++static const struct chan_queues da8xx_usb_queues_tx[] = {
++	[0] = { .submit =  16, .complete = 24},
++	[1] = { .submit =  18, .complete = 24},
++	[2] = { .submit =  20, .complete = 24},
++	[3] = { .submit =  22, .complete = 24},
++};
++
++static const struct chan_queues da8xx_usb_queues_rx[] = {
++	[0] = { .submit =  1, .complete = 26},
++	[1] = { .submit =  3, .complete = 26},
++	[2] = { .submit =  5, .complete = 26},
++	[3] = { .submit =  7, .complete = 26},
++};
++
+ struct cppi_glue_infos {
+ 	irqreturn_t (*isr)(int irq, void *data);
+ 	const struct chan_queues *queues_rx;
+@@ -951,8 +965,18 @@ static const struct cppi_glue_infos am335x_usb_infos = {
+ 	.qmgr_num_pend = 5,
+ };
+ 
++static const struct cppi_glue_infos da8xx_usb_infos = {
++	.isr = cppi41_irq,
++	.queues_rx = da8xx_usb_queues_rx,
++	.queues_tx = da8xx_usb_queues_tx,
++	.td_queue = { .submit = 31, .complete = 0 },
++	.first_completion_queue = 24,
++	.qmgr_num_pend = 2,
++};
++
+ static const struct of_device_id cppi41_dma_ids[] = {
+ 	{ .compatible = "ti,am3359-cppi41", .data = &am335x_usb_infos},
++	{ .compatible = "ti,da830-cppi41", .data = &da8xx_usb_infos},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, cppi41_dma_ids);
+-- 
+2.10.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
