@@ -1,7 +1,7 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 4/5] usb: musb: musb_cppi41: Workaround DMA stall issue during teardown
-Date: Thu, 19 Jan 2017 15:08:34 +0100
-Message-ID: <20170119140835.18981-5-abailon@baylibre.com>
+Subject: [PATCH v3 5/5] usb: musb: da8xx: Add a primary support of PM runtime
+Date: Thu, 19 Jan 2017 15:08:35 +0100
+Message-ID: <20170119140835.18981-6-abailon@baylibre.com>
 References: <20170119140835.18981-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170119140835.18981-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
@@ -10,57 +10,115 @@ To: b-liu-l0cyMroinI0@public.gmane.org
 Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The DMA may hung up if a teardown is initiated while an endpoint is still
-active (Advisory 2.3.27 of DA8xx errata).
-To workaround this issue, add a delay before to initiate the teardown.
+Currently, DA8xx doesn't support PM runtime.
+In addition, the glue driver is managing the clock itself.
+But the CPPI DMA needs to manage this clock too.
+Add support to PM runtime and use the callback to enable / disable
+the clock. And because the CPPI 4.1 is a child of Da8xx USB,
+it will be able to enable / disable the clock by using PM runtime.
 
 Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- drivers/usb/musb/da8xx.c       | 2 +-
- drivers/usb/musb/musb_core.h   | 1 +
- drivers/usb/musb/musb_cppi41.c | 4 ++++
- 3 files changed, 6 insertions(+), 1 deletion(-)
+ drivers/usb/musb/da8xx.c | 23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-index 5f50a78..8c9850c 100644
+index 8c9850c..c4478c7 100644
 --- a/drivers/usb/musb/da8xx.c
 +++ b/drivers/usb/musb/da8xx.c
-@@ -483,7 +483,7 @@ da8xx_dma_controller_create(struct musb *musb, void __iomem *base)
- #endif
- 
- static const struct musb_platform_ops da8xx_ops = {
--	.quirks		= MUSB_INDEXED_EP | MUSB_DMA_CPPI41,
-+	.quirks		= MUSB_INDEXED_EP | MUSB_DMA_CPPI41 | MUSB_DA8XX,
- 	.init		= da8xx_musb_init,
- 	.exit		= da8xx_musb_exit,
- 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index ade902e..d129278 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -172,6 +172,7 @@ struct musb_io;
+@@ -30,7 +30,6 @@
   */
- struct musb_platform_ops {
  
-+#define MUSB_DA8XX		BIT(7)
- #define MUSB_DMA_UX500		BIT(6)
- #define MUSB_DMA_CPPI41		BIT(5)
- #define MUSB_DMA_CPPI		BIT(4)
-diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-index 1fe7eae..d371d05 100644
---- a/drivers/usb/musb/musb_cppi41.c
-+++ b/drivers/usb/musb/musb_cppi41.c
-@@ -554,6 +554,10 @@ static int cppi41_dma_channel_abort(struct dma_channel *channel)
- 		}
+ #include <linux/module.h>
+-#include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/io.h>
+ #include <linux/of_platform.h>
+@@ -86,7 +85,6 @@ struct da8xx_glue {
+ 	struct device		*dev;
+ 	struct platform_device	*musb;
+ 	struct platform_device	*usb_phy;
+-	struct clk		*clk;
+ 	struct phy		*phy;
+ };
+ 
+@@ -377,11 +375,7 @@ static int da8xx_musb_init(struct musb *musb)
+ 
+ 	musb->mregs += DA8XX_MENTOR_CORE_OFFSET;
+ 
+-	ret = clk_prepare_enable(glue->clk);
+-	if (ret) {
+-		dev_err(glue->dev, "failed to enable clock\n");
+-		return ret;
+-	}
++	pm_runtime_get_sync(musb->controller->parent);
+ 
+ 	/* Returns zero if e.g. not clocked */
+ 	rev = musb_readl(reg_base, DA8XX_USB_REVISION_REG);
+@@ -424,7 +418,7 @@ static int da8xx_musb_init(struct musb *musb)
+ err_phy_power_on:
+ 	phy_exit(glue->phy);
+ fail:
+-	clk_disable_unprepare(glue->clk);
++	pm_runtime_put_sync(musb->controller->parent);
+ 	return ret;
+ }
+ 
+@@ -436,7 +430,7 @@ static int da8xx_musb_exit(struct musb *musb)
+ 
+ 	phy_power_off(glue->phy);
+ 	phy_exit(glue->phy);
+-	clk_disable_unprepare(glue->clk);
++	pm_runtime_put_sync(musb->controller->parent);
+ 
+ 	usb_put_phy(musb->xceiv);
+ 
+@@ -519,7 +513,6 @@ static int da8xx_probe(struct platform_device *pdev)
+ 	struct musb_hdrc_platform_data	*pdata = dev_get_platdata(&pdev->dev);
+ 	struct da8xx_glue		*glue;
+ 	struct platform_device_info	pinfo;
+-	struct clk			*clk;
+ 	struct device_node		*np = pdev->dev.of_node;
+ 	int				ret;
+ 
+@@ -527,12 +520,6 @@ static int da8xx_probe(struct platform_device *pdev)
+ 	if (!glue)
+ 		return -ENOMEM;
+ 
+-	clk = devm_clk_get(&pdev->dev, "usb20");
+-	if (IS_ERR(clk)) {
+-		dev_err(&pdev->dev, "failed to get clock\n");
+-		return PTR_ERR(clk);
+-	}
+-
+ 	glue->phy = devm_phy_get(&pdev->dev, "usb-phy");
+ 	if (IS_ERR(glue->phy)) {
+ 		if (PTR_ERR(glue->phy) != -EPROBE_DEFER)
+@@ -541,7 +528,6 @@ static int da8xx_probe(struct platform_device *pdev)
  	}
  
-+	/* DA8xx Advisory 2.3.27: wait 250 ms before to start the teardown */
-+	if (musb->io.quirks & MUSB_DA8XX)
-+		mdelay(250);
+ 	glue->dev			= &pdev->dev;
+-	glue->clk			= clk;
+ 
+ 	if (IS_ENABLED(CONFIG_OF) && np) {
+ 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+@@ -587,6 +573,8 @@ static int da8xx_probe(struct platform_device *pdev)
+ 	pinfo.data = pdata;
+ 	pinfo.size_data = sizeof(*pdata);
+ 
++	pm_runtime_enable(&pdev->dev);
 +
- 	tdbit = 1 << cppi41_channel->port_num;
- 	if (is_tx)
- 		tdbit <<= 16;
+ 	glue->musb = platform_device_register_full(&pinfo);
+ 	ret = PTR_ERR_OR_ZERO(glue->musb);
+ 	if (ret) {
+@@ -603,6 +591,7 @@ static int da8xx_remove(struct platform_device *pdev)
+ 
+ 	platform_device_unregister(glue->musb);
+ 	usb_phy_generic_unregister(glue->usb_phy);
++	pm_runtime_disable(&pdev->dev);
+ 
+ 	return 0;
+ }
 -- 
 2.10.2
 
