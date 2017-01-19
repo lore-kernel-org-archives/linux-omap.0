@@ -1,47 +1,49 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 0/5] usb: musb: da8xx: Add DMA support
-Date: Thu, 19 Jan 2017 15:08:30 +0100
-Message-ID: <20170119140835.18981-1-abailon@baylibre.com>
+Subject: [PATCH v3 1/5] usb: musb: da8xx: Remove CPPI 3.0 quirk and methods
+Date: Thu, 19 Jan 2017 15:08:31 +0100
+Message-ID: <20170119140835.18981-2-abailon@baylibre.com>
+References: <20170119140835.18981-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170119140835.18981-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: b-liu-l0cyMroinI0@public.gmane.org
 Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This series update MUSB driver to add DMA support to DA8xx.
-It should be applied on top of
-"[PATCH v3 0/3] usb: musb: cppi41: Add a way to manage DMA irq" but
-"[PATCH v3 0/3] dmaengine: cppi41: Add dma support to da8xx" and
-"[PATCH] arm: davinci: Make the usb20 clock available to PM runtime"
-are required to make it work.
+DA8xx driver is registering and using the CPPI 3.0 DMA controller but
+actually, the DA8xx has a CPPI 4.1 DMA controller.
+Remove the CPPI 3.0 quirk and methods.
 
-Changes in v3:
-- Remove PM runtime callbacks.
-  I have update arch/arm/mach-davinci/pm_domain.c to let PM runtime control
-  the usb20 clock.
-- Only use PM runtime sync operation.
+Fixes: f8e9f34f80a2 ("usb: musb: Fix up DMA related macros")
+Fixes: 7f6283ed6fe8 ("usb: musb: Set up function pointers for DMA")
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Acked-by: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/usb/musb/da8xx.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Changes in v2:
-- Clock and IRQ management has been moved to MUSB DA8xx glue
-  (was in CPPI 4.1 driver)
-- I have added a partial support PM runtime. The goal was to use PM
-  runtime to manage clock of MUSB and CPPI 4.1 (they use the same clock).
-- CPPI 4.1 is now achild of MUSB DA8xx glue.
-
-Alexandre Bailon (5):
-  usb: musb: da8xx: Remove CPPI 3.0 quirk and methods
-  usb: musb: Use shared irq
-  usb: musb: Add support of CPPI 4.1 DMA controller to DA8xx
-  usb: musb: musb_cppi41: Workaround DMA stall issue during teardown
-  usb: musb: da8xx: Add a primary support of PM runtime
-
- drivers/usb/musb/Kconfig       |  4 +--
- drivers/usb/musb/da8xx.c       | 60 +++++++++++++++++++++++++++---------------
- drivers/usb/musb/musb_core.c   |  2 +-
- drivers/usb/musb/musb_core.h   |  1 +
- drivers/usb/musb/musb_cppi41.c |  4 +++
- 5 files changed, 47 insertions(+), 24 deletions(-)
-
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index e89708d..cd3d763 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -458,15 +458,11 @@ static inline u8 get_vbus_power(struct device *dev)
+ }
+ 
+ static const struct musb_platform_ops da8xx_ops = {
+-	.quirks		= MUSB_DMA_CPPI | MUSB_INDEXED_EP,
++	.quirks		= MUSB_INDEXED_EP,
+ 	.init		= da8xx_musb_init,
+ 	.exit		= da8xx_musb_exit,
+ 
+ 	.fifo_mode	= 2,
+-#ifdef CONFIG_USB_TI_CPPI_DMA
+-	.dma_init	= cppi_dma_controller_create,
+-	.dma_exit	= cppi_dma_controller_destroy,
+-#endif
+ 	.enable		= da8xx_musb_enable,
+ 	.disable	= da8xx_musb_disable,
+ 
 -- 
 2.10.2
 
