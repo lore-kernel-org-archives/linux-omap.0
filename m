@@ -1,84 +1,87 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 4/5] usb: musb: musb_cppi41: Workaround DMA stall
- issue during teardown
-Date: Thu, 19 Jan 2017 08:56:46 -0800
-Message-ID: <20170119165646.GV7403@atomide.com>
-References: <20170119140835.18981-1-abailon@baylibre.com>
- <20170119140835.18981-5-abailon@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170119140835.18981-5-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: b-liu-l0cyMroinI0@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v2 4/5] net: ethernet: ti: cpsw: don't duplicate common res in rx handler
+Date: Thu, 19 Jan 2017 18:58:26 +0200
+Message-ID: <1484845107-30331-5-git-send-email-ivan.khoronzhuk@linaro.org>
+References: <1484845107-30331-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1484845107-30331-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> [170119 06:09]:
-> The DMA may hung up if a teardown is initiated while an endpoint is still
-> active (Advisory 2.3.27 of DA8xx errata).
-> To workaround this issue, add a delay before to initiate the teardown.
-> 
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/usb/musb/da8xx.c       | 2 +-
->  drivers/usb/musb/musb_core.h   | 1 +
->  drivers/usb/musb/musb_cppi41.c | 4 ++++
->  3 files changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-> index 5f50a78..8c9850c 100644
-> --- a/drivers/usb/musb/da8xx.c
-> +++ b/drivers/usb/musb/da8xx.c
-> @@ -483,7 +483,7 @@ da8xx_dma_controller_create(struct musb *musb, void __iomem *base)
->  #endif
->  
->  static const struct musb_platform_ops da8xx_ops = {
-> -	.quirks		= MUSB_INDEXED_EP | MUSB_DMA_CPPI41,
-> +	.quirks		= MUSB_INDEXED_EP | MUSB_DMA_CPPI41 | MUSB_DA8XX,
->  	.init		= da8xx_musb_init,
->  	.exit		= da8xx_musb_exit,
->  
-> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-> index ade902e..d129278 100644
-> --- a/drivers/usb/musb/musb_core.h
-> +++ b/drivers/usb/musb/musb_core.h
-> @@ -172,6 +172,7 @@ struct musb_io;
->   */
->  struct musb_platform_ops {
->  
-> +#define MUSB_DA8XX		BIT(7)
->  #define MUSB_DMA_UX500		BIT(6)
->  #define MUSB_DMA_CPPI41		BIT(5)
->  #define MUSB_DMA_CPPI		BIT(4)
-> diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-> index 1fe7eae..d371d05 100644
-> --- a/drivers/usb/musb/musb_cppi41.c
-> +++ b/drivers/usb/musb/musb_cppi41.c
-> @@ -554,6 +554,10 @@ static int cppi41_dma_channel_abort(struct dma_channel *channel)
->  		}
->  	}
->  
-> +	/* DA8xx Advisory 2.3.27: wait 250 ms before to start the teardown */
-> +	if (musb->io.quirks & MUSB_DA8XX)
-> +		mdelay(250);
-> +
->  	tdbit = 1 << cppi41_channel->port_num;
->  	if (is_tx)
->  		tdbit <<= 16;
+No need to duplicate the same function in rx handler to get info
+if any interface is running.
 
-How about replace the do while loop calling  dmaengine_terminate_all() with
-deferred work doing that?
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ drivers/net/ethernet/ti/cpsw.c | 40 ++++++++++++++++------------------------
+ 1 file changed, 16 insertions(+), 24 deletions(-)
 
-That way it's more generic as it seems there's no hurry doing that
-after the musb registers are cleared. That would also allow getting rid of
-the two current udelay() calls there that also seems nasty.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index c681d39..1f14afd 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -671,6 +671,18 @@ static void cpsw_intr_disable(struct cpsw_common *cpsw)
+ 	return;
+ }
+ 
++static int cpsw_get_usage_count(struct cpsw_common *cpsw)
++{
++	u32 i;
++	u32 usage_count = 0;
++
++	for (i = 0; i < cpsw->data.slaves; i++)
++		if (netif_running(cpsw->slaves[i].ndev))
++			usage_count++;
++
++	return usage_count;
++}
++
+ static void cpsw_tx_handler(void *token, int len, int status)
+ {
+ 	struct netdev_queue	*txq;
+@@ -703,18 +715,10 @@ static void cpsw_rx_handler(void *token, int len, int status)
+ 	cpsw_dual_emac_src_port_detect(cpsw, status, ndev, skb);
+ 
+ 	if (unlikely(status < 0) || unlikely(!netif_running(ndev))) {
+-		bool ndev_status = false;
+-		struct cpsw_slave *slave = cpsw->slaves;
+-		int n;
+-
+-		if (cpsw->data.dual_emac) {
+-			/* In dual emac mode check for all interfaces */
+-			for (n = cpsw->data.slaves; n; n--, slave++)
+-				if (netif_running(slave->ndev))
+-					ndev_status = true;
+-		}
+-
+-		if (ndev_status && (status >= 0)) {
++		/* In dual emac mode check for all interfaces */
++		if (cpsw->data.dual_emac &&
++		    cpsw_get_usage_count(cpsw) &&
++		    (status >= 0)) {
+ 			/* The packet received is for the interface which
+ 			 * is already down and the other interface is up
+ 			 * and running, instead of freeing which results
+@@ -1234,18 +1238,6 @@ static void cpsw_get_ethtool_stats(struct net_device *ndev,
+ 	}
+ }
+ 
+-static int cpsw_get_usage_count(struct cpsw_common *cpsw)
+-{
+-	u32 i;
+-	u32 usage_count = 0;
+-
+-	for (i = 0; i < cpsw->data.slaves; i++)
+-		if (netif_running(cpsw->slaves[i].ndev))
+-			usage_count++;
+-
+-	return usage_count;
+-}
+-
+ static inline int cpsw_tx_packet_submit(struct cpsw_priv *priv,
+ 					struct sk_buff *skb,
+ 					struct cpdma_chan *txch)
+-- 
+2.7.4
