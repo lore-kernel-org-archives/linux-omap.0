@@ -1,7 +1,7 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 1/4] dmaengine: cppi41: Remove usbss_mem
-Date: Thu, 19 Jan 2017 11:37:02 +0100
-Message-ID: <20170119103705.13532-2-abailon@baylibre.com>
+Subject: [PATCH v3 2/4] dmaengine: cppi41: rename platform variables
+Date: Thu, 19 Jan 2017 11:37:03 +0100
+Message-ID: <20170119103705.13532-3-abailon@baylibre.com>
 References: <20170119103705.13532-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170119103705.13532-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
@@ -10,78 +10,71 @@ To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-In order to make CPPI 4.1 DMA driver more generic, accesses to USBSS
-have been removed. So it is not required anymore to map the "glue"
-register's.
-Remove usbss_mem.
+Currently, only the AM335x is supported by the driver.
+Though the driver has a glue layer to support different platforms,
+some platform variable names are not prefixed with the platform name.
+To facilitate the addition of a new platform,
+rename some variables owned by the AM335x glue.
 
 Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- drivers/dma/cppi41.c | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ drivers/dma/cppi41.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index 4999e7d..1743d3d 100644
+index 1743d3d..a6addc3 100644
 --- a/drivers/dma/cppi41.c
 +++ b/drivers/dma/cppi41.c
-@@ -131,7 +131,6 @@ struct cppi41_dd {
- 	u32 first_td_desc;
- 	struct cppi41_channel *chan_busy[ALLOC_DECS_NUM];
+@@ -147,7 +147,7 @@ struct cppi41_dd {
+ };
  
--	void __iomem *usbss_mem;
- 	void __iomem *ctrl_mem;
- 	void __iomem *sched_mem;
- 	void __iomem *qmgr_mem;
-@@ -973,6 +972,7 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 	struct cppi41_dd *cdd;
- 	struct device *dev = &pdev->dev;
- 	const struct cppi_glue_infos *glue_info;
-+	int index;
- 	int irq;
- 	int ret;
+ #define FIST_COMPLETION_QUEUE	93
+-static struct chan_queues usb_queues_tx[] = {
++static struct chan_queues am335x_usb_queues_tx[] = {
+ 	/* USB0 ENDP 1 */
+ 	[ 0] = { .submit = 32, .complete =  93},
+ 	[ 1] = { .submit = 34, .complete =  94},
+@@ -183,7 +183,7 @@ static struct chan_queues usb_queues_tx[] = {
+ 	[29] = { .submit = 90, .complete = 139},
+ };
  
-@@ -999,16 +999,20 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&cdd->ddev.channels);
- 	cpp41_dma_info.dma_cap = cdd->ddev.cap_mask;
+-static const struct chan_queues usb_queues_rx[] = {
++static const struct chan_queues am335x_usb_queues_rx[] = {
+ 	/* USB0 ENDP 1 */
+ 	[ 0] = { .submit =  1, .complete = 109},
+ 	[ 1] = { .submit =  2, .complete = 110},
+@@ -910,8 +910,9 @@ static bool cpp41_dma_filter_fn(struct dma_chan *chan, void *param)
+ 	else
+ 		queues = cdd->queues_rx;
  
--	cdd->usbss_mem = of_iomap(dev->of_node, 0);
--	cdd->ctrl_mem = of_iomap(dev->of_node, 1);
--	cdd->sched_mem = of_iomap(dev->of_node, 2);
--	cdd->qmgr_mem = of_iomap(dev->of_node, 3);
-+	index = of_property_match_string(dev->of_node,
-+					 "reg-names", "controller");
-+	if (index < 0)
-+		return index;
-+
-+	cdd->ctrl_mem = of_iomap(dev->of_node, index);
-+	cdd->sched_mem = of_iomap(dev->of_node, index + 1);
-+	cdd->qmgr_mem = of_iomap(dev->of_node, index + 2);
- 	spin_lock_init(&cdd->lock);
- 	INIT_LIST_HEAD(&cdd->pending);
+-	BUILD_BUG_ON(ARRAY_SIZE(usb_queues_rx) != ARRAY_SIZE(usb_queues_tx));
+-	if (WARN_ON(cchan->port_num > ARRAY_SIZE(usb_queues_rx)))
++	BUILD_BUG_ON(ARRAY_SIZE(am335x_usb_queues_rx) !=
++		     ARRAY_SIZE(am335x_usb_queues_tx));
++	if (WARN_ON(cchan->port_num > ARRAY_SIZE(am335x_usb_queues_rx)))
+ 		return false;
  
- 	platform_set_drvdata(pdev, cdd);
+ 	cchan->q_num = queues[cchan->port_num].submit;
+@@ -939,15 +940,15 @@ static struct dma_chan *cppi41_dma_xlate(struct of_phandle_args *dma_spec,
+ 			&dma_spec->args[0]);
+ }
  
--	if (!cdd->usbss_mem || !cdd->ctrl_mem || !cdd->sched_mem ||
-+	if (!cdd->ctrl_mem || !cdd->sched_mem ||
- 			!cdd->qmgr_mem)
- 		return -ENXIO;
+-static const struct cppi_glue_infos usb_infos = {
++static const struct cppi_glue_infos am335x_usb_infos = {
+ 	.isr = cppi41_irq,
+-	.queues_rx = usb_queues_rx,
+-	.queues_tx = usb_queues_tx,
++	.queues_rx = am335x_usb_queues_rx,
++	.queues_tx = am335x_usb_queues_tx,
+ 	.td_queue = { .submit = 31, .complete = 0 },
+ };
  
-@@ -1068,7 +1072,6 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- err_get_sync:
- 	pm_runtime_put_sync(dev);
- 	pm_runtime_disable(dev);
--	iounmap(cdd->usbss_mem);
- 	iounmap(cdd->ctrl_mem);
- 	iounmap(cdd->sched_mem);
- 	iounmap(cdd->qmgr_mem);
-@@ -1090,7 +1093,6 @@ static int cppi41_dma_remove(struct platform_device *pdev)
- 	devm_free_irq(&pdev->dev, cdd->irq, cdd);
- 	cleanup_chans(cdd);
- 	deinit_cppi41(&pdev->dev, cdd);
--	iounmap(cdd->usbss_mem);
- 	iounmap(cdd->ctrl_mem);
- 	iounmap(cdd->sched_mem);
- 	iounmap(cdd->qmgr_mem);
+ static const struct of_device_id cppi41_dma_ids[] = {
+-	{ .compatible = "ti,am3359-cppi41", .data = &usb_infos},
++	{ .compatible = "ti,am3359-cppi41", .data = &am335x_usb_infos},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, cppi41_dma_ids);
 -- 
 2.10.2
 
