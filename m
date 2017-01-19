@@ -1,182 +1,72 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 2/4] Documentation: dt: add bindings for ti-cpufreq
-Date: Thu, 19 Jan 2017 12:07:02 -0600
-Message-ID: <20170119180702.62xg2ta5pq4mf7sd@rob-hp-laptop>
-References: <20170117131808.29798-1-d-gerlach@ti.com>
- <20170117131808.29798-3-d-gerlach@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170117131808.29798-3-d-gerlach-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Cc: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: twl6030: fix range comparison, allowing vsel = 59" to the regulator tree
+Date: Thu, 19 Jan 2017 18:04:08 +0000
+Message-ID: <E1cUH4C-00052y-KL@debutante>
+References: <20170111153620.20342-1-colin.king@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170111153620.20342-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin Ian King <colin.king@canonical.com>
+Cc: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.orglinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 17, 2017 at 07:18:06AM -0600, Dave Gerlach wrote:
-> Add the device tree bindings document for the TI CPUFreq/OPP driver
-> on AM33xx, AM43xx, DRA7xx, and AM57xx SoCs. The operating-points-v2
-> binding allows us to provide an opp-supported-hw property for each OPP
-> to define when it is available. This driver is responsible for reading
-> and parsing registers to determine which OPPs can be selectively enabled
-> based on the specific SoC in use by matching against the opp-supported-hw
-> data.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-> ---
-> v3->v4:
-> 	Update to simplify binding, only use "syscon" now to pass control
-> 	module register space and let driver handle offsets.
-> 
->  .../devicetree/bindings/cpufreq/ti-cpufreq.txt     | 128 +++++++++++++++++++++
->  1 file changed, 128 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
-> new file mode 100644
-> index 000000000000..58efa4c72545
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
-> @@ -0,0 +1,128 @@
-> +TI CPUFreq and OPP bindings
-> +================================
-> +
-> +Certain TI SoCs, like those in the am335x, am437x, am57xx, and dra7xx
-> +families support different OPPs depending on the silicon variant in use.
-> +The ti-cpufreq driver can use revision and an efuse value from the SoC to
-> +provide the OPP framework with supported hardware information. This is
-> +used to determine which OPPs from the operating-points-v2 table get enabled
-> +when it is parsed by the OPP framework.
-> +
-> +Required properties:
-> +--------------------
-> +In 'cpus' nodes:
-> +- operating-points-v2: Phandle to the operating-points-v2 table to use.
-> +
-> +In 'operating-points-v2' table:
-> +- compatible: Should be
-> +	- 'operating-points-v2-ti-cpu' for am335x, am43xx, and dra7xx/am57xx SoCs
-> +- syscon: A phandle pointing to a syscon node representing the control module
-> +	  register space of the SoC.
-> +
-> +Optional properties:
-> +--------------------
-> +For each opp entry in 'operating-points-v2' table:
-> +- opp-supported-hw: Two bitfields indicating:
-> +	1. Which revision of the SoC the OPP is supported by
-> +	2. Which eFuse bits indicate this OPP is available
-> +
-> +	A bitwise AND is performed against these values and if any bit
-> +	matches, the OPP gets enabled.
-> +
-> +Example:
-> +--------
-> +
-> +/* From arch/arm/boot/dts/am33xx.dtsi */
-> +cpus {
-> +	#address-cells = <1>;
-> +	#size-cells = <0>;
-> +	cpu@0 {
-> +		compatible = "arm,cortex-a8";
-> +		device_type = "cpu";
-> +		reg = <0>;
-> +
-> +		operating-points-v2 = <&cpu0_opp_table>;
-> +
-> +		clocks = <&dpll_mpu_ck>;
-> +		clock-names = "cpu";
-> +
-> +		clock-latency = <300000>; /* From omap-cpufreq driver */
-> +	};
-> +};
-> +
-> +/*
-> + * cpu0 has different OPPs depending on SoC revision and some on revisions
-> + * 0x2 and 0x4 have eFuse bits that indicate if they are available or not
-> + */
-> +cpu0_opp_table: opp_table0 {
+The patch
 
-Just "opp-table {"
+   regulator: twl6030: fix range comparison, allowing vsel = 59
 
-> +	compatible = "operating-points-v2-ti-cpu";
-> +	syscon = <&scm_conf>;
-> +
-> +	/*
-> +	 * The three following nodes are marked with opp-suspend
-> +	 * because they can not be enabled simultaneously on a
-> +	 * single SoC.
-> +	 */
-> +	opp50@300000000 {
+has been applied to the regulator tree at
 
-What's the 50, 100, 120 in the names?
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
-> +		opp-hz = /bits/ 64 <300000000>;
-> +		opp-microvolt = <950000 931000 969000>;
-> +		opp-supported-hw = <0x06 0x0010>;
-> +		opp-suspend;
-> +	};
-> +
-> +	opp100@275000000 {
-> +		opp-hz = /bits/ 64 <275000000>;
-> +		opp-microvolt = <1100000 1078000 1122000>;
-> +		opp-supported-hw = <0x01 0x00FF>;
-> +		opp-suspend;
-> +	};
-> +
-> +	opp100@300000000 {
-> +		opp-hz = /bits/ 64 <300000000>;
-> +		opp-microvolt = <1100000 1078000 1122000>;
-> +		opp-supported-hw = <0x06 0x0020>;
-> +		opp-suspend;
-> +	};
-> +
-> +	opp100@500000000 {
-> +		opp-hz = /bits/ 64 <500000000>;
-> +		opp-microvolt = <1100000 1078000 1122000>;
-> +		opp-supported-hw = <0x01 0xFFFF>;
-> +	};
-> +
-> +	opp100@600000000 {
-> +		opp-hz = /bits/ 64 <600000000>;
-> +		opp-microvolt = <1100000 1078000 1122000>;
-> +		opp-supported-hw = <0x06 0x0040>;
-> +	};
-> +
-> +	opp120@600000000 {
-> +		opp-hz = /bits/ 64 <600000000>;
-> +		opp-microvolt = <1200000 1176000 1224000>;
-> +		opp-supported-hw = <0x01 0xFFFF>;
-> +	};
-> +
-> +	opp120@720000000 {
-> +		opp-hz = /bits/ 64 <720000000>;
-> +		opp-microvolt = <1200000 1176000 1224000>;
-> +		opp-supported-hw = <0x06 0x0080>;
-> +	};
-> +
-> +	oppturbo@720000000 {
-> +		opp-hz = /bits/ 64 <720000000>;
-> +		opp-microvolt = <1260000 1234800 1285200>;
-> +		opp-supported-hw = <0x01 0xFFFF>;
-> +	};
-> +
-> +	oppturbo@800000000 {
-> +		opp-hz = /bits/ 64 <800000000>;
-> +		opp-microvolt = <1260000 1234800 1285200>;
-> +		opp-supported-hw = <0x06 0x0100>;
-> +	};
-> +
-> +	oppnitro@1000000000 {
-> +		opp-hz = /bits/ 64 <1000000000>;
-> +		opp-microvolt = <1325000 1298500 1351500>;
-> +		opp-supported-hw = <0x04 0x0200>;
-> +	};
-> +};
-> -- 
-> 2.11.0
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From b98acbff9a05b371c5f0ca6e44a3af8ce9274379 Mon Sep 17 00:00:00 2001
+From: Colin Ian King <colin.king@canonical.com>
+Date: Wed, 11 Jan 2017 15:36:20 +0000
+Subject: [PATCH] regulator: twl6030: fix range comparison, allowing vsel = 59
+
+The range min_uV > 1350000 && min_uV <= 150000 is never reachable
+because of a typo in the previous range check and hence vsel = 59
+is never reached.  Fix the previous range check to enable the
+vsel = 59 setting.
+
+Fixes CoverityScan CID#728454 ("Logially dead code")
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/twl6030-regulator.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
+index 4864b9d742c0..716191046a70 100644
+--- a/drivers/regulator/twl6030-regulator.c
++++ b/drivers/regulator/twl6030-regulator.c
+@@ -452,7 +452,7 @@ static int twl6030smps_map_voltage(struct regulator_dev *rdev, int min_uV,
+ 			vsel = 62;
+ 		else if ((min_uV > 1800000) && (min_uV <= 1900000))
+ 			vsel = 61;
+-		else if ((min_uV > 1350000) && (min_uV <= 1800000))
++		else if ((min_uV > 1500000) && (min_uV <= 1800000))
+ 			vsel = 60;
+ 		else if ((min_uV > 1350000) && (min_uV <= 1500000))
+ 			vsel = 59;
+-- 
+2.11.0
