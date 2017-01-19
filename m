@@ -1,79 +1,73 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCHv2] Documentation: dt-bindings: Add binding documentation
- for TI clkctrl clocks
-Date: Thu, 19 Jan 2017 13:28:13 -0600
-Message-ID: <20170119192813.xdt5jahffcdzmucu@rob-hp-laptop>
-References: <20170117225302.10844-1-tony@atomide.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v3 2/3] dmaengine: cppi41: Add support of DA8xx to CPPI
+ 4.1
+Date: Thu, 19 Jan 2017 21:15:28 +0300
+Message-ID: <6cfcff3a-e485-65c0-048a-f2f1b133d2e9@cogentembedded.com>
+References: <20170119111334.14718-1-abailon@baylibre.com>
+ <20170119111334.14718-3-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170117225302.10844-1-tony@atomide.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170119111334.14718-3-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 17, 2017 at 02:53:02PM -0800, Tony Lindgren wrote:
-> Texas Instruments omap variant SoCs starting with omap4 have a clkctrl
-> clock controller instance for each interconnect target module. The clkctrl
-> controls functional and interface clocks for the module.
-> 
-> The clkctrl clocks are currently handled by arch/arm/mach-omap2 hwmod code.
-> With this binding and a related clock device driver we can start moving the
-> clkctrl clock handling to live in drivers/clk/ti.
-> 
-> Note that this binding allows keeping the clockdomain related parts out of
-> drivers/clock. The CLKCTCTRL and DYNAMICDEP registers can be handled by
-> a separate driver in drivers/soc/ti and genpd. If the clockdomain driver
-> needs to know it's clocks, we can just set the the clkctrl device
-> instances to be children of the related clockdomain device.
-> 
-> Each clkctrl clock can have multiple optional gate clocks, and multiple
-> optional mux clocks. To represent this in device tree, it seems that
-> it is best done using four clock cells #clock-cells = <4> property.
-> 
-> The reasons for using #clock-cells = <4> are:
-> 
-> 1. We need to specify the clkctrl offset from the instance base. Otherwise
->    we end up with a large number of device tree nodes that need to be
->    patched when new clocks are discovered in a clkctrl clock with minor
->    hardware revision changes for example
-> 
-> 2. On omap5 CM_L3INIT_USB_HOST_HS_CLKCTRL has ten OPTFCLKEN bits. So we
->    need to use a separate cell for optional gate clocks to avoid address
->    space conflicts
-> 
-> 3. Some clkctrl instances can also also optional mux clocks. To address
->    them properly we need also a separate cell for the optional mux
->    clock index
-> 
-> 4. The modulemode clock needs a flag passed to it for hardware or
->    software controlled mode
-> 
-> There is probably no need to list input clocks for each clkctrl clock
-> instance in the binding. If we want to add them, the standard clocks
-> binding can be used for that.
-> 
-> For hardware reference, see omap4430 TRM "Table 3-1312. L4PER_CM2 Registers
-> Mapping Summary" for example. It shows one instance of a clkctrl clock
-> controller with multiple clkctrl registers.
-> 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Rob Herring <robh@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-> 
-> Changes from v1:
-> 
-> - Use #clock-cells to avoid address space conflicts
-> 
-> - Consider also optional mux clocks as pointed out by Tero
-> 
-> ---
->  .../devicetree/bindings/clock/ti-clkctrl.txt       | 57 ++++++++++++++++++++++
->  1 file changed, 57 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+On 01/19/2017 02:13 PM, Alexandre Bailon wrote:
 
-Acked-by: Rob Herring <robh@kernel.org>
+> The DA8xx has a CPPI 4.1 DMA controller.
+> This is add the glue layer required to make it work on DA8xx.
+>
+> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/dma/Kconfig  |  6 +++---
+>  drivers/dma/cppi41.c | 24 ++++++++++++++++++++++++
+>  2 files changed, 27 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+> index 0d6a96e..03ae2a1 100644
+> --- a/drivers/dma/Kconfig
+> +++ b/drivers/dma/Kconfig
+> @@ -514,12 +514,12 @@ config TIMB_DMA
+>  	  Enable support for the Timberdale FPGA DMA engine.
+>
+>  config TI_CPPI41
+> -	tristate "AM33xx CPPI41 DMA support"
+> -	depends on ARCH_OMAP
+> +	tristate "CPPI41 DMA support"
 
+    Grr... CPPI 4.1, please.
+
+> +	depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX)
+>  	select DMA_ENGINE
+>  	help
+>  	  The Communications Port Programming Interface (CPPI) 4.1 DMA engine
+> -	  is currently used by the USB driver on AM335x platforms.
+> +	  is currently used by the USB driver on AM335x and DA8xx platforms.
+>
+>  config TI_DMA_CROSSBAR
+>  	bool
+> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+> index 9767b97..f6f2d84 100644
+> --- a/drivers/dma/cppi41.c
+> +++ b/drivers/dma/cppi41.c
+[...]
+> @@ -951,8 +965,18 @@ static const struct cppi_glue_infos am335x_usb_infos = {
+>  	.qmgr_num_pend = 5,
+>  };
+>
+> +static const struct cppi_glue_infos da8xx_usb_infos = {
+> +	.isr = cppi41_irq,
+
+    Isn't the ISR the same for all glues now?
+
+[...]
+
+MBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
