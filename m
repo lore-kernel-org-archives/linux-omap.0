@@ -1,57 +1,79 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] usb: musb: Size 1 dma in transfers won't complete
- with cpp41
-Date: Thu, 19 Jan 2017 09:13:46 -0600
-Message-ID: <20170119151346.GB22265@uda0271908>
-References: <20170119022959.30793-1-tony@atomide.com>
- <20170119022959.30793-3-tony@atomide.com>
- <20170119034130.GA22265@uda0271908>
- <20170119150457.GS7403@atomide.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] dt/bindings: da8xx-usb: Add binding for the CPPI
+ 4.1 DMA controller
+Date: Thu, 19 Jan 2017 12:24:11 -0600
+Message-ID: <20170119182411.3aid3hxjakxyxtg4@rob-hp-laptop>
+References: <20170117142016.11163-1-abailon@baylibre.com>
+ <20170117142016.11163-2-abailon@baylibre.com>
+ <aa9b6761-c8de-13ea-1a62-9810ad92a6d4@cogentembedded.com>
+ <710c724c-3831-e9d1-406b-76bdfed7b948@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170119150457.GS7403-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <710c724c-3831-e9d1-406b-76bdfed7b948-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Cc: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 19, 2017 at 07:04:57AM -0800, Tony Lindgren wrote:
-> * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170118 19:42]:
-> > On Wed, Jan 18, 2017 at 06:29:59PM -0800, Tony Lindgren wrote:
-> > > At least with the cppi41 dma, size 1 in dma transfers will just wait
+On Wed, Jan 18, 2017 at 02:03:44PM +0530, Sekhar Nori wrote:
+> On Tuesday 17 January 2017 10:46 PM, Sergei Shtylyov wrote:
+> > On 01/17/2017 05:20 PM, Alexandre Bailon wrote:
 > > 
-> > In which case do you see the size 1 transfer? using testusb?
+> >> DT binding for the TI DA8xx/OMAP-L1x/AM17xx/AM18xx cppi41 dma controller.
+> >>
+> >> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> >> ---
+> >>  .../devicetree/bindings/usb/da8xx-usb.txt          | 42
+> >> ++++++++++++++++++++++
+> >>  1 file changed, 42 insertions(+)
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+> >> b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+> >> index ccb844a..aed3169 100644
+> >> --- a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+> >> +++ b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+> >> @@ -18,10 +18,26 @@ Required properties:
+> >>
+> >>   - phy-names: Should be "usb-phy"
+> >>
+> >> + - dmas: specifies the dma channels
+> >> +
+> >> + - dma-names: specifies the names of the channels. Use "rxN" for receive
+> >> +   and "txN" for transmit endpoints. N specifies the endpoint number.
+> >> +
+> >>  Optional properties:
+> >>  ~~~~~~~~~~~~~~~~~~~~
+> >>   - vbus-supply: Phandle to a regulator providing the USB bus power.
+> >>
+> >> +DMA
+> >> +~~~
+> >> +- compatible: ti,da8xx-cppi41
 > > 
-> > > until the device is disconnected. This causes timeouts in cppi41 dma
-> > > runtime PM.
-> > > 
-> > > Also the initial size 8 transfers take about 200ms to complete when
-> > > plugging a USB mass storage device to a hub. But we probably want to
-> > > keep those to avoid using PIO.
-> > > 
-> > > Fix the issue by adding a quirk for cppi41 and skip size 1 in dma if
-> > > set.
-> > 
-> > It is fine to bypass dma for size 1 transfers, due to the dma setup
-> > overhead. But I'd like to know the test case to understand why it hangs.
+> >    Almost missed this -- wildcards in this property are forbidden.
+> > We should use "ti,da830-cppi41" as a least common denominator.
 > 
-> The test case is the same old connect a USB mass storage device to a hub.
-> There we see the initial size 1 transfer in the beginning. That transfer
-> seems to never complete with cppi41 and the transfer will stay active
-> until the device is disconnected. Currently we don't seem to have any
-> timeout mechanism in cppi41 for that.
+> Documentation/devicetree/bindings/submitting-patches.txt states:
+> 
+> "
+>   5) The wildcard "<chip>" may be used in compatible strings, as in
+>      the following example:
+> 
+>          - compatible: Must contain '"nvidia,<chip>-pcie",
+>            "nvidia,tegra20-pcie"' where <chip> is tegra30, tegra132, ...
+> "
+> 
+> I take this to mean that using wildcards to denote an SoC family on
+> which the same IP is present is okay to do. With that understanding, I
+> think using ti,da8xx-cppi41 is fine too. Although I have no objections
+> against using the more specific ti,da830-cppi41
 
-Ok, I will take a look maybe sometime next week to understand the
-traffic.
+You may document things using the variable like above, but the end 
+result of compatible strings should not have wildcards.
 
-BTY, it seems you missed my comment at the end which is about limiting
-the transfer size.
-
-Regards,
--Bin.
+Rob
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
