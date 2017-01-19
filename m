@@ -1,60 +1,38 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes for v4.10-rc4
-Date: Wed, 18 Jan 2017 16:11:25 -0800
-Message-ID: <20170119001125.GA23725@localhost>
-References: <587eb2e1.21d2540a.b610a.992bSMTPIN_ADDED_BROKEN@mx.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <587eb2e1.21d2540a.b610a.992bSMTPIN_ADDED_BROKEN@mx.google.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/2] Two musb fixes for v4.10-rc cycle
+Date: Wed, 18 Jan 2017 16:49:16 -0800
+Message-ID: <20170119004918.9986-1-tony@atomide.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 17, 2017 at 04:12:09PM -0800, Tony Lindgren wrote:
-> The following changes since commit 1a38de880992764d4bd5bccbd306b87d860e377d:
-> 
->   ARM: dts: am572x-idk: Add gpios property to control PCIE_RESETn (2016-12-30 10:59:56 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.10/fixes-rc4
-> 
-> for you to fetch changes up to 1ea6af3216b092ec97129ac81bd95cf254c4b140:
-> 
->   ARM: dts: omap3: Fix Card Detect and Write Protect on Logic PD SOM-LV (2017-01-17 13:50:55 -0800)
-> 
-> ----------------------------------------------------------------
-> Fixes for omaps for v4.10-rc cycle. Mostly a DMA regression fix for
-> omap1, and then a handful of trivial fixes for boards and devices to
-> work:
-> 
-> - Fixes TI wilink bluetooth strange platform data baud rate
-> 
-> - Remove duplicate pinmux line for am335x-icev2
-> 
-> - Fix omap1 dma regression
-> 
-> - Fix uninitialized return value for wkup_m3_ipc_probe()
-> 
-> - Fix Ethernet PHY binding typo for dra72-evm
-> 
-> - Fix init for omap5 and dra7 sata ports
-> 
-> - Fix mmc card detect pin for Logic PD SOM-LV
+Hi all,
 
-Merged, thanks.
+Here are two fixes for v4.10-rc cycle to deal with error -75 and
+-115 issues when plugging in USB mass storage device to a hub.
+
+Note that I will also post two cppi41 dma related patches, but
+those can be applied separately.
+
+Regards,
+
+Tony
 
 
--Olof
+Tony Lindgren (2):
+  usb: musb: Fix host mode error -71 regression
+  usb: musb: Tiny dma in transfers won't complete with cpp41
+
+ drivers/usb/musb/musb_core.c | 15 ++-------------
+ drivers/usb/musb/musb_core.h |  1 -
+ drivers/usb/musb/musb_host.c |  9 ++++++++-
+ 3 files changed, 10 insertions(+), 15 deletions(-)
+
+-- 
+2.11.0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
