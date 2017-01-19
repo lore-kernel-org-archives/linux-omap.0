@@ -1,7 +1,7 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH v2 4/5] net: ethernet: ti: cpsw: don't duplicate common res in rx handler
-Date: Thu, 19 Jan 2017 18:58:26 +0200
-Message-ID: <1484845107-30331-5-git-send-email-ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v2 1/5] net: ethernet: ti: cpsw: remove dual check from common res usage function
+Date: Thu, 19 Jan 2017 18:58:23 +0200
+Message-ID: <1484845107-30331-2-git-send-email-ivan.khoronzhuk@linaro.org>
 References: <1484845107-30331-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1484845107-30331-1-git-send-email-ivan.khoronzhuk@linaro.org>
@@ -10,78 +10,31 @@ To: mugunthanvnm@ti.com
 Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-No need to duplicate the same function in rx handler to get info
-if any interface is running.
+Common res usage is possible only in case an interface is
+running. In case of not dual emac here can be only one interface,
+so while ndo_open and switch mode, only one interface can be opened,
+thus if open is called no any interface is running ... and no common
+res are used. So remove check on dual emac, it will simplify
+code/understanding and will match the name it's called.
 
 Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 ---
- drivers/net/ethernet/ti/cpsw.c | 40 ++++++++++++++++------------------------
- 1 file changed, 16 insertions(+), 24 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index c681d39..1f14afd 100644
+index 02b03ee..296ddf2 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -671,6 +671,18 @@ static void cpsw_intr_disable(struct cpsw_common *cpsw)
- 	return;
- }
+@@ -1240,9 +1240,6 @@ static int cpsw_common_res_usage_state(struct cpsw_common *cpsw)
+ 	u32 i;
+ 	u32 usage_count = 0;
  
-+static int cpsw_get_usage_count(struct cpsw_common *cpsw)
-+{
-+	u32 i;
-+	u32 usage_count = 0;
-+
-+	for (i = 0; i < cpsw->data.slaves; i++)
-+		if (netif_running(cpsw->slaves[i].ndev))
-+			usage_count++;
-+
-+	return usage_count;
-+}
-+
- static void cpsw_tx_handler(void *token, int len, int status)
- {
- 	struct netdev_queue	*txq;
-@@ -703,18 +715,10 @@ static void cpsw_rx_handler(void *token, int len, int status)
- 	cpsw_dual_emac_src_port_detect(cpsw, status, ndev, skb);
- 
- 	if (unlikely(status < 0) || unlikely(!netif_running(ndev))) {
--		bool ndev_status = false;
--		struct cpsw_slave *slave = cpsw->slaves;
--		int n;
+-	if (!cpsw->data.dual_emac)
+-		return 0;
 -
--		if (cpsw->data.dual_emac) {
--			/* In dual emac mode check for all interfaces */
--			for (n = cpsw->data.slaves; n; n--, slave++)
--				if (netif_running(slave->ndev))
--					ndev_status = true;
--		}
--
--		if (ndev_status && (status >= 0)) {
-+		/* In dual emac mode check for all interfaces */
-+		if (cpsw->data.dual_emac &&
-+		    cpsw_get_usage_count(cpsw) &&
-+		    (status >= 0)) {
- 			/* The packet received is for the interface which
- 			 * is already down and the other interface is up
- 			 * and running, instead of freeing which results
-@@ -1234,18 +1238,6 @@ static void cpsw_get_ethtool_stats(struct net_device *ndev,
- 	}
- }
- 
--static int cpsw_get_usage_count(struct cpsw_common *cpsw)
--{
--	u32 i;
--	u32 usage_count = 0;
--
--	for (i = 0; i < cpsw->data.slaves; i++)
--		if (netif_running(cpsw->slaves[i].ndev))
--			usage_count++;
--
--	return usage_count;
--}
--
- static inline int cpsw_tx_packet_submit(struct cpsw_priv *priv,
- 					struct sk_buff *skb,
- 					struct cpdma_chan *txch)
+ 	for (i = 0; i < cpsw->data.slaves; i++)
+ 		if (cpsw->slaves[i].open_stat)
+ 			usage_count++;
 -- 
 2.7.4
