@@ -1,53 +1,47 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: dwc3 gadget breaks on system suspend/resume
-Date: Thu, 19 Jan 2017 14:16:25 +0200
-Message-ID: <a0cc2705-b1f5-7b6e-d73c-ff9b525eead2@ti.com>
-References: <54bdc1b7-69ed-d580-fd17-3e7499ac1c27@ti.com>
- <87a8anjm5z.fsf@linux.intel.com>
+From: Teresa Remmet <t.remmet@phytec.de>
+Subject: [PATCH 3/3] ARM: configs: omap2plus_defconfig: Enable support for RTC
+ M41T80
+Date: Thu, 19 Jan 2017 14:07:50 +0100
+Message-ID: <1484831270-7251-3-git-send-email-t.remmet@phytec.de>
+References: <1484831270-7251-1-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87a8anjm5z.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1484831270-7251-1-git-send-email-t.remmet@phytec.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Wadim Egorov <w.egorov@phytec.de>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 19/01/17 13:59, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
->> Hi Felipe,
->>
->> We have system suspend resume working on dra7-evm in v4.10-rc but
->> dwc3 gadget breaks after system suspend resume.
->>
->> Any hints how to fix it? Full backtrace below.
-> 
-> from a quick look. END_TRANSFER is timing out, most likely. Tracepoints
-> should give better hints.
-> 
-> We might have a bug in dwc3_gadget_suspend(). No idea what's really
-> going on.
-> 
->> Another message that looks worry-some is
->> "[   61.495313] omap-dwc3 48880000.omap_dwc3_1: runtime PM trying to suspend device but active child"
-> 
-> did you implement runtime PM on dwc3-omap.c? Look at dwc3-pci.c for reference.
-> 
->> If I unload gadget, then suspend/resume system then load gadget everything works fine.
-> 
-> right, dwc3 UDC will already have been toredown. Unfortunately I can't
-> spend a lot of time on this, so you're gonna have to try to fix it and
-> provide a patch :-s Quite busy looking at some f_fs weirdness.
+The phyCORE-AM335x SoM has a RV4162 RTC populated which is supported
+by the M41T80 driver. Enabled it so make the RTC support on the SoM
+available.
 
-No problem. I'll debug this issue.
+Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
+---
+ arch/arm/configs/omap2plus_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 0c2bf2d..75b5b73 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -414,6 +414,7 @@ CONFIG_LEDS_TRIGGER_GPIO=m
+ CONFIG_LEDS_TRIGGER_DEFAULT_ON=m
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_DS1307=m
++CONFIG_RTC_DRV_M41T80=m
+ CONFIG_RTC_DRV_TWL92330=y
+ CONFIG_RTC_DRV_TWL4030=m
+ CONFIG_RTC_DRV_PALMAS=m
+-- 
+1.9.1
