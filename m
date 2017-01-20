@@ -1,63 +1,83 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] usb: musb: Fix external abort on non-linefetch for musb_irq_work()
-Date: Fri, 20 Jan 2017 11:27:38 -0800
-Message-ID: <20170120192738.24973-1-tony@atomide.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Nokia N900: microphone mixers
+Date: Fri, 20 Jan 2017 20:32:24 +0100
+Message-ID: <20170120193224.GA14527@amd>
+References: <20170114225614.GA25321@amd>
+ <201701150100.54214@pali>
+ <20170115100533.GA15816@amd>
+ <40dbce4e-d99d-d77d-e682-5b004c70ca40@bitmer.com>
+ <d2c78625-565a-86ec-a03e-f15ae071942a@ti.com>
+ <ecdc073b-d83f-ba7d-89bf-da8899414217@bitmer.com>
+ <20170120133159.GA5241@amd>
+ <20170120133830.GF32502@pali>
+ <20170120140047.GB5241@amd>
+ <20170120140404.GG32502@pali>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170120140404.GG32502@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, alsa-devel@alsa-project.org, helen.koike@collabora.co.uk, lars@metafoo.de, broonie@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-While testing musb host mode cable plugging on a BeagleBone, I came across this
-error:
 
-Unhandled fault: external abort on non-linefetch (0x1008) at 0xd1dcfc60
-...
-[<bf668390>] (musb_default_readb [musb_hdrc]) from [<bf668578>] (musb_irq_work+0x1c/0x180 [musb_hdrc])
-[<bf668578>] (musb_irq_work [musb_hdrc]) from [<c0156554>] (process_one_work+0x2b4/0x808)
-[<c0156554>] (process_one_work) from [<c015767c>] (worker_thread+0x3c/0x550)
-[<c015767c>] (worker_thread) from [<c015d568>] (kthread+0x104/0x148)
-[<c015d568>] (kthread) from [<c01078d0>] (ret_from_fork+0x14/0x24)
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
+On Fri 2017-01-20 15:04:04, Pali Roh=E1r wrote:
+> On Friday 20 January 2017 15:00:47 Pavel Machek wrote:
+> > On Fri 2017-01-20 14:38:30, Pali Roh=E1r wrote:
+> > > On Friday 20 January 2017 14:31:59 Pavel Machek wrote:
+> > > > Hi!
+> > > >=20
+> > > > Do you have any idea how to control the microphone? I'd like the au=
+dio
+> > > > source to be microphone on headset (not the built in one). So I run
+> > > > alsamixer, set everything in "capture" section to zero... and I sti=
+ll
+> > > > get the audio from the internal microphone :-(.
+> > > >=20
+> > > > Tested with arecord | aplay.
+> > > >=20
+> > > > Any ideas?
+> > >=20
+> > > Hi! Try to set Jack Function to Headset or enable b HS Mic.
+> >=20
+> > I can't find "b HS Mic" function. I can set "Input Select" to "ADC",
+> > and ten internal microphone is off, but I can't get any audio on
+> > input. I tried with "Jack function" both "headset" and "headphone".
+> >=20
+> > Do I need to enable microphone bias voltage somewhere?
+>=20
+> When you set Jack function to headset it automatically enable HS Mic
+> control which controls mic bias.
+>=20
+> If Jack function in headset mode does not work, then there is bug. Try
+> older versions of kernel...
 
-I found one more corner case issue in my usb cable plugfest yesterday.
+Would you know which mainline kernel version is "known good"?
 
- drivers/usb/musb/musb_core.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1925,6 +1925,14 @@ static void musb_pm_runtime_check_session(struct musb *musb)
- static void musb_irq_work(struct work_struct *data)
- {
- 	struct musb *musb = container_of(data, struct musb, irq_work.work);
-+	int error;
-+
-+	error = pm_runtime_get_sync(musb->controller);
-+	if (error < 0) {
-+		dev_err(musb->controller, "Could not enable: %i\n", error);
-+
-+		return;
-+	}
- 
- 	musb_pm_runtime_check_session(musb);
- 
-@@ -1932,6 +1940,9 @@ static void musb_irq_work(struct work_struct *data)
- 		musb->xceiv_old_state = musb->xceiv->otg->state;
- 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
- 	}
-+
-+	pm_runtime_mark_last_busy(musb->controller);
-+	pm_runtime_put_autosuspend(musb->controller);
- }
- 
- static void musb_recover_from_babble(struct musb *musb)
--- 
-2.11.0
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAliCZcgACgkQMOfwapXb+vK9tQCfbe4Y/NYXn+xk1HDM8Z8vtv9C
+MdMAn3EqC83qKTdOewm9NkudZHrKN4BC
+=nyxW
+-----END PGP SIGNATURE-----
+
+--17pEHd4RhPHOinZp--
