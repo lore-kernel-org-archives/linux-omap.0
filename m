@@ -1,62 +1,42 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCHv4 3/2] dmaengine: cppi41: Clean up pointless warnings
-Date: Fri, 20 Jan 2017 12:07:53 -0800
-Message-ID: <20170120200753.GM7403@atomide.com>
-References: <20170119164908.9472-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: omap2plus_defconfig: Fix probe errors on UARTs 5 and 6
+Date: Fri, 20 Jan 2017 12:13:19 -0800
+Message-ID: <20170120201319.2735-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170119164908.9472-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With patches "dmaengine: cppi41: Fix runtime PM timeouts with USB mass
-storage", and "dmaengine: cppi41: Fix oops in cppi41_runtime_resume",
-the pm_runtime_get/put() in cppi41_irq() is no longer needed. We now
-guarantee that cppi41 is enabled when dma is in use.
+We have more than four uarts on some SoCs and that can cause
+noise while booting with errors.
 
-We can still get pointless error -115 when musb is configured as a
-usb peripheral. That's because we should now check for the state of
-is_suspended instead.
-
-Let's just remove the now useless code and replace it with a WARN().
-
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/configs/omap2plus_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-Found one more cosmetic issue. With patches 1/2 and 2/2 fixing the
-problems, this can now wait if considered not suitable for the -rc
-cycle.
-
----
- drivers/dma/cppi41.c | 13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -323,12 +323,12 @@ static irqreturn_t cppi41_irq(int irq, void *data)
- 
- 		while (val) {
- 			u32 desc, len;
--			int error;
- 
--			error = pm_runtime_get(cdd->ddev.dev);
--			if (error < 0)
--				dev_err(cdd->ddev.dev, "%s pm runtime get: %i\n",
--					__func__, error);
-+			/*
-+			 * This should never trigger, see the comments in
-+			 * push_desc_queue()
-+			 */
-+			WARN_ON(cdd->is_suspended);
- 
- 			q_num = __fls(val);
- 			val &= ~(1 << q_num);
-@@ -349,9 +349,6 @@ static irqreturn_t cppi41_irq(int irq, void *data)
- 			c->residue = pd_trans_len(c->desc->pd6) - len;
- 			dma_cookie_complete(&c->txd);
- 			dmaengine_desc_get_callback_invoke(&c->txd, NULL);
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -213,6 +213,7 @@ CONFIG_SERIO=m
+ CONFIG_SERIAL_8250=y
+ CONFIG_SERIAL_8250_CONSOLE=y
+ CONFIG_SERIAL_8250_NR_UARTS=32
++CONFIG_SERIAL_8250_RUNTIME_UARTS=6
+ CONFIG_SERIAL_8250_EXTENDED=y
+ CONFIG_SERIAL_8250_MANY_PORTS=y
+ CONFIG_SERIAL_8250_SHARE_IRQ=y
+-- 
+2.11.0
