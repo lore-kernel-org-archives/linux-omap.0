@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: Fix SoC detection of OMAP36/37 Family
-Date: Fri, 20 Jan 2017 10:14:07 -0800
-Message-ID: <20170120181407.GC7403@atomide.com>
-References: <1484930641-18566-1-git-send-email-aford173@gmail.com>
+Subject: Re: [PATCH 0/3] misc: sram: Introduce protect-exec region type
+Date: Fri, 20 Jan 2017 10:24:39 -0800
+Message-ID: <20170120182438.GD7403@atomide.com>
+References: <20170112205220.26325-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1484930641-18566-1-git-send-email-aford173@gmail.com>
+In-Reply-To: <20170112205220.26325-1-d-gerlach@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,54 +18,73 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: aford173@gmail.com
-Cc: linux-omap@vger.kernel.org, linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* aford173@gmail.com <aford173@gmail.com> [170120 08:45]:
-> From: Adam Ford <aford173@gmail.com>
+* Dave Gerlach <d-gerlach@ti.com> [170112 12:54]:
+> Hi,
+> There are several instances when one would want to execute out of on-chip
+> SRAM, such as PM code on ARM platforms, so once again revisiting this
+> series to allow that in a generic manner. Seems that having a solution for
+> allowing SRAM to be mapped as executable will help clean up PM code on several
+> ARM platforms that are using ARM internal __arm_ioremap_exec API
+> and also open the door for PM support on new platforms like TI AM335x and
+> AM437x.
 > 
-> The OMAP36/37 families are similar, but there are a few features sections
-> that can help identify some of them.  Let's add checks for 3630/3730,
-> OMAP3621, DM3725, OMAP3615/DM3715, OMAP3611, and AM3703 all based on
-> features similar to what was done for the OMAP34xx/35xx series
+> Previously a generic solution was attempted by introducing a memremap
+> executable API and then calling this from the generic sram driver here [1].
+> Russell King brought up the point that we should not just be mapping
+> memory as both writable and executable for security reasons which led to
+> the solution proposed in this series. 
 > 
-> The checkpatch flags some warnings for braces, but I kept the coding style
-> to match the adjacent code for consistency.
+> The generic SRAM driver already has a concept of "partitions" which can be
+> defined and flagged in the device tree, so this series introduces a new flag,
+> protect-exec, which indicates the region of SRAM that has been blocked out in
+> the DT is protected and executable. It will share the same capabilities of the
+> already present sram "pool" which will allow allocation through the use of the
+> genalloc framework but also be protected through the use of an "sram_exec_copy"
+> helper function to handle the copying of data to the space and also the page
+> attributes. In this context protected means the memory is managed such that
+> it is *either* writeable and non-executable or read-only and executable through
+> manipulation of the page attributes.
 > 
-> I don't have an OMAP36xx to test, but this was tested on both a DM3730 and
-> AM3703.
+> Unforunately, unlike the previously proposed solution, this is not a drop in
+> replacement for __arm_ioremap_exec, A large side effect of allocating
+> executable SRAM as this series does is that it will require rework for some
+> SRAM code as a lot of the assembly code I have seen makes use of PC relative
+> memory locations at the end of the code for local variables. This will no
+> longer be possible if we must maintain the read-only executable status of
+> the memory. If that's required then SRAM code will need to use pointers to
+> a separately allocated region of sram that is just a normal writable pool.
+> 
+> As mentioned in previous series I still see several platforms (at-91,
+> imx6, socfpga, omap3) that could make use of this although some rework may
+> be required unlike with the last solution, and it will be needed for the
+> forthcoming TI am335x and am437x PM code as portions of PM code are
+> moving in to drivers. An example of this in use can be seen at [2] in the 
+> drivers/memory/ti-emif-sram.c and drivers/soc/ti/pm33xx.c files.
 
-AFAIK 3630 is exactly the same as dm3730. Applying into
-omap-for-v4.11/fixes-not-urgent thanks.
+Looks good to me:
 
-Regards,
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Tony
-
-> Signed-off-by: Adam Ford <aford173@gmail.com>
+> [1] http://www.spinics.net/lists/linux-omap/msg132728.html
+> [2] https://github.com/dgerlach/linux-pm/tree/upstream/v4.10/sram-exec-copy-pm
 > 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index cc6d9fa..e2274a1 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -223,7 +223,15 @@ static void __init omap3_cpuinfo(void)
->  	 * and CPU class bits.
->  	 */
->  	if (soc_is_omap3630()) {
-> -		cpu_name = "OMAP3630";
-> +		if (omap3_has_iva() && omap3_has_sgx()) {
-> +			cpu_name = (omap3_has_isp()) ? "OMAP3630/DM3730" : "OMAP3621";
-> +		} else if (omap3_has_iva()) {
-> +			cpu_name = "DM3725";
-> +		} else if (omap3_has_sgx()) {
-> +			cpu_name = "OMAP3615/AM3715";
-> +		} else {
-> +			cpu_name = (omap3_has_isp()) ? "AM3703" : "OMAP3611";
-> +		}
->  	} else if (soc_is_am35xx()) {
->  		cpu_name = (omap3_has_sgx()) ? "AM3517" : "AM3505";
->  	} else if (soc_is_ti816x()) {
-> -- 
-> 2.7.4
+> Dave Gerlach (3):
+>   misc: sram: Split sram data structures into local header
+>   misc: sram: Introduce support code for protect-exec sram type
+>   misc: sram: Integrate protect-exec reserved sram area type
 > 
+>  Documentation/devicetree/bindings/sram/sram.txt |   6 ++
+>  drivers/misc/Kconfig                            |   4 +
+>  drivers/misc/Makefile                           |   1 +
+>  drivers/misc/sram-exec.c                        | 105 ++++++++++++++++++++++++
+>  drivers/misc/sram.c                             |  51 +++++-------
+>  drivers/misc/sram.h                             |  58 +++++++++++++
+>  include/linux/sram.h                            |  27 ++++++
+>  7 files changed, 222 insertions(+), 30 deletions(-)
+>  create mode 100644 drivers/misc/sram-exec.c
+>  create mode 100644 drivers/misc/sram.h
+>  create mode 100644 include/linux/sram.h
