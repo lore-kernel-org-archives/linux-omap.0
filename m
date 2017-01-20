@@ -1,83 +1,86 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Nokia N900: microphone mixers
-Date: Fri, 20 Jan 2017 20:32:24 +0100
-Message-ID: <20170120193224.GA14527@amd>
-References: <20170114225614.GA25321@amd>
- <201701150100.54214@pali>
- <20170115100533.GA15816@amd>
- <40dbce4e-d99d-d77d-e682-5b004c70ca40@bitmer.com>
- <d2c78625-565a-86ec-a03e-f15ae071942a@ti.com>
- <ecdc073b-d83f-ba7d-89bf-da8899414217@bitmer.com>
- <20170120133159.GA5241@amd>
- <20170120133830.GF32502@pali>
- <20170120140047.GB5241@amd>
- <20170120140404.GG32502@pali>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 1/3] usb: musb: dma: Add a DMA completion platform
+ callback
+Date: Fri, 20 Jan 2017 14:00:30 -0600
+Message-ID: <20170120200030.GD14571@uda0271908>
+References: <20170119100659.11370-1-abailon@baylibre.com>
+ <20170119100659.11370-2-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170120140404.GG32502@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, alsa-devel@alsa-project.org, helen.koike@collabora.co.uk, lars@metafoo.de, broonie@kernel.org
+In-Reply-To: <20170119100659.11370-2-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Jan 19, 2017 at 11:06:57AM +0100, Alexandre Bailon wrote:
+> Currently, the CPPI 4.1 driver is not completely generic and
+> only work on dsps. This is because of IRQ management.
+> Add a callback to dma_controller that could be invoked on DMA completion
+> to acknodlege the IRQ.
+> 
+> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_cppi41.c | 7 +++++--
+>  drivers/usb/musb/musb_dma.h    | 4 ++++
+>  2 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
+> index 1636385..f7d3d27 100644
+> --- a/drivers/usb/musb/musb_cppi41.c
+> +++ b/drivers/usb/musb/musb_cppi41.c
+> @@ -217,6 +217,10 @@ static void cppi41_dma_callback(void *private_data)
+>  	int is_hs = 0;
+>  	bool empty;
+>  
+> +	controller = cppi41_channel->controller;
+> +	if (controller->controller.dma_callback)
+> +		controller->controller.dma_callback(&controller->controller);
+> +
+>  	spin_lock_irqsave(&musb->lock, flags);
+>  
+>  	dmaengine_tx_status(cppi41_channel->dc, cppi41_channel->cookie,
+> @@ -249,8 +253,6 @@ static void cppi41_dma_callback(void *private_data)
+>  	 * We spin on HS (no longer than than 25us and setup a timer on
+>  	 * FS to check for the bit and complete the transfer.
+>  	 */
+> -	controller = cppi41_channel->controller;
+> -
+>  	if (is_host_active(musb)) {
+>  		if (musb->port1_status & USB_PORT_STAT_HIGH_SPEED)
+>  			is_hs = 1;
+> @@ -695,6 +697,7 @@ cppi41_dma_controller_create(struct musb *musb, void __iomem *base)
+>  	controller->controller.channel_program = cppi41_dma_channel_program;
+>  	controller->controller.channel_abort = cppi41_dma_channel_abort;
+>  	controller->controller.is_compatible = cppi41_is_compatible;
+> +	controller->controller.musb = musb;
+>  
+>  	ret = cppi41_dma_controller_start(controller);
+>  	if (ret)
+> diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma.h
+> index 46357e1..8bea0cd 100644
+> --- a/drivers/usb/musb/musb_dma.h
+> +++ b/drivers/usb/musb/musb_dma.h
+> @@ -181,10 +181,13 @@ dma_channel_status(struct dma_channel *c)
+>   * @channel_release: call this to release a DMA channel
+>   * @channel_abort: call this to abort a pending DMA transaction,
+>   *	returning it to FREE (but allocated) state
+> + * @platform_dma_callback: invoked on DMA completion, useful to run platform
+> + *	code such IRQ acknowledgment.
+>   *
+>   * Controllers manage dma channels.
+>   */
+>  struct dma_controller {
+> +	struct musb *musb;
 
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Since musb is added here, can we clean up the corresponding one in
+struct cppi41_dma_controller and struct cppi?
 
-On Fri 2017-01-20 15:04:04, Pali Roh=E1r wrote:
-> On Friday 20 January 2017 15:00:47 Pavel Machek wrote:
-> > On Fri 2017-01-20 14:38:30, Pali Roh=E1r wrote:
-> > > On Friday 20 January 2017 14:31:59 Pavel Machek wrote:
-> > > > Hi!
-> > > >=20
-> > > > Do you have any idea how to control the microphone? I'd like the au=
-dio
-> > > > source to be microphone on headset (not the built in one). So I run
-> > > > alsamixer, set everything in "capture" section to zero... and I sti=
-ll
-> > > > get the audio from the internal microphone :-(.
-> > > >=20
-> > > > Tested with arecord | aplay.
-> > > >=20
-> > > > Any ideas?
-> > >=20
-> > > Hi! Try to set Jack Function to Headset or enable b HS Mic.
-> >=20
-> > I can't find "b HS Mic" function. I can set "Input Select" to "ADC",
-> > and ten internal microphone is off, but I can't get any audio on
-> > input. I tried with "Jack function" both "headset" and "headphone".
-> >=20
-> > Do I need to enable microphone bias voltage somewhere?
->=20
-> When you set Jack function to headset it automatically enable HS Mic
-> control which controls mic bias.
->=20
-> If Jack function in headset mode does not work, then there is bug. Try
-> older versions of kernel...
-
-Would you know which mainline kernel version is "known good"?
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---17pEHd4RhPHOinZp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAliCZcgACgkQMOfwapXb+vK9tQCfbe4Y/NYXn+xk1HDM8Z8vtv9C
-MdMAn3EqC83qKTdOewm9NkudZHrKN4BC
-=nyxW
------END PGP SIGNATURE-----
-
---17pEHd4RhPHOinZp--
+Regards,
+-Bin.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
