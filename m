@@ -1,114 +1,62 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: musb: Fix host mode error -71 regression
-Date: Fri, 20 Jan 2017 13:23:47 -0600
-Message-ID: <20170120192322.GC14571@uda0271908>
-References: <20170119022959.30793-1-tony@atomide.com>
- <20170119022959.30793-2-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] usb: musb: Fix external abort on non-linefetch for musb_irq_work()
+Date: Fri, 20 Jan 2017 11:27:38 -0800
+Message-ID: <20170120192738.24973-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170119022959.30793-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 18, 2017 at 06:29:58PM -0800, Tony Lindgren wrote:
-> Commit 467d5c980709 ("usb: musb: Implement session bit based runtime PM for
-> musb-core") started implementing musb generic runtime PM support by
-> introducing devctl register session bit based state control.
-> 
-> This caused a regression where if a USB mass storage device is connected
-> to a USB hub, we can get:
-> 
-> usb 1-1: reset high-speed USB device number 2 using musb-hdrc
-> usb 1-1: device descriptor read/64, error -71
-> usb 1-1.1: new high-speed USB device number 4 using musb-hdrc
-> 
-> This is because before the USB storage device is connected, musb is
-> in OTG_STATE_A_SUSPEND. And we currently only set need_finish_resume
-> in musb_stage0_irq() and the related code calling finish_resume_work
-> in musb_resume() and musb_runtime_resume() never gets called.
-> 
-> To fix the issue, we can call schedule_delayed_work() directly in
-> musb_stage0_irq() to have finish_resume_work run.
-> 
-> And we should no longer never get interrupts when when suspended.
-> We have changed musb to no longer need pm_runtime_irqsafe().
-> The need_finish_resume flag was added in commit 9298b4aad37e ("usb:
-> musb: fix device hotplug behind hub") and no longer applies as far
-> as I can tell. So let's just remove the earlier code that no longer
-> is needed.
-> 
-> Fixes: 467d5c980709 ("usb: musb: Implement session bit based
-> runtime PM for musb-core")
-> Reported-by: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+While testing musb host mode cable plugging on a BeagleBone, I came across this
+error:
 
-Applied. Thanks.
--Bin.
+Unhandled fault: external abort on non-linefetch (0x1008) at 0xd1dcfc60
+...
+[<bf668390>] (musb_default_readb [musb_hdrc]) from [<bf668578>] (musb_irq_work+0x1c/0x180 [musb_hdrc])
+[<bf668578>] (musb_irq_work [musb_hdrc]) from [<c0156554>] (process_one_work+0x2b4/0x808)
+[<c0156554>] (process_one_work) from [<c015767c>] (worker_thread+0x3c/0x550)
+[<c015767c>] (worker_thread) from [<c015d568>] (kthread+0x104/0x148)
+[<c015d568>] (kthread) from [<c01078d0>] (ret_from_fork+0x14/0x24)
 
-> ---
->  drivers/usb/musb/musb_core.c | 15 ++-------------
->  drivers/usb/musb/musb_core.h |  1 -
->  2 files changed, 2 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -594,11 +594,11 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
->  						| MUSB_PORT_STAT_RESUME;
->  				musb->rh_timer = jiffies
->  					+ msecs_to_jiffies(USB_RESUME_TIMEOUT);
-> -				musb->need_finish_resume = 1;
-> -
->  				musb->xceiv->otg->state = OTG_STATE_A_HOST;
->  				musb->is_active = 1;
->  				musb_host_resume_root_hub(musb);
-> +				schedule_delayed_work(&musb->finish_resume_work,
-> +					msecs_to_jiffies(USB_RESUME_TIMEOUT));
->  				break;
->  			case OTG_STATE_B_WAIT_ACON:
->  				musb->xceiv->otg->state = OTG_STATE_B_PERIPHERAL;
-> @@ -2710,11 +2710,6 @@ static int musb_resume(struct device *dev)
->  	mask = MUSB_DEVCTL_BDEVICE | MUSB_DEVCTL_FSDEV | MUSB_DEVCTL_LSDEV;
->  	if ((devctl & mask) != (musb->context.devctl & mask))
->  		musb->port1_status = 0;
-> -	if (musb->need_finish_resume) {
-> -		musb->need_finish_resume = 0;
-> -		schedule_delayed_work(&musb->finish_resume_work,
-> -				      msecs_to_jiffies(USB_RESUME_TIMEOUT));
-> -	}
->  
->  	/*
->  	 * The USB HUB code expects the device to be in RPM_ACTIVE once it came
-> @@ -2766,12 +2761,6 @@ static int musb_runtime_resume(struct device *dev)
->  
->  	musb_restore_context(musb);
->  
-> -	if (musb->need_finish_resume) {
-> -		musb->need_finish_resume = 0;
-> -		schedule_delayed_work(&musb->finish_resume_work,
-> -				msecs_to_jiffies(USB_RESUME_TIMEOUT));
-> -	}
-> -
->  	spin_lock_irqsave(&musb->lock, flags);
->  	error = musb_run_resume_work(musb);
->  	if (error)
-> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-> --- a/drivers/usb/musb/musb_core.h
-> +++ b/drivers/usb/musb/musb_core.h
-> @@ -410,7 +410,6 @@ struct musb {
->  
->  	/* is_suspended means USB B_PERIPHERAL suspend */
->  	unsigned		is_suspended:1;
-> -	unsigned		need_finish_resume :1;
->  
->  	/* may_wakeup means remote wakeup is enabled */
->  	unsigned		may_wakeup:1;
-> -- 
-> 2.11.0
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+
+I found one more corner case issue in my usb cable plugfest yesterday.
+
+ drivers/usb/musb/musb_core.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1925,6 +1925,14 @@ static void musb_pm_runtime_check_session(struct musb *musb)
+ static void musb_irq_work(struct work_struct *data)
+ {
+ 	struct musb *musb = container_of(data, struct musb, irq_work.work);
++	int error;
++
++	error = pm_runtime_get_sync(musb->controller);
++	if (error < 0) {
++		dev_err(musb->controller, "Could not enable: %i\n", error);
++
++		return;
++	}
+ 
+ 	musb_pm_runtime_check_session(musb);
+ 
+@@ -1932,6 +1940,9 @@ static void musb_irq_work(struct work_struct *data)
+ 		musb->xceiv_old_state = musb->xceiv->otg->state;
+ 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
+ 	}
++
++	pm_runtime_mark_last_busy(musb->controller);
++	pm_runtime_put_autosuspend(musb->controller);
+ }
+ 
+ static void musb_recover_from_babble(struct musb *musb)
+-- 
+2.11.0
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
