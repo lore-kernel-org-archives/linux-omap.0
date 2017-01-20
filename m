@@ -1,72 +1,53 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
 Subject: Re: Nokia N900: microphone mixers
-Date: Fri, 20 Jan 2017 15:00:47 +0100
-Message-ID: <20170120140047.GB5241@amd>
-References: <20170112181826.GA28290@amd>
- <201701121934.19810@pali>
- <20170114225614.GA25321@amd>
- <201701150100.54214@pali>
- <20170115100533.GA15816@amd>
+Date: Fri, 20 Jan 2017 15:04:04 +0100
+Message-ID: <20170120140404.GG32502@pali>
+References: <201701121934.19810@pali> <20170114225614.GA25321@amd>
+ <201701150100.54214@pali> <20170115100533.GA15816@amd>
  <40dbce4e-d99d-d77d-e682-5b004c70ca40@bitmer.com>
  <d2c78625-565a-86ec-a03e-f15ae071942a@ti.com>
  <ecdc073b-d83f-ba7d-89bf-da8899414217@bitmer.com>
- <20170120133159.GA5241@amd>
- <20170120133830.GF32502@pali>
+ <20170120133159.GA5241@amd> <20170120133830.GF32502@pali>
+ <20170120140047.GB5241@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170120133830.GF32502@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, alsa-devel@alsa-project.org, helen.koike@collabora.co.uk, lars@metafoo.de, broonie@kernel.org
+In-Reply-To: <20170120140047.GB5241@amd>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: alsa-devel@alsa-project.org, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, broonie@kernel.org, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, lars@metafoo.de, abcloriens@gmail.com, Jarkko Nikula <jarkko.nikula@bitmer.com>, helen.koike@collabora.co.uk, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-
---NDin8bjvE/0mNLFQ
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri 2017-01-20 14:38:30, Pali Roh=E1r wrote:
-> On Friday 20 January 2017 14:31:59 Pavel Machek wrote:
-> > Hi!
-> >=20
-> > Do you have any idea how to control the microphone? I'd like the audio
-> > source to be microphone on headset (not the built in one). So I run
-> > alsamixer, set everything in "capture" section to zero... and I still
-> > get the audio from the internal microphone :-(.
-> >=20
-> > Tested with arecord | aplay.
-> >=20
-> > Any ideas?
->=20
-> Hi! Try to set Jack Function to Headset or enable b HS Mic.
-
-I can't find "b HS Mic" function. I can set "Input Select" to "ADC",
-and ten internal microphone is off, but I can't get any audio on
-input. I tried with "Jack function" both "headset" and "headphone".
-
-Do I need to enable microphone bias voltage somewhere?
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---NDin8bjvE/0mNLFQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAliCGA8ACgkQMOfwapXb+vIPRgCgtRbIyklhlO8klMafJk86HJj8
-HkAAoKL88nL5llp27M84oI6YDnd7MhVZ
-=zXUB
------END PGP SIGNATURE-----
-
---NDin8bjvE/0mNLFQ--
+T24gRnJpZGF5IDIwIEphbnVhcnkgMjAxNyAxNTowMDo0NyBQYXZlbCBNYWNoZWsgd3JvdGU6Cj4g
+T24gRnJpIDIwMTctMDEtMjAgMTQ6Mzg6MzAsIFBhbGkgUm9ow6FyIHdyb3RlOgo+ID4gT24gRnJp
+ZGF5IDIwIEphbnVhcnkgMjAxNyAxNDozMTo1OSBQYXZlbCBNYWNoZWsgd3JvdGU6Cj4gPiA+IEhp
+IQo+ID4gPiAKPiA+ID4gRG8geW91IGhhdmUgYW55IGlkZWEgaG93IHRvIGNvbnRyb2wgdGhlIG1p
+Y3JvcGhvbmU/IEknZCBsaWtlIHRoZSBhdWRpbwo+ID4gPiBzb3VyY2UgdG8gYmUgbWljcm9waG9u
+ZSBvbiBoZWFkc2V0IChub3QgdGhlIGJ1aWx0IGluIG9uZSkuIFNvIEkgcnVuCj4gPiA+IGFsc2Ft
+aXhlciwgc2V0IGV2ZXJ5dGhpbmcgaW4gImNhcHR1cmUiIHNlY3Rpb24gdG8gemVyby4uLiBhbmQg
+SSBzdGlsbAo+ID4gPiBnZXQgdGhlIGF1ZGlvIGZyb20gdGhlIGludGVybmFsIG1pY3JvcGhvbmUg
+Oi0oLgo+ID4gPiAKPiA+ID4gVGVzdGVkIHdpdGggYXJlY29yZCB8IGFwbGF5Lgo+ID4gPiAKPiA+
+ID4gQW55IGlkZWFzPwo+ID4gCj4gPiBIaSEgVHJ5IHRvIHNldCBKYWNrIEZ1bmN0aW9uIHRvIEhl
+YWRzZXQgb3IgZW5hYmxlIGIgSFMgTWljLgo+IAo+IEkgY2FuJ3QgZmluZCAiYiBIUyBNaWMiIGZ1
+bmN0aW9uLiBJIGNhbiBzZXQgIklucHV0IFNlbGVjdCIgdG8gIkFEQyIsCj4gYW5kIHRlbiBpbnRl
+cm5hbCBtaWNyb3Bob25lIGlzIG9mZiwgYnV0IEkgY2FuJ3QgZ2V0IGFueSBhdWRpbyBvbgo+IGlu
+cHV0LiBJIHRyaWVkIHdpdGggIkphY2sgZnVuY3Rpb24iIGJvdGggImhlYWRzZXQiIGFuZCAiaGVh
+ZHBob25lIi4KPiAKPiBEbyBJIG5lZWQgdG8gZW5hYmxlIG1pY3JvcGhvbmUgYmlhcyB2b2x0YWdl
+IHNvbWV3aGVyZT8KCldoZW4geW91IHNldCBKYWNrIGZ1bmN0aW9uIHRvIGhlYWRzZXQgaXQgYXV0
+b21hdGljYWxseSBlbmFibGUgSFMgTWljCmNvbnRyb2wgd2hpY2ggY29udHJvbHMgbWljIGJpYXMu
+CgpJZiBKYWNrIGZ1bmN0aW9uIGluIGhlYWRzZXQgbW9kZSBkb2VzIG5vdCB3b3JrLCB0aGVuIHRo
+ZXJlIGlzIGJ1Zy4gVHJ5Cm9sZGVyIHZlcnNpb25zIG9mIGtlcm5lbC4uLgoKLS0gClBhbGkgUm9o
+w6FyCnBhbGkucm9oYXJAZ21haWwuY29tCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
