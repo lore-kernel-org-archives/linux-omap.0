@@ -1,59 +1,68 @@
-From: aford173@gmail.com
-Subject: [PATCH] ARM: OMAP3: Fix SoC detection of OMAP36/37 Family
-Date: Fri, 20 Jan 2017 10:44:01 -0600
-Message-ID: <1484930641-18566-1-git-send-email-aford173@gmail.com>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv4 0/2] cppi41 dma fixes for v4.10-rc cycle
+Date: Fri, 20 Jan 2017 22:50:03 +0530
+Message-ID: <20170120172003.GN3573@localhost>
+References: <20170119164908.9472-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Adam Ford <aford173@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170119164908.9472-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Adam Ford <aford173@gmail.com>
+On Thu, Jan 19, 2017 at 08:49:06AM -0800, Tony Lindgren wrote:
+> Hi all,
+> 
+> I'm using v4 naming here as the earlier patch "dmaengine: cppi41: Add dma
+> support to da8xx" has been separated from the error -115 issue. We've
+> identified so far three musb and cppi41 regressions:
 
-The OMAP36/37 families are similar, but there are a few features sections
-that can help identify some of them.  Let's add checks for 3630/3730,
-OMAP3621, DM3725, OMAP3615/DM3715, OMAP3611, and AM3703 all based on
-features similar to what was done for the OMAP34xx/35xx series
+Hi,
 
-The checkpatch flags some warnings for braces, but I kept the coding style
-to match the adjacent code for consistency.
+Can we get some tested-by for this series?
 
-I don't have an OMAP36xx to test, but this was tested on both a DM3730 and
-AM3703.
+> 
+> 1. Error -71 regression with musb
+> 
+>    This is not dma related, and fixed with recently posted patch
+>    "[PATCH 1/2] usb: musb: Fix host mode error -71 regression".
+> 
+> 2. Error -115 regression with cppi41 dma with musb
+> 
+>    This regression was caused by commit 098de42ad670 ("dmaengine:
+>    cppi41: Fix unpaired pm runtime when only a USB hub is connected")
+>    and causes runtime PM autosuspend delay to time out on active dma
+>    transfers when connecting a mass storage device to a usb hub.
+>    This is fixed in the first patch in this series.
+> 
+> 3. Race with runtime PM and cppi41_dma_issue_pending()
+> 
+>    This is really a separate issue from the error -115 problem, and
+>    fixed with the second patch in this series. That's minimal v4
+>    version of the "dmaengine: cppi41: Fix oops in cppi41_runtime_resume"
+>    patch.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+> Tony Lindgren (2):
+>   dmaengine: cppi41: Fix runtime PM timeouts with USB mass storage
+>   dmaengine: cppi41: Fix oops in cppi41_runtime_resume
+> 
+>  drivers/dma/cppi41.c | 56 ++++++++++++++++++++++++++++++++++++++--------------
+>  1 file changed, 41 insertions(+), 15 deletions(-)
+> 
+> -- 
+> 2.11.0
 
-Signed-off-by: Adam Ford <aford173@gmail.com>
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index cc6d9fa..e2274a1 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -223,7 +223,15 @@ static void __init omap3_cpuinfo(void)
- 	 * and CPU class bits.
- 	 */
- 	if (soc_is_omap3630()) {
--		cpu_name = "OMAP3630";
-+		if (omap3_has_iva() && omap3_has_sgx()) {
-+			cpu_name = (omap3_has_isp()) ? "OMAP3630/DM3730" : "OMAP3621";
-+		} else if (omap3_has_iva()) {
-+			cpu_name = "DM3725";
-+		} else if (omap3_has_sgx()) {
-+			cpu_name = "OMAP3615/AM3715";
-+		} else {
-+			cpu_name = (omap3_has_isp()) ? "AM3703" : "OMAP3611";
-+		}
- 	} else if (soc_is_am35xx()) {
- 		cpu_name = (omap3_has_sgx()) ? "AM3517" : "AM3505";
- 	} else if (soc_is_ti816x()) {
 -- 
-2.7.4
+~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
