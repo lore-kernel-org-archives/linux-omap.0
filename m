@@ -1,39 +1,26 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/6] ARM: dts: am335x-sl50: Update to new hardware
-Date: Fri, 20 Jan 2017 10:35:42 -0800
-Message-ID: <20170120183542.GH7403@atomide.com>
-References: <20170116165736.17197-1-enric.balletbo@collabora.com>
- <20170116174149.GE7403@atomide.com>
- <CAFqH_50s3oMsMK_QPFSKfOdrQ5gLcPp_PNM2emWfXO086_T8oQ@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] ARM: OMAP2+: Add earlycon support
+Date: Fri, 20 Jan 2017 10:39:52 -0800
+Message-ID: <20170120183952.GI7403@atomide.com>
+References: <20170118040326.29259-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAFqH_50s3oMsMK_QPFSKfOdrQ5gLcPp_PNM2emWfXO086_T8oQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170118040326.29259-1-lokeshvutla-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170116 12:54]:
-> Hi Tony,
-> 
-> 2017-01-16 18:41 GMT+01:00 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
-> > * Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org> [170116 08:58]:
-> >> Hi Tony,
-> >>
-> >> The following patches updates the device tree file for the SL50 device, there
-> >> are few v1 boards and IMHO doesn't make sense to maintain the device tree
-> >> for these old devices, so mostly of the updates are related to changes done in
-> >> the next hardware revision v2 (the one that will go out).
-> >
-> > This is only if the v1 boards are company internal and can be easily
-> > replaced. As long as that's the case I'm fine with that.
-> >
-> 
-> Yes thats the case, I don't expect see v1 board outside.
+* Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170117 20:06]:
+> This series adds earlycon support for all am33xx, am43xx, am57xx, dra7xx
+> based TI platforms. With this series just passing "earlycon" in bootargs
+> is sufficient for early debug.
 
-OK applying all into omap-for-v4.11/dt thanks.
+Applying to omap-for-v4.11/soc and the dts into omap-for-v4.11/dt.
+
+Thanks,
 
 Tony
 --
