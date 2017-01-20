@@ -1,85 +1,153 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 1/3] usb: musb: dma: Add a DMA completion platform
- callback
-Date: Fri, 20 Jan 2017 14:00:30 -0600
-Message-ID: <20170120200030.GD14571@uda0271908>
-References: <20170119100659.11370-1-abailon@baylibre.com>
- <20170119100659.11370-2-abailon@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] usb: phy: Implement am335x advisory 1.0.34
+Date: Fri, 20 Jan 2017 12:01:04 -0800
+Message-ID: <20170120200104.16921-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170119100659.11370-2-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 19, 2017 at 11:06:57AM +0100, Alexandre Bailon wrote:
-> Currently, the CPPI 4.1 driver is not completely generic and
-> only work on dsps. This is because of IRQ management.
-> Add a callback to dma_controller that could be invoked on DMA completion
-> to acknodlege the IRQ.
-> 
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/usb/musb/musb_cppi41.c | 7 +++++--
->  drivers/usb/musb/musb_dma.h    | 4 ++++
->  2 files changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-> index 1636385..f7d3d27 100644
-> --- a/drivers/usb/musb/musb_cppi41.c
-> +++ b/drivers/usb/musb/musb_cppi41.c
-> @@ -217,6 +217,10 @@ static void cppi41_dma_callback(void *private_data)
->  	int is_hs = 0;
->  	bool empty;
->  
-> +	controller = cppi41_channel->controller;
-> +	if (controller->controller.dma_callback)
-> +		controller->controller.dma_callback(&controller->controller);
-> +
->  	spin_lock_irqsave(&musb->lock, flags);
->  
->  	dmaengine_tx_status(cppi41_channel->dc, cppi41_channel->cookie,
-> @@ -249,8 +253,6 @@ static void cppi41_dma_callback(void *private_data)
->  	 * We spin on HS (no longer than than 25us and setup a timer on
->  	 * FS to check for the bit and complete the transfer.
->  	 */
-> -	controller = cppi41_channel->controller;
-> -
->  	if (is_host_active(musb)) {
->  		if (musb->port1_status & USB_PORT_STAT_HIGH_SPEED)
->  			is_hs = 1;
-> @@ -695,6 +697,7 @@ cppi41_dma_controller_create(struct musb *musb, void __iomem *base)
->  	controller->controller.channel_program = cppi41_dma_channel_program;
->  	controller->controller.channel_abort = cppi41_dma_channel_abort;
->  	controller->controller.is_compatible = cppi41_is_compatible;
-> +	controller->controller.musb = musb;
->  
->  	ret = cppi41_dma_controller_start(controller);
->  	if (ret)
-> diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma.h
-> index 46357e1..8bea0cd 100644
-> --- a/drivers/usb/musb/musb_dma.h
-> +++ b/drivers/usb/musb/musb_dma.h
-> @@ -181,10 +181,13 @@ dma_channel_status(struct dma_channel *c)
->   * @channel_release: call this to release a DMA channel
->   * @channel_abort: call this to abort a pending DMA transaction,
->   *	returning it to FREE (but allocated) state
-> + * @platform_dma_callback: invoked on DMA completion, useful to run platform
-> + *	code such IRQ acknowledgment.
->   *
->   * Controllers manage dma channels.
->   */
->  struct dma_controller {
-> +	struct musb *musb;
+I noticed in sprz360i.pdf there's "Advisory 1.0.34 USB2PHY: Register
+Accesses After a USB Subsystem Soft Reset May Lock Up the Entire System"
+that seems to affect am335x revisions 1.0, 2.0 and 2.1:
 
-Since musb is added here, can we clean up the corresponding one in
-struct cppi41_dma_controller and struct cppi?
+"The synchronization bridge connecting the USB2PHY register interface
+ to the L3S interconnect may hang and lock up the entire system. When
+ there is a sequence of any USB2PHY register access, followed by a USB
+ subsystem soft reset initiated with the SOFT_RESET bit in the SYSCONFIG
+ register, followed by any USB2PHY register access, the L3S interconnect
+ may hang on the second USB2PHY register access."
 
-Regards,
--Bin.
+As the USB2PHY is a child of the otg interconnect target module, I don't
+think we can easily hit this as we have now musb doing runtime PM that
+keeps the module enabled.
+
+But as we now have musb and cppi41 components in the same interonnect
+target module use runtime PM, let's also add runtime PM to the phy
+driver. This way we have have them all behave the same way.
+
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/usb/phy/phy-am335x.c | 61 +++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 58 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/usb/phy/phy-am335x.c b/drivers/usb/phy/phy-am335x.c
+--- a/drivers/usb/phy/phy-am335x.c
++++ b/drivers/usb/phy/phy-am335x.c
+@@ -7,6 +7,7 @@
+ #include <linux/clk.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
++#include <linux/pm_runtime.h>
+ #include <linux/usb/of.h>
+ 
+ #include "phy-am335x-control.h"
+@@ -22,16 +23,40 @@ struct am335x_phy {
+ static int am335x_init(struct usb_phy *phy)
+ {
+ 	struct am335x_phy *am_phy = dev_get_drvdata(phy->dev);
++	int error;
++
++	error = pm_runtime_get_sync(phy->dev);
++	if (error < 0) {
++		dev_err(phy->dev, "%s pm_runtime_get: %i\n", __func__, error);
++
++		return error;
++	}
+ 
+ 	phy_ctrl_power(am_phy->phy_ctrl, am_phy->id, am_phy->dr_mode, true);
++
++	pm_runtime_mark_last_busy(phy->dev);
++	pm_runtime_put_autosuspend(phy->dev);
++
+ 	return 0;
+ }
+ 
+ static void am335x_shutdown(struct usb_phy *phy)
+ {
+ 	struct am335x_phy *am_phy = dev_get_drvdata(phy->dev);
++	int error;
++
++	error = pm_runtime_get_sync(phy->dev);
++	if (error < 0) {
++		dev_err(phy->dev, "%s pm_runtime_get: %i\n", __func__, error);
++
++		return;
++	}
+ 
+ 	phy_ctrl_power(am_phy->phy_ctrl, am_phy->id, am_phy->dr_mode, false);
++
++	pm_runtime_mark_last_busy(phy->dev);
++	pm_runtime_put_autosuspend(phy->dev);
++
+ }
+ 
+ static int am335x_phy_probe(struct platform_device *pdev)
+@@ -56,13 +81,23 @@ static int am335x_phy_probe(struct platform_device *pdev)
+ 
+ 	am_phy->dr_mode = of_usb_get_dr_mode_by_phy(pdev->dev.of_node, -1);
+ 
++	pm_runtime_enable(dev);
++	pm_runtime_set_autosuspend_delay(dev, 100);
++	pm_runtime_use_autosuspend(dev);
++	ret = pm_runtime_get_sync(dev);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "%s pm_runtime_get: %i\n", __func__, ret);
++
++		return ret;
++	}
++
+ 	ret = usb_phy_gen_create_phy(dev, &am_phy->usb_phy_gen, NULL);
+ 	if (ret)
+-		return ret;
++		goto disable;
+ 
+ 	ret = usb_add_phy_dev(&am_phy->usb_phy_gen.phy);
+ 	if (ret)
+-		return ret;
++		goto disable;
+ 	am_phy->usb_phy_gen.phy.init = am335x_init;
+ 	am_phy->usb_phy_gen.phy.shutdown = am335x_shutdown;
+ 
+@@ -81,14 +116,34 @@ static int am335x_phy_probe(struct platform_device *pdev)
+ 	device_set_wakeup_enable(dev, false);
+ 	phy_ctrl_power(am_phy->phy_ctrl, am_phy->id, am_phy->dr_mode, false);
+ 
+-	return 0;
++	pm_runtime_mark_last_busy(dev);
++	pm_runtime_put_autosuspend(dev);
++
++	return ret;
++
++disable:
++	pm_runtime_dont_use_autosuspend(dev);
++	pm_runtime_put_sync(dev);
++	pm_runtime_disable(dev);
++
++	return ret;
+ }
+ 
+ static int am335x_phy_remove(struct platform_device *pdev)
+ {
+ 	struct am335x_phy *am_phy = platform_get_drvdata(pdev);
++	int error;
++
++	error = pm_runtime_get_sync(&pdev->dev);
++	if (error < 0)
++		dev_err(&pdev->dev, "%s pm_runtime_get: %i\n", __func__, error);
+ 
+ 	usb_remove_phy(&am_phy->usb_phy_gen.phy);
++
++	pm_runtime_dont_use_autosuspend(&pdev->dev);
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++
+ 	return 0;
+ }
+ 
+-- 
+2.11.0
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
