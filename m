@@ -1,53 +1,80 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] arm: davinci: Make the usb20 clock available to PM
- runtime
-Date: Thu, 19 Jan 2017 16:08:27 +0100
-Message-ID: <628c4afa-20c0-812c-1172-873391b27f1f@baylibre.com>
-References: <20170119140944.19051-1-abailon@baylibre.com>
- <cba200b6-1858-22e7-8d5a-f017c311c832@ti.com>
+Subject: Re: [PATCH v2 2/7] usb: usb: dsps: update device tree bindings
+Date: Fri, 20 Jan 2017 10:18:31 +0100
+Message-ID: <be73e596-5773-162b-0d59-c042fb0b74fd@baylibre.com>
+References: <20170117134540.9988-1-abailon@baylibre.com>
+ <20170117134540.9988-3-abailon@baylibre.com>
+ <20170119181512.pb3znkxqscnrpmnz@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cba200b6-1858-22e7-8d5a-f017c311c832-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170119181512.pb3znkxqscnrpmnz@rob-hp-laptop>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/19/2017 03:48 PM, Sekhar Nori wrote:
-> On Thursday 19 January 2017 07:39 PM, Alexandre Bailon wrote:
->> Add usb20 to the list of clock supported by PM runtime.
+On 01/19/2017 07:15 PM, Rob Herring wrote:
+> On Tue, Jan 17, 2017 at 02:45:35PM +0100, Alexandre Bailon wrote:
+>> In order to make CPPI 4.1 DMA driver more generic, accesses to USBSS
+>> have been removed. So it is not required anymore to define "glue"
+>> register's address and size in DT.
+>> Update dsps device tree bindings.
+> 
+> Looks like you are breaking compatibility here.
+> 
+> Are the glue registers already in the USB node? If so, then the DMA 
+> driver just needs to ignore the first reg entry when 4 entries are 
+> present. Or add a fixup to the DT somewhere.
+In the v3 of the patch updating the driver, I have the made the driver
+compatible with the old and new bindings.
+It gets the index of "controller" and so just ignore "glue" if it defined.
+
+Best Regards,
+Alexandre
+> 
 >>
 >> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 >> ---
->>  arch/arm/mach-davinci/pm_domain.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>  Documentation/devicetree/bindings/usb/am33xx-usb.txt | 9 ++++-----
+>>  1 file changed, 4 insertions(+), 5 deletions(-)
 >>
->> diff --git a/arch/arm/mach-davinci/pm_domain.c b/arch/arm/mach-davinci/pm_domain.c
->> index 78eac2c..66471f2 100644
->> --- a/arch/arm/mach-davinci/pm_domain.c
->> +++ b/arch/arm/mach-davinci/pm_domain.c
->> @@ -23,7 +23,7 @@ static struct dev_pm_domain davinci_pm_domain = {
+>> diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+>> index 20c2ff2..ef89010 100644
+>> --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+>> +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+>> @@ -54,9 +54,9 @@ node.
+>>  DMA
+>>  ~~~
+>>  - compatible: ti,am3359-cppi41
+>> -- reg: offset and length of the following register spaces: USBSS, USB
+>> +- reg: offset and length of the following register spaces: USB
+>>    CPPI DMA Controller, USB CPPI DMA Scheduler, USB Queue Manager
+>> -- reg-names: glue, controller, scheduler, queuemgr
+>> +- reg-names: controller, scheduler, queuemgr
+>>  - #dma-cells: should be set to 2. The first number represents the
+>>    endpoint number (0 … 14 for endpoints 1 … 15 on instance 0 and 15 … 29
+>>    for endpoints 1 … 15 on instance 1). The second number is 0 for RX and
+>> @@ -183,11 +183,10 @@ usb: usb@47400000 {
 >>  
->>  static struct pm_clk_notifier_block platform_bus_notifier = {
->>  	.pm_domain = &davinci_pm_domain,
->> -	.con_ids = { "fck", "master", "slave", NULL },
->> +	.con_ids = { "fck", "master", "slave", "usb20", NULL },
-> 
-> Instead of doing this, can we drop the con_id from musb clock? Looking
-> at the USB clocking diagram in the TRM. There is a single clock input to
-> the USB 2.0 subsystem. There is no real need for a con_id at all.
-Currently, the con_id is required to get the usb20 clock from usb-da8xx.c
-I will try to figure out which changes are required remove con_id.
-> 
-> Thanks,
-> Sekhar
-> 
-Thanks,
-Alexandre
+>>  	cppi41dma: dma-controller@07402000 {
+>>  		compatible = "ti,am3359-cppi41";
+>> -		reg =  <0x47400000 0x1000
+>> -			0x47402000 0x1000
+>> +		reg =  <0x47402000 0x1000
+>>  			0x47403000 0x1000
+>>  			0x47404000 0x4000>;
+>> -		reg-names = "glue", "controller", "scheduler", "queuemgr";
+>> +		reg-names = "controller", "scheduler", "queuemgr";
+>>  		interrupts = <17>;
+>>  		interrupt-names = "glue";
+>>  		#dma-cells = <2>;
+>> -- 
+>> 2.10.2
+>>
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
