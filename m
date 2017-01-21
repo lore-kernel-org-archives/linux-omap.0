@@ -1,113 +1,140 @@
-From: Liam Breck <liam@networkimprov.net>
-Subject: Re: [PATCH 1/2] power: bq24190_charger: Check the interrupt status on resume
-Date: Sat, 21 Jan 2017 00:08:02 -0800
-Message-ID: <CAKvHMgRipKyVAF6Y6Wr3t=McPouqfC2B9KuAnM+RFUtE-LRtuw@mail.gmail.com>
-References: <20170120220440.1971-1-tony@atomide.com> <20170120220440.1971-2-tony@atomide.com>
+From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v9 0/8] drivers: touchscreen: tsc2007 and ads7846/tsc2046
+ improvements (use common touchscreen bindings, pre-calibration, spi fix and
+ provide iio raw values)
+Date: Sat, 21 Jan 2017 13:08:47 +0000
+Message-ID: <17d2c23b-6cbb-d365-71cb-fd4d7af7c958@kernel.org>
+References: <cover.1482936802.git.hns@goldelico.com>
+ <BB8421B2-6626-4A95-BCD0-25C4CAF30F61@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170120220440.1971-2-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Matt Ranostay <matt@ranostay.consulting>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BB8421B2-6626-4A95-BCD0-25C4CAF30F61-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?Q?Mika_Penttil=c3=a4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin
+Cc: linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 20, 2017 at 2:04 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Some SoCs like omap3 can configure GPIO irqs to use Linux generic
-> dedicated wakeirq support. If the dedicated wakeirq is configured,
-> the SoC will use a always-on interrupt controller to produce wake-up
-> events.
->
-> If bq24190 is configured for dedicated wakeirq, we need to check the
-> interrupt status on PM runtime resume. This is because the Linux
-> generic wakeirq will call pm_runtime_resume() on the device on a
-> wakeirq. And as the bq24190 interrupt is falling edge sensitive
-> and only active for 250 us, there will be no device interrupt seen
-> by the runtime SoC IRQ controller.
->
-> Note that this can cause spurious interrupts on omap3 devices with
-> bq24190 connected to gpio banks 2 - 5 as there's a glitch on those
-> pins waking from off mode as listed in "Advisory 1.45". Devices
-> with this issue should not configure the optional wakeirq interrupt
-> in the dts file.
->
-> Cc: Matt Ranostay <matt@ranostay.consulting>
-> Cc: Liam Breck <kernel@networkimprov.net>
-> Acked-by: Mark Greer <mgreer@animalcreek.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/power/supply/bq24190_charger.c | 62 ++++++++++++++++++++++++++++------
->  1 file changed, 52 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
-> --- a/drivers/power/supply/bq24190_charger.c
-> +++ b/drivers/power/supply/bq24190_charger.c
-> @@ -155,6 +155,8 @@ struct bq24190_dev_info {
->         kernel_ulong_t                  model;
->         unsigned int                    gpio_int;
->         unsigned int                    irq;
-> +       bool                            initialized;
-> +       bool                            irq_event;
->         struct mutex                    f_reg_lock;
->         u8                              f_reg;
->         u8                              ss_reg;
-> @@ -1157,9 +1159,8 @@ static const struct power_supply_desc bq24190_battery_desc = {
->         .property_is_writeable  = bq24190_battery_property_is_writeable,
->  };
->
-> -static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
-> +static void bq24190_check_status(struct bq24190_dev_info *bdi)
->  {
-> -       struct bq24190_dev_info *bdi = data;
->         const u8 battery_mask_ss = BQ24190_REG_SS_CHRG_STAT_MASK;
->         const u8 battery_mask_f = BQ24190_REG_F_BAT_FAULT_MASK
->                                 | BQ24190_REG_F_NTC_FAULT_MASK;
-> @@ -1167,12 +1168,10 @@ static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
->         u8 ss_reg = 0, f_reg = 0;
->         int i, ret;
->
-> -       pm_runtime_get_sync(bdi->dev);
-> -
->         ret = bq24190_read(bdi, BQ24190_REG_SS, &ss_reg);
->         if (ret < 0) {
->                 dev_err(bdi->dev, "Can't read SS reg: %d\n", ret);
-> -               goto out;
-> +               return;
->         }
->
->         i = 0;
-> @@ -1180,7 +1179,7 @@ static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
->                 ret = bq24190_read(bdi, BQ24190_REG_F, &f_reg);
->                 if (ret < 0) {
->                         dev_err(bdi->dev, "Can't read F reg: %d\n", ret);
-> -                       goto out;
-> +                       return;
->                 }
->         } while (f_reg && ++i < 2);
->
-> @@ -1229,10 +1228,18 @@ static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
->         if (alert_battery)
->                 power_supply_changed(bdi->battery);
->
-> -out:
-> -       pm_runtime_put_sync(bdi->dev);
-> -
->         dev_dbg(bdi->dev, "ss_reg: 0x%02x, f_reg: 0x%02x\n", ss_reg, f_reg);
-> +}
-> +
-> +static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
-> +{
-> +       struct bq24190_dev_info *bdi = data;
-> +
-> +       bdi->irq_event = true;
-> +       pm_runtime_get_sync(bdi->dev);
+On 16/01/17 06:34, H. Nikolaus Schaller wrote:
+> ping
+Always good to say who you are pinging ;)  Saves the rest of us wondering
+if we have missing something we should have reviewed.
 
-Do we need to call pm_runtime_irq_safe() prior to the above?
+Guessing it's Dmitry in this case!
 
-> +       bq24190_check_status(bdi);
-> +       pm_runtime_put_sync(bdi->dev);
-> +       bdi->irq_event = false;
->
->         return IRQ_HANDLED;
->  }
-> ...
+Jonathan
+> 
+>> Am 28.12.2016 um 15:53 schrieb H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
+>>
+>> Changes V9:
+>> * added explicit CONFIG for TSC2007_IIO and simplified Makefile (suggested by Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>)
+>> * make the tsc2007 iio patch the last one in this sequence
+>>
+>> 2016-11-22 15:02:42: Changes V8:
+>> * fix compilation for CONFIG_IIO=m (reported by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>> * add some more Reviewed-by: and Acked-by:
+>> * mutiple improvements suggested by Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>> ** drop patch "send pendown and penup only once" (input core does take care of it now)
+>> ** remove not necessary EXPORT_SYMBOL
+>> ** remove explicit file names from comment header
+>> ** move tsc2007_iio_configure() to the end of the probe process and simplify the error path again
+>> ** remove unnecessary input_unregister_device() 
+>> ** improvement for compilation with CONFIG_IIO=m and CONFIG_TSC2007=y
+>>
+>> 2016-11-11 20:02:11: Changes V7:
+>> * rearranged the include files (asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>> * forward reference struct iio_dev * instead of condition in tsc2007.h (asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>> * add some Acked-by:
+>>
+>> 2016-10-27 10:44:29: Changes V6:
+>> * iio patch (no changes elsewhere)
+>> 	- tsc2007_iio: fix a missing return 0 for non-iio case (found by kbuid test robot)
+>> 	- tsc2007_core: group error return paths so that tsc2007_iio_unconfigure is called at only one place
+>> 	- tsc2007_iio: fix copyright (this file is 100% original work)
+>>
+>> 2016-10-25 21:26:46: Changes V5:
+>> * ads7846: remove an empty line (suggested by Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>)
+>> * ads7846: remove MODULE_ALIAS for SPI (suggested by Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>)
+>> * tsc2007: fix a bug from swapping patch 3/n and patch 4/n (found by kbuild test robot)
+>> * refactored tsc2007 into tsc2007_core and tsc2007_iio (asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>>
+>> 2016-10-17 16:00:02: Changes V4:
+>> * fix a merge/squash issue resulting in a non-bisectable patch set (suggested by kbuid test robot)
+>> * remove some unnecessary #include (suggested by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>> * make the iio extension depend on CONFIG_IIO rather than selecting it (suggested by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>> * swapped patch 3/n and patch 4/n to remove internal dependency
+>>
+>> 2016-09-23 14:41:23: Changes V3:
+>> * fix an issue with swapping
+>> * remove hard clipping to min/max rectangle - some systems expect to handle negative coordinates
+>> * make use of commit ed7c9870c9bc ("Input: of_touchscreen - add support for inverted / swapped axes")
+>>
+>> 2015-11-13 21:36:07: Changes V2:
+>> * add a patch to make drivers still recognise the old "ti,swap-xy" property (suggested by Rob Herring)
+>>
+>> 2015-11-06 16:14:53: V1: This patch series improves the drivers for the tsc2007 and
+>> ads7846/tsc2046 touchscreen controllers which are e.g. used by the GTA04
+>> OpenPandora and Pyra devices.
+>>
+>> New common bindings have been defined by
+>> commit b98abe52fa8e ("Input: add common DT binding for touchscreens"):
+>>
+>> 	Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+>>
+>> which also defines a helper function to parse the DT. These new parameters
+>> allow to specify the fuzz factors (jitter suppression), inversion of x or y axis and
+>> swapping of x and y to achieve inversion and rotation so that the touch
+>> coordinate axes match the natural orientation of the display panel.
+>>
+>> Another improvement is to better use the min/max ADC values and
+>> scale to the screen size as defined by the DT. This allows to coarsely
+>> calibrate the touch to match the LCD to which it is glued on so that the
+>> touch can quite precisely be operated before any user-space fine-calibration
+>> can be (and needs to be) started.
+>>
+>> For the adc7846 we fix an issue with the spi module table.
+>>
+>> Finally we add an iio interface for the AUX and temperature ADC channels of
+>> the tsc2007 and also provide the touch screen raw values. This allows to read
+>> an optional ambient light sensor installed on the gta04 board and improves
+>> calibration and hardware monitoring.
+>>
+>>
+>> H. Nikolaus Schaller (8):
+>>  drivers:input:tsc2007: add new common binding names, pre-calibration,
+>>    flipping and rotation
+>>  drivers:input:tsc2007: check for presence and power down tsc2007
+>>    during probe
+>>  DT:omap3+tsc2007: use new common touchscreen bindings
+>>  drivers:input:ads7846(+tsc2046): add new common binding names,
+>>    pre-calibration and flipping
+>>  dt-bindings: input: move ads7846 bindings to touchscreen subdirectory
+>>  drivers:input:ads7846(+tsc2046): fix spi module table
+>>  DT:omap3+ads7846: use new common touchscreen bindings
+>>  drivers:input:tsc2007: add iio interface to read external ADC input
+>>    and temperature
+>>
+>> .../bindings/input/{ => touchscreen}/ads7846.txt   |   9 +-
+>> .../bindings/input/touchscreen/tsc2007.txt         |  20 +-
+>> arch/arm/boot/dts/omap3-gta04.dtsi                 |  25 ++-
+>> arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |   2 +-
+>> arch/arm/boot/dts/omap3-pandora-common.dtsi        |  17 +-
+>> .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   3 +-
+>> drivers/input/touchscreen/Kconfig                  |  10 +
+>> drivers/input/touchscreen/Makefile                 |   2 +
+>> drivers/input/touchscreen/ads7846.c                |  71 ++++++--
+>> drivers/input/touchscreen/tsc2007.h                | 116 ++++++++++++
+>> .../touchscreen/{tsc2007.c => tsc2007_core.c}      | 201 ++++++++++++---------
+>> drivers/input/touchscreen/tsc2007_iio.c            | 150 +++++++++++++++
+>> include/linux/i2c/tsc2007.h                        |   8 +
+>> 13 files changed, 520 insertions(+), 114 deletions(-)
+>> rename Documentation/devicetree/bindings/input/{ => touchscreen}/ads7846.txt (90%)
+>> create mode 100644 drivers/input/touchscreen/tsc2007.h
+>> rename drivers/input/touchscreen/{tsc2007.c => tsc2007_core.c} (74%)
+>> create mode 100644 drivers/input/touchscreen/tsc2007_iio.c
+>>
+>> -- 
+>> 2.7.3
+>>
+> 
