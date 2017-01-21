@@ -1,114 +1,98 @@
-From: Andrew Murray <amurray@embedded-bits.co.uk>
-Subject: [PATCH] ARM: OMAP1/2: clock: Remove unused mpurate cmdline option
-Date: Sat, 21 Jan 2017 17:36:55 +0000
-Message-ID: <1485020215-6550-1-git-send-email-amurray@embedded-bits.co.uk>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/3] ARM: dts: Add support for phyCORE-AM335x PCM-953
+ carrier board
+Date: Sat, 21 Jan 2017 14:53:45 -0600
+Message-ID: <20170121205345.oij67ai5d7q7k74d@rob-hp-laptop>
+References: <1484831270-7251-1-git-send-email-t.remmet@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, Andrew Murray <amurray@embedded-bits.co.uk>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1484831270-7251-1-git-send-email-t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Wadim Egorov <w.egorov-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The 'mpurate' option, historically used for specifying an initial
-MPU rate at boot, no longer has any effect due to the supporting
-code being removed as it was 'wrong and dangerous' [1].
+On Thu, Jan 19, 2017 at 02:07:48PM +0100, Teresa Remmet wrote:
+> The phyCORE-AM335x development kit is a combination of the
+> phyCORE-AM335x SoM and a PCM-953 carrier board. The features
+> of the PCM-953 are:
+> * ETH phy on carrier board: 1x RGMII
+> * 1x CAN
+> * Up to 4x UART
+> * USB0 (otg)
+> * USB1 (host)
+> * SD slot
+> * User gpio-keys
+> * User LEDs
+> 
+> Signed-off-by: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+> Reviewed-by: Wadim Egorov <w.egorov-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+> ---
+>  .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+>  arch/arm/boot/dts/Makefile                         |   1 +
+>  arch/arm/boot/dts/am335x-pcm-953.dtsi              | 303 +++++++++++++++++++++
+>  arch/arm/boot/dts/am335x-phycore-rdk.dts           |  27 ++
+>  4 files changed, 334 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/am335x-pcm-953.dtsi
+>  create mode 100644 arch/arm/boot/dts/am335x-phycore-rdk.dts
 
-This patch removes the remaining dead code associated with the
-__setup macros to avoid confusion and reduce bloat.
+[...]
 
-[1] https://patchwork.kernel.org/patch/5954631/
+> +	user_leds: user_leds {
+> +		compatible = "gpio-leds";
+> +	};
+> +
+> +	user_buttons: user_buttons {
+> +		compatible = "gpio-keys";
+> +	};
 
-Signed-off-by: Andrew Murray <amurray@embedded-bits.co.uk>
----
- arch/arm/mach-omap1/clock.c | 20 --------------------
- arch/arm/mach-omap1/clock.h |  2 --
- arch/arm/mach-omap2/clock.c | 20 --------------------
- 3 files changed, 42 deletions(-)
+With only a compatible, I don't think there's much gain to split these 2 
+nodes. Otherwse,
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 4f5fd4a..43e3e18 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -720,26 +720,6 @@ EXPORT_SYMBOL(clk_get_parent);
-  * OMAP specific clock functions shared between omap1 and omap2
-  */
- 
--int __initdata mpurate;
--
--/*
-- * By default we use the rate set by the bootloader.
-- * You can override this with mpurate= cmdline option.
-- */
--static int __init omap_clk_setup(char *str)
--{
--	get_option(&str, &mpurate);
--
--	if (!mpurate)
--		return 1;
--
--	if (mpurate < 1000)
--		mpurate *= 1000000;
--
--	return 1;
--}
--__setup("mpurate=", omap_clk_setup);
--
- /* Used for clocks that always have same value as the parent clock */
- unsigned long followparent_recalc(struct clk *clk)
- {
-diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-index 1e4918a..f2d1be2 100644
---- a/arch/arm/mach-omap1/clock.h
-+++ b/arch/arm/mach-omap1/clock.h
-@@ -173,8 +173,6 @@ struct clk_functions {
- 	void		(*clk_disable_unused)(struct clk *clk);
- };
- 
--extern int mpurate;
--
- extern int clk_init(struct clk_functions *custom_clocks);
- extern void clk_preinit(struct clk *clk);
- extern int clk_register(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index d058125..d999295 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -112,26 +112,6 @@ void omap2_init_clk_clkdm(struct clk_hw *hw)
- 	}
- }
- 
--static int __initdata mpurate;
--
--/*
-- * By default we use the rate set by the bootloader.
-- * You can override this with mpurate= cmdline option.
-- */
--static int __init omap_clk_setup(char *str)
--{
--	get_option(&str, &mpurate);
--
--	if (!mpurate)
--		return 1;
--
--	if (mpurate < 1000)
--		mpurate *= 1000000;
--
--	return 1;
--}
--__setup("mpurate=", omap_clk_setup);
--
- /**
-  * omap2_clk_print_new_rates - print summary of current clock tree rates
-  * @hfclkin_ck_name: clk name for the off-chip HF oscillator
--- 
-2.5.0
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+> +&user_buttons {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&user_buttons_pins>;
+> +	status = "okay";
+> +
+> +	button@0 {
+> +		label = "home";
+> +		linux,code = <KEY_HOME>;
+> +		gpios = <&gpio3 7 GPIO_ACTIVE_HIGH>;
+> +		gpio-key,wakeup;
+> +	};
+> +
+> +	button@1 {
+> +		label = "menu";
+> +		linux,code = <KEY_MENU>;
+> +		gpios = <&gpio3 8 GPIO_ACTIVE_HIGH>;
+> +		gpio-key,wakeup;
+> +	};
+> +};
+> +
+> +&user_leds {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&user_leds_pins>;
+> +	status = "okay";
+> +
+> +	green {
+> +		label = "green:user";
+> +		gpios = <&gpio1 30 GPIO_ACTIVE_HIGH>;
+> +		linux,default-trigger = "gpio";
+> +		default-state = "on";
+> +	};
+> +
+> +	yellow {
+> +		label = "yellow:user";
+> +		gpios = <&gpio1 31 GPIO_ACTIVE_LOW>;
+> +		linux,default-trigger = "gpio";
+> +		default-state = "on";
+> +	};
+> +};
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
