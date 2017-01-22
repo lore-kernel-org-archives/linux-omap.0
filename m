@@ -1,78 +1,93 @@
 From: Sebastian Reichel <sre@kernel.org>
 Subject: Re: [PATCH 1/2] power: bq24190_charger: Check the interrupt status
  on resume
-Date: Sun, 22 Jan 2017 02:51:34 +0100
-Message-ID: <20170122015134.rhzckezpkxy5odla@earth>
+Date: Sun, 22 Jan 2017 02:54:41 +0100
+Message-ID: <20170122015441.wzsbigozefzr5wzw@earth>
 References: <20170120220440.1971-1-tony@atomide.com>
  <20170120220440.1971-2-tony@atomide.com>
- <CAKvHMgRipKyVAF6Y6Wr3t=McPouqfC2B9KuAnM+RFUtE-LRtuw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="qpue4qonvppgxlzl"
+        protocol="application/pgp-signature"; boundary="5oj5rz4rt5eaaxr2"
 Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKvHMgRipKyVAF6Y6Wr3t=McPouqfC2B9KuAnM+RFUtE-LRtuw@mail.gmail.com>
+In-Reply-To: <20170120220440.1971-2-tony@atomide.com>
 Sender: linux-pm-owner@vger.kernel.org
-To: Liam Breck <liam@networkimprov.net>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Matt Ranostay <matt@ranostay.consulting>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Matt Ranostay <matt@ranostay.consulting>
 List-Id: linux-omap@vger.kernel.org
 
 
---qpue4qonvppgxlzl
-Content-Type: text/plain; charset=iso-8859-1
+--5oj5rz4rt5eaaxr2
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi Tony,
 
-On Sat, Jan 21, 2017 at 12:08:02AM -0800, Liam Breck wrote:
-> > +static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
-> > +{
-> > +       struct bq24190_dev_info *bdi =3D data;
-> > +
-> > +       bdi->irq_event =3D true;
-> > +       pm_runtime_get_sync(bdi->dev);
->=20
-> Do we need to call pm_runtime_irq_safe() prior to the above?
+I think your runtime_resume is missing runtime_pm_get/put_sync, see
+below:
 
-It's not needed here, since the irq handler does not run in
-irq context (it's a threaded irq handler).
+On Fri, Jan 20, 2017 at 02:04:39PM -0800, Tony Lindgren wrote:
+> [...]
+> +static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
+> +{
+> +	struct bq24190_dev_info *bdi =3D data;
+> +
+> +	bdi->irq_event =3D true;
+> +	pm_runtime_get_sync(bdi->dev);
+> +	bq24190_check_status(bdi);
+> +	pm_runtime_put_sync(bdi->dev);
 
-Btw. calling pm_runtime_irq_safe() basically means, that your
-driver's power-management is broken:
+bq24190_check_status is called with runtime_pm enabled.
 
-http://lxr.free-electrons.com/source/drivers/base/power/runtime.c#L1288
+> +	bdi->irq_event =3D false;
+> =20
+>  	return IRQ_HANDLED;
+>  }
+>
+> [...]
+>
+> +static int bq24190_runtime_resume(struct device *dev)
+> +{
+> +	struct i2c_client *client =3D to_i2c_client(dev);
+> +	struct bq24190_dev_info *bdi =3D i2c_get_clientdata(client);
+> +
+> +	if (!bdi->initialized)
+> +		return 0;
+> +
+> +	if (!bdi->irq_event) {
+> +		dev_dbg(bdi->dev, "checking events on possible wakeirq\n");
+> +		bq24190_check_status(bdi);
 
-(The relevant part is: =BBIt also causes the parent's usage counter to
-be permanently incremented=AB)
+bq24190_check_status is called without runtime_pm enabled.
 
-> > +       bq24190_check_status(bdi);
-> > +       pm_runtime_put_sync(bdi->dev);
-> > +       bdi->irq_event =3D false;
-> >
-> >         return IRQ_HANDLED;
-> >  }
+> +	}
+> +
+> +	return 0;
+> +}
+>
+> [...]
 
 -- Sebastian
 
---qpue4qonvppgxlzl
+--5oj5rz4rt5eaaxr2
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAliEECMACgkQ2O7X88g7
-+pr7Kw/+LflTSO1F8dm3+63JTdNivzOJH0XZPIY7Mj8Tz0Y7FTPLpZKf5iYiiApu
-5xENT1XQsPM3QKZQ45zJdpZJslkfX2n7Q+iQwLzpgwxIXPkyNhjsOZPqiW3BO7zU
-5hbYNcC3MJqExs+ArzMviZYc2yNQNg+9qDba/vi7Xvqf74zfktsi6QDauie06Up1
-EdwOOFyuOMqsvJgaO0/dlSCkVmylgYskZLh4C/xbCbOXW+UD/ai5LkTP3iMaJ06P
-IH7ADQ2E7L/UtpakHkqYMQ7B8d2F4vjhklDwjQypb2myrTiyf+7MlME589eFZp90
-E4ndOs63D0bwAOY8bqw4hfehYj0EqTxqb+typJIYeIgSG2cV/dNlPLLBnydKwq06
-Dpy4eun1+MNHqArnPg/BxpBQE56UL4tFlIGEt9JO1iQH3f1n/NZUXH9RPCdgtR5P
-epKGSwLaD6x5pJu9si/YfyIkSGmTyFOf/FPpy27Y3zndwCJVznYbbEPTn/lwYokp
-uy5n+youYiqFiYhlnIlZalerXHuCej/Ek7g5RdqTG15PvexSxNi3xoPJuPXuMi0y
-J7Bs6IwKlXpn3XZL5reFeflSRjcX8AKUs1u11eLfr+04FxlhWLHY5tQ26LkO7EaV
-lhx+EYQh7Ykqf4F4b5ECUq25XnQE3Jy5bwxltPuOO5YQ66OnaX0=
-=yRZa
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAliEEOEACgkQ2O7X88g7
++pqE6w//ZrHPASCMIwpmLoY4n9YwEH2DhIo6diGE8CBqhYCYbuyXF+smFZr+PK+N
+igeChWck5Xr4+5TatHJPmv1cKBIf3vxCIW+bPY+bWDnN1TFczwTZYc7mvw1kTbAA
+izZ/6ermXgBh05gGW6DjWirM/Jx448ZKor8aTLyAeNuTwvkgDA7xz0kAWYMCnLMO
+w5WbyIqaX2OE59ZMyA4++/o1tCo3Y56s9s8BLnCo3Ju+yWB6iM5MAnQ4A6ujOd+k
+tGH4J/J81grg/0rn+/NLBbugVwFDKJ/S+cU3XGTgQR0/qPKdUTANKxZkk2CSt1sb
+OGrwABrp+vavOWzK4beKYZtWudADSAZQ6GgYfGyd5+tMOfsXi8KKarvvdBW08auB
+G9hzJKEuxjNYDCsj5Jw1K8zbrwYfLHEEQK4XFwzH/jOG4S6EVRxtw9PAsEyVzwyq
+rLT3RlEdfZjE5slU0h5ggM59j+k9WLnyrLrQmNDMAE01KzDatyDEOWRcuGP01DiA
+eACS81j98cl5LubwWAfO1DQmUcKHHSvXaghiWEzlW9sFjPIL97/hHkOTqc7vDy55
+V/cnjD//MHAnYP3HooyVKHPuFQho+tV0qHYKDnyigq4QmFJiiXweSMQgMeOSe5WD
+MuQSOE9IYwHgELX8NV8+fiP2C7NPkbG5l5SzhIIVPEeK2MLnrUk=
+=OEVS
 -----END PGP SIGNATURE-----
 
---qpue4qonvppgxlzl--
+--5oj5rz4rt5eaaxr2--
