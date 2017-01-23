@@ -1,60 +1,62 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 3/3] usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in
- dsps
-Date: Mon, 23 Jan 2017 15:32:18 -0600
-Message-ID: <20170123213218.GD1609@uda0271908>
-References: <20170119100659.11370-1-abailon@baylibre.com>
- <20170119100659.11370-4-abailon@baylibre.com>
- <20170120201717.GE14571@uda0271908>
- <m2pojd3c39.fsf@baylibre.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v4 2/4] Documentation: dt: add bindings for ti-cpufreq
+Date: Mon, 23 Jan 2017 15:48:10 -0600
+Message-ID: <91a2d778-ce39-19dd-33cd-77e4eda0d8b7@ti.com>
+References: <20170117131808.29798-1-d-gerlach@ti.com>
+ <20170117131808.29798-3-d-gerlach@ti.com>
+ <20170119180702.62xg2ta5pq4mf7sd@rob-hp-laptop>
+ <b7d11925-879a-9be0-fdd8-45b70e642ce1@ti.com>
+ <20170120184324.GJ7403@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <m2pojd3c39.fsf-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170120184324.GJ7403@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 23, 2017 at 09:44:42AM -0800, Kevin Hilman wrote:
-> Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> writes:
-> 
-> > On Thu, Jan 19, 2017 at 11:06:59AM +0100, Alexandre Bailon wrote:
-> >> Despite the CPPI 4.1 is a generic DMA, it is tied to USB.
-> >> On the dsps, CPPI 4.1 interrupt's registers are in USBSS (the MUSB glue).
-> >> Currently, to enable / disable and clear interrupts, the CPPI 4.1 driver
-> >> maps and accesses to USBSS's register, which making CPPI 4.1 driver not
-> >> really generic.
-> >> Move the interrupt management to dsps driver.
-> >> 
-> >> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> >> ---
-> >>  drivers/dma/cppi41.c         | 28 ++++------------
-> >>  drivers/usb/musb/musb_dsps.c | 77 ++++++++++++++++++++++++++++++++++++++++++--
-> >>  2 files changed, 82 insertions(+), 23 deletions(-)
-> >
-> > This patch touches both dma and musb modules, I know it makes review
-> > easier, but how we get it merged? One maintainer ACK it and the other
-> > pick it up? Sorry for the dumb question, I am new as a maintainer...
-> 
-> For patches where the change needs to go together, then one maintainer
-> can ack, and the other can merge.  Alternately, if the patch can be done
+On 01/20/2017 12:43 PM, Tony Lindgren wrote:
+> * Dave Gerlach <d-gerlach@ti.com> [170119 10:32]:
+>> On 01/19/2017 12:07 PM, Rob Herring wrote:
+>>>> +	/*
+>>>> +	 * The three following nodes are marked with opp-suspend
+>>>> +	 * because they can not be enabled simultaneously on a
+>>>> +	 * single SoC.
+>>>> +	 */
+>>>> +	opp50@300000000 {
+>>>
+>>> What's the 50, 100, 120 in the names?
+>>
+>> Those are the names of the OPPs given in Table 5-7 of the AM335x data
+>> manual, seen here http://www.ti.com/lit/ds/symlink/am3359.pdf . I typically
+>> reference the table and document in the commit message of the actual DT
+>> patches but didn't here for the binding.
+>
+> If you don't need the names, you could maybe use:
+>
+> opp100: opp@275000000 {
+> 	...
+> };
+>
+> opp200: opp@300000000 {
+> 	...
+> };
 
-Ok, this is what I thought :)
-
-> in a way that the parts can go independently, that is sometimes
-> cleaner.  I don't know this code well enough to know which is which.
-
-In this case it is better to keep all together, since it moves code from
-one place to another.
-
-I think it makes sense it goes to my tree, since the reset patches are
-for musb.
+Thanks for the suggestion, but we have duplicate frequencies that have 
+different voltages defined for them, so the scheme opp@<freq> won't work 
+because then we end up with duplicate nodes. OPPs are a defined by a 
+number of parameters, not just frequency, so always naming the nodes 
+opp@<freq> won't cover all scenarios.
 
 Regards,
--Bin.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dave
+
+> ...
+>
+> Regards,
+>
+> Tony
+>
+
