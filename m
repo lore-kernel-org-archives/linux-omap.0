@@ -1,194 +1,67 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v2] ARM: OMAP1/2: clock: Remove unused mpurate cmdline
- option
-Date: Mon, 23 Jan 2017 23:06:21 +0200
-Message-ID: <20170123210621.ri6iip4zeoonhyc2@raspberrypi-2.musicnaut.iki.fi>
-References: <1485201594-23583-1-git-send-email-amurray@embedded-bits.co.uk>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 0/6] usb: musb: cppi41: Add a way to manage DMA irq
+Date: Mon, 23 Jan 2017 15:26:33 -0600
+Message-ID: <20170123212633.GC1609@uda0271908>
+References: <20170123164808.27936-1-abailon@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1485201594-23583-1-git-send-email-amurray@embedded-bits.co.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Andrew Murray <amurray@embedded-bits.co.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20170123164808.27936-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 23, 2017 at 07:59:54PM +0000, Andrew Murray wrote:
-> The 'mpurate' option, historically used for specifying an initial
-> MPU rate at boot, no longer has any effect due to the supporting
-> code being removed as it was 'wrong and dangerous' [1].
+On Mon, Jan 23, 2017 at 05:48:02PM +0100, Alexandre Bailon wrote:
+> This series was "dmaengine: cppi41: Make the driver more generic".
+> I have tried to separate as munch I could CPPI 4.1 MUSB driver changes.
 > 
-> This patch removes the remaining dead code associated with the
-> __setup macros to avoid confusion and reduce bloat.
+> Currently, the DMA interrupt is managed by the CPPI 4.1 driver.
+> The issue here is the CPPI 4.1 driver must access to MUSB glue registers
+> to manage its interrupt.
+> In order to move the interrupts management from CPPI 4.1 driver to MUSB
+> (and then make it more generic), update the MUSB CPPI 4.1 driver with
+> changes that will help to manage DMA interrupt from MUSB driver.
 > 
-> [1] https://patchwork.kernel.org/patch/5954631/
+> Changes in v4:
+> - Remove musb pointer from struct cppi, cppi41_dma_controller and
+>   tusb_omap_dma.
+> 
+> Changes in v3:
+> - Move a patch from another series to this one to avoid build error report
+>   from kbuild test robot
+> - Instead of adding and exporting function, add one callback and a pointer
+>   to musb in struct dma_controller
+> - Surround the DMA function introduced in musb_dsps with #ifdef / #endif.
+> 
+> Changes in v2:
+> - Fix some typo in commit messages
+> - Add more explanation about some changes made by patch 2 in commit message
+> 
+> Alexandre Bailon (6):
+>   usb: musb: dma: Add a DMA completion platform callback
+>   usb: musb: cppi41: Detect aborted transfers in cppi41_dma_callback()
+>   usb: musb: cppi_dma: Clean up cppi structure
+>   usb: musb: cppi_dma: Clean up cppi41_dma_controller structure
+>   usb: musb: cppi_dma: Clean up tusb_omap_dma structure
+>   usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in DSPS
+> 
+>  drivers/dma/cppi41.c             | 28 ++++----------
+>  drivers/usb/musb/cppi_dma.c      | 26 ++++++-------
+>  drivers/usb/musb/cppi_dma.h      |  1 -
+>  drivers/usb/musb/musb_cppi41.c   | 48 +++++++++++++-----------
+>  drivers/usb/musb/musb_dma.h      |  5 +++
+>  drivers/usb/musb/musb_dsps.c     | 81 +++++++++++++++++++++++++++++++++++++++-
+>  drivers/usb/musb/tusb6010_omap.c |  7 ++--
+>  7 files changed, 134 insertions(+), 62 deletions(-)
+> 
 
-Signed-off-by missing. Otherwise:
+Please keep linux-usb list cc'd.
 
-Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-
-A.
-
-> ---
-> Changes since v1:
-> 
->  * Remove related omap2_clk_print_new_rates function which is also unused
->    (this was previously used to print clock rates after use of mpurate)
-> ---
->  arch/arm/mach-omap1/clock.c | 20 ---------------
->  arch/arm/mach-omap1/clock.h |  2 --
->  arch/arm/mach-omap2/clock.c | 61 ---------------------------------------------
->  arch/arm/mach-omap2/clock.h |  4 ---
->  4 files changed, 87 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-> index 4f5fd4a..43e3e18 100644
-> --- a/arch/arm/mach-omap1/clock.c
-> +++ b/arch/arm/mach-omap1/clock.c
-> @@ -720,26 +720,6 @@ EXPORT_SYMBOL(clk_get_parent);
->   * OMAP specific clock functions shared between omap1 and omap2
->   */
->  
-> -int __initdata mpurate;
-> -
-> -/*
-> - * By default we use the rate set by the bootloader.
-> - * You can override this with mpurate= cmdline option.
-> - */
-> -static int __init omap_clk_setup(char *str)
-> -{
-> -	get_option(&str, &mpurate);
-> -
-> -	if (!mpurate)
-> -		return 1;
-> -
-> -	if (mpurate < 1000)
-> -		mpurate *= 1000000;
-> -
-> -	return 1;
-> -}
-> -__setup("mpurate=", omap_clk_setup);
-> -
->  /* Used for clocks that always have same value as the parent clock */
->  unsigned long followparent_recalc(struct clk *clk)
->  {
-> diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-> index 1e4918a..f2d1be2 100644
-> --- a/arch/arm/mach-omap1/clock.h
-> +++ b/arch/arm/mach-omap1/clock.h
-> @@ -173,8 +173,6 @@ struct clk_functions {
->  	void		(*clk_disable_unused)(struct clk *clk);
->  };
->  
-> -extern int mpurate;
-> -
->  extern int clk_init(struct clk_functions *custom_clocks);
->  extern void clk_preinit(struct clk *clk);
->  extern int clk_register(struct clk *clk);
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index d058125..1270afd 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -78,8 +78,6 @@ int __init omap2_clk_setup_ll_ops(void)
->   * OMAP2+ specific clock functions
->   */
->  
-> -/* Private functions */
-> -
->  /* Public functions */
->  
->  /**
-> @@ -112,65 +110,6 @@ void omap2_init_clk_clkdm(struct clk_hw *hw)
->  	}
->  }
->  
-> -static int __initdata mpurate;
-> -
-> -/*
-> - * By default we use the rate set by the bootloader.
-> - * You can override this with mpurate= cmdline option.
-> - */
-> -static int __init omap_clk_setup(char *str)
-> -{
-> -	get_option(&str, &mpurate);
-> -
-> -	if (!mpurate)
-> -		return 1;
-> -
-> -	if (mpurate < 1000)
-> -		mpurate *= 1000000;
-> -
-> -	return 1;
-> -}
-> -__setup("mpurate=", omap_clk_setup);
-> -
-> -/**
-> - * omap2_clk_print_new_rates - print summary of current clock tree rates
-> - * @hfclkin_ck_name: clk name for the off-chip HF oscillator
-> - * @core_ck_name: clk name for the on-chip CORE_CLK
-> - * @mpu_ck_name: clk name for the ARM MPU clock
-> - *
-> - * Prints a short message to the console with the HFCLKIN oscillator
-> - * rate, the rate of the CORE clock, and the rate of the ARM MPU clock.
-> - * Called by the boot-time MPU rate switching code.   XXX This is intended
-> - * to be handled by the OPP layer code in the near future and should be
-> - * removed from the clock code.  No return value.
-> - */
-> -void __init omap2_clk_print_new_rates(const char *hfclkin_ck_name,
-> -				      const char *core_ck_name,
-> -				      const char *mpu_ck_name)
-> -{
-> -	struct clk *hfclkin_ck, *core_ck, *mpu_ck;
-> -	unsigned long hfclkin_rate;
-> -
-> -	mpu_ck = clk_get(NULL, mpu_ck_name);
-> -	if (WARN(IS_ERR(mpu_ck), "clock: failed to get %s.\n", mpu_ck_name))
-> -		return;
-> -
-> -	core_ck = clk_get(NULL, core_ck_name);
-> -	if (WARN(IS_ERR(core_ck), "clock: failed to get %s.\n", core_ck_name))
-> -		return;
-> -
-> -	hfclkin_ck = clk_get(NULL, hfclkin_ck_name);
-> -	if (WARN(IS_ERR(hfclkin_ck), "Failed to get %s.\n", hfclkin_ck_name))
-> -		return;
-> -
-> -	hfclkin_rate = clk_get_rate(hfclkin_ck);
-> -
-> -	pr_info("Switched to new clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld MHz\n",
-> -		(hfclkin_rate / 1000000), ((hfclkin_rate / 100000) % 10),
-> -		(clk_get_rate(core_ck) / 1000000),
-> -		(clk_get_rate(mpu_ck) / 1000000));
-> -}
-> -
->  /**
->   * ti_clk_init_features - init clock features struct for the SoC
->   *
-> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-> index 67da640..4e66295 100644
-> --- a/arch/arm/mach-omap2/clock.h
-> +++ b/arch/arm/mach-omap2/clock.h
-> @@ -64,10 +64,6 @@
->  #define OMAP4XXX_EN_DPLL_FRBYPASS		0x6
->  #define OMAP4XXX_EN_DPLL_LOCKED			0x7
->  
-> -void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
-> -			       const char *core_ck_name,
-> -			       const char *mpu_ck_name);
-> -
->  extern u16 cpu_mask;
->  
->  extern const struct clkops clkops_omap2_dflt_wait;
-> -- 
-> 2.5.0
-> 
+Regards,
+-Bin.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
