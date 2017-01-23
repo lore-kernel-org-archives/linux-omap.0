@@ -1,179 +1,161 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 3/3] usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in
- dsps
-Date: Mon, 23 Jan 2017 10:38:23 +0100
-Message-ID: <71307976-51ef-9ff1-6f11-3903a613c20b@baylibre.com>
-References: <20170119100659.11370-1-abailon@baylibre.com>
- <20170119100659.11370-4-abailon@baylibre.com>
- <20170120201717.GE14571@uda0271908>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Remove duplicate definition of
+ omap_test_timeout
+Date: Mon, 23 Jan 2017 15:52:28 +0530
+Message-ID: <130610aa-ed1a-b363-fac5-6aaaf4d8e930@ti.com>
+References: <20170120185151.1630-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170120201717.GE14571@uda0271908>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170120185151.1630-1-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/20/2017 09:17 PM, Bin Liu wrote:
-> On Thu, Jan 19, 2017 at 11:06:59AM +0100, Alexandre Bailon wrote:
->> Despite the CPPI 4.1 is a generic DMA, it is tied to USB.
->> On the dsps, CPPI 4.1 interrupt's registers are in USBSS (the MUSB glue).
->> Currently, to enable / disable and clear interrupts, the CPPI 4.1 driver
->> maps and accesses to USBSS's register, which making CPPI 4.1 driver not
->> really generic.
->> Move the interrupt management to dsps driver.
->>
->> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
->> ---
->>  drivers/dma/cppi41.c         | 28 ++++------------
->>  drivers/usb/musb/musb_dsps.c | 77 ++++++++++++++++++++++++++++++++++++++++++--
->>  2 files changed, 82 insertions(+), 23 deletions(-)
-> 
-> This patch touches both dma and musb modules, I know it makes review
-> easier, but how we get it merged? One maintainer ACK it and the other
-> pick it up? Sorry for the dumb question, I am new as a maintainer...
-> 
->>
->> diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
->> index d5ba43a..4999e7d 100644
->> --- a/drivers/dma/cppi41.c
->> +++ b/drivers/dma/cppi41.c
-> 
-> [...]
-> 
->> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
->> index 9f125e1..9dad3a6 100644
->> --- a/drivers/usb/musb/musb_dsps.c
->> +++ b/drivers/usb/musb/musb_dsps.c
->> @@ -121,6 +121,7 @@ struct dsps_glue {
->>  	struct timer_list timer;	/* otg_workaround timer */
->>  	unsigned long last_timer;    /* last timer data for each instance */
->>  	bool sw_babble_enabled;
->> +	void __iomem *usbss_base;
->>  
->>  	struct dsps_context context;
->>  	struct debugfs_regset32 regset;
->> @@ -145,6 +146,13 @@ static const struct debugfs_reg32 dsps_musb_regs[] = {
->>  	{ "mode",		0xe8 },
->>  };
->>  
->> +/* USBSS  / USB AM335x */
->> +#define USBSS_IRQ_STATUS	0x28
->> +#define USBSS_IRQ_ENABLER	0x2c
->> +#define USBSS_IRQ_CLEARR	0x30
->> +
->> +#define USBSS_IRQ_PD_COMP	(1 <<  2)
-> 
-> Please fix the double white spaces bwteen '<' and '2' this time.
-> 
->> +
->>  /**
->>   * dsps_musb_enable - enable interrupts
->>   */
->> @@ -619,14 +627,72 @@ static void dsps_read_fifo32(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
->>  	}
->>  }
->>  
->> +#ifdef CONFIG_USB_TI_CPPI41_DMA
->> +static void dsps_dma_controller_callback(struct dma_controller *c)
->> +{
->> +	struct musb *musb = c->musb;
->> +	struct dsps_glue *glue = dev_get_drvdata(musb->controller->parent);
->> +	void __iomem *usbss_base = glue->usbss_base;
->> +	u32 status;
->> +
->> +	status = musb_readl(usbss_base, USBSS_IRQ_STATUS);
->> +	if (status & USBSS_IRQ_PD_COMP)
->> +		musb_writel(usbss_base, USBSS_IRQ_STATUS, USBSS_IRQ_PD_COMP);
->> +}
->> +
->> +static struct dma_controller *
->> +dsps_dma_controller_create(struct musb *musb, void __iomem *base)
->> +{
->> +	struct dma_controller *controller;
->> +	struct dsps_glue *glue = dev_get_drvdata(musb->controller->parent);
->> +	void __iomem *usbss_base = glue->usbss_base;
->> +
->> +	controller = cppi41_dma_controller_create(musb, base);
->> +	if (IS_ERR_OR_NULL(controller))
->> +		return controller;
->> +
->> +	musb_writel(usbss_base, USBSS_IRQ_ENABLER, USBSS_IRQ_PD_COMP);
->> +	controller->dma_callback = dsps_dma_controller_callback;
->> +
->> +	return controller;
->> +}
->> +
->> +static void dsps_dma_controller_destroy(struct dma_controller *c)
->> +{
->> +	struct musb *musb = c->musb;
->> +	struct dsps_glue *glue = dev_get_drvdata(musb->controller->parent);
->> +	void __iomem *usbss_base = glue->usbss_base;
->> +
->> +	musb_writel(usbss_base, USBSS_IRQ_CLEARR, USBSS_IRQ_PD_COMP);
->> +	cppi41_dma_controller_destroy(c);
->> +}
->> +
->> +static void dsps_dma_controller_suspend(struct dsps_glue *glue)
->> +{
->> +	void __iomem *usbss_base = glue->usbss_base;
->> +
->> +	musb_writel(usbss_base, USBSS_IRQ_CLEARR, USBSS_IRQ_PD_COMP);
->> +}
->> +
->> +static void dsps_dma_controller_resume(struct dsps_glue *glue)
->> +{
->> +	void __iomem *usbss_base = glue->usbss_base;
->> +
->> +	musb_writel(usbss_base, USBSS_IRQ_ENABLER, USBSS_IRQ_PD_COMP);
->> +}
-> 
-> The two functions above need to be wrapped in CONFIG_PM_SLEEP.
-> 
->> +#else
->> +static void dsps_dma_controller_suspend(struct dsps_glue *glue) {}
->> +static void dsps_dma_controller_resume(struct dsps_glue *glue) {}
->> +#endif
->> +
->>  static struct musb_platform_ops dsps_ops = {
->>  	.quirks		= MUSB_DMA_CPPI41 | MUSB_INDEXED_EP,
->>  	.init		= dsps_musb_init,
->>  	.exit		= dsps_musb_exit,
->>  
->>  #ifdef CONFIG_USB_TI_CPPI41_DMA
->> -	.dma_init	= cppi41_dma_controller_create,
->> -	.dma_exit	= cppi41_dma_controller_destroy,
->> +	.dma_init	= dsps_dma_controller_create,
->> +	.dma_exit	= dsps_dma_controller_destroy,
->>  #endif
->>  	.enable		= dsps_musb_enable,
->>  	.disable	= dsps_musb_disable,
->> @@ -792,6 +858,9 @@ static int dsps_probe(struct platform_device *pdev)
->>  
->>  	glue->dev = &pdev->dev;
->>  	glue->wrp = wrp;
->> +	glue->usbss_base = of_iomap(pdev->dev.parent->of_node, 0);
->> +	if (!glue->usbss_base)
-> 
-> use IS_ERR()?
-I don't we can use it here. As far I know, of_iomap() only return NULL
-in the case of error.
-> 
->> +		return -ENXIO;
-> 
-> and return PTR_ERR()?
-Again, I don't think we can use it here. THough, may be -ENXIO is not
-the best error code to return. I used it because it was the used in DMA
-driver.
-> 
-> Regards,
-> -Bin.
-> 
-Regards,
-Alexandre
++ Tero,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Saturday 21 January 2017 12:21 AM, Tony Lindgren wrote:
+> We have the same defined already in common.h.
+
+
+This is reverting what has been introduced in this[1] series. Probably
+Tero can comment more here.
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg102131.html
+
+Thanks and regards,
+Lokesh
+
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/cm2xxx.c                |  1 +
+>  arch/arm/mach-omap2/cm33xx.c                |  1 +
+>  arch/arm/mach-omap2/cm3xxx.c                |  1 +
+>  arch/arm/mach-omap2/cminst44xx.c            |  1 +
+>  arch/arm/mach-omap2/powerdomains3xxx_data.c |  1 +
+>  arch/arm/mach-omap2/prcm-common.h           | 22 ----------------------
+>  arch/arm/mach-omap2/prm2xxx_3xxx.c          |  1 +
+>  arch/arm/mach-omap2/prm33xx.c               |  1 +
+>  8 files changed, 7 insertions(+), 22 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
+> --- a/arch/arm/mach-omap2/cm2xxx.c
+> +++ b/arch/arm/mach-omap2/cm2xxx.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/err.h>
+>  #include <linux/io.h>
+>  
+> +#include "common.h"
+>  #include "prm2xxx.h"
+>  #include "cm.h"
+>  #include "cm2xxx.h"
+> diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+> --- a/arch/arm/mach-omap2/cm33xx.c
+> +++ b/arch/arm/mach-omap2/cm33xx.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/err.h>
+>  #include <linux/io.h>
+>  
+> +#include "common.h"
+>  #include "clockdomain.h"
+>  #include "cm.h"
+>  #include "cm33xx.h"
+> diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
+> --- a/arch/arm/mach-omap2/cm3xxx.c
+> +++ b/arch/arm/mach-omap2/cm3xxx.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/err.h>
+>  #include <linux/io.h>
+>  
+> +#include "common.h"
+>  #include "prm2xxx_3xxx.h"
+>  #include "cm.h"
+>  #include "cm3xxx.h"
+> diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+> --- a/arch/arm/mach-omap2/cminst44xx.c
+> +++ b/arch/arm/mach-omap2/cminst44xx.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/err.h>
+>  #include <linux/io.h>
+>  
+> +#include "common.h"
+>  #include "clockdomain.h"
+>  #include "cm.h"
+>  #include "cm1_44xx.h"
+> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/init.h>
+>  #include <linux/bug.h>
+> +#include <linux/delay.h>
+>  
+>  #include "soc.h"
+>  #include "powerdomain.h"
+> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+> --- a/arch/arm/mach-omap2/prcm-common.h
+> +++ b/arch/arm/mach-omap2/prcm-common.h
+> @@ -434,28 +434,6 @@
+>  #define MAX_IOPAD_LATCH_TIME			100
+>  # ifndef __ASSEMBLER__
+>  
+> -#include <linux/delay.h>
+> -
+> -/**
+> - * omap_test_timeout - busy-loop, testing a condition
+> - * @cond: condition to test until it evaluates to true
+> - * @timeout: maximum number of microseconds in the timeout
+> - * @index: loop index (integer)
+> - *
+> - * Loop waiting for @cond to become true or until at least @timeout
+> - * microseconds have passed.  To use, define some integer @index in the
+> - * calling code.  After running, if @index == @timeout, then the loop has
+> - * timed out.
+> - */
+> -#define omap_test_timeout(cond, timeout, index)			\
+> -({								\
+> -	for (index = 0; index < timeout; index++) {		\
+> -		if (cond)					\
+> -			break;					\
+> -		udelay(1);					\
+> -	}							\
+> -})
+> -
+>  /**
+>   * struct omap_prcm_irq - describes a PRCM interrupt bit
+>   * @name: a short name describing the interrupt type, e.g. "wkup" or "io"
+> diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+> --- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
+> +++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/err.h>
+>  #include <linux/io.h>
+>  
+> +#include "common.h"
+>  #include "powerdomain.h"
+>  #include "prm2xxx_3xxx.h"
+>  #include "prm-regbits-24xx.h"
+> diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
+> --- a/arch/arm/mach-omap2/prm33xx.c
+> +++ b/arch/arm/mach-omap2/prm33xx.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/err.h>
+>  #include <linux/io.h>
+>  
+> +#include "common.h"
+>  #include "powerdomain.h"
+>  #include "prm33xx.h"
+>  #include "prm-regbits-33xx.h"
+> 
