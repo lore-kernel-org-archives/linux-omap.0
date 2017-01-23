@@ -1,207 +1,132 @@
-From: Andrew Murray <amurray@embedded-bits.co.uk>
-Subject: Re: [PATCH v2] ARM: OMAP1/2: clock: Remove unused mpurate cmdline
- option
-Date: Mon, 23 Jan 2017 22:04:52 +0000
-Message-ID: <CAPcvp5E1Pz8wYuGwzEMSzaW_Ar-AwTM02tJt6X=o+3Dd+Epw_A@mail.gmail.com>
-References: <1485201594-23583-1-git-send-email-amurray@embedded-bits.co.uk>
- <20170123210621.ri6iip4zeoonhyc2@raspberrypi-2.musicnaut.iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170123210621.ri6iip4zeoonhyc2@raspberrypi-2.musicnaut.iki.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv3] Documentation: dt-bindings: Add binding documentation for TI clkctrl clocks
+Date: Mon, 23 Jan 2017 14:17:02 -0800
+Message-ID: <20170123221702.18420-1-tony@atomide.com>
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>
+Cc: devicetree@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 23 January 2017 at 21:06, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> On Mon, Jan 23, 2017 at 07:59:54PM +0000, Andrew Murray wrote:
->> The 'mpurate' option, historically used for specifying an initial
->> MPU rate at boot, no longer has any effect due to the supporting
->> code being removed as it was 'wrong and dangerous' [1].
->>
->> This patch removes the remaining dead code associated with the
->> __setup macros to avoid confusion and reduce bloat.
->>
->> [1] https://patchwork.kernel.org/patch/5954631/
->
-> Signed-off-by missing. Otherwise:
->
-> Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Texas Instruments omap variant SoCs starting with omap4 have a clkctrl
+clock controller instance for each interconnect target module. The clkctrl
+controls functional and interface clocks for the module.
 
-Thanks and apologies - will resend.
+The clkctrl clocks are currently handled by arch/arm/mach-omap2 hwmod code.
+With this binding and a related clock device driver we can start moving the
+clkctrl clock handling to live in drivers/clk/ti.
 
-Andrew Murray
+Note that this binding allows keeping the clockdomain related parts out of
+drivers/clock. The CLKCTCTRL and DYNAMICDEP registers can be handled by
+a separate driver in drivers/soc/ti and genpd. If the clockdomain driver
+needs to know it's clocks, we can just set the the clkctrl device
+instances to be children of the related clockdomain device.
 
->
-> A.
->
->> ---
->> Changes since v1:
->>
->>  * Remove related omap2_clk_print_new_rates function which is also unused
->>    (this was previously used to print clock rates after use of mpurate)
->> ---
->>  arch/arm/mach-omap1/clock.c | 20 ---------------
->>  arch/arm/mach-omap1/clock.h |  2 --
->>  arch/arm/mach-omap2/clock.c | 61 ---------------------------------------------
->>  arch/arm/mach-omap2/clock.h |  4 ---
->>  4 files changed, 87 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
->> index 4f5fd4a..43e3e18 100644
->> --- a/arch/arm/mach-omap1/clock.c
->> +++ b/arch/arm/mach-omap1/clock.c
->> @@ -720,26 +720,6 @@ EXPORT_SYMBOL(clk_get_parent);
->>   * OMAP specific clock functions shared between omap1 and omap2
->>   */
->>
->> -int __initdata mpurate;
->> -
->> -/*
->> - * By default we use the rate set by the bootloader.
->> - * You can override this with mpurate= cmdline option.
->> - */
->> -static int __init omap_clk_setup(char *str)
->> -{
->> -     get_option(&str, &mpurate);
->> -
->> -     if (!mpurate)
->> -             return 1;
->> -
->> -     if (mpurate < 1000)
->> -             mpurate *= 1000000;
->> -
->> -     return 1;
->> -}
->> -__setup("mpurate=", omap_clk_setup);
->> -
->>  /* Used for clocks that always have same value as the parent clock */
->>  unsigned long followparent_recalc(struct clk *clk)
->>  {
->> diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
->> index 1e4918a..f2d1be2 100644
->> --- a/arch/arm/mach-omap1/clock.h
->> +++ b/arch/arm/mach-omap1/clock.h
->> @@ -173,8 +173,6 @@ struct clk_functions {
->>       void            (*clk_disable_unused)(struct clk *clk);
->>  };
->>
->> -extern int mpurate;
->> -
->>  extern int clk_init(struct clk_functions *custom_clocks);
->>  extern void clk_preinit(struct clk *clk);
->>  extern int clk_register(struct clk *clk);
->> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
->> index d058125..1270afd 100644
->> --- a/arch/arm/mach-omap2/clock.c
->> +++ b/arch/arm/mach-omap2/clock.c
->> @@ -78,8 +78,6 @@ int __init omap2_clk_setup_ll_ops(void)
->>   * OMAP2+ specific clock functions
->>   */
->>
->> -/* Private functions */
->> -
->>  /* Public functions */
->>
->>  /**
->> @@ -112,65 +110,6 @@ void omap2_init_clk_clkdm(struct clk_hw *hw)
->>       }
->>  }
->>
->> -static int __initdata mpurate;
->> -
->> -/*
->> - * By default we use the rate set by the bootloader.
->> - * You can override this with mpurate= cmdline option.
->> - */
->> -static int __init omap_clk_setup(char *str)
->> -{
->> -     get_option(&str, &mpurate);
->> -
->> -     if (!mpurate)
->> -             return 1;
->> -
->> -     if (mpurate < 1000)
->> -             mpurate *= 1000000;
->> -
->> -     return 1;
->> -}
->> -__setup("mpurate=", omap_clk_setup);
->> -
->> -/**
->> - * omap2_clk_print_new_rates - print summary of current clock tree rates
->> - * @hfclkin_ck_name: clk name for the off-chip HF oscillator
->> - * @core_ck_name: clk name for the on-chip CORE_CLK
->> - * @mpu_ck_name: clk name for the ARM MPU clock
->> - *
->> - * Prints a short message to the console with the HFCLKIN oscillator
->> - * rate, the rate of the CORE clock, and the rate of the ARM MPU clock.
->> - * Called by the boot-time MPU rate switching code.   XXX This is intended
->> - * to be handled by the OPP layer code in the near future and should be
->> - * removed from the clock code.  No return value.
->> - */
->> -void __init omap2_clk_print_new_rates(const char *hfclkin_ck_name,
->> -                                   const char *core_ck_name,
->> -                                   const char *mpu_ck_name)
->> -{
->> -     struct clk *hfclkin_ck, *core_ck, *mpu_ck;
->> -     unsigned long hfclkin_rate;
->> -
->> -     mpu_ck = clk_get(NULL, mpu_ck_name);
->> -     if (WARN(IS_ERR(mpu_ck), "clock: failed to get %s.\n", mpu_ck_name))
->> -             return;
->> -
->> -     core_ck = clk_get(NULL, core_ck_name);
->> -     if (WARN(IS_ERR(core_ck), "clock: failed to get %s.\n", core_ck_name))
->> -             return;
->> -
->> -     hfclkin_ck = clk_get(NULL, hfclkin_ck_name);
->> -     if (WARN(IS_ERR(hfclkin_ck), "Failed to get %s.\n", hfclkin_ck_name))
->> -             return;
->> -
->> -     hfclkin_rate = clk_get_rate(hfclkin_ck);
->> -
->> -     pr_info("Switched to new clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld MHz\n",
->> -             (hfclkin_rate / 1000000), ((hfclkin_rate / 100000) % 10),
->> -             (clk_get_rate(core_ck) / 1000000),
->> -             (clk_get_rate(mpu_ck) / 1000000));
->> -}
->> -
->>  /**
->>   * ti_clk_init_features - init clock features struct for the SoC
->>   *
->> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
->> index 67da640..4e66295 100644
->> --- a/arch/arm/mach-omap2/clock.h
->> +++ b/arch/arm/mach-omap2/clock.h
->> @@ -64,10 +64,6 @@
->>  #define OMAP4XXX_EN_DPLL_FRBYPASS            0x6
->>  #define OMAP4XXX_EN_DPLL_LOCKED                      0x7
->>
->> -void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
->> -                            const char *core_ck_name,
->> -                            const char *mpu_ck_name);
->> -
->>  extern u16 cpu_mask;
->>
->>  extern const struct clkops clkops_omap2_dflt_wait;
->> --
->> 2.5.0
->>
+Each clkctrl clock can have multiple optional gate clocks, and multiple
+optional mux clocks. To represent this in device tree, it seems that
+it is best done using four clock cells #clock-cells = <2> property.
 
+The reasons for using #clock-cells = <2> are:
 
+1. We need to specify the clkctrl offset from the instance base. Otherwise
+   we end up with a large number of device tree nodes that need to be
+   patched when new clocks are discovered in a clkctrl clock with minor
+   hardware revision changes for example
 
+2. On omap5 CM_L3INIT_USB_HOST_HS_CLKCTRL has ten OPTFCLKEN bits. So we
+   need to use a separate cell for optional gate clocks to avoid address
+   space conflicts
+
+There is probably no need to list input clocks for each clkctrl clock
+instance in the binding. If we want to add them, the standard clocks
+binding can be used for that.
+
+For hardware reference, see omap4430 TRM "Table 3-1312. L4PER_CM2 Registers
+Mapping Summary" for example. It shows one instance of a clkctrl clock
+controller with multiple clkctrl registers.
+
+Cc: Paul Walmsley <paul@pwsan.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+Changes from v2 to v3:
+
+- Changed the #clock-cells from 4 to 2 based on comments from Tero
+  and dropped the related patch description parts. I've kept Rob's
+  ack from v2 as the changes are a subset of v2 and what was discussed
+  already with the v1 patch
+
+Changes from v1 to v2:
+
+- Use #clock-cells to avoid address space conflicts
+
+- Consider also optional mux clocks as pointed out by Tero
+
+---
+ .../devicetree/bindings/clock/ti-clkctrl.txt       | 56 ++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+
+diff --git a/Documentation/devicetree/bindings/clock/ti-clkctrl.txt b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+new file mode 100644
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+@@ -0,0 +1,56 @@
++Texas Instruments clkctrl clock binding
++
++Texas Instruments SoCs can have a clkctrl clock controller for each
++interconnect target module. The clkctrl clock controller manages functional
++and interface clocks for each module. Each clkctrl controller can also
++gate one or more optional functional clocks for a module, and can have one
++or more clock muxes. There is a clkctrl clock controller typically for each
++interconnect target module on omap4 and later variants.
++
++The clock consumers can specify the index of the clkctrl clock using
++the hardware offset from the clkctrl instance register space. The optional
++clocks can be specified by clkctrl hardware offset and the index of the
++optional clock.
++
++For more information, please see the Linux clock framework binding at
++Documentation/devicetree/bindings/clock/clock-bindings.txt.
++
++Required properties :
++- compatible : shall be "ti,clkctrl"
++- #clock-cells : shall contain 2 with the first entry being the instance
++		 offset from the clock domain base and the second being the
++		 clock index
++
++Example: Clock controller node on omap 4430:
++
++&cm2 {
++	l4per: cm@1400 {
++		cm_l4per@0 {
++			cm_l4per_clkctrl: clk@20 {
++				compatible = "ti,clkctrl";
++				reg = <0x20 0x1b0>;
++				#clock-cells = <4>;
++			};
++		};
++	};
++};
++
++Example: Preprocessor helper macros in dt-bindings/clock/ti-clkctrl.h
++
++#define OMAP4_CLKCTRL_OFFSET		0x20
++#define OMAP4_CLKCTRL_INDEX(offset)	((offset) - OMAP4_CLKCTRL_OFFSET)
++#define MODULEMODE_HWCTRL		1
++#define MODULEMODE_SWCTRL		2
++
++#define OMAP4_GPTIMER10_CLKTRL		OMAP4_CLKCTRL_INDEX(0x28)
++#define OMAP4_GPTIMER11_CLKTRL		OMAP4_CLKCTRL_INDEX(0x30)
++#define OMAP4_GPTIMER2_CLKTRL		OMAP4_CLKCTRL_INDEX(0x38)
++...
++#define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
++
++Example: Clock consumer node for GPIO2:
++
++&gpio2 {
++       clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 0
++		 &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 8>;
++};
 -- 
-
-Andrew Murray
-Witekio UK
+2.11.0
