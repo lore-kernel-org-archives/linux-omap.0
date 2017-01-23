@@ -1,52 +1,79 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
-Date: Mon, 23 Jan 2017 15:20:18 +0100
-Message-ID: <20170123142018.GA6984@amd>
-References: <20170123124058.GA17134@amd>
- <20170123124206.GB8072@pali>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 2/3] dmaengine: cppi41: Add support of DA8xx to CPPI
+ 4.1
+Date: Mon, 23 Jan 2017 15:28:11 +0100
+Message-ID: <5bbb235f-95db-4b3c-181a-860ed32c6904@baylibre.com>
+References: <20170119111334.14718-1-abailon@baylibre.com>
+ <20170119111334.14718-3-abailon@baylibre.com>
+ <6cfcff3a-e485-65c0-048a-f2f1b133d2e9@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170123124206.GB8072@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6cfcff3a-e485-65c0-048a-f2f1b133d2e9-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On 01/19/2017 07:15 PM, Sergei Shtylyov wrote:
+> On 01/19/2017 02:13 PM, Alexandre Bailon wrote:
+>
+> > The DA8xx has a CPPI 4.1 DMA controller.
+> > This is add the glue layer required to make it work on DA8xx.
+> >
+> > Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> > ---
+> >  drivers/dma/Kconfig  |  6 +++---
+> >  drivers/dma/cppi41.c | 24 ++++++++++++++++++++++++
+> >  2 files changed, 27 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+> > index 0d6a96e..03ae2a1 100644
+> > --- a/drivers/dma/Kconfig
+> > +++ b/drivers/dma/Kconfig
+> > @@ -514,12 +514,12 @@ config TIMB_DMA
+> >        Enable support for the Timberdale FPGA DMA engine.
+> >
+> >  config TI_CPPI41
+> > -    tristate "AM33xx CPPI41 DMA support"
+> > -    depends on ARCH_OMAP
+> > +    tristate "CPPI41 DMA support"
+>
+>    Grr... CPPI 4.1, please.
+>
+> > +    depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX)
+> >      select DMA_ENGINE
+> >      help
+> >        The Communications Port Programming Interface (CPPI) 4.1 DMA
+> > engine
+> > -      is currently used by the USB driver on AM335x platforms.
+> > +      is currently used by the USB driver on AM335x and DA8xx platforms.
+> >
+> >  config TI_DMA_CROSSBAR
+> >      bool
+> > diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+> > index 9767b97..f6f2d84 100644
+> > --- a/drivers/dma/cppi41.c
+> > +++ b/drivers/dma/cppi41.c
+> [...]
+> > @@ -951,8 +965,18 @@ static const struct cppi_glue_infos
+> > am335x_usb_infos = {
+> >      .qmgr_num_pend = 5,
+> >  };
+> >
+> > +static const struct cppi_glue_infos da8xx_usb_infos = {
+> > +    .isr = cppi41_irq,
+>
+>    Isn't the ISR the same for all glues now?
+True. I should remove isr callback.
+>
+> [...]
+>
+> MBR, Sergei
+>
 
---6c2NcOVqGQ03X4Wi
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon 2017-01-23 13:42:06, Pali Roh=E1r wrote:
-> On Monday 23 January 2017 13:40:58 Pavel Machek wrote:
-> > It seems that battery driver stopped working on N900 between -rc4 and
-> > -rc5.
->=20
-> Which one of those 4 drivers stopped working?
-
-n900-battery.
-
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---6c2NcOVqGQ03X4Wi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAliGESIACgkQMOfwapXb+vL9xwCfb0EqVC/ibQCT/cFyq/jjrUG6
-jAQAn14x8uLBR5CVQ4SftnS7p57Km3f2
-=ioxk
------END PGP SIGNATURE-----
-
---6c2NcOVqGQ03X4Wi--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
