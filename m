@@ -1,38 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: v4.9 to v4.10 regression: oops when USB cable is plugged in.
-Date: Mon, 23 Jan 2017 14:44:54 -0800
-Message-ID: <20170123224454.GY7403@atomide.com>
-References: <20170123222537.GA11543@amd>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 6/6] usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in
+ DSPS
+Date: Mon, 23 Jan 2017 15:25:34 -0600
+Message-ID: <20170123212534.GB1609@uda0271908>
+References: <20170123164808.27936-1-abailon@baylibre.com>
+ <20170123164808.27936-7-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170123222537.GA11543@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, b-liu@ti.com, linux-usb@vger.kernel.org
+In-Reply-To: <20170123164808.27936-7-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [170123 14:26]:
-> [25392.239837] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa0ab060
-> [25392.239868] pgd = c0004000
-> [25392.239898] [fa0ab060] *pgd=48011452(bad)
-> [25392.239929] Internal error: : 1028 [#1] ARM
-> [25392.239929] Modules linked in:
-> [25392.239959] CPU: 0 PID: 24322 Comm: kworker/0:1 Not tainted 4.10.0-rc5-142127-g41f2839-dirty #222
-> [25392.239990] Hardware name: Nokia RX-51 board
-> [25392.240020] Workqueue: events musb_irq_work
-> [25392.240051] task: cd44d5c0 task.stack: cd308000
-> [25392.240051] PC is at musb_default_readb+0x0/0xc
-> [25392.240081] LR is at musb_irq_work+0x1c/0x1b0
++cc linux-usb list
 
-OK I'm pretty sure the patch I posted few days ago fixes
-this. Can you please test patch "[PATCH] usb: musb: Fix
-external abort on non-linefetch for musb_irq_work()"?
+On Mon, Jan 23, 2017 at 05:48:08PM +0100, Alexandre Bailon wrote:
+> Despite the CPPI 4.1 is a generic DMA, it is tied to USB.
+> On the DSPS, CPPI 4.1 interrupt's registers are in USBSS (the MUSB glue).
+> Currently, to enable / disable and clear interrupts, the CPPI 4.1 driver
+> maps and accesses to USBSS's register, which making CPPI 4.1 driver not
+> really generic.
+> Move the interrupt management to DSPS driver.
+> 
+> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 
-I was able to hit that only once so far, do you hit it
-every time with your built-in g_ether .config?
+It seems this patch set is almost ready to go. If Vinod would ACK on
+this patch, I'd like to pick it into my tree, since the rest of the set
+is for musb.
 
 Regards,
-
-Tony
+-Bin.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
