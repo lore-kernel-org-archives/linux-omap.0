@@ -1,161 +1,114 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Remove duplicate definition of
- omap_test_timeout
-Date: Mon, 23 Jan 2017 15:52:28 +0530
-Message-ID: <130610aa-ed1a-b363-fac5-6aaaf4d8e930@ti.com>
-References: <20170120185151.1630-1-tony@atomide.com>
+From: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [PATCH 1/3] ARM: dts: Add support for phyCORE-AM335x PCM-953
+ carrier board
+Date: Mon, 23 Jan 2017 11:27:12 +0100
+Message-ID: <1485167232.3082.9.camel@phytec.de>
+References: <1484831270-7251-1-git-send-email-t.remmet@phytec.de>
+         <20170121205345.oij67ai5d7q7k74d@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170120185151.1630-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170121205345.oij67ai5d7q7k74d@rob-hp-laptop>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Wadim Egorov <w.egorov-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-+ Tero,
+Hello Rob,
 
-On Saturday 21 January 2017 12:21 AM, Tony Lindgren wrote:
-> We have the same defined already in common.h.
+Am Samstag, den 21.01.2017, 14:53 -0600 schrieb Rob Herring:
+> On Thu, Jan 19, 2017 at 02:07:48PM +0100, Teresa Remmet wrote:
+> > 
+> > The phyCORE-AM335x development kit is a combination of the
+> > phyCORE-AM335x SoM and a PCM-953 carrier board. The features
+> > of the PCM-953 are:
+> > * ETH phy on carrier board: 1x RGMII
+> > * 1x CAN
+> > * Up to 4x UART
+> > * USB0 (otg)
+> > * USB1 (host)
+> > * SD slot
+> > * User gpio-keys
+> > * User LEDs
+> > 
+> > Signed-off-by: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+> > Reviewed-by: Wadim Egorov <w.egorov-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+> > ---
+> >  .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+> >  arch/arm/boot/dts/Makefile                         |   1 +
+> >  arch/arm/boot/dts/am335x-pcm-953.dtsi              | 303
+> > +++++++++++++++++++++
+> >  arch/arm/boot/dts/am335x-phycore-rdk.dts           |  27 ++
+> >  4 files changed, 334 insertions(+)
+> >  create mode 100644 arch/arm/boot/dts/am335x-pcm-953.dtsi
+> >  create mode 100644 arch/arm/boot/dts/am335x-phycore-rdk.dts
+> [...]
+> 
+> > 
+> > +	user_leds: user_leds {
+> > +		compatible = "gpio-leds";
+> > +	};
+> > +
+> > +	user_buttons: user_buttons {
+> > +		compatible = "gpio-keys";
+> > +	};
+> With only a compatible, I don't think there's much gain to split
+> these 2 
+> nodes. Otherwse,
 
+whould it be ok to open up the root node again below? Or should I
+better move the nodes up? Which does mess up the order then. We
+orinented here on the am335x-pepper.dts. They also only keep the
+compatibles in the root node.
 
-This is reverting what has been introduced in this[1] series. Probably
-Tero can comment more here.
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg102131.html
-
-Thanks and regards,
-Lokesh
+Thanks,
+Teresa
 
 > 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/cm2xxx.c                |  1 +
->  arch/arm/mach-omap2/cm33xx.c                |  1 +
->  arch/arm/mach-omap2/cm3xxx.c                |  1 +
->  arch/arm/mach-omap2/cminst44xx.c            |  1 +
->  arch/arm/mach-omap2/powerdomains3xxx_data.c |  1 +
->  arch/arm/mach-omap2/prcm-common.h           | 22 ----------------------
->  arch/arm/mach-omap2/prm2xxx_3xxx.c          |  1 +
->  arch/arm/mach-omap2/prm33xx.c               |  1 +
->  8 files changed, 7 insertions(+), 22 deletions(-)
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > 
-> diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
-> --- a/arch/arm/mach-omap2/cm2xxx.c
-> +++ b/arch/arm/mach-omap2/cm2xxx.c
-> @@ -18,6 +18,7 @@
->  #include <linux/err.h>
->  #include <linux/io.h>
->  
-> +#include "common.h"
->  #include "prm2xxx.h"
->  #include "cm.h"
->  #include "cm2xxx.h"
-> diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-> --- a/arch/arm/mach-omap2/cm33xx.c
-> +++ b/arch/arm/mach-omap2/cm33xx.c
-> @@ -22,6 +22,7 @@
->  #include <linux/err.h>
->  #include <linux/io.h>
->  
-> +#include "common.h"
->  #include "clockdomain.h"
->  #include "cm.h"
->  #include "cm33xx.h"
-> diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
-> --- a/arch/arm/mach-omap2/cm3xxx.c
-> +++ b/arch/arm/mach-omap2/cm3xxx.c
-> @@ -18,6 +18,7 @@
->  #include <linux/err.h>
->  #include <linux/io.h>
->  
-> +#include "common.h"
->  #include "prm2xxx_3xxx.h"
->  #include "cm.h"
->  #include "cm3xxx.h"
-> diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-> --- a/arch/arm/mach-omap2/cminst44xx.c
-> +++ b/arch/arm/mach-omap2/cminst44xx.c
-> @@ -21,6 +21,7 @@
->  #include <linux/err.h>
->  #include <linux/io.h>
->  
-> +#include "common.h"
->  #include "clockdomain.h"
->  #include "cm.h"
->  #include "cm1_44xx.h"
-> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> @@ -14,6 +14,7 @@
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/bug.h>
-> +#include <linux/delay.h>
->  
->  #include "soc.h"
->  #include "powerdomain.h"
-> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-> --- a/arch/arm/mach-omap2/prcm-common.h
-> +++ b/arch/arm/mach-omap2/prcm-common.h
-> @@ -434,28 +434,6 @@
->  #define MAX_IOPAD_LATCH_TIME			100
->  # ifndef __ASSEMBLER__
->  
-> -#include <linux/delay.h>
-> -
-> -/**
-> - * omap_test_timeout - busy-loop, testing a condition
-> - * @cond: condition to test until it evaluates to true
-> - * @timeout: maximum number of microseconds in the timeout
-> - * @index: loop index (integer)
-> - *
-> - * Loop waiting for @cond to become true or until at least @timeout
-> - * microseconds have passed.  To use, define some integer @index in the
-> - * calling code.  After running, if @index == @timeout, then the loop has
-> - * timed out.
-> - */
-> -#define omap_test_timeout(cond, timeout, index)			\
-> -({								\
-> -	for (index = 0; index < timeout; index++) {		\
-> -		if (cond)					\
-> -			break;					\
-> -		udelay(1);					\
-> -	}							\
-> -})
-> -
->  /**
->   * struct omap_prcm_irq - describes a PRCM interrupt bit
->   * @name: a short name describing the interrupt type, e.g. "wkup" or "io"
-> diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-> --- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-> +++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-> @@ -16,6 +16,7 @@
->  #include <linux/err.h>
->  #include <linux/io.h>
->  
-> +#include "common.h"
->  #include "powerdomain.h"
->  #include "prm2xxx_3xxx.h"
->  #include "prm-regbits-24xx.h"
-> diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
-> --- a/arch/arm/mach-omap2/prm33xx.c
-> +++ b/arch/arm/mach-omap2/prm33xx.c
-> @@ -19,6 +19,7 @@
->  #include <linux/err.h>
->  #include <linux/io.h>
->  
-> +#include "common.h"
->  #include "powerdomain.h"
->  #include "prm33xx.h"
->  #include "prm-regbits-33xx.h"
-> 
+> > 
+> > +&user_buttons {
+> > +	pinctrl-names = "default";
+> > +	pinctrl-0 = <&user_buttons_pins>;
+> > +	status = "okay";
+> > +
+> > +	button@0 {
+> > +		label = "home";
+> > +		linux,code = <KEY_HOME>;
+> > +		gpios = <&gpio3 7 GPIO_ACTIVE_HIGH>;
+> > +		gpio-key,wakeup;
+> > +	};
+> > +
+> > +	button@1 {
+> > +		label = "menu";
+> > +		linux,code = <KEY_MENU>;
+> > +		gpios = <&gpio3 8 GPIO_ACTIVE_HIGH>;
+> > +		gpio-key,wakeup;
+> > +	};
+> > +};
+> > +
+> > +&user_leds {
+> > +	pinctrl-names = "default";
+> > +	pinctrl-0 = <&user_leds_pins>;
+> > +	status = "okay";
+> > +
+> > +	green {
+> > +		label = "green:user";
+> > +		gpios = <&gpio1 30 GPIO_ACTIVE_HIGH>;
+> > +		linux,default-trigger = "gpio";
+> > +		default-state = "on";
+> > +	};
+> > +
+> > +	yellow {
+> > +		label = "yellow:user";
+> > +		gpios = <&gpio1 31 GPIO_ACTIVE_LOW>;
+> > +		linux,default-trigger = "gpio";
+> > +		default-state = "on";
+> > +	};
+> > +};
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
