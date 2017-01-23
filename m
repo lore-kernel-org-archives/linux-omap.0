@@ -1,63 +1,56 @@
 From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 0/6] usb: musb: cppi41: Add a way to manage DMA irq
-Date: Mon, 23 Jan 2017 15:26:33 -0600
-Message-ID: <20170123212633.GC1609@uda0271908>
-References: <20170123164808.27936-1-abailon@baylibre.com>
+Subject: Re: [PATCH v3 3/3] usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in
+ dsps
+Date: Mon, 23 Jan 2017 15:32:18 -0600
+Message-ID: <20170123213218.GD1609@uda0271908>
+References: <20170119100659.11370-1-abailon@baylibre.com>
+ <20170119100659.11370-4-abailon@baylibre.com>
+ <20170120201717.GE14571@uda0271908>
+ <m2pojd3c39.fsf@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170123164808.27936-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <m2pojd3c39.fsf-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 23, 2017 at 05:48:02PM +0100, Alexandre Bailon wrote:
-> This series was "dmaengine: cppi41: Make the driver more generic".
-> I have tried to separate as munch I could CPPI 4.1 MUSB driver changes.
+On Mon, Jan 23, 2017 at 09:44:42AM -0800, Kevin Hilman wrote:
+> Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> writes:
 > 
-> Currently, the DMA interrupt is managed by the CPPI 4.1 driver.
-> The issue here is the CPPI 4.1 driver must access to MUSB glue registers
-> to manage its interrupt.
-> In order to move the interrupts management from CPPI 4.1 driver to MUSB
-> (and then make it more generic), update the MUSB CPPI 4.1 driver with
-> changes that will help to manage DMA interrupt from MUSB driver.
+> > On Thu, Jan 19, 2017 at 11:06:59AM +0100, Alexandre Bailon wrote:
+> >> Despite the CPPI 4.1 is a generic DMA, it is tied to USB.
+> >> On the dsps, CPPI 4.1 interrupt's registers are in USBSS (the MUSB glue).
+> >> Currently, to enable / disable and clear interrupts, the CPPI 4.1 driver
+> >> maps and accesses to USBSS's register, which making CPPI 4.1 driver not
+> >> really generic.
+> >> Move the interrupt management to dsps driver.
+> >> 
+> >> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> >> ---
+> >>  drivers/dma/cppi41.c         | 28 ++++------------
+> >>  drivers/usb/musb/musb_dsps.c | 77 ++++++++++++++++++++++++++++++++++++++++++--
+> >>  2 files changed, 82 insertions(+), 23 deletions(-)
+> >
+> > This patch touches both dma and musb modules, I know it makes review
+> > easier, but how we get it merged? One maintainer ACK it and the other
+> > pick it up? Sorry for the dumb question, I am new as a maintainer...
 > 
-> Changes in v4:
-> - Remove musb pointer from struct cppi, cppi41_dma_controller and
->   tusb_omap_dma.
-> 
-> Changes in v3:
-> - Move a patch from another series to this one to avoid build error report
->   from kbuild test robot
-> - Instead of adding and exporting function, add one callback and a pointer
->   to musb in struct dma_controller
-> - Surround the DMA function introduced in musb_dsps with #ifdef / #endif.
-> 
-> Changes in v2:
-> - Fix some typo in commit messages
-> - Add more explanation about some changes made by patch 2 in commit message
-> 
-> Alexandre Bailon (6):
->   usb: musb: dma: Add a DMA completion platform callback
->   usb: musb: cppi41: Detect aborted transfers in cppi41_dma_callback()
->   usb: musb: cppi_dma: Clean up cppi structure
->   usb: musb: cppi_dma: Clean up cppi41_dma_controller structure
->   usb: musb: cppi_dma: Clean up tusb_omap_dma structure
->   usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in DSPS
-> 
->  drivers/dma/cppi41.c             | 28 ++++----------
->  drivers/usb/musb/cppi_dma.c      | 26 ++++++-------
->  drivers/usb/musb/cppi_dma.h      |  1 -
->  drivers/usb/musb/musb_cppi41.c   | 48 +++++++++++++-----------
->  drivers/usb/musb/musb_dma.h      |  5 +++
->  drivers/usb/musb/musb_dsps.c     | 81 +++++++++++++++++++++++++++++++++++++++-
->  drivers/usb/musb/tusb6010_omap.c |  7 ++--
->  7 files changed, 134 insertions(+), 62 deletions(-)
-> 
+> For patches where the change needs to go together, then one maintainer
+> can ack, and the other can merge.  Alternately, if the patch can be done
 
-Please keep linux-usb list cc'd.
+Ok, this is what I thought :)
+
+> in a way that the parts can go independently, that is sometimes
+> cleaner.  I don't know this code well enough to know which is which.
+
+In this case it is better to keep all together, since it moves code from
+one place to another.
+
+I think it makes sense it goes to my tree, since the reset patches are
+for musb.
 
 Regards,
 -Bin.
