@@ -1,79 +1,132 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 2/3] dmaengine: cppi41: Add support of DA8xx to CPPI
- 4.1
-Date: Mon, 23 Jan 2017 15:28:11 +0100
-Message-ID: <5bbb235f-95db-4b3c-181a-860ed32c6904@baylibre.com>
-References: <20170119111334.14718-1-abailon@baylibre.com>
- <20170119111334.14718-3-abailon@baylibre.com>
- <6cfcff3a-e485-65c0-048a-f2f1b133d2e9@cogentembedded.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
+Date: Mon, 23 Jan 2017 06:31:31 -0800
+Message-ID: <da1f1b45-3ae5-ffe8-62c6-9ec7c3a1505b@roeck-us.net>
+References: <20170123124058.GA17134@amd> <20170123141331.GA11402@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6cfcff3a-e485-65c0-048a-f2f1b133d2e9-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170123141331.GA11402@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+Cc: fabio.estevam@nxp.com, rui.zhang@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-On 01/19/2017 07:15 PM, Sergei Shtylyov wrote:
-> On 01/19/2017 02:13 PM, Alexandre Bailon wrote:
+On 01/23/2017 06:19 AM, Pavel Machek wrote:
+> Hi!
 >
-> > The DA8xx has a CPPI 4.1 DMA controller.
-> > This is add the glue layer required to make it work on DA8xx.
-> >
-> > Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  drivers/dma/Kconfig  |  6 +++---
-> >  drivers/dma/cppi41.c | 24 ++++++++++++++++++++++++
-> >  2 files changed, 27 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
-> > index 0d6a96e..03ae2a1 100644
-> > --- a/drivers/dma/Kconfig
-> > +++ b/drivers/dma/Kconfig
-> > @@ -514,12 +514,12 @@ config TIMB_DMA
-> >        Enable support for the Timberdale FPGA DMA engine.
-> >
-> >  config TI_CPPI41
-> > -    tristate "AM33xx CPPI41 DMA support"
-> > -    depends on ARCH_OMAP
-> > +    tristate "CPPI41 DMA support"
+>> It seems that battery driver stopped working on N900 between -rc4 and
+>> -rc5.
 >
->    Grr... CPPI 4.1, please.
+> pavel@amd:/data/l/linux-n900$ git bisect log
+> # bad: [41f283973653dc44af47585fa79fb6da6ffdc2e2] Merge
+> /data//l/clean-cg into mini-v4.10
+> # good: [4f8d9925eb1de1ec1c4183164f1bc7b01f5ae185] It seems mainline
+> -rc4 did have a fix for the sound issue. Use that one.
+> git bisect start 'mini-v4.10'
+> '4f8d9925eb1de1ec1c4183164f1bc7b01f5ae185'
+> # good: [e90665a5d38b17fdbe484a85fbba917a7006522d] Merge tag
+> 'ceph-for-4.10-rc5' of git://github.com/ceph/ceph-client
+> git bisect good e90665a5d38b17fdbe484a85fbba917a7006522d
+> # good: [83fd57a740bb19286959b3085eb93532f3e7ef2c] Merge tag
+> 'powerpc-4.10-2' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux
+> git bisect good 83fd57a740bb19286959b3085eb93532f3e7ef2c
+> # good: [c497f8d17246720afe680ea1a8fa6e48e75af852] Merge tag
+> 'usb-4.10-rc5' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb
+> git bisect good c497f8d17246720afe680ea1a8fa6e48e75af852
+> # bad: [bb6c01c2dde67b165cf7c808b0f00677b6f94b96] Merge branch
+> 'for-rc' of git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux
+> git bisect bad bb6c01c2dde67b165cf7c808b0f00677b6f94b96
+> # good: [18591add41ec9558ce0e32ef88626c18cc70c686] thermal: rockchip:
+> handle set_trips without the trip points
+> git bisect good 18591add41ec9558ce0e32ef88626c18cc70c686
+> # bad: [f53345e8cf027d03187b9417f1f8883c516e1a5b] thermal: core: move
+> tz->device.groups cleanup to thermal_release
+> git bisect bad f53345e8cf027d03187b9417f1f8883c516e1a5b
+> # bad: [7611fb68062f8d7f416f3272894d1edf7bbff29c] thermal:
+> thermal_hwmon: Convert to hwmon_device_register_with_info()
+> git bisect bad 7611fb68062f8d7f416f3272894d1edf7bbff29c
+> # first bad commit: [7611fb68062f8d7f416f3272894d1edf7bbff29c]
+> thermal: thermal_hwmon: Convert to hwmon_device_register_with_info()
+> pavel@amd:/data/l/linux-n900$
 >
-> > +    depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX)
-> >      select DMA_ENGINE
-> >      help
-> >        The Communications Port Programming Interface (CPPI) 4.1 DMA
-> > engine
-> > -      is currently used by the USB driver on AM335x platforms.
-> > +      is currently used by the USB driver on AM335x and DA8xx platforms.
-> >
-> >  config TI_DMA_CROSSBAR
-> >      bool
-> > diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-> > index 9767b97..f6f2d84 100644
-> > --- a/drivers/dma/cppi41.c
-> > +++ b/drivers/dma/cppi41.c
-> [...]
-> > @@ -951,8 +965,18 @@ static const struct cppi_glue_infos
-> > am335x_usb_infos = {
-> >      .qmgr_num_pend = 5,
-> >  };
-> >
-> > +static const struct cppi_glue_infos da8xx_usb_infos = {
-> > +    .isr = cppi41_irq,
+> pavel@amd:/data/l/linux-n900$ git bisect log
+> # bad: [41f283973653dc44af47585fa79fb6da6ffdc2e2] Merge
+> /data//l/clean-cg into mini-v4.10
+> # good: [4f8d9925eb1de1ec1c4183164f1bc7b01f5ae185] It seems mainline
+> -rc4 did have a fix for the sound issue. Use that one.
+> git bisect start 'mini-v4.10'
+> '4f8d9925eb1de1ec1c4183164f1bc7b01f5ae185'
+> # good: [e90665a5d38b17fdbe484a85fbba917a7006522d] Merge tag
+> 'ceph-for-4.10-rc5' of git://github.com/ceph/ceph-client
+> git bisect good e90665a5d38b17fdbe484a85fbba917a7006522d
+> # good: [83fd57a740bb19286959b3085eb93532f3e7ef2c] Merge tag
+> 'powerpc-4.10-2' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux
+> git bisect good 83fd57a740bb19286959b3085eb93532f3e7ef2c
+> # good: [c497f8d17246720afe680ea1a8fa6e48e75af852] Merge tag
+> 'usb-4.10-rc5' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb
+> git bisect good c497f8d17246720afe680ea1a8fa6e48e75af852
+> # bad: [bb6c01c2dde67b165cf7c808b0f00677b6f94b96] Merge branch
+> 'for-rc' of git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux
+> git bisect bad bb6c01c2dde67b165cf7c808b0f00677b6f94b96
+> # good: [18591add41ec9558ce0e32ef88626c18cc70c686] thermal: rockchip:
+> handle set_trips without the trip points
+> git bisect good 18591add41ec9558ce0e32ef88626c18cc70c686
+> # bad: [f53345e8cf027d03187b9417f1f8883c516e1a5b] thermal: core: move
+> tz->device.groups cleanup to thermal_release
+> git bisect bad f53345e8cf027d03187b9417f1f8883c516e1a5b
+> # bad: [7611fb68062f8d7f416f3272894d1edf7bbff29c] thermal:
+> thermal_hwmon: Convert to hwmon_device_register_with_info()
+> git bisect bad 7611fb68062f8d7f416f3272894d1edf7bbff29c
+> # first bad commit: [7611fb68062f8d7f416f3272894d1edf7bbff29c]
+> thermal: thermal_hwmon: Convert to hwmon_device_register_with_info()
+> pavel@amd:/data/l/linux-n900$
 >
->    Isn't the ISR the same for all glues now?
-True. I should remove isr callback.
+> 7611fb68062f8d7f416f3272894d1edf7bbff29c is the first bad commit
+> commit 7611fb68062f8d7f416f3272894d1edf7bbff29c
+> Author: Fabio Estevam <fabio.estevam@nxp.com>
+> Date:   Tue Dec 27 15:31:49 2016 -0200
 >
-> [...]
+>     thermal: thermal_hwmon: Convert to
+>     hwmon_device_register_with_info()
 >
-> MBR, Sergei
+>     Booting Linux on a mx6q based board leads to the following
+>     warning:
 >
+>     (NULL device *): hwmon_device_register() is deprecated. Please
+>     convert the
+>         driver to use hwmon_device_register_with_info().
+>
+>     ,so do as suggested.
+>
+>     Also, this results in the core taking care of creating the 'name'
+>         attribute, so drop the code doing that from the thermal
+>         driver.
+>
+>  Suggested-by: Guenter Roeck <linux@roeck-us.net>
+>  Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+>  Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+>
+> :040000 040000 b3f6095ab53677277c2f9d75cb6430afb6825765
+> 156a18e983a22b8ae43c7b312a4e1c63017f0e26 M	drivers
+>
+> I'll try to revert it on the top of v4.10-rc5 now... and yes, it fixes
+> the issue.
+>
+> Any idea what went wrong and how to fix that?
+>
+> Anyway as we are at -rc5 and this is warning fix that caused a
+> regression on different hardware... it should be reverted.
+>
+Agreed.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What exactly does "stopped working" mean ? That might help understanding
+what went wrong.
+
+Thanks,
+Guenter
