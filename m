@@ -1,171 +1,166 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
-Date: Mon, 23 Jan 2017 15:40:31 +0100
-Message-ID: <20170123144031.GA7870@amd>
-References: <20170123124058.GA17134@amd>
- <20170123141331.GA11402@amd>
- <da1f1b45-3ae5-ffe8-62c6-9ec7c3a1505b@roeck-us.net>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv2] Documentation: dt-bindings: Add binding documentation
+ for TI clkctrl clocks
+Date: Mon, 23 Jan 2017 16:43:55 +0200
+Message-ID: <40b1f6a8-fc5c-b619-9570-bc2f9731af89@ti.com>
+References: <20170117225302.10844-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="KsGdsel6WgEHnImy"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <da1f1b45-3ae5-ffe8-62c6-9ec7c3a1505b@roeck-us.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, fabio.estevam@nxp.com, rui.zhang@intel.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170117225302.10844-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 18/01/17 00:53, Tony Lindgren wrote:
+> Texas Instruments omap variant SoCs starting with omap4 have a clkctrl
+> clock controller instance for each interconnect target module. The clkctrl
+> controls functional and interface clocks for the module.
+>
+> The clkctrl clocks are currently handled by arch/arm/mach-omap2 hwmod code.
+> With this binding and a related clock device driver we can start moving the
+> clkctrl clock handling to live in drivers/clk/ti.
+>
+> Note that this binding allows keeping the clockdomain related parts out of
+> drivers/clock. The CLKCTCTRL and DYNAMICDEP registers can be handled by
+> a separate driver in drivers/soc/ti and genpd. If the clockdomain driver
+> needs to know it's clocks, we can just set the the clkctrl device
+> instances to be children of the related clockdomain device.
+>
+> Each clkctrl clock can have multiple optional gate clocks, and multiple
+> optional mux clocks. To represent this in device tree, it seems that
+> it is best done using four clock cells #clock-cells = <4> property.
+>
+> The reasons for using #clock-cells = <4> are:
+>
+> 1. We need to specify the clkctrl offset from the instance base. Otherwise
+>    we end up with a large number of device tree nodes that need to be
+>    patched when new clocks are discovered in a clkctrl clock with minor
+>    hardware revision changes for example
+>
+> 2. On omap5 CM_L3INIT_USB_HOST_HS_CLKCTRL has ten OPTFCLKEN bits. So we
+>    need to use a separate cell for optional gate clocks to avoid address
+>    space conflicts
+>
+> 3. Some clkctrl instances can also also optional mux clocks. To address
+>    them properly we need also a separate cell for the optional mux
+>    clock index
+>
+> 4. The modulemode clock needs a flag passed to it for hardware or
+>    software controlled mode
 
---KsGdsel6WgEHnImy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Tony,
 
-On Mon 2017-01-23 06:31:31, Guenter Roeck wrote:
-> On 01/23/2017 06:19 AM, Pavel Machek wrote:
-> >Hi!
-> >
-> >>It seems that battery driver stopped working on N900 between -rc4 and
-> >>-rc5.
-> >
-> >pavel@amd:/data/l/linux-n900$ git bisect log
-> ># bad: [41f283973653dc44af47585fa79fb6da6ffdc2e2] Merge
-> >/data//l/clean-cg into mini-v4.10
-> ># good: [4f8d9925eb1de1ec1c4183164f1bc7b01f5ae185] It seems mainline
-> >-rc4 did have a fix for the sound issue. Use that one.
-> >git bisect start 'mini-v4.10'
-> >'4f8d9925eb1de1ec1c4183164f1bc7b01f5ae185'
-> ># good: [e90665a5d38b17fdbe484a85fbba917a7006522d] Merge tag
-> >'ceph-for-4.10-rc5' of git://github.com/ceph/ceph-client
-> >git bisect good e90665a5d38b17fdbe484a85fbba917a7006522d
-> ># good: [83fd57a740bb19286959b3085eb93532f3e7ef2c] Merge tag
-> >'powerpc-4.10-2' of
-> >git://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux
-> >git bisect good 83fd57a740bb19286959b3085eb93532f3e7ef2c
-> ># good: [c497f8d17246720afe680ea1a8fa6e48e75af852] Merge tag
-> >'usb-4.10-rc5' of
-> >git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb
-> >git bisect good c497f8d17246720afe680ea1a8fa6e48e75af852
-> ># bad: [bb6c01c2dde67b165cf7c808b0f00677b6f94b96] Merge branch
-> >'for-rc' of git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux
-> >git bisect bad bb6c01c2dde67b165cf7c808b0f00677b6f94b96
-> ># good: [18591add41ec9558ce0e32ef88626c18cc70c686] thermal: rockchip:
-> >handle set_trips without the trip points
-> >git bisect good 18591add41ec9558ce0e32ef88626c18cc70c686
-> ># bad: [f53345e8cf027d03187b9417f1f8883c516e1a5b] thermal: core: move
-> >tz->device.groups cleanup to thermal_release
-> >git bisect bad f53345e8cf027d03187b9417f1f8883c516e1a5b
-> ># bad: [7611fb68062f8d7f416f3272894d1edf7bbff29c] thermal:
-> >thermal_hwmon: Convert to hwmon_device_register_with_info()
-> >git bisect bad 7611fb68062f8d7f416f3272894d1edf7bbff29c
-> ># first bad commit: [7611fb68062f8d7f416f3272894d1edf7bbff29c]
-> >thermal: thermal_hwmon: Convert to hwmon_device_register_with_info()
-> >pavel@amd:/data/l/linux-n900$
-> >
-> >pavel@amd:/data/l/linux-n900$ git bisect log
-> ># bad: [41f283973653dc44af47585fa79fb6da6ffdc2e2] Merge
-> >/data//l/clean-cg into mini-v4.10
-> ># good: [4f8d9925eb1de1ec1c4183164f1bc7b01f5ae185] It seems mainline
-> >-rc4 did have a fix for the sound issue. Use that one.
-> >git bisect start 'mini-v4.10'
-> >'4f8d9925eb1de1ec1c4183164f1bc7b01f5ae185'
-> ># good: [e90665a5d38b17fdbe484a85fbba917a7006522d] Merge tag
-> >'ceph-for-4.10-rc5' of git://github.com/ceph/ceph-client
-> >git bisect good e90665a5d38b17fdbe484a85fbba917a7006522d
-> ># good: [83fd57a740bb19286959b3085eb93532f3e7ef2c] Merge tag
-> >'powerpc-4.10-2' of
-> >git://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux
-> >git bisect good 83fd57a740bb19286959b3085eb93532f3e7ef2c
-> ># good: [c497f8d17246720afe680ea1a8fa6e48e75af852] Merge tag
-> >'usb-4.10-rc5' of
-> >git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb
-> >git bisect good c497f8d17246720afe680ea1a8fa6e48e75af852
-> ># bad: [bb6c01c2dde67b165cf7c808b0f00677b6f94b96] Merge branch
-> >'for-rc' of git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux
-> >git bisect bad bb6c01c2dde67b165cf7c808b0f00677b6f94b96
-> ># good: [18591add41ec9558ce0e32ef88626c18cc70c686] thermal: rockchip:
-> >handle set_trips without the trip points
-> >git bisect good 18591add41ec9558ce0e32ef88626c18cc70c686
-> ># bad: [f53345e8cf027d03187b9417f1f8883c516e1a5b] thermal: core: move
-> >tz->device.groups cleanup to thermal_release
-> >git bisect bad f53345e8cf027d03187b9417f1f8883c516e1a5b
-> ># bad: [7611fb68062f8d7f416f3272894d1edf7bbff29c] thermal:
-> >thermal_hwmon: Convert to hwmon_device_register_with_info()
-> >git bisect bad 7611fb68062f8d7f416f3272894d1edf7bbff29c
-> ># first bad commit: [7611fb68062f8d7f416f3272894d1edf7bbff29c]
-> >thermal: thermal_hwmon: Convert to hwmon_device_register_with_info()
-> >pavel@amd:/data/l/linux-n900$
-> >
-> >7611fb68062f8d7f416f3272894d1edf7bbff29c is the first bad commit
-> >commit 7611fb68062f8d7f416f3272894d1edf7bbff29c
-> >Author: Fabio Estevam <fabio.estevam@nxp.com>
-> >Date:   Tue Dec 27 15:31:49 2016 -0200
-> >
-> >    thermal: thermal_hwmon: Convert to
-> >    hwmon_device_register_with_info()
-> >
-> >    Booting Linux on a mx6q based board leads to the following
-> >    warning:
-> >
-> >    (NULL device *): hwmon_device_register() is deprecated. Please
-> >    convert the
-> >        driver to use hwmon_device_register_with_info().
-> >
-> >    ,so do as suggested.
-> >
-> >    Also, this results in the core taking care of creating the 'name'
-> >        attribute, so drop the code doing that from the thermal
-> >        driver.
-> >
-> > Suggested-by: Guenter Roeck <linux@roeck-us.net>
-> > Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> >
-> >:040000 040000 b3f6095ab53677277c2f9d75cb6430afb6825765
-> >156a18e983a22b8ae43c7b312a4e1c63017f0e26 M	drivers
-> >
-> >I'll try to revert it on the top of v4.10-rc5 now... and yes, it fixes
-> >the issue.
-> >
-> >Any idea what went wrong and how to fix that?
-> >
-> >Anyway as we are at -rc5 and this is warning fix that caused a
-> >regression on different hardware... it should be reverted.
-> >
-> Agreed.
->=20
-> What exactly does "stopped working" mean ? That might help understanding
-> what went wrong.
+I think #clock-cells = <4> is too much. I believe we only need 2:
 
-/sys files related to battery no longer appear. I beieve this has
-something to do with it:
+- one entry for clkctrl offset
+- one entry for clock offset within the clkctrl entry (0 = module clock, 
+8+ = opt-clocks / mux clocks / dividers)
 
-[    2.374877] of_get_named_gpiod_flags: parsed 'reset-gpios' property
-of node '/ocp@68000000/spi@48098000/tsc2005@0[0]' - status (0)
-[    2.375946] input: TSC2005 touchscreen as
-/devices/platform/68000000.ocp/48098000.spi/spi_master/spi1/spi1.0/input/in=
-put5
-[    2.392120] rx51-battery: probe of n900-battery failed with error
--22
-[    2.399902] omap_hsmmc 4809c000.mmc: GPIO lookup for consumer cd
+Fields 2 / 3 in your proposal are mutually exclusive, if either field is 
+non-zero, the other one must be zero. And, the opt clocks / mux / divs 
+always have different values for these.
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Field 4 is kind of redundant also, as the module clock must be 
+registered at the clkctrl probe time, it is too late for the clock 
+consumer to provide the proper setting for the clock during its own 
+probe. It seems I need to add static data to driver which basically has 
+this information in place already.
 
---KsGdsel6WgEHnImy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+-Tero
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+>
+> There is probably no need to list input clocks for each clkctrl clock
+> instance in the binding. If we want to add them, the standard clocks
+> binding can be used for that.
+>
+> For hardware reference, see omap4430 TRM "Table 3-1312. L4PER_CM2 Registers
+> Mapping Summary" for example. It shows one instance of a clkctrl clock
+> controller with multiple clkctrl registers.
+>
+> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>
+> Changes from v1:
+>
+> - Use #clock-cells to avoid address space conflicts
+>
+> - Consider also optional mux clocks as pointed out by Tero
+>
+> ---
+>  .../devicetree/bindings/clock/ti-clkctrl.txt       | 57 ++++++++++++++++++++++
+>  1 file changed, 57 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+>
+> diff --git a/Documentation/devicetree/bindings/clock/ti-clkctrl.txt b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+> new file mode 100644
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+> @@ -0,0 +1,57 @@
+> +Texas Instruments clkctrl clock binding
+> +
+> +Texas Instruments SoCs can have a clkctrl clock controller for each
+> +interconnect target module. The clkctrl clock controller manages functional
+> +and interface clocks for each module. Each clkctrl controller can also
+> +gate one or more optional functional clocks for a module, and can have one
+> +or more clock muxes. There is a clkctrl clock controller typically for each
+> +interconnect target module on omap4 and later variants.
+> +
+> +The clock consumers can specify the index of the clkctrl clock using
+> +the hardware offset from the clkctrl instance register space. The optional
+> +clocks can be specified by clkctrl hardware offset and the index of the
+> +optional clock.
+> +
+> +For more information, please see the Linux clock framework binding at
+> +Documentation/devicetree/bindings/clock/clock-bindings.txt.
+> +
+> +Required properties :
+> +- compatible : shall be "ti,clkctrl"
+> +- #clock-cells : shall contain 4 with the first entry being the instance
+> +		 offset from the clock domain base, the second being the
+> +		 clock index, the third being the optional clock mux index,
+> +		 and fourth being the clock flags
+> +
+> +Example: Clock controller node on omap 4430:
+> +
+> +&cm2 {
+> +	l4per: cm@1400 {
+> +		cm_l4per@0 {
+> +			cm_l4per_clkctrl: clk@20 {
+> +				compatible = "ti,clkctrl";
+> +				reg = <0x20 0x1b0>;
+> +				#clock-cells = <4>;
+> +			};
+> +		};
+> +	};
+> +};
+> +
+> +Example: Preprocessor helper macros in dt-bindings/clock/ti-clkctrl.h
+> +
+> +#define OMAP4_CLKCTRL_OFFSET		0x20
+> +#define OMAP4_CLKCTRL_INDEX(offset)	((offset) - OMAP4_CLKCTRL_OFFSET)
+> +#define MODULEMODE_HWCTRL		1
+> +#define MODULEMODE_SWCTRL		2
+> +
+> +#define OMAP4_GPTIMER10_CLKTRL		OMAP4_CLKCTRL_INDEX(0x28)
+> +#define OMAP4_GPTIMER11_CLKTRL		OMAP4_CLKCTRL_INDEX(0x30)
+> +#define OMAP4_GPTIMER2_CLKTRL		OMAP4_CLKCTRL_INDEX(0x38)
+> +...
+> +#define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
+> +
+> +Example: Clock consumer node for GPIO2:
+> +
+> +&gpio2 {
+> +       clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 0 0 MODULEMODE_HWCTRL
+> +		 &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 8 0 0>;
+> +};
+>
 
-iEYEARECAAYFAliGFd8ACgkQMOfwapXb+vLX5wCaAhbIipws4D9lVcVeMoHT3hNU
-PQQAn3YqZCq7vkVwH9Pru2GGupNmEKTn
-=+nHV
------END PGP SIGNATURE-----
-
---KsGdsel6WgEHnImy--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
