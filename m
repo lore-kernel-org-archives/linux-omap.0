@@ -1,91 +1,75 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 1/3] usb: musb: dma: Add a DMA completion platform
- callback
-Date: Mon, 23 Jan 2017 14:51:26 +0100
-Message-ID: <465b73e5-28ee-a3a6-51d6-6bb4e1d16272@baylibre.com>
-References: <20170119100659.11370-1-abailon@baylibre.com>
- <20170119100659.11370-2-abailon@baylibre.com>
- <20170120200030.GD14571@uda0271908>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/3] ARM: dts: Add support for phyCORE-AM335x PCM-953
+ carrier board
+Date: Mon, 23 Jan 2017 08:01:01 -0600
+Message-ID: <CAL_JsqKV6dqZpSouiUHmy6nF-cL2U08_jOAzdWByF4HBmPS_5g@mail.gmail.com>
+References: <1484831270-7251-1-git-send-email-t.remmet@phytec.de>
+ <20170121205345.oij67ai5d7q7k74d@rob-hp-laptop> <1485167232.3082.9.camel@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170120200030.GD14571@uda0271908>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1485167232.3082.9.camel-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Wadim Egorov <w.egorov-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/20/2017 09:00 PM, Bin Liu wrote:
-> On Thu, Jan 19, 2017 at 11:06:57AM +0100, Alexandre Bailon wrote:
->> Currently, the CPPI 4.1 driver is not completely generic and
->> only work on dsps. This is because of IRQ management.
->> Add a callback to dma_controller that could be invoked on DMA completion
->> to acknodlege the IRQ.
+On Mon, Jan 23, 2017 at 4:27 AM, Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org> wrote:
+> Hello Rob,
+>
+> Am Samstag, den 21.01.2017, 14:53 -0600 schrieb Rob Herring:
+>> On Thu, Jan 19, 2017 at 02:07:48PM +0100, Teresa Remmet wrote:
+>> >
+>> > The phyCORE-AM335x development kit is a combination of the
+>> > phyCORE-AM335x SoM and a PCM-953 carrier board. The features
+>> > of the PCM-953 are:
+>> > * ETH phy on carrier board: 1x RGMII
+>> > * 1x CAN
+>> > * Up to 4x UART
+>> > * USB0 (otg)
+>> > * USB1 (host)
+>> > * SD slot
+>> > * User gpio-keys
+>> > * User LEDs
+>> >
+>> > Signed-off-by: Teresa Remmet <t.remmet-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+>> > Reviewed-by: Wadim Egorov <w.egorov-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+>> > ---
+>> >  .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+>> >  arch/arm/boot/dts/Makefile                         |   1 +
+>> >  arch/arm/boot/dts/am335x-pcm-953.dtsi              | 303
+>> > +++++++++++++++++++++
+>> >  arch/arm/boot/dts/am335x-phycore-rdk.dts           |  27 ++
+>> >  4 files changed, 334 insertions(+)
+>> >  create mode 100644 arch/arm/boot/dts/am335x-pcm-953.dtsi
+>> >  create mode 100644 arch/arm/boot/dts/am335x-phycore-rdk.dts
+>> [...]
 >>
->> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
->> ---
->>  drivers/usb/musb/musb_cppi41.c | 7 +++++--
->>  drivers/usb/musb/musb_dma.h    | 4 ++++
->>  2 files changed, 9 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
->> index 1636385..f7d3d27 100644
->> --- a/drivers/usb/musb/musb_cppi41.c
->> +++ b/drivers/usb/musb/musb_cppi41.c
->> @@ -217,6 +217,10 @@ static void cppi41_dma_callback(void *private_data)
->>  	int is_hs = 0;
->>  	bool empty;
->>  
->> +	controller = cppi41_channel->controller;
->> +	if (controller->controller.dma_callback)
->> +		controller->controller.dma_callback(&controller->controller);
->> +
->>  	spin_lock_irqsave(&musb->lock, flags);
->>  
->>  	dmaengine_tx_status(cppi41_channel->dc, cppi41_channel->cookie,
->> @@ -249,8 +253,6 @@ static void cppi41_dma_callback(void *private_data)
->>  	 * We spin on HS (no longer than than 25us and setup a timer on
->>  	 * FS to check for the bit and complete the transfer.
->>  	 */
->> -	controller = cppi41_channel->controller;
->> -
->>  	if (is_host_active(musb)) {
->>  		if (musb->port1_status & USB_PORT_STAT_HIGH_SPEED)
->>  			is_hs = 1;
->> @@ -695,6 +697,7 @@ cppi41_dma_controller_create(struct musb *musb, void __iomem *base)
->>  	controller->controller.channel_program = cppi41_dma_channel_program;
->>  	controller->controller.channel_abort = cppi41_dma_channel_abort;
->>  	controller->controller.is_compatible = cppi41_is_compatible;
->> +	controller->controller.musb = musb;
->>  
->>  	ret = cppi41_dma_controller_start(controller);
->>  	if (ret)
->> diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma.h
->> index 46357e1..8bea0cd 100644
->> --- a/drivers/usb/musb/musb_dma.h
->> +++ b/drivers/usb/musb/musb_dma.h
->> @@ -181,10 +181,13 @@ dma_channel_status(struct dma_channel *c)
->>   * @channel_release: call this to release a DMA channel
->>   * @channel_abort: call this to abort a pending DMA transaction,
->>   *	returning it to FREE (but allocated) state
->> + * @platform_dma_callback: invoked on DMA completion, useful to run platform
->> + *	code such IRQ acknowledgment.
->>   *
->>   * Controllers manage dma channels.
->>   */
->>  struct dma_controller {
->> +	struct musb *musb;
-> 
-> Since musb is added here, can we clean up the corresponding one in
-> struct cppi41_dma_controller and struct cppi?
-Yes, and also for the one in tusb_omap_dma.
-> 
-> Regards,
-> -Bin.
-> 
-Regards,
-Alexandre
+>> >
+>> > +   user_leds: user_leds {
+>> > +           compatible = "gpio-leds";
+>> > +   };
+>> > +
+>> > +   user_buttons: user_buttons {
+>> > +           compatible = "gpio-keys";
+>> > +   };
+>> With only a compatible, I don't think there's much gain to split
+>> these 2
+>> nodes. Otherwse,
+>
+> whould it be ok to open up the root node again below? Or should I
+> better move the nodes up? Which does mess up the order then. We
+> orinented here on the am335x-pepper.dts. They also only keep the
+> compatibles in the root node.
+
+The order is not important. It is silly to have the same node twice in
+the same file. Someone should fix am335x-pepper.dts, too.
+
+The split is generally what is chip specific and board specific, but
+this is all board specific.
+
+Rob
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
