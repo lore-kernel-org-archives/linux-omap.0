@@ -1,37 +1,40 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 8/8] ARM: dts: am57xx-idk: Enable dual-role mode for USB2
-Date: Mon, 23 Jan 2017 13:19:41 +0200
-Message-ID: <1485170381-32110-9-git-send-email-rogerq@ti.com>
-References: <1485170381-32110-1-git-send-email-rogerq@ti.com>
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: Re: [PATCH 0/8] usb: dwc3: add dual-role support
+Date: Mon, 23 Jan 2017 20:31:29 +0900
+Message-ID: <5885E991.6050902@samsung.com>
+References: <CGME20170123112122epcas4p3af3d2f3434d02967d7c662a9ab9f3e31@epcas4p3.samsung.com>
+ <1485170381-32110-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1485170381-32110-1-git-send-email-rogerq@ti.com>
+In-reply-to: <1485170381-32110-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@kernel.org, tony@atomide.com
-Cc: peter.chen@freescale.com, vivek.gautam@codeaurora.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Roger Quadros <rogerq@ti.com>, balbi@kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: peter.chen@freescale.com, vivek.gautam@codeaurora.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?B?7J2064+Z7Jqw?= <dwoo08.lee@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-USB port is micro-AB type and can function as peripheral
-as well as host. Enable dual-role mode for USB2.
+Hi Roger,
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/boot/dts/am57xx-idk-common.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 2017년 01월 23일 20:19, Roger Quadros wrote:
+> - Some SoC's (e.g. Qualcomm MSM) do not have the OTG controller block
+> but do have both host and peripheral controllers and so can operate
+> in dual role mode. Current series does not address this case.
+> We can get dual-role to work with such SoCs if core.c can get
+> information about ID and VBUS somehow (private interface
+> from parent or directly read extcon?).
 
-diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-index 814a720..14bdb24 100644
---- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-@@ -376,7 +376,7 @@
- };
- 
- &usb2 {
--	dr_mode = "peripheral";
-+	dr_mode = "otg";
- };
- 
- &mmc2 {
+Also, Exynos SoC doesn't include the physical otg block
+to detect the type of external connector(HOST or Peripheral).
+
+So, our team member and me are preparing the patches
+to identify the type of external connector with extcon
+This approach is not dependent on any specific SoC.
+
+Maybe, we will send the RFC patches within this month.
+
 -- 
-2.7.4
+Best Regards,
+Chanwoo Choi
+S/W R&D Center
+Samsung Electronics
