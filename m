@@ -1,62 +1,187 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH v4 2/4] Documentation: dt: add bindings for ti-cpufreq
-Date: Mon, 23 Jan 2017 15:48:10 -0600
-Message-ID: <91a2d778-ce39-19dd-33cd-77e4eda0d8b7@ti.com>
-References: <20170117131808.29798-1-d-gerlach@ti.com>
- <20170117131808.29798-3-d-gerlach@ti.com>
- <20170119180702.62xg2ta5pq4mf7sd@rob-hp-laptop>
- <b7d11925-879a-9be0-fdd8-45b70e642ce1@ti.com>
- <20170120184324.GJ7403@atomide.com>
+From: Andrew Murray <amurray@embedded-bits.co.uk>
+Subject: [PATCH v3] ARM: OMAP1/2: clock: Remove unused mpurate cmdline option
+Date: Mon, 23 Jan 2017 22:04:03 +0000
+Message-ID: <1485209043-26463-1-git-send-email-amurray@embedded-bits.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170120184324.GJ7403@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robh@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Nishanth Menon <nm@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Andrew Murray <amurray@embedded-bits.co.uk>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 01/20/2017 12:43 PM, Tony Lindgren wrote:
-> * Dave Gerlach <d-gerlach@ti.com> [170119 10:32]:
->> On 01/19/2017 12:07 PM, Rob Herring wrote:
->>>> +	/*
->>>> +	 * The three following nodes are marked with opp-suspend
->>>> +	 * because they can not be enabled simultaneously on a
->>>> +	 * single SoC.
->>>> +	 */
->>>> +	opp50@300000000 {
->>>
->>> What's the 50, 100, 120 in the names?
->>
->> Those are the names of the OPPs given in Table 5-7 of the AM335x data
->> manual, seen here http://www.ti.com/lit/ds/symlink/am3359.pdf . I typically
->> reference the table and document in the commit message of the actual DT
->> patches but didn't here for the binding.
->
-> If you don't need the names, you could maybe use:
->
-> opp100: opp@275000000 {
-> 	...
-> };
->
-> opp200: opp@300000000 {
-> 	...
-> };
+The 'mpurate' option, historically used for specifying an initial
+MPU rate at boot, no longer has any effect due to the supporting
+code being removed as it was 'wrong and dangerous' [1].
 
-Thanks for the suggestion, but we have duplicate frequencies that have 
-different voltages defined for them, so the scheme opp@<freq> won't work 
-because then we end up with duplicate nodes. OPPs are a defined by a 
-number of parameters, not just frequency, so always naming the nodes 
-opp@<freq> won't cover all scenarios.
+This patch removes the remaining dead code associated with the
+__setup macros to avoid confusion and reduce bloat.
 
-Regards,
-Dave
+[1] https://patchwork.kernel.org/patch/5954631/
 
-> ...
->
-> Regards,
->
-> Tony
->
+Signed-off-by: Andrew Murray <amurray@embedded-bits.co.uk>
+---
+Changes since v1:
 
+ * Remove related omap2_clk_print_new_rates function which is also unused
+   (this was previously used to print clock rates after use of mpurate)
+
+Changes since v2:
+
+ * Add missing Signed-off-by
+---
+ arch/arm/mach-omap1/clock.c | 20 ---------------
+ arch/arm/mach-omap1/clock.h |  2 --
+ arch/arm/mach-omap2/clock.c | 61 ---------------------------------------------
+ arch/arm/mach-omap2/clock.h |  4 ---
+ 4 files changed, 87 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+index 4f5fd4a..43e3e18 100644
+--- a/arch/arm/mach-omap1/clock.c
++++ b/arch/arm/mach-omap1/clock.c
+@@ -720,26 +720,6 @@ EXPORT_SYMBOL(clk_get_parent);
+  * OMAP specific clock functions shared between omap1 and omap2
+  */
+ 
+-int __initdata mpurate;
+-
+-/*
+- * By default we use the rate set by the bootloader.
+- * You can override this with mpurate= cmdline option.
+- */
+-static int __init omap_clk_setup(char *str)
+-{
+-	get_option(&str, &mpurate);
+-
+-	if (!mpurate)
+-		return 1;
+-
+-	if (mpurate < 1000)
+-		mpurate *= 1000000;
+-
+-	return 1;
+-}
+-__setup("mpurate=", omap_clk_setup);
+-
+ /* Used for clocks that always have same value as the parent clock */
+ unsigned long followparent_recalc(struct clk *clk)
+ {
+diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
+index 1e4918a..f2d1be2 100644
+--- a/arch/arm/mach-omap1/clock.h
++++ b/arch/arm/mach-omap1/clock.h
+@@ -173,8 +173,6 @@ struct clk_functions {
+ 	void		(*clk_disable_unused)(struct clk *clk);
+ };
+ 
+-extern int mpurate;
+-
+ extern int clk_init(struct clk_functions *custom_clocks);
+ extern void clk_preinit(struct clk *clk);
+ extern int clk_register(struct clk *clk);
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index d058125..1270afd 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -78,8 +78,6 @@ int __init omap2_clk_setup_ll_ops(void)
+  * OMAP2+ specific clock functions
+  */
+ 
+-/* Private functions */
+-
+ /* Public functions */
+ 
+ /**
+@@ -112,65 +110,6 @@ void omap2_init_clk_clkdm(struct clk_hw *hw)
+ 	}
+ }
+ 
+-static int __initdata mpurate;
+-
+-/*
+- * By default we use the rate set by the bootloader.
+- * You can override this with mpurate= cmdline option.
+- */
+-static int __init omap_clk_setup(char *str)
+-{
+-	get_option(&str, &mpurate);
+-
+-	if (!mpurate)
+-		return 1;
+-
+-	if (mpurate < 1000)
+-		mpurate *= 1000000;
+-
+-	return 1;
+-}
+-__setup("mpurate=", omap_clk_setup);
+-
+-/**
+- * omap2_clk_print_new_rates - print summary of current clock tree rates
+- * @hfclkin_ck_name: clk name for the off-chip HF oscillator
+- * @core_ck_name: clk name for the on-chip CORE_CLK
+- * @mpu_ck_name: clk name for the ARM MPU clock
+- *
+- * Prints a short message to the console with the HFCLKIN oscillator
+- * rate, the rate of the CORE clock, and the rate of the ARM MPU clock.
+- * Called by the boot-time MPU rate switching code.   XXX This is intended
+- * to be handled by the OPP layer code in the near future and should be
+- * removed from the clock code.  No return value.
+- */
+-void __init omap2_clk_print_new_rates(const char *hfclkin_ck_name,
+-				      const char *core_ck_name,
+-				      const char *mpu_ck_name)
+-{
+-	struct clk *hfclkin_ck, *core_ck, *mpu_ck;
+-	unsigned long hfclkin_rate;
+-
+-	mpu_ck = clk_get(NULL, mpu_ck_name);
+-	if (WARN(IS_ERR(mpu_ck), "clock: failed to get %s.\n", mpu_ck_name))
+-		return;
+-
+-	core_ck = clk_get(NULL, core_ck_name);
+-	if (WARN(IS_ERR(core_ck), "clock: failed to get %s.\n", core_ck_name))
+-		return;
+-
+-	hfclkin_ck = clk_get(NULL, hfclkin_ck_name);
+-	if (WARN(IS_ERR(hfclkin_ck), "Failed to get %s.\n", hfclkin_ck_name))
+-		return;
+-
+-	hfclkin_rate = clk_get_rate(hfclkin_ck);
+-
+-	pr_info("Switched to new clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld MHz\n",
+-		(hfclkin_rate / 1000000), ((hfclkin_rate / 100000) % 10),
+-		(clk_get_rate(core_ck) / 1000000),
+-		(clk_get_rate(mpu_ck) / 1000000));
+-}
+-
+ /**
+  * ti_clk_init_features - init clock features struct for the SoC
+  *
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 67da640..4e66295 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -64,10 +64,6 @@
+ #define OMAP4XXX_EN_DPLL_FRBYPASS		0x6
+ #define OMAP4XXX_EN_DPLL_LOCKED			0x7
+ 
+-void omap2_clk_print_new_rates(const char *hfclkin_ck_name,
+-			       const char *core_ck_name,
+-			       const char *mpu_ck_name);
+-
+ extern u16 cpu_mask;
+ 
+ extern const struct clkops clkops_omap2_dflt_wait;
+-- 
+2.5.0
