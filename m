@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/5] omap soc changes for v4.11 merge window
-Date: Tue, 24 Jan 2017 10:05:15 -0800
-Message-ID: <37047.5357202396$1505296969@news.gmane.org>
+Subject: [GIT PULL 5/5] omap defconfig changes for v4.11 merge window
+Date: Tue, 24 Jan 2017 10:05:18 -0800
+Message-ID: <22366.7601975196$1505296981@news.gmane.org>
 References: <pull-1485274191-192300>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,62 +28,34 @@ The following changes since commit 7ce7d89f48834cefece7804d38fc5d85382edf77:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/soc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/defconfig-signed
 
-for you to fetch changes up to 8c4bc910633d942b4422e8b264c39a48e230a261:
+for you to fetch changes up to ac57feb25833a6f3832a436d28808ffc16c672b3:
 
-  ARM: OMAP: clock: Remove unused mpurate cmdline option (2017-01-24 07:20:02 -0800)
-
-----------------------------------------------------------------
-SoC changes for omaps for v4.11 merge window. This adds support
-for keeping the interconnect target module active for uart if
-earlycon is specified. And we're adding Aaro Koskinen as a
-co-maintainer for omap1 to make sure things stay working for
-omap1. The other changes are mostly clean-up of old legacy code:
-
-- Remove unused omap_display_init()
-
-- Make omapdss_find_dss_of_node() function static
-
-- Add support for earlycon
-
-- Tidy up omap1 usb logging output with pr_cont
-
-- Make omap_otg_init() static
-
-- Delete redundant CPU class checks for omap1
-
-- Remove unused mpurate cmdline option that has not done
-  anything for past 1.5 years at least
+  ARM: omap2plus_defconfig: Enable support for RTC M41T80 (2017-01-24 07:04:11 -0800)
 
 ----------------------------------------------------------------
-Aaro Koskinen (3):
-      ARM: OMAP1: USB: tidy up logging output
-      ARM: OMAP1: USB: make omap_otg_init() static
-      ARM: OMAP1: USB: delete redundant CPU class checks
+Few omap2plus_defconfig changes for v4.11 merge window:
 
-Andrew Murray (1):
-      ARM: OMAP: clock: Remove unused mpurate cmdline option
+- Switch to use LIS3LV02DL IIO driver instead of the
+  LIS3LC02D misc driver
 
-Laurent Pinchart (2):
-      ARM: OMAP2+: Remove unused omap_display_init() function
-      ARM: OMAP2+: Make the omapdss_find_dss_of_node() function static
+- Set CONFIG_SERIAL_8250_RUNTIME_UARTS=6 to avoid runtime
+  warnings on omap5 and dra7
 
-Lokesh Vutla (1):
-      ARM: OMAP2+: omap_hwmod: Add support for earlycon
+- Enable ksz9021 phy and m41t80 rtc as they are used at
+  least on phyCORE-AM335x
 
-Tony Lindgren (2):
-      MAINTAINERS: Add Aaro Koskinen as TI omap1 SoC co-maintainer
-      Merge branch 'omap-for-v4.11/omap1' into omap-for-v4.11/soc
+----------------------------------------------------------------
+Linus Walleij (1):
+      ARM: defconfig: omap2plus: switch LIS3LV02DL driver
 
- MAINTAINERS                            |  19 ++-
- arch/arm/mach-omap1/clock.c            |  20 ---
- arch/arm/mach-omap1/clock.h            |   2 -
- arch/arm/mach-omap1/include/mach/usb.h |   2 -
- arch/arm/mach-omap1/usb.c              |  51 +++----
- arch/arm/mach-omap2/clock.c            |  61 --------
- arch/arm/mach-omap2/clock.h            |   4 -
- arch/arm/mach-omap2/display.c          | 258 +--------------------------------
- arch/arm/mach-omap2/display.h          |   7 -
- arch/arm/mach-omap2/omap_hwmod.c       |  33 +++++
- 10 files changed, 74 insertions(+), 383 deletions(-)
+Teresa Remmet (2):
+      ARM: omap2plus_defconfig: Enable support for micrell phys
+      ARM: omap2plus_defconfig: Enable support for RTC M41T80
+
+Tony Lindgren (1):
+      ARM: omap2plus_defconfig: Fix probe errors on UARTs 5 and 6
+
+ arch/arm/configs/omap2plus_defconfig | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
