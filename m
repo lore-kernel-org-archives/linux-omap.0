@@ -1,8 +1,11 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 2/3] dmaengine: cppi41: Add support of DA8xx to CPPI 4.1
-Date: Tue, 24 Jan 2017 10:58:47 +0100
-Message-ID: <20170124095848.14593-3-abailon@baylibre.com>
+Subject: [PATCH v3 1/3] dt/bindings: da8xx-usb: Add binding for the CPPI 4.1 DMA controller
+Date: Tue, 24 Jan 2017 10:58:46 +0100
+Message-ID: <20170124095848.14593-2-abailon@baylibre.com>
 References: <20170124095848.14593-1-abailon@baylibre.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170124095848.14593-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -10,78 +13,80 @@ To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The DA8xx has a CPPI 4.1 DMA controller.
-This is add the glue layer required to make it work on DA8xx.
+DT binding for the TI DA8xx/OMAP-L1x/AM17xx/AM18xx CPPI 4.1 DMA controller.
 
 Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- drivers/dma/Kconfig  |  6 +++---
- drivers/dma/cppi41.c | 23 +++++++++++++++++++++++
- 2 files changed, 26 insertions(+), 3 deletions(-)
+ .../devicetree/bindings/usb/da8xx-usb.txt          | 39 ++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
-index 0d6a96e..2a31e1a 100644
---- a/drivers/dma/Kconfig
-+++ b/drivers/dma/Kconfig
-@@ -514,12 +514,12 @@ config TIMB_DMA
- 	  Enable support for the Timberdale FPGA DMA engine.
+diff --git a/Documentation/devicetree/bindings/usb/da8xx-usb.txt b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+index ccb844a..c3944a6 100644
+--- a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
++++ b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
+@@ -18,10 +18,26 @@ Required properties:
  
- config TI_CPPI41
--	tristate "AM33xx CPPI41 DMA support"
--	depends on ARCH_OMAP
-+	tristate "CPPI 4.1 DMA support"
-+	depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX)
- 	select DMA_ENGINE
- 	help
- 	  The Communications Port Programming Interface (CPPI) 4.1 DMA engine
--	  is currently used by the USB driver on AM335x platforms.
-+	  is currently used by the USB driver on AM335x and DA8xx platforms.
+  - phy-names: Should be "usb-phy"
  
- config TI_DMA_CROSSBAR
- 	bool
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index 21a4f79..5c501da 100644
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -221,6 +221,20 @@ static const struct chan_queues am335x_usb_queues_rx[] = {
- 	[29] = { .submit = 30, .complete = 155},
- };
- 
-+static const struct chan_queues da8xx_usb_queues_tx[] = {
-+	[0] = { .submit =  16, .complete = 24},
-+	[1] = { .submit =  18, .complete = 24},
-+	[2] = { .submit =  20, .complete = 24},
-+	[3] = { .submit =  22, .complete = 24},
-+};
++ - dmas: specifies the dma channels
 +
-+static const struct chan_queues da8xx_usb_queues_rx[] = {
-+	[0] = { .submit =  1, .complete = 26},
-+	[1] = { .submit =  3, .complete = 26},
-+	[2] = { .submit =  5, .complete = 26},
-+	[3] = { .submit =  7, .complete = 26},
-+};
++ - dma-names: specifies the names of the channels. Use "rxN" for receive
++   and "txN" for transmit endpoints. N specifies the endpoint number.
 +
- struct cppi_glue_infos {
- 	const struct chan_queues *queues_rx;
- 	const struct chan_queues *queues_tx;
-@@ -949,8 +963,17 @@ static const struct cppi_glue_infos am335x_usb_infos = {
- 	.qmgr_num_pend = 5,
- };
+ Optional properties:
+ ~~~~~~~~~~~~~~~~~~~~
+  - vbus-supply: Phandle to a regulator providing the USB bus power.
  
-+static const struct cppi_glue_infos da8xx_usb_infos = {
-+	.queues_rx = da8xx_usb_queues_rx,
-+	.queues_tx = da8xx_usb_queues_tx,
-+	.td_queue = { .submit = 31, .complete = 0 },
-+	.first_completion_queue = 24,
-+	.qmgr_num_pend = 2,
-+};
++DMA
++~~~
++- compatible: ti,da830-cppi41
++- reg: offset and length of the following register spaces: CPPI DMA Controller,
++  CPPI DMA Scheduler, Queue Manager
++- reg-names: "controller", "scheduler", "queuemgr"
++- #dma-cells: should be set to 2. The first number represents the
++  channel number (0 … 3 for endpoints 1 … 4).
++  The second number is 0 for RX and 1 for TX transfers.
++- #dma-channels: should be set to 4 representing the 4 endpoints.
 +
- static const struct of_device_id cppi41_dma_ids[] = {
- 	{ .compatible = "ti,am3359-cppi41", .data = &am335x_usb_infos},
-+	{ .compatible = "ti,da830-cppi41", .data = &da8xx_usb_infos},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, cppi41_dma_ids);
+ Example:
+ 	usb_phy: usb-phy {
+ 		compatible = "ti,da830-usb-phy";
+@@ -31,6 +47,9 @@ Example:
+ 	usb0: usb@200000 {
+ 		compatible = "ti,da830-musb";
+ 		reg =   <0x00200000 0x10000>;
++		ranges;
++		#address-cells = <1>;
++		#size-cells = <1>;
+ 		interrupts = <58>;
+ 		interrupt-names = "mc";
+ 
+@@ -39,5 +58,25 @@ Example:
+ 		phys = <&usb_phy 0>;
+ 		phy-names = "usb-phy";
+ 
++		dmas = <&cppi41dma 0 0 &cppi41dma 1 0
++			&cppi41dma 2 0 &cppi41dma 3 0
++			&cppi41dma 0 1 &cppi41dma 1 1
++			&cppi41dma 2 1 &cppi41dma 3 1>;
++		dma-names =
++			"rx1", "rx2", "rx3", "rx4",
++			"tx1", "tx2", "tx3", "tx4";
++
+ 		status = "okay";
++
++		cppi41dma: dma-controller@201000 {
++			compatible = "ti,da830-cppi41";
++			reg =  <0x201000 0x1000
++				0x202000 0x1000
++				0x204000 0x4000>;
++			reg-names = "controller", "scheduler", "queuemgr";
++			interrupts = <58>;
++			#dma-cells = <2>;
++			#dma-channels = <4>;
++		};
++
+ 	};
 -- 
 2.10.2
 
