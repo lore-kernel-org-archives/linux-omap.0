@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v4.10-rc4
-Date: Tue, 17 Jan 2017 16:12:09 -0800
-Message-ID: <28045.9444191822$1505296723@news.gmane.org>
+Subject: [GIT PULL 1/5] non-urgent omap fixes for v4.11 merge window
+Date: Tue, 24 Jan 2017 10:05:14 -0800
+Message-ID: <49902.8733968318$1505296960@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,63 +19,53 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 1a38de880992764d4bd5bccbd306b87d860e377d:
+The following changes since commit 7ce7d89f48834cefece7804d38fc5d85382edf77:
 
-  ARM: dts: am572x-idk: Add gpios property to control PCIE_RESETn (2016-12-30 10:59:56 -0800)
+  Linux 4.10-rc1 (2016-12-25 16:13:08 -0800)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.10/fixes-rc4
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-not-urgent-signed
 
-for you to fetch changes up to 1ea6af3216b092ec97129ac81bd95cf254c4b140:
+for you to fetch changes up to 631af44c10f9430163296626c6134db16a4f51fb:
 
-  ARM: dts: omap3: Fix Card Detect and Write Protect on Logic PD SOM-LV (2017-01-17 13:50:55 -0800)
-
-----------------------------------------------------------------
-Fixes for omaps for v4.10-rc cycle. Mostly a DMA regression fix for
-omap1, and then a handful of trivial fixes for boards and devices to
-work:
-
-- Fixes TI wilink bluetooth strange platform data baud rate
-
-- Remove duplicate pinmux line for am335x-icev2
-
-- Fix omap1 dma regression
-
-- Fix uninitialized return value for wkup_m3_ipc_probe()
-
-- Fix Ethernet PHY binding typo for dra72-evm
-
-- Fix init for omap5 and dra7 sata ports
-
-- Fix mmc card detect pin for Logic PD SOM-LV
+  ARM: OMAP3: Fix SoC detection of OMAP36/37 Family (2017-01-20 10:13:06 -0800)
 
 ----------------------------------------------------------------
-Adam Ford (2):
-      ARM: OMAP2+: Fix WL1283 Bluetooth Baud Rate
-      ARM: dts: omap3: Fix Card Detect and Write Protect on Logic PD SOM-LV
+Non-urgent fixes for omaps for v4.11 merge window. These all are
+fixes for things that have never worked or have been broken for
+a long time and nobody noticed:
 
-Jean-Jacques Hiblot (1):
-      ARM: dts: OMAP5 / DRA7: indicate that SATA port 0 is available.
+- Fix omap3 off mode pull defines
 
-Lokesh Vutla (1):
-      ARM: dts: am335x-icev2: Remove the duplicated pinmux setting
+- Allow multiple pdata quirks instead of just one
 
-Peter Ujfalusi (1):
-      ARM: OMAP1: DMA: Correct the number of logical channels
+- Fix am335x and dm814x scm syscon to probe children too
 
-Sekhar Nori (1):
-      ARM: dts: dra72-evm-revc: fix typo in ethernet-phy node
+- Fix compatible for ti81xx to allow use with 8250_omap as well
 
-Wei Yongjun (1):
-      soc: ti: wkup_m3_ipc: Fix error return code in wkup_m3_ipc_probe()
+- Fix 8250_omap on omap5 by adding HWMOD_SWSUP_SIDLE_ACT flag
 
- arch/arm/boot/dts/am335x-icev2.dts               |  1 -
- arch/arm/boot/dts/dra7.dtsi                      |  1 +
- arch/arm/boot/dts/dra72-evm-revc.dts             |  2 +-
- arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts | 11 +++--------
- arch/arm/boot/dts/omap5.dtsi                     |  1 +
- arch/arm/mach-omap1/dma.c                        | 16 +++++++---------
- arch/arm/mach-omap2/pdata-quirks.c               |  2 +-
- drivers/soc/ti/wkup_m3_ipc.c                     |  1 +
- 8 files changed, 15 insertions(+), 20 deletions(-)
+- Fix SoC detection for omap36/37 SoCs
+
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: OMAP3: Fix SoC detection of OMAP36/37 Family
+
+Tony Lindgren (4):
+      ARM: dts: Fix omap3 off mode pull defines
+      ARM: OMAP2+: Fix init for multiple quirks for the same SoC
+      ARM: dts: Fix am335x and dm814x scm syscon to probe children
+      ARM: dts: Fix compatible for ti81xx uarts for 8250
+
+Vignesh R (1):
+      ARM: OMAP5: Add HWMOD_SWSUP_SIDLE_ACT flag for UART
+
+ arch/arm/boot/dts/am33xx.dtsi              |  3 ++-
+ arch/arm/boot/dts/dm814x.dtsi              |  9 +++++----
+ arch/arm/boot/dts/dm816x.dtsi              |  6 +++---
+ arch/arm/mach-omap2/id.c                   | 10 +++++++++-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c |  8 ++++++--
+ arch/arm/mach-omap2/pdata-quirks.c         |  1 -
+ include/dt-bindings/pinctrl/omap.h         |  4 ++--
+ 7 files changed, 27 insertions(+), 14 deletions(-)
