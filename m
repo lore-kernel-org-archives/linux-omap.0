@@ -1,24 +1,41 @@
-From: Fabio Estevam <festevam@gmail.com>
-Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
-Date: Tue, 24 Jan 2017 21:07:24 -0200
-Message-ID: <CAOMZO5AFZy6YFrE0P-xDXX5BCfWYHAC34VyyX85H5Wr+1O59jA@mail.gmail.com>
-References: <20170123141331.GA11402@amd> <da1f1b45-3ae5-ffe8-62c6-9ec7c3a1505b@roeck-us.net>
- <20170123144031.GA7870@amd> <20170123232654.GA19342@amd> <20170123234912.GA2460@roeck-us.net>
- <20170124070639.GA5068@rzhang1-surface> <20170124073720.GB5603@amd>
- <88c94ea6-abe2-0f20-337e-e9ee00c883d8@roeck-us.net> <20170124175800.GA15070@amd>
- <20170124184526.GA25056@roeck-us.net> <20170124224610.GA27340@amd>
+From: Mark Greer <mgreer@animalcreek.com>
+Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
+Date: Tue, 24 Jan 2017 16:05:20 -0700
+Message-ID: <20170124230520.GA1204@animalcreek.com>
+References: <20170120220440.1971-1-tony@atomide.com>
+ <20170120220440.1971-3-tony@atomide.com>
+ <CAKvHMgQKPZcdBPMUH-3_e-M4sHPijEH59019bygmi+o2y4B+Rw@mail.gmail.com>
+ <20170124012702.GA7403@atomide.com>
+ <CAKvHMgTvdEz=YRxB-sd-FHws+DH9DJTnVst3Tc=9HoaKMq--Ow@mail.gmail.com>
+ <20170124182925.GF7403@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170124224610.GA27340@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Guenter Roeck <linux@roeck-us.net>, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, kernel list <linux-kernel@vger.kernel.org>, Sebastian Reichel <sre@kernel.org>, abcloriens@gmail.com, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Fabio Estevam <fabio.estevam@nxp.com>, Zhang Rui <rui.zhang@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170124182925.GF7403@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Liam Breck <liam@networkimprov.net>, Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 24, 2017 at 8:46 PM, Pavel Machek <pavel@ucw.cz> wrote:
+On Tue, Jan 24, 2017 at 10:29:26AM -0800, Tony Lindgren wrote:
 
-> It is an ugly regression and it is -rc5 time. Actually not your
-> problem, but Fabio Estevam or Zhang Rui has to deal with it soon.
+> 8< -----------------------------------------
+> >From tony Mon Sep 17 00:00:00 2001
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Fri, 20 Jan 2017 09:58:51 -0800
+> Subject: [PATCH] power: bq24190_charger: Use PM runtime autosuspend
+> 
+> We can get quite a few interrupts when the battery is trickle charging.
+> Let's enable PM runtime autosuspend to avoid constantly toggling device
+> driver PM runtime state.
+> 
+> Let's use a 600 ms timeout as that's how long the USB chager detection
+> might take.
+> 
+> Cc: Liam Breck <kernel@networkimprov.net>
+> Cc: Mark Greer <mgreer@animalcreek.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
 
-I have already sent the revert and it was acked-by you and Guenter.
+Acked-by: Mark Greer <mgreer@animalcreek.com>
