@@ -1,43 +1,72 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 31/37] misc: Add host side pci driver for pci test
- function device
-Date: Tue, 24 Jan 2017 17:02:24 +0100
-Message-ID: <20170124160224.GA23528@infradead.org>
-References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-32-git-send-email-kishon@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
+Date: Tue, 24 Jan 2017 18:58:01 +0100
+Message-ID: <20170124175800.GA15070@amd>
+References: <20170123124058.GA17134@amd>
+ <20170123141331.GA11402@amd>
+ <da1f1b45-3ae5-ffe8-62c6-9ec7c3a1505b@roeck-us.net>
+ <20170123144031.GA7870@amd>
+ <20170123232654.GA19342@amd>
+ <20170123234912.GA2460@roeck-us.net>
+ <20170124070639.GA5068@rzhang1-surface>
+ <20170124073720.GB5603@amd>
+ <88c94ea6-abe2-0f20-337e-e9ee00c883d8@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1484216786-17292-32-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com
+In-Reply-To: <88c94ea6-abe2-0f20-337e-e9ee00c883d8@roeck-us.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Zhang Rui <rui.zhang@intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, fabio.estevam@nxp.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 12, 2017 at 03:56:20PM +0530, Kishon Vijay Abraham I wrote:
-> Add PCI endpoint test driver that can verify base address
-> register, legacy interrupt/MSI interrupt and read/write/copy
-> buffers between host and device. The corresponding pci-epf-test
-> function driver should be used on the EP side.
 
-Just curious:  what would you think of a text based (e.g. debugfs)
-interface to avoid the need for a userspace tool here?
+--Nq2Wo0NMKNjxTN9z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +static const struct pci_device_id pci_endpoint_test_tbl[] = {
-> +	{ PCI_DEVICE(PCI_VENDOR_ID_TI, PCI_ANY_ID) },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(pci, pci_endpoint_test_tbl);
 
-Also this looks really odd, and dangerous.  Probing for any
-TI device will bind to all kinds of legit devices.  It would
-be good if you could squeeze out a single id for this device
-out of the TI group responsible for allocating it.  Otherwise
-we might try some other venues, e.g. Red Hat through Qumranet
-has PCI IDs available for virtio, which might have some left
-for other Linux uses.
+> >>Right.
+> >>
+> >>Before reverting, can you please try if this patch works or not?
+> >
+> >Not really. Revert now. Sorry.
+> >
+> >Are you sure? This does not look equivalent to me at all.
+> >
+> >"name" file handling moved from drivers to the core, which added some
+> >crazy checks what name can contain. Even if this "works", what is the
+> >expected effect on the "name" file?
+> >
+> The hwmon name attribute must not include '-', as documented in
+> Documentation/hwmon/sysfs-interface. Is enforcing that 'crazy' ?
+> Maybe in your world, but not in mine.
 
-In general I fear the PCI ID allocation will become a worse
-and worse issue once your framework goes in and we'll grow
-more PCI device models in the kernel.
+Well, lets revert the patch and then we can discuss what to do with
+the "name" problem.
+
+Unfortunately, code enforces different rules than documentation says,
+and it is all visible to userspace.
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAliHlagACgkQMOfwapXb+vK1NwCdE5X4sT4skp4APiXHBxI2Shsl
+FjkAnR5Q0aBVcfEFSMXgS/J5i3m7FKC1
+=ywnN
+-----END PGP SIGNATURE-----
+
+--Nq2Wo0NMKNjxTN9z--
