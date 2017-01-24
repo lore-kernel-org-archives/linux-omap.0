@@ -1,77 +1,68 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv4 0/2] cppi41 dma fixes for v4.10-rc cycle
-Date: Fri, 20 Jan 2017 11:32:54 -0600
-Message-ID: <20170120173137.GB14571@uda0271908>
-References: <20170119164908.9472-1-tony@atomide.com>
- <20170120172003.GN3573@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] power: bq24190_charger: Check the interrupt status
+ on resume
+Date: Mon, 23 Jan 2017 16:47:43 -0800
+Message-ID: <20170124004742.GZ7403@atomide.com>
+References: <20170120220440.1971-1-tony@atomide.com>
+ <20170120220440.1971-2-tony@atomide.com>
+ <20170122015441.wzsbigozefzr5wzw@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170120172003.GN3573@localhost>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170122015441.wzsbigozefzr5wzw@earth>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Matt Ranostay <matt@ranostay.consulting>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 20, 2017 at 10:50:03PM +0530, Vinod Koul wrote:
-> On Thu, Jan 19, 2017 at 08:49:06AM -0800, Tony Lindgren wrote:
-> > Hi all,
-> > 
-> > I'm using v4 naming here as the earlier patch "dmaengine: cppi41: Add dma
-> > support to da8xx" has been separated from the error -115 issue. We've
-> > identified so far three musb and cppi41 regressions:
+* Sebastian Reichel <sre@kernel.org> [170121 17:55]:
+> Hi Tony,
 > 
-> Hi,
+> I think your runtime_resume is missing runtime_pm_get/put_sync, see
+> below:
 > 
-> Can we get some tested-by for this series?
+> On Fri, Jan 20, 2017 at 02:04:39PM -0800, Tony Lindgren wrote:
+> > [...]
+> > +static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
+> > +{
+> > +	struct bq24190_dev_info *bdi = data;
+> > +
+> > +	bdi->irq_event = true;
+> > +	pm_runtime_get_sync(bdi->dev);
+> > +	bq24190_check_status(bdi);
+> > +	pm_runtime_put_sync(bdi->dev);
+> 
+> bq24190_check_status is called with runtime_pm enabled.
+> 
+> > +	bdi->irq_event = false;
+> >  
+> >  	return IRQ_HANDLED;
+> >  }
+> >
+> > [...]
+> >
+> > +static int bq24190_runtime_resume(struct device *dev)
+> > +{
+> > +	struct i2c_client *client = to_i2c_client(dev);
+> > +	struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
+> > +
+> > +	if (!bdi->initialized)
+> > +		return 0;
+> > +
+> > +	if (!bdi->irq_event) {
+> > +		dev_dbg(bdi->dev, "checking events on possible wakeirq\n");
+> > +		bq24190_check_status(bdi);
+> 
+> bq24190_check_status is called without runtime_pm enabled.
 
-Tested-by: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, or
-Acked-by: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, whichever you prefer ;)
+But it's the runtime_resume call we're calling it from :)
+
+I don't think there is anything to configure in bq24190 at least
+at this point, we just want to see if we got the wakeirq call
+resume while in some deeper idle state.
 
 Regards,
--Bin.
 
-> 
-> > 
-> > 1. Error -71 regression with musb
-> > 
-> >    This is not dma related, and fixed with recently posted patch
-> >    "[PATCH 1/2] usb: musb: Fix host mode error -71 regression".
-> > 
-> > 2. Error -115 regression with cppi41 dma with musb
-> > 
-> >    This regression was caused by commit 098de42ad670 ("dmaengine:
-> >    cppi41: Fix unpaired pm runtime when only a USB hub is connected")
-> >    and causes runtime PM autosuspend delay to time out on active dma
-> >    transfers when connecting a mass storage device to a usb hub.
-> >    This is fixed in the first patch in this series.
-> > 
-> > 3. Race with runtime PM and cppi41_dma_issue_pending()
-> > 
-> >    This is really a separate issue from the error -115 problem, and
-> >    fixed with the second patch in this series. That's minimal v4
-> >    version of the "dmaengine: cppi41: Fix oops in cppi41_runtime_resume"
-> >    patch.
-> > 
-> > Regards,
-> > 
-> > Tony
-> > 
-> > 
-> > Tony Lindgren (2):
-> >   dmaengine: cppi41: Fix runtime PM timeouts with USB mass storage
-> >   dmaengine: cppi41: Fix oops in cppi41_runtime_resume
-> > 
-> >  drivers/dma/cppi41.c | 56 ++++++++++++++++++++++++++++++++++++++--------------
-> >  1 file changed, 41 insertions(+), 15 deletions(-)
-> > 
-> > -- 
-> > 2.11.0
-> 
-> -- 
-> ~Vinod
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
