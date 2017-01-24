@@ -1,52 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] ARM: OMAP1/2: clock: Remove unused mpurate cmdline
- option
-Date: Tue, 24 Jan 2017 07:21:20 -0800
-Message-ID: <20170124152119.GE7403@atomide.com>
-References: <1485209043-26463-1-git-send-email-amurray@embedded-bits.co.uk>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 31/37] misc: Add host side pci driver for pci test
+ function device
+Date: Tue, 24 Jan 2017 17:02:24 +0100
+Message-ID: <20170124160224.GA23528@infradead.org>
+References: <1484216786-17292-1-git-send-email-kishon@ti.com>
+ <1484216786-17292-32-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1485209043-26463-1-git-send-email-amurray@embedded-bits.co.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Andrew Murray <amurray@embedded-bits.co.uk>
-Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+In-Reply-To: <1484216786-17292-32-git-send-email-kishon@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Andrew Murray <amurray@embedded-bits.co.uk> [170123 14:05]:
-> The 'mpurate' option, historically used for specifying an initial
-> MPU rate at boot, no longer has any effect due to the supporting
-> code being removed as it was 'wrong and dangerous' [1].
-> 
-> This patch removes the remaining dead code associated with the
-> __setup macros to avoid confusion and reduce bloat.
-> 
-> [1] https://patchwork.kernel.org/patch/5954631/
-> 
-> Signed-off-by: Andrew Murray <amurray@embedded-bits.co.uk>
-> ---
-> Changes since v1:
-> 
->  * Remove related omap2_clk_print_new_rates function which is also unused
->    (this was previously used to print clock rates after use of mpurate)
-> 
-> Changes since v2:
-> 
->  * Add missing Signed-off-by
+On Thu, Jan 12, 2017 at 03:56:20PM +0530, Kishon Vijay Abraham I wrote:
+> Add PCI endpoint test driver that can verify base address
+> register, legacy interrupt/MSI interrupt and read/write/copy
+> buffers between host and device. The corresponding pci-epf-test
+> function driver should be used on the EP side.
 
-Applying into omap-for-v4.11/soc with Aaro's ack from the previsou
-version.
+Just curious:  what would you think of a text based (e.g. debugfs)
+interface to avoid the need for a userspace tool here?
 
-Thanks,
+> +static const struct pci_device_id pci_endpoint_test_tbl[] = {
+> +	{ PCI_DEVICE(PCI_VENDOR_ID_TI, PCI_ANY_ID) },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(pci, pci_endpoint_test_tbl);
 
-Tony
+Also this looks really odd, and dangerous.  Probing for any
+TI device will bind to all kinds of legit devices.  It would
+be good if you could squeeze out a single id for this device
+out of the TI group responsible for allocating it.  Otherwise
+we might try some other venues, e.g. Red Hat through Qumranet
+has PCI IDs available for virtio, which might have some left
+for other Linux uses.
+
+In general I fear the PCI ID allocation will become a worse
+and worse issue once your framework goes in and we'll grow
+more PCI device models in the kernel.
