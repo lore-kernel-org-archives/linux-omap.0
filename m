@@ -1,80 +1,49 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 2/6] usb: musb: cppi41: Detect aborted transfers in cppi41_dma_callback()
-Date: Wed, 25 Jan 2017 11:17:05 +0100
-Message-ID: <20170125101709.15696-3-abailon@baylibre.com>
-References: <20170125101709.15696-1-abailon@baylibre.com>
+Subject: [PATCH v5 1/5] usb: musb: da8xx: Remove CPPI 3.0 quirk and methods
+Date: Wed, 25 Jan 2017 11:33:15 +0100
+Message-ID: <20170125103319.26021-2-abailon@baylibre.com>
+References: <20170125103319.26021-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170125101709.15696-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170125103319.26021-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+To: b-liu-l0cyMroinI0@public.gmane.org
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Update cppi41_dma_callback() to detect an aborted transfer.
-This was not required before because cppi41_dma_callback() was only
-invoked on transfer completion.
-In order to make CPPI 4.1 driver more generic, cppi41_dma_callback()
-will be invoked after a transfer abort in order to let the MUSB driver
-perform some action such as acknowledge the interrupt that may be fired
-during a teardown.
+DA8xx driver is registering and using the CPPI 3.0 DMA controller but
+actually, the DA8xx has a CPPI 4.1 DMA controller.
+Remove the CPPI 3.0 quirk and methods.
 
+Fixes: f8e9f34f80a2 ("usb: musb: Fix up DMA related macros")
+Fixes: 7f6283ed6fe8 ("usb: musb: Set up function pointers for DMA")
 Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Acked-by: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/musb/musb_cppi41.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/usb/musb/da8xx.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-index f7d3d27..1fe7eae 100644
---- a/drivers/usb/musb/musb_cppi41.c
-+++ b/drivers/usb/musb/musb_cppi41.c
-@@ -99,7 +99,8 @@ static bool musb_is_tx_fifo_empty(struct musb_hw_ep *hw_ep)
- 	return true;
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index e89708d..cd3d763 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -458,15 +458,11 @@ static inline u8 get_vbus_power(struct device *dev)
  }
  
--static void cppi41_dma_callback(void *private_data);
-+static void cppi41_dma_callback(void *private_data,
-+				const struct dmaengine_result *result);
+ static const struct musb_platform_ops da8xx_ops = {
+-	.quirks		= MUSB_DMA_CPPI | MUSB_INDEXED_EP,
++	.quirks		= MUSB_INDEXED_EP,
+ 	.init		= da8xx_musb_init,
+ 	.exit		= da8xx_musb_exit,
  
- static void cppi41_trans_done(struct cppi41_dma_channel *cppi41_channel)
- {
-@@ -154,7 +155,7 @@ static void cppi41_trans_done(struct cppi41_dma_channel *cppi41_channel)
- 		if (WARN_ON(!dma_desc))
- 			return;
+ 	.fifo_mode	= 2,
+-#ifdef CONFIG_USB_TI_CPPI_DMA
+-	.dma_init	= cppi_dma_controller_create,
+-	.dma_exit	= cppi_dma_controller_destroy,
+-#endif
+ 	.enable		= da8xx_musb_enable,
+ 	.disable	= da8xx_musb_disable,
  
--		dma_desc->callback = cppi41_dma_callback;
-+		dma_desc->callback_result = cppi41_dma_callback;
- 		dma_desc->callback_param = &cppi41_channel->channel;
- 		cppi41_channel->cookie = dma_desc->tx_submit(dma_desc);
- 		trace_musb_cppi41_cont(cppi41_channel);
-@@ -204,7 +205,8 @@ static enum hrtimer_restart cppi41_recheck_tx_req(struct hrtimer *timer)
- 	return ret;
- }
- 
--static void cppi41_dma_callback(void *private_data)
-+static void cppi41_dma_callback(void *private_data,
-+				const struct dmaengine_result *result)
- {
- 	struct dma_channel *channel = private_data;
- 	struct cppi41_dma_channel *cppi41_channel = channel->private_data;
-@@ -221,6 +223,9 @@ static void cppi41_dma_callback(void *private_data)
- 	if (controller->controller.dma_callback)
- 		controller->controller.dma_callback(&controller->controller);
- 
-+	if (result->result == DMA_TRANS_ABORTED)
-+		return;
-+
- 	spin_lock_irqsave(&musb->lock, flags);
- 
- 	dmaengine_tx_status(cppi41_channel->dc, cppi41_channel->cookie,
-@@ -403,7 +408,7 @@ static bool cppi41_configure_channel(struct dma_channel *channel,
- 	if (!dma_desc)
- 		return false;
- 
--	dma_desc->callback = cppi41_dma_callback;
-+	dma_desc->callback_result = cppi41_dma_callback;
- 	dma_desc->callback_param = channel;
- 	cppi41_channel->cookie = dma_desc->tx_submit(dma_desc);
- 	cppi41_channel->channel.rx_packet_done = false;
 -- 
 2.10.2
 
