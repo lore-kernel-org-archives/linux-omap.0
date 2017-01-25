@@ -1,70 +1,90 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 4/5] usb: musb: musb_cppi41: Workaround DMA stall issue during teardown
-Date: Wed, 25 Jan 2017 11:33:18 +0100
-Message-ID: <20170125103319.26021-5-abailon@baylibre.com>
-References: <20170125103319.26021-1-abailon@baylibre.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170125103319.26021-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: b-liu-l0cyMroinI0@public.gmane.org
-Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH] clk: ti: divider: Add the table parsing to get the best
+ divider value
+Date: Wed, 25 Jan 2017 16:07:35 +0530
+Message-ID: <98780c76-0ba8-85ec-ca01-392f36fa91ad@ti.com>
+References: <1480669543-16197-1-git-send-email-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <1480669543-16197-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: t-kristo@ti.com
+Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The DMA may hang up if a teardown is initiated while an endpoint is still
-active (Advisory 2.3.27 of DA8xx errata).
-To workaround this issue, add a delay before to initiate the teardown.
 
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
----
- drivers/usb/musb/da8xx.c       | 2 +-
- drivers/usb/musb/musb_core.h   | 1 +
- drivers/usb/musb/musb_cppi41.c | 4 ++++
- 3 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-index d279438..d87fb9b 100644
---- a/drivers/usb/musb/da8xx.c
-+++ b/drivers/usb/musb/da8xx.c
-@@ -483,7 +483,7 @@ da8xx_dma_controller_create(struct musb *musb, void __iomem *base)
- #endif
- 
- static const struct musb_platform_ops da8xx_ops = {
--	.quirks		= MUSB_INDEXED_EP | MUSB_DMA_CPPI41,
-+	.quirks		= MUSB_INDEXED_EP | MUSB_DMA_CPPI41 | MUSB_DA8XX,
- 	.init		= da8xx_musb_init,
- 	.exit		= da8xx_musb_exit,
- 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index ade902e..d129278 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -172,6 +172,7 @@ struct musb_io;
-  */
- struct musb_platform_ops {
- 
-+#define MUSB_DA8XX		BIT(7)
- #define MUSB_DMA_UX500		BIT(6)
- #define MUSB_DMA_CPPI41		BIT(5)
- #define MUSB_DMA_CPPI		BIT(4)
-diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-index 00e272b..2df37be 100644
---- a/drivers/usb/musb/musb_cppi41.c
-+++ b/drivers/usb/musb/musb_cppi41.c
-@@ -552,6 +552,10 @@ static int cppi41_dma_channel_abort(struct dma_channel *channel)
- 		}
- 	}
- 
-+	/* DA8xx Advisory 2.3.27: wait 250 ms before to start the teardown */
-+	if (musb->io.quirks & MUSB_DA8XX)
-+		mdelay(250);
-+
- 	tdbit = 1 << cppi41_channel->port_num;
- 	if (is_tx)
- 		tdbit <<= 16;
--- 
-2.10.2
+On Friday 02 December 2016 02:35 PM, Keerthy wrote:
+> Currently the divider selection logic blindly divides the parent_rate
+> by the clk rate and gives the divider value for the divider clocks
+> which do not have the CLK_SET_RATE_PARENT flag set. Add the clk divider
+> table parsing to get the closest divider available in the table
+> provided via Device tree.
+>
+> The code is pretty much taken from: drivers/clk/clk-divider.c.
+> and used here to fix up the best divider selection logic.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A gentle ping on this patch. This applies cleanly on the next branch as 
+on today. Let me know if this needs to be rebased.
+
+- Keerthy
+
+>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Reported-by: Richard Woodruff <r-woodruff2@ti.com>
+> ---
+>  drivers/clk/ti/divider.c | 31 ++++++++++++++++++++++++++++++-
+>  1 file changed, 30 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
+> index b4e5de1..6bb8778 100644
+> --- a/drivers/clk/ti/divider.c
+> +++ b/drivers/clk/ti/divider.c
+> @@ -140,6 +140,35 @@ static bool _is_valid_div(struct clk_divider *divider, unsigned int div)
+>  	return true;
+>  }
+>
+> +static int _div_round_up(const struct clk_div_table *table,
+> +			 unsigned long parent_rate, unsigned long rate)
+> +{
+> +	const struct clk_div_table *clkt;
+> +	int up = INT_MAX;
+> +	int div = DIV_ROUND_UP_ULL((u64)parent_rate, rate);
+> +
+> +	for (clkt = table; clkt->div; clkt++) {
+> +		if (clkt->div == div)
+> +			return clkt->div;
+> +		else if (clkt->div < div)
+> +			continue;
+> +
+> +		if ((clkt->div - div) < (up - div))
+> +			up = clkt->div;
+> +	}
+> +
+> +	return up;
+> +}
+> +
+> +static int _div_round(const struct clk_div_table *table,
+> +		      unsigned long parent_rate, unsigned long rate)
+> +{
+> +	if (!table)
+> +		return DIV_ROUND_UP(parent_rate, rate);
+> +
+> +	return _div_round_up(table, parent_rate, rate);
+> +}
+> +
+>  static int ti_clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
+>  				  unsigned long *best_parent_rate)
+>  {
+> @@ -155,7 +184,7 @@ static int ti_clk_divider_bestdiv(struct clk_hw *hw, unsigned long rate,
+>
+>  	if (!(clk_hw_get_flags(hw) & CLK_SET_RATE_PARENT)) {
+>  		parent_rate = *best_parent_rate;
+> -		bestdiv = DIV_ROUND_UP(parent_rate, rate);
+> +		bestdiv = _div_round(divider->table, parent_rate, rate);
+>  		bestdiv = bestdiv == 0 ? 1 : bestdiv;
+>  		bestdiv = bestdiv > maxdiv ? maxdiv : bestdiv;
+>  		return bestdiv;
+>
