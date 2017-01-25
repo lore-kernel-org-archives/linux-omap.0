@@ -1,63 +1,74 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] i2c: busses: constify dev_pm_ops structures
-Date: Wed, 25 Jan 2017 22:03:49 +0100
-Message-ID: <20170125210348.ebwozos3puo6c4if@ninjato>
-References: <1484474381-1064-1-git-send-email-bhumirks@gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 0/7] Implement generic regulator constraints parsing for
+ ACPI and OF
+Date: Wed, 25 Jan 2017 13:17:14 -0800
+Message-ID: <20170125211714.GA36291@dtor-ws>
+References: <20170125000641.25520-1-furquan@chromium.org>
+ <20170125124911.dxveow7bo3zw5jcc@sirena.org.uk>
+ <CAJZ5v0hHSadH1KLOGg029VU2qrY900ak0=NnH5HPBKZ=FpB7HQ@mail.gmail.com>
+ <CAEGmHFG1d24k3+qT_aoqRmPFzciAbNObCnzY1d8pQWjEW+3HxA@mail.gmail.com>
+ <20170125182319.GB25470@leverpostej>
+ <20170125182955.uznr5ehpx4dabcon@sirena.org.uk>
+ <20170125184432.GA27255@dtor-ws>
+ <20170125192711.GB27255@dtor-ws>
+ <20170125203907.df2elgy3ao2o2e3h@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="bazjjmtkiv4nr3il"
-Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1484474381-1064-1-git-send-email-bhumirks@gmail.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, tony@atomide.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170125203907.df2elgy3ao2o2e3h@sirena.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Furquan Shaikh <furquan@chromium.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org, ACPI Devel Maling List <linux-acp>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Jan 25, 2017 at 08:39:07PM +0000, Mark Brown wrote:
+> On Wed, Jan 25, 2017 at 11:27:11AM -0800, Dmitry Torokhov wrote:
+> 
+> > For the record, the main issue for the drivers, which is being solved by
+> > exposing power supplies to the driver, is the following:
+> 
+> > 1. We suspend the device. Since there is no regulators the driver
+> > assumes that it will retain it's state upon resume
+> 
+> That's *not* a sensible thing for drivers to assume regardless of the
+> presence or absence of explicitly controlled regulators, that just seems
+> like a plain old driver bug.  Even if there are regulators that doesn't
+> mean there isn't a suspend mode configuration that disables those
+> regulators.
 
---bazjjmtkiv4nr3il
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+That means your platform description is incomplete, AKA a plain old
+device tree bug.
 
-On Sun, Jan 15, 2017 at 03:29:41PM +0530, Bhumika Goyal wrote:
-> Declare dev_pm_ops structures as const as they are only stored in the pm
-> field of a device_driver structure. This field is of type const, so
-> dev_pm_ops structures having similar properties can be declared const
-> too.
->=20
-> File size before: drivers/i2c/busses/i2c-omap.o
->    text	   data	    bss	    dec	    hex	filename
->    6814	    584	      0	   7398	   1ce6	drivers/i2c/busses/i2c-omap.o
->=20
-> File size after: drivers/i2c/busses/i2c-omap.o
->    text	   data	    bss	    dec	    hex	filename
->    7006	    392	      0	   7398	   1ce6	drivers/i2c/busses/i2c-omap.o
->=20
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> 
+> > I would really hate to go through _every_ driver and add the following
+> > code to the resume path:
+> > 
+> > #if IS_ENABLED(CONFIG_ACPI)
+> > 	if (acpi_device_was_powered_off_between_suspend_and_now(dev)) {
+> > 		completely_reinitialize_device(dev);
+> > 	}
+> > #endif
+> 
+> That's not an ACPI thing, unless the device thinks it's actively
+> providing a wakeup source then if the system suspends the driver should
+> not be surprised to have power pulled - that's pretty normal.  If the
+> driver is a wakeup source then it's a bit different.
 
-Applied to for-next, thanks! I dropped the file size table from the
-commit message, though. For me, it is clear enough without it.
+>From the practical standpoint many drivers make this assumption because
+this shortens resume time for device. I.e. it makes difference whether
+we go through full controller reset, possibly reloading firmware, and
+applying desired configuration, versus taking the chip out of deep sleep
+mode.
 
+The decision on resume time vs power draw is up to the platform
+designers of course.
 
---bazjjmtkiv4nr3il
-Content-Type: application/pgp-signature; name="signature.asc"
+So if we indeed saying that drivers should expect handling power loss
+even when devices are not on a hot-pluggable buses then we need a
+generic API for querying whether device lost it's state or not.
 
------BEGIN PGP SIGNATURE-----
+Thanks.
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAliJErQACgkQFA3kzBSg
-Kba7cQ/+PCEphAlBWZFNWUQiIy9cb0PyHPt1FQ0z+aTRVfMYqimeSuQEM9yrx6sE
-GMzteUphey2wWrvbKbFierdarz6Y+Ey3rRRmhFSnJa+U/chrdg2gSgHCDxUJy5vO
-pvCW1I4vr2YELc4DpmUhIdh2/RYij4wPY4P1ONbnwVH2cQFUSYx+f1OXSDeVY7Ay
-gFv+2pZz8wOhp2y0lsBtpjNFUAUpoptoFVCK8udlAXDBKM+Ir/5kgvKX7F5g4Kil
-2sh55zk/caWHCnUS6XzGdwF+eo7rGtrRFHeJ8i16w4LrBQUCZTPlKR8y36I3vKqq
-2hLXbftlikyRoQaXRk21lEMg7JhD5kloXiDVXS98kCH9L/rpC6IHWgtsg39uWrqd
-yEaxwZ+6vm+fKG1wkqA3tu8VtM7nNFQq+CMPr9/tYqiZfiG8Fd+sVvJud1KAWspo
-WVs1YlZVn/1KjyySXA95+vdHJJr76DfwlsRaAAo6d7TtI8U5ummOpCMqmBoP0G7J
-uQ7FuGwmiMTUeqEyGA+zKR/KijeP0NCP4gmQJ0scTCwmQ5xE0si7KaxYiEUiDvlz
-o2WQchhNvKQcrBz7e+yYyP33RsWUNweyyjzpJUtu251ZphyfgCpz8e9BiK3oHw6A
-rcxtHNTsO9R3wawAWC2mOpg+Ms8VJiG/Eijn47hHxWzmNtJ/rlw=
-=vvs8
------END PGP SIGNATURE-----
-
---bazjjmtkiv4nr3il--
+-- 
+Dmitry
