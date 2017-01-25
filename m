@@ -1,54 +1,123 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 0/5] usb: musb: da8xx: Add DMA support
-Date: Wed, 25 Jan 2017 11:33:14 +0100
-Message-ID: <20170125103319.26021-1-abailon@baylibre.com>
+Subject: [PATCH v5 5/5] usb: musb: da8xx: Add a primary support of PM runtime
+Date: Wed, 25 Jan 2017 11:33:19 +0100
+Message-ID: <20170125103319.26021-6-abailon@baylibre.com>
+References: <20170125103319.26021-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170125103319.26021-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: b-liu-l0cyMroinI0@public.gmane.org
 Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This series update MUSB driver to add DMA support to DA8xx.
-It should be applied on top of
-"[PATCH v3 0/3] usb: musb: cppi41: Add a way to manage DMA irq" but
-"[PATCH v3 0/3] dmaengine: cppi41: Add dma support to da8xx" and
-"[PATCH] arm: davinci: Make the usb20 clock available to PM runtime"
-are required to make it work.
+Currently, MUSB DA8xx glue driver doesn't have PM runtime support.
+Because the CPPI 4.1 is using the same clock as MUSB DA8xx and
+CPPI 4.1 is a child of MUSB DA8xx glue, add support of PM runtime
+to the DA8xx glue driver in order to let the CPPI 4.1 driver manage
+the clock by using PM runtime.
 
-Changes in v5:
-- Fix a typo in commit message of patch 4
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/usb/musb/da8xx.c | 23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-Changes in v4:
-- Update and clarify the commit message of patch 5
-- Fix the typo in patch 3
-
-Changes in v3:
-- Remove PM runtime callbacks.
-  I have update arch/arm/mach-davinci/pm_domain.c to let PM runtime control
-  the usb20 clock.
-- Only use PM runtime sync operation.
-
-Changes in v2:
-- Clock and IRQ management has been moved to MUSB DA8xx glue
-  (was in CPPI 4.1 driver)
-- I have added a partial support PM runtime. The goal was to use PM
-  runtime to manage clock of MUSB and CPPI 4.1 (they use the same clock).
-- CPPI 4.1 is now achild of MUSB DA8xx glue.
-
-Alexandre Bailon (5):
-  usb: musb: da8xx: Remove CPPI 3.0 quirk and methods
-  usb: musb: Use shared irq
-  usb: musb: Add support of CPPI 4.1 DMA controller to DA8xx
-  usb: musb: musb_cppi41: Workaround DMA stall issue during teardown
-  usb: musb: da8xx: Add a primary support of PM runtime
-
- drivers/usb/musb/Kconfig       |  4 +--
- drivers/usb/musb/da8xx.c       | 60 +++++++++++++++++++++++++++---------------
- drivers/usb/musb/musb_core.c   |  2 +-
- drivers/usb/musb/musb_core.h   |  1 +
- drivers/usb/musb/musb_cppi41.c |  4 +++
- 5 files changed, 47 insertions(+), 24 deletions(-)
-
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index d87fb9b..bebc9ed 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -30,7 +30,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/io.h>
+ #include <linux/of_platform.h>
+@@ -86,7 +85,6 @@ struct da8xx_glue {
+ 	struct device		*dev;
+ 	struct platform_device	*musb;
+ 	struct platform_device	*usb_phy;
+-	struct clk		*clk;
+ 	struct phy		*phy;
+ };
+ 
+@@ -377,11 +375,7 @@ static int da8xx_musb_init(struct musb *musb)
+ 
+ 	musb->mregs += DA8XX_MENTOR_CORE_OFFSET;
+ 
+-	ret = clk_prepare_enable(glue->clk);
+-	if (ret) {
+-		dev_err(glue->dev, "failed to enable clock\n");
+-		return ret;
+-	}
++	pm_runtime_get_sync(musb->controller->parent);
+ 
+ 	/* Returns zero if e.g. not clocked */
+ 	rev = musb_readl(reg_base, DA8XX_USB_REVISION_REG);
+@@ -424,7 +418,7 @@ static int da8xx_musb_init(struct musb *musb)
+ err_phy_power_on:
+ 	phy_exit(glue->phy);
+ fail:
+-	clk_disable_unprepare(glue->clk);
++	pm_runtime_put(musb->controller->parent);
+ 	return ret;
+ }
+ 
+@@ -436,7 +430,7 @@ static int da8xx_musb_exit(struct musb *musb)
+ 
+ 	phy_power_off(glue->phy);
+ 	phy_exit(glue->phy);
+-	clk_disable_unprepare(glue->clk);
++	pm_runtime_put(musb->controller->parent);
+ 
+ 	usb_put_phy(musb->xceiv);
+ 
+@@ -519,7 +513,6 @@ static int da8xx_probe(struct platform_device *pdev)
+ 	struct musb_hdrc_platform_data	*pdata = dev_get_platdata(&pdev->dev);
+ 	struct da8xx_glue		*glue;
+ 	struct platform_device_info	pinfo;
+-	struct clk			*clk;
+ 	struct device_node		*np = pdev->dev.of_node;
+ 	int				ret;
+ 
+@@ -527,12 +520,6 @@ static int da8xx_probe(struct platform_device *pdev)
+ 	if (!glue)
+ 		return -ENOMEM;
+ 
+-	clk = devm_clk_get(&pdev->dev, "usb20");
+-	if (IS_ERR(clk)) {
+-		dev_err(&pdev->dev, "failed to get clock\n");
+-		return PTR_ERR(clk);
+-	}
+-
+ 	glue->phy = devm_phy_get(&pdev->dev, "usb-phy");
+ 	if (IS_ERR(glue->phy)) {
+ 		if (PTR_ERR(glue->phy) != -EPROBE_DEFER)
+@@ -541,7 +528,6 @@ static int da8xx_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	glue->dev			= &pdev->dev;
+-	glue->clk			= clk;
+ 
+ 	if (IS_ENABLED(CONFIG_OF) && np) {
+ 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+@@ -587,6 +573,8 @@ static int da8xx_probe(struct platform_device *pdev)
+ 	pinfo.data = pdata;
+ 	pinfo.size_data = sizeof(*pdata);
+ 
++	pm_runtime_enable(&pdev->dev);
++
+ 	glue->musb = platform_device_register_full(&pinfo);
+ 	ret = PTR_ERR_OR_ZERO(glue->musb);
+ 	if (ret) {
+@@ -603,6 +591,7 @@ static int da8xx_remove(struct platform_device *pdev)
+ 
+ 	platform_device_unregister(glue->musb);
+ 	usb_phy_generic_unregister(glue->usb_phy);
++	pm_runtime_disable(&pdev->dev);
+ 
+ 	return 0;
+ }
 -- 
 2.10.2
 
