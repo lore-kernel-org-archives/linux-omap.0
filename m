@@ -1,49 +1,61 @@
-From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv4 0/2] cppi41 dma fixes for v4.10-rc cycle
-Date: Wed, 25 Jan 2017 11:31:18 +0530
-Message-ID: <20170125060117.GZ3573@localhost>
-References: <20170119164908.9472-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v5 0/6] usb: musb: cppi41: Add a way to manage DMA irq
+Date: Wed, 25 Jan 2017 11:17:03 +0100
+Message-ID: <20170125101709.15696-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170119164908.9472-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 19, 2017 at 08:49:06AM -0800, Tony Lindgren wrote:
-> Hi all,
-> 
-> I'm using v4 naming here as the earlier patch "dmaengine: cppi41: Add dma
-> support to da8xx" has been separated from the error -115 issue. We've
-> identified so far three musb and cppi41 regressions:
-> 
-> 1. Error -71 regression with musb
-> 
->    This is not dma related, and fixed with recently posted patch
->    "[PATCH 1/2] usb: musb: Fix host mode error -71 regression".
-> 
-> 2. Error -115 regression with cppi41 dma with musb
-> 
->    This regression was caused by commit 098de42ad670 ("dmaengine:
->    cppi41: Fix unpaired pm runtime when only a USB hub is connected")
->    and causes runtime PM autosuspend delay to time out on active dma
->    transfers when connecting a mass storage device to a usb hub.
->    This is fixed in the first patch in this series.
-> 
-> 3. Race with runtime PM and cppi41_dma_issue_pending()
-> 
->    This is really a separate issue from the error -115 problem, and
->    fixed with the second patch in this series. That's minimal v4
->    version of the "dmaengine: cppi41: Fix oops in cppi41_runtime_resume"
->    patch.
+This series was "dmaengine: cppi41: Make the driver more generic".
+I have tried to separate as munch I could CPPI 4.1 MUSB driver changes.
 
-Applied, thanks
+Currently, the DMA interrupt is managed by the CPPI 4.1 driver.
+The issue here is the CPPI 4.1 driver must access to MUSB glue registers
+to manage its interrupt.
+In order to move the interrupts management from CPPI 4.1 driver to MUSB
+(and then make it more generic), update the MUSB CPPI 4.1 driver with
+changes that will help to manage DMA interrupt from MUSB driver.
+
+Changes in v5:
+- Clean up patch 4 and 5
+
+Changes in v4:
+- Remove musb pointer from struct cppi, cppi41_dma_controller and
+  tusb_omap_dma.
+
+Changes in v3:
+- Move a patch from another series to this one to avoid build error report
+  from kbuild test robot
+- Instead of adding and exporting function, add one callback and a pointer
+  to musb in struct dma_controller
+- Surround the DMA function introduced in musb_dsps with #ifdef / #endif.
+
+Changes in v2:
+- Fix some typo in commit messages
+- Add more explanation about some changes made by patch 2 in commit message
+
+Alexandre Bailon (6):
+  usb: musb: dma: Add a DMA completion platform callback
+  usb: musb: cppi41: Detect aborted transfers in cppi41_dma_callback()
+  usb: musb: cppi_dma: Clean up cppi structure
+  usb: musb: cppi_dma: Clean up cppi41_dma_controller structure
+  usb: musb: cppi_dma: Clean up tusb_omap_dma structure
+  usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in DSPS
+
+ drivers/dma/cppi41.c             | 28 ++++----------
+ drivers/usb/musb/cppi_dma.c      | 26 ++++++-------
+ drivers/usb/musb/cppi_dma.h      |  1 -
+ drivers/usb/musb/musb_cppi41.c   | 49 +++++++++++++-----------
+ drivers/usb/musb/musb_dma.h      |  5 +++
+ drivers/usb/musb/musb_dsps.c     | 81 +++++++++++++++++++++++++++++++++++++++-
+ drivers/usb/musb/tusb6010_omap.c |  7 ++--
+ 7 files changed, 134 insertions(+), 63 deletions(-)
 
 -- 
-~Vinod
+2.10.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
