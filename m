@@ -1,58 +1,50 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 31/37] misc: Add host side pci driver for pci test
- function device
-Date: Wed, 25 Jan 2017 11:10:53 +0530
-Message-ID: <58883A65.8020306@ti.com>
-References: <1484216786-17292-1-git-send-email-kishon@ti.com>
- <1484216786-17292-32-git-send-email-kishon@ti.com>
- <20170124160224.GA23528@infradead.org>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv4 0/2] cppi41 dma fixes for v4.10-rc cycle
+Date: Wed, 25 Jan 2017 11:31:18 +0530
+Message-ID: <20170125060117.GZ3573@localhost>
+References: <20170119164908.9472-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170124160224.GA23528-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-VrBV9hrLPhE@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170119164908.9472-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tuesday 24 January 2017 09:32 PM, Christoph Hellwig wrote:
-> On Thu, Jan 12, 2017 at 03:56:20PM +0530, Kishon Vijay Abraham I wrote:
->> Add PCI endpoint test driver that can verify base address
->> register, legacy interrupt/MSI interrupt and read/write/copy
->> buffers between host and device. The corresponding pci-epf-test
->> function driver should be used on the EP side.
+On Thu, Jan 19, 2017 at 08:49:06AM -0800, Tony Lindgren wrote:
+> Hi all,
 > 
-> Just curious:  what would you think of a text based (e.g. debugfs)
-> interface to avoid the need for a userspace tool here?
-
-I felt having a userspace tool gives the flexibility to add more tests
-(iterations, sizes etc..) while the driver can just focus on performing simple
-tests. Say we'd like to perform infinite read/write tests, it's better if the
-userspace tool invokes read/write tests repeatedly instead of that being
-implemented in the driver.
+> I'm using v4 naming here as the earlier patch "dmaengine: cppi41: Add dma
+> support to da8xx" has been separated from the error -115 issue. We've
+> identified so far three musb and cppi41 regressions:
 > 
->> +static const struct pci_device_id pci_endpoint_test_tbl[] = {
->> +	{ PCI_DEVICE(PCI_VENDOR_ID_TI, PCI_ANY_ID) },
->> +	{ }
->> +};
->> +MODULE_DEVICE_TABLE(pci, pci_endpoint_test_tbl);
+> 1. Error -71 regression with musb
 > 
-> Also this looks really odd, and dangerous.  Probing for any
-> TI device will bind to all kinds of legit devices.  It would
-> be good if you could squeeze out a single id for this device
+>    This is not dma related, and fixed with recently posted patch
+>    "[PATCH 1/2] usb: musb: Fix host mode error -71 regression".
+> 
+> 2. Error -115 regression with cppi41 dma with musb
+> 
+>    This regression was caused by commit 098de42ad670 ("dmaengine:
+>    cppi41: Fix unpaired pm runtime when only a USB hub is connected")
+>    and causes runtime PM autosuspend delay to time out on active dma
+>    transfers when connecting a mass storage device to a usb hub.
+>    This is fixed in the first patch in this series.
+> 
+> 3. Race with runtime PM and cppi41_dma_issue_pending()
+> 
+>    This is really a separate issue from the error -115 problem, and
+>    fixed with the second patch in this series. That's minimal v4
+>    version of the "dmaengine: cppi41: Fix oops in cppi41_runtime_resume"
+>    patch.
 
-There is actually an id for the device, but I think we'll need an id for every
-function right?
+Applied, thanks
 
-Having said that the id for the device is better than PCI_ANY_ID. Will fix it
-in my next revision.
-
-Thanks
-Kishon
+-- 
+~Vinod
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
