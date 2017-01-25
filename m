@@ -1,65 +1,63 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 0/7] Implement generic regulator constraints parsing for
- ACPI and OF
-Date: Wed, 25 Jan 2017 20:40:53 +0000
-Message-ID: <20170125204053.st2ce7wfjttnk65k@sirena.org.uk>
-References: <20170125000641.25520-1-furquan@chromium.org>
- <20170125124911.dxveow7bo3zw5jcc@sirena.org.uk>
- <CAJZ5v0hHSadH1KLOGg029VU2qrY900ak0=NnH5HPBKZ=FpB7HQ@mail.gmail.com>
- <CAEGmHFG1d24k3+qT_aoqRmPFzciAbNObCnzY1d8pQWjEW+3HxA@mail.gmail.com>
- <20170125182319.GB25470@leverpostej>
- <20170125182955.uznr5ehpx4dabcon@sirena.org.uk>
- <20170125192135.GA8605@red-moon>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] i2c: busses: constify dev_pm_ops structures
+Date: Wed, 25 Jan 2017 22:03:49 +0100
+Message-ID: <20170125210348.ebwozos3puo6c4if@ninjato>
+References: <1484474381-1064-1-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="bsnujbg4nv4stoln"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="bazjjmtkiv4nr3il"
+Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170125192135.GA8605@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Furquan Shaikh <furquan@chromium.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh@kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.orgACPI Devel Maling List <lin>
+In-Reply-To: <1484474381-1064-1-git-send-email-bhumirks@gmail.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, tony@atomide.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---bsnujbg4nv4stoln
+--bazjjmtkiv4nr3il
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jan 25, 2017 at 07:21:35PM +0000, Lorenzo Pieralisi wrote:
-> On Wed, Jan 25, 2017 at 06:29:55PM +0000, Mark Brown wrote:
+On Sun, Jan 15, 2017 at 03:29:41PM +0530, Bhumika Goyal wrote:
+> Declare dev_pm_ops structures as const as they are only stored in the pm
+> field of a device_driver structure. This field is of type const, so
+> dev_pm_ops structures having similar properties can be declared const
+> too.
+>=20
+> File size before: drivers/i2c/busses/i2c-omap.o
+>    text	   data	    bss	    dec	    hex	filename
+>    6814	    584	      0	   7398	   1ce6	drivers/i2c/busses/i2c-omap.o
+>=20
+> File size after: drivers/i2c/busses/i2c-omap.o
+>    text	   data	    bss	    dec	    hex	filename
+>    7006	    392	      0	   7398	   1ce6	drivers/i2c/busses/i2c-omap.o
+>=20
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 
-> > I think there's a reasonable chance that any ACPI specs could be written
-> > in such a way as to allow transparent support in Linux, the main thing
-> > I'd worry about is naming issues.
+Applied to for-next, thanks! I dropped the file size table from the
+commit message, though. For me, it is clear enough without it.
 
-> I think that the difference between ACPI and DT firmware models,
-> in particular in relation to power states handling (and what piece
-> of SW is in charge of power management) is significant and goes beyond
-> naming conventions, therefore the code (and reasoning behind it - ie
-> to have an identical driver interface to a completely different FW
-> model) in this series is just not acceptable, that's a plain shortcut.
 
-> We will see how this should be implemented in ACPI, not with this
-> code (and FW bindings).
-
-Oh, absolutely - what I'm saying is that once that's done I'd expect
-implementing it to be almost entirely a regulator core change in the
-same way that implementing DT support was.
-
---bsnujbg4nv4stoln
+--bazjjmtkiv4nr3il
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliJDVQACgkQJNaLcl1U
-h9BB4wgAhh3OzA9CSmBkVpndf2LFUQEJjzErsxWTFwL5UNZXyp+PfV5wAIbWW8gj
-jurtGyWqY9Zq8balWsfZgEgEyoO/rOgt16ZzST2HyN8moljNTHeu1niZRMpySord
-kjs/IrFr1IkJ4T0GBQXzFgoDXTuTs7hxvVoNHaVm3pcCW11GGcM5p2PyFZFCWG2J
-erp7JCgsyEObFTrDFlkmen+IWVBo07IKI6bQLGPrkvPU2CRWRQrjpAqCf3nmEOKC
-HCFlhMjpZVSJss48GAl+uCiqD0zKHiH5qy6Ef2kMXCY+UzV4Du7gnhVCfomXHoqw
-UzWsg6/h01P14/bxbaW434bdXJ6geg==
-=EAiU
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAliJErQACgkQFA3kzBSg
+Kba7cQ/+PCEphAlBWZFNWUQiIy9cb0PyHPt1FQ0z+aTRVfMYqimeSuQEM9yrx6sE
+GMzteUphey2wWrvbKbFierdarz6Y+Ey3rRRmhFSnJa+U/chrdg2gSgHCDxUJy5vO
+pvCW1I4vr2YELc4DpmUhIdh2/RYij4wPY4P1ONbnwVH2cQFUSYx+f1OXSDeVY7Ay
+gFv+2pZz8wOhp2y0lsBtpjNFUAUpoptoFVCK8udlAXDBKM+Ir/5kgvKX7F5g4Kil
+2sh55zk/caWHCnUS6XzGdwF+eo7rGtrRFHeJ8i16w4LrBQUCZTPlKR8y36I3vKqq
+2hLXbftlikyRoQaXRk21lEMg7JhD5kloXiDVXS98kCH9L/rpC6IHWgtsg39uWrqd
+yEaxwZ+6vm+fKG1wkqA3tu8VtM7nNFQq+CMPr9/tYqiZfiG8Fd+sVvJud1KAWspo
+WVs1YlZVn/1KjyySXA95+vdHJJr76DfwlsRaAAo6d7TtI8U5ummOpCMqmBoP0G7J
+uQ7FuGwmiMTUeqEyGA+zKR/KijeP0NCP4gmQJ0scTCwmQ5xE0si7KaxYiEUiDvlz
+o2WQchhNvKQcrBz7e+yYyP33RsWUNweyyjzpJUtu251ZphyfgCpz8e9BiK3oHw6A
+rcxtHNTsO9R3wawAWC2mOpg+Ms8VJiG/Eijn47hHxWzmNtJ/rlw=
+=vvs8
 -----END PGP SIGNATURE-----
 
---bsnujbg4nv4stoln--
+--bazjjmtkiv4nr3il--
