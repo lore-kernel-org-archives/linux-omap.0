@@ -1,50 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
-Date: Thu, 26 Jan 2017 08:20:13 -0800
-Message-ID: <20170126162013.GS7403@atomide.com>
-References: <20170120220440.1971-1-tony@atomide.com>
- <20170120220440.1971-3-tony@atomide.com>
- <CAKvHMgQKPZcdBPMUH-3_e-M4sHPijEH59019bygmi+o2y4B+Rw@mail.gmail.com>
- <20170124012702.GA7403@atomide.com>
- <CAKvHMgTvdEz=YRxB-sd-FHws+DH9DJTnVst3Tc=9HoaKMq--Ow@mail.gmail.com>
- <20170124182925.GF7403@atomide.com>
- <20170124230520.GA1204@animalcreek.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 6/8] ARM: dts: dra7x-evm: Enable dual-role mode for USB1
+Date: Thu, 26 Jan 2017 18:33:25 +0200
+Message-ID: <a7903b5a-de87-f311-fbca-48c2f22497b4@ti.com>
+References: <1485170381-32110-1-git-send-email-rogerq@ti.com>
+ <1485170381-32110-7-git-send-email-rogerq@ti.com>
+ <20170126155622.GP7403@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170124230520.GA1204@animalcreek.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Mark Greer <mgreer@animalcreek.com>
-Cc: Liam Breck <liam@networkimprov.net>, Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170126155622.GP7403@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: balbi@kernel.org, peter.chen@freescale.com, vivek.gautam@codeaurora.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mark Greer <mgreer@animalcreek.com> [170124 15:06]:
-> On Tue, Jan 24, 2017 at 10:29:26AM -0800, Tony Lindgren wrote:
+On 26/01/17 17:56, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [170123 03:21]:
+>> USB1 port is micro-AB type and can function as peripheral
+>> as well as host. Enable dual-role mode for USB1.
 > 
-> > 8< -----------------------------------------
-> > >From tony Mon Sep 17 00:00:00 2001
-> > From: Tony Lindgren <tony@atomide.com>
-> > Date: Fri, 20 Jan 2017 09:58:51 -0800
-> > Subject: [PATCH] power: bq24190_charger: Use PM runtime autosuspend
-> > 
-> > We can get quite a few interrupts when the battery is trickle charging.
-> > Let's enable PM runtime autosuspend to avoid constantly toggling device
-> > driver PM runtime state.
-> > 
-> > Let's use a 600 ms timeout as that's how long the USB chager detection
-> > might take.
-> > 
-> > Cc: Liam Breck <kernel@networkimprov.net>
-> > Cc: Mark Greer <mgreer@animalcreek.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
+> Good to see this happening :) Can you please send the dts changes
+> separately after the driver changes have gotten merged?
 > 
-> Acked-by: Mark Greer <mgreer@animalcreek.com>
 
-OK thanks will repost the two patches. Liam, got any more comments
-or care to ack?
+Yes Tony. I won't send the dts patches again in this series.
 
-Regards,
+> Meanwhile I'll untag this thread here.
+> 
 
-Tony
+cheers,
+-roger
