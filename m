@@ -1,55 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/3] ARM: dts: Add support for phyCORE-AM335x PCM-953
- carrier board
-Date: Thu, 26 Jan 2017 08:11:40 -0800
-Message-ID: <20170126161140.GR7403@atomide.com>
-References: <1485252576-36955-1-git-send-email-t.remmet@phytec.de>
+Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
+Date: Thu, 26 Jan 2017 08:20:13 -0800
+Message-ID: <20170126162013.GS7403@atomide.com>
+References: <20170120220440.1971-1-tony@atomide.com>
+ <20170120220440.1971-3-tony@atomide.com>
+ <CAKvHMgQKPZcdBPMUH-3_e-M4sHPijEH59019bygmi+o2y4B+Rw@mail.gmail.com>
+ <20170124012702.GA7403@atomide.com>
+ <CAKvHMgTvdEz=YRxB-sd-FHws+DH9DJTnVst3Tc=9HoaKMq--Ow@mail.gmail.com>
+ <20170124182925.GF7403@atomide.com>
+ <20170124230520.GA1204@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1485252576-36955-1-git-send-email-t.remmet@phytec.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Teresa Remmet <t.remmet@phytec.de>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Wadim Egorov <w.egorov@phytec.de>, Rob Herring <robh+dt@kernel.org>, Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20170124230520.GA1204@animalcreek.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Mark Greer <mgreer@animalcreek.com>
+Cc: Liam Breck <liam@networkimprov.net>, Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Teresa Remmet <t.remmet@phytec.de> [170124 02:10]:
-> The phyCORE-AM335x development kit is a combination of the
-> phyCORE-AM335x SoM and a PCM-953 carrier board. The features
-> of the PCM-953 are:
-> * ETH phy on carrier board: 1x RGMII
-> * 1x CAN
-> * Up to 4x UART
-> * USB0 (otg)
-> * USB1 (host)
-> * SD slot
-> * User gpio-keys
-> * User LEDs
+* Mark Greer <mgreer@animalcreek.com> [170124 15:06]:
+> On Tue, Jan 24, 2017 at 10:29:26AM -0800, Tony Lindgren wrote:
 > 
-> Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
-> Reviewed-by: Wadim Egorov <w.egorov@phytec.de>
-> Acked-by: Rob Herring <robh@kernel.org>
-> ---
-> Changes in v2:
-> - moved gpio-keys, gpio-leds and regulators nodes to root node
-> - moved muxing of gpio-keys and gpio-leds
-> - removed not needed compatible "simple-bus"
-> - fixed unit address of ethernet phy node
-> - removed redundant status properties
-> - added Acked-by: Rob Herring <robh@kernel.org>
+> > 8< -----------------------------------------
+> > >From tony Mon Sep 17 00:00:00 2001
+> > From: Tony Lindgren <tony@atomide.com>
+> > Date: Fri, 20 Jan 2017 09:58:51 -0800
+> > Subject: [PATCH] power: bq24190_charger: Use PM runtime autosuspend
+> > 
+> > We can get quite a few interrupts when the battery is trickle charging.
+> > Let's enable PM runtime autosuspend to avoid constantly toggling device
+> > driver PM runtime state.
+> > 
+> > Let's use a 600 ms timeout as that's how long the USB chager detection
+> > might take.
+> > 
+> > Cc: Liam Breck <kernel@networkimprov.net>
+> > Cc: Mark Greer <mgreer@animalcreek.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> 
+> Acked-by: Mark Greer <mgreer@animalcreek.com>
 
-Applying this into omap-for-v4.11/dt thanks. The defconfig changes
-I already applied into omap-for-v4.11/defconfig.
+OK thanks will repost the two patches. Liam, got any more comments
+or care to ack?
 
 Regards,
 
