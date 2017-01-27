@@ -1,21 +1,11 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
-Date: Fri, 27 Jan 2017 11:39:42 +0800
-Message-ID: <1485488382.2469.27.camel@intel.com>
-References: <da1f1b45-3ae5-ffe8-62c6-9ec7c3a1505b@roeck-us.net>
- <20170123144031.GA7870@amd> <20170123232654.GA19342@amd>
- <20170123234912.GA2460@roeck-us.net>
- <20170124070639.GA5068@rzhang1-surface> <20170124073720.GB5603@amd>
- <88c94ea6-abe2-0f20-337e-e9ee00c883d8@roeck-us.net>
- <20170124175800.GA15070@amd> <20170124184526.GA25056@roeck-us.net>
- <20170125111233.GB3912@amd> <20170125120918.GA7936@pali>
- <1485481030.2469.15.camel@intel.com>
- <a6ce0873-9164-a965-a3e1-9eaaaec2201f@roeck-us.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: dts: Add keypad support for droid 4
+Date: Thu, 26 Jan 2017 20:15:25 -0800
+Message-ID: <20170127041525.29648-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <a6ce0873-9164-a965-a3e1-9eaaaec2201f@roeck-us.net>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,77 +15,126 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Guenter Roeck <linux@roeck-us.net>, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, abcloriens@gmail.com, fabio.estevam@nxp.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+To: linux-omap@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, linux-arm-kernel@lists.infradead.org, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCAyMDE3LTAxLTI2IGF0IDE4OjAzIC0wODAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+
-IE9uIDAxLzI2LzIwMTcgMDU6MzcgUE0sIFpoYW5nIFJ1aSB3cm90ZToKPiA+IAo+ID4gT24gV2Vk
-LCAyMDE3LTAxLTI1IGF0IDEzOjA5ICswMTAwLCBQYWxpIFJvaMOhciB3cm90ZToKPiA+ID4gCj4g
-PiA+IE9uIFdlZG5lc2RheSAyNSBKYW51YXJ5IDIwMTcgMTI6MTI6MzMgUGF2ZWwgTWFjaGVrIHdy
-b3RlOgo+ID4gPiA+IAo+ID4gPiA+IAo+ID4gPiA+IEhpIQo+ID4gPiA+IAo+ID4gPiA+ID4gCj4g
-PiA+ID4gPiAKPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IAo+ID4gPiA+ID4gPiA+IAo+ID4gPiA+
-ID4gPiA+IAo+ID4gPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gPiA+
-ID4gCj4gPiA+ID4gPiA+ID4gPiA+IAo+ID4gPiA+ID4gPiA+ID4gPiBSaWdodC4KPiA+ID4gPiA+
-ID4gPiA+ID4gCj4gPiA+ID4gPiA+ID4gPiA+IEJlZm9yZSByZXZlcnRpbmcsIGNhbiB5b3UgcGxl
-YXNlIHRyeSBpZiB0aGlzIHBhdGNoCj4gPiA+ID4gPiA+ID4gPiA+IHdvcmtzCj4gPiA+ID4gPiA+
-ID4gPiA+IG9yIG5vdD8KPiA+ID4gPiA+ID4gPiA+IE5vdCByZWFsbHkuIFJldmVydCBub3cuIFNv
-cnJ5Lgo+ID4gPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+ID4gPiBBcmUgeW91IHN1cmU/IFRoaXMg
-ZG9lcyBub3QgbG9vayBlcXVpdmFsZW50IHRvIG1lIGF0Cj4gPiA+ID4gPiA+ID4gPiBhbGwuCj4g
-PiA+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gPiA+ICJuYW1lIiBmaWxlIGhhbmRsaW5nIG1vdmVk
-IGZyb20gZHJpdmVycyB0byB0aGUgY29yZSwKPiA+ID4gPiA+ID4gPiA+IHdoaWNoCj4gPiA+ID4g
-PiA+ID4gPiBhZGRlZCBzb21lCj4gPiA+ID4gPiA+ID4gPiBjcmF6eSBjaGVja3Mgd2hhdCBuYW1l
-IGNhbiBjb250YWluLiBFdmVuIGlmIHRoaXMKPiA+ID4gPiA+ID4gPiA+ICJ3b3JrcyIsCj4gPiA+
-ID4gPiA+ID4gPiB3aGF0IGlzIHRoZQo+ID4gPiA+ID4gPiA+ID4gZXhwZWN0ZWQgZWZmZWN0IG9u
-IHRoZSAibmFtZSIgZmlsZT8KPiA+ID4gPiA+ID4gPiA+IAo+ID4gPiA+ID4gPiA+IFRoZSBod21v
-biBuYW1lIGF0dHJpYnV0ZSBtdXN0IG5vdCBpbmNsdWRlICctJywgYXMKPiA+ID4gPiA+ID4gPiBk
-b2N1bWVudGVkCj4gPiA+ID4gPiA+ID4gaW4KPiA+ID4gPiA+ID4gPiBEb2N1bWVudGF0aW9uL2h3
-bW9uL3N5c2ZzLWludGVyZmFjZS4gSXMgZW5mb3JjaW5nIHRoYXQKPiA+ID4gPiA+ID4gPiAnY3Jh
-enknID8KPiA+ID4gPiA+ID4gPiBNYXliZSBpbiB5b3VyIHdvcmxkLCBidXQgbm90IGluIG1pbmUu
-Cj4gPiA+ID4gPiA+IFdlbGwsIGxldHMgcmV2ZXJ0IHRoZSBwYXRjaCBhbmQgdGhlbiB3ZSBjYW4g
-ZGlzY3VzcyB3aGF0IHRvCj4gPiA+ID4gPiA+IGRvCj4gPiA+ID4gPiA+IHdpdGgKPiA+ID4gPiA+
-ID4gdGhlICJuYW1lIiBwcm9ibGVtLgo+ID4gPiA+IE9rLCBzbyB0aGUgcGF0Y2ggaXMgb24gdGhl
-IHdheSBpbi4gV2hhdCB0byBkbyBuZXh0Pwo+ID4gPiA+IAo+ID4gPiA+IHBhdmVsQG45MDA6L3N5
-cy9jbGFzcy9od21vbiQgY2F0IGh3bW9uMC9uYW1lCj4gPiA+ID4gYnEyNzIwMC0wCj4gPiA+ID4g
-cGF2ZWxAbjkwMDovc3lzL2NsYXNzL2h3bW9uJCBjYXQgaHdtb24xL25hbWUKPiA+ID4gPiByeDUx
-LWJhdHRlcnkKPiA+ID4gPiAKPiA+ID4gPiA+IAo+ID4gPiA+ID4gCj4gPiA+ID4gPiBUbyBwcm92
-aWRlIHNvbWUgZGV0YWlsOiBsaWJzZW5zb3JzIGdldHMganVzdCBhcyBjb25mdXNlZCB3aXRoCj4g
-PiA+ID4gPiB3aWxkY2FyZHMKPiA+ID4gPiA+IGFuZCB3aGl0ZXNwYWNlL25ld2xpbmUgYXMgaXQg
-ZG9lcyB3aXRoICctJyBpbiB0aGUgcmVwb3J0ZWQKPiA+ID4gPiA+IG5hbWUsCj4gPiA+ID4gPiB3
-aGljaAo+ID4gPiA+ID4gaXMgd2h5IHRob3NlIGFyZSBibG9ja2VkIGJ5IHRoZSBuZXcgQVBJLgo+
-ID4gPiA+IE9rLi4uIFF1ZXN0aW9uIGlzICJkb2VzIHNvbWVvbmUgYWN0dWFsbHkgdXNlIGh3bW9u
-Ki9uYW1lIG9uCj4gPiA+ID4gTjkwMCI/Cj4gPiA+ID4gSWYKPiA+ID4gPiBzbywgd2UgY2FuJ3Qg
-Y2hhbmdlIGl0LCBidXQgaXQgaXMgd2VsbCBwb3NzaWJsZSB0aGF0IG5vb25lIGlzLgo+ID4gPiBJ
-SVJDIGh3bW9uIGlzIHVzZWQgb24gTm9raWEgTjkwMC4KPiA+ID4gCj4gPiA+IEJ1dCBJIGhhdmUg
-bm90IHNlZW4gaHdtb24gZGV2aWNlcyBmb3IgYnEyNzIwMCBhbmQgcng1MS1iYXR0ZXJ5Cj4gPiA+
-IHlldC4KPiA+ID4gVGhvc2UgYXJlIHBvd2VyIHN1cHBseSBkcml2ZXIgYW5kIGF1dG8tZXhwb3J0
-aW5nIHRoZW0gYWxzbyB2aWEKPiA+ID4gaHdtb24KPiA+ID4gaXMKPiA+ID4gc29tZXRoaW5nIG5l
-dywgcmlnaHQ/IElmIHllcywgdGhlbiB3ZSBjYW4gdXNlIGFueSBuYW1lIGZvciB0aG9zZQo+ID4g
-PiBuZXcKPiA+ID4gaHdtb24gZGV2aWNlcyBhcyB0aGV5IGNhbm5vdCBicmVhayB1c2Vyc3BhY2Uu
-Li4gYXMgdGhlcmUgaXMgbm8KPiA+ID4gdXNlcnNwYWNlCj4gPiA+IGFwcGxpY2F0aW9uIGZvciB0
-aGVtLgo+ID4gPiAKPiA+IElmIHRoaXMgaXMgdGhlIGNhc2UsIHlvdSdkIGJldHRlciBzZXQKPiA+
-IChzdHJ1Y3QgdGhlcm1hbF96b25lX3BhcmFtcyktPm5vX2h3bW9uIHdoZW4gcmVnaXN0ZXJpbmcg
-dGhlIHRoZXJtYWwKPiA+IHpvbmUgZGV2aWNlLCBpbiB3aGljaCBjYXNlLCB0aGUgaHdtb24gZGV2
-aWNlIHdpbGwgbm90IGJlIGNyZWF0ZWQuCj4gPiAKPiA+IEluIGZhY3QsIEknZCBwcmVmZXIgdG8g
-Y2hhbmdlIHR6cC0+bm9faHdtb24gdG8gdHpwLT5od21vbiB0byBub3QKPiA+IGNyZWF0ZQo+ID4g
-aHdtb24gSS9GIGJ5IGRlZmF1bHQsIGFuZCBzZWUgaWYgdGhlcmUgaXMgYW55b25lIHVzaW5nIGl0
-LiBJZiB5ZXMsCj4gPiB3ZQo+ID4gY2FuIHNldCB0aGUgZmxhZyBpbiBzb2MgdGhlcm1hbCBkcml2
-ZXIsIGV4cGxpY2l0bHksIGF0IG1lYW50aW1lLCBhCj4gPiBod21vbiBjb21wYXRpYmxlIG5hbWUg
-aXMgcmVxdWlyZWQuCj4gPiAKPiA+IEJ1dCBvbmUgZm9yZXNlZWFibGUgcmVzdWx0IGlzIHRoYXQg
-d2UgbWF5IGdldCBidWcgcmVwb3J0cyBmcm9tIGVuZAo+ID4gdXNlcgo+ID4gdGhhdCBzb21lIHNl
-bnNvcnMgKGFjcGl0eiwgZXRjKSBhcmUgZ29uZSBpbiAnc2Vuc29ycycgb3V0cHV0LiBBbmQKPiA+
-IFRCSCwKPiA+IEknbSBub3QgcXVpdGUgc3VyZSBpZiB0aGlzIGNhbiBiZSBjb3VudGVkIGFzIGEg
-cmVncmVzc2lvbiBvciBub3QuCj4gPiAKPiBUaGF0IHNvdW5kcyBsaWtlIGZ1bi4gQ2hhbmdpbmcg
-YnEyNzIwMC0wIHRvIGJxMjcyMDBfMCBpcyBGb3JiaWRkZW4gYnkKPiB0aGUgQUJJIFBvbGljZSwg
-YnV0IHRha2luZyB0aGUgZW50aXJlIGRldmljZSBhd2F5IGlzIG9rLgo+IApOby4gSU1PLCBpdCBk
-ZXBlbmRzIG9uIGlmIHRoZSBpbnRlcmZhY2UgaXMgdXNlZCBvciBub3QuCklmIGh3bW9uIEkvRiBp
-cyB1c2VkLCB3ZSBjYW4gbm90IHRha2UgaXQgYXdheSwgbm9yIGNoYW5nZSBpdHMgbmFtZS4KSWYg
-dGhlcm1hbCB6b25lIEkvRiBpcyB1c2VkLCB3ZSBjYW4gbm90IGNoYW5nZSBpdCdzICd0eXBlJyBu
-YW1lIHRvIGJlCmNvbXBhdGlibGUgd2l0aCBuZXcgaHdtb24gQVBJLgoKPiBBbnl3YXksIHNvdW5k
-cyBnb29kIHRvIG1lLiBObyBvbmUgd2lsbCB1c2Ugc29tZXRoaW5nIHRoYXQgaXNuJ3QKPiB0aGVy
-ZSwKPiBhbmQgbm8gb25lIHdpbGwgcmVhbGl6ZSB0aGF0IGl0IGNvdWxkIGhhdmUgYmVlbiB0aGVy
-ZSwgc28gSSBkb24ndAo+IGV4cGVjdAo+IGFueW9uZSB0byBjb21wbGFpbi4KClllcywgSSBhZ3Jl
-ZS4KCnRoYW5rcywKcnVpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxp
-c3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9saW51eC1hcm0ta2VybmVsCg==
+Let's configure the keypad in a way where it's usable out of the
+box for Linux console use. To do this, let's follow the standard
+PC keyboard layout for ctrl, shift and alt keys:
+
+Ctrl = what is labeled as shift
+Alt = what is labeled as SYM
+Shift = what is lableled as caps lock
+Meta = what is labled as OK
+
+Who knows where they got the caps lock idea.. Probably from
+some focus group popularity vote or something.
+
+Note that some other keys don't match the labels either as they
+don't follow the PC keyboard style. For example we have "shift + ,"
+produce "<", and "shift + ." produce ">" instead of ";" and ":".
+
+Pretty much Esc is the only key missing. I've used "Meta + 1"
+produce Esc, and that seems to work OK. But that can be mapped
+using the standard userspace tools.
+
+Cc: Marcel Partap <mpartap@gmx.net>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Scott <michael.scott@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 72 ++++++++++++++++++++++++++++++++
+ 1 file changed, 72 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -5,6 +5,7 @@
+  */
+ /dts-v1/;
+ 
++#include <dt-bindings/input/input.h>
+ #include "omap443x.dtsi"
+ 
+ / {
+@@ -60,6 +61,77 @@
+ 	status = "disabled";
+ };
+ 
++&keypad {
++	keypad,num-rows = <8>;
++	keypad,num-columns = <8>;
++	linux,keymap = <
++
++	/* Row 1 */
++	MATRIX_KEY(0, 2, KEY_1)
++	MATRIX_KEY(0, 6, KEY_2)
++	MATRIX_KEY(2, 3, KEY_3)
++	MATRIX_KEY(0, 7, KEY_4)
++	MATRIX_KEY(0, 4, KEY_5)
++	MATRIX_KEY(5, 5, KEY_6)
++	MATRIX_KEY(0, 1, KEY_7)
++	MATRIX_KEY(0, 5, KEY_8)
++	MATRIX_KEY(0, 0, KEY_9)
++	MATRIX_KEY(1, 6, KEY_0)
++
++	/* Row 2 */
++	MATRIX_KEY(3, 4, KEY_APOSTROPHE)
++	MATRIX_KEY(7, 6, KEY_Q)
++	MATRIX_KEY(7, 7, KEY_W)
++	MATRIX_KEY(7, 2, KEY_E)
++	MATRIX_KEY(1, 0, KEY_R)
++	MATRIX_KEY(4, 4, KEY_T)
++	MATRIX_KEY(1, 2, KEY_Y)
++	MATRIX_KEY(6, 7, KEY_U)
++	MATRIX_KEY(2, 2, KEY_I)
++	MATRIX_KEY(5, 6, KEY_O)
++	MATRIX_KEY(3, 7, KEY_P)
++	MATRIX_KEY(6, 5, KEY_BACKSPACE)
++
++	/* Row 3 */
++	MATRIX_KEY(5, 4, KEY_TAB)
++	MATRIX_KEY(5, 7, KEY_A)
++	MATRIX_KEY(2, 7, KEY_S)
++	MATRIX_KEY(7, 0, KEY_D)
++	MATRIX_KEY(2, 6, KEY_F)
++	MATRIX_KEY(6, 2, KEY_G)
++	MATRIX_KEY(6, 6, KEY_H)
++	MATRIX_KEY(1, 4, KEY_J)
++	MATRIX_KEY(3, 1, KEY_K)
++	MATRIX_KEY(2, 1, KEY_L)
++	MATRIX_KEY(4, 6, KEY_ENTER)
++
++	/* Row 4 */
++	MATRIX_KEY(3, 6, KEY_LEFTSHIFT)		/* KEY_CAPSLOCK */
++	MATRIX_KEY(6, 1, KEY_Z)
++	MATRIX_KEY(7, 4, KEY_X)
++	MATRIX_KEY(5, 1, KEY_C)
++	MATRIX_KEY(1, 7, KEY_V)
++	MATRIX_KEY(2, 4, KEY_B)
++	MATRIX_KEY(4, 1, KEY_N)
++	MATRIX_KEY(1, 1, KEY_M)
++	MATRIX_KEY(3, 5, KEY_COMMA)
++	MATRIX_KEY(5, 2, KEY_DOT)
++	MATRIX_KEY(6, 3, KEY_UP)
++	MATRIX_KEY(7, 3, KEY_RIGHTMETA)		/* KEY_OK */
++
++	/* Row 5 */
++	MATRIX_KEY(2, 5, KEY_LEFTCTRL)		/* KEY_LEFTSHIFT */
++	MATRIX_KEY(4, 5, KEY_LEFTALT)		/* SYM */
++	MATRIX_KEY(6, 0, KEY_MINUS)
++	MATRIX_KEY(4, 7, KEY_EQUAL)
++	MATRIX_KEY(1, 5, KEY_SPACE)
++	MATRIX_KEY(3, 2, KEY_SLASH)
++	MATRIX_KEY(4, 3, KEY_LEFT)
++	MATRIX_KEY(5, 3, KEY_DOWN)
++	MATRIX_KEY(3, 3, KEY_RIGHT)
++	>;
++};
++
+ &mmc1 {
+ 	vmmc-supply = <&vmmc>;
+ 	bus-width = <4>;
+-- 
+2.11.0
