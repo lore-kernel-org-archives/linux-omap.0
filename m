@@ -1,68 +1,59 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 1/5] usb: musb: da8xx: Remove CPPI 3.0 quirk and
- methods
-Date: Fri, 27 Jan 2017 09:08:53 -0600
-Message-ID: <20170127150853.GB21144@uda0271908>
-References: <20170125103319.26021-1-abailon@baylibre.com>
- <20170125103319.26021-2-abailon@baylibre.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
+Date: Fri, 27 Jan 2017 09:20:39 -0800
+Message-ID: <20170127172039.GA2498@roeck-us.net>
+References: <88c94ea6-abe2-0f20-337e-e9ee00c883d8@roeck-us.net>
+ <20170124175800.GA15070@amd>
+ <20170124184526.GA25056@roeck-us.net>
+ <20170125111233.GB3912@amd>
+ <20170125120918.GA7936@pali>
+ <1485481030.2469.15.camel@intel.com>
+ <a6ce0873-9164-a965-a3e1-9eaaaec2201f@roeck-us.net>
+ <1485488382.2469.27.camel@intel.com>
+ <9146145b-7e21-c4de-a9cd-dad7bc74ee7a@roeck-us.net>
+ <1485528033.2469.61.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170125103319.26021-2-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1485528033.2469.61.camel@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, fabio.estevam@nxp.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 25, 2017 at 11:33:15AM +0100, Alexandre Bailon wrote:
-> DA8xx driver is registering and using the CPPI 3.0 DMA controller but
-> actually, the DA8xx has a CPPI 4.1 DMA controller.
-> Remove the CPPI 3.0 quirk and methods.
+On Fri, Jan 27, 2017 at 10:40:33PM +0800, Zhang Rui wrote:
+> > > 
+> > > If thermal zone I/F is used, we can not change it's 'type' name to
+> > > be
+> > > compatible with new hwmon API.
+> > > 
+> > You mean you can not fix the name to be compatible with libsensors.
+> > 
 > 
-> Fixes: f8e9f34f80a2 ("usb: musb: Fix up DMA related macros")
-> Fixes: 7f6283ed6fe8 ("usb: musb: Set up function pointers for DMA")
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> Acked-by: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> We can try to convert it to a libsensor-compatible string, either for
+> hwmon only, or for both thermal and hwmon. But this is an ABI change,
+> right?
 
-Applied, and added 'cc stable' tag.
+Let's go back to the basics.
 
-Since the dependant patch set is not ready to merge yet, I only picked
-this patch in this set for v4.11-rc1.
+Fact is that the thermal subsystem registers hwmon devices with 'name'
+attributes which violate the documented hardware monitoring ABI.
+I think we can consider this undisputed.
 
-Thanks,
--Bin.
+The rest is pretty much all opinion.
 
-> ---
->  drivers/usb/musb/da8xx.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-> index e89708d..cd3d763 100644
-> --- a/drivers/usb/musb/da8xx.c
-> +++ b/drivers/usb/musb/da8xx.c
-> @@ -458,15 +458,11 @@ static inline u8 get_vbus_power(struct device *dev)
->  }
->  
->  static const struct musb_platform_ops da8xx_ops = {
-> -	.quirks		= MUSB_DMA_CPPI | MUSB_INDEXED_EP,
-> +	.quirks		= MUSB_INDEXED_EP,
->  	.init		= da8xx_musb_init,
->  	.exit		= da8xx_musb_exit,
->  
->  	.fifo_mode	= 2,
-> -#ifdef CONFIG_USB_TI_CPPI_DMA
-> -	.dma_init	= cppi_dma_controller_create,
-> -	.dma_exit	= cppi_dma_controller_destroy,
-> -#endif
->  	.enable		= da8xx_musb_enable,
->  	.disable	= da8xx_musb_disable,
->  
-> -- 
-> 2.10.2
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is a change in a driver to stop violating a documented ABI an ABI change
+or a bug fix ? In other words, does a driver violating a documented ABI
+make that ABI violation part of the ABI ?
+
+Quite interesting questions. My take is that it is a bug fix, others
+apparently have the strong opinion that potential users of such an ABI
+violation have priority, and that a violation of a documented ABI _does_
+make this violation part of the ABI.
+
+I'll leave it at that. I tried to make my position clear, but it appears
+that I am quite alone in my opinion. With that, I'll leave it up to you to
+decide how to proceed.
+
+Guenter
