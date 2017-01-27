@@ -1,14 +1,22 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Add keypad support for droid 4
-Date: Thu, 26 Jan 2017 20:28:45 -0800
-Message-ID: <20170127042844.GU7403@atomide.com>
-References: <20170127041525.29648-1-tony@atomide.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
+Date: Thu, 26 Jan 2017 22:27:32 -0800
+Message-ID: <9146145b-7e21-c4de-a9cd-dad7bc74ee7a@roeck-us.net>
+References: <da1f1b45-3ae5-ffe8-62c6-9ec7c3a1505b@roeck-us.net>
+ <20170123144031.GA7870@amd> <20170123232654.GA19342@amd>
+ <20170123234912.GA2460@roeck-us.net> <20170124070639.GA5068@rzhang1-surface>
+ <20170124073720.GB5603@amd>
+ <88c94ea6-abe2-0f20-337e-e9ee00c883d8@roeck-us.net>
+ <20170124175800.GA15070@amd> <20170124184526.GA25056@roeck-us.net>
+ <20170125111233.GB3912@amd> <20170125120918.GA7936@pali>
+ <1485481030.2469.15.camel@intel.com>
+ <a6ce0873-9164-a965-a3e1-9eaaaec2201f@roeck-us.net>
+ <1485488382.2469.27.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20170127041525.29648-1-tony@atomide.com>
+In-Reply-To: <1485488382.2469.27.camel@intel.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,165 +26,77 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, linux-arm-kernel@lists.infradead.org, Michael Scott <michael.scott@linaro.org>
+To: Zhang Rui <rui.zhang@intel.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
+Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, abcloriens@gmail.com, fabio.estevam@nxp.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170126 20:16]:
-> Let's configure the keypad in a way where it's usable out of the
-> box for Linux console use. To do this, let's follow the standard
-> PC keyboard layout for ctrl, shift and alt keys:
-> 
-> Ctrl = what is labeled as shift
-> Alt = what is labeled as SYM
-> Shift = what is lableled as caps lock
-> Meta = what is labled as OK
-> 
-> Who knows where they got the caps lock idea.. Probably from
-> some focus group popularity vote or something.
-> 
-> Note that some other keys don't match the labels either as they
-> don't follow the PC keyboard style. For example we have "shift + ,"
-> produce "<", and "shift + ." produce ">" instead of ";" and ":".
-> 
-> Pretty much Esc is the only key missing. I've used "Meta + 1"
-> produce Esc, and that seems to work OK. But that can be mapped
-> using the standard userspace tools.
-
-Oh looks like KEY_VOLUMEUP is on omap4-keypad, then POWER and
-VOLUMEDOWN must be on the CPCAP.
-
-Updated patch below with KEY_VOLUMEUP added.
-
-Regards,
-
-Tony
-
-8< ------------------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 26 Jan 2017 16:14:55 -0800
-Subject: [PATCH] ARM: dts: Add keypad support for droid 4
-
-Let's configure the keypad in a way where it's usable out of the
-box for Linux console use. To do this, let's follow the standard
-PC keyboard layout for ctrl, shift and alt keys:
-
-Ctrl = what is labeled as shift
-Alt = what is labeled as SYM
-Shift = what is lableled as caps lock
-Meta = what is labled as OK
-
-Who knows where they got the caps lock idea.. Probably from
-some focus group popularity vote or something.
-
-Note that some other keys don't match the labels either as they
-don't follow the PC keyboard style. For example we have "shift + ,"
-produce "<", and "shift + ." produce ">" instead of ";" and ":".
-
-Pretty much Esc is the only key missing. I've used "Meta + 1"
-produce Esc, and that seems to work OK. But that can be mapped
-using the standard userspace tools.
-
-Cc: Marcel Partap <mpartap@gmx.net>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michael Scott <michael.scott@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 75 ++++++++++++++++++++++++++++++++
- 1 file changed, 75 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -5,6 +5,7 @@
-  */
- /dts-v1/;
- 
-+#include <dt-bindings/input/input.h>
- #include "omap443x.dtsi"
- 
- / {
-@@ -60,6 +61,80 @@
- 	status = "disabled";
- };
- 
-+&keypad {
-+	keypad,num-rows = <8>;
-+	keypad,num-columns = <8>;
-+	linux,keymap = <
-+
-+	/* Row 1 */
-+	MATRIX_KEY(0, 2, KEY_1)
-+	MATRIX_KEY(0, 6, KEY_2)
-+	MATRIX_KEY(2, 3, KEY_3)
-+	MATRIX_KEY(0, 7, KEY_4)
-+	MATRIX_KEY(0, 4, KEY_5)
-+	MATRIX_KEY(5, 5, KEY_6)
-+	MATRIX_KEY(0, 1, KEY_7)
-+	MATRIX_KEY(0, 5, KEY_8)
-+	MATRIX_KEY(0, 0, KEY_9)
-+	MATRIX_KEY(1, 6, KEY_0)
-+
-+	/* Row 2 */
-+	MATRIX_KEY(3, 4, KEY_APOSTROPHE)
-+	MATRIX_KEY(7, 6, KEY_Q)
-+	MATRIX_KEY(7, 7, KEY_W)
-+	MATRIX_KEY(7, 2, KEY_E)
-+	MATRIX_KEY(1, 0, KEY_R)
-+	MATRIX_KEY(4, 4, KEY_T)
-+	MATRIX_KEY(1, 2, KEY_Y)
-+	MATRIX_KEY(6, 7, KEY_U)
-+	MATRIX_KEY(2, 2, KEY_I)
-+	MATRIX_KEY(5, 6, KEY_O)
-+	MATRIX_KEY(3, 7, KEY_P)
-+	MATRIX_KEY(6, 5, KEY_BACKSPACE)
-+
-+	/* Row 3 */
-+	MATRIX_KEY(5, 4, KEY_TAB)
-+	MATRIX_KEY(5, 7, KEY_A)
-+	MATRIX_KEY(2, 7, KEY_S)
-+	MATRIX_KEY(7, 0, KEY_D)
-+	MATRIX_KEY(2, 6, KEY_F)
-+	MATRIX_KEY(6, 2, KEY_G)
-+	MATRIX_KEY(6, 6, KEY_H)
-+	MATRIX_KEY(1, 4, KEY_J)
-+	MATRIX_KEY(3, 1, KEY_K)
-+	MATRIX_KEY(2, 1, KEY_L)
-+	MATRIX_KEY(4, 6, KEY_ENTER)
-+
-+	/* Row 4 */
-+	MATRIX_KEY(3, 6, KEY_LEFTSHIFT)		/* KEY_CAPSLOCK */
-+	MATRIX_KEY(6, 1, KEY_Z)
-+	MATRIX_KEY(7, 4, KEY_X)
-+	MATRIX_KEY(5, 1, KEY_C)
-+	MATRIX_KEY(1, 7, KEY_V)
-+	MATRIX_KEY(2, 4, KEY_B)
-+	MATRIX_KEY(4, 1, KEY_N)
-+	MATRIX_KEY(1, 1, KEY_M)
-+	MATRIX_KEY(3, 5, KEY_COMMA)
-+	MATRIX_KEY(5, 2, KEY_DOT)
-+	MATRIX_KEY(6, 3, KEY_UP)
-+	MATRIX_KEY(7, 3, KEY_RIGHTMETA)		/* KEY_OK */
-+
-+	/* Row 5 */
-+	MATRIX_KEY(2, 5, KEY_LEFTCTRL)		/* KEY_LEFTSHIFT */
-+	MATRIX_KEY(4, 5, KEY_LEFTALT)		/* SYM */
-+	MATRIX_KEY(6, 0, KEY_MINUS)
-+	MATRIX_KEY(4, 7, KEY_EQUAL)
-+	MATRIX_KEY(1, 5, KEY_SPACE)
-+	MATRIX_KEY(3, 2, KEY_SLASH)
-+	MATRIX_KEY(4, 3, KEY_LEFT)
-+	MATRIX_KEY(5, 3, KEY_DOWN)
-+	MATRIX_KEY(3, 3, KEY_RIGHT)
-+
-+	/* Side buttons, KEY_VOLUMEDOWN and KEY_PWER are on CPCAP? */
-+	MATRIX_KEY(5, 0, KEY_VOLUMEUP)
-+	>;
-+};
-+
- &mmc1 {
- 	vmmc-supply = <&vmmc>;
- 	bus-width = <4>;
--- 
-2.11.0
+T24gMDEvMjYvMjAxNyAwNzozOSBQTSwgWmhhbmcgUnVpIHdyb3RlOgo+IE9uIFRodSwgMjAxNy0w
+MS0yNiBhdCAxODowMyAtMDgwMCwgR3VlbnRlciBSb2VjayB3cm90ZToKPj4gT24gMDEvMjYvMjAx
+NyAwNTozNyBQTSwgWmhhbmcgUnVpIHdyb3RlOgo+Pj4KPj4+IE9uIFdlZCwgMjAxNy0wMS0yNSBh
+dCAxMzowOSArMDEwMCwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4+Pj4KPj4+PiBPbiBXZWRuZXNkYXkg
+MjUgSmFudWFyeSAyMDE3IDEyOjEyOjMzIFBhdmVsIE1hY2hlayB3cm90ZToKPj4+Pj4KPj4+Pj4K
+Pj4+Pj4gSGkhCj4+Pj4+Cj4+Pj4+Pgo+Pj4+Pj4KPj4+Pj4+Pgo+Pj4+Pj4+Cj4+Pj4+Pj4+Cj4+
+Pj4+Pj4+Cj4+Pj4+Pj4+Pgo+Pj4+Pj4+Pj4KPj4+Pj4+Pj4+Pgo+Pj4+Pj4+Pj4+Cj4+Pj4+Pj4+
+Pj4gUmlnaHQuCj4+Pj4+Pj4+Pj4KPj4+Pj4+Pj4+PiBCZWZvcmUgcmV2ZXJ0aW5nLCBjYW4geW91
+IHBsZWFzZSB0cnkgaWYgdGhpcyBwYXRjaAo+Pj4+Pj4+Pj4+IHdvcmtzCj4+Pj4+Pj4+Pj4gb3Ig
+bm90Pwo+Pj4+Pj4+Pj4gTm90IHJlYWxseS4gUmV2ZXJ0IG5vdy4gU29ycnkuCj4+Pj4+Pj4+Pgo+
+Pj4+Pj4+Pj4gQXJlIHlvdSBzdXJlPyBUaGlzIGRvZXMgbm90IGxvb2sgZXF1aXZhbGVudCB0byBt
+ZSBhdAo+Pj4+Pj4+Pj4gYWxsLgo+Pj4+Pj4+Pj4KPj4+Pj4+Pj4+ICJuYW1lIiBmaWxlIGhhbmRs
+aW5nIG1vdmVkIGZyb20gZHJpdmVycyB0byB0aGUgY29yZSwKPj4+Pj4+Pj4+IHdoaWNoCj4+Pj4+
+Pj4+PiBhZGRlZCBzb21lCj4+Pj4+Pj4+PiBjcmF6eSBjaGVja3Mgd2hhdCBuYW1lIGNhbiBjb250
+YWluLiBFdmVuIGlmIHRoaXMKPj4+Pj4+Pj4+ICJ3b3JrcyIsCj4+Pj4+Pj4+PiB3aGF0IGlzIHRo
+ZQo+Pj4+Pj4+Pj4gZXhwZWN0ZWQgZWZmZWN0IG9uIHRoZSAibmFtZSIgZmlsZT8KPj4+Pj4+Pj4+
+Cj4+Pj4+Pj4+IFRoZSBod21vbiBuYW1lIGF0dHJpYnV0ZSBtdXN0IG5vdCBpbmNsdWRlICctJywg
+YXMKPj4+Pj4+Pj4gZG9jdW1lbnRlZAo+Pj4+Pj4+PiBpbgo+Pj4+Pj4+PiBEb2N1bWVudGF0aW9u
+L2h3bW9uL3N5c2ZzLWludGVyZmFjZS4gSXMgZW5mb3JjaW5nIHRoYXQKPj4+Pj4+Pj4gJ2NyYXp5
+JyA/Cj4+Pj4+Pj4+IE1heWJlIGluIHlvdXIgd29ybGQsIGJ1dCBub3QgaW4gbWluZS4KPj4+Pj4+
+PiBXZWxsLCBsZXRzIHJldmVydCB0aGUgcGF0Y2ggYW5kIHRoZW4gd2UgY2FuIGRpc2N1c3Mgd2hh
+dCB0bwo+Pj4+Pj4+IGRvCj4+Pj4+Pj4gd2l0aAo+Pj4+Pj4+IHRoZSAibmFtZSIgcHJvYmxlbS4K
+Pj4+Pj4gT2ssIHNvIHRoZSBwYXRjaCBpcyBvbiB0aGUgd2F5IGluLiBXaGF0IHRvIGRvIG5leHQ/
+Cj4+Pj4+Cj4+Pj4+IHBhdmVsQG45MDA6L3N5cy9jbGFzcy9od21vbiQgY2F0IGh3bW9uMC9uYW1l
+Cj4+Pj4+IGJxMjcyMDAtMAo+Pj4+PiBwYXZlbEBuOTAwOi9zeXMvY2xhc3MvaHdtb24kIGNhdCBo
+d21vbjEvbmFtZQo+Pj4+PiByeDUxLWJhdHRlcnkKPj4+Pj4KPj4+Pj4+Cj4+Pj4+Pgo+Pj4+Pj4g
+VG8gcHJvdmlkZSBzb21lIGRldGFpbDogbGlic2Vuc29ycyBnZXRzIGp1c3QgYXMgY29uZnVzZWQg
+d2l0aAo+Pj4+Pj4gd2lsZGNhcmRzCj4+Pj4+PiBhbmQgd2hpdGVzcGFjZS9uZXdsaW5lIGFzIGl0
+IGRvZXMgd2l0aCAnLScgaW4gdGhlIHJlcG9ydGVkCj4+Pj4+PiBuYW1lLAo+Pj4+Pj4gd2hpY2gK
+Pj4+Pj4+IGlzIHdoeSB0aG9zZSBhcmUgYmxvY2tlZCBieSB0aGUgbmV3IEFQSS4KPj4+Pj4gT2su
+Li4gUXVlc3Rpb24gaXMgImRvZXMgc29tZW9uZSBhY3R1YWxseSB1c2UgaHdtb24qL25hbWUgb24K
+Pj4+Pj4gTjkwMCI/Cj4+Pj4+IElmCj4+Pj4+IHNvLCB3ZSBjYW4ndCBjaGFuZ2UgaXQsIGJ1dCBp
+dCBpcyB3ZWxsIHBvc3NpYmxlIHRoYXQgbm9vbmUgaXMuCj4+Pj4gSUlSQyBod21vbiBpcyB1c2Vk
+IG9uIE5va2lhIE45MDAuCj4+Pj4KPj4+PiBCdXQgSSBoYXZlIG5vdCBzZWVuIGh3bW9uIGRldmlj
+ZXMgZm9yIGJxMjcyMDAgYW5kIHJ4NTEtYmF0dGVyeQo+Pj4+IHlldC4KPj4+PiBUaG9zZSBhcmUg
+cG93ZXIgc3VwcGx5IGRyaXZlciBhbmQgYXV0by1leHBvcnRpbmcgdGhlbSBhbHNvIHZpYQo+Pj4+
+IGh3bW9uCj4+Pj4gaXMKPj4+PiBzb21ldGhpbmcgbmV3LCByaWdodD8gSWYgeWVzLCB0aGVuIHdl
+IGNhbiB1c2UgYW55IG5hbWUgZm9yIHRob3NlCj4+Pj4gbmV3Cj4+Pj4gaHdtb24gZGV2aWNlcyBh
+cyB0aGV5IGNhbm5vdCBicmVhayB1c2Vyc3BhY2UuLi4gYXMgdGhlcmUgaXMgbm8KPj4+PiB1c2Vy
+c3BhY2UKPj4+PiBhcHBsaWNhdGlvbiBmb3IgdGhlbS4KPj4+Pgo+Pj4gSWYgdGhpcyBpcyB0aGUg
+Y2FzZSwgeW91J2QgYmV0dGVyIHNldAo+Pj4gKHN0cnVjdCB0aGVybWFsX3pvbmVfcGFyYW1zKS0+
+bm9faHdtb24gd2hlbiByZWdpc3RlcmluZyB0aGUgdGhlcm1hbAo+Pj4gem9uZSBkZXZpY2UsIGlu
+IHdoaWNoIGNhc2UsIHRoZSBod21vbiBkZXZpY2Ugd2lsbCBub3QgYmUgY3JlYXRlZC4KPj4+Cj4+
+PiBJbiBmYWN0LCBJJ2QgcHJlZmVyIHRvIGNoYW5nZSB0enAtPm5vX2h3bW9uIHRvIHR6cC0+aHdt
+b24gdG8gbm90Cj4+PiBjcmVhdGUKPj4+IGh3bW9uIEkvRiBieSBkZWZhdWx0LCBhbmQgc2VlIGlm
+IHRoZXJlIGlzIGFueW9uZSB1c2luZyBpdC4gSWYgeWVzLAo+Pj4gd2UKPj4+IGNhbiBzZXQgdGhl
+IGZsYWcgaW4gc29jIHRoZXJtYWwgZHJpdmVyLCBleHBsaWNpdGx5LCBhdCBtZWFudGltZSwgYQo+
+Pj4gaHdtb24gY29tcGF0aWJsZSBuYW1lIGlzIHJlcXVpcmVkLgo+Pj4KPj4+IEJ1dCBvbmUgZm9y
+ZXNlZWFibGUgcmVzdWx0IGlzIHRoYXQgd2UgbWF5IGdldCBidWcgcmVwb3J0cyBmcm9tIGVuZAo+
+Pj4gdXNlcgo+Pj4gdGhhdCBzb21lIHNlbnNvcnMgKGFjcGl0eiwgZXRjKSBhcmUgZ29uZSBpbiAn
+c2Vuc29ycycgb3V0cHV0LiBBbmQKPj4+IFRCSCwKPj4+IEknbSBub3QgcXVpdGUgc3VyZSBpZiB0
+aGlzIGNhbiBiZSBjb3VudGVkIGFzIGEgcmVncmVzc2lvbiBvciBub3QuCj4+Pgo+PiBUaGF0IHNv
+dW5kcyBsaWtlIGZ1bi4gQ2hhbmdpbmcgYnEyNzIwMC0wIHRvIGJxMjcyMDBfMCBpcyBGb3JiaWRk
+ZW4gYnkKPj4gdGhlIEFCSSBQb2xpY2UsIGJ1dCB0YWtpbmcgdGhlIGVudGlyZSBkZXZpY2UgYXdh
+eSBpcyBvay4KPj4KPiBOby4gSU1PLCBpdCBkZXBlbmRzIG9uIGlmIHRoZSBpbnRlcmZhY2UgaXMg
+dXNlZCBvciBub3QuCj4gSWYgaHdtb24gSS9GIGlzIHVzZWQsIHdlIGNhbiBub3QgdGFrZSBpdCBh
+d2F5LCBub3IgY2hhbmdlIGl0cyBuYW1lLgoKRXZlbiBpZiB0aGUgdXNlIGRvZXNuJ3QgZGVwZW5k
+IG9uIHRoYXQgbmFtZSA/Cgo+IElmIHRoZXJtYWwgem9uZSBJL0YgaXMgdXNlZCwgd2UgY2FuIG5v
+dCBjaGFuZ2UgaXQncyAndHlwZScgbmFtZSB0byBiZQo+IGNvbXBhdGlibGUgd2l0aCBuZXcgaHdt
+b24gQVBJLgo+CgpZb3UgbWVhbiB5b3UgY2FuIG5vdCBmaXggdGhlIG5hbWUgdG8gYmUgY29tcGF0
+aWJsZSB3aXRoIGxpYnNlbnNvcnMuCgpNYWtlcyBtZSB3b25kZXIgaWYgdGhlcmUgc2hvdWxkbid0
+IGJlIGEgcnVsZSB0aGF0IGV4cGxvaXRzIG11c3Qgbm90CmJlIGZpeGVkIGlmIGFscmVhZHkgZXhw
+bG9pdGVkLgoKR3VlbnRlcgoKPj4gQW55d2F5LCBzb3VuZHMgZ29vZCB0byBtZS4gTm8gb25lIHdp
+bGwgdXNlIHNvbWV0aGluZyB0aGF0IGlzbid0Cj4+IHRoZXJlLAo+PiBhbmQgbm8gb25lIHdpbGwg
+cmVhbGl6ZSB0aGF0IGl0IGNvdWxkIGhhdmUgYmVlbiB0aGVyZSwgc28gSSBkb24ndAo+PiBleHBl
+Y3QKPj4gYW55b25lIHRvIGNvbXBsYWluLgo+Cj4gWWVzLCBJIGFncmVlLgo+Cj4gdGhhbmtzLAo+
+IHJ1aQo+CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZy
+YWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGlu
+dXgtYXJtLWtlcm5lbAo=
