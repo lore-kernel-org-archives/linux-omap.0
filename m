@@ -1,83 +1,103 @@
-From: Zhang Rui <rui.zhang@intel.com>
+From: Guenter Roeck <linux@roeck-us.net>
 Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
-Date: Fri, 27 Jan 2017 09:37:10 +0800
-Message-ID: <1485481030.2469.15.camel@intel.com>
+Date: Thu, 26 Jan 2017 18:03:39 -0800
+Message-ID: <a6ce0873-9164-a965-a3e1-9eaaaec2201f@roeck-us.net>
 References: <da1f1b45-3ae5-ffe8-62c6-9ec7c3a1505b@roeck-us.net>
  <20170123144031.GA7870@amd> <20170123232654.GA19342@amd>
- <20170123234912.GA2460@roeck-us.net>
- <20170124070639.GA5068@rzhang1-surface> <20170124073720.GB5603@amd>
+ <20170123234912.GA2460@roeck-us.net> <20170124070639.GA5068@rzhang1-surface>
+ <20170124073720.GB5603@amd>
  <88c94ea6-abe2-0f20-337e-e9ee00c883d8@roeck-us.net>
  <20170124175800.GA15070@amd> <20170124184526.GA25056@roeck-us.net>
  <20170125111233.GB3912@amd> <20170125120918.GA7936@pali>
+ <1485481030.2469.15.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170125120918.GA7936@pali>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, abcloriens@gmail.com, Guenter Roeck <linux@roeck-us.net>, fabio.estevam@nxp.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1485481030.2469.15.camel@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
+Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, fabio.estevam@nxp.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCAyMDE3LTAxLTI1IGF0IDEzOjA5ICswMTAwLCBQYWxpIFJvaMOhciB3cm90ZToKPiBP
-biBXZWRuZXNkYXkgMjUgSmFudWFyeSAyMDE3IDEyOjEyOjMzIFBhdmVsIE1hY2hlayB3cm90ZToK
-PiA+IAo+ID4gSGkhCj4gPiAKPiA+ID4gCj4gPiA+ID4gCj4gPiA+ID4gPiAKPiA+ID4gPiA+ID4g
-Cj4gPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+ID4gUmlnaHQuCj4gPiA+ID4gPiA+ID4gCj4gPiA+
-ID4gPiA+ID4gQmVmb3JlIHJldmVydGluZywgY2FuIHlvdSBwbGVhc2UgdHJ5IGlmIHRoaXMgcGF0
-Y2ggd29ya3MKPiA+ID4gPiA+ID4gPiBvciBub3Q/Cj4gPiA+ID4gPiA+IE5vdCByZWFsbHkuIFJl
-dmVydCBub3cuIFNvcnJ5Lgo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gQXJlIHlvdSBzdXJlPyBU
-aGlzIGRvZXMgbm90IGxvb2sgZXF1aXZhbGVudCB0byBtZSBhdCBhbGwuCj4gPiA+ID4gPiA+IAo+
-ID4gPiA+ID4gPiAibmFtZSIgZmlsZSBoYW5kbGluZyBtb3ZlZCBmcm9tIGRyaXZlcnMgdG8gdGhl
-IGNvcmUsIHdoaWNoCj4gPiA+ID4gPiA+IGFkZGVkIHNvbWUKPiA+ID4gPiA+ID4gY3JhenkgY2hl
-Y2tzIHdoYXQgbmFtZSBjYW4gY29udGFpbi4gRXZlbiBpZiB0aGlzICJ3b3JrcyIsCj4gPiA+ID4g
-PiA+IHdoYXQgaXMgdGhlCj4gPiA+ID4gPiA+IGV4cGVjdGVkIGVmZmVjdCBvbiB0aGUgIm5hbWUi
-IGZpbGU/Cj4gPiA+ID4gPiA+IAo+ID4gPiA+ID4gVGhlIGh3bW9uIG5hbWUgYXR0cmlidXRlIG11
-c3Qgbm90IGluY2x1ZGUgJy0nLCBhcyBkb2N1bWVudGVkCj4gPiA+ID4gPiBpbgo+ID4gPiA+ID4g
-RG9jdW1lbnRhdGlvbi9od21vbi9zeXNmcy1pbnRlcmZhY2UuIElzIGVuZm9yY2luZyB0aGF0Cj4g
-PiA+ID4gPiAnY3JhenknID8KPiA+ID4gPiA+IE1heWJlIGluIHlvdXIgd29ybGQsIGJ1dCBub3Qg
-aW4gbWluZS4KPiA+ID4gPiBXZWxsLCBsZXRzIHJldmVydCB0aGUgcGF0Y2ggYW5kIHRoZW4gd2Ug
-Y2FuIGRpc2N1c3Mgd2hhdCB0byBkbwo+ID4gPiA+IHdpdGgKPiA+ID4gPiB0aGUgIm5hbWUiIHBy
-b2JsZW0uCj4gPiBPaywgc28gdGhlIHBhdGNoIGlzIG9uIHRoZSB3YXkgaW4uIFdoYXQgdG8gZG8g
-bmV4dD8KPiA+IAo+ID4gcGF2ZWxAbjkwMDovc3lzL2NsYXNzL2h3bW9uJCBjYXQgaHdtb24wL25h
-bWUKPiA+IGJxMjcyMDAtMAo+ID4gcGF2ZWxAbjkwMDovc3lzL2NsYXNzL2h3bW9uJCBjYXQgaHdt
-b24xL25hbWUKPiA+IHJ4NTEtYmF0dGVyeQo+ID4gCj4gPiA+IAo+ID4gPiBUbyBwcm92aWRlIHNv
-bWUgZGV0YWlsOiBsaWJzZW5zb3JzIGdldHMganVzdCBhcyBjb25mdXNlZCB3aXRoCj4gPiA+IHdp
-bGRjYXJkcwo+ID4gPiBhbmQgd2hpdGVzcGFjZS9uZXdsaW5lIGFzIGl0IGRvZXMgd2l0aCAnLScg
-aW4gdGhlIHJlcG9ydGVkIG5hbWUsCj4gPiA+IHdoaWNoCj4gPiA+IGlzIHdoeSB0aG9zZSBhcmUg
-YmxvY2tlZCBieSB0aGUgbmV3IEFQSS4KPiA+IE9rLi4uIFF1ZXN0aW9uIGlzICJkb2VzIHNvbWVv
-bmUgYWN0dWFsbHkgdXNlIGh3bW9uKi9uYW1lIG9uIE45MDAiPwo+ID4gSWYKPiA+IHNvLCB3ZSBj
-YW4ndCBjaGFuZ2UgaXQsIGJ1dCBpdCBpcyB3ZWxsIHBvc3NpYmxlIHRoYXQgbm9vbmUgaXMuCj4g
-SUlSQyBod21vbiBpcyB1c2VkIG9uIE5va2lhIE45MDAuCj4gCj4gQnV0IEkgaGF2ZSBub3Qgc2Vl
-biBod21vbiBkZXZpY2VzIGZvciBicTI3MjAwIGFuZCByeDUxLWJhdHRlcnkgeWV0Lgo+IFRob3Nl
-IGFyZSBwb3dlciBzdXBwbHkgZHJpdmVyIGFuZCBhdXRvLWV4cG9ydGluZyB0aGVtIGFsc28gdmlh
-IGh3bW9uCj4gaXMKPiBzb21ldGhpbmcgbmV3LCByaWdodD8gSWYgeWVzLCB0aGVuIHdlIGNhbiB1
-c2UgYW55IG5hbWUgZm9yIHRob3NlIG5ldwo+IGh3bW9uIGRldmljZXMgYXMgdGhleSBjYW5ub3Qg
-YnJlYWsgdXNlcnNwYWNlLi4uIGFzIHRoZXJlIGlzIG5vCj4gdXNlcnNwYWNlCj4gYXBwbGljYXRp
-b24gZm9yIHRoZW0uCj4gCklmIHRoaXMgaXMgdGhlIGNhc2UsIHlvdSdkIGJldHRlciBzZXQKKHN0
-cnVjdCB0aGVybWFsX3pvbmVfcGFyYW1zKS0+bm9faHdtb24gd2hlbiByZWdpc3RlcmluZyB0aGUg
-dGhlcm1hbAp6b25lIGRldmljZSwgaW4gd2hpY2ggY2FzZSwgdGhlIGh3bW9uIGRldmljZSB3aWxs
-IG5vdCBiZSBjcmVhdGVkLgoKSW4gZmFjdCwgSSdkIHByZWZlciB0byBjaGFuZ2UgdHpwLT5ub19o
-d21vbiB0byB0enAtPmh3bW9uIHRvIG5vdCBjcmVhdGUKaHdtb24gSS9GIGJ5IGRlZmF1bHQsIGFu
-ZCBzZWUgaWYgdGhlcmUgaXMgYW55b25lIHVzaW5nIGl0LiBJZiB5ZXMsIHdlCmNhbiBzZXQgdGhl
-IGZsYWcgaW4gc29jIHRoZXJtYWwgZHJpdmVyLCBleHBsaWNpdGx5LCBhdCBtZWFudGltZSwgYQpo
-d21vbiBjb21wYXRpYmxlIG5hbWUgaXMgcmVxdWlyZWQuCgpCdXQgb25lIGZvcmVzZWVhYmxlIHJl
-c3VsdCBpcyB0aGF0IHdlIG1heSBnZXQgYnVnIHJlcG9ydHMgZnJvbSBlbmQgdXNlcgp0aGF0IHNv
-bWUgc2Vuc29ycyAoYWNwaXR6LCBldGMpIGFyZSBnb25lIGluICdzZW5zb3JzJyBvdXRwdXQuIEFu
-ZCBUQkgsCkknbSBub3QgcXVpdGUgc3VyZSBpZiB0aGlzIGNhbiBiZSBjb3VudGVkIGFzIGEgcmVn
-cmVzc2lvbiBvciBub3QuCgp0aGFua3MsCnJ1aQo+ID4gCj4gPiBOZXh0IHF1ZXN0aW9uIGlzIC4u
-IGFyZSB0aGVyZSBvdGhlciBkcml2ZXJzIGFmZmVjdGVkPyBEbyB3ZSB3YW50IHRvCj4gPiBkbwo+
-ID4gJy0nIC0+ICdfJyBpbiB0aGUgY29yZSBvciBzb21ld2hlcmUgaW4gdGhlIGRyaXZlcnM/IFdl
-IG1pZ2h0IHdhbnQKPiA+IHRvCj4gPiBkbyB0aGUgY2hhbmdlIGluIGVhcmx5IGluIDQuMTEgYW5k
-IHNlZSB3aGF0IGJyZWFrcy4uLi4KPiBJSVJDIGh3bW9uIGNvcmUgZG9lcyBub3QgYWNjZXB0ICct
-JyBmb3IgYSBsb25nIHRpbWUgKG1heWJlIGFsbCA0LngKPiB2ZXJzaW9ucz8pLgo+IAoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5l
-bCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
-Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On 01/26/2017 05:37 PM, Zhang Rui wrote:
+> On Wed, 2017-01-25 at 13:09 +0100, Pali Rohár wrote:
+>> On Wednesday 25 January 2017 12:12:33 Pavel Machek wrote:
+>>>
+>>> Hi!
+>>>
+>>>>
+>>>>>
+>>>>>>
+>>>>>>>
+>>>>>>>>
+>>>>>>>> Right.
+>>>>>>>>
+>>>>>>>> Before reverting, can you please try if this patch works
+>>>>>>>> or not?
+>>>>>>> Not really. Revert now. Sorry.
+>>>>>>>
+>>>>>>> Are you sure? This does not look equivalent to me at all.
+>>>>>>>
+>>>>>>> "name" file handling moved from drivers to the core, which
+>>>>>>> added some
+>>>>>>> crazy checks what name can contain. Even if this "works",
+>>>>>>> what is the
+>>>>>>> expected effect on the "name" file?
+>>>>>>>
+>>>>>> The hwmon name attribute must not include '-', as documented
+>>>>>> in
+>>>>>> Documentation/hwmon/sysfs-interface. Is enforcing that
+>>>>>> 'crazy' ?
+>>>>>> Maybe in your world, but not in mine.
+>>>>> Well, lets revert the patch and then we can discuss what to do
+>>>>> with
+>>>>> the "name" problem.
+>>> Ok, so the patch is on the way in. What to do next?
+>>>
+>>> pavel@n900:/sys/class/hwmon$ cat hwmon0/name
+>>> bq27200-0
+>>> pavel@n900:/sys/class/hwmon$ cat hwmon1/name
+>>> rx51-battery
+>>>
+>>>>
+>>>> To provide some detail: libsensors gets just as confused with
+>>>> wildcards
+>>>> and whitespace/newline as it does with '-' in the reported name,
+>>>> which
+>>>> is why those are blocked by the new API.
+>>> Ok... Question is "does someone actually use hwmon*/name on N900"?
+>>> If
+>>> so, we can't change it, but it is well possible that noone is.
+>> IIRC hwmon is used on Nokia N900.
+>>
+>> But I have not seen hwmon devices for bq27200 and rx51-battery yet.
+>> Those are power supply driver and auto-exporting them also via hwmon
+>> is
+>> something new, right? If yes, then we can use any name for those new
+>> hwmon devices as they cannot break userspace... as there is no
+>> userspace
+>> application for them.
+>>
+> If this is the case, you'd better set
+> (struct thermal_zone_params)->no_hwmon when registering the thermal
+> zone device, in which case, the hwmon device will not be created.
+>
+> In fact, I'd prefer to change tzp->no_hwmon to tzp->hwmon to not create
+> hwmon I/F by default, and see if there is anyone using it. If yes, we
+> can set the flag in soc thermal driver, explicitly, at meantime, a
+> hwmon compatible name is required.
+>
+> But one foreseeable result is that we may get bug reports from end user
+> that some sensors (acpitz, etc) are gone in 'sensors' output. And TBH,
+> I'm not quite sure if this can be counted as a regression or not.
+>
+
+That sounds like fun. Changing bq27200-0 to bq27200_0 is Forbidden by
+the ABI Police, but taking the entire device away is ok.
+
+Anyway, sounds good to me. No one will use something that isn't there,
+and no one will realize that it could have been there, so I don't expect
+anyone to complain.
+
+Guenter
