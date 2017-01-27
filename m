@@ -1,55 +1,115 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
-Date: Fri, 27 Jan 2017 06:14:57 -0800
-Message-ID: <74f6b75a-66b0-789f-658b-0e9f5cfed5a8@roeck-us.net>
-References: <20170123234912.GA2460@roeck-us.net>
- <20170124070639.GA5068@rzhang1-surface> <20170124073720.GB5603@amd>
- <88c94ea6-abe2-0f20-337e-e9ee00c883d8@roeck-us.net>
- <20170124175800.GA15070@amd> <20170124184526.GA25056@roeck-us.net>
- <20170125111233.GB3912@amd> <20170125120918.GA7936@pali>
- <1485481030.2469.15.camel@intel.com>
- <a6ce0873-9164-a965-a3e1-9eaaaec2201f@roeck-us.net>
- <20170127110947.GA5335@amd>
+From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: dwc3 gadget breaks on system suspend/resume
+Date: Fri, 27 Jan 2017 16:17:02 +0200
+Message-ID: <87inp07fkx.fsf@linux.intel.com>
+References: <54bdc1b7-69ed-d580-fd17-3e7499ac1c27@ti.com> <87a8anjm5z.fsf@linux.intel.com> <a0cc2705-b1f5-7b6e-d73c-ff9b525eead2@ti.com> <e64bc4ee-1c71-d72c-cdc7-f5857f49a90e@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170127110947.GA5335@amd>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, abcloriens@gmail.com, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, fabio.estevam@nxp.com, Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <e64bc4ee-1c71-d72c-cdc7-f5857f49a90e-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb@vger.kernel.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 01/27/2017 03:09 AM, Pavel Machek wrote:
->
->>> If this is the case, you'd better set
->>> (struct thermal_zone_params)->no_hwmon when registering the thermal
->>> zone device, in which case, the hwmon device will not be created.
->>>
->>> In fact, I'd prefer to change tzp->no_hwmon to tzp->hwmon to not create
->>> hwmon I/F by default, and see if there is anyone using it. If yes, we
->>> can set the flag in soc thermal driver, explicitly, at meantime, a
->>> hwmon compatible name is required.
->>>
->>> But one foreseeable result is that we may get bug reports from end user
->>> that some sensors (acpitz, etc) are gone in 'sensors' output. And TBH,
->>> I'm not quite sure if this can be counted as a regression or not.
->>>
->>
->> That sounds like fun. Changing bq27200-0 to bq27200_0 is Forbidden by
->> the ABI Police, but taking the entire device away is ok.
->
-> Stop trying to break other people's systems. Thanks you.
->
-You still have not shown that it does. Actually, I am trying to _fix_
-other people's systems (those using libsensors).
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Guenter
+
+Hi,
+
+Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+
+> Felipe,
+>
+> On 19/01/17 14:16, Roger Quadros wrote:
+>> On 19/01/17 13:59, Felipe Balbi wrote:
+>>>
+>>> Hi,
+>>>
+>>> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+>>>> Hi Felipe,
+>>>>
+>>>> We have system suspend resume working on dra7-evm in v4.10-rc but
+>>>> dwc3 gadget breaks after system suspend resume.
+>>>>
+>>>> Any hints how to fix it? Full backtrace below.
+>>>
+>>> from a quick look. END_TRANSFER is timing out, most likely. Tracepoints
+>>> should give better hints.
+>>>
+>>> We might have a bug in dwc3_gadget_suspend(). No idea what's really
+>>> going on.
+>>>
+>>>> Another message that looks worry-some is
+>>>> "[   61.495313] omap-dwc3 48880000.omap_dwc3_1: runtime PM trying to s=
+uspend device but active child"
+>>>
+>>> did you implement runtime PM on dwc3-omap.c? Look at dwc3-pci.c for ref=
+erence.
+>>>
+>>>> If I unload gadget, then suspend/resume system then load gadget everyt=
+hing works fine.
+>>>
+>>> right, dwc3 UDC will already have been toredown. Unfortunately I can't
+>>> spend a lot of time on this, so you're gonna have to try to fix it and
+>>> provide a patch :-s Quite busy looking at some f_fs weirdness.
+>>=20
+>> No problem. I'll debug this issue.
+>
+> Bisected to bad commit 4eb3d981e7344ded9e5a8725ed934dd8f8056daf "usb: dwc=
+3: core: simplify suspend/resume operations".
+
+$ git show 4eb3d981e7344ded9e5a8725ed934dd8f8056daf
+fatal: bad object 4eb3d981e7344ded9e5a8725ed934dd8f8056daf
+
+That commit to me is:
+
+commit 51f5d49ad6f011ee380b866ea617fd90584189a2
+Author: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Date:   Mon May 16 10:52:58 2016 +0300
+
+    usb: dwc3: core: simplify suspend/resume operations
+=20=20=20=20
+    now that we have re-factored dwc3_core_init() and
+    dwc3_core_exit() we can use them for suspend/resume
+    operations.
+=20=20=20=20
+    This will help us avoid some common mistakes when
+    patching code when we have duplicated pieces of code
+    doing the same thing.
+=20=20=20=20
+    Signed-off-by: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+
+Can you please try actual mainline and not some tree where you
+cherry-picked patches on top? ;-)
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAliLVl4ACgkQzL64meEa
+mQZ+3A/+LHfXQ4ONOlN0r27b742TORV+L07vwM5RtrAx5pJBsmSfomaHdesGokmX
+0ZMDKOt7zWK+jeS3em5vKgAZhNDXYhzDSHTPxp+0h2rYf+jegFZJFNVl7Sh49r73
+awl9pQT90f4OzhXaD5LDGfQvn9x6UAQ9FzIelmXbSUcMkcVvZZ127/J5r1kLR1DQ
+kryxSj6s/AVztfUwNwiS5wfYSTh8/ig5TNahW1NhMW7DH4vEHkUQP18uC+xVWBkD
+5sPnh8YKLma9VTpOv0wE4VgAJY++nkbrqepAju1E8hnDKD2HbuEqY+6GXNs2CroG
+6D1KcX3sY5VAp9At4vutsouoKjM8LSYQ50HamclVV4oUORwlU6h9Ac4+1a4LV3fR
+4e+JBq1QIXhI26qseXOSUFmuuHlVaaM4Dlab1yrQCWUqu0JdDfnVkUMrISjFvOUP
+/VH5ALUpyQiqZRHE9WHZ1y43NiWXyKrMhH1PUyz5TZWAq+dmtz4IqD4/I4fYEyZ/
+hZOSGstucPqBHzJI0xAzT5KcdNwcXO1Qv6WMMhQ6w7LZ7RL40sh3tqBaF/LyLf3T
+Bv4PRiQzMGti21QGIXfSECMg6Z2gM5vKxos1l7HXMeyzBSlAubFF1Y9061hT28t1
+JHXMovUKAm/+vq247FeRZrJxXynvhZHZDSye9LukeZbmk0hnLRw=
+=vv2u
+-----END PGP SIGNATURE-----
+--=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
