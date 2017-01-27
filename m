@@ -1,59 +1,59 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: dwc3 gadget breaks on system suspend/resume
-Date: Fri, 27 Jan 2017 15:55:24 +0200
-Message-ID: <e64bc4ee-1c71-d72c-cdc7-f5857f49a90e@ti.com>
-References: <54bdc1b7-69ed-d580-fd17-3e7499ac1c27@ti.com>
- <87a8anjm5z.fsf@linux.intel.com>
- <a0cc2705-b1f5-7b6e-d73c-ff9b525eead2@ti.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: v4.10-rc4 to v4.10-rc5: battery regression on Nokia N900
+Date: Fri, 27 Jan 2017 06:13:43 -0800
+Message-ID: <37154fca-5cfd-7f65-0f9b-14b979a094e6@roeck-us.net>
+References: <20170124073720.GB5603@amd>
+ <88c94ea6-abe2-0f20-337e-e9ee00c883d8@roeck-us.net>
+ <20170124175800.GA15070@amd> <20170124184526.GA25056@roeck-us.net>
+ <20170125111233.GB3912@amd> <20170125120918.GA7936@pali>
+ <1485481030.2469.15.camel@intel.com>
+ <a6ce0873-9164-a965-a3e1-9eaaaec2201f@roeck-us.net>
+ <1485488382.2469.27.camel@intel.com>
+ <9146145b-7e21-c4de-a9cd-dad7bc74ee7a@roeck-us.net>
+ <20170127111626.GB5335@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <a0cc2705-b1f5-7b6e-d73c-ff9b525eead2-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170127111626.GB5335@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Zhang Rui <rui.zhang@intel.com>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, fabio.estevam@nxp.com
 List-Id: linux-omap@vger.kernel.org
 
-Felipe,
+On 01/27/2017 03:16 AM, Pavel Machek wrote:
+> Hi!
+>
+>>>> That sounds like fun. Changing bq27200-0 to bq27200_0 is Forbidden by
+>>>> the ABI Police, but taking the entire device away is ok.
+>
+> Changing bq27200-0 to bq27200_0 is forbidden in -rc6 time. If you
+> believe noone depends on the name, argue your case, and it might be
+> possible to change it in -rc0.
+>
+> If someone uses the name, they care about the device, and you can't
+> take it away.
+>
+>>> No. IMO, it depends on if the interface is used or not.
+>>> If hwmon I/F is used, we can not take it away, nor change its name.
+>>
+>> Even if the use doesn't depend on that name ?
+>
+> If the use doesn't depend on the name, you may get away with changing
+> the name. (But not in -rc6.)
+>
+>>> If thermal zone I/F is used, we can not change it's 'type' name to be
+>>> compatible with new hwmon API.
+>>
+>> You mean you can not fix the name to be compatible with libsensors.
+>>
+>> Makes me wonder if there shouldn't be a rule that exploits must not
+>> be fixed if already exploited.
+>
+> That is not useful argumentation.
 
-On 19/01/17 14:16, Roger Quadros wrote:
-> On 19/01/17 13:59, Felipe Balbi wrote:
->>
->> Hi,
->>
->> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
->>> Hi Felipe,
->>>
->>> We have system suspend resume working on dra7-evm in v4.10-rc but
->>> dwc3 gadget breaks after system suspend resume.
->>>
->>> Any hints how to fix it? Full backtrace below.
->>
->> from a quick look. END_TRANSFER is timing out, most likely. Tracepoints
->> should give better hints.
->>
->> We might have a bug in dwc3_gadget_suspend(). No idea what's really
->> going on.
->>
->>> Another message that looks worry-some is
->>> "[   61.495313] omap-dwc3 48880000.omap_dwc3_1: runtime PM trying to suspend device but active child"
->>
->> did you implement runtime PM on dwc3-omap.c? Look at dwc3-pci.c for reference.
->>
->>> If I unload gadget, then suspend/resume system then load gadget everything works fine.
->>
->> right, dwc3 UDC will already have been toredown. Unfortunately I can't
->> spend a lot of time on this, so you're gonna have to try to fix it and
->> provide a patch :-s Quite busy looking at some f_fs weirdness.
-> 
-> No problem. I'll debug this issue.
+Oh, but it is. Providing a valid name is a bug fix for me. For you it is
+an ABI change. So the ultimate question is what counts as an ABI change
+and what counts as a bug fix.
 
-Bisected to bad commit 4eb3d981e7344ded9e5a8725ed934dd8f8056daf "usb: dwc3: core: simplify suspend/resume operations".
-
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Guenter
