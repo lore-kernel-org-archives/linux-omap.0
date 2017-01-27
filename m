@@ -1,107 +1,62 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 1/3] dt/bindings: da8xx-usb: Add binding for the CPPI
- 4.1 DMA controller
-Date: Fri, 27 Jan 2017 16:23:10 -0600
-Message-ID: <20170127222310.glqcdqdtnw6pppxa@rob-hp-laptop>
-References: <20170124095848.14593-1-abailon@baylibre.com>
- <20170124095848.14593-2-abailon@baylibre.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: v4.9 to v4.10 regression: oops when USB cable is plugged in.
+Date: Sat, 28 Jan 2017 00:48:33 +0100
+Message-ID: <20170127234832.cte4ki4ajwme2b2j@earth>
+References: <20170123222537.GA11543@amd>
+ <20170123224454.GY7403@atomide.com>
+ <20170124091817.GA29246@amd>
+ <20170124100133.GA21079@pali>
+ <20170124145127.GC7403@atomide.com>
+ <20170127215512.GG20571@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="klyqronknuhl44rr"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170124095848.14593-2-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170127215512.GG20571@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, b-liu@ti.com, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 24, 2017 at 10:58:46AM +0100, Alexandre Bailon wrote:
-> DT binding for the TI DA8xx/OMAP-L1x/AM17xx/AM18xx CPPI 4.1 DMA controller.
-> 
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> ---
->  .../devicetree/bindings/usb/da8xx-usb.txt          | 39 ++++++++++++++++++++++
->  1 file changed, 39 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/da8xx-usb.txt b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
-> index ccb844a..c3944a6 100644
-> --- a/Documentation/devicetree/bindings/usb/da8xx-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/da8xx-usb.txt
-> @@ -18,10 +18,26 @@ Required properties:
->  
->   - phy-names: Should be "usb-phy"
->  
-> + - dmas: specifies the dma channels
-> +
-> + - dma-names: specifies the names of the channels. Use "rxN" for receive
-> +   and "txN" for transmit endpoints. N specifies the endpoint number.
-> +
->  Optional properties:
->  ~~~~~~~~~~~~~~~~~~~~
->   - vbus-supply: Phandle to a regulator providing the USB bus power.
->  
-> +DMA
-> +~~~
-> +- compatible: ti,da830-cppi41
-> +- reg: offset and length of the following register spaces: CPPI DMA Controller,
-> +  CPPI DMA Scheduler, Queue Manager
-> +- reg-names: "controller", "scheduler", "queuemgr"
-> +- #dma-cells: should be set to 2. The first number represents the
-> +  channel number (0 … 3 for endpoints 1 … 4).
-> +  The second number is 0 for RX and 1 for TX transfers.
-> +- #dma-channels: should be set to 4 representing the 4 endpoints.
-> +
->  Example:
->  	usb_phy: usb-phy {
->  		compatible = "ti,da830-usb-phy";
-> @@ -31,6 +47,9 @@ Example:
->  	usb0: usb@200000 {
->  		compatible = "ti,da830-musb";
->  		reg =   <0x00200000 0x10000>;
-> +		ranges;
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
->  		interrupts = <58>;
->  		interrupt-names = "mc";
->  
-> @@ -39,5 +58,25 @@ Example:
->  		phys = <&usb_phy 0>;
->  		phy-names = "usb-phy";
->  
-> +		dmas = <&cppi41dma 0 0 &cppi41dma 1 0
-> +			&cppi41dma 2 0 &cppi41dma 3 0
-> +			&cppi41dma 0 1 &cppi41dma 1 1
-> +			&cppi41dma 2 1 &cppi41dma 3 1>;
-> +		dma-names =
-> +			"rx1", "rx2", "rx3", "rx4",
-> +			"tx1", "tx2", "tx3", "tx4";
-> +
->  		status = "okay";
-> +
-> +		cppi41dma: dma-controller@201000 {
-> +			compatible = "ti,da830-cppi41";
-> +			reg =  <0x201000 0x1000
-> +				0x202000 0x1000
-> +				0x204000 0x4000>;
 
-This is creating overlapping addresses which we want to avoid. The 
-parent's ranges should be filled in and reg set to only those addresses 
-the parent will touch (0x200000-0x201000?). With that,
+--klyqronknuhl44rr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Hi,
 
-> +			reg-names = "controller", "scheduler", "queuemgr";
-> +			interrupts = <58>;
-> +			#dma-cells = <2>;
-> +			#dma-channels = <4>;
-> +		};
-> +
->  	};
-> -- 
-> 2.10.2
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Jan 27, 2017 at 10:55:12PM +0100, Pavel Machek wrote:
+> Ok, I can try. But so far even -rc1 is a lot of fun. But... I consider
+> phone calls core feature of a phone. I'd very much like to get that to
+> work. Unfortunately, that means real-time audio, and a lot of
+> fun. Plus, as it is touchscreen device, it needs a GUI.=20
+
+Talking about testing - kernelci's n900 is broken?
+
+https://kernelci.org/boot/omap3-n900/
+
+-- Sebastian
+
+--klyqronknuhl44rr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAliL3E4ACgkQ2O7X88g7
++poNpQ/+JV2FTU2ZvQjOoW3UmUc2KCmkL+LmWlX0NyjDrj14abnF3uD/Qdc9Qj4c
+MaTw5vVU+8vA63i3w15LMoFE08/NEFX2S03Lh6GlovQlrTK0f5W8gokMKptr/hlD
+/6tcVcg6WF0thNMbxWv0WReaBGQwobzXBT0Tp9UrRv3ez5PHbKXQo9B7nxlXBA0x
+vTNVbc43vVoIjUsTWtjCogZOI1E/iu91YvlsuH90+ceM50wQZTd2rYx/N1KYuP0w
+diO/JqeTCLpz4Lhr4H9IMjZCoU/GevNDYrkn1tnBvPjxouSwwLiaWLelaGdWl94z
+ihtcmj04zcK9/94SOBiA6UK+yeODiHht/8fhu0ddm3IN7mjaJBJjqQSeu44maA8i
+xLE2NbzcckD5/bqvntqXEzohgpnH1DZoY8WmkIWR6hIGO80h56lurFcCJmQXsrCx
+nerIDsTvi8NmNJGGSm56Qa4SlsCmDrbDaiKXs/hPA0ROWvwM74zv/EIcfmdZRZCJ
+XTCvoXzC9bIJ8MdGrtRo125ZEqQ4rl9lM0ojK5wDf/ZRK/OiDXIayTUquWbjLDOK
+RGg4EIDHYbvFwxMp1825zmoyeFfvRdulQckCZLqJcBRfO7u9w6yu5NWbOewSJrmT
+nXIju+LsUZ6GVAf3u2Vy0DiShOTYlpHP/1PusK2jSnICkkkAmXI=
+=774u
+-----END PGP SIGNATURE-----
+
+--klyqronknuhl44rr--
