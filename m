@@ -1,129 +1,218 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] pcie: ti: Provide patch to force GEN1 PCIe operation
-Date: Sat, 28 Jan 2017 14:54:59 -0600
-Message-ID: <20170128205459.GD20550@bhelgaas-glaptop.roam.corp.google.com>
-References: <1484486354-4585-1-git-send-email-lukma@denx.de>
-Mime-Version: 1.0
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: Re: [PATCH v9 1/8] drivers:input:tsc2007: add new common binding names, pre-calibration, flipping and rotation
+Date: Sat, 28 Jan 2017 22:44:35 +0100
+Message-ID: <1F6355E1-A5E3-41A6-908F-619A15581BEF@goldelico.com>
+References: <cover.1482936802.git.hns@goldelico.com> <9830dd21e6425e3a866fac6ed4cc73ddd58b719f.1482936802.git.hns@goldelico.com> <20170128193342.GB38136@dtor-ws>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1484486354-4585-1-git-send-email-lukma@denx.de>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lukasz Majewski <lukma@denx.de>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170128193342.GB38136@dtor-ws>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?utf-8?Q?Mika_Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Petr Cvek <petr.cve>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jan 15, 2017 at 02:19:14PM +0100, Lukasz Majewski wrote:
-> Some devices (due to e.g. bad PCIe signal integrity) require to run
-> with forced GEN1 speed on PCIe bus.
-> 
-> This patch changes the speed explicitly on dra7 based devices when
-> proper device tree attribute is defined for the PCIe controller.
-> 
-> Signed-off-by: Lukasz Majewski <lukma@denx.de>
+Hi Dmitry,
 
-Hi Lukasz, there was a lot of discussion after this, so I'm going to
-drop this version and wait for a new one (if one is still needed).
-I think I saw a URL with more scenario details; please include that if
-appropriate (ideally the details would be in a permanent public place
-like the kernel.org bugzilla).
+> Am 28.01.2017 um 20:33 schrieb Dmitry Torokhov =
+<dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>=20
+> Hi Nikolaus,
+>=20
+> On Wed, Dec 28, 2016 at 03:53:16PM +0100, H. Nikolaus Schaller wrote:
+>> commit b98abe52fa8e ("Input: add common DT binding for touchscreens")
+>> introduced common DT bindings for touchscreens [1] and a helper =
+function to
+>> parse the DT.
+>>=20
+>> commit ed7c9870c9bc ("Input: of_touchscreen - add support for =
+inverted / swapped axes")
+>> added another helper for parsing axis inversion and swapping
+>> and applying them to x and y coordinates.
+>>=20
+>> Both helpers have been integrated to accommodate any orientation of =
+the
+>> touch panel in relation to the LCD.
+>>=20
+>> A new feature is to introduce scaling the min/max ADC values to the =
+screen
+>> size.
+>>=20
+>> This makes it possible to pre-calibrate the touch so that is (almost)
+>> exactly matches the LCD pixel coordinates it is glued onto. This =
+allows to
+>> well enough operate the touch before a user space calibration step =
+can
+>> improve the precision.
+>=20
+> I question whether doing scaling in kernel is really right solution.
 
-> ---
-> 
-> Patch applies on newest origin/master
-> SHA1: f4d3935e4f4884ba80561db5549394afb8eef8f7
-> 
-> Tested at AM5728
-> 
-> ---
->  Documentation/devicetree/bindings/pci/ti-pci.txt |  1 +
->  drivers/pci/host/pci-dra7xx.c                    | 23 +++++++++++++++++++++++
->  drivers/pci/host/pcie-designware.h               |  1 +
->  3 files changed, 25 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> index 60e2516..9f97409 100644
-> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> @@ -25,6 +25,7 @@ PCIe Designware Controller
->  
->  Optional Property:
->   - gpios : Should be added if a gpio line is required to drive PERST# line
-> + - to,pcie-is-gen1: Indicates that forced gen1 port operation is needed.
->  
->  Example:
->  axi {
-> diff --git a/drivers/pci/host/pci-dra7xx.c b/drivers/pci/host/pci-dra7xx.c
-> index 9595fad..eec5fae 100644
-> --- a/drivers/pci/host/pci-dra7xx.c
-> +++ b/drivers/pci/host/pci-dra7xx.c
-> @@ -63,6 +63,13 @@
->  #define	LINK_UP						BIT(16)
->  #define	DRA7XX_CPU_TO_BUS_ADDR				0x0FFFFFFF
->  
-> +#define         PCIECTRL_EP_DBICS_LNK_CAP                       0x007C
-> +#define         MAX_LINK_SPEEDS_MASK				GENMASK(3, 0)
-> +#define         MAX_LINK_SPEEDS_GEN1                            BIT(0)
-> +
-> +#define         PCIECTRL_PL_WIDTH_SPEED_CTL                     0x080C
-> +#define         CFG_DIRECTED_SPEED_CHANGE                       BIT(17)
-> +
->  struct dra7xx_pcie {
->  	struct pcie_port	pp;
->  	void __iomem		*base;		/* DT ti_conf */
-> @@ -270,6 +277,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->  	struct pcie_port *pp = &dra7xx->pp;
->  	struct device *dev = pp->dev;
->  	struct resource *res;
-> +	u32 val;
->  
->  	pp->irq = platform_get_irq(pdev, 1);
->  	if (pp->irq < 0) {
-> @@ -296,6 +304,18 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->  	if (!pp->dbi_base)
->  		return -ENOMEM;
->  
-> +	if (pp->is_gen1) {
-> +		dev_info(dev, "GEN1 forced\n");
-> +
-> +		val = readl(pp->dbi_base + PCIECTRL_EP_DBICS_LNK_CAP);
-> +		set_mask_bits(&val, MAX_LINK_SPEEDS_MASK, MAX_LINK_SPEEDS_GEN1);
-> +		writel(val, pp->dbi_base + PCIECTRL_EP_DBICS_LNK_CAP);
-> +
-> +		val = readl(pp->dbi_base + PCIECTRL_PL_WIDTH_SPEED_CTL);
-> +		val &= ~CFG_DIRECTED_SPEED_CHANGE;
-> +		writel(val, pp->dbi_base + PCIECTRL_PL_WIDTH_SPEED_CTL);
-> +	}
-> +
->  	ret = dw_pcie_host_init(pp);
->  	if (ret) {
->  		dev_err(dev, "failed to initialize host\n");
-> @@ -404,6 +424,9 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  		goto err_gpio;
->  	}
->  
-> +	if (of_property_read_bool(np, "ti,pcie-is-gen1"))
-> +		pp->is_gen1 = true;
-> +
->  	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
->  	reg &= ~LTSSM_EN;
->  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
-> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
-> index a567ea2..2fb0b18 100644
-> --- a/drivers/pci/host/pcie-designware.h
-> +++ b/drivers/pci/host/pcie-designware.h
-> @@ -50,6 +50,7 @@ struct pcie_port {
->  	struct irq_domain	*irq_domain;
->  	unsigned long		msi_data;
->  	u8			iatu_unroll_enabled;
-> +	u8                      is_gen1;
->  	DECLARE_BITMAP(msi_irq_in_use, MAX_MSI_IRQS);
->  };
->  
-> -- 
-> 2.1.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Since lower left corner does not exactly report [0 0] and upper right =
+corner
+does not report [4095 4095] from the ADC we need offset and steepness =
+correction
+of the ADC values.
+
+This steepness is the scaling that must happen in kernel and I don't =
+understand
+why you want to propagate this ADC errors to user-space by avoiding =
+scaling.
+
+Let me iterate what we want to achieve:
+* use new common bindings
+* offset and steepness calibration of the ADC (called pre-calibration).
+  This makes a real device much more reliable to operate with factory =
+installed
+  scaling factors.
+* flipping and rotation
+
+(note that touch pixel to LCD pixel scaling is not explicitly on this =
+list!)
+
+Now to achieve the ADC pre-calibration we must calculate
+
+	x' =3D (x - ti,min-x) / (ti,max-x-ti,min-x) giving a rante from =
+0.0 ... 1.0
+
+This is scaled up to what is defined by touchscreen-size-x, i.e.
+
+	x' =3D (touchscreen-size-x * (x - ti,min-x)) / =
+(ti,max-x-ti,min-x)
+
+How do you want to avoid this scaling to take place? It happens =
+automatically.
+It is not even an additional line of code. And is necessary for =
+compensating ADC
+offsets and steepness.
+
+So the only way to avoid the scaling option is to eliminate the =
+precalibration/ADC
+compensation which is essential for a device which has no means to =
+properly
+calibrate before operating the device through touch.
+
+The other option would be to avoid common bindings and set
+
+	touchscreen-size-x =3D (ti,max-x-ti,min-x)
+
+This is heavily dependent on specific ADC offsets forwarded to =
+user-space.
+IMHO the worst we can do (and the current tsc2007 driver does it that =
+way!).
+
+>=20
+> Why do you want this?
+
+It seems that you assume that we want to enforce 1:1 scaling between =
+touch pixels
+and LCD pixels and have designed code to achieve exactly that.
+
+This is not the case. It is just a byproduct that you can do it.
+
+And since it is easier to understand we have made the examples this way.
+
+> If your touch resolution is lower than your screen
+> then it might be useful, but if it is lower then you are losing data
+> that can be very helpful for gesture recognition, and I hope you =
+design
+> your userspace so it can handle not only "bad" hardware, but "good" as
+> well. And even with "bad" there are a lot of tricks that can be done =
+to
+> get "better" touch position in userspace.
+
+You can just *choose* DT parameters touchscreen-size-x to match the LCD =
+size.
+This of course reduces the touch precision to full LCD pixels. For =
+finger-
+touch operated devices, subpixel precision is rarely needed.
+
+Also, some user-spaces (e.g. older Replicant for GTA04) assume that =
+there is
+such an 1:1 mapping and they will be perfectly happy about this.=20
+
+But, if you can modify your user-space easily, you can also choose a =
+different
+factor.
+
+You can for example define touchscreen-size-x=3D<4096> and then you get =
+almost
+the highest precision of the ADC and won't loose any bits. Or even =
+define a
+bigger range and get steps >1 bit.
+
+LCD driver (e.g. X11 calibration matrix) can scale it down again to LCD =
+pixels.
+
+So effectively we get for LCD pixels when the touch sets a mouse =
+pointer:
+
+	x'' =3D user-space-scale * <<input-event<< ((touchscreen-size-x =
+* (x - ti,min-x)) / (ti,max-x-ti,min-x))
+
+The most simple setup would then be but others are possible:
+
+	user-space-scale =3D 1
+	touchscreen-size-x =3D LCD-size-x
+
+Let me cite myself:
+
+>> This makes it possible to pre-calibrate the touch so that is (almost)
+
+
+>=20
+>>=20
+>> Please note that the old ti,fuzz properties have been removed since =
+they
+>> are replaced by the common bindings touchscreen-fuzz-x/y/z.
+>>=20
+>> Finally, calculate_pressure has been renamed to calculate_resistance
+>> because that is what it is doing.
+>=20
+> That is not what your patch does though. In the presence of
+> "ti,report-resistance" parameter you start reporting resistance =
+through
+> ABS_PRESSURE
+
+Well, there is some historic confusion wether this driver reports =
+resistance
+or pressure.
+
+The unpatched tsc2007 driver does it wrong (please test!) and we fix it =
+on
+the fly (because a separate patch is much more complex than doing it =
+right
+immediately).
+
+This ti,report-resistance property is a means to get the old (wrong) =
+meaning back
+in case someone urgently needs it and can't fix the user-space =
+workaround which
+he must be using.
+
+AFAIK there is no mainline board using the DT except ours (and the =
+upcoming
+OMAP5-Pyra), so we shouldn't care too much. If you prefer, you can =
+remove this
+compatibility property. We don't need it for our devices.
+
+That the function name is wrong is a second issue and this double =
+negation might
+confuse a litte.
+
+Please test on a real device if the patched driver reports pressure now =
+(unless
+ti,report-resistance is specified).
+
+> without any indication to the userspace that meaning of
+> event changed. This is no better if than reporting it through ABS_X. =
+You
+> should not override meaning of input events.
+
+BR and thanks,
+Nikolaus
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
