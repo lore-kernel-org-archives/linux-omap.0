@@ -1,42 +1,174 @@
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] regulator: pbias-regulator: constify regulator_ops structure
-Date: Sat, 28 Jan 2017 20:25:21 +0530
-Message-ID: <1485615321-30623-1-git-send-email-bhumirks@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: julia.lawall@lip6.fr, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: Re: [Letux-kernel] [PATCH v9 0/8] drivers: touchscreen: tsc2007 and ads7846/tsc2046 improvements (use common touchscreen bindings, pre-calibration, spi fix and provide iio raw values)
+Date: Sat, 28 Jan 2017 19:16:22 +0100
+Message-ID: <85077609-9A95-4DBC-BDC8-649C8692065B@goldelico.com>
+References: <cover.1482936802.git.hns@goldelico.com> <BB8421B2-6626-4A95-BCD0-25C4CAF30F61@goldelico.com> <17d2c23b-6cbb-d365-71cb-fd4d7af7c958@kernel.org> <B04BF50A-A54E-4CA2-BB0E-7B547D40403A@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <B04BF50A-A54E-4CA2-BB0E-7B547D40403A-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Declare regulator_ops structure as const as it is only stored in the ops
-field of a regulator_desc structure. This field is of type const, so
-regulator_ops structures having this property can be made const too.
+Hi Dmitry,
+there have been no further comments/complaints about this patch series in the last month.
+And it appears as if only your action is needed.
 
-File size before: drivers/regulator/pbias-regulator.o
-   text	   data	    bss	    dec	    hex	filename
-   2545	    624	      0	   3169	    c61 regulator/pbias-regulator.o
+What is missing for this patch series to be finally accepted?
 
-File size after: drivers/regulator/pbias-regulator.o
-   text	   data	    bss	    dec	    hex	filename
-   2801	    368	      0	   3169	    c61 regulator/pbias-regulator.o
+BR,
+Nikolaus
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/regulator/pbias-regulator.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/regulator/pbias-regulator.c b/drivers/regulator/pbias-regulator.c
-index f9d74d6..0cb76ba 100644
---- a/drivers/regulator/pbias-regulator.c
-+++ b/drivers/regulator/pbias-regulator.c
-@@ -54,7 +54,7 @@ struct pbias_of_data {
- 	3000000
- };
- 
--static struct regulator_ops pbias_regulator_voltage_ops = {
-+static const struct regulator_ops pbias_regulator_voltage_ops = {
- 	.list_voltage = regulator_list_voltage_table,
- 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
- 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
--- 
-1.9.1
+> Am 21.01.2017 um 14:17 schrieb H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
+> 
+> 
+>> Am 21.01.2017 um 14:08 schrieb Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>:
+>> 
+>> On 16/01/17 06:34, H. Nikolaus Schaller wrote:
+>>> ping
+>> Always good to say who you are pinging ;)
+> 
+> default = Maintainer
+> 
+> Only he/she can finally accept a patch series so I assume he has
+> to take action if there are no more things to debate.
+> 
+>> Saves the rest of us wondering
+>> if we have missing something we should have reviewed.
+>> 
+>> Guessing it's Dmitry in this case!
+> 
+> Yes, you are right. Since there have not been any more comments for a
+> while, I formally ask to add this to some tree so that it appears in
+> linux-next for further tests.
+> 
+> BR and thanks,
+> Nikolaus
+> 
+>> 
+>> Jonathan
+>>> 
+>>>> Am 28.12.2016 um 15:53 schrieb H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
+>>>> 
+>>>> Changes V9:
+>>>> * added explicit CONFIG for TSC2007_IIO and simplified Makefile (suggested by Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>)
+>>>> * make the tsc2007 iio patch the last one in this sequence
+>>>> 
+>>>> 2016-11-22 15:02:42: Changes V8:
+>>>> * fix compilation for CONFIG_IIO=m (reported by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>>>> * add some more Reviewed-by: and Acked-by:
+>>>> * mutiple improvements suggested by Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>>>> ** drop patch "send pendown and penup only once" (input core does take care of it now)
+>>>> ** remove not necessary EXPORT_SYMBOL
+>>>> ** remove explicit file names from comment header
+>>>> ** move tsc2007_iio_configure() to the end of the probe process and simplify the error path again
+>>>> ** remove unnecessary input_unregister_device() 
+>>>> ** improvement for compilation with CONFIG_IIO=m and CONFIG_TSC2007=y
+>>>> 
+>>>> 2016-11-11 20:02:11: Changes V7:
+>>>> * rearranged the include files (asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>>>> * forward reference struct iio_dev * instead of condition in tsc2007.h (asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>>>> * add some Acked-by:
+>>>> 
+>>>> 2016-10-27 10:44:29: Changes V6:
+>>>> * iio patch (no changes elsewhere)
+>>>> 	- tsc2007_iio: fix a missing return 0 for non-iio case (found by kbuid test robot)
+>>>> 	- tsc2007_core: group error return paths so that tsc2007_iio_unconfigure is called at only one place
+>>>> 	- tsc2007_iio: fix copyright (this file is 100% original work)
+>>>> 
+>>>> 2016-10-25 21:26:46: Changes V5:
+>>>> * ads7846: remove an empty line (suggested by Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>)
+>>>> * ads7846: remove MODULE_ALIAS for SPI (suggested by Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>)
+>>>> * tsc2007: fix a bug from swapping patch 3/n and patch 4/n (found by kbuild test robot)
+>>>> * refactored tsc2007 into tsc2007_core and tsc2007_iio (asked for by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>>>> 
+>>>> 2016-10-17 16:00:02: Changes V4:
+>>>> * fix a merge/squash issue resulting in a non-bisectable patch set (suggested by kbuid test robot)
+>>>> * remove some unnecessary #include (suggested by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>>>> * make the iio extension depend on CONFIG_IIO rather than selecting it (suggested by Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>)
+>>>> * swapped patch 3/n and patch 4/n to remove internal dependency
+>>>> 
+>>>> 2016-09-23 14:41:23: Changes V3:
+>>>> * fix an issue with swapping
+>>>> * remove hard clipping to min/max rectangle - some systems expect to handle negative coordinates
+>>>> * make use of commit ed7c9870c9bc ("Input: of_touchscreen - add support for inverted / swapped axes")
+>>>> 
+>>>> 2015-11-13 21:36:07: Changes V2:
+>>>> * add a patch to make drivers still recognise the old "ti,swap-xy" property (suggested by Rob Herring)
+>>>> 
+>>>> 2015-11-06 16:14:53: V1: This patch series improves the drivers for the tsc2007 and
+>>>> ads7846/tsc2046 touchscreen controllers which are e.g. used by the GTA04
+>>>> OpenPandora and Pyra devices.
+>>>> 
+>>>> New common bindings have been defined by
+>>>> commit b98abe52fa8e ("Input: add common DT binding for touchscreens"):
+>>>> 
+>>>> 	Documentation/devicetree/bindings/input/touchscreen/touchscreen.txt
+>>>> 
+>>>> which also defines a helper function to parse the DT. These new parameters
+>>>> allow to specify the fuzz factors (jitter suppression), inversion of x or y axis and
+>>>> swapping of x and y to achieve inversion and rotation so that the touch
+>>>> coordinate axes match the natural orientation of the display panel.
+>>>> 
+>>>> Another improvement is to better use the min/max ADC values and
+>>>> scale to the screen size as defined by the DT. This allows to coarsely
+>>>> calibrate the touch to match the LCD to which it is glued on so that the
+>>>> touch can quite precisely be operated before any user-space fine-calibration
+>>>> can be (and needs to be) started.
+>>>> 
+>>>> For the adc7846 we fix an issue with the spi module table.
+>>>> 
+>>>> Finally we add an iio interface for the AUX and temperature ADC channels of
+>>>> the tsc2007 and also provide the touch screen raw values. This allows to read
+>>>> an optional ambient light sensor installed on the gta04 board and improves
+>>>> calibration and hardware monitoring.
+>>>> 
+>>>> 
+>>>> H. Nikolaus Schaller (8):
+>>>> drivers:input:tsc2007: add new common binding names, pre-calibration,
+>>>>  flipping and rotation
+>>>> drivers:input:tsc2007: check for presence and power down tsc2007
+>>>>  during probe
+>>>> DT:omap3+tsc2007: use new common touchscreen bindings
+>>>> drivers:input:ads7846(+tsc2046): add new common binding names,
+>>>>  pre-calibration and flipping
+>>>> dt-bindings: input: move ads7846 bindings to touchscreen subdirectory
+>>>> drivers:input:ads7846(+tsc2046): fix spi module table
+>>>> DT:omap3+ads7846: use new common touchscreen bindings
+>>>> drivers:input:tsc2007: add iio interface to read external ADC input
+>>>>  and temperature
+>>>> 
+>>>> .../bindings/input/{ => touchscreen}/ads7846.txt   |   9 +-
+>>>> .../bindings/input/touchscreen/tsc2007.txt         |  20 +-
+>>>> arch/arm/boot/dts/omap3-gta04.dtsi                 |  25 ++-
+>>>> arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |   2 +-
+>>>> arch/arm/boot/dts/omap3-pandora-common.dtsi        |  17 +-
+>>>> .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   3 +-
+>>>> drivers/input/touchscreen/Kconfig                  |  10 +
+>>>> drivers/input/touchscreen/Makefile                 |   2 +
+>>>> drivers/input/touchscreen/ads7846.c                |  71 ++++++--
+>>>> drivers/input/touchscreen/tsc2007.h                | 116 ++++++++++++
+>>>> .../touchscreen/{tsc2007.c => tsc2007_core.c}      | 201 ++++++++++++---------
+>>>> drivers/input/touchscreen/tsc2007_iio.c            | 150 +++++++++++++++
+>>>> include/linux/i2c/tsc2007.h                        |   8 +
+>>>> 13 files changed, 520 insertions(+), 114 deletions(-)
+>>>> rename Documentation/devicetree/bindings/input/{ => touchscreen}/ads7846.txt (90%)
+>>>> create mode 100644 drivers/input/touchscreen/tsc2007.h
+>>>> rename drivers/input/touchscreen/{tsc2007.c => tsc2007_core.c} (74%)
+>>>> create mode 100644 drivers/input/touchscreen/tsc2007_iio.c
+>>>> 
+>>>> -- 
+>>>> 2.7.3
+>>>> 
+>>> 
+>> 
+> 
+> _______________________________________________
+> http://projects.goldelico.com/p/gta04-kernel/
+> Letux-kernel mailing list
+> Letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org
+> http://lists.goldelico.com/mailman/listinfo.cgi/letux-kernel
