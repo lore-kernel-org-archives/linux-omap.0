@@ -1,62 +1,133 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: v4.9 to v4.10 regression: oops when USB cable is plugged in.
-Date: Sat, 28 Jan 2017 00:48:33 +0100
-Message-ID: <20170127234832.cte4ki4ajwme2b2j@earth>
-References: <20170123222537.GA11543@amd>
- <20170123224454.GY7403@atomide.com>
- <20170124091817.GA29246@amd>
- <20170124100133.GA21079@pali>
- <20170124145127.GC7403@atomide.com>
- <20170127215512.GG20571@amd>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="klyqronknuhl44rr"
+From: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] regulator: palmas-regulator: constify regulator_ops structure
+Date: Sat, 28 Jan 2017 20:23:55 +0530
+Message-ID: <1485615235-30571-1-git-send-email-bhumirks@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170127215512.GG20571@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, b-liu@ti.com, linux-usb@vger.kernel.org
+To: julia.lawall@lip6.fr, lgirdwood@gmail.com, broonie@kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+Declare regulator_ops structure as const as it is only stored in the ops
+field of a regulator_desc structure. This field is of type const, so
+regulator_ops structures having this property can be made const too.
 
---klyqronknuhl44rr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+File size before: drivers/regulator/palmas-regulator.o
+   text	   data	    bss	    dec	    hex	filename
+   9752	   6296	    288	  16336	   3fd0 regulator/palmas-regulator.o
 
-Hi,
+File size after: drivers/regulator/palmas-regulator.o
+   text	   data	    bss	    dec	    hex	filename
+  12856	   3480	      8	  16344	   3fd0 regulator/palmas-regulator.o
 
-On Fri, Jan 27, 2017 at 10:55:12PM +0100, Pavel Machek wrote:
-> Ok, I can try. But so far even -rc1 is a lot of fun. But... I consider
-> phone calls core feature of a phone. I'd very much like to get that to
-> work. Unfortunately, that means real-time audio, and a lot of
-> fun. Plus, as it is touchscreen device, it needs a GUI.=20
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/regulator/palmas-regulator.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-Talking about testing - kernelci's n900 is broken?
-
-https://kernelci.org/boot/omap3-n900/
-
--- Sebastian
-
---klyqronknuhl44rr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAliL3E4ACgkQ2O7X88g7
-+poNpQ/+JV2FTU2ZvQjOoW3UmUc2KCmkL+LmWlX0NyjDrj14abnF3uD/Qdc9Qj4c
-MaTw5vVU+8vA63i3w15LMoFE08/NEFX2S03Lh6GlovQlrTK0f5W8gokMKptr/hlD
-/6tcVcg6WF0thNMbxWv0WReaBGQwobzXBT0Tp9UrRv3ez5PHbKXQo9B7nxlXBA0x
-vTNVbc43vVoIjUsTWtjCogZOI1E/iu91YvlsuH90+ceM50wQZTd2rYx/N1KYuP0w
-diO/JqeTCLpz4Lhr4H9IMjZCoU/GevNDYrkn1tnBvPjxouSwwLiaWLelaGdWl94z
-ihtcmj04zcK9/94SOBiA6UK+yeODiHht/8fhu0ddm3IN7mjaJBJjqQSeu44maA8i
-xLE2NbzcckD5/bqvntqXEzohgpnH1DZoY8WmkIWR6hIGO80h56lurFcCJmQXsrCx
-nerIDsTvi8NmNJGGSm56Qa4SlsCmDrbDaiKXs/hPA0ROWvwM74zv/EIcfmdZRZCJ
-XTCvoXzC9bIJ8MdGrtRo125ZEqQ4rl9lM0ojK5wDf/ZRK/OiDXIayTUquWbjLDOK
-RGg4EIDHYbvFwxMp1825zmoyeFfvRdulQckCZLqJcBRfO7u9w6yu5NWbOewSJrmT
-nXIju+LsUZ6GVAf3u2Vy0DiShOTYlpHP/1PusK2jSnICkkkAmXI=
-=774u
------END PGP SIGNATURE-----
-
---klyqronknuhl44rr--
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index f11d41d..31ae5ee 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -528,7 +528,7 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
+ 	return ret;
+ }
+ 
+-static struct regulator_ops palmas_ops_smps = {
++static const struct regulator_ops palmas_ops_smps = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -542,7 +542,7 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
+ 	.set_ramp_delay		= palmas_smps_set_ramp_delay,
+ };
+ 
+-static struct regulator_ops palmas_ops_ext_control_smps = {
++static const struct regulator_ops palmas_ops_ext_control_smps = {
+ 	.set_mode		= palmas_set_mode_smps,
+ 	.get_mode		= palmas_get_mode_smps,
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+@@ -553,7 +553,7 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
+ 	.set_ramp_delay		= palmas_smps_set_ramp_delay,
+ };
+ 
+-static struct regulator_ops palmas_ops_smps10 = {
++static const struct regulator_ops palmas_ops_smps10 = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -565,7 +565,7 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
+ 	.get_bypass		= regulator_get_bypass_regmap,
+ };
+ 
+-static struct regulator_ops tps65917_ops_smps = {
++static const struct regulator_ops tps65917_ops_smps = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -578,7 +578,7 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
+ 	.set_voltage_time_sel	= regulator_set_voltage_time_sel,
+ };
+ 
+-static struct regulator_ops tps65917_ops_ext_control_smps = {
++static const struct regulator_ops tps65917_ops_ext_control_smps = {
+ 	.set_mode		= palmas_set_mode_smps,
+ 	.get_mode		= palmas_get_mode_smps,
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+@@ -602,7 +602,7 @@ static int palmas_is_enabled_ldo(struct regulator_dev *dev)
+ 	return !!(reg);
+ }
+ 
+-static struct regulator_ops palmas_ops_ldo = {
++static const struct regulator_ops palmas_ops_ldo = {
+ 	.is_enabled		= palmas_is_enabled_ldo,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -612,7 +612,7 @@ static int palmas_is_enabled_ldo(struct regulator_dev *dev)
+ 	.map_voltage		= regulator_map_voltage_linear,
+ };
+ 
+-static struct regulator_ops palmas_ops_ldo9 = {
++static const struct regulator_ops palmas_ops_ldo9 = {
+ 	.is_enabled		= palmas_is_enabled_ldo,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -624,23 +624,23 @@ static int palmas_is_enabled_ldo(struct regulator_dev *dev)
+ 	.get_bypass		= regulator_get_bypass_regmap,
+ };
+ 
+-static struct regulator_ops palmas_ops_ext_control_ldo = {
++static const struct regulator_ops palmas_ops_ext_control_ldo = {
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+ 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
+ 	.list_voltage		= regulator_list_voltage_linear,
+ 	.map_voltage		= regulator_map_voltage_linear,
+ };
+ 
+-static struct regulator_ops palmas_ops_extreg = {
++static const struct regulator_ops palmas_ops_extreg = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+ };
+ 
+-static struct regulator_ops palmas_ops_ext_control_extreg = {
++static const struct regulator_ops palmas_ops_ext_control_extreg = {
+ };
+ 
+-static struct regulator_ops tps65917_ops_ldo = {
++static const struct regulator_ops tps65917_ops_ldo = {
+ 	.is_enabled		= palmas_is_enabled_ldo,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -651,7 +651,7 @@ static int palmas_is_enabled_ldo(struct regulator_dev *dev)
+ 	.set_voltage_time_sel	= regulator_set_voltage_time_sel,
+ };
+ 
+-static struct regulator_ops tps65917_ops_ldo_1_2 = {
++static const struct regulator_ops tps65917_ops_ldo_1_2 = {
+ 	.is_enabled		= palmas_is_enabled_ldo,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+-- 
+1.9.1
