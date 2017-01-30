@@ -1,14 +1,15 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/5] non-urgent omap fixes for v4.11 merge window
-Date: Sun, 29 Jan 2017 17:15:00 -0800
-Message-ID: <20170130011500.GV3133@localhost>
-References: <58879773.4111630a.b973d.9b1cSMTPIN_ADDED_BROKEN@mx.google.com>
+Subject: Re: [GIT PULL 2/5] omap soc changes for v4.11 merge window
+Date: Sun, 29 Jan 2017 17:15:51 -0800
+Message-ID: <20170130011551.GW3133@localhost>
+References: <pull-1485274191-192300>
+ <58879774.9c41620a.96bae.6ba2SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <58879773.4111630a.b973d.9b1cSMTPIN_ADDED_BROKEN@mx.google.com>
+In-Reply-To: <58879774.9c41620a.96bae.6ba2SMTPIN_ADDED_BROKEN@mx.google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,36 +23,43 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 24, 2017 at 10:05:14AM -0800, Tony Lindgren wrote:
+On Tue, Jan 24, 2017 at 10:05:15AM -0800, Tony Lindgren wrote:
 > The following changes since commit 7ce7d89f48834cefece7804d38fc5d85382edf77:
 > 
 >   Linux 4.10-rc1 (2016-12-25 16:13:08 -0800)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-not-urgent-signed
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/soc-signed
 > 
-> for you to fetch changes up to 631af44c10f9430163296626c6134db16a4f51fb:
+> for you to fetch changes up to 8c4bc910633d942b4422e8b264c39a48e230a261:
 > 
->   ARM: OMAP3: Fix SoC detection of OMAP36/37 Family (2017-01-20 10:13:06 -0800)
+>   ARM: OMAP: clock: Remove unused mpurate cmdline option (2017-01-24 07:20:02 -0800)
 > 
 > ----------------------------------------------------------------
-> Non-urgent fixes for omaps for v4.11 merge window. These all are
-> fixes for things that have never worked or have been broken for
-> a long time and nobody noticed:
+> SoC changes for omaps for v4.11 merge window. This adds support
+> for keeping the interconnect target module active for uart if
+> earlycon is specified. And we're adding Aaro Koskinen as a
+> co-maintainer for omap1 to make sure things stay working for
+> omap1. The other changes are mostly clean-up of old legacy code:
 > 
-> - Fix omap3 off mode pull defines
+> - Remove unused omap_display_init()
 > 
-> - Allow multiple pdata quirks instead of just one
+> - Make omapdss_find_dss_of_node() function static
 > 
-> - Fix am335x and dm814x scm syscon to probe children too
+> - Add support for earlycon
 > 
-> - Fix compatible for ti81xx to allow use with 8250_omap as well
+> - Tidy up omap1 usb logging output with pr_cont
 > 
-> - Fix 8250_omap on omap5 by adding HWMOD_SWSUP_SIDLE_ACT flag
+> - Make omap_otg_init() static
 > 
-> - Fix SoC detection for omap36/37 SoCs
+> - Delete redundant CPU class checks for omap1
+> 
+> - Remove unused mpurate cmdline option that has not done
+>   anything for past 1.5 years at least
+> 
 
 Merged, thanks!
+
 
 -Olof
