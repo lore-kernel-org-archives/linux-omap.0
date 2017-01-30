@@ -1,7 +1,7 @@
 From: Ravikumar Kattekola <rk@ti.com>
-Subject: [PATCH 1/3] mmc: host: omap_hsmmc: reset cmd line on ceb error
-Date: Mon, 30 Jan 2017 15:41:56 +0530
-Message-ID: <1485771118-13748-2-git-send-email-rk@ti.com>
+Subject: [PATCH 3/3] mmc: host: omap_hsmmc: avoid possible overflow of timeout value
+Date: Mon, 30 Jan 2017 15:41:58 +0530
+Message-ID: <1485771118-13748-4-git-send-email-rk@ti.com>
 References: <1485771118-13748-1-git-send-email-rk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,31 +12,54 @@ To: ulf.hansson@linaro.org, peter.ujfalusi@ti.com, nsekhar@ti.com, tony@atomide.
 Cc: kishon@ti.com, rk@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-When CEB (command end bit error) occurs
-reset CMD line to avoid system ending up in
-erroneous state.
-While command line is reset for CTO and CCRC errors,
-it's not done for CEB error. Fix it here.
+Fixes: a45c6cb81647 ("[ARM] 5369/1: omap mmc: Add new omap
+hsmmc controller for 2430 and 34xx, v3")
 
-Reviewed-by: Kishon Vijay Abraham I <kishon@ti.com>
+when using really large timeout (up to 4*60*1000 ms for bkops)
+there is a possibility of data overflow using
+unsigned int so use 64 bit unsigned long long.
+
 Signed-off-by: Ravikumar Kattekola <rk@ti.com>
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/mmc/host/omap_hsmmc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/omap_hsmmc.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index ad11c4c..0ee5650 100644
+index 51ca3d7..a58bd65 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1162,7 +1162,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
- 	if (status & ERR_EN) {
- 		omap_hsmmc_dbg_report_irq(host, status);
+@@ -1469,10 +1469,11 @@ static int omap_hsmmc_setup_dma_transfer(struct omap_hsmmc_host *host,
+ }
  
--		if (status & (CTO_EN | CCRC_EN))
-+		if (status & (CTO_EN | CCRC_EN | CEB_EN))
- 			end_cmd = 1;
- 		if (host->data || host->response_busy) {
- 			end_trans = !end_cmd;
+ static void set_data_timeout(struct omap_hsmmc_host *host,
+-			     unsigned int timeout_ns,
++			     unsigned long long timeout_ns,
+ 			     unsigned int timeout_clks)
+ {
+-	unsigned int timeout, cycle_ns;
++	unsigned long long timeout = timeout_ns;
++	unsigned int cycle_ns;
+ 	uint32_t reg, clkd, dto = 0;
+ 
+ 	reg = OMAP_HSMMC_READ(host->base, SYSCTL);
+@@ -1481,7 +1482,7 @@ static void set_data_timeout(struct omap_hsmmc_host *host,
+ 		clkd = 1;
+ 
+ 	cycle_ns = 1000000000 / (host->clk_rate / clkd);
+-	timeout = timeout_ns / cycle_ns;
++	do_div(timeout, cycle_ns);
+ 	timeout += timeout_clks;
+ 	if (timeout) {
+ 		while ((timeout & 0x80000000) == 0) {
+@@ -1527,7 +1528,7 @@ static void omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host)
+ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
+ {
+ 	int ret;
+-	unsigned int timeout;
++	unsigned long long timeout;
+ 
+ 	host->data = req->data;
+ 
 -- 
 1.9.1
