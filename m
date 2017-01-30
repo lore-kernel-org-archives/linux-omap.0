@@ -1,65 +1,64 @@
-From: Ravikumar Kattekola <rk@ti.com>
-Subject: [PATCH 3/3] mmc: host: omap_hsmmc: avoid possible overflow of timeout value
-Date: Mon, 30 Jan 2017 15:41:58 +0530
-Message-ID: <1485771118-13748-4-git-send-email-rk@ti.com>
-References: <1485771118-13748-1-git-send-email-rk@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: dwc3 gadget breaks on system suspend/resume
+Date: Mon, 30 Jan 2017 14:46:00 +0200
+Message-ID: <a91c7564-5bfa-c77f-8fa2-1c1b0bcfd815@ti.com>
+References: <54bdc1b7-69ed-d580-fd17-3e7499ac1c27@ti.com>
+ <87a8anjm5z.fsf@linux.intel.com>
+ <a0cc2705-b1f5-7b6e-d73c-ff9b525eead2@ti.com>
+ <e64bc4ee-1c71-d72c-cdc7-f5857f49a90e@ti.com>
+ <87inp07fkx.fsf@linux.intel.com>
+ <57fbf2b6-3811-3202-0e69-7cf82662d50f@ti.com>
+ <8760l07dfh.fsf@linux.intel.com> <87wpdg5wtx.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1485771118-13748-1-git-send-email-rk@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ulf.hansson@linaro.org, peter.ujfalusi@ti.com, nsekhar@ti.com, tony@atomide.com, afenkart@gmail.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: kishon@ti.com, rk@ti.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87wpdg5wtx.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Fixes: a45c6cb81647 ("[ARM] 5369/1: omap mmc: Add new omap
-hsmmc controller for 2430 and 34xx, v3")
+Hi,
 
-when using really large timeout (up to 4*60*1000 ms for bkops)
-there is a possibility of data overflow using
-unsigned int so use 64 bit unsigned long long.
+On 27/01/17 17:47, Felipe Balbi wrote:
+> 
+> Hi,
+> 
+> (hmm, I didn't receive your reply in my intel inbox, only
+> gmail. Odd. Replying to myself here, but it should be on your reply,
+> rater).
+> 
+> Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> writes:
+>>> The previous commit c499ff71ff2a281366c6ec7a904c547d806cbcd1 is fine.
+>>
+>> okay. Then let's try to figure out what's going on. A diff of regdump
+>> before and after suspend/resume might start to give some clue about
+>> what's going on. DWC3 tracepoints should help too. Care to get those?
+>> BTW, is this dwc3 as host or peripheral?
+> 
+> You don't have any endpoints enabled:
+> 
+> -DALEPENA = 0x0000000f
+> +DALEPENA = 0x00000000
 
-Signed-off-by: Ravikumar Kattekola <rk@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+Thanks for the hints.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 51ca3d7..a58bd65 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1469,10 +1469,11 @@ static int omap_hsmmc_setup_dma_transfer(struct omap_hsmmc_host *host,
- }
- 
- static void set_data_timeout(struct omap_hsmmc_host *host,
--			     unsigned int timeout_ns,
-+			     unsigned long long timeout_ns,
- 			     unsigned int timeout_clks)
- {
--	unsigned int timeout, cycle_ns;
-+	unsigned long long timeout = timeout_ns;
-+	unsigned int cycle_ns;
- 	uint32_t reg, clkd, dto = 0;
- 
- 	reg = OMAP_HSMMC_READ(host->base, SYSCTL);
-@@ -1481,7 +1482,7 @@ static void set_data_timeout(struct omap_hsmmc_host *host,
- 		clkd = 1;
- 
- 	cycle_ns = 1000000000 / (host->clk_rate / clkd);
--	timeout = timeout_ns / cycle_ns;
-+	do_div(timeout, cycle_ns);
- 	timeout += timeout_clks;
- 	if (timeout) {
- 		while ((timeout & 0x80000000) == 0) {
-@@ -1527,7 +1528,7 @@ static void omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host)
- omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
- {
- 	int ret;
--	unsigned int timeout;
-+	unsigned long long timeout;
- 
- 	host->data = req->data;
- 
--- 
-1.9.1
+This problem is because reason dwc3_gadget_run_stop() is timing out
+during the suspend sequence and so dwc3_disconnect_gadget() and
+__dwc3_gadget_stop() are not being called.
+
+dwc3_suspend() does not consider dwc3_gadget_suspend()'s return value
+and happily continues suspending the machine.
+
+If I force dwc3_gadget_run_stop() to return 0 then everything works fine.
+
+Any ideas why DWC3_DSTS_DEVCTRLHLT is not getting set?
+I checked that DWC3_GEVNTCOUNT(0) is zero.
+
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
