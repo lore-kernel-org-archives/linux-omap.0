@@ -1,54 +1,74 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 5/5] omap defconfig changes for v4.11 merge window
-Date: Sun, 29 Jan 2017 17:18:41 -0800
-Message-ID: <20170130011841.GZ3133@localhost>
-References: <pull-1485274191-192300>
- <58879776.0ada620a.ff7f0.43b9SMTPIN_ADDED_BROKEN@mx.google.com>
+From: Ravikumar Kattekola <rk@ti.com>
+Subject: [PATCH 2/3] mmc: host: omap_hsmmc: use generic_cmd6_time to program timeout value for CMD6
+Date: Mon, 30 Jan 2017 15:41:57 +0530
+Message-ID: <1485771118-13748-3-git-send-email-rk@ti.com>
+References: <1485771118-13748-1-git-send-email-rk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <58879776.0ada620a.ff7f0.43b9SMTPIN_ADDED_BROKEN@mx.google.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1485771118-13748-1-git-send-email-rk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: ulf.hansson@linaro.org, peter.ujfalusi@ti.com, nsekhar@ti.com, tony@atomide.com, afenkart@gmail.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: kishon@ti.com, rk@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 24, 2017 at 10:05:18AM -0800, Tony Lindgren wrote:
-> The following changes since commit 7ce7d89f48834cefece7804d38fc5d85382edf77:
-> 
->   Linux 4.10-rc1 (2016-12-25 16:13:08 -0800)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/defconfig-signed
-> 
-> for you to fetch changes up to ac57feb25833a6f3832a436d28808ffc16c672b3:
-> 
->   ARM: omap2plus_defconfig: Enable support for RTC M41T80 (2017-01-24 07:04:11 -0800)
-> 
-> ----------------------------------------------------------------
-> Few omap2plus_defconfig changes for v4.11 merge window:
-> 
-> - Switch to use LIS3LV02DL IIO driver instead of the
->   LIS3LC02D misc driver
-> 
-> - Set CONFIG_SERIAL_8250_RUNTIME_UARTS=6 to avoid runtime
->   warnings on omap5 and dra7
-> 
-> - Enable ksz9021 phy and m41t80 rtc as they are used at
->   least on phyCORE-AM335x
+From: Kishon Vijay Abraham I <kishon@ti.com>
 
-Merged, thanks.
+commit e2bf08d643a244ccb ("omap_hsmmc: set a large data timeout for
+commands with busy signal") sets an arbitrary timeout value (100ms) for
+commands like CMD6 (MMC SWITCH). However extended CSD register defined
+in the eMMC standard has a field for GENERIC_CMD6_TIME which indicates
+the default maximum timeout for a SWITCH command.
+Use busy_timeout of cmd structure (populated with GENERIC_CMD6_TIME
+in the case of SWITCH command) to program the data timeout value in
+omap_hsmmc driver.
+SWITCH command to turn the cache on took more than 100ms to complete
+with MICRON eMMC card present in AM572x IDK REV 1.3A resulting in
+timeout and failed enumeration. It is fixed here by programming the
+timeout with the value advertised in GENERIC_CMD6_TIME.
 
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Ravikumar Kattekola <rk@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
--Olof
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 0ee5650..51ca3d7 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1527,16 +1527,24 @@ static void omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host)
+ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
+ {
+ 	int ret;
++	unsigned int timeout;
++
+ 	host->data = req->data;
+ 
+ 	if (req->data == NULL) {
+ 		OMAP_HSMMC_WRITE(host->base, BLK, 0);
+-		/*
+-		 * Set an arbitrary 100ms data timeout for commands with
+-		 * busy signal.
+-		 */
+-		if (req->cmd->flags & MMC_RSP_BUSY)
+-			set_data_timeout(host, 100000000U, 0);
++		if (req->cmd->flags & MMC_RSP_BUSY) {
++			timeout = req->cmd->busy_timeout * NSEC_PER_MSEC;
++
++			/*
++			 * Set an arbitrary 100ms data timeout for commands with
++			 * busy signal and no indication of busy_timeout.
++			 */
++			if (!timeout)
++				timeout = 100000000U;
++
++			set_data_timeout(host, timeout, 0);
++		}
+ 		return 0;
+ 	}
+ 
+-- 
+1.9.1
+
