@@ -1,95 +1,57 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v9 6/8] drivers:input:ads7846(+tsc2046): fix spi module table
-Date: Sun, 29 Jan 2017 19:25:43 +0100
-Message-ID: <A169CC1E-9EC9-43CA-887B-1382F1903CE1@goldelico.com>
-References: <cover.1482936802.git.hns@goldelico.com> <c79bdd79a22dab877b8a80136ac253c951698745.1482936802.git.hns@goldelico.com> <20170128193558.GC38136@dtor-ws> <F39E49DD-45AF-4491-A26E-F3A9D86F30F6@goldelico.com> <20170129180108.GA10743@dtor-ws>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20170129180108.GA10743@dtor-ws>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, =?utf-8?Q?Mika_Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, Alexander Stein <alexander.stein@systec-electronic.com>, Eric Engestrom <eric@engestrom.ch>, Hans de Goede <hdegoede@redhat.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Petr Cvek <petr.cve>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/5] non-urgent omap fixes for v4.11 merge window
+Date: Sun, 29 Jan 2017 17:15:00 -0800
+Message-ID: <20170130011500.GV3133@localhost>
+References: <58879773.4111630a.b973d.9b1cSMTPIN_ADDED_BROKEN@mx.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <58879773.4111630a.b973d.9b1cSMTPIN_ADDED_BROKEN@mx.google.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
+On Tue, Jan 24, 2017 at 10:05:14AM -0800, Tony Lindgren wrote:
+> The following changes since commit 7ce7d89f48834cefece7804d38fc5d85382edf77:
+> 
+>   Linux 4.10-rc1 (2016-12-25 16:13:08 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-not-urgent-signed
+> 
+> for you to fetch changes up to 631af44c10f9430163296626c6134db16a4f51fb:
+> 
+>   ARM: OMAP3: Fix SoC detection of OMAP36/37 Family (2017-01-20 10:13:06 -0800)
+> 
+> ----------------------------------------------------------------
+> Non-urgent fixes for omaps for v4.11 merge window. These all are
+> fixes for things that have never worked or have been broken for
+> a long time and nobody noticed:
+> 
+> - Fix omap3 off mode pull defines
+> 
+> - Allow multiple pdata quirks instead of just one
+> 
+> - Fix am335x and dm814x scm syscon to probe children too
+> 
+> - Fix compatible for ti81xx to allow use with 8250_omap as well
+> 
+> - Fix 8250_omap on omap5 by adding HWMOD_SWSUP_SIDLE_ACT flag
+> 
+> - Fix SoC detection for omap36/37 SoCs
 
-> Am 29.01.2017 um 19:01 schrieb Dmitry Torokhov =
-<dmitry.torokhov@gmail.com>:
->=20
-> On Sun, Jan 29, 2017 at 09:39:39AM +0100, H. Nikolaus Schaller wrote:
->> Hi Dmitry,
->>=20
->>> Am 28.01.2017 um 20:35 schrieb Dmitry Torokhov =
-<dmitry.torokhov@gmail.com>:
->>>=20
->>> On Wed, Dec 28, 2016 at 03:53:21PM +0100, H. Nikolaus Schaller =
-wrote:
->>>> Fix module table so that the driver is loaded if compiled
->>>> as module and requested by DT.
->>>>=20
->>>=20
->>> I believe I already replied to a similar patch: we alreadyhave =
-necessary
->>> aliases in this driver, we need to fix module loading to use it.
->>=20
->> Yes, you did comment on [PATCH v6 7/8] (19 Nov 2016):
->>=20
->>>> We really need to fix it between spi/i23c core and module utils =
-instead
->>>> of keeping adding duplicate IDs all over drivers. We already have =
-OF
->>>> module device table containing the same data, we should be able to =
-use
->>>> it.
->>=20
->> And Javier Martinez Canillas replied (23 Nov 2016):
->>=20
->>> Agreed, unfortunately until the I2C and SPI core are changed to =
-properly
->>> report OF modaliases, we will have to keep adding these duplicated =
-IDs.
->>>=20
->>> And changing the I2C and SPI core isn't trivial since it could break =
-a
->>> lot of drivers that rely on a platform modalias being reported (i.e: =
-no
->>> OF device IDs present in the drivers even when are registered via =
-DT).
->>=20
->> Therefore I didn't see a need to change it.
->=20
-> I agree that changing I2C and SPI core is not trivial, however this is
-> no reason for piling up workarounds in all drivers. Are you seriously
-> advocating going though *every* driver and copying OF data into =
-I2C/SPI
-> instead of doing the right thing and fixing the root of the issue?
+Merged, thanks!
 
-If you prefer to have this done (and I agree it would be a tiny =
-improvement),
-please do it for us all. But please after merging this workaround.
-
-I can't do it since I have no idea how to and as you say it is =
-non-trivial.
-I am just a poor driver developer who has to use what he finds in core =
-APIs
-but has the task to make the driver work and be accepted upstream.
-
-What I don't like is if core development tasks are piggybacked on top of =
-a
-driver patch series and used as argument against acceptance of the =
-driver
-patch. IMHO, the core developers should have the task to clean up such
-workarounds after developing a modification for core and it seems to be
-common practise in other subsystems if you follow what Linus is merging
-every week.
-
-Anyways, it piles up only in code. If you do not CONFIG the driver it =
-does
-not even matter that there are 10 more source code lines. And they are
-factored out into a clean patch 6/8 that can easily be reverted.
-
-BR and thanks,
-Nikolaus
-
+-Olof
