@@ -1,10 +1,10 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: pbias-regulator: constify regulator_ops structure" to the regulator tree
-Date: Tue, 31 Jan 2017 21:18:52 +0000
-Message-ID: <E1cYfpE-0001Ua-GU@debutante>
-References: <1485615321-30623-1-git-send-email-bhumirks@gmail.com>
+Subject: Applied "regulator: palmas-regulator: constify regulator_ops structure" to the regulator tree
+Date: Tue, 31 Jan 2017 21:18:55 +0000
+Message-ID: <E1cYfpH-0001Vf-Ky@debutante>
+References: <1485615235-30571-1-git-send-email-bhumirks@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1485615321-30623-1-git-send-email-bhumirks@gmail.com>
+In-Reply-To: <1485615235-30571-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bhumika Goyal <bhumirks@gmail.com>
 Cc: Mark Brown <broonie@kernel.org>, julia.lawall@lip6.fr, lgirdwood@gmail.combroonie@kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.orglinux-kernel@vger.kernel.org
@@ -12,7 +12,7 @@ List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   regulator: pbias-regulator: constify regulator_ops structure
+   regulator: palmas-regulator: constify regulator_ops structure
 
 has been applied to the regulator tree at
 
@@ -37,41 +37,132 @@ to this mail.
 Thanks,
 Mark
 
->From a180df71e7b3f40cc867accc41ac172ceda6c95a Mon Sep 17 00:00:00 2001
+>From 0e5a768008f0b27d4cd75ed3d03794fe4672902b Mon Sep 17 00:00:00 2001
 From: Bhumika Goyal <bhumirks@gmail.com>
-Date: Sat, 28 Jan 2017 20:25:21 +0530
-Subject: [PATCH] regulator: pbias-regulator: constify regulator_ops structure
+Date: Sat, 28 Jan 2017 20:23:55 +0530
+Subject: [PATCH] regulator: palmas-regulator: constify regulator_ops structure
 
 Declare regulator_ops structure as const as it is only stored in the ops
 field of a regulator_desc structure. This field is of type const, so
 regulator_ops structures having this property can be made const too.
 
-File size before: drivers/regulator/pbias-regulator.o
+File size before: drivers/regulator/palmas-regulator.o
    text	   data	    bss	    dec	    hex	filename
-   2545	    624	      0	   3169	    c61 regulator/pbias-regulator.o
+   9752	   6296	    288	  16336	   3fd0 regulator/palmas-regulator.o
 
-File size after: drivers/regulator/pbias-regulator.o
+File size after: drivers/regulator/palmas-regulator.o
    text	   data	    bss	    dec	    hex	filename
-   2801	    368	      0	   3169	    c61 regulator/pbias-regulator.o
+  12856	   3480	      8	  16344	   3fd0 regulator/palmas-regulator.o
 
 Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- drivers/regulator/pbias-regulator.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/regulator/palmas-regulator.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/regulator/pbias-regulator.c b/drivers/regulator/pbias-regulator.c
-index f9d74d63be7c..0cb76ba29e84 100644
---- a/drivers/regulator/pbias-regulator.c
-+++ b/drivers/regulator/pbias-regulator.c
-@@ -54,7 +54,7 @@ static const unsigned int pbias_volt_table[] = {
- 	3000000
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index f11d41dad9c1..31ae5ee3a80d 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -528,7 +528,7 @@ static int palmas_smps_set_ramp_delay(struct regulator_dev *rdev,
+ 	return ret;
+ }
+ 
+-static struct regulator_ops palmas_ops_smps = {
++static const struct regulator_ops palmas_ops_smps = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -542,7 +542,7 @@ static struct regulator_ops palmas_ops_smps = {
+ 	.set_ramp_delay		= palmas_smps_set_ramp_delay,
  };
  
--static struct regulator_ops pbias_regulator_voltage_ops = {
-+static const struct regulator_ops pbias_regulator_voltage_ops = {
- 	.list_voltage = regulator_list_voltage_table,
- 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
- 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
+-static struct regulator_ops palmas_ops_ext_control_smps = {
++static const struct regulator_ops palmas_ops_ext_control_smps = {
+ 	.set_mode		= palmas_set_mode_smps,
+ 	.get_mode		= palmas_get_mode_smps,
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+@@ -553,7 +553,7 @@ static struct regulator_ops palmas_ops_ext_control_smps = {
+ 	.set_ramp_delay		= palmas_smps_set_ramp_delay,
+ };
+ 
+-static struct regulator_ops palmas_ops_smps10 = {
++static const struct regulator_ops palmas_ops_smps10 = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -565,7 +565,7 @@ static struct regulator_ops palmas_ops_smps10 = {
+ 	.get_bypass		= regulator_get_bypass_regmap,
+ };
+ 
+-static struct regulator_ops tps65917_ops_smps = {
++static const struct regulator_ops tps65917_ops_smps = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -578,7 +578,7 @@ static struct regulator_ops tps65917_ops_smps = {
+ 	.set_voltage_time_sel	= regulator_set_voltage_time_sel,
+ };
+ 
+-static struct regulator_ops tps65917_ops_ext_control_smps = {
++static const struct regulator_ops tps65917_ops_ext_control_smps = {
+ 	.set_mode		= palmas_set_mode_smps,
+ 	.get_mode		= palmas_get_mode_smps,
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+@@ -602,7 +602,7 @@ static int palmas_is_enabled_ldo(struct regulator_dev *dev)
+ 	return !!(reg);
+ }
+ 
+-static struct regulator_ops palmas_ops_ldo = {
++static const struct regulator_ops palmas_ops_ldo = {
+ 	.is_enabled		= palmas_is_enabled_ldo,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -612,7 +612,7 @@ static struct regulator_ops palmas_ops_ldo = {
+ 	.map_voltage		= regulator_map_voltage_linear,
+ };
+ 
+-static struct regulator_ops palmas_ops_ldo9 = {
++static const struct regulator_ops palmas_ops_ldo9 = {
+ 	.is_enabled		= palmas_is_enabled_ldo,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -624,23 +624,23 @@ static struct regulator_ops palmas_ops_ldo9 = {
+ 	.get_bypass		= regulator_get_bypass_regmap,
+ };
+ 
+-static struct regulator_ops palmas_ops_ext_control_ldo = {
++static const struct regulator_ops palmas_ops_ext_control_ldo = {
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+ 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
+ 	.list_voltage		= regulator_list_voltage_linear,
+ 	.map_voltage		= regulator_map_voltage_linear,
+ };
+ 
+-static struct regulator_ops palmas_ops_extreg = {
++static const struct regulator_ops palmas_ops_extreg = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+ };
+ 
+-static struct regulator_ops palmas_ops_ext_control_extreg = {
++static const struct regulator_ops palmas_ops_ext_control_extreg = {
+ };
+ 
+-static struct regulator_ops tps65917_ops_ldo = {
++static const struct regulator_ops tps65917_ops_ldo = {
+ 	.is_enabled		= palmas_is_enabled_ldo,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -651,7 +651,7 @@ static struct regulator_ops tps65917_ops_ldo = {
+ 	.set_voltage_time_sel	= regulator_set_voltage_time_sel,
+ };
+ 
+-static struct regulator_ops tps65917_ops_ldo_1_2 = {
++static const struct regulator_ops tps65917_ops_ldo_1_2 = {
+ 	.is_enabled		= palmas_is_enabled_ldo,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
 -- 
 2.11.0
