@@ -1,461 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
-Date: Mon, 30 Jan 2017 16:36:32 -0800
-Message-ID: <20170131003632.GB7403@atomide.com>
-References: <20170131000210.5442-1-tony@atomide.com>
- <20170131000210.5442-3-tony@atomide.com>
- <CAKvHMgSXVertQyZyj-C-_w72Uh7xf4DbC2rsNs_T9DMPJP2tXA@mail.gmail.com>
+From: MyungJoo Ham <myungjoo.ham@samsung.com>
+Subject: RE: [PATCH V2 07/12] PM / OPP: Update OPP users to put reference
+Date: Tue, 31 Jan 2017 07:17:21 +0000
+Message-ID: <20170131071721epcms1p6a4da8e0add4547573d40bbbb55d37b74@epcms1p6>
+References: <cover.1485146406.git.viresh.kumar@linaro.org>
+ <CGME20170123044228epcas3p35fdbe94a890062e9d66e33a3b5e4d571@epcas3p3.samsung.com>
+Reply-To: myungjoo.ham@samsung.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKvHMgSXVertQyZyj-C-_w72Uh7xf4DbC2rsNs_T9DMPJP2tXA@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Liam Breck <liam@networkimprov.net>
-Cc: Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7767311016350698726=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Viresh Kumar <viresh.kumar@linaro.org>, Rafael Wysocki <rjw@rjwysocki.net>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
+Cc: "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Liam Breck <liam@networkimprov.net> [170130 16:15]:
-> Hi, these emails are missing v2 in subject line.
+--===============7767311016350698726==
+Content-type: multipart/related;
+ boundary="----=_Part_867698_1046758289.1485847041328"
 
-Oh sorry it's in the cover letter. Looks like you did not get Cc:ed
-on the cover letter, I need to update my scripts to properly collect
-all the acks to the cover letter.
+------=_Part_867698_1046758289.1485847041328
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"
 
-> On Mon, Jan 30, 2017 at 4:02 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > --- a/drivers/power/supply/bq24190_charger.c
-> > +++ b/drivers/power/supply/bq24190_charger.c
-> > ...
-> > @@ -1364,12 +1394,16 @@ static int bq24190_probe(struct i2c_client *client,
-> >         }
-> >
-> >         pm_runtime_enable(dev);
-> > -       pm_runtime_resume(dev);
-> > +       pm_runtime_set_autosuspend_delay(dev, 600);
-> > +       pm_runtime_use_autosuspend(dev);
-> > +       ret = pm_runtime_get_sync(dev);
-> > +       if (ret < 0)
-> > +               goto out1;
-> 
-> Call get_sync() before set_autosuspend() ?
+PiBUaGlzIHBhdGNoIHVwZGF0ZXMgZGV2X3BtX29wcF9maW5kX2ZyZXFfKigpIHJvdXRpbmVzIHRv
+IGdldCBhIHJlZmVyZW5jZQ0KPiB0byB0aGUgT1BQcyByZXR1cm5lZCBieSB0aGVtLg0KPiANCj4g
+QWxzbyB1cGRhdGVzIHRoZSB1c2VycyBvZiBkZXZfcG1fb3BwX2ZpbmRfZnJlcV8qKCkgcm91dGlu
+ZXMgdG8gY2FsbA0KPiBkZXZfcG1fb3BwX3B1dCgpIGFmdGVyIHRoZXkgYXJlIGRvbmUgdXNpbmcg
+dGhlIE9QUHMuDQo+IA0KPiBBcyBpdCBpcyBndWFyYW50ZWVkIHRoZSB0aGF0IE9QUHMgd291bGRu
+J3QgZ2V0IGZyZWVkIHdoaWxlIGJlaW5nIHVzZWQsDQo+IHRoZSBSQ1UgcmVhZCBzaWRlIGxvY2tp
+bmcgcHJlc2VudCB3aXRoIHRoZSB1c2VycyBpc24ndCByZXF1aXJlZCBhbnltb3JlLg0KPiBEcm9w
+IGl0IGFzIHdlbGwuDQo+IA0KPiBUaGlzIHBhdGNoIGFsc28gdXBkYXRlcyBhbGwgdXNlcnMgb2Yg
+ZGV2ZnJlcV9yZWNvbW1lbmRlZF9vcHAoKSB3aGljaCB3YXMNCj4gcmV0dXJuaW5nIGFuIE9QUCBy
+ZWNlaXZlZCBmcm9tIHRoZSBPUFAgY29yZS4NCj4gDQo+IE5vdGUgdGhhdCBzb21lIG9mIHRoZSBP
+UFAgY29yZSByb3V0aW5lcyBoYXZlIGdhaW5lZA0KPiByY3VfcmVhZF97bG9ja3x1bmxvY2t9KCkg
+Y2FsbHMsIGFzIHRob3NlIHN0aWxsIHVzZSBSQ1Ugc3BlY2lmaWMgQVBJcw0KPiB3aXRoaW4gdGhl
+bS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFZpcmVzaCBLdW1hciA8dmlyZXNoLmt1bWFyQGxpbmFy
+by5vcmc+DQo+IFJldmlld2VkLWJ5OiBDaGFud29vIENob2kgPGN3MDAuY2hvaUBzYW1zdW5nLmNv
+bT4gW0RldmZyZXFdDQoNClRoaXMgcGF0Y2ggZ2V0cyBhIGxvdCBvZiBmYWlscyBkdXJpbmcgYXBw
+bGljYXRpb24uDQoNCkZvciBkZXZmcmVxLXNpZGUsIEkndmUgZ290Og0KZXJyb3I6IGRyaXZlcnMv
+ZGV2ZnJlcS9kZXZmcmVxLmM6IHBhdGNoIGRvZXMgbm90IGFwcGx5DQplcnJvcjogcGF0Y2ggZmFp
+bGVkOiBkcml2ZXJzL2RldmZyZXEvZXh5bm9zLWJ1cy5jOjEwMw0KZXJyb3I6IGRyaXZlcnMvZGV2
+ZnJlcS9leHlub3MtYnVzLmM6IHBhdGNoIGRvZXMgbm90IGFwcGx5DQplcnJvcjogcGF0Y2ggZmFp
+bGVkOiBkcml2ZXJzL2RldmZyZXEvZ292ZXJub3JfcGFzc2l2ZS5jOjU5DQplcnJvcjogZHJpdmVy
+cy9kZXZmcmVxL2dvdmVybm9yX3Bhc3NpdmUuYzogcGF0Y2ggZG9lcyBub3QgYXBwbHkNCmVycm9y
+OiBwYXRjaCBmYWlsZWQ6IGRyaXZlcnMvZGV2ZnJlcS9yazMzOTlfZG1jLmM6OTENCmVycm9yOiBk
+cml2ZXJzL2RldmZyZXEvcmszMzk5X2RtYy5jOiBwYXRjaCBkb2VzIG5vdCBhcHBseQ0KZXJyb3I6
+IHBhdGNoIGZhaWxlZDogZHJpdmVycy9kZXZmcmVxL3RlZ3JhLWRldmZyZXEuYzo0ODcNCmVycm9y
+OiBkcml2ZXJzL2RldmZyZXEvdGVncmEtZGV2ZnJlcS5jOiBwYXRjaCBkb2VzIG5vdCBhcHBseQ0K
+DQpXaXRoIHRoZSBjb25kaXRpb24gdGhhdCB5b3UgYXJlIGdvaW5nIHRvIHByb3Blcmx5IHJlYmFz
+ZSB0aGUgcGF0Y2gsDQp5b3UgbWF5IGFkZCAiUmV2aWV3ZWQtYnkiIGZyb20gbWUuDQoodGhlIGNv
+ZGUgaXRzZWxmIGxvb2tzIGZpbmUuKQ0KDQpDaGVlcnMsDQpNeXVuZ0pvbw0KDQo+IC0tLQ0KPiAg
+YXJjaC9hcm0vbWFjaC1vbWFwMi9wbS5jICAgICAgICAgICAgIHwgICA1ICstDQo+ICBkcml2ZXJz
+L2Jhc2UvcG93ZXIvb3BwL2NvcmUuYyAgICAgICAgfCAxMTQgKysrKysrKysrKysrKysrKysrKy0t
+LS0tLS0tLS0tLS0tLS0NCj4gIGRyaXZlcnMvYmFzZS9wb3dlci9vcHAvY3B1LmMgICAgICAgICB8
+ICAyMiArKy0tLS0tDQo+ICBkcml2ZXJzL2Nsay90ZWdyYS9jbGstZGZsbC5jICAgICAgICAgfCAg
+MTcgKystLS0tDQo+ICBkcml2ZXJzL2NwdWZyZXEvZXh5bm9zNTQ0MC1jcHVmcmVxLmMgfCAgIDUg
+Ky0NCj4gIGRyaXZlcnMvY3B1ZnJlcS9pbXg2cS1jcHVmcmVxLmMgICAgICB8ICAxMCArLS0NCj4g
+IGRyaXZlcnMvY3B1ZnJlcS9tdDgxNzMtY3B1ZnJlcS5jICAgICB8ICAgOCArLS0NCj4gIGRyaXZl
+cnMvY3B1ZnJlcS9vbWFwLWNwdWZyZXEuYyAgICAgICB8ICAgNCArLQ0KPiAgZHJpdmVycy9kZXZm
+cmVxL2RldmZyZXEuYyAgICAgICAgICAgIHwgIDE0ICsrLS0tDQo+ICBkcml2ZXJzL2RldmZyZXEv
+ZXh5bm9zLWJ1cy5jICAgICAgICAgfCAgMTQgKystLS0NCj4gIGRyaXZlcnMvZGV2ZnJlcS9nb3Zl
+cm5vcl9wYXNzaXZlLmMgICB8ICAgNCArLQ0KPiAgZHJpdmVycy9kZXZmcmVxL3JrMzM5OV9kbWMu
+YyAgICAgICAgIHwgIDE2ICsrLS0tDQo+ICBkcml2ZXJzL2RldmZyZXEvdGVncmEtZGV2ZnJlcS5j
+ICAgICAgfCAgIDQgKy0NCj4gIGRyaXZlcnMvdGhlcm1hbC9jcHVfY29vbGluZy5jICAgICAgICB8
+ICAxMSArLS0tDQo+ICBkcml2ZXJzL3RoZXJtYWwvZGV2ZnJlcV9jb29saW5nLmMgICAgfCAgMTUg
+KystLS0NCj4gIDE1IGZpbGVzIGNoYW5nZWQsIDExMCBpbnNlcnRpb25zKCspLCAxNTMgZGVsZXRp
+b25zKC0pDQo+IA0K
+------=_Part_867698_1046758289.1485847041328--
 
-No need to, but I'll move pm_runtime_set_autosuspend_delay() after
-pm_runtime_use_autosuspend() :)
 
-> >  out1:
-> > +       pm_runtime_dont_use_autosuspend(dev);
-> 
-> Change order of above two if my prev comment is right.
+--===============7767311016350698726==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-No need to.
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-> > @@ -1430,14 +1473,20 @@ static int bq24190_probe(struct i2c_client *client,
-> >  static int bq24190_remove(struct i2c_client *client)
-> >  {
-> >         struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
-> > +       int error;
-> >
-> > -       pm_runtime_get_sync(bdi->dev);
-> > -       bq24190_register_reset(bdi);
-> > -       pm_runtime_put_sync(bdi->dev);
-> > +       error = pm_runtime_get_sync(bdi->dev);
-> > +       if (error < 0) {
-> > +               dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
-> > +               pm_runtime_put_noidle(bdi->dev);
-> > +       }
-> >
-> > +       bq24190_register_reset(bdi);
-> >         bq24190_sysfs_remove_group(bdi);
-> >         power_supply_unregister(bdi->battery);
-> >         power_supply_unregister(bdi->charger);
-> > +       pm_runtime_dont_use_autosuspend(bdi->dev);
-> > +       pm_runtime_put_sync(bdi->dev);
-> 
-> Alternatively, switch order of above two.
-
-Yeah will do.
-
-> Apologies if I'm nitpicking!
-
-No worries, this should be a boringly trivial patch so it's good to have
-somebody look through it to avoid bad changes. Updated patch below, please
-check and re-ack if it now looks OK to you.
-
-Regards,
-
-Tony
-
-8< ---------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 30 Jan 2017 07:10:31 -0800
-Subject: [PATCH] power: bq24190_charger: Use PM runtime autosuspend
-
-We can get quite a few interrupts when the battery is trickle charging.
-Let's enable PM runtime autosuspend to avoid constantly toggling device
-driver PM runtime state.
-
-Let's use a 600 ms timeout as that's how long the USB chager detection
-might take.
-
-Cc: Liam Breck <kernel@networkimprov.net>
-Acked-by: Mark Greer <mgreer@animalcreek.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/power/supply/bq24190_charger.c | 153 ++++++++++++++++++++++++---------
- 1 file changed, 111 insertions(+), 42 deletions(-)
-
-diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
---- a/drivers/power/supply/bq24190_charger.c
-+++ b/drivers/power/supply/bq24190_charger.c
-@@ -420,6 +420,7 @@ static ssize_t bq24190_sysfs_show(struct device *dev,
- 	struct power_supply *psy = dev_get_drvdata(dev);
- 	struct bq24190_dev_info *bdi = power_supply_get_drvdata(psy);
- 	struct bq24190_sysfs_field_info *info;
-+	ssize_t count;
- 	int ret;
- 	u8 v;
- 
-@@ -427,11 +428,20 @@ static ssize_t bq24190_sysfs_show(struct device *dev,
- 	if (!info)
- 		return -EINVAL;
- 
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
-+
- 	ret = bq24190_read_mask(bdi, info->reg, info->mask, info->shift, &v);
- 	if (ret)
--		return ret;
-+		count = ret;
-+	else
-+		count = scnprintf(buf, PAGE_SIZE, "%hhx\n", v);
- 
--	return scnprintf(buf, PAGE_SIZE, "%hhx\n", v);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
-+	return count;
- }
- 
- static ssize_t bq24190_sysfs_store(struct device *dev,
-@@ -451,9 +461,16 @@ static ssize_t bq24190_sysfs_store(struct device *dev,
- 	if (ret < 0)
- 		return ret;
- 
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
-+
- 	ret = bq24190_write_mask(bdi, info->reg, info->mask, info->shift, v);
- 	if (ret)
--		return ret;
-+		count = ret;
-+
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
- 
- 	return count;
- }
-@@ -795,7 +812,9 @@ static int bq24190_charger_get_property(struct power_supply *psy,
- 
- 	dev_dbg(bdi->dev, "prop: %d\n", psp);
- 
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-@@ -835,7 +854,9 @@ static int bq24190_charger_get_property(struct power_supply *psy,
- 		ret = -ENODATA;
- 	}
- 
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
- 	return ret;
- }
- 
-@@ -848,7 +869,9 @@ static int bq24190_charger_set_property(struct power_supply *psy,
- 
- 	dev_dbg(bdi->dev, "prop: %d\n", psp);
- 
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-@@ -864,7 +887,9 @@ static int bq24190_charger_set_property(struct power_supply *psy,
- 		ret = -EINVAL;
- 	}
- 
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
- 	return ret;
- }
- 
-@@ -1065,7 +1090,9 @@ static int bq24190_battery_get_property(struct power_supply *psy,
- 
- 	dev_dbg(bdi->dev, "prop: %d\n", psp);
- 
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_STATUS:
-@@ -1093,7 +1120,9 @@ static int bq24190_battery_get_property(struct power_supply *psy,
- 		ret = -ENODATA;
- 	}
- 
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
- 	return ret;
- }
- 
-@@ -1106,7 +1135,9 @@ static int bq24190_battery_set_property(struct power_supply *psy,
- 
- 	dev_dbg(bdi->dev, "prop: %d\n", psp);
- 
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_ONLINE:
-@@ -1119,7 +1150,9 @@ static int bq24190_battery_set_property(struct power_supply *psy,
- 		ret = -EINVAL;
- 	}
- 
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
- 	return ret;
- }
- 
-@@ -1234,11 +1267,15 @@ static void bq24190_check_status(struct bq24190_dev_info *bdi)
- static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
- {
- 	struct bq24190_dev_info *bdi = data;
-+	int ret;
- 
- 	bdi->irq_event = true;
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
- 	bq24190_check_status(bdi);
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
- 	bdi->irq_event = false;
- 
- 	return IRQ_HANDLED;
-@@ -1249,33 +1286,26 @@ static int bq24190_hw_init(struct bq24190_dev_info *bdi)
- 	u8 v;
- 	int ret;
- 
--	pm_runtime_get_sync(bdi->dev);
--
- 	/* First check that the device really is what its supposed to be */
- 	ret = bq24190_read_mask(bdi, BQ24190_REG_VPRS,
- 			BQ24190_REG_VPRS_PN_MASK,
- 			BQ24190_REG_VPRS_PN_SHIFT,
- 			&v);
- 	if (ret < 0)
--		goto out;
-+		return ret;
- 
--	if (v != bdi->model) {
--		ret = -ENODEV;
--		goto out;
--	}
-+	if (v != bdi->model)
-+		return -ENODEV;
- 
- 	ret = bq24190_register_reset(bdi);
- 	if (ret < 0)
--		goto out;
-+		return ret;
- 
- 	ret = bq24190_set_mode_host(bdi);
- 	if (ret < 0)
--		goto out;
-+		return ret;
- 
--	ret = bq24190_read(bdi, BQ24190_REG_SS, &bdi->ss_reg);
--out:
--	pm_runtime_put_sync(bdi->dev);
--	return ret;
-+	return bq24190_read(bdi, BQ24190_REG_SS, &bdi->ss_reg);
- }
- 
- #ifdef CONFIG_OF
-@@ -1364,12 +1394,16 @@ static int bq24190_probe(struct i2c_client *client,
- 	}
- 
- 	pm_runtime_enable(dev);
--	pm_runtime_resume(dev);
-+	pm_runtime_use_autosuspend(dev);
-+	pm_runtime_set_autosuspend_delay(dev, 600);
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0)
-+		goto out1;
- 
- 	ret = bq24190_hw_init(bdi);
- 	if (ret < 0) {
- 		dev_err(dev, "Hardware init failed\n");
--		goto out1;
-+		goto out2;
- 	}
- 
- 	charger_cfg.drv_data = bdi;
-@@ -1380,7 +1414,7 @@ static int bq24190_probe(struct i2c_client *client,
- 	if (IS_ERR(bdi->charger)) {
- 		dev_err(dev, "Can't register charger\n");
- 		ret = PTR_ERR(bdi->charger);
--		goto out1;
-+		goto out2;
- 	}
- 
- 	battery_cfg.drv_data = bdi;
-@@ -1389,13 +1423,13 @@ static int bq24190_probe(struct i2c_client *client,
- 	if (IS_ERR(bdi->battery)) {
- 		dev_err(dev, "Can't register battery\n");
- 		ret = PTR_ERR(bdi->battery);
--		goto out2;
-+		goto out3;
- 	}
- 
- 	ret = bq24190_sysfs_create_group(bdi);
- 	if (ret) {
- 		dev_err(dev, "Can't create sysfs entries\n");
--		goto out3;
-+		goto out4;
- 	}
- 
- 	bdi->initialized = true;
-@@ -1406,21 +1440,30 @@ static int bq24190_probe(struct i2c_client *client,
- 			"bq24190-charger", bdi);
- 	if (ret < 0) {
- 		dev_err(dev, "Can't set up irq handler\n");
--		goto out4;
-+		goto out5;
- 	}
- 
-+	enable_irq_wake(bdi->irq);
-+
-+	pm_runtime_mark_last_busy(dev);
-+	pm_runtime_put_autosuspend(dev);
-+
- 	return 0;
- 
--out4:
-+out5:
- 	bq24190_sysfs_remove_group(bdi);
- 
--out3:
-+out4:
- 	power_supply_unregister(bdi->battery);
- 
--out2:
-+out3:
- 	power_supply_unregister(bdi->charger);
- 
-+out2:
-+	pm_runtime_put_sync(dev);
-+
- out1:
-+	pm_runtime_dont_use_autosuspend(dev);
- 	pm_runtime_disable(dev);
- 	if (bdi->gpio_int)
- 		gpio_free(bdi->gpio_int);
-@@ -1430,14 +1473,20 @@ static int bq24190_probe(struct i2c_client *client,
- static int bq24190_remove(struct i2c_client *client)
- {
- 	struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
-+	int error;
- 
--	pm_runtime_get_sync(bdi->dev);
--	bq24190_register_reset(bdi);
--	pm_runtime_put_sync(bdi->dev);
-+	error = pm_runtime_get_sync(bdi->dev);
-+	if (error < 0) {
-+		dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
-+		pm_runtime_put_noidle(bdi->dev);
-+	}
- 
-+	bq24190_register_reset(bdi);
- 	bq24190_sysfs_remove_group(bdi);
- 	power_supply_unregister(bdi->battery);
- 	power_supply_unregister(bdi->charger);
-+	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_dont_use_autosuspend(bdi->dev);
- 	pm_runtime_disable(bdi->dev);
- 
- 	if (bdi->gpio_int)
-@@ -1480,10 +1529,20 @@ static int bq24190_pm_suspend(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
-+	int error;
-+
-+	error = pm_runtime_get_sync(bdi->dev);
-+	if (error < 0) {
-+		dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
-+		pm_runtime_put_noidle(bdi->dev);
-+	}
- 
--	pm_runtime_get_sync(bdi->dev);
- 	bq24190_register_reset(bdi);
--	pm_runtime_put_sync(bdi->dev);
-+
-+	if (!error) {
-+		pm_runtime_mark_last_busy(bdi->dev);
-+		pm_runtime_put_autosuspend(bdi->dev);
-+	}
- 
- 	return 0;
- }
-@@ -1492,15 +1551,25 @@ static int bq24190_pm_resume(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
-+	int error;
- 
- 	bdi->f_reg = 0;
- 	bdi->ss_reg = BQ24190_REG_SS_VBUS_STAT_MASK; /* impossible state */
- 
--	pm_runtime_get_sync(bdi->dev);
-+	error = pm_runtime_get_sync(bdi->dev);
-+	if (error < 0) {
-+		pm_runtime_put_noidle(bdi->dev);
-+		dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
-+	}
-+
- 	bq24190_register_reset(bdi);
- 	bq24190_set_mode_host(bdi);
- 	bq24190_read(bdi, BQ24190_REG_SS, &bdi->ss_reg);
--	pm_runtime_put_sync(bdi->dev);
-+
-+	if (!error) {
-+		pm_runtime_mark_last_busy(bdi->dev);
-+		pm_runtime_put_autosuspend(bdi->dev);
-+	}
- 
- 	/* Things may have changed while suspended so alert upper layer */
- 	power_supply_changed(bdi->charger);
--- 
-2.11.0
+--===============7767311016350698726==--
