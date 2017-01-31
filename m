@@ -1,195 +1,115 @@
-From: Liam Breck <liam@networkimprov.net>
-Subject: [PATCH v8.1 1/1] ASoC: omap-mcbsp: Add PM QoS support
-	for McBSP to prevent glitches
-Date: Tue, 31 Jan 2017 13:21:43 -0800
-Message-ID: <20170131212143.24415-1-liam@networkimprov.net>
-References: <20170127225337.17830-1-liam@networkimprov.net>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] regulator: cpcap: Add basic regulator support
+Date: Tue, 31 Jan 2017 21:12:56 +0000
+Message-ID: <20170131211256.l3e53y2mkzylfjnw@sirena.org.uk>
+References: <20170131001241.5926-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20170127225337.17830-1-liam@networkimprov.net>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>
-Cc: alsa-devel@alsa-project.org, Matt Ranostay <matt@ranostay.consulting>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Breck <kernel@networkimprov.net>, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="x2bvj5cm7n3dkcpy"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170131001241.5926-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-We can get audio errors if hitting deeper idle states on omaps:
 
-[alsa.c:230] error: Fatal problem with alsa output, error -5.
-[audio.c:614] error: Error in writing audio (Input/output error?)!
+--x2bvj5cm7n3dkcpy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This seems to happen with off mode idle enabled as power for the
-whole SoC may get cut off between filling the McBSP fifo using DMA.
-While active DMA blocks deeper idle states in hardware, McBSP
-activity does not seem to do so.
+On Mon, Jan 30, 2017 at 04:12:41PM -0800, Tony Lindgren wrote:
 
-Basing the QoS latency calculation on the FIFO size, threshold,
-sample rate, and channels.
+> +static int cpcap_regulator_is_enabled(struct regulator_dev *rdev)
+> +{
+> +	unsigned int value = 0;
+> +
+> +	regmap_read(rdev->regmap, rdev->desc->enable_reg, &value);
+> +
+> +	return ((value & rdev->desc->enable_mask) == rdev->desc->enable_reg);
+> +}
 
-Based on the original patch by Tony Lindgren
-Link: https://patchwork.kernel.org/patch/9305867/
+Use the core support for this, reulator_is_enabled_regmap().
 
-From: Matt Ranostay <matt@ranostay.consulting>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
-Signed-off-by: Liam Breck <kernel@networkimprov.net>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Changes from v1:
-* add calculations for latency per number of FIFO locations
+> +	error = regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
+> +				   rdev->desc->enable_mask,
+> +				   rdev->desc->enable_val);
+> +	if (error)
+> +		return error;
+> +
+> +	if (rdev->desc->enable_val & CPCAP_REG_OFF_MODE_SEC) {
+> +		error = regmap_update_bits(rdev->regmap, regulator->assign_reg,
+> +					   regulator->assign_mask,
+> +					   regulator->assign_mask);
+> +		if (error)
+> +			return error;
+> +	}
 
-Changes from v2:
-* add missing mcbsp.h header change
+What does this second register bit do?
 
-Changes from v3:
-* base the latency calculations on threshold, buffer size, sample
-  rate, and channels
+> +static int cpcap_regulator_get_voltage(struct regulator_dev *rdev)
+> +{
+> +	struct cpcap_regulator *regulator = rdev_get_drvdata(rdev);
+> +	unsigned int value = 0;
+> +	int voltage;
 
-Changes from v4:
-* using Peter Ujfalusi's suggestions for restoring a higher latency on
-  audio stream completion, or if not applicable remove the QoS request
+regulator_get_voltage_sel_regmap() (the driver should just use selectors
+and let the mapping happen in the core).
 
-Changes from v5:
-* clean up latency checking logic
-* move logic to .prepare and .shutdown to avoid functions that can sleep
+> +	regmap_read(rdev->regmap, rdev->desc->enable_reg, &value);
+> +
+> +	if (!(value & rdev->desc->enable_mask))
+> +		return 0;
 
-Changes from v6:
-* move QoS removal to asoc_mcbsp_remove from omap_mcbsp_cleanup
-* also remove header include that is unneeded
+This is buggy, the driver should report the voltage the regulator will
+have when powered.
 
-Changes from v7:
-* fix issue reported by Tony Lindgreen that a player application could close the
-  card after hw_params, and cause an invalid pm_qos_remove_request()
+> +static int cpcap_regulator_set_voltage(struct regulator_dev *rdev,
+> +				       int min_uV, int max_uV,
+> +				       unsigned int *selector)
 
- sound/soc/omap/mcbsp.h      |  3 +++
- sound/soc/omap/omap-mcbsp.c | 48 ++++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 50 insertions(+), 1 deletion(-)
+regulator_map_voltage_iterate() and regulator_set_voltage_regmap()
 
-diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
-index 61e93b1c185d..46ae1269a698 100644
---- a/sound/soc/omap/mcbsp.h
-+++ b/sound/soc/omap/mcbsp.h
-@@ -323,8 +323,11 @@ struct omap_mcbsp {
- 
- 	unsigned int fmt;
- 	unsigned int in_freq;
-+	unsigned int latency[2];
- 	int clk_div;
- 	int wlen;
-+
-+	struct pm_qos_request pm_qos_req;
- };
- 
- void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index d018e966e533..6b40bdbef336 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -157,6 +157,17 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_substream *substream,
- 				    struct snd_soc_dai *cpu_dai)
- {
- 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
-+	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
-+	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
-+	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
-+
-+	if (mcbsp->latency[stream2])
-+		pm_qos_update_request(&mcbsp->pm_qos_req,
-+				      mcbsp->latency[stream2]);
-+	else if (mcbsp->latency[stream1])
-+		pm_qos_remove_request(&mcbsp->pm_qos_req);
-+
-+	mcbsp->latency[stream1] = 0;
- 
- 	if (!cpu_dai->active) {
- 		omap_mcbsp_free(mcbsp);
-@@ -164,6 +175,28 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_substream *substream,
- 	}
- }
- 
-+static int omap_mcbsp_dai_prepare(struct snd_pcm_substream *substream,
-+				  struct snd_soc_dai *cpu_dai)
-+{
-+	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
-+	struct pm_qos_request *pm_qos_req = &mcbsp->pm_qos_req;
-+	int tx = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
-+	int stream1 = tx ? SNDRV_PCM_STREAM_PLAYBACK : SNDRV_PCM_STREAM_CAPTURE;
-+	int stream2 = tx ? SNDRV_PCM_STREAM_CAPTURE : SNDRV_PCM_STREAM_PLAYBACK;
-+	int latency = mcbsp->latency[stream2];
-+
-+	/* Prevent omap hardware from hitting off between FIFO fills */
-+	if (!latency || mcbsp->latency[stream1] < latency)
-+		latency = mcbsp->latency[stream1];
-+
-+	if (pm_qos_request_active(pm_qos_req))
-+		pm_qos_update_request(pm_qos_req, latency);
-+	else if (latency)
-+		pm_qos_add_request(pm_qos_req, PM_QOS_CPU_DMA_LATENCY, latency);
-+
-+	return 0;
-+}
-+
- static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
- 				  struct snd_soc_dai *cpu_dai)
- {
-@@ -226,6 +259,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 	int wlen, channels, wpf;
- 	int pkt_size = 0;
- 	unsigned int format, div, framesize, master;
-+	unsigned int buffer_size = mcbsp->pdata->buffer_size;
- 
- 	dma_data = snd_soc_dai_get_dma_data(cpu_dai, substream);
- 	channels = params_channels(params);
-@@ -240,7 +274,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 	default:
- 		return -EINVAL;
- 	}
--	if (mcbsp->pdata->buffer_size) {
-+	if (buffer_size) {
-+		int latency;
-+
- 		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
- 			int period_words, max_thrsh;
- 			int divider = 0;
-@@ -271,6 +307,12 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 			/* Use packet mode for non mono streams */
- 			pkt_size = channels;
- 		}
-+
-+		latency = ((((buffer_size - pkt_size) / channels) * 1000)
-+				 / (params->rate_num / params->rate_den));
-+
-+		mcbsp->latency[substream->stream] = latency;
-+
- 		omap_mcbsp_set_threshold(substream, pkt_size);
- 	}
- 
-@@ -554,6 +596,7 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
- static const struct snd_soc_dai_ops mcbsp_dai_ops = {
- 	.startup	= omap_mcbsp_dai_startup,
- 	.shutdown	= omap_mcbsp_dai_shutdown,
-+	.prepare	= omap_mcbsp_dai_prepare,
- 	.trigger	= omap_mcbsp_dai_trigger,
- 	.delay		= omap_mcbsp_dai_delay,
- 	.hw_params	= omap_mcbsp_dai_hw_params,
-@@ -835,6 +878,9 @@ static int asoc_mcbsp_remove(struct platform_device *pdev)
- 	if (mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(mcbsp->id);
- 
-+	if (pm_qos_request_active(&mcbsp->pm_qos_req))
-+		pm_qos_remove_request(&mcbsp->pm_qos_req);
-+
- 	omap_mcbsp_cleanup(mcbsp);
- 
- 	clk_put(mcbsp->fclk);
+> +	switch (mode) {
+> +	case REGULATOR_MODE_NORMAL:
+> +		value = CPCAP_BIT_AUDIO_LOW_PWR;
+> +		break;
+> +	case REGULATOR_MODE_IDLE:
+> +	case REGULATOR_MODE_STANDBY:
+> +		value = 0;
+> +		break;
+
+There should be a 1:1 mapping between modes and register values, if the
+device only supports two modes so should the driver.
+
+> +	init_data.constraints.valid_modes_mask =
+> +		REGULATOR_MODE_NORMAL | REGULATOR_MODE_STANDBY;
+> +	init_data.constraints.valid_ops_mask =
+> +		REGULATOR_CHANGE_MODE | REGULATOR_CHANGE_STATUS;
+> +	config.init_data = &init_data;
+
+Drivers should not configure constraints, they're part of the system
+integration and come from the firmware or board file.
+
+> +		dev_info(&pdev->dev, "registering regulator %s\n",
+> +			 regulator->rdesc.name);
+
+This is needless spam, please remove it.
+
+--x2bvj5cm7n3dkcpy
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliQ/dcACgkQJNaLcl1U
+h9AQAQf5ATnJMMPN0u446WksFn3IBMWY2MSd2/ltJvlX3upE3f0e9baLfQY/u8SB
+r4F+o6B8V498v0ILgBD0i5kiWdm8BOPIOZ+99n7knNGUIBZDe12EAE3T1O+Ru1Jj
+6vm9QE1s8EJ1F8e31VldTIAg3ujFVrXCZjw9K6iOQ24//F4kgYjJfHzkKJbs0sfj
+CWkvzY3CEADoNAhxqCe2d+GfKfglDg0Ulann0KA6JVoPUVYkQ1GoGCk8WMogVE/n
+dUZv7VcjlZLTSQhv6KIVNna8n/zXIpdGnuvTA1OtPEpJb+v5vw0RCY1TAttI58dI
+gzBjoBxE9EycJP6VBEKGi53lDt/lRg==
+=JuJc
+-----END PGP SIGNATURE-----
+
+--x2bvj5cm7n3dkcpy--
