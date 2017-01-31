@@ -1,115 +1,77 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] regulator: cpcap: Add basic regulator support
-Date: Tue, 31 Jan 2017 21:12:56 +0000
-Message-ID: <20170131211256.l3e53y2mkzylfjnw@sirena.org.uk>
-References: <20170131001241.5926-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="x2bvj5cm7n3dkcpy"
+Subject: Applied "regulator: pbias-regulator: constify regulator_ops structure" to the regulator tree
+Date: Tue, 31 Jan 2017 21:18:52 +0000
+Message-ID: <E1cYfpE-0001Ua-GU@debutante>
+References: <1485615321-30623-1-git-send-email-bhumirks@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170131001241.5926-1-tony@atomide.com>
+In-Reply-To: <1485615321-30623-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>, julia.lawall@lip6.fr, lgirdwood@gmail.combroonie@kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.orglinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+The patch
 
---x2bvj5cm7n3dkcpy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+   regulator: pbias-regulator: constify regulator_ops structure
 
-On Mon, Jan 30, 2017 at 04:12:41PM -0800, Tony Lindgren wrote:
+has been applied to the regulator tree at
 
-> +static int cpcap_regulator_is_enabled(struct regulator_dev *rdev)
-> +{
-> +	unsigned int value = 0;
-> +
-> +	regmap_read(rdev->regmap, rdev->desc->enable_reg, &value);
-> +
-> +	return ((value & rdev->desc->enable_mask) == rdev->desc->enable_reg);
-> +}
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
-Use the core support for this, reulator_is_enabled_regmap().
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-> +	error = regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
-> +				   rdev->desc->enable_mask,
-> +				   rdev->desc->enable_val);
-> +	if (error)
-> +		return error;
-> +
-> +	if (rdev->desc->enable_val & CPCAP_REG_OFF_MODE_SEC) {
-> +		error = regmap_update_bits(rdev->regmap, regulator->assign_reg,
-> +					   regulator->assign_mask,
-> +					   regulator->assign_mask);
-> +		if (error)
-> +			return error;
-> +	}
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-What does this second register bit do?
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
-> +static int cpcap_regulator_get_voltage(struct regulator_dev *rdev)
-> +{
-> +	struct cpcap_regulator *regulator = rdev_get_drvdata(rdev);
-> +	unsigned int value = 0;
-> +	int voltage;
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
 
-regulator_get_voltage_sel_regmap() (the driver should just use selectors
-and let the mapping happen in the core).
+Thanks,
+Mark
 
-> +	regmap_read(rdev->regmap, rdev->desc->enable_reg, &value);
-> +
-> +	if (!(value & rdev->desc->enable_mask))
-> +		return 0;
+>From a180df71e7b3f40cc867accc41ac172ceda6c95a Mon Sep 17 00:00:00 2001
+From: Bhumika Goyal <bhumirks@gmail.com>
+Date: Sat, 28 Jan 2017 20:25:21 +0530
+Subject: [PATCH] regulator: pbias-regulator: constify regulator_ops structure
 
-This is buggy, the driver should report the voltage the regulator will
-have when powered.
+Declare regulator_ops structure as const as it is only stored in the ops
+field of a regulator_desc structure. This field is of type const, so
+regulator_ops structures having this property can be made const too.
 
-> +static int cpcap_regulator_set_voltage(struct regulator_dev *rdev,
-> +				       int min_uV, int max_uV,
-> +				       unsigned int *selector)
+File size before: drivers/regulator/pbias-regulator.o
+   text	   data	    bss	    dec	    hex	filename
+   2545	    624	      0	   3169	    c61 regulator/pbias-regulator.o
 
-regulator_map_voltage_iterate() and regulator_set_voltage_regmap()
+File size after: drivers/regulator/pbias-regulator.o
+   text	   data	    bss	    dec	    hex	filename
+   2801	    368	      0	   3169	    c61 regulator/pbias-regulator.o
 
-> +	switch (mode) {
-> +	case REGULATOR_MODE_NORMAL:
-> +		value = CPCAP_BIT_AUDIO_LOW_PWR;
-> +		break;
-> +	case REGULATOR_MODE_IDLE:
-> +	case REGULATOR_MODE_STANDBY:
-> +		value = 0;
-> +		break;
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/pbias-regulator.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-There should be a 1:1 mapping between modes and register values, if the
-device only supports two modes so should the driver.
-
-> +	init_data.constraints.valid_modes_mask =
-> +		REGULATOR_MODE_NORMAL | REGULATOR_MODE_STANDBY;
-> +	init_data.constraints.valid_ops_mask =
-> +		REGULATOR_CHANGE_MODE | REGULATOR_CHANGE_STATUS;
-> +	config.init_data = &init_data;
-
-Drivers should not configure constraints, they're part of the system
-integration and come from the firmware or board file.
-
-> +		dev_info(&pdev->dev, "registering regulator %s\n",
-> +			 regulator->rdesc.name);
-
-This is needless spam, please remove it.
-
---x2bvj5cm7n3dkcpy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliQ/dcACgkQJNaLcl1U
-h9AQAQf5ATnJMMPN0u446WksFn3IBMWY2MSd2/ltJvlX3upE3f0e9baLfQY/u8SB
-r4F+o6B8V498v0ILgBD0i5kiWdm8BOPIOZ+99n7knNGUIBZDe12EAE3T1O+Ru1Jj
-6vm9QE1s8EJ1F8e31VldTIAg3ujFVrXCZjw9K6iOQ24//F4kgYjJfHzkKJbs0sfj
-CWkvzY3CEADoNAhxqCe2d+GfKfglDg0Ulann0KA6JVoPUVYkQ1GoGCk8WMogVE/n
-dUZv7VcjlZLTSQhv6KIVNna8n/zXIpdGnuvTA1OtPEpJb+v5vw0RCY1TAttI58dI
-gzBjoBxE9EycJP6VBEKGi53lDt/lRg==
-=JuJc
------END PGP SIGNATURE-----
-
---x2bvj5cm7n3dkcpy--
+diff --git a/drivers/regulator/pbias-regulator.c b/drivers/regulator/pbias-regulator.c
+index f9d74d63be7c..0cb76ba29e84 100644
+--- a/drivers/regulator/pbias-regulator.c
++++ b/drivers/regulator/pbias-regulator.c
+@@ -54,7 +54,7 @@ static const unsigned int pbias_volt_table[] = {
+ 	3000000
+ };
+ 
+-static struct regulator_ops pbias_regulator_voltage_ops = {
++static const struct regulator_ops pbias_regulator_voltage_ops = {
+ 	.list_voltage = regulator_list_voltage_table,
+ 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
+ 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
+-- 
+2.11.0
