@@ -1,79 +1,95 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v8 1/1] ASoC: omap-mcbsp: Add PM QoS
- support for McBSP to prevent glitches
-Date: Tue, 31 Jan 2017 20:22:57 +0000
-Message-ID: <20170131202257.3tft4d2amv2sg42x@sirena.org.uk>
-References: <20170118072600.15239-1-matt@ranostay.consulting>
- <20170127225337.17830-1-liam@networkimprov.net>
+From: Ravikumar <rk@ti.com>
+Subject: Re: [PATCH 2/3] mmc: host: omap_hsmmc: use generic_cmd6_time to
+ program timeout value for CMD6
+Date: Tue, 31 Jan 2017 15:57:39 +0530
+Message-ID: <c412c9bf-fdf7-b8b9-8aab-7aa8c3d40002@ti.com>
+References: <1485771118-13748-1-git-send-email-rk@ti.com>
+ <1485771118-13748-3-git-send-email-rk@ti.com>
+ <CAPDyKFpW0fVpThS0EQhCh5kEiG96kNSGGhmnYnLKa_A06RBaFA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8717855982876786990=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20170127225337.17830-1-liam@networkimprov.net>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Liam Breck <liam@networkimprov.net>
-Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Matt Ranostay <matt@ranostay.consulting>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFpW0fVpThS0EQhCh5kEiG96kNSGGhmnYnLKa_A06RBaFA@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kishon <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 
---===============8717855982876786990==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="hbg2gokfd6d55zgx"
-Content-Disposition: inline
 
+On Tuesday 31 January 2017 03:42 PM, Ulf Hansson wrote:
+> On 30 January 2017 at 11:11, Ravikumar Kattekola <rk@ti.com> wrote:
+>> From: Kishon Vijay Abraham I <kishon@ti.com>
+>>
+>> commit e2bf08d643a244ccb ("omap_hsmmc: set a large data timeout for
+>> commands with busy signal") sets an arbitrary timeout value (100ms) for
+>> commands like CMD6 (MMC SWITCH). However extended CSD register defined
+>> in the eMMC standard has a field for GENERIC_CMD6_TIME which indicates
+>> the default maximum timeout for a SWITCH command.
+>> Use busy_timeout of cmd structure (populated with GENERIC_CMD6_TIME
+>> in the case of SWITCH command) to program the data timeout value in
+>> omap_hsmmc driver.
+>> SWITCH command to turn the cache on took more than 100ms to complete
+>> with MICRON eMMC card present in AM572x IDK REV 1.3A resulting in
+>> timeout and failed enumeration. It is fixed here by programming the
+>> timeout with the value advertised in GENERIC_CMD6_TIME.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>> Signed-off-by: Ravikumar Kattekola <rk@ti.com>
+>> ---
+>>   drivers/mmc/host/omap_hsmmc.c | 20 ++++++++++++++------
+>>   1 file changed, 14 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 0ee5650..51ca3d7 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -1527,16 +1527,24 @@ static void omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host)
+>>   omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
+>>   {
+>>          int ret;
+>> +       unsigned int timeout;
+>> +
+>>          host->data = req->data;
+>>
+>>          if (req->data == NULL) {
+>>                  OMAP_HSMMC_WRITE(host->base, BLK, 0);
+>> -               /*
+>> -                * Set an arbitrary 100ms data timeout for commands with
+>> -                * busy signal.
+>> -                */
+>> -               if (req->cmd->flags & MMC_RSP_BUSY)
+>> -                       set_data_timeout(host, 100000000U, 0);
+>> +               if (req->cmd->flags & MMC_RSP_BUSY) {
+>> +                       timeout = req->cmd->busy_timeout * NSEC_PER_MSEC;
+>> +
+>> +                       /*
+>> +                        * Set an arbitrary 100ms data timeout for commands with
+>> +                        * busy signal and no indication of busy_timeout.
+>> +                        */
+>> +                       if (!timeout)
+> This is a bug in the mmc core if this ever happen.
+>
+> Therefore I am particularly interested to find out if this is really
+> needed or it's just playing safe?
+You could call it playing safe.
+We haven't hit any case where it was set to zero but per mmc_switch() 
+description you are allowed to set it to zero to let the host decide 
+what it wants to use.
 
---hbg2gokfd6d55zgx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Jan 27, 2017 at 02:53:37PM -0800, Liam Breck wrote:
-
-> Link: https://patchwork.kernel.org/patch/9305867/
->=20
-> From: Matt Ranostay <matt@ranostay.consulting>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
-
-I can't do anything with this as you have not provided a signoff,
-please see SubmittingPatches for details about what the signoff means
-and why it's important.
-
-This also seems to be the first time you've sent this to me...
-
---hbg2gokfd6d55zgx
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliQ8iEACgkQJNaLcl1U
-h9AsWgf/REtkQu80s3g9jcq6E/PBSqfsqCMyOCEVbjjsCyX8alFVgQyplLjfwKnh
-a6XRYob/ucYODGhdm1R160wGZuaVTsbBFPKhdTD7n2rFEbIvqcYX6qwVsmCtXWsZ
-y8FuXZdnr+2g9gkLLj6b7FVGGa6F61rVed1RAXBn3LUkm5aJHFg1YWxdq30ONXlk
-6hFR4tMLIHZoNaZUj++K5ld8NIn32ERgZERVUmiwOZl6EgAjgXDLnHl/6xKIoOvC
-bepi3CS9QLQBz8Pc2xcaF927KA88YMYfPBT/PKcmZE0hpX+Xv+CPwHR/S9Veo+fI
-3LItcmSR+Ppi/DzV5GydaxHU3Fdrpg==
-=J4C/
------END PGP SIGNATURE-----
-
---hbg2gokfd6d55zgx--
-
---===============8717855982876786990==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============8717855982876786990==--
+>> +                               timeout = 100000000U;
+>> +
+>> +                       set_data_timeout(host, timeout, 0);
+>> +               }
+>>                  return 0;
+>>          }
+>>
+>> --
+>> 1.9.1
+>>
+> Kind regards
+> Uffe
+Regards,
+RK
