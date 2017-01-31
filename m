@@ -1,95 +1,50 @@
-From: Ravikumar <rk@ti.com>
-Subject: Re: [PATCH 2/3] mmc: host: omap_hsmmc: use generic_cmd6_time to
- program timeout value for CMD6
-Date: Tue, 31 Jan 2017 15:57:39 +0530
-Message-ID: <c412c9bf-fdf7-b8b9-8aab-7aa8c3d40002@ti.com>
-References: <1485771118-13748-1-git-send-email-rk@ti.com>
- <1485771118-13748-3-git-send-email-rk@ti.com>
- <CAPDyKFpW0fVpThS0EQhCh5kEiG96kNSGGhmnYnLKa_A06RBaFA@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] regulator: palmas-regulator: constify regulator_ops
+ structure
+Date: Tue, 31 Jan 2017 20:56:44 +0000
+Message-ID: <20170131205644.mu7f5mbtfyzlurs6@sirena.org.uk>
+References: <1485615235-30571-1-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFpW0fVpThS0EQhCh5kEiG96kNSGGhmnYnLKa_A06RBaFA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kishon <kishon@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="datpzud4tfhb5wsy"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1485615235-30571-1-git-send-email-bhumirks@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, lgirdwood@gmail.com, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--datpzud4tfhb5wsy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Tuesday 31 January 2017 03:42 PM, Ulf Hansson wrote:
-> On 30 January 2017 at 11:11, Ravikumar Kattekola <rk@ti.com> wrote:
->> From: Kishon Vijay Abraham I <kishon@ti.com>
->>
->> commit e2bf08d643a244ccb ("omap_hsmmc: set a large data timeout for
->> commands with busy signal") sets an arbitrary timeout value (100ms) for
->> commands like CMD6 (MMC SWITCH). However extended CSD register defined
->> in the eMMC standard has a field for GENERIC_CMD6_TIME which indicates
->> the default maximum timeout for a SWITCH command.
->> Use busy_timeout of cmd structure (populated with GENERIC_CMD6_TIME
->> in the case of SWITCH command) to program the data timeout value in
->> omap_hsmmc driver.
->> SWITCH command to turn the cache on took more than 100ms to complete
->> with MICRON eMMC card present in AM572x IDK REV 1.3A resulting in
->> timeout and failed enumeration. It is fixed here by programming the
->> timeout with the value advertised in GENERIC_CMD6_TIME.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->> Signed-off-by: Ravikumar Kattekola <rk@ti.com>
->> ---
->>   drivers/mmc/host/omap_hsmmc.c | 20 ++++++++++++++------
->>   1 file changed, 14 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->> index 0ee5650..51ca3d7 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -1527,16 +1527,24 @@ static void omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host)
->>   omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
->>   {
->>          int ret;
->> +       unsigned int timeout;
->> +
->>          host->data = req->data;
->>
->>          if (req->data == NULL) {
->>                  OMAP_HSMMC_WRITE(host->base, BLK, 0);
->> -               /*
->> -                * Set an arbitrary 100ms data timeout for commands with
->> -                * busy signal.
->> -                */
->> -               if (req->cmd->flags & MMC_RSP_BUSY)
->> -                       set_data_timeout(host, 100000000U, 0);
->> +               if (req->cmd->flags & MMC_RSP_BUSY) {
->> +                       timeout = req->cmd->busy_timeout * NSEC_PER_MSEC;
->> +
->> +                       /*
->> +                        * Set an arbitrary 100ms data timeout for commands with
->> +                        * busy signal and no indication of busy_timeout.
->> +                        */
->> +                       if (!timeout)
-> This is a bug in the mmc core if this ever happen.
->
-> Therefore I am particularly interested to find out if this is really
-> needed or it's just playing safe?
-You could call it playing safe.
-We haven't hit any case where it was set to zero but per mmc_switch() 
-description you are allowed to set it to zero to let the host decide 
-what it wants to use.
+On Sat, Jan 28, 2017 at 08:23:55PM +0530, Bhumika Goyal wrote:
+> Declare regulator_ops structure as const as it is only stored in the ops
+> field of a regulator_desc structure. This field is of type const, so
+> regulator_ops structures having this property can be made const too.
 
->> +                               timeout = 100000000U;
->> +
->> +                       set_data_timeout(host, timeout, 0);
->> +               }
->>                  return 0;
->>          }
->>
->> --
->> 1.9.1
->>
-> Kind regards
-> Uffe
-Regards,
-RK
+Please submit patches using subject lines reflecting the style for the
+subsystem (this applies to a large proportion of the patches you've
+sent here).  This makes it easier for people to identify relevant
+patches.  Look at what existing commits in the area you're changing are
+doing and make sure your subject lines visually resemble what they're
+doing.
+
+--datpzud4tfhb5wsy
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliQ+gwACgkQJNaLcl1U
+h9CagQf/WoYfc/tzu2EltU+B+Sn1FGappGOG8xyAZ23Y58oUkPauRoE536eM9rvL
+oElf7SwksnBZpzCSL9uBDR4T44DimrMy6y/C8dTLlsxyesCmE4SWlz457yr+NLkJ
+CdtJ4EIU2IL4uLDUsoEl1yKSlY3PWKVx4RHbo/AY7rjCbIdBKHF8AwZIno5HVVRb
+/rLeucs9EU5s76g3VAhmI28wmVdylUOW/QgA3iyFoQ1EAYZdbVAJU8V0D80ZF7rF
+/sjYbIrOkYdxj45/zuZ2ANhUKZEy2mockC6mPjhn2QtedrS1MyYiidPnZGD8dRRg
+Z3nicWMH1xOD2anL84enTbKYXjq2QQ==
+=ah69
+-----END PGP SIGNATURE-----
+
+--datpzud4tfhb5wsy--
