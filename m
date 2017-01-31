@@ -1,59 +1,85 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH V2 07/12] PM / OPP: Update OPP users to put reference
-Date: Tue, 31 Jan 2017 14:17:24 +0530
-Message-ID: <20170131084724.GB7458@vireshk-i7>
-References: <cover.1485146406.git.viresh.kumar@linaro.org>
- <CGME20170123044228epcas3p35fdbe94a890062e9d66e33a3b5e4d571@epcas3p3.samsung.com>
- <20170131071721epcms1p6a4da8e0add4547573d40bbbb55d37b74@epcms1p6>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 2/3] mmc: host: omap_hsmmc: use generic_cmd6_time to
+ program timeout value for CMD6
+Date: Tue, 31 Jan 2017 11:12:33 +0100
+Message-ID: <CAPDyKFpW0fVpThS0EQhCh5kEiG96kNSGGhmnYnLKa_A06RBaFA@mail.gmail.com>
+References: <1485771118-13748-1-git-send-email-rk@ti.com> <1485771118-13748-3-git-send-email-rk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170131071721epcms1p6a4da8e0add4547573d40bbbb55d37b74@epcms1p6>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Amit Daniel Kachhap <amit.kachhap@gmail.com>, Javi Merino <javi.merino@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edu>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1485771118-13748-3-git-send-email-rk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ravikumar Kattekola <rk@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>, Andreas Fenkart <afenkart@gmail.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kishon <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 31-01-17, 07:17, MyungJoo Ham wrote:
-> > This patch updates dev_pm_opp_find_freq_*() routines to get a reference
-> > to the OPPs returned by them.
-> > 
-> > Also updates the users of dev_pm_opp_find_freq_*() routines to call
-> > dev_pm_opp_put() after they are done using the OPPs.
-> > 
-> > As it is guaranteed the that OPPs wouldn't get freed while being used,
-> > the RCU read side locking present with the users isn't required anymore.
-> > Drop it as well.
-> > 
-> > This patch also updates all users of devfreq_recommended_opp() which was
-> > returning an OPP received from the OPP core.
-> > 
-> > Note that some of the OPP core routines have gained
-> > rcu_read_{lock|unlock}() calls, as those still use RCU specific APIs
-> > within them.
-> > 
-> > Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-> > Reviewed-by: Chanwoo Choi <cw00.choi@samsung.com> [Devfreq]
-> 
-> This patch gets a lot of fails during application.
-> 
-> For devfreq-side, I've got:
-> error: drivers/devfreq/devfreq.c: patch does not apply
-> error: patch failed: drivers/devfreq/exynos-bus.c:103
-> error: drivers/devfreq/exynos-bus.c: patch does not apply
-> error: patch failed: drivers/devfreq/governor_passive.c:59
-> error: drivers/devfreq/governor_passive.c: patch does not apply
-> error: patch failed: drivers/devfreq/rk3399_dmc.c:91
-> error: drivers/devfreq/rk3399_dmc.c: patch does not apply
-> error: patch failed: drivers/devfreq/tegra-devfreq.c:487
-> error: drivers/devfreq/tegra-devfreq.c: patch does not apply
-> 
-> With the condition that you are going to properly rebase the patch,
-> you may add "Reviewed-by" from me.
-> (the code itself looks fine.)
+On 30 January 2017 at 11:11, Ravikumar Kattekola <rk@ti.com> wrote:
+> From: Kishon Vijay Abraham I <kishon@ti.com>
+>
+> commit e2bf08d643a244ccb ("omap_hsmmc: set a large data timeout for
+> commands with busy signal") sets an arbitrary timeout value (100ms) for
+> commands like CMD6 (MMC SWITCH). However extended CSD register defined
+> in the eMMC standard has a field for GENERIC_CMD6_TIME which indicates
+> the default maximum timeout for a SWITCH command.
+> Use busy_timeout of cmd structure (populated with GENERIC_CMD6_TIME
+> in the case of SWITCH command) to program the data timeout value in
+> omap_hsmmc driver.
+> SWITCH command to turn the cache on took more than 100ms to complete
+> with MICRON eMMC card present in AM572x IDK REV 1.3A resulting in
+> timeout and failed enumeration. It is fixed here by programming the
+> timeout with the value advertised in GENERIC_CMD6_TIME.
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> Signed-off-by: Ravikumar Kattekola <rk@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 20 ++++++++++++++------
+>  1 file changed, 14 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 0ee5650..51ca3d7 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1527,16 +1527,24 @@ static void omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host)
+>  omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
+>  {
+>         int ret;
+> +       unsigned int timeout;
+> +
+>         host->data = req->data;
+>
+>         if (req->data == NULL) {
+>                 OMAP_HSMMC_WRITE(host->base, BLK, 0);
+> -               /*
+> -                * Set an arbitrary 100ms data timeout for commands with
+> -                * busy signal.
+> -                */
+> -               if (req->cmd->flags & MMC_RSP_BUSY)
+> -                       set_data_timeout(host, 100000000U, 0);
+> +               if (req->cmd->flags & MMC_RSP_BUSY) {
+> +                       timeout = req->cmd->busy_timeout * NSEC_PER_MSEC;
+> +
+> +                       /*
+> +                        * Set an arbitrary 100ms data timeout for commands with
+> +                        * busy signal and no indication of busy_timeout.
+> +                        */
+> +                       if (!timeout)
 
-This is already applied by Rafael and was based over his tree only.
+This is a bug in the mmc core if this ever happen.
 
--- 
-viresh
+Therefore I am particularly interested to find out if this is really
+needed or it's just playing safe?
+
+> +                               timeout = 100000000U;
+> +
+> +                       set_data_timeout(host, timeout, 0);
+> +               }
+>                 return 0;
+>         }
+>
+> --
+> 1.9.1
+>
+
+Kind regards
+Uffe
