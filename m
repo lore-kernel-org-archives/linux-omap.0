@@ -1,20 +1,22 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix  NULL pointer dereference
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix NULL pointer dereference
  in switch mode
-Date: Wed, 1 Feb 2017 18:30:49 +0200
-Message-ID: <20170201163048.GA15402@khorivan>
+Date: Wed, 01 Feb 2017 12:06:23 -0500 (EST)
+Message-ID: <20170201.120623.1662011578093223998.davem@davemloft.net>
 References: <20170131200404.29150-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <20170131200404.29150-1-grygorii.strashko@ti.com>
 Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, ivan.khoronzhuk@linaro.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 31, 2017 at 02:04:04PM -0600, Grygorii Strashko wrote:
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Tue, 31 Jan 2017 14:04:04 -0600
+
 > In switch mode on struct cpsw_slave->ndev field will be initialized with
 > proper value only for the one cpsw slave port, as result
 > cpsw_get_usage_count() will generate "Unable to handle kernel NULL pointer
@@ -26,29 +28,9 @@ On Tue, Jan 31, 2017 at 02:04:04PM -0600, Grygorii Strashko wrote:
 > 
 > Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 > fixes: 03fd01ad0eea ("net: ethernet: ti: cpsw: don't duplicate ndev_running")
+
+Please capitalize "Fixes: " in the future.
+
 > Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> ---
 
-Yes, unfortunately forgot to add it. Thanks.
-Reviewed-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-
-
->  drivers/net/ethernet/ti/cpsw.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 67b7323..35a95dc 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -677,7 +677,7 @@ static int cpsw_get_usage_count(struct cpsw_common *cpsw)
->  	u32 usage_count = 0;
->  
->  	for (i = 0; i < cpsw->data.slaves; i++)
-> -		if (netif_running(cpsw->slaves[i].ndev))
-> +		if (cpsw->slaves[i].ndev && netif_running(cpsw->slaves[i].ndev))
->  			usage_count++;
->  
->  	return usage_count;
-> -- 
-> 2.10.1.dirty
-> 
+Applied, thanks.
