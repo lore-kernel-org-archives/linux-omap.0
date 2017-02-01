@@ -1,36 +1,82 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix NULL pointer dereference
- in switch mode
-Date: Wed, 01 Feb 2017 12:06:23 -0500 (EST)
-Message-ID: <20170201.120623.1662011578093223998.davem@davemloft.net>
-References: <20170131200404.29150-1-grygorii.strashko@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH] regulator: cpcap: Add basic regulator support
+Date: Wed, 1 Feb 2017 11:14:35 -0600
+Message-ID: <20170201171435.hl3atrmrrz7mjsmo@rob-hp-laptop>
+References: <20170131001241.5926-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170131200404.29150-1-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, ivan.khoronzhuk@linaro.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170131001241.5926-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Tue, 31 Jan 2017 14:04:04 -0600
-
-> In switch mode on struct cpsw_slave->ndev field will be initialized with
-> proper value only for the one cpsw slave port, as result
-> cpsw_get_usage_count() will generate "Unable to handle kernel NULL pointer
-> dereference" exception when first ethernet interface is opening
-> cpsw_ndo_open(). This issue causes boot regression on AM335x EVM and
-> reproducible on am57xx-evm (switch mode).
-> Fix it by adding additional check for !cpsw->slaves[i].ndev in
-> cpsw_get_usage_count().
+On Mon, Jan 30, 2017 at 04:12:41PM -0800, Tony Lindgren wrote:
+> Many Motorola phones like droid 4 are using a custom PMIC called CPCAP
+> or 6556002. This PMIC is used with several SoCs, I've noticed at least
+> omap3, omap4 and Tegra2 based Motorola phones and tablets using it.
 > 
-> Cc: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> fixes: 03fd01ad0eea ("net: ethernet: ti: cpsw: don't duplicate ndev_running")
+> Cc: devicetree@vger.kernel.org
+> Cc: Marcel Partap <mpartap@gmx.net>
+> Cc: Michael Scott <michael.scott@linaro.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+> With the cpcap core MFD driver now in Linux next as commit
+> 3d66c8abc13e ("mfd: cpcap: Add minimal support"), here's a related
+> regulator driver. This is needed to support more devices on droid 4,
+> such as the LCD and touchscreen.
+> 
+> ---
+>  .../bindings/regulator/cpcap-regulator.txt         |  34 ++
+>  drivers/regulator/Kconfig                          |   7 +
+>  drivers/regulator/Makefile                         |   1 +
+>  drivers/regulator/cpcap-regulator.c                | 517 +++++++++++++++++++++
+>  4 files changed, 559 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
+>  create mode 100644 drivers/regulator/cpcap-regulator.c
+> 
+> diff --git a/Documentation/devicetree/bindings/regulator/cpcap-regulator.txt b/Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
+> new file mode 100644
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
+> @@ -0,0 +1,34 @@
+> +Motorola CPCAP PMIC voltage regulators
+> +------------------------------------
+> +
+> +Requires node properties:
+> +- "compatible" value one of:
+> +    "motorola,cpcap-regulator"
+> +    "motorola,mapphone-cpcap-regulator"
+> +
+> +Required regulator properties:
+> +- "regulator-name"
+> +- "regulator-enable-ramp-delay"
+> +- "regulator-min-microvolt"
+> +- "regulator-max-microvolt"
+> +
+> +Optional regulator properties:
+> +- "regulator-boot-on"
+> +
+> +See Documentation/devicetree/bindings/regulator/regulator.txt
+> +for more details about the regulator properties.
+> +
+> +Example:
+> +
+> +cpcap_regulator: regulator@600 {
 
-Please capitalize "Fixes: " in the future.
+unit-address with no reg prop.
 
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-
-Applied, thanks.
+> +	compatible = "motorola,cpcap-regulator";
+> +
+> +	cpcap_regulators: regulators {
+> +		sw5: SW5 {
+> +			regulator-min-microvolt = <5050000>;
+> +			regulator-max-microvolt = <5050000>;
+> +			regulator-enable-ramp-delay = <50000>;
+> +			regulator-boot-on;
+> +		};
+> +	};
+> +};
