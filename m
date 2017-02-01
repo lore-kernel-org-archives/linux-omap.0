@@ -1,82 +1,68 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH] regulator: cpcap: Add basic regulator support
-Date: Wed, 1 Feb 2017 11:14:35 -0600
-Message-ID: <20170201171435.hl3atrmrrz7mjsmo@rob-hp-laptop>
-References: <20170131001241.5926-1-tony@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v8.1 1/1] ASoC: omap-mcbsp: Add PM QoS
+ support for McBSP to prevent glitches
+Date: Wed, 1 Feb 2017 17:20:26 +0000
+Message-ID: <20170201172026.6vpryjf6dx23pwst@sirena.org.uk>
+References: <20170127225337.17830-1-liam@networkimprov.net>
+ <20170131212143.24415-1-liam@networkimprov.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170131001241.5926-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+Content-Type: multipart/mixed; boundary="===============9180748429414048478=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20170131212143.24415-1-liam@networkimprov.net>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Liam Breck <liam@networkimprov.net>
+Cc: alsa-devel@alsa-project.org, Matt Ranostay <matt@ranostay.consulting>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Breck <kernel@networkimprov.net>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 30, 2017 at 04:12:41PM -0800, Tony Lindgren wrote:
-> Many Motorola phones like droid 4 are using a custom PMIC called CPCAP
-> or 6556002. This PMIC is used with several SoCs, I've noticed at least
-> omap3, omap4 and Tegra2 based Motorola phones and tablets using it.
-> 
-> Cc: devicetree@vger.kernel.org
-> Cc: Marcel Partap <mpartap@gmx.net>
-> Cc: Michael Scott <michael.scott@linaro.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-> 
-> With the cpcap core MFD driver now in Linux next as commit
-> 3d66c8abc13e ("mfd: cpcap: Add minimal support"), here's a related
-> regulator driver. This is needed to support more devices on droid 4,
-> such as the LCD and touchscreen.
-> 
-> ---
->  .../bindings/regulator/cpcap-regulator.txt         |  34 ++
->  drivers/regulator/Kconfig                          |   7 +
->  drivers/regulator/Makefile                         |   1 +
->  drivers/regulator/cpcap-regulator.c                | 517 +++++++++++++++++++++
->  4 files changed, 559 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
->  create mode 100644 drivers/regulator/cpcap-regulator.c
-> 
-> diff --git a/Documentation/devicetree/bindings/regulator/cpcap-regulator.txt b/Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
-> new file mode 100644
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
-> @@ -0,0 +1,34 @@
-> +Motorola CPCAP PMIC voltage regulators
-> +------------------------------------
-> +
-> +Requires node properties:
-> +- "compatible" value one of:
-> +    "motorola,cpcap-regulator"
-> +    "motorola,mapphone-cpcap-regulator"
-> +
-> +Required regulator properties:
-> +- "regulator-name"
-> +- "regulator-enable-ramp-delay"
-> +- "regulator-min-microvolt"
-> +- "regulator-max-microvolt"
-> +
-> +Optional regulator properties:
-> +- "regulator-boot-on"
-> +
-> +See Documentation/devicetree/bindings/regulator/regulator.txt
-> +for more details about the regulator properties.
-> +
-> +Example:
-> +
-> +cpcap_regulator: regulator@600 {
 
-unit-address with no reg prop.
+--===============9180748429414048478==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="fufhr3s6cltuuk2n"
+Content-Disposition: inline
 
-> +	compatible = "motorola,cpcap-regulator";
-> +
-> +	cpcap_regulators: regulators {
-> +		sw5: SW5 {
-> +			regulator-min-microvolt = <5050000>;
-> +			regulator-max-microvolt = <5050000>;
-> +			regulator-enable-ramp-delay = <50000>;
-> +			regulator-boot-on;
-> +		};
-> +	};
-> +};
+
+--fufhr3s6cltuuk2n
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jan 31, 2017 at 01:21:43PM -0800, Liam Breck wrote:
+
+> From: Matt Ranostay <matt@ranostay.consulting>
+
+This needs to be at the top of the mail to work, IIRC SubmittingPatches
+covers it (it's useful to try sending the patch to yourself and apply
+it, helps work out if there's any problems).
+
+--fufhr3s6cltuuk2n
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAliSGNkACgkQJNaLcl1U
+h9B3zwf9G1BIm9v52sr7j5okHTQu7JZdUBa3lB59iQrdoa8UU7I3LMWE3kB9oESp
+qsBxBpKSUJKtQyVoE/p+bT0hUl6pS2NqM+uhR6CcSVuAcKdHAHkwWWf1z7ePHNT+
+RiH5xoN2TrBBskhQLZsiC8o5z6MyPNVgs7L9hCutFDoH1IDbSuf0DEXUCClzaWfW
+/bjpss4ANiDHv8J3MkHJQuH3ZBrj/88XL9rGdatsVn4dc1bqykaSO1mfWojWdvYB
+PboKWOg3ESzTHhSrW039xo6/MBS4MLnhWSkjfcVOZPleZfx6+BlcFY6MkstInyZd
+6pKOk6c7ub7YaxwkCv1G/YJGgKYHig==
+=rKGO
+-----END PGP SIGNATURE-----
+
+--fufhr3s6cltuuk2n--
+
+--===============9180748429414048478==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============9180748429414048478==--
