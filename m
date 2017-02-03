@@ -1,41 +1,89 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 0/5] PCI: dwc: miscellaneous cleanups and fixes
-Date: Fri, 3 Feb 2017 14:06:38 -0600
-Message-ID: <20170203200638.GE10291@bhelgaas-glaptop.roam.corp.google.com>
-References: <1484136415-20798-1-git-send-email-kishon@ti.com>
+From: Liam Breck <liam@networkimprov.net>
+Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
+Date: Fri, 3 Feb 2017 13:00:51 -0800
+Message-ID: <CAKvHMgQs3YYtyMApYvdRAyzuzii_xA=ZKRfqG-zpFzrMef_qdg@mail.gmail.com>
+References: <20170131000210.5442-1-tony@atomide.com> <20170131000210.5442-3-tony@atomide.com>
+ <CAKvHMgSXVertQyZyj-C-_w72Uh7xf4DbC2rsNs_T9DMPJP2tXA@mail.gmail.com>
+ <20170131003632.GB7403@atomide.com> <CAKvHMgTOKoeOxp0oxOBOO7zqothPWeC9aBrV-Km1Rq+YAafw5w@mail.gmail.com>
+ <20170203185408.GB3721@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1484136415-20798-1-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170203185408.GB3721@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 11, 2017 at 05:36:50PM +0530, Kishon Vijay Abraham I wrote:
-> This series includes miscellaneous cleanups and fixes in dra7xx
-> pci driver and it also adds COMPILE_TEST to all designware
-> based drivers (except dra7xx driver and hisi driver), since
-> dra7xx driver doesn't depend on architecture specific config and
-> hisi driver is compiled based on only ARM64.
-> 
-> These patches have been created after applying [1].
-> 
-> [1] -> https://lkml.org/lkml/2017/1/6/246
-> 
-> Kishon Vijay Abraham I (5):
->   PCI: dwc: Add COMPILE_TEST to all designware based drivers
->   PCI: dwc: dra7xx: Simplify the probe code
->   PCI: dwc: dra7xx: Add support to force RC to work in GEN1 mode
->   PCI: dwc: dra7xx: Enable MSI and legacy interrupts simultaneously
->   PCI: dwc: dra7xx: Group phy API invocations
-> 
->  drivers/pci/dwc/Kconfig      |   16 ++--
->  drivers/pci/dwc/pci-dra7xx.c |  174 ++++++++++++++++++++++++------------------
->  2 files changed, 106 insertions(+), 84 deletions(-)
+On Fri, Feb 3, 2017 at 10:54 AM, Tony Lindgren <tony@atomide.com> wrote:
+> ...
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Mon, 30 Jan 2017 07:10:31 -0800
+> Subject: [PATCH] power: bq24190_charger: Use PM runtime autosuspend
+>
+> We can get quite a few interrupts when the battery is trickle charging.
+> Let's enable PM runtime autosuspend to avoid constantly toggling device
+> driver PM runtime state.
+>
+> Let's use a 600 ms timeout as that's how long the USB chager detection
+> might take.
+>
+> Cc: Liam Breck <kernel@networkimprov.net>
+> Acked-by: Mark Greer <mgreer@animalcreek.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/power/supply/bq24190_charger.c | 156 ++++++++++++++++++++++++---------
+>  1 file changed, 114 insertions(+), 42 deletions(-)
+>
+> diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
+> --- a/drivers/power/supply/bq24190_charger.c
+> +++ b/drivers/power/supply/bq24190_charger.c
+>
+> @@ -1234,11 +1267,18 @@ static void bq24190_check_status(struct bq24190_dev_info *bdi)
+>  static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
+>  {
+>         struct bq24190_dev_info *bdi = data;
+> +       int ret;
+>
+>         bdi->irq_event = true;
+> -       pm_runtime_get_sync(bdi->dev);
+> +       ret = pm_runtime_get_sync(bdi->dev);
+> +       if (ret < 0) {
+> +               dev_err(bdi->dev, "Runtime PM failed in %s: %i\n",
+> +                       __func__, ret);
+> +               return IRQ_NONE;
+> +       }
 
-Applied to pci/host-designware for v4.11, thanks!  I added Pankaj's
-reviewed-by to the COMPILE_TEST patch.  His reviewed-by was
-technically for your standalone post of that patch, but I think both
-postings have the identical patch.
+Now this is a nitpick... Error msg should be consistent with suspend/resume:
+
+> @@ -1480,10 +1532,20 @@ static int bq24190_pm_suspend(struct device *dev)
+>  {
+>         struct i2c_client *client = to_i2c_client(dev);
+>         struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
+> +       int error;
+> +
+> +       error = pm_runtime_get_sync(bdi->dev);
+> +       if (error < 0) {
+> +               dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
+> +               pm_runtime_put_noidle(bdi->dev);
+> +       }
+
+Like here.
+
+> @@ -1492,15 +1554,25 @@ static int bq24190_pm_resume(struct device *dev)
+>  {
+>         struct i2c_client *client = to_i2c_client(dev);
+>         struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
+> +       int error;
+>
+>         bdi->f_reg = 0;
+>         bdi->ss_reg = BQ24190_REG_SS_VBUS_STAT_MASK; /* impossible state */
+>
+> -       pm_runtime_get_sync(bdi->dev);
+> +       error = pm_runtime_get_sync(bdi->dev);
+> +       if (error < 0) {
+> +               pm_runtime_put_noidle(bdi->dev);
+> +               dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
+> +       }
+
+And here.
