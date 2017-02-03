@@ -1,68 +1,66 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH] omapfb: dss: Handle return error in dss_init_ports.
-Date: Fri,  3 Feb 2017 17:53:45 +0530
-Message-ID: <1486124625-23454-1-git-send-email-arvind.yadav.cs@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com, b.zolnierkie@samsung.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
+Subject: [PATCH 1/2] DTS: dra7: Replace obsolete "operating-points" property with "operating-points-v2"
+Date: Fri,  3 Feb 2017 16:24:50 +0100
+Message-ID: <1486135491-14223-1-git-send-email-lukma@denx.de>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Here, dss_init_ports is not handling return error form
-dpi_init_port and sdi_init_port. Now dss_init_ports is returning
-always 0. And it's making below code as a dead code.
+The "operating-points" property have been replaced with
+"operating-points-v2". Only entries with the same frequencies have
+been added, so no reqression should be introduced.
 
-static int dss_bind(struct device *dev)
-{
-  .
-  .
-  r = dss_init_ports(pdev); //dss_init_ports will return always 0
-  if (r)// This condition will always false
-      goto err_init_ports; //Dead Code
-  .
-  .
-}
-
-This change is to handle return error from dpi_init_port and
-sdi_init_port. Also, It will remove dead code from function 'dss_bind'.
-
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
 ---
- drivers/video/fbdev/omap2/omapfb/dss/dss.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-index 47d7f69..15a0dab 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-@@ -946,6 +946,7 @@ static int dss_init_ports(struct platform_device *pdev)
- 	struct device_node *parent = pdev->dev.of_node;
- 	struct device_node *port;
- 	int r;
-+	int ret = 0;
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 3c228f9..a860a56 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -80,11 +80,7 @@
+ 			compatible = "arm,cortex-a15";
+ 			reg = <0>;
  
- 	if (parent == NULL)
- 		return 0;
-@@ -972,17 +973,17 @@ static int dss_init_ports(struct platform_device *pdev)
+-			operating-points = <
+-				/* kHz    uV */
+-				1000000	1060000
+-				1176000	1160000
+-				>;
++			operating-points-v2 = <&cpu0_opp_table>;
  
- 		switch (port_type) {
- 		case OMAP_DISPLAY_TYPE_DPI:
--			dpi_init_port(pdev, port);
-+			ret = dpi_init_port(pdev, port);
- 			break;
- 		case OMAP_DISPLAY_TYPE_SDI:
--			sdi_init_port(pdev, port);
-+			ret = sdi_init_port(pdev, port);
- 			break;
- 		default:
- 			break;
- 		}
- 	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
+ 			clocks = <&dpll_mpu_ck>;
+ 			clock-names = "cpu";
+@@ -98,6 +94,22 @@
+ 		};
+ 	};
  
--	return 0;
-+	return ret;
- }
- 
- static void dss_uninit_ports(struct platform_device *pdev)
++	cpu0_opp_table: opp_table0 {
++		compatible = "operating-points-v2";
++		opp-shared;
++
++		opp_nom@1000000000 {
++			opp-hz = /bits/ 64 <1000000000>;
++			opp-microvolt = <1060000 850000 1150000>;
++			opp-suspend;
++		};
++
++		opp_od@1176000000 {
++			opp-hz = /bits/ 64 <1176000000>;
++			opp-microvolt = <1160000 885000 1160000>;
++		};
++	};
++
+ 	/*
+ 	 * The soc node represents the soc top level view. It is used for IPs
+ 	 * that are not memory mapped in the MPU view or for the MPU itself.
 -- 
-1.9.1
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
