@@ -1,63 +1,65 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.9 to v4.10 regression: oops when USB cable is plugged in.
-Date: Fri, 3 Feb 2017 08:59:07 +0100
-Message-ID: <20170203075907.GA21338@amd>
-References: <20170123222537.GA11543@amd>
- <20170123224454.GY7403@atomide.com>
- <20170124091817.GA29246@amd>
- <20170124100133.GA21079@pali>
- <20170124145127.GC7403@atomide.com>
- <20170127215512.GG20571@amd>
- <20170127234832.cte4ki4ajwme2b2j@earth>
+From: Liam Breck <liam@networkimprov.net>
+Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
+Date: Fri, 3 Feb 2017 02:38:59 -0800
+Message-ID: <CAKvHMgTOKoeOxp0oxOBOO7zqothPWeC9aBrV-Km1Rq+YAafw5w@mail.gmail.com>
+References: <20170131000210.5442-1-tony@atomide.com> <20170131000210.5442-3-tony@atomide.com>
+ <CAKvHMgSXVertQyZyj-C-_w72Uh7xf4DbC2rsNs_T9DMPJP2tXA@mail.gmail.com> <20170131003632.GB7403@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170127234832.cte4ki4ajwme2b2j@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, b-liu@ti.com, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170131003632.GB7403@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Jan 30, 2017 at 4:36 PM, Tony Lindgren <tony@atomide.com> wrote:
 
---C7zPtVaVf+AK4Oqc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Mon, 30 Jan 2017 07:10:31 -0800
+> Subject: [PATCH] power: bq24190_charger: Use PM runtime autosuspend
+>
+> We can get quite a few interrupts when the battery is trickle charging.
+> Let's enable PM runtime autosuspend to avoid constantly toggling device
+> driver PM runtime state.
+>
+> Let's use a 600 ms timeout as that's how long the USB chager detection
+> might take.
+>
+> Cc: Liam Breck <kernel@networkimprov.net>
+> Acked-by: Mark Greer <mgreer@animalcreek.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/power/supply/bq24190_charger.c | 153 ++++++++++++++++++++++++---------
+>  1 file changed, 111 insertions(+), 42 deletions(-)
+>
+> diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
+> --- a/drivers/power/supply/bq24190_charger.c
+> +++ b/drivers/power/supply/bq24190_charger.c
+> ...
+> @@ -1234,11 +1267,15 @@ static void bq24190_check_status(struct bq24190_dev_info *bdi)
+>  static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
+>  {
+>         struct bq24190_dev_info *bdi = data;
+> +       int ret;
+>
+>         bdi->irq_event = true;
+> -       pm_runtime_get_sync(bdi->dev);
+> +       ret = pm_runtime_get_sync(bdi->dev);
+> +       if (ret < 0)
+> +               return ret;
+>         bq24190_check_status(bdi);
+> -       pm_runtime_put_sync(bdi->dev);
+> +       pm_runtime_mark_last_busy(bdi->dev);
+> +       pm_runtime_put_autosuspend(bdi->dev);
+>         bdi->irq_event = false;
+>
+>         return IRQ_HANDLED;
 
-Hi!
+OK get_sync() failure should return error to userspace callers, and
+abort probe(), makes sense.
 
-> On Fri, Jan 27, 2017 at 10:55:12PM +0100, Pavel Machek wrote:
-> > Ok, I can try. But so far even -rc1 is a lot of fun. But... I consider
-> > phone calls core feature of a phone. I'd very much like to get that to
-> > work. Unfortunately, that means real-time audio, and a lot of
-> > fun. Plus, as it is touchscreen device, it needs a GUI.=20
->=20
-> Talking about testing - kernelci's n900 is broken?
->=20
-> https://kernelci.org/boot/omap3-n900/
+But should the interrupt handler (above) emit a warning and continue
+as in resume() and suspend()?
 
-The N900 regressions are now more of "audio mixers no longer work"
-than "it fails to boot" kind -- thus difficult to test automatically,
-I'm afraid.
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---C7zPtVaVf+AK4Oqc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAliUOEsACgkQMOfwapXb+vLKbgCeKPAElcWFZyQagZ4CdMecctNH
-jfYAn3tjYUlgA7Y9kpjsu2FckygubpCT
-=GBTv
------END PGP SIGNATURE-----
-
---C7zPtVaVf+AK4Oqc--
+If not is ret the right value to return in lieu of irq_handled?
