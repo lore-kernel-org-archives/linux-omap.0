@@ -1,83 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
-Date: Thu, 2 Feb 2017 19:44:40 -0800
-Message-ID: <20170203034440.GI7403@atomide.com>
-References: <20170131000210.5442-1-tony@atomide.com>
- <20170131000210.5442-3-tony@atomide.com>
- <CAKvHMgSXVertQyZyj-C-_w72Uh7xf4DbC2rsNs_T9DMPJP2tXA@mail.gmail.com>
- <20170131003632.GB7403@atomide.com>
- <CAKvHMgTP40_YTHZn=mNNYBW5aheVNV2WskuikQeyjv3Zn27fOg@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.9 to v4.10 regression: oops when USB cable is plugged in.
+Date: Fri, 3 Feb 2017 08:59:07 +0100
+Message-ID: <20170203075907.GA21338@amd>
+References: <20170123222537.GA11543@amd>
+ <20170123224454.GY7403@atomide.com>
+ <20170124091817.GA29246@amd>
+ <20170124100133.GA21079@pali>
+ <20170124145127.GC7403@atomide.com>
+ <20170127215512.GG20571@amd>
+ <20170127234832.cte4ki4ajwme2b2j@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKvHMgTP40_YTHZn=mNNYBW5aheVNV2WskuikQeyjv3Zn27fOg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Liam Breck <liam@networkimprov.net>
-Cc: Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20170127234832.cte4ki4ajwme2b2j@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, b-liu@ti.com, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Liam Breck <liam@networkimprov.net> [170202 17:44]:
-> > @@ -427,11 +428,20 @@ static ssize_t bq24190_sysfs_show(struct device *dev,
-> >         if (!info)
-> >                 return -EINVAL;
-> >
-> > +       ret = pm_runtime_get_sync(bdi->dev);
-> > +       if (ret < 0)
-> > +               return ret;
-> 
-> Let's not stop here if get_sync fails.
 
-Hmm care to describe why we would want to ignore errors on pm_runtime_get()?
-I don't think that's a good idea.. And for sysfs_show() output?
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If these calls fail it's a sign of a serious problem somewhere
-and it should be fixed instead of ignoring the errors and attempting to
-continue. Ignoring errors with these calls can lead into problems that
-are hard to debug.
+Hi!
 
-> > @@ -1364,12 +1394,16 @@ static int bq24190_probe(struct i2c_client *client,
-> >         }
-> >
-> >         pm_runtime_enable(dev);
-> > -       pm_runtime_resume(dev);
-> > +       pm_runtime_use_autosuspend(dev);
-> > +       pm_runtime_set_autosuspend_delay(dev, 600);
-> > +       ret = pm_runtime_get_sync(dev);
-> > +       if (ret < 0)
-> > +               goto out1;
-> 
-> Nor here 8.
+> On Fri, Jan 27, 2017 at 10:55:12PM +0100, Pavel Machek wrote:
+> > Ok, I can try. But so far even -rc1 is a lot of fun. But... I consider
+> > phone calls core feature of a phone. I'd very much like to get that to
+> > work. Unfortunately, that means real-time audio, and a lot of
+> > fun. Plus, as it is touchscreen device, it needs a GUI.=20
+>=20
+> Talking about testing - kernelci's n900 is broken?
+>=20
+> https://kernelci.org/boot/omap3-n900/
 
-Eek, let's not try to continue the probe if pm_runtime_get_fails. Let's
-just assume it's either implemented and must be working, or a nop operation
-that will not do anything. Depending on the implementation, this could
-affect something in the hardware like pin multiplexing, parent device
-clocking.. On the module exit path it might make sense as we know the
-device was working to get there so it might be possible to do something :)
+The N900 regressions are now more of "audio mixers no longer work"
+than "it fails to boot" kind -- thus difficult to test automatically,
+I'm afraid.
+									Pavel
 
-> We need helper funcs...
-> 
-> static inline int bq24190_pmrt_get(struct device* dev) {
->   int err = pm_runtime_get_sync(dev);
->   if (err < 0) {
->     dev_warn(dev, "pm_runtime_get failed: %i\n", err);
->     pm_runtime_put_noidle(dev);
->   }
->   return err;
-> }
-> 
-> static inline void bq24190_pmrt_put(struct device* dev, int err) {
->   if (!err) {
->     pm_runtime_mark_last_busy(dev);
->     pm_runtime_put_autosuspend(dev);
->   }
-> }
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-If you want to implement something like that it should probably be
-done in a Linux generic way. There's still quite a bit boilerplate
-code needed for the autosuspend usage.
+--C7zPtVaVf+AK4Oqc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Tony
+iEYEARECAAYFAliUOEsACgkQMOfwapXb+vLKbgCeKPAElcWFZyQagZ4CdMecctNH
+jfYAn3tjYUlgA7Y9kpjsu2FckygubpCT
+=GBTv
+-----END PGP SIGNATURE-----
+
+--C7zPtVaVf+AK4Oqc--
