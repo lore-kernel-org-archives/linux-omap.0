@@ -1,56 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
-Date: Fri, 3 Feb 2017 14:28:13 -0800
-Message-ID: <20170203222812.GA3900@atomide.com>
-References: <20170131000210.5442-1-tony@atomide.com>
- <20170131000210.5442-3-tony@atomide.com>
- <CAKvHMgSXVertQyZyj-C-_w72Uh7xf4DbC2rsNs_T9DMPJP2tXA@mail.gmail.com>
- <20170131003632.GB7403@atomide.com>
- <CAKvHMgTOKoeOxp0oxOBOO7zqothPWeC9aBrV-Km1Rq+YAafw5w@mail.gmail.com>
- <20170203185408.GB3721@atomide.com>
- <CAKvHMgQs3YYtyMApYvdRAyzuzii_xA=ZKRfqG-zpFzrMef_qdg@mail.gmail.com>
- <20170203211707.GC3721@atomide.com>
- <CAKvHMgQwhm3pBupBj8KFLwyhZpdeHtMyKj3BardbKpcAy_qXfg@mail.gmail.com>
+From: Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
+Subject: Re: [PATCH 2/2] DTS: dra7: Add "opp_high" opp node to support 1.5
+ GHz SoC operation
+Date: Sat, 4 Feb 2017 00:06:15 +0100
+Message-ID: <20170204000615.4417940f@jawa>
+References: <1486135491-14223-1-git-send-email-lukma@denx.de>
+        <1486135491-14223-2-git-send-email-lukma@denx.de>
+        <f17ceda2-45e0-9c67-7c8a-5a35132a2d0a@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKvHMgQwhm3pBupBj8KFLwyhZpdeHtMyKj3BardbKpcAy_qXfg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Liam Breck <liam@networkimprov.net>
-Cc: Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <f17ceda2-45e0-9c67-7c8a-5a35132a2d0a-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Liam Breck <liam@networkimprov.net> [170203 13:46]:
-> On Fri, Feb 3, 2017 at 1:17 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > Cc: Liam Breck <kernel@networkimprov.net>
-> > Acked-by: Mark Greer <mgreer@animalcreek.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> Acked-by: Liam Breck <kernel@networkimprov.net>
+Hi Nishanth,
 
-Thanks for looking though it.
-
-> > @@ -1492,15 +1553,25 @@ static int bq24190_pm_resume(struct device *dev)
-> >  {
-> >         struct i2c_client *client = to_i2c_client(dev);
-> >         struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
-> > +       int error;
+> On 02/03/2017 09:24 AM, Lukasz Majewski wrote:
+> > The "opp_high" property brings support for 1.5 GHz CPU frequency
+> > for TI's am57xx line of processors.
 > >
-> >         bdi->f_reg = 0;
-> >         bdi->ss_reg = BQ24190_REG_SS_VBUS_STAT_MASK; /* impossible state */
+> > Signed-off-by: Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
+> > ---
+> >  arch/arm/boot/dts/dra7.dtsi | 5 +++++
+> >  1 file changed, 5 insertions(+)
 > >
-> > -       pm_runtime_get_sync(bdi->dev);
-> > +       error = pm_runtime_get_sync(bdi->dev);
-> > +       if (error < 0) {
-> > +               pm_runtime_put_noidle(bdi->dev);
-> > +               dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
-> > +       }
+> > diff --git a/arch/arm/boot/dts/dra7.dtsi
+> > b/arch/arm/boot/dts/dra7.dtsi index a860a56..5e678cd 100644
+> > --- a/arch/arm/boot/dts/dra7.dtsi
+> > +++ b/arch/arm/boot/dts/dra7.dtsi
+> > @@ -108,6 +108,11 @@
+> >  			opp-hz = /bits/ 64 <1176000000>;
+> >  			opp-microvolt = <1160000 885000 1160000>;
+> >  		};
+> > +
+> > +		opp_high@1500000000 {
+> > +			opp-hz = /bits/ 64 <1500000000>;
+> > +			opp-microvolt = <1210000 950000 1250000>;
+> > +		};
+> >  	};
+> >
+> >  	/*
+> >
+> Please keep this out of the way till we get the AVS class0 integrated 
+> in. devices wont be save at 1.5GHz without the opp powerdomain + AVS 
+> Class0 implementation.
 > 
-> Last nitpick: call put_noidle after dev_warn, as in suspend :-)
 
-Sure, will do that and repost v3 of both patches shortly.
+Yes, correct. My AM5728 works with this opp, but AM5718 hangs when this
+frequency is enabled.
 
-Regards,
 
-Tony
+
+Best regards,
+
+Lukasz Majewski
+
+--
+
+DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
+HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd-ynQEQJNshbs@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
