@@ -1,382 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
-Date: Fri,  3 Feb 2017 15:09:50 -0800
-Message-ID: <20170203230950.24176-3-tony@atomide.com>
-References: <20170203230950.24176-1-tony@atomide.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170203230950.24176-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/2] DTS: dra7: Add "opp_high" opp node to support 1.5 GHz
+ SoC operation
+Date: Fri, 3 Feb 2017 17:14:27 -0600
+Message-ID: <CAGo_u6qiXnmMCXs=NB=L6E1Ecguo_1MAHap9bi1G-5rVbaiN7g@mail.gmail.com>
+References: <1486135491-14223-1-git-send-email-lukma@denx.de>
+ <1486135491-14223-2-git-send-email-lukma@denx.de> <f17ceda2-45e0-9c67-7c8a-5a35132a2d0a@ti.com>
+ <20170204000615.4417940f@jawa>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170204000615.4417940f@jawa>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lukasz Majewski <lukma@denx.de>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Russell King <linux@armlinux.org.uk>, Viresh Kumar <viresh.kumar@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, dt list <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We can get quite a few interrupts when the battery is trickle charging.
-Let's enable PM runtime autosuspend to avoid constantly toggling device
-driver PM runtime state.
+On Fri, Feb 3, 2017 at 5:06 PM, Lukasz Majewski <lukma@denx.de> wrote:
+[...]
+>> > +           opp_high@1500000000 {
+>> > +                   opp-hz = /bits/ 64 <1500000000>;
+>> > +                   opp-microvolt = <1210000 950000 1250000>;
+>> > +           };
+>> >     };
+>> >
+>> >     /*
+>> >
+>> Please keep this out of the way till we get the AVS class0 integrated
+>> in. devices wont be save at 1.5GHz without the opp powerdomain + AVS
+>> Class0 implementation.
+>>
+>
+> Yes, correct. My AM5728 works with this opp, but AM5718 hangs when this
+> frequency is enabled.
 
-Let's use a 600 ms timeout as that's how long the USB chager detection
-might take.
+Right, and if you leave it on for too long without avs class0, you
+might need a new silicon as well :(
 
-Acked-by: Mark Greer <mgreer@animalcreek.com>
-Acked-by: Liam Breck <kernel@networkimprov.net>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/power/supply/bq24190_charger.c | 155 ++++++++++++++++++++++++---------
- 1 file changed, 113 insertions(+), 42 deletions(-)
-
-diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
---- a/drivers/power/supply/bq24190_charger.c
-+++ b/drivers/power/supply/bq24190_charger.c
-@@ -420,6 +420,7 @@ static ssize_t bq24190_sysfs_show(struct device *dev,
- 	struct power_supply *psy = dev_get_drvdata(dev);
- 	struct bq24190_dev_info *bdi = power_supply_get_drvdata(psy);
- 	struct bq24190_sysfs_field_info *info;
-+	ssize_t count;
- 	int ret;
- 	u8 v;
- 
-@@ -427,11 +428,20 @@ static ssize_t bq24190_sysfs_show(struct device *dev,
- 	if (!info)
- 		return -EINVAL;
- 
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
-+
- 	ret = bq24190_read_mask(bdi, info->reg, info->mask, info->shift, &v);
- 	if (ret)
--		return ret;
-+		count = ret;
-+	else
-+		count = scnprintf(buf, PAGE_SIZE, "%hhx\n", v);
- 
--	return scnprintf(buf, PAGE_SIZE, "%hhx\n", v);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
-+	return count;
- }
- 
- static ssize_t bq24190_sysfs_store(struct device *dev,
-@@ -451,9 +461,16 @@ static ssize_t bq24190_sysfs_store(struct device *dev,
- 	if (ret < 0)
- 		return ret;
- 
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
-+
- 	ret = bq24190_write_mask(bdi, info->reg, info->mask, info->shift, v);
- 	if (ret)
--		return ret;
-+		count = ret;
-+
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
- 
- 	return count;
- }
-@@ -795,7 +812,9 @@ static int bq24190_charger_get_property(struct power_supply *psy,
- 
- 	dev_dbg(bdi->dev, "prop: %d\n", psp);
- 
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-@@ -835,7 +854,9 @@ static int bq24190_charger_get_property(struct power_supply *psy,
- 		ret = -ENODATA;
- 	}
- 
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
- 	return ret;
- }
- 
-@@ -848,7 +869,9 @@ static int bq24190_charger_set_property(struct power_supply *psy,
- 
- 	dev_dbg(bdi->dev, "prop: %d\n", psp);
- 
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-@@ -864,7 +887,9 @@ static int bq24190_charger_set_property(struct power_supply *psy,
- 		ret = -EINVAL;
- 	}
- 
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
- 	return ret;
- }
- 
-@@ -1065,7 +1090,9 @@ static int bq24190_battery_get_property(struct power_supply *psy,
- 
- 	dev_dbg(bdi->dev, "prop: %d\n", psp);
- 
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_STATUS:
-@@ -1093,7 +1120,9 @@ static int bq24190_battery_get_property(struct power_supply *psy,
- 		ret = -ENODATA;
- 	}
- 
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
- 	return ret;
- }
- 
-@@ -1106,7 +1135,9 @@ static int bq24190_battery_set_property(struct power_supply *psy,
- 
- 	dev_dbg(bdi->dev, "prop: %d\n", psp);
- 
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	switch (psp) {
- 	case POWER_SUPPLY_PROP_ONLINE:
-@@ -1119,7 +1150,9 @@ static int bq24190_battery_set_property(struct power_supply *psy,
- 		ret = -EINVAL;
- 	}
- 
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
-+
- 	return ret;
- }
- 
-@@ -1234,11 +1267,17 @@ static void bq24190_check_status(struct bq24190_dev_info *bdi)
- static irqreturn_t bq24190_irq_handler_thread(int irq, void *data)
- {
- 	struct bq24190_dev_info *bdi = data;
-+	int ret;
- 
- 	bdi->irq_event = true;
--	pm_runtime_get_sync(bdi->dev);
-+	ret = pm_runtime_get_sync(bdi->dev);
-+	if (ret < 0) {
-+		dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", ret);
-+		return IRQ_NONE;
-+	}
- 	bq24190_check_status(bdi);
--	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_mark_last_busy(bdi->dev);
-+	pm_runtime_put_autosuspend(bdi->dev);
- 	bdi->irq_event = false;
- 
- 	return IRQ_HANDLED;
-@@ -1249,33 +1288,26 @@ static int bq24190_hw_init(struct bq24190_dev_info *bdi)
- 	u8 v;
- 	int ret;
- 
--	pm_runtime_get_sync(bdi->dev);
--
- 	/* First check that the device really is what its supposed to be */
- 	ret = bq24190_read_mask(bdi, BQ24190_REG_VPRS,
- 			BQ24190_REG_VPRS_PN_MASK,
- 			BQ24190_REG_VPRS_PN_SHIFT,
- 			&v);
- 	if (ret < 0)
--		goto out;
-+		return ret;
- 
--	if (v != bdi->model) {
--		ret = -ENODEV;
--		goto out;
--	}
-+	if (v != bdi->model)
-+		return -ENODEV;
- 
- 	ret = bq24190_register_reset(bdi);
- 	if (ret < 0)
--		goto out;
-+		return ret;
- 
- 	ret = bq24190_set_mode_host(bdi);
- 	if (ret < 0)
--		goto out;
-+		return ret;
- 
--	ret = bq24190_read(bdi, BQ24190_REG_SS, &bdi->ss_reg);
--out:
--	pm_runtime_put_sync(bdi->dev);
--	return ret;
-+	return bq24190_read(bdi, BQ24190_REG_SS, &bdi->ss_reg);
- }
- 
- #ifdef CONFIG_OF
-@@ -1364,12 +1396,16 @@ static int bq24190_probe(struct i2c_client *client,
- 	}
- 
- 	pm_runtime_enable(dev);
--	pm_runtime_resume(dev);
-+	pm_runtime_use_autosuspend(dev);
-+	pm_runtime_set_autosuspend_delay(dev, 600);
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0)
-+		goto out1;
- 
- 	ret = bq24190_hw_init(bdi);
- 	if (ret < 0) {
- 		dev_err(dev, "Hardware init failed\n");
--		goto out1;
-+		goto out2;
- 	}
- 
- 	charger_cfg.drv_data = bdi;
-@@ -1380,7 +1416,7 @@ static int bq24190_probe(struct i2c_client *client,
- 	if (IS_ERR(bdi->charger)) {
- 		dev_err(dev, "Can't register charger\n");
- 		ret = PTR_ERR(bdi->charger);
--		goto out1;
-+		goto out2;
- 	}
- 
- 	battery_cfg.drv_data = bdi;
-@@ -1389,13 +1425,13 @@ static int bq24190_probe(struct i2c_client *client,
- 	if (IS_ERR(bdi->battery)) {
- 		dev_err(dev, "Can't register battery\n");
- 		ret = PTR_ERR(bdi->battery);
--		goto out2;
-+		goto out3;
- 	}
- 
- 	ret = bq24190_sysfs_create_group(bdi);
- 	if (ret) {
- 		dev_err(dev, "Can't create sysfs entries\n");
--		goto out3;
-+		goto out4;
- 	}
- 
- 	bdi->initialized = true;
-@@ -1406,21 +1442,30 @@ static int bq24190_probe(struct i2c_client *client,
- 			"bq24190-charger", bdi);
- 	if (ret < 0) {
- 		dev_err(dev, "Can't set up irq handler\n");
--		goto out4;
-+		goto out5;
- 	}
- 
-+	enable_irq_wake(bdi->irq);
-+
-+	pm_runtime_mark_last_busy(dev);
-+	pm_runtime_put_autosuspend(dev);
-+
- 	return 0;
- 
--out4:
-+out5:
- 	bq24190_sysfs_remove_group(bdi);
- 
--out3:
-+out4:
- 	power_supply_unregister(bdi->battery);
- 
--out2:
-+out3:
- 	power_supply_unregister(bdi->charger);
- 
-+out2:
-+	pm_runtime_put_sync(dev);
-+
- out1:
-+	pm_runtime_dont_use_autosuspend(dev);
- 	pm_runtime_disable(dev);
- 	if (bdi->gpio_int)
- 		gpio_free(bdi->gpio_int);
-@@ -1430,14 +1475,20 @@ static int bq24190_probe(struct i2c_client *client,
- static int bq24190_remove(struct i2c_client *client)
- {
- 	struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
-+	int error;
- 
--	pm_runtime_get_sync(bdi->dev);
--	bq24190_register_reset(bdi);
--	pm_runtime_put_sync(bdi->dev);
-+	error = pm_runtime_get_sync(bdi->dev);
-+	if (error < 0) {
-+		dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
-+		pm_runtime_put_noidle(bdi->dev);
-+	}
- 
-+	bq24190_register_reset(bdi);
- 	bq24190_sysfs_remove_group(bdi);
- 	power_supply_unregister(bdi->battery);
- 	power_supply_unregister(bdi->charger);
-+	pm_runtime_put_sync(bdi->dev);
-+	pm_runtime_dont_use_autosuspend(bdi->dev);
- 	pm_runtime_disable(bdi->dev);
- 
- 	if (bdi->gpio_int)
-@@ -1480,10 +1531,20 @@ static int bq24190_pm_suspend(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
-+	int error;
-+
-+	error = pm_runtime_get_sync(bdi->dev);
-+	if (error < 0) {
-+		dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
-+		pm_runtime_put_noidle(bdi->dev);
-+	}
- 
--	pm_runtime_get_sync(bdi->dev);
- 	bq24190_register_reset(bdi);
--	pm_runtime_put_sync(bdi->dev);
-+
-+	if (!error) {
-+		pm_runtime_mark_last_busy(bdi->dev);
-+		pm_runtime_put_autosuspend(bdi->dev);
-+	}
- 
- 	return 0;
- }
-@@ -1492,15 +1553,25 @@ static int bq24190_pm_resume(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
-+	int error;
- 
- 	bdi->f_reg = 0;
- 	bdi->ss_reg = BQ24190_REG_SS_VBUS_STAT_MASK; /* impossible state */
- 
--	pm_runtime_get_sync(bdi->dev);
-+	error = pm_runtime_get_sync(bdi->dev);
-+	if (error < 0) {
-+		dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
-+		pm_runtime_put_noidle(bdi->dev);
-+	}
-+
- 	bq24190_register_reset(bdi);
- 	bq24190_set_mode_host(bdi);
- 	bq24190_read(bdi, BQ24190_REG_SS, &bdi->ss_reg);
--	pm_runtime_put_sync(bdi->dev);
-+
-+	if (!error) {
-+		pm_runtime_mark_last_busy(bdi->dev);
-+		pm_runtime_put_autosuspend(bdi->dev);
-+	}
- 
- 	/* Things may have changed while suspended so alert upper layer */
- 	power_supply_changed(bdi->charger);
+If you'd like to help, I saw Dave's response, it will be good if you
+can help us get the dependencies out of the way to enable 1.5G
+cleanly.
 -- 
-2.11.0
+---
+Regards,
+Nishanth Menon
