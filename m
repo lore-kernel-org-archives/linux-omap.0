@@ -1,137 +1,610 @@
-From: Lukasz Majewski <lukma@denx.de>
-Subject: Re: [PATCH 2/2] DTS: dra7: Add "opp_high" opp node to support 1.5
- GHz SoC operation
-Date: Sat, 4 Feb 2017 06:30:30 +0100
-Message-ID: <20170204063030.3ba736f9@jawa>
-References: <1486135491-14223-1-git-send-email-lukma@denx.de>
-        <1486135491-14223-2-git-send-email-lukma@denx.de>
-        <e398ff96-dca7-7934-70b1-9a95c01d3b27@ti.com>
-        <20170204002150.707b231d@jawa>
-        <79e08896-895e-4996-8402-832328b4f7d8@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <79e08896-895e-4996-8402-832328b4f7d8@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>, Russell King <linux@armlinux.org.uk>, Viresh Kumar <viresh.kumar@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Applied "regulator: cpcap: Add basic regulator support" to the regulator tree
+Date: Sat, 04 Feb 2017 12:46:42 +0100
+Message-ID: <E1cZyni-0001vB-DJ@finisterre>
+References: <20170202234357.2405-1-tony@atomide.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170202234357.2405-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.orgdevicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.orgMarcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nishanth,
+The patch
 
-> On 02/03/2017 05:21 PM, Lukasz Majewski wrote:
-> > Hi Dave,
-> >
-> > Thanks for sharing the knowledge :-)
-> >
-> >> On 02/03/2017 09:24 AM, Lukasz Majewski wrote:
-> >>> The "opp_high" property brings support for 1.5 GHz CPU frequency
-> >>> for TI's am57xx line of processors.
-> >>>
-> >>> Signed-off-by: Lukasz Majewski <lukma@denx.de>
-> >>> ---
-> >>>  arch/arm/boot/dts/dra7.dtsi | 5 +++++
-> >>>  1 file changed, 5 insertions(+)
-> >>>
-> >>
-> >> This can't be blindly enabled for all am57xx SoCs,
-> >
-> > Yes, I'm fully aware of AVS, which uses fuses and SoC silicon
-> > revision to assess if frequency can be enabled.
-> >
-> > Example from my playground:
-> >
-> > - AM5728 works with 1.5 GHz enabled
-> >
-> > - AM5718 hangs when I try to enable 1.5 GHz frequency
-> >
-> >
-> >> there is a
-> >> forthcoming ti-cpufreq [1] driver
-> >
-> > I've backported and tested this code on v4.9 vanilla. It works :-)
-> >
-> >> that is needed that will decided
-> >> which OPPs can and cannot be enabled for the specific variant in
-> >> use.
-> >
-> > I do have a question:
-> >
-> > Do you know the correct opp-supported-hw value for 1.5 GHz on AM57x8
-> > SoC?
-> > In TI's SDK Linux (v4.4): opp-supported-hw = <0xFF 0x04>; but this
-> > seems to be always enabled (and not taking silicon revision and
-> > efuse into account).
-> 
-> There is a TISDK 4.9 being built up as well (we typically do let the 
-> driver soak for a test cycle prior to posting it upstream) but if it 
-> is of interest.. it should match the version Dave posted upstream..
-> 
-> http://git.ti.com/ti-linux-kernel/ti-linux-kernel/blobs/ti-lsk-linux-4.9.y/arch/arm/boot/dts/dra7.dtsi#line100
+   regulator: cpcap: Add basic regulator support
 
-This opp_table0 DTS node definition is different than the one sent to ML
-by Dave (e.g. opp-microvolt has different definition).
+has been applied to the regulator tree at
 
-> 
-> > For my use case it would be best to see what data should prevent my
-> > AM5718 from 1.5 GHz OPP.
-> >
-> > In other words I need to be 100% sure that my silicon SoC version
-> > doesn't support the 1.5 GHz frequency.
-> >
-> 
-> look at dra7_efuse_xlate which does a speed grade decode of the
-> speeds permitted.. a value of 15 or 23 should permit 1.5GHz. those
-> are common for DRA7/AM57 SoCs.
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
-Ok, I've checked this and both SoCs have value 23, so they should
-support 1.5 GHz operation. Hence, the AM5718 should not hang.
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-> 
-> If the efuses seem set for 1.5GHz, the chip should be capable of 
-> 1.5GHz, i'd start suspecting regulators, slew rates and the like.
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-Then I do need to examine them.
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
-> 
-> http://www.ti.com/lit/pdf/spruhz7
-> rev d: page 371 -> 23 (0x17) = X speed designator Refer to device DM 
-> for supported speed grades for a given device, and the definition for 
-> supported speed grades.
-> So, if you go to 
-> http://www.ti.com/product/AM5718/datasheet/specifications#SWPS043-7245x 
-> -> you will see the "X" designator in AM5718xxX which does support 23 
-> and 1.5GHz.
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
 
-Yes, correct.
+Thanks,
+Mark
 
-> 
-> 
-> Now, if you did get one of the pre-production samples,
+>From 0ad4c07edd413cb64abed217355d51af3649c5a3 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Date: Thu, 2 Feb 2017 15:43:57 -0800
+Subject: [PATCH] regulator: cpcap: Add basic regulator support
 
-Is there any prod_id (or any other register value), which indicates the
-production sample?
+Many Motorola phones like droid 4 are using a custom PMIC called CPCAP
+or 6556002. This PMIC is used with several SoCs, I've noticed at least
+omap3, omap4 and Tegra2 based Motorola phones and tablets using it.
 
-> it is possible 
-> to have efuses slightly messed up on very initial samples - at least 
-> internally, we have had them replaced and none of those samples
-> should have exited TI.. but mistakes might happen.. if the efuse
-> value does not meet the speed grade in documentation, then, please
-> contact TI FAE your company works with and let them know for what to
-> do alternatively, you can also file it on e2e.ti.com for further
-> support.
-> 
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ .../bindings/regulator/cpcap-regulator.txt         |  34 ++
+ drivers/regulator/Kconfig                          |   7 +
+ drivers/regulator/Makefile                         |   1 +
+ drivers/regulator/cpcap-regulator.c                | 464 +++++++++++++++++++++
+ 4 files changed, 506 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
+ create mode 100644 drivers/regulator/cpcap-regulator.c
 
-Thanks for support.
-
-
-Best regards,
-
-Lukasz Majewski
+diff --git a/Documentation/devicetree/bindings/regulator/cpcap-regulator.txt b/Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
+new file mode 100644
+index 000000000000..675f4437ce92
+--- /dev/null
++++ b/Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
+@@ -0,0 +1,34 @@
++Motorola CPCAP PMIC voltage regulators
++------------------------------------
++
++Requires node properties:
++- "compatible" value one of:
++    "motorola,cpcap-regulator"
++    "motorola,mapphone-cpcap-regulator"
++
++Required regulator properties:
++- "regulator-name"
++- "regulator-enable-ramp-delay"
++- "regulator-min-microvolt"
++- "regulator-max-microvolt"
++
++Optional regulator properties:
++- "regulator-boot-on"
++
++See Documentation/devicetree/bindings/regulator/regulator.txt
++for more details about the regulator properties.
++
++Example:
++
++cpcap_regulator: regulator {
++	compatible = "motorola,cpcap-regulator";
++
++	cpcap_regulators: regulators {
++		sw5: SW5 {
++			regulator-min-microvolt = <5050000>;
++			regulator-max-microvolt = <5050000>;
++			regulator-enable-ramp-delay = <50000>;
++			regulator-boot-on;
++		};
++	};
++};
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+index 936f7ccc9736..be06eb29c681 100644
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -163,6 +163,13 @@ config REGULATOR_BCM590XX
+ 	  BCM590xx PMUs. This will enable support for the software
+ 	  controllable LDO/Switching regulators.
+ 
++config REGULATOR_CPCAP
++	tristate "Motorola CPCAP regulator"
++	depends on MFD_CPCAP
++	help
++	  Say y here for CPCAP regulator found on some Motorola phones
++	  and tablets such as Droid 4.
++
+ config REGULATOR_DA903X
+ 	tristate "Dialog Semiconductor DA9030/DA9034 regulators"
+ 	depends on PMIC_DA903X
+diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
+index 14294692beb9..ef7725e2592a 100644
+--- a/drivers/regulator/Makefile
++++ b/drivers/regulator/Makefile
+@@ -11,6 +11,7 @@ obj-$(CONFIG_REGULATOR_USERSPACE_CONSUMER) += userspace-consumer.o
+ 
+ obj-$(CONFIG_REGULATOR_88PM800) += 88pm800.o
+ obj-$(CONFIG_REGULATOR_88PM8607) += 88pm8607.o
++obj-$(CONFIG_REGULATOR_CPCAP) += cpcap-regulator.o
+ obj-$(CONFIG_REGULATOR_AAT2870) += aat2870-regulator.o
+ obj-$(CONFIG_REGULATOR_AB3100) += ab3100.o
+ obj-$(CONFIG_REGULATOR_AB8500)	+= ab8500-ext.o ab8500.o
+diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
+new file mode 100644
+index 000000000000..cc98aceed1c1
+--- /dev/null
++++ b/drivers/regulator/cpcap-regulator.c
+@@ -0,0 +1,464 @@
++/*
++ * Motorola CPCAP PMIC regulator driver
++ *
++ * Based on cpcap-regulator.c from Motorola Linux kernel tree
++ * Copyright (C) 2009-2011 Motorola, Inc.
++ *
++ * Rewritten for mainline kernel to use device tree and regmap
++ * Copyright (C) 2017 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/err.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/regmap.h>
++#include <linux/regulator/driver.h>
++#include <linux/regulator/machine.h>
++#include <linux/regulator/of_regulator.h>
++#include <linux/mfd/motorola-cpcap.h>
++
++/*
++ * Resource assignment register bits. These seem to control the state
++ * idle modes adn are used at least for omap4.
++ */
++
++/* CPCAP_REG_ASSIGN2 bits - Resource Assignment 2 */
++#define CPCAP_BIT_VSDIO_SEL		BIT(15)
++#define CPCAP_BIT_VDIG_SEL		BIT(14)
++#define CPCAP_BIT_VCAM_SEL		BIT(13)
++#define CPCAP_BIT_SW6_SEL		BIT(12)
++#define CPCAP_BIT_SW5_SEL		BIT(11)
++#define CPCAP_BIT_SW4_SEL		BIT(10)
++#define CPCAP_BIT_SW3_SEL		BIT(9)
++#define CPCAP_BIT_SW2_SEL		BIT(8)
++#define CPCAP_BIT_SW1_SEL		BIT(7)
++
++/* CPCAP_REG_ASSIGN3 bits - Resource Assignment 3 */
++#define CPCAP_BIT_VUSBINT2_SEL		BIT(15)
++#define CPCAP_BIT_VUSBINT1_SEL		BIT(14)
++#define CPCAP_BIT_VVIB_SEL		BIT(13)
++#define CPCAP_BIT_VWLAN1_SEL		BIT(12)
++#define CPCAP_BIT_VRF1_SEL		BIT(11)
++#define CPCAP_BIT_VHVIO_SEL		BIT(10)
++#define CPCAP_BIT_VDAC_SEL		BIT(9)
++#define CPCAP_BIT_VUSB_SEL		BIT(8)
++#define CPCAP_BIT_VSIM_SEL		BIT(7)
++#define CPCAP_BIT_VRFREF_SEL		BIT(6)
++#define CPCAP_BIT_VPLL_SEL		BIT(5)
++#define CPCAP_BIT_VFUSE_SEL		BIT(4)
++#define CPCAP_BIT_VCSI_SEL		BIT(3)
++#define CPCAP_BIT_SPARE_14_2		BIT(2)
++#define CPCAP_BIT_VWLAN2_SEL		BIT(1)
++#define CPCAP_BIT_VRF2_SEL		BIT(0)
++
++/* CPCAP_REG_ASSIGN4 bits - Resource Assignment 4 */
++#define CPCAP_BIT_VAUDIO_SEL		BIT(0)
++
++/*
++ * Enable register bits. At least CPCAP_BIT_AUDIO_LOW_PWR is generic,
++ * and not limited to audio regulator. Let's use the Motorola kernel
++ * naming for now until we have a better understanding of the other
++ * enable register bits. No idea why BIT(3) is not defined.
++ */
++#define CPCAP_BIT_AUDIO_LOW_PWR		BIT(6)
++#define CPCAP_BIT_AUD_LOWPWR_SPEED	BIT(5)
++#define CPCAP_BIT_VAUDIOPRISTBY		BIT(4)
++#define CPCAP_BIT_VAUDIO_MODE1		BIT(2)
++#define CPCAP_BIT_VAUDIO_MODE0		BIT(1)
++#define CPCAP_BIT_V_AUDIO_EN		BIT(0)
++
++/*
++ * Off mode configuration bit. Used currently only by SW5 on omap4. There's
++ * the following comment in Motorola Linux kernel tree for it:
++ *
++ * When set in the regulator mode, the regulator assignment will be changed
++ * to secondary when the regulator is disabled. The mode will be set back to
++ * primary when the regulator is turned on.
++ */
++#define CPCAP_REG_OFF_MODE_SEC		BIT(15)
++
++/**
++ * SoC specific configuraion for CPCAP regulator. There are at least three
++ * different SoCs each with their own parameters: omap3, omap4 and tegra2.
++ *
++ * The assign_reg and assign_mask seem to allow toggling between primary
++ * and secondary mode that at least omap4 uses for off mode.
++ */
++struct cpcap_regulator {
++	struct regulator_desc rdesc;
++	const u16 assign_reg;
++	const u16 assign_mask;
++	const u16 vsel_shift;
++};
++
++#define CPCAP_REG(_ID, reg, assignment_reg, assignment_mask, val_tbl,	\
++		mode_mask, volt_mask, volt_shft,			\
++		mode_val, off_val, volt_trans_time) {			\
++	.rdesc = {							\
++		.name = #_ID,						\
++		.of_match = of_match_ptr(#_ID),				\
++		.ops = &cpcap_regulator_ops,				\
++		.regulators_node = of_match_ptr("regulators"),		\
++		.type = REGULATOR_VOLTAGE,				\
++		.id = CPCAP_##_ID,					\
++		.owner = THIS_MODULE,					\
++		.n_voltages = ARRAY_SIZE(val_tbl),			\
++		.volt_table = (val_tbl),				\
++		.vsel_reg = (reg),					\
++		.vsel_mask = (volt_mask),				\
++		.enable_reg = (reg),					\
++		.enable_mask = (mode_mask),				\
++		.enable_val = (mode_val),				\
++		.disable_val = (off_val),				\
++		.ramp_delay = (volt_trans_time),			\
++	},								\
++	.assign_reg = (assignment_reg),					\
++	.assign_mask = (assignment_mask),				\
++	.vsel_shift = (volt_shft),					\
++}
++
++struct cpcap_ddata {
++	struct regmap *reg;
++	struct device *dev;
++	const struct cpcap_regulator *soc;
++};
++
++enum cpcap_regulator_id {
++	CPCAP_SW1,
++	CPCAP_SW2,
++	CPCAP_SW3,
++	CPCAP_SW4,
++	CPCAP_SW5,
++	CPCAP_SW6,
++	CPCAP_VCAM,
++	CPCAP_VCSI,
++	CPCAP_VDAC,
++	CPCAP_VDIG,
++	CPCAP_VFUSE,
++	CPCAP_VHVIO,
++	CPCAP_VSDIO,
++	CPCAP_VPLL,
++	CPCAP_VRF1,
++	CPCAP_VRF2,
++	CPCAP_VRFREF,
++	CPCAP_VWLAN1,
++	CPCAP_VWLAN2,
++	CPCAP_VSIM,
++	CPCAP_VSIMCARD,
++	CPCAP_VVIB,
++	CPCAP_VUSB,
++	CPCAP_VAUDIO,
++	CPCAP_NR_REGULATORS,
++};
++
++/*
++ * We need to also configure regulator idle mode for SoC off mode if
++ * CPCAP_REG_OFF_MODE_SEC is set.
++ */
++static int cpcap_regulator_enable(struct regulator_dev *rdev)
++{
++	struct cpcap_regulator *regulator = rdev_get_drvdata(rdev);
++	int error, ignore;
++
++	error = regulator_enable_regmap(rdev);
++	if (error)
++		return error;
++
++	if (rdev->desc->enable_val & CPCAP_REG_OFF_MODE_SEC) {
++		error = regmap_update_bits(rdev->regmap, regulator->assign_reg,
++					   regulator->assign_mask,
++					   regulator->assign_mask);
++		if (error)
++			ignore = regulator_disable_regmap(rdev);
++	}
++
++	return error;
++}
++
++/*
++ * We need to also configure regulator idle mode for SoC off mode if
++ * CPCAP_REG_OFF_MODE_SEC is set.
++ */
++static int cpcap_regulator_disable(struct regulator_dev *rdev)
++{
++	struct cpcap_regulator *regulator = rdev_get_drvdata(rdev);
++	int error, ignore;
++
++	if (rdev->desc->enable_val & CPCAP_REG_OFF_MODE_SEC) {
++		error = regmap_update_bits(rdev->regmap, regulator->assign_reg,
++					   regulator->assign_mask, 0);
++		if (error)
++			return error;
++	}
++
++	error = regulator_disable_regmap(rdev);
++	if (error && (rdev->desc->enable_val & CPCAP_REG_OFF_MODE_SEC)) {
++		ignore = regmap_update_bits(rdev->regmap, regulator->assign_reg,
++					    regulator->assign_mask,
++					    regulator->assign_mask);
++	}
++
++	return error;
++}
++
++static unsigned int cpcap_regulator_get_mode(struct regulator_dev *rdev)
++{
++	int value;
++
++	regmap_read(rdev->regmap, rdev->desc->enable_reg, &value);
++
++	if (!(value & CPCAP_BIT_AUDIO_LOW_PWR))
++		return REGULATOR_MODE_STANDBY;
++
++	return REGULATOR_MODE_NORMAL;
++}
++
++static int cpcap_regulator_set_mode(struct regulator_dev *rdev,
++				    unsigned int mode)
++{
++	int value;
++
++	switch (mode) {
++	case REGULATOR_MODE_NORMAL:
++		value = CPCAP_BIT_AUDIO_LOW_PWR;
++		break;
++	case REGULATOR_MODE_STANDBY:
++		value = 0;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return regmap_update_bits(rdev->regmap, rdev->desc->enable_reg,
++				  CPCAP_BIT_AUDIO_LOW_PWR, value);
++}
++
++static struct regulator_ops cpcap_regulator_ops = {
++	.enable = cpcap_regulator_enable,
++	.disable = cpcap_regulator_disable,
++	.is_enabled = regulator_is_enabled_regmap,
++	.list_voltage = regulator_list_voltage_table,
++	.map_voltage = regulator_map_voltage_iterate,
++	.get_voltage_sel = regulator_get_voltage_sel_regmap,
++	.set_voltage_sel = regulator_set_voltage_sel_regmap,
++	.get_mode = cpcap_regulator_get_mode,
++	.set_mode = cpcap_regulator_set_mode,
++};
++
++static const unsigned int unknown_val_tbl[] = { 0, };
++static const unsigned int sw5_val_tbl[] = { 0, 5050000, };
++static const unsigned int vcam_val_tbl[] = { 2600000, 2700000, 2800000,
++					     2900000, };
++static const unsigned int vcsi_val_tbl[] = { 1200000, 1800000, };
++static const unsigned int vdac_val_tbl[] = { 1200000, 1500000, 1800000,
++					     2500000,};
++static const unsigned int vdig_val_tbl[] = { 1200000, 1350000, 1500000,
++					     1875000, };
++static const unsigned int vfuse_val_tbl[] = { 1500000, 1600000, 1700000,
++					      1800000, 1900000, 2000000,
++					      2100000, 2200000, 2300000,
++					      2400000, 2500000, 2600000,
++					      2700000, 3150000, };
++static const unsigned int vhvio_val_tbl[] = { 2775000, };
++static const unsigned int vsdio_val_tbl[] = { 1500000, 1600000, 1800000,
++					      2600000, 2700000, 2800000,
++					      2900000, 3000000, };
++static const unsigned int vpll_val_tbl[] = { 1200000, 1300000, 1400000,
++					     1800000, };
++/* Quirk: 2775000 is before 2500000 for vrf1 regulator */
++static const unsigned int vrf1_val_tbl[] = { 2775000, 2500000, };
++static const unsigned int vrf2_val_tbl[] = { 0, 2775000, };
++static const unsigned int vrfref_val_tbl[] = { 2500000, 2775000, };
++static const unsigned int vwlan1_val_tbl[] = { 1800000, 1900000, };
++static const unsigned int vwlan2_val_tbl[] = { 2775000, 3000000, 3300000,
++					       3300000, };
++static const unsigned int vsim_val_tbl[] = { 1800000, 2900000, };
++static const unsigned int vsimcard_val_tbl[] = { 1800000, 2900000, };
++static const unsigned int vvib_val_tbl[] = { 1300000, 1800000, 2000000,
++					     3000000, };
++static const unsigned int vusb_val_tbl[] = { 0, 3300000, };
++static const unsigned int vaudio_val_tbl[] = { 0, 2775000, };
++
++/**
++ * SoC specific configuration for omap4. The data below is comes from Motorola
++ * Linux kernel tree. It's basically the values of cpcap_regltr_data,
++ * cpcap_regulator_mode_values and cpcap_regulator_off_mode_values, see
++ * CPCAP_REG macro above.
++ *
++ * SW1 to SW4 and SW6 seems to be unused for mapphone. Note that VSIM and
++ * VSIMCARD have a shared resource assignment bit.
++ */
++static struct cpcap_regulator omap4_regulators[] = {
++	CPCAP_REG(SW1, CPCAP_REG_S1C1, CPCAP_REG_ASSIGN2,
++		  CPCAP_BIT_SW1_SEL, unknown_val_tbl,
++		  0, 0, 0, 0, 0, 0),
++	CPCAP_REG(SW2, CPCAP_REG_S2C1, CPCAP_REG_ASSIGN2,
++		  CPCAP_BIT_SW2_SEL, unknown_val_tbl,
++		  0, 0, 0, 0, 0, 0),
++	CPCAP_REG(SW3, CPCAP_REG_S3C, CPCAP_REG_ASSIGN2,
++		  CPCAP_BIT_SW3_SEL, unknown_val_tbl,
++		  0, 0, 0, 0, 0, 0),
++	CPCAP_REG(SW4, CPCAP_REG_S4C1, CPCAP_REG_ASSIGN2,
++		  CPCAP_BIT_SW4_SEL, unknown_val_tbl,
++		  0, 0, 0, 0, 0, 0),
++	CPCAP_REG(SW5, CPCAP_REG_S5C, CPCAP_REG_ASSIGN2,
++		  CPCAP_BIT_SW5_SEL, sw5_val_tbl,
++		  0x28, 0, 0, 0x20 | CPCAP_REG_OFF_MODE_SEC, 0, 0),
++	CPCAP_REG(SW6, CPCAP_REG_S6C, CPCAP_REG_ASSIGN2,
++		  CPCAP_BIT_SW6_SEL, unknown_val_tbl,
++		  0, 0, 0, 0, 0, 0),
++	CPCAP_REG(VCAM, CPCAP_REG_VCAMC, CPCAP_REG_ASSIGN2,
++		  CPCAP_BIT_VCAM_SEL, vcam_val_tbl,
++		  0x87, 0x30, 4, 0x3, 0, 420),
++	CPCAP_REG(VCSI, CPCAP_REG_VCSIC, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VCSI_SEL, vcsi_val_tbl,
++		  0x47, 0x10, 4, 0x43, 0x41, 350),
++	CPCAP_REG(VDAC, CPCAP_REG_VDACC, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VDAC_SEL, vdac_val_tbl,
++		  0x87, 0x30, 4, 0x3, 0, 420),
++	CPCAP_REG(VDIG, CPCAP_REG_VDIGC, CPCAP_REG_ASSIGN2,
++		  CPCAP_BIT_VDIG_SEL, vdig_val_tbl,
++		  0x87, 0x30, 4, 0x82, 0, 420),
++	CPCAP_REG(VFUSE, CPCAP_REG_VFUSEC, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VFUSE_SEL, vfuse_val_tbl,
++		  0x80, 0xf, 0, 0x80, 0, 420),
++	CPCAP_REG(VHVIO, CPCAP_REG_VHVIOC, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VHVIO_SEL, vhvio_val_tbl,
++		  0x17, 0, 0, 0, 0x12, 0),
++	CPCAP_REG(VSDIO, CPCAP_REG_VSDIOC, CPCAP_REG_ASSIGN2,
++		  CPCAP_BIT_VSDIO_SEL, vsdio_val_tbl,
++		  0x87, 0x38, 3, 0x82, 0, 420),
++	CPCAP_REG(VPLL, CPCAP_REG_VPLLC, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VPLL_SEL, vpll_val_tbl,
++		  0x43, 0x18, 3, 0x2, 0, 420),
++	CPCAP_REG(VRF1, CPCAP_REG_VRF1C, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VRF1_SEL, vrf1_val_tbl,
++		  0xac, 0x2, 1, 0x4, 0, 10),
++	CPCAP_REG(VRF2, CPCAP_REG_VRF2C, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VRF2_SEL, vrf2_val_tbl,
++		  0x23, 0x8, 3, 0, 0, 10),
++	CPCAP_REG(VRFREF, CPCAP_REG_VRFREFC, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VRFREF_SEL, vrfref_val_tbl,
++		  0x23, 0x8, 3, 0, 0, 420),
++	CPCAP_REG(VWLAN1, CPCAP_REG_VWLAN1C, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VWLAN1_SEL, vwlan1_val_tbl,
++		  0x47, 0x10, 4, 0, 0, 420),
++	CPCAP_REG(VWLAN2, CPCAP_REG_VWLAN2C, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VWLAN2_SEL, vwlan2_val_tbl,
++		  0x20c, 0xc0, 6, 0x20c, 0, 420),
++	CPCAP_REG(VSIM, CPCAP_REG_VSIMC, CPCAP_REG_ASSIGN3,
++		  0xffff, vsim_val_tbl,
++		  0x23, 0x8, 3, 0x3, 0, 420),
++	CPCAP_REG(VSIMCARD, CPCAP_REG_VSIMC, CPCAP_REG_ASSIGN3,
++		  0xffff, vsimcard_val_tbl,
++		  0x1e80, 0x8, 3, 0x1e00, 0, 420),
++	CPCAP_REG(VVIB, CPCAP_REG_VVIBC, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VVIB_SEL, vvib_val_tbl,
++		  0x1, 0xc, 2, 0x1, 0, 500),
++	CPCAP_REG(VUSB, CPCAP_REG_VUSBC, CPCAP_REG_ASSIGN3,
++		  CPCAP_BIT_VUSB_SEL, vusb_val_tbl,
++		  0x11c, 0x40, 6, 0xc, 0, 0),
++	CPCAP_REG(VAUDIO, CPCAP_REG_VAUDIOC, CPCAP_REG_ASSIGN4,
++		  CPCAP_BIT_VAUDIO_SEL, vaudio_val_tbl,
++		  0x16, 0x1, 0, 0x4, 0, 0),
++	{ /* sentinel */ },
++};
++
++static const struct of_device_id cpcap_regulator_id_table[] = {
++	{
++		.compatible = "motorola,cpcap-regulator",
++	},
++	{
++		.compatible = "motorola,mapphone-cpcap-regulator",
++		.data = omap4_regulators,
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, cpcap_regulator_id_table);
++
++static int cpcap_regulator_probe(struct platform_device *pdev)
++{
++	struct cpcap_ddata *ddata;
++	const struct of_device_id *match;
++	struct regulator_config config;
++	struct regulator_init_data init_data;
++	int i;
++
++	match = of_match_device(of_match_ptr(cpcap_regulator_id_table),
++				&pdev->dev);
++	if (!match)
++		return -EINVAL;
++
++	if (!match->data) {
++		dev_err(&pdev->dev, "no configuration data found\n");
++
++		return -ENODEV;
++	}
++
++	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
++	if (!ddata)
++		return -ENOMEM;
++
++	ddata->reg = dev_get_regmap(pdev->dev.parent, NULL);
++	if (!ddata->reg)
++		return -ENODEV;
++
++	ddata->dev = &pdev->dev;
++	ddata->soc = match->data;
++	platform_set_drvdata(pdev, ddata);
++
++	memset(&config, 0, sizeof(config));
++	memset(&init_data, 0, sizeof(init_data));
++	config.dev = &pdev->dev;
++	config.regmap = ddata->reg;
++	config.init_data = &init_data;
++
++	for (i = 0; i < CPCAP_NR_REGULATORS; i++) {
++		const struct cpcap_regulator *regulator = &ddata->soc[i];
++		struct regulator_dev *rdev;
++
++		if (!regulator->rdesc.name)
++			break;
++
++		if (regulator->rdesc.volt_table == unknown_val_tbl)
++			continue;
++
++		config.driver_data = (void *)regulator;
++		rdev = devm_regulator_register(&pdev->dev,
++					       &regulator->rdesc,
++					       &config);
++		if (IS_ERR(rdev)) {
++			dev_err(&pdev->dev, "failed to register regulator %s\n",
++				regulator->rdesc.name);
++
++			return PTR_ERR(rdev);
++		}
++	}
++
++	return 0;
++}
++
++static struct platform_driver cpcap_regulator_driver = {
++	.probe		= cpcap_regulator_probe,
++	.driver		= {
++		.name	= "cpcap-regulator",
++		.of_match_table = of_match_ptr(cpcap_regulator_id_table),
++	},
++};
++
++module_platform_driver(cpcap_regulator_driver);
++
++MODULE_ALIAS("platform:cpcap-regulator");
++MODULE_AUTHOR("Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>");
++MODULE_DESCRIPTION("CPCAP regulator driver");
++MODULE_LICENSE("GPL v2");
+-- 
+2.11.0
 
 --
-
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
