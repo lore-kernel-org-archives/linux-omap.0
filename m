@@ -1,242 +1,206 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] ARM: dts: Configure regulators for droid 4
-Date: Sat,  4 Feb 2017 12:17:22 -0800
-Message-ID: <20170204201722.1544-1-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: Add keypad support for droid 4
+Date: Sat, 4 Feb 2017 12:36:03 -0800
+Message-ID: <20170204203603.GB3900@atomide.com>
+References: <20170127041525.29648-1-tony@atomide.com>
+ <20170127042844.GU7403@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20170127042844.GU7403@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, linux-arm-kernel@lists.infradead.org, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-With drivers/mfd/motorola-cpcap.c and drivers/regulator/cpcap-regulator.c
-we can now configure proper regulators for droid 4.
+* Tony Lindgren <tony@atomide.com> [170126 20:30]:
+> * Tony Lindgren <tony@atomide.com> [170126 20:16]:
+> > Let's configure the keypad in a way where it's usable out of the
+> > box for Linux console use. To do this, let's follow the standard
+> > PC keyboard layout for ctrl, shift and alt keys:
+> > 
+> > Ctrl = what is labeled as shift
+> > Alt = what is labeled as SYM
+> > Shift = what is lableled as caps lock
+> > Meta = what is labled as OK
+> > 
+> > Who knows where they got the caps lock idea.. Probably from
+> > some focus group popularity vote or something.
+> > 
+> > Note that some other keys don't match the labels either as they
+> > don't follow the PC keyboard style. For example we have "shift + ,"
+> > produce "<", and "shift + ." produce ">" instead of ";" and ":".
+> > 
+> > Pretty much Esc is the only key missing. I've used "Meta + 1"
+> > produce Esc, and that seems to work OK. But that can be mapped
+> > using the standard userspace tools.
+> 
+> Oh looks like KEY_VOLUMEUP is on omap4-keypad, then POWER and
+> VOLUMEDOWN must be on the CPCAP.
+> 
+> Updated patch below with KEY_VOLUMEUP added.
 
-Let's add regulator voltages and switch over MMC, eMMC and WLAN to use
-the CPCAP regulators.
+And it seems the KEY_OK could be any of the missing keys, so let's
+deal with that one with the userspace key mappings. Updated patch
+below with more reasoning for the mapping.
 
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Regards,
+
+Tony
+
+8< --------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 30 Jan 2017 07:10:31 -0800
+Subject: [PATCH] ARM: dts: Add keypad support for droid 4
+
+Let's configure the keypad in a way where it's usable out of the
+box for Linux console use. We want to have the keyboard usable with
+Linux console for example when stuck into an initramfs during boot,
+or when installing a distro.
+
+As we need to need to have keys mapped in the user space anyways
+for some of the keys to match the labels, this non-standard mapping
+or usability should be OK.
+
+Some keys don't match the labels either as they don't follow the PC
+keyboard style. For example we have "shift + ," produce "<", and
+"shift + ." produce ">" instead of ";" and ":".
+
+So let's follow the standard PC keyboard layout for ctrl, shift and
+alt keys:
+
+Ctrl = what is labeled as shift
+Alt = what is labeled as SYM
+Shift = what is lableled as caps lock
+
+This way we have Ctrl key for console use. Who knows where they got
+the caps lock idea.. Probably from some focus group popularity vote
+or something.
+
+For the OK key, let's keep it as the useless KEY_OK unless we can
+come up with some standard mapping for it we can stick with.
+
+We have at least Esc, Delete, Meta, and Page Down keys missing, but
+none of them seem to be better than others. PC keyboard often has
+Page Down in that location. Esc would be probably the most usable
+one when installing a Linux distro but is the opposite of OK.
+
+Note that the LCD keys are just touchscreen hot spots, so I'm not
+sure if the driver or hardware allows setting them up as keys for
+the console.
+
+Anyways, the rest can be mapped in the user space.
+
+Cc: Marcel Partap <mpartap@gmx.net>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Scott <michael.scott@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 151 +++++++++++++++++++++++++
- arch/arm/boot/dts/omap4-droid4-xt894.dts       |  25 +---
- 2 files changed, 155 insertions(+), 21 deletions(-)
- create mode 100644 arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 75 ++++++++++++++++++++++++++++++++
+ 1 file changed, 75 insertions(+)
 
-diff --git a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
-new file mode 100644
---- /dev/null
-+++ b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
-@@ -0,0 +1,151 @@
-+/*
-+ * Common CPCAP configuration used on Motorola phones
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+&mcspi1 {
-+	cpcap: pmic@0 {
-+		compatible = "motorola,cpcap", "st,6556002";
-+		reg = <0>;	/* cs0 */
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_EDGE_RISING>;
-+		interrupt-controller;
-+		#interrupt-cells = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		spi-max-frequency = <3000000>;
-+		spi-cs-high;
-+
-+		cpcap_regulator: regulator {
-+			compatible = "motorola,mapphone-cpcap-regulator";
-+
-+			cpcap_regulators: regulators {
-+			};
-+		};
-+	};
-+};
-+
-+&cpcap_regulators {
-+	sw5: SW5 {
-+		regulator-min-microvolt = <5050000>;
-+		regulator-max-microvolt = <5050000>;
-+		regulator-enable-ramp-delay = <50000>;
-+		regulator-boot-on;
-+	};
-+
-+	vcam: VCAM {
-+		regulator-min-microvolt = <2900000>;
-+		regulator-max-microvolt = <2900000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	/* Used by DSS */
-+	vcsi: VCSI {
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		regulator-enable-ramp-delay = <1000>;
-+		regulator-boot-on;
-+	};
-+
-+	vdac: VDAC {
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1800000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vdig: VDIG {
-+		regulator-min-microvolt = <1875000>;
-+		regulator-max-microvolt = <1875000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vfuse: VFUSE {
-+		regulator-min-microvolt = <1500000>;
-+		regulator-max-microvolt = <3150000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vhvio: VHVIO {
-+		regulator-min-microvolt = <2775000>;
-+		regulator-max-microvolt = <2775000>;
-+		regulator-enable-ramp-delay = <1000>;
-+		regulator-always-on;
-+	};
-+
-+	/* Used by eMMC at mmc2 */
-+	vsdio: VSDIO {
-+		regulator-min-microvolt = <2900000>;
-+		regulator-max-microvolt = <2900000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vpll: VPLL {
-+		regulator-min-microvolt = <1200000>;
-+		regulator-max-microvolt = <1800000>;
-+		regulator-enable-ramp-delay = <100>;
-+	};
-+
-+	vrf1: VRF1 {
-+		regulator-min-microvolt = <2775000>;
-+		regulator-max-microvolt = <2775000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vrf2: VRF2 {
-+		regulator-min-microvolt = <2775000>;
-+		regulator-max-microvolt = <2775000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vrfref: VRFREF {
-+		regulator-min-microvolt = <2500000>;
-+		regulator-max-microvolt = <2775000>;
-+		regulator-enable-ramp-delay = <100>;
-+	};
-+
-+	vwlan1: VWLAN1 {
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <1900000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vwlan2: VWLAN2 {
-+		regulator-min-microvolt = <3000000>;
-+		regulator-max-microvolt = <3000000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vsim: VSIM {
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <2900000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	/* Used by micro-SDIO at mmc1 */
-+	vsimcard: VSIMCARD {
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <2900000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vvib: VVIB {
-+		regulator-min-microvolt = <1300000>;
-+		regulator-max-microvolt = <3000000>;
-+		regulator-enable-ramp-delay = <500>;
-+	};
-+
-+	vusb: VUSB {
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+
-+	vaudio: VAUDIO {
-+		regulator-min-microvolt = <2775000>;
-+		regulator-max-microvolt = <2775000>;
-+		regulator-enable-ramp-delay = <1000>;
-+	};
-+};
 diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
 --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
 +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -7,6 +7,7 @@
+@@ -5,6 +5,7 @@
+  */
+ /dts-v1/;
  
- #include <dt-bindings/input/input.h>
++#include <dt-bindings/input/input.h>
  #include "omap443x.dtsi"
-+#include "motorola-cpcap-mapphone.dtsi"
  
  / {
- 	model = "Motorola Droid 4 XT894";
-@@ -26,25 +27,7 @@
- 		reg = <0x80000000 0x3fd00000>;	/* 1021 MB */
- 	};
- 
--	/* CPCAP really supports 1650000 to 3400000 range */
--	vmmc: regulator-mmc {
--		compatible = "regulator-fixed";
--		regulator-name = "vmmc";
--		regulator-min-microvolt = <3000000>;
--		regulator-max-microvolt = <3000000>;
--		regulator-always-on;
--	};
--
--	/* CPCAP really supports 3000000 to 3100000 range */
--	vemmc: regulator-emmc {
--		compatible = "regulator-fixed";
--		regulator-name = "vemmc";
--		regulator-min-microvolt = <3000000>;
--		regulator-max-microvolt = <3000000>;
--		regulator-always-on;
--	};
--
--	/* CPCAP really supports 1650000 to 1950000 range */
-+	/* This is probably coming straight from the battery.. */
- 	wl12xx_vmmc: regulator-wl12xx {
- 		compatible = "regulator-fixed";
- 		regulator-name = "vwl1271";
-@@ -136,13 +119,13 @@
+@@ -60,6 +61,80 @@
+ 	status = "disabled";
  };
  
++&keypad {
++	keypad,num-rows = <8>;
++	keypad,num-columns = <8>;
++	linux,keymap = <
++
++	/* Row 1 */
++	MATRIX_KEY(0, 2, KEY_1)
++	MATRIX_KEY(0, 6, KEY_2)
++	MATRIX_KEY(2, 3, KEY_3)
++	MATRIX_KEY(0, 7, KEY_4)
++	MATRIX_KEY(0, 4, KEY_5)
++	MATRIX_KEY(5, 5, KEY_6)
++	MATRIX_KEY(0, 1, KEY_7)
++	MATRIX_KEY(0, 5, KEY_8)
++	MATRIX_KEY(0, 0, KEY_9)
++	MATRIX_KEY(1, 6, KEY_0)
++
++	/* Row 2 */
++	MATRIX_KEY(3, 4, KEY_APOSTROPHE)
++	MATRIX_KEY(7, 6, KEY_Q)
++	MATRIX_KEY(7, 7, KEY_W)
++	MATRIX_KEY(7, 2, KEY_E)
++	MATRIX_KEY(1, 0, KEY_R)
++	MATRIX_KEY(4, 4, KEY_T)
++	MATRIX_KEY(1, 2, KEY_Y)
++	MATRIX_KEY(6, 7, KEY_U)
++	MATRIX_KEY(2, 2, KEY_I)
++	MATRIX_KEY(5, 6, KEY_O)
++	MATRIX_KEY(3, 7, KEY_P)
++	MATRIX_KEY(6, 5, KEY_BACKSPACE)
++
++	/* Row 3 */
++	MATRIX_KEY(5, 4, KEY_TAB)
++	MATRIX_KEY(5, 7, KEY_A)
++	MATRIX_KEY(2, 7, KEY_S)
++	MATRIX_KEY(7, 0, KEY_D)
++	MATRIX_KEY(2, 6, KEY_F)
++	MATRIX_KEY(6, 2, KEY_G)
++	MATRIX_KEY(6, 6, KEY_H)
++	MATRIX_KEY(1, 4, KEY_J)
++	MATRIX_KEY(3, 1, KEY_K)
++	MATRIX_KEY(2, 1, KEY_L)
++	MATRIX_KEY(4, 6, KEY_ENTER)
++
++	/* Row 4 */
++	MATRIX_KEY(3, 6, KEY_LEFTSHIFT)		/* KEY_CAPSLOCK */
++	MATRIX_KEY(6, 1, KEY_Z)
++	MATRIX_KEY(7, 4, KEY_X)
++	MATRIX_KEY(5, 1, KEY_C)
++	MATRIX_KEY(1, 7, KEY_V)
++	MATRIX_KEY(2, 4, KEY_B)
++	MATRIX_KEY(4, 1, KEY_N)
++	MATRIX_KEY(1, 1, KEY_M)
++	MATRIX_KEY(3, 5, KEY_COMMA)
++	MATRIX_KEY(5, 2, KEY_DOT)
++	MATRIX_KEY(6, 3, KEY_UP)
++	MATRIX_KEY(7, 3, KEY_OK)
++
++	/* Row 5 */
++	MATRIX_KEY(2, 5, KEY_LEFTCTRL)		/* KEY_LEFTSHIFT */
++	MATRIX_KEY(4, 5, KEY_LEFTALT)		/* SYM */
++	MATRIX_KEY(6, 0, KEY_MINUS)
++	MATRIX_KEY(4, 7, KEY_EQUAL)
++	MATRIX_KEY(1, 5, KEY_SPACE)
++	MATRIX_KEY(3, 2, KEY_SLASH)
++	MATRIX_KEY(4, 3, KEY_LEFT)
++	MATRIX_KEY(5, 3, KEY_DOWN)
++	MATRIX_KEY(3, 3, KEY_RIGHT)
++
++	/* Side buttons, KEY_VOLUMEDOWN and KEY_PWER are on CPCAP? */
++	MATRIX_KEY(5, 0, KEY_VOLUMEUP)
++	>;
++};
++
  &mmc1 {
--	vmmc-supply = <&vmmc>;
-+	vmmc-supply = <&vsimcard>;
+ 	vmmc-supply = <&vmmc>;
  	bus-width = <4>;
- 	cd-gpios = <&gpio4 10 GPIO_ACTIVE_LOW>;	/* gpio106 */
- };
- 
- &mmc2 {
--	vmmc-supply = <&vemmc>;
-+	vmmc-supply = <&vsdio>;
- 	bus-width = <8>;
- 	non-removable;
- };
 -- 
 2.11.0
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
