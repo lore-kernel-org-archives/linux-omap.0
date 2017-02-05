@@ -1,206 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: Add keypad support for droid 4
-Date: Sat, 4 Feb 2017 12:36:03 -0800
-Message-ID: <20170204203603.GB3900@atomide.com>
-References: <20170127041525.29648-1-tony@atomide.com>
- <20170127042844.GU7403@atomide.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 0/5] dmaengine: cppi41: Make CPPI 4.1 driver more
+ generic
+Date: Sun, 5 Feb 2017 08:48:14 -0600
+Message-ID: <20170205144814.GA13653@uda0271908>
+References: <20170123172453.30224-1-abailon@baylibre.com>
+ <20170205121046.GY19244@localhost>
+ <20170205121250.GZ19244@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170127042844.GU7403@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Marcel Partap <mpartap@gmx.net>, linux-arm-kernel@lists.infradead.org, Michael Scott <michael.scott@linaro.org>
+In-Reply-To: <20170205121250.GZ19244@localhost>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170126 20:30]:
-> * Tony Lindgren <tony@atomide.com> [170126 20:16]:
-> > Let's configure the keypad in a way where it's usable out of the
-> > box for Linux console use. To do this, let's follow the standard
-> > PC keyboard layout for ctrl, shift and alt keys:
-> > 
-> > Ctrl = what is labeled as shift
-> > Alt = what is labeled as SYM
-> > Shift = what is lableled as caps lock
-> > Meta = what is labled as OK
-> > 
-> > Who knows where they got the caps lock idea.. Probably from
-> > some focus group popularity vote or something.
-> > 
-> > Note that some other keys don't match the labels either as they
-> > don't follow the PC keyboard style. For example we have "shift + ,"
-> > produce "<", and "shift + ." produce ">" instead of ";" and ":".
-> > 
-> > Pretty much Esc is the only key missing. I've used "Meta + 1"
-> > produce Esc, and that seems to work OK. But that can be mapped
-> > using the standard userspace tools.
-> 
-> Oh looks like KEY_VOLUMEUP is on omap4-keypad, then POWER and
-> VOLUMEDOWN must be on the CPCAP.
-> 
-> Updated patch below with KEY_VOLUMEUP added.
++linux-usb list
 
-And it seems the KEY_OK could be any of the missing keys, so let's
-deal with that one with the userspace key mappings. Updated patch
-below with more reasoning for the mapping.
+On Sun, Feb 05, 2017 at 05:42:50PM +0530, Vinod Koul wrote:
+> On Sun, Feb 05, 2017 at 05:40:46PM +0530, Vinod Koul wrote:
+> > On Mon, Jan 23, 2017 at 06:24:47PM +0100, Alexandre Bailon wrote:
+> > > Most of the patch of this series were part of
+> > > "[PATCH 00/11] dmaengine: cppi41: Add dma support to da8xx"
+> > > 
+> > > This series intend to make the CPPI 4.1 more generic in order to
+> > > add a new platform (the DA8xx).
+> > > To achieve that, all the IRQ code present in CPPI 4.1 driver has been moved
+> > > to MUSB DSPS driver.
+> > > Other changes mainly update the glue layer and platform code to make the
+> > > whole driver more generic.
+> > > 
+> > > This series is to apply on top of 
+> > > "[PATCH v4 0/3] usb: musb: cppi41: Add a way to manage DMA irq".
+> > 
+> > Somehow I dont have that series in my queue, can you please repost this..
+> 
+> Oh wait, thats a USB series which should go thru USB tree right..? Or does
+> it have dma parts too..?  Wasnt apparent from patch titles though..
+
+Yes, that series are pending in my queue, it requires your ACK on [PATCH
+v5 6/6] usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in DSPS, which
+moves interrupt handling from CPPI driver to MUSB driver.
 
 Regards,
-
-Tony
-
-8< --------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 30 Jan 2017 07:10:31 -0800
-Subject: [PATCH] ARM: dts: Add keypad support for droid 4
-
-Let's configure the keypad in a way where it's usable out of the
-box for Linux console use. We want to have the keyboard usable with
-Linux console for example when stuck into an initramfs during boot,
-or when installing a distro.
-
-As we need to need to have keys mapped in the user space anyways
-for some of the keys to match the labels, this non-standard mapping
-or usability should be OK.
-
-Some keys don't match the labels either as they don't follow the PC
-keyboard style. For example we have "shift + ," produce "<", and
-"shift + ." produce ">" instead of ";" and ":".
-
-So let's follow the standard PC keyboard layout for ctrl, shift and
-alt keys:
-
-Ctrl = what is labeled as shift
-Alt = what is labeled as SYM
-Shift = what is lableled as caps lock
-
-This way we have Ctrl key for console use. Who knows where they got
-the caps lock idea.. Probably from some focus group popularity vote
-or something.
-
-For the OK key, let's keep it as the useless KEY_OK unless we can
-come up with some standard mapping for it we can stick with.
-
-We have at least Esc, Delete, Meta, and Page Down keys missing, but
-none of them seem to be better than others. PC keyboard often has
-Page Down in that location. Esc would be probably the most usable
-one when installing a Linux distro but is the opposite of OK.
-
-Note that the LCD keys are just touchscreen hot spots, so I'm not
-sure if the driver or hardware allows setting them up as keys for
-the console.
-
-Anyways, the rest can be mapped in the user space.
-
-Cc: Marcel Partap <mpartap@gmx.net>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michael Scott <michael.scott@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 75 ++++++++++++++++++++++++++++++++
- 1 file changed, 75 insertions(+)
-
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -5,6 +5,7 @@
-  */
- /dts-v1/;
- 
-+#include <dt-bindings/input/input.h>
- #include "omap443x.dtsi"
- 
- / {
-@@ -60,6 +61,80 @@
- 	status = "disabled";
- };
- 
-+&keypad {
-+	keypad,num-rows = <8>;
-+	keypad,num-columns = <8>;
-+	linux,keymap = <
-+
-+	/* Row 1 */
-+	MATRIX_KEY(0, 2, KEY_1)
-+	MATRIX_KEY(0, 6, KEY_2)
-+	MATRIX_KEY(2, 3, KEY_3)
-+	MATRIX_KEY(0, 7, KEY_4)
-+	MATRIX_KEY(0, 4, KEY_5)
-+	MATRIX_KEY(5, 5, KEY_6)
-+	MATRIX_KEY(0, 1, KEY_7)
-+	MATRIX_KEY(0, 5, KEY_8)
-+	MATRIX_KEY(0, 0, KEY_9)
-+	MATRIX_KEY(1, 6, KEY_0)
-+
-+	/* Row 2 */
-+	MATRIX_KEY(3, 4, KEY_APOSTROPHE)
-+	MATRIX_KEY(7, 6, KEY_Q)
-+	MATRIX_KEY(7, 7, KEY_W)
-+	MATRIX_KEY(7, 2, KEY_E)
-+	MATRIX_KEY(1, 0, KEY_R)
-+	MATRIX_KEY(4, 4, KEY_T)
-+	MATRIX_KEY(1, 2, KEY_Y)
-+	MATRIX_KEY(6, 7, KEY_U)
-+	MATRIX_KEY(2, 2, KEY_I)
-+	MATRIX_KEY(5, 6, KEY_O)
-+	MATRIX_KEY(3, 7, KEY_P)
-+	MATRIX_KEY(6, 5, KEY_BACKSPACE)
-+
-+	/* Row 3 */
-+	MATRIX_KEY(5, 4, KEY_TAB)
-+	MATRIX_KEY(5, 7, KEY_A)
-+	MATRIX_KEY(2, 7, KEY_S)
-+	MATRIX_KEY(7, 0, KEY_D)
-+	MATRIX_KEY(2, 6, KEY_F)
-+	MATRIX_KEY(6, 2, KEY_G)
-+	MATRIX_KEY(6, 6, KEY_H)
-+	MATRIX_KEY(1, 4, KEY_J)
-+	MATRIX_KEY(3, 1, KEY_K)
-+	MATRIX_KEY(2, 1, KEY_L)
-+	MATRIX_KEY(4, 6, KEY_ENTER)
-+
-+	/* Row 4 */
-+	MATRIX_KEY(3, 6, KEY_LEFTSHIFT)		/* KEY_CAPSLOCK */
-+	MATRIX_KEY(6, 1, KEY_Z)
-+	MATRIX_KEY(7, 4, KEY_X)
-+	MATRIX_KEY(5, 1, KEY_C)
-+	MATRIX_KEY(1, 7, KEY_V)
-+	MATRIX_KEY(2, 4, KEY_B)
-+	MATRIX_KEY(4, 1, KEY_N)
-+	MATRIX_KEY(1, 1, KEY_M)
-+	MATRIX_KEY(3, 5, KEY_COMMA)
-+	MATRIX_KEY(5, 2, KEY_DOT)
-+	MATRIX_KEY(6, 3, KEY_UP)
-+	MATRIX_KEY(7, 3, KEY_OK)
-+
-+	/* Row 5 */
-+	MATRIX_KEY(2, 5, KEY_LEFTCTRL)		/* KEY_LEFTSHIFT */
-+	MATRIX_KEY(4, 5, KEY_LEFTALT)		/* SYM */
-+	MATRIX_KEY(6, 0, KEY_MINUS)
-+	MATRIX_KEY(4, 7, KEY_EQUAL)
-+	MATRIX_KEY(1, 5, KEY_SPACE)
-+	MATRIX_KEY(3, 2, KEY_SLASH)
-+	MATRIX_KEY(4, 3, KEY_LEFT)
-+	MATRIX_KEY(5, 3, KEY_DOWN)
-+	MATRIX_KEY(3, 3, KEY_RIGHT)
-+
-+	/* Side buttons, KEY_VOLUMEDOWN and KEY_PWER are on CPCAP? */
-+	MATRIX_KEY(5, 0, KEY_VOLUMEUP)
-+	>;
-+};
-+
- &mmc1 {
- 	vmmc-supply = <&vmmc>;
- 	bus-width = <4>;
--- 
-2.11.0
+-Bin.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
