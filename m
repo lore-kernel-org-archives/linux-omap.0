@@ -1,50 +1,83 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 0/5] dmaengine: cppi41: Make CPPI 4.1 driver more
- generic
-Date: Sun, 5 Feb 2017 08:48:14 -0600
-Message-ID: <20170205144814.GA13653@uda0271908>
-References: <20170123172453.30224-1-abailon@baylibre.com>
- <20170205121046.GY19244@localhost>
- <20170205121250.GZ19244@localhost>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: v4.9 to v4.10 regression: oops when USB cable is plugged in.
+Date: Sun, 5 Feb 2017 22:44:13 +0100
+Message-ID: <20170205214413.GA7573@amd>
+References: <20170123222537.GA11543@amd>
+ <20170123224454.GY7403@atomide.com>
+ <20170124091817.GA29246@amd>
+ <20170124100133.GA21079@pali>
+ <20170124145127.GC7403@atomide.com>
+ <20170127215512.GG20571@amd>
+ <20170127234832.cte4ki4ajwme2b2j@earth>
+ <20170203075907.GA21338@amd>
+ <20170203163048.GA3721@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170205121250.GZ19244@localhost>
+In-Reply-To: <20170203163048.GA3721-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-+linux-usb list
 
-On Sun, Feb 05, 2017 at 05:42:50PM +0530, Vinod Koul wrote:
-> On Sun, Feb 05, 2017 at 05:40:46PM +0530, Vinod Koul wrote:
-> > On Mon, Jan 23, 2017 at 06:24:47PM +0100, Alexandre Bailon wrote:
-> > > Most of the patch of this series were part of
-> > > "[PATCH 00/11] dmaengine: cppi41: Add dma support to da8xx"
-> > > 
-> > > This series intend to make the CPPI 4.1 more generic in order to
-> > > add a new platform (the DA8xx).
-> > > To achieve that, all the IRQ code present in CPPI 4.1 driver has been moved
-> > > to MUSB DSPS driver.
-> > > Other changes mainly update the glue layer and platform code to make the
-> > > whole driver more generic.
-> > > 
-> > > This series is to apply on top of 
-> > > "[PATCH v4 0/3] usb: musb: cppi41: Add a way to manage DMA irq".
-> > 
-> > Somehow I dont have that series in my queue, can you please repost this..
-> 
-> Oh wait, thats a USB series which should go thru USB tree right..? Or does
-> it have dma parts too..?  Wasnt apparent from patch titles though..
+--6TrnltStXW4iwmi0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, that series are pending in my queue, it requires your ACK on [PATCH
-v5 6/6] usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in DSPS, which
-moves interrupt handling from CPPI driver to MUSB driver.
+On Fri 2017-02-03 08:30:48, Tony Lindgren wrote:
+> * Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> [170203 00:00]:
+> > Hi!
+> >=20
+> > > On Fri, Jan 27, 2017 at 10:55:12PM +0100, Pavel Machek wrote:
+> > > > Ok, I can try. But so far even -rc1 is a lot of fun. But... I consi=
+der
+> > > > phone calls core feature of a phone. I'd very much like to get that=
+ to
+> > > > work. Unfortunately, that means real-time audio, and a lot of
+> > > > fun. Plus, as it is touchscreen device, it needs a GUI.=20
+> > >=20
+> > > Talking about testing - kernelci's n900 is broken?
+> > >=20
+> > > https://kernelci.org/boot/omap3-n900/
+> >=20
+> > The N900 regressions are now more of "audio mixers no longer work"
+> > than "it fails to boot" kind -- thus difficult to test automatically,
+> > I'm afraid.
+>=20
+> Talking about audio testing, next now has commit 9834ffd1ecc3
+> ("ASoC: omap-mcbsp: Add PM QoS support for McBSP to prevent glitches"),
+> care to check if that also fixes the n900 audio glitch issues you
+> reported earlier?
 
-Regards,
--Bin.
+Yes, audio was choppy when I tried to use n900 as an mp3
+player. Hmm. I re-checked v4.9, and it seems to work ok now. I'll
+speak up if it re-appears.
+
+Thanks,
+								Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--6TrnltStXW4iwmi0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAliXnK0ACgkQMOfwapXb+vKT5gCfbc1t6/5TS6s9gLyqIkiz1ato
+XZUAn060bJ5vKXmjBU6vz+7Aoo7Qb1Lz
+=20nv
+-----END PGP SIGNATURE-----
+
+--6TrnltStXW4iwmi0--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
