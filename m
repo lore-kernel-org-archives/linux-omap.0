@@ -1,50 +1,35 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 0/5] PCI: dwc: miscellaneous cleanups and fixes
-Date: Mon, 6 Feb 2017 17:58:01 +0530
-Message-ID: <58986BD1.2020803@ti.com>
-References: <1484136415-20798-1-git-send-email-kishon@ti.com>
- <20170203200638.GE10291@bhelgaas-glaptop.roam.corp.google.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 5/6] usb: musb: cppi_dma: Clean up tusb_omap_dma
+ structure
+Date: Mon, 6 Feb 2017 07:56:32 -0600
+Message-ID: <20170206135632.GB17548@uda0271908>
+References: <20170125101709.15696-1-abailon@baylibre.com>
+ <20170125101709.15696-6-abailon@baylibre.com>
+ <be359fa3-0754-ff68-5f60-564df168fc83@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170203200638.GE10291@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <be359fa3-0754-ff68-5f60-564df168fc83-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Saturday 04 February 2017 01:36 AM, Bjorn Helgaas wrote:
-> On Wed, Jan 11, 2017 at 05:36:50PM +0530, Kishon Vijay Abraham I wrote:
->> This series includes miscellaneous cleanups and fixes in dra7xx
->> pci driver and it also adds COMPILE_TEST to all designware
->> based drivers (except dra7xx driver and hisi driver), since
->> dra7xx driver doesn't depend on architecture specific config and
->> hisi driver is compiled based on only ARM64.
->>
->> These patches have been created after applying [1].
->>
->> [1] -> https://lkml.org/lkml/2017/1/6/246
->>
->> Kishon Vijay Abraham I (5):
->>   PCI: dwc: Add COMPILE_TEST to all designware based drivers
->>   PCI: dwc: dra7xx: Simplify the probe code
->>   PCI: dwc: dra7xx: Add support to force RC to work in GEN1 mode
->>   PCI: dwc: dra7xx: Enable MSI and legacy interrupts simultaneously
->>   PCI: dwc: dra7xx: Group phy API invocations
->>
->>  drivers/pci/dwc/Kconfig      |   16 ++--
->>  drivers/pci/dwc/pci-dra7xx.c |  174 ++++++++++++++++++++++++------------------
->>  2 files changed, 106 insertions(+), 84 deletions(-)
+On Mon, Feb 06, 2017 at 10:13:47AM +0200, Peter Ujfalusi wrote:
 > 
-> Applied to pci/host-designware for v4.11, thanks!  I added Pankaj's
-> reviewed-by to the COMPILE_TEST patch.  His reviewed-by was
-> technically for your standalone post of that patch, but I think both
-> postings have the identical patch.
+> 
+> On 01/25/2017 12:17 PM, Alexandre Bailon wrote:
+> > A pointer to musb is now present in the dma_controller structure.
+> > Remove the one present in tusb_omap_dma structure.
+> 
+> the subject line should be: usb: musb: tusb6010_omap: ...
 
-Thanks Bjorn! Right, that was the same patch.
+Revised it to 'usb: musb: tusb6010: ...'.
 
-Regards
-Kishon
+Thanks,
+-Bin.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
