@@ -1,76 +1,50 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 5/6] usb: musb: cppi_dma: Clean up tusb_omap_dma
- structure
-Date: Mon, 6 Feb 2017 10:13:47 +0200
-Message-ID: <be359fa3-0754-ff68-5f60-564df168fc83@ti.com>
-References: <20170125101709.15696-1-abailon@baylibre.com>
- <20170125101709.15696-6-abailon@baylibre.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 0/5] PCI: dwc: miscellaneous cleanups and fixes
+Date: Mon, 6 Feb 2017 17:58:01 +0530
+Message-ID: <58986BD1.2020803@ti.com>
+References: <1484136415-20798-1-git-send-email-kishon@ti.com>
+ <20170203200638.GE10291@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170125101709.15696-6-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170203200638.GE10291@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 01/25/2017 12:17 PM, Alexandre Bailon wrote:
-> A pointer to musb is now present in the dma_controller structure.
-> Remove the one present in tusb_omap_dma structure.
-
-the subject line should be: usb: musb: tusb6010_omap: ...
-
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/usb/musb/tusb6010_omap.c | 7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
+On Saturday 04 February 2017 01:36 AM, Bjorn Helgaas wrote:
+> On Wed, Jan 11, 2017 at 05:36:50PM +0530, Kishon Vijay Abraham I wrote:
+>> This series includes miscellaneous cleanups and fixes in dra7xx
+>> pci driver and it also adds COMPILE_TEST to all designware
+>> based drivers (except dra7xx driver and hisi driver), since
+>> dra7xx driver doesn't depend on architecture specific config and
+>> hisi driver is compiled based on only ARM64.
+>>
+>> These patches have been created after applying [1].
+>>
+>> [1] -> https://lkml.org/lkml/2017/1/6/246
+>>
+>> Kishon Vijay Abraham I (5):
+>>   PCI: dwc: Add COMPILE_TEST to all designware based drivers
+>>   PCI: dwc: dra7xx: Simplify the probe code
+>>   PCI: dwc: dra7xx: Add support to force RC to work in GEN1 mode
+>>   PCI: dwc: dra7xx: Enable MSI and legacy interrupts simultaneously
+>>   PCI: dwc: dra7xx: Group phy API invocations
+>>
+>>  drivers/pci/dwc/Kconfig      |   16 ++--
+>>  drivers/pci/dwc/pci-dra7xx.c |  174 ++++++++++++++++++++++++------------------
+>>  2 files changed, 106 insertions(+), 84 deletions(-)
 > 
-> diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
-> index e6959cc..8b43c4b 100644
-> --- a/drivers/usb/musb/tusb6010_omap.c
-> +++ b/drivers/usb/musb/tusb6010_omap.c
-> @@ -56,7 +56,6 @@ struct tusb_omap_dma_ch {
->  
->  struct tusb_omap_dma {
->  	struct dma_controller		controller;
-> -	struct musb			*musb;
->  	void __iomem			*tbase;
->  
->  	int				ch;
-> @@ -497,7 +496,7 @@ tusb_omap_dma_allocate(struct dma_controller *c,
->  	u32			reg;
->  
->  	tusb_dma = container_of(c, struct tusb_omap_dma, controller);
-> -	musb = tusb_dma->musb;
-> +	musb = tusb_dma->controller.musb;
->  	tbase = musb->ctrl_base;
->  
->  	reg = musb_readl(tbase, TUSB_DMA_INT_MASK);
-> @@ -534,7 +533,7 @@ tusb_omap_dma_allocate(struct dma_controller *c,
->  		dev_name = "TUSB receive";
->  	}
->  
-> -	chdat->musb = tusb_dma->musb;
-> +	chdat->musb = tusb_dma->controller.musb;
->  	chdat->tbase = tusb_dma->tbase;
->  	chdat->hw_ep = hw_ep;
->  	chdat->epnum = hw_ep->epnum;
-> @@ -667,7 +666,7 @@ tusb_dma_controller_create(struct musb *musb, void __iomem *base)
->  	if (!tusb_dma)
->  		goto out;
->  
-> -	tusb_dma->musb = musb;
-> +	tusb_dma->controller.musb = musb;
->  	tusb_dma->tbase = musb->ctrl_base;
->  
->  	tusb_dma->ch = -1;
-> 
+> Applied to pci/host-designware for v4.11, thanks!  I added Pankaj's
+> reviewed-by to the COMPILE_TEST patch.  His reviewed-by was
+> technically for your standalone post of that patch, but I think both
+> postings have the identical patch.
 
-- Péter
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks Bjorn! Right, that was the same patch.
+
+Regards
+Kishon
