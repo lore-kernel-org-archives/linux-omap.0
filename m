@@ -1,67 +1,76 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 0/6] usb: musb: cppi41: Add a way to manage DMA irq
-Date: Mon, 6 Feb 2017 07:58:05 -0600
-Message-ID: <20170206135805.GC17548@uda0271908>
-References: <20170125101709.15696-1-abailon@baylibre.com>
+From: Lukasz Majewski <lukma@denx.de>
+Subject: Re: [PATCH 2/2] DTS: dra7: Add "opp_high" opp node to support 1.5
+ GHz SoC operation
+Date: Mon, 6 Feb 2017 15:24:50 +0100
+Message-ID: <20170206152450.3739af18@jawa>
+References: <1486135491-14223-1-git-send-email-lukma@denx.de>
+        <1486135491-14223-2-git-send-email-lukma@denx.de>
+        <e398ff96-dca7-7934-70b1-9a95c01d3b27@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170125101709.15696-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <e398ff96-dca7-7934-70b1-9a95c01d3b27@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: =?UTF-8?B?QmVub8OudA==?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>, "Menon, Nishanth" <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 25, 2017 at 11:17:03AM +0100, Alexandre Bailon wrote:
-> This series was "dmaengine: cppi41: Make the driver more generic".
-> I have tried to separate as munch I could CPPI 4.1 MUSB driver changes.
-> 
-> Currently, the DMA interrupt is managed by the CPPI 4.1 driver.
-> The issue here is the CPPI 4.1 driver must access to MUSB glue registers
-> to manage its interrupt.
-> In order to move the interrupts management from CPPI 4.1 driver to MUSB
-> (and then make it more generic), update the MUSB CPPI 4.1 driver with
-> changes that will help to manage DMA interrupt from MUSB driver.
-> 
-> Changes in v5:
-> - Clean up patch 4 and 5
-> 
-> Changes in v4:
-> - Remove musb pointer from struct cppi, cppi41_dma_controller and
->   tusb_omap_dma.
-> 
-> Changes in v3:
-> - Move a patch from another series to this one to avoid build error report
->   from kbuild test robot
-> - Instead of adding and exporting function, add one callback and a pointer
->   to musb in struct dma_controller
-> - Surround the DMA function introduced in musb_dsps with #ifdef / #endif.
-> 
-> Changes in v2:
-> - Fix some typo in commit messages
-> - Add more explanation about some changes made by patch 2 in commit message
-> 
-> Alexandre Bailon (6):
->   usb: musb: dma: Add a DMA completion platform callback
->   usb: musb: cppi41: Detect aborted transfers in cppi41_dma_callback()
->   usb: musb: cppi_dma: Clean up cppi structure
->   usb: musb: cppi_dma: Clean up cppi41_dma_controller structure
->   usb: musb: cppi_dma: Clean up tusb_omap_dma structure
->   usb: musb: dsps: Manage CPPI 4.1 DMA interrupt in DSPS
-> 
->  drivers/dma/cppi41.c             | 28 ++++----------
->  drivers/usb/musb/cppi_dma.c      | 26 ++++++-------
->  drivers/usb/musb/cppi_dma.h      |  1 -
->  drivers/usb/musb/musb_cppi41.c   | 49 +++++++++++++-----------
->  drivers/usb/musb/musb_dma.h      |  5 +++
->  drivers/usb/musb/musb_dsps.c     | 81 +++++++++++++++++++++++++++++++++++++++-
->  drivers/usb/musb/tusb6010_omap.c |  7 ++--
->  7 files changed, 134 insertions(+), 63 deletions(-)
+Hi Dave,
 
-Applied. Thanks.
--Bin.
+> On 02/03/2017 09:24 AM, Lukasz Majewski wrote:
+> > The "opp_high" property brings support for 1.5 GHz CPU frequency
+> > for TI's am57xx line of processors.
+> >
+> > Signed-off-by: Lukasz Majewski <lukma@denx.de>
+> > ---
+> >  arch/arm/boot/dts/dra7.dtsi | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> >
+> 
+> This can't be blindly enabled for all am57xx SoCs, there is a
+> forthcoming ti-cpufreq [1] driver that is needed that will decided
+> which OPPs can and cannot be enabled for the specific variant in use.
+
+Do you know if there is ongoing work on using Avs0 voltage (encoded in
+efuse) to control the per SoC PMIC voltage value when switching to
+opp_high (1.5 GHz)?
+
+
+> 
+> Regards,
+> Dave
+> 
+> [1] http://www.spinics.net/lists/devicetree/msg158967.html
+> 
+> > diff --git a/arch/arm/boot/dts/dra7.dtsi
+> > b/arch/arm/boot/dts/dra7.dtsi index a860a56..5e678cd 100644
+> > --- a/arch/arm/boot/dts/dra7.dtsi
+> > +++ b/arch/arm/boot/dts/dra7.dtsi
+> > @@ -108,6 +108,11 @@
+> >  			opp-hz = /bits/ 64 <1176000000>;
+> >  			opp-microvolt = <1160000 885000 1160000>;
+> >  		};
+> > +
+> > +		opp_high@1500000000 {
+> > +			opp-hz = /bits/ 64 <1500000000>;
+> > +			opp-microvolt = <1210000 950000 1250000>;
+> > +		};
+> >  	};
+> >
+> >  	/*
+> >
+> 
+
+
+
+
+Best regards,
+
+Lukasz Majewski
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
+HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
