@@ -1,98 +1,53 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] omapfb: dss: Handle return error in dss_init_ports.
-Date: Mon, 06 Feb 2017 16:28:08 +0100
-Message-ID: <15170308.DWakhCLKvX@amdc3058>
-References: <CGME20170203122444epcas2p3e0d5ed32cac85fd86d900a62dbeb03a4@epcas2p3.samsung.com>
- <1486124625-23454-1-git-send-email-arvind.yadav.cs@gmail.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv2] regulator: cpcap: Add basic regulator support
+Date: Mon, 6 Feb 2017 15:26:40 -0600
+Message-ID: <CAL_JsqKg8LfGpMFuM2vwT35ODFrHf2TYDbw3CQm-U9s7eFUWPw@mail.gmail.com>
+References: <20170202234357.2405-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1486124625-23454-1-git-send-email-arvind.yadav.cs@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170202234357.2405-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-Hi,
-
-On Friday, February 03, 2017 05:53:45 PM Arvind Yadav wrote:
-> Here, dss_init_ports is not handling return error form
-> dpi_init_port and sdi_init_port. Now dss_init_ports is returning
-> always 0. And it's making below code as a dead code.
-> 
-> static int dss_bind(struct device *dev)
-> {
->   .
->   .
->   r = dss_init_ports(pdev); //dss_init_ports will return always 0
->   if (r)// This condition will always false
->       goto err_init_ports; //Dead Code
->   .
->   .
-> }
-> 
-> This change is to handle return error from dpi_init_port and
-> sdi_init_port. Also, It will remove dead code from function 'dss_bind'.
-> 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+On Thu, Feb 2, 2017 at 5:43 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> Many Motorola phones like droid 4 are using a custom PMIC called CPCAP
+> or 6556002. This PMIC is used with several SoCs, I've noticed at least
+> omap3, omap4 and Tegra2 based Motorola phones and tablets using it.
+>
+> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > ---
->  drivers/video/fbdev/omap2/omapfb/dss/dss.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> index 47d7f69..15a0dab 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> @@ -946,6 +946,7 @@ static int dss_init_ports(struct platform_device *pdev)
->  	struct device_node *parent = pdev->dev.of_node;
->  	struct device_node *port;
->  	int r;
-> +	int ret = 0;
->  
->  	if (parent == NULL)
->  		return 0;
-> @@ -972,17 +973,17 @@ static int dss_init_ports(struct platform_device *pdev)
->  
->  		switch (port_type) {
->  		case OMAP_DISPLAY_TYPE_DPI:
-> -			dpi_init_port(pdev, port);
-> +			ret = dpi_init_port(pdev, port);
->  			break;
->  		case OMAP_DISPLAY_TYPE_SDI:
-> -			sdi_init_port(pdev, port);
-> +			ret = sdi_init_port(pdev, port);
->  			break;
->  		default:
->  			break;
->  		}
->  	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
+>
+> With the cpcap core MFD driver now in Linux next as commit
+> 3d66c8abc13e ("mfd: cpcap: Add minimal support"), here's a related
+> regulator driver. This is needed to support more devices on droid 4,
+> such as the LCD and touchscreen.
+>
+> Changes since v1:
+>
+> - Use standard regulator sel_regmap functions and drop the pointless
+>   custom implementations as commented by Mark Brown
+>
+> - Fix unit-address with no reg property as commented by Rob Herring
+>
+> ---
+>  .../bindings/regulator/cpcap-regulator.txt         |  34 ++
 
-Shouldn't initialization be stopped after the first failure?
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-i.e.:
-
-	} while (!ret && (port = omapdss_of_get_next_port(parent, port)) != NULL);
-
-Also the cleanup of the partial initialization is missing.
->From looking at the code we should do something like this
-before returning:
-
-	if (ret)
-		dss_uninit_ports(pdev);
-
-(dpi_uninit_port() & sdi_uninit_port() skip not fully
-initialized ports)
-
-> -	return 0;
-> +	return ret;
->  }
->  
->  static void dss_uninit_ports(struct platform_device *pdev)
-
-Best regards,
+>  drivers/regulator/Kconfig                          |   7 +
+>  drivers/regulator/Makefile                         |   1 +
+>  drivers/regulator/cpcap-regulator.c                | 464 +++++++++++++++++++++
+>  4 files changed, 506 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/regulator/cpcap-regulator.txt
+>  create mode 100644 drivers/regulator/cpcap-regulator.c
 --
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
