@@ -1,94 +1,98 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH 2/2] DTS: dra7: Add "opp_high" opp node to support 1.5
- GHz SoC operation
-Date: Mon, 6 Feb 2017 09:24:55 -0600
-Message-ID: <58989547.9030002@ti.com>
-References: <1486135491-14223-1-git-send-email-lukma@denx.de>   <1486135491-14223-2-git-send-email-lukma@denx.de>       <e398ff96-dca7-7934-70b1-9a95c01d3b27@ti.com> <20170206152450.3739af18@jawa>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] omapfb: dss: Handle return error in dss_init_ports.
+Date: Mon, 06 Feb 2017 16:28:08 +0100
+Message-ID: <15170308.DWakhCLKvX@amdc3058>
+References: <CGME20170203122444epcas2p3e0d5ed32cac85fd86d900a62dbeb03a4@epcas2p3.samsung.com>
+ <1486124625-23454-1-git-send-email-arvind.yadav.cs@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170206152450.3739af18@jawa>
+In-reply-to: <1486124625-23454-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lukasz Majewski <lukma@denx.de>
-Cc: =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>, "Menon, Nishanth" <nm@ti.com>
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+
 Hi,
-On 02/06/2017 08:24 AM, Lukasz Majewski wrote:
-> Hi Dave,
-> 
->> On 02/03/2017 09:24 AM, Lukasz Majewski wrote:
->>> The "opp_high" property brings support for 1.5 GHz CPU frequency
->>> for TI's am57xx line of processors.
->>>
->>> Signed-off-by: Lukasz Majewski <lukma@denx.de>
->>> ---
->>>  arch/arm/boot/dts/dra7.dtsi | 5 +++++
->>>  1 file changed, 5 insertions(+)
->>>
->>
->> This can't be blindly enabled for all am57xx SoCs, there is a
->> forthcoming ti-cpufreq [1] driver that is needed that will decided
->> which OPPs can and cannot be enabled for the specific variant in use.
-> 
-> Do you know if there is ongoing work on using Avs0 voltage (encoded in
-> efuse) to control the per SoC PMIC voltage value when switching to
-> opp_high (1.5 GHz)?
 
-Yes, Viresh Kumar introduced multi-regulator support in the OPP core recently
-[1] which I wrote a test driver for here [2] which hooks into the OPP framework
-to do both ABB regulator scaling and also programs the AVS0 voltages. The
-current implementation I have cleaned up will depend on the ti-cpufreq driver so
-once that is merged I will send the AVS0 and ABB support driver upstream as
-well. If you are curious you can look at current internal implementation here [3].
+On Friday, February 03, 2017 05:53:45 PM Arvind Yadav wrote:
+> Here, dss_init_ports is not handling return error form
+> dpi_init_port and sdi_init_port. Now dss_init_ports is returning
+> always 0. And it's making below code as a dead code.
+> 
+> static int dss_bind(struct device *dev)
+> {
+>   .
+>   .
+>   r = dss_init_ports(pdev); //dss_init_ports will return always 0
+>   if (r)// This condition will always false
+>       goto err_init_ports; //Dead Code
+>   .
+>   .
+> }
+> 
+> This change is to handle return error from dpi_init_port and
+> sdi_init_port. Also, It will remove dead code from function 'dss_bind'.
+> 
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> ---
+>  drivers/video/fbdev/omap2/omapfb/dss/dss.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+> index 47d7f69..15a0dab 100644
+> --- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+> +++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+> @@ -946,6 +946,7 @@ static int dss_init_ports(struct platform_device *pdev)
+>  	struct device_node *parent = pdev->dev.of_node;
+>  	struct device_node *port;
+>  	int r;
+> +	int ret = 0;
+>  
+>  	if (parent == NULL)
+>  		return 0;
+> @@ -972,17 +973,17 @@ static int dss_init_ports(struct platform_device *pdev)
+>  
+>  		switch (port_type) {
+>  		case OMAP_DISPLAY_TYPE_DPI:
+> -			dpi_init_port(pdev, port);
+> +			ret = dpi_init_port(pdev, port);
+>  			break;
+>  		case OMAP_DISPLAY_TYPE_SDI:
+> -			sdi_init_port(pdev, port);
+> +			ret = sdi_init_port(pdev, port);
+>  			break;
+>  		default:
+>  			break;
+>  		}
+>  	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
 
-Regards,
-Dave
+Shouldn't initialization be stopped after the first failure?
 
-[1] http://www.spinics.net/lists/devicetree/msg153212.html
-[2] https://www.spinics.net/lists/kernel/msg2384336.html
-[3]
-http://git.ti.com/ti-linux-kernel/ti-linux-kernel/blobs/ti-lsk-linux-4.9.y/drivers/base/power/opp/ti-opp-supply.c
+i.e.:
 
+	} while (!ret && (port = omapdss_of_get_next_port(parent, port)) != NULL);
 
-> 
-> 
->>
->> Regards,
->> Dave
->>
->> [1] http://www.spinics.net/lists/devicetree/msg158967.html
->>
->>> diff --git a/arch/arm/boot/dts/dra7.dtsi
->>> b/arch/arm/boot/dts/dra7.dtsi index a860a56..5e678cd 100644
->>> --- a/arch/arm/boot/dts/dra7.dtsi
->>> +++ b/arch/arm/boot/dts/dra7.dtsi
->>> @@ -108,6 +108,11 @@
->>>  			opp-hz = /bits/ 64 <1176000000>;
->>>  			opp-microvolt = <1160000 885000 1160000>;
->>>  		};
->>> +
->>> +		opp_high@1500000000 {
->>> +			opp-hz = /bits/ 64 <1500000000>;
->>> +			opp-microvolt = <1210000 950000 1250000>;
->>> +		};
->>>  	};
->>>
->>>  	/*
->>>
->>
-> 
-> 
-> 
-> 
-> Best regards,
-> 
-> Lukasz Majewski
-> 
-> --
-> 
-> DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-> HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-> Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
-> 
+Also the cleanup of the partial initialization is missing.
+>From looking at the code we should do something like this
+before returning:
+
+	if (ret)
+		dss_uninit_ports(pdev);
+
+(dpi_uninit_port() & sdi_uninit_port() skip not fully
+initialized ports)
+
+> -	return 0;
+> +	return ret;
+>  }
+>  
+>  static void dss_uninit_ports(struct platform_device *pdev)
+
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
