@@ -1,93 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
-Date: Tue, 7 Feb 2017 08:01:57 -0800
-Message-ID: <20170207160157.GA21809@atomide.com>
-References: <20170131000210.5442-1-tony@atomide.com>
- <20170131000210.5442-3-tony@atomide.com>
- <CAKvHMgSXVertQyZyj-C-_w72Uh7xf4DbC2rsNs_T9DMPJP2tXA@mail.gmail.com>
- <20170131003632.GB7403@atomide.com>
- <CAKvHMgTOKoeOxp0oxOBOO7zqothPWeC9aBrV-Km1Rq+YAafw5w@mail.gmail.com>
- <20170203185408.GB3721@atomide.com>
- <CAKvHMgQs3YYtyMApYvdRAyzuzii_xA=ZKRfqG-zpFzrMef_qdg@mail.gmail.com>
- <20170203211707.GC3721@atomide.com>
- <CAKvHMgRV=mm2XBtrNjQCvGXuAQY6n6xEKerP4eVw2izkS9C7ww@mail.gmail.com>
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 0/4] cpufreq: Introduce TI CPUFreq/OPP Driver
+Date: Tue, 7 Feb 2017 10:52:35 -0600
+Message-ID: <4900edde-02b9-cba4-4b89-45c20cfc5571@ti.com>
+References: <20170207165107.29394-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKvHMgRV=mm2XBtrNjQCvGXuAQY6n6xEKerP4eVw2izkS9C7ww@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Liam Breck <liam@networkimprov.net>
-Cc: Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170207165107.29394-1-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Liam Breck <liam@networkimprov.net> [170203 16:25]:
-> On Fri, Feb 3, 2017 at 1:17 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >  static int bq24190_remove(struct i2c_client *client)
-> >  {
-> >         struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
-> > +       int error;
-> >
-> > -       pm_runtime_get_sync(bdi->dev);
-> > -       bq24190_register_reset(bdi);
-> > -       pm_runtime_put_sync(bdi->dev);
-> > +       error = pm_runtime_get_sync(bdi->dev);
-> > +       if (error < 0) {
-> > +               dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
-> > +               pm_runtime_put_noidle(bdi->dev);
-> > +       }
-> >
-> > +       bq24190_register_reset(bdi);
-> >         bq24190_sysfs_remove_group(bdi);
-> >         power_supply_unregister(bdi->battery);
-> >         power_supply_unregister(bdi->charger);
-> > +       pm_runtime_put_sync(bdi->dev);
-> > +       pm_runtime_dont_use_autosuspend(bdi->dev);
-> >         pm_runtime_disable(bdi->dev);
-> 
-> I think you addressed this, but should the above be
-> 
-> if (!error)
->   pm_runtime_put_sync(bdi->dev);
+On 02/07/2017 10:51 AM, Dave Gerlach wrote:
+> Hi,
+> This is v5 of the series to introduce the ti-cpufreq driver
+> which parses SoC data and provides opp-supported-hw data to the
+> OPP core in order to enable the proper OPPs for the silicon in use.
+>
 
-Hmm yeah.. But we need to check for if (error >= 0), also in the other
-places see below.
+Sorry for the noise, already sent this as a proper series, just accidentally 
+resent the cover letter.
 
 Regards,
+Dave
 
-Tony
+> History:
+> v4: http://www.spinics.net/lists/linux-omap/msg134629.html
+> v3: http://www.spinics.net/lists/linux-omap/msg132733.html
+> v2: http://www.spinics.net/lists/linux-omap/msg131601.html
+> v1: http://www.spinics.net/lists/linux-omap/msg129089.html
+>
+> Very minor changes from v4:
+> 	* In patch 2 change "opp_table0" to "opp_table" in example
+> 	* Add acks on all patches (he approved change in patch 2) from Viresh
+>
+> DT patches to enable this driver will follow after the DT binding is merged.
+> Branch for testing, with updated DT nodes, pushed here [1].
+>
+> Regards,
+> Dave
+>
+> [1] https://github.com/dgerlach/linux-pm/commits/upstream/ti-cpufreq-driver-new-v5
+>
+> Dave Gerlach (4):
+>   PM / OPP: Expose _of_get_opp_desc_node as dev_pm_opp API
+>   Documentation: dt: add bindings for ti-cpufreq
+>   cpufreq: ti: Add cpufreq driver to determine available OPPs at runtime
+>   cpufreq: dt: Don't use generic platdev driver for ti-cpufreq platforms
+>
+>  .../devicetree/bindings/cpufreq/ti-cpufreq.txt     | 128 ++++++++++
+>  drivers/base/power/opp/of.c                        |   9 +-
+>  drivers/cpufreq/Kconfig.arm                        |  11 +
+>  drivers/cpufreq/Makefile                           |   1 +
+>  drivers/cpufreq/cpufreq-dt-platdev.c               |   2 -
+>  drivers/cpufreq/ti-cpufreq.c                       | 272 +++++++++++++++++++++
+>  include/linux/pm_opp.h                             |   6 +
+>  7 files changed, 423 insertions(+), 6 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
+>  create mode 100644 drivers/cpufreq/ti-cpufreq.c
+>
 
-8< --------------------
-diff --git a/drivers/power/supply/bq24190_charger.c b/drivers/power/supply/bq24190_charger.c
---- a/drivers/power/supply/bq24190_charger.c
-+++ b/drivers/power/supply/bq24190_charger.c
-@@ -1487,7 +1487,8 @@ static int bq24190_remove(struct i2c_client *client)
- 	bq24190_sysfs_remove_group(bdi);
- 	power_supply_unregister(bdi->battery);
- 	power_supply_unregister(bdi->charger);
--	pm_runtime_put_sync(bdi->dev);
-+	if (error >= 0)
-+		pm_runtime_put_sync(bdi->dev);
- 	pm_runtime_dont_use_autosuspend(bdi->dev);
- 	pm_runtime_disable(bdi->dev);
- 
-@@ -1541,7 +1542,7 @@ static int bq24190_pm_suspend(struct device *dev)
- 
- 	bq24190_register_reset(bdi);
- 
--	if (!error) {
-+	if (error >= 0) {
- 		pm_runtime_mark_last_busy(bdi->dev);
- 		pm_runtime_put_autosuspend(bdi->dev);
- 	}
-@@ -1568,7 +1569,7 @@ static int bq24190_pm_resume(struct device *dev)
- 	bq24190_set_mode_host(bdi);
- 	bq24190_read(bdi, BQ24190_REG_SS, &bdi->ss_reg);
- 
--	if (!error) {
-+	if (error >= 0) {
- 		pm_runtime_mark_last_busy(bdi->dev);
- 		pm_runtime_put_autosuspend(bdi->dev);
- 	}
--- 
-2.11.0
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
