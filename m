@@ -1,59 +1,27 @@
-From: Liam Breck <liam@networkimprov.net>
-Subject: Re: [PATCH 2/2] power: bq24190_charger: Use PM runtime autosuspend
-Date: Tue, 7 Feb 2017 10:20:46 -0800
-Message-ID: <CAKvHMgRxONjiyn2Zg-f3s0m8KAYR3vK5G3aD4WkJWjA32GsBaA@mail.gmail.com>
-References: <20170131000210.5442-1-tony@atomide.com> <20170131000210.5442-3-tony@atomide.com>
- <CAKvHMgSXVertQyZyj-C-_w72Uh7xf4DbC2rsNs_T9DMPJP2tXA@mail.gmail.com>
- <20170131003632.GB7403@atomide.com> <CAKvHMgTOKoeOxp0oxOBOO7zqothPWeC9aBrV-Km1Rq+YAafw5w@mail.gmail.com>
- <20170203185408.GB3721@atomide.com> <CAKvHMgQs3YYtyMApYvdRAyzuzii_xA=ZKRfqG-zpFzrMef_qdg@mail.gmail.com>
- <20170203211707.GC3721@atomide.com> <CAKvHMgRV=mm2XBtrNjQCvGXuAQY6n6xEKerP4eVw2izkS9C7ww@mail.gmail.com>
- <20170207160157.GA21809@atomide.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: remove netif_trans_update
+Date: Tue, 07 Feb 2017 13:37:11 -0500 (EST)
+Message-ID: <20170207.133711.898814361878285175.davem@davemloft.net>
+References: <1486421625-24413-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170207160157.GA21809@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Liam Breck <kernel@networkimprov.net>, "Mark A . Greer" <mgreer@animalcreek.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1486421625-24413-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ivan.khoronzhuk@linaro.org
+Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Feb 7, 2017 at 8:01 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Liam Breck <liam@networkimprov.net> [170203 16:25]:
->> On Fri, Feb 3, 2017 at 1:17 PM, Tony Lindgren <tony@atomide.com> wrote:
->> >  static int bq24190_remove(struct i2c_client *client)
->> >  {
->> >         struct bq24190_dev_info *bdi = i2c_get_clientdata(client);
->> > +       int error;
->> >
->> > -       pm_runtime_get_sync(bdi->dev);
->> > -       bq24190_register_reset(bdi);
->> > -       pm_runtime_put_sync(bdi->dev);
->> > +       error = pm_runtime_get_sync(bdi->dev);
->> > +       if (error < 0) {
->> > +               dev_warn(bdi->dev, "pm_runtime_get failed: %i\n", error);
->> > +               pm_runtime_put_noidle(bdi->dev);
->> > +       }
->> >
->> > +       bq24190_register_reset(bdi);
->> >         bq24190_sysfs_remove_group(bdi);
->> >         power_supply_unregister(bdi->battery);
->> >         power_supply_unregister(bdi->charger);
->> > +       pm_runtime_put_sync(bdi->dev);
->> > +       pm_runtime_dont_use_autosuspend(bdi->dev);
->> >         pm_runtime_disable(bdi->dev);
->>
->> I think you addressed this, but should the above be
->>
->> if (!error)
->>   pm_runtime_put_sync(bdi->dev);
->
-> Hmm yeah.. But we need to check for if (error >= 0), also in the other
-> places see below.
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Date: Tue,  7 Feb 2017 00:53:45 +0200
 
-OK, let's roll v4. it is
+> No need to update jiffies in txq->trans_start twice, it's supposed to be
+> done in netdev_start_xmit() and anyway is re-written. Also, no reason to
+> update trans time in case of an error.
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+> Based on net-next/master
 
-Acked-by: Liam Breck <kernel@networkimprov.net>
-
-(and pls include the v4 in all subjects :-)
-
-I have a patchset for DT support in the works which depends on this one.
+Applied, thank you.
