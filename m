@@ -1,67 +1,48 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] omapfb: dss: Handle return error in dss_init_ports.
-Date: Wed, 08 Feb 2017 15:21:43 +0100
-Message-ID: <1645625.BTpumnS8aX@amdc3058>
-References: <CGME20170203122444epcas2p3e0d5ed32cac85fd86d900a62dbeb03a4@epcas2p3.samsung.com>
- <c0063f69-e6f8-ce91-8069-308fe4ddb86a@gmail.com> <25198769.WjcufK8OeX@amdc3058>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH v5 2/4] Documentation: dt: add bindings for ti-cpufreq
+Date: Wed, 8 Feb 2017 08:44:27 -0600
+Message-ID: <CAL_Jsq+955fra0P8FFWd4-f2rLyJVMwo-FBRfeqqeO=a8m0NnA@mail.gmail.com>
+References: <20170203172929.23940-1-d-gerlach@ti.com>
+ <20170203172929.23940-3-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <25198769.WjcufK8OeX@amdc3058>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170203172929.23940-3-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lukasz Majewski <lukma@denx.de>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, February 08, 2017 11:25:47 AM Bartlomiej Zolnierkiewicz wrote:
-> 
-> Hi,
-> 
-> On Tuesday, February 07, 2017 05:41:37 PM Arvind Yadav wrote:
-> > Hi,
-> > 
-> > In dss_init_ports, There is no need to add dss_uninit_ports before 
-> > returning.
-> > Because it's already take care in dss_bind. dss_bind  is handling
-> > dss_uninit_ports in error path.
-> 
-> It doesn't handle cleanup of partially initialized ports,
+On Fri, Feb 3, 2017 at 11:29 AM, Dave Gerlach <d-gerlach@ti.com> wrote:
+> Add the device tree bindings document for the TI CPUFreq/OPP driver
+> on AM33xx, AM43xx, DRA7xx, and AM57xx SoCs. The operating-points-v2
+> binding allows us to provide an opp-supported-hw property for each OPP
+> to define when it is available. This driver is responsible for reading
+> and parsing registers to determine which OPPs can be selectively enabled
+> based on the specific SoC in use by matching against the opp-supported-hw
+> data.
+>
+> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
 
-BTW by "partially initialized ports" here I mean cases like
-i.e. dpi port fully initialized and sdi one not initialized
+[...]
 
-> please look at the code:
-> 
-> ...
-> 	r = dss_init_ports(pdev);
-> 	if (r)
-> 		goto err_init_ports;
-> ...
-> err_runtime_get:
-> 	pm_runtime_disable(&pdev->dev);
-> 	dss_uninit_ports(pdev);
-> err_init_ports:
-> 	if (dss.video1_pll)
-> 		dss_video_pll_uninit(dss.video1_pll);
-> ...
-> 
-> dss_uninit_ports() is not called on partially initialized
+> +/*
+> + * cpu0 has different OPPs depending on SoC revision and some on revisions
+> + * 0x2 and 0x4 have eFuse bits that indicate if they are available or not
+> + */
+> +cpu0_opp_table: opp_table {
 
-ditto
+One step closer, but as I showed last time, use a '-', not '_'.
 
-> ports (when dss_init_ports() returns an error we go straight
-> into err_init_ports label and skip dss_uninit_ports())
-> 
-> > -Arvind
-> > 
-> > 
-> > On Monday 06 February 2017 08:58 PM, Bartlomiej Zolnierkiewicz wrote:
-> > > dpi_uninit_port() & sdi_uninit_port() skip not fully
-> > > initialized port
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Rob
