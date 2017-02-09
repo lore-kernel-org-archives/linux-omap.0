@@ -1,94 +1,71 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: drivers: usb: dwc3: A question...
-Date: Thu, 9 Feb 2017 10:45:46 +0200
-Message-ID: <e5742c34-170c-0e7b-f3bf-55fbf151b458@ti.com>
-References: <20170209021430.Horde.n6IB1mLy0ToxSTvUHQXeRXx@gator4166.hostgator.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170209021430.Horde.n6IB1mLy0ToxSTvUHQXeRXx-fU+oOHjIBR1LoJgMfuPDHBfZZeVsHd8q@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gustavo A. R. Silva" <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Senna Tschudin <peter.senna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH v2] omapfb: dss: Handle return error in dss_init_ports.
+Date: Thu,  9 Feb 2017 15:28:01 +0530
+Message-ID: <1486634281-10945-1-git-send-email-arvind.yadav.cs@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com, b.zolnierkie@samsung.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Here, dss_init_ports is not handling return error form
+dpi_init_port and sdi_init_port. Now dss_init_ports is returning
+always 0. And it's making below code as a dead code.
 
-On 09/02/17 10:14, Gustavo A. R. Silva wrote:
-> Hello everybody,
-> 
-> I ran into the following piece of code at drivers/usb/dwc3/dwc3-omap.c:218 (linux-next)
-> 
-> 218static void dwc3_omap_set_mailbox(struct dwc3_omap *omap,
-> 219        enum omap_dwc3_vbus_id_status status)
-> 220{
-> 221        int     ret;
-> 222        u32     val;
-> 223
-> 224        switch (status) {
-> 225        case OMAP_DWC3_ID_GROUND:
-> 226                if (omap->vbus_reg) {
-> 227                        ret = regulator_enable(omap->vbus_reg);
-> 228                        if (ret) {
-> 229                                dev_err(omap->dev, "regulator enable failed\n");
-> 230                                return;
-> 231                        }
-> 232                }
-> 233
-> 234                val = dwc3_omap_read_utmi_ctrl(omap);
-> 235                val &= ~USBOTGSS_UTMI_OTG_CTRL_IDDIG;
-> 236                dwc3_omap_write_utmi_ctrl(omap, val);
-> 237                break;
-> 238
-> 239        case OMAP_DWC3_VBUS_VALID:
-> 240                val = dwc3_omap_read_utmi_ctrl(omap);
-> 241                val &= ~USBOTGSS_UTMI_OTG_CTRL_SESSEND;
-> 242                val |= USBOTGSS_UTMI_OTG_CTRL_VBUSVALID
-> 243                                | USBOTGSS_UTMI_OTG_CTRL_SESSVALID;
-> 244                dwc3_omap_write_utmi_ctrl(omap, val);
-> 245                break;
-> 246
-> 247        case OMAP_DWC3_ID_FLOAT:
-> 248                if (omap->vbus_reg)
-> 249                        regulator_disable(omap->vbus_reg);
-> 250                val = dwc3_omap_read_utmi_ctrl(omap);
-> 251                val |= USBOTGSS_UTMI_OTG_CTRL_IDDIG;
-> 252                dwc3_omap_write_utmi_ctrl(omap, val);
-> 253
-> 254        case OMAP_DWC3_VBUS_OFF:
-> 255                val = dwc3_omap_read_utmi_ctrl(omap);
-> 256                val &= ~(USBOTGSS_UTMI_OTG_CTRL_SESSVALID
-> 257                                | USBOTGSS_UTMI_OTG_CTRL_VBUSVALID);
-> 258                val |= USBOTGSS_UTMI_OTG_CTRL_SESSEND;
-> 259                dwc3_omap_write_utmi_ctrl(omap, val);
-> 260                break;
-> 261
-> 262        default:
-> 263                dev_WARN(omap->dev, "invalid state\n");
-> 264        }
-> 265}
-> 
-> The thing is that the case for OMAP_DWC3_ID_FLOAT is not terminated by a break statement, and it falls through to the next case OMAP_DWC3_VBUS_OFF.
-> 
-> My question here is if for any reason this code is intentional?
-> 
-> In case it is not, I will write a patch to fix this, but first it would be great to hear any comment about it.
+static int dss_bind(struct device *dev)
+{
+  .
+  .
+  r = dss_init_ports(pdev); //dss_init_ports will return always 0
+  if (r)// This condition will always false
+      goto err_init_ports; //Dead Code
+  .
+  .
+}
 
-You are right that it is a mistake. Thanks for pointing out.
-I had already submitted a patch
-https://patchwork.kernel.org/patch/9532195/
+This change is to handle return error from dpi_init_port and
+sdi_init_port. Also, It will remove dead code from function 'dss_bind'.
 
-Felipe,
-I think we should pick it up regardless of the rest of the series and mark for -stable.
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/video/fbdev/omap2/omapfb/dss/dss.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-Please do add
-Reported-by: Gustavo A. R. Silva <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
-Thanks :)
-
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+index 47d7f69..87eb10c 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+@@ -946,6 +946,7 @@ static int dss_init_ports(struct platform_device *pdev)
+ 	struct device_node *parent = pdev->dev.of_node;
+ 	struct device_node *port;
+ 	int r;
++	int ret = 0;
+ 
+ 	if (parent == NULL)
+ 		return 0;
+@@ -972,17 +973,20 @@ static int dss_init_ports(struct platform_device *pdev)
+ 
+ 		switch (port_type) {
+ 		case OMAP_DISPLAY_TYPE_DPI:
+-			dpi_init_port(pdev, port);
++			ret = dpi_init_port(pdev, port);
+ 			break;
+ 		case OMAP_DISPLAY_TYPE_SDI:
+-			sdi_init_port(pdev, port);
++			ret = sdi_init_port(pdev, port);
+ 			break;
+ 		default:
+ 			break;
+ 		}
+ 	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
+ 
+-	return 0;
++	if (ret)
++		dss_uninit_ports(pdev);
++
++	return ret;
+ }
+ 
+ static void dss_uninit_ports(struct platform_device *pdev)
+-- 
+1.9.1
