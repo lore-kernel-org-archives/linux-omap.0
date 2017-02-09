@@ -1,101 +1,127 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH v2] omapfb: dss: Handle return error in dss_init_ports.
-Date: Thu, 09 Feb 2017 12:22:52 +0100
-Message-ID: <20095283.GXRZBuOcpv@amdc3058>
-References: <CGME20170209095916epcas1p46d7faa4233dfa9b0a0a62aa64c293674@epcas1p4.samsung.com>
- <1486634281-10945-1-git-send-email-arvind.yadav.cs@gmail.com>
+From: Vivek Gautam <vivek.gautam-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH 0/8] usb: dwc3: add dual-role support
+Date: Thu, 9 Feb 2017 17:08:20 +0530
+Message-ID: <CAFp+6iEQzX8eiGvVqxPYjzmbtgcxsqJT7UCc52PYP6WKS2st_Q@mail.gmail.com>
+References: <1485170381-32110-1-git-send-email-rogerq@ti.com>
+ <CAFp+6iHXgG1Q4+5XU+mBa-VEcyMs+X9RtnM6-saGCvY+7n7rgQ@mail.gmail.com> <81abd13d-4800-2f05-8ad2-7d31d7f596f4@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1486634281-10945-1-git-send-email-arvind.yadav.cs@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <81abd13d-4800-2f05-8ad2-7d31d7f596f4-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, peter.chen-KZfg59tc24xl57MIdRCFDg@public.gmane.org, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Feb 9, 2017 at 1:19 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+> Vivek,
+>
+> On 09/02/17 08:42, Vivek Gautam wrote:
+>> Hi Roger,
+>>
+>> On Mon, Jan 23, 2017 at 4:49 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+>>> Hi,
+>>>
+>>> We rely on the OTG controller block to provide us with
+>>> VBUS and ID line status via an interrupt.
+>>>
+>>> This is then used to switch the controller between host, peripheral
+>>> and idle roles based on the following table.
+>>>
+>>>     ID  VBUS    dual-role state
+>>>     --  ----    ---------------
+>>>     0   x       A_HOST - Host controller active
+>>>     1   0       B_IDLE - Both Host and Gadget controllers inactive
+>>>     1   1       B_PERIPHERAL - Gadget controller active
+>>>
+>>
+>> Thanks for this series.
+>> Sorry, i was held up with something else so couldn't take a look at it.
+>> I will integrate this with my work, and add some basic extcon
+>> support to enable passing vbus and id events to dwc3 layer to test
+>> this out on msm platforms.
+>
+> I already have this done for one of our platforms to workaround
+> a limitation with the OTG IP block on it.
+> I can post it today and you can give your comments.
 
-Hi,
+Okay, cool. Thanks. I will wait.
 
-On Thursday, February 09, 2017 03:28:01 PM Arvind Yadav wrote:
-> Here, dss_init_ports is not handling return error form
-> dpi_init_port and sdi_init_port. Now dss_init_ports is returning
-> always 0. And it's making below code as a dead code.
-> 
-> static int dss_bind(struct device *dev)
-> {
->   .
->   .
->   r = dss_init_ports(pdev); //dss_init_ports will return always 0
->   if (r)// This condition will always false
->       goto err_init_ports; //Dead Code
->   .
->   .
-> }
-> 
-> This change is to handle return error from dpi_init_port and
-> sdi_init_port. Also, It will remove dead code from function 'dss_bind'.
-> 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-> ---
 
-Please include version history here when submitting new
-versions.
+Regards
+Vivek
 
->  drivers/video/fbdev/omap2/omapfb/dss/dss.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> index 47d7f69..87eb10c 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> @@ -946,6 +946,7 @@ static int dss_init_ports(struct platform_device *pdev)
->  	struct device_node *parent = pdev->dev.of_node;
->  	struct device_node *port;
->  	int r;
-> +	int ret = 0;
->  
->  	if (parent == NULL)
->  		return 0;
-> @@ -972,17 +973,20 @@ static int dss_init_ports(struct platform_device *pdev)
->  
->  		switch (port_type) {
->  		case OMAP_DISPLAY_TYPE_DPI:
-> -			dpi_init_port(pdev, port);
-> +			ret = dpi_init_port(pdev, port);
->  			break;
->  		case OMAP_DISPLAY_TYPE_SDI:
-> -			sdi_init_port(pdev, port);
-> +			ret = sdi_init_port(pdev, port);
->  			break;
->  		default:
->  			break;
->  		}
->  	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
+>
+> cheers,
+> -roger
+>>
+>>
+>> Regards
+>> Vivek
+>>
+>>> Couple of things to clarify:
+>>> - There is a small window where we can potentially miss an
+>>> event related to OTG. I've added a comment in the code where this
+>>> could happen. How can we prevent this? Is it better to just leave
+>>> the OTG events unmasked (but keep otg_irq on ARM GIC disabled)
+>>> so that any new events can be captured by the OTG event register
+>>> and interrupt re-triggered if it has not been serviced by the
+>>> previous interrupt.
+>>> - I'm running the entire dual-role state change logic inside
+>>> the threaded interrupt handler with dwc->lock (spinlock) held
+>>> but IRQs enabled. OTG events are very rare i.e. manual intervention
+>>> so I don't see this as a problem. Just wanted to double check.
+>>> - Some SoC's (e.g. Qualcomm MSM) do not have the OTG controller block
+>>> but do have both host and peripheral controllers and so can operate
+>>> in dual role mode. Current series does not address this case.
+>>> We can get dual-role to work with such SoCs if core.c can get
+>>> information about ID and VBUS somehow (private interface
+>>> from parent or directly read extcon?).
+>>>
+>>> cheers,
+>>> -roger
+>>>
+>>> Roger Quadros (8):
+>>>   usb: otg-fsm: Prevent build warning "VDBG" redefined
+>>>   usb: dwc3-omap: Fix missing break in dwc3_omap_set_mailbox()
+>>>   usb: dwc3: use BIT() macro where possible
+>>>   usb: dwc3: core.h: add some register definitions
+>>>   usb: dwc3: add dual-role support
+>>>   ARM: dts: dra7x-evm: Enable dual-role mode for USB1
+>>>   ARM: dts: am43xx: Enable dual-role mode for USB1
+>>>   ARM: dts: am57xx-idk: Enable dual-role mode for USB2
+>>>
+>>>  arch/arm/boot/dts/am437x-gp-evm.dts      |   2 +-
+>>>  arch/arm/boot/dts/am437x-sk-evm.dts      |   2 +-
+>>>  arch/arm/boot/dts/am43x-epos-evm.dts     |   2 +-
+>>>  arch/arm/boot/dts/am57xx-idk-common.dtsi |   2 +-
+>>>  arch/arm/boot/dts/dra7-evm.dts           |   2 +-
+>>>  arch/arm/boot/dts/dra72-evm-common.dtsi  |   2 +-
+>>>  drivers/usb/common/usb-otg-fsm.c         |   7 +
+>>>  drivers/usb/dwc3/core.c                  | 583 ++++++++++++++++++++++++++++++-
+>>>  drivers/usb/dwc3/core.h                  | 312 ++++++++++++-----
+>>>  drivers/usb/dwc3/dwc3-omap.c             |  49 +--
+>>>  drivers/usb/dwc3/gadget.c                |  18 +-
+>>>  drivers/usb/dwc3/gadget.h                |  20 +-
+>>>  drivers/usb/phy/phy-fsl-usb.c            |   7 +
+>>>  include/linux/usb/otg-fsm.h              |  15 -
+>>>  14 files changed, 848 insertions(+), 175 deletions(-)
+>>>
+>>> --
+>>> 2.7.4
+>>>
+>>
+>
+> --
+> cheers,
+> -roger
 
-What about the other issue raised by me?
 
-Shouldn't initialization be stopped after first failure?
 
-i.e.:
-
-        } while (!ret && (port = omapdss_of_get_next_port(parent, port)) != NULL);
-
-Otherwise it is possible to return a success in case when
-- initialization of the first port fails
-- initialization of the second port is successful
- 
-> -	return 0;
-> +	if (ret)
-> +		dss_uninit_ports(pdev);
-> +
-> +	return ret;
->  }
->  
->  static void dss_uninit_ports(struct platform_device *pdev)
-
-Best regards,
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
 --
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
