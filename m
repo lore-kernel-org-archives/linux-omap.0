@@ -1,71 +1,72 @@
 From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH v2] omapfb: dss: Handle return error in dss_init_ports.
-Date: Thu,  9 Feb 2017 15:28:01 +0530
-Message-ID: <1486634281-10945-1-git-send-email-arvind.yadav.cs@gmail.com>
+Subject: Re: [PATCH] omapfb: dss: Handle return error in dss_init_ports.
+Date: Thu, 9 Feb 2017 15:32:58 +0530
+Message-ID: <ef0e2b40-b0c9-aa86-fe99-2edd23daa155@gmail.com>
+References: <CGME20170203122444epcas2p3e0d5ed32cac85fd86d900a62dbeb03a4@epcas2p3.samsung.com>
+ <c0063f69-e6f8-ce91-8069-308fe4ddb86a@gmail.com>
+ <25198769.WjcufK8OeX@amdc3058> <1645625.BTpumnS8aX@amdc3058>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1645625.BTpumnS8aX@amdc3058>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com, b.zolnierkie@samsung.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Here, dss_init_ports is not handling return error form
-dpi_init_port and sdi_init_port. Now dss_init_ports is returning
-always 0. And it's making below code as a dead code.
+Hi,
+Yes, We will have to handle cleanup of partially initialized ports.
+As per your suggestion, I have done the changes.
 
-static int dss_bind(struct device *dev)
-{
-  .
-  .
-  r = dss_init_ports(pdev); //dss_init_ports will return always 0
-  if (r)// This condition will always false
-      goto err_init_ports; //Dead Code
-  .
-  .
-}
+Thanks
+-Arvind
 
-This change is to handle return error from dpi_init_port and
-sdi_init_port. Also, It will remove dead code from function 'dss_bind'.
-
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/video/fbdev/omap2/omapfb/dss/dss.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-index 47d7f69..87eb10c 100644
---- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-@@ -946,6 +946,7 @@ static int dss_init_ports(struct platform_device *pdev)
- 	struct device_node *parent = pdev->dev.of_node;
- 	struct device_node *port;
- 	int r;
-+	int ret = 0;
- 
- 	if (parent == NULL)
- 		return 0;
-@@ -972,17 +973,20 @@ static int dss_init_ports(struct platform_device *pdev)
- 
- 		switch (port_type) {
- 		case OMAP_DISPLAY_TYPE_DPI:
--			dpi_init_port(pdev, port);
-+			ret = dpi_init_port(pdev, port);
- 			break;
- 		case OMAP_DISPLAY_TYPE_SDI:
--			sdi_init_port(pdev, port);
-+			ret = sdi_init_port(pdev, port);
- 			break;
- 		default:
- 			break;
- 		}
- 	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
- 
--	return 0;
-+	if (ret)
-+		dss_uninit_ports(pdev);
-+
-+	return ret;
- }
- 
- static void dss_uninit_ports(struct platform_device *pdev)
--- 
-1.9.1
+On Wednesday 08 February 2017 07:51 PM, Bartlomiej Zolnierkiewicz wrote:
+> On Wednesday, February 08, 2017 11:25:47 AM Bartlomiej Zolnierkiewicz wrote:
+>> Hi,
+>>
+>> On Tuesday, February 07, 2017 05:41:37 PM Arvind Yadav wrote:
+>>> Hi,
+>>>
+>>> In dss_init_ports, There is no need to add dss_uninit_ports before
+>>> returning.
+>>> Because it's already take care in dss_bind. dss_bind  is handling
+>>> dss_uninit_ports in error path.
+>> It doesn't handle cleanup of partially initialized ports,
+> BTW by "partially initialized ports" here I mean cases like
+> i.e. dpi port fully initialized and sdi one not initialized
+>
+>> please look at the code:
+>>
+>> ...
+>> 	r = dss_init_ports(pdev);
+>> 	if (r)
+>> 		goto err_init_ports;
+>> ...
+>> err_runtime_get:
+>> 	pm_runtime_disable(&pdev->dev);
+>> 	dss_uninit_ports(pdev);
+>> err_init_ports:
+>> 	if (dss.video1_pll)
+>> 		dss_video_pll_uninit(dss.video1_pll);
+>> ...
+>>
+>> dss_uninit_ports() is not called on partially initialized
+> ditto
+>
+>> ports (when dss_init_ports() returns an error we go straight
+>> into err_init_ports label and skip dss_uninit_ports())
+>>
+>>> -Arvind
+>>>
+>>>
+>>> On Monday 06 February 2017 08:58 PM, Bartlomiej Zolnierkiewicz wrote:
+>>>> dpi_uninit_port() & sdi_uninit_port() skip not fully
+>>>> initialized port
+> Best regards,
+> --
+> Bartlomiej Zolnierkiewicz
+> Samsung R&D Institute Poland
+> Samsung Electronics
+>
