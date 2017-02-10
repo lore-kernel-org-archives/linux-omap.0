@@ -1,36 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] net: ethernet: ti: cpsw: fix susp/resume
-Date: Thu, 09 Feb 2017 20:45:07 -0500 (EST)
-Message-ID: <20170209.204507.954952367013216032.davem@davemloft.net>
-References: <1486598856-3512-1-git-send-email-ivan.khoronzhuk@linaro.org>
-        <20170209.172126.155005439329995220.davem@davemloft.net>
-        <20170209225423.GA15853@khorivan>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH v6 2/4] Documentation: dt: add bindings for ti-cpufreq
+Date: Fri, 10 Feb 2017 08:43:49 +0530
+Message-ID: <20170210031349.GG14503@vireshk-i7>
+References: <20170203172929.23940-3-d-gerlach@ti.com>
+ <20170209153549.8354-1-d-gerlach@ti.com>
+ <CAJZ5v0hT4peuRQUrLHC32GmVSoa6Npv2qutNo2WEhne72hHi6A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170209225423.GA15853@khorivan>
-Sender: netdev-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, AStarikovskiy@topcon.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0hT4peuRQUrLHC32GmVSoa6Npv2qutNo2WEhne72hHi6A@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lukasz Majewski <lukma@denx.de>, Rob Herring <robh+dt@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Fri, 10 Feb 2017 00:54:24 +0200
+On 09-02-17, 23:03, Rafael J. Wysocki wrote:
+> In particular, Viresh, if you ACK something, please make sure that it
+> doesn't conflict with your own patches.
 
-> On Thu, Feb 09, 2017 at 05:21:26PM -0500, David Miller wrote:
->> From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->> Date: Thu,  9 Feb 2017 02:07:34 +0200
->> 
->> > These two patches fix suspend/resume chain.
->> 
->> Patch 2 doesn't apply cleanly to the 'net' tree, please
->> respin this series.
-> 
-> Strange, I've just checked it on net-next/master, it was applied w/o any
-> warnings.
+I hope you are talking about the patch 3/4 for which Arnd also sent a
+fix.  I acked it back on 18th of January and Dave has been carrying my
+Ack since then. When he posted again, I didn't went into reviewing it
+again as I saw my Ack being there.
 
-It makes no sense to test "net-next" when I am telling you that it is
-the "net" tree it doesn't apply to.
+Yes, he ended up using an API which just got updated after 18th of Jan
+and yes both me and Dave missed that. But I feel it is difficult to
+take care of scenarios like this. Perhaps he should have made sure
+that he base it of pm/linux-next and nothing would have gone wrong.
 
-This is a bug fix, so it should be targetting the "net" tree.
+-- 
+viresh
