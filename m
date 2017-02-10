@@ -1,11 +1,15 @@
-From: Teresa Remmet <t.remmet@phytec.de>
-Subject: [PATCH] ARM: dts: am335x-pcm953: Fix legacy wakeup source binding
-Date: Fri, 10 Feb 2017 13:29:07 +0100
-Message-ID: <1486729747-4604-1-git-send-email-t.remmet@phytec.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v6 2/4] Documentation: dt: add bindings for ti-cpufreq
+Date: Fri, 10 Feb 2017 13:28 +0100
+Message-ID: <3046998.7dExGlRDb3@aspire.rjw.lan>
+References: <20170203172929.23940-3-d-gerlach@ti.com>
+ <CAJZ5v0hT4peuRQUrLHC32GmVSoa6Npv2qutNo2WEhne72hHi6A@mail.gmail.com>
+ <20170210031349.GG14503@vireshk-i7>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170210031349.GG14503@vireshk-i7>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,39 +19,29 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Sudeep Holla <sudeep.holla@arm.com>
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Nishanth Menon <nm@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Lukasz Majewski <lukma@denx.de>, Rob Herring <robh+dt@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Replaced the legacy binding "gpio-key,wakeup" with "wakeup-source" as
-noted in the kernel documentation.
+On Friday, February 10, 2017 08:43:49 AM Viresh Kumar wrote:
+> On 09-02-17, 23:03, Rafael J. Wysocki wrote:
+> > In particular, Viresh, if you ACK something, please make sure that it
+> > doesn't conflict with your own patches.
+> 
+> I hope you are talking about the patch 3/4 for which Arnd also sent a
+> fix.  I acked it back on 18th of January and Dave has been carrying my
+> Ack since then. When he posted again, I didn't went into reviewing it
+> again as I saw my Ack being there.
 
-Signed-off-by: Teresa Remmet <t.remmet@phytec.de>
-Reported-by: Sudeep Holla <sudeep.holla@arm.com>
----
- arch/arm/boot/dts/am335x-pcm-953.dtsi | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Well, OK, but you did know that the OPP API had changed in the meantime,
+so it wouldn't have hurt to double check I suppose?
 
-diff --git a/arch/arm/boot/dts/am335x-pcm-953.dtsi b/arch/arm/boot/dts/am335x-pcm-953.dtsi
-index 02981ea..1ec8e0d 100644
---- a/arch/arm/boot/dts/am335x-pcm-953.dtsi
-+++ b/arch/arm/boot/dts/am335x-pcm-953.dtsi
-@@ -63,14 +63,14 @@
- 			label = "home";
- 			linux,code = <KEY_HOME>;
- 			gpios = <&gpio3 7 GPIO_ACTIVE_HIGH>;
--			gpio-key,wakeup;
-+			wakeup-source;
- 		};
- 
- 		button@1 {
- 			label = "menu";
- 			linux,code = <KEY_MENU>;
- 			gpios = <&gpio3 8 GPIO_ACTIVE_HIGH>;
--			gpio-key,wakeup;
-+			wakeup-source;
- 		};
- 
- 	};
--- 
-1.9.1
+> Yes, he ended up using an API which just got updated after 18th of Jan
+> and yes both me and Dave missed that. But I feel it is difficult to
+> take care of scenarios like this. Perhaps he should have made sure
+> that he base it of pm/linux-next and nothing would have gone wrong.
+
+Yes, that would help, but then how to enforce that?
+
+Thanks,
+Rafael
