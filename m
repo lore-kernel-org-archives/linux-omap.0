@@ -1,39 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] Two wakeirq fixes
-Date: Fri, 10 Feb 2017 14:37:37 -0800
-Message-ID: <20170210223737.GF21809@atomide.com>
-References: <20170210222501.7948-1-tony@atomide.com>
- <CAJZ5v0jLxDd4binnh8XnXe8Jpk5h_oFFZiR=mv18H1fhuneGvQ@mail.gmail.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH 0/2] net: ethernet: ti: cpsw: fix susp/resume
+Date: Sat, 11 Feb 2017 02:01:16 +0200
+Message-ID: <20170211000115.GA3037@khorivan>
+References: <1486598856-3512-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <20170209.172126.155005439329995220.davem@davemloft.net>
+ <20170209225423.GA15853@khorivan>
+ <20170209.204507.954952367013216032.davem@davemloft.net>
+ <ffaeb9fe-fd0a-3735-9f72-dded96de6e56@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jLxDd4binnh8XnXe8Jpk5h_oFFZiR=mv18H1fhuneGvQ@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Brian Norris <briannorris@chromium.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Len Brown <len.brown@intel.com>, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Ulf Hansson <ulf.hansson@linaro.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+In-Reply-To: <ffaeb9fe-fd0a-3735-9f72-dded96de6e56@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: David Miller <davem@davemloft.net>, mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, AStarikovskiy@topcon.com
 List-Id: linux-omap@vger.kernel.org
 
-* Rafael J. Wysocki <rafael@kernel.org> [170210 14:35]:
-> On Fri, Feb 10, 2017 at 11:24 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > Hi all,
-> >
-> > Here are two wakeirq fixes from Grygorii that have been pending for
-> > a while.
-> >
-> > Earlier before commit bed570307ed7 ("PM / wakeirq: Fix dedicated
-> > wakeirq for drivers not using autosuspend") I did not see changes
-> > with my test cases with these two changes, but now I have test cases
-> > that get fixed with these two patches.
+On Fri, Feb 10, 2017 at 12:05:07PM -0600, Grygorii Strashko wrote:
 > 
-> OK, I'll queue them up.
 > 
-> If a new merge window starts on Sunday, however, they will not make it
-> to my first pull request.  I'll push them in the second half of the
-> merge window in that case.
+> On 02/09/2017 07:45 PM, David Miller wrote:
+> >From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> >Date: Fri, 10 Feb 2017 00:54:24 +0200
+> >
+> >>On Thu, Feb 09, 2017 at 05:21:26PM -0500, David Miller wrote:
+> >>>From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> >>>Date: Thu,  9 Feb 2017 02:07:34 +0200
+> >>>
+> >>>>These two patches fix suspend/resume chain.
+> >>>
+> >>>Patch 2 doesn't apply cleanly to the 'net' tree, please
+> >>>respin this series.
+> >>
+> >>Strange, I've just checked it on net-next/master, it was applied w/o any
+> >>warnings.
+> >
+> >It makes no sense to test "net-next" when I am telling you that it is
+> >the "net" tree it doesn't apply to.
+> >
+> >This is a bug fix, so it should be targetting the "net" tree.
+> >
+> 
+> Looks like the first fix is for net, but the second one is for net-next
+> I do not see
+> 03fd01ad0eead23eb79294b6fb4d71dcac493855
+> "net: ethernet: ti: cpsw: don't duplicate ndev_running"
+> in net.
 
-OK thanks that's fine.
+There is dependency, both for net-next and only first is for net tree
 
-Regards,
-
-Tony
+> 
+> -- 
+> regards,
+> -grygorii
