@@ -1,26 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: return NET_XMIT_DROP if
- skb_padto failed
-Date: Sat, 11 Feb 2017 21:27:16 -0500 (EST)
-Message-ID: <20170211.212716.1588683658880411414.davem@davemloft.net>
-References: <1486777797-28143-1-git-send-email-ivan.khoronzhuk@linaro.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v9 0/8] drivers: touchscreen: tsc2007 and ads7846/tsc2046 improvements (use common touchscreen bindings, pre-calibration, spi fix and provide iio raw values)
+Date: Sun, 12 Feb 2017 16:18:08 +0100
+Message-ID: <3225CF5D-53B7-456F-8128-50BCF31ADD0F@goldelico.com>
+References: <cover.1482936802.git.hns@goldelico.com> <BB8421B2-6626-4A95-BCD0-25C4CAF30F61@goldelico.com> <17d2c23b-6cbb-d365-71cb-fd4d7af7c958@kernel.org> <B04BF50A-A54E-4CA2-BB0E-7B547D40403A@goldelico.com> <85077609-9A95-4DBC-BDC8-649C8692065B@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1486777797-28143-1-git-send-email-ivan.khoronzhuk@linaro.org>
+In-Reply-To: <85077609-9A95-4DBC-BDC8-649C8692065B@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: devicetree <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-iio@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-input@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Sat, 11 Feb 2017 03:49:57 +0200
+Hi Dmitry,
 
-> If skb_padto failed the skb has been dropped already, so it was
-> consumed, but it doesn't mean it was sent, thus no need to update
-> queue tx time, etc. So, return NET_XMIT_DROP as more appropriate.
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> Am 28.01.2017 um 19:16 schrieb H. Nikolaus Schaller =
+<hns@goldelico.com>:
+>=20
+> Hi Dmitry,
+> there have been no further comments/complaints about this patch series =
+in the last month.
+> And it appears as if only your action is needed.
+>=20
+> What is missing for this patch series to be finally accepted?
 
-Applied.
+Did you find time to look into my comment on patch 1/9 and make a =
+decision on patch 6/8?
+
+Is there anything open which prohibits inclusion to (and further testing =
+within) linux/next?
+
+BR and thanks,
+Nikolaus
