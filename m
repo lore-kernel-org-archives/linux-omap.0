@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 01/15] clk: ti: remove un-used definitions from public clk_hw_omap struct
-Date: Mon, 13 Feb 2017 11:34:57 +0200
-Message-ID: <1486978511-29668-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 02/15] clk: ti: add support for automatic clock alias generation
+Date: Mon, 13 Feb 2017 11:34:58 +0200
+Message-ID: <1486978511-29668-3-git-send-email-t-kristo@ti.com>
 References: <1486978511-29668-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,118 @@ To: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sbo
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Clksel support has been deprecated a while back, so remove these from
-the struct also.
+Large portions of the OMAP framework still depend on the support of
+having clock aliases in place, so add support functions for generating
+these automatically.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- include/linux/clk/ti.h | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/clk/ti/clk.c   | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/clk/ti/clock.h |  5 ++++
+ 2 files changed, 69 insertions(+)
 
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 6110fe0..07308db 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -129,8 +129,6 @@ struct clk_hw_omap_ops {
-  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-  * @flags: see "struct clk.flags possibilities" above
-  * @clksel_reg: for clksel clks, register va containing src/divisor select
-- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
-- * @clksel: for clksel clks, pointer to struct clksel for this clock
-  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-  * @clkdm_name: clockdomain name that this clock is contained in
-  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-@@ -145,8 +143,6 @@ struct clk_hw_omap {
- 	u8			enable_bit;
- 	u8			flags;
- 	void __iomem		*clksel_reg;
--	u32			clksel_mask;
--	const struct clksel	*clksel;
- 	struct dpll_data	*dpll_data;
- 	const char		*clkdm_name;
- 	struct clockdomain	*clkdm;
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index 5fcf247..91bad55 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -24,6 +24,7 @@
+ #include <linux/list.h>
+ #include <linux/regmap.h>
+ #include <linux/bootmem.h>
++#include <linux/device.h>
+ 
+ #include "clock.h"
+ 
+@@ -453,3 +454,66 @@ void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks)
+ 		clk_prepare_enable(init_clk);
+ 	}
+ }
++
++/**
++ * ti_clk_add_alias - add a clock alias for a TI clock
++ * @dev: device alias for this clock
++ * @clk: clock handle to create alias for
++ * @con: connection ID for this clock
++ *
++ * Creates a clock alias for a TI clock. Allocates the clock lookup entry
++ * and assigns the data to it. Returns 0 if successful, negative error
++ * value otherwise.
++ */
++int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con)
++{
++	struct clk_lookup *cl;
++
++	if (!clk)
++		return 0;
++
++	if (IS_ERR(clk))
++		return PTR_ERR(clk);
++
++	cl = kzalloc(sizeof(*cl), GFP_KERNEL);
++	if (!cl)
++		return -ENOMEM;
++
++	if (dev)
++		cl->dev_id = dev_name(dev);
++	cl->con_id = con;
++	cl->clk = clk;
++
++	clkdev_add(cl);
++
++	return 0;
++}
++
++/**
++ * ti_clk_register - register a TI clock to the common clock framework
++ * @dev: device for this clock
++ * @hw: hardware clock handle
++ * @con: connection ID for this clock
++ *
++ * Registers a TI clock to the common clock framework, and adds a clock
++ * alias for it. Returns a handle to the registered clock if successful,
++ * ERR_PTR value in failure.
++ */
++struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
++			    const char *con)
++{
++	struct clk *clk;
++	int ret;
++
++	clk = clk_register(dev, hw);
++	if (IS_ERR(clk))
++		return clk;
++
++	ret = ti_clk_add_alias(dev, clk, con);
++	if (ret) {
++		clk_unregister(clk);
++		return ERR_PTR(ret);
++	}
++
++	return clk;
++}
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 13c37f4..ac95fda 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -16,6 +16,8 @@
+ #ifndef __DRIVERS_CLK_TI_CLOCK__
+ #define __DRIVERS_CLK_TI_CLOCK__
+ 
++#include <linux/clkdev.h>
++
+ enum {
+ 	TI_CLK_FIXED,
+ 	TI_CLK_MUX,
+@@ -189,6 +191,9 @@ struct ti_dt_clk {
+ struct clk *ti_clk_register_divider(struct ti_clk *setup);
+ struct clk *ti_clk_register_composite(struct ti_clk *setup);
+ struct clk *ti_clk_register_dpll(struct ti_clk *setup);
++struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
++			    const char *con);
++int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con);
+ 
+ struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup);
+ struct clk_hw *ti_clk_build_component_gate(struct ti_clk_gate *setup);
 -- 
 1.9.1
 
