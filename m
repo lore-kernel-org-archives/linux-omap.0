@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 02/15] clk: ti: add support for automatic clock alias generation
-Date: Mon, 13 Feb 2017 11:34:58 +0200
-Message-ID: <1486978511-29668-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 03/15] clk: ti: add API for creating aliases automatically for simple clock types
+Date: Mon, 13 Feb 2017 11:34:59 +0200
+Message-ID: <1486978511-29668-4-git-send-email-t-kristo@ti.com>
 References: <1486978511-29668-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,115 +12,70 @@ To: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sbo
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Large portions of the OMAP framework still depend on the support of
-having clock aliases in place, so add support functions for generating
-these automatically.
+This API generates clock aliases automatically for simple clock types
+(fixed-clock, fixed-factor-clock), so that we don't need to add the data
+for these statically into tables. Shall be called from the SoC specific
+clock init.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk.c   | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/clk/ti/clock.h |  5 ++++
- 2 files changed, 69 insertions(+)
+ drivers/clk/ti/clk.c   | 26 ++++++++++++++++++++++++++
+ drivers/clk/ti/clock.h |  1 +
+ 2 files changed, 27 insertions(+)
 
 diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 5fcf247..91bad55 100644
+index 91bad55..193862e 100644
 --- a/drivers/clk/ti/clk.c
 +++ b/drivers/clk/ti/clk.c
-@@ -24,6 +24,7 @@
- #include <linux/list.h>
- #include <linux/regmap.h>
- #include <linux/bootmem.h>
-+#include <linux/device.h>
- 
- #include "clock.h"
- 
-@@ -453,3 +454,66 @@ void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks)
- 		clk_prepare_enable(init_clk);
- 	}
+@@ -355,6 +355,12 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
+ 	return clk;
  }
+ 
++static const struct of_device_id simple_clk_match_table[] __initconst = {
++	{ .compatible = "fixed-clock" },
++	{ .compatible = "fixed-factor-clock" },
++	{ }
++};
 +
-+/**
-+ * ti_clk_add_alias - add a clock alias for a TI clock
-+ * @dev: device alias for this clock
-+ * @clk: clock handle to create alias for
-+ * @con: connection ID for this clock
+ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ {
+ 	struct clk *clk;
+@@ -409,6 +415,26 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ #endif
+ 
+ /**
++ * ti_clk_add_aliases - setup clock aliases
 + *
-+ * Creates a clock alias for a TI clock. Allocates the clock lookup entry
-+ * and assigns the data to it. Returns 0 if successful, negative error
-+ * value otherwise.
++ * Sets up any missing clock aliases. No return value.
 + */
-+int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con)
++void __init ti_clk_add_aliases(void)
 +{
-+	struct clk_lookup *cl;
-+
-+	if (!clk)
-+		return 0;
-+
-+	if (IS_ERR(clk))
-+		return PTR_ERR(clk);
-+
-+	cl = kzalloc(sizeof(*cl), GFP_KERNEL);
-+	if (!cl)
-+		return -ENOMEM;
-+
-+	if (dev)
-+		cl->dev_id = dev_name(dev);
-+	cl->con_id = con;
-+	cl->clk = clk;
-+
-+	clkdev_add(cl);
-+
-+	return 0;
-+}
-+
-+/**
-+ * ti_clk_register - register a TI clock to the common clock framework
-+ * @dev: device for this clock
-+ * @hw: hardware clock handle
-+ * @con: connection ID for this clock
-+ *
-+ * Registers a TI clock to the common clock framework, and adds a clock
-+ * alias for it. Returns a handle to the registered clock if successful,
-+ * ERR_PTR value in failure.
-+ */
-+struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
-+			    const char *con)
-+{
++	struct device_node *np;
 +	struct clk *clk;
-+	int ret;
 +
-+	clk = clk_register(dev, hw);
-+	if (IS_ERR(clk))
-+		return clk;
++	for_each_matching_node(np, simple_clk_match_table) {
++		struct of_phandle_args clkspec;
 +
-+	ret = ti_clk_add_alias(dev, clk, con);
-+	if (ret) {
-+		clk_unregister(clk);
-+		return ERR_PTR(ret);
++		clkspec.np = np;
++		clk = of_clk_get_from_provider(&clkspec);
++
++		ti_clk_add_alias(NULL, clk, np->name);
 +	}
-+
-+	return clk;
 +}
++
++/**
+  * ti_clk_setup_features - setup clock features flags
+  * @features: features definition to use
+  *
 diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index 13c37f4..ac95fda 100644
+index ac95fda..05381a3 100644
 --- a/drivers/clk/ti/clock.h
 +++ b/drivers/clk/ti/clock.h
-@@ -16,6 +16,8 @@
- #ifndef __DRIVERS_CLK_TI_CLOCK__
- #define __DRIVERS_CLK_TI_CLOCK__
- 
-+#include <linux/clkdev.h>
-+
- enum {
- 	TI_CLK_FIXED,
- 	TI_CLK_MUX,
-@@ -189,6 +191,9 @@ struct ti_dt_clk {
- struct clk *ti_clk_register_divider(struct ti_clk *setup);
- struct clk *ti_clk_register_composite(struct ti_clk *setup);
- struct clk *ti_clk_register_dpll(struct ti_clk *setup);
-+struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
-+			    const char *con);
-+int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con);
+@@ -194,6 +194,7 @@ struct ti_dt_clk {
+ struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
+ 			    const char *con);
+ int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con);
++void ti_clk_add_aliases(void);
  
  struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup);
  struct clk_hw *ti_clk_build_component_gate(struct ti_clk_gate *setup);
