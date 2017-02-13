@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/6] dt-bindings: clk: add omap4 clkctrl definitions
-Date: Mon, 13 Feb 2017 15:22:33 +0200
-Message-ID: <1486992157-10673-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCH DO NOT MERGE 5/6] ARM: dts: omap4: add some sample clkctrl data
+Date: Mon, 13 Feb 2017 15:22:36 +0200
+Message-ID: <1486992157-10673-6-git-send-email-t-kristo@ti.com>
 References: <1486992157-10673-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,109 +12,242 @@ To: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org,
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Contains offsets for all omap4 clkctrl main and optional clocks.
+Adds clkctrl nodes for cm_l4per and cm_abe as example. Peripherals using
+clocks from these nodes are modified also.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- include/dt-bindings/clock/omap4.h | 89 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 89 insertions(+)
- create mode 100644 include/dt-bindings/clock/omap4.h
+ arch/arm/boot/dts/omap4.dtsi | 72 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 70 insertions(+), 2 deletions(-)
 
-diff --git a/include/dt-bindings/clock/omap4.h b/include/dt-bindings/clock/omap4.h
-new file mode 100644
-index 0000000..4ab7912
---- /dev/null
-+++ b/include/dt-bindings/clock/omap4.h
-@@ -0,0 +1,89 @@
-+#define OMAP4_CLKCTRL_OFFSET	0x20
-+#define OMAP4_CLKCTRL_INDEX(offset)	((offset) - OMAP4_CLKCTRL_OFFSET)
-+#define OMAP4_MPU_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_DSP_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_L4_ABE_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_AESS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_MCPDM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
-+#define OMAP4_DMIC_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
-+#define OMAP4_MCASP_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x40)
-+#define OMAP4_MCBSP1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x48)
-+#define OMAP4_MCBSP2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x50)
-+#define OMAP4_MCBSP3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x58)
-+#define OMAP4_SLIMBUS1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x60)
-+#define OMAP4_TIMER5_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x68)
-+#define OMAP4_TIMER6_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x70)
-+#define OMAP4_TIMER7_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x78)
-+#define OMAP4_TIMER8_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x80)
-+#define OMAP4_WD_TIMER3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x88)
-+#define OMAP4_SMARTREFLEX_MPU_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_SMARTREFLEX_IVA_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
-+#define OMAP4_SMARTREFLEX_CORE_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
-+#define OMAP4_L3_MAIN_1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_L3_MAIN_2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_GPMC_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_OCMC_RAM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
-+#define OMAP4_IPU_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_DMA_SYSTEM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_DMM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_EMIF1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
-+#define OMAP4_EMIF2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
-+#define OMAP4_C2C_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_L4_CFG_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_SPINLOCK_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_MAILBOX_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
-+#define OMAP4_L3_MAIN_3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_L3_INSTR_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_OCP_WP_NOC_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x40)
-+#define OMAP4_IVA_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_SL2IF_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_ISS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_FDIF_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_DSS_DISPC_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_GPU_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_MMC1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_MMC2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
-+#define OMAP4_HSI_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
-+#define OMAP4_USB_HOST_HS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x58)
-+#define OMAP4_USB_OTG_HS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x60)
-+#define OMAP4_USB_TLL_HS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x68)
-+#define OMAP4_USB_HOST_FS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xd0)
-+#define OMAP4_OCP2SCP_USB_PHY_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xe0)
-+#define OMAP4_TIMER10_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_TIMER11_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
-+#define OMAP4_TIMER2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
-+#define OMAP4_TIMER3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x40)
-+#define OMAP4_TIMER4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x48)
-+#define OMAP4_TIMER9_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x50)
-+#define OMAP4_ELM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x58)
-+#define OMAP4_GPIO2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x60)
-+#define OMAP4_GPIO3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x68)
-+#define OMAP4_GPIO4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x70)
-+#define OMAP4_GPIO5_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x78)
-+#define OMAP4_GPIO6_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x80)
-+#define OMAP4_HDQ1W_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x88)
-+#define OMAP4_I2C1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xa0)
-+#define OMAP4_I2C2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xa8)
-+#define OMAP4_I2C3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xb0)
-+#define OMAP4_I2C4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xb8)
-+#define OMAP4_L4_PER_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xc0)
-+#define OMAP4_MCBSP4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xe0)
-+#define OMAP4_MCSPI1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xf0)
-+#define OMAP4_MCSPI2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xf8)
-+#define OMAP4_MCSPI3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x100)
-+#define OMAP4_MCSPI4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x108)
-+#define OMAP4_MMC3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x120)
-+#define OMAP4_MMC4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x128)
-+#define OMAP4_SLIMBUS2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x138)
-+#define OMAP4_UART1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x140)
-+#define OMAP4_UART2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x148)
-+#define OMAP4_UART3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x150)
-+#define OMAP4_UART4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x158)
-+#define OMAP4_MMC5_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x160)
-+#define OMAP4_L4_WKUP_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-+#define OMAP4_WD_TIMER2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
-+#define OMAP4_GPIO1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
-+#define OMAP4_TIMER1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x40)
-+#define OMAP4_COUNTER_32K_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x50)
-+#define OMAP4_KBD_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x78)
-+#define OMAP4_DEBUGSS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 8087456..214e58d 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -9,6 +9,7 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
+ #include <dt-bindings/pinctrl/omap.h>
++#include <dt-bindings/clock/omap4.h>
+ 
+ / {
+ 	compatible = "ti,omap4430", "ti,omap4";
+@@ -131,27 +132,61 @@
+ 			ranges = <0 0x4a000000 0x1000000>;
+ 
+ 			cm1: cm1@4000 {
+-				compatible = "ti,omap4-cm1";
++				compatible = "ti,omap4-cm1", "simple-bus";
+ 				reg = <0x4000 0x2000>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges = <0 0x4000 0x2000>;
+ 
+ 				cm1_clocks: clocks {
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
+ 				};
+ 
++				cm_abe: cm_abe@0 {
++					compatible = "ti,omap4-cm";
++					reg = <0x500 0x100>;
++					#address-cells = <1>;
++					#size-cells = <1>;
++					ranges = <0 0x500 0x100>;
++
++					cm_abe_clkctrl: cm_abe_clkctrl@20 {
++						compatible = "ti,omap4-clkctrl";
++						reg = <0x20 0x6c>;
++						#clock-cells = <2>;
++					};
++				};
++
+ 				cm1_clockdomains: clockdomains {
+ 				};
+ 			};
+ 
+ 			cm2: cm2@8000 {
+-				compatible = "ti,omap4-cm2";
++				compatible = "ti,omap4-cm2", "simple-bus";
+ 				reg = <0x8000 0x3000>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges = <0 0x8000 0x3000>;
+ 
+ 				cm2_clocks: clocks {
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
+ 				};
+ 
++				cm_l4per: cm_l4per@0 {
++					compatible = "ti,omap4-cm";
++					reg = <0x1400 0x200>;
++					#address-cells = <1>;
++					#size-cells = <1>;
++					ranges = <0 0x1400 0x200>;
++
++					cm_l4per_clkctrl: cm_l4per_clkctrl@20 {
++						compatible = "ti,omap4-clkctrl";
++						reg = <0x20 0x1b0>;
++						#clock-cells = <2>;
++					};
++				};
++
+ 				cm2_clockdomains: clockdomains {
+ 				};
+ 			};
+@@ -304,6 +339,8 @@
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+ 			#interrupt-cells = <2>;
++			clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		gpio3: gpio@48057000 {
+@@ -315,6 +352,8 @@
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+ 			#interrupt-cells = <2>;
++			clocks = <&cm_l4per_clkctrl OMAP4_GPIO3_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		gpio4: gpio@48059000 {
+@@ -384,6 +423,8 @@
+ 			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart1";
+ 			clock-frequency = <48000000>;
++			clocks = <&cm_l4per_clkctrl OMAP4_UART1_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		uart2: serial@4806c000 {
+@@ -392,6 +433,8 @@
+ 			interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart2";
+ 			clock-frequency = <48000000>;
++			clocks = <&cm_l4per_clkctrl OMAP4_UART2_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		uart3: serial@48020000 {
+@@ -400,6 +443,8 @@
+ 			interrupts = <GIC_SPI 74 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart3";
+ 			clock-frequency = <48000000>;
++			clocks = <&cm_l4per_clkctrl OMAP4_UART3_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		uart4: serial@4806e000 {
+@@ -408,6 +453,8 @@
+ 			interrupts = <GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
+ 			ti,hwmods = "uart4";
+ 			clock-frequency = <48000000>;
++			clocks = <&cm_l4per_clkctrl OMAP4_UART4_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		hwspinlock: spinlock@4a0f6000 {
+@@ -424,6 +471,8 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c1";
++			clocks = <&cm_l4per_clkctrl OMAP4_I2C1_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		i2c2: i2c@48072000 {
+@@ -433,6 +482,8 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c2";
++			clocks = <&cm_l4per_clkctrl OMAP4_I2C2_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		i2c3: i2c@48060000 {
+@@ -442,6 +493,8 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
++			clocks = <&cm_l4per_clkctrl OMAP4_I2C3_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		i2c4: i2c@48350000 {
+@@ -451,6 +504,8 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c4";
++			clocks = <&cm_l4per_clkctrl OMAP4_I2C4_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		mcspi1: spi@48098000 {
+@@ -522,6 +577,7 @@
+ 			dmas = <&sdma 61>, <&sdma 62>;
+ 			dma-names = "tx", "rx";
+ 			pbias-supply = <&pbias_mmc_reg>;
++
+ 		};
+ 
+ 		mmc2: mmc@480b4000 {
+@@ -542,6 +598,8 @@
+ 			ti,needs-special-reset;
+ 			dmas = <&sdma 77>, <&sdma 78>;
+ 			dma-names = "tx", "rx";
++			clocks = <&cm_l4per_clkctrl OMAP4_MMC3_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		mmc4: mmc@480d1000 {
+@@ -552,6 +610,8 @@
+ 			ti,needs-special-reset;
+ 			dmas = <&sdma 57>, <&sdma 58>;
+ 			dma-names = "tx", "rx";
++			clocks = <&cm_l4per_clkctrl OMAP4_MMC4_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		mmc5: mmc@480d5000 {
+@@ -562,6 +622,8 @@
+ 			ti,needs-special-reset;
+ 			dmas = <&sdma 59>, <&sdma 60>;
+ 			dma-names = "tx", "rx";
++			clocks = <&cm_l4per_clkctrl OMAP4_MMC5_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 		};
+ 
+ 		mmu_dsp: mmu@4a066000 {
+@@ -598,6 +660,8 @@
+ 			dmas = <&sdma 65>,
+ 			       <&sdma 66>;
+ 			dma-names = "up_link", "dn_link";
++			clocks = <&cm_abe_clkctrl OMAP4_MCPDM_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 			status = "disabled";
+ 		};
+ 
+@@ -610,6 +674,8 @@
+ 			ti,hwmods = "dmic";
+ 			dmas = <&sdma 67>;
+ 			dma-names = "up_link";
++			clocks = <&cm_abe_clkctrl OMAP4_DMIC_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 			status = "disabled";
+ 		};
+ 
+@@ -625,6 +691,8 @@
+ 			dmas = <&sdma 33>,
+ 			       <&sdma 34>;
+ 			dma-names = "tx", "rx";
++			clocks = <&cm_abe_clkctrl OMAP4_MCBSP1_CLKCTRL 0>;
++			clock-names = "clkctrl";
+ 			status = "disabled";
+ 		};
+ 
 -- 
 1.9.1
 
