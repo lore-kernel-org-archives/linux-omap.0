@@ -1,35 +1,66 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v9 0/8] drivers: touchscreen: tsc2007 and ads7846/tsc2046 improvements (use common touchscreen bindings, pre-calibration, spi fix and provide iio raw values)
-Date: Sun, 12 Feb 2017 16:18:08 +0100
-Message-ID: <3225CF5D-53B7-456F-8128-50BCF31ADD0F@goldelico.com>
-References: <cover.1482936802.git.hns@goldelico.com> <BB8421B2-6626-4A95-BCD0-25C4CAF30F61@goldelico.com> <17d2c23b-6cbb-d365-71cb-fd4d7af7c958@kernel.org> <B04BF50A-A54E-4CA2-BB0E-7B547D40403A@goldelico.com> <85077609-9A95-4DBC-BDC8-649C8692065B@goldelico.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <85077609-9A95-4DBC-BDC8-649C8692065B@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: devicetree <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-iio@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-input@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/15] clk: ti: cleanups / fixes for preparation of clkctrl clocks
+Date: Mon, 13 Feb 2017 11:34:56 +0200
+Message-ID: <1486978511-29668-1-git-send-email-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sboyd@codeaurora.org, mturquette@baylibre.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
+Hi,
 
-> Am 28.01.2017 um 19:16 schrieb H. Nikolaus Schaller =
-<hns@goldelico.com>:
->=20
-> Hi Dmitry,
-> there have been no further comments/complaints about this patch series =
-in the last month.
-> And it appears as if only your action is needed.
->=20
-> What is missing for this patch series to be finally accepted?
+This series provides a number of cleanups and fixes for TI clock drivers.
+There patches are mostly independent of anything else, but are required
+for the upcoming clkctrl support also. Targeted for 4.12 merge window.
 
-Did you find time to look into my comment on patch 1/9 and make a =
-decision on patch 6/8?
+Main features provided by this series:
+- Dropped a few obsolete definitions
+- Cleanups for clock alias generation; after this most of the clock aliases
+  can be removed from the drivers/clk/ti/clk-xyz.c files. As a sample,
+  patch #08 is provided for cleaning up omap4 clock aliases, but this can
+  be done for all.
+- Convert mux/divider to use TI clock specific internal representation,
+  instead of re-using the generic clk_divider / clk_mux. This allows
+  better control over the contents of the struct and cleaning up the
+  register access code to be more readable.
+- Convert to use proper register definition instead of the overloaded
+  void *ptr which is dynamically cast into a bitmask (Patch #15.)
 
-Is there anything open which prohibits inclusion to (and further testing =
-within) linux/next?
+Some of the patches touch mach-omap2 code, so Ack from Tony is needed for
+patch #5, #6 and patch #15.
 
-BR and thanks,
-Nikolaus
+Boot tested on the omap2+ boards I have access to, no issues seen caused
+by this series.
+
+am335x-evm      : BOOT FAIL! (farm issue, failed to mount NFS rootfs)
+am335x-evmsk    : boot ok
+am37x-evm       : boot ok
+am437x-sk       : boot ok
+am437x-gp-evm   : boot ok
+am57xx-evm      : boot ok
+omap3-beagle-xm : boot ok
+omap3-beagle    : boot ok
+am335x-boneblack: boot ok
+am335x-bone     : boot ok
+craneboard      : boot ok
+dra72x-evm      : BOOT FAIL! (farm issue, failed to mount NFS rootfs)
+dra7xx-evm      : boot ok
+ldp3430         : BOOT FAIL! (farm issue, bootloader ethernet failure)
+omap3-n900      : boot ok
+omap5-uevm      : boot ok
+omap4-panda-es  : boot ok
+omap4-panda     : boot ok
+omap2430-sdp    : boot ok
+omap3430-sdp    : boot ok
+omap4-sdp-es23plus: boot ok
+
+Branch available against 4.10-rc2 here:
+
+tree: https://github.com/t-kristo/linux-pm.git
+branch: 4.10-rc2-ti-clk-cleanup
+
+-Tero
+
