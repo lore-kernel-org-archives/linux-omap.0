@@ -1,73 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting cpu1 during
- boot
-Date: Mon, 13 Feb 2017 13:50:13 -0800
-Message-ID: <20170213215013.19929-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, linux-arm-kernel@lists.infradead.org
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v2] net: ethernet: ti: cpsw: fix cpsw assignment in resume
+Date: Tue, 14 Feb 2017 14:42:15 +0200
+Message-ID: <1487076135-4798-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Commit 3251885285e1 ("ARM: OMAP4+: Reset CPU1 properly for kexec") started
-resetting cpu1 because of a kexec boot issue I was seeing earlier in 2016
-on omap4 when doing kexec boot between two different kernel versions. The
-booted kernel ended up trying to use the old kernel start-up address unless
-cpu1 was reset before configuring the cpu1 start-up address.
+There is a copy-paste error, which hides breaking of resume
+for CPSW driver: there was replaced netdev_priv() to ndev_to_cpsw(ndev)
+in suspend, but left it unchanged in resume.
 
-It seems the reset part was not correct but probably working around some
-other issue. I have not been able to reproduce this issue any longer despite
-testing with backported patches back to v4.6 kernel. So it is possible this
-issue was caused by other work in progress kexec patches I had applied. Or
-it is possible some other fixes have made the issue go way.
+Fixes: 606f39939595a4d4540406bfc11f265b2036af6d
+(ti: cpsw: move platform data and slaves info to cpsw_common)
 
-The unconditional reset of cpu1 can cause issues booting some devices. For
-example, bootloader configured secure OS running on cpu1 will fail as the
-configuration is not preserved as reported by Andrew F. Davis <afd@ti.com>.
-
-Let's fix the issue by reverting the cpu1 reset parts. If it turns out we
-still need to reset cpu1 in some cases, we can add it back and do it
-conditionally.
-
-Fixes: 3251885285e1 ("ARM: OMAP4+: Reset CPU1 properly for kexec")
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Reported-by: Andrew F. Davis <afd@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Reported-by: Alexey Starikovskiy <AStarikovskiy@topcon.com>
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 ---
- arch/arm/mach-omap2/omap-smp.c | 10 ----------
- 1 file changed, 10 deletions(-)
+Based on net/master
 
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -300,16 +300,6 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
- 		scu_enable(cfg.scu_base);
+v1:
+https://patchwork.ozlabs.org/patch/725876/
+
+Since v1:
+- rebased on net/master
+
+ drivers/net/ethernet/ti/cpsw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index b203143..6508822 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -3160,7 +3160,7 @@ static int cpsw_resume(struct device *dev)
+ {
+ 	struct platform_device	*pdev = to_platform_device(dev);
+ 	struct net_device	*ndev = platform_get_drvdata(pdev);
+-	struct cpsw_common	*cpsw = netdev_priv(ndev);
++	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
  
- 	/*
--	 * Reset CPU1 before configuring, otherwise kexec will
--	 * end up trying to use old kernel startup address.
--	 */
--	if (cfg.cpu1_rstctrl_va) {
--		writel_relaxed(1, cfg.cpu1_rstctrl_va);
--		readl_relaxed(cfg.cpu1_rstctrl_va);
--		writel_relaxed(0, cfg.cpu1_rstctrl_va);
--	}
--
--	/*
- 	 * Write the address of secondary startup routine into the
- 	 * AuxCoreBoot1 where ROM code will jump and start executing
- 	 * on secondary core once out of WFE
+ 	/* Select default pin state */
+ 	pinctrl_pm_select_default_state(dev);
 -- 
-2.11.1
+2.7.4
