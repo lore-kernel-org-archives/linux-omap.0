@@ -1,77 +1,161 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] usb: dwc3: gadget: Fix system suspend/resume on TI platforms
-Date: Wed, 15 Feb 2017 14:16:26 +0200
-Message-ID: <1487160986-19828-1-git-send-email-rogerq@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: Add dra7 iodelay configuration and use it for
+ MMC
+Date: Wed, 15 Feb 2017 18:05:14 +0530
+Message-ID: <58A44B02.10204@ti.com>
+References: <20161230183732.5595-1-tony@atomide.com>
+ <20161230183732.5595-3-tony@atomide.com> <20161230184914.GC3940@atomide.com>
+ <20170214185120.GL21809@atomide.com>
+ <932aa035-27c9-0bb4-ffe2-81959aea6662@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@kernel.org
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <932aa035-27c9-0bb4-ffe2-81959aea6662-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Gary Bisson <gary.bisson-Q5RJGjKts06CY9SHAMCTRUEOCMrvLtNR@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On TI platforms (dra7, am437x), the DWC3_DSTS_DEVCTRLHLT bit is not set
-after the device controller is stopped via DWC3_DCTL_RUN_STOP.
+Hi,
 
-If we don't disconnect and stop the gadget, it stops working after a
-system resume with the trace below.
+On Wednesday 15 February 2017 12:27 AM, Nishanth Menon wrote:
+> On 02/14/2017 12:51 PM, Tony Lindgren wrote:
+>> Nishanth,
+>>
+>> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161230 10:50]:
+>>> Add dra7 iodelay configuration and use it for MMC.
+>>
+>> I just noticed that this patch should probably be:
+>>
+>> From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+>>
+>> I think I just added the description to the patch.
+>>
+>> Can you please confirm and reply with your Signed-off-by
+>> if that's the case?
+>>
+> 
+> Though I had introduced the node [
+> http://git.ti.com/ti-linux-kernel/ti-linux-kernel/commit/34661cbccc679bb8d91768bc78495e94e6d40f1f
+> ], the x15 values were first introduced by Kishon.
+> 
+> http://git.ti.com/ti-linux-kernel/ti-linux-kernel/commit/1463b1e8facb7180f5679b373411b3fbeb1608fd
+> 
+> 
+> personally, From or not really does'nt matter as long as we can get the
+> solution in.
+> 
+> So, as long as it helps..
+> Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> 
+>>
+>>
+>>> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>>> ---
+>>>  arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi | 21 ++++++++++++++++++++-
+>>>  arch/arm/boot/dts/dra7.dtsi                     |  8 ++++++++
+>>>  include/dt-bindings/pinctrl/dra.h               |  4 ++++
+>>>  3 files changed, 32 insertions(+), 1 deletion(-)
+>>> ---
+>>>
+>>> And ere are the related dts changes.
+>>>
+>>> diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+>>> b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+>>> --- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+>>> +++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
+>>> @@ -190,6 +190,25 @@
+>>>          >;
+>>>      };
+>>>  };
+>>> +
+>>> +&dra7_iodelay_core
+>>> +{
+>>> +    mmc2_iodelay_3v3_conf: mmc2_iodelay_3v3_conf {
+>>> +        pinctrl-pin-array = <
+>>> +            0x18c A_DELAY_PS(0) G_DELAY_PS(120)    /* CFG_GPMC_A19_IN */
+>>> +            0x1a4 A_DELAY_PS(265) G_DELAY_PS(360)    /* CFG_GPMC_A20_IN */
+>>> +            0x1b0 A_DELAY_PS(0) G_DELAY_PS(120)    /* CFG_GPMC_A21_IN */
+>>> +            0x1bc A_DELAY_PS(0) G_DELAY_PS(120)    /* CFG_GPMC_A22_IN */
+>>> +            0x1c8 A_DELAY_PS(287) G_DELAY_PS(420)    /* CFG_GPMC_A23_IN */
+>>> +            0x1d4 A_DELAY_PS(144) G_DELAY_PS(240)    /* CFG_GPMC_A24_IN */
+>>> +            0x1e0 A_DELAY_PS(0) G_DELAY_PS(0)    /* CFG_GPMC_A25_IN */
+>>> +            0x1ec A_DELAY_PS(120) G_DELAY_PS(0)    /* CFG_GPMC_A26_IN */
+>>> +            0x1f8 A_DELAY_PS(120) G_DELAY_PS(180)    /* CFG_GPMC_A27_IN */
+>>> +            0x360 A_DELAY_PS(0) G_DELAY_PS(0)    /* CFG_GPMC_CS1_IN */
+>>> +        >;
+>>> +    };
+>>> +};
+>>> +
+>>>  &i2c1 {
+>>>      status = "okay";
+>>>      clock-frequency = <400000>;
+>>> @@ -452,7 +471,7 @@
+>>>      status = "okay";
+>>>
+>>>      pinctrl-names = "default";
+>>> -    pinctrl-0 = <&mmc2_pins_default>;
+>>> +    pinctrl-0 = <&mmc2_pins_default &mmc2_iodelay_3v3_conf>;
 
-There is no point in preventing gadget disconnect and gadget stop during
-system suspend/resume as we're going to suspend in any case, whether
-DEVCTRLHLT timed out or not.
+I had to remove the iodelay added here based on datasheet (patch [1]).
 
-[  141.727480] ------------[ cut here ]------------
-[  141.732349] WARNING: CPU: 1 PID: 2135 at drivers/usb/dwc3/gadget.c:2384 dwc3_stop_active_transfer.constprop.4+0xc4/0xe4 [dwc3]
-[  141.744299] Modules linked in: usb_f_ss_lb g_zero libcomposite xhci_plat_hcd xhci_hcd usbcore dwc3 evdev udc_core m25p80 usb_common spi_nor snd_soc_davinci_mcasp snd_soc_simple_card snd_soc_edma snd_soc_tlv3e
-[  141.792163] CPU: 1 PID: 2135 Comm: irq/456-dwc3 Not tainted 4.10.0-rc8 #1138
-[  141.799547] Hardware name: Generic DRA74X (Flattened Device Tree)
-[  141.805940] [<c01101b4>] (unwind_backtrace) from [<c010c31c>] (show_stack+0x10/0x14)
-[  141.814066] [<c010c31c>] (show_stack) from [<c04a0918>] (dump_stack+0xac/0xe0)
-[  141.821648] [<c04a0918>] (dump_stack) from [<c013708c>] (__warn+0xd8/0x104)
-[  141.828955] [<c013708c>] (__warn) from [<c0137164>] (warn_slowpath_null+0x20/0x28)
-[  141.836902] [<c0137164>] (warn_slowpath_null) from [<bf27784c>] (dwc3_stop_active_transfer.constprop.4+0xc4/0xe4 [dwc3])
-[  141.848329] [<bf27784c>] (dwc3_stop_active_transfer.constprop.4 [dwc3]) from [<bf27ab14>] (__dwc3_gadget_ep_disable+0x64/0x528 [dwc3])
-[  141.861034] [<bf27ab14>] (__dwc3_gadget_ep_disable [dwc3]) from [<bf27c27c>] (dwc3_gadget_ep_disable+0x3c/0xc8 [dwc3])
-[  141.872280] [<bf27c27c>] (dwc3_gadget_ep_disable [dwc3]) from [<bf23b428>] (usb_ep_disable+0x11c/0x18c [udc_core])
-[  141.883160] [<bf23b428>] (usb_ep_disable [udc_core]) from [<bf342774>] (disable_ep+0x18/0x54 [usb_f_ss_lb])
-[  141.893408] [<bf342774>] (disable_ep [usb_f_ss_lb]) from [<bf3437b0>] (disable_endpoints+0x18/0x50 [usb_f_ss_lb])
-[  141.904168] [<bf3437b0>] (disable_endpoints [usb_f_ss_lb]) from [<bf343814>] (disable_source_sink+0x2c/0x34 [usb_f_ss_lb])
-[  141.915771] [<bf343814>] (disable_source_sink [usb_f_ss_lb]) from [<bf329a9c>] (reset_config+0x48/0x7c [libcomposite])
-[  141.927012] [<bf329a9c>] (reset_config [libcomposite]) from [<bf329afc>] (composite_disconnect+0x2c/0x54 [libcomposite])
-[  141.938444] [<bf329afc>] (composite_disconnect [libcomposite]) from [<bf23d7dc>] (usb_gadget_udc_reset+0x10/0x34 [udc_core])
-[  141.950237] [<bf23d7dc>] (usb_gadget_udc_reset [udc_core]) from [<bf276d70>] (dwc3_gadget_reset_interrupt+0x64/0x698 [dwc3])
-[  141.962022] [<bf276d70>] (dwc3_gadget_reset_interrupt [dwc3]) from [<bf27952c>] (dwc3_thread_interrupt+0x618/0x1a3c [dwc3])
-[  141.973723] [<bf27952c>] (dwc3_thread_interrupt [dwc3]) from [<c01a7ce8>] (irq_thread_fn+0x1c/0x54)
-[  141.983215] [<c01a7ce8>] (irq_thread_fn) from [<c01a7fbc>] (irq_thread+0x120/0x1f0)
-[  141.991247] [<c01a7fbc>] (irq_thread) from [<c015ba14>] (kthread+0xf8/0x138)
-[  141.998641] [<c015ba14>] (kthread) from [<c01078f0>] (ret_from_fork+0x14/0x24)
-[  142.006213] ---[ end trace b4ecfe9f175b9a9c ]---
+I also wanted to confirm if "MODE_SELECT" should be added in pinctrl values
+like [2] for adding manual mode iodelay because that seems to be missing in
+this patch.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- drivers/usb/dwc3/gadget.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+Thanks
+Kishon
 
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 204c754c..1341ed4 100644
---- a/drivers/usb/dwc3/gadget.c
-+++ b/drivers/usb/dwc3/gadget.c
-@@ -3118,15 +3118,10 @@ void dwc3_gadget_exit(struct dwc3 *dwc)
- 
- int dwc3_gadget_suspend(struct dwc3 *dwc)
- {
--	int ret;
--
- 	if (!dwc->gadget_driver)
- 		return 0;
- 
--	ret = dwc3_gadget_run_stop(dwc, false, false);
--	if (ret < 0)
--		return ret;
--
-+	dwc3_gadget_run_stop(dwc, false, false);
- 	dwc3_disconnect_gadget(dwc);
- 	__dwc3_gadget_stop(dwc);
- 
--- 
-2.7.4
+[1] ->
+http://git.ti.com/cgit/cgit.cgi/ti-linux-kernel/ti-linux-kernel.git/commit/?h=ti-linux-4.9.y&id=441f799d2d15a1ed2f0a89024bf3f2fd82816dbd
+
+[2] ->
+http://git.ti.com/cgit/cgit.cgi/ti-linux-kernel/ti-linux-kernel.git/commit/?h=ti-linux-4.9.y&id=decd3b433d6485d9176ce069bd66b109fb82fe07
+>>>
+>>>      vmmc-supply = <&vdd_3v3>;
+>>>      bus-width = <8>;
+>>> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+>>> --- a/arch/arm/boot/dts/dra7.dtsi
+>>> +++ b/arch/arm/boot/dts/dra7.dtsi
+>>> @@ -401,6 +401,14 @@
+>>>              reg = <0x40d00000 0x100>;
+>>>          };
+>>>
+>>> +        dra7_iodelay_core: padconf@4844a000 {
+>>> +            compatible = "ti,dra7-iodelay";
+>>> +            reg = <0x4844a000 0x0d1c>;
+>>> +            #address-cells = <1>;
+>>> +            #size-cells = <0>;
+>>> +            #pinctrl-cells = <2>;
+>>> +        };
+>>> +
+>>>          sdma: dma-controller@4a056000 {
+>>>              compatible = "ti,omap4430-sdma";
+>>>              reg = <0x4a056000 0x1000>;
+>>> diff --git a/include/dt-bindings/pinctrl/dra.h
+>>> b/include/dt-bindings/pinctrl/dra.h
+>>> --- a/include/dt-bindings/pinctrl/dra.h
+>>> +++ b/include/dt-bindings/pinctrl/dra.h
+>>> @@ -73,5 +73,9 @@
+>>>   */
+>>>  #define DRA7XX_CORE_IOPAD(pa, val)    (((pa) & 0xffff) - 0x3400) (val)
+>>>
+>>> +/* DRA7 IODELAY configuration parameters */
+>>> +#define A_DELAY_PS(val)        ((val) & 0xffff)
+>>> +#define G_DELAY_PS(val)        ((val) & 0xffff)
+>>> +
+>>>  #endif
+>>>
+>>> -- 
+>>> 2.11.0
+>>> -- 
+>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
