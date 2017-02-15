@@ -1,31 +1,77 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: use var instead of func for
- usage count
-Date: Tue, 14 Feb 2017 22:30:56 -0500 (EST)
-Message-ID: <20170214.223056.1842864503781156614.davem@davemloft.net>
-References: <1487080956-28661-1-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] usb: dwc3: gadget: Fix system suspend/resume on TI platforms
+Date: Wed, 15 Feb 2017 14:16:26 +0200
+Message-ID: <1487160986-19828-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1487080956-28661-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ivan.khoronzhuk@linaro.org
-Cc: mugunthanvnm@ti.com, grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: balbi@kernel.org
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Date: Tue, 14 Feb 2017 16:02:36 +0200
+On TI platforms (dra7, am437x), the DWC3_DSTS_DEVCTRLHLT bit is not set
+after the device controller is stopped via DWC3_DCTL_RUN_STOP.
 
-> The usage count function is based on ndev_running flag that is
-> updated before calling ndo_open/close, but if ndo is called in
-> another place, as with suspend/resume, the counter is not changed,
-> that breaks sus/resume. For common resource no difference which
-> device is using it, does matter only device count. So, replace
-> usage count function on var and inc and dec it in ndo_open/close.
-> 
-> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> ---
-> Based on net-next/master
+If we don't disconnect and stop the gadget, it stops working after a
+system resume with the trace below.
 
-Applied, thanks.
+There is no point in preventing gadget disconnect and gadget stop during
+system suspend/resume as we're going to suspend in any case, whether
+DEVCTRLHLT timed out or not.
+
+[  141.727480] ------------[ cut here ]------------
+[  141.732349] WARNING: CPU: 1 PID: 2135 at drivers/usb/dwc3/gadget.c:2384 dwc3_stop_active_transfer.constprop.4+0xc4/0xe4 [dwc3]
+[  141.744299] Modules linked in: usb_f_ss_lb g_zero libcomposite xhci_plat_hcd xhci_hcd usbcore dwc3 evdev udc_core m25p80 usb_common spi_nor snd_soc_davinci_mcasp snd_soc_simple_card snd_soc_edma snd_soc_tlv3e
+[  141.792163] CPU: 1 PID: 2135 Comm: irq/456-dwc3 Not tainted 4.10.0-rc8 #1138
+[  141.799547] Hardware name: Generic DRA74X (Flattened Device Tree)
+[  141.805940] [<c01101b4>] (unwind_backtrace) from [<c010c31c>] (show_stack+0x10/0x14)
+[  141.814066] [<c010c31c>] (show_stack) from [<c04a0918>] (dump_stack+0xac/0xe0)
+[  141.821648] [<c04a0918>] (dump_stack) from [<c013708c>] (__warn+0xd8/0x104)
+[  141.828955] [<c013708c>] (__warn) from [<c0137164>] (warn_slowpath_null+0x20/0x28)
+[  141.836902] [<c0137164>] (warn_slowpath_null) from [<bf27784c>] (dwc3_stop_active_transfer.constprop.4+0xc4/0xe4 [dwc3])
+[  141.848329] [<bf27784c>] (dwc3_stop_active_transfer.constprop.4 [dwc3]) from [<bf27ab14>] (__dwc3_gadget_ep_disable+0x64/0x528 [dwc3])
+[  141.861034] [<bf27ab14>] (__dwc3_gadget_ep_disable [dwc3]) from [<bf27c27c>] (dwc3_gadget_ep_disable+0x3c/0xc8 [dwc3])
+[  141.872280] [<bf27c27c>] (dwc3_gadget_ep_disable [dwc3]) from [<bf23b428>] (usb_ep_disable+0x11c/0x18c [udc_core])
+[  141.883160] [<bf23b428>] (usb_ep_disable [udc_core]) from [<bf342774>] (disable_ep+0x18/0x54 [usb_f_ss_lb])
+[  141.893408] [<bf342774>] (disable_ep [usb_f_ss_lb]) from [<bf3437b0>] (disable_endpoints+0x18/0x50 [usb_f_ss_lb])
+[  141.904168] [<bf3437b0>] (disable_endpoints [usb_f_ss_lb]) from [<bf343814>] (disable_source_sink+0x2c/0x34 [usb_f_ss_lb])
+[  141.915771] [<bf343814>] (disable_source_sink [usb_f_ss_lb]) from [<bf329a9c>] (reset_config+0x48/0x7c [libcomposite])
+[  141.927012] [<bf329a9c>] (reset_config [libcomposite]) from [<bf329afc>] (composite_disconnect+0x2c/0x54 [libcomposite])
+[  141.938444] [<bf329afc>] (composite_disconnect [libcomposite]) from [<bf23d7dc>] (usb_gadget_udc_reset+0x10/0x34 [udc_core])
+[  141.950237] [<bf23d7dc>] (usb_gadget_udc_reset [udc_core]) from [<bf276d70>] (dwc3_gadget_reset_interrupt+0x64/0x698 [dwc3])
+[  141.962022] [<bf276d70>] (dwc3_gadget_reset_interrupt [dwc3]) from [<bf27952c>] (dwc3_thread_interrupt+0x618/0x1a3c [dwc3])
+[  141.973723] [<bf27952c>] (dwc3_thread_interrupt [dwc3]) from [<c01a7ce8>] (irq_thread_fn+0x1c/0x54)
+[  141.983215] [<c01a7ce8>] (irq_thread_fn) from [<c01a7fbc>] (irq_thread+0x120/0x1f0)
+[  141.991247] [<c01a7fbc>] (irq_thread) from [<c015ba14>] (kthread+0xf8/0x138)
+[  141.998641] [<c015ba14>] (kthread) from [<c01078f0>] (ret_from_fork+0x14/0x24)
+[  142.006213] ---[ end trace b4ecfe9f175b9a9c ]---
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/usb/dwc3/gadget.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 204c754c..1341ed4 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -3118,15 +3118,10 @@ void dwc3_gadget_exit(struct dwc3 *dwc)
+ 
+ int dwc3_gadget_suspend(struct dwc3 *dwc)
+ {
+-	int ret;
+-
+ 	if (!dwc->gadget_driver)
+ 		return 0;
+ 
+-	ret = dwc3_gadget_run_stop(dwc, false, false);
+-	if (ret < 0)
+-		return ret;
+-
++	dwc3_gadget_run_stop(dwc, false, false);
+ 	dwc3_disconnect_gadget(dwc);
+ 	__dwc3_gadget_stop(dwc);
+ 
+-- 
+2.7.4
