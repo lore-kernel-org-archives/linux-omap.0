@@ -1,80 +1,57 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 00/10] PCI: dwc: Rework and cleanup designware driver
-Date: Wed, 15 Feb 2017 17:00:03 -0600
-Message-ID: <20170215230003.GA26758@bhelgaas-glaptop.roam.corp.google.com>
-References: <1487164699-30708-1-git-send-email-kishon@ti.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] PM / wakeirq: report a wakeup_event on dedicated wekup irq
+Date: Thu, 16 Feb 2017 00:45:56 +0100
+Message-ID: <2289787.GWFQX3VCmA@aspire.rjw.lan>
+References: <20170213204322.27588-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1487164699-30708-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com, nsekhar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170213204322.27588-1-tony@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Brian Norris <briannorris@chromium.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Len Brown <len.brown@intel.com>, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Ulf Hansson <ulf.hansson@linaro.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 15, 2017 at 06:48:09PM +0530, Kishon Vijay Abraham I wrote:
-> This series reworks designware driver in preparation for adding endpoint
-> mode support to designware driver.
+On Monday, February 13, 2017 12:43:22 PM Tony Lindgren wrote:
+> From: Grygorii Strashko <grygorii.strashko@ti.com>
 > 
-> This series was previously sent as part of endpoint support series
-> https://lkml.org/lkml/2017/1/13/562
+> There are two reasons for reporting wakeup event when dedicated wakeup
+> IRQ is triggered:
 > 
-> Validate pci host only in pci-dra7xx. Any help in validating other
-> platforms would be highly appreciated.
+> - wakeup events accounting, so proper statistical data will be
+>   displayed in sysfs and debugfs;
 > 
-> This series is created after cherrypicking the following patch and
-> then applying pci/host-designware.
+> - there are small window when System is entering suspend during which
+>   dedicated wakeup IRQ can be lost:
 > 
-> commit a782b5f986c3fa1cfa7f2b57941200c6a5809242
-> Author: Murali Karicheri <m-karicheri2@ti.com>
-> Date:   Wed Jan 4 14:32:30 2017 -0500
+> dpm_suspend_noirq()
+>   |- device_wakeup_arm_wake_irqs()
+>       |- dev_pm_arm_wake_irq(X)
+>          |- IRQ is enabled and marked as wakeup source
+> [1]...
+>   |- suspend_device_irqs()
+>      |- suspend_device_irq(X)
+> 	|- irqd_set(X, IRQD_WAKEUP_ARMED);
+> 	   |- wakup IRQ armed
 > 
->     PCI: designware: Check for iATU unroll only on platforms that use ATU
+> The wakeup IRQ can be lost if it's triggered at point [1]
+> and not armed yet.
 > 
-> The patches has been pushed to
-> git://git.ti.com/linux-phy/linux-phy.git dwc-rework
+> Hence, fix above cases by adding simple pm_wakeup_event() call in
+> handle_threaded_wake_irq().
 > 
-> Kishon Vijay Abraham I (10):
->   PCI: dwc: designware: Move the register defines to designware header
->     file
->   PCI: dwc: *all*: Add platform_set_drvdata
->   PCI: dwc: *all*: Rename cfg_read/cfg_write to read/write
->   PCI: dwc: designware: Get device pointer at the start of
->     dw_pcie_host_init
->   PCI: dwc: *all*: Split *struct pcie_port* into host only and core
->     structures
->   PCI: dwc: designware: Parse *num-lanes* property in dw_pcie_setup_rc
->   PCI: dwc: designware: Fix style errors in pcie-designware.c
->   PCI: dwc: Split pcie-designware.c into host and core files
->   PCI: dwc: Create a new config symbol to enable pci dwc host
->   PCI: dwc: Remove dependency of designware to CONFIG_PCI
-> 
->  drivers/Makefile                       |    3 +
->  drivers/pci/Makefile                   |    3 -
->  drivers/pci/dwc/Kconfig                |   39 +-
->  drivers/pci/dwc/Makefile               |    1 +
->  drivers/pci/dwc/pci-dra7xx.c           |   91 ++--
->  drivers/pci/dwc/pci-exynos.c           |   81 ++--
->  drivers/pci/dwc/pci-imx6.c             |  131 ++---
->  drivers/pci/dwc/pci-keystone-dw.c      |   87 ++--
->  drivers/pci/dwc/pci-keystone.c         |   56 ++-
->  drivers/pci/dwc/pci-keystone.h         |    4 +-
->  drivers/pci/dwc/pci-layerscape.c       |   93 ++--
->  drivers/pci/dwc/pcie-armada8k.c        |   87 ++--
->  drivers/pci/dwc/pcie-artpec6.c         |   50 +-
->  drivers/pci/dwc/pcie-designware-host.c |  635 ++++++++++++++++++++++++
->  drivers/pci/dwc/pcie-designware-plat.c |   29 +-
->  drivers/pci/dwc/pcie-designware.c      |  823 +++-----------------------------
->  drivers/pci/dwc/pcie-designware.h      |  170 +++++--
->  drivers/pci/dwc/pcie-hisi.c            |   57 ++-
->  drivers/pci/dwc/pcie-qcom.c            |   72 ++-
->  drivers/pci/dwc/pcie-spear13xx.c       |   85 ++--
->  20 files changed, 1434 insertions(+), 1163 deletions(-)
->  create mode 100644 drivers/pci/dwc/pcie-designware-host.c
+> Fixes: 4990d4fe327b ("PM / Wakeirq: Add automated device wake IRQ
+> handling")
+> Cc: Brian Norris <briannorris@chromium.org>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Tested-by: Keerthy <j-keerthy@ti.com>
+> [tony@atomide.com: added missing return to avoid warnings]
+> Tested-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-I applied these to pci/host-designware with the intent of merging them
-for v4.11.  They're not in -next yet; I'll merge them into -next after
-the autobuilder completes.
+Applied (along with the other two wakeirq fixes).
 
-Bjorn
+Thanks,
+Rafael
