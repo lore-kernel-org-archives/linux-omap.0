@@ -1,76 +1,80 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: Re: [PATCH] ARM: dts: am57xx-idk: tpic2810 is on I2C bus, not SPI
-Date: Wed, 15 Feb 2017 09:42:11 -0600
-Message-ID: <504d1a9f-8c89-43b2-9a49-f130a21c50fd@ti.com>
-References: <f884c250c4142ef44ec0c770aab277803f1f5da3.1487171304.git.nsekhar@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: Add dra7 iodelay configuration and use it for
+ MMC
+Date: Wed, 15 Feb 2017 07:50:02 -0800
+Message-ID: <20170215155002.GN21809@atomide.com>
+References: <20161230183732.5595-1-tony@atomide.com>
+ <20161230183732.5595-3-tony@atomide.com>
+ <20161230184914.GC3940@atomide.com>
+ <20170214185120.GL21809@atomide.com>
+ <932aa035-27c9-0bb4-ffe2-81959aea6662@ti.com>
+ <58A44B02.10204@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <f884c250c4142ef44ec0c770aab277803f1f5da3.1487171304.git.nsekhar@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <58A44B02.10204-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Gary Bisson <gary.bisson-Q5RJGjKts06CY9SHAMCTRUEOCMrvLtNR@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 02/15/2017 09:12 AM, Sekhar Nori wrote:
-> commit 50e95b6b854c ("ARM: dts: am57xx-idk: Add Industrial
-> output support") added the TPIC2810 device-tree node under
-> SPI bus instead of I2C1.
-> 
+* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [170215 04:36]:
+> On Wednesday 15 February 2017 12:27 AM, Nishanth Menon wrote:
+> > On 02/14/2017 12:51 PM, Tony Lindgren wrote:
+> >> Nishanth,
+> >>
+> >> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [161230 10:50]:
+> >>> Add dra7 iodelay configuration and use it for MMC.
+> >>
+> >> I just noticed that this patch should probably be:
+> >>
+> >> From: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> >>
+> >> I think I just added the description to the patch.
+> >>
+> >> Can you please confirm and reply with your Signed-off-by
+> >> if that's the case?
+> >>
+> > 
+> > Though I had introduced the node [
+> > http://git.ti.com/ti-linux-kernel/ti-linux-kernel/commit/34661cbccc679bb8d91768bc78495e94e6d40f1f
+> > ], the x15 values were first introduced by Kishon.
+> > 
+> > http://git.ti.com/ti-linux-kernel/ti-linux-kernel/commit/1463b1e8facb7180f5679b373411b3fbeb1608fd
+> > 
+> > 
+> > personally, From or not really does'nt matter as long as we can get the
+> > solution in.
+> > 
+> > So, as long as it helps..
+> > Signed-off-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+...
+> I had to remove the iodelay added here based on datasheet (patch [1]).
 
-Well that's odd, looks like git could get confused by the lack of
-context around the node during rebases. Anyway,
+OK thanks for the info. So we have multiple authors and as Kishon added
+the working values I suggest we credit the patch for Kishon.
 
-Acked-by: Andrew F. Davis <afd@ti.com>
+> I also wanted to confirm if "MODE_SELECT" should be added in pinctrl values
+> like [2] for adding manual mode iodelay because that seems to be missing in
+> this patch.
 
-> Fix it. Tested on AM572x IDK by driving on-board LEDs
-> connected to TPIC2810
+Oh OK. If it's needed then yeah let's update it for that too. Can you
+please check it? And then send an updated version of this patch with
+"From" credited to you? Just update the description to say "Based on
+earlier patches in TI Linux kernel tree done by Nishanth Menon and
+Kishon Vijay Abraham I".
+
+Regards,
+
+Tony
+
+> [1] ->
+> http://git.ti.com/cgit/cgit.cgi/ti-linux-kernel/ti-linux-kernel.git/commit/?h=ti-linux-4.9.y&id=441f799d2d15a1ed2f0a89024bf3f2fd82816dbd
 > 
-> Fixes: 50e95b6b854c ("ARM: dts: am57xx-idk: Add Industrial output support")
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
->  arch/arm/boot/dts/am57xx-idk-common.dtsi | 14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-> index 814a720d5c3d..d0a55b845690 100644
-> --- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
-> +++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
-> @@ -311,6 +311,13 @@
->  			/* ID & VBUS GPIOs provided in board dts */
->  		};
->  	};
-> +
-> +	tpic2810: tpic2810@60 {
-> +		compatible = "ti,tpic2810";
-> +		reg = <0x60>;
-> +		gpio-controller;
-> +		#gpio-cells = <2>;
-> +	};
->  };
->  
->  &mcspi3 {
-> @@ -326,13 +333,6 @@
->  		spi-max-frequency = <1000000>;
->  		spi-cpol;
->  	};
-> -
-> -	tpic2810: tpic2810@60 {
-> -		compatible = "ti,tpic2810";
-> -		reg = <0x60>;
-> -		gpio-controller;
-> -		#gpio-cells = <2>;
-> -	};
->  };
->  
->  &uart3 {
-> 
+> [2] ->
+> http://git.ti.com/cgit/cgit.cgi/ti-linux-kernel/ti-linux-kernel.git/commit/?h=ti-linux-4.9.y&id=decd3b433d6485d9176ce069bd66b109fb82fe07
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
