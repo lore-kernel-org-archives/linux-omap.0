@@ -1,47 +1,115 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 0/5] dmaengine: cppi41: Make CPPI 4.1 driver more generic
-Date: Wed, 15 Feb 2017 14:56:31 +0100
-Message-ID: <20170215135636.31427-1-abailon@baylibre.com>
+Subject: [PATCH v5 3/5] dmaengine: cppi41: Move some constants to glue layer
+Date: Wed, 15 Feb 2017 14:56:34 +0100
+Message-ID: <20170215135636.31427-4-abailon@baylibre.com>
+References: <20170215135636.31427-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170215135636.31427-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This series intend to make the CPPI 4.1 more generic in order to
-add a new platform (the DA8xx).
-To achieve that, all the IRQ code present in CPPI 4.1 driver has been moved
-to MUSB DSPS driver.
-Other changes mainly update the glue layer and platform code to make the
-whole driver more generic.
+Some constants are defined and use by the driver whereas they are
+specifics to AM335x.
+Add new variables to the glue layer, initialize them with the constants,
+and use them in the driver.
 
-Changes in v5:
- - Rebase on linux-next
- - No dependencies on other series anymore (they have been applied)
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/dma/cppi41.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-Changes in v4:
- - Remove dev argument in patch 4
- - Remove the isr callback from glue
-
-Changes in v3:
-- To prevent build error report from kbuild test robot, move the first
-  patch of v2 to another patchset.
-- Make CPPI 4.1 driver compatible with old and new binddings.
-- Remove the patch updating the am33xx-usb binddings.
-- Remove useless changes in patch 4
-- Remove a patch that was fixing PM runtime issue that was happenning
-  during a teardown. Tony Lindgren's patches fix the issue.
-
-Alexandre Bailon (5):
-  dmaengine: cppi41: Remove usbss_mem
-  dmaengine: cppi41: rename platform variables
-  dmaengine: cppi41: Move some constants to glue layer
-  dmaengine: cppi41: init_sched(): Get number of channels from DT
-  dmaengine: cppi41: Remove isr callback from glue layer
-
- drivers/dma/cppi41.c | 79 ++++++++++++++++++++++++++++++----------------------
- 1 file changed, 46 insertions(+), 33 deletions(-)
-
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+index d1b5569..676228f 100644
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -68,7 +68,6 @@
+ #define QMGR_MEMCTRL_IDX_SH	16
+ #define QMGR_MEMCTRL_DESC_SH	8
+ 
+-#define QMGR_NUM_PEND	5
+ #define QMGR_PEND(x)	(0x90 + (x) * 4)
+ 
+ #define QMGR_PENDING_SLOT_Q(x)	(x / 32)
+@@ -138,6 +137,8 @@ struct cppi41_dd {
+ 	const struct chan_queues *queues_rx;
+ 	const struct chan_queues *queues_tx;
+ 	struct chan_queues td_queue;
++	u16 first_completion_queue;
++	u16 qmgr_num_pend;
+ 
+ 	struct list_head pending;	/* Pending queued transfers */
+ 	spinlock_t lock;		/* Lock for pending list */
+@@ -148,7 +149,6 @@ struct cppi41_dd {
+ 	bool is_suspended;
+ };
+ 
+-#define FIST_COMPLETION_QUEUE	93
+ static struct chan_queues am335x_usb_queues_tx[] = {
+ 	/* USB0 ENDP 1 */
+ 	[ 0] = { .submit = 32, .complete =  93},
+@@ -226,6 +226,8 @@ struct cppi_glue_infos {
+ 	const struct chan_queues *queues_rx;
+ 	const struct chan_queues *queues_tx;
+ 	struct chan_queues td_queue;
++	u16 first_completion_queue;
++	u16 qmgr_num_pend;
+ };
+ 
+ static struct cppi41_channel *to_cpp41_chan(struct dma_chan *c)
+@@ -284,19 +286,21 @@ static u32 cppi41_pop_desc(struct cppi41_dd *cdd, unsigned queue_num)
+ static irqreturn_t cppi41_irq(int irq, void *data)
+ {
+ 	struct cppi41_dd *cdd = data;
++	u16 first_completion_queue = cdd->first_completion_queue;
++	u16 qmgr_num_pend = cdd->qmgr_num_pend;
+ 	struct cppi41_channel *c;
+ 	int i;
+ 
+-	for (i = QMGR_PENDING_SLOT_Q(FIST_COMPLETION_QUEUE); i < QMGR_NUM_PEND;
++	for (i = QMGR_PENDING_SLOT_Q(first_completion_queue); i < qmgr_num_pend;
+ 			i++) {
+ 		u32 val;
+ 		u32 q_num;
+ 
+ 		val = cppi_readl(cdd->qmgr_mem + QMGR_PEND(i));
+-		if (i == QMGR_PENDING_SLOT_Q(FIST_COMPLETION_QUEUE) && val) {
++		if (i == QMGR_PENDING_SLOT_Q(first_completion_queue) && val) {
+ 			u32 mask;
+ 			/* set corresponding bit for completetion Q 93 */
+-			mask = 1 << QMGR_PENDING_BIT_Q(FIST_COMPLETION_QUEUE);
++			mask = 1 << QMGR_PENDING_BIT_Q(first_completion_queue);
+ 			/* not set all bits for queues less than Q 93 */
+ 			mask--;
+ 			/* now invert and keep only Q 93+ set */
+@@ -884,7 +888,7 @@ static int init_cppi41(struct device *dev, struct cppi41_dd *cdd)
+ 		return -ENOMEM;
+ 
+ 	cppi_writel(cdd->scratch_phys, cdd->qmgr_mem + QMGR_LRAM0_BASE);
+-	cppi_writel(QMGR_SCRATCH_SIZE, cdd->qmgr_mem + QMGR_LRAM_SIZE);
++	cppi_writel(TOTAL_DESCS_NUM, cdd->qmgr_mem + QMGR_LRAM_SIZE);
+ 	cppi_writel(0, cdd->qmgr_mem + QMGR_LRAM1_BASE);
+ 
+ 	ret = init_descs(dev, cdd);
+@@ -967,6 +971,8 @@ static const struct cppi_glue_infos am335x_usb_infos = {
+ 	.queues_rx = am335x_usb_queues_rx,
+ 	.queues_tx = am335x_usb_queues_tx,
+ 	.td_queue = { .submit = 31, .complete = 0 },
++	.first_completion_queue = 93,
++	.qmgr_num_pend = 5,
+ };
+ 
+ static const struct of_device_id cppi41_dma_ids[] = {
+@@ -1049,6 +1055,8 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+ 	cdd->queues_rx = glue_info->queues_rx;
+ 	cdd->queues_tx = glue_info->queues_tx;
+ 	cdd->td_queue = glue_info->td_queue;
++	cdd->qmgr_num_pend = glue_info->qmgr_num_pend;
++	cdd->first_completion_queue = glue_info->first_completion_queue;
+ 
+ 	ret = init_cppi41(dev, cdd);
+ 	if (ret)
 -- 
 2.10.2
 
