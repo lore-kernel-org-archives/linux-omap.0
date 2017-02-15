@@ -1,61 +1,111 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH v9 0/8] drivers: touchscreen: tsc2007 and ads7846/tsc2046 improvements (use common touchscreen bindings, pre-calibration, spi fix and provide iio raw values)
-Date: Wed, 15 Feb 2017 15:03:07 +0100
-Message-ID: <751454D6-9552-48D9-91EC-37DAD7B1A576@goldelico.com>
-References: <cover.1482936802.git.hns@goldelico.com> <BB8421B2-6626-4A95-BCD0-25C4CAF30F61@goldelico.com> <17d2c23b-6cbb-d365-71cb-fd4d7af7c958@kernel.org> <B04BF50A-A54E-4CA2-BB0E-7B547D40403A@goldelico.com> <85077609-9A95-4DBC-BDC8-649C8692065B@goldelico.com> <3225CF5D-53B7-456F-8128-50BCF31ADD0F@goldelico.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3225CF5D-53B7-456F-8128-50BCF31ADD0F-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v6 2/4] usb: musb: Add support of CPPI 4.1 DMA controller to DA8xx
+Date: Wed, 15 Feb 2017 15:26:55 +0100
+Message-ID: <20170215142657.31571-3-abailon@baylibre.com>
+References: <20170215142657.31571-1-abailon@baylibre.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170215142657.31571-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: b-liu-l0cyMroinI0@public.gmane.org
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
+Currently, only the PIO mode is supported.
+This add support of CPPI 4.1 to DA8xx.
+As the In DA8xx the CPPI 4.1 DMA is a part of the USB.
+Create the CPPI 4.1 device as a child of USB.
 
-> Am 12.02.2017 um 16:18 schrieb H. Nikolaus Schaller =
-<hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
->=20
-> Hi Dmitry,
->=20
->> Am 28.01.2017 um 19:16 schrieb H. Nikolaus Schaller =
-<hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
->>=20
->> Hi Dmitry,
->> there have been no further comments/complaints about this patch =
-series in the last month.
->> And it appears as if only your action is needed.
->>=20
->> What is missing for this patch series to be finally accepted?
->=20
-> Did you find time to look into my comment on patch 1/9 and make a =
-decision on patch 6/8?
->=20
-> Is there anything open which prohibits inclusion to (and further =
-testing within) linux/next?
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/usb/musb/Kconfig |  4 ++--
+ drivers/usb/musb/da8xx.c | 36 +++++++++++++++++++++++++++++++++++-
+ 2 files changed, 37 insertions(+), 3 deletions(-)
 
-May I ask a question for my fundamental understanding of the Linux =
-integration process.
-Maybe, I have a wrong expectation which you can clarify.
-
-My question is how it does come that patches like
-
-=
-https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/?i=
-d=3D449aa83e69ff10d77fe088eadacafe1e97937c14
-
-appear within 2 days in linux-next, but our patch series had months of =
-review (we are at v9)
-and there have been no further comments from the community for weeks?
-
-What is still missing what we can do or provide as information?
-
-BR and thanks,
-Nikolaus
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index 72a2a50..5506a9c 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -160,8 +160,8 @@ config USB_TI_CPPI_DMA
+ 	  Enable DMA transfers when TI CPPI DMA is available.
+ 
+ config USB_TI_CPPI41_DMA
+-	bool 'TI CPPI 4.1 (AM335x)'
+-	depends on ARCH_OMAP && DMADEVICES
++	bool 'TI CPPI 4.1'
++	depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX) && DMADEVICES
+ 	select TI_CPPI41
+ 
+ config USB_TUSB_OMAP_DMA
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index d79c288..458a499 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -33,6 +33,7 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/io.h>
++#include <linux/of_platform.h>
+ #include <linux/phy/phy.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+@@ -456,12 +457,41 @@ static inline u8 get_vbus_power(struct device *dev)
+ 	return current_uA / 1000 / 2;
+ }
+ 
++#ifdef CONFIG_USB_TI_CPPI41_DMA
++static void da8xx_dma_controller_callback(struct dma_controller *c)
++{
++	struct musb *musb = c->musb;
++	void __iomem *reg_base = musb->ctrl_base;
++
++	musb_writel(reg_base, DA8XX_USB_END_OF_INTR_REG, 0);
++}
++
++static struct dma_controller *
++da8xx_dma_controller_create(struct musb *musb, void __iomem *base)
++{
++	struct dma_controller *controller;
++
++	controller = cppi41_dma_controller_create(musb, base);
++	if (IS_ERR_OR_NULL(controller))
++		return controller;
++
++	controller->dma_callback = da8xx_dma_controller_callback;
++
++	return controller;
++}
++#endif
++
+ static const struct musb_platform_ops da8xx_ops = {
+-	.quirks		= MUSB_INDEXED_EP | MUSB_PRESERVE_SESSION,
++	.quirks		= MUSB_INDEXED_EP | MUSB_PRESERVE_SESSION |
++			  MUSB_DMA_CPPI41,
+ 	.init		= da8xx_musb_init,
+ 	.exit		= da8xx_musb_exit,
+ 
+ 	.fifo_mode	= 2,
++#ifdef CONFIG_USB_TI_CPPI41_DMA
++	.dma_init	= da8xx_dma_controller_create,
++	.dma_exit	= cppi41_dma_controller_destroy,
++#endif
+ 	.enable		= da8xx_musb_enable,
+ 	.disable	= da8xx_musb_disable,
+ 
+@@ -533,6 +563,10 @@ static int da8xx_probe(struct platform_device *pdev)
+ 	}
+ 	platform_set_drvdata(pdev, glue);
+ 
++	ret = of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
++	if (ret)
++		return ret;
++
+ 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
+ 			ARRAY_SIZE(musb_resources));
+ 
+-- 
+2.10.2
 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
