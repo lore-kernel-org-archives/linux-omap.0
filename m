@@ -1,91 +1,61 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 1/5] dmaengine: cppi41: Remove usbss_mem
-Date: Wed, 15 Feb 2017 14:56:32 +0100
-Message-ID: <20170215135636.31427-2-abailon@baylibre.com>
-References: <20170215135636.31427-1-abailon@baylibre.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170215135636.31427-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: Re: [PATCH v9 0/8] drivers: touchscreen: tsc2007 and ads7846/tsc2046 improvements (use common touchscreen bindings, pre-calibration, spi fix and provide iio raw values)
+Date: Wed, 15 Feb 2017 15:03:07 +0100
+Message-ID: <751454D6-9552-48D9-91EC-37DAD7B1A576@goldelico.com>
+References: <cover.1482936802.git.hns@goldelico.com> <BB8421B2-6626-4A95-BCD0-25C4CAF30F61@goldelico.com> <17d2c23b-6cbb-d365-71cb-fd4d7af7c958@kernel.org> <B04BF50A-A54E-4CA2-BB0E-7B547D40403A@goldelico.com> <85077609-9A95-4DBC-BDC8-649C8692065B@goldelico.com> <3225CF5D-53B7-456F-8128-50BCF31ADD0F@goldelico.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3225CF5D-53B7-456F-8128-50BCF31ADD0F-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-In order to make CPPI 4.1 DMA driver more generic, accesses to USBSS
-have been removed. So it is not required anymore to map the "glue"
-register's.
-Remove usbss_mem.
+Hi Dmitry,
 
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
----
- drivers/dma/cppi41.c | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+> Am 12.02.2017 um 16:18 schrieb H. Nikolaus Schaller =
+<hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
+>=20
+> Hi Dmitry,
+>=20
+>> Am 28.01.2017 um 19:16 schrieb H. Nikolaus Schaller =
+<hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
+>>=20
+>> Hi Dmitry,
+>> there have been no further comments/complaints about this patch =
+series in the last month.
+>> And it appears as if only your action is needed.
+>>=20
+>> What is missing for this patch series to be finally accepted?
+>=20
+> Did you find time to look into my comment on patch 1/9 and make a =
+decision on patch 6/8?
+>=20
+> Is there anything open which prohibits inclusion to (and further =
+testing within) linux/next?
 
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index d74cee0..34a8156 100644
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -131,7 +131,6 @@ struct cppi41_dd {
- 	u32 first_td_desc;
- 	struct cppi41_channel *chan_busy[ALLOC_DECS_NUM];
- 
--	void __iomem *usbss_mem;
- 	void __iomem *ctrl_mem;
- 	void __iomem *sched_mem;
- 	void __iomem *qmgr_mem;
-@@ -995,6 +994,7 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 	struct cppi41_dd *cdd;
- 	struct device *dev = &pdev->dev;
- 	const struct cppi_glue_infos *glue_info;
-+	int index;
- 	int irq;
- 	int ret;
- 
-@@ -1021,16 +1021,20 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&cdd->ddev.channels);
- 	cpp41_dma_info.dma_cap = cdd->ddev.cap_mask;
- 
--	cdd->usbss_mem = of_iomap(dev->of_node, 0);
--	cdd->ctrl_mem = of_iomap(dev->of_node, 1);
--	cdd->sched_mem = of_iomap(dev->of_node, 2);
--	cdd->qmgr_mem = of_iomap(dev->of_node, 3);
-+	index = of_property_match_string(dev->of_node,
-+					 "reg-names", "controller");
-+	if (index < 0)
-+		return index;
-+
-+	cdd->ctrl_mem = of_iomap(dev->of_node, index);
-+	cdd->sched_mem = of_iomap(dev->of_node, index + 1);
-+	cdd->qmgr_mem = of_iomap(dev->of_node, index + 2);
- 	spin_lock_init(&cdd->lock);
- 	INIT_LIST_HEAD(&cdd->pending);
- 
- 	platform_set_drvdata(pdev, cdd);
- 
--	if (!cdd->usbss_mem || !cdd->ctrl_mem || !cdd->sched_mem ||
-+	if (!cdd->ctrl_mem || !cdd->sched_mem ||
- 			!cdd->qmgr_mem)
- 		return -ENXIO;
- 
-@@ -1090,7 +1094,6 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- err_get_sync:
- 	pm_runtime_put_sync(dev);
- 	pm_runtime_disable(dev);
--	iounmap(cdd->usbss_mem);
- 	iounmap(cdd->ctrl_mem);
- 	iounmap(cdd->sched_mem);
- 	iounmap(cdd->qmgr_mem);
-@@ -1112,7 +1115,6 @@ static int cppi41_dma_remove(struct platform_device *pdev)
- 	devm_free_irq(&pdev->dev, cdd->irq, cdd);
- 	cleanup_chans(cdd);
- 	deinit_cppi41(&pdev->dev, cdd);
--	iounmap(cdd->usbss_mem);
- 	iounmap(cdd->ctrl_mem);
- 	iounmap(cdd->sched_mem);
- 	iounmap(cdd->qmgr_mem);
--- 
-2.10.2
+May I ask a question for my fundamental understanding of the Linux =
+integration process.
+Maybe, I have a wrong expectation which you can clarify.
+
+My question is how it does come that patches like
+
+=
+https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/?i=
+d=3D449aa83e69ff10d77fe088eadacafe1e97937c14
+
+appear within 2 days in linux-next, but our patch series had months of =
+review (we are at v9)
+and there have been no further comments from the community for weeks?
+
+What is still missing what we can do or provide as information?
+
+BR and thanks,
+Nikolaus
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
