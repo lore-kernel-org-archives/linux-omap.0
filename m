@@ -1,107 +1,55 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v6 2/4] usb: musb: Add support of CPPI 4.1 DMA controller to DA8xx
-Date: Wed, 15 Feb 2017 15:26:55 +0100
-Message-ID: <20170215142657.31571-3-abailon@baylibre.com>
-References: <20170215142657.31571-1-abailon@baylibre.com>
+Subject: [PATCH v6 0/4] usb: musb: da8xx: Add DMA support
+Date: Wed, 15 Feb 2017 15:26:53 +0100
+Message-ID: <20170215142657.31571-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170215142657.31571-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: b-liu-l0cyMroinI0@public.gmane.org
 Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently, only the PIO mode is supported.
-This add support of CPPI 4.1 to DA8xx.
-As the In DA8xx the CPPI 4.1 DMA is a part of the USB.
-Create the CPPI 4.1 device as a child of USB.
+This series update MUSB driver to add DMA support to DA8xx.
+It should be applied on top of:
+"[PATCH v4 0/3] dmaengine: cppi41: Add dma support to da8xx" and
+"[PATCH v3] ARM: davinci: Make the usb20 clock available to PM runtime"
 
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
----
- drivers/usb/musb/Kconfig |  4 ++--
- drivers/usb/musb/da8xx.c | 36 +++++++++++++++++++++++++++++++++++-
- 2 files changed, 37 insertions(+), 3 deletions(-)
+Changes in v6:
+- Rebased on linux-next. Some patches were conflicting with a series
+  adding suspend and resume support.
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 72a2a50..5506a9c 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -160,8 +160,8 @@ config USB_TI_CPPI_DMA
- 	  Enable DMA transfers when TI CPPI DMA is available.
- 
- config USB_TI_CPPI41_DMA
--	bool 'TI CPPI 4.1 (AM335x)'
--	depends on ARCH_OMAP && DMADEVICES
-+	bool 'TI CPPI 4.1'
-+	depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX) && DMADEVICES
- 	select TI_CPPI41
- 
- config USB_TUSB_OMAP_DMA
-diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-index d79c288..458a499 100644
---- a/drivers/usb/musb/da8xx.c
-+++ b/drivers/usb/musb/da8xx.c
-@@ -33,6 +33,7 @@
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/io.h>
-+#include <linux/of_platform.h>
- #include <linux/phy/phy.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
-@@ -456,12 +457,41 @@ static inline u8 get_vbus_power(struct device *dev)
- 	return current_uA / 1000 / 2;
- }
- 
-+#ifdef CONFIG_USB_TI_CPPI41_DMA
-+static void da8xx_dma_controller_callback(struct dma_controller *c)
-+{
-+	struct musb *musb = c->musb;
-+	void __iomem *reg_base = musb->ctrl_base;
-+
-+	musb_writel(reg_base, DA8XX_USB_END_OF_INTR_REG, 0);
-+}
-+
-+static struct dma_controller *
-+da8xx_dma_controller_create(struct musb *musb, void __iomem *base)
-+{
-+	struct dma_controller *controller;
-+
-+	controller = cppi41_dma_controller_create(musb, base);
-+	if (IS_ERR_OR_NULL(controller))
-+		return controller;
-+
-+	controller->dma_callback = da8xx_dma_controller_callback;
-+
-+	return controller;
-+}
-+#endif
-+
- static const struct musb_platform_ops da8xx_ops = {
--	.quirks		= MUSB_INDEXED_EP | MUSB_PRESERVE_SESSION,
-+	.quirks		= MUSB_INDEXED_EP | MUSB_PRESERVE_SESSION |
-+			  MUSB_DMA_CPPI41,
- 	.init		= da8xx_musb_init,
- 	.exit		= da8xx_musb_exit,
- 
- 	.fifo_mode	= 2,
-+#ifdef CONFIG_USB_TI_CPPI41_DMA
-+	.dma_init	= da8xx_dma_controller_create,
-+	.dma_exit	= cppi41_dma_controller_destroy,
-+#endif
- 	.enable		= da8xx_musb_enable,
- 	.disable	= da8xx_musb_disable,
- 
-@@ -533,6 +563,10 @@ static int da8xx_probe(struct platform_device *pdev)
- 	}
- 	platform_set_drvdata(pdev, glue);
- 
-+	ret = of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
-+	if (ret)
-+		return ret;
-+
- 	memset(musb_resources, 0x00, sizeof(*musb_resources) *
- 			ARRAY_SIZE(musb_resources));
- 
+Changes in v5:
+- Fix a typo in commit message of patch 4
+
+Changes in v4:
+- Update and clarify the commit message of patch 5
+- Fix the typo in patch 3
+
+Changes in v3:
+- Remove PM runtime callbacks.
+  I have update arch/arm/mach-davinci/pm_domain.c to let PM runtime control
+  the usb20 clock.
+- Only use PM runtime sync operation.
+
+Changes in v2:
+- Clock and IRQ management has been moved to MUSB DA8xx glue
+  (was in CPPI 4.1 driver)
+- I have added a partial support PM runtime. The goal was to use PM
+  runtime to manage clock of MUSB and CPPI 4.1 (they use the same clock).
+- CPPI 4.1 is now achild of MUSB DA8xx glue.
+
+Alexandre Bailon (4):
+  usb: musb: Use shared irq
+  usb: musb: Add support of CPPI 4.1 DMA controller to DA8xx
+  usb: musb: musb_cppi41: Workaround DMA stall issue during teardown
+  usb: musb: da8xx: Add a primary support of PM runtime
+
+ drivers/usb/musb/Kconfig       |  4 +--
+ drivers/usb/musb/da8xx.c       | 63 ++++++++++++++++++++++++++++--------------
+ drivers/usb/musb/musb_core.c   |  2 +-
+ drivers/usb/musb/musb_core.h   |  1 +
+ drivers/usb/musb/musb_cppi41.c |  4 +++
+ 5 files changed, 51 insertions(+), 23 deletions(-)
+
 -- 
 2.10.2
 
