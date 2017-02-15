@@ -1,53 +1,47 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 5/5] dmaengine: cppi41: Remove isr callback from glue layer
-Date: Wed, 15 Feb 2017 14:56:36 +0100
-Message-ID: <20170215135636.31427-6-abailon@baylibre.com>
-References: <20170215135636.31427-1-abailon@baylibre.com>
+Subject: [PATCH v5 0/5] dmaengine: cppi41: Make CPPI 4.1 driver more generic
+Date: Wed, 15 Feb 2017 14:56:31 +0100
+Message-ID: <20170215135636.31427-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170215135636.31427-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-All the platform code to manage IRQ has been moved to MUSB,
-and now the interrupt handler is completely generic.
-Remove the isr callback that is not useful anymore.
+This series intend to make the CPPI 4.1 more generic in order to
+add a new platform (the DA8xx).
+To achieve that, all the IRQ code present in CPPI 4.1 driver has been moved
+to MUSB DSPS driver.
+Other changes mainly update the glue layer and platform code to make the
+whole driver more generic.
 
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
----
- drivers/dma/cppi41.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Changes in v5:
+ - Rebase on linux-next
+ - No dependencies on other series anymore (they have been applied)
 
-diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
-index 54337cd..4573080 100644
---- a/drivers/dma/cppi41.c
-+++ b/drivers/dma/cppi41.c
-@@ -224,7 +224,6 @@ static const struct chan_queues am335x_usb_queues_rx[] = {
- };
- 
- struct cppi_glue_infos {
--	irqreturn_t (*isr)(int irq, void *data);
- 	const struct chan_queues *queues_rx;
- 	const struct chan_queues *queues_tx;
- 	struct chan_queues td_queue;
-@@ -965,7 +964,6 @@ static struct dma_chan *cppi41_dma_xlate(struct of_phandle_args *dma_spec,
- }
- 
- static const struct cppi_glue_infos am335x_usb_infos = {
--	.isr = cppi41_irq,
- 	.queues_rx = am335x_usb_queues_rx,
- 	.queues_tx = am335x_usb_queues_tx,
- 	.td_queue = { .submit = 31, .complete = 0 },
-@@ -1075,7 +1073,7 @@ static int cppi41_dma_probe(struct platform_device *pdev)
- 		goto err_irq;
- 	}
- 
--	ret = devm_request_irq(&pdev->dev, irq, glue_info->isr, IRQF_SHARED,
-+	ret = devm_request_irq(&pdev->dev, irq, cppi41_irq, IRQF_SHARED,
- 			dev_name(dev), cdd);
- 	if (ret)
- 		goto err_irq;
+Changes in v4:
+ - Remove dev argument in patch 4
+ - Remove the isr callback from glue
+
+Changes in v3:
+- To prevent build error report from kbuild test robot, move the first
+  patch of v2 to another patchset.
+- Make CPPI 4.1 driver compatible with old and new binddings.
+- Remove the patch updating the am33xx-usb binddings.
+- Remove useless changes in patch 4
+- Remove a patch that was fixing PM runtime issue that was happenning
+  during a teardown. Tony Lindgren's patches fix the issue.
+
+Alexandre Bailon (5):
+  dmaengine: cppi41: Remove usbss_mem
+  dmaengine: cppi41: rename platform variables
+  dmaengine: cppi41: Move some constants to glue layer
+  dmaengine: cppi41: init_sched(): Get number of channels from DT
+  dmaengine: cppi41: Remove isr callback from glue layer
+
+ drivers/dma/cppi41.c | 79 ++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 46 insertions(+), 33 deletions(-)
+
 -- 
 2.10.2
 
