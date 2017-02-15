@@ -1,40 +1,44 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v6 1/4] usb: musb: Use shared irq
-Date: Wed, 15 Feb 2017 15:26:54 +0100
-Message-ID: <20170215142657.31571-2-abailon@baylibre.com>
-References: <20170215142657.31571-1-abailon@baylibre.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170215142657.31571-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: b-liu-l0cyMroinI0@public.gmane.org
-Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: yegorslists@googlemail.com
+Subject: [PATCH v3 0/3] Adding DT support for TI HECC module
+Date: Wed, 15 Feb 2017 15:48:42 +0100
+Message-ID: <1487170125-10815-1-git-send-email-yegorslists@googlemail.com>
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: linux-can@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org, tony@atomide.com, mkl@pengutronix.de, andrej.skvortzov@gmail.com, hs@denx.de, anton.a.glukhov@gmail.com, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
 
-In the DA8xx, USB and CPPI 4.1 are sharing the same interrupt line.
-Update the driver to request a shared irq.
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
----
- drivers/usb/musb/musb_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This is an attempt to revive DT support for TI HECC that was started in 2015 [1].
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 892088f..c476265 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2331,7 +2331,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 	setup_timer(&musb->otg_timer, musb_otg_timer_func, (unsigned long) musb);
- 
- 	/* attach to the IRQ */
--	if (request_irq(nIrq, musb->isr, 0, dev_name(dev), musb)) {
-+	if (request_irq(nIrq, musb->isr, IRQF_SHARED, dev_name(dev), musb)) {
- 		dev_err(dev, "request_irq %d failed!\n", nIrq);
- 		status = -ENODEV;
- 		goto fail3;
+Changes v2 -> v3:
+  - rename compatible property to "ti,am3517-hecc" (though there is a stipped
+    device named 3505, EMAC driver already uses am3517-emac name, so keep this
+    property consistent)
+  - use reg-names to specify different HECC I/O mapping (suggested by Tony Lindgren)
+  - provide fallback offsets and sizes for board files
+  - convert optional property ti,int_line to ti,use-hecc1int and add proper
+    description
+
+Changes v1 -> v2:
+  - change compatible to "ti,am3505
+  - remove CONFIG_OF
+  - don't set int_line to 0 explicitly
+
+[1] http://comments.gmane.org/gmane.linux.can/8616
+
+Yegor Yefremov (3):
+  ARM: dts: AM35x: Add hecc node
+  can: ti_hecc: Add TI HECC DT binding documentation
+  can: ti_hecc: Add DT support for TI HECC module
+
+ .../devicetree/bindings/net/can/ti_hecc.txt        |  32 +++++
+ arch/arm/boot/dts/am3517.dtsi                      |  12 ++
+ drivers/net/can/ti_hecc.c                          | 157 +++++++++++++++------
+ 3 files changed, 156 insertions(+), 45 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/can/ti_hecc.txt
+
 -- 
-2.10.2
+2.1.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
