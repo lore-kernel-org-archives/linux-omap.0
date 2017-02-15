@@ -1,57 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] PM / wakeirq: report a wakeup_event on dedicated wekup irq
-Date: Thu, 16 Feb 2017 00:45:56 +0100
-Message-ID: <2289787.GWFQX3VCmA@aspire.rjw.lan>
-References: <20170213204322.27588-1-tony@atomide.com>
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: [PATCH 3.16 214/306] net: ethernet: ti: cpsw: fix device and
+ of_node leaks
+Date: Wed, 15 Feb 2017 22:41:40 +0000
+Message-ID: <lsq.1487198500.9710842@decadent.org.uk>
+References: <lsq.1487198498.99718322@decadent.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170213204322.27588-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Brian Norris <briannorris@chromium.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Len Brown <len.brown@intel.com>, Nishanth Menon <nm@ti.com>, Pavel Machek <pavel@ucw.cz>, Ulf Hansson <ulf.hansson@linaro.org>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <lsq.1487198498.99718322@decadent.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, Johan Hovold <johan@kernel.org>, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, February 13, 2017 12:43:22 PM Tony Lindgren wrote:
-> From: Grygorii Strashko <grygorii.strashko@ti.com>
-> 
-> There are two reasons for reporting wakeup event when dedicated wakeup
-> IRQ is triggered:
-> 
-> - wakeup events accounting, so proper statistical data will be
->   displayed in sysfs and debugfs;
-> 
-> - there are small window when System is entering suspend during which
->   dedicated wakeup IRQ can be lost:
-> 
-> dpm_suspend_noirq()
->   |- device_wakeup_arm_wake_irqs()
->       |- dev_pm_arm_wake_irq(X)
->          |- IRQ is enabled and marked as wakeup source
-> [1]...
->   |- suspend_device_irqs()
->      |- suspend_device_irq(X)
-> 	|- irqd_set(X, IRQD_WAKEUP_ARMED);
-> 	   |- wakup IRQ armed
-> 
-> The wakeup IRQ can be lost if it's triggered at point [1]
-> and not armed yet.
-> 
-> Hence, fix above cases by adding simple pm_wakeup_event() call in
-> handle_threaded_wake_irq().
-> 
-> Fixes: 4990d4fe327b ("PM / Wakeirq: Add automated device wake IRQ
-> handling")
-> Cc: Brian Norris <briannorris@chromium.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> Tested-by: Keerthy <j-keerthy@ti.com>
-> [tony@atomide.com: added missing return to avoid warnings]
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+3.16.40-rc1 review patch.  If anyone has any objections, please let me know.
 
-Applied (along with the other two wakeirq fixes).
+------------------
 
-Thanks,
-Rafael
+From: Johan Hovold <johan@kernel.org>
+
+commit c7262aaace1b17a650598063e3b9ee1785fde377 upstream.
+
+Make sure to drop the references taken by of_get_child_by_name() and
+bus_find_device() before returning from cpsw_phy_sel().
+
+Note that holding a reference to the cpsw-phy-sel device does not
+prevent the devres-managed private data from going away.
+
+Fixes: 5892cd135e16 ("drivers: net: cpsw-phy-sel: Add new driver...")
+Cc: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Johan Hovold <johan@kernel.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/net/ethernet/ti/cpsw-phy-sel.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
++++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
+@@ -152,9 +152,12 @@ void cpsw_phy_sel(struct device *dev, ph
+ 	}
+ 
+ 	dev = bus_find_device(&platform_bus_type, NULL, node, match);
++	of_node_put(node);
+ 	priv = dev_get_drvdata(dev);
+ 
+ 	priv->cpsw_phy_sel(priv, phy_mode, slave);
++
++	put_device(dev);
+ }
+ EXPORT_SYMBOL_GPL(cpsw_phy_sel);
+ 
