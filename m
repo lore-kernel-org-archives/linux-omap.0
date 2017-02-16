@@ -1,66 +1,59 @@
-From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v5 0/5] dmaengine: cppi41: Make CPPI 4.1 driver more
- generic
-Date: Thu, 16 Feb 2017 10:10:59 +0530
-Message-ID: <20170216044059.GR2843@localhost>
-References: <20170215135636.31427-1-abailon@baylibre.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 30/37] dt-bindings: PCI: dra7xx: Add dt bindings to enable
+ legacy mode
+Date: Thu, 16 Feb 2017 14:03:57 +0530
+Message-ID: <58A563F5.5040504@ti.com>
+References: <1484216786-17292-1-git-send-email-kishon@ti.com>
+ <1484216786-17292-31-git-send-email-kishon@ti.com>
+ <20170118214603.qnewy3sm6sgw7lbg@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170215135636.31427-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170118214603.qnewy3sm6sgw7lbg@rob-hp-laptop>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rob Herring <robh@kernel.org>
+Cc: devicetree@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org, Jingoo Han <jingoohan1@gmail.com>, linux-arm-msm@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, linux-samsung-soc@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 15, 2017 at 02:56:31PM +0100, Alexandre Bailon wrote:
-> This series intend to make the CPPI 4.1 more generic in order to
-> add a new platform (the DA8xx).
-> To achieve that, all the IRQ code present in CPPI 4.1 driver has been moved
-> to MUSB DSPS driver.
-> Other changes mainly update the glue layer and platform code to make the
-> whole driver more generic.
-> 
-> Changes in v5:
->  - Rebase on linux-next
->  - No dependencies on other series anymore (they have been applied)
+Hi,
 
-Not really, we dont apply patches on linux-next but on subsystem tree's.
-So since we are soo close to merge window, am going to defer this series and
-apply once merge window closes.
+On Thursday 19 January 2017 03:16 AM, Rob Herring wrote:
+> On Thu, Jan 12, 2017 at 03:56:19PM +0530, Kishon Vijay Abraham I wrote:
+>> Update device tree binding documentation of TI's dra7xx PCI
+>> controller to include property for enabling legacy mode.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/pci/ti-pci.txt |    4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> index 62f5f59..ed85e8e 100644
+>> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> @@ -39,6 +39,10 @@ DEVICE MODE
+>>   - interrupts : one interrupt entries must be specified for main interrupt.
+>>   - num-ib-windows : number of inbound address translation windows
+>>   - num-ob-windows : number of outbound address translation windows
+>> + - syscon-legacy-mode: phandle to the syscon dt node. The 1st argument should
+>> +		       contain the register offset within syscon and the 2nd
+>> +		       argument should contain the bit field for setting the
+>> +		       legacy mode
+> 
+> What's legacy mode?
 
-> 
-> Changes in v4:
->  - Remove dev argument in patch 4
->  - Remove the isr callback from glue
-> 
-> Changes in v3:
-> - To prevent build error report from kbuild test robot, move the first
->   patch of v2 to another patchset.
-> - Make CPPI 4.1 driver compatible with old and new binddings.
-> - Remove the patch updating the am33xx-usb binddings.
-> - Remove useless changes in patch 4
-> - Remove a patch that was fixing PM runtime issue that was happenning
->   during a teardown. Tony Lindgren's patches fix the issue.
-> 
-> Alexandre Bailon (5):
->   dmaengine: cppi41: Remove usbss_mem
->   dmaengine: cppi41: rename platform variables
->   dmaengine: cppi41: Move some constants to glue layer
->   dmaengine: cppi41: init_sched(): Get number of channels from DT
->   dmaengine: cppi41: Remove isr callback from glue layer
-> 
->  drivers/dma/cppi41.c | 79 ++++++++++++++++++++++++++++++----------------------
->  1 file changed, 46 insertions(+), 33 deletions(-)
-> 
-> -- 
-> 2.10.2
-> 
+It's the name of the bit-field defined in TRM used to add workaround for errata
+id i870 (See [PATCH 29/37] PCI: dwc: dra7xx: Workaround for errata id i870 of
+this series). I'm not sure what it does internally.
 
--- 
-~Vinod
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Kishon
