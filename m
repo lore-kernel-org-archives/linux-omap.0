@@ -1,16 +1,20 @@
-From: "Jingoo Han" <jingoohan1@gmail.com>
-Subject: Re: [PATCH 01/10] PCI: dwc: designware: Move the register defines to
- designware header file
-Date: Thu, 16 Feb 2017 09:49:55 -0500
-Message-ID: <000001d28863$f291ffc0$d7b5ff40$@gmail.com>
-References: <1487164699-30708-1-git-send-email-kishon@ti.com>
- <1487164699-30708-2-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting cpu1
+ during boot
+Date: Thu, 16 Feb 2017 08:10:10 -0800
+Message-ID: <20170216161010.GU21809@atomide.com>
+References: <20170213215013.19929-1-tony@atomide.com>
+ <20170214193645.GM21809@atomide.com>
+ <20170215183915.GU3897@atomide.com>
+ <20170215191242.GP21809@atomide.com>
+ <ca389104-df6f-b055-ec43-524d82cf1be7@ti.com>
+ <20170215222711.GQ21809@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1487164699-30708-2-git-send-email-kishon@ti.com>
-Content-Language: ko
+Content-Disposition: inline
+In-Reply-To: <20170215222711.GQ21809@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,199 +24,57 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: 'Kishon Vijay Abraham I' <kishon@ti.com>, 'Bjorn Helgaas' <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com
-Cc: nsekhar@ti.com
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Wednesday, February 15, 2017 8:18 AM, Kishon Vijay Abraham I wrote:
-> 
-> No functional change. Move the register defines and other macros from
-> pcie-designware.c to pcie-designware.h. This is in preparation to
-> split the pcie-designware.c file into designware core file and host
-> specific file.
-> 
-> While at that also fix a checkpatch warning.
-> 
-> Reviewed-By: Joao Pinto <jpinto@synopsys.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+* Tony Lindgren <tony@atomide.com> [170215 14:28]:
+> * Andrew F. Davis <afd@ti.com> [170215 14:14]:
+> > On 02/15/2017 01:12 PM, Tony Lindgren wrote:
+> > > And also the same issue happens doing kexec on beagle-x15 naturally if
+> > > the cpu1 reset is removed.
+> > > 
+> > 
+> > When a core actually powers up it idles in ROM code waiting for
+> > OMAP_AUX_CORE_BOOT_0 to be set. When we shutdown a core it is not really
+> > powered off, we just let it spin in omap4_cpu_die() or
+> > omap4_secondary_startup() waiting on OMAP_AUX_CORE_BOOT_0, just like if
+> > it were still trapped in ROM after a reset.
 
-Acked-by: Jingoo Han <jingoohan1@gmail.com>
+OK so I debugged this a bit more. We have CPU1 in omap_do_wfi()
+as we don't currently have omap5_secondary_startup() or any deeper
+idle mode support beyond retention for omap5 or dra7 in the mainline
+kernel.
 
-Best regards,
-Jingoo Han
+> > The issue with this fake startup idle loop is that, unlike the ROM based
+> > startup idle loop, these do *not* jump to the address we stored in
+> > OMAP_AUX_CORE_BOOT_1, they just make the assumption that they can safely
+> > jump to the kernel startup function.
 
-> ---
->  drivers/pci/dwc/pcie-designware.c |   70 --------------------------------
-> ----
->  drivers/pci/dwc/pcie-designware.h |   71
-> +++++++++++++++++++++++++++++++++++++
->  2 files changed, 71 insertions(+), 70 deletions(-)
-> 
-> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-
-> designware.c
-> index af8f6e9..d0e4904 100644
-> --- a/drivers/pci/dwc/pcie-designware.c
-> +++ b/drivers/pci/dwc/pcie-designware.c
-> @@ -25,76 +25,6 @@
-> 
->  #include "pcie-designware.h"
-> 
-> -/* Parameters for the waiting for link up routine */
-> -#define LINK_WAIT_MAX_RETRIES		10
-> -#define LINK_WAIT_USLEEP_MIN		90000
-> -#define LINK_WAIT_USLEEP_MAX		100000
-> -
-> -/* Parameters for the waiting for iATU enabled routine */
-> -#define LINK_WAIT_MAX_IATU_RETRIES	5
-> -#define LINK_WAIT_IATU_MIN		9000
-> -#define LINK_WAIT_IATU_MAX		10000
-> -
-> -/* Synopsys-specific PCIe configuration registers */
-> -#define PCIE_PORT_LINK_CONTROL		0x710
-> -#define PORT_LINK_MODE_MASK		(0x3f << 16)
-> -#define PORT_LINK_MODE_1_LANES		(0x1 << 16)
-> -#define PORT_LINK_MODE_2_LANES		(0x3 << 16)
-> -#define PORT_LINK_MODE_4_LANES		(0x7 << 16)
-> -#define PORT_LINK_MODE_8_LANES		(0xf << 16)
-> -
-> -#define PCIE_LINK_WIDTH_SPEED_CONTROL	0x80C
-> -#define PORT_LOGIC_SPEED_CHANGE		(0x1 << 17)
-> -#define PORT_LOGIC_LINK_WIDTH_MASK	(0x1f << 8)
-> -#define PORT_LOGIC_LINK_WIDTH_1_LANES	(0x1 << 8)
-> -#define PORT_LOGIC_LINK_WIDTH_2_LANES	(0x2 << 8)
-> -#define PORT_LOGIC_LINK_WIDTH_4_LANES	(0x4 << 8)
-> -#define PORT_LOGIC_LINK_WIDTH_8_LANES	(0x8 << 8)
-> -
-> -#define PCIE_MSI_ADDR_LO		0x820
-> -#define PCIE_MSI_ADDR_HI		0x824
-> -#define PCIE_MSI_INTR0_ENABLE		0x828
-> -#define PCIE_MSI_INTR0_MASK		0x82C
-> -#define PCIE_MSI_INTR0_STATUS		0x830
-> -
-> -#define PCIE_ATU_VIEWPORT		0x900
-> -#define PCIE_ATU_REGION_INBOUND		(0x1 << 31)
-> -#define PCIE_ATU_REGION_OUTBOUND	(0x0 << 31)
-> -#define PCIE_ATU_REGION_INDEX2		(0x2 << 0)
-> -#define PCIE_ATU_REGION_INDEX1		(0x1 << 0)
-> -#define PCIE_ATU_REGION_INDEX0		(0x0 << 0)
-> -#define PCIE_ATU_CR1			0x904
-> -#define PCIE_ATU_TYPE_MEM		(0x0 << 0)
-> -#define PCIE_ATU_TYPE_IO		(0x2 << 0)
-> -#define PCIE_ATU_TYPE_CFG0		(0x4 << 0)
-> -#define PCIE_ATU_TYPE_CFG1		(0x5 << 0)
-> -#define PCIE_ATU_CR2			0x908
-> -#define PCIE_ATU_ENABLE			(0x1 << 31)
-> -#define PCIE_ATU_BAR_MODE_ENABLE	(0x1 << 30)
-> -#define PCIE_ATU_LOWER_BASE		0x90C
-> -#define PCIE_ATU_UPPER_BASE		0x910
-> -#define PCIE_ATU_LIMIT			0x914
-> -#define PCIE_ATU_LOWER_TARGET		0x918
-> -#define PCIE_ATU_BUS(x)			(((x) & 0xff) << 24)
-> -#define PCIE_ATU_DEV(x)			(((x) & 0x1f) << 19)
-> -#define PCIE_ATU_FUNC(x)		(((x) & 0x7) << 16)
-> -#define PCIE_ATU_UPPER_TARGET		0x91C
-> -
-> -/*
-> - * iATU Unroll-specific register definitions
-> - * From 4.80 core version the address translation will be made by unroll
-> - */
-> -#define PCIE_ATU_UNR_REGION_CTRL1	0x00
-> -#define PCIE_ATU_UNR_REGION_CTRL2	0x04
-> -#define PCIE_ATU_UNR_LOWER_BASE		0x08
-> -#define PCIE_ATU_UNR_UPPER_BASE		0x0C
-> -#define PCIE_ATU_UNR_LIMIT		0x10
-> -#define PCIE_ATU_UNR_LOWER_TARGET	0x14
-> -#define PCIE_ATU_UNR_UPPER_TARGET	0x18
-> -
-> -/* Register address builder */
-> -#define PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(region)  ((0x3 << 20) | (region
-> << 9))
-> -
->  /* PCIe Port Logic registers */
->  #define PLR_OFFSET			0x700
->  #define PCIE_PHY_DEBUG_R1		(PLR_OFFSET + 0x2c)
-> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-
-> designware.h
-> index a567ea2..b5226d4 100644
-> --- a/drivers/pci/dwc/pcie-designware.h
-> +++ b/drivers/pci/dwc/pcie-designware.h
-> @@ -14,6 +14,77 @@
->  #ifndef _PCIE_DESIGNWARE_H
->  #define _PCIE_DESIGNWARE_H
-> 
-> +/* Parameters for the waiting for link up routine */
-> +#define LINK_WAIT_MAX_RETRIES		10
-> +#define LINK_WAIT_USLEEP_MIN		90000
-> +#define LINK_WAIT_USLEEP_MAX		100000
-> +
-> +/* Parameters for the waiting for iATU enabled routine */
-> +#define LINK_WAIT_MAX_IATU_RETRIES	5
-> +#define LINK_WAIT_IATU_MIN		9000
-> +#define LINK_WAIT_IATU_MAX		10000
-> +
-> +/* Synopsys-specific PCIe configuration registers */
-> +#define PCIE_PORT_LINK_CONTROL		0x710
-> +#define PORT_LINK_MODE_MASK		(0x3f << 16)
-> +#define PORT_LINK_MODE_1_LANES		(0x1 << 16)
-> +#define PORT_LINK_MODE_2_LANES		(0x3 << 16)
-> +#define PORT_LINK_MODE_4_LANES		(0x7 << 16)
-> +#define PORT_LINK_MODE_8_LANES		(0xf << 16)
-> +
-> +#define PCIE_LINK_WIDTH_SPEED_CONTROL	0x80C
-> +#define PORT_LOGIC_SPEED_CHANGE		(0x1 << 17)
-> +#define PORT_LOGIC_LINK_WIDTH_MASK	(0x1f << 8)
-> +#define PORT_LOGIC_LINK_WIDTH_1_LANES	(0x1 << 8)
-> +#define PORT_LOGIC_LINK_WIDTH_2_LANES	(0x2 << 8)
-> +#define PORT_LOGIC_LINK_WIDTH_4_LANES	(0x4 << 8)
-> +#define PORT_LOGIC_LINK_WIDTH_8_LANES	(0x8 << 8)
-> +
-> +#define PCIE_MSI_ADDR_LO		0x820
-> +#define PCIE_MSI_ADDR_HI		0x824
-> +#define PCIE_MSI_INTR0_ENABLE		0x828
-> +#define PCIE_MSI_INTR0_MASK		0x82C
-> +#define PCIE_MSI_INTR0_STATUS		0x830
-> +
-> +#define PCIE_ATU_VIEWPORT		0x900
-> +#define PCIE_ATU_REGION_INBOUND		(0x1 << 31)
-> +#define PCIE_ATU_REGION_OUTBOUND	(0x0 << 31)
-> +#define PCIE_ATU_REGION_INDEX2		(0x2 << 0)
-> +#define PCIE_ATU_REGION_INDEX1		(0x1 << 0)
-> +#define PCIE_ATU_REGION_INDEX0		(0x0 << 0)
-> +#define PCIE_ATU_CR1			0x904
-> +#define PCIE_ATU_TYPE_MEM		(0x0 << 0)
-> +#define PCIE_ATU_TYPE_IO		(0x2 << 0)
-> +#define PCIE_ATU_TYPE_CFG0		(0x4 << 0)
-> +#define PCIE_ATU_TYPE_CFG1		(0x5 << 0)
-> +#define PCIE_ATU_CR2			0x908
-> +#define PCIE_ATU_ENABLE			(0x1 << 31)
-> +#define PCIE_ATU_BAR_MODE_ENABLE	(0x1 << 30)
-> +#define PCIE_ATU_LOWER_BASE		0x90C
-> +#define PCIE_ATU_UPPER_BASE		0x910
-> +#define PCIE_ATU_LIMIT			0x914
-> +#define PCIE_ATU_LOWER_TARGET		0x918
-> +#define PCIE_ATU_BUS(x)			(((x) & 0xff) << 24)
-> +#define PCIE_ATU_DEV(x)			(((x) & 0x1f) << 19)
-> +#define PCIE_ATU_FUNC(x)		(((x) & 0x7) << 16)
-> +#define PCIE_ATU_UPPER_TARGET		0x91C
-> +
-> +/*
-> + * iATU Unroll-specific register definitions
-> + * From 4.80 core version the address translation will be made by unroll
-> + */
-> +#define PCIE_ATU_UNR_REGION_CTRL1	0x00
-> +#define PCIE_ATU_UNR_REGION_CTRL2	0x04
-> +#define PCIE_ATU_UNR_LOWER_BASE		0x08
-> +#define PCIE_ATU_UNR_UPPER_BASE		0x0C
-> +#define PCIE_ATU_UNR_LIMIT		0x10
-> +#define PCIE_ATU_UNR_LOWER_TARGET	0x14
-> +#define PCIE_ATU_UNR_UPPER_TARGET	0x18
-> +
-> +/* Register address builder */
-> +#define PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(region)	\
-> +			((0x3 << 20) | ((region) << 9))
-> +
->  /*
->   * Maximum number of MSI IRQs can be 256 per controller. But keep
->   * it 32 as of now. Probably we will never need more than 32. If needed,
-> --
-> 1.7.9.5
+This does not seem to be the case here.
+
+> > So when we tell this core to boot, and it is not in the real ROM startup
+> > loop, it breaks stuff as it jumps to the old kernel's
+> > secondary_startup() even though we gave it the correct address in
+> > OMAP_AUX_CORE_BOOT_1.
+
+And this is not happening. I think this is what I was seeing earlier,
+but it's not the omap5/dra7 issue.
+
+What we have is cpu1 returning from previous kernel's omap_do_wfi()
+in the kexec booted kernel's code and that's when things go wrong.
+
+So if cpu1 was configured for idle for any reason, it will never gets
+to omap5_secondary_startup without the reset currently.
+
+The reason kexec and suspend/resume mostly works for omap4 without
+cpu1 reset is that we usually enter off mode for cpu1 and the context
+is lost and then we properly go through omap4_secondary_startup. Or
+that's my theory so far for the occasional flakeyness I've been seeing :)
+
+Any ideas what we should try to check to see if cpu1 is in idle
+mode so we can do the reset if needed?
+
+Regards,
+
+Tony
