@@ -1,57 +1,58 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 0/4] PCI: dwc: cleanup designware driver
-Date: Thu, 16 Feb 2017 18:59:08 +0530
-Message-ID: <1487251752-12478-1-git-send-email-kishon@ti.com>
+Subject: [PATCH 1/4] PCI: dwc: designware: Add new *ops* for cpu addr fixup
+Date: Thu, 16 Feb 2017 18:59:09 +0530
+Message-ID: <1487251752-12478-2-git-send-email-kishon@ti.com>
+References: <1487251752-12478-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1487251752-12478-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com
 Cc: Joao Pinto <Joao.Pinto@synopsys.com>, nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This series does additional cleanup on top of [1] in preparation
-for adding endpoint mode support to designware driver.
+Some platforms (like dra7xx) require only the least 28 bits of the
+corresponding 32 bit CPU address to be programmed in the address
+translation unit. This modified address is stored in io_base/mem_base/
+cfg0_base/cfg1_base in dra7xx_pcie_host_init. While this is okay for
+host mode where the address range is fixed, device mode requires
+different addresses to be programmed based on the host buffer address.
+Add a new ops to get the least 28 bits of the corresponding 32 bit
+CPU address and invoke it before programming the address translation
+unit.
 
-This series was previously sent as part of endpoint support series [2].
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/pci/dwc/pcie-designware.c |    3 +++
+ drivers/pci/dwc/pcie-designware.h |    1 +
+ 2 files changed, 4 insertions(+)
 
-Once this series is merged, PCI endpoint series can be merged. I'll wait
-for this series to be merged before sending the next revision of endpoint
-series.
-
-The entire endpoint support is pushed here:
-git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git next
-
-[1] -> https://lkml.org/lkml/2017/2/15/273
-[2] -> https://lkml.org/lkml/2017/1/13/562
-
-Kishon Vijay Abraham I (4):
-  PCI: dwc: designware: Add new *ops* for cpu addr fixup
-  PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
-  PCI: dwc: all: Modify dbi accessors to take dbi_base as argument
-  PCI: dwc: all: Modify dbi accessors to access data of 4/2/1     
-    bytes
-
- drivers/pci/dwc/pci-dra7xx.c           |   21 ++++---
- drivers/pci/dwc/pci-exynos.c           |   14 +++--
- drivers/pci/dwc/pci-imx6.c             |   67 +++++++++++---------
- drivers/pci/dwc/pci-keystone-dw.c      |   16 +++--
- drivers/pci/dwc/pcie-armada8k.c        |   39 +++++++-----
- drivers/pci/dwc/pcie-artpec6.c         |    7 ++-
- drivers/pci/dwc/pcie-designware-host.c |   20 +++---
- drivers/pci/dwc/pcie-designware.c      |  108 ++++++++++++++++++++------------
- drivers/pci/dwc/pcie-designware.h      |   13 ++--
- drivers/pci/dwc/pcie-hisi.c            |   17 ++---
- 10 files changed, 192 insertions(+), 130 deletions(-)
-
+diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
+index 7e1fb7d..14ee7a3 100644
+--- a/drivers/pci/dwc/pcie-designware.c
++++ b/drivers/pci/dwc/pcie-designware.c
+@@ -97,6 +97,9 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
+ {
+ 	u32 retries, val;
+ 
++	if (pp->ops->cpu_addr_fixup)
++		cpu_addr = pp->ops->cpu_addr_fixup(cpu_addr);
++
+ 	if (pci->iatu_unroll_enabled) {
+ 		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_LOWER_BASE,
+ 				      lower_32_bits(cpu_addr));
+diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+index cd3b871..8f3dcb2 100644
+--- a/drivers/pci/dwc/pcie-designware.h
++++ b/drivers/pci/dwc/pcie-designware.h
+@@ -143,6 +143,7 @@ struct pcie_port {
+ };
+ 
+ struct dw_pcie_ops {
++	u64	(*cpu_addr_fixup)(u64 cpu_addr);
+ 	u32	(*readl_dbi)(struct dw_pcie *pcie, u32 reg);
+ 	void	(*writel_dbi)(struct dw_pcie *pcie, u32 reg, u32 val);
+ 	int	(*link_up)(struct dw_pcie *pcie);
 -- 
 1.7.9.5
