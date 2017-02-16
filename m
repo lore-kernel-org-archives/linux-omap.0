@@ -1,57 +1,66 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: [PATCH 3.16 214/306] net: ethernet: ti: cpsw: fix device and
- of_node leaks
-Date: Wed, 15 Feb 2017 22:41:40 +0000
-Message-ID: <lsq.1487198500.9710842@decadent.org.uk>
-References: <lsq.1487198498.99718322@decadent.org.uk>
+From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v5 0/5] dmaengine: cppi41: Make CPPI 4.1 driver more
+ generic
+Date: Thu, 16 Feb 2017 10:10:59 +0530
+Message-ID: <20170216044059.GR2843@localhost>
+References: <20170215135636.31427-1-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <lsq.1487198498.99718322@decadent.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: akpm@linux-foundation.org, Johan Hovold <johan@kernel.org>, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+In-Reply-To: <20170215135636.31427-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-3.16.40-rc1 review patch.  If anyone has any objections, please let me know.
+On Wed, Feb 15, 2017 at 02:56:31PM +0100, Alexandre Bailon wrote:
+> This series intend to make the CPPI 4.1 more generic in order to
+> add a new platform (the DA8xx).
+> To achieve that, all the IRQ code present in CPPI 4.1 driver has been moved
+> to MUSB DSPS driver.
+> Other changes mainly update the glue layer and platform code to make the
+> whole driver more generic.
+> 
+> Changes in v5:
+>  - Rebase on linux-next
+>  - No dependencies on other series anymore (they have been applied)
 
-------------------
+Not really, we dont apply patches on linux-next but on subsystem tree's.
+So since we are soo close to merge window, am going to defer this series and
+apply once merge window closes.
 
-From: Johan Hovold <johan@kernel.org>
+> 
+> Changes in v4:
+>  - Remove dev argument in patch 4
+>  - Remove the isr callback from glue
+> 
+> Changes in v3:
+> - To prevent build error report from kbuild test robot, move the first
+>   patch of v2 to another patchset.
+> - Make CPPI 4.1 driver compatible with old and new binddings.
+> - Remove the patch updating the am33xx-usb binddings.
+> - Remove useless changes in patch 4
+> - Remove a patch that was fixing PM runtime issue that was happenning
+>   during a teardown. Tony Lindgren's patches fix the issue.
+> 
+> Alexandre Bailon (5):
+>   dmaengine: cppi41: Remove usbss_mem
+>   dmaengine: cppi41: rename platform variables
+>   dmaengine: cppi41: Move some constants to glue layer
+>   dmaengine: cppi41: init_sched(): Get number of channels from DT
+>   dmaengine: cppi41: Remove isr callback from glue layer
+> 
+>  drivers/dma/cppi41.c | 79 ++++++++++++++++++++++++++++++----------------------
+>  1 file changed, 46 insertions(+), 33 deletions(-)
+> 
+> -- 
+> 2.10.2
+> 
 
-commit c7262aaace1b17a650598063e3b9ee1785fde377 upstream.
-
-Make sure to drop the references taken by of_get_child_by_name() and
-bus_find_device() before returning from cpsw_phy_sel().
-
-Note that holding a reference to the cpsw-phy-sel device does not
-prevent the devres-managed private data from going away.
-
-Fixes: 5892cd135e16 ("drivers: net: cpsw-phy-sel: Add new driver...")
-Cc: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Johan Hovold <johan@kernel.org>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
----
- drivers/net/ethernet/ti/cpsw-phy-sel.c | 3 +++
- 1 file changed, 3 insertions(+)
-
---- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
-+++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-@@ -152,9 +152,12 @@ void cpsw_phy_sel(struct device *dev, ph
- 	}
- 
- 	dev = bus_find_device(&platform_bus_type, NULL, node, match);
-+	of_node_put(node);
- 	priv = dev_get_drvdata(dev);
- 
- 	priv->cpsw_phy_sel(priv, phy_mode, slave);
-+
-+	put_device(dev);
- }
- EXPORT_SYMBOL_GPL(cpsw_phy_sel);
- 
+-- 
+~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
