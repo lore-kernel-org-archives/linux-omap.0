@@ -1,81 +1,91 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH 23/35] drivers/mfd: Convert remaining uses of pr_warning to pr_warn
-Date: Thu, 16 Feb 2017 23:11:36 -0800
-Message-ID: <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
-References: <cover.1487314666.git.joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1487314666.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH v3 0/3] Adding DT support for TI HECC module
+Date: Fri, 17 Feb 2017 09:46:52 +0100
+Message-ID: <7c8fb14d-835b-d1d0-ca4f-4d184b711ae0@pengutronix.de>
+References: <1487170125-10815-1-git-send-email-yegorslists@googlemail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="fklsjnRseX9vAwDw0GQx1gPe8gw2B0agh"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1487170125-10815-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org, linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, hs-ynQEQJNshbs@public.gmane.org, anton.a.glukhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-To enable eventual removal of pr_warning
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--fklsjnRseX9vAwDw0GQx1gPe8gw2B0agh
+Content-Type: multipart/mixed; boundary="W3mjXSSrBAjEOArEamvAwai7GNQo2tKV7";
+ protected-headers="v1"
+From: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+To: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org, linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
+ hs-ynQEQJNshbs@public.gmane.org, anton.a.glukhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Message-ID: <7c8fb14d-835b-d1d0-ca4f-4d184b711ae0-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH v3 0/3] Adding DT support for TI HECC module
+References: <1487170125-10815-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1487170125-10815-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 
-This makes pr_warn use consistent for drivers/mfd
+--W3mjXSSrBAjEOArEamvAwai7GNQo2tKV7
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Prior to this patch, there were 4 uses of pr_warning and
-9 uses of pr_warn in drivers/mfd
+On 02/15/2017 03:48 PM, yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org wrote:
+> From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+>=20
+> This is an attempt to revive DT support for TI HECC that was started in=
+ 2015 [1].
+>=20
+> Changes v2 -> v3:
+>   - rename compatible property to "ti,am3517-hecc" (though there is a s=
+tipped
+>     device named 3505, EMAC driver already uses am3517-emac name, so ke=
+ep this
+>     property consistent)
+>   - use reg-names to specify different HECC I/O mapping (suggested by T=
+ony Lindgren)
+>   - provide fallback offsets and sizes for board files
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/mfd/db8500-prcmu.c  | 2 +-
- drivers/mfd/sta2x11-mfd.c   | 4 ++--
- drivers/mfd/twl4030-power.c | 7 ++-----
- 3 files changed, 5 insertions(+), 8 deletions(-)
+Are there any board files using te_hecc intree? I don't see any on the
+first glance. What about making the driver DT only?
 
-diff --git a/drivers/mfd/db8500-prcmu.c b/drivers/mfd/db8500-prcmu.c
-index ca38a6a14110..5c739ac752e8 100644
---- a/drivers/mfd/db8500-prcmu.c
-+++ b/drivers/mfd/db8500-prcmu.c
-@@ -2377,7 +2377,7 @@ static void ack_dbb_wakeup(void)
- 
- static inline void print_unknown_header_warning(u8 n, u8 header)
- {
--	pr_warning("prcmu: Unknown message header (%d) in mailbox %d.\n",
-+	pr_warn("prcmu: Unknown message header (%d) in mailbox %d\n",
- 		header, n);
- }
- 
-diff --git a/drivers/mfd/sta2x11-mfd.c b/drivers/mfd/sta2x11-mfd.c
-index 9292202039ee..3aeafa228baf 100644
---- a/drivers/mfd/sta2x11-mfd.c
-+++ b/drivers/mfd/sta2x11-mfd.c
-@@ -60,8 +60,8 @@ static struct sta2x11_mfd *sta2x11_mfd_find(struct pci_dev *pdev)
- 	struct sta2x11_mfd *mfd;
- 
- 	if (!pdev && !list_empty(&sta2x11_mfd_list)) {
--		pr_warning("%s: Unspecified device, "
--			    "using first instance\n", __func__);
-+		pr_warn("%s: Unspecified device, using first instance\n",
-+			__func__);
- 		return list_entry(sta2x11_mfd_list.next,
- 				  struct sta2x11_mfd, list);
- 	}
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 1beb722f6080..8be023ba8e3e 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -502,9 +502,7 @@ static int load_twl4030_script(const struct twl4030_power_data *pdata,
- 	}
- 	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
- 		if (!order)
--			pr_warning("TWL4030: Bad order of scripts (sleep "\
--					"script before wakeup) Leads to boot"\
--					"failure on some boards\n");
-+			pr_warn("TWL4030: Bad order of scripts (sleep script before wakeup) Leads to boot failure on some boards\n");
- 		err = twl4030_config_sleep_sequence(address);
- 	}
- out:
-@@ -929,8 +927,7 @@ static int twl4030_power_probe(struct platform_device *pdev)
- 		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
- 				      TWL4030_PM_MASTER_CFG_P123_TRANSITION);
- 		if (err) {
--			pr_warning("TWL4030 Unable to read registers\n");
--
-+			pr_warn("TWL4030 Unable to read registers\n");
- 		} else if (!(val & SEQ_OFFSYNC)) {
- 			val |= SEQ_OFFSYNC;
- 			err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, val,
--- 
-2.10.0.rc2.1.g053435c
+>   - convert optional property ti,int_line to ti,use-hecc1int and add pr=
+oper
+>     description
+
+regards,
+Marc
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--W3mjXSSrBAjEOArEamvAwai7GNQo2tKV7--
+
+--fklsjnRseX9vAwDw0GQx1gPe8gw2B0agh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCgAdFiEE4bay/IylYqM/npjQHv7KIOw4HPYFAlimuIAACgkQHv7KIOw4
+HPbY9Qf/Q9z5k9dRvk3dOK7j8u2PjKMga2t3aR4EEYAMvpMP+ziGgFxiNEw9Q97X
+a3IN/KItZ98ezhXaFwABKCbTaWD2oXXjg5lCaBgl1zmzxzQ71MWU6GJNlLGSJQ7q
+lOdi0fbi7lyFO6y5WMjp4pl4cw6HliwJHfrLgSOFWpT8DSHDcXpRZTxSWI3T4Vyg
+/aVgC4LjyO3BdMOjukgzArbmrnQFW7XHlx4EsMg1rABUfoQMMgJ5ZhA49IXI9TPs
+9nMXRl8gr6H6YF8SbKe/JXLCE2mlHZL0ZodKYZX3wqmwvvOBv5FidgnJHvLSWK7k
+GI7niIgZ92EQwJq9112sKoVRWRQ7nQ==
+=z82X
+-----END PGP SIGNATURE-----
+
+--fklsjnRseX9vAwDw0GQx1gPe8gw2B0agh--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
