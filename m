@@ -1,60 +1,140 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 00/35] treewide trivial patches converting pr_warning to
-	pr_warn
-Date: Fri, 17 Feb 2017 13:37:33 +0100
-Message-ID: <CAMuHMdWsG0DboaLqXag53Vejwvc5PPY2k2gy9PSdHWbNEx6nRQ@mail.gmail.com>
-References: <cover.1487314666.git.joe@perches.com>
-	<CAJZ5v0gNcGtnXpE1n6LSq7ey+UDKx+oQfmTg0_PgFwzB0Dd_5A@mail.gmail.com>
+From: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 04/22] Documentation: PCI: Guide to use pci endpoint
+ configfs
+Date: Fri, 17 Feb 2017 13:05:32 +0000
+Message-ID: <ac16c03a-e415-327c-27b3-bcc700a6f953@synopsys.com>
+References: <1487325042-28227-1-git-send-email-kishon@ti.com>
+ <1487325042-28227-5-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <virtualization-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAJZ5v0gNcGtnXpE1n6LSq7ey+UDKx+oQfmTg0_PgFwzB0Dd_5A@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
-List-Post: <mailto:virtualization@lists.linux-foundation.org>
-List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
-Sender: virtualization-bounces@lists.linux-foundation.org
-Errors-To: virtualization-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, nouveau@lists.freedesktop.org, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, dri-devel <dri-devel@lists.freedesktop.org>, virtualization@lists.linux-foundation.org, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, MTD Maling List <linux-mtd@lists.infradead.org>, sparclinux <sparclinux@vger.kernel.org>, Lars Ellenberg <drbd-dev@lists.linbit.com>, "open list:TARGET SUBSYSTEM" <linux-scsi@vger.kernel.org>, Richard Weinberger <richard@nod.at>, sfi-devel@simplefirmware.org, amd-gfx@lists.freedesktop.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, tboot-devel@lists.sourceforge.net, oprofil
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1487325042-28227-5-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rafael,
+Às 9:50 AM de 2/17/2017, Kishon Vijay Abraham I escreveu:
+> Add Documentation to help users use pci endpoint to configure
+> pci endpoint function and to bind the endpoint function
+> with endpoint controller.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/PCI/00-INDEX                      |    2 +
+>  Documentation/PCI/endpoint/pci-endpoint-cfs.txt |   84 +++++++++++++++++++++++
+>  2 files changed, 86 insertions(+)
+>  create mode 100644 Documentation/PCI/endpoint/pci-endpoint-cfs.txt
+> 
+> diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
+> index ba950b2..f84a23c 100644
+> --- a/Documentation/PCI/00-INDEX
+> +++ b/Documentation/PCI/00-INDEX
+> @@ -14,3 +14,5 @@ pcieaer-howto.txt
+>  	- the PCI Express Advanced Error Reporting Driver Guide HOWTO
+>  endpoint/pci-endpoint.txt
+>  	- guide to add endpoint controller driver and endpoint function driver.
+> +endpoint/pci-endpoint-cfs.txt
+> +	- guide to use configfs to configure the pci endpoint function.
+> diff --git a/Documentation/PCI/endpoint/pci-endpoint-cfs.txt b/Documentation/PCI/endpoint/pci-endpoint-cfs.txt
+> new file mode 100644
+> index 0000000..d9f8734
+> --- /dev/null
+> +++ b/Documentation/PCI/endpoint/pci-endpoint-cfs.txt
+> @@ -0,0 +1,84 @@
+> +                   CONFIGURING PCI ENDPOINT USING CONFIGFS
+> +                    Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> +
+> +The PCI Endpoint Core exposes configfs entry (pci_ep) in order to configure the
+> +PCI endpoint function and in order to bind the endpoint function
+> +with the endpoint controller. (For introducing other mechanisms to
+> +configure the PCI Endpoint Function refer [1]).
+> +
+> +*) Mounting configfs
+> +
+> +The PCI Endpoint Core layer creates pci_ep directory in the mounted configfs
+> +directory. configfs can be mounted using the following command.
+> +
+> +	mount -t configfs none /sys/kernel/config
+> +
+> +*) Directory Structure
+> +
+> +The pci_ep configfs directory structure has been created to reflect the
+> +natural tree like structure of PCI devices. So every directory created
+> +inside pci_ep represents a EPC device and every directory created inside
+> +epf directory represents EPF device.
+> +
+> +/sys/kernel/config/pci_ep/
+> +			 | <dir>/ --------------------------------------> [2]
+> +				| epc
+> +				| epf/
+> +				     | <dir>/ --------------------------> [3]
+> +					    | vendorid
+> +					    | deviceid
+> +					    | revid
+> +					    | progif_code
+> +					    | subclass_code
+> +					    | baseclass_code
+> +					    | cache_line_size
+> +					    | subsys_vendor_id
+> +					    | subsys_id
+> +					    | interrupt_pin
+> +					    | function
+> +
+> +*) Creating configfs entry for EPC
+> +
+> +Any directory created inside *pci_ep* represents an EPC device. In the above
+> +directory structure [2] represents an EPC device. It consists of
+> +
+> +	*) epc: Use it to associate the configfs entry to an actual EPC device.
+> +		The list of valid entries for this field can be obtained from
+> +			ls /sys/class/pci_epc/
+> +
+> +	*) epf: Directory that contains all the endpoint functions. The name
+> +		of the created directory determines the driver this particular
+> +		epf device will be bound to. The name can be obtained either
+> +		from the function binding documentation [4] or
+> +			ls /sys/bus/pci-epf/drivers
+> +
+> +		If more than one endpoint function device has to be bound to
+> +		the same driver, then the directory should be created using
+> +		the following notation
+> +			mkdir <name>.<num>
+> +
+> +*) Creating configfs entry for EPF
+> +
+> +Any directory created inside *epf* directory represents an EPF device. In the
+> +above directory structure, [3] represents an EPF device. It consists of the
+> +following entries that can be used to configure the standard configuration
+> +header of the endpoint function. (These entries are created by the
+> +framework when any new directory is created inside epf directory.)
+> +
+> +        | vendorid
+> +        | deviceid
+> +        | revid
+> +        | progif_code
+> +        | subclass_code
+> +        | baseclass_code
+> +        | cache_line_size
+> +        | subsys_vendor_id
+> +        | subsys_id
+> +        | interrupt_pin
+> +
+> +The following entry identifies the function driver that is bound to the
+> +function device
+> +	| function
+> +
+> +[1] -> Documentation/PCI/endpoint/pci-endpoint.txt
+> +[4] -> Documentation/PCI/endpoint/function/binding/
+> 
 
-On Fri, Feb 17, 2017 at 1:27 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Fri, Feb 17, 2017 at 8:11 AM, Joe Perches <joe@perches.com> wrote:
->> There are ~4300 uses of pr_warn and ~250 uses of the older
->> pr_warning in the kernel source tree.
->>
->> Make the use of pr_warn consistent across all kernel files.
->>
->> This excludes all files in tools/ as there is a separate
->> define pr_warning for that directory tree and pr_warn is
->> not used in tools/.
->>
->> Done with 'sed s/\bpr_warning\b/pr_warn/' and some emacsing.
->
-> Sorry about asking if that has been asked already.
->
-> Wouldn't it be slightly less intrusive to simply redefined
-> pr_warning() as a synonym for pr_warn()?
+Good content.
 
-That's already the case.
+Acked-By: Joao Pinto <jpinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
 
-This series cleans up the cruft, so we can catch all users with
-"git grep -w pr_warn".
-
-Gr{oetje,eeting}s,
-
-                        Geert
 
 --
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
