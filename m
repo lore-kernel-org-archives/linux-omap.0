@@ -1,105 +1,51 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 08/22] PCI: dwc: designware: Add EP mode support
-Date: Fri, 17 Feb 2017 18:45:03 +0530
-Message-ID: <58A6F757.2060705@ti.com>
-References: <1487325042-28227-1-git-send-email-kishon@ti.com>
- <1487325042-28227-9-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1487325042-28227-9-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com
+From: yegorslists@googlemail.com
+Subject: [PATCH v4 0/3] Adding DT support for TI HECC module
+Date: Fri, 17 Feb 2017 14:45:55 +0100
+Message-ID: <1487339158-18809-1-git-send-email-yegorslists@googlemail.com>
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: linux-can@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org, tony@atomide.com, mkl@pengutronix.de, andrej.skvortzov@gmail.com, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-On Friday 17 February 2017 03:20 PM, Kishon Vijay Abraham I wrote:
-> Add endpoint mode support to designware driver. This uses the
-> EP Core layer introduced recently to add endpoint mode support.
-> *Any* function driver can now use this designware device
-> in order to achieve the EP functionality.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/pci/dwc/Kconfig              |    5 +
->  drivers/pci/dwc/Makefile             |    1 +
->  drivers/pci/dwc/pcie-designware-ep.c |  342 ++++++++++++++++++++++++++++++++++
->  drivers/pci/dwc/pcie-designware.c    |   51 +++++
->  drivers/pci/dwc/pcie-designware.h    |   72 +++++++
->  5 files changed, 471 insertions(+)
->  create mode 100644 drivers/pci/dwc/pcie-designware-ep.c
-> 
-> diff --git a/drivers/pci/dwc/Kconfig b/drivers/pci/dwc/Kconfig
-> index dfb8a69..00335c7 100644
-> --- a/drivers/pci/dwc/Kconfig
-> +++ b/drivers/pci/dwc/Kconfig
-> @@ -9,6 +9,11 @@ config PCIE_DW_HOST
->  	depends on PCI_MSI_IRQ_DOMAIN
->          select PCIE_DW
->  
-> +config PCIE_DW_EP
-> +	bool
-> +	depends on PCI_ENDPOINT
-> +	select PCIE_DW
-> +
->  config PCI_DRA7XX
->  	bool "TI DRA7xx PCIe controller"
->  	depends on PCI
-> diff --git a/drivers/pci/dwc/Makefile b/drivers/pci/dwc/Makefile
-> index a2df13c..b38425d 100644
-> --- a/drivers/pci/dwc/Makefile
-> +++ b/drivers/pci/dwc/Makefile
-> @@ -1,5 +1,6 @@
->  obj-$(CONFIG_PCIE_DW) += pcie-designware.o
->  obj-$(CONFIG_PCIE_DW_HOST) += pcie-designware-host.o
-> +obj-$(CONFIG_PCIE_DW_EP) += pcie-designware-ep.o
->  obj-$(CONFIG_PCIE_DW_PLAT) += pcie-designware-plat.o
->  obj-$(CONFIG_PCI_DRA7XX) += pci-dra7xx.o
->  obj-$(CONFIG_PCI_EXYNOS) += pci-exynos.o
-> diff --git a/drivers/pci/dwc/pcie-designware-ep.c b/drivers/pci/dwc/pcie-designware-ep.c
-> new file mode 100644
-> index 0000000..e465c5e
-> --- /dev/null
-> +++ b/drivers/pci/dwc/pcie-designware-ep.c
-> @@ -0,0 +1,342 @@
-> +/**
-> + * Synopsys Designware PCIe Endpoint controller driver
-> + *
-> + * Copyright (C) 2017 Texas Instruments
-> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
-> + *
-> + * This program is free software: you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 of
-> + * the License as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +
-> +#include <linux/of.h>
-> +
-> +#include "pcie-designware.h"
-> +#include <linux/pci-epc.h>
-> +#include <linux/pci-epf.h>
-> +
-> +void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
-> +{
-> +	struct pci_epc *epc = ep->epc;
-> +	struct pci_epf *epf;
-> +
-> +	list_for_each_entry(epf, &epc->pci_epf, list)
-> +		pci_epf_linkup(epf);
+This is an attempt to revive DT support for TI HECC that was started in 2015 [1].
 
-Just notices, the right place to use this list should be pci-epc-core. Will fix
-this in the next revision.
+Changes v3 -> v4:
+  - implement tranciever handling via regulator API (suggested by Marc Kleine-Budde)
+  - convert the driver to DT only driver, i.e. remove legacy platform struct and header
+    (suggested by Marc Kleine-Budde)
 
-Thanks
-Kishon
+Changes v2 -> v3:
+  - rename compatible property to "ti,am3517-hecc" (though there is a stipped
+    device named 3505, EMAC driver already uses am3517-emac name, so keep this
+    property consistent)
+  - use reg-names to specify different HECC I/O mapping (suggested by Tony Lindgren)
+  - provide fallback offsets and sizes for board files
+  - convert optional property ti,int_line to ti,use-hecc1int and add proper
+    description
+
+Changes v1 -> v2:
+  - change compatible to "ti,am3505
+  - remove CONFIG_OF
+  - don't set int_line to 0 explicitly
+
+[1] http://comments.gmane.org/gmane.linux.can/8616
+
+Yegor Yefremov (3):
+  ARM: dts: AM35x: Add hecc node
+  can: ti_hecc: Add TI HECC DT binding documentation
+  can: ti_hecc: Add DT support for TI HECC module
+
+ .../devicetree/bindings/net/can/ti_hecc.txt        |  33 ++++
+ arch/arm/boot/dts/am3517.dtsi                      |  12 ++
+ drivers/net/can/ti_hecc.c                          | 166 +++++++++++----------
+ include/linux/can/platform/ti_hecc.h               |  44 ------
+ 4 files changed, 133 insertions(+), 122 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/can/ti_hecc.txt
+ delete mode 100644 include/linux/can/platform/ti_hecc.h
+
+-- 
+2.1.4
+
