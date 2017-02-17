@@ -1,383 +1,295 @@
-From: yegorslists@googlemail.com
-Subject: [PATCH v5 3/3] can: ti_hecc: Add DT support for TI HECC module
-Date: Fri, 17 Feb 2017 16:52:33 +0100
-Message-ID: <1487346753-19286-4-git-send-email-yegorslists@googlemail.com>
-References: <1487346753-19286-1-git-send-email-yegorslists@googlemail.com>
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1487346753-19286-1-git-send-email-yegorslists@googlemail.com>
-Sender: linux-can-owner@vger.kernel.org
-To: linux-can@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org, tony@atomide.com, mkl@pengutronix.de, andrej.skvortzov@gmail.com, Yegor Yefremov <yegorslists@googlemail.com>, Anton Glukhov <anton.a.glukhov@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting cpu1
+ during boot
+Date: Fri, 17 Feb 2017 07:55:02 -0800
+Message-ID: <20170217155502.GD21809@atomide.com>
+References: <20170213215013.19929-1-tony@atomide.com>
+ <20170214193645.GM21809@atomide.com>
+ <20170215183915.GU3897@atomide.com>
+ <20170215191242.GP21809@atomide.com>
+ <ca389104-df6f-b055-ec43-524d82cf1be7@ti.com>
+ <20170215222711.GQ21809@atomide.com>
+ <20170216161010.GU21809@atomide.com>
+ <fc1e75e8-87ef-59f1-3c8a-cb45f1749e50@ti.com>
+ <20170216165409.GW21809@atomide.com>
+ <20170216190701.GY21809@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20170216190701.GY21809@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Yegor Yefremov <yegorslists@googlemail.com>
+* Tony Lindgren <tony@atomide.com> [170216 11:08]:
+> * Tony Lindgren <tony@atomide.com> [170216 08:55]:
+> > For your use case, probably all we need is runtime checks for HS in
+> > addition to parking cpu1 for kexec. If that's not enough, then maybe
+> > a device specific DT property for never-reset-no-matter-what.
+> 
+> Below is a first take on the last resort cpu1 reset done based on
+> configured CPU1_WAKEUP_NS_PA_ADDR_OFFSET for omap4 and 5. Note that
+> we can't merge it yet as it will break kexec boot for dra7. To fix that,
+> we need to first do what you're suggesting and properly park cpu1 for
+> kexec.
 
-This patch converts TI HECC driver to DT only driver. This results in
-removing ti_hecc.h containing now obsolete platform data.
+Something like the patch below might be doable for the first fix
+before we have something to park cpu1 for kexec. I've added more checks
+to attemp to detect cpu1 being in WFI. At least things keep on working
+for kexec on omap4/5 and GP dra7.
 
-Former transceiver_switch callback function will be now modelled via
-regulator API.
+Andrew, care to give it a try and see if can add some HS dra7 checks
+there too to have kexec work on it? Basically we want to attempt to
+detect if there's a chance cpu1 is in WFI, and if I think the only
+optino is to reset it before bringing it up as otherwise outcome will
+be unpredictable.
 
-Signed-off-by: Anton Glukhov <anton.a.glukhov@gmail.com>
-Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
----
- drivers/net/can/ti_hecc.c            | 170 ++++++++++++++++++-----------------
- include/linux/can/platform/ti_hecc.h |  44 ---------
- 2 files changed, 88 insertions(+), 126 deletions(-)
- delete mode 100644 include/linux/can/platform/ti_hecc.h
+Regards,
 
-diff --git a/drivers/net/can/ti_hecc.c b/drivers/net/can/ti_hecc.c
-index 81865a3..b87e8f3 100644
---- a/drivers/net/can/ti_hecc.c
-+++ b/drivers/net/can/ti_hecc.c
-@@ -17,25 +17,6 @@
-  *
-  */
+Tony
+
+8< -----------------------
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -270,6 +270,7 @@ extern const struct smp_operations omap4_smp_ops;
+ extern int omap4_mpuss_init(void);
+ extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
+ extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
++extern u32 omap4_get_cpu1_ns_pa_addr(void);
+ #else
+ static inline int omap4_enter_lowpower(unsigned int cpu,
+ 					unsigned int power_state)
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -64,6 +64,7 @@
+ #include "prm-regbits-44xx.h"
  
--/*
-- * Your platform definitions should specify module ram offsets and interrupt
-- * number to use as follows:
-- *
-- * static struct ti_hecc_platform_data am3517_evm_hecc_pdata = {
-- *         .scc_hecc_offset        = 0,
-- *         .scc_ram_offset         = 0x3000,
-- *         .hecc_ram_offset        = 0x3000,
-- *         .mbx_offset             = 0x2000,
-- *         .int_line               = 0,
-- *         .revision               = 1,
-- *         .transceiver_switch     = hecc_phy_control,
-- * };
-- *
-- * Please see include/linux/can/platform/ti_hecc.h for description of
-- * above fields.
-- *
-- */
--
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/types.h>
-@@ -46,11 +27,13 @@
- #include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/regulator/consumer.h>
+ static void __iomem *sar_base;
++static u32 old_cpu1_ns_pa_addr;
  
- #include <linux/can/dev.h>
- #include <linux/can/error.h>
- #include <linux/can/led.h>
--#include <linux/can/platform/ti_hecc.h>
+ #if defined(CONFIG_PM) && defined(CONFIG_SMP)
  
- #define DRV_NAME "ti_hecc"
- #define HECC_MODULE_VERSION     "0.7"
-@@ -214,15 +197,14 @@ struct ti_hecc_priv {
- 	struct net_device *ndev;
- 	struct clk *clk;
- 	void __iomem *base;
--	u32 scc_ram_offset;
--	u32 hecc_ram_offset;
--	u32 mbx_offset;
--	u32 int_line;
-+	void __iomem *hecc_ram;
-+	void __iomem *mbx;
-+	bool use_hecc1int;
- 	spinlock_t mbx_lock; /* CANME register needs protection */
- 	u32 tx_head;
- 	u32 tx_tail;
- 	u32 rx_next;
--	void (*transceiver_switch)(int);
-+	struct regulator *reg_xceiver;
- };
+@@ -212,6 +213,11 @@ static void __init save_l2x0_context(void)
+ {}
+ #endif
  
- static inline int get_tx_head_mb(struct ti_hecc_priv *priv)
-@@ -242,20 +224,18 @@ static inline int get_tx_head_prio(struct ti_hecc_priv *priv)
- 
- static inline void hecc_write_lam(struct ti_hecc_priv *priv, u32 mbxno, u32 val)
- {
--	__raw_writel(val, priv->base + priv->hecc_ram_offset + mbxno * 4);
-+	__raw_writel(val, priv->hecc_ram + mbxno * 4);
- }
- 
- static inline void hecc_write_mbx(struct ti_hecc_priv *priv, u32 mbxno,
- 	u32 reg, u32 val)
- {
--	__raw_writel(val, priv->base + priv->mbx_offset + mbxno * 0x10 +
--			reg);
-+	__raw_writel(val, priv->mbx + mbxno * 0x10 + reg);
- }
- 
- static inline u32 hecc_read_mbx(struct ti_hecc_priv *priv, u32 mbxno, u32 reg)
- {
--	return __raw_readl(priv->base + priv->mbx_offset + mbxno * 0x10 +
--			reg);
-+	return __raw_readl(priv->mbx + mbxno * 0x10 + reg);
- }
- 
- static inline void hecc_write(struct ti_hecc_priv *priv, u32 reg, u32 val)
-@@ -311,11 +291,16 @@ static int ti_hecc_set_btc(struct ti_hecc_priv *priv)
- 	return 0;
- }
- 
--static void ti_hecc_transceiver_switch(const struct ti_hecc_priv *priv,
--					int on)
-+static int ti_hecc_transceiver_switch(const struct ti_hecc_priv *priv,
-+				      int on)
- {
--	if (priv->transceiver_switch)
--		priv->transceiver_switch(on);
-+	if (!priv->reg_xceiver)
-+		return 0;
++u32 omap4_get_cpu1_ns_pa_addr(void)
++{
++	return old_cpu1_ns_pa_addr;
++}
 +
-+	if (on)
-+		return regulator_enable(priv->reg_xceiver);
+ /**
+  * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
+  * The purpose of this function is to manage low power programming
+@@ -371,7 +377,7 @@ int __init omap4_mpuss_init(void)
+ 	pm_info = &per_cpu(omap4_pm_info, 0x0);
+ 	if (sar_base) {
+ 		pm_info->scu_sar_addr = sar_base + SCU_OFFSET0;
+-		if (cpu_is_omap44xx())
++		if (soc_is_omap44xx())
+ 			pm_info->wkup_sar_addr = sar_base +
+ 				CPU0_WAKEUP_NS_PA_ADDR_OFFSET;
+ 		else
+@@ -395,7 +401,7 @@ int __init omap4_mpuss_init(void)
+ 	pm_info = &per_cpu(omap4_pm_info, 0x1);
+ 	if (sar_base) {
+ 		pm_info->scu_sar_addr = sar_base + SCU_OFFSET1;
+-		if (cpu_is_omap44xx())
++		if (soc_is_omap44xx())
+ 			pm_info->wkup_sar_addr = sar_base +
+ 				CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
+ 		else
+@@ -432,7 +438,7 @@ int __init omap4_mpuss_init(void)
+ 		save_l2x0_context();
+ 	}
+ 
+-	if (cpu_is_omap44xx()) {
++	if (soc_is_omap44xx()) {
+ 		omap_pm_ops.finish_suspend = omap4_finish_suspend;
+ 		omap_pm_ops.resume = omap4_cpu_resume;
+ 		omap_pm_ops.scu_prepare = scu_pwrst_prepare;
+@@ -443,7 +449,7 @@ int __init omap4_mpuss_init(void)
+ 		enable_mercury_retention_mode();
+ 	}
+ 
+-	if (cpu_is_omap446x())
++	if (soc_is_omap446x())
+ 		omap_pm_ops.hotplug_restart = omap4460_secondary_startup;
+ 
+ 	return 0;
+@@ -460,22 +466,30 @@ int __init omap4_mpuss_init(void)
+ void __init omap4_mpuss_early_init(void)
+ {
+ 	unsigned long startup_pa;
++	void __iomem *ns_pa_addr;
+ 
+-	if (!(cpu_is_omap44xx() || soc_is_omap54xx()))
++	if (!(soc_is_omap44xx() || soc_is_omap54xx()))
+ 		return;
+ 
+ 	sar_base = omap4_get_sar_ram_base();
+ 
+-	if (cpu_is_omap443x())
++	/* Restore old NS_PA_ADDR for validity checks later on */
++	if (soc_is_omap44xx())
++		ns_pa_addr = sar_base + CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
 +	else
-+		return regulator_disable(priv->reg_xceiver);
- }
++		ns_pa_addr = sar_base + OMAP5_CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
++	old_cpu1_ns_pa_addr = readl_relaxed(ns_pa_addr);
++
++	if (soc_is_omap443x())
+ 		startup_pa = __pa_symbol(omap4_secondary_startup);
+-	else if (cpu_is_omap446x())
++	else if (soc_is_omap446x())
+ 		startup_pa = __pa_symbol(omap4460_secondary_startup);
+ 	else if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
+ 		startup_pa = __pa_symbol(omap5_secondary_hyp_startup);
+ 	else
+ 		startup_pa = __pa_symbol(omap5_secondary_startup);
  
- static void ti_hecc_reset(struct net_device *ndev)
-@@ -409,7 +394,7 @@ static void ti_hecc_start(struct net_device *ndev)
- 
- 	/* Prevent message over-write & Enable interrupts */
- 	hecc_write(priv, HECC_CANOPC, HECC_SET_REG);
--	if (priv->int_line) {
-+	if (priv->use_hecc1int) {
- 		hecc_write(priv, HECC_CANMIL, HECC_SET_REG);
- 		hecc_write(priv, HECC_CANGIM, HECC_CANGIM_DEF_MASK |
- 			HECC_CANGIM_I1EN | HECC_CANGIM_SIL);
-@@ -759,7 +744,7 @@ static irqreturn_t ti_hecc_interrupt(int irq, void *dev_id)
- 	unsigned long ack, flags;
- 
- 	int_status = hecc_read(priv,
--		(priv->int_line) ? HECC_CANGIF1 : HECC_CANGIF0);
-+		(priv->use_hecc1int) ? HECC_CANGIF1 : HECC_CANGIF0);
- 
- 	if (!int_status)
- 		return IRQ_NONE;
-@@ -805,7 +790,7 @@ static irqreturn_t ti_hecc_interrupt(int irq, void *dev_id)
- 	}
- 
- 	/* clear all interrupt conditions - read back to avoid spurious ints */
--	if (priv->int_line) {
-+	if (priv->use_hecc1int) {
- 		hecc_write(priv, HECC_CANGIF1, HECC_SET_REG);
- 		int_status = hecc_read(priv, HECC_CANGIF1);
- 	} else {
-@@ -871,58 +856,87 @@ static const struct net_device_ops ti_hecc_netdev_ops = {
- 	.ndo_change_mtu		= can_change_mtu,
+-	if (cpu_is_omap44xx())
++	if (soc_is_omap44xx())
+ 		writel_relaxed(startup_pa, sar_base +
+ 			       CPU1_WAKEUP_NS_PA_ADDR_OFFSET);
+ 	else
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -44,6 +44,7 @@ struct omap_smp_config {
+ 	unsigned long cpu1_rstctrl_pa;
+ 	void __iomem *cpu1_rstctrl_va;
+ 	void __iomem *scu_base;
++	void __iomem *wakeupgen_base;
+ 	void *startup_addr;
  };
  
-+static const struct of_device_id ti_hecc_dt_ids[] = {
-+	{
-+		.compatible = "ti,am3517-hecc",
-+	},
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, ti_hecc_dt_ids);
-+
- static int ti_hecc_probe(struct platform_device *pdev)
- {
- 	struct net_device *ndev = (struct net_device *)0;
- 	struct ti_hecc_priv *priv;
--	struct ti_hecc_platform_data *pdata;
--	struct resource *mem, *irq;
--	void __iomem *addr;
-+	struct device_node *np = pdev->dev.of_node;
-+	struct resource *res, *irq;
-+	struct regulator *reg_xceiver;
- 	int err = -ENODEV;
+@@ -140,7 +141,6 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	static struct clockdomain *cpu1_clkdm;
+ 	static bool booted;
+ 	static struct powerdomain *cpu1_pwrdm;
+-	void __iomem *base = omap_get_wakeupgen_base();
  
--	pdata = dev_get_platdata(&pdev->dev);
--	if (!pdata) {
--		dev_err(&pdev->dev, "No platform data\n");
--		goto probe_exit;
-+	if (!IS_ENABLED(CONFIG_OF) || !np)
-+		return -EINVAL;
-+
-+	reg_xceiver = devm_regulator_get(&pdev->dev, "xceiver");
-+	if (PTR_ERR(reg_xceiver) == -EPROBE_DEFER)
-+		return -EPROBE_DEFER;
-+	else if (IS_ERR(reg_xceiver))
-+		reg_xceiver = NULL;
-+
-+	ndev = alloc_candev(sizeof(struct ti_hecc_priv), HECC_MAX_TX_MBOX);
-+	if (!ndev) {
-+		dev_err(&pdev->dev, "alloc_candev failed\n");
-+		return -ENOMEM;
- 	}
-+	priv = netdev_priv(ndev);
+ 	/*
+ 	 * Set synchronisation state between this boot processor
+@@ -157,7 +157,7 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	if (omap_secure_apis_support())
+ 		omap_modify_auxcoreboot0(0x200, 0xfffffdff);
+ 	else
+-		writel_relaxed(0x20, base + OMAP_AUX_CORE_BOOT_0);
++		writel_relaxed(0x20, cfg.wakeupgen_base + OMAP_AUX_CORE_BOOT_0);
  
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!mem) {
--		dev_err(&pdev->dev, "No mem resources\n");
--		goto probe_exit;
-+	/* handle hecc memory */
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "hecc");
-+	if (!res) {
-+		dev_err(&pdev->dev, "can't get IORESOURCE_MEM hecc\n");
-+		return -EINVAL;
- 	}
--	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
--	if (!irq) {
--		dev_err(&pdev->dev, "No irq resource\n");
--		goto probe_exit;
-+
-+	priv->base = devm_ioremap_resource(&pdev->dev, res);
-+	if (!priv->base) {
-+		dev_err(&pdev->dev, "hecc ioremap failed\n");
-+		return -ENOMEM;
- 	}
--	if (!request_mem_region(mem->start, resource_size(mem), pdev->name)) {
--		dev_err(&pdev->dev, "HECC region already claimed\n");
--		err = -EBUSY;
--		goto probe_exit;
-+
-+	/* handle hecc-ram memory */
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "hecc-ram");
-+	if (!res) {
-+		dev_err(&pdev->dev, "can't get IORESOURCE_MEM hecc-ram\n");
-+		return -EINVAL;
- 	}
--	addr = ioremap(mem->start, resource_size(mem));
--	if (!addr) {
--		dev_err(&pdev->dev, "ioremap failed\n");
--		err = -ENOMEM;
--		goto probe_exit_free_region;
-+
-+	priv->hecc_ram = devm_ioremap_resource(&pdev->dev, res);
-+	if (!priv->hecc_ram) {
-+		dev_err(&pdev->dev, "hecc-ram ioremap failed\n");
-+		return -ENOMEM;
- 	}
- 
--	ndev = alloc_candev(sizeof(struct ti_hecc_priv), HECC_MAX_TX_MBOX);
--	if (!ndev) {
--		dev_err(&pdev->dev, "alloc_candev failed\n");
--		err = -ENOMEM;
--		goto probe_exit_iounmap;
-+	/* handle mbx memory */
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mbx");
-+	if (!res) {
-+		dev_err(&pdev->dev, "can't get IORESOURCE_MEM mbx\n");
-+		return -EINVAL;
-+	}
-+
-+	priv->mbx = devm_ioremap_resource(&pdev->dev, res);
-+	if (!priv->mbx) {
-+		dev_err(&pdev->dev, "mbx ioremap failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (!irq) {
-+		dev_err(&pdev->dev, "No irq resource\n");
-+		goto probe_exit;
- 	}
- 
--	priv = netdev_priv(ndev);
- 	priv->ndev = ndev;
--	priv->base = addr;
--	priv->scc_ram_offset = pdata->scc_ram_offset;
--	priv->hecc_ram_offset = pdata->hecc_ram_offset;
--	priv->mbx_offset = pdata->mbx_offset;
--	priv->int_line = pdata->int_line;
--	priv->transceiver_switch = pdata->transceiver_switch;
-+	priv->reg_xceiver = reg_xceiver;
-+	priv->use_hecc1int = of_property_read_bool(np, "ti,use-hecc1int");
- 
- 	priv->can.bittiming_const = &ti_hecc_bittiming_const;
- 	priv->can.do_set_mode = ti_hecc_do_set_mode;
-@@ -970,32 +984,23 @@ static int ti_hecc_probe(struct platform_device *pdev)
- 	clk_put(priv->clk);
- probe_exit_candev:
- 	free_candev(ndev);
--probe_exit_iounmap:
--	iounmap(addr);
--probe_exit_free_region:
--	release_mem_region(mem->start, resource_size(mem));
- probe_exit:
- 	return err;
+ 	if (!cpu1_clkdm && !cpu1_pwrdm) {
+ 		cpu1_clkdm = clkdm_lookup("mpu1_clkdm");
+@@ -261,9 +261,62 @@ static void __init omap4_smp_init_cpus(void)
+ 		set_cpu_possible(i, true);
  }
  
- static int ti_hecc_remove(struct platform_device *pdev)
++/*
++ * For now, just make sure the start-up address is not within
++ * the first 1GB as that most likely means that CPU1 is configured
++ * by either the bootloader or previous kernel in kexec boot to
++ * something that will most likely fail without a reset.
++ */
++static bool __init omap4_smp_cpu1_startup_valid(unsigned long addr)
++{
++	if ((addr >> 24) == 0x80)
++		return false;
++
++	return true;
++}
++
++/*
++ * We may need to reset CPU1 before configuring, otherwise kexec can end up
++ * trying to use old kernel startup address or suspend-resume will occasionally
++ * fail to bring up CPU1 on 4430 if CPU1 fails to enter deeper idle states.
++ */
++static void __init omap4_smp_maybe_reset_cpu1(struct omap_smp_config *c)
++{
++	unsigned long cpu1_startup_pa, cpu1_ns_pa_addr;
++	bool needs_reset = false;
++
++	cpu1_startup_pa = readl_relaxed(cfg.wakeupgen_base +
++					OMAP_AUX_CORE_BOOT_1);
++	cpu1_ns_pa_addr = omap4_get_cpu1_ns_pa_addr();
++
++	/* REVISIT: Anything to check for HS dra7? */
++	if (soc_is_dra74x() && omap_secure_apis_support())
++		return;
++
++	/* If dra7 has AUX_CORE_BOOT_1 within first 1GB, CPU1 may be in WFI */
++	if (soc_is_dra74x() && !omap_secure_apis_support() &&
++	    !omap4_smp_cpu1_startup_valid(cpu1_startup_pa))
++		needs_reset = true;
++
++	/* If omap4 or 5 has NS_PA_ADDR within first 1GB, CPU1 may be in WFI */
++	if ((soc_is_omap44xx() || soc_is_omap54xx()) &&
++	    !omap4_smp_cpu1_startup_valid(cpu1_ns_pa_addr) &&
++	    c->cpu1_rstctrl_va)
++		needs_reset = true;
++
++	if (!needs_reset || !c->cpu1_rstctrl_va)
++		return;
++
++	pr_info("smp: Already configured omap cpu1, needs reset (0x%lx 0x%lx)\n",
++		cpu1_startup_pa, cpu1_ns_pa_addr);
++
++	writel_relaxed(1, c->cpu1_rstctrl_va);
++	readl_relaxed(c->cpu1_rstctrl_va);
++	writel_relaxed(0, c->cpu1_rstctrl_va);
++}
++
+ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
  {
--	struct resource *res;
- 	struct net_device *ndev = platform_get_drvdata(pdev);
- 	struct ti_hecc_priv *priv = netdev_priv(ndev);
+-	void __iomem *base = omap_get_wakeupgen_base();
+ 	const struct omap_smp_config *c = NULL;
  
- 	unregister_candev(ndev);
- 	clk_disable_unprepare(priv->clk);
- 	clk_put(priv->clk);
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	iounmap(priv->base);
--	release_mem_region(res->start, resource_size(res));
- 	free_candev(ndev);
+ 	if (soc_is_omap443x())
+@@ -281,6 +334,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
+ 	/* Must preserve cfg.scu_base set earlier */
+ 	cfg.cpu1_rstctrl_pa = c->cpu1_rstctrl_pa;
+ 	cfg.startup_addr = c->startup_addr;
++	cfg.wakeupgen_base = omap_get_wakeupgen_base();
  
- 	return 0;
+ 	if (soc_is_dra74x() || soc_is_omap54xx()) {
+ 		if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
+@@ -299,15 +353,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
+ 	if (cfg.scu_base)
+ 		scu_enable(cfg.scu_base);
+ 
+-	/*
+-	 * Reset CPU1 before configuring, otherwise kexec will
+-	 * end up trying to use old kernel startup address.
+-	 */
+-	if (cfg.cpu1_rstctrl_va) {
+-		writel_relaxed(1, cfg.cpu1_rstctrl_va);
+-		readl_relaxed(cfg.cpu1_rstctrl_va);
+-		writel_relaxed(0, cfg.cpu1_rstctrl_va);
+-	}
++	omap4_smp_maybe_reset_cpu1(&cfg);
+ 
+ 	/*
+ 	 * Write the address of secondary startup routine into the
+@@ -319,7 +365,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
+ 		omap_auxcoreboot_addr(__pa_symbol(cfg.startup_addr));
+ 	else
+ 		writel_relaxed(__pa_symbol(cfg.startup_addr),
+-			       base + OMAP_AUX_CORE_BOOT_1);
++			       cfg.wakeupgen_base + OMAP_AUX_CORE_BOOT_1);
  }
  
--
- #ifdef CONFIG_PM
- static int ti_hecc_suspend(struct platform_device *pdev, pm_message_t state)
- {
-@@ -1044,6 +1049,7 @@ static int ti_hecc_resume(struct platform_device *pdev)
- static struct platform_driver ti_hecc_driver = {
- 	.driver = {
- 		.name    = DRV_NAME,
-+		.of_match_table = ti_hecc_dt_ids,
- 	},
- 	.probe = ti_hecc_probe,
- 	.remove = ti_hecc_remove,
-diff --git a/include/linux/can/platform/ti_hecc.h b/include/linux/can/platform/ti_hecc.h
-deleted file mode 100644
-index a52f47c..0000000
---- a/include/linux/can/platform/ti_hecc.h
-+++ /dev/null
-@@ -1,44 +0,0 @@
--#ifndef _CAN_PLATFORM_TI_HECC_H
--#define _CAN_PLATFORM_TI_HECC_H
--
--/*
-- * TI HECC (High End CAN Controller) driver platform header
-- *
-- * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation version 2.
-- *
-- * This program is distributed as is WITHOUT ANY WARRANTY of any
-- * kind, whether express or implied; without even the implied warranty
-- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--
--/**
-- * struct hecc_platform_data - HECC Platform Data
-- *
-- * @scc_hecc_offset:	mostly 0 - should really never change
-- * @scc_ram_offset:	SCC RAM offset
-- * @hecc_ram_offset:	HECC RAM offset
-- * @mbx_offset:		Mailbox RAM offset
-- * @int_line:		Interrupt line to use - 0 or 1
-- * @version:		version for future use
-- * @transceiver_switch:	platform specific callback fn for transceiver control
-- *
-- * Platform data structure to get all platform specific settings.
-- * this structure also accounts the fact that the IP may have different
-- * RAM and mailbox offsets for different SOC's
-- */
--struct ti_hecc_platform_data {
--	u32 scc_hecc_offset;
--	u32 scc_ram_offset;
--	u32 hecc_ram_offset;
--	u32 mbx_offset;
--	u32 int_line;
--	u32 version;
--	void (*transceiver_switch) (int);
--};
--#endif /* !_CAN_PLATFORM_TI_HECC_H */
+ const struct smp_operations omap4_smp_ops __initconst = {
 -- 
-2.1.4
-
+2.11.1
