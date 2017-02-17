@@ -1,434 +1,87 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 11/22] PCI: dwc: dra7xx: Add EP mode support
-Date: Fri, 17 Feb 2017 15:20:31 +0530
-Message-ID: <1487325042-28227-12-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 09/22] dt-bindings: PCI: Add dt bindings for pci designware
+ EP mode
+Date: Fri, 17 Feb 2017 15:20:29 +0530
+Message-ID: <1487325042-28227-10-git-send-email-kishon@ti.com>
 References: <1487325042-28227-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1487325042-28227-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The PCIe controller integrated in dra7xx SoCs is capable of operating
-in endpoint mode. Add endpoint mode support to dra7xx driver.
+Add device tree binding documentation for pci designware EP mode.
 
+Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/Kconfig           |   31 +++++-
- drivers/pci/dwc/Makefile          |    4 +-
- drivers/pci/dwc/pci-dra7xx.c      |  197 ++++++++++++++++++++++++++++++++++---
- drivers/pci/dwc/pcie-designware.h |    7 ++
- 4 files changed, 221 insertions(+), 18 deletions(-)
+ .../devicetree/bindings/pci/designware-pcie.txt    |   26 ++++++++++++++------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/pci/dwc/Kconfig b/drivers/pci/dwc/Kconfig
-index 00335c7..96e6d17 100644
---- a/drivers/pci/dwc/Kconfig
-+++ b/drivers/pci/dwc/Kconfig
-@@ -16,14 +16,37 @@ config PCIE_DW_EP
+diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+index 1392c70..b2480dd 100644
+--- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
++++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
+@@ -6,30 +6,40 @@ Required properties:
+ - reg-names: Must be "config" for the PCIe configuration space.
+     (The old way of getting the configuration address space from "ranges"
+     is deprecated and should be avoided.)
++- num-lanes: number of lanes to use
++RC mode:
+ - #address-cells: set to <3>
+ - #size-cells: set to <2>
+ - device_type: set to "pci"
+ - ranges: ranges for the PCI memory and I/O regions
+ - #interrupt-cells: set to <1>
+-- interrupt-map-mask and interrupt-map: standard PCI properties
+-	to define the mapping of the PCIe interface to interrupt
++- interrupt-map-mask and interrupt-map: standard PCI
++	properties to define the mapping of the PCIe interface to interrupt
+ 	numbers.
+-- num-lanes: number of lanes to use
++EP mode:
++- num-ib-windows: number of inbound address translation
++        windows
++- num-ob-windows: number of outbound address translation
++        windows
  
- config PCI_DRA7XX
- 	bool "TI DRA7xx PCIe controller"
--	depends on PCI
-+	depends on (PCI && PCI_MSI_IRQ_DOMAIN) || PCI_ENDPOINT
- 	depends on OF && HAS_IOMEM && TI_PIPE3
-+	help
-+	 Enables support for the PCIe controller in the DRA7xx SoC. There
-+	 are two instances of PCIe controller in DRA7xx. This controller can
-+	 work either as EP or RC. In order to enable host specific features
-+	 PCI_DRA7XX_HOST must be selected and in order to enable device
-+	 specific features PCI_DRA7XX_EP must be selected. This uses
-+	 the Designware core.
-+
-+if PCI_DRA7XX
-+
-+config PCI_DRA7XX_HOST
-+	bool "PCI DRA7xx Host Mode"
-+	depends on PCI
- 	depends on PCI_MSI_IRQ_DOMAIN
- 	select PCIE_DW_HOST
-+	default y
- 	help
--	 Enables support for the PCIe controller in the DRA7xx SoC.  There
--	 are two instances of PCIe controller in DRA7xx.  This controller can
--	 act both as EP and RC.  This reuses the Designware core.
-+	 Enables support for the PCIe controller in the DRA7xx SoC to work in
-+	 host mode.
-+
-+config PCI_DRA7XX_EP
-+	bool "PCI DRA7xx Endpoint Mode"
-+	depends on PCI_ENDPOINT
-+	select PCIE_DW_EP
-+	help
-+	 Enables support for the PCIe controller in the DRA7xx SoC to work in
-+	 endpoint mode.
-+
-+endif
+ Optional properties:
+-- num-viewport: number of view ports configured in hardware.  If a platform
+-  does not specify it, the driver assumes 2.
+ - num-lanes: number of lanes to use (this property should be specified unless
+   the link is brought already up in BIOS)
+ - reset-gpio: gpio pin number of power good signal
+-- bus-range: PCI bus numbers covered (it is recommended for new devicetrees to
+-  specify this property, to keep backwards compatibility a range of 0x00-0xff
+-  is assumed if not present)
+ - clocks: Must contain an entry for each entry in clock-names.
+ 	See ../clocks/clock-bindings.txt for details.
+ - clock-names: Must include the following entries:
+ 	- "pcie"
+ 	- "pcie_bus"
++RC mode:
++- num-viewport: number of view ports configured in
++  hardware. If a platform does not specify it, the driver assumes 2.
++- bus-range: PCI bus numbers covered (it is recommended
++  for new devicetrees to specify this property, to keep backwards
++  compatibility a range of 0x00-0xff is assumed if not present)
++EP mode:
++- max-functions: maximum number of functions that can be
++  configured
  
- config PCIE_DW_PLAT
- 	bool "Platform bus based DesignWare PCIe Controller"
-diff --git a/drivers/pci/dwc/Makefile b/drivers/pci/dwc/Makefile
-index b38425d..f31a859 100644
---- a/drivers/pci/dwc/Makefile
-+++ b/drivers/pci/dwc/Makefile
-@@ -2,7 +2,9 @@ obj-$(CONFIG_PCIE_DW) += pcie-designware.o
- obj-$(CONFIG_PCIE_DW_HOST) += pcie-designware-host.o
- obj-$(CONFIG_PCIE_DW_EP) += pcie-designware-ep.o
- obj-$(CONFIG_PCIE_DW_PLAT) += pcie-designware-plat.o
--obj-$(CONFIG_PCI_DRA7XX) += pci-dra7xx.o
-+ifneq ($(filter y,$(CONFIG_PCI_DRA7XX_HOST) $(CONFIG_PCI_DRA7XX_EP)),)
-+        obj-$(CONFIG_PCI_DRA7XX) += pci-dra7xx.o
-+endif
- obj-$(CONFIG_PCI_EXYNOS) += pci-exynos.o
- obj-$(CONFIG_PCI_IMX6) += pci-imx6.o
- obj-$(CONFIG_PCIE_SPEAR13XX) += pcie-spear13xx.o
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 8d2d02f..47bb563 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -10,12 +10,14 @@
-  * published by the Free Software Foundation.
-  */
+ Example configuration:
  
-+#include <linux/delay.h>
- #include <linux/err.h>
- #include <linux/interrupt.h>
- #include <linux/irq.h>
- #include <linux/irqdomain.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
-+#include <linux/of_device.h>
- #include <linux/of_gpio.h>
- #include <linux/of_pci.h>
- #include <linux/pci.h>
-@@ -57,6 +59,11 @@
- #define	MSI						BIT(4)
- #define	LEG_EP_INTERRUPTS (INTA | INTB | INTC | INTD)
- 
-+#define	PCIECTRL_TI_CONF_DEVICE_TYPE			0x0100
-+#define	DEVICE_TYPE_EP					0x0
-+#define	DEVICE_TYPE_LEG_EP				0x1
-+#define	DEVICE_TYPE_RC					0x4
-+
- #define	PCIECTRL_DRA7XX_CONF_DEVICE_CMD			0x0104
- #define	LTSSM_EN					0x1
- 
-@@ -66,6 +73,13 @@
- 
- #define EXP_CAP_ID_OFFSET				0x70
- 
-+#define	PCIECTRL_TI_CONF_INTX_ASSERT			0x0124
-+#define	PCIECTRL_TI_CONF_INTX_DEASSERT			0x0128
-+
-+#define	PCIECTRL_TI_CONF_MSI_XMT			0x012c
-+#define MSI_REQ_GRANT					BIT(0)
-+#define MSI_VECTOR_SHIFT				7
-+
- struct dra7xx_pcie {
- 	struct dw_pcie		*pci;
- 	void __iomem		*base;		/* DT ti_conf */
-@@ -73,6 +87,11 @@ struct dra7xx_pcie {
- 	struct phy		**phy;
- 	int			link_gen;
- 	struct irq_domain	*irq_domain;
-+	enum dw_pcie_device_mode mode;
-+};
-+
-+struct dra7xx_pcie_of_data {
-+	enum dw_pcie_device_mode mode;
- };
- 
- #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
-@@ -101,9 +120,19 @@ static int dra7xx_pcie_link_up(struct dw_pcie *pci)
- 	return !!(reg & LINK_UP);
- }
- 
--static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
-+static void dra7xx_pcie_stop_link(struct dw_pcie *pci)
- {
--	struct dw_pcie *pci = dra7xx->pci;
-+	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
-+	u32 reg;
-+
-+	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
-+	reg &= ~LTSSM_EN;
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
-+}
-+
-+static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
-+{
-+	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
- 	struct device *dev = pci->dev;
- 	u32 reg;
- 	u32 exp_cap_off = EXP_CAP_ID_OFFSET;
-@@ -137,7 +166,7 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
- 	reg |= LTSSM_EN;
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_DEVICE_CMD, reg);
- 
--	return dw_pcie_wait_for_link(pci);
-+	return 0;
- }
- 
- static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
-@@ -171,7 +200,8 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
- 
- 	dw_pcie_setup_rc(pp);
- 
--	dra7xx_pcie_establish_link(dra7xx);
-+	dra7xx_pcie_establish_link(pci);
-+	dw_pcie_wait_for_link(pci);
- 	dw_pcie_msi_init(pp);
- 	dra7xx_pcie_enable_interrupts(dra7xx);
- }
-@@ -249,6 +279,7 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	struct dra7xx_pcie *dra7xx = arg;
- 	struct dw_pcie *pci = dra7xx->pci;
- 	struct device *dev = pci->dev;
-+	struct dw_pcie_ep *ep = &pci->ep;
- 	u32 reg;
- 
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN);
-@@ -285,8 +316,11 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	if (reg & LINK_REQ_RST)
- 		dev_dbg(dev, "Link Request Reset\n");
- 
--	if (reg & LINK_UP_EVT)
-+	if (reg & LINK_UP_EVT) {
-+		if (dra7xx->mode == DW_PCIE_EP_TYPE)
-+			dw_pcie_ep_linkup(ep);
- 		dev_dbg(dev, "Link-up state change\n");
-+	}
- 
- 	if (reg & CFG_BME_EVT)
- 		dev_dbg(dev, "CFG 'Bus Master Enable' change\n");
-@@ -299,6 +333,94 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	return IRQ_HANDLED;
- }
- 
-+static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
-+{
-+	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
-+	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
-+
-+	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
-+}
-+
-+static void dra7xx_pcie_raise_legacy_irq(struct dra7xx_pcie *dra7xx)
-+{
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_INTX_ASSERT, 0x1);
-+	mdelay(1);
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_INTX_DEASSERT, 0x1);
-+}
-+
-+static void dra7xx_pcie_raise_msi_irq(struct dra7xx_pcie *dra7xx,
-+				      u8 interrupt_num)
-+{
-+	u32 reg;
-+
-+	reg = (interrupt_num - 1) << MSI_VECTOR_SHIFT;
-+	reg |= MSI_REQ_GRANT;
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_MSI_XMT, reg);
-+}
-+
-+static int dra7xx_pcie_raise_irq(struct dw_pcie_ep *ep,
-+				 enum pci_epc_irq_type type, u8 interrupt_num)
-+{
-+	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
-+	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
-+
-+	switch (type) {
-+	case PCI_EPC_IRQ_LEGACY:
-+		dra7xx_pcie_raise_legacy_irq(dra7xx);
-+		break;
-+	case PCI_EPC_IRQ_MSI:
-+		dra7xx_pcie_raise_msi_irq(dra7xx, interrupt_num);
-+		break;
-+	default:
-+		dev_err(pci->dev, "UNKNOWN IRQ type\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static struct dw_pcie_ep_ops pcie_ep_ops = {
-+	.ep_init = dra7xx_pcie_ep_init,
-+	.raise_irq = dra7xx_pcie_raise_irq,
-+};
-+
-+static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
-+				     struct platform_device *pdev)
-+{
-+	int ret;
-+	struct dw_pcie_ep *ep;
-+	struct resource *res;
-+	struct device *dev = &pdev->dev;
-+	struct dw_pcie *pci = dra7xx->pci;
-+
-+	ep = &pci->ep;
-+	ep->ops = &pcie_ep_ops;
-+
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics");
-+	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
-+	if (!pci->dbi_base)
-+		return -ENOMEM;
-+
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics2");
-+	pci->dbi_base2 = devm_ioremap(dev, res->start, resource_size(res));
-+	if (!pci->dbi_base2)
-+		return -ENOMEM;
-+
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "addr_space");
-+	if (!res)
-+		return -EINVAL;
-+
-+	ep->phys_base = res->start;
-+	ep->addr_size = resource_size(res);
-+
-+	ret = dw_pcie_ep_init(ep);
-+	if (ret) {
-+		dev_err(dev, "failed to initialize endpoint\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
- static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 				       struct platform_device *pdev)
- {
-@@ -342,6 +464,8 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 
- static const struct dw_pcie_ops dw_pcie_ops = {
- 	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
-+	.start_link = dra7xx_pcie_establish_link,
-+	.stop_link = dra7xx_pcie_stop_link,
- 	.link_up = dra7xx_pcie_link_up,
- };
- 
-@@ -384,6 +508,26 @@ static int dra7xx_pcie_enable_phy(struct dra7xx_pcie *dra7xx)
- 	return ret;
- }
- 
-+static const struct dra7xx_pcie_of_data dra7xx_pcie_rc_of_data = {
-+	.mode = DW_PCIE_RC_TYPE,
-+};
-+
-+static const struct dra7xx_pcie_of_data dra7xx_pcie_ep_of_data = {
-+	.mode = DW_PCIE_EP_TYPE,
-+};
-+
-+static const struct of_device_id of_dra7xx_pcie_match[] = {
-+	{
-+		.compatible = "ti,dra7-pcie",
-+		.data = &dra7xx_pcie_rc_of_data,
-+	},
-+	{
-+		.compatible = "ti,dra7-pcie-ep",
-+		.data = &dra7xx_pcie_ep_of_data,
-+	},
-+	{},
-+};
-+
- static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- {
- 	u32 reg;
-@@ -401,6 +545,16 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	struct device_node *np = dev->of_node;
- 	char name[10];
- 	struct gpio_desc *reset;
-+	const struct of_device_id *match;
-+	const struct dra7xx_pcie_of_data *data;
-+	enum dw_pcie_device_mode mode;
-+
-+	match = of_match_device(of_match_ptr(of_dra7xx_pcie_match), dev);
-+	if (!match)
-+		return -EINVAL;
-+
-+	data = (struct dra7xx_pcie_of_data *)match->data;
-+	mode = (enum dw_pcie_device_mode)data->mode;
- 
- 	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
- 	if (!dra7xx)
-@@ -486,9 +640,25 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	if (dra7xx->link_gen < 0 || dra7xx->link_gen > 2)
- 		dra7xx->link_gen = 2;
- 
--	ret = dra7xx_add_pcie_port(dra7xx, pdev);
--	if (ret < 0)
--		goto err_gpio;
-+	switch (mode) {
-+	case DW_PCIE_RC_TYPE:
-+		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
-+				   DEVICE_TYPE_RC);
-+		ret = dra7xx_add_pcie_port(dra7xx, pdev);
-+		if (ret < 0)
-+			goto err_gpio;
-+		break;
-+	case DW_PCIE_EP_TYPE:
-+		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
-+				   DEVICE_TYPE_EP);
-+		ret = dra7xx_add_pcie_ep(dra7xx, pdev);
-+		if (ret < 0)
-+			goto err_gpio;
-+		break;
-+	default:
-+		dev_err(dev, "INVALID device type %d\n", mode);
-+	}
-+	dra7xx->mode = mode;
- 
- 	return 0;
- 
-@@ -510,6 +680,9 @@ static int dra7xx_pcie_suspend(struct device *dev)
- 	void __iomem *base = pci->dbi_base;
- 	u32 val;
- 
-+	if (dra7xx->mode != DW_PCIE_RC_TYPE)
-+		return 0;
-+
- 	/* clear MSE */
- 	val = dw_pcie_read_dbi(pci, base, PCI_COMMAND, 0x4);
- 	val &= ~PCI_COMMAND_MEMORY;
-@@ -525,6 +698,9 @@ static int dra7xx_pcie_resume(struct device *dev)
- 	void __iomem *base = pci->dbi_base;
- 	u32 val;
- 
-+	if (dra7xx->mode != DW_PCIE_RC_TYPE)
-+		return 0;
-+
- 	/* set MSE */
- 	val = dw_pcie_read_dbi(pci, base, PCI_COMMAND, 0x4);
- 	val |= PCI_COMMAND_MEMORY;
-@@ -563,11 +739,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
- 				      dra7xx_pcie_resume_noirq)
- };
- 
--static const struct of_device_id of_dra7xx_pcie_match[] = {
--	{ .compatible = "ti,dra7-pcie", },
--	{},
--};
--
- static struct platform_driver dra7xx_pcie_driver = {
- 	.driver = {
- 		.name	= "dra7-pcie",
-diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index 7476234..5679aa3 100644
---- a/drivers/pci/dwc/pcie-designware.h
-+++ b/drivers/pci/dwc/pcie-designware.h
-@@ -117,6 +117,13 @@ enum dw_pcie_region_type {
- 	DW_PCIE_REGION_OUTBOUND,
- };
- 
-+enum dw_pcie_device_mode {
-+	DW_PCIE_UNKNOWN_TYPE,
-+	DW_PCIE_EP_TYPE,
-+	DW_PCIE_LEG_EP_TYPE,
-+	DW_PCIE_RC_TYPE,
-+};
-+
- struct dw_pcie_host_ops {
- 	int (*rd_own_conf)(struct pcie_port *pp, int where, int size, u32 *val);
- 	int (*wr_own_conf)(struct pcie_port *pp, int where, int size, u32 val);
 -- 
 1.7.9.5
