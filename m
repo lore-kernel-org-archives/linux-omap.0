@@ -1,58 +1,87 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v9 2/8] drivers:input:tsc2007: check for presence and
- power down tsc2007 during probe
-Date: Fri, 17 Feb 2017 12:52:44 -0800
-Message-ID: <20170217205244.GG13050@dtor-ws>
-References: <cover.1482936802.git.hns@goldelico.com>
- <f39f47ebef2224bd73e114ee529768756bb8972a.1482936802.git.hns@goldelico.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting cpu1
+ during boot
+Date: Fri, 17 Feb 2017 13:09:40 -0800
+Message-ID: <20170217210939.GG21809@atomide.com>
+References: <20170215183915.GU3897@atomide.com>
+ <20170215191242.GP21809@atomide.com>
+ <ca389104-df6f-b055-ec43-524d82cf1be7@ti.com>
+ <20170215222711.GQ21809@atomide.com>
+ <20170216161010.GU21809@atomide.com>
+ <fc1e75e8-87ef-59f1-3c8a-cb45f1749e50@ti.com>
+ <20170216165409.GW21809@atomide.com>
+ <20170216190701.GY21809@atomide.com>
+ <20170217155502.GD21809@atomide.com>
+ <45e4f34e-833d-77df-bc3d-f5852f614d5d@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <f39f47ebef2224bd73e114ee529768756bb8972a.1482936802.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, Mika =?iso-8859-1?Q?Penttil=E4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Petr Cvek <petr>
+In-Reply-To: <45e4f34e-833d-77df-bc3d-f5852f614d5d@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 28, 2016 at 03:53:17PM +0100, H. Nikolaus Schaller wrote:
-> 1. check if chip is really present and don't succeed if it isn't.
-> 2. if it succeeds, power down the chip until accessed
+* Andrew F. Davis <afd@ti.com> [170217 12:28]:
+> On 02/17/2017 09:55 AM, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [170216 11:08]:
+> >> * Tony Lindgren <tony@atomide.com> [170216 08:55]:
+> >>> For your use case, probably all we need is runtime checks for HS in
+> >>> addition to parking cpu1 for kexec. If that's not enough, then maybe
+> >>> a device specific DT property for never-reset-no-matter-what.
+> >>
+> >> Below is a first take on the last resort cpu1 reset done based on
+> >> configured CPU1_WAKEUP_NS_PA_ADDR_OFFSET for omap4 and 5. Note that
+> >> we can't merge it yet as it will break kexec boot for dra7. To fix that,
+> >> we need to first do what you're suggesting and properly park cpu1 for
+> >> kexec.
+> > 
+> > Something like the patch below might be doable for the first fix
+> > before we have something to park cpu1 for kexec. I've added more checks
+> > to attemp to detect cpu1 being in WFI. At least things keep on working
+> > for kexec on omap4/5 and GP dra7.
+> > 
+> > Andrew, care to give it a try and see if can add some HS dra7 checks
+> > there too to have kexec work on it? Basically we want to attempt to
+> > detect if there's a chance cpu1 is in WFI, and if I think the only
+> > optino is to reset it before bringing it up as otherwise outcome will
+> > be unpredictable.
+> > 
 > 
-> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> This patch seems stop the reset issue on my boards, so as long as it is
+> just a temporary workaround until we can fix the real issue (a core that
+> should be off going into omap_do_wfi() instead of parking), then this
+> patch works for me.
 
-Applied, thank you.
+OK
 
-> ---
->  drivers/input/touchscreen/tsc2007.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
+> > +
+> > +	/* REVISIT: Anything to check for HS dra7? */
+> > +	if (soc_is_dra74x() && omap_secure_apis_support())
+> > +		return;
 > 
-> diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscreen/tsc2007.c
-> index c1d9593..76b462b 100644
-> --- a/drivers/input/touchscreen/tsc2007.c
-> +++ b/drivers/input/touchscreen/tsc2007.c
-> @@ -529,6 +529,14 @@ static int tsc2007_probe(struct i2c_client *client,
->  
->  	tsc2007_stop(ts);
->  
-> +	/* power down the chip (TSC2007_SETUP does not ACK on I2C) */
-> +	err = tsc2007_xfer(ts, PWRDOWN);
-> +	if (err < 0) {
-> +		dev_err(&client->dev,
-> +			"Failed to setup chip: %d\n", err);
-> +		return err;	/* usually, chip does not respond */
-> +	}
-> +
->  	err = input_register_device(input_dev);
->  	if (err) {
->  		dev_err(&client->dev,
-> -- 
-> 2.7.3
-> 
+> omap_secure_apis_support() only returns true when cpu_is_omap44xx() is
+> true, so this will never be true. Someday we may add the secure APIs to
+> secure DRA7xx devices, but I don't know of a good way to detect this
+> from kernel right now.
 
--- 
-Dmitry
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK so that can be removed.
+
+Can you check what happens with suspend/resume cycle? Based on what
+I've seen omap5 and dra7 currently always hit the "smp_ops.cpu_die()
+returned, trying to resuscitate" on resume meaning it will get sent to
+secondary_start_kernel on resume.
+
+Regards,
+
+Tony
