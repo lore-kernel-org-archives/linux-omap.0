@@ -1,43 +1,120 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 21/22] MAINTAINERS: add PCI EP maintainer
-Date: Fri, 17 Feb 2017 15:20:41 +0530
-Message-ID: <1487325042-28227-22-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 13/22] PCI: dwc: dra7xx: Workaround for errata id i870
+Date: Fri, 17 Feb 2017 15:20:33 +0530
+Message-ID: <1487325042-28227-14-git-send-email-kishon@ti.com>
 References: <1487325042-28227-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1487325042-28227-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add maintainer for the newly introduced PCI EP framework.
+According to errata i870, access to the PCIe slave port
+that are not 32-bit aligned will result in incorrect mapping
+to TLP Address and Byte enable fields.
+
+Accessing non 32-bit aligned data causes incorrect data in the target
+buffer if memcpy is used. Implement the workaround for this
+errata here.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- MAINTAINERS |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/pci/dwc/pci-dra7xx.c |   50 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 8672f18..62b86af 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9407,6 +9407,15 @@ F:	include/linux/pci*
- F:	arch/x86/pci/
- F:	arch/x86/kernel/quirks.c
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 47bb563..df11a49 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -26,6 +26,8 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/resource.h>
+ #include <linux/types.h>
++#include <linux/mfd/syscon.h>
++#include <linux/regmap.h>
  
-+PCI EP SUBSYSTEM
-+M:	Kishon Vijay Abraham I <kishon@ti.com>
-+L:	linux-pci@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git
-+S:	Supported
-+F:	drivers/pci/endpoint/
-+F:	drivers/misc/pci_endpoint_test.c
-+F:	tools/pci/
+ #include "pcie-designware.h"
+ 
+@@ -528,6 +530,48 @@ static int dra7xx_pcie_enable_phy(struct dra7xx_pcie *dra7xx)
+ 	{},
+ };
+ 
++/*
++ * dra7xx_pcie_ep_legacy_mode: workaround for AM572x/AM571x Errata i870
++ * @dra7xx: the dra7xx device where the workaround should be applied
++ *
++ * Access to the PCIe slave port that are not 32-bit aligned will result
++ * in incorrect mapping to TLP Address and Byte enable fields. Therefore,
++ * byte and half-word accesses are not possible to byte offset 0x1, 0x2, or
++ * 0x3.
++ *
++ * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
++ */
++static int dra7xx_pcie_ep_legacy_mode(struct device *dev)
++{
++	int ret;
++	struct device_node *np = dev->of_node;
++	struct regmap *regmap;
++	unsigned int reg;
++	unsigned int field;
 +
- PCI DRIVER FOR ALTERA PCIE IP
- M:	Ley Foon Tan <lftan@altera.com>
- L:	rfi@lists.rocketboards.org (moderated for non-subscribers)
++	regmap = syscon_regmap_lookup_by_phandle(np, "syscon-legacy-mode");
++	if (IS_ERR(regmap)) {
++		dev_dbg(dev, "can't get syscon-legacy-mode\n");
++		return -EINVAL;
++	}
++
++	if (of_property_read_u32_index(np, "syscon-legacy-mode", 1, &reg)) {
++		dev_err(dev, "couldn't get legacy mode register offset\n");
++		return -EINVAL;
++	}
++
++	if (of_property_read_u32_index(np, "syscon-legacy-mode", 2, &field)) {
++		dev_err(dev, "can't get bit field for setting legacy mode\n");
++		return -EINVAL;
++	}
++
++	ret = regmap_update_bits(regmap, reg, field, field);
++	if (ret)
++		dev_err(dev, "failed to set legacy mode\n");
++
++	return ret;
++}
++
+ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ {
+ 	u32 reg;
+@@ -644,6 +688,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	case DW_PCIE_RC_TYPE:
+ 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+ 				   DEVICE_TYPE_RC);
++
+ 		ret = dra7xx_add_pcie_port(dra7xx, pdev);
+ 		if (ret < 0)
+ 			goto err_gpio;
+@@ -651,6 +696,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	case DW_PCIE_EP_TYPE:
+ 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+ 				   DEVICE_TYPE_EP);
++
++		ret = dra7xx_pcie_ep_legacy_mode(dev);
++		if (ret)
++			goto err_gpio;
++
+ 		ret = dra7xx_add_pcie_ep(dra7xx, pdev);
+ 		if (ret < 0)
+ 			goto err_gpio;
 -- 
 1.7.9.5
