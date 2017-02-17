@@ -1,64 +1,54 @@
 From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v9 0/8] drivers: touchscreen: tsc2007 and ads7846/tsc2046
- improvements (use common touchscreen bindings, pre-calibration, spi fix and
- provide iio raw values)
-Date: Fri, 17 Feb 2017 12:43:51 -0800
-Message-ID: <20170217204351.GF13050@dtor-ws>
+Subject: Re: [PATCH v9 2/8] drivers:input:tsc2007: check for presence and
+ power down tsc2007 during probe
+Date: Fri, 17 Feb 2017 12:52:44 -0800
+Message-ID: <20170217205244.GG13050@dtor-ws>
 References: <cover.1482936802.git.hns@goldelico.com>
- <BB8421B2-6626-4A95-BCD0-25C4CAF30F61@goldelico.com>
- <17d2c23b-6cbb-d365-71cb-fd4d7af7c958@kernel.org>
- <B04BF50A-A54E-4CA2-BB0E-7B547D40403A@goldelico.com>
- <85077609-9A95-4DBC-BDC8-649C8692065B@goldelico.com>
- <3225CF5D-53B7-456F-8128-50BCF31ADD0F@goldelico.com>
- <751454D6-9552-48D9-91EC-37DAD7B1A576@goldelico.com>
+ <f39f47ebef2224bd73e114ee529768756bb8972a.1482936802.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <751454D6-9552-48D9-91EC-37DAD7B1A576-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <f39f47ebef2224bd73e114ee529768756bb8972a.1482936802.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, Mika =?iso-8859-1?Q?Penttil=E4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Petr Cvek <petr>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 15, 2017 at 03:03:07PM +0100, H. Nikolaus Schaller wrote:
-> Hi Dmitry,
+On Wed, Dec 28, 2016 at 03:53:17PM +0100, H. Nikolaus Schaller wrote:
+> 1. check if chip is really present and don't succeed if it isn't.
+> 2. if it succeeds, power down the chip until accessed
 > 
-> > Am 12.02.2017 um 16:18 schrieb H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
-> > 
-> > Hi Dmitry,
-> > 
-> >> Am 28.01.2017 um 19:16 schrieb H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>:
-> >> 
-> >> Hi Dmitry,
-> >> there have been no further comments/complaints about this patch series in the last month.
-> >> And it appears as if only your action is needed.
-> >> 
-> >> What is missing for this patch series to be finally accepted?
-> > 
-> > Did you find time to look into my comment on patch 1/9 and make a decision on patch 6/8?
-> > 
-> > Is there anything open which prohibits inclusion to (and further testing within) linux/next?
-> 
-> May I ask a question for my fundamental understanding of the Linux integration process.
-> Maybe, I have a wrong expectation which you can clarify.
-> 
-> My question is how it does come that patches like
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/?id=449aa83e69ff10d77fe088eadacafe1e97937c14
-> 
-> appear within 2 days in linux-next, but our patch series had months of review (we are at v9)
-> and there have been no further comments from the community for weeks?
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 
-Simpler patches are easy to apply, patches that have some contention
-tend to get unapplied longer, as they require more consideration.
+Applied, thank you.
 
+> ---
+>  drivers/input/touchscreen/tsc2007.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> What is still missing what we can do or provide as information?
-
-I just replied to the other email from you.
-
-Thanks.
+> diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscreen/tsc2007.c
+> index c1d9593..76b462b 100644
+> --- a/drivers/input/touchscreen/tsc2007.c
+> +++ b/drivers/input/touchscreen/tsc2007.c
+> @@ -529,6 +529,14 @@ static int tsc2007_probe(struct i2c_client *client,
+>  
+>  	tsc2007_stop(ts);
+>  
+> +	/* power down the chip (TSC2007_SETUP does not ACK on I2C) */
+> +	err = tsc2007_xfer(ts, PWRDOWN);
+> +	if (err < 0) {
+> +		dev_err(&client->dev,
+> +			"Failed to setup chip: %d\n", err);
+> +		return err;	/* usually, chip does not respond */
+> +	}
+> +
+>  	err = input_register_device(input_dev);
+>  	if (err) {
+>  		dev_err(&client->dev,
+> -- 
+> 2.7.3
+> 
 
 -- 
 Dmitry
