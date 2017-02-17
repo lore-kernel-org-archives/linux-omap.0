@@ -1,68 +1,69 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 10/22] PCI: dwc: dra7xx: Facilitate wrapper and msi interrupts to be enabled independently
-Date: Fri, 17 Feb 2017 15:20:30 +0530
-Message-ID: <1487325042-28227-11-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 07/22] Documentation: PCI: Add binding documentation for
+ pci-test endpoint function
+Date: Fri, 17 Feb 2017 15:20:27 +0530
+Message-ID: <1487325042-28227-8-git-send-email-kishon@ti.com>
 References: <1487325042-28227-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1487325042-28227-1-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Split dra7xx_pcie_enable_interrupts into
-dra7xx_pcie_enable_wrapper_interrupts and dra7xx_pcie_enable_msi_interrupts
-so that wrapper interrupts and msi interrupts can be enabled independently.
-This is in preparation for adding EP mode support to dra7xx driver since
-EP mode doesn't have to enable msi_interrupts.
+Add binding documentation for pci-test endpoint function that helps in
+adding and configuring pci-test endpoint function.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ Documentation/PCI/00-INDEX                         |    2 ++
+ .../PCI/endpoint/function/binding/pci-test.txt     |   17 +++++++++++++++++
+ 2 files changed, 19 insertions(+)
+ create mode 100644 Documentation/PCI/endpoint/function/binding/pci-test.txt
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index c6fef0a..8d2d02f 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -140,18 +140,30 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
- 	return dw_pcie_wait_for_link(pci);
- }
- 
--static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
-+static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
- {
--	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
--			   ~INTERRUPTS);
--	dra7xx_pcie_writel(dra7xx,
--			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
- 			   ~LEG_EP_INTERRUPTS & ~MSI);
--	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
+diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
+index 4e5a283..53717b7 100644
+--- a/Documentation/PCI/00-INDEX
++++ b/Documentation/PCI/00-INDEX
+@@ -18,3 +18,5 @@ endpoint/pci-endpoint-cfs.txt
+ 	- guide to use configfs to configure the pci endpoint function.
+ endpoint/pci-test-function.txt
+ 	- specification of *pci test* function device.
++endpoint/function/binding/
++	- binding documentation for pci endpoint function
+diff --git a/Documentation/PCI/endpoint/function/binding/pci-test.txt b/Documentation/PCI/endpoint/function/binding/pci-test.txt
+new file mode 100644
+index 0000000..7358240
+--- /dev/null
++++ b/Documentation/PCI/endpoint/function/binding/pci-test.txt
+@@ -0,0 +1,17 @@
++PCI TEST ENDPOINT FUNCTION
 +
-+	dra7xx_pcie_writel(dra7xx,
-+			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
- 			   MSI | LEG_EP_INTERRUPTS);
- }
- 
-+static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
-+{
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
-+			   ~INTERRUPTS);
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
-+			   INTERRUPTS);
-+}
++name: Should be "pci_epf_test" to bind to the pci_epf_test driver.
 +
-+static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
-+{
-+	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
-+	dra7xx_pcie_enable_msi_interrupts(dra7xx);
-+}
-+
- static void dra7xx_pcie_host_init(struct pcie_port *pp)
- {
- 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
++Configurable Fields:
++vendorid	 : should be 0x104c
++deviceid	 : should be 0xffff
++revid		 : dont't care
++progif_code	 : don't care
++subclass_code	 : don't care
++baseclass_code	 : should be 0xff
++cache_line_size	 : don't care
++subsys_vendor_id : don't care
++subsys_id	 : don't care
++interrupt_pin	 : Should be 1 - INTA, 2 - INTB, 3 - INTC, 4 -INTD
++msi_interrupts	 : Should be 1 to 32 depending on the number of msi interrupts
++		   to test
 -- 
 1.7.9.5
