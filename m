@@ -1,145 +1,232 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 00/22] PCI: Support for configurable PCI endpoint
-Date: Fri, 17 Feb 2017 15:20:20 +0530
-Message-ID: <1487325042-28227-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 02/22] Documentation: PCI: Guide to use PCI Endpoint Core Layer
+Date: Fri, 17 Feb 2017 15:20:22 +0530
+Message-ID: <1487325042-28227-3-git-send-email-kishon@ti.com>
+References: <1487325042-28227-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1487325042-28227-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch series
- *) add PCI endpoint core layer
- *) modify designware/dra7xx driver to be configured in EP mode
- *) add a PCI endpoint *test* function driver and corresponding host
-    driver
+Add Documentation to help users use endpoint library to enable endpoint
+mode in the PCI controller and add new PCI endpoint functions.
 
-Changes from v1:
-*) The preparation patches for adding EP support is removed and is sent
-   separately
-*) Added device ID for DRA74x/DRA72x and used it instead of
-   using "PCI_ANY_ID"
-*) Added userguide for PCI endpoint test function
-
-Major Improvements from RFC:
- *) support multi-function devices (hw supported not virtual)
- *) Access host side buffers
- *) Raise MSI interrupts
- *) Add user space program to use the host side PCI driver
- *) Adapt all other users of designware to use the new design (only
-    compile tested. Since I have only dra7xx boards, the new design
-    has only been tested in dra7xx. I'd require the help of others
-    to test the platforms they have access to).
-
-The patch series is created after applying
-https://lkml.org/lkml/2017/2/16/270
-
-I've also pushed the tree to
-git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git next
-
-Kishon Vijay Abraham I (22):
-  PCI: endpoint: Add EP core layer to enable EP controller and EP
-    functions
-  Documentation: PCI: Guide to use PCI Endpoint Core Layer
-  PCI: endpoint: Introduce configfs entry for configuring EP functions
-  Documentation: PCI: Guide to use pci endpoint configfs
-  Documentation: PCI: Add specification for the *pci test* function
-    device
-  PCI: endpoint: functions: Add an EP function to test PCI
-  Documentation: PCI: Add binding documentation for pci-test endpoint
-    function
-  PCI: dwc: designware: Add EP mode support
-  dt-bindings: PCI: Add dt bindings for pci designware EP mode
-  PCI: dwc: dra7xx: Facilitate wrapper and msi interrupts to be enabled
-    independently
-  PCI: dwc: dra7xx: Add EP mode support
-  dt-bindings: PCI: dra7xx: Add dt bindings for pci dra7xx EP mode
-  PCI: dwc: dra7xx: Workaround for errata id i870
-  dt-bindings: PCI: dra7xx: Add dt bindings to enable legacy mode
-  PCI: Add device IDs for DRA74x and DRA72x
-  misc: Add host side pci driver for pci test function device
-  Documentation: misc-devices: Add Documentation for pci-endpoint-test
-    driver
-  tools: PCI: Add a userspace tool to test PCI endpoint
-  tools: PCI: Add sample test script to invoke pcitest
-  Documentation: PCI: Add userguide for PCI endpoint test function
-  MAINTAINERS: add PCI EP maintainer
-  ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to
-    SW_WKUP
-
- Documentation/PCI/00-INDEX                         |    8 +
- .../PCI/endpoint/function/binding/pci-test.txt     |   17 +
- Documentation/PCI/endpoint/pci-endpoint-cfs.txt    |   84 +++
- Documentation/PCI/endpoint/pci-endpoint.txt        |  190 +++++++
- Documentation/PCI/endpoint/pci-test-function.txt   |   66 +++
- Documentation/PCI/endpoint/pci-test-howto.txt      |  167 ++++++
- .../devicetree/bindings/pci/designware-pcie.txt    |   26 +-
- Documentation/devicetree/bindings/pci/ti-pci.txt   |   41 +-
- Documentation/misc-devices/pci-endpoint-test.txt   |   35 ++
- MAINTAINERS                                        |    9 +
- arch/arm/mach-omap2/clockdomains7xx_data.c         |    2 +-
- drivers/Makefile                                   |    2 +
- drivers/misc/Kconfig                               |    7 +
- drivers/misc/Makefile                              |    1 +
- drivers/misc/pci_endpoint_test.c                   |  534 +++++++++++++++++++
- drivers/pci/Kconfig                                |    1 +
- drivers/pci/dwc/Kconfig                            |   36 +-
- drivers/pci/dwc/Makefile                           |    5 +-
- drivers/pci/dwc/pci-dra7xx.c                       |  271 +++++++++-
- drivers/pci/dwc/pcie-designware-ep.c               |  342 ++++++++++++
- drivers/pci/dwc/pcie-designware.c                  |   51 ++
- drivers/pci/dwc/pcie-designware.h                  |   79 +++
- drivers/pci/endpoint/Kconfig                       |   33 ++
- drivers/pci/endpoint/Makefile                      |    7 +
- drivers/pci/endpoint/functions/Kconfig             |   12 +
- drivers/pci/endpoint/functions/Makefile            |    5 +
- drivers/pci/endpoint/functions/pci-epf-test.c      |  513 ++++++++++++++++++
- drivers/pci/endpoint/pci-ep-cfs.c                  |  427 +++++++++++++++
- drivers/pci/endpoint/pci-epc-core.c                |  548 ++++++++++++++++++++
- drivers/pci/endpoint/pci-epc-mem.c                 |  143 +++++
- drivers/pci/endpoint/pci-epf-core.c                |  347 +++++++++++++
- include/linux/mod_devicetable.h                    |   10 +
- include/linux/pci-epc.h                            |  141 +++++
- include/linux/pci-epf.h                            |  160 ++++++
- include/linux/pci_ids.h                            |    2 +
- include/uapi/linux/Kbuild                          |    1 +
- include/uapi/linux/pcitest.h                       |   19 +
- tools/pci/pcitest.c                                |  186 +++++++
- tools/pci/pcitest.sh                               |   56 ++
- 39 files changed, 4544 insertions(+), 40 deletions(-)
- create mode 100644 Documentation/PCI/endpoint/function/binding/pci-test.txt
- create mode 100644 Documentation/PCI/endpoint/pci-endpoint-cfs.txt
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ Documentation/PCI/00-INDEX                  |    2 +
+ Documentation/PCI/endpoint/pci-endpoint.txt |  190 +++++++++++++++++++++++++++
+ 2 files changed, 192 insertions(+)
  create mode 100644 Documentation/PCI/endpoint/pci-endpoint.txt
- create mode 100644 Documentation/PCI/endpoint/pci-test-function.txt
- create mode 100644 Documentation/PCI/endpoint/pci-test-howto.txt
- create mode 100644 Documentation/misc-devices/pci-endpoint-test.txt
- create mode 100644 drivers/misc/pci_endpoint_test.c
- create mode 100644 drivers/pci/dwc/pcie-designware-ep.c
- create mode 100644 drivers/pci/endpoint/Kconfig
- create mode 100644 drivers/pci/endpoint/Makefile
- create mode 100644 drivers/pci/endpoint/functions/Kconfig
- create mode 100644 drivers/pci/endpoint/functions/Makefile
- create mode 100644 drivers/pci/endpoint/functions/pci-epf-test.c
- create mode 100644 drivers/pci/endpoint/pci-ep-cfs.c
- create mode 100644 drivers/pci/endpoint/pci-epc-core.c
- create mode 100644 drivers/pci/endpoint/pci-epc-mem.c
- create mode 100644 drivers/pci/endpoint/pci-epf-core.c
- create mode 100644 include/linux/pci-epc.h
- create mode 100644 include/linux/pci-epf.h
- create mode 100644 include/uapi/linux/pcitest.h
- create mode 100644 tools/pci/pcitest.c
- create mode 100644 tools/pci/pcitest.sh
 
+diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
+index 147231f..ba950b2 100644
+--- a/Documentation/PCI/00-INDEX
++++ b/Documentation/PCI/00-INDEX
+@@ -12,3 +12,5 @@ pci.txt
+ 	- info on the PCI subsystem for device driver authors
+ pcieaer-howto.txt
+ 	- the PCI Express Advanced Error Reporting Driver Guide HOWTO
++endpoint/pci-endpoint.txt
++	- guide to add endpoint controller driver and endpoint function driver.
+diff --git a/Documentation/PCI/endpoint/pci-endpoint.txt b/Documentation/PCI/endpoint/pci-endpoint.txt
+new file mode 100644
+index 0000000..68a7839
+--- /dev/null
++++ b/Documentation/PCI/endpoint/pci-endpoint.txt
+@@ -0,0 +1,190 @@
++			    PCI ENDPOINT FRAMEWORK
++		    Kishon Vijay Abraham I <kishon@ti.com>
++
++This document is a guide to use the PCI Endpoint Framework in order to create
++endpoint controller driver, endpoint function driver and using configfs
++interface to bind the function driver to the controller driver.
++
++1. Introduction
++
++*Linux* has a comprehensive PCI subsystem to support PCI controllers that
++operates in Root Complex mode. The subsystem has capability to scan PCI bus,
++assign memory resources and irq resources, load PCI driver (based on
++vendorid, deviceid), support other services like hot-plug, power management,
++advanced error reporting and virtual channels.
++
++However PCI controller IPs integrated in certain SoC is capable of operating
++either in Root Complex mode or Endpoint mode. PCI Endpoint Framework will
++add endpoint mode support in *Linux*. This will help to run Linux in an
++EP system which can have a wide variety of use cases from testing or
++validation, co-processor accelerator etc..
++
++2. PCI Endpoint Core
++
++The PCI Endpoint Core layer comprises of 3 components: the Endpoint Controller
++library, the Endpoint Function library and the configfs layer to bind the
++endpoint function with the endpoint controller.
++
++2.1 PCI Endpoint Controller(EPC) Library
++
++The EPC library provides APIs to be used by the controller that can operate
++in endpoint mode. It also provides APIs to be used by function driver/library
++in order to implement a particular endpoint function.
++
++2.1.1 APIs for the PCI controller Driver
++
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI controller driver.
++
++*) devm_pci_epc_create()/pci_epc_create()
++
++   The PCI controller driver should implement the following ops:
++	 * write_header: ops to populate configuration space header
++	 * set_bar: ops to configure the BAR
++	 * clear_bar: ops to reset the BAR
++	 * alloc_addr_space: ops to allocate *in* PCI controller address space
++	 * free_addr_space: ops to free the allocated address space
++	 * raise_irq: ops to raise a legacy or MSI interrupt
++	 * start: ops to start the PCI link
++	 * stop: ops to stop the PCI link
++
++   The PCI controller driver can then create a new EPC device by invoking
++   devm_pci_epc_create/pci_epc_create.
++
++*) devm_pci_epc_destroy()/pci_epc_destroy()
++
++   The PCI controller driver can destroy the EPC device created by either
++   devm_pci_epc_create or pci_epc_create using devm_pci_epc_destroy() or
++   /pci_epc_destroy()
++
++2.1.2 APIs for the PCI Endpoint Function Driver
++
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint function driver.
++
++*) pci_epc_write_header()
++
++   The PCI endpoint function driver should use pci_epc_write_header() to
++   write the standard configuration header to the endpoint controller.
++
++*) pci_epc_set_bar()
++
++   The PCI endpoint function driver should use pci_epc_set_bar() to configure
++   the Base Address Register in order for the host to assign PCI addr space.
++   Register space of the function driver is usually configured
++   using this API.
++
++*) pci_epc_clear_bar()
++
++   The PCI endpoint function driver should use pci_epc_clear_bar() to reset
++   the BAR.
++
++*) pci_epc_raise_irq()
++
++   The PCI endpoint function driver should use pci_epc_raise_irq() to raise
++   Legacy Interrupt or MSI Interrupt.
++
++*) pci_epc_start()
++
++   The PCI endpoint function driver should invoke pci_epc_start() once it
++   has configured the endpoint function and wants to start the PCI link.
++
++*) pci_epc_stop()
++
++   The PCI endpoint function driver should invoke pci_epc_stop() to stop
++   the PCI LINK.
++
++2.1.3 Other APIs
++
++There are other APIs provided by the EPC library. These are used for binding
++the epf device with epc device. pci-ep-cfs.c can be used as reference for
++using these APIs.
++
++*) pci_epc_get()
++
++   Get a reference to the pci endpoint controller based on the device name of
++   the controller.
++
++*) pci_epc_put()
++
++   Release the reference to the pci endpoint controller obtained using
++   pci_epc_get()
++
++*) pci_epc_add_epf()
++
++   Add a pci endpoint function to a pci endpoint controller. A pcie device
++   can have upto 8 functions according to the specification.
++
++*) pci_epc_remove_epf()
++
++   Remove the pci endpoint function from pci endpoint controller.
++
++2.2 PCI Endpoint Function(EPF) Library
++
++The EPF library provides APIs to be used by the function driver and the EPC
++library in order to provide endpoint mode functionality.
++
++2.2.1 APIs for the PCI Endpoint Function Driver
++
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint function driver.
++
++*) pci_epf_register_driver()
++
++   The PCI Endpoint Function driver should implement the following ops:
++	 * bind: ops to perform when a EPC device has been bound to EPF device
++	 * unbind: ops to perform when a binding has been lost between a EPC
++	   device and EPF device
++	 * linkup: ops to perform when the EPC device has established a
++	   connection with a host system
++
++  The PCI Function driver can then register the PCI EPF driver by using
++  pci_epf_register_driver().
++
++*) pci_epf_unregister_driver()
++
++  The PCI Function driver can unregister the PCI EPF driver by using
++  pci_epf_unregister_driver().
++
++*) pci_epf_alloc_space()
++
++  The PCI Function driver can allocate space for a particular BAR using
++  pci_epf_alloc_space().
++
++*) pci_epf_free_space()
++
++  The PCI Function driver can free the allocated space
++  (using pci_epf_alloc_space) by invoking pci_epf_free_space().
++
++2.2.2 APIs for the PCI Endpoint Controller Library
++This section lists the APIs that the PCI Endpoint core provides to be used
++by the PCI endpoint controller library.
++
++*) pci_epf_linkup()
++
++   The PCI endpoint controller library invokes pci_epf_linkup() when the
++   EPC device has established the connection to the host.
++
++2.2.2 Other APIs
++There are other APIs provided by the EPF library. These are used to notify
++the function driver when the EPF device is bound to the EPC device.
++pci-ep-cfs.c can be used as reference for using these APIs.
++
++*) pci_epf_create()
++
++   Create a new PCI EPF device by passing the name of the PCI EPF device.
++   This name will be used to bind the the EPF device to a EPF driver.
++
++*) pci_epf_destroy()
++
++   Destroy the created PCI EPF device.
++
++*) pci_epf_bind()
++
++   pci_epf_bind() should be invoked when the EPF device has been bound to
++   a EPC device.
++
++*) pci_epf_unbind()
++
++   pci_epf_unbind() should be invoked when the binding between EPC device
++   and EPF device is lost.
 -- 
 1.7.9.5
