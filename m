@@ -1,42 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: omap2plus_defconfig: Enable INPUT_MOUSEDEV as loadable
- modules
-Date: Fri, 17 Feb 2017 06:51:17 -0800
-Message-ID: <20170217145117.26622-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+From: yegorslists@googlemail.com
+Subject: [PATCH v5 0/3] Adding DT support for TI HECC module
+Date: Fri, 17 Feb 2017 16:52:30 +0100
+Message-ID: <1487346753-19286-1-git-send-email-yegorslists@googlemail.com>
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: linux-can@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org, tony@atomide.com, mkl@pengutronix.de, andrej.skvortzov@gmail.com, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Otherwise mice won't be happy.
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap2plus_defconfig | 1 +
- 1 file changed, 1 insertion(+)
+This is an attempt to revive DT support for TI HECC that was started in 2015 [1].
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -189,6 +189,7 @@ CONFIG_WL12XX=m
- CONFIG_WL18XX=m
- CONFIG_WLCORE_SPI=m
- CONFIG_WLCORE_SDIO=m
-+CONFIG_INPUT_MOUSEDEV=m
- CONFIG_INPUT_JOYDEV=m
- CONFIG_INPUT_EVDEV=m
- CONFIG_KEYBOARD_ATKBD=m
+Changes v4 -> v5:
+  - remove unneeded manual deallocations as we now use devm_ routines
+    (suggested by Marc Kleine-Budde)
+
+Changes v3 -> v4:
+  - implement tranciever handling via regulator API (suggested by Marc Kleine-Budde)
+  - convert the driver to DT only driver, i.e. remove legacy platform struct and header
+    (suggested by Marc Kleine-Budde)
+
+Changes v2 -> v3:
+  - rename compatible property to "ti,am3517-hecc" (though there is a stipped
+    device named 3505, EMAC driver already uses am3517-emac name, so keep this
+    property consistent)
+  - use reg-names to specify different HECC I/O mapping (suggested by Tony Lindgren)
+  - provide fallback offsets and sizes for board files
+  - convert optional property ti,int_line to ti,use-hecc1int and add proper
+    description
+
+Changes v1 -> v2:
+  - change compatible to "ti,am3505
+  - remove CONFIG_OF
+  - don't set int_line to 0 explicitly
+
+[1] http://comments.gmane.org/gmane.linux.can/8616
+
+Yegor Yefremov (3):
+  ARM: dts: AM35x: Add hecc node
+  can: ti_hecc: Add TI HECC DT binding documentation
+  can: ti_hecc: Add DT support for TI HECC module
+
+ .../devicetree/bindings/net/can/ti_hecc.txt        |  33 ++++
+ arch/arm/boot/dts/am3517.dtsi                      |  12 ++
+ drivers/net/can/ti_hecc.c                          | 170 +++++++++++----------
+ include/linux/can/platform/ti_hecc.h               |  44 ------
+ 4 files changed, 133 insertions(+), 126 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/can/ti_hecc.txt
+ delete mode 100644 include/linux/can/platform/ti_hecc.h
+
 -- 
-2.11.1
+2.1.4
+
