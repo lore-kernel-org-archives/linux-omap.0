@@ -1,51 +1,59 @@
-From: yegorslists@googlemail.com
-Subject: [PATCH v4 0/3] Adding DT support for TI HECC module
-Date: Fri, 17 Feb 2017 14:45:55 +0100
-Message-ID: <1487339158-18809-1-git-send-email-yegorslists@googlemail.com>
-Return-path: <linux-can-owner@vger.kernel.org>
-Sender: linux-can-owner@vger.kernel.org
-To: linux-can@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, robh@kernel.org, tony@atomide.com, mkl@pengutronix.de, andrej.skvortzov@gmail.com, Yegor Yefremov <yegorslists@googlemail.com>
+From: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
+Subject: [PATCH v4 1/3] ARM: dts: AM35x: Add hecc node
+Date: Fri, 17 Feb 2017 14:45:56 +0100
+Message-ID: <1487339158-18809-2-git-send-email-yegorslists@googlemail.com>
+References: <1487339158-18809-1-git-send-email-yegorslists@googlemail.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1487339158-18809-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, andrej.skvortzov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, Anton Glukhov <anton.a.glukhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Yegor Yefremov <yegorslists@googlemail.com>
+From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 
-This is an attempt to revive DT support for TI HECC that was started in 2015 [1].
+HECC node description for am35x SOCs
 
-Changes v3 -> v4:
-  - implement tranciever handling via regulator API (suggested by Marc Kleine-Budde)
-  - convert the driver to DT only driver, i.e. remove legacy platform struct and header
-    (suggested by Marc Kleine-Budde)
+Signed-off-by: Anton Glukhov <anton.a.glukhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+---
+ arch/arm/boot/dts/am3517.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Changes v2 -> v3:
-  - rename compatible property to "ti,am3517-hecc" (though there is a stipped
-    device named 3505, EMAC driver already uses am3517-emac name, so keep this
-    property consistent)
-  - use reg-names to specify different HECC I/O mapping (suggested by Tony Lindgren)
-  - provide fallback offsets and sizes for board files
-  - convert optional property ti,int_line to ti,use-hecc1int and add proper
-    description
-
-Changes v1 -> v2:
-  - change compatible to "ti,am3505
-  - remove CONFIG_OF
-  - don't set int_line to 0 explicitly
-
-[1] http://comments.gmane.org/gmane.linux.can/8616
-
-Yegor Yefremov (3):
-  ARM: dts: AM35x: Add hecc node
-  can: ti_hecc: Add TI HECC DT binding documentation
-  can: ti_hecc: Add DT support for TI HECC module
-
- .../devicetree/bindings/net/can/ti_hecc.txt        |  33 ++++
- arch/arm/boot/dts/am3517.dtsi                      |  12 ++
- drivers/net/can/ti_hecc.c                          | 166 +++++++++++----------
- include/linux/can/platform/ti_hecc.h               |  44 ------
- 4 files changed, 133 insertions(+), 122 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/net/can/ti_hecc.txt
- delete mode 100644 include/linux/can/platform/ti_hecc.h
-
+diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+index 9fe545d..00da3f2 100644
+--- a/arch/arm/boot/dts/am3517.dtsi
++++ b/arch/arm/boot/dts/am3517.dtsi
+@@ -13,6 +13,7 @@
+ / {
+ 	aliases {
+ 		serial3 = &uart4;
++		can = &hecc;
+ 	};
+ 
+ 	ocp@68000000 {
+@@ -72,6 +73,17 @@
+ 			pinctrl-single,register-width = <16>;
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
++
++		hecc: can@5c050000 {
++			compatible = "ti,am3517-hecc";
++			status = "disabled";
++			reg = <0x5c050000 0x80>,
++			      <0x5c053000 0x180>,
++			      <0x5c052000 0x200>;
++			reg-names = "hecc", "hecc-ram", "mbx";
++			interrupts = <24>;
++			clocks = <&hecc_ck>;
++		};
+ 	};
+ };
+ 
 -- 
 2.1.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
