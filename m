@@ -1,72 +1,104 @@
-From: Petr Cvek <petr.cvek-qphu/3gb4gc@public.gmane.org>
-Subject: Re: [PATCH v9 1/8] drivers:input:tsc2007: add new common binding
- names, pre-calibration, flipping and rotation
-Date: Mon, 20 Feb 2017 23:21:37 +0100
-Message-ID: <15339314-8696-f603-d0da-beefe54f0653@tul.cz>
-References: <cover.1482936802.git.hns@goldelico.com>
- <B30D00D0-1967-4BD5-A304-E2ADC815A805@goldelico.com>
- <201702202042.15878@pali> <201702202208.50498@pali>
- <C2E7AC24-75AB-442F-94A2-84904723EE41@goldelico.com>
- <CAKdAkRRZa-fpv_TKRdY=hFV3GdKxQ3muQORquvV_bTrDzQAhCw@mail.gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v9 1/8] drivers:input:tsc2007: add new common binding names, pre-calibration, flipping and rotation
+Date: Mon, 20 Feb 2017 23:45:49 +0100
+Message-ID: <201702202345.49231@pali>
+References: <cover.1482936802.git.hns@goldelico.com> <CAKdAkRRZa-fpv_TKRdY=hFV3GdKxQ3muQORquvV_bTrDzQAhCw@mail.gmail.com> <15339314-8696-f603-d0da-beefe54f0653@tul.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAKdAkRRZa-fpv_TKRdY=hFV3GdKxQ3muQORquvV_bTrDzQAhCw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?UTF-8?Q?Mika_Penttil=c3=a4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin
+Content-Type: multipart/signed;
+  boundary="nextPart4208919.Hg0nChBCbv";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <15339314-8696-f603-d0da-beefe54f0653@tul.cz>
+Sender: linux-input-owner@vger.kernel.org
+To: Petr Cvek <petr.cvek@tul.cz>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Sebastian Reichel <sre@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, Mika =?utf-8?q?Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, Alexander Stein <alexander.stein@systec-electronic.com>, Eric Engestrom <eric@engestrom.ch>, Hans de Goede <hdeg>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+--nextPart4208919.Hg0nChBCbv
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Dne 20.2.2017 v 22:50 Dmitry Torokhov napsal(a):
-> On Mon, Feb 20, 2017 at 1:27 PM, H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
->>
->>> Am 20.02.2017 um 22:08 schrieb Pali Rohár <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->>>
->>> On Monday 20 February 2017 20:42:15 Pali Rohár wrote:
->>>> Hi Nikolaus!
->>>>
->>>> On Monday 20 February 2017 17:50:04 H. Nikolaus Schaller wrote:
->>>>> Hi Dmitry,
->>>>>
->>>>>> Input driver may set resolution for given axis in units per mm
->>>>>> (or units per radian for rotational axis ABS_RX, ABS_RY,
->>>>>> ABS_RZ), and if you check the binding, you can use
->>>>>> "touchscreen-x-mm" and "touchscreen-y-mm" to specify the size of
->>>>>> entire touch surface and set resolution from it so that
->>>>>> userspace can calculate the proper scaling factor.
->>>>>
->>>>> How is this information exposed by the kernel to user-space? By
->>>>> scanning the DT file or tree?
->>>>
->>>> Set input_abs_set_res() from kernel. And in userspace call EVIOCGABS
->>>> ioctl() on input device. Look at struct input_absinfo, you should
->>>> have all needed information here. This is generic input interface,
->>>> no DT is needed.
->>>
->>> Looking at kernel code... via EVIOCSABS ioctl() you can even set
->>> resolution from userspace for specified input device.
->>>
->>> So this could be potentially used for calibrating input device from
->>> userspace? (In case DT data will not fully match current HW)
->>>
->>>> I hope that XServer is already using it for evdev devices...
->>>>
->>>> For whole implementation look at evtest program. That should be good
->>>> starting point for your userspace implementation.
->>>>
->>>> While I'm watching this discussion... in my opinion kernel should
->>>> just invert input axes (when needed)
->>
->> It is questionable why it should do that at all then.
-> 
-> Because the task of the kernel is to provide unified view of the
-> hardware. Axis swapping and inversion is needed to that "up" is always
-> "up" and "right" is always "right".
+On Monday 20 February 2017 23:21:37 Petr Cvek wrote:
+> Hi,
+>=20
+> Dne 20.2.2017 v 22:50 Dmitry Torokhov napsal(a):
+> > On Mon, Feb 20, 2017 at 1:27 PM, H. Nikolaus Schaller
+> > <hns@goldelico.com> wrote:
+> >>> Am 20.02.2017 um 22:08 schrieb Pali Roh=C3=A1r <pali.rohar@gmail.com>:
+> >>>=20
+> >>> On Monday 20 February 2017 20:42:15 Pali Roh=C3=A1r wrote:
+> >>>> Hi Nikolaus!
+> >>>>=20
+> >>>> On Monday 20 February 2017 17:50:04 H. Nikolaus Schaller wrote:
+> >>>>> Hi Dmitry,
+> >>>>>=20
+> >>>>>> Input driver may set resolution for given axis in units per mm
+> >>>>>> (or units per radian for rotational axis ABS_RX, ABS_RY,
+> >>>>>> ABS_RZ), and if you check the binding, you can use
+> >>>>>> "touchscreen-x-mm" and "touchscreen-y-mm" to specify the size
+> >>>>>> of entire touch surface and set resolution from it so that
+> >>>>>> userspace can calculate the proper scaling factor.
+> >>>>>=20
+> >>>>> How is this information exposed by the kernel to user-space? By
+> >>>>> scanning the DT file or tree?
+> >>>>=20
+> >>>> Set input_abs_set_res() from kernel. And in userspace call
+> >>>> EVIOCGABS ioctl() on input device. Look at struct
+> >>>> input_absinfo, you should have all needed information here.
+> >>>> This is generic input interface, no DT is needed.
+> >>>=20
+> >>> Looking at kernel code... via EVIOCSABS ioctl() you can even set
+> >>> resolution from userspace for specified input device.
+> >>>=20
+> >>> So this could be potentially used for calibrating input device
+> >>> from userspace? (In case DT data will not fully match current
+> >>> HW)
+> >>>=20
+> >>>> I hope that XServer is already using it for evdev devices...
+> >>>>=20
+> >>>> For whole implementation look at evtest program. That should be
+> >>>> good starting point for your userspace implementation.
+> >>>>=20
+> >>>> While I'm watching this discussion... in my opinion kernel
+> >>>> should just invert input axes (when needed)
+> >>=20
+> >> It is questionable why it should do that at all then.
+> >=20
+> > Because the task of the kernel is to provide unified view of the
+> > hardware. Axis swapping and inversion is needed to that "up" is
+> > always "up" and "right" is always "right".
+>=20
+> Actually my Xorg calibration 3x3 matrix is fine with both axis
+> inverted (on TSC2046).
 
-Actually my Xorg calibration 3x3 matrix is fine with both axis inverted (on TSC2046).
+Yes, 3x3 matrix which represent affine transformation can code inverted=20
+axis. This is IIRC what Xorg is doing.
 
-best regards,
-Petr
+But with information of min, max and current values plus resolution you=20
+cannot code information that axes are inverted (unless you misuse fact=20
+what is minimal and what maximal value). And this is what kernel=20
+provides for input device.
+
+Affine transformation supported by Xorg is "stronger" as resolution=20
+provided by kernel.
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart4208919.Hg0nChBCbv
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAlircZ0ACgkQi/DJPQPkQ1JoegCePhuUAGrh81cz8cSnxEn+PARP
+sIAAoKD+hIk48K8MArDfkVffaX1q8/2N
+=EWUC
+-----END PGP SIGNATURE-----
+
+--nextPart4208919.Hg0nChBCbv--
