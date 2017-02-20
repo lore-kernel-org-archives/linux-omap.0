@@ -1,52 +1,99 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [Letux-kernel] [PATCH v9 1/8] drivers:input:tsc2007: add new common binding names, pre-calibration, flipping and rotation
-Date: Mon, 20 Feb 2017 21:22:22 +0100
-Message-ID: <776DC6E2-5D58-40F4-8866-39D9002EF772@goldelico.com>
-References: <20170219141715.GA7159@amd> <05F3816F-46E6-4BC2-9E2E-F20E645F7197@goldelico.com> <20170219171518.GA12833@amd> <B41253A6-95D5-4E0F-ABD6-6909362843C4@goldelico.com> <20170219190547.GA17292@amd> <EB41EEED-0D94-473F-944F-757B25350A4C@goldelico.com> <20170219205708.GA9641@amd> <20170219232918.53801560@aktux> <20170219223949.GA2470@amd> <EE81034E-C10E-4E8B-B026-B3E92C0DAA19@goldelico.com> <20170220193228.GB23745@amd>
+Subject: Re: [PATCH v9 1/8] drivers:input:tsc2007: add new common binding names, pre-calibration, flipping and rotation
+Date: Mon, 20 Feb 2017 21:35:18 +0100
+Message-ID: <53529A9D-E2AA-405C-A12A-716984D2CDBC@goldelico.com>
+References: <cover.1482936802.git.hns@goldelico.com> <20170220010714.GB8358@dtor-ws> <B30D00D0-1967-4BD5-A304-E2ADC815A805@goldelico.com> <201702202042.15878@pali>
 Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_4A4D9AB0-0AB0-4625-B4E5-FEE40EF83A02"; protocol="application/pgp-signature"; micalg=pgp-sha256
+Content-Type: multipart/signed; boundary="Apple-Mail=_3076C7D0-340F-4FBE-BF31-0C222EC248F8"; protocol="application/pgp-signature"; micalg=pgp-sha256
 Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20170220193228.GB23745@amd>
+In-Reply-To: <201702202042.15878@pali>
 Sender: linux-input-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Andreas Kemnade <andreas@kemnade.info>, Mark Rutland <mark.rutland@arm.com>, Andrey Gelman <andrey.gelman@compulab.co.il>, Michel Verlaan <michel.verl@gmail.com>, Nick Dyer <nick@shmanahar.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@nokia.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, Hans Verkuil <hans.verkuil@cisco.com>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Eric Engestrom <eric@engestrom.ch>, Hans de Goede <hdegoede@redhat.com>
+To: =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Reichel <sre@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, =?utf-8?Q?Mika_Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, Alexander Stein <alexander.stein@systec-electronic.com>, Eric Engestrom <eric@engestrom.ch>, Hans de Goede <hdegoede@redhat.com>, Benjamin Tissoires <benjam>
 List-Id: linux-omap@vger.kernel.org
 
 
---Apple-Mail=_4A4D9AB0-0AB0-4625-B4E5-FEE40EF83A02
-Content-Transfer-Encoding: 7bit
+--Apple-Mail=_3076C7D0-340F-4FBE-BF31-0C222EC248F8
+Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain;
-	charset=us-ascii
+	charset=utf-8
 
-Hi,
+Hi Pali,
 
-> Am 20.02.2017 um 20:32 schrieb Pavel Machek <pavel@ucw.cz>:
-> 
-> Hi!
-> 
->>> But if you have userspace that depends on touchscreen to be
->>> calibrated... that _is_ wrong.
->> 
->> User-space people and real users have the opposite opinion. They
->> prefer if a touch is plug&play. I.e. without need for calibration.
-> 
-> Some people prefer to calibrate their touchscreens; because of
-> per-device variations, that gives better precision.
-> 
-> You can pass default calibration data from device tree to kernel to
-> userland. But you can not force people to use that calibration.
+> Am 20.02.2017 um 20:42 schrieb Pali Roh=C3=A1r <pali.rohar@gmail.com>:
+>=20
+> Hi Nikolaus!
+>=20
+> On Monday 20 February 2017 17:50:04 H. Nikolaus Schaller wrote:
+>> Hi Dmitry,
+>>=20
+>>> Input driver may set resolution for given axis in units per mm (or
+>>> units per radian for rotational axis ABS_RX, ABS_RY, ABS_RZ), and
+>>> if you check the binding, you can use "touchscreen-x-mm" and
+>>> "touchscreen-y-mm" to specify the size of entire touch surface and
+>>> set resolution from it so that userspace can calculate the proper
+>>> scaling factor.
+>>=20
+>> How is this information exposed by the kernel to user-space? By
+>> scanning the DT file or tree?
+>=20
+> Set input_abs_set_res() from kernel. And in userspace call EVIOCGABS
+> ioctl() on input device. Look at struct input_absinfo, you should have
+> all needed information here. This is generic input interface, no DT is
+> needed.
 
-Yes, you can do that if you want. I hope it became clear by the formula
-in my last mail.
+This assumes that I can and want to write a graphics system myself.
 
-I just want to be able to do it the other way for those users who don't
-care about this per-device variation.
+>=20
+> I hope that XServer is already using it for evdev devices...
 
-BR,
+No idea if it does. It is a black box for me out of our control.
+
+>=20
+> For whole implementation look at evtest program. That should be good
+> starting point for your userspace implementation.
+
+The problem I have is that *I* have no userspace implementation and
+the GTA04 project does not want to enforce one. We have several =
+different
+ones: X11 based (LXDE and others), Qt (fb based), Replicant to name =
+some.
+
+All have the same problem to be solved once. The common denominator for
+a solution are 2 lines of code in the kernel plus some DT properties
+you need anyways if calibration should be automated in userland.
+
+>=20
+> While I'm watching this discussion... in my opinion kernel should just
+> invert input axes (when needed) and should not do any other
+> normalization or integer/floating-point re-calibration/re-calculation.
+> If it correctly exports minimum value, maximum value and resolution =
+then
+> userspace can correctly re-scale input events to units which userspace
+> needs (e.g. mapping into LCD screen pixels or whatever is needed).
+
+It can, but afaik it does not yet. And if it does, it does it in a =
+plethora
+of different implementation states. That is the reason why we want to =
+solve
+it once for all userlands in the kernel and not rely on user-space help.
+
+Surely, userland can do a lot of things. It could also do the whole
+file system stuff (FUSE).
+
+A more input device related example comes to my mind: userland could do
+keyboard mapping completely. It would suffice if the kernel presents
+some x/y coordinates or gpio-numbers for buttons and user-space could =
+map.
+Still there is a (pre-)mapping to Key-Codes. And yes, they are mapped a =
+second
+time in userland if needed, but it works sufficiently well if not done.
+
+BR and thanks,
 Nikolaus
 
 
---Apple-Mail=_4A4D9AB0-0AB0-4625-B4E5-FEE40EF83A02
+--Apple-Mail=_3076C7D0-340F-4FBE-BF31-0C222EC248F8
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
 	filename=signature.asc
@@ -56,19 +103,19 @@ Content-Description: Message signed with OpenPGP using GPGMail
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBCAAGBQJYq0/+AAoJEIl79TGLgAm6AxIP+wcd66vWnQnL5WPDOdyOt2cl
-Go4t5ZU+kEI+bP8ucpge4REuAC0yK5AH4HqHLiOUnRpj/l1vKxWAgfX5Om8pdL9u
-fbghblmb6LLPeO0MBh03LWxyFSfoGA12hLYVs3jhh/YY8c2z3tcTGy1zezGfG2CI
-KYDy3UIlcucNILgNzJglNIXSfNrCLETmYgxRTJaDVryhGpjN5RWV9ELaK7V3Bk2i
-UaIFfE5mTMYKW4zW1MkFmc+PWbR6a+5Au6qUdLmEnL/jVSRb7UUQUwMsdwipo/qd
-hu06yIYpGYxIURihL5DrlGhuZEGBdTGFXWBwLVXOJ1G6/HECvPXIDk8MHvZC+qKU
-1n/1sBxKrDs6PA5uC4nTAgrcWe4UQIj7QTjOb27oOgJdKrYK18NBb39GULxPjNwb
-WQ08gvt0l66dxULxkv5JQhNfL/dGLt1VpqYRemo6iea/L7abylmYSTYqj2r2EG+V
-uvU1FHbN5cE/gKVOZuE1mDbH8pW8/N84XHxFgy1i6p+nZLZugNlcaK0KW9H0hwIb
-bUv3jHqbtT0E3eLgR3/0YGCXSMvh5s3d/P20bMetU1zfBYDeBWFnD+EMMum5HDpf
-xYifNVV5ccQONrn58kvimPREJInxhfEn/m3/X9Lw3fzTsIu5tyO5G9Fyu+u5M1Mr
-toR1+BPPP5u3sHY1AhzU
-=+Qxw
+iQIcBAEBCAAGBQJYq1MHAAoJEIl79TGLgAm6zQoP/3Mmh4igsM256TfpcmJDzboq
+esmCr1bqJCD0qOkoGioRBSpUT1/u4bZmbkbQL7j0FLYoFZlciNo+K8ilV1fyxyxi
+KaDZwiLWuexhVb1qsgPmhK+qimstoCC5w0xFwYpG7hqoWzHbppH/fb96EIn0GBNV
+D0J5uylPe0M0+UbymqZbZLGSAddOm+xaItWfgvHgkF1xPMJi0BjHnxXcVbYoof/7
+jNI/fPhuzPlPK3kgbQupfsy/2+w2OGUi2q5jK211kENIuiaqDfN1EHiGRvpdQCDP
++gcUtrltcU6OI+++k0Pop9PPlDW2s5gwVDLpsnOFTxoPsDCC+TenbebQEQlW86hF
+8feGKF+9vGq4xGNsrlw5VgWA65Ou9g3UVRmjn9n28P/7Lm5YzXdvZJlhceCNJam4
+a9zFTEFqjko+wE6SvolAihgvlErjNuHQ+lGEcUs5k+4zRLN1t9fQL60oM0o/CW6j
+4QqpB8tePm5QMsp4r/SR6zqpFo2DbbwB9wkHW7eLfeHGVHe4iPVVDRCqmVcmzEC2
+QMhM5VMVDMq7BI4p0a97G+zYgyBxa5ic7+D6jeCJliME7Ubv0JhtlORiBF6+KazV
+j42RZTE8ckR6UxrhvyxUYmM+6hRXZS8fnExieW7Eow0G9+F/9lZEv0RUT36xRVXZ
+4VcsoaulG1KC5ZccyecF
+=drRa
 -----END PGP SIGNATURE-----
 
---Apple-Mail=_4A4D9AB0-0AB0-4625-B4E5-FEE40EF83A02--
+--Apple-Mail=_3076C7D0-340F-4FBE-BF31-0C222EC248F8--
