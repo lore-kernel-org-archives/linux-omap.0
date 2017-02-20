@@ -1,79 +1,42 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: Re: [PATCH 2/4] PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
-Date: Mon, 20 Feb 2017 09:32:35 +0100
-Message-ID: <2636ef0f-78e1-b38a-5864-c53a645e7073@axis.com>
-References: <1487251752-12478-1-git-send-email-kishon@ti.com>
- <1487251752-12478-3-git-send-email-kishon@ti.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 1/3] ARM: davinci: PM: Drop useless check for PM_SUSPEND_STANDBY
+Date: Mon, 20 Feb 2017 09:40:44 +0100
+Message-ID: <CAMuHMdVdMeY0WFrpG_k_Ahd_EcLVTgaTW7+Z1imGmzs67uLuHg@mail.gmail.com>
+References: <1487347836-14427-1-git-send-email-geert+renesas@glider.be>
+ <1487347836-14427-2-git-send-email-geert+renesas@glider.be> <76eb3b09-80bd-eb5a-db32-744a7b9e1f2c@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1487251752-12478-3-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@axis.com
-Cc: Joao Pinto <Joao.Pinto@synopsys.com>, nsekhar@ti.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <76eb3b09-80bd-eb5a-db32-744a7b9e1f2c@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Dinh Nguyen <dinguyen@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Kishon!
+Hi Sekhar,
 
-
-It's nice to see that you are improving the dwc framework+drivers.
-
-pcie-artpec6.c has the same quirk as dra7xx,
-see define ARTPEC6_CPU_TO_BUS_ADDR.
-
-I could create a patch, but I guess it would make more sense
-if it's part of this series.
-
-Keep up the good work!
-
-
-Regards,
-Niklas
-
-
-On 02/16/2017 02:29 PM, Kishon Vijay Abraham I wrote:
-> Populate cpu_addr_fixup ops to extract the least 28 bits of the
-> corresponding cpu address.
+On Mon, Feb 20, 2017 at 9:30 AM, Sekhar Nori <nsekhar@ti.com> wrote:
+> On Friday 17 February 2017 09:40 PM, Geert Uytterhoeven wrote:
+>> As DaVinci uses the standard suspend_valid_only_mem() for its
+>> platform_suspend_ops.valid() callback, its platform_suspend_ops.enter()
+>> callback will never be called with state equal to PM_SUSPEND_STANDBY.
+>>
+>> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 >
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/pci/dwc/pci-dra7xx.c |   11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 0984baf..07c45ec 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -88,6 +88,11 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
->  	writel(value, pcie->base + offset);
->  }
->  
-> +static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
-> +{
-> +	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
-> +}
-> +
->  static int dra7xx_pcie_link_up(struct dw_pcie *pci)
->  {
->  	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
-> @@ -152,11 +157,6 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
->  	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
->  	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
->  
-> -	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
-> -	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
-> -	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
-> -	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
-> -
->  	dw_pcie_setup_rc(pp);
->  
->  	dra7xx_pcie_establish_link(dra7xx);
-> @@ -329,6 +329,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->  }
->  
->  static const struct dw_pcie_ops dw_pcie_ops = {
-> +	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
->  	.link_up = dra7xx_pcie_link_up,
->  };
->  
+> Looks good to me. Whats the plan for applying the series. Do you want
+> the individual machine maintainers to apply their parts. Or some other?
+
+I think the individual machine maintainers is the simplest.
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
