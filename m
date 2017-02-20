@@ -1,66 +1,72 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [Letux-kernel] [PATCH v9 1/8] drivers:input:tsc2007: add new
- common binding names, pre-calibration, flipping and rotation
-Date: Mon, 20 Feb 2017 20:32:28 +0100
-Message-ID: <20170220193228.GB23745@amd>
-References: <20170219141715.GA7159@amd>
- <05F3816F-46E6-4BC2-9E2E-F20E645F7197@goldelico.com>
- <20170219171518.GA12833@amd>
- <B41253A6-95D5-4E0F-ABD6-6909362843C4@goldelico.com>
- <20170219190547.GA17292@amd>
- <EB41EEED-0D94-473F-944F-757B25350A4C@goldelico.com>
- <20170219205708.GA9641@amd>
- <20170219232918.53801560@aktux>
- <20170219223949.GA2470@amd>
- <EE81034E-C10E-4E8B-B026-B3E92C0DAA19@goldelico.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH v9 1/8] drivers:input:tsc2007: add new common binding names, pre-calibration, flipping and rotation
+Date: Mon, 20 Feb 2017 20:42:15 +0100
+Message-ID: <201702202042.15878@pali>
+References: <cover.1482936802.git.hns@goldelico.com> <20170220010714.GB8358@dtor-ws> <B30D00D0-1967-4BD5-A304-E2ADC815A805@goldelico.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="E39vaYmALEf/7YXx"
+Content-Type: multipart/signed;
+  boundary="nextPart1527656.MuGuQcp6Iy";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <EE81034E-C10E-4E8B-B026-B3E92C0DAA19@goldelico.com>
+In-Reply-To: <B30D00D0-1967-4BD5-A304-E2ADC815A805@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Andreas Kemnade <andreas@kemnade.info>, Mark Rutland <mark.rutland@arm.com>, Andrey Gelman <andrey.gelman@compulab.co.il>, Michel Verlaan <michel.verl@gmail.com>, Nick Dyer <nick@shmanahar.org>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@redhat.com>, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@nokia.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, Hans Verkuil <hans.verkuil@cisco.com>, linux-input@vger.kernel.org, devicetree@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Eric Engestrom <eric@engestrom.ch>, Hans de Goede <hdegoede@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Sebastian Reichel <sre@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, Mika =?utf-8?q?Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, Alexander Stein <alexander.stein@systec-electronic.com>, Eric Engestrom <eric@engestrom.ch>, Hans de Goede <hdegoede@redhat.com>, Benjamin Tissoires <benjam>
 List-Id: linux-omap@vger.kernel.org
 
-
---E39vaYmALEf/7YXx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--nextPart1527656.MuGuQcp6Iy
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+Hi Nikolaus!
 
-> > But if you have userspace that depends on touchscreen to be
-> > calibrated... that _is_ wrong.
+On Monday 20 February 2017 17:50:04 H. Nikolaus Schaller wrote:
+> Hi Dmitry,
 >=20
-> User-space people and real users have the opposite opinion. They
-> prefer if a touch is plug&play. I.e. without need for calibration.
+> > Input driver may set resolution for given axis in units per mm (or
+> > units per radian for rotational axis ABS_RX, ABS_RY, ABS_RZ), and
+> > if you check the binding, you can use "touchscreen-x-mm" and
+> > "touchscreen-y-mm" to specify the size of entire touch surface and
+> > set resolution from it so that userspace can calculate the proper
+> > scaling factor.
+>=20
+> How is this information exposed by the kernel to user-space? By
+> scanning the DT file or tree?
 
-Some people prefer to calibrate their touchscreens; because of
-per-device variations, that gives better precision.
+Set input_abs_set_res() from kernel. And in userspace call EVIOCGABS=20
+ioctl() on input device. Look at struct input_absinfo, you should have=20
+all needed information here. This is generic input interface, no DT is=20
+needed.
 
-You can pass default calibration data from device tree to kernel to
-userland. But you can not force people to use that calibration.
+I hope that XServer is already using it for evdev devices...
 
-Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+=46or whole implementation look at evtest program. That should be good=20
+starting point for your userspace implementation.
 
---E39vaYmALEf/7YXx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+While I'm watching this discussion... in my opinion kernel should just=20
+invert input axes (when needed) and should not do any other=20
+normalization or integer/floating-point re-calibration/re-calculation.=20
+If it correctly exports minimum value, maximum value and resolution then=20
+userspace can correctly re-scale input events to units which userspace=20
+needs (e.g. mapping into LCD screen pixels or whatever is needed).
+
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+
+--nextPart1527656.MuGuQcp6Iy
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEARECAAYFAlirREwACgkQMOfwapXb+vL9WACgv4QUgsdFRlmmfcDNHeF6zy+p
-2ZUAmwb6kpz2iVvbh5rIXETQpOoOaJc5
-=heiN
+iEYEABECAAYFAlirRpcACgkQi/DJPQPkQ1KlhgCfenWu7036G3+S4Lgzb8sRH8Lx
+MSUAoKqCFGY13UKTeJaV+BoqlA64pxS5
+=MNFb
 -----END PGP SIGNATURE-----
 
---E39vaYmALEf/7YXx--
+--nextPart1527656.MuGuQcp6Iy--
