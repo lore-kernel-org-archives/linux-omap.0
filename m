@@ -1,103 +1,111 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 Subject: Re: [PATCH v9 1/8] drivers:input:tsc2007: add new common binding names, pre-calibration, flipping and rotation
-Date: Tue, 21 Feb 2017 07:56:14 +0100
-Message-ID: <2FB9BB18-C84F-453B-8002-71A9CC8A253D@goldelico.com>
-References: <cover.1482936802.git.hns@goldelico.com> <B30D00D0-1967-4BD5-A304-E2ADC815A805@goldelico.com> <201702202042.15878@pali> <201702202208.50498@pali> <C2E7AC24-75AB-442F-94A2-84904723EE41@goldelico.com> <CAKdAkRRZa-fpv_TKRdY=hFV3GdKxQ3muQORquvV_bTrDzQAhCw@mail.gmail.com> <15339314-8696-f603-d0da-beefe54f0653@tul.cz> <CAKdAkRT2nHC_hdQko46MVdbnjahz65zpBvAWmHFfK72pL2uyiw@mail.gmail.com>
+Date: Tue, 21 Feb 2017 08:14:09 +0100
+Message-ID: <A41872A2-F095-47F8-B122-FFAE430B0D7F@goldelico.com>
+References: <cover.1482936802.git.hns@goldelico.com> <20170220010714.GB8358@dtor-ws> <B30D00D0-1967-4BD5-A304-E2ADC815A805@goldelico.com> <201702202042.15878@pali>
 Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKdAkRT2nHC_hdQko46MVdbnjahz65zpBvAWmHFfK72pL2uyiw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Petr Cvek <petr.cvek@tul.cz>, =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Michael Welling <mwelling@ieee.org>, =?utf-8?Q?Mika_Penttil=C3=A4?= <mika.penttila@nextfour.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, "Andrew F. Davis" <afd@ti.com>, Mark Brown <broonie@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Rob Herring <robh+dt@kernel.org>, Alexander Stein <alexander.stein@systec-electronic.com>, Eric Engestrom <eric@engestrom.ch>, Hans de Goede <hdegoede@re>
+Content-Type: multipart/signed; boundary="Apple-Mail=_DF78ACF7-0D85-4371-8B6E-2844A89825D8"; protocol="application/pgp-signature"; micalg=pgp-sha256
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201702202042.15878@pali>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?utf-8?Q?Pali_Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?utf-8?Q?Mika_Penttil=C3=A4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Tissoires <benjam>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
 
-> Am 20.02.2017 um 23:24 schrieb Dmitry Torokhov =
-<dmitry.torokhov@gmail.com>:
+--Apple-Mail=_DF78ACF7-0D85-4371-8B6E-2844A89825D8
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=utf-8
+
+Hi Pali,
+
+> Am 20.02.2017 um 20:42 schrieb Pali Roh=C3=A1r <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
 >=20
-> On Mon, Feb 20, 2017 at 2:21 PM, Petr Cvek <petr.cvek@tul.cz> wrote:
->> Hi,
->>=20
->> Dne 20.2.2017 v 22:50 Dmitry Torokhov napsal(a):
->>> On Mon, Feb 20, 2017 at 1:27 PM, H. Nikolaus Schaller =
-<hns@goldelico.com> wrote:
->>>>=20
->>>>> Am 20.02.2017 um 22:08 schrieb Pali Roh=C3=A1r =
-<pali.rohar@gmail.com>:
->>>>>=20
->>>>> On Monday 20 February 2017 20:42:15 Pali Roh=C3=A1r wrote:
->>>>>> Hi Nikolaus!
->>>>>>=20
->>>>>> On Monday 20 February 2017 17:50:04 H. Nikolaus Schaller wrote:
->>>>>>> Hi Dmitry,
->>>>>>>=20
->>>>>>>> Input driver may set resolution for given axis in units per mm
->>>>>>>> (or units per radian for rotational axis ABS_RX, ABS_RY,
->>>>>>>> ABS_RZ), and if you check the binding, you can use
->>>>>>>> "touchscreen-x-mm" and "touchscreen-y-mm" to specify the size =
-of
->>>>>>>> entire touch surface and set resolution from it so that
->>>>>>>> userspace can calculate the proper scaling factor.
->>>>>>>=20
->>>>>>> How is this information exposed by the kernel to user-space? By
->>>>>>> scanning the DT file or tree?
->>>>>>=20
->>>>>> Set input_abs_set_res() from kernel. And in userspace call =
-EVIOCGABS
->>>>>> ioctl() on input device. Look at struct input_absinfo, you should
->>>>>> have all needed information here. This is generic input =
-interface,
->>>>>> no DT is needed.
->>>>>=20
->>>>> Looking at kernel code... via EVIOCSABS ioctl() you can even set
->>>>> resolution from userspace for specified input device.
->>>>>=20
->>>>> So this could be potentially used for calibrating input device =
-from
->>>>> userspace? (In case DT data will not fully match current HW)
->>>>>=20
->>>>>> I hope that XServer is already using it for evdev devices...
->>>>>>=20
->>>>>> For whole implementation look at evtest program. That should be =
-good
->>>>>> starting point for your userspace implementation.
->>>>>>=20
->>>>>> While I'm watching this discussion... in my opinion kernel should
->>>>>> just invert input axes (when needed)
->>>>=20
->>>> It is questionable why it should do that at all then.
->>>=20
->>> Because the task of the kernel is to provide unified view of the
->>> hardware. Axis swapping and inversion is needed to that "up" is =
-always
->>> "up" and "right" is always "right".
->>=20
->> Actually my Xorg calibration 3x3 matrix is fine with both axis =
-inverted (on TSC2046).
+> Hi Nikolaus!
 >=20
-> Yes, you can make it work for your touchscreen as long as you know
-> that it inverted somehow. How you gain this knowledge is the question.
+> On Monday 20 February 2017 17:50:04 H. Nikolaus Schaller wrote:
+>> Hi Dmitry,
+>>=20
+>>> Input driver may set resolution for given axis in units per mm (or
+>>> units per radian for rotational axis ABS_RX, ABS_RY, ABS_RZ), and
+>>> if you check the binding, you can use "touchscreen-x-mm" and
+>>> "touchscreen-y-mm" to specify the size of entire touch surface and
+>>> set resolution from it so that userspace can calculate the proper
+>>> scaling factor.
+>>=20
+>> How is this information exposed by the kernel to user-space? By
+>> scanning the DT file or tree?
+>=20
+> Set input_abs_set_res() from kernel.
 
-I think by letting the user calibrate the touch (calib tools can detect
-inversion and rotation by the tap gesture sequence). I got the =
-impression
-that this step is wanted anyways for getting maximum precision.
+I can't find this function defined anywhere but used in 101 LOC.
+LXR doesn't know it either: =
+http://lxr.free-electrons.com/ident?i=3Dinput_abs_set_res
 
-Or the user-space configuration for a specific device model knows that =
-because
-the developer has gained this knowledge once and predefined the rotation =
-matrix
-for e.g. X11 correctly. If he didn't e.g. for Replicant it is =
-Replicant's bug...
+What is going on here?
 
-So you do not need this knowledge passed to user-space at all. Hence my =
-proposal
-to get rid of touch inversion and flipping properties and code from the =
-touch
-screen drivers.
+> And in userspace call EVIOCGABS
+> ioctl() on input device. Look at struct input_absinfo, you should have
+> all needed information here. This is generic input interface, no DT is
+> needed.
+
+Ok, if this is not set by a driver it is indeed a driver bug.
+
+But we have to define it's value in DT because the tsc2007 does not know
+anything about the panel dimensions.
+
+IMHO something that should be done by generic of_touchscreen.c
+
+If of_touchscreen would simply pass the touchscreen-size parameters
+to input_abs_set_res() and the bindings would define it to be units/mm
+it might have saved us all a lot of work and discussion.
+
+>=20
+> I hope that XServer is already using it for evdev devices...
+>=20
+> For whole implementation look at evtest program. That should be good
+> starting point for your userspace implementation.
+>=20
+> While I'm watching this discussion... in my opinion kernel should just
+> invert input axes (when needed) and should not do any other
+> normalization or integer/floating-point re-calibration/re-calculation.
+> If it correctly exports minimum value, maximum value and resolution =
+then
+> userspace can correctly re-scale input events to units which userspace
+> needs (e.g. mapping into LCD screen pixels or whatever is needed).
 
 BR and thanks,
 Nikolaus
+
+
+--Apple-Mail=_DF78ACF7-0D85-4371-8B6E-2844A89825D8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCAAGBQJYq+jCAAoJEIl79TGLgAm6oLEQAIKq8AY89cWAIJrRNy2H+rqG
+SHz5Aw7eYmXDbcVp9wubECAJWdIyoZGzGlHScnmgyK8R4RJXG6wa1UVMR0mAIqk3
+zE9cBxnEkEVFyL+d+50Bt5WaolFiyGBJKWn/IeLz1Bxv5gEknqoH5J/A9pjroW0U
+JlZi3uHhG1pUioLEs7SfuDrl3rHrXP5GewJhzk3jSoSq0xtBPtr9ArlwVYNVpC03
+WAqpFdQdIRd99nEEf2fZ/DMKsXiFELQvf+rbmJcDQmH4WE39Iaq9iwLJLGkjwb+t
+v4H5cNKCmKKrKpLjDrYSIrw6M9gApOavICP3kfBKzztALxdFWnp8rY0+89gYumVc
+wqYfFJJsf1hAnMeYLln/zxVP3DGk5UQnaOeu10bLB0gHU11nSc+9cH0rAGy1fcq5
+OaG9FiaSXg5t9nV8lB8hUpAQnlhEp0GeMsMuaVx2kydjvwUfq62Udr/6RkfT5B10
+E5PLCj5dhbtl0HSPnOZ7/OPQcGqSKz/4DWfp+Nxfq8lgTCUuCAELeln5T5JGqbYU
++vL3irsXjUFMKopKosLeqM0FBc4QNvK+TUKdV7heFO6fiADCX/OZMKzxd1K2J9dk
+q6tSpGtB+K8HYEIEk9LThTYRgWsRjIzgv8NKGADr+6IU7JMKqE9Z3Rh2oi5Wd2Bt
+gyDZ+paoXp37jRla9+1o
+=AdSb
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_DF78ACF7-0D85-4371-8B6E-2844A89825D8--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
