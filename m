@@ -1,39 +1,34 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 1/3] ARM: davinci: PM: Drop useless check for
- PM_SUSPEND_STANDBY
-Date: Tue, 21 Feb 2017 14:27:02 +0530
-Message-ID: <5c0967c9-cd60-372e-9a06-5c83fb880425@ti.com>
-References: <1487347836-14427-1-git-send-email-geert+renesas@glider.be>
- <1487347836-14427-2-git-send-email-geert+renesas@glider.be>
- <76eb3b09-80bd-eb5a-db32-744a7b9e1f2c@ti.com>
- <CAMuHMdVdMeY0WFrpG_k_Ahd_EcLVTgaTW7+Z1imGmzs67uLuHg@mail.gmail.com>
+From: Christ van Willegen <cvwillegen@gmail.com>
+Subject: Re: [Letux-kernel] [PATCH v9 1/8] drivers:input:tsc2007: add new
+ common binding names, pre-calibration, flipping and rotation
+Date: Tue, 21 Feb 2017 09:57:51 +0100
+Message-ID: <CA+Ot1OwXSyncvVz-S__7buQMJ_2nHaapQ4rroqVgMKyWU7nZiA@mail.gmail.com>
+References: <cover.1482936802.git.hns@goldelico.com> <20170220010714.GB8358@dtor-ws>
+ <B30D00D0-1967-4BD5-A304-E2ADC815A805@goldelico.com> <201702202042.15878@pali>
+ <A41872A2-F095-47F8-B122-FFAE430B0D7F@goldelico.com> <20170221084724.GB9795@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAMuHMdVdMeY0WFrpG_k_Ahd_EcLVTgaTW7+Z1imGmzs67uLuHg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Kevin Hilman <khilman@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Dinh Nguyen <dinguyen@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux PM list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20170221084724.GB9795@pali>
+Sender: linux-input-owner@vger.kernel.org
+To: Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Mark Rutland <mark.rutland@arm.com>, Andrey Gelman <andrey.gelman@compulab.co.il>, Michel Verlaan <michel.verl@gmail.com>, Nick Dyer <nick@shmanahar.org>, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Pavel Machek <pavel@ucw.cz>, linux-omap <linux-omap@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, Aaro Koskinen <aaro.koskinen@nokia.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Igor Grinberg <grinberg@compulab.co.il>, Hans Verkuil <hans.verkuil@cisco.com>, linux-input@vger.kernel.org, devicetree <devicetree@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Eric Engestrom <eric@engestrom.ch>Hans
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 20 February 2017 02:10 PM, Geert Uytterhoeven wrote:
-> Hi Sekhar,
-> 
-> On Mon, Feb 20, 2017 at 9:30 AM, Sekhar Nori <nsekhar@ti.com> wrote:
->> On Friday 17 February 2017 09:40 PM, Geert Uytterhoeven wrote:
->>> As DaVinci uses the standard suspend_valid_only_mem() for its
->>> platform_suspend_ops.valid() callback, its platform_suspend_ops.enter()
->>> callback will never be called with state equal to PM_SUSPEND_STANDBY.
->>>
->>> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
->>
->> Looks good to me. Whats the plan for applying the series. Do you want
->> the individual machine maintainers to apply their parts. Or some other?
-> 
-> I think the individual machine maintainers is the simplest.
+Hi all,
 
-Patch 1/3 applied to branch v4.12/soc of my tree.
+On Tue, Feb 21, 2017 at 9:47 AM, Pali Roh=C3=A1r <pali.rohar@gmail.com> wro=
+te:
+> But it really make sense to set input_abs_set_res() from DT.
 
-Thanks,
-Sekhar
+And _not_ add the 1 or two lines of code that checks some DT variable,
+and then fixes _everybody's_ userland?
+
+That means those lines of code need to go into _every_ userland, which
+makes maintenance sooo much harder. And the kernel knows about this
+and doesn't care??
+
+Weird...
+
+Christ van Willegen
