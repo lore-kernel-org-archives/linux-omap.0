@@ -1,102 +1,105 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH v9 1/8] drivers:input:tsc2007: add new common binding names, pre-calibration, flipping and rotation
-Date: Tue, 21 Feb 2017 09:29:53 +0100
-Message-ID: <EABA13E3-05E4-4A7B-A84D-033BB8FBDE28@goldelico.com>
-References: <20170218225435.GA4693@amd> <CC600A84-A5C8-4A8C-8CF4-B54C57DF73F3@goldelico.com> <20170219141715.GA7159@amd> <05F3816F-46E6-4BC2-9E2E-F20E645F7197@goldelico.com> <20170219171518.GA12833@amd> <B41253A6-95D5-4E0F-ABD6-6909362843C4@goldelico.com> <20170219190547.GA17292@amd> <EB41EEED-0D94-473F-944F-757B25350A4C@goldelico.com> <20170219205708.GA9641@amd> <6DF7B03A-8B63-422C-9561-69A34A7FBF35@goldelico.com> <20170219221930.GA1568@amd> <6610D852-4717-47A7-BFDE-52C8E9E614BB@goldelico.com> <e3dd020e-8590-6e65-9151-b5f1492debcb@tul.cz>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e3dd020e-8590-6e65-9151-b5f1492debcb-qphu/3gb4gc@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Petr Cvek <petr.cvek-qphu/3gb4gc@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?windows-1252?Q?Pali_Roh=E1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?windows-1252?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, =?windows-1252?Q?Mika_Penttil=E4?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>Han
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v9 1/8] drivers:input:tsc2007: add new common binding
+ names, pre-calibration, flipping and rotation
+Date: Tue, 21 Feb 2017 09:47:24 +0100
+Message-ID: <20170221084724.GB9795@pali>
+References: <cover.1482936802.git.hns@goldelico.com>
+ <20170220010714.GB8358@dtor-ws>
+ <B30D00D0-1967-4BD5-A304-E2ADC815A805@goldelico.com>
+ <201702202042.15878@pali>
+ <A41872A2-F095-47F8-B122-FFAE430B0D7F@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <A41872A2-F095-47F8-B122-FFAE430B0D7F-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Michael Welling <mwelling-EkmVulN54Sk@public.gmane.org>, Mika =?utf-8?B?UGVudHRpbMOk?= <mika.penttila-MRsr7dthA9VWk0Htik3J/w@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Stein <alexander.stein-93q1YBGzJSMe9JSWTWOYM3xStJ4P+DSV@public.gmane.org>, Eric Engestrom <eric-op+oiCINJLTt9jDmeYuA0g@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Tissoires <benjami>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Petr and all,
+Hi!
 
-> Am 20.02.2017 um 23:26 schrieb Petr Cvek <petr.cvek-qphu/3gb4gc@public.gmane.org>:
->=20
-> Hi
->=20
-> Dne 20.2.2017 v 17:50 H. Nikolaus Schaller napsal(a):
->> Hi Pavel,
->>=20
->>> Am 19.02.2017 um 23:19 schrieb Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>:
->>>=20
->>> hi!
->>>=20
->>>>>> But as said I don't think we need float or fixed point for =
-practical systems
->>>>>> at all.
->>>>>=20
->>>>> So you are going to loose precision. And if userspace decides to
->>>>> calibrate it slightly differently from kernel, lost precision will
->>>>> matter.
->>>>=20
->>>> Really?
->>>=20
->>> Really.
->>>=20
->>>> Example:
->>>>=20
->>>> ADC values go 100 .. 3995 (i.e. touch margin is 100 steps in =
-pre-calibration)
->>>>=20
->>>> This is scaled to let's say 0..640.
->>>=20
->>> Ok. Now userspace realizes that kernel alignemnt is off, and it =
-would
->>> want to scale it to 1..642.
->>=20
->> Screen coordinates are still 0..639.
->>=20
->>> That will mean that single pixel will be
->>> inaccessible, right?
->>=20
->> Yes, that can happen if the additional user-space scale is > 1.0.
->>=20
->> As long as it is small (I expect <1.01 =3D 1% error in scale) it is
->> barely noticeable.
->>=20
->> Therefore, I asked before: how big in pixels is your finger or =
-stylus?
->> Does this effect matter?
->>=20
->> A resistive touch is a man-machine-interface where people press =
-buttons of at
->> least 12x12 pixels size (or they are no longer visually =
-recognizable).
->=20
-> Smallest kernel font is 4x6 (i think) and I'm regularly using 8x8. I =
-would like
-> to be able to select a single letter in the console.
+On Tuesday 21 February 2017 08:14:09 H. Nikolaus Schaller wrote:
+> Hi Pali,
+> 
+> > Am 20.02.2017 um 20:42 schrieb Pali Rohár <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+> > 
+> > Hi Nikolaus!
+> > 
+> > On Monday 20 February 2017 17:50:04 H. Nikolaus Schaller wrote:
+> >> Hi Dmitry,
+> >> 
+> >>> Input driver may set resolution for given axis in units per mm (or
+> >>> units per radian for rotational axis ABS_RX, ABS_RY, ABS_RZ), and
+> >>> if you check the binding, you can use "touchscreen-x-mm" and
+> >>> "touchscreen-y-mm" to specify the size of entire touch surface and
+> >>> set resolution from it so that userspace can calculate the proper
+> >>> scaling factor.
+> >> 
+> >> How is this information exposed by the kernel to user-space? By
+> >> scanning the DT file or tree?
+> > 
+> > Set input_abs_set_res() from kernel.
+> 
+> I can't find this function defined anywhere but used in 101 LOC.
+> LXR doesn't know it either: http://lxr.free-electrons.com/ident?i=input_abs_set_res
+> 
+> What is going on here?
 
-So you probably have exceptionally good eyes and reading a terminal on a =
-touch
-screen is not a typical use case (except for us hard-core programmers).
+It is inline function defined by preprocessor. This should help you:
 
-Anyways, if there is only a single pixel is not accessible due do =
-rescaling and integer
-truncation effects (which is what Pavel complained) you can still select =
-single letters
-in a 4x6 font.
+git grep INPUT_GENERATE_ABS_ACCESSORS
+git grep input_abs_set_res
 
----
+> > And in userspace call EVIOCGABS
+> > ioctl() on input device. Look at struct input_absinfo, you should have
+> > all needed information here. This is generic input interface, no DT is
+> > needed.
+> 
+> Ok, if this is not set by a driver it is indeed a driver bug.
 
-So, let's close commenting this patch here since in my opinion =
-everything is said
-and the maintainers have decided not to accept it.
+Zero value is special and means "driver does not know it". In case
+driver really does not know it, then it is not a driver bug.
 
-I hope that I have not forgotten anyone to answer.
+> But we have to define it's value in DT because the tsc2007 does not know
+> anything about the panel dimensions.
 
-Thank you very much to all participants for this discussion, because it =
-was
-really enlightening to me and contains a lot of new perspectives.
+Yes, driver itself does not know it and DT seems to be correct place.
 
-BR and thanks,
-Nikolaus=
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> IMHO something that should be done by generic of_touchscreen.c
+
+I agree. DT for specific hardware can pass these information into
+touchscreen driver (which does not have to know these parameters) and it
+exports it to userspace.
+
+> If of_touchscreen would simply pass the touchscreen-size parameters
+> to input_abs_set_res() and the bindings would define it to be units/mm
+> it might have saved us all a lot of work and discussion.
+
+Seem that nobody until now needed such thing and everybody is (probably)
+using Xorg userspace with userspace calibration.
+
+But it really make sense to set input_abs_set_res() from DT.
+
+> > 
+> > I hope that XServer is already using it for evdev devices...
+> > 
+> > For whole implementation look at evtest program. That should be good
+> > starting point for your userspace implementation.
+> > 
+> > While I'm watching this discussion... in my opinion kernel should just
+> > invert input axes (when needed) and should not do any other
+> > normalization or integer/floating-point re-calibration/re-calculation.
+> > If it correctly exports minimum value, maximum value and resolution then
+> > userspace can correctly re-scale input events to units which userspace
+> > needs (e.g. mapping into LCD screen pixels or whatever is needed).
+> 
+> BR and thanks,
+> Nikolaus
+> 
+
+-- 
+Pali Rohár
+pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
