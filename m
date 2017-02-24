@@ -1,61 +1,66 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 00/35] treewide trivial patches converting pr_warning to
- pr_warn
-Date: Thu, 23 Feb 2017 09:53:41 -0800
-Message-ID: <1487872421.14159.38.camel@perches.com>
-References: <cover.1487314666.git.joe@perches.com>
- <CAL_JsqLTaq-QLTqfyDO8EVJYpgeUx1e4J0Fo2NvfFWqVoiVedQ@mail.gmail.com>
- <1487870304.14159.29.camel@perches.com>
- <CACvgo50LUm5VSn_F=Dh8kL5zCPpCQDoCyUEL=Z+=1+6hJpfTaw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CACvgo50LUm5VSn_F=Dh8kL5zCPpCQDoCyUEL=Z+=1+6hJpfTaw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Emil Velikov <emil.l.velikov@gmail.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, linux-ia64@vger.kernel.org, SH-Linux <linux-sh@vger.kernel.org>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, ML nouveau <nouveau@lists.freedesktop.org>, Linux-ALSA <alsa-devel@alsa-project.org>, dri-devel <dri-devel@lists.freedesktop.org>, "open list:VIRTIO GPU DRIVER" <virtualization@lists.linux-foundation.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, sparclinux@vger.kernel.org, drbd-dev@lists.linbit.com, Rob Herring <robh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-scsi@vger.kernel.org, Richard Weinberger <richard@nod.at>, tboot-devel@lists.sourceforge.net, amd-gfx mailing list <amd-gfx@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, sfi-devel@simplefirmware.org
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] ARM: dts: omap4-droid4: Add gpio-keys
+Date: Fri, 24 Feb 2017 10:02:52 +0100
+Message-ID: <20170224090252.31044-1-sre@kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 2017-02-23 at 17:41 +0000, Emil Velikov wrote:
-> On 23 February 2017 at 17:18, Joe Perches <joe@perches.com> wrote:
-> > On Thu, 2017-02-23 at 09:28 -0600, Rob Herring wrote:
-> > > On Fri, Feb 17, 2017 at 1:11 AM, Joe Perches <joe@perches.com> wrote:
-> > > > There are ~4300 uses of pr_warn and ~250 uses of the older
-> > > > pr_warning in the kernel source tree.
-> > > > 
-> > > > Make the use of pr_warn consistent across all kernel files.
-> > > > 
-> > > > This excludes all files in tools/ as there is a separate
-> > > > define pr_warning for that directory tree and pr_warn is
-> > > > not used in tools/.
-> > > > 
-> > > > Done with 'sed s/\bpr_warning\b/pr_warn/' and some emacsing.
-> > 
-> > []
-> > > Where's the removal of pr_warning so we don't have more sneak in?
-> > 
-> > After all of these actually get applied,
-> > and maybe a cycle or two later, one would
-> > get sent.
-> > 
-> 
-> By which point you'll get a few reincarnation of it. So you'll have to
-> do the same exercise again :-(
+On Droid 4 "Volume Down" and "Keypad Slide" keys are
+connected via SoC GPIOs, "Power Key" via CPCAP and
+all other keys via SoC keypad Matrix. This adds the
+GPIO keys.
 
-Maybe to one or two files.  Not a big deal.
+Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-> I guess the question is - are you expecting to get the series merged
-> all together/via one tree ?
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+index f3ccb4ceed9e..89f5f17cda7a 100644
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -6,6 +6,7 @@
+ /dts-v1/;
+ 
+ #include "omap443x.dtsi"
++#include <dt-bindings/input/input.h>
+ 
+ / {
+ 	model = "Motorola Droid 4 XT894";
+@@ -53,6 +54,26 @@
+ 		startup-delay-us = <70000>;
+ 		enable-active-high;
+ 	};
++
++	gpio_keys {
++		compatible = "gpio-keys";
++
++		volume_down {
++			label = "Volume Down";
++			gpios = <&gpio5 26 GPIO_ACTIVE_LOW>; /* gpio154 */
++			linux,code = <KEY_VOLUMEDOWN>;
++			linux,can-disable;
++		};
++
++		slider {
++			label = "Keypad Slide";
++			gpios = <&gpio4 26 GPIO_ACTIVE_HIGH>; /* gpio122 */
++			linux,input-type = <EV_SW>;
++			linux,code = <SW_KEYPAD_SLIDE>;
++			linux,can-disable;
++
++		};
++	};
+ };
+ 
+ /* L3_2 interconnect is unused, SRAM, GPMC and L3_ICLK2 disabled */
+-- 
+2.11.0
 
-No.  The only person that could do that effectively is Linus.
-
-> If not, your plan is perfectly reasonable.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
