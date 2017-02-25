@@ -1,248 +1,139 @@
-From: Mauro Carvalho Chehab <mchehab-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH] [media] serial_ir: ensure we're ready to receive
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3] [media] serial_ir: ensure we're ready to receive
  interrupts
-Date: Sat, 25 Feb 2017 10:54:09 -0300
-Message-ID: <20170225105409.6a059861@vento.lan>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
- <20170225111424.GA7659@gofer.mess.org>
- <20170225112816.GA7981@gofer.mess.org>
- <20170225103437.58c5a199@vento.lan>
+Date: Sat, 25 Feb 2017 11:44:19 -0300
+Message-ID: <20170225112213.6e890b38@vento.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20170225103437.58c5a199-ch4gOOMV7nf/PtFMR13I2A@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
-List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Sean Young <sean-hENCXIMQXOg@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ruslan Ruslichenko <rruslich-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linux LED Subsystem <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, kernel test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKP <lkp-JC7UmRfGjtg@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: base64
+Return-path: <linux-leds-owner@vger.kernel.org>
+Sender: linux-leds-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, kernel test robot <fengguang.wu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, kernel@stlinux.com, linux-mediatek@lists.infradead.org, linux-amlogic@lists.infradead.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Linux LED Subsystem <linux-leds@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com, Sean Young <sean@mess.org>
 List-Id: linux-omap@vger.kernel.org
 
-Em Sat, 25 Feb 2017 10:34:37 -0300
-Mauro Carvalho Chehab <mchehab-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> escreveu:
-
-> Em Sat, 25 Feb 2017 11:28:16 +0000
-> Sean Young <sean-hENCXIMQXOg@public.gmane.org> escreveu:
-> 
-> > When the interrupt requested with devm_request_irq(), serial_ir.rcdev
-> > is still null so will cause null deference if the irq handler is called
-> > early on.
-> > 
-> > Also ensure that timeout_timer is setup.
-> > 
-> > Link: http://lkml.kernel.org/r/CA+55aFxsh2uF8gi5sN_guY3Z+tiLv7LpJYKBw+y8vqLzp+TsnQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org
-> > 
-> > Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.10
-> > Signed-off-by: Sean Young <sean-hENCXIMQXOg@public.gmane.org>
-> > ---
-> >  drivers/media/rc/serial_ir.c | 243 +++++++++++++++++++++----------------------
-> >  1 file changed, 118 insertions(+), 125 deletions(-)
-> > 
-> > diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-> > index 923fb22..22144b4 100644
-> > --- a/drivers/media/rc/serial_ir.c
-> > +++ b/drivers/media/rc/serial_ir.c
-> > @@ -487,74 +487,6 @@ static void serial_ir_timeout(unsigned long arg)
-> >  	ir_raw_event_handle(serial_ir.rcdev);
-> >  }
-> >  
-> > -static int serial_ir_probe(struct platform_device *dev)
-> > -{
-> > -	int i, nlow, nhigh, result;
-> 
-> Hmm... why did you move this function to be after serial_ir_open()?
-> 
-> That messes with the diff without no good reason, making harder to
-> identify what you changed here.
-
-Ok, just reordered it. The diff now looks sane. Patch looks ok on
-my eyes.
-
-[PATCH v2] serial_ir: ensure we're ready to receive interrupts
-From: Sean Young <sean-hENCXIMQXOg@public.gmane.org>
-
-When the interrupt requested with devm_request_irq(), serial_ir.rcdev
-is still null so will cause null deference if the irq handler is called
-early on.
-
-Also ensure that timeout_timer is setup.
-
-Link: http://lkml.kernel.org/r/CA+55aFxsh2uF8gi5sN_guY3Z+tiLv7LpJYKBw+y8vqLzp+TsnQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org
-
-[mchehab-JsYNTwtnfakRB7SZvlqPiA@public.gmane.org: moved serial_ir_probe() back to its original place]
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.10
-Signed-off-by: Sean Young <sean-hENCXIMQXOg@public.gmane.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab-JsYNTwtnfakRB7SZvlqPiA@public.gmane.org>
-
-diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-index 923fb2299553..4687c34c655a 100644
---- a/drivers/media/rc/serial_ir.c
-+++ b/drivers/media/rc/serial_ir.c
-@@ -489,8 +489,59 @@ static void serial_ir_timeout(unsigned long arg)
- 
- static int serial_ir_probe(struct platform_device *dev)
- {
-+	struct rc_dev *rcdev;
- 	int i, nlow, nhigh, result;
- 
-+	rcdev = devm_rc_allocate_device(&dev->dev, RC_DRIVER_IR_RAW);
-+	if (!rcdev)
-+		return -ENOMEM;
-+
-+	if (hardware[type].send_pulse && hardware[type].send_space)
-+		rcdev->tx_ir = serial_ir_tx;
-+	if (hardware[type].set_send_carrier)
-+		rcdev->s_tx_carrier = serial_ir_tx_carrier;
-+	if (hardware[type].set_duty_cycle)
-+		rcdev->s_tx_duty_cycle = serial_ir_tx_duty_cycle;
-+
-+	switch (type) {
-+	case IR_HOMEBREW:
-+		rcdev->input_name = "Serial IR type home-brew";
-+		break;
-+	case IR_IRDEO:
-+		rcdev->input_name = "Serial IR type IRdeo";
-+		break;
-+	case IR_IRDEO_REMOTE:
-+		rcdev->input_name = "Serial IR type IRdeo remote";
-+		break;
-+	case IR_ANIMAX:
-+		rcdev->input_name = "Serial IR type AnimaX";
-+		break;
-+	case IR_IGOR:
-+		rcdev->input_name = "Serial IR type IgorPlug";
-+		break;
-+	}
-+
-+	rcdev->input_phys = KBUILD_MODNAME "/input0";
-+	rcdev->input_id.bustype = BUS_HOST;
-+	rcdev->input_id.vendor = 0x0001;
-+	rcdev->input_id.product = 0x0001;
-+	rcdev->input_id.version = 0x0100;
-+	rcdev->open = serial_ir_open;
-+	rcdev->close = serial_ir_close;
-+	rcdev->dev.parent = &serial_ir.pdev->dev;
-+	rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
-+	rcdev->driver_name = KBUILD_MODNAME;
-+	rcdev->map_name = RC_MAP_RC6_MCE;
-+	rcdev->min_timeout = 1;
-+	rcdev->timeout = IR_DEFAULT_TIMEOUT;
-+	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
-+	rcdev->rx_resolution = 250000;
-+
-+	serial_ir.rcdev = rcdev;
-+
-+	setup_timer(&serial_ir.timeout_timer, serial_ir_timeout,
-+		    (unsigned long)&serial_ir);
-+
- 	result = devm_request_irq(&dev->dev, irq, serial_ir_irq_handler,
- 				  share_irq ? IRQF_SHARED : 0,
- 				  KBUILD_MODNAME, &hardware);
-@@ -516,9 +567,6 @@ static int serial_ir_probe(struct platform_device *dev)
- 		return -EBUSY;
- 	}
- 
--	setup_timer(&serial_ir.timeout_timer, serial_ir_timeout,
--		    (unsigned long)&serial_ir);
--
- 	result = hardware_init_port();
- 	if (result < 0)
- 		return result;
-@@ -552,7 +600,8 @@ static int serial_ir_probe(struct platform_device *dev)
- 			 sense ? "low" : "high");
- 
- 	dev_dbg(&dev->dev, "Interrupt %d, port %04x obtained\n", irq, io);
--	return 0;
-+
-+	return devm_rc_register_device(&dev->dev, rcdev);
- }
- 
- static int serial_ir_open(struct rc_dev *rcdev)
-@@ -723,7 +772,6 @@ static void serial_ir_exit(void)
- 
- static int __init serial_ir_init_module(void)
- {
--	struct rc_dev *rcdev;
- 	int result;
- 
- 	switch (type) {
-@@ -754,63 +802,9 @@ static int __init serial_ir_init_module(void)
- 		sense = !!sense;
- 
- 	result = serial_ir_init();
--	if (result)
--		return result;
--
--	rcdev = devm_rc_allocate_device(&serial_ir.pdev->dev, RC_DRIVER_IR_RAW);
--	if (!rcdev) {
--		result = -ENOMEM;
--		goto serial_cleanup;
--	}
--
--	if (hardware[type].send_pulse && hardware[type].send_space)
--		rcdev->tx_ir = serial_ir_tx;
--	if (hardware[type].set_send_carrier)
--		rcdev->s_tx_carrier = serial_ir_tx_carrier;
--	if (hardware[type].set_duty_cycle)
--		rcdev->s_tx_duty_cycle = serial_ir_tx_duty_cycle;
--
--	switch (type) {
--	case IR_HOMEBREW:
--		rcdev->input_name = "Serial IR type home-brew";
--		break;
--	case IR_IRDEO:
--		rcdev->input_name = "Serial IR type IRdeo";
--		break;
--	case IR_IRDEO_REMOTE:
--		rcdev->input_name = "Serial IR type IRdeo remote";
--		break;
--	case IR_ANIMAX:
--		rcdev->input_name = "Serial IR type AnimaX";
--		break;
--	case IR_IGOR:
--		rcdev->input_name = "Serial IR type IgorPlug";
--		break;
--	}
--
--	rcdev->input_phys = KBUILD_MODNAME "/input0";
--	rcdev->input_id.bustype = BUS_HOST;
--	rcdev->input_id.vendor = 0x0001;
--	rcdev->input_id.product = 0x0001;
--	rcdev->input_id.version = 0x0100;
--	rcdev->open = serial_ir_open;
--	rcdev->close = serial_ir_close;
--	rcdev->dev.parent = &serial_ir.pdev->dev;
--	rcdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
--	rcdev->driver_name = KBUILD_MODNAME;
--	rcdev->map_name = RC_MAP_RC6_MCE;
--	rcdev->min_timeout = 1;
--	rcdev->timeout = IR_DEFAULT_TIMEOUT;
--	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
--	rcdev->rx_resolution = 250000;
--
--	serial_ir.rcdev = rcdev;
--
--	result = rc_register_device(rcdev);
--
- 	if (!result)
- 		return 0;
--serial_cleanup:
-+
- 	serial_ir_exit();
- 	return result;
- }
-@@ -818,7 +812,6 @@ static int __init serial_ir_init_module(void)
- static void __exit serial_ir_exit_module(void)
- {
- 	del_timer_sync(&serial_ir.timeout_timer);
--	rc_unregister_device(serial_ir.rcdev);
- 	serial_ir_exit();
- }
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMjU2DQoNCkZyb206
+IFNlYW4gWW91bmcgPHNlYW5AbWVzcy5vcmc+DQoNCldoZW4gdGhlIGludGVycnVwdCByZXF1ZXN0
+ZWQgd2l0aCBkZXZtX3JlcXVlc3RfaXJxKCksIHNlcmlhbF9pci5yY2Rldg0KaXMgc3RpbGwgbnVs
+bCBzbyB3aWxsIGNhdXNlIG51bGwgZGVmZXJlbmNlIGlmIHRoZSBpcnEgaGFuZGxlciBpcyBjYWxs
+ZWQNCmVhcmx5IG9uLg0KDQpBbHNvIGVuc3VyZSB0aGF0IHRpbWVvdXRfdGltZXIgaXMgc2V0dXAu
+DQoNCkxpbms6IGh0dHA6Ly9sa21sLmtlcm5lbC5vcmcvci9DQSs1NWFGeHNoMnVGOGdpNXNOX2d1
+WTNaK3RpTHY3THBKWUtCdyt5OHZxTHpwK1RzblFAbWFpbC5nbWFpbC5jb20NCg0KW21jaGVoYWJA
+cy1vcGVuc291cmNlLmNvbTogbW92ZWQgc2VyaWFsX2lyX3Byb2JlKCkgYmFjayB0byBpdHMgb3Jp
+Z2luYWwgcGxhY2VdDQoNCkNjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gIyA0LjEwDQpTaWdu
+ZWQtb2ZmLWJ5OiBTZWFuIFlvdW5nIDxzZWFuQG1lc3Mub3JnPg0KU2lnbmVkLW9mZi1ieTogTWF1
+cm8gQ2FydmFsaG8gQ2hlaGFiIDxtY2hlaGFiQHMtb3BlbnNvdXJjZS5jb20+DQotIC0gLS0tDQog
+ZHJpdmVycy9tZWRpYS9yYy9zZXJpYWxfaXIuYyB8IDEyMyArKysrKysrKysrKysrKysrKysrKysr
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tDQogMSBmaWxlIGNoYW5nZWQsIDYyIGluc2VydGlvbnMoKyks
+IDYxIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9yYy9zZXJpYWxf
+aXIuYyBiL2RyaXZlcnMvbWVkaWEvcmMvc2VyaWFsX2lyLmMNCmluZGV4IDkyM2ZiMjI5OTU1My4u
+NDFiNTRlNDAxNzZjIDEwMDY0NA0KLSAtIC0tLSBhL2RyaXZlcnMvbWVkaWEvcmMvc2VyaWFsX2ly
+LmMNCisrKyBiL2RyaXZlcnMvbWVkaWEvcmMvc2VyaWFsX2lyLmMNCkBAIC00ODcsMTAgKzQ4Nyw2
+OSBAQCBzdGF0aWMgdm9pZCBzZXJpYWxfaXJfdGltZW91dCh1bnNpZ25lZCBsb25nIGFyZykNCiAJ
+aXJfcmF3X2V2ZW50X2hhbmRsZShzZXJpYWxfaXIucmNkZXYpOw0KIH0NCiANCisvKiBOZWVkZWQg
+Ynkgc2VyaWFsX2lyX3Byb2JlKCkgKi8NCitzdGF0aWMgaW50IHNlcmlhbF9pcl90eChzdHJ1Y3Qg
+cmNfZGV2ICpkZXYsIHVuc2lnbmVkIGludCAqdHhidWYsDQorCQkJdW5zaWduZWQgaW50IGNvdW50
+KTsNCitzdGF0aWMgaW50IHNlcmlhbF9pcl90eF9kdXR5X2N5Y2xlKHN0cnVjdCByY19kZXYgKmRl
+diwgdTMyIGN5Y2xlKTsNCitzdGF0aWMgaW50IHNlcmlhbF9pcl90eF9jYXJyaWVyKHN0cnVjdCBy
+Y19kZXYgKmRldiwgdTMyIGNhcnJpZXIpOw0KK3N0YXRpYyBpbnQgc2VyaWFsX2lyX29wZW4oc3Ry
+dWN0IHJjX2RldiAqcmNkZXYpOw0KK3N0YXRpYyB2b2lkIHNlcmlhbF9pcl9jbG9zZShzdHJ1Y3Qg
+cmNfZGV2ICpyY2Rldik7DQorDQogc3RhdGljIGludCBzZXJpYWxfaXJfcHJvYmUoc3RydWN0IHBs
+YXRmb3JtX2RldmljZSAqZGV2KQ0KIHsNCisJc3RydWN0IHJjX2RldiAqcmNkZXY7DQogCWludCBp
+LCBubG93LCBuaGlnaCwgcmVzdWx0Ow0KIA0KKwlyY2RldiA9IGRldm1fcmNfYWxsb2NhdGVfZGV2
+aWNlKCZkZXYtPmRldiwgUkNfRFJJVkVSX0lSX1JBVyk7DQorCWlmICghcmNkZXYpDQorCQlyZXR1
+cm4gLUVOT01FTTsNCisNCisJaWYgKGhhcmR3YXJlW3R5cGVdLnNlbmRfcHVsc2UgJiYgaGFyZHdh
+cmVbdHlwZV0uc2VuZF9zcGFjZSkNCisJCXJjZGV2LT50eF9pciA9IHNlcmlhbF9pcl90eDsNCisJ
+aWYgKGhhcmR3YXJlW3R5cGVdLnNldF9zZW5kX2NhcnJpZXIpDQorCQlyY2Rldi0+c190eF9jYXJy
+aWVyID0gc2VyaWFsX2lyX3R4X2NhcnJpZXI7DQorCWlmIChoYXJkd2FyZVt0eXBlXS5zZXRfZHV0
+eV9jeWNsZSkNCisJCXJjZGV2LT5zX3R4X2R1dHlfY3ljbGUgPSBzZXJpYWxfaXJfdHhfZHV0eV9j
+eWNsZTsNCisNCisJc3dpdGNoICh0eXBlKSB7DQorCWNhc2UgSVJfSE9NRUJSRVc6DQorCQlyY2Rl
+di0+aW5wdXRfbmFtZSA9ICJTZXJpYWwgSVIgdHlwZSBob21lLWJyZXciOw0KKwkJYnJlYWs7DQor
+CWNhc2UgSVJfSVJERU86DQorCQlyY2Rldi0+aW5wdXRfbmFtZSA9ICJTZXJpYWwgSVIgdHlwZSBJ
+UmRlbyI7DQorCQlicmVhazsNCisJY2FzZSBJUl9JUkRFT19SRU1PVEU6DQorCQlyY2Rldi0+aW5w
+dXRfbmFtZSA9ICJTZXJpYWwgSVIgdHlwZSBJUmRlbyByZW1vdGUiOw0KKwkJYnJlYWs7DQorCWNh
+c2UgSVJfQU5JTUFYOg0KKwkJcmNkZXYtPmlucHV0X25hbWUgPSAiU2VyaWFsIElSIHR5cGUgQW5p
+bWFYIjsNCisJCWJyZWFrOw0KKwljYXNlIElSX0lHT1I6DQorCQlyY2Rldi0+aW5wdXRfbmFtZSA9
+ICJTZXJpYWwgSVIgdHlwZSBJZ29yUGx1ZyI7DQorCQlicmVhazsNCisJfQ0KKw0KKwlyY2Rldi0+
+aW5wdXRfcGh5cyA9IEtCVUlMRF9NT0ROQU1FICIvaW5wdXQwIjsNCisJcmNkZXYtPmlucHV0X2lk
+LmJ1c3R5cGUgPSBCVVNfSE9TVDsNCisJcmNkZXYtPmlucHV0X2lkLnZlbmRvciA9IDB4MDAwMTsN
+CisJcmNkZXYtPmlucHV0X2lkLnByb2R1Y3QgPSAweDAwMDE7DQorCXJjZGV2LT5pbnB1dF9pZC52
+ZXJzaW9uID0gMHgwMTAwOw0KKwlyY2Rldi0+b3BlbiA9IHNlcmlhbF9pcl9vcGVuOw0KKwlyY2Rl
+di0+Y2xvc2UgPSBzZXJpYWxfaXJfY2xvc2U7DQorCXJjZGV2LT5kZXYucGFyZW50ID0gJnNlcmlh
+bF9pci5wZGV2LT5kZXY7DQorCXJjZGV2LT5hbGxvd2VkX3Byb3RvY29scyA9IFJDX0JJVF9BTExf
+SVJfREVDT0RFUjsNCisJcmNkZXYtPmRyaXZlcl9uYW1lID0gS0JVSUxEX01PRE5BTUU7DQorCXJj
+ZGV2LT5tYXBfbmFtZSA9IFJDX01BUF9SQzZfTUNFOw0KKwlyY2Rldi0+bWluX3RpbWVvdXQgPSAx
+Ow0KKwlyY2Rldi0+dGltZW91dCA9IElSX0RFRkFVTFRfVElNRU9VVDsNCisJcmNkZXYtPm1heF90
+aW1lb3V0ID0gMTAgKiBJUl9ERUZBVUxUX1RJTUVPVVQ7DQorCXJjZGV2LT5yeF9yZXNvbHV0aW9u
+ID0gMjUwMDAwOw0KKw0KKwlzZXJpYWxfaXIucmNkZXYgPSByY2RldjsNCisNCisJc2V0dXBfdGlt
+ZXIoJnNlcmlhbF9pci50aW1lb3V0X3RpbWVyLCBzZXJpYWxfaXJfdGltZW91dCwNCisJCSAgICAo
+dW5zaWduZWQgbG9uZykmc2VyaWFsX2lyKTsNCisNCiAJcmVzdWx0ID0gZGV2bV9yZXF1ZXN0X2ly
+cSgmZGV2LT5kZXYsIGlycSwgc2VyaWFsX2lyX2lycV9oYW5kbGVyLA0KIAkJCQkgIHNoYXJlX2ly
+cSA/IElSUUZfU0hBUkVEIDogMCwNCiAJCQkJICBLQlVJTERfTU9ETkFNRSwgJmhhcmR3YXJlKTsN
+CkBAIC01MTYsOSArNTc1LDYgQEAgc3RhdGljIGludCBzZXJpYWxfaXJfcHJvYmUoc3RydWN0IHBs
+YXRmb3JtX2RldmljZSAqZGV2KQ0KIAkJcmV0dXJuIC1FQlVTWTsNCiAJfQ0KIA0KLSAtIC0Jc2V0
+dXBfdGltZXIoJnNlcmlhbF9pci50aW1lb3V0X3RpbWVyLCBzZXJpYWxfaXJfdGltZW91dCwNCi0g
+LSAtCQkgICAgKHVuc2lnbmVkIGxvbmcpJnNlcmlhbF9pcik7DQotIC0gLQ0KIAlyZXN1bHQgPSBo
+YXJkd2FyZV9pbml0X3BvcnQoKTsNCiAJaWYgKHJlc3VsdCA8IDApDQogCQlyZXR1cm4gcmVzdWx0
+Ow0KQEAgLTU1Miw3ICs2MDgsOCBAQCBzdGF0aWMgaW50IHNlcmlhbF9pcl9wcm9iZShzdHJ1Y3Qg
+cGxhdGZvcm1fZGV2aWNlICpkZXYpDQogCQkJIHNlbnNlID8gImxvdyIgOiAiaGlnaCIpOw0KIA0K
+IAlkZXZfZGJnKCZkZXYtPmRldiwgIkludGVycnVwdCAlZCwgcG9ydCAlMDR4IG9idGFpbmVkXG4i
+LCBpcnEsIGlvKTsNCi0gLSAtCXJldHVybiAwOw0KKw0KKwlyZXR1cm4gZGV2bV9yY19yZWdpc3Rl
+cl9kZXZpY2UoJmRldi0+ZGV2LCByY2Rldik7DQogfQ0KIA0KIHN0YXRpYyBpbnQgc2VyaWFsX2ly
+X29wZW4oc3RydWN0IHJjX2RldiAqcmNkZXYpDQpAQCAtNzIzLDcgKzc4MCw2IEBAIHN0YXRpYyB2
+b2lkIHNlcmlhbF9pcl9leGl0KHZvaWQpDQogDQogc3RhdGljIGludCBfX2luaXQgc2VyaWFsX2ly
+X2luaXRfbW9kdWxlKHZvaWQpDQogew0KLSAtIC0Jc3RydWN0IHJjX2RldiAqcmNkZXY7DQogCWlu
+dCByZXN1bHQ7DQogDQogCXN3aXRjaCAodHlwZSkgew0KQEAgLTc1NCw2MyArODEwLDkgQEAgc3Rh
+dGljIGludCBfX2luaXQgc2VyaWFsX2lyX2luaXRfbW9kdWxlKHZvaWQpDQogCQlzZW5zZSA9ICEh
+c2Vuc2U7DQogDQogCXJlc3VsdCA9IHNlcmlhbF9pcl9pbml0KCk7DQotIC0gLQlpZiAocmVzdWx0
+KQ0KLSAtIC0JCXJldHVybiByZXN1bHQ7DQotIC0gLQ0KLSAtIC0JcmNkZXYgPSBkZXZtX3JjX2Fs
+bG9jYXRlX2RldmljZSgmc2VyaWFsX2lyLnBkZXYtPmRldiwgUkNfRFJJVkVSX0lSX1JBVyk7DQot
+IC0gLQlpZiAoIXJjZGV2KSB7DQotIC0gLQkJcmVzdWx0ID0gLUVOT01FTTsNCi0gLSAtCQlnb3Rv
+IHNlcmlhbF9jbGVhbnVwOw0KLSAtIC0JfQ0KLSAtIC0NCi0gLSAtCWlmIChoYXJkd2FyZVt0eXBl
+XS5zZW5kX3B1bHNlICYmIGhhcmR3YXJlW3R5cGVdLnNlbmRfc3BhY2UpDQotIC0gLQkJcmNkZXYt
+PnR4X2lyID0gc2VyaWFsX2lyX3R4Ow0KLSAtIC0JaWYgKGhhcmR3YXJlW3R5cGVdLnNldF9zZW5k
+X2NhcnJpZXIpDQotIC0gLQkJcmNkZXYtPnNfdHhfY2FycmllciA9IHNlcmlhbF9pcl90eF9jYXJy
+aWVyOw0KLSAtIC0JaWYgKGhhcmR3YXJlW3R5cGVdLnNldF9kdXR5X2N5Y2xlKQ0KLSAtIC0JCXJj
+ZGV2LT5zX3R4X2R1dHlfY3ljbGUgPSBzZXJpYWxfaXJfdHhfZHV0eV9jeWNsZTsNCi0gLSAtDQot
+IC0gLQlzd2l0Y2ggKHR5cGUpIHsNCi0gLSAtCWNhc2UgSVJfSE9NRUJSRVc6DQotIC0gLQkJcmNk
+ZXYtPmlucHV0X25hbWUgPSAiU2VyaWFsIElSIHR5cGUgaG9tZS1icmV3IjsNCi0gLSAtCQlicmVh
+azsNCi0gLSAtCWNhc2UgSVJfSVJERU86DQotIC0gLQkJcmNkZXYtPmlucHV0X25hbWUgPSAiU2Vy
+aWFsIElSIHR5cGUgSVJkZW8iOw0KLSAtIC0JCWJyZWFrOw0KLSAtIC0JY2FzZSBJUl9JUkRFT19S
+RU1PVEU6DQotIC0gLQkJcmNkZXYtPmlucHV0X25hbWUgPSAiU2VyaWFsIElSIHR5cGUgSVJkZW8g
+cmVtb3RlIjsNCi0gLSAtCQlicmVhazsNCi0gLSAtCWNhc2UgSVJfQU5JTUFYOg0KLSAtIC0JCXJj
+ZGV2LT5pbnB1dF9uYW1lID0gIlNlcmlhbCBJUiB0eXBlIEFuaW1hWCI7DQotIC0gLQkJYnJlYWs7
+DQotIC0gLQljYXNlIElSX0lHT1I6DQotIC0gLQkJcmNkZXYtPmlucHV0X25hbWUgPSAiU2VyaWFs
+IElSIHR5cGUgSWdvclBsdWciOw0KLSAtIC0JCWJyZWFrOw0KLSAtIC0JfQ0KLSAtIC0NCi0gLSAt
+CXJjZGV2LT5pbnB1dF9waHlzID0gS0JVSUxEX01PRE5BTUUgIi9pbnB1dDAiOw0KLSAtIC0JcmNk
+ZXYtPmlucHV0X2lkLmJ1c3R5cGUgPSBCVVNfSE9TVDsNCi0gLSAtCXJjZGV2LT5pbnB1dF9pZC52
+ZW5kb3IgPSAweDAwMDE7DQotIC0gLQlyY2Rldi0+aW5wdXRfaWQucHJvZHVjdCA9IDB4MDAwMTsN
+Ci0gLSAtCXJjZGV2LT5pbnB1dF9pZC52ZXJzaW9uID0gMHgwMTAwOw0KLSAtIC0JcmNkZXYtPm9w
+ZW4gPSBzZXJpYWxfaXJfb3BlbjsNCi0gLSAtCXJjZGV2LT5jbG9zZSA9IHNlcmlhbF9pcl9jbG9z
+ZTsNCi0gLSAtCXJjZGV2LT5kZXYucGFyZW50ID0gJnNlcmlhbF9pci5wZGV2LT5kZXY7DQotIC0g
+LQlyY2Rldi0+YWxsb3dlZF9wcm90b2NvbHMgPSBSQ19CSVRfQUxMX0lSX0RFQ09ERVI7DQotIC0g
+LQlyY2Rldi0+ZHJpdmVyX25hbWUgPSBLQlVJTERfTU9ETkFNRTsNCi0gLSAtCXJjZGV2LT5tYXBf
+bmFtZSA9IFJDX01BUF9SQzZfTUNFOw0KLSAtIC0JcmNkZXYtPm1pbl90aW1lb3V0ID0gMTsNCi0g
+LSAtCXJjZGV2LT50aW1lb3V0ID0gSVJfREVGQVVMVF9USU1FT1VUOw0KLSAtIC0JcmNkZXYtPm1h
+eF90aW1lb3V0ID0gMTAgKiBJUl9ERUZBVUxUX1RJTUVPVVQ7DQotIC0gLQlyY2Rldi0+cnhfcmVz
+b2x1dGlvbiA9IDI1MDAwMDsNCi0gLSAtDQotIC0gLQlzZXJpYWxfaXIucmNkZXYgPSByY2RldjsN
+Ci0gLSAtDQotIC0gLQlyZXN1bHQgPSByY19yZWdpc3Rlcl9kZXZpY2UocmNkZXYpOw0KLSAtIC0N
+CiAJaWYgKCFyZXN1bHQpDQogCQlyZXR1cm4gMDsNCi0gLSAtc2VyaWFsX2NsZWFudXA6DQorDQog
+CXNlcmlhbF9pcl9leGl0KCk7DQogCXJldHVybiByZXN1bHQ7DQogfQ0KQEAgLTgxOCw3ICs4MjAs
+NiBAQCBzdGF0aWMgaW50IF9faW5pdCBzZXJpYWxfaXJfaW5pdF9tb2R1bGUodm9pZCkNCiBzdGF0
+aWMgdm9pZCBfX2V4aXQgc2VyaWFsX2lyX2V4aXRfbW9kdWxlKHZvaWQpDQogew0KIAlkZWxfdGlt
+ZXJfc3luYygmc2VyaWFsX2lyLnRpbWVvdXRfdGltZXIpOw0KLSAtIC0JcmNfdW5yZWdpc3Rlcl9k
+ZXZpY2Uoc2VyaWFsX2lyLnJjZGV2KTsNCiAJc2VyaWFsX2lyX2V4aXQoKTsNCiB9DQogDQotIC0g
+LS0gDQoyLjkuMw0KLS0tLS1CRUdJTiBQR1AgU0lHTkFUVVJFLS0tLS0NClZlcnNpb246IEdudVBH
+IHYyDQoNCmlRSWNCQUVCQ0FBR0JRSllzWmhFQUFvSkVBaGZQcjJPNU9FVjJsOFAvaTBqeWlrVHNP
+QzROYUNzSW1CaFZzTTUNCnNkZ2p5K3dpYitoQ3dkbjlIRE9SeEZxN1AwWnlLU0Vya1JuSElaU2lx
+dTFxNFM5UStYYTVoOTN0YUVkWmkzOEgNCjJBaW41ckI0MHk3ZVhnc3NzVTlBUEhpbjg5SG1kVDlY
+V0tTN3BBRUUxNm1LaGlpdXUwY2dGZCtMbmdEeXBqTlENCnM1WWx6ZldGc042dWJqUy90MndKcHh4
+eWVwc0tvQ3R2OHNtVE9meVFaSWh3S1VjV1dDOWtKVEE3N3ViTzllZ3INClpCRnpzdncwWGJFalc4
+Y3VpNEVFdWR1b3pEOUsxT3JTc0NpYitOSzJOTVUwbHVZeTlZdHNVdGpONU96dTFlNnQNCko1UU9k
+c0psMGFxTFBmRWs4VFczKys1NU1hSzlMVWdFNmFhQ2RudGJlazVjWm1nc2szYWQ3OWtEUDhnU2R4
+QVYNClZVWERFUFpRcEpYZWRBNlMvYkFtWFViRVc3bVZISDlBTFlTYThBR1hDQXJLS3R6KzVpWE5Q
+MCs4M0pvRkdFSGINCnRUQ0dJbk5mc0JIZDgvTnFkVy91L3VnR1ZqNHh0MEtjKzRvT1BZZWNqTzJ0
+aUNTK2xwS1dJRHc5Yk9jYVI0LzANCncremJDbUlFbUJaNzRsTTB5cytUbUNtREd3WEMyUVlFcVkw
+VSs5Wlpjc3krN2JNY3hKSDZzbHJqZmFhNmZKYTANCmoyT1UycUIwVm5VVEpxMGEwTzhJTDdzNWpR
+bjFsS05wbUc5VEtZTm50Q3pCdUhiYXNMMnJzcitKcnI2dnBNS1UNCnZZYnBSYXBvQW5JWGFVVzcw
+OGJkdEEyeDcvSmZpTGo5TTdLdllKZmVGQXQ5SEdIZVhxMUhKc2FHaml4MW1aaDMNCm5MLzY4RnFj
+MlNjdXJienEvQzdaDQo9QXB5ZQ0KLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
