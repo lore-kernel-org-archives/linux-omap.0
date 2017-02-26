@@ -1,42 +1,49 @@
-From: Franck Demathieu <fdemathieu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] usb: dwc3: Fix incorrect type for utmi mode
-Date: Mon, 27 Feb 2017 11:52:46 +0100
-Message-ID: <20170227105246.28634-1-fdemathieu@gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Adriana Constantinescu <constantinescu33@gmail.com>
+Subject: [PATCH] ASoC: omap: Remove unnecessary 'out of memory'
+	message
+Date: Sun, 26 Feb 2017 21:12:06 +0200
+Message-ID: <1488136326-3602-1-git-send-email-constantinescu33@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, broonie@kernel.org
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, lgirdwood@gmail.com, Adriana Constantinescu <constantinescu33@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-The utmi mode is unsigned according the dt-bindings.
-Fix sparse issue (-Wtypesign):
+Out of memory message detected using checkpatch.pl
 
-  drivers/usb/dwc3/dwc3-omap.c:391:50: warning: incorrect type in argument 3 (different signedness)
-  drivers/usb/dwc3/dwc3-omap.c:391:50:    expected unsigned int [usertype] *out_value
-  drivers/usb/dwc3/dwc3-omap.c:391:50:    got int *<noident>
-
-Signed-off-by: Franck Demathieu <fdemathieu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Adriana Constantinescu <constantinescu33@gmail.com>
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/soc/omap/rx51.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 2092e46..4a59577 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -392,7 +392,7 @@ static void dwc3_omap_set_utmi_mode(struct dwc3_omap *omap)
- {
- 	u32			reg;
- 	struct device_node	*node = omap->dev->of_node;
--	int			utmi_mode = 0;
-+	u32			utmi_mode = 0;
+diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
+index a768457..086b59b 100644
+--- a/sound/soc/omap/rx51.c
++++ b/sound/soc/omap/rx51.c
+@@ -433,10 +433,9 @@ static int rx51_soc_probe(struct platform_device *pdev)
+ 	}
  
- 	reg = dwc3_omap_read_utmi_ctrl(omap);
+ 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+-	if (pdata == NULL) {
+-		dev_err(card->dev, "failed to create private data\n");
++	if (pdata == NULL)
+ 		return -ENOMEM;
+-	}
++
+ 	snd_soc_card_set_drvdata(card, pdata);
  
+ 	pdata->tvout_selection_gpio = devm_gpiod_get(card->dev,
 -- 
-2.10.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.9.1
