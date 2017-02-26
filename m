@@ -1,57 +1,94 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at 0000039c
-Date: Sat, 25 Feb 2017 10:02:44 -0800
-Message-ID: <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com> <20170225090741.GA20463@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Microphone gain on N900
+Date: Sun, 26 Feb 2017 21:28:32 +0100
+Message-ID: <20170226202831.GA31405@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20170225090741.GA20463@gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: kernel test robot <fengguang.wu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Mauro Carvalho Chehab <mchehab@infradead.org>, Sean Young <sean@mess.org>, Ruslan Ruslichenko <rruslich@cisco.com>, LKP <lkp@01.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, kernel@stlinux.com, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-mediatek@lists.infradead.org, linux-amlogic@lists.infradead.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linux LED Subsystem <linux-leds@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, wfg@linux.intel.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Feb 25, 2017 at 1:07 AM, Ingo Molnar <mingo@kernel.org> wrote:
->
-> So, should we revert the hw-retrigger change:
->
->   a9b4f08770b4 x86/ioapic: Restore IO-APIC irq_chip retrigger callback
->
-> ... until we managed to fix CONFIG_DEBUG_SHIRQ=y? If you'd like to revert it
-> upstream straight away:
->
-> Acked-by: Ingo Molnar <mingo@kernel.org>
 
-So I'm in no huge hurry to revert that commit as long as we're still
-in the merge window or early -rc's.
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->From a debug standpoint, the spurious early interrupts are fine, and
-hopefully will help us find more broken drivers.
+Hi!
 
-It's just that I'd like to revert it before the actual 4.11 release,
-unless we can find a better solution.
+v4.10 works quite nicely on N900, but I still have problems with
+audio. Even GSM calls would be usable, if I had reasonable volume on
+microphone and speaker... but I don't.
 
-Because it really seems like the interrupt re-trigger is entirely
-bogus. It's not an _actual_ "re-trigger the interrupt that may have
-gotten lost", it's some code that ends up triggering it for no good
-reason.
+Both speaker and microphone are too quiet. I can get louder output by
+plugging headset -- good. I can hear the other side nicely, but am too
+quiet for them. Unfortunately, even if I plug in wired headset,
+internal microphone is still used.
 
-So I'd actually hope that we could figure out why IRQS_PENDING got
-set, and perhaps fix the underlying cause?
+Now... I researched mixer settings in v4.4, v4.10 and v2.6.28... and
+could not find way to control microphone. v2.6.28 is completely
+different from the other two. v4.10 misses many controls from v4.4;
+and I guess this might be related:
 
-There are several things that set IRQS_PENDING, ranging from "try to
-test mis-routed interrupts while irqd was working", to "prepare for
-suspend losing the irq for us", to "irq auto-probing uses it on
-unassigned probable irqs".
+[    2.579925] rx51-audio n900-audio: tlv320aic3x-hifi <->
+49022000.mcbsp mapping ok
+[    2.586486] rx51-audio n900-audio: ASoC: no source widget found for
+TPA6130A2 HPLEFT
+[    2.592651] rx51-audio n900-audio: ASoC: Failed to add route
+TPA6130A2 HPLEFT -> direct -> Headphone Jack
+[    2.605163] rx51-audio n900-audio: ASoC: no source widget found for
+TPA6130A2 HPRIGHT
+[    2.611938] rx51-audio n900-audio: ASoC: Failed to add route
+TPA6130A2 HPRIGHT -> direct -> Headphone Jack
+[    2.625701] rx51-audio n900-audio: ASoC: no sink widget found for
+TPA6130A2 LEFTIN
+[    2.632965] rx51-audio n900-audio: ASoC: Failed to add route LLOUT
+-> direct -> TPA6130A2 LEFTIN
+[    2.640563] rx51-audio n900-audio: ASoC: no sink widget found for
+TPA6130A2 RIGHTIN
+[    2.648101] rx51-audio n900-audio: ASoC: Failed to add route RLOUT
+-> direct -> TPA6130A2 RIGHTIN
+[    2.655761] rx51-audio n900-audio: ASoC: no sink widget found for b
+LINE2R
+[    2.663208] rx51-audio n900-audio: ASoC: Failed to add route
+MONO_LOUT -> direct -> b LINE2R
+[    2.670501] rx51-audio n900-audio: ASoC: no source widget found for
+b HPLOUT
+[    2.677642] rx51-audio n900-audio: ASoC: Failed to add route b
+HPLOUT -> direct -> Earphone
+[    2.685058] rx51-audio n900-audio: ASoC: no source widget found for
+b Mic Bias
+[    2.692352] rx51-audio n900-audio: ASoC: Failed to add route b Mic
+Bias -> direct -> HS Mic
+[    2.706298] input: RX-51 AV Jack as
+/devices/platform/n900-audio/sound/card0/input6
 
-The *actual* reason to re-send, namely getting a nested irq that we
-had to drop because we got a second one while still handling the first
-(or because it was disabled), is just one case.
+Pali, do you have maemo running on top of recent kernel (v4.1, v4.4,
+v4.10?). Do voice calls work there?
 
-Personally, I'd suspect some left-over state from auto-probing earlier
-in the boot, but I don't know. Could we fix that underlying issue?
+Any ideas welcome...
 
-                 Linus
+Best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlizOm8ACgkQMOfwapXb+vI6MwCgjjB97L8vbq2CuE91uRcqd6A1
+au4AnjmzxFQ6ZNHq3pszuIoERXknp4Cq
+=EDam
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
