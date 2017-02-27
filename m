@@ -1,77 +1,131 @@
-From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at 0000039c
-Date: Mon, 27 Feb 2017 11:23:21 -0800
-Message-ID: <CA+55aFxwtkOs95R-v7z8yjguvp91oDTxRKs-x3uN_=sM_33Gvg@mail.gmail.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
- <20170225090741.GA20463@gmail.com>
- <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
- <alpine.DEB.2.20.1702271105090.4732@nanos>
- <alpine.DEB.2.20.1702271231410.4732@nanos>
- <20170227154124.GA20569@gmail.com>
+From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
+Subject: Re: Microphone gain on N900
+Date: Mon, 27 Feb 2017 20:53:37 +0100
+Message-ID: <201702272053.37882@pali>
+References: <20170226202831.GA31405@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <20170227154124.GA20569-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
-List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ruslan Ruslichenko <rruslich-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, Sean Young <sean-hENCXIMQXOg@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mauro Carvalho Chehab <mchehab-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linux LED Subsystem <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, kernel test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKP <lkp-JC7UmRfGjtg@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============3185623192746838731=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170226202831.GA31405@amd>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, abcloriens@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Feb 27, 2017 at 7:41 AM, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->
-> BTW., instead of trying to avoid the scenario, wow about moving in the other
-> direction: making CONFIG_DEBUG_SHIRQ=y unconditional property in the IRQ core code
-> starting from v4.12 or so
+--===============3185623192746838731==
+Content-Type: multipart/signed;
+  boundary="nextPart1984490.qseyajWmyB";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 
-The problem is that it's generally almost undebuggable ahead of time
-by developers, and most users won't be able to do good reports either,
-because the symptom is geberally a boot-time crash, often with no
-logs.
+--nextPart1984490.qseyajWmyB
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-So this option is *not* good for actual users. It's been tried before.
+On Sunday 26 February 2017 21:28:32 Pavel Machek wrote:
+> Hi!
+>=20
+> v4.10 works quite nicely on N900, but I still have problems with
+> audio. Even GSM calls would be usable, if I had reasonable volume on
+> microphone and speaker... but I don't.
+>=20
+> Both speaker and microphone are too quiet. I can get louder output by
+> plugging headset -- good. I can hear the other side nicely, but am
+> too quiet for them. Unfortunately, even if I plug in wired headset,
+> internal microphone is still used.
+>=20
+> Now... I researched mixer settings in v4.4, v4.10 and v2.6.28... and
+> could not find way to control microphone. v2.6.28 is completely
+> different from the other two. v4.10 misses many controls from v4.4;
+> and I guess this might be related:
+>=20
+> [    2.579925] rx51-audio n900-audio: tlv320aic3x-hifi <->
+> 49022000.mcbsp mapping ok
+> [    2.586486] rx51-audio n900-audio: ASoC: no source widget found
+> for TPA6130A2 HPLEFT
+> [    2.592651] rx51-audio n900-audio: ASoC: Failed to add route
+> TPA6130A2 HPLEFT -> direct -> Headphone Jack
+> [    2.605163] rx51-audio n900-audio: ASoC: no source widget found
+> for TPA6130A2 HPRIGHT
+> [    2.611938] rx51-audio n900-audio: ASoC: Failed to add route
+> TPA6130A2 HPRIGHT -> direct -> Headphone Jack
+> [    2.625701] rx51-audio n900-audio: ASoC: no sink widget found for
+> TPA6130A2 LEFTIN
+> [    2.632965] rx51-audio n900-audio: ASoC: Failed to add route LLOUT
+> -> direct -> TPA6130A2 LEFTIN
+> [    2.640563] rx51-audio n900-audio: ASoC: no sink widget found for
+> TPA6130A2 RIGHTIN
+> [    2.648101] rx51-audio n900-audio: ASoC: Failed to add route RLOUT
+> -> direct -> TPA6130A2 RIGHTIN
+> [    2.655761] rx51-audio n900-audio: ASoC: no sink widget found for
+> b LINE2R
+> [    2.663208] rx51-audio n900-audio: ASoC: Failed to add route
+> MONO_LOUT -> direct -> b LINE2R
+> [    2.670501] rx51-audio n900-audio: ASoC: no source widget found
+> for b HPLOUT
+> [    2.677642] rx51-audio n900-audio: ASoC: Failed to add route b
+> HPLOUT -> direct -> Earphone
+> [    2.685058] rx51-audio n900-audio: ASoC: no source widget found
+> for b Mic Bias
+> [    2.692352] rx51-audio n900-audio: ASoC: Failed to add route b Mic
+> Bias -> direct -> HS Mic
+> [    2.706298] input: RX-51 AV Jack as
+> /devices/platform/n900-audio/sound/card0/input6
 
-It's a wonderful thing for developers to run with to make sure the
-drivers they are working on are resilient to this problem, but we have
-too many legacy drivers and lots of random users, and it's unrealistic
-to expect them to handle it.
+Jarkko, Peter: can you look at above errors? Looks like audio routing is=20
+not correctly configured.
 
-In other words: what will happen is that distros start getting bootup
-problem reports six months or a year after we've done it, and *if*
-they figure out it's the irq enabling, they'll disable it, because
-they have no way to solve it either.
+> Pali, do you have maemo running on top of recent kernel (v4.1, v4.4,
+> v4.10?). Do voice calls work there?
 
-And core developers will just maybe see the occasional "4.12 doesn't
-boot for me" reports, but by then developers will ahve moved on to
-4.16 or something.
+Now I do not have prepared Maemo + mainline kernel for testing...
 
-So I don't disagree that in a perfect world all drivers should just
-handle it. It's just that it's not realistic.
+I remember that Maemo sscd/csd/... daemons were able to connect to=20
+cellular network but I was not trying to make voice calls.
 
-The fact that we have now *twice* gotten an oops report or a "this
-machine doesn't boot" report etc within a week or so of merging the
-problematic patch does *not* indicate that it's easy to fix or rare.
+> Any ideas welcome...
+>=20
+> Best regards,
+> 									Pavel
 
-Quite the reverse.
+=2D-=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 
-It indicates that it's just rare enough that core developers don't see
-it, but it's common enough to have triggered issues in random places.
+--nextPart1984490.qseyajWmyB
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-And it will just get *much* worse when you then get the random
-end-users that usually have older machines than the developers who
-actually test daily development -git trees.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Then we'll just hit *other* random places, and without having testers
-that are competent and willing or able to bisect or debug.
+iEYEABECAAYFAli0g8EACgkQi/DJPQPkQ1JcawCdFejJ9dDszlb5ah3EHMGgTSwK
+bFkAoLd1oLs362zmxmYGvrYzY2ZNaNoW
+=1l0b
+-----END PGP SIGNATURE-----
 
-                  Linus
+--nextPart1984490.qseyajWmyB--
+
+
+--===============3185623192746838731==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3185623192746838731==--
