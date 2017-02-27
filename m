@@ -1,58 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
- 0000039c
-Date: Mon, 27 Feb 2017 08:26:39 -0800
-Message-ID: <20170227162639.GN21809@atomide.com>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
- <20170225090741.GA20463@gmail.com>
- <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
- <alpine.DEB.2.20.1702271105090.4732@nanos>
- <alpine.DEB.2.20.1702271231410.4732@nanos>
- <20170227154124.GA20569@gmail.com>
- <20170227160750.GM21809@atomide.com>
- <alpine.DEB.2.20.1702271712470.4732@nanos>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 14/22] dt-bindings: PCI: dra7xx: Add dt bindings to
+ enable legacy mode
+Date: Mon, 27 Feb 2017 10:40:54 -0600
+Message-ID: <20170227164054.xcubjpaf2qx3pxol@rob-hp-laptop>
+References: <1487325042-28227-1-git-send-email-kishon@ti.com>
+ <1487325042-28227-15-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-leds-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1702271712470.4732@nanos>
-Sender: linux-leds-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ruslan Ruslichenko <rruslich@cisco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, kernel@stlinux.com, Sean Young <sean@mess.org>, wfg@linux.intel.com, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-mediatek@lists.infradead.org, Linux LED Subsystem <linux-leds@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, linux-amlogic@lists.infradead.org, kernel test robot <fengguang.wu@intel.com>, LKP <lkp@01.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>Linux
+In-Reply-To: <1487325042-28227-15-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, linux-doc@vger.kernel.org, Jingoo Han <jingoohan1@gmail.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Thomas Gleixner <tglx@linutronix.de> [170227 08:20]:
-> On Mon, 27 Feb 2017, Tony Lindgren wrote:
-> > * Ingo Molnar <mingo@kernel.org> [170227 07:44]:
-> > > Because it's not the requirement that hurts primarily, but the resulting 
-> > > non-determinism and the sporadic crashes. Which can be solved by making the race 
-> > > deterministic via the debug facility.
-> > > 
-> > > If the IRQ handler crashed the moment it was first written by the driver author 
-> > > we'd never see these problems.
-> > 
-> > Just in case this is PM related.. Maybe the spurious interrupt is pending
-> > from earlier? This could be caused by glitches on the lines with runtime PM,
-> > or a pending interrupt during suspend/resume. In that case IRQ_DISABLE_UNLAZY
-> > might provide more clues if the problem goes away.
+On Fri, Feb 17, 2017 at 03:20:34PM +0530, Kishon Vijay Abraham I wrote:
+> Update device tree binding documentation of TI's dra7xx PCI
+> controller to include property for enabling legacy mode.
 > 
-> It's not PM related.  That's just silly hardware. At the moment when you
-> enable some magic bit in the control register, which is required to probe
-> the version, the fricking thing spits out a spurious interrupt despite the
-> interrupt enable bit in the same control register being still disabled. Of
-> course we cannot install an interrupt handler before having probed the
-> version and setup other stuff, except we add magic 'if (!initialized)'
-> crappola into the handler and lose the ability to install version dependent
-> handlers afterwards.
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  Documentation/devicetree/bindings/pci/ti-pci.txt |    4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> index 190828a..72ebe2b 100644
+> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> @@ -39,6 +39,10 @@ DEVICE MODE
+>   - interrupts : one interrupt entries must be specified for main interrupt.
+>   - num-ib-windows : number of inbound address translation windows
+>   - num-ob-windows : number of outbound address translation windows
+> + - syscon-legacy-mode: phandle to the syscon dt node. The 1st argument should
+> +		       contain the register offset within syscon and the 2nd
+> +		       argument should contain the bit field for setting the
+> +		       legacy mode
 
-OK and presumably no -EPROBE_DEFER happening either.
+Vendor prefix needed and what does "legacy mode" mean? Perhaps name this 
+around what the mode is/does, not that it is legacy.
 
-> Wonderful crap that, isn't it?
-
-Sounds broken..
-
-Regards,
-
-Tony
+Rob
