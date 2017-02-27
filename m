@@ -1,94 +1,74 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Microphone gain on N900
-Date: Sun, 26 Feb 2017 21:28:32 +0100
-Message-ID: <20170226202831.GA31405@amd>
+From: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
+ ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
+ 0000039c
+Date: Mon, 27 Feb 2017 11:09:41 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1702271105090.4732@nanos>
+References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
+ <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
+ <20170225090741.GA20463@gmail.com>
+ <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ruslan Ruslichenko <rruslich-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, Sean Young <sean-hENCXIMQXOg@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mauro Carvalho Chehab <mchehab-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linux LED Subsystem <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKP <lkp-JC7UmRfGjtg@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Sat, 25 Feb 2017, Linus Torvalds wrote:
+> On Sat, Feb 25, 2017 at 1:07 AM, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> >
+> > So, should we revert the hw-retrigger change:
+> >
+> >   a9b4f08770b4 x86/ioapic: Restore IO-APIC irq_chip retrigger callback
+> >
+> > ... until we managed to fix CONFIG_DEBUG_SHIRQ=y? If you'd like to revert it
+> > upstream straight away:
+> >
+> > Acked-by: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> 
+> So I'm in no huge hurry to revert that commit as long as we're still
+> in the merge window or early -rc's.
+> 
+> From a debug standpoint, the spurious early interrupts are fine, and
+> hopefully will help us find more broken drivers.
+> 
+> It's just that I'd like to revert it before the actual 4.11 release,
+> unless we can find a better solution.
+> 
+> Because it really seems like the interrupt re-trigger is entirely
+> bogus. It's not an _actual_ "re-trigger the interrupt that may have
+> gotten lost", it's some code that ends up triggering it for no good
+> reason.
+> 
+> So I'd actually hope that we could figure out why IRQS_PENDING got
+> set, and perhaps fix the underlying cause?
+>
+> There are several things that set IRQS_PENDING, ranging from "try to
+> test mis-routed interrupts while irqd was working", to "prepare for
+> suspend losing the irq for us", to "irq auto-probing uses it on
+> unassigned probable irqs".
+> 
+> The *actual* reason to re-send, namely getting a nested irq that we
+> had to drop because we got a second one while still handling the first
+> (or because it was disabled), is just one case.
+> 
+> Personally, I'd suspect some left-over state from auto-probing earlier
+> in the boot, but I don't know. Could we fix that underlying issue?
 
---7AUc2qLy4jB3hD7Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm on it.
 
-Hi!
+Thanks,
 
-v4.10 works quite nicely on N900, but I still have problems with
-audio. Even GSM calls would be usable, if I had reasonable volume on
-microphone and speaker... but I don't.
-
-Both speaker and microphone are too quiet. I can get louder output by
-plugging headset -- good. I can hear the other side nicely, but am too
-quiet for them. Unfortunately, even if I plug in wired headset,
-internal microphone is still used.
-
-Now... I researched mixer settings in v4.4, v4.10 and v2.6.28... and
-could not find way to control microphone. v2.6.28 is completely
-different from the other two. v4.10 misses many controls from v4.4;
-and I guess this might be related:
-
-[    2.579925] rx51-audio n900-audio: tlv320aic3x-hifi <->
-49022000.mcbsp mapping ok
-[    2.586486] rx51-audio n900-audio: ASoC: no source widget found for
-TPA6130A2 HPLEFT
-[    2.592651] rx51-audio n900-audio: ASoC: Failed to add route
-TPA6130A2 HPLEFT -> direct -> Headphone Jack
-[    2.605163] rx51-audio n900-audio: ASoC: no source widget found for
-TPA6130A2 HPRIGHT
-[    2.611938] rx51-audio n900-audio: ASoC: Failed to add route
-TPA6130A2 HPRIGHT -> direct -> Headphone Jack
-[    2.625701] rx51-audio n900-audio: ASoC: no sink widget found for
-TPA6130A2 LEFTIN
-[    2.632965] rx51-audio n900-audio: ASoC: Failed to add route LLOUT
--> direct -> TPA6130A2 LEFTIN
-[    2.640563] rx51-audio n900-audio: ASoC: no sink widget found for
-TPA6130A2 RIGHTIN
-[    2.648101] rx51-audio n900-audio: ASoC: Failed to add route RLOUT
--> direct -> TPA6130A2 RIGHTIN
-[    2.655761] rx51-audio n900-audio: ASoC: no sink widget found for b
-LINE2R
-[    2.663208] rx51-audio n900-audio: ASoC: Failed to add route
-MONO_LOUT -> direct -> b LINE2R
-[    2.670501] rx51-audio n900-audio: ASoC: no source widget found for
-b HPLOUT
-[    2.677642] rx51-audio n900-audio: ASoC: Failed to add route b
-HPLOUT -> direct -> Earphone
-[    2.685058] rx51-audio n900-audio: ASoC: no source widget found for
-b Mic Bias
-[    2.692352] rx51-audio n900-audio: ASoC: Failed to add route b Mic
-Bias -> direct -> HS Mic
-[    2.706298] input: RX-51 AV Jack as
-/devices/platform/n900-audio/sound/card0/input6
-
-Pali, do you have maemo running on top of recent kernel (v4.1, v4.4,
-v4.10?). Do voice calls work there?
-
-Any ideas welcome...
-
-Best regards,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---7AUc2qLy4jB3hD7Z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlizOm8ACgkQMOfwapXb+vI6MwCgjjB97L8vbq2CuE91uRcqd6A1
-au4AnjmzxFQ6ZNHq3pszuIoERXknp4Cq
-=EDam
------END PGP SIGNATURE-----
-
---7AUc2qLy4jB3hD7Z--
+	tglx
