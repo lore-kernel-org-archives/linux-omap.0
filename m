@@ -1,145 +1,55 @@
-From: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: Re: [WARNING: A/V UNSCANNABLE][Merge tag 'media/v4.11-1' of git]
- ff58d005cd: BUG: unable to handle kernel NULL pointer dereference at
- 0000039c
-Date: Mon, 27 Feb 2017 13:32:59 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1702271231410.4732@nanos>
-References: <58b07b30.9XFLj9Hhl7F6HMc2%fengguang.wu@intel.com>
- <CA+55aFytXj+TZ_TanbxcY0KgRTrV7Vvr=fWON8tioUGmYHYiNA@mail.gmail.com>
- <20170225090741.GA20463@gmail.com>
- <CA+55aFy+ER8cYV02eZsKAOLnZBWY96zNWqUFWSWT1+3sZD4XnQ@mail.gmail.com>
- <alpine.DEB.2.20.1702271105090.4732@nanos>
+From: Frode Isaksen <fisaksen@baylibre.com>
+Subject: Re: [RFC PATCH 0/2] mtd: spi-nor: Handle vmalloc'd buffers
+Date: Mon, 27 Feb 2017 15:03:57 +0100
+Message-ID: <884efafc-6b34-0cb6-4c9f-e3a926114130@baylibre.com>
+References: <20170227120839.16545-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1702271105090.4732@nanos>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
-List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ruslan Ruslichenko <rruslich-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-F5mvAk5X5gdBDgjK7y7TUQ@public.gmane.org, Sean Young <sean-hENCXIMQXOg@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mauro Carvalho Chehab <mchehab-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linux LED Subsystem <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKP <lkp-JC7UmRfGjtg@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20170227120839.16545-1-vigneshr@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Vignesh R <vigneshr@ti.com>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>, Richard Weinberger <richard@nod.at>, Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 27 Feb 2017, Thomas Gleixner wrote:
-> On Sat, 25 Feb 2017, Linus Torvalds wrote:
-> > There are several things that set IRQS_PENDING, ranging from "try to
-> > test mis-routed interrupts while irqd was working", to "prepare for
-> > suspend losing the irq for us", to "irq auto-probing uses it on
-> > unassigned probable irqs".
-> > 
-> > The *actual* reason to re-send, namely getting a nested irq that we
-> > had to drop because we got a second one while still handling the first
-> > (or because it was disabled), is just one case.
-> > 
-> > Personally, I'd suspect some left-over state from auto-probing earlier
-> > in the boot, but I don't know. Could we fix that underlying issue?
-> 
-> I'm on it.
 
-Adding a few trace points to the irq code gives me a pretty consistent
-picture across a bunch of different machines.
 
-The pending interrupt issue happens, at least on my test boxen, mostly on
-the 'legacy' interrupts (0 - 15). But even the IOAPIC interrupts >=16
-happen occasionally.
-
- - Spurious interrupts on IRQ7, which are triggered by IRQ 0 (PIT/HPET). On
-   one of the affected machines this stops when the interrupt system is
-   switched to interrupt remapping !?!?!?
-
- - Spurious interrupts on various interrupt lines, which are triggered by
-   IOAPIC interrupts >= IRQ16. That's a known issue on quite some chipsets
-   that the legacy PCI interrupt (which is used when IOAPIC is disabled) is
-   triggered when the IOAPIC >=16 interrupt fires.
-
- - Spurious interrupt caused by driver probing itself. I.e. the driver
-   probing code causes an interrupt issued from the device
-   inadvertently. That happens even on IRQ >= 16.
-
-   This problem might be handled by the device driver code itself, but
-   that's going to be ugly. See below.
-
-None of that was caused by misrouted irq or autoprobing. Autoprobing is not
-used on any modern maschine at all and the misrouted mechanism cannot
-set the pending flag on a interrupt which has no action installed.
-
-Sure, we might not set the pending flag on spurious interrupts, when an
-interrupt has no action assigned. We had it that way quite some years
-ago. But that caused issues on a couple of (non x86) systems because the
-peripheral which sent the spurious interrupt was waiting for
-acknowledgement forever and therefor not sending new interrupts. There was
-no way to handle that other than resending the interrupt after the action
-was installed. The reason for this is the following race:
-
-Device driver init()
-
-  ack_bogus_pending_irq_in_device();
-                          <---- Device sends spurious interrupt
-  request_irq();
-
-We cannot call ack_bogus_pending_irq_in_device() after the handler has been
-installed because it might clear a real interrupt before the handler is
-invoked. In fact we can, but that requires pretty ugly code. See below.
-
-Yes, it's broken hardware, but in that area there is more broken than sane
-hardware.
-
-The other point here is, that the "IOAPIC triggers spurious interrupt on
-legacy lines" issue can actually cause the same problem as the immediate
-resend/retrigger:
-
-  request_irq();
-  			 <---- Other device sends IOAPIC interrupt which
-			       triggers the legacy line.
-
-If the handler is not prepared at that point, then it explodes as
-well. Same for this odd IRQ0 -> IRQ7 trigger, which I can observe on two
-machines.
-
-The whole resend/retrigger business is only relevant for edge type
-interrupts to deal with the following problem:
-
-  disable_irq();
-			<---- Device sends interrupt
-  enable_irq();
-
-  ===> Previously sent interrupt has not been acked in the device so no
-       further interrupts happen. We lost an edge and are toast.
-
-We never do the resend/retrigger for level type interrupts, because they
-are resent by hardware if the interrupt is still pending, which is the case
-when you don't acknowlegde it at the device level.
-
-So now you might argue that a driver could handle this by doing:
-
-  disable_irq();
-			<---- Device sends interrupt
-  enable_irq();
-
-  lock_device();
-   do_some_magic_checks_and_handle_pending_irq();
-  unlock_device();
-
-Requiring this would add tons of even more broken code to the device
-drivers and I really doubt that we want to go there. Same for the
-request_irq() case.
-
-I rather prefer that drivers are able to deal with spurious interrupts even
-on non shared interrupt lines and let the resend/retrigger mechanism expose
-them early when they do not.
-
-We can try to sample more data from the machines of affected users, but I
-doubt that it will give us more information than confirming that we really
-have to deal with all that hardware wreckage out there in some way or the
-other.
+On 27/02/2017 13:08, Vignesh R wrote:
+> This series implements bounce buffer support to handle vmalloc'd buffers
+> in case of drivers use DMA, similar to what is done in MTD NAND
+> framework.
+>
+> I have tested this on two platform:
+> DRA74 SoC (cortex a15 @1GHz) with s25fl256s1 QSPI (SPI bus frequency
+> 76.8 MHz) and I don't see any performance degradation with UBIFS
+> read/write(10MB file).
+> AM437x SoC (cortex a9 @1GHz) with macronix mx66l51235l QSPI flash (SPI bus
+> frequency 48MHz) and performance degradation is <4% for UBIFS.
+>
+>
+> Vignesh R (2):
+>   mtd: spi-nor: Introduce bounce buffer to handle vmalloc'd buffers
+>   mtd: devices: m25p80: Enable spi-nor bounce buffer support
+>
+>  drivers/mtd/devices/m25p80.c  |  1 +
+>  drivers/mtd/spi-nor/spi-nor.c | 30 +++++++++++++++++++++++++++---
+>  include/linux/mtd/spi-nor.h   |  4 ++++
+>  3 files changed, 32 insertions(+), 3 deletions(-)
+>
+I have tested this on a daVinci EVM board with SPI DMA enabled and the UBIFS tests all passed.
 
 Thanks,
+Frode
 
-	tglx
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
