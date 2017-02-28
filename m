@@ -1,64 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ARM: OMAP2+: Grab reference to device nodes where needed
-Date: Tue, 28 Feb 2017 09:52:47 -0800
-Message-ID: <20170228175246.GE20572@atomide.com>
-References: <1486853948-20978-1-git-send-email-linux@roeck-us.net>
- <20170227233405.GA16546@roeck-us.net>
- <20170228162315.GS21809@atomide.com>
- <20170228172637.GA13455@roeck-us.net>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: Microphone gain on N900
+Date: Tue, 28 Feb 2017 20:45:14 +0200
+Message-ID: <4435ddd2-ca0e-b05d-727d-9f38416c0f97@bitmer.com>
+References: <20170226202831.GA31405@amd> <201702272053.37882@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170228172637.GA13455@roeck-us.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Paul Walmsley <paul@pwsan.com>, Rob Herring <robh@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Qi Hou <qi.hou@windriver.com>, linux-omap@vger.kernel.org, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201702272053.37882@pali>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, abcloriens@gmail.com, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-* Guenter Roeck <linux@roeck-us.net> [170228 09:28]:
-> On Tue, Feb 28, 2017 at 08:23:16AM -0800, Tony Lindgren wrote:
-> > * Guenter Roeck <linux@roeck-us.net> [170227 15:36]:
-> > > ping ... this problem is now seen in mainline.
-> > 
-> > Oops sorry I had accidentally tagged this with "next" instead of
-> > "fixes".
-> > 
-> > Looking at the patch though, can't we make of_node_get/put local to
-> > omap3xxx_hwmod_is_hs_ip_block_usable()?
-> > 
-> Not really.
-> 
-> Strictly speaking the patch fixes two problems:
-> 1) of_find_node_by_name() gets a reference on "bus", thus of_node_put()
->    is necessary to release it. This is the change in omap3xxx_hwmod_init().
-> 2) of_find_node_by_name() drops a reference to the passed device node,
->    thus it is necessary to call of_node_get(bus) in
->    omap3xxx_hwmod_is_hs_ip_block_usable().
-> 
-> I should have stated that more clearly in the description.
-
-OK
-
-> We could ignore 1) to get rid of the warning, but that would leave us with
-> a dangling reference to the bus node. I could also improve the description,
-> or split the patch in two. Let me know what you prefer.
-
-Once patch is just fine with me.
-
-> Another possible change would be to use of_get_child_by_name() instead of
-> of_find_node_by_name(). That would, however, only search immediate children
-> of the 'ocp' node, not all nodes. I  think that is what is actually intended
-> here, but I am not entirely sure. Thoughts ?
-
-Yes that would be better.
-
-> Either case, turns out I'll have to re-submit the patch because, as mentioned
-> above, of_find_node_by_name() gets a reference to the device node it returns,
-> so a put on that node is necessary in omap3xxx_hwmod_is_hs_ip_block_usable().
-
-OK
-
-Thanks,
-
-Tony
+T24gMDIvMjcvMTcgMjE6NTMsIFBhbGkgUm9ow6FyIHdyb3RlOgo+IE9uIFN1bmRheSAyNiBGZWJy
+dWFyeSAyMDE3IDIxOjI4OjMyIFBhdmVsIE1hY2hlayB3cm90ZToKPj4gSGkhCj4+Cj4+IHY0LjEw
+IHdvcmtzIHF1aXRlIG5pY2VseSBvbiBOOTAwLCBidXQgSSBzdGlsbCBoYXZlIHByb2JsZW1zIHdp
+dGgKPj4gYXVkaW8uIEV2ZW4gR1NNIGNhbGxzIHdvdWxkIGJlIHVzYWJsZSwgaWYgSSBoYWQgcmVh
+c29uYWJsZSB2b2x1bWUgb24KPj4gbWljcm9waG9uZSBhbmQgc3BlYWtlci4uLiBidXQgSSBkb24n
+dC4KPj4KPj4gQm90aCBzcGVha2VyIGFuZCBtaWNyb3Bob25lIGFyZSB0b28gcXVpZXQuIEkgY2Fu
+IGdldCBsb3VkZXIgb3V0cHV0IGJ5Cj4+IHBsdWdnaW5nIGhlYWRzZXQgLS0gZ29vZC4gSSBjYW4g
+aGVhciB0aGUgb3RoZXIgc2lkZSBuaWNlbHksIGJ1dCBhbQo+PiB0b28gcXVpZXQgZm9yIHRoZW0u
+IFVuZm9ydHVuYXRlbHksIGV2ZW4gaWYgSSBwbHVnIGluIHdpcmVkIGhlYWRzZXQsCj4+IGludGVy
+bmFsIG1pY3JvcGhvbmUgaXMgc3RpbGwgdXNlZC4KPj4KRm9yIG1lIHRoZXNlIHNldHRpbmdzIHBy
+b3ZpZGUgcmVhc29uYWJsZSBwbGF5YmFjayBhbmQgY2FwdHVyZSB2b2x1bWVzCnVzaW5nIHY0LjEw
+LjE6CgphbWl4ZXIgLUQgaHc6MCBzZXQgUENNIDEwMCUKYW1peGVyIC1EIGh3OjAgc2V0ICdMaW5l
+IERBQycgODAlIG9uCmFtaXhlciAtRCBodzowIHNldCAnTGluZScgb24KYW1peGVyIC1EIGh3OjAg
+c2V0ICdMZWZ0IExpbmUgTWl4ZXIgREFDTDEnIG9uCmFtaXhlciAtRCBodzowIHNldCAnUmlnaHQg
+TGluZSBNaXhlciBEQUNSMScgb24KYW1peGVyIC1EIGh3OjAgc2V0ICdKYWNrIEZ1bmN0aW9uJyAn
+SGVhZHBob25lJwphbWl4ZXIgLUQgaHc6MCBzZXQgJ1RQQTYxMzBBMiBIZWFkcGhvbmUnIDgwJQoK
+YW1peGVyIC1EIGh3OjAgc2V0ICdKYWNrIEZ1bmN0aW9uJyAnSGVhZHNldCcKYW1peGVyIC1EIGh3
+OjAgc2V0ICdBR0MnIG9mZgphbWl4ZXIgLUQgaHc6MCBzZXQgJ0lucHV0IFNlbGVjdCcgJ0FEQycK
+YW1peGVyIC1EIGh3OjAgc2V0ICdMZWZ0IFBHQSBNaXhlciBMaW5lMUwnIG9uCmFtaXhlciAtRCBo
+dzowIHNldCAnTGVmdCBMaW5lMUwgTXV4JyAnZGlmZmVyZW50aWFsJwphbWl4ZXIgLUQgaHc6MCBz
+ZXQgJ1JpZ2h0IFBHQSBNaXhlciBMaW5lMUwnIG9uCmFtaXhlciAtRCBodzowIHNldCAnUmlnaHQg
+TGluZTFMIE11eCcgJ2RpZmZlcmVudGlhbCcKYW1peGVyIC1EIGh3OjAgc2V0ICdBREMgSFBGIEN1
+dC1vZmYnICcwLjAwNDV4RnMnICdkaXNhYmxlZCcKYW1peGVyIC1EIGh3OjAgc2V0IFBHQSA1MCUg
+b24KYW1peGVyIC1EIGh3OjAgY3NldCBpZmFjZT1NSVhFUixuYW1lPSdQR0EgQ2FwdHVyZSBTd2l0
+Y2gnLGluZGV4PTAgb24KCi0tIApKYXJra28KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
+bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
