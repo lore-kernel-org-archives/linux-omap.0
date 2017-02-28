@@ -1,15 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ARM: OMAP2+: Grab reference to device nodes where needed
-Date: Tue, 28 Feb 2017 08:23:16 -0800
-Message-ID: <20170228162315.GS21809@atomide.com>
-References: <1486853948-20978-1-git-send-email-linux@roeck-us.net>
- <20170227233405.GA16546@roeck-us.net>
+Subject: Re: [PATCH] ARM: dts: am57xx-idk: tpic2810 is on I2C bus, not SPI
+Date: Tue, 28 Feb 2017 08:37:34 -0800
+Message-ID: <20170228163733.GT21809@atomide.com>
+References: <f884c250c4142ef44ec0c770aab277803f1f5da3.1487171304.git.nsekhar@ti.com>
+ <504d1a9f-8c89-43b2-9a49-f130a21c50fd@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170227233405.GA16546@roeck-us.net>
+In-Reply-To: <504d1a9f-8c89-43b2-9a49-f130a21c50fd@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,19 +19,22 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Rob Herring <robh@kernel.org>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Qi Hou <qi.hou@windriver.com>, linux-omap@vger.kernel.org, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Guenter Roeck <linux@roeck-us.net> [170227 15:36]:
-> ping ... this problem is now seen in mainline.
+* Andrew F. Davis <afd@ti.com> [170215 07:43]:
+> On 02/15/2017 09:12 AM, Sekhar Nori wrote:
+> > commit 50e95b6b854c ("ARM: dts: am57xx-idk: Add Industrial
+> > output support") added the TPIC2810 device-tree node under
+> > SPI bus instead of I2C1.
+> > 
+> 
+> Well that's odd, looks like git could get confused by the lack of
+> context around the node during rebases. Anyway,
+> 
+> Acked-by: Andrew F. Davis <afd@ti.com>
 
-Oops sorry I had accidentally tagged this with "next" instead of
-"fixes".
-
-Looking at the patch though, can't we make of_node_get/put local to
-omap3xxx_hwmod_is_hs_ip_block_usable()?
-
-Regards,
+Applying into omap-for-v4.11/fixes thanks.
 
 Tony
