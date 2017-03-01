@@ -1,110 +1,95 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [RFC PATCH 2/2] mtd: devices: m25p80: Enable spi-nor bounce
- buffer support
-Date: Wed, 1 Mar 2017 17:55:06 +0100
-Message-ID: <20170301175506.202cb478@bbrezillon>
-References: <20170227120839.16545-1-vigneshr@ti.com>
- <20170227120839.16545-3-vigneshr@ti.com>
- <aa967f6a-0526-3e33-1de7-fbe7d4264f34@nod.at>
- <8f999a27-c3ce-2650-452c-b21c3e44989d@ti.com>
- <aeaf87ca-e8f5-72d0-997d-494df86abf68@atmel.com>
- <a6c61bf7-1f26-41db-9a6b-bcae87274cb9@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP2+: Fix device node reference counts
+Date: Wed, 1 Mar 2017 10:04:39 -0800
+Message-ID: <20170301180439.GI20572@atomide.com>
+References: <1488311640-3594-1-git-send-email-linux@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <a6c61bf7-1f26-41db-9a6b-bcae87274cb9@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Frode Isaksen <fisaksen@baylibre.com>, linux-omap@vger.kernel.org, Richard Weinberger <richard@nod.at>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1488311640-3594-1-git-send-email-linux@roeck-us.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Rob Herring <robh@kernel.org>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Qi Hou <qi.hou@windriver.com>, linux-omap@vger.kernel.org, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCAxIE1hciAyMDE3IDE3OjE2OjMwICswNTMwClZpZ25lc2ggUiA8dmlnbmVzaHJAdGku
-Y29tPiB3cm90ZToKCj4gT24gV2VkbmVzZGF5IDAxIE1hcmNoIDIwMTcgMDQ6MTMgUE0sIEN5cmls
-bGUgUGl0Y2hlbiB3cm90ZToKPiA+IExlIDAxLzAzLzIwMTcgw6AgMDU6NTQsIFZpZ25lc2ggUiBh
-IMOpY3JpdCA6ICAKPiA+Pgo+ID4+Cj4gPj4gT24gV2VkbmVzZGF5IDAxIE1hcmNoIDIwMTcgMDM6
-MTEgQU0sIFJpY2hhcmQgV2VpbmJlcmdlciB3cm90ZTogIAo+ID4+PiBWaWduZXNoLAo+ID4+Pgo+
-ID4+PiBBbSAyNy4wMi4yMDE3IHVtIDEzOjA4IHNjaHJpZWIgVmlnbmVzaCBSOiAgCj4gPj4+PiBN
-YW55IFNQSSBjb250cm9sbGVyIGRyaXZlcnMgdXNlIERNQSB0byByZWFkL3dyaXRlIGZyb20gbTI1
-cDgwIGNvbXBhdGlibGUKPiA+Pj4+IGZsYXNoZXMuIFRoZXJlZm9yZSBlbmFibGUgYm91bmNlIGJ1
-ZmZlcnMgc3VwcG9ydCBwcm92aWRlZCBieSBzcGktbm9yCj4gPj4+PiBmcmFtZXdvcmsgdG8gdGFr
-ZSBjYXJlIG9mIGhhbmRsaW5nIHZtYWxsb2MnZCBidWZmZXJzIHdoaWNoIG1heSBub3QgYmUKPiA+
-Pj4+IERNQSdhYmxlLgo+ID4+Pj4KPiA+Pj4+IFNpZ25lZC1vZmYtYnk6IFZpZ25lc2ggUiA8dmln
-bmVzaHJAdGkuY29tPgo+ID4+Pj4gLS0tCj4gPj4+PiAgZHJpdmVycy9tdGQvZGV2aWNlcy9tMjVw
-ODAuYyB8IDEgKwo+ID4+Pj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKQo+ID4+Pj4K
-PiA+Pj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL210ZC9kZXZpY2VzL20yNXA4MC5jIGIvZHJpdmVy
-cy9tdGQvZGV2aWNlcy9tMjVwODAuYwo+ID4+Pj4gaW5kZXggYzRkZjNiMWJkZWQwLi5kMDVhY2Yy
-MmVhZGYgMTAwNjQ0Cj4gPj4+PiAtLS0gYS9kcml2ZXJzL210ZC9kZXZpY2VzL20yNXA4MC5jCj4g
-Pj4+PiArKysgYi9kcml2ZXJzL210ZC9kZXZpY2VzL20yNXA4MC5jCj4gPj4+PiBAQCAtMjQxLDYg
-KzI0MSw3IEBAIHN0YXRpYyBpbnQgbTI1cF9wcm9iZShzdHJ1Y3Qgc3BpX2RldmljZSAqc3BpKQo+
-ID4+Pj4gIAllbHNlCj4gPj4+PiAgCQlmbGFzaF9uYW1lID0gc3BpLT5tb2RhbGlhczsKPiA+Pj4+
-ICAKPiA+Pj4+ICsJbm9yLT5mbGFncyB8PSBTTk9SX0ZfVVNFX0JPVU5DRV9CVUZGRVI7ICAKPiA+
-Pj4KPiA+Pj4gSXNuJ3QgdGhlcmUgYSBiZXR0ZXIgd2F5IHRvIGRldGVjdCB3aGV0aGVyIGEgYm91
-bmNlIGJ1ZmZlciBpcyBuZWVkZWQgb3Igbm90PyAgCj4gPj4gIAo+ID4gCj4gPiBJIGFncmVlIHdp
-dGggUmljaGFyZDogdGhlIGJvdW5jZSBidWZmZXIgc2hvdWxkIGJlIGVuYWJsZWQgb25seSBpZiBu
-ZWVkZWQKPiA+IGJ5IHRoZSBTUEkgY29udHJvbGxlci4KPiA+ICAgCj4gPj4gWWVzLCBJIGNhbiBw
-b2tlIHRoZSBzcGktPm1hc3RlciBzdHJ1Y3QgdG8gc2VlIG9mIGRtYSBjaGFubmVscyBhcmUKPiA+
-PiBwb3B1bGF0ZWQgYW5kIHJlcXVlc3QgU05PUl9GX1VTRV9CT1VOQ0VfQlVGRkVSIGFjY29yZGlu
-Z2x5Ogo+ID4+Cj4gPj4gLSAgICAgICBub3ItPmZsYWdzIHw9IFNOT1JfRl9VU0VfQk9VTkNFX0JV
-RkZFUjsKPiA+PiArICAgICAgIGlmIChzcGktPm1hc3Rlci0+ZG1hX3R4IHx8IHNwaS0+bWFzdGVy
-LT5kbWFfcngpCj4gPj4gKyAgICAgICAgICAgICAgIG5vci0+ZmxhZ3MgfD0gU05PUl9GX1VTRV9C
-T1VOQ0VfQlVGRkVSOwo+ID4+ICsKPiA+PiAgCj4gPiAKPiA+IEhvd2V2ZXIgSSBkb24ndCBhZ3Jl
-ZSB3aXRoIHRoaXMgc29sdXRpb246IG1hc3Rlci0+ZG1hX3t0eHxyeH0gY2FuIGJlIHNldAo+ID4g
-Zm9yIFNQSSBjb250cm9sbGVycyB3aGljaCBhbHJlYWR5IHJlbHkgb24gc3BpX21hcF9tc2coKSB0
-byBoYW5kbGUKPiA+IHZtYWxsb2MnZWQgbWVtb3J5IGR1cmluZyBETUEgdHJhbnNmZXJzLgo+ID4g
-U3VjaCBTUEkgY29udHJvbGxlcnMgZG9uJ3QgbmVlZCB0aGUgc3BpLW5vciBib3VuY2UgYnVmZmVy
-Lgo+ID4gCj4gPiBzcGlfbWFwX21zZygpIGNhbiBidWlsZCBhIHNjYXR0ZXItZ2F0aGVyIGxpc3Qg
-ZnJvbSB2bWFsbG9jJ2VkIGJ1ZmZlcgo+ID4gdGhlbiBtYXAgdGhpcyBzZyBsaXN0IHdpdGggZG1h
-X21hcF9zZygpLiBBRkFJSywgSXQgaXMgc2FmZSB0byBkbyBzbyBmb3IKPiA+IGFyY2hpdGVjdHVy
-ZXMgdXNpbmcgUElQVCBjYWNoZXMgc2luY2UgdGhlIHBvc3NpYmxlIGNhY2hlIGFsaWFzZXMgaXNz
-dWUKPiA+IHByZXNlbnQgZm9yIFZJUFQgb3IgVklWVCBjYWNoZXMgaXMgYWx3YXlzIGF2b2lkZWQg
-Zm9yIFBJUFQgY2FjaGVzLgo+ID4gCj4gPiBGb3IgaW5zdGFuY2UsIHRoZSBkcml2ZXJzL3NwaS9z
-cGktYXRtZWwuYyBkcml2ZXIgcmVsaWVzIG9uIHNwaV9tYXBfc2coKQo+ID4gdG8gYmUgY2FsbGVk
-IGZyb20gdGhlIFNQSSBzdWItc3lzdGVtIHRvIGhhbmRsZSB2bWFsbG9jJ2VkIGJ1ZmZlcnMgYW5k
-Cj4gPiBib3RoIG1hc3Rlci0+ZG1hX3R4IGFuZCBtYXN0ZXItPmRtYV9yeCBhcmUgc2V0IGJ5IHRo
-ZSB0aGlzIGRyaXZlci4KPiA+Cj4gPiAKPiA+IEJ5IHRoZSB3YXksIElzIHRoZXJlIGFueSBjYXNl
-IHdoZXJlIHRoZSBzYW1lIHBoeXNpY2FsIHBhZ2UgaXMgYWN0dWFsbHkKPiA+IG1hcHBlZCBpbnRv
-IHR3byBkaWZmZXJlbnQgdmlydHVhbCBhZGRyZXNzZXMgZm9yIHRoZSBidWZmZXJzIGFsbG9jYXRl
-ZCBieQo+ID4gdGhlIE1URCBzdWItc3lzdGVtPyBCZWNhdXNlIGZvciBhIGxvbmcgdGltZSBub3cg
-SSB3b25kZXIgd2hldGhlciB0aGUKPiA+IGNhY2hlIGFsaWFzZXMgaXNzdWUgaXMgYSByZWFsIG9y
-IG9ubHkgdGhlb3JldGljYWwgaXNzdWUgYnV0IEkgaGF2ZSBubwo+ID4gYW5zd2VyIHRvIHRoYXQg
-cXVlc3Rpb24uCj4gPiAgIAo+IAo+IEkgaGF2ZSBhdGxlYXN0IG9uZSBldmlkZW5jZSBvZiBWSVZU
-IGFsaWFzaW5nIGNhdXNpbmcgcHJvYmxlbS4gUGxlYXNlIHNlZQo+IHRoaXMgdGhyZWFkIG9uIERN
-QSBpc3N1ZXMgd2l0aCBkYXZpbmNpLXNwaSBkcml2ZXIKPiBodHRwczovL3d3dy5zcGluaWNzLm5l
-dC9saXN0cy9hcm0ta2VybmVsL21zZzU2MzQyMC5odG1sCj4gaHR0cHM6Ly93d3cuc3Bpbmljcy5u
-ZXQvbGlzdHMvYXJtLWtlcm5lbC9tc2c1NjM0NDUuaHRtbAo+IAo+ID4gVGhlbiBteSBuZXh0IHF1
-ZXN0aW9uOiBpcyBzcGlfbWFwX21zZygpIGVub3VnaCBpbiBldmVyeSBjYXNlLCBldmVuIHdpdGgK
-PiA+IFZJUFQgb3IgVklWVCBjYWNoZXM/Cj4gPiAgIAo+IAo+IE5vdCByZWFsbHksIEkgYW0gZGVi
-dWdnaW5nIGFub3RoZXIgaXNzdWUgd2l0aCBVQklGUyBvbiBEUkE3NCBFVk0gKEFSTQo+IGNvcnRl
-eC1hMTUpIHdoZXJlaW4gcGFnZXMgYWxsb2NhdGVkIGJ5IHZtYWxsb2MgYXJlIGluIGhpZ2htZW0g
-cmVnaW9uCj4gdGhhdCBhcmUgbm90IGFkZHJlc3NhYmxlIHVzaW5nIDMyIGJpdCBhZGRyZXNzZXMg
-YW5kIGlzIGJhY2tlZCBieSBMUEFFLgo+IFNvLCBhIDMyIGJpdCBETUEgY2Fubm90IGFjY2VzcyB0
-aGVzZSBidWZmZXJzIGF0IGFsbC4KPiBXaGVuIGRtYV9tYXBfc2coKSBpcyBjYWxsZWQgdG8gbWFw
-IHRoZXNlIHBhZ2VzIGJ5IHNwaV9tYXBfYnVmKCkgdGhlCj4gcGh5c2ljYWwgYWRkcmVzcyBpcyBq
-dXN0IHRydW5jYXRlZCB0byAzMiBiaXQgaW4gcGZuX3RvX2RtYSgpIChhcyBwYXJ0IG9mCj4gZG1h
-X21hcF9zZygpIGNhbGwpLiBUaGlzIHJlc3VsdHMgaW4gcmFuZG9tIGNyYXNoZXMgYXMgRE1BIHN0
-YXJ0cwo+IGFjY2Vzc2luZyByYW5kb20gbWVtb3J5IGR1cmluZyBTUEkgcmVhZC4KPiAKPiBJTU8s
-IHRoZXJlIG1heSBiZSBtb3JlIHVuZGlzY292ZXJlZCBjYXZlYXQgd2l0aCB1c2luZyBkbWFfbWFw
-X3NnKCkgZm9yCj4gbm9uIGttYWxsb2MnZCBidWZmZXJzIGFuZCBpdHMgYmV0dGVyIHRoYXQgc3Bp
-LW5vciBzdGFydHMgaGFuZGxpbmcgdGhlc2UKPiBidWZmZXJzIGluc3RlYWQgb2YgcmVseWluZyBv
-biBzcGlfbWFwX21zZygpIGFuZCB3b3JraW5nIGFyb3VuZCBldmVyeQo+IHRpbWUgc29tZXRoaW5n
-IHBvcHMgdXAuCj4gCgpPaywgSSBoYWQgYSBjbG9zZXIgbG9vayBhdCB0aGUgU1BJIGZyYW1ld29y
-aywgYW5kIGl0IHNlZW1zIHRoZXJlJ3MgYQp3YXkgdG8gdGVsbCB0byB0aGUgY29yZSB0aGF0IGEg
-c3BlY2lmaWMgdHJhbnNmZXIgY2Fubm90IHVzZSBETUEKKC0+Y2FuX2RhbSgpKS4gVGhlIGZpcnN0
-IHRoaW5nIHlvdSBzaG91bGQgZG8gaXMgZml4IHRoZSBzcGktZGF2aW5jaQpkcml2ZXI6CgoxLyBp
-bXBsZW1lbnQgLT5jYW5fZG1hKCkKMi8gcGF0Y2ggZGF2aW5jaV9zcGlfYnVmcygpIHRvIHRha2Ug
-dGhlIGRlY2lzaW9uIHRvIGRvIERNQSBvciBub3Qgb24gYQogICBwZXIteGZlciBiYXNpcyBhbmQg
-bm90IG9uIGEgcGVyLWRldmljZSBiYXNpcwoKVGhlbiB3ZSBjYW4gc3RhcnQgdGhpbmtpbmcgYWJv
-dXQgaG93IHRvIGltcHJvdmUgcGVyZnMgYnkgdXNpbmcgYSBib3VuY2UKYnVmZmVyIGZvciBsYXJn
-ZSB0cmFuc2ZlcnMsIGJ1dCBJJ20gc3RpbGwgbm90IHN1cmUgdGhpcyBzaG91bGQgYmUgZG9uZQph
-dCB0aGUgTVREIGxldmVsLi4uCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KTGludXggTVREIGRpc2N1c3Npb24gbWFpbGluZyBsaXN0Cmh0dHA6
-Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbXRkLwo=
+* Guenter Roeck <linux@roeck-us.net> [170228 11:55]:
+> After commit 'of: fix of_node leak caused in of_find_node_opts_by_path',
+> the following error may be reported when running omap images.
+> 
+> OF: ERROR: Bad of_node_put() on /ocp@68000000
+> CPU: 0 PID: 0 Comm: swapper Not tainted 4.10.0-rc7-next-20170210 #1
+> Hardware name: Generic OMAP3-GP (Flattened Device Tree)
+> [<c0310604>] (unwind_backtrace) from [<c030bbf4>] (show_stack+0x10/0x14)
+> [<c030bbf4>] (show_stack) from [<c05add8c>] (dump_stack+0x98/0xac)
+> [<c05add8c>] (dump_stack) from [<c05af1b0>] (kobject_release+0x48/0x7c)
+> [<c05af1b0>] (kobject_release)
+> 	from [<c0ad1aa4>] (of_find_node_by_name+0x74/0x94)
+> [<c0ad1aa4>] (of_find_node_by_name)
+> 	from [<c1215bd4>] (omap3xxx_hwmod_is_hs_ip_block_usable+0x24/0x2c)
+> [<c1215bd4>] (omap3xxx_hwmod_is_hs_ip_block_usable) from
+> [<c1215d5c>] (omap3xxx_hwmod_init+0x180/0x274)
+> [<c1215d5c>] (omap3xxx_hwmod_init)
+> 	from [<c120faa8>] (omap3_init_early+0xa0/0x11c)
+> [<c120faa8>] (omap3_init_early)
+> 	from [<c120fb2c>] (omap3430_init_early+0x8/0x30)
+> [<c120fb2c>] (omap3430_init_early)
+> 	from [<c1204710>] (setup_arch+0xc04/0xc34)
+> [<c1204710>] (setup_arch) from [<c1200948>] (start_kernel+0x68/0x38c)
+> [<c1200948>] (start_kernel) from [<8020807c>] (0x8020807c)
+> 
+> of_find_node_by_name() drops the reference to the passed device node.
+> Use of_get_child_by_name() instead. Also, release references to
+> device nodes obtained with of_find_node_by_name() and
+> of_get_child_by_name() after they are no longer needed.
+> 
+> While at it, clean up the code and change the return type of
+> omap3xxx_hwmod_is_hs_ip_block_usable() to bool to match its use
+> and the return type of of_device_is_available().
+> 
+> Cc: Qi Hou <qi.hou@windriver.com>
+> Cc: Peter Rosin <peda@axentia.se>
+> Cc: Rob Herring <robh@kernel.org>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> v2: Change subject ('Grab reference to device nodes where needed'
+>     didn't really cover all the changes made)
+>     Use of_get_child_by_name() instead of of_find_node_by_name()
+>     Drop references to device nodes as needed
+>     Change return type of omap3xxx_hwmod_is_hs_ip_block_usable()
+>     to bool
+
+OK so now we have a commit id for it and should have:
+
+Fixes: 0549bde0fcb1 ("of: fix of_node leak caused in
+of_find_node_opts_by_path")
+
+What about other leaky users of of_find_node_by_name() and
+of_get_child_by_name()?
+
+We have those in:
+
+control.c
+display.c
+omap_device.c
+omap_hwmod.c
+
+So probably it really should be two fixes, one for the regression
+causing the error. Then another one for fixing the leaky np use.
+
+Sorry for going back and forth here, I guess I did not full understand
+the second part of the change in your earlier version of the patch
+when you asked if it should be two patches.
+
+Regards,
+
+Tony
