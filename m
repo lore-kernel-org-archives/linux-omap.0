@@ -1,8 +1,8 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
+From: Cyrille Pitchen <cyrille.pitchen@atmel.com>
 Subject: Re: [RFC PATCH 2/2] mtd: devices: m25p80: Enable spi-nor bounce
  buffer support
-Date: Wed, 1 Mar 2017 13:23:48 +0100
-Message-ID: <20170301132348.2e41e571@bbrezillon>
+Date: Wed, 1 Mar 2017 15:21:24 +0100
+Message-ID: <8a2c9b3b-dd5f-fca7-fa5c-690e5bed949f@atmel.com>
 References: <20170227120839.16545-1-vigneshr@ti.com>
  <20170227120839.16545-3-vigneshr@ti.com>
  <aa967f6a-0526-3e33-1de7-fbe7d4264f34@nod.at>
@@ -10,8 +10,8 @@ References: <20170227120839.16545-1-vigneshr@ti.com>
  <aeaf87ca-e8f5-72d0-997d-494df86abf68@atmel.com>
  <a6c61bf7-1f26-41db-9a6b-bcae87274cb9@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 In-Reply-To: <a6c61bf7-1f26-41db-9a6b-bcae87274cb9@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
@@ -23,95 +23,152 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Frode Isaksen <fisaksen@baylibre.com>, linux-omap@vger.kernel.org, Richard Weinberger <richard@nod.at>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>
+To: Vignesh R <vigneshr@ti.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>
+Cc: Frode Isaksen <fisaksen@baylibre.com>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCAxIE1hciAyMDE3IDE3OjE2OjMwICswNTMwClZpZ25lc2ggUiA8dmlnbmVzaHJAdGku
-Y29tPiB3cm90ZToKCj4gT24gV2VkbmVzZGF5IDAxIE1hcmNoIDIwMTcgMDQ6MTMgUE0sIEN5cmls
-bGUgUGl0Y2hlbiB3cm90ZToKPiA+IExlIDAxLzAzLzIwMTcgw6AgMDU6NTQsIFZpZ25lc2ggUiBh
-IMOpY3JpdCA6ICAKPiA+Pgo+ID4+Cj4gPj4gT24gV2VkbmVzZGF5IDAxIE1hcmNoIDIwMTcgMDM6
-MTEgQU0sIFJpY2hhcmQgV2VpbmJlcmdlciB3cm90ZTogIAo+ID4+PiBWaWduZXNoLAo+ID4+Pgo+
-ID4+PiBBbSAyNy4wMi4yMDE3IHVtIDEzOjA4IHNjaHJpZWIgVmlnbmVzaCBSOiAgCj4gPj4+PiBN
-YW55IFNQSSBjb250cm9sbGVyIGRyaXZlcnMgdXNlIERNQSB0byByZWFkL3dyaXRlIGZyb20gbTI1
-cDgwIGNvbXBhdGlibGUKPiA+Pj4+IGZsYXNoZXMuIFRoZXJlZm9yZSBlbmFibGUgYm91bmNlIGJ1
-ZmZlcnMgc3VwcG9ydCBwcm92aWRlZCBieSBzcGktbm9yCj4gPj4+PiBmcmFtZXdvcmsgdG8gdGFr
-ZSBjYXJlIG9mIGhhbmRsaW5nIHZtYWxsb2MnZCBidWZmZXJzIHdoaWNoIG1heSBub3QgYmUKPiA+
-Pj4+IERNQSdhYmxlLgo+ID4+Pj4KPiA+Pj4+IFNpZ25lZC1vZmYtYnk6IFZpZ25lc2ggUiA8dmln
-bmVzaHJAdGkuY29tPgo+ID4+Pj4gLS0tCj4gPj4+PiAgZHJpdmVycy9tdGQvZGV2aWNlcy9tMjVw
-ODAuYyB8IDEgKwo+ID4+Pj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKQo+ID4+Pj4K
-PiA+Pj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL210ZC9kZXZpY2VzL20yNXA4MC5jIGIvZHJpdmVy
-cy9tdGQvZGV2aWNlcy9tMjVwODAuYwo+ID4+Pj4gaW5kZXggYzRkZjNiMWJkZWQwLi5kMDVhY2Yy
-MmVhZGYgMTAwNjQ0Cj4gPj4+PiAtLS0gYS9kcml2ZXJzL210ZC9kZXZpY2VzL20yNXA4MC5jCj4g
-Pj4+PiArKysgYi9kcml2ZXJzL210ZC9kZXZpY2VzL20yNXA4MC5jCj4gPj4+PiBAQCAtMjQxLDYg
-KzI0MSw3IEBAIHN0YXRpYyBpbnQgbTI1cF9wcm9iZShzdHJ1Y3Qgc3BpX2RldmljZSAqc3BpKQo+
-ID4+Pj4gIAllbHNlCj4gPj4+PiAgCQlmbGFzaF9uYW1lID0gc3BpLT5tb2RhbGlhczsKPiA+Pj4+
-ICAKPiA+Pj4+ICsJbm9yLT5mbGFncyB8PSBTTk9SX0ZfVVNFX0JPVU5DRV9CVUZGRVI7ICAKPiA+
-Pj4KPiA+Pj4gSXNuJ3QgdGhlcmUgYSBiZXR0ZXIgd2F5IHRvIGRldGVjdCB3aGV0aGVyIGEgYm91
-bmNlIGJ1ZmZlciBpcyBuZWVkZWQgb3Igbm90PyAgCj4gPj4gIAo+ID4gCj4gPiBJIGFncmVlIHdp
-dGggUmljaGFyZDogdGhlIGJvdW5jZSBidWZmZXIgc2hvdWxkIGJlIGVuYWJsZWQgb25seSBpZiBu
-ZWVkZWQKPiA+IGJ5IHRoZSBTUEkgY29udHJvbGxlci4KPiA+ICAgCj4gPj4gWWVzLCBJIGNhbiBw
-b2tlIHRoZSBzcGktPm1hc3RlciBzdHJ1Y3QgdG8gc2VlIG9mIGRtYSBjaGFubmVscyBhcmUKPiA+
-PiBwb3B1bGF0ZWQgYW5kIHJlcXVlc3QgU05PUl9GX1VTRV9CT1VOQ0VfQlVGRkVSIGFjY29yZGlu
-Z2x5Ogo+ID4+Cj4gPj4gLSAgICAgICBub3ItPmZsYWdzIHw9IFNOT1JfRl9VU0VfQk9VTkNFX0JV
-RkZFUjsKPiA+PiArICAgICAgIGlmIChzcGktPm1hc3Rlci0+ZG1hX3R4IHx8IHNwaS0+bWFzdGVy
-LT5kbWFfcngpCj4gPj4gKyAgICAgICAgICAgICAgIG5vci0+ZmxhZ3MgfD0gU05PUl9GX1VTRV9C
-T1VOQ0VfQlVGRkVSOwo+ID4+ICsKPiA+PiAgCj4gPiAKPiA+IEhvd2V2ZXIgSSBkb24ndCBhZ3Jl
-ZSB3aXRoIHRoaXMgc29sdXRpb246IG1hc3Rlci0+ZG1hX3t0eHxyeH0gY2FuIGJlIHNldAo+ID4g
-Zm9yIFNQSSBjb250cm9sbGVycyB3aGljaCBhbHJlYWR5IHJlbHkgb24gc3BpX21hcF9tc2coKSB0
-byBoYW5kbGUKPiA+IHZtYWxsb2MnZWQgbWVtb3J5IGR1cmluZyBETUEgdHJhbnNmZXJzLgo+ID4g
-U3VjaCBTUEkgY29udHJvbGxlcnMgZG9uJ3QgbmVlZCB0aGUgc3BpLW5vciBib3VuY2UgYnVmZmVy
-Lgo+ID4gCj4gPiBzcGlfbWFwX21zZygpIGNhbiBidWlsZCBhIHNjYXR0ZXItZ2F0aGVyIGxpc3Qg
-ZnJvbSB2bWFsbG9jJ2VkIGJ1ZmZlcgo+ID4gdGhlbiBtYXAgdGhpcyBzZyBsaXN0IHdpdGggZG1h
-X21hcF9zZygpLiBBRkFJSywgSXQgaXMgc2FmZSB0byBkbyBzbyBmb3IKPiA+IGFyY2hpdGVjdHVy
-ZXMgdXNpbmcgUElQVCBjYWNoZXMgc2luY2UgdGhlIHBvc3NpYmxlIGNhY2hlIGFsaWFzZXMgaXNz
-dWUKPiA+IHByZXNlbnQgZm9yIFZJUFQgb3IgVklWVCBjYWNoZXMgaXMgYWx3YXlzIGF2b2lkZWQg
-Zm9yIFBJUFQgY2FjaGVzLgo+ID4gCj4gPiBGb3IgaW5zdGFuY2UsIHRoZSBkcml2ZXJzL3NwaS9z
-cGktYXRtZWwuYyBkcml2ZXIgcmVsaWVzIG9uIHNwaV9tYXBfc2coKQo+ID4gdG8gYmUgY2FsbGVk
-IGZyb20gdGhlIFNQSSBzdWItc3lzdGVtIHRvIGhhbmRsZSB2bWFsbG9jJ2VkIGJ1ZmZlcnMgYW5k
-Cj4gPiBib3RoIG1hc3Rlci0+ZG1hX3R4IGFuZCBtYXN0ZXItPmRtYV9yeCBhcmUgc2V0IGJ5IHRo
-ZSB0aGlzIGRyaXZlci4KPiA+Cj4gPiAKPiA+IEJ5IHRoZSB3YXksIElzIHRoZXJlIGFueSBjYXNl
-IHdoZXJlIHRoZSBzYW1lIHBoeXNpY2FsIHBhZ2UgaXMgYWN0dWFsbHkKPiA+IG1hcHBlZCBpbnRv
-IHR3byBkaWZmZXJlbnQgdmlydHVhbCBhZGRyZXNzZXMgZm9yIHRoZSBidWZmZXJzIGFsbG9jYXRl
-ZCBieQo+ID4gdGhlIE1URCBzdWItc3lzdGVtPyBCZWNhdXNlIGZvciBhIGxvbmcgdGltZSBub3cg
-SSB3b25kZXIgd2hldGhlciB0aGUKPiA+IGNhY2hlIGFsaWFzZXMgaXNzdWUgaXMgYSByZWFsIG9y
-IG9ubHkgdGhlb3JldGljYWwgaXNzdWUgYnV0IEkgaGF2ZSBubwo+ID4gYW5zd2VyIHRvIHRoYXQg
-cXVlc3Rpb24uCj4gPiAgIAo+IAo+IEkgaGF2ZSBhdGxlYXN0IG9uZSBldmlkZW5jZSBvZiBWSVZU
-IGFsaWFzaW5nIGNhdXNpbmcgcHJvYmxlbS4gUGxlYXNlIHNlZQo+IHRoaXMgdGhyZWFkIG9uIERN
-QSBpc3N1ZXMgd2l0aCBkYXZpbmNpLXNwaSBkcml2ZXIKPiBodHRwczovL3d3dy5zcGluaWNzLm5l
-dC9saXN0cy9hcm0ta2VybmVsL21zZzU2MzQyMC5odG1sCj4gaHR0cHM6Ly93d3cuc3Bpbmljcy5u
-ZXQvbGlzdHMvYXJtLWtlcm5lbC9tc2c1NjM0NDUuaHRtbAo+IAo+ID4gVGhlbiBteSBuZXh0IHF1
-ZXN0aW9uOiBpcyBzcGlfbWFwX21zZygpIGVub3VnaCBpbiBldmVyeSBjYXNlLCBldmVuIHdpdGgK
-PiA+IFZJUFQgb3IgVklWVCBjYWNoZXM/Cj4gPiAgIAo+IAo+IE5vdCByZWFsbHksIEkgYW0gZGVi
-dWdnaW5nIGFub3RoZXIgaXNzdWUgd2l0aCBVQklGUyBvbiBEUkE3NCBFVk0gKEFSTQo+IGNvcnRl
-eC1hMTUpIHdoZXJlaW4gcGFnZXMgYWxsb2NhdGVkIGJ5IHZtYWxsb2MgYXJlIGluIGhpZ2htZW0g
-cmVnaW9uCj4gdGhhdCBhcmUgbm90IGFkZHJlc3NhYmxlIHVzaW5nIDMyIGJpdCBhZGRyZXNzZXMg
-YW5kIGlzIGJhY2tlZCBieSBMUEFFLgo+IFNvLCBhIDMyIGJpdCBETUEgY2Fubm90IGFjY2VzcyB0
-aGVzZSBidWZmZXJzIGF0IGFsbC4KPiBXaGVuIGRtYV9tYXBfc2coKSBpcyBjYWxsZWQgdG8gbWFw
-IHRoZXNlIHBhZ2VzIGJ5IHNwaV9tYXBfYnVmKCkgdGhlCj4gcGh5c2ljYWwgYWRkcmVzcyBpcyBq
-dXN0IHRydW5jYXRlZCB0byAzMiBiaXQgaW4gcGZuX3RvX2RtYSgpIChhcyBwYXJ0IG9mCj4gZG1h
-X21hcF9zZygpIGNhbGwpLiBUaGlzIHJlc3VsdHMgaW4gcmFuZG9tIGNyYXNoZXMgYXMgRE1BIHN0
-YXJ0cwo+IGFjY2Vzc2luZyByYW5kb20gbWVtb3J5IGR1cmluZyBTUEkgcmVhZC4KPiAKPiBJTU8s
-IHRoZXJlIG1heSBiZSBtb3JlIHVuZGlzY292ZXJlZCBjYXZlYXQgd2l0aCB1c2luZyBkbWFfbWFw
-X3NnKCkgZm9yCj4gbm9uIGttYWxsb2MnZCBidWZmZXJzIGFuZCBpdHMgYmV0dGVyIHRoYXQgc3Bp
-LW5vciBzdGFydHMgaGFuZGxpbmcgdGhlc2UKPiBidWZmZXJzIGluc3RlYWQgb2YgcmVseWluZyBv
-biBzcGlfbWFwX21zZygpIGFuZCB3b3JraW5nIGFyb3VuZCBldmVyeQo+IHRpbWUgc29tZXRoaW5n
-IHBvcHMgdXAuCj4gCgpJIGFncmVlIHRoYXQgdXNpbmcgYSBib3VuY2UgYnVmZmVyIHdoZW4gdGhl
-IGFkZHJlc3MgaXMgbm90IGluIHRoZQprbWFsbG9jIHJhbmdlIGlzIHRoZSBzYWZlc3Qgc29sdXRp
-b24gd2UgaGF2ZS4gTm93LCBpZiB3ZSBhcmUgY29uY2VybmVkCmFib3V0IHRoZSBwZXJmIHBlbmFs
-dHkgYnJvdWdodCBieSB0aGUgZXh0cmEgY29weSwgd2Ugc2hvdWxkIHBhdGNoClVCSS9VQklGUyB0
-byBhbGxvY2F0ZSBzbWFsbCBjaHVua3MgdXNpbmcga21hbGxvYyBpbnN0ZWFkIG9mIGFsbG9jYXRp
-bmcKUEVCL0xFQiBidWZmZXJzIHVzaW5nIHZtYWxsb2MuIE9mIGNvdXJzZSB0aGlzIGltcGxpZXMg
-c29tZSByZXdvcmssIGJ1dAphdCBsZWFzdCB3ZSdsbCBnZXQgcmlkIG9mIGFsbCB0aGUgY2FjaGUg
-aW52YWxpZGF0aW9uIHByb2JsZW1zLgoKQWxzbyBub3RlIHRoYXQgbm90IGFsbCBETUEgY29udHJv
-bGxlcnMgYXJlIHN1cHBvcnRpbmcgU0cgdHJhbnNmZXJzLCBzbwpoYXZpbmcgVUJJIGFsbG9jYXRl
-IFggYnVmZmVycyBvZiB1YmktPm1heF93cml0ZV9zaXplIHVzaW5nIGttYWxsb2MKaW5zdGVhZCBv
-ZiBvbmUgYnVmZmVyIG9mIChYICogdWJpLT5tYXhfd3JpdGVfc2l6ZSkgc2l6ZSB1c2luZyB2bWFs
-bG9jCmlzIHByb2JhYmx5IHRoZSB3YXkgdG8gZ28gaWYgd2Ugd2FudCB0byBhdm9pZCB0aGUgZXh0
-cmEgY29weSBpbiBhbGwKY2FzZXMuCgpJIHN0YXJ0ZWQgdG8gd29yayBvbiB0aGUgdWJpX2J1ZmZl
-ciBjb25jZXB0IGEgd2hpbGUgYWdvIChhbgpvYmplY3QgY29udGFpbmluZyBhbiBhcnJheSBvZiBr
-bWFsbG9jLWVkIGJ1ZnMsIGFuZCBzb21lIGhlbHBlcnMgdG8KcmVhZC93cml0ZSBmcm9tL3RvIHRo
-ZXNlIGJ1ZmZlcnMpLCBidXQgSSBkb24ndCBrbm93IGlmIEkgc3RpbGwgaGF2ZSB0aGlzCmJyYW5j
-aCBzb21ld2hlcmUuCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KTGludXggTVREIGRpc2N1c3Npb24gbWFpbGluZyBsaXN0Cmh0dHA6Ly9saXN0
-cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbXRkLwo=
++ Mark
+
+Le 01/03/2017 =E0 12:46, Vignesh R a =E9crit :
+> =
+
+> =
+
+> On Wednesday 01 March 2017 04:13 PM, Cyrille Pitchen wrote:
+>> Le 01/03/2017 =E0 05:54, Vignesh R a =E9crit :
+>>>
+>>>
+>>> On Wednesday 01 March 2017 03:11 AM, Richard Weinberger wrote:
+>>>> Vignesh,
+>>>>
+>>>> Am 27.02.2017 um 13:08 schrieb Vignesh R:
+>>>>> Many SPI controller drivers use DMA to read/write from m25p80 compati=
+ble
+>>>>> flashes. Therefore enable bounce buffers support provided by spi-nor
+>>>>> framework to take care of handling vmalloc'd buffers which may not be
+>>>>> DMA'able.
+>>>>>
+>>>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>>>>> ---
+>>>>>  drivers/mtd/devices/m25p80.c | 1 +
+>>>>>  1 file changed, 1 insertion(+)
+>>>>>
+>>>>> diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p8=
+0.c
+>>>>> index c4df3b1bded0..d05acf22eadf 100644
+>>>>> --- a/drivers/mtd/devices/m25p80.c
+>>>>> +++ b/drivers/mtd/devices/m25p80.c
+>>>>> @@ -241,6 +241,7 @@ static int m25p_probe(struct spi_device *spi)
+>>>>>  	else
+>>>>>  		flash_name =3D spi->modalias;
+>>>>>  =
+
+>>>>> +	nor->flags |=3D SNOR_F_USE_BOUNCE_BUFFER;
+>>>>
+>>>> Isn't there a better way to detect whether a bounce buffer is needed o=
+r not?
+>>>
+>>
+>> I agree with Richard: the bounce buffer should be enabled only if needed
+>> by the SPI controller.
+>>
+>>> Yes, I can poke the spi->master struct to see of dma channels are
+>>> populated and request SNOR_F_USE_BOUNCE_BUFFER accordingly:
+>>>
+>>> -       nor->flags |=3D SNOR_F_USE_BOUNCE_BUFFER;
+>>> +       if (spi->master->dma_tx || spi->master->dma_rx)
+>>> +               nor->flags |=3D SNOR_F_USE_BOUNCE_BUFFER;
+>>> +
+>>>
+>>
+>> However I don't agree with this solution: master->dma_{tx|rx} can be set
+>> for SPI controllers which already rely on spi_map_msg() to handle
+>> vmalloc'ed memory during DMA transfers.
+>> Such SPI controllers don't need the spi-nor bounce buffer.
+>>
+>> spi_map_msg() can build a scatter-gather list from vmalloc'ed buffer
+>> then map this sg list with dma_map_sg(). AFAIK, It is safe to do so for
+>> architectures using PIPT caches since the possible cache aliases issue
+>> present for VIPT or VIVT caches is always avoided for PIPT caches.
+>>
+>> For instance, the drivers/spi/spi-atmel.c driver relies on spi_map_sg()
+>> to be called from the SPI sub-system to handle vmalloc'ed buffers and
+>> both master->dma_tx and master->dma_rx are set by the this driver.
+>>
+>>
+>> By the way, Is there any case where the same physical page is actually
+>> mapped into two different virtual addresses for the buffers allocated by
+>> the MTD sub-system? Because for a long time now I wonder whether the
+>> cache aliases issue is a real or only theoretical issue but I have no
+>> answer to that question.
+>>
+> =
+
+> I have atleast one evidence of VIVT aliasing causing problem. Please see
+> this thread on DMA issues with davinci-spi driver
+> https://www.spinics.net/lists/arm-kernel/msg563420.html
+> https://www.spinics.net/lists/arm-kernel/msg563445.html
+> =
+
+>> Then my next question: is spi_map_msg() enough in every case, even with
+>> VIPT or VIVT caches?
+>>
+> =
+
+> Not really, I am debugging another issue with UBIFS on DRA74 EVM (ARM
+> cortex-a15) wherein pages allocated by vmalloc are in highmem region
+> that are not addressable using 32 bit addresses and is backed by LPAE.
+> So, a 32 bit DMA cannot access these buffers at all.
+> When dma_map_sg() is called to map these pages by spi_map_buf() the
+> physical address is just truncated to 32 bit in pfn_to_dma() (as part of
+> dma_map_sg() call). This results in random crashes as DMA starts
+> accessing random memory during SPI read.
+> =
+
+> IMO, there may be more undiscovered caveat with using dma_map_sg() for
+> non kmalloc'd buffers and its better that spi-nor starts handling these
+> buffers instead of relying on spi_map_msg() and working around every
+> time something pops up.
+> =
+
+
+Both Frode and you confirmed that the alias issue does occur at least
+with VIVT caches, hence we can't rely on spi_map_msg() in that case.
+So I agree with you: adding a bounce buffer in spi-nor seems to be a
+good solution at least till some rework is done in the ubifs layer, as
+proposed by Boris, to replace vmalloc'ed buffers by kmalloc'ed memory.
+
+However I still think testing spi->master->dma_{tx|rx} only is not
+accurate enough to decided whether or not the SNOR_F_USE_BOUNCE_BUFFER
+flag should be set. I have doubts about forcing the use of the bounce
+buffer for *all* SPI controllers doing DMA transfers.
+
+We already know that the cache aliases issue can't occur with PIPT
+caches or some VIPT caches. So in those cases spi_map_buf() is enough,
+hence can we justify the performance loss of the copy into the bounce
+buffer for people who don't suffer the issue?
+
+Besides, some SPI controller drivers may already use their own bounce
+buffer for other reasons. Then for those controllers, it would be one
+more copy.
+
+Then I don't whether we should:
+1 -  extend in SPI sub-system API to tell us if the SPI controller can
+deal with non-kmalloc'd buffer for DMA transfers
+
+or
+
+2 - get the answer at a system-wide level.
+
+Indeed, the question cache aliases is clearly not specific to the MTD or
+SPI sub-systems but only the SPI controller driver can tell whether it
+already uses its own bounce buffer.
+
+Best regards,
+
+Cyrille
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
