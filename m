@@ -1,12 +1,13 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 0/7] thermal: ti-soc-thermal: Migrate slope/offset data to
- device tree
-Date: Wed, 1 Mar 2017 15:59:43 +0530
-Message-ID: <1488364190-23488-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 4/7] ARM: OMAP4460: Thermal: Add slope and offset values
+Date: Wed, 1 Mar 2017 15:59:47 +0530
+Message-ID: <1488364190-23488-5-git-send-email-j-keerthy@ti.com>
+References: <1488364190-23488-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1488364190-23488-1-git-send-email-j-keerthy@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,26 +26,23 @@ hot spot temperature of a particular thermal zone is part
 of driver data. Pass them here instead and obtain the values
 while of node parsing.
 
-Tested for the slope and constant values on DRA7-EVM.
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/boot/dts/omap4460.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Keerthy (7):
-  ARM: DRA7: Thermal: Add slope and offset values
-  ARM: OMAP5: Thermal: Add slope and offset values
-  ARM: OMAP443x: Thermal: Add slope and offset values
-  ARM: OMAP4460: Thermal: Add slope and offset values
-  thermal: ti-soc-thermal: Fetch slope and offset from DT
-  thermal: ti-soc-thermal: Remove redundant constants
-  thermal: ti-soc-thermal: Remove redundant code
-
- arch/arm/boot/dts/dra7.dtsi                        |  17 +++
- arch/arm/boot/dts/omap443x.dtsi                    |   4 +
- arch/arm/boot/dts/omap4460.dtsi                    |   4 +
- arch/arm/boot/dts/omap5.dtsi                       |   9 ++
- .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  10 --
- .../thermal/ti-soc-thermal/omap4-thermal-data.c    |   4 -
- .../thermal/ti-soc-thermal/omap5-thermal-data.c    |   4 -
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 164 ++-------------------
- 8 files changed, 45 insertions(+), 171 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
+index ef66e12..c43f2a2 100644
+--- a/arch/arm/boot/dts/omap4460.dtsi
++++ b/arch/arm/boot/dts/omap4460.dtsi
+@@ -90,4 +90,8 @@
+ 
+ };
+ 
++&cpu_thermal {
++	coefficients = <348 (-9301)>;
++};
++
+ /include/ "omap446x-clocks.dtsi"
 -- 
 1.9.1
