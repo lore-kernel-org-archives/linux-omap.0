@@ -1,78 +1,63 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [RFC PATCH 1/2] mtd: spi-nor: Introduce bounce buffer to handle
- vmalloc'd buffers
-Date: Wed, 1 Mar 2017 11:18:05 +0100
-Message-ID: <20170301111805.0eb23b76@bbrezillon>
-References: <20170227120839.16545-1-vigneshr@ti.com>
- <20170227120839.16545-2-vigneshr@ti.com>
- <8e441369-5c15-d711-1789-b55eadf33c8f@nod.at>
- <65b4a156-f2a8-4c5e-4399-2024a147d5ec@atmel.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 1/7] ARM: DRA7: Thermal: Add slope and offset values
+Date: Wed, 1 Mar 2017 15:59:44 +0530
+Message-ID: <1488364190-23488-2-git-send-email-j-keerthy@ti.com>
+References: <1488364190-23488-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <65b4a156-f2a8-4c5e-4399-2024a147d5ec@atmel.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Cc: Frode Isaksen <fisaksen@baylibre.com>, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>, Richard Weinberger <richard@nod.at>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1488364190-23488-1-git-send-email-j-keerthy@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, edubezval@gmail.com
+Cc: linux-pm@vger.kernel.org, j-keerthy@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, rui.zhang@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCAxIE1hciAyMDE3IDExOjA5OjU3ICswMTAwCkN5cmlsbGUgUGl0Y2hlbiA8Y3lyaWxs
-ZS5waXRjaGVuQGF0bWVsLmNvbT4gd3JvdGU6Cgo+IExlIDI4LzAyLzIwMTcgw6AgMjI6MzksIFJp
-Y2hhcmQgV2VpbmJlcmdlciBhIMOpY3JpdCA6Cj4gPiBWaWduZXNoLAo+ID4gCj4gPiBBbSAyNy4w
-Mi4yMDE3IHVtIDEzOjA4IHNjaHJpZWIgVmlnbmVzaCBSOiAgCj4gPj4gRmlsZXN5c3RlbXMgbGlr
-ZSBVQklGUyBtYXkgcGFzcyB2bWFsbG9jJ2QgYnVmZmVycyB0byBTUEkgTk9SIGxheWVyIHdoaWNo
-Cj4gPj4gd2lsbCBlbmQgdXAgaW4gU1BJIGxheWVyLiBTUEkgY29yZSBkb2VzIHRyeSB0byBoYW5k
-bGUgc3VjaCBidWZmZXJzIChzZWUKPiA+PiBzcGlfbWFwX2J1ZigpKSBieSBkb2luZyB2bWFsbG9j
-X3RvX3BhZ2UoKSBhbmQgY3JlYXRpbmcgc2NhdHRlcmxpc3QuIEJ1dCwKPiA+PiBpdHMga25vd24g
-dGhhdCB0aGlzIGRvZXMgbm90IHdvcmsgd2VsbCB3aXRoIFZJVlQvYWxpYXNpbmcgY2FjaGUKPiA+
-PiBhcmNoaXRlY3R1cmVzLgo+ID4+IFRoaXMgYWxzbyBmYWlscyB3aGVuIGJ1ZmZlcnMgYXJlIGFk
-ZHJlc3NlZCB1c2luZyBMUEFFIChidWZmZXJzIGluIHJlZ2lvbgo+ID4+IGhpZ2hlciB0aGFuIDMy
-IGJpdCBhZGRyZXNzYWJsZSByZWdpb24pLCBpZiBETUEgaXMgMzJiaXQgb25seS4KPiA+Pgo+ID4+
-IEludHJvZHVjZSBib3VuY2UgYnVmZmVycyBzdXBwb3J0IGluIFNQSSBOT1IgZnJhbWV3b3JrIHRv
-IGhhbmRsZQo+ID4+IHZtYWxsb2MnZCBidWZmZXJzLiBVc2UgYSBwcmUtYWxsb2NhdGVkIHBlciBm
-bGFzaCBib3VuY2UgYnVmZmVyIGVxdWFsIHRvCj4gPj4gdGhlIHNlY3RvciBzaXplIG9mIHRoZSBm
-bGFzaC4gRmxhc2ggZHJpdmVycyBjYW4gZW5hYmxlIHRoaXMgZmVhdHVyZSBieQo+ID4+IHNldHRp
-bmcgU05PUl9GX1VTRV9CT1VOQ0VfQlVGRkVSIGZsYWcuCj4gPj4gVGhpcyB3b3VsZCBhbHNvIGVu
-YWJsZSBTUEkgTk9SIGRyaXZlcnMgdG8gc2FmZWx5IHVzZSBETUEgaW4gdGhlaXIKPiA+PiByZWFk
-L3dyaXRlIGNhbGxiYWNrcy4KPiA+Pgo+ID4+IFNpZ25lZC1vZmYtYnk6IFZpZ25lc2ggUiA8dmln
-bmVzaHJAdGkuY29tPgo+ID4+IC0tLQo+ID4+ICBkcml2ZXJzL210ZC9zcGktbm9yL3NwaS1ub3Iu
-YyB8IDMwICsrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLQo+ID4+ICBpbmNsdWRlL2xpbnV4
-L210ZC9zcGktbm9yLmggICB8ICA0ICsrKysKPiA+PiAgMiBmaWxlcyBjaGFuZ2VkLCAzMSBpbnNl
-cnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQo+ID4+Cj4gPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-bXRkL3NwaS1ub3Ivc3BpLW5vci5jIGIvZHJpdmVycy9tdGQvc3BpLW5vci9zcGktbm9yLmMKPiA+
-PiBpbmRleCA3NDc2NDVjNzQxMzQuLmMyNDFmZWZhNWFmZiAxMDA2NDQKPiA+PiAtLS0gYS9kcml2
-ZXJzL210ZC9zcGktbm9yL3NwaS1ub3IuYwo+ID4+ICsrKyBiL2RyaXZlcnMvbXRkL3NwaS1ub3Iv
-c3BpLW5vci5jCj4gPj4gQEAgLTE3LDYgKzE3LDcgQEAKPiA+PiAgI2luY2x1ZGUgPGxpbnV4L211
-dGV4Lmg+Cj4gPj4gICNpbmNsdWRlIDxsaW51eC9tYXRoNjQuaD4KPiA+PiAgI2luY2x1ZGUgPGxp
-bnV4L3NpemVzLmg+Cj4gPj4gKyNpbmNsdWRlIDxsaW51eC9tbS5oPgo+ID4+ICAKPiA+PiAgI2lu
-Y2x1ZGUgPGxpbnV4L210ZC9tdGQuaD4KPiA+PiAgI2luY2x1ZGUgPGxpbnV4L29mX3BsYXRmb3Jt
-Lmg+Cj4gPj4gQEAgLTEyMDUsMTEgKzEyMDYsMjEgQEAgc3RhdGljIGludCBzcGlfbm9yX3JlYWQo
-c3RydWN0IG10ZF9pbmZvICptdGQsIGxvZmZfdCBmcm9tLCBzaXplX3QgbGVuLAo+ID4+ICAKPiA+
-PiAgCXdoaWxlIChsZW4pIHsKPiA+PiAgCQlsb2ZmX3QgYWRkciA9IGZyb207Cj4gPj4gKwkJYm9v
-bCB1c2VfYmIgPSBmYWxzZTsKPiA+PiArCQl1X2NoYXIgKmRzdF9idWYgPSBidWY7Cj4gPj4gKwkJ
-c2l6ZV90IGJ1Zl9sZW4gPSBsZW47Cj4gPj4gIAo+ID4+ICAJCWlmIChub3ItPmZsYWdzICYgU05P
-Ul9GX1MzQU5fQUREUl9ERUZBVUxUKQo+ID4+ICAJCQlhZGRyID0gc3BpX25vcl9zM2FuX2FkZHJf
-Y29udmVydChub3IsIGFkZHIpOwo+ID4+ICAKPiA+PiAtCQlyZXQgPSBub3ItPnJlYWQobm9yLCBh
-ZGRyLCBsZW4sIGJ1Zik7Cj4gPj4gKwkJaWYgKCF2aXJ0X2FkZHJfdmFsaWQoYnVmKSAmJiBub3It
-PmJvdW5jZV9idWYpIHsgIAo+IAo+IFNob3VsZCB3ZSB1c2UgaXNfdm1hbGxvY19hZGRyKCkgaW5z
-dGVhZCBvZiB2aXJ0X2FkZHJfdmFsaWQoKSA/Cj4gCj4gSSBndWVzcyB2aXJ0X2FkZHJfdmFsaWQo
-KSByZXR1cm5zIHRydWUgZXZlbiBmb3Iga21hbGxvYydlZCBidWZmZXJzCj4gaG93ZXZlciB0aGUg
-Y29weSBpbnRvIHRoZSBib3VuY2UgYnVmZmVyIHNob3VsZCBiZSBhdm9pZGVkIGZvciBrbWFsbG9j
-J2VkCj4gbWVtb3J5LgoKVGhlIHRlc3QgaXMgIXZpcnRfYWRkcl92YWxpZCgpLCBzbyB3ZSB3b24n
-dCB1c2UgdGhlIGJvdW5jZSBidWZmZXIgZm9yCmttYWxsb2MtZWQgcmVnaW9ucy4gSSBkb24ndCBy
-ZW1lbWJlciB3aHkgd2UgdXNlIHZpcnRfYWRkcl92YWxpZCgpCmluc3RlYWQgb2YgaXNfdm1hbGxv
-Y19hZGRyKCkgaW4gdGhlIE5BTkQgZnJhbWV3b3JrLCBidXQgdGhlcmUgd2FzIGEKZ29vZCByZWFz
-b24gKHZpcnRfYWRkcl92YWxpZCgpIGlzIG1vcmUgcmVzdHJpY3RpdmUsIGJ1dCBJIGRvbid0CnJl
-bWVtYmVyIHdoeSBpdCdzIHNhZmVyIDopKQoKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4IE1URCBkaXNjdXNzaW9uIG1haWxpbmcg
-bGlzdApodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW10
-ZC8K
+Currently the slope and offset values for calculating the
+hot spot temperature of a particular thermal zone is part
+of driver data. Pass them here instead and obtain the values
+while of node parsing.
+
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/boot/dts/dra7.dtsi | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 2c9e56f..10e09dc 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1982,6 +1982,23 @@
+ 
+ &cpu_thermal {
+ 	polling-delay = <500>; /* milliseconds */
++	coefficients = <0 2000>;
++};
++
++&gpu_thermal {
++	coefficients = <0 2000>;
++};
++
++&core_thermal {
++	coefficients = <0 2000>;
++};
++
++&dspeve_thermal {
++	coefficients = <0 2000>;
++};
++
++&iva_thermal {
++	coefficients = <0 2000>;
+ };
+ 
+ /include/ "dra7xx-clocks.dtsi"
+-- 
+1.9.1
