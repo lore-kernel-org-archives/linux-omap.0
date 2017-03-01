@@ -1,18 +1,18 @@
 From: Frode Isaksen <fisaksen@baylibre.com>
-Subject: Re: [RFC PATCH 2/2] mtd: devices: m25p80: Enable spi-nor bounce
- buffer support
-Date: Wed, 1 Mar 2017 12:14:23 +0100
-Message-ID: <72eed7d8-ad10-69a2-a7e2-4846e6807ada@baylibre.com>
+Subject: Re: [RFC PATCH 1/2] mtd: spi-nor: Introduce bounce buffer to handle
+ vmalloc'd buffers
+Date: Wed, 1 Mar 2017 12:18:30 +0100
+Message-ID: <595ab823-cf40-3b27-55ec-3573cecb456b@baylibre.com>
 References: <20170227120839.16545-1-vigneshr@ti.com>
- <20170227120839.16545-3-vigneshr@ti.com>
- <aa967f6a-0526-3e33-1de7-fbe7d4264f34@nod.at>
- <8f999a27-c3ce-2650-452c-b21c3e44989d@ti.com>
- <aeaf87ca-e8f5-72d0-997d-494df86abf68@atmel.com>
+ <20170227120839.16545-2-vigneshr@ti.com>
+ <8e441369-5c15-d711-1789-b55eadf33c8f@nod.at>
+ <65b4a156-f2a8-4c5e-4399-2024a147d5ec@atmel.com>
+ <20170301111805.0eb23b76@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <aeaf87ca-e8f5-72d0-997d-494df86abf68@atmel.com>
+In-Reply-To: <20170301111805.0eb23b76@bbrezillon>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -22,94 +22,60 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Cyrille Pitchen <cyrille.pitchen@atmel.com>, Vignesh R <vigneshr@ti.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Marek Vasut <marek.vasut@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>
+Cc: linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>, Richard Weinberger <richard@nod.at>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 01/03/2017 11:43, Cyrille Pitchen wrote:
-> Le 01/03/2017 =E0 05:54, Vignesh R a =E9crit :
->>
->> On Wednesday 01 March 2017 03:11 AM, Richard Weinberger wrote:
->>> Vignesh,
->>>
->>> Am 27.02.2017 um 13:08 schrieb Vignesh R:
->>>> Many SPI controller drivers use DMA to read/write from m25p80 compatib=
-le
->>>> flashes. Therefore enable bounce buffers support provided by spi-nor
->>>> framework to take care of handling vmalloc'd buffers which may not be
->>>> DMA'able.
->>>>
->>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
->>>> ---
->>>>  drivers/mtd/devices/m25p80.c | 1 +
->>>>  1 file changed, 1 insertion(+)
->>>>
->>>> diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80=
-.c
->>>> index c4df3b1bded0..d05acf22eadf 100644
->>>> --- a/drivers/mtd/devices/m25p80.c
->>>> +++ b/drivers/mtd/devices/m25p80.c
->>>> @@ -241,6 +241,7 @@ static int m25p_probe(struct spi_device *spi)
->>>>  	else
->>>>  		flash_name =3D spi->modalias;
->>>>  =
-
->>>> +	nor->flags |=3D SNOR_F_USE_BOUNCE_BUFFER;
->>> Isn't there a better way to detect whether a bounce buffer is needed or=
- not?
-> I agree with Richard: the bounce buffer should be enabled only if needed
-> by the SPI controller.
->
->> Yes, I can poke the spi->master struct to see of dma channels are
->> populated and request SNOR_F_USE_BOUNCE_BUFFER accordingly:
->>
->> -       nor->flags |=3D SNOR_F_USE_BOUNCE_BUFFER;
->> +       if (spi->master->dma_tx || spi->master->dma_rx)
->> +               nor->flags |=3D SNOR_F_USE_BOUNCE_BUFFER;
->> +
->>
-> However I don't agree with this solution: master->dma_{tx|rx} can be set
-> for SPI controllers which already rely on spi_map_msg() to handle
-> vmalloc'ed memory during DMA transfers.
-> Such SPI controllers don't need the spi-nor bounce buffer.
-I tried to push a patch handling the VIVT cache flush in the daVinci  SPI d=
-river, but this was NACK'ed. So, in general terms, the upper layers do not =
-know if the SPI controller will correctly handle vmalloc'ed buffers.
->
-> spi_map_msg() can build a scatter-gather list from vmalloc'ed buffer
-> then map this sg list with dma_map_sg(). AFAIK, It is safe to do so for
-> architectures using PIPT caches since the possible cache aliases issue
-> present for VIPT or VIVT caches is always avoided for PIPT caches.
->
-> For instance, the drivers/spi/spi-atmel.c driver relies on spi_map_sg()
-> to be called from the SPI sub-system to handle vmalloc'ed buffers and
-> both master->dma_tx and master->dma_rx are set by the this driver.
->
->
-> By the way, Is there any case where the same physical page is actually
-> mapped into two different virtual addresses for the buffers allocated by
-> the MTD sub-system? Because for a long time now I wonder whether the
-> cache aliases issue is a real or only theoretical issue but I have no
-> answer to that question.
-I can reproduce the VIVT cache bug with 100% reliability either using spi-l=
-oopback-test (with patches) or mounting/reading/writing to a UBIFS volume. =
-The physical address of the vmalloc'ed buffers is mapped to both vmap and l=
-owmem virtual address, and when doing DMA, only the lowmem virtual address =
-is used when invalidating/flushing the cache.
-
-Thanks,
-Frode
->
-> Then my next question: is spi_map_msg() enough in every case, even with
-> VIPT or VIVT caches?
->
-> Best regards,
->
-> Cyrille
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+CgpPbiAwMS8wMy8yMDE3IDExOjE4LCBCb3JpcyBCcmV6aWxsb24gd3JvdGU6Cj4gT24gV2VkLCAx
+IE1hciAyMDE3IDExOjA5OjU3ICswMTAwCj4gQ3lyaWxsZSBQaXRjaGVuIDxjeXJpbGxlLnBpdGNo
+ZW5AYXRtZWwuY29tPiB3cm90ZToKPgo+PiBMZSAyOC8wMi8yMDE3IMOgIDIyOjM5LCBSaWNoYXJk
+IFdlaW5iZXJnZXIgYSDDqWNyaXQgOgo+Pj4gVmlnbmVzaCwKPj4+Cj4+PiBBbSAyNy4wMi4yMDE3
+IHVtIDEzOjA4IHNjaHJpZWIgVmlnbmVzaCBSOiAgCj4+Pj4gRmlsZXN5c3RlbXMgbGlrZSBVQklG
+UyBtYXkgcGFzcyB2bWFsbG9jJ2QgYnVmZmVycyB0byBTUEkgTk9SIGxheWVyIHdoaWNoCj4+Pj4g
+d2lsbCBlbmQgdXAgaW4gU1BJIGxheWVyLiBTUEkgY29yZSBkb2VzIHRyeSB0byBoYW5kbGUgc3Vj
+aCBidWZmZXJzIChzZWUKPj4+PiBzcGlfbWFwX2J1ZigpKSBieSBkb2luZyB2bWFsbG9jX3RvX3Bh
+Z2UoKSBhbmQgY3JlYXRpbmcgc2NhdHRlcmxpc3QuIEJ1dCwKPj4+PiBpdHMga25vd24gdGhhdCB0
+aGlzIGRvZXMgbm90IHdvcmsgd2VsbCB3aXRoIFZJVlQvYWxpYXNpbmcgY2FjaGUKPj4+PiBhcmNo
+aXRlY3R1cmVzLgo+Pj4+IFRoaXMgYWxzbyBmYWlscyB3aGVuIGJ1ZmZlcnMgYXJlIGFkZHJlc3Nl
+ZCB1c2luZyBMUEFFIChidWZmZXJzIGluIHJlZ2lvbgo+Pj4+IGhpZ2hlciB0aGFuIDMyIGJpdCBh
+ZGRyZXNzYWJsZSByZWdpb24pLCBpZiBETUEgaXMgMzJiaXQgb25seS4KPj4+Pgo+Pj4+IEludHJv
+ZHVjZSBib3VuY2UgYnVmZmVycyBzdXBwb3J0IGluIFNQSSBOT1IgZnJhbWV3b3JrIHRvIGhhbmRs
+ZQo+Pj4+IHZtYWxsb2MnZCBidWZmZXJzLiBVc2UgYSBwcmUtYWxsb2NhdGVkIHBlciBmbGFzaCBi
+b3VuY2UgYnVmZmVyIGVxdWFsIHRvCj4+Pj4gdGhlIHNlY3RvciBzaXplIG9mIHRoZSBmbGFzaC4g
+Rmxhc2ggZHJpdmVycyBjYW4gZW5hYmxlIHRoaXMgZmVhdHVyZSBieQo+Pj4+IHNldHRpbmcgU05P
+Ul9GX1VTRV9CT1VOQ0VfQlVGRkVSIGZsYWcuCj4+Pj4gVGhpcyB3b3VsZCBhbHNvIGVuYWJsZSBT
+UEkgTk9SIGRyaXZlcnMgdG8gc2FmZWx5IHVzZSBETUEgaW4gdGhlaXIKPj4+PiByZWFkL3dyaXRl
+IGNhbGxiYWNrcy4KPj4+Pgo+Pj4+IFNpZ25lZC1vZmYtYnk6IFZpZ25lc2ggUiA8dmlnbmVzaHJA
+dGkuY29tPgo+Pj4+IC0tLQo+Pj4+ICBkcml2ZXJzL210ZC9zcGktbm9yL3NwaS1ub3IuYyB8IDMw
+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLQo+Pj4+ICBpbmNsdWRlL2xpbnV4L210ZC9z
+cGktbm9yLmggICB8ICA0ICsrKysKPj4+PiAgMiBmaWxlcyBjaGFuZ2VkLCAzMSBpbnNlcnRpb25z
+KCspLCAzIGRlbGV0aW9ucygtKQo+Pj4+Cj4+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbXRkL3Nw
+aS1ub3Ivc3BpLW5vci5jIGIvZHJpdmVycy9tdGQvc3BpLW5vci9zcGktbm9yLmMKPj4+PiBpbmRl
+eCA3NDc2NDVjNzQxMzQuLmMyNDFmZWZhNWFmZiAxMDA2NDQKPj4+PiAtLS0gYS9kcml2ZXJzL210
+ZC9zcGktbm9yL3NwaS1ub3IuYwo+Pj4+ICsrKyBiL2RyaXZlcnMvbXRkL3NwaS1ub3Ivc3BpLW5v
+ci5jCj4+Pj4gQEAgLTE3LDYgKzE3LDcgQEAKPj4+PiAgI2luY2x1ZGUgPGxpbnV4L211dGV4Lmg+
+Cj4+Pj4gICNpbmNsdWRlIDxsaW51eC9tYXRoNjQuaD4KPj4+PiAgI2luY2x1ZGUgPGxpbnV4L3Np
+emVzLmg+Cj4+Pj4gKyNpbmNsdWRlIDxsaW51eC9tbS5oPgo+Pj4+ICAKPj4+PiAgI2luY2x1ZGUg
+PGxpbnV4L210ZC9tdGQuaD4KPj4+PiAgI2luY2x1ZGUgPGxpbnV4L29mX3BsYXRmb3JtLmg+Cj4+
+Pj4gQEAgLTEyMDUsMTEgKzEyMDYsMjEgQEAgc3RhdGljIGludCBzcGlfbm9yX3JlYWQoc3RydWN0
+IG10ZF9pbmZvICptdGQsIGxvZmZfdCBmcm9tLCBzaXplX3QgbGVuLAo+Pj4+ICAKPj4+PiAgCXdo
+aWxlIChsZW4pIHsKPj4+PiAgCQlsb2ZmX3QgYWRkciA9IGZyb207Cj4+Pj4gKwkJYm9vbCB1c2Vf
+YmIgPSBmYWxzZTsKPj4+PiArCQl1X2NoYXIgKmRzdF9idWYgPSBidWY7Cj4+Pj4gKwkJc2l6ZV90
+IGJ1Zl9sZW4gPSBsZW47Cj4+Pj4gIAo+Pj4+ICAJCWlmIChub3ItPmZsYWdzICYgU05PUl9GX1Mz
+QU5fQUREUl9ERUZBVUxUKQo+Pj4+ICAJCQlhZGRyID0gc3BpX25vcl9zM2FuX2FkZHJfY29udmVy
+dChub3IsIGFkZHIpOwo+Pj4+ICAKPj4+PiAtCQlyZXQgPSBub3ItPnJlYWQobm9yLCBhZGRyLCBs
+ZW4sIGJ1Zik7Cj4+Pj4gKwkJaWYgKCF2aXJ0X2FkZHJfdmFsaWQoYnVmKSAmJiBub3ItPmJvdW5j
+ZV9idWYpIHsgIAo+PiBTaG91bGQgd2UgdXNlIGlzX3ZtYWxsb2NfYWRkcigpIGluc3RlYWQgb2Yg
+dmlydF9hZGRyX3ZhbGlkKCkgPwo+Pgo+PiBJIGd1ZXNzIHZpcnRfYWRkcl92YWxpZCgpIHJldHVy
+bnMgdHJ1ZSBldmVuIGZvciBrbWFsbG9jJ2VkIGJ1ZmZlcnMKPj4gaG93ZXZlciB0aGUgY29weSBp
+bnRvIHRoZSBib3VuY2UgYnVmZmVyIHNob3VsZCBiZSBhdm9pZGVkIGZvciBrbWFsbG9jJ2VkCj4+
+IG1lbW9yeS4KPiBUaGUgdGVzdCBpcyAhdmlydF9hZGRyX3ZhbGlkKCksIHNvIHdlIHdvbid0IHVz
+ZSB0aGUgYm91bmNlIGJ1ZmZlciBmb3IKPiBrbWFsbG9jLWVkIHJlZ2lvbnMuIEkgZG9uJ3QgcmVt
+ZW1iZXIgd2h5IHdlIHVzZSB2aXJ0X2FkZHJfdmFsaWQoKQo+IGluc3RlYWQgb2YgaXNfdm1hbGxv
+Y19hZGRyKCkgaW4gdGhlIE5BTkQgZnJhbWV3b3JrLCBidXQgdGhlcmUgd2FzIGEKPiBnb29kIHJl
+YXNvbiAodmlydF9hZGRyX3ZhbGlkKCkgaXMgbW9yZSByZXN0cmljdGl2ZSwgYnV0IEkgZG9uJ3QK
+PiByZW1lbWJlciB3aHkgaXQncyBzYWZlciA6KSkKSSB0aGluayB2aXJ0X2FkZHJfdmFsaWQoKSBw
+aWNrcyB1cCBib3RoIGttYXAnZWQgYW5kIHZtYWxsb2MnZWQgcGFnZXMgYXMgbm90IHZhbGlkLi4u
+CgpGcm9kZQo+Cj4KPgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpMaW51eCBNVEQgZGlzY3Vzc2lvbiBtYWlsaW5nIGxpc3QKaHR0cDovL2xp
+c3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvCg==
