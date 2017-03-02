@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 6/8] ARM: dts: omap4-droid4: Add accelerometer
-Date: Thu,  2 Mar 2017 02:08:58 +0100
-Message-ID: <20170302010900.28532-7-sre@kernel.org>
+Subject: [PATCH 3/8] ARM: dts: motorola-cpcap-mapphone: add rtc
+Date: Thu,  2 Mar 2017 02:08:55 +0100
+Message-ID: <20170302010900.28532-4-sre@kernel.org>
 References: <20170302010900.28532-1-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170302010900.28532-1-sre@kernel.org>
@@ -12,31 +12,26 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-index 71e1769e9b0f..479cd5e5de83 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -206,4 +206,18 @@
- 				  "0", "0", "-1";
- 
+diff --git a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+index b7e12463016e..34fb93ba5966 100644
+--- a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
++++ b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+@@ -25,6 +25,13 @@
+ 			cpcap_regulators: regulators {
+ 			};
+ 		};
++
++		cpcap_rtc: rtc {
++			compatible = "motorola,cpcap-rtc";
++
++			interrupt-parent = <&cpcap>;
++			interrupts = <39 IRQ_TYPE_NONE>, <26 IRQ_TYPE_NONE>;
++		};
  	};
-+
-+	lis3dh: accelerometer@18 {
-+		compatible = "st,lis3dh-accel";
-+		reg = <0x18>;
-+
-+		vdd-supply = <&vhvio>;
-+
-+		interrupt-parent = <&gpio2>;
-+		interrupts = <2 IRQ_TYPE_EDGE_BOTH>; /* gpio34 */
-+
-+		rotation-matrix = "0", "-1", "0",
-+				  "1", "0", "0",
-+				  "0", "0", "1";
-+	};
  };
+ 
 -- 
 2.11.0
