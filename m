@@ -1,62 +1,118 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/8] Droid4 DTS update
-Date: Wed, 1 Mar 2017 17:49:11 -0800
-Message-ID: <20170302014910.GM20572@atomide.com>
-References: <20170302010900.28532-1-sre@kernel.org>
- <20170302013707.GK20572@atomide.com>
+From: Frode Isaksen <fisaksen@baylibre.com>
+Subject: Re: [RFC PATCH 2/2] mtd: devices: m25p80: Enable spi-nor bounce
+ buffer support
+Date: Thu, 2 Mar 2017 10:06:59 +0100
+Message-ID: <09ffe06d-565d-afe8-8b7d-d1a0b575595b@baylibre.com>
+References: <20170227120839.16545-1-vigneshr@ti.com>
+ <20170227120839.16545-3-vigneshr@ti.com>
+ <aa967f6a-0526-3e33-1de7-fbe7d4264f34@nod.at>
+ <8f999a27-c3ce-2650-452c-b21c3e44989d@ti.com>
+ <aeaf87ca-e8f5-72d0-997d-494df86abf68@atmel.com>
+ <a6c61bf7-1f26-41db-9a6b-bcae87274cb9@ti.com>
+ <20170301175506.202cb478@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170302013707.GK20572@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20170301175506.202cb478@bbrezillon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>, Vignesh R <vigneshr@ti.com>
+Cc: linux-omap@vger.kernel.org, Richard Weinberger <richard@nod.at>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170301 17:45]:
-> * Sebastian Reichel <sre@kernel.org> [170301 17:10]:
-> > Hi,
-> > 
-> > Tony, since your omap4-droid4 dts patches were not
-> > yet in a public repository and they would merge conflict
-> > with my patches I put them all together into a single
-> > patchset. I also added my Tested-By to your patches.
-> 
-> OK
-> 
-> > The mounting-matrix for the sensors and the touchscreen's 
-> > rotation assume, that the phone's default rotation is vertical.
-> > I think that's sensible, because
-> > 
-> >  * Android on the phone uses this as default rotation
-> >    (like almost? all other phones)
-> >  * volume buttons make sense (in horizontal position one
-> >    would expect, that left button means lower volume. I
-> >    know at least Maemo swaps them)
-> > 
-> > That should cover all mainline drivers.
-> 
-> Heheheh cool looks like you configured compass and accelerometer :)
-> 
-> I have a better touchscreen patch that also configures the wakeirq
-> that I did not post yet at http://muru.com/linux/d4/patches/ in the
-> updated set droid4-wip-next-20170217.tar.gz.
-> 
-> I have few more interesting ones coming, I got the HDMI working
-> reliably over the weekend. I was planning on waiting until -rc1 to
-> post them but let's see if I can send few patches out before that.
-
-Oh and I have the poweroff-gpio patch and tmp105 patch.
-
-And the LMU backlight patch should be OK to go as the binding was
-already acked a while back.
-
-Some of the command mode LCD patches could be sent out too, and
-if the timing patch is OK then we can configure the LCD in the dts
-too. Have you had a chance to look at those related to what all I
-broke for n950?
-
-Regards,
-
-Tony
+CgpPbiAwMS8wMy8yMDE3IDE3OjU1LCBCb3JpcyBCcmV6aWxsb24gd3JvdGU6Cj4gT24gV2VkLCAx
+IE1hciAyMDE3IDE3OjE2OjMwICswNTMwCj4gVmlnbmVzaCBSIDx2aWduZXNockB0aS5jb20+IHdy
+b3RlOgo+Cj4+IE9uIFdlZG5lc2RheSAwMSBNYXJjaCAyMDE3IDA0OjEzIFBNLCBDeXJpbGxlIFBp
+dGNoZW4gd3JvdGU6Cj4+PiBMZSAwMS8wMy8yMDE3IMOgIDA1OjU0LCBWaWduZXNoIFIgYSDDqWNy
+aXQgOiAgCj4+Pj4KPj4+PiBPbiBXZWRuZXNkYXkgMDEgTWFyY2ggMjAxNyAwMzoxMSBBTSwgUmlj
+aGFyZCBXZWluYmVyZ2VyIHdyb3RlOiAgCj4+Pj4+IFZpZ25lc2gsCj4+Pj4+Cj4+Pj4+IEFtIDI3
+LjAyLjIwMTcgdW0gMTM6MDggc2NocmllYiBWaWduZXNoIFI6ICAKPj4+Pj4+IE1hbnkgU1BJIGNv
+bnRyb2xsZXIgZHJpdmVycyB1c2UgRE1BIHRvIHJlYWQvd3JpdGUgZnJvbSBtMjVwODAgY29tcGF0
+aWJsZQo+Pj4+Pj4gZmxhc2hlcy4gVGhlcmVmb3JlIGVuYWJsZSBib3VuY2UgYnVmZmVycyBzdXBw
+b3J0IHByb3ZpZGVkIGJ5IHNwaS1ub3IKPj4+Pj4+IGZyYW1ld29yayB0byB0YWtlIGNhcmUgb2Yg
+aGFuZGxpbmcgdm1hbGxvYydkIGJ1ZmZlcnMgd2hpY2ggbWF5IG5vdCBiZQo+Pj4+Pj4gRE1BJ2Fi
+bGUuCj4+Pj4+Pgo+Pj4+Pj4gU2lnbmVkLW9mZi1ieTogVmlnbmVzaCBSIDx2aWduZXNockB0aS5j
+b20+Cj4+Pj4+PiAtLS0KPj4+Pj4+ICBkcml2ZXJzL210ZC9kZXZpY2VzL20yNXA4MC5jIHwgMSAr
+Cj4+Pj4+PiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCj4+Pj4+Pgo+Pj4+Pj4gZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvbXRkL2RldmljZXMvbTI1cDgwLmMgYi9kcml2ZXJzL210ZC9kZXZp
+Y2VzL20yNXA4MC5jCj4+Pj4+PiBpbmRleCBjNGRmM2IxYmRlZDAuLmQwNWFjZjIyZWFkZiAxMDA2
+NDQKPj4+Pj4+IC0tLSBhL2RyaXZlcnMvbXRkL2RldmljZXMvbTI1cDgwLmMKPj4+Pj4+ICsrKyBi
+L2RyaXZlcnMvbXRkL2RldmljZXMvbTI1cDgwLmMKPj4+Pj4+IEBAIC0yNDEsNiArMjQxLDcgQEAg
+c3RhdGljIGludCBtMjVwX3Byb2JlKHN0cnVjdCBzcGlfZGV2aWNlICpzcGkpCj4+Pj4+PiAgCWVs
+c2UKPj4+Pj4+ICAJCWZsYXNoX25hbWUgPSBzcGktPm1vZGFsaWFzOwo+Pj4+Pj4gIAo+Pj4+Pj4g
+Kwlub3ItPmZsYWdzIHw9IFNOT1JfRl9VU0VfQk9VTkNFX0JVRkZFUjsgIAo+Pj4+PiBJc24ndCB0
+aGVyZSBhIGJldHRlciB3YXkgdG8gZGV0ZWN0IHdoZXRoZXIgYSBib3VuY2UgYnVmZmVyIGlzIG5l
+ZWRlZCBvciBub3Q/ICAKPj4+PiAgCj4+PiBJIGFncmVlIHdpdGggUmljaGFyZDogdGhlIGJvdW5j
+ZSBidWZmZXIgc2hvdWxkIGJlIGVuYWJsZWQgb25seSBpZiBuZWVkZWQKPj4+IGJ5IHRoZSBTUEkg
+Y29udHJvbGxlci4KPj4+ICAgCj4+Pj4gWWVzLCBJIGNhbiBwb2tlIHRoZSBzcGktPm1hc3RlciBz
+dHJ1Y3QgdG8gc2VlIG9mIGRtYSBjaGFubmVscyBhcmUKPj4+PiBwb3B1bGF0ZWQgYW5kIHJlcXVl
+c3QgU05PUl9GX1VTRV9CT1VOQ0VfQlVGRkVSIGFjY29yZGluZ2x5Ogo+Pj4+Cj4+Pj4gLSAgICAg
+ICBub3ItPmZsYWdzIHw9IFNOT1JfRl9VU0VfQk9VTkNFX0JVRkZFUjsKPj4+PiArICAgICAgIGlm
+IChzcGktPm1hc3Rlci0+ZG1hX3R4IHx8IHNwaS0+bWFzdGVyLT5kbWFfcngpCj4+Pj4gKyAgICAg
+ICAgICAgICAgIG5vci0+ZmxhZ3MgfD0gU05PUl9GX1VTRV9CT1VOQ0VfQlVGRkVSOwo+Pj4+ICsK
+Pj4+PiAgCj4+PiBIb3dldmVyIEkgZG9uJ3QgYWdyZWUgd2l0aCB0aGlzIHNvbHV0aW9uOiBtYXN0
+ZXItPmRtYV97dHh8cnh9IGNhbiBiZSBzZXQKPj4+IGZvciBTUEkgY29udHJvbGxlcnMgd2hpY2gg
+YWxyZWFkeSByZWx5IG9uIHNwaV9tYXBfbXNnKCkgdG8gaGFuZGxlCj4+PiB2bWFsbG9jJ2VkIG1l
+bW9yeSBkdXJpbmcgRE1BIHRyYW5zZmVycy4KPj4+IFN1Y2ggU1BJIGNvbnRyb2xsZXJzIGRvbid0
+IG5lZWQgdGhlIHNwaS1ub3IgYm91bmNlIGJ1ZmZlci4KPj4+Cj4+PiBzcGlfbWFwX21zZygpIGNh
+biBidWlsZCBhIHNjYXR0ZXItZ2F0aGVyIGxpc3QgZnJvbSB2bWFsbG9jJ2VkIGJ1ZmZlcgo+Pj4g
+dGhlbiBtYXAgdGhpcyBzZyBsaXN0IHdpdGggZG1hX21hcF9zZygpLiBBRkFJSywgSXQgaXMgc2Fm
+ZSB0byBkbyBzbyBmb3IKPj4+IGFyY2hpdGVjdHVyZXMgdXNpbmcgUElQVCBjYWNoZXMgc2luY2Ug
+dGhlIHBvc3NpYmxlIGNhY2hlIGFsaWFzZXMgaXNzdWUKPj4+IHByZXNlbnQgZm9yIFZJUFQgb3Ig
+VklWVCBjYWNoZXMgaXMgYWx3YXlzIGF2b2lkZWQgZm9yIFBJUFQgY2FjaGVzLgo+Pj4KPj4+IEZv
+ciBpbnN0YW5jZSwgdGhlIGRyaXZlcnMvc3BpL3NwaS1hdG1lbC5jIGRyaXZlciByZWxpZXMgb24g
+c3BpX21hcF9zZygpCj4+PiB0byBiZSBjYWxsZWQgZnJvbSB0aGUgU1BJIHN1Yi1zeXN0ZW0gdG8g
+aGFuZGxlIHZtYWxsb2MnZWQgYnVmZmVycyBhbmQKPj4+IGJvdGggbWFzdGVyLT5kbWFfdHggYW5k
+IG1hc3Rlci0+ZG1hX3J4IGFyZSBzZXQgYnkgdGhlIHRoaXMgZHJpdmVyLgo+Pj4KPj4+Cj4+PiBC
+eSB0aGUgd2F5LCBJcyB0aGVyZSBhbnkgY2FzZSB3aGVyZSB0aGUgc2FtZSBwaHlzaWNhbCBwYWdl
+IGlzIGFjdHVhbGx5Cj4+PiBtYXBwZWQgaW50byB0d28gZGlmZmVyZW50IHZpcnR1YWwgYWRkcmVz
+c2VzIGZvciB0aGUgYnVmZmVycyBhbGxvY2F0ZWQgYnkKPj4+IHRoZSBNVEQgc3ViLXN5c3RlbT8g
+QmVjYXVzZSBmb3IgYSBsb25nIHRpbWUgbm93IEkgd29uZGVyIHdoZXRoZXIgdGhlCj4+PiBjYWNo
+ZSBhbGlhc2VzIGlzc3VlIGlzIGEgcmVhbCBvciBvbmx5IHRoZW9yZXRpY2FsIGlzc3VlIGJ1dCBJ
+IGhhdmUgbm8KPj4+IGFuc3dlciB0byB0aGF0IHF1ZXN0aW9uLgo+Pj4gICAKPj4gSSBoYXZlIGF0
+bGVhc3Qgb25lIGV2aWRlbmNlIG9mIFZJVlQgYWxpYXNpbmcgY2F1c2luZyBwcm9ibGVtLiBQbGVh
+c2Ugc2VlCj4+IHRoaXMgdGhyZWFkIG9uIERNQSBpc3N1ZXMgd2l0aCBkYXZpbmNpLXNwaSBkcml2
+ZXIKPj4gaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvYXJtLWtlcm5lbC9tc2c1NjM0MjAu
+aHRtbAo+PiBodHRwczovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9hcm0ta2VybmVsL21zZzU2MzQ0
+NS5odG1sCj4+Cj4+PiBUaGVuIG15IG5leHQgcXVlc3Rpb246IGlzIHNwaV9tYXBfbXNnKCkgZW5v
+dWdoIGluIGV2ZXJ5IGNhc2UsIGV2ZW4gd2l0aAo+Pj4gVklQVCBvciBWSVZUIGNhY2hlcz8KPj4+
+ICAgCj4+IE5vdCByZWFsbHksIEkgYW0gZGVidWdnaW5nIGFub3RoZXIgaXNzdWUgd2l0aCBVQklG
+UyBvbiBEUkE3NCBFVk0gKEFSTQo+PiBjb3J0ZXgtYTE1KSB3aGVyZWluIHBhZ2VzIGFsbG9jYXRl
+ZCBieSB2bWFsbG9jIGFyZSBpbiBoaWdobWVtIHJlZ2lvbgo+PiB0aGF0IGFyZSBub3QgYWRkcmVz
+c2FibGUgdXNpbmcgMzIgYml0IGFkZHJlc3NlcyBhbmQgaXMgYmFja2VkIGJ5IExQQUUuCj4+IFNv
+LCBhIDMyIGJpdCBETUEgY2Fubm90IGFjY2VzcyB0aGVzZSBidWZmZXJzIGF0IGFsbC4KPj4gV2hl
+biBkbWFfbWFwX3NnKCkgaXMgY2FsbGVkIHRvIG1hcCB0aGVzZSBwYWdlcyBieSBzcGlfbWFwX2J1
+ZigpIHRoZQo+PiBwaHlzaWNhbCBhZGRyZXNzIGlzIGp1c3QgdHJ1bmNhdGVkIHRvIDMyIGJpdCBp
+biBwZm5fdG9fZG1hKCkgKGFzIHBhcnQgb2YKPj4gZG1hX21hcF9zZygpIGNhbGwpLiBUaGlzIHJl
+c3VsdHMgaW4gcmFuZG9tIGNyYXNoZXMgYXMgRE1BIHN0YXJ0cwo+PiBhY2Nlc3NpbmcgcmFuZG9t
+IG1lbW9yeSBkdXJpbmcgU1BJIHJlYWQuCj4+Cj4+IElNTywgdGhlcmUgbWF5IGJlIG1vcmUgdW5k
+aXNjb3ZlcmVkIGNhdmVhdCB3aXRoIHVzaW5nIGRtYV9tYXBfc2coKSBmb3IKPj4gbm9uIGttYWxs
+b2MnZCBidWZmZXJzIGFuZCBpdHMgYmV0dGVyIHRoYXQgc3BpLW5vciBzdGFydHMgaGFuZGxpbmcg
+dGhlc2UKPj4gYnVmZmVycyBpbnN0ZWFkIG9mIHJlbHlpbmcgb24gc3BpX21hcF9tc2coKSBhbmQg
+d29ya2luZyBhcm91bmQgZXZlcnkKPj4gdGltZSBzb21ldGhpbmcgcG9wcyB1cC4KPj4KPiBPaywg
+SSBoYWQgYSBjbG9zZXIgbG9vayBhdCB0aGUgU1BJIGZyYW1ld29yaywgYW5kIGl0IHNlZW1zIHRo
+ZXJlJ3MgYQo+IHdheSB0byB0ZWxsIHRvIHRoZSBjb3JlIHRoYXQgYSBzcGVjaWZpYyB0cmFuc2Zl
+ciBjYW5ub3QgdXNlIERNQQo+ICgtPmNhbl9kYW0oKSkuIFRoZSBmaXJzdCB0aGluZyB5b3Ugc2hv
+dWxkIGRvIGlzIGZpeCB0aGUgc3BpLWRhdmluY2kKPiBkcml2ZXI6Cj4KPiAxLyBpbXBsZW1lbnQg
+LT5jYW5fZG1hKCkKPiAyLyBwYXRjaCBkYXZpbmNpX3NwaV9idWZzKCkgdG8gdGFrZSB0aGUgZGVj
+aXNpb24gdG8gZG8gRE1BIG9yIG5vdCBvbiBhCj4gICAgcGVyLXhmZXIgYmFzaXMgYW5kIG5vdCBv
+biBhIHBlci1kZXZpY2UgYmFzaXMKPgo+IFRoZW4gd2UgY2FuIHN0YXJ0IHRoaW5raW5nIGFib3V0
+IGhvdyB0byBpbXByb3ZlIHBlcmZzIGJ5IHVzaW5nIGEgYm91bmNlCj4gYnVmZmVyIGZvciBsYXJn
+ZSB0cmFuc2ZlcnMsIGJ1dCBJJ20gc3RpbGwgbm90IHN1cmUgdGhpcyBzaG91bGQgYmUgZG9uZQo+
+IGF0IHRoZSBNVEQgbGV2ZWwuLi4KVGhpcyBoYXMgYWxyZWFkeSBiZWVuIGRvbmUsIHNlZSBodHRw
+Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9waXBlcm1haWwvbGludXgtYXJtLWtlcm5lbC8yMDE3LUZl
+YnJ1YXJ5LzQ4OTc2MS5odG1sLiBJIHJldHVybiBmYWxzZSBmb3IgY2FuX2RtYSgpIGlmIHRoZSBy
+eCBvciB0eCBidWZmZXIgaXMgYSB2bWFsbG9jJ2VkIG9uZS4KSW4gdGhhdCBjYXNlIHRoZSB0cmFu
+c2ZlciBnb3MgYmFjayB0byBQSU8gYW5kIHlvdSBsb29zZSBwZXJmb3JtYW5jZSwgYnV0IG5vIGRh
+dGEgY29ycnVwdGlvbi4KClRoYW5rcywKRnJvZGUKCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXggTVREIGRpc2N1c3Npb24gbWFpbGlu
+ZyBsaXN0Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+bXRkLwo=
