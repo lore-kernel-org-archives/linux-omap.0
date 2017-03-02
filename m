@@ -1,101 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: OMAP2+: Fix device node reference counts
-Date: Wed, 1 Mar 2017 15:29:48 -0800
-Message-ID: <20170301232948.GJ20572@atomide.com>
-References: <1488311640-3594-1-git-send-email-linux@roeck-us.net>
- <20170301180439.GI20572@atomide.com>
- <20170301201503.GC20160@roeck-us.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCH 0/8] Droid4 DTS update
+Date: Thu,  2 Mar 2017 02:08:52 +0100
+Message-ID: <20170302010900.28532-1-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170301201503.GC20160@roeck-us.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Paul Walmsley <paul@pwsan.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Qi Hou <qi.hou@windriver.com>, Peter Rosin <peda@axentia.se>, Rob Herring <robh@kernel.org>
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Guenter Roeck <linux@roeck-us.net> [170301 12:16]:
-> On Wed, Mar 01, 2017 at 10:04:39AM -0800, Tony Lindgren wrote:
-> > * Guenter Roeck <linux@roeck-us.net> [170228 11:55]:
-> > > After commit 'of: fix of_node leak caused in of_find_node_opts_by_path',
-> > > the following error may be reported when running omap images.
-> > > 
-> > > OF: ERROR: Bad of_node_put() on /ocp@68000000
-> > > CPU: 0 PID: 0 Comm: swapper Not tainted 4.10.0-rc7-next-20170210 #1
-> > > Hardware name: Generic OMAP3-GP (Flattened Device Tree)
-> > > [<c0310604>] (unwind_backtrace) from [<c030bbf4>] (show_stack+0x10/0x14)
-> > > [<c030bbf4>] (show_stack) from [<c05add8c>] (dump_stack+0x98/0xac)
-> > > [<c05add8c>] (dump_stack) from [<c05af1b0>] (kobject_release+0x48/0x7c)
-> > > [<c05af1b0>] (kobject_release)
-> > > 	from [<c0ad1aa4>] (of_find_node_by_name+0x74/0x94)
-> > > [<c0ad1aa4>] (of_find_node_by_name)
-> > > 	from [<c1215bd4>] (omap3xxx_hwmod_is_hs_ip_block_usable+0x24/0x2c)
-> > > [<c1215bd4>] (omap3xxx_hwmod_is_hs_ip_block_usable) from
-> > > [<c1215d5c>] (omap3xxx_hwmod_init+0x180/0x274)
-> > > [<c1215d5c>] (omap3xxx_hwmod_init)
-> > > 	from [<c120faa8>] (omap3_init_early+0xa0/0x11c)
-> > > [<c120faa8>] (omap3_init_early)
-> > > 	from [<c120fb2c>] (omap3430_init_early+0x8/0x30)
-> > > [<c120fb2c>] (omap3430_init_early)
-> > > 	from [<c1204710>] (setup_arch+0xc04/0xc34)
-> > > [<c1204710>] (setup_arch) from [<c1200948>] (start_kernel+0x68/0x38c)
-> > > [<c1200948>] (start_kernel) from [<8020807c>] (0x8020807c)
-> > > 
-> > > of_find_node_by_name() drops the reference to the passed device node.
-> > > Use of_get_child_by_name() instead. Also, release references to
-> > > device nodes obtained with of_find_node_by_name() and
-> > > of_get_child_by_name() after they are no longer needed.
-> > > 
-> > > While at it, clean up the code and change the return type of
-> > > omap3xxx_hwmod_is_hs_ip_block_usable() to bool to match its use
-> > > and the return type of of_device_is_available().
-> > > 
-> > > Cc: Qi Hou <qi.hou@windriver.com>
-> > > Cc: Peter Rosin <peda@axentia.se>
-> > > Cc: Rob Herring <robh@kernel.org>
-> > > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > > ---
-> > > v2: Change subject ('Grab reference to device nodes where needed'
-> > >     didn't really cover all the changes made)
-> > >     Use of_get_child_by_name() instead of of_find_node_by_name()
-> > >     Drop references to device nodes as needed
-> > >     Change return type of omap3xxx_hwmod_is_hs_ip_block_usable()
-> > >     to bool
-> > 
-> > OK so now we have a commit id for it and should have:
-> > 
-> > Fixes: 0549bde0fcb1 ("of: fix of_node leak caused in
-> > of_find_node_opts_by_path")
-> > 
-> Not really; 0549bde0fcb1 fixes a bug and hides _this_ bug.
-> More appropriate, if that would exist, would be something like
-> 
-> Exposed-by: 0549bde0fcb1 ("of: fix of_node leak caused in ...")
+Hi,
 
-OK
+Tony, since your omap4-droid4 dts patches were not
+yet in a public repository and they would merge conflict
+with my patches I put them all together into a single
+patchset. I also added my Tested-By to your patches.
 
-> > What about other leaky users of of_find_node_by_name() and
-> > of_get_child_by_name()?
-> > 
-> > We have those in:
-> > 
-> > control.c
-> > display.c
-> > omap_device.c
-> > omap_hwmod.c
-> > 
-> 
-> I am sure there are many more. For example, the bug solved in my patch
-> "disappears" if one adds some delays (or just log messages) at strategic
-> areas in the code. Such delays result in node leaks elsewhere, which
-> again hides the bug I am trying to fix with my patch.
-> 
-> > So probably it really should be two fixes, one for the regression
-> > causing the error. Then another one for fixing the leaky np use.
-> > 
-> No problem; I 'll split into two patches.
+The mounting-matrix for the sensors and the touchscreen's 
+rotation assume, that the phone's default rotation is vertical.
+I think that's sensible, because
 
-OK thanks.
+ * Android on the phone uses this as default rotation
+   (like almost? all other phones)
+ * volume buttons make sense (in horizontal position one
+   would expect, that left button means lower volume. I
+   know at least Maemo swaps them)
 
-Tony
+That should cover all mainline drivers.
+
+-- Sebastian
+
+Sebastian Reichel (6):
+  ARM: dts: omap4-droid4: Add gpio-keys
+  ARM: dts: motorola-cpcap-mapphone: add rtc
+  ARM: dts: motorola-cpcap-mapphone: add pwrbutton
+  ARM: dts: omap4-droid4: Add compass
+  ARM: dts: omap4-droid4: Add accelerometer
+  ARM: dts: omap4-droid4: Add touchscreen
+
+Tony Lindgren (2):
+  ARM: dts: omap4-droid4: Configure regulators
+  ARM: dts: omap4-droid4: Add keypad support
+
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 164 ++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4-droid4-xt894.dts       | 165 +++++++++++++++++++++----
+ 2 files changed, 308 insertions(+), 21 deletions(-)
+ create mode 100644 arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+
+-- 
+2.11.0
