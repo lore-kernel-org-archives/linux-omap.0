@@ -1,80 +1,107 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [RFC PATCH 2/2] mtd: devices: m25p80: Enable spi-nor bounce
- buffer support
-Date: Thu, 2 Mar 2017 19:24:43 +0530
-Message-ID: <4cd22ddd-b108-f697-0bde-ad844a386e62@ti.com>
-References: <20170227120839.16545-1-vigneshr@ti.com>
- <20170227120839.16545-3-vigneshr@ti.com>
- <aa967f6a-0526-3e33-1de7-fbe7d4264f34@nod.at>
- <8f999a27-c3ce-2650-452c-b21c3e44989d@ti.com>
- <aeaf87ca-e8f5-72d0-997d-494df86abf68@atmel.com>
- <a6c61bf7-1f26-41db-9a6b-bcae87274cb9@ti.com>
- <20170301175506.202cb478@bbrezillon>
- <09ffe06d-565d-afe8-8b7d-d1a0b575595b@baylibre.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Microphone gain on N900
+Date: Thu, 2 Mar 2017 15:28:22 +0100
+Message-ID: <20170302142822.GA30427@amd>
+References: <20170226202831.GA31405@amd> <201702272053.37882@pali>
+ <4435ddd2-ca0e-b05d-727d-9f38416c0f97@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <09ffe06d-565d-afe8-8b7d-d1a0b575595b@baylibre.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Frode Isaksen <fisaksen@baylibre.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Mark Brown <broonie@kernel.org>
-Cc: linux-omap@vger.kernel.org, Richard Weinberger <richard@nod.at>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>
+Content-Type: multipart/mixed; boundary="===============8873924936993164972=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4435ddd2-ca0e-b05d-727d-9f38416c0f97@bitmer.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, abcloriens@gmail.com, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
 
->>>>   
->>> Not really, I am debugging another issue with UBIFS on DRA74 EVM (ARM
->>> cortex-a15) wherein pages allocated by vmalloc are in highmem region
->>> that are not addressable using 32 bit addresses and is backed by LPAE.
->>> So, a 32 bit DMA cannot access these buffers at all.
->>> When dma_map_sg() is called to map these pages by spi_map_buf() the
->>> physical address is just truncated to 32 bit in pfn_to_dma() (as part of
->>> dma_map_sg() call). This results in random crashes as DMA starts
->>> accessing random memory during SPI read.
->>>
->>> IMO, there may be more undiscovered caveat with using dma_map_sg() for
->>> non kmalloc'd buffers and its better that spi-nor starts handling these
->>> buffers instead of relying on spi_map_msg() and working around every
->>> time something pops up.
->>>
->> Ok, I had a closer look at the SPI framework, and it seems there's a
->> way to tell to the core that a specific transfer cannot use DMA
->> (->can_dam()). The first thing you should do is fix the spi-davinci
->> driver:
->>
->> 1/ implement ->can_dma()
->> 2/ patch davinci_spi_bufs() to take the decision to do DMA or not on a
->>    per-xfer basis and not on a per-device basis
->>
+--===============8873924936993164972==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
+Content-Disposition: inline
 
-This would lead to poor perf defeating entire purpose of using DMA.
 
->> Then we can start thinking about how to improve perfs by using a bounce
->> buffer for large transfers, but I'm still not sure this should be done
->> at the MTD level...
+--2oS5YaxWCcQjTEyO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If its at SPI level, then I guess each individual drivers which cannot
-handle vmalloc'd buffers will have to implement bounce buffer logic.
+Hi!
 
-Or SPI core can be extended in a way similar to this RFC. That is, SPI
-master driver will set a flag to request SPI core to use of bounce
-buffer for vmalloc'd buffers. And spi_map_buf() just uses bounce buffer
-in case buf does not belong to kmalloc region based on the flag.
+> >> v4.10 works quite nicely on N900, but I still have problems with
+> >> audio. Even GSM calls would be usable, if I had reasonable volume on
+> >> microphone and speaker... but I don't.
+> >>
+> >> Both speaker and microphone are too quiet. I can get louder output by
+> >> plugging headset -- good. I can hear the other side nicely, but am
+> >> too quiet for them. Unfortunately, even if I plug in wired headset,
+> >> internal microphone is still used.
+> >>
+> For me these settings provide reasonable playback and capture volumes
+> using v4.10.1:
+>=20
+> amixer -D hw:0 set PCM 100%
+> amixer -D hw:0 set 'Line DAC' 80% on
+> amixer -D hw:0 set 'Line' on
+> amixer -D hw:0 set 'Left Line Mixer DACL1' on
+> amixer -D hw:0 set 'Right Line Mixer DACR1' on
+> amixer -D hw:0 set 'Jack Function' 'Headphone'
+> amixer -D hw:0 set 'TPA6130A2 Headphone' 80%
+>=20
+> amixer -D hw:0 set 'Jack Function' 'Headset'
+> amixer -D hw:0 set 'AGC' off
+> amixer -D hw:0 set 'Input Select' 'ADC'
+> amixer -D hw:0 set 'Left PGA Mixer Line1L' on
+> amixer -D hw:0 set 'Left Line1L Mux' 'differential'
+> amixer -D hw:0 set 'Right PGA Mixer Line1L' on
+> amixer -D hw:0 set 'Right Line1L Mux' 'differential'
+> amixer -D hw:0 set 'ADC HPF Cut-off' '0.0045xFs' 'disabled'
+> amixer -D hw:0 set PGA 50% on
+> amixer -D hw:0 cset iface=3DMIXER,name=3D'PGA Capture Switch',index=3D0 on
 
-Mark, Cyrille, Is that what you prefer?
+This seems to correspond to volumes I have had before. They are enough
+for phone call in quiet environment, but not really for normal usage.
 
--- 
-Regards
-Vignesh
+Do you have settings where microphone on wired headset works?
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--2oS5YaxWCcQjTEyO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAli4LAYACgkQMOfwapXb+vKY+wCgoYqROLMYDI3kqW4lY7w8vyXG
+Pb8An07bU25K9u8SYNHJptEA2OVmnGfv
+=w3wD
+-----END PGP SIGNATURE-----
+
+--2oS5YaxWCcQjTEyO--
+
+
+--===============8873924936993164972==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============8873924936993164972==--
