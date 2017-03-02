@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 3/8] ARM: dts: motorola-cpcap-mapphone: add rtc
-Date: Thu,  2 Mar 2017 02:08:55 +0100
-Message-ID: <20170302010900.28532-4-sre@kernel.org>
+Subject: [PATCH 4/8] ARM: dts: motorola-cpcap-mapphone: add pwrbutton
+Date: Thu,  2 Mar 2017 02:08:56 +0100
+Message-ID: <20170302010900.28532-5-sre@kernel.org>
 References: <20170302010900.28532-1-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170302010900.28532-1-sre@kernel.org>
@@ -12,23 +12,22 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
-index b7e12463016e..34fb93ba5966 100644
+index 34fb93ba5966..9970985e685b 100644
 --- a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
 +++ b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
-@@ -25,6 +25,13 @@
- 			cpcap_regulators: regulators {
- 			};
+@@ -32,6 +32,12 @@
+ 			interrupt-parent = <&cpcap>;
+ 			interrupts = <39 IRQ_TYPE_NONE>, <26 IRQ_TYPE_NONE>;
  		};
 +
-+		cpcap_rtc: rtc {
-+			compatible = "motorola,cpcap-rtc";
++		power_button: button {
++			compatible = "motorola,cpcap-pwrbutton";
 +
-+			interrupt-parent = <&cpcap>;
-+			interrupts = <39 IRQ_TYPE_NONE>, <26 IRQ_TYPE_NONE>;
++			interrupts = <23 IRQ_TYPE_NONE>;
 +		};
  	};
  };
