@@ -1,44 +1,41 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCH 5/8] ARM: dts: omap4-droid4: Add compass
-Date: Thu,  2 Mar 2017 02:08:57 +0100
-Message-ID: <20170302010900.28532-6-sre@kernel.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 8/8] ARM: dts: omap4-droid4: Add keypad support
+Date: Wed, 1 Mar 2017 17:41:49 -0800
+Message-ID: <20170302014149.GL20572@atomide.com>
 References: <20170302010900.28532-1-sre@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170302010900.28532-1-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+ <20170302010900.28532-9-sre@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170302010900.28532-9-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
----
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170301 17:11]:
+> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> 
+> Let's configure the keypad in a way where it's usable out of the
+> box for Linux console use. To do this, let's follow the standard
+> PC keyboard layout for ctrl, shift and alt keys:
+> 
+> Ctrl = what is labeled as shift
+> Alt = what is labeled as SYM
+> Shift = what is lableled as caps lock
+> Meta = what is labled as OK
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-index e9cffc375695..71e1769e9b0f 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -190,3 +190,20 @@
- 	mode = <3>;
- 	power = <50>;
- };
-+
-+&i2c4 {
-+	ak8975: magnetometer@c {
-+		compatible = "asahi-kasei,ak8975";
-+		reg = <0x0c>;
-+
-+		vdd-supply = <&vhvio>;
-+
-+		interrupt-parent = <&gpio6>;
-+		interrupts = <15 IRQ_TYPE_EDGE_RISING>; /* gpio175 */
-+
-+		rotation-matrix = "-1", "0", "0",
-+				  "0", "1", "0",
-+				  "0", "0", "-1";
-+
-+	};
-+};
--- 
-2.11.0
+With this one I posted an update that keeps OK as OK as there's
+no obvious other use for it. Esc is the opposite of OK.. Marcel
+wanted delete key there.. I don't think we can come up with any
+sane mapping for that one. And we need to map things in the user
+space anyways.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
