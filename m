@@ -1,79 +1,62 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 0/8] Droid4 DTS update
-Date: Wed, 1 Mar 2017 17:37:08 -0800
-Message-ID: <20170302013707.GK20572@atomide.com>
+Date: Wed, 1 Mar 2017 17:49:11 -0800
+Message-ID: <20170302014910.GM20572@atomide.com>
 References: <20170302010900.28532-1-sre@kernel.org>
+ <20170302013707.GK20572@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170302010900.28532-1-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170302013707.GK20572@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170301 17:10]:
-> Hi,
+* Tony Lindgren <tony@atomide.com> [170301 17:45]:
+> * Sebastian Reichel <sre@kernel.org> [170301 17:10]:
+> > Hi,
+> > 
+> > Tony, since your omap4-droid4 dts patches were not
+> > yet in a public repository and they would merge conflict
+> > with my patches I put them all together into a single
+> > patchset. I also added my Tested-By to your patches.
 > 
-> Tony, since your omap4-droid4 dts patches were not
-> yet in a public repository and they would merge conflict
-> with my patches I put them all together into a single
-> patchset. I also added my Tested-By to your patches.
-
-OK
-
-> The mounting-matrix for the sensors and the touchscreen's 
-> rotation assume, that the phone's default rotation is vertical.
-> I think that's sensible, because
+> OK
 > 
->  * Android on the phone uses this as default rotation
->    (like almost? all other phones)
->  * volume buttons make sense (in horizontal position one
->    would expect, that left button means lower volume. I
->    know at least Maemo swaps them)
+> > The mounting-matrix for the sensors and the touchscreen's 
+> > rotation assume, that the phone's default rotation is vertical.
+> > I think that's sensible, because
+> > 
+> >  * Android on the phone uses this as default rotation
+> >    (like almost? all other phones)
+> >  * volume buttons make sense (in horizontal position one
+> >    would expect, that left button means lower volume. I
+> >    know at least Maemo swaps them)
+> > 
+> > That should cover all mainline drivers.
 > 
-> That should cover all mainline drivers.
+> Heheheh cool looks like you configured compass and accelerometer :)
+> 
+> I have a better touchscreen patch that also configures the wakeirq
+> that I did not post yet at http://muru.com/linux/d4/patches/ in the
+> updated set droid4-wip-next-20170217.tar.gz.
+> 
+> I have few more interesting ones coming, I got the HDMI working
+> reliably over the weekend. I was planning on waiting until -rc1 to
+> post them but let's see if I can send few patches out before that.
 
-Heheheh cool looks like you configured compass and accelerometer :)
+Oh and I have the poweroff-gpio patch and tmp105 patch.
 
-I have a better touchscreen patch that also configures the wakeirq
-that I did not post yet at http://muru.com/linux/d4/patches/ in the
-updated set droid4-wip-next-20170217.tar.gz.
+And the LMU backlight patch should be OK to go as the binding was
+already acked a while back.
 
-I have few more interesting ones coming, I got the HDMI working
-reliably over the weekend. I was planning on waiting until -rc1 to
-post them but let's see if I can send few patches out before that.
+Some of the command mode LCD patches could be sent out too, and
+if the timing patch is OK then we can configure the LCD in the dts
+too. Have you had a chance to look at those related to what all I
+broke for n950?
 
-Anyways, I'll post a better touchscreen patch then let's apply these
-into omap-for-v4.12/dt-droid4 branch when -rc1 is tagged.
-
-Regards
+Regards,
 
 Tony
-
-
-> Sebastian Reichel (6):
->   ARM: dts: omap4-droid4: Add gpio-keys
->   ARM: dts: motorola-cpcap-mapphone: add rtc
->   ARM: dts: motorola-cpcap-mapphone: add pwrbutton
->   ARM: dts: omap4-droid4: Add compass
->   ARM: dts: omap4-droid4: Add accelerometer
->   ARM: dts: omap4-droid4: Add touchscreen
-> 
-> Tony Lindgren (2):
->   ARM: dts: omap4-droid4: Configure regulators
->   ARM: dts: omap4-droid4: Add keypad support
-> 
->  arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 164 ++++++++++++++++++++++++
->  arch/arm/boot/dts/omap4-droid4-xt894.dts       | 165 +++++++++++++++++++++----
->  2 files changed, 308 insertions(+), 21 deletions(-)
->  create mode 100644 arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
-> 
-> -- 
-> 2.11.0
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
