@@ -1,120 +1,48 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH 2/2] mtd: devices: m25p80: Enable spi-nor bounce
- buffer support
-Date: Fri, 3 Mar 2017 12:50:07 +0000
-Message-ID: <20170303125007.xekpiyvvvfgwto6p@sirena.org.uk>
-References: <aa967f6a-0526-3e33-1de7-fbe7d4264f34@nod.at>
- <8f999a27-c3ce-2650-452c-b21c3e44989d@ti.com>
- <aeaf87ca-e8f5-72d0-997d-494df86abf68@atmel.com>
- <a6c61bf7-1f26-41db-9a6b-bcae87274cb9@ti.com>
- <20170301175506.202cb478@bbrezillon>
- <09ffe06d-565d-afe8-8b7d-d1a0b575595b@baylibre.com>
- <4cd22ddd-b108-f697-0bde-ad844a386e62@ti.com>
- <20170302152921.1c031b57@bbrezillon>
- <20170302170041.hfix33mhzgqydmvh@sirena.org.uk>
- <20170302204900.2ab4bf65@bbrezillon>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/8] Droid4 DTS update
+Date: Fri, 3 Mar 2017 08:28:24 -0800
+Message-ID: <20170303162824.GW20572@atomide.com>
+References: <20170302010900.28532-1-sre@kernel.org>
+ <20170302013707.GK20572@atomide.com>
+ <20170302014910.GM20572@atomide.com>
+ <20170303110144.seoxa6xwago7q5ir@earth>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0025993703843556284=="
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20170302204900.2ab4bf65@bbrezillon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Frode Isaksen <fisaksen@baylibre.com>, linux-omap@vger.kernel.org, Vignesh R <vigneshr@ti.com>, Richard Weinberger <richard@nod.at>, linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org, Marek Vasut <marek.vasut@gmail.com>, linux-mtd@lists.infradead.org, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Brian Norris <computersforpeace@gmail.com>, David Woodhouse <dwmw2@infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170303110144.seoxa6xwago7q5ir@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170303 03:03]:
+> On Wed, Mar 01, 2017 at 05:49:11PM -0800, Tony Lindgren wrote:
+> > Some of the command mode LCD patches could be sent out too, and
+> > if the timing patch is OK then we can configure the LCD in the dts
+> > too. Have you had a chance to look at those related to what all I
+> > broke for n950?
+> 
+> I took your patchset and fixed it for N950. The main problem was,
+> that you dropped the fifo size update, which is required for OMAP3
+> (HW bug). Here is a branch based on recent master branch from
+> torvalds. I had a quick test with droid4 and dmesg still looked fine,
+> but I did not have the lm3532 patches in that branch and nothing is
+> visible without display backlight. Can you check if the branch works
+> for you on D4?
 
---===============0025993703843556284==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="orjnje3x2lgg3nh7"
-Content-Disposition: inline
+OK good to hear you figured it out. Yeah I tried to cut down the
+changes to minimum to get some idea what's going on and noticed I did
+not need the fifo changes for droid 4. I'll take a look later on today
+or over the weekend.
 
+Regards,
 
---orjnje3x2lgg3nh7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Tony
 
-On Thu, Mar 02, 2017 at 08:49:00PM +0100, Boris Brezillon wrote:
+> http://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/log/?h=n950-display-tony
 
-> 1/ for big transfers, dynamically allocating a bounce buffer on demand
->    (and freeing it after the DMA operation) might fail, or might induce
->    some latency, especially when the system is under high mem pressure.
->    Allocating these bounce buffers once during the SPI device driver
->    ->probe() guarantees that the bounce buffer will always be available
->    when needed, but OTOH, we don't know if it's really needed.
-
-Yeah, but then the bounces are going to slow things down anyway.  This
-does seem fixable if we do something with caching the buffer once we
-create it, and if it's implemented elsewhere the same problem will
-exist.  We can't just allocate the maximum possible buffer size because
-some devices have effectively unlimited transfer sizes so you could
-waste huge amounts of memory, especially in the common case where we
-don't use vmalloc() at all.
-
-> 2/ only the SPI and/or DMA engine know when using DMA with a bounce
->    buffer is better than using PIO mode. The limit is probably
->    different from the DMA vs PIO mode (dma_min_len <
->    dma_bounce_min_len). Thanks to ->can_dma() we can let drivers decide
->    when preparing the buffer for a DMA transfer is needed.
-
-I'm not so worried about that, the numbers are basically an educated
-guess anyway.  It's a concern though, yes.
-
-> 3/ if the DMA engine does not support chaining DMA descriptor, and the
->    vmalloc-ed buffer spans several non-contiguous pages, doing DMA
->    is simply not possible. That one can probably handled with the
->    ->can_dma() hook too.
-
-Anything that doesn't support chaining is in trouble already (or should
-be soon hopefully), but mostly the controllers will have no idea about
-that as they're just asking their DMA controller to do things.  We'd be
-better off having the core query the capabilities of the DMA controllers
-directly.
-
-> >  The suggestion to pass via
-> > scatterlists seems a bit more likely to work but even then I'm not clear
-> > that drivers doing PIO would play well.
-
-> You mean that SPI device drivers would directly pass an sg list instead
-> of a virtual pointer? Not sure that would help, we're just moving the
-> decision one level up without providing more information to help decide
-> what to do.
-
-I think the idea was to ensure you only use one mapping type at once.
-
---orjnje3x2lgg3nh7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAli5Zn8ACgkQJNaLcl1U
-h9CTXAf+Lu3iYHxq+1CUTFPDcoKroaC9B1Mhpj3vG1ZON/K+ZUjtd4kGF/tGQLDk
-yYu6zqv7KgeDvmet4WirUwuFXzirtExPAyJmTAz4Hgc/vc2mJr9owcjzsrdIZAIY
-rIAKRR17qCrbebKJPivvgMANgyMHX8yqoeeHQu1dLdPJmqhokUdLvjr800oTHK7q
-cm+uAqkzbhYIUBrkutYG3SYFoTy/m1+8b2B6Fpl+yIBkVumGpKSxqehTouP2jtmh
-cku0qICvexRBUntESgU5XQo8A6uocElEu00+QWbDS3xXWM08F04+GgXNCCz+kyFl
-wTY/hjjj8i5Zo6IeOM1G35pfZ65blg==
-=gugT
------END PGP SIGNATURE-----
-
---orjnje3x2lgg3nh7--
-
-
---===============0025993703843556284==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
-
---===============0025993703843556284==--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
