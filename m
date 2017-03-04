@@ -1,88 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 1/2] ARM: OMAP2+: Fix device node reference counts
-Date: Sat, 4 Mar 2017 08:29:00 -0800
-Message-ID: <20170304162900.GA20572@atomide.com>
-References: <1488639731-8047-1-git-send-email-linux@roeck-us.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1488639731-8047-1-git-send-email-linux@roeck-us.net>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Rob Herring <robh@kernel.org>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, Qi Hou <qi.hou@windriver.com>, linux-omap@vger.kernel.org, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH 05/12] gpio: ml-ioh: use resource management for irqs
+Date: Sat,  4 Mar 2017 17:23:33 +0100
+Message-ID: <1488644620-11488-6-git-send-email-bgolaszewski@baylibre.com>
+References: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bamvor Jian Zhang <bamvor.zhangjian@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Guenter Roeck <linux@roeck-us.net> [170304 07:04]:
-> After commit 0549bde0fcb1 ("of: fix of_node leak caused in
-> of_find_node_opts_by_path"), the following error may be
-> reported when running omap images.
-> 
-> OF: ERROR: Bad of_node_put() on /ocp@68000000
-> CPU: 0 PID: 0 Comm: swapper Not tainted 4.10.0-rc7-next-20170210 #1
-> Hardware name: Generic OMAP3-GP (Flattened Device Tree)
-> [<c0310604>] (unwind_backtrace) from [<c030bbf4>] (show_stack+0x10/0x14)
-> [<c030bbf4>] (show_stack) from [<c05add8c>] (dump_stack+0x98/0xac)
-> [<c05add8c>] (dump_stack) from [<c05af1b0>] (kobject_release+0x48/0x7c)
-> [<c05af1b0>] (kobject_release)
-> 	from [<c0ad1aa4>] (of_find_node_by_name+0x74/0x94)
-> [<c0ad1aa4>] (of_find_node_by_name)
-> 	from [<c1215bd4>] (omap3xxx_hwmod_is_hs_ip_block_usable+0x24/0x2c)
-> [<c1215bd4>] (omap3xxx_hwmod_is_hs_ip_block_usable) from
-> [<c1215d5c>] (omap3xxx_hwmod_init+0x180/0x274)
-> [<c1215d5c>] (omap3xxx_hwmod_init)
-> 	from [<c120faa8>] (omap3_init_early+0xa0/0x11c)
-> [<c120faa8>] (omap3_init_early)
-> 	from [<c120fb2c>] (omap3430_init_early+0x8/0x30)
-> [<c120fb2c>] (omap3430_init_early)
-> 	from [<c1204710>] (setup_arch+0xc04/0xc34)
-> [<c1204710>] (setup_arch) from [<c1200948>] (start_kernel+0x68/0x38c)
-> [<c1200948>] (start_kernel) from [<8020807c>] (0x8020807c)
-> 
-> of_find_node_by_name() drops the reference to the passed device node.
-> The commit referenced above exposes this problem.
-> 
-> To fix the problem, use of_get_child_by_name() instead of
-> of_find_node_by_name(); of_get_child_by_name() does not drop
-> the reference count of passed device nodes. While semantically
-> different, we only look for immediate children of the passed
-> device node, so of_get_child_by_name() is a more appropriate
-> function to use anyway.
-> 
-> Release the reference to the device node obtained with
-> of_get_child_by_name() after it is no longer needed to avoid
-> another device node leak.
-> 
-> While at it, clean up the code and change the return type of
-> omap3xxx_hwmod_is_hs_ip_block_usable() to bool to match its use
-> and the return type of of_device_is_available().
-> 
-> Cc: Qi Hou <qi.hou@windriver.com>
-> Cc: Peter Rosin <peda@axentia.se>
-> Cc: Rob Herring <robh@kernel.org>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v3: Add commit SHA of patch exposing the problem
->     Clarify that it does not cause the problem but exposes it
->     Split into two patches
-> v2: Change subject ('Grab reference to device nodes where needed'
->     didn't really cover all the changes made)
->     Use of_get_child_by_name() instead of of_find_node_by_name()
->     Drop references to device nodes as needed
->     Change return type of omap3xxx_hwmod_is_hs_ip_block_usable()
->     to bool
+Use device resource managed variants of irq_alloc_descs() and
+request_irq() and remove the code manually freeing irq resources.
 
-Thanks for the updates, applying both into omap-for-v4.11/fixes.
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ drivers/gpio/gpio-ml-ioh.c | 28 +++++++---------------------
+ 1 file changed, 7 insertions(+), 21 deletions(-)
 
-Regards,
-
-Tony
+diff --git a/drivers/gpio/gpio-ml-ioh.c b/drivers/gpio/gpio-ml-ioh.c
+index 796a5a4..78896a8 100644
+--- a/drivers/gpio/gpio-ml-ioh.c
++++ b/drivers/gpio/gpio-ml-ioh.c
+@@ -459,41 +459,31 @@ static int ioh_gpio_probe(struct pci_dev *pdev,
+ 
+ 	chip = chip_save;
+ 	for (j = 0; j < 8; j++, chip++) {
+-		irq_base = irq_alloc_descs(-1, IOH_IRQ_BASE, num_ports[j],
+-					   NUMA_NO_NODE);
++		irq_base = devm_irq_alloc_descs(&pdev->dev, -1, IOH_IRQ_BASE,
++						num_ports[j], NUMA_NO_NODE);
+ 		if (irq_base < 0) {
+ 			dev_warn(&pdev->dev,
+ 				"ml_ioh_gpio: Failed to get IRQ base num\n");
+-			chip->irq_base = -1;
+ 			ret = irq_base;
+-			goto err_irq_alloc_descs;
++			goto err_gpiochip_add;
+ 		}
+ 		chip->irq_base = irq_base;
+ 		ioh_gpio_alloc_generic_chip(chip, irq_base, num_ports[j]);
+ 	}
+ 
+ 	chip = chip_save;
+-	ret = request_irq(pdev->irq, ioh_gpio_handler,
+-			     IRQF_SHARED, KBUILD_MODNAME, chip);
++	ret = devm_request_irq(&pdev->dev, pdev->irq, ioh_gpio_handler,
++			       IRQF_SHARED, KBUILD_MODNAME, chip);
+ 	if (ret != 0) {
+ 		dev_err(&pdev->dev,
+ 			"%s request_irq failed\n", __func__);
+-		goto err_request_irq;
++		goto err_gpiochip_add;
+ 	}
+ 
+ 	pci_set_drvdata(pdev, chip);
+ 
+ 	return 0;
+ 
+-err_request_irq:
+-	chip = chip_save;
+-err_irq_alloc_descs:
+-	while (--j >= 0) {
+-		chip--;
+-		irq_free_descs(chip->irq_base, num_ports[j]);
+-	}
+-
+-	chip = chip_save;
+ err_gpiochip_add:
+ 	while (--i >= 0) {
+ 		chip--;
+@@ -524,12 +514,8 @@ static void ioh_gpio_remove(struct pci_dev *pdev)
+ 
+ 	chip_save = chip;
+ 
+-	free_irq(pdev->irq, chip);
+-
+-	for (i = 0; i < 8; i++, chip++) {
+-		irq_free_descs(chip->irq_base, num_ports[i]);
++	for (i = 0; i < 8; i++, chip++)
+ 		gpiochip_remove(&chip->gpio);
+-	}
+ 
+ 	chip = chip_save;
+ 	pci_iounmap(pdev, chip->base);
+-- 
+2.9.3
