@@ -1,64 +1,88 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/8] Droid4 DTS update
-Date: Sat, 4 Mar 2017 08:26:55 -0800
-Message-ID: <20170304162655.GZ20572@atomide.com>
-References: <20170302010900.28532-1-sre@kernel.org>
- <20170302013707.GK20572@atomide.com>
- <20170302014910.GM20572@atomide.com>
- <20170303110144.seoxa6xwago7q5ir@earth>
- <20170303162824.GW20572@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 1/2] ARM: OMAP2+: Fix device node reference counts
+Date: Sat, 4 Mar 2017 08:29:00 -0800
+Message-ID: <20170304162900.GA20572@atomide.com>
+References: <1488639731-8047-1-git-send-email-linux@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170303162824.GW20572-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1488639731-8047-1-git-send-email-linux@roeck-us.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Rob Herring <robh@kernel.org>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, Qi Hou <qi.hou@windriver.com>, linux-omap@vger.kernel.org, Peter Rosin <peda@axentia.se>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170303 08:31]:
-> * Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170303 03:03]:
-> > On Wed, Mar 01, 2017 at 05:49:11PM -0800, Tony Lindgren wrote:
-> > > Some of the command mode LCD patches could be sent out too, and
-> > > if the timing patch is OK then we can configure the LCD in the dts
-> > > too. Have you had a chance to look at those related to what all I
-> > > broke for n950?
-> > 
-> > I took your patchset and fixed it for N950. The main problem was,
-> > that you dropped the fifo size update, which is required for OMAP3
-> > (HW bug). Here is a branch based on recent master branch from
-> > torvalds. I had a quick test with droid4 and dmesg still looked fine,
-> > but I did not have the lm3532 patches in that branch and nothing is
-> > visible without display backlight. Can you check if the branch works
-> > for you on D4?
+* Guenter Roeck <linux@roeck-us.net> [170304 07:04]:
+> After commit 0549bde0fcb1 ("of: fix of_node leak caused in
+> of_find_node_opts_by_path"), the following error may be
+> reported when running omap images.
 > 
-> OK good to hear you figured it out. Yeah I tried to cut down the
-> changes to minimum to get some idea what's going on and noticed I did
-> not need the fifo changes for droid 4. I'll take a look later on today
-> or over the weekend.
+> OF: ERROR: Bad of_node_put() on /ocp@68000000
+> CPU: 0 PID: 0 Comm: swapper Not tainted 4.10.0-rc7-next-20170210 #1
+> Hardware name: Generic OMAP3-GP (Flattened Device Tree)
+> [<c0310604>] (unwind_backtrace) from [<c030bbf4>] (show_stack+0x10/0x14)
+> [<c030bbf4>] (show_stack) from [<c05add8c>] (dump_stack+0x98/0xac)
+> [<c05add8c>] (dump_stack) from [<c05af1b0>] (kobject_release+0x48/0x7c)
+> [<c05af1b0>] (kobject_release)
+> 	from [<c0ad1aa4>] (of_find_node_by_name+0x74/0x94)
+> [<c0ad1aa4>] (of_find_node_by_name)
+> 	from [<c1215bd4>] (omap3xxx_hwmod_is_hs_ip_block_usable+0x24/0x2c)
+> [<c1215bd4>] (omap3xxx_hwmod_is_hs_ip_block_usable) from
+> [<c1215d5c>] (omap3xxx_hwmod_init+0x180/0x274)
+> [<c1215d5c>] (omap3xxx_hwmod_init)
+> 	from [<c120faa8>] (omap3_init_early+0xa0/0x11c)
+> [<c120faa8>] (omap3_init_early)
+> 	from [<c120fb2c>] (omap3430_init_early+0x8/0x30)
+> [<c120fb2c>] (omap3430_init_early)
+> 	from [<c1204710>] (setup_arch+0xc04/0xc34)
+> [<c1204710>] (setup_arch) from [<c1200948>] (start_kernel+0x68/0x38c)
+> [<c1200948>] (start_kernel) from [<8020807c>] (0x8020807c)
+> 
+> of_find_node_by_name() drops the reference to the passed device node.
+> The commit referenced above exposes this problem.
+> 
+> To fix the problem, use of_get_child_by_name() instead of
+> of_find_node_by_name(); of_get_child_by_name() does not drop
+> the reference count of passed device nodes. While semantically
+> different, we only look for immediate children of the passed
+> device node, so of_get_child_by_name() is a more appropriate
+> function to use anyway.
+> 
+> Release the reference to the device node obtained with
+> of_get_child_by_name() after it is no longer needed to avoid
+> another device node leak.
+> 
+> While at it, clean up the code and change the return type of
+> omap3xxx_hwmod_is_hs_ip_block_usable() to bool to match its use
+> and the return type of of_device_is_available().
+> 
+> Cc: Qi Hou <qi.hou@windriver.com>
+> Cc: Peter Rosin <peda@axentia.se>
+> Cc: Rob Herring <robh@kernel.org>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> v3: Add commit SHA of patch exposing the problem
+>     Clarify that it does not cause the problem but exposes it
+>     Split into two patches
+> v2: Change subject ('Grab reference to device nodes where needed'
+>     didn't really cover all the changes made)
+>     Use of_get_child_by_name() instead of of_find_node_by_name()
+>     Drop references to device nodes as needed
+>     Change return type of omap3xxx_hwmod_is_hs_ip_block_usable()
+>     to bool
 
-I tested your branch and those patches work just fine on droid 4.
-
-I did not test the fifo patch as it's missing something compiles
-as loadable modules:
-
-ERROR: "dispc_ovl_set_fifo_threshold" [drivers/gpu/drm/omapdrm/omapdrm.ko] undefined!
-ERROR: "dispc_ovl_compute_fifo_thresholds" [drivers/gpu/drm/omapdrm/omapdrm.ko] undefined!
-
-Probably just EXPORT_SYMBOL missing?
-
-Anyways, yeah I guess that set is pretty much ready to be sent for
-review if you feel like sending it. Or let me know if you want me to
-send it.
+Thanks for the updates, applying both into omap-for-v4.11/fixes.
 
 Regards,
 
 Tony
-
-
-> > http://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/log/?h=n950-display-tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
