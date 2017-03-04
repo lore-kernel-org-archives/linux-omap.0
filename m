@@ -1,61 +1,65 @@
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH 01/12] gpio: mockup: use devm_irq_alloc_descs()
-Date: Sat,  4 Mar 2017 17:23:29 +0100
-Message-ID: <1488644620-11488-2-git-send-email-bgolaszewski@baylibre.com>
-References: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH 00/12] gpio: use resource management for irq descriptors
+Date: Sat,  4 Mar 2017 17:23:28 +0100
+Message-ID: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bamvor Jian Zhang <bamvor.zhangjian@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>
 Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use the resource managed variant of irq_alloc_descs(). This allows us
-to remove gpio_mockup_remove().
+The following series uses the recently introduced set of
+devm_irq_alloc_desc*() helpers in the GPIO drivers.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
----
- drivers/gpio/gpio-mockup.c | 16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+While we're at it: if the modified drivers called request_irq(), it
+was changed to devm_request_irq() too.
 
-diff --git a/drivers/gpio/gpio-mockup.c b/drivers/gpio/gpio-mockup.c
-index 06dac72..37c2d69 100644
---- a/drivers/gpio/gpio-mockup.c
-+++ b/drivers/gpio/gpio-mockup.c
-@@ -169,7 +169,7 @@ static int gpio_mockup_irqchip_setup(struct device *dev,
- 	struct gpio_chip *gc = &chip->gc;
- 	int irq_base, i;
- 
--	irq_base = irq_alloc_descs(-1, 0, gc->ngpio, 0);
-+	irq_base = devm_irq_alloc_descs(dev, -1, 0, gc->ngpio, 0);
- 	if (irq_base < 0)
- 		return irq_base;
- 
-@@ -373,25 +373,11 @@ static int gpio_mockup_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int gpio_mockup_remove(struct platform_device *pdev)
--{
--	struct gpio_mockup_chip *chips;
--	int i;
--
--	chips = platform_get_drvdata(pdev);
--
--	for (i = 0; i < gpio_mockup_params_nr >> 1; i++)
--		irq_free_descs(chips[i].gc.irq_base, chips[i].gc.ngpio);
--
--	return 0;
--}
--
- static struct platform_driver gpio_mockup_driver = {
- 	.driver = {
- 		.name = GPIO_MOCKUP_NAME,
- 	},
- 	.probe = gpio_mockup_probe,
--	.remove = gpio_mockup_remove,
- };
- 
- static struct platform_device *pdev;
+Some drivers correctly clean up resources (e.g. gpio-mockup,
+gpio-pch) - for them this change leads to an actual code shrink.
+
+Other drivers are meant to be built-in and the devices they control
+are never removed (e.g. gpio-pxa, gpio-davinci), so they deliberately
+omit the cleanup. Still: in case something changes it's better to free
+the resources - especially since these drivers already use other
+devm_* routines like devm_kzalloc() etc.
+
+The last group of drivers are the ones which can be compiled as
+modules, but leak resources unintentionally (e.g. gpio-twl4030,
+gpio-omap). This change fixes the interrupt descriptor leaks, but some
+drivers will require additional work since they still don't release
+other resources.
+
+The following drivers were tested: gpio-mockup, gpio-omap
+and gpio-davinci. The rest was compile-tested only.
+
+Bartosz Golaszewski (12):
+  gpio: mockup: use devm_irq_alloc_descs()
+  gpio: twl4030: use devm_irq_alloc_descs()
+  gpio: omap: use devm_irq_alloc_descs()
+  gpio: pch: use resource management for irqs
+  gpio: ml-ioh: use resource management for irqs
+  gpio: xlp: use resource management for irqs
+  gpio: pxa: use devm_irq_alloc_descs()
+  gpio: davinci: use devm_irq_alloc_descs()
+  gpio: sodaville: use resource management for irqs
+  gpio: mxc: use devm_irq_alloc_descs()
+  gpio: mxs: use devm_irq_alloc_descs()
+  gpio: sta2x11: use resource management for irqs
+
+ drivers/gpio/gpio-davinci.c   |  2 +-
+ drivers/gpio/gpio-ml-ioh.c    | 28 +++++++---------------------
+ drivers/gpio/gpio-mockup.c    | 16 +---------------
+ drivers/gpio/gpio-mxc.c       |  6 ++----
+ drivers/gpio/gpio-mxs.c       |  6 ++----
+ drivers/gpio/gpio-omap.c      |  3 ++-
+ drivers/gpio/gpio-pch.c       | 14 ++++----------
+ drivers/gpio/gpio-pxa.c       |  2 +-
+ drivers/gpio/gpio-sodaville.c | 28 +++++++++++-----------------
+ drivers/gpio/gpio-sta2x11.c   | 17 ++++++-----------
+ drivers/gpio/gpio-twl4030.c   |  3 ++-
+ drivers/gpio/gpio-xlp.c       |  8 ++++----
+ 12 files changed, 43 insertions(+), 90 deletions(-)
+
 -- 
 2.9.3
+
