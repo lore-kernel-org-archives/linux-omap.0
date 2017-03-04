@@ -1,67 +1,51 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/8] Droid4 DTS update
-Date: Fri, 3 Mar 2017 08:31:13 -0800
-Message-ID: <20170303163113.GX20572@atomide.com>
-References: <20170302010900.28532-1-sre@kernel.org>
- <20170302013707.GK20572@atomide.com>
- <20170303111703.jxl3prdisencuddu@earth>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170303111703.jxl3prdisencuddu@earth>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH v3 2/2] ARM: OMAP2+: Release device node after it is no longer needed.
+Date: Sat,  4 Mar 2017 07:02:11 -0800
+Message-ID: <1488639731-8047-2-git-send-email-linux@roeck-us.net>
+References: <1488639731-8047-1-git-send-email-linux@roeck-us.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1488639731-8047-1-git-send-email-linux@roeck-us.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Qi Hou <qi.hou@windriver.com>, Peter Rosin <peda@axentia.se>, Rob Herring <robh@kernel.org>, Guenter Roeck <linux@roeck-us.net>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170303 03:18]:
-> Hi,
-> 
-> On Wed, Mar 01, 2017 at 05:37:08PM -0800, Tony Lindgren wrote:
-> > * Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170301 17:10]:
-> > > Hi,
-> > > 
-> > > Tony, since your omap4-droid4 dts patches were not
-> > > yet in a public repository and they would merge conflict
-> > > with my patches I put them all together into a single
-> > > patchset. I also added my Tested-By to your patches.
-> > 
-> > OK
-> > 
-> > > The mounting-matrix for the sensors and the touchscreen's 
-> > > rotation assume, that the phone's default rotation is vertical.
-> > > I think that's sensible, because
-> > > 
-> > >  * Android on the phone uses this as default rotation
-> > >    (like almost? all other phones)
-> > >  * volume buttons make sense (in horizontal position one
-> > >    would expect, that left button means lower volume. I
-> > >    know at least Maemo swaps them)
-> > > 
-> > > That should cover all mainline drivers.
-> > 
-> > Heheheh cool looks like you configured compass and accelerometer :)
-> 
-> Easy targets with driver already available :)
-> 
-> One of them actually does not forward the mount rotation matrix
-> to sysfs/userspace at the moment due to missing driver support,
-> but the binding is generic.
-> 
-> > I have a better touchscreen patch that also configures the wakeirq
-> > that I did not post yet at http://muru.com/linux/d4/patches/ in the
-> > updated set droid4-wip-next-20170217.tar.gz.
-> 
-> It's part of the LCD patch, so I missed it.
+The device node returned by of_find_node_by_name() needs to be released
+after it is no longer needed to avoid a device node leak.
 
-Yeah so it seems sorry. I got most of the patches split out last
-night, still need some time before I can send them out.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v3: Split patch into two parts
 
-Regards,
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 44b5f9bbdde6..042e460f4aa4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3193,15 +3193,20 @@ int __init omap3xxx_hwmod_init(void)
+ 
+ 	if (h_sham && omap3xxx_hwmod_is_hs_ip_block_usable(bus, "sham")) {
+ 		r = omap_hwmod_register_links(h_sham);
+-		if (r < 0)
++		if (r < 0) {
++			of_node_put(bus);
+ 			return r;
++		}
+ 	}
+ 
+ 	if (h_aes && omap3xxx_hwmod_is_hs_ip_block_usable(bus, "aes")) {
+ 		r = omap_hwmod_register_links(h_aes);
+-		if (r < 0)
++		if (r < 0) {
++			of_node_put(bus);
+ 			return r;
++		}
+ 	}
++	of_node_put(bus);
+ 
+ 	/*
+ 	 * Register hwmod links specific to certain ES levels of a
+-- 
+2.7.4
