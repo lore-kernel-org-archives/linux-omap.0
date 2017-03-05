@@ -1,12 +1,9 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 10/10] ARM: dts: n950: add display support
-Date: Sun,  5 Mar 2017 01:43:09 +0100
-Message-ID: <20170305004309.28259-10-sre@kernel.org>
+Subject: [PATCHv2 08/10] drm: omapdrm: crtc: handle framedone directly
+Date: Sun,  5 Mar 2017 01:43:07 +0100
+Message-ID: <20170305004309.28259-8-sre@kernel.org>
 References: <20170304235021.27055-1-sre@kernel.org>
  <20170305004309.28259-1-sre@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170305004309.28259-1-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -14,119 +11,96 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add basic panel support for the Nokia N950. It must be tweaked a
-little bit later, since the panel was built into the device
-upside-down. Also the first 5 and the last 5 pixels are covered
-by plastic.
+From: Tony Lindgren <tony@atomide.com>
 
-Signed-off-By: Sebastian Reichel <sre@kernel.org>
+We can handle framedone interrupt directly simlar to commit
+e0519af75d6e ("drm: omapdrm: Handle CRTC error IRQs directly").
+
+By default we just print a warning on framedone and do nothing.
+Any manually refreshed displays can register a callback.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+[Drop REVISIT comment for omap3, patch works on N950]
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
 ---
- arch/arm/boot/dts/omap3-n950.dts | 89 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 89 insertions(+)
+ drivers/gpu/drm/omapdrm/omap_crtc.c | 25 +++++++++++++++++++++++++
+ drivers/gpu/drm/omapdrm/omap_drv.h  |  1 +
+ drivers/gpu/drm/omapdrm/omap_irq.c  |  7 ++++++-
+ 3 files changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 646601a3ebd8..1aa4251b39d7 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -51,6 +51,26 @@
- 	};
- };
+diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
+index 432ad6023f27..4601533215d6 100644
+--- a/drivers/gpu/drm/omapdrm/omap_crtc.c
++++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
+@@ -349,6 +349,31 @@ void omap_crtc_vblank_irq(struct drm_crtc *crtc)
+ 	DBG("%s: apply done", omap_crtc->name);
+ }
  
-+&omap3_pmx_core {
-+	dsi_pins: pinmux_dsi_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x20dc, PIN_OUTPUT | MUX_MODE1) /* dsi_dx0 - data0+ */
-+			OMAP3_CORE1_IOPAD(0x20de, PIN_OUTPUT | MUX_MODE1) /* dsi_dy0 - data0- */
-+			OMAP3_CORE1_IOPAD(0x20e0, PIN_OUTPUT | MUX_MODE1) /* dsi_dx1 - clk+   */
-+			OMAP3_CORE1_IOPAD(0x20e2, PIN_OUTPUT | MUX_MODE1) /* dsi_dy1 - clk-   */
-+			OMAP3_CORE1_IOPAD(0x20e4, PIN_OUTPUT | MUX_MODE1) /* dsi_dx2 - data1+ */
-+			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE1) /* dsi_dy2 - data1- */
-+		>;
-+	};
++void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus)
++{
++	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
 +
-+	display_pins: pinmux_display_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x20ca, PIN_INPUT | MUX_MODE4) /* gpio 62 - display te */
-+			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE4) /* gpio 87 - display reset */
-+		>;
-+	};
-+};
++	if (!omap_crtc->framedone_handler) {
++		dev_warn(omap_crtc->base.dev->dev, "no framedone handler?\n");
 +
- &i2c2 {
- 	smia_1: camera@10 {
- 		compatible = "nokia,smia";
-@@ -185,3 +205,72 @@
- 	st,max-limit-y = <32>;
- 	st,max-limit-z = <32>;
- };
++		return;
++	}
 +
-+&dss {
-+	status = "ok";
++	omap_crtc->framedone_handler(omap_crtc->framedone_handler_data);
 +
-+	vdda_video-supply = <&vdac>;
-+};
++	spin_lock(&crtc->dev->event_lock);
++	/* Send the vblank event if one has been requested. */
++	if (omap_crtc->event) {
++		drm_crtc_send_vblank_event(crtc, omap_crtc->event);
++		omap_crtc->event = NULL;
++	}
++	omap_crtc->pending = false;
++	spin_unlock(&crtc->dev->event_lock);
 +
-+&dsi {
-+	status = "ok";
++	/* Wake up omap_atomic_complete. */
++	wake_up(&omap_crtc->pending_wait);
++}
 +
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dsi_pins>;
+ void omap_crtc_flush(struct drm_crtc *crtc,
+ 		int x, int y, int w, int h)
+ {
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
+index 71b5c5e25ee4..9586551960e9 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.h
++++ b/drivers/gpu/drm/omapdrm/omap_drv.h
+@@ -138,6 +138,7 @@ struct drm_crtc *omap_crtc_init(struct drm_device *dev,
+ 		struct drm_plane *plane, enum omap_channel channel, int id);
+ int omap_crtc_wait_pending(struct drm_crtc *crtc);
+ void omap_crtc_error_irq(struct drm_crtc *crtc, uint32_t irqstatus);
++void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus);
+ void omap_crtc_vblank_irq(struct drm_crtc *crtc);
+ bool omap_crtc_is_manual_updated(struct drm_crtc *crtc);
+ 
+diff --git a/drivers/gpu/drm/omapdrm/omap_irq.c b/drivers/gpu/drm/omapdrm/omap_irq.c
+index 9adfa7c99695..fb39601721f6 100644
+--- a/drivers/gpu/drm/omapdrm/omap_irq.c
++++ b/drivers/gpu/drm/omapdrm/omap_irq.c
+@@ -215,6 +215,9 @@ static irqreturn_t omap_irq_handler(int irq, void *arg)
+ 
+ 		if (irqstatus & dispc_mgr_get_sync_lost_irq(channel))
+ 			omap_crtc_error_irq(crtc, irqstatus);
 +
-+	vdd-supply = <&vpll2>;
-+
-+	port {
-+		dsi_out_ep: endpoint {
-+			remote-endpoint = <&lcd0_in>;
-+			lanes = <2 3 0 1 4 5>;
-+		};
-+	};
-+
-+	lcd0: display {
-+		compatible = "nokia,himalaya", "panel-dsi-cm";
-+		label = "lcd0";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&display_pins>;
-+
-+		vpnl-supply = <&vmmc2>;
-+		vddi-supply = <&vio>;
-+
-+		reset-gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;	/* 87 */
-+		te-gpios = <&gpio2 30 GPIO_ACTIVE_HIGH>;	/* 62 */
-+
-+		has-dsi-backlight;
-+
-+		/* panel is upside-down, 480x464 pixels */
-+		/* top and bottom 5 lines are not visible */
-+		/* physical dimensions: 48960µm x 88128µm */
-+		panel-timing {
-+			clock-frequency = <0>;          /* Calculated by dsi */
-+
-+			hback-porch = <2>;
-+			hactive = <480>;
-+			hfront-porch = <0>;
-+			hsync-len = <2>;
-+
-+			vback-porch = <1>;
-+			vactive = <864>;
-+			vfront-porch = <0>;
-+			vsync-len = <1>;
-+
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			de-active = <1>;
-+			pixelclk-active = <1>;
-+
-+			/* TODO: rotate panel by 180° */
-+			/* TODO: add 5 pixel y-offset and limit vactive to 854 */
-+		};
-+
-+		port {
-+			lcd0_in: endpoint {
-+				remote-endpoint = <&dsi_out_ep>;
-+			};
-+		};
-+	};
-+};
++		if (irqstatus & dispc_mgr_get_framedone_irq(channel))
++			omap_crtc_framedone_irq(crtc, irqstatus);
+ 	}
+ 
+ 	omap_irq_ocp_error_handler(irqstatus);
+@@ -264,8 +267,10 @@ int omap_drm_irq_install(struct drm_device *dev)
+ 			priv->irq_mask |= omap_underflow_irqs[i];
+ 	}
+ 
+-	for (i = 0; i < num_mgrs; ++i)
++	for (i = 0; i < num_mgrs; ++i) {
+ 		priv->irq_mask |= dispc_mgr_get_sync_lost_irq(i);
++		priv->irq_mask |= dispc_mgr_get_framedone_irq(i);
++	}
+ 
+ 	dispc_runtime_get();
+ 	dispc_clear_irqstatus(0xffffffff);
 -- 
 2.11.0
