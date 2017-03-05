@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 08/10] drm: omapdrm: crtc: handle framedone directly
-Date: Sun,  5 Mar 2017 01:43:07 +0100
-Message-ID: <20170305004309.28259-8-sre@kernel.org>
+Subject: [PATCHv2 07/10] drm: omapdrm: plane: update fifo size on atomic update
+Date: Sun,  5 Mar 2017 01:43:06 +0100
+Message-ID: <20170305004309.28259-7-sre@kernel.org>
 References: <20170304235021.27055-1-sre@kernel.org>
  <20170305004309.28259-1-sre@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,96 +11,106 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+This is a workaround for a hardware bug occuring on OMAP3
+with manually updated panels. Details about the HW bug are
+unknown to me, but without this fix the panel refresh does
+not work at all on Nokia N950.
 
-We can handle framedone interrupt directly simlar to commit
-e0519af75d6e ("drm: omapdrm: Handle CRTC error IRQs directly").
-
-By default we just print a warning on framedone and do nothing.
-Any manually refreshed displays can register a callback.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-[Drop REVISIT comment for omap3, patch works on N950]
-Signed-off-by: Sebastian Reichel <sre@kernel.org>
+Signed-off-By: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/gpu/drm/omapdrm/omap_crtc.c | 25 +++++++++++++++++++++++++
- drivers/gpu/drm/omapdrm/omap_drv.h  |  1 +
- drivers/gpu/drm/omapdrm/omap_irq.c  |  7 ++++++-
- 3 files changed, 32 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/omapdrm/dss/dispc.c   |  2 ++
+ drivers/gpu/drm/omapdrm/dss/omapdss.h |  4 ++++
+ drivers/gpu/drm/omapdrm/omap_drv.h    |  1 +
+ drivers/gpu/drm/omapdrm/omap_plane.c  | 23 +++++++++++++++++++++++
+ 4 files changed, 30 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
-index 432ad6023f27..4601533215d6 100644
---- a/drivers/gpu/drm/omapdrm/omap_crtc.c
-+++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-@@ -349,6 +349,31 @@ void omap_crtc_vblank_irq(struct drm_crtc *crtc)
- 	DBG("%s: apply done", omap_crtc->name);
+diff --git a/drivers/gpu/drm/omapdrm/dss/dispc.c b/drivers/gpu/drm/omapdrm/dss/dispc.c
+index d956e6266368..97240e59b248 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dispc.c
++++ b/drivers/gpu/drm/omapdrm/dss/dispc.c
+@@ -1321,6 +1321,7 @@ void dispc_ovl_set_fifo_threshold(enum omap_plane plane, u32 low, u32 high)
+ 			plane != OMAP_DSS_WB)
+ 		dispc_write_reg(DISPC_OVL_PRELOAD(plane), min(high, 0xfffu));
  }
++EXPORT_SYMBOL(dispc_ovl_set_fifo_threshold);
  
-+void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus)
-+{
-+	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
-+
-+	if (!omap_crtc->framedone_handler) {
-+		dev_warn(omap_crtc->base.dev->dev, "no framedone handler?\n");
-+
-+		return;
-+	}
-+
-+	omap_crtc->framedone_handler(omap_crtc->framedone_handler_data);
-+
-+	spin_lock(&crtc->dev->event_lock);
-+	/* Send the vblank event if one has been requested. */
-+	if (omap_crtc->event) {
-+		drm_crtc_send_vblank_event(crtc, omap_crtc->event);
-+		omap_crtc->event = NULL;
-+	}
-+	omap_crtc->pending = false;
-+	spin_unlock(&crtc->dev->event_lock);
-+
-+	/* Wake up omap_atomic_complete. */
-+	wake_up(&omap_crtc->pending_wait);
-+}
-+
- void omap_crtc_flush(struct drm_crtc *crtc,
- 		int x, int y, int w, int h)
+ void dispc_enable_fifomerge(bool enable)
  {
+@@ -1379,6 +1380,7 @@ void dispc_ovl_compute_fifo_thresholds(enum omap_plane plane,
+ 		*fifo_high = total_fifo_size - buf_unit;
+ 	}
+ }
++EXPORT_SYMBOL(dispc_ovl_compute_fifo_thresholds);
+ 
+ static void dispc_ovl_set_mflag(enum omap_plane plane, bool enable)
+ {
+diff --git a/drivers/gpu/drm/omapdrm/dss/omapdss.h b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+index 5666ecbe4b80..65c3530a3b53 100644
+--- a/drivers/gpu/drm/omapdrm/dss/omapdss.h
++++ b/drivers/gpu/drm/omapdrm/dss/omapdss.h
+@@ -878,6 +878,10 @@ void dispc_ovl_set_channel_out(enum omap_plane plane,
+ 		enum omap_channel channel);
+ int dispc_ovl_setup(enum omap_plane plane, const struct omap_overlay_info *oi,
+ 		bool replication, const struct videomode *vm, bool mem_to_mem);
++void dispc_ovl_compute_fifo_thresholds(enum omap_plane plane,
++		u32 *fifo_low, u32 *fifo_high, bool use_fifomerge,
++		bool manual_update);
++void dispc_ovl_set_fifo_threshold(enum omap_plane plane, u32 low, u32 high);
+ 
+ enum omap_dss_output_id dispc_mgr_get_supported_outputs(enum omap_channel channel);
+ 
 diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
-index 71b5c5e25ee4..9586551960e9 100644
+index ee8901dc0381..71b5c5e25ee4 100644
 --- a/drivers/gpu/drm/omapdrm/omap_drv.h
 +++ b/drivers/gpu/drm/omapdrm/omap_drv.h
-@@ -138,6 +138,7 @@ struct drm_crtc *omap_crtc_init(struct drm_device *dev,
- 		struct drm_plane *plane, enum omap_channel channel, int id);
- int omap_crtc_wait_pending(struct drm_crtc *crtc);
- void omap_crtc_error_irq(struct drm_crtc *crtc, uint32_t irqstatus);
-+void omap_crtc_framedone_irq(struct drm_crtc *crtc, uint32_t irqstatus);
- void omap_crtc_vblank_irq(struct drm_crtc *crtc);
- bool omap_crtc_is_manual_updated(struct drm_crtc *crtc);
+@@ -146,6 +146,7 @@ struct drm_plane *omap_plane_init(struct drm_device *dev,
+ 		u32 possible_crtcs);
+ void omap_plane_install_properties(struct drm_plane *plane,
+ 		struct drm_mode_object *obj);
++void omap_plane_update_fifo(struct drm_plane *plane);
  
-diff --git a/drivers/gpu/drm/omapdrm/omap_irq.c b/drivers/gpu/drm/omapdrm/omap_irq.c
-index 9adfa7c99695..fb39601721f6 100644
---- a/drivers/gpu/drm/omapdrm/omap_irq.c
-+++ b/drivers/gpu/drm/omapdrm/omap_irq.c
-@@ -215,6 +215,9 @@ static irqreturn_t omap_irq_handler(int irq, void *arg)
+ struct drm_encoder *omap_encoder_init(struct drm_device *dev,
+ 		struct omap_dss_device *dssdev);
+diff --git a/drivers/gpu/drm/omapdrm/omap_plane.c b/drivers/gpu/drm/omapdrm/omap_plane.c
+index 386d90af70f7..8d290cfe8925 100644
+--- a/drivers/gpu/drm/omapdrm/omap_plane.c
++++ b/drivers/gpu/drm/omapdrm/omap_plane.c
+@@ -73,6 +73,28 @@ static void omap_plane_cleanup_fb(struct drm_plane *plane,
+ 		omap_framebuffer_unpin(old_state->fb);
+ }
  
- 		if (irqstatus & dispc_mgr_get_sync_lost_irq(channel))
- 			omap_crtc_error_irq(crtc, irqstatus);
++void omap_plane_update_fifo(struct drm_plane *plane)
++{
++	struct omap_plane *omap_plane = to_omap_plane(plane);
++	struct drm_plane_state *state = plane->state;
++	struct drm_device *dev = plane->dev;
++	bool use_fifo_merge = false;
++	u32 fifo_low, fifo_high;
++	bool use_manual_update;
 +
-+		if (irqstatus & dispc_mgr_get_framedone_irq(channel))
-+			omap_crtc_framedone_irq(crtc, irqstatus);
++	if (!dispc_ovl_enabled(omap_plane->id))
++		return;
++
++	use_manual_update = omap_crtc_is_manual_updated(state->crtc);
++
++	dispc_ovl_compute_fifo_thresholds(omap_plane->id, &fifo_low, &fifo_high,
++			use_fifo_merge, use_manual_update);
++
++	dev_dbg(dev->dev, "update fifo: %d %d", fifo_low, fifo_high);
++
++	dispc_ovl_set_fifo_threshold(omap_plane->id, fifo_low, fifo_high);
++}
++
+ static void omap_plane_atomic_update(struct drm_plane *plane,
+ 				     struct drm_plane_state *old_state)
+ {
+@@ -137,6 +159,7 @@ static void omap_plane_atomic_update(struct drm_plane *plane,
  	}
  
- 	omap_irq_ocp_error_handler(irqstatus);
-@@ -264,8 +267,10 @@ int omap_drm_irq_install(struct drm_device *dev)
- 			priv->irq_mask |= omap_underflow_irqs[i];
- 	}
+ 	dispc_ovl_enable(omap_plane->id, true);
++	omap_plane_update_fifo(plane);
+ }
  
--	for (i = 0; i < num_mgrs; ++i)
-+	for (i = 0; i < num_mgrs; ++i) {
- 		priv->irq_mask |= dispc_mgr_get_sync_lost_irq(i);
-+		priv->irq_mask |= dispc_mgr_get_framedone_irq(i);
-+	}
- 
- 	dispc_runtime_get();
- 	dispc_clear_irqstatus(0xffffffff);
+ static void omap_plane_atomic_disable(struct drm_plane *plane,
 -- 
 2.11.0
