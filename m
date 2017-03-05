@@ -1,9 +1,12 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: [PATCHv2 09/10] drm: omapdrm: crtc: get manual mode displays working
-Date: Sun,  5 Mar 2017 01:43:08 +0100
-Message-ID: <20170305004309.28259-9-sre@kernel.org>
+Subject: [PATCHv2 10/10] ARM: dts: n950: add display support
+Date: Sun,  5 Mar 2017 01:43:09 +0100
+Message-ID: <20170305004309.28259-10-sre@kernel.org>
 References: <20170304235021.27055-1-sre@kernel.org>
  <20170305004309.28259-1-sre@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170305004309.28259-1-sre@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -11,82 +14,119 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+Add basic panel support for the Nokia N950. It must be tweaked a
+little bit later, since the panel was built into the device
+upside-down. Also the first 5 and the last 5 pixels are covered
+by plastic.
 
-With manual mode displays we need to flush the panel manually.
-
-Let's add flushing so we get Tomi's fbtest, kmstest, kmstest --flip,
-and X and wayland working.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-[On Nokia N950]
-Tested-By: Sebastian Reichel <sre@kernel.org>
+Signed-off-By: Sebastian Reichel <sre@kernel.org>
 ---
- drivers/gpu/drm/omapdrm/omap_crtc.c | 22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ arch/arm/boot/dts/omap3-n950.dts | 89 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 89 insertions(+)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
-index 4601533215d6..e07b0a0be4bf 100644
---- a/drivers/gpu/drm/omapdrm/omap_crtc.c
-+++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-@@ -97,6 +97,11 @@ bool omap_crtc_is_manual_updated(struct drm_crtc *crtc)
- 	return omap_crtc->manually_updated;
- }
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a3ebd8..1aa4251b39d7 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -51,6 +51,26 @@
+ 	};
+ };
  
-+static void omap_crtc_manual_needs_flush(struct drm_crtc *crtc)
-+{
-+	omap_crtc_flush(crtc, 0, 0, 0, 0);
-+}
++&omap3_pmx_core {
++	dsi_pins: pinmux_dsi_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x20dc, PIN_OUTPUT | MUX_MODE1) /* dsi_dx0 - data0+ */
++			OMAP3_CORE1_IOPAD(0x20de, PIN_OUTPUT | MUX_MODE1) /* dsi_dy0 - data0- */
++			OMAP3_CORE1_IOPAD(0x20e0, PIN_OUTPUT | MUX_MODE1) /* dsi_dx1 - clk+   */
++			OMAP3_CORE1_IOPAD(0x20e2, PIN_OUTPUT | MUX_MODE1) /* dsi_dy1 - clk-   */
++			OMAP3_CORE1_IOPAD(0x20e4, PIN_OUTPUT | MUX_MODE1) /* dsi_dx2 - data1+ */
++			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE1) /* dsi_dy2 - data1- */
++		>;
++	};
 +
- /* -----------------------------------------------------------------------------
-  * DSS Manager Functions
-  */
-@@ -139,7 +144,11 @@ static void omap_crtc_dss_disconnect(enum omap_channel channel,
- 
- static void omap_crtc_dss_start_update(enum omap_channel channel)
- {
-+	struct omap_crtc *omap_crtc = omap_crtcs[channel];
-+	struct drm_crtc *crtc = &omap_crtc->base;
++	display_pins: pinmux_display_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x20ca, PIN_INPUT | MUX_MODE4) /* gpio 62 - display te */
++			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE4) /* gpio 87 - display reset */
++		>;
++	};
++};
 +
- 	dispc_mgr_enable(channel, true);
-+	omap_crtc_manual_needs_flush(crtc);
- }
- 
- /* Called only from the encoder enable/disable and suspend/resume handlers. */
-@@ -155,11 +164,12 @@ static void omap_crtc_set_enabled(struct drm_crtc *crtc, bool enable)
- 	if (WARN_ON(omap_crtc->enabled == enable))
- 		return;
- 
--	if (omap_crtc_output[channel]->output_type == OMAP_DISPLAY_TYPE_HDMI) {
--		dispc_mgr_enable(channel, enable);
--		omap_crtc->enabled = enable;
-+	dispc_mgr_enable(channel, enable);
-+	omap_crtc->enabled = enable;
-+	omap_crtc_manual_needs_flush(crtc);
+ &i2c2 {
+ 	smia_1: camera@10 {
+ 		compatible = "nokia,smia";
+@@ -185,3 +205,72 @@
+ 	st,max-limit-y = <32>;
+ 	st,max-limit-z = <32>;
+ };
 +
-+	if (omap_crtc_output[channel]->output_type == OMAP_DISPLAY_TYPE_HDMI)
- 		return;
--	}
- 
- 	if (omap_crtc->channel == OMAP_DSS_CHANNEL_DIGIT) {
- 		/*
-@@ -190,9 +200,6 @@ static void omap_crtc_set_enabled(struct drm_crtc *crtc, bool enable)
- 			wait = omap_irq_wait_init(dev, vsync_irq, 2);
- 	}
- 
--	dispc_mgr_enable(channel, enable);
--	omap_crtc->enabled = enable;
--
- 	ret = omap_irq_wait(dev, wait, msecs_to_jiffies(100));
- 	if (ret) {
- 		dev_err(dev->dev, "%s: timeout waiting for %s\n",
-@@ -554,6 +561,7 @@ static void omap_crtc_atomic_flush(struct drm_crtc *crtc,
- 		ret = drm_crtc_vblank_get(crtc);
- 		WARN_ON(ret != 0);
- 	}
-+	omap_crtc_flush(&omap_crtc->base, 0, 0, 0, 0);
- 
- 	spin_lock_irq(&crtc->dev->event_lock);
- 	dispc_mgr_enable(omap_crtc->channel, true);
++&dss {
++	status = "ok";
++
++	vdda_video-supply = <&vdac>;
++};
++
++&dsi {
++	status = "ok";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&dsi_pins>;
++
++	vdd-supply = <&vpll2>;
++
++	port {
++		dsi_out_ep: endpoint {
++			remote-endpoint = <&lcd0_in>;
++			lanes = <2 3 0 1 4 5>;
++		};
++	};
++
++	lcd0: display {
++		compatible = "nokia,himalaya", "panel-dsi-cm";
++		label = "lcd0";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&display_pins>;
++
++		vpnl-supply = <&vmmc2>;
++		vddi-supply = <&vio>;
++
++		reset-gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;	/* 87 */
++		te-gpios = <&gpio2 30 GPIO_ACTIVE_HIGH>;	/* 62 */
++
++		has-dsi-backlight;
++
++		/* panel is upside-down, 480x464 pixels */
++		/* top and bottom 5 lines are not visible */
++		/* physical dimensions: 48960µm x 88128µm */
++		panel-timing {
++			clock-frequency = <0>;          /* Calculated by dsi */
++
++			hback-porch = <2>;
++			hactive = <480>;
++			hfront-porch = <0>;
++			hsync-len = <2>;
++
++			vback-porch = <1>;
++			vactive = <864>;
++			vfront-porch = <0>;
++			vsync-len = <1>;
++
++			hsync-active = <0>;
++			vsync-active = <0>;
++			de-active = <1>;
++			pixelclk-active = <1>;
++
++			/* TODO: rotate panel by 180° */
++			/* TODO: add 5 pixel y-offset and limit vactive to 854 */
++		};
++
++		port {
++			lcd0_in: endpoint {
++				remote-endpoint = <&dsi_out_ep>;
++			};
++		};
++	};
++};
 -- 
 2.11.0
