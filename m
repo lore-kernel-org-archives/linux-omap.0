@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/5] ARM: dts: am33xx: Add updated operating-points-v2 table for cpu
-Date: Mon, 6 Mar 2017 09:23:38 -0600
-Message-ID: <1488813822-26042-2-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 4/5] ARM: dts: dra7: Add updated operating-points-v2 table for cpu
+Date: Mon, 6 Mar 2017 09:23:41 -0600
+Message-ID: <1488813822-26042-5-git-send-email-d-gerlach@ti.com>
 References: <1488813822-26042-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,125 +13,94 @@ Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-om
 List-Id: linux-omap@vger.kernel.org
 
 After the ti-cpufreq driver has been added, we can now drop the
-operating-points table present in am33xx.dtsi for the cpu and add an
+operating-points table present in dra7.dtsi for the cpu and add an
 operating-points-v2 table with all OPPs available for all silicon
 revisions. Also add necessary data for use by ti-cpufreq to selectively
 enable the appropriate OPPs at runtime as part of the operating-points
 table.
 
-Information from AM335x Data Manual, SPRS717i, Revised December 2015,
-Table 5-7.
+As we now need to define voltage ranges for each OPP, we define the
+minimum and maximum voltage to match the ranges possible for AVS class0
+voltage as defined by the DRA7/AM57 Data Manual, with the exception of
+using a range for OPP_OD based on historical data to ensure that SoCs
+from older lots still continue to boot, even though more optimal voltages
+are now the standard. Once an AVS Class0 driver is in place it will be
+possible for these OPP voltages to be adjusted to any voltage within the
+provided range.
+
+Information from SPRS953, Revised December 2015.
 
 Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 87 ++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 74 insertions(+), 13 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi   | 24 +++++++++++++++++++-----
+ arch/arm/boot/dts/dra74x.dtsi |  5 +++++
+ 2 files changed, 24 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9e96d60976b7..9e242943dcec 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -46,19 +46,7 @@
- 			device_type = "cpu";
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 2c9e56f4aac5..e9dc314b0dcf 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -81,11 +81,7 @@
+ 			compatible = "arm,cortex-a15";
  			reg = <0>;
  
--			/*
--			 * To consider voltage drop between PMIC and SoC,
--			 * tolerance value is reduced to 2% from 4% and
--			 * voltage value is increased as a precaution.
--			 */
 -			operating-points = <
 -				/* kHz    uV */
--				720000  1285000
--				600000  1225000
--				500000  1125000
--				275000  1125000
--			>;
--			voltage-tolerance = <2>; /* 2 percentage */
+-				1000000	1060000
+-				1176000	1160000
+-				>;
 +			operating-points-v2 = <&cpu0_opp_table>;
  
  			clocks = <&dpll_mpu_ck>;
  			clock-names = "cpu";
-@@ -67,6 +55,79 @@
+@@ -99,6 +95,24 @@
  		};
  	};
  
 +	cpu0_opp_table: opp-table {
 +		compatible = "operating-points-v2-ti-cpu";
-+		syscon = <&scm_conf>;
++		syscon = <&scm_wkup>;
 +
-+		/*
-+		 * The three following nodes are marked with opp-suspend
-+		 * because the can not be enabled simultaneously on a
-+		 * single SoC.
-+		 */
-+		opp50@300000000 {
-+			opp-hz = /bits/ 64 <300000000>;
-+			opp-microvolt = <950000 931000 969000>;
-+			opp-supported-hw = <0x06 0x0010>;
-+			opp-suspend;
-+		};
-+
-+		opp100@275000000 {
-+			opp-hz = /bits/ 64 <275000000>;
-+			opp-microvolt = <1100000 1078000 1122000>;
-+			opp-supported-hw = <0x01 0x00FF>;
-+			opp-suspend;
-+		};
-+
-+		opp100@300000000 {
-+			opp-hz = /bits/ 64 <300000000>;
-+			opp-microvolt = <1100000 1078000 1122000>;
-+			opp-supported-hw = <0x06 0x0020>;
-+			opp-suspend;
-+		};
-+
-+		opp100@500000000 {
-+			opp-hz = /bits/ 64 <500000000>;
-+			opp-microvolt = <1100000 1078000 1122000>;
-+			opp-supported-hw = <0x01 0xFFFF>;
-+		};
-+
-+		opp100@600000000 {
-+			opp-hz = /bits/ 64 <600000000>;
-+			opp-microvolt = <1100000 1078000 1122000>;
-+			opp-supported-hw = <0x06 0x0040>;
-+		};
-+
-+		opp120@600000000 {
-+			opp-hz = /bits/ 64 <600000000>;
-+			opp-microvolt = <1200000 1176000 1224000>;
-+			opp-supported-hw = <0x01 0xFFFF>;
-+		};
-+
-+		opp120@720000000 {
-+			opp-hz = /bits/ 64 <720000000>;
-+			opp-microvolt = <1200000 1176000 1224000>;
-+			opp-supported-hw = <0x06 0x0080>;
-+		};
-+
-+		oppturbo@720000000 {
-+			opp-hz = /bits/ 64 <720000000>;
-+			opp-microvolt = <1260000 1234800 1285200>;
-+			opp-supported-hw = <0x01 0xFFFF>;
-+		};
-+
-+		oppturbo@800000000 {
-+			opp-hz = /bits/ 64 <800000000>;
-+			opp-microvolt = <1260000 1234800 1285200>;
-+			opp-supported-hw = <0x06 0x0100>;
-+		};
-+
-+		oppnitro@1000000000 {
++		opp_nom@1000000000 {
 +			opp-hz = /bits/ 64 <1000000000>;
-+			opp-microvolt = <1325000 1298500 1351500>;
-+			opp-supported-hw = <0x04 0x0200>;
++			opp-microvolt = <1060000 850000 1150000>;
++			opp-supported-hw = <0xFF 0x01>;
++			opp-suspend;
++		};
++
++		opp_od@1176000000 {
++			opp-hz = /bits/ 64 <1176000000>;
++			opp-microvolt = <1160000 885000 1160000>;
++			opp-supported-hw = <0xFF 0x02>;
 +		};
 +	};
 +
- 	pmu {
- 		compatible = "arm,cortex-a8-pmu";
- 		interrupts = <3>;
+ 	/*
+ 	 * The soc node represents the soc top level view. It is used for IPs
+ 	 * that are not memory mapped in the MPU view or for the MPU itself.
+diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
+index 0a78347e6615..24e6746c5b26 100644
+--- a/arch/arm/boot/dts/dra74x.dtsi
++++ b/arch/arm/boot/dts/dra74x.dtsi
+@@ -17,6 +17,7 @@
+ 			device_type = "cpu";
+ 			compatible = "arm,cortex-a15";
+ 			reg = <1>;
++			operating-points-v2 = <&cpu0_opp_table>;
+ 		};
+ 	};
+ 
+@@ -79,6 +80,10 @@
+ 	};
+ };
+ 
++&cpu0_opp_table {
++	opp-shared;
++};
++
+ &dss {
+ 	reg = <0x58000000 0x80>,
+ 	      <0x58004054 0x4>,
 -- 
 2.11.0
 
