@@ -1,53 +1,52 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 0/5] ARM: OMAP2+: Add and enable operating-points-v2
-Date: Mon, 6 Mar 2017 09:23:37 -0600
-Message-ID: <1488813822-26042-1-git-send-email-d-gerlach@ti.com>
+From: Lukasz Majewski <lukma@denx.de>
+Subject: Re: [PATCH 1/5] ARM: dts: am33xx: Add updated operating-points-v2
+ table for cpu
+Date: Mon, 6 Mar 2017 17:01:08 +0100
+Message-ID: <20170306170108.01994fde@jawa>
+References: <1488813822-26042-1-git-send-email-d-gerlach@ti.com>
+ <1488813822-26042-2-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Lukasz Majewski <lukma@denx.de>, Yegor Yefremov <yegorslists@googlemail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1488813822-26042-2-git-send-email-d-gerlach@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, Yegor Yefremov <yegorslists@googlemail.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-This series adds the necessary changes to get proper operating-points-v2 tables
-for AM335x/AM437x/DRA7xx/AM57xx TI SoCs. Doing this enables the ti-cpufreq
-driver and allows the platform to detect which CPU OPPs are valid for the
-configuration in use and enable them.
+On Mon, 6 Mar 2017 09:23:38 -0600
+Dave Gerlach <d-gerlach@ti.com> wrote:
 
-This series adds complete tables for am335x and adds 1GHz support for all
-beaglebone black boards and updates the already merged but unused am437x table
-to match the finalized DT bindings. It also moves the existing dra7xx/am57xx
-OPPs to OPPv2 but does not enable 1.5GHz yet as this requires multiregulator
-support which will come at a later date.
+> After the ti-cpufreq driver has been added, we can now drop the
+> operating-points table present in am33xx.dtsi for the cpu and add an
+> operating-points-v2 table with all OPPs available for all silicon
+> revisions. Also add necessary data for use by ti-cpufreq to
+> selectively enable the appropriate OPPs at runtime as part of the
+> operating-points table.
+> 
+> Information from AM335x Data Manual, SPRS717i, Revised December 2015,
+> Table 5-7.
+> 
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 
-Also, now that so many TI platforms will depend on the ti-cpufreq driver let's
-add CONFIG_ARM_TI_CPUFREQ to omap2plus_defconfig to enable it as part of the
-default configuration.
+Reviewed-by: Lukasz Majewski <lukma@denx.de>
 
-Pushed a branch containing these patches on top of v4.11-rc1 if anyone wants
-to try it out [1].
 
-Regards,
-Dave
+Best regards,
 
-[1] https://github.com/dgerlach/linux-pm/tree/upstream/v4.11/ti-cpufreq-dts
+Lukasz Majewski
 
-Dave Gerlach (5):
-  ARM: dts: am33xx: Add updated operating-points-v2 table for cpu
-  ARM: dts: am335x-boneblack: Enable 1GHz OPP for cpu
-  ARM: dts: am4372: Update operating-points-v2 table for cpu
-  ARM: dts: dra7: Add updated operating-points-v2 table for cpu
-  ARM: omap2plus_defconfig: Enable support for ti-cpufreq
+--
 
- arch/arm/boot/dts/am335x-boneblack.dts | 11 +++++
- arch/arm/boot/dts/am33xx.dtsi          | 87 +++++++++++++++++++++++++++++-----
- arch/arm/boot/dts/am4372.dtsi          |  7 ++-
- arch/arm/boot/dts/dra7.dtsi            | 24 ++++++++--
- arch/arm/boot/dts/dra74x.dtsi          |  5 ++
- arch/arm/configs/omap2plus_defconfig   |  1 +
- 6 files changed, 113 insertions(+), 22 deletions(-)
-
--- 
-2.11.0
+DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
+HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
