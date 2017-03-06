@@ -1,27 +1,44 @@
-From: "Kim, Milo" <milo.kim-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/6] ARM: dts: omap4-droid4: Add LCD backlight
-Date: Mon, 6 Mar 2017 08:24:06 +0900
-Message-ID: <575bc104-3dee-9911-87f9-0df0d40c3a3f@ti.com>
-References: <20170305054359.8293-1-tony@atomide.com>
- <20170305054359.8293-3-tony@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 08/12] gpio: davinci: use devm_irq_alloc_descs()
+Date: Mon, 6 Mar 2017 10:29:18 +0530
+Message-ID: <70d9fed2-1378-66a4-4640-dd93aae162b6@ti.com>
+References: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com>
+ <1488644620-11488-9-git-send-email-bgolaszewski@baylibre.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170305054359.8293-3-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1488644620-11488-9-git-send-email-bgolaszewski@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bamvor Jian Zhang <bamvor.zhangjian@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 3/5/2017 2:43 PM, Tony Lindgren wrote:
-> The TI LMU driver has not yet been merged, but the device
-> tree binding for TI LMU drivers has been acked already
-> earlier by Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>. So it should
-> be safe to apply to cut down the number of pending patches.
 
-Acked-by: Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+On Saturday 04 March 2017 09:53 PM, Bartosz Golaszewski wrote:
+> This driver never frees the interrupt descriptors it allocates. Fix
+> it by using the resource managed version of irq_alloc_descs().
+>
+
+Acked-by: Keerthy <j-keerthy@ti.com>
+
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+> ---
+>  drivers/gpio/gpio-davinci.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/gpio/gpio-davinci.c b/drivers/gpio/gpio-davinci.c
+> index 72f49d1..ac17357 100644
+> --- a/drivers/gpio/gpio-davinci.c
+> +++ b/drivers/gpio/gpio-davinci.c
+> @@ -483,7 +483,7 @@ static int davinci_gpio_irq_setup(struct platform_device *pdev)
+>  	clk_prepare_enable(clk);
+>
+>  	if (!pdata->gpio_unbanked) {
+> -		irq = irq_alloc_descs(-1, 0, ngpio, 0);
+> +		irq = devm_irq_alloc_descs(dev, -1, 0, ngpio, 0);
+>  		if (irq < 0) {
+>  			dev_err(dev, "Couldn't allocate IRQ numbers\n");
+>  			return irq;
+>
