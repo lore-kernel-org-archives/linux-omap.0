@@ -1,65 +1,53 @@
-From: Lukasz Majewski <lukma@denx.de>
-Subject: Re: [PATCH 5/5] ARM: omap2plus_defconfig: Enable support for
- ti-cpufreq
-Date: Mon, 6 Mar 2017 17:24:30 +0100
-Message-ID: <20170306172430.5e91b576@jawa>
-References: <1488813822-26042-1-git-send-email-d-gerlach@ti.com>
- <1488813822-26042-6-git-send-email-d-gerlach@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 03/12] gpio: omap: use devm_irq_alloc_descs()
+Date: Mon, 6 Mar 2017 08:50:19 -0800
+Message-ID: <20170306165019.GK20572@atomide.com>
+References: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com>
+ <1488644620-11488-4-git-send-email-bgolaszewski@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1488813822-26042-6-git-send-email-d-gerlach@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@linaro.org>, Yegor Yefremov <yegorslists@googlemail.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1488644620-11488-4-git-send-email-bgolaszewski@baylibre.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bamvor Jian Zhang <bamvor.zhangjian@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 6 Mar 2017 09:23:42 -0600
-Dave Gerlach <d-gerlach@ti.com> wrote:
-
-> AM335x, AM437x, DRA7xx, and AM57xx platforms all now depend on
-> ti-cpufreq driver to enable proper OPPs for use with cpufreq, so
-> enable the same.
+* Bartosz Golaszewski <bgolaszewski@baylibre.com> [170304 08:33]:
+> This driver never frees the allocated interrupt descriptors. Fix it by
+> using a resource managed variant of irq_alloc_descs().
 > 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Reviewed-by: Lukasz Majewski <lukma@denx.de>
+Would be good to get Aaro's ack on this one.
+
+Regards,
+
+Tony
 
 > ---
->  arch/arm/configs/omap2plus_defconfig | 1 +
->  1 file changed, 1 insertion(+)
+>  drivers/gpio/gpio-omap.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/configs/omap2plus_defconfig
-> b/arch/arm/configs/omap2plus_defconfig index
-> f2462a6bdba6..62a4b6cf16f0 100644 ---
-> a/arch/arm/configs/omap2plus_defconfig +++
-> b/arch/arm/configs/omap2plus_defconfig @@ -64,6 +64,7 @@
-> CONFIG_CPU_FREQ_GOV_POWERSAVE=y CONFIG_CPU_FREQ_GOV_USERSPACE=y
->  CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
->  CONFIG_CPUFREQ_DT=m
-> +CONFIG_ARM_TI_CPUFREQ=y
->  # CONFIG_ARM_OMAP2PLUS_CPUFREQ is not set
->  CONFIG_CPU_IDLE=y
->  CONFIG_BINFMT_MISC=y
-
-
-
-
-Best regards,
-
-Lukasz Majewski
-
---
-
-DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index efc85a2..5d6a574 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1085,7 +1085,8 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+>  	 * REVISIT: Once we have OMAP1 supporting SPARSE_IRQ, we can drop
+>  	 * irq_alloc_descs() since a base IRQ offset will no longer be needed.
+>  	 */
+> -	irq_base = irq_alloc_descs(-1, 0, bank->width, 0);
+> +	irq_base = devm_irq_alloc_descs(bank->chip.parent,
+> +					-1, 0, bank->width, 0);
+>  	if (irq_base < 0) {
+>  		dev_err(bank->chip.parent, "Couldn't allocate IRQ numbers\n");
+>  		return -ENODEV;
+> -- 
+> 2.9.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
