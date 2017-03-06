@@ -1,110 +1,53 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/5] ARM: dts: dra7: Add updated operating-points-v2 table for cpu
-Date: Mon, 6 Mar 2017 09:23:41 -0600
-Message-ID: <1488813822-26042-5-git-send-email-d-gerlach@ti.com>
-References: <1488813822-26042-1-git-send-email-d-gerlach@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH 0/5] ARM: OMAP2+: Add and enable operating-points-v2
+Date: Mon, 6 Mar 2017 09:23:37 -0600
+Message-ID: <1488813822-26042-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488813822-26042-1-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Lukasz Majewski <lukma-ynQEQJNshbs@public.gmane.org>, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>, Lukasz Majewski <lukma@denx.de>, Yegor Yefremov <yegorslists@googlemail.com>
 List-Id: linux-omap@vger.kernel.org
 
-After the ti-cpufreq driver has been added, we can now drop the
-operating-points table present in dra7.dtsi for the cpu and add an
-operating-points-v2 table with all OPPs available for all silicon
-revisions. Also add necessary data for use by ti-cpufreq to selectively
-enable the appropriate OPPs at runtime as part of the operating-points
-table.
+Hi,
+This series adds the necessary changes to get proper operating-points-v2 tables
+for AM335x/AM437x/DRA7xx/AM57xx TI SoCs. Doing this enables the ti-cpufreq
+driver and allows the platform to detect which CPU OPPs are valid for the
+configuration in use and enable them.
 
-As we now need to define voltage ranges for each OPP, we define the
-minimum and maximum voltage to match the ranges possible for AVS class0
-voltage as defined by the DRA7/AM57 Data Manual, with the exception of
-using a range for OPP_OD based on historical data to ensure that SoCs
-from older lots still continue to boot, even though more optimal voltages
-are now the standard. Once an AVS Class0 driver is in place it will be
-possible for these OPP voltages to be adjusted to any voltage within the
-provided range.
+This series adds complete tables for am335x and adds 1GHz support for all
+beaglebone black boards and updates the already merged but unused am437x table
+to match the finalized DT bindings. It also moves the existing dra7xx/am57xx
+OPPs to OPPv2 but does not enable 1.5GHz yet as this requires multiregulator
+support which will come at a later date.
 
-Information from SPRS953, Revised December 2015.
+Also, now that so many TI platforms will depend on the ti-cpufreq driver let's
+add CONFIG_ARM_TI_CPUFREQ to omap2plus_defconfig to enable it as part of the
+default configuration.
 
-Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/dra7.dtsi   | 24 +++++++++++++++++++-----
- arch/arm/boot/dts/dra74x.dtsi |  5 +++++
- 2 files changed, 24 insertions(+), 5 deletions(-)
+Pushed a branch containing these patches on top of v4.11-rc1 if anyone wants
+to try it out [1].
 
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 2c9e56f4aac5..e9dc314b0dcf 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -81,11 +81,7 @@
- 			compatible = "arm,cortex-a15";
- 			reg = <0>;
- 
--			operating-points = <
--				/* kHz    uV */
--				1000000	1060000
--				1176000	1160000
--				>;
-+			operating-points-v2 = <&cpu0_opp_table>;
- 
- 			clocks = <&dpll_mpu_ck>;
- 			clock-names = "cpu";
-@@ -99,6 +95,24 @@
- 		};
- 	};
- 
-+	cpu0_opp_table: opp-table {
-+		compatible = "operating-points-v2-ti-cpu";
-+		syscon = <&scm_wkup>;
-+
-+		opp_nom@1000000000 {
-+			opp-hz = /bits/ 64 <1000000000>;
-+			opp-microvolt = <1060000 850000 1150000>;
-+			opp-supported-hw = <0xFF 0x01>;
-+			opp-suspend;
-+		};
-+
-+		opp_od@1176000000 {
-+			opp-hz = /bits/ 64 <1176000000>;
-+			opp-microvolt = <1160000 885000 1160000>;
-+			opp-supported-hw = <0xFF 0x02>;
-+		};
-+	};
-+
- 	/*
- 	 * The soc node represents the soc top level view. It is used for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
-diff --git a/arch/arm/boot/dts/dra74x.dtsi b/arch/arm/boot/dts/dra74x.dtsi
-index 0a78347e6615..24e6746c5b26 100644
---- a/arch/arm/boot/dts/dra74x.dtsi
-+++ b/arch/arm/boot/dts/dra74x.dtsi
-@@ -17,6 +17,7 @@
- 			device_type = "cpu";
- 			compatible = "arm,cortex-a15";
- 			reg = <1>;
-+			operating-points-v2 = <&cpu0_opp_table>;
- 		};
- 	};
- 
-@@ -79,6 +80,10 @@
- 	};
- };
- 
-+&cpu0_opp_table {
-+	opp-shared;
-+};
-+
- &dss {
- 	reg = <0x58000000 0x80>,
- 	      <0x58004054 0x4>,
+Regards,
+Dave
+
+[1] https://github.com/dgerlach/linux-pm/tree/upstream/v4.11/ti-cpufreq-dts
+
+Dave Gerlach (5):
+  ARM: dts: am33xx: Add updated operating-points-v2 table for cpu
+  ARM: dts: am335x-boneblack: Enable 1GHz OPP for cpu
+  ARM: dts: am4372: Update operating-points-v2 table for cpu
+  ARM: dts: dra7: Add updated operating-points-v2 table for cpu
+  ARM: omap2plus_defconfig: Enable support for ti-cpufreq
+
+ arch/arm/boot/dts/am335x-boneblack.dts | 11 +++++
+ arch/arm/boot/dts/am33xx.dtsi          | 87 +++++++++++++++++++++++++++++-----
+ arch/arm/boot/dts/am4372.dtsi          |  7 ++-
+ arch/arm/boot/dts/dra7.dtsi            | 24 ++++++++--
+ arch/arm/boot/dts/dra74x.dtsi          |  5 ++
+ arch/arm/configs/omap2plus_defconfig   |  1 +
+ 6 files changed, 113 insertions(+), 22 deletions(-)
+
 -- 
 2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
