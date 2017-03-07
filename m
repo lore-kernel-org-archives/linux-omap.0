@@ -1,15 +1,15 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 08/22] PCI: dwc: designware: Add EP mode support
-Date: Tue, 7 Mar 2017 10:48:42 +0530
-Message-ID: <58BE42B2.20305@ti.com>
-References: <1487325042-28227-1-git-send-email-kishon@ti.com>
- <1487325042-28227-9-git-send-email-kishon@ti.com>
- <45e5288e-d11f-c855-af9b-692a42d878c6@synopsys.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 0/7] thermal: ti-soc-thermal: Migrate slope/offset data to
+ device tree
+Date: Tue, 7 Mar 2017 12:43:36 +0530
+Message-ID: <1c47d169-7962-2fe7-0635-570881e85e06@ti.com>
+References: <1488364190-23488-1-git-send-email-j-keerthy@ti.com>
+ <20170306184215.GO20572@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <45e5288e-d11f-c855-af9b-692a42d878c6@synopsys.com>
+In-Reply-To: <20170306184215.GO20572@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,83 +19,45 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joao Pinto <Joao.Pinto@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>
-Cc: devicetree@vger.kernel.org, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: t-kristo@ti.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, edubezval@gmail.com, robh+dt@kernel.org, rui.zhang@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joao,
 
-On Friday 17 February 2017 10:50 PM, Joao Pinto wrote:
-> =C0s 9:50 AM de 2/17/2017, Kishon Vijay Abraham I escreveu:
->> Add endpoint mode support to designware driver. This uses the
->> EP Core layer introduced recently to add endpoint mode support.
->> *Any* function driver can now use this designware device
->> in order to achieve the EP functionality.
+
+On Tuesday 07 March 2017 12:12 AM, Tony Lindgren wrote:
+> * Keerthy <j-keerthy@ti.com> [170301 02:31]:
+>> Currently the slope and offset values for calculating the
+>> hot spot temperature of a particular thermal zone is part
+>> of driver data. Pass them here instead and obtain the values
+>> while of node parsing.
 >>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  drivers/pci/dwc/Kconfig              |    5 +
->>  drivers/pci/dwc/Makefile             |    1 +
->>  drivers/pci/dwc/pcie-designware-ep.c |  342 +++++++++++++++++++++++++++=
-+++++++
->>  drivers/pci/dwc/pcie-designware.c    |   51 +++++
->>  drivers/pci/dwc/pcie-designware.h    |   72 +++++++
->>  5 files changed, 471 insertions(+)
->>  create mode 100644 drivers/pci/dwc/pcie-designware-ep.c
+>> Tested for the slope and constant values on DRA7-EVM.
 >>
+>> Keerthy (7):
+>>   ARM: DRA7: Thermal: Add slope and offset values
+>>   ARM: OMAP5: Thermal: Add slope and offset values
+>>   ARM: OMAP443x: Thermal: Add slope and offset values
+>>   ARM: OMAP4460: Thermal: Add slope and offset values
+>>   thermal: ti-soc-thermal: Fetch slope and offset from DT
+>>   thermal: ti-soc-thermal: Remove redundant constants
+>>   thermal: ti-soc-thermal: Remove redundant code
+>
+> Are the dts changes safe for me to pick separately into
+> omap-for-v4.12/dt?
 
-<snip>
+Tony,
 
->> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-de=
-signware.c
->> index 686945d..49b28c8 100644
->> --- a/drivers/pci/dwc/pcie-designware.c
->> +++ b/drivers/pci/dwc/pcie-designware.c
->> @@ -173,6 +173,57 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci,=
- int index, int type,
->>  	dev_err(pci->dev, "iATU is not being enabled\n");
->>  }
->>  =
+Seems like omap3 has no thermal_zone node defined in Device Tree.
+It seems like it still uses driver data. I would need to add that as 
+well. Can you confirm that? If yes i will send a new series with the 
+omap3 device tree changes as well.
 
->> +int dw_pcie_prog_inbound_atu(struct dw_pcie *pci, int index, int bar,
->> +			     u64 cpu_addr, enum dw_pcie_as_type as_type)
->> +{
->> +	int type;
->> +	void __iomem *base =3D pci->dbi_base;
->> +
->> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_VIEWPORT, 0x4,
->> +			  PCIE_ATU_REGION_INBOUND | index);
->> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_LOWER_TARGET, 0x4,
->> +			  lower_32_bits(cpu_addr));
->> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_UPPER_TARGET, 0x4,
->> +			  upper_32_bits(cpu_addr));
->> +
->> +	switch (as_type) {
->> +	case DW_PCIE_AS_MEM:
->> +		type =3D PCIE_ATU_TYPE_MEM;
->> +		break;
->> +	case DW_PCIE_AS_IO:
->> +		type =3D PCIE_ATU_TYPE_IO;
->> +		break;
->> +	default:
->> +		return -EINVAL;
->> +	}
->> +
->> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_CR1, 0x4, type);
->> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_CR2, 0x4, PCIE_ATU_ENABLE |
->> +			  PCIE_ATU_BAR_MODE_ENABLE | (bar << 8));
->> +	return 0;
->> +}
->> +
-> =
+Thanks,
+Keerthy
 
-> This Atu programming is for PCI Cores <=3D 4.70. Please follow the same a=
-pproach as:
-> https://git.kernel.org/cgit/linux/kernel/git/helgaas/pci.git/tree/drivers=
-/pci/dwc/pcie-designware.c?h=3Dpci/host-designware#n95
-
-Can you provide PCIE_GET_ATU_INB_UNR_REG_OFFSET (similar to
-PCIE_GET_ATU_OUTB_UNR_REG_OFFSET)?
-
-Thanks
-Kishon
+>
+> Regards,
+>
+> Tony
+>
