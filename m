@@ -1,16 +1,11 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH DO NOT MERGE 5/6] ARM: dts: omap4: add some sample clkctrl
- data
-Date: Tue, 7 Mar 2017 11:04:08 +0200
-Message-ID: <c81492c2-aff8-3adb-33c5-b72b4469488c@ti.com>
-References: <1486992157-10673-1-git-send-email-t-kristo@ti.com>
- <1486992157-10673-6-git-send-email-t-kristo@ti.com>
- <20170306224535.GP20572@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 0/7] PCI: dwc: miscellaneous fixes and cleanups
+Date: Tue, 7 Mar 2017 15:22:45 +0530
+Message-ID: <1488880372-7390-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170306224535.GP20572@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,45 +15,55 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mturquette@baylibre.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@axis.com
+Cc: nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 07/03/17 00:45, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [170213 05:24]:
->> @@ -304,6 +339,8 @@
->>  			#gpio-cells = <2>;
->>  			interrupt-controller;
->>  			#interrupt-cells = <2>;
->> +			clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 0>;
->> +			clock-names = "clkctrl";
->>  		};
->>
->>  		gpio3: gpio@48057000 {
->> @@ -315,6 +352,8 @@
->>  			#gpio-cells = <2>;
->>  			interrupt-controller;
->>  			#interrupt-cells = <2>;
->> +			clocks = <&cm_l4per_clkctrl OMAP4_GPIO3_CLKCTRL 0>;
->> +			clock-names = "clkctrl";
->>  		};
->>
->>  		gpio4: gpio@48059000 {
->> @@ -384,6 +423,8 @@
->>  			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
->>  			ti,hwmods = "uart1";
->>  			clock-frequency = <48000000>;
->> +			clocks = <&cm_l4per_clkctrl OMAP4_UART1_CLKCTRL 0>;
->> +			clock-names = "clkctrl";
->>  		};
->
-> BTW, one thing you might want to test also is that the opt clocks
-> can be mapped here properly for gpios to reset. That can be easily
-> tested by kexec booting on beagle-x15 where we currently get warnings
-> on kexec boot about GPIOs failing to reset.
+This should be the final set of cleanups/fixes before endpoint
+support can be merged.
 
-Ok, I'll check that also. I am planning to post the cleanup series this 
-week, and post the clkctrl support next, as this one needs some data 
-changes + additional testing.
+Keerthy's patch is a general fix in dra7xx driver and is not
+directly related to endpoint mode.
 
--Tero
+This series was previously sent with a different cover letter
+$subject [1]
+
+Changes from v1:
+*) included a patch to rename _unroll() to _ob_unroll() as
+   similar thing has to be done for inbound window in the case
+   of EP mode.
+*) used 'size_t' instead of 'int' for specifying the size
+   in read_dbi/write_dbi function arguments.
+*) Populate cpu_addr_fixup ops for artpec6 as suggested by
+   Niklas
+
+This series is based on 4.11-rc1
+
+[1] -> https://lkml.org/lkml/2017/2/16/270
+
+Keerthy (1):
+  PCI: dwc: dra7xx: Push request_irq call to the bottom of probe
+
+Kishon Vijay Abraham I (6):
+  PCI: dwc: designware: Add new *ops* for cpu addr fixup
+  PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
+  PCI: dwc: artpec6: Populate cpu_addr_fixup ops
+  PCI: dwc: all: Modify dbi accessors to take dbi_base as argument
+  PCI: dwc: all: Modify dbi accessors to access data of 4/2/1  bytes
+  PCI: dwc: designware: Modify _unroll() to _ob_unroll()
+
+ drivers/pci/dwc/Kconfig                |   18 ++---
+ drivers/pci/dwc/pci-dra7xx.c           |   35 +++++----
+ drivers/pci/dwc/pci-exynos.c           |   14 ++--
+ drivers/pci/dwc/pci-imx6.c             |   62 +++++++++-------
+ drivers/pci/dwc/pci-keystone-dw.c      |   16 ++--
+ drivers/pci/dwc/pcie-armada8k.c        |   39 +++++-----
+ drivers/pci/dwc/pcie-artpec6.c         |   22 ++++--
+ drivers/pci/dwc/pcie-designware-host.c |   20 ++---
+ drivers/pci/dwc/pcie-designware.c      |  127 ++++++++++++++++++++------------
+ drivers/pci/dwc/pcie-designware.h      |   13 +++-
+ drivers/pci/dwc/pcie-hisi.c            |   17 +++--
+ 11 files changed, 226 insertions(+), 157 deletions(-)
+
+-- 
+1.7.9.5
