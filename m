@@ -1,65 +1,101 @@
 From: Joao Pinto <Joao.Pinto@synopsys.com>
-Subject: Re: [PATCH v2 1/7] PCI: dwc: designware: Add new *ops* for cpu addr
- fixup
-Date: Tue, 7 Mar 2017 11:11:38 +0000
-Message-ID: <2372241a-759c-e521-6d65-5a762ab159c4@synopsys.com>
+Subject: Re: [PATCH v2 3/7] PCI: dwc: artpec6: Populate cpu_addr_fixup ops
+Date: Tue, 7 Mar 2017 11:12:50 +0000
+Message-ID: <bf20e36d-ba5f-1da6-8dda-6d2c8ac7023b@synopsys.com>
 References: <1488880372-7390-1-git-send-email-kishon@ti.com>
- <1488880372-7390-2-git-send-email-kishon@ti.com>
+ <1488880372-7390-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1488880372-7390-2-git-send-email-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1488880372-7390-4-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@axis.com
-Cc: nsekhar@ti.com
+Cc: nsekhar@ti.com, Niklas Cassel <niklas.cassel@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-Às 9:52 AM de 3/7/2017, Kishon Vijay Abraham I escreveu:
-> Some platforms (like dra7xx) require only the least 28 bits of the
-> corresponding 32 bit CPU address to be programmed in the address
-> translation unit. This modified address is stored in io_base/mem_base/
-> cfg0_base/cfg1_base in dra7xx_pcie_host_init. While this is okay for
-> host mode where the address range is fixed, device mode requires
-> different addresses to be programmed based on the host buffer address.
-> Add a new ops to get the least 28 bits of the corresponding 32 bit
-> CPU address and invoke it before programming the address translation
-> unit.
-> 
+=C0s 9:52 AM de 3/7/2017, Kishon Vijay Abraham I escreveu:
+> Populate cpu_addr_fixup ops to extract the least 28 bits of the
+> corresponding cpu address.
+> =
+
+> Cc: Niklas Cassel <niklas.cassel@axis.com>
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->  drivers/pci/dwc/pcie-designware.c |    3 +++
->  drivers/pci/dwc/pcie-designware.h |    1 +
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-> index 7e1fb7d..14ee7a3 100644
-> --- a/drivers/pci/dwc/pcie-designware.c
-> +++ b/drivers/pci/dwc/pcie-designware.c
-> @@ -97,6 +97,9 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
->  {
->  	u32 retries, val;
->  
-> +	if (pp->ops->cpu_addr_fixup)
-> +		cpu_addr = pp->ops->cpu_addr_fixup(cpu_addr);
+>  drivers/pci/dwc/pcie-artpec6.c |   15 ++++++++++-----
+>  1 file changed, 10 insertions(+), 5 deletions(-)
+> =
+
+> diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec=
+6.c
+> index fcd3ef8..5b3b3af 100644
+> --- a/drivers/pci/dwc/pcie-artpec6.c
+> +++ b/drivers/pci/dwc/pcie-artpec6.c
+> @@ -78,6 +78,11 @@ static void artpec6_pcie_writel(struct artpec6_pcie *a=
+rtpec6_pcie, u32 offset, u
+>  	regmap_write(artpec6_pcie->regmap, offset, val);
+>  }
+>  =
+
+> +static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
+> +{
+> +	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
+> +}
 > +
->  	if (pci->iatu_unroll_enabled) {
->  		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_LOWER_BASE,
->  				      lower_32_bits(cpu_addr));
-> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-> index cd3b871..8f3dcb2 100644
-> --- a/drivers/pci/dwc/pcie-designware.h
-> +++ b/drivers/pci/dwc/pcie-designware.h
-> @@ -143,6 +143,7 @@ struct pcie_port {
->  };
->  
->  struct dw_pcie_ops {
-> +	u64	(*cpu_addr_fixup)(u64 cpu_addr);
->  	u32	(*readl_dbi)(struct dw_pcie *pcie, u32 reg);
->  	void	(*writel_dbi)(struct dw_pcie *pcie, u32 reg, u32 val);
->  	int	(*link_up)(struct dw_pcie *pcie);
-> 
+>  static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
+>  {
+>  	struct dw_pcie *pci =3D artpec6_pcie->pci;
+> @@ -142,11 +147,6 @@ static int artpec6_pcie_establish_link(struct artpec=
+6_pcie *artpec6_pcie)
+>  	 */
+>  	dw_pcie_writel_dbi(pci, MISC_CONTROL_1_OFF, DBI_RO_WR_EN);
+>  =
 
-Looks good.
+> -	pp->io_base &=3D ARTPEC6_CPU_TO_BUS_ADDR;
+> -	pp->mem_base &=3D ARTPEC6_CPU_TO_BUS_ADDR;
+> -	pp->cfg0_base &=3D ARTPEC6_CPU_TO_BUS_ADDR;
+> -	pp->cfg1_base &=3D ARTPEC6_CPU_TO_BUS_ADDR;
+> -
+>  	/* setup root complex */
+>  	dw_pcie_setup_rc(pp);
+>  =
 
-Acked-by: Joao Pinto <jpinto@synopsys.com>
+> @@ -234,6 +234,10 @@ static int artpec6_add_pcie_port(struct artpec6_pcie=
+ *artpec6_pcie,
+>  	return 0;
+>  }
+>  =
+
+> +static const struct dw_pcie_ops dw_pcie_ops =3D {
+> +	.cpu_addr_fixup =3D artpec6_pcie_cpu_addr_fixup,
+> +};
+> +
+>  static int artpec6_pcie_probe(struct platform_device *pdev)
+>  {
+>  	struct device *dev =3D &pdev->dev;
+> @@ -252,6 +256,7 @@ static int artpec6_pcie_probe(struct platform_device =
+*pdev)
+>  		return -ENOMEM;
+>  =
+
+>  	pci->dev =3D dev;
+> +	pci->ops =3D &dw_pcie_ops;
+>  =
+
+>  	artpec6_pcie->pci =3D pci;
+>  =
+
+> =
+
+
+Simpler, no doubt.
+
+Acked-By: Joao Pinto <jpinto@synopsys.com>
