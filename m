@@ -1,55 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/7] thermal: ti-soc-thermal: Migrate slope/offset data
- to device tree
-Date: Tue, 7 Mar 2017 07:12:28 -0800
-Message-ID: <20170307151227.GR20572@atomide.com>
-References: <1488364190-23488-1-git-send-email-j-keerthy@ti.com>
- <20170306184215.GO20572@atomide.com>
- <1c47d169-7962-2fe7-0635-570881e85e06@ti.com>
+From: Franklin S Cooper Jr <fcooper@ti.com>
+Subject: [PATCH 2/2] ARM: dts: am335x-icev2: Add SPI based NOR
+Date: Tue, 7 Mar 2017 15:57:51 -0600
+Message-ID: <20170307215751.29266-3-fcooper@ti.com>
+References: <20170307215751.29266-1-fcooper@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1c47d169-7962-2fe7-0635-570881e85e06@ti.com>
+In-Reply-To: <20170307215751.29266-1-fcooper@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: edubezval@gmail.com, rui.zhang@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-mtd@lists.infradead.org, tony@atomide.com, robh+dt@kernel.org
+Cc: Franklin S Cooper Jr <fcooper@ti.com>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [170306 23:15]:
-> 
-> 
-> On Tuesday 07 March 2017 12:12 AM, Tony Lindgren wrote:
-> > * Keerthy <j-keerthy@ti.com> [170301 02:31]:
-> > > Currently the slope and offset values for calculating the
-> > > hot spot temperature of a particular thermal zone is part
-> > > of driver data. Pass them here instead and obtain the values
-> > > while of node parsing.
-> > > 
-> > > Tested for the slope and constant values on DRA7-EVM.
-> > > 
-> > > Keerthy (7):
-> > >   ARM: DRA7: Thermal: Add slope and offset values
-> > >   ARM: OMAP5: Thermal: Add slope and offset values
-> > >   ARM: OMAP443x: Thermal: Add slope and offset values
-> > >   ARM: OMAP4460: Thermal: Add slope and offset values
-> > >   thermal: ti-soc-thermal: Fetch slope and offset from DT
-> > >   thermal: ti-soc-thermal: Remove redundant constants
-> > >   thermal: ti-soc-thermal: Remove redundant code
-> > 
-> > Are the dts changes safe for me to pick separately into
-> > omap-for-v4.12/dt?
-> 
-> Tony,
-> 
-> Seems like omap3 has no thermal_zone node defined in Device Tree.
-> It seems like it still uses driver data. I would need to add that as well.
-> Can you confirm that? If yes i will send a new series with the omap3 device
-> tree changes as well.
+Enable support for W25Q64CVSSIG which is a Winbond 64 Mbit SPI NOR.
 
-OK cool. It might be worth checking how it was configured with
-the legacy platform data.
+At boot you will see the following message:
+m25p80 spi1.0: found s25fl064k, expected w25q64
 
-Regards,
+This is because the JEDEC ID for this chip is the same as s25fl064k.
+However, this should be harmless since both chips are essentially the
+same.
 
-Tony
+Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ arch/arm/boot/dts/am335x-icev2.dts | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-icev2.dts b/arch/arm/boot/dts/am335x-icev2.dts
+index a2ad076..1e643dc 100644
+--- a/arch/arm/boot/dts/am335x-icev2.dts
++++ b/arch/arm/boot/dts/am335x-icev2.dts
+@@ -245,6 +245,39 @@
+ 		spi-max-frequency = <1000000>;
+ 		spi-cpol;
+ 	};
++
++	spi_nor: flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "winbond,w25q64", "jedec,spi-nor";
++		spi-max-frequency = <80000000>;
++		m25p,fast-read;
++		reg = <0>;
++
++		partition@0 {
++			label = "u-boot-spl";
++			reg = <0x0 0x80000>;
++			read-only;
++		};
++
++		partition@1 {
++			label = "u-boot";
++			reg = <0x80000 0x100000>;
++			read-only;
++		};
++
++		partition@2 {
++			label = "u-boot-env";
++			reg = <0x180000 0x20000>;
++			read-only;
++		};
++
++		partition@3 {
++			label = "misc";
++			reg = <0x1A0000 0x660000>;
++		};
++	};
++
+ };
+ 
+ &tscadc {
+-- 
+2.10.0
