@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 2/7] PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
-Date: Wed, 8 Mar 2017 16:17:12 +0530
-Message-ID: <1488970037-17740-3-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 3/7] PCI: dwc: artpec6: Populate cpu_addr_fixup ops
+Date: Wed, 8 Mar 2017 16:17:13 +0530
+Message-ID: <1488970037-17740-4-git-send-email-kishon@ti.com>
 References: <1488970037-17740-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,52 +18,64 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@axis.com
-Cc: nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Niklas Cassel <niklas.cassel@axis.com>, nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 Populate cpu_addr_fixup ops to extract the least 28 bits of the
 corresponding cpu address.
 
+Cc: Niklas Cassel <niklas.cassel@axis.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/pci/dwc/pcie-artpec6.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 0984baf..07c45ec 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -88,6 +88,11 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
- 	writel(value, pcie->base + offset);
+diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
+index fcd3ef8..5b3b3af 100644
+--- a/drivers/pci/dwc/pcie-artpec6.c
++++ b/drivers/pci/dwc/pcie-artpec6.c
+@@ -78,6 +78,11 @@ static void artpec6_pcie_writel(struct artpec6_pcie *artpec6_pcie, u32 offset, u
+ 	regmap_write(artpec6_pcie->regmap, offset, val);
  }
  
-+static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
++static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
 +{
-+	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
++	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
 +}
 +
- static int dra7xx_pcie_link_up(struct dw_pcie *pci)
+ static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
  {
- 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
-@@ -152,11 +157,6 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
- 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
- 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
+ 	struct dw_pcie *pci = artpec6_pcie->pci;
+@@ -142,11 +147,6 @@ static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
+ 	 */
+ 	dw_pcie_writel_dbi(pci, MISC_CONTROL_1_OFF, DBI_RO_WR_EN);
  
--	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
--	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
--	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
--	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
+-	pp->io_base &= ARTPEC6_CPU_TO_BUS_ADDR;
+-	pp->mem_base &= ARTPEC6_CPU_TO_BUS_ADDR;
+-	pp->cfg0_base &= ARTPEC6_CPU_TO_BUS_ADDR;
+-	pp->cfg1_base &= ARTPEC6_CPU_TO_BUS_ADDR;
 -
+ 	/* setup root complex */
  	dw_pcie_setup_rc(pp);
  
- 	dra7xx_pcie_establish_link(dra7xx);
-@@ -329,6 +329,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+@@ -234,6 +234,10 @@ static int artpec6_add_pcie_port(struct artpec6_pcie *artpec6_pcie,
+ 	return 0;
  }
  
- static const struct dw_pcie_ops dw_pcie_ops = {
-+	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
- 	.link_up = dra7xx_pcie_link_up,
- };
++static const struct dw_pcie_ops dw_pcie_ops = {
++	.cpu_addr_fixup = artpec6_pcie_cpu_addr_fixup,
++};
++
+ static int artpec6_pcie_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -252,6 +256,7 @@ static int artpec6_pcie_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	pci->dev = dev;
++	pci->ops = &dw_pcie_ops;
+ 
+ 	artpec6_pcie->pci = pci;
  
 -- 
 1.7.9.5
