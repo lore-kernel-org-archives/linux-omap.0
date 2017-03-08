@@ -1,11 +1,13 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 0/7] PCI: dwc: miscellaneous fixes and cleanups
-Date: Wed, 8 Mar 2017 16:17:10 +0530
-Message-ID: <1488970037-17740-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 2/7] PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
+Date: Wed, 8 Mar 2017 16:17:12 +0530
+Message-ID: <1488970037-17740-3-git-send-email-kishon@ti.com>
+References: <1488970037-17740-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1488970037-17740-1-git-send-email-kishon@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,56 +21,49 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, l
 Cc: nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This should be the final set of cleanups/fixes before endpoint
-support can be merged.
+Populate cpu_addr_fixup ops to extract the least 28 bits of the
+corresponding cpu address.
 
-Keerthy's patch is a general fix in dra7xx driver and is not
-directly related to endpoint mode.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/pci/dwc/pci-dra7xx.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-This v1 of this series was previously sent with a different
-cover letter $subject [1]
-
-Changes from v2:
-*) Kconfig changes that was spilled into a patch is removed.
-*) In addition to renaming _unroll() to _ob_unroll(), all the
-   _unroll configurations is also moved a separate function.
-
-Changes from v1:
-*) included a patch to rename _unroll() to _ob_unroll() as
-   similar thing has to be done for inbound window in the case
-   of EP mode.
-*) used 'size_t' instead of 'int' for specifying the size
-   in read_dbi/write_dbi function arguments.
-*) Populate cpu_addr_fixup ops for artpec6 as suggested by
-   Niklas
-
-This series is based on 4.11-rc1
-
-[1] -> https://lkml.org/lkml/2017/2/16/270
-
-Keerthy (1):
-  PCI: dwc: dra7xx: Push request_irq call to the bottom of probe
-
-Kishon Vijay Abraham I (6):
-  PCI: dwc: designware: Add new *ops* for cpu addr fixup
-  PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
-  PCI: dwc: artpec6: Populate cpu_addr_fixup ops
-  PCI: dwc: all: Modify dbi accessors to take dbi_base as argument
-  PCI: dwc: all: Modify dbi accessors to access data of 4/2/1  bytes
-  PCI: dwc: designware: Move _unroll configurations to a separate
-    function
-
- drivers/pci/dwc/pci-dra7xx.c           |   35 +++----
- drivers/pci/dwc/pci-exynos.c           |   14 +--
- drivers/pci/dwc/pci-imx6.c             |   62 +++++++------
- drivers/pci/dwc/pci-keystone-dw.c      |   16 ++--
- drivers/pci/dwc/pcie-armada8k.c        |   39 ++++----
- drivers/pci/dwc/pcie-artpec6.c         |   22 +++--
- drivers/pci/dwc/pcie-designware-host.c |   20 ++--
- drivers/pci/dwc/pcie-designware.c      |  156 +++++++++++++++++++++-----------
- drivers/pci/dwc/pcie-designware.h      |   13 ++-
- drivers/pci/dwc/pcie-hisi.c            |   17 ++--
- 10 files changed, 241 insertions(+), 153 deletions(-)
-
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 0984baf..07c45ec 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -88,6 +88,11 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
+ 	writel(value, pcie->base + offset);
+ }
+ 
++static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
++{
++	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
++}
++
+ static int dra7xx_pcie_link_up(struct dw_pcie *pci)
+ {
+ 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
+@@ -152,11 +157,6 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+ 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
+ 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
+ 
+-	pp->io_base &= DRA7XX_CPU_TO_BUS_ADDR;
+-	pp->mem_base &= DRA7XX_CPU_TO_BUS_ADDR;
+-	pp->cfg0_base &= DRA7XX_CPU_TO_BUS_ADDR;
+-	pp->cfg1_base &= DRA7XX_CPU_TO_BUS_ADDR;
+-
+ 	dw_pcie_setup_rc(pp);
+ 
+ 	dra7xx_pcie_establish_link(dra7xx);
+@@ -329,6 +329,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+ }
+ 
+ static const struct dw_pcie_ops dw_pcie_ops = {
++	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
+ 	.link_up = dra7xx_pcie_link_up,
+ };
+ 
 -- 
 1.7.9.5
