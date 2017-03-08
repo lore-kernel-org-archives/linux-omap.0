@@ -1,67 +1,67 @@
-From: Bamvor Zhang Jian <bamvor.zhangjian@linaro.org>
-Subject: Re: [PATCH 01/12] gpio: mockup: use devm_irq_alloc_descs()
-Date: Wed, 8 Mar 2017 09:21:31 +0100
-Message-ID: <CAFy1USQe7Lre08VeY0=+u4YrJFBRZaUmMwYxmk49Mme4ZEjy5A@mail.gmail.com>
-References: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com> <1488644620-11488-2-git-send-email-bgolaszewski@baylibre.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 1/7] PCI: dwc: designware: Add new *ops* for cpu addr fixup
+Date: Wed, 8 Mar 2017 16:17:11 +0530
+Message-ID: <1488970037-17740-2-git-send-email-kishon@ti.com>
+References: <1488970037-17740-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1488644620-11488-2-git-send-email-bgolaszewski@baylibre.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>, linux-gpio@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1488970037-17740-1-git-send-email-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-arm-kernel@axis.com
+Cc: nsekhar@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 4 March 2017 at 17:23, Bartosz Golaszewski <bgolaszewski@baylibre.com> wrote:
-> Use the resource managed variant of irq_alloc_descs(). This allows us
-> to remove gpio_mockup_remove().
->
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Reviewed-by: Bamvor Jian Zhang <bamvor.zhangjian@linaro.org>
+Some platforms (like dra7xx) require only the least 28 bits of the
+corresponding 32 bit CPU address to be programmed in the address
+translation unit. This modified address is stored in io_base/mem_base/
+cfg0_base/cfg1_base in dra7xx_pcie_host_init. While this is okay for
+host mode where the address range is fixed, device mode requires
+different addresses to be programmed based on the host buffer address.
+Add a new ops to get the least 28 bits of the corresponding 32 bit
+CPU address and invoke it before programming the address translation
+unit.
 
-> ---
->  drivers/gpio/gpio-mockup.c | 16 +---------------
->  1 file changed, 1 insertion(+), 15 deletions(-)
->
-> diff --git a/drivers/gpio/gpio-mockup.c b/drivers/gpio/gpio-mockup.c
-> index 06dac72..37c2d69 100644
-> --- a/drivers/gpio/gpio-mockup.c
-> +++ b/drivers/gpio/gpio-mockup.c
-> @@ -169,7 +169,7 @@ static int gpio_mockup_irqchip_setup(struct device *dev,
->         struct gpio_chip *gc = &chip->gc;
->         int irq_base, i;
->
-> -       irq_base = irq_alloc_descs(-1, 0, gc->ngpio, 0);
-> +       irq_base = devm_irq_alloc_descs(dev, -1, 0, gc->ngpio, 0);
->         if (irq_base < 0)
->                 return irq_base;
->
-> @@ -373,25 +373,11 @@ static int gpio_mockup_probe(struct platform_device *pdev)
->         return 0;
->  }
->
-> -static int gpio_mockup_remove(struct platform_device *pdev)
-> -{
-> -       struct gpio_mockup_chip *chips;
-> -       int i;
-> -
-> -       chips = platform_get_drvdata(pdev);
-> -
-> -       for (i = 0; i < gpio_mockup_params_nr >> 1; i++)
-> -               irq_free_descs(chips[i].gc.irq_base, chips[i].gc.ngpio);
-> -
-> -       return 0;
-> -}
-> -
->  static struct platform_driver gpio_mockup_driver = {
->         .driver = {
->                 .name = GPIO_MOCKUP_NAME,
->         },
->         .probe = gpio_mockup_probe,
-> -       .remove = gpio_mockup_remove,
->  };
->
->  static struct platform_device *pdev;
-> --
-> 2.9.3
->
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/pci/dwc/pcie-designware.c |    3 +++
+ drivers/pci/dwc/pcie-designware.h |    1 +
+ 2 files changed, 4 insertions(+)
+
+diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
+index 7e1fb7d..14ee7a3 100644
+--- a/drivers/pci/dwc/pcie-designware.c
++++ b/drivers/pci/dwc/pcie-designware.c
+@@ -97,6 +97,9 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
+ {
+ 	u32 retries, val;
+ 
++	if (pp->ops->cpu_addr_fixup)
++		cpu_addr = pp->ops->cpu_addr_fixup(cpu_addr);
++
+ 	if (pci->iatu_unroll_enabled) {
+ 		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_LOWER_BASE,
+ 				      lower_32_bits(cpu_addr));
+diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+index cd3b871..8f3dcb2 100644
+--- a/drivers/pci/dwc/pcie-designware.h
++++ b/drivers/pci/dwc/pcie-designware.h
+@@ -143,6 +143,7 @@ struct pcie_port {
+ };
+ 
+ struct dw_pcie_ops {
++	u64	(*cpu_addr_fixup)(u64 cpu_addr);
+ 	u32	(*readl_dbi)(struct dw_pcie *pcie, u32 reg);
+ 	void	(*writel_dbi)(struct dw_pcie *pcie, u32 reg, u32 val);
+ 	int	(*link_up)(struct dw_pcie *pcie);
+-- 
+1.7.9.5
