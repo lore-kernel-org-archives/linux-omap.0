@@ -1,223 +1,114 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 21/23] Documentation: PCI: Add userguide for PCI endpoint test function
-Date: Thu, 9 Mar 2017 13:27:32 +0530
-Message-ID: <1489046254-19919-22-git-send-email-kishon@ti.com>
-References: <1489046254-19919-1-git-send-email-kishon@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v2 1/8] arm: dts: omap3: Add cpu_thermal zone
+Date: Thu, 9 Mar 2017 13:35:55 +0530
+Message-ID: <1489046762-11288-2-git-send-email-j-keerthy@ti.com>
+References: <1489046762-11288-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1489046254-19919-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1489046762-11288-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: tony@atomide.com, edubezval@gmail.com
+Cc: rui.zhang@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add documentation to help users use pci-epf-test function driver
-and pci_endpoint_test host driver for testing PCI.
+Add cpu_thermal zone.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- Documentation/PCI/00-INDEX                    |    2 +
- Documentation/PCI/endpoint/pci-test-howto.txt |  179 +++++++++++++++++++++++++
- 2 files changed, 181 insertions(+)
- create mode 100644 Documentation/PCI/endpoint/pci-test-howto.txt
+ arch/arm/boot/dts/omap3-cpu-thermal.dtsi | 20 ++++++++++++++++++++
+ arch/arm/boot/dts/omap34xx.dtsi          |  8 ++++++--
+ arch/arm/boot/dts/omap36xx.dtsi          |  8 ++++++--
+ 3 files changed, 32 insertions(+), 4 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-cpu-thermal.dtsi
 
-diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-index 53717b7..fd533c7 100644
---- a/Documentation/PCI/00-INDEX
-+++ b/Documentation/PCI/00-INDEX
-@@ -18,5 +18,7 @@ endpoint/pci-endpoint-cfs.txt
- 	- guide to use configfs to configure the pci endpoint function.
- endpoint/pci-test-function.txt
- 	- specification of *pci test* function device.
-+endpoint/pci-test-howto.txt
-+	- userguide for PCI endpoint test function.
- endpoint/function/binding/
- 	- binding documentation for pci endpoint function
-diff --git a/Documentation/PCI/endpoint/pci-test-howto.txt b/Documentation/PCI/endpoint/pci-test-howto.txt
+diff --git a/arch/arm/boot/dts/omap3-cpu-thermal.dtsi b/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
 new file mode 100644
-index 0000000..730b70c
+index 0000000..8dc3aa5
 --- /dev/null
-+++ b/Documentation/PCI/endpoint/pci-test-howto.txt
-@@ -0,0 +1,179 @@
-+			    PCI TEST USERGUIDE
-+		    Kishon Vijay Abraham I <kishon@ti.com>
++++ b/arch/arm/boot/dts/omap3-cpu-thermal.dtsi
+@@ -0,0 +1,20 @@
++/*
++ * Device Tree Source for OMAP3 SoC CPU thermal
++ *
++ * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
 +
-+This document is a guide to help users use pci-epf-test function driver
-+and pci_endpoint_test host driver for testing PCI. The list of steps to
-+be followed in the host side and EP side is given below.
++#include <dt-bindings/thermal/thermal.h>
 +
-+1. Endpoint Device
++cpu_thermal: cpu_thermal {
++	polling-delay-passive = <250>; /* milliseconds */
++	polling-delay = <1000>; /* milliseconds */
++	coefficients = <0 20000>;
 +
-+1.1 Endpoint Controller Devices
++			/* sensor       ID */
++	thermal-sensors = <&bandgap     0>;
++};
+diff --git a/arch/arm/boot/dts/omap34xx.dtsi b/arch/arm/boot/dts/omap34xx.dtsi
+index 834fdf1..ac4f879 100644
+--- a/arch/arm/boot/dts/omap34xx.dtsi
++++ b/arch/arm/boot/dts/omap34xx.dtsi
+@@ -14,7 +14,7 @@
+ 
+ / {
+ 	cpus {
+-		cpu@0 {
++		cpu: cpu@0 {
+ 			/* OMAP343x/OMAP35xx variants OPP1-5 */
+ 			operating-points = <
+ 				/* kHz    uV */
+@@ -56,12 +56,16 @@
+ 			};
+ 		};
+ 
+-		bandgap@48002524 {
++		bandgap: bandgap@48002524 {
+ 			reg = <0x48002524 0x4>;
+ 			compatible = "ti,omap34xx-bandgap";
+ 			#thermal-sensor-cells = <0>;
+ 		};
+ 	};
 +
-+To find the list of endpoint controller devices in the system:
++	thermal_zones: thermal-zones {
++		#include "omap3-cpu-thermal.dtsi"
++	};
+ };
+ 
+ &ssi {
+diff --git a/arch/arm/boot/dts/omap36xx.dtsi b/arch/arm/boot/dts/omap36xx.dtsi
+index d1a3e56..ade31d7 100644
+--- a/arch/arm/boot/dts/omap36xx.dtsi
++++ b/arch/arm/boot/dts/omap36xx.dtsi
+@@ -19,7 +19,7 @@
+ 
+ 	cpus {
+ 		/* OMAP3630/OMAP37xx 'standard device' variants OPP50 to OPP130 */
+-		cpu@0 {
++		cpu: cpu@0 {
+ 			operating-points = <
+ 				/* kHz    uV */
+ 				300000  1012500
+@@ -88,12 +88,16 @@
+ 			};
+ 		};
+ 
+-		bandgap@48002524 {
++		bandgap: bandgap@48002524 {
+ 			reg = <0x48002524 0x4>;
+ 			compatible = "ti,omap36xx-bandgap";
+ 			#thermal-sensor-cells = <0>;
+ 		};
+ 	};
 +
-+	# ls /sys/class/pci_epc/
-+	  51000000.pcie_ep
-+
-+If PCI_ENDPOINT_CONFIGFS is enabled
-+	# ls /sys/kernel/config/pci_ep/controllers
-+	  51000000.pcie_ep
-+
-+1.2 Endpoint Function Drivers
-+
-+To find the list of endpoint function drivers in the system:
-+
-+	# ls /sys/bus/pci-epf/drivers
-+	  pci_epf_test
-+
-+If PCI_ENDPOINT_CONFIGFS is enabled
-+	# ls /sys/kernel/config/pci_ep/functions
-+	  pci_epf_test
-+
-+1.3 Creating pci-epf-test Device
-+
-+PCI endpoint function device can be created using the configfs. To create
-+pci-epf-test device, the following commands can be used
-+
-+	# mount -t configfs none /sys/kernel/config
-+	# cd /sys/kernel/config/pci_ep/
-+	# mkdir functions/pci_epf_test/func1
-+
-+The "mkdir func1" above creates the pci-epf-test function device that will
-+be probed by pci_epf_test driver.
-+
-+The PCI endpoint framework populates the directory with the following
-+configurable fields.
-+
-+	# ls functions/pci_epf_test/func1
-+	  baseclass_code	interrupt_pin	revid		subsys_vendor_id
-+	  cache_line_size	msi_interrupts	subclass_code	vendorid
-+	  deviceid          	progif_code	subsys_id
-+
-+The pci endpoint function driver populates these entries with default values
-+when the device is bound to the driver. The pci-epf-test driver populates
-+vendorid with 0xffff and interrupt_pin with 0x0001
-+
-+	# cat functions/pci_epf_test/func1/vendorid
-+	  0xffff
-+	# cat functions/pci_epf_test/func1/interrupt_pin
-+	  0x0001
-+
-+1.4 Configuring pci-epf-test Device
-+
-+The user can configure the pci-epf-test device using configfs entry. In order
-+to change the vendorid and the number of MSI interrupts used by the function
-+device, the following commands can be used.
-+
-+	# echo 0x104c > functions/pci_epf_test/func1/vendorid
-+	# echo 0xb500 > functions/pci_epf_test/func1/deviceid
-+	# echo 16 > functions/pci_epf_test/func1/msi_interrupts
-+
-+1.5 Binding pci-epf-test Device to EP Controller
-+
-+In order for the endpoint function device to be useful, it has to be bound to
-+a PCI endpoint controller driver. Use the configfs to bind the function
-+device to one of the controller driver present in the system.
-+
-+	# ln -s functions/pci_epf_test/func1 controllers/51000000.pcie_ep/
-+
-+Once the above step is completed, the PCI endpoint is ready to establish a link
-+with the host.
-+
-+1.6 Start the Link
-+
-+In order for the endpoint device to establish a link with the host, the _start_
-+field should be populated with '1'.
-+
-+	# echo 1 > controllers/51000000.pcie_ep/start
-+
-+2. RootComplex Device
-+
-+2.1 lspci Output
-+
-+Note that the devices listed here correspond to the value populated in 1.4 above
-+
-+	00:00.0 PCI bridge: Texas Instruments Device 8888 (rev 01)
-+	01:00.0 Unassigned class [ff00]: Texas Instruments Device b500
-+
-+2.2 Using Endpoint Test function Device
-+
-+pcitest.sh added in tools/pci/ can be used to run all the default PCI endpoint
-+tests. Before pcitest.sh can be used pcitest.c should be compiled using the
-+following commands.
-+
-+	cd <kernel-dir>
-+	make headers_install ARCH=arm
-+	arm-linux-gnueabihf-gcc -Iusr/include tools/pci/pcitest.c -o pcitest
-+	cp pcitest  <rootfs>/usr/sbin/
-+	cp tools/pci/pcitest.sh <rootfs>
-+
-+2.2.1 pcitest.sh Output
-+	# ./pcitest.sh
-+	BAR tests
-+
-+	BAR0:           OKAY
-+	BAR1:           OKAY
-+	BAR2:           OKAY
-+	BAR3:           OKAY
-+	BAR4:           NOT OKAY
-+	BAR5:           NOT OKAY
-+
-+	Interrupt tests
-+
-+	LEGACY IRQ:     NOT OKAY
-+	MSI1:           OKAY
-+	MSI2:           OKAY
-+	MSI3:           OKAY
-+	MSI4:           OKAY
-+	MSI5:           OKAY
-+	MSI6:           OKAY
-+	MSI7:           OKAY
-+	MSI8:           OKAY
-+	MSI9:           OKAY
-+	MSI10:          OKAY
-+	MSI11:          OKAY
-+	MSI12:          OKAY
-+	MSI13:          OKAY
-+	MSI14:          OKAY
-+	MSI15:          OKAY
-+	MSI16:          OKAY
-+	MSI17:          NOT OKAY
-+	MSI18:          NOT OKAY
-+	MSI19:          NOT OKAY
-+	MSI20:          NOT OKAY
-+	MSI21:          NOT OKAY
-+	MSI22:          NOT OKAY
-+	MSI23:          NOT OKAY
-+	MSI24:          NOT OKAY
-+	MSI25:          NOT OKAY
-+	MSI26:          NOT OKAY
-+	MSI27:          NOT OKAY
-+	MSI28:          NOT OKAY
-+	MSI29:          NOT OKAY
-+	MSI30:          NOT OKAY
-+	MSI31:          NOT OKAY
-+	MSI32:          NOT OKAY
-+
-+	Read Tests
-+
-+	READ (      1 bytes):           OKAY
-+	READ (   1024 bytes):           OKAY
-+	READ (   1025 bytes):           OKAY
-+	READ (1024000 bytes):           OKAY
-+	READ (1024001 bytes):           OKAY
-+
-+	Write Tests
-+
-+	WRITE (      1 bytes):          OKAY
-+	WRITE (   1024 bytes):          OKAY
-+	WRITE (   1025 bytes):          OKAY
-+	WRITE (1024000 bytes):          OKAY
-+	WRITE (1024001 bytes):          OKAY
-+
-+	Copy Tests
-+
-+	COPY (      1 bytes):           OKAY
-+	COPY (   1024 bytes):           OKAY
-+	COPY (   1025 bytes):           OKAY
-+	COPY (1024000 bytes):           OKAY
-+	COPY (1024001 bytes):           OKAY
++	thermal_zones: thermal-zones {
++		#include "omap3-cpu-thermal.dtsi"
++	};
+ };
+ 
+ /* OMAP3630 needs dss_96m_fck for VENC */
 -- 
-1.7.9.5
+1.9.1
