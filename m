@@ -1,40 +1,46 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 23/23] ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP
-Date: Thu, 9 Mar 2017 13:27:34 +0530
-Message-ID: <1489046254-19919-24-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 16/23] PCI: Add device IDs for DRA74x and DRA72x
+Date: Thu, 9 Mar 2017 13:27:27 +0530
+Message-ID: <1489046254-19919-17-git-send-email-kishon@ti.com>
 References: <1489046254-19919-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1489046254-19919-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The PCIe programming sequence in TRM suggests CLKSTCTRL of PCIe should
-be set to SW_WKUP. There are no issues when CLKSTCTRL is set to HW_AUTO
-in RC mode. However in EP mode, the host system is not able to access the
-MEMSPACE and setting the CLKSTCTRL to SW_WKUP fixes it.
+Add device IDs for DRA74x and DRA72x devices. These devices have
+configurable PCI endpoint.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/mach-omap2/clockdomains7xx_data.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pci_ids.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
-index 6c67965..67ebff8 100644
---- a/arch/arm/mach-omap2/clockdomains7xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
-@@ -524,7 +524,7 @@
- 	.dep_bit	  = DRA7XX_PCIE_STATDEP_SHIFT,
- 	.wkdep_srcs	  = pcie_wkup_sleep_deps,
- 	.sleepdep_srcs	  = pcie_wkup_sleep_deps,
--	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
-+	.flags		  = CLKDM_CAN_SWSUP,
- };
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index a4f77fe..5f6b71d 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -862,6 +862,8 @@
+ #define PCI_DEVICE_ID_TI_X620		0xac8d
+ #define PCI_DEVICE_ID_TI_X420		0xac8e
+ #define PCI_DEVICE_ID_TI_XX20_FM	0xac8f
++#define PCI_DEVICE_ID_TI_DRA74x		0xb500
++#define PCI_DEVICE_ID_TI_DRA72x		0xb501
  
- static struct clockdomain atl_7xx_clkdm = {
+ #define PCI_VENDOR_ID_SONY		0x104d
+ 
 -- 
 1.7.9.5
