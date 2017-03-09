@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RESEND PATCH v3 7/7] PCI: dwc: dra7xx: Push request_irq call to the bottom of probe
-Date: Thu, 9 Mar 2017 12:09:05 +0530
-Message-ID: <1489041545-15730-8-git-send-email-kishon@ti.com>
+Subject: [RESEND PATCH v3 3/7] PCI: dwc: artpec6: Populate cpu_addr_fixup ops
+Date: Thu, 9 Mar 2017 12:09:01 +0530
+Message-ID: <1489041545-15730-4-git-send-email-kishon@ti.com>
 References: <1489041545-15730-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,55 +9,65 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1489041545-15730-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: nsekhar@ti.com, kishon@ti.com, Keerthy <j-keerthy@ti.com>
+Cc: nsekhar@ti.com, kishon@ti.com, Niklas Cassel <niklas.cassel@axis.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Keerthy <j-keerthy@ti.com>
+Populate cpu_addr_fixup ops to extract the least 28 bits of the
+corresponding cpu address.
 
-Currently devm_request_irq is being called before base, pci fields
-of dra7xx_pcie structure are populated. It is called even before
-pm_runtime_enable and pm_runtime_get_sync are called. This will
-lead to exceptions if in case an interrupt is triggered before
-the all of the above are done. Hence push the devm_request_irq
-call to the end of the probe.
-
-Signed-off-by: Keerthy <j-keerthy@ti.com>
+Cc: Niklas Cassel <niklas.cassel@axis.com>
+Acked-by: Joao Pinto <jpinto@synopsys.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/pci/dwc/pcie-artpec6.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index c6fef0a..8c53233 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -410,13 +410,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
+diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
+index fcd3ef8..5b3b3af 100644
+--- a/drivers/pci/dwc/pcie-artpec6.c
++++ b/drivers/pci/dwc/pcie-artpec6.c
+@@ -78,6 +78,11 @@ static void artpec6_pcie_writel(struct artpec6_pcie *artpec6_pcie, u32 offset, u
+ 	regmap_write(artpec6_pcie->regmap, offset, val);
+ }
  
--	ret = devm_request_irq(dev, irq, dra7xx_pcie_irq_handler,
--			       IRQF_SHARED, "dra7xx-pcie-main", dra7xx);
--	if (ret) {
--		dev_err(dev, "failed to request irq\n");
--		return ret;
--	}
--
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
- 	base = devm_ioremap_nocache(dev, res->start, resource_size(res));
- 	if (!base)
-@@ -478,6 +471,13 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto err_gpio;
- 
-+	ret = devm_request_irq(dev, irq, dra7xx_pcie_irq_handler,
-+			       IRQF_SHARED, "dra7xx-pcie-main", dra7xx);
-+	if (ret) {
-+		dev_err(dev, "failed to request irq\n");
-+		goto err_gpio;
-+	}
++static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
++{
++	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
++}
 +
- 	return 0;
+ static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
+ {
+ 	struct dw_pcie *pci = artpec6_pcie->pci;
+@@ -142,11 +147,6 @@ static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
+ 	 */
+ 	dw_pcie_writel_dbi(pci, MISC_CONTROL_1_OFF, DBI_RO_WR_EN);
  
- err_gpio:
+-	pp->io_base &= ARTPEC6_CPU_TO_BUS_ADDR;
+-	pp->mem_base &= ARTPEC6_CPU_TO_BUS_ADDR;
+-	pp->cfg0_base &= ARTPEC6_CPU_TO_BUS_ADDR;
+-	pp->cfg1_base &= ARTPEC6_CPU_TO_BUS_ADDR;
+-
+ 	/* setup root complex */
+ 	dw_pcie_setup_rc(pp);
+ 
+@@ -234,6 +234,10 @@ static int artpec6_add_pcie_port(struct artpec6_pcie *artpec6_pcie,
+ 	return 0;
+ }
+ 
++static const struct dw_pcie_ops dw_pcie_ops = {
++	.cpu_addr_fixup = artpec6_pcie_cpu_addr_fixup,
++};
++
+ static int artpec6_pcie_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -252,6 +256,7 @@ static int artpec6_pcie_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	pci->dev = dev;
++	pci->ops = &dw_pcie_ops;
+ 
+ 	artpec6_pcie->pci = pci;
+ 
 -- 
 1.7.9.5
