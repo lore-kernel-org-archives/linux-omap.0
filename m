@@ -1,190 +1,626 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RESEND PATCH v3 6/7] PCI: dwc: designware: Move _unroll
- configurations to a separate function
-Date: Thu, 9 Mar 2017 12:09:04 +0530
-Message-ID: <1489041545-15730-7-git-send-email-kishon@ti.com>
-References: <1489041545-15730-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 03/23] PCI: endpoint: Introduce configfs entry for configuring EP functions
+Date: Thu, 9 Mar 2017 13:27:14 +0530
+Message-ID: <1489046254-19919-4-git-send-email-kishon@ti.com>
+References: <1489046254-19919-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1489041545-15730-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: nsekhar@ti.com, kishon@ti.com
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489046254-19919-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Rename dw_pcie_writel_unroll/dw_pcie_readl_unroll
-to dw_pcie_writel_ob_unroll/dw_pcie_readl_ob_unroll respectively as these
-functions are used to perform only outbound configurations. Also move
-these _unroll configurations to a separate function.
+Introduce a new configfs entry to configure the EP function (like
+configuring the standard configuration header entries) and to
+bind the EP function with EP controller.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/pci/dwc/pcie-designware.c |  112 ++++++++++++++++++++++---------------
- 1 file changed, 67 insertions(+), 45 deletions(-)
+ drivers/pci/endpoint/Kconfig      |    9 +
+ drivers/pci/endpoint/Makefile     |    1 +
+ drivers/pci/endpoint/pci-ep-cfs.c |  509 +++++++++++++++++++++++++++++++++++++
+ include/linux/pci-ep-cfs.h        |   41 +++
+ 4 files changed, 560 insertions(+)
+ create mode 100644 drivers/pci/endpoint/pci-ep-cfs.c
+ create mode 100644 include/linux/pci-ep-cfs.h
 
-diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-index 557ee53..6657a84 100644
---- a/drivers/pci/dwc/pcie-designware.c
-+++ b/drivers/pci/dwc/pcie-designware.c
-@@ -92,22 +92,64 @@ void dw_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
- 		dev_err(pci->dev, "write DBI address failed\n");
- }
+diff --git a/drivers/pci/endpoint/Kconfig b/drivers/pci/endpoint/Kconfig
+index a5442ac..c86bca9 100644
+--- a/drivers/pci/endpoint/Kconfig
++++ b/drivers/pci/endpoint/Kconfig
+@@ -17,4 +17,13 @@ config PCI_ENDPOINT
  
--static u32 dw_pcie_readl_unroll(struct dw_pcie *pci, void __iomem *base,
--				u32 index, u32 reg)
-+static u32 dw_pcie_readl_ob_unroll(struct dw_pcie *pci, void __iomem *base,
-+				   u32 index, u32 reg)
- {
- 	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
+ 	   If in doubt, say "N" to disable Endpoint support.
  
- 	return dw_pcie_read_dbi(pci, base, offset + reg, 0x4);
- }
++config PCI_ENDPOINT_CONFIGFS
++	bool "PCI Endpoint Configfs Support"
++	depends on PCI_ENDPOINT
++	select CONFIGFS_FS
++	help
++	   This will enable the configfs entry that can be used to
++	   configure the endpoint function and used to bind the
++	   function with a endpoint controller.
++
+ endmenu
+diff --git a/drivers/pci/endpoint/Makefile b/drivers/pci/endpoint/Makefile
+index dc1bc16..7219d51 100644
+--- a/drivers/pci/endpoint/Makefile
++++ b/drivers/pci/endpoint/Makefile
+@@ -2,5 +2,6 @@
+ # Makefile for PCI Endpoint Support
+ #
  
--static void dw_pcie_writel_unroll(struct dw_pcie *pci, void __iomem *base,
--				  u32 index, u32 reg, u32 val)
-+static void dw_pcie_writel_ob_unroll(struct dw_pcie *pci, void __iomem *base,
-+				     u32 index, u32 reg, u32 val)
- {
- 	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
- 
- 	dw_pcie_write_dbi(pci, base, offset + reg, 0x4, val);
- }
- 
-+void dw_pcie_prog_outbound_atu_unroll(struct dw_pcie *pci, int index, int type,
-+				      u64 cpu_addr, u64 pci_addr, u32 size)
++obj-$(CONFIG_PCI_ENDPOINT_CONFIGFS)	+= pci-ep-cfs.o
+ obj-$(CONFIG_PCI_ENDPOINT)		+= pci-epc-core.o pci-epf-core.o\
+ 					   pci-epc-mem.o
+diff --git a/drivers/pci/endpoint/pci-ep-cfs.c b/drivers/pci/endpoint/pci-ep-cfs.c
+new file mode 100644
+index 0000000..424fdd6
+--- /dev/null
++++ b/drivers/pci/endpoint/pci-ep-cfs.c
+@@ -0,0 +1,509 @@
++/**
++ * configfs to configure the PCI endpoint
++ *
++ * Copyright (C) 2017 Texas Instruments
++ * Author: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 of
++ * the License as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/slab.h>
++
++#include <linux/pci-epc.h>
++#include <linux/pci-epf.h>
++#include <linux/pci-ep-cfs.h>
++
++static struct config_group *functions_group;
++static struct config_group *controllers_group;
++
++struct pci_epf_group {
++	struct config_group group;
++	struct pci_epf *epf;
++};
++
++struct pci_epc_group {
++	struct config_group group;
++	struct pci_epc *epc;
++	bool start;
++	unsigned long function_num_map;
++};
++
++static inline struct pci_epf_group *to_pci_epf_group(struct config_item *item)
 +{
-+	u32 retries, val;
-+	void __iomem *base = pci->dbi_base;
-+
-+	dw_pcie_writel_ob_unroll(pci, base, index,
-+				 PCIE_ATU_UNR_LOWER_BASE,
-+				 lower_32_bits(cpu_addr));
-+	dw_pcie_writel_ob_unroll(pci, base, index,
-+				 PCIE_ATU_UNR_UPPER_BASE,
-+				 upper_32_bits(cpu_addr));
-+	dw_pcie_writel_ob_unroll(pci, base, index, PCIE_ATU_UNR_LIMIT,
-+				 lower_32_bits(cpu_addr + size - 1));
-+	dw_pcie_writel_ob_unroll(pci, base, index,
-+				 PCIE_ATU_UNR_LOWER_TARGET,
-+				 lower_32_bits(pci_addr));
-+	dw_pcie_writel_ob_unroll(pci, base, index,
-+				 PCIE_ATU_UNR_UPPER_TARGET,
-+				 upper_32_bits(pci_addr));
-+	dw_pcie_writel_ob_unroll(pci, base, index,
-+				 PCIE_ATU_UNR_REGION_CTRL1,
-+				 type);
-+	dw_pcie_writel_ob_unroll(pci, base, index,
-+				 PCIE_ATU_UNR_REGION_CTRL2,
-+				 PCIE_ATU_ENABLE);
-+
-+	/*
-+	 * Make sure ATU enable takes effect before any subsequent config
-+	 * and I/O accesses.
-+	 */
-+	for (retries = 0; retries < LINK_WAIT_MAX_IATU_RETRIES; retries++) {
-+		val = dw_pcie_readl_ob_unroll(pci, base, index,
-+					      PCIE_ATU_UNR_REGION_CTRL2);
-+		if (val & PCIE_ATU_ENABLE)
-+			return;
-+
-+		usleep_range(LINK_WAIT_IATU_MIN, LINK_WAIT_IATU_MAX);
-+	}
-+	dev_err(pci->dev, "outbound iATU is not being enabled\n");
++	return container_of(to_config_group(item), struct pci_epf_group, group);
 +}
 +
- void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
- 			       u64 cpu_addr, u64 pci_addr, u32 size)
- {
-@@ -118,59 +160,39 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
- 		cpu_addr = pci->ops->cpu_addr_fixup(cpu_addr);
- 
- 	if (pci->iatu_unroll_enabled) {
--		dw_pcie_writel_unroll(pci, base, index, PCIE_ATU_UNR_LOWER_BASE,
--				      lower_32_bits(cpu_addr));
--		dw_pcie_writel_unroll(pci, base, index, PCIE_ATU_UNR_UPPER_BASE,
--				      upper_32_bits(cpu_addr));
--		dw_pcie_writel_unroll(pci, base, index, PCIE_ATU_UNR_LIMIT,
--				      lower_32_bits(cpu_addr + size - 1));
--		dw_pcie_writel_unroll(pci, base, index,
--				      PCIE_ATU_UNR_LOWER_TARGET,
--				      lower_32_bits(pci_addr));
--		dw_pcie_writel_unroll(pci, base, index,
--				      PCIE_ATU_UNR_UPPER_TARGET,
--				      upper_32_bits(pci_addr));
--		dw_pcie_writel_unroll(pci, base, index,
--				      PCIE_ATU_UNR_REGION_CTRL1,
--				      type);
--		dw_pcie_writel_unroll(pci, base, index,
--				      PCIE_ATU_UNR_REGION_CTRL2,
--				      PCIE_ATU_ENABLE);
--	} else {
--		dw_pcie_write_dbi(pci, base, PCIE_ATU_VIEWPORT, 0x4,
--				  PCIE_ATU_REGION_OUTBOUND | index);
--		dw_pcie_write_dbi(pci, base, PCIE_ATU_LOWER_BASE, 0x4,
--				  lower_32_bits(cpu_addr));
--		dw_pcie_write_dbi(pci, base, PCIE_ATU_UPPER_BASE, 0x4,
--				  upper_32_bits(cpu_addr));
--		dw_pcie_write_dbi(pci, base, PCIE_ATU_LIMIT, 0x4,
--				  lower_32_bits(cpu_addr + size - 1));
--		dw_pcie_write_dbi(pci, base, PCIE_ATU_LOWER_TARGET, 0x4,
--				  lower_32_bits(pci_addr));
--		dw_pcie_write_dbi(pci, base, PCIE_ATU_UPPER_TARGET, 0x4,
--				  upper_32_bits(pci_addr));
--		dw_pcie_write_dbi(pci, base, PCIE_ATU_CR1, 0x4, type);
--		dw_pcie_write_dbi(pci, base, PCIE_ATU_CR2, 0x4,
--				  PCIE_ATU_ENABLE);
-+		dw_pcie_prog_outbound_atu_unroll(pci, index, type, cpu_addr,
-+						 pci_addr, size);
-+		return;
- 	}
- 
-+	dw_pcie_write_dbi(pci, base, PCIE_ATU_VIEWPORT, 0x4,
-+			  PCIE_ATU_REGION_OUTBOUND | index);
-+	dw_pcie_write_dbi(pci, base, PCIE_ATU_LOWER_BASE, 0x4,
-+			  lower_32_bits(cpu_addr));
-+	dw_pcie_write_dbi(pci, base, PCIE_ATU_UPPER_BASE, 0x4,
-+			  upper_32_bits(cpu_addr));
-+	dw_pcie_write_dbi(pci, base, PCIE_ATU_LIMIT, 0x4,
-+			  lower_32_bits(cpu_addr + size - 1));
-+	dw_pcie_write_dbi(pci, base, PCIE_ATU_LOWER_TARGET, 0x4,
-+			  lower_32_bits(pci_addr));
-+	dw_pcie_write_dbi(pci, base, PCIE_ATU_UPPER_TARGET, 0x4,
-+			  upper_32_bits(pci_addr));
-+	dw_pcie_write_dbi(pci, base, PCIE_ATU_CR1, 0x4, type);
-+	dw_pcie_write_dbi(pci, base, PCIE_ATU_CR2, 0x4,
-+			  PCIE_ATU_ENABLE);
++static inline struct pci_epc_group *to_pci_epc_group(struct config_item *item)
++{
++	return container_of(to_config_group(item), struct pci_epc_group, group);
++}
 +
- 	/*
- 	 * Make sure ATU enable takes effect before any subsequent config
- 	 * and I/O accesses.
- 	 */
- 	for (retries = 0; retries < LINK_WAIT_MAX_IATU_RETRIES; retries++) {
--		if (pci->iatu_unroll_enabled)
--			val = dw_pcie_readl_unroll(pci, base, index,
--						   PCIE_ATU_UNR_REGION_CTRL2);
--		else
--			val = dw_pcie_read_dbi(pci, base, PCIE_ATU_CR2, 0x4);
--
-+		val = dw_pcie_read_dbi(pci, base, PCIE_ATU_CR2, 0x4);
- 		if (val == PCIE_ATU_ENABLE)
- 			return;
- 
- 		usleep_range(LINK_WAIT_IATU_MIN, LINK_WAIT_IATU_MAX);
- 	}
--	dev_err(pci->dev, "iATU is not being enabled\n");
-+	dev_err(pci->dev, "outbound iATU is not being enabled\n");
- }
- 
- int dw_pcie_wait_for_link(struct dw_pcie *pci)
++static ssize_t pci_epc_start_store(struct config_item *item, const char *page,
++				   size_t len)
++{
++	int ret;
++	bool start;
++	struct pci_epc *epc;
++	struct pci_epc_group *epc_group = to_pci_epc_group(item);
++
++	epc = epc_group->epc;
++
++	ret = kstrtobool(page, &start);
++	if (ret)
++		return ret;
++
++	if (!start) {
++		pci_epc_stop(epc);
++		return len;
++	}
++
++	ret = pci_epc_start(epc);
++	if (ret) {
++		dev_err(&epc->dev, "failed to start endpoint controller\n");
++		return -EINVAL;
++	}
++
++	epc_group->start = start;
++
++	return len;
++}
++
++static ssize_t pci_epc_start_show(struct config_item *item, char *page)
++{
++	return sprintf(page, "%d\n",
++		       to_pci_epc_group(item)->start);
++}
++
++CONFIGFS_ATTR(pci_epc_, start);
++
++static struct configfs_attribute *pci_epc_attrs[] = {
++	&pci_epc_attr_start,
++	NULL,
++};
++
++static int pci_epc_epf_link(struct config_item *epc_item,
++			    struct config_item *epf_item)
++{
++	int ret;
++	u32 func_no = 0;
++	struct pci_epc *epc;
++	struct pci_epf *epf;
++	struct pci_epf_group *epf_group = to_pci_epf_group(epf_item);
++	struct pci_epc_group *epc_group = to_pci_epc_group(epc_item);
++
++	epc = epc_group->epc;
++	epf = epf_group->epf;
++	ret = pci_epc_add_epf(epc, epf);
++	if (ret)
++		goto err_add_epf;
++
++	func_no = find_first_zero_bit(&epc_group->function_num_map,
++				      sizeof(epc_group->function_num_map));
++	set_bit(func_no, &epc_group->function_num_map);
++	epf->func_no = func_no;
++
++	ret = pci_epf_bind(epf);
++	if (ret)
++		goto err_epf_bind;
++
++	return 0;
++
++err_epf_bind:
++	pci_epc_remove_epf(epc, epf);
++
++err_add_epf:
++	clear_bit(func_no, &epc_group->function_num_map);
++
++	return ret;
++}
++
++static void pci_epc_epf_unlink(struct config_item *epc_item,
++			       struct config_item *epf_item)
++{
++	struct pci_epc *epc;
++	struct pci_epf *epf;
++	struct pci_epf_group *epf_group = to_pci_epf_group(epf_item);
++	struct pci_epc_group *epc_group = to_pci_epc_group(epc_item);
++
++	WARN_ON_ONCE(epc_group->start);
++
++	epc = epc_group->epc;
++	epf = epf_group->epf;
++	clear_bit(epf->func_no, &epc_group->function_num_map);
++	pci_epf_unbind(epf);
++	pci_epc_remove_epf(epc, epf);
++}
++
++static struct configfs_item_operations pci_epc_item_ops = {
++	.allow_link	= pci_epc_epf_link,
++	.drop_link	= pci_epc_epf_unlink,
++};
++
++static struct config_item_type pci_epc_type = {
++	.ct_item_ops	= &pci_epc_item_ops,
++	.ct_attrs	= pci_epc_attrs,
++	.ct_owner	= THIS_MODULE,
++};
++
++struct config_group *pci_ep_cfs_add_epc_group(const char *name)
++{
++	int ret;
++	struct pci_epc *epc;
++	struct config_group *group;
++	struct pci_epc_group *epc_group;
++
++	epc_group = kzalloc(sizeof(*epc_group), GFP_KERNEL);
++	if (!epc_group) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	group = &epc_group->group;
++
++	config_group_init_type_name(group, name, &pci_epc_type);
++	ret = configfs_register_group(controllers_group, group);
++	if (ret) {
++		pr_err("failed to register configfs group for %s\n", name);
++		goto err_register_group;
++	}
++
++	epc = pci_epc_get(name);
++	if (IS_ERR(epc)) {
++		ret = PTR_ERR(epc);
++		goto err_epc_get;
++	}
++
++	epc_group->epc = epc;
++
++	return group;
++
++err_epc_get:
++	configfs_unregister_group(group);
++
++err_register_group:
++	kfree(epc_group);
++
++err:
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL(pci_ep_cfs_add_epc_group);
++
++void pci_ep_cfs_remove_epc_group(struct config_group *group)
++{
++	struct pci_epc_group *epc_group;
++
++	if (!group)
++		return;
++
++	epc_group = container_of(group, struct pci_epc_group, group);
++	pci_epc_put(epc_group->epc);
++	configfs_unregister_group(&epc_group->group);
++	kfree(epc_group);
++}
++EXPORT_SYMBOL(pci_ep_cfs_remove_epc_group);
++
++#define PCI_EPF_HEADER_R(_name)						       \
++static ssize_t pci_epf_##_name##_show(struct config_item *item,	char *page)    \
++{									       \
++	struct pci_epf *epf = to_pci_epf_group(item)->epf;		       \
++	if (WARN_ON_ONCE(!epf->header))					       \
++		return -EINVAL;						       \
++	return sprintf(page, "0x%04x\n", epf->header->_name);		       \
++}
++
++#define PCI_EPF_HEADER_W_u32(_name)					       \
++static ssize_t pci_epf_##_name##_store(struct config_item *item,	       \
++				       const char *page, size_t len)	       \
++{									       \
++	u32 val;							       \
++	int ret;							       \
++	struct pci_epf *epf = to_pci_epf_group(item)->epf;		       \
++	if (WARN_ON_ONCE(!epf->header))					       \
++		return -EINVAL;						       \
++	ret = kstrtou32(page, 0, &val);					       \
++	if (ret)							       \
++		return ret;						       \
++	epf->header->_name = val;					       \
++	return len;							       \
++}
++
++#define PCI_EPF_HEADER_W_u16(_name)					       \
++static ssize_t pci_epf_##_name##_store(struct config_item *item,	       \
++				       const char *page, size_t len)	       \
++{									       \
++	u16 val;							       \
++	int ret;							       \
++	struct pci_epf *epf = to_pci_epf_group(item)->epf;		       \
++	if (WARN_ON_ONCE(!epf->header))					       \
++		return -EINVAL;						       \
++	ret = kstrtou16(page, 0, &val);					       \
++	if (ret)							       \
++		return ret;						       \
++	epf->header->_name = val;					       \
++	return len;							       \
++}
++
++#define PCI_EPF_HEADER_W_u8(_name)					       \
++static ssize_t pci_epf_##_name##_store(struct config_item *item,	       \
++				       const char *page, size_t len)	       \
++{									       \
++	u8 val;								       \
++	int ret;							       \
++	struct pci_epf *epf = to_pci_epf_group(item)->epf;		       \
++	if (WARN_ON_ONCE(!epf->header))					       \
++		return -EINVAL;						       \
++	ret = kstrtou8(page, 0, &val);					       \
++	if (ret)							       \
++		return ret;						       \
++	epf->header->_name = val;					       \
++	return len;							       \
++}
++
++static ssize_t pci_epf_msi_interrupts_store(struct config_item *item,
++					    const char *page, size_t len)
++{
++	u8 val;
++	int ret;
++
++	ret = kstrtou8(page, 0, &val);
++	if (ret)
++		return ret;
++
++	to_pci_epf_group(item)->epf->msi_interrupts = val;
++
++	return len;
++}
++
++static ssize_t pci_epf_msi_interrupts_show(struct config_item *item,
++					   char *page)
++{
++	return sprintf(page, "%d\n",
++		       to_pci_epf_group(item)->epf->msi_interrupts);
++}
++
++PCI_EPF_HEADER_R(vendorid)
++PCI_EPF_HEADER_W_u16(vendorid)
++
++PCI_EPF_HEADER_R(deviceid)
++PCI_EPF_HEADER_W_u16(deviceid)
++
++PCI_EPF_HEADER_R(revid)
++PCI_EPF_HEADER_W_u8(revid)
++
++PCI_EPF_HEADER_R(progif_code)
++PCI_EPF_HEADER_W_u8(progif_code)
++
++PCI_EPF_HEADER_R(subclass_code)
++PCI_EPF_HEADER_W_u8(subclass_code)
++
++PCI_EPF_HEADER_R(baseclass_code)
++PCI_EPF_HEADER_W_u8(baseclass_code)
++
++PCI_EPF_HEADER_R(cache_line_size)
++PCI_EPF_HEADER_W_u8(cache_line_size)
++
++PCI_EPF_HEADER_R(subsys_vendor_id)
++PCI_EPF_HEADER_W_u16(subsys_vendor_id)
++
++PCI_EPF_HEADER_R(subsys_id)
++PCI_EPF_HEADER_W_u16(subsys_id)
++
++PCI_EPF_HEADER_R(interrupt_pin)
++PCI_EPF_HEADER_W_u8(interrupt_pin)
++
++CONFIGFS_ATTR(pci_epf_, vendorid);
++CONFIGFS_ATTR(pci_epf_, deviceid);
++CONFIGFS_ATTR(pci_epf_, revid);
++CONFIGFS_ATTR(pci_epf_, progif_code);
++CONFIGFS_ATTR(pci_epf_, subclass_code);
++CONFIGFS_ATTR(pci_epf_, baseclass_code);
++CONFIGFS_ATTR(pci_epf_, cache_line_size);
++CONFIGFS_ATTR(pci_epf_, subsys_vendor_id);
++CONFIGFS_ATTR(pci_epf_, subsys_id);
++CONFIGFS_ATTR(pci_epf_, interrupt_pin);
++CONFIGFS_ATTR(pci_epf_, msi_interrupts);
++
++static struct configfs_attribute *pci_epf_attrs[] = {
++	&pci_epf_attr_vendorid,
++	&pci_epf_attr_deviceid,
++	&pci_epf_attr_revid,
++	&pci_epf_attr_progif_code,
++	&pci_epf_attr_subclass_code,
++	&pci_epf_attr_baseclass_code,
++	&pci_epf_attr_cache_line_size,
++	&pci_epf_attr_subsys_vendor_id,
++	&pci_epf_attr_subsys_id,
++	&pci_epf_attr_interrupt_pin,
++	&pci_epf_attr_msi_interrupts,
++	NULL,
++};
++
++static void pci_epf_release(struct config_item *item)
++{
++	struct pci_epf_group *epf_group = to_pci_epf_group(item);
++
++	pci_epf_destroy(epf_group->epf);
++	kfree(epf_group);
++}
++
++static struct configfs_item_operations pci_epf_ops = {
++	.release		= pci_epf_release,
++};
++
++static struct config_item_type pci_epf_type = {
++	.ct_item_ops	= &pci_epf_ops,
++	.ct_attrs	= pci_epf_attrs,
++	.ct_owner	= THIS_MODULE,
++};
++
++static struct config_group *pci_epf_make(struct config_group *group,
++					 const char *name)
++{
++	struct pci_epf_group *epf_group;
++	struct pci_epf *epf;
++
++	epf_group = kzalloc(sizeof(*epf_group), GFP_KERNEL);
++	if (!epf_group)
++		return ERR_PTR(-ENOMEM);
++
++	config_group_init_type_name(&epf_group->group, name, &pci_epf_type);
++
++	epf = pci_epf_create(group->cg_item.ci_name);
++	if (IS_ERR(epf)) {
++		pr_err("failed to create endpoint function device\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	epf_group->epf = epf;
++
++	return &epf_group->group;
++}
++
++static void pci_epf_drop(struct config_group *group, struct config_item *item)
++{
++	config_item_put(item);
++}
++
++static struct configfs_group_operations pci_epf_group_ops = {
++	.make_group     = &pci_epf_make,
++	.drop_item      = &pci_epf_drop,
++};
++
++static struct config_item_type pci_epf_group_type = {
++	.ct_group_ops	= &pci_epf_group_ops,
++	.ct_owner	= THIS_MODULE,
++};
++
++struct config_group *pci_ep_cfs_add_epf_group(const char *name)
++{
++	struct config_group *group;
++
++	group = configfs_register_default_group(functions_group, name,
++						&pci_epf_group_type);
++	if (IS_ERR(group))
++		pr_err("failed to register configfs group for %s function\n",
++		       name);
++
++	return group;
++}
++EXPORT_SYMBOL(pci_ep_cfs_add_epf_group);
++
++void pci_ep_cfs_remove_epf_group(struct config_group *group)
++{
++	if (IS_ERR_OR_NULL(group))
++		return;
++
++	configfs_unregister_default_group(group);
++}
++EXPORT_SYMBOL(pci_ep_cfs_remove_epf_group);
++
++static struct config_item_type pci_functions_type = {
++	.ct_owner	= THIS_MODULE,
++};
++
++static struct config_item_type pci_controllers_type = {
++	.ct_owner	= THIS_MODULE,
++};
++
++static struct config_item_type pci_ep_type = {
++	.ct_owner	= THIS_MODULE,
++};
++
++static struct configfs_subsystem pci_ep_cfs_subsys = {
++	.su_group = {
++		.cg_item = {
++			.ci_namebuf = "pci_ep",
++			.ci_type = &pci_ep_type,
++		},
++	},
++	.su_mutex = __MUTEX_INITIALIZER(pci_ep_cfs_subsys.su_mutex),
++};
++
++static int __init pci_ep_cfs_init(void)
++{
++	int ret;
++	struct config_group *root = &pci_ep_cfs_subsys.su_group;
++
++	config_group_init(root);
++
++	ret = configfs_register_subsystem(&pci_ep_cfs_subsys);
++	if (ret) {
++		pr_err("Error %d while registering subsystem %s\n",
++		       ret, root->cg_item.ci_namebuf);
++		goto err;
++	}
++
++	functions_group = configfs_register_default_group(root, "functions",
++							  &pci_functions_type);
++	if (IS_ERR(functions_group)) {
++		ret = PTR_ERR(functions_group);
++		pr_err("Error %d while registering functions group\n",
++		       ret);
++		goto err_functions_group;
++	}
++
++	controllers_group =
++		configfs_register_default_group(root, "controllers",
++						&pci_controllers_type);
++	if (IS_ERR(controllers_group)) {
++		ret = PTR_ERR(controllers_group);
++		pr_err("Error %d while registering controllers group\n",
++		       ret);
++		goto err_controllers_group;
++	}
++
++	return 0;
++
++err_controllers_group:
++	configfs_unregister_default_group(functions_group);
++
++err_functions_group:
++	configfs_unregister_subsystem(&pci_ep_cfs_subsys);
++
++err:
++	return ret;
++}
++module_init(pci_ep_cfs_init);
++
++static void __exit pci_ep_cfs_exit(void)
++{
++	configfs_unregister_default_group(controllers_group);
++	configfs_unregister_default_group(functions_group);
++	configfs_unregister_subsystem(&pci_ep_cfs_subsys);
++}
++module_exit(pci_ep_cfs_exit);
++
++MODULE_DESCRIPTION("PCI EP CONFIGFS");
++MODULE_AUTHOR("Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/pci-ep-cfs.h b/include/linux/pci-ep-cfs.h
+new file mode 100644
+index 0000000..263b89e
+--- /dev/null
++++ b/include/linux/pci-ep-cfs.h
+@@ -0,0 +1,41 @@
++/**
++ * PCI Endpoint ConfigFS header file
++ *
++ * Copyright (C) 2017 Texas Instruments
++ * Author: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 of
++ * the License as published by the Free Software Foundation.
++ */
++
++#ifndef __LINUX_PCI_EP_CFS_H
++#define __LINUX_PCI_EP_CFS_H
++
++#include <linux/configfs.h>
++
++#ifdef CONFIG_PCI_ENDPOINT_CONFIGFS
++struct config_group *pci_ep_cfs_add_epc_group(const char *name);
++void pci_ep_cfs_remove_epc_group(struct config_group *group);
++struct config_group *pci_ep_cfs_add_epf_group(const char *name);
++void pci_ep_cfs_remove_epf_group(struct config_group *group);
++#else
++static inline struct config_group *pci_ep_cfs_add_epc_group(const char *name)
++{
++	return 0;
++}
++
++static inline void pci_ep_cfs_remove_epc_group(struct config_group *group)
++{
++}
++
++static inline struct config_group *pci_ep_cfs_add_epf_group(const char *name)
++{
++	return 0;
++}
++
++static inline void pci_ep_cfs_remove_epf_group(struct config_group *group)
++{
++}
++#endif
++#endif /* __LINUX_PCI_EP_CFS_H */
 -- 
 1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
