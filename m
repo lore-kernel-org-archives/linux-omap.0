@@ -1,43 +1,185 @@
-From: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 08/22] PCI: dwc: designware: Add EP mode support
-Date: Thu, 9 Mar 2017 11:55:01 +0000
-Message-ID: <af4dd1db-dc24-1797-a43a-8487a95e47f9@synopsys.com>
-References: <1487325042-28227-1-git-send-email-kishon@ti.com>
- <1487325042-28227-9-git-send-email-kishon@ti.com>
- <45e5288e-d11f-c855-af9b-692a42d878c6@synopsys.com> <58BE42B2.20305@ti.com>
- <02461be2-268d-485a-2bc4-3b148726d37d@synopsys.com>
- <aa9835a7-07f4-d042-d04a-b0d9cc0ea3de@synopsys.com> <58BFEC7D.3090608@ti.com>
- <35d539ba-956f-330e-c28d-b67c3d414578@synopsys.com> <58C00798.1030302@ti.com>
- <650c53fc-482c-feab-faa3-c30689d3d128@synopsys.com>
- <20170308191419.GA12085@infradead.org>
+From: Joao Pinto <Joao.Pinto@synopsys.com>
+Subject: Re: [RESEND PATCH v3 6/7] PCI: dwc: designware: Move _unroll
+ configurations to a separate function
+Date: Thu, 9 Mar 2017 12:25:05 +0000
+Message-ID: <e4cf80f5-08f3-5ebc-ef55-8d43f8e02104@synopsys.com>
+References: <1489041545-15730-1-git-send-email-kishon@ti.com>
+ <1489041545-15730-7-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170308191419.GA12085-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1489041545-15730-7-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Christoph,
-
-Às 7:14 PM de 3/8/2017, Christoph Hellwig escreveu:
-> On Wed, Mar 08, 2017 at 03:32:03PM +0000, Joao Pinto wrote:
->> #define PCIE_GET_ATU_INB_UNR_REG_ADDR(region, register)		\
->> 					((0x3 << 20) | (region << 9) |	\
->> 					(0x1 << 8)
+Às 6:39 AM de 3/9/2017, Kishon Vijay Abraham I escreveu:
+> No functional change. Rename dw_pcie_writel_unroll/dw_pcie_readl_unroll
+> to dw_pcie_writel_ob_unroll/dw_pcie_readl_ob_unroll respectively as these
+> functions are used to perform only outbound configurations. Also move
+> these _unroll configurations to a separate function.
 > 
-> Can you turn this and any similar macro into inline functions?
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/dwc/pcie-designware.c |  112 ++++++++++++++++++++++---------------
+>  1 file changed, 67 insertions(+), 45 deletions(-)
+> 
+> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
+> index 557ee53..6657a84 100644
+> --- a/drivers/pci/dwc/pcie-designware.c
+> +++ b/drivers/pci/dwc/pcie-designware.c
+> @@ -92,22 +92,64 @@ void dw_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
+>  		dev_err(pci->dev, "write DBI address failed\n");
+>  }
+>  
+> -static u32 dw_pcie_readl_unroll(struct dw_pcie *pci, void __iomem *base,
+> -				u32 index, u32 reg)
+> +static u32 dw_pcie_readl_ob_unroll(struct dw_pcie *pci, void __iomem *base,
+> +				   u32 index, u32 reg)
+>  {
+>  	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
+>  
+>  	return dw_pcie_read_dbi(pci, base, offset + reg, 0x4);
+>  }
+>  
+> -static void dw_pcie_writel_unroll(struct dw_pcie *pci, void __iomem *base,
+> -				  u32 index, u32 reg, u32 val)
+> +static void dw_pcie_writel_ob_unroll(struct dw_pcie *pci, void __iomem *base,
+> +				     u32 index, u32 reg, u32 val)
+>  {
+>  	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
+>  
+>  	dw_pcie_write_dbi(pci, base, offset + reg, 0x4, val);
+>  }
+>  
+> +void dw_pcie_prog_outbound_atu_unroll(struct dw_pcie *pci, int index, int type,
+> +				      u64 cpu_addr, u64 pci_addr, u32 size)
+> +{
+> +	u32 retries, val;
+> +	void __iomem *base = pci->dbi_base;
+> +
+> +	dw_pcie_writel_ob_unroll(pci, base, index,
+> +				 PCIE_ATU_UNR_LOWER_BASE,
+> +				 lower_32_bits(cpu_addr));
+> +	dw_pcie_writel_ob_unroll(pci, base, index,
+> +				 PCIE_ATU_UNR_UPPER_BASE,
+> +				 upper_32_bits(cpu_addr));
+> +	dw_pcie_writel_ob_unroll(pci, base, index, PCIE_ATU_UNR_LIMIT,
+> +				 lower_32_bits(cpu_addr + size - 1));
+> +	dw_pcie_writel_ob_unroll(pci, base, index,
+> +				 PCIE_ATU_UNR_LOWER_TARGET,
+> +				 lower_32_bits(pci_addr));
+> +	dw_pcie_writel_ob_unroll(pci, base, index,
+> +				 PCIE_ATU_UNR_UPPER_TARGET,
+> +				 upper_32_bits(pci_addr));
+> +	dw_pcie_writel_ob_unroll(pci, base, index,
+> +				 PCIE_ATU_UNR_REGION_CTRL1,
+> +				 type);
+> +	dw_pcie_writel_ob_unroll(pci, base, index,
+> +				 PCIE_ATU_UNR_REGION_CTRL2,
+> +				 PCIE_ATU_ENABLE);
+> +
+> +	/*
+> +	 * Make sure ATU enable takes effect before any subsequent config
+> +	 * and I/O accesses.
+> +	 */
+> +	for (retries = 0; retries < LINK_WAIT_MAX_IATU_RETRIES; retries++) {
+> +		val = dw_pcie_readl_ob_unroll(pci, base, index,
+> +					      PCIE_ATU_UNR_REGION_CTRL2);
+> +		if (val & PCIE_ATU_ENABLE)
+> +			return;
+> +
+> +		usleep_range(LINK_WAIT_IATU_MIN, LINK_WAIT_IATU_MAX);
+> +	}
+> +	dev_err(pci->dev, "outbound iATU is not being enabled\n");
+> +}
+> +
+>  void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
+>  			       u64 cpu_addr, u64 pci_addr, u32 size)
+>  {
+> @@ -118,59 +160,39 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
+>  		cpu_addr = pci->ops->cpu_addr_fixup(cpu_addr);
+>  
+>  	if (pci->iatu_unroll_enabled) {
+> -		dw_pcie_writel_unroll(pci, base, index, PCIE_ATU_UNR_LOWER_BASE,
+> -				      lower_32_bits(cpu_addr));
+> -		dw_pcie_writel_unroll(pci, base, index, PCIE_ATU_UNR_UPPER_BASE,
+> -				      upper_32_bits(cpu_addr));
+> -		dw_pcie_writel_unroll(pci, base, index, PCIE_ATU_UNR_LIMIT,
+> -				      lower_32_bits(cpu_addr + size - 1));
+> -		dw_pcie_writel_unroll(pci, base, index,
+> -				      PCIE_ATU_UNR_LOWER_TARGET,
+> -				      lower_32_bits(pci_addr));
+> -		dw_pcie_writel_unroll(pci, base, index,
+> -				      PCIE_ATU_UNR_UPPER_TARGET,
+> -				      upper_32_bits(pci_addr));
+> -		dw_pcie_writel_unroll(pci, base, index,
+> -				      PCIE_ATU_UNR_REGION_CTRL1,
+> -				      type);
+> -		dw_pcie_writel_unroll(pci, base, index,
+> -				      PCIE_ATU_UNR_REGION_CTRL2,
+> -				      PCIE_ATU_ENABLE);
+> -	} else {
+> -		dw_pcie_write_dbi(pci, base, PCIE_ATU_VIEWPORT, 0x4,
+> -				  PCIE_ATU_REGION_OUTBOUND | index);
+> -		dw_pcie_write_dbi(pci, base, PCIE_ATU_LOWER_BASE, 0x4,
+> -				  lower_32_bits(cpu_addr));
+> -		dw_pcie_write_dbi(pci, base, PCIE_ATU_UPPER_BASE, 0x4,
+> -				  upper_32_bits(cpu_addr));
+> -		dw_pcie_write_dbi(pci, base, PCIE_ATU_LIMIT, 0x4,
+> -				  lower_32_bits(cpu_addr + size - 1));
+> -		dw_pcie_write_dbi(pci, base, PCIE_ATU_LOWER_TARGET, 0x4,
+> -				  lower_32_bits(pci_addr));
+> -		dw_pcie_write_dbi(pci, base, PCIE_ATU_UPPER_TARGET, 0x4,
+> -				  upper_32_bits(pci_addr));
+> -		dw_pcie_write_dbi(pci, base, PCIE_ATU_CR1, 0x4, type);
+> -		dw_pcie_write_dbi(pci, base, PCIE_ATU_CR2, 0x4,
+> -				  PCIE_ATU_ENABLE);
+> +		dw_pcie_prog_outbound_atu_unroll(pci, index, type, cpu_addr,
+> +						 pci_addr, size);
+> +		return;
+>  	}
+>  
+> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_VIEWPORT, 0x4,
+> +			  PCIE_ATU_REGION_OUTBOUND | index);
+> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_LOWER_BASE, 0x4,
+> +			  lower_32_bits(cpu_addr));
+> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_UPPER_BASE, 0x4,
+> +			  upper_32_bits(cpu_addr));
+> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_LIMIT, 0x4,
+> +			  lower_32_bits(cpu_addr + size - 1));
+> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_LOWER_TARGET, 0x4,
+> +			  lower_32_bits(pci_addr));
+> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_UPPER_TARGET, 0x4,
+> +			  upper_32_bits(pci_addr));
+> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_CR1, 0x4, type);
+> +	dw_pcie_write_dbi(pci, base, PCIE_ATU_CR2, 0x4,
+> +			  PCIE_ATU_ENABLE);
+> +
+>  	/*
+>  	 * Make sure ATU enable takes effect before any subsequent config
+>  	 * and I/O accesses.
+>  	 */
+>  	for (retries = 0; retries < LINK_WAIT_MAX_IATU_RETRIES; retries++) {
+> -		if (pci->iatu_unroll_enabled)
+> -			val = dw_pcie_readl_unroll(pci, base, index,
+> -						   PCIE_ATU_UNR_REGION_CTRL2);
+> -		else
+> -			val = dw_pcie_read_dbi(pci, base, PCIE_ATU_CR2, 0x4);
+> -
+> +		val = dw_pcie_read_dbi(pci, base, PCIE_ATU_CR2, 0x4);
+>  		if (val == PCIE_ATU_ENABLE)
+>  			return;
+>  
+>  		usleep_range(LINK_WAIT_IATU_MIN, LINK_WAIT_IATU_MAX);
+>  	}
+> -	dev_err(pci->dev, "iATU is not being enabled\n");
+> +	dev_err(pci->dev, "outbound iATU is not being enabled\n");
+>  }
+>  
+>  int dw_pcie_wait_for_link(struct dw_pcie *pci)
 > 
 
-Use an inline functions instead of macro is fine by me. In the initial patch I
-implemented as a macro since it only does simple bit shifts and nothing else and
-seemed simpler as a macro.
-
-Thanks,
-Joao
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-By: Joao Pinto <jpinto@synopsys.com>
