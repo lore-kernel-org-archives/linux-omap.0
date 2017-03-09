@@ -1,87 +1,88 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 10/23] dt-bindings: PCI: Add dt bindings for pci designware
- EP mode
-Date: Thu, 9 Mar 2017 13:27:21 +0530
-Message-ID: <1489046254-19919-11-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 20/23] tools: PCI: Add sample test script to invoke pcitest
+Date: Thu, 9 Mar 2017 13:27:31 +0530
+Message-ID: <1489046254-19919-21-git-send-email-kishon@ti.com>
 References: <1489046254-19919-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1489046254-19919-1-git-send-email-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add device tree binding documentation for pci designware EP mode.
+Add a simple test script that invokes the pcitest userspace tool
+to perform all the PCI endpoint tests (BAR tests, interrupt tests,
+read tests, write tests and copy tests).
 
-Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- .../devicetree/bindings/pci/designware-pcie.txt    |   26 ++++++++++++++------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ tools/pci/pcitest.sh |   56 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
+ create mode 100644 tools/pci/pcitest.sh
 
-diff --git a/Documentation/devicetree/bindings/pci/designware-pcie.txt b/Documentation/devicetree/bindings/pci/designware-pcie.txt
-index 1392c70..b2480dd 100644
---- a/Documentation/devicetree/bindings/pci/designware-pcie.txt
-+++ b/Documentation/devicetree/bindings/pci/designware-pcie.txt
-@@ -6,30 +6,40 @@ Required properties:
- - reg-names: Must be "config" for the PCIe configuration space.
-     (The old way of getting the configuration address space from "ranges"
-     is deprecated and should be avoided.)
-+- num-lanes: number of lanes to use
-+RC mode:
- - #address-cells: set to <3>
- - #size-cells: set to <2>
- - device_type: set to "pci"
- - ranges: ranges for the PCI memory and I/O regions
- - #interrupt-cells: set to <1>
--- interrupt-map-mask and interrupt-map: standard PCI properties
--	to define the mapping of the PCIe interface to interrupt
-+- interrupt-map-mask and interrupt-map: standard PCI
-+	properties to define the mapping of the PCIe interface to interrupt
- 	numbers.
--- num-lanes: number of lanes to use
-+EP mode:
-+- num-ib-windows: number of inbound address translation
-+        windows
-+- num-ob-windows: number of outbound address translation
-+        windows
- 
- Optional properties:
--- num-viewport: number of view ports configured in hardware.  If a platform
--  does not specify it, the driver assumes 2.
- - num-lanes: number of lanes to use (this property should be specified unless
-   the link is brought already up in BIOS)
- - reset-gpio: gpio pin number of power good signal
--- bus-range: PCI bus numbers covered (it is recommended for new devicetrees to
--  specify this property, to keep backwards compatibility a range of 0x00-0xff
--  is assumed if not present)
- - clocks: Must contain an entry for each entry in clock-names.
- 	See ../clocks/clock-bindings.txt for details.
- - clock-names: Must include the following entries:
- 	- "pcie"
- 	- "pcie_bus"
-+RC mode:
-+- num-viewport: number of view ports configured in
-+  hardware. If a platform does not specify it, the driver assumes 2.
-+- bus-range: PCI bus numbers covered (it is recommended
-+  for new devicetrees to specify this property, to keep backwards
-+  compatibility a range of 0x00-0xff is assumed if not present)
-+EP mode:
-+- max-functions: maximum number of functions that can be
-+  configured
- 
- Example configuration:
- 
+diff --git a/tools/pci/pcitest.sh b/tools/pci/pcitest.sh
+new file mode 100644
+index 0000000..5442bbe
+--- /dev/null
++++ b/tools/pci/pcitest.sh
+@@ -0,0 +1,56 @@
++#!/bin/sh
++
++echo "BAR tests"
++echo
++
++bar=0
++
++while [ $bar -lt 6 ]
++do
++	pcitest -b $bar
++	bar=`expr $bar + 1`
++done
++echo
++
++echo "Interrupt tests"
++echo
++
++pcitest -l
++msi=1
++
++while [ $msi -lt 33 ]
++do
++        pcitest -m $msi
++        msi=`expr $msi + 1`
++done
++echo
++
++echo "Read Tests"
++echo
++
++pcitest -r -s 1
++pcitest -r -s 1024
++pcitest -r -s 1025
++pcitest -r -s 1024000
++pcitest -r -s 1024001
++echo
++
++echo "Write Tests"
++echo
++
++pcitest -w -s 1
++pcitest -w -s 1024
++pcitest -w -s 1025
++pcitest -w -s 1024000
++pcitest -w -s 1024001
++echo
++
++echo "Copy Tests"
++echo
++
++pcitest -c -s 1
++pcitest -c -s 1024
++pcitest -c -s 1025
++pcitest -c -s 1024000
++pcitest -c -s 1024001
++echo
 -- 
 1.7.9.5
