@@ -1,217 +1,69 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 19/23] tools: PCI: Add a userspace tool to test PCI endpoint
-Date: Thu, 9 Mar 2017 13:27:30 +0530
-Message-ID: <1489046254-19919-20-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 08/23] Documentation: PCI: Add binding documentation for
+ pci-test endpoint function
+Date: Thu, 9 Mar 2017 13:27:19 +0530
+Message-ID: <1489046254-19919-9-git-send-email-kishon@ti.com>
 References: <1489046254-19919-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1489046254-19919-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-doc@vger.kernel.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add a userspace tool to invoke the ioctls exposed by the
-PCI endpoint test driver to perform various PCI tests.
+Add binding documentation for pci-test endpoint function that helps in
+adding and configuring pci-test endpoint function.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- tools/pci/pcitest.c |  186 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 186 insertions(+)
- create mode 100644 tools/pci/pcitest.c
+ Documentation/PCI/00-INDEX                         |    2 ++
+ .../PCI/endpoint/function/binding/pci-test.txt     |   17 +++++++++++++++++
+ 2 files changed, 19 insertions(+)
+ create mode 100644 Documentation/PCI/endpoint/function/binding/pci-test.txt
 
-diff --git a/tools/pci/pcitest.c b/tools/pci/pcitest.c
+diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
+index 4e5a283..53717b7 100644
+--- a/Documentation/PCI/00-INDEX
++++ b/Documentation/PCI/00-INDEX
+@@ -18,3 +18,5 @@ endpoint/pci-endpoint-cfs.txt
+ 	- guide to use configfs to configure the pci endpoint function.
+ endpoint/pci-test-function.txt
+ 	- specification of *pci test* function device.
++endpoint/function/binding/
++	- binding documentation for pci endpoint function
+diff --git a/Documentation/PCI/endpoint/function/binding/pci-test.txt b/Documentation/PCI/endpoint/function/binding/pci-test.txt
 new file mode 100644
-index 0000000..39b5b0b
+index 0000000..02a6c94
 --- /dev/null
-+++ b/tools/pci/pcitest.c
-@@ -0,0 +1,186 @@
-+/**
-+ * Userspace PCI Endpoint Test Module
-+ *
-+ * Copyright (C) 2017 Texas Instruments
-+ * Author: Kishon Vijay Abraham I <kishon@ti.com>
-+ *
-+ * This program is free software: you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 of
-+ * the License as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
++++ b/Documentation/PCI/endpoint/function/binding/pci-test.txt
+@@ -0,0 +1,17 @@
++PCI TEST ENDPOINT FUNCTION
 +
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stdbool.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <sys/ioctl.h>
-+#include <time.h>
-+#include <unistd.h>
++name: Should be "pci_epf_test" to bind to the pci_epf_test driver.
 +
-+#include <linux/pcitest.h>
-+
-+#define BILLION 1E9
-+
-+static char *result[] = { "NOT OKAY", "OKAY" };
-+
-+struct pci_test {
-+	char		*device;
-+	char		barnum;
-+	bool		legacyirq;
-+	unsigned int	msinum;
-+	bool		read;
-+	bool		write;
-+	bool		copy;
-+	unsigned long	size;
-+};
-+
-+static int run_test(struct pci_test *test)
-+{
-+	long ret;
-+	int fd;
-+	struct timespec start, end;
-+	double time;
-+
-+	fd = open(test->device, O_RDWR);
-+	if (fd < 0) {
-+		perror("can't open PCI Endpoint Test device");
-+		return fd;
-+	}
-+
-+	if (test->barnum >= 0 && test->barnum <= 5) {
-+		ret = ioctl(fd, PCITEST_BAR, test->barnum);
-+		fprintf(stdout, "BAR%d:\t\t", test->barnum);
-+		if (ret < 0)
-+			fprintf(stdout, "TEST FAILED\n");
-+		else
-+			fprintf(stdout, "%s\n", result[ret]);
-+	}
-+
-+	if (test->legacyirq) {
-+		ret = ioctl(fd, PCITEST_LEGACY_IRQ, 0);
-+		fprintf(stdout, "LEGACY IRQ:\t");
-+		if (ret < 0)
-+			fprintf(stdout, "TEST FAILED\n");
-+		else
-+			fprintf(stdout, "%s\n", result[ret]);
-+	}
-+
-+	if (test->msinum > 0 && test->msinum <= 32) {
-+		ret = ioctl(fd, PCITEST_MSI, test->msinum);
-+		fprintf(stdout, "MSI%d:\t\t", test->msinum);
-+		if (ret < 0)
-+			fprintf(stdout, "TEST FAILED\n");
-+		else
-+			fprintf(stdout, "%s\n", result[ret]);
-+	}
-+
-+	if (test->write) {
-+		ret = ioctl(fd, PCITEST_WRITE, test->size);
-+		fprintf(stdout, "WRITE (%7ld bytes):\t\t", test->size);
-+		if (ret < 0)
-+			fprintf(stdout, "TEST FAILED\n");
-+		else
-+			fprintf(stdout, "%s\n", result[ret]);
-+	}
-+
-+	if (test->read) {
-+		ret = ioctl(fd, PCITEST_READ, test->size);
-+		fprintf(stdout, "READ (%7ld bytes):\t\t", test->size);
-+		if (ret < 0)
-+			fprintf(stdout, "TEST FAILED\n");
-+		else
-+			fprintf(stdout, "%s\n", result[ret]);
-+	}
-+
-+	if (test->copy) {
-+		ret = ioctl(fd, PCITEST_COPY, test->size);
-+		fprintf(stdout, "COPY (%7ld bytes):\t\t", test->size);
-+		if (ret < 0)
-+			fprintf(stdout, "TEST FAILED\n");
-+		else
-+			fprintf(stdout, "%s\n", result[ret]);
-+	}
-+
-+	fflush(stdout);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int c;
-+	struct pci_test *test;
-+
-+	test = calloc(1, sizeof(*test));
-+	if (!test) {
-+		perror("Fail to allocate memory for pci_test\n");
-+		return -ENOMEM;
-+	}
-+
-+	/* since '0' is a valid BAR number, initialize it to -1 */
-+	test->barnum = -1;
-+
-+	/* set default size as 100KB */
-+	test->size = 0x19000;
-+
-+	/* set default endpoint device */
-+	test->device = "/dev/pci-endpoint-test.0";
-+
-+	while ((c = getopt(argc, argv, "D:b:m:lrwcs:")) != EOF)
-+	switch (c) {
-+	case 'D':
-+		test->device = optarg;
-+		continue;
-+	case 'b':
-+		test->barnum = atoi(optarg);
-+		if (test->barnum < 0 || test->barnum > 5)
-+			goto usage;
-+		continue;
-+	case 'l':
-+		test->legacyirq = true;
-+		continue;
-+	case 'm':
-+		test->msinum = atoi(optarg);
-+		if (test->msinum < 1 || test->msinum > 32)
-+			goto usage;
-+		continue;
-+	case 'r':
-+		test->read = true;
-+		continue;
-+	case 'w':
-+		test->write = true;
-+		continue;
-+	case 'c':
-+		test->copy = true;
-+		continue;
-+	case 's':
-+		test->size = strtoul(optarg, NULL, 0);
-+		continue;
-+	case '?':
-+	case 'h':
-+	default:
-+usage:
-+		fprintf(stderr,
-+			"usage: %s [options]\n"
-+			"Options:\n"
-+			"\t-D <dev>		pci endpoint test device {default: /dev/pci-endpoint-test.0}\n"
-+			"\t-b <bar num>		BAR test (bar number between 0..5)\n"
-+			"\t-m <msi num>		MSI test (msi number between 1..32)\n"
-+			"\t-r			Read buffer test\n"
-+			"\t-w			Write buffer test\n"
-+			"\t-c			Copy buffer test\n"
-+			"\t-s <size>		Size of buffer {default: 100KB}\n",
-+			argv[0]);
-+		return -EINVAL;
-+	}
-+
-+	run_test(test);
-+	return 0;
-+}
++Configurable Fields:
++vendorid	 : should be 0x104c
++deviceid	 : should be 0xb500 for DRA74x and 0xb501 for DRA72x
++revid		 : dont't care
++progif_code	 : don't care
++subclass_code	 : don't care
++baseclass_code	 : should be 0xff
++cache_line_size	 : don't care
++subsys_vendor_id : don't care
++subsys_id	 : don't care
++interrupt_pin	 : Should be 1 - INTA, 2 - INTB, 3 - INTC, 4 -INTD
++msi_interrupts	 : Should be 1 to 32 depending on the number of msi interrupts
++		   to test
 -- 
 1.7.9.5
