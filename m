@@ -1,15 +1,23 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2 5/8] ARM: OMAP4460: Thermal: Add slope and offset values
-Date: Thu, 9 Mar 2017 13:35:59 +0530
-Message-ID: <1489046762-11288-6-git-send-email-j-keerthy@ti.com>
-References: <1489046762-11288-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v2 0/8] thermal: ti-soc-thermal: Migrate slope/offset data to
+ device tree
+Date: Thu, 9 Mar 2017 13:35:54 +0530
+Message-ID: <1489046762-11288-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1489046762-11288-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: tony@atomide.com, edubezval@gmail.com
-Cc: rui.zhang@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, j-keerthy@ti.com
+Cc: linux-pm@vger.kernel.org, j-keerthy@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, rui.zhang@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 Currently the slope and offset values for calculating the
@@ -17,23 +25,38 @@ hot spot temperature of a particular thermal zone is part
 of driver data. Pass them here instead and obtain the values
 while of node parsing.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/boot/dts/omap4460.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+Tested for the slope and constant values on DRA7-EVM, OMAP3-BEAGLE. 
 
-diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
-index ef66e12..c43f2a2 100644
---- a/arch/arm/boot/dts/omap4460.dtsi
-+++ b/arch/arm/boot/dts/omap4460.dtsi
-@@ -90,4 +90,8 @@
- 
- };
- 
-+&cpu_thermal {
-+	coefficients = <348 (-9301)>;
-+};
-+
- /include/ "omap446x-clocks.dtsi"
+Changes in v2:
+
+  * Added OMAP3 changes along with DRA7/OMAP4/OMAP5.
+
+Keerthy (8):
+  arm: dts: omap3: Add cpu_thermal zone
+  ARM: DRA7: Thermal: Add slope and offset values
+  ARM: OMAP5: Thermal: Add slope and offset values
+  ARM: OMAP443x: Thermal: Add slope and offset values
+  ARM: OMAP4460: Thermal: Add slope and offset values
+  thermal: ti-soc-thermal: Fetch slope and offset from DT
+  thermal: ti-soc-thermal: Remove redundant constants
+  thermal: ti-soc-thermal: Remove redundant code
+
+ arch/arm/boot/dts/dra7.dtsi                        |  17 +++
+ arch/arm/boot/dts/omap3-cpu-thermal.dtsi           |  20 +++
+ arch/arm/boot/dts/omap34xx.dtsi                    |   8 +-
+ arch/arm/boot/dts/omap36xx.dtsi                    |   8 +-
+ arch/arm/boot/dts/omap443x.dtsi                    |   4 +
+ arch/arm/boot/dts/omap4460.dtsi                    |   4 +
+ arch/arm/boot/dts/omap5.dtsi                       |   9 ++
+ .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  10 --
+ .../thermal/ti-soc-thermal/omap3-thermal-data.c    |   4 -
+ .../thermal/ti-soc-thermal/omap4-thermal-data.c    |   6 -
+ .../thermal/ti-soc-thermal/omap5-thermal-data.c    |   4 -
+ drivers/thermal/ti-soc-thermal/ti-bandgap.h        |   4 -
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 158 +--------------------
+ drivers/thermal/ti-soc-thermal/ti-thermal.h        |  16 ---
+ 14 files changed, 71 insertions(+), 201 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-cpu-thermal.dtsi
+
 -- 
 1.9.1
