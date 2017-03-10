@@ -1,30 +1,59 @@
-From: Rami Rosen <roszenrami@gmail.com>
-Subject: Re: [PATCH v3 08/23] Documentation: PCI: Add binding documentation
- for pci-test endpoint function
-Date: Thu, 9 Mar 2017 23:59:18 +0200
-Message-ID: <CAKoUArkTXbMvfTmNjA_VGWodbP5JxVNBP1DNUTYND2LvUfKsJQ@mail.gmail.com>
-References: <1489046254-19919-1-git-send-email-kishon@ti.com> <1489046254-19919-9-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [RESEND PATCH v3 4/7] PCI: dwc: all: Modify dbi accessors to take
+ dbi_base as argument
+Date: Fri, 10 Mar 2017 17:06:44 +0530
+Message-ID: <58C28FCC.4070100@ti.com>
+References: <1489041545-15730-1-git-send-email-kishon@ti.com>
+ <1489041545-15730-5-git-send-email-kishon@ti.com>
+ <4e13580d-2625-5eed-bcbc-2ffd7493b073@axis.com>
+ <595fab62-fb7a-888a-f898-7b59030585f1@axis.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1489046254-19919-9-git-send-email-kishon@ti.com>
+In-Reply-To: <595fab62-fb7a-888a-f898-7b59030585f1@axis.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, hch@infradead.org, nsekhar@ti.com
+To: Niklas Cassel <niklas.cassel@axis.com>, Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: nsekhar@ti.com, Jingoo Han <jingoohan1@gmail.com>, Richard Zhu <hongxing.zhu@nxp.com>, Lucas Stach <l.stach@pengutronix.de>, Murali Karicheri <m-karicheri2@ti.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Jesper Nilsson <jespern@axis.com>, Zhou Wang <wangzhou1@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
-Minor comment: typo, should be: don't care:
 
-> +revid           : dont't care
-> +progif_code     : don't care
-> +subclass_code   : don't care
-> +baseclass_code  : should be 0xff
-> +cache_line_size         : don't care
-> +subsys_vendor_id : don't care
-> +subsys_id       : don't care
-> +interrupt_pin   : Should be 1 - INTA, 2 - INTB, 3 - INTC, 4 -INTD
-> +msi_interrupts  : Should be 1 to 32 depending on the number of msi
+On Thursday 09 March 2017 08:35 PM, Niklas Cassel wrote:
+> 
+> 
+> On 03/09/2017 03:48 PM, Niklas Cassel wrote:
+>> On 03/09/2017 07:39 AM, Kishon Vijay Abraham I wrote:
+>>> dwc has 2 dbi address space labeled dbics and dbics2. The existing
+>>> helper to access dbi address space can access only dbics. However
+>>> dbics2 has to be accessed for programming the BAR registers in the
+>>> case of EP mode. This is in preparation for adding EP mode support
+>>> to dwc driver.
+>> Hello Kishon
+>>
+>> I don't really like the idea of adding an extra argument to every existing read/write.
+>> Will not a read/write using dbi2 be quite uncommon compared to a read/write
+>> using dbi?
+>>
+>> How about something like this:
+>>
+>> void __dw_pcie_writel(struct dw_pcie *pci, void __iomem *base, u32 reg, u32 val)
+>> {
+>>     if (pci->ops->writel_dbi)
+>>         pci->ops->writel_dbi(pci, base, reg, val);
+>>     else
+>>         writel(val, base + reg);
+>> }
+>>
+>> #define dw_pcie_writel_dbi(pci, reg, val) __dw_pcie_writel(pci, pci->dbi_base, reg, val)
+>> #define dw_pcie_writel_dbi2(pci, reg, val) __dw_pcie_writel(pci, pci->dbi_base2, reg, val)
+> 
+> Perhaps make dw_pcie_writel_dbi2 a function rather than a define,
+> so we can return an error if pci->dbi_base2 == NULL.
 
-Regards,
-Rami Rosen
+Should we return an error? We don't return error for dbi_base either. I think
+it should be sufficient to return errors while populating dbi_base or
+dbi_base2. Otherwise it's a bug and should result in abort. Joao?
+
+Thanks
+Kishon
