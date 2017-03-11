@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 04/15] clk: ti: use automatic clock alias generation framework
-Date: Sat, 11 Mar 2017 14:49:55 +0200
-Message-ID: <1489236606-24023-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 08/15] clk: ti: omap4: cleanup unnecessary clock aliases
+Date: Sat, 11 Mar 2017 14:49:59 +0200
+Message-ID: <1489236606-24023-9-git-send-email-t-kristo@ti.com>
 References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,277 +12,235 @@ To: linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Generate clock aliases automatically for all TI clock drivers.
+Cleanup any unnecessary DT_CLK() alias entries from the OMAP4 clock file.
+Most of these are now handled dynamically by the driver code.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/clk/ti/apll.c         |  2 +-
- drivers/clk/ti/clk-dra7-atl.c | 11 ++++++++++-
- drivers/clk/ti/clk.c          | 20 +++++++++++++++-----
- drivers/clk/ti/composite.c    | 16 +++++++++++++++-
- drivers/clk/ti/divider.c      |  2 +-
- drivers/clk/ti/dpll.c         |  6 +++---
- drivers/clk/ti/fixed-factor.c |  1 +
- drivers/clk/ti/gate.c         |  2 +-
- drivers/clk/ti/interface.c    |  2 +-
- drivers/clk/ti/mux.c          |  2 +-
- 10 files changed, 49 insertions(+), 15 deletions(-)
+ drivers/clk/ti/clk-44xx.c | 188 +---------------------------------------------
+ 1 file changed, 2 insertions(+), 186 deletions(-)
 
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-index 6411e13..62b5db7 100644
---- a/drivers/clk/ti/apll.c
-+++ b/drivers/clk/ti/apll.c
-@@ -164,7 +164,7 @@ static void __init omap_clk_register_apll(struct clk_hw *hw,
+diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
+index 7a8b51b..1c8bb83 100644
+--- a/drivers/clk/ti/clk-44xx.c
++++ b/drivers/clk/ti/clk-44xx.c
+@@ -34,196 +34,13 @@
+ #define OMAP4_DPLL_USB_DEFFREQ				960000000
  
- 	ad->clk_bypass = __clk_get_hw(clk);
+ static struct ti_dt_clk omap44xx_clks[] = {
+-	DT_CLK(NULL, "extalt_clkin_ck", "extalt_clkin_ck"),
+-	DT_CLK(NULL, "pad_clks_src_ck", "pad_clks_src_ck"),
+-	DT_CLK(NULL, "pad_clks_ck", "pad_clks_ck"),
+-	DT_CLK(NULL, "pad_slimbus_core_clks_ck", "pad_slimbus_core_clks_ck"),
+-	DT_CLK(NULL, "secure_32k_clk_src_ck", "secure_32k_clk_src_ck"),
+-	DT_CLK(NULL, "slimbus_src_clk", "slimbus_src_clk"),
+-	DT_CLK(NULL, "slimbus_clk", "slimbus_clk"),
+-	DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
+-	DT_CLK(NULL, "virt_12000000_ck", "virt_12000000_ck"),
+-	DT_CLK(NULL, "virt_13000000_ck", "virt_13000000_ck"),
+-	DT_CLK(NULL, "virt_16800000_ck", "virt_16800000_ck"),
+-	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
+-	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
+-	DT_CLK(NULL, "virt_27000000_ck", "virt_27000000_ck"),
+-	DT_CLK(NULL, "virt_38400000_ck", "virt_38400000_ck"),
+-	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin_ck"),
+-	DT_CLK(NULL, "tie_low_clock_ck", "tie_low_clock_ck"),
+-	DT_CLK(NULL, "utmi_phy_clkout_ck", "utmi_phy_clkout_ck"),
+-	DT_CLK(NULL, "xclk60mhsp1_ck", "xclk60mhsp1_ck"),
+-	DT_CLK(NULL, "xclk60mhsp2_ck", "xclk60mhsp2_ck"),
+-	DT_CLK(NULL, "xclk60motg_ck", "xclk60motg_ck"),
+-	DT_CLK(NULL, "abe_dpll_bypass_clk_mux_ck", "abe_dpll_bypass_clk_mux_ck"),
+-	DT_CLK(NULL, "abe_dpll_refclk_mux_ck", "abe_dpll_refclk_mux_ck"),
+-	DT_CLK(NULL, "dpll_abe_ck", "dpll_abe_ck"),
+-	DT_CLK(NULL, "dpll_abe_x2_ck", "dpll_abe_x2_ck"),
+-	DT_CLK(NULL, "dpll_abe_m2x2_ck", "dpll_abe_m2x2_ck"),
+-	DT_CLK(NULL, "abe_24m_fclk", "abe_24m_fclk"),
+-	DT_CLK(NULL, "abe_clk", "abe_clk"),
+-	DT_CLK(NULL, "aess_fclk", "aess_fclk"),
+-	DT_CLK(NULL, "dpll_abe_m3x2_ck", "dpll_abe_m3x2_ck"),
+-	DT_CLK(NULL, "core_hsd_byp_clk_mux_ck", "core_hsd_byp_clk_mux_ck"),
+-	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
+-	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
+-	DT_CLK(NULL, "dpll_core_m6x2_ck", "dpll_core_m6x2_ck"),
+-	DT_CLK(NULL, "dbgclk_mux_ck", "dbgclk_mux_ck"),
+-	DT_CLK(NULL, "dpll_core_m2_ck", "dpll_core_m2_ck"),
+-	DT_CLK(NULL, "ddrphy_ck", "ddrphy_ck"),
+-	DT_CLK(NULL, "dpll_core_m5x2_ck", "dpll_core_m5x2_ck"),
+-	DT_CLK(NULL, "div_core_ck", "div_core_ck"),
+-	DT_CLK(NULL, "div_iva_hs_clk", "div_iva_hs_clk"),
+-	DT_CLK(NULL, "div_mpu_hs_clk", "div_mpu_hs_clk"),
+-	DT_CLK(NULL, "dpll_core_m4x2_ck", "dpll_core_m4x2_ck"),
+-	DT_CLK(NULL, "dll_clk_div_ck", "dll_clk_div_ck"),
+-	DT_CLK(NULL, "dpll_abe_m2_ck", "dpll_abe_m2_ck"),
+-	DT_CLK(NULL, "dpll_core_m3x2_ck", "dpll_core_m3x2_ck"),
+-	DT_CLK(NULL, "dpll_core_m7x2_ck", "dpll_core_m7x2_ck"),
+-	DT_CLK(NULL, "iva_hsd_byp_clk_mux_ck", "iva_hsd_byp_clk_mux_ck"),
+-	DT_CLK(NULL, "dpll_iva_ck", "dpll_iva_ck"),
+-	DT_CLK(NULL, "dpll_iva_x2_ck", "dpll_iva_x2_ck"),
+-	DT_CLK(NULL, "dpll_iva_m4x2_ck", "dpll_iva_m4x2_ck"),
+-	DT_CLK(NULL, "dpll_iva_m5x2_ck", "dpll_iva_m5x2_ck"),
+-	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
+-	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
+-	DT_CLK(NULL, "per_hs_clk_div_ck", "per_hs_clk_div_ck"),
+-	DT_CLK(NULL, "per_hsd_byp_clk_mux_ck", "per_hsd_byp_clk_mux_ck"),
+-	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
+-	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
+-	DT_CLK(NULL, "dpll_per_x2_ck", "dpll_per_x2_ck"),
+-	DT_CLK(NULL, "dpll_per_m2x2_ck", "dpll_per_m2x2_ck"),
+-	DT_CLK(NULL, "dpll_per_m3x2_ck", "dpll_per_m3x2_ck"),
+-	DT_CLK(NULL, "dpll_per_m4x2_ck", "dpll_per_m4x2_ck"),
+-	DT_CLK(NULL, "dpll_per_m5x2_ck", "dpll_per_m5x2_ck"),
+-	DT_CLK(NULL, "dpll_per_m6x2_ck", "dpll_per_m6x2_ck"),
+-	DT_CLK(NULL, "dpll_per_m7x2_ck", "dpll_per_m7x2_ck"),
+-	DT_CLK(NULL, "usb_hs_clk_div_ck", "usb_hs_clk_div_ck"),
+-	DT_CLK(NULL, "dpll_usb_ck", "dpll_usb_ck"),
+-	DT_CLK(NULL, "dpll_usb_clkdcoldo_ck", "dpll_usb_clkdcoldo_ck"),
+-	DT_CLK(NULL, "dpll_usb_m2_ck", "dpll_usb_m2_ck"),
+-	DT_CLK(NULL, "ducati_clk_mux_ck", "ducati_clk_mux_ck"),
+-	DT_CLK(NULL, "func_12m_fclk", "func_12m_fclk"),
+-	DT_CLK(NULL, "func_24m_clk", "func_24m_clk"),
+-	DT_CLK(NULL, "func_24mc_fclk", "func_24mc_fclk"),
+-	DT_CLK(NULL, "func_48m_fclk", "func_48m_fclk"),
+-	DT_CLK(NULL, "func_48mc_fclk", "func_48mc_fclk"),
+-	DT_CLK(NULL, "func_64m_fclk", "func_64m_fclk"),
+-	DT_CLK(NULL, "func_96m_fclk", "func_96m_fclk"),
+-	DT_CLK(NULL, "init_60m_fclk", "init_60m_fclk"),
+-	DT_CLK(NULL, "l3_div_ck", "l3_div_ck"),
+-	DT_CLK(NULL, "l4_div_ck", "l4_div_ck"),
+-	DT_CLK(NULL, "lp_clk_div_ck", "lp_clk_div_ck"),
+-	DT_CLK(NULL, "l4_wkup_clk_mux_ck", "l4_wkup_clk_mux_ck"),
+ 	DT_CLK("smp_twd", NULL, "mpu_periphclk"),
+-	DT_CLK(NULL, "ocp_abe_iclk", "ocp_abe_iclk"),
+-	DT_CLK(NULL, "per_abe_24m_fclk", "per_abe_24m_fclk"),
+-	DT_CLK(NULL, "per_abe_nc_fclk", "per_abe_nc_fclk"),
+-	DT_CLK(NULL, "syc_clk_div_ck", "syc_clk_div_ck"),
+-	DT_CLK(NULL, "aes1_fck", "aes1_fck"),
+-	DT_CLK(NULL, "aes2_fck", "aes2_fck"),
+-	DT_CLK(NULL, "dmic_sync_mux_ck", "dmic_sync_mux_ck"),
+-	DT_CLK(NULL, "func_dmic_abe_gfclk", "func_dmic_abe_gfclk"),
+-	DT_CLK(NULL, "dss_sys_clk", "dss_sys_clk"),
+-	DT_CLK(NULL, "dss_tv_clk", "dss_tv_clk"),
+-	DT_CLK(NULL, "dss_dss_clk", "dss_dss_clk"),
+-	DT_CLK(NULL, "dss_48mhz_clk", "dss_48mhz_clk"),
+-	DT_CLK(NULL, "dss_fck", "dss_fck"),
+ 	DT_CLK("omapdss_dss", "ick", "dss_fck"),
+-	DT_CLK(NULL, "fdif_fck", "fdif_fck"),
+-	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
+-	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
+-	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
+-	DT_CLK(NULL, "gpio4_dbclk", "gpio4_dbclk"),
+-	DT_CLK(NULL, "gpio5_dbclk", "gpio5_dbclk"),
+-	DT_CLK(NULL, "gpio6_dbclk", "gpio6_dbclk"),
+-	DT_CLK(NULL, "sgx_clk_mux", "sgx_clk_mux"),
+-	DT_CLK(NULL, "hsi_fck", "hsi_fck"),
+-	DT_CLK(NULL, "iss_ctrlclk", "iss_ctrlclk"),
+-	DT_CLK(NULL, "mcasp_sync_mux_ck", "mcasp_sync_mux_ck"),
+-	DT_CLK(NULL, "func_mcasp_abe_gfclk", "func_mcasp_abe_gfclk"),
+-	DT_CLK(NULL, "mcbsp1_sync_mux_ck", "mcbsp1_sync_mux_ck"),
+-	DT_CLK(NULL, "func_mcbsp1_gfclk", "func_mcbsp1_gfclk"),
+-	DT_CLK(NULL, "mcbsp2_sync_mux_ck", "mcbsp2_sync_mux_ck"),
+-	DT_CLK(NULL, "func_mcbsp2_gfclk", "func_mcbsp2_gfclk"),
+-	DT_CLK(NULL, "mcbsp3_sync_mux_ck", "mcbsp3_sync_mux_ck"),
+-	DT_CLK(NULL, "func_mcbsp3_gfclk", "func_mcbsp3_gfclk"),
+-	DT_CLK(NULL, "mcbsp4_sync_mux_ck", "mcbsp4_sync_mux_ck"),
+-	DT_CLK(NULL, "per_mcbsp4_gfclk", "per_mcbsp4_gfclk"),
+-	DT_CLK(NULL, "hsmmc1_fclk", "hsmmc1_fclk"),
+-	DT_CLK(NULL, "hsmmc2_fclk", "hsmmc2_fclk"),
+-	DT_CLK(NULL, "ocp2scp_usb_phy_phy_48m", "ocp2scp_usb_phy_phy_48m"),
+-	DT_CLK(NULL, "sha2md5_fck", "sha2md5_fck"),
+-	DT_CLK(NULL, "slimbus1_fclk_1", "slimbus1_fclk_1"),
+-	DT_CLK(NULL, "slimbus1_fclk_0", "slimbus1_fclk_0"),
+-	DT_CLK(NULL, "slimbus1_fclk_2", "slimbus1_fclk_2"),
+-	DT_CLK(NULL, "slimbus1_slimbus_clk", "slimbus1_slimbus_clk"),
+-	DT_CLK(NULL, "slimbus2_fclk_1", "slimbus2_fclk_1"),
+-	DT_CLK(NULL, "slimbus2_fclk_0", "slimbus2_fclk_0"),
+-	DT_CLK(NULL, "slimbus2_slimbus_clk", "slimbus2_slimbus_clk"),
+-	DT_CLK(NULL, "smartreflex_core_fck", "smartreflex_core_fck"),
+-	DT_CLK(NULL, "smartreflex_iva_fck", "smartreflex_iva_fck"),
+-	DT_CLK(NULL, "smartreflex_mpu_fck", "smartreflex_mpu_fck"),
+-	DT_CLK(NULL, "dmt1_clk_mux", "dmt1_clk_mux"),
+-	DT_CLK(NULL, "cm2_dm10_mux", "cm2_dm10_mux"),
+-	DT_CLK(NULL, "cm2_dm11_mux", "cm2_dm11_mux"),
+-	DT_CLK(NULL, "cm2_dm2_mux", "cm2_dm2_mux"),
+-	DT_CLK(NULL, "cm2_dm3_mux", "cm2_dm3_mux"),
+-	DT_CLK(NULL, "cm2_dm4_mux", "cm2_dm4_mux"),
+-	DT_CLK(NULL, "timer5_sync_mux", "timer5_sync_mux"),
+-	DT_CLK(NULL, "timer6_sync_mux", "timer6_sync_mux"),
+-	DT_CLK(NULL, "timer7_sync_mux", "timer7_sync_mux"),
+-	DT_CLK(NULL, "timer8_sync_mux", "timer8_sync_mux"),
+-	DT_CLK(NULL, "cm2_dm9_mux", "cm2_dm9_mux"),
+-	DT_CLK(NULL, "usb_host_fs_fck", "usb_host_fs_fck"),
+ 	DT_CLK("usbhs_omap", "fs_fck", "usb_host_fs_fck"),
+-	DT_CLK(NULL, "utmi_p1_gfclk", "utmi_p1_gfclk"),
+-	DT_CLK(NULL, "usb_host_hs_utmi_p1_clk", "usb_host_hs_utmi_p1_clk"),
+-	DT_CLK(NULL, "utmi_p2_gfclk", "utmi_p2_gfclk"),
+-	DT_CLK(NULL, "usb_host_hs_utmi_p2_clk", "usb_host_hs_utmi_p2_clk"),
+-	DT_CLK(NULL, "usb_host_hs_utmi_p3_clk", "usb_host_hs_utmi_p3_clk"),
+-	DT_CLK(NULL, "usb_host_hs_hsic480m_p1_clk", "usb_host_hs_hsic480m_p1_clk"),
+-	DT_CLK(NULL, "usb_host_hs_hsic60m_p1_clk", "usb_host_hs_hsic60m_p1_clk"),
+-	DT_CLK(NULL, "usb_host_hs_hsic60m_p2_clk", "usb_host_hs_hsic60m_p2_clk"),
+-	DT_CLK(NULL, "usb_host_hs_hsic480m_p2_clk", "usb_host_hs_hsic480m_p2_clk"),
+-	DT_CLK(NULL, "usb_host_hs_func48mclk", "usb_host_hs_func48mclk"),
+-	DT_CLK(NULL, "usb_host_hs_fck", "usb_host_hs_fck"),
+ 	DT_CLK("usbhs_omap", "hs_fck", "usb_host_hs_fck"),
+-	DT_CLK(NULL, "otg_60m_gfclk", "otg_60m_gfclk"),
+-	DT_CLK(NULL, "usb_otg_hs_xclk", "usb_otg_hs_xclk"),
+-	DT_CLK(NULL, "usb_otg_hs_ick", "usb_otg_hs_ick"),
+ 	DT_CLK("musb-omap2430", "ick", "usb_otg_hs_ick"),
+-	DT_CLK(NULL, "usb_phy_cm_clk32k", "usb_phy_cm_clk32k"),
+-	DT_CLK(NULL, "usb_tll_hs_usb_ch2_clk", "usb_tll_hs_usb_ch2_clk"),
+-	DT_CLK(NULL, "usb_tll_hs_usb_ch0_clk", "usb_tll_hs_usb_ch0_clk"),
+-	DT_CLK(NULL, "usb_tll_hs_usb_ch1_clk", "usb_tll_hs_usb_ch1_clk"),
+-	DT_CLK(NULL, "usb_tll_hs_ick", "usb_tll_hs_ick"),
+ 	DT_CLK("usbhs_omap", "usbtll_ick", "usb_tll_hs_ick"),
+ 	DT_CLK("usbhs_tll", "usbtll_ick", "usb_tll_hs_ick"),
+-	DT_CLK(NULL, "usim_ck", "usim_ck"),
+-	DT_CLK(NULL, "usim_fclk", "usim_fclk"),
+-	DT_CLK(NULL, "pmd_stm_clock_mux_ck", "pmd_stm_clock_mux_ck"),
+-	DT_CLK(NULL, "pmd_trace_clk_mux_ck", "pmd_trace_clk_mux_ck"),
+-	DT_CLK(NULL, "stm_clk_div_ck", "stm_clk_div_ck"),
+-	DT_CLK(NULL, "trace_clk_div_ck", "trace_clk_div_ck"),
+-	DT_CLK(NULL, "auxclk0_src_ck", "auxclk0_src_ck"),
+-	DT_CLK(NULL, "auxclk0_ck", "auxclk0_ck"),
+-	DT_CLK(NULL, "auxclkreq0_ck", "auxclkreq0_ck"),
+-	DT_CLK(NULL, "auxclk1_src_ck", "auxclk1_src_ck"),
+-	DT_CLK(NULL, "auxclk1_ck", "auxclk1_ck"),
+-	DT_CLK(NULL, "auxclkreq1_ck", "auxclkreq1_ck"),
+-	DT_CLK(NULL, "auxclk2_src_ck", "auxclk2_src_ck"),
+-	DT_CLK(NULL, "auxclk2_ck", "auxclk2_ck"),
+-	DT_CLK(NULL, "auxclkreq2_ck", "auxclkreq2_ck"),
+-	DT_CLK(NULL, "auxclk3_src_ck", "auxclk3_src_ck"),
+-	DT_CLK(NULL, "auxclk3_ck", "auxclk3_ck"),
+-	DT_CLK(NULL, "auxclkreq3_ck", "auxclkreq3_ck"),
+-	DT_CLK(NULL, "auxclk4_src_ck", "auxclk4_src_ck"),
+-	DT_CLK(NULL, "auxclk4_ck", "auxclk4_ck"),
+-	DT_CLK(NULL, "auxclkreq4_ck", "auxclkreq4_ck"),
+-	DT_CLK(NULL, "auxclk5_src_ck", "auxclk5_src_ck"),
+-	DT_CLK(NULL, "auxclk5_ck", "auxclk5_ck"),
+-	DT_CLK(NULL, "auxclkreq5_ck", "auxclkreq5_ck"),
+ 	DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
+ 	DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
+ 	DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
+@@ -263,9 +80,6 @@
+ 	DT_CLK("4013c000.timer", "timer_sys_ck", "syc_clk_div_ck"),
+ 	DT_CLK("4013e000.timer", "timer_sys_ck", "syc_clk_div_ck"),
+ 	DT_CLK(NULL, "cpufreq_ck", "dpll_mpu_ck"),
+-	DT_CLK(NULL, "bandgap_fclk", "bandgap_fclk"),
+-	DT_CLK(NULL, "div_ts_ck", "div_ts_ck"),
+-	DT_CLK(NULL, "bandgap_ts_fclk", "bandgap_ts_fclk"),
+ 	{ .node_name = NULL },
+ };
  
--	clk = clk_register(NULL, &clk_hw->hw);
-+	clk = ti_clk_register(NULL, &clk_hw->hw, node->name);
- 	if (!IS_ERR(clk)) {
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
- 		kfree(clk_hw->hw.init->parent_names);
-diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
-index 45d0533..13eb04f7 100644
---- a/drivers/clk/ti/clk-dra7-atl.c
-+++ b/drivers/clk/ti/clk-dra7-atl.c
-@@ -24,6 +24,9 @@
- #include <linux/of_address.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/clk/ti.h>
+@@ -278,6 +92,8 @@ int __init omap4xxx_dt_clk_init(void)
+ 
+ 	omap2_clk_disable_autoidle_all();
+ 
++	ti_clk_add_aliases();
 +
-+#include "clock.h"
- 
- #define DRA7_ATL_INSTANCES	4
- 
-@@ -171,6 +174,7 @@ static void __init of_dra7_atl_clock_setup(struct device_node *node)
- 	struct clk_init_data init = { NULL };
- 	const char **parent_names = NULL;
- 	struct clk *clk;
-+	int ret;
- 
- 	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
- 	if (!clk_hw) {
-@@ -200,9 +204,14 @@ static void __init of_dra7_atl_clock_setup(struct device_node *node)
- 
- 	init.parent_names = parent_names;
- 
--	clk = clk_register(NULL, &clk_hw->hw);
-+	clk = ti_clk_register(NULL, &clk_hw->hw, node->name);
- 
- 	if (!IS_ERR(clk)) {
-+		ret = ti_clk_add_alias(NULL, clk, node->name);
-+		if (ret) {
-+			clk_unregister(clk);
-+			goto cleanup;
-+		}
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
- 		kfree(parent_names);
- 		return;
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 193862e..024123f 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -298,6 +298,7 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
- 	struct ti_clk_fixed *fixed;
- 	struct ti_clk_fixed_factor *fixed_factor;
- 	struct clk_hw *clk_hw;
-+	int ret;
- 
- 	if (setup->clk)
- 		return setup->clk;
-@@ -308,6 +309,13 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
- 
- 		clk = clk_register_fixed_rate(NULL, setup->name, NULL, 0,
- 					      fixed->frequency);
-+		if (!IS_ERR(clk)) {
-+			ret = ti_clk_add_alias(NULL, clk, setup->name);
-+			if (ret) {
-+				clk_unregister(clk);
-+				clk = ERR_PTR(ret);
-+			}
-+		}
- 		break;
- 	case TI_CLK_MUX:
- 		clk = ti_clk_register_mux(setup);
-@@ -325,6 +333,13 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
- 						fixed_factor->parent,
- 						0, fixed_factor->mult,
- 						fixed_factor->div);
-+		if (!IS_ERR(clk)) {
-+			ret = ti_clk_add_alias(NULL, clk, setup->name);
-+			if (ret) {
-+				clk_unregister(clk);
-+				clk = ERR_PTR(ret);
-+			}
-+		}
- 		break;
- 	case TI_CLK_GATE:
- 		clk = ti_clk_register_gate(setup);
-@@ -378,9 +393,6 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
- 				       clks->clk->name, PTR_ERR(clk));
- 				return PTR_ERR(clk);
- 			}
--		} else {
--			clks->lk.clk = clk;
--			clkdev_add(&clks->lk);
- 		}
- 		clks++;
- 	}
-@@ -403,8 +415,6 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
- 				}
- 			} else {
- 				retry = true;
--				retry_clk->lk.clk = clk;
--				clkdev_add(&retry_clk->lk);
- 				list_del(&retry_clk->link);
- 			}
- 		}
-diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
-index 1cf70f4..3f60f99 100644
---- a/drivers/clk/ti/composite.c
-+++ b/drivers/clk/ti/composite.c
-@@ -126,6 +126,7 @@ struct clk *ti_clk_register_composite(struct ti_clk *setup)
- 	int num_parents = 1;
- 	const char **parent_names = NULL;
- 	struct clk *clk;
-+	int ret;
- 
- 	comp = setup->data;
- 
-@@ -150,6 +151,12 @@ struct clk *ti_clk_register_composite(struct ti_clk *setup)
- 				     &ti_composite_divider_ops, gate,
- 				     &ti_composite_gate_ops, 0);
- 
-+	ret = ti_clk_add_alias(NULL, clk, setup->name);
-+	if (ret) {
-+		clk_unregister(clk);
-+		return ERR_PTR(ret);
-+	}
-+
- 	return clk;
- }
- #endif
-@@ -163,6 +170,7 @@ static void __init _register_composite(struct clk_hw *hw,
- 	int num_parents = 0;
- 	const char **parent_names = NULL;
- 	int i;
-+	int ret;
- 
- 	/* Check for presence of each component clock */
- 	for (i = 0; i < CLK_COMPONENT_TYPE_MAX; i++) {
-@@ -217,8 +225,14 @@ static void __init _register_composite(struct clk_hw *hw,
- 				     _get_hw(cclk, CLK_COMPONENT_TYPE_GATE),
- 				     &ti_composite_gate_ops, 0);
- 
--	if (!IS_ERR(clk))
-+	if (!IS_ERR(clk)) {
-+		ret = ti_clk_add_alias(NULL, clk, node->name);
-+		if (ret) {
-+			clk_unregister(clk);
-+			goto cleanup;
-+		}
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
-+	}
- 
- cleanup:
- 	/* Free component clock list entries */
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index 6bb8778..0e8c136 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -311,7 +311,7 @@ static struct clk *_register_divider(struct device *dev, const char *name,
- 	div->table = table;
- 
- 	/* register the clock */
--	clk = clk_register(dev, &div->hw);
-+	clk = ti_clk_register(dev, &div->hw, name);
- 
- 	if (IS_ERR(clk))
- 		kfree(div);
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index 4b9a419..37624e1 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -185,7 +185,7 @@ static void __init _register_dpll(struct clk_hw *hw,
- 	dd->clk_bypass = __clk_get_hw(clk);
- 
- 	/* register the clock */
--	clk = clk_register(NULL, &clk_hw->hw);
-+	clk = ti_clk_register(NULL, &clk_hw->hw, node->name);
- 
- 	if (!IS_ERR(clk)) {
- 		omap2_init_clk_hw_omap_clocks(&clk_hw->hw);
-@@ -288,7 +288,7 @@ struct clk *ti_clk_register_dpll(struct ti_clk *setup)
- 	if (dpll->flags & CLKF_J_TYPE)
- 		dd->flags |= DPLL_J_TYPE;
- 
--	clk = clk_register(NULL, &clk_hw->hw);
-+	clk = ti_clk_register(NULL, &clk_hw->hw, setup->name);
- 
- 	if (!IS_ERR(clk))
- 		return clk;
-@@ -340,7 +340,7 @@ static void _register_dpll_x2(struct device_node *node,
- 	init.num_parents = 1;
- 
- 	/* register the clock */
--	clk = clk_register(NULL, &clk_hw->hw);
-+	clk = ti_clk_register(NULL, &clk_hw->hw, name);
- 
- 	if (IS_ERR(clk)) {
- 		kfree(clk_hw);
-diff --git a/drivers/clk/ti/fixed-factor.c b/drivers/clk/ti/fixed-factor.c
-index 3cd4067..0174a51 100644
---- a/drivers/clk/ti/fixed-factor.c
-+++ b/drivers/clk/ti/fixed-factor.c
-@@ -62,6 +62,7 @@ static void __init of_ti_fixed_factor_clk_setup(struct device_node *node)
- 	if (!IS_ERR(clk)) {
- 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
- 		of_ti_clk_autoidle_setup(node);
-+		ti_clk_add_alias(NULL, clk, clk_name);
- 	}
- }
- CLK_OF_DECLARE(ti_fixed_factor_clk, "ti,fixed-factor-clock",
-diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
-index bc05f27..b3291db 100644
---- a/drivers/clk/ti/gate.c
-+++ b/drivers/clk/ti/gate.c
-@@ -120,7 +120,7 @@ static struct clk *_register_gate(struct device *dev, const char *name,
- 
- 	init.flags = flags;
- 
--	clk = clk_register(NULL, &clk_hw->hw);
-+	clk = ti_clk_register(NULL, &clk_hw->hw, name);
- 
- 	if (IS_ERR(clk))
- 		kfree(clk_hw);
-diff --git a/drivers/clk/ti/interface.c b/drivers/clk/ti/interface.c
-index e505e6f..7927e1a 100644
---- a/drivers/clk/ti/interface.c
-+++ b/drivers/clk/ti/interface.c
-@@ -58,7 +58,7 @@ static struct clk *_register_interface(struct device *dev, const char *name,
- 	init.num_parents = 1;
- 	init.parent_names = &parent_name;
- 
--	clk = clk_register(NULL, &clk_hw->hw);
-+	clk = ti_clk_register(NULL, &clk_hw->hw, name);
- 
- 	if (IS_ERR(clk))
- 		kfree(clk_hw);
-diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-index 44777ab..0da149e 100644
---- a/drivers/clk/ti/mux.c
-+++ b/drivers/clk/ti/mux.c
-@@ -127,7 +127,7 @@ static struct clk *_register_mux(struct device *dev, const char *name,
- 	mux->table = table;
- 	mux->hw.init = &init;
- 
--	clk = clk_register(dev, &mux->hw);
-+	clk = ti_clk_register(dev, &mux->hw, name);
- 
- 	if (IS_ERR(clk))
- 		kfree(mux);
+ 	/*
+ 	 * Lock USB DPLL on OMAP4 devices so that the L3INIT power
+ 	 * domain can transition to retention state when not in use.
 -- 
 1.9.1
 
