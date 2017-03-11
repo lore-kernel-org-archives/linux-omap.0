@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 03/15] clk: ti: add API for creating aliases automatically for simple clock types
-Date: Sat, 11 Mar 2017 14:49:54 +0200
-Message-ID: <1489236606-24023-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 07/15] clk: ti: enforce const types on string arrays
+Date: Sat, 11 Mar 2017 14:49:58 +0200
+Message-ID: <1489236606-24023-8-git-send-email-t-kristo@ti.com>
 References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,74 +12,62 @@ To: linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This API generates clock aliases automatically for simple clock types
-(fixed-clock, fixed-factor-clock), so that we don't need to add the data
-for these statically into tables. Shall be called from the SoC specific
-clock init.
+Constant string arrays should use const char * const instead of just
+const char *. Change the implementations using these to proper type.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/clk/ti/clk.c   | 26 ++++++++++++++++++++++++++
- drivers/clk/ti/clock.h |  1 +
- 2 files changed, 27 insertions(+)
+ drivers/clk/ti/clock.h     | 2 +-
+ drivers/clk/ti/composite.c | 2 +-
+ drivers/clk/ti/mux.c       | 8 ++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 91bad55..193862e 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -355,6 +355,12 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
- 	return clk;
- }
- 
-+static const struct of_device_id simple_clk_match_table[] __initconst = {
-+	{ .compatible = "fixed-clock" },
-+	{ .compatible = "fixed-factor-clock" },
-+	{ }
-+};
-+
- int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
- {
- 	struct clk *clk;
-@@ -409,6 +415,26 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
- #endif
- 
- /**
-+ * ti_clk_add_aliases - setup clock aliases
-+ *
-+ * Sets up any missing clock aliases. No return value.
-+ */
-+void __init ti_clk_add_aliases(void)
-+{
-+	struct device_node *np;
-+	struct clk *clk;
-+
-+	for_each_matching_node(np, simple_clk_match_table) {
-+		struct of_phandle_args clkspec;
-+
-+		clkspec.np = np;
-+		clk = of_clk_get_from_provider(&clkspec);
-+
-+		ti_clk_add_alias(NULL, clk, np->name);
-+	}
-+}
-+
-+/**
-  * ti_clk_setup_features - setup clock features flags
-  * @features: features definition to use
-  *
 diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index c38de6d..ee6d225 100644
+index ecf82d8..cb906a1 100644
 --- a/drivers/clk/ti/clock.h
 +++ b/drivers/clk/ti/clock.h
-@@ -192,6 +192,7 @@ struct ti_dt_clk {
- struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
- 			    const char *con);
- int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con);
-+void ti_clk_add_aliases(void);
+@@ -86,7 +86,7 @@ struct ti_clk_mux {
+ 	int num_parents;
+ 	u16 reg;
+ 	u8 module;
+-	const char **parents;
++	const char * const *parents;
+ 	u16 flags;
+ };
  
- struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup);
- struct clk_hw *ti_clk_build_component_gate(struct ti_clk_gate *setup);
+diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
+index 3f60f99..beea894 100644
+--- a/drivers/clk/ti/composite.c
++++ b/drivers/clk/ti/composite.c
+@@ -124,7 +124,7 @@ struct clk *ti_clk_register_composite(struct ti_clk *setup)
+ 	struct clk_hw *mux;
+ 	struct clk_hw *div;
+ 	int num_parents = 1;
+-	const char **parent_names = NULL;
++	const char * const *parent_names = NULL;
+ 	struct clk *clk;
+ 	int ret;
+ 
+diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
+index 0da149e..3cc6db4 100644
+--- a/drivers/clk/ti/mux.c
++++ b/drivers/clk/ti/mux.c
+@@ -97,10 +97,10 @@ static int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
+ };
+ 
+ static struct clk *_register_mux(struct device *dev, const char *name,
+-				 const char **parent_names, u8 num_parents,
+-				 unsigned long flags, void __iomem *reg,
+-				 u8 shift, u32 mask, u8 clk_mux_flags,
+-				 u32 *table)
++				 const char * const *parent_names,
++				 u8 num_parents, unsigned long flags,
++				 void __iomem *reg, u8 shift, u32 mask,
++				 u8 clk_mux_flags, u32 *table)
+ {
+ 	struct clk_mux *mux;
+ 	struct clk *clk;
 -- 
 1.9.1
 
