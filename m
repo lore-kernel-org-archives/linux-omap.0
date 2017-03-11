@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 14/15] clk: ti: dpll44xx: fix clksel register initialization
-Date: Sat, 11 Mar 2017 14:50:05 +0200
-Message-ID: <1489236606-24023-15-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 05/15] clk: ti: add clkdm_lookup to the exported functions
+Date: Sat, 11 Mar 2017 14:49:56 +0200
+Message-ID: <1489236606-24023-6-git-send-email-t-kristo@ti.com>
 References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,49 +12,48 @@ To: linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-clksel register pointer should be used for the DPLL-MX autoidle handling.
-Currently this is not setup at all. Fix by adding proper handling for the
-register.
+This will be needed to move some additional clockdomain functionality
+under clock driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/clk/ti/dpll.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/arm/mach-omap2/clock.c | 1 +
+ include/linux/clk/ti.h      | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index c149bd1..778bc90 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -319,6 +319,7 @@ static void _register_dpll_x2(struct device_node *node,
- 	struct clk_hw_omap *clk_hw;
- 	const char *name = node->name;
- 	const char *parent_name;
-+	int ret;
- 
- 	parent_name = of_clk_get_parent_name(node, 0);
- 	if (!parent_name) {
-@@ -338,6 +339,20 @@ static void _register_dpll_x2(struct device_node *node,
- 	init.parent_names = &parent_name;
- 	init.num_parents = 1;
- 
-+	if (hw_ops == &clkhwops_omap4_dpllmx) {
-+		/* Check if register defined, if not, drop hw-ops */
-+		ret = of_property_count_elems_of_size(node, "reg", 1);
-+		if (ret <= 0) {
-+			hw_ops = NULL;
-+		} else {
-+			clk_hw->clksel_reg = ti_clk_get_reg_addr(node, 0);
-+			if (IS_ERR(clk_hw->clksel_reg)) {
-+				kfree(clk_hw);
-+				return;
-+			}
-+		}
-+	}
-+
- 	/* register the clock */
- 	clk = ti_clk_register(NULL, &clk_hw->hw, name);
- 
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 1270afd..6fac826 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -57,6 +57,7 @@
+ static struct ti_clk_ll_ops omap_clk_ll_ops = {
+ 	.clkdm_clk_enable = clkdm_clk_enable,
+ 	.clkdm_clk_disable = clkdm_clk_disable,
++	.clkdm_lookup = clkdm_lookup,
+ 	.cm_wait_module_ready = omap_cm_wait_module_ready,
+ 	.cm_split_idlest_reg = cm_split_idlest_reg,
+ };
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 07308db..bc7fd8f 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -213,6 +213,7 @@ struct clk_omap_reg {
+  * @clk_writel: pointer to register write function
+  * @clkdm_clk_enable: pointer to clockdomain enable function
+  * @clkdm_clk_disable: pointer to clockdomain disable function
++ * @clkdm_lookup: pointer to clockdomain lookup function
+  * @cm_wait_module_ready: pointer to CM module wait ready function
+  * @cm_split_idlest_reg: pointer to CM module function to split idlest reg
+  *
+@@ -228,6 +229,7 @@ struct ti_clk_ll_ops {
+ 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm, struct clk *clk);
+ 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm,
+ 				     struct clk *clk);
++	struct clockdomain * (*clkdm_lookup)(const char *name);
+ 	int	(*cm_wait_module_ready)(u8 part, s16 prcm_mod, u16 idlest_reg,
+ 					u8 idlest_shift);
+ 	int	(*cm_split_idlest_reg)(void __iomem *idlest_reg, s16 *prcm_inst,
 -- 
 1.9.1
 
