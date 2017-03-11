@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 01/15] clk: ti: remove un-used definitions from public clk_hw_omap struct
-Date: Sat, 11 Mar 2017 14:49:52 +0200
-Message-ID: <1489236606-24023-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 03/15] clk: ti: add API for creating aliases automatically for simple clock types
+Date: Sat, 11 Mar 2017 14:49:54 +0200
+Message-ID: <1489236606-24023-4-git-send-email-t-kristo@ti.com>
 References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,37 +12,74 @@ To: linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Clksel support has been deprecated a while back, so remove these from
-the struct also.
+This API generates clock aliases automatically for simple clock types
+(fixed-clock, fixed-factor-clock), so that we don't need to add the data
+for these statically into tables. Shall be called from the SoC specific
+clock init.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- include/linux/clk/ti.h | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/clk/ti/clk.c   | 26 ++++++++++++++++++++++++++
+ drivers/clk/ti/clock.h |  1 +
+ 2 files changed, 27 insertions(+)
 
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index 6110fe0..07308db 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -129,8 +129,6 @@ struct clk_hw_omap_ops {
-  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-  * @flags: see "struct clk.flags possibilities" above
-  * @clksel_reg: for clksel clks, register va containing src/divisor select
-- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
-- * @clksel: for clksel clks, pointer to struct clksel for this clock
-  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-  * @clkdm_name: clockdomain name that this clock is contained in
-  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-@@ -145,8 +143,6 @@ struct clk_hw_omap {
- 	u8			enable_bit;
- 	u8			flags;
- 	void __iomem		*clksel_reg;
--	u32			clksel_mask;
--	const struct clksel	*clksel;
- 	struct dpll_data	*dpll_data;
- 	const char		*clkdm_name;
- 	struct clockdomain	*clkdm;
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index 91bad55..193862e 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -355,6 +355,12 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
+ 	return clk;
+ }
+ 
++static const struct of_device_id simple_clk_match_table[] __initconst = {
++	{ .compatible = "fixed-clock" },
++	{ .compatible = "fixed-factor-clock" },
++	{ }
++};
++
+ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ {
+ 	struct clk *clk;
+@@ -409,6 +415,26 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ #endif
+ 
+ /**
++ * ti_clk_add_aliases - setup clock aliases
++ *
++ * Sets up any missing clock aliases. No return value.
++ */
++void __init ti_clk_add_aliases(void)
++{
++	struct device_node *np;
++	struct clk *clk;
++
++	for_each_matching_node(np, simple_clk_match_table) {
++		struct of_phandle_args clkspec;
++
++		clkspec.np = np;
++		clk = of_clk_get_from_provider(&clkspec);
++
++		ti_clk_add_alias(NULL, clk, np->name);
++	}
++}
++
++/**
+  * ti_clk_setup_features - setup clock features flags
+  * @features: features definition to use
+  *
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index c38de6d..ee6d225 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -192,6 +192,7 @@ struct ti_dt_clk {
+ struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
+ 			    const char *con);
+ int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con);
++void ti_clk_add_aliases(void);
+ 
+ struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup);
+ struct clk_hw *ti_clk_build_component_gate(struct ti_clk_gate *setup);
 -- 
 1.9.1
 
