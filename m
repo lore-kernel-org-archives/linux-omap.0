@@ -1,121 +1,50 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 02/15] clk: ti: add support for automatic clock alias generation
-Date: Sat, 11 Mar 2017 14:49:53 +0200
-Message-ID: <1489236606-24023-3-git-send-email-t-kristo@ti.com>
-References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 00/15] clk: ti: cleanups for 4.12 merge window
+Date: Sat, 11 Mar 2017 14:49:51 +0200
+Message-ID: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
 To: linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Large portions of the OMAP framework still depend on the support of
-having clock aliases in place, so add support functions for generating
-these automatically.
+Hi,
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- drivers/clk/ti/clk.c   | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/clk/ti/clock.h |  3 +++
- 2 files changed, 67 insertions(+)
+This series is basically just a rebase of v1 of the same, with Tony's
+acks added.
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index 5fcf247..91bad55 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -24,6 +24,7 @@
- #include <linux/list.h>
- #include <linux/regmap.h>
- #include <linux/bootmem.h>
-+#include <linux/device.h>
- 
- #include "clock.h"
- 
-@@ -453,3 +454,66 @@ void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks)
- 		clk_prepare_enable(init_clk);
- 	}
- }
-+
-+/**
-+ * ti_clk_add_alias - add a clock alias for a TI clock
-+ * @dev: device alias for this clock
-+ * @clk: clock handle to create alias for
-+ * @con: connection ID for this clock
-+ *
-+ * Creates a clock alias for a TI clock. Allocates the clock lookup entry
-+ * and assigns the data to it. Returns 0 if successful, negative error
-+ * value otherwise.
-+ */
-+int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con)
-+{
-+	struct clk_lookup *cl;
-+
-+	if (!clk)
-+		return 0;
-+
-+	if (IS_ERR(clk))
-+		return PTR_ERR(clk);
-+
-+	cl = kzalloc(sizeof(*cl), GFP_KERNEL);
-+	if (!cl)
-+		return -ENOMEM;
-+
-+	if (dev)
-+		cl->dev_id = dev_name(dev);
-+	cl->con_id = con;
-+	cl->clk = clk;
-+
-+	clkdev_add(cl);
-+
-+	return 0;
-+}
-+
-+/**
-+ * ti_clk_register - register a TI clock to the common clock framework
-+ * @dev: device for this clock
-+ * @hw: hardware clock handle
-+ * @con: connection ID for this clock
-+ *
-+ * Registers a TI clock to the common clock framework, and adds a clock
-+ * alias for it. Returns a handle to the registered clock if successful,
-+ * ERR_PTR value in failure.
-+ */
-+struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
-+			    const char *con)
-+{
-+	struct clk *clk;
-+	int ret;
-+
-+	clk = clk_register(dev, hw);
-+	if (IS_ERR(clk))
-+		return clk;
-+
-+	ret = ti_clk_add_alias(dev, clk, con);
-+	if (ret) {
-+		clk_unregister(clk);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return clk;
-+}
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index 13c37f4..c38de6d 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -189,6 +189,9 @@ struct ti_dt_clk {
- struct clk *ti_clk_register_divider(struct ti_clk *setup);
- struct clk *ti_clk_register_composite(struct ti_clk *setup);
- struct clk *ti_clk_register_dpll(struct ti_clk *setup);
-+struct clk *ti_clk_register(struct device *dev, struct clk_hw *hw,
-+			    const char *con);
-+int ti_clk_add_alias(struct device *dev, struct clk *clk, const char *con);
- 
- struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup);
- struct clk_hw *ti_clk_build_component_gate(struct ti_clk_gate *setup);
--- 
-1.9.1
+https://www.spinics.net/lists/arm-kernel/msg562362.html
+
+Boot tested on the omap2+ boards I have access to, no issues seen caused
+by this series.
+
+am335x-evm      : boot ok
+am335x-evmsk    : boot ok
+am37x-evm       : boot ok
+am437x-sk       : boot ok
+am437x-gp-evm   : boot ok
+am57xx-evm      : boot ok
+omap3-beagle-xm : boot ok
+omap3-beagle    : boot ok
+am335x-boneblack: boot ok
+am335x-bone     : boot ok
+dra72x-evm      : BOOT FAIL! (farm issue, failed to mount NFS rootfs)
+dra7xx-evm      : boot ok
+ldp3430         : BOOT FAIL! (farm issue, bootloader ethernet failure)
+omap3-n900      : boot ok
+omap5-uevm      : boot ok
+omap4-panda-es  : boot ok
+omap4-panda     : boot ok
+omap2430-sdp    : boot ok
+omap3430-sdp    : boot ok
+omap4-sdp-es23plus: boot ok
+
+Branch available on top of 4.11-rc1 here:
+
+tree: https://github.com/t-kristo/linux-pm.git
+branch: for-4.12-ti-clk-cleanups
+
+-Tero
 
