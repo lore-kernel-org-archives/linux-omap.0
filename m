@@ -1,50 +1,48 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 00/15] clk: ti: cleanups for 4.12 merge window
-Date: Sat, 11 Mar 2017 14:49:51 +0200
-Message-ID: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 01/15] clk: ti: remove un-used definitions from public clk_hw_omap struct
+Date: Sat, 11 Mar 2017 14:49:52 +0200
+Message-ID: <1489236606-24023-2-git-send-email-t-kristo@ti.com>
+References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
 To: linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Clksel support has been deprecated a while back, so remove these from
+the struct also.
 
-This series is basically just a rebase of v1 of the same, with Tony's
-acks added.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ include/linux/clk/ti.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-https://www.spinics.net/lists/arm-kernel/msg562362.html
-
-Boot tested on the omap2+ boards I have access to, no issues seen caused
-by this series.
-
-am335x-evm      : boot ok
-am335x-evmsk    : boot ok
-am37x-evm       : boot ok
-am437x-sk       : boot ok
-am437x-gp-evm   : boot ok
-am57xx-evm      : boot ok
-omap3-beagle-xm : boot ok
-omap3-beagle    : boot ok
-am335x-boneblack: boot ok
-am335x-bone     : boot ok
-dra72x-evm      : BOOT FAIL! (farm issue, failed to mount NFS rootfs)
-dra7xx-evm      : boot ok
-ldp3430         : BOOT FAIL! (farm issue, bootloader ethernet failure)
-omap3-n900      : boot ok
-omap5-uevm      : boot ok
-omap4-panda-es  : boot ok
-omap4-panda     : boot ok
-omap2430-sdp    : boot ok
-omap3430-sdp    : boot ok
-omap4-sdp-es23plus: boot ok
-
-Branch available on top of 4.11-rc1 here:
-
-tree: https://github.com/t-kristo/linux-pm.git
-branch: for-4.12-ti-clk-cleanups
-
--Tero
+diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
+index 6110fe0..07308db 100644
+--- a/include/linux/clk/ti.h
++++ b/include/linux/clk/ti.h
+@@ -129,8 +129,6 @@ struct clk_hw_omap_ops {
+  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
+  * @flags: see "struct clk.flags possibilities" above
+  * @clksel_reg: for clksel clks, register va containing src/divisor select
+- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
+- * @clksel: for clksel clks, pointer to struct clksel for this clock
+  * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
+  * @clkdm_name: clockdomain name that this clock is contained in
+  * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
+@@ -145,8 +143,6 @@ struct clk_hw_omap {
+ 	u8			enable_bit;
+ 	u8			flags;
+ 	void __iomem		*clksel_reg;
+-	u32			clksel_mask;
+-	const struct clksel	*clksel;
+ 	struct dpll_data	*dpll_data;
+ 	const char		*clkdm_name;
+ 	struct clockdomain	*clkdm;
+-- 
+1.9.1
 
