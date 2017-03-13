@@ -1,43 +1,58 @@
-From: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
-Subject: [PATCH] ARM: dts: am335x-baltos: disable EEE for Atheros 8035 PHY
-Date: Mon, 13 Mar 2017 10:03:14 +0100
-Message-ID: <1489395794-6243-1-git-send-email-yegorslists@googlemail.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/4] ARM: DRA7: Fix DCAN1 stuck-in-transition
+Date: Mon, 13 Mar 2017 13:53:12 +0200
+Message-ID: <1489405996-10718-1-git-send-email-rogerq@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: paul@pwsan.com, tony@atomide.com
+Cc: bcousson@baylibre.com, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Hi,
 
-Though cpsw doesn't support EEE feature, Atheros 8035 provides
-automatic EEE support that is enabled by default. This causes
-occasional link drops when link partner also announces EEE support.
-These link drops occur on both 100Mbit/s and 1000Mbit/s speeds.
-So disable EEE advertising completely.
+On DRA7 platform, DCAN1 module has an issue when it's clockdomain
+(WKUPAON) is configured in HW_AUTO. After DCAN1 is enabled and disabled
+the module remains stuck in transition.
 
-Signed-off-by: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
----
- arch/arm/boot/dts/am335x-baltos.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
+Suggested workaround by Silicon team is to disable HW_AUTO for
+WKUPAON clockdomain when DCAN1 module is active.
 
-diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
-index efb5eae..d42b98f 100644
---- a/arch/arm/boot/dts/am335x-baltos.dtsi
-+++ b/arch/arm/boot/dts/am335x-baltos.dtsi
-@@ -371,6 +371,8 @@
- 
- 	phy1: ethernet-phy@1 {
- 		reg = <7>;
-+		eee-broken-100tx;
-+		eee-broken-1000t;
- 	};
- };
- 
+These patches provide a new flag for hwmod data to support this
+behaviour and fix up dra7 hwmod data as well to fix this issue
+on dra7x-evms.
+
+This patch allows DCAN1 to be functional as well as not prevent
+Core Retention as WKUPAON clockdomain is put back into HW_AUTO
+whenever DCAN1 is not active (e.g. runtime suspended).
+
+Without this series, we can see the following warning messages
+when the CAN interface is brought up and down.
+
+~# ifconfig can0 up
+[   36.418299] net can0: c_can_hw_raminit_wait_syscon: time out
+[   36.424642] c_can_platform 4ae3c000.can can0: setting BTR=1c04 BRPE=0000
+~# ifconfig can0 down
+[   50.488786] omap_hwmod: dcan1: _wait_target_disable failed
+[   50.502855] omap_hwmod: dcan1: _wait_target_disable failed
+
+cheers,
+-roger
+
+Roger Quadros (3):
+  ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
+  ARM: DRA7: hwmod: Fix DCAN1 stuck in transition
+  ARM: DRA7: hwmod_data: Prevent wait_target_disable error for
+    usb_otg_ss
+
+Sekhar Nori (1):
+  ARM: OMAP2+: omap_hwmod: provide space for more hwmod flags
+
+ arch/arm/mach-omap2/omap_hwmod.c          | 4 ++--
+ arch/arm/mach-omap2/omap_hwmod.h          | 7 ++++++-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 4 ++++
+ 3 files changed, 12 insertions(+), 3 deletions(-)
+
 -- 
-2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.4
