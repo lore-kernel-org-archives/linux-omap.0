@@ -1,78 +1,217 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 11/23] PCI: dwc: dra7xx: Facilitate wrapper and msi
- interrupts to be enabled independently
-Date: Mon, 13 Mar 2017 19:52:47 +0530
-Message-ID: <20170313142259.25397-12-kishon@ti.com>
+Subject: [PATCH v4 19/23] tools: PCI: Add a userspace tool to test PCI endpoint
+Date: Mon, 13 Mar 2017 19:52:55 +0530
+Message-ID: <20170313142259.25397-20-kishon@ti.com>
 References: <20170313142259.25397-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20170313142259.25397-1-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Split dra7xx_pcie_enable_interrupts into
-dra7xx_pcie_enable_wrapper_interrupts and dra7xx_pcie_enable_msi_interrupts
-so that wrapper interrupts and msi interrupts can be enabled independently.
-This is in preparation for adding EP mode support to dra7xx driver since
-EP mode doesn't have to enable msi_interrupts.
+Add a userspace tool to invoke the ioctls exposed by the
+PCI endpoint test driver to perform various PCI tests.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c | 24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ tools/pci/pcitest.c | 186 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 186 insertions(+)
+ create mode 100644 tools/pci/pcitest.c
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 7c9ed6a6675c..d78974d20360 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -140,18 +140,30 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
- 	return dw_pcie_wait_for_link(pci);
- }
- 
--static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
-+static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
- {
--	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
--			   ~INTERRUPTS);
--	dra7xx_pcie_writel(dra7xx,
--			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
- 			   ~LEG_EP_INTERRUPTS & ~MSI);
--	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
+diff --git a/tools/pci/pcitest.c b/tools/pci/pcitest.c
+new file mode 100644
+index 000000000000..39b5b0ba569e
+--- /dev/null
++++ b/tools/pci/pcitest.c
+@@ -0,0 +1,186 @@
++/**
++ * Userspace PCI Endpoint Test Module
++ *
++ * Copyright (C) 2017 Texas Instruments
++ * Author: Kishon Vijay Abraham I <kishon@ti.com>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 of
++ * the License as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
 +
-+	dra7xx_pcie_writel(dra7xx,
-+			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
- 			   MSI | LEG_EP_INTERRUPTS);
- }
- 
-+static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
++#include <errno.h>
++#include <fcntl.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/ioctl.h>
++#include <time.h>
++#include <unistd.h>
++
++#include <linux/pcitest.h>
++
++#define BILLION 1E9
++
++static char *result[] = { "NOT OKAY", "OKAY" };
++
++struct pci_test {
++	char		*device;
++	char		barnum;
++	bool		legacyirq;
++	unsigned int	msinum;
++	bool		read;
++	bool		write;
++	bool		copy;
++	unsigned long	size;
++};
++
++static int run_test(struct pci_test *test)
 +{
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
-+			   ~INTERRUPTS);
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
-+			   INTERRUPTS);
++	long ret;
++	int fd;
++	struct timespec start, end;
++	double time;
++
++	fd = open(test->device, O_RDWR);
++	if (fd < 0) {
++		perror("can't open PCI Endpoint Test device");
++		return fd;
++	}
++
++	if (test->barnum >= 0 && test->barnum <= 5) {
++		ret = ioctl(fd, PCITEST_BAR, test->barnum);
++		fprintf(stdout, "BAR%d:\t\t", test->barnum);
++		if (ret < 0)
++			fprintf(stdout, "TEST FAILED\n");
++		else
++			fprintf(stdout, "%s\n", result[ret]);
++	}
++
++	if (test->legacyirq) {
++		ret = ioctl(fd, PCITEST_LEGACY_IRQ, 0);
++		fprintf(stdout, "LEGACY IRQ:\t");
++		if (ret < 0)
++			fprintf(stdout, "TEST FAILED\n");
++		else
++			fprintf(stdout, "%s\n", result[ret]);
++	}
++
++	if (test->msinum > 0 && test->msinum <= 32) {
++		ret = ioctl(fd, PCITEST_MSI, test->msinum);
++		fprintf(stdout, "MSI%d:\t\t", test->msinum);
++		if (ret < 0)
++			fprintf(stdout, "TEST FAILED\n");
++		else
++			fprintf(stdout, "%s\n", result[ret]);
++	}
++
++	if (test->write) {
++		ret = ioctl(fd, PCITEST_WRITE, test->size);
++		fprintf(stdout, "WRITE (%7ld bytes):\t\t", test->size);
++		if (ret < 0)
++			fprintf(stdout, "TEST FAILED\n");
++		else
++			fprintf(stdout, "%s\n", result[ret]);
++	}
++
++	if (test->read) {
++		ret = ioctl(fd, PCITEST_READ, test->size);
++		fprintf(stdout, "READ (%7ld bytes):\t\t", test->size);
++		if (ret < 0)
++			fprintf(stdout, "TEST FAILED\n");
++		else
++			fprintf(stdout, "%s\n", result[ret]);
++	}
++
++	if (test->copy) {
++		ret = ioctl(fd, PCITEST_COPY, test->size);
++		fprintf(stdout, "COPY (%7ld bytes):\t\t", test->size);
++		if (ret < 0)
++			fprintf(stdout, "TEST FAILED\n");
++		else
++			fprintf(stdout, "%s\n", result[ret]);
++	}
++
++	fflush(stdout);
 +}
 +
-+static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
++int main(int argc, char **argv)
 +{
-+	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
-+	dra7xx_pcie_enable_msi_interrupts(dra7xx);
-+}
++	int c;
++	struct pci_test *test;
 +
- static void dra7xx_pcie_host_init(struct pcie_port *pp)
- {
- 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
++	test = calloc(1, sizeof(*test));
++	if (!test) {
++		perror("Fail to allocate memory for pci_test\n");
++		return -ENOMEM;
++	}
++
++	/* since '0' is a valid BAR number, initialize it to -1 */
++	test->barnum = -1;
++
++	/* set default size as 100KB */
++	test->size = 0x19000;
++
++	/* set default endpoint device */
++	test->device = "/dev/pci-endpoint-test.0";
++
++	while ((c = getopt(argc, argv, "D:b:m:lrwcs:")) != EOF)
++	switch (c) {
++	case 'D':
++		test->device = optarg;
++		continue;
++	case 'b':
++		test->barnum = atoi(optarg);
++		if (test->barnum < 0 || test->barnum > 5)
++			goto usage;
++		continue;
++	case 'l':
++		test->legacyirq = true;
++		continue;
++	case 'm':
++		test->msinum = atoi(optarg);
++		if (test->msinum < 1 || test->msinum > 32)
++			goto usage;
++		continue;
++	case 'r':
++		test->read = true;
++		continue;
++	case 'w':
++		test->write = true;
++		continue;
++	case 'c':
++		test->copy = true;
++		continue;
++	case 's':
++		test->size = strtoul(optarg, NULL, 0);
++		continue;
++	case '?':
++	case 'h':
++	default:
++usage:
++		fprintf(stderr,
++			"usage: %s [options]\n"
++			"Options:\n"
++			"\t-D <dev>		pci endpoint test device {default: /dev/pci-endpoint-test.0}\n"
++			"\t-b <bar num>		BAR test (bar number between 0..5)\n"
++			"\t-m <msi num>		MSI test (msi number between 1..32)\n"
++			"\t-r			Read buffer test\n"
++			"\t-w			Write buffer test\n"
++			"\t-c			Copy buffer test\n"
++			"\t-s <size>		Size of buffer {default: 100KB}\n",
++			argv[0]);
++		return -EINVAL;
++	}
++
++	run_test(test);
++	return 0;
++}
 -- 
 2.11.0
