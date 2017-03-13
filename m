@@ -1,40 +1,41 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 15/23] dt-bindings: PCI: dra7xx: Add dt bindings to enable unaligned access
-Date: Mon, 13 Mar 2017 19:52:51 +0530
-Message-ID: <20170313142259.25397-16-kishon@ti.com>
+Subject: [PATCH v4 23/23] ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP
+Date: Mon, 13 Mar 2017 19:52:59 +0530
+Message-ID: <20170313142259.25397-24-kishon@ti.com>
 References: <20170313142259.25397-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <20170313142259.25397-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-doc-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Update device tree binding documentation of TI's dra7xx PCI
-controller to include property for enabling unaligned mem access.
+The PCIe programming sequence in TRM suggests CLKSTCTRL of PCIe should
+be set to SW_WKUP. There are no issues when CLKSTCTRL is set to HW_AUTO
+in RC mode. However in EP mode, the host system is not able to access the
+MEMSPACE and setting the CLKSTCTRL to SW_WKUP fixes it.
 
+Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/pci/ti-pci.txt | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-index 190828a5f32a..b69dd7dbd29e 100644
---- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-+++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-@@ -39,6 +39,11 @@ DEVICE MODE
-  - interrupts : one interrupt entries must be specified for main interrupt.
-  - num-ib-windows : number of inbound address translation windows
-  - num-ob-windows : number of outbound address translation windows
-+ - ti,syscon-unaligned-access: phandle to the syscon dt node. The 1st argument
-+			       should contain the register offset within syscon
-+			       and the 2nd argument should contain the bit field
-+			       for setting the bit to enable unaligned
-+			       access.
+diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+index 6c679659cda5..67ebff829cf2 100644
+--- a/arch/arm/mach-omap2/clockdomains7xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+@@ -524,7 +524,7 @@ static struct clockdomain pcie_7xx_clkdm = {
+ 	.dep_bit	  = DRA7XX_PCIE_STATDEP_SHIFT,
+ 	.wkdep_srcs	  = pcie_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = pcie_wkup_sleep_deps,
+-	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++	.flags		  = CLKDM_CAN_SWSUP,
+ };
  
- Optional Property:
-  - gpios : Should be added if a gpio line is required to drive PERST# line
+ static struct clockdomain atl_7xx_clkdm = {
 -- 
 2.11.0
+
