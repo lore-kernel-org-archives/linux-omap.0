@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 16/23] PCI: Add device IDs for DRA74x and DRA72x
-Date: Mon, 13 Mar 2017 19:52:52 +0530
-Message-ID: <20170313142259.25397-17-kishon@ti.com>
+Subject: [PATCH v4 22/23] MAINTAINERS: add PCI EP maintainer
+Date: Mon, 13 Mar 2017 19:52:58 +0530
+Message-ID: <20170313142259.25397-23-kishon@ti.com>
 References: <20170313142259.25397-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,26 +12,32 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, l
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add device IDs for DRA74x and DRA72x devices. These devices have
-configurable PCI endpoint.
+Add maintainer for the newly introduced PCI EP framework.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- include/linux/pci_ids.h | 2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
-index a4f77feecbb0..5f6b71d15393 100644
---- a/include/linux/pci_ids.h
-+++ b/include/linux/pci_ids.h
-@@ -862,6 +862,8 @@
- #define PCI_DEVICE_ID_TI_X620		0xac8d
- #define PCI_DEVICE_ID_TI_X420		0xac8e
- #define PCI_DEVICE_ID_TI_XX20_FM	0xac8f
-+#define PCI_DEVICE_ID_TI_DRA74x		0xb500
-+#define PCI_DEVICE_ID_TI_DRA72x		0xb501
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c265a5fe4848..3c1b947811e2 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9581,6 +9581,15 @@ F:	include/linux/pci*
+ F:	arch/x86/pci/
+ F:	arch/x86/kernel/quirks.c
  
- #define PCI_VENDOR_ID_SONY		0x104d
- 
++PCI EP SUBSYSTEM
++M:	Kishon Vijay Abraham I <kishon@ti.com>
++L:	linux-pci@vger.kernel.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git
++S:	Supported
++F:	drivers/pci/endpoint/
++F:	drivers/misc/pci_endpoint_test.c
++F:	tools/pci/
++
+ PCI DRIVER FOR ALTERA PCIE IP
+ M:	Ley Foon Tan <lftan@altera.com>
+ L:	rfi@lists.rocketboards.org (moderated for non-subscribers)
 -- 
 2.11.0
