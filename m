@@ -1,74 +1,75 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 3/7] PCI: dwc: artpec6: Populate cpu_addr_fixup ops
-Date: Mon, 13 Mar 2017 19:13:24 +0530
-Message-ID: <20170313134328.1588-4-kishon@ti.com>
-References: <20170313134328.1588-1-kishon@ti.com>
+Subject: [PATCH v4 0/7] PCI: dwc: Miscellaneous fixes and cleanups
+Date: Mon, 13 Mar 2017 19:13:21 +0530
+Message-ID: <20170313134328.1588-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170313134328.1588-1-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Niklas Cassel <niklas.cassel@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: kishon@ti.com, nsekhar@ti.com
+Cc: nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Populate cpu_addr_fixup ops to extract the least 28 bits of the
-corresponding cpu address.
+This should be the final set of cleanups/fixes before endpoint
+support can be merged.
 
-Cc: Niklas Cassel <niklas.cassel@axis.com>
-Acked-by: Niklas Cassel <niklas.cassel@axis.com>
-Acked-by: Joao Pinto <jpinto@synopsys.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/dwc/pcie-artpec6.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+Keerthy's patch is a general fix in dra7xx driver and is not
+directly related to endpoint mode.
 
-diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
-index fcd3ef845883..5b3b3afc0edb 100644
---- a/drivers/pci/dwc/pcie-artpec6.c
-+++ b/drivers/pci/dwc/pcie-artpec6.c
-@@ -78,6 +78,11 @@ static void artpec6_pcie_writel(struct artpec6_pcie *artpec6_pcie, u32 offset, u
- 	regmap_write(artpec6_pcie->regmap, offset, val);
- }
- 
-+static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
-+{
-+	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
-+}
-+
- static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
- {
- 	struct dw_pcie *pci = artpec6_pcie->pci;
-@@ -142,11 +147,6 @@ static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
- 	 */
- 	dw_pcie_writel_dbi(pci, MISC_CONTROL_1_OFF, DBI_RO_WR_EN);
- 
--	pp->io_base &= ARTPEC6_CPU_TO_BUS_ADDR;
--	pp->mem_base &= ARTPEC6_CPU_TO_BUS_ADDR;
--	pp->cfg0_base &= ARTPEC6_CPU_TO_BUS_ADDR;
--	pp->cfg1_base &= ARTPEC6_CPU_TO_BUS_ADDR;
--
- 	/* setup root complex */
- 	dw_pcie_setup_rc(pp);
- 
-@@ -234,6 +234,10 @@ static int artpec6_add_pcie_port(struct artpec6_pcie *artpec6_pcie,
- 	return 0;
- }
- 
-+static const struct dw_pcie_ops dw_pcie_ops = {
-+	.cpu_addr_fixup = artpec6_pcie_cpu_addr_fixup,
-+};
-+
- static int artpec6_pcie_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -252,6 +256,7 @@ static int artpec6_pcie_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	pci->dev = dev;
-+	pci->ops = &dw_pcie_ops;
- 
- 	artpec6_pcie->pci = pci;
- 
+This v1 of this series was previously sent with a different
+cover letter $subject [1]
+
+Changes from v3:
+*) instead of changing all the callers of dbi accessors (taking
+   dbi_base and size), manage it using static inline as suggested
+   by Niklas (used static inline instead of macros because of
+   checkpatch error).
+
+Changes from v2:
+*) Kconfig changes that was spilled into a patch is removed.
+*) In addition to renaming _unroll() to _ob_unroll(), all the
+   _unroll configurations is also moved a separate function.
+
+Changes from v1:
+*) included a patch to rename _unroll() to _ob_unroll() as
+   similar thing has to be done for inbound window in the case
+   of EP mode.
+*) used 'size_t' instead of 'int' for specifying the size
+   in read_dbi/write_dbi function arguments.
+*) Populate cpu_addr_fixup ops for artpec6 as suggested by
+   Niklas
+
+This series is based on 4.11-rc1
+
+[1] -> https://lkml.org/lkml/2017/2/16/270
+
+Keerthy (1):
+  PCI: dwc: dra7xx: Push request_irq call to the bottom of probe
+
+Kishon Vijay Abraham I (6):
+  PCI: dwc: designware: Add new *ops* for cpu addr fixup
+  PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
+  PCI: dwc: artpec6: Populate cpu_addr_fixup ops
+  PCI: dwc: all: Modify dbi accessors to take dbi_base as argument
+  PCI: dwc: all: Modify dbi accessors to access data of  4/2/1 bytes
+  PCI: dwc: designware: Move _unroll configurations to a separate
+    function
+
+ drivers/pci/dwc/pci-dra7xx.c      |  25 +++----
+ drivers/pci/dwc/pci-exynos.c      |  14 ++--
+ drivers/pci/dwc/pcie-artpec6.c    |  15 +++--
+ drivers/pci/dwc/pcie-designware.c | 133 ++++++++++++++++++++++++--------------
+ drivers/pci/dwc/pcie-designware.h |  23 +++++--
+ 5 files changed, 135 insertions(+), 75 deletions(-)
+
 -- 
 2.11.0
