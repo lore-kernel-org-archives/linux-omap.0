@@ -1,68 +1,54 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 0/4] ARM: DRA7: Fix DCAN1 stuck-in-transition
-Date: Mon, 13 Mar 2017 13:55:16 +0200
-Message-ID: <52107bb5-004c-b316-8131-24124dfc4372@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 1/4] ARM: OMAP2+: omap_hwmod: provide space for more hwmod
+ flags
+Date: Mon, 13 Mar 2017 19:05:49 +0530
+Message-ID: <3612df6e-940e-9541-558c-be1f742c469f@ti.com>
 References: <1489405996-10718-1-git-send-email-rogerq@ti.com>
+ <1489405996-10718-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1489405996-10718-1-git-send-email-rogerq@ti.com>
+In-Reply-To: <1489405996-10718-2-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: paul@pwsan.com, tony@atomide.com
-Cc: bcousson@baylibre.com, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>, paul@pwsan.com, tony@atomide.com
+Cc: bcousson@baylibre.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 13/03/17 13:53, Roger Quadros wrote:
-> Hi,
+On Monday 13 March 2017 05:23 PM, Roger Quadros wrote:
+> From: Sekhar Nori <nsekhar@ti.com>
 > 
-> On DRA7 platform, DCAN1 module has an issue when it's clockdomain
-> (WKUPAON) is configured in HW_AUTO. After DCAN1 is enabled and disabled
-> the module remains stuck in transition.
+> 'flags' member of omap_hwmod structure is fast running
+> out of space with 16 different flags already defined.
 > 
-> Suggested workaround by Silicon team is to disable HW_AUTO for
-> WKUPAON clockdomain when DCAN1 module is active.
+> Make flags a 32-bit entity so as to allow for more flags.
 > 
-> These patches provide a new flag for hwmod data to support this
-> behaviour and fix up dra7 hwmod data as well to fix this issue
-> on dra7x-evms.
-> 
-> This patch allows DCAN1 to be functional as well as not prevent
-> Core Retention as WKUPAON clockdomain is put back into HW_AUTO
-> whenever DCAN1 is not active (e.g. runtime suspended).
-> 
-> Without this series, we can see the following warning messages
-> when the CAN interface is brought up and down.
-> 
-> ~# ifconfig can0 up
-> [   36.418299] net can0: c_can_hw_raminit_wait_syscon: time out
-> [   36.424642] c_can_platform 4ae3c000.can can0: setting BTR=1c04 BRPE=0000
-> ~# ifconfig can0 down
-> [   50.488786] omap_hwmod: dcan1: _wait_target_disable failed
-> [   50.502855] omap_hwmod: dcan1: _wait_target_disable failed
+> This results is a ~2.3K data section size increase with
+> TI config fragments.
 
-Forgot to mention that usb_otg_ss modules are also having
-similar behaviour and patch 4 addresses that.
+This line needs to be changed to refer to omap2plus_defconfig.
 
 > 
-> cheers,
-> -roger
+> before:
+>    text	   data	    bss	    dec	    hex	filename
+> 8886648	 610452	 261876	9758976	 94e900	vmlinux
 > 
-> Roger Quadros (3):
->   ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
->   ARM: DRA7: hwmod: Fix DCAN1 stuck in transition
->   ARM: DRA7: hwmod_data: Prevent wait_target_disable error for
->     usb_otg_ss
-> 
-> Sekhar Nori (1):
->   ARM: OMAP2+: omap_hwmod: provide space for more hwmod flags
-> 
->  arch/arm/mach-omap2/omap_hwmod.c          | 4 ++--
->  arch/arm/mach-omap2/omap_hwmod.h          | 7 ++++++-
->  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 4 ++++
->  3 files changed, 12 insertions(+), 3 deletions(-)
-> 
+> after:
+>    text	   data	    bss	    dec	    hex	filename
+> 8886584	 612820	 261876	9761280	 94f200	vmlinux
 
--- 
-cheers,
--roger
+I guess this data is probably stale as well. Here is the before and
+after numbers using omap2plus_defconfig on v4.11-rc2
+
+before:
+   text	   data	    bss	    dec	    hex	filename
+8186930	3082444	8252992	19522366	129e33e	vmlinux
+
+after:
+   text	   data	    bss	    dec	    hex	filename
+8186922	3084812	8252992	19524726	129ec76	vmlinux
+
+The size increase remains at ~2.3K in data section.
+
+Thanks,
+Sekhar
