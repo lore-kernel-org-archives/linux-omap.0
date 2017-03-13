@@ -1,63 +1,45 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: [PATCH 3/4] ARM: dts: dm8168-evm: add SATA node
-Date: Mon, 13 Mar 2017 17:43:18 +0100
-Message-ID: <1489423399-3824-4-git-send-email-bgolaszewski@baylibre.com>
+From: Bartosz Golaszewski <bgolaszewski-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 2/4] ARM: dts: dm8168-evm: add the external reference clock for SATA
+Date: Mon, 13 Mar 2017 17:43:17 +0100
+Message-ID: <1489423399-3824-3-git-send-email-bgolaszewski@baylibre.com>
 References: <1489423399-3824-1-git-send-email-bgolaszewski@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1489423399-3824-1-git-send-email-bgolaszewski@baylibre.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Neil Armstrong <narmstrong@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: devicetree@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489423399-3824-1-git-send-email-bgolaszewski-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bartosz Golaszewski <bgolaszewski-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add the SATA controller node to the dm8168-evm device tree.
+This board has an external oscillator supplying the reference clock
+signal for SATA. Its rate is fixed at 100Mhz. Add a corresponding
+device tree node.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Signed-off-by: Bartosz Golaszewski <bgolaszewski-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- arch/arm/boot/dts/dm8168-evm.dts | 4 ++++
- arch/arm/boot/dts/dm816x.dtsi    | 7 +++++++
- 2 files changed, 11 insertions(+)
+ arch/arm/boot/dts/dm8168-evm.dts | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/arch/arm/boot/dts/dm8168-evm.dts b/arch/arm/boot/dts/dm8168-evm.dts
-index f13e214..547856e 100644
+index 0bf55fa..f13e214 100644
 --- a/arch/arm/boot/dts/dm8168-evm.dts
 +++ b/arch/arm/boot/dts/dm8168-evm.dts
-@@ -179,3 +179,7 @@
- 	pinctrl-0 = <&usb1_pins>;
- 	mentor,multipoint = <0>;
+@@ -25,6 +25,12 @@
+ 		regulator-min-microvolt = <3300000>;
+ 		regulator-max-microvolt = <3300000>;
+ 	};
++
++	sata_refclk: fixedclock0 {
++		#clock-cells = <0>;
++		compatible = "fixed-clock";
++		clock-frequency = <100000000>;
++	};
  };
-+
-+&sata {
-+	clocks = <&sysclk5_ck>, <&sata_refclk>;
-+};
-diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
-index 276211e..6131081 100644
---- a/arch/arm/boot/dts/dm816x.dtsi
-+++ b/arch/arm/boot/dts/dm816x.dtsi
-@@ -293,6 +293,13 @@
- 			phy-handle = <&phy1>;
- 		};
  
-+		sata: sata@4a140000 {
-+			compatible = "ti,dm816-ahci";
-+			reg = <0x4a140000 0xffff>;
-+			interrupts = <16>;
-+			ti,hwmods = "sata";
-+		};
-+
- 		mcspi1: spi@48030000 {
- 			compatible = "ti,omap4-mcspi";
- 			reg = <0x48030000 0x1000>;
+ &dm816x_pinmux {
 -- 
 2.9.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
