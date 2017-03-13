@@ -1,90 +1,78 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 13/23] dt-bindings: PCI: dra7xx: Add dt bindings for pci dra7xx EP mode
-Date: Mon, 13 Mar 2017 19:52:49 +0530
-Message-ID: <20170313142259.25397-14-kishon@ti.com>
+Subject: [PATCH v4 11/23] PCI: dwc: dra7xx: Facilitate wrapper and msi
+ interrupts to be enabled independently
+Date: Mon, 13 Mar 2017 19:52:47 +0530
+Message-ID: <20170313142259.25397-12-kishon@ti.com>
 References: <20170313142259.25397-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20170313142259.25397-1-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add device tree binding documentation for pci dra7xx EP mode.
+No functional change. Split dra7xx_pcie_enable_interrupts into
+dra7xx_pcie_enable_wrapper_interrupts and dra7xx_pcie_enable_msi_interrupts
+so that wrapper interrupts and msi interrupts can be enabled independently.
+This is in preparation for adding EP mode support to dra7xx driver since
+EP mode doesn't have to enable msi_interrupts.
 
-Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/pci/ti-pci.txt | 37 +++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 7 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c | 24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-index 60e25161f351..190828a5f32a 100644
---- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-+++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-@@ -1,17 +1,22 @@
- TI PCI Controllers
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 7c9ed6a6675c..d78974d20360 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -140,18 +140,30 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
+ 	return dw_pcie_wait_for_link(pci);
+ }
  
- PCIe Designware Controller
-- - compatible: Should be "ti,dra7-pcie""
-- - reg : Two register ranges as listed in the reg-names property
-- - reg-names : The first entry must be "ti-conf" for the TI specific registers
--	       The second entry must be "rc-dbics" for the designware pcie
--	       registers
--	       The third entry must be "config" for the PCIe configuration space
-+ - compatible: Should be "ti,dra7-pcie" for RC
-+	       Should be "ti,dra7-pcie-ep" for EP
-  - phys : list of PHY specifiers (used by generic PHY framework)
-  - phy-names : must be "pcie-phy0", "pcie-phy1", "pcie-phyN".. based on the
- 	       number of PHYs as specified in *phys* property.
-  - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
- 	       where <X> is the instance number of the pcie from the HW spec.
-+ - num-lanes as specified in ../designware-pcie.txt
+-static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
++static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
+ {
+-	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
+-			   ~INTERRUPTS);
+-	dra7xx_pcie_writel(dra7xx,
+-			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
+ 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
+ 			   ~LEG_EP_INTERRUPTS & ~MSI);
+-	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
 +
-+HOST MODE
-+=========
-+ - reg : Two register ranges as listed in the reg-names property
-+ - reg-names : The first entry must be "ti-conf" for the TI specific registers
-+	       The second entry must be "rc-dbics" for the designware pcie
-+	       registers
-+	       The third entry must be "config" for the PCIe configuration space
-  - interrupts : Two interrupt entries must be specified. The first one is for
- 		main interrupt line and the second for MSI interrupt line.
-  - #address-cells,
-@@ -19,13 +24,31 @@ PCIe Designware Controller
-    #interrupt-cells,
-    device_type,
-    ranges,
--   num-lanes,
-    interrupt-map-mask,
-    interrupt-map : as specified in ../designware-pcie.txt
++	dra7xx_pcie_writel(dra7xx,
++			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
+ 			   MSI | LEG_EP_INTERRUPTS);
+ }
  
-+DEVICE MODE
-+===========
-+ - reg : Four register ranges as listed in the reg-names property
-+ - reg-names : "ti-conf" for the TI specific registers
-+	       "ep_dbics" for the standard configuration registers as
-+		they are locally accessed within the DIF CS space
-+	       "ep_dbics2" for the standard configuration registers as
-+		they are locally accessed within the DIF CS2 space
-+	       "addr_space" used to map remote RC address space
-+ - interrupts : one interrupt entries must be specified for main interrupt.
-+ - num-ib-windows : number of inbound address translation windows
-+ - num-ob-windows : number of outbound address translation windows
++static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
++{
++	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
++			   ~INTERRUPTS);
++	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
++			   INTERRUPTS);
++}
 +
- Optional Property:
-  - gpios : Should be added if a gpio line is required to drive PERST# line
- 
-+NOTE: Two dt nodes may be added for each PCI controller; one for host
-+mode and another for device mode. So in order for PCI to
-+work in host mode, EP mode dt node should be disabled and in order to PCI to
-+work in EP mode, host mode dt node should be disabled. And host mode and EP
-+mode are mutually exclusive.
++static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
++{
++	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
++	dra7xx_pcie_enable_msi_interrupts(dra7xx);
++}
 +
- Example:
- axi {
- 	compatible = "simple-bus";
+ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+ {
+ 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 -- 
 2.11.0
