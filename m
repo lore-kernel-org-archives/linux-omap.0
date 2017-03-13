@@ -1,165 +1,179 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 6/7] PCI: dwc: designware: Move _unroll configurations to a separate function
-Date: Mon, 13 Mar 2017 19:13:27 +0530
-Message-ID: <20170313134328.1588-7-kishon@ti.com>
+Subject: [PATCH v4 5/7] PCI: dwc: all: Modify dbi accessors to access data of  4/2/1 bytes
+Date: Mon, 13 Mar 2017 19:13:26 +0530
+Message-ID: <20170313134328.1588-6-kishon@ti.com>
 References: <20170313134328.1588-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170313134328.1588-1-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Niklas Cassel <niklas.cassel@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: kishon@ti.com, nsekhar@ti.com
+Cc: kishon@ti.com, nsekhar@ti.com, Jingoo Han <jingoohan1@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Rename dw_pcie_writel_unroll/dw_pcie_readl_unroll
-to dw_pcie_writel_ob_unroll/dw_pcie_readl_ob_unroll respectively as these
-functions are used to perform only outbound configurations. Also move
-these _unroll configurations to a separate function.
+Previously dbi accessors can be used to access data of size 4
+bytes. But there might be situations (like accessing
+MSI_MESSAGE_CONTROL in order to set/get the number of required
+MSI interrupts in EP mode) where dbi accessors must
+be used to access data of size 2. This is in preparation for
+adding endpoint mode support to designware driver.
 
+Cc: Jingoo Han <jingoohan1@gmail.com>
+Cc: Joao Pinto <Joao.Pinto@synopsys.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pcie-designware.c | 97 +++++++++++++++++++++++----------------
- 1 file changed, 58 insertions(+), 39 deletions(-)
+ drivers/pci/dwc/pci-exynos.c      | 16 ++++++++--------
+ drivers/pci/dwc/pcie-designware.c | 34 ++++++++++++++++++++++++----------
+ drivers/pci/dwc/pcie-designware.h | 20 +++++++++++---------
+ 3 files changed, 43 insertions(+), 27 deletions(-)
 
+diff --git a/drivers/pci/dwc/pci-exynos.c b/drivers/pci/dwc/pci-exynos.c
+index a0d40f74b88d..37d6d2b7378f 100644
+--- a/drivers/pci/dwc/pci-exynos.c
++++ b/drivers/pci/dwc/pci-exynos.c
+@@ -521,25 +521,25 @@ static void exynos_pcie_enable_interrupts(struct exynos_pcie *ep)
+ 		exynos_pcie_msi_init(ep);
+ }
+ 
+-static u32 exynos_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base,
+-				 u32 reg)
++static u32 exynos_pcie_read_dbi(struct dw_pcie *pci, void __iomem *base,
++				u32 reg, size_t size)
+ {
+ 	struct exynos_pcie *ep = to_exynos_pcie(pci);
+ 	u32 val;
+ 
+ 	exynos_pcie_sideband_dbi_r_mode(ep, true);
+-	val = readl(base + reg);
++	dw_pcie_read(base + reg, size, &val);
+ 	exynos_pcie_sideband_dbi_r_mode(ep, false);
+ 	return val;
+ }
+ 
+-static void exynos_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base,
+-				   u32 reg, u32 val)
++static void exynos_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base,
++				  u32 reg, size_t size, u32 val)
+ {
+ 	struct exynos_pcie *ep = to_exynos_pcie(pci);
+ 
+ 	exynos_pcie_sideband_dbi_w_mode(ep, true);
+-	writel(val, base + reg);
++	dw_pcie_write(base + reg, size, val);
+ 	exynos_pcie_sideband_dbi_w_mode(ep, false);
+ }
+ 
+@@ -646,8 +646,8 @@ static int __init exynos_add_pcie_port(struct exynos_pcie *ep,
+ }
+ 
+ static const struct dw_pcie_ops dw_pcie_ops = {
+-	.readl_dbi = exynos_pcie_readl_dbi,
+-	.writel_dbi = exynos_pcie_writel_dbi,
++	.read_dbi = exynos_pcie_read_dbi,
++	.write_dbi = exynos_pcie_write_dbi,
+ 	.link_up = exynos_pcie_link_up,
+ };
+ 
 diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-index 734acac1926d..54de468a745e 100644
+index ea403e2240cf..734acac1926d 100644
 --- a/drivers/pci/dwc/pcie-designware.c
 +++ b/drivers/pci/dwc/pcie-designware.c
-@@ -92,21 +92,56 @@ void __dw_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
- 		dev_err(pci->dev, "write DBI address failed\n");
+@@ -61,21 +61,35 @@ int dw_pcie_write(void __iomem *addr, int size, u32 val)
+ 	return PCIBIOS_SUCCESSFUL;
  }
  
--static u32 dw_pcie_readl_unroll(struct dw_pcie *pci, u32 index, u32 reg)
-+static u32 dw_pcie_readl_ob_unroll(struct dw_pcie *pci, u32 index, u32 reg)
+-u32 __dw_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg)
++u32 __dw_pcie_read_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
++		       size_t size)
  {
- 	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
+-	if (pci->ops->readl_dbi)
+-		return pci->ops->readl_dbi(pci, base, reg);
++	int ret;
++	u32 val;
++
++	if (pci->ops->read_dbi)
++		return pci->ops->read_dbi(pci, base, reg, size);
  
- 	return dw_pcie_readl_dbi(pci, offset + reg);
+-	return readl(base + reg);
++	ret = dw_pcie_read(base + reg, size, &val);
++	if (ret)
++		dev_err(pci->dev, "read DBI address failed\n");
++
++	return val;
  }
  
--static void dw_pcie_writel_unroll(struct dw_pcie *pci, u32 index, u32 reg,
--				  u32 val)
-+static void dw_pcie_writel_ob_unroll(struct dw_pcie *pci, u32 index, u32 reg,
-+				     u32 val)
+-void __dw_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
+-			  u32 val)
++void __dw_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
++			 size_t size, u32 val)
  {
- 	u32 offset = PCIE_GET_ATU_OUTB_UNR_REG_OFFSET(index);
- 
- 	dw_pcie_writel_dbi(pci, offset + reg, val);
- }
- 
-+void dw_pcie_prog_outbound_atu_unroll(struct dw_pcie *pci, int index, int type,
-+				      u64 cpu_addr, u64 pci_addr, u32 size)
-+{
-+	u32 retries, val;
+-	if (pci->ops->writel_dbi)
+-		pci->ops->writel_dbi(pci, base, reg, val);
+-	else
+-		writel(val, base + reg);
++	int ret;
 +
-+	dw_pcie_writel_ob_unroll(pci, index, PCIE_ATU_UNR_LOWER_BASE,
-+				 lower_32_bits(cpu_addr));
-+	dw_pcie_writel_ob_unroll(pci, index, PCIE_ATU_UNR_UPPER_BASE,
-+				 upper_32_bits(cpu_addr));
-+	dw_pcie_writel_ob_unroll(pci, index, PCIE_ATU_UNR_LIMIT,
-+				 lower_32_bits(cpu_addr + size - 1));
-+	dw_pcie_writel_ob_unroll(pci, index, PCIE_ATU_UNR_LOWER_TARGET,
-+				 lower_32_bits(pci_addr));
-+	dw_pcie_writel_ob_unroll(pci, index, PCIE_ATU_UNR_UPPER_TARGET,
-+				 upper_32_bits(pci_addr));
-+	dw_pcie_writel_ob_unroll(pci, index, PCIE_ATU_UNR_REGION_CTRL1,
-+				 type);
-+	dw_pcie_writel_ob_unroll(pci, index, PCIE_ATU_UNR_REGION_CTRL2,
-+				 PCIE_ATU_ENABLE);
-+
-+	/*
-+	 * Make sure ATU enable takes effect before any subsequent config
-+	 * and I/O accesses.
-+	 */
-+	for (retries = 0; retries < LINK_WAIT_MAX_IATU_RETRIES; retries++) {
-+		val = dw_pcie_readl_ob_unroll(pci, index,
-+					      PCIE_ATU_UNR_REGION_CTRL2);
-+		if (val & PCIE_ATU_ENABLE)
-+			return;
-+
-+		usleep_range(LINK_WAIT_IATU_MIN, LINK_WAIT_IATU_MAX);
-+	}
-+	dev_err(pci->dev, "outbound iATU is not being enabled\n");
-+}
-+
- void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
- 			       u64 cpu_addr, u64 pci_addr, u32 size)
- {
-@@ -116,54 +151,38 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
- 		cpu_addr = pci->ops->cpu_addr_fixup(cpu_addr);
- 
- 	if (pci->iatu_unroll_enabled) {
--		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_LOWER_BASE,
--				      lower_32_bits(cpu_addr));
--		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_UPPER_BASE,
--				      upper_32_bits(cpu_addr));
--		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_LIMIT,
--				      lower_32_bits(cpu_addr + size - 1));
--		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_LOWER_TARGET,
--				      lower_32_bits(pci_addr));
--		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_UPPER_TARGET,
--				      upper_32_bits(pci_addr));
--		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_REGION_CTRL1,
--				      type);
--		dw_pcie_writel_unroll(pci, index, PCIE_ATU_UNR_REGION_CTRL2,
--				      PCIE_ATU_ENABLE);
--	} else {
--		dw_pcie_writel_dbi(pci, PCIE_ATU_VIEWPORT,
--				   PCIE_ATU_REGION_OUTBOUND | index);
--		dw_pcie_writel_dbi(pci, PCIE_ATU_LOWER_BASE,
--				   lower_32_bits(cpu_addr));
--		dw_pcie_writel_dbi(pci, PCIE_ATU_UPPER_BASE,
--				   upper_32_bits(cpu_addr));
--		dw_pcie_writel_dbi(pci, PCIE_ATU_LIMIT,
--				   lower_32_bits(cpu_addr + size - 1));
--		dw_pcie_writel_dbi(pci, PCIE_ATU_LOWER_TARGET,
--				   lower_32_bits(pci_addr));
--		dw_pcie_writel_dbi(pci, PCIE_ATU_UPPER_TARGET,
--				   upper_32_bits(pci_addr));
--		dw_pcie_writel_dbi(pci, PCIE_ATU_CR1, type);
--		dw_pcie_writel_dbi(pci, PCIE_ATU_CR2, PCIE_ATU_ENABLE);
-+		dw_pcie_prog_outbound_atu_unroll(pci, index, type, cpu_addr,
-+						 pci_addr, size);
++	if (pci->ops->write_dbi) {
++		pci->ops->write_dbi(pci, base, reg, size, val);
 +		return;
- 	}
- 
-+	dw_pcie_writel_dbi(pci, PCIE_ATU_VIEWPORT,
-+			   PCIE_ATU_REGION_OUTBOUND | index);
-+	dw_pcie_writel_dbi(pci, PCIE_ATU_LOWER_BASE,
-+			   lower_32_bits(cpu_addr));
-+	dw_pcie_writel_dbi(pci, PCIE_ATU_UPPER_BASE,
-+			   upper_32_bits(cpu_addr));
-+	dw_pcie_writel_dbi(pci, PCIE_ATU_LIMIT,
-+			   lower_32_bits(cpu_addr + size - 1));
-+	dw_pcie_writel_dbi(pci, PCIE_ATU_LOWER_TARGET,
-+			   lower_32_bits(pci_addr));
-+	dw_pcie_writel_dbi(pci, PCIE_ATU_UPPER_TARGET,
-+			   upper_32_bits(pci_addr));
-+	dw_pcie_writel_dbi(pci, PCIE_ATU_CR1, type);
-+	dw_pcie_writel_dbi(pci, PCIE_ATU_CR2, PCIE_ATU_ENABLE);
++	}
 +
- 	/*
- 	 * Make sure ATU enable takes effect before any subsequent config
- 	 * and I/O accesses.
- 	 */
- 	for (retries = 0; retries < LINK_WAIT_MAX_IATU_RETRIES; retries++) {
--		if (pci->iatu_unroll_enabled)
--			val = dw_pcie_readl_unroll(pci, index,
--						   PCIE_ATU_UNR_REGION_CTRL2);
--		else
--			val = dw_pcie_readl_dbi(pci, PCIE_ATU_CR2);
--
-+		val = dw_pcie_readl_dbi(pci, PCIE_ATU_CR2);
- 		if (val == PCIE_ATU_ENABLE)
- 			return;
- 
- 		usleep_range(LINK_WAIT_IATU_MIN, LINK_WAIT_IATU_MAX);
- 	}
--	dev_err(pci->dev, "iATU is not being enabled\n");
-+	dev_err(pci->dev, "outbound iATU is not being enabled\n");
++	ret = dw_pcie_write(base + reg, size, val);
++	if (ret)
++		dev_err(pci->dev, "write DBI address failed\n");
  }
  
- int dw_pcie_wait_for_link(struct dw_pcie *pci)
+ static u32 dw_pcie_readl_unroll(struct dw_pcie *pci, u32 index, u32 reg)
+diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+index e97fc4ce7d49..bfaf2b850a88 100644
+--- a/drivers/pci/dwc/pcie-designware.h
++++ b/drivers/pci/dwc/pcie-designware.h
+@@ -144,9 +144,10 @@ struct pcie_port {
+ 
+ struct dw_pcie_ops {
+ 	u64	(*cpu_addr_fixup)(u64 cpu_addr);
+-	u32	(*readl_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg);
+-	void	(*writel_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
+-			      u32 val);
++	u32	(*read_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
++			    size_t size);
++	void	(*write_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
++			     size_t size, u32 val);
+ 	int	(*link_up)(struct dw_pcie *pcie);
+ };
+ 
+@@ -164,9 +165,10 @@ struct dw_pcie {
+ int dw_pcie_read(void __iomem *addr, int size, u32 *val);
+ int dw_pcie_write(void __iomem *addr, int size, u32 val);
+ 
+-u32 __dw_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg);
+-void __dw_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
+-			  u32 val);
++u32 __dw_pcie_read_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
++		       size_t size);
++void __dw_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
++			 size_t size, u32 val);
+ int dw_pcie_link_up(struct dw_pcie *pci);
+ int dw_pcie_wait_for_link(struct dw_pcie *pci);
+ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
+@@ -174,14 +176,14 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
+ 			       u32 size);
+ void dw_pcie_setup(struct dw_pcie *pci);
+ 
+-static inline dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
++static inline void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
+ {
+-	__dw_pcie_writel_dbi(pci, pci->dbi_base, reg, val);
++	__dw_pcie_write_dbi(pci, pci->dbi_base, reg, 0x4, val);
+ }
+ 
+ static inline u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg)
+ {
+-	return  __dw_pcie_readl_dbi(pci, pci->dbi_base, reg);
++	return __dw_pcie_read_dbi(pci, pci->dbi_base, reg, 0x4);
+ }
+ 
+ #ifdef CONFIG_PCIE_DW_HOST
 -- 
 2.11.0
