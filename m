@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 4/4] ARM: DRA7: hwmod_data: Prevent wait_target_disable error for usb_otg_ss
-Date: Mon, 13 Mar 2017 13:53:16 +0200
-Message-ID: <1489405996-10718-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH 1/4] ARM: OMAP2+: omap_hwmod: provide space for more hwmod flags
+Date: Mon, 13 Mar 2017 13:53:13 +0200
+Message-ID: <1489405996-10718-2-git-send-email-rogerq@ti.com>
 References: <1489405996-10718-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,44 +9,44 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1489405996-10718-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com
-Cc: bcousson@baylibre.com, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Cc: bcousson@baylibre.com, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-It seems that if L3_INIT clkdomain is kept in HW_AUTO while usb_otg_ss
-is in use then there are random chances that the usb_otg_ss module
-will fail to completely idle. i.e. IDLEST = 0x2 instead of 0x3.
+From: Sekhar Nori <nsekhar@ti.com>
 
-Preventing L3_INIT from HW_AUTO while usb_otg_ss module is in use
-fixes this issue.
+'flags' member of omap_hwmod structure is fast running
+out of space with 16 different flags already defined.
 
-We don't know yet if usb_otg_ss instances 3 and 4 are affected by this
-issue or not so don't add this flag for those instances.
+Make flags a 32-bit entity so as to allow for more flags.
 
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+This results is a ~2.3K data section size increase with
+TI config fragments.
+
+before:
+   text	   data	    bss	    dec	    hex	filename
+8886648	 610452	 261876	9758976	 94e900	vmlinux
+
+after:
+   text	   data	    bss	    dec	    hex	filename
+8886584	 612820	 261876	9761280	 94f200	vmlinux
+
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 896f238..2d1141a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -2702,6 +2702,7 @@ static struct omap_hwmod dra7xx_usb_otg_ss1_hwmod = {
- 	.class		= &dra7xx_usb_otg_ss_hwmod_class,
- 	.clkdm_name	= "l3init_clkdm",
- 	.main_clk	= "dpll_core_h13x2_ck",
-+	.flags		= HWMOD_CLKDM_NOAUTO,
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = DRA7XX_CM_L3INIT_USB_OTG_SS1_CLKCTRL_OFFSET,
-@@ -2723,6 +2724,7 @@ static struct omap_hwmod dra7xx_usb_otg_ss2_hwmod = {
- 	.class		= &dra7xx_usb_otg_ss_hwmod_class,
- 	.clkdm_name	= "l3init_clkdm",
- 	.main_clk	= "dpll_core_h13x2_ck",
-+	.flags		= HWMOD_CLKDM_NOAUTO,
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = DRA7XX_CM_L3INIT_USB_OTG_SS2_CLKCTRL_OFFSET,
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+index 7890401..9e1c4ed 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -698,7 +698,7 @@ struct omap_hwmod {
+ 	struct list_head		node;
+ 	struct omap_hwmod_ocp_if	*_mpu_port;
+ 	unsigned int			(*xlate_irq)(unsigned int);
+-	u16				flags;
++	u32				flags;
+ 	u8				mpu_rt_idx;
+ 	u8				response_lat;
+ 	u8				rst_lines_cnt;
 -- 
 2.7.4
