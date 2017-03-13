@@ -1,158 +1,223 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 04/23] Documentation: PCI: Guide to use pci endpoint
- configfs
-Date: Mon, 13 Mar 2017 19:52:40 +0530
-Message-ID: <20170313142259.25397-5-kishon@ti.com>
+Subject: [PATCH v4 21/23] Documentation: PCI: Add userguide for PCI endpoint test function
+Date: Mon, 13 Mar 2017 19:52:57 +0530
+Message-ID: <20170313142259.25397-22-kishon@ti.com>
 References: <20170313142259.25397-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170313142259.25397-1-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add Documentation to help users use pci endpoint to configure
-pci endpoint function and to bind the endpoint function
-with endpoint controller.
+Add documentation to help users use pci-epf-test function driver
+and pci_endpoint_test host driver for testing PCI.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/PCI/00-INDEX                      |   2 +
- Documentation/PCI/endpoint/pci-endpoint-cfs.txt | 105 ++++++++++++++++++++++++
- 2 files changed, 107 insertions(+)
- create mode 100644 Documentation/PCI/endpoint/pci-endpoint-cfs.txt
+ Documentation/PCI/00-INDEX                    |   2 +
+ Documentation/PCI/endpoint/pci-test-howto.txt | 179 ++++++++++++++++++++++++++
+ 2 files changed, 181 insertions(+)
+ create mode 100644 Documentation/PCI/endpoint/pci-test-howto.txt
 
 diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-index ba950b296bd8..f84a23c7c74b 100644
+index 53717b7fcdd4..fd533c79fa19 100644
 --- a/Documentation/PCI/00-INDEX
 +++ b/Documentation/PCI/00-INDEX
-@@ -14,3 +14,5 @@ pcieaer-howto.txt
- 	- the PCI Express Advanced Error Reporting Driver Guide HOWTO
- endpoint/pci-endpoint.txt
- 	- guide to add endpoint controller driver and endpoint function driver.
-+endpoint/pci-endpoint-cfs.txt
-+	- guide to use configfs to configure the pci endpoint function.
-diff --git a/Documentation/PCI/endpoint/pci-endpoint-cfs.txt b/Documentation/PCI/endpoint/pci-endpoint-cfs.txt
+@@ -18,5 +18,7 @@ endpoint/pci-endpoint-cfs.txt
+ 	- guide to use configfs to configure the pci endpoint function.
+ endpoint/pci-test-function.txt
+ 	- specification of *pci test* function device.
++endpoint/pci-test-howto.txt
++	- userguide for PCI endpoint test function.
+ endpoint/function/binding/
+ 	- binding documentation for pci endpoint function
+diff --git a/Documentation/PCI/endpoint/pci-test-howto.txt b/Documentation/PCI/endpoint/pci-test-howto.txt
 new file mode 100644
-index 000000000000..8b2a8280b131
+index 000000000000..730b70c73055
 --- /dev/null
-+++ b/Documentation/PCI/endpoint/pci-endpoint-cfs.txt
-@@ -0,0 +1,105 @@
-+                   CONFIGURING PCI ENDPOINT USING CONFIGFS
-+                    Kishon Vijay Abraham I <kishon@ti.com>
++++ b/Documentation/PCI/endpoint/pci-test-howto.txt
+@@ -0,0 +1,179 @@
++			    PCI TEST USERGUIDE
++		    Kishon Vijay Abraham I <kishon@ti.com>
 +
-+The PCI Endpoint Core exposes configfs entry (pci_ep) in order to configure the
-+PCI endpoint function and in order to bind the endpoint function
-+with the endpoint controller. (For introducing other mechanisms to
-+configure the PCI Endpoint Function refer [1]).
++This document is a guide to help users use pci-epf-test function driver
++and pci_endpoint_test host driver for testing PCI. The list of steps to
++be followed in the host side and EP side is given below.
 +
-+*) Mounting configfs
++1. Endpoint Device
 +
-+The PCI Endpoint Core layer creates pci_ep directory in the mounted configfs
-+directory. configfs can be mounted using the following command.
++1.1 Endpoint Controller Devices
 +
-+	mount -t configfs none /sys/kernel/config
++To find the list of endpoint controller devices in the system:
 +
-+*) Directory Structure
++	# ls /sys/class/pci_epc/
++	  51000000.pcie_ep
 +
-+The pci_ep configfs has two directories at its root: controllers and
-+functions. Every EPC device present in the system will have an entry in
-+the *controllers* directory and and every EPF driver present in the system
-+will have an entry in the *functions* directory.
++If PCI_ENDPOINT_CONFIGFS is enabled
++	# ls /sys/kernel/config/pci_ep/controllers
++	  51000000.pcie_ep
 +
-+/sys/kernel/config/pci_ep/
-+	.. controllers/
-+	.. functions/
++1.2 Endpoint Function Drivers
 +
-+*) Creating EPF Device
++To find the list of endpoint function drivers in the system:
 +
-+Every registered EPF driver will be listed in controllers directory. The
-+entries corresponding to EPF driver will be created by the EPF core.
++	# ls /sys/bus/pci-epf/drivers
++	  pci_epf_test
 +
-+/sys/kernel/config/pci_ep/functions/
-+	.. <EPF Driver1>/
-+		... <EPF Device 11>/
-+		... <EPF Device 21>/
-+	.. <EPF Driver2>/
-+		... <EPF Device 12>/
-+		... <EPF Device 22>/
++If PCI_ENDPOINT_CONFIGFS is enabled
++	# ls /sys/kernel/config/pci_ep/functions
++	  pci_epf_test
 +
-+In order to create a <EPF device> of the type probed by <EPF Driver>, the
-+user has to create a directory inside <EPF DriverN>.
++1.3 Creating pci-epf-test Device
 +
-+Every <EPF device> directory consists of the following entries that can be
-+used to configure the standard configuration header of the endpoint function.
-+(These entries are created by the framework when any new <EPF Device> is
-+created)
++PCI endpoint function device can be created using the configfs. To create
++pci-epf-test device, the following commands can be used
 +
-+	.. <EPF Driver1>/
-+		... <EPF Device 11>/
-+			... vendorid
-+			... deviceid
-+			... revid
-+			... progif_code
-+			... subclass_code
-+			... baseclass_code
-+			... cache_line_size
-+			... subsys_vendor_id
-+			... subsys_id
-+			... interrupt_pin
++	# mount -t configfs none /sys/kernel/config
++	# cd /sys/kernel/config/pci_ep/
++	# mkdir functions/pci_epf_test/func1
 +
-+*) EPC Device
++The "mkdir func1" above creates the pci-epf-test function device that will
++be probed by pci_epf_test driver.
 +
-+Every registered EPC device will be listed in controllers directory. The
-+entries corresponding to EPC device will be created by the EPC core.
++The PCI endpoint framework populates the directory with the following
++configurable fields.
 +
-+/sys/kernel/config/pci_ep/controllers/
-+	.. <EPC Device1>/
-+		... <Symlink EPF Device11>/
-+		... <Symlink EPF Device12>/
-+		... start
-+	.. <EPC Device2>/
-+		... <Symlink EPF Device21>/
-+		... <Symlink EPF Device22>/
-+		... start
++	# ls functions/pci_epf_test/func1
++	  baseclass_code	interrupt_pin	revid		subsys_vendor_id
++	  cache_line_size	msi_interrupts	subclass_code	vendorid
++	  deviceid          	progif_code	subsys_id
 +
-+The <EPC Device> directory will have a list of symbolic links to
-+<EPF Device>. These symbolic links should be created by the user to
-+represent the functions present in the endpoint device.
++The pci endpoint function driver populates these entries with default values
++when the device is bound to the driver. The pci-epf-test driver populates
++vendorid with 0xffff and interrupt_pin with 0x0001
 +
-+The <EPC Device> directory will also have a *start* field. Once
-+"1" is written to this field, the endpoint device will be ready to
-+establish the link with the host. This is usually done after
-+all the EPF devices are created and linked with the EPC device.
++	# cat functions/pci_epf_test/func1/vendorid
++	  0xffff
++	# cat functions/pci_epf_test/func1/interrupt_pin
++	  0x0001
 +
++1.4 Configuring pci-epf-test Device
 +
-+			 | controllers/
-+				| <Directory: EPC name>/
-+					| <Symbolic Link: Function>
-+					| start
-+			 | functions/
-+				| <Directory: EPF driver>/
-+					| <Directory: EPF device>/
-+						| vendorid
-+						| deviceid
-+						| revid
-+						| progif_code
-+						| subclass_code
-+						| baseclass_code
-+						| cache_line_size
-+						| subsys_vendor_id
-+						| subsys_id
-+						| interrupt_pin
-+						| function
++The user can configure the pci-epf-test device using configfs entry. In order
++to change the vendorid and the number of MSI interrupts used by the function
++device, the following commands can be used.
 +
-+[1] -> Documentation/PCI/endpoint/pci-endpoint.txt
++	# echo 0x104c > functions/pci_epf_test/func1/vendorid
++	# echo 0xb500 > functions/pci_epf_test/func1/deviceid
++	# echo 16 > functions/pci_epf_test/func1/msi_interrupts
++
++1.5 Binding pci-epf-test Device to EP Controller
++
++In order for the endpoint function device to be useful, it has to be bound to
++a PCI endpoint controller driver. Use the configfs to bind the function
++device to one of the controller driver present in the system.
++
++	# ln -s functions/pci_epf_test/func1 controllers/51000000.pcie_ep/
++
++Once the above step is completed, the PCI endpoint is ready to establish a link
++with the host.
++
++1.6 Start the Link
++
++In order for the endpoint device to establish a link with the host, the _start_
++field should be populated with '1'.
++
++	# echo 1 > controllers/51000000.pcie_ep/start
++
++2. RootComplex Device
++
++2.1 lspci Output
++
++Note that the devices listed here correspond to the value populated in 1.4 above
++
++	00:00.0 PCI bridge: Texas Instruments Device 8888 (rev 01)
++	01:00.0 Unassigned class [ff00]: Texas Instruments Device b500
++
++2.2 Using Endpoint Test function Device
++
++pcitest.sh added in tools/pci/ can be used to run all the default PCI endpoint
++tests. Before pcitest.sh can be used pcitest.c should be compiled using the
++following commands.
++
++	cd <kernel-dir>
++	make headers_install ARCH=arm
++	arm-linux-gnueabihf-gcc -Iusr/include tools/pci/pcitest.c -o pcitest
++	cp pcitest  <rootfs>/usr/sbin/
++	cp tools/pci/pcitest.sh <rootfs>
++
++2.2.1 pcitest.sh Output
++	# ./pcitest.sh
++	BAR tests
++
++	BAR0:           OKAY
++	BAR1:           OKAY
++	BAR2:           OKAY
++	BAR3:           OKAY
++	BAR4:           NOT OKAY
++	BAR5:           NOT OKAY
++
++	Interrupt tests
++
++	LEGACY IRQ:     NOT OKAY
++	MSI1:           OKAY
++	MSI2:           OKAY
++	MSI3:           OKAY
++	MSI4:           OKAY
++	MSI5:           OKAY
++	MSI6:           OKAY
++	MSI7:           OKAY
++	MSI8:           OKAY
++	MSI9:           OKAY
++	MSI10:          OKAY
++	MSI11:          OKAY
++	MSI12:          OKAY
++	MSI13:          OKAY
++	MSI14:          OKAY
++	MSI15:          OKAY
++	MSI16:          OKAY
++	MSI17:          NOT OKAY
++	MSI18:          NOT OKAY
++	MSI19:          NOT OKAY
++	MSI20:          NOT OKAY
++	MSI21:          NOT OKAY
++	MSI22:          NOT OKAY
++	MSI23:          NOT OKAY
++	MSI24:          NOT OKAY
++	MSI25:          NOT OKAY
++	MSI26:          NOT OKAY
++	MSI27:          NOT OKAY
++	MSI28:          NOT OKAY
++	MSI29:          NOT OKAY
++	MSI30:          NOT OKAY
++	MSI31:          NOT OKAY
++	MSI32:          NOT OKAY
++
++	Read Tests
++
++	READ (      1 bytes):           OKAY
++	READ (   1024 bytes):           OKAY
++	READ (   1025 bytes):           OKAY
++	READ (1024000 bytes):           OKAY
++	READ (1024001 bytes):           OKAY
++
++	Write Tests
++
++	WRITE (      1 bytes):          OKAY
++	WRITE (   1024 bytes):          OKAY
++	WRITE (   1025 bytes):          OKAY
++	WRITE (1024000 bytes):          OKAY
++	WRITE (1024001 bytes):          OKAY
++
++	Copy Tests
++
++	COPY (      1 bytes):           OKAY
++	COPY (   1024 bytes):           OKAY
++	COPY (   1025 bytes):           OKAY
++	COPY (1024000 bytes):           OKAY
++	COPY (1024001 bytes):           OKAY
 -- 
 2.11.0
