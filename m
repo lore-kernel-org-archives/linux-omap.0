@@ -1,119 +1,90 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 06/23] Documentation: PCI: Add specification for the *pci
- test* function device
-Date: Mon, 13 Mar 2017 19:52:42 +0530
-Message-ID: <20170313142259.25397-7-kishon@ti.com>
+Subject: [PATCH v4 13/23] dt-bindings: PCI: dra7xx: Add dt bindings for pci dra7xx EP mode
+Date: Mon, 13 Mar 2017 19:52:49 +0530
+Message-ID: <20170313142259.25397-14-kishon@ti.com>
 References: <20170313142259.25397-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20170313142259.25397-1-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add specification for the *pci test* virtual function device. The endpoint
-function driver and the host pci driver should be created based on this
-specification.
+Add device tree binding documentation for pci dra7xx EP mode.
 
+Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/PCI/00-INDEX                       |  2 +
- Documentation/PCI/endpoint/pci-test-function.txt | 66 ++++++++++++++++++++++++
- 2 files changed, 68 insertions(+)
- create mode 100644 Documentation/PCI/endpoint/pci-test-function.txt
+ Documentation/devicetree/bindings/pci/ti-pci.txt | 37 +++++++++++++++++++-----
+ 1 file changed, 30 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-index f84a23c7c74b..4e5a2832f4e7 100644
---- a/Documentation/PCI/00-INDEX
-+++ b/Documentation/PCI/00-INDEX
-@@ -16,3 +16,5 @@ endpoint/pci-endpoint.txt
- 	- guide to add endpoint controller driver and endpoint function driver.
- endpoint/pci-endpoint-cfs.txt
- 	- guide to use configfs to configure the pci endpoint function.
-+endpoint/pci-test-function.txt
-+	- specification of *pci test* function device.
-diff --git a/Documentation/PCI/endpoint/pci-test-function.txt b/Documentation/PCI/endpoint/pci-test-function.txt
-new file mode 100644
-index 000000000000..1324376ec6a3
---- /dev/null
-+++ b/Documentation/PCI/endpoint/pci-test-function.txt
-@@ -0,0 +1,66 @@
-+				PCI TEST
-+		    Kishon Vijay Abraham I <kishon@ti.com>
+diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+index 60e25161f351..190828a5f32a 100644
+--- a/Documentation/devicetree/bindings/pci/ti-pci.txt
++++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+@@ -1,17 +1,22 @@
+ TI PCI Controllers
+ 
+ PCIe Designware Controller
+- - compatible: Should be "ti,dra7-pcie""
+- - reg : Two register ranges as listed in the reg-names property
+- - reg-names : The first entry must be "ti-conf" for the TI specific registers
+-	       The second entry must be "rc-dbics" for the designware pcie
+-	       registers
+-	       The third entry must be "config" for the PCIe configuration space
++ - compatible: Should be "ti,dra7-pcie" for RC
++	       Should be "ti,dra7-pcie-ep" for EP
+  - phys : list of PHY specifiers (used by generic PHY framework)
+  - phy-names : must be "pcie-phy0", "pcie-phy1", "pcie-phyN".. based on the
+ 	       number of PHYs as specified in *phys* property.
+  - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
+ 	       where <X> is the instance number of the pcie from the HW spec.
++ - num-lanes as specified in ../designware-pcie.txt
 +
-+Traditionally PCI RC has always been validated by using standard
-+PCI cards like ethernet PCI cards or USB PCI cards or SATA PCI cards.
-+However with the addition of EP-core in linux kernel, it is possible
-+to configure a PCI controller that can operate in EP mode to work as
-+a test device.
++HOST MODE
++=========
++ - reg : Two register ranges as listed in the reg-names property
++ - reg-names : The first entry must be "ti-conf" for the TI specific registers
++	       The second entry must be "rc-dbics" for the designware pcie
++	       registers
++	       The third entry must be "config" for the PCIe configuration space
+  - interrupts : Two interrupt entries must be specified. The first one is for
+ 		main interrupt line and the second for MSI interrupt line.
+  - #address-cells,
+@@ -19,13 +24,31 @@ PCIe Designware Controller
+    #interrupt-cells,
+    device_type,
+    ranges,
+-   num-lanes,
+    interrupt-map-mask,
+    interrupt-map : as specified in ../designware-pcie.txt
+ 
++DEVICE MODE
++===========
++ - reg : Four register ranges as listed in the reg-names property
++ - reg-names : "ti-conf" for the TI specific registers
++	       "ep_dbics" for the standard configuration registers as
++		they are locally accessed within the DIF CS space
++	       "ep_dbics2" for the standard configuration registers as
++		they are locally accessed within the DIF CS2 space
++	       "addr_space" used to map remote RC address space
++ - interrupts : one interrupt entries must be specified for main interrupt.
++ - num-ib-windows : number of inbound address translation windows
++ - num-ob-windows : number of outbound address translation windows
 +
-+The PCI endpoint test device is a virtual device (defined in software)
-+used to test the endpoint functionality and serve as a sample driver
-+for other PCI endpoint devices (to use the EP framework).
+ Optional Property:
+  - gpios : Should be added if a gpio line is required to drive PERST# line
+ 
++NOTE: Two dt nodes may be added for each PCI controller; one for host
++mode and another for device mode. So in order for PCI to
++work in host mode, EP mode dt node should be disabled and in order to PCI to
++work in EP mode, host mode dt node should be disabled. And host mode and EP
++mode are mutually exclusive.
 +
-+The PCI endpoint test device has the following registers:
-+
-+	1) PCI_ENDPOINT_TEST_MAGIC
-+	2) PCI_ENDPOINT_TEST_COMMAND
-+	3) PCI_ENDPOINT_TEST_STATUS
-+	4) PCI_ENDPOINT_TEST_SRC_ADDR
-+	5) PCI_ENDPOINT_TEST_DST_ADDR
-+	6) PCI_ENDPOINT_TEST_SIZE
-+	7) PCI_ENDPOINT_TEST_CHECKSUM
-+
-+*) PCI_ENDPOINT_TEST_MAGIC
-+
-+This register will be used to test BAR0. A known pattern will be written
-+and read back from MAGIC register to verify BAR0.
-+
-+*) PCI_ENDPOINT_TEST_COMMAND:
-+
-+This register will be used by the host driver to indicate the function
-+that the endpoint device must perform.
-+
-+Bitfield Description:
-+  Bit 0		: raise legacy irq
-+  Bit 1		: raise MSI irq
-+  Bit 2 - 7	: MSI interrupt number
-+  Bit 8		: read command (read data from RC buffer)
-+  Bit 9		: write command (write data to RC buffer)
-+  Bit 10	: copy command (copy data from one RC buffer to another
-+		  RC buffer)
-+
-+*) PCI_ENDPOINT_TEST_STATUS
-+
-+This register reflects the status of the PCI endpoint device.
-+
-+Bitfield Description:
-+  Bit 0		: read success
-+  Bit 1		: read fail
-+  Bit 2		: write success
-+  Bit 3		: write fail
-+  Bit 4		: copy success
-+  Bit 5		: copy fail
-+  Bit 6		: irq raised
-+  Bit 7		: source address is invalid
-+  Bit 8		: destination address is invalid
-+
-+*) PCI_ENDPOINT_TEST_SRC_ADDR
-+
-+This register contains the source address (RC buffer address) for the
-+COPY/READ command.
-+
-+*) PCI_ENDPOINT_TEST_DST_ADDR
-+
-+This register contains the destination address (RC buffer address) for
-+the COPY/WRITE command.
+ Example:
+ axi {
+ 	compatible = "simple-bus";
 -- 
 2.11.0
