@@ -1,183 +1,153 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: Re: [PATCH v4 5/7] PCI: dwc: all: Modify dbi accessors to access data
- of 4/2/1 bytes
-Date: Mon, 13 Mar 2017 15:32:16 +0100
-Message-ID: <3353f3f7-9c27-b929-c8d4-e8e2605c11bc@axis.com>
-References: <20170313134328.1588-1-kishon@ti.com>
- <20170313134328.1588-6-kishon@ti.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH 1/4] ARM: OMAP2+: dm81xx: Add clkdm and hwmod for SATA
+Date: Mon, 13 Mar 2017 17:43:16 +0100
+Message-ID: <1489423399-3824-2-git-send-email-bgolaszewski@baylibre.com>
+References: <1489423399-3824-1-git-send-email-bgolaszewski@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170313134328.1588-6-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: nsekhar@ti.com, Jingoo Han <jingoohan1@gmail.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1489423399-3824-1-git-send-email-bgolaszewski@baylibre.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Neil Armstrong <narmstrong@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: devicetree@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Acked-by: Niklas Cassel <niklas.cassel@axis.com>
+From: Kevin Hilman <khilman@baylibre.com>
 
-On 03/13/2017 02:43 PM, Kishon Vijay Abraham I wrote:
-> Previously dbi accessors can be used to access data of size 4
-> bytes. But there might be situations (like accessing
-> MSI_MESSAGE_CONTROL in order to set/get the number of required
-> MSI interrupts in EP mode) where dbi accessors must
-> be used to access data of size 2. This is in preparation for
-> adding endpoint mode support to designware driver.
->
-> Cc: Jingoo Han <jingoohan1@gmail.com>
-> Cc: Joao Pinto <Joao.Pinto@synopsys.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/pci/dwc/pci-exynos.c      | 16 ++++++++--------
->  drivers/pci/dwc/pcie-designware.c | 34 ++++++++++++++++++++++++----------
->  drivers/pci/dwc/pcie-designware.h | 20 +++++++++++---------
->  3 files changed, 43 insertions(+), 27 deletions(-)
->
-> diff --git a/drivers/pci/dwc/pci-exynos.c b/drivers/pci/dwc/pci-exynos.c
-> index a0d40f74b88d..37d6d2b7378f 100644
-> --- a/drivers/pci/dwc/pci-exynos.c
-> +++ b/drivers/pci/dwc/pci-exynos.c
-> @@ -521,25 +521,25 @@ static void exynos_pcie_enable_interrupts(struct exynos_pcie *ep)
->  		exynos_pcie_msi_init(ep);
->  }
->  
-> -static u32 exynos_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base,
-> -				 u32 reg)
-> +static u32 exynos_pcie_read_dbi(struct dw_pcie *pci, void __iomem *base,
-> +				u32 reg, size_t size)
->  {
->  	struct exynos_pcie *ep = to_exynos_pcie(pci);
->  	u32 val;
->  
->  	exynos_pcie_sideband_dbi_r_mode(ep, true);
-> -	val = readl(base + reg);
-> +	dw_pcie_read(base + reg, size, &val);
->  	exynos_pcie_sideband_dbi_r_mode(ep, false);
->  	return val;
->  }
->  
-> -static void exynos_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base,
-> -				   u32 reg, u32 val)
-> +static void exynos_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base,
-> +				  u32 reg, size_t size, u32 val)
->  {
->  	struct exynos_pcie *ep = to_exynos_pcie(pci);
->  
->  	exynos_pcie_sideband_dbi_w_mode(ep, true);
-> -	writel(val, base + reg);
-> +	dw_pcie_write(base + reg, size, val);
->  	exynos_pcie_sideband_dbi_w_mode(ep, false);
->  }
->  
-> @@ -646,8 +646,8 @@ static int __init exynos_add_pcie_port(struct exynos_pcie *ep,
->  }
->  
->  static const struct dw_pcie_ops dw_pcie_ops = {
-> -	.readl_dbi = exynos_pcie_readl_dbi,
-> -	.writel_dbi = exynos_pcie_writel_dbi,
-> +	.read_dbi = exynos_pcie_read_dbi,
-> +	.write_dbi = exynos_pcie_write_dbi,
->  	.link_up = exynos_pcie_link_up,
->  };
->  
-> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-> index ea403e2240cf..734acac1926d 100644
-> --- a/drivers/pci/dwc/pcie-designware.c
-> +++ b/drivers/pci/dwc/pcie-designware.c
-> @@ -61,21 +61,35 @@ int dw_pcie_write(void __iomem *addr, int size, u32 val)
->  	return PCIBIOS_SUCCESSFUL;
->  }
->  
-> -u32 __dw_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg)
-> +u32 __dw_pcie_read_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
-> +		       size_t size)
->  {
-> -	if (pci->ops->readl_dbi)
-> -		return pci->ops->readl_dbi(pci, base, reg);
-> +	int ret;
-> +	u32 val;
-> +
-> +	if (pci->ops->read_dbi)
-> +		return pci->ops->read_dbi(pci, base, reg, size);
->  
-> -	return readl(base + reg);
-> +	ret = dw_pcie_read(base + reg, size, &val);
-> +	if (ret)
-> +		dev_err(pci->dev, "read DBI address failed\n");
-> +
-> +	return val;
->  }
->  
-> -void __dw_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
-> -			  u32 val)
-> +void __dw_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
-> +			 size_t size, u32 val)
->  {
-> -	if (pci->ops->writel_dbi)
-> -		pci->ops->writel_dbi(pci, base, reg, val);
-> -	else
-> -		writel(val, base + reg);
-> +	int ret;
-> +
-> +	if (pci->ops->write_dbi) {
-> +		pci->ops->write_dbi(pci, base, reg, size, val);
-> +		return;
-> +	}
-> +
-> +	ret = dw_pcie_write(base + reg, size, val);
-> +	if (ret)
-> +		dev_err(pci->dev, "write DBI address failed\n");
->  }
->  
->  static u32 dw_pcie_readl_unroll(struct dw_pcie *pci, u32 index, u32 reg)
-> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-> index e97fc4ce7d49..bfaf2b850a88 100644
-> --- a/drivers/pci/dwc/pcie-designware.h
-> +++ b/drivers/pci/dwc/pcie-designware.h
-> @@ -144,9 +144,10 @@ struct pcie_port {
->  
->  struct dw_pcie_ops {
->  	u64	(*cpu_addr_fixup)(u64 cpu_addr);
-> -	u32	(*readl_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg);
-> -	void	(*writel_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
-> -			      u32 val);
-> +	u32	(*read_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
-> +			    size_t size);
-> +	void	(*write_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
-> +			     size_t size, u32 val);
->  	int	(*link_up)(struct dw_pcie *pcie);
->  };
->  
-> @@ -164,9 +165,10 @@ struct dw_pcie {
->  int dw_pcie_read(void __iomem *addr, int size, u32 *val);
->  int dw_pcie_write(void __iomem *addr, int size, u32 val);
->  
-> -u32 __dw_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg);
-> -void __dw_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
-> -			  u32 val);
-> +u32 __dw_pcie_read_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
-> +		       size_t size);
-> +void __dw_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
-> +			 size_t size, u32 val);
->  int dw_pcie_link_up(struct dw_pcie *pci);
->  int dw_pcie_wait_for_link(struct dw_pcie *pci);
->  void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
-> @@ -174,14 +176,14 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
->  			       u32 size);
->  void dw_pcie_setup(struct dw_pcie *pci);
->  
-> -static inline dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
-> +static inline void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
->  {
-> -	__dw_pcie_writel_dbi(pci, pci->dbi_base, reg, val);
-> +	__dw_pcie_write_dbi(pci, pci->dbi_base, reg, 0x4, val);
->  }
->  
->  static inline u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg)
->  {
-> -	return  __dw_pcie_readl_dbi(pci, pci->dbi_base, reg);
-> +	return __dw_pcie_read_dbi(pci, pci->dbi_base, reg, 0x4);
->  }
->  
->  #ifdef CONFIG_PCIE_DW_HOST
+Add the SATA clockdomain (part of CM_DEFAULT) and a hwmod for the SATA
+block on dm81xx.
+
+Tested on DM8168 EVM.
+
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+---
+ arch/arm/mach-omap2/clockdomains81xx_data.c | 10 +++++++++
+ arch/arm/mach-omap2/cm81xx.h                |  2 ++
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c  | 34 +++++++++++++++++++++++++++++
+ 3 files changed, 46 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/clockdomains81xx_data.c b/arch/arm/mach-omap2/clockdomains81xx_data.c
+index 3b5fb05..65fbd13 100644
+--- a/arch/arm/mach-omap2/clockdomains81xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains81xx_data.c
+@@ -91,6 +91,14 @@ static struct clockdomain default_l3_slow_81xx_clkdm = {
+ 	.flags		= CLKDM_CAN_SWSUP,
+ };
+ 
++static struct clockdomain default_sata_81xx_clkdm = {
++	.name		= "default_clkdm",
++	.pwrdm		= { .name = "default_pwrdm" },
++	.cm_inst	= TI81XX_CM_DEFAULT_MOD,
++	.clkdm_offs	= TI816X_CM_DEFAULT_SATA_CLKDM,
++	.flags		= CLKDM_CAN_SWSUP,
++};
++
+ /* 816x only */
+ 
+ static struct clockdomain alwon_mpu_816x_clkdm = {
+@@ -173,6 +181,7 @@ static struct clockdomain *clockdomains_ti814x[] __initdata = {
+ 	&mmu_81xx_clkdm,
+ 	&mmu_cfg_81xx_clkdm,
+ 	&default_l3_slow_81xx_clkdm,
++	&default_sata_81xx_clkdm,
+ 	NULL,
+ };
+ 
+@@ -200,6 +209,7 @@ static struct clockdomain *clockdomains_ti816x[] __initdata = {
+ 	&default_ducati_816x_clkdm,
+ 	&default_pci_816x_clkdm,
+ 	&default_l3_slow_81xx_clkdm,
++	&default_sata_81xx_clkdm,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/cm81xx.h b/arch/arm/mach-omap2/cm81xx.h
+index 3a0ccf0..44ca275 100644
+--- a/arch/arm/mach-omap2/cm81xx.h
++++ b/arch/arm/mach-omap2/cm81xx.h
+@@ -35,6 +35,7 @@
+ #define TI81XX_CM_MMU_CLKDM			0x000C
+ #define TI81XX_CM_MMUCFG_CLKDM			0x0010
+ #define TI81XX_CM_ALWON_MPU_CLKDM		0x001C
++#define TI81XX_CM_ALWON_SYSCLK5_CLKDM		0x0024
+ #define TI81XX_CM_ALWON_L3_FAST_CLKDM		0x0030
+ 
+ /* ACTIVE */
+@@ -57,5 +58,6 @@
+ #define TI816X_CM_DEFAULT_PCI_CLKDM		0x0010
+ #define TI816X_CM_DEFAULT_L3_SLOW_CLKDM		0x0014
+ #define TI816X_CM_DEFAULT_DUCATI_CLKDM		0x0018
++#define TI816X_CM_DEFAULT_SATA_CLKDM		0x0060
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+index b82b77c..310afe4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+@@ -106,6 +106,7 @@
+  */
+ #define DM81XX_CM_DEFAULT_OFFSET	0x500
+ #define DM81XX_CM_DEFAULT_USB_CLKCTRL	(0x558 - DM81XX_CM_DEFAULT_OFFSET)
++#define DM81XX_CM_DEFAULT_SATA_CLKCTRL	(0x560 - DM81XX_CM_DEFAULT_OFFSET)
+ 
+ /* L3 Interconnect entries clocked at 125, 250 and 500MHz */
+ static struct omap_hwmod dm81xx_alwon_l3_slow_hwmod = {
+@@ -973,6 +974,38 @@ static struct omap_hwmod_ocp_if dm816x_l4_hs__emac1 = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
++static struct omap_hwmod_class_sysconfig dm81xx_sata_sysc = {
++	.sysc_offs	= 0x1100,
++	.sysc_flags	= SYSC_HAS_SIDLEMODE,
++	.idlemodes	= SIDLE_FORCE,
++	.sysc_fields	= &omap_hwmod_sysc_type3,
++};
++
++static struct omap_hwmod_class dm81xx_sata_hwmod_class = {
++	.name	= "sata",
++	.sysc	= &dm81xx_sata_sysc,
++};
++
++static struct omap_hwmod dm81xx_sata_hwmod = {
++	.name		= "sata",
++	.clkdm_name	= "default_sata_clkdm",
++	.flags		= HWMOD_NO_IDLEST,
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = DM81XX_CM_DEFAULT_SATA_CLKCTRL,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++	.class		= &dm81xx_sata_hwmod_class,
++};
++
++static struct omap_hwmod_ocp_if dm81xx_l4_hs__sata = {
++	.master		= &dm81xx_l4_hs_hwmod,
++	.slave		= &dm81xx_sata_hwmod,
++	.clk		= "sysclk5_ck",
++	.user		= OCP_USER_MPU,
++};
++
+ static struct omap_hwmod_class_sysconfig dm81xx_mmc_sysc = {
+ 	.rev_offs	= 0x0,
+ 	.sysc_offs	= 0x110,
+@@ -1474,6 +1507,7 @@ static struct omap_hwmod_ocp_if *dm816x_hwmod_ocp_ifs[] __initdata = {
+ 	&dm81xx_l4_hs__emac0,
+ 	&dm81xx_emac0__mdio,
+ 	&dm816x_l4_hs__emac1,
++	&dm81xx_l4_hs__sata,
+ 	&dm81xx_alwon_l3_fast__tpcc,
+ 	&dm81xx_alwon_l3_fast__tptc0,
+ 	&dm81xx_alwon_l3_fast__tptc1,
+-- 
+2.9.3
