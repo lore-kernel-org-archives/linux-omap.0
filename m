@@ -1,88 +1,66 @@
-From: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/4] ARM: OMAP2+: dm81xx: Add clkdm and hwmod for SATA
-Date: Mon, 13 Mar 2017 14:34:40 -0700
-Message-ID: <m27f3sc13j.fsf@baylibre.com>
-References: <1489423399-3824-1-git-send-email-bgolaszewski@baylibre.com>
-        <1489423399-3824-2-git-send-email-bgolaszewski@baylibre.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
+ during boot
+Date: Mon, 13 Mar 2017 14:47:16 -0700
+Message-ID: <20170313214716.GY20572@atomide.com>
+References: <20170313205231.1593-1-tony@atomide.com>
+ <c6d992fc-5468-8124-f1ee-558889147b72@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489423399-3824-2-git-send-email-bgolaszewski-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-        (Bartosz Golaszewski's message of "Mon, 13 Mar 2017 17:43:16 +0100")
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bartosz Golaszewski <bgolaszewski-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Michael Turquette <mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Patrick Titiano <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <c6d992fc-5468-8124-f1ee-558889147b72@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Bartosz Golaszewski <bgolaszewski-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> writes:
+* Andrew F. Davis <afd@ti.com> [170313 14:30]:
+> On 03/13/2017 03:52 PM, Tony Lindgren wrote:
+> > So let's fix the issue reported by Andrew by making CPU1 reset conditional
+> > and only do it if CPU1 is configured to boot at an address that is within
+> > the booting kernel. In these cases we know for sure that we just overwrote
+> > the configured boot_secondary() during booting and that it's invalid.
+> 
+> One thing that worries me is the false negatives, what happens if the
+> boot address register (WAKEUP_NS_PA_ADDR) is pointing outside the new
+> kernel (which will most likely be the case as it probably will be
+> pointing to the old kernel), but the core is not correctly parked (lets
+> say it is in WFI idle loop in old kernel), we will fail to reboot it
+> when in this case we should.
 
-> From: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
->
-> Add the SATA clockdomain (part of CM_DEFAULT) and a hwmod for the SATA
-> block on dm81xx.
->
-> Tested on DM8168 EVM.
->
-> Signed-off-by: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Bartosz Golaszewski <bgolaszewski-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> ---
->  arch/arm/mach-omap2/clockdomains81xx_data.c | 10 +++++++++
->  arch/arm/mach-omap2/cm81xx.h                |  2 ++
->  arch/arm/mach-omap2/omap_hwmod_81xx_data.c  | 34 +++++++++++++++++++++++++++++
->  3 files changed, 46 insertions(+)
->
-> diff --git a/arch/arm/mach-omap2/clockdomains81xx_data.c b/arch/arm/mach-omap2/clockdomains81xx_data.c
-> index 3b5fb05..65fbd13 100644
-> --- a/arch/arm/mach-omap2/clockdomains81xx_data.c
-> +++ b/arch/arm/mach-omap2/clockdomains81xx_data.c
-> @@ -91,6 +91,14 @@ static struct clockdomain default_l3_slow_81xx_clkdm = {
->  	.flags		= CLKDM_CAN_SWSUP,
->  };
->  
-> +static struct clockdomain default_sata_81xx_clkdm = {
-> +	.name		= "default_clkdm",
-> +	.pwrdm		= { .name = "default_pwrdm" },
-> +	.cm_inst	= TI81XX_CM_DEFAULT_MOD,
-> +	.clkdm_offs	= TI816X_CM_DEFAULT_SATA_CLKDM,
-> +	.flags		= CLKDM_CAN_SWSUP,
-> +};
-> +
->  /* 816x only */
->  
->  static struct clockdomain alwon_mpu_816x_clkdm = {
-> @@ -173,6 +181,7 @@ static struct clockdomain *clockdomains_ti814x[] __initdata = {
->  	&mmu_81xx_clkdm,
->  	&mmu_cfg_81xx_clkdm,
->  	&default_l3_slow_81xx_clkdm,
-> +	&default_sata_81xx_clkdm,
->  	NULL,
->  };
->  
-> @@ -200,6 +209,7 @@ static struct clockdomain *clockdomains_ti816x[] __initdata = {
->  	&default_ducati_816x_clkdm,
->  	&default_pci_816x_clkdm,
->  	&default_l3_slow_81xx_clkdm,
-> +	&default_sata_81xx_clkdm,
->  	NULL,
->  };
->  
-> diff --git a/arch/arm/mach-omap2/cm81xx.h b/arch/arm/mach-omap2/cm81xx.h
-> index 3a0ccf0..44ca275 100644
-> --- a/arch/arm/mach-omap2/cm81xx.h
-> +++ b/arch/arm/mach-omap2/cm81xx.h
-> @@ -35,6 +35,7 @@
->  #define TI81XX_CM_MMU_CLKDM			0x000C
->  #define TI81XX_CM_MMUCFG_CLKDM			0x0010
->  #define TI81XX_CM_ALWON_MPU_CLKDM		0x001C
-> +#define TI81XX_CM_ALWON_SYSCLK5_CLKDM		0x0024
+Yup this won't handle all the cases for sure. The case you're describing
+always happens with u-boot, I think it parks CPU1 to the end of DDR.
+And then we just blindly assume CPU1 is properly configured.
 
-oops, this is a stray addition (by me) but is no not needed.
+For kexec booting, the old parked address will be almost certainly
+overlapping with the new kernel and the code gets overwritten. I don't
+think the kexec case of WAKEUP_NS_PA_ADDR being outside the booted
+kernel can happen without patched kernel. But it probably can with
+crashkernel configurations, and properly parking the kernel is the
+real fix there.
 
->  #define TI81XX_CM_ALWON_L3_FAST_CLKDM		0x0030
->  
+Or do you have some specific check in mind we could add?
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I think the best way to handle this is to set WAKEUP_NS_PA_ADDR to zero
+> when we park it, for all other cases we can assume it is not parked. As
+> long as we remember in the bootloader and kernel to zero that register
+> when parking it, then we shouldn't have any false positives or any
+> failures to reset when we should have.
+
+Yeah makes sense. So for CPU1 hot-unplug, we also need to bring up
+CPU1 from idle and park it to bootrom to also prevent CPU1 waking
+from idle to a wrong address.
+
+Regards,
+
+Tony
