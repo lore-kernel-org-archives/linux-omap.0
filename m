@@ -1,16 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
- during boot
-Date: Mon, 13 Mar 2017 14:47:16 -0700
-Message-ID: <20170313214716.GY20572@atomide.com>
-References: <20170313205231.1593-1-tony@atomide.com>
- <c6d992fc-5468-8124-f1ee-558889147b72@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes v4.11-rc cycle
+Date: Mon, 13 Mar 2017 15:14:21 -0700
+Message-ID: <20170313221421.GE13064@localhost>
+References: <58bd927a.c5ae540a.8be25.bcd3SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <c6d992fc-5468-8124-f1ee-558889147b72@ti.com>
+In-Reply-To: <58bd927a.c5ae540a.8be25.bcd3SMTPIN_ADDED_BROKEN@mx.google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,47 +18,49 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Andrew F. Davis <afd@ti.com> [170313 14:30]:
-> On 03/13/2017 03:52 PM, Tony Lindgren wrote:
-> > So let's fix the issue reported by Andrew by making CPU1 reset conditional
-> > and only do it if CPU1 is configured to boot at an address that is within
-> > the booting kernel. In these cases we know for sure that we just overwrote
-> > the configured boot_secondary() during booting and that it's invalid.
+On Mon, Mar 06, 2017 at 08:46:42AM -0800, Tony Lindgren wrote:
+> The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
 > 
-> One thing that worries me is the false negatives, what happens if the
-> boot address register (WAKEUP_NS_PA_ADDR) is pointing outside the new
-> kernel (which will most likely be the case as it probably will be
-> pointing to the old kernel), but the core is not correctly parked (lets
-> say it is in WFI idle loop in old kernel), we will fail to reboot it
-> when in this case we should.
+>   Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-rc1-v2
+> 
+> for you to fetch changes up to e24bce8fb4c26bd0d8eca74cbbee1ad049246be3:
+> 
+>   Merge tag 'v4.11-rc1' into omap-for-v4.11/fixes (2017-03-06 08:37:53 -0800)
+> 
+> ----------------------------------------------------------------
+> Fixes for omaps for v4.11-rc cycle:
+> 
+> - Fix smartreflex platform data regression where I accidentally
+>   removed legacy platform data still in use
+> 
+> - Fix hypervisor mode for thumb2 kernel
+> 
+> - Fix misplaced tpic2810 to move it to right bus
+> 
+> - Enable INPUT_MOUSEDEV as a loadable module have mice working
+> 
+> - Fix use of gpio-key,wakeup and use wakeup-source instead as
+>   this accidentally sneaked in during the merge window
+> 
+> - Fix error handling for onenand to properly return error
+> 
+> - Remove legacy gpmc-nand.c that's now dead code, this
+>   also removes dependency to the MTD tree for further driver
+>   changes
+> 
+> - Fix device node reference count errors for omap3 and
+>   related to it also release device nodes after no longer
+>   needed
 
-Yup this won't handle all the cases for sure. The case you're describing
-always happens with u-boot, I think it parks CPU1 to the end of DDR.
-And then we just blindly assume CPU1 is properly configured.
 
-For kexec booting, the old parked address will be almost certainly
-overlapping with the new kernel and the code gets overwritten. I don't
-think the kexec case of WAKEUP_NS_PA_ADDR being outside the booted
-kernel can happen without patched kernel. But it probably can with
-crashkernel configurations, and properly parking the kernel is the
-real fix there.
+Merged.
 
-Or do you have some specific check in mind we could add?
-
-> I think the best way to handle this is to set WAKEUP_NS_PA_ADDR to zero
-> when we park it, for all other cases we can assume it is not parked. As
-> long as we remember in the bootloader and kernel to zero that register
-> when parking it, then we shouldn't have any false positives or any
-> failures to reset when we should have.
-
-Yeah makes sense. So for CPU1 hot-unplug, we also need to bring up
-CPU1 from idle and park it to bootrom to also prevent CPU1 waking
-from idle to a wrong address.
-
-Regards,
-
-Tony
+-Olof
