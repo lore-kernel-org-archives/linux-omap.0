@@ -1,54 +1,34 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2+: omap_hwmod: provide space for more hwmod
- flags
-Date: Mon, 13 Mar 2017 19:05:49 +0530
-Message-ID: <3612df6e-940e-9541-558c-be1f742c469f@ti.com>
-References: <1489405996-10718-1-git-send-email-rogerq@ti.com>
- <1489405996-10718-2-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 0/2] ARM: am335x-icev2: Add ethernet support
+Date: Mon, 13 Mar 2017 15:42:32 +0200
+Message-ID: <1489412554-2054-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1489405996-10718-2-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, paul@pwsan.com, tony@atomide.com
-Cc: bcousson@baylibre.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: davem@davemloft.net, tony@atomide.com
+Cc: grygorii.strashko@ti.com, nsekhar@ti.com, jsarha@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 13 March 2017 05:23 PM, Roger Quadros wrote:
-> From: Sekhar Nori <nsekhar@ti.com>
-> 
-> 'flags' member of omap_hwmod structure is fast running
-> out of space with 16 different flags already defined.
-> 
-> Make flags a 32-bit entity so as to allow for more flags.
-> 
-> This results is a ~2.3K data section size increase with
-> TI config fragments.
+Hi,
 
-This line needs to be changed to refer to omap2plus_defconfig.
+This series adds ethernet support to am335x-icev2 board.
 
-> 
-> before:
->    text	   data	    bss	    dec	    hex	filename
-> 8886648	 610452	 261876	9758976	 94e900	vmlinux
-> 
-> after:
->    text	   data	    bss	    dec	    hex	filename
-> 8886584	 612820	 261876	9761280	 94f200	vmlinux
+The ethernet PHYs on the board need an explicit GPIO reset pulse
+to ensure they bootstrap to the correct mode. Without the
+GPIO reset they just don't work.
 
-I guess this data is probably stale as well. Here is the before and
-after numbers using omap2plus_defconfig on v4.11-rc2
+cheers,
+-roger
 
-before:
-   text	   data	    bss	    dec	    hex	filename
-8186930	3082444	8252992	19522366	129e33e	vmlinux
+Roger Quadros (2):
+  net: davinci_mdio: add GPIO reset logic
+  ARM: dts: am335x-icev2: Add CPSW ethernet0 and ethernet1
 
-after:
-   text	   data	    bss	    dec	    hex	filename
-8186922	3084812	8252992	19524726	129ec76	vmlinux
+ .../devicetree/bindings/net/davinci-mdio.txt       |   2 +
+ arch/arm/boot/dts/am335x-icev2.dts                 | 113 +++++++++++++++++++++
+ drivers/net/ethernet/ti/davinci_mdio.c             |  68 +++++++++++--
+ 3 files changed, 175 insertions(+), 8 deletions(-)
 
-The size increase remains at ~2.3K in data section.
-
-Thanks,
-Sekhar
+-- 
+2.7.4
