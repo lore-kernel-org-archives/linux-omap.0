@@ -1,58 +1,52 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/4] ARM: DRA7: Fix DCAN1 stuck-in-transition
-Date: Mon, 13 Mar 2017 13:53:12 +0200
-Message-ID: <1489405996-10718-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH 4/4] ARM: DRA7: hwmod_data: Prevent wait_target_disable error for usb_otg_ss
+Date: Mon, 13 Mar 2017 13:53:16 +0200
+Message-ID: <1489405996-10718-5-git-send-email-rogerq@ti.com>
+References: <1489405996-10718-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1489405996-10718-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com
 Cc: bcousson@baylibre.com, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+It seems that if L3_INIT clkdomain is kept in HW_AUTO while usb_otg_ss
+is in use then there are random chances that the usb_otg_ss module
+will fail to completely idle. i.e. IDLEST = 0x2 instead of 0x3.
 
-On DRA7 platform, DCAN1 module has an issue when it's clockdomain
-(WKUPAON) is configured in HW_AUTO. After DCAN1 is enabled and disabled
-the module remains stuck in transition.
+Preventing L3_INIT from HW_AUTO while usb_otg_ss module is in use
+fixes this issue.
 
-Suggested workaround by Silicon team is to disable HW_AUTO for
-WKUPAON clockdomain when DCAN1 module is active.
+We don't know yet if usb_otg_ss instances 3 and 4 are affected by this
+issue or not so don't add this flag for those instances.
 
-These patches provide a new flag for hwmod data to support this
-behaviour and fix up dra7 hwmod data as well to fix this issue
-on dra7x-evms.
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-This patch allows DCAN1 to be functional as well as not prevent
-Core Retention as WKUPAON clockdomain is put back into HW_AUTO
-whenever DCAN1 is not active (e.g. runtime suspended).
-
-Without this series, we can see the following warning messages
-when the CAN interface is brought up and down.
-
-~# ifconfig can0 up
-[   36.418299] net can0: c_can_hw_raminit_wait_syscon: time out
-[   36.424642] c_can_platform 4ae3c000.can can0: setting BTR=1c04 BRPE=0000
-~# ifconfig can0 down
-[   50.488786] omap_hwmod: dcan1: _wait_target_disable failed
-[   50.502855] omap_hwmod: dcan1: _wait_target_disable failed
-
-cheers,
--roger
-
-Roger Quadros (3):
-  ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
-  ARM: DRA7: hwmod: Fix DCAN1 stuck in transition
-  ARM: DRA7: hwmod_data: Prevent wait_target_disable error for
-    usb_otg_ss
-
-Sekhar Nori (1):
-  ARM: OMAP2+: omap_hwmod: provide space for more hwmod flags
-
- arch/arm/mach-omap2/omap_hwmod.c          | 4 ++--
- arch/arm/mach-omap2/omap_hwmod.h          | 7 ++++++-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 4 ++++
- 3 files changed, 12 insertions(+), 3 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 896f238..2d1141a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -2702,6 +2702,7 @@ static struct omap_hwmod dra7xx_usb_otg_ss1_hwmod = {
+ 	.class		= &dra7xx_usb_otg_ss_hwmod_class,
+ 	.clkdm_name	= "l3init_clkdm",
+ 	.main_clk	= "dpll_core_h13x2_ck",
++	.flags		= HWMOD_CLKDM_NOAUTO,
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = DRA7XX_CM_L3INIT_USB_OTG_SS1_CLKCTRL_OFFSET,
+@@ -2723,6 +2724,7 @@ static struct omap_hwmod dra7xx_usb_otg_ss2_hwmod = {
+ 	.class		= &dra7xx_usb_otg_ss_hwmod_class,
+ 	.clkdm_name	= "l3init_clkdm",
+ 	.main_clk	= "dpll_core_h13x2_ck",
++	.flags		= HWMOD_CLKDM_NOAUTO,
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = DRA7XX_CM_L3INIT_USB_OTG_SS2_CLKCTRL_OFFSET,
 -- 
 2.7.4
