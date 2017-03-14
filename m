@@ -1,44 +1,26 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] ARM: dts: dm8168-evm: add the external reference
- clock for SATA
-Date: Tue, 14 Mar 2017 08:05:45 -0700
-Message-ID: <20170314150545.GB20572@atomide.com>
-References: <1489423399-3824-1-git-send-email-bgolaszewski@baylibre.com>
- <1489423399-3824-3-git-send-email-bgolaszewski@baylibre.com>
- <20170313213405.GX20572@atomide.com>
- <CAMpxmJW5f5foYbFv_FsQPibDamT4hCJSywnELdLmXpQg_oKohQ@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 01/12] gpio: mockup: use devm_irq_alloc_descs()
+Date: Tue, 14 Mar 2017 16:08:07 +0100
+Message-ID: <CACRpkdYnTtuf0ePvUkg0Vc2iAEHyDHZn-t7fqDEyGc=-ut_Z8g@mail.gmail.com>
+References: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com> <1488644620-11488-2-git-send-email-bgolaszewski@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMpxmJW5f5foYbFv_FsQPibDamT4hCJSywnELdLmXpQg_oKohQ@mail.gmail.com>
+In-Reply-To: <1488644620-11488-2-git-send-email-bgolaszewski@baylibre.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Neil Armstrong <narmstrong@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, Paul Walmsley <paul@pwsan.com>, linux-ide@vger.kernel.org, linux-devicetree <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Cc: Alexandre Courbot <gnurou@gmail.com>, Bamvor Jian Zhang <bamvor.zhangjian@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Bartosz Golaszewski <bgolaszewski@baylibre.com> [170314 08:03]:
-> 2017-03-13 22:34 GMT+01:00 Tony Lindgren <tony@atomide.com>:
-> > * Bartosz Golaszewski <bgolaszewski@baylibre.com> [170313 09:45]:
-> >> This board has an external oscillator supplying the reference clock
-> >> signal for SATA. Its rate is fixed at 100Mhz. Add a corresponding
-> >> device tree node.
-> >
-> > Is this the 100MHz clock from PCIe? Just like on dm814x-evm as noted
-> > in the workaround thread below:
-> >
-> > http://e2e.ti.com/support/dsp/davinci_digital_media_processors/f/716/p/181083/671141
-> >
-> > Regards,
-> >
-> > Tony
-> >
-> 
-> Hi Tony,
-> 
-> these signals come from a TI CDCM61002 (U30 on the board's
-> schematics). It's hardwired to 100mHZ output.
+On Sat, Mar 4, 2017 at 5:23 PM, Bartosz Golaszewski
+<bgolaszewski@baylibre.com> wrote:
 
-Oh OK thanks.
+> Use the resource managed variant of irq_alloc_descs(). This allows us
+> to remove gpio_mockup_remove().
+>
+> Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 
-Tony
+Patch applied with Bamvor's review tag.
+
+Yours,
+Linus Walleij
