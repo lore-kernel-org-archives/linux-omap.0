@@ -1,32 +1,37 @@
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: Re: [PATCH 00/12] gpio: use resource management for irq descriptors
-Date: Tue, 14 Mar 2017 16:45:46 +0100
-Message-ID: <CAMpxmJWZMwZqS7=1X9AgMhQqOut3WJmeZvzb6bL0L5=itfY0Lg@mail.gmail.com>
-References: <1488644620-11488-1-git-send-email-bgolaszewski@baylibre.com> <CACRpkdbyuWhOVZvB9d1AKmWFUYhF6uhJeoLgTKhsFx7c8A-i9Q@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
+Date: Tue, 14 Mar 2017 08:48:44 -0700
+Message-ID: <20170314154843.GD20572@atomide.com>
+References: <1489405996-10718-1-git-send-email-rogerq@ti.com>
+ <1489405996-10718-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdbyuWhOVZvB9d1AKmWFUYhF6uhJeoLgTKhsFx7c8A-i9Q@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <1489405996-10718-3-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Bamvor Jian Zhang <bamvor.zhangjian@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Robert Jarzmik <robert.jarzmik@free.fr>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: paul@pwsan.com, bcousson@baylibre.com, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-2017-03-14 16:18 GMT+01:00 Linus Walleij <linus.walleij@linaro.org>:
->
-> Excellent series, applied all and pushing to the build servers for
-> testing.
->
+* Roger Quadros <rogerq@ti.com> [170313 04:55]:
 
-Thanks!
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -2149,7 +2149,7 @@ static int _idle(struct omap_hwmod *oh)
+>  		_idle_sysc(oh);
+>  	_del_initiator_dep(oh, mpu_oh);
+>  
+> -	if (oh->clkdm)
+> +	if (oh->clkdm && !(oh->flags & HWMOD_CLKDM_NOAUTO))
+>  		clkdm_deny_idle(oh->clkdm);
+>  
+>  	if (oh->flags & HWMOD_BLOCK_WFI)
 
-> Interested in the job to go over to drivers/pinctrl and check if we
-> have some dangling descs there if this works out?
->
+Is this change to _idle() really needed? It seems that the
+clkdm_deny_idle() there is paired with the clkdm_allow_idle()
+later on in the same function?
 
-If time permits, I will be improving the resource management for
-interrupts (generic-chip, domains etc.), so I may end up in pinctrl at
-some point.
+Regards,
 
-Best regards,
-Bartosz Golaszewski
+Tony
