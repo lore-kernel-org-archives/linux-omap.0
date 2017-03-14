@@ -1,66 +1,78 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes v4.11-rc cycle
-Date: Mon, 13 Mar 2017 15:14:21 -0700
-Message-ID: <20170313221421.GE13064@localhost>
-References: <58bd927a.c5ae540a.8be25.bcd3SMTPIN_ADDED_BROKEN@mx.google.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH 2/2] ARM: dts: am335x-icev2: Add CPSW ethernet0 and
+ ethernet1
+Date: Tue, 14 Mar 2017 11:37:10 +0530
+Message-ID: <815d2848-86e1-7ca2-a07c-4a69816d6ab0@ti.com>
+References: <1489412554-2054-1-git-send-email-rogerq@ti.com>
+ <1489412554-2054-3-git-send-email-rogerq@ti.com>
+ <51a2471f-dace-6d8b-b198-9bd5efe41387@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <58bd927a.c5ae540a.8be25.bcd3SMTPIN_ADDED_BROKEN@mx.google.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <51a2471f-dace-6d8b-b198-9bd5efe41387@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Roger Quadros <rogerq@ti.com>, davem@davemloft.net, tony@atomide.com
+Cc: jsarha@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Mar 06, 2017 at 08:46:42AM -0800, Tony Lindgren wrote:
-> The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
+On Tuesday 14 March 2017 12:54 AM, Grygorii Strashko wrote:
 > 
->   Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
 > 
-> are available in the git repository at:
+> On 03/13/2017 08:42 AM, Roger Quadros wrote:
+>> Enable the 2 ethernet ports as CPSW ports in dual-mac mode
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> [nsekhar@ti.com: use AM33XX_IOPAD()]
+>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>> ---
+>>  arch/arm/boot/dts/am335x-icev2.dts | 113
+>> +++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 113 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/am335x-icev2.dts
+>> b/arch/arm/boot/dts/am335x-icev2.dts
+>> index a2ad076..cc343b0 100644
+>> --- a/arch/arm/boot/dts/am335x-icev2.dts
+>> +++ b/arch/arm/boot/dts/am335x-icev2.dts
+>> @@ -201,6 +201,69 @@
+>>              AM33XX_IOPAD(0x938, PIN_OUTPUT_PULLUP | MUX_MODE1) /*
+>> (L16) gmii1_rxd2.uart3_txd */
+>>          >;
+>>      };
+>> +
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-rc1-v2
+>>
+>>  &i2c0 {
+>> @@ -350,3 +413,53 @@
+>>      pinctrl-0 = <&uart3_pins_default>;
+>>      status = "okay";
+>>  };
+>> +
+>> +&gpio3 {
+>> +    p4 {
+>> +        gpio-hog;
+>> +        gpios = <4 GPIO_ACTIVE_HIGH>;
+>> +        output-high;
+>> +        line-name = "PR1_MII_CTRL";
+>> +    };
+>> +
+>> +    p10 {
+>> +        gpio-hog;
+>> +        gpios = <10 GPIO_ACTIVE_HIGH>;
+>> +        /* ETH1 mux: Low for MII-PRU, high for RMII-CPSW */
+>> +        output-high;
+>> +        line-name = "MUX_MII_CTL1";
+>> +    };
+>> +};
+>> +
+>> +&cpsw_emac0 {
+>> +    phy_id = <&davinci_mdio>, <1>;
 > 
-> for you to fetch changes up to e24bce8fb4c26bd0d8eca74cbbee1ad049246be3:
-> 
->   Merge tag 'v4.11-rc1' into omap-for-v4.11/fixes (2017-03-06 08:37:53 -0800)
-> 
-> ----------------------------------------------------------------
-> Fixes for omaps for v4.11-rc cycle:
-> 
-> - Fix smartreflex platform data regression where I accidentally
->   removed legacy platform data still in use
-> 
-> - Fix hypervisor mode for thumb2 kernel
-> 
-> - Fix misplaced tpic2810 to move it to right bus
-> 
-> - Enable INPUT_MOUSEDEV as a loadable module have mice working
-> 
-> - Fix use of gpio-key,wakeup and use wakeup-source instead as
->   this accidentally sneaked in during the merge window
-> 
-> - Fix error handling for onenand to properly return error
-> 
-> - Remove legacy gpmc-nand.c that's now dead code, this
->   also removes dependency to the MTD tree for further driver
->   changes
-> 
-> - Fix device node reference count errors for omap3 and
->   related to it also release device nodes after no longer
->   needed
+> this is deprecated definition.
+> pls, use phy-handle.
 
+Perhaps cpsw driver should warn about using deprecated DT properties.
 
-Merged.
-
--Olof
+Thanks,
+Sekhar
