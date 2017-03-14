@@ -1,18 +1,12 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv3] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
  during boot
-Date: Tue, 14 Mar 2017 12:57:35 -0500
-Message-ID: <ea09d676-29f6-7100-4c68-88920deaeb7c@ti.com>
-References: <20170313205231.1593-1-tony@atomide.com>
- <0bade322-5bee-412f-ef21-972c99846e84@ti.com>
- <20170314151725.GC20572@atomide.com>
- <d0fe191f-66f8-b72d-0a2a-00815e663a8d@ti.com>
- <20170314164106.GE20572@atomide.com>
+Date: Tue, 14 Mar 2017 11:05:55 -0700
+Message-ID: <20170314180555.23597-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170314164106.GE20572@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,135 +16,324 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, "Andrew F . Davis" <afd@ti.com>, Tero Kristo <t-kristo@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/14/2017 11:41 AM, Tony Lindgren wrote:
-> * Andrew F. Davis <afd@ti.com> [170314 09:04]:
->> On 03/14/2017 10:17 AM, Tony Lindgren wrote:
->>> * Tero Kristo <t-kristo@ti.com> [170314 00:32]:
->>>> On 13/03/17 22:52, Tony Lindgren wrote:
->>>>> Additionally we also need to fix the hot-unplug code to properly park CPU1
->>>>> to the bootrom loop so it's not affected by SDRAM changes done by kexec
->>>>> booting kernel.
->>>>
->>>> Imo, we are doing too much bandaid hackery for this issue now. How much do
->>>> we care if the older kernels don't work properly with kexec? I know I don't
->>>> care a bit myself. It means you just need to do 1 cold-boot for the system
->>>> to fix it.
->>>
->>> Well kexec is a standard Linux feature and it is currently working and
->>> at least I care.
->>>
->>> And if the CPU1 start-up address is programmed to be in the currently
->>> booting kernel's area by something else, it's almost certainly totally
->>> broken.
->>>
->>
->> I disagree, the core can be parked correctly and still have the boot-to
->> address point to anywhere. There are two registers in play here, one
->> sets the target jump-to address, the other lets it out of the parking
->> loop. To know we are not parked we need to check the parking release
->> register, the jump-to address is completely irrelevant as a check for
->> proper parking.
-> 
-> Well at this point we have CPU1 parked and configured for a wrong
-> start-up address. So the boot-to address is a valid check. I can
-> certainly add a check for CPU1 being parked too.
-> 
->>> Note that this still does not remove the need to park CPU1 properly to
->>> bootrom loop.
->>>
->>
->> I agree, and if we always park the the core correctly every time then
->> there is no reason to do all these checks and resets, we just boot as
->> normal.
-> 
-> Correct. And these sanity checks are still needed to keep things
-> working and fix the regression you reported.
-> 
->> If the core is not parked correctly then the system is messed up and
->> should be cold-booted, we have no way to know whether that core is off
->> running in space wreaking stuff.
->>
->> I cannot think of any reliable test, for now the focus should be
->> figuring out why we have escaped cores in the first place.
-> 
-> Well I think we got there as omap4 powers CPU1 off in idle. And now
-> we have dra7 using the same code and not doing that.
-> 
+Commit 3251885285e1 ("ARM: OMAP4+: Reset CPU1 properly for kexec") started
+unconditionally resetting CPU1 because of a kexec boot issue I was seeing
+earlier on omap4 when doing kexec boot between two different kernel
+versions.
 
-I think this is the case, it may be useful to have them take different
-paths.
+This caused issues on some systems. We should only reset CPU1 as a last
+resort option, and try to avoid it where possible. Doing an unconditional
+CPU1 reset causes issues for example when booting a bootloader configured
+secure OS running on CPU1 as reported by Andrew F. Davis <afd@ti.com>.
 
->> In my testing, core1 always ends up looping in omap4_cpu_die(), the loop
->> in this function doesn't check for the boot-to address register, just
->> the core release register. I'm not sure how this works at all, if even
->> in the same kernel, when trying to bring this core back up it will
->> ignore our set boot-to address and return to the caller of this
->> function. Maybe the kernel is able to cope with that, but it does not
->> seem to be the intended wakeup path.
-> 
-> The kernel wakeup_secondary() loops won't work without reset naturally
-> as that area of memory will be overwritten with different code by the
-> new kernel booting depending on the kernel version. It only works
-> kexec booting the same exact kernel version by luck because the code
-> at that address stays the same. So not very usable :)
-> 
->> I'll do some testing and see if this will help in omap4_cpu_die():
->>
->> if (boot_cpu == smp_processor_id()) {
->> 	/*
->> 	 * OK, proper wakeup, we're done
->> 	 */
->> +
->> +	boot_address = readl_relaxed(base + OMAP_AUX_CORE_BOOT_1);
->> +	boot_address();
->> +
->> 	break;
->> }
-> 
-> That's not going to help unless the boot_address is in the bootrom
-> so it won't get trashed by the next booting kernel in kexec case.
-> Or else we need to relocate the loop out of the way and that too
-> gets messy as it can still be overwritten by appended dtb or
-> initramfs. So it would really be best to have bootloader configure
-> CPU1, then park it back to bootrom loop both in u-boot and kernel.
-> Presumably the bootrom loop won't affect CPU1 state so this should
-> be doable.
-> 
+We can't completely remove the reset of CPU1 as it would break kexec
+booting from older kernels. But we can limit the CPU1 reset to cases
+where CPU1 is wrongly parked within the memory area used by the booting
+kernel. Then later on we can add support for parking CPU1 for kexec out
+of the SDRAM back to bootrom.
 
-We re-park cpu1 in bootROM in U-Boot already, in the U-Boot tree:
-arch/arm/mach-omap2/omap5/sec_entry_cpu1.S
+So let's first fix the regression reported by Andrew by making CPU1 reset
+conditional. To do this, we need to:
 
-omap_smc_sec_cpu1() wakes up cpu1 into the function cpu1_entry(), this
-makes an SMC call to setup the core, then re-parks itself back in bootROM.
-Relevant code to run on cpu1:
+1. Save configured AUX_CORE_BOOT_1 for later
 
-> #define AUX_CORE_BOOT_0		0x48281800
-> #define AUX_CORE_BOOT_1		0x48281804
-> /* DRA7xx ROM code function "startup_BootSlave". This function is where CPU1
->  * waits on WFE, polling on AUX_CORE_BOOT_x registers.
->  * This address is same for J6 and J6 Eco.
->  */
-> #define ROM_FXN_STARTUP_BOOTSLAVE     0x00038a64
->
-> ldr	r4, =AUX_CORE_BOOT_0
-> mov	r5, #0x0
-> str	r5, [r4]
-> ldr	r4, =ROM_FXN_STARTUP_BOOTSLAVE
-> bx	r4	@ Jump back to ROM
+2. Modify AUX_CORE_BOOT_0 reading code to for HS SoCs to return
+   the whole register instead of the CPU mask
 
-We would have to do this in kernel. The issue I'm thinking we are going
-to hit is that the parking function in bootROM expects the MMU to be
-off. Although we don't really need to turn it off as long as we can
-identity map the bootROM area, the AUX_CORE_BOOT_0/1 space, and wherever
-we plan to exit the parking loop.
+3. Check if CPU1 is wrongly parked into the booting kernel by the
+   previous kernel and reset if needed
 
-Andrew
+Fixes: 3251885285e1 ("ARM: OMAP4+: Reset CPU1 properly for kexec")
+Reported-by: Andrew F. Davis <afd@ti.com>
+Cc: Andrew F. Davis <afd@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Russell King <rmk+kernel@armlinux.org.uk>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-> Regards,
-> 
-> Tony
-> 
+---
+
+Changes from v2:
+
+- Add Santosh to Cc, sorry Santosh I forgot to add earlier
+
+- Add check for CPU1 being parked in addition to checking
+  CPU1 start-up address being within booting kernel before
+  reset
+
+- Left out extra cpu_is to soc_is changes, those can be done
+  later
+
+- Updated description to leave out suspend/resume issues as
+  those can be dealt with separately if they still exist after
+  fixing kexec boot, they may have been happening only after
+  a kexec boot
+
+Changes from v1:
+
+- We can't remove the CPU1 reset completely because it breaks
+  kexec booting all the existing kernels as CPU1 might be
+  parked into the booting kernel
+
+---
+ arch/arm/mach-omap2/common.h              |  1 +
+ arch/arm/mach-omap2/omap-hotplug.c        |  2 +-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c | 22 ++++++--
+ arch/arm/mach-omap2/omap-smc.S            |  1 -
+ arch/arm/mach-omap2/omap-smp.c            | 90 ++++++++++++++++++++++++++-----
+ 5 files changed, 96 insertions(+), 20 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -270,6 +270,7 @@ extern const struct smp_operations omap4_smp_ops;
+ extern int omap4_mpuss_init(void);
+ extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
+ extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
++extern u32 omap4_get_cpu1_ns_pa_addr(void);
+ #else
+ static inline int omap4_enter_lowpower(unsigned int cpu,
+ 					unsigned int power_state)
+diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
+--- a/arch/arm/mach-omap2/omap-hotplug.c
++++ b/arch/arm/mach-omap2/omap-hotplug.c
+@@ -50,7 +50,7 @@ void omap4_cpu_die(unsigned int cpu)
+ 		omap4_hotplug_cpu(cpu, PWRDM_POWER_OFF);
+ 
+ 		if (omap_secure_apis_support())
+-			boot_cpu = omap_read_auxcoreboot0();
++			boot_cpu = omap_read_auxcoreboot0() >> 9;
+ 		else
+ 			boot_cpu =
+ 				readl_relaxed(base + OMAP_AUX_CORE_BOOT_0) >> 5;
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -64,6 +64,7 @@
+ #include "prm-regbits-44xx.h"
+ 
+ static void __iomem *sar_base;
++static u32 old_cpu1_ns_pa_addr;
+ 
+ #if defined(CONFIG_PM) && defined(CONFIG_SMP)
+ 
+@@ -212,6 +213,11 @@ static void __init save_l2x0_context(void)
+ {}
+ #endif
+ 
++u32 omap4_get_cpu1_ns_pa_addr(void)
++{
++	return old_cpu1_ns_pa_addr;
++}
++
+ /**
+  * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
+  * The purpose of this function is to manage low power programming
+@@ -460,22 +466,30 @@ int __init omap4_mpuss_init(void)
+ void __init omap4_mpuss_early_init(void)
+ {
+ 	unsigned long startup_pa;
++	void __iomem *ns_pa_addr;
+ 
+-	if (!(cpu_is_omap44xx() || soc_is_omap54xx()))
++	if (!(soc_is_omap44xx() || soc_is_omap54xx()))
+ 		return;
+ 
+ 	sar_base = omap4_get_sar_ram_base();
+ 
+-	if (cpu_is_omap443x())
++	/* Save old NS_PA_ADDR for validity checks later on */
++	if (soc_is_omap44xx())
++		ns_pa_addr = sar_base + CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
++	else
++		ns_pa_addr = sar_base + OMAP5_CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
++	old_cpu1_ns_pa_addr = readl_relaxed(ns_pa_addr);
++
++	if (soc_is_omap443x())
+ 		startup_pa = __pa_symbol(omap4_secondary_startup);
+-	else if (cpu_is_omap446x())
++	else if (soc_is_omap446x())
+ 		startup_pa = __pa_symbol(omap4460_secondary_startup);
+ 	else if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
+ 		startup_pa = __pa_symbol(omap5_secondary_hyp_startup);
+ 	else
+ 		startup_pa = __pa_symbol(omap5_secondary_startup);
+ 
+-	if (cpu_is_omap44xx())
++	if (soc_is_omap44xx())
+ 		writel_relaxed(startup_pa, sar_base +
+ 			       CPU1_WAKEUP_NS_PA_ADDR_OFFSET);
+ 	else
+diff --git a/arch/arm/mach-omap2/omap-smc.S b/arch/arm/mach-omap2/omap-smc.S
+--- a/arch/arm/mach-omap2/omap-smc.S
++++ b/arch/arm/mach-omap2/omap-smc.S
+@@ -94,6 +94,5 @@ ENTRY(omap_read_auxcoreboot0)
+ 	ldr	r12, =0x103
+ 	dsb
+ 	smc	#0
+-	mov	r0, r0, lsr #9
+ 	ldmfd   sp!, {r2-r12, pc}
+ ENDPROC(omap_read_auxcoreboot0)
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -21,6 +21,7 @@
+ #include <linux/io.h>
+ #include <linux/irqchip/arm-gic.h>
+ 
++#include <asm/sections.h>
+ #include <asm/smp_scu.h>
+ #include <asm/virt.h>
+ 
+@@ -40,10 +41,14 @@
+ 
+ #define OMAP5_CORE_COUNT	0x2
+ 
++#define AUX_CORE_BOOT0_GP_RELEASE	0x020
++#define AUX_CORE_BOOT0_HS_RELEASE	0x200
++
+ struct omap_smp_config {
+ 	unsigned long cpu1_rstctrl_pa;
+ 	void __iomem *cpu1_rstctrl_va;
+ 	void __iomem *scu_base;
++	void __iomem *wakeupgen_base;
+ 	void *startup_addr;
+ };
+ 
+@@ -140,7 +145,6 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	static struct clockdomain *cpu1_clkdm;
+ 	static bool booted;
+ 	static struct powerdomain *cpu1_pwrdm;
+-	void __iomem *base = omap_get_wakeupgen_base();
+ 
+ 	/*
+ 	 * Set synchronisation state between this boot processor
+@@ -155,9 +159,11 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * A barrier is added to ensure that write buffer is drained
+ 	 */
+ 	if (omap_secure_apis_support())
+-		omap_modify_auxcoreboot0(0x200, 0xfffffdff);
++		omap_modify_auxcoreboot0(AUX_CORE_BOOT0_HS_RELEASE,
++					 0xfffffdff);
+ 	else
+-		writel_relaxed(0x20, base + OMAP_AUX_CORE_BOOT_0);
++		writel_relaxed(AUX_CORE_BOOT0_GP_RELEASE,
++			       cfg.wakeupgen_base + OMAP_AUX_CORE_BOOT_0);
+ 
+ 	if (!cpu1_clkdm && !cpu1_pwrdm) {
+ 		cpu1_clkdm = clkdm_lookup("mpu1_clkdm");
+@@ -261,9 +267,72 @@ static void __init omap4_smp_init_cpus(void)
+ 		set_cpu_possible(i, true);
+ }
+ 
++/*
++ * For now, just make sure the start-up address is not within the booting
++ * kernel space as that means we just overwrote whatever secondary_startup()
++ * code there was.
++ */
++static bool __init omap4_smp_cpu1_startup_valid(unsigned long addr)
++{
++	if ((addr >= __pa(PAGE_OFFSET)) && (addr <= __pa(__bss_start)))
++		return false;
++
++	return true;
++}
++
++/*
++ * We may need to reset CPU1 before configuring, otherwise kexec boot can end
++ * up trying to use old kernel startup address or suspend-resume will
++ * occasionally fail to bring up CPU1 on 4430 if CPU1 fails to enter deeper
++ * idle states.
++ */
++static void __init omap4_smp_maybe_reset_cpu1(struct omap_smp_config *c)
++{
++	unsigned long cpu1_startup_pa, cpu1_ns_pa_addr;
++	bool needs_reset = false;
++	u32 released;
++
++	if (omap_secure_apis_support())
++		released = omap_read_auxcoreboot0() & AUX_CORE_BOOT0_HS_RELEASE;
++	else
++		released = readl_relaxed(cfg.wakeupgen_base +
++					 OMAP_AUX_CORE_BOOT_0) &
++						AUX_CORE_BOOT0_GP_RELEASE;
++	if (released) {
++		pr_warn("smp: CPU1 not parked?\n");
++
++		return;
++	}
++
++	cpu1_startup_pa = readl_relaxed(cfg.wakeupgen_base +
++					OMAP_AUX_CORE_BOOT_1);
++	cpu1_ns_pa_addr = omap4_get_cpu1_ns_pa_addr();
++
++	/* Did the configured secondary_startup() get overwritten? */
++	if (!omap4_smp_cpu1_startup_valid(cpu1_startup_pa))
++		needs_reset = true;
++
++	/*
++	 * If omap4 or 5 has NS_PA_ADDR configured, CPU1 may be in a
++	 * deeper idle state in WFI and will wake to an invalid address.
++	 */
++	if ((soc_is_omap44xx() || soc_is_omap54xx()) &&
++	    !omap4_smp_cpu1_startup_valid(cpu1_ns_pa_addr))
++		needs_reset = true;
++
++	if (!needs_reset || !c->cpu1_rstctrl_va)
++		return;
++
++	pr_info("smp: CPU1 parked within kernel, needs reset (0x%lx 0x%lx)\n",
++		cpu1_startup_pa, cpu1_ns_pa_addr);
++
++	writel_relaxed(1, c->cpu1_rstctrl_va);
++	readl_relaxed(c->cpu1_rstctrl_va);
++	writel_relaxed(0, c->cpu1_rstctrl_va);
++}
++
+ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
+ {
+-	void __iomem *base = omap_get_wakeupgen_base();
+ 	const struct omap_smp_config *c = NULL;
+ 
+ 	if (soc_is_omap443x())
+@@ -281,6 +350,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
+ 	/* Must preserve cfg.scu_base set earlier */
+ 	cfg.cpu1_rstctrl_pa = c->cpu1_rstctrl_pa;
+ 	cfg.startup_addr = c->startup_addr;
++	cfg.wakeupgen_base = omap_get_wakeupgen_base();
+ 
+ 	if (soc_is_dra74x() || soc_is_omap54xx()) {
+ 		if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
+@@ -299,15 +369,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
+ 	if (cfg.scu_base)
+ 		scu_enable(cfg.scu_base);
+ 
+-	/*
+-	 * Reset CPU1 before configuring, otherwise kexec will
+-	 * end up trying to use old kernel startup address.
+-	 */
+-	if (cfg.cpu1_rstctrl_va) {
+-		writel_relaxed(1, cfg.cpu1_rstctrl_va);
+-		readl_relaxed(cfg.cpu1_rstctrl_va);
+-		writel_relaxed(0, cfg.cpu1_rstctrl_va);
+-	}
++	omap4_smp_maybe_reset_cpu1(&cfg);
+ 
+ 	/*
+ 	 * Write the address of secondary startup routine into the
+@@ -319,7 +381,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
+ 		omap_auxcoreboot_addr(__pa_symbol(cfg.startup_addr));
+ 	else
+ 		writel_relaxed(__pa_symbol(cfg.startup_addr),
+-			       base + OMAP_AUX_CORE_BOOT_1);
++			       cfg.wakeupgen_base + OMAP_AUX_CORE_BOOT_1);
+ }
+ 
+ const struct smp_operations omap4_smp_ops __initconst = {
+-- 
+2.11.1
