@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] ARM: OMAP2+: Use list_for_each_entry for hwmod slave_ports
-Date: Tue, 14 Mar 2017 14:06:37 -0700
-Message-ID: <20170314210639.2065-3-tony@atomide.com>
+Subject: [PATCH 1/4] ARM: OMAP2+: Remove mostly unused hwmod linkspace
+Date: Tue, 14 Mar 2017 14:06:36 -0700
+Message-ID: <20170314210639.2065-2-tony@atomide.com>
 References: <20170314210639.2065-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,201 +21,249 @@ To: linux-omap@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We are just iterating over the slave_ports lists, so we can
-use list_for_each_entry() no problem.
+We want to be able to dynamically allocate struct omap_hwmod_ocp_if and
+struct omap_hwmod at device driver probe time based on .dts data.
+
+Current setup with the linkspace using memblock_virt_alloc() makes
+this tricky, so let's get rid of struct linkspace and directly set up
+struct omap_hwmod_ocp_if as the master and slave lists.
+
+As we are currently not using the master_ports either, let's remove it
+too. And let's add the struct omap_hwmod_ocp_if node directly to the
+slave_ports list.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 83 +++++-----------------------------------
- 1 file changed, 10 insertions(+), 73 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c | 116 +--------------------------------------
+ arch/arm/mach-omap2/omap_hwmod.h |  13 +----
+ 2 files changed, 4 insertions(+), 125 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -221,29 +221,6 @@ static bool inited;
- /* Private functions */
+@@ -138,7 +138,6 @@
+ #include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+-#include <linux/bootmem.h>
+ #include <linux/cpu.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+@@ -216,20 +215,6 @@ static LIST_HEAD(omap_hwmod_list);
+ /* mpu_oh: used to add/remove MPU initiator from sleepdep list */
+ static struct omap_hwmod *mpu_oh;
+ 
+-/*
+- * linkspace: ptr to a buffer that struct omap_hwmod_link records are
+- * allocated from - used to reduce the number of small memory
+- * allocations, which has a significant impact on performance
+- */
+-static struct omap_hwmod_link *linkspace;
+-
+-/*
+- * free_ls, max_ls: array indexes into linkspace; representing the
+- * next free struct omap_hwmod_link index, and the maximum number of
+- * struct omap_hwmod_link records allocated (respectively)
+- */
+-static unsigned short free_ls, max_ls, ls_supp;
+-
+ /* inited: set to true once the hwmod code is initialized */
+ static bool inited;
+ 
+@@ -250,7 +235,7 @@ static struct omap_hwmod_ocp_if *_fetch_next_ocp_if(struct list_head **p,
+ {
+ 	struct omap_hwmod_ocp_if *oi;
+ 
+-	oi = list_entry(*p, struct omap_hwmod_link, node)->ocp_if;
++	oi = list_entry(*p, struct omap_hwmod_ocp_if, node);
+ 	*p = (*p)->next;
+ 
+ 	*i = *i + 1;
+@@ -2657,7 +2642,6 @@ static int __init _register(struct omap_hwmod *oh)
+ 
+ 	list_add_tail(&oh->node, &omap_hwmod_list);
+ 
+-	INIT_LIST_HEAD(&oh->master_ports);
+ 	INIT_LIST_HEAD(&oh->slave_ports);
+ 	spin_lock_init(&oh->_lock);
+ 	lockdep_set_class(&oh->_lock, &oh->hwmod_key);
+@@ -2675,49 +2659,10 @@ static int __init _register(struct omap_hwmod *oh)
+ }
  
  /**
-- * _fetch_next_ocp_if - return the next OCP interface in a list
-- * @p: ptr to a ptr to the list_head inside the ocp_if to return
-- * @i: pointer to the index of the element pointed to by @p in the list
+- * _alloc_links - return allocated memory for hwmod links
+- * @ml: pointer to a struct omap_hwmod_link * for the master link
+- * @sl: pointer to a struct omap_hwmod_link * for the slave link
 - *
-- * Return a pointer to the struct omap_hwmod_ocp_if record
-- * containing the struct list_head pointed to by @p, and increment
-- * @p such that a future call to this routine will return the next
-- * record.
+- * Return pointers to two struct omap_hwmod_link records, via the
+- * addresses pointed to by @ml and @sl.  Will first attempt to return
+- * memory allocated as part of a large initial block, but if that has
+- * been exhausted, will allocate memory itself.  Since ideally this
+- * second allocation path will never occur, the number of these
+- * 'supplemental' allocations will be logged when debugging is
+- * enabled.  Returns 0.
 - */
--static struct omap_hwmod_ocp_if *_fetch_next_ocp_if(struct list_head **p,
--						    int *i)
+-static int __init _alloc_links(struct omap_hwmod_link **ml,
+-			       struct omap_hwmod_link **sl)
 -{
--	struct omap_hwmod_ocp_if *oi;
+-	unsigned int sz;
 -
--	oi = list_entry(*p, struct omap_hwmod_ocp_if, node);
--	*p = (*p)->next;
+-	if ((free_ls + LINKS_PER_OCP_IF) <= max_ls) {
+-		*ml = &linkspace[free_ls++];
+-		*sl = &linkspace[free_ls++];
+-		return 0;
+-	}
 -
--	*i = *i + 1;
+-	sz = sizeof(struct omap_hwmod_link) * LINKS_PER_OCP_IF;
 -
--	return oi;
--}
+-	*sl = NULL;
+-	*ml = memblock_virt_alloc(sz, 0);
+-
+-	*sl = (void *)(*ml) + sizeof(struct omap_hwmod_link);
+-
+-	ls_supp++;
+-	pr_debug("omap_hwmod: supplemental link allocations needed: %d\n",
+-		 ls_supp * LINKS_PER_OCP_IF);
+-
+-	return 0;
+-};
 -
 -/**
-  * _update_sysc_cache - return the module OCP_SYSCONFIG register, keep copy
-  * @oh: struct omap_hwmod *
+  * _add_link - add an interconnect between two IP blocks
+  * @oi: pointer to a struct omap_hwmod_ocp_if record
   *
-@@ -779,15 +756,10 @@ static int _init_main_clk(struct omap_hwmod *oh)
- static int _init_interface_clks(struct omap_hwmod *oh)
+- * Add struct omap_hwmod_link records connecting the master IP block
+- * specified in @oi->master to @oi, and connecting the slave IP block
++ * Add struct omap_hwmod_link records connecting the slave IP block
+  * specified in @oi->slave to @oi.  This code is assumed to run before
+  * preemption or SMP has been enabled, thus avoiding the need for
+  * locking in this code.  Changes to this assumption will require
+@@ -2725,19 +2670,10 @@ static int __init _alloc_links(struct omap_hwmod_link **ml,
+  */
+ static int __init _add_link(struct omap_hwmod_ocp_if *oi)
  {
- 	struct omap_hwmod_ocp_if *os;
--	struct list_head *p;
- 	struct clk *c;
--	int i = 0;
- 	int ret = 0;
- 
--	p = oh->slave_ports.next;
+-	struct omap_hwmod_link *ml, *sl;
 -
--	while (i < oh->slaves_cnt) {
--		os = _fetch_next_ocp_if(&p, &i);
-+	list_for_each_entry(os, &oh->slave_ports, node) {
- 		if (!os->clk)
- 			continue;
+ 	pr_debug("omap_hwmod: %s -> %s: adding link\n", oi->master->name,
+ 		 oi->slave->name);
  
-@@ -890,19 +862,13 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
- static int _enable_clocks(struct omap_hwmod *oh)
- {
- 	struct omap_hwmod_ocp_if *os;
--	struct list_head *p;
--	int i = 0;
- 
- 	pr_debug("omap_hwmod: %s: enabling clocks\n", oh->name);
- 
- 	if (oh->_clk)
- 		clk_enable(oh->_clk);
- 
--	p = oh->slave_ports.next;
+-	_alloc_links(&ml, &sl);
 -
--	while (i < oh->slaves_cnt) {
--		os = _fetch_next_ocp_if(&p, &i);
+-	ml->ocp_if = oi;
+-	list_add(&ml->node, &oi->master->master_ports);
+-	oi->master->masters_cnt++;
 -
-+	list_for_each_entry(os, &oh->slave_ports, node) {
- 		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
- 			clk_enable(os->_clk);
- 	}
-@@ -924,19 +890,13 @@ static int _enable_clocks(struct omap_hwmod *oh)
- static int _disable_clocks(struct omap_hwmod *oh)
- {
- 	struct omap_hwmod_ocp_if *os;
--	struct list_head *p;
--	int i = 0;
+-	sl->ocp_if = oi;
+-	list_add(&sl->node, &oi->slave->slave_ports);
++	list_add(&oi->node, &oi->slave->slave_ports);
+ 	oi->slave->slaves_cnt++;
  
- 	pr_debug("omap_hwmod: %s: disabling clocks\n", oh->name);
+ 	return 0;
+@@ -2784,45 +2720,6 @@ static int __init _register_link(struct omap_hwmod_ocp_if *oi)
+ 	return 0;
+ }
  
- 	if (oh->_clk)
- 		clk_disable(oh->_clk);
- 
--	p = oh->slave_ports.next;
+-/**
+- * _alloc_linkspace - allocate large block of hwmod links
+- * @ois: pointer to an array of struct omap_hwmod_ocp_if records to count
+- *
+- * Allocate a large block of struct omap_hwmod_link records.  This
+- * improves boot time significantly by avoiding the need to allocate
+- * individual records one by one.  If the number of records to
+- * allocate in the block hasn't been manually specified, this function
+- * will count the number of struct omap_hwmod_ocp_if records in @ois
+- * and use that to determine the allocation size.  For SoC families
+- * that require multiple list registrations, such as OMAP3xxx, this
+- * estimation process isn't optimal, so manual estimation is advised
+- * in those cases.  Returns -EEXIST if the allocation has already occurred
+- * or 0 upon success.
+- */
+-static int __init _alloc_linkspace(struct omap_hwmod_ocp_if **ois)
+-{
+-	unsigned int i = 0;
+-	unsigned int sz;
 -
--	while (i < oh->slaves_cnt) {
--		os = _fetch_next_ocp_if(&p, &i);
+-	if (linkspace) {
+-		WARN(1, "linkspace already allocated\n");
+-		return -EEXIST;
+-	}
 -
-+	list_for_each_entry(os, &oh->slave_ports, node) {
- 		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
- 			clk_disable(os->_clk);
- 	}
-@@ -1175,16 +1135,11 @@ static int _get_sdma_req_by_name(struct omap_hwmod *oh, const char *name,
- static int _get_addr_space_by_name(struct omap_hwmod *oh, const char *name,
- 				   u32 *pa_start, u32 *pa_end)
- {
--	int i, j;
-+	int j;
- 	struct omap_hwmod_ocp_if *os;
--	struct list_head *p = NULL;
- 	bool found = false;
- 
--	p = oh->slave_ports.next;
+-	if (max_ls == 0)
+-		while (ois[i++])
+-			max_ls += LINKS_PER_OCP_IF;
 -
--	i = 0;
--	while (i < oh->slaves_cnt) {
--		os = _fetch_next_ocp_if(&p, &i);
-+	list_for_each_entry(os, &oh->slave_ports, node) {
- 
- 		if (!os->addr)
- 			return -ENOENT;
-@@ -1224,18 +1179,13 @@ static int _get_addr_space_by_name(struct omap_hwmod *oh, const char *name,
- static void __init _save_mpu_port_index(struct omap_hwmod *oh)
- {
- 	struct omap_hwmod_ocp_if *os = NULL;
--	struct list_head *p;
--	int i = 0;
- 
- 	if (!oh)
- 		return;
- 
- 	oh->_int_flags |= _HWMOD_NO_MPU_PORT;
- 
--	p = oh->slave_ports.next;
+-	sz = sizeof(struct omap_hwmod_link) * max_ls;
 -
--	while (i < oh->slaves_cnt) {
--		os = _fetch_next_ocp_if(&p, &i);
-+	list_for_each_entry(os, &oh->slave_ports, node) {
- 		if (os->user & OCP_USER_MPU) {
- 			oh->_mpu_port = os;
- 			oh->_int_flags &= ~_HWMOD_NO_MPU_PORT;
-@@ -2436,15 +2386,11 @@ static int __init _init(struct omap_hwmod *oh, void *data)
- static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
- {
- 	struct omap_hwmod_ocp_if *os;
--	struct list_head *p;
--	int i = 0;
-+
- 	if (oh->_state != _HWMOD_STATE_INITIALIZED)
- 		return;
- 
--	p = oh->slave_ports.next;
+-	pr_debug("omap_hwmod: %s: allocating %d byte linkspace (%d links)\n",
+-		 __func__, sz, max_ls);
 -
--	while (i < oh->slaves_cnt) {
--		os = _fetch_next_ocp_if(&p, &i);
-+	list_for_each_entry(os, &oh->slave_ports, node) {
- 		if (!os->_clk)
- 			continue;
+-	linkspace = memblock_virt_alloc(sz, 0);
+-
+-	return 0;
+-}
+-
+ /* Static functions intended only for use in soc_ops field function pointers */
  
-@@ -3288,14 +3234,10 @@ int omap_hwmod_count_resources(struct omap_hwmod *oh, unsigned long flags)
- 		ret += _count_sdma_reqs(oh);
+ /**
+@@ -3180,13 +3077,6 @@ int __init omap_hwmod_register_links(struct omap_hwmod_ocp_if **ois)
+ 	if (ois[0] == NULL) /* Empty list */
+ 		return 0;
  
- 	if (flags & IORESOURCE_MEM) {
--		int i = 0;
- 		struct omap_hwmod_ocp_if *os;
--		struct list_head *p = oh->slave_ports.next;
- 
--		while (i < oh->slaves_cnt) {
--			os = _fetch_next_ocp_if(&p, &i);
-+		list_for_each_entry(os, &oh->slave_ports, node)
- 			ret += _count_ocp_if_addr_spaces(os);
+-	if (!linkspace) {
+-		if (_alloc_linkspace(ois)) {
+-			pr_err("omap_hwmod: could not allocate link space\n");
+-			return -ENOMEM;
 -		}
- 	}
- 
- 	return ret;
-@@ -3314,7 +3256,6 @@ int omap_hwmod_count_resources(struct omap_hwmod *oh, unsigned long flags)
- int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
- {
- 	struct omap_hwmod_ocp_if *os;
--	struct list_head *p;
- 	int i, j, mpu_irqs_cnt, sdma_reqs_cnt, addr_cnt;
- 	int r = 0;
- 
-@@ -3344,11 +3285,7 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
- 		r++;
- 	}
- 
--	p = oh->slave_ports.next;
+-	}
 -
--	i = 0;
--	while (i < oh->slaves_cnt) {
--		os = _fetch_next_ocp_if(&p, &i);
-+	list_for_each_entry(os, &oh->slave_ports, node) {
- 		addr_cnt = _count_ocp_if_addr_spaces(os);
+ 	i = 0;
+ 	do {
+ 		r = _register_link(ois[i]);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -313,6 +313,7 @@ struct omap_hwmod_ocp_if {
+ 	struct omap_hwmod_addr_space	*addr;
+ 	const char			*clk;
+ 	struct clk			*_clk;
++	struct list_head		node;
+ 	union {
+ 		struct omap_hwmod_omap2_firewall omap2;
+ 	}				fw;
+@@ -617,16 +618,6 @@ struct omap_hwmod_class {
+ };
  
- 		for (j = 0; j < addr_cnt; j++) {
+ /**
+- * struct omap_hwmod_link - internal structure linking hwmods with ocp_ifs
+- * @ocp_if: OCP interface structure record pointer
+- * @node: list_head pointing to next struct omap_hwmod_link in a list
+- */
+-struct omap_hwmod_link {
+-	struct omap_hwmod_ocp_if	*ocp_if;
+-	struct list_head		node;
+-};
+-
+-/**
+  * struct omap_hwmod - integration data for OMAP hardware "modules" (IP blocks)
+  * @name: name of the hwmod
+  * @class: struct omap_hwmod_class * to the class of this hwmod
+@@ -688,7 +679,6 @@ struct omap_hwmod {
+ 	struct omap_hwmod_opt_clk	*opt_clks;
+ 	char				*clkdm_name;
+ 	struct clockdomain		*clkdm;
+-	struct list_head		master_ports; /* connect to *_IA */
+ 	struct list_head		slave_ports; /* connect to *_TA */
+ 	void				*dev_attr;
+ 	u32				_sysc_cache;
+@@ -703,7 +693,6 @@ struct omap_hwmod {
+ 	u8				response_lat;
+ 	u8				rst_lines_cnt;
+ 	u8				opt_clks_cnt;
+-	u8				masters_cnt;
+ 	u8				slaves_cnt;
+ 	u8				hwmods_cnt;
+ 	u8				_int_flags;
 -- 
 2.11.1
