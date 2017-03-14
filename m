@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/4] ARM: OMAP2+: Remove unnecessary hwmod clockact
-Date: Tue, 14 Mar 2017 14:06:38 -0700
-Message-ID: <20170314210639.2065-4-tony@atomide.com>
+Subject: [PATCH 2/4] ARM: OMAP2+: Use list_for_each_entry for hwmod slave_ports
+Date: Tue, 14 Mar 2017 14:06:37 -0700
+Message-ID: <20170314210639.2065-3-tony@atomide.com>
 References: <20170314210639.2065-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,139 +21,201 @@ To: linux-omap@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The clockact is not really needed in struct omap_hwmod_class_sysconfig.
-It can be replaced with CLOCKACT_TEST_ICLK where it's used.
+We are just iterating over the slave_ports lists, so we can
+use list_for_each_entry() no problem.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c                   | 2 +-
- arch/arm/mach-omap2/omap_hwmod.h                   | 1 -
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c | 1 -
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 4 ----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 2 --
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         | 2 --
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 1 -
- 7 files changed, 1 insertion(+), 12 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c | 83 +++++-----------------------------------
+ 1 file changed, 10 insertions(+), 73 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1328,7 +1328,7 @@ static void _enable_sysc(struct omap_hwmod *oh)
- 	 */
- 	if ((oh->flags & HWMOD_SET_DEFAULT_CLOCKACT) &&
- 	    (sf & SYSC_HAS_CLOCKACTIVITY))
--		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
-+		_set_clockactivity(oh, CLOCKACT_TEST_ICLK, &v);
- 
- 	_write_sysconfig(v, oh);
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -411,7 +411,6 @@ struct omap_hwmod_class_sysconfig {
- 	struct omap_hwmod_sysc_fields *sysc_fields;
- 	u8 srst_udelay;
- 	u8 idlemodes;
--	u8 clockact;
- };
+@@ -221,29 +221,6 @@ static bool inited;
+ /* Private functions */
  
  /**
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -55,7 +55,6 @@ static struct omap_hwmod_class_sysconfig omap2xxx_timer_sysc = {
- 			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
- 			   SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
--	.clockact       = CLOCKACT_TEST_ICLK,
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
+- * _fetch_next_ocp_if - return the next OCP interface in a list
+- * @p: ptr to a ptr to the list_head inside the ocp_if to return
+- * @i: pointer to the index of the element pointed to by @p in the list
+- *
+- * Return a pointer to the struct omap_hwmod_ocp_if record
+- * containing the struct list_head pointed to by @p, and increment
+- * @p such that a future call to this routine will return the next
+- * record.
+- */
+-static struct omap_hwmod_ocp_if *_fetch_next_ocp_if(struct list_head **p,
+-						    int *i)
+-{
+-	struct omap_hwmod_ocp_if *oi;
+-
+-	oi = list_entry(*p, struct omap_hwmod_ocp_if, node);
+-	*p = (*p)->next;
+-
+-	*i = *i + 1;
+-
+-	return oi;
+-}
+-
+-/**
+  * _update_sysc_cache - return the module OCP_SYSCONFIG register, keep copy
+  * @oh: struct omap_hwmod *
+  *
+@@ -779,15 +756,10 @@ static int _init_main_clk(struct omap_hwmod *oh)
+ static int _init_interface_clks(struct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+-	struct list_head *p;
+ 	struct clk *c;
+-	int i = 0;
+ 	int ret = 0;
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -149,7 +149,6 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_sysc = {
- 			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE |
- 			   SYSS_HAS_RESET_STATUS),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
--	.clockact	= CLOCKACT_TEST_ICLK,
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
+-	p = oh->slave_ports.next;
+-
+-	while (i < oh->slaves_cnt) {
+-		os = _fetch_next_ocp_if(&p, &i);
++	list_for_each_entry(os, &oh->slave_ports, node) {
+ 		if (!os->clk)
+ 			continue;
  
-@@ -424,7 +423,6 @@ static struct omap_hwmod_class_sysconfig i2c_sysc = {
- 			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
- 			   SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
--	.clockact	= CLOCKACT_TEST_ICLK,
- 	.sysc_fields    = &omap_hwmod_sysc_type1,
- };
+@@ -890,19 +862,13 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
+ static int _enable_clocks(struct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+-	struct list_head *p;
+-	int i = 0;
  
-@@ -1045,7 +1043,6 @@ static struct omap_hwmod_class_sysconfig omap3xxx_mcbsp_sysc = {
- 			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
--	.clockact	= 0x2,
- };
+ 	pr_debug("omap_hwmod: %s: enabling clocks\n", oh->name);
  
- static struct omap_hwmod_class omap3xxx_mcbsp_hwmod_class = {
-@@ -1210,7 +1207,6 @@ static struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
- static struct omap_hwmod_class_sysconfig omap34xx_sr_sysc = {
- 	.sysc_offs	= 0x24,
- 	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_NO_CACHE),
--	.clockact	= CLOCKACT_TEST_ICLK,
- 	.sysc_fields	= &omap34xx_sr_sysc_fields,
- };
+ 	if (oh->_clk)
+ 		clk_enable(oh->_clk);
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1320,7 +1320,6 @@ static struct omap_hwmod_class_sysconfig omap44xx_i2c_sysc = {
- 			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP),
--	.clockact	= CLOCKACT_TEST_ICLK,
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
+-	p = oh->slave_ports.next;
+-
+-	while (i < oh->slaves_cnt) {
+-		os = _fetch_next_ocp_if(&p, &i);
+-
++	list_for_each_entry(os, &oh->slave_ports, node) {
+ 		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
+ 			clk_enable(os->_clk);
+ 	}
+@@ -924,19 +890,13 @@ static int _enable_clocks(struct omap_hwmod *oh)
+ static int _disable_clocks(struct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+-	struct list_head *p;
+-	int i = 0;
  
-@@ -2548,7 +2547,6 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_1ms_sysc = {
- 			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
- 			   SYSS_HAS_RESET_STATUS),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
--	.clockact	= CLOCKACT_TEST_ICLK,
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
+ 	pr_debug("omap_hwmod: %s: disabling clocks\n", oh->name);
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
-@@ -839,7 +839,6 @@ static struct omap_hwmod_class_sysconfig omap54xx_i2c_sysc = {
- 			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP),
--	.clockact	= CLOCKACT_TEST_ICLK,
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
+ 	if (oh->_clk)
+ 		clk_disable(oh->_clk);
  
-@@ -1530,7 +1529,6 @@ static struct omap_hwmod_class_sysconfig omap54xx_timer_1ms_sysc = {
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP),
- 	.sysc_fields	= &omap_hwmod_sysc_type2,
--	.clockact	= CLOCKACT_TEST_ICLK,
- };
+-	p = oh->slave_ports.next;
+-
+-	while (i < oh->slaves_cnt) {
+-		os = _fetch_next_ocp_if(&p, &i);
+-
++	list_for_each_entry(os, &oh->slave_ports, node) {
+ 		if (os->_clk && (os->flags & OCPIF_SWSUP_IDLE))
+ 			clk_disable(os->_clk);
+ 	}
+@@ -1175,16 +1135,11 @@ static int _get_sdma_req_by_name(struct omap_hwmod *oh, const char *name,
+ static int _get_addr_space_by_name(struct omap_hwmod *oh, const char *name,
+ 				   u32 *pa_start, u32 *pa_end)
+ {
+-	int i, j;
++	int j;
+ 	struct omap_hwmod_ocp_if *os;
+-	struct list_head *p = NULL;
+ 	bool found = false;
  
- static struct omap_hwmod_class omap54xx_timer_1ms_hwmod_class = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1098,7 +1098,6 @@ static struct omap_hwmod_class_sysconfig dra7xx_i2c_sysc = {
- 			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP),
--	.clockact	= CLOCKACT_TEST_ICLK,
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
+-	p = oh->slave_ports.next;
+-
+-	i = 0;
+-	while (i < oh->slaves_cnt) {
+-		os = _fetch_next_ocp_if(&p, &i);
++	list_for_each_entry(os, &oh->slave_ports, node) {
  
+ 		if (!os->addr)
+ 			return -ENOENT;
+@@ -1224,18 +1179,13 @@ static int _get_addr_space_by_name(struct omap_hwmod *oh, const char *name,
+ static void __init _save_mpu_port_index(struct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os = NULL;
+-	struct list_head *p;
+-	int i = 0;
+ 
+ 	if (!oh)
+ 		return;
+ 
+ 	oh->_int_flags |= _HWMOD_NO_MPU_PORT;
+ 
+-	p = oh->slave_ports.next;
+-
+-	while (i < oh->slaves_cnt) {
+-		os = _fetch_next_ocp_if(&p, &i);
++	list_for_each_entry(os, &oh->slave_ports, node) {
+ 		if (os->user & OCP_USER_MPU) {
+ 			oh->_mpu_port = os;
+ 			oh->_int_flags &= ~_HWMOD_NO_MPU_PORT;
+@@ -2436,15 +2386,11 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+ static void __init _setup_iclk_autoidle(struct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+-	struct list_head *p;
+-	int i = 0;
++
+ 	if (oh->_state != _HWMOD_STATE_INITIALIZED)
+ 		return;
+ 
+-	p = oh->slave_ports.next;
+-
+-	while (i < oh->slaves_cnt) {
+-		os = _fetch_next_ocp_if(&p, &i);
++	list_for_each_entry(os, &oh->slave_ports, node) {
+ 		if (!os->_clk)
+ 			continue;
+ 
+@@ -3288,14 +3234,10 @@ int omap_hwmod_count_resources(struct omap_hwmod *oh, unsigned long flags)
+ 		ret += _count_sdma_reqs(oh);
+ 
+ 	if (flags & IORESOURCE_MEM) {
+-		int i = 0;
+ 		struct omap_hwmod_ocp_if *os;
+-		struct list_head *p = oh->slave_ports.next;
+ 
+-		while (i < oh->slaves_cnt) {
+-			os = _fetch_next_ocp_if(&p, &i);
++		list_for_each_entry(os, &oh->slave_ports, node)
+ 			ret += _count_ocp_if_addr_spaces(os);
+-		}
+ 	}
+ 
+ 	return ret;
+@@ -3314,7 +3256,6 @@ int omap_hwmod_count_resources(struct omap_hwmod *oh, unsigned long flags)
+ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+-	struct list_head *p;
+ 	int i, j, mpu_irqs_cnt, sdma_reqs_cnt, addr_cnt;
+ 	int r = 0;
+ 
+@@ -3344,11 +3285,7 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
+ 		r++;
+ 	}
+ 
+-	p = oh->slave_ports.next;
+-
+-	i = 0;
+-	while (i < oh->slaves_cnt) {
+-		os = _fetch_next_ocp_if(&p, &i);
++	list_for_each_entry(os, &oh->slave_ports, node) {
+ 		addr_cnt = _count_ocp_if_addr_spaces(os);
+ 
+ 		for (j = 0; j < addr_cnt; j++) {
 -- 
 2.11.1
