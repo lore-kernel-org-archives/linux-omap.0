@@ -1,80 +1,39 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 23/35] drivers/mfd: Convert remaining uses of pr_warning
- to pr_warn
-Date: Tue, 14 Mar 2017 14:04:55 +0000
-Message-ID: <20170314140455.umlhdbuj3grqtu6i@dell>
-References: <cover.1487314666.git.joe@perches.com>
- <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: Re: [PATCH 2/4] ARM: dts: dm8168-evm: add the external reference
+ clock for SATA
+Date: Tue, 14 Mar 2017 16:01:47 +0100
+Message-ID: <CAMpxmJW5f5foYbFv_FsQPibDamT4hCJSywnELdLmXpQg_oKohQ@mail.gmail.com>
+References: <1489423399-3824-1-git-send-email-bgolaszewski@baylibre.com>
+ <1489423399-3824-3-git-send-email-bgolaszewski@baylibre.com> <20170313213405.GX20572@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joe Perches <joe@perches.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170313213405.GX20572@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Neil Armstrong <narmstrong@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, Paul Walmsley <paul@pwsan.com>, linux-ide@vger.kernel.org, linux-devicetree <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, arm-soc <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCAxNiBGZWIgMjAxNywgSm9lIFBlcmNoZXMgd3JvdGU6Cgo+IFRvIGVuYWJsZSBldmVu
-dHVhbCByZW1vdmFsIG9mIHByX3dhcm5pbmcKPiAKPiBUaGlzIG1ha2VzIHByX3dhcm4gdXNlIGNv
-bnNpc3RlbnQgZm9yIGRyaXZlcnMvbWZkCj4gCj4gUHJpb3IgdG8gdGhpcyBwYXRjaCwgdGhlcmUg
-d2VyZSA0IHVzZXMgb2YgcHJfd2FybmluZyBhbmQKPiA5IHVzZXMgb2YgcHJfd2FybiBpbiBkcml2
-ZXJzL21mZAo+IAo+IFNpZ25lZC1vZmYtYnk6IEpvZSBQZXJjaGVzIDxqb2VAcGVyY2hlcy5jb20+
-Cj4gLS0tCj4gIGRyaXZlcnMvbWZkL2RiODUwMC1wcmNtdS5jICB8IDIgKy0KPiAgZHJpdmVycy9t
-ZmQvc3RhMngxMS1tZmQuYyAgIHwgNCArKy0tCj4gIGRyaXZlcnMvbWZkL3R3bDQwMzAtcG93ZXIu
-YyB8IDcgKystLS0tLQo+ICAzIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgOCBkZWxl
-dGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZmQvZGI4NTAwLXByY211LmMgYi9k
-cml2ZXJzL21mZC9kYjg1MDAtcHJjbXUuYwo+IGluZGV4IGNhMzhhNmExNDExMC4uNWM3MzlhYzc1
-MmU4IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvbWZkL2RiODUwMC1wcmNtdS5jCj4gKysrIGIvZHJp
-dmVycy9tZmQvZGI4NTAwLXByY211LmMKPiBAQCAtMjM3Nyw3ICsyMzc3LDcgQEAgc3RhdGljIHZv
-aWQgYWNrX2RiYl93YWtldXAodm9pZCkKPiAgCj4gIHN0YXRpYyBpbmxpbmUgdm9pZCBwcmludF91
-bmtub3duX2hlYWRlcl93YXJuaW5nKHU4IG4sIHU4IGhlYWRlcikKPiAgewo+IC0JcHJfd2Fybmlu
-ZygicHJjbXU6IFVua25vd24gbWVzc2FnZSBoZWFkZXIgKCVkKSBpbiBtYWlsYm94ICVkLlxuIiwK
-PiArCXByX3dhcm4oInByY211OiBVbmtub3duIG1lc3NhZ2UgaGVhZGVyICglZCkgaW4gbWFpbGJv
-eCAlZFxuIiwKPiAgCQloZWFkZXIsIG4pOwo+ICB9Cj4gIAo+IGRpZmYgLS1naXQgYS9kcml2ZXJz
-L21mZC9zdGEyeDExLW1mZC5jIGIvZHJpdmVycy9tZmQvc3RhMngxMS1tZmQuYwo+IGluZGV4IDky
-OTIyMDIwMzllZS4uM2FlYWZhMjI4YmFmIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvbWZkL3N0YTJ4
-MTEtbWZkLmMKPiArKysgYi9kcml2ZXJzL21mZC9zdGEyeDExLW1mZC5jCj4gQEAgLTYwLDggKzYw
-LDggQEAgc3RhdGljIHN0cnVjdCBzdGEyeDExX21mZCAqc3RhMngxMV9tZmRfZmluZChzdHJ1Y3Qg
-cGNpX2RldiAqcGRldikKPiAgCXN0cnVjdCBzdGEyeDExX21mZCAqbWZkOwo+ICAKPiAgCWlmICgh
-cGRldiAmJiAhbGlzdF9lbXB0eSgmc3RhMngxMV9tZmRfbGlzdCkpIHsKPiAtCQlwcl93YXJuaW5n
-KCIlczogVW5zcGVjaWZpZWQgZGV2aWNlLCAiCj4gLQkJCSAgICAidXNpbmcgZmlyc3QgaW5zdGFu
-Y2VcbiIsIF9fZnVuY19fKTsKPiArCQlwcl93YXJuKCIlczogVW5zcGVjaWZpZWQgZGV2aWNlLCB1
-c2luZyBmaXJzdCBpbnN0YW5jZVxuIiwKPiArCQkJX19mdW5jX18pOwo+ICAJCXJldHVybiBsaXN0
-X2VudHJ5KHN0YTJ4MTFfbWZkX2xpc3QubmV4dCwKPiAgCQkJCSAgc3RydWN0IHN0YTJ4MTFfbWZk
-LCBsaXN0KTsKPiAgCX0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZmQvdHdsNDAzMC1wb3dlci5j
-IGIvZHJpdmVycy9tZmQvdHdsNDAzMC1wb3dlci5jCj4gaW5kZXggMWJlYjcyMmY2MDgwLi44YmUw
-MjNiYThlM2UgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9tZmQvdHdsNDAzMC1wb3dlci5jCj4gKysr
-IGIvZHJpdmVycy9tZmQvdHdsNDAzMC1wb3dlci5jCj4gQEAgLTUwMiw5ICs1MDIsNyBAQCBzdGF0
-aWMgaW50IGxvYWRfdHdsNDAzMF9zY3JpcHQoY29uc3Qgc3RydWN0IHR3bDQwMzBfcG93ZXJfZGF0
-YSAqcGRhdGEsCj4gIAl9Cj4gIAlpZiAodHNjcmlwdC0+ZmxhZ3MgJiBUV0w0MDMwX1NMRUVQX1ND
-UklQVCkgewo+ICAJCWlmICghb3JkZXIpCj4gLQkJCXByX3dhcm5pbmcoIlRXTDQwMzA6IEJhZCBv
-cmRlciBvZiBzY3JpcHRzIChzbGVlcCAiXAo+IC0JCQkJCSJzY3JpcHQgYmVmb3JlIHdha2V1cCkg
-TGVhZHMgdG8gYm9vdCJcCj4gLQkJCQkJImZhaWx1cmUgb24gc29tZSBib2FyZHNcbiIpOwo+ICsJ
-CQlwcl93YXJuKCJUV0w0MDMwOiBCYWQgb3JkZXIgb2Ygc2NyaXB0cyAoc2xlZXAgc2NyaXB0IGJl
-Zm9yZSB3YWtldXApIExlYWRzIHRvIGJvb3QgZmFpbHVyZSBvbiBzb21lIGJvYXJkc1xuIik7CgpJ
-cyA4MCBjaGFycyBjb25zaWRlcmVkIHRoZSBsZXNzb3Igc2luPwoKPiAgCQllcnIgPSB0d2w0MDMw
-X2NvbmZpZ19zbGVlcF9zZXF1ZW5jZShhZGRyZXNzKTsKPiAgCX0KPiAgb3V0Ogo+IEBAIC05Mjks
-OCArOTI3LDcgQEAgc3RhdGljIGludCB0d2w0MDMwX3Bvd2VyX3Byb2JlKHN0cnVjdCBwbGF0Zm9y
-bV9kZXZpY2UgKnBkZXYpCj4gIAkJZXJyID0gdHdsX2kyY19yZWFkX3U4KFRXTF9NT0RVTEVfUE1f
-TUFTVEVSLCAmdmFsLAo+ICAJCQkJICAgICAgVFdMNDAzMF9QTV9NQVNURVJfQ0ZHX1AxMjNfVFJB
-TlNJVElPTik7Cj4gIAkJaWYgKGVycikgewo+IC0JCQlwcl93YXJuaW5nKCJUV0w0MDMwIFVuYWJs
-ZSB0byByZWFkIHJlZ2lzdGVyc1xuIik7Cj4gLQo+ICsJCQlwcl93YXJuKCJUV0w0MDMwIFVuYWJs
-ZSB0byByZWFkIHJlZ2lzdGVyc1xuIik7Cj4gIAkJfSBlbHNlIGlmICghKHZhbCAmIFNFUV9PRkZT
-WU5DKSkgewo+ICAJCQl2YWwgfD0gU0VRX09GRlNZTkM7Cj4gIAkJCWVyciA9IHR3bF9pMmNfd3Jp
-dGVfdTgoVFdMX01PRFVMRV9QTV9NQVNURVIsIHZhbCwKCi0tIApMZWUgSm9uZXMKTGluYXJvIFNU
-TWljcm9lbGVjdHJvbmljcyBMYW5kaW5nIFRlYW0gTGVhZApMaW5hcm8ub3JnIOKUgiBPcGVuIHNv
-dXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MKRm9sbG93IExpbmFybzogRmFjZWJvb2sgfCBUd2l0
-dGVyIHwgQmxvZwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5p
-bmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
-bGludXgtYXJtLWtlcm5lbAo=
+2017-03-13 22:34 GMT+01:00 Tony Lindgren <tony@atomide.com>:
+> * Bartosz Golaszewski <bgolaszewski@baylibre.com> [170313 09:45]:
+>> This board has an external oscillator supplying the reference clock
+>> signal for SATA. Its rate is fixed at 100Mhz. Add a corresponding
+>> device tree node.
+>
+> Is this the 100MHz clock from PCIe? Just like on dm814x-evm as noted
+> in the workaround thread below:
+>
+> http://e2e.ti.com/support/dsp/davinci_digital_media_processors/f/716/p/181083/671141
+>
+> Regards,
+>
+> Tony
+>
+
+Hi Tony,
+
+these signals come from a TI CDCM61002 (U30 on the board's
+schematics). It's hardwired to 100mHZ output.
+
+Thanks,
+Bartosz Golaszewski
