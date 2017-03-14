@@ -1,63 +1,49 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP2+: omap_hwmod: provide space for more hwmod
- flags
-Date: Tue, 14 Mar 2017 12:49:32 +0200
-Message-ID: <b3c0f302-2ed8-403a-cc06-ba0c555c3b1d@ti.com>
-References: <1489405996-10718-1-git-send-email-rogerq@ti.com>
- <1489405996-10718-2-git-send-email-rogerq@ti.com>
- <3612df6e-940e-9541-558c-be1f742c469f@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: [PATCH v2 0/4] ARM: dm8168-evm: add SATA support
+Date: Tue, 14 Mar 2017 12:14:11 +0100
+Message-ID: <1489490055-2318-1-git-send-email-bgolaszewski@baylibre.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3612df6e-940e-9541-558c-be1f742c469f@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, paul@pwsan.com, tony@atomide.com
-Cc: bcousson@baylibre.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Neil Armstrong <narmstrong@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, Patrick Titiano <ptitiano@baylibre.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: linux-ide@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Bartosz Golaszewski <bgolaszewski@baylibre.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 13/03/17 15:35, Sekhar Nori wrote:
-> On Monday 13 March 2017 05:23 PM, Roger Quadros wrote:
->> From: Sekhar Nori <nsekhar@ti.com>
->>
->> 'flags' member of omap_hwmod structure is fast running
->> out of space with 16 different flags already defined.
->>
->> Make flags a 32-bit entity so as to allow for more flags.
->>
->> This results is a ~2.3K data section size increase with
->> TI config fragments.
-> 
-> This line needs to be changed to refer to omap2plus_defconfig.
+This series implements support for the on-board SATA controller
+on the dm8168-evm board.
 
-OK.
+The first patch adds the clock domain and hwmod entries for the
+SATA module.
 
-> 
->>
->> before:
->>    text	   data	    bss	    dec	    hex	filename
->> 8886648	 610452	 261876	9758976	 94e900	vmlinux
->>
->> after:
->>    text	   data	    bss	    dec	    hex	filename
->> 8886584	 612820	 261876	9761280	 94f200	vmlinux
-> 
-> I guess this data is probably stale as well. Here is the before and
-> after numbers using omap2plus_defconfig on v4.11-rc2
-> 
-> before:
->    text	   data	    bss	    dec	    hex	filename
-> 8186930	3082444	8252992	19522366	129e33e	vmlinux
-> 
-> after:
->    text	   data	    bss	    dec	    hex	filename
-> 8186922	3084812	8252992	19524726	129ec76	vmlinux
-> 
-> The size increase remains at ~2.3K in data section.
-> 
+The second patch models the external reference clock used by SATA.
 
-Thanks for the new figures. I'll resend the patch with updated data.
+The third adds the SATA node to the SoC's device tree.
+
+The fourth enables the SATA driver by default in omap2plus_defconfig.
+
+Tested together with the series implementing the driver for
+ahci-dm816 on a DM8168-EVM board.
+
+v1 -> v2:
+  PATCH 1/4:
+    - removed the unused define from cm81xx.h
+  PATCH 3/4:
+    - fixed the size of the mapped register region
+
+Bartosz Golaszewski (3):
+  ARM: dts: dm8168-evm: add the external reference clock for SATA
+  ARM: dts: dm8168-evm: add SATA node
+  ARM: omap2plus_defconfig: enable ahci-dm816 module
+
+Kevin Hilman (1):
+  ARM: OMAP2+: dm81xx: Add clkdm and hwmod for SATA
+
+ arch/arm/boot/dts/dm8168-evm.dts            | 10 +++++++++
+ arch/arm/boot/dts/dm816x.dtsi               |  7 ++++++
+ arch/arm/configs/omap2plus_defconfig        |  1 +
+ arch/arm/mach-omap2/clockdomains81xx_data.c | 10 +++++++++
+ arch/arm/mach-omap2/cm81xx.h                |  1 +
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c  | 34 +++++++++++++++++++++++++++++
+ 6 files changed, 63 insertions(+)
 
 -- 
-cheers,
--roger
+2.9.3
