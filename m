@@ -1,99 +1,80 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [RFC PATCH 2/2] mtd: devices: m25p80: Enable spi-nor bounce
- buffer support
-Date: Tue, 14 Mar 2017 18:51:38 +0530
-Message-ID: <40a824c2-012c-df55-feb4-ded1fff543cb@ti.com>
-References: <20170227120839.16545-1-vigneshr@ti.com>
- <20170227120839.16545-3-vigneshr@ti.com>
- <aa967f6a-0526-3e33-1de7-fbe7d4264f34@nod.at>
- <8f999a27-c3ce-2650-452c-b21c3e44989d@ti.com>
- <aeaf87ca-e8f5-72d0-997d-494df86abf68@atmel.com>
- <a6c61bf7-1f26-41db-9a6b-bcae87274cb9@ti.com>
- <20170301175506.202cb478@bbrezillon>
- <09ffe06d-565d-afe8-8b7d-d1a0b575595b@baylibre.com>
- <4cd22ddd-b108-f697-0bde-ad844a386e62@ti.com>
- <20170302152921.1c031b57@bbrezillon>
- <03b185f6-e70a-beda-5b7f-776a03fa14c0@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 23/35] drivers/mfd: Convert remaining uses of pr_warning
+ to pr_warn
+Date: Tue, 14 Mar 2017 14:04:55 +0000
+Message-ID: <20170314140455.umlhdbuj3grqtu6i@dell>
+References: <cover.1487314666.git.joe@perches.com>
+ <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <03b185f6-e70a-beda-5b7f-776a03fa14c0@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>, Mark Brown <broonie@kernel.org>
-Cc: Frode Isaksen <fisaksen@baylibre.com>, Cyrille Pitchen <cyrille.pitchen@atmel.com>, Richard Weinberger <richard@nod.at>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Marek Vasut <marek.vasut@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joe Perches <joe@perches.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 3/6/2017 5:17 PM, Vignesh R wrote:
-> 
-> 
-> On Thursday 02 March 2017 07:59 PM, Boris Brezillon wrote:
->> On Thu, 2 Mar 2017 19:24:43 +0530
->> Vignesh R <vigneshr@ti.com> wrote:
-[...]
->>>
->>> If its at SPI level, then I guess each individual drivers which cannot
->>> handle vmalloc'd buffers will have to implement bounce buffer logic.
->>
->> Well, that's my opinion. The only one that can decide when to do
->> PIO, when to use DMA or when to use a bounce buffer+DMA is the SPI
->> controller.
->> If you move this logic to the SPI NOR layer, you'll have to guess what
->> is the best approach, and I fear the decision will be wrong on some
->> platforms (leading to perf degradation).
->>
->> You're mentioning code duplication in each SPI controller, I agree,
->> this is far from ideal, but what you're suggesting is not necessarily
->> better. What if another SPI user starts passing vmalloc-ed buffers to
->> the SPI controller? You'll have to duplicate the bounce-buffer logic in
->> this user as well.
->>
-> 
-> Hmm... Yes, there are ways to by pass SPI core.
-> 
->>>
->>> Or SPI core can be extended in a way similar to this RFC. That is, SPI
->>> master driver will set a flag to request SPI core to use of bounce
->>> buffer for vmalloc'd buffers. And spi_map_buf() just uses bounce buffer
->>> in case buf does not belong to kmalloc region based on the flag.
->>
->> That's a better approach IMHO. Note that the decision should not only
->> be based on the buffer type, but also on the transfer length and/or
->> whether the controller supports transferring non physically contiguous
->> buffers.
->>
->> Maybe we should just extend ->can_dma() to let the core know if it
->> should use a bounce buffer.
->>
-> 
-> Yes, this is definitely needed. ->can_dma() currently returns bool. We
-> need a better interface that returns different error codes for
-> restriction on buffer length vs buffer type (I dont see any appropriate
-> error codes) or make ->can_dma() return flag asking for bounce buffer.
-> SPI controller drivers may use cache_is_*() and virt_addr_valid() to
-> decide whether or not request bounce buffer.
-> 
->> Regarding the bounce buffer allocation logic, I'm not sure how it
->> should be done. The SPI user should be able to determine a max transfer
->> len (at least this is the case for SPI NORs) and inform the SPI layer
->> about this boundary so that the SPI core can allocate a bounce buffer
->> of this size. But we also have limitations at the SPI master level
->> (->max_transfer_size(), ->max_message_size()).
->>
-> 
-> Again, I guess only SPI controller can suggest the appropriate size of
-> bounce buffer based on its internal constraints and use cases that its
-> known to support.
-> 
-
-I will work on a patch series implementing bounce buffer support in SPI
-core and extend ->can_dma() to inform when bounce buffer needs to be
-used. This will make sure that SPI controller drivers that are not
-affected by cache aliasing problem or LPAE buffers don't have
-performance impact. Any comments appreciated!
-
--- 
-Regards
-Vignesh
+T24gVGh1LCAxNiBGZWIgMjAxNywgSm9lIFBlcmNoZXMgd3JvdGU6Cgo+IFRvIGVuYWJsZSBldmVu
+dHVhbCByZW1vdmFsIG9mIHByX3dhcm5pbmcKPiAKPiBUaGlzIG1ha2VzIHByX3dhcm4gdXNlIGNv
+bnNpc3RlbnQgZm9yIGRyaXZlcnMvbWZkCj4gCj4gUHJpb3IgdG8gdGhpcyBwYXRjaCwgdGhlcmUg
+d2VyZSA0IHVzZXMgb2YgcHJfd2FybmluZyBhbmQKPiA5IHVzZXMgb2YgcHJfd2FybiBpbiBkcml2
+ZXJzL21mZAo+IAo+IFNpZ25lZC1vZmYtYnk6IEpvZSBQZXJjaGVzIDxqb2VAcGVyY2hlcy5jb20+
+Cj4gLS0tCj4gIGRyaXZlcnMvbWZkL2RiODUwMC1wcmNtdS5jICB8IDIgKy0KPiAgZHJpdmVycy9t
+ZmQvc3RhMngxMS1tZmQuYyAgIHwgNCArKy0tCj4gIGRyaXZlcnMvbWZkL3R3bDQwMzAtcG93ZXIu
+YyB8IDcgKystLS0tLQo+ICAzIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgOCBkZWxl
+dGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZmQvZGI4NTAwLXByY211LmMgYi9k
+cml2ZXJzL21mZC9kYjg1MDAtcHJjbXUuYwo+IGluZGV4IGNhMzhhNmExNDExMC4uNWM3MzlhYzc1
+MmU4IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvbWZkL2RiODUwMC1wcmNtdS5jCj4gKysrIGIvZHJp
+dmVycy9tZmQvZGI4NTAwLXByY211LmMKPiBAQCAtMjM3Nyw3ICsyMzc3LDcgQEAgc3RhdGljIHZv
+aWQgYWNrX2RiYl93YWtldXAodm9pZCkKPiAgCj4gIHN0YXRpYyBpbmxpbmUgdm9pZCBwcmludF91
+bmtub3duX2hlYWRlcl93YXJuaW5nKHU4IG4sIHU4IGhlYWRlcikKPiAgewo+IC0JcHJfd2Fybmlu
+ZygicHJjbXU6IFVua25vd24gbWVzc2FnZSBoZWFkZXIgKCVkKSBpbiBtYWlsYm94ICVkLlxuIiwK
+PiArCXByX3dhcm4oInByY211OiBVbmtub3duIG1lc3NhZ2UgaGVhZGVyICglZCkgaW4gbWFpbGJv
+eCAlZFxuIiwKPiAgCQloZWFkZXIsIG4pOwo+ICB9Cj4gIAo+IGRpZmYgLS1naXQgYS9kcml2ZXJz
+L21mZC9zdGEyeDExLW1mZC5jIGIvZHJpdmVycy9tZmQvc3RhMngxMS1tZmQuYwo+IGluZGV4IDky
+OTIyMDIwMzllZS4uM2FlYWZhMjI4YmFmIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvbWZkL3N0YTJ4
+MTEtbWZkLmMKPiArKysgYi9kcml2ZXJzL21mZC9zdGEyeDExLW1mZC5jCj4gQEAgLTYwLDggKzYw
+LDggQEAgc3RhdGljIHN0cnVjdCBzdGEyeDExX21mZCAqc3RhMngxMV9tZmRfZmluZChzdHJ1Y3Qg
+cGNpX2RldiAqcGRldikKPiAgCXN0cnVjdCBzdGEyeDExX21mZCAqbWZkOwo+ICAKPiAgCWlmICgh
+cGRldiAmJiAhbGlzdF9lbXB0eSgmc3RhMngxMV9tZmRfbGlzdCkpIHsKPiAtCQlwcl93YXJuaW5n
+KCIlczogVW5zcGVjaWZpZWQgZGV2aWNlLCAiCj4gLQkJCSAgICAidXNpbmcgZmlyc3QgaW5zdGFu
+Y2VcbiIsIF9fZnVuY19fKTsKPiArCQlwcl93YXJuKCIlczogVW5zcGVjaWZpZWQgZGV2aWNlLCB1
+c2luZyBmaXJzdCBpbnN0YW5jZVxuIiwKPiArCQkJX19mdW5jX18pOwo+ICAJCXJldHVybiBsaXN0
+X2VudHJ5KHN0YTJ4MTFfbWZkX2xpc3QubmV4dCwKPiAgCQkJCSAgc3RydWN0IHN0YTJ4MTFfbWZk
+LCBsaXN0KTsKPiAgCX0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZmQvdHdsNDAzMC1wb3dlci5j
+IGIvZHJpdmVycy9tZmQvdHdsNDAzMC1wb3dlci5jCj4gaW5kZXggMWJlYjcyMmY2MDgwLi44YmUw
+MjNiYThlM2UgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9tZmQvdHdsNDAzMC1wb3dlci5jCj4gKysr
+IGIvZHJpdmVycy9tZmQvdHdsNDAzMC1wb3dlci5jCj4gQEAgLTUwMiw5ICs1MDIsNyBAQCBzdGF0
+aWMgaW50IGxvYWRfdHdsNDAzMF9zY3JpcHQoY29uc3Qgc3RydWN0IHR3bDQwMzBfcG93ZXJfZGF0
+YSAqcGRhdGEsCj4gIAl9Cj4gIAlpZiAodHNjcmlwdC0+ZmxhZ3MgJiBUV0w0MDMwX1NMRUVQX1ND
+UklQVCkgewo+ICAJCWlmICghb3JkZXIpCj4gLQkJCXByX3dhcm5pbmcoIlRXTDQwMzA6IEJhZCBv
+cmRlciBvZiBzY3JpcHRzIChzbGVlcCAiXAo+IC0JCQkJCSJzY3JpcHQgYmVmb3JlIHdha2V1cCkg
+TGVhZHMgdG8gYm9vdCJcCj4gLQkJCQkJImZhaWx1cmUgb24gc29tZSBib2FyZHNcbiIpOwo+ICsJ
+CQlwcl93YXJuKCJUV0w0MDMwOiBCYWQgb3JkZXIgb2Ygc2NyaXB0cyAoc2xlZXAgc2NyaXB0IGJl
+Zm9yZSB3YWtldXApIExlYWRzIHRvIGJvb3QgZmFpbHVyZSBvbiBzb21lIGJvYXJkc1xuIik7CgpJ
+cyA4MCBjaGFycyBjb25zaWRlcmVkIHRoZSBsZXNzb3Igc2luPwoKPiAgCQllcnIgPSB0d2w0MDMw
+X2NvbmZpZ19zbGVlcF9zZXF1ZW5jZShhZGRyZXNzKTsKPiAgCX0KPiAgb3V0Ogo+IEBAIC05Mjks
+OCArOTI3LDcgQEAgc3RhdGljIGludCB0d2w0MDMwX3Bvd2VyX3Byb2JlKHN0cnVjdCBwbGF0Zm9y
+bV9kZXZpY2UgKnBkZXYpCj4gIAkJZXJyID0gdHdsX2kyY19yZWFkX3U4KFRXTF9NT0RVTEVfUE1f
+TUFTVEVSLCAmdmFsLAo+ICAJCQkJICAgICAgVFdMNDAzMF9QTV9NQVNURVJfQ0ZHX1AxMjNfVFJB
+TlNJVElPTik7Cj4gIAkJaWYgKGVycikgewo+IC0JCQlwcl93YXJuaW5nKCJUV0w0MDMwIFVuYWJs
+ZSB0byByZWFkIHJlZ2lzdGVyc1xuIik7Cj4gLQo+ICsJCQlwcl93YXJuKCJUV0w0MDMwIFVuYWJs
+ZSB0byByZWFkIHJlZ2lzdGVyc1xuIik7Cj4gIAkJfSBlbHNlIGlmICghKHZhbCAmIFNFUV9PRkZT
+WU5DKSkgewo+ICAJCQl2YWwgfD0gU0VRX09GRlNZTkM7Cj4gIAkJCWVyciA9IHR3bF9pMmNfd3Jp
+dGVfdTgoVFdMX01PRFVMRV9QTV9NQVNURVIsIHZhbCwKCi0tIApMZWUgSm9uZXMKTGluYXJvIFNU
+TWljcm9lbGVjdHJvbmljcyBMYW5kaW5nIFRlYW0gTGVhZApMaW5hcm8ub3JnIOKUgiBPcGVuIHNv
+dXJjZSBzb2Z0d2FyZSBmb3IgQVJNIFNvQ3MKRm9sbG93IExpbmFybzogRmFjZWJvb2sgfCBUd2l0
+dGVyIHwgQmxvZwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5p
+bmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtYXJtLWtlcm5lbAo=
