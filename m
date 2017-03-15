@@ -1,15 +1,21 @@
-From: Vivek Gautam <vivek.gautam@codeaurora.org>
-Subject: Re: [RESEND PATCH v3 2/2] phy: Group vendor specific phy drivers
-Date: Wed, 15 Mar 2017 20:21:55 +0530
-Message-ID: <CAFp+6iGO=zPFq7dLupPa6XitBmFOj+tk75CtQGfm8h1yKJjeEA@mail.gmail.com>
-References: <1489472080-23711-2-git-send-email-vivek.gautam@codeaurora.org>
- <1489472570-26434-1-git-send-email-vivek.gautam@codeaurora.org>
- <2492681.1VCl1nfEs0@diego>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
+ during boot
+Date: Wed, 15 Mar 2017 10:22:01 -0700
+Message-ID: <20170315172200.GM20572@atomide.com>
+References: <20170313205231.1593-1-tony@atomide.com>
+ <0bade322-5bee-412f-ef21-972c99846e84@ti.com>
+ <20170314151725.GC20572@atomide.com>
+ <d0fe191f-66f8-b72d-0a2a-00815e663a8d@ti.com>
+ <20170314164106.GE20572@atomide.com>
+ <ea09d676-29f6-7100-4c68-88920deaeb7c@ti.com>
+ <20170314181425.GF20572@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <2492681.1VCl1nfEs0@diego>
+Content-Disposition: inline
+In-Reply-To: <20170314181425.GF20572@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,51 +25,51 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>
-Cc: linux-renesas-soc@vger.kernel.org, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Viresh Kumar <viresh.kumar@linaro.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, kishon <kishon@ti.com>, Jaehoon Chung <jh80.chung@samsung.com>, linux-rockchip@lists.infradead.org, Chen-Yu Tsai <wens@csie.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-arm-msm@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Guenter Roeck <linux@roeck-us.net>
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCBNYXIgMTUsIDIwMTcgYXQgMTozOCBQTSwgSGVpa28gU3TDvGJuZXIgPGhlaWtvQHNu
-dGVjaC5kZT4gd3JvdGU6Cj4gQW0gRGllbnN0YWcsIDE0LiBNw6RyeiAyMDE3LCAxMTo1Mjo1MCBD
-RVQgc2NocmllYiBWaXZlayBHYXV0YW06Cj4+IEFkZGluZyB2ZW5kb3Igc3BlY2lmaWMgZGlyZWN0
-b3JpZXMgaW4gcGh5IHRvIGdyb3VwCj4+IHBoeSBkcml2ZXJzIHVuZGVyIHRoZWlyIHJlc3BlY3Rp
-dmUgdmVuZG9yIHVtYnJlbGxhLgo+Pgo+PiBBbHNvIHVwZGF0ZWQgdGhlIE1BSU5UQUlORVJTIGZp
-bGUgdG8gcmVmbGVjdCB0aGUgY29ycmVjdAo+PiBkaXJlY3Rvcnkgc3RydWN0dXJlIGZvciBwaHkg
-ZHJpdmVycy4KPj4KPj4gU2lnbmVkLW9mZi1ieTogVml2ZWsgR2F1dGFtIDx2aXZlay5nYXV0YW1A
-Y29kZWF1cm9yYS5vcmc+Cj4+IEFja2VkLWJ5OiBIZWlrbyBTdHVlYm5lciA8aGVpa29Ac250ZWNo
-LmRlPgo+PiBBY2tlZC1ieTogVmlyZXNoIEt1bWFyIDx2aXJlc2gua3VtYXJAbGluYXJvLm9yZz4K
-Pj4gQ2M6IEtpc2hvbiBWaWpheSBBYnJhaGFtIEkgPGtpc2hvbkB0aS5jb20+Cj4+IENjOiBEYXZp
-ZCBTLiBNaWxsZXIgPGRhdmVtQGRhdmVtbG9mdC5uZXQ+Cj4+IENjOiBHZWVydCBVeXR0ZXJob2V2
-ZW4gPGdlZXJ0K3JlbmVzYXNAZ2xpZGVyLmJlPgo+PiBDYzogWW9zaGloaXJvIFNoaW1vZGEgPHlv
-c2hpaGlyby5zaGltb2RhLnVoQHJlbmVzYXMuY29tPgo+PiBDYzogR3VlbnRlciBSb2VjayA8bGlu
-dXhAcm9lY2stdXMubmV0Pgo+PiBDYzogSGVpa28gU3R1ZWJuZXIgPGhlaWtvQHNudGVjaC5kZT4K
-Pj4gQ2M6IFZpcmVzaCBLdW1hciA8dmlyZXNoLmt1bWFyQGxpbmFyby5vcmc+Cj4+IENjOiBNYXhp
-bWUgUmlwYXJkIDxtYXhpbWUucmlwYXJkQGZyZWUtZWxlY3Ryb25zLmNvbT4KPj4gQ2M6IENoZW4t
-WXUgVHNhaSA8d2Vuc0Bjc2llLm9yZz4KPj4gQ2M6IFN5bHdlc3RlciBOYXdyb2NraSA8cy5uYXdy
-b2NraUBzYW1zdW5nLmNvbT4KPj4gQ2M6IEtyenlzenRvZiBLb3psb3dza2kgPGtyemtAa2VybmVs
-Lm9yZz4KPj4gQ2M6IEphZWhvb24gQ2h1bmcgPGpoODAuY2h1bmdAc2Ftc3VuZy5jb20+Cj4+IENj
-OiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKPj4gQ2M6IGxpbnV4LWFybS1t
-c21Admdlci5rZXJuZWwub3JnCj4+IENjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnCj4+
-IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZwo+PiBDYzogbGludXgtcmVuZXNhcy1zb2NA
-dmdlci5rZXJuZWwub3JnCj4+IENjOiBsaW51eC1yb2NrY2hpcEBsaXN0cy5pbmZyYWRlYWQub3Jn
-Cj4+IENjOiBsaW51eC1zYW1zdW5nLXNvY0B2Z2VyLmtlcm5lbC5vcmcKPj4gQ2M6IGxpbnV4LXVz
-YkB2Z2VyLmtlcm5lbC5vcmcKPj4gLS0tCj4+Cj4+IENvcnJlY3RlZCBLcnp5c3p0b2YncyBlbWFp
-bC1pZC4gQWRkZWQgbGludXgtYXJtLW1zbS4KPj4KPj4gSGkgSGVpa28sIFZpcmVzaCwKPj4gSXQn
-cyBiZWVuIGEgeWVhciBzaW5jZSB0aGUgbGFzdCB2ZXJzaW9uIG9mIHRoaXMgcGF0Y2ggd2FzIHBv
-c3RlZC4KPj4gS2lzaG9uIGhhcyBhZ3JlZWQgdG8gcHVsbCB0aGlzIGNoYW5nZSBub3cuIEkgYW0g
-Y2FycnlpbmcgZm9yd2FyZAo+PiB5b3VyIEFja3Mgc2luY2UgdGhlcmUgYXJlIG5vIGZ1bmN0aW9u
-YWwgY2hhbmdlcy4KPj4gSSBoYXZlIHRha2VuIGNhcmUgb2YgdGhlIGRyaXZlcnMgdGhhdCB3ZXJl
-IGFkZGVkL3JlbW92ZWQgc2luY2UKPj4gdGhlIGxhc3QgdmVyc2lvbi4KPj4gUGxlYXNlIGZlZWwg
-ZnJlZSB0byBqdW1wIGluIGlmIHlvdSBoYXZlIGFueSBjb25jZXJucy4KPgo+IHN0aWxsIGxvb2tz
-IGFsbCBnb29kIGFuZCBJIGdhdmUgdGhhdCBhIHRyeSBvbiA0LjExLXJjMiB5ZXN0ZXJkYXkgYXMg
-d2VsbC4KClRoYW5rcyBIZWlrbyBmb3IgdGVzdGluZyB0aGlzIHBhdGNoLgoKQmVzdCBSZWdhcmRz
-ClZpdmVrCj4KPgo+IEhlaWtvCj4gLS0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDog
-c2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYXJtLW1zbSIgaW4KPiB0aGUgYm9keSBv
-ZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21v
-IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAoKCgot
-LSAKUXVhbGNvbW0gSW5ub3ZhdGlvbiBDZW50ZXIsIEluYy4gaXMgYSBtZW1iZXIgb2YgQ29kZSBB
-dXJvcmEgRm9ydW0sCmEgTGludXggRm91bmRhdGlvbiBDb2xsYWJvcmF0aXZlIFByb2plY3QKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1r
-ZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpo
-dHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJu
-ZWwK
+* Tony Lindgren <tony@atomide.com> [170314 11:16]:
+> * Andrew F. Davis <afd@ti.com> [170314 10:59]:
+> Then onto the other related patches..
+> 
+> > We re-park cpu1 in bootROM in U-Boot already, in the U-Boot tree:
+> > arch/arm/mach-omap2/omap5/sec_entry_cpu1.S
+> 
+> OK good to hear.
+> 
+> > omap_smc_sec_cpu1() wakes up cpu1 into the function cpu1_entry(), this
+> > makes an SMC call to setup the core, then re-parks itself back in bootROM.
+> > Relevant code to run on cpu1:
+> > 
+> > > #define AUX_CORE_BOOT_0		0x48281800
+> > > #define AUX_CORE_BOOT_1		0x48281804
+> > > /* DRA7xx ROM code function "startup_BootSlave". This function is where CPU1
+> > >  * waits on WFE, polling on AUX_CORE_BOOT_x registers.
+> > >  * This address is same for J6 and J6 Eco.
+> > >  */
+> > > #define ROM_FXN_STARTUP_BOOTSLAVE     0x00038a64
+> > >
+> > > ldr	r4, =AUX_CORE_BOOT_0
+> > > mov	r5, #0x0
+> > > str	r5, [r4]
+> > > ldr	r4, =ROM_FXN_STARTUP_BOOTSLAVE
+> > > bx	r4	@ Jump back to ROM
+> > 
+> > We would have to do this in kernel. The issue I'm thinking we are going
+> > to hit is that the parking function in bootROM expects the MMU to be
+> > off. Although we don't really need to turn it off as long as we can
+> > identity map the bootROM area, the AUX_CORE_BOOT_0/1 space, and wherever
+> > we plan to exit the parking loop.
+> 
+> Would be good to hear what Russell thinks we should do here to park
+> CPU1.
+
+How about we introduce smp_park_secondary()?
+
+Then soft_restart() can call it between setup_mm_for_reboot()
+and cpu_proc_fin()?
+
+Regards,
+
+Tony
