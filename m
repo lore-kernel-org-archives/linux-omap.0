@@ -1,50 +1,41 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 23/35] drivers/mfd: Convert remaining uses of pr_warning
- to pr_warn
-Date: Wed, 15 Mar 2017 07:17:24 -0700
-Message-ID: <1489587444.2582.6.camel@perches.com>
-References: <cover.1487314666.git.joe@perches.com>
- <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
- <20170314140455.umlhdbuj3grqtu6i@dell>
- <1489511868.2582.2.camel@perches.com>
- <20170315122300.jwuogngm6obgvz5z@dell>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170315122300.jwuogngm6obgvz5z@dell>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Moreno Bartalucci <moreno.bartalucci-Hj/TeGiWV4YL5bzFcGmneg@public.gmane.org>
+Subject: [PATCH] usb-musb: keep VBUS on when device is disconnected
+Date: Wed, 15 Mar 2017 15:08:01 +0100
+Message-ID: <20170315140801.97230-1-moreno.bartalucci@tecnorama.it>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alessio Igor Bogani <abogani-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Moreno Bartalucci <moreno.bartalucci-Hj/TeGiWV4YL5bzFcGmneg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2017-03-15 at 12:23 +0000, Lee Jones wrote:
-> On Tue, 14 Mar 2017, Joe Perches wrote:
-[]
-> > never break user-visible strings such as
-> > printk messages, because that breaks the ability to grep for them.
-> 
-> Right, I'm aware of this.  I'm also aware of the other rule we have
-> where lines are not to exceed 80 chars.  Hence my question; "is the 80
-> chars rule the lessor sin of the two".
-> 
-> Rock <=> hard place
-> 
-> Actually I would say that the error message sub-optimal and could, in
-> fact be edited to be more succinct, thus not breaking any rules. 
+With usb-musb port in host mode, when the device
+is disconnected, either logically (because of a mode switch) or
+physically (by pulling the cable), the USB port should keep
+suppling VBUS, with no interruption, to prevent power loss on
+USB powered devices.
 
-It's not a 'sin' at all.
+Signed-off-by: Moreno Bartalucci <moreno.bartalucci-Hj/TeGiWV4YL5bzFcGmneg@public.gmane.org>
+---
+ drivers/usb/musb/musb_dsps.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The rule is to exceed 80 columns when the logging
-message format is long.
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 7c047c4..5d9986b 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -245,7 +245,7 @@ static int dsps_check_status(struct musb *musb, void *unused)
+ 		dsps_mod_timer_optional(glue);
+ 		break;
+ 	case OTG_STATE_A_WAIT_BCON:
+-		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
++		musb_writeb(musb->mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
+ 		skip_session = 1;
+ 		/* fall */
+ 
+-- 
+2.10.1 (Apple Git-78)
 
-I didn't even look at the format content.
-Change it if you wish.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
