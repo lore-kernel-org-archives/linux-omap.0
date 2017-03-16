@@ -1,85 +1,164 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
- during boot
-Date: Thu, 16 Mar 2017 08:29:25 -0700
-Message-ID: <20170316152925.GO20572@atomide.com>
-References: <20170313205231.1593-1-tony@atomide.com>
- <0bade322-5bee-412f-ef21-972c99846e84@ti.com>
- <20170314151725.GC20572@atomide.com>
- <d0fe191f-66f8-b72d-0a2a-00815e663a8d@ti.com>
- <20170314164106.GE20572@atomide.com>
- <ea09d676-29f6-7100-4c68-88920deaeb7c@ti.com>
- <20170314181425.GF20572@atomide.com>
- <20170315172200.GM20572@atomide.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 5/6] ARM: dts: omap4-droid4: Add HDMI support
+Date: Thu, 16 Mar 2017 23:43:56 +0100
+Message-ID: <20170316224355.dvrxccmywesvyi47@earth>
+References: <20170305054359.8293-1-tony@atomide.com>
+ <20170305054359.8293-6-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="pfgz6o3nia4oehf2"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170315172200.GM20572@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20170305054359.8293-6-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170315 10:24]:
-> * Tony Lindgren <tony@atomide.com> [170314 11:16]:
-> > * Andrew F. Davis <afd@ti.com> [170314 10:59]:
-> > Then onto the other related patches..
-> > 
-> > > We re-park cpu1 in bootROM in U-Boot already, in the U-Boot tree:
-> > > arch/arm/mach-omap2/omap5/sec_entry_cpu1.S
-> > 
-> > OK good to hear.
-> > 
-> > > omap_smc_sec_cpu1() wakes up cpu1 into the function cpu1_entry(), this
-> > > makes an SMC call to setup the core, then re-parks itself back in bootROM.
-> > > Relevant code to run on cpu1:
-> > > 
-> > > > #define AUX_CORE_BOOT_0		0x48281800
-> > > > #define AUX_CORE_BOOT_1		0x48281804
-> > > > /* DRA7xx ROM code function "startup_BootSlave". This function is where CPU1
-> > > >  * waits on WFE, polling on AUX_CORE_BOOT_x registers.
-> > > >  * This address is same for J6 and J6 Eco.
-> > > >  */
-> > > > #define ROM_FXN_STARTUP_BOOTSLAVE     0x00038a64
-> > > >
-> > > > ldr	r4, =AUX_CORE_BOOT_0
-> > > > mov	r5, #0x0
-> > > > str	r5, [r4]
-> > > > ldr	r4, =ROM_FXN_STARTUP_BOOTSLAVE
-> > > > bx	r4	@ Jump back to ROM
-> > > 
-> > > We would have to do this in kernel. The issue I'm thinking we are going
-> > > to hit is that the parking function in bootROM expects the MMU to be
-> > > off. Although we don't really need to turn it off as long as we can
-> > > identity map the bootROM area, the AUX_CORE_BOOT_0/1 space, and wherever
-> > > we plan to exit the parking loop.
-> > 
-> > Would be good to hear what Russell thinks we should do here to park
-> > CPU1.
-> 
-> How about we introduce smp_park_secondary()?
-> 
-> Then soft_restart() can call it between setup_mm_for_reboot()
-> and cpu_proc_fin()?
 
-Hmm that probably won't help as we'd have to still have a 1:1
-mapping in cpu_die() to put CPU1 into WFI and release it in
-smp_park_secondary() to the bootrom.
+--pfgz6o3nia4oehf2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Anyways, I think in your use case it's the suspend/resume that needs
-the state preserved for CPU1. Do you need kexec working in your use
-case?
+Hi,
 
-Regards,
+On Sat, Mar 04, 2017 at 09:43:58PM -0800, Tony Lindgren wrote:
+> We can get HDMI working as long as the 5V regulator is on. There is
+> probably an encoder chip there too, but so far no idea what it might be.
+> Let's keep the 5V HDMI regulator always enabled for now as otherwise we
+> cannot detect the monitor properly.
 
-Tony
+Tested-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+-- Sebastian
+
+>  arch/arm/boot/dts/omap4-droid4-xt894.dts | 65 ++++++++++++++++++++++++++=
+++++++
+>  1 file changed, 65 insertions(+)
+>=20
+> diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts=
+/omap4-droid4-xt894.dts
+> --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> @@ -35,6 +35,37 @@
+>  		gpios =3D <&gpio2 18 GPIO_ACTIVE_LOW>;	/* gpio50 */
+>  	};
+> =20
+> +	hdmi0: connector {
+> +		compatible =3D "hdmi-connector";
+> +		pinctrl-0 =3D <&hdmi_hpd_gpio>;
+> +		pinctrl-names =3D "default";
+> +		label =3D "hdmi";
+> +		type =3D "d";
+> +
+> +		hpd-gpios =3D <&gpio2 31 GPIO_ACTIVE_HIGH>;	/* gpio63 */
+> +
+> +		port {
+> +			hdmi_connector_in: endpoint {
+> +				remote-endpoint =3D <&hdmi_out>;
+> +			};
+> +		};
+> +	};
+> +
+> +	/*
+> +	 * HDMI 5V regulator probably sourced from battery. Let's keep
+> +	 * keep this as always enabled for HDMI to work until we've
+> +	 * figured what the encoder chip is.
+> +	 */
+> +	hdmi_regulator: regulator-hdmi {
+> +		compatible =3D "regulator-fixed";
+> +		regulator-name =3D "hdmi";
+> +		regulator-min-microvolt =3D <5000000>;
+> +		regulator-max-microvolt =3D <5000000>;
+> +		gpio =3D <&gpio2 27 GPIO_ACTIVE_HIGH>;	/* gpio59 */
+> +		enable-active-high;
+> +		regulator-always-on;
+> +	};
+> +
+>  	/* This is probably coming straight from the battery.. */
+>  	wl12xx_vmmc: regulator-wl12xx {
+>  		compatible =3D "regulator-fixed";
+> @@ -67,6 +98,10 @@
+>  	};
+>  };
+> =20
+> +&dss {
+> +	status =3D "okay";
+> +};
+> +
+>  &gpio6 {
+>  	touchscreen_reset {
+>  		gpio-hog;
+> @@ -81,6 +116,20 @@
+>  	status =3D "disabled";
+>  };
+> =20
+> +&hdmi {
+> +	status =3D "okay";
+> +	pinctrl-0 =3D <&dss_hdmi_pins>;
+> +	pinctrl-names =3D "default";
+> +	vdda-supply =3D <&vdac>;
+> +
+> +	port {
+> +		hdmi_out: endpoint {
+> +			remote-endpoint =3D <&hdmi_connector_in>;
+> +			lanes =3D <1 0 3 2 5 4 7 6>;
+> +		};
+> +	};
+> +};
+> +
+>  &i2c1 {
+>  	tmp105@48 {
+>  		compatible =3D "ti,tmp105";
+> @@ -249,6 +298,22 @@
+> =20
+>  &omap4_pmx_core {
+> =20
+> +	/* hdmi_hpd.gpio_63 */
+> +	hdmi_hpd_gpio: pinmux_hdmi_hpd_pins {
+> +		pinctrl-single,pins =3D <
+> +                OMAP4_IOPAD(0x098, PIN_INPUT | MUX_MODE3)
+> +		>;
+> +	};
+> +
+> +	/* hdmi_cec.hdmi_cec, hdmi_scl.hdmi_scl, hdmi_sda.hdmi_sda */
+> +	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+> +		pinctrl-single,pins =3D <
+> +		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)
+> +		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)
+> +		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)
+> +		>;
+> +	};
+> +
+>  	/* gpmc_ncs0.gpio_50 */
+>  	poweroff_gpio: pinmux_poweroff_pins {
+>  		pinctrl-single,pins =3D <
+> --=20
+> 2.11.1
+
+--pfgz6o3nia4oehf2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljLFSkACgkQ2O7X88g7
++ppsxhAAh+Ixw6oC/d7+wbgvmiaFxHHiunC7494qRz+V8SNNrxQFsRqWZkAMd1pq
+ANrjqpjclZoQjOT8XJXgxb4UnYhGyn7W239rY2ma4gcgpp++wD4XFXuK4Xf1SQfI
+jMm5oG/LU6HETZ4YdsBtlY1sYgQOkA/K8MW+jTv7Yw16joqm3+z3Y1CvCnHZPihU
+DHmI6YD7qMsBEP+uw7klQXC6WsKORgkC5kDdDp7WMcAg6gTC1UPzl2oef4L293SI
+1twrzJZfO2oyHIyRjSArJhWxbQFvCh632QKFCaC5f976IXhTBrY2l/a0QnwFBrJJ
+d5fbgdRu68zWXA++GvZ1dIImBpz4PttZrCSqR0Ur6Hk8AKwDmIg3UCEpXdkBWFpe
+P9B8QX7PEY1yhxwJJgbiM5i7OVvlySUYyZNGyXhBorYEcgqiy2KcLDm5YLAbkbNW
+Ps7GqJZcUetGKMc/syHTkfPvD3wRgTSWtz26HbIqvD+roBhqvuntzGQHA+YZuj/j
+aS/vlICeROplcnGbdNEjDRkrmGrq8Uer72AhX9LnA1MRIoFmHByEYqXUckxz5Lri
+2+JFkXp4Y9Qda+5YaMJckCl4CeSAPrCQIO6InO7ngucMH7Q1SVjiVDlbOaRGCrBq
+OZLyCPYNNsuL69qvOUFk1uMb7zPsdtdzDOru96c7G2WYyRlMwaw=
+=JCu1
+-----END PGP SIGNATURE-----
+
+--pfgz6o3nia4oehf2--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
