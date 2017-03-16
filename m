@@ -1,58 +1,84 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
-Date: Thu, 16 Mar 2017 08:24:06 -0700
-Message-ID: <20170316152405.GN20572@atomide.com>
-References: <1489405996-10718-1-git-send-email-rogerq@ti.com>
- <1489405996-10718-3-git-send-email-rogerq@ti.com>
- <20170314154843.GD20572@atomide.com>
- <1ffd0881-9076-04b0-62bf-85b02dd7bbf3@ti.com>
- <328f9510-49bb-294c-40fd-ad0167101a50@ti.com>
+Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
+ during boot
+Date: Thu, 16 Mar 2017 08:29:25 -0700
+Message-ID: <20170316152925.GO20572@atomide.com>
+References: <20170313205231.1593-1-tony@atomide.com>
+ <0bade322-5bee-412f-ef21-972c99846e84@ti.com>
+ <20170314151725.GC20572@atomide.com>
+ <d0fe191f-66f8-b72d-0a2a-00815e663a8d@ti.com>
+ <20170314164106.GE20572@atomide.com>
+ <ea09d676-29f6-7100-4c68-88920deaeb7c@ti.com>
+ <20170314181425.GF20572@atomide.com>
+ <20170315172200.GM20572@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <328f9510-49bb-294c-40fd-ad0167101a50@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: paul@pwsan.com, bcousson@baylibre.com, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170315172200.GM20572@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [170316 01:06]:
-> On 16/03/17 09:59, Roger Quadros wrote:
-> > Tony,
+* Tony Lindgren <tony@atomide.com> [170315 10:24]:
+> * Tony Lindgren <tony@atomide.com> [170314 11:16]:
+> > * Andrew F. Davis <afd@ti.com> [170314 10:59]:
+> > Then onto the other related patches..
 > > 
-> > On 14/03/17 17:48, Tony Lindgren wrote:
-> >> * Roger Quadros <rogerq@ti.com> [170313 04:55]:
-> >>
-> >>> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> >>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> >>> @@ -2149,7 +2149,7 @@ static int _idle(struct omap_hwmod *oh)
-> >>>  		_idle_sysc(oh);
-> >>>  	_del_initiator_dep(oh, mpu_oh);
-> >>>  
-> >>> -	if (oh->clkdm)
-> >>> +	if (oh->clkdm && !(oh->flags & HWMOD_CLKDM_NOAUTO))
-> >>>  		clkdm_deny_idle(oh->clkdm);
-> >>>  
-> >>>  	if (oh->flags & HWMOD_BLOCK_WFI)
-> >>
-> >> Is this change to _idle() really needed? It seems that the
-> >> clkdm_deny_idle() there is paired with the clkdm_allow_idle()
-> >> later on in the same function?
-> >>
+> > > We re-park cpu1 in bootROM in U-Boot already, in the U-Boot tree:
+> > > arch/arm/mach-omap2/omap5/sec_entry_cpu1.S
 > > 
-> > You are right. This change to _idle() is unnecessary. I'll send an update.
+> > OK good to hear.
 > > 
+> > > omap_smc_sec_cpu1() wakes up cpu1 into the function cpu1_entry(), this
+> > > makes an SMC call to setup the core, then re-parks itself back in bootROM.
+> > > Relevant code to run on cpu1:
+> > > 
+> > > > #define AUX_CORE_BOOT_0		0x48281800
+> > > > #define AUX_CORE_BOOT_1		0x48281804
+> > > > /* DRA7xx ROM code function "startup_BootSlave". This function is where CPU1
+> > > >  * waits on WFE, polling on AUX_CORE_BOOT_x registers.
+> > > >  * This address is same for J6 and J6 Eco.
+> > > >  */
+> > > > #define ROM_FXN_STARTUP_BOOTSLAVE     0x00038a64
+> > > >
+> > > > ldr	r4, =AUX_CORE_BOOT_0
+> > > > mov	r5, #0x0
+> > > > str	r5, [r4]
+> > > > ldr	r4, =ROM_FXN_STARTUP_BOOTSLAVE
+> > > > bx	r4	@ Jump back to ROM
+> > > 
+> > > We would have to do this in kernel. The issue I'm thinking we are going
+> > > to hit is that the parking function in bootROM expects the MMU to be
+> > > off. Although we don't really need to turn it off as long as we can
+> > > identity map the bootROM area, the AUX_CORE_BOOT_0/1 space, and wherever
+> > > we plan to exit the parking loop.
+> > 
+> > Would be good to hear what Russell thinks we should do here to park
+> > CPU1.
 > 
-> Now I remember why I put it there.
+> How about we introduce smp_park_secondary()?
 > 
-> When HWMOD_CLKDM_NOAUTO flag is set, _enable() does not
-> call clkdm_allow_idle() so the call to clkdm_deny_idle() in _idle() would
-> be redundant.
-> 
-> I think we should keep the patch as it is. What do you say?
+> Then soft_restart() can call it between setup_mm_for_reboot()
+> and cpu_proc_fin()?
 
-OK. Maybe add a comment there about that?
+Hmm that probably won't help as we'd have to still have a 1:1
+mapping in cpu_die() to put CPU1 into WFI and release it in
+smp_park_secondary() to the bootrom.
+
+Anyways, I think in your use case it's the suspend/resume that needs
+the state preserved for CPU1. Do you need kexec working in your use
+case?
 
 Regards,
 
