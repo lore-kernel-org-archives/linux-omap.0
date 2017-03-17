@@ -1,55 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] mfd: cpcap: Use handle_reread flag for interrupts
-Date: Thu, 16 Mar 2017 17:36:31 -0700
-Message-ID: <20170317003633.7361-3-tony@atomide.com>
-References: <20170317003633.7361-1-tony@atomide.com>
+Subject: [PATCH 0/4] Regmap IRQ fix and related changes CPCAP
+Date: Thu, 16 Mar 2017 17:36:29 -0700
+Message-ID: <20170317003633.7361-1-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170317003633.7361-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Sebastian Reichel <sre@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On CPCAP we need to keep reading interrupts until there are no
-more interrupts. Otherwise the PMIC interrupt to the SoC will at
-some point stop toggling. This seems to happen because new CPCAP
-device interrupts show up while we're handling.
+Hi all,
 
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Marcel Partap <mpartap@gmx.net>
-Cc: Michael Scott <michael.scott@linaro.org>
-Cc: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mfd/motorola-cpcap.c | 3 +++
- 1 file changed, 3 insertions(+)
+Here are few fixes to make CPCAP PMIC interrupts work reliably when
+used with multiple drivers. While working on the ADC, charger and
+USB PHY drivers I noticed that the PMIC interrupt to the SoC would
+eventually stop working.
 
-diff --git a/drivers/mfd/motorola-cpcap.c b/drivers/mfd/motorola-cpcap.c
---- a/drivers/mfd/motorola-cpcap.c
-+++ b/drivers/mfd/motorola-cpcap.c
-@@ -96,6 +96,7 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
- 		.ack_base = CPCAP_REG_MI1,
- 		.mask_base = CPCAP_REG_MIM1,
- 		.use_ack = true,
-+		.handle_reread = true,
- 	},
- 	{
- 		.name = "cpcap-m2",
-@@ -104,6 +105,7 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
- 		.ack_base = CPCAP_REG_MI2,
- 		.mask_base = CPCAP_REG_MIM2,
- 		.use_ack = true,
-+		.handle_reread = true,
- 	},
- 	{
- 		.name = "cpcap1-4",
-@@ -113,6 +115,7 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
- 		.mask_base = CPCAP_REG_INTM1,
- 		.type_base = CPCAP_REG_INTS1,
- 		.use_ack = true,
-+		.handle_reread = true,
- 	},
- };
- 
+All these can wait for v4.12 merge window as these issues don't show
+up currently. Two of the patches are also harmless currently, so I've
+kept them in this series to avoid pointless merge conflicts.
+
+Regards,
+
+Tony
+
+
+Tony Lindgren (4):
+  regmap: irq: Fix lost interrupts by introducing handle_reread
+  mfd: cpcap: Use handle_reread flag for interrupts
+  mfd: cpcap: Use ack_invert interrupts
+  mfd: cpcap: Fix bad use of IRQ sense register
+
+ drivers/base/regmap/regmap-irq.c | 77 ++++++++++++++++++++++++++++------------
+ drivers/mfd/motorola-cpcap.c     |  7 +++-
+ include/linux/regmap.h           |  2 ++
+ 3 files changed, 62 insertions(+), 24 deletions(-)
+
 -- 
 2.11.1
