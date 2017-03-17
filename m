@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 2/4] ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
-Date: Fri, 17 Mar 2017 10:39:48 +0200
-Message-ID: <50d0d89e-83d4-386b-971d-fa50684db259@ti.com>
+Subject: [PATCH v2 2/4] ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
+Date: Fri, 17 Mar 2017 10:58:18 +0200
+Message-ID: <140ff227-f778-7715-93a3-9ff638d03f55@ti.com>
 References: <1489405996-10718-1-git-send-email-rogerq@ti.com>
  <1489405996-10718-3-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
@@ -13,6 +13,11 @@ Sender: linux-kernel-owner@vger.kernel.org
 To: paul@pwsan.com, tony@atomide.com
 Cc: bcousson@baylibre.com, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+
+>From fe0a37d5e53381c3f79c6b6cf7915e44789f516f Mon Sep 17 00:00:00 2001
+From: Roger Quadros <rogerq@ti.com>
+Date: Tue, 7 Feb 2017 16:52:57 +0530
+Subject: [PATCH 2/4] ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
 
 Introduce HWMOD_CLKDM_NOAUTO flag that allows the hwmod's
 clockdomain to be prevented from HW_AUTO while the hwmod is active.
@@ -26,7 +31,6 @@ Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
 v2:
 - add comment explaining why we don't call clkdm_deny_idle() in _idle()
-if HWMOD_CLKDM_NOAUTO flag is set.
 
  arch/arm/mach-omap2/omap_hwmod.c | 9 +++++++--
  arch/arm/mach-omap2/omap_hwmod.h | 5 +++++
