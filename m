@@ -1,62 +1,87 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH 0/8] Droid4 DTS update
-Date: Fri, 17 Mar 2017 12:48:40 +0100
-Message-ID: <20170317114839.GA4771@amd>
-References: <20170302010900.28532-1-sre@kernel.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [GIT PULL] clk: ti: cleanups for 4.12 merge window
+Date: Fri, 17 Mar 2017 14:53:37 +0200
+Message-ID: <8157b2e6-99c8-dc02-0c02-3d99778f255b@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170302010900.28532-1-sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>, Michael Turquette <mturquette@baylibre.com>
+Cc: linux-clk <linux-clk@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Stephen/Mike,
 
---sdtB3X0nJg68CQEu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This is basically the TI clock driver cleanup series v2 posted last 
+week, sending a pull request now as there hasn't been any additional 
+comments.
 
-Hi!
+-Tero
 
-> The mounting-matrix for the sensors and the touchscreen's=20
-> rotation assume, that the phone's default rotation is vertical.
-> I think that's sensible, because
->=20
->  * Android on the phone uses this as default rotation
->    (like almost? all other phones)
->  * volume buttons make sense (in horizontal position one
->    would expect, that left button means lower volume. I
->    know at least Maemo swaps them)
->=20
-> That should cover all mainline drivers.
+==================================================================
 
-Actually, I'd use orientation with keyboard open (horizontal) -- as
-that's how the console will be orientated (right?) and how the linux
-will be most useful...
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
 
---sdtB3X0nJg68CQEu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+   Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+are available in the git repository at:
 
-iEYEARECAAYFAljLzRcACgkQMOfwapXb+vLx8wCdGxc+WakhwOfMsTjzF4+2FTrY
-K5YAn2tOSN8Eq13DuTy0hZBph/qup4AJ
-=YLk/
------END PGP SIGNATURE-----
+   https://github.com/t-kristo/linux-pm.git for-4.12-ti-clk-cleanups
 
---sdtB3X0nJg68CQEu--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+for you to fetch changes up to 6c0afb503937a12a8d20a805fcf263e31afa9871:
+
+   clk: ti: convert to use proper register definition for all accesses 
+(2017-03-08 13:06:15 +0200)
+
+----------------------------------------------------------------
+Tero Kristo (15):
+       clk: ti: remove un-used definitions from public clk_hw_omap struct
+       clk: ti: add support for automatic clock alias generation
+       clk: ti: add API for creating aliases automatically for simple 
+clock types
+       clk: ti: use automatic clock alias generation framework
+       clk: ti: add clkdm_lookup to the exported functions
+       clk: ti: move omap2_init_clk_clkdm under TI clock driver
+       clk: ti: enforce const types on string arrays
+       clk: ti: omap4: cleanup unnecessary clock aliases
+       clk: ti: drop unnecessary MEMMAP_ADDRESSING flag
+       clk: ti: mux: convert TI mux clock to use its internal data 
+representation
+       clk: ti: divider: convert TI divider clock to use its own data 
+representation
+       clk: ti: divider: add driver internal API for parsing divider data
+       clk: ti: gate: export gate_clk_ops locally
+       clk: ti: dpll44xx: fix clksel register initialization
+       clk: ti: convert to use proper register definition for all accesses
+
+  arch/arm/mach-omap2/clkt2xxx_dpllcore.c |   3 +-
+  arch/arm/mach-omap2/clock.c             |  35 +-----
+  arch/arm/mach-omap2/clock.h             |   2 +
+  arch/arm/mach-omap2/cm.h                |   5 +-
+  arch/arm/mach-omap2/cm2xxx.c            |   9 +-
+  arch/arm/mach-omap2/cm3xxx.c            |  10 +-
+  arch/arm/mach-omap2/cm_common.c         |   2 +-
+  drivers/clk/ti/apll.c                   |  50 ++++-----
+  drivers/clk/ti/autoidle.c               |  18 +--
+  drivers/clk/ti/clk-3xxx.c               |  55 +++++-----
+  drivers/clk/ti/clk-44xx.c               | 188 
++-------------------------------
+  drivers/clk/ti/clk-dra7-atl.c           |  11 +-
+  drivers/clk/ti/clk.c                    | 157 +++++++++++++++++++++-----
+  drivers/clk/ti/clkt_dflt.c              |  61 ++++-------
+  drivers/clk/ti/clkt_dpll.c              |   6 +-
+  drivers/clk/ti/clkt_iclk.c              |  29 +++--
+  drivers/clk/ti/clock.h                  |  41 ++++++-
+  drivers/clk/ti/clockdomain.c            |  38 +++++--
+  drivers/clk/ti/composite.c              |  18 ++-
+  drivers/clk/ti/divider.c                | 111 +++++++++++--------
+  drivers/clk/ti/dpll.c                   |  59 +++++-----
+  drivers/clk/ti/dpll3xxx.c               |  38 +++----
+  drivers/clk/ti/dpll44xx.c               |  14 +--
+  drivers/clk/ti/fixed-factor.c           |   1 +
+  drivers/clk/ti/gate.c                   |  44 ++++----
+  drivers/clk/ti/interface.c              |  25 ++---
+  drivers/clk/ti/mux.c                    |  59 +++++-----
+  include/linux/clk/ti.h                  |  55 +++++-----
+  28 files changed, 543 insertions(+), 601 deletions(-)
