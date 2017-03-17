@@ -1,90 +1,136 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 2/4] ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
-Date: Fri, 17 Mar 2017 10:58:18 +0200
-Message-ID: <140ff227-f778-7715-93a3-9ff638d03f55@ti.com>
-References: <1489405996-10718-1-git-send-email-rogerq@ti.com>
- <1489405996-10718-3-git-send-email-rogerq@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv2 1/9] Documentation: dt-bindings: Add binding documentation
+ for TI clkctrl clocks
+Date: Fri, 17 Mar 2017 11:09:33 +0200
+Message-ID: <1489741781-12816-2-git-send-email-t-kristo@ti.com>
+References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1489405996-10718-3-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: paul@pwsan.com, tony@atomide.com
-Cc: bcousson@baylibre.com, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sboyd@codeaurora.org, mturquette@baylibre.com
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
->From fe0a37d5e53381c3f79c6b6cf7915e44789f516f Mon Sep 17 00:00:00 2001
-From: Roger Quadros <rogerq@ti.com>
-Date: Tue, 7 Feb 2017 16:52:57 +0530
-Subject: [PATCH 2/4] ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
+From: Tony Lindgren <tony@atomide.com>
 
-Introduce HWMOD_CLKDM_NOAUTO flag that allows the hwmod's
-clockdomain to be prevented from HW_AUTO while the hwmod is active.
+Texas Instruments omap variant SoCs starting with omap4 have a clkctrl
+clock controller instance for each interconnect target module. The clkctrl
+controls functional and interface clocks for the module.
 
-This is needed to workaround some modules which don't function
-correctly with HW_AUTO. e.g. DCAN on DRA7.
+The clkctrl clocks are currently handled by arch/arm/mach-omap2 hwmod code.
+With this binding and a related clock device driver we can start moving the
+clkctrl clock handling to live in drivers/clk/ti.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-[nsekhar@ti.com: rebased to v4.9 kernel]
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Note that this binding allows keeping the clockdomain related parts out of
+drivers/clock. The CLKCTCTRL and DYNAMICDEP registers can be handled by
+a separate driver in drivers/soc/ti and genpd. If the clockdomain driver
+needs to know it's clocks, we can just set the the clkctrl device
+instances to be children of the related clockdomain device.
+
+Each clkctrl clock can have multiple optional gate clocks, and multiple
+optional mux clocks. To represent this in device tree, it seems that
+it is best done using four clock cells #clock-cells = <2> property.
+
+The reasons for using #clock-cells = <2> are:
+
+1. We need to specify the clkctrl offset from the instance base. Otherwise
+   we end up with a large number of device tree nodes that need to be
+   patched when new clocks are discovered in a clkctrl clock with minor
+   hardware revision changes for example
+
+2. On omap5 CM_L3INIT_USB_HOST_HS_CLKCTRL has ten OPTFCLKEN bits. So we
+   need to use a separate cell for optional gate clocks to avoid address
+   space conflicts
+
+There is probably no need to list input clocks for each clkctrl clock
+instance in the binding. If we want to add them, the standard clocks
+binding can be used for that.
+
+For hardware reference, see omap4430 TRM "Table 3-1312. L4PER_CM2 Registers
+Mapping Summary" for example. It shows one instance of a clkctrl clock
+controller with multiple clkctrl registers.
+
+Cc: Paul Walmsley <paul@pwsan.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
-v2:
-- add comment explaining why we don't call clkdm_deny_idle() in _idle()
+ .../devicetree/bindings/clock/ti-clkctrl.txt       | 56 ++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/clock/ti-clkctrl.txt
 
- arch/arm/mach-omap2/omap_hwmod.c | 9 +++++++--
- arch/arm/mach-omap2/omap_hwmod.h | 5 +++++
- 2 files changed, 12 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 0da4f2e..360fded 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2092,7 +2092,7 @@ static int _enable(struct omap_hwmod *oh)
- 
- 	r = (soc_ops.wait_target_ready) ? soc_ops.wait_target_ready(oh) :
- 		-EINVAL;
--	if (oh->clkdm)
-+	if (oh->clkdm && !(oh->flags & HWMOD_CLKDM_NOAUTO))
- 		clkdm_allow_idle(oh->clkdm);
- 
- 	if (!r) {
-@@ -2149,7 +2149,12 @@ static int _idle(struct omap_hwmod *oh)
- 		_idle_sysc(oh);
- 	_del_initiator_dep(oh, mpu_oh);
- 
--	if (oh->clkdm)
-+	/*
-+	 * If HWMOD_CLKDM_NOAUTO is set then we don't
-+	 * deny idle the clkdm again since idle was already denied
-+	 * in _enable()
-+	 */
-+	if (oh->clkdm && !(oh->flags & HWMOD_CLKDM_NOAUTO))
- 		clkdm_deny_idle(oh->clkdm);
- 
- 	if (oh->flags & HWMOD_BLOCK_WFI)
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
-index 9e1c4ed..cda553a 100644
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -531,6 +531,10 @@ struct omap_hwmod_omap4_prcm {
-  *     operate and they need to be handled at the same time as the main_clk.
-  * HWMOD_NO_IDLE: Do not idle the hwmod at all. Useful to handle certain
-  *     IPs like CPSW on DRA7, where clocks to this module cannot be disabled.
-+ * HWMOD_CLKDM_NOAUTO: Allows the hwmod's clockdomain to be prevented from
-+ *     entering HW_AUTO while hwmod is active. This is needed to workaround
-+ *     some modules which don't function correctly with HW_AUTO. For example,
-+ *     DCAN on DRA7x SoC needs this to workaround errata i893.
-  */
- #define HWMOD_SWSUP_SIDLE			(1 << 0)
- #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
-@@ -548,6 +552,7 @@ struct omap_hwmod_omap4_prcm {
- #define HWMOD_RECONFIG_IO_CHAIN			(1 << 13)
- #define HWMOD_OPT_CLKS_NEEDED			(1 << 14)
- #define HWMOD_NO_IDLE				(1 << 15)
-+#define HWMOD_CLKDM_NOAUTO			(1 << 16)
- 
- /*
-  * omap_hwmod._int_flags definitions
+diff --git a/Documentation/devicetree/bindings/clock/ti-clkctrl.txt b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+new file mode 100644
+index 0000000..7e5d9f5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+@@ -0,0 +1,56 @@
++Texas Instruments clkctrl clock binding
++
++Texas Instruments SoCs can have a clkctrl clock controller for each
++interconnect target module. The clkctrl clock controller manages functional
++and interface clocks for each module. Each clkctrl controller can also
++gate one or more optional functional clocks for a module, and can have one
++or more clock muxes. There is a clkctrl clock controller typically for each
++interconnect target module on omap4 and later variants.
++
++The clock consumers can specify the index of the clkctrl clock using
++the hardware offset from the clkctrl instance register space. The optional
++clocks can be specified by clkctrl hardware offset and the index of the
++optional clock.
++
++For more information, please see the Linux clock framework binding at
++Documentation/devicetree/bindings/clock/clock-bindings.txt.
++
++Required properties :
++- compatible : shall be "ti,clkctrl"
++- #clock-cells : shall contain 2 with the first entry being the instance
++		 offset from the clock domain base and the second being the
++		 clock index
++
++Example: Clock controller node on omap 4430:
++
++&cm2 {
++	l4per: cm@1400 {
++		cm_l4per@0 {
++			cm_l4per_clkctrl: clk@20 {
++				compatible = "ti,clkctrl";
++				reg = <0x20 0x1b0>;
++				#clock-cells = <4>;
++			};
++		};
++	};
++};
++
++Example: Preprocessor helper macros in dt-bindings/clock/ti-clkctrl.h
++
++#define OMAP4_CLKCTRL_OFFSET		0x20
++#define OMAP4_CLKCTRL_INDEX(offset)	((offset) - OMAP4_CLKCTRL_OFFSET)
++#define MODULEMODE_HWCTRL		1
++#define MODULEMODE_SWCTRL		2
++
++#define OMAP4_GPTIMER10_CLKTRL		OMAP4_CLKCTRL_INDEX(0x28)
++#define OMAP4_GPTIMER11_CLKTRL		OMAP4_CLKCTRL_INDEX(0x30)
++#define OMAP4_GPTIMER2_CLKTRL		OMAP4_CLKCTRL_INDEX(0x38)
++...
++#define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
++
++Example: Clock consumer node for GPIO2:
++
++&gpio2 {
++       clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 0
++		 &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 8>;
++};
 -- 
-2.7.4
+1.9.1
