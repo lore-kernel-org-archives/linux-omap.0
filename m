@@ -1,7 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 8/9] ARM: dts: omap4: add clkctrl nodes
-Date: Fri, 17 Mar 2017 11:09:40 +0200
-Message-ID: <1489741781-12816-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 7/9] ARM: dts: omap4: add bus functionality to base PRCM
+ nodes
+Date: Fri, 17 Mar 2017 11:09:39 +0200
+Message-ID: <1489741781-12816-8-git-send-email-t-kristo@ti.com>
 References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,331 +22,54 @@ To: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, sbo
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add clkctrl nodes for OMAP4 SoC. These are going to be acting as
-replacement for part of the existing clock data and the existing
-clkctrl hooks under hwmod data.
+Add simple-bus compatibility and ranges properties to cm1, cm2 and prm
+nodes. This is done in preparation of adding the support for clkctrl
+nodes.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi           |   1 +
- arch/arm/boot/dts/omap44xx-clocks.dtsi | 289 +++++++++++++++++++++++++++++++++
- 2 files changed, 290 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 0cbd6c1..3ecf616 100644
+index 578c53f..0cbd6c1 100644
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -9,6 +9,7 @@
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/interrupt-controller/arm-gic.h>
- #include <dt-bindings/pinctrl/omap.h>
-+#include <dt-bindings/clock/omap4.h>
+@@ -132,8 +132,11 @@
+ 			ranges = <0 0x4a000000 0x1000000>;
  
- / {
- 	compatible = "ti,omap4430", "ti,omap4";
-diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-index 9573b37..c7d517c 100644
---- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-@@ -622,6 +622,7 @@
- 		clock-frequency = <0>;
- 	};
- };
-+
- &prm_clocks {
- 	sys_clkin_ck: sys_clkin_ck@110 {
- 		#clock-cells = <0>;
-@@ -1641,3 +1642,291 @@
- 		reg = <0x0224>;
- 	};
- };
-+
-+&cm1 {
-+	mpuss_cm: mpuss_cm@300 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x300 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x300 0x100>;
-+
-+		mpuss_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	tesla_cm: tesla_cm@400 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x400 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x400 0x100>;
-+
-+		tesla_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	abe_cm: abe_cm@500 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x500 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x500 0x100>;
-+
-+		abe_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x6c>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+};
-+
-+&cm2 {
-+	l4_ao_cm: l4_ao_cm@600 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x600 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x600 0x100>;
-+
-+		l4_ao_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x1c>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l3_1_cm: l3_1_cm@700 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x700 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x700 0x100>;
-+
-+		l3_1_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l3_2_cm: l3_2_cm@800 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x800 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x800 0x100>;
-+
-+		l3_2_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x14>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	ducati_cm: ducati_cm@900 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x900 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x900 0x100>;
-+
-+		ducati_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l3_dma_cm: l3_dma_cm@a00 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0xa00 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0xa00 0x100>;
-+
-+		l3_dma_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l3_emif_cm: l3_emif_cm@b00 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0xb00 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0xb00 0x100>;
-+
-+		l3_emif_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x1c>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	d2d_cm: d2d_cm@c00 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0xc00 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0xc00 0x100>;
-+
-+		d2d_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l4_cfg_cm: l4_cfg_cm@d00 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0xd00 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0xd00 0x100>;
-+
-+		l4_cfg_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x14>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l3_instr_cm: l3_instr_cm@e00 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0xe00 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0xe00 0x100>;
-+
-+		l3_instr_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x24>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	ivahd_cm: ivahd_cm@f00 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0xf00 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0xf00 0x100>;
-+
-+		ivahd_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0xc>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	iss_cm: iss_cm@1000 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x1000 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x1000 0x100>;
-+
-+		iss_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0xc>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l3_dss_cm: l3_dss_cm@1100 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x1100 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x1100 0x100>;
-+
-+		l3_dss_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l3_gfx_cm: l3_gfx_cm@1200 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x1200 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x1200 0x100>;
-+
-+		l3_gfx_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l3_init_cm: l3_init_cm@1300 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x1300 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x1300 0x100>;
-+
-+		l3_init_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0xc4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	l4_per_cm: l4_per_cm@1400 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x1400 0x200>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x1400 0x200>;
-+
-+		l4_per_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x144>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+};
-+
-+&prm {
-+	l4_wkup_cm: l4_wkup_cm@1800 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x1800 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x1800 0x100>;
-+
-+		l4_wkup_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x5c>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+
-+	emu_sys_cm: emu_sys_cm@1a00 {
-+		compatible = "ti,omap4-cm";
-+		reg = <0x1a00 0x100>;
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges = <0 0x1a00 0x100>;
-+
-+		emu_sys_clkctrl: clk@20 {
-+			compatible = "ti,clkctrl";
-+			reg = <0x20 0x4>;
-+			#clock-cells = <2>;
-+		};
-+	};
-+};
+ 			cm1: cm1@4000 {
+-				compatible = "ti,omap4-cm1";
++				compatible = "ti,omap4-cm1", "simple-bus";
+ 				reg = <0x4000 0x2000>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges = <0 0x4000 0x2000>;
+ 
+ 				cm1_clocks: clocks {
+ 					#address-cells = <1>;
+@@ -145,8 +148,11 @@
+ 			};
+ 
+ 			cm2: cm2@8000 {
+-				compatible = "ti,omap4-cm2";
++				compatible = "ti,omap4-cm2", "simple-bus";
+ 				reg = <0x8000 0x3000>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges = <0 0x8000 0x3000>;
+ 
+ 				cm2_clocks: clocks {
+ 					#address-cells = <1>;
+@@ -229,6 +235,9 @@
+ 					compatible = "ti,omap4-prm";
+ 					reg = <0x6000 0x3000>;
+ 					interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
++					#address-cells = <1>;
++					#size-cells = <1>;
++					ranges = <0 0x6000 0x3000>;
+ 
+ 					prm_clocks: clocks {
+ 						#address-cells = <1>;
 -- 
 1.9.1
