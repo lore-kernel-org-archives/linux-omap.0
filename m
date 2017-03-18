@@ -1,20 +1,17 @@
-From: David Rivshin <drivshin@awxrd.com>
-Subject: Re: [PATCH 1/2] gpio: omap: return error if requested debounce time
- is not possible
-Date: Fri, 17 Mar 2017 19:42:35 -0400
-Message-ID: <20170317194235.5a883df8.drivshin@awxrd.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 2/2] gpio: omap: compute debounce-time from actual
+ debounce-clock rate
+Date: Fri, 17 Mar 2017 19:06:47 -0500
+Message-ID: <5d0fab0d-bc9d-5148-063c-8bfe9e26f9a5@ti.com>
 References: <20170317005704.11971-1-drivshin@awxrd.com>
- <20170317005704.11971-2-drivshin@awxrd.com>
- <d1200407-5efd-ca7b-f936-fa37b206e1ea@ti.com>
- <20170317135413.78118dc2.drivshin@awxrd.com>
- <dc614a7a-e0fa-c071-478b-2124724d95e9@ti.com>
- <20170317165032.5b891bc1.drivshin@awxrd.com>
- <73fd00d4-6649-90d6-dcb1-0cd186055a69@ti.com>
+ <20170317005704.11971-3-drivshin@awxrd.com>
+ <adc98bfd-ebce-49f0-5991-3c6a1e99ec25@ti.com>
+ <20170317191419.021bdd84.drivshin@awxrd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <73fd00d4-6649-90d6-dcb1-0cd186055a69@ti.com>
+In-Reply-To: <20170317191419.021bdd84.drivshin@awxrd.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,188 +21,119 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-gpio@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: David Rivshin <drivshin@awxrd.com>, Tero Kristo <t-kristo@ti.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 17 Mar 2017 16:43:56 -0500
-Grygorii Strashko <grygorii.strashko@ti.com> wrote:
+CC: Tero
 
-> On 03/17/2017 03:50 PM, David Rivshin wrote:
-> > On Fri, 17 Mar 2017 13:54:28 -0500
-> > Grygorii Strashko <grygorii.strashko@ti.com> wrote:
-> >  
-> >> On 03/17/2017 12:54 PM, David Rivshin wrote:  
-> >>> Hi Grygorii,
-> >>>
-> >>> On Fri, 17 Mar 2017 11:45:56 -0500
-> >>> Grygorii Strashko <grygorii.strashko@ti.com> wrote:
-> >>>  
-> >>>> On 03/16/2017 07:57 PM, David Rivshin wrote:  
-> >>>>> From: David Rivshin <DRivshin@allworx.com>
-> >>>>>
-> >>>>> omap_gpio_debounce() does not validate that the requested debounce
-> >>>>> is within a range it can handle. Instead it lets the register value
-> >>>>> wrap silently, and always returns success.
-> >>>>>
-> >>>>> This can lead to all sorts of unexpected behavior, such as gpio_keys
-> >>>>> asking for a too-long debounce, but getting a very short debounce in
-> >>>>> practice.
-> >>>>>
-> >>>>> Fix this by returning -EINVAL if the requested value does not fit into
-> >>>>> the register field. If there is no debounce clock available at all,
-> >>>>> return -ENOTSUPP.  
-> >>>>
-> >>>> In general this patch looks good, but there is one thing I'm worry about..
-> >>>>  
-> >>>>>
-> >>>>> Fixes: e85ec6c3047b ("gpio: omap: fix omap2_set_gpio_debounce")
-> >>>>> Cc: <stable@vger.kernel.org> # 4.3+
-> >>>>> Signed-off-by: David Rivshin <drivshin@allworx.com>
-> >>>>> ---
-> >>>>>  drivers/gpio/gpio-omap.c | 16 +++++++++++-----
-> >>>>>  1 file changed, 11 insertions(+), 5 deletions(-)
-> >>>>>
-> >>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> >>>>> index efc85a2..33ec02d 100644
-> >>>>> --- a/drivers/gpio/gpio-omap.c
-> >>>>> +++ b/drivers/gpio/gpio-omap.c
-> >>>>> @@ -208,8 +208,10 @@ static inline void omap_gpio_dbck_disable(struct gpio_bank *bank)
-> >>>>>   * OMAP's debounce time is in 31us steps
-> >>>>>   *   <debounce time> = (GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME + 1) x 31
-> >>>>>   * so we need to convert and round up to the closest unit.
-> >>>>> + *
-> >>>>> + * Return: 0 on success, negative error otherwise.
-> >>>>>   */
-> >>>>> -static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
-> >>>>> +static int omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
-> >>>>>  				    unsigned debounce)
-> >>>>>  {
-> >>>>>  	void __iomem		*reg;
-> >>>>> @@ -218,11 +220,12 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
-> >>>>>  	bool			enable = !!debounce;
-> >>>>>
-> >>>>>  	if (!bank->dbck_flag)
-> >>>>> -		return;
-> >>>>> +		return -ENOTSUPP;
-> >>>>>
-> >>>>>  	if (enable) {
-> >>>>>  		debounce = DIV_ROUND_UP(debounce, 31) - 1;
-> >>>>> -		debounce &= OMAP4_GPIO_DEBOUNCINGTIME_MASK;
-> >>>>> +		if ((debounce & OMAP4_GPIO_DEBOUNCINGTIME_MASK) != debounce)
-> >>>>> +			return -EINVAL;  
-> >>>>
-> >>>> This might cause boot issues as current drivers may expect this op to succeed even if
-> >>>> configured value is wrong - just think, may be we can do warn here and use max value as
-> >>>> fallback?  
-> >>>
-> >>> I have not looked through all drivers to be sure, but at least the gpio-keys
-> >>> driver requires set_debounce to return an error if it can't satisfy the request.
-> >>> In that case gpio-keys will use a software timer instead.
-> >>>
-> >>>                 if (button->debounce_interval) {
-> >>>                         error = gpiod_set_debounce(bdata->gpiod,
-> >>>                                         button->debounce_interval * 1000);
-> >>>                         /* use timer if gpiolib doesn't provide debounce */
-> >>>                         if (error < 0)
-> >>>                                 bdata->software_debounce =
-> >>>                                                 button->debounce_interval;
-> >>>                 }
-> >>>
-> >>> Also, at least some other GPIO drivers (e.g. gpio-max7760) return -EINVAL in
-> >>> such a case. And gpiolib will return -ENOTSUPP if there is no debounce
-> >>> callback at all. So I expect all drivers which use gpiod_set_debounce() to
-> >>> handle error returns gracefully.
-> >>>
-> >>> So I certainly understand the concern about backwards compatibility, but I
-> >>> think clipping to max is the greater of the evils in this case. Even a
-> >>> warning may be too much, because it's not necessarily anything wrong.
-> >>> Perhaps an info or debug message would be helpful, though?
-> >>>
-> >>> If you prefer, I can try to go through all callers of gpiod_set_debounce()
-> >>> and see how they'd handle an error return. The handful I've looked through so
-> >>> far all behave like gpio-keys. The only ones I'd be particularly concerned
-> >>> about are platform-specific drivers which were perhaps never used with other
-> >>> gpio drivers. Do you know of that I should pay special attention to?  
-> >>
-> >> Yeh agree. But the problem here will be not only with drivers itself - it can be wrong data in DT :(
-> >> As result, even  gpio-keys driver will just silently switch to software_debounce
-> >> without any notification.  
-> >
-> > I think that switching to software_debounce silently is exactly the
-> > intended/desired behavior of gpio-keys (and other drivers). For example,
-> > if the DT requests a 20ms debounce on a gpio-key, the existing math
-> > resulted in a hardware debounce of just 2ms. With the error return,
-> > gpio-keys would silently switch to software_debounce of the requested
-> > 20ms (potentially longer if the CPU is busy, but I don't think that's
-> > a problem for correctness), exactly what the DT asked for.
-> >
-> > Of course that would be a change in behavior for any such existing DT,
-> > and it's conceivable that the DT for some HW is somehow relying on that
-> > previous incorrect behavior. I suspect it's more likely that they are
-> > silently broken, and no-one has noticed. A quick search of some in-tree
-> > DTs finds most debounce times are 5ms (which has no issue), and then
-> > these three examples (all happen to be gpio-keys):
-> >   am335x-shc.dts:                 debounce-interval = <1000>;
-> >   am335x-shc.dts:                 debounce-interval = <1000>;
-> >   omap5-uevm.dts:                 debounce_interval = <50>;
-> > The first two currently result in a HW debounce of about 4ms. The
-> > third would be 2.5ms, except it's the wrong property name so it
-> > does nothing (it gets the default gpio-keys debounce of 5ms).  
-> 
-> Yep. looks like error in dt. There are mod such DTs actually
-> ./arch/arm/boot/dts/atlas7-evb.dts
-> ./arch/arm/boot/dts/emev2-kzm9d.dts
-> ./arch/arm/boot/dts/kirkwood-pogoplug-series-4.dts
-> ./arch/arm/boot/dts/omap5-uevm.dts
-> ./arch/arm/boot/dts/ste-snowball.dts
+On 03/17/2017 06:14 PM, David Rivshin wrote:
+> On Fri, 17 Mar 2017 14:43:02 -0500
+> Grygorii Strashko <grygorii.strashko@ti.com> wrote:
+>
+>> On 03/16/2017 07:57 PM, David Rivshin wrote:
+>>> From: David Rivshin <DRivshin@allworx.com>
+>>>
+>>> omap2_set_gpio_debounce() assumes the debounce clock runs at 32768Hz,
+>>> leading to 31us granularity. In reality the debounce clock (which
+>>> is provided by other modules) could be at different rate, leading to
+>>> an incorrect computation of the number of debounce clock cycles for
+>>> GPIO_DEBOUNCINGTIME[DEBOUNCETIME].
+>>>
+>>> Also, even with a standard 32768Hz input clock, the actual granularity
+>>> is ~30.5us. This leads to the actual debounce time being ~1.5% too
+>>> short.
+>>>
+>>> Fix both issues by simply querying the dbck rate, rather than
+>>> hardcoding.
+>>
+>> Pls, hold on with this - I'm trying to check it, as it doesn't follow TRMs.
+>
+> Yes, the TRMs are somewhat cryptic about the details, perhaps I can give
+> some more background on how I came to this. I think the chapters for the
+> GPIO block are written with a strong assumption that the input debounce
+> clock is 32768Hz, and further round 1/32768Hz to the nearest whole
+> microsecond (~30.5us->31us).
+>
+> However, at least on AM335x the debounce clock (i.e. the CLK_32KHZ) can
+> be made to run at other rates via the Control Module.
+>
+> Here is an example from clk_summary:
+>  clk_24mhz                    1            1    24000000          0 0
+>     clkdiv32k_ck              1            1       65536          0 0
+>        clkdiv32k_ick          2            6       65536          0 0
+>           timer7_fck          1            1       65536          0 0
+>           wdt1_fck            0            1       65536          0 0
+>           gpio3_dbclk         0            2       65536          0 0
+>           gpio2_dbclk         0            2       65536          0 0
+>           gpio1_dbclk         0            2       65536          0 0
+>
+> This is accomplished by setting clk32kdivratio_ctl[clkdivopp50_en] to 1
+> even while in OPP100, and adjusting the devicetree to match. Timer7 is
+> known to truly have a 65536Hz fck by configuring it as a 50% duty cycle
+> PWM and measuring with an oscilloscope.
+>
+> Here are some relevant sections from the AM335x TRM (spruh73o):
+>   25.2.2 GPIO Clock and Reset Management
+>     Debounce Functional clock (GPIO[123]) comes from CLK_32KHZ.
+>   8.1.6.8 Peripheral PLL Description
+>     CLK_32KHZ is CLK_24 divided by either 732.4219 or 366.2109.
+>     In OPP100 this results in either 32768Hz or 65536Hz.
+>     In OPP50 this results in either 16384Hz or 32768Hz.
+>   9.3.1.8 clk32kdivratio_ctrl Register
+>     Names of the register and field differ from 8.1.6.8, but it's
+>      clear they are the same.
+>
+> I'm not sure if other devices can be similarly cajoled into running
+> their equivalent 32KHZ clocks at a different rate, but it certainly
+> works for AM335x. Checking OMAP4430 TRM as an example makes it look
+> like OMAP44xx has a fixed 32768Hz clock with no adjustment possible
+> (backed up by omap44xx-clocks.dtsi having it just be a fixed-clock).
+>
+>
+>>>
+>>> Fixes: e85ec6c3047b ("gpio: omap: fix omap2_set_gpio_debounce")
+>>> Cc: <stable@vger.kernel.org> # 4.3+
+>>> Signed-off-by: David Rivshin <drivshin@allworx.com>
+>>> ---
+>>>
+>>> This logical bug existed before e85ec6c3047b, but if backporting
+>>> further it's probably best to just cherry-pick/backport e85ec6c3047b
+>>> first.
+>>>
+>>>  drivers/gpio/gpio-omap.c | 8 +++++---
+>>>  1 file changed, 5 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index 33ec02d..865a831 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -205,8 +205,8 @@ static inline void omap_gpio_dbck_disable(struct gpio_bank *bank)
+>>>   * @offset: the gpio number on this @bank
+>>>   * @debounce: debounce time to use
+>>>   *
+>>> - * OMAP's debounce time is in 31us steps
+>>> - *   <debounce time> = (GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME + 1) x 31
+>>> + * OMAP's debounce time is in 1/DBCK steps
+>>> + *   <debounce time> = (GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME + 1) / DBCK
+>>>   * so we need to convert and round up to the closest unit.
+>>>   *
+>>>   * Return: 0 on success, negative error otherwise.
+>>> @@ -223,7 +223,9 @@ static int omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
+>>>  		return -ENOTSUPP;
+>>>
+>>>  	if (enable) {
+>>> -		debounce = DIV_ROUND_UP(debounce, 31) - 1;
+>>> +		u64 tmp = (u64)debounce * clk_get_rate(bank->dbck);
+>>> +
+>>> +		debounce = DIV_ROUND_UP_ULL(tmp, 1000000) - 1;
+>>>  		if ((debounce & OMAP4_GPIO_DEBOUNCINGTIME_MASK) != debounce)
+>>>  			return -EINVAL;
+>>>  	}
+>>>
+>>
+>
 
-Ah yes, I just grepped for 'debounce' in am* and omap*. I guess
-that typo has been copied over from DT to DT. I'm tempted to spin 
-a patch correcting the typo, but I have no knowledge of those
-boards or HW to test with. Obviously no-one has complained about 
-the 5ms vs 50ms debounce so far, so maybe 50ms isn't the correct
-number in the first place?
-
-> >
-> > Not having seen any of that hardware, I can't say for certain what the
-> > true HW requirements are. 1000ms does seem like a long debounce, perhaps
-> > the author meant 1ms (1000us) for those buttons? Or perhaps it really
-> > needs a 1000ms debounce, and is currently wrong?
-> >  
-> >>
-> >> But agree - max might not be a good choose, so can you add dev_err() below, pls.  
-> >
-> > Given the above, I personally feel that a dev_err() is undesirable in most
-> > cases. If I have a system and matching DT that just happens to need a longer
-> > debounce than the GPIO HW is capable of, gpio-keys (etc) does the best it can automatically. I don't consider that there is any error in that case, or
-> > anything to be fixed.
-> > I can understanding wanting to draw attention to a change in behavior (just
-> > in case the DT is incorrect), but I'd personally lean towards dev_info() if
-> > anything.
-> >
-> > That said: if you still prefer dev_err(), I will certainly do so.  
-> 
-> Fair enough :) thanks.
-> 
-> Acked-by: Grygorii Strashko <grygorii.strashko@ti.com>
-
-Just to make sure I don't misunderstand, would you like me to:
-A) put in a dev_err() 
-B) put in a dev_info() 
-C) leave it as-is without any message 
-?
-
-I can spin a v2 as early as Monday, depending on the results of discussion 
-on the second patch.
-
-> 
-> >
-> > Tangent:
-> > This discussion makes me think that adding a gpiod_get_max_debounce()
-> > would allow even better behavior. Then asking for a too-high debounce
-> > could be a dev_err() in all gpio drivers, with the expectation that no
-> > driver should ask for such. Also, drivers could do something like use
-> > max hardware debounce plus a software debounce for the remaining time,
-> > in order to avoid CPU overhead on short glitches.
-> >
+-- 
+regards,
+-grygorii
