@@ -1,37 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] mfd: cpcap: Fix bad use of IRQ sense register
-Date: Sun, 19 Mar 2017 09:07:20 -0700
-Message-ID: <20170319160720.GZ20572@atomide.com>
-References: <20170317003633.7361-1-tony@atomide.com>
- <20170317003633.7361-5-tony@atomide.com>
- <20170319020118.4oh6sny5phqpatit@earth>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 6/6] ARM: dts: omap4-droid4: Add LCD
+Date: Sun, 19 Mar 2017 09:10:30 -0700
+Message-ID: <20170319161030.GA20572@atomide.com>
+References: <20170305054359.8293-1-tony@atomide.com>
+ <20170305054359.8293-7-tony@atomide.com>
+ <20170319012927.kmyqngprpip7le4m@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170319020118.4oh6sny5phqpatit@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+In-Reply-To: <20170319012927.kmyqngprpip7le4m@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [170318 19:03]:
-> On Thu, Mar 16, 2017 at 05:36:33PM -0700, Tony Lindgren wrote:
-> > The cpcap INTS registers are for getting the value of the line,
-> > not for configuring the type.
+* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170318 18:31]:
+> Hi,
+> 
+> On Sat, Mar 04, 2017 at 09:43:59PM -0800, Tony Lindgren wrote:
+> > The LCD panel on droid 4 is a command mode LCD. The binding follows
+> > the standard omapdrm binding and the changes needed for omapdrm command
+> > mode panels are posted separately.
 > > 
-> > Cc: Lee Jones <lee.jones@linaro.org>
-> > Cc: Marcel Partap <mpartap@gmx.net>
-> > Cc: Michael Scott <michael.scott@linaro.org>
-> > Cc: Sebastian Reichel <sre@kernel.org>
+> > Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+> > Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > 
-> Reviewed-By: Sebastian Reichel <sre@kernel.org>
+> Tested-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > 
-> > Signed-off-by: Tony Lindgrne <tony@atomide.com>
-> 
-> https://lwn.net/Articles/717281/ ;)
+> With a non-modular kernel lcd is not working with omapdrm if HDMI
+> is enabled. After dropping HDMI in droid4's dts file everything
+> worked as expected. I assume both work properly with a modular
+> kernel?
 
-Nah, just a time to clean-up the keyboard again!
+Yes with loadable modules both work just fine. If things do not
+work properly as built-in, chances are there's some unhandled
+dependency that needs -EPROBE_DEFER somewhere for a regulator
+or a clock.
+
+Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
