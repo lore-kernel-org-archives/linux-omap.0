@@ -1,89 +1,97 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] net: qmi_wwan: Add USB IDs for MDM6600 modem on Motorola
- Droid 4
-Date: Sun, 19 Mar 2017 10:35:26 -0700
-Message-ID: <20170319173526.GD20572@atomide.com>
-References: <20170319161957.6625-1-tony@atomide.com>
- <87lgs15iun.fsf@miraculix.mork.no>
- <20170319170254.GB20572@atomide.com>
- <87fui95gjo.fsf@miraculix.mork.no>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] iio: adc: cpcap: Add minimal support for CPCAP PMIC ADC
+Date: Sun, 19 Mar 2017 10:54:26 -0700
+Message-ID: <20170319175426.GE20572@atomide.com>
+References: <20170317014344.27201-1-tony@atomide.com>
+ <fefdc8e7-3780-b149-7898-0a4f3f58efc3@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <87fui95gjo.fsf@miraculix.mork.no>
-Sender: netdev-owner@vger.kernel.org
-To: =?utf-8?B?QmrDuHJu?= Mork <bjorn@mork.no>
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-omap@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+In-Reply-To: <fefdc8e7-3780-b149-7898-0a4f3f58efc3-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Bjørn Mork <bjorn@mork.no> [170319 10:23]:
-> Tony Lindgren <tony@atomide.com> writes:
-> > And the v3.8 kernel also has drivers/usb/serial/mdm6600.c:
-> >
-> > +static const struct usb_device_id mdm6600_id_table[] = {
-> > +       { USB_DEVICE_AND_INTERFACE_INFO(0x22b8, 0x2a70, 0xff, 0xff, 0xff) },
-> > +        /* MDM9600 */
-> > +       { USB_DEVICE_AND_INTERFACE_INFO(0x22b8, 0x2e0a, 0xff, 0xff, 0xff) },
-> > +       { USB_DEVICE_AND_INTERFACE_INFO(0x22b8, 0x900e, 0xff, 0xff, 0xff) },
-> > +       { },
-> > +};
-> 
-> 
-> Yes, looks like they consitently use ff/ff/ff for serial functions and
-> ff/fb/ff for QMI functions.  So adding a vendor rule seems appropriate.
+* Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170319 10:08]:
+> On 17/03/17 01:43, Tony Lindgren wrote:
+> > On Motorola phones like droid 4 there is a custom CPCAP PMIC. This PMIC
+> > has ADCs that are used for battery charging and USB PHY VBUS and ID pin
+> > detection.
+> > 
+> > Unfortunately the only documentation for this ADC seems to be the
+> > Motorola mapphone Linux kernel tree. I have tested that reading raw and
+> > scaled values works, but I have not used the timed sampling that the ADC
+> > seems to support.
+> Any link? I'm curious to see just how 'interesting' this was...
 
-OK
+Well the Motorola kernel has the CPCAP PMIC registers quite nicely
+documented. I mostly use the "STS-Dev-Team/kernel_mapphone_kexec"
+git tree as a reference as that has the original Motorola patch
+imported into a git tree. Below are few links to selected files
+for fun reading:
 
-> > And then in drivers/usb/serial/moto_flashqsc.c:
-> >
-> > +static struct usb_device_id id_table[] = {
-> > +       {USB_DEVICE_AND_INTERFACE_INFO(0x22b8, 0x2a63, 0x0a, 0, 0)},
-> > +       {USB_DEVICE_AND_INTERFACE_INFO(0x22b8, 0x4281, 0x0a, 0, 0xfc)},
-> > +       {USB_DEVICE_AND_INTERFACE_INFO(0x22b8, 0x2db4, 0x0a, 0, 0xfc)},
-> > +       {USB_DEVICE(0x22b8, 0x4260)},
-> > +       {USB_DEVICE(0x22b8, 0x426D)},
-> > +       {},
-> > +};
+https://github.com/STS-Dev-Team/kernel_mapphone_kexec
+https://github.com/STS-Dev-Team/kernel_mapphone_kexec/blob/cm-10.1/drivers/mfd/cpcap-adc.c
+https://github.com/STS-Dev-Team/kernel_mapphone_kexec/blob/cm-10.1/include/linux/spi/cpcap-regbits.h
+https://github.com/STS-Dev-Team/kernel_mapphone_kexec/blob/cm-10.1/include/linux/spi/cpcap.h
+
+> You are a brave person...
+
+Well n950 is too hard to replace.. And n900 is a bit memory limited..
+And there are tons of used droid 4 available for about $35 or so :)
+
+> > +/*
+> > + * Temperature lookup table of register values to milliCelcius.
+> > + * REVISIT: Check the duplicate 0x3ff entry in a freezer
+> :) Best comment I've seen in a driver for a while!
+
+:)
+
+> > +static const struct iio_chan_spec cpcap_adc_channels[] = {
+> > +	CPCAP_CHAN(IIO_TEMP, 0, CPCAP_REG_ADCD0, "battdetb"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 1, CPCAP_REG_ADCD1, "battp"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 2, CPCAP_REG_ADCD2, "vbus"),
+> > +	CPCAP_CHAN(IIO_TEMP, 3, CPCAP_REG_ADCD3, "ad3"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 4, CPCAP_REG_ADCD4, "ad4"),
+> > +	CPCAP_CHAN(IIO_CURRENT, 5, CPCAP_REG_ADCD5, "chg_isense"),
+> > +	CPCAP_CHAN(IIO_CURRENT, 6, CPCAP_REG_ADCD6, "batti"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 7, CPCAP_REG_ADCD7, "usb_id"),
+> > +
+> > +	CPCAP_CHAN(IIO_CURRENT, 8, CPCAP_REG_ADCD0, "ad8"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 9, CPCAP_REG_ADCD1, "ad9"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 10, CPCAP_REG_ADCD2, "licell"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 11, CPCAP_REG_ADCD3, "hv_battp"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 12, CPCAP_REG_ADCD4, "tsx1_ad12"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 13, CPCAP_REG_ADCD5, "tsx2_ad13"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 14, CPCAP_REG_ADCD6, "tsy1_ad14"),
+> > +	CPCAP_CHAN(IIO_VOLTAGE, 15, CPCAP_REG_ADCD7, "tsy2_ad15"),
+> Touch screen kicking around on here as well?  Or am I reading too much into
+> the names?
+
+Yeah so it seems. These do not seem to be wired to anything in
+droid 4, but the Motorola kernel supports a whole family of
+devices, so it was probably used for touch screen on some at some
+point.
+
+> > +		*val = req.result[index];
 > 
-> This on the other hand, is something I hope I don't have to review :)
-> The 0x0a class (CDC Data) is always part of a multi-interface function,
-> and you would normally match on the control interface.
-
-No idea about that one.. Presumably we can ignore it for now :)
-
-> > Where the 0x4260 and 0x426d seem to be for the flash mode of the
-> > Wrigley3GLTE modem.
-> >
-> > See also lsusb -v output below. No idea if there's a Windows driver
-> > .inf file for this. Most likely whatever Windows driver is just using the
-> > generic Android USB driver(s). I know the USB on droid 4 can be multiplexed
-> > to have MDM6600 directly accessed, but I think that's only used for
-> > debugging the modem as that mode needs to be selected in the bootloader
-> > temporarily using volume keys.
-> >
-> > With the configuration in my patch, modprobe of qmi_wwan produces four
-> > wwan interfaces if that matters.
+> This would come in the seriously unusual category if the scale is integer...
+> Could be I suppose, but seems unlikely ;)
+> Note that value in mV should be raw_value * scale.
 > 
-> And I assume they all work?
+> I'd guess these are what we term _processed channels, i.e. already in mV?
 
-Yeah the network scan shows networks on all four interfaces.
+Oh OK, thanks I'll check, yeah it's already in mV.
 
-> >> The reason I ask is that I'd hate to have reports of other Motorola
-> >> devices where ff/fb/ff was used for some other USB function.  Yes, that
-> >> would be stupid.  But still... Experience shows that we cannot rule out
-> >> stupid when we consider USB descriptors.
-> >
-> > Yes thanks for checking. If you prefer to set it up in some other
-> > way, or need more info, please let me know.
-> 
-> No, it all looks very sane to me, given your explanation. Just wanted to
-> be absolutely sure. Thanks a lot.
-> 
-> 
-> Acked-by: Bjørn Mork <bjorn@mork.no>
+> If all you have is unregister in remove, it's a fairly sure sign
+> you could have used devm_iio_device_register and dropped the remove
+> entirely.
 
-OK thanks,
+Sure. Will also look at the other comments and repost, thanks
+for the review.
+
+Regards,
 
 Tony
