@@ -1,132 +1,111 @@
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] ASoC: omap: constify snd_soc_ops structures
-Date: Sat, 18 Mar 2017 19:34:11 +0530
-Message-ID: <1489845851-25364-1-git-send-email-bhumirks@gmail.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/6] ARM: dts: omap4-droid4: Add LCD backlight
+Date: Sun, 19 Mar 2017 02:18:30 +0100
+Message-ID: <20170319011830.4fapdy2jvlfvpljr@earth>
+References: <20170305054359.8293-1-tony@atomide.com>
+ <20170305054359.8293-3-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: julia.lawall@lip6.fr, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="5a2fveuyy5ewvvsc"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170305054359.8293-3-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Declare snd_soc_ops structures as const as they are only stored
-in the ops field of a snd_soc_dai_link structure. This field is
-of type const, so snd_soc_ops structures having this property
-can be made const too.
 
-Cross compiled the .o files for arm architecture.
+--5a2fveuyy5ewvvsc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- sound/soc/omap/am3517evm.c        | 2 +-
- sound/soc/omap/n810.c             | 2 +-
- sound/soc/omap/omap-abe-twl6040.c | 2 +-
- sound/soc/omap/omap-twl4030.c     | 2 +-
- sound/soc/omap/omap3pandora.c     | 2 +-
- sound/soc/omap/osk5912.c          | 2 +-
- sound/soc/omap/rx51.c             | 2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+Hi,
 
-diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
-index 25a33e9..d565102 100644
---- a/sound/soc/omap/am3517evm.c
-+++ b/sound/soc/omap/am3517evm.c
-@@ -49,7 +49,7 @@ static int am3517evm_hw_params(struct snd_pcm_substream *substream,
- 	return ret;
- }
- 
--static struct snd_soc_ops am3517evm_ops = {
-+static const struct snd_soc_ops am3517evm_ops = {
- 	.hw_params = am3517evm_hw_params,
- };
- 
-diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
-index fdecb70..71e5f31 100644
---- a/sound/soc/omap/n810.c
-+++ b/sound/soc/omap/n810.c
-@@ -124,7 +124,7 @@ static int n810_hw_params(struct snd_pcm_substream *substream,
- 	return err;
- }
- 
--static struct snd_soc_ops n810_ops = {
-+static const struct snd_soc_ops n810_ops = {
- 	.startup = n810_startup,
- 	.hw_params = n810_hw_params,
- 	.shutdown = n810_shutdown,
-diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
-index 89fe95e..614b18d 100644
---- a/sound/soc/omap/omap-abe-twl6040.c
-+++ b/sound/soc/omap/omap-abe-twl6040.c
-@@ -70,7 +70,7 @@ static int omap_abe_hw_params(struct snd_pcm_substream *substream,
- 	return ret;
- }
- 
--static struct snd_soc_ops omap_abe_ops = {
-+static const struct snd_soc_ops omap_abe_ops = {
- 	.hw_params = omap_abe_hw_params,
- };
- 
-diff --git a/sound/soc/omap/omap-twl4030.c b/sound/soc/omap/omap-twl4030.c
-index 7431314..a24b0de 100644
---- a/sound/soc/omap/omap-twl4030.c
-+++ b/sound/soc/omap/omap-twl4030.c
-@@ -73,7 +73,7 @@ static int omap_twl4030_hw_params(struct snd_pcm_substream *substream,
- 	return snd_soc_runtime_set_dai_fmt(rtd, fmt);
- }
- 
--static struct snd_soc_ops omap_twl4030_ops = {
-+static const struct snd_soc_ops omap_twl4030_ops = {
- 	.hw_params = omap_twl4030_hw_params,
- };
- 
-diff --git a/sound/soc/omap/omap3pandora.c b/sound/soc/omap/omap3pandora.c
-index 732e749..4e3de71 100644
---- a/sound/soc/omap/omap3pandora.c
-+++ b/sound/soc/omap/omap3pandora.c
-@@ -184,7 +184,7 @@ static int omap3pandora_in_init(struct snd_soc_pcm_runtime *rtd)
- 	return 0;
- }
- 
--static struct snd_soc_ops omap3pandora_ops = {
-+static const struct snd_soc_ops omap3pandora_ops = {
- 	.hw_params = omap3pandora_hw_params,
- };
- 
-diff --git a/sound/soc/omap/osk5912.c b/sound/soc/omap/osk5912.c
-index aa4053b..e409677 100644
---- a/sound/soc/omap/osk5912.c
-+++ b/sound/soc/omap/osk5912.c
-@@ -68,7 +68,7 @@ static int osk_hw_params(struct snd_pcm_substream *substream,
- 	return err;
- }
- 
--static struct snd_soc_ops osk_ops = {
-+static const struct snd_soc_ops osk_ops = {
- 	.startup = osk_startup,
- 	.hw_params = osk_hw_params,
- 	.shutdown = osk_shutdown,
-diff --git a/sound/soc/omap/rx51.c b/sound/soc/omap/rx51.c
-index a768457..66ac358 100644
---- a/sound/soc/omap/rx51.c
-+++ b/sound/soc/omap/rx51.c
-@@ -123,7 +123,7 @@ static int rx51_hw_params(struct snd_pcm_substream *substream,
- 				      SND_SOC_CLOCK_IN);
- }
- 
--static struct snd_soc_ops rx51_ops = {
-+static const struct snd_soc_ops rx51_ops = {
- 	.startup = rx51_startup,
- 	.hw_params = rx51_hw_params,
- };
--- 
-2.7.4
+On Sat, Mar 04, 2017 at 09:43:55PM -0800, Tony Lindgren wrote:
+> The TI LMU driver has not yet been merged, but the device
+> tree binding for TI LMU drivers has been acked already
+> earlier by Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>. So it should
+> be safe to apply to cut down the number of pending patches.
+>=20
+> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Milo Kim <milo.kim-l0cyMroinI0@public.gmane.org>
+> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+Tested-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+I had to add https://patchwork.kernel.org/patch/7704601/ in addition
+to the patches recently queued into MFD. It would be nice to get that
+into 4.12 - @Milo Kim: What's your plan on that patch?
+
+-- Sebastian
+
+> ---
+>  arch/arm/boot/dts/omap4-droid4-xt894.dts | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
+>=20
+> diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts=
+/omap4-droid4-xt894.dts
+> --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+> @@ -180,6 +180,25 @@
+>  	};
+>  };
+> =20
+> +&i2c1 {
+> +	lm3532@38 {
+> +		compatible =3D "ti,lm3532";
+> +		reg =3D <0x38>;
+> +
+> +		enable-gpios =3D <&gpio6 12 GPIO_ACTIVE_HIGH>;
+> +
+> +		backlight {
+> +			compatible =3D "ti,lm3532-backlight";
+> +
+> +			lcd {
+> +				led-sources =3D <0 1 2>;
+> +				ramp-up-msec =3D <1>;
+> +				ramp-down-msec =3D <0>;
+> +			};
+> +		};
+> +	};
+> +};
+> +
+>  /*
+>   * REVISIT: Add gpio173 reset pin handling to the driver, see gpio-hog a=
+bove.
+>   * If the GPIO reset is used, we probably need to have /lib/firmware/max=
+touch.fw
+> --=20
+> 2.11.1
+
+--5a2fveuyy5ewvvsc
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljN3GMACgkQ2O7X88g7
++pprcg//es8CMoBFseetRj6dRaEkmCatqK6tDergwDbUgY67jMcz0irkQSVgFwCY
+xSjuwZhnvVtb1uedOOvL87BEPMh3VOhRYLCbsZCOPvMdkou0QHOWcX74lrVUeqlp
+Yfm2RKN+f9sHhv7HnyByeNXulAQ0Z8EFhbNxvWGTlOYvhDmdG8s99+iAhcLpFaSP
+kfAncHgMSo6WWco/5WFDq5zeFTZFZMZqkTZFmMUTWnUR0b2FSpzFUNdr7vBKlSiZ
+Ih7zEkDTtBbeG3dYl9TpQuTzNIT2weWGKkfnmt1Dmh1b/we+65msiNe7USkV5M5s
+iIL1EgtXfBcPQNSYAz3vYBBGRv2bKSZuqM47k6mCAL+SW2ppLBSUvbd5UqXCBM7R
+bt2ySohOy22Pz+IJq3XOOzsmdCR6lb6OZnYB+PEJDQkbRptgbcezcuZYMeTb8y2n
+GaDa9R8tGapZkRUKlLpQpKSCdq0HAfAmuAchljDnztnvhwiiedliMKvs3IgV0tDD
+XETL2Df7mMFttXqPjs8/ZLeGSD9xZSNjoIhDr30/zIDEzcnnZsNp2J4AP6U0ulTi
+vXEFZWYE2CII443w2m3TV6xNmkW80Ek7HvQN+bPiz4nfECTr5IMJ0jtgwr6jxAVE
+/H8BjAUY2AMt7JZQbLUN5orrtZqBn8FJV2wE+Etj2pLNDNRBni4=
+=CjQ9
+-----END PGP SIGNATURE-----
+
+--5a2fveuyy5ewvvsc--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
