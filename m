@@ -1,18 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 8/9] ARM: dts: omap4: add clkctrl nodes
-Date: Mon, 20 Mar 2017 07:35:39 -0700
-Message-ID: <20170320143538.GH20572@atomide.com>
+Subject: Re: [PATCHv2 5/9] ARM: OMAP2+: hwmod: assign main clock from DT if
+ available
+Date: Mon, 20 Mar 2017 07:36:05 -0700
+Message-ID: <20170320143605.GI20572@atomide.com>
 References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
- <1489741781-12816-9-git-send-email-t-kristo@ti.com>
- <20170317154333.GW20572@atomide.com>
- <9456caee-4f45-044a-0b2e-305fa2d0d274@ti.com>
- <b602ccba-489f-e78f-0011-6d808bca9f84@ti.com>
+ <1489741781-12816-6-git-send-email-t-kristo@ti.com>
+ <20170317154126.GU20572@atomide.com>
+ <f7c795dc-13db-9157-cdcc-b61892cc73f9@ti.com>
+ <20170317221728.GX20572@atomide.com>
+ <95b7142f-8cc7-5909-764e-05dbad434298@ti.com>
+ <20170320143433.GG20572@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <b602ccba-489f-e78f-0011-6d808bca9f84@ti.com>
+In-Reply-To: <20170320143433.GG20572@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,29 +29,19 @@ To: Tero Kristo <t-kristo@ti.com>
 Cc: mturquette@baylibre.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [170320 06:27]:
-> On 17/03/17 23:41, Tero Kristo wrote:
-> > On 17/03/17 17:43, Tony Lindgren wrote:
-> > > * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
-> > > > Add clkctrl nodes for OMAP4 SoC. These are going to be acting as
-> > > > replacement for part of the existing clock data and the existing
-> > > > clkctrl hooks under hwmod data.
-> > > 
-> > > It seems to be actually this patch in the series that breaks booting
-> > > if the last patch in this series is not applied.
+* Tony Lindgren <tony@atomide.com> [170320 07:37]:
+> * Tero Kristo <t-kristo@ti.com> [170320 06:25]:
+> > On 18/03/17 00:17, Tony Lindgren wrote:
+> > > I don't quite follow you, what breaks if you fall back to the old clock
+> > > lookup if no "ti,hwmods" is set?
 > > 
-> > Yea I guess we need to squash this and patch #9, I'll double check next
-> > week. Sorry about not catching this one.
+> > I think I misunderstood your earlier comment. So basically the code already
+> > bails out early if ti,hwmods is not set. In this case, the earlier lookup
+> > done by hwmod core sets the node pointer for this code to be NULL, and this
+> > just parses the existing main_clk info.
 > 
-> Yes, patch #8 and #9 must be squashed. What happens with patch #8 alone, is
-> that you get all the clkctrl clocks registered, but as nobody is using them,
-> the clock core disables them later on in clk_disable_unused.
+> OK thanks for confirming that.
 
-So how hard would it to do a mixed approach where we don't need
-to have everything in place in the dts in order to flip a SoC?
+And also for this patch:
 
-This atomic transaction worries me..
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
