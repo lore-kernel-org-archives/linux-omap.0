@@ -1,48 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] regmap: irq: Fix lost interrupts by introducing
- handle_reread
-Date: Mon, 20 Mar 2017 08:33:42 -0700
-Message-ID: <20170320153341.GK20572@atomide.com>
-References: <20170317003633.7361-1-tony@atomide.com>
- <20170317003633.7361-2-tony@atomide.com>
- <20170320151413.GT6986@localhost.localdomain>
+Subject: Re: [PATCHv2 03/10] Revert "drm: omapdrm: Remove manual update
+ display support"
+Date: Mon, 20 Mar 2017 09:14:05 -0700
+Message-ID: <20170320161404.GL20572@atomide.com>
+References: <20170304235021.27055-1-sre@kernel.org>
+ <20170305004309.28259-1-sre@kernel.org>
+ <20170305004309.28259-3-sre@kernel.org>
+ <e04edb75-d8bd-5380-f91a-ff425bd91404@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170320151413.GT6986@localhost.localdomain>
+In-Reply-To: <e04edb75-d8bd-5380-f91a-ff425bd91404@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Sebastian Reichel <sre@kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Charles Keepax <ckeepax@opensource.wolfsonmicro.com> [170320 08:15]:
-> On Thu, Mar 16, 2017 at 05:36:30PM -0700, Tony Lindgren wrote:
-> > At least Motorola CPCAP PMIC needs it's device interrupts re-read
-> > until there are no more interrupts. Otherwise the PMIC interrupt to
-> > the SoC will eventually stop toggling.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [170320 04:10]:
+> On 05/03/17 02:43, Sebastian Reichel wrote:
+> > This reverts commit 5a35876e2830511cb8110667fc426c6a6165a593.
 > > 
-> > Let's allow doing that by introducing a flag for handle_reread
-> > and by splitting regmap_irq_thread() into two separate functions
-> > for regmap_read_irq_status() and regmap_irq_handle_pending().
-> > 
+> > Revert the removal of manual update display support in
+> > preparation for DSI command mode panels.
 > 
-> Is this actually a property of this hardware or is this just a
-> result of connecting a device that generates level IRQs to a host
-> that is expecting an edge triggered IRQ?
+> I think it's much better to just add the manual update support from
+> scratch rather than first reverting this old cleanup commit and then
+> adding more bits and pieces.
 
-Well the CPCAP PMIC interrupt is connected to a GPIO edge interrupt
-on the SoC in the Motorola v3.8 based kernel tree. But what the CPCAP
-PMIC interrupt handler does in the Motorola kernel is keep handling
-the CPCAP internal interrupts (and also keep reading the SoC GPIO
-line status!) until the GPIO line changes status. So yeah it's a
-property of the CPCAP PMIC hardware.
+Do you know if the command mode panels support partial refresh?
 
-Changing the GPIO interrupt to level makes no difference here. It's
-not clear why they had marked the CPCAP PMIC to SoC GPIO interrupt
-as edge though in the Motorola kernel. My guess is that some PMIC
-to SoC wake-up events are edge interrupts. So we have it set up as
-edge interrupt in the mainline kernel too.
+Just wondering if we want to keep "int x, int y, int w, int h"
+around for omap_connector_flush() or whatever it ends up being?
 
 Regards,
 
