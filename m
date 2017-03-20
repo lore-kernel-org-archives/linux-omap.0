@@ -1,87 +1,70 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/6] ARM: dts: omap4-droid4: Add LCD
-Date: Mon, 20 Mar 2017 09:52:20 +0200
-Message-ID: <9c4a5d88-4d2a-2120-9fdf-f3fbba69147c@ti.com>
-References: <20170305054359.8293-1-tony@atomide.com>
- <20170305054359.8293-7-tony@atomide.com>
- <20170319012927.kmyqngprpip7le4m@earth> <20170319161030.GA20572@atomide.com>
- <20170319225542.ts53qpwdhdrmy2ac@earth>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv2 03/10] Revert "drm: omapdrm: Remove manual update
+ display support"
+Date: Mon, 20 Mar 2017 13:07:45 +0200
+Message-ID: <e04edb75-d8bd-5380-f91a-ff425bd91404@ti.com>
+References: <20170304235021.27055-1-sre@kernel.org>
+ <20170305004309.28259-1-sre@kernel.org>
+ <20170305004309.28259-3-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature";
-        boundary="Vujr69NBkmhFA3CGvWht0f4LOfvwE5bFG"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170319225542.ts53qpwdhdrmy2ac@earth>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============1113128890=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170305004309.28259-3-sre@kernel.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
---Vujr69NBkmhFA3CGvWht0f4LOfvwE5bFG
-Content-Type: multipart/mixed; boundary="nritWwl2v88hfWSsnSBP1hk1PqwNTJsI6";
- protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?Q?Beno=c3=aet_Cousson?=
- <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Message-ID: <9c4a5d88-4d2a-2120-9fdf-f3fbba69147c-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/6] ARM: dts: omap4-droid4: Add LCD
-References: <20170305054359.8293-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
- <20170305054359.8293-7-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
- <20170319012927.kmyqngprpip7le4m@earth> <20170319161030.GA20572-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
- <20170319225542.ts53qpwdhdrmy2ac@earth>
-In-Reply-To: <20170319225542.ts53qpwdhdrmy2ac@earth>
+--===============1113128890==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="9BNAm7wM6cNQixbQXt6WtSnrLCAQjO0f3"
 
---nritWwl2v88hfWSsnSBP1hk1PqwNTJsI6
+--9BNAm7wM6cNQixbQXt6WtSnrLCAQjO0f3
+Content-Type: multipart/mixed; boundary="okpEKepeJceuuox56sIFdnKJbaDVFTqOe";
+ protected-headers="v1"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Message-ID: <e04edb75-d8bd-5380-f91a-ff425bd91404@ti.com>
+Subject: Re: [PATCHv2 03/10] Revert "drm: omapdrm: Remove manual update
+ display support"
+References: <20170304235021.27055-1-sre@kernel.org>
+ <20170305004309.28259-1-sre@kernel.org>
+ <20170305004309.28259-3-sre@kernel.org>
+In-Reply-To: <20170305004309.28259-3-sre@kernel.org>
+
+--okpEKepeJceuuox56sIFdnKJbaDVFTqOe
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 20/03/17 00:55, Sebastian Reichel wrote:
-> Hi,
+On 05/03/17 02:43, Sebastian Reichel wrote:
+> This reverts commit 5a35876e2830511cb8110667fc426c6a6165a593.
 >=20
-> On Sun, Mar 19, 2017 at 09:10:30AM -0700, Tony Lindgren wrote:
->> * Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170318 18:31]:
->>> Hi,
->>>
->>> On Sat, Mar 04, 2017 at 09:43:59PM -0800, Tony Lindgren wrote:
->>>> The LCD panel on droid 4 is a command mode LCD. The binding follows
->>>> the standard omapdrm binding and the changes needed for omapdrm comm=
-and
->>>> mode panels are posted separately.
->>>>
->>>> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
->>>> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->>>> Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->>>> Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
->>>> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->>>
->>> Tested-By: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->>>
->>> With a non-modular kernel lcd is not working with omapdrm if HDMI
->>> is enabled. After dropping HDMI in droid4's dts file everything
->>> worked as expected. I assume both work properly with a modular
->>> kernel?
->>
->> Yes with loadable modules both work just fine. If things do not
->> work properly as built-in, chances are there's some unhandled
->> dependency that needs -EPROBE_DEFER somewhere for a regulator
->> or a clock.
->=20
-> I think that would also result in problems with disabled HDMI.
-> I guess the problem is, that omapdrm is initialized too early.
-> AFAIK omapdrm is not hotplug-capable.
+> Revert the removal of manual update display support in
+> preparation for DSI command mode panels.
 
-It shouldn't matter when omapdrm is initialized. omapdrm should wait
-until it has all the displays.
+I think it's much better to just add the manual update support from
+scratch rather than first reverting this old cleanup commit and then
+adding more bits and pieces.
 
  Tomi
 
 
---nritWwl2v88hfWSsnSBP1hk1PqwNTJsI6--
+--okpEKepeJceuuox56sIFdnKJbaDVFTqOe--
 
---Vujr69NBkmhFA3CGvWht0f4LOfvwE5bFG
+--9BNAm7wM6cNQixbQXt6WtSnrLCAQjO0f3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -89,23 +72,31 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJYz4o0AAoJEPo9qoy8lh71RywP/1W0XVUmCrVb6oX9T1MLx6P9
-GZ9pRfQi62wAsDr5jQNa6+FhDUxY2CrviHziOiy+nJLI5jXH1O2Yw68l6oFFxGpU
-9KAj9urfkNKCwXI4IpYpAEmkpI5dm/CdW0+H31n8Co9qlelekDfXOQVupUP12dkx
-AbyazDWxTiaEDflVmvpl/72ZZFI1/x72NhTvFcZ3o9u1gSvbH+2WcO0fbCcnHpb1
-jpYl8LXUNxkJ68Ws/WjZASkKmdWaggV0ap1XxW4nH2sDvWUkNRX0UNByb3KXgajc
-mUStm2+4RNLp7LhOcnSR+yJzjPfHt73h49oexz63thFGqnnwDgT/ZhMmjcw5Vp8q
-VHUmjuIeMZfrMHF8q9bJijAfEYpJUCVLJYmrxkSSL/fKGY9txjGH4nULjtBG4y52
-Mg8T0lfdCtEgDTwJhvJjm0YjE58cDVilwIPoVtcl274AXIV7380ZBiK20x/YV9Fj
-U9ijqcF86ghX//w+cOdYRRvWwKCSe9dlIQQ7/WugtfB7FNjudGJDCyZ+ovs9wtpc
-hs4Z8lF9bM7qag2P+42wmQVhCiNm3BA7bZ+OCmfR1oxZJqA1tY9/DbhXQdgrxanz
-QHxK1Xwqj5YatnChRuFJwFngvPAOzwfhp/FL7LByt8tYUJWNIUik+VxCk4p/fgQp
-pRrXWT1qo/vkLQvJ9Xze
-=FKm9
+iQIcBAEBCAAGBQJYz7gBAAoJEPo9qoy8lh71TtYP/iHO7nYlYYoKpIaJ1E1Tey99
+/fEihnGiGMnOvBjTHo46Yj5nisQBV7T+28G+zyvMJ6RfRL7dNELOyNSErQGWv0VI
+cXpDD7dsV3UJv4KHT64VCYA7dPfdQ+IjQwS7ST9tlLgKlrcko44Rn5TG5QixNk2H
+b/xUjkOLcmBjfzBiWz0BYiMVshSVqIeRwbCG5WkSMVqgGJH7AARnLdbBrnbvxT+A
+AmDDn14dx2MqY/ARnvwoGwdpINAwrJqNt3Jcb5lTxzOrBnVWJcVSV+xYpW9/26Ww
+TNq8QnfcqaXcbqLPE9oawowYQN/hXsI5Yjs4T1UGNi6NyM5LCS7XQTXmHmP2d/x+
+u9Fh+NNTtqAno69yXVgK4sWMUk7GU99XiLLbJVFSrpmu9T7bKy8juG9xBPmXS5j8
+URnv0tUkt6+1CxyxTij/9sVIMQtzwsK8S0KVN9pxomCxeqCb0/bD+7Bp4aYqzpBi
+LxNwZQ4MJ1bVvH4DInYLqif3GGEBPZbeJgzIbv5+PAM+cKOubMWjHJjORTKPp0b0
+bd4pnis696FHEXymZAZD+AwJ9TYJuzgpGplmpm3VYFuNy9cHwShegdMkKw2XaCTA
+9g3FGVsJb2xxFNzRU5MV01AGtBtYixd8+WKp34thJQ3tRLzuBbTXjLEXcd2IMy56
+bwJtXpKOOtzvzPq16rmb
+=eSKz
 -----END PGP SIGNATURE-----
 
---Vujr69NBkmhFA3CGvWht0f4LOfvwE5bFG--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--9BNAm7wM6cNQixbQXt6WtSnrLCAQjO0f3--
+
+--===============1113128890==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============1113128890==--
