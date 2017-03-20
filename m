@@ -1,43 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 8/9] ARM: dts: omap4: add clkctrl nodes
-Date: Mon, 20 Mar 2017 08:07:39 -0700
-Message-ID: <20170320150738.GJ20572@atomide.com>
-References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
- <1489741781-12816-9-git-send-email-t-kristo@ti.com>
- <20170317154333.GW20572@atomide.com>
- <9456caee-4f45-044a-0b2e-305fa2d0d274@ti.com>
- <b602ccba-489f-e78f-0011-6d808bca9f84@ti.com>
- <20170320143538.GH20572@atomide.com>
- <3a82add5-7d85-458c-f8c1-9e58db6a8949@ti.com>
+From: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/4] regmap: irq: Fix lost interrupts by introducing
+ handle_reread
+Date: Mon, 20 Mar 2017 15:14:13 +0000
+Message-ID: <20170320151413.GT6986@localhost.localdomain>
+References: <20170317003633.7361-1-tony@atomide.com>
+ <20170317003633.7361-2-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3a82add5-7d85-458c-f8c1-9e58db6a8949@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: mturquette@baylibre.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20170317003633.7361-2-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [170320 07:54]:
-> - You can introduce the DTS changes on a clkctrl module basis, e.g.
-> introduce the node for l4_per_clkctrl along with the clock node changes for
-> the same
+On Thu, Mar 16, 2017 at 05:36:30PM -0700, Tony Lindgren wrote:
+> At least Motorola CPCAP PMIC needs it's device interrupts re-read
+> until there are no more interrupts. Otherwise the PMIC interrupt to
+> the SoC will eventually stop toggling.
+> 
+> Let's allow doing that by introducing a flag for handle_reread
+> and by splitting regmap_irq_thread() into two separate functions
+> for regmap_read_irq_status() and regmap_irq_handle_pending().
+> 
 
-I don't mind introducing them all at once, I'm worried about
-reverting in case of trouble. But as long as we can revert things on
-a clkctrl module basis in case of trouble, we should be good to go as
-far as I'm concerned.
+Is this actually a property of this hardware or is this just a
+result of connecting a device that generates level IRQs to a host
+that is expecting an edge triggered IRQ?
 
-Regards,
-
-Tony
+Thanks,
+Charles
