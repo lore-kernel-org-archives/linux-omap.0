@@ -1,51 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 03/10] Revert "drm: omapdrm: Remove manual update
- display support"
-Date: Mon, 20 Mar 2017 09:43:41 -0700
-Message-ID: <20170320164341.GM20572@atomide.com>
-References: <20170304235021.27055-1-sre@kernel.org>
- <20170305004309.28259-1-sre@kernel.org>
- <20170305004309.28259-3-sre@kernel.org>
- <e04edb75-d8bd-5380-f91a-ff425bd91404@ti.com>
- <20170320161404.GL20572@atomide.com>
- <c380d0df-6631-73c0-549a-f6b6f686be05@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v4 15/23] dt-bindings: PCI: dra7xx: Add dt bindings to
+ enable unaligned access
+Date: Mon, 20 Mar 2017 16:43:16 -0500
+Message-ID: <20170320214316.yah5cvfdabiceywf@rob-hp-laptop>
+References: <20170313142259.25397-1-kishon@ti.com>
+ <20170313142259.25397-16-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <c380d0df-6631-73c0-549a-f6b6f686be05@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170313142259.25397-16-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, hch@infradead.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [170320 09:38]:
-> On 20/03/17 18:14, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [170320 04:10]:
-> >> On 05/03/17 02:43, Sebastian Reichel wrote:
-> >>> This reverts commit 5a35876e2830511cb8110667fc426c6a6165a593.
-> >>>
-> >>> Revert the removal of manual update display support in
-> >>> preparation for DSI command mode panels.
-> >>
-> >> I think it's much better to just add the manual update support from
-> >> scratch rather than first reverting this old cleanup commit and then
-> >> adding more bits and pieces.
-> > 
-> > Do you know if the command mode panels support partial refresh?
-> > 
-> > Just wondering if we want to keep "int x, int y, int w, int h"
-> > around for omap_connector_flush() or whatever it ends up being?
+On Mon, Mar 13, 2017 at 07:52:51PM +0530, Kishon Vijay Abraham I wrote:
+> Update device tree binding documentation of TI's dra7xx PCI
+> controller to include property for enabling unaligned mem access.
 > 
-> Partial update? Yes they do. But setting everything up for partial
-> update on the DSS side is horribly complex, and support for that was
-> removed from DSS driver long ago.
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  Documentation/devicetree/bindings/pci/ti-pci.txt | 5 +++++
+>  1 file changed, 5 insertions(+)
 > 
-> So I think those parameters can be removed.
+> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> index 190828a5f32a..b69dd7dbd29e 100644
+> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> @@ -39,6 +39,11 @@ DEVICE MODE
+>   - interrupts : one interrupt entries must be specified for main interrupt.
+>   - num-ib-windows : number of inbound address translation windows
+>   - num-ob-windows : number of outbound address translation windows
+> + - ti,syscon-unaligned-access: phandle to the syscon dt node. The 1st argument
+> +			       should contain the register offset within syscon
+> +			       and the 2nd argument should contain the bit field
+> +			       for setting the bit to enable unaligned
+> +			       access.
 
-OK works for me.
+This should be setup by the firmware/bootloader or some platform code. 
+Why does the PCI host need to configure this?
 
-Regards,
-
-Tony
+Rob
