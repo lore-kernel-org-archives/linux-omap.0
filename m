@@ -1,15 +1,12 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 09/10] drm: omapdrm: crtc: get manual mode displays
- working
-Date: Mon, 20 Mar 2017 13:19:24 +0200
-Message-ID: <a2cd12b1-1e47-e86e-7262-7aa5a7068eec@ti.com>
+Subject: Re: [PATCHv2 00/10] Nokia N950 basic display support
+Date: Mon, 20 Mar 2017 13:29:35 +0200
+Message-ID: <d34e7a44-2ab9-52de-c888-21d19399ab11@ti.com>
 References: <20170304235021.27055-1-sre@kernel.org>
- <20170305004309.28259-1-sre@kernel.org>
- <20170305004309.28259-9-sre@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0120622599=="
+Content-Type: multipart/mixed; boundary="===============1324245522=="
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20170305004309.28259-9-sre@kernel.org>
+In-Reply-To: <20170304235021.27055-1-sre@kernel.org>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -23,13 +20,13 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro K
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
---===============0120622599==
+--===============1324245522==
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="2lsGeiSl3S0fpajQcIk7wWfrstFs4nWpE"
+	boundary="2Kg7LOib4e4U9mpItmG5GWOripGj7gBAR"
 
---2lsGeiSl3S0fpajQcIk7wWfrstFs4nWpE
-Content-Type: multipart/mixed; boundary="jlgxP55GUNt8QwhQHlMlcAv6hbcB2B9Pq";
+--2Kg7LOib4e4U9mpItmG5GWOripGj7gBAR
+Content-Type: multipart/mixed; boundary="IGaF6ArE7kxPGPDIxl3R9IRm8HP48ID2F";
  protected-headers="v1"
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>,
@@ -37,86 +34,59 @@ To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>,
  Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org,
  dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Message-ID: <a2cd12b1-1e47-e86e-7262-7aa5a7068eec@ti.com>
-Subject: Re: [PATCHv2 09/10] drm: omapdrm: crtc: get manual mode displays
- working
+Message-ID: <d34e7a44-2ab9-52de-c888-21d19399ab11@ti.com>
+Subject: Re: [PATCHv2 00/10] Nokia N950 basic display support
 References: <20170304235021.27055-1-sre@kernel.org>
- <20170305004309.28259-1-sre@kernel.org>
- <20170305004309.28259-9-sre@kernel.org>
-In-Reply-To: <20170305004309.28259-9-sre@kernel.org>
+In-Reply-To: <20170304235021.27055-1-sre@kernel.org>
 
---jlgxP55GUNt8QwhQHlMlcAv6hbcB2B9Pq
+--IGaF6ArE7kxPGPDIxl3R9IRm8HP48ID2F
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 05/03/17 02:43, Sebastian Reichel wrote:
-> From: Tony Lindgren <tony@atomide.com>
->=20
-> With manual mode displays we need to flush the panel manually.
->=20
-> Let's add flushing so we get Tomi's fbtest, kmstest, kmstest --flip,
-> and X and wayland working.
->=20
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> [On Nokia N950]
-> Tested-By: Sebastian Reichel <sre@kernel.org>
-> ---
->  drivers/gpu/drm/omapdrm/omap_crtc.c | 22 +++++++++++++++-------
->  1 file changed, 15 insertions(+), 7 deletions(-)
->=20
-> diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omap=
-drm/omap_crtc.c
-> index 4601533215d6..e07b0a0be4bf 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_crtc.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
-> @@ -97,6 +97,11 @@ bool omap_crtc_is_manual_updated(struct drm_crtc *cr=
-tc)
->  	return omap_crtc->manually_updated;
->  }
-> =20
-> +static void omap_crtc_manual_needs_flush(struct drm_crtc *crtc)
-> +{
-> +	omap_crtc_flush(crtc, 0, 0, 0, 0);
-> +}
-> +
->  /* -------------------------------------------------------------------=
-----------
->   * DSS Manager Functions
->   */
-> @@ -139,7 +144,11 @@ static void omap_crtc_dss_disconnect(enum omap_cha=
-nnel channel,
-> =20
->  static void omap_crtc_dss_start_update(enum omap_channel channel)
->  {
-> +	struct omap_crtc *omap_crtc =3D omap_crtcs[channel];
-> +	struct drm_crtc *crtc =3D &omap_crtc->base;
-> +
->  	dispc_mgr_enable(channel, true);
-> +	omap_crtc_manual_needs_flush(crtc);
->  }
-> =20
->  /* Called only from the encoder enable/disable and suspend/resume hand=
-lers. */
-> @@ -155,11 +164,12 @@ static void omap_crtc_set_enabled(struct drm_crtc=
- *crtc, bool enable)
->  	if (WARN_ON(omap_crtc->enabled =3D=3D enable))
->  		return;
-> =20
-> -	if (omap_crtc_output[channel]->output_type =3D=3D OMAP_DISPLAY_TYPE_H=
-DMI) {
-> -		dispc_mgr_enable(channel, enable);
-> -		omap_crtc->enabled =3D enable;
-> +	dispc_mgr_enable(channel, enable);
+Hi,
 
-Moving the mgr_enable here causes a race issue, as the irqs are only
-registered later below.
+On 05/03/17 01:50, Sebastian Reichel wrote:
+> Hi,
+>=20
+> Some of you may remember, that I sent a series for the N950 display
+> some time ago. N950 has command mode DSI panel, so the main part of
+> the patchset takes care of adding manual display update support in
+> omapdrm.
+>=20
+> The N950 also requires display rotation (the panel is mounted verticall=
+y
+> and bottom-up) and offset. The required bits will be sent separately.
+>=20
+> The patchset is based on 2d62e0768d3c, which is the current commit
+> torvald's master branch points to. I tested the patches on N950
+> with kernel console (fbcon), Tomi's kmstest and Xorg from Debian sid.
+>=20
+> Rough changelog, most of that work was done by Tony (thanks!)
+>=20
+>  * lots of patches dropped for now
+>  * rebased to current omapdrm interface
+>  * added OMAP4 support
+>  * misc. cleanup
+
+I haven't been able to go through this series with time, but looking at
+the patches, there were multiple places where I felt quite uneasy with
+the changes. It didn't help that many of the patches did not have
+descriptions.
+
+So as an RFC series, it's quite nice and shows that the manual update
+can be gotten to work. But I'm not ready to apply this until the patches
+touching the omapdrm enable, disable and commit sequences are split up
+into smaller patches with proper descriptions.
+
+Also, a minor note that rotating the display on N950 will cause tearing.
+Probably not a huge issue, though.
 
  Tomi
 
 
---jlgxP55GUNt8QwhQHlMlcAv6hbcB2B9Pq--
+--IGaF6ArE7kxPGPDIxl3R9IRm8HP48ID2F--
 
---2lsGeiSl3S0fpajQcIk7wWfrstFs4nWpE
+--2Kg7LOib4e4U9mpItmG5GWOripGj7gBAR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -124,24 +94,24 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJYz7q8AAoJEPo9qoy8lh71KhIQAJUUUG3w5LVtMbA6vyE8YGAo
-iH7DD3PIM+2hdWihbpruwOmgLZ+Pe8/XTr1iAIe1shhsI8mzgiOaYnS9oyV6aw7I
-82Qr28Djv2JWbvL0dQtszGPhdKRcKfSfx2O+KPS6QhS5THY5ocqBzBElPrr5ihwg
-m3x1RDWnLPq6AyRFhdj8O8+8GYALaqHMba2ECNT+7lbXsii4owIsG+G53iiYYIfm
-ichdbh3Ah/7IioROJKCkbBwO1sTncQjnRMrvi11iVqzyKplW43JokkZX7qyoVfbm
-TIrS/Q/Y+ZMnRfmjzyindX0DSMrlNKokmtJe8xxk/FcL3+3m4ctOBX5pdeeyHwAD
-cGvo2Wrcr2XmELz3jfVE3WO2Chia9uwGPmAp/F7uXFTpU+cqHu5ZZ10cJeCRie0k
-jMTaINL1KOKVI5P/0Akb4fKScx38MchiikA0zT/+4NjsRbjt+CisBzwpTcLeEwwx
-T3EefqABTRxnNMgFUjT86KOKRN8dABoUy6g5lyKVFm85EBmAxrbSfkWb8RPrEFoK
-P7mdOuEDKjbAtZMey4KFzS8yX1fYzOG33twkQlqZeylqUnmmy9HysVWLhoSCUkbL
-qX1tDFcA1dhmqVrt2mT8RBWEWK16yGmXCAJJTdm6bfWZav4nTNCVGSdhbohK8u6z
-Y8gsLMQUFvTigild+PNI
-=xHGh
+iQIcBAEBCAAGBQJYz70fAAoJEPo9qoy8lh719osP/jNAkbHVqvp0k+WpvYpai20R
+2z6o8Oq+zWS2S5IrlDLLE6YyNxFgC8Ka9pydDjE4Z8Knr+Xld2TJCJwJQnGEsOu7
+lHaL/4l7TyZrPMInoMLJvg8SmbLpbsIDZ5kFlv2OJwXTKLFVEAVr3J1WAb6PYPPq
+Vkdsuxz1GtHFSp+bJm0yKrocchhZfLvnVjk1VcyJBkdq6JXbxEMXBV/uVPQmQMB7
+dVAY07xz1fJNTEdlLL5UoywuqkZ5zTq3Xo6bmoTQtg8mnlGZUJCLYZIM444pKXDl
+h5XXsZDI0GPXkZtfad+FQCOiiu2CrzlAPJZ/24fYldjBrScpFoeEEGmAkdwTKeKK
+uVOS1+Ea23cX64e0Dy+dyalOPhzzzo9eLJHLrEOP4ewPaPYuOBke0/gpAdSiNPyy
+AkJRET4Fu16hBWryC9S8FOYvo6bYeGBnykUmPni0rM/7yWSfve3Sk6bjkVoMaT7/
+rtl5vH7SzKT53gXwhXJmOPeGVDGvKSaPTq+OsiogJCgz2t1spjyjfPFNDLIhxnwR
+Jk95zh/HM19Qu16UhPcTtKNCqNzqh/bY5D1FF1/Woq5j2+xJKBBOSGDxT752w5eC
+a2bL3d/ftgdS7hxnYRdhFjvzXEheRsIhlWURP7oxjxUBoAn9vCd0E6v3xwbjyuh0
+vWpC+uGvr6i6xNxiW9kK
+=u9Tj
 -----END PGP SIGNATURE-----
 
---2lsGeiSl3S0fpajQcIk7wWfrstFs4nWpE--
+--2Kg7LOib4e4U9mpItmG5GWOripGj7gBAR--
 
---===============0120622599==
+--===============1324245522==
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
@@ -151,4 +121,4 @@ X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
 IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
 dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
 
---===============0120622599==--
+--===============1324245522==--
