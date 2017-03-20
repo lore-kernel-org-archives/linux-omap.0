@@ -1,119 +1,119 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 03/10] Revert "drm: omapdrm: Remove manual update
- display support"
-Date: Mon, 20 Mar 2017 18:35:49 +0200
-Message-ID: <c380d0df-6631-73c0-549a-f6b6f686be05@ti.com>
-References: <20170304235021.27055-1-sre@kernel.org>
- <20170305004309.28259-1-sre@kernel.org>
- <20170305004309.28259-3-sre@kernel.org>
- <e04edb75-d8bd-5380-f91a-ff425bd91404@ti.com>
- <20170320161404.GL20572@atomide.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH v3] omapfb: dss: Handle return error in dss_init_ports.
+Date: Mon, 20 Mar 2017 17:38:51 +0100
+Message-ID: <1628164.x9NLckFqdM@amdc3058>
+References: <CGME20170217061504epcas4p1ca29ea6ab098359de52d547c4fe7cd11@epcas4p1.samsung.com>
+ <1487311827-15644-1-git-send-email-arvind.yadav.cs@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1434552041=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20170320161404.GL20572@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Sebastian Reichel <sre@kernel.org>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <1487311827-15644-1-git-send-email-arvind.yadav.cs@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---===============1434552041==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="u2Pe3S78n6k2fTFat2Px2RDAMiS4ShVRP"
 
---u2Pe3S78n6k2fTFat2Px2RDAMiS4ShVRP
-Content-Type: multipart/mixed; boundary="LdWRn9CQanXjgtCWx4AvdIISvi6LJerMv";
- protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>,
- Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Message-ID: <c380d0df-6631-73c0-549a-f6b6f686be05@ti.com>
-Subject: Re: [PATCHv2 03/10] Revert "drm: omapdrm: Remove manual update
- display support"
-References: <20170304235021.27055-1-sre@kernel.org>
- <20170305004309.28259-1-sre@kernel.org>
- <20170305004309.28259-3-sre@kernel.org>
- <e04edb75-d8bd-5380-f91a-ff425bd91404@ti.com>
- <20170320161404.GL20572@atomide.com>
-In-Reply-To: <20170320161404.GL20572@atomide.com>
+Hi,
 
---LdWRn9CQanXjgtCWx4AvdIISvi6LJerMv
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Friday, February 17, 2017 11:40:27 AM Arvind Yadav wrote:
+> Here, dss_init_ports is not handling return error form
+> dpi_init_port and sdi_init_port. Now dss_init_ports is returning
+> always 0. And it's making below code as a dead code.
+> 
+> static int dss_bind(struct device *dev)
+> {
+>   .
+>   .
+>   r = dss_init_ports(pdev); //dss_init_ports will return always 0
+>   if (r)// This condition will always false
+>       goto err_init_ports; //Dead Code
+>   .
+>   .
+> }
+> 
+> This change is to handle return error from dpi_init_port and
+> sdi_init_port. Also, It will remove dead code from function 'dss_bind'.
+> 
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> 
+> Changes in v3:
+>              -We should not stop initialization after port init fails.
 
-On 20/03/17 18:14, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [170320 04:10]:
->> On 05/03/17 02:43, Sebastian Reichel wrote:
->>> This reverts commit 5a35876e2830511cb8110667fc426c6a6165a593.
->>>
->>> Revert the removal of manual update display support in
->>> preparation for DSI command mode panels.
->>
->> I think it's much better to just add the manual update support from
->> scratch rather than first reverting this old cleanup commit and then
->> adding more bits and pieces.
->=20
-> Do you know if the command mode panels support partial refresh?
->=20
-> Just wondering if we want to keep "int x, int y, int w, int h"
-> around for omap_connector_flush() or whatever it ends up being?
+This is what v2 did and v3 still does. I asked about stopping
+the initialization after the first failure.
 
-Partial update? Yes they do. But setting everything up for partial
-update on the DSS side is horribly complex, and support for that was
-removed from DSS driver long ago.
+Anyway, I fixed this and queued the patch for 4.12 (the updated
+version is attached to this mail for reference), thanks!
 
-So I think those parameters can be removed.
-
- Tomi
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
 
 
---LdWRn9CQanXjgtCWx4AvdIISvi6LJerMv--
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH] omapfb: dss: Handle return errors in dss_init_ports()
 
---u2Pe3S78n6k2fTFat2Px2RDAMiS4ShVRP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+dss_init_ports() is not handling return errors from dpi_init_port() and
+sdi_init_port(). It is also always returning 0 currently which results in
+part of error handling code in dss_bind() being unused.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Fix dss_init_ports() to handle return errors from dpi_init_port() and
+sdi_init_port().
 
-iQIcBAEBCAAGBQJY0ATlAAoJEPo9qoy8lh71NzQQALEGxpIcVAez5mXhVQ9E4k1u
-gB21ETudlSkzMmRxOEF+pHSfCPv4ngWgHdJyJLD/s3oriDQgNHovkLGDiGOCYVgf
-FOJZhblnq1j2G97DESpA78VtWFcgfIQxuhOblq7mMcSBSaa7ev7oKlUYrKQ812Gy
-Zc3ocOxQmxVm2vdvPkyboQmlTgyJ9SsAteYymt+L9ysMojb1Zg5TixaWreyQlyfn
-UHzFPUzXTXur5avFr9OnKPtyXHE5XNJGkLnGhqZeXHgFEle8Vm7OCVrpLVewXGB+
-MgDN7TSZhTqaKpvWsSmP6OEVwxkQLLM8CCQJptnxGddWhoXmS+wl7E+3rKkLGE2y
-x5YLrmBIXaWbd8egUCi/e3qyI7IK/2hT8Dyk5P2acqbgVRdcWd3wMbqMUhtOQJjF
-g+nElhTNpROE5NTP0DK0VOqcwfA8SHYpRwQ8mXAmogfEOtKncXj8ymGjPYA1S7II
-TnWrPaP1r1tbutl6jsgrgMXDW47b59uAxKgKv7FicwEQUiyLFVTlSXhLf4FhQrpO
-KC6DYBPKd0ip3ZB/Hy8F5+5DHNS6HxbmGa1+ylyT8m/iV+56iX4QUDNKolSFdMq4
-zXoCpG19oGgpCRZ47aFqQye0vjlXeD0HZi6se77UgDogFcic1tgNZTYcEoSii3Gh
-0MoNgntEU2UlBbGsd8FT
-=V0lK
------END PGP SIGNATURE-----
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: tomi.valkeinen@ti.com
+[b.zolnierkie: fail early on errors, minor fixups]
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+---
+ drivers/video/fbdev/omap2/omapfb/dss/dss.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---u2Pe3S78n6k2fTFat2Px2RDAMiS4ShVRP--
-
---===============1434552041==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============1434552041==--
+Index: b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
+===================================================================
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c	2017-03-20 17:24:24.387753929 +0100
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c	2017-03-20 17:32:32.767766228 +0100
+@@ -941,11 +941,13 @@ static int dss_init_features(struct plat
+ 	return 0;
+ }
+ 
++static void dss_uninit_ports(struct platform_device *pdev);
++
+ static int dss_init_ports(struct platform_device *pdev)
+ {
+ 	struct device_node *parent = pdev->dev.of_node;
+ 	struct device_node *port;
+-	int r;
++	int r, ret = 0;
+ 
+ 	if (parent == NULL)
+ 		return 0;
+@@ -972,17 +974,21 @@ static int dss_init_ports(struct platfor
+ 
+ 		switch (port_type) {
+ 		case OMAP_DISPLAY_TYPE_DPI:
+-			dpi_init_port(pdev, port);
++			ret = dpi_init_port(pdev, port);
+ 			break;
+ 		case OMAP_DISPLAY_TYPE_SDI:
+-			sdi_init_port(pdev, port);
++			ret = sdi_init_port(pdev, port);
+ 			break;
+ 		default:
+ 			break;
+ 		}
+-	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
++	} while (!ret &&
++		 (port = omapdss_of_get_next_port(parent, port)) != NULL);
+ 
+-	return 0;
++	if (ret)
++		dss_uninit_ports(pdev);
++
++	return ret;
+ }
+ 
+ static void dss_uninit_ports(struct platform_device *pdev)
