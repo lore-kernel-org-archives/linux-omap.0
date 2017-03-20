@@ -1,119 +1,51 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH v3] omapfb: dss: Handle return error in dss_init_ports.
-Date: Mon, 20 Mar 2017 17:38:51 +0100
-Message-ID: <1628164.x9NLckFqdM@amdc3058>
-References: <CGME20170217061504epcas4p1ca29ea6ab098359de52d547c4fe7cd11@epcas4p1.samsung.com>
- <1487311827-15644-1-git-send-email-arvind.yadav.cs@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 03/10] Revert "drm: omapdrm: Remove manual update
+ display support"
+Date: Mon, 20 Mar 2017 09:43:41 -0700
+Message-ID: <20170320164341.GM20572@atomide.com>
+References: <20170304235021.27055-1-sre@kernel.org>
+ <20170305004309.28259-1-sre@kernel.org>
+ <20170305004309.28259-3-sre@kernel.org>
+ <e04edb75-d8bd-5380-f91a-ff425bd91404@ti.com>
+ <20170320161404.GL20572@atomide.com>
+ <c380d0df-6631-73c0-549a-f6b6f686be05@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1487311827-15644-1-git-send-email-arvind.yadav.cs@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <c380d0df-6631-73c0-549a-f6b6f686be05@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Sebastian Reichel <sre@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-Hi,
-
-On Friday, February 17, 2017 11:40:27 AM Arvind Yadav wrote:
-> Here, dss_init_ports is not handling return error form
-> dpi_init_port and sdi_init_port. Now dss_init_ports is returning
-> always 0. And it's making below code as a dead code.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [170320 09:38]:
+> On 20/03/17 18:14, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [170320 04:10]:
+> >> On 05/03/17 02:43, Sebastian Reichel wrote:
+> >>> This reverts commit 5a35876e2830511cb8110667fc426c6a6165a593.
+> >>>
+> >>> Revert the removal of manual update display support in
+> >>> preparation for DSI command mode panels.
+> >>
+> >> I think it's much better to just add the manual update support from
+> >> scratch rather than first reverting this old cleanup commit and then
+> >> adding more bits and pieces.
+> > 
+> > Do you know if the command mode panels support partial refresh?
+> > 
+> > Just wondering if we want to keep "int x, int y, int w, int h"
+> > around for omap_connector_flush() or whatever it ends up being?
 > 
-> static int dss_bind(struct device *dev)
-> {
->   .
->   .
->   r = dss_init_ports(pdev); //dss_init_ports will return always 0
->   if (r)// This condition will always false
->       goto err_init_ports; //Dead Code
->   .
->   .
-> }
+> Partial update? Yes they do. But setting everything up for partial
+> update on the DSS side is horribly complex, and support for that was
+> removed from DSS driver long ago.
 > 
-> This change is to handle return error from dpi_init_port and
-> sdi_init_port. Also, It will remove dead code from function 'dss_bind'.
-> 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-> 
-> Changes in v3:
->              -We should not stop initialization after port init fails.
+> So I think those parameters can be removed.
 
-This is what v2 did and v3 still does. I asked about stopping
-the initialization after the first failure.
+OK works for me.
 
-Anyway, I fixed this and queued the patch for 4.12 (the updated
-version is attached to this mail for reference), thanks!
+Regards,
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
-
-
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH] omapfb: dss: Handle return errors in dss_init_ports()
-
-dss_init_ports() is not handling return errors from dpi_init_port() and
-sdi_init_port(). It is also always returning 0 currently which results in
-part of error handling code in dss_bind() being unused.
-
-Fix dss_init_ports() to handle return errors from dpi_init_port() and
-sdi_init_port().
-
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: tomi.valkeinen@ti.com
-[b.zolnierkie: fail early on errors, minor fixups]
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
----
- drivers/video/fbdev/omap2/omapfb/dss/dss.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
-
-Index: b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-===================================================================
---- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c	2017-03-20 17:24:24.387753929 +0100
-+++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c	2017-03-20 17:32:32.767766228 +0100
-@@ -941,11 +941,13 @@ static int dss_init_features(struct plat
- 	return 0;
- }
- 
-+static void dss_uninit_ports(struct platform_device *pdev);
-+
- static int dss_init_ports(struct platform_device *pdev)
- {
- 	struct device_node *parent = pdev->dev.of_node;
- 	struct device_node *port;
--	int r;
-+	int r, ret = 0;
- 
- 	if (parent == NULL)
- 		return 0;
-@@ -972,17 +974,21 @@ static int dss_init_ports(struct platfor
- 
- 		switch (port_type) {
- 		case OMAP_DISPLAY_TYPE_DPI:
--			dpi_init_port(pdev, port);
-+			ret = dpi_init_port(pdev, port);
- 			break;
- 		case OMAP_DISPLAY_TYPE_SDI:
--			sdi_init_port(pdev, port);
-+			ret = sdi_init_port(pdev, port);
- 			break;
- 		default:
- 			break;
- 		}
--	} while ((port = omapdss_of_get_next_port(parent, port)) != NULL);
-+	} while (!ret &&
-+		 (port = omapdss_of_get_next_port(parent, port)) != NULL);
- 
--	return 0;
-+	if (ret)
-+		dss_uninit_ports(pdev);
-+
-+	return ret;
- }
- 
- static void dss_uninit_ports(struct platform_device *pdev)
+Tony
