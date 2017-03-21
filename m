@@ -1,48 +1,35 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: N900 failure in next-20170321
-Date: Tue, 21 Mar 2017 14:57:09 +0100
-Message-ID: <20170321135708.GA22358@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: N900 failure in next-20170321
+Date: Tue, 21 Mar 2017 08:38:52 -0700
+Message-ID: <20170321153851.GA10760@atomide.com>
+References: <20170321135708.GA22358@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20170321135708.GA22358@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
+* Pavel Machek <pavel@ucw.cz> [170321 06:59]:
+> Hi!
+> 
+> Tony asked me to test linux-next from time to time. I did... today I
+> moved from next-20170309 to next-20170321. Kernel boots and seems to
+> work fine (including audio and X startup), but if I leave it sitting
+> for a while RGB LED reverts from "system alive" to charging indication
+> that was disabled before and system does not react to any input.
+> 
+> Any ideas?
 
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Not much there I could see affecting this.. Try reverting commit
+179125085bd4 ("ARM: OMAP3: Fix smartreflex platform data regression")?
 
-Hi!
+Maybe smartreflex now attempts to do something but we're missing
+or have wrong dts configuration for n900?
 
-Tony asked me to test linux-next from time to time. I did... today I
-moved from next-20170309 to next-20170321. Kernel boots and seems to
-work fine (including audio and X startup), but if I leave it sitting
-for a while RGB LED reverts from "system alive" to charging indication
-that was disabled before and system does not react to any input.
+Regards,
 
-Any ideas?
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---HlL+5n6rz5pIUxbD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAljRMTQACgkQMOfwapXb+vK1KACgjTbnDdCN5AIiiixGs/KgkVZf
-Cv4An3TXWiBWqk6CDp/c3JKCKmPqW2Gs
-=ErnI
------END PGP SIGNATURE-----
-
---HlL+5n6rz5pIUxbD--
+Tony
