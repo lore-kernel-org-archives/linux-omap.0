@@ -1,61 +1,73 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 0/4] Regmap IRQ fix and related changes CPCAP
-Date: Wed, 22 Mar 2017 03:22:10 +0100
-Message-ID: <20170322022210.7u4taeepbraf6jaq@earth>
-References: <20170317003633.7361-1-tony@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v2 0/8] thermal: ti-soc-thermal: Migrate slope/offset data
+ to device tree
+Date: Wed, 22 Mar 2017 09:12:47 +0530
+Message-ID: <64ab8413-6cf1-864f-0550-9c8db59523f7@ti.com>
+References: <1489046762-11288-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ukzhm2b2ajvy6rpy"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170317003633.7361-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1489046762-11288-1-git-send-email-j-keerthy@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: edubezval@gmail.com
+Cc: linux-pm@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, rui.zhang@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
---ukzhm2b2ajvy6rpy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Thursday 09 March 2017 01:35 PM, Keerthy wrote:
+> Currently the slope and offset values for calculating the
+> hot spot temperature of a particular thermal zone is part
+> of driver data. Pass them here instead and obtain the values
+> while of node parsing.
+> 
+> Tested for the slope and constant values on DRA7-EVM, OMAP3-BEAGLE. 
 
-On Thu, Mar 16, 2017 at 05:36:29PM -0700, Tony Lindgren wrote:
-> Here are few fixes to make CPCAP PMIC interrupts work reliably when
-> used with multiple drivers. While working on the ADC, charger and
-> USB PHY drivers I noticed that the PMIC interrupt to the SoC would
-> eventually stop working.
->=20
-> All these can wait for v4.12 merge window as these issues don't show
-> up currently. Two of the patches are also harmless currently, so I've
-> kept them in this series to avoid pointless merge conflicts.
+Hi Eduardo,
 
-The series is
+If the series looks okay could you please pull this?
 
-Tested-by: Sebastian Reichel <sre@kernel.org>
+Regards,
+Keerthy
 
--- Sebastian
-
---ukzhm2b2ajvy6rpy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljR39IACgkQ2O7X88g7
-+ppmIw/+IOSmK5y7jeoMZrlccL4l8d1n1e39M4Q5Xp+WxYg6N3IpRvc9S2iSV9dL
-J+XkyDyfUU3gfVmvT9iu1gcwaqZXxBjvMQSeJidIqjOGmjSD/rpbLQgeUhW0ox4V
-VSg3B1zOqfSZ2PFOc9+yVdY3P4aH6TmS2GvvmtxkDKbj+ZwI4iR+IBE8WG9mWYGY
-ATcNURP/3wEdPPbNXUcHJhsNvBrUgkQTQkqVHTJeBR9f5rrubUImeMi1Oq29eN3l
-aa/CM4zfXk0zfxiBOP3a9WVvN6LDFeMIxP8lHUZRKaP6kw7Vwnl3Az7bnx6k3vim
-r451kmSFpdQDyu+1cg18OWrCUL5KaX2F9PNqMEky3E88Dsf9yTbmKRISIKFUhMvZ
-H68I5OMwqkTtOPh1Bhw+qdto5d+NSfT5aIHCJMMK1Zx474DgmRuT+5YBo6OB+2Vv
-gSX0sC+nLdJp61bmtFzbEQsNNQmUJDNJ2/TcXqjkOesmSn0n0P/lAqTgFtSaJ0KN
-rHajqoEN8TwmfNChQLRcRZSv0gUCpIsRgkNt80dX8uaaYXr5B8Vcgl2Qm04L/gIQ
-6Bo3ZXjHP9HKrTG/14+9W8Yn34Ya7nJ1dSNGZtDevwDh8+HssgrO5VWamWFNGeWl
-W5TXIHoXSxwdpvoD8GUz/7SEpCMXrKH7xKI6yi4hwG8UdisFdyI=
-=R8Dh
------END PGP SIGNATURE-----
-
---ukzhm2b2ajvy6rpy--
+> 
+> Changes in v2:
+> 
+>   * Added OMAP3 changes along with DRA7/OMAP4/OMAP5.
+> 
+> Keerthy (8):
+>   arm: dts: omap3: Add cpu_thermal zone
+>   ARM: DRA7: Thermal: Add slope and offset values
+>   ARM: OMAP5: Thermal: Add slope and offset values
+>   ARM: OMAP443x: Thermal: Add slope and offset values
+>   ARM: OMAP4460: Thermal: Add slope and offset values
+>   thermal: ti-soc-thermal: Fetch slope and offset from DT
+>   thermal: ti-soc-thermal: Remove redundant constants
+>   thermal: ti-soc-thermal: Remove redundant code
+> 
+>  arch/arm/boot/dts/dra7.dtsi                        |  17 +++
+>  arch/arm/boot/dts/omap3-cpu-thermal.dtsi           |  20 +++
+>  arch/arm/boot/dts/omap34xx.dtsi                    |   8 +-
+>  arch/arm/boot/dts/omap36xx.dtsi                    |   8 +-
+>  arch/arm/boot/dts/omap443x.dtsi                    |   4 +
+>  arch/arm/boot/dts/omap4460.dtsi                    |   4 +
+>  arch/arm/boot/dts/omap5.dtsi                       |   9 ++
+>  .../thermal/ti-soc-thermal/dra752-thermal-data.c   |  10 --
+>  .../thermal/ti-soc-thermal/omap3-thermal-data.c    |   4 -
+>  .../thermal/ti-soc-thermal/omap4-thermal-data.c    |   6 -
+>  .../thermal/ti-soc-thermal/omap5-thermal-data.c    |   4 -
+>  drivers/thermal/ti-soc-thermal/ti-bandgap.h        |   4 -
+>  drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 158 +--------------------
+>  drivers/thermal/ti-soc-thermal/ti-thermal.h        |  16 ---
+>  14 files changed, 71 insertions(+), 201 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/omap3-cpu-thermal.dtsi
+> 
