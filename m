@@ -1,102 +1,156 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 14/23] PCI: dwc: dra7xx: Workaround for errata id i870
-Date: Wed, 22 Mar 2017 20:09:24 +0530
-Message-ID: <387a82a1-a534-efe1-e9eb-aa78809566a4@ti.com>
-References: <20170313142259.25397-1-kishon@ti.com>
- <20170313142259.25397-15-kishon@ti.com>
- <20170320214819.5azzdbgncfemhujo@rob-hp-laptop>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v5 4/7] PCI: dwc: all: Modify dbi accessors to take dbi_base
+ as argument
+Date: Wed, 22 Mar 2017 20:40:55 +0530
+Message-ID: <20170322151055.15947-1-kishon@ti.com>
+References: <20170313134328.1588-5-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170320214819.5azzdbgncfemhujo@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170313134328.1588-5-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Jingoo Han <jingoohan1@gmail.com>, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+dwc has 2 dbi address space labeled dbics and dbics2. The existing
+helper to access dbi address space can access only dbics. However
+dbics2 has to be accessed for programming the BAR registers in the
+case of EP mode. This is in preparation for adding EP mode support
+to dwc driver.
 
+Cc: Jingoo Han <jingoohan1@gmail.com>
+Cc: Joao Pinto <Joao.Pinto@synopsys.com>
+Acked-by: Niklas Cassel <niklas.cassel@axis.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+Changes from v4:
+Add void as return type in dw_pcie_writel_dbi spotted by Niklas.
 
-On Tuesday 21 March 2017 03:18 AM, Rob Herring wrote:
-> On Mon, Mar 13, 2017 at 07:52:50PM +0530, Kishon Vijay Abraham I wrote:
->> According to errata i870, access to the PCIe slave port
->> that are not 32-bit aligned will result in incorrect mapping
->> to TLP Address and Byte enable fields.
->>
->> Accessing non 32-bit aligned data causes incorrect data in the target
->> buffer if memcpy is used. Implement the workaround for this
->> errata here.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
->> ---
->>  drivers/pci/dwc/pci-dra7xx.c | 53 ++++++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 53 insertions(+)
->>
->> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
->> index 35c18534469c..147d37a7fe58 100644
->> --- a/drivers/pci/dwc/pci-dra7xx.c
->> +++ b/drivers/pci/dwc/pci-dra7xx.c
->> @@ -26,6 +26,8 @@
->>  #include <linux/pm_runtime.h>
->>  #include <linux/resource.h>
->>  #include <linux/types.h>
->> +#include <linux/mfd/syscon.h>
->> +#include <linux/regmap.h>
->>  
->>  #include "pcie-designware.h"
->>  
->> @@ -528,6 +530,51 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
->>  	{},
->>  };
->>  
->> +/*
->> + * dra7xx_pcie_ep_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
->> + * @dra7xx: the dra7xx device where the workaround should be applied
->> + *
->> + * Access to the PCIe slave port that are not 32-bit aligned will result
->> + * in incorrect mapping to TLP Address and Byte enable fields. Therefore,
->> + * byte and half-word accesses are not possible to byte offset 0x1, 0x2, or
->> + * 0x3.
->> + *
->> + * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
->> + */
->> +static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
->> +{
->> +	int ret;
->> +	struct device_node *np = dev->of_node;
->> +	struct regmap *regmap;
->> +	unsigned int reg;
->> +	unsigned int field;
->> +
->> +	regmap = syscon_regmap_lookup_by_phandle(np,
->> +						 "ti,syscon-unaligned-access");
->> +	if (IS_ERR(regmap)) {
->> +		dev_dbg(dev, "can't get ti,syscon-unaligned-access\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	if (of_property_read_u32_index(np, "ti,syscon-unaligned-access", 1,
->> +				       &reg)) {
->> +		dev_err(dev, "couldn't get legacy mode register offset\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	if (of_property_read_u32_index(np, "ti,syscon-unaligned-access", 2,
->> +				       &field)) {
->> +		dev_err(dev, "can't get bit field for setting legacy mode\n");
->> +		return -EINVAL;
->> +	}
-> 
-> If this remains, it's screaming for a helper function. 
-> of_parse_phandle_with_args already exists, but maybe a syscon specific 
-> function is in order.
+ drivers/pci/dwc/pci-exynos.c      | 10 ++++++----
+ drivers/pci/dwc/pcie-designware.c | 13 +++++++------
+ drivers/pci/dwc/pcie-designware.h | 20 ++++++++++++++++----
+ 3 files changed, 29 insertions(+), 14 deletions(-)
 
-hmm, I guess for now I can use of_parse_phandle_with_args. The number of args
-might vary for different platforms/scenarios?
-
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/pci/dwc/pci-exynos.c b/drivers/pci/dwc/pci-exynos.c
+index 993b650ef275..a0d40f74b88d 100644
+--- a/drivers/pci/dwc/pci-exynos.c
++++ b/drivers/pci/dwc/pci-exynos.c
+@@ -521,23 +521,25 @@ static void exynos_pcie_enable_interrupts(struct exynos_pcie *ep)
+ 		exynos_pcie_msi_init(ep);
+ }
+ 
+-static u32 exynos_pcie_readl_dbi(struct dw_pcie *pci, u32 reg)
++static u32 exynos_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base,
++				 u32 reg)
+ {
+ 	struct exynos_pcie *ep = to_exynos_pcie(pci);
+ 	u32 val;
+ 
+ 	exynos_pcie_sideband_dbi_r_mode(ep, true);
+-	val = readl(pci->dbi_base + reg);
++	val = readl(base + reg);
+ 	exynos_pcie_sideband_dbi_r_mode(ep, false);
+ 	return val;
+ }
+ 
+-static void exynos_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
++static void exynos_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base,
++				   u32 reg, u32 val)
+ {
+ 	struct exynos_pcie *ep = to_exynos_pcie(pci);
+ 
+ 	exynos_pcie_sideband_dbi_w_mode(ep, true);
+-	writel(val, pci->dbi_base + reg);
++	writel(val, base + reg);
+ 	exynos_pcie_sideband_dbi_w_mode(ep, false);
+ }
+ 
+diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
+index 3eaf3ccdc118..ea403e2240cf 100644
+--- a/drivers/pci/dwc/pcie-designware.c
++++ b/drivers/pci/dwc/pcie-designware.c
+@@ -61,20 +61,21 @@ int dw_pcie_write(void __iomem *addr, int size, u32 val)
+ 	return PCIBIOS_SUCCESSFUL;
+ }
+ 
+-u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg)
++u32 __dw_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg)
+ {
+ 	if (pci->ops->readl_dbi)
+-		return pci->ops->readl_dbi(pci, reg);
++		return pci->ops->readl_dbi(pci, base, reg);
+ 
+-	return readl(pci->dbi_base + reg);
++	return readl(base + reg);
+ }
+ 
+-void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
++void __dw_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
++			  u32 val)
+ {
+ 	if (pci->ops->writel_dbi)
+-		pci->ops->writel_dbi(pci, reg, val);
++		pci->ops->writel_dbi(pci, base, reg, val);
+ 	else
+-		writel(val, pci->dbi_base + reg);
++		writel(val, base + reg);
+ }
+ 
+ static u32 dw_pcie_readl_unroll(struct dw_pcie *pci, u32 index, u32 reg)
+diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+index 8f3dcb2b099b..09b334a12892 100644
+--- a/drivers/pci/dwc/pcie-designware.h
++++ b/drivers/pci/dwc/pcie-designware.h
+@@ -144,8 +144,9 @@ struct pcie_port {
+ 
+ struct dw_pcie_ops {
+ 	u64	(*cpu_addr_fixup)(u64 cpu_addr);
+-	u32	(*readl_dbi)(struct dw_pcie *pcie, u32 reg);
+-	void	(*writel_dbi)(struct dw_pcie *pcie, u32 reg, u32 val);
++	u32	(*readl_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg);
++	void	(*writel_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
++			      u32 val);
+ 	int	(*link_up)(struct dw_pcie *pcie);
+ };
+ 
+@@ -163,8 +164,9 @@ struct dw_pcie {
+ int dw_pcie_read(void __iomem *addr, int size, u32 *val);
+ int dw_pcie_write(void __iomem *addr, int size, u32 val);
+ 
+-u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg);
+-void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val);
++u32 __dw_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg);
++void __dw_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
++			  u32 val);
+ int dw_pcie_link_up(struct dw_pcie *pci);
+ int dw_pcie_wait_for_link(struct dw_pcie *pci);
+ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
+@@ -172,6 +174,16 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
+ 			       u32 size);
+ void dw_pcie_setup(struct dw_pcie *pci);
+ 
++static inline void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
++{
++	__dw_pcie_writel_dbi(pci, pci->dbi_base, reg, val);
++}
++
++static inline u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg)
++{
++	return  __dw_pcie_readl_dbi(pci, pci->dbi_base, reg);
++}
++
+ #ifdef CONFIG_PCIE_DW_HOST
+ irqreturn_t dw_handle_msi_irq(struct pcie_port *pp);
+ void dw_pcie_msi_init(struct pcie_port *pp);
+-- 
+2.11.0
