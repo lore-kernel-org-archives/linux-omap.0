@@ -1,56 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] mfd: cpcap: Use handle_reread flag for interrupts
-Date: Wed, 22 Mar 2017 10:10:50 -0700
-Message-ID: <20170322171052.7006-3-tony@atomide.com>
-References: <20170322171052.7006-1-tony@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170322171052.7006-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] power: supply: cpcap-charger: Add minimal CPCAP PMIC
+ battery charger
+Date: Wed, 22 Mar 2017 10:22:35 -0700
+Message-ID: <20170322172235.GE10760@atomide.com>
+References: <20170317022152.21427-1-tony@atomide.com>
+ <20170322021514.ewipilqbfm2cwua6@earth>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170322021514.ewipilqbfm2cwua6@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On CPCAP we need to keep reading interrupts until there are no
-more interrupts. Otherwise the PMIC interrupt to the SoC will at
-some point stop toggling. This seems to happen because new CPCAP
-device interrupts show up while we're handling.
+* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170321 19:17]:
+> Hi,
+> 
+> On Thu, Mar 16, 2017 at 07:21:52PM -0700, Tony Lindgren wrote:
+> > The custom CPCAP PMIC used on Motorola phones such as Droid 4 has a
+> > USB battery charger. It can optionally also have a companion chip that
+> > is used for wireless charging.
+> > 
+> > The charger on CPCAP also can feed VBUS for the USB host mode. This
+> > can be handled by the existing kernel phy_companion interface.
+> > 
+> > Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+> > Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> 
+> Driver looks ok and works for me, but values are not scaled
+> correctly. The power-supply subsystem exposes values in microamps
+> and microvolt. IIO provides values in millivolt/milliamps instead,
+> so it should be scaled with 1000.
 
-Cc: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Marcel Partap <mpartap@gmx.net>
-Cc: Michael Scott <michael.scott@linaro.org>
-Tested-by: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mfd/motorola-cpcap.c | 3 +++
- 1 file changed, 3 insertions(+)
+Oh OK, will repost. There will also be a minor change for using
+the processed IIO values instead of the scaled values when I update
+the ADC driver.
 
-diff --git a/drivers/mfd/motorola-cpcap.c b/drivers/mfd/motorola-cpcap.c
---- a/drivers/mfd/motorola-cpcap.c
-+++ b/drivers/mfd/motorola-cpcap.c
-@@ -71,6 +71,7 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
- 		.ack_base = CPCAP_REG_MI1,
- 		.mask_base = CPCAP_REG_MIM1,
- 		.use_ack = true,
-+		.handle_reread = true,
- 	},
- 	{
- 		.name = "cpcap-m2",
-@@ -79,6 +80,7 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
- 		.ack_base = CPCAP_REG_MI2,
- 		.mask_base = CPCAP_REG_MIM2,
- 		.use_ack = true,
-+		.handle_reread = true,
- 	},
- 	{
- 		.name = "cpcap1-4",
-@@ -88,6 +90,7 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
- 		.mask_base = CPCAP_REG_INTM1,
- 		.type_base = CPCAP_REG_INTS1,
- 		.use_ack = true,
-+		.handle_reread = true,
- 	},
- };
- 
--- 
-2.11.1
+Regards,
+
+Tony
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
