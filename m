@@ -1,31 +1,31 @@
 From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/3] ARM: dts: omap4-droid4: Add CPCAP PMIC ADC
- configuration
-Date: Wed, 22 Mar 2017 03:19:41 +0100
-Message-ID: <20170322021941.qxfggbcaw4fepiuy@earth>
+Subject: Re: [PATCH 2/3] ARM: dts: omap4-droid4: Add CPCAP PMIC battery
+ charger configuration
+Date: Wed, 22 Mar 2017 03:20:08 +0100
+Message-ID: <20170322022008.gwofxgo6h4c42is4@earth>
 References: <20170317041012.26800-1-tony@atomide.com>
- <20170317041012.26800-2-tony@atomide.com>
+ <20170317041012.26800-3-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="xvoimker5rc3pvze"
+        protocol="application/pgp-signature"; boundary="tzakymahjkkwsfba"
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170317041012.26800-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170317041012.26800-3-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---xvoimker5rc3pvze
+--tzakymahjkkwsfba
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Mar 16, 2017 at 09:10:10PM -0700, Tony Lindgren wrote:
-> Add CPCAP PMIC ADC configuration.
+On Thu, Mar 16, 2017 at 09:10:11PM -0700, Tony Lindgren wrote:
+> Add CPCAP PMIC battery charger configuration.
 >=20
 > Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
@@ -37,22 +37,34 @@ Reviewed-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Tested-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
 > ---
->  arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 7 +++++++
->  1 file changed, 7 insertions(+)
+>  arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
 >=20
 > diff --git a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi b/arch/arm/bo=
 ot/dts/motorola-cpcap-mapphone.dtsi
 > --- a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
 > +++ b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
-> @@ -19,6 +19,13 @@
->  		spi-max-frequency =3D <3000000>;
->  		spi-cs-high;
+> @@ -26,6 +26,25 @@
+>  			#io-channel-cells =3D <1>;
+>  		};
 > =20
-> +		cpcap_adc: adc {
-> +			compatible =3D "motorola,mapphone-cpcap-adc";
-> +			interrupts-extended =3D <&cpcap 8 0>;
-> +			interrupt-names =3D "adcdone";
-> +			#io-channel-cells =3D <1>;
+> +		cpcap_charger: charger {
+> +			compatible =3D "motorola,mapphone-cpcap-charger";
+> +			interrupts-extended =3D <
+> +				&cpcap 13 0 &cpcap 12 0 &cpcap 29 0 &cpcap 28 0
+> +				&cpcap 22 0 &cpcap 20 0 &cpcap 19 0 &cpcap 54 0
+> +			>;
+> +			interrupt-names =3D
+> +				"chrg_det", "rvrs_chrg", "chrg_se1b", "se0conn",
+> +				"rvrs_mode", "chrgcurr1", "vbusvld", "battdetb";
+> +			mode-gpios =3D <&gpio3 29 GPIO_ACTIVE_LOW
+> +				      &gpio3 23 GPIO_ACTIVE_LOW>;
+> +			io-channels =3D <&cpcap_adc 0 &cpcap_adc 1
+> +				       &cpcap_adc 2 &cpcap_adc 5
+> +				       &cpcap_adc 6>;
+> +			io-channel-names =3D "battdetb", "battp",
+> +					   "vbus", "chg_isense",
+> +					   "batti";
 > +		};
 > +
 >  		cpcap_regulator: regulator {
@@ -61,27 +73,27 @@ ot/dts/motorola-cpcap-mapphone.dtsi
 > --=20
 > 2.11.1
 
---xvoimker5rc3pvze
+--tzakymahjkkwsfba
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljR3z0ACgkQ2O7X88g7
-+pq+tw//bS5eozjefbyhbqfwyqWPioHDATd3mvtuy5jaT+lKZGNmchoelymeaHNc
-DGQvJq1ib3OCyo79sSS7jZn+XR+IZy7nWGf1MBM1x5llhmtAidhrpXdCwZoXPW5k
-7yX+eW3EGUm7+k0HjmN6P+/XzPuuxmnHpTYDVXbvhrIzhmdFBow8DsO6bCXWtcum
-PyUnqENqtHwmVQD8oiCz8mG15dnsbFG6pLFhyzyhx+Wm1VviWj4HkHzj7kgEVqnN
-zyfFruet6o9W6VZ+mPwOdmmm/80jvLnftDhDxN6hR4Q5U7qrcjJA5FFMv7TAcxI6
-iTWwgXQTF0sfl3lQ0Y4i6VXtKk2eA3ekNB3ACuzwdA32zPwvePcULf/JmLqtZNhd
-Y+66H0s+0XaqxNAFzD3BtKuzfAQslC3ZWEWY/qp01lQUxQQlBn+fOqavMwcyoa2S
-Mu6XcNMhduEME4lxD8nE8mkXeetOvLAUuYEFLMHx90/0SeCy9syBDbE7z9rkhLpz
-xqTFV9dBcQooF0/ytI0/Or4PsQRrUicVqGf3dJxaNWbaZ4b59L4Bf29sg0KtHFSr
-zJEAHvQO2Bd5Z8dvp4i5DAz1FM0UCMTx/40YKeRz9JTh6tEDNTDdJrMCSJm0DisY
-ysPrySTiZRyDgsE/wnyVuFkutBpbhbJAtfjFiOZl+AdknEXe0xo=
-=qKwc
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljR31gACgkQ2O7X88g7
++pqXUA/5AUaguKYHpZmXjuaNGzAFuoiQMJ1915yXrSKQcMMXwr+S3e/Ju8Ry55IH
+eO071b0gAjcI23ASQ+TFBELT4tTaA7inbAEhGnKmRb9zYIOtRWWyOXVBk56vrH9m
+MIdCkiFxaM5WIASDbzAoE08ChBY80UtyUFLyJsbVzX7f5nWD0xe7RO4lLvACMufg
+euqOSVrNv6ivHBox4YX5D7ZYxiYc+aYvln+HTbMtbfQM2oDQIjXMytKfHIECJH1+
+X8pjnUwYuFBq9kwZCP/sAIcAZwwaRLW4P5zlOsOnerreFN/h0vqMUbpdap6glw5J
+jPc1l7uOPp/v9/5cycArkYUdhIZHRgIjw9Ly9iOSVZWAm/15AG58NsbHSKLHlLFJ
+Mn/vpt1gQc4s+Gd8BP13IYqeJdLvsFdoAK9EUhZJH+5eBS+zvUOINtYm+uqNZwVB
+uO535sZcgk34wgLPUkiDqp+7hL0Tacl++kZU3JjCJow1MSfmUEtghniN64mNFWf8
+GOMeTQmS7J56OOGT6ZXCnREkIsoIGIpma5S3PfQz28/Il9SH6ZgNzscUX/5xU3NA
+BV2Q6NBVQkMgio7r29bwoFlP0/q6ZOM2gf0Si8b0EWlN2pPdo1w37RIds5Tq0g4x
+xqhTLbxCW/8M4tACRHR1sCVGQePOQQ/ocI0+rao1TscsfQlECCs=
+=Zr9f
 -----END PGP SIGNATURE-----
 
---xvoimker5rc3pvze--
+--tzakymahjkkwsfba--
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
