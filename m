@@ -1,115 +1,124 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCHv2] iio: adc: cpcap: Add minimal support for CPCAP PMIC ADC
-Date: Wed, 22 Mar 2017 16:37:26 -0700
-Message-ID: <20170322233726.5391-1-tony@atomide.com>
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv2] power: supply: cpcap-charger: Add minimal CPCAP PMIC battery charger
+Date: Wed, 22 Mar 2017 16:42:10 -0700
+Message-ID: <20170322234210.5557-1-tony@atomide.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Motorola phones like droid 4 there is a custom CPCAP PMIC. This PMIC
-has ADCs that are used for battery charging and USB PHY VBUS and ID pin
-detection.
+The custom CPCAP PMIC used on Motorola phones such as Droid 4 has a
+USB battery charger. It can optionally also have a companion chip that
+is used for wireless charging.
 
-Unfortunately the only documentation for this ADC seems to be the
-Motorola mapphone Linux kernel tree. I have tested that reading raw and
-scaled values works, but I have not used the timed sampling that the ADC
-seems to support.
+The charger on CPCAP also can feed VBUS for the USB host mode. This
+can be handled by the existing kernel phy_companion interface.
 
-Let's add a minimal support for it so we can eventually provide IIO
-channels for the related battery charging and USB PHY drivers.
-
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree@vger.kernel.org
+Cc: Marcel Partap <mpartap@gmx.net>
+Cc: Michael Scott <michael.scott@linaro.org>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
 
 Changes since v1:
 
-- Fix numerous issues pointed out by Peter Meerwald-Stadler
-  <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org> and Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+- Fix scaling of IIO values as pointed out by Sebastian Reichel
+  <sre@kernel.org>
 
-- Simplify things further by limiting read functions to a
-  single channel instead of a bank and got rid of the driver
-  specific cpcap_adc_conv_type in favor of IIO generic types
+- Use iio_read_channel_processed() instead of iio_read_channel_scaled()
+  as changed in the v2 of the ADC driver
+
+- Add GPL v2 license header
 
 ---
- .../devicetree/bindings/iio/adc/cpcap-adc.txt      |   18 +
- drivers/iio/adc/Kconfig                            |   11 +
- drivers/iio/adc/Makefile                           |    1 +
- drivers/iio/adc/cpcap-adc.c                        | 1031 ++++++++++++++++++++
- 4 files changed, 1061 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/iio/adc/cpcap-adc.txt
- create mode 100644 drivers/iio/adc/cpcap-adc.c
+ .../bindings/power/supply/cpcap-charger.txt        |  34 +
+ drivers/power/supply/Kconfig                       |   7 +
+ drivers/power/supply/Makefile                      |   1 +
+ drivers/power/supply/cpcap-charger.c               | 684 +++++++++++++++++++++
+ 4 files changed, 726 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/power/supply/cpcap-charger.txt
+ create mode 100644 drivers/power/supply/cpcap-charger.c
 
-diff --git a/Documentation/devicetree/bindings/iio/adc/cpcap-adc.txt b/Documentation/devicetree/bindings/iio/adc/cpcap-adc.txt
+diff --git a/Documentation/devicetree/bindings/power/supply/cpcap-charger.txt b/Documentation/devicetree/bindings/power/supply/cpcap-charger.txt
 new file mode 100644
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/iio/adc/cpcap-adc.txt
-@@ -0,0 +1,18 @@
-+Motorola CPCAP PMIC ADC binding
++++ b/Documentation/devicetree/bindings/power/supply/cpcap-charger.txt
+@@ -0,0 +1,34 @@
++Motorola CPCAP PMIC battery charger binding
 +
 +Required properties:
-+- compatible: Should be "motorola,cpcap-adc" or "motorola,mapphone-cpcap-adc"
-+- interrupt-parent: The interrupt controller
-+- interrupts: The interrupt number for the ADC device
-+- interrupt-names: Should be "adcdone"
-+- #io-channel-cells: Number of cells in an IIO specifier
++- compatible: Shall be "motorola,cpcap-charger" or
++	      "motorola,mapphone-cpcap-charger"
++- interrupts: Interrupts used on the CPCAP PMIC
++- interrupt-names: Names of the interrupts
++- io-channels: IIO ADC channels used by the charger
++- io-channel-names: Names of the IIO ADC channels
++
++Optional properties:
++- mode-gpios: Optionally CPCAP charger can have a companion wireless
++	      charge controller that is controlled with two GPIOs
 +
 +Example:
 +
-+cpcap_adc: adc {
-+	compatible = "motorola,mapphone-cpcap-adc";
-+	interrupt-parent = <&cpcap>;
-+	interrupts = <8 IRQ_TYPE_NONE>;
-+	interrupt-names = "adcdone";
-+	#io-channel-cells = <1>;
++cpcap_charger: charger {
++	compatible = "motorola,mapphone-cpcap-charger";
++	interrupts-extended = <
++		&cpcap 13 0 &cpcap 12 0 &cpcap 29 0 &cpcap 28 0
++		&cpcap 22 0 &cpcap 20 0 &cpcap 19 0 &cpcap 54 0
++	>;
++	interrupt-names =
++		"chrg_det", "rvrs_chrg", "chrg_se1b", "se0conn",
++		"rvrs_mode", "chrgcurr1", "vbusvld", "battdetb";
++	mode-gpios = <&gpio3 29 GPIO_ACTIVE_LOW
++		      &gpio3 23 GPIO_ACTIVE_LOW>;
++	io-channels = <&cpcap_adc 0 &cpcap_adc 1
++		       &cpcap_adc 2 &cpcap_adc 5
++		       &cpcap_adc 6>;
++	io-channel-names = "battdetb", "battp",
++			   "vbus", "chg_isense",
++			   "batti";
 +};
-diff --git a/drivers/iio/adc/Kconfig b/drivers/iio/adc/Kconfig
---- a/drivers/iio/adc/Kconfig
-+++ b/drivers/iio/adc/Kconfig
-@@ -195,6 +195,17 @@ config CC10001_ADC
- 	  This driver can also be built as a module. If so, the module will be
- 	  called cc10001_adc.
+diff --git a/drivers/power/supply/Kconfig b/drivers/power/supply/Kconfig
+--- a/drivers/power/supply/Kconfig
++++ b/drivers/power/supply/Kconfig
+@@ -317,6 +317,13 @@ config BATTERY_RX51
+ 	  Say Y here to enable support for battery information on Nokia
+ 	  RX-51, also known as N900 tablet.
  
-+config CPCAP_ADC
-+	tristate "Motorola CPCAP PMIC ADC driver"
++config CHARGER_CPCAP
++	tristate "CPCAP PMIC Charger Driver"
 +	depends on MFD_CPCAP
-+	select IIO_BUFFER
-+	select IIO_TRIGGERED_BUFFER
 +	help
-+	  Say yes here to build support for Motorola CPCAP PMIC ADC.
++	  Say Y to enable support for CPCAP PMIC charger driver for Motorola
++	  mobile devices such as Droid 4.
 +
-+	  This driver can also be built as a module. If so, the module will be
-+	  called cpcap-adc.
-+
- config DA9150_GPADC
- 	tristate "Dialog DA9150 GPADC driver support"
- 	depends on MFD_DA9150
-diff --git a/drivers/iio/adc/Makefile b/drivers/iio/adc/Makefile
---- a/drivers/iio/adc/Makefile
-+++ b/drivers/iio/adc/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_AXP288_ADC) += axp288_adc.o
- obj-$(CONFIG_BCM_IPROC_ADC) += bcm_iproc_adc.o
- obj-$(CONFIG_BERLIN2_ADC) += berlin2-adc.o
- obj-$(CONFIG_CC10001_ADC) += cc10001_adc.o
-+obj-$(CONFIG_CPCAP_ADC) += cpcap-adc.o
- obj-$(CONFIG_DA9150_GPADC) += da9150-gpadc.o
- obj-$(CONFIG_ENVELOPE_DETECTOR) += envelope-detector.o
- obj-$(CONFIG_EXYNOS_ADC) += exynos_adc.o
-diff --git a/drivers/iio/adc/cpcap-adc.c b/drivers/iio/adc/cpcap-adc.c
+ config CHARGER_ISP1704
+ 	tristate "ISP1704 USB Charger Detection"
+ 	depends on USB_PHY
+diff --git a/drivers/power/supply/Makefile b/drivers/power/supply/Makefile
+--- a/drivers/power/supply/Makefile
++++ b/drivers/power/supply/Makefile
+@@ -51,6 +51,7 @@ obj-$(CONFIG_CHARGER_PCF50633)	+= pcf50633-charger.o
+ obj-$(CONFIG_BATTERY_JZ4740)	+= jz4740-battery.o
+ obj-$(CONFIG_BATTERY_RX51)	+= rx51_battery.o
+ obj-$(CONFIG_AB8500_BM)		+= ab8500_bmdata.o ab8500_charger.o ab8500_fg.o ab8500_btemp.o abx500_chargalg.o pm2301_charger.o
++obj-$(CONFIG_CHARGER_CPCAP)	+= cpcap-charger.o
+ obj-$(CONFIG_CHARGER_ISP1704)	+= isp1704_charger.o
+ obj-$(CONFIG_CHARGER_MAX8903)	+= max8903_charger.o
+ obj-$(CONFIG_CHARGER_TWL4030)	+= twl4030_charger.o
+diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/cpcap-charger.c
 new file mode 100644
 --- /dev/null
-+++ b/drivers/iio/adc/cpcap-adc.c
-@@ -0,0 +1,1031 @@
++++ b/drivers/power/supply/cpcap-charger.c
+@@ -0,0 +1,684 @@
 +/*
-+ * Copyright (C) 2017 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
++ * Motorola CPCAP PMIC battery charger driver
 + *
-+ * Rewritten for Linux IIO framework with register managing functions
-+ * based on earlier driver found in the Motorola Linux kernel:
++ * Copyright (C) 2017 Tony Lindgren <tony@atomide.com>
++ *
++ * Rewritten for Linux power framework with some parts based on
++ * on earlier driver found in the Motorola Linux kernel:
 + *
 + * Copyright (C) 2009-2010 Motorola, Inc.
 + *
@@ -123,1018 +132,669 @@ new file mode 100644
 + * GNU General Public License for more details.
 + */
 +
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
++#include <linux/atomic.h>
 +#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
 +#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/notifier.h>
 +#include <linux/of.h>
 +#include <linux/of_platform.h>
 +#include <linux/platform_device.h>
++#include <linux/power_supply.h>
 +#include <linux/regmap.h>
 +
-+#include <linux/iio/buffer.h>
-+#include <linux/iio/driver.h>
-+#include <linux/iio/iio.h>
-+#include <linux/iio/kfifo_buf.h>
++#include <linux/gpio/consumer.h>
++#include <linux/usb/phy_companion.h>
++#include <linux/phy/omap_usb.h>
++#include <linux/usb/otg.h>
++#include <linux/iio/consumer.h>
 +#include <linux/mfd/motorola-cpcap.h>
 +
-+/* Register CPCAP_REG_ADCC1 bits */
-+#define CPCAP_BIT_ADEN_AUTO_CLR		BIT(15)	/* Currently unused */
-+#define CPCAP_BIT_CAL_MODE		BIT(14) /* Set with BIT_RAND0 */
-+#define CPCAP_BIT_ADC_CLK_SEL1		BIT(13)	/* Currently unused */
-+#define CPCAP_BIT_ADC_CLK_SEL0		BIT(12)	/* Currently unused */
-+#define CPCAP_BIT_ATOX			BIT(11)
-+#define CPCAP_BIT_ATO3			BIT(10)
-+#define CPCAP_BIT_ATO2			BIT(9)
-+#define CPCAP_BIT_ATO1			BIT(8)
-+#define CPCAP_BIT_ATO0			BIT(7)
-+#define CPCAP_BIT_ADA2			BIT(6)
-+#define CPCAP_BIT_ADA1			BIT(5)
-+#define CPCAP_BIT_ADA0			BIT(4)
-+#define CPCAP_BIT_AD_SEL1		BIT(3)	/* Set for ADC_TYPE_BANK_1 */
-+#define CPCAP_BIT_RAND1			BIT(2)	/* Set for ADC_TYPE_BATT_PI */
-+#define CPCAP_BIT_RAND0			BIT(1)	/* Set with CAL_MODE */
-+#define CPCAP_BIT_ADEN			BIT(0)	/* Currently unused */
++/* CPCAP_REG_CRM register bits */
++#define CPCAP_REG_CRM_UNUSED_641_15	BIT(15)	/* 641 = register number */
++#define CPCAP_REG_CRM_UNUSED_641_14	BIT(14)	/* 641 = register number */
++#define CPCAP_REG_CRM_CHRG_LED_EN	BIT(13)
++#define CPCAP_REG_CRM_RVRSMODE		BIT(12)
++#define CPCAP_REG_CRM_ICHRG_TR1		BIT(11)
++#define CPCAP_REG_CRM_ICHRG_TR0		BIT(10)
++#define CPCAP_REG_CRM_FET_OVRD		BIT(9)
++#define CPCAP_REG_CRM_FET_CTRL		BIT(8)
++#define CPCAP_REG_CRM_VCHRG3		BIT(7)
++#define CPCAP_REG_CRM_VCHRG2		BIT(6)
++#define CPCAP_REG_CRM_VCHRG1		BIT(5)
++#define CPCAP_REG_CRM_VCHRG0		BIT(4)
++#define CPCAP_REG_CRM_ICHRG3		BIT(3)
++#define CPCAP_REG_CRM_ICHRG2		BIT(2)
++#define CPCAP_REG_CRM_ICHRG1		BIT(1)
++#define CPCAP_REG_CRM_ICHRG0		BIT(0)
 +
-+/* Register CPCAP_REG_ADCC2 bits */
-+#define CPCAP_BIT_CAL_FACTOR_ENABLE	BIT(15)	/* Currently unused */
-+#define CPCAP_BIT_BATDETB_EN		BIT(14)	/* Currently unused */
-+#define CPCAP_BIT_ADTRIG_ONESHOT	BIT(13)	/* Set for !TIMING_IMM */
-+#define CPCAP_BIT_ASC			BIT(12)	/* Set for TIMING_IMM */
-+#define CPCAP_BIT_ATOX_PS_FACTOR	BIT(11)
-+#define CPCAP_BIT_ADC_PS_FACTOR1	BIT(10)
-+#define CPCAP_BIT_ADC_PS_FACTOR0	BIT(9)
-+#define CPCAP_BIT_AD4_SELECT		BIT(8)	/* Currently unused */
-+#define CPCAP_BIT_ADC_BUSY		BIT(7)	/* Currently unused */
-+#define CPCAP_BIT_THERMBIAS_EN		BIT(6)	/* Currently unused */
-+#define CPCAP_BIT_ADTRIG_DIS		BIT(5)	/* Disable interrupt */
-+#define CPCAP_BIT_LIADC			BIT(4)	/* Currently unused */
-+#define CPCAP_BIT_TS_REFEN		BIT(3)	/* Currently unused */
-+#define CPCAP_BIT_TS_M2			BIT(2)	/* Currently unused */
-+#define CPCAP_BIT_TS_M1			BIT(1)	/* Currently unused */
-+#define CPCAP_BIT_TS_M0			BIT(0)	/* Currently unused */
++/* CPCAP_REG_CRM trickle charge voltages */
++#define CPCAP_REG_CRM_TR(val)		(((val) & 0x3) << 10)
++#define CPCAP_REG_CRM_TR_0A00		CPCAP_REG_CRM_TR(0x0)
++#define CPCAP_REG_CRM_TR_0A24		CPCAP_REG_CRM_TR(0x1)
++#define CPCAP_REG_CRM_TR_0A48		CPCAP_REG_CRM_TR(0x2)
++#define CPCAP_REG_CRM_TR_0A72		CPCAP_REG_CRM_TR(0x4)
 +
-+#define CPCAP_MAX_TEMP_LVL		27
-+#define CPCAP_FOUR_POINT_TWO_ADC	801
-+#define ST_ADC_CAL_CHRGI_UPPER_THRESHOLD 530
-+#define ST_ADC_CAL_CHRGI_LOWER_THRESHOLD 494
-+#define ST_ADC_CAL_BATTI_UPPER_THRESHOLD 530
-+#define ST_ADC_CAL_BATTI_LOWER_THRESHOLD 494
-+#define ST_ADC_CALIBRATE_DIFF_THRESHOLD	3
++/* CPCAP_REG_CRM charge voltages */
++#define CPCAP_REG_CRM_VCHRG(val)	(((val) & 0xf) << 4)
++#define CPCAP_REG_CRM_VCHRG_3V80	CPCAP_REG_CRM_VCHRG(0x0)
++#define CPCAP_REG_CRM_VCHRG_4V10	CPCAP_REG_CRM_VCHRG(0x1)
++#define CPCAP_REG_CRM_VCHRG_4V15	CPCAP_REG_CRM_VCHRG(0x2)
++#define CPCAP_REG_CRM_VCHRG_4V20	CPCAP_REG_CRM_VCHRG(0x3)
++#define CPCAP_REG_CRM_VCHRG_4V22	CPCAP_REG_CRM_VCHRG(0x4)
++#define CPCAP_REG_CRM_VCHRG_4V24	CPCAP_REG_CRM_VCHRG(0x5)
++#define CPCAP_REG_CRM_VCHRG_4V26	CPCAP_REG_CRM_VCHRG(0x6)
++#define CPCAP_REG_CRM_VCHRG_4V28	CPCAP_REG_CRM_VCHRG(0x7)
++#define CPCAP_REG_CRM_VCHRG_4V30	CPCAP_REG_CRM_VCHRG(0x8)
++#define CPCAP_REG_CRM_VCHRG_4V32	CPCAP_REG_CRM_VCHRG(0x9)
++#define CPCAP_REG_CRM_VCHRG_4V34	CPCAP_REG_CRM_VCHRG(0xa)
++#define CPCAP_REG_CRM_VCHRG_4V36	CPCAP_REG_CRM_VCHRG(0xb)
++#define CPCAP_REG_CRM_VCHRG_4V38	CPCAP_REG_CRM_VCHRG(0xc)
++#define CPCAP_REG_CRM_VCHRG_4V40	CPCAP_REG_CRM_VCHRG(0xd)
++#define CPCAP_REG_CRM_VCHRG_4V42	CPCAP_REG_CRM_VCHRG(0xe)
++#define CPCAP_REG_CRM_VCHRG_4V44	CPCAP_REG_CRM_VCHRG(0xf)
 +
-+#define CPCAP_ADC_MAX_RETRIES		5	/* Calibration and quirk */
++/* CPCAP_REG_CRM charge currents */
++#define CPCAP_REG_CRM_ICHRG(val)	(((val) & 0xf) << 0)
++#define CPCAP_REG_CRM_ICHRG_0A000	CPCAP_REG_CRM_ICHRG(0x0)
++#define CPCAP_REG_CRM_ICHRG_0A070	CPCAP_REG_CRM_ICHRG(0x1)
++#define CPCAP_REG_CRM_ICHRG_0A176	CPCAP_REG_CRM_ICHRG(0x2)
++#define CPCAP_REG_CRM_ICHRG_0A264	CPCAP_REG_CRM_ICHRG(0x3)
++#define CPCAP_REG_CRM_ICHRG_0A352	CPCAP_REG_CRM_ICHRG(0x4)
++#define CPCAP_REG_CRM_ICHRG_0A440	CPCAP_REG_CRM_ICHRG(0x5)
++#define CPCAP_REG_CRM_ICHRG_0A528	CPCAP_REG_CRM_ICHRG(0x6)
++#define CPCAP_REG_CRM_ICHRG_0A616	CPCAP_REG_CRM_ICHRG(0x7)
++#define CPCAP_REG_CRM_ICHRG_0A704	CPCAP_REG_CRM_ICHRG(0x8)
++#define CPCAP_REG_CRM_ICHRG_0A792	CPCAP_REG_CRM_ICHRG(0x9)
++#define CPCAP_REG_CRM_ICHRG_0A880	CPCAP_REG_CRM_ICHRG(0xa)
++#define CPCAP_REG_CRM_ICHRG_0A968	CPCAP_REG_CRM_ICHRG(0xb)
++#define CPCAP_REG_CRM_ICHRG_1A056	CPCAP_REG_CRM_ICHRG(0xc)
++#define CPCAP_REG_CRM_ICHRG_1A144	CPCAP_REG_CRM_ICHRG(0xd)
++#define CPCAP_REG_CRM_ICHRG_1A584	CPCAP_REG_CRM_ICHRG(0xe)
++#define CPCAP_REG_CRM_ICHRG_NO_LIMIT	CPCAP_REG_CRM_ICHRG(0xf)
 +
-+/**
-+ * struct cpcap_adc_ato - timing settings for cpcap adc
-+ *
-+ * Unfortunately no cpcap documentation available, please document when
-+ * using these.
-+ */
-+struct cpcap_adc_ato {
-+	unsigned short ato_in;
-+	unsigned short atox_in;
-+	unsigned short adc_ps_factor_in;
-+	unsigned short atox_ps_factor_in;
-+	unsigned short ato_out;
-+	unsigned short atox_out;
-+	unsigned short adc_ps_factor_out;
-+	unsigned short atox_ps_factor_out;
++enum {
++	CPCAP_CHARGER_IIO_BATTDET,
++	CPCAP_CHARGER_IIO_VOLTAGE,
++	CPCAP_CHARGER_IIO_VBUS,
++	CPCAP_CHARGER_IIO_CHRG_CURRENT,
++	CPCAP_CHARGER_IIO_BATT_CURRENT,
++	CPCAP_CHARGER_IIO_NR,
 +};
 +
-+/**
-+ * struct cpcap-adc - cpcap adc device driver data
-+ * @reg: cpcap regmap
-+ * @dev: struct device
-+ * @vendor: cpcap vendor
-+ * @irq: interrupt
-+ * @lock: mutex
-+ * @ato: request timings
-+ * @wq_data_avail: work queue
-+ * @done: work done
-+ */
-+struct cpcap_adc {
-+	struct regmap *reg;
++struct cpcap_charger_ddata {
 +	struct device *dev;
-+	u16 vendor;
++	struct regmap *reg;
++	struct list_head irq_list;
++	struct delayed_work detect_work;
++	struct delayed_work vbus_work;
++	struct gpio_desc *gpio[2];		/* gpio_reven0 & 1 */
++
++	struct iio_channel *channels[CPCAP_CHARGER_IIO_NR];
++
++	struct power_supply *usb;
++
++	struct phy_companion comparator;	/* For USB VBUS */
++	bool vbus_enabled;
++	atomic_t active;
++
++	int status;
++};
++
++struct cpcap_interrupt_desc {
 +	int irq;
-+	struct mutex lock;	/* ADC register access lock */
-+	const struct cpcap_adc_ato *ato;
-+	wait_queue_head_t wq_data_avail;
-+	bool done;
++	struct list_head node;
++	const char *name;
 +};
 +
-+/**
-+ * enum cpcap_adc_bank0 - cpcap adc bank0 channels
-+ */
-+enum cpcap_adc_bank0 {
-+	CPCAP_ADC_AD0_BATTDETB,	/* Battery detection */
-+	CPCAP_ADC_BATTP,	/* Battery voltage */
-+	CPCAP_ADC_VBUS,		/* USB VBUS voltage */
-+	CPCAP_ADC_AD3,		/* Battery temperature when charging */
-+	CPCAP_ADC_BPLUS_AD4,	/* Another battery or system voltage */
-+	CPCAP_ADC_CHG_ISENSE,	/* Calibrated charge current */
-+	CPCAP_ADC_BATTI,	/* Calibrated system current */
-+	CPCAP_ADC_USB_ID,	/* USB OTG ID, unused on droid 4? */
-+	CPCAP_ADC_BANK0_NUM,
++struct cpcap_charger_ints_state {
++	bool chrg_det;
++	bool rvrs_chrg;
++	bool vbusov;
++
++	bool chrg_se1b;
++	bool rvrs_mode;
++	bool chrgcurr1;
++	bool vbusvld;
++
++	bool battdetb;
 +};
 +
-+/**
-+ * enum cpcap_adc_bank1 - cpcap adc bank1 channels
-+ */
-+enum cpcap_adc_bank1 {
-+	CPCAP_ADC_AD8,		/* Seems unused */
-+	CPCAP_ADC_AD9,		/* Seems unused */
-+	CPCAP_ADC_LICELL,	/* Maybe system voltage? Always 3V */
-+	CPCAP_ADC_HV_BATTP,	/* Another battery detection? */
-+	CPCAP_ADC_TSX1_AD12,	/* Seems unused, for touchscreen? */
-+	CPCAP_ADC_TSX2_AD13,	/* Seems unused, for touchscreen? */
-+	CPCAP_ADC_TSY1_AD14,	/* Seems unused, for touchscreen? */
-+	CPCAP_ADC_TSY2_AD15,	/* Seems unused, for touchscreen? */
-+	CPCAP_ADC_BANK1_NUM,
++static enum power_supply_property cpcap_charger_props[] = {
++	POWER_SUPPLY_PROP_STATUS,
++	POWER_SUPPLY_PROP_ONLINE,
++	POWER_SUPPLY_PROP_VOLTAGE_NOW,
++	POWER_SUPPLY_PROP_CURRENT_NOW,
 +};
 +
-+/**
-+ * enum cpcap_adc_timing - cpcap adc timing options
-+ *
-+ * CPCAP_ADC_TIMING_IMM seems to be immediate with no timings.
-+ * Please document when using.
-+ */
-+enum cpcap_adc_timing {
-+	CPCAP_ADC_TIMING_IMM,
-+	CPCAP_ADC_TIMING_IN,
-+	CPCAP_ADC_TIMING_OUT,
-+};
-+
-+/**
-+ * enum cpcap_adc_type - cpcap adc types
-+ *
-+ * Two banks of channels with eight channels in each. The first two channels
-+ * in bank0 can be muxed for other functionality with CPCAP_ADC_TYPE_BATT_PI.
-+ */
-+enum cpcap_adc_type {
-+	CPCAP_ADC_TYPE_BANK_0,
-+	CPCAP_ADC_TYPE_BANK_1,
-+	CPCAP_ADC_TYPE_BATT_PI,
-+};
-+
-+/**
-+ * struct cpcap_adc_request - cpcap adc request
-+ * @bank_index: channel index in the bank
-+ * @type: bank type, bank0, 1 or remuxed bank0
-+ * @timing: timing settings
-+ * @result: result
-+ */
-+struct cpcap_adc_request {
-+	int bank_index;
-+	enum cpcap_adc_type type;
-+	enum cpcap_adc_timing timing;
-+	int result;
-+};
-+
-+/**
-+ * struct cpcap_adc_phasing_tbl - cpcap phasing table
-+ * @offset: offset in the phasing table
-+ * @multiplier: multiplier in the phasing table
-+ * @divider: divider in the phasing table
-+ * @min: minimum value
-+ * @max: maximum value
-+ */
-+struct cpcap_adc_phasing_tbl {
-+	short offset;
-+	unsigned short multiplier;
-+	unsigned short divider;
-+	short min;
-+	short max;
-+};
-+
-+/**
-+ * struct cpcap_adc_conversion_tbl - cpcap conversion table
-+ * @conv_type: conversion type
-+ * @align_offset: align offset
-+ * @conv_offset: conversion offset
-+ * @cal_offset: calibration offset
-+ * @multiplier: conversion multiplier
-+ * @divider: conversion divider
-+ */
-+struct cpcap_adc_conversion_tbl {
-+	enum iio_chan_info_enum conv_type;
-+	int align_offset;
-+	int conv_offset;
-+	int cal_offset;
-+	int multiplier;
-+	int divider;
-+};
-+
-+/* Phasing table for bank0 */
-+static const struct cpcap_adc_phasing_tbl bank0_phasing[CPCAP_ADC_BANK0_NUM] = {
-+	[CPCAP_ADC_AD0_BATTDETB] = {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_BATTP] =        {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_VBUS] =         {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_AD3] =          {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_BPLUS_AD4] =    {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_CHG_ISENSE] =   {0, 0x80, 0x80, -512,  511},
-+	[CPCAP_ADC_BATTI] =        {0, 0x80, 0x80, -512,  511},
-+	[CPCAP_ADC_USB_ID] =       {0, 0x80, 0x80,    0, 1023},
-+};
-+
-+/* Phasing table for bank1 */
-+static const struct cpcap_adc_phasing_tbl bank1_phasing[CPCAP_ADC_BANK1_NUM] = {
-+	[CPCAP_ADC_AD8] =          {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_AD9] =          {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_LICELL] =       {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_HV_BATTP] =     {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_TSX1_AD12] =    {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_TSX2_AD13] =    {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_TSY1_AD14] =    {0, 0x80, 0x80,    0, 1023},
-+	[CPCAP_ADC_TSY2_AD15] =    {0, 0x80, 0x80,    0, 1023},
-+};
-+
-+/* Conversion table for bank0. Updated during init based on calibration */
-+static struct cpcap_adc_conversion_tbl bank0_conversion[CPCAP_ADC_BANK0_NUM] = {
-+	[CPCAP_ADC_AD0_BATTDETB] = {
-+		IIO_CHAN_INFO_PROCESSED,    0,    0, 0,     1,    1,
-+	},
-+	[CPCAP_ADC_BATTP] = {
-+		IIO_CHAN_INFO_PROCESSED,    0, 2400, 0,  2300, 1023,
-+	},
-+	[CPCAP_ADC_VBUS] = {
-+		IIO_CHAN_INFO_PROCESSED,    0,    0, 0, 10000, 1023,
-+	},
-+	[CPCAP_ADC_AD3] = {
-+		IIO_CHAN_INFO_PROCESSED,    0,    0, 0,     1,    1,
-+		},
-+	[CPCAP_ADC_BPLUS_AD4] = {
-+		IIO_CHAN_INFO_PROCESSED,    0, 2400, 0,  2300, 1023,
-+	},
-+	[CPCAP_ADC_CHG_ISENSE] = {
-+		IIO_CHAN_INFO_PROCESSED, -512,    2, 0,  5000, 1023,
-+	},
-+	[CPCAP_ADC_BATTI] = {
-+		IIO_CHAN_INFO_PROCESSED, -512,    2, 0,  5000, 1023,
-+	},
-+	[CPCAP_ADC_USB_ID] = {
-+		IIO_CHAN_INFO_RAW,          0,    0, 0,     1,    1,
-+	},
-+};
-+
-+/* Conversion table for bank1 */
-+static const struct
-+cpcap_adc_conversion_tbl bank1_conversion[CPCAP_ADC_BANK1_NUM] = {
-+	[CPCAP_ADC_AD8] = {
-+		IIO_CHAN_INFO_RAW,          0,  0,  0,    1,    1
-+	},
-+	[CPCAP_ADC_AD9] = {
-+		IIO_CHAN_INFO_RAW,          0,  0,  0,    1,    1
-+	},
-+	[CPCAP_ADC_LICELL] = {
-+		IIO_CHAN_INFO_PROCESSED,    0,  0,  0, 3400, 1023
-+	},
-+	[CPCAP_ADC_HV_BATTP] = {
-+		IIO_CHAN_INFO_RAW,          0,  0,  0,    1,    1
-+	},
-+	[CPCAP_ADC_TSX1_AD12] = {
-+		IIO_CHAN_INFO_RAW,          0,  0,  0,    1,    1
-+	},
-+	[CPCAP_ADC_TSX2_AD13] = {
-+		IIO_CHAN_INFO_RAW,          0,  0,  0,    1,    1
-+	},
-+	[CPCAP_ADC_TSY1_AD14] = {
-+		IIO_CHAN_INFO_RAW,          0,  0,  0,    1,    1
-+	},
-+	[CPCAP_ADC_TSY2_AD15] = {
-+		IIO_CHAN_INFO_RAW,          0,  0,  0,    1,    1
-+	},
-+};
-+
-+/*
-+ * Temperature lookup table of register values to milliCelcius.
-+ * REVISIT: Check the duplicate 0x3ff entry in a freezer
-+ */
-+static const int temp_map[CPCAP_MAX_TEMP_LVL][2] = {
-+	{ 0x03ff, -40000 },
-+	{ 0x03ff, -35000 },
-+	{ 0x03ef, -30000 },
-+	{ 0x03b2, -25000 },
-+	{ 0x036c, -20000 },
-+	{ 0x0320, -15000 },
-+	{ 0x02d0, -10000 },
-+	{ 0x027f, -5000 },
-+	{ 0x022f, 0 },
-+	{ 0x01e4, 5000 },
-+	{ 0x019f, 10000 },
-+	{ 0x0161, 15000 },
-+	{ 0x012b, 20000 },
-+	{ 0x00fc, 25000 },
-+	{ 0x00d4, 30000 },
-+	{ 0x00b2, 35000 },
-+	{ 0x0095, 40000 },
-+	{ 0x007d, 45000 },
-+	{ 0x0069, 50000 },
-+	{ 0x0059, 55000 },
-+	{ 0x004b, 60000 },
-+	{ 0x003f, 65000 },
-+	{ 0x0036, 70000 },
-+	{ 0x002e, 75000 },
-+	{ 0x0027, 80000 },
-+	{ 0x0022, 85000 },
-+	{ 0x001d, 90000 },
-+};
-+
-+static irqreturn_t cpcap_adc_irq_thread(int irq, void *data)
++static bool cpcap_charger_battery_found(struct cpcap_charger_ddata *ddata)
 +{
-+	struct iio_dev *indio_dev = data;
-+	struct cpcap_adc *ddata = iio_priv(indio_dev);
++	struct iio_channel *channel;
++	int error, value;
++
++	channel = ddata->channels[CPCAP_CHARGER_IIO_BATTDET];
++	error = iio_read_channel_raw(channel, &value);
++	if (error < 0) {
++		dev_warn(ddata->dev, "%s failed: %i\n", __func__, error);
++
++		return false;
++	}
++
++	return value == 1;
++}
++
++static int cpcap_charger_get_charge_voltage(struct cpcap_charger_ddata *ddata)
++{
++	struct iio_channel *channel;
++	int error, value = 0;
++
++	channel = ddata->channels[CPCAP_CHARGER_IIO_VOLTAGE];
++	error = iio_read_channel_processed(channel, &value);
++	if (error < 0) {
++		dev_warn(ddata->dev, "%s failed: %i\n", __func__, error);
++
++		return 0;
++	}
++
++	return value;
++}
++
++static int cpcap_charger_get_charge_current(struct cpcap_charger_ddata *ddata)
++{
++	struct iio_channel *channel;
++	int error, value = 0;
++
++	channel = ddata->channels[CPCAP_CHARGER_IIO_CHRG_CURRENT];
++	error = iio_read_channel_processed(channel, &value);
++	if (error < 0) {
++		dev_warn(ddata->dev, "%s failed: %i\n", __func__, error);
++
++		return 0;
++	}
++
++	return value;
++}
++
++static int cpcap_charger_get_property(struct power_supply *psy,
++				      enum power_supply_property psp,
++				      union power_supply_propval *val)
++{
++	struct cpcap_charger_ddata *ddata = dev_get_drvdata(psy->dev.parent);
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_STATUS:
++		val->intval = ddata->status;
++		break;
++	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
++		if (ddata->status == POWER_SUPPLY_STATUS_CHARGING)
++			val->intval = cpcap_charger_get_charge_voltage(ddata) *
++				1000;
++		else
++			val->intval = 0;
++		break;
++	case POWER_SUPPLY_PROP_CURRENT_NOW:
++		if (ddata->status == POWER_SUPPLY_STATUS_CHARGING)
++			val->intval = cpcap_charger_get_charge_current(ddata) *
++				1000;
++		else
++			val->intval = 0;
++		break;
++	case POWER_SUPPLY_PROP_ONLINE:
++		val->intval = ddata->status == POWER_SUPPLY_STATUS_CHARGING;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static void cpcap_charger_set_cable_path(struct cpcap_charger_ddata *ddata,
++					 bool enabled)
++{
++	if (!ddata->gpio[0])
++		return;
++
++	gpiod_set_value(ddata->gpio[0], enabled);
++}
++
++static void cpcap_charger_set_inductive_path(struct cpcap_charger_ddata *ddata,
++					     bool enabled)
++{
++	if (!ddata->gpio[1])
++		return;
++
++	gpiod_set_value(ddata->gpio[1], enabled);
++}
++
++static int cpcap_charger_set_state(struct cpcap_charger_ddata *ddata,
++				   int max_voltage, int charge_current,
++				   int trickle_current)
++{
++	bool enable;
 +	int error;
 +
-+	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+				   CPCAP_BIT_ADTRIG_DIS,
-+				   CPCAP_BIT_ADTRIG_DIS);
++	enable = max_voltage && (charge_current || trickle_current);
++	dev_dbg(ddata->dev, "%s enable: %i\n", __func__, enable);
++
++	if (!enable) {
++		error = regmap_update_bits(ddata->reg, CPCAP_REG_CRM,
++					   0x3fff,
++					   CPCAP_REG_CRM_FET_OVRD |
++					   CPCAP_REG_CRM_FET_CTRL);
++		if (error) {
++			ddata->status = POWER_SUPPLY_STATUS_UNKNOWN;
++			goto out_err;
++		}
++
++		ddata->status = POWER_SUPPLY_STATUS_DISCHARGING;
++
++		return 0;
++	}
++
++	error = regmap_update_bits(ddata->reg, CPCAP_REG_CRM, 0x3fff,
++				   CPCAP_REG_CRM_CHRG_LED_EN |
++				   trickle_current |
++				   CPCAP_REG_CRM_FET_OVRD |
++				   CPCAP_REG_CRM_FET_CTRL |
++				   max_voltage |
++				   charge_current);
++	if (error) {
++		ddata->status = POWER_SUPPLY_STATUS_UNKNOWN;
++		goto out_err;
++	}
++
++	ddata->status = POWER_SUPPLY_STATUS_CHARGING;
++
++	return 0;
++
++out_err:
++	dev_err(ddata->dev, "%s failed with %i\n", __func__, error);
++
++	return error;
++}
++
++static bool cpcap_charger_vbus_valid(struct cpcap_charger_ddata *ddata)
++{
++	int error, value = 0;
++	struct iio_channel *channel =
++		ddata->channels[CPCAP_CHARGER_IIO_VBUS];
++
++	error = iio_read_channel_processed(channel, &value);
++	if (error >= 0)
++		return value > 3900 ? true : false;
++
++	dev_err(ddata->dev, "error reading VBUS: %i\n", error);
++
++	return false;
++}
++
++/* VBUS control functions for the USB PHY companion */
++
++static void cpcap_charger_vbus_work(struct work_struct *work)
++{
++	struct cpcap_charger_ddata *ddata;
++	bool vbus = false;
++	int error;
++
++	ddata = container_of(work, struct cpcap_charger_ddata,
++			     vbus_work.work);
++
++	if (ddata->vbus_enabled) {
++		vbus = cpcap_charger_vbus_valid(ddata);
++		if (vbus) {
++			dev_info(ddata->dev, "VBUS already provided\n");
++
++			return;
++		}
++
++		cpcap_charger_set_cable_path(ddata, false);
++		cpcap_charger_set_inductive_path(ddata, false);
++
++		error = cpcap_charger_set_state(ddata, 0, 0, 0);
++		if (error)
++			goto out_err;
++
++		error = regmap_update_bits(ddata->reg, CPCAP_REG_CRM,
++					   CPCAP_REG_CRM_RVRSMODE,
++					   CPCAP_REG_CRM_RVRSMODE);
++		if (error)
++			goto out_err;
++	} else {
++		error = regmap_update_bits(ddata->reg, CPCAP_REG_CRM,
++					   CPCAP_REG_CRM_RVRSMODE, 0);
++		if (error)
++			goto out_err;
++
++		cpcap_charger_set_cable_path(ddata, true);
++		cpcap_charger_set_inductive_path(ddata, true);
++	}
++
++	return;
++
++out_err:
++	dev_err(ddata->dev, "%s could not %s vbus: %i\n", __func__,
++		ddata->vbus_enabled ? "enable" : "disable", error);
++}
++
++static int cpcap_charger_set_vbus(struct phy_companion *comparator,
++				  bool enabled)
++{
++	struct cpcap_charger_ddata *ddata =
++		container_of(comparator, struct cpcap_charger_ddata,
++			     comparator);
++
++	ddata->vbus_enabled = enabled;
++	schedule_delayed_work(&ddata->vbus_work, 0);
++
++	return 0;
++}
++
++/* Charger interrupt handling functions */
++
++static int cpcap_charger_get_ints_state(struct cpcap_charger_ddata *ddata,
++					struct cpcap_charger_ints_state *s)
++{
++	int val, error;
++
++	error = regmap_read(ddata->reg, CPCAP_REG_INTS1, &val);
 +	if (error)
++		return error;
++
++	s->chrg_det = val & BIT(13);
++	s->rvrs_chrg = val & BIT(12);
++	s->vbusov = val & BIT(11);
++
++	error = regmap_read(ddata->reg, CPCAP_REG_INTS2, &val);
++	if (error)
++		return error;
++
++	s->chrg_se1b = val & BIT(13);
++	s->rvrs_mode = val & BIT(6);
++	s->chrgcurr1 = val & BIT(4);
++	s->vbusvld = val & BIT(3);
++
++	error = regmap_read(ddata->reg, CPCAP_REG_INTS4, &val);
++	if (error)
++		return error;
++
++	s->battdetb = val & BIT(6);
++
++	return 0;
++}
++
++static void cpcap_usb_detect(struct work_struct *work)
++{
++	struct cpcap_charger_ddata *ddata;
++	struct cpcap_charger_ints_state s;
++	int error;
++
++	ddata = container_of(work, struct cpcap_charger_ddata,
++			     detect_work.work);
++
++	error = cpcap_charger_get_ints_state(ddata, &s);
++	if (error)
++		return;
++
++	if (cpcap_charger_vbus_valid(ddata) && s.chrgcurr1) {
++		int max_current;
++
++		if (cpcap_charger_battery_found(ddata))
++			max_current = CPCAP_REG_CRM_ICHRG_1A584;
++		else
++			max_current = CPCAP_REG_CRM_ICHRG_0A528;
++
++		error = cpcap_charger_set_state(ddata,
++						CPCAP_REG_CRM_VCHRG_4V20,
++						max_current,
++						CPCAP_REG_CRM_TR_0A72);
++		if (error)
++			goto out_err;
++	} else {
++		error = cpcap_charger_set_state(ddata, 0, 0, 0);
++		if (error)
++			goto out_err;
++	}
++
++	return;
++
++out_err:
++	dev_err(ddata->dev, "%s failed with %i\n", __func__, error);
++}
++
++static irqreturn_t cpcap_charger_irq_thread(int irq, void *data)
++{
++	struct cpcap_charger_ddata *ddata = data;
++
++	if (!atomic_read(&ddata->active))
 +		return IRQ_NONE;
 +
-+	ddata->done = true;
-+	wake_up_interruptible(&ddata->wq_data_avail);
++	schedule_delayed_work(&ddata->detect_work, 0);
 +
 +	return IRQ_HANDLED;
 +}
 +
-+#define CPCAP_CHAN(_type, _index, _address, _datasheet_name) {	\
-+	.type = (_type), \
-+	.address = (_address), \
-+	.indexed = 1, \
-+	.channel = (_index), \
-+	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) | \
-+			      BIT(IIO_CHAN_INFO_PROCESSED), \
-+	.scan_index = (_index), \
-+	.scan_type = { \
-+		.sign = 'u', \
-+		.realbits = 10, \
-+		.storagebits = 16, \
-+		.endianness = IIO_CPU, \
-+	}, \
-+	.datasheet_name = (_datasheet_name), \
-+}
-+
-+/*
-+ * The datasheet names are from Motorola mapphone Linux kernel except
-+ * for the last two which might be uncalibrated charge voltage and
-+ * current.
-+ */
-+static const struct iio_chan_spec cpcap_adc_channels[] = {
-+	CPCAP_CHAN(IIO_TEMP, 0, CPCAP_REG_ADCD0, "battdetb"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 1, CPCAP_REG_ADCD1, "battp"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 2, CPCAP_REG_ADCD2, "vbus"),
-+	CPCAP_CHAN(IIO_TEMP, 3, CPCAP_REG_ADCD3, "ad3"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 4, CPCAP_REG_ADCD4, "ad4"),
-+	CPCAP_CHAN(IIO_CURRENT, 5, CPCAP_REG_ADCD5, "chg_isense"),
-+	CPCAP_CHAN(IIO_CURRENT, 6, CPCAP_REG_ADCD6, "batti"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 7, CPCAP_REG_ADCD7, "usb_id"),
-+
-+	CPCAP_CHAN(IIO_CURRENT, 8, CPCAP_REG_ADCD0, "ad8"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 9, CPCAP_REG_ADCD1, "ad9"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 10, CPCAP_REG_ADCD2, "licell"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 11, CPCAP_REG_ADCD3, "hv_battp"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 12, CPCAP_REG_ADCD4, "tsx1_ad12"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 13, CPCAP_REG_ADCD5, "tsx2_ad13"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 14, CPCAP_REG_ADCD6, "tsy1_ad14"),
-+	CPCAP_CHAN(IIO_VOLTAGE, 15, CPCAP_REG_ADCD7, "tsy2_ad15"),
-+
-+	/* There are two registers with multiplexed functionality */
-+	CPCAP_CHAN(IIO_VOLTAGE, 16, CPCAP_REG_ADCD0, "chg_vsense"),
-+	CPCAP_CHAN(IIO_CURRENT, 17, CPCAP_REG_ADCD1, "batti2"),
-+};
-+
-+/* ADC calibration functions */
-+static void cpcap_adc_setup_calibrate(struct cpcap_adc *ddata,
-+				      enum cpcap_adc_bank0 chan)
++static int cpcap_usb_init_irq(struct platform_device *pdev,
++			      struct cpcap_charger_ddata *ddata,
++			      const char *name)
 +{
-+	unsigned int value = 0;
-+	unsigned long timeout = jiffies + msecs_to_jiffies(3000);
-+	int error;
-+
-+	if ((chan != CPCAP_ADC_CHG_ISENSE) &&
-+	    (chan != CPCAP_ADC_BATTI))
-+		return;
-+
-+	value |= CPCAP_BIT_CAL_MODE | CPCAP_BIT_RAND0;
-+	value |= ((chan << 4) &
-+		  (CPCAP_BIT_ADA2 | CPCAP_BIT_ADA1 | CPCAP_BIT_ADA0));
-+
-+	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC1,
-+				   CPCAP_BIT_CAL_MODE | CPCAP_BIT_ATOX |
-+				   CPCAP_BIT_ATO3 | CPCAP_BIT_ATO2 |
-+				   CPCAP_BIT_ATO1 | CPCAP_BIT_ATO0 |
-+				   CPCAP_BIT_ADA2 | CPCAP_BIT_ADA1 |
-+				   CPCAP_BIT_ADA0 | CPCAP_BIT_AD_SEL1 |
-+				   CPCAP_BIT_RAND1 | CPCAP_BIT_RAND0,
-+				   value);
-+	if (error)
-+		return;
-+
-+	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+				   CPCAP_BIT_ATOX_PS_FACTOR |
-+				   CPCAP_BIT_ADC_PS_FACTOR1 |
-+				   CPCAP_BIT_ADC_PS_FACTOR0,
-+				   0);
-+	if (error)
-+		return;
-+
-+	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+				   CPCAP_BIT_ADTRIG_DIS,
-+				   CPCAP_BIT_ADTRIG_DIS);
-+	if (error)
-+		return;
-+
-+	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+				   CPCAP_BIT_ASC,
-+				   CPCAP_BIT_ASC);
-+	if (error)
-+		return;
-+
-+	do {
-+		schedule_timeout_uninterruptible(1);
-+		error = regmap_read(ddata->reg, CPCAP_REG_ADCC2, &value);
-+		if (error)
-+			return;
-+	} while ((value & CPCAP_BIT_ASC) && time_before(jiffies, timeout));
-+
-+	if (value & CPCAP_BIT_ASC)
-+		dev_err(ddata->dev,
-+			"Timeout waiting for calibration to complete\n");
-+
-+	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC1,
-+				   CPCAP_BIT_CAL_MODE, 0);
-+	if (error)
-+		return;
-+}
-+
-+static int cpcap_adc_calibrate_one(struct cpcap_adc *ddata,
-+				   int channel,
-+				   u16 calibration_register,
-+				   int lower_threshold,
-+				   int upper_threshold)
-+{
-+	unsigned int calibration_data[2];
-+	unsigned short cal_data_diff;
-+	int i, error;
-+
-+	for (i = 0; i < CPCAP_ADC_MAX_RETRIES; i++) {
-+		calibration_data[0]  = 0;
-+		calibration_data[1]  = 0;
-+		cal_data_diff = 0;
-+		cpcap_adc_setup_calibrate(ddata, channel);
-+		error = regmap_read(ddata->reg, calibration_register,
-+				    &calibration_data[0]);
-+		if (error)
-+			return error;
-+		cpcap_adc_setup_calibrate(ddata, channel);
-+		error = regmap_read(ddata->reg, calibration_register,
-+				    &calibration_data[1]);
-+		if (error)
-+			return error;
-+
-+		if (calibration_data[0] > calibration_data[1])
-+			cal_data_diff =
-+				calibration_data[0] - calibration_data[1];
-+		else
-+			cal_data_diff =
-+				calibration_data[1] - calibration_data[0];
-+
-+		if (((calibration_data[1] >= lower_threshold) &&
-+		     (calibration_data[1] <= upper_threshold) &&
-+		     (cal_data_diff <= ST_ADC_CALIBRATE_DIFF_THRESHOLD)) ||
-+		    (ddata->vendor == CPCAP_VENDOR_TI)) {
-+			bank0_conversion[channel].cal_offset =
-+				((short)calibration_data[1] * -1) + 512;
-+			dev_dbg(ddata->dev, "ch%i calibration complete: %i\n",
-+				channel, bank0_conversion[channel].cal_offset);
-+			break;
-+		}
-+		usleep_range(5000, 10000);
-+	}
-+
-+	return 0;
-+}
-+
-+static int cpcap_adc_calibrate(struct cpcap_adc *ddata)
-+{
-+	int error;
-+
-+	error = cpcap_adc_calibrate_one(ddata, CPCAP_ADC_CHG_ISENSE,
-+					CPCAP_REG_ADCAL1,
-+					ST_ADC_CAL_CHRGI_LOWER_THRESHOLD,
-+					ST_ADC_CAL_CHRGI_UPPER_THRESHOLD);
-+	if (error)
-+		return error;
-+
-+	error = cpcap_adc_calibrate_one(ddata, CPCAP_ADC_BATTI,
-+					CPCAP_REG_ADCAL2,
-+					ST_ADC_CAL_BATTI_LOWER_THRESHOLD,
-+					ST_ADC_CAL_BATTI_UPPER_THRESHOLD);
-+	if (error)
-+		return error;
-+
-+	return 0;
-+}
-+
-+/* ADC setup, read and scale functions */
-+static void cpcap_adc_setup_bank(struct cpcap_adc *ddata,
-+				 struct cpcap_adc_request *req)
-+{
-+	const struct cpcap_adc_ato *ato = ddata->ato;
-+	unsigned short value1 = 0;
-+	unsigned short value2 = 0;
-+	int error;
-+
-+	if (!ato)
-+		return;
-+
-+	switch (req->type) {
-+	case CPCAP_ADC_TYPE_BANK_1:
-+		value1 |= CPCAP_BIT_AD_SEL1;
-+		break;
-+	case CPCAP_ADC_TYPE_BATT_PI:
-+		value1 |= CPCAP_BIT_RAND1;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	switch (req->timing) {
-+	case CPCAP_ADC_TIMING_IN:
-+		value1 |= ato->ato_in;
-+		value1 |= ato->atox_in;
-+		value2 |= ato->adc_ps_factor_in;
-+		value2 |= ato->atox_ps_factor_in;
-+		break;
-+
-+	case CPCAP_ADC_TIMING_OUT:
-+		value1 |= ato->ato_out;
-+		value1 |= ato->atox_out;
-+		value2 |= ato->adc_ps_factor_out;
-+		value2 |= ato->atox_ps_factor_out;
-+		break;
-+
-+	case CPCAP_ADC_TIMING_IMM:
-+	default:
-+		break;
-+	}
-+
-+	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC1,
-+				   CPCAP_BIT_CAL_MODE | CPCAP_BIT_ATOX |
-+				   CPCAP_BIT_ATO3 | CPCAP_BIT_ATO2 |
-+				   CPCAP_BIT_ATO1 | CPCAP_BIT_ATO0 |
-+				   CPCAP_BIT_ADA2 | CPCAP_BIT_ADA1 |
-+				   CPCAP_BIT_ADA0 | CPCAP_BIT_AD_SEL1 |
-+				   CPCAP_BIT_RAND1 | CPCAP_BIT_RAND0,
-+				   value1);
-+	if (error)
-+		return;
-+
-+	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+				   CPCAP_BIT_ATOX_PS_FACTOR |
-+				   CPCAP_BIT_ADC_PS_FACTOR1 |
-+				   CPCAP_BIT_ADC_PS_FACTOR0,
-+				   value2);
-+	if (error)
-+		return;
-+
-+	if (req->timing == CPCAP_ADC_TIMING_IMM) {
-+		error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+					   CPCAP_BIT_ADTRIG_DIS,
-+					   CPCAP_BIT_ADTRIG_DIS);
-+		if (error)
-+			return;
-+
-+		error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+					   CPCAP_BIT_ASC,
-+					   CPCAP_BIT_ASC);
-+		if (error)
-+			return;
-+	} else {
-+		error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+					   CPCAP_BIT_ADTRIG_ONESHOT,
-+					   CPCAP_BIT_ADTRIG_ONESHOT);
-+		if (error)
-+			return;
-+
-+		error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+					   CPCAP_BIT_ADTRIG_DIS, 0);
-+		if (error)
-+			return;
-+	}
-+}
-+
-+/*
-+ * Occasionally the ADC does not seem to start and there will be no
-+ * interrupt. Let's re-init interrupt to prevent the ADC from hanging
-+ * for the next request. It is unclear why this happens, but the next
-+ * request will usually work after doing this.
-+ */
-+static void cpcap_adc_quirk_reset_lost_irq(struct cpcap_adc *ddata)
-+{
-+	int error;
-+
-+	dev_info(ddata->dev, "lost ADC irq, attempting to reinit\n");
-+	disable_irq(ddata->irq);
-+	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
-+				   CPCAP_BIT_ADTRIG_DIS,
-+				   CPCAP_BIT_ADTRIG_DIS);
-+	if (error)
-+		dev_warn(ddata->dev, "%s reset failed: %i\n",
-+			 __func__, error);
-+	enable_irq(ddata->irq);
-+}
-+
-+static int cpcap_adc_start_bank(struct cpcap_adc *ddata,
-+				struct cpcap_adc_request *req)
-+{
-+	int i, error;
-+
-+	req->timing = CPCAP_ADC_TIMING_IMM;
-+	ddata->done = false;
-+
-+	for (i = 0; i < CPCAP_ADC_MAX_RETRIES; i++) {
-+		cpcap_adc_setup_bank(ddata, req);
-+		error = wait_event_interruptible_timeout(ddata->wq_data_avail,
-+							 ddata->done,
-+							 msecs_to_jiffies(50));
-+		if (error > 0)
-+			return 0;
-+
-+		if (error == 0) {
-+			cpcap_adc_quirk_reset_lost_irq(ddata);
-+			error = -ETIMEDOUT;
-+			continue;
-+		}
-+
-+		if (error < 0)
-+			return error;
-+	}
-+
-+	return error;
-+}
-+
-+static void cpcap_adc_phase(struct cpcap_adc_request *req, int index)
-+{
-+	const struct cpcap_adc_conversion_tbl *conv_tbl;
-+	const struct cpcap_adc_phasing_tbl *phase_tbl;
-+	int tbl_index;
-+
-+	switch (req->type) {
-+	case CPCAP_ADC_TYPE_BANK_0:
-+		conv_tbl = bank0_conversion;
-+		phase_tbl = bank0_phasing;
-+		tbl_index = index;
-+		break;
-+	case CPCAP_ADC_TYPE_BANK_1:
-+		conv_tbl = bank1_conversion;
-+		phase_tbl = bank1_phasing;
-+		tbl_index = index;
-+		break;
-+	case CPCAP_ADC_TYPE_BATT_PI:
-+		conv_tbl = bank0_conversion;
-+		phase_tbl = bank0_phasing;
-+		tbl_index = (index % 2) ? CPCAP_ADC_BATTI :
-+			CPCAP_ADC_BATTP;
-+		break;
-+	default:
-+		return;
-+	}
-+
-+	if (((req->type == CPCAP_ADC_TYPE_BANK_0) ||
-+	     (req->type == CPCAP_ADC_TYPE_BATT_PI)) &&
-+	    (tbl_index == CPCAP_ADC_BATTP)) {
-+		req->result -= phase_tbl[tbl_index].offset;
-+		req->result -= CPCAP_FOUR_POINT_TWO_ADC;
-+		req->result *= phase_tbl[tbl_index].multiplier;
-+		if (phase_tbl[tbl_index].divider == 0)
-+			return;
-+		req->result /= phase_tbl[tbl_index].divider;
-+		req->result += CPCAP_FOUR_POINT_TWO_ADC;
-+	} else {
-+		req->result += conv_tbl[tbl_index].cal_offset;
-+		req->result += conv_tbl[tbl_index].align_offset;
-+		req->result *= phase_tbl[tbl_index].multiplier;
-+		if (phase_tbl[tbl_index].divider == 0)
-+			return;
-+		req->result /= phase_tbl[tbl_index].divider;
-+		req->result += phase_tbl[tbl_index].offset;
-+	}
-+
-+	if (req->result < phase_tbl[tbl_index].min)
-+		req->result = phase_tbl[tbl_index].min;
-+	else if (req->result > phase_tbl[tbl_index].max)
-+		req->result = phase_tbl[tbl_index].max;
-+}
-+
-+/* Looks up temperatures in a table and calculates averages if needed */
-+static int cpcap_adc_table_to_millicelcius(unsigned short value)
-+{
-+	int i, result = 0, alpha;
-+
-+	if (value <= temp_map[CPCAP_MAX_TEMP_LVL - 1][0])
-+		return temp_map[CPCAP_MAX_TEMP_LVL - 1][1];
-+
-+	if (value >= temp_map[0][0])
-+		return temp_map[0][1];
-+
-+	for (i = 0; i < CPCAP_MAX_TEMP_LVL - 1; i++) {
-+		if ((value <= temp_map[i][0]) &&
-+		    (value >= temp_map[i + 1][0])) {
-+			if (value == temp_map[i][0]) {
-+				result = temp_map[i][1];
-+			} else if (value == temp_map[i + 1][0]) {
-+				result = temp_map[i + 1][1];
-+			} else {
-+				alpha = ((value - temp_map[i][0]) * 1000) /
-+					(temp_map[i + 1][0] - temp_map[i][0]);
-+
-+				result = temp_map[i][1] +
-+					((alpha * (temp_map[i + 1][1] -
-+						 temp_map[i][1])) / 1000);
-+			}
-+			break;
-+		}
-+	}
-+
-+	return result;
-+}
-+
-+static void cpcap_adc_convert(struct cpcap_adc_request *req, int index)
-+{
-+	const struct cpcap_adc_conversion_tbl *conv_tbl;
-+	int tbl_index;
-+
-+	switch (req->type) {
-+	case CPCAP_ADC_TYPE_BANK_0:
-+		conv_tbl = bank0_conversion;
-+		tbl_index = index;
-+		break;
-+	case CPCAP_ADC_TYPE_BANK_1:
-+		conv_tbl = bank1_conversion;
-+		tbl_index = index;
-+		break;
-+	case CPCAP_ADC_TYPE_BATT_PI:
-+		conv_tbl = bank0_conversion;
-+		tbl_index = (index % 2) ?
-+			CPCAP_ADC_BATTI : CPCAP_ADC_BATTP;
-+		break;
-+	default:
-+		return;
-+	}
-+
-+	/* No conversion for raw channels */
-+	if (conv_tbl[tbl_index].conv_type == IIO_CHAN_INFO_RAW)
-+		return;
-+
-+	/* Temperatures use a lookup table instead of conversion table */
-+	if ((conv_tbl == bank0_conversion) &&
-+	    (req->type != CPCAP_ADC_TYPE_BATT_PI) &&
-+	    ((index == CPCAP_ADC_AD0_BATTDETB) || (index == CPCAP_ADC_AD3))) {
-+		req->result =
-+			cpcap_adc_table_to_millicelcius(req->result);
-+
-+		return;
-+	}
-+
-+	/* All processed channels use a conversion table */
-+	req->result *= conv_tbl[tbl_index].multiplier;
-+	if (conv_tbl[tbl_index].divider == 0)
-+		return;
-+	req->result /= conv_tbl[tbl_index].divider;
-+	req->result += conv_tbl[tbl_index].conv_offset;
-+}
-+
-+/*
-+ * REVISIT: Check if timed sampling can use multiple channels at the
-+ * same time. If not, replace channel_mask with just channel.
-+ */
-+static int cpcap_adc_read_bank_scaled(struct cpcap_adc *ddata,
-+				      struct cpcap_adc_request *req)
-+{
-+	int calibration_data, error, addr;
-+
-+	if (ddata->vendor == CPCAP_VENDOR_TI) {
-+		error = regmap_read(ddata->reg, CPCAP_REG_ADCAL1,
-+				    &calibration_data);
-+		if (error)
-+			return error;
-+		bank0_conversion[CPCAP_ADC_CHG_ISENSE].cal_offset =
-+			((short)calibration_data * -1) + 512;
-+
-+		error = regmap_read(ddata->reg, CPCAP_REG_ADCAL2,
-+				    &calibration_data);
-+		if (error)
-+			return error;
-+		bank0_conversion[CPCAP_ADC_BATTI].cal_offset =
-+			((short)calibration_data * -1) + 512;
-+	}
-+
-+	addr = CPCAP_REG_ADCD0 + req->bank_index * 4;
-+
-+	error = regmap_read(ddata->reg, addr, &req->result);
-+	if (error)
-+		return error;
-+
-+	req->result &= 0x3ff;
-+	cpcap_adc_phase(req, req->bank_index);
-+	cpcap_adc_convert(req, req->bank_index);
-+
-+	return 0;
-+}
-+
-+static int cpcap_adc_init_request(struct cpcap_adc_request *req,
-+				  int channel)
-+{
-+	switch (channel) {
-+	case 0 ... 7:
-+		req->bank_index = channel;
-+		req->type = CPCAP_ADC_TYPE_BANK_0;
-+		break;
-+	case 8 ... 15:
-+		req->bank_index = channel - 8;
-+		req->type = CPCAP_ADC_TYPE_BANK_1;
-+		break;
-+	case 16 ... 17:
-+		req->bank_index = channel - 16;
-+		req->type = CPCAP_ADC_TYPE_BATT_PI;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int cpcap_adc_read(struct iio_dev *indio_dev,
-+			  struct iio_chan_spec const *chan,
-+			  int *val, int *val2, long mask)
-+{
-+	struct cpcap_adc *ddata = iio_priv(indio_dev);
-+	struct cpcap_adc_request req;
-+	int error;
-+
-+	error = cpcap_adc_init_request(&req, chan->channel);
-+	if (error)
-+		return error;
-+
-+	switch (mask) {
-+	case IIO_CHAN_INFO_RAW:
-+		mutex_lock(&ddata->lock);
-+		error = cpcap_adc_start_bank(ddata, &req);
-+		if (error)
-+			goto err_unlock;
-+		error = regmap_read(ddata->reg, chan->address, val);
-+		if (error)
-+			goto err_unlock;
-+		mutex_unlock(&ddata->lock);
-+		break;
-+	case IIO_CHAN_INFO_PROCESSED:
-+		mutex_lock(&ddata->lock);
-+		error = cpcap_adc_start_bank(ddata, &req);
-+		if (error)
-+			goto err_unlock;
-+		error = cpcap_adc_read_bank_scaled(ddata, &req);
-+		if (error)
-+			goto err_unlock;
-+		mutex_unlock(&ddata->lock);
-+		*val = req.result;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return IIO_VAL_INT;
-+
-+err_unlock:
-+	mutex_unlock(&ddata->lock);
-+	dev_err(ddata->dev, "error reading ADC: %i\n", error);
-+
-+	return error;
-+}
-+
-+static const struct iio_info cpcap_adc_info = {
-+	.read_raw = &cpcap_adc_read,
-+	.driver_module = THIS_MODULE,
-+};
-+
-+/*
-+ * Configuration for Motorola mapphone series such as droid 4.
-+ * Copied from the Motorola mapphone kernel tree.
-+ */
-+static const struct cpcap_adc_ato mapphone_adc = {
-+	.ato_in = 0x0480,
-+	.atox_in = 0,
-+	.adc_ps_factor_in = 0x0200,
-+	.atox_ps_factor_in = 0,
-+	.ato_out = 0,
-+	.atox_out = 0,
-+	.adc_ps_factor_out = 0,
-+	.atox_ps_factor_out = 0,
-+};
-+
-+static const struct of_device_id cpcap_adc_id_table[] = {
-+	{
-+		.compatible = "motorola,cpcap-adc",
-+	},
-+	{
-+		.compatible = "motorola,mapphone-cpcap-adc",
-+		.data = &mapphone_adc,
-+	},
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, cpcap_adc_id_table);
-+
-+static int cpcap_adc_probe(struct platform_device *pdev)
-+{
-+	const struct of_device_id *match;
-+	struct cpcap_adc *ddata;
-+	struct iio_dev *indio_dev;
-+	int error;
-+
-+	match = of_match_device(of_match_ptr(cpcap_adc_id_table),
-+				&pdev->dev);
-+	if (!match)
-+		return -EINVAL;
-+
-+	if (!match->data) {
-+		dev_err(&pdev->dev, "no configuration data found\n");
-+
++	struct cpcap_interrupt_desc *d;
++	int irq, error;
++
++	irq = platform_get_irq_byname(pdev, name);
++	if (!irq)
 +		return -ENODEV;
++
++	error = devm_request_threaded_irq(ddata->dev, irq, NULL,
++					  cpcap_charger_irq_thread,
++					  IRQF_SHARED,
++					  name, ddata);
++	if (error) {
++		dev_err(ddata->dev, "could not get irq %s: %i\n",
++			name, error);
++
++		return error;
 +	}
 +
-+	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*ddata));
-+	if (!indio_dev) {
-+		dev_err(&pdev->dev, "failed to allocate iio device\n");
-+
++	d = devm_kzalloc(ddata->dev, sizeof(*d), GFP_KERNEL);
++	if (!d)
 +		return -ENOMEM;
++
++	d->name = name;
++	d->irq = irq;
++	list_add(&d->node, &ddata->irq_list);
++
++	return 0;
++}
++
++static const char * const cpcap_charger_irqs[] = {
++	/* REG_INT_0 */
++	"chrg_det", "rvrs_chrg",
++
++	/* REG_INT1 */
++	"chrg_se1b", "se0conn", "rvrs_mode", "chrgcurr1", "vbusvld",
++
++	/* REG_INT_3 */
++	"battdetb",
++};
++
++static int cpcap_usb_init_interrupts(struct platform_device *pdev,
++				     struct cpcap_charger_ddata *ddata)
++{
++	int i, error;
++
++	for (i = 0; i < ARRAY_SIZE(cpcap_charger_irqs); i++) {
++		error = cpcap_usb_init_irq(pdev, ddata, cpcap_charger_irqs[i]);
++		if (error)
++			return error;
 +	}
-+	ddata = iio_priv(indio_dev);
-+	ddata->ato = match->data;
++
++	return 0;
++}
++
++static void cpcap_charger_init_optional_gpios(struct cpcap_charger_ddata *ddata)
++{
++	int i;
++
++	for (i = 0; i < 2; i++) {
++		ddata->gpio[i] = devm_gpiod_get_index(ddata->dev, "mode",
++						      i, GPIOD_OUT_HIGH);
++		if (IS_ERR(ddata->gpio[i])) {
++			dev_info(ddata->dev, "no mode change GPIO%i: %li\n",
++				 i, PTR_ERR(ddata->gpio[i]));
++				 ddata->gpio[i] = NULL;
++		}
++	}
++}
++
++static int cpcap_charger_init_iio(struct cpcap_charger_ddata *ddata)
++{
++	const char * const names[CPCAP_CHARGER_IIO_NR] = {
++		"battdetb", "battp", "vbus", "chg_isense", "batti",
++	};
++	int error, i;
++
++	for (i = 0; i < CPCAP_CHARGER_IIO_NR; i++) {
++		ddata->channels[i] = devm_iio_channel_get(ddata->dev,
++							  names[i]);
++		if (IS_ERR(ddata->channels[i])) {
++			error = PTR_ERR(ddata->channels[i]);
++			goto out_err;
++		}
++
++		if (!ddata->channels[i]->indio_dev) {
++			error = -ENXIO;
++			goto out_err;
++		}
++	}
++
++	return 0;
++
++out_err:
++	dev_err(ddata->dev, "could not initialize VBUS or ID IIO: %i\n",
++		error);
++
++	return error;
++}
++
++static const struct power_supply_desc cpcap_charger_usb_desc = {
++	.name		= "cpcap_usb",
++	.type		= POWER_SUPPLY_TYPE_USB,
++	.properties	= cpcap_charger_props,
++	.num_properties	= ARRAY_SIZE(cpcap_charger_props),
++	.get_property	= cpcap_charger_get_property,
++};
++
++#ifdef CONFIG_OF
++static const struct of_device_id cpcap_charger_id_table[] = {
++	{
++		.compatible = "motorola,cpcap-charger",
++	},
++	{
++		.compatible = "motorola,mapphone-cpcap-charger",
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, cpcap_charger_id_table);
++#endif
++
++static int cpcap_charger_probe(struct platform_device *pdev)
++{
++	struct cpcap_charger_ddata *ddata;
++	const struct of_device_id *of_id;
++	int error;
++
++	of_id = of_match_device(of_match_ptr(cpcap_charger_id_table),
++				&pdev->dev);
++	if (!of_id)
++		return -EINVAL;
++
++	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
++	if (!ddata)
++		return -ENOMEM;
++
 +	ddata->dev = &pdev->dev;
 +
-+	mutex_init(&ddata->lock);
-+	init_waitqueue_head(&ddata->wq_data_avail);
-+
-+	indio_dev->modes = INDIO_DIRECT_MODE | INDIO_BUFFER_SOFTWARE;
-+	indio_dev->dev.parent = &pdev->dev;
-+	indio_dev->dev.of_node = pdev->dev.of_node;
-+	indio_dev->channels = cpcap_adc_channels;
-+	indio_dev->num_channels = ARRAY_SIZE(cpcap_adc_channels);
-+	indio_dev->name = dev_name(&pdev->dev);
-+	indio_dev->info = &cpcap_adc_info;
-+
-+	ddata->reg = dev_get_regmap(pdev->dev.parent, NULL);
++	ddata->reg = dev_get_regmap(ddata->dev->parent, NULL);
 +	if (!ddata->reg)
 +		return -ENODEV;
 +
-+	error = cpcap_get_vendor(ddata->dev, ddata->reg, &ddata->vendor);
++	INIT_LIST_HEAD(&ddata->irq_list);
++	INIT_DELAYED_WORK(&ddata->detect_work, cpcap_usb_detect);
++	INIT_DELAYED_WORK(&ddata->vbus_work, cpcap_charger_vbus_work);
++	platform_set_drvdata(pdev, ddata);
++
++	error = cpcap_charger_init_iio(ddata);
 +	if (error)
 +		return error;
 +
-+	platform_set_drvdata(pdev, indio_dev);
++	atomic_set(&ddata->active, 1);
 +
-+	ddata->irq = platform_get_irq_byname(pdev, "adcdone");
-+	if (!ddata->irq)
-+		return -ENODEV;
-+
-+	error = devm_request_threaded_irq(&pdev->dev, ddata->irq, NULL,
-+					  cpcap_adc_irq_thread,
-+					  IRQF_TRIGGER_NONE,
-+					  "cpcap-adc", indio_dev);
-+	if (error) {
-+		dev_err(&pdev->dev, "could not get irq: %i\n",
++	ddata->usb = devm_power_supply_register(ddata->dev,
++						&cpcap_charger_usb_desc,
++						NULL);
++	if (IS_ERR(ddata->usb)) {
++		error = PTR_ERR(ddata->usb);
++		dev_err(ddata->dev, "failed to register USB charger: %i\n",
 +			error);
 +
 +		return error;
 +	}
 +
-+	error = cpcap_adc_calibrate(ddata);
++	error = cpcap_usb_init_interrupts(pdev, ddata);
 +	if (error)
 +		return error;
 +
-+	dev_info(&pdev->dev, "CPCAP ADC device probed\n");
++	ddata->comparator.set_vbus = cpcap_charger_set_vbus;
++	error = omap_usb2_set_comparator(&ddata->comparator);
++	if (error == -ENODEV) {
++		dev_info(ddata->dev, "charger needs phy, deferring probe\n");
++		return -EPROBE_DEFER;
++	}
 +
-+	return devm_iio_device_register(&pdev->dev, indio_dev);
++	cpcap_charger_init_optional_gpios(ddata);
++
++	schedule_delayed_work(&ddata->detect_work, 0);
++
++	return 0;
 +}
 +
-+static struct platform_driver cpcap_adc_driver = {
-+	.driver = {
-+		.name = "cpcap_adc",
-+		.of_match_table = of_match_ptr(cpcap_adc_id_table),
++static int cpcap_charger_remove(struct platform_device *pdev)
++{
++	struct cpcap_charger_ddata *ddata = platform_get_drvdata(pdev);
++	int error;
++
++	atomic_set(&ddata->active, 0);
++	error = omap_usb2_set_comparator(NULL);
++	if (error)
++		dev_warn(ddata->dev, "could not clear USB comparator: %i\n",
++			 error);
++
++	error = cpcap_charger_set_state(ddata, 0, 0, 0);
++	if (error)
++		dev_warn(ddata->dev, "could not clear charger: %i\n",
++			 error);
++	cancel_delayed_work_sync(&ddata->vbus_work);
++	cancel_delayed_work_sync(&ddata->detect_work);
++
++	return 0;
++}
++
++static struct platform_driver cpcap_charger_driver = {
++	.probe = cpcap_charger_probe,
++	.driver	= {
++		.name	= "cpcap-charger",
++		.of_match_table = of_match_ptr(cpcap_charger_id_table),
 +	},
-+	.probe = cpcap_adc_probe,
++	.remove	= cpcap_charger_remove,
 +};
++module_platform_driver(cpcap_charger_driver);
 +
-+module_platform_driver(cpcap_adc_driver);
-+
-+MODULE_ALIAS("platform:cpcap_adc");
-+MODULE_DESCRIPTION("CPCAP ADC driver");
-+MODULE_AUTHOR("Motorola and Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org");
++MODULE_AUTHOR("Tony Lindgren <tony@atomide.com>");
++MODULE_DESCRIPTION("CPCAP Battery Charger Interface driver");
 +MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:cpcap-charger");
 -- 
 2.11.1
