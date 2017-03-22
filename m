@@ -1,156 +1,50 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v5 4/7] PCI: dwc: all: Modify dbi accessors to take dbi_base
- as argument
-Date: Wed, 22 Mar 2017 20:40:55 +0530
-Message-ID: <20170322151055.15947-1-kishon@ti.com>
-References: <20170313134328.1588-5-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170313134328.1588-5-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Jingoo Han <jingoohan1@gmail.com>, nsekhar@ti.com, kishon@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCHv2 0/4] Regmap IRQ fix and related changes CPCAP
+Date: Wed, 22 Mar 2017 10:10:48 -0700
+Message-ID: <20170322171052.7006-1-tony@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-dwc has 2 dbi address space labeled dbics and dbics2. The existing
-helper to access dbi address space can access only dbics. However
-dbics2 has to be accessed for programming the BAR registers in the
-case of EP mode. This is in preparation for adding EP mode support
-to dwc driver.
+Hi all,
 
-Cc: Jingoo Han <jingoohan1@gmail.com>
-Cc: Joao Pinto <Joao.Pinto@synopsys.com>
-Acked-by: Niklas Cassel <niklas.cassel@axis.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Changes from v4:
-Add void as return type in dw_pcie_writel_dbi spotted by Niklas.
+Here's v2 set of fixes to make CPCAP PMIC interrupts work reliably when
+used with multiple drivers. While working on the ADC, charger and
+USB PHY drivers I noticed that the PMIC interrupt to the SoC would
+eventually stop working.
 
- drivers/pci/dwc/pci-exynos.c      | 10 ++++++----
- drivers/pci/dwc/pcie-designware.c | 13 +++++++------
- drivers/pci/dwc/pcie-designware.h | 20 ++++++++++++++++----
- 3 files changed, 29 insertions(+), 14 deletions(-)
+All these can wait for v4.12 merge window as these issues don't show
+up currently. Two of the patches are also harmless currently, so I've
+kept them in this series to avoid pointless merge conflicts.
 
-diff --git a/drivers/pci/dwc/pci-exynos.c b/drivers/pci/dwc/pci-exynos.c
-index 993b650ef275..a0d40f74b88d 100644
---- a/drivers/pci/dwc/pci-exynos.c
-+++ b/drivers/pci/dwc/pci-exynos.c
-@@ -521,23 +521,25 @@ static void exynos_pcie_enable_interrupts(struct exynos_pcie *ep)
- 		exynos_pcie_msi_init(ep);
- }
- 
--static u32 exynos_pcie_readl_dbi(struct dw_pcie *pci, u32 reg)
-+static u32 exynos_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base,
-+				 u32 reg)
- {
- 	struct exynos_pcie *ep = to_exynos_pcie(pci);
- 	u32 val;
- 
- 	exynos_pcie_sideband_dbi_r_mode(ep, true);
--	val = readl(pci->dbi_base + reg);
-+	val = readl(base + reg);
- 	exynos_pcie_sideband_dbi_r_mode(ep, false);
- 	return val;
- }
- 
--static void exynos_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
-+static void exynos_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base,
-+				   u32 reg, u32 val)
- {
- 	struct exynos_pcie *ep = to_exynos_pcie(pci);
- 
- 	exynos_pcie_sideband_dbi_w_mode(ep, true);
--	writel(val, pci->dbi_base + reg);
-+	writel(val, base + reg);
- 	exynos_pcie_sideband_dbi_w_mode(ep, false);
- }
- 
-diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-index 3eaf3ccdc118..ea403e2240cf 100644
---- a/drivers/pci/dwc/pcie-designware.c
-+++ b/drivers/pci/dwc/pcie-designware.c
-@@ -61,20 +61,21 @@ int dw_pcie_write(void __iomem *addr, int size, u32 val)
- 	return PCIBIOS_SUCCESSFUL;
- }
- 
--u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg)
-+u32 __dw_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg)
- {
- 	if (pci->ops->readl_dbi)
--		return pci->ops->readl_dbi(pci, reg);
-+		return pci->ops->readl_dbi(pci, base, reg);
- 
--	return readl(pci->dbi_base + reg);
-+	return readl(base + reg);
- }
- 
--void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
-+void __dw_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
-+			  u32 val)
- {
- 	if (pci->ops->writel_dbi)
--		pci->ops->writel_dbi(pci, reg, val);
-+		pci->ops->writel_dbi(pci, base, reg, val);
- 	else
--		writel(val, pci->dbi_base + reg);
-+		writel(val, base + reg);
- }
- 
- static u32 dw_pcie_readl_unroll(struct dw_pcie *pci, u32 index, u32 reg)
-diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index 8f3dcb2b099b..09b334a12892 100644
---- a/drivers/pci/dwc/pcie-designware.h
-+++ b/drivers/pci/dwc/pcie-designware.h
-@@ -144,8 +144,9 @@ struct pcie_port {
- 
- struct dw_pcie_ops {
- 	u64	(*cpu_addr_fixup)(u64 cpu_addr);
--	u32	(*readl_dbi)(struct dw_pcie *pcie, u32 reg);
--	void	(*writel_dbi)(struct dw_pcie *pcie, u32 reg, u32 val);
-+	u32	(*readl_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg);
-+	void	(*writel_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
-+			      u32 val);
- 	int	(*link_up)(struct dw_pcie *pcie);
- };
- 
-@@ -163,8 +164,9 @@ struct dw_pcie {
- int dw_pcie_read(void __iomem *addr, int size, u32 *val);
- int dw_pcie_write(void __iomem *addr, int size, u32 val);
- 
--u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg);
--void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val);
-+u32 __dw_pcie_readl_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg);
-+void __dw_pcie_writel_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
-+			  u32 val);
- int dw_pcie_link_up(struct dw_pcie *pci);
- int dw_pcie_wait_for_link(struct dw_pcie *pci);
- void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
-@@ -172,6 +174,16 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index,
- 			       u32 size);
- void dw_pcie_setup(struct dw_pcie *pci);
- 
-+static inline void dw_pcie_writel_dbi(struct dw_pcie *pci, u32 reg, u32 val)
-+{
-+	__dw_pcie_writel_dbi(pci, pci->dbi_base, reg, val);
-+}
-+
-+static inline u32 dw_pcie_readl_dbi(struct dw_pcie *pci, u32 reg)
-+{
-+	return  __dw_pcie_readl_dbi(pci, pci->dbi_base, reg);
-+}
-+
- #ifdef CONFIG_PCIE_DW_HOST
- irqreturn_t dw_handle_msi_irq(struct pcie_port *pp);
- void dw_pcie_msi_init(struct pcie_port *pp);
+Regards,
+
+Tony
+
+Changes since v1:
+
+- Updated regap-irq patch to use out_runtime_put in regmap_irq_thread
+  also if pm_runtime_get() fails
+
+- Clarify patch description for regmap-irq changes to make clear
+  this is an issue with the CPCAP PMIC and not SoC GPIO edge/level
+  handling based on comments from Charles Keepax
+  <ckeepax@opensource.wolfsonmicro.com>
+
+- Collected acks
+
+Tony Lindgren (4):
+  regmap: irq: Fix lost interrupts by introducing handle_reread
+  mfd: cpcap: Use handle_reread flag for interrupts
+  mfd: cpcap: Use ack_invert interrupts
+  mfd: cpcap: Fix bad use of IRQ sense register
+
+ drivers/base/regmap/regmap-irq.c | 77 +++++++++++++++++++++++++++-------------
+ drivers/mfd/motorola-cpcap.c     |  7 +++-
+ include/linux/regmap.h           |  2 ++
+ 3 files changed, 61 insertions(+), 25 deletions(-)
+
 -- 
-2.11.0
+2.11.1
