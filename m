@@ -1,87 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
- during boot
-Date: Wed, 22 Mar 2017 10:57:51 -0700
-Message-ID: <20170322175750.GF10760@atomide.com>
-References: <20170314151725.GC20572@atomide.com>
- <d0fe191f-66f8-b72d-0a2a-00815e663a8d@ti.com>
- <20170314164106.GE20572@atomide.com>
- <ea09d676-29f6-7100-4c68-88920deaeb7c@ti.com>
- <20170314181425.GF20572@atomide.com>
- <20170315172200.GM20572@atomide.com>
- <20170316152925.GO20572@atomide.com>
- <20170317092458.GJ23750@n2100.armlinux.org.uk>
- <20170317135710.GQ20572@atomide.com>
- <0f81ef51-29a7-3a38-1d99-2f68d6ec9410@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] phy: cpcap-usb: Add CPCAP PMIC USB support
+Date: Wed, 22 Mar 2017 14:59:36 -0700
+Message-ID: <20170322215935.GG10760@atomide.com>
+References: <20170317035152.18307-1-tony@atomide.com>
+ <20170322021828.wkbx3es6dpuur42y@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <0f81ef51-29a7-3a38-1d99-2f68d6ec9410@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20170322021828.wkbx3es6dpuur42y@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Andrew F. Davis <afd@ti.com> [170317 09:28]:
-> On 03/17/2017 08:57 AM, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@armlinux.org.uk> [170317 02:27]:
-> >> Why can't you reset the CPU when it's died, possibly releasing the
-> >> reset again to get it into the boot rom (which is where it'll be at
-> >> boot time.)
-> > 
-> > Yes that would make most sense to me. Andrew, does that break your use
-> > case again for CPU1 for suspend/restore?
-> > 
+* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170321 19:20]:
+> Hi,
 > 
-> We cannot reset the CPU, that is the only constraint I have. If you let
-> a core go awol then it is lost for good, you should try to avoid that.
-> The secure side on that core may still be running just fine, and may be
-> performing very important tasks, resetting the whole core because the
-> non-secure side lost control of its side is not okay.
+> On Thu, Mar 16, 2017 at 08:51:52PM -0700, Tony Lindgren wrote:
+> > Some Motorola phones like droid 4 use a custom CPCAP PMIC that has a
+> > multiplexing USB PHY.
+> > 
+> > This USB PHY can operate at least in four modes using pin multiplexing
+> > and two control GPIOS:
+> > 
+> > - Pass through companion PHY for the SoC USB PHY
+> > - ULPI PHY for the SoC
+> > - Pass through USB for the modem
+> > - UART debug console for the SoC
+> > 
+> > This patch adds support for droid 4 USB PHY and debug UART modes,
+> > support for other modes can be added later on as needed.
+> > 
+> > Both peripheral and host mode are working for the USB. The
+> > host mode depends on the cpcap-charger driver for VBUS.
+> > 
+> > VBUS and ID pin detection are done using cpcap-adc IIO ADC
+> > driver.
+> 
+> I tested UART, USB slave (cdc-ether) & USB host (keyboard & touchpad
+> from Atrix lapdock) mode with Droid 4:
+> 
+> Tested-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-For suspend/resume, I think the right solution is to put dra7
-CPU1 into retention instead trying to put it into off which will
-fail. This should fix the "smp_ops.cpu_die() returned, trying to
-resuscitate" issue. And then there is no need to repark CPU1
-anywhere for suspend/resume as it's not spinning. And it's context
-won't get lost and no reset is needed. And some power is saved.
-
-For kexec, things are trickier. If CPU1 is in some deeper power
-state, it will wake to the configured address and there's no way
-to reconfigure that AFAIK. So reset CPU1 reset is needed from that
-state. Note that HS omap4 implementations do seem to survive CPU1
-off mode just fine.
-
-Andrew, does your use case really need kexec supported? If not,
-I think the sane thing for is to just disable kexec in the HS
-kernel for dra7 during runtime.
-
-And then if it turns out we really need to repark CPU1 for kexec
-into boot ROM, at least the following changes are needed:
-
-1. We need to differentiate between suspend/resume and kexec for
-   CPU1 hot-unplug so we can put CPU1 into retention for
-   suspend/resume and park CPU1 for kexec
-
-2. When parking CPU1 for kexec, it can be done in two stages.
-   We can first park it to a loop waiting for flat memory mapping,
-   then jump to boot ROM loop. But flat memory mapping is not
-   enough we also need to remap boot ROM and L4.. Probably waiting
-   for MMU off won't work here
-
-So depending on the use cases, I don't know if implementing these
-two are really needed or make sense.
+Thanks for testing. I'll repost v2 shortly with a minor change to
+use iio_read_channel_processed() instead of iio_read_channel_scale()
+as the ADC values are processed in the driver and not scaled by
+the IIO framework.
 
 Regards,
 
 Tony
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
