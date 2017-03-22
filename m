@@ -1,66 +1,73 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] power: supply: cpcap-charger: Add minimal CPCAP PMIC
- battery charger
-Date: Wed, 22 Mar 2017 03:15:14 +0100
-Message-ID: <20170322021514.ewipilqbfm2cwua6@earth>
-References: <20170317022152.21427-1-tony@atomide.com>
+Subject: Re: [PATCH] phy: cpcap-usb: Add CPCAP PMIC USB support
+Date: Wed, 22 Mar 2017 03:18:28 +0100
+Message-ID: <20170322021828.wkbx3es6dpuur42y@earth>
+References: <20170317035152.18307-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="baxxlrf32bzdp76x"
-Return-path: <linux-pm-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="ezlydcbo2exgsuvj"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170317022152.21427-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
+In-Reply-To: <20170317035152.18307-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---baxxlrf32bzdp76x
+--ezlydcbo2exgsuvj
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Mar 16, 2017 at 07:21:52PM -0700, Tony Lindgren wrote:
-> The custom CPCAP PMIC used on Motorola phones such as Droid 4 has a
-> USB battery charger. It can optionally also have a companion chip that
-> is used for wireless charging.
+On Thu, Mar 16, 2017 at 08:51:52PM -0700, Tony Lindgren wrote:
+> Some Motorola phones like droid 4 use a custom CPCAP PMIC that has a
+> multiplexing USB PHY.
 >=20
-> The charger on CPCAP also can feed VBUS for the USB host mode. This
-> can be handled by the existing kernel phy_companion interface.
+> This USB PHY can operate at least in four modes using pin multiplexing
+> and two control GPIOS:
 >=20
-> Cc: devicetree@vger.kernel.org
-> Cc: Marcel Partap <mpartap@gmx.net>
-> Cc: Michael Scott <michael.scott@linaro.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> - Pass through companion PHY for the SoC USB PHY
+> - ULPI PHY for the SoC
+> - Pass through USB for the modem
+> - UART debug console for the SoC
+>=20
+> This patch adds support for droid 4 USB PHY and debug UART modes,
+> support for other modes can be added later on as needed.
+>=20
+> Both peripheral and host mode are working for the USB. The
+> host mode depends on the cpcap-charger driver for VBUS.
+>=20
+> VBUS and ID pin detection are done using cpcap-adc IIO ADC
+> driver.
 
-Driver looks ok and works for me, but values are not scaled
-correctly. The power-supply subsystem exposes values in microamps
-and microvolt. IIO provides values in millivolt/milliamps instead,
-so it should be scaled with 1000.
+I tested UART, USB slave (cdc-ether) & USB host (keyboard & touchpad
+=66rom Atrix lapdock) mode with Droid 4:
+
+Tested-by: Sebastian Reichel <sre@kernel.org>
 
 -- Sebastian
 
---baxxlrf32bzdp76x
+--ezlydcbo2exgsuvj
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljR3i8ACgkQ2O7X88g7
-+prR2Q/8CZFujxOHcUhDM0TjDwBl1NPV20gEWc7/iCk1MAd75jLfeV67YtFRT4bR
-0d1ipCrM7R+rf2kDcrZ7mR4+AJpKSTXdFxLGxEqGkojmUKkVRJpXSyR3grEmlLk3
-XBpIeOV1xCN9w/F+w/JK3YMjzdX0e7NTtz/S7mhhKzuDs23Hnq0QTeh/vFJ9rHk6
-3jruFaGoG7r1f5AEgtvBpUyF8gye2iV4B3LznGVCmD3fxzk9XOJ9a5WKuPiwRMB1
-2b0oj7X04wwgOO5K1VF1u/s6jochXSHO6Tn3huzjZAOpNgwFnEaurPhCZ2EtQqc/
-tJ9dbgoaD47GEjE5s+6QSddRlO6mgOguC/yYUyZS8Rfj7E8U41R+dWeGze1iqarg
-X2W4aIL0KGPdVJb1LMMbUKsVjI+jEuypptAZ8DOYLDo246bd9FH220YwkijzUGvw
-6WQgkXe2X3h4b6cxscJr2rd5ORspv2dSdGKUc9KvdHtGkZWEjjlwHnVxjDhbBfiC
-BbSHxQmamNEbAIyxuBFdBQKnVibPFKv392h9i1207KaLrT98SFDHvL9pSM2SOBcu
-nm3XZrj5p01C4r8t+OJ5XzL6g9Fq56GHL/4LYV0w7DMu25oJ4735e/qWsV/qwh/d
-qgABvU5GmYfV1KQAirS8yzd0i3CENUgB8mZTl8I45bDmREi0YMg=
-=enRp
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljR3vQACgkQ2O7X88g7
++pqwhg//fJuU3z7wwyS3xM1i/mxLBJ4l1//VNp4yuvd2Suvk7fbA1htPYHnjWEXF
+U4bjhbf2+D7E6bdMGbxK3Zi7Z7JfMQQRpnXE60Kep4SCKUfFKdwyRqBxBV712PUm
+d7YwNDa/dol6t2NEswyrFGtOEf+hyRlUEt1VW8nO9ItP3jn311BOyDvU5tW/I7sd
++usAdLDlJ5vdiaOhx/V8joagWlFKqYiyYIH60IsMqMZGYXhj/exAjlYqO0/5X66f
+wpi8EVn9a0/9cGizEKCKlhFy3ApfXsW5gyuo6aQ1Lv3lms8/e/HrN3W+3Yo6HZy4
+NAHu/7OH6zrm684FvSZzQeA54f7r/9RCf5EhKKr5Zo+P8eK+n68AbOwtdQb/Sa3q
+BMigUTL4QEVFKVVLnZHO7sHZqkhuHhrWT2xrWUeMSmQy9Dwi8mvXyBci47qenToM
+EmohTHfgQqmrjdaPV7/3lFfkicmjsRxGfjDnoo8zj6SLBeUo3H4PZLLE0cQWhGAY
+JxJeNxLdFv3N0Fq0x7GfGvKw3bSyB3ynMrhEiJ9juP3Xr03YCVF9GoRFaLbQLQH2
+Q1kR7wiR8dHSfkTRhLzi7Hyu8EMo04E/tZTS9Rfn2dF3vNJwbv2OswDTdbO31jC+
+QsTnnx0Tg0V43+DaBeTN2r8+C9pe+0NKIsl8C5yCATTXZ8MXAYY=
+=uc5J
 -----END PGP SIGNATURE-----
 
---baxxlrf32bzdp76x--
+--ezlydcbo2exgsuvj--
