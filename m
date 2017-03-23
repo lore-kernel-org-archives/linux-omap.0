@@ -1,93 +1,95 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/6] ARM: dts: omap4-droid4: Add LCD
-Date: Thu, 23 Mar 2017 09:08:18 +0200
-Message-ID: <b4666cd6-9925-6143-41c3-591e68c48456@ti.com>
-References: <20170305054359.8293-1-tony@atomide.com>
- <20170305054359.8293-7-tony@atomide.com>
- <20170319012927.kmyqngprpip7le4m@earth> <20170319161030.GA20572@atomide.com>
- <20170319225542.ts53qpwdhdrmy2ac@earth>
- <9c4a5d88-4d2a-2120-9fdf-f3fbba69147c@ti.com>
- <20170323063109.qhwxj74pbfztgopt@earth>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 23/35] drivers/mfd: Convert remaining uses of pr_warning
+ to pr_warn
+Date: Thu, 23 Mar 2017 10:52:11 +0000
+Message-ID: <20170323105211.kf7slyiv4rdqhqfw@dell>
+References: <cover.1487314666.git.joe@perches.com>
+ <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature";
-        boundary="WvjSVUhpbv6Ooa6iixwDRvGbN5fUncnKR"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170323063109.qhwxj74pbfztgopt@earth>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---WvjSVUhpbv6Ooa6iixwDRvGbN5fUncnKR
-Content-Type: multipart/mixed; boundary="lAFFuphKTUL4P4neW7a2RsQOav0vUgivK";
- protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>,
- devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>,
- Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Message-ID: <b4666cd6-9925-6143-41c3-591e68c48456-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/6] ARM: dts: omap4-droid4: Add LCD
-References: <20170305054359.8293-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
- <20170305054359.8293-7-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
- <20170319012927.kmyqngprpip7le4m@earth> <20170319161030.GA20572-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
- <20170319225542.ts53qpwdhdrmy2ac@earth>
- <9c4a5d88-4d2a-2120-9fdf-f3fbba69147c-l0cyMroinI0@public.gmane.org>
- <20170323063109.qhwxj74pbfztgopt@earth>
-In-Reply-To: <20170323063109.qhwxj74pbfztgopt@earth>
+> To enable eventual removal of pr_warning
+> 
+> This makes pr_warn use consistent for drivers/mfd
+> 
+> Prior to this patch, there were 4 uses of pr_warning and
+> 9 uses of pr_warn in drivers/mfd
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/mfd/db8500-prcmu.c  | 2 +-
+>  drivers/mfd/sta2x11-mfd.c   | 4 ++--
+>  drivers/mfd/twl4030-power.c | 7 ++-----
+>  3 files changed, 5 insertions(+), 8 deletions(-)
 
---lAFFuphKTUL4P4neW7a2RsQOav0vUgivK
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Applied.
 
-On 23/03/17 08:31, Sebastian Reichel wrote:
+(... and I corrected the $SUBJECT line on your behalf)
 
->> It shouldn't matter when omapdrm is initialized. omapdrm should wait
->> until it has all the displays.
->=20
-> I tried to trace this. I assume, that your "should wait until it has
-> all the displays" refers to the code in "omap_connect_dssdevs()".
-> Unfortunately that code does not work correctly:
+> diff --git a/drivers/mfd/db8500-prcmu.c b/drivers/mfd/db8500-prcmu.c
+> index ca38a6a14110..5c739ac752e8 100644
+> --- a/drivers/mfd/db8500-prcmu.c
+> +++ b/drivers/mfd/db8500-prcmu.c
+> @@ -2377,7 +2377,7 @@ static void ack_dbb_wakeup(void)
+>  
+>  static inline void print_unknown_header_warning(u8 n, u8 header)
+>  {
+> -	pr_warning("prcmu: Unknown message header (%d) in mailbox %d.\n",
+> +	pr_warn("prcmu: Unknown message header (%d) in mailbox %d\n",
+>  		header, n);
+>  }
+>  
+> diff --git a/drivers/mfd/sta2x11-mfd.c b/drivers/mfd/sta2x11-mfd.c
+> index 9292202039ee..3aeafa228baf 100644
+> --- a/drivers/mfd/sta2x11-mfd.c
+> +++ b/drivers/mfd/sta2x11-mfd.c
+> @@ -60,8 +60,8 @@ static struct sta2x11_mfd *sta2x11_mfd_find(struct pci_dev *pdev)
+>  	struct sta2x11_mfd *mfd;
+>  
+>  	if (!pdev && !list_empty(&sta2x11_mfd_list)) {
+> -		pr_warning("%s: Unspecified device, "
+> -			    "using first instance\n", __func__);
+> +		pr_warn("%s: Unspecified device, using first instance\n",
+> +			__func__);
+>  		return list_entry(sta2x11_mfd_list.next,
+>  				  struct sta2x11_mfd, list);
+>  	}
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index 1beb722f6080..8be023ba8e3e 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -502,9 +502,7 @@ static int load_twl4030_script(const struct twl4030_power_data *pdata,
+>  	}
+>  	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+>  		if (!order)
+> -			pr_warning("TWL4030: Bad order of scripts (sleep "\
+> -					"script before wakeup) Leads to boot"\
+> -					"failure on some boards\n");
+> +			pr_warn("TWL4030: Bad order of scripts (sleep script before wakeup) Leads to boot failure on some boards\n");
+>  		err = twl4030_config_sleep_sequence(address);
+>  	}
+>  out:
+> @@ -929,8 +927,7 @@ static int twl4030_power_probe(struct platform_device *pdev)
+>  		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
+>  				      TWL4030_PM_MASTER_CFG_P123_TRANSITION);
+>  		if (err) {
+> -			pr_warning("TWL4030 Unable to read registers\n");
+> -
+> +			pr_warn("TWL4030 Unable to read registers\n");
+>  		} else if (!(val & SEQ_OFFSYNC)) {
+>  			val |= SEQ_OFFSYNC;
+>  			err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, val,
 
-Indeed, sorry about the confusion. Apparently I was talking about TI's
-kernel, which has fixes for this.
-
-I have actually posted the patches, along with a lot of other stuff,
-last Nov. See "[PATCH 00/36] drm/omap: miscallaneous improvements"
-series. The patches 23-25 should fix this particular issue.
-
- Tomi
-
-
---lAFFuphKTUL4P4neW7a2RsQOav0vUgivK--
-
---WvjSVUhpbv6Ooa6iixwDRvGbN5fUncnKR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJY03RjAAoJEPo9qoy8lh71k9YP/ic5y4aySB5zkyuu3vGUOFYt
-1nh3hYrE3XB8deRPvIzMayYrvVJhnBdk8DYXtXYXPK5JVssVqG0+9w/Oof3S1WOM
-udmR/lw0GEO7AGysSTRN38hcYWj0vLwoBntPoPNWoDR7VxdkFvOSmPU99zLq11mQ
-OfIj4rGMcQiRENvoKKEDjkf3BAyTdp2A+9EKsSA7fxUhttWCjbiiroMYg6V524Lo
-UBUdjTO6ZJxNJvy687hxXscazdVYCch5r4R//1+lKJbKux6s7p5IEVqIJkufDN7Z
-pgmUQN3Y1e3L93r3UFzXUUk2+q8uZXh8V6ibmriRnPJE0XnaoL7sBWa7lVDisJoP
-4DEtpEKDaUBa6xrs8WYg3SrPmBkuzu5hhWHrbleLG7QP0NWMuBGRzPPf8w18MyRP
-D5RqYtZrtU2MENggdUr8R/U2UQ1B6RGprLsVyF2u1JnkkFw0kwQpt0vJcY8c5Bie
-5tjDBGm4Y81Pia1jzT8YvgWSrRxH8wqbU/3CYAxROPr8VfL1/bW9ECo5Y+tI1nUn
-rojVAZRmhq/hTs6Qz1Z8p6suYgAkNtsSi6AFuRvnEU6NVxSNAd0Jb+5R9YVvof2J
-I5VJiWUI/1ueli2riUhPXX9HPP8D/yhuWdZqLnRW06xAb+fVnpCVYaUePOroxq3s
-cls+/vnzE/H7EijUYSJc
-=+fiF
------END PGP SIGNATURE-----
-
---WvjSVUhpbv6Ooa6iixwDRvGbN5fUncnKR--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
