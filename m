@@ -1,95 +1,71 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 23/35] drivers/mfd: Convert remaining uses of pr_warning
- to pr_warn
-Date: Thu, 23 Mar 2017 10:52:11 +0000
-Message-ID: <20170323105211.kf7slyiv4rdqhqfw@dell>
-References: <cover.1487314666.git.joe@perches.com>
- <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 0/9] clk: ti: add support for clkctrl clocks
+Date: Thu, 23 Mar 2017 10:02:10 -0700
+Message-ID: <20170323170210.GL10760@atomide.com>
+References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
+ <20170317152536.GT20572@atomide.com>
+ <94d20a17-5072-ffab-3529-4bbb14327a10@ti.com>
+ <20170323010057.GI10760@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <a6c827c14d0b9f4be42e549ec4c629245516e979.1487314667.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20170323010057.GI10760@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: mturquette@baylibre.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-> To enable eventual removal of pr_warning
+* Tony Lindgren <tony@atomide.com> [170322 18:03]:
+> * Tero Kristo <t-kristo@ti.com> [170317 14:39]:
+> > On 17/03/17 17:25, Tony Lindgren wrote:
+> > > * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
+> > > > Any additional testing on omap4 welcome as this series basically
+> > > > tweaks every possible peripheral clock on the SoC.
+> > > 
+> > > Without the last patch in this series, booting fails for me:
+> > > 
+> > > [    5.074890] l4_per_cm:clk:0120:0: failed to disable
+> > > [    5.085113] l4_per_cm:clk:0128:0: failed to disable
+> > > 
+> > > Care to check that booting keeps working for each patch in the
+> > > series to avoid breaking git bisect for booting?
+> > 
+> > Hmm, I think patch 8+9 need to be squashed then. I can double check this
+> > next week though.
 > 
-> This makes pr_warn use consistent for drivers/mfd
+> Also looks like with this set merged HDMI stops working on
+> omap4 with:
 > 
-> Prior to this patch, there were 4 uses of pr_warning and
-> 9 uses of pr_warn in drivers/mfd
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->  drivers/mfd/db8500-prcmu.c  | 2 +-
->  drivers/mfd/sta2x11-mfd.c   | 4 ++--
->  drivers/mfd/twl4030-power.c | 7 ++-----
->  3 files changed, 5 insertions(+), 8 deletions(-)
+> HDMIWP: omapdss HDMIWP error: Failed to set PHY power mode to 1
 
-Applied.
+Forgot to mention that's with omapdrm with encoder-tpd12s015 and
+encoder-tfp410 modules loaded to get HDMI working. Here's more verbose
+dmesg output in case that provides more clues:
 
-(... and I corrected the $SUBJECT line on your behalf)
+[   91.042877] omapdss HDMICORE error: operation stopped when reading edid
+[   91.078308] [drm] Enabling DMM ywrap scrolling
+[   91.099243] omapdss HDMIWP error: Failed to set PHY power mode to 1
+[   91.107879] omapdss HDMI error: failed to power on device
+[   91.107879] omapdrm omapdrm.0: Failed to enable display 'hdmi': -5
+[   91.359619] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+[   91.619964] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+[   91.620300] Console: switching to colour frame buffer device 128x48
+[   91.682434] omapdrm omapdrm.0: fb0: omapdrm frame buffer device
+[   91.770812] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
+[   92.818054] omapdss HDMICORE error: operation stopped when reading edid
+[   93.090087] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+[   93.349853] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
 
-> diff --git a/drivers/mfd/db8500-prcmu.c b/drivers/mfd/db8500-prcmu.c
-> index ca38a6a14110..5c739ac752e8 100644
-> --- a/drivers/mfd/db8500-prcmu.c
-> +++ b/drivers/mfd/db8500-prcmu.c
-> @@ -2377,7 +2377,7 @@ static void ack_dbb_wakeup(void)
->  
->  static inline void print_unknown_header_warning(u8 n, u8 header)
->  {
-> -	pr_warning("prcmu: Unknown message header (%d) in mailbox %d.\n",
-> +	pr_warn("prcmu: Unknown message header (%d) in mailbox %d\n",
->  		header, n);
->  }
->  
-> diff --git a/drivers/mfd/sta2x11-mfd.c b/drivers/mfd/sta2x11-mfd.c
-> index 9292202039ee..3aeafa228baf 100644
-> --- a/drivers/mfd/sta2x11-mfd.c
-> +++ b/drivers/mfd/sta2x11-mfd.c
-> @@ -60,8 +60,8 @@ static struct sta2x11_mfd *sta2x11_mfd_find(struct pci_dev *pdev)
->  	struct sta2x11_mfd *mfd;
->  
->  	if (!pdev && !list_empty(&sta2x11_mfd_list)) {
-> -		pr_warning("%s: Unspecified device, "
-> -			    "using first instance\n", __func__);
-> +		pr_warn("%s: Unspecified device, using first instance\n",
-> +			__func__);
->  		return list_entry(sta2x11_mfd_list.next,
->  				  struct sta2x11_mfd, list);
->  	}
-> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-> index 1beb722f6080..8be023ba8e3e 100644
-> --- a/drivers/mfd/twl4030-power.c
-> +++ b/drivers/mfd/twl4030-power.c
-> @@ -502,9 +502,7 @@ static int load_twl4030_script(const struct twl4030_power_data *pdata,
->  	}
->  	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
->  		if (!order)
-> -			pr_warning("TWL4030: Bad order of scripts (sleep "\
-> -					"script before wakeup) Leads to boot"\
-> -					"failure on some boards\n");
-> +			pr_warn("TWL4030: Bad order of scripts (sleep script before wakeup) Leads to boot failure on some boards\n");
->  		err = twl4030_config_sleep_sequence(address);
->  	}
->  out:
-> @@ -929,8 +927,7 @@ static int twl4030_power_probe(struct platform_device *pdev)
->  		err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &val,
->  				      TWL4030_PM_MASTER_CFG_P123_TRANSITION);
->  		if (err) {
-> -			pr_warning("TWL4030 Unable to read registers\n");
-> -
-> +			pr_warn("TWL4030 Unable to read registers\n");
->  		} else if (!(val & SEQ_OFFSYNC)) {
->  			val |= SEQ_OFFSYNC;
->  			err = twl_i2c_write_u8(TWL_MODULE_PM_MASTER, val,
+Regards,
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Tony
