@@ -1,115 +1,55 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2] iio: adc: cpcap: Add minimal support for CPCAP PMIC ADC
-Date: Thu, 23 Mar 2017 15:14:52 -0700
-Message-ID: <20170323221452.GU10760@atomide.com>
-References: <20170322233726.5391-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] drm: omapdrm: Fix oops on rmmod
+Date: Thu, 23 Mar 2017 10:04:59 -0700
+Message-ID: <20170323170459.20906-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170322233726.5391-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170322 16:39]:
-> +/**
-> + * enum cpcap_adc_type - cpcap adc types
-> + *
-> + * Two banks of channels with eight channels in each. The first two channels
-> + * in bank0 can be muxed for other functionality with CPCAP_ADC_TYPE_BATT_PI.
-> + */
-> +enum cpcap_adc_type {
-> +	CPCAP_ADC_TYPE_BANK_0,
-> +	CPCAP_ADC_TYPE_BANK_1,
-> +	CPCAP_ADC_TYPE_BATT_PI,
-> +};
-
-Hmm looks like I only got half done yesterday.. I can now get
-rid of the above in favor of using just channels.
-
-> +static void cpcap_adc_phase(struct cpcap_adc_request *req, int index)
-> +{
-> +	const struct cpcap_adc_conversion_tbl *conv_tbl;
-> +	const struct cpcap_adc_phasing_tbl *phase_tbl;
-> +	int tbl_index;
-> +
-> +	switch (req->type) {
-> +	case CPCAP_ADC_TYPE_BANK_0:
-> +		conv_tbl = bank0_conversion;
-> +		phase_tbl = bank0_phasing;
-> +		tbl_index = index;
-> +		break;
-> +	case CPCAP_ADC_TYPE_BANK_1:
-> +		conv_tbl = bank1_conversion;
-> +		phase_tbl = bank1_phasing;
-> +		tbl_index = index;
-> +		break;
-> +	case CPCAP_ADC_TYPE_BATT_PI:
-> +		conv_tbl = bank0_conversion;
-> +		phase_tbl = bank0_phasing;
-> +		tbl_index = (index % 2) ? CPCAP_ADC_BATTI :
-> +			CPCAP_ADC_BATTP;
-> +		break;
-> +	default:
-> +		return;
-> +	}
-
-And then the above switch will go away.
-
-> +static void cpcap_adc_convert(struct cpcap_adc_request *req, int index)
-> +{
-> +	const struct cpcap_adc_conversion_tbl *conv_tbl;
-> +	int tbl_index;
-> +
-> +	switch (req->type) {
-> +	case CPCAP_ADC_TYPE_BANK_0:
-> +		conv_tbl = bank0_conversion;
-> +		tbl_index = index;
-> +		break;
-> +	case CPCAP_ADC_TYPE_BANK_1:
-> +		conv_tbl = bank1_conversion;
-> +		tbl_index = index;
-> +		break;
-> +	case CPCAP_ADC_TYPE_BATT_PI:
-> +		conv_tbl = bank0_conversion;
-> +		tbl_index = (index % 2) ?
-> +			CPCAP_ADC_BATTI : CPCAP_ADC_BATTP;
-> +		break;
-> +	default:
-> +		return;
-> +	}
-
-And here too.
-
-> +static int cpcap_adc_init_request(struct cpcap_adc_request *req,
-> +				  int channel)
-> +{
-> +	switch (channel) {
-> +	case 0 ... 7:
-> +		req->bank_index = channel;
-> +		req->type = CPCAP_ADC_TYPE_BANK_0;
-> +		break;
-> +	case 8 ... 15:
-> +		req->bank_index = channel - 8;
-> +		req->type = CPCAP_ADC_TYPE_BANK_1;
-> +		break;
-> +	case 16 ... 17:
-> +		req->bank_index = channel - 16;
-> +		req->type = CPCAP_ADC_TYPE_BATT_PI;
-> +		break;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-
-And this can be done by indexing everything with just the
-channels. So I'll be posting v3 of this patch at some point
-hopefully later on today.
-
-Regards,
-
-Tony
+TG9va3MgbGlrZSBpbiBMaW51eCBuZXh0IHdlIGNhbiBub3cgZ2V0IGFuIG9vcHMgd2hlbiB1bmxv
+YWRpbmcgb21hcGRybToKClVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJl
+ZmVyZW5jZSBhdCB2aXJ0dWFsIGFkZHJlc3MKMDAwMDAwMDAKLi4uCkxSIGlzIGF0IG9tYXBfZHJt
+X2lycV91bmluc3RhbGwrMHhiMC8weGUwIFtvbWFwZHJtXQouLi4KWzxiZjY4MDZhOD5dIChvbWFw
+X2RybV9pcnFfdW5pbnN0YWxsIFtvbWFwZHJtXSkgZnJvbSBbPGJmNjdmMjYwPl0KKHBkZXZfcmVt
+b3ZlKzB4NTAvMHg4OCBbb21hcGRybV0pCls8YmY2N2YyNjA+XSAocGRldl9yZW1vdmUgW29tYXBk
+cm1dKSBmcm9tIFs8YzA1OGZhMjg+XQoocGxhdGZvcm1fZHJ2X3JlbW92ZSsweDI0LzB4M2MpCls8
+YzA1OGZhMjg+XSAocGxhdGZvcm1fZHJ2X3JlbW92ZSkgZnJvbSBbPGMwNThkZGI4Pl0KKGRldmlj
+ZV9yZWxlYXNlX2RyaXZlcl9pbnRlcm5hbCsweDE2MC8weDFmNCkKWzxjMDU4ZGRiOD5dIChkZXZp
+Y2VfcmVsZWFzZV9kcml2ZXJfaW50ZXJuYWwpIGZyb20gWzxjMDU4ZGU5MD5dCihkcml2ZXJfZGV0
+YWNoKzB4MzgvMHg2YykKWzxjMDU4ZGU5MD5dIChkcml2ZXJfZGV0YWNoKSBmcm9tIFs8YzA1OGQw
+Yjg+XQooYnVzX3JlbW92ZV9kcml2ZXIrMHg0Yy8weGEwKQpbPGMwNThkMGI4Pl0gKGJ1c19yZW1v
+dmVfZHJpdmVyKSBmcm9tIFs8YzA1OGZiMWM+XQoocGxhdGZvcm1fdW5yZWdpc3Rlcl9kcml2ZXJz
+KzB4MjQvMHgzMCkKWzxjMDU4ZmIxYz5dIChwbGF0Zm9ybV91bnJlZ2lzdGVyX2RyaXZlcnMpIGZy
+b20gWzxjMDFlMjZlOD5dCihTeVNfZGVsZXRlX21vZHVsZSsweDE1MC8weDIxOCkKWzxjMDFlMjZl
+OD5dIChTeVNfZGVsZXRlX21vZHVsZSkgZnJvbSBbPGMwMTA3N2EwPl0KKHJldF9mYXN0X3N5c2Nh
+bGwrMHgwLzB4MWMpCgpGaXggdGhlIGlzc3VlIGJ5IGNoZWNraW5nIGdldF92YmxhbmtfY291bnRl
+cigpIGJlZm9yZSB0cnlpbmcgdG8KY2FsbCBpdC4KClNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdy
+ZW4gPHRvbnlAYXRvbWlkZS5jb20+Ci0tLQogZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9p
+cnEuYyB8IDUgKysrLS0KIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDIgZGVsZXRp
+b25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vb21hcF9pcnEuYyBi
+L2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL29tYXBfaXJxLmMKLS0tIGEvZHJpdmVycy9ncHUvZHJt
+L29tYXBkcm0vb21hcF9pcnEuYworKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9vbWFwX2ly
+cS5jCkBAIC0zMDMsOCArMzAzLDkgQEAgdm9pZCBvbWFwX2RybV9pcnFfdW5pbnN0YWxsKHN0cnVj
+dCBkcm1fZGV2aWNlICpkZXYpCiAJCWZvciAoaSA9IDA7IGkgPCBkZXYtPm51bV9jcnRjczsgaSsr
+KSB7CiAJCQl3YWtlX3VwKCZkZXYtPnZibGFua1tpXS5xdWV1ZSk7CiAJCQlkZXYtPnZibGFua1tp
+XS5lbmFibGVkID0gZmFsc2U7Ci0JCQlkZXYtPnZibGFua1tpXS5sYXN0ID0KLQkJCQlkZXYtPmRy
+aXZlci0+Z2V0X3ZibGFua19jb3VudGVyKGRldiwgaSk7CisJCQlpZiAoZGV2LT5kcml2ZXItPmdl
+dF92YmxhbmtfY291bnRlcikKKwkJCQlkZXYtPnZibGFua1tpXS5sYXN0ID0KKwkJCQkJZGV2LT5k
+cml2ZXItPmdldF92YmxhbmtfY291bnRlcihkZXYsIGkpOwogCQl9CiAJCXNwaW5fdW5sb2NrX2ly
+cXJlc3RvcmUoJmRldi0+dmJsX2xvY2ssIGlycWZsYWdzKTsKIAl9Ci0tIAoyLjExLjEKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxp
+bmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
+ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
