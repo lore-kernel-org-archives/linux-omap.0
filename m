@@ -1,58 +1,72 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb-musb: keep VBUS on when device is disconnected
-Date: Fri, 24 Mar 2017 13:58:36 -0500
-Message-ID: <20170324185836.GC19814@uda0271908>
-References: <20170315140801.97230-1-moreno.bartalucci@tecnorama.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170315140801.97230-1-moreno.bartalucci-Hj/TeGiWV4YL5bzFcGmneg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moreno Bartalucci <moreno.bartalucci-Hj/TeGiWV4YL5bzFcGmneg@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alessio Igor Bogani <abogani-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: twl6030: remove redundant range check min_uV > 1300000 && min_uV <= 1350000" to the regulator tree
+Date: Fri, 24 Mar 2017 19:16:51 +0000
+Message-ID: <E1crUhf-0006CY-4j@debutante>
+References: <20170324171350.9953-1-colin.king@canonical.com>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20170324171350.9953-1-colin.king@canonical.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Colin Ian King <colin.king@canonical.com>
+Cc: Alban Auzeill <alban.auzeill@sonarsource.com>, Mark Brown <broonie@kernel.org>alban.auzeill@sonarsource.com, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.orglinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 15, 2017 at 09:08:01AM -0500, Moreno Bartalucci wrote:
-> With usb-musb port in host mode, when the device
-> is disconnected, either logically (because of a mode switch) or
-> physically (by pulling the cable), the USB port should keep
-> suppling VBUS, with no interruption, to prevent power loss on
-> USB powered devices.
+The patch
 
-The usb device has been disconnected, why it still cares about VBUS
-power?
+   regulator: twl6030: remove redundant range check min_uV > 1300000 && min_uV <= 1350000
 
-Can you please give more details of the issue you try to solve? This
-logic has been there since the driver was added 5 years ago, so I really
-have to understand the issue before accept the change.
+has been applied to the regulator tree at
 
-Regards,
--Bin.
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
-> 
-> Signed-off-by: Moreno Bartalucci <moreno.bartalucci-Hj/TeGiWV4YL5bzFcGmneg@public.gmane.org>
-> ---
->  drivers/usb/musb/musb_dsps.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-> index 7c047c4..5d9986b 100644
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -245,7 +245,7 @@ static int dsps_check_status(struct musb *musb, void *unused)
->  		dsps_mod_timer_optional(glue);
->  		break;
->  	case OTG_STATE_A_WAIT_BCON:
-> -		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
-> +		musb_writeb(musb->mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
->  		skip_session = 1;
->  		/* fall */
->  
-> -- 
-> 2.10.1 (Apple Git-78)
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From c635df496a5c397fd078b4e72a42e1be79632d7d Mon Sep 17 00:00:00 2001
+From: Colin Ian King <colin.king@canonical.com>
+Date: Fri, 24 Mar 2017 17:13:50 +0000
+Subject: [PATCH] regulator: twl6030: remove redundant range check min_uV >
+ 1300000 && min_uV <= 1350000
+
+It has been pointed out to me that the range for vsel = 58 is actually
+dead code as this is covered by an earlier check for (min_uV >= 700000)
+&& (min_uV <= 1420000) so remove that check completely.
+
+Reported-by: Alban Auzeill <alban.auzeill@sonarsource.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/twl6030-regulator.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
+index 4864b9d742c0..edaf93cc7823 100644
+--- a/drivers/regulator/twl6030-regulator.c
++++ b/drivers/regulator/twl6030-regulator.c
+@@ -456,8 +456,6 @@ static int twl6030smps_map_voltage(struct regulator_dev *rdev, int min_uV,
+ 			vsel = 60;
+ 		else if ((min_uV > 1350000) && (min_uV <= 1500000))
+ 			vsel = 59;
+-		else if ((min_uV > 1300000) && (min_uV <= 1350000))
+-			vsel = 58;
+ 		else
+ 			return -EINVAL;
+ 		break;
+-- 
+2.11.0
+
