@@ -1,70 +1,65 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "spi: spi-ti-qspi: Use dma_engine wrapper for dma memcpy call" to the spi tree
-Date: Fri, 24 Mar 2017 19:17:06 +0000
-Message-ID: <E1crUhu-0006HD-39@debutante>
-References: <20170324064215.7326-1-vigneshr@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170324064215.7326-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Mark Brown <broonie@kernel.org>Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orglinux-spi@vger.kernel.org
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv2] power: supply: cpcap-charger: Add minimal CPCAP PMIC
+ battery charger
+Date: Fri, 24 Mar 2017 22:04:24 +0100
+Message-ID: <20170324210423.4exvxg2tysqzenqo@earth>
+References: <20170322234210.5557-1-tony@atomide.com>
+ <20170324100622.mzra66z35xlndhdj@earth>
+ <20170324140807.GW10760@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="eb76ak4yejpygfzk"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170324140807.GW10760-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
 
-   spi: spi-ti-qspi: Use dma_engine wrapper for dma memcpy call
+--eb76ak4yejpygfzk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-has been applied to the spi tree at
+Hi,
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git 
+On Fri, Mar 24, 2017 at 07:08:07AM -0700, Tony Lindgren wrote:
+> > s->battdetb =3D cpcap_sense_virq(ddata->reg, ddata->irq_battdetb);
+> > (and so on)
+> >=20
+> > looks cleaner IMHO.
+>=20
+> I figured I'll do a follow up patch for when available to remove
+> dependencies between subsystems.
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+Ok. I'm fine with that.
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+-- Sebastian
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
+--eb76ak4yejpygfzk
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
+-----BEGIN PGP SIGNATURE-----
 
-Thanks,
-Mark
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljVidUACgkQ2O7X88g7
++pq7xg/+KgoderjiZr3m+6EOEHwjTu6aod5uCm2T1aMa5vN3GnDqtO9GMJMfXlXu
+QVht3uc0oOqaLcnGcO+ruGUYcW3uR5ZFGi6Iaeiw6K3mlvQp695ZnLFsLBQR3Jv5
+mYXY9APbnrtgjecj9LHBF9/F7TLmJkK1mF7uVnVoct19asV40fCiJ55jq1Hqf43L
+pLuOB78+aSiABCpvhVU+GC25DS8xnz2v4FPGB0lUrx/9nT+BRXozip8D/dsrajsu
+yd/18kq/tLKTuKE310Gg+K+8Mxnd+PZG3SNwDLF+nm36t1TjoExgBuHDIyjzBNfD
+c33mxhnjX4DENW5akyHvXnANZ7pAZZtlQ1Ru0Fw/tcZlUsQy56HUS5LzKBDNo1gK
+rCB2aO6t4wS6pgUEHVEPOMTE3QRNdDosqL6X+aMRIXrTgsEadWBfW8Ne7ASH5L7M
+9n21V7iIxwD2Z9Y94BnvZS0sfUld2ZNRhBBJU5/HMVBXCEa7o1yptuQVZj6I+24Z
+ENhejOkAI+gjfZfTyUb1fLrgJkIsnEXtPV5vQeqibPOkV2CevHpGBp6owzjhZqnX
+S3Bbw/4oQsttT4PF56OKFpdIvik674OXo5+FKtp+RUSSUpGHyy+Zkp/d5J6K6sIU
+E220gnhIEFEfI7gHCJw3uAbhkus9V4iU+39X9zVPsm3ND9oan/4=
+=/39p
+-----END PGP SIGNATURE-----
 
->From 1351aaeb50b2ae5eb5469b3d3d0a84073a127a39 Mon Sep 17 00:00:00 2001
-From: Vignesh R <vigneshr@ti.com>
-Date: Fri, 24 Mar 2017 12:12:15 +0530
-Subject: [PATCH] spi: spi-ti-qspi: Use dma_engine wrapper for dma memcpy call
-
-Instead of calling device_prep_dma_memcpy() directly with dma_device
-pointer, use the newly introduced dmaengine_prep_dma_memcpy() wrapper
-API.
-
-Signed-off-by: Vignesh R <vigneshr@ti.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/spi/spi-ti-qspi.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/spi/spi-ti-qspi.c b/drivers/spi/spi-ti-qspi.c
-index ec6fb09e2e17..bd19a20a122e 100644
---- a/drivers/spi/spi-ti-qspi.c
-+++ b/drivers/spi/spi-ti-qspi.c
-@@ -401,8 +401,7 @@ static int ti_qspi_dma_xfer(struct ti_qspi *qspi, dma_addr_t dma_dst,
- 	struct dma_async_tx_descriptor *tx;
- 	int ret;
- 
--	tx = dma_dev->device_prep_dma_memcpy(chan, dma_dst, dma_src,
--					     len, flags);
-+	tx = dmaengine_prep_dma_memcpy(chan, dma_dst, dma_src, len, flags);
- 	if (!tx) {
- 		dev_err(qspi->dev, "device_prep_dma_memcpy error\n");
- 		return -EIO;
--- 
-2.11.0
+--eb76ak4yejpygfzk--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
