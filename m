@@ -1,30 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 10/10] ARM: dts: n950: add display support
-Date: Fri, 24 Mar 2017 07:29:39 -0700
-Message-ID: <20170324142939.GY10760@atomide.com>
-References: <20170304235021.27055-1-sre@kernel.org>
- <20170305004309.28259-1-sre@kernel.org>
- <20170305004309.28259-10-sre@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170305004309.28259-10-sre@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [RESEND PATCH v6 0/4] usb: musb: da8xx: Add DMA support
+Date: Fri, 24 Mar 2017 15:35:56 +0100
+Message-ID: <20170324143600.4704-1-abailon@baylibre.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: b-liu-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [170304 16:45]:
-> Add basic panel support for the Nokia N950. It must be tweaked a
-> little bit later, since the panel was built into the device
-> upside-down. Also the first 5 and the last 5 pixels are covered
-> by plastic.
+This series update MUSB driver to add DMA support to DA8xx.
+It should be applied on top of:
+"[PATCH v4 0/3] dmaengine: cppi41: Add dma support to da8xx" and
+"[PATCH v3] ARM: davinci: Make the usb20 clock available to PM runtime"
 
-This one seems safe to apply separately to shrink the pending
-patches a bit. Please confirm if that's the case and I'll apply
-this one.
+Changes in v6:
+- Rebased on linux-next. Some patches were conflicting with a series
+  adding suspend and resume support.
 
-Regards,
+Changes in v5:
+- Fix a typo in commit message of patch 4
 
-Tony
+Changes in v4:
+- Update and clarify the commit message of patch 5
+- Fix the typo in patch 3
+
+Changes in v3:
+- Remove PM runtime callbacks.
+  I have update arch/arm/mach-davinci/pm_domain.c to let PM runtime control
+  the usb20 clock.
+- Only use PM runtime sync operation.
+
+Changes in v2:
+- Clock and IRQ management has been moved to MUSB DA8xx glue
+  (was in CPPI 4.1 driver)
+- I have added a partial support PM runtime. The goal was to use PM
+  runtime to manage clock of MUSB and CPPI 4.1 (they use the same clock).
+- CPPI 4.1 is now achild of MUSB DA8xx glue.
+
+Alexandre Bailon (4):
+  usb: musb: Use shared irq
+  usb: musb: Add support of CPPI 4.1 DMA controller to DA8xx
+  usb: musb: musb_cppi41: Workaround DMA stall issue during teardown
+  usb: musb: da8xx: Add a primary support of PM runtime
+
+ drivers/usb/musb/Kconfig       |  4 +--
+ drivers/usb/musb/da8xx.c       | 63 ++++++++++++++++++++++++++++--------------
+ drivers/usb/musb/musb_core.c   |  2 +-
+ drivers/usb/musb/musb_core.h   |  1 +
+ drivers/usb/musb/musb_cppi41.c |  4 +++
+ 5 files changed, 51 insertions(+), 23 deletions(-)
+
+-- 
+2.10.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
