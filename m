@@ -1,116 +1,89 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm: omapdrm: Fix oops on rmmod
-Date: Fri, 24 Mar 2017 09:13:47 +0200
-Message-ID: <22a5e58f-6198-bd16-a103-3859c0f026ef@ti.com>
-References: <20170323170459.20906-1-tony@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v2 3/5] mfd: palmas: Reset the POWERHOLD mux during power
+ off
+Date: Fri, 24 Mar 2017 15:30:38 +0530
+Message-ID: <ee4f7c28-7847-ab4f-4d8f-1dce288f809a@ti.com>
+References: <1478754560-27923-1-git-send-email-j-keerthy@ti.com>
+ <1478754560-27923-4-git-send-email-j-keerthy@ti.com>
+ <20161122130308.GE316@dell.lan>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0270986667=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20170323170459.20906-1-tony@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20161122130308.GE316@dell.lan>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: tony@atomide.com, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-gpio@vger.kernel.org, nm@ti.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---===============0270986667==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="8j8Ha2weTmAbGNLlDIhf8EVPGb7c3aFsK"
-
---8j8Ha2weTmAbGNLlDIhf8EVPGb7c3aFsK
-Content-Type: multipart/mixed; boundary="grFAeFJEd1eEgurav2SgUtdail2mSDXB2";
- protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
-Message-ID: <22a5e58f-6198-bd16-a103-3859c0f026ef@ti.com>
-Subject: Re: [PATCH] drm: omapdrm: Fix oops on rmmod
-References: <20170323170459.20906-1-tony@atomide.com>
-In-Reply-To: <20170323170459.20906-1-tony@atomide.com>
-
---grFAeFJEd1eEgurav2SgUtdail2mSDXB2
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 23/03/17 19:04, Tony Lindgren wrote:
-> Looks like in Linux next we can now get an oops when unloading omapdrm:=
-
->=20
-> Unable to handle kernel NULL pointer dereference at virtual address
-> 00000000
-> ...
-> LR is at omap_drm_irq_uninstall+0xb0/0xe0 [omapdrm]
-> ...
-> [<bf6806a8>] (omap_drm_irq_uninstall [omapdrm]) from [<bf67f260>]
-> (pdev_remove+0x50/0x88 [omapdrm])
-> [<bf67f260>] (pdev_remove [omapdrm]) from [<c058fa28>]
-> (platform_drv_remove+0x24/0x3c)
-> [<c058fa28>] (platform_drv_remove) from [<c058ddb8>]
-> (device_release_driver_internal+0x160/0x1f4)
-> [<c058ddb8>] (device_release_driver_internal) from [<c058de90>]
-> (driver_detach+0x38/0x6c)
-> [<c058de90>] (driver_detach) from [<c058d0b8>]
-> (bus_remove_driver+0x4c/0xa0)
-> [<c058d0b8>] (bus_remove_driver) from [<c058fb1c>]
-> (platform_unregister_drivers+0x24/0x30)
-> [<c058fb1c>] (platform_unregister_drivers) from [<c01e26e8>]
-> (SyS_delete_module+0x150/0x218)
-> [<c01e26e8>] (SyS_delete_module) from [<c01077a0>]
-> (ret_fast_syscall+0x0/0x1c)
->=20
-> Fix the issue by checking get_vblank_counter() before trying to
-> call it.
-
-Yep, there was a change in the DRM core that broke omapdrm. I've been
-trying to understand how to fix this. I hope I can send a patch today.
-
- Tomi
 
 
---grFAeFJEd1eEgurav2SgUtdail2mSDXB2--
+On Tuesday 22 November 2016 06:33 PM, Lee Jones wrote:
+> On Thu, 10 Nov 2016, Keerthy wrote:
+> 
+>> POWERHOLD signal has higher priority  over the DEV_ON bit.
+>> So power off will not happen if the POWERHOLD is held high.
+>> Hence reset the MUX to GPIO_7 mode to release the POWERHOLD
+>> and the DEV_ON bit to take effect to power off the PMIC.
+>>
+>> PMIC Power off happens in dire situations like thermal shutdown
+>> so irrespective of the POWERHOLD setting go ahead and turn off
+>> the powerhold.  Currently poweroff is broken on boards that have
+>> powerhold enabled. This fixes poweroff on those boards.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>
+>> Changes in v2:
+>>
+>>   * Changed pr_err to dev_err
+>>   * removed redundant boolean variable override-powerhold
+>>
+>>  drivers/mfd/palmas.c | 14 ++++++++++++++
+>>  1 file changed, 14 insertions(+)
+> 
+> Applied, thanks.
 
---8j8Ha2weTmAbGNLlDIhf8EVPGb7c3aFsK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Lee Jones,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+For some strange reason this patch is missing!
+The other patch in the series is applied through mfd tree but somehow
+this particular patch is missed out.
 
-iQIcBAEBCAAGBQJY1McsAAoJEPo9qoy8lh71LTUP/jJyH4ApuWz9i12Ua2Hvlevk
-PHeeqmfqUo+CpD/2fHBi6tual7q7R+2bsxu4w1UQ8AiOPXJVtzUySAbUC4ywqMPH
-latp8WI+tYKDgIAYVlebRMS2eptZgJvow/8RAplmHjBiYDs58dHhFjftEOyZk8ce
-qkOLfsKcKZA49v2Xq7YqOfZoRMmIYRHb2j8a/ARhwe2OBRIflCaHxF/J2FxSm36+
-uslvXbkINFmfbw9iyPTjMeBs4zsyTdpkHcxJOYVLwJW7xeQj/zvtq64DG3VrwWYF
-bcr7swF0W0LYmorwBL0NfQJBZBKcNlE408xDj1YkJocPV4DG+vwbcATd5dO6s10y
-8TkZuYQ/Sf6PIHwWFRqhrVuGHA1q1c15QQc/URvu12/9kCqUjj4Vs3LuOL9fkzD5
-cIVi30pkl+HqhVU5GGyYGkT+eca2c0UU5iFEY9/0epYwmStOzVnmKv+rHpvYYSyt
-RhVnROn3JvTx/m2hapOOC/T/hYDbEt/0alQc0fcrzXRBSObOpGWg0Ya7mtlpBLJC
-LlzdU4xY06zDO87xU6RLrDUDHEYMqZH5Cb4xoTyFhtYAc3M9zVKJTH3ToodbfxGj
-As2pFoJYnwIe0SUyt90ICl6Au3tDHIvQpyT/OUY2LX36OANgO5YfnAshTDduqW+5
-6KhgOo3Z0ga7FB5krbbt
-=nF9e
------END PGP SIGNATURE-----
+https://patchwork.kernel.org/patch/9420631/ is applied.
 
---8j8Ha2weTmAbGNLlDIhf8EVPGb7c3aFsK--
+https://patchwork.kernel.org/patch/9420655/ is not.
 
---===============0270986667==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+I tried applying this very patch and it applies cleanly on the next
+branch. Let me know if you want me to send this again on top of latest
+next branch.
 
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+- Keerthy
 
---===============0270986667==--
+> 
+>> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+>> index ee9e9ea..da90124 100644
+>> --- a/drivers/mfd/palmas.c
+>> +++ b/drivers/mfd/palmas.c
+>> @@ -430,6 +430,20 @@ static void palmas_power_off(void)
+>>  {
+>>  	unsigned int addr;
+>>  	int ret, slave;
+>> +	struct device_node *np = palmas_dev->dev->of_node;
+>> +
+>> +	if (of_property_read_bool(np, "ti,palmas-override-powerhold")) {
+>> +		addr = PALMAS_BASE_TO_REG(PALMAS_PU_PD_OD_BASE,
+>> +					  PALMAS_PRIMARY_SECONDARY_PAD2);
+>> +		slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+>> +
+>> +		ret = regmap_update_bits(palmas_dev->regmap[slave], addr,
+>> +				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK, 0);
+>> +		if (ret)
+>> +			dev_err(palmas_dev->dev,
+>> +				"Unable to write PRIMARY_SECONDARY_PAD2 %d\n",
+>> +				ret);
+>> +	}
+>>  
+>>  	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PMU_CONTROL_BASE);
+>>  	addr = PALMAS_BASE_TO_REG(PALMAS_PMU_CONTROL_BASE, PALMAS_DEV_CTRL);
+> 
