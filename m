@@ -1,55 +1,36 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [RESEND PATCH v6 0/4] usb: musb: da8xx: Add DMA support
-Date: Fri, 24 Mar 2017 15:35:56 +0100
-Message-ID: <20170324143600.4704-1-abailon@baylibre.com>
+Subject: [RESEND PATCH v6 1/4] usb: musb: Use shared irq
+Date: Fri, 24 Mar 2017 15:35:57 +0100
+Message-ID: <20170324143600.4704-2-abailon@baylibre.com>
+References: <20170324143600.4704-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170324143600.4704-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: b-liu-l0cyMroinI0@public.gmane.org
 Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This series update MUSB driver to add DMA support to DA8xx.
-It should be applied on top of:
-"[PATCH v4 0/3] dmaengine: cppi41: Add dma support to da8xx" and
-"[PATCH v3] ARM: davinci: Make the usb20 clock available to PM runtime"
+In the DA8xx, USB and CPPI 4.1 are sharing the same interrupt line.
+Update the driver to request a shared irq.
 
-Changes in v6:
-- Rebased on linux-next. Some patches were conflicting with a series
-  adding suspend and resume support.
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/usb/musb/musb_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Changes in v5:
-- Fix a typo in commit message of patch 4
-
-Changes in v4:
-- Update and clarify the commit message of patch 5
-- Fix the typo in patch 3
-
-Changes in v3:
-- Remove PM runtime callbacks.
-  I have update arch/arm/mach-davinci/pm_domain.c to let PM runtime control
-  the usb20 clock.
-- Only use PM runtime sync operation.
-
-Changes in v2:
-- Clock and IRQ management has been moved to MUSB DA8xx glue
-  (was in CPPI 4.1 driver)
-- I have added a partial support PM runtime. The goal was to use PM
-  runtime to manage clock of MUSB and CPPI 4.1 (they use the same clock).
-- CPPI 4.1 is now achild of MUSB DA8xx glue.
-
-Alexandre Bailon (4):
-  usb: musb: Use shared irq
-  usb: musb: Add support of CPPI 4.1 DMA controller to DA8xx
-  usb: musb: musb_cppi41: Workaround DMA stall issue during teardown
-  usb: musb: da8xx: Add a primary support of PM runtime
-
- drivers/usb/musb/Kconfig       |  4 +--
- drivers/usb/musb/da8xx.c       | 63 ++++++++++++++++++++++++++++--------------
- drivers/usb/musb/musb_core.c   |  2 +-
- drivers/usb/musb/musb_core.h   |  1 +
- drivers/usb/musb/musb_cppi41.c |  4 +++
- 5 files changed, 51 insertions(+), 23 deletions(-)
-
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 0c3664a..870da18 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2332,7 +2332,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	setup_timer(&musb->otg_timer, musb_otg_timer_func, (unsigned long) musb);
+ 
+ 	/* attach to the IRQ */
+-	if (request_irq(nIrq, musb->isr, 0, dev_name(dev), musb)) {
++	if (request_irq(nIrq, musb->isr, IRQF_SHARED, dev_name(dev), musb)) {
+ 		dev_err(dev, "request_irq %d failed!\n", nIrq);
+ 		status = -ENODEV;
+ 		goto fail3;
 -- 
 2.10.2
 
