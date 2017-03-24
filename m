@@ -1,145 +1,105 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [RESEND PATCH v6 4/4] usb: musb: da8xx: Add a primary support of PM runtime
-Date: Fri, 24 Mar 2017 15:36:00 +0100
-Message-ID: <20170324143600.4704-5-abailon@baylibre.com>
-References: <20170324143600.4704-1-abailon@baylibre.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170324143600.4704-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: b-liu-l0cyMroinI0@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv2 10/10] ARM: dts: n950: add display support
+Date: Fri, 24 Mar 2017 16:58:45 +0200
+Message-ID: <fe873378-a93f-5829-215c-fb4a3cc3f514@ti.com>
+References: <20170304235021.27055-1-sre@kernel.org>
+ <20170305004309.28259-1-sre@kernel.org>
+ <20170305004309.28259-10-sre@kernel.org> <20170324142939.GY10760@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============1422025471=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170324142939.GY10760@atomide.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently, MUSB DA8xx glue driver doesn't have PM runtime support.
-Because the CPPI 4.1 is using the same clock as MUSB DA8xx and
-CPPI 4.1 is a child of MUSB DA8xx glue, add support of PM runtime
-to the DA8xx glue driver in order to let the CPPI 4.1 driver manage
-the clock by using PM runtime.
+--===============1422025471==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="En8nGJL65BTfuest09LKL0mpjHIsVdwhI"
 
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
----
- drivers/usb/musb/da8xx.c | 27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+--En8nGJL65BTfuest09LKL0mpjHIsVdwhI
+Content-Type: multipart/mixed; boundary="h7rL7tetiVqrMwlGsQW4sCim5OI7DhMeA";
+ protected-headers="v1"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ David Airlie <airlied@linux.ie>, linux-omap@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Message-ID: <fe873378-a93f-5829-215c-fb4a3cc3f514@ti.com>
+Subject: Re: [PATCHv2 10/10] ARM: dts: n950: add display support
+References: <20170304235021.27055-1-sre@kernel.org>
+ <20170305004309.28259-1-sre@kernel.org>
+ <20170305004309.28259-10-sre@kernel.org> <20170324142939.GY10760@atomide.com>
+In-Reply-To: <20170324142939.GY10760@atomide.com>
 
-diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-index ed28afd..89e12f6 100644
---- a/drivers/usb/musb/da8xx.c
-+++ b/drivers/usb/musb/da8xx.c
-@@ -30,7 +30,6 @@
-  */
- 
- #include <linux/module.h>
--#include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/io.h>
- #include <linux/of_platform.h>
-@@ -86,7 +85,6 @@ struct da8xx_glue {
- 	struct device		*dev;
- 	struct platform_device	*musb;
- 	struct platform_device	*usb_phy;
--	struct clk		*clk;
- 	struct phy		*phy;
- };
- 
-@@ -376,11 +374,7 @@ static int da8xx_musb_init(struct musb *musb)
- 
- 	musb->mregs += DA8XX_MENTOR_CORE_OFFSET;
- 
--	ret = clk_prepare_enable(glue->clk);
--	if (ret) {
--		dev_err(glue->dev, "failed to enable clock\n");
--		return ret;
--	}
-+	pm_runtime_get_sync(musb->controller->parent);
- 
- 	/* Returns zero if e.g. not clocked */
- 	rev = musb_readl(reg_base, DA8XX_USB_REVISION_REG);
-@@ -423,7 +417,7 @@ static int da8xx_musb_init(struct musb *musb)
- err_phy_power_on:
- 	phy_exit(glue->phy);
- fail:
--	clk_disable_unprepare(glue->clk);
-+	pm_runtime_put(musb->controller->parent);
- 	return ret;
- }
- 
-@@ -435,7 +429,7 @@ static int da8xx_musb_exit(struct musb *musb)
- 
- 	phy_power_off(glue->phy);
- 	phy_exit(glue->phy);
--	clk_disable_unprepare(glue->clk);
-+	pm_runtime_put(musb->controller->parent);
- 
- 	usb_put_phy(musb->xceiv);
- 
-@@ -519,7 +513,6 @@ static int da8xx_probe(struct platform_device *pdev)
- 	struct musb_hdrc_platform_data	*pdata = dev_get_platdata(&pdev->dev);
- 	struct da8xx_glue		*glue;
- 	struct platform_device_info	pinfo;
--	struct clk			*clk;
- 	struct device_node		*np = pdev->dev.of_node;
- 	int				ret;
- 
-@@ -527,12 +520,6 @@ static int da8xx_probe(struct platform_device *pdev)
- 	if (!glue)
- 		return -ENOMEM;
- 
--	clk = devm_clk_get(&pdev->dev, "usb20");
--	if (IS_ERR(clk)) {
--		dev_err(&pdev->dev, "failed to get clock\n");
--		return PTR_ERR(clk);
--	}
--
- 	glue->phy = devm_phy_get(&pdev->dev, "usb-phy");
- 	if (IS_ERR(glue->phy)) {
- 		if (PTR_ERR(glue->phy) != -EPROBE_DEFER)
-@@ -541,7 +528,6 @@ static int da8xx_probe(struct platform_device *pdev)
- 	}
- 
- 	glue->dev			= &pdev->dev;
--	glue->clk			= clk;
- 
- 	if (IS_ENABLED(CONFIG_OF) && np) {
- 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-@@ -587,6 +573,8 @@ static int da8xx_probe(struct platform_device *pdev)
- 	pinfo.data = pdata;
- 	pinfo.size_data = sizeof(*pdata);
- 
-+	pm_runtime_enable(&pdev->dev);
-+
- 	glue->musb = platform_device_register_full(&pinfo);
- 	ret = PTR_ERR_OR_ZERO(glue->musb);
- 	if (ret) {
-@@ -603,6 +591,7 @@ static int da8xx_remove(struct platform_device *pdev)
- 
- 	platform_device_unregister(glue->musb);
- 	usb_phy_generic_unregister(glue->usb_phy);
-+	pm_runtime_disable(&pdev->dev);
- 
- 	return 0;
- }
-@@ -616,7 +605,7 @@ static int da8xx_suspend(struct device *dev)
- 	ret = phy_power_off(glue->phy);
- 	if (ret)
- 		return ret;
--	clk_disable_unprepare(glue->clk);
-+	pm_runtime_put_sync(dev);
- 
- 	return 0;
- }
-@@ -626,7 +615,7 @@ static int da8xx_resume(struct device *dev)
- 	int ret;
- 	struct da8xx_glue *glue = dev_get_drvdata(dev);
- 
--	ret = clk_prepare_enable(glue->clk);
-+	ret = pm_runtime_get_sync(dev);
- 	if (ret)
- 		return ret;
- 	return phy_power_on(glue->phy);
--- 
-2.10.2
+--h7rL7tetiVqrMwlGsQW4sCim5OI7DhMeA
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 24/03/17 16:29, Tony Lindgren wrote:
+> * Sebastian Reichel <sre@kernel.org> [170304 16:45]:
+>> Add basic panel support for the Nokia N950. It must be tweaked a
+>> little bit later, since the panel was built into the device
+>> upside-down. Also the first 5 and the last 5 pixels are covered
+>> by plastic.
+>=20
+> This one seems safe to apply separately to shrink the pending
+> patches a bit. Please confirm if that's the case and I'll apply
+> this one.
+
+No, I think there are too many open questions to apply this one. And we
+need to move to common DRM drivers at some point (hopefully soon) so the
+bindings must be aligned with those if and when possible.
+
+ Tomi
+
+
+--h7rL7tetiVqrMwlGsQW4sCim5OI7DhMeA--
+
+--En8nGJL65BTfuest09LKL0mpjHIsVdwhI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJY1TQlAAoJEPo9qoy8lh712HIQAKu3t3O8/cwS4XmgzcX87zid
+/icv54ftPNdVoU7SDJvAp1E9WE8D+PN1B/Av4sNKhwFMfAfJssbvCqqUi1Q6b/F6
+DDbC5TzJM8YhRimBAHg/jbmffNDK4cCZS8rP/yYCPnX1iegbBDI3UOXpC0xHX8Lb
+mCXmQ4sGtaNWxEuqxNuVZg9haN/7C2GRgW7Bgtbs5nrI2S4nOhcICHqnHXYZKYV+
+8YJYVL/3leXGrdvJXLoMk8vawVKyFcXhDzDP89nU+cYd/YT+mi0AA+Bn3FWgCQ2w
+W084t1u1JOEWWenWaVAoJC7qLukDZesjsTMsz/YEWWp3XJqneWOsROLuYhAZkkKs
+vIoVYSs0pdjGZsn76QYDOx/jY/9xkMgdGBIA8daipEu3uUGNDGyj/IbAE5gtLxrb
+FxhZqw7yFRD18WIjVy/Z6jFHvS6vWYPLEvPisPjx/rJ5XoG4VqNKwmPE4OGe7+pP
+e3C11bL/nqdR/5us6rU0WQX0WgYyqp1oDiWwfFXcTZxy4MiBHBeXjH2wJCrX98lt
+ziASxnFtD3D8S+AeJ7zulNV51zpoaF7ux0MWNy6kvtBqIhvDrctKVqHGvCPsJbOR
+RAn42fD9SPJjNViRjIB3dar6friGSk6fGde1x/FxOi9oSHJvPXOB/c3TIa8SgUQd
+Wp53iSKKvIXNcJm29lSj
+=PrLa
+-----END PGP SIGNATURE-----
+
+--En8nGJL65BTfuest09LKL0mpjHIsVdwhI--
+
+--===============1422025471==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============1422025471==--
