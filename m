@@ -1,60 +1,50 @@
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Subject: [PATCH 2/7] usb: dwc3: dwc3-omap: fix dwc3_omap_probe() do put_sync when get_sync works
-Date: Fri, 24 Mar 2017 18:05:00 -0600
-Message-ID: <a7d3539cdb21ef9694869f97a357ce40ace0ddd3.1490387086.git.shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Subject: [PATCH 5/7] usb: dwc3: omap: change goto labels in this file to meaningful names
+Date: Fri, 24 Mar 2017 18:05:03 -0600
+Message-ID: <e208886be14a70faad7a3355f564a6aaa3591c22.1490387086.git.shuahkh@osg.samsung.com>
 References: <cover.1490387086.git.shuahkh@osg.samsung.com>
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <cover.1490387086.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1490387086.git.shuahkh@osg.samsung.com>
-References: <cover.1490387086.git.shuahkh@osg.samsung.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: balbi@kernel.org, gregkh@linuxfoundation.org, kgene@kernel.org, krzk@kernel.org, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1490387086.git.shuahkh-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+In-Reply-To: <cover.1490387086.git.shuahkh-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+References: <cover.1490387086.git.shuahkh-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org
+Cc: Shuah Khan <shuahkh-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-dwc3_omap_probe() does pm_runtime_put_sync() in its err1 handling when
-pm_runtime_get_sync() fails.  Fix it to do put_sync only when get_sync
-succeeds.
+Change goto labels in this file to meaningful names.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Shuah Khan <shuahkh-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 2092e46..55b12a9 100644
+index 55b12a9..ca0075a 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -518,25 +518,26 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 	if (ret) {
- 		dev_err(dev, "failed to request IRQ #%d --> %d\n",
- 				omap->irq, ret);
+@@ -503,7 +503,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+ 	ret = pm_runtime_get_sync(dev);
+ 	if (ret < 0) {
+ 		dev_err(dev, "get_sync failed with err %d\n", ret);
 -		goto err1;
-+		goto put_sync;
++		goto runtime_disable;
  	}
  
- 	ret = dwc3_omap_extcon_register(omap);
- 	if (ret < 0)
--		goto err1;
-+		goto put_sync;
+ 	dwc3_omap_map_offset(omap);
+@@ -537,7 +537,7 @@ static int dwc3_omap_probe(struct platform_device *pdev)
  
- 	ret = of_platform_populate(node, NULL, NULL, dev);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to create dwc3 core\n");
--		goto err1;
-+		goto put_sync;
- 	}
- 
- 	dwc3_omap_enable_irqs(omap);
- 	enable_irq(omap->irq);
- 	return 0;
- 
--err1:
-+put_sync:
+ put_sync:
  	pm_runtime_put_sync(dev);
-+err1:
+-err1:
++runtime_disable:
  	pm_runtime_disable(dev);
  
  	return ret;
 -- 
 2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
