@@ -1,84 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] phy: cpcap-usb: Add CPCAP PMIC USB support
-Date: Sat, 25 Mar 2017 15:10:29 -0700
-Message-ID: <20170325221029.GF10760@atomide.com>
-References: <20170322234602.5888-1-tony@atomide.com>
- <201703260432.1EcS6tcy%fengguang.wu@intel.com>
+From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: am335x-evmsk: adjust mmc2 param to allow suspend
+Date: Sun, 26 Mar 2017 08:53:10 +0000
+Message-ID: <8665E2433BC68541A24DFFCA87B70F5B363623DC@DFRE01.ent.ti.com>
+References: <1490517995-12895-1-git-send-email-eyalr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201703260432.1EcS6tcy%fengguang.wu@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1490517995-12895-1-git-send-email-eyalr-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?Windows-1252?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* kbuild test robot <lkp@intel.com> [170325 13:45]:
-> Hi Tony,
-> 
-> [auto build test ERROR on phy/next]
-> [also build test ERROR on v4.11-rc3 next-20170324]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Tony-Lindgren/phy-cpcap-usb-Add-CPCAP-PMIC-USB-support/20170324-061112
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git next
-> config: x86_64-randconfig-a0-03260238 (attached as .config)
-> compiler: gcc-4.4 (Debian 4.4.7-8) 4.4.7
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=x86_64 
-> 
-> All errors (new ones prefixed by >>):
-> 
->    drivers/built-in.o: In function `cpcap_usb_detect':
-> >> phy-cpcap-usb.c:(.text+0x18ad): undefined reference to `iio_read_channel_processed'
->    drivers/built-in.o: In function `cpcap_usb_phy_probe':
-> >> phy-cpcap-usb.c:(.text+0x1c5e): undefined reference to `devm_iio_channel_get'
-> >> phy-cpcap-usb.c:(.text+0x1c92): undefined reference to `iio_get_channel_type'
+mmc2 used for wl12xx was missing the keep-power-in suspend
+parameter. As a result the board couldn't reach suspend state.
 
-OK thanks for the report, we need IIO for VBUS level, here's
-a patch to fix it.
-
-Regards,
-
-Tony
-
-8< -----------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Sat, 25 Mar 2017 15:04:37 -0700
-Subject: [PATCH] phy: cpcap-usb: Fix build by adding a dependency to
- CONFIG_IIO
-
-We need the ADC output provided by IIO to detect VBUS level.
-Otherwise we can get:
-
-drivers/built-in.o: In function `cpcap_usb_detect':
-phy-cpcap-usb.c:(.text+0x18ad): undefined reference to
-`iio_read_channel_processed'
-drivers/built-in.o: In function `cpcap_usb_phy_probe':
-phy-cpcap-usb.c:(.text+0x1c5e): undefined reference to
-`devm_iio_channel_get'
-phy-cpcap-usb.c:(.text+0x1c92): undefined reference to`iio_get_channel_type'
-
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
 ---
- drivers/phy/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/am335x-evmsk.dts | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -49,7 +49,7 @@ config PHY_BERLIN_SATA
- 
- config PHY_CPCAP_USB
- 	tristate "CPCAP USB PHY driver"
--	depends on USB_SUPPORT
-+	depends on USB_SUPPORT && IIO
- 	select GENERIC_PHY
- 	select USB_PHY
- 	help
--- 
-2.12.1
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-=
+evmsk.dts
+index 9e43c44..9ba4b18 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -672,6 +672,7 @@
+ 	ti,non-removable;
+ 	bus-width =3D <4>;
+ 	cap-power-off-card;
++	keep-power-in-suspend;
+ 	pinctrl-names =3D "default";
+ 	pinctrl-0 =3D <&mmc2_pins>;
+=20
+--=20
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
