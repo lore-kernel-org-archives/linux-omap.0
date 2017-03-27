@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v5 11/24] PCI: dwc: dra7xx: Facilitate wrapper and msi interrupts to be enabled independently
-Date: Mon, 27 Mar 2017 15:15:07 +0530
-Message-ID: <20170327094520.3129-12-kishon@ti.com>
+Subject: [PATCH v5 06/24] Documentation: PCI: Add specification for the *pci test* function device
+Date: Mon, 27 Mar 2017 15:15:02 +0530
+Message-ID: <20170327094520.3129-7-kishon@ti.com>
 References: <20170327094520.3129-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,57 +12,98 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, l
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-No functional change. Split dra7xx_pcie_enable_interrupts into
-dra7xx_pcie_enable_wrapper_interrupts and dra7xx_pcie_enable_msi_interrupts
-so that wrapper interrupts and msi interrupts can be enabled independently.
-This is in preparation for adding EP mode support to dra7xx driver since
-EP mode doesn't have to enable msi_interrupts.
+Add specification for the *pci test* virtual function device. The endpoint
+function driver and the host pci driver should be created based on this
+specification.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c | 24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ Documentation/PCI/00-INDEX                       |  2 +
+ Documentation/PCI/endpoint/pci-test-function.txt | 66 ++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+)
+ create mode 100644 Documentation/PCI/endpoint/pci-test-function.txt
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 7c9ed6a6675c..d78974d20360 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -140,18 +140,30 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
- 	return dw_pcie_wait_for_link(pci);
- }
- 
--static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
-+static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
- {
--	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
--			   ~INTERRUPTS);
--	dra7xx_pcie_writel(dra7xx,
--			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
- 			   ~LEG_EP_INTERRUPTS & ~MSI);
--	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
+diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
+index f84a23c7c74b..4e5a2832f4e7 100644
+--- a/Documentation/PCI/00-INDEX
++++ b/Documentation/PCI/00-INDEX
+@@ -16,3 +16,5 @@ endpoint/pci-endpoint.txt
+ 	- guide to add endpoint controller driver and endpoint function driver.
+ endpoint/pci-endpoint-cfs.txt
+ 	- guide to use configfs to configure the pci endpoint function.
++endpoint/pci-test-function.txt
++	- specification of *pci test* function device.
+diff --git a/Documentation/PCI/endpoint/pci-test-function.txt b/Documentation/PCI/endpoint/pci-test-function.txt
+new file mode 100644
+index 000000000000..1324376ec6a3
+--- /dev/null
++++ b/Documentation/PCI/endpoint/pci-test-function.txt
+@@ -0,0 +1,66 @@
++				PCI TEST
++		    Kishon Vijay Abraham I <kishon@ti.com>
 +
-+	dra7xx_pcie_writel(dra7xx,
-+			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
- 			   MSI | LEG_EP_INTERRUPTS);
- }
- 
-+static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
-+{
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
-+			   ~INTERRUPTS);
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
-+			   INTERRUPTS);
-+}
++Traditionally PCI RC has always been validated by using standard
++PCI cards like ethernet PCI cards or USB PCI cards or SATA PCI cards.
++However with the addition of EP-core in linux kernel, it is possible
++to configure a PCI controller that can operate in EP mode to work as
++a test device.
 +
-+static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
-+{
-+	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
-+	dra7xx_pcie_enable_msi_interrupts(dra7xx);
-+}
++The PCI endpoint test device is a virtual device (defined in software)
++used to test the endpoint functionality and serve as a sample driver
++for other PCI endpoint devices (to use the EP framework).
 +
- static void dra7xx_pcie_host_init(struct pcie_port *pp)
- {
- 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
++The PCI endpoint test device has the following registers:
++
++	1) PCI_ENDPOINT_TEST_MAGIC
++	2) PCI_ENDPOINT_TEST_COMMAND
++	3) PCI_ENDPOINT_TEST_STATUS
++	4) PCI_ENDPOINT_TEST_SRC_ADDR
++	5) PCI_ENDPOINT_TEST_DST_ADDR
++	6) PCI_ENDPOINT_TEST_SIZE
++	7) PCI_ENDPOINT_TEST_CHECKSUM
++
++*) PCI_ENDPOINT_TEST_MAGIC
++
++This register will be used to test BAR0. A known pattern will be written
++and read back from MAGIC register to verify BAR0.
++
++*) PCI_ENDPOINT_TEST_COMMAND:
++
++This register will be used by the host driver to indicate the function
++that the endpoint device must perform.
++
++Bitfield Description:
++  Bit 0		: raise legacy irq
++  Bit 1		: raise MSI irq
++  Bit 2 - 7	: MSI interrupt number
++  Bit 8		: read command (read data from RC buffer)
++  Bit 9		: write command (write data to RC buffer)
++  Bit 10	: copy command (copy data from one RC buffer to another
++		  RC buffer)
++
++*) PCI_ENDPOINT_TEST_STATUS
++
++This register reflects the status of the PCI endpoint device.
++
++Bitfield Description:
++  Bit 0		: read success
++  Bit 1		: read fail
++  Bit 2		: write success
++  Bit 3		: write fail
++  Bit 4		: copy success
++  Bit 5		: copy fail
++  Bit 6		: irq raised
++  Bit 7		: source address is invalid
++  Bit 8		: destination address is invalid
++
++*) PCI_ENDPOINT_TEST_SRC_ADDR
++
++This register contains the source address (RC buffer address) for the
++COPY/READ command.
++
++*) PCI_ENDPOINT_TEST_DST_ADDR
++
++This register contains the destination address (RC buffer address) for
++the COPY/WRITE command.
 -- 
 2.11.0
