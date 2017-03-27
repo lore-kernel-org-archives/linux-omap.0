@@ -1,149 +1,68 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v5 04/24] Documentation: PCI: Guide to use pci endpoint configfs
-Date: Mon, 27 Mar 2017 15:15:00 +0530
-Message-ID: <20170327094520.3129-5-kishon@ti.com>
+Subject: [PATCH v5 11/24] PCI: dwc: dra7xx: Facilitate wrapper and msi interrupts to be enabled independently
+Date: Mon, 27 Mar 2017 15:15:07 +0530
+Message-ID: <20170327094520.3129-12-kishon@ti.com>
 References: <20170327094520.3129-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20170327094520.3129-1-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add Documentation to help users use pci endpoint to configure
-pci endpoint function and to bind the endpoint function
-with endpoint controller.
+No functional change. Split dra7xx_pcie_enable_interrupts into
+dra7xx_pcie_enable_wrapper_interrupts and dra7xx_pcie_enable_msi_interrupts
+so that wrapper interrupts and msi interrupts can be enabled independently.
+This is in preparation for adding EP mode support to dra7xx driver since
+EP mode doesn't have to enable msi_interrupts.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/PCI/00-INDEX                      |   2 +
- Documentation/PCI/endpoint/pci-endpoint-cfs.txt | 105 ++++++++++++++++++++++++
- 2 files changed, 107 insertions(+)
- create mode 100644 Documentation/PCI/endpoint/pci-endpoint-cfs.txt
+ drivers/pci/dwc/pci-dra7xx.c | 24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-index ba950b296bd8..f84a23c7c74b 100644
---- a/Documentation/PCI/00-INDEX
-+++ b/Documentation/PCI/00-INDEX
-@@ -14,3 +14,5 @@ pcieaer-howto.txt
- 	- the PCI Express Advanced Error Reporting Driver Guide HOWTO
- endpoint/pci-endpoint.txt
- 	- guide to add endpoint controller driver and endpoint function driver.
-+endpoint/pci-endpoint-cfs.txt
-+	- guide to use configfs to configure the pci endpoint function.
-diff --git a/Documentation/PCI/endpoint/pci-endpoint-cfs.txt b/Documentation/PCI/endpoint/pci-endpoint-cfs.txt
-new file mode 100644
-index 000000000000..8b2a8280b131
---- /dev/null
-+++ b/Documentation/PCI/endpoint/pci-endpoint-cfs.txt
-@@ -0,0 +1,105 @@
-+                   CONFIGURING PCI ENDPOINT USING CONFIGFS
-+                    Kishon Vijay Abraham I <kishon@ti.com>
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 7c9ed6a6675c..d78974d20360 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -140,18 +140,30 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
+ 	return dw_pcie_wait_for_link(pci);
+ }
+ 
+-static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
++static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
+ {
+-	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
+-			   ~INTERRUPTS);
+-	dra7xx_pcie_writel(dra7xx,
+-			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
+ 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
+ 			   ~LEG_EP_INTERRUPTS & ~MSI);
+-	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
 +
-+The PCI Endpoint Core exposes configfs entry (pci_ep) in order to configure the
-+PCI endpoint function and in order to bind the endpoint function
-+with the endpoint controller. (For introducing other mechanisms to
-+configure the PCI Endpoint Function refer [1]).
++	dra7xx_pcie_writel(dra7xx,
++			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
+ 			   MSI | LEG_EP_INTERRUPTS);
+ }
+ 
++static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
++{
++	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
++			   ~INTERRUPTS);
++	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
++			   INTERRUPTS);
++}
 +
-+*) Mounting configfs
++static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
++{
++	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
++	dra7xx_pcie_enable_msi_interrupts(dra7xx);
++}
 +
-+The PCI Endpoint Core layer creates pci_ep directory in the mounted configfs
-+directory. configfs can be mounted using the following command.
-+
-+	mount -t configfs none /sys/kernel/config
-+
-+*) Directory Structure
-+
-+The pci_ep configfs has two directories at its root: controllers and
-+functions. Every EPC device present in the system will have an entry in
-+the *controllers* directory and and every EPF driver present in the system
-+will have an entry in the *functions* directory.
-+
-+/sys/kernel/config/pci_ep/
-+	.. controllers/
-+	.. functions/
-+
-+*) Creating EPF Device
-+
-+Every registered EPF driver will be listed in controllers directory. The
-+entries corresponding to EPF driver will be created by the EPF core.
-+
-+/sys/kernel/config/pci_ep/functions/
-+	.. <EPF Driver1>/
-+		... <EPF Device 11>/
-+		... <EPF Device 21>/
-+	.. <EPF Driver2>/
-+		... <EPF Device 12>/
-+		... <EPF Device 22>/
-+
-+In order to create a <EPF device> of the type probed by <EPF Driver>, the
-+user has to create a directory inside <EPF DriverN>.
-+
-+Every <EPF device> directory consists of the following entries that can be
-+used to configure the standard configuration header of the endpoint function.
-+(These entries are created by the framework when any new <EPF Device> is
-+created)
-+
-+	.. <EPF Driver1>/
-+		... <EPF Device 11>/
-+			... vendorid
-+			... deviceid
-+			... revid
-+			... progif_code
-+			... subclass_code
-+			... baseclass_code
-+			... cache_line_size
-+			... subsys_vendor_id
-+			... subsys_id
-+			... interrupt_pin
-+
-+*) EPC Device
-+
-+Every registered EPC device will be listed in controllers directory. The
-+entries corresponding to EPC device will be created by the EPC core.
-+
-+/sys/kernel/config/pci_ep/controllers/
-+	.. <EPC Device1>/
-+		... <Symlink EPF Device11>/
-+		... <Symlink EPF Device12>/
-+		... start
-+	.. <EPC Device2>/
-+		... <Symlink EPF Device21>/
-+		... <Symlink EPF Device22>/
-+		... start
-+
-+The <EPC Device> directory will have a list of symbolic links to
-+<EPF Device>. These symbolic links should be created by the user to
-+represent the functions present in the endpoint device.
-+
-+The <EPC Device> directory will also have a *start* field. Once
-+"1" is written to this field, the endpoint device will be ready to
-+establish the link with the host. This is usually done after
-+all the EPF devices are created and linked with the EPC device.
-+
-+
-+			 | controllers/
-+				| <Directory: EPC name>/
-+					| <Symbolic Link: Function>
-+					| start
-+			 | functions/
-+				| <Directory: EPF driver>/
-+					| <Directory: EPF device>/
-+						| vendorid
-+						| deviceid
-+						| revid
-+						| progif_code
-+						| subclass_code
-+						| baseclass_code
-+						| cache_line_size
-+						| subsys_vendor_id
-+						| subsys_id
-+						| interrupt_pin
-+						| function
-+
-+[1] -> Documentation/PCI/endpoint/pci-endpoint.txt
+ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+ {
+ 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 -- 
 2.11.0
-
