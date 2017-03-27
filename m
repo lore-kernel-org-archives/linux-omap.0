@@ -1,40 +1,38 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v5 24/24] ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP
-Date: Mon, 27 Mar 2017 15:15:20 +0530
-Message-ID: <20170327094520.3129-25-kishon@ti.com>
+Subject: [PATCH v5 17/24] PCI: Add device IDs for DRA74x and DRA72x
+Date: Mon, 27 Mar 2017 15:15:13 +0530
+Message-ID: <20170327094520.3129-18-kishon@ti.com>
 References: <20170327094520.3129-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <20170327094520.3129-1-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-doc-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The PCIe programming sequence in TRM suggests CLKSTCTRL of PCIe should
-be set to SW_WKUP. There are no issues when CLKSTCTRL is set to HW_AUTO
-in RC mode. However in EP mode, the host system is not able to access the
-MEMSPACE and setting the CLKSTCTRL to SW_WKUP fixes it.
+Add device IDs for DRA74x and DRA72x devices. These devices have
+configurable PCI endpoint.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pci_ids.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
-index 6c679659cda5..67ebff829cf2 100644
---- a/arch/arm/mach-omap2/clockdomains7xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
-@@ -524,7 +524,7 @@ static struct clockdomain pcie_7xx_clkdm = {
- 	.dep_bit	  = DRA7XX_PCIE_STATDEP_SHIFT,
- 	.wkdep_srcs	  = pcie_wkup_sleep_deps,
- 	.sleepdep_srcs	  = pcie_wkup_sleep_deps,
--	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
-+	.flags		  = CLKDM_CAN_SWSUP,
- };
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index a4f77feecbb0..5f6b71d15393 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -862,6 +862,8 @@
+ #define PCI_DEVICE_ID_TI_X620		0xac8d
+ #define PCI_DEVICE_ID_TI_X420		0xac8e
+ #define PCI_DEVICE_ID_TI_XX20_FM	0xac8f
++#define PCI_DEVICE_ID_TI_DRA74x		0xb500
++#define PCI_DEVICE_ID_TI_DRA72x		0xb501
  
- static struct clockdomain atl_7xx_clkdm = {
+ #define PCI_VENDOR_ID_SONY		0x104d
+ 
 -- 
 2.11.0
+
