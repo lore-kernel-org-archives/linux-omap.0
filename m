@@ -1,780 +1,189 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2] phy: cpcap-usb: Add CPCAP PMIC USB support
-Date: Mon, 27 Mar 2017 11:55:14 +0530
-Message-ID: <d47b0f99-1ef8-3bff-0fbe-edb95ed41e23@ti.com>
-References: <20170322234602.5888-1-tony@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [GIT PULL] PCI: Support for configurable PCI endpoint
+Date: Mon, 27 Mar 2017 15:14:56 +0530
+Message-ID: <20170327094520.3129-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170322234602.5888-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Bjorn,
 
-On Thursday 23 March 2017 05:16 AM, Tony Lindgren wrote:
-> Some Motorola phones like droid 4 use a custom CPCAP PMIC that has a
-> multiplexing USB PHY.
-> 
-> This USB PHY can operate at least in four modes using pin multiplexing
-> and two control GPIOS:
-> 
-> - Pass through companion PHY for the SoC USB PHY
-> - ULPI PHY for the SoC
-> - Pass through USB for the modem
-> - UART debug console for the SoC
-> 
-> This patch adds support for droid 4 USB PHY and debug UART modes,
-> support for other modes can be added later on as needed.
-> 
-> Both peripheral and host mode are working for the USB. The
-> host mode depends on the cpcap-charger driver for VBUS.
-> 
-> VBUS and ID pin detection are done using cpcap-adc IIO ADC
-> driver.
-> 
-> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Tested-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
-> 
-> Changes since v1:
-> 
-> - Use iio_read_channel_processed() instead of iio_read_channel_scaled()
->   as changed in the v2 of the ADC driver 
-> 
-> - Keep Tested-by from Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> as the change
->   from v1 is trivial
-> 
-> ---
->  .../devicetree/bindings/phy/phy-cpcap-usb.txt      |  40 ++
->  drivers/phy/Kconfig                                |   8 +
->  drivers/phy/Makefile                               |   1 +
->  drivers/phy/phy-cpcap-usb.c                        | 695 +++++++++++++++++++++
->  4 files changed, 744 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/phy/phy-cpcap-usb.txt
->  create mode 100644 drivers/phy/phy-cpcap-usb.c
-> 
-> diff --git a/Documentation/devicetree/bindings/phy/phy-cpcap-usb.txt b/Documentation/devicetree/bindings/phy/phy-cpcap-usb.txt
-> new file mode 100644
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/phy/phy-cpcap-usb.txt
-> @@ -0,0 +1,40 @@
-> +Motorola CPCAP PMIC USB PHY binding
-> +
-> +Required properties:
-> +compatible: Shall be either "motorola,cpcap-usb-phy" or
-> +	    "motorola,mapphone-cpcap-usb-phy"
-> +#phy-cells: Shall be 0
-> +interrupts: CPCAP PMIC interrupts used by the USB PHY
-> +interrupt-names: Interrupt names
-> +io-channels: IIO ADC channels used by the USB PHY
-> +io-channel-names: IIO ADC channel names
-> +vusb-supply: Regulator for the PHY
-> +
-> +Optional properties:
-> +pinctrl: Optional alternate pin modes for the PHY
-> +pinctrl-names: Names for optional pin modes
-> +mode-gpios: Optional GPIOs for configuring alternate modes
-> +
-> +Example:
-> +cpcap_usb2_phy: phy {
-> +	compatible = "motorola,mapphone-cpcap-usb-phy";
-> +	pinctrl-0 = <&usb_gpio_mux_sel1 &usb_gpio_mux_sel2>;
-> +	pinctrl-1 = <&usb_ulpi_pins>;
-> +	pinctrl-2 = <&usb_utmi_pins>;
-> +	pinctrl-3 = <&uart3_pins>;
-> +	pinctrl-names = "default", "ulpi", "utmi", "uart";
-> +	#phy-cells = <0>;
-> +	interrupts-extended = <
-> +		&cpcap 15 0 &cpcap 14 0 &cpcap 28 0 &cpcap 19 0
-> +		&cpcap 18 0 &cpcap 17 0 &cpcap 16 0 &cpcap 49 0
-> +		&cpcap 48 1
-> +	>;
-> +	interrupt-names =
-> +		"id_ground", "id_float", "se0conn", "vbusvld",
-> +		"sessvld", "sessend", "se1", "dm", "dp";
-> +	mode-gpios = <&gpio2 28 GPIO_ACTIVE_HIGH
-> +		      &gpio1 0 GPIO_ACTIVE_HIGH>;
-> +	io-channels = <&cpcap_adc 2>, <&cpcap_adc 7>;
-> +	io-channel-names = "vbus", "id";
-> +	vusb-supply = <&vusb>;
-> +};
-> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-> --- a/drivers/phy/Kconfig
-> +++ b/drivers/phy/Kconfig
-> @@ -47,6 +47,14 @@ config PHY_BERLIN_SATA
->  	help
->  	  Enable this to support the SATA PHY on Marvell Berlin SoCs.
->  
-> +config PHY_CPCAP_USB
-> +	tristate "CPCAP USB PHY driver"
-> +	depends on USB_SUPPORT
-> +	select GENERIC_PHY
-> +	select USB_PHY
-> +	help
-> +	  Enable this for CPCAP USB to work.
-> +
->  config ARMADA375_USBCLUSTER_PHY
->  	def_bool y
->  	depends on MACH_ARMADA_375 || COMPILE_TEST
-> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-> --- a/drivers/phy/Makefile
-> +++ b/drivers/phy/Makefile
-> @@ -7,6 +7,7 @@ obj-$(CONFIG_PHY_BCM_NS_USB2)		+= phy-bcm-ns-usb2.o
->  obj-$(CONFIG_PHY_BCM_NS_USB3)		+= phy-bcm-ns-usb3.o
->  obj-$(CONFIG_PHY_BERLIN_USB)		+= phy-berlin-usb.o
->  obj-$(CONFIG_PHY_BERLIN_SATA)		+= phy-berlin-sata.o
-> +obj-$(CONFIG_PHY_CPCAP_USB)		+= phy-cpcap-usb.o
->  obj-$(CONFIG_PHY_DA8XX_USB)		+= phy-da8xx-usb.o
->  obj-$(CONFIG_PHY_DM816X_USB)		+= phy-dm816x-usb.o
->  obj-$(CONFIG_ARMADA375_USBCLUSTER_PHY)	+= phy-armada375-usb2.o
-> diff --git a/drivers/phy/phy-cpcap-usb.c b/drivers/phy/phy-cpcap-usb.c
-> new file mode 100644
-> --- /dev/null
-> +++ b/drivers/phy/phy-cpcap-usb.c
-> @@ -0,0 +1,695 @@
-> +/*
-> + * Motorola CPCAP PMIC USB PHY driver
-> + * Copyright (C) 2017 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> + *
-> + * Some parts based on earlier Motorola Linux kernel tree code in
-> + * board-mapphone-usb.c and cpcap-usb-det.c:
-> + * Copyright (C) 2007 - 2011 Motorola, Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/atomic.h>
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/io.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
-> +#include <linux/iio/consumer.h>
-> +#include <linux/pinctrl/consumer.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/regmap.h>
-> +#include <linux/slab.h>
-> +
-> +#include <linux/gpio/consumer.h>
-> +#include <linux/mfd/motorola-cpcap.h>
-> +#include <linux/phy/omap_usb.h>
-> +#include <linux/phy/phy.h>
-> +#include <linux/regulator/consumer.h>
-> +#include <linux/usb/musb.h>
-> +
-> +/* CPCAP_REG_USBC1 register bits */
-> +#define CPCAP_BIT_IDPULSE		BIT(15)
-> +#define CPCAP_BIT_ID100KPU		BIT(14)
-> +#define CPCAP_BIT_IDPUCNTRL		BIT(13)
-> +#define CPCAP_BIT_IDPU			BIT(12)
-> +#define CPCAP_BIT_IDPD			BIT(11)
-> +#define CPCAP_BIT_VBUSCHRGTMR3		BIT(10)
-> +#define CPCAP_BIT_VBUSCHRGTMR2		BIT(9)
-> +#define CPCAP_BIT_VBUSCHRGTMR1		BIT(8)
-> +#define CPCAP_BIT_VBUSCHRGTMR0		BIT(7)
-> +#define CPCAP_BIT_VBUSPU		BIT(6)
-> +#define CPCAP_BIT_VBUSPD		BIT(5)
-> +#define CPCAP_BIT_DMPD			BIT(4)
-> +#define CPCAP_BIT_DPPD			BIT(3)
-> +#define CPCAP_BIT_DM1K5PU		BIT(2)
-> +#define CPCAP_BIT_DP1K5PU		BIT(1)
-> +#define CPCAP_BIT_DP150KPU		BIT(0)
-> +
-> +/* CPCAP_REG_USBC2 register bits */
-> +#define CPCAP_BIT_ZHSDRV1		BIT(15)
-> +#define CPCAP_BIT_ZHSDRV0		BIT(14)
-> +#define CPCAP_BIT_DPLLCLKREQ		BIT(13)
-> +#define CPCAP_BIT_SE0CONN		BIT(12)
-> +#define CPCAP_BIT_UARTTXTRI		BIT(11)
-> +#define CPCAP_BIT_UARTSWAP		BIT(10)
-> +#define CPCAP_BIT_UARTMUX1		BIT(9)
-> +#define CPCAP_BIT_UARTMUX0		BIT(8)
-> +#define CPCAP_BIT_ULPISTPLOW		BIT(7)
-> +#define CPCAP_BIT_TXENPOL		BIT(6)
-> +#define CPCAP_BIT_USBXCVREN		BIT(5)
-> +#define CPCAP_BIT_USBCNTRL		BIT(4)
-> +#define CPCAP_BIT_USBSUSPEND		BIT(3)
-> +#define CPCAP_BIT_EMUMODE2		BIT(2)
-> +#define CPCAP_BIT_EMUMODE1		BIT(1)
-> +#define CPCAP_BIT_EMUMODE0		BIT(0)
-> +
-> +/* CPCAP_REG_USBC3 register bits */
-> +#define CPCAP_BIT_SPARE_898_15		BIT(15)
-> +#define CPCAP_BIT_IHSTX03		BIT(14)
-> +#define CPCAP_BIT_IHSTX02		BIT(13)
-> +#define CPCAP_BIT_IHSTX01		BIT(12)
-> +#define CPCAP_BIT_IHSTX0		BIT(11)
-> +#define CPCAP_BIT_IDPU_SPI		BIT(10)
-> +#define CPCAP_BIT_UNUSED_898_9		BIT(9)
-> +#define CPCAP_BIT_VBUSSTBY_EN		BIT(8)
-> +#define CPCAP_BIT_VBUSEN_SPI		BIT(7)
-> +#define CPCAP_BIT_VBUSPU_SPI		BIT(6)
-> +#define CPCAP_BIT_VBUSPD_SPI		BIT(5)
-> +#define CPCAP_BIT_DMPD_SPI		BIT(4)
-> +#define CPCAP_BIT_DPPD_SPI		BIT(3)
-> +#define CPCAP_BIT_SUSPEND_SPI		BIT(2)
-> +#define CPCAP_BIT_PU_SPI		BIT(1)
-> +#define CPCAP_BIT_ULPI_SPI_SEL		BIT(0)
-> +
-> +struct cpcap_usb_ints_state {
-> +	bool id_ground;
-> +	bool id_float;
-> +	bool chrg_det;
-> +	bool rvrs_chrg;
-> +	bool vbusov;
-> +
-> +	bool chrg_se1b;
-> +	bool se0conn;
-> +	bool rvrs_mode;
-> +	bool chrgcurr1;
-> +	bool vbusvld;
-> +	bool sessvld;
-> +	bool sessend;
-> +	bool se1;
-> +
-> +	bool battdetb;
-> +	bool dm;
-> +	bool dp;
-> +};
-> +
-> +enum cpcap_gpio_mode {
-> +	CPCAP_DM_DP,
-> +	CPCAP_MDM_RX_TX,
-> +	CPCAP_UNKNOWN,
-> +	CPCAP_OTG_DM_DP,
-> +};
-> +
-> +struct cpcap_interrupt_desc {
-> +	struct list_head node;	/* list of interrupts */
-> +	const char *name;
-> +	int irq;
-> +};
-> +
-> +struct cpcap_phy_ddata {
-> +	struct regmap *reg;
-> +	struct device *dev;
-> +	struct clk *refclk;
-> +	struct usb_phy phy;
-> +	struct list_head irq_list;
-> +	struct mutex lock;	/* for list of interrupts used */
-> +	struct delayed_work detect_work;
-> +	struct pinctrl *pins;
-> +	struct pinctrl_state *pins_ulpi;
-> +	struct pinctrl_state *pins_utmi;
-> +	struct pinctrl_state *pins_uart;
-> +
-> +	struct gpio_desc *gpio[2];
-> +
-> +	struct iio_channel *vbus;
-> +	struct iio_channel *id;
-> +
-> +	struct regulator *vusb;
-> +	atomic_t active;
-> +};
-> +
-> +static bool cpcap_usb_vbus_valid(struct cpcap_phy_ddata *ddata)
-> +{
-> +	int error, value = 0;
-> +
-> +	error = iio_read_channel_processed(ddata->vbus, &value);
-> +	if (error >= 0)
-> +		return value > 3900 ? true : false;
-> +
-> +	dev_err(ddata->dev, "error reading VBUS: %i\n", error);
-> +
-> +	return false;
-> +}
-> +
-> +static int cpcap_usb_phy_set_host(struct usb_otg *otg, struct usb_bus *host)
-> +{
-> +	otg->host = host;
-> +	if (!host)
-> +		otg->state = OTG_STATE_UNDEFINED;
-> +
-> +	return 0;
-> +}
-> +
-> +static int cpcap_usb_phy_set_peripheral(struct usb_otg *otg,
-> +					struct usb_gadget *gadget)
-> +{
-> +	otg->gadget = gadget;
-> +	if (!gadget)
-> +		otg->state = OTG_STATE_UNDEFINED;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct phy_ops ops = {
-> +	.owner		= THIS_MODULE,
-> +};
+Please find the pull request for PCI endpoint support below. I've
+also included all the history here.
 
-Given that this phy doesn't have any phy_ops, Is there a reason for registering
-this phy with the phy framework? Is it because this driver uses the phy_core's
-pm_runtime feature?
-> +
-> +static int cpcap_phy_get_ints_state(struct cpcap_phy_ddata *ddata,
-> +				    struct cpcap_usb_ints_state *s)
-> +{
-> +	int val, error;
-> +
-> +	error = regmap_read(ddata->reg, CPCAP_REG_INTS1, &val);
-> +	if (error)
-> +		return error;
-> +
-> +	s->id_ground = val & BIT(15);
-> +	s->id_float = val & BIT(14);
-> +	s->vbusov = val & BIT(11);
-> +
-> +	error = regmap_read(ddata->reg, CPCAP_REG_INTS2, &val);
-> +	if (error)
-> +		return error;
-> +
-> +	s->vbusvld = val & BIT(3);
-> +	s->sessvld = val & BIT(2);
-> +	s->sessend = val & BIT(1);
-> +	s->se1 = val & BIT(0);
-> +
-> +	error = regmap_read(ddata->reg, CPCAP_REG_INTS4, &val);
-> +	if (error)
-> +		return error;
-> +
-> +	s->dm = val & BIT(1);
-> +	s->dp = val & BIT(0);
-> +
-> +	return 0;
-> +}
-> +
-> +static int cpcap_usb_set_uart_mode(struct cpcap_phy_ddata *ddata);
-> +static int cpcap_usb_set_usb_mode(struct cpcap_phy_ddata *ddata);
-> +
-> +static void cpcap_usb_detect(struct work_struct *work)
-> +{
-> +	struct cpcap_phy_ddata *ddata;
-> +	struct cpcap_usb_ints_state s;
-> +	bool vbus = false;
-> +	int error;
-> +
-> +	ddata = container_of(work, struct cpcap_phy_ddata, detect_work.work);
-> +
-> +	error = cpcap_phy_get_ints_state(ddata, &s);
-> +	if (error)
-> +		return;
-> +
-> +	/* See also cpcap-charger.c phy_companion for VBUS handling */
+Changes from v4:
+*) add #syscon-cells property and used of_parse_phandle_with_args
+   to perform a configuration in syscon module (as suggested by
+   Rob Herring)
+*) Remove unnecessary white space.
 
-I think this companion should have ideally used extcon framework. Then we could
-have used extcon_get_state() here.
-> +	if (s.id_ground) {
-> +		dev_info(ddata->dev, "id ground, USB host mode\n");
-> +		error = cpcap_usb_set_usb_mode(ddata);
-> +		if (error)
-> +			goto out_err;
-> +
-> +		error = musb_mailbox(MUSB_ID_GROUND);
-> +		if (error)
-> +			goto out_err;
-> +
-> +		error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC3,
-> +					   CPCAP_BIT_VBUSSTBY_EN,
-> +					   CPCAP_BIT_VBUSSTBY_EN);
-> +		if (error)
-> +			goto out_err;
-> +
-> +		return;
-> +	}
-> +
-> +	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC3,
-> +				   CPCAP_BIT_VBUSSTBY_EN, 0);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	vbus = cpcap_usb_vbus_valid(ddata);
-> +
-> +	if (vbus) {
-> +		/* Are we connected to a docking station with vbus? */
-> +		if (s.id_ground) {
-> +			dev_info(ddata->dev, "connected to a dock\n");
-> +			error = cpcap_usb_set_usb_mode(ddata);
-> +			if (error)
-> +				goto out_err;
-> +			error = musb_mailbox(MUSB_ID_GROUND);
-> +			if (error)
-> +				goto out_err;
-> +
-> +			return;
-> +		}
-> +
-> +		/* Otherwise assume we're connected to a USB host */
-> +		dev_info(ddata->dev, "connected to USB host\n");
-> +		error = cpcap_usb_set_usb_mode(ddata);
-> +		if (error)
-> +			goto out_err;
-> +		error = musb_mailbox(MUSB_VBUS_VALID);
-> +		if (error)
-> +			goto out_err;
-> +
-> +		return;
-> +	}
-> +
-> +	/* Default to debug UART mode */
-> +	error = cpcap_usb_set_uart_mode(ddata);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	error = musb_mailbox(MUSB_VBUS_OFF);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	dev_info(ddata->dev, "set UART mode\n");
-> +
-> +	return;
-> +
-> +out_err:
-> +	dev_err(ddata->dev, "error setting cable state: %i\n", error);
-> +}
-> +
-> +static irqreturn_t cpcap_phy_irq_thread(int irq, void *data)
-> +{
-> +	struct cpcap_phy_ddata *ddata = data;
-> +
-> +	if (!atomic_read(&ddata->active))
-> +		return IRQ_NONE;
-> +
-> +	schedule_delayed_work(&ddata->detect_work, msecs_to_jiffies(1));
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int cpcap_usb_init_irq(struct platform_device *pdev,
-> +			      struct cpcap_phy_ddata *ddata,
-> +			      const char *name)
-> +{
-> +	struct cpcap_interrupt_desc *d;
-> +	int irq, error;
-> +
-> +	irq = platform_get_irq_byname(pdev, name);
-> +	if (!irq)
-> +		return -ENODEV;
-> +
-> +	error = devm_request_threaded_irq(ddata->dev, irq, NULL,
-> +					  cpcap_phy_irq_thread,
-> +					  IRQF_SHARED,
-> +					  name, ddata);
-> +	if (error) {
-> +		dev_err(ddata->dev, "could not get irq %s: %i\n",
-> +			name, error);
-> +
-> +		return error;
-> +	}
-> +
-> +	d = devm_kzalloc(ddata->dev, sizeof(*d), GFP_KERNEL);
-> +	if (!d)
-> +		return -ENOMEM;
-> +
-> +	d->name = name;
-> +	d->irq = irq;
-> +	list_add(&d->node, &ddata->irq_list);
-> +
-> +	return 0;
-> +}
-> +
-> +static const char * const cpcap_phy_irqs[] = {
-> +	/* REG_INT_0 */
-> +	"id_ground", "id_float",
-> +
-> +	/* REG_INT1 */
-> +	"se0conn", "vbusvld", "sessvld", "sessend", "se1",
-> +
-> +	/* REG_INT_3 */
-> +	"dm", "dp",
-> +};
-> +
-> +static int cpcap_usb_init_interrupts(struct platform_device *pdev,
-> +				     struct cpcap_phy_ddata *ddata)
-> +{
-> +	int i, error;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(cpcap_phy_irqs); i++) {
-> +		error = cpcap_usb_init_irq(pdev, ddata, cpcap_phy_irqs[i]);
-> +		if (error)
-> +			return error;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Optional pins and modes. At least Motorola mapphone devices
-> + * are using two GPIOs and dynamic pinctrl to multiplex PHY pins
-> + * to UART, ULPI or UTMI mode.
-> + */
-> +
-> +static int cpcap_usb_gpio_set_mode(struct cpcap_phy_ddata *ddata,
-> +				   enum cpcap_gpio_mode mode)
-> +{
-> +	if (!ddata->gpio[0] || !ddata->gpio[1])
-> +		return 0;
-> +
-> +	gpiod_set_value(ddata->gpio[0], mode & 1);
-> +	gpiod_set_value(ddata->gpio[1], mode >> 1);
-> +
-> +	return 0;
-> +}
-> +
-> +static int cpcap_usb_set_uart_mode(struct cpcap_phy_ddata *ddata)
-> +{
-> +	int error;
-> +
-> +	error = cpcap_usb_gpio_set_mode(ddata, CPCAP_DM_DP);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	if (ddata->pins_uart) {
-> +		error = pinctrl_select_state(ddata->pins, ddata->pins_uart);
-> +		if (error)
-> +			goto out_err;
-> +	}
-> +
-> +	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC1,
-> +				   CPCAP_BIT_VBUSPD,
-> +				   CPCAP_BIT_VBUSPD);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC2,
-> +				   0xffff, CPCAP_BIT_UARTMUX0 |
-> +				   CPCAP_BIT_EMUMODE0);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC3, 0x7fff,
-> +				   CPCAP_BIT_IDPU_SPI);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	return 0;
-> +
-> +out_err:
-> +	dev_err(ddata->dev, "%s failed with %i\n", __func__, error);
-> +
-> +	return error;
-> +}
-> +
-> +static int cpcap_usb_set_usb_mode(struct cpcap_phy_ddata *ddata)
-> +{
-> +	int error;
-> +
-> +	error = cpcap_usb_gpio_set_mode(ddata, CPCAP_OTG_DM_DP);
-> +	if (error)
-> +		return error;
-> +
-> +	if (ddata->pins_utmi) {
-> +		error = pinctrl_select_state(ddata->pins, ddata->pins_utmi);
-> +		if (error) {
-> +			dev_err(ddata->dev, "could not set usb mode: %i\n",
-> +				error);
-> +
-> +			return error;
-> +		}
-> +	}
-> +
-> +	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC1,
-> +				   CPCAP_BIT_VBUSPD, 0);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC2,
-> +				   CPCAP_BIT_USBXCVREN,
-> +				   CPCAP_BIT_USBXCVREN);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC3,
-> +				   CPCAP_BIT_PU_SPI |
-> +				   CPCAP_BIT_DMPD_SPI |
-> +				   CPCAP_BIT_DPPD_SPI |
-> +				   CPCAP_BIT_SUSPEND_SPI |
-> +				   CPCAP_BIT_ULPI_SPI_SEL, 0);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	error = regmap_update_bits(ddata->reg, CPCAP_REG_USBC2,
-> +				   CPCAP_BIT_USBXCVREN,
-> +				   CPCAP_BIT_USBXCVREN);
-> +	if (error)
-> +		goto out_err;
-> +
-> +	return 0;
-> +
-> +out_err:
-> +	dev_err(ddata->dev, "%s failed with %i\n", __func__, error);
-> +
-> +	return error;
-> +}
-> +
-> +static int cpcap_usb_init_optional_pins(struct cpcap_phy_ddata *ddata)
-> +{
-> +	ddata->pins = devm_pinctrl_get(ddata->dev);
-> +	if (IS_ERR(ddata->pins)) {
-> +		dev_info(ddata->dev, "default pins not configured: %ld\n",
-> +			 PTR_ERR(ddata->pins));
-> +		ddata->pins = NULL;
-> +	}
-> +
-> +	ddata->pins_ulpi = pinctrl_lookup_state(ddata->pins, "ulpi");
-> +	if (IS_ERR(ddata->pins_ulpi)) {
-> +		dev_info(ddata->dev, "ulpi pins not configured\n");
-> +		ddata->pins_ulpi = NULL;
-> +	}
-> +
-> +	ddata->pins_utmi = pinctrl_lookup_state(ddata->pins, "utmi");
-> +	if (IS_ERR(ddata->pins_utmi)) {
-> +		dev_info(ddata->dev, "utmi pins not configured\n");
-> +		ddata->pins_utmi = NULL;
-> +	}
-> +
-> +	ddata->pins_uart = pinctrl_lookup_state(ddata->pins, "uart");
-> +	if (IS_ERR(ddata->pins_uart)) {
-> +		dev_info(ddata->dev, "uart pins not configured\n");
-> +		ddata->pins_uart = NULL;
-> +	}
-> +
-> +	if (ddata->pins_uart)
-> +		return pinctrl_select_state(ddata->pins, ddata->pins_uart);
-> +
-> +	return 0;
-> +}
-> +
-> +static void cpcap_usb_init_optional_gpios(struct cpcap_phy_ddata *ddata)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < 2; i++) {
-> +		ddata->gpio[i] = devm_gpiod_get_index(ddata->dev, "mode",
-> +						      i, GPIOD_OUT_HIGH);
-> +		if (IS_ERR(ddata->gpio[i])) {
-> +			dev_info(ddata->dev, "no mode change GPIO%i: %li\n",
-> +				 i, PTR_ERR(ddata->gpio[i]));
-> +				 ddata->gpio[i] = NULL;
-> +		}
-> +	}
-> +}
-> +
-> +static int cpcap_usb_init_iio(struct cpcap_phy_ddata *ddata)
-> +{
-> +	enum iio_chan_type type;
-> +	int error;
-> +
-> +	ddata->vbus = devm_iio_channel_get(ddata->dev, "vbus");
-> +	if (IS_ERR(ddata->vbus)) {
-> +		error = PTR_ERR(ddata->vbus);
-> +		goto out_err;
-> +	}
-> +
-> +	if (!ddata->vbus->indio_dev) {
-> +		error = -ENXIO;
-> +		goto out_err;
-> +	}
-> +
-> +	error = iio_get_channel_type(ddata->vbus, &type);
-> +	if (error < 0)
-> +		goto out_err;
-> +
-> +	if (type != IIO_VOLTAGE) {
-> +		error = -EINVAL;
-> +		goto out_err;
-> +	}
-> +
-> +	return 0;
-> +
-> +out_err:
-> +	dev_err(ddata->dev, "could not initialize VBUS or ID IIO: %i\n",
-> +		error);
-> +
-> +	return error;
-> +}
-> +
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id cpcap_usb_phy_id_table[] = {
-> +	{
-> +		.compatible = "motorola,cpcap-usb-phy",
-> +	},
-> +	{
-> +		.compatible = "motorola,mapphone-cpcap-usb-phy",
-> +	},
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, cpcap_usb_phy_id_table);
-> +#endif
-> +
-> +static int cpcap_usb_phy_probe(struct platform_device *pdev)
-> +{
-> +	struct cpcap_phy_ddata *ddata;
-> +	struct phy *generic_phy;
-> +	struct phy_provider *phy_provider;
-> +	struct usb_otg *otg;
-> +	const struct of_device_id *of_id;
-> +	int error;
-> +
-> +	of_id = of_match_device(of_match_ptr(cpcap_usb_phy_id_table),
-> +				&pdev->dev);
-> +	if (!of_id)
-> +		return -EINVAL;
-> +
-> +	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
-> +	if (!ddata)
-> +		return -ENOMEM;
-> +
-> +	ddata->reg = dev_get_regmap(pdev->dev.parent, NULL);
-> +	if (!ddata->reg)
-> +		return -ENODEV;
-> +
-> +	otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
-> +	if (!otg)
-> +		return -ENOMEM;
-> +
-> +	ddata->dev = &pdev->dev;
-> +	ddata->phy.dev = ddata->dev;
-> +	ddata->phy.label = "cpcap_usb_phy";
-> +	ddata->phy.otg = otg;
-> +	ddata->phy.type = USB_PHY_TYPE_USB2;
-> +	INIT_LIST_HEAD(&ddata->irq_list);
-> +	otg->set_host = cpcap_usb_phy_set_host;
-> +	otg->set_peripheral = cpcap_usb_phy_set_peripheral;
-> +	otg->usb_phy = &ddata->phy;
-> +	mutex_init(&ddata->lock);
-> +	INIT_DELAYED_WORK(&ddata->detect_work, cpcap_usb_detect);
-> +	platform_set_drvdata(pdev, ddata);
-> +
-> +	ddata->vusb = devm_regulator_get(&pdev->dev, "vusb");
-> +	if (IS_ERR(ddata->vusb))
-> +		return PTR_ERR(ddata->vusb);
-> +
-> +	error = regulator_enable(ddata->vusb);
-> +	if (error)
-> +		return error;
+Changes from v3:
+*) fixed a typo and adapted to https://lkml.org/lkml/2017/3/13/562.
 
-Maybe we should create power_on ops and do regulator enable there?
+Changes from v2:
+*) changed the configfs structure as suggested by Christoph Hellwig. With
+   this change the framework creates configfs entry for EP function driver
+   and EP controller. Previously these entries have to be created by the
+   the user. (Haven't changed the epc core or epf core except for invoking
+   configfs APIs to create entries for EP function driver and EP controller.
+   That's mostly because the EP function device can still be created by
+   directly invoking the epf core API without using configfs).
+*) Now the user has to use configfs entry 'start' to start the link.
+   This was previously done by the function driver. However in the case of
+   multi function EP, the function driver shouldn't start the link.
+
+Changes from v1:
+*) The preparation patches for adding EP support is removed and is sent
+   separately
+*) Added device ID for DRA74x/DRA72x and used it instead of
+   using "PCI_ANY_ID"
+*) Added userguide for PCI endpoint test function
+
+Major Improvements from RFC:
+ *) support multi-function devices (hw supported not virtual)
+ *) Access host side buffers
+ *) Raise MSI interrupts
+ *) Add user space program to use the host side PCI driver
+ *) Adapt all other users of designware to use the new design (only
+    compile tested. Since I have only dra7xx boards, the new design
+    has only been tested in dra7xx. I'd require the help of others
+    to test the platforms they have access to).
+
+This series has been developed over 4.11-rc1 + [1]
+[1] -> https://lkml.org/lkml/2017/3/13/562
+
+Let me know if this has to be re-based to some of your branch.
 
 Thanks
 Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+The following changes since commit 623e87fec8ab7867fb51b3079196bd10718a60ce:
+
+  PCI: dwc: dra7xx: Push request_irq call to the bottom of probe (2017-03-22 20:35:30 +0530)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git tags/pci-endpoint-for-4.12
+
+for you to fetch changes up to e98bf80074be4654faae42fe0f5a622a776b6fdd:
+
+  ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP (2017-03-27 15:08:22 +0530)
+
+----------------------------------------------------------------
+pci: endpoint: for 4.12
+
+ *) Add PCI endpoint core layer
+ *) Modify designware and dra7xx driver to be configured in EP mode
+ *) Add a PCI endpoint *test* function driver and corresponding host
+    driver
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+----------------------------------------------------------------
+Kishon Vijay Abraham I (24):
+      PCI: endpoint: Add EP core layer to enable EP controller and EP functions
+      Documentation: PCI: Guide to use PCI Endpoint Core Layer
+      PCI: endpoint: Introduce configfs entry for configuring EP functions
+      Documentation: PCI: Guide to use pci endpoint configfs
+      PCI: endpoint: Create configfs entry for EPC device and EPF driver
+      Documentation: PCI: Add specification for the *pci test* function device
+      PCI: endpoint: functions: Add an EP function to test PCI
+      Documentation: PCI: Add binding documentation for pci-test endpoint function
+      PCI: dwc: designware: Add EP mode support
+      dt-bindings: PCI: Add dt bindings for pci designware EP mode
+      PCI: dwc: dra7xx: Facilitate wrapper and msi interrupts to be enabled independently
+      PCI: dwc: dra7xx: Add EP mode support
+      dt-bindings: PCI: dra7xx: Add dt bindings for pci dra7xx EP mode
+      dt-bindings: mfd: syscon: Add documentation for #syscon-cells property
+      PCI: dwc: dra7xx: Workaround for errata id i870
+      dt-bindings: PCI: dra7xx: Add dt bindings to enable unaligned access
+      PCI: Add device IDs for DRA74x and DRA72x
+      misc: Add host side pci driver for pci test function device
+      Documentation: misc-devices: Add Documentation for pci-endpoint-test driver
+      tools: PCI: Add a userspace tool to test PCI endpoint
+      tools: PCI: Add sample test script to invoke pcitest
+      Documentation: PCI: Add userguide for PCI endpoint test function
+      MAINTAINERS: add PCI EP maintainer
+      ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP
+
+ Documentation/PCI/00-INDEX                                |  10 +++
+ Documentation/PCI/endpoint/function/binding/pci-test.txt  |  17 +++++
+ Documentation/PCI/endpoint/pci-endpoint-cfs.txt           | 105 ++++++++++++++++++++++++++
+ Documentation/PCI/endpoint/pci-endpoint.txt               | 215 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Documentation/PCI/endpoint/pci-test-function.txt          |  66 ++++++++++++++++
+ Documentation/PCI/endpoint/pci-test-howto.txt             | 179 +++++++++++++++++++++++++++++++++++++++++++
+ Documentation/devicetree/bindings/mfd/syscon.txt          |   2 +
+ Documentation/devicetree/bindings/pci/designware-pcie.txt |  26 +++++--
+ Documentation/devicetree/bindings/pci/ti-pci.txt          |  42 +++++++++--
+ Documentation/misc-devices/pci-endpoint-test.txt          |  35 +++++++++
+ MAINTAINERS                                               |   9 +++
+ arch/arm/mach-omap2/clockdomains7xx_data.c                |   2 +-
+ drivers/Makefile                                          |   2 +
+ drivers/misc/Kconfig                                      |   7 ++
+ drivers/misc/Makefile                                     |   1 +
+ drivers/misc/pci_endpoint_test.c                          | 534 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/Kconfig                                       |   1 +
+ drivers/pci/dwc/Kconfig                                   |  36 ++++++++-
+ drivers/pci/dwc/Makefile                                  |   5 +-
+ drivers/pci/dwc/pci-dra7xx.c                              | 268 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ drivers/pci/dwc/pcie-designware-ep.c                      | 342 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/dwc/pcie-designware.c                         | 125 ++++++++++++++++++++++++++++++
+ drivers/pci/dwc/pcie-designware.h                         | 112 +++++++++++++++++++++++++++
+ drivers/pci/endpoint/Kconfig                              |  31 ++++++++
+ drivers/pci/endpoint/Makefile                             |   7 ++
+ drivers/pci/endpoint/functions/Kconfig                    |  12 +++
+ drivers/pci/endpoint/functions/Makefile                   |   5 ++
+ drivers/pci/endpoint/functions/pci-epf-test.c             | 510 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/endpoint/pci-ep-cfs.c                         | 509 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/endpoint/pci-epc-core.c                       | 579 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/endpoint/pci-epc-mem.c                        | 143 +++++++++++++++++++++++++++++++++++
+ drivers/pci/endpoint/pci-epf-core.c                       | 351 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mod_devicetable.h                           |  10 +++
+ include/linux/pci-ep-cfs.h                                |  41 ++++++++++
+ include/linux/pci-epc.h                                   | 144 +++++++++++++++++++++++++++++++++++
+ include/linux/pci-epf.h                                   | 162 +++++++++++++++++++++++++++++++++++++++
+ include/linux/pci_ids.h                                   |   2 +
+ include/uapi/linux/Kbuild                                 |   1 +
+ include/uapi/linux/pcitest.h                              |  19 +++++
+ tools/pci/pcitest.c                                       | 186 +++++++++++++++++++++++++++++++++++++++++++++
+ tools/pci/pcitest.sh                                      |  56 ++++++++++++++
+ 41 files changed, 4869 insertions(+), 40 deletions(-)
+ create mode 100644 Documentation/PCI/endpoint/function/binding/pci-test.txt
+ create mode 100644 Documentation/PCI/endpoint/pci-endpoint-cfs.txt
+ create mode 100644 Documentation/PCI/endpoint/pci-endpoint.txt
+ create mode 100644 Documentation/PCI/endpoint/pci-test-function.txt
+ create mode 100644 Documentation/PCI/endpoint/pci-test-howto.txt
+ create mode 100644 Documentation/misc-devices/pci-endpoint-test.txt
+ create mode 100644 drivers/misc/pci_endpoint_test.c
+ create mode 100644 drivers/pci/dwc/pcie-designware-ep.c
+ create mode 100644 drivers/pci/endpoint/Kconfig
+ create mode 100644 drivers/pci/endpoint/Makefile
+ create mode 100644 drivers/pci/endpoint/functions/Kconfig
+ create mode 100644 drivers/pci/endpoint/functions/Makefile
+ create mode 100644 drivers/pci/endpoint/functions/pci-epf-test.c
+ create mode 100644 drivers/pci/endpoint/pci-ep-cfs.c
+ create mode 100644 drivers/pci/endpoint/pci-epc-core.c
+ create mode 100644 drivers/pci/endpoint/pci-epc-mem.c
+ create mode 100644 drivers/pci/endpoint/pci-epf-core.c
+ create mode 100644 include/linux/pci-ep-cfs.h
+ create mode 100644 include/linux/pci-epc.h
+ create mode 100644 include/linux/pci-epf.h
+ create mode 100644 include/uapi/linux/pcitest.h
+ create mode 100644 tools/pci/pcitest.c
+ create mode 100644 tools/pci/pcitest.sh
+
+-- 
+2.11.0
