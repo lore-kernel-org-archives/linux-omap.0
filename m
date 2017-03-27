@@ -1,351 +1,125 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: Re: [PATCHv3] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
- during boot
-Date: Mon, 27 Mar 2017 11:33:30 -0500
-Message-ID: <aa5d7ee3-2e54-2c6c-df5d-b5efff4b365e@ti.com>
-References: <20170314180555.23597-1-tony@atomide.com>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RESEND PATCH v6 4/4] usb: musb: da8xx: Add a primary support of
+ PM runtime
+Date: Mon, 27 Mar 2017 18:39:30 +0200
+Message-ID: <03cc95cd-5967-c0c7-06a7-89cf08dbde47@baylibre.com>
+References: <20170324143600.4704-1-abailon@baylibre.com>
+ <20170324143600.4704-5-abailon@baylibre.com>
+ <703e5e95-8bde-2b1c-0d63-4ed3e03f53b8@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170314180555.23597-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, Keerthy <j-keerthy@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <ssantosh@kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <703e5e95-8bde-2b1c-0d63-4ed3e03f53b8-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 03/14/2017 01:05 PM, Tony Lindgren wrote:
-> Commit 3251885285e1 ("ARM: OMAP4+: Reset CPU1 properly for kexec") started
-> unconditionally resetting CPU1 because of a kexec boot issue I was seeing
-> earlier on omap4 when doing kexec boot between two different kernel
-> versions.
-> 
-> This caused issues on some systems. We should only reset CPU1 as a last
-> resort option, and try to avoid it where possible. Doing an unconditional
-> CPU1 reset causes issues for example when booting a bootloader configured
-> secure OS running on CPU1 as reported by Andrew F. Davis <afd@ti.com>.
-> 
-> We can't completely remove the reset of CPU1 as it would break kexec
-> booting from older kernels. But we can limit the CPU1 reset to cases
-> where CPU1 is wrongly parked within the memory area used by the booting
-> kernel. Then later on we can add support for parking CPU1 for kexec out
-> of the SDRAM back to bootrom.
-> 
-> So let's first fix the regression reported by Andrew by making CPU1 reset
-> conditional. To do this, we need to:
-> 
-> 1. Save configured AUX_CORE_BOOT_1 for later
-> 
-> 2. Modify AUX_CORE_BOOT_0 reading code to for HS SoCs to return
->    the whole register instead of the CPU mask
-> 
-> 3. Check if CPU1 is wrongly parked into the booting kernel by the
->    previous kernel and reset if needed
-> 
+Hello Grygorii,
+On 03/24/2017 06:26 PM, Grygorii Strashko wrote:
+>
+>
+> On 03/24/2017 09:36 AM, Alexandre Bailon wrote:
+> > Currently, MUSB DA8xx glue driver doesn't have PM runtime support.
+> > Because the CPPI 4.1 is using the same clock as MUSB DA8xx and
+> > CPPI 4.1 is a child of MUSB DA8xx glue, add support of PM runtime
+> > to the DA8xx glue driver in order to let the CPPI 4.1 driver manage
+> > the clock by using PM runtime.
+> >
+> > Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> > ---
+> >  drivers/usb/musb/da8xx.c | 27 ++++++++-------------------
+> >  1 file changed, 8 insertions(+), 19 deletions(-)
+> >
+> > diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+> > index ed28afd..89e12f6 100644
+> > --- a/drivers/usb/musb/da8xx.c
+> > +++ b/drivers/usb/musb/da8xx.c
+> > @@ -30,7 +30,6 @@
+> >   */
+> >
+>
+> [...]
+>
+> >
+> > @@ -527,12 +520,6 @@ static int da8xx_probe(struct platform_device *pdev)
+> >      if (!glue)
+> >          return -ENOMEM;
+> >
+> > -    clk = devm_clk_get(&pdev->dev, "usb20");
+> > -    if (IS_ERR(clk)) {
+> > -        dev_err(&pdev->dev, "failed to get clock\n");
+> > -        return PTR_ERR(clk);
+> > -    }
+> > -
+> >      glue->phy = devm_phy_get(&pdev->dev, "usb-phy");
+> >      if (IS_ERR(glue->phy)) {
+> >          if (PTR_ERR(glue->phy) != -EPROBE_DEFER)
+> > @@ -541,7 +528,6 @@ static int da8xx_probe(struct platform_device *pdev)
+> >      }
+> >
+> >      glue->dev            = &pdev->dev;
+> > -    glue->clk            = clk;
+> >
+> >      if (IS_ENABLED(CONFIG_OF) && np) {
+> >          pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+> > @@ -587,6 +573,8 @@ static int da8xx_probe(struct platform_device *pdev)
+> >      pinfo.data = pdata;
+> >      pinfo.size_data = sizeof(*pdata);
+> >
+> > +    pm_runtime_enable(&pdev->dev);
+> > +
+> >      glue->musb = platform_device_register_full(&pinfo);
+> >      ret = PTR_ERR_OR_ZERO(glue->musb);
+> >      if (ret) {
+> > @@ -603,6 +591,7 @@ static int da8xx_remove(struct platform_device *pdev)
+> >
+> >      platform_device_unregister(glue->musb);
+> >      usb_phy_generic_unregister(glue->usb_phy);
+> > +    pm_runtime_disable(&pdev->dev);
+> >
+> >      return 0;
+> >  }
+> > @@ -616,7 +605,7 @@ static int da8xx_suspend(struct device *dev)
+> >      ret = phy_power_off(glue->phy);
+> >      if (ret)
+> >          return ret;
+> > -    clk_disable_unprepare(glue->clk);
+> > +    pm_runtime_put_sync(dev);
+>
+> This, most probably will do nothing as Suspend framework will increase ref counter.
+> Better way might be to use PM runtime force API. pm_runtime_force_suspend()
+Good catch. Effectively, the device remain active.
+But we can't use pm_runtime_force_suspend() because it expect that all child have been
+runtime suspended which is usually not the case.
+>
+> >
+> >      return 0;
+> >  }
+> > @@ -626,7 +615,7 @@ static int da8xx_resume(struct device *dev)
+> >      int ret;
+> >      struct da8xx_glue *glue = dev_get_drvdata(dev);
+> >
+> > -    ret = clk_prepare_enable(glue->clk);
+> > +    ret = pm_runtime_get_sync(dev);
+> >      if (ret)
+> >          return ret;
+>
+> Better way might be to use PM runtime force API.
+Again, it will not work. Because the forced runtime suspend will not complete
+because child are not runtime suspended then the resume will not happen.
+>
+> >      return phy_power_on(glue->phy);
+> >
+>
+Do you have any other suggestions to fix it?
+My original intent was to give a way to CPPI 4.1 DMA driver to enable or
+disable the usb20 clock owned DA8xx USB glue driver.
 
-I still don't like this style of workaround, if kexec cannot regain
-control of core1 without a hard core reset than kexec should BUG() and
-force the user to reboot to a sane state.
-
-Anyway, this patch does remove the unconditional reset and fixes my
-use-case is some situations (when not using kexec) so:
-
-Tested-by: Andrew F. Davis <afd@ti.com>
-
-> Fixes: 3251885285e1 ("ARM: OMAP4+: Reset CPU1 properly for kexec")
-> Reported-by: Andrew F. Davis <afd@ti.com>
-> Cc: Andrew F. Davis <afd@ti.com>
-> Cc: Keerthy <j-keerthy@ti.com>
-> Cc: Russell King <rmk+kernel@armlinux.org.uk>
-> Cc: Santosh Shilimkar <ssantosh@kernel.org>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> ---
-> 
-> Changes from v2:
-> 
-> - Add Santosh to Cc, sorry Santosh I forgot to add earlier
-> 
-> - Add check for CPU1 being parked in addition to checking
->   CPU1 start-up address being within booting kernel before
->   reset
-> 
-> - Left out extra cpu_is to soc_is changes, those can be done
->   later
-> 
-> - Updated description to leave out suspend/resume issues as
->   those can be dealt with separately if they still exist after
->   fixing kexec boot, they may have been happening only after
->   a kexec boot
-> 
-> Changes from v1:
-> 
-> - We can't remove the CPU1 reset completely because it breaks
->   kexec booting all the existing kernels as CPU1 might be
->   parked into the booting kernel
-> 
-> ---
->  arch/arm/mach-omap2/common.h              |  1 +
->  arch/arm/mach-omap2/omap-hotplug.c        |  2 +-
->  arch/arm/mach-omap2/omap-mpuss-lowpower.c | 22 ++++++--
->  arch/arm/mach-omap2/omap-smc.S            |  1 -
->  arch/arm/mach-omap2/omap-smp.c            | 90 ++++++++++++++++++++++++++-----
->  5 files changed, 96 insertions(+), 20 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -270,6 +270,7 @@ extern const struct smp_operations omap4_smp_ops;
->  extern int omap4_mpuss_init(void);
->  extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
->  extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
-> +extern u32 omap4_get_cpu1_ns_pa_addr(void);
->  #else
->  static inline int omap4_enter_lowpower(unsigned int cpu,
->  					unsigned int power_state)
-> diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-> --- a/arch/arm/mach-omap2/omap-hotplug.c
-> +++ b/arch/arm/mach-omap2/omap-hotplug.c
-> @@ -50,7 +50,7 @@ void omap4_cpu_die(unsigned int cpu)
->  		omap4_hotplug_cpu(cpu, PWRDM_POWER_OFF);
->  
->  		if (omap_secure_apis_support())
-> -			boot_cpu = omap_read_auxcoreboot0();
-> +			boot_cpu = omap_read_auxcoreboot0() >> 9;
->  		else
->  			boot_cpu =
->  				readl_relaxed(base + OMAP_AUX_CORE_BOOT_0) >> 5;
-> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> @@ -64,6 +64,7 @@
->  #include "prm-regbits-44xx.h"
->  
->  static void __iomem *sar_base;
-> +static u32 old_cpu1_ns_pa_addr;
->  
->  #if defined(CONFIG_PM) && defined(CONFIG_SMP)
->  
-> @@ -212,6 +213,11 @@ static void __init save_l2x0_context(void)
->  {}
->  #endif
->  
-> +u32 omap4_get_cpu1_ns_pa_addr(void)
-> +{
-> +	return old_cpu1_ns_pa_addr;
-> +}
-> +
->  /**
->   * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
->   * The purpose of this function is to manage low power programming
-> @@ -460,22 +466,30 @@ int __init omap4_mpuss_init(void)
->  void __init omap4_mpuss_early_init(void)
->  {
->  	unsigned long startup_pa;
-> +	void __iomem *ns_pa_addr;
->  
-> -	if (!(cpu_is_omap44xx() || soc_is_omap54xx()))
-> +	if (!(soc_is_omap44xx() || soc_is_omap54xx()))
->  		return;
->  
->  	sar_base = omap4_get_sar_ram_base();
->  
-> -	if (cpu_is_omap443x())
-> +	/* Save old NS_PA_ADDR for validity checks later on */
-> +	if (soc_is_omap44xx())
-> +		ns_pa_addr = sar_base + CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
-> +	else
-> +		ns_pa_addr = sar_base + OMAP5_CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
-> +	old_cpu1_ns_pa_addr = readl_relaxed(ns_pa_addr);
-> +
-> +	if (soc_is_omap443x())
->  		startup_pa = __pa_symbol(omap4_secondary_startup);
-> -	else if (cpu_is_omap446x())
-> +	else if (soc_is_omap446x())
->  		startup_pa = __pa_symbol(omap4460_secondary_startup);
->  	else if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
->  		startup_pa = __pa_symbol(omap5_secondary_hyp_startup);
->  	else
->  		startup_pa = __pa_symbol(omap5_secondary_startup);
->  
-> -	if (cpu_is_omap44xx())
-> +	if (soc_is_omap44xx())
->  		writel_relaxed(startup_pa, sar_base +
->  			       CPU1_WAKEUP_NS_PA_ADDR_OFFSET);
->  	else
-> diff --git a/arch/arm/mach-omap2/omap-smc.S b/arch/arm/mach-omap2/omap-smc.S
-> --- a/arch/arm/mach-omap2/omap-smc.S
-> +++ b/arch/arm/mach-omap2/omap-smc.S
-> @@ -94,6 +94,5 @@ ENTRY(omap_read_auxcoreboot0)
->  	ldr	r12, =0x103
->  	dsb
->  	smc	#0
-> -	mov	r0, r0, lsr #9
->  	ldmfd   sp!, {r2-r12, pc}
->  ENDPROC(omap_read_auxcoreboot0)
-> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-> --- a/arch/arm/mach-omap2/omap-smp.c
-> +++ b/arch/arm/mach-omap2/omap-smp.c
-> @@ -21,6 +21,7 @@
->  #include <linux/io.h>
->  #include <linux/irqchip/arm-gic.h>
->  
-> +#include <asm/sections.h>
->  #include <asm/smp_scu.h>
->  #include <asm/virt.h>
->  
-> @@ -40,10 +41,14 @@
->  
->  #define OMAP5_CORE_COUNT	0x2
->  
-> +#define AUX_CORE_BOOT0_GP_RELEASE	0x020
-> +#define AUX_CORE_BOOT0_HS_RELEASE	0x200
-> +
->  struct omap_smp_config {
->  	unsigned long cpu1_rstctrl_pa;
->  	void __iomem *cpu1_rstctrl_va;
->  	void __iomem *scu_base;
-> +	void __iomem *wakeupgen_base;
->  	void *startup_addr;
->  };
->  
-> @@ -140,7 +145,6 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
->  	static struct clockdomain *cpu1_clkdm;
->  	static bool booted;
->  	static struct powerdomain *cpu1_pwrdm;
-> -	void __iomem *base = omap_get_wakeupgen_base();
->  
->  	/*
->  	 * Set synchronisation state between this boot processor
-> @@ -155,9 +159,11 @@ static int omap4_boot_secondary(unsigned int cpu, struct task_struct *idle)
->  	 * A barrier is added to ensure that write buffer is drained
->  	 */
->  	if (omap_secure_apis_support())
-> -		omap_modify_auxcoreboot0(0x200, 0xfffffdff);
-> +		omap_modify_auxcoreboot0(AUX_CORE_BOOT0_HS_RELEASE,
-> +					 0xfffffdff);
->  	else
-> -		writel_relaxed(0x20, base + OMAP_AUX_CORE_BOOT_0);
-> +		writel_relaxed(AUX_CORE_BOOT0_GP_RELEASE,
-> +			       cfg.wakeupgen_base + OMAP_AUX_CORE_BOOT_0);
->  
->  	if (!cpu1_clkdm && !cpu1_pwrdm) {
->  		cpu1_clkdm = clkdm_lookup("mpu1_clkdm");
-> @@ -261,9 +267,72 @@ static void __init omap4_smp_init_cpus(void)
->  		set_cpu_possible(i, true);
->  }
->  
-> +/*
-> + * For now, just make sure the start-up address is not within the booting
-> + * kernel space as that means we just overwrote whatever secondary_startup()
-> + * code there was.
-> + */
-> +static bool __init omap4_smp_cpu1_startup_valid(unsigned long addr)
-> +{
-> +	if ((addr >= __pa(PAGE_OFFSET)) && (addr <= __pa(__bss_start)))
-> +		return false;
-> +
-> +	return true;
-> +}
-> +
-> +/*
-> + * We may need to reset CPU1 before configuring, otherwise kexec boot can end
-> + * up trying to use old kernel startup address or suspend-resume will
-> + * occasionally fail to bring up CPU1 on 4430 if CPU1 fails to enter deeper
-> + * idle states.
-> + */
-> +static void __init omap4_smp_maybe_reset_cpu1(struct omap_smp_config *c)
-> +{
-> +	unsigned long cpu1_startup_pa, cpu1_ns_pa_addr;
-> +	bool needs_reset = false;
-> +	u32 released;
-> +
-> +	if (omap_secure_apis_support())
-> +		released = omap_read_auxcoreboot0() & AUX_CORE_BOOT0_HS_RELEASE;
-> +	else
-> +		released = readl_relaxed(cfg.wakeupgen_base +
-> +					 OMAP_AUX_CORE_BOOT_0) &
-> +						AUX_CORE_BOOT0_GP_RELEASE;
-> +	if (released) {
-> +		pr_warn("smp: CPU1 not parked?\n");
-> +
-> +		return;
-> +	}
-> +
-> +	cpu1_startup_pa = readl_relaxed(cfg.wakeupgen_base +
-> +					OMAP_AUX_CORE_BOOT_1);
-> +	cpu1_ns_pa_addr = omap4_get_cpu1_ns_pa_addr();
-> +
-> +	/* Did the configured secondary_startup() get overwritten? */
-> +	if (!omap4_smp_cpu1_startup_valid(cpu1_startup_pa))
-> +		needs_reset = true;
-> +
-> +	/*
-> +	 * If omap4 or 5 has NS_PA_ADDR configured, CPU1 may be in a
-> +	 * deeper idle state in WFI and will wake to an invalid address.
-> +	 */
-> +	if ((soc_is_omap44xx() || soc_is_omap54xx()) &&
-> +	    !omap4_smp_cpu1_startup_valid(cpu1_ns_pa_addr))
-> +		needs_reset = true;
-> +
-> +	if (!needs_reset || !c->cpu1_rstctrl_va)
-> +		return;
-> +
-> +	pr_info("smp: CPU1 parked within kernel, needs reset (0x%lx 0x%lx)\n",
-> +		cpu1_startup_pa, cpu1_ns_pa_addr);
-> +
-> +	writel_relaxed(1, c->cpu1_rstctrl_va);
-> +	readl_relaxed(c->cpu1_rstctrl_va);
-> +	writel_relaxed(0, c->cpu1_rstctrl_va);
-> +}
-> +
->  static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
->  {
-> -	void __iomem *base = omap_get_wakeupgen_base();
->  	const struct omap_smp_config *c = NULL;
->  
->  	if (soc_is_omap443x())
-> @@ -281,6 +350,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
->  	/* Must preserve cfg.scu_base set earlier */
->  	cfg.cpu1_rstctrl_pa = c->cpu1_rstctrl_pa;
->  	cfg.startup_addr = c->startup_addr;
-> +	cfg.wakeupgen_base = omap_get_wakeupgen_base();
->  
->  	if (soc_is_dra74x() || soc_is_omap54xx()) {
->  		if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
-> @@ -299,15 +369,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
->  	if (cfg.scu_base)
->  		scu_enable(cfg.scu_base);
->  
-> -	/*
-> -	 * Reset CPU1 before configuring, otherwise kexec will
-> -	 * end up trying to use old kernel startup address.
-> -	 */
-> -	if (cfg.cpu1_rstctrl_va) {
-> -		writel_relaxed(1, cfg.cpu1_rstctrl_va);
-> -		readl_relaxed(cfg.cpu1_rstctrl_va);
-> -		writel_relaxed(0, cfg.cpu1_rstctrl_va);
-> -	}
-> +	omap4_smp_maybe_reset_cpu1(&cfg);
->  
->  	/*
->  	 * Write the address of secondary startup routine into the
-> @@ -319,7 +381,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
->  		omap_auxcoreboot_addr(__pa_symbol(cfg.startup_addr));
->  	else
->  		writel_relaxed(__pa_symbol(cfg.startup_addr),
-> -			       base + OMAP_AUX_CORE_BOOT_1);
-> +			       cfg.wakeupgen_base + OMAP_AUX_CORE_BOOT_1);
->  }
->  
->  const struct smp_operations omap4_smp_ops __initconst = {
-> 
+Thanks,
+Alexandre
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
