@@ -1,88 +1,66 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v5 21/24] tools: PCI: Add sample test script to invoke pcitest
-Date: Mon, 27 Mar 2017 15:15:17 +0530
-Message-ID: <20170327094520.3129-22-kishon@ti.com>
+Subject: [PATCH v5 19/24] Documentation: misc-devices: Add Documentation for pci-endpoint-test driver
+Date: Mon, 27 Mar 2017 15:15:15 +0530
+Message-ID: <20170327094520.3129-20-kishon@ti.com>
 References: <20170327094520.3129-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <20170327094520.3129-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-doc-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add a simple test script that invokes the pcitest userspace tool
-to perform all the PCI endpoint tests (BAR tests, interrupt tests,
-read tests, write tests and copy tests).
+Add Documentation for pci-endpoint-test driver.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- tools/pci/pcitest.sh | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
- create mode 100644 tools/pci/pcitest.sh
+ Documentation/misc-devices/pci-endpoint-test.txt | 35 ++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+ create mode 100644 Documentation/misc-devices/pci-endpoint-test.txt
 
-diff --git a/tools/pci/pcitest.sh b/tools/pci/pcitest.sh
+diff --git a/Documentation/misc-devices/pci-endpoint-test.txt b/Documentation/misc-devices/pci-endpoint-test.txt
 new file mode 100644
-index 000000000000..5442bbea4c22
+index 000000000000..438571898d27
 --- /dev/null
-+++ b/tools/pci/pcitest.sh
-@@ -0,0 +1,56 @@
-+#!/bin/sh
++++ b/Documentation/misc-devices/pci-endpoint-test.txt
+@@ -0,0 +1,35 @@
++Driver for PCI Endpoint Test Function
 +
-+echo "BAR tests"
-+echo
++This driver should be used as a host side driver if the root complex is
++connected to a configurable pci endpoint running *pci_epf_test* function
++driver configured according to [1].
 +
-+bar=0
++The "pci_endpoint_test" driver can be used to perform the following tests.
 +
-+while [ $bar -lt 6 ]
-+do
-+	pcitest -b $bar
-+	bar=`expr $bar + 1`
-+done
-+echo
++The PCI driver for the test device performs the following tests
++	*) verifying addresses programmed in BAR
++	*) raise legacy IRQ
++	*) raise MSI IRQ
++	*) read data
++	*) write data
++	*) copy data
 +
-+echo "Interrupt tests"
-+echo
++This misc driver creates /dev/pci-endpoint-test.<num> for every
++*pci_epf_test* function connected to the root complex and "ioctls"
++should be used to perform the above tests.
 +
-+pcitest -l
-+msi=1
++ioctl
++-----
++ PCITEST_BAR: Tests the BAR. The number of the BAR that has to be tested
++	      should be passed as argument.
++ PCITEST_LEGACY_IRQ: Tests legacy IRQ
++ PCITEST_MSI: Tests message signalled interrupts. The MSI number that has
++	      to be tested should be passed as argument.
++ PCITEST_WRITE: Perform write tests. The size of the buffer should be passed
++		as argument.
++ PCITEST_READ: Perform read tests. The size of the buffer should be passed
++	       as argument.
++ PCITEST_COPY: Perform read tests. The size of the buffer should be passed
++	       as argument.
 +
-+while [ $msi -lt 33 ]
-+do
-+        pcitest -m $msi
-+        msi=`expr $msi + 1`
-+done
-+echo
-+
-+echo "Read Tests"
-+echo
-+
-+pcitest -r -s 1
-+pcitest -r -s 1024
-+pcitest -r -s 1025
-+pcitest -r -s 1024000
-+pcitest -r -s 1024001
-+echo
-+
-+echo "Write Tests"
-+echo
-+
-+pcitest -w -s 1
-+pcitest -w -s 1024
-+pcitest -w -s 1025
-+pcitest -w -s 1024000
-+pcitest -w -s 1024001
-+echo
-+
-+echo "Copy Tests"
-+echo
-+
-+pcitest -c -s 1
-+pcitest -c -s 1024
-+pcitest -c -s 1025
-+pcitest -c -s 1024000
-+pcitest -c -s 1024001
-+echo
++[1] -> Documentation/PCI/endpoint/function/binding/pci-test.txt
 -- 
 2.11.0
+
