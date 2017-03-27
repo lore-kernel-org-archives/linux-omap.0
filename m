@@ -1,75 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
- during boot
-Date: Mon, 27 Mar 2017 09:43:09 -0700
-Message-ID: <20170327164308.GK10760@atomide.com>
-References: <20170314180555.23597-1-tony@atomide.com>
- <aa5d7ee3-2e54-2c6c-df5d-b5efff4b365e@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] usb-musb: keep VBUS on when device is disconnected
+Date: Mon, 27 Mar 2017 09:59:47 -0700
+Message-ID: <20170327165946.GL10760@atomide.com>
+References: <20170315140801.97230-1-moreno.bartalucci@tecnorama.it>
+ <20170324185836.GC19814@uda0271908>
+ <2d10809f-d482-ffa9-30b7-8785e94ab102@gmail.com>
+ <00882633-3F61-4010-A4D2-D04473282B10@tecnorama.it>
+ <20170327131701.GA12674@uda0271908>
+ <20170327143049.GG10760@atomide.com>
+ <63FD9E13-2B70-485C-80A7-206BEC16905A@tecnorama.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <aa5d7ee3-2e54-2c6c-df5d-b5efff4b365e@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <63FD9E13-2B70-485C-80A7-206BEC16905A-Hj/TeGiWV4YL5bzFcGmneg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moreno Bartalucci <moreno.bartalucci-Hj/TeGiWV4YL5bzFcGmneg@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Lars Melin <larsm17-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alessio Igor Bogani <abogani-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Andrew F. Davis <afd@ti.com> [170327 09:36]:
-> On 03/14/2017 01:05 PM, Tony Lindgren wrote:
-> > Commit 3251885285e1 ("ARM: OMAP4+: Reset CPU1 properly for kexec") started
-> > unconditionally resetting CPU1 because of a kexec boot issue I was seeing
-> > earlier on omap4 when doing kexec boot between two different kernel
-> > versions.
-> > 
-> > This caused issues on some systems. We should only reset CPU1 as a last
-> > resort option, and try to avoid it where possible. Doing an unconditional
-> > CPU1 reset causes issues for example when booting a bootloader configured
-> > secure OS running on CPU1 as reported by Andrew F. Davis <afd@ti.com>.
-> > 
-> > We can't completely remove the reset of CPU1 as it would break kexec
-> > booting from older kernels. But we can limit the CPU1 reset to cases
-> > where CPU1 is wrongly parked within the memory area used by the booting
-> > kernel. Then later on we can add support for parking CPU1 for kexec out
-> > of the SDRAM back to bootrom.
-> > 
-> > So let's first fix the regression reported by Andrew by making CPU1 reset
-> > conditional. To do this, we need to:
-> > 
-> > 1. Save configured AUX_CORE_BOOT_1 for later
-> > 
-> > 2. Modify AUX_CORE_BOOT_0 reading code to for HS SoCs to return
-> >    the whole register instead of the CPU mask
-> > 
-> > 3. Check if CPU1 is wrongly parked into the booting kernel by the
-> >    previous kernel and reset if needed
-> > 
-> 
-> I still don't like this style of workaround, if kexec cannot regain
-> control of core1 without a hard core reset than kexec should BUG() and
-> force the user to reboot to a sane state.
+* Moreno Bartalucci <moreno.bartalucci-Hj/TeGiWV4YL5bzFcGmneg@public.gmane.org> [170327 09:23]:
+> If I understood your patch, however, if the device (anyone, not just my one) takes longer to switch, VBUS is deasserted anyway.
 
-Yes problems still remains. I think the immediate fix there is to
-disable kexec during runtime based on some criteria for your use
-case rather than BUG() though. Somehow kexec needs to know if CPU1
-reset is acceptable, then reset CPU1 before kexec.
+Yeah some of them can take at least 10 seconds even to enumerate.
+So probably we need to have to have some longer timeout set for
+OTG_STATE_A_WAIT_BCON, like 20 or 30 seconds.
 
-> Anyway, this patch does remove the unconditional reset and fixes my
-> use-case is some situations (when not using kexec) so:
-> 
-> Tested-by: Andrew F. Davis <afd@ti.com>
+> Although this patch is working for me, personally I would prefer a solution which would not deassert VBUS. At least on a host only port. Honestly I don’t know how a dual role port should work.
 
-OK thanks for testing.
+It's been really long time since I read the OTG spec. There
+may be some diagram showing the required timeouts in the spec
+if there is one for VBUS.
+
+Maybe we need some property to specify vbus-always-on-in-host-mode?
 
 Regards,
 
 Tony
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
