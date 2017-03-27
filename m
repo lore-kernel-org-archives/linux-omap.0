@@ -1,92 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] usb-musb: keep VBUS on when device is disconnected
-Date: Mon, 27 Mar 2017 07:30:50 -0700
-Message-ID: <20170327143049.GG10760@atomide.com>
-References: <20170315140801.97230-1-moreno.bartalucci@tecnorama.it>
- <20170324185836.GC19814@uda0271908>
- <2d10809f-d482-ffa9-30b7-8785e94ab102@gmail.com>
- <00882633-3F61-4010-A4D2-D04473282B10@tecnorama.it>
- <20170327131701.GA12674@uda0271908>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2] phy: cpcap-usb: Add CPCAP PMIC USB support
+Date: Mon, 27 Mar 2017 08:05:19 -0700
+Message-ID: <20170327150518.GH10760@atomide.com>
+References: <20170322234602.5888-1-tony@atomide.com>
+ <d47b0f99-1ef8-3bff-0fbe-edb95ed41e23@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170327131701.GA12674@uda0271908>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>, Moreno Bartalucci <moreno.bartalucci@tecnorama.it>, Lars Melin <larsm17@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alessio Igor Bogani <abogani@kernel.org>
+In-Reply-To: <d47b0f99-1ef8-3bff-0fbe-edb95ed41e23-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu@ti.com> [170327 06:22]:
-> On Mon, Mar 27, 2017 at 02:53:27PM +0200, Moreno Bartalucci wrote:
-> > > Il giorno 25 mar 2017, alle ore 08:21, Lars Melin <larsm17@gmail.com> ha scritto:
-> > > 
-> > >> 
-> > >> The usb device has been disconnected, why it still cares about VBUS
-> > >> power?
-> > > 
-> > > Morphing devices (3G dongles, wifi dongles, some printers) boots up in install mode, usually only as a virtual cd-rom containing Windows drivers and software.
-> > > [...]
-> > > why a host only configured port should cut the VBUS supply, it could be always on right?
-> > > 
-> > 
-> > Yes, that’s exactly the problem I tried to solve with this patch.
+* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [170326 23:27]:
+> On Thursday 23 March 2017 05:16 AM, Tony Lindgren wrote:
+> > +static const struct phy_ops ops = {
+> > +	.owner		= THIS_MODULE,
+> > +};
 > 
-> Yeah, the problem is clear to me now.
+> Given that this phy doesn't have any phy_ops, Is there a reason for registering
+> this phy with the phy framework? Is it because this driver uses the phy_core's
+> pm_runtime feature?
 
-Ah so it's with the state changing devices.
+Well there's also an ULPI PHY on CPCAP, but it's not used in the
+motorola-mapphone configuration. I think some other configurations
+use it though, so probably best to keep it.
 
-> > I have to add that the problem was not there with kernels up to
-> > 4.8.17, I started to see it with 4.9 and up.
-> > 
-> > By git-bisecting kernel sources, it appears this behaviour has been
-> > introduced by this commit:
-> > 
-> > 2f3fd2c5bde1f94513c3dc311ae64494085ec371
+And yeah, for PM runtime, I was thinking that we can have the
+UART mode be the idle state.
+
+> > +static void cpcap_usb_detect(struct work_struct *work)
+> > +{
+> > +	struct cpcap_phy_ddata *ddata;
+> > +	struct cpcap_usb_ints_state s;
+> > +	bool vbus = false;
+> > +	int error;
+> > +
+> > +	ddata = container_of(work, struct cpcap_phy_ddata, detect_work.work);
+> > +
+> > +	error = cpcap_phy_get_ints_state(ddata, &s);
+> > +	if (error)
+> > +		return;
+> > +
+> > +	/* See also cpcap-charger.c phy_companion for VBUS handling */
 > 
-> It seems this patch changes how OTG_STATE_A_WAIT_VRISE and
-> OTG_STATE_A_WAIT_BCON are used.
-> > 
-> > I also agree that, in my opinion, a host only port should never remove
-> > the VBUS supply, as it happens on all the PCs (linux+windows+mac) that
-> > I tested until now.
+> I think this companion should have ideally used extcon framework. Then we could
+> have used extcon_get_state() here.
+
+OK I'll take a look at that. I'd like to do that as a follow-up
+patches if that's OK with you.
+
+FYI in case you're wondering, there are ADCs on the PMIC available
+via IIO, and the charger is also using IIO framework for VBUS and
+battery voltage. And the VBUS is set up as reverse mode in the
+charger registers and the charging needs to be disabled for VBUS.
+
+I guess Ideally the VBUS would be just a regulator from Linux point
+of view that also allows negative current :)
+
+> > +	ddata->vusb = devm_regulator_get(&pdev->dev, "vusb");
+> > +	if (IS_ERR(ddata->vusb))
+> > +		return PTR_ERR(ddata->vusb);
+> > +
+> > +	error = regulator_enable(ddata->vusb);
+> > +	if (error)
+> > +		return error;
 > 
-> True. It is just that the musb driver handles both dual-role and
-> host-only mode.
+> Maybe we should create power_on ops and do regulator enable there?
 
-Maybe the other way to fix it would be to keep VBUS on longer when
-checking for connected devices. Maybe we now recheck based on the
-poll_timeout too early and then nothing is found.
+This regulator is also needed for the UART mode, so it would have
+to be disabled conditionally based on maybe a module parameter.
+But yeah thanks for the pointer I did not even realize you have
+power_on ops :)
 
-> > I saw this problem on a beaglebone black. Of course I’m available to
-> > do all the tests that you might suggest me to help you better
-> > understand the issue.
-> 
-> Thanks for the offer. Please let me look at the problem first, I have a
-> modem to test.
-> It is not clear why the original driver clears VBUS in this place, so I
-> have to ensure your patch is the correct change.
-
-I wonder if the following test patch allows the mode changing
-devices to been properly found? Of course it's just for testing,
-and scanning for devices takes now 5 seconds.. But it might
-provide clues why musb thinks no devices are connected and we
-cut VBUS.
+Seems this can be also done when implementing PM runtime handling.
+If you want some of these changes done for the initial patch,
+please let me know.
 
 Regards,
 
 Tony
-
-8< ----------------------
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -991,7 +991,7 @@ static const struct dsps_musb_wrapper am33xx_driver_data = {
- 	.rxep_shift		= 16,
- 	.rxep_mask		= 0xfffe,
- 	.rxep_bitmap		= (0xfffe << 16),
--	.poll_timeout		= 2000, /* ms */
-+	.poll_timeout		= 5000, /* ms */
- };
- 
- static const struct of_device_id musb_dsps_of_match[] = {
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
