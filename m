@@ -1,125 +1,75 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RESEND PATCH v6 4/4] usb: musb: da8xx: Add a primary support of
- PM runtime
-Date: Mon, 27 Mar 2017 18:39:30 +0200
-Message-ID: <03cc95cd-5967-c0c7-06a7-89cf08dbde47@baylibre.com>
-References: <20170324143600.4704-1-abailon@baylibre.com>
- <20170324143600.4704-5-abailon@baylibre.com>
- <703e5e95-8bde-2b1c-0d63-4ed3e03f53b8@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3] ARM: omap2+: Revert omap-smp.c changes resetting CPU1
+ during boot
+Date: Mon, 27 Mar 2017 09:43:09 -0700
+Message-ID: <20170327164308.GK10760@atomide.com>
+References: <20170314180555.23597-1-tony@atomide.com>
+ <aa5d7ee3-2e54-2c6c-df5d-b5efff4b365e@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <703e5e95-8bde-2b1c-0d63-4ed3e03f53b8-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <aa5d7ee3-2e54-2c6c-df5d-b5efff4b365e@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Andrew F. Davis" <afd@ti.com>
+Cc: Keerthy <j-keerthy@ti.com>, Tero Kristo <t-kristo@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Grygorii,
-On 03/24/2017 06:26 PM, Grygorii Strashko wrote:
->
->
-> On 03/24/2017 09:36 AM, Alexandre Bailon wrote:
-> > Currently, MUSB DA8xx glue driver doesn't have PM runtime support.
-> > Because the CPPI 4.1 is using the same clock as MUSB DA8xx and
-> > CPPI 4.1 is a child of MUSB DA8xx glue, add support of PM runtime
-> > to the DA8xx glue driver in order to let the CPPI 4.1 driver manage
-> > the clock by using PM runtime.
-> >
-> > Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  drivers/usb/musb/da8xx.c | 27 ++++++++-------------------
-> >  1 file changed, 8 insertions(+), 19 deletions(-)
-> >
-> > diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-> > index ed28afd..89e12f6 100644
-> > --- a/drivers/usb/musb/da8xx.c
-> > +++ b/drivers/usb/musb/da8xx.c
-> > @@ -30,7 +30,6 @@
-> >   */
-> >
->
-> [...]
->
-> >
-> > @@ -527,12 +520,6 @@ static int da8xx_probe(struct platform_device *pdev)
-> >      if (!glue)
-> >          return -ENOMEM;
-> >
-> > -    clk = devm_clk_get(&pdev->dev, "usb20");
-> > -    if (IS_ERR(clk)) {
-> > -        dev_err(&pdev->dev, "failed to get clock\n");
-> > -        return PTR_ERR(clk);
-> > -    }
-> > -
-> >      glue->phy = devm_phy_get(&pdev->dev, "usb-phy");
-> >      if (IS_ERR(glue->phy)) {
-> >          if (PTR_ERR(glue->phy) != -EPROBE_DEFER)
-> > @@ -541,7 +528,6 @@ static int da8xx_probe(struct platform_device *pdev)
-> >      }
-> >
-> >      glue->dev            = &pdev->dev;
-> > -    glue->clk            = clk;
-> >
-> >      if (IS_ENABLED(CONFIG_OF) && np) {
-> >          pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-> > @@ -587,6 +573,8 @@ static int da8xx_probe(struct platform_device *pdev)
-> >      pinfo.data = pdata;
-> >      pinfo.size_data = sizeof(*pdata);
-> >
-> > +    pm_runtime_enable(&pdev->dev);
-> > +
-> >      glue->musb = platform_device_register_full(&pinfo);
-> >      ret = PTR_ERR_OR_ZERO(glue->musb);
-> >      if (ret) {
-> > @@ -603,6 +591,7 @@ static int da8xx_remove(struct platform_device *pdev)
-> >
-> >      platform_device_unregister(glue->musb);
-> >      usb_phy_generic_unregister(glue->usb_phy);
-> > +    pm_runtime_disable(&pdev->dev);
-> >
-> >      return 0;
-> >  }
-> > @@ -616,7 +605,7 @@ static int da8xx_suspend(struct device *dev)
-> >      ret = phy_power_off(glue->phy);
-> >      if (ret)
-> >          return ret;
-> > -    clk_disable_unprepare(glue->clk);
-> > +    pm_runtime_put_sync(dev);
->
-> This, most probably will do nothing as Suspend framework will increase ref counter.
-> Better way might be to use PM runtime force API. pm_runtime_force_suspend()
-Good catch. Effectively, the device remain active.
-But we can't use pm_runtime_force_suspend() because it expect that all child have been
-runtime suspended which is usually not the case.
->
-> >
-> >      return 0;
-> >  }
-> > @@ -626,7 +615,7 @@ static int da8xx_resume(struct device *dev)
-> >      int ret;
-> >      struct da8xx_glue *glue = dev_get_drvdata(dev);
-> >
-> > -    ret = clk_prepare_enable(glue->clk);
-> > +    ret = pm_runtime_get_sync(dev);
-> >      if (ret)
-> >          return ret;
->
-> Better way might be to use PM runtime force API.
-Again, it will not work. Because the forced runtime suspend will not complete
-because child are not runtime suspended then the resume will not happen.
->
-> >      return phy_power_on(glue->phy);
-> >
->
-Do you have any other suggestions to fix it?
-My original intent was to give a way to CPPI 4.1 DMA driver to enable or
-disable the usb20 clock owned DA8xx USB glue driver.
+* Andrew F. Davis <afd@ti.com> [170327 09:36]:
+> On 03/14/2017 01:05 PM, Tony Lindgren wrote:
+> > Commit 3251885285e1 ("ARM: OMAP4+: Reset CPU1 properly for kexec") started
+> > unconditionally resetting CPU1 because of a kexec boot issue I was seeing
+> > earlier on omap4 when doing kexec boot between two different kernel
+> > versions.
+> > 
+> > This caused issues on some systems. We should only reset CPU1 as a last
+> > resort option, and try to avoid it where possible. Doing an unconditional
+> > CPU1 reset causes issues for example when booting a bootloader configured
+> > secure OS running on CPU1 as reported by Andrew F. Davis <afd@ti.com>.
+> > 
+> > We can't completely remove the reset of CPU1 as it would break kexec
+> > booting from older kernels. But we can limit the CPU1 reset to cases
+> > where CPU1 is wrongly parked within the memory area used by the booting
+> > kernel. Then later on we can add support for parking CPU1 for kexec out
+> > of the SDRAM back to bootrom.
+> > 
+> > So let's first fix the regression reported by Andrew by making CPU1 reset
+> > conditional. To do this, we need to:
+> > 
+> > 1. Save configured AUX_CORE_BOOT_1 for later
+> > 
+> > 2. Modify AUX_CORE_BOOT_0 reading code to for HS SoCs to return
+> >    the whole register instead of the CPU mask
+> > 
+> > 3. Check if CPU1 is wrongly parked into the booting kernel by the
+> >    previous kernel and reset if needed
+> > 
+> 
+> I still don't like this style of workaround, if kexec cannot regain
+> control of core1 without a hard core reset than kexec should BUG() and
+> force the user to reboot to a sane state.
 
-Thanks,
-Alexandre
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes problems still remains. I think the immediate fix there is to
+disable kexec during runtime based on some criteria for your use
+case rather than BUG() though. Somehow kexec needs to know if CPU1
+reset is acceptable, then reset CPU1 before kexec.
+
+> Anyway, this patch does remove the unconditional reset and fixes my
+> use-case is some situations (when not using kexec) so:
+> 
+> Tested-by: Andrew F. Davis <afd@ti.com>
+
+OK thanks for testing.
+
+Regards,
+
+Tony
