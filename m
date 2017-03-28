@@ -1,67 +1,69 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] ARM: dts: omap4-droid4: Stop disabling SRAM and GPMC
-Date: Mon, 27 Mar 2017 17:46:12 -0700
-Message-ID: <20170328004612.16350-1-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 0/9] clk: ti: add support for clkctrl clocks
+Date: Tue, 28 Mar 2017 08:41:33 +0300
+Message-ID: <8abeeabd-0339-b332-fc3d-a80ee33ba966@ti.com>
+References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
+ <20170317152536.GT20572@atomide.com>
+ <94d20a17-5072-ffab-3529-4bbb14327a10@ti.com>
+ <20170323010057.GI10760@atomide.com> <20170323170210.GL10760@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20170323170210.GL10760@atomide.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-I disabled SRAM and GPMC originally when seeing errors with
-omap_barriers_init(). But that is no longer happening probably
-because the memory range is now properly configured to 1021 MB
-instead of 1024 MB. So let's enable SRAM and GPMC so we get
-omap_barriers_init() working and can idle the GPMC.
+On 23/03/17 19:02, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [170322 18:03]:
+>> * Tero Kristo <t-kristo@ti.com> [170317 14:39]:
+>>> On 17/03/17 17:25, Tony Lindgren wrote:
+>>>> * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
+>>>>> Any additional testing on omap4 welcome as this series basically
+>>>>> tweaks every possible peripheral clock on the SoC.
+>>>>
+>>>> Without the last patch in this series, booting fails for me:
+>>>>
+>>>> [    5.074890] l4_per_cm:clk:0120:0: failed to disable
+>>>> [    5.085113] l4_per_cm:clk:0128:0: failed to disable
+>>>>
+>>>> Care to check that booting keeps working for each patch in the
+>>>> series to avoid breaking git bisect for booting?
+>>>
+>>> Hmm, I think patch 8+9 need to be squashed then. I can double check this
+>>> next week though.
+>>
+>> Also looks like with this set merged HDMI stops working on
+>> omap4 with:
+>>
+>> HDMIWP: omapdss HDMIWP error: Failed to set PHY power mode to 1
+>
+> Forgot to mention that's with omapdrm with encoder-tpd12s015 and
+> encoder-tfp410 modules loaded to get HDMI working. Here's more verbose
+> dmesg output in case that provides more clues:
+>
+> [   91.042877] omapdss HDMICORE error: operation stopped when reading edid
+> [   91.078308] [drm] Enabling DMM ywrap scrolling
+> [   91.099243] omapdss HDMIWP error: Failed to set PHY power mode to 1
+> [   91.107879] omapdss HDMI error: failed to power on device
+> [   91.107879] omapdrm omapdrm.0: Failed to enable display 'hdmi': -5
+> [   91.359619] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> [   91.619964] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> [   91.620300] Console: switching to colour frame buffer device 128x48
+> [   91.682434] omapdrm omapdrm.0: fb0: omapdrm frame buffer device
+> [   91.770812] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
+> [   92.818054] omapdss HDMICORE error: operation stopped when reading edid
+> [   93.090087] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> [   93.349853] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
 
-Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+I have an idea what is wrong here, and also an idea how to fix it. 
+Basically the display clock hierarchy is kind of special from hwmod 
+point of view, so need to tweak the data for this a bit. This should not 
+result into code changes if my idea works out well.
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -24,8 +24,7 @@
- 
- 	/*
- 	 * We seem to have only 1021 MB accessible, 1021 - 1022 is locked,
--	 * then 1023 - 1024 seems to contain mbm. For SRAM, see the notes
--	 * below about SRAM and L3_ICLK2 being unused by default,
-+	 * then 1023 - 1024 seems to contain mbm.
- 	 */
- 	memory {
- 		device_type = "memory";
-@@ -176,11 +175,6 @@
- 	};
- };
- 
--/* L3_2 interconnect is unused, SRAM, GPMC and L3_ICLK2 disabled */
--&gpmc {
--	status = "disabled";
--};
--
- &hdmi {
- 	status = "okay";
- 	pinctrl-0 = <&dss_hdmi_pins>;
-@@ -356,11 +350,6 @@
- 	};
- };
- 
--/* L3_2 interconnect is unused, SRAM, GPMC and L3_ICLK2 disabled */
--&ocmcram {
--	status = "disabled";
--};
--
- &omap4_pmx_core {
- 
- 	/* hdmi_hpd.gpio_63 */
--- 
-2.12.1
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll try to have a look at this during this week still, I've been busy 
+with some bug fixing lately.
+
+-Tero
