@@ -1,276 +1,168 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] regmap: irq: Fix lost interrupts by introducing
- handle_reread
-Date: Mon, 27 Mar 2017 17:36:48 -0700
-Message-ID: <20170328003648.GS10760@atomide.com>
-References: <20170322171052.7006-1-tony@atomide.com>
- <20170322171052.7006-2-tony@atomide.com>
- <20170327174952.jsfleql654m2h45i@sirena.org.uk>
+From: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RESEND PATCH v6 4/4] usb: musb: da8xx: Add a primary support of PM runtime
+Date: Mon, 27 Mar 2017 17:39:20 -0700
+Message-ID: <m24lyeck07.fsf@baylibre.com>
+References: <20170324143600.4704-1-abailon@baylibre.com>
+        <20170324143600.4704-5-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170327174952.jsfleql654m2h45i@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170324143600.4704-5-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> (Alexandre Bailon's
+        message of "Fri, 24 Mar 2017 15:36:00 +0100")
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@kernel.org> [170327 10:52]:
-> On Wed, Mar 22, 2017 at 10:10:49AM -0700, Tony Lindgren wrote:
-> > At least Motorola CPCAP PMIC needs it's device interrupts re-read
-> > until there are no more interrupts. Otherwise the PMIC interrupt to
-> > the SoC will eventually stop toggling. This seems to be a bug in the
-> > CPCAP PMIC where it can stop driving the GPIO interrupt to the SoC
-> > with pending CPCAP interrupts.
-> 
-> > Let's allow handling issues like this by introducing a flag for
-> > handle_reread and by splitting regmap_irq_thread() into two separate
-> > functions for regmap_read_irq_status() and regmap_irq_handle_pending().
-> 
-> So, I see your use case but the fact is that as Charles observed this is
-> exactly the code used for emulating level triggered IRQs with edge
-> triggered interrupt controllers.  This means someone is doubtless going
-> to end up using it for precisely that.  This makes me uncomfortable, we
-> do have this open coded into various drivers already but this is more of
-> a core thing and it feels like this should be in genirq rather than
-> here...  that said, looking at the code:
+Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> writes:
 
-Yes.. But then again we might avoid piling up yet more driver
-specific hacks. I don't know what the genirq solution would look
-like, handle until we get IRQ_NONE? :)
+> Currently, MUSB DA8xx glue driver doesn't have PM runtime support.
+> Because the CPPI 4.1 is using the same clock as MUSB DA8xx and
+> CPPI 4.1 is a child of MUSB DA8xx glue, add support of PM runtime
+> to the DA8xx glue driver in order to let the CPPI 4.1 driver manage
+> the clock by using PM runtime.
+>
+> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 
-> > +	do {
-> > +		ret = regmap_read_irq_status(data);
-> > +		if (ret)
-> > +			goto out_runtime_put;
-> > +
-> > +		ret = regmap_irq_handle_pending(data);
-> > +		if (ret < 0)
-> > +			goto out_runtime_put;
-> > +
-> > +		if (!ret)
-> > +			break;
-> > +
-> > +		handled += ret;
-> > +	} while (chip->handle_reread);
-> 
-> There's no protection against screaming interrupts here, I'd really like
-> to see that.  Also some tracing of the number of times we spin.
+Dumb question: even if the clock is shared with cppi4, doesn't the
+use-couting in the clock API handle it so that things should function
+fine even without this patch?
 
-Good idea. How about something like below where handle_reread checks
-for the total time spent in the thread loop with a large enough
-timeout? Or do you have some better ideas in mind?
+Some other comments/questions below...
 
-I tested I can hit that warning with timeout set to much lower
-10 ms with retries being 1 or 2 at that point.
+> ---
+>  drivers/usb/musb/da8xx.c | 27 ++++++++-------------------
+>  1 file changed, 8 insertions(+), 19 deletions(-)
+>
+> diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+> index ed28afd..89e12f6 100644
+> --- a/drivers/usb/musb/da8xx.c
+> +++ b/drivers/usb/musb/da8xx.c
+> @@ -30,7 +30,6 @@
+>   */
+>  
+>  #include <linux/module.h>
+> -#include <linux/clk.h>
+>  #include <linux/err.h>
+>  #include <linux/io.h>
+>  #include <linux/of_platform.h>
+> @@ -86,7 +85,6 @@ struct da8xx_glue {
+>  	struct device		*dev;
+>  	struct platform_device	*musb;
+>  	struct platform_device	*usb_phy;
+> -	struct clk		*clk;
+>  	struct phy		*phy;
+>  };
+>  
+> @@ -376,11 +374,7 @@ static int da8xx_musb_init(struct musb *musb)
+>  
+>  	musb->mregs += DA8XX_MENTOR_CORE_OFFSET;
+>  
+> -	ret = clk_prepare_enable(glue->clk);
+> -	if (ret) {
+> -		dev_err(glue->dev, "failed to enable clock\n");
+> -		return ret;
+> -	}
+> +	pm_runtime_get_sync(musb->controller->parent);
+>  
+>  	/* Returns zero if e.g. not clocked */
+>  	rev = musb_readl(reg_base, DA8XX_USB_REVISION_REG);
+> @@ -423,7 +417,7 @@ static int da8xx_musb_init(struct musb *musb)
+>  err_phy_power_on:
+>  	phy_exit(glue->phy);
+>  fail:
+> -	clk_disable_unprepare(glue->clk);
+> +	pm_runtime_put(musb->controller->parent);
+>  	return ret;
+>  }
+>  
+> @@ -435,7 +429,7 @@ static int da8xx_musb_exit(struct musb *musb)
+>  
+>  	phy_power_off(glue->phy);
+>  	phy_exit(glue->phy);
+> -	clk_disable_unprepare(glue->clk);
+> +	pm_runtime_put(musb->controller->parent);
+>  
+>  	usb_put_phy(musb->xceiv);
+>  
+> @@ -519,7 +513,6 @@ static int da8xx_probe(struct platform_device *pdev)
+>  	struct musb_hdrc_platform_data	*pdata = dev_get_platdata(&pdev->dev);
+>  	struct da8xx_glue		*glue;
+>  	struct platform_device_info	pinfo;
+> -	struct clk			*clk;
+>  	struct device_node		*np = pdev->dev.of_node;
+>  	int				ret;
+>  
+> @@ -527,12 +520,6 @@ static int da8xx_probe(struct platform_device *pdev)
+>  	if (!glue)
+>  		return -ENOMEM;
+>  
+> -	clk = devm_clk_get(&pdev->dev, "usb20");
+> -	if (IS_ERR(clk)) {
+> -		dev_err(&pdev->dev, "failed to get clock\n");
+> -		return PTR_ERR(clk);
+> -	}
 
-Regards,
+Something isn't quite right here.
 
-Tony
+This clk_get uses a con_id "usb20", but when converting to runtime PM,
+we rely on the pm_clk layer (used on davinci for runtime PM) to do clock
+lookups by the default con_ids.  I guess this still probably works
+because we fallback to the NULL con_id.
 
-8< -------------------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 27 Mar 2017 08:09:36 -0700
-Subject: [PATCH] regmap: irq: Fix lost interrupts by introducing
- handle_reread
+>  	glue->phy = devm_phy_get(&pdev->dev, "usb-phy");
+>  	if (IS_ERR(glue->phy)) {
+>  		if (PTR_ERR(glue->phy) != -EPROBE_DEFER)
+> @@ -541,7 +528,6 @@ static int da8xx_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	glue->dev			= &pdev->dev;
+> -	glue->clk			= clk;
+>  
+>  	if (IS_ENABLED(CONFIG_OF) && np) {
+>  		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+> @@ -587,6 +573,8 @@ static int da8xx_probe(struct platform_device *pdev)
+>  	pinfo.data = pdata;
+>  	pinfo.size_data = sizeof(*pdata);
+>  
+> +	pm_runtime_enable(&pdev->dev);
+> +
+>  	glue->musb = platform_device_register_full(&pinfo);
+>  	ret = PTR_ERR_OR_ZERO(glue->musb);
+>  	if (ret) {
+> @@ -603,6 +591,7 @@ static int da8xx_remove(struct platform_device *pdev)
+>  
+>  	platform_device_unregister(glue->musb);
+>  	usb_phy_generic_unregister(glue->usb_phy);
+> +	pm_runtime_disable(&pdev->dev);
+>  
+>  	return 0;
+>  }
+> @@ -616,7 +605,7 @@ static int da8xx_suspend(struct device *dev)
+>  	ret = phy_power_off(glue->phy);
+>  	if (ret)
+>  		return ret;
+> -	clk_disable_unprepare(glue->clk);
+> +	pm_runtime_put_sync(dev);
 
-At least Motorola CPCAP PMIC needs it's device interrupts re-read
-until there are no more interrupts. Otherwise the PMIC interrupt to
-the SoC will eventually stop toggling. This seems to be a bug in the
-CPCAP PMIC where it can stop driving the GPIO interrupt to the SoC
-with pending CPCAP interrupts.
+I'm a bit lots in the MUSB layering here, but does this 'dev' correspond
+to musb->controller->parent?
 
-Let's allow handling issues like this by introducing a flag for
-handle_reread and by splitting regmap_irq_thread() into two separate
-functions for regmap_read_irq_status() and regmap_irq_handle_pending().
+Kevin
 
-Cc: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Marcel Partap <mpartap@gmx.net>
-Cc: Michael Scott <michael.scott@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/base/regmap/regmap-irq.c | 97 ++++++++++++++++++++++++++++++----------
- include/linux/regmap.h           |  2 +
- 2 files changed, 75 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/base/regmap/regmap-irq.c b/drivers/base/regmap/regmap-irq.c
---- a/drivers/base/regmap/regmap-irq.c
-+++ b/drivers/base/regmap/regmap-irq.c
-@@ -21,6 +21,8 @@
- 
- #include "internal.h"
- 
-+#define REGMAP_IRQ_THREAD_MAX_MSECS	3000
-+
- struct regmap_irq_chip_data {
- 	struct mutex lock;
- 	struct irq_chip irq_chip;
-@@ -259,27 +261,11 @@ static const struct irq_chip regmap_irq_chip = {
- 	.irq_set_wake		= regmap_irq_set_wake,
- };
- 
--static irqreturn_t regmap_irq_thread(int irq, void *d)
-+static int regmap_read_irq_status(struct regmap_irq_chip_data *data)
- {
--	struct regmap_irq_chip_data *data = d;
- 	const struct regmap_irq_chip *chip = data->chip;
- 	struct regmap *map = data->map;
- 	int ret, i;
--	bool handled = false;
--	u32 reg;
--
--	if (chip->handle_pre_irq)
--		chip->handle_pre_irq(chip->irq_drv_data);
--
--	if (chip->runtime_pm) {
--		ret = pm_runtime_get_sync(map->dev);
--		if (ret < 0) {
--			dev_err(map->dev, "IRQ thread failed to resume: %d\n",
--				ret);
--			pm_runtime_put(map->dev);
--			goto exit;
--		}
--	}
- 
- 	/*
- 	 * Read in the statuses, using a single bulk read if possible
-@@ -299,7 +285,7 @@ static irqreturn_t regmap_irq_thread(int irq, void *d)
- 		if (ret != 0) {
- 			dev_err(map->dev, "Failed to read IRQ status: %d\n",
- 				ret);
--			goto exit;
-+			return ret;
- 		}
- 
- 		for (i = 0; i < data->chip->num_regs; i++) {
-@@ -315,7 +301,7 @@ static irqreturn_t regmap_irq_thread(int irq, void *d)
- 				break;
- 			default:
- 				BUG();
--				goto exit;
-+				return ret;
- 			}
- 		}
- 
-@@ -330,13 +316,21 @@ static irqreturn_t regmap_irq_thread(int irq, void *d)
- 				dev_err(map->dev,
- 					"Failed to read IRQ status: %d\n",
- 					ret);
--				if (chip->runtime_pm)
--					pm_runtime_put(map->dev);
--				goto exit;
-+				return ret;
- 			}
- 		}
- 	}
- 
-+	return 0;
-+}
-+
-+static int regmap_irq_handle_pending(struct regmap_irq_chip_data *data)
-+{
-+	const struct regmap_irq_chip *chip = data->chip;
-+	struct regmap *map = data->map;
-+	int ret, i, handled = 0;
-+	u32 reg;
-+
- 	/*
- 	 * Ignore masked IRQs and ack if we need to; we ack early so
- 	 * there is no race between handling and acknowleding the
-@@ -361,14 +355,69 @@ static irqreturn_t regmap_irq_thread(int irq, void *d)
- 		if (data->status_buf[chip->irqs[i].reg_offset /
- 				     map->reg_stride] & chip->irqs[i].mask) {
- 			handle_nested_irq(irq_find_mapping(data->domain, i));
--			handled = true;
-+			handled++;
- 		}
- 	}
- 
-+	return handled;
-+}
-+
-+static irqreturn_t regmap_irq_thread(int irq, void *d)
-+{
-+	struct regmap_irq_chip_data *data = d;
-+	const struct regmap_irq_chip *chip = data->chip;
-+	struct regmap *map = data->map;
-+	ktime_t calltime = 0, retrytime;
-+	int ret, handled = 0, retries = 0;
-+
-+	if (chip->handle_reread)
-+		calltime = ktime_get();
-+
-+	if (chip->handle_pre_irq)
-+		chip->handle_pre_irq(chip->irq_drv_data);
-+
-+	if (chip->runtime_pm) {
-+		ret = pm_runtime_get_sync(map->dev);
-+		if (ret < 0) {
-+			dev_err(map->dev, "IRQ thread failed to resume: %d\n",
-+				ret);
-+			goto out_runtime_put;
-+		}
-+	}
-+
-+	do {
-+		ret = regmap_read_irq_status(data);
-+		if (ret)
-+			goto out_runtime_put;
-+
-+		ret = regmap_irq_handle_pending(data);
-+		if (ret < 0)
-+			goto out_runtime_put;
-+
-+		if (!ret)
-+			break;
-+
-+		handled += ret;
-+		retries++;
-+
-+		if (chip->handle_reread) {
-+			s64 msecs;
-+
-+			retrytime = ktime_get();
-+			msecs = ktime_to_ms(ktime_sub(retrytime, calltime));
-+			if (msecs > REGMAP_IRQ_THREAD_MAX_MSECS) {
-+				dev_err(map->dev,
-+					"IRQ thread timeout after %i retries\n",
-+					retries);
-+				goto out_runtime_put;
-+			}
-+		}
-+	} while (chip->handle_reread);
-+
-+out_runtime_put:
- 	if (chip->runtime_pm)
- 		pm_runtime_put(map->dev);
- 
--exit:
- 	if (chip->handle_post_irq)
- 		chip->handle_post_irq(chip->irq_drv_data);
- 
-diff --git a/include/linux/regmap.h b/include/linux/regmap.h
---- a/include/linux/regmap.h
-+++ b/include/linux/regmap.h
-@@ -897,6 +897,7 @@ struct regmap_irq {
-  * @ack_invert:  Inverted ack register: cleared bits for ack.
-  * @wake_invert: Inverted wake register: cleared bits are wake enabled.
-  * @type_invert: Invert the type flags.
-+ * @handle_reread: Read interrupt status until no more interrupts are seen.
-  * @runtime_pm:  Hold a runtime PM lock on the device when accessing it.
-  *
-  * @num_regs:    Number of registers in each control bank.
-@@ -934,6 +935,7 @@ struct regmap_irq_chip {
- 	bool wake_invert:1;
- 	bool runtime_pm:1;
- 	bool type_invert:1;
-+	bool handle_reread:1;
- 
- 	int num_regs;
- 
--- 
-2.12.1
+>  	return 0;
+>  }
+> @@ -626,7 +615,7 @@ static int da8xx_resume(struct device *dev)
+>  	int ret;
+>  	struct da8xx_glue *glue = dev_get_drvdata(dev);
+>  
+> -	ret = clk_prepare_enable(glue->clk);
+> +	ret = pm_runtime_get_sync(dev);
+>  	if (ret)
+>  		return ret;
+>  	return phy_power_on(glue->phy);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
