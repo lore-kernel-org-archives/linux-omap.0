@@ -1,36 +1,61 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] ARM: dts: am335x-baltos: add LED support
-Date: Tue, 28 Mar 2017 09:07:17 -0700
-Message-ID: <20170328160716.GX10760@atomide.com>
-References: <1490706556-30046-1-git-send-email-yegorslists@googlemail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/4] regmap: irq: Fix lost interrupts by introducing
+ handle_reread
+Date: Tue, 28 Mar 2017 17:49:11 +0100
+Message-ID: <20170328164911.xwwl3kdy6j2y7hfq@sirena.org.uk>
+References: <20170322171052.7006-1-tony@atomide.com>
+ <20170322171052.7006-2-tony@atomide.com>
+ <20170327174952.jsfleql654m2h45i@sirena.org.uk>
+ <20170328003648.GS10760@atomide.com>
+ <20170328151849.uvj2ljkbts4cwksq@sirena.org.uk>
+ <20170328154740.GW10760@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="233epqgljhaie6c2"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1490706556-30046-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+In-Reply-To: <20170328154740.GW10760@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> [170328 06:11]:
-> From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-> 
-> All three devices provide GPIO based LEDs named power,
-> wlan and app.
-> 
-> Place LEDs definition into a separate dtsi file as not all
-> devices including am335x-baltos.dtsi have the same LED layout.
-> 
-> Signed-off-by: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-> ---
-> Changes v1 -> v2:
->   - move LEDs definition to a separate dtsi file (Tony Lindgren)
 
-Thanks for updating it, applying into omap-for-v4.12/dt-v2.
+--233epqgljhaie6c2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Mar 28, 2017 at 08:47:41AM -0700, Tony Lindgren wrote:
+> * Mark Brown <broonie@kernel.org> [170328 08:21]:
+
+> > Right, my thinking here is that by pushing into genirq we minimise the
+> > need even further since it'll also be available to drivers not using
+> > regmap-irq.
+
+> > > like, handle until we get IRQ_NONE? :)
+
+> > Well, that's what the per driver emulation does so...  yeah.  Probably
+> > with an upper limit on the number of times we do that.
+
+> OK let's first see how that would work. I'll send a patch
+> for that.
+
+Thanks.  Can you keep me on the CC please?  It's something I keep
+thinking about looking at myself.
+
+--233epqgljhaie6c2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAljalAcACgkQJNaLcl1U
+h9CX+Af7BAFnKCEit4OGgQjoud0mpjEoXb2u9Z4AWz/kSHb3dDiGGI8O2XFRnNRi
+rIINAqqv7sTNtrsdSmV78dRtM3PfTODys1tnrufXNVHBWfy3up9iqM68Cx15xte/
+7JGjhtWdk2yZlW2Nq8IGurmh8TwERkynMLZ9zPgHC0OnlROfyPf2GbR2eAbNtbKP
+N+f0tghHSksXg3z3885ownmlLhaHYkBv48pAxmJYyVqI6hYvWdJf4kxbkDJl7/wA
+7RIwsFGnvTlVhzmI/IwX1X88iNlVS503D556fE++uz+XRrQBWsBBlJGBZCVZcldr
+8FHdq67GWiR+2rRub4zKq8bd43RPyQ==
+=nAgO
+-----END PGP SIGNATURE-----
+
+--233epqgljhaie6c2--
