@@ -1,69 +1,67 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 0/9] clk: ti: add support for clkctrl clocks
-Date: Tue, 28 Mar 2017 08:41:33 +0300
-Message-ID: <8abeeabd-0339-b332-fc3d-a80ee33ba966@ti.com>
+Subject: Re: [PATCHv2 9/9] ARM: dts: omap4: convert to use the new clkctrl
+ clocks for the drivers
+Date: Tue, 28 Mar 2017 08:44:35 +0300
+Message-ID: <8b502a89-dcc6-1932-70cc-e887b1404dbb@ti.com>
 References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
- <20170317152536.GT20572@atomide.com>
- <94d20a17-5072-ffab-3529-4bbb14327a10@ti.com>
- <20170323010057.GI10760@atomide.com> <20170323170210.GL10760@atomide.com>
+ <1489741781-12816-10-git-send-email-t-kristo@ti.com>
+ <20170328001800.GR10760@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20170323170210.GL10760@atomide.com>
-Sender: linux-clk-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170328001800.GR10760@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
+Cc: mturquette@baylibre.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 23/03/17 19:02, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [170322 18:03]:
->> * Tero Kristo <t-kristo@ti.com> [170317 14:39]:
->>> On 17/03/17 17:25, Tony Lindgren wrote:
->>>> * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
->>>>> Any additional testing on omap4 welcome as this series basically
->>>>> tweaks every possible peripheral clock on the SoC.
->>>>
->>>> Without the last patch in this series, booting fails for me:
->>>>
->>>> [    5.074890] l4_per_cm:clk:0120:0: failed to disable
->>>> [    5.085113] l4_per_cm:clk:0128:0: failed to disable
->>>>
->>>> Care to check that booting keeps working for each patch in the
->>>> series to avoid breaking git bisect for booting?
->>>
->>> Hmm, I think patch 8+9 need to be squashed then. I can double check this
->>> next week though.
+On 28/03/17 03:18, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
+>> Convert the drivers to use the new clkctrl clocks.
 >>
->> Also looks like with this set merged HDMI stops working on
->> omap4 with:
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> ---
+>>  arch/arm/boot/dts/omap4.dtsi | 164 ++++++++++++++++++++++++++++++++++++++-----
+>>  1 file changed, 146 insertions(+), 18 deletions(-)
 >>
->> HDMIWP: omapdss HDMIWP error: Failed to set PHY power mode to 1
+>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> index 3ecf616..c39304a 100644
+>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> @@ -94,16 +94,22 @@
+>>  			compatible = "ti,omap4-mpu";
+>>  			ti,hwmods = "mpu";
+>>  			sram = <&ocmcram>;
+>> +			clocks = <&mpuss_clkctrl OMAP4_MPU_CLKCTRL 0>;
+>> +			clock-names = "clkctrl";
+>>  		};
 >
-> Forgot to mention that's with omapdrm with encoder-tpd12s015 and
-> encoder-tfp410 modules loaded to get HDMI working. Here's more verbose
-> dmesg output in case that provides more clues:
+> Oh one more thing. I don't think we should add the clocks
+> here as they are now wrongly allocated to the device within
+> the interconnect target module. These clocks really belong
+> to each interconnect target module that we don't have in the
+> dts yet.
 >
-> [   91.042877] omapdss HDMICORE error: operation stopped when reading edid
-> [   91.078308] [drm] Enabling DMM ywrap scrolling
-> [   91.099243] omapdss HDMIWP error: Failed to set PHY power mode to 1
-> [   91.107879] omapdss HDMI error: failed to power on device
-> [   91.107879] omapdrm omapdrm.0: Failed to enable display 'hdmi': -5
-> [   91.359619] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> [   91.619964] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> [   91.620300] Console: switching to colour frame buffer device 128x48
-> [   91.682434] omapdrm omapdrm.0: fb0: omapdrm frame buffer device
-> [   91.770812] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
-> [   92.818054] omapdss HDMICORE error: operation stopped when reading edid
-> [   93.090087] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> [   93.349853] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> So we're better off adding the clockctrl clocks and then
+> changing the dts to use the interconnect target modules
+> with the clockctrl clocks.
 
-I have an idea what is wrong here, and also an idea how to fix it. 
-Basically the display clock hierarchy is kind of special from hwmod 
-point of view, so need to tweak the data for this a bit. This should not 
-result into code changes if my idea works out well.
+The problem is, you can't just add the clkctrl clock nodes themselves 
+alone, as this introduces the problem that any clocks with no users will 
+get disabled => causes a boot time hang when all the device clocks get 
+shut down.
 
-I'll try to have a look at this during this week still, I've been busy 
-with some bug fixing lately.
+If you want to delay the usage of the clocks until you have interconnect 
+target modules in place, you need to introduce the clock nodes also at 
+that point, similar to what needs to be done now to squash patch #8 or #9.
 
 -Tero
