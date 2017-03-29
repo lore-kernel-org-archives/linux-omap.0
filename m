@@ -1,81 +1,38 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] ARM: davinci: Add the clock for the CPPI 4.1 DMA engine
-Date: Wed, 29 Mar 2017 19:16:00 +0300
-Message-ID: <e2abf94d-af01-baf0-72fa-c1923519160e@cogentembedded.com>
-References: <20170329160932.27157-1-abailon@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v7 1/3] usb: musb: Use shared irq
+Date: Wed, 29 Mar 2017 18:24:30 +0200
+Message-ID: <20170329162432.27299-2-abailon@baylibre.com>
+References: <20170329162432.27299-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170329160932.27157-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170329162432.27299-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org
-Cc: khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org
+To: b-liu-l0cyMroinI0@public.gmane.org
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello!
+In the DA8xx, USB and CPPI 4.1 are sharing the same interrupt line.
+Update the driver to request a shared irq.
 
-On 03/29/2017 07:09 PM, Alexandre Bailon wrote:
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/usb/musb/musb_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> The CPPI 4.1 DMA is sharing its clock with the USB OTG,
-> and most of the time, the clock will be enabled by USB.
-> But during the init of the DMA, USB is not enabled (waiting for DMA),
-> and then we must enable the clock before to do anything.
-
-    s/to do/doing/.
-
-> Add the clock for the CPPI 4.1 DMA engine.
->
-> Note:
-> This patch is to apply instead of:
-> "ARM: davinci: Make the usb20 clock available to PM runtime"
->
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> ---
->  arch/arm/mach-davinci/da830.c    | 1 +
->  arch/arm/mach-davinci/da850.c    | 1 +
->  arch/arm/mach-davinci/da8xx-dt.c | 2 ++
->  3 files changed, 4 insertions(+)
->
-> diff --git a/arch/arm/mach-davinci/da830.c b/arch/arm/mach-davinci/da830.c
-> index 073c458..ae4a8a5 100644
-> --- a/arch/arm/mach-davinci/da830.c
-> +++ b/arch/arm/mach-davinci/da830.c
-> @@ -413,6 +413,7 @@ static struct clk_lookup da830_clks[] = {
->  	CLK("davinci-mcasp.1",	NULL,		&mcasp1_clk),
->  	CLK("davinci-mcasp.2",	NULL,		&mcasp2_clk),
->  	CLK("musb-da8xx",	"usb20",	&usb20_clk),
-> +	CLK("cppi41-dmaengine",	NULL,		&usb20_clk),
->  	CLK(NULL,		"aemif",	&aemif_clk),
->  	CLK(NULL,		"aintc",	&aintc_clk),
->  	CLK(NULL,		"secu_mgr",	&secu_mgr_clk),
-> diff --git a/arch/arm/mach-davinci/da850.c b/arch/arm/mach-davinci/da850.c
-> index ccad2f9..9739aaa 100644
-> --- a/arch/arm/mach-davinci/da850.c
-> +++ b/arch/arm/mach-davinci/da850.c
-> @@ -560,6 +560,7 @@ static struct clk_lookup da850_clks[] = {
->  	CLK("davinci-nand.0",	"aemif",	&aemif_nand_clk),
->  	CLK("ohci-da8xx",	"usb11",	&usb11_clk),
->  	CLK("musb-da8xx",	"usb20",	&usb20_clk),
-> +	CLK("cppi41-dmaengine",	NULL,		&usb20_clk),
->  	CLK("spi_davinci.0",	NULL,		&spi0_clk),
->  	CLK("spi_davinci.1",	NULL,		&spi1_clk),
->  	CLK("vpif",		NULL,		&vpif_clk),
-> diff --git a/arch/arm/mach-davinci/da8xx-dt.c b/arch/arm/mach-davinci/da8xx-dt.c
-> index e3cef50..5bf08ba 100644
-> --- a/arch/arm/mach-davinci/da8xx-dt.c
-> +++ b/arch/arm/mach-davinci/da8xx-dt.c
-> @@ -53,6 +53,8 @@ static struct of_dev_auxdata da850_auxdata_lookup[] __initdata = {
->  	OF_DEV_AUXDATA("ti,da830-musb", 0x01e00000, "musb-da8xx", NULL),
->  	OF_DEV_AUXDATA("ti,da830-usb-phy", 0x01c1417c, "da8xx-usb-phy", NULL),
->  	OF_DEV_AUXDATA("ti,da850-ahci", 0x01e18000, "ahci_da850", NULL),
-> +	OF_DEV_AUXDATA("ti,da830-cppi41", 0x01e01000, "cppi41-dma-engine",
-
-    Not "cppi41-dmaengine"?
-
-[...]
-
-MBR, Sergei
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 0c3664a..870da18 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2332,7 +2332,7 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	setup_timer(&musb->otg_timer, musb_otg_timer_func, (unsigned long) musb);
+ 
+ 	/* attach to the IRQ */
+-	if (request_irq(nIrq, musb->isr, 0, dev_name(dev), musb)) {
++	if (request_irq(nIrq, musb->isr, IRQF_SHARED, dev_name(dev), musb)) {
+ 		dev_err(dev, "request_irq %d failed!\n", nIrq);
+ 		status = -ENODEV;
+ 		goto fail3;
+-- 
+2.10.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
