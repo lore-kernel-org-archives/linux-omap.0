@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v4.11-rc cycle
-Date: Wed, 29 Mar 2017 10:07:23 -0700
-Message-ID: <43103.9042691284$1505299157@news.gmane.org>
+Subject: [GIT PULL 1/2] omap soc changes for v4.12
+Date: Wed, 29 Mar 2017 10:09:48 -0700
+Message-ID: <26475.2205614515$1505299160@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,47 +19,69 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit e24bce8fb4c26bd0d8eca74cbbee1ad049246be3:
+The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
 
-  Merge tag 'v4.11-rc1' into omap-for-v4.11/fixes (2017-03-06 08:37:53 -0800)
+  Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-rc4
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.12/soc-v2-signed
 
-for you to fetch changes up to 351b7c490700747d1dba1b0a10fbfe3448d11c35:
+for you to fetch changes up to f0e6876606a54c28c2e03a223d9d51f30718f24a:
 
-  ARM: omap2+: Revert omap-smp.c changes resetting CPU1 during boot (2017-03-27 10:10:42 -0700)
-
-----------------------------------------------------------------
-Fixes for omaps for v4.11-rc cycle. The biggest fix is to stop doing
-unconditional reset of CPU1 as that caused a regression for cases with
-custom bootloader loaded code running on CPU1. The rest are just minor
-fixes for devices and one warning fix.
+  ARM: OMAP2+: mark omap_init_rng as __init (2017-03-28 14:10:09 -0700)
 
 ----------------------------------------------------------------
-Adam Ford (1):
-      ARM: dts: OMAP3: Fix MFG ID EEPROM
+SoC changes for omaps for v4.12 merge window:
 
-Reizer, Eyal (1):
-      ARM: dts: am335x-evmsk: adjust mmc2 param to allow suspend
+- Drop PM_SUSPEND_STANDBY
 
-Rob Herring (1):
-      ARM: dts: ti: fix PCI bus dtc warnings
+- Clean up hwmod code in preparation to eventually dynamically
+  allocating hwmod data based on device tree data
 
-Tony Lindgren (1):
-      ARM: omap2+: Revert omap-smp.c changes resetting CPU1 during boot
+- Implement hwmod workaround for dra7 DCAN1 and OTG module to prevent
+  clockdomain from entering HW_AUTO
 
-Yegor Yefremov (1):
-      ARM: dts: am335x-baltos: disable EEE for Atheros 8035 PHY
+- Configure clockdomain and hwmod for dm81xx SATA
 
- arch/arm/boot/dts/am335x-baltos.dtsi       |  2 +
- arch/arm/boot/dts/am335x-evmsk.dts         |  1 +
- arch/arm/boot/dts/dra7.dtsi                |  2 +
- arch/arm/boot/dts/logicpd-torpedo-som.dtsi |  2 +-
- arch/arm/mach-omap2/common.h               |  1 +
- arch/arm/mach-omap2/omap-hotplug.c         |  2 +-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c  | 22 ++++++--
- arch/arm/mach-omap2/omap-smc.S             |  1 -
- arch/arm/mach-omap2/omap-smp.c             | 90 +++++++++++++++++++++++++-----
- 9 files changed, 102 insertions(+), 21 deletions(-)
+- Mark omap_init_rng as __init
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      ARM: OMAP2+: mark omap_init_rng as __init
+
+Geert Uytterhoeven (1):
+      ARM: OMAP: PM: Drop useless checks for PM_SUSPEND_STANDBY
+
+Kevin Hilman (1):
+      ARM: OMAP2+: dm81xx: Add clkdm and hwmod for SATA
+
+Roger Quadros (3):
+      ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
+      ARM: DRA7: hwmod: Fix DCAN1 stuck in transition
+      ARM: DRA7: hwmod_data: Prevent wait_target_disable error for usb_otg_ss
+
+Sekhar Nori (1):
+      ARM: OMAP2+: omap_hwmod: provide space for more hwmod flags
+
+Tony Lindgren (5):
+      ARM: OMAP2+: Remove mostly unused hwmod linkspace
+      ARM: OMAP2+: Use list_for_each_entry for hwmod slave_ports
+      ARM: OMAP2+: Remove unused CLOCKACT_TEST_ICLK
+      ARM: OMAP2+: Make hwmod clkdm_name const
+      Merge branch 'hwmod-cleanup' into omap-for-v4.12/soc
+
+ arch/arm/mach-omap1/pm.c                           |   1 -
+ arch/arm/mach-omap2/clockdomains81xx_data.c        |  10 +
+ arch/arm/mach-omap2/cm81xx.h                       |   1 +
+ arch/arm/mach-omap2/devices.c                      |   2 +-
+ arch/arm/mach-omap2/omap_hwmod.c                   | 208 ++-------------------
+ arch/arm/mach-omap2/omap_hwmod.h                   |  23 +--
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   1 -
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   4 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   2 -
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |   2 -
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |   5 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  34 ++++
+ arch/arm/mach-omap2/pm.c                           |   1 -
+ 13 files changed, 78 insertions(+), 216 deletions(-)
