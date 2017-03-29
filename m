@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/2] omap soc changes for v4.12
-Date: Wed, 29 Mar 2017 10:09:48 -0700
-Message-ID: <26475.2205614515$1505299160@news.gmane.org>
+Subject: [GIT PULL 2/2] omap devicetree changes for v4.12
+Date: Wed, 29 Mar 2017 10:09:49 -0700
+Message-ID: <521.194787188683$1505299162@news.gmane.org>
+References: <pull-1490807269-842253>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1490807269-842253>
+In-Reply-To: <pull-1490807269-842253>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,63 +28,124 @@ The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.12/soc-v2-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.12/dt-v2-signed
 
-for you to fetch changes up to f0e6876606a54c28c2e03a223d9d51f30718f24a:
+for you to fetch changes up to da72e4936445e1081e1223fc58470644da8e8cdb:
 
-  ARM: OMAP2+: mark omap_init_rng as __init (2017-03-28 14:10:09 -0700)
-
-----------------------------------------------------------------
-SoC changes for omaps for v4.12 merge window:
-
-- Drop PM_SUSPEND_STANDBY
-
-- Clean up hwmod code in preparation to eventually dynamically
-  allocating hwmod data based on device tree data
-
-- Implement hwmod workaround for dra7 DCAN1 and OTG module to prevent
-  clockdomain from entering HW_AUTO
-
-- Configure clockdomain and hwmod for dm81xx SATA
-
-- Mark omap_init_rng as __init
+  Merge branch 'omap-for-v4.12/dt-droid4-v2' into omap-for-v4.12/dt-v2 (2017-03-28 14:00:55 -0700)
 
 ----------------------------------------------------------------
-Arnd Bergmann (1):
-      ARM: OMAP2+: mark omap_init_rng as __init
+Devicetree changes for omaps for v4.12 merge window:
 
-Geert Uytterhoeven (1):
-      ARM: OMAP: PM: Drop useless checks for PM_SUSPEND_STANDBY
+- Add hecc node for am35x
 
-Kevin Hilman (1):
-      ARM: OMAP2+: dm81xx: Add clkdm and hwmod for SATA
+- Add onenand support for omap3-igep
 
-Roger Quadros (3):
-      ARM: OMAP2+ hwmod: Allow modules to disable HW_AUTO
-      ARM: DRA7: hwmod: Fix DCAN1 stuck in transition
-      ARM: DRA7: hwmod_data: Prevent wait_target_disable error for usb_otg_ss
+- Add bluetooth binding for n900/n9/n950
+
+- Configure clocks and SATA for dm81xx
+
+- Update operating points tables for am33xx, am43xx and dra7
+
+- Update SPI flash documentation for w25q64
+
+- Configure SPI NOR for am335x-icev2
+
+- Mux uart0 for am437x-gp-evm
+
+- Add thermal zones for omap3, omap4, omap5, dra7
+
+- Configure LEDs for am335x-baltos
+
+- A series of droid 4 changes to configure various devices
+  such as keypad, regulators, gpio-keys, rtc, power button,
+  compass, accelerometer, touchscreen, backlight, poweroff,
+  tmp105, HDMI, LCD panel and LEDs, EHCI, and micro-SD
+
+----------------------------------------------------------------
+Bartosz Golaszewski (2):
+      ARM: dts: dm8168-evm: add the external reference clock for SATA
+      ARM: dts: dm8168-evm: add SATA node
+
+Dave Gerlach (4):
+      ARM: dts: am33xx: Add updated operating-points-v2 table for cpu
+      ARM: dts: am335x-boneblack: Enable 1GHz OPP for cpu
+      ARM: dts: am4372: Update operating-points-v2 table for cpu
+      ARM: dts: dra7: Add updated operating-points-v2 table for cpu
+
+Franklin S Cooper Jr (1):
+      ARM: dts: am335x-icev2: Add SPI based NOR
+
+Keerthy (5):
+      ARM: dts: omap3: Add cpu_thermal zone
+      ARM: dts: DRA7: Thermal: Add slope and offset values
+      ARM: dts: OMAP5: Thermal: Add slope and offset values
+      ARM: dts: OMAP443x: Thermal: Add slope and offset values
+      ARM: dts: OMAP4460: Thermal: Add slope and offset values
+
+Ladislav Michl (1):
+      ARM: dts: omap3-igep: OneNAND support
+
+Sebastian Reichel (8):
+      ARM: dts: omap4-droid4: Add gpio-keys
+      ARM: dts: motorola-cpcap-mapphone: add rtc
+      ARM: dts: motorola-cpcap-mapphone: add pwrbutton
+      ARM: dts: omap4-droid4: Add compass
+      ARM: dts: omap4-droid4: Add accelerometer
+      ARM: dts: motorola-cpcap-mapphone: add LEDs
+      ARM: dts: N900: Add bluetooth
+      ARM: dts: N9/N950: add bluetooth
 
 Sekhar Nori (1):
-      ARM: OMAP2+: omap_hwmod: provide space for more hwmod flags
+      Documentation: devicetree: mtd: add w25q64 to list of supported SPI flashes
 
-Tony Lindgren (5):
-      ARM: OMAP2+: Remove mostly unused hwmod linkspace
-      ARM: OMAP2+: Use list_for_each_entry for hwmod slave_ports
-      ARM: OMAP2+: Remove unused CLOCKACT_TEST_ICLK
-      ARM: OMAP2+: Make hwmod clkdm_name const
-      Merge branch 'hwmod-cleanup' into omap-for-v4.12/soc
+Tony Lindgren (11):
+      ARM: dts: Add keypad support for droid 4
+      ARM: dts: Configure regulators for droid 4
+      ARM: dts: omap4-droid4: Add touchscreen
+      ARM: dts: omap4-droid4: Add LCD backlight
+      ARM: dts: omap4-droid4: Add GPIO poweroff
+      ARM: dts: omap4-droid4: Add tmp105 sensor for droid 4
+      ARM: dts: omap4-droid4: Add HDMI support
+      ARM: dts: omap4-droid4: Add LCD
+      ARM: dts: omap4-droid4: Configure EHCI so modems can be accessed
+      ARM: dts: omap4-droid4: Fix MMC1 card for detect GPIO and regulator
+      Merge branch 'omap-for-v4.12/dt-droid4-v2' into omap-for-v4.12/dt-v2
 
- arch/arm/mach-omap1/pm.c                           |   1 -
- arch/arm/mach-omap2/clockdomains81xx_data.c        |  10 +
- arch/arm/mach-omap2/cm81xx.h                       |   1 +
- arch/arm/mach-omap2/devices.c                      |   2 +-
- arch/arm/mach-omap2/omap_hwmod.c                   | 208 ++-------------------
- arch/arm/mach-omap2/omap_hwmod.h                   |  23 +--
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   1 -
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   4 -
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   2 -
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |   2 -
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |   5 +-
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  34 ++++
- arch/arm/mach-omap2/pm.c                           |   1 -
- 13 files changed, 78 insertions(+), 216 deletions(-)
+Vignesh R (1):
+      ARM: dts: am437x-gp-evm: Add pinmux for uart0
+
+Yegor Yefremov (2):
+      ARM: dts: AM35x: Add hecc node
+      ARM: dts: am335x-baltos: add LED support
+
+ .../devicetree/bindings/mtd/jedec,spi-nor.txt      |   1 +
+ arch/arm/boot/dts/am335x-baltos-ir2110.dts         |   1 +
+ arch/arm/boot/dts/am335x-baltos-ir3220.dts         |   1 +
+ arch/arm/boot/dts/am335x-baltos-ir5221.dts         |   1 +
+ arch/arm/boot/dts/am335x-baltos-leds.dtsi          |  50 +++
+ arch/arm/boot/dts/am335x-boneblack.dts             |  11 +
+ arch/arm/boot/dts/am335x-icev2.dts                 |  33 ++
+ arch/arm/boot/dts/am33xx.dtsi                      |  87 ++++-
+ arch/arm/boot/dts/am3517.dtsi                      |  12 +
+ arch/arm/boot/dts/am4372.dtsi                      |   7 +-
+ arch/arm/boot/dts/am437x-gp-evm.dts                |  15 +
+ arch/arm/boot/dts/dm8168-evm.dts                   |  10 +
+ arch/arm/boot/dts/dm816x.dtsi                      |   7 +
+ arch/arm/boot/dts/dra7.dtsi                        |  41 ++-
+ arch/arm/boot/dts/dra74x.dtsi                      |   5 +
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi     | 194 +++++++++++
+ arch/arm/boot/dts/omap3-cpu-thermal.dtsi           |  20 ++
+ arch/arm/boot/dts/omap3-igep.dtsi                  |  52 +++
+ arch/arm/boot/dts/omap3-n900.dts                   |  23 +-
+ arch/arm/boot/dts/omap3-n950-n9.dtsi               |  32 ++
+ arch/arm/boot/dts/omap34xx.dtsi                    |   8 +-
+ arch/arm/boot/dts/omap36xx.dtsi                    |   8 +-
+ arch/arm/boot/dts/omap4-droid4-xt894.dts           | 370 ++++++++++++++++++++-
+ arch/arm/boot/dts/omap443x.dtsi                    |   4 +
+ arch/arm/boot/dts/omap4460.dtsi                    |   4 +
+ arch/arm/boot/dts/omap5.dtsi                       |   9 +
+ 26 files changed, 963 insertions(+), 43 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-baltos-leds.dtsi
+ create mode 100644 arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-cpu-thermal.dtsi
