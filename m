@@ -1,60 +1,100 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: Passing NAND mtdparts to OMAP2+ Kernel
-Date: Wed, 29 Mar 2017 06:39:00 -0500
-Message-ID: <CAHCN7xKhRub4k8BpkPPjPFhjJU5c2xRd_VKPMfVOc88ZaTUmGQ@mail.gmail.com>
-References: <CAHCN7xJoVF+3HjHwaS_U=jDqmU_Yv201KJSQ2s8N0gSNVR8pdQ@mail.gmail.com>
- <20170328215705.438d7af8@bbrezillon>
+From: Niklas Cassel <niklas.cassel@axis.com>
+Subject: Re: [GIT PULL] PCI: Support for configurable PCI endpoint
+Date: Wed, 29 Mar 2017 13:42:18 +0200
+Message-ID: <0cfe5acf-332c-00c9-e5d5-1403c4e80ebe@axis.com>
+References: <20170327094520.3129-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20170328215705.438d7af8@bbrezillon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: "Leto, Enrico" <enrico.leto@siemens.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170327094520.3129-1-kishon@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: hch@infradead.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlLCBNYXIgMjgsIDIwMTcgYXQgMjo1NyBQTSwgQm9yaXMgQnJlemlsbG9uCjxib3Jpcy5i
-cmV6aWxsb25AZnJlZS1lbGVjdHJvbnMuY29tPiB3cm90ZToKPiArUm9nZXIgYW5kIEVucmljbwo+
-Cj4gT24gVHVlLCAyOCBNYXIgMjAxNyAxMDo0MzowMSAtMDUwMAo+IEFkYW0gRm9yZCA8YWZvcmQx
-NzNAZ21haWwuY29tPiB3cm90ZToKPgo+PiBJIHBvc3RlZCB0aGlzIG9uIHRoZSBsaW51eC1vbWFw
-IGxpc3QsIGFuZCBJIHdhcyBhc2tlZCB0byBwb3N0IHRoaXMgb24KPj4gdGhlIGxpbnV4LW10ZCBs
-aXN0Ogo+Pgo+Pgo+PiBJIHRyaWVkIHRvIHJlbW92ZSB0aGUgTVREIHBhcnRpdGlvbnMgZnJvbSB0
-aGUgTGludXggZGV2aWNlIHRyZWUsIGFuZCBJCj4+IG5vdGljZWQgdGhhdCB0aGVyZSB3YXMgbm8g
-cGFydGl0aW9uIGluZm9ybWF0aW9uIGJlaW5nIHB1c2hlZCBhbnltb3JlCj4+IHVubGVzcyBJIGNo
-YW5nZWQgdGhlIG10ZHBhcnRzIG5hbWUgaW4gVS1Cb290Lgo+Pgo+PiBJdCBhcHBlYXJzIGFzIGlm
-IHRoZSBNVEQgZHJpdmVycyBoYXZlIGNoYW5nZWQgYSBiaXQuICBJIGZvdW5kIGEgZmV3Cj4+IGUt
-bWFpbHMgZmxvYXRpbmcgYXJvdW5kIHRoYXQgYXR0ZW1wdCB0byBmaXggdGhpcwo+Pgo+PiBDb21t
-aXQgZjdhOGUzOGYwN2ExN2JlOTA3NTg1ICgibXRkOiBuYW5kOiBhc3NpZ24gcmVhc29uYWJsZSBk
-ZWZhdWx0Cj4+IG5hbWUgZm9yIE5BTkQgZHJpdmVycyIpIGF0dGVtcHRzIHRvIGFkZHJlc3MgdGhp
-cywgYW5kIHNvbWVvbmUgb3ZlciBhdAo+PiBodHRwczovL3BhdGNod29yay5vemxhYnMub3JnL3Bh
-dGNoLzcwNzA2NS8gYXR0ZW1wdGVkIHRvIGFkZHJlc3MgaXQgYXMKPj4gd2VsbCBpbiBhIHNsaWdo
-dGx5IGRpZmZlcmVudCB3YXkuCj4KPiBDYW4geW91IHRlc3QgdGhlIHBhdGNoIGFuZCBsZXQgbWUg
-a25vdyBpZiBzb2x2ZXMgdGhlIHByb2JsZW0uIElmIGl0Cj4gZG9lcywgSSdsbCBzZW5kIGEgY2xl
-YW4gdmVyc2lvbiBvZiB0aGUgcGF0Y2ggYW5kIHF1ZXVlIGl0IGZvciA0LjEyLgo+CgpJIHRyaWVk
-IHRvIGFwcGx5IHRoZSBwYXRjaCBkaXJlY3RseSwgYnV0IGl0IGZhaWxlZC4gIEkgdGhlbiBtYW51
-YWxseQpjb3B5LXBhc3RlZCBpdCBpbnRvIHRoZSBwcm9wZXIgcGxhY2UsIGJ1dCBpdCBmYWlscyB0
-byBjb21waWxlLgoKZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jOiBJbiBmdW5jdGlvbiDigJhvbWFw
-X25hbmRfcHJvYmXigJk6CmRyaXZlcnMvbXRkL25hbmQvb21hcDIuYzoxODU5OjE0OiBlcnJvcjog
-aW1wbGljaXQgZGVjbGFyYXRpb24gb2YKZnVuY3Rpb24g4oCYZGV2bV9rYXNwcmluZuKAmSBbLVdl
-cnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KICBtdGQtPm5hbWUgPSBkZXZtX2th
-c3ByaW5mKCZwZGV2LT5kZXYsICJvbWFwMi1uYW5kLiVkIiwgaW5mby0+Z3BtY19jcyk7CiAgICAg
-ICAgICAgICAgXn5+fn5+fn5+fn5+fgpkcml2ZXJzL210ZC9uYW5kL29tYXAyLmM6MTg1OToxMjog
-d2FybmluZzogYXNzaWdubWVudCBtYWtlcyBwb2ludGVyCmZyb20gaW50ZWdlciB3aXRob3V0IGEg
-Y2FzdCBbLVdpbnQtY29udmVyc2lvbl0KICBtdGQtPm5hbWUgPSBkZXZtX2thc3ByaW5mKCZwZGV2
-LT5kZXYsICJvbWFwMi1uYW5kLiVkIiwgaW5mby0+Z3BtY19jcyk7CiAgICAgICAgICAgIF4KY2Mx
-OiBzb21lIHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzCgpJIHVzZSBidWlsZHJvb3Qg
-dG8gYnVpbGQgbXkgdG9vbGNoYWluIGFuZCBJIGFtIHVzaW5nIGdjYyB2ZXJzaW9uIDYuMy4wCndp
-dGggZ2xpYmMgMi4yNC4gIElzIHRoZXJlIHN1cHBvc2VkIHRvIGJlIGFuIGluY2x1ZGUgc29tZXdo
-ZXJlPyAgSSBhbQpub3QgZmFtaWxpYXIgd2l0aCBkZXZtX2thc3ByaW5mLgoKCj4gVGhhbmtzLAoK
-VGhhbmsgeW91CgphZGFtCj4KPiBCb3JpcwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4IE1URCBkaXNjdXNzaW9uIG1haWxpbmcgbGlz
-dApodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW10ZC8K
+On 03/27/2017 11:44 AM, Kishon Vijay Abraham I wrote:
+> Hi Bjorn,
+> 
+> Please find the pull request for PCI endpoint support below. I've
+> also included all the history here.
+> 
+> Changes from v4:
+> *) add #syscon-cells property and used of_parse_phandle_with_args
+>    to perform a configuration in syscon module (as suggested by
+>    Rob Herring)
+> *) Remove unnecessary white space.
+> 
+> Changes from v3:
+> *) fixed a typo and adapted to https://lkml.org/lkml/2017/3/13/562.
+> 
+> Changes from v2:
+> *) changed the configfs structure as suggested by Christoph Hellwig. With
+>    this change the framework creates configfs entry for EP function driver
+>    and EP controller. Previously these entries have to be created by the
+>    the user. (Haven't changed the epc core or epf core except for invoking
+>    configfs APIs to create entries for EP function driver and EP controller.
+>    That's mostly because the EP function device can still be created by
+>    directly invoking the epf core API without using configfs).
+> *) Now the user has to use configfs entry 'start' to start the link.
+>    This was previously done by the function driver. However in the case of
+>    multi function EP, the function driver shouldn't start the link.
+> 
+> Changes from v1:
+> *) The preparation patches for adding EP support is removed and is sent
+>    separately
+> *) Added device ID for DRA74x/DRA72x and used it instead of
+>    using "PCI_ANY_ID"
+> *) Added userguide for PCI endpoint test function
+> 
+> Major Improvements from RFC:
+>  *) support multi-function devices (hw supported not virtual)
+>  *) Access host side buffers
+>  *) Raise MSI interrupts
+>  *) Add user space program to use the host side PCI driver
+>  *) Adapt all other users of designware to use the new design (only
+>     compile tested. Since I have only dra7xx boards, the new design
+>     has only been tested in dra7xx. I'd require the help of others
+>     to test the platforms they have access to).
+> 
+> This series has been developed over 4.11-rc1 + [1]
+> [1] -> https://lkml.org/lkml/2017/3/13/562
+> 
+> Let me know if this has to be re-based to some of your branch.
+> 
+> Thanks
+> Kishon
+> 
+> The following changes since commit 623e87fec8ab7867fb51b3079196bd10718a60ce:
+> 
+>   PCI: dwc: dra7xx: Push request_irq call to the bottom of probe (2017-03-22 20:35:30 +0530)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git tags/pci-endpoint-for-4.12
+> 
+> for you to fetch changes up to e98bf80074be4654faae42fe0f5a622a776b6fdd:
+> 
+>   ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP (2017-03-27 15:08:22 +0530)
+> 
+> ----------------------------------------------------------------
+
+FWIW:
+I've tested Kishon's tag pci-endpoint-for-4.12
+and PCIe on artpec6 SoC is still working fine.
+
+I also included the DRA7xx PCIe driver in my
+kernel so that pcie-designware-ep.c gets built.
+
+My only worry is that the code in pcie-designware-ep.c
+is not compile tested if DRA7xx is not selected
+(as it is the only driver using PCIE_DW_EP at
+the moment).
