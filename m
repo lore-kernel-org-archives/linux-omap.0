@@ -1,48 +1,104 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: Re: [GIT PULL] PCI: Support for configurable PCI endpoint
-Date: Wed, 29 Mar 2017 15:13:36 +0200
-Message-ID: <c506cc2c-b877-5a12-33a9-4fafa307ff89@axis.com>
-References: <20170327094520.3129-1-kishon@ti.com>
- <0cfe5acf-332c-00c9-e5d5-1403c4e80ebe@axis.com>
- <99ae043b-35fd-0723-c8a7-e2625a862c6d@ti.com>
- <6868a887-a270-96d6-0600-af2a1af383a8@ti.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: Passing NAND mtdparts to OMAP2+ Kernel
+Date: Wed, 29 Mar 2017 15:18:37 +0200
+Message-ID: <20170329151837.509c15c6@bbrezillon>
+References: <CAHCN7xJoVF+3HjHwaS_U=jDqmU_Yv201KJSQ2s8N0gSNVR8pdQ@mail.gmail.com>
+ <20170328215705.438d7af8@bbrezillon>
+ <CAHCN7xKhRub4k8BpkPPjPFhjJU5c2xRd_VKPMfVOc88ZaTUmGQ@mail.gmail.com>
+ <04afe149-24b2-daec-5ef0-2d662ed79040@ti.com>
+ <20170329151002.26203f2c@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <6868a887-a270-96d6-0600-af2a1af383a8@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: hch@infradead.org, nsekhar@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20170329151002.26203f2c@bbrezillon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: "Leto, Enrico" <enrico.leto@siemens.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/29/2017 02:36 PM, Kishon Vijay Abraham I wrote:
-(snip)
->>>
->>> FWIW:
->>> I've tested Kishon's tag pci-endpoint-for-4.12
->>> and PCIe on artpec6 SoC is still working fine.
->>
->> Thanks for testing it.
->>>
->>> I also included the DRA7xx PCIe driver in my
->>> kernel so that pcie-designware-ep.c gets built.
->>>
->>> My only worry is that the code in pcie-designware-ep.c
->>> is not compile tested if DRA7xx is not selected
->>> (as it is the only driver using PCIE_DW_EP at
->>> the moment).
->>
->> yeah, we should plan to include COMPILE_TEST in all pci drivers but I guess
->> there is some problem with non-ARM builds [1]. As Bjorn mentioned in the
->> thread, we could add #ifdef ARM and then include COMPILE_TEST.
-> 
-> I think I misunderstood your concern. yeah, there is no direct way to compile
-> pcie-designware-ep.c without selecting DRA7xx.
-
-There is no way to compile pcie-designware-host.c + pcie-designware.c
-without selecting a driver that selects PCIE_DW_HOST,
-so I guess the same "problem" applies there.
-
-As long as kbuild builds PCI_DRA7XX_EP (and any driver that selects
-PCIE_DW_HOST), we should be fine.
+T24gV2VkLCAyOSBNYXIgMjAxNyAxNToxMDowMiArMDIwMApCb3JpcyBCcmV6aWxsb24gPGJvcmlz
+LmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5jb20+IHdyb3RlOgoKPiBPbiBXZWQsIDI5IE1hciAy
+MDE3IDE1OjQxOjA3ICswMzAwCj4gUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4gd3JvdGU6
+Cj4gCj4gPiBBZGFtLAo+ID4gCj4gPiBPbiAyOS8wMy8xNyAxNDozOSwgQWRhbSBGb3JkIHdyb3Rl
+OiAgCj4gPiA+IE9uIFR1ZSwgTWFyIDI4LCAyMDE3IGF0IDI6NTcgUE0sIEJvcmlzIEJyZXppbGxv
+bgo+ID4gPiA8Ym9yaXMuYnJlemlsbG9uQGZyZWUtZWxlY3Ryb25zLmNvbT4gd3JvdGU6ICAgIAo+
+ID4gPj4gK1JvZ2VyIGFuZCBFbnJpY28KPiA+ID4+Cj4gPiA+PiBPbiBUdWUsIDI4IE1hciAyMDE3
+IDEwOjQzOjAxIC0wNTAwCj4gPiA+PiBBZGFtIEZvcmQgPGFmb3JkMTczQGdtYWlsLmNvbT4gd3Jv
+dGU6Cj4gPiA+PiAgICAKPiA+ID4+PiBJIHBvc3RlZCB0aGlzIG9uIHRoZSBsaW51eC1vbWFwIGxp
+c3QsIGFuZCBJIHdhcyBhc2tlZCB0byBwb3N0IHRoaXMgb24KPiA+ID4+PiB0aGUgbGludXgtbXRk
+IGxpc3Q6Cj4gPiA+Pj4KPiA+ID4+Pgo+ID4gPj4+IEkgdHJpZWQgdG8gcmVtb3ZlIHRoZSBNVEQg
+cGFydGl0aW9ucyBmcm9tIHRoZSBMaW51eCBkZXZpY2UgdHJlZSwgYW5kIEkKPiA+ID4+PiBub3Rp
+Y2VkIHRoYXQgdGhlcmUgd2FzIG5vIHBhcnRpdGlvbiBpbmZvcm1hdGlvbiBiZWluZyBwdXNoZWQg
+YW55bW9yZQo+ID4gPj4+IHVubGVzcyBJIGNoYW5nZWQgdGhlIG10ZHBhcnRzIG5hbWUgaW4gVS1C
+b290Lgo+ID4gPj4+Cj4gPiA+Pj4gSXQgYXBwZWFycyBhcyBpZiB0aGUgTVREIGRyaXZlcnMgaGF2
+ZSBjaGFuZ2VkIGEgYml0LiAgSSBmb3VuZCBhIGZldwo+ID4gPj4+IGUtbWFpbHMgZmxvYXRpbmcg
+YXJvdW5kIHRoYXQgYXR0ZW1wdCB0byBmaXggdGhpcwo+ID4gPj4+Cj4gPiA+Pj4gQ29tbWl0IGY3
+YThlMzhmMDdhMTdiZTkwNzU4NSAoIm10ZDogbmFuZDogYXNzaWduIHJlYXNvbmFibGUgZGVmYXVs
+dAo+ID4gPj4+IG5hbWUgZm9yIE5BTkQgZHJpdmVycyIpIGF0dGVtcHRzIHRvIGFkZHJlc3MgdGhp
+cywgYW5kIHNvbWVvbmUgb3ZlciBhdAo+ID4gPj4+IGh0dHBzOi8vcGF0Y2h3b3JrLm96bGFicy5v
+cmcvcGF0Y2gvNzA3MDY1LyBhdHRlbXB0ZWQgdG8gYWRkcmVzcyBpdCBhcwo+ID4gPj4+IHdlbGwg
+aW4gYSBzbGlnaHRseSBkaWZmZXJlbnQgd2F5LiAgICAKPiA+ID4+Cj4gPiA+PiBDYW4geW91IHRl
+c3QgdGhlIHBhdGNoIGFuZCBsZXQgbWUga25vdyBpZiBzb2x2ZXMgdGhlIHByb2JsZW0uIElmIGl0
+Cj4gPiA+PiBkb2VzLCBJJ2xsIHNlbmQgYSBjbGVhbiB2ZXJzaW9uIG9mIHRoZSBwYXRjaCBhbmQg
+cXVldWUgaXQgZm9yIDQuMTIuCj4gPiA+PiAgICAKPiA+ID4gCj4gPiA+IEkgdHJpZWQgdG8gYXBw
+bHkgdGhlIHBhdGNoIGRpcmVjdGx5LCBidXQgaXQgZmFpbGVkLiAgSSB0aGVuIG1hbnVhbGx5Cj4g
+PiA+IGNvcHktcGFzdGVkIGl0IGludG8gdGhlIHByb3BlciBwbGFjZSwgYnV0IGl0IGZhaWxzIHRv
+IGNvbXBpbGUuCj4gPiA+IAo+ID4gPiBkcml2ZXJzL210ZC9uYW5kL29tYXAyLmM6IEluIGZ1bmN0
+aW9uIOKAmG9tYXBfbmFuZF9wcm9iZeKAmToKPiA+ID4gZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5j
+OjE4NTk6MTQ6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZgo+ID4gPiBmdW5jdGlvbiDi
+gJhkZXZtX2thc3ByaW5m4oCZIFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9u
+XQo+ID4gPiAgIG10ZC0+bmFtZSA9IGRldm1fa2FzcHJpbmYoJnBkZXYtPmRldiwgIm9tYXAyLW5h
+bmQuJWQiLCBpbmZvLT5ncG1jX2NzKTsKPiA+ID4gICAgICAgICAgICAgICBefn5+fn5+fn5+fn5+
+Cj4gPiA+IGRyaXZlcnMvbXRkL25hbmQvb21hcDIuYzoxODU5OjEyOiB3YXJuaW5nOiBhc3NpZ25t
+ZW50IG1ha2VzIHBvaW50ZXIKPiA+ID4gZnJvbSBpbnRlZ2VyIHdpdGhvdXQgYSBjYXN0IFstV2lu
+dC1jb252ZXJzaW9uXQo+ID4gPiAgIG10ZC0+bmFtZSA9IGRldm1fa2FzcHJpbmYoJnBkZXYtPmRl
+diwgIm9tYXAyLW5hbmQuJWQiLCBpbmZvLT5ncG1jX2NzKTsKPiA+ID4gICAgICAgICAgICAgXgo+
+ID4gPiBjYzE6IHNvbWUgd2FybmluZ3MgYmVpbmcgdHJlYXRlZCBhcyBlcnJvcnMKPiA+ID4gCj4g
+PiA+IEkgdXNlIGJ1aWxkcm9vdCB0byBidWlsZCBteSB0b29sY2hhaW4gYW5kIEkgYW0gdXNpbmcg
+Z2NjIHZlcnNpb24gNi4zLjAKPiA+ID4gd2l0aCBnbGliYyAyLjI0LiAgSXMgdGhlcmUgc3VwcG9z
+ZWQgdG8gYmUgYW4gaW5jbHVkZSBzb21ld2hlcmU/ICBJIGFtCj4gPiA+IG5vdCBmYW1pbGlhciB3
+aXRoIGRldm1fa2FzcHJpbmYuICAKPiAKPiBJdCdzIGEgdHlwbzogcy9kZXZtX2thc3ByaW5mL2Rl
+dm1fa2FzcHJpbnRmLy4KPiAKPiA+ID4gCj4gPiA+ICAgICAKPiA+IAo+ID4gRG9lcyB0aGUgYmVs
+b3cgcGF0Y2ggd29yayBmb3IgeW91PyAgCj4gCj4gU2hvdWxkIHdvcmsgaW5kZWVkLgo+IAo+IEkg
+aGFkIGEgY2xvc2VyIGxvb2sgYW5kIGl0IHNlZW1zIHRoYXQgdGhlIGJ1ZyB3YXMgYWN0dWFsbHkg
+aW50cm9kdWNlZAo+IGJ5IGM5NzExZWM1MjUwYiBtdGQ6IG5hbmQ6IG9tYXA6IENsZWFuIHVwIGRl
+dmljZSB0cmVlCj4gc3VwcG9ydC4KPiBUaGUgcGFyZW50IGRldmljZSBuYW1lIGhhcyBjaGFuZ2Vk
+IHdoZW4gc3dpdGNoaW5nIHRvIHRoZSBuZXcgRFQKPiByZXByZXNlbnRhdGlvbjogb21hcDItbmFu
+ZC4wICh3aGVyZSAwIGlzIHRoZSBjb250cm9sbGVyIGluc3RhbmNlKSBiZWNhbWUKPiAzMDAwMDAw
+MC5uYW5kICh3aGVyZSAzMDAwMDAwMCBpcyB0aGUgYmFzZSByZWcgYWRkcmVzcyBpbiB0aGUgcGh5
+c2ljYWwKPiBhZGRyZXNzIHNwYWNlKS4gV2hpY2ggbWVhbnMgbXkgcHJvcG9zYWwgd2FzIGluY29y
+cmVjdCAoMCBpcyBub3QgdGhlIENTCj4gbGluZSwgaXQncyB0aGUgTkFORCBjb250cm9sbGVyIGlu
+c3RhbmNlIG51bWJlciksIHNvIHdlJ2QgYmV0dGVyCj4gc3RhdGljYWxseSBzZXQgaXQgdG8gIm9t
+YXAyLW5hbmQuMCIuCgpDaGFuZ2luZyBteSBtaW5kIChhZ2FpbiA6KSkuIEFjY29yZGluZyB0byBb
+MV0sIHRoZSBpbnN0YW5jZSBpZCBpcwpyZWxhdGVkIHRvIHRoZSBDUyBsaW5lLCBzbyBkZXZtX2th
+c3ByaW50ZigpIGlzIHRoZSByaWdodCBzb2x1dGlvbi4KClNvcnJ5IGZvciB0aGUgbm9pc2UuCgo+
+IAo+ID4gCj4gPiBjaGVlcnMsCj4gPiAtcm9nZXIKPiA+IAo+ID4gLS0tCj4gPiAgZHJpdmVycy9t
+dGQvbmFuZC9vbWFwMi5jIHwgNyArKysrKysrCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDcgaW5zZXJ0
+aW9ucygrKQo+ID4gCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jIGIv
+ZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jCj4gPiBpbmRleCAyYTUyMTAxLi5mNjkzYjhkIDEwMDY0
+NAo+ID4gLS0tIGEvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jCj4gPiArKysgYi9kcml2ZXJzL210
+ZC9uYW5kL29tYXAyLmMKPiA+IEBAIC0xODU2LDYgKzE4NTYsMTMgQEAgc3RhdGljIGludCBvbWFw
+X25hbmRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiA+ICAJbmFuZF9jaGlw
+LT5lY2MucHJpdgk9IE5VTEw7Cj4gPiAgCW5hbmRfc2V0X2ZsYXNoX25vZGUobmFuZF9jaGlwLCBk
+ZXYtPm9mX25vZGUpOwo+ID4gICAgCj4gCj4gbmFuZF9zZXRfZmxhc2hfbm9kZSgpIGlzIG5vdyB0
+YWtpbmcgdGhlICJsYWJlbCIgRFQgcHJvcGVydHkgaW50byBhY2NvdW50Cj4gYW5kIGFzc2lnbmlu
+ZyBtdGQtPm5hbWUgdG8gdGhpcyB2YWx1ZSBpZiBwcmVzZW50LiBJJ2QgcmVjb21tZW5kIGRvaW5n
+Cj4gCj4gCWlmICghbXRkLT5uYW1lKQo+IAkJbXRkLT5uYW1lID0gIm9tYXAyLW5hbmQuMCI7CgpU
+aGlzIGNvbW1lbnQgc3RpbGwgc3RhbmRzLCBleGNlcHQgaXQgc2hvdWxkIGJlOgoKCWlmICghbXRk
+LT5uYW1lKQoJCW10ZC0+bmFtZSA9IGRldm1fa2FzcHJpbnRmKCZwZGV2LT5kZXYsIEdGUF9LRVJO
+RUwsCgkJCQkJICAgIm9tYXAyLW5hbmQuJWQiLCBpbmZvLT5ncG1jX2NzKTsKCglpZiAoIW10ZC0+
+bmFtZSkgewoJCWRldl9lcnIoJnBkZXYtPmRldiwgIkZhaWxlZCB0byBzZXQgTVREIG5hbWVcbiIp
+OwoJCXJldHVybiAtRU5PTUVNOwoJfQoKUmVnYXJkcywKCkJvcmlzCgpbMV1odHRwOi8vbHhyLmZy
+ZWUtZWxlY3Ryb25zLmNvbS9zb3VyY2UvYXJjaC9hcm0vbWFjaC1vbWFwMi9ncG1jLW5hbmQuYz92
+PTQuNiNMMTMzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KTGludXggTVREIGRpc2N1c3Npb24gbWFpbGluZyBsaXN0Cmh0dHA6Ly9saXN0cy5p
+bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbXRkLwo=
