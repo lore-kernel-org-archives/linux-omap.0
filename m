@@ -1,125 +1,60 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RESEND PATCH v6 4/4] usb: musb: da8xx: Add a primary support of
- PM runtime
-Date: Wed, 29 Mar 2017 11:45:00 +0530
-Message-ID: <6b916c3d-dcd0-0217-e486-4c89ffdbf655@ti.com>
-References: <20170324143600.4704-1-abailon@baylibre.com>
- <20170324143600.4704-5-abailon@baylibre.com> <m24lyeck07.fsf@baylibre.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: Re: Passing NAND mtdparts to OMAP2+ Kernel
+Date: Wed, 29 Mar 2017 06:39:00 -0500
+Message-ID: <CAHCN7xKhRub4k8BpkPPjPFhjJU5c2xRd_VKPMfVOc88ZaTUmGQ@mail.gmail.com>
+References: <CAHCN7xJoVF+3HjHwaS_U=jDqmU_Yv201KJSQ2s8N0gSNVR8pdQ@mail.gmail.com>
+ <20170328215705.438d7af8@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <m24lyeck07.fsf-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: b-liu-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20170328215705.438d7af8@bbrezillon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: "Leto, Enrico" <enrico.leto@siemens.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 28 March 2017 06:09 AM, Kevin Hilman wrote:
-> Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org> writes:
-> 
->> Currently, MUSB DA8xx glue driver doesn't have PM runtime support.
->> Because the CPPI 4.1 is using the same clock as MUSB DA8xx and
->> CPPI 4.1 is a child of MUSB DA8xx glue, add support of PM runtime
->> to the DA8xx glue driver in order to let the CPPI 4.1 driver manage
->> the clock by using PM runtime.
->>
->> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> 
-> Dumb question: even if the clock is shared with cppi4, doesn't the
-> use-couting in the clock API handle it so that things should function
-> fine even without this patch?
-> 
-> Some other comments/questions below...
-> 
->> ---
->>  drivers/usb/musb/da8xx.c | 27 ++++++++-------------------
->>  1 file changed, 8 insertions(+), 19 deletions(-)
->>
->> diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
->> index ed28afd..89e12f6 100644
->> --- a/drivers/usb/musb/da8xx.c
->> +++ b/drivers/usb/musb/da8xx.c
->> @@ -30,7 +30,6 @@
->>   */
->>  
->>  #include <linux/module.h>
->> -#include <linux/clk.h>
->>  #include <linux/err.h>
->>  #include <linux/io.h>
->>  #include <linux/of_platform.h>
->> @@ -86,7 +85,6 @@ struct da8xx_glue {
->>  	struct device		*dev;
->>  	struct platform_device	*musb;
->>  	struct platform_device	*usb_phy;
->> -	struct clk		*clk;
->>  	struct phy		*phy;
->>  };
->>  
->> @@ -376,11 +374,7 @@ static int da8xx_musb_init(struct musb *musb)
->>  
->>  	musb->mregs += DA8XX_MENTOR_CORE_OFFSET;
->>  
->> -	ret = clk_prepare_enable(glue->clk);
->> -	if (ret) {
->> -		dev_err(glue->dev, "failed to enable clock\n");
->> -		return ret;
->> -	}
->> +	pm_runtime_get_sync(musb->controller->parent);
->>  
->>  	/* Returns zero if e.g. not clocked */
->>  	rev = musb_readl(reg_base, DA8XX_USB_REVISION_REG);
->> @@ -423,7 +417,7 @@ static int da8xx_musb_init(struct musb *musb)
->>  err_phy_power_on:
->>  	phy_exit(glue->phy);
->>  fail:
->> -	clk_disable_unprepare(glue->clk);
->> +	pm_runtime_put(musb->controller->parent);
->>  	return ret;
->>  }
->>  
->> @@ -435,7 +429,7 @@ static int da8xx_musb_exit(struct musb *musb)
->>  
->>  	phy_power_off(glue->phy);
->>  	phy_exit(glue->phy);
->> -	clk_disable_unprepare(glue->clk);
->> +	pm_runtime_put(musb->controller->parent);
->>  
->>  	usb_put_phy(musb->xceiv);
->>  
->> @@ -519,7 +513,6 @@ static int da8xx_probe(struct platform_device *pdev)
->>  	struct musb_hdrc_platform_data	*pdata = dev_get_platdata(&pdev->dev);
->>  	struct da8xx_glue		*glue;
->>  	struct platform_device_info	pinfo;
->> -	struct clk			*clk;
->>  	struct device_node		*np = pdev->dev.of_node;
->>  	int				ret;
->>  
->> @@ -527,12 +520,6 @@ static int da8xx_probe(struct platform_device *pdev)
->>  	if (!glue)
->>  		return -ENOMEM;
->>  
->> -	clk = devm_clk_get(&pdev->dev, "usb20");
->> -	if (IS_ERR(clk)) {
->> -		dev_err(&pdev->dev, "failed to get clock\n");
->> -		return PTR_ERR(clk);
->> -	}
-> 
-> Something isn't quite right here.
-> 
-> This clk_get uses a con_id "usb20", but when converting to runtime PM,
-> we rely on the pm_clk layer (used on davinci for runtime PM) to do clock
-> lookups by the default con_ids.  I guess this still probably works
-> because we fallback to the NULL con_id.
-
-Right, since DaVinci uses pm_clk layer for runtime PM, we support
-runtime PM on only two types of clocks. Those with con_id in the list of
-con_ids recognized by pm_clk layer or those with NULL con_id. For
-devices which use a single clock, NULL con_id is preferred.
-
-Thanks,
-Sekhar
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlLCBNYXIgMjgsIDIwMTcgYXQgMjo1NyBQTSwgQm9yaXMgQnJlemlsbG9uCjxib3Jpcy5i
+cmV6aWxsb25AZnJlZS1lbGVjdHJvbnMuY29tPiB3cm90ZToKPiArUm9nZXIgYW5kIEVucmljbwo+
+Cj4gT24gVHVlLCAyOCBNYXIgMjAxNyAxMDo0MzowMSAtMDUwMAo+IEFkYW0gRm9yZCA8YWZvcmQx
+NzNAZ21haWwuY29tPiB3cm90ZToKPgo+PiBJIHBvc3RlZCB0aGlzIG9uIHRoZSBsaW51eC1vbWFw
+IGxpc3QsIGFuZCBJIHdhcyBhc2tlZCB0byBwb3N0IHRoaXMgb24KPj4gdGhlIGxpbnV4LW10ZCBs
+aXN0Ogo+Pgo+Pgo+PiBJIHRyaWVkIHRvIHJlbW92ZSB0aGUgTVREIHBhcnRpdGlvbnMgZnJvbSB0
+aGUgTGludXggZGV2aWNlIHRyZWUsIGFuZCBJCj4+IG5vdGljZWQgdGhhdCB0aGVyZSB3YXMgbm8g
+cGFydGl0aW9uIGluZm9ybWF0aW9uIGJlaW5nIHB1c2hlZCBhbnltb3JlCj4+IHVubGVzcyBJIGNo
+YW5nZWQgdGhlIG10ZHBhcnRzIG5hbWUgaW4gVS1Cb290Lgo+Pgo+PiBJdCBhcHBlYXJzIGFzIGlm
+IHRoZSBNVEQgZHJpdmVycyBoYXZlIGNoYW5nZWQgYSBiaXQuICBJIGZvdW5kIGEgZmV3Cj4+IGUt
+bWFpbHMgZmxvYXRpbmcgYXJvdW5kIHRoYXQgYXR0ZW1wdCB0byBmaXggdGhpcwo+Pgo+PiBDb21t
+aXQgZjdhOGUzOGYwN2ExN2JlOTA3NTg1ICgibXRkOiBuYW5kOiBhc3NpZ24gcmVhc29uYWJsZSBk
+ZWZhdWx0Cj4+IG5hbWUgZm9yIE5BTkQgZHJpdmVycyIpIGF0dGVtcHRzIHRvIGFkZHJlc3MgdGhp
+cywgYW5kIHNvbWVvbmUgb3ZlciBhdAo+PiBodHRwczovL3BhdGNod29yay5vemxhYnMub3JnL3Bh
+dGNoLzcwNzA2NS8gYXR0ZW1wdGVkIHRvIGFkZHJlc3MgaXQgYXMKPj4gd2VsbCBpbiBhIHNsaWdo
+dGx5IGRpZmZlcmVudCB3YXkuCj4KPiBDYW4geW91IHRlc3QgdGhlIHBhdGNoIGFuZCBsZXQgbWUg
+a25vdyBpZiBzb2x2ZXMgdGhlIHByb2JsZW0uIElmIGl0Cj4gZG9lcywgSSdsbCBzZW5kIGEgY2xl
+YW4gdmVyc2lvbiBvZiB0aGUgcGF0Y2ggYW5kIHF1ZXVlIGl0IGZvciA0LjEyLgo+CgpJIHRyaWVk
+IHRvIGFwcGx5IHRoZSBwYXRjaCBkaXJlY3RseSwgYnV0IGl0IGZhaWxlZC4gIEkgdGhlbiBtYW51
+YWxseQpjb3B5LXBhc3RlZCBpdCBpbnRvIHRoZSBwcm9wZXIgcGxhY2UsIGJ1dCBpdCBmYWlscyB0
+byBjb21waWxlLgoKZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jOiBJbiBmdW5jdGlvbiDigJhvbWFw
+X25hbmRfcHJvYmXigJk6CmRyaXZlcnMvbXRkL25hbmQvb21hcDIuYzoxODU5OjE0OiBlcnJvcjog
+aW1wbGljaXQgZGVjbGFyYXRpb24gb2YKZnVuY3Rpb24g4oCYZGV2bV9rYXNwcmluZuKAmSBbLVdl
+cnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KICBtdGQtPm5hbWUgPSBkZXZtX2th
+c3ByaW5mKCZwZGV2LT5kZXYsICJvbWFwMi1uYW5kLiVkIiwgaW5mby0+Z3BtY19jcyk7CiAgICAg
+ICAgICAgICAgXn5+fn5+fn5+fn5+fgpkcml2ZXJzL210ZC9uYW5kL29tYXAyLmM6MTg1OToxMjog
+d2FybmluZzogYXNzaWdubWVudCBtYWtlcyBwb2ludGVyCmZyb20gaW50ZWdlciB3aXRob3V0IGEg
+Y2FzdCBbLVdpbnQtY29udmVyc2lvbl0KICBtdGQtPm5hbWUgPSBkZXZtX2thc3ByaW5mKCZwZGV2
+LT5kZXYsICJvbWFwMi1uYW5kLiVkIiwgaW5mby0+Z3BtY19jcyk7CiAgICAgICAgICAgIF4KY2Mx
+OiBzb21lIHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzCgpJIHVzZSBidWlsZHJvb3Qg
+dG8gYnVpbGQgbXkgdG9vbGNoYWluIGFuZCBJIGFtIHVzaW5nIGdjYyB2ZXJzaW9uIDYuMy4wCndp
+dGggZ2xpYmMgMi4yNC4gIElzIHRoZXJlIHN1cHBvc2VkIHRvIGJlIGFuIGluY2x1ZGUgc29tZXdo
+ZXJlPyAgSSBhbQpub3QgZmFtaWxpYXIgd2l0aCBkZXZtX2thc3ByaW5mLgoKCj4gVGhhbmtzLAoK
+VGhhbmsgeW91CgphZGFtCj4KPiBCb3JpcwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4IE1URCBkaXNjdXNzaW9uIG1haWxpbmcgbGlz
+dApodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW10ZC8K
