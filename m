@@ -1,96 +1,48 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: Passing NAND mtdparts to OMAP2+ Kernel
-Date: Wed, 29 Mar 2017 15:10:02 +0200
-Message-ID: <20170329151002.26203f2c@bbrezillon>
-References: <CAHCN7xJoVF+3HjHwaS_U=jDqmU_Yv201KJSQ2s8N0gSNVR8pdQ@mail.gmail.com>
- <20170328215705.438d7af8@bbrezillon>
- <CAHCN7xKhRub4k8BpkPPjPFhjJU5c2xRd_VKPMfVOc88ZaTUmGQ@mail.gmail.com>
- <04afe149-24b2-daec-5ef0-2d662ed79040@ti.com>
+From: Niklas Cassel <niklas.cassel@axis.com>
+Subject: Re: [GIT PULL] PCI: Support for configurable PCI endpoint
+Date: Wed, 29 Mar 2017 15:13:36 +0200
+Message-ID: <c506cc2c-b877-5a12-33a9-4fafa307ff89@axis.com>
+References: <20170327094520.3129-1-kishon@ti.com>
+ <0cfe5acf-332c-00c9-e5d5-1403c4e80ebe@axis.com>
+ <99ae043b-35fd-0723-c8a7-e2625a862c6d@ti.com>
+ <6868a887-a270-96d6-0600-af2a1af383a8@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <04afe149-24b2-daec-5ef0-2d662ed79040@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: "Leto, Enrico" <enrico.leto@siemens.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Adam Ford <aford173@gmail.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <6868a887-a270-96d6-0600-af2a1af383a8@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: hch@infradead.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCAyOSBNYXIgMjAxNyAxNTo0MTowNyArMDMwMApSb2dlciBRdWFkcm9zIDxyb2dlcnFA
-dGkuY29tPiB3cm90ZToKCj4gQWRhbSwKPiAKPiBPbiAyOS8wMy8xNyAxNDozOSwgQWRhbSBGb3Jk
-IHdyb3RlOgo+ID4gT24gVHVlLCBNYXIgMjgsIDIwMTcgYXQgMjo1NyBQTSwgQm9yaXMgQnJlemls
-bG9uCj4gPiA8Ym9yaXMuYnJlemlsbG9uQGZyZWUtZWxlY3Ryb25zLmNvbT4gd3JvdGU6ICAKPiA+
-PiArUm9nZXIgYW5kIEVucmljbwo+ID4+Cj4gPj4gT24gVHVlLCAyOCBNYXIgMjAxNyAxMDo0Mzow
-MSAtMDUwMAo+ID4+IEFkYW0gRm9yZCA8YWZvcmQxNzNAZ21haWwuY29tPiB3cm90ZToKPiA+PiAg
-Cj4gPj4+IEkgcG9zdGVkIHRoaXMgb24gdGhlIGxpbnV4LW9tYXAgbGlzdCwgYW5kIEkgd2FzIGFz
-a2VkIHRvIHBvc3QgdGhpcyBvbgo+ID4+PiB0aGUgbGludXgtbXRkIGxpc3Q6Cj4gPj4+Cj4gPj4+
-Cj4gPj4+IEkgdHJpZWQgdG8gcmVtb3ZlIHRoZSBNVEQgcGFydGl0aW9ucyBmcm9tIHRoZSBMaW51
-eCBkZXZpY2UgdHJlZSwgYW5kIEkKPiA+Pj4gbm90aWNlZCB0aGF0IHRoZXJlIHdhcyBubyBwYXJ0
-aXRpb24gaW5mb3JtYXRpb24gYmVpbmcgcHVzaGVkIGFueW1vcmUKPiA+Pj4gdW5sZXNzIEkgY2hh
-bmdlZCB0aGUgbXRkcGFydHMgbmFtZSBpbiBVLUJvb3QuCj4gPj4+Cj4gPj4+IEl0IGFwcGVhcnMg
-YXMgaWYgdGhlIE1URCBkcml2ZXJzIGhhdmUgY2hhbmdlZCBhIGJpdC4gIEkgZm91bmQgYSBmZXcK
-PiA+Pj4gZS1tYWlscyBmbG9hdGluZyBhcm91bmQgdGhhdCBhdHRlbXB0IHRvIGZpeCB0aGlzCj4g
-Pj4+Cj4gPj4+IENvbW1pdCBmN2E4ZTM4ZjA3YTE3YmU5MDc1ODUgKCJtdGQ6IG5hbmQ6IGFzc2ln
-biByZWFzb25hYmxlIGRlZmF1bHQKPiA+Pj4gbmFtZSBmb3IgTkFORCBkcml2ZXJzIikgYXR0ZW1w
-dHMgdG8gYWRkcmVzcyB0aGlzLCBhbmQgc29tZW9uZSBvdmVyIGF0Cj4gPj4+IGh0dHBzOi8vcGF0
-Y2h3b3JrLm96bGFicy5vcmcvcGF0Y2gvNzA3MDY1LyBhdHRlbXB0ZWQgdG8gYWRkcmVzcyBpdCBh
-cwo+ID4+PiB3ZWxsIGluIGEgc2xpZ2h0bHkgZGlmZmVyZW50IHdheS4gIAo+ID4+Cj4gPj4gQ2Fu
-IHlvdSB0ZXN0IHRoZSBwYXRjaCBhbmQgbGV0IG1lIGtub3cgaWYgc29sdmVzIHRoZSBwcm9ibGVt
-LiBJZiBpdAo+ID4+IGRvZXMsIEknbGwgc2VuZCBhIGNsZWFuIHZlcnNpb24gb2YgdGhlIHBhdGNo
-IGFuZCBxdWV1ZSBpdCBmb3IgNC4xMi4KPiA+PiAgCj4gPiAKPiA+IEkgdHJpZWQgdG8gYXBwbHkg
-dGhlIHBhdGNoIGRpcmVjdGx5LCBidXQgaXQgZmFpbGVkLiAgSSB0aGVuIG1hbnVhbGx5Cj4gPiBj
-b3B5LXBhc3RlZCBpdCBpbnRvIHRoZSBwcm9wZXIgcGxhY2UsIGJ1dCBpdCBmYWlscyB0byBjb21w
-aWxlLgo+ID4gCj4gPiBkcml2ZXJzL210ZC9uYW5kL29tYXAyLmM6IEluIGZ1bmN0aW9uIOKAmG9t
-YXBfbmFuZF9wcm9iZeKAmToKPiA+IGRyaXZlcnMvbXRkL25hbmQvb21hcDIuYzoxODU5OjE0OiBl
-cnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YKPiA+IGZ1bmN0aW9uIOKAmGRldm1fa2FzcHJp
-bmbigJkgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCj4gPiAgIG10ZC0+
-bmFtZSA9IGRldm1fa2FzcHJpbmYoJnBkZXYtPmRldiwgIm9tYXAyLW5hbmQuJWQiLCBpbmZvLT5n
-cG1jX2NzKTsKPiA+ICAgICAgICAgICAgICAgXn5+fn5+fn5+fn5+fgo+ID4gZHJpdmVycy9tdGQv
-bmFuZC9vbWFwMi5jOjE4NTk6MTI6IHdhcm5pbmc6IGFzc2lnbm1lbnQgbWFrZXMgcG9pbnRlcgo+
-ID4gZnJvbSBpbnRlZ2VyIHdpdGhvdXQgYSBjYXN0IFstV2ludC1jb252ZXJzaW9uXQo+ID4gICBt
-dGQtPm5hbWUgPSBkZXZtX2thc3ByaW5mKCZwZGV2LT5kZXYsICJvbWFwMi1uYW5kLiVkIiwgaW5m
-by0+Z3BtY19jcyk7Cj4gPiAgICAgICAgICAgICBeCj4gPiBjYzE6IHNvbWUgd2FybmluZ3MgYmVp
-bmcgdHJlYXRlZCBhcyBlcnJvcnMKPiA+IAo+ID4gSSB1c2UgYnVpbGRyb290IHRvIGJ1aWxkIG15
-IHRvb2xjaGFpbiBhbmQgSSBhbSB1c2luZyBnY2MgdmVyc2lvbiA2LjMuMAo+ID4gd2l0aCBnbGli
-YyAyLjI0LiAgSXMgdGhlcmUgc3VwcG9zZWQgdG8gYmUgYW4gaW5jbHVkZSBzb21ld2hlcmU/ICBJ
-IGFtCj4gPiBub3QgZmFtaWxpYXIgd2l0aCBkZXZtX2thc3ByaW5mLgoKSXQncyBhIHR5cG86IHMv
-ZGV2bV9rYXNwcmluZi9kZXZtX2thc3ByaW50Zi8uCgo+ID4gCj4gPiAgIAo+IAo+IERvZXMgdGhl
-IGJlbG93IHBhdGNoIHdvcmsgZm9yIHlvdT8KClNob3VsZCB3b3JrIGluZGVlZC4KCkkgaGFkIGEg
-Y2xvc2VyIGxvb2sgYW5kIGl0IHNlZW1zIHRoYXQgdGhlIGJ1ZyB3YXMgYWN0dWFsbHkgaW50cm9k
-dWNlZApieSBjOTcxMWVjNTI1MGIgbXRkOiBuYW5kOiBvbWFwOiBDbGVhbiB1cCBkZXZpY2UgdHJl
-ZQpzdXBwb3J0LgpUaGUgcGFyZW50IGRldmljZSBuYW1lIGhhcyBjaGFuZ2VkIHdoZW4gc3dpdGNo
-aW5nIHRvIHRoZSBuZXcgRFQKcmVwcmVzZW50YXRpb246IG9tYXAyLW5hbmQuMCAod2hlcmUgMCBp
-cyB0aGUgY29udHJvbGxlciBpbnN0YW5jZSkgYmVjYW1lCjMwMDAwMDAwLm5hbmQgKHdoZXJlIDMw
-MDAwMDAwIGlzIHRoZSBiYXNlIHJlZyBhZGRyZXNzIGluIHRoZSBwaHlzaWNhbAphZGRyZXNzIHNw
-YWNlKS4gV2hpY2ggbWVhbnMgbXkgcHJvcG9zYWwgd2FzIGluY29ycmVjdCAoMCBpcyBub3QgdGhl
-IENTCmxpbmUsIGl0J3MgdGhlIE5BTkQgY29udHJvbGxlciBpbnN0YW5jZSBudW1iZXIpLCBzbyB3
-ZSdkIGJldHRlcgpzdGF0aWNhbGx5IHNldCBpdCB0byAib21hcDItbmFuZC4wIi4KCj4gCj4gY2hl
-ZXJzLAo+IC1yb2dlcgo+IAo+IC0tLQo+ICBkcml2ZXJzL210ZC9uYW5kL29tYXAyLmMgfCA3ICsr
-KysrKysKPiAgMSBmaWxlIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1naXQg
-YS9kcml2ZXJzL210ZC9uYW5kL29tYXAyLmMgYi9kcml2ZXJzL210ZC9uYW5kL29tYXAyLmMKPiBp
-bmRleCAyYTUyMTAxLi5mNjkzYjhkIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvbXRkL25hbmQvb21h
-cDIuYwo+ICsrKyBiL2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYwo+IEBAIC0xODU2LDYgKzE4NTYs
-MTMgQEAgc3RhdGljIGludCBvbWFwX25hbmRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAq
-cGRldikKPiAgCW5hbmRfY2hpcC0+ZWNjLnByaXYJPSBOVUxMOwo+ICAJbmFuZF9zZXRfZmxhc2hf
-bm9kZShuYW5kX2NoaXAsIGRldi0+b2Zfbm9kZSk7Cj4gIAoKbmFuZF9zZXRfZmxhc2hfbm9kZSgp
-IGlzIG5vdyB0YWtpbmcgdGhlICJsYWJlbCIgRFQgcHJvcGVydHkgaW50byBhY2NvdW50CmFuZCBh
-c3NpZ25pbmcgbXRkLT5uYW1lIHRvIHRoaXMgdmFsdWUgaWYgcHJlc2VudC4gSSdkIHJlY29tbWVu
-ZCBkb2luZwoKCWlmICghbXRkLT5uYW1lKQoJCW10ZC0+bmFtZSA9ICJvbWFwMi1uYW5kLjAiOwoK
-PiArCW10ZC0+bmFtZSA9IGRldm1fa2FzcHJpbnRmKCZwZGV2LT5kZXYsIEdGUF9LRVJORUwsICJv
-bWFwMi1uYW5kLiVkIiwKPiArCQkJCSAgIGluZm8tPmdwbWNfY3MpOwo+ICsJaWYgKCFtdGQtPm5h
-bWUpIHsKPiArCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJGYWlsZWQgdG8gc2V0IE1URCBuYW1lXG4i
-KTsKPiArCQlyZXR1cm4gLUVOT01FTTsKPiArCX0KPiArCj4gIAlyZXMgPSBwbGF0Zm9ybV9nZXRf
-cmVzb3VyY2UocGRldiwgSU9SRVNPVVJDRV9NRU0sIDApOwo+ICAJbmFuZF9jaGlwLT5JT19BRERS
-X1IgPSBkZXZtX2lvcmVtYXBfcmVzb3VyY2UoJnBkZXYtPmRldiwgcmVzKTsKPiAgCWlmIChJU19F
-UlIobmFuZF9jaGlwLT5JT19BRERSX1IpKQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eCBNVEQgZGlzY3Vzc2lvbiBtYWlsaW5nIGxp
-c3QKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQv
-Cg==
+On 03/29/2017 02:36 PM, Kishon Vijay Abraham I wrote:
+(snip)
+>>>
+>>> FWIW:
+>>> I've tested Kishon's tag pci-endpoint-for-4.12
+>>> and PCIe on artpec6 SoC is still working fine.
+>>
+>> Thanks for testing it.
+>>>
+>>> I also included the DRA7xx PCIe driver in my
+>>> kernel so that pcie-designware-ep.c gets built.
+>>>
+>>> My only worry is that the code in pcie-designware-ep.c
+>>> is not compile tested if DRA7xx is not selected
+>>> (as it is the only driver using PCIE_DW_EP at
+>>> the moment).
+>>
+>> yeah, we should plan to include COMPILE_TEST in all pci drivers but I guess
+>> there is some problem with non-ARM builds [1]. As Bjorn mentioned in the
+>> thread, we could add #ifdef ARM and then include COMPILE_TEST.
+> 
+> I think I misunderstood your concern. yeah, there is no direct way to compile
+> pcie-designware-ep.c without selecting DRA7xx.
+
+There is no way to compile pcie-designware-host.c + pcie-designware.c
+without selecting a driver that selects PCIE_DW_HOST,
+so I guess the same "problem" applies there.
+
+As long as kbuild builds PCI_DRA7XX_EP (and any driver that selects
+PCIE_DW_HOST), we should be fine.
