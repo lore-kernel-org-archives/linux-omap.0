@@ -1,112 +1,77 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [GIT PULL] PCI: Support for configurable PCI endpoint
-Date: Wed, 29 Mar 2017 18:06:14 +0530
-Message-ID: <6868a887-a270-96d6-0600-af2a1af383a8@ti.com>
-References: <20170327094520.3129-1-kishon@ti.com>
- <0cfe5acf-332c-00c9-e5d5-1403c4e80ebe@axis.com>
- <99ae043b-35fd-0723-c8a7-e2625a862c6d@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: Passing NAND mtdparts to OMAP2+ Kernel
+Date: Wed, 29 Mar 2017 15:41:07 +0300
+Message-ID: <04afe149-24b2-daec-5ef0-2d662ed79040@ti.com>
+References: <CAHCN7xJoVF+3HjHwaS_U=jDqmU_Yv201KJSQ2s8N0gSNVR8pdQ@mail.gmail.com>
+ <20170328215705.438d7af8@bbrezillon>
+ <CAHCN7xKhRub4k8BpkPPjPFhjJU5c2xRd_VKPMfVOc88ZaTUmGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <99ae043b-35fd-0723-c8a7-e2625a862c6d@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Niklas Cassel <niklas.cassel@axis.com>, Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: hch@infradead.org, nsekhar@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <CAHCN7xKhRub4k8BpkPPjPFhjJU5c2xRd_VKPMfVOc88ZaTUmGQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Adam Ford <aford173@gmail.com>, Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: "Leto, Enrico" <enrico.leto@siemens.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Wednesday 29 March 2017 05:40 PM, Kishon Vijay Abraham I wrote:
-> Hi Niklas,
-> 
-> On Wednesday 29 March 2017 05:12 PM, Niklas Cassel wrote:
->> On 03/27/2017 11:44 AM, Kishon Vijay Abraham I wrote:
->>> Hi Bjorn,
->>>
->>> Please find the pull request for PCI endpoint support below. I've
->>> also included all the history here.
->>>
->>> Changes from v4:
->>> *) add #syscon-cells property and used of_parse_phandle_with_args
->>>    to perform a configuration in syscon module (as suggested by
->>>    Rob Herring)
->>> *) Remove unnecessary white space.
->>>
->>> Changes from v3:
->>> *) fixed a typo and adapted to https://lkml.org/lkml/2017/3/13/562.
->>>
->>> Changes from v2:
->>> *) changed the configfs structure as suggested by Christoph Hellwig. With
->>>    this change the framework creates configfs entry for EP function driver
->>>    and EP controller. Previously these entries have to be created by the
->>>    the user. (Haven't changed the epc core or epf core except for invoking
->>>    configfs APIs to create entries for EP function driver and EP controller.
->>>    That's mostly because the EP function device can still be created by
->>>    directly invoking the epf core API without using configfs).
->>> *) Now the user has to use configfs entry 'start' to start the link.
->>>    This was previously done by the function driver. However in the case of
->>>    multi function EP, the function driver shouldn't start the link.
->>>
->>> Changes from v1:
->>> *) The preparation patches for adding EP support is removed and is sent
->>>    separately
->>> *) Added device ID for DRA74x/DRA72x and used it instead of
->>>    using "PCI_ANY_ID"
->>> *) Added userguide for PCI endpoint test function
->>>
->>> Major Improvements from RFC:
->>>  *) support multi-function devices (hw supported not virtual)
->>>  *) Access host side buffers
->>>  *) Raise MSI interrupts
->>>  *) Add user space program to use the host side PCI driver
->>>  *) Adapt all other users of designware to use the new design (only
->>>     compile tested. Since I have only dra7xx boards, the new design
->>>     has only been tested in dra7xx. I'd require the help of others
->>>     to test the platforms they have access to).
->>>
->>> This series has been developed over 4.11-rc1 + [1]
->>> [1] -> https://lkml.org/lkml/2017/3/13/562
->>>
->>> Let me know if this has to be re-based to some of your branch.
->>>
->>> Thanks
->>> Kishon
->>>
->>> The following changes since commit 623e87fec8ab7867fb51b3079196bd10718a60ce:
->>>
->>>   PCI: dwc: dra7xx: Push request_irq call to the bottom of probe (2017-03-22 20:35:30 +0530)
->>>
->>> are available in the git repository at:
->>>
->>>   git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git tags/pci-endpoint-for-4.12
->>>
->>> for you to fetch changes up to e98bf80074be4654faae42fe0f5a622a776b6fdd:
->>>
->>>   ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP (2017-03-27 15:08:22 +0530)
->>>
->>> ----------------------------------------------------------------
->>
->> FWIW:
->> I've tested Kishon's tag pci-endpoint-for-4.12
->> and PCIe on artpec6 SoC is still working fine.
-> 
-> Thanks for testing it.
->>
->> I also included the DRA7xx PCIe driver in my
->> kernel so that pcie-designware-ep.c gets built.
->>
->> My only worry is that the code in pcie-designware-ep.c
->> is not compile tested if DRA7xx is not selected
->> (as it is the only driver using PCIE_DW_EP at
->> the moment).
-> 
-> yeah, we should plan to include COMPILE_TEST in all pci drivers but I guess
-> there is some problem with non-ARM builds [1]. As Bjorn mentioned in the
-> thread, we could add #ifdef ARM and then include COMPILE_TEST.
-
-I think I misunderstood your concern. yeah, there is no direct way to compile
-pcie-designware-ep.c without selecting DRA7xx.
-
-Thanks
-Kishon
+QWRhbSwKCk9uIDI5LzAzLzE3IDE0OjM5LCBBZGFtIEZvcmQgd3JvdGU6Cj4gT24gVHVlLCBNYXIg
+MjgsIDIwMTcgYXQgMjo1NyBQTSwgQm9yaXMgQnJlemlsbG9uCj4gPGJvcmlzLmJyZXppbGxvbkBm
+cmVlLWVsZWN0cm9ucy5jb20+IHdyb3RlOgo+PiArUm9nZXIgYW5kIEVucmljbwo+Pgo+PiBPbiBU
+dWUsIDI4IE1hciAyMDE3IDEwOjQzOjAxIC0wNTAwCj4+IEFkYW0gRm9yZCA8YWZvcmQxNzNAZ21h
+aWwuY29tPiB3cm90ZToKPj4KPj4+IEkgcG9zdGVkIHRoaXMgb24gdGhlIGxpbnV4LW9tYXAgbGlz
+dCwgYW5kIEkgd2FzIGFza2VkIHRvIHBvc3QgdGhpcyBvbgo+Pj4gdGhlIGxpbnV4LW10ZCBsaXN0
+Ogo+Pj4KPj4+Cj4+PiBJIHRyaWVkIHRvIHJlbW92ZSB0aGUgTVREIHBhcnRpdGlvbnMgZnJvbSB0
+aGUgTGludXggZGV2aWNlIHRyZWUsIGFuZCBJCj4+PiBub3RpY2VkIHRoYXQgdGhlcmUgd2FzIG5v
+IHBhcnRpdGlvbiBpbmZvcm1hdGlvbiBiZWluZyBwdXNoZWQgYW55bW9yZQo+Pj4gdW5sZXNzIEkg
+Y2hhbmdlZCB0aGUgbXRkcGFydHMgbmFtZSBpbiBVLUJvb3QuCj4+Pgo+Pj4gSXQgYXBwZWFycyBh
+cyBpZiB0aGUgTVREIGRyaXZlcnMgaGF2ZSBjaGFuZ2VkIGEgYml0LiAgSSBmb3VuZCBhIGZldwo+
+Pj4gZS1tYWlscyBmbG9hdGluZyBhcm91bmQgdGhhdCBhdHRlbXB0IHRvIGZpeCB0aGlzCj4+Pgo+
+Pj4gQ29tbWl0IGY3YThlMzhmMDdhMTdiZTkwNzU4NSAoIm10ZDogbmFuZDogYXNzaWduIHJlYXNv
+bmFibGUgZGVmYXVsdAo+Pj4gbmFtZSBmb3IgTkFORCBkcml2ZXJzIikgYXR0ZW1wdHMgdG8gYWRk
+cmVzcyB0aGlzLCBhbmQgc29tZW9uZSBvdmVyIGF0Cj4+PiBodHRwczovL3BhdGNod29yay5vemxh
+YnMub3JnL3BhdGNoLzcwNzA2NS8gYXR0ZW1wdGVkIHRvIGFkZHJlc3MgaXQgYXMKPj4+IHdlbGwg
+aW4gYSBzbGlnaHRseSBkaWZmZXJlbnQgd2F5Lgo+Pgo+PiBDYW4geW91IHRlc3QgdGhlIHBhdGNo
+IGFuZCBsZXQgbWUga25vdyBpZiBzb2x2ZXMgdGhlIHByb2JsZW0uIElmIGl0Cj4+IGRvZXMsIEkn
+bGwgc2VuZCBhIGNsZWFuIHZlcnNpb24gb2YgdGhlIHBhdGNoIGFuZCBxdWV1ZSBpdCBmb3IgNC4x
+Mi4KPj4KPiAKPiBJIHRyaWVkIHRvIGFwcGx5IHRoZSBwYXRjaCBkaXJlY3RseSwgYnV0IGl0IGZh
+aWxlZC4gIEkgdGhlbiBtYW51YWxseQo+IGNvcHktcGFzdGVkIGl0IGludG8gdGhlIHByb3BlciBw
+bGFjZSwgYnV0IGl0IGZhaWxzIHRvIGNvbXBpbGUuCj4gCj4gZHJpdmVycy9tdGQvbmFuZC9vbWFw
+Mi5jOiBJbiBmdW5jdGlvbiDigJhvbWFwX25hbmRfcHJvYmXigJk6Cj4gZHJpdmVycy9tdGQvbmFu
+ZC9vbWFwMi5jOjE4NTk6MTQ6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZgo+IGZ1bmN0
+aW9uIOKAmGRldm1fa2FzcHJpbmbigJkgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFy
+YXRpb25dCj4gICBtdGQtPm5hbWUgPSBkZXZtX2thc3ByaW5mKCZwZGV2LT5kZXYsICJvbWFwMi1u
+YW5kLiVkIiwgaW5mby0+Z3BtY19jcyk7Cj4gICAgICAgICAgICAgICBefn5+fn5+fn5+fn5+Cj4g
+ZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jOjE4NTk6MTI6IHdhcm5pbmc6IGFzc2lnbm1lbnQgbWFr
+ZXMgcG9pbnRlcgo+IGZyb20gaW50ZWdlciB3aXRob3V0IGEgY2FzdCBbLVdpbnQtY29udmVyc2lv
+bl0KPiAgIG10ZC0+bmFtZSA9IGRldm1fa2FzcHJpbmYoJnBkZXYtPmRldiwgIm9tYXAyLW5hbmQu
+JWQiLCBpbmZvLT5ncG1jX2NzKTsKPiAgICAgICAgICAgICBeCj4gY2MxOiBzb21lIHdhcm5pbmdz
+IGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzCj4gCj4gSSB1c2UgYnVpbGRyb290IHRvIGJ1aWxkIG15
+IHRvb2xjaGFpbiBhbmQgSSBhbSB1c2luZyBnY2MgdmVyc2lvbiA2LjMuMAo+IHdpdGggZ2xpYmMg
+Mi4yNC4gIElzIHRoZXJlIHN1cHBvc2VkIHRvIGJlIGFuIGluY2x1ZGUgc29tZXdoZXJlPyAgSSBh
+bQo+IG5vdCBmYW1pbGlhciB3aXRoIGRldm1fa2FzcHJpbmYuCj4gCj4gCgpEb2VzIHRoZSBiZWxv
+dyBwYXRjaCB3b3JrIGZvciB5b3U/CgpjaGVlcnMsCi1yb2dlcgoKLS0tCiBkcml2ZXJzL210ZC9u
+YW5kL29tYXAyLmMgfCA3ICsrKysrKysKIDEgZmlsZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKykK
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL210ZC9uYW5kL29tYXAyLmMgYi9kcml2ZXJzL210ZC9uYW5k
+L29tYXAyLmMKaW5kZXggMmE1MjEwMS4uZjY5M2I4ZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9tdGQv
+bmFuZC9vbWFwMi5jCisrKyBiL2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYwpAQCAtMTg1Niw2ICsx
+ODU2LDEzIEBAIHN0YXRpYyBpbnQgb21hcF9uYW5kX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
+Y2UgKnBkZXYpCiAJbmFuZF9jaGlwLT5lY2MucHJpdgk9IE5VTEw7CiAJbmFuZF9zZXRfZmxhc2hf
+bm9kZShuYW5kX2NoaXAsIGRldi0+b2Zfbm9kZSk7CiAKKwltdGQtPm5hbWUgPSBkZXZtX2thc3By
+aW50ZigmcGRldi0+ZGV2LCBHRlBfS0VSTkVMLCAib21hcDItbmFuZC4lZCIsCisJCQkJICAgaW5m
+by0+Z3BtY19jcyk7CisJaWYgKCFtdGQtPm5hbWUpIHsKKwkJZGV2X2VycigmcGRldi0+ZGV2LCAi
+RmFpbGVkIHRvIHNldCBNVEQgbmFtZVxuIik7CisJCXJldHVybiAtRU5PTUVNOworCX0KKwogCXJl
+cyA9IHBsYXRmb3JtX2dldF9yZXNvdXJjZShwZGV2LCBJT1JFU09VUkNFX01FTSwgMCk7CiAJbmFu
+ZF9jaGlwLT5JT19BRERSX1IgPSBkZXZtX2lvcmVtYXBfcmVzb3VyY2UoJnBkZXYtPmRldiwgcmVz
+KTsKIAlpZiAoSVNfRVJSKG5hbmRfY2hpcC0+SU9fQUREUl9SKSkKLS0gCjIuNy40CgoKCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eCBN
+VEQgZGlzY3Vzc2lvbiBtYWlsaW5nIGxpc3QKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1tdGQvCg==
