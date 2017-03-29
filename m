@@ -1,121 +1,71 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: Passing NAND mtdparts to OMAP2+ Kernel
-Date: Wed, 29 Mar 2017 17:06:58 +0300
-Message-ID: <89e42bf8-4a69-1e99-59e8-94dc44889849@ti.com>
-References: <CAHCN7xJoVF+3HjHwaS_U=jDqmU_Yv201KJSQ2s8N0gSNVR8pdQ@mail.gmail.com>
- <20170328215705.438d7af8@bbrezillon>
- <CAHCN7xKhRub4k8BpkPPjPFhjJU5c2xRd_VKPMfVOc88ZaTUmGQ@mail.gmail.com>
- <04afe149-24b2-daec-5ef0-2d662ed79040@ti.com>
- <20170329151002.26203f2c@bbrezillon> <20170329151837.509c15c6@bbrezillon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20170329151837.509c15c6@bbrezillon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>, Adam Ford <aford173@gmail.com>
-Cc: "Leto, Enrico" <enrico.leto@siemens.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] ARM: davinci: Add the clock for the CPPI 4.1 DMA engine
+Date: Wed, 29 Mar 2017 18:09:32 +0200
+Message-ID: <20170329160932.27157-1-abailon@baylibre.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: nsekhar-l0cyMroinI0@public.gmane.org
+Cc: khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjkvMDMvMTcgMTY6MTgsIEJvcmlzIEJyZXppbGxvbiB3cm90ZToKPiBPbiBXZWQsIDI5IE1h
-ciAyMDE3IDE1OjEwOjAyICswMjAwCj4gQm9yaXMgQnJlemlsbG9uIDxib3Jpcy5icmV6aWxsb25A
-ZnJlZS1lbGVjdHJvbnMuY29tPiB3cm90ZToKPiAKPj4gT24gV2VkLCAyOSBNYXIgMjAxNyAxNTo0
-MTowNyArMDMwMAo+PiBSb2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29tPiB3cm90ZToKPj4KPj4+
-IEFkYW0sCj4+Pgo+Pj4gT24gMjkvMDMvMTcgMTQ6MzksIEFkYW0gRm9yZCB3cm90ZTogIAo+Pj4+
-IE9uIFR1ZSwgTWFyIDI4LCAyMDE3IGF0IDI6NTcgUE0sIEJvcmlzIEJyZXppbGxvbgo+Pj4+IDxi
-b3Jpcy5icmV6aWxsb25AZnJlZS1lbGVjdHJvbnMuY29tPiB3cm90ZTogICAgCj4+Pj4+ICtSb2dl
-ciBhbmQgRW5yaWNvCj4+Pj4+Cj4+Pj4+IE9uIFR1ZSwgMjggTWFyIDIwMTcgMTA6NDM6MDEgLTA1
-MDAKPj4+Pj4gQWRhbSBGb3JkIDxhZm9yZDE3M0BnbWFpbC5jb20+IHdyb3RlOgo+Pj4+PiAgICAK
-Pj4+Pj4+IEkgcG9zdGVkIHRoaXMgb24gdGhlIGxpbnV4LW9tYXAgbGlzdCwgYW5kIEkgd2FzIGFz
-a2VkIHRvIHBvc3QgdGhpcyBvbgo+Pj4+Pj4gdGhlIGxpbnV4LW10ZCBsaXN0Ogo+Pj4+Pj4KPj4+
-Pj4+Cj4+Pj4+PiBJIHRyaWVkIHRvIHJlbW92ZSB0aGUgTVREIHBhcnRpdGlvbnMgZnJvbSB0aGUg
-TGludXggZGV2aWNlIHRyZWUsIGFuZCBJCj4+Pj4+PiBub3RpY2VkIHRoYXQgdGhlcmUgd2FzIG5v
-IHBhcnRpdGlvbiBpbmZvcm1hdGlvbiBiZWluZyBwdXNoZWQgYW55bW9yZQo+Pj4+Pj4gdW5sZXNz
-IEkgY2hhbmdlZCB0aGUgbXRkcGFydHMgbmFtZSBpbiBVLUJvb3QuCj4+Pj4+Pgo+Pj4+Pj4gSXQg
-YXBwZWFycyBhcyBpZiB0aGUgTVREIGRyaXZlcnMgaGF2ZSBjaGFuZ2VkIGEgYml0LiAgSSBmb3Vu
-ZCBhIGZldwo+Pj4+Pj4gZS1tYWlscyBmbG9hdGluZyBhcm91bmQgdGhhdCBhdHRlbXB0IHRvIGZp
-eCB0aGlzCj4+Pj4+Pgo+Pj4+Pj4gQ29tbWl0IGY3YThlMzhmMDdhMTdiZTkwNzU4NSAoIm10ZDog
-bmFuZDogYXNzaWduIHJlYXNvbmFibGUgZGVmYXVsdAo+Pj4+Pj4gbmFtZSBmb3IgTkFORCBkcml2
-ZXJzIikgYXR0ZW1wdHMgdG8gYWRkcmVzcyB0aGlzLCBhbmQgc29tZW9uZSBvdmVyIGF0Cj4+Pj4+
-PiBodHRwczovL3BhdGNod29yay5vemxhYnMub3JnL3BhdGNoLzcwNzA2NS8gYXR0ZW1wdGVkIHRv
-IGFkZHJlc3MgaXQgYXMKPj4+Pj4+IHdlbGwgaW4gYSBzbGlnaHRseSBkaWZmZXJlbnQgd2F5LiAg
-ICAKPj4+Pj4KPj4+Pj4gQ2FuIHlvdSB0ZXN0IHRoZSBwYXRjaCBhbmQgbGV0IG1lIGtub3cgaWYg
-c29sdmVzIHRoZSBwcm9ibGVtLiBJZiBpdAo+Pj4+PiBkb2VzLCBJJ2xsIHNlbmQgYSBjbGVhbiB2
-ZXJzaW9uIG9mIHRoZSBwYXRjaCBhbmQgcXVldWUgaXQgZm9yIDQuMTIuCj4+Pj4+ICAgIAo+Pj4+
-Cj4+Pj4gSSB0cmllZCB0byBhcHBseSB0aGUgcGF0Y2ggZGlyZWN0bHksIGJ1dCBpdCBmYWlsZWQu
-ICBJIHRoZW4gbWFudWFsbHkKPj4+PiBjb3B5LXBhc3RlZCBpdCBpbnRvIHRoZSBwcm9wZXIgcGxh
-Y2UsIGJ1dCBpdCBmYWlscyB0byBjb21waWxlLgo+Pj4+Cj4+Pj4gZHJpdmVycy9tdGQvbmFuZC9v
-bWFwMi5jOiBJbiBmdW5jdGlvbiDigJhvbWFwX25hbmRfcHJvYmXigJk6Cj4+Pj4gZHJpdmVycy9t
-dGQvbmFuZC9vbWFwMi5jOjE4NTk6MTQ6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZgo+
-Pj4+IGZ1bmN0aW9uIOKAmGRldm1fa2FzcHJpbmbigJkgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rp
-b24tZGVjbGFyYXRpb25dCj4+Pj4gICBtdGQtPm5hbWUgPSBkZXZtX2thc3ByaW5mKCZwZGV2LT5k
-ZXYsICJvbWFwMi1uYW5kLiVkIiwgaW5mby0+Z3BtY19jcyk7Cj4+Pj4gICAgICAgICAgICAgICBe
-fn5+fn5+fn5+fn5+Cj4+Pj4gZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jOjE4NTk6MTI6IHdhcm5p
-bmc6IGFzc2lnbm1lbnQgbWFrZXMgcG9pbnRlcgo+Pj4+IGZyb20gaW50ZWdlciB3aXRob3V0IGEg
-Y2FzdCBbLVdpbnQtY29udmVyc2lvbl0KPj4+PiAgIG10ZC0+bmFtZSA9IGRldm1fa2FzcHJpbmYo
-JnBkZXYtPmRldiwgIm9tYXAyLW5hbmQuJWQiLCBpbmZvLT5ncG1jX2NzKTsKPj4+PiAgICAgICAg
-ICAgICBeCj4+Pj4gY2MxOiBzb21lIHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzCj4+
-Pj4KPj4+PiBJIHVzZSBidWlsZHJvb3QgdG8gYnVpbGQgbXkgdG9vbGNoYWluIGFuZCBJIGFtIHVz
-aW5nIGdjYyB2ZXJzaW9uIDYuMy4wCj4+Pj4gd2l0aCBnbGliYyAyLjI0LiAgSXMgdGhlcmUgc3Vw
-cG9zZWQgdG8gYmUgYW4gaW5jbHVkZSBzb21ld2hlcmU/ICBJIGFtCj4+Pj4gbm90IGZhbWlsaWFy
-IHdpdGggZGV2bV9rYXNwcmluZi4gIAo+Pgo+PiBJdCdzIGEgdHlwbzogcy9kZXZtX2thc3ByaW5m
-L2Rldm1fa2FzcHJpbnRmLy4KPj4KPj4+Pgo+Pj4+ICAgICAKPj4+Cj4+PiBEb2VzIHRoZSBiZWxv
-dyBwYXRjaCB3b3JrIGZvciB5b3U/ICAKPj4KPj4gU2hvdWxkIHdvcmsgaW5kZWVkLgo+Pgo+PiBJ
-IGhhZCBhIGNsb3NlciBsb29rIGFuZCBpdCBzZWVtcyB0aGF0IHRoZSBidWcgd2FzIGFjdHVhbGx5
-IGludHJvZHVjZWQKPj4gYnkgYzk3MTFlYzUyNTBiIG10ZDogbmFuZDogb21hcDogQ2xlYW4gdXAg
-ZGV2aWNlIHRyZWUKPj4gc3VwcG9ydC4KPj4gVGhlIHBhcmVudCBkZXZpY2UgbmFtZSBoYXMgY2hh
-bmdlZCB3aGVuIHN3aXRjaGluZyB0byB0aGUgbmV3IERUCj4+IHJlcHJlc2VudGF0aW9uOiBvbWFw
-Mi1uYW5kLjAgKHdoZXJlIDAgaXMgdGhlIGNvbnRyb2xsZXIgaW5zdGFuY2UpIGJlY2FtZQo+PiAz
-MDAwMDAwMC5uYW5kICh3aGVyZSAzMDAwMDAwMCBpcyB0aGUgYmFzZSByZWcgYWRkcmVzcyBpbiB0
-aGUgcGh5c2ljYWwKPj4gYWRkcmVzcyBzcGFjZSkuIFdoaWNoIG1lYW5zIG15IHByb3Bvc2FsIHdh
-cyBpbmNvcnJlY3QgKDAgaXMgbm90IHRoZSBDUwo+PiBsaW5lLCBpdCdzIHRoZSBOQU5EIGNvbnRy
-b2xsZXIgaW5zdGFuY2UgbnVtYmVyKSwgc28gd2UnZCBiZXR0ZXIKPj4gc3RhdGljYWxseSBzZXQg
-aXQgdG8gIm9tYXAyLW5hbmQuMCIuCj4gCj4gQ2hhbmdpbmcgbXkgbWluZCAoYWdhaW4gOikpLiBB
-Y2NvcmRpbmcgdG8gWzFdLCB0aGUgaW5zdGFuY2UgaWQgaXMKPiByZWxhdGVkIHRvIHRoZSBDUyBs
-aW5lLCBzbyBkZXZtX2thc3ByaW50ZigpIGlzIHRoZSByaWdodCBzb2x1dGlvbi4KPiAKPiBTb3Jy
-eSBmb3IgdGhlIG5vaXNlLgo+IAo+Pgo+Pj4KPj4+IGNoZWVycywKPj4+IC1yb2dlcgo+Pj4KPj4+
-IC0tLQo+Pj4gIGRyaXZlcnMvbXRkL25hbmQvb21hcDIuYyB8IDcgKysrKysrKwo+Pj4gIDEgZmls
-ZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKykKPj4+Cj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
-dGQvbmFuZC9vbWFwMi5jIGIvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jCj4+PiBpbmRleCAyYTUy
-MTAxLi5mNjkzYjhkIDEwMDY0NAo+Pj4gLS0tIGEvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jCj4+
-PiArKysgYi9kcml2ZXJzL210ZC9uYW5kL29tYXAyLmMKPj4+IEBAIC0xODU2LDYgKzE4NTYsMTMg
-QEAgc3RhdGljIGludCBvbWFwX25hbmRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRl
-dikKPj4+ICAJbmFuZF9jaGlwLT5lY2MucHJpdgk9IE5VTEw7Cj4+PiAgCW5hbmRfc2V0X2ZsYXNo
-X25vZGUobmFuZF9jaGlwLCBkZXYtPm9mX25vZGUpOwo+Pj4gICAgCj4+Cj4+IG5hbmRfc2V0X2Zs
-YXNoX25vZGUoKSBpcyBub3cgdGFraW5nIHRoZSAibGFiZWwiIERUIHByb3BlcnR5IGludG8gYWNj
-b3VudAo+PiBhbmQgYXNzaWduaW5nIG10ZC0+bmFtZSB0byB0aGlzIHZhbHVlIGlmIHByZXNlbnQu
-IEknZCByZWNvbW1lbmQgZG9pbmcKPj4KPj4gCWlmICghbXRkLT5uYW1lKQo+PiAJCW10ZC0+bmFt
-ZSA9ICJvbWFwMi1uYW5kLjAiOwo+IAo+IFRoaXMgY29tbWVudCBzdGlsbCBzdGFuZHMsIGV4Y2Vw
-dCBpdCBzaG91bGQgYmU6Cj4gCj4gCWlmICghbXRkLT5uYW1lKQo+IAkJbXRkLT5uYW1lID0gZGV2
-bV9rYXNwcmludGYoJnBkZXYtPmRldiwgR0ZQX0tFUk5FTCwKPiAJCQkJCSAgICJvbWFwMi1uYW5k
-LiVkIiwgaW5mby0+Z3BtY19jcyk7Cj4gCj4gCWlmICghbXRkLT5uYW1lKSB7Cj4gCQlkZXZfZXJy
-KCZwZGV2LT5kZXYsICJGYWlsZWQgdG8gc2V0IE1URCBuYW1lXG4iKTsKPiAJCXJldHVybiAtRU5P
-TUVNOwo+IAl9Cj4gCj4gUmVnYXJkcywKPiAKPiBCb3Jpcwo+IAo+IFsxXWh0dHA6Ly9seHIuZnJl
-ZS1lbGVjdHJvbnMuY29tL3NvdXJjZS9hcmNoL2FybS9tYWNoLW9tYXAyL2dwbWMtbmFuZC5jP3Y9
-NC42I0wxMzMKPiAKCk9LLiBIZXJlIGlzIHRoZSB1cGRhdGVkIHBhdGNoLiBJJ2xsIHNlbmQgYW4g
-cHJvcGVyIHBhdGNoIGJ5IHRvbW9ycm93LgoKQWRhbSwgcGxlYXNlIHRlc3QgaXQgb24geW91ciBi
-b2FyZCBpZiBwb3NzaWJsZS4gVGhhbmtzLgoKLS0tCiBkcml2ZXJzL210ZC9uYW5kL29tYXAyLmMg
-fCA5ICsrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYyBiL2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYwpp
-bmRleCAyYTUyMTAxLi4xYjNkN2NjIDEwMDY0NAotLS0gYS9kcml2ZXJzL210ZC9uYW5kL29tYXAy
-LmMKKysrIGIvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jCkBAIC0xODU2LDYgKzE4NTYsMTUgQEAg
-c3RhdGljIGludCBvbWFwX25hbmRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikK
-IAluYW5kX2NoaXAtPmVjYy5wcml2CT0gTlVMTDsKIAluYW5kX3NldF9mbGFzaF9ub2RlKG5hbmRf
-Y2hpcCwgZGV2LT5vZl9ub2RlKTsKIAorCWlmICghbXRkLT5uYW1lKSB7CisJCW10ZC0+bmFtZSA9
-IGRldm1fa2FzcHJpbnRmKCZwZGV2LT5kZXYsIEdGUF9LRVJORUwsICJvbWFwMi1uYW5kLiVkIiwK
-KwkJCQkJICAgaW5mby0+Z3BtY19jcyk7CisJCWlmICghbXRkLT5uYW1lKSB7CisJCQlkZXZfZXJy
-KCZwZGV2LT5kZXYsICJGYWlsZWQgdG8gc2V0IE1URCBuYW1lXG4iKTsKKwkJCXJldHVybiAtRU5P
-TUVNOworCQl9CisJfQorCiAJcmVzID0gcGxhdGZvcm1fZ2V0X3Jlc291cmNlKHBkZXYsIElPUkVT
-T1VSQ0VfTUVNLCAwKTsKIAluYW5kX2NoaXAtPklPX0FERFJfUiA9IGRldm1faW9yZW1hcF9yZXNv
-dXJjZSgmcGRldi0+ZGV2LCByZXMpOwogCWlmIChJU19FUlIobmFuZF9jaGlwLT5JT19BRERSX1Ip
-KQotLSAKMi43LjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KTGludXggTVREIGRpc2N1c3Npb24gbWFpbGluZyBsaXN0Cmh0dHA6Ly9saXN0
-cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbXRkLwo=
+The CPPI 4.1 DMA is sharing its clock with the USB OTG,
+and most of the time, the clock will be enabled by USB.
+But during the init of the DMA, USB is not enabled (waiting for DMA),
+and then we must enable the clock before to do anything.
+Add the clock for the CPPI 4.1 DMA engine.
+
+Note:
+This patch is to apply instead of:
+"ARM: davinci: Make the usb20 clock available to PM runtime"
+
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ arch/arm/mach-davinci/da830.c    | 1 +
+ arch/arm/mach-davinci/da850.c    | 1 +
+ arch/arm/mach-davinci/da8xx-dt.c | 2 ++
+ 3 files changed, 4 insertions(+)
+
+diff --git a/arch/arm/mach-davinci/da830.c b/arch/arm/mach-davinci/da830.c
+index 073c458..ae4a8a5 100644
+--- a/arch/arm/mach-davinci/da830.c
++++ b/arch/arm/mach-davinci/da830.c
+@@ -413,6 +413,7 @@ static struct clk_lookup da830_clks[] = {
+ 	CLK("davinci-mcasp.1",	NULL,		&mcasp1_clk),
+ 	CLK("davinci-mcasp.2",	NULL,		&mcasp2_clk),
+ 	CLK("musb-da8xx",	"usb20",	&usb20_clk),
++	CLK("cppi41-dmaengine",	NULL,		&usb20_clk),
+ 	CLK(NULL,		"aemif",	&aemif_clk),
+ 	CLK(NULL,		"aintc",	&aintc_clk),
+ 	CLK(NULL,		"secu_mgr",	&secu_mgr_clk),
+diff --git a/arch/arm/mach-davinci/da850.c b/arch/arm/mach-davinci/da850.c
+index ccad2f9..9739aaa 100644
+--- a/arch/arm/mach-davinci/da850.c
++++ b/arch/arm/mach-davinci/da850.c
+@@ -560,6 +560,7 @@ static struct clk_lookup da850_clks[] = {
+ 	CLK("davinci-nand.0",	"aemif",	&aemif_nand_clk),
+ 	CLK("ohci-da8xx",	"usb11",	&usb11_clk),
+ 	CLK("musb-da8xx",	"usb20",	&usb20_clk),
++	CLK("cppi41-dmaengine",	NULL,		&usb20_clk),
+ 	CLK("spi_davinci.0",	NULL,		&spi0_clk),
+ 	CLK("spi_davinci.1",	NULL,		&spi1_clk),
+ 	CLK("vpif",		NULL,		&vpif_clk),
+diff --git a/arch/arm/mach-davinci/da8xx-dt.c b/arch/arm/mach-davinci/da8xx-dt.c
+index e3cef50..5bf08ba 100644
+--- a/arch/arm/mach-davinci/da8xx-dt.c
++++ b/arch/arm/mach-davinci/da8xx-dt.c
+@@ -53,6 +53,8 @@ static struct of_dev_auxdata da850_auxdata_lookup[] __initdata = {
+ 	OF_DEV_AUXDATA("ti,da830-musb", 0x01e00000, "musb-da8xx", NULL),
+ 	OF_DEV_AUXDATA("ti,da830-usb-phy", 0x01c1417c, "da8xx-usb-phy", NULL),
+ 	OF_DEV_AUXDATA("ti,da850-ahci", 0x01e18000, "ahci_da850", NULL),
++	OF_DEV_AUXDATA("ti,da830-cppi41", 0x01e01000, "cppi41-dma-engine",
++		       NULL),
+ 	{}
+ };
+ 
+-- 
+2.10.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
