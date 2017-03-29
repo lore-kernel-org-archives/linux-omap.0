@@ -1,134 +1,60 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: Passing NAND mtdparts to OMAP2+ Kernel
-Date: Wed, 29 Mar 2017 14:59:19 -0500
-Message-ID: <CAHCN7x+CfRnt4WAA_vYt0+Z_zrXOSUfvPGHVq9qbXR7J7udDPw@mail.gmail.com>
-References: <CAHCN7xJoVF+3HjHwaS_U=jDqmU_Yv201KJSQ2s8N0gSNVR8pdQ@mail.gmail.com>
- <20170328215705.438d7af8@bbrezillon>
- <CAHCN7xKhRub4k8BpkPPjPFhjJU5c2xRd_VKPMfVOc88ZaTUmGQ@mail.gmail.com>
- <04afe149-24b2-daec-5ef0-2d662ed79040@ti.com>
- <20170329151002.26203f2c@bbrezillon>
- <20170329151837.509c15c6@bbrezillon>
- <89e42bf8-4a69-1e99-59e8-94dc44889849@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv3] iio: adc: cpcap: Add minimal support for CPCAP PMIC ADC
+Date: Wed, 29 Mar 2017 16:26:37 -0500
+Message-ID: <20170329212637.syluvxy5cp2qub3h@rob-hp-laptop>
+References: <20170324033842.12541-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <89e42bf8-4a69-1e99-59e8-94dc44889849@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: "Leto, Enrico" <enrico.leto@siemens.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170324033842.12541-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCBNYXIgMjksIDIwMTcgYXQgOTowNiBBTSwgUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRp
-LmNvbT4gd3JvdGU6Cj4gT24gMjkvMDMvMTcgMTY6MTgsIEJvcmlzIEJyZXppbGxvbiB3cm90ZToK
-Pj4gT24gV2VkLCAyOSBNYXIgMjAxNyAxNToxMDowMiArMDIwMAo+PiBCb3JpcyBCcmV6aWxsb24g
-PGJvcmlzLmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5jb20+IHdyb3RlOgo+Pgo+Pj4gT24gV2Vk
-LCAyOSBNYXIgMjAxNyAxNTo0MTowNyArMDMwMAo+Pj4gUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRp
-LmNvbT4gd3JvdGU6Cj4+Pgo+Pj4+IEFkYW0sCj4+Pj4KPj4+PiBPbiAyOS8wMy8xNyAxNDozOSwg
-QWRhbSBGb3JkIHdyb3RlOgo+Pj4+PiBPbiBUdWUsIE1hciAyOCwgMjAxNyBhdCAyOjU3IFBNLCBC
-b3JpcyBCcmV6aWxsb24KPj4+Pj4gPGJvcmlzLmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5jb20+
-IHdyb3RlOgo+Pj4+Pj4gK1JvZ2VyIGFuZCBFbnJpY28KPj4+Pj4+Cj4+Pj4+PiBPbiBUdWUsIDI4
-IE1hciAyMDE3IDEwOjQzOjAxIC0wNTAwCj4+Pj4+PiBBZGFtIEZvcmQgPGFmb3JkMTczQGdtYWls
-LmNvbT4gd3JvdGU6Cj4+Pj4+Pgo+Pj4+Pj4+IEkgcG9zdGVkIHRoaXMgb24gdGhlIGxpbnV4LW9t
-YXAgbGlzdCwgYW5kIEkgd2FzIGFza2VkIHRvIHBvc3QgdGhpcyBvbgo+Pj4+Pj4+IHRoZSBsaW51
-eC1tdGQgbGlzdDoKPj4+Pj4+Pgo+Pj4+Pj4+Cj4+Pj4+Pj4gSSB0cmllZCB0byByZW1vdmUgdGhl
-IE1URCBwYXJ0aXRpb25zIGZyb20gdGhlIExpbnV4IGRldmljZSB0cmVlLCBhbmQgSQo+Pj4+Pj4+
-IG5vdGljZWQgdGhhdCB0aGVyZSB3YXMgbm8gcGFydGl0aW9uIGluZm9ybWF0aW9uIGJlaW5nIHB1
-c2hlZCBhbnltb3JlCj4+Pj4+Pj4gdW5sZXNzIEkgY2hhbmdlZCB0aGUgbXRkcGFydHMgbmFtZSBp
-biBVLUJvb3QuCj4+Pj4+Pj4KPj4+Pj4+PiBJdCBhcHBlYXJzIGFzIGlmIHRoZSBNVEQgZHJpdmVy
-cyBoYXZlIGNoYW5nZWQgYSBiaXQuICBJIGZvdW5kIGEgZmV3Cj4+Pj4+Pj4gZS1tYWlscyBmbG9h
-dGluZyBhcm91bmQgdGhhdCBhdHRlbXB0IHRvIGZpeCB0aGlzCj4+Pj4+Pj4KPj4+Pj4+PiBDb21t
-aXQgZjdhOGUzOGYwN2ExN2JlOTA3NTg1ICgibXRkOiBuYW5kOiBhc3NpZ24gcmVhc29uYWJsZSBk
-ZWZhdWx0Cj4+Pj4+Pj4gbmFtZSBmb3IgTkFORCBkcml2ZXJzIikgYXR0ZW1wdHMgdG8gYWRkcmVz
-cyB0aGlzLCBhbmQgc29tZW9uZSBvdmVyIGF0Cj4+Pj4+Pj4gaHR0cHM6Ly9wYXRjaHdvcmsub3ps
-YWJzLm9yZy9wYXRjaC83MDcwNjUvIGF0dGVtcHRlZCB0byBhZGRyZXNzIGl0IGFzCj4+Pj4+Pj4g
-d2VsbCBpbiBhIHNsaWdodGx5IGRpZmZlcmVudCB3YXkuCj4+Pj4+Pgo+Pj4+Pj4gQ2FuIHlvdSB0
-ZXN0IHRoZSBwYXRjaCBhbmQgbGV0IG1lIGtub3cgaWYgc29sdmVzIHRoZSBwcm9ibGVtLiBJZiBp
-dAo+Pj4+Pj4gZG9lcywgSSdsbCBzZW5kIGEgY2xlYW4gdmVyc2lvbiBvZiB0aGUgcGF0Y2ggYW5k
-IHF1ZXVlIGl0IGZvciA0LjEyLgo+Pj4+Pj4KPj4+Pj4KPj4+Pj4gSSB0cmllZCB0byBhcHBseSB0
-aGUgcGF0Y2ggZGlyZWN0bHksIGJ1dCBpdCBmYWlsZWQuICBJIHRoZW4gbWFudWFsbHkKPj4+Pj4g
-Y29weS1wYXN0ZWQgaXQgaW50byB0aGUgcHJvcGVyIHBsYWNlLCBidXQgaXQgZmFpbHMgdG8gY29t
-cGlsZS4KPj4+Pj4KPj4+Pj4gZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jOiBJbiBmdW5jdGlvbiDi
-gJhvbWFwX25hbmRfcHJvYmXigJk6Cj4+Pj4+IGRyaXZlcnMvbXRkL25hbmQvb21hcDIuYzoxODU5
-OjE0OiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YKPj4+Pj4gZnVuY3Rpb24g4oCYZGV2
-bV9rYXNwcmluZuKAmSBbLVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0KPj4+
-Pj4gICBtdGQtPm5hbWUgPSBkZXZtX2thc3ByaW5mKCZwZGV2LT5kZXYsICJvbWFwMi1uYW5kLiVk
-IiwgaW5mby0+Z3BtY19jcyk7Cj4+Pj4+ICAgICAgICAgICAgICAgXn5+fn5+fn5+fn5+fgo+Pj4+
-PiBkcml2ZXJzL210ZC9uYW5kL29tYXAyLmM6MTg1OToxMjogd2FybmluZzogYXNzaWdubWVudCBt
-YWtlcyBwb2ludGVyCj4+Pj4+IGZyb20gaW50ZWdlciB3aXRob3V0IGEgY2FzdCBbLVdpbnQtY29u
-dmVyc2lvbl0KPj4+Pj4gICBtdGQtPm5hbWUgPSBkZXZtX2thc3ByaW5mKCZwZGV2LT5kZXYsICJv
-bWFwMi1uYW5kLiVkIiwgaW5mby0+Z3BtY19jcyk7Cj4+Pj4+ICAgICAgICAgICAgIF4KPj4+Pj4g
-Y2MxOiBzb21lIHdhcm5pbmdzIGJlaW5nIHRyZWF0ZWQgYXMgZXJyb3JzCj4+Pj4+Cj4+Pj4+IEkg
-dXNlIGJ1aWxkcm9vdCB0byBidWlsZCBteSB0b29sY2hhaW4gYW5kIEkgYW0gdXNpbmcgZ2NjIHZl
-cnNpb24gNi4zLjAKPj4+Pj4gd2l0aCBnbGliYyAyLjI0LiAgSXMgdGhlcmUgc3VwcG9zZWQgdG8g
-YmUgYW4gaW5jbHVkZSBzb21ld2hlcmU/ICBJIGFtCj4+Pj4+IG5vdCBmYW1pbGlhciB3aXRoIGRl
-dm1fa2FzcHJpbmYuCj4+Pgo+Pj4gSXQncyBhIHR5cG86IHMvZGV2bV9rYXNwcmluZi9kZXZtX2th
-c3ByaW50Zi8uCj4+Pgo+Pj4+Pgo+Pj4+Pgo+Pj4+Cj4+Pj4gRG9lcyB0aGUgYmVsb3cgcGF0Y2gg
-d29yayBmb3IgeW91Pwo+Pj4KPj4+IFNob3VsZCB3b3JrIGluZGVlZC4KPj4+Cj4+PiBJIGhhZCBh
-IGNsb3NlciBsb29rIGFuZCBpdCBzZWVtcyB0aGF0IHRoZSBidWcgd2FzIGFjdHVhbGx5IGludHJv
-ZHVjZWQKPj4+IGJ5IGM5NzExZWM1MjUwYiBtdGQ6IG5hbmQ6IG9tYXA6IENsZWFuIHVwIGRldmlj
-ZSB0cmVlCj4+PiBzdXBwb3J0Lgo+Pj4gVGhlIHBhcmVudCBkZXZpY2UgbmFtZSBoYXMgY2hhbmdl
-ZCB3aGVuIHN3aXRjaGluZyB0byB0aGUgbmV3IERUCj4+PiByZXByZXNlbnRhdGlvbjogb21hcDIt
-bmFuZC4wICh3aGVyZSAwIGlzIHRoZSBjb250cm9sbGVyIGluc3RhbmNlKSBiZWNhbWUKPj4+IDMw
-MDAwMDAwLm5hbmQgKHdoZXJlIDMwMDAwMDAwIGlzIHRoZSBiYXNlIHJlZyBhZGRyZXNzIGluIHRo
-ZSBwaHlzaWNhbAo+Pj4gYWRkcmVzcyBzcGFjZSkuIFdoaWNoIG1lYW5zIG15IHByb3Bvc2FsIHdh
-cyBpbmNvcnJlY3QgKDAgaXMgbm90IHRoZSBDUwo+Pj4gbGluZSwgaXQncyB0aGUgTkFORCBjb250
-cm9sbGVyIGluc3RhbmNlIG51bWJlciksIHNvIHdlJ2QgYmV0dGVyCj4+PiBzdGF0aWNhbGx5IHNl
-dCBpdCB0byAib21hcDItbmFuZC4wIi4KPj4KPj4gQ2hhbmdpbmcgbXkgbWluZCAoYWdhaW4gOikp
-LiBBY2NvcmRpbmcgdG8gWzFdLCB0aGUgaW5zdGFuY2UgaWQgaXMKPj4gcmVsYXRlZCB0byB0aGUg
-Q1MgbGluZSwgc28gZGV2bV9rYXNwcmludGYoKSBpcyB0aGUgcmlnaHQgc29sdXRpb24uCj4+Cj4+
-IFNvcnJ5IGZvciB0aGUgbm9pc2UuCj4+Cj4+Pgo+Pj4+Cj4+Pj4gY2hlZXJzLAo+Pj4+IC1yb2dl
-cgo+Pj4+Cj4+Pj4gLS0tCj4+Pj4gIGRyaXZlcnMvbXRkL25hbmQvb21hcDIuYyB8IDcgKysrKysr
-Kwo+Pj4+ICAxIGZpbGUgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspCj4+Pj4KPj4+PiBkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jIGIvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5j
-Cj4+Pj4gaW5kZXggMmE1MjEwMS4uZjY5M2I4ZCAxMDA2NDQKPj4+PiAtLS0gYS9kcml2ZXJzL210
-ZC9uYW5kL29tYXAyLmMKPj4+PiArKysgYi9kcml2ZXJzL210ZC9uYW5kL29tYXAyLmMKPj4+PiBA
-QCAtMTg1Niw2ICsxODU2LDEzIEBAIHN0YXRpYyBpbnQgb21hcF9uYW5kX3Byb2JlKHN0cnVjdCBw
-bGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4+Pj4gICAgIG5hbmRfY2hpcC0+ZWNjLnByaXYgICAgID0g
-TlVMTDsKPj4+PiAgICAgbmFuZF9zZXRfZmxhc2hfbm9kZShuYW5kX2NoaXAsIGRldi0+b2Zfbm9k
-ZSk7Cj4+Pj4KPj4+Cj4+PiBuYW5kX3NldF9mbGFzaF9ub2RlKCkgaXMgbm93IHRha2luZyB0aGUg
-ImxhYmVsIiBEVCBwcm9wZXJ0eSBpbnRvIGFjY291bnQKPj4+IGFuZCBhc3NpZ25pbmcgbXRkLT5u
-YW1lIHRvIHRoaXMgdmFsdWUgaWYgcHJlc2VudC4gSSdkIHJlY29tbWVuZCBkb2luZwo+Pj4KPj4+
-ICAgICAgaWYgKCFtdGQtPm5hbWUpCj4+PiAgICAgICAgICAgICAgbXRkLT5uYW1lID0gIm9tYXAy
-LW5hbmQuMCI7Cj4+Cj4+IFRoaXMgY29tbWVudCBzdGlsbCBzdGFuZHMsIGV4Y2VwdCBpdCBzaG91
-bGQgYmU6Cj4+Cj4+ICAgICAgIGlmICghbXRkLT5uYW1lKQo+PiAgICAgICAgICAgICAgIG10ZC0+
-bmFtZSA9IGRldm1fa2FzcHJpbnRmKCZwZGV2LT5kZXYsIEdGUF9LRVJORUwsCj4+ICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIm9tYXAyLW5hbmQuJWQiLCBpbmZvLT5n
-cG1jX2NzKTsKPj4KPj4gICAgICAgaWYgKCFtdGQtPm5hbWUpIHsKPj4gICAgICAgICAgICAgICBk
-ZXZfZXJyKCZwZGV2LT5kZXYsICJGYWlsZWQgdG8gc2V0IE1URCBuYW1lXG4iKTsKPj4gICAgICAg
-ICAgICAgICByZXR1cm4gLUVOT01FTTsKPj4gICAgICAgfQo+Pgo+PiBSZWdhcmRzLAo+Pgo+PiBC
-b3Jpcwo+Pgo+PiBbMV1odHRwOi8vbHhyLmZyZWUtZWxlY3Ryb25zLmNvbS9zb3VyY2UvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9ncG1jLW5hbmQuYz92PTQuNiNMMTMzCj4+Cj4KPiBPSy4gSGVyZSBpcyB0
-aGUgdXBkYXRlZCBwYXRjaC4gSSdsbCBzZW5kIGFuIHByb3BlciBwYXRjaCBieSB0b21vcnJvdy4K
-Pgo+IEFkYW0sIHBsZWFzZSB0ZXN0IGl0IG9uIHlvdXIgYm9hcmQgaWYgcG9zc2libGUuIFRoYW5r
-cy4KCkkgdGVzdGVkIHRoaXMgYWdhaW5zdCBMaW51eCBtYXN0ZXIgKDQuMTEuMC1yYzQpIGFuZCBp
-dCB3b3JrcyBmb3IgbWUuClRoYW5rIHlvdS4gIEdvIGFoZWFkIGFuZCBhZGQgbWUgYXMgJ3Rlc3Rl
-ZC1ieScgd2hlbiB5b3UgZG8geW91IGZpbmFsCnBhdGNoIHN1Ym1pc3Npb24uCgoKYWRhbQo+Cj4g
-LS0tCj4gIGRyaXZlcnMvbXRkL25hbmQvb21hcDIuYyB8IDkgKysrKysrKysrCj4gIDEgZmlsZSBj
-aGFuZ2VkLCA5IGluc2VydGlvbnMoKykKPgo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL210ZC9uYW5k
-L29tYXAyLmMgYi9kcml2ZXJzL210ZC9uYW5kL29tYXAyLmMKPiBpbmRleCAyYTUyMTAxLi4xYjNk
-N2NjIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYwo+ICsrKyBiL2RyaXZl
-cnMvbXRkL25hbmQvb21hcDIuYwo+IEBAIC0xODU2LDYgKzE4NTYsMTUgQEAgc3RhdGljIGludCBv
-bWFwX25hbmRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgICAgICAgIG5h
-bmRfY2hpcC0+ZWNjLnByaXYgICAgID0gTlVMTDsKPiAgICAgICAgIG5hbmRfc2V0X2ZsYXNoX25v
-ZGUobmFuZF9jaGlwLCBkZXYtPm9mX25vZGUpOwo+Cj4gKyAgICAgICBpZiAoIW10ZC0+bmFtZSkg
-ewo+ICsgICAgICAgICAgICAgICBtdGQtPm5hbWUgPSBkZXZtX2thc3ByaW50ZigmcGRldi0+ZGV2
-LCBHRlBfS0VSTkVMLCAib21hcDItbmFuZC4lZCIsCj4gKyAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIGluZm8tPmdwbWNfY3MpOwo+ICsgICAgICAgICAgICAgICBpZiAo
-IW10ZC0+bmFtZSkgewo+ICsgICAgICAgICAgICAgICAgICAgICAgIGRldl9lcnIoJnBkZXYtPmRl
-diwgIkZhaWxlZCB0byBzZXQgTVREIG5hbWVcbiIpOwo+ICsgICAgICAgICAgICAgICAgICAgICAg
-IHJldHVybiAtRU5PTUVNOwo+ICsgICAgICAgICAgICAgICB9Cj4gKyAgICAgICB9Cj4gKwo+ICAg
-ICAgICAgcmVzID0gcGxhdGZvcm1fZ2V0X3Jlc291cmNlKHBkZXYsIElPUkVTT1VSQ0VfTUVNLCAw
-KTsKPiAgICAgICAgIG5hbmRfY2hpcC0+SU9fQUREUl9SID0gZGV2bV9pb3JlbWFwX3Jlc291cmNl
-KCZwZGV2LT5kZXYsIHJlcyk7Cj4gICAgICAgICBpZiAoSVNfRVJSKG5hbmRfY2hpcC0+SU9fQURE
-Ul9SKSkKPiAtLQo+IDIuNy40Cj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpMaW51eCBNVEQgZGlzY3Vzc2lvbiBtYWlsaW5nIGxpc3QKaHR0
-cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvCg==
+On Thu, Mar 23, 2017 at 08:38:42PM -0700, Tony Lindgren wrote:
+> On Motorola phones like droid 4 there is a custom CPCAP PMIC. This PMIC
+> has ADCs that are used for battery charging and USB PHY VBUS and ID pin
+> detection.
+> 
+> Unfortunately the only documentation for this ADC seems to be the
+> Motorola mapphone Linux kernel tree. I have tested that reading raw and
+> scaled values works, but I have not used the timed sampling that the ADC
+> seems to support.
+> 
+> Let's add a minimal support for it so we can eventually provide IIO
+> channels for the related battery charging and USB PHY drivers.
+> 
+> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+> 
+> Changes since v2:
+> 
+> - Simplify things further by using channel based indexing and
+>   remove more drivers specific enumerations
+> 
+> Changes since v1:
+> 
+> - Fix numerous issues pointed out by Peter Meerwald-Stadler
+>   <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org> and Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> 
+> - Simplify things further by limiting read functions to a
+>   single channel instead of a bank and got rid of the driver
+>   specific cpcap_adc_conv_type in favor of IIO generic types
+> 
+> ---
+>  .../devicetree/bindings/iio/adc/cpcap-adc.txt      |   18 +
+
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+>  drivers/iio/adc/Kconfig                            |   11 +
+>  drivers/iio/adc/Makefile                           |    1 +
+>  drivers/iio/adc/cpcap-adc.c                        | 1007 ++++++++++++++++++++
+>  4 files changed, 1037 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/iio/adc/cpcap-adc.txt
+>  create mode 100644 drivers/iio/adc/cpcap-adc.c
