@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes v4.11-rc cycle
-Date: Mon,  6 Mar 2017 08:46:42 -0800
-Message-ID: <21644.2054058009$1505298312@news.gmane.org>
+Subject: [GIT PULL] omap fixes for v4.11-rc cycle
+Date: Wed, 29 Mar 2017 10:07:23 -0700
+Message-ID: <43103.9042691284$1505299157@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,77 +19,47 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
-
-  Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-rc1-v2
-
-for you to fetch changes up to e24bce8fb4c26bd0d8eca74cbbee1ad049246be3:
+The following changes since commit e24bce8fb4c26bd0d8eca74cbbee1ad049246be3:
 
   Merge tag 'v4.11-rc1' into omap-for-v4.11/fixes (2017-03-06 08:37:53 -0800)
 
-----------------------------------------------------------------
-Fixes for omaps for v4.11-rc cycle:
+are available in the git repository at:
 
-- Fix smartreflex platform data regression where I accidentally
-  removed legacy platform data still in use
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-rc4
 
-- Fix hypervisor mode for thumb2 kernel
+for you to fetch changes up to 351b7c490700747d1dba1b0a10fbfe3448d11c35:
 
-- Fix misplaced tpic2810 to move it to right bus
-
-- Enable INPUT_MOUSEDEV as a loadable module have mice working
-
-- Fix use of gpio-key,wakeup and use wakeup-source instead as
-  this accidentally sneaked in during the merge window
-
-- Fix error handling for onenand to properly return error
-
-- Remove legacy gpmc-nand.c that's now dead code, this
-  also removes dependency to the MTD tree for further driver
-  changes
-
-- Fix device node reference count errors for omap3 and
-  related to it also release device nodes after no longer
-  needed
+  ARM: omap2+: Revert omap-smp.c changes resetting CPU1 during boot (2017-03-27 10:10:42 -0700)
 
 ----------------------------------------------------------------
-Guenter Roeck (2):
-      ARM: OMAP2+: Fix device node reference counts
-      ARM: OMAP2+: Release device node after it is no longer needed.
+Fixes for omaps for v4.11-rc cycle. The biggest fix is to stop doing
+unconditional reset of CPU1 as that caused a regression for cases with
+custom bootloader loaded code running on CPU1. The rest are just minor
+fixes for devices and one warning fix.
 
-Ladislav Michl (2):
-      ARM: OMAP2+: gpmc-onenand: propagate error on initialization failure
-      ARM: OMAP2+: Remove legacy gpmc-nand.c
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: dts: OMAP3: Fix MFG ID EEPROM
 
-Matthijs van Duin (1):
-      ARM: OMAP5 / DRA7: Fix HYP mode boot for thumb2 build
+Reizer, Eyal (1):
+      ARM: dts: am335x-evmsk: adjust mmc2 param to allow suspend
 
-Sekhar Nori (1):
-      ARM: dts: am57xx-idk: tpic2810 is on I2C bus, not SPI
+Rob Herring (1):
+      ARM: dts: ti: fix PCI bus dtc warnings
 
-Teresa Remmet (1):
-      ARM: dts: am335x-pcm953: Fix legacy wakeup source binding
+Tony Lindgren (1):
+      ARM: omap2+: Revert omap-smp.c changes resetting CPU1 during boot
 
-Tony Lindgren (5):
-      ARM: OMAP3: Fix smartreflex platform data regression
-      Merge branch 'omap-for-v4.10/fixes' into omap-for-v4.11/fixes
-      ARM: omap2plus_defconfig: Enable INPUT_MOUSEDEV as loadable modules
-      Merge branch 'gpio-key-wakeup-fix' into omap-for-v4.11/fixes
-      Merge tag 'v4.11-rc1' into omap-for-v4.11/fixes
+Yegor Yefremov (1):
+      ARM: dts: am335x-baltos: disable EEE for Atheros 8035 PHY
 
- arch/arm/boot/dts/am335x-pcm-953.dtsi      |   4 +-
- arch/arm/boot/dts/am57xx-idk-common.dtsi   |  14 +--
- arch/arm/configs/omap2plus_defconfig       |   1 +
- arch/arm/mach-omap2/Makefile               |   3 -
- arch/arm/mach-omap2/gpmc-nand.c            | 154 -----------------------------
- arch/arm/mach-omap2/gpmc-onenand.c         |  10 +-
- arch/arm/mach-omap2/omap-headsmp.S         |   3 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  45 +++++++--
- drivers/memory/omap-gpmc.c                 |   4 +-
- include/linux/omap-gpmc.h                  |  16 +--
- 10 files changed, 59 insertions(+), 195 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/gpmc-nand.c
+ arch/arm/boot/dts/am335x-baltos.dtsi       |  2 +
+ arch/arm/boot/dts/am335x-evmsk.dts         |  1 +
+ arch/arm/boot/dts/dra7.dtsi                |  2 +
+ arch/arm/boot/dts/logicpd-torpedo-som.dtsi |  2 +-
+ arch/arm/mach-omap2/common.h               |  1 +
+ arch/arm/mach-omap2/omap-hotplug.c         |  2 +-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c  | 22 ++++++--
+ arch/arm/mach-omap2/omap-smc.S             |  1 -
+ arch/arm/mach-omap2/omap-smp.c             | 90 +++++++++++++++++++++++++-----
+ 9 files changed, 102 insertions(+), 21 deletions(-)
