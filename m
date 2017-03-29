@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 2/8] ARM: OMAP2+: timer: Add suspend-resume callbacks for clkevent device
-Date: Tue, 28 Mar 2017 20:57:55 -0500
-Message-ID: <20170329015801.22240-3-d-gerlach@ti.com>
+Subject: [PATCH 7/8] soc: ti: Add pm33xx driver for basic suspend support
+Date: Tue, 28 Mar 2017 20:58:00 -0500
+Message-ID: <20170329015801.22240-8-d-gerlach@ti.com>
 References: <20170329015801.22240-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,75 +12,438 @@ To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, R
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP timer code registers two timers - one as clocksource
-and one as clockevent. Since AM33XX has only one usable timer
-in the WKUP domain one of the timers needs suspend-resume
-support to restore the configuration to pre-suspend state.
+AM335x and AM437x support various low power modes as documented
+in section 8.1.4.3 of the AM335x Technical Reference Manual and
+section 6.4.3 of the AM437x Technical Reference Manual.
 
-commit adc78e6b9946 ("timekeeping: Add suspend and resume
-of clock event devices") introduced .suspend and .resume
-callbacks for clock event devices. Leverage these
-callbacks to have AM33XX clockevent timer behave properly
-across system suspend. Extend the use of the .suspend and
-.resume callbacks used by am335x clockevent to am437x as well.
+DeepSleep0 mode offers the lowest power mode with limited
+wakeup sources without a system reboot and is mapped as
+the suspend state in the kernel. In this state, MPU and
+PER domains are turned off with the internal RAM held in
+retention to facilitate the resume process. As part of
+the boot process, the assembly code is copied over to OCMCRAM
+so it can be executed to turn of the EMIF and put DDR into self
+refresh.
+
+Both platforms have a Cortex-M3 (WKUP_M3) which assists the MPU
+in DeepSleep0 entry and exit. WKUP_M3 takes care
+of the clockdomain and powerdomain transitions based on the
+intended low power state. MPU needs to load the appropriate
+WKUP_M3 binary onto the WKUP_M3 memory space before it can
+leverage any of the PM features like DeepSleep. This loading
+is handled by the remoteproc driver wkup_m3_rproc.
+
+Communication with the WKUP_M3 is handled by a wkup_m3_ipc
+driver that exposes the specific PM functionality to be used
+the PM code.
+
+In the current implementation when the suspend process
+is initiated, MPU interrupts the WKUP_M3 to let it know about
+the intent of entering DeepSleep0 and waits for an ACK. When
+the ACK is received MPU continues with its suspend process
+to suspend all the drivers and then jumps to assembly in
+OCMC RAM. The assembly code puts the external RAM in self-refresh
+mode, gates the MPU clock, and then finally executes the WFI
+instruction. Execution of the WFI instruction with MPU clock gated
+triggers another interrupt to the WKUP_M3 which then continues
+with the power down sequence wherein the clockdomain and
+powerdomain transition takes place. As part of the sleep sequence,
+WKUP_M3 unmasks the interrupt lines for the wakeup sources. WFI
+execution on WKUP_M3 causes the hardware to disable the main
+oscillator of the SoC and from here system remains in sleep state
+until a wake source brings the system into resume path.
+
+When a wakeup event occurs, WKUP_M3 starts the power-up
+sequence by switching on the power domains and finally
+enabling the clock to MPU. Since the MPU gets powered down
+as part of the sleep sequence in the resume path ROM code
+starts executing. The ROM code detects a wakeup from sleep
+and then jumps to the resume location in OCMC which was
+populated in one of the IPC registers as part of the suspend
+sequence.
+
+Code is based on work by Vaibhav Bedia.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/mach-omap2/timer.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/soc/ti/Kconfig  |   9 ++
+ drivers/soc/ti/Makefile |   1 +
+ drivers/soc/ti/pm33xx.c | 337 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 347 insertions(+)
+ create mode 100644 drivers/soc/ti/pm33xx.c
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 07dd692c4737..70670dfd7135 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -68,6 +68,9 @@
- static struct omap_dm_timer clkev;
- static struct clock_event_device clockevent_gpt;
+diff --git a/drivers/soc/ti/Kconfig b/drivers/soc/ti/Kconfig
+index 3557c5e32a93..6588a7637f23 100644
+--- a/drivers/soc/ti/Kconfig
++++ b/drivers/soc/ti/Kconfig
+@@ -28,6 +28,15 @@ config KEYSTONE_NAVIGATOR_DMA
  
-+/* Clockevent hwmod for am335x and am437x suspend */
-+static struct omap_hwmod *clockevent_gpt_hwmod;
+ 	  If unsure, say N.
+ 
++config AMX3_PM
++	tristate "AMx3 Power Management"
++	depends on SOC_AM33XX || SOC_AM43XX
++	depends on WKUP_M3_IPC && TI_EMIF_SRAM && SRAM
++	help
++	  Enable power management on AM335x and AM437x. Required for suspend to mem
++	  and standby states on both AM335x and AM437x platforms and for deeper cpuidle
++	  c-states on AM335x.
 +
- #ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
- static unsigned long arch_timer_freq;
- 
-@@ -125,6 +128,23 @@ static int omap2_gp_timer_set_periodic(struct clock_event_device *evt)
- 	return 0;
- }
- 
-+static void omap_clkevt_idle(struct clock_event_device *unused)
+ config WKUP_M3_IPC
+ 	tristate "TI AMx3 Wkup-M3 IPC Driver"
+ 	depends on WKUP_M3_RPROC
+diff --git a/drivers/soc/ti/Makefile b/drivers/soc/ti/Makefile
+index 48ff3a79634f..9995f18c4de8 100644
+--- a/drivers/soc/ti/Makefile
++++ b/drivers/soc/ti/Makefile
+@@ -4,4 +4,5 @@
+ obj-$(CONFIG_KEYSTONE_NAVIGATOR_QMSS)	+= knav_qmss.o
+ knav_qmss-y := knav_qmss_queue.o knav_qmss_acc.o
+ obj-$(CONFIG_KEYSTONE_NAVIGATOR_DMA)	+= knav_dma.o
++obj-$(CONFIG_AMX3_PM)			+= pm33xx.o
+ obj-$(CONFIG_WKUP_M3_IPC)		+= wkup_m3_ipc.o
+diff --git a/drivers/soc/ti/pm33xx.c b/drivers/soc/ti/pm33xx.c
+new file mode 100644
+index 000000000000..f069707ba0b8
+--- /dev/null
++++ b/drivers/soc/ti/pm33xx.c
+@@ -0,0 +1,337 @@
++/*
++ * AM33XX Power Management Routines
++ *
++ * Copyright (C) 2012-2017 Texas Instruments Incorporated - http://www.ti.com/
++ *	Vaibhav Bedia, Dave Gerlach
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/cpu.h>
++#include <linux/err.h>
++#include <linux/genalloc.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_data/pm33xx.h>
++#include <linux/platform_device.h>
++#include <linux/sizes.h>
++#include <linux/sram.h>
++#include <linux/suspend.h>
++#include <linux/ti-emif-sram.h>
++#include <linux/wkup_m3_ipc.h>
++
++#include <asm/proc-fns.h>
++#include <asm/suspend.h>
++#include <asm/system_misc.h>
++
++#define AMX3_PM_SRAM_SYMBOL_OFFSET(sym) ((unsigned long)(sym) - \
++					 (unsigned long)pm_sram->do_wfi)
++
++static int (*am33xx_do_wfi_sram)(unsigned long unused);
++static phys_addr_t am33xx_do_wfi_sram_phys;
++
++static struct gen_pool *sram_pool, *sram_pool_data;
++static unsigned long ocmcram_location, ocmcram_location_data;
++
++static struct am33xx_pm_platform_data *pm_ops;
++static struct am33xx_pm_sram_addr *pm_sram;
++
++static struct wkup_m3_ipc *m3_ipc;
++
++static u32 sram_suspend_address(unsigned long addr)
 +{
-+	if (!clockevent_gpt_hwmod)
-+		return;
-+
-+	omap_hwmod_idle(clockevent_gpt_hwmod);
++	return ((unsigned long)am33xx_do_wfi_sram +
++		AMX3_PM_SRAM_SYMBOL_OFFSET(addr));
 +}
 +
-+static void omap_clkevt_unidle(struct clock_event_device *unused)
++#ifdef CONFIG_SUSPEND
++static int am33xx_pm_suspend(suspend_state_t suspend_state)
 +{
-+	if (!clockevent_gpt_hwmod)
-+		return;
++	int i, ret = 0;
 +
-+	omap_hwmod_enable(clockevent_gpt_hwmod);
-+	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
-+}
++	ret = pm_ops->soc_suspend((unsigned long)suspend_state,
++				  am33xx_do_wfi_sram);
 +
- static struct clock_event_device clockevent_gpt = {
- 	.features		= CLOCK_EVT_FEAT_PERIODIC |
- 				  CLOCK_EVT_FEAT_ONESHOT,
-@@ -358,6 +378,14 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- 					3, /* Timer internal resynch latency */
- 					0xffffffff);
- 
-+	if (soc_is_am33xx() || soc_is_am43xx()) {
-+		clockevent_gpt.suspend = omap_clkevt_idle;
-+		clockevent_gpt.resume = omap_clkevt_unidle;
++	if (ret) {
++		pr_err("PM: Kernel suspend failure\n");
++	} else {
++		i = m3_ipc->ops->request_pm_status(m3_ipc);
 +
-+		clockevent_gpt_hwmod =
-+			omap_hwmod_lookup(clockevent_gpt.name);
++		switch (i) {
++		case 0:
++			pr_info("PM: Successfully put all powerdomains to target state\n");
++			break;
++		case 1:
++			pr_err("PM: Could not transition all powerdomains to target state\n");
++			ret = -1;
++			break;
++		default:
++			pr_err("PM: CM3 returned unknown result = %d\n", i);
++			ret = -1;
++		}
 +	}
 +
- 	pr_info("OMAP clockevent source: %s at %lu Hz\n", clockevent_gpt.name,
- 		clkev.rate);
- }
++	return ret;
++}
++
++static int am33xx_pm_enter(suspend_state_t suspend_state)
++{
++	int ret = 0;
++
++	switch (suspend_state) {
++	case PM_SUSPEND_MEM:
++	case PM_SUSPEND_STANDBY:
++		ret = am33xx_pm_suspend(suspend_state);
++		break;
++	default:
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
++static int am33xx_pm_begin(suspend_state_t state)
++{
++	int ret = -EINVAL;
++
++	switch (state) {
++	case PM_SUSPEND_MEM:
++		ret = m3_ipc->ops->prepare_low_power(m3_ipc, WKUP_M3_DEEPSLEEP);
++		break;
++	case PM_SUSPEND_STANDBY:
++		ret = m3_ipc->ops->prepare_low_power(m3_ipc, WKUP_M3_STANDBY);
++		break;
++	}
++
++	return ret;
++}
++
++static void am33xx_pm_end(void)
++{
++	m3_ipc->ops->finish_low_power(m3_ipc);
++}
++
++static int am33xx_pm_valid(suspend_state_t state)
++{
++	switch (state) {
++	case PM_SUSPEND_STANDBY:
++	case PM_SUSPEND_MEM:
++		return 1;
++	default:
++		return 0;
++	}
++}
++
++static const struct platform_suspend_ops am33xx_pm_ops = {
++	.begin		= am33xx_pm_begin,
++	.end		= am33xx_pm_end,
++	.enter		= am33xx_pm_enter,
++	.valid		= am33xx_pm_valid,
++};
++#endif /* CONFIG_SUSPEND */
++
++static void am33xx_pm_set_ipc_ops(void)
++{
++	u32 resume_address;
++	int temp;
++
++	temp = ti_emif_get_mem_type();
++	if (temp < 0) {
++		pr_err("PM: Cannot determine memory type, no PM available\n");
++		return;
++	}
++	m3_ipc->ops->set_mem_type(m3_ipc, temp);
++
++	/* Physical resume address to be used by ROM code */
++	resume_address = am33xx_do_wfi_sram_phys +
++			 *pm_sram->resume_offset + 0x4;
++
++	m3_ipc->ops->set_resume_address(m3_ipc, (void *)resume_address);
++}
++
++static void am33xx_pm_free_sram(void)
++{
++	gen_pool_free(sram_pool, ocmcram_location, *pm_sram->do_wfi_sz);
++	gen_pool_free(sram_pool_data, ocmcram_location_data,
++		      sizeof(struct am33xx_pm_ro_sram_data));
++}
++
++/*
++ * Push the minimal suspend-resume code to SRAM
++ */
++static int am33xx_prepare_push_sram_idle(void)
++{
++	struct device_node *np;
++
++	np = of_find_compatible_node(NULL, NULL, "ti,omap3-mpu");
++
++	if (!np) {
++		np = of_find_compatible_node(NULL, NULL, "ti,omap4-mpu");
++		if (!np) {
++			pr_warn("PM: %s: Unable to find device node for mpu\n",
++				__func__);
++			return -ENODEV;
++		}
++	}
++
++	sram_pool = of_gen_pool_get(np, "pm-sram", 0);
++	if (!sram_pool) {
++		pr_warn("PM: %s: Unable to get sram pool for ocmcram\n",
++			__func__);
++		return -ENODEV;
++	}
++
++	sram_pool_data = of_gen_pool_get(np, "pm-sram", 1);
++	if (!sram_pool_data) {
++		pr_warn("PM: %s: Unable to get sram data pool for ocmcram\n",
++			__func__);
++		return -ENODEV;
++	}
++
++	ocmcram_location = gen_pool_alloc(sram_pool, *pm_sram->do_wfi_sz);
++	if (!ocmcram_location) {
++		pr_warn("PM: %s: Unable to allocate memory from ocmcram\n",
++			__func__);
++		return -ENOMEM;
++	}
++
++	ocmcram_location_data = gen_pool_alloc(sram_pool_data,
++					       sizeof(struct emif_regs_amx3));
++	if (!ocmcram_location_data) {
++		pr_err("PM: Unable to allocate memory from ocmcram\n");
++		gen_pool_free(sram_pool, ocmcram_location, *pm_sram->do_wfi_sz);
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static int am33xx_push_sram_idle(void)
++{
++	struct am33xx_pm_ro_sram_data ro_sram_data;
++	int ret;
++
++	ro_sram_data.amx3_pm_sram_data_virt = ocmcram_location_data;
++	ro_sram_data.amx3_pm_sram_data_phys =
++		gen_pool_virt_to_phys(sram_pool_data, ocmcram_location_data);
++
++	/* Save physical address to calculate resume offset during pm init */
++	am33xx_do_wfi_sram = (void *)ocmcram_location;
++	am33xx_do_wfi_sram_phys = gen_pool_virt_to_phys(sram_pool,
++							ocmcram_location);
++
++	ret = sram_exec_copy(sram_pool, am33xx_do_wfi_sram, pm_sram->do_wfi,
++			     *pm_sram->do_wfi_sz);
++	if (ret) {
++		pr_err("PM: %s: am33xx_do_wfi copy to sram failed\n", __func__);
++		return ret;
++	}
++
++	ret = ti_emif_copy_pm_function_table(sram_pool,
++			(void *)sram_suspend_address((unsigned long)pm_sram->emif_sram_table));
++	if (ret) {
++		pr_warn("PM: %s: EMIF function copy failed\n", __func__);
++		ret =  -EPROBE_DEFER;
++		return ret;
++	}
++
++	ret = sram_exec_copy(sram_pool,
++			     (void *)sram_suspend_address((unsigned long)pm_sram->ro_sram_data),
++			     &ro_sram_data,
++			     sizeof(ro_sram_data));
++	if (ret) {
++		pr_err("PM: %s: ro_sram_data copy to sram failed\n", __func__);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int am33xx_pm_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	int ret;
++
++	if (!of_machine_is_compatible("ti,am33xx") &&
++	    !of_machine_is_compatible("ti,am43"))
++		return -ENODEV;
++
++	pm_ops = dev->platform_data;
++	if (!pm_ops) {
++		pr_err("PM: Cannot get core PM ops!\n");
++		return -ENODEV;
++	}
++
++	pm_sram = pm_ops->get_sram_addrs();
++	if (!pm_sram) {
++		pr_err("PM: Cannot get PM asm function addresses!!\n");
++		return -ENODEV;
++	}
++
++	ret = am33xx_prepare_push_sram_idle();
++	if (ret)
++		return ret;
++
++	ret = am33xx_push_sram_idle();
++	if (ret)
++		goto err_free_sram;
++
++	m3_ipc = wkup_m3_ipc_get();
++	if (!m3_ipc) {
++		pr_err("PM: Cannot get wkup_m3_ipc handle\n");
++		ret = -EPROBE_DEFER;
++		goto err_free_sram;
++	}
++
++	am33xx_pm_set_ipc_ops();
++
++#ifdef CONFIG_SUSPEND
++	suspend_set_ops(&am33xx_pm_ops);
++#endif /* CONFIG_SUSPEND */
++
++	ret = pm_ops->init();
++	if (ret) {
++		pr_err("Unable to call core pm init!\n");
++		ret = -ENODEV;
++		goto err_put_wkup_m3_ipc;
++	}
++
++	return 0;
++
++err_put_wkup_m3_ipc:
++	wkup_m3_ipc_put(m3_ipc);
++err_free_sram:
++	am33xx_pm_free_sram();
++	return ret;
++}
++
++static int am33xx_pm_remove(struct platform_device *pdev)
++{
++	suspend_set_ops(NULL);
++	wkup_m3_ipc_put(m3_ipc);
++	am33xx_pm_free_sram();
++	return 0;
++}
++
++static struct platform_driver am33xx_pm_driver = {
++	.driver = {
++		.name   = "pm33xx",
++	},
++	.probe = am33xx_pm_probe,
++	.remove = am33xx_pm_remove,
++};
++module_platform_driver(am33xx_pm_driver);
++
++MODULE_ALIAS("platform:pm33xx");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("am33xx power management driver");
 -- 
 2.11.0
