@@ -1,77 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 0/9] clk: ti: add support for clkctrl clocks
-Date: Thu, 30 Mar 2017 09:54:48 -0700
-Message-ID: <20170330165448.GF10760@atomide.com>
-References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
- <20170317152536.GT20572@atomide.com>
- <94d20a17-5072-ffab-3529-4bbb14327a10@ti.com>
- <20170323010057.GI10760@atomide.com>
- <20170323170210.GL10760@atomide.com>
- <8648f054-cf04-41df-20f3-82e0d63feefa@ti.com>
+From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv3] iio: adc: cpcap: Add minimal support for CPCAP PMIC ADC
+Date: Thu, 30 Mar 2017 19:26:50 +0100
+Message-ID: <3837adac-5dec-c645-1aeb-9425c0e73076@kernel.org>
+References: <20170324033842.12541-1-tony@atomide.com>
+ <20170329212637.syluvxy5cp2qub3h@rob-hp-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <8648f054-cf04-41df-20f3-82e0d63feefa@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170329212637.syluvxy5cp2qub3h@rob-hp-laptop>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [170330 00:20]:
-> On 23/03/17 19:02, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [170322 18:03]:
-> > > * Tero Kristo <t-kristo@ti.com> [170317 14:39]:
-> > > > On 17/03/17 17:25, Tony Lindgren wrote:
-> > > > > * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
-> > > > > > Any additional testing on omap4 welcome as this series basically
-> > > > > > tweaks every possible peripheral clock on the SoC.
-> > > > > 
-> > > > > Without the last patch in this series, booting fails for me:
-> > > > > 
-> > > > > [    5.074890] l4_per_cm:clk:0120:0: failed to disable
-> > > > > [    5.085113] l4_per_cm:clk:0128:0: failed to disable
-> > > > > 
-> > > > > Care to check that booting keeps working for each patch in the
-> > > > > series to avoid breaking git bisect for booting?
-> > > > 
-> > > > Hmm, I think patch 8+9 need to be squashed then. I can double check this
-> > > > next week though.
-> > > 
-> > > Also looks like with this set merged HDMI stops working on
-> > > omap4 with:
-> > > 
-> > > HDMIWP: omapdss HDMIWP error: Failed to set PHY power mode to 1
-> > 
-> > Forgot to mention that's with omapdrm with encoder-tpd12s015 and
-> > encoder-tfp410 modules loaded to get HDMI working. Here's more verbose
-> > dmesg output in case that provides more clues:
-> > 
-> > [   91.042877] omapdss HDMICORE error: operation stopped when reading edid
-> > [   91.078308] [drm] Enabling DMM ywrap scrolling
-> > [   91.099243] omapdss HDMIWP error: Failed to set PHY power mode to 1
-> > [   91.107879] omapdss HDMI error: failed to power on device
-> > [   91.107879] omapdrm omapdrm.0: Failed to enable display 'hdmi': -5
-> > [   91.359619] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> > [   91.619964] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> > [   91.620300] Console: switching to colour frame buffer device 128x48
-> > [   91.682434] omapdrm omapdrm.0: fb0: omapdrm frame buffer device
-> > [   91.770812] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
-> > [   92.818054] omapdss HDMICORE error: operation stopped when reading edid
-> > [   93.090087] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> > [   93.349853] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> > 
-> > Regards,
-> > 
-> > Tony
-> > 
+On 29/03/17 22:26, Rob Herring wrote:
+> On Thu, Mar 23, 2017 at 08:38:42PM -0700, Tony Lindgren wrote:
+>> On Motorola phones like droid 4 there is a custom CPCAP PMIC. This PMIC
+>> has ADCs that are used for battery charging and USB PHY VBUS and ID pin
+>> detection.
+>>
+>> Unfortunately the only documentation for this ADC seems to be the
+>> Motorola mapphone Linux kernel tree. I have tested that reading raw and
+>> scaled values works, but I have not used the timed sampling that the ADC
+>> seems to support.
+>>
+>> Let's add a minimal support for it so we can eventually provide IIO
+>> channels for the related battery charging and USB PHY drivers.
+>>
+>> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+>> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> ---
+>>
+>> Changes since v2:
+>>
+>> - Simplify things further by using channel based indexing and
+>>   remove more drivers specific enumerations
+>>
+>> Changes since v1:
+>>
+>> - Fix numerous issues pointed out by Peter Meerwald-Stadler
+>>   <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org> and Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>
+>> - Simplify things further by limiting read functions to a
+>>   single channel instead of a bank and got rid of the driver
+>>   specific cpcap_adc_conv_type in favor of IIO generic types
+>>
+>> ---
+>>  .../devicetree/bindings/iio/adc/cpcap-adc.txt      |   18 +
 > 
-> Can you try with this additional hwmod data tweak in place? Apply this on
-> top of the existing series.
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Been long enough now that I'm happy to take this.
+Thanks for looking at the bindings Rob!
 
-Does not seem to help, still get the same errors. But maybe I'm doing
-something wrong as the patch did not apply and I applied it manually.
+Applied to the togreg branch of iio.git and pushed out as testing
+for the autobuilders to play with it.
 
-Regards,
-
-Tony
+Jonathan
+> 
+>>  drivers/iio/adc/Kconfig                            |   11 +
+>>  drivers/iio/adc/Makefile                           |    1 +
+>>  drivers/iio/adc/cpcap-adc.c                        | 1007 ++++++++++++++++++++
+>>  4 files changed, 1037 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/iio/adc/cpcap-adc.txt
+>>  create mode 100644 drivers/iio/adc/cpcap-adc.c
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
