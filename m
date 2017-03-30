@@ -1,102 +1,70 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 9/9] ARM: dts: omap4: convert to use the new clkctrl
- clocks for the drivers
-Date: Thu, 30 Mar 2017 10:33:55 +0300
-Message-ID: <87f1e815-baf6-f41a-99d2-8ba6ca6292c4@ti.com>
-References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
- <1489741781-12816-10-git-send-email-t-kristo@ti.com>
- <20170328001800.GR10760@atomide.com>
- <8b502a89-dcc6-1932-70cc-e887b1404dbb@ti.com>
- <20170328150316.GU10760@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] mtd: nand: omap2: Fix partition creation via cmdline mtdparts
+Date: Thu, 30 Mar 2017 10:37:50 +0300
+Message-ID: <1490859470-7973-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170328150316.GU10760@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: mturquette@baylibre.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: boris.brezillon@free-electrons.com
+Cc: enrico.leto@siemens.com, richard@nod.at, linux-kernel@vger.kernel.org, "# 4 . 7+" <stable@vger.kernel.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, aford173@gmail.com, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 28/03/17 18:03, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [170327 22:46]:
->> On 28/03/17 03:18, Tony Lindgren wrote:
->>> * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
->>>> Convert the drivers to use the new clkctrl clocks.
->>>>
->>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->>>> ---
->>>>  arch/arm/boot/dts/omap4.dtsi | 164 ++++++++++++++++++++++++++++++++++++++-----
->>>>  1 file changed, 146 insertions(+), 18 deletions(-)
->>>>
->>>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->>>> index 3ecf616..c39304a 100644
->>>> --- a/arch/arm/boot/dts/omap4.dtsi
->>>> +++ b/arch/arm/boot/dts/omap4.dtsi
->>>> @@ -94,16 +94,22 @@
->>>>  			compatible = "ti,omap4-mpu";
->>>>  			ti,hwmods = "mpu";
->>>>  			sram = <&ocmcram>;
->>>> +			clocks = <&mpuss_clkctrl OMAP4_MPU_CLKCTRL 0>;
->>>> +			clock-names = "clkctrl";
->>>>  		};
->>>
->>> Oh one more thing. I don't think we should add the clocks
->>> here as they are now wrongly allocated to the device within
->>> the interconnect target module. These clocks really belong
->>> to each interconnect target module that we don't have in the
->>> dts yet.
->>>
->>> So we're better off adding the clockctrl clocks and then
->>> changing the dts to use the interconnect target modules
->>> with the clockctrl clocks.
->>
->> The problem is, you can't just add the clkctrl clock nodes themselves alone,
->> as this introduces the problem that any clocks with no users will get
->> disabled => causes a boot time hang when all the device clocks get shut
->> down.
->
-> Hmm yeah. I wonder how to work around that.. What if we first updated
-> the clocks in the hwmod code? Or updated the aliases?
+commit c9711ec5250b ("mtd: nand: omap: Clean up device tree support")
+caused the parent device name to be changed from "omap2-nand.0"
+to "<base address>.nand"  (e.g. 30000000.nand on omap3 platforms).
+This caused mtd->name to be changed as well. This breaks partition
+creation via mtdparts passed by u-boot as it uses "omap2-nand.0"
+for the mtd-id.
 
-Kind of a chicken-egg problem. You could maybe probe the "ti,clkctrl" 
-driver manually to avoid the issue.
+Fix this by explicitly setting the mtd->name to "omap2-nand.<CS number>"
+if it isn't already set by nand_set_flash_node(). CS number is the
+NAND controller instance ID.
 
-The core clocks get disabled when CCF notices they are not used. You 
-can't really avoid that with updating aliases / updating the clocks in 
-hwmod code. And, hwmod basically tries to still use the same registers 
-through the legacy route, which leads to conflict.
+Fixes: c9711ec5250b ("mtd: nand: omap: Clean up device tree support")
+Cc: <stable@vger.kernel.org> # 4.7+
+Reported-by: Leto Enrico <enrico.leto@siemens.com>
+Reported-by: Adam Ford <aford173@gmail.com>
+Suggested-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Tested-by: Adam Ford <aford173@gmail.com>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ drivers/mtd/nand/omap2.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
->
->> If you want to delay the usage of the clocks until you have interconnect
->> target modules in place, you need to introduce the clock nodes also at that
->> point, similar to what needs to be done now to squash patch #8 or #9.
->
-> I'd like to do this one device at a time without any large
-> flips as we have quite a few devices with special handling for
-> reset and idling in the hwmod code.
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 2a52101..084934a 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1856,6 +1856,15 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	nand_chip->ecc.priv	= NULL;
+ 	nand_set_flash_node(nand_chip, dev->of_node);
+ 
++	if (!mtd->name) {
++		mtd->name = devm_kasprintf(&pdev->dev, GFP_KERNEL,
++					   "omap2-nand.%d", info->gpmc_cs);
++		if (!mtd->name) {
++			dev_err(&pdev->dev, "Failed to set MTD name\n");
++			return -ENOMEM;
++		}
++	}
++
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	nand_chip->IO_ADDR_R = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(nand_chip->IO_ADDR_R))
+-- 
+2.7.4
 
-One thing that can be done also is to introduce the clkctrl clocks one 
-at a time in the data file also, but this is going to be cumbersome, as 
-you need to keep these three in sync:
 
-- drivers/clk/ti/clk-44xx.c
-- arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-- arch/arm/boot/dts/omap4.dtsi
-
-... and that per SoC of course.
-
-With the interconnect driver introduction, you should be able to flip 
-one device at a time from hwmod to interconnect. In this case, all the 
-clocks are already there, and you just need to modify DT + hwmod data to 
-do the flip.
-
--Tero
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
