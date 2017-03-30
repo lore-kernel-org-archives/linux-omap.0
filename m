@@ -1,16 +1,18 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 0/9] clk: ti: add support for clkctrl clocks
-Date: Thu, 30 Mar 2017 10:18:14 +0300
-Message-ID: <8648f054-cf04-41df-20f3-82e0d63feefa@ti.com>
+Subject: Re: [PATCHv2 9/9] ARM: dts: omap4: convert to use the new clkctrl
+ clocks for the drivers
+Date: Thu, 30 Mar 2017 10:33:55 +0300
+Message-ID: <87f1e815-baf6-f41a-99d2-8ba6ca6292c4@ti.com>
 References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
- <20170317152536.GT20572@atomide.com>
- <94d20a17-5072-ffab-3529-4bbb14327a10@ti.com>
- <20170323010057.GI10760@atomide.com> <20170323170210.GL10760@atomide.com>
+ <1489741781-12816-10-git-send-email-t-kristo@ti.com>
+ <20170328001800.GR10760@atomide.com>
+ <8b502a89-dcc6-1932-70cc-e887b1404dbb@ti.com>
+ <20170328150316.GU10760@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170323170210.GL10760@atomide.com>
+In-Reply-To: <20170328150316.GU10760@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,106 +26,77 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: mturquette@baylibre.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 23/03/17 19:02, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [170322 18:03]:
->> * Tero Kristo <t-kristo@ti.com> [170317 14:39]:
->>> On 17/03/17 17:25, Tony Lindgren wrote:
->>>> * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
->>>>> Any additional testing on omap4 welcome as this series basically
->>>>> tweaks every possible peripheral clock on the SoC.
+On 28/03/17 18:03, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [170327 22:46]:
+>> On 28/03/17 03:18, Tony Lindgren wrote:
+>>> * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
+>>>> Convert the drivers to use the new clkctrl clocks.
 >>>>
->>>> Without the last patch in this series, booting fails for me:
+>>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>>> ---
+>>>>  arch/arm/boot/dts/omap4.dtsi | 164 ++++++++++++++++++++++++++++++++++++++-----
+>>>>  1 file changed, 146 insertions(+), 18 deletions(-)
 >>>>
->>>> [    5.074890] l4_per_cm:clk:0120:0: failed to disable
->>>> [    5.085113] l4_per_cm:clk:0128:0: failed to disable
->>>>
->>>> Care to check that booting keeps working for each patch in the
->>>> series to avoid breaking git bisect for booting?
+>>>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>>>> index 3ecf616..c39304a 100644
+>>>> --- a/arch/arm/boot/dts/omap4.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>>>> @@ -94,16 +94,22 @@
+>>>>  			compatible = "ti,omap4-mpu";
+>>>>  			ti,hwmods = "mpu";
+>>>>  			sram = <&ocmcram>;
+>>>> +			clocks = <&mpuss_clkctrl OMAP4_MPU_CLKCTRL 0>;
+>>>> +			clock-names = "clkctrl";
+>>>>  		};
 >>>
->>> Hmm, I think patch 8+9 need to be squashed then. I can double check this
->>> next week though.
+>>> Oh one more thing. I don't think we should add the clocks
+>>> here as they are now wrongly allocated to the device within
+>>> the interconnect target module. These clocks really belong
+>>> to each interconnect target module that we don't have in the
+>>> dts yet.
+>>>
+>>> So we're better off adding the clockctrl clocks and then
+>>> changing the dts to use the interconnect target modules
+>>> with the clockctrl clocks.
 >>
->> Also looks like with this set merged HDMI stops working on
->> omap4 with:
->>
->> HDMIWP: omapdss HDMIWP error: Failed to set PHY power mode to 1
+>> The problem is, you can't just add the clkctrl clock nodes themselves alone,
+>> as this introduces the problem that any clocks with no users will get
+>> disabled => causes a boot time hang when all the device clocks get shut
+>> down.
 >
-> Forgot to mention that's with omapdrm with encoder-tpd12s015 and
-> encoder-tfp410 modules loaded to get HDMI working. Here's more verbose
-> dmesg output in case that provides more clues:
+> Hmm yeah. I wonder how to work around that.. What if we first updated
+> the clocks in the hwmod code? Or updated the aliases?
+
+Kind of a chicken-egg problem. You could maybe probe the "ti,clkctrl" 
+driver manually to avoid the issue.
+
+The core clocks get disabled when CCF notices they are not used. You 
+can't really avoid that with updating aliases / updating the clocks in 
+hwmod code. And, hwmod basically tries to still use the same registers 
+through the legacy route, which leads to conflict.
+
 >
-> [   91.042877] omapdss HDMICORE error: operation stopped when reading edid
-> [   91.078308] [drm] Enabling DMM ywrap scrolling
-> [   91.099243] omapdss HDMIWP error: Failed to set PHY power mode to 1
-> [   91.107879] omapdss HDMI error: failed to power on device
-> [   91.107879] omapdrm omapdrm.0: Failed to enable display 'hdmi': -5
-> [   91.359619] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> [   91.619964] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> [   91.620300] Console: switching to colour frame buffer device 128x48
-> [   91.682434] omapdrm omapdrm.0: fb0: omapdrm frame buffer device
-> [   91.770812] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
-> [   92.818054] omapdss HDMICORE error: operation stopped when reading edid
-> [   93.090087] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> [   93.349853] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+>> If you want to delay the usage of the clocks until you have interconnect
+>> target modules in place, you need to introduce the clock nodes also at that
+>> point, similar to what needs to be done now to squash patch #8 or #9.
 >
-> Regards,
->
-> Tony
->
+> I'd like to do this one device at a time without any large
+> flips as we have quite a few devices with special handling for
+> reset and idling in the hwmod code.
 
-Can you try with this additional hwmod data tweak in place? Apply this 
-on top of the existing series.
+One thing that can be done also is to introduce the clkctrl clocks one 
+at a time in the data file also, but this is going to be cumbersome, as 
+you need to keep these three in sync:
 
-===========
+- drivers/clk/ti/clk-44xx.c
+- arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+- arch/arm/boot/dts/omap4.dtsi
 
+... and that per SoC of course.
 
- From 8ba1829078ea9a7417a34564fde8a30c9bdeb273 Mon Sep 17 00:00:00 2001
-From: Tero Kristo <t-kristo@ti.com>
-Date: Thu, 30 Mar 2017 10:09:59 +0300
-Subject: [PATCH] ARM: OMAP4: hwmod_data: add opt clks for dss_hdmi and
-  dss_venc
+With the interconnect driver introduction, you should be able to flip 
+one device at a time from hwmod to interconnect. In this case, all the 
+clocks are already there, and you just need to modify DT + hwmod data to 
+do the flip.
 
-These extra optional clocks are required as main clock for these modules
-are going to be routed to the main module clock. Otherwise, the hdmi / tv
-clocks are not going to be enabled during usage, leading to failure.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
-  arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 7 +++++++
-  1 file changed, 7 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c 
-b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index dad871a..2a9d092 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -775,6 +775,7 @@
-
-  static struct omap_hwmod_opt_clk dss_hdmi_opt_clks[] = {
-  	{ .role = "sys_clk", .clk = "dss_sys_clk" },
-+	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
-  };
-
-  static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
-@@ -858,6 +859,10 @@
-  };
-
-  /* dss_venc */
-+static struct omap_hwmod_opt_clk dss_venc_opt_clks[] = {
-+	{ .role = "tv_clk", .clk = "dss_tv_clk" },
-+};
-+
-  static struct omap_hwmod omap44xx_dss_venc_hwmod = {
-  	.name		= "dss_venc",
-  	.class		= &omap44xx_venc_hwmod_class,
-@@ -870,6 +875,8 @@
-  		},
-  	},
-  	.parent_hwmod	= &omap44xx_dss_hwmod,
-+	.opt_clks	= dss_venc_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(dss_venc_opt_clks),
-  };
-
-  /*
--- 
-1.9.1
+-Tero
