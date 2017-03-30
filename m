@@ -1,84 +1,129 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH v2 0/8] thermal: ti-soc-thermal: Migrate slope/offset
- data to device tree
-Date: Wed, 29 Mar 2017 21:46:19 -0700
-Message-ID: <20170330044617.GA12753@localhost.localdomain>
-References: <1489046762-11288-1-git-send-email-j-keerthy@ti.com>
- <64ab8413-6cf1-864f-0550-9c8db59523f7@ti.com>
- <20170323205256.GO10760@atomide.com>
- <a410d37f-92e5-39b4-ac6c-158673163cb0@ti.com>
- <20170324142610.GX10760@atomide.com>
- <20170329043753.GB1596@localhost.localdomain>
- <5380b1bc-f3c6-a0ef-e458-7509d95d631e@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 0/9] clk: ti: add support for clkctrl clocks
+Date: Thu, 30 Mar 2017 10:18:14 +0300
+Message-ID: <8648f054-cf04-41df-20f3-82e0d63feefa@ti.com>
+References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
+ <20170317152536.GT20572@atomide.com>
+ <94d20a17-5072-ffab-3529-4bbb14327a10@ti.com>
+ <20170323010057.GI10760@atomide.com> <20170323170210.GL10760@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5380b1bc-f3c6-a0ef-e458-7509d95d631e@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, rui.zhang@intel.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170323170210.GL10760@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: mturquette@baylibre.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 30, 2017 at 08:59:31AM +0530, Keerthy wrote:
-> 
-> 
-> On Wednesday 29 March 2017 10:07 AM, Eduardo Valentin wrote:
-> > Keerthy,
-> > 
-> > On Fri, Mar 24, 2017 at 07:26:10AM -0700, Tony Lindgren wrote:
-> >> * Keerthy <j-keerthy@ti.com> [170323 20:29]:
-> >>>
-> >>>
-> >>> On Friday 24 March 2017 02:22 AM, Tony Lindgren wrote:
-> >>>> * Keerthy <j-keerthy@ti.com> [170321 20:45]:
-> >>>>>
-> >>>>>
-> >>>>> On Thursday 09 March 2017 01:35 PM, Keerthy wrote:
-> >>>>>> Currently the slope and offset values for calculating the
-> >>>>>> hot spot temperature of a particular thermal zone is part
-> >>>>>> of driver data. Pass them here instead and obtain the values
-> >>>>>> while of node parsing.
-> >>>>>>
-> >>>>>> Tested for the slope and constant values on DRA7-EVM, OMAP3-BEAGLE. 
-> > 
-> > Have you tried on boards that need negative coefficients?
-> > 
-> > https://patchwork.kernel.org/patch/9619577/
-> 
-> Yes. I retrieved the negative values nicely in the driver passed via
-> Device Tree.
-> 
-> > 
-> >>>>>
-> >>>>> Hi Eduardo,
-> >>>>>
-> >>>>> If the series looks okay could you please pull this?
-> >>>>
-> >>>> Also.. Are the dts changes safe for me to pick separately?
-> >>>
-> >>> Yes Tony they are safe to pulled separately.
-> >>
-> >> OK applying patches 1 - 5 of this series into omap-for-v4.12/dt-v2.
-> > 
-> > Keerthy,
-> > 
-> > The only thing I want you to confirm is if you are really getting the
-> > negative coefficients, because currently of-thermal reads the array
-> > using an OF helper that understands only unsigned. For this reason, I
-> > will be queueing your patches only for next merge window, not as a fix,
-> > not for rc's.
-> 
-> I am getting negative co-efficients.
+On 23/03/17 19:02, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [170322 18:03]:
+>> * Tero Kristo <t-kristo@ti.com> [170317 14:39]:
+>>> On 17/03/17 17:25, Tony Lindgren wrote:
+>>>> * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
+>>>>> Any additional testing on omap4 welcome as this series basically
+>>>>> tweaks every possible peripheral clock on the SoC.
+>>>>
+>>>> Without the last patch in this series, booting fails for me:
+>>>>
+>>>> [    5.074890] l4_per_cm:clk:0120:0: failed to disable
+>>>> [    5.085113] l4_per_cm:clk:0128:0: failed to disable
+>>>>
+>>>> Care to check that booting keeps working for each patch in the
+>>>> series to avoid breaking git bisect for booting?
+>>>
+>>> Hmm, I think patch 8+9 need to be squashed then. I can double check this
+>>> next week though.
+>>
+>> Also looks like with this set merged HDMI stops working on
+>> omap4 with:
+>>
+>> HDMIWP: omapdss HDMIWP error: Failed to set PHY power mode to 1
+>
+> Forgot to mention that's with omapdrm with encoder-tpd12s015 and
+> encoder-tfp410 modules loaded to get HDMI working. Here's more verbose
+> dmesg output in case that provides more clues:
+>
+> [   91.042877] omapdss HDMICORE error: operation stopped when reading edid
+> [   91.078308] [drm] Enabling DMM ywrap scrolling
+> [   91.099243] omapdss HDMIWP error: Failed to set PHY power mode to 1
+> [   91.107879] omapdss HDMI error: failed to power on device
+> [   91.107879] omapdrm omapdrm.0: Failed to enable display 'hdmi': -5
+> [   91.359619] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> [   91.619964] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> [   91.620300] Console: switching to colour frame buffer device 128x48
+> [   91.682434] omapdrm omapdrm.0: fb0: omapdrm frame buffer device
+> [   91.770812] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
+> [   92.818054] omapdss HDMICORE error: operation stopped when reading edid
+> [   93.090087] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> [   93.349853] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+>
+> Regards,
+>
+> Tony
+>
 
-OK. That is odd. Might be simply we get still converted after simply
-assigning the unsigned to the int in the thermal device data struct.
-Anyways, still not for rc, given the amount of changes in the driver.
+Can you try with this additional hwmod data tweak in place? Apply this 
+on top of the existing series.
 
-> 
-> > 
-> > 
-> >>
-> >> Thanks,
-> >>
-> >> Tony
+===========
+
+
+ From 8ba1829078ea9a7417a34564fde8a30c9bdeb273 Mon Sep 17 00:00:00 2001
+From: Tero Kristo <t-kristo@ti.com>
+Date: Thu, 30 Mar 2017 10:09:59 +0300
+Subject: [PATCH] ARM: OMAP4: hwmod_data: add opt clks for dss_hdmi and
+  dss_venc
+
+These extra optional clocks are required as main clock for these modules
+are going to be routed to the main module clock. Otherwise, the hdmi / tv
+clocks are not going to be enabled during usage, leading to failure.
+
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+  arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 7 +++++++
+  1 file changed, 7 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c 
+b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index dad871a..2a9d092 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -775,6 +775,7 @@
+
+  static struct omap_hwmod_opt_clk dss_hdmi_opt_clks[] = {
+  	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
+  };
+
+  static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+@@ -858,6 +859,10 @@
+  };
+
+  /* dss_venc */
++static struct omap_hwmod_opt_clk dss_venc_opt_clks[] = {
++	{ .role = "tv_clk", .clk = "dss_tv_clk" },
++};
++
+  static struct omap_hwmod omap44xx_dss_venc_hwmod = {
+  	.name		= "dss_venc",
+  	.class		= &omap44xx_venc_hwmod_class,
+@@ -870,6 +875,8 @@
+  		},
+  	},
+  	.parent_hwmod	= &omap44xx_dss_hwmod,
++	.opt_clks	= dss_venc_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dss_venc_opt_clks),
+  };
+
+  /*
+-- 
+1.9.1
