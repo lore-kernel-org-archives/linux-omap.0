@@ -1,59 +1,77 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH] ARM: dts: am57xx-idk: Add DCAN support
-Date: Thu, 30 Mar 2017 19:53:59 +0530
-Message-ID: <042d52f4-3148-0564-a41a-5212ede042d5@ti.com>
-References: <8981d49e7011a7246ff7dc6a9a9da0a56dfe5621.1487670384.git.nsekhar@ti.com>
- <f8862417-e9e0-e2ac-865a-9684f96a5128@ti.com>
- <20170306184113.GN20572@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 0/9] clk: ti: add support for clkctrl clocks
+Date: Thu, 30 Mar 2017 09:54:48 -0700
+Message-ID: <20170330165448.GF10760@atomide.com>
+References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
+ <20170317152536.GT20572@atomide.com>
+ <94d20a17-5072-ffab-3529-4bbb14327a10@ti.com>
+ <20170323010057.GI10760@atomide.com>
+ <20170323170210.GL10760@atomide.com>
+ <8648f054-cf04-41df-20f3-82e0d63feefa@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170306184113.GN20572@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Device Tree Mailing List <devicetree@vger.kernel.org>, Schuyler Patton <spatton@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Rob Herring <robh+dt@kernel.org>, Franklin S Cooper Jr <fcooper@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>, "Quadros,
- Roger" <rogerq@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <8648f054-cf04-41df-20f3-82e0d63feefa@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Tuesday 07 March 2017 12:11 AM, Tony Lindgren wrote:
-> * Sekhar Nori <nsekhar@ti.com> [170221 02:13]:
->> On Tuesday 21 February 2017 03:30 PM, Sekhar Nori wrote:
->>> From: Schuyler Patton <spatton@ti.com>
->>>
->>> AM571x IDK and the AM572x IDK use CAN1 interface.
->>> This patch enables it for both boards.
->>>
->>> Tested on AM572x IDK using cansequence.
->>>
->>> Signed-off-by: Schuyler Patton <spatton@ti.com>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->>> [nsekhar@ti.com: move to use DRA7XX_CORE_IOPAD())
->>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->>
->> I should have noted that although CAN does function on the IDK with this
->> patch, there are "omap_hwmod: dcan1: _wait_target_disable failed"
->> messages that come up due to lack of workaround for errata i893[1]
->>
->> Roger does have some patches to workaround that errata. If you want to
->> wait for those patches to be submitted and accepted first, it should be
->> fine as well.
+* Tero Kristo <t-kristo@ti.com> [170330 00:20]:
+> On 23/03/17 19:02, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [170322 18:03]:
+> > > * Tero Kristo <t-kristo@ti.com> [170317 14:39]:
+> > > > On 17/03/17 17:25, Tony Lindgren wrote:
+> > > > > * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
+> > > > > > Any additional testing on omap4 welcome as this series basically
+> > > > > > tweaks every possible peripheral clock on the SoC.
+> > > > > 
+> > > > > Without the last patch in this series, booting fails for me:
+> > > > > 
+> > > > > [    5.074890] l4_per_cm:clk:0120:0: failed to disable
+> > > > > [    5.085113] l4_per_cm:clk:0128:0: failed to disable
+> > > > > 
+> > > > > Care to check that booting keeps working for each patch in the
+> > > > > series to avoid breaking git bisect for booting?
+> > > > 
+> > > > Hmm, I think patch 8+9 need to be squashed then. I can double check this
+> > > > next week though.
+> > > 
+> > > Also looks like with this set merged HDMI stops working on
+> > > omap4 with:
+> > > 
+> > > HDMIWP: omapdss HDMIWP error: Failed to set PHY power mode to 1
+> > 
+> > Forgot to mention that's with omapdrm with encoder-tpd12s015 and
+> > encoder-tfp410 modules loaded to get HDMI working. Here's more verbose
+> > dmesg output in case that provides more clues:
+> > 
+> > [   91.042877] omapdss HDMICORE error: operation stopped when reading edid
+> > [   91.078308] [drm] Enabling DMM ywrap scrolling
+> > [   91.099243] omapdss HDMIWP error: Failed to set PHY power mode to 1
+> > [   91.107879] omapdss HDMI error: failed to power on device
+> > [   91.107879] omapdrm omapdrm.0: Failed to enable display 'hdmi': -5
+> > [   91.359619] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> > [   91.619964] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> > [   91.620300] Console: switching to colour frame buffer device 128x48
+> > [   91.682434] omapdrm omapdrm.0: fb0: omapdrm frame buffer device
+> > [   91.770812] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
+> > [   92.818054] omapdss HDMICORE error: operation stopped when reading edid
+> > [   93.090087] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> > [   93.349853] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
+> > 
+> > Regards,
+> > 
+> > Tony
+> > 
 > 
-> OK let's wait a bit on this then to avoid introducing extra warnings.
+> Can you try with this additional hwmod data tweak in place? Apply this on
+> top of the existing series.
 
-Now that Roger's hwmod patches for the DCAN errata are in linux-next,
-this patch can be applied safely. Let me know if you need me to resend it.
+Does not seem to help, still get the same errors. But maybe I'm doing
+something wrong as the patch did not apply and I applied it manually.
 
-Thanks,
-Sekhar
+Regards,
+
+Tony
