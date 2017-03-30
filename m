@@ -1,60 +1,70 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCHv3] power: supply: cpcap-charger: Add minimal CPCAP PMIC
- battery charger
-Date: Thu, 30 Mar 2017 18:24:02 -0500
-Message-ID: <20170330232402.o4jslzlw3kgfnjqz@rob-hp-laptop>
-References: <20170327032513.22890-1-tony@atomide.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v4 0/7] PCI: dwc: Miscellaneous fixes and cleanups
+Date: Thu, 30 Mar 2017 18:44:50 -0500
+Message-ID: <20170330234450.GC3912@bhelgaas-glaptop.roam.corp.google.com>
+References: <20170313134328.1588-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170327032513.22890-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+In-Reply-To: <20170313134328.1588-1-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Niklas Cassel <niklas.cassel@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Mar 26, 2017 at 08:25:13PM -0700, Tony Lindgren wrote:
-> The custom CPCAP PMIC used on Motorola phones such as Droid 4 has a
-> USB battery charger. It can optionally also have a companion chip that
-> is used for wireless charging.
+On Mon, Mar 13, 2017 at 07:13:21PM +0530, Kishon Vijay Abraham I wrote:
+> This should be the final set of cleanups/fixes before endpoint
+> support can be merged.
 > 
-> The charger on CPCAP also can feed VBUS for the USB host mode. This
-> can be handled by the existing kernel phy_companion interface.
+> Keerthy's patch is a general fix in dra7xx driver and is not
+> directly related to endpoint mode.
 > 
-> Cc: devicetree@vger.kernel.org
-> Cc: Marcel Partap <mpartap@gmx.net>
-> Cc: Michael Scott <michael.scott@linaro.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+> This v1 of this series was previously sent with a different
+> cover letter $subject [1]
 > 
-> Changes since v2:
+> Changes from v3:
+> *) instead of changing all the callers of dbi accessors (taking
+>    dbi_base and size), manage it using static inline as suggested
+>    by Niklas (used static inline instead of macros because of
+>    checkpatch error).
 > 
-> - Update binding based on comments by Sebastian Reichel <sre@kernel.org>
+> Changes from v2:
+> *) Kconfig changes that was spilled into a patch is removed.
+> *) In addition to renaming _unroll() to _ob_unroll(), all the
+>    _unroll configurations is also moved a separate function.
 > 
-> - Drop "motorola,cpcap-charger" compatible for now as this seems specific
->   to the motorola-mapphone
+> Changes from v1:
+> *) included a patch to rename _unroll() to _ob_unroll() as
+>    similar thing has to be done for inbound window in the case
+>    of EP mode.
+> *) used 'size_t' instead of 'int' for specifying the size
+>    in read_dbi/write_dbi function arguments.
+> *) Populate cpu_addr_fixup ops for artpec6 as suggested by
+>    Niklas
 > 
-> - Update Kconfig for "depends on IIO" and "default MFD_CPCAP"
+> This series is based on 4.11-rc1
 > 
-> Changes since v1:
+> [1] -> https://lkml.org/lkml/2017/2/16/270
 > 
-> - Fix scaling of IIO values as pointed out by Sebastian Reichel
->   <sre@kernel.org>
+> Keerthy (1):
+>   PCI: dwc: dra7xx: Push request_irq call to the bottom of probe
 > 
-> - Use iio_read_channel_processed() instead of iio_read_channel_scaled()
->   as changed in the v2 of the ADC driver
+> Kishon Vijay Abraham I (6):
+>   PCI: dwc: designware: Add new *ops* for cpu addr fixup
+>   PCI: dwc: dra7xx: Populate cpu_addr_fixup ops
+>   PCI: dwc: artpec6: Populate cpu_addr_fixup ops
+>   PCI: dwc: all: Modify dbi accessors to take dbi_base as argument
+>   PCI: dwc: all: Modify dbi accessors to access data of  4/2/1 bytes
+>   PCI: dwc: designware: Move _unroll configurations to a separate
+>     function
 > 
-> - Add GPL v2 license header
-> 
-> ---
->  .../bindings/power/supply/cpcap-charger.txt        |  38 ++
+>  drivers/pci/dwc/pci-dra7xx.c      |  25 +++----
+>  drivers/pci/dwc/pci-exynos.c      |  14 ++--
+>  drivers/pci/dwc/pcie-artpec6.c    |  15 +++--
+>  drivers/pci/dwc/pcie-designware.c | 133 ++++++++++++++++++++++++--------------
+>  drivers/pci/dwc/pcie-designware.h |  23 +++++--
+>  5 files changed, 135 insertions(+), 75 deletions(-)
 
-Acked-by: Rob Herring <robh@kernel.org>
-
->  drivers/power/supply/Kconfig                       |   8 +
->  drivers/power/supply/Makefile                      |   1 +
->  drivers/power/supply/cpcap-charger.c               | 681 +++++++++++++++++++++
->  4 files changed, 728 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/power/supply/cpcap-charger.txt
->  create mode 100644 drivers/power/supply/cpcap-charger.c
+Applied to pci/host-designware for v4.12, with Niklas' ack on patches
+4 & 5, thanks!
