@@ -1,74 +1,76 @@
-From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv3] iio: adc: cpcap: Add minimal support for CPCAP PMIC ADC
-Date: Thu, 30 Mar 2017 19:26:50 +0100
-Message-ID: <3837adac-5dec-c645-1aeb-9425c0e73076@kernel.org>
-References: <20170324033842.12541-1-tony@atomide.com>
- <20170329212637.syluvxy5cp2qub3h@rob-hp-laptop>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH] ARM: OMAP2+: omap_device: Sync omap_device and pm_runtime
+ after probe defer
+Date: Thu, 30 Mar 2017 14:58:18 -0500
+Message-ID: <20170330195818.17669-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170329212637.syluvxy5cp2qub3h@rob-hp-laptop>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Franklin S Cooper <fcooper@ti.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 29/03/17 22:26, Rob Herring wrote:
-> On Thu, Mar 23, 2017 at 08:38:42PM -0700, Tony Lindgren wrote:
->> On Motorola phones like droid 4 there is a custom CPCAP PMIC. This PMIC
->> has ADCs that are used for battery charging and USB PHY VBUS and ID pin
->> detection.
->>
->> Unfortunately the only documentation for this ADC seems to be the
->> Motorola mapphone Linux kernel tree. I have tested that reading raw and
->> scaled values works, but I have not used the timed sampling that the ADC
->> seems to support.
->>
->> Let's add a minimal support for it so we can eventually provide IIO
->> channels for the related battery charging and USB PHY drivers.
->>
->> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
->> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> ---
->>
->> Changes since v2:
->>
->> - Simplify things further by using channel based indexing and
->>   remove more drivers specific enumerations
->>
->> Changes since v1:
->>
->> - Fix numerous issues pointed out by Peter Meerwald-Stadler
->>   <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org> and Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->>
->> - Simplify things further by limiting read functions to a
->>   single channel instead of a bank and got rid of the driver
->>   specific cpcap_adc_conv_type in favor of IIO generic types
->>
->> ---
->>  .../devicetree/bindings/iio/adc/cpcap-adc.txt      |   18 +
-> 
-> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Been long enough now that I'm happy to take this.
-Thanks for looking at the bindings Rob!
+Starting from commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM
+states at probe error and driver unbind") pm_runtime core now changes
+device runtime_status back to after RPM_SUSPENDED after a probe defer.
+Certain OMAP devices make use of "ti,no-idle-on-init" flag which causes
+omap_device_enable to be called during the BUS_NOTIFY_ADD_DEVICE event
+during probe, along with pm_runtime_set_active.
 
-Applied to the togreg branch of iio.git and pushed out as testing
-for the autobuilders to play with it.
+This call to pm_runtime_set_active typically will prevent a call to
+pm_runtime_get in a driver probe function from re-enabling the
+omap_device. However, in the case of a probe defer that happens before
+the driver probe function is able to run, such as a missing pinctrl
+states defer, pm_runtime_reinit will set the device as RPM_SUSPENDED and
+then once driver probe is actually able to run, pm_runtime_get will see
+the device as suspended and call through to the omap_device layer,
+attempting to enable the already enabled omap_device and causing errors
+like this:
 
-Jonathan
-> 
->>  drivers/iio/adc/Kconfig                            |   11 +
->>  drivers/iio/adc/Makefile                           |    1 +
->>  drivers/iio/adc/cpcap-adc.c                        | 1007 ++++++++++++++++++++
->>  4 files changed, 1037 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/iio/adc/cpcap-adc.txt
->>  create mode 100644 drivers/iio/adc/cpcap-adc.c
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+omap-gpmc 50000000.gpmc: omap_device: omap_device_enable() called from invalid state 1
+omap-gpmc 50000000.gpmc: use pm_runtime_put_sync_suspend() in driver?
+
+We can avoid this error by making sure the pm_runtime status of a device
+matches the omap_device state before a probe attempt. By extending the
+omap_device bus notifier to act on the BUS_NOTIFY_BIND_DRIVER event we
+can check if a device is enabled in omap_device but with a pm_runtime
+status of RPM_SUSPENDED and once again mark the device as RPM_ACTIVE to
+avoid a second incorrect call to omap_device_enable.
+
+Tested-by: Franklin S Cooper Jr. <fcooper@ti.com>
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/mach-omap2/omap_device.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+index e920dd83e443..f989145480c8 100644
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -222,6 +222,14 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
+ 				dev_err(dev, "failed to idle\n");
+ 		}
+ 		break;
++	case BUS_NOTIFY_BIND_DRIVER:
++		od = to_omap_device(pdev);
++		if (od && (od->_state == OMAP_DEVICE_STATE_ENABLED) &&
++		    pm_runtime_status_suspended(dev)) {
++			od->_driver_status = BUS_NOTIFY_BIND_DRIVER;
++			pm_runtime_set_active(dev);
++		}
++		break;
+ 	case BUS_NOTIFY_ADD_DEVICE:
+ 		if (pdev->dev.of_node)
+ 			omap_device_build_from_dt(pdev);
+-- 
+2.11.0
