@@ -1,92 +1,84 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH] net: ethernet: ti: cpsw: fix race condition during open()
-Date: Mon, 3 Apr 2017 17:34:28 +0530
-Message-ID: <509439ff3e756ea1dade2738e305f08fc7920650.1491220439.git.nsekhar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] mfd: cpcap: Use handle_reread flag for interrupts
+Date: Mon, 3 Apr 2017 07:14:55 -0700
+Message-ID: <20170403141454.GG10760@atomide.com>
+References: <20170322171052.7006-1-tony@atomide.com>
+ <20170322171052.7006-3-tony@atomide.com>
+ <20170403102122.c6bztacpqmt2xdzw@dell>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: "David S . Miller" <davem@davemloft.net>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170403102122.c6bztacpqmt2xdzw@dell>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-TI's cpsw driver handles both OF and non-OF case for phy
-connect. Unfortunately of_phy_connect() returns NULL on
-error while phy_connect() returns ERR_PTR().
+Hi,
 
-To handle this, cpsw_slave_open() overrides the return value
-from phy_connect() to make it NULL or error.
+* Lee Jones <lee.jones@linaro.org> [170403 03:23]:
+> On Wed, 22 Mar 2017, Tony Lindgren wrote:
+> 
+> > On CPCAP we need to keep reading interrupts until there are no
+> > more interrupts. Otherwise the PMIC interrupt to the SoC will at
+> > some point stop toggling. This seems to happen because new CPCAP
+> > device interrupts show up while we're handling.
+> > 
+> > Cc: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+> > Cc: Lee Jones <lee.jones@linaro.org>
+> > Cc: Marcel Partap <mpartap@gmx.net>
+> > Cc: Michael Scott <michael.scott@linaro.org>
+> > Tested-by: Sebastian Reichel <sre@kernel.org>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  drivers/mfd/motorola-cpcap.c | 3 +++
+> >  1 file changed, 3 insertions(+)
+> 
+> Applied, thanks.
 
-This leaves a small window, where cpsw_adjust_link() may be
-invoked for a slave while slave->phy pointer is temporarily
-set to -ENODEV (or some other error) before it is finally set
-to NULL.
+Sorry this one depends on patch 1/4 for .handle_reread. So this
+one should be reverted or dropped. That will cause trivial merge
+conflicts with patches 2 and 4.
 
-_cpsw_adjust_link() only handles the NULL case, and an oops
-results when ERR_PTR() is seen by it.
+Please let me know if you want me to resend just patches 2 and 4
+as patches 1 and 2 need more work.
 
-Note that cpsw_adjust_link() checks PHY status for each
-slave whenever it is invoked. It can so happen that even
-though phy_connect() for a given slave returns error,
-_cpsw_adjust_link() is still called for that slave because
-the link status of another slave changed.
+Regards,
 
-Fix this by using a temporary pointer to store return value
-of {of_}phy_connect() and do a one-time write to slave->phy.
+Tony
 
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Reported-by: Yan Liu <yan-liu@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 9f3d9c67e3fe..5a4faa4489d0 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1267,6 +1267,7 @@ static void soft_reset_slave(struct cpsw_slave *slave)
- static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
- {
- 	u32 slave_port;
-+	struct phy_device *phy;
- 	struct cpsw_common *cpsw = priv->cpsw;
- 
- 	soft_reset_slave(slave);
-@@ -1300,27 +1301,28 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
- 				   1 << slave_port, 0, 0, ALE_MCAST_FWD_2);
- 
- 	if (slave->data->phy_node) {
--		slave->phy = of_phy_connect(priv->ndev, slave->data->phy_node,
-+		phy = of_phy_connect(priv->ndev, slave->data->phy_node,
- 				 &cpsw_adjust_link, 0, slave->data->phy_if);
--		if (!slave->phy) {
-+		if (!phy) {
- 			dev_err(priv->dev, "phy \"%s\" not found on slave %d\n",
- 				slave->data->phy_node->full_name,
- 				slave->slave_num);
- 			return;
- 		}
- 	} else {
--		slave->phy = phy_connect(priv->ndev, slave->data->phy_id,
-+		phy = phy_connect(priv->ndev, slave->data->phy_id,
- 				 &cpsw_adjust_link, slave->data->phy_if);
--		if (IS_ERR(slave->phy)) {
-+		if (IS_ERR(phy)) {
- 			dev_err(priv->dev,
- 				"phy \"%s\" not found on slave %d, err %ld\n",
- 				slave->data->phy_id, slave->slave_num,
--				PTR_ERR(slave->phy));
--			slave->phy = NULL;
-+				PTR_ERR(phy));
- 			return;
- 		}
- 	}
- 
-+	slave->phy = phy;
-+
- 	phy_attached_info(slave->phy);
- 
- 	phy_start(slave->phy);
--- 
-2.9.0
+> > diff --git a/drivers/mfd/motorola-cpcap.c b/drivers/mfd/motorola-cpcap.c
+> > --- a/drivers/mfd/motorola-cpcap.c
+> > +++ b/drivers/mfd/motorola-cpcap.c
+> > @@ -71,6 +71,7 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
+> >  		.ack_base = CPCAP_REG_MI1,
+> >  		.mask_base = CPCAP_REG_MIM1,
+> >  		.use_ack = true,
+> > +		.handle_reread = true,
+> >  	},
+> >  	{
+> >  		.name = "cpcap-m2",
+> > @@ -79,6 +80,7 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
+> >  		.ack_base = CPCAP_REG_MI2,
+> >  		.mask_base = CPCAP_REG_MIM2,
+> >  		.use_ack = true,
+> > +		.handle_reread = true,
+> >  	},
+> >  	{
+> >  		.name = "cpcap1-4",
+> > @@ -88,6 +90,7 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
+> >  		.mask_base = CPCAP_REG_INTM1,
+> >  		.type_base = CPCAP_REG_INTS1,
+> >  		.use_ack = true,
+> > +		.handle_reread = true,
+> >  	},
+> >  };
+> >  
+> 
+> -- 
+> Lee Jones
+> Linaro STMicroelectronics Landing Team Lead
+> Linaro.org │ Open source software for ARM SoCs
+> Follow Linaro: Facebook | Twitter | Blog
