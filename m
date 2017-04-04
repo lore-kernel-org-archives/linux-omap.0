@@ -1,26 +1,48 @@
-From: Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH v4 0/8] mfd: Add OF device table to I2C drivers that are
- missing it
-Date: Tue, 4 Apr 2017 11:54:58 -0500
-Message-ID: <CAL_Jsq+FMrCOyjKXDBFR07AsD5nzSA2cRoBBix24NSBHiepo7A@mail.gmail.com>
-References: <20170404153036.6651-1-javier@osg.samsung.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: ethernet: ti: cpsw: fix race condition during
+ open()
+Date: Tue, 04 Apr 2017 10:33:48 -0700 (PDT)
+Message-ID: <20170404.103348.2265460653101200539.davem@davemloft.net>
+References: <509439ff3e756ea1dade2738e305f08fc7920650.1491220439.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20170404153036.6651-1-javier@osg.samsung.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Wolfram Sang <wsa@the-dreams.de>, Mark Rutland <mark.rutland@arm.com>, linux-omap <linux-omap@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <509439ff3e756ea1dade2738e305f08fc7920650.1491220439.git.nsekhar@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: nsekhar@ti.com
+Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 4, 2017 at 10:30 AM, Javier Martinez Canillas
-<javier@osg.samsung.com> wrote:
-> Hello,
->
-> This series add OF device ID tables to mfd I2C drivers whose devices are
-> either used in Device Tree source files or are listed in binding docs as
-> a compatible string.
+From: Sekhar Nori <nsekhar@ti.com>
+Date: Mon, 3 Apr 2017 17:34:28 +0530
 
-For the series,
+> TI's cpsw driver handles both OF and non-OF case for phy
+> connect. Unfortunately of_phy_connect() returns NULL on
+> error while phy_connect() returns ERR_PTR().
+> 
+> To handle this, cpsw_slave_open() overrides the return value
+> from phy_connect() to make it NULL or error.
+> 
+> This leaves a small window, where cpsw_adjust_link() may be
+> invoked for a slave while slave->phy pointer is temporarily
+> set to -ENODEV (or some other error) before it is finally set
+> to NULL.
+> 
+> _cpsw_adjust_link() only handles the NULL case, and an oops
+> results when ERR_PTR() is seen by it.
+> 
+> Note that cpsw_adjust_link() checks PHY status for each
+> slave whenever it is invoked. It can so happen that even
+> though phy_connect() for a given slave returns error,
+> _cpsw_adjust_link() is still called for that slave because
+> the link status of another slave changed.
+> 
+> Fix this by using a temporary pointer to store return value
+> of {of_}phy_connect() and do a one-time write to slave->phy.
+> 
+> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Reported-by: Yan Liu <yan-liu@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 
-Acked-by: Rob Herring <robh@kernel.org>
+Applied, thank you.
