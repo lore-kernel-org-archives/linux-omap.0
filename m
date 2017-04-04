@@ -1,56 +1,98 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] ARM: am335x-icev2: Add ethernet support
-Date: Tue, 4 Apr 2017 09:01:06 -0700
-Message-ID: <20170404160106.GR10760@atomide.com>
-References: <1489412554-2054-1-git-send-email-rogerq@ti.com>
- <178a255a-5e26-fe6f-8d9e-a7755f0b5fca@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/2] memory: ti-emif-sram: introduce relocatable
+ suspend/resume handlers
+Date: Tue, 4 Apr 2017 09:11:52 -0700
+Message-ID: <20170404161151.GS10760@atomide.com>
+References: <20170328205511.21166-1-d-gerlach@ti.com>
+ <20170328205511.21166-3-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <178a255a-5e26-fe6f-8d9e-a7755f0b5fca@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: davem@davemloft.net, grygorii.strashko@ti.com, nsekhar@ti.com, jsarha@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170328205511.21166-3-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Roger Quadros <rogerq@ti.com> [170330 05:37]:
-> Hi Tony & Dave,
-> 
-> On 13/03/17 15:42, Roger Quadros wrote:
-> > Hi,
-> > 
-> > This series adds ethernet support to am335x-icev2 board.
-> > 
-> > The ethernet PHYs on the board need an explicit GPIO reset pulse
-> > to ensure they bootstrap to the correct mode. Without the
-> > GPIO reset they just don't work.
-> > 
-> > cheers,
-> > -roger
-> 
-> Any comments on this series. Patch 1 is at version 2.
+Russell,
 
-I think you meant patch 2/3 is at version2. I've picked
-patches 2 and 3 for v4.12 into dt and defconfig branches.
+* Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [170328 13:57]:
+> Certain SoCs like Texas Instruments AM335x and AM437x require parts
+> of the EMIF PM code to run late in the suspend sequence from SRAM,
+> such as saving and restoring the EMIF context and placing the memory
+> into self-refresh.
+> 
+> One requirement for these SoCs to suspend and enter its lowest power
+> mode, called DeepSleep0, is that the PER power domain must be shut off.
+> Because the EMIF (DDR Controller) resides within this power domain, it
+> will lose context during a suspend operation, so we must save it so we
+> can restore once we resume. However, we cannot execute this code from
+> external memory, as it is not available at this point, so the code must
+> be executed late in the suspend path from SRAM.
+> 
+> This patch introduces a ti-emif-sram driver that includes several
+> functions written in ARM ASM that are relocatable so the PM SRAM
+> code can use them. It also allocates a region of writable SRAM to
+> be used by the code running in the executable region of SRAM to save
+> and restore the EMIF context. It can export a table containing the
+> absolute addresses of the available PM functions so that other SRAM
+> code can branch to them. This code is required for suspend/resume on
+> AM335x and AM437x to work.
+> 
+> In addition to this, to be able to share data structures between C and
+> the ti-emif-sram-pm assembly code, we can automatically generate all of
+> the C struct member offsets and sizes as macros by making use of the ARM
+> asm-offsets file. In the same header that we define our data structures
+> in we also define all the macros in an inline function and by adding a
+> call to this in the asm_offsets file all macros are properly generated
+> and available to the assembly code without cluttering up the asm-offsets
+> file.
+> 
+> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/kernel/asm-offsets.c    |   6 +
+>  drivers/memory/Kconfig           |  10 ++
+>  drivers/memory/Makefile          |   4 +
+>  drivers/memory/emif.h            |  17 ++
+>  drivers/memory/ti-emif-pm.c      | 295 ++++++++++++++++++++++++++++++++++
+>  drivers/memory/ti-emif-sram-pm.S | 334 +++++++++++++++++++++++++++++++++++++++
+>  include/linux/ti-emif-sram.h     | 143 +++++++++++++++++
+>  7 files changed, 809 insertions(+)
+>  create mode 100644 drivers/memory/ti-emif-pm.c
+>  create mode 100644 drivers/memory/ti-emif-sram-pm.S
+>  create mode 100644 include/linux/ti-emif-sram.h
+> 
+> diff --git a/arch/arm/kernel/asm-offsets.c b/arch/arm/kernel/asm-offsets.c
+> index 608008229c7d..d728b5660e36 100644
+> --- a/arch/arm/kernel/asm-offsets.c
+> +++ b/arch/arm/kernel/asm-offsets.c
+> @@ -28,6 +28,7 @@
+>  #include <asm/vdso_datapage.h>
+>  #include <asm/hardware/cache-l2x0.h>
+>  #include <linux/kbuild.h>
+> +#include <linux/ti-emif-sram.h>
+>  
+>  /*
+>   * Make sure that the compiler and target are compatible.
+> @@ -183,5 +184,10 @@ int main(void)
+>  #ifdef CONFIG_VDSO
+>    DEFINE(VDSO_DATA_SIZE,	sizeof(union vdso_data_store));
+>  #endif
+> +#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
+> +  BLANK();
+> +  ti_emif_offsets();
+> +#endif
+> +
+>    return 0; 
+>  }
 
-You may need to resend the davinci_mdio.c patch alone
-for Dave as he usually won't pick individual patches I
-think.
+Does the above look OK to you?
 
 Regards,
 
 Tony
-
-> > Roger Quadros (2):
-> >   net: davinci_mdio: add GPIO reset logic
-> >   ARM: dts: am335x-icev2: Add CPSW ethernet0 and ethernet1
-> > 
-> >  .../devicetree/bindings/net/davinci-mdio.txt       |   2 +
-> >  arch/arm/boot/dts/am335x-icev2.dts                 | 113 +++++++++++++++++++++
-> >  drivers/net/ethernet/ti/davinci_mdio.c             |  68 +++++++++++--
-> >  3 files changed, 175 insertions(+), 8 deletions(-)
-> > 
-> 
-> cheers,
-> -roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
