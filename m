@@ -1,66 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] mfd: cpcap: Use handle_reread flag for interrupts
-Date: Mon, 3 Apr 2017 20:17:41 -0700
-Message-ID: <20170404031741.GL10760@atomide.com>
-References: <20170322171052.7006-1-tony@atomide.com>
- <20170322171052.7006-3-tony@atomide.com>
- <20170403102122.c6bztacpqmt2xdzw@dell>
- <20170403141454.GG10760@atomide.com>
- <20170403143202.mj3jpi7csdfbpgdy@dell>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170403143202.mj3jpi7csdfbpgdy@dell>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] ARM: dts: omap4-droid4: Fix interrupt triggering for cpcap
+Date: Mon,  3 Apr 2017 20:25:22 -0700
+Message-ID: <20170404032522.5641-1-tony@atomide.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Charles Keepax <ckeepax-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Lee Jones <lee.jones@linaro.org> [170403 07:34]:
-> On Mon, 03 Apr 2017, Tony Lindgren wrote:
-> 
-> > Hi,
-> > 
-> > * Lee Jones <lee.jones@linaro.org> [170403 03:23]:
-> > > On Wed, 22 Mar 2017, Tony Lindgren wrote:
-> > > 
-> > > > On CPCAP we need to keep reading interrupts until there are no
-> > > > more interrupts. Otherwise the PMIC interrupt to the SoC will at
-> > > > some point stop toggling. This seems to happen because new CPCAP
-> > > > device interrupts show up while we're handling.
-> > > > 
-> > > > Cc: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
-> > > > Cc: Lee Jones <lee.jones@linaro.org>
-> > > > Cc: Marcel Partap <mpartap@gmx.net>
-> > > > Cc: Michael Scott <michael.scott@linaro.org>
-> > > > Tested-by: Sebastian Reichel <sre@kernel.org>
-> > > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > > ---
-> > > >  drivers/mfd/motorola-cpcap.c | 3 +++
-> > > >  1 file changed, 3 insertions(+)
-> > > 
-> > > Applied, thanks.
-> > 
-> > Sorry this one depends on patch 1/4 for .handle_reread. So this
-> > one should be reverted or dropped. That will cause trivial merge
-> > conflicts with patches 2 and 4.
-> > 
-> > Please let me know if you want me to resend just patches 2 and 4
-> > as patches 1 and 2 need more work.
-> 
-> Yes, I found that out (and replied to the regmap patch).
-> 
-> I'll revert them all for now.
+The CPCAP PMIC interrupt is level high sensitive despite it being
+requested as edge high triggered in the Motorola Linux kernel.
 
-OK thanks.
+Note that also the related driver change is needed posted as
+"mfd: cpcap: Fix interrupt to use level interrupt".
 
-> Awaiting a subsequent revision.
+Fixes: 56e1d40d3bea ("mfd: cpcap: Add minimal support")
+Cc: Charles Keepax <ckeepax-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sent as "[PATCHv3 0/3] CPCAP PMIC IRQ fix and related changes"
-with regmap changes dropped as I figured out what the real issue
-with lost interrupts was :)
-
-Regards,
-
-Tony
+diff --git a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+--- a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
++++ b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+@@ -11,7 +11,7 @@
+ 		compatible = "motorola,cpcap", "st,6556002";
+ 		reg = <0>;	/* cs0 */
+ 		interrupt-parent = <&gpio1>;
+-		interrupts = <7 IRQ_TYPE_EDGE_RISING>;
++		interrupts = <7 IRQ_TYPE_LEVEL_HIGH>;
+ 		interrupt-controller;
+ 		#interrupt-cells = <2>;
+ 		#address-cells = <1>;
+-- 
+2.12.2
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
