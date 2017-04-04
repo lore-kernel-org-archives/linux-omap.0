@@ -1,58 +1,48 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/4] regmap: irq: Fix lost interrupts by introducing
- handle_reread
-Date: Tue, 4 Apr 2017 13:19:57 +0100
-Message-ID: <20170404121957.v64jcx2k4w3mwtje@sirena.org.uk>
-References: <20170322171052.7006-1-tony@atomide.com>
- <20170322171052.7006-2-tony@atomide.com>
- <20170327174952.jsfleql654m2h45i@sirena.org.uk>
- <20170328003648.GS10760@atomide.com>
- <20170328151849.uvj2ljkbts4cwksq@sirena.org.uk>
- <20170328154740.GW10760@atomide.com>
- <20170328164911.xwwl3kdy6j2y7hfq@sirena.org.uk>
- <20170328171022.GZ10760@atomide.com>
- <20170404030300.GK10760@atomide.com>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
+ d8e5f0eca1e8)
+Date: Tue, 4 Apr 2017 07:27:36 -0500
+Message-ID: <20170404122736.GA13673@uda0271908>
+References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="kxsjvmmaxil4dq2d"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170404030300.GK10760@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+In-Reply-To: <2bf73b02-6e59-627a-c370-552ed94e7795-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Apr 04, 2017 at 10:09:50AM +0300, Peter Ujfalusi wrote:
+> Tony,
+> 
+> since 4.9 (4.8 was fine) I can not boot omap4-panda-es if the musb
+> is compiled in. The kernel will stuck printing:
+> 
+> ** 206 printk messages dropped ** [    8.926727] musb_bus_suspend
+> 2584: trying to suspend as a_idle while active
 
---kxsjvmmaxil4dq2d
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Does it sound a similar issue to
+http://marc.info/?l=linux-usb&m=149036531809506&w=2
 
-On Mon, Apr 03, 2017 at 08:03:00PM -0700, Tony Lindgren wrote:
+Regards,
+-Bin.
 
-> So I'll drop the genirq/regmap_irq related hacks and resend just
-> the minimal MFD fixes. Similar misconfiguration may be the root
-> cause for other drivers too..
-
-It is sadly far too common for people to implement interrupt controllers
-that only do edge triggers, I've no idea why even on what are supposed
-to be relatively high end SoCs.  It seems to be a hardware designer
-thing, AFAICT they think for something to be useful it needs to be a bit
-more complicated.
-
---kxsjvmmaxil4dq2d
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAljjj2wACgkQJNaLcl1U
-h9BQRQf/e5POjRhnXx7eP53NvPZ9mfMEnFz497uRFulghlJwL7mWmckEzSsM2HBJ
-KQ/YmgR2tH02FsttYMr4w62RwOZRge3mo4maqAvyxriFX4HTblyvwidq2MJig9tP
-u0LmeDhI2QQSaFxhnTLUN0dHRcZx+gcd8cYDObw/lIngC0F8QCft5mp5/CVdkvfd
-YKRHVfR+5BbBjhVRrYyRZsgAm42xunYCoqrPQEV2vjCze5vebU3ct/WkEJ6qJdgi
-9W6/LzWfaKgaCH7RSPpmAgLd5AeoNcbeI7SUMRIjzbZWoOmF91kqrotJ8R5vMihM
-JXmf7Uhp83It6j80DpS8p1lO1PHodQ==
-=dPui
------END PGP SIGNATURE-----
-
---kxsjvmmaxil4dq2d--
+> 
+> The bisect (log is [1]) points to:
+> d8e5f0eca1e8 usb: musb: Fix hardirq-safe hardirq-unsafe lock order error
+> 
+> and reverting the d8e5f0eca1e8 makes the board to boot up fine
+> (Linux 4.11-rc5 and next-20170331).
+> 
+> any idea on how to fix this w/o reverting the commit?
+> 
+> [1] https://pastebin.com/Z2HJY229
+> 
+> - Péter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
