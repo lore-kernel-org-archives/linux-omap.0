@@ -1,41 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/3] mfd: cpcap: Fix bad use of IRQ sense register
-Date: Mon,  3 Apr 2017 20:15:56 -0700
-Message-ID: <20170404031556.5093-4-tony@atomide.com>
-References: <20170404031556.5093-1-tony@atomide.com>
+Subject: [PATCHv3 0/3] CPCAP PMIC IRQ fix and related changes
+Date: Mon,  3 Apr 2017 20:15:53 -0700
+Message-ID: <20170404031556.5093-1-tony@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170404031556.5093-1-tony@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Sebastian Reichel <sre@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The cpcap INTS registers are for getting the value of the line,
-not for configuring the type.
+Hi all,
 
-Fixes: 56e1d40d3bea ("mfd: cpcap: Add minimal support")
-Cc: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
-Cc: Marcel Partap <mpartap@gmx.net>
-Cc: Michael Scott <michael.scott@linaro.org>
-Cc: Sebastian Reichel <sre@kernel.org>
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
-Tested-by: Sebastian Reichel <sre@kernel.org>
-Acked-by: Lee Jones <lee.jones@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mfd/motorola-cpcap.c | 1 -
- 1 file changed, 1 deletion(-)
+Here's v3 set of fixes to make CPCAP PMIC interrupts work reliably when
+used with multiple drivers. While working on the ADC, charger and
+USB PHY drivers I noticed that the PMIC interrupt to the SoC would
+eventually stop working.
 
-diff --git a/drivers/mfd/motorola-cpcap.c b/drivers/mfd/motorola-cpcap.c
---- a/drivers/mfd/motorola-cpcap.c
-+++ b/drivers/mfd/motorola-cpcap.c
-@@ -88,7 +88,6 @@ static struct regmap_irq_chip cpcap_irq_chip[CPCAP_NR_IRQ_CHIPS] = {
- 		.status_base = CPCAP_REG_INT1,
- 		.ack_base = CPCAP_REG_INT1,
- 		.mask_base = CPCAP_REG_INTM1,
--		.type_base = CPCAP_REG_INTS1,
- 		.use_ack = true,
- 		.ack_invert = true,
- 	},
+All these can wait for v4.12 merge window as these issues don't show
+up currently. I'll send the related interrupt triggering dts change
+separately.
+
+Regards,
+
+Tony
+
+Changes since v2:
+
+- Replaced first two regmap_irq related patches with proper interrupt
+  triggering configuration after noticing the dts configuration did
+  not get passed in
+
+- Dropped regmap from the patch series subject line
+
+Changes since v1:
+
+- Updated regap-irq patch to use out_runtime_put in regmap_irq_thread
+  also if pm_runtime_get() fails
+
+- Clarify patch description for regmap-irq changes to make clear
+  this is an issue with the CPCAP PMIC and not SoC GPIO edge/level
+  handling based on comments from Charles Keepax
+  <ckeepax@opensource.wolfsonmicro.com>
+
+- Collected acks
+
+Tony Lindgren (3):
+  mfd: cpcap: Fix interrupt to use level interrupt
+  mfd: cpcap: Use ack_invert interrupts
+  mfd: cpcap: Fix bad use of IRQ sense register
+
+ drivers/mfd/motorola-cpcap.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
 -- 
 2.12.2
