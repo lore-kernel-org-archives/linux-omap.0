@@ -1,55 +1,63 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
- d8e5f0eca1e8)
-Date: Tue, 4 Apr 2017 07:03:41 -0700
-Message-ID: <20170404140341.GO10760@atomide.com>
-References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
- <20170404122736.GA13673@uda0271908>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/4] regmap: irq: Fix lost interrupts by introducing
+ handle_reread
+Date: Tue, 4 Apr 2017 16:28:52 +0100
+Message-ID: <20170404152852.4c7fkgtisrlqim7h@sirena.org.uk>
+References: <20170322171052.7006-2-tony@atomide.com>
+ <20170327174952.jsfleql654m2h45i@sirena.org.uk>
+ <20170328003648.GS10760@atomide.com>
+ <20170328151849.uvj2ljkbts4cwksq@sirena.org.uk>
+ <20170328154740.GW10760@atomide.com>
+ <20170328164911.xwwl3kdy6j2y7hfq@sirena.org.uk>
+ <20170328171022.GZ10760@atomide.com>
+ <20170404030300.GK10760@atomide.com>
+ <20170404121957.v64jcx2k4w3mwtje@sirena.org.uk>
+ <20170404135629.GN10760@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ljkcuklux2fic2lb"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170404122736.GA13673@uda0271908>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170404135629.GN10760@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170404 05:30]:
-> On Tue, Apr 04, 2017 at 10:09:50AM +0300, Peter Ujfalusi wrote:
-> > Tony,
-> > 
-> > since 4.9 (4.8 was fine) I can not boot omap4-panda-es if the musb
-> > is compiled in. The kernel will stuck printing:
-> > 
-> > ** 206 printk messages dropped ** [    8.926727] musb_bus_suspend
-> > 2584: trying to suspend as a_idle while active
 
-OK so compiled in. Do you have something connected also when
-booting?
+--ljkcuklux2fic2lb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> Does it sound a similar issue to
-> http://marc.info/?l=linux-usb&m=149036531809506&w=2
+On Tue, Apr 04, 2017 at 06:56:30AM -0700, Tony Lindgren wrote:
+> * Mark Brown <broonie@kernel.org> [170404 05:22]:
 
-Yup.
+> > It is sadly far too common for people to implement interrupt controllers
+> > that only do edge triggers, I've no idea why even on what are supposed
+> > to be relatively high end SoCs.  It seems to be a hardware designer
+> > thing, AFAICT they think for something to be useful it needs to be a bit
+> > more complicated.
 
-> > The bisect (log is [1]) points to:
-> > d8e5f0eca1e8 usb: musb: Fix hardirq-safe hardirq-unsafe lock order error
-> > 
-> > and reverting the d8e5f0eca1e8 makes the board to boot up fine
-> > (Linux 4.11-rc5 and next-20170331).
+> For edge only GPIO controllers handling level interrupts might be
+> somewhat fixable in software. The GPIO controller could have a loop
+> reading of the GPIO line status in the interrupt handler and comparing
+> it to the configured triggering.
 
-OK thanks for bisecting it.
+Yeah, it's doable if annoying.
 
-> > any idea on how to fix this w/o reverting the commit?
+--ljkcuklux2fic2lb
+Content-Type: application/pgp-signature; name="signature.asc"
 
-I'll take a look.
+-----BEGIN PGP SIGNATURE-----
 
-Regards,
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAljju7QACgkQJNaLcl1U
+h9BjCQf+NQ/G8K3gF8Ka5PasBac09duTow4czwHISDeawqBBeOh/ZV3CB8zt2f4a
+pnJIzfoLsx1ktlI8aIw/2+HCe+7OmiIBmh0DgipFRZA2Bbmc4plplyrcCj7CsqXU
+S0NA/TH/4yXPbxZsXSKxUctBmU/C+xwHY6tSgAy6/fqs0ztV8TZxf/26XOifcEpC
+toV+/08jkJ0ahPTwPat1/xNMwAkW7MM6YH7GFBi89mQwoq1wFt2p8AvmIAqZZpNl
+lSnq0XhBv7hsVpE7kfrPuDrrsqhOyIH1x/0ekdFKPMS5BchmI7OGG4Rf2f/DK5el
+C3eB1c4G5JVvbRssmbWDYz5pQlb/Hg==
+=Qqm8
+-----END PGP SIGNATURE-----
 
-Tony
-
-> > [1] https://pastebin.com/Z2HJY229
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--ljkcuklux2fic2lb--
