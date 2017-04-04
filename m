@@ -1,13 +1,15 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH v4 4/8] ARM: dts: n8x0: Add vendor prefix to retu node
-Date: Tue,  4 Apr 2017 11:30:32 -0400
-Message-ID: <20170404153036.6651-5-javier@osg.samsung.com>
-References: <20170404153036.6651-1-javier@osg.samsung.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap_device: Sync omap_device and
+ pm_runtime after probe defer
+Date: Tue, 4 Apr 2017 08:52:23 -0700
+Message-ID: <20170404155222.GP10760@atomide.com>
+References: <20170330195818.17669-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170404153036.6651-1-javier@osg.samsung.com>
+Content-Disposition: inline
+In-Reply-To: <20170330195818.17669-1-d-gerlach@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,35 +19,71 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Javier Martinez Canillas <javier@osg.samsung.com>, Rob Herring <robh+dt@kernel.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-arm-kernel@lists.infradead.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Franklin S Cooper <fcooper@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The retu device node doesn't have a vendor prefix
-in its compatible string, fix it by adding one.
+* Dave Gerlach <d-gerlach@ti.com> [170330 13:01]:
+> Starting from commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM
+> states at probe error and driver unbind") pm_runtime core now changes
+> device runtime_status back to after RPM_SUSPENDED after a probe defer.
+> Certain OMAP devices make use of "ti,no-idle-on-init" flag which causes
+> omap_device_enable to be called during the BUS_NOTIFY_ADD_DEVICE event
+> during probe, along with pm_runtime_set_active.
+> 
+> This call to pm_runtime_set_active typically will prevent a call to
+> pm_runtime_get in a driver probe function from re-enabling the
+> omap_device. However, in the case of a probe defer that happens before
+> the driver probe function is able to run, such as a missing pinctrl
+> states defer, pm_runtime_reinit will set the device as RPM_SUSPENDED and
+> then once driver probe is actually able to run, pm_runtime_get will see
+> the device as suspended and call through to the omap_device layer,
+> attempting to enable the already enabled omap_device and causing errors
+> like this:
+> 
+> omap-gpmc 50000000.gpmc: omap_device: omap_device_enable() called from invalid state 1
+> omap-gpmc 50000000.gpmc: use pm_runtime_put_sync_suspend() in driver?
+> 
+> We can avoid this error by making sure the pm_runtime status of a device
+> matches the omap_device state before a probe attempt. By extending the
+> omap_device bus notifier to act on the BUS_NOTIFY_BIND_DRIVER event we
+> can check if a device is enabled in omap_device but with a pm_runtime
+> status of RPM_SUSPENDED and once again mark the device as RPM_ACTIVE to
+> avoid a second incorrect call to omap_device_enable.
+> 
+> Tested-by: Franklin S Cooper Jr. <fcooper@ti.com>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+Applying into omap-for-v4.11/fixes thanks. Will let this one sit
+in Linux next for a while.
 
-Changes in v4: None
-Changes in v3: None
-Changes in v2: None
+Regards,
 
- arch/arm/boot/dts/omap2420-n8x0-common.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Tony
 
-diff --git a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-index 1b06430c8013..91886231e5a8 100644
---- a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-+++ b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-@@ -16,7 +16,7 @@
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			retu: retu@1 {
--				compatible = "retu";
-+				compatible = "nokia,retu";
- 				interrupt-parent = <&gpio4>;
- 				interrupts = <12 IRQ_TYPE_EDGE_RISING>;
- 				reg = <0x1>;
--- 
-2.9.3
+> ---
+>  arch/arm/mach-omap2/omap_device.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index e920dd83e443..f989145480c8 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -222,6 +222,14 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
+>  				dev_err(dev, "failed to idle\n");
+>  		}
+>  		break;
+> +	case BUS_NOTIFY_BIND_DRIVER:
+> +		od = to_omap_device(pdev);
+> +		if (od && (od->_state == OMAP_DEVICE_STATE_ENABLED) &&
+> +		    pm_runtime_status_suspended(dev)) {
+> +			od->_driver_status = BUS_NOTIFY_BIND_DRIVER;
+> +			pm_runtime_set_active(dev);
+> +		}
+> +		break;
+>  	case BUS_NOTIFY_ADD_DEVICE:
+>  		if (pdev->dev.of_node)
+>  			omap_device_build_from_dt(pdev);
+> -- 
+> 2.11.0
+> 
