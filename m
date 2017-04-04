@@ -1,63 +1,75 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 1/4] regmap: irq: Fix lost interrupts by introducing
- handle_reread
-Date: Tue, 4 Apr 2017 16:28:52 +0100
-Message-ID: <20170404152852.4c7fkgtisrlqim7h@sirena.org.uk>
-References: <20170322171052.7006-2-tony@atomide.com>
- <20170327174952.jsfleql654m2h45i@sirena.org.uk>
- <20170328003648.GS10760@atomide.com>
- <20170328151849.uvj2ljkbts4cwksq@sirena.org.uk>
- <20170328154740.GW10760@atomide.com>
- <20170328164911.xwwl3kdy6j2y7hfq@sirena.org.uk>
- <20170328171022.GZ10760@atomide.com>
- <20170404030300.GK10760@atomide.com>
- <20170404121957.v64jcx2k4w3mwtje@sirena.org.uk>
- <20170404135629.GN10760@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ljkcuklux2fic2lb"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170404135629.GN10760@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Lee Jones <lee.jones@linaro.org>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH v4 0/8] mfd: Add OF device table to I2C drivers that are missing it
+Date: Tue,  4 Apr 2017 11:30:28 -0400
+Message-ID: <20170404153036.6651-1-javier@osg.samsung.com>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Javier Martinez Canillas <javier@osg.samsung.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Wolfram Sang <wsa@the-dreams.de>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hello,
 
---ljkcuklux2fic2lb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This series add OF device ID tables to mfd I2C drivers whose devices are
+either used in Device Tree source files or are listed in binding docs as
+a compatible string.
 
-On Tue, Apr 04, 2017 at 06:56:30AM -0700, Tony Lindgren wrote:
-> * Mark Brown <broonie@kernel.org> [170404 05:22]:
+That's done because the plan is to change the I2C core to report proper OF
+modaliases instead of always reporting a MODALIAS=i2c:<foo> regardless if
+a device was registered via DT or using the legacy platform data mechanism.
 
-> > It is sadly far too common for people to implement interrupt controllers
-> > that only do edge triggers, I've no idea why even on what are supposed
-> > to be relatively high end SoCs.  It seems to be a hardware designer
-> > thing, AFAICT they think for something to be useful it needs to be a bit
-> > more complicated.
+So these patches will make sure that mfd I2C drivers modules will continue
+to be autoloaded once the I2C core is changed to report proper OF modalias.
 
-> For edge only GPIO controllers handling level interrupts might be
-> somewhat fixable in software. The GPIO controller could have a loop
-> reading of the GPIO line status in the interrupt handler and comparing
-> it to the configured triggering.
+Users didn't have a vendor prefix in the used compatible strings, but since
+there wasn't a DT binding document for these drivers, it can be said that
+were working for mere luck and so this series fixes the users and add a DT
+binding doc for the drivers.
 
-Yeah, it's doable if annoying.
+Most patches can be applied independently, with the exception of patches
+2 to 4 that should be applied in the same tree to keep bisect-ability.
 
---ljkcuklux2fic2lb
-Content-Type: application/pgp-signature; name="signature.asc"
+Best regards,
+Javier
 
------BEGIN PGP SIGNATURE-----
+Changes in v4:
+- Use "dt-bindings: mfd:" prefix in subject line (Rob Herring).
+- Add information about what functions the device serve (Lee Jones).
+- Avoid using MFD in Device Tree (Lee Jones).
+- Drop -mfd suffix in compatible string (Lee Jones).
+- Avoid using MFD in Device Tree (Lee Jones).
+- Use "dt-bindings: mfd:" prefix in subject line (Rob Herring).
+- Add information about what functions the device serve (Lee Jones).
 
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAljju7QACgkQJNaLcl1U
-h9BjCQf+NQ/G8K3gF8Ka5PasBac09duTow4czwHISDeawqBBeOh/ZV3CB8zt2f4a
-pnJIzfoLsx1ktlI8aIw/2+HCe+7OmiIBmh0DgipFRZA2Bbmc4plplyrcCj7CsqXU
-S0NA/TH/4yXPbxZsXSKxUctBmU/C+xwHY6tSgAy6/fqs0ztV8TZxf/26XOifcEpC
-toV+/08jkJ0ahPTwPat1/xNMwAkW7MM6YH7GFBi89mQwoq1wFt2p8AvmIAqZZpNl
-lSnq0XhBv7hsVpE7kfrPuDrrsqhOyIH1x/0ekdFKPMS5BchmI7OGG4Rf2f/DK5el
-C3eB1c4G5JVvbRssmbWDYz5pQlb/Hg==
-=Qqm8
------END PGP SIGNATURE-----
+Changes in v3:
+- Add a vendor prefix to the compatible string (Rob Herring).
+- Add a vendor prefix to the compatible string (Rob Herring).
 
---ljkcuklux2fic2lb--
+Changes in v2:
+- Don't use of_match_ptr() to avoid build warning when CONFIG_OF is disabled.
+- Don't use of_match_ptr() to avoid build warning when CONFIG_OF is disabled.
+
+Javier Martinez Canillas (8):
+  dt-bindings: mfd: Add retu/tahvo ASIC chips bindings
+  mfd: retu: Drop -mfd suffix from I2C device ID name
+  mfd: retu: Add OF device ID table
+  ARM: dts: n8x0: Add vendor prefix to retu node
+  i2c: i2c-cbus-gpio: Add vendor prefix to retu node in example
+  dt-bindings: mfd: Add TI tps6105x chip bindings
+  mfd: tps6105x: Add OF device ID table
+  ARM: ux500: Add vendor prefix to tps61052 node
+
+ .../devicetree/bindings/i2c/i2c-cbus-gpio.txt       |  4 ++--
+ Documentation/devicetree/bindings/mfd/retu.txt      | 21 +++++++++++++++++++++
+ Documentation/devicetree/bindings/mfd/tps6105x.txt  | 17 +++++++++++++++++
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi         |  4 ++--
+ arch/arm/boot/dts/ste-hrefprev60.dtsi               |  2 +-
+ arch/arm/mach-omap1/board-nokia770.c                |  4 ++--
+ drivers/mfd/retu-mfd.c                              | 12 ++++++++++--
+ drivers/mfd/tps6105x.c                              |  8 ++++++++
+ 8 files changed, 63 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/retu.txt
+ create mode 100644 Documentation/devicetree/bindings/mfd/tps6105x.txt
+
+-- 
+2.9.3
