@@ -1,39 +1,65 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv2] phy: cpcap-usb: Add CPCAP PMIC USB support
-Date: Mon, 3 Apr 2017 20:27:09 -0700
-Message-ID: <20170404032708.GM10760@atomide.com>
-References: <20170322234602.5888-1-tony@atomide.com>
- <d47b0f99-1ef8-3bff-0fbe-edb95ed41e23@ti.com>
- <20170327150518.GH10760@atomide.com>
- <3661b0cc-bf79-0347-ae4c-db6bdfdf6293@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] ARM: davinci: Add the clock for the CPPI 4.1 DMA engine
+Date: Tue, 4 Apr 2017 11:46:05 +0530
+Message-ID: <f53545e0-d009-2ef5-ab21-e9f9b3518045@ti.com>
+References: <20170329160932.27157-1-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3661b0cc-bf79-0347-ae4c-db6bdfdf6293-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170329160932.27157-1-abailon@baylibre.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Alexandre Bailon <abailon@baylibre.com>
+Cc: grygorii.strashko@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, khilman@baylibre.com, linux-usb@vger.kernel.org, ptitiano@baylibre.com, linux-omap@vger.kernel.org, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [170330 04:51]:
-> On Monday 27 March 2017 08:35 PM, Tony Lindgren wrote:
-> > Seems this can be also done when implementing PM runtime handling.
-> > If you want some of these changes done for the initial patch,
-> > please let me know.
+On Wednesday 29 March 2017 09:39 PM, Alexandre Bailon wrote:
+> The CPPI 4.1 DMA is sharing its clock with the USB OTG,
+> and most of the time, the clock will be enabled by USB.
+> But during the init of the DMA, USB is not enabled (waiting for DMA),
+> and then we must enable the clock before to do anything.
+> Add the clock for the CPPI 4.1 DMA engine.
 > 
-> I think it's better we get extcon stuff in the initial patch so that we don't
-> have to maintain some piece of code for legacy dt. Others can be added later.
+> Note:
+> This patch is to apply instead of:
+> "ARM: davinci: Make the usb20 clock available to PM runtime"
 
-Sure, I'll take a look at that hopefully this week at some
-point.
+Okay, but I still liked the fact that that patch was using NULL as
+con_id for MUSB clock. That makes sense because MUSB gets a single clock
+input. I think you should still make that change. If not for v4.12, then
+for v4.13.
 
-Regards,
+> 
+> Signed-off-by: Alexandre Bailon <abailon@baylibre.com>
+> ---
+>  arch/arm/mach-davinci/da830.c    | 1 +
+>  arch/arm/mach-davinci/da850.c    | 1 +
+>  arch/arm/mach-davinci/da8xx-dt.c | 2 ++
+>  3 files changed, 4 insertions(+)
+> 
+> diff --git a/arch/arm/mach-davinci/da830.c b/arch/arm/mach-davinci/da830.c
+> index 073c458..ae4a8a5 100644
+> --- a/arch/arm/mach-davinci/da830.c
+> +++ b/arch/arm/mach-davinci/da830.c
+> @@ -413,6 +413,7 @@ static struct clk_lookup da830_clks[] = {
+>  	CLK("davinci-mcasp.1",	NULL,		&mcasp1_clk),
+>  	CLK("davinci-mcasp.2",	NULL,		&mcasp2_clk),
+>  	CLK("musb-da8xx",	"usb20",	&usb20_clk),
+> +	CLK("cppi41-dmaengine",	NULL,		&usb20_clk),
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Did you try reading /sys/kernel/debug/davinci_clocks after this patch?
+It will hang because of the loop created here.
+
+Looks like what you want is cppi4.1 dma clock to be a child of MUSB
+clock. That way, even if DMA is enabled before MUSB, it still works.
+
+Thanks,
+Sekhar
