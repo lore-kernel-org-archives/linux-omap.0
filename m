@@ -1,37 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: usb: musb: regression since 4.9 on omap4-panda-es (caused by
- d8e5f0eca1e8)
-Date: Tue, 4 Apr 2017 10:09:50 +0300
-Message-ID: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
+From: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/3] mfd: cpcap: Fix interrupt to use level interrupt
+Date: Tue, 4 Apr 2017 10:04:10 +0100
+Message-ID: <20170404090410.GX6986@localhost.localdomain>
+References: <20170404031556.5093-1-tony@atomide.com>
+ <20170404031556.5093-2-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: b-liu-l0cyMroinI0@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170404031556.5093-2-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+On Mon, Apr 03, 2017 at 08:15:54PM -0700, Tony Lindgren wrote:
+> I made a mistake assuming the device tree configuration for interrupt
+> triggering was somehow passed to the SPI device but it's not.
+> 
+> In the Motorola Linux kernel tree CPCAP PMIC is configured as a rising
+> edge triggered interrupt, but then then it's interrupt handler keeps
+> looping until the GPIO line goes down. So the CPCAP interrupt is clearly
+> a level interrupt and not an edge interrupt.
+> 
+> Earlier when I tried to configure it as level interrupt using the
+> device tree, I did not account that the triggering only gets passed
+> to the SPI core and it also needs to be specified in the CPCAP driver
+> when we do devm_regmap_add_irq_chip().
+> 
+> Fixes: 56e1d40d3bea ("mfd: cpcap: Add minimal support")
+> Cc: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+> Cc: Marcel Partap <mpartap@gmx.net>
+> Cc: Michael Scott <michael.scott@linaro.org>
+> Cc: Sebastian Reichel <sre@kernel.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
 
-since 4.9 (4.8 was fine) I can not boot omap4-panda-es if the musb is 
-compiled in. The kernel will stuck printing:
+Thanks for looking into that further, I thought that might be
+what was going on.
 
-** 206 printk messages dropped ** [    8.926727] musb_bus_suspend 2584: 
-trying to suspend as a_idle while active
+Reviewed-by: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
 
-The bisect (log is [1]) points to:
-d8e5f0eca1e8 usb: musb: Fix hardirq-safe hardirq-unsafe lock order error
-
-and reverting the d8e5f0eca1e8 makes the board to boot up fine (Linux 
-4.11-rc5 and next-20170331).
-
-any idea on how to fix this w/o reverting the commit?
-
-[1] https://pastebin.com/Z2HJY229
-
-- Péter
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Charles
