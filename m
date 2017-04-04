@@ -1,65 +1,37 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH] ARM: davinci: Add the clock for the CPPI 4.1 DMA engine
-Date: Tue, 4 Apr 2017 11:46:05 +0530
-Message-ID: <f53545e0-d009-2ef5-ab21-e9f9b3518045@ti.com>
-References: <20170329160932.27157-1-abailon@baylibre.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: usb: musb: regression since 4.9 on omap4-panda-es (caused by
+ d8e5f0eca1e8)
+Date: Tue, 4 Apr 2017 10:09:50 +0300
+Message-ID: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170329160932.27157-1-abailon@baylibre.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alexandre Bailon <abailon@baylibre.com>
-Cc: grygorii.strashko@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, khilman@baylibre.com, linux-usb@vger.kernel.org, ptitiano@baylibre.com, linux-omap@vger.kernel.org, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: b-liu-l0cyMroinI0@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 29 March 2017 09:39 PM, Alexandre Bailon wrote:
-> The CPPI 4.1 DMA is sharing its clock with the USB OTG,
-> and most of the time, the clock will be enabled by USB.
-> But during the init of the DMA, USB is not enabled (waiting for DMA),
-> and then we must enable the clock before to do anything.
-> Add the clock for the CPPI 4.1 DMA engine.
-> 
-> Note:
-> This patch is to apply instead of:
-> "ARM: davinci: Make the usb20 clock available to PM runtime"
+Tony,
 
-Okay, but I still liked the fact that that patch was using NULL as
-con_id for MUSB clock. That makes sense because MUSB gets a single clock
-input. I think you should still make that change. If not for v4.12, then
-for v4.13.
+since 4.9 (4.8 was fine) I can not boot omap4-panda-es if the musb is 
+compiled in. The kernel will stuck printing:
 
-> 
-> Signed-off-by: Alexandre Bailon <abailon@baylibre.com>
-> ---
->  arch/arm/mach-davinci/da830.c    | 1 +
->  arch/arm/mach-davinci/da850.c    | 1 +
->  arch/arm/mach-davinci/da8xx-dt.c | 2 ++
->  3 files changed, 4 insertions(+)
-> 
-> diff --git a/arch/arm/mach-davinci/da830.c b/arch/arm/mach-davinci/da830.c
-> index 073c458..ae4a8a5 100644
-> --- a/arch/arm/mach-davinci/da830.c
-> +++ b/arch/arm/mach-davinci/da830.c
-> @@ -413,6 +413,7 @@ static struct clk_lookup da830_clks[] = {
->  	CLK("davinci-mcasp.1",	NULL,		&mcasp1_clk),
->  	CLK("davinci-mcasp.2",	NULL,		&mcasp2_clk),
->  	CLK("musb-da8xx",	"usb20",	&usb20_clk),
-> +	CLK("cppi41-dmaengine",	NULL,		&usb20_clk),
+** 206 printk messages dropped ** [    8.926727] musb_bus_suspend 2584: 
+trying to suspend as a_idle while active
 
-Did you try reading /sys/kernel/debug/davinci_clocks after this patch?
-It will hang because of the loop created here.
+The bisect (log is [1]) points to:
+d8e5f0eca1e8 usb: musb: Fix hardirq-safe hardirq-unsafe lock order error
 
-Looks like what you want is cppi4.1 dma clock to be a child of MUSB
-clock. That way, even if DMA is enabled before MUSB, it still works.
+and reverting the d8e5f0eca1e8 makes the board to boot up fine (Linux 
+4.11-rc5 and next-20170331).
 
-Thanks,
-Sekhar
+any idea on how to fix this w/o reverting the commit?
+
+[1] https://pastebin.com/Z2HJY229
+
+- Péter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
