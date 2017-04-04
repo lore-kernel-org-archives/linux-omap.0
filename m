@@ -1,98 +1,96 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] memory: ti-emif-sram: introduce relocatable
- suspend/resume handlers
-Date: Tue, 4 Apr 2017 09:11:52 -0700
-Message-ID: <20170404161151.GS10760@atomide.com>
-References: <20170328205511.21166-1-d-gerlach@ti.com>
- <20170328205511.21166-3-d-gerlach@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] clk: ti: cleanups for 4.12 merge window
+Date: Tue, 4 Apr 2017 09:14:13 -0700
+Message-ID: <20170404161413.GT10760@atomide.com>
+References: <8157b2e6-99c8-dc02-0c02-3d99778f255b@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170328205511.21166-3-d-gerlach-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <8157b2e6-99c8-dc02-0c02-3d99778f255b@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>, Michael Turquette <mturquette@baylibre.com>, linux-clk <linux-clk@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Russell,
+* Tero Kristo <t-kristo@ti.com> [170317 05:55]:
+> Hi Stephen/Mike,
+> 
+> This is basically the TI clock driver cleanup series v2 posted last week,
+> sending a pull request now as there hasn't been any additional comments.
+> 
+> -Tero
+> 
+> ==================================================================
+> 
+> The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
+> 
+>   Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
+> 
+> are available in the git repository at:
+> 
+>   https://github.com/t-kristo/linux-pm.git for-4.12-ti-clk-cleanups
+> 
+> for you to fetch changes up to 6c0afb503937a12a8d20a805fcf263e31afa9871:
+> 
+>   clk: ti: convert to use proper register definition for all accesses
+> (2017-03-08 13:06:15 +0200)
 
-* Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [170328 13:57]:
-> Certain SoCs like Texas Instruments AM335x and AM437x require parts
-> of the EMIF PM code to run late in the suspend sequence from SRAM,
-> such as saving and restoring the EMIF context and placing the memory
-> into self-refresh.
-> 
-> One requirement for these SoCs to suspend and enter its lowest power
-> mode, called DeepSleep0, is that the PER power domain must be shut off.
-> Because the EMIF (DDR Controller) resides within this power domain, it
-> will lose context during a suspend operation, so we must save it so we
-> can restore once we resume. However, we cannot execute this code from
-> external memory, as it is not available at this point, so the code must
-> be executed late in the suspend path from SRAM.
-> 
-> This patch introduces a ti-emif-sram driver that includes several
-> functions written in ARM ASM that are relocatable so the PM SRAM
-> code can use them. It also allocates a region of writable SRAM to
-> be used by the code running in the executable region of SRAM to save
-> and restore the EMIF context. It can export a table containing the
-> absolute addresses of the available PM functions so that other SRAM
-> code can branch to them. This code is required for suspend/resume on
-> AM335x and AM437x to work.
-> 
-> In addition to this, to be able to share data structures between C and
-> the ti-emif-sram-pm assembly code, we can automatically generate all of
-> the C struct member offsets and sizes as macros by making use of the ARM
-> asm-offsets file. In the same header that we define our data structures
-> in we also define all the macros in an inline function and by adding a
-> call to this in the asm_offsets file all macros are properly generated
-> and available to the assembly code without cluttering up the asm-offsets
-> file.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/kernel/asm-offsets.c    |   6 +
->  drivers/memory/Kconfig           |  10 ++
->  drivers/memory/Makefile          |   4 +
->  drivers/memory/emif.h            |  17 ++
->  drivers/memory/ti-emif-pm.c      | 295 ++++++++++++++++++++++++++++++++++
->  drivers/memory/ti-emif-sram-pm.S | 334 +++++++++++++++++++++++++++++++++++++++
->  include/linux/ti-emif-sram.h     | 143 +++++++++++++++++
->  7 files changed, 809 insertions(+)
->  create mode 100644 drivers/memory/ti-emif-pm.c
->  create mode 100644 drivers/memory/ti-emif-sram-pm.S
->  create mode 100644 include/linux/ti-emif-sram.h
-> 
-> diff --git a/arch/arm/kernel/asm-offsets.c b/arch/arm/kernel/asm-offsets.c
-> index 608008229c7d..d728b5660e36 100644
-> --- a/arch/arm/kernel/asm-offsets.c
-> +++ b/arch/arm/kernel/asm-offsets.c
-> @@ -28,6 +28,7 @@
->  #include <asm/vdso_datapage.h>
->  #include <asm/hardware/cache-l2x0.h>
->  #include <linux/kbuild.h>
-> +#include <linux/ti-emif-sram.h>
->  
->  /*
->   * Make sure that the compiler and target are compatible.
-> @@ -183,5 +184,10 @@ int main(void)
->  #ifdef CONFIG_VDSO
->    DEFINE(VDSO_DATA_SIZE,	sizeof(union vdso_data_store));
->  #endif
-> +#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
-> +  BLANK();
-> +  ti_emif_offsets();
-> +#endif
-> +
->    return 0; 
->  }
-
-Does the above look OK to you?
+Any news on getting this merged?
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> ----------------------------------------------------------------
+> Tero Kristo (15):
+>       clk: ti: remove un-used definitions from public clk_hw_omap struct
+>       clk: ti: add support for automatic clock alias generation
+>       clk: ti: add API for creating aliases automatically for simple clock
+> types
+>       clk: ti: use automatic clock alias generation framework
+>       clk: ti: add clkdm_lookup to the exported functions
+>       clk: ti: move omap2_init_clk_clkdm under TI clock driver
+>       clk: ti: enforce const types on string arrays
+>       clk: ti: omap4: cleanup unnecessary clock aliases
+>       clk: ti: drop unnecessary MEMMAP_ADDRESSING flag
+>       clk: ti: mux: convert TI mux clock to use its internal data
+> representation
+>       clk: ti: divider: convert TI divider clock to use its own data
+> representation
+>       clk: ti: divider: add driver internal API for parsing divider data
+>       clk: ti: gate: export gate_clk_ops locally
+>       clk: ti: dpll44xx: fix clksel register initialization
+>       clk: ti: convert to use proper register definition for all accesses
+> 
+>  arch/arm/mach-omap2/clkt2xxx_dpllcore.c |   3 +-
+>  arch/arm/mach-omap2/clock.c             |  35 +-----
+>  arch/arm/mach-omap2/clock.h             |   2 +
+>  arch/arm/mach-omap2/cm.h                |   5 +-
+>  arch/arm/mach-omap2/cm2xxx.c            |   9 +-
+>  arch/arm/mach-omap2/cm3xxx.c            |  10 +-
+>  arch/arm/mach-omap2/cm_common.c         |   2 +-
+>  drivers/clk/ti/apll.c                   |  50 ++++-----
+>  drivers/clk/ti/autoidle.c               |  18 +--
+>  drivers/clk/ti/clk-3xxx.c               |  55 +++++-----
+>  drivers/clk/ti/clk-44xx.c               | 188
+> +-------------------------------
+>  drivers/clk/ti/clk-dra7-atl.c           |  11 +-
+>  drivers/clk/ti/clk.c                    | 157 +++++++++++++++++++++-----
+>  drivers/clk/ti/clkt_dflt.c              |  61 ++++-------
+>  drivers/clk/ti/clkt_dpll.c              |   6 +-
+>  drivers/clk/ti/clkt_iclk.c              |  29 +++--
+>  drivers/clk/ti/clock.h                  |  41 ++++++-
+>  drivers/clk/ti/clockdomain.c            |  38 +++++--
+>  drivers/clk/ti/composite.c              |  18 ++-
+>  drivers/clk/ti/divider.c                | 111 +++++++++++--------
+>  drivers/clk/ti/dpll.c                   |  59 +++++-----
+>  drivers/clk/ti/dpll3xxx.c               |  38 +++----
+>  drivers/clk/ti/dpll44xx.c               |  14 +--
+>  drivers/clk/ti/fixed-factor.c           |   1 +
+>  drivers/clk/ti/gate.c                   |  44 ++++----
+>  drivers/clk/ti/interface.c              |  25 ++---
+>  drivers/clk/ti/mux.c                    |  59 +++++-----
+>  include/linux/clk/ti.h                  |  55 +++++-----
+>  28 files changed, 543 insertions(+), 601 deletions(-)
+> 
