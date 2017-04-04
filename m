@@ -1,89 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap_device: Sync omap_device and
- pm_runtime after probe defer
-Date: Tue, 4 Apr 2017 08:52:23 -0700
-Message-ID: <20170404155222.GP10760@atomide.com>
-References: <20170330195818.17669-1-d-gerlach@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: am57xx-idk: Add DCAN support
+Date: Tue, 4 Apr 2017 08:56:26 -0700
+Message-ID: <20170404155624.GQ10760@atomide.com>
+References: <8981d49e7011a7246ff7dc6a9a9da0a56dfe5621.1487670384.git.nsekhar@ti.com>
+ <f8862417-e9e0-e2ac-865a-9684f96a5128@ti.com>
+ <20170306184113.GN20572@atomide.com>
+ <042d52f4-3148-0564-a41a-5212ede042d5@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170330195818.17669-1-d-gerlach@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Franklin S Cooper <fcooper@ti.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <042d52f4-3148-0564-a41a-5212ede042d5-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>, "Quadros, Roger" <rogerq-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach@ti.com> [170330 13:01]:
-> Starting from commit 5de85b9d57ab ("PM / runtime: Re-init runtime PM
-> states at probe error and driver unbind") pm_runtime core now changes
-> device runtime_status back to after RPM_SUSPENDED after a probe defer.
-> Certain OMAP devices make use of "ti,no-idle-on-init" flag which causes
-> omap_device_enable to be called during the BUS_NOTIFY_ADD_DEVICE event
-> during probe, along with pm_runtime_set_active.
+* Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> [170330 07:26]:
+> Hi Tony,
 > 
-> This call to pm_runtime_set_active typically will prevent a call to
-> pm_runtime_get in a driver probe function from re-enabling the
-> omap_device. However, in the case of a probe defer that happens before
-> the driver probe function is able to run, such as a missing pinctrl
-> states defer, pm_runtime_reinit will set the device as RPM_SUSPENDED and
-> then once driver probe is actually able to run, pm_runtime_get will see
-> the device as suspended and call through to the omap_device layer,
-> attempting to enable the already enabled omap_device and causing errors
-> like this:
+> On Tuesday 07 March 2017 12:11 AM, Tony Lindgren wrote:
+> > * Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org> [170221 02:13]:
+> >> On Tuesday 21 February 2017 03:30 PM, Sekhar Nori wrote:
+> >>> From: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
+> >>>
+> >>> AM571x IDK and the AM572x IDK use CAN1 interface.
+> >>> This patch enables it for both boards.
+> >>>
+> >>> Tested on AM572x IDK using cansequence.
+> >>>
+> >>> Signed-off-by: Schuyler Patton <spatton-l0cyMroinI0@public.gmane.org>
+> >>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> >>> Signed-off-by: Franklin S Cooper Jr <fcooper-l0cyMroinI0@public.gmane.org>
+> >>> [nsekhar-l0cyMroinI0@public.gmane.org: move to use DRA7XX_CORE_IOPAD())
+> >>> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> >>
+> >> I should have noted that although CAN does function on the IDK with this
+> >> patch, there are "omap_hwmod: dcan1: _wait_target_disable failed"
+> >> messages that come up due to lack of workaround for errata i893[1]
+> >>
+> >> Roger does have some patches to workaround that errata. If you want to
+> >> wait for those patches to be submitted and accepted first, it should be
+> >> fine as well.
+> > 
+> > OK let's wait a bit on this then to avoid introducing extra warnings.
 > 
-> omap-gpmc 50000000.gpmc: omap_device: omap_device_enable() called from invalid state 1
-> omap-gpmc 50000000.gpmc: use pm_runtime_put_sync_suspend() in driver?
-> 
-> We can avoid this error by making sure the pm_runtime status of a device
-> matches the omap_device state before a probe attempt. By extending the
-> omap_device bus notifier to act on the BUS_NOTIFY_BIND_DRIVER event we
-> can check if a device is enabled in omap_device but with a pm_runtime
-> status of RPM_SUSPENDED and once again mark the device as RPM_ACTIVE to
-> avoid a second incorrect call to omap_device_enable.
-> 
-> Tested-by: Franklin S Cooper Jr. <fcooper@ti.com>
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> Now that Roger's hwmod patches for the DCAN errata are in linux-next,
+> this patch can be applied safely. Let me know if you need me to resend it.
 
-Applying into omap-for-v4.11/fixes thanks. Will let this one sit
-in Linux next for a while.
+No need to resend, applying into omap-for-v4.12/dt-v2.
 
-Regards,
+Thanks,
 
 Tony
-
-> ---
->  arch/arm/mach-omap2/omap_device.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-> index e920dd83e443..f989145480c8 100644
-> --- a/arch/arm/mach-omap2/omap_device.c
-> +++ b/arch/arm/mach-omap2/omap_device.c
-> @@ -222,6 +222,14 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
->  				dev_err(dev, "failed to idle\n");
->  		}
->  		break;
-> +	case BUS_NOTIFY_BIND_DRIVER:
-> +		od = to_omap_device(pdev);
-> +		if (od && (od->_state == OMAP_DEVICE_STATE_ENABLED) &&
-> +		    pm_runtime_status_suspended(dev)) {
-> +			od->_driver_status = BUS_NOTIFY_BIND_DRIVER;
-> +			pm_runtime_set_active(dev);
-> +		}
-> +		break;
->  	case BUS_NOTIFY_ADD_DEVICE:
->  		if (pdev->dev.of_node)
->  			omap_device_build_from_dt(pdev);
-> -- 
-> 2.11.0
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
