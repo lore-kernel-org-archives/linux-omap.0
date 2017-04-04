@@ -1,55 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCHv3 0/3] CPCAP PMIC IRQ fix and related changes
-Date: Mon,  3 Apr 2017 20:15:53 -0700
-Message-ID: <20170404031556.5093-1-tony@atomide.com>
+Subject: Re: [PATCH 2/4] mfd: cpcap: Use handle_reread flag for interrupts
+Date: Mon, 3 Apr 2017 20:17:41 -0700
+Message-ID: <20170404031741.GL10760@atomide.com>
+References: <20170322171052.7006-1-tony@atomide.com>
+ <20170322171052.7006-3-tony@atomide.com>
+ <20170403102122.c6bztacpqmt2xdzw@dell>
+ <20170403141454.GG10760@atomide.com>
+ <20170403143202.mj3jpi7csdfbpgdy@dell>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170403143202.mj3jpi7csdfbpgdy@dell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Charles Keepax <ckeepax@opensource.wolfsonmicro.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+* Lee Jones <lee.jones@linaro.org> [170403 07:34]:
+> On Mon, 03 Apr 2017, Tony Lindgren wrote:
+> 
+> > Hi,
+> > 
+> > * Lee Jones <lee.jones@linaro.org> [170403 03:23]:
+> > > On Wed, 22 Mar 2017, Tony Lindgren wrote:
+> > > 
+> > > > On CPCAP we need to keep reading interrupts until there are no
+> > > > more interrupts. Otherwise the PMIC interrupt to the SoC will at
+> > > > some point stop toggling. This seems to happen because new CPCAP
+> > > > device interrupts show up while we're handling.
+> > > > 
+> > > > Cc: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+> > > > Cc: Lee Jones <lee.jones@linaro.org>
+> > > > Cc: Marcel Partap <mpartap@gmx.net>
+> > > > Cc: Michael Scott <michael.scott@linaro.org>
+> > > > Tested-by: Sebastian Reichel <sre@kernel.org>
+> > > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > > ---
+> > > >  drivers/mfd/motorola-cpcap.c | 3 +++
+> > > >  1 file changed, 3 insertions(+)
+> > > 
+> > > Applied, thanks.
+> > 
+> > Sorry this one depends on patch 1/4 for .handle_reread. So this
+> > one should be reverted or dropped. That will cause trivial merge
+> > conflicts with patches 2 and 4.
+> > 
+> > Please let me know if you want me to resend just patches 2 and 4
+> > as patches 1 and 2 need more work.
+> 
+> Yes, I found that out (and replied to the regmap patch).
+> 
+> I'll revert them all for now.
 
-Here's v3 set of fixes to make CPCAP PMIC interrupts work reliably when
-used with multiple drivers. While working on the ADC, charger and
-USB PHY drivers I noticed that the PMIC interrupt to the SoC would
-eventually stop working.
+OK thanks.
 
-All these can wait for v4.12 merge window as these issues don't show
-up currently. I'll send the related interrupt triggering dts change
-separately.
+> Awaiting a subsequent revision.
+
+Sent as "[PATCHv3 0/3] CPCAP PMIC IRQ fix and related changes"
+with regmap changes dropped as I figured out what the real issue
+with lost interrupts was :)
 
 Regards,
 
 Tony
-
-Changes since v2:
-
-- Replaced first two regmap_irq related patches with proper interrupt
-  triggering configuration after noticing the dts configuration did
-  not get passed in
-
-- Dropped regmap from the patch series subject line
-
-Changes since v1:
-
-- Updated regap-irq patch to use out_runtime_put in regmap_irq_thread
-  also if pm_runtime_get() fails
-
-- Clarify patch description for regmap-irq changes to make clear
-  this is an issue with the CPCAP PMIC and not SoC GPIO edge/level
-  handling based on comments from Charles Keepax
-  <ckeepax@opensource.wolfsonmicro.com>
-
-- Collected acks
-
-Tony Lindgren (3):
-  mfd: cpcap: Fix interrupt to use level interrupt
-  mfd: cpcap: Use ack_invert interrupts
-  mfd: cpcap: Fix bad use of IRQ sense register
-
- drivers/mfd/motorola-cpcap.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
--- 
-2.12.2
