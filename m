@@ -1,25 +1,28 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] ARM: am335x-icev2: Add ethernet support
-Date: Tue, 04 Apr 2017 10:35:17 -0700 (PDT)
-Message-ID: <20170404.103517.222254099536342243.davem@davemloft.net>
-References: <1489412554-2054-1-git-send-email-rogerq@ti.com>
-        <178a255a-5e26-fe6f-8d9e-a7755f0b5fca@ti.com>
-        <20170404160106.GR10760@atomide.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH v4 0/8] mfd: Add OF device table to I2C drivers that are
+ missing it
+Date: Tue, 4 Apr 2017 20:38:17 +0300
+Message-ID: <20170404173817.gizxme3fgd6nwzbp@raspberrypi-3.musicnaut.iki.fi>
+References: <20170404153036.6651-1-javier@osg.samsung.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170404160106.GR10760@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: rogerq@ti.com, grygorii.strashko@ti.com, nsekhar@ti.com, jsarha@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170404153036.6651-1-javier@osg.samsung.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Wolfram Sang <wsa@the-dreams.de>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 4 Apr 2017 09:01:06 -0700
+Hi,
 
-> You may need to resend the davinci_mdio.c patch alone
-> for Dave as he usually won't pick individual patches I
-> think.
+On Tue, Apr 04, 2017 at 11:30:28AM -0400, Javier Martinez Canillas wrote:
+> This series add OF device ID tables to mfd I2C drivers whose devices are
+> either used in Device Tree source files or are listed in binding docs as
+> a compatible string.
 
-Correct.
+For patches 1-5 you can add:
+
+Acked-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+A.
