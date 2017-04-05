@@ -1,189 +1,209 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [GIT PULL] PCI: Support for configurable PCI endpoint
-Date: Wed, 5 Apr 2017 14:22:20 +0530
-Message-ID: <20170405085243.18123-1-kishon@ti.com>
+Subject: Re: [PATCH v4 0/3] phy: Group phy drivers based on vendor listing
+Date: Wed, 5 Apr 2017 16:34:18 +0530
+Message-ID: <05b651c2-a634-b092-cd40-8ba9851ca6d0@ti.com>
+References: <1490015997-12956-1-git-send-email-vivek.gautam@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1490015997-12956-1-git-send-email-vivek.gautam@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vivek Gautam <vivek.gautam@codeaurora.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Bjorn,
+Hi Vivek,
 
-Please find the pull request for PCI endpoint support below. I've
-also included all the history here.
+On Monday 20 March 2017 06:49 PM, Vivek Gautam wrote:
+> This is the next version to an earlier posted series [1].
+> Missed Cc'ing the first patch of the previous series [1] to lkml.
+> Posting out this series now after addressing comments
+> and after adding the received 'Acked-by' and 'Reviewed-by'
+> tags.
+> 
+> This series is based on linux-phy/next branch.
+> 
+> [1] https://www.spinics.net/lists/arm-kernel/msg568370.html
+> 
+> Signed-off-by: Vivek Gautam <vivek.gautam@codeaurora.org>
+> Cc: Kishon Vijay Abraham I <kishon@ti.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-arm-msm@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: linux-usb@vger.kernel.org
 
-Changes from v5:
-*) remove #syscon-cells property added in v5 and used 
-   of_parse_phandle_with_fixed_args
-*) fix compilation error in make.cross ARCH=blackfin that was because
-   pci_endpoint_test.c driver depends on COMPILE_TEST.
-
-Changes from v4:
-*) add #syscon-cells property and used of_parse_phandle_with_args
-   to perform a configuration in syscon module (as suggested by
-   Rob Herring)
-*) Remove unnecessary white space.
-
-Changes from v3:
-*) fixed a typo and adapted to https://lkml.org/lkml/2017/3/13/562.
-
-Changes from v2:
-*) changed the configfs structure as suggested by Christoph Hellwig. With
-   this change the framework creates configfs entry for EP function driver
-   and EP controller. Previously these entries have to be created by the
-   the user. (Haven't changed the epc core or epf core except for invoking
-   configfs APIs to create entries for EP function driver and EP controller.
-   That's mostly because the EP function device can still be created by
-   directly invoking the epf core API without using configfs).
-*) Now the user has to use configfs entry 'start' to start the link.
-   This was previously done by the function driver. However in the case of
-   multi function EP, the function driver shouldn't start the link.
-
-Changes from v1:
-*) The preparation patches for adding EP support is removed and is sent
-   separately
-*) Added device ID for DRA74x/DRA72x and used it instead of
-   using "PCI_ANY_ID"
-*) Added userguide for PCI endpoint test function
-
-Major Improvements from RFC:
- *) support multi-function devices (hw supported not virtual)
- *) Access host side buffers
- *) Raise MSI interrupts
- *) Add user space program to use the host side PCI driver
- *) Adapt all other users of designware to use the new design (only
-    compile tested. Since I have only dra7xx boards, the new design
-    has only been tested in dra7xx. I'd require the help of others
-    to test the platforms they have access to).
-
-This is based on
-git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git
-pci/host-designware
+The best time to merge this would be immediately after -rc1 is tagged. Can you
+resend when 4.12-rc1 is tagged?
 
 Thanks
 Kishon
 
-The following changes since commit 7ea64dcf602c21b3e5062ca90111ca4459fab403:
-
-  __end__ (2017-04-04 15:29:37 -0500)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git tags/pci-endpoint-for-4.12
-
-for you to fetch changes up to a5c85ba45c9682456077d7277196e91f8ea5fd5c:
-
-  ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP (2017-04-05 14:05:28 +0530)
-
-----------------------------------------------------------------
-pci: endpoint: for 4.12
-
- *) Add PCI endpoint core layer
- *) Modify designware and dra7xx driver to be configured in EP mode
- *) Add a PCI endpoint *test* function driver and corresponding host
-    driver
-
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-
-----------------------------------------------------------------
-Kishon Vijay Abraham I (23):
-      PCI: endpoint: Add EP core layer to enable EP controller and EP functions
-      Documentation: PCI: Guide to use PCI Endpoint Core Layer
-      PCI: endpoint: Introduce configfs entry for configuring EP functions
-      Documentation: PCI: Guide to use PCI endpoint configfs
-      PCI: endpoint: Create configfs entry for EPC device and EPF driver
-      Documentation: PCI: Add specification for the *PCI test* function device
-      PCI: endpoint: functions: Add an EP function to test PCI
-      Documentation: PCI: Add binding documentation for pci-test endpoint function
-      PCI: dwc: designware: Add EP mode support
-      dt-bindings: PCI: Add DT bindings for PCI designware EP mode
-      PCI: dwc: dra7xx: Facilitate wrapper and MSI interrupts to be enabled independently
-      PCI: dwc: dra7xx: Add EP mode support
-      dt-bindings: PCI: dra7xx: Add DT bindings for PCI dra7xx EP mode
-      PCI: dwc: dra7xx: Workaround for errata id i870
-      dt-bindings: PCI: dra7xx: Add DT bindings to enable unaligned access
-      PCI: Add device IDs for DRA74x and DRA72x
-      misc: Add host side PCI driver for PCI test function device
-      Documentation: misc-devices: Add Documentation for pci-endpoint-test driver
-      tools: PCI: Add a userspace tool to test PCI endpoint
-      tools: PCI: Add sample test script to invoke pcitest
-      Documentation: PCI: Add userguide for PCI endpoint test function
-      MAINTAINERS: Add PCI Endpoint maintainer
-      ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP
-
- Documentation/PCI/00-INDEX                                |  10 +++
- Documentation/PCI/endpoint/function/binding/pci-test.txt  |  17 +++++
- Documentation/PCI/endpoint/pci-endpoint-cfs.txt           | 105 ++++++++++++++++++++++++++
- Documentation/PCI/endpoint/pci-endpoint.txt               | 215 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- Documentation/PCI/endpoint/pci-test-function.txt          |  66 ++++++++++++++++
- Documentation/PCI/endpoint/pci-test-howto.txt             | 179 +++++++++++++++++++++++++++++++++++++++++++
- Documentation/devicetree/bindings/pci/designware-pcie.txt |  26 +++++--
- Documentation/devicetree/bindings/pci/ti-pci.txt          |  42 +++++++++--
- Documentation/misc-devices/pci-endpoint-test.txt          |  35 +++++++++
- MAINTAINERS                                               |   9 +++
- arch/arm/mach-omap2/clockdomains7xx_data.c                |   2 +-
- drivers/Makefile                                          |   2 +
- drivers/misc/Kconfig                                      |   7 ++
- drivers/misc/Makefile                                     |   1 +
- drivers/misc/pci_endpoint_test.c                          | 534 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/pci/Kconfig                                       |   1 +
- drivers/pci/dwc/Kconfig                                   |  36 ++++++++-
- drivers/pci/dwc/Makefile                                  |   5 +-
- drivers/pci/dwc/pci-dra7xx.c                              | 270 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
- drivers/pci/dwc/pcie-designware-ep.c                      | 342 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/pci/dwc/pcie-designware.c                         | 125 ++++++++++++++++++++++++++++++
- drivers/pci/dwc/pcie-designware.h                         | 112 +++++++++++++++++++++++++++
- drivers/pci/endpoint/Kconfig                              |  31 ++++++++
- drivers/pci/endpoint/Makefile                             |   7 ++
- drivers/pci/endpoint/functions/Kconfig                    |  12 +++
- drivers/pci/endpoint/functions/Makefile                   |   5 ++
- drivers/pci/endpoint/functions/pci-epf-test.c             | 510 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/pci/endpoint/pci-ep-cfs.c                         | 509 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/pci/endpoint/pci-epc-core.c                       | 579 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/pci/endpoint/pci-epc-mem.c                        | 143 +++++++++++++++++++++++++++++++++++
- drivers/pci/endpoint/pci-epf-core.c                       | 351 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/mod_devicetable.h                           |  10 +++
- include/linux/pci-ep-cfs.h                                |  41 ++++++++++
- include/linux/pci-epc.h                                   | 144 +++++++++++++++++++++++++++++++++++
- include/linux/pci-epf.h                                   | 162 +++++++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h                                   |   2 +
- include/uapi/linux/Kbuild                                 |   1 +
- include/uapi/linux/pcitest.h                              |  19 +++++
- tools/pci/pcitest.c                                       | 186 +++++++++++++++++++++++++++++++++++++++++++++
- tools/pci/pcitest.sh                                      |  56 ++++++++++++++
- 40 files changed, 4869 insertions(+), 40 deletions(-)
- create mode 100644 Documentation/PCI/endpoint/function/binding/pci-test.txt
- create mode 100644 Documentation/PCI/endpoint/pci-endpoint-cfs.txt
- create mode 100644 Documentation/PCI/endpoint/pci-endpoint.txt
- create mode 100644 Documentation/PCI/endpoint/pci-test-function.txt
- create mode 100644 Documentation/PCI/endpoint/pci-test-howto.txt
- create mode 100644 Documentation/misc-devices/pci-endpoint-test.txt
- create mode 100644 drivers/misc/pci_endpoint_test.c
- create mode 100644 drivers/pci/dwc/pcie-designware-ep.c
- create mode 100644 drivers/pci/endpoint/Kconfig
- create mode 100644 drivers/pci/endpoint/Makefile
- create mode 100644 drivers/pci/endpoint/functions/Kconfig
- create mode 100644 drivers/pci/endpoint/functions/Makefile
- create mode 100644 drivers/pci/endpoint/functions/pci-epf-test.c
- create mode 100644 drivers/pci/endpoint/pci-ep-cfs.c
- create mode 100644 drivers/pci/endpoint/pci-epc-core.c
- create mode 100644 drivers/pci/endpoint/pci-epc-mem.c
- create mode 100644 drivers/pci/endpoint/pci-epf-core.c
- create mode 100644 include/linux/pci-ep-cfs.h
- create mode 100644 include/linux/pci-epc.h
- create mode 100644 include/linux/pci-epf.h
- create mode 100644 include/uapi/linux/pcitest.h
- create mode 100644 tools/pci/pcitest.c
- create mode 100644 tools/pci/pcitest.sh
+> 
+> --
+> Vivek Gautam (3):
+>   phy: qcom-usb: Remove unused ulpi phy header
+>   phy: Move ULPI phy header out of drivers to include path
+>   phy: Group vendor specific phy drivers
+> 
+>  MAINTAINERS                                        |  18 +-
+>  drivers/phy/Kconfig                                | 471 +--------------------
+>  drivers/phy/Makefile                               |  67 +--
+>  drivers/phy/allwinner/Kconfig                      |  31 ++
+>  drivers/phy/allwinner/Makefile                     |   2 +
+>  drivers/phy/{ => allwinner}/phy-sun4i-usb.c        |   0
+>  drivers/phy/{ => allwinner}/phy-sun9i-usb.c        |   0
+>  drivers/phy/broadcom/Kconfig                       |  64 +++
+>  drivers/phy/broadcom/Makefile                      |   7 +
+>  drivers/phy/{ => broadcom}/phy-bcm-cygnus-pcie.c   |   0
+>  drivers/phy/{ => broadcom}/phy-bcm-kona-usb2.c     |   0
+>  drivers/phy/{ => broadcom}/phy-bcm-ns-usb2.c       |   0
+>  drivers/phy/{ => broadcom}/phy-bcm-ns-usb3.c       |   0
+>  drivers/phy/{ => broadcom}/phy-bcm-ns2-pcie.c      |   0
+>  drivers/phy/{ => broadcom}/phy-bcm-nsp-usb3.c      |   0
+>  drivers/phy/{ => broadcom}/phy-brcm-sata.c         |   0
+>  drivers/phy/hisilicon/Kconfig                      |  20 +
+>  drivers/phy/hisilicon/Makefile                     |   2 +
+>  drivers/phy/{ => hisilicon}/phy-hi6220-usb.c       |   0
+>  drivers/phy/{ => hisilicon}/phy-hix5hd2-sata.c     |   0
+>  drivers/phy/marvell/Kconfig                        |  50 +++
+>  drivers/phy/marvell/Makefile                       |   6 +
+>  drivers/phy/{ => marvell}/phy-armada375-usb2.c     |   0
+>  drivers/phy/{ => marvell}/phy-berlin-sata.c        |   0
+>  drivers/phy/{ => marvell}/phy-berlin-usb.c         |   0
+>  drivers/phy/{ => marvell}/phy-mvebu-sata.c         |   0
+>  drivers/phy/{ => marvell}/phy-pxa-28nm-hsic.c      |   0
+>  drivers/phy/{ => marvell}/phy-pxa-28nm-usb2.c      |   0
+>  drivers/phy/qualcomm/Kconfig                       |  38 ++
+>  drivers/phy/qualcomm/Makefile                      |   7 +
+>  drivers/phy/{ => qualcomm}/phy-qcom-apq8064-sata.c |   0
+>  drivers/phy/{ => qualcomm}/phy-qcom-ipq806x-sata.c |   0
+>  drivers/phy/{ => qualcomm}/phy-qcom-ufs-i.h        |   0
+>  drivers/phy/{ => qualcomm}/phy-qcom-ufs-qmp-14nm.c |   0
+>  drivers/phy/{ => qualcomm}/phy-qcom-ufs-qmp-14nm.h |   0
+>  drivers/phy/{ => qualcomm}/phy-qcom-ufs-qmp-20nm.c |   0
+>  drivers/phy/{ => qualcomm}/phy-qcom-ufs-qmp-20nm.h |   0
+>  drivers/phy/{ => qualcomm}/phy-qcom-ufs.c          |   0
+>  drivers/phy/{ => qualcomm}/phy-qcom-usb-hs.c       |   2 -
+>  drivers/phy/{ => qualcomm}/phy-qcom-usb-hsic.c     |   2 -
+>  drivers/phy/renesas/Kconfig                        |  17 +
+>  drivers/phy/renesas/Makefile                       |   2 +
+>  drivers/phy/{ => renesas}/phy-rcar-gen2.c          |   0
+>  drivers/phy/{ => renesas}/phy-rcar-gen3-usb2.c     |   0
+>  drivers/phy/rockchip/Kconfig                       |  51 +++
+>  drivers/phy/rockchip/Makefile                      |   6 +
+>  drivers/phy/{ => rockchip}/phy-rockchip-dp.c       |   0
+>  drivers/phy/{ => rockchip}/phy-rockchip-emmc.c     |   0
+>  .../phy/{ => rockchip}/phy-rockchip-inno-usb2.c    |   0
+>  drivers/phy/{ => rockchip}/phy-rockchip-pcie.c     |   0
+>  drivers/phy/{ => rockchip}/phy-rockchip-typec.c    |   0
+>  drivers/phy/{ => rockchip}/phy-rockchip-usb.c      |   0
+>  drivers/phy/samsung/Kconfig                        |  96 +++++
+>  drivers/phy/samsung/Makefile                       |  11 +
+>  drivers/phy/{ => samsung}/phy-exynos-dp-video.c    |   0
+>  drivers/phy/{ => samsung}/phy-exynos-mipi-video.c  |   0
+>  drivers/phy/{ => samsung}/phy-exynos-pcie.c        |   0
+>  drivers/phy/{ => samsung}/phy-exynos4210-usb2.c    |   0
+>  drivers/phy/{ => samsung}/phy-exynos4x12-usb2.c    |   0
+>  drivers/phy/{ => samsung}/phy-exynos5-usbdrd.c     |   0
+>  drivers/phy/{ => samsung}/phy-exynos5250-sata.c    |   0
+>  drivers/phy/{ => samsung}/phy-exynos5250-usb2.c    |   0
+>  drivers/phy/{ => samsung}/phy-s5pv210-usb2.c       |   0
+>  drivers/phy/{ => samsung}/phy-samsung-usb2.c       |   0
+>  drivers/phy/{ => samsung}/phy-samsung-usb2.h       |   0
+>  drivers/phy/st/Kconfig                             |  33 ++
+>  drivers/phy/st/Makefile                            |   4 +
+>  drivers/phy/{ => st}/phy-miphy28lp.c               |   0
+>  drivers/phy/{ => st}/phy-spear1310-miphy.c         |   0
+>  drivers/phy/{ => st}/phy-spear1340-miphy.c         |   0
+>  drivers/phy/{ => st}/phy-stih407-usb.c             |   0
+>  drivers/phy/ti/Kconfig                             |  78 ++++
+>  drivers/phy/ti/Makefile                            |   7 +
+>  drivers/phy/{ => ti}/phy-da8xx-usb.c               |   0
+>  drivers/phy/{ => ti}/phy-dm816x-usb.c              |   0
+>  drivers/phy/{ => ti}/phy-omap-control.c            |   0
+>  drivers/phy/{ => ti}/phy-omap-usb2.c               |   0
+>  drivers/phy/{ => ti}/phy-ti-pipe3.c                |   0
+>  drivers/phy/{ => ti}/phy-tusb1210.c                |   3 +-
+>  drivers/phy/{ => ti}/phy-twl4030-usb.c             |   0
+>  {drivers => include/linux}/phy/ulpi_phy.h          |   0
+>  81 files changed, 568 insertions(+), 527 deletions(-)
+>  create mode 100644 drivers/phy/allwinner/Kconfig
+>  create mode 100644 drivers/phy/allwinner/Makefile
+>  rename drivers/phy/{ => allwinner}/phy-sun4i-usb.c (100%)
+>  rename drivers/phy/{ => allwinner}/phy-sun9i-usb.c (100%)
+>  create mode 100644 drivers/phy/broadcom/Kconfig
+>  create mode 100644 drivers/phy/broadcom/Makefile
+>  rename drivers/phy/{ => broadcom}/phy-bcm-cygnus-pcie.c (100%)
+>  rename drivers/phy/{ => broadcom}/phy-bcm-kona-usb2.c (100%)
+>  rename drivers/phy/{ => broadcom}/phy-bcm-ns-usb2.c (100%)
+>  rename drivers/phy/{ => broadcom}/phy-bcm-ns-usb3.c (100%)
+>  rename drivers/phy/{ => broadcom}/phy-bcm-ns2-pcie.c (100%)
+>  rename drivers/phy/{ => broadcom}/phy-bcm-nsp-usb3.c (100%)
+>  rename drivers/phy/{ => broadcom}/phy-brcm-sata.c (100%)
+>  create mode 100644 drivers/phy/hisilicon/Kconfig
+>  create mode 100644 drivers/phy/hisilicon/Makefile
+>  rename drivers/phy/{ => hisilicon}/phy-hi6220-usb.c (100%)
+>  rename drivers/phy/{ => hisilicon}/phy-hix5hd2-sata.c (100%)
+>  create mode 100644 drivers/phy/marvell/Kconfig
+>  create mode 100644 drivers/phy/marvell/Makefile
+>  rename drivers/phy/{ => marvell}/phy-armada375-usb2.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-berlin-sata.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-berlin-usb.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-mvebu-sata.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-pxa-28nm-hsic.c (100%)
+>  rename drivers/phy/{ => marvell}/phy-pxa-28nm-usb2.c (100%)
+>  create mode 100644 drivers/phy/qualcomm/Kconfig
+>  create mode 100644 drivers/phy/qualcomm/Makefile
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-apq8064-sata.c (100%)
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-ipq806x-sata.c (100%)
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-ufs-i.h (100%)
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-ufs-qmp-14nm.c (100%)
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-ufs-qmp-14nm.h (100%)
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-ufs-qmp-20nm.c (100%)
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-ufs-qmp-20nm.h (100%)
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-ufs.c (100%)
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-usb-hs.c (99%)
+>  rename drivers/phy/{ => qualcomm}/phy-qcom-usb-hsic.c (99%)
+>  create mode 100644 drivers/phy/renesas/Kconfig
+>  create mode 100644 drivers/phy/renesas/Makefile
+>  rename drivers/phy/{ => renesas}/phy-rcar-gen2.c (100%)
+>  rename drivers/phy/{ => renesas}/phy-rcar-gen3-usb2.c (100%)
+>  create mode 100644 drivers/phy/rockchip/Kconfig
+>  create mode 100644 drivers/phy/rockchip/Makefile
+>  rename drivers/phy/{ => rockchip}/phy-rockchip-dp.c (100%)
+>  rename drivers/phy/{ => rockchip}/phy-rockchip-emmc.c (100%)
+>  rename drivers/phy/{ => rockchip}/phy-rockchip-inno-usb2.c (100%)
+>  rename drivers/phy/{ => rockchip}/phy-rockchip-pcie.c (100%)
+>  rename drivers/phy/{ => rockchip}/phy-rockchip-typec.c (100%)
+>  rename drivers/phy/{ => rockchip}/phy-rockchip-usb.c (100%)
+>  create mode 100644 drivers/phy/samsung/Kconfig
+>  create mode 100644 drivers/phy/samsung/Makefile
+>  rename drivers/phy/{ => samsung}/phy-exynos-dp-video.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos-mipi-video.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos-pcie.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos4210-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos4x12-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos5-usbdrd.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos5250-sata.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-exynos5250-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-s5pv210-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-samsung-usb2.c (100%)
+>  rename drivers/phy/{ => samsung}/phy-samsung-usb2.h (100%)
+>  create mode 100644 drivers/phy/st/Kconfig
+>  create mode 100644 drivers/phy/st/Makefile
+>  rename drivers/phy/{ => st}/phy-miphy28lp.c (100%)
+>  rename drivers/phy/{ => st}/phy-spear1310-miphy.c (100%)
+>  rename drivers/phy/{ => st}/phy-spear1340-miphy.c (100%)
+>  rename drivers/phy/{ => st}/phy-stih407-usb.c (100%)
+>  create mode 100644 drivers/phy/ti/Kconfig
+>  create mode 100644 drivers/phy/ti/Makefile
+>  rename drivers/phy/{ => ti}/phy-da8xx-usb.c (100%)
+>  rename drivers/phy/{ => ti}/phy-dm816x-usb.c (100%)
+>  rename drivers/phy/{ => ti}/phy-omap-control.c (100%)
+>  rename drivers/phy/{ => ti}/phy-omap-usb2.c (100%)
+>  rename drivers/phy/{ => ti}/phy-ti-pipe3.c (100%)
+>  rename drivers/phy/{ => ti}/phy-tusb1210.c (99%)
+>  rename drivers/phy/{ => ti}/phy-twl4030-usb.c (100%)
+>  rename {drivers => include/linux}/phy/ulpi_phy.h (100%)
+> 
