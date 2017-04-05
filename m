@@ -1,43 +1,39 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v6 15/23] dt-bindings: PCI: dra7xx: Add DT bindings to enable unaligned access
-Date: Wed, 5 Apr 2017 14:22:35 +0530
-Message-ID: <20170405085243.18123-16-kishon@ti.com>
-References: <20170405085243.18123-1-kishon@ti.com>
+Subject: Re: [GIT PULL] PCI: Support for configurable PCI endpoint
+Date: Wed, 5 Apr 2017 14:17:39 +0530
+Message-ID: <b6edef14-e363-6048-34fc-f3fc50845a14@ti.com>
+References: <20170327094520.3129-1-kishon@ti.com>
+ <20170404203606.GE27692@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20170405085243.18123-1-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170404203606.GE27692@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hch@infradead.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Update device tree binding documentation of TI's dra7xx PCI controller to
-include property for enabling unaligned mem access.
+Hi Bjorn,
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- Documentation/devicetree/bindings/pci/ti-pci.txt | 5 +++++
- 1 file changed, 5 insertions(+)
+On Wednesday 05 April 2017 02:06 AM, Bjorn Helgaas wrote:
+> On Mon, Mar 27, 2017 at 03:14:56PM +0530, Kishon Vijay Abraham I wrote:
+>> Hi Bjorn,
+>>
+>> Please find the pull request for PCI endpoint support below. I've
+>> also included all the history here.
+> 
+> I tentatively applied this to pci/host-designware with the mostly trival
+> textual changes below.  If you post the series again, please include them.
 
-diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-index 60c3cccefabc..6a07c96227e0 100644
---- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-+++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-@@ -39,6 +39,11 @@ DEVICE MODE
-  - interrupts : one interrupt entries must be specified for main interrupt.
-  - num-ib-windows : number of inbound address translation windows
-  - num-ob-windows : number of outbound address translation windows
-+ - ti,syscon-unaligned-access: phandle to the syscon DT node. The 1st argument
-+			       should contain the register offset within syscon
-+			       and the 2nd argument should contain the bit field
-+			       for setting the bit to enable unaligned
-+			       access.
- 
- Optional Property:
-  - gpios : Should be added if a gpio line is required to drive PERST# line
--- 
-2.11.0
+Sure, I've used pci/host-designware as the base for the next revision.
+> 
+> I saw some acks to prior revisions, but few of them were included in this
+> series.   Can you collect them up?  If there are no other substantial
+> changes, I can insert them into my branch manually.
 
+Yeah, looks like I've missed including Joao Pinto's Acked-by in some of the
+patches. I'll include them in the next revision.
+
+Thanks
+Kishon
