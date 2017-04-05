@@ -1,77 +1,67 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2] ARM: davinci: Add the clock for the CPPI 4.1 DMA engine
-Date: Wed,  5 Apr 2017 19:17:50 +0200
-Message-ID: <20170405171750.16821-1-abailon@baylibre.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: nsekhar-l0cyMroinI0@public.gmane.org
-Cc: khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH] misc: sram-exec: Use aligned fncpy instead of memcpy
+Date: Wed, 5 Apr 2017 14:21:20 -0500
+Message-ID: <20170405192120.1009-1-d-gerlach@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The CPPI 4.1 DMA is sharing its clock with the USB OTG,
-and most of the time, the clock will be enabled by USB.
-But during the init of the DMA, USB is not enabled (waiting for DMA),
-and then we must enable the clock before doing anything.
-Add the clock for the CPPI 4.1 DMA engine.
+Currently the sram-exec functionality, which allows allocation of
+executable memory and provides an API to move code to it, is only
+selected in configs for the ARM architecture. Based on commit
+5756e9dd0de6 ("ARM: 6640/1: Thumb-2: Symbol manipulation macros for
+function body copying") simply copying a C function pointer address
+using memcpy without consideration of alignment and Thumb is unsafe on
+ARM platforms.
 
-Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+The aforementioned patch introduces the fncpy macro which is a safe way
+to copy executable code on ARM platforms, so let's make use of that here
+rather than the unsafe plain memcpy that was previously used by
+sram_exec_copy.
+
+In the future, architectures hoping to make use of the sram-exec
+functionality must define an fncpy macro just as ARM has done to
+guarantee or check for safe copying to executable memory before allowing
+the arch to select CONFIG_SRAM_EXEC.
+
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/mach-davinci/da830.c | 6 ++++++
- arch/arm/mach-davinci/da850.c | 6 ++++++
- 2 files changed, 12 insertions(+)
+ drivers/misc/sram-exec.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-davinci/da830.c b/arch/arm/mach-davinci/da830.c
-index 073c458..bd88470 100644
---- a/arch/arm/mach-davinci/da830.c
-+++ b/arch/arm/mach-davinci/da830.c
-@@ -304,6 +304,11 @@ static struct clk usb20_clk = {
- 	.gpsc		= 1,
- };
+diff --git a/drivers/misc/sram-exec.c b/drivers/misc/sram-exec.c
+index ac522417c462..0057eabe5c03 100644
+--- a/drivers/misc/sram-exec.c
++++ b/drivers/misc/sram-exec.c
+@@ -19,6 +19,7 @@
+ #include <linux/sram.h>
  
-+static struct clk cppi41_clk = {
-+	.name		= "cppi41",
-+	.parent		= &usb20_clk,
-+};
-+
- static struct clk aemif_clk = {
- 	.name		= "aemif",
- 	.parent		= &pll0_sysclk3,
-@@ -413,6 +418,7 @@ static struct clk_lookup da830_clks[] = {
- 	CLK("davinci-mcasp.1",	NULL,		&mcasp1_clk),
- 	CLK("davinci-mcasp.2",	NULL,		&mcasp2_clk),
- 	CLK("musb-da8xx",	"usb20",	&usb20_clk),
-+	CLK("cppi41-dmaengine",	NULL,		&cppi41_clk),
- 	CLK(NULL,		"aemif",	&aemif_clk),
- 	CLK(NULL,		"aintc",	&aintc_clk),
- 	CLK(NULL,		"secu_mgr",	&secu_mgr_clk),
-diff --git a/arch/arm/mach-davinci/da850.c b/arch/arm/mach-davinci/da850.c
-index ccad2f9..07d6f0e 100644
---- a/arch/arm/mach-davinci/da850.c
-+++ b/arch/arm/mach-davinci/da850.c
-@@ -401,6 +401,11 @@ static struct clk usb20_clk = {
- 	.gpsc		= 1,
- };
+ #include <asm/cacheflush.h>
++#include <asm/fncpy.h>
  
-+static struct clk cppi41_clk = {
-+	.name		= "cppi41",
-+	.parent		= &usb20_clk,
-+};
-+
- static struct clk spi0_clk = {
- 	.name		= "spi0",
- 	.parent		= &pll0_sysclk2,
-@@ -560,6 +565,7 @@ static struct clk_lookup da850_clks[] = {
- 	CLK("davinci-nand.0",	"aemif",	&aemif_nand_clk),
- 	CLK("ohci-da8xx",	"usb11",	&usb11_clk),
- 	CLK("musb-da8xx",	"usb20",	&usb20_clk),
-+	CLK("cppi41-dmaengine",	NULL,		&cppi41_clk),
- 	CLK("spi_davinci.0",	NULL,		&spi0_clk),
- 	CLK("spi_davinci.1",	NULL,		&spi1_clk),
- 	CLK("vpif",		NULL,		&vpif_clk),
+ #include "sram.h"
+ 
+@@ -93,7 +94,7 @@ int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
+ 	set_memory_nx((unsigned long)base, pages);
+ 	set_memory_rw((unsigned long)base, pages);
+ 
+-	memcpy(dst, src, size);
++	fncpy(dst, src, size);
+ 
+ 	set_memory_ro((unsigned long)base, pages);
+ 	set_memory_x((unsigned long)base, pages);
 -- 
-2.10.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.11.0
