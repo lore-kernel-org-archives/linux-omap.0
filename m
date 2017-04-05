@@ -1,72 +1,165 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v7 2/3] usb: musb: Add support of CPPI 4.1 DMA controller
- to DA8xx
-Date: Wed, 5 Apr 2017 10:07:55 +0200
-Message-ID: <5f201199-2d5e-0474-fc0d-2d8e289849e3@baylibre.com>
-References: <20170329162432.27299-1-abailon@baylibre.com>
- <20170329162432.27299-3-abailon@baylibre.com>
- <20170403145916.GA12799@uda0271908>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] net: davinci_mdio: add GPIO reset logic
+Date: Wed, 5 Apr 2017 11:33:57 +0300
+Message-ID: <1491381237-24635-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170403145916.GA12799@uda0271908>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: tony@atomide.com, nsekhar@ti.com, jsarha@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/03/2017 04:59 PM, Bin Liu wrote:
-> On Wed, Mar 29, 2017 at 06:24:31PM +0200, Alexandre Bailon wrote:
->> Currently, only the PIO mode is supported.
->> This add support of CPPI 4.1 to DA8xx.
->> As the In DA8xx the CPPI 4.1 DMA is a part of the USB.
->> Create the CPPI 4.1 device as a child of USB.
->>
->> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
->> ---
->>   drivers/usb/musb/Kconfig |  4 ++--
->>   drivers/usb/musb/da8xx.c | 43 ++++++++++++++++++++++++++++++++++++++++++-
->>   2 files changed, 44 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
->> index 72a2a50..5506a9c 100644
->> --- a/drivers/usb/musb/Kconfig
->> +++ b/drivers/usb/musb/Kconfig
->> @@ -160,8 +160,8 @@ config USB_TI_CPPI_DMA
->>   	  Enable DMA transfers when TI CPPI DMA is available.
->>   
->>   config USB_TI_CPPI41_DMA
->> -	bool 'TI CPPI 4.1 (AM335x)'
->> -	depends on ARCH_OMAP && DMADEVICES
->> +	bool 'TI CPPI 4.1'
->> +	depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX) && DMADEVICES
->>   	select TI_CPPI41
-> TI_CPPI41 also should depend on ARCH_DAVINCI_DA8XX due to this patch.  You
-> might need the following change for dma Kconfig as well.
-This change has been done in the series "dmaengine: cppi41: Add dma 
-support to da8xx".
->
-> diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
-> index d01d59812cf3..15e31bfae9f9 100644
-> --- a/drivers/dma/Kconfig
-> +++ b/drivers/dma/Kconfig
-> @@ -514,8 +514,8 @@ config TIMB_DMA
->            Enable support for the Timberdale FPGA DMA engine.
->   
->   config TI_CPPI41
-> -       tristate "AM33xx CPPI41 DMA support"
-> -       depends on ARCH_OMAP
-> +       tristate "CPPI41 DMA support"
-> +       depends on ARCH_OMAP || ARCH_DAVINCI_DA8XX
->          select DMA_ENGINE
->          help
->            The Communications Port Programming Interface (CPPI) 4.1 DMA engine
->
-> Regards,
-> -Bin.
-Regards,
-Alexandre
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Some boards [1] leave the PHYs at an invalid state
+during system power-up or reset thus causing unreliability
+issues with the PHY like not being detected by the mdio bus
+or link not functional. To work around these boards have
+a GPIO connected to the PHY's reset pin.
+
+Implement GPIO reset handling for such cases.
+
+[1] - am572x-idk, am571x-idk, a437x-idk.
+
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ .../devicetree/bindings/net/davinci-mdio.txt       |  2 +
+ drivers/net/ethernet/ti/davinci_mdio.c             | 68 +++++++++++++++++++---
+ 2 files changed, 62 insertions(+), 8 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/net/davinci-mdio.txt b/Documentation/devicetree/bindings/net/davinci-mdio.txt
+index 621156c..fd6ebe7 100644
+--- a/Documentation/devicetree/bindings/net/davinci-mdio.txt
++++ b/Documentation/devicetree/bindings/net/davinci-mdio.txt
+@@ -12,6 +12,8 @@ Required properties:
+ 
+ Optional properties:
+ - ti,hwmods		: Must be "davinci_mdio"
++- reset-gpios		: array of GPIO specifier for PHY hardware reset control
++- reset-delay-us	: reset assertion time [in microseconds]
+ 
+ Note: "ti,hwmods" field is used to fetch the base address and irq
+ resources from TI, omap hwmod data base during device registration.
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index 33df340..c6f9e55 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -40,6 +40,9 @@
+ #include <linux/of_device.h>
+ #include <linux/of_mdio.h>
+ #include <linux/pinctrl/consumer.h>
++#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
++#include <linux/of_gpio.h>
+ 
+ /*
+  * This timeout definition is a worst-case ultra defensive measure against
+@@ -53,6 +56,8 @@
+ 
+ #define DEF_OUT_FREQ		2200000		/* 2.2 MHz */
+ 
++#define DEFAULT_GPIO_RESET_DELAY	10	/* in microseconds */
++
+ struct davinci_mdio_of_param {
+ 	int autosuspend_delay_ms;
+ };
+@@ -104,6 +109,9 @@ struct davinci_mdio_data {
+ 	 */
+ 	bool		skip_scan;
+ 	u32		clk_div;
++	struct gpio_desc **gpio_reset;
++	int		num_gpios;
++	int		reset_delay_us;
+ };
+ 
+ static void davinci_mdio_init_clk(struct davinci_mdio_data *data)
+@@ -142,6 +150,20 @@ static void davinci_mdio_enable(struct davinci_mdio_data *data)
+ 	__raw_writel(data->clk_div | CONTROL_ENABLE, &data->regs->control);
+ }
+ 
++static void __davinci_gpio_reset(struct davinci_mdio_data *data)
++{
++	int i;
++
++	for (i = 0; i < data->num_gpios; i++) {
++		if (!data->gpio_reset[i])
++			continue;
++
++		gpiod_set_value_cansleep(data->gpio_reset[i], 1);
++		udelay(data->reset_delay_us);
++		gpiod_set_value_cansleep(data->gpio_reset[i], 0);
++	}
++}
++
+ static int davinci_mdio_reset(struct mii_bus *bus)
+ {
+ 	struct davinci_mdio_data *data = bus->priv;
+@@ -317,20 +339,50 @@ static int davinci_mdio_write(struct mii_bus *bus, int phy_id,
+ }
+ 
+ #if IS_ENABLED(CONFIG_OF)
+-static int davinci_mdio_probe_dt(struct mdio_platform_data *data,
+-			 struct platform_device *pdev)
++static int davinci_mdio_probe_dt(struct davinci_mdio_data *data,
++				 struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+ 	u32 prop;
+-
+-	if (!node)
+-		return -EINVAL;
++	int error;
++	int i;
++	struct gpio_desc *gpiod;
+ 
+ 	if (of_property_read_u32(node, "bus_freq", &prop)) {
+ 		dev_err(&pdev->dev, "Missing bus_freq property in the DT.\n");
+-		return -EINVAL;
++		data->pdata = default_pdata;
++	} else {
++		data->pdata.bus_freq = prop;
++	}
++
++	i = of_gpio_named_count(node, "reset-gpios");
++	if (i > 0) {
++		data->num_gpios = i;
++		data->gpio_reset = devm_kcalloc(&pdev->dev, i,
++						sizeof(struct gpio_desc *),
++						GFP_KERNEL);
++		if (!data->gpio_reset)
++			return -ENOMEM;
++
++		for (i = 0; i < data->num_gpios; i++) {
++			gpiod = devm_gpiod_get_index(&pdev->dev, "reset", i,
++						     GPIOD_OUT_LOW);
++			if (IS_ERR(gpiod)) {
++				error = PTR_ERR(gpiod);
++				if (error == -ENOENT)
++					continue;
++				else
++					return error;
++			}
++			data->gpio_reset[i] = gpiod;
++		}
++
++		if (of_property_read_u32(node, "reset-delay-us",
++					 &data->reset_delay_us))
++			data->reset_delay_us = DEFAULT_GPIO_RESET_DELAY;
++
++		__davinci_gpio_reset(data);
+ 	}
+-	data->bus_freq = prop;
+ 
+ 	return 0;
+ }
+@@ -372,7 +424,7 @@ static int davinci_mdio_probe(struct platform_device *pdev)
+ 	if (dev->of_node) {
+ 		const struct of_device_id	*of_id;
+ 
+-		ret = davinci_mdio_probe_dt(&data->pdata, pdev);
++		ret = davinci_mdio_probe_dt(data, pdev);
+ 		if (ret)
+ 			return ret;
+ 		snprintf(data->bus->id, MII_BUS_ID_SIZE, "%s", pdev->name);
+-- 
+2.7.4
