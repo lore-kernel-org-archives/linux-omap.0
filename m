@@ -1,69 +1,54 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
- d8e5f0eca1e8)
-Date: Wed, 5 Apr 2017 08:29:55 -0700
-Message-ID: <20170405152954.GF13234@atomide.com>
-References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
- <20170404122736.GA13673@uda0271908>
- <20170404140341.GO10760@atomide.com>
- <20170405003637.GB13234@atomide.com>
- <dda7b6b0-b533-dfd6-1b12-b320bd69b623@ti.com>
- <20170405134655.GD13234@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH][linux-next] dmaengine: cppi41: Fix an Oops happening in cppi41_dma_probe()
+Date: Wed,  5 Apr 2017 18:35:16 +0200
+Message-ID: <20170405163516.13627-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170405134655.GD13234-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170405 06:53]:
-> * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [170405 00:15]:
-> > To be precise this is what I have tried:
-> > - boot w/o cable connected
-> > - boot w/ board connected to PC (device mode)
-> > - boot w/ OTG-A cable with USB keyboard
-> > - boot w/ OTG-A cable connected to powered USB hub and the same keyboard
-> > 
-> > w/ and w/o this patch I have the same flood of prints in all cases.
-> 
-> OK interesting that it also happens with nothing connected.
-> 
-> > Fwiw I have checked where the is_active is set - which causes the prints:
-> > musb_core.c:musb_start()
-> > 
-> > if (musb->port_mode != MUSB_PORT_MODE_HOST &&
-> > 		musb->xceiv->otg->state != OTG_STATE_A_WAIT_BCON &&
-> > 		(devctl & MUSB_DEVCTL_VBUS) == MUSB_DEVCTL_VBUS) {
-> > 	musb->is_active = 1;
-> > } else {
-> > 	devctl |= MUSB_DEVCTL_SESSION;
-> > }
-> > 
-> > this was the only place where the is_active was set to 1.
-> 
-> That seems normal in musb_start(). Will try with your .config
-> here.
+This fix an Oops happening on all platforms using the old dt bindings
+(all platforms but da8xx).
+This update cppi41_dma_probe() to use the index variable which is
+required to keep compatibility between old and new dt bindings.
 
-If the the port is configured as OTG, we should not need to
-try to force any states during init. The change below will stop
-the warnings with your .config, needs to be tested more though
-to make sure things still work in all cases.
+Fixes: 8e3ba95f4190 ("dmaengine: cppi41: use managed functions devm_*()")
+Reported-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/dma/cppi41.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Regards,
-
-Tony
-
-8< --------------------------
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -2780,10 +2780,11 @@ int musb_host_setup(struct musb *musb, int power_budget)
- 	int ret;
- 	struct usb_hcd *hcd = musb->hcd;
+diff --git a/drivers/dma/cppi41.c b/drivers/dma/cppi41.c
+index 0be56c9..f7e965f 100644
+--- a/drivers/dma/cppi41.c
++++ b/drivers/dma/cppi41.c
+@@ -1038,17 +1038,17 @@ static int cppi41_dma_probe(struct platform_device *pdev)
+ 	if (index < 0)
+ 		return index;
  
--	MUSB_HST_MODE(musb);
--	musb->xceiv->otg->default_a = 1;
--	musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, index);
+ 	cdd->ctrl_mem = devm_ioremap_resource(dev, mem);
+ 	if (IS_ERR(cdd->ctrl_mem))
+ 		return PTR_ERR(cdd->ctrl_mem);
+ 
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, index + 1);
+ 	cdd->sched_mem = devm_ioremap_resource(dev, mem);
+ 	if (IS_ERR(cdd->sched_mem))
+ 		return PTR_ERR(cdd->sched_mem);
+ 
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 2);
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, index + 2);
+ 	cdd->qmgr_mem = devm_ioremap_resource(dev, mem);
+ 	if (IS_ERR(cdd->qmgr_mem))
+ 		return PTR_ERR(cdd->qmgr_mem);
+-- 
+2.10.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
