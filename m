@@ -1,99 +1,113 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
- d8e5f0eca1e8)
-Date: Wed, 5 Apr 2017 06:46:55 -0700
-Message-ID: <20170405134655.GD13234@atomide.com>
-References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
- <20170404122736.GA13673@uda0271908>
- <20170404140341.GO10760@atomide.com>
- <20170405003637.GB13234@atomide.com>
- <dda7b6b0-b533-dfd6-1b12-b320bd69b623@ti.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH 2/2] memory: ti-emif-sram: introduce relocatable
+ suspend/resume handlers
+Date: Wed, 5 Apr 2017 14:59:34 +0100
+Message-ID: <20170405135933.GN23750@n2100.armlinux.org.uk>
+References: <20170328205511.21166-1-d-gerlach@ti.com>
+ <20170328205511.21166-3-d-gerlach@ti.com>
+ <20170404161151.GS10760@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <dda7b6b0-b533-dfd6-1b12-b320bd69b623-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170404161151.GS10760@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Keerthy J <j-keerthy@ti.com>, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [170405 00:15]:
-> Tony,
+On Tue, Apr 04, 2017 at 09:11:52AM -0700, Tony Lindgren wrote:
+> Russell,
 > 
-> On 2017-04-05 03:36, Tony Lindgren wrote:
-> > * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170404 07:06]:
-> > > * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170404 05:30]:
-> > > > On Tue, Apr 04, 2017 at 10:09:50AM +0300, Peter Ujfalusi wrote:
-> > > > > Tony,
-> > > > > 
-> > > > > since 4.9 (4.8 was fine) I can not boot omap4-panda-es if the musb
-> > > > > is compiled in. The kernel will stuck printing:
-> > > > > 
-> > > > > ** 206 printk messages dropped ** [    8.926727] musb_bus_suspend
-> > > > > 2584: trying to suspend as a_idle while active
-> > > 
-> > > OK so compiled in. Do you have something connected also when
-> > > booting?
-> > > 
-> > > > Does it sound a similar issue to
-> > > > http://marc.info/?l=linux-usb&m=149036531809506&w=2
-> > > 
-> > > Yup.
-> > > 
-> > > > > The bisect (log is [1]) points to:
-> > > > > d8e5f0eca1e8 usb: musb: Fix hardirq-safe hardirq-unsafe lock order error
-> > > > > 
-> > > > > and reverting the d8e5f0eca1e8 makes the board to boot up fine
-> > > > > (Linux 4.11-rc5 and next-20170331).
-> > > 
-> > > OK thanks for bisecting it.
-> > > 
-> > > > > any idea on how to fix this w/o reverting the commit?
-> > > 
-> > > I'll take a look.
+> * Dave Gerlach <d-gerlach@ti.com> [170328 13:57]:
+> > Certain SoCs like Texas Instruments AM335x and AM437x require parts
+> > of the EMIF PM code to run late in the suspend sequence from SRAM,
+> > such as saving and restoring the EMIF context and placing the memory
+> > into self-refresh.
 > > 
-> > OK I was able to reproduce this with loadable modules by reloading
-> > the modules while having OTG-A cable inserted with a hub and USB
-> > drive connected.
+> > One requirement for these SoCs to suspend and enter its lowest power
+> > mode, called DeepSleep0, is that the PER power domain must be shut off.
+> > Because the EMIF (DDR Controller) resides within this power domain, it
+> > will lose context during a suspend operation, so we must save it so we
+> > can restore once we resume. However, we cannot execute this code from
+> > external memory, as it is not available at this point, so the code must
+> > be executed late in the suspend path from SRAM.
 > > 
-> > Peter, care to check if the following fixes the problem for you?
-> > There should no longer be much any musb core tinkering happening
-> > in the glue layers..
+> > This patch introduces a ti-emif-sram driver that includes several
+> > functions written in ARM ASM that are relocatable so the PM SRAM
+> > code can use them. It also allocates a region of writable SRAM to
+> > be used by the code running in the executable region of SRAM to save
+> > and restore the EMIF context. It can export a table containing the
+> > absolute addresses of the available PM functions so that other SRAM
+> > code can branch to them. This code is required for suspend/resume on
+> > AM335x and AM437x to work.
+> > 
+> > In addition to this, to be able to share data structures between C and
+> > the ti-emif-sram-pm assembly code, we can automatically generate all of
+> > the C struct member offsets and sizes as macros by making use of the ARM
+> > asm-offsets file. In the same header that we define our data structures
+> > in we also define all the macros in an inline function and by adding a
+> > call to this in the asm_offsets file all macros are properly generated
+> > and available to the assembly code without cluttering up the asm-offsets
+> > file.
+> > 
+> > Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> > ---
+> >  arch/arm/kernel/asm-offsets.c    |   6 +
+> >  drivers/memory/Kconfig           |  10 ++
+> >  drivers/memory/Makefile          |   4 +
+> >  drivers/memory/emif.h            |  17 ++
+> >  drivers/memory/ti-emif-pm.c      | 295 ++++++++++++++++++++++++++++++++++
+> >  drivers/memory/ti-emif-sram-pm.S | 334 +++++++++++++++++++++++++++++++++++++++
+> >  include/linux/ti-emif-sram.h     | 143 +++++++++++++++++
+> >  7 files changed, 809 insertions(+)
+> >  create mode 100644 drivers/memory/ti-emif-pm.c
+> >  create mode 100644 drivers/memory/ti-emif-sram-pm.S
+> >  create mode 100644 include/linux/ti-emif-sram.h
+> > 
+> > diff --git a/arch/arm/kernel/asm-offsets.c b/arch/arm/kernel/asm-offsets.c
+> > index 608008229c7d..d728b5660e36 100644
+> > --- a/arch/arm/kernel/asm-offsets.c
+> > +++ b/arch/arm/kernel/asm-offsets.c
+> > @@ -28,6 +28,7 @@
+> >  #include <asm/vdso_datapage.h>
+> >  #include <asm/hardware/cache-l2x0.h>
+> >  #include <linux/kbuild.h>
+> > +#include <linux/ti-emif-sram.h>
+> >  
+> >  /*
+> >   * Make sure that the compiler and target are compatible.
+> > @@ -183,5 +184,10 @@ int main(void)
+> >  #ifdef CONFIG_VDSO
+> >    DEFINE(VDSO_DATA_SIZE,	sizeof(union vdso_data_store));
+> >  #endif
+> > +#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
+> > +  BLANK();
+> > +  ti_emif_offsets();
+> > +#endif
+> > +
+> >    return 0; 
+> >  }
 > 
-> I had similar hunch first, but did not worked. I have tested this patch and
-> did not helped.
-> 
-> To be precise this is what I have tried:
-> - boot w/o cable connected
-> - boot w/ board connected to PC (device mode)
-> - boot w/ OTG-A cable with USB keyboard
-> - boot w/ OTG-A cable connected to powered USB hub and the same keyboard
-> 
-> w/ and w/o this patch I have the same flood of prints in all cases.
+> Does the above look OK to you?
 
-OK interesting that it also happens with nothing connected.
+I'm not going to comment on this yet, but I'll instead comment on the
+newly appeared sram_exec_copy() stuff.
 
-> Fwiw I have checked where the is_active is set - which causes the prints:
-> musb_core.c:musb_start()
-> 
-> if (musb->port_mode != MUSB_PORT_MODE_HOST &&
-> 		musb->xceiv->otg->state != OTG_STATE_A_WAIT_BCON &&
-> 		(devctl & MUSB_DEVCTL_VBUS) == MUSB_DEVCTL_VBUS) {
-> 	musb->is_active = 1;
-> } else {
-> 	devctl |= MUSB_DEVCTL_SESSION;
-> }
-> 
-> this was the only place where the is_active was set to 1.
+So, a few years ago, we went to significant effort in ARM land to come
+up with a way to _safely_ copy assembler from the kernel into SRAM,
+because copying code to SRAM that is compiled in thumb mode and then
+executing it is _not_ as simple as memcpy(), cast the pointer to a
+function pointer, and then call the function pointer.
 
-That seems normal in musb_start(). Will try with your .config
-here.
+The SRAM stuff throws all that out, instead preferring the dumb memcpy()
+approach.
 
-Regards,
+This needs resolving, and I'd like to see it resolved to the satisfaction
+of architecture maintainers before we progress any further down this
+route.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
