@@ -1,65 +1,43 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 0/2] ARM: am335x-icev2: Add ethernet support
-Date: Wed, 5 Apr 2017 11:35:20 +0300
-Message-ID: <1d0a9c73-3e68-295c-3477-7c47e9decce6@ti.com>
-References: <1489412554-2054-1-git-send-email-rogerq@ti.com>
- <178a255a-5e26-fe6f-8d9e-a7755f0b5fca@ti.com>
- <20170404160106.GR10760@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v6 15/23] dt-bindings: PCI: dra7xx: Add DT bindings to enable unaligned access
+Date: Wed, 5 Apr 2017 14:22:35 +0530
+Message-ID: <20170405085243.18123-16-kishon@ti.com>
+References: <20170405085243.18123-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170404160106.GR10760@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: davem@davemloft.net, grygorii.strashko@ti.com, nsekhar@ti.com, jsarha@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20170405085243.18123-1-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 04/04/17 19:01, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [170330 05:37]:
->> Hi Tony & Dave,
->>
->> On 13/03/17 15:42, Roger Quadros wrote:
->>> Hi,
->>>
->>> This series adds ethernet support to am335x-icev2 board.
->>>
->>> The ethernet PHYs on the board need an explicit GPIO reset pulse
->>> to ensure they bootstrap to the correct mode. Without the
->>> GPIO reset they just don't work.
->>>
->>> cheers,
->>> -roger
->>
->> Any comments on this series. Patch 1 is at version 2.
-> 
-> I think you meant patch 2/3 is at version2. I've picked
-> patches 2 and 3 for v4.12 into dt and defconfig branches.
+Update device tree binding documentation of TI's dra7xx PCI controller to
+include property for enabling unaligned mem access.
 
-Thanks Tony.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ Documentation/devicetree/bindings/pci/ti-pci.txt | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-> 
-> You may need to resend the davinci_mdio.c patch alone
-> for Dave as he usually won't pick individual patches I
-> think.
+diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+index 60c3cccefabc..6a07c96227e0 100644
+--- a/Documentation/devicetree/bindings/pci/ti-pci.txt
++++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+@@ -39,6 +39,11 @@ DEVICE MODE
+  - interrupts : one interrupt entries must be specified for main interrupt.
+  - num-ib-windows : number of inbound address translation windows
+  - num-ob-windows : number of outbound address translation windows
++ - ti,syscon-unaligned-access: phandle to the syscon DT node. The 1st argument
++			       should contain the register offset within syscon
++			       and the 2nd argument should contain the bit field
++			       for setting the bit to enable unaligned
++			       access.
+ 
+ Optional Property:
+  - gpios : Should be added if a gpio line is required to drive PERST# line
+-- 
+2.11.0
 
-OK, I'll send that one separately.
-
-cheers,
--roger
-
-> 
-> Regards,
-> 
-> Tony
-> 
->>> Roger Quadros (2):
->>>   net: davinci_mdio: add GPIO reset logic
->>>   ARM: dts: am335x-icev2: Add CPSW ethernet0 and ethernet1
->>>
->>>  .../devicetree/bindings/net/davinci-mdio.txt       |   2 +
->>>  arch/arm/boot/dts/am335x-icev2.dts                 | 113 +++++++++++++++++++++
->>>  drivers/net/ethernet/ti/davinci_mdio.c             |  68 +++++++++++--
->>>  3 files changed, 175 insertions(+), 8 deletions(-)
->>>
->>
