@@ -1,44 +1,65 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v5 14/24] dt-bindings: mfd: syscon: Add documentation for
- #syscon-cells property
-Date: Wed, 5 Apr 2017 13:55:36 +0530
-Message-ID: <19ba5ea6-b12b-5b0f-dbbe-6bdba03120ac@ti.com>
-References: <20170327094520.3129-1-kishon@ti.com>
- <20170327094520.3129-15-kishon@ti.com>
- <20170331185852.mxa4gvjxbuxl65dq@rob-hp-laptop>
- <20170331190627.nucviejokdklgtk7@rob-hp-laptop>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 0/2] ARM: am335x-icev2: Add ethernet support
+Date: Wed, 5 Apr 2017 11:35:20 +0300
+Message-ID: <1d0a9c73-3e68-295c-3477-7c47e9decce6@ti.com>
+References: <1489412554-2054-1-git-send-email-rogerq@ti.com>
+ <178a255a-5e26-fe6f-8d9e-a7755f0b5fca@ti.com>
+ <20170404160106.GR10760@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170331190627.nucviejokdklgtk7@rob-hp-laptop>
+In-Reply-To: <20170404160106.GR10760@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hch@infradead.org, nsekhar@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: davem@davemloft.net, grygorii.strashko@ti.com, nsekhar@ti.com, jsarha@ti.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rob,
-
-On Saturday 01 April 2017 12:36 AM, Rob Herring wrote:
-> On Fri, Mar 31, 2017 at 01:58:52PM -0500, Rob Herring wrote:
->> On Mon, Mar 27, 2017 at 03:15:10PM +0530, Kishon Vijay Abraham I wrote:
->>> Add documentation for the optional #syscon-cells property to determine
->>> the number of cells that should be given in the phandle while
->>> referencing the syscon-node.
+On 04/04/17 19:01, Tony Lindgren wrote:
+> * Roger Quadros <rogerq@ti.com> [170330 05:37]:
+>> Hi Tony & Dave,
+>>
+>> On 13/03/17 15:42, Roger Quadros wrote:
+>>> Hi,
 >>>
->>> Suggested-by: Rob Herring <robh@kernel.org>
+>>> This series adds ethernet support to am335x-icev2 board.
+>>>
+>>> The ethernet PHYs on the board need an explicit GPIO reset pulse
+>>> to ensure they bootstrap to the correct mode. Without the
+>>> GPIO reset they just don't work.
+>>>
+>>> cheers,
+>>> -roger
 >>
->> I did? When?
->>
->> I'm not remembering why we need this. Generally, phandles to a syscon 
->> are for a single defined purpose. When do we need a list of them?
+>> Any comments on this series. Patch 1 is at version 2.
 > 
-> Ah, I remember now the context. I suggested using standard parsing 
-> function rather than open coding. I wasn't suggesting changing the 
-> binding. Instead of of_parse_phandle_with_args, can't 
-> of_parse_phandle_with_fixed_args work?
+> I think you meant patch 2/3 is at version2. I've picked
+> patches 2 and 3 for v4.12 into dt and defconfig branches.
 
-yes, it can be used. Will change it my next revision.
+Thanks Tony.
 
-Thanks
-Kishon
+> 
+> You may need to resend the davinci_mdio.c patch alone
+> for Dave as he usually won't pick individual patches I
+> think.
+
+OK, I'll send that one separately.
+
+cheers,
+-roger
+
+> 
+> Regards,
+> 
+> Tony
+> 
+>>> Roger Quadros (2):
+>>>   net: davinci_mdio: add GPIO reset logic
+>>>   ARM: dts: am335x-icev2: Add CPSW ethernet0 and ethernet1
+>>>
+>>>  .../devicetree/bindings/net/davinci-mdio.txt       |   2 +
+>>>  arch/arm/boot/dts/am335x-icev2.dts                 | 113 +++++++++++++++++++++
+>>>  drivers/net/ethernet/ti/davinci_mdio.c             |  68 +++++++++++--
+>>>  3 files changed, 175 insertions(+), 8 deletions(-)
+>>>
+>>
