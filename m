@@ -1,94 +1,38 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v6 20/23] tools: PCI: Add sample test script to invoke pcitest
-Date: Wed, 5 Apr 2017 14:22:40 +0530
-Message-ID: <20170405085243.18123-21-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v6 16/23] PCI: Add device IDs for DRA74x and DRA72x
+Date: Wed, 5 Apr 2017 14:22:36 +0530
+Message-ID: <20170405085243.18123-17-kishon@ti.com>
 References: <20170405085243.18123-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170405085243.18123-1-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170405085243.18123-1-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-pci@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add a simple test script that invokes the pcitest userspace tool to perform
-all the PCI endpoint tests (BAR tests, interrupt tests, read tests, write
-tests and copy tests).
+Add device IDs for DRA74x and DRA72x devices. These devices have
+configurable PCI endpoint.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- tools/pci/pcitest.sh | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
- create mode 100644 tools/pci/pcitest.sh
+ include/linux/pci_ids.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/tools/pci/pcitest.sh b/tools/pci/pcitest.sh
-new file mode 100644
-index 000000000000..5442bbea4c22
---- /dev/null
-+++ b/tools/pci/pcitest.sh
-@@ -0,0 +1,56 @@
-+#!/bin/sh
-+
-+echo "BAR tests"
-+echo
-+
-+bar=0
-+
-+while [ $bar -lt 6 ]
-+do
-+	pcitest -b $bar
-+	bar=`expr $bar + 1`
-+done
-+echo
-+
-+echo "Interrupt tests"
-+echo
-+
-+pcitest -l
-+msi=1
-+
-+while [ $msi -lt 33 ]
-+do
-+        pcitest -m $msi
-+        msi=`expr $msi + 1`
-+done
-+echo
-+
-+echo "Read Tests"
-+echo
-+
-+pcitest -r -s 1
-+pcitest -r -s 1024
-+pcitest -r -s 1025
-+pcitest -r -s 1024000
-+pcitest -r -s 1024001
-+echo
-+
-+echo "Write Tests"
-+echo
-+
-+pcitest -w -s 1
-+pcitest -w -s 1024
-+pcitest -w -s 1025
-+pcitest -w -s 1024000
-+pcitest -w -s 1024001
-+echo
-+
-+echo "Copy Tests"
-+echo
-+
-+pcitest -c -s 1
-+pcitest -c -s 1024
-+pcitest -c -s 1025
-+pcitest -c -s 1024000
-+pcitest -c -s 1024001
-+echo
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index a4f77feecbb0..5f6b71d15393 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -862,6 +862,8 @@
+ #define PCI_DEVICE_ID_TI_X620		0xac8d
+ #define PCI_DEVICE_ID_TI_X420		0xac8e
+ #define PCI_DEVICE_ID_TI_XX20_FM	0xac8f
++#define PCI_DEVICE_ID_TI_DRA74x		0xb500
++#define PCI_DEVICE_ID_TI_DRA72x		0xb501
+ 
+ #define PCI_VENDOR_ID_SONY		0x104d
+ 
 -- 
 2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
