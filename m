@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v6 22/23] MAINTAINERS: Add PCI Endpoint maintainer
-Date: Wed, 5 Apr 2017 14:22:42 +0530
-Message-ID: <20170405085243.18123-23-kishon@ti.com>
+Subject: [PATCH v6 23/23] ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP
+Date: Wed, 5 Apr 2017 14:22:43 +0530
+Message-ID: <20170405085243.18123-24-kishon@ti.com>
 References: <20170405085243.18123-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,33 +12,30 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, l
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add maintainer for the newly introduced PCI Endpoint framework.
+The PCIe programming sequence in TRM suggests CLKSTCTRL of PCIe should be
+set to SW_WKUP. There are no issues when CLKSTCTRL is set to HW_AUTO in RC
+mode. However in EP mode, the host system is not able to access the
+MEMSPACE and setting the CLKSTCTRL to SW_WKUP fixes it.
 
+Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- MAINTAINERS | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c265a5fe4848..15ed84389092 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9581,6 +9581,15 @@ F:	include/linux/pci*
- F:	arch/x86/pci/
- F:	arch/x86/kernel/quirks.c
+diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+index 6c679659cda5..67ebff829cf2 100644
+--- a/arch/arm/mach-omap2/clockdomains7xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+@@ -524,7 +524,7 @@ static struct clockdomain pcie_7xx_clkdm = {
+ 	.dep_bit	  = DRA7XX_PCIE_STATDEP_SHIFT,
+ 	.wkdep_srcs	  = pcie_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = pcie_wkup_sleep_deps,
+-	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++	.flags		  = CLKDM_CAN_SWSUP,
+ };
  
-+PCI ENDPOINT SUBSYSTEM
-+M:	Kishon Vijay Abraham I <kishon@ti.com>
-+L:	linux-pci@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git
-+S:	Supported
-+F:	drivers/pci/endpoint/
-+F:	drivers/misc/pci_endpoint_test.c
-+F:	tools/pci/
-+
- PCI DRIVER FOR ALTERA PCIE IP
- M:	Ley Foon Tan <lftan@altera.com>
- L:	rfi@lists.rocketboards.org (moderated for non-subscribers)
+ static struct clockdomain atl_7xx_clkdm = {
 -- 
 2.11.0
