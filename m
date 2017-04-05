@@ -1,101 +1,69 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH] net: davinci_mdio: add GPIO reset logic
-Date: Wed, 5 Apr 2017 17:03:34 +0200
-Message-ID: <20170405150334.GI13449@lunn.ch>
-References: <1491381237-24635-1-git-send-email-rogerq@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
+ d8e5f0eca1e8)
+Date: Wed, 5 Apr 2017 08:29:55 -0700
+Message-ID: <20170405152954.GF13234@atomide.com>
+References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
+ <20170404122736.GA13673@uda0271908>
+ <20170404140341.GO10760@atomide.com>
+ <20170405003637.GB13234@atomide.com>
+ <dda7b6b0-b533-dfd6-1b12-b320bd69b623@ti.com>
+ <20170405134655.GD13234@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1491381237-24635-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: davem@davemloft.net, tony@atomide.com, nsekhar@ti.com, jsarha@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170405134655.GD13234-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 05, 2017 at 11:33:57AM +0300, Roger Quadros wrote:
-> Some boards [1] leave the PHYs at an invalid state
-> during system power-up or reset thus causing unreliability
-> issues with the PHY like not being detected by the mdio bus
-> or link not functional. To work around these boards have
-> a GPIO connected to the PHY's reset pin.
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170405 06:53]:
+> * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [170405 00:15]:
+> > To be precise this is what I have tried:
+> > - boot w/o cable connected
+> > - boot w/ board connected to PC (device mode)
+> > - boot w/ OTG-A cable with USB keyboard
+> > - boot w/ OTG-A cable connected to powered USB hub and the same keyboard
+> > 
+> > w/ and w/o this patch I have the same flood of prints in all cases.
 > 
-> Implement GPIO reset handling for such cases.
+> OK interesting that it also happens with nothing connected.
 > 
-> [1] - am572x-idk, am571x-idk, a437x-idk.
+> > Fwiw I have checked where the is_active is set - which causes the prints:
+> > musb_core.c:musb_start()
+> > 
+> > if (musb->port_mode != MUSB_PORT_MODE_HOST &&
+> > 		musb->xceiv->otg->state != OTG_STATE_A_WAIT_BCON &&
+> > 		(devctl & MUSB_DEVCTL_VBUS) == MUSB_DEVCTL_VBUS) {
+> > 	musb->is_active = 1;
+> > } else {
+> > 	devctl |= MUSB_DEVCTL_SESSION;
+> > }
+> > 
+> > this was the only place where the is_active was set to 1.
 > 
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
->  .../devicetree/bindings/net/davinci-mdio.txt       |  2 +
->  drivers/net/ethernet/ti/davinci_mdio.c             | 68 +++++++++++++++++++---
->  2 files changed, 62 insertions(+), 8 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/net/davinci-mdio.txt b/Documentation/devicetree/bindings/net/davinci-mdio.txt
-> index 621156c..fd6ebe7 100644
-> --- a/Documentation/devicetree/bindings/net/davinci-mdio.txt
-> +++ b/Documentation/devicetree/bindings/net/davinci-mdio.txt
-> @@ -12,6 +12,8 @@ Required properties:
->  
->  Optional properties:
->  - ti,hwmods		: Must be "davinci_mdio"
-> +- reset-gpios		: array of GPIO specifier for PHY hardware reset control
-> +- reset-delay-us	: reset assertion time [in microseconds]
->  
->  Note: "ti,hwmods" field is used to fetch the base address and irq
->  resources from TI, omap hwmod data base during device registration.
-> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-> index 33df340..c6f9e55 100644
-> --- a/drivers/net/ethernet/ti/davinci_mdio.c
-> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
-> @@ -40,6 +40,9 @@
->  #include <linux/of_device.h>
->  #include <linux/of_mdio.h>
->  #include <linux/pinctrl/consumer.h>
-> +#include <linux/gpio.h>
-> +#include <linux/gpio/consumer.h>
-> +#include <linux/of_gpio.h>
->  
->  /*
->   * This timeout definition is a worst-case ultra defensive measure against
-> @@ -53,6 +56,8 @@
->  
->  #define DEF_OUT_FREQ		2200000		/* 2.2 MHz */
->  
-> +#define DEFAULT_GPIO_RESET_DELAY	10	/* in microseconds */
-> +
->  struct davinci_mdio_of_param {
->  	int autosuspend_delay_ms;
->  };
-> @@ -104,6 +109,9 @@ struct davinci_mdio_data {
->  	 */
->  	bool		skip_scan;
->  	u32		clk_div;
-> +	struct gpio_desc **gpio_reset;
-> +	int		num_gpios;
-> +	int		reset_delay_us;
->  };
->  
->  static void davinci_mdio_init_clk(struct davinci_mdio_data *data)
-> @@ -142,6 +150,20 @@ static void davinci_mdio_enable(struct davinci_mdio_data *data)
->  	__raw_writel(data->clk_div | CONTROL_ENABLE, &data->regs->control);
->  }
->  
-> +static void __davinci_gpio_reset(struct davinci_mdio_data *data)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < data->num_gpios; i++) {
-> +		if (!data->gpio_reset[i])
-> +			continue;
-> +
-> +		gpiod_set_value_cansleep(data->gpio_reset[i], 1);
-> +		udelay(data->reset_delay_us);
-> +		gpiod_set_value_cansleep(data->gpio_reset[i], 0);
-> +	}
-> +}
+> That seems normal in musb_start(). Will try with your .config
+> here.
 
-Do you really need more than one GPIO? A single gpio would make all
-this code a lot simpler.
+If the the port is configured as OTG, we should not need to
+try to force any states during init. The change below will stop
+the warnings with your .config, needs to be tested more though
+to make sure things still work in all cases.
 
-     Andrew
+Regards,
+
+Tony
+
+8< --------------------------
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -2780,10 +2780,11 @@ int musb_host_setup(struct musb *musb, int power_budget)
+ 	int ret;
+ 	struct usb_hcd *hcd = musb->hcd;
+ 
+-	MUSB_HST_MODE(musb);
+-	musb->xceiv->otg->default_a = 1;
+-	musb->xceiv->otg->state = OTG_STATE_A_IDLE;
