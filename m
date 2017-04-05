@@ -1,8 +1,8 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v6 21/23] Documentation: PCI: Add userguide for PCI endpoint
- test function
-Date: Wed, 5 Apr 2017 14:22:41 +0530
-Message-ID: <20170405085243.18123-22-kishon@ti.com>
+Subject: [PATCH v6 07/23] PCI: endpoint: functions: Add an EP function to test
+ PCI
+Date: Wed, 5 Apr 2017 14:22:27 +0530
+Message-ID: <20170405085243.18123-8-kishon@ti.com>
 References: <20170405085243.18123-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,213 +22,587 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, l
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add documentation to help users use pci-epf-test function driver and
-pci_endpoint_test host driver for testing PCI.
+Adds a new endpoint function driver (to program the virtual test device)
+making use of the EP-core library.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- Documentation/PCI/00-INDEX                    |   2 +
- Documentation/PCI/endpoint/pci-test-howto.txt | 179 ++++++++++++++++++++++++++
- 2 files changed, 181 insertions(+)
- create mode 100644 Documentation/PCI/endpoint/pci-test-howto.txt
+ drivers/pci/endpoint/Kconfig                  |   2 +
+ drivers/pci/endpoint/Makefile                 |   2 +-
+ drivers/pci/endpoint/functions/Kconfig        |  12 +
+ drivers/pci/endpoint/functions/Makefile       |   5 +
+ drivers/pci/endpoint/functions/pci-epf-test.c | 510 ++++++++++++++++++++++++++
+ 5 files changed, 530 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/pci/endpoint/functions/Kconfig
+ create mode 100644 drivers/pci/endpoint/functions/Makefile
+ create mode 100644 drivers/pci/endpoint/functions/pci-epf-test.c
 
-diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-index 2fc901a1c32e..00c9a90b6f38 100644
---- a/Documentation/PCI/00-INDEX
-+++ b/Documentation/PCI/00-INDEX
-@@ -18,5 +18,7 @@ endpoint/pci-endpoint-cfs.txt
- 	- guide to use configfs to configure the PCI endpoint function.
- endpoint/pci-test-function.txt
- 	- specification of *PCI test* function device.
-+endpoint/pci-test-howto.txt
-+	- userguide for PCI endpoint test function.
- endpoint/function/binding/
- 	- binding documentation for PCI endpoint function
-diff --git a/Documentation/PCI/endpoint/pci-test-howto.txt b/Documentation/PCI/endpoint/pci-test-howto.txt
+diff --git a/drivers/pci/endpoint/Kconfig b/drivers/pci/endpoint/Kconfig
+index c86bca9b7de3..c23f146fb5a6 100644
+--- a/drivers/pci/endpoint/Kconfig
++++ b/drivers/pci/endpoint/Kconfig
+@@ -26,4 +26,6 @@ config PCI_ENDPOINT_CONFIGFS
+ 	   configure the endpoint function and used to bind the
+ 	   function with a endpoint controller.
+ 
++source "drivers/pci/endpoint/functions/Kconfig"
++
+ endmenu
+diff --git a/drivers/pci/endpoint/Makefile b/drivers/pci/endpoint/Makefile
+index 7219d51bb401..1041f80a4645 100644
+--- a/drivers/pci/endpoint/Makefile
++++ b/drivers/pci/endpoint/Makefile
+@@ -4,4 +4,4 @@
+ 
+ obj-$(CONFIG_PCI_ENDPOINT_CONFIGFS)	+= pci-ep-cfs.o
+ obj-$(CONFIG_PCI_ENDPOINT)		+= pci-epc-core.o pci-epf-core.o\
+-					   pci-epc-mem.o
++					   pci-epc-mem.o functions/
+diff --git a/drivers/pci/endpoint/functions/Kconfig b/drivers/pci/endpoint/functions/Kconfig
 new file mode 100644
-index 000000000000..75f48c3bb191
+index 000000000000..175edad42d2f
 --- /dev/null
-+++ b/Documentation/PCI/endpoint/pci-test-howto.txt
-@@ -0,0 +1,179 @@
-+			    PCI TEST USERGUIDE
-+		    Kishon Vijay Abraham I <kishon@ti.com>
++++ b/drivers/pci/endpoint/functions/Kconfig
+@@ -0,0 +1,12 @@
++#
++# PCI Endpoint Functions
++#
 +
-+This document is a guide to help users use pci-epf-test function driver
-+and pci_endpoint_test host driver for testing PCI. The list of steps to
-+be followed in the host side and EP side is given below.
++config PCI_EPF_TEST
++	tristate "PCI Endpoint Test driver"
++	depends on PCI_ENDPOINT
++	help
++	   Enable this configuration option to enable the test driver
++	   for PCI Endpoint.
 +
-+1. Endpoint Device
++	   If in doubt, say "N" to disable Endpoint test driver.
+diff --git a/drivers/pci/endpoint/functions/Makefile b/drivers/pci/endpoint/functions/Makefile
+new file mode 100644
+index 000000000000..6d94a4801838
+--- /dev/null
++++ b/drivers/pci/endpoint/functions/Makefile
+@@ -0,0 +1,5 @@
++#
++# Makefile for PCI Endpoint Functions
++#
 +
-+1.1 Endpoint Controller Devices
++obj-$(CONFIG_PCI_EPF_TEST)		+= pci-epf-test.o
+diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
+new file mode 100644
+index 000000000000..d6a7a12a99f7
+--- /dev/null
++++ b/drivers/pci/endpoint/functions/pci-epf-test.c
+@@ -0,0 +1,510 @@
++/**
++ * Test driver to test endpoint functionality
++ *
++ * Copyright (C) 2017 Texas Instruments
++ * Author: Kishon Vijay Abraham I <kishon@ti.com>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 of
++ * the License as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
 +
-+To find the list of endpoint controller devices in the system:
++#include <linux/crc32.h>
++#include <linux/delay.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/pci_ids.h>
++#include <linux/random.h>
 +
-+	# ls /sys/class/pci_epc/
-+	  51000000.pcie_ep
++#include <linux/pci-epc.h>
++#include <linux/pci-epf.h>
++#include <linux/pci_regs.h>
 +
-+If PCI_ENDPOINT_CONFIGFS is enabled
-+	# ls /sys/kernel/config/pci_ep/controllers
-+	  51000000.pcie_ep
++#define COMMAND_RAISE_LEGACY_IRQ	BIT(0)
++#define COMMAND_RAISE_MSI_IRQ		BIT(1)
++#define MSI_NUMBER_SHIFT		2
++#define MSI_NUMBER_MASK			(0x3f << MSI_NUMBER_SHIFT)
++#define COMMAND_READ			BIT(8)
++#define COMMAND_WRITE			BIT(9)
++#define COMMAND_COPY			BIT(10)
 +
-+1.2 Endpoint Function Drivers
++#define STATUS_READ_SUCCESS		BIT(0)
++#define STATUS_READ_FAIL		BIT(1)
++#define STATUS_WRITE_SUCCESS		BIT(2)
++#define STATUS_WRITE_FAIL		BIT(3)
++#define STATUS_COPY_SUCCESS		BIT(4)
++#define STATUS_COPY_FAIL		BIT(5)
++#define STATUS_IRQ_RAISED		BIT(6)
++#define STATUS_SRC_ADDR_INVALID		BIT(7)
++#define STATUS_DST_ADDR_INVALID		BIT(8)
 +
-+To find the list of endpoint function drivers in the system:
++#define TIMER_RESOLUTION		1
 +
-+	# ls /sys/bus/pci-epf/drivers
-+	  pci_epf_test
++static struct workqueue_struct *kpcitest_workqueue;
 +
-+If PCI_ENDPOINT_CONFIGFS is enabled
-+	# ls /sys/kernel/config/pci_ep/functions
-+	  pci_epf_test
++struct pci_epf_test {
++	void			*reg[6];
++	struct pci_epf		*epf;
++	struct delayed_work	cmd_handler;
++};
 +
-+1.3 Creating pci-epf-test Device
++struct pci_epf_test_reg {
++	u32	magic;
++	u32	command;
++	u32	status;
++	u64	src_addr;
++	u64	dst_addr;
++	u32	size;
++	u32	checksum;
++} __packed;
 +
-+PCI endpoint function device can be created using the configfs. To create
-+pci-epf-test device, the following commands can be used
++static struct pci_epf_header test_header = {
++	.vendorid	= PCI_ANY_ID,
++	.deviceid	= PCI_ANY_ID,
++	.baseclass_code = PCI_CLASS_OTHERS,
++	.interrupt_pin	= PCI_INTERRUPT_INTA,
++};
 +
-+	# mount -t configfs none /sys/kernel/config
-+	# cd /sys/kernel/config/pci_ep/
-+	# mkdir functions/pci_epf_test/func1
++static int bar_size[] = { 512, 1024, 16384, 131072, 1048576 };
 +
-+The "mkdir func1" above creates the pci-epf-test function device that will
-+be probed by pci_epf_test driver.
++static int pci_epf_test_copy(struct pci_epf_test *epf_test)
++{
++	int ret;
++	void __iomem *src_addr;
++	void __iomem *dst_addr;
++	phys_addr_t src_phys_addr;
++	phys_addr_t dst_phys_addr;
++	struct pci_epf *epf = epf_test->epf;
++	struct device *dev = &epf->dev;
++	struct pci_epc *epc = epf->epc;
++	struct pci_epf_test_reg *reg = epf_test->reg[0];
 +
-+The PCI endpoint framework populates the directory with the following
-+configurable fields.
++	src_addr = pci_epc_mem_alloc_addr(epc, &src_phys_addr, reg->size);
++	if (!src_addr) {
++		dev_err(dev, "failed to allocate source address\n");
++		reg->status = STATUS_SRC_ADDR_INVALID;
++		ret = -ENOMEM;
++		goto err;
++	}
 +
-+	# ls functions/pci_epf_test/func1
-+	  baseclass_code	interrupt_pin	revid		subsys_vendor_id
-+	  cache_line_size	msi_interrupts	subclass_code	vendorid
-+	  deviceid          	progif_code	subsys_id
++	ret = pci_epc_map_addr(epc, src_phys_addr, reg->src_addr, reg->size);
++	if (ret) {
++		dev_err(dev, "failed to map source address\n");
++		reg->status = STATUS_SRC_ADDR_INVALID;
++		goto err_src_addr;
++	}
 +
-+The PCI endpoint function driver populates these entries with default values
-+when the device is bound to the driver. The pci-epf-test driver populates
-+vendorid with 0xffff and interrupt_pin with 0x0001
++	dst_addr = pci_epc_mem_alloc_addr(epc, &dst_phys_addr, reg->size);
++	if (!dst_addr) {
++		dev_err(dev, "failed to allocate destination address\n");
++		reg->status = STATUS_DST_ADDR_INVALID;
++		ret = -ENOMEM;
++		goto err_src_map_addr;
++	}
 +
-+	# cat functions/pci_epf_test/func1/vendorid
-+	  0xffff
-+	# cat functions/pci_epf_test/func1/interrupt_pin
-+	  0x0001
++	ret = pci_epc_map_addr(epc, dst_phys_addr, reg->dst_addr, reg->size);
++	if (ret) {
++		dev_err(dev, "failed to map destination address\n");
++		reg->status = STATUS_DST_ADDR_INVALID;
++		goto err_dst_addr;
++	}
 +
-+1.4 Configuring pci-epf-test Device
++	memcpy(dst_addr, src_addr, reg->size);
 +
-+The user can configure the pci-epf-test device using configfs entry. In order
-+to change the vendorid and the number of MSI interrupts used by the function
-+device, the following commands can be used.
++	pci_epc_unmap_addr(epc, dst_phys_addr);
 +
-+	# echo 0x104c > functions/pci_epf_test/func1/vendorid
-+	# echo 0xb500 > functions/pci_epf_test/func1/deviceid
-+	# echo 16 > functions/pci_epf_test/func1/msi_interrupts
++err_dst_addr:
++	pci_epc_mem_free_addr(epc, dst_phys_addr, dst_addr, reg->size);
 +
-+1.5 Binding pci-epf-test Device to EP Controller
++err_src_map_addr:
++	pci_epc_unmap_addr(epc, src_phys_addr);
 +
-+In order for the endpoint function device to be useful, it has to be bound to
-+a PCI endpoint controller driver. Use the configfs to bind the function
-+device to one of the controller driver present in the system.
++err_src_addr:
++	pci_epc_mem_free_addr(epc, src_phys_addr, src_addr, reg->size);
 +
-+	# ln -s functions/pci_epf_test/func1 controllers/51000000.pcie_ep/
++err:
++	return ret;
++}
 +
-+Once the above step is completed, the PCI endpoint is ready to establish a link
-+with the host.
++static int pci_epf_test_read(struct pci_epf_test *epf_test)
++{
++	int ret;
++	void __iomem *src_addr;
++	void *buf;
++	u32 crc32;
++	phys_addr_t phys_addr;
++	struct pci_epf *epf = epf_test->epf;
++	struct device *dev = &epf->dev;
++	struct pci_epc *epc = epf->epc;
++	struct pci_epf_test_reg *reg = epf_test->reg[0];
 +
-+1.6 Start the Link
++	src_addr = pci_epc_mem_alloc_addr(epc, &phys_addr, reg->size);
++	if (!src_addr) {
++		dev_err(dev, "failed to allocate address\n");
++		reg->status = STATUS_SRC_ADDR_INVALID;
++		ret = -ENOMEM;
++		goto err;
++	}
 +
-+In order for the endpoint device to establish a link with the host, the _start_
-+field should be populated with '1'.
++	ret = pci_epc_map_addr(epc, phys_addr, reg->src_addr, reg->size);
++	if (ret) {
++		dev_err(dev, "failed to map address\n");
++		reg->status = STATUS_SRC_ADDR_INVALID;
++		goto err_addr;
++	}
 +
-+	# echo 1 > controllers/51000000.pcie_ep/start
++	buf = kzalloc(reg->size, GFP_KERNEL);
++	if (!buf) {
++		ret = -ENOMEM;
++		goto err_map_addr;
++	}
 +
-+2. RootComplex Device
++	memcpy(buf, src_addr, reg->size);
 +
-+2.1 lspci Output
++	crc32 = crc32_le(~0, buf, reg->size);
++	if (crc32 != reg->checksum)
++		ret = -EIO;
 +
-+Note that the devices listed here correspond to the value populated in 1.4 above
++	kfree(buf);
 +
-+	00:00.0 PCI bridge: Texas Instruments Device 8888 (rev 01)
-+	01:00.0 Unassigned class [ff00]: Texas Instruments Device b500
++err_map_addr:
++	pci_epc_unmap_addr(epc, phys_addr);
 +
-+2.2 Using Endpoint Test function Device
++err_addr:
++	pci_epc_mem_free_addr(epc, phys_addr, src_addr, reg->size);
 +
-+pcitest.sh added in tools/pci/ can be used to run all the default PCI endpoint
-+tests. Before pcitest.sh can be used pcitest.c should be compiled using the
-+following commands.
++err:
++	return ret;
++}
 +
-+	cd <kernel-dir>
-+	make headers_install ARCH=arm
-+	arm-linux-gnueabihf-gcc -Iusr/include tools/pci/pcitest.c -o pcitest
-+	cp pcitest  <rootfs>/usr/sbin/
-+	cp tools/pci/pcitest.sh <rootfs>
++static int pci_epf_test_write(struct pci_epf_test *epf_test)
++{
++	int ret;
++	void __iomem *dst_addr;
++	void *buf;
++	phys_addr_t phys_addr;
++	struct pci_epf *epf = epf_test->epf;
++	struct device *dev = &epf->dev;
++	struct pci_epc *epc = epf->epc;
++	struct pci_epf_test_reg *reg = epf_test->reg[0];
 +
-+2.2.1 pcitest.sh Output
-+	# ./pcitest.sh
-+	BAR tests
++	dst_addr = pci_epc_mem_alloc_addr(epc, &phys_addr, reg->size);
++	if (!dst_addr) {
++		dev_err(dev, "failed to allocate address\n");
++		reg->status = STATUS_DST_ADDR_INVALID;
++		ret = -ENOMEM;
++		goto err;
++	}
 +
-+	BAR0:           OKAY
-+	BAR1:           OKAY
-+	BAR2:           OKAY
-+	BAR3:           OKAY
-+	BAR4:           NOT OKAY
-+	BAR5:           NOT OKAY
++	ret = pci_epc_map_addr(epc, phys_addr, reg->dst_addr, reg->size);
++	if (ret) {
++		dev_err(dev, "failed to map address\n");
++		reg->status = STATUS_DST_ADDR_INVALID;
++		goto err_addr;
++	}
 +
-+	Interrupt tests
++	buf = kzalloc(reg->size, GFP_KERNEL);
++	if (!buf) {
++		ret = -ENOMEM;
++		goto err_map_addr;
++	}
 +
-+	LEGACY IRQ:     NOT OKAY
-+	MSI1:           OKAY
-+	MSI2:           OKAY
-+	MSI3:           OKAY
-+	MSI4:           OKAY
-+	MSI5:           OKAY
-+	MSI6:           OKAY
-+	MSI7:           OKAY
-+	MSI8:           OKAY
-+	MSI9:           OKAY
-+	MSI10:          OKAY
-+	MSI11:          OKAY
-+	MSI12:          OKAY
-+	MSI13:          OKAY
-+	MSI14:          OKAY
-+	MSI15:          OKAY
-+	MSI16:          OKAY
-+	MSI17:          NOT OKAY
-+	MSI18:          NOT OKAY
-+	MSI19:          NOT OKAY
-+	MSI20:          NOT OKAY
-+	MSI21:          NOT OKAY
-+	MSI22:          NOT OKAY
-+	MSI23:          NOT OKAY
-+	MSI24:          NOT OKAY
-+	MSI25:          NOT OKAY
-+	MSI26:          NOT OKAY
-+	MSI27:          NOT OKAY
-+	MSI28:          NOT OKAY
-+	MSI29:          NOT OKAY
-+	MSI30:          NOT OKAY
-+	MSI31:          NOT OKAY
-+	MSI32:          NOT OKAY
++	get_random_bytes(buf, reg->size);
++	reg->checksum = crc32_le(~0, buf, reg->size);
 +
-+	Read Tests
++	memcpy(dst_addr, buf, reg->size);
 +
-+	READ (      1 bytes):           OKAY
-+	READ (   1024 bytes):           OKAY
-+	READ (   1025 bytes):           OKAY
-+	READ (1024000 bytes):           OKAY
-+	READ (1024001 bytes):           OKAY
++	/*
++	 * wait 1ms inorder for the write to complete. Without this delay L3
++	 * error in observed in the host system.
++	 */
++	mdelay(1);
 +
-+	Write Tests
++	kfree(buf);
 +
-+	WRITE (      1 bytes):          OKAY
-+	WRITE (   1024 bytes):          OKAY
-+	WRITE (   1025 bytes):          OKAY
-+	WRITE (1024000 bytes):          OKAY
-+	WRITE (1024001 bytes):          OKAY
++err_map_addr:
++	pci_epc_unmap_addr(epc, phys_addr);
 +
-+	Copy Tests
++err_addr:
++	pci_epc_mem_free_addr(epc, phys_addr, dst_addr, reg->size);
 +
-+	COPY (      1 bytes):           OKAY
-+	COPY (   1024 bytes):           OKAY
-+	COPY (   1025 bytes):           OKAY
-+	COPY (1024000 bytes):           OKAY
-+	COPY (1024001 bytes):           OKAY
++err:
++	return ret;
++}
++
++static void pci_epf_test_raise_irq(struct pci_epf_test *epf_test)
++{
++	u8 irq;
++	u8 msi_count;
++	struct pci_epf *epf = epf_test->epf;
++	struct pci_epc *epc = epf->epc;
++	struct pci_epf_test_reg *reg = epf_test->reg[0];
++
++	reg->status |= STATUS_IRQ_RAISED;
++	msi_count = pci_epc_get_msi(epc);
++	irq = (reg->command & MSI_NUMBER_MASK) >> MSI_NUMBER_SHIFT;
++	if (irq > msi_count || msi_count <= 0)
++		pci_epc_raise_irq(epc, PCI_EPC_IRQ_LEGACY, 0);
++	else
++		pci_epc_raise_irq(epc, PCI_EPC_IRQ_MSI, irq);
++}
++
++static void pci_epf_test_cmd_handler(struct work_struct *work)
++{
++	int ret;
++	u8 irq;
++	u8 msi_count;
++	struct pci_epf_test *epf_test = container_of(work, struct pci_epf_test,
++						     cmd_handler.work);
++	struct pci_epf *epf = epf_test->epf;
++	struct pci_epc *epc = epf->epc;
++	struct pci_epf_test_reg *reg = epf_test->reg[0];
++
++	if (!reg->command)
++		goto reset_handler;
++
++	if (reg->command & COMMAND_RAISE_LEGACY_IRQ) {
++		reg->status = STATUS_IRQ_RAISED;
++		pci_epc_raise_irq(epc, PCI_EPC_IRQ_LEGACY, 0);
++		goto reset_handler;
++	}
++
++	if (reg->command & COMMAND_WRITE) {
++		ret = pci_epf_test_write(epf_test);
++		if (ret)
++			reg->status |= STATUS_WRITE_FAIL;
++		else
++			reg->status |= STATUS_WRITE_SUCCESS;
++		pci_epf_test_raise_irq(epf_test);
++		goto reset_handler;
++	}
++
++	if (reg->command & COMMAND_READ) {
++		ret = pci_epf_test_read(epf_test);
++		if (!ret)
++			reg->status |= STATUS_READ_SUCCESS;
++		else
++			reg->status |= STATUS_READ_FAIL;
++		pci_epf_test_raise_irq(epf_test);
++		goto reset_handler;
++	}
++
++	if (reg->command & COMMAND_COPY) {
++		ret = pci_epf_test_copy(epf_test);
++		if (!ret)
++			reg->status |= STATUS_COPY_SUCCESS;
++		else
++			reg->status |= STATUS_COPY_FAIL;
++		pci_epf_test_raise_irq(epf_test);
++		goto reset_handler;
++	}
++
++	if (reg->command & COMMAND_RAISE_MSI_IRQ) {
++		msi_count = pci_epc_get_msi(epc);
++		irq = (reg->command & MSI_NUMBER_MASK) >> MSI_NUMBER_SHIFT;
++		if (irq > msi_count || msi_count <= 0)
++			goto reset_handler;
++		reg->status = STATUS_IRQ_RAISED;
++		pci_epc_raise_irq(epc, PCI_EPC_IRQ_MSI, irq);
++		goto reset_handler;
++	}
++
++reset_handler:
++	reg->command = 0;
++
++	queue_delayed_work(kpcitest_workqueue, &epf_test->cmd_handler,
++			   msecs_to_jiffies(1));
++}
++
++static void pci_epf_test_linkup(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
++
++	queue_delayed_work(kpcitest_workqueue, &epf_test->cmd_handler,
++			   msecs_to_jiffies(1));
++}
++
++static void pci_epf_test_unbind(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
++	struct pci_epc *epc = epf->epc;
++	int bar;
++
++	cancel_delayed_work(&epf_test->cmd_handler);
++	pci_epc_stop(epc);
++	for (bar = BAR_0; bar <= BAR_5; bar++) {
++		if (epf_test->reg[bar]) {
++			pci_epf_free_space(epf, epf_test->reg[bar], bar);
++			pci_epc_clear_bar(epc, bar);
++		}
++	}
++}
++
++static int pci_epf_test_set_bar(struct pci_epf *epf)
++{
++	int flags;
++	int bar;
++	int ret;
++	struct pci_epf_bar *epf_bar;
++	struct pci_epc *epc = epf->epc;
++	struct device *dev = &epf->dev;
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
++
++	flags = PCI_BASE_ADDRESS_SPACE_MEMORY | PCI_BASE_ADDRESS_MEM_TYPE_32;
++	if (sizeof(dma_addr_t) == 0x8)
++		flags |= PCI_BASE_ADDRESS_MEM_TYPE_64;
++
++	for (bar = BAR_0; bar <= BAR_5; bar++) {
++		epf_bar = &epf->bar[bar];
++		ret = pci_epc_set_bar(epc, bar, epf_bar->phys_addr,
++				      epf_bar->size, flags);
++		if (ret) {
++			pci_epf_free_space(epf, epf_test->reg[bar], bar);
++			dev_err(dev, "failed to set BAR%d\n", bar);
++			if (bar == BAR_0)
++				return ret;
++		}
++	}
++
++	return 0;
++}
++
++static int pci_epf_test_alloc_space(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
++	struct device *dev = &epf->dev;
++	void *base;
++	int bar;
++
++	base = pci_epf_alloc_space(epf, sizeof(struct pci_epf_test_reg),
++				   BAR_0);
++	if (!base) {
++		dev_err(dev, "failed to allocated register space\n");
++		return -ENOMEM;
++	}
++	epf_test->reg[0] = base;
++
++	for (bar = BAR_1; bar <= BAR_5; bar++) {
++		base = pci_epf_alloc_space(epf, bar_size[bar - 1], bar);
++		if (!base)
++			dev_err(dev, "failed to allocate space for BAR%d\n",
++				bar);
++		epf_test->reg[bar] = base;
++	}
++
++	return 0;
++}
++
++static int pci_epf_test_bind(struct pci_epf *epf)
++{
++	int ret;
++	struct pci_epf_header *header = epf->header;
++	struct pci_epc *epc = epf->epc;
++	struct device *dev = &epf->dev;
++
++	if (WARN_ON_ONCE(!epc))
++		return -EINVAL;
++
++	ret = pci_epc_write_header(epc, header);
++	if (ret) {
++		dev_err(dev, "configuration header write failed\n");
++		return ret;
++	}
++
++	ret = pci_epf_test_alloc_space(epf);
++	if (ret)
++		return ret;
++
++	ret = pci_epf_test_set_bar(epf);
++	if (ret)
++		return ret;
++
++	ret = pci_epc_set_msi(epc, epf->msi_interrupts);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++static int pci_epf_test_probe(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test;
++	struct device *dev = &epf->dev;
++
++	epf_test = devm_kzalloc(dev, sizeof(*epf_test), GFP_KERNEL);
++	if (!epf)
++		return -ENOMEM;
++
++	epf->header = &test_header;
++	epf_test->epf = epf;
++
++	INIT_DELAYED_WORK(&epf_test->cmd_handler, pci_epf_test_cmd_handler);
++
++	epf_set_drvdata(epf, epf_test);
++	return 0;
++}
++
++static int pci_epf_test_remove(struct pci_epf *epf)
++{
++	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
++
++	kfree(epf_test);
++	return 0;
++}
++
++static struct pci_epf_ops ops = {
++	.unbind	= pci_epf_test_unbind,
++	.bind	= pci_epf_test_bind,
++	.linkup = pci_epf_test_linkup,
++};
++
++static const struct pci_epf_device_id pci_epf_test_ids[] = {
++	{
++		.name = "pci_epf_test",
++	},
++	{},
++};
++
++static struct pci_epf_driver test_driver = {
++	.driver.name	= "pci_epf_test",
++	.probe		= pci_epf_test_probe,
++	.remove		= pci_epf_test_remove,
++	.id_table	= pci_epf_test_ids,
++	.ops		= &ops,
++	.owner		= THIS_MODULE,
++};
++
++static int __init pci_epf_test_init(void)
++{
++	int ret;
++
++	kpcitest_workqueue = alloc_workqueue("kpcitest",
++					     WQ_MEM_RECLAIM | WQ_HIGHPRI, 0);
++	ret = pci_epf_register_driver(&test_driver);
++	if (ret) {
++		pr_err("failed to register pci epf test driver --> %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++module_init(pci_epf_test_init);
++
++static void __exit pci_epf_test_exit(void)
++{
++	pci_epf_unregister_driver(&test_driver);
++}
++module_exit(pci_epf_test_exit);
++
++MODULE_DESCRIPTION("PCI EPF TEST DRIVER");
++MODULE_AUTHOR("Kishon Vijay Abraham I <kishon@ti.com>");
++MODULE_LICENSE("GPL v2");
 -- 
 2.11.0
