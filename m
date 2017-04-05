@@ -1,81 +1,71 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
- d8e5f0eca1e8)
-Date: Wed, 5 Apr 2017 10:29:43 +0300
-Message-ID: <492f32ab-573f-0228-5e2e-46a7b95ae67a@ti.com>
-References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
- <20170404122736.GA13673@uda0271908> <20170404140341.GO10760@atomide.com>
- <20170405003637.GB13234@atomide.com>
- <dda7b6b0-b533-dfd6-1b12-b320bd69b623@ti.com>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v7 2/3] usb: musb: Add support of CPPI 4.1 DMA controller
+ to DA8xx
+Date: Wed, 5 Apr 2017 10:07:55 +0200
+Message-ID: <5f201199-2d5e-0474-fc0d-2d8e289849e3@baylibre.com>
+References: <20170329162432.27299-1-abailon@baylibre.com>
+ <20170329162432.27299-3-abailon@baylibre.com>
+ <20170403145916.GA12799@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <dda7b6b0-b533-dfd6-1b12-b320bd69b623-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20170403145916.GA12799@uda0271908>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2017-04-05 10:13, Peter Ujfalusi wrote:
-> I had similar hunch first, but did not worked. I have tested this patch
-> and did not helped.
->
-> To be precise this is what I have tried:
-> - boot w/o cable connected
-> - boot w/ board connected to PC (device mode)
-> - boot w/ OTG-A cable with USB keyboard
-> - boot w/ OTG-A cable connected to powered USB hub and the same keyboard
->
-> w/ and w/o this patch I have the same flood of prints in all cases.
-
-the config I have for linux-next:
-https://pastebin.com/KixvyiRR
-
->
-> Fwiw I have checked where the is_active is set - which causes the prints:
-> musb_core.c:musb_start()
->
-> if (musb->port_mode != MUSB_PORT_MODE_HOST &&
->         musb->xceiv->otg->state != OTG_STATE_A_WAIT_BCON &&
->         (devctl & MUSB_DEVCTL_VBUS) == MUSB_DEVCTL_VBUS) {
->     musb->is_active = 1;
-> } else {
->     devctl |= MUSB_DEVCTL_SESSION;
-> }
->
-> this was the only place where the is_active was set to 1.
->
->
->> Regards,
+On 04/03/2017 04:59 PM, Bin Liu wrote:
+> On Wed, Mar 29, 2017 at 06:24:31PM +0200, Alexandre Bailon wrote:
+>> Currently, only the PIO mode is supported.
+>> This add support of CPPI 4.1 to DA8xx.
+>> As the In DA8xx the CPPI 4.1 DMA is a part of the USB.
+>> Create the CPPI 4.1 device as a child of USB.
 >>
->> Tony
+>> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+>> ---
+>>   drivers/usb/musb/Kconfig |  4 ++--
+>>   drivers/usb/musb/da8xx.c | 43 ++++++++++++++++++++++++++++++++++++++++++-
+>>   2 files changed, 44 insertions(+), 3 deletions(-)
 >>
->> 8< -----------------------
->> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
->> --- a/drivers/usb/musb/omap2430.c
->> +++ b/drivers/usb/musb/omap2430.c
->> @@ -91,12 +91,6 @@ static void omap2430_musb_set_vbus(struct musb
->> *musb, int is_on)
->>              }
->>
->>              otg_set_vbus(otg, 1);
->> -        } else {
->> -            musb->is_active = 1;
->> -            otg->default_a = 1;
->> -            musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
->> -            devctl |= MUSB_DEVCTL_SESSION;
->> -            MUSB_HST_MODE(musb);
->>          }
->>      } else {
->>          musb->is_active = 0;
+>> diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+>> index 72a2a50..5506a9c 100644
+>> --- a/drivers/usb/musb/Kconfig
+>> +++ b/drivers/usb/musb/Kconfig
+>> @@ -160,8 +160,8 @@ config USB_TI_CPPI_DMA
+>>   	  Enable DMA transfers when TI CPPI DMA is available.
+>>   
+>>   config USB_TI_CPPI41_DMA
+>> -	bool 'TI CPPI 4.1 (AM335x)'
+>> -	depends on ARCH_OMAP && DMADEVICES
+>> +	bool 'TI CPPI 4.1'
+>> +	depends on (ARCH_OMAP || ARCH_DAVINCI_DA8XX) && DMADEVICES
+>>   	select TI_CPPI41
+> TI_CPPI41 also should depend on ARCH_DAVINCI_DA8XX due to this patch.  You
+> might need the following change for dma Kconfig as well.
+This change has been done in the series "dmaengine: cppi41: Add dma 
+support to da8xx".
 >
-> - Péter
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-- Péter
+> diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+> index d01d59812cf3..15e31bfae9f9 100644
+> --- a/drivers/dma/Kconfig
+> +++ b/drivers/dma/Kconfig
+> @@ -514,8 +514,8 @@ config TIMB_DMA
+>            Enable support for the Timberdale FPGA DMA engine.
+>   
+>   config TI_CPPI41
+> -       tristate "AM33xx CPPI41 DMA support"
+> -       depends on ARCH_OMAP
+> +       tristate "CPPI41 DMA support"
+> +       depends on ARCH_OMAP || ARCH_DAVINCI_DA8XX
+>          select DMA_ENGINE
+>          help
+>            The Communications Port Programming Interface (CPPI) 4.1 DMA engine
+>
+> Regards,
+> -Bin.
+Regards,
+Alexandre
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
