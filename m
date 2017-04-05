@@ -1,8 +1,8 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v6 05/23] PCI: endpoint: Create configfs entry for EPC device
- and EPF driver
-Date: Wed, 5 Apr 2017 14:22:25 +0530
-Message-ID: <20170405085243.18123-6-kishon@ti.com>
+Subject: [PATCH v6 11/23] PCI: dwc: dra7xx: Facilitate wrapper and MSI
+ interrupts to be enabled independently
+Date: Wed, 5 Apr 2017 14:22:31 +0530
+Message-ID: <20170405085243.18123-12-kishon@ti.com>
 References: <20170405085243.18123-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,116 +22,59 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, l
 Cc: hch@infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Invoke APIs provided by pci-ep-cfs to create configfs entry for every EPC
-device and EPF driver to help users in creating EPF device and binding the
-EPF device to the EPC device.
+No functional change. Split dra7xx_pcie_enable_interrupts() into
+dra7xx_pcie_enable_wrapper_interrupts() and
+dra7xx_pcie_enable_msi_interrupts() so that wrapper interrupts and MSI
+interrupts can be enabled independently.  This is in preparation for adding
+EP mode support to dra7xx driver since EP mode doesn't have to enable
+msi_interrupts.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/endpoint/pci-epc-core.c | 4 ++++
- drivers/pci/endpoint/pci-epf-core.c | 4 ++++
- include/linux/pci-epc.h             | 2 ++
- include/linux/pci-epf.h             | 2 ++
- 4 files changed, 12 insertions(+)
+ drivers/pci/dwc/pci-dra7xx.c | 24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/pci/endpoint/pci-epc-core.c b/drivers/pci/endpoint/pci-epc-core.c
-index 54b366ece844..9ae9e59b2a74 100644
---- a/drivers/pci/endpoint/pci-epc-core.c
-+++ b/drivers/pci/endpoint/pci-epc-core.c
-@@ -24,6 +24,7 @@
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 7c9ed6a6675c..d78974d20360 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -140,18 +140,30 @@ static int dra7xx_pcie_establish_link(struct dra7xx_pcie *dra7xx)
+ 	return dw_pcie_wait_for_link(pci);
+ }
  
- #include <linux/pci-epc.h>
- #include <linux/pci-epf.h>
-+#include <linux/pci-ep-cfs.h>
- 
- static struct class *pci_epc_class;
- 
-@@ -441,6 +442,7 @@ EXPORT_SYMBOL_GPL(pci_epc_linkup);
-  */
- void pci_epc_destroy(struct pci_epc *epc)
+-static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
++static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
  {
-+	pci_ep_cfs_remove_epc_group(epc->group);
- 	device_unregister(&epc->dev);
- 	kfree(epc);
- }
-@@ -507,6 +509,8 @@ __pci_epc_create(struct device *dev, const struct pci_epc_ops *ops,
- 	if (ret)
- 		goto put_dev;
- 
-+	epc->group = pci_ep_cfs_add_epc_group(dev_name(dev));
+-	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
+-			   ~INTERRUPTS);
+-	dra7xx_pcie_writel(dra7xx,
+-			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN, INTERRUPTS);
+ 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
+ 			   ~LEG_EP_INTERRUPTS & ~MSI);
+-	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
 +
- 	return epc;
++	dra7xx_pcie_writel(dra7xx,
++			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
+ 			   MSI | LEG_EP_INTERRUPTS);
+ }
  
- put_dev:
-diff --git a/drivers/pci/endpoint/pci-epf-core.c b/drivers/pci/endpoint/pci-epf-core.c
-index 7564a29f435c..92db7dcd911c 100644
---- a/drivers/pci/endpoint/pci-epf-core.c
-+++ b/drivers/pci/endpoint/pci-epf-core.c
-@@ -24,6 +24,7 @@
- 
- #include <linux/pci-epc.h>
- #include <linux/pci-epf.h>
-+#include <linux/pci-ep-cfs.h>
- 
- static struct bus_type pci_epf_bus_type;
- static struct device_type pci_epf_type;
-@@ -143,6 +144,7 @@ EXPORT_SYMBOL_GPL(pci_epf_alloc_space);
-  */
- void pci_epf_unregister_driver(struct pci_epf_driver *driver)
++static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
++{
++	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
++			   ~INTERRUPTS);
++	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
++			   INTERRUPTS);
++}
++
++static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
++{
++	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
++	dra7xx_pcie_enable_msi_interrupts(dra7xx);
++}
++
+ static void dra7xx_pcie_host_init(struct pcie_port *pp)
  {
-+	pci_ep_cfs_remove_epf_group(driver->group);
- 	driver_unregister(&driver->driver);
- }
- EXPORT_SYMBOL_GPL(pci_epf_unregister_driver);
-@@ -172,6 +174,8 @@ int __pci_epf_register_driver(struct pci_epf_driver *driver,
- 	if (ret)
- 		return ret;
- 
-+	driver->group = pci_ep_cfs_add_epf_group(driver->driver.name);
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(__pci_epf_register_driver);
-diff --git a/include/linux/pci-epc.h b/include/linux/pci-epc.h
-index 8c63d3c37f76..af5edbf3eea3 100644
---- a/include/linux/pci-epc.h
-+++ b/include/linux/pci-epc.h
-@@ -77,6 +77,7 @@ struct pci_epc_mem {
-  * @ops: function pointers for performing endpoint operations
-  * @mem: address space of the endpoint controller
-  * @max_functions: max number of functions that can be configured in this EPC
-+ * @group: configfs group representing the PCI EPC device
-  * @lock: spinlock to protect pci_epc ops
-  */
- struct pci_epc {
-@@ -85,6 +86,7 @@ struct pci_epc {
- 	const struct pci_epc_ops	*ops;
- 	struct pci_epc_mem		*mem;
- 	u8				max_functions;
-+	struct config_group		*group;
- 	/* spinlock to protect against concurrent access of EP controller */
- 	spinlock_t			lock;
- };
-diff --git a/include/linux/pci-epf.h b/include/linux/pci-epf.h
-index 5628714f7bcf..0d529cb90143 100644
---- a/include/linux/pci-epf.h
-+++ b/include/linux/pci-epf.h
-@@ -82,6 +82,7 @@ struct pci_epf_ops {
-  * @driver: PCI EPF driver
-  * @ops: set of function pointers for performing EPF operations
-  * @owner: the owner of the module that registers the PCI EPF driver
-+ * @group: configfs group corresponding to the PCI EPF driver
-  * @id_table: identifies EPF devices for probing
-  */
- struct pci_epf_driver {
-@@ -91,6 +92,7 @@ struct pci_epf_driver {
- 	struct device_driver	driver;
- 	struct pci_epf_ops	*ops;
- 	struct module		*owner;
-+	struct config_group	*group;
- 	const struct pci_epf_device_id	*id_table;
- };
- 
+ 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 -- 
 2.11.0
