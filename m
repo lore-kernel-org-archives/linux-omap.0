@@ -1,160 +1,101 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 0/9] clk: ti: add support for clkctrl clocks
-Date: Thu, 6 Apr 2017 19:49:02 +0300
-Message-ID: <b135c5d6-f06d-030d-333b-5223ef1aca9a@ti.com>
-References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
- <20170317152536.GT20572@atomide.com>
- <94d20a17-5072-ffab-3529-4bbb14327a10@ti.com>
- <20170323010057.GI10760@atomide.com> <20170323170210.GL10760@atomide.com>
- <8648f054-cf04-41df-20f3-82e0d63feefa@ti.com>
- <20170330165448.GF10760@atomide.com>
- <55b439ed-8b81-2e6b-64f1-34f9f3cc5369@ti.com>
- <20170403153604.GI10760@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
+ d8e5f0eca1e8)
+Date: Thu, 6 Apr 2017 20:04:11 +0300
+Message-ID: <a86b6582-468f-04c8-cb22-0770f1e91e67@ti.com>
+References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
+ <20170404122736.GA13673@uda0271908> <20170404140341.GO10760@atomide.com>
+ <20170405003637.GB13234@atomide.com>
+ <dda7b6b0-b533-dfd6-1b12-b320bd69b623@ti.com>
+ <20170405134655.GD13234@atomide.com> <20170405152954.GF13234@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20170403153604.GI10760@atomide.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170405152954.GF13234-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/04/17 18:36, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [170403 07:54]:
->> On 30/03/17 19:54, Tony Lindgren wrote:
->>> * Tero Kristo <t-kristo@ti.com> [170330 00:20]:
->>>> On 23/03/17 19:02, Tony Lindgren wrote:
->>>>> * Tony Lindgren <tony@atomide.com> [170322 18:03]:
->>>>>> * Tero Kristo <t-kristo@ti.com> [170317 14:39]:
->>>>>>> On 17/03/17 17:25, Tony Lindgren wrote:
->>>>>>>> * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
->>>>>>>>> Any additional testing on omap4 welcome as this series basically
->>>>>>>>> tweaks every possible peripheral clock on the SoC.
->>>>>>>>
->>>>>>>> Without the last patch in this series, booting fails for me:
->>>>>>>>
->>>>>>>> [    5.074890] l4_per_cm:clk:0120:0: failed to disable
->>>>>>>> [    5.085113] l4_per_cm:clk:0128:0: failed to disable
->>>>>>>>
->>>>>>>> Care to check that booting keeps working for each patch in the
->>>>>>>> series to avoid breaking git bisect for booting?
->>>>>>>
->>>>>>> Hmm, I think patch 8+9 need to be squashed then. I can double check this
->>>>>>> next week though.
->>>>>>
->>>>>> Also looks like with this set merged HDMI stops working on
->>>>>> omap4 with:
->>>>>>
->>>>>> HDMIWP: omapdss HDMIWP error: Failed to set PHY power mode to 1
->>>>>
->>>>> Forgot to mention that's with omapdrm with encoder-tpd12s015 and
->>>>> encoder-tfp410 modules loaded to get HDMI working. Here's more verbose
->>>>> dmesg output in case that provides more clues:
->>>>>
->>>>> [   91.042877] omapdss HDMICORE error: operation stopped when reading edid
->>>>> [   91.078308] [drm] Enabling DMM ywrap scrolling
->>>>> [   91.099243] omapdss HDMIWP error: Failed to set PHY power mode to 1
->>>>> [   91.107879] omapdss HDMI error: failed to power on device
->>>>> [   91.107879] omapdrm omapdrm.0: Failed to enable display 'hdmi': -5
->>>>> [   91.359619] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
->>>>> [   91.619964] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
->>>>> [   91.620300] Console: switching to colour frame buffer device 128x48
->>>>> [   91.682434] omapdrm omapdrm.0: fb0: omapdrm frame buffer device
->>>>> [   91.770812] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
->>>>> [   92.818054] omapdss HDMICORE error: operation stopped when reading edid
->>>>> [   93.090087] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
->>>>> [   93.349853] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
->>>>>
->>>>> Regards,
->>>>>
->>>>> Tony
->>>>>
->>>>
->>>> Can you try with this additional hwmod data tweak in place? Apply this on
->>>> top of the existing series.
+Tony,
+
+On 04/05/2017 06:29 PM, Tony Lindgren wrote:
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170405 06:53]:
+>> * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [170405 00:15]:
+>>> To be precise this is what I have tried:
+>>> - boot w/o cable connected
+>>> - boot w/ board connected to PC (device mode)
+>>> - boot w/ OTG-A cable with USB keyboard
+>>> - boot w/ OTG-A cable connected to powered USB hub and the same keyboard
 >>>
->>> Does not seem to help, still get the same errors. But maybe I'm doing
->>> something wrong as the patch did not apply and I applied it manually.
->>>
->>> Regards,
->>>
->>> Tony
->>>
+>>> w/ and w/o this patch I have the same flood of prints in all cases.
 >>
->> Hmm ok, can you provide some brief instructions how to test what you are
->> doing with the HDMI? Just connect it to some external monitor? My monitor
->> has a spare HDMI connector so I could try it out.
+>> OK interesting that it also happens with nothing connected.
+>>
+>>> Fwiw I have checked where the is_active is set - which causes the prints:
+>>> musb_core.c:musb_start()
+>>>
+>>> if (musb->port_mode != MUSB_PORT_MODE_HOST &&
+>>> 		musb->xceiv->otg->state != OTG_STATE_A_WAIT_BCON &&
+>>> 		(devctl & MUSB_DEVCTL_VBUS) == MUSB_DEVCTL_VBUS) {
+>>> 	musb->is_active = 1;
+>>> } else {
+>>> 	devctl |= MUSB_DEVCTL_SESSION;
+>>> }
+>>>
+>>> this was the only place where the is_active was set to 1.
+>>
+>> That seems normal in musb_start(). Will try with your .config
+>> here.
 >
-> Well build a kernel using omap2plus_defconfig, then with HDMI cable
-> connected load the following modules:
+> If the the port is configured as OTG, we should not need to
+> try to force any states during init. The change below will stop
+> the warnings with your .config, needs to be tested more though
+> to make sure things still work in all cases.
+
+With this change I can boot up without issues, thanks!
+I can not get the kernel to react to anything I plug to the A/B connector. 
+Keyboard (directly or via powered hub), flash drive, connecting the board to 
+PC. Nothing.
+Actually if I connect to a PC I got a print from twl6030 about an interrupt, 
+but nothing happens in USB front.
+The same thing happens with 4.8, so it is not regression. Most likely it is an 
+error in my setup...
+
+Tested-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+
 >
-> encoder-tpd12s015 encoder-tfp410 connector-hdmi omapfb
+> Regards,
 >
-> And a console should appear on the HDMI monitor. If using omapdrm, then
-> load omapdss and omapdrm instead.
+> Tony
 >
-> And if using NFSroot, you need to have ehci and smsc drivers built-in
-> or use an initramfs.
-
-Ok, I have a solution to the issue.
-
-Try the slightly modified patch below. It just required a couple of 
-hwmod flags applied in addition to the patch I sent before.
-
-I also pushed a branch named "4.11-rc1-clkctrl-wip" as a reference, 
-where also the hdmi works fine on omap4.
-
-===================================
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c 
-b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index dad871a..43163b5 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -775,6 +775,7 @@
-
-  static struct omap_hwmod_opt_clk dss_hdmi_opt_clks[] = {
-  	{ .role = "sys_clk", .clk = "dss_sys_clk" },
-+	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
-  };
-
-  static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
-@@ -785,7 +786,7 @@
-  	 * HDMI audio requires to use no-idle mode. Hence,
-  	 * set idle mode by software.
-  	 */
--	.flags		= HWMOD_SWSUP_SIDLE,
-+	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_OPT_CLKS_NEEDED,
-  	.mpu_irqs	= omap44xx_dss_hdmi_irqs,
-  	.xlate_irq	= omap4_xlate_irq,
-  	.sdma_reqs	= omap44xx_dss_hdmi_sdma_reqs,
-@@ -858,11 +859,16 @@
-  };
-
-  /* dss_venc */
-+static struct omap_hwmod_opt_clk dss_venc_opt_clks[] = {
-+	{ .role = "tv_clk", .clk = "dss_tv_clk" },
-+};
-+
-  static struct omap_hwmod omap44xx_dss_venc_hwmod = {
-  	.name		= "dss_venc",
-  	.class		= &omap44xx_venc_hwmod_class,
-  	.clkdm_name	= "l3_dss_clkdm",
-  	.main_clk	= "dss_tv_clk",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
-  	.prcm = {
-  		.omap4 = {
-  			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
-@@ -870,6 +876,8 @@
-  		},
-  	},
-  	.parent_hwmod	= &omap44xx_dss_hwmod,
-+	.opt_clks	= dss_venc_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(dss_venc_opt_clks),
-  };
-
-  /*
+> 8< --------------------------
+> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+> --- a/drivers/usb/musb/musb_host.c
+> +++ b/drivers/usb/musb/musb_host.c
+> @@ -2780,10 +2780,11 @@ int musb_host_setup(struct musb *musb, int power_budget)
+>  	int ret;
+>  	struct usb_hcd *hcd = musb->hcd;
+>
+> -	MUSB_HST_MODE(musb);
+> -	musb->xceiv->otg->default_a = 1;
+> -	musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+> -
+> +	if (musb->port_mode == MUSB_PORT_MODE_HOST) {
+> +		MUSB_HST_MODE(musb);
+> +		musb->xceiv->otg->default_a = 1;
+> +		musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+> +	}
+>  	otg_set_host(musb->xceiv->otg, &hcd->self);
+>  	hcd->self.otg_port = 1;
+>  	musb->xceiv->otg->host = &hcd->self;
+>
 
 
-
+-- 
+Péter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
