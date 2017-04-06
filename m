@@ -1,93 +1,78 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
- d8e5f0eca1e8)
-Date: Thu, 6 Apr 2017 14:07:22 -0500
-Message-ID: <20170406190722.GA12367@uda0271908>
-References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
- <20170404122736.GA13673@uda0271908>
- <20170404140341.GO10760@atomide.com>
- <20170405003637.GB13234@atomide.com>
- <dda7b6b0-b533-dfd6-1b12-b320bd69b623@ti.com>
- <20170405134655.GD13234@atomide.com>
- <20170405152954.GF13234@atomide.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH] misc: sram-exec: Use aligned fncpy instead of memcpy
+Date: Thu, 6 Apr 2017 20:07:47 +0100
+Message-ID: <20170406190747.GP23750@n2100.armlinux.org.uk>
+References: <20170405192120.1009-1-d-gerlach@ti.com>
+ <ab1583fc-0560-b4d2-851b-4be6201edf8b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170405152954.GF13234-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ab1583fc-0560-b4d2-851b-4be6201edf8b@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Keerthy J <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 05, 2017 at 08:29:55AM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170405 06:53]:
-> > * Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [170405 00:15]:
-> > > To be precise this is what I have tried:
-> > > - boot w/o cable connected
-> > > - boot w/ board connected to PC (device mode)
-> > > - boot w/ OTG-A cable with USB keyboard
-> > > - boot w/ OTG-A cable connected to powered USB hub and the same keyboard
-> > > 
-> > > w/ and w/o this patch I have the same flood of prints in all cases.
-> > 
-> > OK interesting that it also happens with nothing connected.
-> > 
-> > > Fwiw I have checked where the is_active is set - which causes the prints:
-> > > musb_core.c:musb_start()
-> > > 
-> > > if (musb->port_mode != MUSB_PORT_MODE_HOST &&
-> > > 		musb->xceiv->otg->state != OTG_STATE_A_WAIT_BCON &&
-> > > 		(devctl & MUSB_DEVCTL_VBUS) == MUSB_DEVCTL_VBUS) {
-> > > 	musb->is_active = 1;
-> > > } else {
-> > > 	devctl |= MUSB_DEVCTL_SESSION;
-> > > }
-> > > 
-> > > this was the only place where the is_active was set to 1.
-> > 
-> > That seems normal in musb_start(). Will try with your .config
-> > here.
+On Wed, Apr 05, 2017 at 02:22:33PM -0500, Dave Gerlach wrote:
+> Russell,
+> On 04/05/2017 02:21 PM, Dave Gerlach wrote:
+> >Currently the sram-exec functionality, which allows allocation of
+> >executable memory and provides an API to move code to it, is only
+> >selected in configs for the ARM architecture. Based on commit
+> >5756e9dd0de6 ("ARM: 6640/1: Thumb-2: Symbol manipulation macros for
+> >function body copying") simply copying a C function pointer address
+> >using memcpy without consideration of alignment and Thumb is unsafe on
+> >ARM platforms.
+> >
+> >The aforementioned patch introduces the fncpy macro which is a safe way
+> >to copy executable code on ARM platforms, so let's make use of that here
+> >rather than the unsafe plain memcpy that was previously used by
+> >sram_exec_copy.
+> >
+> >In the future, architectures hoping to make use of the sram-exec
+> >functionality must define an fncpy macro just as ARM has done to
+> >guarantee or check for safe copying to executable memory before allowing
+> >the arch to select CONFIG_SRAM_EXEC.
+> >
+> >Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> >---
+> > drivers/misc/sram-exec.c | 3 ++-
+> > 1 file changed, 2 insertions(+), 1 deletion(-)
+> >
+> >diff --git a/drivers/misc/sram-exec.c b/drivers/misc/sram-exec.c
+> >index ac522417c462..0057eabe5c03 100644
+> >--- a/drivers/misc/sram-exec.c
+> >+++ b/drivers/misc/sram-exec.c
+> >@@ -19,6 +19,7 @@
+> > #include <linux/sram.h>
+> >
+> > #include <asm/cacheflush.h>
+> >+#include <asm/fncpy.h>
+> >
+> > #include "sram.h"
+> >
+> >@@ -93,7 +94,7 @@ int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
+> > 	set_memory_nx((unsigned long)base, pages);
+> > 	set_memory_rw((unsigned long)base, pages);
+> >
+> >-	memcpy(dst, src, size);
+> >+	fncpy(dst, src, size);
+> >
+> > 	set_memory_ro((unsigned long)base, pages);
+> > 	set_memory_x((unsigned long)base, pages);
+> >
 > 
-> If the the port is configured as OTG, we should not need to
-> try to force any states during init. The change below will stop
+> Does this address your concerns from here [1]? Because the only user of this
+> code is ARM right now I already only build the sram-exec code in if
+> CONFIG_ARM is selected.
 
-True, but the code has been there for a very long time, any idea what
-causes the regression?
+Sorry, it does not.  Please read the comments in asm/fncpy.h.
 
-Regards,
--Bin.
+Deviating from the proscribed usage means your code is, quite simply,
+buggy.  There's no two ways about that.
 
-> the warnings with your .config, needs to be tested more though
-> to make sure things still work in all cases.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 8< --------------------------
-> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> --- a/drivers/usb/musb/musb_host.c
-> +++ b/drivers/usb/musb/musb_host.c
-> @@ -2780,10 +2780,11 @@ int musb_host_setup(struct musb *musb, int power_budget)
->  	int ret;
->  	struct usb_hcd *hcd = musb->hcd;
->  
-> -	MUSB_HST_MODE(musb);
-> -	musb->xceiv->otg->default_a = 1;
-> -	musb->xceiv->otg->state = OTG_STATE_A_IDLE;
-> -
-> +	if (musb->port_mode == MUSB_PORT_MODE_HOST) {
-> +		MUSB_HST_MODE(musb);
-> +		musb->xceiv->otg->default_a = 1;
-> +		musb->xceiv->otg->state = OTG_STATE_A_IDLE;
-> +	}
->  	otg_set_host(musb->xceiv->otg, &hcd->self);
->  	hcd->self.otg_port = 1;
->  	musb->xceiv->otg->host = &hcd->self;
-> -- 
-> 2.12.2
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
