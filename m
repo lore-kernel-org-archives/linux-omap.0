@@ -1,120 +1,95 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] memory: ti-emif-sram: introduce relocatable
- suspend/resume handlers
-Date: Thu, 6 Apr 2017 14:09:16 -0500
-Message-ID: <259e31db-902d-a6cb-a111-e39f3f029a48@ti.com>
-References: <20170328205511.21166-1-d-gerlach@ti.com>
- <20170328205511.21166-3-d-gerlach@ti.com>
- <20170404161151.GS10760@atomide.com>
- <20170405135933.GN23750@n2100.armlinux.org.uk>
- <20170405143318.GE13234@atomide.com>
- <5cd63e14-52df-6010-4193-c926cdd76839@ti.com>
- <20170406190008.GO23750@n2100.armlinux.org.uk>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH] misc: sram-exec: Use aligned fncpy instead of memcpy
+Date: Thu, 6 Apr 2017 14:14:12 -0500
+Message-ID: <9a970ac7-cb8f-28f4-3b84-ad8bedf1242c@ti.com>
+References: <20170405192120.1009-1-d-gerlach@ti.com>
+ <ab1583fc-0560-b4d2-851b-4be6201edf8b@ti.com>
+ <20170406190747.GP23750@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170406190008.GO23750-l+eeeJia6m9URfEZ8mYm6t73F7V6hmMc@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170406190747.GP23750@n2100.armlinux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Keerthy J <j-keerthy@ti.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 04/06/2017 02:00 PM, Russell King - ARM Linux wrote:
-> On Wed, Apr 05, 2017 at 09:48:26AM -0500, Dave Gerlach wrote:
+On 04/06/2017 02:07 PM, Russell King - ARM Linux wrote:
+> On Wed, Apr 05, 2017 at 02:22:33PM -0500, Dave Gerlach wrote:
 >> Russell,
->> On 04/05/2017 09:33 AM, Tony Lindgren wrote:
->>> * Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org> [170405 07:02]:
->>>> I'm not going to comment on this yet, but I'll instead comment on the
->>>> newly appeared sram_exec_copy() stuff.
->>>>
->>>> So, a few years ago, we went to significant effort in ARM land to come
->>>> up with a way to _safely_ copy assembler from the kernel into SRAM,
->>>> because copying code to SRAM that is compiled in thumb mode and then
->>>> executing it is _not_ as simple as memcpy(), cast the pointer to a
->>>> function pointer, and then call the function pointer.
->>>>
->>>> The SRAM stuff throws all that out, instead preferring the dumb memcpy()
->>>> approach.
->>>>
->>>> This needs resolving, and I'd like to see it resolved to the satisfaction
->>>> of architecture maintainers before we progress any further down this
->>>> route.
+>> On 04/05/2017 02:21 PM, Dave Gerlach wrote:
+>>> Currently the sram-exec functionality, which allows allocation of
+>>> executable memory and provides an API to move code to it, is only
+>>> selected in configs for the ARM architecture. Based on commit
+>>> 5756e9dd0de6 ("ARM: 6640/1: Thumb-2: Symbol manipulation macros for
+>>> function body copying") simply copying a C function pointer address
+>>> using memcpy without consideration of alignment and Thumb is unsafe on
+>>> ARM platforms.
+>>>
+>>> The aforementioned patch introduces the fncpy macro which is a safe way
+>>> to copy executable code on ARM platforms, so let's make use of that here
+>>> rather than the unsafe plain memcpy that was previously used by
+>>> sram_exec_copy.
+>>>
+>>> In the future, architectures hoping to make use of the sram-exec
+>>> functionality must define an fncpy macro just as ARM has done to
+>>> guarantee or check for safe copying to executable memory before allowing
+>>> the arch to select CONFIG_SRAM_EXEC.
+>>>
+>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>> ---
+>>> drivers/misc/sram-exec.c | 3 ++-
+>>> 1 file changed, 2 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/misc/sram-exec.c b/drivers/misc/sram-exec.c
+>>> index ac522417c462..0057eabe5c03 100644
+>>> --- a/drivers/misc/sram-exec.c
+>>> +++ b/drivers/misc/sram-exec.c
+>>> @@ -19,6 +19,7 @@
+>>> #include <linux/sram.h>
+>>>
+>>> #include <asm/cacheflush.h>
+>>> +#include <asm/fncpy.h>
+>>>
+>>> #include "sram.h"
+>>>
+>>> @@ -93,7 +94,7 @@ int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
+>>> 	set_memory_nx((unsigned long)base, pages);
+>>> 	set_memory_rw((unsigned long)base, pages);
+>>>
+>>> -	memcpy(dst, src, size);
+>>> +	fncpy(dst, src, size);
+>>>
+>>> 	set_memory_ro((unsigned long)base, pages);
+>>> 	set_memory_x((unsigned long)base, pages);
+>>>
 >>
->> I'm sure you are referring to fncpy, correct? This is what we used before
->> with ARM specific code to do the copy, but we've moved into drivers now.
+>> Does this address your concerns from here [1]? Because the only user of this
+>> code is ARM right now I already only build the sram-exec code in if
+>> CONFIG_ARM is selected.
 >
-> Right, and as I explained above, fncpy() exists with very good reason.
-> The following does not work on ARM:
+> Sorry, it does not.  Please read the comments in asm/fncpy.h.
 >
-> 	sram = alloc(function_size);
->
-> 	memcpy(sram, function, function_size);
->
-> 	sram_ptr = (function_cast_t)sram;
->
-> 	sram_ptr(args);
->
-> when the function is Thumb.  There are two problems with the above code
-> that fncpy() solves, both stemming from the same root cause:
->
-> 1. The address of "function" will be offset by one byte, so the memcpy()
->    will miss copying the first byte of the function.
->
-> 2. sram_ptr will not be offset by one byte.
->
-> This is because, with Thumb functions, the "address" of the function is
-> offset by one byte - by the architecture requirements - to indicate that
-> it is to be called in Thumb mode.
-
-Thanks for the explanation.
-
->
->> What are your thoughts on exposing fncpy outside of arch/arm?
->
-> You may use it by including asm/fncpy.h, but you may not move it out of
-> that file.  fncpy() is there exactly because it's _architecture_ specific.
-
-Yes agreed, and I already include asm/cacheflush.h for ARM arch to make use of 
-the set_memory_* APIs you helped extend.
-
->
-> If you're looking to make this generic, then we need cross-arch agreement
-> on how we can copy functions, and I'd recommend that fncpy() becomes that
-> generic copy function.  fncpy() has advantages over memcpy() besides
-> encoding the architecture specific knowledge - the biggest one is that
-> it guarantees type safety as well.  It ensures that the function pointer
-> that it's returning conforms with the function it's being asked to copy.
-
-I agree with this, I sent a patch yesterday here [1] that uses fncpy instead of 
-memcpy. I also laid out the constraint that an arch will just need to define 
-fncpy that guarantees safe copy of a function in order to make use of the 
-sram_exec functionality. It is already only selected for CONFIG_ARM in Kconfig 
-because of the dependency on set_memory_* APIs.
-
-[1] http://www.spinics.net/lists/linux-omap/msg136517.html
-
->
-> It strikes me, looking at the SRAM stuff, that the baby has been
-> completely thrown out with the bath water...
->
-> And really, this SRAM stuff _should_ have been through architecture
-> maintainer review before being merged into mainline so that these issues
-> could have been highlighted before hand.
->
-> This looks to me like yet another huge big review failure in kernel land,
-> because people are insistant on continually dividing stuff up by
-> sub-directory.  This has got to stop.
+> Deviating from the proscribed usage means your code is, quite simply,
+> buggy.  There's no two ways about that.
 >
 
-This just seemed like a logical place for me to add this as executable SRAM is a 
-shared resource and if the generic sram driver is handling allocation of memory 
-regions it should handle the page attributes of these regions as well.
+I understand there are many constraints to using fncpy, as this is what we used 
+before to copy our executable code. Apart from users being aware of what these 
+constraints are (8-byte aligned, position independent) and making sure the code 
+they are moving meets them, are you saying we need some sort of additional 
+strict enforcement of them? Because fncpy today will throw a bug if you fail to 
+align src and dst properly, so adding another check will just double the 
+messages to the user.
 
 Regards,
 Dave
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
