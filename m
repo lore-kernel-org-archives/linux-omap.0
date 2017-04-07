@@ -1,56 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: drm_modeset_lock oops in next
-Date: Fri, 7 Apr 2017 08:56:50 -0700
-Message-ID: <20170407155649.GI13234@atomide.com>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: davinci: Add the clock for the CPPI 4.1 DMA
+ engine
+Date: Fri, 7 Apr 2017 19:31:12 +0200
+Message-ID: <d73b5bf4-4772-4089-0e04-76275b6a00a3@baylibre.com>
+References: <20170405171750.16821-1-abailon@baylibre.com>
+ <e941f7f4-1904-a0c5-3ef0-973477087b2b@ti.com>
+ <dade7b1b-af0f-0f3e-26fc-4e845c451330@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <dade7b1b-af0f-0f3e-26fc-4e845c451330-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Cc: khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-liu-l0cyMroinI0@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgpMb29rcyBsaWtlIGN1cnJlbnQgbmV4dCBub3cgb29wc2VzIGF0IGxlYXN0IGZvciBvbWFw
-ZHJtCndoZW4gc3RhcnRpbmcgWC4gUmV2ZXJ0aW5nIGNvbW1pdCBkMjBhZmViM2UyZjkgKCJNZXJn
-ZQpyZW1vdGUtdHJhY2tpbmcgYnJhbmNoICdkcm0tbWlzYy9mb3ItbGludXgtbmV4dCciKSBtYWtl
-cwp0aGluZ3Mgd29yayBhZ2Fpbi4KCkFueSBpZGVhcyB3aGF0IG1pZ2h0IGJlIGNhdXNpbmcgdGhl
-IG9vcHMgYmVsb3c/CgpSZWdhcmRzLAoKVG9ueQoKODwgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0KSW50ZXJuYWwgZXJyb3I6IE9vcHM6IDUgWyMxXSBTTVAgQVJNCi4uLgpDUFU6IDEgUElEOiAx
-NjM3IENvbW06IFggTm90IHRhaW50ZWQgNC4xMS4wLXJjNS1uZXh0LTIwMTcwNDA3KyAjNDg4Ckhh
-cmR3YXJlIG5hbWU6IEdlbmVyaWMgT01BUDQgKEZsYXR0ZW5lZCBEZXZpY2UgVHJlZSkKdGFzazog
-ZWM4NzMxODAgdGFzay5zdGFjazogZWM4YjgwMDAKUEMgaXMgYXQgX193d19tdXRleF9sb2NrLmNv
-bnN0cHJvcC4wKzB4MzQvMHgxMDU0CkxSIGlzIGF0IGxvY2tfaXNfaGVsZF90eXBlKzB4NjAvMHhh
-OApwYyA6IFs8YzA4MzMwOTg+XSAgICBsciA6IFs8YzAxOTlhYmM+XSAgICBwc3I6IGEwMDAwMDEz
-CiAgICAgICAgICAgICAgIHNwIDogZWM4YjlkMTggIGlwIDogMDAwMDAwMDIgIGZwIDogZWRiMmE4
-MDAKcjEwOiBlYzhiOWRjMCAgcjkgOiBlZGIyYzgwMCAgcjggOiBlYzg4YzQwMApyNyA6IGVjOGI5
-ZTFjICByNiA6IGJmNzBmNjQ4ICByNSA6IGVjOGI5ZGQ4ICByNCA6IDAwMDAwMDEwCnIzIDogMDA0
-MDAxMDAgIHIyIDogZWM4YjljZjggIHIxIDogZmZmZmZmZmYgIHIwIDogMDAwMDAwMDAKRmxhZ3M6
-IE56Q3YgIElSUXMgb24gIEZJUXMgb24gIE1vZGUgU1ZDXzMyICBJU0EgQVJNICBTZWdtZW50IG5v
-bmUKQ29udHJvbDogMTBjNTM4N2QgIFRhYmxlOiBhYzg1YzA0YSAgREFDOiAwMDAwMDA1MQpQcm9j
-ZXNzIFggKHBpZDogMTYzNywgc3RhY2sgbGltaXQgPSAweGVjOGI4MjE4KQouLi4KWzxjMDgzMzA5
-OD5dIChfX3d3X211dGV4X2xvY2suY29uc3Rwcm9wLjApIGZyb20gWzxjMDgzNDE1MD5dICh3d19t
-dXRleF9sb2NrKzB4NDQvMHg1NCkKWzxjMDgzNDE1MD5dICh3d19tdXRleF9sb2NrKSBmcm9tIFs8
-YmY3MGY2NDg+XSAoZHJtX21vZGVzZXRfbG9jaysweDYwLzB4MTEwIFtkcm1dKQpbPGJmNzBmNjQ4
-Pl0gKGRybV9tb2Rlc2V0X2xvY2sgW2RybV0pIGZyb20gWzxiZjcxODc0MD5dIChkcm1fbW9kZV9j
-dXJzb3JfY29tbW9uKzB4OTgvMHgxZjAgW2RybV0pCls8YmY3MTg3NDA+XSAoZHJtX21vZGVfY3Vy
-c29yX2NvbW1vbiBbZHJtXSkgZnJvbSBbPGJmNzE4ZjFjPl0gKGRybV9tb2RlX2N1cnNvcl9pb2N0
-bCsweDU4LzB4NjAgW2RybV0pCls8YmY3MThmMWM+XSAoZHJtX21vZGVfY3Vyc29yX2lvY3RsIFtk
-cm1dKSBmcm9tIFs8YmY2ZmU1Yzg+XSAoZHJtX2lvY3RsKzB4MWQ0LzB4NDA0IFtkcm1dKQpbPGJm
-NmZlNWM4Pl0gKGRybV9pb2N0bCBbZHJtXSkgZnJvbSBbPGMwMmQzODg0Pl0gKGRvX3Zmc19pb2N0
-bCsweDkwLzB4YTU0KQpbPGMwMmQzODg0Pl0gKGRvX3Zmc19pb2N0bCkgZnJvbSBbPGMwMmQ0MmI0
-Pl0gKFN5U19pb2N0bCsweDZjLzB4N2MpCls8YzAyZDQyYjQ+XSAoU3lTX2lvY3RsKSBmcm9tIFs8
-YzAxMDc3YzA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAvMHgxYykKQ29kZTogZTU4ZDMwMTggZWJl
-NGNkNGUgZTM1YTAwMDAgMGEwMDAwMDIgKGU1OTQzMDQ0KQpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZl
-bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+
+
+On 04/07/2017 06:15 PM, Alexandre Bailon wrote:
+>
+>
+> On 04/07/2017 04:36 PM, Sekhar Nori wrote:
+>> On Wednesday 05 April 2017 10:47 PM, Alexandre Bailon wrote:
+>>> The CPPI 4.1 DMA is sharing its clock with the USB OTG,
+>>> and most of the time, the clock will be enabled by USB.
+>>> But during the init of the DMA, USB is not enabled (waiting for DMA),
+>>> and then we must enable the clock before doing anything.
+>>> Add the clock for the CPPI 4.1 DMA engine.
+>>>
+>>> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+>>> ---
+>>>   arch/arm/mach-davinci/da830.c | 6 ++++++
+>>>   arch/arm/mach-davinci/da850.c | 6 ++++++
+>>>   2 files changed, 12 insertions(+)
+>>>
+>>> diff --git a/arch/arm/mach-davinci/da830.c 
+>>> b/arch/arm/mach-davinci/da830.c
+>>> index 073c458..bd88470 100644
+>>> --- a/arch/arm/mach-davinci/da830.c
+>>> +++ b/arch/arm/mach-davinci/da830.c
+>>> @@ -304,6 +304,11 @@ static struct clk usb20_clk = {
+>>>       .gpsc        = 1,
+>>>   };
+>>>   +static struct clk cppi41_clk = {
+>>> +    .name        = "cppi41",
+>>> +    .parent        = &usb20_clk,
+>>> +};
+>>> +
+>>>   static struct clk aemif_clk = {
+>>>       .name        = "aemif",
+>>>       .parent        = &pll0_sysclk3,
+>>> @@ -413,6 +418,7 @@ static struct clk_lookup da830_clks[] = {
+>>>       CLK("davinci-mcasp.1",    NULL,        &mcasp1_clk),
+>>>       CLK("davinci-mcasp.2",    NULL,        &mcasp2_clk),
+>>>       CLK("musb-da8xx",    "usb20",    &usb20_clk),
+>>> +    CLK("cppi41-dmaengine",    NULL,        &cppi41_clk),
+>> I dont see this device name being used in current linux-next. Is this
+>> name accepted ?
+> There is here a typo. The name should be cppi41-dma-engine.
+> I will fix it.
+Actually, it is not a typo. It would have be more logical to name it 
+cppi41-dma-engine
+(like the driver name) but the name is correct.
+The device name is not yet in linux-next as the device is created in 
+da8xx driver.
+http://marc.info/?l=linux-usb&m=149080474124498&w=2
+>>
+>> The patch otherwise looks okay.
+>>
+>> Thanks,
+>> Sekhar
+> Thanks,
+> Alexandre
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
