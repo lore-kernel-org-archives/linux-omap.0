@@ -1,60 +1,43 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: 8250: Possible race between console message vs DMA?
-Date: Fri, 7 Apr 2017 16:38:54 +0530
-Message-ID: <7c75614c-71cb-0a4e-222c-713f65a89f23@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
+ d8e5f0eca1e8)
+Date: Fri, 7 Apr 2017 06:52:53 -0700
+Message-ID: <20170407135252.GG13234@atomide.com>
+References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
+ <20170404122736.GA13673@uda0271908>
+ <20170404140341.GO10760@atomide.com>
+ <20170405003637.GB13234@atomide.com>
+ <dda7b6b0-b533-dfd6-1b12-b320bd69b623@ti.com>
+ <20170405134655.GD13234@atomide.com>
+ <20170405152954.GF13234@atomide.com>
+ <20170406190722.GA12367@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
-Cc: Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170406190722.GA12367@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
+* Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170406 12:09]:
+> On Wed, Apr 05, 2017 at 08:29:55AM -0700, Tony Lindgren wrote:
+> > If the the port is configured as OTG, we should not need to
+> > try to force any states during init. The change below will stop
+> 
+> True, but the code has been there for a very long time, any idea what
+> causes the regression?
 
-I seem to be hitting a race condition using 8250_dma (and 8250_omap
-specific dma) support:
+I think it's just that with commit d8e5f0eca1e8 we now have phy enabled
+earlier and calling musb_host_setup() with phy enabled sends it into
+a loop of trying to force the host mode with nothing connected. This
+loops seems to end after few seconds if there are devices connected,
+but keeps going if there's nothing connected.
 
-Kernel writes log messages to console via
-serial8250_console_write()->serial8250_console_putchar() which directly
-accesses UART_TX register with port->lock acquired.
+Regards,
 
-Now, if the same UART instance is being used by systemd/userspace,
-characters are written to UART_TX register by serial8250_tx_chars(). The
-concurrent access by serial8250_console_write() and
-serial8250_tx_chars() is serialized by the use of port->lock spinlock
-and hence there is no issue with` non DMA case.
-
-But when using DMA with 8250 UART, I see that port->lock is held before
-scheduling of DMA TX transfer and released as soon as the transfer is
-submitted. The lock is not held until the transfer actually completes
-See,
-uart_start()
-  ->serial8250_start_tx()->
-     __start_tx()
-       ->up->dma->tx_dma(up)
-Or
-__dma_tx_complete() in 8250_dma.c that acquires and releases port->lock
-once TX DMA transfer is submitted in serial8250_tx_dma()
-
-So, when the port->lock is released, it is quite possible that DMA is
-still transferring data to UART TX FIFO and UART FIFO might be almost full.
-I see that when DMA is writing to UART TX FIFO,
-serial8250_console_write() may also write kernel log messages to UART TX
-FIFO(as port->lock is now free to be acquired), which is leading to
-overflow and lose of data. serial8250_console_write() checks for
-UART_LSR_THRE to check if Transmit hold register is empty but that may
-not be enough as DMA might put data before CPU write.
-
-It seems that both DMA and CPU might simultaneously put data to UART
-FIFO and lead to potential loss of data.
-Is the expectation that UART instance used to print kernel log messages
-is not intended to use DMA? Or am I missing something?
-
-
-Any help appreciated!
-
--- 
-Regards
-Vignesh
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
