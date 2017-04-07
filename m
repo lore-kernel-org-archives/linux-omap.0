@@ -1,170 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 0/9] clk: ti: add support for clkctrl clocks
-Date: Fri, 7 Apr 2017 09:47:31 -0700
-Message-ID: <20170407164731.GJ13234@atomide.com>
-References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
- <20170317152536.GT20572@atomide.com>
- <94d20a17-5072-ffab-3529-4bbb14327a10@ti.com>
- <20170323010057.GI10760@atomide.com>
- <20170323170210.GL10760@atomide.com>
- <8648f054-cf04-41df-20f3-82e0d63feefa@ti.com>
- <20170330165448.GF10760@atomide.com>
- <55b439ed-8b81-2e6b-64f1-34f9f3cc5369@ti.com>
- <20170403153604.GI10760@atomide.com>
- <b135c5d6-f06d-030d-333b-5223ef1aca9a@ti.com>
+Subject: drm_modeset_lock oops in next
+Date: Fri, 7 Apr 2017 08:56:50 -0700
+Message-ID: <20170407155649.GI13234@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <b135c5d6-f06d-030d-333b-5223ef1aca9a@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Daniel Vetter <daniel.vetter@ffwll.ch>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [170406 09:51]:
-> On 03/04/17 18:36, Tony Lindgren wrote:
-> > * Tero Kristo <t-kristo@ti.com> [170403 07:54]:
-> > > On 30/03/17 19:54, Tony Lindgren wrote:
-> > > > * Tero Kristo <t-kristo@ti.com> [170330 00:20]:
-> > > > > On 23/03/17 19:02, Tony Lindgren wrote:
-> > > > > > * Tony Lindgren <tony@atomide.com> [170322 18:03]:
-> > > > > > > * Tero Kristo <t-kristo@ti.com> [170317 14:39]:
-> > > > > > > > On 17/03/17 17:25, Tony Lindgren wrote:
-> > > > > > > > > * Tero Kristo <t-kristo@ti.com> [170317 02:12]:
-> > > > > > > > > > Any additional testing on omap4 welcome as this series basically
-> > > > > > > > > > tweaks every possible peripheral clock on the SoC.
-> > > > > > > > > 
-> > > > > > > > > Without the last patch in this series, booting fails for me:
-> > > > > > > > > 
-> > > > > > > > > [    5.074890] l4_per_cm:clk:0120:0: failed to disable
-> > > > > > > > > [    5.085113] l4_per_cm:clk:0128:0: failed to disable
-> > > > > > > > > 
-> > > > > > > > > Care to check that booting keeps working for each patch in the
-> > > > > > > > > series to avoid breaking git bisect for booting?
-> > > > > > > > 
-> > > > > > > > Hmm, I think patch 8+9 need to be squashed then. I can double check this
-> > > > > > > > next week though.
-> > > > > > > 
-> > > > > > > Also looks like with this set merged HDMI stops working on
-> > > > > > > omap4 with:
-> > > > > > > 
-> > > > > > > HDMIWP: omapdss HDMIWP error: Failed to set PHY power mode to 1
-> > > > > > 
-> > > > > > Forgot to mention that's with omapdrm with encoder-tpd12s015 and
-> > > > > > encoder-tfp410 modules loaded to get HDMI working. Here's more verbose
-> > > > > > dmesg output in case that provides more clues:
-> > > > > > 
-> > > > > > [   91.042877] omapdss HDMICORE error: operation stopped when reading edid
-> > > > > > [   91.078308] [drm] Enabling DMM ywrap scrolling
-> > > > > > [   91.099243] omapdss HDMIWP error: Failed to set PHY power mode to 1
-> > > > > > [   91.107879] omapdss HDMI error: failed to power on device
-> > > > > > [   91.107879] omapdrm omapdrm.0: Failed to enable display 'hdmi': -5
-> > > > > > [   91.359619] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> > > > > > [   91.619964] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> > > > > > [   91.620300] Console: switching to colour frame buffer device 128x48
-> > > > > > [   91.682434] omapdrm omapdrm.0: fb0: omapdrm frame buffer device
-> > > > > > [   91.770812] [drm] Initialized omapdrm 1.0.0 20110917 for omapdrm.0 on minor 0
-> > > > > > [   92.818054] omapdss HDMICORE error: operation stopped when reading edid
-> > > > > > [   93.090087] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> > > > > > [   93.349853] omapdrm omapdrm.0: atomic complete timeout (pipe 0)!
-> > > > > > 
-> > > > > > Regards,
-> > > > > > 
-> > > > > > Tony
-> > > > > > 
-> > > > > 
-> > > > > Can you try with this additional hwmod data tweak in place? Apply this on
-> > > > > top of the existing series.
-> > > > 
-> > > > Does not seem to help, still get the same errors. But maybe I'm doing
-> > > > something wrong as the patch did not apply and I applied it manually.
-> > > > 
-> > > > Regards,
-> > > > 
-> > > > Tony
-> > > > 
-> > > 
-> > > Hmm ok, can you provide some brief instructions how to test what you are
-> > > doing with the HDMI? Just connect it to some external monitor? My monitor
-> > > has a spare HDMI connector so I could try it out.
-> > 
-> > Well build a kernel using omap2plus_defconfig, then with HDMI cable
-> > connected load the following modules:
-> > 
-> > encoder-tpd12s015 encoder-tfp410 connector-hdmi omapfb
-> > 
-> > And a console should appear on the HDMI monitor. If using omapdrm, then
-> > load omapdss and omapdrm instead.
-> > 
-> > And if using NFSroot, you need to have ehci and smsc drivers built-in
-> > or use an initramfs.
-> 
-> Ok, I have a solution to the issue.
-> 
-> Try the slightly modified patch below. It just required a couple of hwmod
-> flags applied in addition to the patch I sent before.
-> 
-> I also pushed a branch named "4.11-rc1-clkctrl-wip" as a reference, where
-> also the hdmi works fine on omap4.
-
-OK hdmi works now on panda for both omapfb and omapdrm. Any ideas why
-that change is now needed though?
-
-Regards,
-
-Tony
-
-> ===================================
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index dad871a..43163b5 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -775,6 +775,7 @@
-> 
->  static struct omap_hwmod_opt_clk dss_hdmi_opt_clks[] = {
->  	{ .role = "sys_clk", .clk = "dss_sys_clk" },
-> +	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
->  };
-> 
->  static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
-> @@ -785,7 +786,7 @@
->  	 * HDMI audio requires to use no-idle mode. Hence,
->  	 * set idle mode by software.
->  	 */
-> -	.flags		= HWMOD_SWSUP_SIDLE,
-> +	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_OPT_CLKS_NEEDED,
->  	.mpu_irqs	= omap44xx_dss_hdmi_irqs,
->  	.xlate_irq	= omap4_xlate_irq,
->  	.sdma_reqs	= omap44xx_dss_hdmi_sdma_reqs,
-> @@ -858,11 +859,16 @@
->  };
-> 
->  /* dss_venc */
-> +static struct omap_hwmod_opt_clk dss_venc_opt_clks[] = {
-> +	{ .role = "tv_clk", .clk = "dss_tv_clk" },
-> +};
-> +
->  static struct omap_hwmod omap44xx_dss_venc_hwmod = {
->  	.name		= "dss_venc",
->  	.class		= &omap44xx_venc_hwmod_class,
->  	.clkdm_name	= "l3_dss_clkdm",
->  	.main_clk	= "dss_tv_clk",
-> +	.flags		= HWMOD_OPT_CLKS_NEEDED,
->  	.prcm = {
->  		.omap4 = {
->  			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
-> @@ -870,6 +876,8 @@
->  		},
->  	},
->  	.parent_hwmod	= &omap44xx_dss_hwmod,
-> +	.opt_clks	= dss_venc_opt_clks,
-> +	.opt_clks_cnt	= ARRAY_SIZE(dss_venc_opt_clks),
->  };
-> 
->  /*
-> 
-> 
-> 
+SGksCgpMb29rcyBsaWtlIGN1cnJlbnQgbmV4dCBub3cgb29wc2VzIGF0IGxlYXN0IGZvciBvbWFw
+ZHJtCndoZW4gc3RhcnRpbmcgWC4gUmV2ZXJ0aW5nIGNvbW1pdCBkMjBhZmViM2UyZjkgKCJNZXJn
+ZQpyZW1vdGUtdHJhY2tpbmcgYnJhbmNoICdkcm0tbWlzYy9mb3ItbGludXgtbmV4dCciKSBtYWtl
+cwp0aGluZ3Mgd29yayBhZ2Fpbi4KCkFueSBpZGVhcyB3aGF0IG1pZ2h0IGJlIGNhdXNpbmcgdGhl
+IG9vcHMgYmVsb3c/CgpSZWdhcmRzLAoKVG9ueQoKODwgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0KSW50ZXJuYWwgZXJyb3I6IE9vcHM6IDUgWyMxXSBTTVAgQVJNCi4uLgpDUFU6IDEgUElEOiAx
+NjM3IENvbW06IFggTm90IHRhaW50ZWQgNC4xMS4wLXJjNS1uZXh0LTIwMTcwNDA3KyAjNDg4Ckhh
+cmR3YXJlIG5hbWU6IEdlbmVyaWMgT01BUDQgKEZsYXR0ZW5lZCBEZXZpY2UgVHJlZSkKdGFzazog
+ZWM4NzMxODAgdGFzay5zdGFjazogZWM4YjgwMDAKUEMgaXMgYXQgX193d19tdXRleF9sb2NrLmNv
+bnN0cHJvcC4wKzB4MzQvMHgxMDU0CkxSIGlzIGF0IGxvY2tfaXNfaGVsZF90eXBlKzB4NjAvMHhh
+OApwYyA6IFs8YzA4MzMwOTg+XSAgICBsciA6IFs8YzAxOTlhYmM+XSAgICBwc3I6IGEwMDAwMDEz
+CiAgICAgICAgICAgICAgIHNwIDogZWM4YjlkMTggIGlwIDogMDAwMDAwMDIgIGZwIDogZWRiMmE4
+MDAKcjEwOiBlYzhiOWRjMCAgcjkgOiBlZGIyYzgwMCAgcjggOiBlYzg4YzQwMApyNyA6IGVjOGI5
+ZTFjICByNiA6IGJmNzBmNjQ4ICByNSA6IGVjOGI5ZGQ4ICByNCA6IDAwMDAwMDEwCnIzIDogMDA0
+MDAxMDAgIHIyIDogZWM4YjljZjggIHIxIDogZmZmZmZmZmYgIHIwIDogMDAwMDAwMDAKRmxhZ3M6
+IE56Q3YgIElSUXMgb24gIEZJUXMgb24gIE1vZGUgU1ZDXzMyICBJU0EgQVJNICBTZWdtZW50IG5v
+bmUKQ29udHJvbDogMTBjNTM4N2QgIFRhYmxlOiBhYzg1YzA0YSAgREFDOiAwMDAwMDA1MQpQcm9j
+ZXNzIFggKHBpZDogMTYzNywgc3RhY2sgbGltaXQgPSAweGVjOGI4MjE4KQouLi4KWzxjMDgzMzA5
+OD5dIChfX3d3X211dGV4X2xvY2suY29uc3Rwcm9wLjApIGZyb20gWzxjMDgzNDE1MD5dICh3d19t
+dXRleF9sb2NrKzB4NDQvMHg1NCkKWzxjMDgzNDE1MD5dICh3d19tdXRleF9sb2NrKSBmcm9tIFs8
+YmY3MGY2NDg+XSAoZHJtX21vZGVzZXRfbG9jaysweDYwLzB4MTEwIFtkcm1dKQpbPGJmNzBmNjQ4
+Pl0gKGRybV9tb2Rlc2V0X2xvY2sgW2RybV0pIGZyb20gWzxiZjcxODc0MD5dIChkcm1fbW9kZV9j
+dXJzb3JfY29tbW9uKzB4OTgvMHgxZjAgW2RybV0pCls8YmY3MTg3NDA+XSAoZHJtX21vZGVfY3Vy
+c29yX2NvbW1vbiBbZHJtXSkgZnJvbSBbPGJmNzE4ZjFjPl0gKGRybV9tb2RlX2N1cnNvcl9pb2N0
+bCsweDU4LzB4NjAgW2RybV0pCls8YmY3MThmMWM+XSAoZHJtX21vZGVfY3Vyc29yX2lvY3RsIFtk
+cm1dKSBmcm9tIFs8YmY2ZmU1Yzg+XSAoZHJtX2lvY3RsKzB4MWQ0LzB4NDA0IFtkcm1dKQpbPGJm
+NmZlNWM4Pl0gKGRybV9pb2N0bCBbZHJtXSkgZnJvbSBbPGMwMmQzODg0Pl0gKGRvX3Zmc19pb2N0
+bCsweDkwLzB4YTU0KQpbPGMwMmQzODg0Pl0gKGRvX3Zmc19pb2N0bCkgZnJvbSBbPGMwMmQ0MmI0
+Pl0gKFN5U19pb2N0bCsweDZjLzB4N2MpCls8YzAyZDQyYjQ+XSAoU3lTX2lvY3RsKSBmcm9tIFs8
+YzAxMDc3YzA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAvMHgxYykKQ29kZTogZTU4ZDMwMTggZWJl
+NGNkNGUgZTM1YTAwMDAgMGEwMDAwMDIgKGU1OTQzMDQ0KQpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZl
+bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
