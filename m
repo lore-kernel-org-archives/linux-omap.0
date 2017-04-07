@@ -1,46 +1,65 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] usb: musb: Fix trying to suspend while active for OTG configurations
-Date: Fri,  7 Apr 2017 07:35:28 -0700
-Message-ID: <20170407143528.4753-1-tony@atomide.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v2] ARM: davinci: Add the clock for the CPPI 4.1 DMA engine
+Date: Fri, 7 Apr 2017 20:06:45 +0530
+Message-ID: <e941f7f4-1904-a0c5-3ef0-973477087b2b@ti.com>
+References: <20170405171750.16821-1-abailon@baylibre.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170405171750.16821-1-abailon@baylibre.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Alexandre Bailon <abailon@baylibre.com>
+Cc: grygorii.strashko@ti.com, sergei.shtylyov@cogentembedded.com, tony@atomide.com, khilman@baylibre.com, linux-usb@vger.kernel.org, ptitiano@baylibre.com, linux-omap@vger.kernel.org, b-liu@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Commit d8e5f0eca1e8 ("usb: musb: Fix hardirq-safe hardirq-unsafe
-lock order error") caused a regression where musb keeps trying to
-enable host mode with no cable connected. This seems to be caused
-by the fact that now phy is enabled earlier, and we are wrongly
-trying to force USB host mode on an OTG port. The errors we are
-getting are "trying to suspend as a_idle while active".
+On Wednesday 05 April 2017 10:47 PM, Alexandre Bailon wrote:
+> The CPPI 4.1 DMA is sharing its clock with the USB OTG,
+> and most of the time, the clock will be enabled by USB.
+> But during the init of the DMA, USB is not enabled (waiting for DMA),
+> and then we must enable the clock before doing anything.
+> Add the clock for the CPPI 4.1 DMA engine.
+> 
+> Signed-off-by: Alexandre Bailon <abailon@baylibre.com>
+> ---
+>  arch/arm/mach-davinci/da830.c | 6 ++++++
+>  arch/arm/mach-davinci/da850.c | 6 ++++++
+>  2 files changed, 12 insertions(+)
+> 
+> diff --git a/arch/arm/mach-davinci/da830.c b/arch/arm/mach-davinci/da830.c
+> index 073c458..bd88470 100644
+> --- a/arch/arm/mach-davinci/da830.c
+> +++ b/arch/arm/mach-davinci/da830.c
+> @@ -304,6 +304,11 @@ static struct clk usb20_clk = {
+>  	.gpsc		= 1,
+>  };
+>  
+> +static struct clk cppi41_clk = {
+> +	.name		= "cppi41",
+> +	.parent		= &usb20_clk,
+> +};
+> +
+>  static struct clk aemif_clk = {
+>  	.name		= "aemif",
+>  	.parent		= &pll0_sysclk3,
+> @@ -413,6 +418,7 @@ static struct clk_lookup da830_clks[] = {
+>  	CLK("davinci-mcasp.1",	NULL,		&mcasp1_clk),
+>  	CLK("davinci-mcasp.2",	NULL,		&mcasp2_clk),
+>  	CLK("musb-da8xx",	"usb20",	&usb20_clk),
+> +	CLK("cppi41-dmaengine",	NULL,		&cppi41_clk),
 
-For ports configured as OTG, we should not need to do anything
-to try to force USB host mode on it's OTG port. Trying to force host
-mode in this case just seems to completely confuse the musb state
-machine.
+I dont see this device name being used in current linux-next. Is this
+name accepted ?
 
-Let's fix the issue by making musb_host_setup() attempt to force the
-mode only if port_mode is configured for host mode.
+The patch otherwise looks okay.
 
-Fixes: d8e5f0eca1e8 ("usb: musb: Fix hardirq-safe hardirq-unsafe
-lock order error")
-Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Reported-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Reported-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Tested-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- drivers/usb/musb/musb_host.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -2780,10 +2780,11 @@ int musb_host_setup(struct musb *musb, int power_budget)
- 	int ret;
- 	struct usb_hcd *hcd = musb->hcd;
- 
--	MUSB_HST_MODE(musb);
--	musb->xceiv->otg->default_a = 1;
--	musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+Thanks,
+Sekhar
