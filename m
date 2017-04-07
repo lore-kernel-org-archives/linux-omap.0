@@ -1,46 +1,46 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: usb: musb: regression since 4.9 on omap4-panda-es (caused by
- d8e5f0eca1e8)
-Date: Fri, 7 Apr 2017 09:18:18 -0500
-Message-ID: <20170407141818.GA9286@uda0271908>
-References: <2bf73b02-6e59-627a-c370-552ed94e7795@ti.com>
- <20170404122736.GA13673@uda0271908>
- <20170404140341.GO10760@atomide.com>
- <20170405003637.GB13234@atomide.com>
- <dda7b6b0-b533-dfd6-1b12-b320bd69b623@ti.com>
- <20170405134655.GD13234@atomide.com>
- <20170405152954.GF13234@atomide.com>
- <20170406190722.GA12367@uda0271908>
- <20170407135252.GG13234@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] usb: musb: Fix trying to suspend while active for OTG configurations
+Date: Fri,  7 Apr 2017 07:35:28 -0700
+Message-ID: <20170407143528.4753-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170407135252.GG13234-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, George Cherian <george.cherian-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 07, 2017 at 06:52:53AM -0700, Tony Lindgren wrote:
-> * Bin Liu <b-liu-l0cyMroinI0@public.gmane.org> [170406 12:09]:
-> > On Wed, Apr 05, 2017 at 08:29:55AM -0700, Tony Lindgren wrote:
-> > > If the the port is configured as OTG, we should not need to
-> > > try to force any states during init. The change below will stop
-> > 
-> > True, but the code has been there for a very long time, any idea what
-> > causes the regression?
-> 
-> I think it's just that with commit d8e5f0eca1e8 we now have phy enabled
-> earlier and calling musb_host_setup() with phy enabled sends it into
-> a loop of trying to force the host mode with nothing connected. This
-> loops seems to end after few seconds if there are devices connected,
-> but keeps going if there's nothing connected.
+Commit d8e5f0eca1e8 ("usb: musb: Fix hardirq-safe hardirq-unsafe
+lock order error") caused a regression where musb keeps trying to
+enable host mode with no cable connected. This seems to be caused
+by the fact that now phy is enabled earlier, and we are wrongly
+trying to force USB host mode on an OTG port. The errors we are
+getting are "trying to suspend as a_idle while active".
 
-Fair enough. Thanks.
--Bin.
+For ports configured as OTG, we should not need to do anything
+to try to force USB host mode on it's OTG port. Trying to force host
+mode in this case just seems to completely confuse the musb state
+machine.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Let's fix the issue by making musb_host_setup() attempt to force the
+mode only if port_mode is configured for host mode.
+
+Fixes: d8e5f0eca1e8 ("usb: musb: Fix hardirq-safe hardirq-unsafe
+lock order error")
+Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Reported-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Reported-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Tested-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/usb/musb/musb_host.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -2780,10 +2780,11 @@ int musb_host_setup(struct musb *musb, int power_budget)
+ 	int ret;
+ 	struct usb_hcd *hcd = musb->hcd;
+ 
+-	MUSB_HST_MODE(musb);
+-	musb->xceiv->otg->default_a = 1;
+-	musb->xceiv->otg->state = OTG_STATE_A_IDLE;
