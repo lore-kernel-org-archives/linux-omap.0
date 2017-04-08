@@ -1,46 +1,36 @@
-From: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Subject: Re: drm_modeset_lock oops in next
-Date: Sat, 8 Apr 2017 10:52:46 +0200
-Message-ID: <43aba628-71c3-58ca-eaa8-e1098fd20046@linux.intel.com>
-References: <20170407155649.GI13234@atomide.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: davinci_mdio: add GPIO reset logic
+Date: Sat, 08 Apr 2017 06:55:45 -0700 (PDT)
+Message-ID: <20170408.065545.2057882592764132853.davem@davemloft.net>
+References: <1491381237-24635-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20170407155649.GI13234@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>, Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1491381237-24635-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rogerq@ti.com
+Cc: tony@atomide.com, nsekhar@ti.com, jsarha@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGV5LAoKT3AgMDctMDQtMTcgb20gMTc6NTYgc2NocmVlZiBUb255IExpbmRncmVuOgo+IEhpLAo+
-Cj4gTG9va3MgbGlrZSBjdXJyZW50IG5leHQgbm93IG9vcHNlcyBhdCBsZWFzdCBmb3Igb21hcGRy
-bQo+IHdoZW4gc3RhcnRpbmcgWC4gUmV2ZXJ0aW5nIGNvbW1pdCBkMjBhZmViM2UyZjkgKCJNZXJn
-ZQo+IHJlbW90ZS10cmFja2luZyBicmFuY2ggJ2RybS1taXNjL2Zvci1saW51eC1uZXh0JyIpIG1h
-a2VzCj4gdGhpbmdzIHdvcmsgYWdhaW4uCj4KPiBBbnkgaWRlYXMgd2hhdCBtaWdodCBiZSBjYXVz
-aW5nIHRoZSBvb3BzIGJlbG93PwpMb29rcyBsaWtlIGZhbGxvdXQgZnJvbSB0aGUgYWNxdWlyZV9j
-dHggcGF0Y2hlcz8KCkNvdWxkIHlvdSB0ZXN0IHRoZSBiZWxvdz8KCmRpZmYgLS1naXQgYS9kcml2
-ZXJzL2dwdS9kcm0vZHJtX3BsYW5lLmMgYi9kcml2ZXJzL2dwdS9kcm0vZHJtX3BsYW5lLmMKaW5k
-ZXggODM4Y2E3NDJhMjhiLi4yYzViNWJmNjhlM2QgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2Ry
-bS9kcm1fcGxhbmUuYworKysgYi9kcml2ZXJzL2dwdS9kcm0vZHJtX3BsYW5lLmMKQEAgLTcyMCwx
-NSArNzIwLDE2IEBAIHN0YXRpYyBpbnQgZHJtX21vZGVfY3Vyc29yX2NvbW1vbihzdHJ1Y3QgZHJt
-X2RldmljZSAqZGV2LAogCXJldCA9IGRybV9tb2Rlc2V0X2xvY2soJmNydGMtPm11dGV4LCAmY3R4
-KTsKIAlpZiAocmV0KQogCQlnb3RvIG91dDsKLQlyZXQgPSBkcm1fbW9kZXNldF9sb2NrKCZjcnRj
-LT5jdXJzb3ItPm11dGV4LCAmY3R4KTsKLQlpZiAocmV0KQotCQlnb3RvIG91dDsKIAogCS8qCiAJ
-ICogSWYgdGhpcyBjcnRjIGhhcyBhIHVuaXZlcnNhbCBjdXJzb3IgcGxhbmUsIGNhbGwgdGhhdCBw
-bGFuZSdzIHVwZGF0ZQogCSAqIGhhbmRsZXIgcmF0aGVyIHRoYW4gdXNpbmcgbGVnYWN5IGN1cnNv
-ciBoYW5kbGVycy4KIAkgKi8KIAlpZiAoY3J0Yy0+Y3Vyc29yKSB7CisJCXJldCA9IGRybV9tb2Rl
-c2V0X2xvY2soJmNydGMtPmN1cnNvci0+bXV0ZXgsICZjdHgpOworCQlpZiAocmV0KQorCQkJZ290
-byBvdXQ7CisKIAkJcmV0ID0gZHJtX21vZGVfY3Vyc29yX3VuaXZlcnNhbChjcnRjLCByZXEsIGZp
-bGVfcHJpdiwgJmN0eCk7CiAJCWdvdG8gb3V0OwogCX0KCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVs
-QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+From: Roger Quadros <rogerq@ti.com>
+Date: Wed, 5 Apr 2017 11:33:57 +0300
+
+> Some boards [1] leave the PHYs at an invalid state
+> during system power-up or reset thus causing unreliability
+> issues with the PHY like not being detected by the mdio bus
+> or link not functional. To work around these boards have
+> a GPIO connected to the PHY's reset pin.
+> 
+> Implement GPIO reset handling for such cases.
+> 
+> [1] - am572x-idk, am571x-idk, a437x-idk.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+
+I have not seen a resolution in this discussion.
+
+My understanding is that there are several cases (single MDIO bus whose
+reset does a reset on all that MDIO bus's PHYs, etc.) and it's unclear
+how to handle all such cases cleanly.
