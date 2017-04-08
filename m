@@ -1,126 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: omap2plus_defconfig: Enable droid 4 devices
-Date: Sun,  9 Apr 2017 16:28:40 -0700
-Message-ID: <20170409232840.19927-1-tony@atomide.com>
+Subject: Re: drm_modeset_lock oops in next
+Date: Sat, 8 Apr 2017 09:46:31 -0700
+Message-ID: <20170408164630.GK13234@atomide.com>
+References: <20170407155649.GI13234@atomide.com>
+ <43aba628-71c3-58ca-eaa8-e1098fd20046@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <43aba628-71c3-58ca-eaa8-e1098fd20046@linux.intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-We only need to have MFD_CPCAP and CPCAP_REGULATOR as built-in to
-be able to mount root on the eMMC. And then POWER_RESET_GPIO
-is good to have built-in. The rest of the devices can be loadable
-modules.
-
-This gets various devices such as regulators, touchscreen, power
-button, charger, HDMI audio, LEDs, RTC, ADC, and USB working.
-
-Note that omapdrm needs to be configured manually as we're still
-using omapfb by default.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap2plus_defconfig | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -213,6 +213,7 @@ CONFIG_KEYBOARD_TWL4030=m
- # CONFIG_INPUT_MOUSE is not set
- CONFIG_INPUT_TOUCHSCREEN=y
- CONFIG_TOUCHSCREEN_ADS7846=m
-+CONFIG_TOUCHSCREEN_ATMEL_MXT=m
- CONFIG_TOUCHSCREEN_EDT_FT5X06=m
- CONFIG_TOUCHSCREEN_TI_AM335X_TSC=m
- CONFIG_TOUCHSCREEN_PIXCIR=m
-@@ -220,6 +221,7 @@ CONFIG_TOUCHSCREEN_TSC2004=m
- CONFIG_TOUCHSCREEN_TSC2005=m
- CONFIG_TOUCHSCREEN_TSC2007=m
- CONFIG_INPUT_MISC=y
-+CONFIG_INPUT_CPCAP_PWRBUTTON=m
- CONFIG_INPUT_TPS65218_PWRBUTTON=m
- CONFIG_INPUT_TWL4030_PWRBUTTON=m
- CONFIG_INPUT_PALMAS_PWRBUTTON=m
-@@ -256,7 +258,9 @@ CONFIG_W1=m
- CONFIG_HDQ_MASTER_OMAP=m
- CONFIG_POWER_AVS=y
- CONFIG_POWER_RESET=y
-+CONFIG_POWER_RESET_GPIO=y
- CONFIG_BATTERY_BQ27XXX=m
-+CONFIG_CHARGER_CPCAP=m
- CONFIG_CHARGER_ISP1704=m
- CONFIG_CHARGER_TWL4030=m
- CONFIG_CHARGER_BQ2415X=m
-@@ -278,6 +282,7 @@ CONFIG_DRA752_THERMAL=y
- CONFIG_WATCHDOG=y
- CONFIG_OMAP_WATCHDOG=m
- CONFIG_TWL4030_WATCHDOG=m
-+CONFIG_MFD_CPCAP=y
- CONFIG_MFD_TI_AM335X_TSCADC=m
- CONFIG_MFD_PALMAS=y
- CONFIG_MFD_TPS65217=y
-@@ -285,7 +290,9 @@ CONFIG_MFD_TI_LP873X=y
- CONFIG_MFD_TPS65218=y
- CONFIG_MFD_TPS65910=y
- CONFIG_TWL6040_CORE=y
-+CONFIG_REGULATOR_CPCAP=y
- CONFIG_REGULATOR_GPIO=y
-+CONFIG_REGULATOR_LM363X=m
- CONFIG_REGULATOR_LP872X=y
- CONFIG_REGULATOR_LP873X=y
- CONFIG_REGULATOR_PALMAS=y
-@@ -354,6 +361,7 @@ CONFIG_SND_SOC=m
- CONFIG_SND_EDMA_SOC=m
- CONFIG_SND_AM33XX_SOC_EVM=m
- CONFIG_SND_OMAP_SOC=m
-+CONFIG_SND_OMAP_SOC_HDMI_AUDIO=m
- CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
- CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040=m
- CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
-@@ -418,6 +426,7 @@ CONFIG_MMC_OMAP=y
- CONFIG_MMC_OMAP_HS=y
- CONFIG_NEW_LEDS=y
- CONFIG_LEDS_CLASS=m
-+CONFIG_LEDS_CPCAP=m
- CONFIG_LEDS_GPIO=m
- CONFIG_LEDS_PCA963X=m
- CONFIG_LEDS_PWM=m
-@@ -436,6 +445,7 @@ CONFIG_RTC_DRV_TWL92330=y
- CONFIG_RTC_DRV_TWL4030=m
- CONFIG_RTC_DRV_PALMAS=m
- CONFIG_RTC_DRV_OMAP=m
-+CONFIG_RTC_DRV_CPCAP=m
- CONFIG_DMADEVICES=y
- CONFIG_DMA_OMAP=y
- CONFIG_TI_EDMA=y
-@@ -448,6 +458,7 @@ CONFIG_IIO=m
- CONFIG_IIO_SW_DEVICE=m
- CONFIG_IIO_SW_TRIGGER=m
- CONFIG_IIO_ST_ACCEL_3AXIS=m
-+CONFIG_CPCAP_ADC=m
- CONFIG_TI_AM335X_ADC=m
- CONFIG_BMP280=m
- CONFIG_PWM=y
-@@ -456,6 +467,7 @@ CONFIG_PWM_TIECAP=m
- CONFIG_PWM_TIEHRPWM=m
- CONFIG_PWM_TWL=m
- CONFIG_PWM_TWL_LED=m
-+CONFIG_PHY_CPCAP_USB=m
- CONFIG_PHY_DM816X_USB=m
- CONFIG_OMAP_USB2=m
- CONFIG_TI_PIPE3=y
--- 
-2.12.2
+KiBNYWFydGVuIExhbmtob3JzdCA8bWFhcnRlbi5sYW5raG9yc3RAbGludXguaW50ZWwuY29tPiBb
+MTcwNDA4IDAxOjU1XToKPiBIZXksCj4gCj4gT3AgMDctMDQtMTcgb20gMTc6NTYgc2NocmVlZiBU
+b255IExpbmRncmVuOgo+ID4gSGksCj4gPgo+ID4gTG9va3MgbGlrZSBjdXJyZW50IG5leHQgbm93
+IG9vcHNlcyBhdCBsZWFzdCBmb3Igb21hcGRybQo+ID4gd2hlbiBzdGFydGluZyBYLiBSZXZlcnRp
+bmcgY29tbWl0IGQyMGFmZWIzZTJmOSAoIk1lcmdlCj4gPiByZW1vdGUtdHJhY2tpbmcgYnJhbmNo
+ICdkcm0tbWlzYy9mb3ItbGludXgtbmV4dCciKSBtYWtlcwo+ID4gdGhpbmdzIHdvcmsgYWdhaW4u
+Cj4gPgo+ID4gQW55IGlkZWFzIHdoYXQgbWlnaHQgYmUgY2F1c2luZyB0aGUgb29wcyBiZWxvdz8K
+PiBMb29rcyBsaWtlIGZhbGxvdXQgZnJvbSB0aGUgYWNxdWlyZV9jdHggcGF0Y2hlcz8KPiAKPiBD
+b3VsZCB5b3UgdGVzdCB0aGUgYmVsb3c/CgpZZXMgdGhhbmtzIERhbmllbCBWZXR0ZXIgYWxyZWFk
+eSBwb3N0ZWQgYSBzaW1pbGFyIGZpeCBhcwoiW1BBVENIXSBkcm06IE9ubHkgdGFrZSBjdXJzb3Ig
+bG9ja3Mgd2hlbiB0aGUgY3Vyc29yIHBsYW5lIGV4aXN0cyIuCgpSZWdhcmRzLAoKVG9ueQpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFp
+bGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
+cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
