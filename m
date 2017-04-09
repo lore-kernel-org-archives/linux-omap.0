@@ -1,70 +1,66 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: 8250: Possible race between console message vs DMA?
-Date: Sun, 9 Apr 2017 14:07:02 +0300
-Message-ID: <CAHp75Vfc6FznNByidzjRcgsj14=DLtwqb=wtut4Cb4gj5UO42w@mail.gmail.com>
-References: <7c75614c-71cb-0a4e-222c-713f65a89f23@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: omap2plus_defconfig: Add QMI,
+ ACM and PPP as loadable modules
+Date: Sun,  9 Apr 2017 16:26:21 -0700
+Message-ID: <20170409232621.17291-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7c75614c-71cb-0a4e-222c-713f65a89f23@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 7, 2017 at 2:08 PM, Vignesh R <vigneshr@ti.com> wrote:
-> Hi All,
->
-> I seem to be hitting a race condition using 8250_dma (and 8250_omap
-> specific dma) support:
->
-> Kernel writes log messages to console via
-> serial8250_console_write()->serial8250_console_putchar() which directly
-> accesses UART_TX register with port->lock acquired.
->
-> Now, if the same UART instance is being used by systemd/userspace,
-> characters are written to UART_TX register by serial8250_tx_chars(). The
-> concurrent access by serial8250_console_write() and
-> serial8250_tx_chars() is serialized by the use of port->lock spinlock
-> and hence there is no issue with` non DMA case.
->
-> But when using DMA with 8250 UART, I see that port->lock is held before
-> scheduling of DMA TX transfer and released as soon as the transfer is
-> submitted. The lock is not held until the transfer actually completes
-> See,
-> uart_start()
->   ->serial8250_start_tx()->
->      __start_tx()
->        ->up->dma->tx_dma(up)
-> Or
-> __dma_tx_complete() in 8250_dma.c that acquires and releases port->lock
-> once TX DMA transfer is submitted in serial8250_tx_dma()
->
-> So, when the port->lock is released, it is quite possible that DMA is
-> still transferring data to UART TX FIFO and UART FIFO might be almost full.
-> I see that when DMA is writing to UART TX FIFO,
-> serial8250_console_write() may also write kernel log messages to UART TX
-> FIFO(as port->lock is now free to be acquired), which is leading to
-> overflow and lose of data. serial8250_console_write() checks for
-> UART_LSR_THRE to check if Transmit hold register is empty but that may
-> not be enough as DMA might put data before CPU write.
->
-> It seems that both DMA and CPU might simultaneously put data to UART
-> FIFO and lead to potential loss of data.
-> Is the expectation that UART instance used to print kernel log messages
-> is not intended to use DMA? Or am I missing something?
->
->
-> Any help appreciated!
+We have devices with modems connected, so let's make them usable.
 
-I have one patch in my tree for a long time already:
-https://bitbucket.org/andy-shev/linux/commits/9f86c648e53bd25b8ec374933764577b2a340468?at=topic/uart/rpm
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-Besides that I have patch to disable power management on kernel
-console (and non-hackish implementation of runtime PM for UART is
-there in case you are wondering what that repository for).
-
-
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -173,6 +173,15 @@ CONFIG_AT803X_PHY=y
+ CONFIG_DP83848_PHY=y
+ CONFIG_MICREL_PHY=y
+ CONFIG_SMSC_PHY=y
++CONFIG_PPP=m
++CONFIG_PPP_BSDCOMP=m
++CONFIG_PPP_DEFLATE=m
++CONFIG_PPP_FILTER=y
++CONFIG_PPP_MPPE=m
++CONFIG_PPP_MULTILINK=y
++CONFIG_PPPOE=m
++CONFIG_PPP_ASYNC=m
++CONFIG_PPP_SYNC_TTY=m
+ CONFIG_USB_USBNET=m
+ CONFIG_USB_NET_SMSC75XX=m
+ CONFIG_USB_NET_SMSC95XX=m
+@@ -180,6 +189,7 @@ CONFIG_USB_ALI_M5632=y
+ CONFIG_USB_AN2720=y
+ CONFIG_USB_EPSON2888=y
+ CONFIG_USB_KC2190=y
++CONFIG_USB_NET_QMI_WWAN=m
+ CONFIG_USB_CDC_PHONET=m
+ CONFIG_LIBERTAS=m
+ CONFIG_LIBERTAS_USB=m
+@@ -359,6 +369,7 @@ CONFIG_USB_XHCI_HCD=m
+ CONFIG_USB_EHCI_HCD=m
+ CONFIG_USB_OHCI_HCD=m
+ CONFIG_USB_WDM=m
++CONFIG_USB_ACM=m
+ CONFIG_USB_STORAGE=m
+ CONFIG_USB_MUSB_HDRC=m
+ CONFIG_USB_MUSB_TUSB6010=m
 -- 
-With Best Regards,
-Andy Shevchenko
+2.12.2
