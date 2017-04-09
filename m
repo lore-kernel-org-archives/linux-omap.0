@@ -1,49 +1,70 @@
-From: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [balbi-usb:testing/next 46/49] undefined reference to
- `extcon_get_edev_by_phandle'
-Date: Sat, 8 Apr 2017 17:28:19 -0700
-Message-ID: <f086a697-1065-50e1-799a-3a7b407ac0cf@infradead.org>
-References: <201704090005.8IRIdzVM%fengguang.wu@intel.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: 8250: Possible race between console message vs DMA?
+Date: Sun, 9 Apr 2017 14:07:02 +0300
+Message-ID: <CAHp75Vfc6FznNByidzjRcgsj14=DLtwqb=wtut4Cb4gj5UO42w@mail.gmail.com>
+References: <7c75614c-71cb-0a4e-222c-713f65a89f23@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201704090005.8IRIdzVM%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7c75614c-71cb-0a4e-222c-713f65a89f23@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Peter Hurley <peter@hurleysoftware.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 04/08/17 09:29, kbuild test robot wrote:
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git testing/next
-> head:   9653f750a746d5abc4bc054d818eb32d1351eae9
-> commit: d5a80bad699c94703a0306edd250f65cfd050580 [46/49] usb: dwc3: Add dual-role support
-> config: x86_64-randconfig-h0-04081918 (attached as .config)
-> compiler: gcc-4.9 (Debian 4.9.4-2) 4.9.4
-> reproduce:
->         git checkout d5a80bad699c94703a0306edd250f65cfd050580
->         # save the attached .config to linux build tree
->         make ARCH=x86_64 
-> 
-> All errors (new ones prefixed by >>):
-> 
->    drivers/built-in.o: In function `dwc3_drd_init':
->>> (.text+0x2aff13): undefined reference to `extcon_get_edev_by_phandle'
->    drivers/built-in.o: In function `dwc3_drd_init':
->>> (.text+0x2affb1): undefined reference to `extcon_register_notifier'
->    drivers/built-in.o: In function `dwc3_drd_init':
->>> (.text+0x2b0029): undefined reference to `extcon_get_state'
->    drivers/built-in.o: In function `dwc3_drd_exit':
->>> (.text+0x2b00e1): undefined reference to `extcon_unregister_notifier'
+On Fri, Apr 7, 2017 at 2:08 PM, Vignesh R <vigneshr@ti.com> wrote:
+> Hi All,
+>
+> I seem to be hitting a race condition using 8250_dma (and 8250_omap
+> specific dma) support:
+>
+> Kernel writes log messages to console via
+> serial8250_console_write()->serial8250_console_putchar() which directly
+> accesses UART_TX register with port->lock acquired.
+>
+> Now, if the same UART instance is being used by systemd/userspace,
+> characters are written to UART_TX register by serial8250_tx_chars(). The
+> concurrent access by serial8250_console_write() and
+> serial8250_tx_chars() is serialized by the use of port->lock spinlock
+> and hence there is no issue with` non DMA case.
+>
+> But when using DMA with 8250 UART, I see that port->lock is held before
+> scheduling of DMA TX transfer and released as soon as the transfer is
+> submitted. The lock is not held until the transfer actually completes
+> See,
+> uart_start()
+>   ->serial8250_start_tx()->
+>      __start_tx()
+>        ->up->dma->tx_dma(up)
+> Or
+> __dma_tx_complete() in 8250_dma.c that acquires and releases port->lock
+> once TX DMA transfer is submitted in serial8250_tx_dma()
+>
+> So, when the port->lock is released, it is quite possible that DMA is
+> still transferring data to UART TX FIFO and UART FIFO might be almost full.
+> I see that when DMA is writing to UART TX FIFO,
+> serial8250_console_write() may also write kernel log messages to UART TX
+> FIFO(as port->lock is now free to be acquired), which is leading to
+> overflow and lose of data. serial8250_console_write() checks for
+> UART_LSR_THRE to check if Transmit hold register is empty but that may
+> not be enough as DMA might put data before CPU write.
+>
+> It seems that both DMA and CPU might simultaneously put data to UART
+> FIFO and lead to potential loss of data.
+> Is the expectation that UART instance used to print kernel log messages
+> is not intended to use DMA? Or am I missing something?
+>
+>
+> Any help appreciated!
 
-EXTCON=m in this config.
+I have one patch in my tree for a long time already:
+https://bitbucket.org/andy-shev/linux/commits/9f86c648e53bd25b8ec374933764577b2a340468?at=topic/uart/rpm
 
-DWC3_DUAL_ROLE needs to depend on EXTCON...
+Besides that I have patch to disable power management on kernel
+console (and non-hackish implementation of runtime PM for UART is
+there in case you are wondering what that repository for).
 
 
 -- 
-~Randy
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+With Best Regards,
+Andy Shevchenko
