@@ -1,11 +1,14 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v2] misc: sram-exec: Use aligned fncpy instead of memcpy
-Date: Mon, 10 Apr 2017 09:52:47 -0500
-Message-ID: <20170410145247.6023-1-d-gerlach@ti.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [GIT PULL] PCI: Support for configurable PCI endpoint
+Date: Mon, 10 Apr 2017 10:43:28 -0500
+Message-ID: <20170410154328.GB13170@bhelgaas-glaptop.roam.corp.google.com>
+References: <20170405085243.18123-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20170405085243.18123-1-kishon@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,138 +18,184 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: devicetree@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, hch@infradead.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently the sram-exec functionality, which allows allocation of
-executable memory and provides an API to move code to it, is only
-selected in configs for the ARM architecture. Based on commit
-5756e9dd0de6 ("ARM: 6640/1: Thumb-2: Symbol manipulation macros for
-function body copying") simply copying a C function pointer address
-using memcpy without consideration of alignment and Thumb is unsafe on
-ARM platforms.
+On Wed, Apr 05, 2017 at 02:22:20PM +0530, Kishon Vijay Abraham I wrote:
+> Hi Bjorn,
+> 
+> Please find the pull request for PCI endpoint support below. I've
+> also included all the history here.
 
-The aforementioned patch introduces the fncpy macro which is a safe way
-to copy executable code on ARM platforms, so let's make use of that here
-rather than the unsafe plain memcpy that was previously used by
-sram_exec_copy. Now sram_exec_copy will move the code to "dst" and
-return an address that is guaranteed to be safely callable.
+Thanks, I applied these (with v7 of the first patch) to pci/host-designware
+for v4.12.
 
-In the future, architectures hoping to make use of the sram-exec
-functionality must define an fncpy macro just as ARM has done to
-guarantee or check for safe copying to executable memory before allowing
-the arch to select CONFIG_SRAM_EXEC.
-
-Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
----
-
-v1: http://www.spinics.net/lists/linux-omap/msg136517.html
-
-v2 changes: Return value of fncpy, as the returned address is the safely
-	    executable one, and add supporting docs in comments.
-
- drivers/misc/sram-exec.c | 27 ++++++++++++++++++++-------
- include/linux/sram.h     |  8 ++++----
- 2 files changed, 24 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/misc/sram-exec.c b/drivers/misc/sram-exec.c
-index ac522417c462..9d54e14e8360 100644
---- a/drivers/misc/sram-exec.c
-+++ b/drivers/misc/sram-exec.c
-@@ -19,6 +19,7 @@
- #include <linux/sram.h>
- 
- #include <asm/cacheflush.h>
-+#include <asm/fncpy.h>
- 
- #include "sram.h"
- 
-@@ -57,20 +58,32 @@ int sram_add_protect_exec(struct sram_partition *part)
-  * @src: Source address for the data to copy
-  * @size: Size of copy to perform, which starting from dst, must reside in pool
-  *
-+ * Return: Address for copied data that can safely be called through function
-+ *	   pointer, or NULL if problem.
-+ *
-  * This helper function allows sram driver to act as central control location
-  * of 'protect-exec' pools which are normal sram pools but are always set
-  * read-only and executable except when copying data to them, at which point
-  * they are set to read-write non-executable, to make sure no memory is
-  * writeable and executable at the same time. This region must be page-aligned
-  * and is checked during probe, otherwise page attribute manipulation would
-- * not be possible.
-+ * not be possible. Care must be taken to only call the returned address as
-+ * dst address is not guaranteed to be safely callable.
-+ *
-+ * NOTE: This function uses the fncpy macro to move code to the executable
-+ * region. Some architectures have strict requirements for relocating
-+ * executable code, so fncpy is a macro that must be defined by any arch
-+ * making use of this functionality that guarantees a safe copy of exec
-+ * data and returns a safe address that can be called as a C function
-+ * pointer.
-  */
--int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
--		   size_t size)
-+void *sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
-+		     size_t size)
- {
- 	struct sram_partition *part = NULL, *p;
- 	unsigned long base;
- 	int pages;
-+	void *dst_cpy;
- 
- 	mutex_lock(&exec_pool_list_mutex);
- 	list_for_each_entry(p, &exec_pool_list, list) {
-@@ -80,10 +93,10 @@ int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
- 	mutex_unlock(&exec_pool_list_mutex);
- 
- 	if (!part)
--		return -EINVAL;
-+		return NULL;
- 
- 	if (!addr_in_gen_pool(pool, (unsigned long)dst, size))
--		return -EINVAL;
-+		return NULL;
- 
- 	base = (unsigned long)part->base;
- 	pages = PAGE_ALIGN(size) / PAGE_SIZE;
-@@ -93,13 +106,13 @@ int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
- 	set_memory_nx((unsigned long)base, pages);
- 	set_memory_rw((unsigned long)base, pages);
- 
--	memcpy(dst, src, size);
-+	dst_cpy = fncpy(dst, src, size);
- 
- 	set_memory_ro((unsigned long)base, pages);
- 	set_memory_x((unsigned long)base, pages);
- 
- 	mutex_unlock(&part->lock);
- 
--	return 0;
-+	return dst_cpy;
- }
- EXPORT_SYMBOL_GPL(sram_exec_copy);
-diff --git a/include/linux/sram.h b/include/linux/sram.h
-index c97dcbe8ce25..4fb405fb0480 100644
---- a/include/linux/sram.h
-+++ b/include/linux/sram.h
-@@ -16,12 +16,12 @@
- struct gen_pool;
- 
- #ifdef CONFIG_SRAM_EXEC
--int sram_exec_copy(struct gen_pool *pool, void *dst, void *src, size_t size);
-+void *sram_exec_copy(struct gen_pool *pool, void *dst, void *src, size_t size);
- #else
--static inline int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
--				 size_t size)
-+static inline void *sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
-+				   size_t size)
- {
--	return -ENODEV;
-+	return NULL;
- }
- #endif /* CONFIG_SRAM_EXEC */
- #endif /* __LINUX_SRAM_H__ */
--- 
-2.11.0
+> Changes from v5:
+> *) remove #syscon-cells property added in v5 and used 
+>    of_parse_phandle_with_fixed_args
+> *) fix compilation error in make.cross ARCH=blackfin that was because
+>    pci_endpoint_test.c driver depends on COMPILE_TEST.
+> 
+> Changes from v4:
+> *) add #syscon-cells property and used of_parse_phandle_with_args
+>    to perform a configuration in syscon module (as suggested by
+>    Rob Herring)
+> *) Remove unnecessary white space.
+> 
+> Changes from v3:
+> *) fixed a typo and adapted to https://lkml.org/lkml/2017/3/13/562.
+> 
+> Changes from v2:
+> *) changed the configfs structure as suggested by Christoph Hellwig. With
+>    this change the framework creates configfs entry for EP function driver
+>    and EP controller. Previously these entries have to be created by the
+>    the user. (Haven't changed the epc core or epf core except for invoking
+>    configfs APIs to create entries for EP function driver and EP controller.
+>    That's mostly because the EP function device can still be created by
+>    directly invoking the epf core API without using configfs).
+> *) Now the user has to use configfs entry 'start' to start the link.
+>    This was previously done by the function driver. However in the case of
+>    multi function EP, the function driver shouldn't start the link.
+> 
+> Changes from v1:
+> *) The preparation patches for adding EP support is removed and is sent
+>    separately
+> *) Added device ID for DRA74x/DRA72x and used it instead of
+>    using "PCI_ANY_ID"
+> *) Added userguide for PCI endpoint test function
+> 
+> Major Improvements from RFC:
+>  *) support multi-function devices (hw supported not virtual)
+>  *) Access host side buffers
+>  *) Raise MSI interrupts
+>  *) Add user space program to use the host side PCI driver
+>  *) Adapt all other users of designware to use the new design (only
+>     compile tested. Since I have only dra7xx boards, the new design
+>     has only been tested in dra7xx. I'd require the help of others
+>     to test the platforms they have access to).
+> 
+> This is based on
+> git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git
+> pci/host-designware
+> 
+> Thanks
+> Kishon
+> 
+> The following changes since commit 7ea64dcf602c21b3e5062ca90111ca4459fab403:
+> 
+>   __end__ (2017-04-04 15:29:37 -0500)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git tags/pci-endpoint-for-4.12
+> 
+> for you to fetch changes up to a5c85ba45c9682456077d7277196e91f8ea5fd5c:
+> 
+>   ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP (2017-04-05 14:05:28 +0530)
+> 
+> ----------------------------------------------------------------
+> pci: endpoint: for 4.12
+> 
+>  *) Add PCI endpoint core layer
+>  *) Modify designware and dra7xx driver to be configured in EP mode
+>  *) Add a PCI endpoint *test* function driver and corresponding host
+>     driver
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> 
+> ----------------------------------------------------------------
+> Kishon Vijay Abraham I (23):
+>       PCI: endpoint: Add EP core layer to enable EP controller and EP functions
+>       Documentation: PCI: Guide to use PCI Endpoint Core Layer
+>       PCI: endpoint: Introduce configfs entry for configuring EP functions
+>       Documentation: PCI: Guide to use PCI endpoint configfs
+>       PCI: endpoint: Create configfs entry for EPC device and EPF driver
+>       Documentation: PCI: Add specification for the *PCI test* function device
+>       PCI: endpoint: functions: Add an EP function to test PCI
+>       Documentation: PCI: Add binding documentation for pci-test endpoint function
+>       PCI: dwc: designware: Add EP mode support
+>       dt-bindings: PCI: Add DT bindings for PCI designware EP mode
+>       PCI: dwc: dra7xx: Facilitate wrapper and MSI interrupts to be enabled independently
+>       PCI: dwc: dra7xx: Add EP mode support
+>       dt-bindings: PCI: dra7xx: Add DT bindings for PCI dra7xx EP mode
+>       PCI: dwc: dra7xx: Workaround for errata id i870
+>       dt-bindings: PCI: dra7xx: Add DT bindings to enable unaligned access
+>       PCI: Add device IDs for DRA74x and DRA72x
+>       misc: Add host side PCI driver for PCI test function device
+>       Documentation: misc-devices: Add Documentation for pci-endpoint-test driver
+>       tools: PCI: Add a userspace tool to test PCI endpoint
+>       tools: PCI: Add sample test script to invoke pcitest
+>       Documentation: PCI: Add userguide for PCI endpoint test function
+>       MAINTAINERS: Add PCI Endpoint maintainer
+>       ARM: DRA7: clockdomain: Change the CLKTRCTRL of CM_PCIE_CLKSTCTRL to SW_WKUP
+> 
+>  Documentation/PCI/00-INDEX                                |  10 +++
+>  Documentation/PCI/endpoint/function/binding/pci-test.txt  |  17 +++++
+>  Documentation/PCI/endpoint/pci-endpoint-cfs.txt           | 105 ++++++++++++++++++++++++++
+>  Documentation/PCI/endpoint/pci-endpoint.txt               | 215 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  Documentation/PCI/endpoint/pci-test-function.txt          |  66 ++++++++++++++++
+>  Documentation/PCI/endpoint/pci-test-howto.txt             | 179 +++++++++++++++++++++++++++++++++++++++++++
+>  Documentation/devicetree/bindings/pci/designware-pcie.txt |  26 +++++--
+>  Documentation/devicetree/bindings/pci/ti-pci.txt          |  42 +++++++++--
+>  Documentation/misc-devices/pci-endpoint-test.txt          |  35 +++++++++
+>  MAINTAINERS                                               |   9 +++
+>  arch/arm/mach-omap2/clockdomains7xx_data.c                |   2 +-
+>  drivers/Makefile                                          |   2 +
+>  drivers/misc/Kconfig                                      |   7 ++
+>  drivers/misc/Makefile                                     |   1 +
+>  drivers/misc/pci_endpoint_test.c                          | 534 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/Kconfig                                       |   1 +
+>  drivers/pci/dwc/Kconfig                                   |  36 ++++++++-
+>  drivers/pci/dwc/Makefile                                  |   5 +-
+>  drivers/pci/dwc/pci-dra7xx.c                              | 270 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+>  drivers/pci/dwc/pcie-designware-ep.c                      | 342 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/dwc/pcie-designware.c                         | 125 ++++++++++++++++++++++++++++++
+>  drivers/pci/dwc/pcie-designware.h                         | 112 +++++++++++++++++++++++++++
+>  drivers/pci/endpoint/Kconfig                              |  31 ++++++++
+>  drivers/pci/endpoint/Makefile                             |   7 ++
+>  drivers/pci/endpoint/functions/Kconfig                    |  12 +++
+>  drivers/pci/endpoint/functions/Makefile                   |   5 ++
+>  drivers/pci/endpoint/functions/pci-epf-test.c             | 510 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/endpoint/pci-ep-cfs.c                         | 509 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/endpoint/pci-epc-core.c                       | 579 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/endpoint/pci-epc-mem.c                        | 143 +++++++++++++++++++++++++++++++++++
+>  drivers/pci/endpoint/pci-epf-core.c                       | 351 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/mod_devicetable.h                           |  10 +++
+>  include/linux/pci-ep-cfs.h                                |  41 ++++++++++
+>  include/linux/pci-epc.h                                   | 144 +++++++++++++++++++++++++++++++++++
+>  include/linux/pci-epf.h                                   | 162 +++++++++++++++++++++++++++++++++++++++
+>  include/linux/pci_ids.h                                   |   2 +
+>  include/uapi/linux/Kbuild                                 |   1 +
+>  include/uapi/linux/pcitest.h                              |  19 +++++
+>  tools/pci/pcitest.c                                       | 186 +++++++++++++++++++++++++++++++++++++++++++++
+>  tools/pci/pcitest.sh                                      |  56 ++++++++++++++
+>  40 files changed, 4869 insertions(+), 40 deletions(-)
+>  create mode 100644 Documentation/PCI/endpoint/function/binding/pci-test.txt
+>  create mode 100644 Documentation/PCI/endpoint/pci-endpoint-cfs.txt
+>  create mode 100644 Documentation/PCI/endpoint/pci-endpoint.txt
+>  create mode 100644 Documentation/PCI/endpoint/pci-test-function.txt
+>  create mode 100644 Documentation/PCI/endpoint/pci-test-howto.txt
+>  create mode 100644 Documentation/misc-devices/pci-endpoint-test.txt
+>  create mode 100644 drivers/misc/pci_endpoint_test.c
+>  create mode 100644 drivers/pci/dwc/pcie-designware-ep.c
+>  create mode 100644 drivers/pci/endpoint/Kconfig
+>  create mode 100644 drivers/pci/endpoint/Makefile
+>  create mode 100644 drivers/pci/endpoint/functions/Kconfig
+>  create mode 100644 drivers/pci/endpoint/functions/Makefile
+>  create mode 100644 drivers/pci/endpoint/functions/pci-epf-test.c
+>  create mode 100644 drivers/pci/endpoint/pci-ep-cfs.c
+>  create mode 100644 drivers/pci/endpoint/pci-epc-core.c
+>  create mode 100644 drivers/pci/endpoint/pci-epc-mem.c
+>  create mode 100644 drivers/pci/endpoint/pci-epf-core.c
+>  create mode 100644 include/linux/pci-ep-cfs.h
+>  create mode 100644 include/linux/pci-epc.h
+>  create mode 100644 include/linux/pci-epf.h
+>  create mode 100644 include/uapi/linux/pcitest.h
+>  create mode 100644 tools/pci/pcitest.c
+>  create mode 100644 tools/pci/pcitest.sh
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
