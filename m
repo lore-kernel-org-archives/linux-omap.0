@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap deferred probe regression fix
-Date: Mon, 10 Apr 2017 10:06:27 -0700
-Message-ID: <11339.1409199268$1505299315@news.gmane.org>
+Subject: [GIT PULL 2/2] omap defconfig changes for v4.12
+Date: Mon, 10 Apr 2017 12:46:07 -0700
+Message-ID: <4696.17455169118$1505299321@news.gmane.org>
+References: <pull-1491846028-72246>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1491846028-72246>
+In-Reply-To: <pull-1491846028-72246>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,27 +22,48 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 351b7c490700747d1dba1b0a10fbfe3448d11c35:
+The following changes since commit c1ae3cfa0e89fa1a7ecc4c99031f5e9ae99d9201:
 
-  ARM: omap2+: Revert omap-smp.c changes resetting CPU1 during boot (2017-03-27 10:10:42 -0700)
+  Linux 4.11-rc1 (2017-03-05 12:59:56 -0800)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-rc6-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.12/defconfig-signed
 
-for you to fetch changes up to 04abaf07f6d5cdf22b7a478a86e706dfeeeef960:
+for you to fetch changes up to 25ea8207abb80652629670095d4a2e06915c4cd2:
 
-  ARM: OMAP2+: omap_device: Sync omap_device and pm_runtime after probe defer (2017-04-04 08:49:56 -0700)
-
-----------------------------------------------------------------
-Regression fix for omap interconnect code for deferred probe.
-Without this fix we can get PM related warnings for devices that
-use deferred probe. If necessary, this fix can wait for the
-v4.12 merge window no problem.
+  ARM: omap2plus_defconfig: Enable droid 4 devices (2017-04-10 09:29:40 -0700)
 
 ----------------------------------------------------------------
+Defconfig updates for omaps for v4.12 merge window. Mostly
+to update to use new ti-cpufreq driver, the rest is just
+to enable drivers found on various devices:
+
+- Update to use ti-cpufreq driver that we now have
+
+- Enable SATA for ti81xx as a loadable module
+
+- Enable Ethernet PHY for DP83848
+
+- Enable modem related modules for PPP, QMI and USB ACM
+  as loadable modules
+
+- Enable droid 4 related drivers as lodable modules except
+  for PMIC and regulator so eMMC can be used for root
+
+----------------------------------------------------------------
+Bartosz Golaszewski (1):
+      ARM: omap2plus_defconfig: enable ahci-dm816 module
+
 Dave Gerlach (1):
-      ARM: OMAP2+: omap_device: Sync omap_device and pm_runtime after probe defer
+      ARM: omap2plus_defconfig: Enable support for ti-cpufreq
 
- arch/arm/mach-omap2/omap_device.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Roger Quadros (1):
+      ARM: omap2plus_defconfig: Enable TI Ethernet PHY
+
+Tony Lindgren (2):
+      ARM: omap2plus_defconfig: Add QMI, ACM and PPP as loadable modules
+      ARM: omap2plus_defconfig: Enable droid 4 devices
+
+ arch/arm/configs/omap2plus_defconfig | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
