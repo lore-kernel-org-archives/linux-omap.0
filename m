@@ -1,47 +1,77 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: Re: [PATCH V2] PM / OPP: Use - instead of @ for DT entries
-Date: Tue, 11 Apr 2017 10:13:58 +0900
-Message-ID: <CAK7LNATAW4jHbKZU6xWD_nU=ccFo73rBSX_UDpQEMo9OC_u=cw@mail.gmail.com>
-References: <70e7c7ee13722ab9c73cb073f88502eaf1ada5f5.1491816050.git.viresh.kumar@linaro.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] mfd: omap-usb-tll: Fix inverted bit use for USB TLL mode
+Date: Tue, 11 Apr 2017 10:28:52 +0300
+Message-ID: <4cd82ba4-435e-cffa-d152-98860716f38b@ti.com>
+References: <20170411001543.1338-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <70e7c7ee13722ab9c73cb073f88502eaf1ada5f5.1491816050.git.viresh.kumar@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Maxime Ripard <maxime.ripard@free-electrons.com>, Chen-Yu Tsai <wens@csie.org>, linaro-kernel@lists.li
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170411001543.1338-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@linux.intel.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Viresh,
+Hi Tony,
 
+On 11/04/17 03:15, Tony Lindgren wrote:
+> Commit 16fa3dc75c22 ("mfd: omap-usb-tll: HOST TLL platform driver")
+> added support for USB TLL, but uses OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF
+> bit the wrong way. The comments in the code are mostly correct, but the
+> inverted use of OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF causes the register
+> to be enabled instead of disabled like the comments say. And the
+> idle mode should be only disabled for UTMIAUTOIDLE while ULPIAUTOIDLE
+> can be enabled.
+> 
+> This matches the TLL_CHANNEL_CONF_i register configuration for ehci-tll
+> in the Motorola Linux kernel tree for Wrigley 3G LTE modem on droid 4.
+> Without this patch the modem can only be pinged few times before it
+> stops responding. Also lsub -v output shows errors without this patch.
 
-2017-04-10 18:21 GMT+09:00 Viresh Kumar <viresh.kumar@linaro.org>:
-> Compiling the DT file with W=1, DTC warns like follows:
->
-> Warning (unit_address_vs_reg): Node /opp_table0/opp@1000000000 has a
-> unit name, but no reg property
->
-> Fix this by replacing '@' with '-' as the OPP nodes will never have a
-> "reg" property.
->
-> Reported-by: Krzysztof Kozlowski <krzk@kernel.org>
-> Reported-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-> Suggested-by: Mark Rutland <mark.rutland@arm.com>
-> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com> (sunxi)
-> Reviewed-by: Chanwoo Choi <cw00.choi@samsung.com>
-> Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
+This patch does 2 things.
+- Fixes the bad commit by correctly disabling Bitstuffing
+- Enables ULPI Autoidle.
+
+Is enabling ULPI autoidle required to fix the LTE modem issue? If not I'd put it
+in a separate patch.
+
+cheers,
+-roger
+
+> 
+> Fixes: 16fa3dc75c22 ("mfd: omap-usb-tll: HOST TLL platform driver")
+> Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
+> Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+> Cc: Marcel Partap <mpartap@gmx.net>
+> Cc: Michael Scott <michael.scott@linaro.org>
+> Cc: Roger Quadros <rogerq@ti.com>
+> Cc: Sebastian Reichel <sre@kernel.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
-
-
-Acked-by: Masahiro Yamada <yamada.masahiro@socionext.com> (uniphier)
-
-
-Thank you!
-
-
-
-
--- 
-Best Regards
-Masahiro Yamada
+>  drivers/mfd/omap-usb-tll.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+> --- a/drivers/mfd/omap-usb-tll.c
+> +++ b/drivers/mfd/omap-usb-tll.c
+> @@ -373,12 +373,13 @@ int omap_tll_init(struct usbhs_omap_platform_data *pdata)
+>  			} else if (pdata->port_mode[i] ==
+>  					OMAP_EHCI_PORT_MODE_TLL) {
+>  				/*
+> -				 * Disable AutoIdle, BitStuffing
+> -				 * and use SDR Mode
+> +				 * Disable UTMI AutoIdle, BitStuffing
+> +				 * and use SDR Mode. Enable ULPI AutoIdle.
+>  				 */
+> -				reg &= ~(OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE
+> -					| OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF
+> -					| OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE);
+> +				reg &= ~(OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE |
+> +					 OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE);
+> +				reg |= OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF;
+> +				reg |= OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE;
+>  			} else if (pdata->port_mode[i] ==
+>  					OMAP_EHCI_PORT_MODE_HSIC) {
+>  				/*
+> 
