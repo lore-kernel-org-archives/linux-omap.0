@@ -1,31 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3] power: supply: cpcap-charger: Add minimal CPCAP PMIC
- battery charger
-Date: Tue, 11 Apr 2017 08:31:16 -0700
-Message-ID: <20170411153115.GJ5339@atomide.com>
-References: <20170327032513.22890-1-tony@atomide.com>
- <20170411152829.padtau2mqtn6gxdg@earth>
+From: Willis Monroe <willismonroe@gmail.com>
+Subject: [PATCH] mfd: palmas: Fixed spelling mistake in error message.
+Date: Tue, 11 Apr 2017 09:10:06 -0700
+Message-ID: <20170411161006.cp4mdyxxjd5f2ixn@willis-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170411152829.padtau2mqtn6gxdg@earth>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [170411 08:31]:
-> > +Required properties:
-> > +- compatible: Shall be "motorola,cpcap-charger" or
-> > +	      "motorola,mapphone-cpcap-charger"
-> 
-> I queued this with "motorola,cpcap-charger" also dropped from the
-> binding document.
+Fixed a small spelling mistake ("updat" -> "update") in an error message.
 
-Oh OK sorry for missing that.
+Signed-off-by: Willis Monroe <willismonroe@gmail.com>
+---
+ drivers/mfd/palmas.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-
-Tony
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index ee9e9ea..dbb6d42 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -567,7 +567,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c,
+ 			PALMAS_POLARITY_CTRL, PALMAS_POLARITY_CTRL_INT_POLARITY,
+ 			reg);
+ 	if (ret < 0) {
+-		dev_err(palmas->dev, "POLARITY_CTRL updat failed: %d\n", ret);
++		dev_err(palmas->dev, "POLARITY_CTRL update failed: %d\n", ret);
+ 		goto err_i2c;
+ 	}
+ 
+-- 
+2.9.3
