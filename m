@@ -1,123 +1,81 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] thermal: core: Add a back up thermal shutdown mechanism
-Date: Wed, 12 Apr 2017 09:48:29 +0530
-Message-ID: <5bf20f10-4c8e-e864-623e-efeaca696351@ti.com>
-References: <1490941820-13511-1-git-send-email-j-keerthy@ti.com>
- <20170411172918.GA5193@localhost.localdomain>
- <f64632d5-c780-e5fe-cff7-8ed1459348a0@ti.com>
- <1491967248.2357.25.camel@intel.com>
- <492e72af-ff33-d193-071e-5bc00df9a8b0@ti.com>
- <20170412040542.GA11305@localhost.localdomain>
+From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 1/7] iommu/omap: Register driver before setting IOMMU ops
+Date: Wed, 12 Apr 2017 00:21:26 -0500
+Message-ID: <20170412052132.14406-2-s-anna@ti.com>
+References: <20170412052132.14406-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170412040542.GA11305@localhost.localdomain>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nm@ti.com, t-kristo@ti.com
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170412052132.14406-1-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Move the registration of the OMAP IOMMU platform driver before
+setting the IOMMU callbacks on the platform bus. This causes
+the IOMMU devices to be probed first before the .add_device()
+callback is invoked for all registered devices, and allows
+the iommu_group support to be added to the OMAP IOMMU driver.
 
+While at this, also check for the return status from bus_set_iommu.
 
-On Wednesday 12 April 2017 09:35 AM, Eduardo Valentin wrote:
-> Keerthy,
-> 
-> On Wed, Apr 12, 2017 at 09:09:36AM +0530, Keerthy wrote:
->>
->>
->> On Wednesday 12 April 2017 08:50 AM, Zhang Rui wrote:
->>> On Wed, 2017-04-12 at 08:19 +0530, Keerthy wrote:
->>>>
->>>> On Tuesday 11 April 2017 10:59 PM, Eduardo Valentin wrote:
->>>>>
->>>>> Hey,
->>>>>
->>>>> On Fri, Mar 31, 2017 at 12:00:20PM +0530, Keerthy wrote:
->>>>>>
->>>>>> off).
-> 
-> <cut>
-> 
->>>>> OK... This seams to me, still a corner case supposed to be fixed at
->>>>> orderly_power_off, not at thermal. But..
->>>>>
-> 
-> ^^^ Then again, this must be fixed not at thermal core. And re-reading
-> the history of this thread, this seams to be really something broken at
-> OMAP/DRA7, as mentioned in previous messages. That is probably why you
-> are pushing for pm_power_off(), which seams to be the one that works for
-> you, pulling the plug correctly (DRA7).
-> 
->>>>>>
->>>>>>
->>>>>> However, there is no clean way of detecting such failure of
->>>>>> userspace
->>>>>> powering off the system. In such scenarios, it is necessary for a
->>>>>> backup
->>>>>> workqueue to be able to force a shutdown of the system when
->>>>>> orderly
->>>>>> shutdown is not successful after a configurable time period.
->>>>>>
->>>>> Given that system running hot is a thermal issue, I guess we care
->>>>> more
->>>>> on this matter then..
->>>> Yes!
->>>>
->>> I just read this thread again https://patchwork.kernel.org/patch/802458
->>> 1/ to recall the previous discussion.
->>>
->>> https://patchwork.kernel.org/patch/8149891/
->>> https://patchwork.kernel.org/patch/8149861/
->>> should be the solution made based on Ingo' suggestion, right?
->>>
->>> And to me, this sounds like the right direction to go, thermal does not
->>> need a back up shutdown solution, it just needs a kernel function call
->>> which guarantees the system can be shutdown/reboot immediately.
->>>
->>> is there any reason that patch 1/2 is not accepted?
->>
->> Zhang,
->>
->> http://www.serverphorums.com/read.php?12,1400964
->>
->> I got a NAK from Alan and was given this direction on a thermal_poweroff
->> which is more or less what is done in this patch.
->>
-> 
-> 
-> Actually, Alan's suggestion is more for you to define a
-> thermal_poweroff() that can be defined per architecture.
-> 
-> Also, please, keep track of your patch versions and also do copy
-> everybody who has stated their opinion on previous discussions. These
-> patches must have Ingo, Alan, and RMK copied too. In this way we avoid
-> loosing track of what has been suggested and we also converge faster to
-> something everybody (or most of us) agree. Next version, please, fix
-> that.
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+---
+v3: New patch
 
-Sure. This was resurrected from last year. I will add the links to
-previous discussions. my bad.
+ drivers/iommu/omap-iommu.c | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-> 
-> 
-> To me, thermal core needs a function that simply powers off the system.
-> No timeouts, delayed works, backups, etc. Simple and straight.
-
-You mean replacing orderly_power_off during critical trip point cross
-over with a thermal specific thermal_poweroff function that ensures
-that hardware is indeed shut off?
-
-> 
-> The idea of having a per architecture implementation, as per Alan's
-> suggestion, makes sense to me too. Having something different from
-> pm_power_off(), specific to thermal, might also give the opportunity to
-> save the power off reason.
-
-I did not get the 'save the power off reason' point. Care to explain more?
-
-> 
-> BR,
-> 
-> Eduardo Valentin
-> 
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index e2583cce2cc1..54556713c8d1 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -1299,6 +1299,7 @@ static int __init omap_iommu_init(void)
+ 	const unsigned long flags = SLAB_HWCACHE_ALIGN;
+ 	size_t align = 1 << 10; /* L2 pagetable alignement */
+ 	struct device_node *np;
++	int ret;
+ 
+ 	np = of_find_matching_node(NULL, omap_iommu_of_match);
+ 	if (!np)
+@@ -1312,11 +1313,25 @@ static int __init omap_iommu_init(void)
+ 		return -ENOMEM;
+ 	iopte_cachep = p;
+ 
+-	bus_set_iommu(&platform_bus_type, &omap_iommu_ops);
+-
+ 	omap_iommu_debugfs_init();
+ 
+-	return platform_driver_register(&omap_iommu_driver);
++	ret = platform_driver_register(&omap_iommu_driver);
++	if (ret) {
++		pr_err("%s: failed to register driver\n", __func__);
++		goto fail_driver;
++	}
++
++	ret = bus_set_iommu(&platform_bus_type, &omap_iommu_ops);
++	if (ret)
++		goto fail_bus;
++
++	return 0;
++
++fail_bus:
++	platform_driver_unregister(&omap_iommu_driver);
++fail_driver:
++	kmem_cache_destroy(iopte_cachep);
++	return ret;
+ }
+ subsys_initcall(omap_iommu_init);
+ /* must be ready before omap3isp is probed */
+-- 
+2.12.0
