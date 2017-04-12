@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 2/7] iommu/omap: Drop legacy-style device support
-Date: Wed, 12 Apr 2017 00:21:27 -0500
-Message-ID: <20170412052132.14406-3-s-anna@ti.com>
+Subject: [PATCH v3 5/7] iommu/omap: Make use of 'struct iommu_device'
+Date: Wed, 12 Apr 2017 00:21:30 -0500
+Message-ID: <20170412052132.14406-6-s-anna@ti.com>
 References: <20170412052132.14406-1-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,85 +18,125 @@ List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
 Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-All the supported boards that have OMAP IOMMU devices do support
-DT boot only now. So, drop the support for the non-DT legacy-style
-devices from the OMAP IOMMU driver. Couple of the fields from the
-iommu platform data would no longer be required, so they have also
-been cleaned up. The IOMMU platform data is still needed though for
-performing reset management properly in a multi-arch environment.
+From: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
 
+Modify the driver to register individual iommus and
+establish links between devices and iommus in sysfs.
+
+Signed-off-by: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
+[s-anna-l0cyMroinI0@public.gmane.org: fix some cleanup issues during failures]
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
-v3: New patch
+v3 w.r.t v1:
+ - moved the iommu_device calls in probe above the pm_runtime API
+   invocations to simplify cleanup
+ - added the cleanup on iommu_device_register() failure (code moved
+   from patch 5 from v1)
+ - arch_data also freed upon iommu_device_link failure in add_device
 
- drivers/iommu/omap-iommu.c               | 30 ++++++++++++++----------------
- include/linux/platform_data/iommu-omap.h |  3 ---
- 2 files changed, 14 insertions(+), 19 deletions(-)
+ drivers/iommu/omap-iommu.c | 30 ++++++++++++++++++++++++++++++
+ drivers/iommu/omap-iommu.h |  2 ++
+ 2 files changed, 32 insertions(+)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 54556713c8d1..febd4fbe3445 100644
+index 0553b0381e2a..ef44fc740da7 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -928,28 +928,26 @@ static int omap_iommu_probe(struct platform_device *pdev)
- 	int irq;
- 	struct omap_iommu *obj;
- 	struct resource *res;
--	struct iommu_platform_data *pdata = dev_get_platdata(&pdev->dev);
- 	struct device_node *of = pdev->dev.of_node;
+@@ -36,6 +36,8 @@
+ #include "omap-iopgtable.h"
+ #include "omap-iommu.h"
  
-+	if (!of) {
-+		pr_err("%s: only DT-based devices are supported\n", __func__);
-+		return -ENODEV;
++static const struct iommu_ops omap_iommu_ops;
++
+ #define to_iommu(dev)							\
+ 	((struct omap_iommu *)platform_get_drvdata(to_platform_device(dev)))
+ 
+@@ -941,6 +943,16 @@ static int omap_iommu_probe(struct platform_device *pdev)
+ 		return err;
+ 	platform_set_drvdata(pdev, obj);
+ 
++	err = iommu_device_sysfs_add(&obj->iommu, obj->dev, NULL, obj->name);
++	if (err)
++		return err;
++
++	iommu_device_set_ops(&obj->iommu, &omap_iommu_ops);
++
++	err = iommu_device_register(&obj->iommu);
++	if (err)
++		goto out_sysfs;
++
+ 	pm_runtime_irq_safe(obj->dev);
+ 	pm_runtime_enable(obj->dev);
+ 
+@@ -948,12 +960,19 @@ static int omap_iommu_probe(struct platform_device *pdev)
+ 
+ 	dev_info(&pdev->dev, "%s registered\n", obj->name);
+ 	return 0;
++
++out_sysfs:
++	iommu_device_sysfs_remove(&obj->iommu);
++	return err;
+ }
+ 
+ static int omap_iommu_remove(struct platform_device *pdev)
+ {
+ 	struct omap_iommu *obj = platform_get_drvdata(pdev);
+ 
++	iommu_device_sysfs_remove(&obj->iommu);
++	iommu_device_unregister(&obj->iommu);
++
+ 	omap_iommu_debugfs_remove(obj);
+ 
+ 	pm_runtime_disable(obj->dev);
+@@ -1200,6 +1219,7 @@ static int omap_iommu_add_device(struct device *dev)
+ 	struct omap_iommu *oiommu;
+ 	struct device_node *np;
+ 	struct platform_device *pdev;
++	int ret;
+ 
+ 	/*
+ 	 * Allocate the archdata iommu structure for DT-based devices.
+@@ -1232,6 +1252,13 @@ static int omap_iommu_add_device(struct device *dev)
+ 		return -ENOMEM;
+ 	}
+ 
++	ret = iommu_device_link(&oiommu->iommu, dev);
++	if (ret) {
++		kfree(arch_data);
++		of_node_put(np);
++		return ret;
 +	}
 +
- 	obj = devm_kzalloc(&pdev->dev, sizeof(*obj) + MMU_REG_SIZE, GFP_KERNEL);
- 	if (!obj)
- 		return -ENOMEM;
+ 	arch_data->iommu_dev = oiommu;
+ 	dev->archdata.iommu = arch_data;
  
--	if (of) {
--		obj->name = dev_name(&pdev->dev);
--		obj->nr_tlb_entries = 32;
--		err = of_property_read_u32(of, "ti,#tlb-entries",
--					   &obj->nr_tlb_entries);
--		if (err && err != -EINVAL)
--			return err;
--		if (obj->nr_tlb_entries != 32 && obj->nr_tlb_entries != 8)
--			return -EINVAL;
--		if (of_find_property(of, "ti,iommu-bus-err-back", NULL))
--			obj->has_bus_err_back = MMU_GP_REG_BUS_ERR_BACK_EN;
--	} else {
--		obj->nr_tlb_entries = pdata->nr_tlb_entries;
--		obj->name = pdata->name;
--	}
-+	obj->name = dev_name(&pdev->dev);
-+	obj->nr_tlb_entries = 32;
-+	err = of_property_read_u32(of, "ti,#tlb-entries", &obj->nr_tlb_entries);
-+	if (err && err != -EINVAL)
-+		return err;
-+	if (obj->nr_tlb_entries != 32 && obj->nr_tlb_entries != 8)
-+		return -EINVAL;
-+	if (of_find_property(of, "ti,iommu-bus-err-back", NULL))
-+		obj->has_bus_err_back = MMU_GP_REG_BUS_ERR_BACK_EN;
+@@ -1247,8 +1274,11 @@ static void omap_iommu_remove_device(struct device *dev)
+ 	if (!dev->of_node || !arch_data)
+ 		return;
  
- 	obj->dev = &pdev->dev;
- 	obj->ctx = (void *)obj + sizeof(*obj);
-diff --git a/include/linux/platform_data/iommu-omap.h b/include/linux/platform_data/iommu-omap.h
-index 0496d171700a..a40fc0f4f9de 100644
---- a/include/linux/platform_data/iommu-omap.h
-+++ b/include/linux/platform_data/iommu-omap.h
-@@ -30,10 +30,7 @@ struct omap_iommu_arch_data {
++	iommu_device_unlink(&arch_data->iommu_dev->iommu, dev);
++
+ 	dev->archdata.iommu = NULL;
+ 	kfree(arch_data);
++
+ }
+ 
+ static const struct iommu_ops omap_iommu_ops = {
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index f81184b549ec..758958a4712c 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -68,6 +68,8 @@ struct omap_iommu {
+ 
+ 	int has_bus_err_back;
+ 	u32 id;
++
++	struct iommu_device iommu;
  };
  
- struct iommu_platform_data {
--	const char *name;
- 	const char *reset_name;
--	int nr_tlb_entries;
--
- 	int (*assert_reset)(struct platform_device *pdev, const char *name);
- 	int (*deassert_reset)(struct platform_device *pdev, const char *name);
- };
+ /**
 -- 
 2.12.0
