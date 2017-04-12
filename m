@@ -1,15 +1,11 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [GIT PULL] PCI: Support for configurable PCI endpoint
-Date: Wed, 12 Apr 2017 11:13:41 +0530
-Message-ID: <e4c7d2af-9d80-b6e0-def9-43254d815e25@ti.com>
-References: <20170405085243.18123-1-kishon@ti.com>
- <20170410154328.GB13170@bhelgaas-glaptop.roam.corp.google.com>
- <20170411193447.GA14778@bhelgaas-glaptop.roam.corp.google.com>
+From: Ravikumar Kattekola <rk@ti.com>
+Subject: [PATCH 1/1] ARM: dts: dra7: Reduce cpu thermal shutdown temperature
+Date: Wed, 12 Apr 2017 11:54:42 +0530
+Message-ID: <20170412062442.17736-1-rk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170411193447.GA14778@bhelgaas-glaptop.roam.corp.google.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,31 +15,37 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: devicetree@vger.kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>, linux-doc@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, hch@infradead.org, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: bcousson@baylibre.com, tony@atomide.com
+Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Bjorn,
-
-On Wednesday 12 April 2017 01:04 AM, Bjorn Helgaas wrote:
-> On Mon, Apr 10, 2017 at 10:43:28AM -0500, Bjorn Helgaas wrote:
->> On Wed, Apr 05, 2017 at 02:22:20PM +0530, Kishon Vijay Abraham I wrote:
->>> Hi Bjorn,
->>>
->>> Please find the pull request for PCI endpoint support below. I've
->>> also included all the history here.
->>
->> Thanks, I applied these (with v7 of the first patch) to pci/host-designware
->> for v4.12.
-> 
-> Ok, sorry, I screwed this up.  I think my branch actually had v5, not
-> v6.  But I *think* I fixed it.  Here's the diff from my branch to your
-> git tree.  Apparently you haven't pushed the v7 patch there, so I
-> *think* the diff below is the diff between v6 and v7 of that first
-> patch.
-
-I just checked your pci/host-designware branch and it looks correct. Thanks for
-sorting this out.
-
-Cheers
-Kishon
+T24gZHJhNywgYXMgcGVyIFRSTSwgdGhlIEhXIHNodXRkb3duIChUU0hVVCkgdGVtcGVyYXR1cmUg
+aXMgaGFyZGNvZGVkCnRvIDEyM0MgYW5kIGNhbm5vdCBiZSBtb2RpZmllZCBieSBTVy4gVGhpcyBt
+ZWFucyB3aGVuIHRoZSB0ZW1wZXJhdHVyZQpyZWFjaGVzIDEyM0MgSFcgYXNzZXJ0cyBUU0hVVCBv
+dXRwdXQgd2hpY2ggc2lnbmFscyBhIHdhcm0gcmVzZXQuClRoaXMgcmVzZXQgaXMgaGVsZCB1bnRp
+bCB0aGUgdGVtcGVyYXR1cmUgZ29lcyBiZWxvdyB0aGUgVFNIVVQgbG93ICgxMDVDKS4KCldoaWxl
+IGluIFNXLCB0aGUgdGhlcm1hbCBkcml2ZXIgY29udGludW91c2x5IG1vbml0b3JzIGN1cnJlbnQg
+dGVtcGVyYXR1cmUKYW5kIHRha2VzIGRlY2lzaW9ucyBiYXNlZCBvbiB3aGV0aGVyIGl0IHJlYWNo
+ZWQgYW4gYWxlcnQgb3IgYSBjcml0aWNhbCBwb2ludC4KVGhlIGludGVudGlvbiBvZiBzZXR0aW5n
+IGEgU1cgY3JpdGljYWwgcG9pbnQgaXMgdG8gcHJldmVudCBmb3JjZSByZXNldCBieSBIVwphbmQg
+aW5zdGVhZCBkbyBhbiBvcmRlcmx5X3Bvd2Vyb2ZmKCkuIEJ1dCBpZiB0aGUgU1cgY3JpdGljYWwg
+dGVtcGVyYXR1cmUgaXMKZ3JlYXRlciB0aGFuIG9yIGVxdWFsIHRvIHRoYXQgb2YgSFcgdGhlbiBp
+dCBkZWZlYXRzIHRoZSBwdXJwb3NlLiBUbyBhZGRyZXNzCnRoaXMgYW5kIGxldCBTVyB0YWtlIGFj
+dGlvbiBiZWZvcmUgSFcgZG9lcyBrZWVwIHRoZSBTVyBjcml0aWNhbCB0ZW1wZXJhdHVyZQpsZXNz
+IHRoYW4gSFcgVFNIVVQgdmFsdWUuCgpUaGUgdmFsdWUgZm9yIFNXIGNyaXRpY2FsIHRlbXBlcmF0
+dXJlIHdhcyBjaG9zZW4gYXMgMTIwQyBqdXN0IHRvIGVuc3VyZQp3ZSBnaXZlIFNXIHNvbWV0aW1l
+IGJlZm9yZSBIVyBjYXRjaGVzIHVwLgoKRG9jdW1lbnQgcmVmZXJlbmNlClNQUlVJMzBDIOKAkyBE
+UkE3NXgsIERSQTc0eCBUZWNobmljYWwgUmVmZXJlbmNlIE1hbnVhbCAtIE5vdmVtYmVyIDIwMTYK
+U1BSVUhaNkggLSBBTTU3MnggVGVjaG5pY2FsIFJlZmVyZW5jZSBNYW51YWwgLSBOb3ZlbWJlciAy
+MDE2CgpUZXN0ZWQgb246CkRSQTc1eCBQRyAyLjAgUmV2IEggRVZNCgpTaWduZWQtb2ZmLWJ5OiBS
+YXZpa3VtYXIgS2F0dGVrb2xhIDxya0B0aS5jb20+Ci0tLQogYXJjaC9hcm0vYm9vdC9kdHMvZHJh
+Ny5kdHNpIHwgNCArKysrCiAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspCgpkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJh
+Ny5kdHNpCmluZGV4IDU3ODkyZjIuLmU3MTQ0NjYgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL2Jvb3Qv
+ZHRzL2RyYTcuZHRzaQorKysgYi9hcmNoL2FybS9ib290L2R0cy9kcmE3LmR0c2kKQEAgLTIwMTcs
+NCArMjAxNyw4IEBACiAJY29lZmZpY2llbnRzID0gPDAgMjAwMD47CiB9OwogCismY3B1X2NyaXQg
+eworCXRlbXBlcmF0dXJlID0gPDEyMDAwMD47IC8qIG1pbGxpIENlbHNpdXMgKi8KK307CisKIC9p
+bmNsdWRlLyAiZHJhN3h4LWNsb2Nrcy5kdHNpIgotLSAKMi44LjAuR0lUCgoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
+aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
+cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
