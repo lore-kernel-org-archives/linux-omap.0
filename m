@@ -1,251 +1,137 @@
-From: Keerthy <j-keerthy@ti.com>
+From: Eduardo Valentin <edubezval@gmail.com>
 Subject: Re: [PATCH] thermal: core: Add a back up thermal shutdown mechanism
-Date: Wed, 12 Apr 2017 09:09:36 +0530
-Message-ID: <492e72af-ff33-d193-071e-5bc00df9a8b0@ti.com>
+Date: Tue, 11 Apr 2017 21:05:46 -0700
+Message-ID: <20170412040542.GA11305@localhost.localdomain>
 References: <1490941820-13511-1-git-send-email-j-keerthy@ti.com>
  <20170411172918.GA5193@localhost.localdomain>
  <f64632d5-c780-e5fe-cff7-8ed1459348a0@ti.com>
  <1491967248.2357.25.camel@intel.com>
+ <492e72af-ff33-d193-071e-5bc00df9a8b0@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1491967248.2357.25.camel@intel.com>
+Content-Disposition: inline
+In-Reply-To: <492e72af-ff33-d193-071e-5bc00df9a8b0@ti.com>
 Sender: linux-pm-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
-Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nm@ti.com, t-kristo@ti.com
+To: Keerthy <j-keerthy@ti.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nm@ti.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
+--envbJBWh7q8WU6mo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wednesday 12 April 2017 08:50 AM, Zhang Rui wrote:
-> On Wed, 2017-04-12 at 08:19 +0530, Keerthy wrote:
->>
->> On Tuesday 11 April 2017 10:59 PM, Eduardo Valentin wrote:
->>>
->>> Hey,
->>>
->>> On Fri, Mar 31, 2017 at 12:00:20PM +0530, Keerthy wrote:
->>>>
->>>> orderly_poweroff is triggered when a graceful shutdown
->>>> of system is desired. This may be used in many critical states of
->>>> the
->>>> kernel such as when subsystems detects conditions such as
->>>> critical
->>>> temperature conditions. However, in certain conditions in system
->>>> boot up sequences like those in the middle of driver probes being
->>>> initiated, userspace will be unable to power off the system in a
->>>> clean
->>>> manner and leaves the system in a critical state. In cases like
->>>> these,
->>>> the /sbin/poweroff will return success (having forked off to
->>>> attempt
->>>> powering off the system. However, the system overall will fail to
->>>> completely poweroff (since other modules will be probed) and the
->>>> system
->>>> is still functional with no userspace (since that would have shut
->>>> itself
->>>> off).
->>> OK... This seams to me, still a corner case supposed to be fixed at
->>> orderly_power_off, not at thermal. But..
->>>
->>>>
->>>>
->>>> However, there is no clean way of detecting such failure of
->>>> userspace
->>>> powering off the system. In such scenarios, it is necessary for a
->>>> backup
->>>> workqueue to be able to force a shutdown of the system when
->>>> orderly
->>>> shutdown is not successful after a configurable time period.
->>>>
->>> Given that system running hot is a thermal issue, I guess we care
->>> more
->>> on this matter then..
->> Yes!
->>
-> I just read this thread again https://patchwork.kernel.org/patch/802458
-> 1/ to recall the previous discussion.
-> 
-> https://patchwork.kernel.org/patch/8149891/
-> https://patchwork.kernel.org/patch/8149861/
-> should be the solution made based on Ingo' suggestion, right?
-> 
-> And to me, this sounds like the right direction to go, thermal does not
-> need a back up shutdown solution, it just needs a kernel function call
-> which guarantees the system can be shutdown/reboot immediately.
-> 
-> is there any reason that patch 1/2 is not accepted?
+Keerthy,
 
-Zhang,
+On Wed, Apr 12, 2017 at 09:09:36AM +0530, Keerthy wrote:
+>=20
+>=20
+> On Wednesday 12 April 2017 08:50 AM, Zhang Rui wrote:
+> > On Wed, 2017-04-12 at 08:19 +0530, Keerthy wrote:
+> >>
+> >> On Tuesday 11 April 2017 10:59 PM, Eduardo Valentin wrote:
+> >>>
+> >>> Hey,
+> >>>
+> >>> On Fri, Mar 31, 2017 at 12:00:20PM +0530, Keerthy wrote:
+> >>>>
+> >>>> off).
 
-http://www.serverphorums.com/read.php?12,1400964
+<cut>
 
-I got a NAK from Alan and was given this direction on a thermal_poweroff
-which is more or less what is done in this patch.
+> >>> OK... This seams to me, still a corner case supposed to be fixed at
+> >>> orderly_power_off, not at thermal. But..
+> >>>
 
-Thanks,
-Keerthy
+^^^ Then again, this must be fixed not at thermal core. And re-reading
+the history of this thread, this seams to be really something broken at
+OMAP/DRA7, as mentioned in previous messages. That is probably why you
+are pushing for pm_power_off(), which seams to be the one that works for
+you, pulling the plug correctly (DRA7).
 
-> 
-> thanks,
-> rui
->>>
->>>
->>>>
->>>> Reported-by: Nishanth Menon <nm@ti.com>
->>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>>> ---
->>>>  drivers/thermal/Kconfig        | 13 +++++++++++++
->>>>  drivers/thermal/thermal_core.c | 42
->>>> ++++++++++++++++++++++++++++++++++++++++++
->>>>  2 files changed, 55 insertions(+)
->>>>
->>>> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
->>>> index 0a16cf4..4cc55f9 100644
->>>> --- a/drivers/thermal/Kconfig
->>>> +++ b/drivers/thermal/Kconfig
->>>> @@ -15,6 +15,19 @@ menuconfig THERMAL
->>>>  
->>>>  if THERMAL
->>>>  
->>>> +config THERMAL_EMERGENCY_POWEROFF_DELAY_MS
->>>> +	int "Emergency poweroff delay in milli-seconds"
->>>> +	depends on THERMAL
->>>> +	default 0
->>>> +	help
->>>> +	  The number of milliseconds to delay before emergency
->>>> +	  poweroff kicks in. The delay should be carefully
->>>> profiled
->>>> +	  so as to give adequate time for orderly_poweroff. In
->>>> case
->>>> +	  of failure of an orderly_poweroff the emergency
->>>> poweroff
->>>> +	  kicks in after the delay has elapsed and shuts down
->>>> the system.
->>>> +
->>>> +	  If set to 0 poweroff will happen immediately.
->>>> +
->>>>  config THERMAL_HWMON
->>>>  	bool
->>>>  	prompt "Expose thermal sensors as hwmon device"
->>>> diff --git a/drivers/thermal/thermal_core.c
->>>> b/drivers/thermal/thermal_core.c
->>>> index 11f0675..dc7fdd4 100644
->>>> --- a/drivers/thermal/thermal_core.c
->>>> +++ b/drivers/thermal/thermal_core.c
->>>> @@ -322,6 +322,47 @@ static void handle_non_critical_trips(struct
->>>> thermal_zone_device *tz,
->>>>  		       def_governor->throttle(tz, trip);
->>>>  }
->>>>  
->>>> +/**
->>>> + * emergency_poweroff_func - emergency poweroff work after a
->>>> known delay
->>>> + * @work: work_struct associated with the emergency poweroff
->>>> function
->>>> + *
->>>> + * This function is called in very critical situations to force
->>>> + * a kernel poweroff after a configurable timeout value.
->>>> + */
->>>> +static void emergency_poweroff_func(struct work_struct *work)
->>>> +{
->>>> +	/**
->>>> +	 * We have reached here after the emergency thermal
->>>> shutdown
->>>> +	 * Waiting period has expired. This means
->>>> orderly_poweroff has
->>>> +	 * not been able to shut off the system for some reason.
->>>> +	 * Try to shut down the system immediately using
->>>> pm_power_off
->>>> +	 * if populated
->>>> +	 */
->>> The above is not a kernel doc entry...
->> I will fix that.
->>
->>>
->>>
->>>>
->>>> +	pr_warn("Attempting kernel_power_off\n");
->>>> +	if (pm_power_off)
->>>> +		pm_power_off();
->>> Why not calling kernel_power_off() directly instead? That is what
->>> is called by orderly
->>> power off in case it fails, which seams to be  the missing part
->>> when
->>> user land returns success, and therefore we don't call
->>> kernel_power_off(). That path goes through the machine_power_off(),
->>> which seams to be the default for pm_power_off() anyway.
->>>
->>> kernel_power_off() handles the power off system call too.
->> Yes. This is after orderly_poweroff fails so i felt why go through
->> kernel_power_off and directly call pm_power_off which directly pulls
->> out
->> the power plug. This is in dire straits situation. Hence preferred to
->> call the last piece directly.
->>
->>>
->>>
->>>>
->>>> +
->>>> +	/**
->>> not a kernel doc entry...
->> Okay.
->>
->>>
->>>
->>>>
->>>> +	 * Worst of the worst case trigger emergency restart
->>>> +	 */
->>>> +	pr_warn("kernel_power_off has failed! Attempting
->>>> emergency_restart\n");
->>>> +	emergency_restart();
->>>> +}
->>>> +
->>>> +static DECLARE_DELAYED_WORK(emergency_poweroff_work,
->>>> emergency_poweroff_func);
->>>> +
->>>> +/**
->>>> + * emergency_poweroff - Trigger an emergency system poweroff
->>>> + *
->>>> + * This may be called from any critical situation to trigger a
->>>> system shutdown
->>>> + * after a known period of time. By default the delay is 0
->>>> millisecond
->>>> + */
->>>> +void thermal_emergency_poweroff(void)
->>>> +{
->>>> +	schedule_delayed_work(&emergency_poweroff_work,
->>>> +			      msecs_to_jiffies(CONFIG_THERMAL_EM
->>>> ERGENCY_POWEROFF_DELAY_MS));
->>>> +}
->>>> +
->>>>  static void handle_critical_trips(struct thermal_zone_device
->>>> *tz,
->>>>  				  int trip, enum
->>>> thermal_trip_type trip_type)
->>>>  {
->>>> @@ -343,6 +384,7 @@ static void handle_critical_trips(struct
->>>> thermal_zone_device *tz,
->>>>  			  "critical temperature reached(%d
->>>> C),shutting down\n",
->>>>  			  tz->temperature / 1000);
->>>>  		orderly_poweroff(true);
->>>> +		thermal_emergency_poweroff();
->>> Shouldn't we start count the timeout before calling
->>> orderly_poweroff?
->> Okay yes. That makes more sense. Queue the emergency function, start
->> the
->> countdown and immediately call the orderly_poweroff. I will fix the
->> above comments and send a v2. I still want to go with pm_power_off
->> over
->> kernel_poweroff as we have already elapsed the time out and the first
->> thing we want is to shut off the SoC! Let me know.
->>
->>
->>>
->>>
->>>>
->>>>  	}
->>>>  }
->>>>  
+> >>>>
+> >>>>
+> >>>> However, there is no clean way of detecting such failure of
+> >>>> userspace
+> >>>> powering off the system. In such scenarios, it is necessary for a
+> >>>> backup
+> >>>> workqueue to be able to force a shutdown of the system when
+> >>>> orderly
+> >>>> shutdown is not successful after a configurable time period.
+> >>>>
+> >>> Given that system running hot is a thermal issue, I guess we care
+> >>> more
+> >>> on this matter then..
+> >> Yes!
+> >>
+> > I just read this thread again https://patchwork.kernel.org/patch/802458
+> > 1/ to recall the previous discussion.
+> >=20
+> > https://patchwork.kernel.org/patch/8149891/
+> > https://patchwork.kernel.org/patch/8149861/
+> > should be the solution made based on Ingo' suggestion, right?
+> >=20
+> > And to me, this sounds like the right direction to go, thermal does not
+> > need a back up shutdown solution, it just needs a kernel function call
+> > which guarantees the system can be shutdown/reboot immediately.
+> >=20
+> > is there any reason that patch 1/2 is not accepted?
+>=20
+> Zhang,
+>=20
+> http://www.serverphorums.com/read.php?12,1400964
+>=20
+> I got a NAK from Alan and was given this direction on a thermal_poweroff
+> which is more or less what is done in this patch.
+>=20
+
+
+Actually, Alan's suggestion is more for you to define a
+thermal_poweroff() that can be defined per architecture.
+
+Also, please, keep track of your patch versions and also do copy
+everybody who has stated their opinion on previous discussions. These
+patches must have Ingo, Alan, and RMK copied too. In this way we avoid
+loosing track of what has been suggested and we also converge faster to
+something everybody (or most of us) agree. Next version, please, fix
+that.
+
+
+To me, thermal core needs a function that simply powers off the system.
+No timeouts, delayed works, backups, etc. Simple and straight.
+
+The idea of having a per architecture implementation, as per Alan's
+suggestion, makes sense to me too. Having something different from
+pm_power_off(), specific to thermal, might also give the opportunity to
+save the power off reason.
+
+BR,
+
+Eduardo Valentin
+
+--envbJBWh7q8WU6mo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJY7aePAAoJEA6VkvSQfF5T46YQAJj74GgdpogbFhVgMF9qkoMD
+AS8bq7AMaDDkmtLCekb2Q8b9iQ9HVHDDl0jM76yrA0HKPRgbs+LjhF4XlfKWJ7he
+8SRGw2O/RelAPj1i4kh+/MMOgLUPU4/a87srdMpVg0kn1enKEtCgtOmg2cHuIVTI
+5oZZzVLd0pDkEElC1HbYwdw0iIceHv0oF7Dzt5qvsIqENnGgAAHpY/hPazER5CTe
+JFOJNHamhIQEO5BWpxtZHDPTSpqQXKxO8P7trUjkdi1mKImb2WCQQotZuX6ydLuI
+XE1M/Q5W8tSc8utrn4ZjYVigF6+pgbQilXDhSOyZeT6bn21UL7PRU6WtKQMn34rI
+J1L3gp2tfa8jlnJmUgOjSmNIGaS/YZZgmO12Oxe7m91U7ZQt2zT+dBPPTw8zQgHT
+SL9NzfyFexwvrAuowNkigK3YTnvKJeKIHNXiKXDXZu25xXOGSTnzPP96LpkhvvLM
+GysdcKogvzmLT9KonE7JUJ46Z3cUpjhlah7v7/IgykT9Q1oj7SnTw8SdzYBbh1L1
+dn1KQ9ZgCX9K/X3YZFkfP9ZXm8lStReO8UeVRtMcmmqF09ruBFF/3ks3Wuse/y1o
+ZkOE7i2u7LYbzzux1lLLKRUSB7FDZEBcn3CueKMXf0jWCmtwnTG4EoR5DSWilfPO
+hdADY2dQ8/9WiOUyCzGO
+=qrqO
+-----END PGP SIGNATURE-----
+
+--envbJBWh7q8WU6mo--
