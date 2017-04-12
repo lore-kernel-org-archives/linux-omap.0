@@ -1,167 +1,103 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH] thermal: core: Add a back up thermal shutdown mechanism
-Date: Wed, 12 Apr 2017 10:24:36 -0700
-Message-ID: <20170412172434.GA14619@localhost.localdomain>
-References: <20170412040542.GA11305@localhost.localdomain>
- <abf93eec-890f-4c3e-68fa-58c10678dde9@ti.com>
- <1491985580.2357.39.camel@intel.com>
- <db07d448-0fa9-f582-a323-5edcb9a0b509@ti.com>
- <1491986744.2357.42.camel@intel.com>
- <20170412154358.GA12881@localhost.localdomain>
- <b565f2c9-fdd7-7525-da91-695f113e631b@ti.com>
- <b0830fa9-9a3b-6862-6cab-274c17810227@ti.com>
- <798128ac-1d0b-7eb8-2ea3-8bc0bd0b9d6f@ti.com>
- <d79065b6-99b4-34e6-ebd7-556d5ae64ed3@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d79065b6-99b4-34e6-ebd7-556d5ae64ed3@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nm@ti.com, t-kristo@ti.com
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH v5 0/8] mfd: Add OF device table to I2C drivers that are missing it
+Date: Wed, 12 Apr 2017 14:27:51 -0300
+Message-ID: <20170412172800.23035-1-javier@osg.samsung.com>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Javier Martinez Canillas <javier@osg.samsung.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Wolfram Sang <wsa@the-dreams.de>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 12, 2017 at 10:41:00PM +0530, Keerthy wrote:
-> 
-> 
-> On Wednesday 12 April 2017 10:38 PM, Grygorii Strashko wrote:
-> > 
-> > 
-> > On 04/12/2017 11:44 AM, Keerthy wrote:
-> >>
-> >>
-> >> On Wednesday 12 April 2017 10:01 PM, Grygorii Strashko wrote:
-> >>>
-> >>>
-> >>> On 04/12/2017 10:44 AM, Eduardo Valentin wrote:
-> >>>> Hello,
-> >>>>
-> >>> ...
-> >>>
-> >>>>
-> >>>> I agree. But there it nothing that says it is not reenterable. If you
-> >>>> saw something in this line, can you please share?
-> >>>>
-> >>>>>>> will you generate a patch to do this?
-> >>>>>> Sure. I will generate a patch to take care of 1) To make sure that
-> >>>>>> orderly_poweroff is called only once right away. I have already
-> >>>>>> tested.
-> >>>>>>
-> >>>>>> for 2) Cancel all the scheduled work queues to monitor the
-> >>>>>> temperature.
-> >>>>>> I will take some more time to make it and test.
-> >>>>>>
-> >>>>>> Is that okay? Or you want me to send both together?
-> >>>>>>
-> >>>>> I think you can send patch for step 1 first.
-> >>>>
-> >>>> I am happy to see that Keerthy found the problem with his setup and a
-> >>>> possible solution. But I have a few concerns here.
-> >>>>
-> >>>> 1. If regular shutdown process takes 10seconds, that is a ballpark that
-> >>>> thermal should never wait. orderly_poweroff() calls run_cmd() with wait
-> >>>> flag set. That means, if regular userland shutdown takes 10s, we are
-> >>>> waiting for it. Obviously this not acceptable. Specially if you setup
-> >>>> critical trip to be 125C. Now, if you properly size the critical trip to
-> >>>> fire before hotspot really reach 125C, for 10s (or the time it takes to
-> >>>> shutdown), then fine. But based on what was described in this thread,
-> >>>> his system is waiting 10s on regular shutdown, and his silicon is on
-> >>>> out-of-spec temperature for 10s, which is wrong.
-> >>>>
-> >>>> 2. The above scenario is not acceptable in a long run, specially from a
-> >>>> reliability perspective. If orderly_poweroff() has a possibility to
-> >>>> simply never return (or take too long), I would say the thermal
-> >>>> subsystem is using the wrong API.
-> > 
-> > ^ this question just repeat everything which was already discussed in
-> > previous versions of this patch - orderly_poweroff() is not good for critical shutdown/poweroff,
-> > but what to use instead?
+Hello,
 
-It is still useful on a properly sized system. The point is the thermal
-subsystem still wants to give one opportunity to gracefully shutdown the
-running system on a thermal scenario, as I explained in the other email.
-But, you have to do this accounting the down time, and your reliability
-concerns.
+This series add OF device ID tables to mfd I2C drivers whose devices are
+either used in Device Tree source files or are listed in binding docs as
+a compatible string.
 
-> > 
-> > 
-> >>>>
-> >>>
-> >>>
-> >>> Hh, I do not see that orderly_poweroff() will wait for anything now:
-> >>> void orderly_poweroff(bool force)
-> >>> {
-> >>> 	if (force) /* do not override the pending "true" */
-> >>> 		poweroff_force = true;
-> >>> 	schedule_work(&poweroff_work); 
-> >>> ^^^^^^^ async call. even here can be pretty big delay if system is under pressure
-> >>> }
-> >>>
-> >>>
-> >>> static int __orderly_poweroff(bool force)
-> >>> {
-> >>> 	int ret;
-> >>>
-> >>> 	ret = run_cmd(poweroff_cmd);
-> >>
-> >> When i tried with multiple orderly_poweroff calls ret was always 0.
-> >> So every 250mS i see this ret = 0.
-> >>
-> >>> ^^^^ no wait for the process - only for exec. flags == UMH_WAIT_EXEC
-> >>>
-> >>> 	if (ret && force) {
-> >>
-> >> So it never entered this path. ret = 0 so if is not executed.
-> > 
-> > correct, because exec can find poweroff tool and start it, so you,
-> > most probably, have bunch of this tool instance running in parallel (some of them can fail or block)
-> > Issue 1 - you've sent fix for is actual :).
-> 
-> Precisely yes!
-> 
+That's done because the plan is to change the I2C core to report proper OF
+modaliases instead of always reporting a MODALIAS=i2c:<foo> regardless if
+a device was registered via DT or using the legacy platform data mechanism.
 
-As I mentioned, the fix is a two fold, a. avoid spam of
-orderly_poweroff(), but make sure eventually we shutdown.
+So these patches will make sure that mfd I2C drivers modules will continue
+to be autoloaded once the I2C core is changed to report proper OF modalias.
 
-> > 
-> > Again, thermal has no control of power off process once  run_cmd() is returned,
-> > and it do not know what US poweroff binary is doing and how much time can it take
-> > (which include disks maintenance - loooong delay).
-> > 
-> >>
-> >>> 		pr_warn("Failed to start orderly shutdown: forcing the issue\n");
-> >>>
-> >>> 		/*
-> >>> 		 * I guess this should try to kick off some daemon to sync and
-> >>> 		 * poweroff asap.  Or not even bother syncing if we're doing an
-> >>> 		 * emergency shutdown?
-> >>> 		 */
-> >>> 		emergency_sync();
-> >>> 		kernel_power_off();
-> >>> ^^^ force power off, but only if run_cmd() failed - for example /sbin/poweroff doesn't exist
-> >>> 	}
-> >>>
-> >>> 	return ret;
-> >>> }
-> >>>
-> >>> static bool poweroff_force;
-> >>>
-> >>> static void poweroff_work_func(struct work_struct *work)
-> >>> {
-> >>> 	__orderly_poweroff(poweroff_force);
-> >>> }
-> >>>
-> >>> As result thermal has no control of power off any more after calling orderly_poweroff() and can get the result
-> >>> of US poweroff binary execution.
-> >>>
-> >>>>
-> >>>> If you are going to implement the above two patches, keep in mind:
-> >>>> i. At least within the thermal subsystem, you need to take care of all
-> >>>> zones that could trigger a shutdown.
-> >>>> ii. serializing the calls to orderly_poweroff() seams to be more
-> >>>> concerning than cancelling all monitoring.
-> >>>>
-> >>>>
-> >>>
-> > 
+Users didn't have a vendor prefix in the used compatible strings, but since
+there wasn't a DT binding document for these drivers, it can be said that
+were working for mere luck and so this series fixes the users and add a DT
+binding doc for the drivers.
+
+Most patches can be applied independently, with the exception of patches
+2 to 4 that should be applied in the same tree to keep bisect-ability. I
+suggest these to go through the MFD subsystem tree.
+
+Best regards,
+Javier
+
+Changes in v5:
+- Add missing properties for interrupts to DT binding doc (Rob Herring).
+- Add Rob Herring's Acked-by tag.
+- Add Aaro Koskinen's Acked-by tag.
+- Add Acked-by: Tony Lindgren <tony@atomide.com>'s Acked-by tag.
+- Add Lee Jones <lee.jones@linaro.org>'s Acked-by tag.
+- Add Rob Herring's Acked-by tag.
+- Add Aaro Koskinen's Acked-by tag.
+- Add Acked-by: Tony Lindgren <tony@atomide.com>'s Acked-by tag.
+- Add Rob Herring's Acked-by tag.
+- Add Aaro Koskinen's Acked-by tag.
+- Add Acked-by: Tony Lindgren <tony@atomide.com>'s Acked-by tag.
+- Add Lee Jones <lee.jones@linaro.org>'s Acked-by tag.
+- Add Rob Herring's Acked-by tag.
+- Add Aaro Koskinen's Acked-by tag.
+- Add Acked-by: Tony Lindgren <tony@atomide.com>'s Acked-by tag.
+- Add Rob Herring's Acked-by tag.
+- Add Aaro Koskinen's Acked-by tag.
+- Add Acked-by: Tony Lindgren <tony@atomide.com>'s Acked-by tag.
+- Add Rob Herring's Acked-by tag.
+- Add Acked-by: Tony Lindgren <tony@atomide.com>'s Acked-by tag.
+- Add Rob Herring's Acked-by tag.
+- Add Acked-by: Tony Lindgren <tony@atomide.com>'s Acked-by tag.
+- Add Lee Jones <lee.jones@linaro.org>'s Acked-by tag.
+- Add Rob Herring's Acked-by tag.
+- Add Acked-by: Tony Lindgren <tony@atomide.com>'s Acked-by tag.
+
+Changes in v4:
+- Use "dt-bindings: mfd:" prefix in subject line (Rob Herring).
+- Add information about what functions the device serve (Lee Jones).
+- Avoid using MFD in Device Tree (Lee Jones).
+- Drop -mfd suffix in compatible string (Lee Jones).
+- Avoid using MFD in Device Tree (Lee Jones).
+- Use "dt-bindings: mfd:" prefix in subject line (Rob Herring).
+- Add information about what functions the device serve (Lee Jones).
+
+Changes in v3:
+- Add a vendor prefix to the compatible string (Rob Herring).
+- Add a vendor prefix to the compatible string (Rob Herring).
+
+Changes in v2:
+- Don't use of_match_ptr() to avoid build warning when CONFIG_OF is disabled.
+- Don't use of_match_ptr() to avoid build warning when CONFIG_OF is disabled.
+
+Javier Martinez Canillas (8):
+  dt-bindings: mfd: Add retu/tahvo ASIC chips bindings
+  mfd: retu: Drop -mfd suffix from I2C device ID name
+  mfd: retu: Add OF device ID table
+  ARM: dts: n8x0: Add vendor prefix to retu node
+  i2c: i2c-cbus-gpio: Add vendor prefix to retu node in example
+  dt-bindings: mfd: Add TI tps6105x chip bindings
+  mfd: tps6105x: Add OF device ID table
+  ARM: ux500: Add vendor prefix to tps61052 node
+
+ .../devicetree/bindings/i2c/i2c-cbus-gpio.txt      |  4 ++--
+ Documentation/devicetree/bindings/mfd/retu.txt     | 23 ++++++++++++++++++++++
+ Documentation/devicetree/bindings/mfd/tps6105x.txt | 17 ++++++++++++++++
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi        |  4 ++--
+ arch/arm/boot/dts/ste-hrefprev60.dtsi              |  2 +-
+ arch/arm/mach-omap1/board-nokia770.c               |  4 ++--
+ drivers/mfd/retu-mfd.c                             | 12 +++++++++--
+ drivers/mfd/tps6105x.c                             |  8 ++++++++
+ 8 files changed, 65 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/retu.txt
+ create mode 100644 Documentation/devicetree/bindings/mfd/tps6105x.txt
+
+-- 
+2.9.3
