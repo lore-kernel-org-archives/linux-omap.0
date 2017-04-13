@@ -1,189 +1,142 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v2 2/2] thermal: core: Add a back up thermal shutdown
- mechanism
-Date: Thu, 13 Apr 2017 23:02:43 +0530
-Message-ID: <bf9ed9a7-b332-d1e5-1194-72ca9b948cc6@ti.com>
-References: <1492070556-24660-1-git-send-email-j-keerthy@ti.com>
- <1492070556-24660-2-git-send-email-j-keerthy@ti.com>
- <20170413152525.GA8683@localhost.localdomain>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH v2 00/22] eeprom: at24: Add OF device ID table
+Date: Thu, 13 Apr 2017 15:28:17 -0300
+Message-ID: <20170413182839.25381-1-javier@osg.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170413152525.GA8683@localhost.localdomain>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: rui.zhang@intel.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nm@ti.com, t-kristo@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Andrew Lunn <andrew@lunn.ch>, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@armlinux.org.uk>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-i2c@vger.kernel.org, Hongtao Jia <hongtao.jia@nxp.com>, Mark Jackson <mpfj@newflow.co.uk>, Herbert Xu <herbert@gondor.apana.org.au>, =?UTF-8?q?Horia=20Geant=C4=83?= <horia.geanta@nxp.com>, Michael Ellerman <mpe@ellerman.id.au>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-arm-kernel@lists.infradead.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jason Cooper <jason@lakedae>
 List-Id: linux-omap@vger.kernel.org
 
+Hello Wolfram,
 
+This series is a follow-up to patch [0] that added an OF device ID table
+to the at24 EEPROM driver. As you suggested [1], this version instead of
+adding entries for every used <vendor,device> tuple, only adds a single
+entry for each chip type using the "atmel" vendor as a generic fallback.
 
-On Thursday 13 April 2017 08:55 PM, Eduardo Valentin wrote:
-> 
-> Hey,
-> 
-> On Thu, Apr 13, 2017 at 01:32:36PM +0530, Keerthy wrote:
->> orderly_poweroff is triggered when a graceful shutdown
->> of system is desired. This may be used in many critical states of the
->> kernel such as when subsystems detects conditions such as critical
->> temperature conditions. However, in certain conditions in system
->> boot up sequences like those in the middle of driver probes being
->> initiated, userspace will be unable to power off the system in a clean
->> manner and leaves the system in a critical state. In cases like these,
->> the /sbin/poweroff will return success (having forked off to attempt
->> powering off the system. However, the system overall will fail to
->> completely poweroff (since other modules will be probed) and the system
->> is still functional with no userspace (since that would have shut itself
->> off).
->>
->> However, there is no clean way of detecting such failure of userspace
->> powering off the system. In such scenarios, it is necessary for a backup
->> workqueue to be able to force a shutdown of the system when orderly
->> shutdown is not successful after a configurable time period.
-> 
-> Thanks for keeping this thread up and fixing it. Some requests to this
-> patch too as follows.
-> 
->>
->> Reported-by: Nishanth Menon <nm@ti.com>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>
->>   * Changed the comment style
->>   * Added backup shutdown call before orderly_poweroff
->>
->>  drivers/thermal/Kconfig        | 13 ++++++++++++
->>  drivers/thermal/thermal_core.c | 47 ++++++++++++++++++++++++++++++++++++++++++
-> 
-> I think this change in expectation should probably be documented under
-> Documentation/ directory. Can you please patch thermal documentation
-> too?
+The first patch adds the OF device ID table for the at24 driver and the
+next patches adds a generic fallback compatible string to each DTS that
+defines a compatible I2C EEPROM device node.
 
-Okay.
+Patches can be applied independently since the DTS change without the
+driver change is a no-op and the OF device table won't be used without
+the DTS changes.
 
-> 
->>  2 files changed, 60 insertions(+)
->>
->> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
->> index 9347401..971fd54 100644
->> --- a/drivers/thermal/Kconfig
->> +++ b/drivers/thermal/Kconfig
->> @@ -15,6 +15,19 @@ menuconfig THERMAL
->>  
->>  if THERMAL
->>  
->> +config THERMAL_EMERGENCY_POWEROFF_DELAY_MS
->> +	int "Emergency poweroff delay in milli-seconds"
->> +	depends on THERMAL
->> +	default 0
->> +	help
->> +	  The number of milliseconds to delay before emergency
->> +	  poweroff kicks in. The delay should be carefully profiled
->> +	  so as to give adequate time for orderly_poweroff. In case
->> +	  of failure of an orderly_poweroff the emergency poweroff
->> +	  kicks in after the delay has elapsed and shuts down the system.
->> +
->> +	  If set to 0 poweroff will happen immediately.
->> +
->>  config THERMAL_HWMON
->>  	bool
->>  	prompt "Expose thermal sensors as hwmon device"
->> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
->> index 7462ae5..d60fa9e 100644
->> --- a/drivers/thermal/thermal_core.c
->> +++ b/drivers/thermal/thermal_core.c
->> @@ -323,12 +323,54 @@ static void handle_non_critical_trips(struct thermal_zone_device *tz,
->>  		       def_governor->throttle(tz, trip);
->>  }
->>  
->> +/**
->> + * emergency_poweroff_func - emergency poweroff work after a known delay
->> + * @work: work_struct associated with the emergency poweroff function
->> + *
->> + * This function is called in very critical situations to force
->> + * a kernel poweroff after a configurable timeout value.
->> + */
->> +static void emergency_poweroff_func(struct work_struct *work)
->> +{
->> +	/*
->> +	 * We have reached here after the emergency thermal shutdown
->> +	 * Waiting period has expired. This means orderly_poweroff has
->> +	 * not been able to shut off the system for some reason.
->> +	 * Try to shut down the system immediately using kernel_power_off
->> +	 * if populated
->> +	 */
->> +	pr_warn("Attempting kernel_power_off\n");
-> 
-> This message needs to be specific to thermal (forced) shutdown.
+[0]: https://lkml.org/lkml/2017/3/14/589
+[1]: https://lkml.org/lkml/2017/3/15/99
 
-Sure.
+Best regards,
+Javier
 
-> 
->> +	kernel_power_off();
->> +
->> +	/*
->> +	 * Worst of the worst case trigger emergency restart
->> +	 */
->> +	pr_warn("kernel_power_off has failed! Attempting emergency_restart\n");
-> 
-> Same here..
+Changes in v2:
+- Only add a single OF device ID entry for each device type (Wolfram Sang).
 
-okay.
+Javier Martinez Canillas (22):
+  dt-bindings: i2c: eeprom: Document manufacturer used as generic
+    fallback
+  eeprom: at24: Add OF device ID table
+  ARM: dts: omap: Add generic compatible string for I2C EEPROM
+  ARM: dts: turris-omnia: Add generic compatible string for I2C EEPROM
+  ARM: dts: at91: Add generic compatible string for I2C EEPROM
+  ARM: dts: efm32: Add generic compatible string for I2C EEPROM
+  ARM: dts: imx: Add generic compatible string for I2C EEPROM
+  ARM: dts: keystone: Add generic compatible string for I2C EEPROM
+  ARM: dts: lpc18xx: Add generic compatible string for I2C EEPROM
+  ARM: dts: r7s72100: Add generic compatible string for I2C EEPROM
+  ARM: dts: koelsch: Add generic compatible string for I2C EEPROM
+  ARM: dts: socfpga: Add generic compatible string for I2C EEPROM
+  ARM: dts: uniphier: Add generic compatible string for I2C EEPROM
+  ARM: dts: zynq: Add generic compatible string for I2C EEPROM
+  arm64: dts: ls1043a: Add generic compatible string for I2C EEPROM
+  arm64: zynqmp: Add generic compatible string for I2C EEPROM
+  powerpc/5200: Add generic compatible string for I2C EEPROM
+  powerpc/fsl: Add generic compatible string for I2C EEPROM
+  powerpc/512x: Add generic compatible string for I2C EEPROM
+  powerpc/83xx: Add generic compatible string for I2C EEPROM
+  powerpc/5200: Add generic compatible string for I2C EEPROM
+  powerpc/44x: Add generic compatible string for I2C EEPROM
 
-> 
-> also, I think if your system reached this point, we should probably be more
-> dramatic at the kernel log a scream louder, I would say a big farty WARN
-> to say the least. Or a crash.
+ .../devicetree/bindings/eeprom/eeprom.txt          |  3 +-
+ arch/arm/boot/dts/am335x-baltos.dtsi               |  2 +-
+ arch/arm/boot/dts/am335x-base0033.dts              |  2 +-
+ arch/arm/boot/dts/am335x-bone-common.dtsi          | 10 ++--
+ arch/arm/boot/dts/am335x-nano.dts                  |  2 +-
+ arch/arm/boot/dts/am335x-pepper.dts                |  2 +-
+ arch/arm/boot/dts/am335x-shc.dts                   |  2 +-
+ arch/arm/boot/dts/am335x-sl50.dts                  |  2 +-
+ arch/arm/boot/dts/am437x-idk-evm.dts               |  2 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts                |  2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts               |  2 +-
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi    |  2 +-
+ arch/arm/boot/dts/armada-385-turris-omnia.dts      |  2 +-
+ arch/arm/boot/dts/at91-linea.dtsi                  |  2 +-
+ arch/arm/boot/dts/at91-tse850-3.dts                |  2 +-
+ arch/arm/boot/dts/efm32gg-dk3750.dts               |  2 +-
+ arch/arm/boot/dts/imx27-phytec-phycard-s-som.dtsi  |  2 +-
+ arch/arm/boot/dts/imx27-phytec-phycore-som.dtsi    |  2 +-
+ arch/arm/boot/dts/imx28-evk.dts                    |  2 +-
+ arch/arm/boot/dts/imx53-tqma53.dtsi                |  2 +-
+ arch/arm/boot/dts/imx6q-cm-fx6.dts                 |  2 +-
+ arch/arm/boot/dts/imx6q-utilite-pro.dts            |  2 +-
+ arch/arm/boot/dts/keystone-k2e-evm.dts             |  2 +-
+ arch/arm/boot/dts/keystone-k2hk-evm.dts            |  2 +-
+ arch/arm/boot/dts/keystone-k2l-evm.dts             |  2 +-
+ arch/arm/boot/dts/lpc4337-ciaa.dts                 |  6 +-
+ arch/arm/boot/dts/lpc4350-hitex-eval.dts           |  2 +-
+ arch/arm/boot/dts/lpc4357-ea4357-devkit.dts        |  2 +-
+ arch/arm/boot/dts/omap3-cm-t3x.dtsi                |  2 +-
+ arch/arm/boot/dts/omap3-gta04.dtsi                 |  2 +-
+ arch/arm/boot/dts/omap3-sb-t35.dtsi                |  2 +-
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi          |  2 +-
+ arch/arm/boot/dts/omap5-cm-t54.dts                 |  2 +-
+ arch/arm/boot/dts/omap5-sbc-t54.dts                |  2 +-
+ arch/arm/boot/dts/r7s72100-genmai.dts              |  2 +-
+ arch/arm/boot/dts/r8a7791-koelsch.dts              |  2 +-
+ arch/arm/boot/dts/socfpga_cyclone5_vining_fpga.dts |  2 +-
+ arch/arm/boot/dts/uniphier-pro4-ace.dts            |  2 +-
+ arch/arm/boot/dts/uniphier-pro4-sanji.dts          |  2 +-
+ arch/arm/boot/dts/uniphier-pxs2-gentil.dts         |  2 +-
+ arch/arm/boot/dts/zynq-zc702.dts                   |  2 +-
+ arch/arm/boot/dts/zynq-zc706.dts                   |  2 +-
+ arch/arm64/boot/dts/freescale/fsl-ls1043a-rdb.dts  |  4 +-
+ arch/arm64/boot/dts/xilinx/zynqmp-ep108.dts        |  4 +-
+ arch/powerpc/boot/dts/digsy_mtc.dts                |  2 +-
+ arch/powerpc/boot/dts/fsl/b4qds.dtsi               |  8 +--
+ arch/powerpc/boot/dts/fsl/c293pcie.dts             |  2 +-
+ arch/powerpc/boot/dts/fsl/p1010rdb.dtsi            |  2 +-
+ arch/powerpc/boot/dts/fsl/p1023rdb.dts             |  2 +-
+ arch/powerpc/boot/dts/fsl/p2041rdb.dts             |  4 +-
+ arch/powerpc/boot/dts/fsl/p3041ds.dts              |  4 +-
+ arch/powerpc/boot/dts/fsl/p4080ds.dts              |  4 +-
+ arch/powerpc/boot/dts/fsl/p5020ds.dts              |  4 +-
+ arch/powerpc/boot/dts/fsl/p5040ds.dts              |  4 +-
+ arch/powerpc/boot/dts/fsl/t208xqds.dtsi            |  8 +--
+ arch/powerpc/boot/dts/fsl/t4240qds.dts             | 12 ++--
+ arch/powerpc/boot/dts/fsl/t4240rdb.dts             |  6 +-
+ arch/powerpc/boot/dts/mpc5121ads.dts               |  2 +-
+ arch/powerpc/boot/dts/mpc8308_p1m.dts              |  2 +-
+ arch/powerpc/boot/dts/mpc8349emitx.dts             |  2 +-
+ arch/powerpc/boot/dts/mpc8377_rdb.dts              |  2 +-
+ arch/powerpc/boot/dts/mpc8377_wlan.dts             |  2 +-
+ arch/powerpc/boot/dts/mpc8378_rdb.dts              |  2 +-
+ arch/powerpc/boot/dts/mpc8379_rdb.dts              |  2 +-
+ arch/powerpc/boot/dts/pcm030.dts                   |  2 +-
+ arch/powerpc/boot/dts/pcm032.dts                   |  2 +-
+ arch/powerpc/boot/dts/warp.dts                     |  2 +-
+ drivers/misc/eeprom/at24.c                         | 69 +++++++++++++++++++++-
+ 68 files changed, 162 insertions(+), 94 deletions(-)
 
-warning should do.
-
-> 
->> +	emergency_restart();
->> +}
->> +
->> +static DECLARE_DELAYED_WORK(emergency_poweroff_work, emergency_poweroff_func);
->> +
->> +/**
->> + * emergency_poweroff - Trigger an emergency system poweroff
->> + *
->> + * This may be called from any critical situation to trigger a system shutdown
->> + * after a known period of time. By default the delay is 0 millisecond
->> + */
->> +void thermal_emergency_poweroff(void)
->> +{
->> +	schedule_delayed_work(&emergency_poweroff_work,
->> +			      msecs_to_jiffies(CONFIG_THERMAL_EMERGENCY_POWEROFF_DELAY_MS));
->> +}
->> +
->>  static void handle_critical_trips(struct thermal_zone_device *tz,
->>  				  int trip, enum thermal_trip_type trip_type)
->>  {
->>  	int trip_temp;
->>  	static bool power_off_triggered;
->> +	static struct mutex poweroff_lock;
->>  
->> +	mutex_init(&poweroff_lock);
->>  	tz->ops->get_trip_temp(tz, trip, &trip_temp);
->>  
-> 
-> the above is probably a quirk?
-
-Ya unnecessary. Thanks for catching this.
-
-> 
->>  	/* If we have not crossed the trip_temp, we do not care. */
->> @@ -345,6 +387,11 @@ static void handle_critical_trips(struct thermal_zone_device *tz,
->>  			  "critical temperature reached(%d C),shutting down\n",
->>  			  tz->temperature / 1000);
->>  		mutex_lock(&poweroff_lock);
->> +		/*
->> +		 * Queue a backup emergency shutdown in the event of
->> +		 * orderly_poweroff failure.
->> +		 */
->> +		thermal_emergency_poweroff();
->>  		orderly_poweroff(true);
->>  		power_off_triggered = true;
->>  		mutex_unlock(&poweroff_lock);
->> -- 
->> 1.9.1
->>
+-- 
+2.9.3
