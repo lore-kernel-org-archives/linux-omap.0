@@ -1,162 +1,94 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 2/2] thermal: core: Add a back up thermal shutdown mechanism
-Date: Fri, 14 Apr 2017 10:48:25 +0530
-Message-ID: <1492147105-26692-2-git-send-email-j-keerthy@ti.com>
-References: <1492147105-26692-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v3 1/2] thermal: core: Allow orderly_poweroff to be called only once
+Date: Fri, 14 Apr 2017 10:48:24 +0530
+Message-ID: <1492147105-26692-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1492147105-26692-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-pm-owner@vger.kernel.org
 To: rui.zhang@intel.com, edubezval@gmail.com
 Cc: j-keerthy@ti.com, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nm@ti.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-orderly_poweroff is triggered when a graceful shutdown
-of system is desired. This may be used in many critical states of the
-kernel such as when subsystems detects conditions such as critical
-temperature conditions. However, in certain conditions in system
-boot up sequences like those in the middle of driver probes being
-initiated, userspace will be unable to power off the system in a clean
-manner and leaves the system in a critical state. In cases like these,
-the /sbin/poweroff will return success (having forked off to attempt
-powering off the system. However, the system overall will fail to
-completely poweroff (since other modules will be probed) and the system
-is still functional with no userspace (since that would have shut itself
-off).
+thermal_zone_device_check --> thermal_zone_device_update -->
+handle_thermal_trip --> handle_critical_trips --> orderly_poweroff
 
-However, there is no clean way of detecting such failure of userspace
-powering off the system. In such scenarios, it is necessary for a backup
-workqueue to be able to force a shutdown of the system when orderly
-shutdown is not successful after a configurable time period.
+The above sequence happens every 250/500 mS based on the configuration.
+The orderly_poweroff function is getting called every 250/500 mS.
+With a full fledged file system it takes at least 5-10 Seconds to
+power off gracefully.
 
-Reported-by: Nishanth Menon <nm@ti.com>
+In that period due to the thermal_zone_device_check triggering
+periodically the thermal work queues bombard with
+orderly_poweroff calls multiple times eventually leading to
+failures in gracefully powering off the system.
+
+Make sure that orderly_poweroff is called only once.
+
+Reported-by: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
 
 Changes in v3:
 
-  * Removed unnecessary mutex init.
-  * Added WARN messages instead of a simple warning message.
-  * Added Documentation.
+  * Changed the place where mutex was locked and unlocked.
 
- Documentation/thermal/sysfs-api.txt | 18 +++++++++++++++
- drivers/thermal/Kconfig             | 13 +++++++++++
- drivers/thermal/thermal_core.c      | 45 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 76 insertions(+)
+Changes in v2:
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index ef473dc..94b707c 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -582,3 +582,21 @@ platform data is provided, this uses the step_wise throttling policy.
- This function serves as an arbitrator to set the state of a cooling
- device. It sets the cooling device to the deepest cooling state if
- possible.
-+
-+6. thermal_emergency_poweroff:
-+
-+On an event of critical trip temperature crossing. Thermal framework
-+allows the system to shutdown gracefully by calling orderly_poweroff.
-+In the event of a failure of orderly_poweroff to shut down the system
-+we are in danger of keeping the system alive at undesirably high
-+temperatures. To mitigate this high risk scenario we program a work
-+queue to fire after a pre-determined number of seconds to start
-+an emergency shutdown of the device using the kernel_power_off
-+function.
-+
-+The delay should be carefully profiled so as to give adequate time for
-+orderly_poweroff. In case of failure of an orderly_poweroff the
-+emergency poweroff kicks in after the delay has elapsed and shuts down
-+the system.
-+
-+If set to 0 emergency poweroff will happen immediately.
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 9347401..971fd54 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -15,6 +15,19 @@ menuconfig THERMAL
- 
- if THERMAL
- 
-+config THERMAL_EMERGENCY_POWEROFF_DELAY_MS
-+	int "Emergency poweroff delay in milli-seconds"
-+	depends on THERMAL
-+	default 0
-+	help
-+	  The number of milliseconds to delay before emergency
-+	  poweroff kicks in. The delay should be carefully profiled
-+	  so as to give adequate time for orderly_poweroff. In case
-+	  of failure of an orderly_poweroff the emergency poweroff
-+	  kicks in after the delay has elapsed and shuts down the system.
-+
-+	  If set to 0 poweroff will happen immediately.
-+
- config THERMAL_HWMON
- 	bool
- 	prompt "Expose thermal sensors as hwmon device"
+  * Added a global mutex to serialize poweroff code sequence.
+
+ drivers/thermal/thermal_core.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
 diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
-index 9cad1ba..30098cd 100644
+index 11f0675..9cad1ba 100644
 --- a/drivers/thermal/thermal_core.c
 +++ b/drivers/thermal/thermal_core.c
-@@ -323,6 +323,46 @@ static void handle_non_critical_trips(struct thermal_zone_device *tz,
- 		       def_governor->throttle(tz, trip);
- }
+@@ -45,6 +45,7 @@
  
-+/**
-+ * emergency_poweroff_func - emergency poweroff work after a known delay
-+ * @work: work_struct associated with the emergency poweroff function
-+ *
-+ * This function is called in very critical situations to force
-+ * a kernel poweroff after a configurable timeout value.
-+ */
-+static void emergency_poweroff_func(struct work_struct *work)
-+{
-+	/*
-+	 * We have reached here after the emergency thermal shutdown
-+	 * Waiting period has expired. This means orderly_poweroff has
-+	 * not been able to shut off the system for some reason.
-+	 * Try to shut down the system immediately using kernel_power_off
-+	 * if populated
-+	 */
-+	WARN(1, "Attempting kernel_power_off: Temperature too high\n");
-+	kernel_power_off();
-+
-+	/*
-+	 * Worst of the worst case trigger emergency restart
-+	 */
-+	WARN(1, "Attempting emergency_restart: Temperature too high\n");
-+	emergency_restart();
-+}
-+
-+static DECLARE_DELAYED_WORK(emergency_poweroff_work, emergency_poweroff_func);
-+
-+/**
-+ * emergency_poweroff - Trigger an emergency system poweroff
-+ *
-+ * This may be called from any critical situation to trigger a system shutdown
-+ * after a known period of time. By default the delay is 0 millisecond
-+ */
-+void thermal_emergency_poweroff(void)
-+{
-+	schedule_delayed_work(&emergency_poweroff_work,
-+			      msecs_to_jiffies(CONFIG_THERMAL_EMERGENCY_POWEROFF_DELAY_MS));
-+}
-+
- static void handle_critical_trips(struct thermal_zone_device *tz,
+ static DEFINE_MUTEX(thermal_list_lock);
+ static DEFINE_MUTEX(thermal_governor_lock);
++static DEFINE_MUTEX(poweroff_lock);
+ 
+ static atomic_t in_suspend;
+ 
+@@ -326,6 +327,7 @@ static void handle_critical_trips(struct thermal_zone_device *tz,
  				  int trip, enum thermal_trip_type trip_type)
  {
-@@ -346,6 +386,11 @@ static void handle_critical_trips(struct thermal_zone_device *tz,
+ 	int trip_temp;
++	static bool power_off_triggered;
+ 
+ 	tz->ops->get_trip_temp(tz, trip, &trip_temp);
+ 
+@@ -342,7 +344,12 @@ static void handle_critical_trips(struct thermal_zone_device *tz,
+ 		dev_emerg(&tz->device,
+ 			  "critical temperature reached(%d C),shutting down\n",
  			  tz->temperature / 1000);
- 		mutex_lock(&poweroff_lock);
- 		if (!power_off_triggered) {
-+			/*
-+			 * Queue a backup emergency shutdown in the event of
-+			 * orderly_poweroff failure
-+			 */
-+			thermal_emergency_poweroff();
- 			orderly_poweroff(true);
- 			power_off_triggered = true;
- 		}
+-		orderly_poweroff(true);
++		mutex_lock(&poweroff_lock);
++		if (!power_off_triggered) {
++			orderly_poweroff(true);
++			power_off_triggered = true;
++		}
++		mutex_unlock(&poweroff_lock);
+ 	}
+ }
+ 
+@@ -1463,6 +1470,7 @@ static int __init thermal_init(void)
+ {
+ 	int result;
+ 
++	mutex_init(&poweroff_lock);
+ 	result = thermal_register_governors();
+ 	if (result)
+ 		goto error;
+@@ -1497,6 +1505,7 @@ static int __init thermal_init(void)
+ 	ida_destroy(&thermal_cdev_ida);
+ 	mutex_destroy(&thermal_list_lock);
+ 	mutex_destroy(&thermal_governor_lock);
++	mutex_destroy(&poweroff_lock);
+ 	return result;
+ }
+ 
 -- 
 1.9.1
