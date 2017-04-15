@@ -1,51 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/2] mfd: omap-usb-tll: Configure ULPIAUTOIDLE
-Date: Sat, 15 Apr 2017 10:05:09 -0700
-Message-ID: <20170415170509.17364-3-tony@atomide.com>
-References: <20170415170509.17364-1-tony@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170415170509.17364-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@linux.intel.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Roger Quadros <rogerq@ti.com>, Sebastian Reichel <sre@kernel.org>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] ARM: dts: omap4-droid4: add bluetooth
+Date: Sun, 16 Apr 2017 00:18:32 +0200
+Message-ID: <20170415221832.16175-1-sre@kernel.org>
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The idle mode needs to be only disabled for UTMIAUTOIDLE while
-ULPIAUTOIDLE can be enabled.
+Droid 4 has wl1835 connected to the OMAP's UART4 port, which is
+used for Bluetooth and most likely can also be used for controlling
+the FM radio and GPS receivers.
 
-This matches the TLL_CHANNEL_CONF_i register configuration for ehci-tll
-in the Motorola Linux kernel tree for Wrigley 3G LTE modem on droid 4
-and the modem still stays responsive.
-
-Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: Marcel Partap <mpartap@gmx.net>
-Cc: Michael Scott <michael.scott@linaro.org>
-Cc: Roger Quadros <rogerq@ti.com>
-Cc: Sebastian Reichel <sre@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/mfd/omap-usb-tll.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Hi,
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -373,12 +373,13 @@ int omap_tll_init(struct usbhs_omap_platform_data *pdata)
- 			} else if (pdata->port_mode[i] ==
- 					OMAP_EHCI_PORT_MODE_TLL) {
- 				/*
--				 * Disable AutoIdle, BitStuffing
--				 * and use SDR Mode
-+				 * Disable UTMI AutoIdle, BitStuffing
-+				 * and use SDR Mode. Enable ULPI AutoIdle.
- 				 */
- 				reg &= ~(OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE
- 					| OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE);
- 				reg |= OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF;
-+				reg |= OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE;
- 			} else if (pdata->port_mode[i] ==
- 					OMAP_EHCI_PORT_MODE_HSIC) {
- 				/*
+Thanks to the work of Rob adding Bluetooth support for Droid 4 was
+straight forward :) I did a short test scanning for available devices
+using bluetoothctl. For that I had to rebind the bluetooth device,
+since it has been initialized before rootfs/firmware was available
+(builtin driver):
+
+echo serial0-0 > /sys/bus/serial/drivers/hci-ti/unbind
+echo serial0-0 > /sys/bus/serial/drivers/hci-ti/bind
+
+According to my research the FM module should be functional on
+Droid 4 and the wl1835's GPS is also used. Rob, do you have a
+plans for supporting the extra resources?
+
+-- Sebastian
+---
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+index e0fdfe6cc78c..2495faf79a43 100644
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -395,6 +395,15 @@
+ 		>;
+ 	};
+ 
++	uart4_pins: pinmux_uart4_pins {
++		pinctrl-single,pins = <
++		OMAP4_IOPAD(0x15c, PIN_INPUT | MUX_MODE0)		/* uart4_rx */
++		OMAP4_IOPAD(0x15e, PIN_OUTPUT | MUX_MODE0)		/* uart4_tx */
++		OMAP4_IOPAD(0x110, PIN_INPUT_PULLUP | MUX_MODE5)	/* uart4_cts */
++		OMAP4_IOPAD(0x112, PIN_OUTPUT_PULLUP | MUX_MODE5)	/* uart4_rts */
++		>;
++	};
++
+ 	mcbsp2_pins: pinmux_mcbsp2_pins {
+ 		pinctrl-single,pins = <
+ 			OMAP4_IOPAD(0x0f6, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_clkx */
+@@ -429,6 +438,17 @@
+ 			       &omap4_pmx_core 0x17c>;
+ };
+ 
++&uart4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart4_pins>;
++
++	bluetooth {
++		compatible = "ti,wl1835-st";
++		enable-gpios = <&gpio6 14 GPIO_ACTIVE_HIGH>; /* gpio 174 */
++		max-speed = <3686400>;
++	};
++};
++
+ &usbhsehci {
+ 	phys = <&hsusb1_phy>;
+ };
 -- 
-2.12.2
+2.11.0
