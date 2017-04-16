@@ -1,45 +1,63 @@
-From: Rob Herring <robh+dt@kernel.org>
+From: Sebastian Reichel <sre@kernel.org>
 Subject: Re: [PATCH] ARM: dts: omap4-droid4: add bluetooth
-Date: Sat, 15 Apr 2017 20:56:57 -0500
-Message-ID: <CAL_JsqJfytNJMuXQ-eAqxsoVNDMO73omS67F_Onw_XQh9E6FHg@mail.gmail.com>
+Date: Sun, 16 Apr 2017 17:26:50 +0200
+Message-ID: <20170416152650.5376wwhhdcbpdba5@earth>
 References: <20170415221832.16175-1-sre@kernel.org>
+ <CAEz3QY0duPa91TT3e86xA=tDGppiq0UXmDzuUm2i6cXbBi9CgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="27d4wug236boznlo"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170415221832.16175-1-sre@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAEz3QY0duPa91TT3e86xA=tDGppiq0UXmDzuUm2i6cXbBi9CgQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Michael Scott <michael.scott@linaro.org>
+Cc: linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Apr 15, 2017 at 5:18 PM, Sebastian Reichel <sre@kernel.org> wrote:
-> Droid 4 has wl1835 connected to the OMAP's UART4 port, which is
-> used for Bluetooth and most likely can also be used for controlling
-> the FM radio and GPS receivers.
->
-> Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> ---
-> Hi,
->
-> Thanks to the work of Rob adding Bluetooth support for Droid 4 was
-> straight forward :) I did a short test scanning for available devices
-> using bluetoothctl. For that I had to rebind the bluetooth device,
-> since it has been initialized before rootfs/firmware was available
-> (builtin driver):
->
-> echo serial0-0 > /sys/bus/serial/drivers/hci-ti/unbind
-> echo serial0-0 > /sys/bus/serial/drivers/hci-ti/bind
->
-> According to my research the FM module should be functional on
-> Droid 4 and the wl1835's GPS is also used. Rob, do you have a
-> plans for supporting the extra resources?
 
-I don't think the h/w I have can do FM or GPS. At least there's no
-headphone jack to serve as the FM antenna. For GPS, it seems support
-for that is not publicly available. Maybe an antenna is not needed to
-get the control interface working. It would be nice to integrate
-though and then we can kill off the shared transport driver. Marcel
-had mentioned that the Intel BT driver provides a regmap interface to
-its FM driver. Not sure if that would work for TI.
+--27d4wug236boznlo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Rob
+Hi Michael,
+
+On Sat, Apr 15, 2017 at 07:00:29PM -0700, Michael Scott wrote:
+> On Apr 15, 2017 3:18 PM, "Sebastian Reichel" <sre@kernel.org> wrote:
+>> Droid 4 has wl1835 connected to the OMAP's UART4 port, which is
+>=20
+> Technically, I believe the Droid 4 has WL1283 WLAN chip.
+>
+> - Mike
+
+iFixit [0] has a nice photo in step 15, which clearly shows,
+that its a WL1285C, with 1835 looking similar I didn't notice
+Rob's binding does not cover wl128x. I will resend with proper
+compatible value (+ patches for the driver and binding).
+
+[0] https://www.ifixit.com/Teardown/Motorola+Droid+4+Teardown/7759#s31961
+
+-- Sebastian
+
+--27d4wug236boznlo
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljzjTgACgkQ2O7X88g7
++pqqGA//Ww82SoiL2DPhNwx3M6X4jQHSitUYjtQVZjLchXi6kY1SXIsFSfO9/oon
+5tAUUNQThEzEdVHjgcP0q1ogBFakdhujHaF3ns9sMlj2pCrvdPwAzwnhebUClsNn
+CbY02SjYrJEf8IS3ZqwmBvPgnL7wjSVljPnAB3R3uqv0z8658ALCUI+qIku+hWjL
+iSoJubWe10ozAcEc6k2Srii+pImHZKJWBcHpNUdr4hDbdGZwXKJ8uik9RpDrRrEV
+tbKf8uNCdK4nTYliOoTLZYIWjF8dqC+w4zBo8IOhILDsW57PVdOTHXwG8qTtzKqy
+ccYRhmkvsYgp3YZIO0pslRGQmc5pz6AgDOLaRFs+SFZVGPEcQ0I73/sKJmMxvEv9
+Y6DM8BU6L5jSFzmetD8MEF90fQICQs5n5yWVpQnNdXjGlkAKlK9jPwK0fe3282rz
+iks42vFxDAXv+CXf3crV9uU8zlzUyswMWWK4G3cJVBZBNchIlaSEUsAMzX7BjiiH
+AJLR5tFmXDaM8qQHuWG79XI1PSOT3S2A1bq6pdtUV6JQbrougNWd/nDrYTUQTjmu
+b9ntHaFzl8sASmL0zYl12bRgT0ncR55yZJQDToiXr/rinEtBOH9lpg6xLMp5nswk
+xZuv73G94EDtFAiLWTVHDG9vhq33HcYosWHD8gnW05Q437RzmzM=
+=afKz
+-----END PGP SIGNATURE-----
+
+--27d4wug236boznlo--
