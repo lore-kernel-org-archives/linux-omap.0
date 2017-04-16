@@ -1,63 +1,52 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] ARM: dts: omap4-droid4: add bluetooth
-Date: Sun, 16 Apr 2017 17:26:50 +0200
-Message-ID: <20170416152650.5376wwhhdcbpdba5@earth>
-References: <20170415221832.16175-1-sre@kernel.org>
- <CAEz3QY0duPa91TT3e86xA=tDGppiq0UXmDzuUm2i6cXbBi9CgQ@mail.gmail.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap deferred probe regression fix
+Date: Sun, 16 Apr 2017 11:54:27 -0700
+Message-ID: <20170416185427.GA6930@localhost>
+References: <58ebbb9c.8cde540a.c8344.2677SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="27d4wug236boznlo"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAEz3QY0duPa91TT3e86xA=tDGppiq0UXmDzuUm2i6cXbBi9CgQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michael Scott <michael.scott@linaro.org>
-Cc: linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+In-Reply-To: <58ebbb9c.8cde540a.c8344.2677SMTPIN_ADDED_BROKEN@mx.google.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Apr 10, 2017 at 10:06:27AM -0700, Tony Lindgren wrote:
+> The following changes since commit 351b7c490700747d1dba1b0a10fbfe3448d11c35:
+> 
+>   ARM: omap2+: Revert omap-smp.c changes resetting CPU1 during boot (2017-03-27 10:10:42 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-rc6-signed
+> 
+> for you to fetch changes up to 04abaf07f6d5cdf22b7a478a86e706dfeeeef960:
+> 
+>   ARM: OMAP2+: omap_device: Sync omap_device and pm_runtime after probe defer (2017-04-04 08:49:56 -0700)
+> 
+> ----------------------------------------------------------------
+> Regression fix for omap interconnect code for deferred probe.
+> Without this fix we can get PM related warnings for devices that
+> use deferred probe. If necessary, this fix can wait for the
+> v4.12 merge window no problem.
+> 
+> ----------------------------------------------------------------
+> Dave Gerlach (1):
+>       ARM: OMAP2+: omap_device: Sync omap_device and pm_runtime after probe defer
 
---27d4wug236boznlo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hmm, looks like there was a handful of other fixes as a base on this branch
+that we hadn't yet merged. Done so now, since they came in with this.
 
-Hi Michael,
 
-On Sat, Apr 15, 2017 at 07:00:29PM -0700, Michael Scott wrote:
-> On Apr 15, 2017 3:18 PM, "Sebastian Reichel" <sre@kernel.org> wrote:
->> Droid 4 has wl1835 connected to the OMAP's UART4 port, which is
->=20
-> Technically, I believe the Droid 4 has WL1283 WLAN chip.
->
-> - Mike
-
-iFixit [0] has a nice photo in step 15, which clearly shows,
-that its a WL1285C, with 1835 looking similar I didn't notice
-Rob's binding does not cover wl128x. I will resend with proper
-compatible value (+ patches for the driver and binding).
-
-[0] https://www.ifixit.com/Teardown/Motorola+Droid+4+Teardown/7759#s31961
-
--- Sebastian
-
---27d4wug236boznlo
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAljzjTgACgkQ2O7X88g7
-+pqqGA//Ww82SoiL2DPhNwx3M6X4jQHSitUYjtQVZjLchXi6kY1SXIsFSfO9/oon
-5tAUUNQThEzEdVHjgcP0q1ogBFakdhujHaF3ns9sMlj2pCrvdPwAzwnhebUClsNn
-CbY02SjYrJEf8IS3ZqwmBvPgnL7wjSVljPnAB3R3uqv0z8658ALCUI+qIku+hWjL
-iSoJubWe10ozAcEc6k2Srii+pImHZKJWBcHpNUdr4hDbdGZwXKJ8uik9RpDrRrEV
-tbKf8uNCdK4nTYliOoTLZYIWjF8dqC+w4zBo8IOhILDsW57PVdOTHXwG8qTtzKqy
-ccYRhmkvsYgp3YZIO0pslRGQmc5pz6AgDOLaRFs+SFZVGPEcQ0I73/sKJmMxvEv9
-Y6DM8BU6L5jSFzmetD8MEF90fQICQs5n5yWVpQnNdXjGlkAKlK9jPwK0fe3282rz
-iks42vFxDAXv+CXf3crV9uU8zlzUyswMWWK4G3cJVBZBNchIlaSEUsAMzX7BjiiH
-AJLR5tFmXDaM8qQHuWG79XI1PSOT3S2A1bq6pdtUV6JQbrougNWd/nDrYTUQTjmu
-b9ntHaFzl8sASmL0zYl12bRgT0ncR55yZJQDToiXr/rinEtBOH9lpg6xLMp5nswk
-xZuv73G94EDtFAiLWTVHDG9vhq33HcYosWHD8gnW05Q437RzmzM=
-=afKz
------END PGP SIGNATURE-----
-
---27d4wug236boznlo--
+-Olof
