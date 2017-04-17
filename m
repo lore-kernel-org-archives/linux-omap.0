@@ -1,59 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap deferred probe regression fix
-Date: Sun, 16 Apr 2017 12:28:10 -0700
-Message-ID: <20170416192810.GW5339@atomide.com>
-References: <58ebbb9c.8cde540a.c8344.2677SMTPIN_ADDED_BROKEN@mx.google.com>
- <20170416185427.GA6930@localhost>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [PATCH V2] PM / OPP: Use - instead of @ for DT entries
+Date: Mon, 17 Apr 2017 11:07:51 +0900
+Message-ID: <CAK7LNAQ7Uf1Jkj64-Ykdk5TSeWvkq7=BaqUMJo6KqrN7BhYvsQ@mail.gmail.com>
+References: <70e7c7ee13722ab9c73cb073f88502eaf1ada5f5.1491816050.git.viresh.kumar@linaro.org>
+ <2765521.jPoRkFTblf@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20170416185427.GA6930@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <2765521.jPoRkFTblf@aspire.rjw.lan>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Rob Herring <robh+dt@kernel.org>, Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Maxime Ripard <maxime.ripard@free-electrons.com>, Chen-Yu Tsai <wens@csie.org>, linaro-kernel@list
 List-Id: linux-omap@vger.kernel.org
 
-* Olof Johansson <olof@lixom.net> [170416 12:03]:
-> On Mon, Apr 10, 2017 at 10:06:27AM -0700, Tony Lindgren wrote:
-> > The following changes since commit 351b7c490700747d1dba1b0a10fbfe3448d11c35:
-> > 
-> >   ARM: omap2+: Revert omap-smp.c changes resetting CPU1 during boot (2017-03-27 10:10:42 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.11/fixes-rc6-signed
-> > 
-> > for you to fetch changes up to 04abaf07f6d5cdf22b7a478a86e706dfeeeef960:
-> > 
-> >   ARM: OMAP2+: omap_device: Sync omap_device and pm_runtime after probe defer (2017-04-04 08:49:56 -0700)
-> > 
-> > ----------------------------------------------------------------
-> > Regression fix for omap interconnect code for deferred probe.
-> > Without this fix we can get PM related warnings for devices that
-> > use deferred probe. If necessary, this fix can wait for the
-> > v4.12 merge window no problem.
-> > 
-> > ----------------------------------------------------------------
-> > Dave Gerlach (1):
-> >       ARM: OMAP2+: omap_device: Sync omap_device and pm_runtime after probe defer
-> 
-> Hmm, looks like there was a handful of other fixes as a base on this branch
-> that we hadn't yet merged. Done so now, since they came in with this.
+2017-04-15 7:47 GMT+09:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
+> On Monday, April 10, 2017 02:51:35 PM Viresh Kumar wrote:
+>> Compiling the DT file with W=1, DTC warns like follows:
+>>
+>> Warning (unit_address_vs_reg): Node /opp_table0/opp@1000000000 has a
+>> unit name, but no reg property
+>>
+>> Fix this by replacing '@' with '-' as the OPP nodes will never have a
+>> "reg" property.
+>>
+>> Reported-by: Krzysztof Kozlowski <krzk@kernel.org>
+>> Reported-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+>> Suggested-by: Mark Rutland <mark.rutland@arm.com>
+>> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+>> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com> (sunxi)
+>> Reviewed-by: Chanwoo Choi <cw00.choi@samsung.com>
+>> Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
+>
+> OK, so any ACKs from the DT side?  Rob?
+>
+> Thanks,
+> Rafael
 
-Oh OK thanks. Arnd replied earlier that he's pulling them into fixes
-in the "[GIT PULL] omap fixes for v4.11-rc cycle" thread. Must have gotten
-lost somewhere in the process then.
 
-Regards,
 
-Tony
+I see Rob's Acked-by.
+
+https://lkml.org/lkml/2017/4/13/648
+
+
+-- 
+Best Regards
+Masahiro Yamada
