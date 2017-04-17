@@ -1,60 +1,45 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: dra7: Add power hold and power controller
- properties to palmas
-Date: Mon, 17 Apr 2017 11:45:39 +0530
-Message-ID: <5745adc5-1296-a489-4895-b18463b3f346@ti.com>
-References: <1492059081-20124-1-git-send-email-j-keerthy@ti.com>
- <20170414142142.GT5339@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170414142142.GT5339-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
+From: Richard Cochran <rcochran@linutronix.de>
+Subject: [PATCH] regulator: tps65023: Fix inverted core enable logic.
+Date: Mon, 17 Apr 2017 10:23:36 +0200
+Message-ID: <1492417416-1637-1-git-send-email-rcochran@linutronix.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Jonghwan Choi <jhbird.choi@samsung.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Commit 43530b69d758328d3ffe6ab98fd640463e8e3667 ("regulator: Use
+regmap_read/write(), regmap_update_bits functions directly") intended
+to replace working inline helper functions with standard regmap
+calls.  However, it also inverted the set/clear logic of the "CORE ADJ
+Allowed" bit.  That patch was clearly never tested, since without that
+bit cleared, the core VDCDC1 voltage output does not react to I2C
+configuration changes.
 
+This patch fixes the issue by clearing the bit as in the original,
+correct implementation.  Note for stable back porting that, due to
+subsequent driver churn, this patch will not apply on every kernel
+version.
 
-On Friday 14 April 2017 07:51 PM, Tony Lindgren wrote:
-> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [170412 21:55]:
->> Add power hold and power controller properties to palmas node.
->> This is needed to shutdown pmic correctly on boards with
->> powerhold set.
-> 
-> Is this OK to wait for v4.12 or is this needed as a fix for
-> the -rc series?
+Signed-off-by: Richard Cochran <rcochran@linutronix.de>
+Fixes: 43530b69d758 ("regulator: Use regmap_read/write(), regmap_update_bits functions directly")
+---
+ drivers/regulator/tps65023-regulator.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Can wait for v4.12.
-
-> 
-> Regards,
-> 
-> Tony
-> 
->> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->> ---
->>  arch/arm/boot/dts/dra7-evm.dts | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
->> index 4bc4b57..31a9e06 100644
->> --- a/arch/arm/boot/dts/dra7-evm.dts
->> +++ b/arch/arm/boot/dts/dra7-evm.dts
->> @@ -204,6 +204,8 @@
->>  	tps659038: tps659038@58 {
->>  		compatible = "ti,tps659038";
->>  		reg = <0x58>;
->> +		ti,palmas-override-powerhold;
->> +		ti,system-power-controller;
->>  
->>  		tps659038_pmic {
->>  			compatible = "ti,tps659038-pmic";
->> -- 
->> 1.9.1
->>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/regulator/tps65023-regulator.c b/drivers/regulator/tps65023-regulator.c
+index d2c3d7c..5ca6d21 100644
+--- a/drivers/regulator/tps65023-regulator.c
++++ b/drivers/regulator/tps65023-regulator.c
+@@ -311,8 +311,7 @@ static int tps_65023_probe(struct i2c_client *client,
+ 
+ 	/* Enable setting output voltage by I2C */
+ 	regmap_update_bits(tps->regmap, TPS65023_REG_CON_CTRL2,
+-					TPS65023_REG_CTRL2_CORE_ADJ,
+-					TPS65023_REG_CTRL2_CORE_ADJ);
++			   TPS65023_REG_CTRL2_CORE_ADJ, 0);
+ 
+ 	return 0;
+ }
+-- 
+2.1.4
