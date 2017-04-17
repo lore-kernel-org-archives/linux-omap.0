@@ -1,45 +1,35 @@
-From: Richard Cochran <rcochran@linutronix.de>
-Subject: [PATCH] regulator: tps65023: Fix inverted core enable logic.
-Date: Mon, 17 Apr 2017 10:23:36 +0200
-Message-ID: <1492417416-1637-1-git-send-email-rcochran@linutronix.de>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH] ARM: dts: omap4-droid4: add bluetooth
+Date: Mon, 17 Apr 2017 07:51:18 -0500
+Message-ID: <CAL_JsqLkGXN3hjocJ3-X8f7e0Az28-LeXNpMwnSeUwGtG5m4Hg@mail.gmail.com>
+References: <20170415221832.16175-1-sre@kernel.org> <CAEz3QY0duPa91TT3e86xA=tDGppiq0UXmDzuUm2i6cXbBi9CgQ@mail.gmail.com>
+ <20170416152650.5376wwhhdcbpdba5@earth>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170416152650.5376wwhhdcbpdba5@earth>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Jonghwan Choi <jhbird.choi@samsung.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Michael Scott <michael.scott@linaro.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Commit 43530b69d758328d3ffe6ab98fd640463e8e3667 ("regulator: Use
-regmap_read/write(), regmap_update_bits functions directly") intended
-to replace working inline helper functions with standard regmap
-calls.  However, it also inverted the set/clear logic of the "CORE ADJ
-Allowed" bit.  That patch was clearly never tested, since without that
-bit cleared, the core VDCDC1 voltage output does not react to I2C
-configuration changes.
+On Sun, Apr 16, 2017 at 10:26 AM, Sebastian Reichel <sre@kernel.org> wrote:
+> Hi Michael,
+>
+> On Sat, Apr 15, 2017 at 07:00:29PM -0700, Michael Scott wrote:
+>> On Apr 15, 2017 3:18 PM, "Sebastian Reichel" <sre@kernel.org> wrote:
+>>> Droid 4 has wl1835 connected to the OMAP's UART4 port, which is
+>>
+>> Technically, I believe the Droid 4 has WL1283 WLAN chip.
+>>
+>> - Mike
+>
+> iFixit [0] has a nice photo in step 15, which clearly shows,
+> that its a WL1285C, with 1835 looking similar I didn't notice
+> Rob's binding does not cover wl128x. I will resend with proper
+> compatible value (+ patches for the driver and binding).
 
-This patch fixes the issue by clearing the bit as in the original,
-correct implementation.  Note for stable back porting that, due to
-subsequent driver churn, this patch will not apply on every kernel
-version.
+I only documented what was publicly available as some parts have
+failed to materialize. Any idea what the differences are?
 
-Signed-off-by: Richard Cochran <rcochran@linutronix.de>
-Fixes: 43530b69d758 ("regulator: Use regmap_read/write(), regmap_update_bits functions directly")
----
- drivers/regulator/tps65023-regulator.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/regulator/tps65023-regulator.c b/drivers/regulator/tps65023-regulator.c
-index d2c3d7c..5ca6d21 100644
---- a/drivers/regulator/tps65023-regulator.c
-+++ b/drivers/regulator/tps65023-regulator.c
-@@ -311,8 +311,7 @@ static int tps_65023_probe(struct i2c_client *client,
- 
- 	/* Enable setting output voltage by I2C */
- 	regmap_update_bits(tps->regmap, TPS65023_REG_CON_CTRL2,
--					TPS65023_REG_CTRL2_CORE_ADJ,
--					TPS65023_REG_CTRL2_CORE_ADJ);
-+			   TPS65023_REG_CTRL2_CORE_ADJ, 0);
- 
- 	return 0;
- }
--- 
-2.1.4
+Rob
