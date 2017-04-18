@@ -1,520 +1,1879 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] clk: Add functions to save and restore clock/dpll context en-masse
-Date: Tue, 18 Apr 2017 10:42:49 +0530
-Message-ID: <1492492369-19662-1-git-send-email-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: sboyd@codeaurora.org, t-kristo@ti.com, mturquette@baylibre.com
-Cc: j-keerthy@ti.com, linux@armlinux.org.uk, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>
+From: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH V3] PM / OPP: Use - instead of @ for DT entries
+Date: Tue, 18 Apr 2017 10:44:50 +0530
+Message-ID: <734c5d5a66ef8a5505f368fc68a8ab9c02d710f9.1492492253.git.viresh.kumar@linaro.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rafael Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, MyungJoo Ham <myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Kukjin Kim <kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Krzysztof Kozlowski <krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Viresh Kumar <vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>
+Cc: linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vincent Guittot <vincent.guittot-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Russ Dill <Russ.Dill@ti.com>
+Compiling the DT file with W=1, DTC warns like follows:
 
-The clock/dpll registers are in the WKUP power domain. Under both RTC-only
-suspend and hibernation, these registers are lost. Hence save/restore
-them accordingly.
+Warning (unit_address_vs_reg): Node /opp_table0/opp@1000000000 has a
+unit name, but no reg property
 
-Signed-off-by: Russ Dill <Russ.Dill@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
+Fix this by replacing '@' with '-' as the OPP nodes will never have a
+"reg" property.
+
+Reported-by: Krzysztof Kozlowski <krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Reported-by: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
+Suggested-by: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Signed-off-by: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Acked-by: Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org> (sunxi)
+Reviewed-by: Chanwoo Choi <cw00.choi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Reviewed-by: Krzysztof Kozlowski <krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Acked-by: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org> (uniphier)
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/clk/clk.c            |  70 ++++++++++++++++++++++++
- drivers/clk/ti/divider.c     |  36 +++++++++++++
- drivers/clk/ti/dpll.c        |   6 +++
- drivers/clk/ti/dpll3xxx.c    | 124 +++++++++++++++++++++++++++++++++++++++++++
- drivers/clk/ti/gate.c        |   3 ++
- drivers/clk/ti/mux.c         |  29 ++++++++++
- include/linux/clk-provider.h |  11 ++++
- include/linux/clk.h          |  25 +++++++++
- include/linux/clk/ti.h       |   6 +++
- 9 files changed, 310 insertions(+)
+V2->V3:
+- Rebased over 4.11-rc7 and fixed a merge conflict for sun8i.
 
-diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index cddddbe..1ca87f4 100644
---- a/drivers/clk/clk.c
-+++ b/drivers/clk/clk.c
-@@ -687,6 +687,76 @@ static int clk_core_enable_lock(struct clk_core *core)
- 	return ret;
- }
+ .../devicetree/bindings/cpufreq/ti-cpufreq.txt     | 20 +++----
+ .../devicetree/bindings/devfreq/exynos-bus.txt     | 46 +++++++--------
+ Documentation/devicetree/bindings/opp/opp.txt      | 38 ++++++-------
+ arch/arm/boot/dts/am4372.dtsi                      | 10 ++--
+ arch/arm/boot/dts/exynos3250.dtsi                  | 46 +++++++--------
+ arch/arm/boot/dts/exynos4210.dtsi                  | 32 +++++------
+ arch/arm/boot/dts/exynos4412-prime.dtsi            |  4 +-
+ arch/arm/boot/dts/exynos4412.dtsi                  | 66 +++++++++++-----------
+ arch/arm/boot/dts/exynos5420.dtsi                  | 40 ++++++-------
+ arch/arm/boot/dts/exynos5800.dtsi                  | 56 +++++++++---------
+ arch/arm/boot/dts/pxa25x.dtsi                      |  8 +--
+ arch/arm/boot/dts/pxa27x.dtsi                      | 14 ++---
+ arch/arm/boot/dts/sun8i-a33.dtsi                   |  6 +-
+ arch/arm/boot/dts/uniphier-pro5.dtsi               | 32 +++++------
+ arch/arm/boot/dts/uniphier-pxs2.dtsi               | 16 +++---
+ arch/arm64/boot/dts/exynos/exynos5433-bus.dtsi     | 48 ++++++++--------
+ arch/arm64/boot/dts/exynos/exynos5433.dtsi         | 50 ++++++++--------
+ arch/arm64/boot/dts/socionext/uniphier-ld11.dtsi   | 14 ++---
+ arch/arm64/boot/dts/socionext/uniphier-ld20.dtsi   | 32 +++++------
+ arch/arm64/boot/dts/zte/zx296718.dtsi              | 10 ++--
+ 20 files changed, 294 insertions(+), 294 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
+index ba0e15ad5bd9..0c38e4b8fc51 100644
+--- a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
++++ b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
+@@ -63,64 +63,64 @@ cpu0_opp_table: opp-table {
+ 	 * because they can not be enabled simultaneously on a
+ 	 * single SoC.
+ 	 */
+-	opp50@300000000 {
++	opp50-300000000 {
+ 		opp-hz = /bits/ 64 <300000000>;
+ 		opp-microvolt = <950000 931000 969000>;
+ 		opp-supported-hw = <0x06 0x0010>;
+ 		opp-suspend;
+ 	};
  
-+void clk_dflt_restore_context(struct clk_hw *hw)
-+{
-+	if (hw->clk->core->enable_count)
-+		hw->clk->core->ops->enable(hw);
-+	else
-+		hw->clk->core->ops->disable(hw);
-+}
-+EXPORT_SYMBOL_GPL(clk_dflt_restore_context);
-+
-+static int clk_save_context(struct clk_core *clk)
-+{
-+	struct clk_core *child;
-+	int ret = 0;
-+
-+	hlist_for_each_entry(child, &clk->children, child_node) {
-+		ret = clk_save_context(child);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	if (clk->ops && clk->ops->save_context)
-+		ret = clk->ops->save_context(clk->hw);
-+
-+	return ret;
-+}
-+
-+static void clk_restore_context(struct clk_core *clk)
-+{
-+	struct clk_core *child;
-+
-+	if (clk->ops && clk->ops->restore_context)
-+		clk->ops->restore_context(clk->hw);
-+
-+	hlist_for_each_entry(child, &clk->children, child_node)
-+		clk_restore_context(child);
-+}
-+
-+int clks_save_context(void)
-+{
-+	struct clk_core *clk;
-+	int ret;
-+
-+	hlist_for_each_entry(clk, &clk_root_list, child_node) {
-+		ret = clk_save_context(clk);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	hlist_for_each_entry(clk, &clk_orphan_list, child_node) {
-+		ret = clk_save_context(clk);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(clks_save_context);
-+
-+void clks_restore_context(void)
-+{
-+	struct clk_core *clk;
-+
-+	hlist_for_each_entry(clk, &clk_root_list, child_node)
-+		clk_restore_context(clk);
-+
-+	hlist_for_each_entry(clk, &clk_orphan_list, child_node)
-+		clk_restore_context(clk);
-+}
-+EXPORT_SYMBOL_GPL(clks_restore_context);
-+
- /**
-  * clk_enable - ungate a clock
-  * @clk: the clk being ungated
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index d6dcb28..350a58a 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -266,10 +266,46 @@ static int ti_clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
- 	return 0;
- }
+-	opp100@275000000 {
++	opp100-275000000 {
+ 		opp-hz = /bits/ 64 <275000000>;
+ 		opp-microvolt = <1100000 1078000 1122000>;
+ 		opp-supported-hw = <0x01 0x00FF>;
+ 		opp-suspend;
+ 	};
  
-+/**
-+ * clk_divider_save_context - Save the divider value
-+ * @hw: pointer  struct clk_hw
-+ *
-+ * Save the divider value
-+ */
-+static int clk_divider_save_context(struct clk_hw *hw)
-+{
-+	struct clk_divider *divider = to_clk_divider(hw);
-+	u32 val;
-+
-+	val = ti_clk_ll_ops->clk_readl(divider->reg) >> divider->shift;
-+	divider->context = val & div_mask(divider);
-+
-+	return 0;
-+}
-+
-+/**
-+ * clk_divider_restore_context - restore the saved the divider value
-+ * @hw: pointer  struct clk_hw
-+ *
-+ * Restore the saved the divider value
-+ */
-+static void clk_divider_restore_context(struct clk_hw *hw)
-+{
-+	struct clk_divider *divider = to_clk_divider(hw);
-+	u32 val;
-+
-+	val = ti_clk_ll_ops->clk_readl(divider->reg);
-+	val &= ~(div_mask(divider) << divider->shift);
-+	val |= divider->context << divider->shift;
-+	ti_clk_ll_ops->clk_writel(val, divider->reg);
-+}
-+
- const struct clk_ops ti_clk_divider_ops = {
- 	.recalc_rate = ti_clk_divider_recalc_rate,
- 	.round_rate = ti_clk_divider_round_rate,
- 	.set_rate = ti_clk_divider_set_rate,
-+	.save_context = clk_divider_save_context,
-+	.restore_context = clk_divider_restore_context,
+-	opp100@300000000 {
++	opp100-300000000 {
+ 		opp-hz = /bits/ 64 <300000000>;
+ 		opp-microvolt = <1100000 1078000 1122000>;
+ 		opp-supported-hw = <0x06 0x0020>;
+ 		opp-suspend;
+ 	};
+ 
+-	opp100@500000000 {
++	opp100-500000000 {
+ 		opp-hz = /bits/ 64 <500000000>;
+ 		opp-microvolt = <1100000 1078000 1122000>;
+ 		opp-supported-hw = <0x01 0xFFFF>;
+ 	};
+ 
+-	opp100@600000000 {
++	opp100-600000000 {
+ 		opp-hz = /bits/ 64 <600000000>;
+ 		opp-microvolt = <1100000 1078000 1122000>;
+ 		opp-supported-hw = <0x06 0x0040>;
+ 	};
+ 
+-	opp120@600000000 {
++	opp120-600000000 {
+ 		opp-hz = /bits/ 64 <600000000>;
+ 		opp-microvolt = <1200000 1176000 1224000>;
+ 		opp-supported-hw = <0x01 0xFFFF>;
+ 	};
+ 
+-	opp120@720000000 {
++	opp120-720000000 {
+ 		opp-hz = /bits/ 64 <720000000>;
+ 		opp-microvolt = <1200000 1176000 1224000>;
+ 		opp-supported-hw = <0x06 0x0080>;
+ 	};
+ 
+-	oppturbo@720000000 {
++	oppturbo-720000000 {
+ 		opp-hz = /bits/ 64 <720000000>;
+ 		opp-microvolt = <1260000 1234800 1285200>;
+ 		opp-supported-hw = <0x01 0xFFFF>;
+ 	};
+ 
+-	oppturbo@800000000 {
++	oppturbo-800000000 {
+ 		opp-hz = /bits/ 64 <800000000>;
+ 		opp-microvolt = <1260000 1234800 1285200>;
+ 		opp-supported-hw = <0x06 0x0100>;
+ 	};
+ 
+-	oppnitro@1000000000 {
++	oppnitro-1000000000 {
+ 		opp-hz = /bits/ 64 <1000000000>;
+ 		opp-microvolt = <1325000 1298500 1351500>;
+ 		opp-supported-hw = <0x04 0x0200>;
+diff --git a/Documentation/devicetree/bindings/devfreq/exynos-bus.txt b/Documentation/devicetree/bindings/devfreq/exynos-bus.txt
+index d085ef90d27c..f8e946471a58 100644
+--- a/Documentation/devicetree/bindings/devfreq/exynos-bus.txt
++++ b/Documentation/devicetree/bindings/devfreq/exynos-bus.txt
+@@ -202,23 +202,23 @@ is able to support the bus frequency for all Exynos SoCs.
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@50000000 {
++		opp-50000000 {
+ 			opp-hz = /bits/ 64 <50000000>;
+ 			opp-microvolt = <800000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 			opp-microvolt = <800000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 			opp-microvolt = <800000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 			opp-microvolt = <825000>;
+ 		};
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 			opp-microvolt = <875000>;
+ 		};
+@@ -292,23 +292,23 @@ is able to support the bus frequency for all Exynos SoCs.
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@50000000 {
++		opp-50000000 {
+ 			opp-hz = /bits/ 64 <50000000>;
+ 			opp-microvolt = <900000>;
+ 		};
+-		opp@80000000 {
++		opp-80000000 {
+ 			opp-hz = /bits/ 64 <80000000>;
+ 			opp-microvolt = <900000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 			opp-microvolt = <1000000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 			opp-microvolt = <1000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 			opp-microvolt = <1000000>;
+ 		};
+@@ -318,19 +318,19 @@ is able to support the bus frequency for all Exynos SoCs.
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@50000000 {
++		opp-50000000 {
+ 			opp-hz = /bits/ 64 <50000000>;
+ 		};
+-		opp@80000000 {
++		opp-80000000 {
+ 			opp-hz = /bits/ 64 <80000000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 		};
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 		};
+ 	};
+@@ -339,19 +339,19 @@ is able to support the bus frequency for all Exynos SoCs.
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@50000000 {
++		opp-50000000 {
+ 			opp-hz = /bits/ 64 <50000000>;
+ 		};
+-		opp@80000000 {
++		opp-80000000 {
+ 			opp-hz = /bits/ 64 <80000000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 		};
+-		opp@300000000 {
++		opp-300000000 {
+ 			opp-hz = /bits/ 64 <300000000>;
+ 		};
+ 	};
+@@ -360,13 +360,13 @@ is able to support the bus frequency for all Exynos SoCs.
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@50000000 {
++		opp-50000000 {
+ 			opp-hz = /bits/ 64 <50000000>;
+ 		};
+-		opp@80000000 {
++		opp-80000000 {
+ 			opp-hz = /bits/ 64 <80000000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+ 	};
+diff --git a/Documentation/devicetree/bindings/opp/opp.txt b/Documentation/devicetree/bindings/opp/opp.txt
+index 63725498bd20..e36d261b9ba6 100644
+--- a/Documentation/devicetree/bindings/opp/opp.txt
++++ b/Documentation/devicetree/bindings/opp/opp.txt
+@@ -186,20 +186,20 @@ Example 1: Single cluster Dual-core ARM cortex A9, switch DVFS states together.
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <975000 970000 985000>;
+ 			opp-microamp = <70000>;
+ 			clock-latency-ns = <300000>;
+ 			opp-suspend;
+ 		};
+-		opp@1100000000 {
++		opp-1100000000 {
+ 			opp-hz = /bits/ 64 <1100000000>;
+ 			opp-microvolt = <1000000 980000 1010000>;
+ 			opp-microamp = <80000>;
+ 			clock-latency-ns = <310000>;
+ 		};
+-		opp@1200000000 {
++		opp-1200000000 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <1025000>;
+ 			clock-latency-ns = <290000>;
+@@ -265,20 +265,20 @@ independently.
+ 		 * independently.
+ 		 */
+ 
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <975000 970000 985000>;
+ 			opp-microamp = <70000>;
+ 			clock-latency-ns = <300000>;
+ 			opp-suspend;
+ 		};
+-		opp@1100000000 {
++		opp-1100000000 {
+ 			opp-hz = /bits/ 64 <1100000000>;
+ 			opp-microvolt = <1000000 980000 1010000>;
+ 			opp-microamp = <80000>;
+ 			clock-latency-ns = <310000>;
+ 		};
+-		opp@1200000000 {
++		opp-1200000000 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <1025000>;
+ 			opp-microamp = <90000;
+@@ -341,20 +341,20 @@ DVFS state together.
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <975000 970000 985000>;
+ 			opp-microamp = <70000>;
+ 			clock-latency-ns = <300000>;
+ 			opp-suspend;
+ 		};
+-		opp@1100000000 {
++		opp-1100000000 {
+ 			opp-hz = /bits/ 64 <1100000000>;
+ 			opp-microvolt = <1000000 980000 1010000>;
+ 			opp-microamp = <80000>;
+ 			clock-latency-ns = <310000>;
+ 		};
+-		opp@1200000000 {
++		opp-1200000000 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <1025000>;
+ 			opp-microamp = <90000>;
+@@ -367,20 +367,20 @@ DVFS state together.
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@1300000000 {
++		opp-1300000000 {
+ 			opp-hz = /bits/ 64 <1300000000>;
+ 			opp-microvolt = <1050000 1045000 1055000>;
+ 			opp-microamp = <95000>;
+ 			clock-latency-ns = <400000>;
+ 			opp-suspend;
+ 		};
+-		opp@1400000000 {
++		opp-1400000000 {
+ 			opp-hz = /bits/ 64 <1400000000>;
+ 			opp-microvolt = <1075000>;
+ 			opp-microamp = <100000>;
+ 			clock-latency-ns = <400000>;
+ 		};
+-		opp@1500000000 {
++		opp-1500000000 {
+ 			opp-hz = /bits/ 64 <1500000000>;
+ 			opp-microvolt = <1100000 1010000 1110000>;
+ 			opp-microamp = <95000>;
+@@ -409,7 +409,7 @@ Example 4: Handling multiple regulators
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <970000>, /* Supply 0 */
+ 					<960000>, /* Supply 1 */
+@@ -422,7 +422,7 @@ Example 4: Handling multiple regulators
+ 
+ 		/* OR */
+ 
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <975000 970000 985000>, /* Supply 0 */
+ 					<965000 960000 975000>, /* Supply 1 */
+@@ -435,7 +435,7 @@ Example 4: Handling multiple regulators
+ 
+ 		/* OR */
+ 
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <975000 970000 985000>, /* Supply 0 */
+ 					<965000 960000 975000>, /* Supply 1 */
+@@ -467,7 +467,7 @@ Example 5: opp-supported-hw
+ 		status = "okay";
+ 		opp-shared;
+ 
+-		opp@600000000 {
++		opp-600000000 {
+ 			/*
+ 			 * Supports all substrate and process versions for 0xF
+ 			 * cuts, i.e. only first four cuts.
+@@ -478,7 +478,7 @@ Example 5: opp-supported-hw
+ 			...
+ 		};
+ 
+-		opp@800000000 {
++		opp-800000000 {
+ 			/*
+ 			 * Supports:
+ 			 * - cuts: only one, 6th cut (represented by 6th bit).
+@@ -510,7 +510,7 @@ Example 5: opp-supported-hw
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt-slow = <915000 900000 925000>;
+ 			opp-microvolt-fast = <975000 970000 985000>;
+@@ -518,7 +518,7 @@ Example 5: opp-supported-hw
+ 			opp-microamp-fast =  <71000>;
+ 		};
+ 
+-		opp@1200000000 {
++		opp-1200000000 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt-slow = <915000 900000 925000>, /* Supply vcc0 */
+ 					      <925000 910000 935000>; /* Supply vcc1 */
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index 97fcaf415de1..1532ffe1de63 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -60,32 +60,32 @@
+ 	cpu0_opp_table: opp_table0 {
+ 		compatible = "operating-points-v2";
+ 
+-		opp50@300000000 {
++		opp50-300000000 {
+ 			opp-hz = /bits/ 64 <300000000>;
+ 			opp-microvolt = <950000 931000 969000>;
+ 			opp-supported-hw = <0xFF 0x01>;
+ 			opp-suspend;
+ 		};
+ 
+-		opp100@600000000 {
++		opp100-600000000 {
+ 			opp-hz = /bits/ 64 <600000000>;
+ 			opp-microvolt = <1100000 1078000 1122000>;
+ 			opp-supported-hw = <0xFF 0x04>;
+ 		};
+ 
+-		opp120@720000000 {
++		opp120-720000000 {
+ 			opp-hz = /bits/ 64 <720000000>;
+ 			opp-microvolt = <1200000 1176000 1224000>;
+ 			opp-supported-hw = <0xFF 0x08>;
+ 		};
+ 
+-		oppturbo@800000000 {
++		oppturbo-800000000 {
+ 			opp-hz = /bits/ 64 <800000000>;
+ 			opp-microvolt = <1260000 1234800 1285200>;
+ 			opp-supported-hw = <0xFF 0x10>;
+ 		};
+ 
+-		oppnitro@1000000000 {
++		oppnitro-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <1325000 1298500 1351500>;
+ 			opp-supported-hw = <0xFF 0x20>;
+diff --git a/arch/arm/boot/dts/exynos3250.dtsi b/arch/arm/boot/dts/exynos3250.dtsi
+index 9c28ef4508e0..590ee442d0ae 100644
+--- a/arch/arm/boot/dts/exynos3250.dtsi
++++ b/arch/arm/boot/dts/exynos3250.dtsi
+@@ -745,23 +745,23 @@
+ 			compatible = "operating-points-v2";
+ 			opp-shared;
+ 
+-			opp@50000000 {
++			opp-50000000 {
+ 				opp-hz = /bits/ 64 <50000000>;
+ 				opp-microvolt = <800000>;
+ 			};
+-			opp@100000000 {
++			opp-100000000 {
+ 				opp-hz = /bits/ 64 <100000000>;
+ 				opp-microvolt = <800000>;
+ 			};
+-			opp@134000000 {
++			opp-134000000 {
+ 				opp-hz = /bits/ 64 <134000000>;
+ 				opp-microvolt = <800000>;
+ 			};
+-			opp@200000000 {
++			opp-200000000 {
+ 				opp-hz = /bits/ 64 <200000000>;
+ 				opp-microvolt = <825000>;
+ 			};
+-			opp@400000000 {
++			opp-400000000 {
+ 				opp-hz = /bits/ 64 <400000000>;
+ 				opp-microvolt = <875000>;
+ 			};
+@@ -835,23 +835,23 @@
+ 			compatible = "operating-points-v2";
+ 			opp-shared;
+ 
+-			opp@50000000 {
++			opp-50000000 {
+ 				opp-hz = /bits/ 64 <50000000>;
+ 				opp-microvolt = <900000>;
+ 			};
+-			opp@80000000 {
++			opp-80000000 {
+ 				opp-hz = /bits/ 64 <80000000>;
+ 				opp-microvolt = <900000>;
+ 			};
+-			opp@100000000 {
++			opp-100000000 {
+ 				opp-hz = /bits/ 64 <100000000>;
+ 				opp-microvolt = <1000000>;
+ 			};
+-			opp@134000000 {
++			opp-134000000 {
+ 				opp-hz = /bits/ 64 <134000000>;
+ 				opp-microvolt = <1000000>;
+ 			};
+-			opp@200000000 {
++			opp-200000000 {
+ 				opp-hz = /bits/ 64 <200000000>;
+ 				opp-microvolt = <1000000>;
+ 			};
+@@ -861,19 +861,19 @@
+ 			compatible = "operating-points-v2";
+ 			opp-shared;
+ 
+-			opp@50000000 {
++			opp-50000000 {
+ 				opp-hz = /bits/ 64 <50000000>;
+ 			};
+-			opp@80000000 {
++			opp-80000000 {
+ 				opp-hz = /bits/ 64 <80000000>;
+ 			};
+-			opp@100000000 {
++			opp-100000000 {
+ 				opp-hz = /bits/ 64 <100000000>;
+ 			};
+-			opp@200000000 {
++			opp-200000000 {
+ 				opp-hz = /bits/ 64 <200000000>;
+ 			};
+-			opp@400000000 {
++			opp-400000000 {
+ 				opp-hz = /bits/ 64 <400000000>;
+ 			};
+ 		};
+@@ -882,19 +882,19 @@
+ 			compatible = "operating-points-v2";
+ 			opp-shared;
+ 
+-			opp@50000000 {
++			opp-50000000 {
+ 				opp-hz = /bits/ 64 <50000000>;
+ 			};
+-			opp@80000000 {
++			opp-80000000 {
+ 				opp-hz = /bits/ 64 <80000000>;
+ 			};
+-			opp@100000000 {
++			opp-100000000 {
+ 				opp-hz = /bits/ 64 <100000000>;
+ 			};
+-			opp@200000000 {
++			opp-200000000 {
+ 				opp-hz = /bits/ 64 <200000000>;
+ 			};
+-			opp@300000000 {
++			opp-300000000 {
+ 				opp-hz = /bits/ 64 <300000000>;
+ 			};
+ 		};
+@@ -903,13 +903,13 @@
+ 			compatible = "operating-points-v2";
+ 			opp-shared;
+ 
+-			opp@50000000 {
++			opp-50000000 {
+ 				opp-hz = /bits/ 64 <50000000>;
+ 			};
+-			opp@80000000 {
++			opp-80000000 {
+ 				opp-hz = /bits/ 64 <80000000>;
+ 			};
+-			opp@100000000 {
++			opp-100000000 {
+ 				opp-hz = /bits/ 64 <100000000>;
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/exynos4210.dtsi b/arch/arm/boot/dts/exynos4210.dtsi
+index f9408188f97f..3678d5b44d80 100644
+--- a/arch/arm/boot/dts/exynos4210.dtsi
++++ b/arch/arm/boot/dts/exynos4210.dtsi
+@@ -335,15 +335,15 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 			opp-microvolt = <1025000>;
+ 		};
+-		opp@267000000 {
++		opp-267000000 {
+ 			opp-hz = /bits/ 64 <267000000>;
+ 			opp-microvolt = <1050000>;
+ 		};
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 			opp-microvolt = <1150000>;
+ 		};
+@@ -353,13 +353,13 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 		};
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 		};
+ 	};
+@@ -368,10 +368,10 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@5000000 {
++		opp-5000000 {
+ 			opp-hz = /bits/ 64 <5000000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+ 	};
+@@ -380,10 +380,10 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@10000000 {
++		opp-10000000 {
+ 			opp-hz = /bits/ 64 <10000000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 		};
+ 	};
+@@ -392,13 +392,13 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 		};
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 		};
+ 	};
+@@ -407,13 +407,13 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/exynos4412-prime.dtsi b/arch/arm/boot/dts/exynos4412-prime.dtsi
+index e75bc170c89c..a67bd953d754 100644
+--- a/arch/arm/boot/dts/exynos4412-prime.dtsi
++++ b/arch/arm/boot/dts/exynos4412-prime.dtsi
+@@ -20,12 +20,12 @@
  };
  
- static struct clk *_register_divider(struct device *dev, const char *name,
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index 96d8488..791dd31 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -39,6 +39,8 @@
- 	.set_rate_and_parent	= &omap3_noncore_dpll_set_rate_and_parent,
- 	.determine_rate	= &omap4_dpll_regm4xen_determine_rate,
- 	.get_parent	= &omap2_init_dpll_parent,
-+	.save_context	= &omap3_core_dpll_save_context,
-+	.restore_context = &omap3_core_dpll_restore_context,
+ &cpu0_opp_table {
+-	opp@1600000000 {
++	opp-1600000000 {
+ 		opp-hz = /bits/ 64 <1600000000>;
+ 		opp-microvolt = <1350000>;
+ 		clock-latency-ns = <200000>;
+ 	};
+-	opp@1704000000 {
++	opp-1704000000 {
+ 		opp-hz = /bits/ 64 <1704000000>;
+ 		opp-microvolt = <1350000>;
+ 		clock-latency-ns = <200000>;
+diff --git a/arch/arm/boot/dts/exynos4412.dtsi b/arch/arm/boot/dts/exynos4412.dtsi
+index 235bbb69ad7c..ce240d0198b3 100644
+--- a/arch/arm/boot/dts/exynos4412.dtsi
++++ b/arch/arm/boot/dts/exynos4412.dtsi
+@@ -76,73 +76,73 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 			opp-microvolt = <900000>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@300000000 {
++		opp-300000000 {
+ 			opp-hz = /bits/ 64 <300000000>;
+ 			opp-microvolt = <900000>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 			opp-microvolt = <925000>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@500000000 {
++		opp-500000000 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			opp-microvolt = <950000>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@600000000 {
++		opp-600000000 {
+ 			opp-hz = /bits/ 64 <600000000>;
+ 			opp-microvolt = <975000>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@700000000 {
++		opp-700000000 {
+ 			opp-hz = /bits/ 64 <700000000>;
+ 			opp-microvolt = <987500>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@800000000 {
++		opp-800000000 {
+ 			opp-hz = /bits/ 64 <800000000>;
+ 			opp-microvolt = <1000000>;
+ 			clock-latency-ns = <200000>;
+ 			opp-suspend;
+ 		};
+-		opp@900000000 {
++		opp-900000000 {
+ 			opp-hz = /bits/ 64 <900000000>;
+ 			opp-microvolt = <1037500>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <1087500>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@1100000000 {
++		opp-1100000000 {
+ 			opp-hz = /bits/ 64 <1100000000>;
+ 			opp-microvolt = <1137500>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@1200000000 {
++		opp-1200000000 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <1187500>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@1300000000 {
++		opp-1300000000 {
+ 			opp-hz = /bits/ 64 <1300000000>;
+ 			opp-microvolt = <1250000>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		opp@1400000000 {
++		opp-1400000000 {
+ 			opp-hz = /bits/ 64 <1400000000>;
+ 			opp-microvolt = <1287500>;
+ 			clock-latency-ns = <200000>;
+ 		};
+-		cpu0_opp_1500: opp@1500000000 {
++		cpu0_opp_1500: opp-1500000000 {
+ 			opp-hz = /bits/ 64 <1500000000>;
+ 			opp-microvolt = <1350000>;
+ 			clock-latency-ns = <200000>;
+@@ -433,23 +433,23 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 			opp-microvolt = <900000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 			opp-microvolt = <900000>;
+ 		};
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 			opp-microvolt = <900000>;
+ 		};
+-		opp@267000000 {
++		opp-267000000 {
+ 			opp-hz = /bits/ 64 <267000000>;
+ 			opp-microvolt = <950000>;
+ 		};
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 			opp-microvolt = <1050000>;
+ 		};
+@@ -459,16 +459,16 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 		};
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 		};
+-		opp@267000000 {
++		opp-267000000 {
+ 			opp-hz = /bits/ 64 <267000000>;
+ 		};
+ 	};
+@@ -525,19 +525,19 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 			opp-microvolt = <900000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 			opp-microvolt = <925000>;
+ 		};
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 			opp-microvolt = <950000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 			opp-microvolt = <1000000>;
+ 		};
+@@ -547,10 +547,10 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 		};
+ 	};
+@@ -559,10 +559,10 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 		};
+ 	};
+@@ -571,10 +571,10 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@50000000 {
++		opp-50000000 {
+ 			opp-hz = /bits/ 64 <50000000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/exynos5420.dtsi b/arch/arm/boot/dts/exynos5420.dtsi
+index 7dc9dc82afd8..5cd6c7389d51 100644
+--- a/arch/arm/boot/dts/exynos5420.dtsi
++++ b/arch/arm/boot/dts/exynos5420.dtsi
+@@ -49,62 +49,62 @@
+ 		cluster_a15_opp_table: opp_table0 {
+ 			compatible = "operating-points-v2";
+ 			opp-shared;
+-			opp@1800000000 {
++			opp-1800000000 {
+ 				opp-hz = /bits/ 64 <1800000000>;
+ 				opp-microvolt = <1250000>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1700000000 {
++			opp-1700000000 {
+ 				opp-hz = /bits/ 64 <1700000000>;
+ 				opp-microvolt = <1212500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1600000000 {
++			opp-1600000000 {
+ 				opp-hz = /bits/ 64 <1600000000>;
+ 				opp-microvolt = <1175000>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1500000000 {
++			opp-1500000000 {
+ 				opp-hz = /bits/ 64 <1500000000>;
+ 				opp-microvolt = <1137500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1400000000 {
++			opp-1400000000 {
+ 				opp-hz = /bits/ 64 <1400000000>;
+ 				opp-microvolt = <1112500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1300000000 {
++			opp-1300000000 {
+ 				opp-hz = /bits/ 64 <1300000000>;
+ 				opp-microvolt = <1062500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1200000000 {
++			opp-1200000000 {
+ 				opp-hz = /bits/ 64 <1200000000>;
+ 				opp-microvolt = <1037500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1100000000 {
++			opp-1100000000 {
+ 				opp-hz = /bits/ 64 <1100000000>;
+ 				opp-microvolt = <1012500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1000000000 {
++			opp-1000000000 {
+ 				opp-hz = /bits/ 64 <1000000000>;
+ 				opp-microvolt = < 987500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@900000000 {
++			opp-900000000 {
+ 				opp-hz = /bits/ 64 <900000000>;
+ 				opp-microvolt = < 962500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@800000000 {
++			opp-800000000 {
+ 				opp-hz = /bits/ 64 <800000000>;
+ 				opp-microvolt = < 937500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@700000000 {
++			opp-700000000 {
+ 				opp-hz = /bits/ 64 <700000000>;
+ 				opp-microvolt = < 912500>;
+ 				clock-latency-ns = <140000>;
+@@ -114,42 +114,42 @@
+ 		cluster_a7_opp_table: opp_table1 {
+ 			compatible = "operating-points-v2";
+ 			opp-shared;
+-			opp@1300000000 {
++			opp-1300000000 {
+ 				opp-hz = /bits/ 64 <1300000000>;
+ 				opp-microvolt = <1275000>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1200000000 {
++			opp-1200000000 {
+ 				opp-hz = /bits/ 64 <1200000000>;
+ 				opp-microvolt = <1212500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1100000000 {
++			opp-1100000000 {
+ 				opp-hz = /bits/ 64 <1100000000>;
+ 				opp-microvolt = <1162500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@1000000000 {
++			opp-1000000000 {
+ 				opp-hz = /bits/ 64 <1000000000>;
+ 				opp-microvolt = <1112500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@900000000 {
++			opp-900000000 {
+ 				opp-hz = /bits/ 64 <900000000>;
+ 				opp-microvolt = <1062500>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@800000000 {
++			opp-800000000 {
+ 				opp-hz = /bits/ 64 <800000000>;
+ 				opp-microvolt = <1025000>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@700000000 {
++			opp-700000000 {
+ 				opp-hz = /bits/ 64 <700000000>;
+ 				opp-microvolt = <975000>;
+ 				clock-latency-ns = <140000>;
+ 			};
+-			opp@600000000 {
++			opp-600000000 {
+ 				opp-hz = /bits/ 64 <600000000>;
+ 				opp-microvolt = <937500>;
+ 				clock-latency-ns = <140000>;
+diff --git a/arch/arm/boot/dts/exynos5800.dtsi b/arch/arm/boot/dts/exynos5800.dtsi
+index 8213016803e5..9ddb6bacac5a 100644
+--- a/arch/arm/boot/dts/exynos5800.dtsi
++++ b/arch/arm/boot/dts/exynos5800.dtsi
+@@ -24,60 +24,60 @@
  };
- #else
- static const struct clk_ops dpll_m4xen_ck_ops = {};
-@@ -62,6 +64,8 @@
- 	.set_rate_and_parent	= &omap3_noncore_dpll_set_rate_and_parent,
- 	.determine_rate	= &omap3_noncore_dpll_determine_rate,
- 	.get_parent	= &omap2_init_dpll_parent,
-+	.save_context	= &omap3_noncore_dpll_save_context,
-+	.restore_context = &omap3_noncore_dpll_restore_context,
+ 
+ &cluster_a15_opp_table {
+-	opp@1700000000 {
++	opp-1700000000 {
+ 		opp-microvolt = <1250000>;
+ 	};
+-	opp@1600000000 {
++	opp-1600000000 {
+ 		opp-microvolt = <1250000>;
+ 	};
+-	opp@1500000000 {
++	opp-1500000000 {
+ 		opp-microvolt = <1100000>;
+ 	};
+-	opp@1400000000 {
++	opp-1400000000 {
+ 		opp-microvolt = <1100000>;
+ 	};
+-	opp@1300000000 {
++	opp-1300000000 {
+ 		opp-microvolt = <1100000>;
+ 	};
+-	opp@1200000000 {
++	opp-1200000000 {
+ 		opp-microvolt = <1000000>;
+ 	};
+-	opp@1100000000 {
++	opp-1100000000 {
+ 		opp-microvolt = <1000000>;
+ 	};
+-	opp@1000000000 {
++	opp-1000000000 {
+ 		opp-microvolt = <1000000>;
+ 	};
+-	opp@900000000 {
++	opp-900000000 {
+ 		opp-microvolt = <1000000>;
+ 	};
+-	opp@800000000 {
++	opp-800000000 {
+ 		opp-microvolt = <900000>;
+ 	};
+-	opp@700000000 {
++	opp-700000000 {
+ 		opp-microvolt = <900000>;
+ 	};
+-	opp@600000000 {
++	opp-600000000 {
+ 		opp-hz = /bits/ 64 <600000000>;
+ 		opp-microvolt = <900000>;
+ 		clock-latency-ns = <140000>;
+ 	};
+-	opp@500000000 {
++	opp-500000000 {
+ 		opp-hz = /bits/ 64 <500000000>;
+ 		opp-microvolt = <900000>;
+ 		clock-latency-ns = <140000>;
+ 	};
+-	opp@400000000 {
++	opp-400000000 {
+ 		opp-hz = /bits/ 64 <400000000>;
+ 		opp-microvolt = <900000>;
+ 		clock-latency-ns = <140000>;
+ 	};
+-	opp@300000000 {
++	opp-300000000 {
+ 		opp-hz = /bits/ 64 <300000000>;
+ 		opp-microvolt = <900000>;
+ 		clock-latency-ns = <140000>;
+ 	};
+-	opp@200000000 {
++	opp-200000000 {
+ 		opp-hz = /bits/ 64 <200000000>;
+ 		opp-microvolt = <900000>;
+ 		clock-latency-ns = <140000>;
+@@ -85,46 +85,46 @@
  };
  
- static const struct clk_ops dpll_no_gate_ck_ops = {
-@@ -72,6 +76,8 @@
- 	.set_parent	= &omap3_noncore_dpll_set_parent,
- 	.set_rate_and_parent	= &omap3_noncore_dpll_set_rate_and_parent,
- 	.determine_rate	= &omap3_noncore_dpll_determine_rate,
-+	.save_context	= &omap3_noncore_dpll_save_context,
-+	.restore_context = &omap3_noncore_dpll_restore_context
- };
- #else
- static const struct clk_ops dpll_core_ck_ops = {};
-diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
-index 4534de2..44b6b64 100644
---- a/drivers/clk/ti/dpll3xxx.c
-+++ b/drivers/clk/ti/dpll3xxx.c
-@@ -782,6 +782,130 @@ unsigned long omap3_clkoutx2_recalc(struct clk_hw *hw,
- 	return rate;
- }
+ &cluster_a7_opp_table {
+-	opp@1300000000 {
++	opp-1300000000 {
+ 		opp-microvolt = <1250000>;
+ 	};
+-	opp@1200000000 {
++	opp-1200000000 {
+ 		opp-microvolt = <1250000>;
+ 	};
+-	opp@1100000000 {
++	opp-1100000000 {
+ 		opp-microvolt = <1250000>;
+ 	};
+-	opp@1000000000 {
++	opp-1000000000 {
+ 		opp-microvolt = <1100000>;
+ 	};
+-	opp@900000000 {
++	opp-900000000 {
+ 		opp-microvolt = <1100000>;
+ 	};
+-	opp@800000000 {
++	opp-800000000 {
+ 		opp-microvolt = <1100000>;
+ 	};
+-	opp@700000000 {
++	opp-700000000 {
+ 		opp-microvolt = <1000000>;
+ 	};
+-	opp@600000000 {
++	opp-600000000 {
+ 		opp-microvolt = <1000000>;
+ 	};
+-	opp@500000000 {
++	opp-500000000 {
+ 		opp-hz = /bits/ 64 <500000000>;
+ 		opp-microvolt = <1000000>;
+ 		clock-latency-ns = <140000>;
+ 	};
+-	opp@400000000 {
++	opp-400000000 {
+ 		opp-hz = /bits/ 64 <400000000>;
+ 		opp-microvolt = <1000000>;
+ 		clock-latency-ns = <140000>;
+ 	};
+-	opp@300000000 {
++	opp-300000000 {
+ 		opp-hz = /bits/ 64 <300000000>;
+ 		opp-microvolt = <900000>;
+ 		clock-latency-ns = <140000>;
+ 	};
+-	opp@200000000 {
++	opp-200000000 {
+ 		opp-hz = /bits/ 64 <200000000>;
+ 		opp-microvolt = <900000>;
+ 		clock-latency-ns = <140000>;
+diff --git a/arch/arm/boot/dts/pxa25x.dtsi b/arch/arm/boot/dts/pxa25x.dtsi
+index f9f4726396a0..95d59be97213 100644
+--- a/arch/arm/boot/dts/pxa25x.dtsi
++++ b/arch/arm/boot/dts/pxa25x.dtsi
+@@ -93,22 +93,22 @@
+ 	pxa250_opp_table: opp_table0 {
+ 		compatible = "operating-points-v2";
  
-+/**
-+ * omap3_core_dpll_save_context - Save the m and n values of the divider
-+ * @hw: pointer  struct clk_hw
-+ *
-+ * Before the dpll registers are lost save the last rounded rate m and n
-+ * and the enable mask.
-+ */
-+int omap3_core_dpll_save_context(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *dd;
-+	u32 v;
-+
-+	dd = clk->dpll_data;
-+
-+	v = ti_clk_ll_ops->clk_readl(&dd->control_reg);
-+	clk->context = (v & dd->enable_mask) >> __ffs(dd->enable_mask);
-+
-+	if (clk->context == DPLL_LOCKED) {
-+		v = ti_clk_ll_ops->clk_readl(&dd->mult_div1_reg);
-+		dd->last_rounded_m = (v & dd->mult_mask) >>
-+						__ffs(dd->mult_mask);
-+		dd->last_rounded_n = ((v & dd->div1_mask) >>
-+						__ffs(dd->div1_mask)) + 1;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap3_core_dpll_restore_context - restore the m and n values of the divider
-+ * @hw: pointer  struct clk_hw
-+ *
-+ * Restore the last rounded rate m and n
-+ * and the enable mask.
-+ */
-+void omap3_core_dpll_restore_context(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	const struct dpll_data *dd;
-+	u32 v;
-+
-+	dd = clk->dpll_data;
-+
-+	if (clk->context == DPLL_LOCKED) {
-+		_omap3_dpll_write_clken(clk, 0x4);
-+		_omap3_wait_dpll_status(clk, 0);
-+
-+		v = ti_clk_ll_ops->clk_readl(&dd->mult_div1_reg);
-+		v &= ~(dd->mult_mask | dd->div1_mask);
-+		v |= dd->last_rounded_m << __ffs(dd->mult_mask);
-+		v |= (dd->last_rounded_n - 1) << __ffs(dd->div1_mask);
-+		ti_clk_ll_ops->clk_writel(v, &dd->mult_div1_reg);
-+
-+		_omap3_dpll_write_clken(clk, DPLL_LOCKED);
-+		_omap3_wait_dpll_status(clk, 1);
-+	} else {
-+		_omap3_dpll_write_clken(clk, clk->context);
-+	}
-+}
-+
-+/**
-+ * omap3_non_core_dpll_save_context - Save the m and n values of the divider
-+ * @hw: pointer  struct clk_hw
-+ *
-+ * Before the dpll registers are lost save the last rounded rate m and n
-+ * and the enable mask.
-+ */
-+int omap3_noncore_dpll_save_context(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *dd;
-+	u32 v;
-+
-+	dd = clk->dpll_data;
-+
-+	v = ti_clk_ll_ops->clk_readl(&dd->control_reg);
-+	clk->context = (v & dd->enable_mask) >> __ffs(dd->enable_mask);
-+
-+	if (clk->context == DPLL_LOCKED) {
-+		v = ti_clk_ll_ops->clk_readl(&dd->mult_div1_reg);
-+		dd->last_rounded_m = (v & dd->mult_mask) >>
-+						__ffs(dd->mult_mask);
-+		dd->last_rounded_n = ((v & dd->div1_mask) >>
-+						__ffs(dd->div1_mask)) + 1;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap3_core_dpll_restore_context - restore the m and n values of the divider
-+ * @hw: pointer  struct clk_hw
-+ *
-+ * Restore the last rounded rate m and n
-+ * and the enable mask.
-+ */
-+void omap3_noncore_dpll_restore_context(struct clk_hw *hw)
-+{
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	const struct dpll_data *dd;
-+	u32 ctrl, mult_div1;
-+
-+	dd = clk->dpll_data;
-+
-+	ctrl = ti_clk_ll_ops->clk_readl(&dd->control_reg);
-+	mult_div1 = ti_clk_ll_ops->clk_readl(&dd->mult_div1_reg);
-+
-+	if (clk->context == ((ctrl & dd->enable_mask) >>
-+			     __ffs(dd->enable_mask)) &&
-+	    dd->last_rounded_m == ((mult_div1 & dd->mult_mask) >>
-+				   __ffs(dd->mult_mask)) &&
-+	    dd->last_rounded_n == ((mult_div1 & dd->div1_mask) >>
-+				   __ffs(dd->div1_mask)) + 1) {
-+		/* nothing to be done */
-+		return;
-+	}
-+
-+	if (clk->context == DPLL_LOCKED)
-+		omap3_noncore_dpll_program(clk, 0);
-+	else
-+		_omap3_dpll_write_clken(clk, clk->context);
-+}
-+
- /* OMAP3/4 non-CORE DPLL clkops */
- const struct clk_hw_omap_ops clkhwops_omap3_dpll = {
- 	.allow_idle	= omap3_dpll_allow_idle,
-diff --git a/drivers/clk/ti/gate.c b/drivers/clk/ti/gate.c
-index 7151ec3..098db66 100644
---- a/drivers/clk/ti/gate.c
-+++ b/drivers/clk/ti/gate.c
-@@ -33,6 +33,7 @@
- 	.init		= &omap2_init_clk_clkdm,
- 	.enable		= &omap2_clkops_enable_clkdm,
- 	.disable	= &omap2_clkops_disable_clkdm,
-+	.restore_context = clk_dflt_restore_context,
- };
+-		opp@99532800 {
++		opp-99532800 {
+ 			opp-hz = /bits/ 64 <99532800>;
+ 			opp-microvolt = <1000000 950000 1650000>;
+ 			clock-latency-ns = <20>;
+ 		};
+-		opp@199065600 {
++		opp-199065600 {
+ 			opp-hz = /bits/ 64 <199065600>;
+ 			opp-microvolt = <1000000 950000 1650000>;
+ 			clock-latency-ns = <20>;
+ 		};
+-		opp@298598400 {
++		opp-298598400 {
+ 			opp-hz = /bits/ 64 <298598400>;
+ 			opp-microvolt = <1100000 1045000 1650000>;
+ 			clock-latency-ns = <20>;
+ 		};
+-		opp@398131200 {
++		opp-398131200 {
+ 			opp-hz = /bits/ 64 <398131200>;
+ 			opp-microvolt = <1300000 1235000 1650000>;
+ 			clock-latency-ns = <20>;
+diff --git a/arch/arm/boot/dts/pxa27x.dtsi b/arch/arm/boot/dts/pxa27x.dtsi
+index e0fab48ba6fa..5f1d6da02a4c 100644
+--- a/arch/arm/boot/dts/pxa27x.dtsi
++++ b/arch/arm/boot/dts/pxa27x.dtsi
+@@ -141,37 +141,37 @@
+ 	pxa270_opp_table: opp_table0 {
+ 		compatible = "operating-points-v2";
  
- const struct clk_ops omap_gate_clk_ops = {
-@@ -40,6 +41,7 @@
- 	.enable		= &omap2_dflt_clk_enable,
- 	.disable	= &omap2_dflt_clk_disable,
- 	.is_enabled	= &omap2_dflt_clk_is_enabled,
-+	.restore_context = clk_dflt_restore_context,
- };
+-		opp@104000000 {
++		opp-104000000 {
+ 			opp-hz = /bits/ 64 <104000000>;
+ 			opp-microvolt = <900000 900000 1705000>;
+ 			clock-latency-ns = <20>;
+ 		};
+-		opp@156000000 {
++		opp-156000000 {
+ 			opp-hz = /bits/ 64 <156000000>;
+ 			opp-microvolt = <1000000 1000000 1705000>;
+ 			clock-latency-ns = <20>;
+ 		};
+-		opp@208000000 {
++		opp-208000000 {
+ 			opp-hz = /bits/ 64 <208000000>;
+ 			opp-microvolt = <1180000 1180000 1705000>;
+ 			clock-latency-ns = <20>;
+ 		};
+-		opp@312000000 {
++		opp-312000000 {
+ 			opp-hz = /bits/ 64 <312000000>;
+ 			opp-microvolt = <1250000 1250000 1705000>;
+ 			clock-latency-ns = <20>;
+ 		};
+-		opp@416000000 {
++		opp-416000000 {
+ 			opp-hz = /bits/ 64 <416000000>;
+ 			opp-microvolt = <1350000 1350000 1705000>;
+ 			clock-latency-ns = <20>;
+ 		};
+-		opp@520000000 {
++		opp-520000000 {
+ 			opp-hz = /bits/ 64 <520000000>;
+ 			opp-microvolt = <1450000 1450000 1705000>;
+ 			clock-latency-ns = <20>;
+ 		};
+-		opp@624000000 {
++		opp-624000000 {
+ 			opp-hz = /bits/ 64 <624000000>;
+ 			opp-microvolt = <1550000 1550000 1705000>;
+ 			clock-latency-ns = <20>;
+diff --git a/arch/arm/boot/dts/sun8i-a33.dtsi b/arch/arm/boot/dts/sun8i-a33.dtsi
+index 306af6cadf26..a2c555d6475c 100644
+--- a/arch/arm/boot/dts/sun8i-a33.dtsi
++++ b/arch/arm/boot/dts/sun8i-a33.dtsi
+@@ -49,19 +49,19 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
  
- static const struct clk_ops omap_gate_clk_hsdiv_restore_ops = {
-@@ -47,6 +49,7 @@
- 	.enable		= &omap36xx_gate_clk_enable_with_hsdiv_restore,
- 	.disable	= &omap2_dflt_clk_disable,
- 	.is_enabled	= &omap2_dflt_clk_is_enabled,
-+	.restore_context = clk_dflt_restore_context,
- };
+-		opp@648000000 {
++		opp-648000000 {
+ 			opp-hz = /bits/ 64 <648000000>;
+ 			opp-microvolt = <1040000>;
+ 			clock-latency-ns = <244144>; /* 8 32k periods */
+ 		};
  
- /**
-diff --git a/drivers/clk/ti/mux.c b/drivers/clk/ti/mux.c
-index 18c267b..e73764a 100644
---- a/drivers/clk/ti/mux.c
-+++ b/drivers/clk/ti/mux.c
-@@ -90,10 +90,39 @@ static int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
- 	return 0;
- }
+-		opp@816000000 {
++		opp-816000000 {
+ 			opp-hz = /bits/ 64 <816000000>;
+ 			opp-microvolt = <1100000>;
+ 			clock-latency-ns = <244144>; /* 8 32k periods */
+ 		};
  
-+/**
-+ * clk_mux_save_context - Save the parent selcted in the mux
-+ * @hw: pointer  struct clk_hw
-+ *
-+ * Save the parent mux value.
-+ */
-+static int clk_mux_save_context(struct clk_hw *hw)
-+{
-+	struct clk_mux *mux = to_clk_mux(hw);
-+
-+	mux->saved_parent = ti_clk_mux_get_parent(hw);
-+	return 0;
-+}
-+
-+/**
-+ * clk_mux_restore_context - Restore the parent in the mux
-+ * @hw: pointer  struct clk_hw
-+ *
-+ * Restore the saved parent mux value.
-+ */
-+static void clk_mux_restore_context(struct clk_hw *hw)
-+{
-+	struct clk_mux *mux = to_clk_mux(hw);
-+
-+	ti_clk_mux_set_parent(hw, mux->saved_parent);
-+}
-+
- const struct clk_ops ti_clk_mux_ops = {
- 	.get_parent = ti_clk_mux_get_parent,
- 	.set_parent = ti_clk_mux_set_parent,
- 	.determine_rate = __clk_mux_determine_rate,
-+	.save_context = clk_mux_save_context,
-+	.restore_context = clk_mux_restore_context,
- };
+-		opp@1008000000 {
++		opp-1008000000 {
+ 			opp-hz = /bits/ 64 <1008000000>;
+ 			opp-microvolt = <1200000>;
+ 			clock-latency-ns = <244144>; /* 8 32k periods */
+diff --git a/arch/arm/boot/dts/uniphier-pro5.dtsi b/arch/arm/boot/dts/uniphier-pro5.dtsi
+index dbc5e5333163..22ef2842be3a 100644
+--- a/arch/arm/boot/dts/uniphier-pro5.dtsi
++++ b/arch/arm/boot/dts/uniphier-pro5.dtsi
+@@ -77,67 +77,67 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
  
- static struct clk *_register_mux(struct device *dev, const char *name,
-diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-index a428aec..2a8f636 100644
---- a/include/linux/clk-provider.h
-+++ b/include/linux/clk-provider.h
-@@ -103,6 +103,11 @@ struct clk_rate_request {
-  *		Called with enable_lock held.  This function must not
-  *		sleep.
-  *
-+ * @save_context: Save the context of the clock in prepration for poweroff.
-+ *
-+ * @restore_context: Restore the context of the clock after a restoration
-+ *		of power.
-+ *
-  * @recalc_rate	Recalculate the rate of this clock, by querying hardware. The
-  *		parent rate is an input parameter.  It is up to the caller to
-  *		ensure that the prepare_mutex is held across this call.
-@@ -198,6 +203,8 @@ struct clk_ops {
- 	void		(*disable)(struct clk_hw *hw);
- 	int		(*is_enabled)(struct clk_hw *hw);
- 	void		(*disable_unused)(struct clk_hw *hw);
-+	int		(*save_context)(struct clk_hw *hw);
-+	void		(*restore_context)(struct clk_hw *hw);
- 	unsigned long	(*recalc_rate)(struct clk_hw *hw,
- 					unsigned long parent_rate);
- 	long		(*round_rate)(struct clk_hw *hw, unsigned long rate,
-@@ -394,6 +401,7 @@ struct clk_divider {
- 	u8		flags;
- 	const struct clk_div_table	*table;
- 	spinlock_t	*lock;
-+	u32		context;
- };
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@116667000 {
++		opp-116667000 {
+ 			opp-hz = /bits/ 64 <116667000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@150000000 {
++		opp-150000000 {
+ 			opp-hz = /bits/ 64 <150000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@175000000 {
++		opp-175000000 {
+ 			opp-hz = /bits/ 64 <175000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@233334000 {
++		opp-233334000 {
+ 			opp-hz = /bits/ 64 <233334000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@300000000 {
++		opp-300000000 {
+ 			opp-hz = /bits/ 64 <300000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@350000000 {
++		opp-350000000 {
+ 			opp-hz = /bits/ 64 <350000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@466667000 {
++		opp-466667000 {
+ 			opp-hz = /bits/ 64 <466667000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@600000000 {
++		opp-600000000 {
+ 			opp-hz = /bits/ 64 <600000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@700000000 {
++		opp-700000000 {
+ 			opp-hz = /bits/ 64 <700000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@800000000 {
++		opp-800000000 {
+ 			opp-hz = /bits/ 64 <800000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@933334000 {
++		opp-933334000 {
+ 			opp-hz = /bits/ 64 <933334000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@1200000000 {
++		opp-1200000000 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@1400000000 {
++		opp-1400000000 {
+ 			opp-hz = /bits/ 64 <1400000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+diff --git a/arch/arm/boot/dts/uniphier-pxs2.dtsi b/arch/arm/boot/dts/uniphier-pxs2.dtsi
+index e9e031d63c1a..acaaa2187843 100644
+--- a/arch/arm/boot/dts/uniphier-pxs2.dtsi
++++ b/arch/arm/boot/dts/uniphier-pxs2.dtsi
+@@ -97,35 +97,35 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
  
- #define to_clk_divider(_hw) container_of(_hw, struct clk_divider, hw)
-@@ -471,6 +479,7 @@ struct clk_mux {
- 	u8		shift;
- 	u8		flags;
- 	spinlock_t	*lock;
-+	u8		saved_parent;
- };
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@150000000 {
++		opp-150000000 {
+ 			opp-hz = /bits/ 64 <150000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@300000000 {
++		opp-300000000 {
+ 			opp-hz = /bits/ 64 <300000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@600000000 {
++		opp-600000000 {
+ 			opp-hz = /bits/ 64 <600000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@800000000 {
++		opp-800000000 {
+ 			opp-hz = /bits/ 64 <800000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@1200000000 {
++		opp-1200000000 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+diff --git a/arch/arm64/boot/dts/exynos/exynos5433-bus.dtsi b/arch/arm64/boot/dts/exynos/exynos5433-bus.dtsi
+index c42dc39c3223..ec11343dc528 100644
+--- a/arch/arm64/boot/dts/exynos/exynos5433-bus.dtsi
++++ b/arch/arm64/boot/dts/exynos/exynos5433-bus.dtsi
+@@ -94,27 +94,27 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
  
- #define to_clk_mux(_hw) container_of(_hw, struct clk_mux, hw)
-@@ -912,5 +921,7 @@ struct dentry *clk_debugfs_add_file(struct clk_hw *hw, char *name, umode_t mode,
- 				void *data, const struct file_operations *fops);
- #endif
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 			opp-microvolt = <1075000>;
+ 		};
+-		opp@267000000 {
++		opp-267000000 {
+ 			opp-hz = /bits/ 64 <267000000>;
+ 			opp-microvolt = <1000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 			opp-microvolt = <975000>;
+ 		};
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 			opp-microvolt = <962500>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 			opp-microvolt = <950000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 			opp-microvolt = <937500>;
+ 		};
+@@ -123,19 +123,19 @@
+ 	bus_g2d_266_opp_table: opp_table3 {
+ 		compatible = "operating-points-v2";
  
-+void clk_dflt_restore_context(struct clk_hw *hw);
-+
- #endif /* CONFIG_COMMON_CLK */
- #endif /* CLK_PROVIDER_H */
-diff --git a/include/linux/clk.h b/include/linux/clk.h
-index 024cd07..d071a65 100644
---- a/include/linux/clk.h
-+++ b/include/linux/clk.h
-@@ -438,6 +438,23 @@ struct clk *devm_get_clk_from_child(struct device *dev,
-  */
- struct clk *clk_get_sys(const char *dev_id, const char *con_id);
+-		opp@267000000 {
++		opp-267000000 {
+ 			opp-hz = /bits/ 64 <267000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 		};
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+ 	};
+@@ -143,13 +143,13 @@
+ 	bus_gscl_opp_table: opp_table4 {
+ 		compatible = "operating-points-v2";
  
-+/**
-+ * clks_save_context - save clock context for poweroff
-+ *
-+ * Saves the context of the clock register for powerstates in which the
-+ * contents of the registers will be lost. Occurs deep within the suspend
-+ * code so locking is not necessary.
-+ */
-+int clks_save_context(void);
-+
-+/**
-+ * clks_restore_context - restore clock context after poweroff
-+ *
-+ * This occurs with all clocks enabled. Occurs deep within the resume code
-+ * so locking is not necessary.
-+ */
-+void clks_restore_context(void);
-+
- #else /* !CONFIG_HAVE_CLK */
+-		opp@333000000 {
++		opp-333000000 {
+ 			opp-hz = /bits/ 64 <333000000>;
+ 		};
+-		opp@222000000 {
++		opp-222000000 {
+ 			opp-hz = /bits/ 64 <222000000>;
+ 		};
+-		opp@166500000 {
++		opp-166500000 {
+ 			opp-hz = /bits/ 64 <166500000>;
+ 		};
+ 	};
+@@ -158,22 +158,22 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
  
- static inline struct clk *clk_get(struct device *dev, const char *id)
-@@ -501,6 +518,14 @@ static inline struct clk *clk_get_sys(const char *dev_id, const char *con_id)
- {
- 	return NULL;
- }
-+
-+static inline int clks_save_context(void)
-+{
-+	return 0;
-+}
-+
-+static inline void clks_restore_context(void) {}
-+
- #endif
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 		};
+-		opp@267000000 {
++		opp-267000000 {
+ 			opp-hz = /bits/ 64 <267000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 		};
+-		opp@160000000 {
++		opp-160000000 {
+ 			opp-hz = /bits/ 64 <160000000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+ 	};
+@@ -181,16 +181,16 @@
+ 	bus_noc2_opp_table: opp_table6 {
+ 		compatible = "operating-points-v2";
  
- /* clk_prepare_enable helps cases using clk_enable in non-atomic context. */
-diff --git a/include/linux/clk/ti.h b/include/linux/clk/ti.h
-index d18da83..f604936 100644
---- a/include/linux/clk/ti.h
-+++ b/include/linux/clk/ti.h
-@@ -159,6 +159,7 @@ struct clk_hw_omap {
- 	const char		*clkdm_name;
- 	struct clockdomain	*clkdm;
- 	const struct clk_hw_omap_ops	*ops;
-+	u32			context;
- };
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 		};
+-		opp@200000000 {
++		opp-200000000 {
+ 			opp-hz = /bits/ 64 <200000000>;
+ 		};
+-		opp@134000000 {
++		opp-134000000 {
+ 			opp-hz = /bits/ 64 <134000000>;
+ 		};
+-		opp@100000000 {
++		opp-100000000 {
+ 			opp-hz = /bits/ 64 <100000000>;
+ 		};
+ 	};
+diff --git a/arch/arm64/boot/dts/exynos/exynos5433.dtsi b/arch/arm64/boot/dts/exynos/exynos5433.dtsi
+index 16072c1c3ed3..727f36abf3d4 100644
+--- a/arch/arm64/boot/dts/exynos/exynos5433.dtsi
++++ b/arch/arm64/boot/dts/exynos/exynos5433.dtsi
+@@ -119,43 +119,43 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
  
- /*
-@@ -290,6 +291,11 @@ struct ti_clk_features {
+-		opp@400000000 {
++		opp-400000000 {
+ 			opp-hz = /bits/ 64 <400000000>;
+ 			opp-microvolt = <900000>;
+ 		};
+-		opp@500000000 {
++		opp-500000000 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			opp-microvolt = <925000>;
+ 		};
+-		opp@600000000 {
++		opp-600000000 {
+ 			opp-hz = /bits/ 64 <600000000>;
+ 			opp-microvolt = <950000>;
+ 		};
+-		opp@700000000 {
++		opp-700000000 {
+ 			opp-hz = /bits/ 64 <700000000>;
+ 			opp-microvolt = <975000>;
+ 		};
+-		opp@800000000 {
++		opp-800000000 {
+ 			opp-hz = /bits/ 64 <800000000>;
+ 			opp-microvolt = <1000000>;
+ 		};
+-		opp@900000000 {
++		opp-900000000 {
+ 			opp-hz = /bits/ 64 <900000000>;
+ 			opp-microvolt = <1050000>;
+ 		};
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <1075000>;
+ 		};
+-		opp@1100000000 {
++		opp-1100000000 {
+ 			opp-hz = /bits/ 64 <1100000000>;
+ 			opp-microvolt = <1112500>;
+ 		};
+-		opp@1200000000 {
++		opp-1200000000 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <1112500>;
+ 		};
+-		opp@1300000000 {
++		opp-1300000000 {
+ 			opp-hz = /bits/ 64 <1300000000>;
+ 			opp-microvolt = <1150000>;
+ 		};
+@@ -165,63 +165,63 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
  
- void ti_clk_setup_features(struct ti_clk_features *features);
- const struct ti_clk_features *ti_clk_get_features(void);
-+int omap3_noncore_dpll_save_context(struct clk_hw *hw);
-+void omap3_noncore_dpll_restore_context(struct clk_hw *hw);
-+
-+int omap3_core_dpll_save_context(struct clk_hw *hw);
-+void omap3_core_dpll_restore_context(struct clk_hw *hw);
+-		opp@500000000 {
++		opp-500000000 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			opp-microvolt = <900000>;
+ 		};
+-		opp@600000000 {
++		opp-600000000 {
+ 			opp-hz = /bits/ 64 <600000000>;
+ 			opp-microvolt = <900000>;
+ 		};
+-		opp@700000000 {
++		opp-700000000 {
+ 			opp-hz = /bits/ 64 <700000000>;
+ 			opp-microvolt = <912500>;
+ 		};
+-		opp@800000000 {
++		opp-800000000 {
+ 			opp-hz = /bits/ 64 <800000000>;
+ 			opp-microvolt = <912500>;
+ 		};
+-		opp@900000000 {
++		opp-900000000 {
+ 			opp-hz = /bits/ 64 <900000000>;
+ 			opp-microvolt = <937500>;
+ 		};
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			opp-microvolt = <975000>;
+ 		};
+-		opp@1100000000 {
++		opp-1100000000 {
+ 			opp-hz = /bits/ 64 <1100000000>;
+ 			opp-microvolt = <1012500>;
+ 		};
+-		opp@1200000000 {
++		opp-1200000000 {
+ 			opp-hz = /bits/ 64 <1200000000>;
+ 			opp-microvolt = <1037500>;
+ 		};
+-		opp@1300000000 {
++		opp-1300000000 {
+ 			opp-hz = /bits/ 64 <1300000000>;
+ 			opp-microvolt = <1062500>;
+ 		};
+-		opp@1400000000 {
++		opp-1400000000 {
+ 			opp-hz = /bits/ 64 <1400000000>;
+ 			opp-microvolt = <1087500>;
+ 		};
+-		opp@1500000000 {
++		opp-1500000000 {
+ 			opp-hz = /bits/ 64 <1500000000>;
+ 			opp-microvolt = <1125000>;
+ 		};
+-		opp@1600000000 {
++		opp-1600000000 {
+ 			opp-hz = /bits/ 64 <1600000000>;
+ 			opp-microvolt = <1137500>;
+ 		};
+-		opp@1700000000 {
++		opp-1700000000 {
+ 			opp-hz = /bits/ 64 <1700000000>;
+ 			opp-microvolt = <1175000>;
+ 		};
+-		opp@1800000000 {
++		opp-1800000000 {
+ 			opp-hz = /bits/ 64 <1800000000>;
+ 			opp-microvolt = <1212500>;
+ 		};
+-		opp@1900000000 {
++		opp-1900000000 {
+ 			opp-hz = /bits/ 64 <1900000000>;
+ 			opp-microvolt = <1262500>;
+ 		};
+diff --git a/arch/arm64/boot/dts/socionext/uniphier-ld11.dtsi b/arch/arm64/boot/dts/socionext/uniphier-ld11.dtsi
+index da881f5b6ed4..0f2bee028ab0 100644
+--- a/arch/arm64/boot/dts/socionext/uniphier-ld11.dtsi
++++ b/arch/arm64/boot/dts/socionext/uniphier-ld11.dtsi
+@@ -89,31 +89,31 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
  
- extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
+-		opp@245000000 {
++		opp-245000000 {
+ 			opp-hz = /bits/ 64 <245000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@250000000 {
++		opp-250000000 {
+ 			opp-hz = /bits/ 64 <250000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@490000000 {
++		opp-490000000 {
+ 			opp-hz = /bits/ 64 <490000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@500000000 {
++		opp-500000000 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@653334000 {
++		opp-653334000 {
+ 			opp-hz = /bits/ 64 <653334000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@666667000 {
++		opp-666667000 {
+ 			opp-hz = /bits/ 64 <666667000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@980000000 {
++		opp-980000000 {
+ 			opp-hz = /bits/ 64 <980000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+diff --git a/arch/arm64/boot/dts/socionext/uniphier-ld20.dtsi b/arch/arm64/boot/dts/socionext/uniphier-ld20.dtsi
+index a6b3a70dae83..19f782408d54 100644
+--- a/arch/arm64/boot/dts/socionext/uniphier-ld20.dtsi
++++ b/arch/arm64/boot/dts/socionext/uniphier-ld20.dtsi
+@@ -116,35 +116,35 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
  
+-		opp@250000000 {
++		opp-250000000 {
+ 			opp-hz = /bits/ 64 <250000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@275000000 {
++		opp-275000000 {
+ 			opp-hz = /bits/ 64 <275000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@500000000 {
++		opp-500000000 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@550000000 {
++		opp-550000000 {
+ 			opp-hz = /bits/ 64 <550000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@666667000 {
++		opp-666667000 {
+ 			opp-hz = /bits/ 64 <666667000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@733334000 {
++		opp-733334000 {
+ 			opp-hz = /bits/ 64 <733334000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@1100000000 {
++		opp-1100000000 {
+ 			opp-hz = /bits/ 64 <1100000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+@@ -154,35 +154,35 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@250000000 {
++		opp-250000000 {
+ 			opp-hz = /bits/ 64 <250000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@275000000 {
++		opp-275000000 {
+ 			opp-hz = /bits/ 64 <275000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@500000000 {
++		opp-500000000 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@550000000 {
++		opp-550000000 {
+ 			opp-hz = /bits/ 64 <550000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@666667000 {
++		opp-666667000 {
+ 			opp-hz = /bits/ 64 <666667000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@733334000 {
++		opp-733334000 {
+ 			opp-hz = /bits/ 64 <733334000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+-		opp@1100000000 {
++		opp-1100000000 {
+ 			opp-hz = /bits/ 64 <1100000000>;
+ 			clock-latency-ns = <300>;
+ 		};
+diff --git a/arch/arm64/boot/dts/zte/zx296718.dtsi b/arch/arm64/boot/dts/zte/zx296718.dtsi
+index b850b2cd0adc..2c7dc69987df 100644
+--- a/arch/arm64/boot/dts/zte/zx296718.dtsi
++++ b/arch/arm64/boot/dts/zte/zx296718.dtsi
+@@ -118,27 +118,27 @@
+ 		compatible = "operating-points-v2";
+ 		opp-shared;
+ 
+-		opp@500000000 {
++		opp-500000000 {
+ 			opp-hz = /bits/ 64 <500000000>;
+ 			clock-latency-ns = <500000>;
+ 		};
+ 
+-		opp@648000000 {
++		opp-648000000 {
+ 			opp-hz = /bits/ 64 <648000000>;
+ 			clock-latency-ns = <500000>;
+ 		};
+ 
+-		opp@800000000 {
++		opp-800000000 {
+ 			opp-hz = /bits/ 64 <800000000>;
+ 			clock-latency-ns = <500000>;
+ 		};
+ 
+-		opp@1000000000 {
++		opp-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+ 			clock-latency-ns = <500000>;
+ 		};
+ 
+-		opp@1188000000 {
++		opp-1188000000 {
+ 			opp-hz = /bits/ 64 <1188000000>;
+ 			clock-latency-ns = <500000>;
+ 		};
 -- 
-1.9.1
+2.12.0.432.g71c3a4f4ba37
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
