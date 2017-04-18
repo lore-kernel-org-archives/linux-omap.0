@@ -1,109 +1,88 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: omap4-droid4: Stop disabling SRAM and GPMC
-Date: Tue, 18 Apr 2017 14:17:09 +0200
-Message-ID: <20170418121709.fttvxuhrjo3d2vd3@earth>
-References: <20170328004612.16350-1-tony@atomide.com>
+From: Niklas Cassel <niklas.cassel@axis.com>
+Subject: Re: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE
+ registers
+Date: Tue, 18 Apr 2017 15:23:56 +0200
+Message-ID: <a45177c1-cd2b-46a3-7858-753ad3f28ae7@axis.com>
+References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
+ <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
+ <CAGm1_ksC_6afhzK39uVTSk2PoC9CrR4Fow89YCZfihS2f6wzOw@mail.gmail.com>
+ <c91dcd74-3983-3ab6-91f6-3657b1e601af@gmail.com>
+ <CAGm1_ktuAbt0pr_NJu2GLDOavFV_bvMBmH5RvDxr5AyXvfwB3A@mail.gmail.com>
+ <20161124153809.GA20455@lunn.ch>
+ <11549d93-4b51-25c8-e693-509048475bef@gmail.com>
+ <2b4912e6-c380-b2bd-762a-d1da2b0a7d82@st.com>
+ <5809df57-997b-3531-838f-8c5a61605fe5@gmail.com>
+ <eb4a3c77-6bf4-8749-85a3-b614bff69cf2@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="cjxcofgx4cqdpcrz"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170328004612.16350-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <eb4a3c77-6bf4-8749-85a3-b614bff69cf2@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>, Giuseppe CAVALLARO <peppe.cavallaro@st.com>, Andrew Lunn <andrew@lunn.ch>, Yegor Yefremov <yegorslists@googlemail.com>
+Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, Rami Rosen <roszenrami@gmail.com>, Fabrice GASNIER <fabrice.gasnier@st.com>
 List-Id: linux-omap@vger.kernel.org
 
+On 01/04/2017 03:33 PM, Florian Fainelli wrote:
+> On 12/02/2016 09:48 AM, Florian Fainelli wrote:
+>>>> Peppe, any thoughts on this?
+>>>
+>>> I share what you say.
+>>>
+>>> In sum, the EEE management inside the stmmac is:
+>>>
+>>> - the driver looks at own HW cap register if EEE is supported
+>>>
+>>>     (indeed the user could keep disable EEE if bugged on some HW
+>>>      + Alex, Fabrice: we had some patches for this to propose where we
+>>>              called the phy_ethtool_set_eee to disable feature at phy
+>>>              level
+>>>
+>>> - then the stmmac asks PHY layer to understand if transceiver and
+>>>   partners are EEE capable.
+>>>
+>>> - If all matches the EEE is actually initialized.
+>>>
+>>> the logic above should be respected when use ethtool, hmm, I will
+>>> check the stmmac_ethtool_op_set_eee asap.
+>>>
+>>> Hoping this is useful
+>>
+>> This is definitively useful, the only part that I am struggling to
+>> understand in phy_init_eee() is this:
+>>
+>>                 eee_adv = phy_read_mmd_indirect(phydev, MDIO_AN_EEE_ADV,
+>>                                                 MDIO_MMD_AN);
+>>                 if (eee_adv <= 0)
+>>                         goto eee_exit_err;
+>>
+>> if we are not already advertising EEE in the PHY's MMIO_MMD_AN page, by
+>> the time we call phy_init_eee(), then we cannot complete the EEE
+>> configuration at the PHY level, and presumably we should abort the EEE
+>> configuration at the MAC level.
+>>
+>> While this condition makes sense if e.g: you are re-negotiating the link
+>> with your partner for instance and if EEE was already advertised, the
+>> very first time this function is called, it seems to be like we should
+>> skip the check, because phy_init_eee() should actually tell us if, as a
+>> result of a successful check, we should be setting EEE as something we
+>> advertise?
+>>
+>> Do you remember what was the logic behind this check when you added it?
+> 
+> Peppe, can you remember why phy_init_eee() was written in a way that you
+> need to have already locally advertised EEE for the function to
+> successfully return? Thank you!
+> 
 
---cjxcofgx4cqdpcrz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm curious about this as well.
 
-Hi,
+I can get EEE to work with stmmac, but to be able to turn EEE on,
+I need to set eee advertise via ethtool first.
+(Tested with 2 different PHYs from different vendors, with their
+PHY specific driver enabled.)
 
-On Mon, Mar 27, 2017 at 05:46:12PM -0700, Tony Lindgren wrote:
-> I disabled SRAM and GPMC originally when seeing errors with
-> omap_barriers_init(). But that is no longer happening probably
-> because the memory range is now properly configured to 1021 MB
-> instead of 1024 MB. So let's enable SRAM and GPMC so we get
-> omap_barriers_init() working and can idle the GPMC.
->=20
-> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-
-Tested-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
--- Sebastian
-
->  arch/arm/boot/dts/omap4-droid4-xt894.dts | 13 +------------
->  1 file changed, 1 insertion(+), 12 deletions(-)
->=20
-> diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts=
-/omap4-droid4-xt894.dts
-> --- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> +++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-> @@ -24,8 +24,7 @@
-> =20
->  	/*
->  	 * We seem to have only 1021 MB accessible, 1021 - 1022 is locked,
-> -	 * then 1023 - 1024 seems to contain mbm. For SRAM, see the notes
-> -	 * below about SRAM and L3_ICLK2 being unused by default,
-> +	 * then 1023 - 1024 seems to contain mbm.
->  	 */
->  	memory {
->  		device_type =3D "memory";
-> @@ -176,11 +175,6 @@
->  	};
->  };
-> =20
-> -/* L3_2 interconnect is unused, SRAM, GPMC and L3_ICLK2 disabled */
-> -&gpmc {
-> -	status =3D "disabled";
-> -};
-> -
->  &hdmi {
->  	status =3D "okay";
->  	pinctrl-0 =3D <&dss_hdmi_pins>;
-> @@ -356,11 +350,6 @@
->  	};
->  };
-> =20
-> -/* L3_2 interconnect is unused, SRAM, GPMC and L3_ICLK2 disabled */
-> -&ocmcram {
-> -	status =3D "disabled";
-> -};
-> -
->  &omap4_pmx_core {
-> =20
->  	/* hdmi_hpd.gpio_63 */
-> --=20
-> 2.12.1
-
---cjxcofgx4cqdpcrz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlj2A78ACgkQ2O7X88g7
-+posVA//TGJieDOeTAEk9JcC0mDoWzlQ5k8vzmGiSKi+G06YkFgFGwDkbT5GsfDv
-7/HWbu1vJJD3wdJE10bgOyLW6CPt7Kd5GVKW8TJkDJstKvDuC15g09YChCNovpaD
-1zzfqCHATZzl206YJKLFsQOlG+WaBaVjFO/odYfTrFSJhablI/JuWNY0hGrQxyUp
-ZXbV6C9F2z92tt/jFaN1aOQNLmVroLiEgssSBtN1kfodkZXLA0Fbx0fVtjj8Kcoi
-dQs2RbDSXVulKfKOics3MFCyXhk+rca/iGROnLJ49pAz8+0fD0x4iPwOfFEn2hQ6
-AfEeOqus6Re38CleRiSM3/sOY85DQv/6CVJUJ2F8LIniPgwjycloX7OUHJD4MOx+
-YsUrMuD5Zaoy6CKaLfGWhARKKwnjL0l6efSnQ0e7nqAOTMGEfY5ljqCGldPSKsnD
-19l5C9FEtrsSeTTZhB8Lw3AIk0o6o/0GwHZyETp9PdwqwqKjmtLuhMGEyEcFmZF/
-3tmedDmsMMbR4ze7gEw4iQIYWbn4NDL+LtN03tVZ9V6DDUXHm1r9XPk/5oX6GXNX
-zfTIiuAYQ/jMBnZX+fDVMvch93rM6zyiZJFPhpa8o7lw9ib8nqkqQSN45mfHKhHH
-CLabg1eYB2LCCGnuFMUCOUpUEzU66f1n9/VYvljVl8maUac4zo0=
-=c4j/
------END PGP SIGNATURE-----
-
---cjxcofgx4cqdpcrz--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is this the same for all PHYs or are there certain PHYs/PHY drivers
+that actually advertise eee by default?
+(From reading this mail thread there seems to be a suggestion that
+the broadcom PHY driver might advertise eee by default.)
