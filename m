@@ -1,61 +1,45 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 2/2] mfd: omap-usb-tll: Configure ULPIAUTOIDLE
-Date: Tue, 18 Apr 2017 11:31:20 +0300
-Message-ID: <f1170557-5679-b9b9-5835-106e2dfb5673@ti.com>
-References: <20170415170509.17364-1-tony@atomide.com>
- <20170415170509.17364-3-tony@atomide.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: et8ek8 camera on Nokia N900: trying to understand what is going
+ on with modes
+Date: Tue, 18 Apr 2017 13:19:29 +0300
+Message-ID: <20170418101929.GG7456@valkosipuli.retiisi.org.uk>
+References: <20170412211159.GA2313@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170415170509.17364-3-tony@atomide.com>
+Content-Disposition: inline
+In-Reply-To: <20170412211159.GA2313@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@linux.intel.com>, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>, Sebastian Reichel <sre@kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, mchehab@kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 15/04/17 20:05, Tony Lindgren wrote:
-> The idle mode needs to be only disabled for UTMIAUTOIDLE while
-> ULPIAUTOIDLE can be enabled.
-> 
-> This matches the TLL_CHANNEL_CONF_i register configuration for ehci-tll
-> in the Motorola Linux kernel tree for Wrigley 3G LTE modem on droid 4
-> and the modem still stays responsive.
-> 
-> Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-> Cc: Keshava Munegowda <keshava_mgowda@ti.com>
-> Cc: Marcel Partap <mpartap@gmx.net>
-> Cc: Michael Scott <michael.scott@linaro.org>
-> Cc: Roger Quadros <rogerq@ti.com>
-> Cc: Sebastian Reichel <sre@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi Pavel,
 
-Acked-by: Roger Quadros <rogerq@ti.com>
-
-> ---
->  drivers/mfd/omap-usb-tll.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+On Wed, Apr 12, 2017 at 11:11:59PM +0200, Pavel Machek wrote:
+> Hi!
 > 
-> diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-> --- a/drivers/mfd/omap-usb-tll.c
-> +++ b/drivers/mfd/omap-usb-tll.c
-> @@ -373,12 +373,13 @@ int omap_tll_init(struct usbhs_omap_platform_data *pdata)
->  			} else if (pdata->port_mode[i] ==
->  					OMAP_EHCI_PORT_MODE_TLL) {
->  				/*
-> -				 * Disable AutoIdle, BitStuffing
-> -				 * and use SDR Mode
-> +				 * Disable UTMI AutoIdle, BitStuffing
-> +				 * and use SDR Mode. Enable ULPI AutoIdle.
->  				 */
->  				reg &= ~(OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE
->  					| OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE);
->  				reg |= OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF;
-> +				reg |= OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE;
->  			} else if (pdata->port_mode[i] ==
->  					OMAP_EHCI_PORT_MODE_HSIC) {
->  				/*
+> 5Mpix mode does not work on N900, which is something I'd like to
+> understand. et8ek8_mode contains huge tables of register settings and
+> parameter values, but it seems that they are not really independend.
 > 
+> To test that theory, I started with checking values against each
+> other.
+> 
+> This is the work so far, it is neither complete nor completely working
+> at the moment. Perhaps someone wants to play...
 
-cheers,
--roger
+You might seek to try lowering the pixel clock on the sensor to see whether
+it makes any difference. I don't think there's been any changes to how the
+sensor is programmed since the original software was shipped with the
+device. That doesn't apply to the SoC and the clock tree in the SoC however.
+I wonder if there could be changes in clock frequencies and how the ISP is
+clocked. The omap3isp driver has changed heavily as well.
+
+Just my 5 Euro cents (they have no smaller coins around here).
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
