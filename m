@@ -1,61 +1,187 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH V2] PM / OPP: Use - instead of @ for DT entries
-Date: Tue, 18 Apr 2017 10:45:26 +0530
-Message-ID: <20170418051526.GN28191@vireshk-i7>
-References: <70e7c7ee13722ab9c73cb073f88502eaf1ada5f5.1491816050.git.viresh.kumar@linaro.org>
- <CAK7LNAQ7Uf1Jkj64-Ykdk5TSeWvkq7=BaqUMJo6KqrN7BhYvsQ@mail.gmail.com>
- <22966574.2zMrIUgKz4@aspire.rjw.lan>
- <6048149.VQXQ7HobDf@aspire.rjw.lan>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] RTC: Add functionality to read/write rtc scratch registers
+Date: Tue, 18 Apr 2017 10:50:07 +0530
+Message-ID: <1492492807-20316-1-git-send-email-j-keerthy@ti.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6048149.VQXQ7HobDf@aspire.rjw.lan>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Rob Herring <robh+dt@kernel.org>, Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Maxime Ripard <maxime.ripard@free-electrons.com>, Chen-Yu Tsai <wens@csie.org>, linaro-
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBD66BCOYSQBBBWGE23DQKGQENXQB55Y-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+Cc: j-keerthy-l0cyMroinI0@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 17-04-17, 18:40, Rafael J. Wysocki wrote:
-> On Monday, April 17, 2017 06:35:25 PM Rafael J. Wysocki wrote:
-> > On Monday, April 17, 2017 11:07:51 AM Masahiro Yamada wrote:
-> > > 2017-04-15 7:47 GMT+09:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
-> > > > On Monday, April 10, 2017 02:51:35 PM Viresh Kumar wrote:
-> > > >> Compiling the DT file with W=1, DTC warns like follows:
-> > > >>
-> > > >> Warning (unit_address_vs_reg): Node /opp_table0/opp@1000000000 has a
-> > > >> unit name, but no reg property
-> > > >>
-> > > >> Fix this by replacing '@' with '-' as the OPP nodes will never have a
-> > > >> "reg" property.
-> > > >>
-> > > >> Reported-by: Krzysztof Kozlowski <krzk@kernel.org>
-> > > >> Reported-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-> > > >> Suggested-by: Mark Rutland <mark.rutland@arm.com>
-> > > >> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-> > > >> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com> (sunxi)
-> > > >> Reviewed-by: Chanwoo Choi <cw00.choi@samsung.com>
-> > > >> Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
-> > > >
-> > > > OK, so any ACKs from the DT side?  Rob?
-> > > >
-> > > > Thanks,
-> > > > Rafael
-> > > 
-> > > 
-> > > 
-> > > I see Rob's Acked-by.
-> > > 
-> > > https://lkml.org/lkml/2017/4/13/648
-> > 
-> > Indeed.  Thanks!
-> 
-> But it doesn't apply on top of -rc7 for me, so I guess there is new 4.12-candidate
-> material in the DTS tree that conflicts with this, in which case it is better to route
-> it through the DTS tree IMO.
+From: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
 
-Yes a minor conflict. I have sent the rebased version now, see if you
-want to apply it directly or want arm-soc guys to do it.
+Many RTCs provide scratch registers that are maintained so long as the RTC
+has power. Provide a generic method to access these registers.
+
+Signed-off-by: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+---
+ drivers/rtc/interface.c | 50 +++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/rtc/rtc-omap.c  | 35 ++++++++++++++++++++++++++++++++++
+ include/linux/rtc.h     |  7 +++++++
+ 3 files changed, 92 insertions(+)
+
+diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
+index fc0fa75..facde06 100644
+--- a/drivers/rtc/interface.c
++++ b/drivers/rtc/interface.c
+@@ -1016,3 +1016,53 @@ int rtc_set_offset(struct rtc_device *rtc, long offset)
+ 	mutex_unlock(&rtc->ops_lock);
+ 	return ret;
+ }
++
++/* rtc_read_scratch - Read from RTC scratch register
++ * @ rtc: rtc device to be used
++ * @ index: index of scratch register
++ * @ value: returned value read
++ *
++ * Kernel interface read from an RTC scratch register
++ */
++int rtc_read_scratch(struct rtc_device *rtc, unsigned int index, u32 *value)
++{
++	int err;
++
++	mutex_lock(&rtc->ops_lock);
++	if (!rtc->ops)
++		err = -ENODEV;
++	else if (index >= rtc->ops->scratch_size || !rtc->ops->read_scratch)
++		err = -EINVAL;
++	else
++		err = rtc->ops->read_scratch(rtc->dev.parent, index, value);
++	mutex_unlock(&rtc->ops_lock);
++	return err;
++}
++EXPORT_SYMBOL_GPL(rtc_read_scratch);
++
++/* rtc_write_scratch - Write to RTC scratch register
++ * @ rtc: rtc device to be used
++ * @ index: index of scratch register
++ * @ value: value to write
++ *
++ * Kernel interface write to an RTC scratch register
++ */
++int rtc_write_scratch(struct rtc_device *rtc, unsigned int index, u32 value)
++{
++	int err;
++
++	mutex_lock(&rtc->ops_lock);
++
++	if (!rtc->ops)
++		err = -ENODEV;
++	else if (index >= rtc->ops->scratch_size ||
++		 !rtc->ops->write_scratch)
++		err = -EINVAL;
++	else
++		err = rtc->ops->write_scratch(rtc->dev.parent, index, value);
++
++	mutex_unlock(&rtc->ops_lock);
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(rtc_write_scratch);
+diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+index 13f7cd1..c90d93e 100644
+--- a/drivers/rtc/rtc-omap.c
++++ b/drivers/rtc/rtc-omap.c
+@@ -70,6 +70,10 @@
+ #define OMAP_RTC_COMP_MSB_REG		0x50
+ #define OMAP_RTC_OSC_REG		0x54
+ 
++#define OMAP_RTC_SCRATCH0_REG		0x60
++#define OMAP_RTC_SCRATCH1_REG		0x64
++#define OMAP_RTC_SCRATCH2_REG		0x68
++
+ #define OMAP_RTC_KICK0_REG		0x6c
+ #define OMAP_RTC_KICK1_REG		0x70
+ 
+@@ -414,6 +418,34 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+ 
+ static struct omap_rtc *omap_rtc_power_off_rtc;
+ 
++static const u32 omap_rtc_scratch_regs[] = {
++	OMAP_RTC_SCRATCH0_REG,
++	OMAP_RTC_SCRATCH1_REG,
++	OMAP_RTC_SCRATCH2_REG,
++};
++
++static int omap_rtc_read_scratch(struct device *dev, unsigned int index,
++				 u32 *value)
++{
++	*value = readl(omap_rtc_power_off_rtc->base +
++		       omap_rtc_scratch_regs[index]);
++
++	return 0;
++}
++
++static int omap_rtc_write_scratch(struct device *dev, unsigned int index,
++				  u32 value)
++{
++	struct omap_rtc *rtc = dev_get_drvdata(dev);
++
++	rtc->type->unlock(rtc);
++	writel(value, omap_rtc_power_off_rtc->base +
++	       omap_rtc_scratch_regs[index]);
++	rtc->type->lock(rtc);
++
++	return 0;
++}
++
+ /*
+  * omap_rtc_poweroff: RTC-controlled power off
+  *
+@@ -484,6 +516,9 @@ static void omap_rtc_power_off(void)
+ 	.read_alarm	= omap_rtc_read_alarm,
+ 	.set_alarm	= omap_rtc_set_alarm,
+ 	.alarm_irq_enable = omap_rtc_alarm_irq_enable,
++	.read_scratch	= omap_rtc_read_scratch,
++	.write_scratch	= omap_rtc_write_scratch,
++	.scratch_size	= ARRAY_SIZE(omap_rtc_scratch_regs),
+ };
+ 
+ static const struct omap_rtc_device_type omap_rtc_default_type = {
+diff --git a/include/linux/rtc.h b/include/linux/rtc.h
+index b693ada..da5e003 100644
+--- a/include/linux/rtc.h
++++ b/include/linux/rtc.h
+@@ -91,6 +91,10 @@ struct rtc_class_ops {
+ 	int (*alarm_irq_enable)(struct device *, unsigned int enabled);
+ 	int (*read_offset)(struct device *, long *offset);
+ 	int (*set_offset)(struct device *, long offset);
++	int (*read_scratch)(struct device *, unsigned int, u32*);
++	int (*write_scratch)(struct device *, unsigned int, u32);
++
++	unsigned int scratch_size;
+ };
+ 
+ #define RTC_DEVICE_NAME_SIZE 20
+@@ -214,6 +218,9 @@ int rtc_timer_start(struct rtc_device *rtc, struct rtc_timer *timer,
+ int rtc_set_offset(struct rtc_device *rtc, long offset);
+ void rtc_timer_do_work(struct work_struct *work);
+ 
++int rtc_read_scratch(struct rtc_device *rtc, unsigned int index, u32 *value);
++int rtc_write_scratch(struct rtc_device *rtc, unsigned int index, u32 value);
++
+ static inline bool is_leap_year(unsigned int year)
+ {
+ 	return (!(year % 4) && (year % 100)) || !(year % 400);
+-- 
+1.9.1
 
 -- 
-viresh
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
