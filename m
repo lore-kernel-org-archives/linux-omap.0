@@ -1,88 +1,61 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: Re: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE
- registers
-Date: Tue, 18 Apr 2017 15:23:56 +0200
-Message-ID: <a45177c1-cd2b-46a3-7858-753ad3f28ae7@axis.com>
-References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
- <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
- <CAGm1_ksC_6afhzK39uVTSk2PoC9CrR4Fow89YCZfihS2f6wzOw@mail.gmail.com>
- <c91dcd74-3983-3ab6-91f6-3657b1e601af@gmail.com>
- <CAGm1_ktuAbt0pr_NJu2GLDOavFV_bvMBmH5RvDxr5AyXvfwB3A@mail.gmail.com>
- <20161124153809.GA20455@lunn.ch>
- <11549d93-4b51-25c8-e693-509048475bef@gmail.com>
- <2b4912e6-c380-b2bd-762a-d1da2b0a7d82@st.com>
- <5809df57-997b-3531-838f-8c5a61605fe5@gmail.com>
- <eb4a3c77-6bf4-8749-85a3-b614bff69cf2@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2] PM / OPP: Use - instead of @ for DT entries
+Date: Tue, 18 Apr 2017 16:04:07 +0200
+Message-ID: <2454410.F8dveLU6q9@aspire.rjw.lan>
+References: <70e7c7ee13722ab9c73cb073f88502eaf1ada5f5.1491816050.git.viresh.kumar@linaro.org> <6048149.VQXQ7HobDf@aspire.rjw.lan> <20170418051526.GN28191@vireshk-i7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <eb4a3c77-6bf4-8749-85a3-b614bff69cf2@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>, Giuseppe CAVALLARO <peppe.cavallaro@st.com>, Andrew Lunn <andrew@lunn.ch>, Yegor Yefremov <yegorslists@googlemail.com>
-Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, Rami Rosen <roszenrami@gmail.com>, Fabrice GASNIER <fabrice.gasnier@st.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20170418051526.GN28191@vireshk-i7>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Rob Herring <robh+dt@kernel.org>, Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Mark Rutland <mark.rutland@arm.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Maxime Ripard <maxime.ripard@free-electrons.com>, Chen-Yu Tsai <wens@csie.org>, linaro-
 List-Id: linux-omap@vger.kernel.org
 
-On 01/04/2017 03:33 PM, Florian Fainelli wrote:
-> On 12/02/2016 09:48 AM, Florian Fainelli wrote:
->>>> Peppe, any thoughts on this?
->>>
->>> I share what you say.
->>>
->>> In sum, the EEE management inside the stmmac is:
->>>
->>> - the driver looks at own HW cap register if EEE is supported
->>>
->>>     (indeed the user could keep disable EEE if bugged on some HW
->>>      + Alex, Fabrice: we had some patches for this to propose where we
->>>              called the phy_ethtool_set_eee to disable feature at phy
->>>              level
->>>
->>> - then the stmmac asks PHY layer to understand if transceiver and
->>>   partners are EEE capable.
->>>
->>> - If all matches the EEE is actually initialized.
->>>
->>> the logic above should be respected when use ethtool, hmm, I will
->>> check the stmmac_ethtool_op_set_eee asap.
->>>
->>> Hoping this is useful
->>
->> This is definitively useful, the only part that I am struggling to
->> understand in phy_init_eee() is this:
->>
->>                 eee_adv = phy_read_mmd_indirect(phydev, MDIO_AN_EEE_ADV,
->>                                                 MDIO_MMD_AN);
->>                 if (eee_adv <= 0)
->>                         goto eee_exit_err;
->>
->> if we are not already advertising EEE in the PHY's MMIO_MMD_AN page, by
->> the time we call phy_init_eee(), then we cannot complete the EEE
->> configuration at the PHY level, and presumably we should abort the EEE
->> configuration at the MAC level.
->>
->> While this condition makes sense if e.g: you are re-negotiating the link
->> with your partner for instance and if EEE was already advertised, the
->> very first time this function is called, it seems to be like we should
->> skip the check, because phy_init_eee() should actually tell us if, as a
->> result of a successful check, we should be setting EEE as something we
->> advertise?
->>
->> Do you remember what was the logic behind this check when you added it?
+On Tuesday, April 18, 2017 10:45:26 AM Viresh Kumar wrote:
+> On 17-04-17, 18:40, Rafael J. Wysocki wrote:
+> > On Monday, April 17, 2017 06:35:25 PM Rafael J. Wysocki wrote:
+> > > On Monday, April 17, 2017 11:07:51 AM Masahiro Yamada wrote:
+> > > > 2017-04-15 7:47 GMT+09:00 Rafael J. Wysocki <rjw@rjwysocki.net>:
+> > > > > On Monday, April 10, 2017 02:51:35 PM Viresh Kumar wrote:
+> > > > >> Compiling the DT file with W=1, DTC warns like follows:
+> > > > >>
+> > > > >> Warning (unit_address_vs_reg): Node /opp_table0/opp@1000000000 has a
+> > > > >> unit name, but no reg property
+> > > > >>
+> > > > >> Fix this by replacing '@' with '-' as the OPP nodes will never have a
+> > > > >> "reg" property.
+> > > > >>
+> > > > >> Reported-by: Krzysztof Kozlowski <krzk@kernel.org>
+> > > > >> Reported-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> > > > >> Suggested-by: Mark Rutland <mark.rutland@arm.com>
+> > > > >> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+> > > > >> Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com> (sunxi)
+> > > > >> Reviewed-by: Chanwoo Choi <cw00.choi@samsung.com>
+> > > > >> Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
+> > > > >
+> > > > > OK, so any ACKs from the DT side?  Rob?
+> > > > >
+> > > > > Thanks,
+> > > > > Rafael
+> > > > 
+> > > > 
+> > > > 
+> > > > I see Rob's Acked-by.
+> > > > 
+> > > > https://lkml.org/lkml/2017/4/13/648
+> > > 
+> > > Indeed.  Thanks!
+> > 
+> > But it doesn't apply on top of -rc7 for me, so I guess there is new 4.12-candidate
+> > material in the DTS tree that conflicts with this, in which case it is better to route
+> > it through the DTS tree IMO.
 > 
-> Peppe, can you remember why phy_init_eee() was written in a way that you
-> need to have already locally advertised EEE for the function to
-> successfully return? Thank you!
-> 
+> Yes a minor conflict. I have sent the rebased version now, see if you
+> want to apply it directly or want arm-soc guys to do it.
 
-I'm curious about this as well.
+I'm going to apply the rebased one.
 
-I can get EEE to work with stmmac, but to be able to turn EEE on,
-I need to set eee advertise via ethtool first.
-(Tested with 2 different PHYs from different vendors, with their
-PHY specific driver enabled.)
-
-Is this the same for all PHYs or are there certain PHYs/PHY drivers
-that actually advertise eee by default?
-(From reading this mail thread there seems to be a suggestion that
-the broadcom PHY driver might advertise eee by default.)
+Thanks,
+Rafael
