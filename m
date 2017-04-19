@@ -1,67 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] clk: ti: fix linker error with !SOC_OMAP4
-Date: Wed, 19 Apr 2017 23:43:10 +0200
-Message-ID: <20170419214318.1605787-1-arnd@arndb.de>
-Return-path: <linux-clk-owner@vger.kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Richard Watts <rrw@kynesim.co.uk>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V3] PM / OPP: Use - instead of @ for DT entries
+Date: Thu, 20 Apr 2017 00:06:03 +0200
+Message-ID: <3142028.bncGUUQ4qB@aspire.rjw.lan>
+References: <734c5d5a66ef8a5505f368fc68a8ab9c02d710f9.1492492253.git.viresh.kumar@linaro.org> <20170419142215.GA12105@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170419142215.GA12105@localhost>
+Sender: linux-pm-owner@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, arm@kernel.org, Chanwoo Choi <cw00.choi@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Beno??t Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Maxime Ripard <maxime.ripard@free-electrons.com>, Chen-Yu Tsai <wens@csie.org>, Masahiro
 List-Id: linux-omap@vger.kernel.org
 
-When none of the OMAP4-generation SoCs are enabled, we run into a link
-error for am43xx/am43xx:
+On Wednesday, April 19, 2017 07:22:15 AM Olof Johansson wrote:
+> Hi Viresh,
+> 
+> On Tue, Apr 18, 2017 at 10:44:50AM +0530, Viresh Kumar wrote:
+> > Compiling the DT file with W=1, DTC warns like follows:
+> > 
+> > Warning (unit_address_vs_reg): Node /opp_table0/opp@1000000000 has a
+> > unit name, but no reg property
+> > 
+> > Fix this by replacing '@' with '-' as the OPP nodes will never have a
+> > "reg" property.
+> > 
+> > Reported-by: Krzysztof Kozlowski <krzk@kernel.org>
+> > Reported-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> > Suggested-by: Mark Rutland <mark.rutland@arm.com>
+> > Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+> > Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com> (sunxi)
+> > Reviewed-by: Chanwoo Choi <cw00.choi@samsung.com>
+> > Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
+> > Acked-by: Masahiro Yamada <yamada.masahiro@socionext.com> (uniphier)
+> > Acked-by: Rob Herring <robh@kernel.org>
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> We've already turned down other patches that does this in a sweeping manner
+> like this, since they tend to be conflict prone with other DT changes.
+> 
+> Please split per platform and merge with each maintainer.
 
-drivers/clk/ti/dpll.o: In function `of_ti_am3_dpll_x2_setup':
-dpll.c:(.init.text+0xd8): undefined reference to `clkhwops_omap4_dpllmx'
+OK
 
-This is easily fixed by adding another #ifdef.
+So I'm assuming that you guys will take care of this going forward.
 
-While looking at the code, I also spotted another problem with the
-assignment of hw_ops variable that is not used again later. I'm
-changing this to setting clk_hw->ops instead, which I guess is what
-was intended here.
-
-Fixes: 0565fb168d63 ("clk: ti: dpll: move omap3 DPLL functionality to clock driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/clk/ti/dpll.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
-index 96d84888c6c5..fcf297fd2233 100644
---- a/drivers/clk/ti/dpll.c
-+++ b/drivers/clk/ti/dpll.c
-@@ -312,7 +312,6 @@ static void _register_dpll_x2(struct device_node *node,
- 	struct clk_hw_omap *clk_hw;
- 	const char *name = node->name;
- 	const char *parent_name;
--	int ret;
- 
- 	parent_name = of_clk_get_parent_name(node, 0);
- 	if (!parent_name) {
-@@ -332,16 +331,21 @@ static void _register_dpll_x2(struct device_node *node,
- 	init.parent_names = &parent_name;
- 	init.num_parents = 1;
- 
-+#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5) || \
-+        defined(CONFIG_SOC_DRA7XX)
- 	if (hw_ops == &clkhwops_omap4_dpllmx) {
-+		int ret;
-+
- 		/* Check if register defined, if not, drop hw-ops */
- 		ret = of_property_count_elems_of_size(node, "reg", 1);
- 		if (ret <= 0) {
--			hw_ops = NULL;
-+			clk_hw->ops = NULL;
- 		} else if (ti_clk_get_reg_addr(node, 0, &clk_hw->clksel_reg)) {
- 			kfree(clk_hw);
- 			return;
- 		}
- 	}
-+#endif
- 
- 	/* register the clock */
- 	clk = ti_clk_register(NULL, &clk_hw->hw, name);
--- 
-2.9.0
-
+Thanks,
+Rafael
