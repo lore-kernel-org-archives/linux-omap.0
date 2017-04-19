@@ -1,60 +1,61 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 2/2] clk: ti: fix building without legacy omap3
-Date: Wed, 19 Apr 2017 19:44:56 +0200
-Message-ID: <20170419174507.4055014-2-arnd@arndb.de>
-References: <20170419174507.4055014-1-arnd@arndb.de>
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20170419174507.4055014-1-arnd@arndb.de>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [v5,2/8] mfd: retu: Drop -mfd suffix from I2C device ID name
+Date: Wed, 19 Apr 2017 21:40:13 +0200
+Message-ID: <20170419194013.op72kqoa4otn2lfy@ninjato>
+References: <20170412172800.23035-3-javier@osg.samsung.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="xvtw4kaoofrofdkv"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170412172800.23035-3-javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-When CONFIG_ATAGS or CONFIG_OMAP3 is disabled, we get a build error:
 
-In file included from include/linux/clk-provider.h:15:0,
-                 from drivers/clk/ti/clk.c:19:
-drivers/clk/ti/clk.c: In function 'ti_clk_add_aliases':
-drivers/clk/ti/clk.c:438:29: error: 'simple_clk_match_table' undeclared (first use in this function); did you mean 'simple_attr_write'?
+--xvtw4kaoofrofdkv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Moving the match table down fixes it.
+On Wed, Apr 12, 2017 at 02:27:53PM -0300, Javier Martinez Canillas wrote:
+> It's not correct to encode the subsystem in the I2C device name, so
+> drop the -mfd suffix. To maintain bisect-ability, change driver and
+> platform code / DTS users in the same patch.
+>=20
+> Suggested-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Acked-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Fixes: c17435c56bb1 ("clk: ti: add API for creating aliases automatically for simple clock types")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/clk/ti/clk.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Reviewed-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index ddbad7e8d7c9..e5a1c8297a1d 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -371,12 +371,6 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
- 	return clk;
- }
- 
--static const struct of_device_id simple_clk_match_table[] __initconst = {
--	{ .compatible = "fixed-clock" },
--	{ .compatible = "fixed-factor-clock" },
--	{ }
--};
--
- int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
- {
- 	struct clk *clk;
-@@ -425,6 +419,12 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
- }
- #endif
- 
-+static const struct of_device_id simple_clk_match_table[] __initconst = {
-+	{ .compatible = "fixed-clock" },
-+	{ .compatible = "fixed-factor-clock" },
-+	{ }
-+};
-+
- /**
-  * ti_clk_add_aliases - setup clock aliases
-  *
--- 
-2.9.0
 
+--xvtw4kaoofrofdkv
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlj3vRwACgkQFA3kzBSg
+KbYgxxAAsTa1qazeXi5IoYyKivLI1x0Nh0gxNhT8fwitlEOZkTFnT1MZfMo0swMf
+idxw56JNKdkn4oS/XV1SNmrzlNJd4lQZ8ug0Ql0vhnpACvS6b00IgM+whqk38cgb
+OFvBPYmj0RKtj9WFDUn0PR0hE1a7Z807ck3SDrfcTfdTda/Qnq/7ntmHe+vhbeFO
+t+GwPvMPSs6gAgHVztxsyV28T7p//aK6xDNhN6aaWgwcC3zJSLc3inzm4OM14ec4
+X2u4CLg6+vHbipoYk8unvF5lgw26p5GpgIqo6AT1nmSLeQC7Nz/2FFlIf5XoKC+B
+M6QCEHyqHYRpCtRSMkJh1u8B3UNy1NNL2my8sVNiSQig3sefrA2mZxR8CbPkBfDg
+WlDv7gJ51l7OEe8Jib13FW3PujQ7i8FxL56e7FMqi+wKgLE1KX17QkEOnNBStEpn
+cszWdw/l8Tfs1cUaAij/2Gee6Wp31HHeaAdYBMbIyRywwwJoOBeOhr8p0NoHUzRk
+QdYDPSp53Rrg4s/OAIiVBfbx3GzcwUkcGQAW2zxGmEJZmxiF0gVpiDB2zVVJJQXT
+AWnyyw8g1Vi6IS1kGNYVCP8WWE1uZBX6b9LYpa+BpZBaY0hk6gUbKd3XtKbHGMft
+l8HLz3L8zgk8PVghPJJ2JI+JP47+pG0cFGpgMqyGk89wQJ291xI=
+=xnO7
+-----END PGP SIGNATURE-----
+
+--xvtw4kaoofrofdkv--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
