@@ -1,73 +1,60 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 1/2] clk: ti: divider: try to fix ti_clk_register_divider
-Date: Wed, 19 Apr 2017 19:44:55 +0200
-Message-ID: <20170419174507.4055014-1-arnd@arndb.de>
+Subject: [PATCH 2/2] clk: ti: fix building without legacy omap3
+Date: Wed, 19 Apr 2017 19:44:56 +0200
+Message-ID: <20170419174507.4055014-2-arnd@arndb.de>
+References: <20170419174507.4055014-1-arnd@arndb.de>
 Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20170419174507.4055014-1-arnd@arndb.de>
 Sender: linux-clk-owner@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The newly introduced function is entirely bogus as I found when looking
-at this warning:
+When CONFIG_ATAGS or CONFIG_OMAP3 is disabled, we get a build error:
 
-drivers/clk/ti/divider.c: In function 'ti_clk_register_divider':
-drivers/clk/ti/divider.c:460:8: error: 'reg' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+In file included from include/linux/clk-provider.h:15:0,
+                 from drivers/clk/ti/clk.c:19:
+drivers/clk/ti/clk.c: In function 'ti_clk_add_aliases':
+drivers/clk/ti/clk.c:438:29: error: 'simple_clk_match_table' undeclared (first use in this function); did you mean 'simple_attr_write'?
 
-Treating a 'u32' variable as a structure leads to a stack overflow here,
-and the register address we pass down is never initialized.
+Moving the match table down fixes it.
 
-As the code in its original form makes no sense, I can only guess what
-the intention was, and change it to take the address from div->reg.ptr
-instead.
-
-Fixes: d96f774b2538 ("clk: ti: divider: add support for legacy divider init")
+Fixes: c17435c56bb1 ("clk: ti: add API for creating aliases automatically for simple clock types")
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/clk/ti/divider.c | 17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ drivers/clk/ti/clk.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/clk/ti/divider.c b/drivers/clk/ti/divider.c
-index d6dcb283b72b..a6d3bbfbbd31 100644
---- a/drivers/clk/ti/divider.c
-+++ b/drivers/clk/ti/divider.c
-@@ -428,22 +428,17 @@ struct clk_hw *ti_clk_build_component_div(struct ti_clk_divider *setup)
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index ddbad7e8d7c9..e5a1c8297a1d 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -371,12 +371,6 @@ struct clk __init *ti_clk_register_clk(struct ti_clk *setup)
+ 	return clk;
+ }
  
- struct clk *ti_clk_register_divider(struct ti_clk *setup)
+-static const struct of_device_id simple_clk_match_table[] __initconst = {
+-	{ .compatible = "fixed-clock" },
+-	{ .compatible = "fixed-factor-clock" },
+-	{ }
+-};
+-
+ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
  {
--	struct ti_clk_divider *div;
--	struct clk_omap_reg *reg_setup;
--	u32 reg;
-+	struct ti_clk_divider *div = setup->data;
-+	struct clk_omap_reg reg_setup = {
-+		.index = div->module,
-+		.offset = div->reg,
-+	};
- 	u8 width;
- 	u32 flags = 0;
- 	u8 div_flags = 0;
- 	const struct clk_div_table *table;
  	struct clk *clk;
+@@ -425,6 +419,12 @@ int __init ti_clk_register_legacy_clks(struct ti_clk_alias *clks)
+ }
+ #endif
  
--	div = setup->data;
--
--	reg_setup = (struct clk_omap_reg *)&reg;
--
--	reg_setup->index = div->module;
--	reg_setup->offset = div->reg;
--
- 	if (div->flags & CLKF_INDEX_STARTS_AT_ONE)
- 		div_flags |= CLK_DIVIDER_ONE_BASED;
- 
-@@ -458,7 +453,7 @@ struct clk *ti_clk_register_divider(struct ti_clk *setup)
- 		return (struct clk *)table;
- 
- 	clk = _register_divider(NULL, setup->name, div->parent,
--				flags, (void __iomem *)reg, div->bit_shift,
-+				flags, &reg_setup, div->bit_shift,
- 				width, div_flags, table);
- 
- 	if (IS_ERR(clk))
++static const struct of_device_id simple_clk_match_table[] __initconst = {
++	{ .compatible = "fixed-clock" },
++	{ .compatible = "fixed-factor-clock" },
++	{ }
++};
++
+ /**
+  * ti_clk_add_aliases - setup clock aliases
+  *
 -- 
 2.9.0
 
