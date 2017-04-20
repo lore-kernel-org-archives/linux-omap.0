@@ -1,167 +1,137 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: [PATCH V4 2/7] ARM: TI: Use - instead of @ for DT OPP entries
-Date: Thu, 20 Apr 2017 11:14:13 +0530
-Message-ID: <f28bf0c7a177c78b5f6d298462a0bb627dfae937.1492666725.git.viresh.kumar@linaro.org>
-References: <cover.1492666725.git.viresh.kumar@linaro.org>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] mdio_bus: Issue GPIO RESET to PHYs.
+Date: Thu, 20 Apr 2017 10:58:36 +0300
+Message-ID: <47d66f57-d477-4cde-9ac5-26d5397861a6@ti.com>
+References: <1491381237-24635-1-git-send-email-rogerq@ti.com>
+ <64d6494d-41d2-0faf-a434-057f796637fe@ti.com>
+ <20170419113951.GA31908@lunn.ch>
+ <f8624649-3e49-f68c-f364-ee73f1cc514d@ti.com> <20170419133853.GA2696@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cover.1492666725.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1492666725.git.viresh.kumar@linaro.org>
-References: <cover.1492666725.git.viresh.kumar@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: Rob Herring <robh@kernel.org>, linaro-kernel@lists.linaro.org, linux-pm@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, Rafael Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170419133853.GA2696@lunn.ch>
+Sender: netdev-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: davem@davemloft.net, Florian Fainelli <f.fainelli@gmail.com>, tony@atomide.com, nsekhar@ti.com, jsarha@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Compiling the DT file with W=1, DTC warns like follows:
+On 19/04/17 16:38, Andrew Lunn wrote:
+> On Wed, Apr 19, 2017 at 02:56:48PM +0300, Roger Quadros wrote:
+>> Hi,
+>>
+>> On 19/04/17 14:39, Andrew Lunn wrote:
+>>> On Wed, Apr 19, 2017 at 12:24:26PM +0300, Roger Quadros wrote:
+>>>> Some boards [1] leave the PHYs at an invalid state
+>>>> during system power-up or reset thus causing unreliability
+>>>> issues with the PHY which manifests as PHY not being detected
+>>>> or link not functional. To fix this, these PHYs need to be RESET
+>>>> via a GPIO connected to the PHY's RESET pin.
+>>>>
+>>>> Some boards have a single GPIO controlling the PHY RESET pin of all
+>>>> PHYs on the bus whereas some others have separate GPIOs controlling
+>>>> individual PHY RESETs.
+>>>>
+>>>> In both cases, the RESET de-assertion cannot be done in the PHY driver
+>>>> as the PHY will not probe till its reset is de-asserted.
+>>>> So do the RESET de-assertion in the MDIO bus driver.
+>>>>
+>>>> [1] - am572x-idk, am571x-idk, a437x-idk
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>> ---
+>>>>  drivers/net/phy/mdio_bus.c | 26 ++++++++++++++++++++++++++
+>>>>  drivers/of/of_mdio.c       |  4 ++++
+>>>>  include/linux/phy.h        |  5 +++++
+>>>>  3 files changed, 35 insertions(+)
+>>>
+>>> Hi Roger
+>>>
+>>> Thanks for making this generic.
+>>>
+>>> Please add device tree binding documentation. I think that actually
+>>> means you have to document MDIO in general, since there currently is
+>>> not a binding document.
+>>
+>> OK.
+>>
+>>>
+>>>> diff --git a/drivers/net/phy/mdio_bus.c b/drivers/net/phy/mdio_bus.c
+>>>> index fa7d51f..25fda2b 100644
+>>>> --- a/drivers/net/phy/mdio_bus.c
+>>>> +++ b/drivers/net/phy/mdio_bus.c
+>>>> @@ -22,8 +22,11 @@
+>>>>  #include <linux/init.h>
+>>>>  #include <linux/delay.h>
+>>>>  #include <linux/device.h>
+>>>> +#include <linux/gpio.h>
+>>>> +#include <linux/gpio/consumer.h>
+>>>>  #include <linux/of_device.h>
+>>>>  #include <linux/of_mdio.h>
+>>>> +#include <linux/of_gpio.h>
+>>>>  #include <linux/netdevice.h>
+>>>>  #include <linux/etherdevice.h>
+>>>>  #include <linux/skbuff.h>
+>>>> @@ -43,6 +46,8 @@
+>>>>  
+>>>>  #include "mdio-boardinfo.h"
+>>>>  
+>>>> +#define DEFAULT_GPIO_RESET_DELAY	10	/* in microseconds */
+>>>> +
+>>>>  int mdiobus_register_device(struct mdio_device *mdiodev)
+>>>>  {
+>>>>  	if (mdiodev->bus->mdio_map[mdiodev->addr])
+>>>> @@ -307,6 +312,7 @@ int __mdiobus_register(struct mii_bus *bus, struct module *owner)
+>>>>  {
+>>>>  	struct mdio_device *mdiodev;
+>>>>  	int i, err;
+>>>> +	struct gpio_desc *gpiod;
+>>>>  
+>>>>  	if (NULL == bus || NULL == bus->name ||
+>>>>  	    NULL == bus->read || NULL == bus->write)
+>>>> @@ -333,6 +339,26 @@ int __mdiobus_register(struct mii_bus *bus, struct module *owner)
+>>>>  	if (bus->reset)
+>>>>  		bus->reset(bus);
+>>>>  
+>>>> +	/* de-assert bus level PHY GPIO resets */
+>>>> +	for (i = 0; i < bus->num_reset_gpios; i++) {
+>>>> +		gpiod = devm_gpiod_get_index(&bus->dev, "reset", i,
+>>>> +					     GPIOD_OUT_LOW);
+>>>> +		if (IS_ERR(gpiod)) {
+>>>> +			err = PTR_ERR(gpiod);
+>>>> +			if (err != -ENOENT) {
+>>>> +				pr_err("mii_bus %s couldn't get reset GPIO\n",
+>>>> +				       bus->id);
+>>>> +				return err;
+>>>> +			}
+>>>> +		} else {
+>>>> +			gpiod_set_value_cansleep(gpiod, 1);
+>>>
+>>>
+>>>> +			if (!bus->reset_delay_us)
+>>>> +				bus->reset_delay_us = DEFAULT_GPIO_RESET_DELAY;
+>>>
+>>> Maybe do this once, where you read the device tree property.
+>>
+>> I was thinking from point of view that GPIO RESET code should work even without
+>> device tree. Although I'm not sure if there would be any users or not.
+> 
+> Hi Roger
+> 
+> I don't see how this would work. What would devm_gpiod_get_index()
+> return? Something from ACPI? But then there would be something
 
-Warning (unit_address_vs_reg): Node /opp_table0/opp@1000000000 has a
-unit name, but no reg property
+Yes or just lookup tables based on platform data.
 
-Fix this by replacing '@' with '-' as the OPP nodes will never have a
-"reg" property.
+> equivalent for getting the delay.
 
-Reported-by: Krzysztof Kozlowski <krzk@kernel.org>
-Reported-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Suggested-by: Mark Rutland <mark.rutland@arm.com>
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- .../devicetree/bindings/cpufreq/ti-cpufreq.txt       | 20 ++++++++++----------
- arch/arm/boot/dts/am4372.dtsi                        | 10 +++++-----
- 2 files changed, 15 insertions(+), 15 deletions(-)
+I'm not sure about delay part.
 
-diff --git a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
-index ba0e15ad5bd9..0c38e4b8fc51 100644
---- a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
-+++ b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
-@@ -63,64 +63,64 @@ cpu0_opp_table: opp-table {
- 	 * because they can not be enabled simultaneously on a
- 	 * single SoC.
- 	 */
--	opp50@300000000 {
-+	opp50-300000000 {
- 		opp-hz = /bits/ 64 <300000000>;
- 		opp-microvolt = <950000 931000 969000>;
- 		opp-supported-hw = <0x06 0x0010>;
- 		opp-suspend;
- 	};
- 
--	opp100@275000000 {
-+	opp100-275000000 {
- 		opp-hz = /bits/ 64 <275000000>;
- 		opp-microvolt = <1100000 1078000 1122000>;
- 		opp-supported-hw = <0x01 0x00FF>;
- 		opp-suspend;
- 	};
- 
--	opp100@300000000 {
-+	opp100-300000000 {
- 		opp-hz = /bits/ 64 <300000000>;
- 		opp-microvolt = <1100000 1078000 1122000>;
- 		opp-supported-hw = <0x06 0x0020>;
- 		opp-suspend;
- 	};
- 
--	opp100@500000000 {
-+	opp100-500000000 {
- 		opp-hz = /bits/ 64 <500000000>;
- 		opp-microvolt = <1100000 1078000 1122000>;
- 		opp-supported-hw = <0x01 0xFFFF>;
- 	};
- 
--	opp100@600000000 {
-+	opp100-600000000 {
- 		opp-hz = /bits/ 64 <600000000>;
- 		opp-microvolt = <1100000 1078000 1122000>;
- 		opp-supported-hw = <0x06 0x0040>;
- 	};
- 
--	opp120@600000000 {
-+	opp120-600000000 {
- 		opp-hz = /bits/ 64 <600000000>;
- 		opp-microvolt = <1200000 1176000 1224000>;
- 		opp-supported-hw = <0x01 0xFFFF>;
- 	};
- 
--	opp120@720000000 {
-+	opp120-720000000 {
- 		opp-hz = /bits/ 64 <720000000>;
- 		opp-microvolt = <1200000 1176000 1224000>;
- 		opp-supported-hw = <0x06 0x0080>;
- 	};
- 
--	oppturbo@720000000 {
-+	oppturbo-720000000 {
- 		opp-hz = /bits/ 64 <720000000>;
- 		opp-microvolt = <1260000 1234800 1285200>;
- 		opp-supported-hw = <0x01 0xFFFF>;
- 	};
- 
--	oppturbo@800000000 {
-+	oppturbo-800000000 {
- 		opp-hz = /bits/ 64 <800000000>;
- 		opp-microvolt = <1260000 1234800 1285200>;
- 		opp-supported-hw = <0x06 0x0100>;
- 	};
- 
--	oppnitro@1000000000 {
-+	oppnitro-1000000000 {
- 		opp-hz = /bits/ 64 <1000000000>;
- 		opp-microvolt = <1325000 1298500 1351500>;
- 		opp-supported-hw = <0x04 0x0200>;
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 97fcaf415de1..1532ffe1de63 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -60,32 +60,32 @@
- 	cpu0_opp_table: opp_table0 {
- 		compatible = "operating-points-v2";
- 
--		opp50@300000000 {
-+		opp50-300000000 {
- 			opp-hz = /bits/ 64 <300000000>;
- 			opp-microvolt = <950000 931000 969000>;
- 			opp-supported-hw = <0xFF 0x01>;
- 			opp-suspend;
- 		};
- 
--		opp100@600000000 {
-+		opp100-600000000 {
- 			opp-hz = /bits/ 64 <600000000>;
- 			opp-microvolt = <1100000 1078000 1122000>;
- 			opp-supported-hw = <0xFF 0x04>;
- 		};
- 
--		opp120@720000000 {
-+		opp120-720000000 {
- 			opp-hz = /bits/ 64 <720000000>;
- 			opp-microvolt = <1200000 1176000 1224000>;
- 			opp-supported-hw = <0xFF 0x08>;
- 		};
- 
--		oppturbo@800000000 {
-+		oppturbo-800000000 {
- 			opp-hz = /bits/ 64 <800000000>;
- 			opp-microvolt = <1260000 1234800 1285200>;
- 			opp-supported-hw = <0xFF 0x10>;
- 		};
- 
--		oppnitro@1000000000 {
-+		oppnitro-1000000000 {
- 			opp-hz = /bits/ 64 <1000000000>;
- 			opp-microvolt = <1325000 1298500 1351500>;
- 			opp-supported-hw = <0xFF 0x20>;
--- 
-2.12.0.432.g71c3a4f4ba37
+> 
+> Lets keep it simple and OF only. If there is a real need for something
+> in addition to OF, it can be added later.
+
+OK. I'll revise the patch based on your comments.
+
+cheers,
+-roger
