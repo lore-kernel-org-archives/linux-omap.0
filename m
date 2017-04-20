@@ -1,272 +1,105 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: [PATCH V5 2/7] ARM: TI: Use - instead of @ for DT OPP entries
-Date: Thu, 20 Apr 2017 16:25:06 +0530
-Message-ID: <5f0656140309d53a45058c048ca059c4ba294756.1492685450.git.viresh.kumar@linaro.org>
-References: <cover.1492685450.git.viresh.kumar@linaro.org>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH v2] mdio_bus: Issue GPIO RESET to PHYs.
+Date: Thu, 20 Apr 2017 15:13:05 +0200
+Message-ID: <20170420131305.GB6152@lunn.ch>
+References: <1491381237-24635-1-git-send-email-rogerq@ti.com>
+ <64d6494d-41d2-0faf-a434-057f796637fe@ti.com>
+ <daa29a99-0a17-d316-57eb-3e6162938d8d@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1492685450.git.viresh.kumar@linaro.org>
-In-Reply-To: <cover.1492685450.git.viresh.kumar@linaro.org>
-References: <cover.1492685450.git.viresh.kumar@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <daa29a99-0a17-d316-57eb-3e6162938d8d@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: arm@kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: linaro-kernel@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Rafael Wysocki <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, Krzysztof Kozlowski <krzk@kernel.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: davem@davemloft.net, Florian Fainelli <f.fainelli@gmail.com>, tony@atomide.com, nsekhar@ti.com, jsarha@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Compiling the DT file with W=1, DTC warns like follows:
+On Thu, Apr 20, 2017 at 11:39:20AM +0300, Roger Quadros wrote:
+> Some boards [1] leave the PHYs at an invalid state
+> during system power-up or reset thus causing unreliability
+> issues with the PHY which manifests as PHY not being detected
+> or link not functional. To fix this, these PHYs need to be RESET
+> via a GPIO connected to the PHY's RESET pin.
+> 
+> Some boards have a single GPIO controlling the PHY RESET pin of all
+> PHYs on the bus whereas some others have separate GPIOs controlling
+> individual PHY RESETs.
+> 
+> In both cases, the RESET de-assertion cannot be done in the PHY driver
+> as the PHY will not probe till its reset is de-asserted.
+> So do the RESET de-assertion in the MDIO bus driver.
 
-Warning (unit_address_vs_reg): Node /opp_table0/opp@1000000000 has a
-unit name, but no reg property
+Hi Roger
 
-Fix this by replacing '@' with '-' as the OPP nodes will never have a
-"reg" property.
+Networking patches should include in the subject line which tree they
+are for. In this case, net-next. So please make the Subject
 
-Reported-by: Krzysztof Kozlowski <krzk@kernel.org>
-Reported-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Suggested-by: Mark Rutland <mark.rutland@arm.com>
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- .../devicetree/bindings/cpufreq/ti-cpufreq.txt       | 20 ++++++++++----------
- arch/arm/boot/dts/am335x-boneblack.dts               |  2 +-
- arch/arm/boot/dts/am33xx.dtsi                        | 20 ++++++++++----------
- arch/arm/boot/dts/am4372.dtsi                        | 10 +++++-----
- arch/arm/boot/dts/dra7.dtsi                          |  4 ++--
- 5 files changed, 28 insertions(+), 28 deletions(-)
+[patch v3 net-next] .....
 
-diff --git a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
-index ba0e15ad5bd9..0c38e4b8fc51 100644
---- a/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
-+++ b/Documentation/devicetree/bindings/cpufreq/ti-cpufreq.txt
-@@ -63,64 +63,64 @@ cpu0_opp_table: opp-table {
- 	 * because they can not be enabled simultaneously on a
- 	 * single SoC.
- 	 */
--	opp50@300000000 {
-+	opp50-300000000 {
- 		opp-hz = /bits/ 64 <300000000>;
- 		opp-microvolt = <950000 931000 969000>;
- 		opp-supported-hw = <0x06 0x0010>;
- 		opp-suspend;
- 	};
- 
--	opp100@275000000 {
-+	opp100-275000000 {
- 		opp-hz = /bits/ 64 <275000000>;
- 		opp-microvolt = <1100000 1078000 1122000>;
- 		opp-supported-hw = <0x01 0x00FF>;
- 		opp-suspend;
- 	};
- 
--	opp100@300000000 {
-+	opp100-300000000 {
- 		opp-hz = /bits/ 64 <300000000>;
- 		opp-microvolt = <1100000 1078000 1122000>;
- 		opp-supported-hw = <0x06 0x0020>;
- 		opp-suspend;
- 	};
- 
--	opp100@500000000 {
-+	opp100-500000000 {
- 		opp-hz = /bits/ 64 <500000000>;
- 		opp-microvolt = <1100000 1078000 1122000>;
- 		opp-supported-hw = <0x01 0xFFFF>;
- 	};
- 
--	opp100@600000000 {
-+	opp100-600000000 {
- 		opp-hz = /bits/ 64 <600000000>;
- 		opp-microvolt = <1100000 1078000 1122000>;
- 		opp-supported-hw = <0x06 0x0040>;
- 	};
- 
--	opp120@600000000 {
-+	opp120-600000000 {
- 		opp-hz = /bits/ 64 <600000000>;
- 		opp-microvolt = <1200000 1176000 1224000>;
- 		opp-supported-hw = <0x01 0xFFFF>;
- 	};
- 
--	opp120@720000000 {
-+	opp120-720000000 {
- 		opp-hz = /bits/ 64 <720000000>;
- 		opp-microvolt = <1200000 1176000 1224000>;
- 		opp-supported-hw = <0x06 0x0080>;
- 	};
- 
--	oppturbo@720000000 {
-+	oppturbo-720000000 {
- 		opp-hz = /bits/ 64 <720000000>;
- 		opp-microvolt = <1260000 1234800 1285200>;
- 		opp-supported-hw = <0x01 0xFFFF>;
- 	};
- 
--	oppturbo@800000000 {
-+	oppturbo-800000000 {
- 		opp-hz = /bits/ 64 <800000000>;
- 		opp-microvolt = <1260000 1234800 1285200>;
- 		opp-supported-hw = <0x06 0x0100>;
- 	};
- 
--	oppnitro@1000000000 {
-+	oppnitro-1000000000 {
- 		opp-hz = /bits/ 64 <1000000000>;
- 		opp-microvolt = <1325000 1298500 1351500>;
- 		opp-supported-hw = <0x04 0x0200>;
-diff --git a/arch/arm/boot/dts/am335x-boneblack.dts b/arch/arm/boot/dts/am335x-boneblack.dts
-index 935ed17d22e4..d154d3133c16 100644
---- a/arch/arm/boot/dts/am335x-boneblack.dts
-+++ b/arch/arm/boot/dts/am335x-boneblack.dts
-@@ -22,7 +22,7 @@
- 	 * BeagleBone Blacks have PG 2.0 silicon which is guaranteed
- 	 * to support 1GHz OPP so enable it for PG 2.0 on this board.
- 	 */
--	oppnitro@1000000000 {
-+	oppnitro-1000000000 {
- 		opp-supported-hw = <0x06 0x0100>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 9e242943dcec..bdacb3dd689c 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -64,64 +64,64 @@
- 		 * because the can not be enabled simultaneously on a
- 		 * single SoC.
- 		 */
--		opp50@300000000 {
-+		opp50-300000000 {
- 			opp-hz = /bits/ 64 <300000000>;
- 			opp-microvolt = <950000 931000 969000>;
- 			opp-supported-hw = <0x06 0x0010>;
- 			opp-suspend;
- 		};
- 
--		opp100@275000000 {
-+		opp100-275000000 {
- 			opp-hz = /bits/ 64 <275000000>;
- 			opp-microvolt = <1100000 1078000 1122000>;
- 			opp-supported-hw = <0x01 0x00FF>;
- 			opp-suspend;
- 		};
- 
--		opp100@300000000 {
-+		opp100-300000000 {
- 			opp-hz = /bits/ 64 <300000000>;
- 			opp-microvolt = <1100000 1078000 1122000>;
- 			opp-supported-hw = <0x06 0x0020>;
- 			opp-suspend;
- 		};
- 
--		opp100@500000000 {
-+		opp100-500000000 {
- 			opp-hz = /bits/ 64 <500000000>;
- 			opp-microvolt = <1100000 1078000 1122000>;
- 			opp-supported-hw = <0x01 0xFFFF>;
- 		};
- 
--		opp100@600000000 {
-+		opp100-600000000 {
- 			opp-hz = /bits/ 64 <600000000>;
- 			opp-microvolt = <1100000 1078000 1122000>;
- 			opp-supported-hw = <0x06 0x0040>;
- 		};
- 
--		opp120@600000000 {
-+		opp120-600000000 {
- 			opp-hz = /bits/ 64 <600000000>;
- 			opp-microvolt = <1200000 1176000 1224000>;
- 			opp-supported-hw = <0x01 0xFFFF>;
- 		};
- 
--		opp120@720000000 {
-+		opp120-720000000 {
- 			opp-hz = /bits/ 64 <720000000>;
- 			opp-microvolt = <1200000 1176000 1224000>;
- 			opp-supported-hw = <0x06 0x0080>;
- 		};
- 
--		oppturbo@720000000 {
-+		oppturbo-720000000 {
- 			opp-hz = /bits/ 64 <720000000>;
- 			opp-microvolt = <1260000 1234800 1285200>;
- 			opp-supported-hw = <0x01 0xFFFF>;
- 		};
- 
--		oppturbo@800000000 {
-+		oppturbo-800000000 {
- 			opp-hz = /bits/ 64 <800000000>;
- 			opp-microvolt = <1260000 1234800 1285200>;
- 			opp-supported-hw = <0x06 0x0100>;
- 		};
- 
--		oppnitro@1000000000 {
-+		oppnitro-1000000000 {
- 			opp-hz = /bits/ 64 <1000000000>;
- 			opp-microvolt = <1325000 1298500 1351500>;
- 			opp-supported-hw = <0x04 0x0200>;
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 176e09e9a45e..e5b061469bf8 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -59,32 +59,32 @@
- 		compatible = "operating-points-v2-ti-cpu";
- 		syscon = <&scm_conf>;
- 
--		opp50@300000000 {
-+		opp50-300000000 {
- 			opp-hz = /bits/ 64 <300000000>;
- 			opp-microvolt = <950000 931000 969000>;
- 			opp-supported-hw = <0xFF 0x01>;
- 			opp-suspend;
- 		};
- 
--		opp100@600000000 {
-+		opp100-600000000 {
- 			opp-hz = /bits/ 64 <600000000>;
- 			opp-microvolt = <1100000 1078000 1122000>;
- 			opp-supported-hw = <0xFF 0x04>;
- 		};
- 
--		opp120@720000000 {
-+		opp120-720000000 {
- 			opp-hz = /bits/ 64 <720000000>;
- 			opp-microvolt = <1200000 1176000 1224000>;
- 			opp-supported-hw = <0xFF 0x08>;
- 		};
- 
--		oppturbo@800000000 {
-+		oppturbo-800000000 {
- 			opp-hz = /bits/ 64 <800000000>;
- 			opp-microvolt = <1260000 1234800 1285200>;
- 			opp-supported-hw = <0xFF 0x10>;
- 		};
- 
--		oppnitro@1000000000 {
-+		oppnitro-1000000000 {
- 			opp-hz = /bits/ 64 <1000000000>;
- 			opp-microvolt = <1325000 1298500 1351500>;
- 			opp-supported-hw = <0xFF 0x20>;
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 57892f264cea..25908dd338ee 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -99,14 +99,14 @@
- 		compatible = "operating-points-v2-ti-cpu";
- 		syscon = <&scm_wkup>;
- 
--		opp_nom@1000000000 {
-+		opp_nom-1000000000 {
- 			opp-hz = /bits/ 64 <1000000000>;
- 			opp-microvolt = <1060000 850000 1150000>;
- 			opp-supported-hw = <0xFF 0x01>;
- 			opp-suspend;
- 		};
- 
--		opp_od@1176000000 {
-+		opp_od-1176000000 {
- 			opp-hz = /bits/ 64 <1176000000>;
- 			opp-microvolt = <1160000 885000 1160000>;
- 			opp-supported-hw = <0xFF 0x02>;
--- 
-2.12.0.432.g71c3a4f4ba37
+> [1] - am572x-idk, am571x-idk, a437x-idk
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+> v2:
+> - add device tree binding document (mdio.txt)
+> - specify default reset delay in of_mdio.c instead of mdio_bus.c
+> 
+>  Documentation/devicetree/bindings/net/mdio.txt | 20 ++++++++++++++++++++
+>  drivers/net/phy/mdio_bus.c                     | 22 ++++++++++++++++++++++
+>  drivers/of/of_mdio.c                           |  7 +++++++
+>  include/linux/phy.h                            |  5 +++++
+>  4 files changed, 54 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/net/mdio.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/net/mdio.txt b/Documentation/devicetree/bindings/net/mdio.txt
+> new file mode 100644
+> index 0000000..6e703d7
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/net/mdio.txt
+> @@ -0,0 +1,20 @@
+> +Common MDIO bus properties.
+> +
+> +These are generic properties that can apply to any MDIO bus.
+> +
+> +Optional properties:
+> +- reset-gpios: List of one or more GPIOs that control the RESET lines
+> +  of the PHYs on that MDIO bus.
+> +- reset-delay-us: RESET pulse width as per PHY datasheet.
+
+It would be good to explicitly say that it is in uS as part of the
+comment.
+
+Also, please document that we expect a list of child nodes, one per
+device on the bus. These should follow the generic phy.txt, or a
+device specific binding document.
+
+> +
+> +Example :
+> +
+
+It would be good to say something like:
+
+This example shows these optional properties, plus other properties
+required for the TI Davinci MDIO driver.
+
+Pointing this out may stop people cut/past the ti,hwmods property.
+
+> +	davinci_mdio: ethernet@0x5c030000 {
+> +		compatible = "ti,davinci_mdio";
+> +		ti,hwmods = "davinci_mdio";
+> +		reg = <0x5c030000 0x1000>;
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
+> +		reset-delay-us = <2>;   /* PHY datasheet states 1uS min */
+> +	};
+
+And please include at least one PHY on the bus.
+
+Sorry for asking for so much in the documentation. That is the problem
+with the documentation being missing to start with.
+
+The code looks good now.
+
+    Andrew
