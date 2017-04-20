@@ -1,137 +1,163 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] mdio_bus: Issue GPIO RESET to PHYs.
-Date: Thu, 20 Apr 2017 10:58:36 +0300
-Message-ID: <47d66f57-d477-4cde-9ac5-26d5397861a6@ti.com>
+Subject: [PATCH v2] mdio_bus: Issue GPIO RESET to PHYs.
+Date: Thu, 20 Apr 2017 11:39:20 +0300
+Message-ID: <daa29a99-0a17-d316-57eb-3e6162938d8d@ti.com>
 References: <1491381237-24635-1-git-send-email-rogerq@ti.com>
  <64d6494d-41d2-0faf-a434-057f796637fe@ti.com>
- <20170419113951.GA31908@lunn.ch>
- <f8624649-3e49-f68c-f364-ee73f1cc514d@ti.com> <20170419133853.GA2696@lunn.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170419133853.GA2696@lunn.ch>
-Sender: netdev-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: davem@davemloft.net, Florian Fainelli <f.fainelli@gmail.com>, tony@atomide.com, nsekhar@ti.com, jsarha@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <64d6494d-41d2-0faf-a434-057f796637fe@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>
+Cc: tony@atomide.com, nsekhar@ti.com, jsarha@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 19/04/17 16:38, Andrew Lunn wrote:
-> On Wed, Apr 19, 2017 at 02:56:48PM +0300, Roger Quadros wrote:
->> Hi,
->>
->> On 19/04/17 14:39, Andrew Lunn wrote:
->>> On Wed, Apr 19, 2017 at 12:24:26PM +0300, Roger Quadros wrote:
->>>> Some boards [1] leave the PHYs at an invalid state
->>>> during system power-up or reset thus causing unreliability
->>>> issues with the PHY which manifests as PHY not being detected
->>>> or link not functional. To fix this, these PHYs need to be RESET
->>>> via a GPIO connected to the PHY's RESET pin.
->>>>
->>>> Some boards have a single GPIO controlling the PHY RESET pin of all
->>>> PHYs on the bus whereas some others have separate GPIOs controlling
->>>> individual PHY RESETs.
->>>>
->>>> In both cases, the RESET de-assertion cannot be done in the PHY driver
->>>> as the PHY will not probe till its reset is de-asserted.
->>>> So do the RESET de-assertion in the MDIO bus driver.
->>>>
->>>> [1] - am572x-idk, am571x-idk, a437x-idk
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>  drivers/net/phy/mdio_bus.c | 26 ++++++++++++++++++++++++++
->>>>  drivers/of/of_mdio.c       |  4 ++++
->>>>  include/linux/phy.h        |  5 +++++
->>>>  3 files changed, 35 insertions(+)
->>>
->>> Hi Roger
->>>
->>> Thanks for making this generic.
->>>
->>> Please add device tree binding documentation. I think that actually
->>> means you have to document MDIO in general, since there currently is
->>> not a binding document.
->>
->> OK.
->>
->>>
->>>> diff --git a/drivers/net/phy/mdio_bus.c b/drivers/net/phy/mdio_bus.c
->>>> index fa7d51f..25fda2b 100644
->>>> --- a/drivers/net/phy/mdio_bus.c
->>>> +++ b/drivers/net/phy/mdio_bus.c
->>>> @@ -22,8 +22,11 @@
->>>>  #include <linux/init.h>
->>>>  #include <linux/delay.h>
->>>>  #include <linux/device.h>
->>>> +#include <linux/gpio.h>
->>>> +#include <linux/gpio/consumer.h>
->>>>  #include <linux/of_device.h>
->>>>  #include <linux/of_mdio.h>
->>>> +#include <linux/of_gpio.h>
->>>>  #include <linux/netdevice.h>
->>>>  #include <linux/etherdevice.h>
->>>>  #include <linux/skbuff.h>
->>>> @@ -43,6 +46,8 @@
->>>>  
->>>>  #include "mdio-boardinfo.h"
->>>>  
->>>> +#define DEFAULT_GPIO_RESET_DELAY	10	/* in microseconds */
->>>> +
->>>>  int mdiobus_register_device(struct mdio_device *mdiodev)
->>>>  {
->>>>  	if (mdiodev->bus->mdio_map[mdiodev->addr])
->>>> @@ -307,6 +312,7 @@ int __mdiobus_register(struct mii_bus *bus, struct module *owner)
->>>>  {
->>>>  	struct mdio_device *mdiodev;
->>>>  	int i, err;
->>>> +	struct gpio_desc *gpiod;
->>>>  
->>>>  	if (NULL == bus || NULL == bus->name ||
->>>>  	    NULL == bus->read || NULL == bus->write)
->>>> @@ -333,6 +339,26 @@ int __mdiobus_register(struct mii_bus *bus, struct module *owner)
->>>>  	if (bus->reset)
->>>>  		bus->reset(bus);
->>>>  
->>>> +	/* de-assert bus level PHY GPIO resets */
->>>> +	for (i = 0; i < bus->num_reset_gpios; i++) {
->>>> +		gpiod = devm_gpiod_get_index(&bus->dev, "reset", i,
->>>> +					     GPIOD_OUT_LOW);
->>>> +		if (IS_ERR(gpiod)) {
->>>> +			err = PTR_ERR(gpiod);
->>>> +			if (err != -ENOENT) {
->>>> +				pr_err("mii_bus %s couldn't get reset GPIO\n",
->>>> +				       bus->id);
->>>> +				return err;
->>>> +			}
->>>> +		} else {
->>>> +			gpiod_set_value_cansleep(gpiod, 1);
->>>
->>>
->>>> +			if (!bus->reset_delay_us)
->>>> +				bus->reset_delay_us = DEFAULT_GPIO_RESET_DELAY;
->>>
->>> Maybe do this once, where you read the device tree property.
->>
->> I was thinking from point of view that GPIO RESET code should work even without
->> device tree. Although I'm not sure if there would be any users or not.
-> 
-> Hi Roger
-> 
-> I don't see how this would work. What would devm_gpiod_get_index()
-> return? Something from ACPI? But then there would be something
+Some boards [1] leave the PHYs at an invalid state
+during system power-up or reset thus causing unreliability
+issues with the PHY which manifests as PHY not being detected
+or link not functional. To fix this, these PHYs need to be RESET
+via a GPIO connected to the PHY's RESET pin.
 
-Yes or just lookup tables based on platform data.
+Some boards have a single GPIO controlling the PHY RESET pin of all
+PHYs on the bus whereas some others have separate GPIOs controlling
+individual PHY RESETs.
 
-> equivalent for getting the delay.
+In both cases, the RESET de-assertion cannot be done in the PHY driver
+as the PHY will not probe till its reset is de-asserted.
+So do the RESET de-assertion in the MDIO bus driver.
 
-I'm not sure about delay part.
+[1] - am572x-idk, am571x-idk, a437x-idk
 
-> 
-> Lets keep it simple and OF only. If there is a real need for something
-> in addition to OF, it can be added later.
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+v2:
+- add device tree binding document (mdio.txt)
+- specify default reset delay in of_mdio.c instead of mdio_bus.c
 
-OK. I'll revise the patch based on your comments.
+ Documentation/devicetree/bindings/net/mdio.txt | 20 ++++++++++++++++++++
+ drivers/net/phy/mdio_bus.c                     | 22 ++++++++++++++++++++++
+ drivers/of/of_mdio.c                           |  7 +++++++
+ include/linux/phy.h                            |  5 +++++
+ 4 files changed, 54 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/net/mdio.txt
 
-cheers,
--roger
+diff --git a/Documentation/devicetree/bindings/net/mdio.txt b/Documentation/devicetree/bindings/net/mdio.txt
+new file mode 100644
+index 0000000..6e703d7
+--- /dev/null
++++ b/Documentation/devicetree/bindings/net/mdio.txt
+@@ -0,0 +1,20 @@
++Common MDIO bus properties.
++
++These are generic properties that can apply to any MDIO bus.
++
++Optional properties:
++- reset-gpios: List of one or more GPIOs that control the RESET lines
++  of the PHYs on that MDIO bus.
++- reset-delay-us: RESET pulse width as per PHY datasheet.
++
++Example :
++
++	davinci_mdio: ethernet@0x5c030000 {
++		compatible = "ti,davinci_mdio";
++		ti,hwmods = "davinci_mdio";
++		reg = <0x5c030000 0x1000>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
++		reset-delay-us = <2>;   /* PHY datasheet states 1uS min */
++	};
+diff --git a/drivers/net/phy/mdio_bus.c b/drivers/net/phy/mdio_bus.c
+index fa7d51f..b353d99 100644
+--- a/drivers/net/phy/mdio_bus.c
++++ b/drivers/net/phy/mdio_bus.c
+@@ -22,8 +22,11 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/device.h>
++#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/of_device.h>
+ #include <linux/of_mdio.h>
++#include <linux/of_gpio.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
+ #include <linux/skbuff.h>
+@@ -307,6 +310,7 @@ int __mdiobus_register(struct mii_bus *bus, struct module *owner)
+ {
+ 	struct mdio_device *mdiodev;
+ 	int i, err;
++	struct gpio_desc *gpiod;
+ 
+ 	if (NULL == bus || NULL == bus->name ||
+ 	    NULL == bus->read || NULL == bus->write)
+@@ -333,6 +337,24 @@ int __mdiobus_register(struct mii_bus *bus, struct module *owner)
+ 	if (bus->reset)
+ 		bus->reset(bus);
+ 
++	/* de-assert bus level PHY GPIO resets */
++	for (i = 0; i < bus->num_reset_gpios; i++) {
++		gpiod = devm_gpiod_get_index(&bus->dev, "reset", i,
++					     GPIOD_OUT_LOW);
++		if (IS_ERR(gpiod)) {
++			err = PTR_ERR(gpiod);
++			if (err != -ENOENT) {
++				pr_err("mii_bus %s couldn't get reset GPIO\n",
++				       bus->id);
++				return err;
++			}
++		} else {
++			gpiod_set_value_cansleep(gpiod, 1);
++			udelay(bus->reset_delay_us);
++			gpiod_set_value_cansleep(gpiod, 0);
++		}
++	}
++
+ 	for (i = 0; i < PHY_MAX_ADDR; i++) {
+ 		if ((bus->phy_mask & (1 << i)) == 0) {
+ 			struct phy_device *phydev;
+diff --git a/drivers/of/of_mdio.c b/drivers/of/of_mdio.c
+index 0b29798..7e4c80f 100644
+--- a/drivers/of/of_mdio.c
++++ b/drivers/of/of_mdio.c
+@@ -22,6 +22,8 @@
+ #include <linux/of_net.h>
+ #include <linux/module.h>
+ 
++#define DEFAULT_GPIO_RESET_DELAY	10	/* in microseconds */
++
+ MODULE_AUTHOR("Grant Likely <grant.likely@secretlab.ca>");
+ MODULE_LICENSE("GPL");
+ 
+@@ -221,6 +223,11 @@ int of_mdiobus_register(struct mii_bus *mdio, struct device_node *np)
+ 
+ 	mdio->dev.of_node = np;
+ 
++	/* Get bus level PHY reset GPIO details */
++	mdio->reset_delay_us = DEFAULT_GPIO_RESET_DELAY;
++	of_property_read_u32(np, "reset-delay-us", &mdio->reset_delay_us);
++	mdio->num_reset_gpios = of_gpio_named_count(np, "reset-gpios");
++
+ 	/* Register the MDIO bus */
+ 	rc = mdiobus_register(mdio);
+ 	if (rc)
+diff --git a/include/linux/phy.h b/include/linux/phy.h
+index 43a7748..80a6574 100644
+--- a/include/linux/phy.h
++++ b/include/linux/phy.h
+@@ -217,6 +217,11 @@ struct mii_bus {
+ 	 * matching its address
+ 	 */
+ 	int irq[PHY_MAX_ADDR];
++
++	/* GPIO reset pulse width in uS */
++	int reset_delay_us;
++	/* Number of reset GPIOs */
++	int num_reset_gpios;
+ };
+ #define to_mii_bus(d) container_of(d, struct mii_bus, dev)
+ 
+-- 
+2.7.4
