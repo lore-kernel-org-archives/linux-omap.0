@@ -1,135 +1,110 @@
-From: David Rivshin <drivshin@awxrd.com>
-Subject: Re: [PATCH 2/2] gpio: omap: compute debounce-time from actual
- debounce-clock rate
-Date: Thu, 20 Apr 2017 09:53:41 -0400
-Message-ID: <20170420095341.6c919e40.drivshin@awxrd.com>
-References: <20170317005704.11971-1-drivshin@awxrd.com>
- <20170317005704.11971-3-drivshin@awxrd.com>
- <adc98bfd-ebce-49f0-5991-3c6a1e99ec25@ti.com>
- <20170317191419.021bdd84.drivshin@awxrd.com>
- <5d0fab0d-bc9d-5148-063c-8bfe9e26f9a5@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2] mdio_bus: Issue GPIO RESET to PHYs.
+Date: Thu, 20 Apr 2017 16:56:19 +0300
+Message-ID: <7a4ef761-f56b-0f4d-e092-211401a8ba30@ti.com>
+References: <1491381237-24635-1-git-send-email-rogerq@ti.com>
+ <64d6494d-41d2-0faf-a434-057f796637fe@ti.com>
+ <daa29a99-0a17-d316-57eb-3e6162938d8d@ti.com> <20170420131305.GB6152@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5d0fab0d-bc9d-5148-063c-8bfe9e26f9a5@ti.com>
+In-Reply-To: <20170420131305.GB6152@lunn.ch>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: davem@davemloft.net, Florian Fainelli <f.fainelli@gmail.com>, tony@atomide.com, nsekhar@ti.com, jsarha@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 17 Mar 2017 19:06:47 -0500
-Grygorii Strashko <grygorii.strashko@ti.com> wrote:
-
-> CC: Tero
- 
-Gentle ping. Any thoughts on this? Is there anything I should 
-investigate, or other information you'd like me to provide?
-
-> On 03/17/2017 06:14 PM, David Rivshin wrote:
-> > On Fri, 17 Mar 2017 14:43:02 -0500
-> > Grygorii Strashko <grygorii.strashko@ti.com> wrote:
-> >  
-> >> On 03/16/2017 07:57 PM, David Rivshin wrote:  
-> >>> From: David Rivshin <DRivshin@allworx.com>
-> >>>
-> >>> omap2_set_gpio_debounce() assumes the debounce clock runs at 32768Hz,
-> >>> leading to 31us granularity. In reality the debounce clock (which
-> >>> is provided by other modules) could be at different rate, leading to
-> >>> an incorrect computation of the number of debounce clock cycles for
-> >>> GPIO_DEBOUNCINGTIME[DEBOUNCETIME].
-> >>>
-> >>> Also, even with a standard 32768Hz input clock, the actual granularity
-> >>> is ~30.5us. This leads to the actual debounce time being ~1.5% too
-> >>> short.
-> >>>
-> >>> Fix both issues by simply querying the dbck rate, rather than
-> >>> hardcoding.  
-> >>
-> >> Pls, hold on with this - I'm trying to check it, as it doesn't follow TRMs.  
-> >
-> > Yes, the TRMs are somewhat cryptic about the details, perhaps I can give
-> > some more background on how I came to this. I think the chapters for the
-> > GPIO block are written with a strong assumption that the input debounce
-> > clock is 32768Hz, and further round 1/32768Hz to the nearest whole
-> > microsecond (~30.5us->31us).
-> >
-> > However, at least on AM335x the debounce clock (i.e. the CLK_32KHZ) can
-> > be made to run at other rates via the Control Module.
-> >
-> > Here is an example from clk_summary:
-> >  clk_24mhz                    1            1    24000000          0 0
-> >     clkdiv32k_ck              1            1       65536          0 0
-> >        clkdiv32k_ick          2            6       65536          0 0
-> >           timer7_fck          1            1       65536          0 0
-> >           wdt1_fck            0            1       65536          0 0
-> >           gpio3_dbclk         0            2       65536          0 0
-> >           gpio2_dbclk         0            2       65536          0 0
-> >           gpio1_dbclk         0            2       65536          0 0
-> >
-> > This is accomplished by setting clk32kdivratio_ctl[clkdivopp50_en] to 1
-> > even while in OPP100, and adjusting the devicetree to match. Timer7 is
-> > known to truly have a 65536Hz fck by configuring it as a 50% duty cycle
-> > PWM and measuring with an oscilloscope.
-> >
-> > Here are some relevant sections from the AM335x TRM (spruh73o):
-> >   25.2.2 GPIO Clock and Reset Management
-> >     Debounce Functional clock (GPIO[123]) comes from CLK_32KHZ.
-> >   8.1.6.8 Peripheral PLL Description
-> >     CLK_32KHZ is CLK_24 divided by either 732.4219 or 366.2109.
-> >     In OPP100 this results in either 32768Hz or 65536Hz.
-> >     In OPP50 this results in either 16384Hz or 32768Hz.
-> >   9.3.1.8 clk32kdivratio_ctrl Register
-> >     Names of the register and field differ from 8.1.6.8, but it's
-> >      clear they are the same.
-> >
-> > I'm not sure if other devices can be similarly cajoled into running
-> > their equivalent 32KHZ clocks at a different rate, but it certainly
-> > works for AM335x. Checking OMAP4430 TRM as an example makes it look
-> > like OMAP44xx has a fixed 32768Hz clock with no adjustment possible
-> > (backed up by omap44xx-clocks.dtsi having it just be a fixed-clock).
-> >
-> >  
-> >>>
-> >>> Fixes: e85ec6c3047b ("gpio: omap: fix omap2_set_gpio_debounce")
-> >>> Cc: <stable@vger.kernel.org> # 4.3+
-> >>> Signed-off-by: David Rivshin <drivshin@allworx.com>
-> >>> ---
-> >>>
-> >>> This logical bug existed before e85ec6c3047b, but if backporting
-> >>> further it's probably best to just cherry-pick/backport e85ec6c3047b
-> >>> first.
-> >>>
-> >>>  drivers/gpio/gpio-omap.c | 8 +++++---
-> >>>  1 file changed, 5 insertions(+), 3 deletions(-)
-> >>>
-> >>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> >>> index 33ec02d..865a831 100644
-> >>> --- a/drivers/gpio/gpio-omap.c
-> >>> +++ b/drivers/gpio/gpio-omap.c
-> >>> @@ -205,8 +205,8 @@ static inline void omap_gpio_dbck_disable(struct gpio_bank *bank)
-> >>>   * @offset: the gpio number on this @bank
-> >>>   * @debounce: debounce time to use
-> >>>   *
-> >>> - * OMAP's debounce time is in 31us steps
-> >>> - *   <debounce time> = (GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME + 1) x 31
-> >>> + * OMAP's debounce time is in 1/DBCK steps
-> >>> + *   <debounce time> = (GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME + 1) / DBCK
-> >>>   * so we need to convert and round up to the closest unit.
-> >>>   *
-> >>>   * Return: 0 on success, negative error otherwise.
-> >>> @@ -223,7 +223,9 @@ static int omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
-> >>>  		return -ENOTSUPP;
-> >>>
-> >>>  	if (enable) {
-> >>> -		debounce = DIV_ROUND_UP(debounce, 31) - 1;
-> >>> +		u64 tmp = (u64)debounce * clk_get_rate(bank->dbck);
-> >>> +
-> >>> +		debounce = DIV_ROUND_UP_ULL(tmp, 1000000) - 1;
-> >>>  		if ((debounce & OMAP4_GPIO_DEBOUNCINGTIME_MASK) != debounce)
-> >>>  			return -EINVAL;
-> >>>  	}
-> >>>  
-> >>  
-> >  
+On 20/04/17 16:13, Andrew Lunn wrote:
+> On Thu, Apr 20, 2017 at 11:39:20AM +0300, Roger Quadros wrote:
+>> Some boards [1] leave the PHYs at an invalid state
+>> during system power-up or reset thus causing unreliability
+>> issues with the PHY which manifests as PHY not being detected
+>> or link not functional. To fix this, these PHYs need to be RESET
+>> via a GPIO connected to the PHY's RESET pin.
+>>
+>> Some boards have a single GPIO controlling the PHY RESET pin of all
+>> PHYs on the bus whereas some others have separate GPIOs controlling
+>> individual PHY RESETs.
+>>
+>> In both cases, the RESET de-assertion cannot be done in the PHY driver
+>> as the PHY will not probe till its reset is de-asserted.
+>> So do the RESET de-assertion in the MDIO bus driver.
 > 
+> Hi Roger
+> 
+> Networking patches should include in the subject line which tree they
+> are for. In this case, net-next. So please make the Subject
+> 
+> [patch v3 net-next] .....
+> 
+>> [1] - am572x-idk, am571x-idk, a437x-idk
+>>
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>> v2:
+>> - add device tree binding document (mdio.txt)
+>> - specify default reset delay in of_mdio.c instead of mdio_bus.c
+>>
+>>  Documentation/devicetree/bindings/net/mdio.txt | 20 ++++++++++++++++++++
+>>  drivers/net/phy/mdio_bus.c                     | 22 ++++++++++++++++++++++
+>>  drivers/of/of_mdio.c                           |  7 +++++++
+>>  include/linux/phy.h                            |  5 +++++
+>>  4 files changed, 54 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/net/mdio.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/net/mdio.txt b/Documentation/devicetree/bindings/net/mdio.txt
+>> new file mode 100644
+>> index 0000000..6e703d7
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/net/mdio.txt
+>> @@ -0,0 +1,20 @@
+>> +Common MDIO bus properties.
+>> +
+>> +These are generic properties that can apply to any MDIO bus.
+>> +
+>> +Optional properties:
+>> +- reset-gpios: List of one or more GPIOs that control the RESET lines
+>> +  of the PHYs on that MDIO bus.
+>> +- reset-delay-us: RESET pulse width as per PHY datasheet.
+> 
+> It would be good to explicitly say that it is in uS as part of the
+> comment.
+> 
+> Also, please document that we expect a list of child nodes, one per
+> device on the bus. These should follow the generic phy.txt, or a
+> device specific binding document.
+> 
+>> +
+>> +Example :
+>> +
+> 
+> It would be good to say something like:
+> 
+> This example shows these optional properties, plus other properties
+> required for the TI Davinci MDIO driver.
+> 
+> Pointing this out may stop people cut/past the ti,hwmods property.
+> 
+>> +	davinci_mdio: ethernet@0x5c030000 {
+>> +		compatible = "ti,davinci_mdio";
+>> +		ti,hwmods = "davinci_mdio";
+>> +		reg = <0x5c030000 0x1000>;
+>> +		#address-cells = <1>;
+>> +		#size-cells = <0>;
+>> +		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
+>> +		reset-delay-us = <2>;   /* PHY datasheet states 1uS min */
+>> +	};
+> 
+> And please include at least one PHY on the bus.
+> 
+> Sorry for asking for so much in the documentation. That is the problem
+> with the documentation being missing to start with.
+> 
+> The code looks good now.
+> 
+
+OK Andrew. I'll post a v3 with your suggestions.
+
+cheers,
+-roger
