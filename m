@@ -1,41 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/2] clk: ti: divider: try to fix ti_clk_register_divider
-Date: Sat, 22 Apr 2017 14:08:19 +0200
-Message-ID: <CAK8P3a0CYxRqX-eNrsFCc_BotVodgR7zZ1i3jLefpst_yj7umw@mail.gmail.com>
-References: <20170419174507.4055014-1-arnd@arndb.de> <7f0c996e-df53-ffb7-2c02-2f7fa66d2b94@ti.com>
- <20170422015820.GZ7065@codeaurora.org>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH] serial: 8250: omap: Disable DMA for console UART
+Date: Sat, 22 Apr 2017 18:37:19 +0530
+Message-ID: <20170422130719.8366-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170422015820.GZ7065@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Tony Lindgren <tony@atomide.com>, Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>, Peter Hurley <peter@hurleysoftware.com>, Vignesh R <vigneshr@ti.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Apr 22, 2017 at 3:58 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
-> On 04/20, Tero Kristo wrote:
->> On 19/04/17 20:44, Arnd Bergmann wrote:
->> The failing piece of code is only executed for legacy boot mode
->> OMAP3 right now, which could be potentially stripped out of the
->> kernel already (I think Tony removed the support for non-DT boot
->> OMAP3 boards already...?) This explains why I didn't notice the
->> issue in my local testing either.
->>
->> >
->> >Fixes: d96f774b2538 ("clk: ti: divider: add support for legacy divider init")
->> >Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->>
->> So, this patch itself is fine, but the desc should be updated to
->> reflect the above somehow.
->>
->> And the "Fixes:" line should be updated to point to the commit
->> mentioned above also.
->>
->
-> Waiting for Arnd to agree. I can also rename reg_setup to reg.
+Kernel always writes log messages to console via
+serial8250_console_write()->serial8250_console_putchar() which directly
+accesses UART_TX register _without_ using DMA.
 
-Yes, it would be great if you could update the patch description that way
-so I don't have to send a new version. Thanks,
+But, if other processes like systemd using same UART port, then these
+writes are handled by a different code flow using 8250_omap driver where
+there is provision to use DMA.
 
-     Arnd
+It seems that it is possible that both DMA and CPU might simultaneously
+put data to UART FIFO and lead to potential loss of data due to FIFO
+overflow and weird data corruption. This happens when both kernel
+console and userspace tries to write simultaneously to the same UART
+port. Therefore, disable DMA on kernel console port to avoid potential
+race between CPU and DMA.
+
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/tty/serial/8250/8250_omap.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index e7e64913a748..d81bac98d190 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -613,6 +613,10 @@ static int omap_8250_startup(struct uart_port *port)
+ 	up->lsr_saved_flags = 0;
+ 	up->msr_saved_flags = 0;
+ 
++	/* Disable DMA for console UART */
++	if (uart_console(port))
++		up->dma = NULL;
++
+ 	if (up->dma) {
+ 		ret = serial8250_request_dma(up);
+ 		if (ret) {
+-- 
+2.11.0
