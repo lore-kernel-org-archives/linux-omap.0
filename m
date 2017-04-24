@@ -1,44 +1,61 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCHv2 0/2] mfd: omap-usb-tll: Fixes for USB TLL mode
-Date: Mon, 24 Apr 2017 12:43:36 +0100
-Message-ID: <20170424114336.snjiat3fph27hxe7@dell>
-References: <20170415170509.17364-1-tony@atomide.com>
+Subject: Re: [PATCH] mfd: menelaus: remove obsolete local_irq_disable() and
+ local_irq_enable()
+Date: Mon, 24 Apr 2017 12:51:40 +0100
+Message-ID: <20170424115140.oewg25llpa4cxapg@dell>
+References: <1491817038-4956-1-git-send-email-martin.kepplinger@ginzinger.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170415170509.17364-1-tony@atomide.com>
+In-Reply-To: <1491817038-4956-1-git-send-email-martin.kepplinger@ginzinger.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Martin Kepplinger <martin.kepplinger@ginzinger.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Henri Roosen <henri.roosen@ginzinger.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 15 Apr 2017, Tony Lindgren wrote:
+On Mon, 10 Apr 2017, Martin Kepplinger wrote:
 
-> Hi
+> Since
 > 
-> Here's v2 of this that move the enabling of ULPIAUTOIDLE bit into a
-> separate patch as suggested by Roger Quadros <rogerq@ti.com>.
+> commit e6229bec25be ("rtc: make rtc_update_irq callable with irqs enabled")
 > 
-> Both patches can wait for v4.12.
+> rtc_update_irq() is callable with irqs enabled, see the rtc drivers.
+> So update this accordingly.
 > 
-> Regards,
-> 
-> Tony
-> 
-> 
-> Tony Lindgren (2):
->   mfd: omap-usb-tll: Fix inverted bit use for USB TLL mode
->   mfd: omap-usb-tll: Configure ULPIAUTOIDLE
-> 
->  drivers/mfd/omap-usb-tll.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
+> Signed-off-by: Martin Kepplinger <martin.kepplinger@ginzinger.com>
+> Cc: Henri Roosen <henri.roosen@ginzinger.com>
+> ---
+>  drivers/mfd/menelaus.c | 4 ----
+>  1 file changed, 4 deletions(-)
 
-FYI: I don't know where you're getting Sam's email from, but I assume
-that after being MFD-free for several years now, I'm assuming he's
-lost interest in the subsystem.  Might be about time to stop CC'ing
-him. :)
+Applied, thanks.
+
+> diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+> index a4a8f1e..29b7164 100644
+> --- a/drivers/mfd/menelaus.c
+> +++ b/drivers/mfd/menelaus.c
+> @@ -1022,9 +1022,7 @@ static int menelaus_set_alarm(struct device *dev, struct rtc_wkalrm *w)
+>  static void menelaus_rtc_update_work(struct menelaus_chip *m)
+>  {
+>  	/* report 1/sec update */
+> -	local_irq_disable();
+>  	rtc_update_irq(m->rtc, 1, RTC_IRQF | RTC_UF);
+> -	local_irq_enable();
+>  }
+>  
+>  static int menelaus_ioctl(struct device *dev, unsigned cmd, unsigned long arg)
+> @@ -1086,9 +1084,7 @@ static const struct rtc_class_ops menelaus_rtc_ops = {
+>  static void menelaus_rtc_alarm_work(struct menelaus_chip *m)
+>  {
+>  	/* report alarm */
+> -	local_irq_disable();
+>  	rtc_update_irq(m->rtc, 1, RTC_IRQF | RTC_AF);
+> -	local_irq_enable();
+>  
+>  	/* then disable it; alarms are oneshot */
+>  	the_menelaus->rtc_control &= ~RTC_CTRL_AL_EN;
 
 -- 
 Lee Jones
