@@ -1,70 +1,103 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: support autofocus / autogain in libv4l2
-Date: Tue, 25 Apr 2017 00:07:01 +0200
-Message-ID: <20170424220701.GA27846@amd>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
- <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170424103802.00d3b554@vento.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, hdegoede@redhat.com
+From: David Rivshin <drivshin@awxrd.com>
+Subject: [PATCH v2] gpio: omap: return error if requested debounce time is not possible
+Date: Mon, 24 Apr 2017 18:56:50 -0400
+Message-ID: <20170424225650.17566-1-drivshin@awxrd.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: drivshin@awxrd.com, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-arm@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+From: David Rivshin <DRivshin@allworx.com>
 
---IS0zKkzwUGydFO0o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+omap_gpio_debounce() does not validate that the requested debounce
+is within a range it can handle. Instead it lets the register value
+wrap silently, and always returns success.
 
-Hi!
+This can lead to all sorts of unexpected behavior, such as gpio_keys
+asking for a too-long debounce, but getting a very short debounce in
+practice.
 
-> Please don't add a new application under lib/. It is fine if you want
-> some testing application, if the ones there aren't enough, but please
-> place it under contrib/test/.
->=20
-> You should likely take a look at v4l2grab first, as it could have
-> almost everything you would need.
+Fix this by returning -EINVAL if the requested value does not fit into
+the register field. If there is no debounce clock available at all,
+return -ENOTSUPP.
 
-I really need some kind of video output. v4l2grab is not useful
-there. v4l2gl might be, but I don't think I have enough dependencies.
+Fixes: e85ec6c3047b ("gpio: omap: fix omap2_set_gpio_debounce")
+Cc: <stable@vger.kernel.org> # 4.3+
+Signed-off-by: David Rivshin <drivshin@allworx.com>
+---
+Changes since v1 (https://lkml.org/lkml/2017/3/16/1094):
+- Added dev_info() in omap_gpio_debounce() on error.
 
-Umm, and it looks like libv4l can not automatically convert from
-GRBG10.. and if it could, going through RGB24 would probably be too
-slow on this device :-(.
+ drivers/gpio/gpio-omap.c | 23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
 
-> IMO, the above belongs to a separate processing module under
-> 	lib/libv4lconvert/processing/
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index efc85a2..fd9bce9 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -208,9 +208,11 @@ static inline void omap_gpio_dbck_disable(struct gpio_bank *bank)
+  * OMAP's debounce time is in 31us steps
+  *   <debounce time> = (GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME + 1) x 31
+  * so we need to convert and round up to the closest unit.
++ *
++ * Return: 0 on success, negative error otherwise.
+  */
+-static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
+-				    unsigned debounce)
++static int omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
++				   unsigned debounce)
+ {
+ 	void __iomem		*reg;
+ 	u32			val;
+@@ -218,11 +220,12 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
+ 	bool			enable = !!debounce;
+ 
+ 	if (!bank->dbck_flag)
+-		return;
++		return -ENOTSUPP;
+ 
+ 	if (enable) {
+ 		debounce = DIV_ROUND_UP(debounce, 31) - 1;
+-		debounce &= OMAP4_GPIO_DEBOUNCINGTIME_MASK;
++		if ((debounce & OMAP4_GPIO_DEBOUNCINGTIME_MASK) != debounce)
++			return -EINVAL;
+ 	}
+ 
+ 	l = BIT(offset);
+@@ -255,6 +258,8 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
+ 		bank->context.debounce = debounce;
+ 		bank->context.debounce_en = val;
+ 	}
++
++	return 0;
+ }
+ 
+ /**
+@@ -964,14 +969,20 @@ static int omap_gpio_debounce(struct gpio_chip *chip, unsigned offset,
+ {
+ 	struct gpio_bank *bank;
+ 	unsigned long flags;
++	int ret;
+ 
+ 	bank = gpiochip_get_data(chip);
+ 
+ 	raw_spin_lock_irqsave(&bank->lock, flags);
+-	omap2_set_gpio_debounce(bank, offset, debounce);
++	ret = omap2_set_gpio_debounce(bank, offset, debounce);
+ 	raw_spin_unlock_irqrestore(&bank->lock, flags);
+ 
+-	return 0;
++	if (ret)
++		dev_info(chip->parent,
++			 "Could not set line %u debounce to %u microseconds (%d)",
++			 offset, debounce, ret);
++
++	return ret;
+ }
+ 
+ static int omap_gpio_set_config(struct gpio_chip *chip, unsigned offset,
+-- 
+2.9.3
 
-Is there an example using autogain/autowhitebalance from
-libv4lconvert?
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---IS0zKkzwUGydFO0o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlj+dwUACgkQMOfwapXb+vLQ4gCfcmBmg0je4/KgYIpgBulQBxSe
-UWQAnRd+5l+HLck/B4mhuDptmczP5Yd2
-=Nkgq
------END PGP SIGNATURE-----
-
---IS0zKkzwUGydFO0o--
+base-commit: 5a7ad1146caa895ad718a534399e38bd2ba721b7
