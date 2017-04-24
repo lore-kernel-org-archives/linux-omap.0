@@ -1,60 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 3/9] dt-bindings: clk: add omap4 clkctrl definitions
-Date: Mon, 24 Apr 2017 14:49:36 -0700
-Message-ID: <20170424214936.GF3780@atomide.com>
-References: <1489741781-12816-1-git-send-email-t-kristo@ti.com>
- <1489741781-12816-4-git-send-email-t-kristo@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: support autofocus / autogain in libv4l2
+Date: Tue, 25 Apr 2017 00:07:01 +0200
+Message-ID: <20170424220701.GA27846@amd>
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170414232332.63850d7b@vento.lan>
+ <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1489741781-12816-4-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20170424103802.00d3b554@vento.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, hdegoede@redhat.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tero,
 
-* Tero Kristo <t-kristo@ti.com> [170317 02:12]:
-> Contains offsets for all omap4 clkctrl main and optional clocks.
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Can you please sort these by the clock controller instance and
-add comments to this file to make easier to read?
+Hi!
 
-This way it will be easy to see how the clocks are grouped
-just by looking at this file :)
+> Please don't add a new application under lib/. It is fine if you want
+> some testing application, if the ones there aren't enough, but please
+> place it under contrib/test/.
+>=20
+> You should likely take a look at v4l2grab first, as it could have
+> almost everything you would need.
 
-> --- /dev/null
-> +++ b/include/dt-bindings/clock/omap4.h
-...
-> +#define OMAP4_CLKCTRL_OFFSET	0x20
-> +#define OMAP4_CLKCTRL_INDEX(offset)	((offset) - OMAP4_CLKCTRL_OFFSET)
-...
+I really need some kind of video output. v4l2grab is not useful
+there. v4l2gl might be, but I don't think I have enough dependencies.
 
-Something like below for example:
+Umm, and it looks like libv4l can not automatically convert from
+GRBG10.. and if it could, going through RGB24 would probably be too
+slow on this device :-(.
 
-/* abe clocks */
-#define OMAP4_L4_ABE_CLKCTRL    OMAP4_CLKCTRL_INDEX(0x20)
-> +#define OMAP4_MCPDM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
-> +#define OMAP4_DMIC_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
-> +#define OMAP4_MCASP_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x40)
-> +#define OMAP4_MCBSP1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x48)
-> +#define OMAP4_MCBSP2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x50)
-> +#define OMAP4_MCBSP3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x58)
-> +#define OMAP4_SLIMBUS1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x60)
-> +#define OMAP4_TIMER5_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x68)
-> +#define OMAP4_TIMER6_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x70)
-> +#define OMAP4_TIMER7_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x78)
-> +#define OMAP4_TIMER8_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x80)
-> +#define OMAP4_WD_TIMER3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x88)
-...
+> IMO, the above belongs to a separate processing module under
+> 	lib/libv4lconvert/processing/
 
-/* l3_2 clocks */
-> +#define OMAP4_L3_MAIN_2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
-> +#define OMAP4_GPMC_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
-...
+Is there an example using autogain/autowhitebalance from
+libv4lconvert?
 
-Regards,
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Tony
+--IS0zKkzwUGydFO0o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlj+dwUACgkQMOfwapXb+vLQ4gCfcmBmg0je4/KgYIpgBulQBxSe
+UWQAnRd+5l+HLck/B4mhuDptmczP5Yd2
+=Nkgq
+-----END PGP SIGNATURE-----
+
+--IS0zKkzwUGydFO0o--
