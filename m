@@ -1,47 +1,88 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] spi: spi-ti-qspi: Use bounce buffer if read buffer
- is not DMA'ble
-Date: Tue, 25 Apr 2017 17:48:53 +0530
-Message-ID: <3955ad22-28a2-5222-4ae3-aa34dc69cde6@ti.com>
-References: <20170411115225.31709-1-vigneshr@ti.com>
- <20170411115225.31709-3-vigneshr@ti.com>
- <20170421170655.dpyxlwipfwnwjjwy@sirena.org.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: support autofocus / autogain in libv4l2
+Date: Tue, 25 Apr 2017 14:28:20 +0200
+Message-ID: <20170425122820.GD7926@amd>
+References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170425080538.GA30380@amd>
+ <20170425080815.GD30553@pali>
+ <20170425112330.GB7926@amd>
+ <20170425113009.GH30553@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170421170655.dpyxlwipfwnwjjwy-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="VV4b6MQE+OnNyhkM"
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170425113009.GH30553@pali>
+Sender: linux-media-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--VV4b6MQE+OnNyhkM
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 21 April 2017 10:36 PM, Mark Brown wrote:
-> On Tue, Apr 11, 2017 at 05:22:25PM +0530, Vignesh R wrote:
->> Flash filesystems like JFFS2, UBIFS and MTD block layer can provide
->> vmalloc'd or kmap'd buffers that cannot be mapped using dma_map_sg() and
->> can potentially be in memory region above 32bit addressable region(ie
->> buffers belonging to memory region backed by LPAE) of DMA, implement
->> spi_flash_can_dma() interface to inform SPI core not to map such
->> buffers.
-> 
-> I'll apply this since it fixes bugs for your systems but it feels like
-> something that we should be moving further into the core since LPAE
-> isn't specific to your devices.  We should ideally have something
-> (possibly in the DMA mapping code even) which does the remapping without
-> the driver needing to know about it.
-> 
+On Tue 2017-04-25 13:30:09, Pali Roh=E1r wrote:
+> On Tuesday 25 April 2017 13:23:30 Pavel Machek wrote:
+> > Hi!
+> > On Tue 2017-04-25 10:08:15, Pali Roh=E1r wrote:
+> > > On Tuesday 25 April 2017 10:05:38 Pavel Machek wrote:
+> > > > > > It would be nice if more than one application could be accessin=
+g the
+> > > > > > camera at the same time... (I.e. something graphical running pr=
+eview
+> > > > > > then using command line tool to grab a picture.) This one is
+> > > > > > definitely not solveable inside a library...
+> > > > >=20
+> > > > > Someone once suggested to have something like pulseaudio for V4L.
+> > > > > For such usage, a server would be interesting. Yet, I would code =
+it
+> > > > > in a way that applications using libv4l will talk with such daemon
+> > > > > in a transparent way.
+> > > >=20
+> > > > Yes, we need something like pulseaudio for V4L. And yes, we should
+> > > > make it transparent for applications using libv4l.
+> > >=20
+> > > IIRC there is already some effort in writing such "video" server which
+> > > would support accessing more application into webcam video, like
+> > > pulseaudio server for accessing more applications to microphone input.
+> >=20
+> > Do you have project name / url / something?
+>=20
+> Pinos (renamed from PulseVideo)
+>=20
+> https://blogs.gnome.org/uraeus/2015/06/30/introducing-pulse-video/
+> https://cgit.freedesktop.org/~wtay/pinos/
+>=20
+> But from git history it looks like it is probably dead now...
 
-I agree, there is a need to have generic remapping code. Also, I guess,
-once UBIFS is moved to use kmalloc'd buffers SPI flash devices will not
-have to worry much about vmalloc'd buffers.
+Actually, last commit is an hour ago on "work" branch. Seems alive to
+me ;-).
 
--- 
-Regards
-Vignesh
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for pointer...
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--VV4b6MQE+OnNyhkM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlj/QOQACgkQMOfwapXb+vLofgCbBkdPWyCO189iWJQH52URbxCP
+V0MAn3ll1IdttAg0cFZWuuSSRNGbvFB0
+=OJ60
+-----END PGP SIGNATURE-----
+
+--VV4b6MQE+OnNyhkM--
