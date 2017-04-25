@@ -1,98 +1,150 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: support autofocus / autogain in libv4l2
-Date: Tue, 25 Apr 2017 10:20:41 +0200
-Message-ID: <20170425082041.GB30380@amd>
-References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
- <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424220701.GA27846@amd>
- <20170424225731.7532e368@vento.lan>
+From: Niklas Cassel <niklas.cassel@axis.com>
+Subject: Re: [PATCH v2] cpsw: ethtool: add support for getting/setting EEE
+ registers
+Date: Tue, 25 Apr 2017 11:06:36 +0200
+Message-ID: <b8232e33-13f1-072e-57dd-a786430189ff@axis.com>
+References: <1479911913-1761-1-git-send-email-yegorslists@googlemail.com>
+ <93e0bd06-3171-e12b-b763-1e2895a463f8@gmail.com>
+ <CAGm1_ksC_6afhzK39uVTSk2PoC9CrR4Fow89YCZfihS2f6wzOw@mail.gmail.com>
+ <c91dcd74-3983-3ab6-91f6-3657b1e601af@gmail.com>
+ <CAGm1_ktuAbt0pr_NJu2GLDOavFV_bvMBmH5RvDxr5AyXvfwB3A@mail.gmail.com>
+ <20161124153809.GA20455@lunn.ch>
+ <11549d93-4b51-25c8-e693-509048475bef@gmail.com>
+ <2b4912e6-c380-b2bd-762a-d1da2b0a7d82@st.com>
+ <5809df57-997b-3531-838f-8c5a61605fe5@gmail.com>
+ <eb4a3c77-6bf4-8749-85a3-b614bff69cf2@gmail.com>
+ <a45177c1-cd2b-46a3-7858-753ad3f28ae7@axis.com>
+ <68e1a232-2fde-da42-d49f-20ea1fec6dbf@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="FkmkrVfFsRoUs1wW"
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170424225731.7532e368@vento.lan>
-Sender: linux-media-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, hdegoede@redhat.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <68e1a232-2fde-da42-d49f-20ea1fec6dbf@gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>, Giuseppe CAVALLARO <peppe.cavallaro@st.com>, Andrew Lunn <andrew@lunn.ch>, Yegor Yefremov <yegorslists@googlemail.com>
+Cc: netdev <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, Rami Rosen <roszenrami@gmail.com>, Fabrice GASNIER <fabrice.gasnier@st.com>, rmk+kernel@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
 
---FkmkrVfFsRoUs1wW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On 04/18/2017 06:40 PM, Florian Fainelli wrote:
+> On 04/18/2017 06:23 AM, Niklas Cassel wrote:
+>> On 01/04/2017 03:33 PM, Florian Fainelli wrote:
+>>> On 12/02/2016 09:48 AM, Florian Fainelli wrote:
+>>>>>> Peppe, any thoughts on this?
+>>>>>
+>>>>> I share what you say.
+>>>>>
+>>>>> In sum, the EEE management inside the stmmac is:
+>>>>>
+>>>>> - the driver looks at own HW cap register if EEE is supported
+>>>>>
+>>>>>     (indeed the user could keep disable EEE if bugged on some HW
+>>>>>      + Alex, Fabrice: we had some patches for this to propose where we
+>>>>>              called the phy_ethtool_set_eee to disable feature at phy
+>>>>>              level
+>>>>>
+>>>>> - then the stmmac asks PHY layer to understand if transceiver and
+>>>>>   partners are EEE capable.
+>>>>>
+>>>>> - If all matches the EEE is actually initialized.
+>>>>>
+>>>>> the logic above should be respected when use ethtool, hmm, I will
+>>>>> check the stmmac_ethtool_op_set_eee asap.
+>>>>>
+>>>>> Hoping this is useful
+>>>>
+>>>> This is definitively useful, the only part that I am struggling to
+>>>> understand in phy_init_eee() is this:
+>>>>
+>>>>                 eee_adv = phy_read_mmd_indirect(phydev, MDIO_AN_EEE_ADV,
+>>>>                                                 MDIO_MMD_AN);
+>>>>                 if (eee_adv <= 0)
+>>>>                         goto eee_exit_err;
+>>>>
+>>>> if we are not already advertising EEE in the PHY's MMIO_MMD_AN page, by
+>>>> the time we call phy_init_eee(), then we cannot complete the EEE
+>>>> configuration at the PHY level, and presumably we should abort the EEE
+>>>> configuration at the MAC level.
+>>>>
+>>>> While this condition makes sense if e.g: you are re-negotiating the link
+>>>> with your partner for instance and if EEE was already advertised, the
+>>>> very first time this function is called, it seems to be like we should
+>>>> skip the check, because phy_init_eee() should actually tell us if, as a
+>>>> result of a successful check, we should be setting EEE as something we
+>>>> advertise?
+>>>>
+>>>> Do you remember what was the logic behind this check when you added it?
+>>>
+>>> Peppe, can you remember why phy_init_eee() was written in a way that you
+>>> need to have already locally advertised EEE for the function to
+>>> successfully return? Thank you!
+>>>
+>>
+>> I'm curious about this as well.
+>>
+>> I can get EEE to work with stmmac, but to be able to turn EEE on,
+>> I need to set eee advertise via ethtool first.
+>> (Tested with 2 different PHYs from different vendors, with their
+>> PHY specific driver enabled.)
+>>
+>> Is this the same for all PHYs or are there certain PHYs/PHY drivers
+>> that actually advertise eee by default?
+> 
+> It depends on whether the PHY driver takes care of the EEE advertisement
+> part for your or not, most drivers probably don't do that.
+> 
+>> (From reading this mail thread there seems to be a suggestion that
+>> the broadcom PHY driver might advertise eee by default.)
+> 
+> As written before, some (not all) Broadcom PHY drivers (cygnus, 7xxx) do
+> advertise EEE by default in order to validate the first check done in
+> phy_init_eee(), but that's the only reason really.
+> 
+> Since we have not been able to get a straight answer from Peppe about
+> why there is this initial check, I think the cleanest path moving
+> forward is the following:
+> 
+> - rename phy_init_eee() into something like: phy_can_do_eee() and remove
+> the first check on whether EEE is already advertised because that's
+> precisely what we are trying to determine with this function
+> 
+> - Ethernet MAC drivers keep calling phy_can_do_eee() (formerly
+> phy_init_eee()) during their adjust_link callback in order to
+> re-negotiate EEE with their link partner, just like they should call
+> phy_ethtool_set_eee() to really enable EEE the first time they want to
+> enable EEE with the link partner
+> 
+> - remove the part from phy_init_eee() that tries to stop the PHY TX
+> clock and provide a set of helpers: phy_can_stop_tx_clk() and
+> phy_set_stop_tx_clk() which will take care of that
+> 
+> Does that look reasonable?
 
-> > > Please don't add a new application under lib/. It is fine if you want
-> > > some testing application, if the ones there aren't enough, but please
-> > > place it under contrib/test/.
-> > >=20
-> > > You should likely take a look at v4l2grab first, as it could have
-> > > almost everything you would need. =20
-> >=20
-> > I really need some kind of video output. v4l2grab is not useful
-> > there. v4l2gl might be, but I don't think I have enough dependencies.
->=20
-> Well, you could use some app to show the snaps that v4l2grab takes.
 
-That would be too slow :-(.
+Sounds very reasonable to me.
 
-> Yeah, compiling v4l2gl on N9 can indeed be complex. I suspect that it=20
-> shouldn't hard to compile xawtv there (probably disabling some optional
-> features).
+However, if I look specifically at the stmmac driver,
+stmmac_eee_init() is called from adjust_link callback.
 
-I do have mplayer working, but that one is not linked against libv4l2
-:-(.
+If we replace phy_init_eee() with a phy_can_do_eee()
+in stmmac_eee_init(), then the driver will enable
+EEE in the IP, and setup timers etc.
 
-> > Umm, and it looks like libv4l can not automatically convert from
-> > GRBG10.. and if it could, going through RGB24 would probably be too
-> > slow on this device :-(.
->=20
-> I suspect it shouldn't be hard to add support for GRBG10. It already
-> supports 8 and 16 bits Bayer formats, at lib/libv4lconvert/bayer.c
-> (to both RGB and YUV formats).
 
-Is 16bit bayer a recent development? I can't see it in
+If I understand you correctly, the code in the adjust_link
+callback should call phy_can_do_eee() so that the PHY
+re-negotiate EEE with the link partner.
 
-commit 374806e868f5a7a48ecffde4c6a1abfcfa5ccd65
-Author: Hans Verkuil <hans.verkuil@cisco.com>
-Date:   Fri Apr 22 09:31:57 2016 +0200
+You will still need to use ethtool to actually enable it in the
+PHY (call the new phy_init_eee()).
+(Which sounds good, since we probably do not want to suddenly
+enable EEE by default in a lot of drivers.)
 
-> > Is there an example using autogain/autowhitebalance from
-> > libv4lconvert?
->=20
-> Well, if you plug a USB camera without those controls, it should
-> automatically expose controls for it, as if the device had such
-> controls.
 
-And settings are persistent, so I can enable autogain, then lauch
-something like xawtv, and it will automatically get autogain? Ok,
-good.
-
-Regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---FkmkrVfFsRoUs1wW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlj/BtkACgkQMOfwapXb+vJe3QCcCv3uqYxUvmrbnex/J2lUUTgb
-4l8An3okpbiQHihtU2qOW5sxLkVOwOJj
-=8wAy
------END PGP SIGNATURE-----
-
---FkmkrVfFsRoUs1wW--
+The issue that I see is that we probably do not want to
+setup timers, etc. in the adjust_link callback before
+EEE has actually been enabled, so it might not be as
+easy as just replacing phy_init_eee() with phy_can_do_eee()
+in some drivers.
