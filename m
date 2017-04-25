@@ -1,50 +1,98 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: support autofocus / autogain in libv4l2
-Date: Tue, 25 Apr 2017 10:08:15 +0200
-Message-ID: <20170425080815.GD30553@pali>
+Date: Tue, 25 Apr 2017 10:20:41 +0200
+Message-ID: <20170425082041.GB30380@amd>
 References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
  <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
  <20170414232332.63850d7b@vento.lan>
  <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan> <20170425080538.GA30380@amd>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424220701.GA27846@amd>
+ <20170424225731.7532e368@vento.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="FkmkrVfFsRoUs1wW"
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170425080538.GA30380@amd>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@linux.intel.com>, Sakari Ailus <sakari.ailus@iki.fi>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+In-Reply-To: <20170424225731.7532e368@vento.lan>
+Sender: linux-media-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, hdegoede@redhat.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlc2RheSAyNSBBcHJpbCAyMDE3IDEwOjA1OjM4IFBhdmVsIE1hY2hlayB3cm90ZToKPiA+
-ID4gSXQgd291bGQgYmUgbmljZSBpZiBtb3JlIHRoYW4gb25lIGFwcGxpY2F0aW9uIGNvdWxkIGJl
-IGFjY2Vzc2luZyB0aGUKPiA+ID4gY2FtZXJhIGF0IHRoZSBzYW1lIHRpbWUuLi4gKEkuZS4gc29t
-ZXRoaW5nIGdyYXBoaWNhbCBydW5uaW5nIHByZXZpZXcKPiA+ID4gdGhlbiB1c2luZyBjb21tYW5k
-IGxpbmUgdG9vbCB0byBncmFiIGEgcGljdHVyZS4pIFRoaXMgb25lIGlzCj4gPiA+IGRlZmluaXRl
-bHkgbm90IHNvbHZlYWJsZSBpbnNpZGUgYSBsaWJyYXJ5Li4uCj4gPiAKPiA+IFNvbWVvbmUgb25j
-ZSBzdWdnZXN0ZWQgdG8gaGF2ZSBzb21ldGhpbmcgbGlrZSBwdWxzZWF1ZGlvIGZvciBWNEwuCj4g
-PiBGb3Igc3VjaCB1c2FnZSwgYSBzZXJ2ZXIgd291bGQgYmUgaW50ZXJlc3RpbmcuIFlldCwgSSB3
-b3VsZCBjb2RlIGl0Cj4gPiBpbiBhIHdheSB0aGF0IGFwcGxpY2F0aW9ucyB1c2luZyBsaWJ2NGwg
-d2lsbCB0YWxrIHdpdGggc3VjaCBkYWVtb24KPiA+IGluIGEgdHJhbnNwYXJlbnQgd2F5Lgo+IAo+
-IFllcywgd2UgbmVlZCBzb21ldGhpbmcgbGlrZSBwdWxzZWF1ZGlvIGZvciBWNEwuIEFuZCB5ZXMs
-IHdlIHNob3VsZAo+IG1ha2UgaXQgdHJhbnNwYXJlbnQgZm9yIGFwcGxpY2F0aW9ucyB1c2luZyBs
-aWJ2NGwuCgpJSVJDIHRoZXJlIGlzIGFscmVhZHkgc29tZSBlZmZvcnQgaW4gd3JpdGluZyBzdWNo
-ICJ2aWRlbyIgc2VydmVyIHdoaWNoCndvdWxkIHN1cHBvcnQgYWNjZXNzaW5nIG1vcmUgYXBwbGlj
-YXRpb24gaW50byB3ZWJjYW0gdmlkZW8sIGxpa2UKcHVsc2VhdWRpbyBzZXJ2ZXIgZm9yIGFjY2Vz
-c2luZyBtb3JlIGFwcGxpY2F0aW9ucyB0byBtaWNyb3Bob25lIGlucHV0LgoKLS0gClBhbGkgUm9o
-w6FyCnBhbGkucm9oYXJAZ21haWwuY29tCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
-a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+
+--FkmkrVfFsRoUs1wW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > > Please don't add a new application under lib/. It is fine if you want
+> > > some testing application, if the ones there aren't enough, but please
+> > > place it under contrib/test/.
+> > >=20
+> > > You should likely take a look at v4l2grab first, as it could have
+> > > almost everything you would need. =20
+> >=20
+> > I really need some kind of video output. v4l2grab is not useful
+> > there. v4l2gl might be, but I don't think I have enough dependencies.
+>=20
+> Well, you could use some app to show the snaps that v4l2grab takes.
+
+That would be too slow :-(.
+
+> Yeah, compiling v4l2gl on N9 can indeed be complex. I suspect that it=20
+> shouldn't hard to compile xawtv there (probably disabling some optional
+> features).
+
+I do have mplayer working, but that one is not linked against libv4l2
+:-(.
+
+> > Umm, and it looks like libv4l can not automatically convert from
+> > GRBG10.. and if it could, going through RGB24 would probably be too
+> > slow on this device :-(.
+>=20
+> I suspect it shouldn't be hard to add support for GRBG10. It already
+> supports 8 and 16 bits Bayer formats, at lib/libv4lconvert/bayer.c
+> (to both RGB and YUV formats).
+
+Is 16bit bayer a recent development? I can't see it in
+
+commit 374806e868f5a7a48ecffde4c6a1abfcfa5ccd65
+Author: Hans Verkuil <hans.verkuil@cisco.com>
+Date:   Fri Apr 22 09:31:57 2016 +0200
+
+> > Is there an example using autogain/autowhitebalance from
+> > libv4lconvert?
+>=20
+> Well, if you plug a USB camera without those controls, it should
+> automatically expose controls for it, as if the device had such
+> controls.
+
+And settings are persistent, so I can enable autogain, then lauch
+something like xawtv, and it will automatically get autogain? Ok,
+good.
+
+Regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--FkmkrVfFsRoUs1wW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlj/BtkACgkQMOfwapXb+vJe3QCcCv3uqYxUvmrbnex/J2lUUTgb
+4l8An3okpbiQHihtU2qOW5sxLkVOwOJj
+=8wAy
+-----END PGP SIGNATURE-----
+
+--FkmkrVfFsRoUs1wW--
