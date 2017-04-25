@@ -1,70 +1,56 @@
 From: Nicolas Dufresne <nicolas@ndufresne.ca>
 Subject: Re: support autofocus / autogain in libv4l2
-Date: Tue, 25 Apr 2017 12:51:11 -0400
-Message-ID: <1493139071.19105.14.camel@ndufresne.ca>
+Date: Tue, 25 Apr 2017 12:53:27 -0400
+Message-ID: <1493139207.19105.16.camel@ndufresne.ca>
 References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
-         <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
-         <20170414232332.63850d7b@vento.lan>
-         <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
-         <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd>
-         <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd>
-         <20170424224724.5bb52382@vento.lan> <20170425080538.GA30380@amd>
-         <20170425080815.GD30553@pali>
+ <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170414232332.63850d7b@vento.lan>
+ <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan> <20170425080538.GA30380@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-ZKqXeLq1wCJOnxNru8jm"
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20170425080815.GD30553@pali>
-Sender: linux-media-owner@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1921373196724414719=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170425080538.GA30380@amd>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>, Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: ivo.g.dimitrov.75@gmail.com, linux-media@vger.kernel.org, khilman@kernel.org, tony@atomide.com, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
 
---=-ZKqXeLq1wCJOnxNru8jm
+--===============1921373196724414719==
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-uUBuJLUvjKqsAuLefAlK"
+
+
+--=-uUBuJLUvjKqsAuLefAlK
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Le mardi 25 avril 2017 =C3=A0 10:08 +0200, Pali Roh=C3=A1r a =C3=A9crit=C2=
-=A0:
-> On Tuesday 25 April 2017 10:05:38 Pavel Machek wrote:
-> > > > It would be nice if more than one application could be
-> > > > accessing the
-> > > > camera at the same time... (I.e. something graphical running
-> > > > preview
-> > > > then using command line tool to grab a picture.) This one is
-> > > > definitely not solveable inside a library...
-> > >=20
-> > > Someone once suggested to have something like pulseaudio for V4L.
-> > > For such usage, a server would be interesting. Yet, I would code
-> > > it
-> > > in a way that applications using libv4l will talk with such
-> > > daemon
-> > > in a transparent way.
-> >=20
-> > Yes, we need something like pulseaudio for V4L. And yes, we should
-> > make it transparent for applications using libv4l.
+Le mardi 25 avril 2017 =C3=A0 10:05 +0200, Pavel Machek a =C3=A9crit=C2=A0:
+> Well, fd's are hard, because application can do fork() and now
+> interesting stuff happens. Threads are tricky, because now you have
+> locking etc.
 >=20
-> IIRC there is already some effort in writing such "video" server
-> which
-> would support accessing more application into webcam video, like
-> pulseaudio server for accessing more applications to microphone
-> input.
->=20
+> libv4l2 is designed to be LD_PRELOADED. That is not really feasible
+> with "complex" library.
 
-Because references are nice:
+That is incorrect. The library propose an API where you simply replace
+certain low level calls, like ioctl -> v4l2_ioctl, open -> v4l2_open().
+You have to do that explicitly in your existing code. It does not
+abstract the API itself unlike libdrm.
 
-https://blogs.gnome.org/uraeus/2015/06/30/introducing-pulse-video/
-https://gstconf.ubicast.tv/videos/camera-sharing-and-sandboxing-with-pinos/
-
-And why the internals are not going to be implemented using GStreamer in th=
-e end:
-https://gstconf.ubicast.tv/videos/keep-calm-and-refactor-about-the-essence-=
-of-gstreamer/
-
-regards,
 Nicolas
---=-ZKqXeLq1wCJOnxNru8jm
+--=-uUBuJLUvjKqsAuLefAlK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -72,9 +58,24 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iEYEABECAAYFAlj/fn8ACgkQcVMCLawGqBxOswCfXZ0cpLIBlcx2T5lVGYMmE3eh
-4/oAoMDK6rNBgObMobkvuiHw6AVtZh63
-=Z0Fm
+iEYEABECAAYFAlj/fwcACgkQcVMCLawGqBwWjwCggHGJKIR3hv6WOAR1NUhArSdK
+DtQAn1OB95Bio0qArsO40ujhje/XsvnQ
+=bFy2
 -----END PGP SIGNATURE-----
 
---=-ZKqXeLq1wCJOnxNru8jm--
+--=-uUBuJLUvjKqsAuLefAlK--
+
+
+
+--===============1921373196724414719==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============1921373196724414719==--
