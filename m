@@ -1,103 +1,103 @@
-From: David Rivshin <drivshin@awxrd.com>
-Subject: [PATCH v2] gpio: omap: return error if requested debounce time is not possible
-Date: Mon, 24 Apr 2017 18:56:50 -0400
-Message-ID: <20170424225650.17566-1-drivshin@awxrd.com>
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: drivshin@awxrd.com, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-arm@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: support autofocus / autogain in libv4l2
+Date: Mon, 24 Apr 2017 22:47:31 -0300
+Message-ID: <20170424224724.5bb52382@vento.lan>
+References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
+        <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+        <20170414232332.63850d7b@vento.lan>
+        <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+        <20170419105118.72b8e284@vento.lan>
+        <20170424093059.GA20427@amd>
+        <20170424103802.00d3b554@vento.lan>
+        <20170424212914.GA20780@amd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170424212914.GA20780@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: David Rivshin <DRivshin@allworx.com>
+Em Mon, 24 Apr 2017 23:29:14 +0200
+Pavel Machek <pavel@ucw.cz> escreveu:
 
-omap_gpio_debounce() does not validate that the requested debounce
-is within a range it can handle. Instead it lets the register value
-wrap silently, and always returns success.
+> Hi!
+> 
+> > > For focus to be useful, we need autofocus implmented
+> > > somewhere. Unfortunately, v4l framework does not seem to provide good
+> > > place where to put autofocus. I believe, long-term, we'll need some
+> > > kind of "video server" providing this kind of services.
+> > > 
+> > > Anyway, we probably don't want autofocus in kernel (even through some
+> > > cameras do it in hardware), and we probably don't want autofocus in
+> > > each and every user application.
+> > > 
+> > > So what remains is libv4l2.   
+> > 
+> > IMO, the best place for autofocus is at libv4l2. Putting it on a
+> > separate "video server" application looks really weird for me.  
+> 
+> Well... let me see. libraries are quite limited -- it is hard to open
+> files, or use threads/have custom main loop. It may be useful to
+> switch resolutions -- do autofocus/autogain at lower resolution, then
+> switch to high one for taking picture. It would be good to have that
+> in "system" code, but I'm not at all sure libv4l2 design will allow
+> that.
 
-This can lead to all sorts of unexpected behavior, such as gpio_keys
-asking for a too-long debounce, but getting a very short debounce in
-practice.
+I don't see why it would be hard to open files or have threads inside
+a library. There are several libraries that do that already, specially
+the ones designed to be used on multimidia apps.
 
-Fix this by returning -EINVAL if the requested value does not fit into
-the register field. If there is no debounce clock available at all,
-return -ENOTSUPP.
+Resolution switch can indeed be a problem on devices that use MC
+and subdev API, as a plugin would be required to teach the library
+about N9 specifics (or the Kernel API should be improved to let
+a generic application to better detect the hardware capabilities).
 
-Fixes: e85ec6c3047b ("gpio: omap: fix omap2_set_gpio_debounce")
-Cc: <stable@vger.kernel.org> # 4.3+
-Signed-off-by: David Rivshin <drivshin@allworx.com>
----
-Changes since v1 (https://lkml.org/lkml/2017/3/16/1094):
-- Added dev_info() in omap_gpio_debounce() on error.
+> It would be good if application could say "render live camera into
+> this window" and only care about user interface, then say "give me a
+> high resolution jpeg". But that would require main loop in the
+> library...
 
- drivers/gpio/gpio-omap.c | 23 +++++++++++++++++------
- 1 file changed, 17 insertions(+), 6 deletions(-)
+Nothing prevents writing an upper layer on the top of libv4l in
+order to provide such kind of functions.
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index efc85a2..fd9bce9 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -208,9 +208,11 @@ static inline void omap_gpio_dbck_disable(struct gpio_bank *bank)
-  * OMAP's debounce time is in 31us steps
-  *   <debounce time> = (GPIO_DEBOUNCINGTIME[7:0].DEBOUNCETIME + 1) x 31
-  * so we need to convert and round up to the closest unit.
-+ *
-+ * Return: 0 on success, negative error otherwise.
-  */
--static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
--				    unsigned debounce)
-+static int omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
-+				   unsigned debounce)
- {
- 	void __iomem		*reg;
- 	u32			val;
-@@ -218,11 +220,12 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
- 	bool			enable = !!debounce;
- 
- 	if (!bank->dbck_flag)
--		return;
-+		return -ENOTSUPP;
- 
- 	if (enable) {
- 		debounce = DIV_ROUND_UP(debounce, 31) - 1;
--		debounce &= OMAP4_GPIO_DEBOUNCINGTIME_MASK;
-+		if ((debounce & OMAP4_GPIO_DEBOUNCINGTIME_MASK) != debounce)
-+			return -EINVAL;
- 	}
- 
- 	l = BIT(offset);
-@@ -255,6 +258,8 @@ static void omap2_set_gpio_debounce(struct gpio_bank *bank, unsigned offset,
- 		bank->context.debounce = debounce;
- 		bank->context.debounce_en = val;
- 	}
-+
-+	return 0;
- }
- 
- /**
-@@ -964,14 +969,20 @@ static int omap_gpio_debounce(struct gpio_chip *chip, unsigned offset,
- {
- 	struct gpio_bank *bank;
- 	unsigned long flags;
-+	int ret;
- 
- 	bank = gpiochip_get_data(chip);
- 
- 	raw_spin_lock_irqsave(&bank->lock, flags);
--	omap2_set_gpio_debounce(bank, offset, debounce);
-+	ret = omap2_set_gpio_debounce(bank, offset, debounce);
- 	raw_spin_unlock_irqrestore(&bank->lock, flags);
- 
--	return 0;
-+	if (ret)
-+		dev_info(chip->parent,
-+			 "Could not set line %u debounce to %u microseconds (%d)",
-+			 offset, debounce, ret);
-+
-+	return ret;
- }
- 
- static int omap_gpio_set_config(struct gpio_chip *chip, unsigned offset,
--- 
-2.9.3
+> It would be nice if more than one application could be accessing the
+> camera at the same time... (I.e. something graphical running preview
+> then using command line tool to grab a picture.) This one is
+> definitely not solveable inside a library...
 
-base-commit: 5a7ad1146caa895ad718a534399e38bd2ba721b7
+Someone once suggested to have something like pulseaudio for V4L.
+For such usage, a server would be interesting. Yet, I would code it
+in a way that applications using libv4l will talk with such daemon
+in a transparent way.
+
+> > The above looks really odd. Why do you want to make libv4l2 dependent
+> > on sdl?  
+> 
+> I don't, but I had some nasty problems with linker; this should really
+> go into application but it refused to link. Scary libtool.
+
+That's weird. 
+
+
+> > If you're adding a SDL-specific application, you'll need to add the 
+> > needed autoconf bits to detect if SDL devel package is installed,
+> > auto-disabling it if not.
+> > 
+> > Yet, I don't think that SDL should be part of the library, but,
+> > instead, part of some application.  
+> 
+> Agreed. libtool prevented me from doing the right thing.
+
+if you add libSDL detection at configure.ac, you likely won't need to
+deal with libtool.
+
+On a quick look at web, it seems that there's a m4 module that does
+the right thing, according with:
+	https://wiki.libsdl.org/FAQLinux
+
+
+Thanks,
+Mauro
