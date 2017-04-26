@@ -1,77 +1,191 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH net-next] dt-bindings: mdio: Clarify binding document
-Date: Wed, 26 Apr 2017 16:09:48 +0300
-Message-ID: <fd077de9-53ea-9e7d-b1c4-937498cbfe39@ti.com>
-References: <20170425183308.26107-1-f.fainelli@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [patch] autogain support for bayer10 format (was Re: [patch]
+ propagating controls in libv4l2)
+Date: Wed, 26 Apr 2017 15:23:37 +0200
+Message-ID: <20170426132337.GA6482@amd>
+References: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170414232332.63850d7b@vento.lan>
+ <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426081330.6ca10e42@vento.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170425183308.26107-1-f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: andrew-g2DYL2Zd6BY@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, jsarha-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170426081330.6ca10e42@vento.lan>
+Sender: linux-media-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 25/04/17 21:33, Florian Fainelli wrote:
-> The described GPIO reset property is applicable to *all* child PHYs. If
-> we have one reset line per PHY present on the MDIO bus, these
-> automatically become properties of the child PHY nodes.
-> 
-> Finally, indicate how the RESET pulse width must be defined, which is
-> the maximum value of all individual PHYs RESET pulse widths determined
-> by reading their datasheets.
-> 
-> Fixes: 69226896ad63 ("mdio_bus: Issue GPIO RESET to PHYs.")
-> Signed-off-by: Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Reviewed-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+--0F1p//8PRICkK4MW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ---
+Hi!
 
->  Documentation/devicetree/bindings/net/mdio.txt | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/net/mdio.txt b/Documentation/devicetree/bindings/net/mdio.txt
-> index 4ffbbacebda1..96a53f89aa6e 100644
-> --- a/Documentation/devicetree/bindings/net/mdio.txt
-> +++ b/Documentation/devicetree/bindings/net/mdio.txt
-> @@ -3,13 +3,17 @@ Common MDIO bus properties.
->  These are generic properties that can apply to any MDIO bus.
->  
->  Optional properties:
-> -- reset-gpios: List of one or more GPIOs that control the RESET lines
-> -  of the PHYs on that MDIO bus.
-> -- reset-delay-us: RESET pulse width in microseconds as per PHY datasheet.
-> +- reset-gpios: One GPIO that control the RESET lines of all PHYs on that MDIO
-> +  bus.
-> +- reset-delay-us: RESET pulse width in microseconds.
->  
->  A list of child nodes, one per device on the bus is expected. These
->  should follow the generic phy.txt, or a device specific binding document.
->  
-> +The 'reset-delay-us' indicates the RESET signal pulse width in microseconds and
-> +applies to all PHY devices. It must therefore be appropriately determined based
-> +on all PHY requirements (maximum value of all per-PHY RESET pulse widths).
-> +
->  Example :
->  This example shows these optional properties, plus other properties
->  required for the TI Davinci MDIO driver.
-> @@ -21,7 +25,7 @@ required for the TI Davinci MDIO driver.
->  		#size-cells = <0>;
->  
->  		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
-> -		reset-delay-us = <2>;   /* PHY datasheet states 1us min */
-> +		reset-delay-us = <2>;
->  
->  		ethphy0: ethernet-phy@1 {
->  			reg = <1>;
-> 
+> > > I don't see why it would be hard to open files or have threads inside
+> > > a library. There are several libraries that do that already, specially
+> > > the ones designed to be used on multimidia apps. =20
+> >=20
+> > Well, This is what the libv4l2 says:
+> >=20
+> >    This file implements libv4l2, which offers v4l2_ prefixed versions
+> >    of
+> >       open/close/etc. The API is 100% the same as directly opening
+> >    /dev/videoX
+> >       using regular open/close/etc, the big difference is that format
+> >    conversion
+> >   =20
+> > but if I open additional files in v4l2_open(), API is no longer the
+> > same, as unix open() is defined to open just one file descriptor.
+> >=20
+> > Now. There is autogain support in libv4lconvert, but it expects to use
+> > same fd for camera and for the gain... which does not work with
+> > subdevs.
+> >=20
+> > Of course, opening subdevs by name like this is not really
+> > acceptable. But can you suggest a method that is?
+>=20
+> There are two separate things here:
+>=20
+> 1) Autofoucs for a device that doesn't use subdev API
+> 2) libv4l2 support for devices that require MC and subdev API
 
--- 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Actually there are three: 0) autogain. Unfortunately, I need autogain
+first before autofocus has a chance...
+
+And that means... bayer10 support for autogain.
+
+Plus, I changed avg_lum to long long. Quick calculation tells me int
+could overflow with few megapixel sensor.
+
+Oh, btw http://ytse.tricolour.net/docs/LowLightOptimization.html no
+longer works.
+
+Regards,
+								Pavel
+
+diff --git a/lib/libv4lconvert/processing/autogain.c b/lib/libv4lconvert/pr=
+ocessing/autogain.c
+index c6866d6..0b52d0f 100644
+--- a/lib/libv4lconvert/processing/autogain.c
++++ b/lib/libv4lconvert/processing/autogain.c
+@@ -68,6 +71,41 @@ static void autogain_adjust(struct v4l2_queryctrl *ctrl,=
+ int *value,
+ 	}
+ }
+=20
++static int get_luminosity_bayer10(uint16_t *buf, const struct v4l2_format =
+*fmt)
++{
++	long long avg_lum =3D 0;
++	int x, y;
++=09
++	buf +=3D fmt->fmt.pix.height * fmt->fmt.pix.bytesperline / 4 +
++		fmt->fmt.pix.width / 4;
++
++	for (y =3D 0; y < fmt->fmt.pix.height / 2; y++) {
++		for (x =3D 0; x < fmt->fmt.pix.width / 2; x++)
++			avg_lum +=3D *buf++;
++		buf +=3D fmt->fmt.pix.bytesperline - fmt->fmt.pix.width / 2;
++	}
++	avg_lum /=3D fmt->fmt.pix.height * fmt->fmt.pix.width / 4;
++	avg_lum /=3D 4;
++	return avg_lum;
++}
++
++static int get_luminosity_bayer8(unsigned char *buf, const struct v4l2_for=
+mat *fmt)
++{
++	long long avg_lum =3D 0;
++	int x, y;
++=09
++	buf +=3D fmt->fmt.pix.height * fmt->fmt.pix.bytesperline / 4 +
++		fmt->fmt.pix.width / 4;
++
++	for (y =3D 0; y < fmt->fmt.pix.height / 2; y++) {
++		for (x =3D 0; x < fmt->fmt.pix.width / 2; x++)
++			avg_lum +=3D *buf++;
++		buf +=3D fmt->fmt.pix.bytesperline - fmt->fmt.pix.width / 2;
++	}
++	avg_lum /=3D fmt->fmt.pix.height * fmt->fmt.pix.width / 4;
++	return avg_lum;
++}
++
+ /* auto gain and exposure algorithm based on the knee algorithm described =
+here:
+ http://ytse.tricolour.net/docs/LowLightOptimization.html */
+ static int autogain_calculate_lookup_tables(
+@@ -100,17 +142,16 @@ static int autogain_calculate_lookup_tables(
+ 	switch (fmt->fmt.pix.pixelformat) {
++	case V4L2_PIX_FMT_SGBRG10:
++	case V4L2_PIX_FMT_SGRBG10:
++	case V4L2_PIX_FMT_SBGGR10:
++	case V4L2_PIX_FMT_SRGGB10:
++		avg_lum =3D get_luminosity_bayer10((void *) buf, fmt);
++		break;
++
+ 	case V4L2_PIX_FMT_SGBRG8:
+ 	case V4L2_PIX_FMT_SGRBG8:
+ 	case V4L2_PIX_FMT_SBGGR8:
+ 	case V4L2_PIX_FMT_SRGGB8:
+-		buf +=3D fmt->fmt.pix.height * fmt->fmt.pix.bytesperline / 4 +
+-			fmt->fmt.pix.width / 4;
+-
+-		for (y =3D 0; y < fmt->fmt.pix.height / 2; y++) {
+-			for (x =3D 0; x < fmt->fmt.pix.width / 2; x++)
+-				avg_lum +=3D *buf++;
+-			buf +=3D fmt->fmt.pix.bytesperline - fmt->fmt.pix.width / 2;
+-		}
+-		avg_lum /=3D fmt->fmt.pix.height * fmt->fmt.pix.width / 4;
++		avg_lum =3D get_luminosity_bayer8(buf, fmt);
+ 		break;
+=20
+ 	case V4L2_PIX_FMT_RGB24:
+diff --git a/lib/libv4lconvert/processing/libv4lprocessing.c b/lib/libv4lco=
+nvert/processing/libv4lprocessing.c
+index b061f50..b98d024 100644
+--- a/lib/libv4lconvert/processing/libv4lprocessing.c
++++ b/lib/libv4lconvert/processing/libv4lprocessing.c
+@@ -164,6 +165,10 @@ void v4lprocessing_processing(struct v4lprocessing_dat=
+a *data,
+ 	case V4L2_PIX_FMT_SGRBG8:
+ 	case V4L2_PIX_FMT_SBGGR8:
+ 	case V4L2_PIX_FMT_SRGGB8:
++	case V4L2_PIX_FMT_SGBRG10:
++	case V4L2_PIX_FMT_SGRBG10:
++	case V4L2_PIX_FMT_SBGGR10:
++	case V4L2_PIX_FMT_SRGGB10:
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_BGR24:
+ 		break;
+
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--0F1p//8PRICkK4MW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlkAn1kACgkQMOfwapXb+vLIZQCeOoZPl9euVMkjt6GQyDRG6ZWN
+q2wAn1/WUxMfa2HxXKT8PjFgQD1RVnGX
+=/3b7
+-----END PGP SIGNATURE-----
+
+--0F1p//8PRICkK4MW--
