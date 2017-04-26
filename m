@@ -1,32 +1,77 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH v4 net-next] mdio_bus: Issue GPIO RESET to PHYs.
-Date: Wed, 26 Apr 2017 14:27:18 +0200
-Message-ID: <20170426122718.GE17172@lunn.ch>
-References: <64d6494d-41d2-0faf-a434-057f796637fe@ti.com>
- <daa29a99-0a17-d316-57eb-3e6162938d8d@ti.com>
- <f372db02-a919-55b4-9200-20726cd13482@ti.com>
- <fe0b7ec5-2f83-ba06-579f-3ea0d5c4990c@ti.com>
- <1c36aab1-3411-f76d-67f7-e3f6d9e9fda5@metafoo.de>
- <20170423233553.GA23498@lunn.ch>
- <551ee7a0-d153-3a36-e025-2c1f70f866b7@ti.com>
- <5954130c-c08c-1555-4d34-83307ed68d92@metafoo.de>
- <7c443bf0-03ac-cc1c-3776-a36287801e96@gmail.com>
- <acb28e07-0066-e4fe-6479-5edc3ee32d80@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH net-next] dt-bindings: mdio: Clarify binding document
+Date: Wed, 26 Apr 2017 16:09:48 +0300
+Message-ID: <fd077de9-53ea-9e7d-b1c4-937498cbfe39@ti.com>
+References: <20170425183308.26107-1-f.fainelli@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <acb28e07-0066-e4fe-6479-5edc3ee32d80@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Florian Fainelli <f.fainelli@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, davem@davemloft.net, tony@atomide.com, nsekhar@ti.com, jsarha@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170425183308.26107-1-f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: andrew-g2DYL2Zd6BY@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, jsarha-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-> Patch is already in net-next. How can we get this fixed? Should I send a v5?
+On 25/04/17 21:33, Florian Fainelli wrote:
+> The described GPIO reset property is applicable to *all* child PHYs. If
+> we have one reset line per PHY present on the MDIO bus, these
+> automatically become properties of the child PHY nodes.
+> 
+> Finally, indicate how the RESET pulse width must be defined, which is
+> the maximum value of all individual PHYs RESET pulse widths determined
+> by reading their datasheets.
+> 
+> Fixes: 69226896ad63 ("mdio_bus: Issue GPIO RESET to PHYs.")
+> Signed-off-by: Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Hi Roger
+Reviewed-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 
-See the followup patch Florian submitted. Send your Reviewed-by: if
-you agree with it.
+> ---
 
-      Andrew
+>  Documentation/devicetree/bindings/net/mdio.txt | 12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/net/mdio.txt b/Documentation/devicetree/bindings/net/mdio.txt
+> index 4ffbbacebda1..96a53f89aa6e 100644
+> --- a/Documentation/devicetree/bindings/net/mdio.txt
+> +++ b/Documentation/devicetree/bindings/net/mdio.txt
+> @@ -3,13 +3,17 @@ Common MDIO bus properties.
+>  These are generic properties that can apply to any MDIO bus.
+>  
+>  Optional properties:
+> -- reset-gpios: List of one or more GPIOs that control the RESET lines
+> -  of the PHYs on that MDIO bus.
+> -- reset-delay-us: RESET pulse width in microseconds as per PHY datasheet.
+> +- reset-gpios: One GPIO that control the RESET lines of all PHYs on that MDIO
+> +  bus.
+> +- reset-delay-us: RESET pulse width in microseconds.
+>  
+>  A list of child nodes, one per device on the bus is expected. These
+>  should follow the generic phy.txt, or a device specific binding document.
+>  
+> +The 'reset-delay-us' indicates the RESET signal pulse width in microseconds and
+> +applies to all PHY devices. It must therefore be appropriately determined based
+> +on all PHY requirements (maximum value of all per-PHY RESET pulse widths).
+> +
+>  Example :
+>  This example shows these optional properties, plus other properties
+>  required for the TI Davinci MDIO driver.
+> @@ -21,7 +25,7 @@ required for the TI Davinci MDIO driver.
+>  		#size-cells = <0>;
+>  
+>  		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
+> -		reset-delay-us = <2>;   /* PHY datasheet states 1us min */
+> +		reset-delay-us = <2>;
+>  
+>  		ethphy0: ethernet-phy@1 {
+>  			reg = <1>;
+> 
+
+-- 
+cheers,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
