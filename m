@@ -1,8 +1,8 @@
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Subject: Re: [patch] propagating controls in libv4l2 was Re: support
  autofocus / autogain in libv4l2
-Date: Wed, 26 Apr 2017 08:13:38 -0300
-Message-ID: <20170426081330.6ca10e42@vento.lan>
+Date: Wed, 26 Apr 2017 08:26:18 -0300
+Message-ID: <20170426082608.7dd52fbf@vento.lan>
 References: <1487074823-28274-1-git-send-email-sakari.ailus@linux.intel.com>
         <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
         <20170414232332.63850d7b@vento.lan>
@@ -19,11 +19,9 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <20170426105300.GA857@amd>
 Sender: linux-media-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi Pavel,
 
 Em Wed, 26 Apr 2017 12:53:00 +0200
 Pavel Machek <pavel@ucw.cz> escreveu:
@@ -62,52 +60,6 @@ Pavel Machek <pavel@ucw.cz> escreveu:
 > 
 > Of course, opening subdevs by name like this is not really
 > acceptable. But can you suggest a method that is?
-
-There are two separate things here:
-
-1) Autofoucs for a device that doesn't use subdev API
-2) libv4l2 support for devices that require MC and subdev API
-
-for (1), it should use the /dev/videoX device that was opened with
-v4l2_open().
-
-For (2), libv4l2 should be aware of MC and subdev APIs. Sakari
-once tried to write a libv4l2 plugin for OMAP3, but never finished it.
-A more recent trial were to add a libv4l2 plugin for Exynos.
-Unfortunately, none of those code got merged. Last time I checked,
-the Exynos plugin was almost ready to be merged, but Sakari asked
-some changes on it. The developer that was working on it got job on
-some other company. Last time I heard from him, he was still interested
-on finishing his work, but in the need to setup a test environment
-using his own devices.
-
-So, currently, there's no code at all adding MC/subdev API
-support merged at libv4l2.
-
--
-
-IMHO, the right thing to do with regards to autofocus is to
-implement it via a processing module, assuming that just one
-video device is opened.
-
-Then, add a N900 plugin to make libv4l2 aware of OMAP3 specifics.
-
-After that, rework at the processing module to let it use a 
-different file descriptor if such plugin is in usage.
-
--
-
-The hole idea is that a libv4l2 client, running on a N900 device
-would just open a fake /dev/video0. Internally, libv4l2 will
-open whatever video nodes it needs to control the device, exporting
-all hardware capabilities (video formats, controls, resolutions,
-etc) as if it was a normal V4L2 camera, hiding all dirty details
-about MC and subdev APIs from userspace application.
-
-This way, a normal application, like xawtv, tvtime, camorama,
-zbar, mplayer, vlc, ... will work without any changes.
-
-
 > 
 > Thanks,
 > 								Pavel
@@ -127,6 +79,9 @@ zbar, mplayer, vlc, ... will work without any changes.
 >  
 >  #define V4L2_MAX_DEVICES 16
 > +#define V4L2_MAX_SUBDEVS 8
+
+Isn't it a short number?
+
 >  /* Warning when making this larger the frame_queued and frame_mapped members of
 >     the v4l2_dev_info struct can no longer be a bitfield, so the code needs to
 >     be adjusted! */
@@ -144,6 +99,9 @@ zbar, mplayer, vlc, ... will work without any changes.
 > +++ b/lib/libv4l2/libv4l2.c
 > @@ -1,3 +1,4 @@
 > +/* -*- c-file-style: "linux" -*- */
+
+No emacs comments, please.
+
 >  /*
 >  #             (C) 2008 Hans de Goede <hdegoede@redhat.com>
 >  
@@ -160,80 +118,35 @@ zbar, mplayer, vlc, ... will work without any changes.
 > +	devices[index].subdev_fds[0] = SYS_OPEN("/dev/video_sensor", O_RDWR, 0);
 > +	devices[index].subdev_fds[1] = SYS_OPEN("/dev/video_focus", O_RDWR, 0);
 > +	devices[index].subdev_fds[2] = -1;
-> +
-> +	printf("Sensor: %d, focus: %d\n", devices[index].subdev_fds[0], 
-> +	       devices[index].subdev_fds[1]);
-> +
->  	V4L2_LOG("open: %d\n", fd);
->  
->  	return fd;
->  }
->  
->  /* Is this an fd for which we are emulating v4l1 ? */
-> -static int v4l2_get_index(int fd)
-> +int v4l2_get_index(int fd)
->  {
->  	int index;
->  
-> 
-> commit 1d6a9ce121f53e8f2e38549eed597a3c3dea5233
-> Author: Pavel <pavel@ucw.cz>
-> Date:   Wed Apr 26 12:34:04 2017 +0200
-> 
->     Enable ioctl propagation.
-> 
-> diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
-> index edc9642..6dab661 100644
-> --- a/lib/libv4l2/libv4l2.c
-> +++ b/lib/libv4l2/libv4l2.c
-> @@ -1064,6 +1064,23 @@ static int v4l2_s_fmt(int index, struct v4l2_format *dest_fmt)
->  	return 0;
->  }
->  
-> +static int v4l2_propagate_ioctl(int index, unsigned long request, void *arg)
-> +{
-> +	int i = 0;
-> +	int result;
-> +	while (1) {
-> +		if (devices[index].subdev_fds[i] == -1)
-> +			return -1;
-> +		printf("g_ctrl failed, trying...\n");
-> +		result = SYS_IOCTL(devices[index].subdev_fds[i], request, arg);
-> +		printf("subdev %d result %d\n", i, result);
-> +		if (result == 0)
-> +			return 0;
-> +		i++;
-> +	}
-> +	return -1;
-> +}
-> +
->  int v4l2_ioctl(int fd, unsigned long int request, ...)
->  {
->  	void *arg;
-> @@ -1193,14 +1210,20 @@ no_capture_request:
->  	switch (request) {
->  	case VIDIOC_QUERYCTRL:
->  		result = v4lconvert_vidioc_queryctrl(devices[index].convert, arg);
-> +		if (result == -1)
-> +			result = v4l2_propagate_ioctl(index, request, arg);
->  		break;
->  
->  	case VIDIOC_G_CTRL:
->  		result = v4lconvert_vidioc_g_ctrl(devices[index].convert, arg);
-> +		if (result == -1)
-> +			result = v4l2_propagate_ioctl(index, request, arg);
->  		break;
->  
->  	case VIDIOC_S_CTRL:
->  		result = v4lconvert_vidioc_s_ctrl(devices[index].convert, arg);
-> +		if (result == -1)
-> +			result = v4l2_propagate_ioctl(index, request, arg);
->  		break;
->  
->  	case VIDIOC_G_EXT_CTRLS:
-> 
-> 
 
+Hardcoding names here is not a good idea. Ideally, it should open
+the MC, using the newgen API, and parse the media graph.
+
+The problem is that, even with newgen API, without the properties API
+you likely won't be able to write a generic parser. So, we need a
+plugin specific for OMAP3 (or at least some database that would teach
+a generic plugin about OMAP3 specifics).
+
+I guess that the approach that Jacek was taken were very close to what
+a generic plugin would need:
+	https://lwn.net/Articles/619449/
+
+The last version of his patch set is here:
+	https://patchwork.linuxtv.org/patch/37496/
+
+I didn't review his patchset, but from what I saw, Sakari is the one
+that found some issues on v7.1 patchset.
+
+Sakari,
+
+Could you shed us a light about why this patchset was not merged?
+
+Are there anything really bad at the code, or just minor issues that
+could be fixed later?
+
+If it is the last case, perhaps we could merge the code, if this
+would make easier for Pavel to work on a N9 solution using the
+same approach.
 
 
 Thanks,
