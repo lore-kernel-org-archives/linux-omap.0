@@ -1,95 +1,85 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: [patch] autogain support for bayer10 format (was Re: [patch]
- propagating controls in libv4l2)
-Date: Thu, 27 Apr 2017 08:52:21 +0300
-Message-ID: <8a129dca-69c2-366f-1a81-c64dbabc1983@gmail.com>
-References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan> <20170426105300.GA857@amd>
- <20170426081330.6ca10e42@vento.lan> <20170426132337.GA6482@amd>
- <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com> <20170426225150.GA4188@amd>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: cpsw regression in mainline with "cpsw/netcp: cpts depends on posix_timers"
+Date: Thu, 27 Apr 2017 11:44:02 +0200
+Message-ID: <CAK8P3a3QvXr94MJhh2tygArJa7xR8enhF8KyWKSVw1bNJ=6NaA@mail.gmail.com>
+References: <20170424165104.GC3780@atomide.com> <CAK8P3a3kvMubq5Mtu3XKnityAgRv5R35dMtTX=BO8Qv_iX9=VQ@mail.gmail.com>
+ <20170424174413.GD3780@atomide.com> <CAK8P3a2ybR29txotehP5uKtstucxW_ZYZXArMroSEbmV=Y--7A@mail.gmail.com>
+ <20170424182358.GE3780@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20170426225150.GA4188@amd>
-Sender: linux-media-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170424182358.GE3780@atomide.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Networking <netdev@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 27.04.2017 01:51, Pavel Machek wrote:
-> Hi!
->
->>>> There are two separate things here:
->>>>
->>>> 1) Autofoucs for a device that doesn't use subdev API
->>>> 2) libv4l2 support for devices that require MC and subdev API
->>>
->>> Actually there are three: 0) autogain. Unfortunately, I need autogain
->>> first before autofocus has a chance...
->>>
->>> And that means... bayer10 support for autogain.
->>>
->>> Plus, I changed avg_lum to long long. Quick calculation tells me int
->>> could overflow with few megapixel sensor.
->>>
->>> Oh, btw http://ytse.tricolour.net/docs/LowLightOptimization.html no
->>> longer works.
->>>
->>> Regards,
->>> 								Pavel
->>>
->>> diff --git a/lib/libv4lconvert/processing/autogain.c b/lib/libv4lconvert/processing/autogain.c
->>> index c6866d6..0b52d0f 100644
->>> --- a/lib/libv4lconvert/processing/autogain.c
->>> +++ b/lib/libv4lconvert/processing/autogain.c
->>> @@ -68,6 +71,41 @@ static void autogain_adjust(struct v4l2_queryctrl *ctrl, int *value,
->>> 	}
->>> }
->>>
->>> +static int get_luminosity_bayer10(uint16_t *buf, const struct v4l2_format *fmt)
->>> +{
->>> +	long long avg_lum = 0;
->>> +	int x, y;
->>> +	
->>> +	buf += fmt->fmt.pix.height * fmt->fmt.pix.bytesperline / 4 +
->>> +		fmt->fmt.pix.width / 4;
->>> +
->>> +	for (y = 0; y < fmt->fmt.pix.height / 2; y++) {
->>> +		for (x = 0; x < fmt->fmt.pix.width / 2; x++)
+On Mon, Apr 24, 2017 at 8:23 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Arnd Bergmann <arnd@arndb.de> [170424 11:14]:
+>> On Mon, Apr 24, 2017 at 7:44 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Arnd Bergmann <arnd@arndb.de> [170424 10:38]:
+>> >> On Mon, Apr 24, 2017 at 6:51 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> >> > Hi,
+>> >> >
+>> >> > Looks like commit 07fef3623407 ("cpsw/netcp: cpts depends on posix_timers")
+>> >> > in mainline started triggering the following oops at least on j5eco-evm.
+>> >> >
+>> >> > Adding CONFIG_PTP_1588_CLOCK to .config solves it, but the oops hints
+>> >> > something is wrong with the dependencies.. CONFIG_TI_CPTS defaults to N
+>> >> > and not selecting it causes the oops.
+>> >> >
+>> >> > Any ideas what's needed to properly fix this?
+>> >>
+>> >> Does your configuration have POSIX_TIMERS enabled? If not, then CPTS
+>> >> is now also disabled. There are two issues here that we need to solve:
+>> >>
+>> >> a) find out why POSIX_TIMERS got disabled, and make sure it's always
+>> >>     turned on for normal users
+>> >
+>> > $ make omap2plus_defconfig
+>> > ...
+>> > CONFIG_POSIX_TIMERS=y
+>> > # CONFIG_PTP_1588_CLOCK is not set
+>> >
+>> > So CONFIG_TI_CPTS is unselectable.
 >>
->> That would take some time :). AIUI, we have NEON support in ARM kernels
->> (CONFIG_KERNEL_MODE_NEON), I wonder if it makes sense (me) to convert the
->> above loop to NEON-optimized when it comes to it? Are there any drawbacks in
->> using NEON code in kernel?
+>> Ok, so at least this one is easy to understand, it's a direct consequence
+>> of my change, as nothing else will select CONFIG_PTP_1588_CLOCK
+>> now.
+>>
+>> My first try would be this one:
+>>
+>> diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
+>> index 9e631952b86f..8042a7626056 100644
+>> --- a/drivers/net/ethernet/ti/Kconfig
+>> +++ b/drivers/net/ethernet/ti/Kconfig
+>> @@ -76,7 +76,7 @@ config TI_CPSW
+>>  config TI_CPTS
+>>   bool "TI Common Platform Time Sync (CPTS) Support"
+>>   depends on TI_CPSW || TI_KEYSTONE_NETCP
+>> - depends on PTP_1588_CLOCK
+>> + depends on POSIX_TIMERS
+>>   ---help---
+>>    This driver supports the Common Platform Time Sync unit of
+>>    the CPSW Ethernet Switch and Keystone 2 1g/10g Switch Subsystem.
+>> @@ -87,6 +87,7 @@ config TI_CPTS_MOD
+>>   tristate
+>>   depends on TI_CPTS
+>>   default y if TI_CPSW=y || TI_KEYSTONE_NETCP=y
+>> + imply PTP_1588_CLOCK
+>>   default m
+>>
+>>  config TI_KEYSTONE_NETCP
 >
-> Well, thanks for offer. This is actualy libv4l2.
->
+> Yup this produces a booting .config for me:
 
-Oh, somehow I got confused that this is kernel code :)
+Unfortunately it seems it's not complete yet, I've run into
+the old build error again after a few days of randconfig builds
+with my patch applied:
 
-> But I'd say NEON conversion is not neccessary anytime soon. First,
-> this is just trying to get average luminosity. We can easily skip
-> quite a lot of pixels, and still get reasonable answer.
->
-> Second, omap3isp actually has a hardware block computing statistics
-> for us. We just don't use it for simplicity.
->
+drivers/net/ethernet/ti/cpts.o: In function `cpts_find_ts':
+cpts.c:(.text.cpts_find_ts+0x20): undefined reference to `ptp_classify_raw'
 
-Right, I forgot about that.
+I'll keep looking for a better fix.
 
-> (But if you want to play with camera, I'll get you patches; there's
-> ton of work to be done, both kernel and userspace :-).
-
-Well, I saw a low hanging fruit I thought I can convert to NEON in a day 
-or two, while having some rest from the huge "project" I am devoting all 
-my spare time recently (rebasing hildon/maemo 5 on top of devuan 
-Jessie). Still, if there is something relatively small to be done, just 
-email me and I'll have a look.
-
-Regards,
-Ivo
+      Arnd
