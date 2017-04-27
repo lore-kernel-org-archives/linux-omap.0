@@ -1,85 +1,74 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: cpsw regression in mainline with "cpsw/netcp: cpts depends on posix_timers"
-Date: Thu, 27 Apr 2017 11:44:02 +0200
-Message-ID: <CAK8P3a3QvXr94MJhh2tygArJa7xR8enhF8KyWKSVw1bNJ=6NaA@mail.gmail.com>
-References: <20170424165104.GC3780@atomide.com> <CAK8P3a3kvMubq5Mtu3XKnityAgRv5R35dMtTX=BO8Qv_iX9=VQ@mail.gmail.com>
- <20170424174413.GD3780@atomide.com> <CAK8P3a2ybR29txotehP5uKtstucxW_ZYZXArMroSEbmV=Y--7A@mail.gmail.com>
- <20170424182358.GE3780@atomide.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH 0/3] TI-SoC-thermal: Fine-tuning for two functions
+Date: Thu, 27 Apr 2017 09:20:49 -0700
+Message-ID: <20170427162047.GA18276@localhost.localdomain>
+References: <cd524803-b771-c3d2-8906-ee78576c86d4@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170424182358.GE3780@atomide.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Networking <netdev@vger.kernel.org>, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cd524803-b771-c3d2-8906-ee78576c86d4@users.sourceforge.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>, Keerthy <j-keerthy@ti.com>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Apr 24, 2017 at 8:23 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Arnd Bergmann <arnd@arndb.de> [170424 11:14]:
->> On Mon, Apr 24, 2017 at 7:44 PM, Tony Lindgren <tony@atomide.com> wrote:
->> > * Arnd Bergmann <arnd@arndb.de> [170424 10:38]:
->> >> On Mon, Apr 24, 2017 at 6:51 PM, Tony Lindgren <tony@atomide.com> wrote:
->> >> > Hi,
->> >> >
->> >> > Looks like commit 07fef3623407 ("cpsw/netcp: cpts depends on posix_timers")
->> >> > in mainline started triggering the following oops at least on j5eco-evm.
->> >> >
->> >> > Adding CONFIG_PTP_1588_CLOCK to .config solves it, but the oops hints
->> >> > something is wrong with the dependencies.. CONFIG_TI_CPTS defaults to N
->> >> > and not selecting it causes the oops.
->> >> >
->> >> > Any ideas what's needed to properly fix this?
->> >>
->> >> Does your configuration have POSIX_TIMERS enabled? If not, then CPTS
->> >> is now also disabled. There are two issues here that we need to solve:
->> >>
->> >> a) find out why POSIX_TIMERS got disabled, and make sure it's always
->> >>     turned on for normal users
->> >
->> > $ make omap2plus_defconfig
->> > ...
->> > CONFIG_POSIX_TIMERS=y
->> > # CONFIG_PTP_1588_CLOCK is not set
->> >
->> > So CONFIG_TI_CPTS is unselectable.
->>
->> Ok, so at least this one is easy to understand, it's a direct consequence
->> of my change, as nothing else will select CONFIG_PTP_1588_CLOCK
->> now.
->>
->> My first try would be this one:
->>
->> diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
->> index 9e631952b86f..8042a7626056 100644
->> --- a/drivers/net/ethernet/ti/Kconfig
->> +++ b/drivers/net/ethernet/ti/Kconfig
->> @@ -76,7 +76,7 @@ config TI_CPSW
->>  config TI_CPTS
->>   bool "TI Common Platform Time Sync (CPTS) Support"
->>   depends on TI_CPSW || TI_KEYSTONE_NETCP
->> - depends on PTP_1588_CLOCK
->> + depends on POSIX_TIMERS
->>   ---help---
->>    This driver supports the Common Platform Time Sync unit of
->>    the CPSW Ethernet Switch and Keystone 2 1g/10g Switch Subsystem.
->> @@ -87,6 +87,7 @@ config TI_CPTS_MOD
->>   tristate
->>   depends on TI_CPTS
->>   default y if TI_CPSW=y || TI_KEYSTONE_NETCP=y
->> + imply PTP_1588_CLOCK
->>   default m
->>
->>  config TI_KEYSTONE_NETCP
->
-> Yup this produces a booting .config for me:
 
-Unfortunately it seems it's not complete yet, I've run into
-the old build error again after a few days of randconfig builds
-with my patch applied:
+--DocE+STaALJfprDB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-drivers/net/ethernet/ti/cpts.o: In function `cpts_find_ts':
-cpts.c:(.text.cpts_find_ts+0x20): undefined reference to `ptp_classify_raw'
+On Wed, Apr 26, 2017 at 05:33:10PM +0200, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Wed, 26 Apr 2017 17:24:56 +0200
+>=20
+> Three update suggestions were taken into account
+> from static source code analysis.
+>=20
+> Markus Elfring (3):
+>   Use devm_kcalloc() in ti_bandgap_build()
+>   Delete error messages for failed memory allocations in ti_bandgap_build=
+()
+>   Fix a typo in a comment line
+>=20
 
-I'll keep looking for a better fix.
+Keerthy,
 
-      Arnd
+Can you please give it a shot of this series on all supported OMAP chip
+boards? I do not see any major issue with the series at all, but would
+like to get it tested by you.
+
+BR,
+
+>  drivers/thermal/ti-soc-thermal/ti-bandgap.c | 14 +++++---------
+>  1 file changed, 5 insertions(+), 9 deletions(-)
+>=20
+> --=20
+> 2.12.2
+>=20
+
+--DocE+STaALJfprDB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJZAhpYAAoJEA6VkvSQfF5TJqEP/RX/B4hM6Xuh9eEmF/6MFVPK
+UGYLpYUxQ8ZklU5eUzeeGcwOXNvxqUdlyFMRUrK18QQYU9gPRdgmDjarl2npY3pD
+a7n7Zx87rNB7o7gbfeBkU2Dh+EnFuLBMJW4KHmsSt0ff/KRibdPfUoUT2r6f7WIf
+OclSp8oFMei5n5WBHrPzPOyG/SHiEcmiTsdNrghxcjhRUvPKkNJZ4fhChxJXh/xg
+42J6xWOrkpKkC1T+jl+16AeVUyrMyhGuMiwvwS4qImp/CB2AgSdvcN8aRGkr627F
+z5H0L/8cbYpNxFYqqtN2IIwyHCmaAv6kBhsuDMGLSc09fZ8CStSu0vZIhi/hv6ke
+Qw6n7QVbNO80dLOkdEHIyMul1vTVztTV51bOnNZ0rd7z5jpOAl/bv64Ev3nn2ttZ
+kUrGgL+JmO2n7ZSYQFXlgWgC3uLghl22JgH7FanLcIlwCeofkJ6slh97RnZxbynU
+/dr1iA+/WOUkm7hBKkfuBXZqet6DhKZanWgaQgsMfU8Wc1LK6qEtZuUq1nr+BnQD
+C3iEEt8tTpdL9igDyJeJHeQkQl2kdflDEFaWKPh8XQ+w5T+ah0dnFezmvR4F3dtk
+yqYk6nXgj1FBZpo5huYvHfuOhfCZOI9ZkrTvnaCAfpSFd4DWp1PVbmgkWiwQXUF8
+yDT5Mo8u4kaWQWzGHy/A
+=3Luv
+-----END PGP SIGNATURE-----
+
+--DocE+STaALJfprDB--
