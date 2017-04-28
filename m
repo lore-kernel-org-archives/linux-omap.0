@@ -1,42 +1,48 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2] gpio: omap: return error if requested debounce time is
- not possible
-Date: Fri, 28 Apr 2017 09:51:05 +0200
-Message-ID: <CACRpkdYNCk9SdK+H4rTqdchvTZ+xyzMVVhpJJyD95iboSwaxEg@mail.gmail.com>
-References: <20170424225650.17566-1-drivshin@awxrd.com>
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH] dt: gta04: fix polarity of clocks for mcbsp4
+Date: Fri, 28 Apr 2017 12:27:35 +0200
+Message-ID: <1493375255-21094-1-git-send-email-andreas@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170424225650.17566-1-drivshin@awxrd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Rivshin <drivshin@awxrd.com>
-Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Alexandre Courbot <gnurou@gmail.com>, linux-arm@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "H. Nikolaus Schaller" <hns@goldelico.com>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>
+Cc: Andreas Kemnade <andreas@kemnade.info>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 25, 2017 at 12:56 AM, David Rivshin <drivshin@awxrd.com> wrote:
+The clock polarity setting of the mcbsp connected to
+the modem was wrong so almost only noise
+was received.
+With this patch it is also the same as it was on
+earlier non-dt kernels where it was working properly
 
-> From: David Rivshin <DRivshin@allworx.com>
->
-> omap_gpio_debounce() does not validate that the requested debounce
-> is within a range it can handle. Instead it lets the register value
-> wrap silently, and always returns success.
->
-> This can lead to all sorts of unexpected behavior, such as gpio_keys
-> asking for a too-long debounce, but getting a very short debounce in
-> practice.
->
-> Fix this by returning -EINVAL if the requested value does not fit into
-> the register field. If there is no debounce clock available at all,
-> return -ENOTSUPP.
->
-> Fixes: e85ec6c3047b ("gpio: omap: fix omap2_set_gpio_debounce")
-> Cc: <stable@vger.kernel.org> # 4.3+
-> Signed-off-by: David Rivshin <drivshin@allworx.com>
-> ---
-> Changes since v1 (https://lkml.org/lkml/2017/3/16/1094):
-> - Added dev_info() in omap_gpio_debounce() on error.
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ arch/arm/boot/dts/omap3-gta04.dtsi | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Patch applied with Grygorii's ACK.
-
-Yours,
-Linus Walleij
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index 16b237d3..c0d9d4b 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -68,7 +68,8 @@
+ 		simple-audio-card,bitclock-master = <&telephony_link_master>;
+ 		simple-audio-card,frame-master = <&telephony_link_master>;
+ 		simple-audio-card,format = "i2s";
+-
++		simple-audio-card,bitclock-inversion;
++		simple-audio-card,frame-inversion;
+ 		simple-audio-card,cpu {
+ 			sound-dai = <&mcbsp4>;
+ 		};
+-- 
+2.1.4
