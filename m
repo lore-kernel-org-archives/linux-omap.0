@@ -1,74 +1,42 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH 0/3] TI-SoC-thermal: Fine-tuning for two functions
-Date: Thu, 27 Apr 2017 09:20:49 -0700
-Message-ID: <20170427162047.GA18276@localhost.localdomain>
-References: <cd524803-b771-c3d2-8906-ee78576c86d4@users.sourceforge.net>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2] gpio: omap: return error if requested debounce time is
+ not possible
+Date: Fri, 28 Apr 2017 09:51:05 +0200
+Message-ID: <CACRpkdYNCk9SdK+H4rTqdchvTZ+xyzMVVhpJJyD95iboSwaxEg@mail.gmail.com>
+References: <20170424225650.17566-1-drivshin@awxrd.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cd524803-b771-c3d2-8906-ee78576c86d4@users.sourceforge.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>, Keerthy <j-keerthy@ti.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170424225650.17566-1-drivshin@awxrd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Rivshin <drivshin@awxrd.com>
+Cc: "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Alexandre Courbot <gnurou@gmail.com>, linux-arm@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Apr 25, 2017 at 12:56 AM, David Rivshin <drivshin@awxrd.com> wrote:
 
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> From: David Rivshin <DRivshin@allworx.com>
+>
+> omap_gpio_debounce() does not validate that the requested debounce
+> is within a range it can handle. Instead it lets the register value
+> wrap silently, and always returns success.
+>
+> This can lead to all sorts of unexpected behavior, such as gpio_keys
+> asking for a too-long debounce, but getting a very short debounce in
+> practice.
+>
+> Fix this by returning -EINVAL if the requested value does not fit into
+> the register field. If there is no debounce clock available at all,
+> return -ENOTSUPP.
+>
+> Fixes: e85ec6c3047b ("gpio: omap: fix omap2_set_gpio_debounce")
+> Cc: <stable@vger.kernel.org> # 4.3+
+> Signed-off-by: David Rivshin <drivshin@allworx.com>
+> ---
+> Changes since v1 (https://lkml.org/lkml/2017/3/16/1094):
+> - Added dev_info() in omap_gpio_debounce() on error.
 
-On Wed, Apr 26, 2017 at 05:33:10PM +0200, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Wed, 26 Apr 2017 17:24:56 +0200
->=20
-> Three update suggestions were taken into account
-> from static source code analysis.
->=20
-> Markus Elfring (3):
->   Use devm_kcalloc() in ti_bandgap_build()
->   Delete error messages for failed memory allocations in ti_bandgap_build=
-()
->   Fix a typo in a comment line
->=20
+Patch applied with Grygorii's ACK.
 
-Keerthy,
-
-Can you please give it a shot of this series on all supported OMAP chip
-boards? I do not see any major issue with the series at all, but would
-like to get it tested by you.
-
-BR,
-
->  drivers/thermal/ti-soc-thermal/ti-bandgap.c | 14 +++++---------
->  1 file changed, 5 insertions(+), 9 deletions(-)
->=20
-> --=20
-> 2.12.2
->=20
-
---DocE+STaALJfprDB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJZAhpYAAoJEA6VkvSQfF5TJqEP/RX/B4hM6Xuh9eEmF/6MFVPK
-UGYLpYUxQ8ZklU5eUzeeGcwOXNvxqUdlyFMRUrK18QQYU9gPRdgmDjarl2npY3pD
-a7n7Zx87rNB7o7gbfeBkU2Dh+EnFuLBMJW4KHmsSt0ff/KRibdPfUoUT2r6f7WIf
-OclSp8oFMei5n5WBHrPzPOyG/SHiEcmiTsdNrghxcjhRUvPKkNJZ4fhChxJXh/xg
-42J6xWOrkpKkC1T+jl+16AeVUyrMyhGuMiwvwS4qImp/CB2AgSdvcN8aRGkr627F
-z5H0L/8cbYpNxFYqqtN2IIwyHCmaAv6kBhsuDMGLSc09fZ8CStSu0vZIhi/hv6ke
-Qw6n7QVbNO80dLOkdEHIyMul1vTVztTV51bOnNZ0rd7z5jpOAl/bv64Ev3nn2ttZ
-kUrGgL+JmO2n7ZSYQFXlgWgC3uLghl22JgH7FanLcIlwCeofkJ6slh97RnZxbynU
-/dr1iA+/WOUkm7hBKkfuBXZqet6DhKZanWgaQgsMfU8Wc1LK6qEtZuUq1nr+BnQD
-C3iEEt8tTpdL9igDyJeJHeQkQl2kdflDEFaWKPh8XQ+w5T+ah0dnFezmvR4F3dtk
-yqYk6nXgj1FBZpo5huYvHfuOhfCZOI9ZkrTvnaCAfpSFd4DWp1PVbmgkWiwQXUF8
-yDT5Mo8u4kaWQWzGHy/A
-=3Luv
------END PGP SIGNATURE-----
-
---DocE+STaALJfprDB--
+Yours,
+Linus Walleij
