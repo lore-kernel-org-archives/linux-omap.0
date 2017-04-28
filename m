@@ -1,70 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] [4.11 regression] cpsw/netcp: refine cpts dependency
-Date: Fri, 28 Apr 2017 08:15:57 -0700
-Message-ID: <20170428151557.GJ3780@atomide.com>
-References: <20170428150358.1537030-1-arnd@arndb.de>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
+Date: Fri, 28 Apr 2017 20:26:11 +0200
+Message-ID: <20170428182611.t77hv3ufstlrntmf@earth>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+ <20170414102512.48834-2-hverkuil@xs4all.nl>
+ <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
+ <20170428150859.GI3780@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="unjhfg6llgi42tc2"
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170428150358.1537030-1-arnd@arndb.de>
-Sender: netdev-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "David S . Miller" <davem@davemloft.net>, Grygorii Strashko <grygorii.strashko@ti.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, WingMan Kwok <w-kwok2@ti.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20170428150859.GI3780@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [170428 08:06]:
-> Tony Lindgren reports a kernel oops that resulted from my compile-time
-> fix on the default config. This shows two problems:
-> 
-> a) configurations that did not already enable PTP_1588_CLOCK will
->    now miss the cpts driver
-> 
-> b) when cpts support is disabled, the driver crashes. This is a
->    preexisting problem that we did not notice before my patch.
-> 
-> While the second problem is still being investigated, this modifies
-> the dependencies again, getting us back to the original state, with
-> another 'select NET_PTP_CLASSIFY' added in to avoid the original
-> link error we got, and the 'depends on POSIX_TIMERS' to hide
-> the CPTS support when turning it on would be useless.
-> 
-> Cc: stable@vger.kernel.org # 4.11 needs this
-> Fixes: 07fef3623407 ("cpsw/netcp: cpts depends on posix_timers")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> Adding the Cc: stable in case this doesn't make it into 4.11
-> any more.
 
-Thanks this fixes the oops I'm seeing:
+--unjhfg6llgi42tc2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+Hi,
 
->  drivers/net/ethernet/ti/Kconfig | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
-> index 9e631952b86f..48a541eb0af2 100644
-> --- a/drivers/net/ethernet/ti/Kconfig
-> +++ b/drivers/net/ethernet/ti/Kconfig
-> @@ -76,7 +76,7 @@ config TI_CPSW
->  config TI_CPTS
->  	bool "TI Common Platform Time Sync (CPTS) Support"
->  	depends on TI_CPSW || TI_KEYSTONE_NETCP
-> -	depends on PTP_1588_CLOCK
-> +	depends on POSIX_TIMERS
->  	---help---
->  	  This driver supports the Common Platform Time Sync unit of
->  	  the CPSW Ethernet Switch and Keystone 2 1g/10g Switch Subsystem.
-> @@ -87,6 +87,8 @@ config TI_CPTS_MOD
->  	tristate
->  	depends on TI_CPTS
->  	default y if TI_CPSW=y || TI_KEYSTONE_NETCP=y
-> +	select NET_PTP_CLASSIFY
-> +	imply PTP_1588_CLOCK
->  	default m
->  
->  config TI_KEYSTONE_NETCP
-> -- 
-> 2.9.0
-> 
+On Fri, Apr 28, 2017 at 08:08:59AM -0700, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [170428 04:15]:
+> > On 14/04/17 13:25, Hans Verkuil wrote:
+> > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > >=20
+> > > The CEC pin was always pulled up, making it impossible to use it.
+> > >=20
+> > > Change to PIN_INPUT so it can be used by the new CEC support.
+> ...
+>=20
+> > Reviewed-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >=20
+> > Tony, can you queue this? It's safe to apply separately from the rest of
+> > the HDMI CEC work.
+>=20
+> Sure will do.
+
+I guess the same patch should be applied to Droid 4?
+
+-- Sebastian
+
+--unjhfg6llgi42tc2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkDiUEACgkQ2O7X88g7
++pp44xAAniaDvSTIAwPZmu/zjflyeSIbzC4je90amggXGafCpIbnq1A33VY1JmcE
+vOeB4Z9GmUi7eUS4UsnRsZzz8fAzjJSkrsEeh1cVRK7L/yRtvPb7bJ4reHQr3WWs
+R7ewN8KdEJPzuNi9TGyUfPwUG2Y95Il60FFFqMYHZog/tqyAG1GDrDt9MRd4mvVO
+cZiYskFc2Xf4Lyq0CXbUcrsPNapWmS3u73lXNzTqovEEkOuMz0ke7jX7UbXNGOOn
+fA0t0J0/2nnfyDWTpyYK0PRW0IoMD8o86lLv0aY+d7T0YJf50ueRuirzqCMv1sD7
+iT60PHUOny4nGh4wR1GXaFhrZTGz79Wjill5Zb/vWnrLRe9YF4KjsAnjKotlIPhI
+Adf5BtWKiNFF5LZK8lG211NhAkEjVcBFJZMaGPTvjNxkhgP8xXOJpDuDvA9z51L2
+JQEwqmawSmtYWznsIHFDTM/8VulcfqC3y4slDZfqu2+4sU4ThY2KIZz82nln3A5R
+/UKS3rTerN2CpTkSkpKNa/uHIrGR/+7rq2WA2R1vu/zyf28nhTI+cFnyUg34re8+
+lXVmDLGYxRsarAn81rBBFuw9K4ldcBusUKZ31IIbaDL5gG6veX3PY+k7zXtz3DU/
+4a2iH9wUwfrgkUTnnm8Qksoi+e6+2SdUNaKXmwk0eMd22YXJ7VI=
+=vt/+
+-----END PGP SIGNATURE-----
+
+--unjhfg6llgi42tc2--
