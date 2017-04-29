@@ -1,91 +1,70 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [patch] propagating controls in libv4l2 was Re: support
- autofocus / autogain in libv4l2
-Date: Sat, 29 Apr 2017 11:19:19 +0200
-Message-ID: <20170429091919.GA14148@amd>
-References: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426082608.7dd52fbf@vento.lan>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
+Date: Sat, 29 Apr 2017 13:21:04 -0700
+Message-ID: <20170429202104.GL3780@atomide.com>
+References: <20170414102512.48834-1-hverkuil@xs4all.nl>
+ <20170414102512.48834-2-hverkuil@xs4all.nl>
+ <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
+ <20170428150859.GI3780@atomide.com>
+ <20170428182611.t77hv3ufstlrntmf@earth>
+ <20170428185421.GK3780@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="fdj2RfSjLxBAspz7"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170426082608.7dd52fbf@vento.lan>
+In-Reply-To: <20170428185421.GK3780@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Tony Lindgren <tony@atomide.com> [170428 11:57]:
+> The pull seems to be enabled in the Android kernel too:
+> 
+> # rwmem -s16 0x4a10009a
+> 0x4a10009a = 0x0118
+> 
+> So needs to be tested, what's the simplest test to check the CEC?
 
---fdj2RfSjLxBAspz7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+So on droid 4, with the internal pull enabled cec-ctl -m does not
+show anything. With the internal pull disabled, cec-ctl -m produces
+the following with a lapdock:
 
-Hi!
+Initial Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
 
-> > +	devices[index].subdev_fds[0] =3D SYS_OPEN("/dev/video_sensor", O_RDWR=
-, 0);
-> > +	devices[index].subdev_fds[1] =3D SYS_OPEN("/dev/video_focus", O_RDWR,=
- 0);
-> > +	devices[index].subdev_fds[2] =3D -1;
->=20
-> Hardcoding names here is not a good idea. Ideally, it should open
-> the MC, using the newgen API, and parse the media graph.
->=20
-> The problem is that, even with newgen API, without the properties API
-> you likely won't be able to write a generic parser. So, we need a
-> plugin specific for OMAP3 (or at least some database that would teach
-> a generic plugin about OMAP3 specifics).
->=20
-> I guess that the approach that Jacek was taken were very close to what
-> a generic plugin would need:
-> 	https://lwn.net/Articles/619449/
->=20
-> The last version of his patch set is here:
-> 	https://patchwork.linuxtv.org/patch/37496/
->=20
-> I didn't review his patchset, but from what I saw, Sakari is the one
-> that found some issues on v7.1 patchset.
->=20
-> Sakari,
->=20
-> Could you shed us a light about why this patchset was not merged?
->=20
-> Are there anything really bad at the code, or just minor issues that
-> could be fixed later?
->=20
-> If it is the last case, perhaps we could merge the code, if this
-> would make easier for Pavel to work on a N9 solution using the
-> same approach.
+Event: State Change: PA: f.f.f.f, LA mask: 0x0000
 
-It would be nice to get some solution here. Camera without libv4l
-support is pretty much useless :-(.
+Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
+Transmitted by Specific to Specific (14 to 14): CEC_MSG_POLL
+        Tx, Not Acknowledged (4), Max Retries
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
+Transmitted by Specific to all (14 to 15): CEC_MSG_REPORT_FEATURES (0xa6):
+        cec-version: version-2-0 (0x06)
+        all-device-types: switch (0x04)
+        rc-profile: tv-profile-none (0x00)
+        dev-features: 0 (0x00)
+Transmitted by Specific to all (14 to 15): CEC_MSG_REPORT_PHYSICAL_ADDR (0x84):
+        phys-addr: 1.0.0.0
+        prim-devtype: processor (0x07)
 
---fdj2RfSjLxBAspz7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+And looking at the ifixit.com board picture, there seems to be a
+IP4791CZ12 chip on droid 4. And it's docs seem to hint it has a
+pull in the IP4791CZ12.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+So yeah my guess is the cec internal pull should be disabled on
+all omap4 devices with HDMI. I'll send a follow-up patch for that.
 
-iEYEARECAAYFAlkEWpYACgkQMOfwapXb+vKlJwCdEhmJUcv49Uhh8SkA4PoHlqW+
-/v8AnjQBrquXo+PtTCQdMR2aFuVZYAHS
-=/iGF
------END PGP SIGNATURE-----
+> Hmm I wonder if disabling the internal pull also allows removing
+> the "regulator-always-on" hack for hdmi_regulator there? Without
+> regulator-always-on I noticed that HDMI panel resolutions are not
+> detected. This I can test easily..
 
---fdj2RfSjLxBAspz7--
+The regulator-fixed is still needed, I think this GPIO regulator
+powers the IP4791CZ12 which has no control channel. Not sure if
+we should still have encoder-ip4791cz12.c driver for it just to
+manage the regulator?
+
+Regards,
+
+Tony
