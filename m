@@ -1,38 +1,91 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] [4.11 regression] cpsw/netcp: refine cpts dependency
-Date: Fri, 28 Apr 2017 15:55:40 -0400 (EDT)
-Message-ID: <20170428.155540.1957134198035319334.davem@davemloft.net>
-References: <20170428150358.1537030-1-arnd@arndb.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch] propagating controls in libv4l2 was Re: support
+ autofocus / autogain in libv4l2
+Date: Sat, 29 Apr 2017 11:19:19 +0200
+Message-ID: <20170429091919.GA14148@amd>
+References: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20170414232332.63850d7b@vento.lan>
+ <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426082608.7dd52fbf@vento.lan>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170428150358.1537030-1-arnd@arndb.de>
-Sender: netdev-owner@vger.kernel.org
-To: arnd@arndb.de
-Cc: grygorii.strashko@ti.com, nicolas.pitre@linaro.org, w-kwok2@ti.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="fdj2RfSjLxBAspz7"
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170426082608.7dd52fbf@vento.lan>
+Sender: linux-media-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 28 Apr 2017 17:03:58 +0200
 
-> Tony Lindgren reports a kernel oops that resulted from my compile-time
-> fix on the default config. This shows two problems:
-> 
-> a) configurations that did not already enable PTP_1588_CLOCK will
->    now miss the cpts driver
-> 
-> b) when cpts support is disabled, the driver crashes. This is a
->    preexisting problem that we did not notice before my patch.
-> 
-> While the second problem is still being investigated, this modifies
-> the dependencies again, getting us back to the original state, with
-> another 'select NET_PTP_CLASSIFY' added in to avoid the original
-> link error we got, and the 'depends on POSIX_TIMERS' to hide
-> the CPTS support when turning it on would be useless.
-> 
-> Cc: stable@vger.kernel.org # 4.11 needs this
-> Fixes: 07fef3623407 ("cpsw/netcp: cpts depends on posix_timers")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+--fdj2RfSjLxBAspz7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Applied, thanks Arnd.
+Hi!
+
+> > +	devices[index].subdev_fds[0] =3D SYS_OPEN("/dev/video_sensor", O_RDWR=
+, 0);
+> > +	devices[index].subdev_fds[1] =3D SYS_OPEN("/dev/video_focus", O_RDWR,=
+ 0);
+> > +	devices[index].subdev_fds[2] =3D -1;
+>=20
+> Hardcoding names here is not a good idea. Ideally, it should open
+> the MC, using the newgen API, and parse the media graph.
+>=20
+> The problem is that, even with newgen API, without the properties API
+> you likely won't be able to write a generic parser. So, we need a
+> plugin specific for OMAP3 (or at least some database that would teach
+> a generic plugin about OMAP3 specifics).
+>=20
+> I guess that the approach that Jacek was taken were very close to what
+> a generic plugin would need:
+> 	https://lwn.net/Articles/619449/
+>=20
+> The last version of his patch set is here:
+> 	https://patchwork.linuxtv.org/patch/37496/
+>=20
+> I didn't review his patchset, but from what I saw, Sakari is the one
+> that found some issues on v7.1 patchset.
+>=20
+> Sakari,
+>=20
+> Could you shed us a light about why this patchset was not merged?
+>=20
+> Are there anything really bad at the code, or just minor issues that
+> could be fixed later?
+>=20
+> If it is the last case, perhaps we could merge the code, if this
+> would make easier for Pavel to work on a N9 solution using the
+> same approach.
+
+It would be nice to get some solution here. Camera without libv4l
+support is pretty much useless :-(.
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--fdj2RfSjLxBAspz7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlkEWpYACgkQMOfwapXb+vKlJwCdEhmJUcv49Uhh8SkA4PoHlqW+
+/v8AnjQBrquXo+PtTCQdMR2aFuVZYAHS
+=/iGF
+-----END PGP SIGNATURE-----
+
+--fdj2RfSjLxBAspz7--
