@@ -1,70 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-Date: Sat, 29 Apr 2017 13:21:04 -0700
-Message-ID: <20170429202104.GL3780@atomide.com>
-References: <20170414102512.48834-1-hverkuil@xs4all.nl>
- <20170414102512.48834-2-hverkuil@xs4all.nl>
- <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
- <20170428150859.GI3780@atomide.com>
- <20170428182611.t77hv3ufstlrntmf@earth>
- <20170428185421.GK3780@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170428185421.GK3780@atomide.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Karim Eshapa <karim.eshapa@gmail.com>
+Subject: [PATCH] drivers:video:fbdev:omap:lcd_mipid.c: Use time comparison kernel macros
+Date: Sun, 30 Apr 2017 18:42:43 +0200
+Message-ID: <1493570563-7188-1-git-send-email-karim.eshapa@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: b.zolnierkie@samsung.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Karim Eshapa <karim.eshapa@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170428 11:57]:
-> The pull seems to be enabled in the Android kernel too:
-> 
-> # rwmem -s16 0x4a10009a
-> 0x4a10009a = 0x0118
-> 
-> So needs to be tested, what's the simplest test to check the CEC?
+Use time_before_eq time comparison defind kernel macro
+that has safety check.
 
-So on droid 4, with the internal pull enabled cec-ctl -m does not
-show anything. With the internal pull disabled, cec-ctl -m produces
-the following with a lapdock:
+Signed-off-by: Karim Eshapa <karim.eshapa@gmail.com>
+---
+ drivers/video/fbdev/omap/lcd_mipid.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Initial Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
-
-Event: State Change: PA: f.f.f.f, LA mask: 0x0000
-
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Transmitted by Specific to Specific (14 to 14): CEC_MSG_POLL
-        Tx, Not Acknowledged (4), Max Retries
-
-Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
-Transmitted by Specific to all (14 to 15): CEC_MSG_REPORT_FEATURES (0xa6):
-        cec-version: version-2-0 (0x06)
-        all-device-types: switch (0x04)
-        rc-profile: tv-profile-none (0x00)
-        dev-features: 0 (0x00)
-Transmitted by Specific to all (14 to 15): CEC_MSG_REPORT_PHYSICAL_ADDR (0x84):
-        phys-addr: 1.0.0.0
-        prim-devtype: processor (0x07)
-
-And looking at the ifixit.com board picture, there seems to be a
-IP4791CZ12 chip on droid 4. And it's docs seem to hint it has a
-pull in the IP4791CZ12.
-
-So yeah my guess is the cec internal pull should be disabled on
-all omap4 devices with HDMI. I'll send a follow-up patch for that.
-
-> Hmm I wonder if disabling the internal pull also allows removing
-> the "regulator-always-on" hack for hdmi_regulator there? Without
-> regulator-always-on I noticed that HDMI panel resolutions are not
-> detected. This I can test easily..
-
-The regulator-fixed is still needed, I think this GPIO regulator
-powers the IP4791CZ12 which has no control channel. Not sure if
-we should still have encoder-ip4791cz12.c driver for it just to
-manage the regulator?
-
-Regards,
-
-Tony
+diff --git a/drivers/video/fbdev/omap/lcd_mipid.c b/drivers/video/fbdev/omap/lcd_mipid.c
+index c81f150..df9e6eb 100644
+--- a/drivers/video/fbdev/omap/lcd_mipid.c
++++ b/drivers/video/fbdev/omap/lcd_mipid.c
+@@ -174,7 +174,7 @@ static void hw_guard_wait(struct mipid_device *md)
+ {
+ 	unsigned long wait = md->hw_guard_end - jiffies;
+ 
+-	if ((long)wait > 0 && wait <= md->hw_guard_wait) {
++	if ((long)wait > 0 && time_before_eq(wait,  md->hw_guard_wait)) {
+ 		set_current_state(TASK_UNINTERRUPTIBLE);
+ 		schedule_timeout(wait);
+ 	}
+-- 
+2.7.4
