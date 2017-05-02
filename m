@@ -1,82 +1,106 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: Fix trying to suspend while active for OTG
- configurations
-Date: Mon, 1 May 2017 13:09:56 -0500
-Message-ID: <20170501180956.GA9203@uda0271908>
-References: <20170407143528.4753-1-tony@atomide.com>
- <786d8296-e7b0-b8c7-fa5f-d9d34633ae04@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v6 1/2] thermal: core: Allow orderly_poweroff to be called
+ only once
+Date: Tue, 2 May 2017 09:10:01 +0530
+Message-ID: <5a3df459-0fd7-e042-7e1d-fd76e7652e09@ti.com>
+References: <1492489799-6452-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <786d8296-e7b0-b8c7-fa5f-d9d34633ae04-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Ivaylo Dimitrov <ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1492489799-6452-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: rui.zhang@intel.com, edubezval@gmail.com
+Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nm@ti.com, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 19, 2017 at 11:22:55AM +0300, Peter Ujfalusi wrote:
-> 
-> 
-> On 2017-04-07 17:35, Tony Lindgren wrote:
-> >Commit d8e5f0eca1e8 ("usb: musb: Fix hardirq-safe hardirq-unsafe
-> >lock order error") caused a regression where musb keeps trying to
-> >enable host mode with no cable connected. This seems to be caused
-> >by the fact that now phy is enabled earlier, and we are wrongly
-> >trying to force USB host mode on an OTG port. The errors we are
-> >getting are "trying to suspend as a_idle while active".
-> >
-> >For ports configured as OTG, we should not need to do anything
-> >to try to force USB host mode on it's OTG port. Trying to force host
-> >mode in this case just seems to completely confuse the musb state
-> >machine.
-> >
-> >Let's fix the issue by making musb_host_setup() attempt to force the
-> >mode only if port_mode is configured for host mode.
-> 
-> Tested-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-> 
-> >
-> >Fixes: d8e5f0eca1e8 ("usb: musb: Fix hardirq-safe hardirq-unsafe
-> >lock order error")
-> >Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> >Reported-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> >Reported-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-> >Tested-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-> >Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-
-Applied. Thanks.
--Bin.
 
 
-> >---
-> > drivers/usb/musb/musb_host.c | 9 +++++----
-> > 1 file changed, 5 insertions(+), 4 deletions(-)
-> >
-> >diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-> >--- a/drivers/usb/musb/musb_host.c
-> >+++ b/drivers/usb/musb/musb_host.c
-> >@@ -2780,10 +2780,11 @@ int musb_host_setup(struct musb *musb, int power_budget)
-> > 	int ret;
-> > 	struct usb_hcd *hcd = musb->hcd;
-> >
-> >-	MUSB_HST_MODE(musb);
-> >-	musb->xceiv->otg->default_a = 1;
-> >-	musb->xceiv->otg->state = OTG_STATE_A_IDLE;
-> >-
-> >+	if (musb->port_mode == MUSB_PORT_MODE_HOST) {
-> >+		MUSB_HST_MODE(musb);
-> >+		musb->xceiv->otg->default_a = 1;
-> >+		musb->xceiv->otg->state = OTG_STATE_A_IDLE;
-> >+	}
-> > 	otg_set_host(musb->xceiv->otg, &hcd->self);
-> > 	hcd->self.otg_port = 1;
-> > 	musb->xceiv->otg->host = &hcd->self;
-> >
+On Tuesday 18 April 2017 09:59 AM, Keerthy wrote:
+> thermal_zone_device_check --> thermal_zone_device_update -->
+> handle_thermal_trip --> handle_critical_trips --> orderly_poweroff
 > 
-> - Péter
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The above sequence happens every 250/500 mS based on the configuration.
+> The orderly_poweroff function is getting called every 250/500 mS.
+> With a full fledged file system it takes at least 5-10 Seconds to
+> power off gracefully.
+> 
+> In that period due to the thermal_zone_device_check triggering
+> periodically the thermal work queues bombard with
+> orderly_poweroff calls multiple times eventually leading to
+> failures in gracefully powering off the system.
+> 
+> Make sure that orderly_poweroff is called only once.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Acked-by: Eduardo Valentin <edubezval@gmail.com>
+
+Zhang,
+
+Could you pull this?
+
+- Keerthy
+
+> ---
+> 
+> Changes in v5:
+> 
+>   * Added Eduardo's Ack.
+> 
+> Changes in v4:
+> 
+>   * power_off_triggered declaration together with mutex definition.
+> 
+> Changes in v3:
+> 
+>   * Changed the place where mutex was locked and unlocked.
+> 
+>  drivers/thermal/thermal_core.c | 11 ++++++++++-
+>  1 file changed, 10 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/thermal/thermal_core.c b/drivers/thermal/thermal_core.c
+> index 11f0675..8337c27 100644
+> --- a/drivers/thermal/thermal_core.c
+> +++ b/drivers/thermal/thermal_core.c
+> @@ -45,8 +45,10 @@
+>  
+>  static DEFINE_MUTEX(thermal_list_lock);
+>  static DEFINE_MUTEX(thermal_governor_lock);
+> +static DEFINE_MUTEX(poweroff_lock);
+>  
+>  static atomic_t in_suspend;
+> +static bool power_off_triggered;
+>  
+>  static struct thermal_governor *def_governor;
+>  
+> @@ -342,7 +344,12 @@ static void handle_critical_trips(struct thermal_zone_device *tz,
+>  		dev_emerg(&tz->device,
+>  			  "critical temperature reached(%d C),shutting down\n",
+>  			  tz->temperature / 1000);
+> -		orderly_poweroff(true);
+> +		mutex_lock(&poweroff_lock);
+> +		if (!power_off_triggered) {
+> +			orderly_poweroff(true);
+> +			power_off_triggered = true;
+> +		}
+> +		mutex_unlock(&poweroff_lock);
+>  	}
+>  }
+>  
+> @@ -1463,6 +1470,7 @@ static int __init thermal_init(void)
+>  {
+>  	int result;
+>  
+> +	mutex_init(&poweroff_lock);
+>  	result = thermal_register_governors();
+>  	if (result)
+>  		goto error;
+> @@ -1497,6 +1505,7 @@ static int __init thermal_init(void)
+>  	ida_destroy(&thermal_cdev_ida);
+>  	mutex_destroy(&thermal_list_lock);
+>  	mutex_destroy(&thermal_governor_lock);
+> +	mutex_destroy(&poweroff_lock);
+>  	return result;
+>  }
+>  
+> 
