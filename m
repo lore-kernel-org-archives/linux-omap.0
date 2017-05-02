@@ -1,53 +1,65 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 1/3] ti-soc-thermal: Use devm_kcalloc() in
- ti_bandgap_build()
-Date: Tue, 2 May 2017 09:25:56 +0530
-Message-ID: <baec64c7-2cae-dfd8-2f5e-790b2141efc9@ti.com>
+Subject: Re: [PATCH 0/3] TI-SoC-thermal: Fine-tuning for two functions
+Date: Tue, 2 May 2017 10:25:41 +0530
+Message-ID: <d87115f9-db8f-d2af-c03e-019004d9b9ac@ti.com>
 References: <cd524803-b771-c3d2-8906-ee78576c86d4@users.sourceforge.net>
- <071d2e92-0bcc-5ccc-ad28-b05a72538d6b@users.sourceforge.net>
+ <20170427162047.GA18276@localhost.localdomain>
+ <5fa2705e-3082-29b0-b174-cc478cd66e75@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <071d2e92-0bcc-5ccc-ad28-b05a72538d6b@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <5fa2705e-3082-29b0-b174-cc478cd66e75@ti.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>, SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Wednesday 26 April 2017 09:04 PM, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Wed, 26 Apr 2017 16:45:25 +0200
+On Monday 01 May 2017 10:50 AM, Keerthy wrote:
 > 
-> A multiplication for the size determination of a memory allocation
-> indicated that an array data structure should be processed.
-> Thus use the corresponding function "devm_kcalloc".
+> 
+> On Thursday 27 April 2017 09:50 PM, Eduardo Valentin wrote:
+>> On Wed, Apr 26, 2017 at 05:33:10PM +0200, SF Markus Elfring wrote:
+>>> From: Markus Elfring <elfring@users.sourceforge.net>
+>>> Date: Wed, 26 Apr 2017 17:24:56 +0200
+>>>
+>>> Three update suggestions were taken into account
+>>> from static source code analysis.
+>>>
+>>> Markus Elfring (3):
+>>>   Use devm_kcalloc() in ti_bandgap_build()
+>>>   Delete error messages for failed memory allocations in ti_bandgap_build()
+>>>   Fix a typo in a comment line
+>>>
+>>
+>> Keerthy,
+>>
+>> Can you please give it a shot of this series on all supported OMAP chip
+>> boards? I do not see any major issue with the series at all, but would
+>> like to get it tested by you.
+> 
+> Sure Eduardo. I will test and review this series.
 
-Reviewed-by: Keerthy <j-keerthy@ti.com>
+Tested for Temperatures of all the sensors and thermal shutdown
+triggering using emul_temp on DRA7/DRA72 AM57xx-evm boards.
+
+
+For the series:
+
+Acked-by: Keerthy <j-keerthy@ti.com>
+Tested-by: Keerthy <j-keerthy@ti.com>
+
+- Keerthy
 
 > 
-> This issue was detected by using the Coccinelle software.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/thermal/ti-soc-thermal/ti-bandgap.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-bandgap.c b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> index ba9c302454fb..f19cb7612a65 100644
-> --- a/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-bandgap.c
-> @@ -1224,8 +1224,8 @@ static struct ti_bandgap *ti_bandgap_build(struct platform_device *pdev)
->  		bgp->conf = of_id->data;
->  
->  	/* register shadow for context save and restore */
-> -	bgp->regval = devm_kzalloc(&pdev->dev, sizeof(*bgp->regval) *
-> -				   bgp->conf->sensor_count, GFP_KERNEL);
-> +	bgp->regval = devm_kcalloc(&pdev->dev, bgp->conf->sensor_count,
-> +				   sizeof(*bgp->regval), GFP_KERNEL);
->  	if (!bgp->regval) {
->  		dev_err(&pdev->dev, "Unable to allocate mem for driver ref\n");
->  		return ERR_PTR(-ENOMEM);
-> 
+>>
+>> BR,
+>>
+>>>  drivers/thermal/ti-soc-thermal/ti-bandgap.c | 14 +++++---------
+>>>  1 file changed, 5 insertions(+), 9 deletions(-)
+>>>
+>>> -- 
+>>> 2.12.2
+>>>
