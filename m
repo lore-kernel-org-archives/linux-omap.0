@@ -1,513 +1,195 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 1/2] Input: pwm-vibra: new driver
-Date: Tue, 2 May 2017 11:23:54 -0700
-Message-ID: <20170502182354.GB39170@dtor-ws>
-References: <20170502162726.11577-1-sebastian.reichel@collabora.co.uk>
- <20170502162726.11577-2-sebastian.reichel@collabora.co.uk>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] RTC: Add functionality to read/write rtc
+ scratch registers
+Date: Wed, 3 May 2017 11:39:34 +0530
+Message-ID: <8b28ca13-9822-4172-95b0-59802187ec93@ti.com>
+References: <1492492807-20316-1-git-send-email-j-keerthy@ti.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170502162726.11577-2-sebastian.reichel@collabora.co.uk>
-Sender: linux-input-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBD66BCOYSQBBBJHIUXEAKGQEDX4PW3I-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+In-Reply-To: <1492492807-20316-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org
+Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sebastian,
 
-On Tue, May 02, 2017 at 06:27:25PM +0200, Sebastian Reichel wrote:
-> Provide a simple driver for PWM controllable vibrators. It
-> will be used by Motorola Droid 4.
+
+On Tuesday 18 April 2017 10:50 AM, Keerthy wrote:
+> From: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
 > 
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> Many RTCs provide scratch registers that are maintained so long as the RTC
+> has power. Provide a generic method to access these registers.
+> 
+
+A gentle ping on this
+
+> Signed-off-by: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 > ---
->  .../devicetree/bindings/input/pwm-vibrator.txt     |  60 ++++
->  drivers/input/misc/Kconfig                         |  11 +
->  drivers/input/misc/Makefile                        |   1 +
->  drivers/input/misc/pwm-vibra.c                     | 348 +++++++++++++++++++++
->  4 files changed, 420 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/input/pwm-vibrator.txt
->  create mode 100644 drivers/input/misc/pwm-vibra.c
+>  drivers/rtc/interface.c | 50 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/rtc/rtc-omap.c  | 35 ++++++++++++++++++++++++++++++++++
+>  include/linux/rtc.h     |  7 +++++++
+>  3 files changed, 92 insertions(+)
 > 
-> diff --git a/Documentation/devicetree/bindings/input/pwm-vibrator.txt b/Documentation/devicetree/bindings/input/pwm-vibrator.txt
-> new file mode 100644
-> index 000000000000..c35be4691366
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/input/pwm-vibrator.txt
-> @@ -0,0 +1,60 @@
-> +* PWM vibrator device tree bindings
+> diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
+> index fc0fa75..facde06 100644
+> --- a/drivers/rtc/interface.c
+> +++ b/drivers/rtc/interface.c
+> @@ -1016,3 +1016,53 @@ int rtc_set_offset(struct rtc_device *rtc, long offset)
+>  	mutex_unlock(&rtc->ops_lock);
+>  	return ret;
+>  }
 > +
-> +Registers a PWM device as vibrator.
-> +
-> +Required properties:
-> +- compatible: should be
-> +  * "pwm-vibrator"
-> +    For vibrators controlled using the PWM channel's duty cycle (higher duty means
-> +    the vibrator becomes stronger).
-> +  * "motorola,mapphone-pwm-vibrator"
-> +     For vibrator found in Motorola Droid 4. This vibrator generates a pulse for
-> +     every rising edge, so its controlled using a duty cycle of 50% and changing
-> +     the period time.
-> +- pwm-names: Should contain "enable" and optionally "direction"
-> +- pwms: Should contain a PWM handle for each entry in pwm-names
-> +
-> +Example from Motorola Droid 4:
-> +
-> +&omap4_pmx_core {
-> +	vibrator_direction_pin: pinmux_vibrator_direction_pin {
-> +		pinctrl-single,pins = <
-> +		OMAP4_IOPAD(0x1ce, PIN_OUTPUT | MUX_MODE1) /* dmtimer8_pwm_evt (gpio_27) */
-> +		>;
-> +	};
-> +
-> +	vibrator_enable_pin: pinmux_vibrator_enable_pin {
-> +		pinctrl-single,pins = <
-> +		OMAP4_IOPAD(0X1d0, PIN_OUTPUT | MUX_MODE1) /* dmtimer9_pwm_evt (gpio_28) */
-> +		>;
-> +	};
-> +};
-> +
-> +/ {
-> +	pwm8: dmtimer-pwm {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&vibrator_direction_pin>;
-> +
-> +		compatible = "ti,omap-dmtimer-pwm";
-> +		#pwm-cells = <3>;
-> +		ti,timers = <&timer8>;
-> +		ti,clock-source = <0x01>;
-> +	};
-> +
-> +	pwm9: dmtimer-pwm {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&vibrator_enable_pin>;
-> +
-> +		compatible = "ti,omap-dmtimer-pwm";
-> +		#pwm-cells = <3>;
-> +		ti,timers = <&timer9>;
-> +		ti,clock-source = <0x01>;
-> +	};
-> +
-> +	vibrator {
-> +		compatible = "pwm-vibrator";
-> +		pwms = <&pwm8 0 1000000000 0>,
-> +		       <&pwm9 0 1000000000 0>;
-> +		pwm-names = "enable", "direction";
-> +	};
-> +};
-> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-> index 5b6c52210d20..d8e0b25eb217 100644
-> --- a/drivers/input/misc/Kconfig
-> +++ b/drivers/input/misc/Kconfig
-> @@ -571,6 +571,17 @@ config INPUT_PWM_BEEPER
->  	  To compile this driver as a module, choose M here: the module will be
->  	  called pwm-beeper.
->  
-> +config INPUT_PWM_VIBRA
-> +	tristate "PWM vibrator support"
-> +	depends on PWM
-> +	help
-> +	  Say Y here to get support for PWM based vibrator devices.
-> +
-> +	  If unsure, say N.
-> +
-> +	  To compile this driver as a module, choose M here: the module will be
-> +	  called pwm-vibra.
-> +
->  config INPUT_GPIO_ROTARY_ENCODER
->  	tristate "Rotary encoders connected to GPIO pins"
->  	depends on GPIOLIB || COMPILE_TEST
-> diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-> index b10523f2878e..9a6517f5458c 100644
-> --- a/drivers/input/misc/Makefile
-> +++ b/drivers/input/misc/Makefile
-> @@ -58,6 +58,7 @@ obj-$(CONFIG_INPUT_PM8XXX_VIBRATOR)	+= pm8xxx-vibrator.o
->  obj-$(CONFIG_INPUT_PMIC8XXX_PWRKEY)	+= pmic8xxx-pwrkey.o
->  obj-$(CONFIG_INPUT_POWERMATE)		+= powermate.o
->  obj-$(CONFIG_INPUT_PWM_BEEPER)		+= pwm-beeper.o
-> +obj-$(CONFIG_INPUT_PWM_VIBRA)		+= pwm-vibra.o
->  obj-$(CONFIG_INPUT_RB532_BUTTON)	+= rb532_button.o
->  obj-$(CONFIG_INPUT_REGULATOR_HAPTIC)	+= regulator-haptic.o
->  obj-$(CONFIG_INPUT_RETU_PWRBUTTON)	+= retu-pwrbutton.o
-> diff --git a/drivers/input/misc/pwm-vibra.c b/drivers/input/misc/pwm-vibra.c
-> new file mode 100644
-> index 000000000000..a7d36d88679a
-> --- /dev/null
-> +++ b/drivers/input/misc/pwm-vibra.c
-> @@ -0,0 +1,348 @@
-> +/*
-> + *  PWM vibrator driver
+> +/* rtc_read_scratch - Read from RTC scratch register
+> + * @ rtc: rtc device to be used
+> + * @ index: index of scratch register
+> + * @ value: returned value read
 > + *
-> + *  Copyright (C) 2017 Collabora Ltd.
-> + *
-> + *  Based on previous work from:
-> + *  Copyright (C) 2012 Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> + *
-> + *  Based on PWM beeper driver:
-> + *  Copyright (C) 2010, Lars-Peter Clausen <lars@metafoo.de>
-> + *
-> + *  This program is free software; you can redistribute it and/or modify it
-> + *  under  the terms of the GNU General  Public License as published by the
-> + *  Free Software Foundation;  either version 2 of the License, or (at your
-> + *  option) any later version.
+> + * Kernel interface read from an RTC scratch register
 > + */
-> +
-> +#define DEBUG
-> +
-> +#include <linux/input.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/pwm.h>
-> +#include <linux/regulator/consumer.h>
-> +#include <linux/slab.h>
-> +
-> +/**
-> + * Motorola Droid 4 (also known as mapphone), has a vibrator, which pulses
-> + * 1x on rising edge. Increasing the pwm period results in more pulses per
-> + * second, but reduces intensity. There is also a second channel to control
-> + * the vibrator's rotation direction to increase effect. The following
-> + * numbers were determined manually. Going below 12.5 Hz means, clearly
-> + * noticeable pauses and at 30 Hz the vibration is just barely noticable
-> + * anymore.
-> + */
-> +#define MAPPHONE_MIN_FREQ 125 /* 12.5 Hz */
-> +#define MAPPHONE_MAX_FREQ 300 /* 30.0 Hz */
-> +
-> +struct pwm_vibrator_hw {
-> +	void (*setup_pwm)(u16 level, struct pwm_state *);
-> +	void (*setup_pwm_dir)(u16 level, struct pwm_state *);
-> +};
-> +
-> +struct pwm_vibrator {
-> +	struct input_dev *input;
-> +	struct pwm_device *pwm;
-> +	struct pwm_device *pwm_dir;
-> +	struct regulator *vcc;
-> +
-> +	struct work_struct play_work;
-> +	u16 level;
-> +
-> +	const struct pwm_vibrator_hw *hw;
-> +};
-> +
-> +static void pwm_vibrator_setup_generic(u16 level, struct pwm_state *state)
+> +int rtc_read_scratch(struct rtc_device *rtc, unsigned int index, u32 *value)
 > +{
-> +	/* period is configured by platform, duty cycle controls strength */
-> +	pwm_set_relative_duty_cycle(state, level, 0xffff);
-> +}
-> +
-> +static void pwm_vibrator_setup_dir_generic(u16 level, struct pwm_state *state)
-> +{
-> +	/* period is configured by platform, duty cycle controls strength */
-> +	pwm_set_relative_duty_cycle(state, 50, 100);
-> +}
-> +
-> +static struct pwm_vibrator_hw pwm_vib_hw_generic = {
-> +	.setup_pwm = pwm_vibrator_setup_generic,
-> +	.setup_pwm_dir = pwm_vibrator_setup_dir_generic,
-> +};
-> +
-> +static void pwm_vibrator_setup_mapphone(u16 level, struct pwm_state *state)
-> +{
-> +	unsigned int freq;
-> +
-> +	/* convert [0, 0xffff] -> [MAPPHONE_MAX_FREQ, MAPPHONE_MIN_FREQ] */
-> +	freq = 0xffff - level;
-> +	freq *= MAPPHONE_MAX_FREQ - MAPPHONE_MIN_FREQ;
-> +	freq /= 0xffff;
-> +	freq += MAPPHONE_MIN_FREQ;
-> +
-> +	state->period = DIV_ROUND_CLOSEST_ULL((u64) NSEC_PER_SEC * 10, freq);
-> +	pwm_set_relative_duty_cycle(state, 50, 100);
-> +}
-> +
-> +static struct pwm_vibrator_hw pwm_vib_hw_mapphone = {
-> +	.setup_pwm = pwm_vibrator_setup_mapphone,
-> +	.setup_pwm_dir = pwm_vibrator_setup_mapphone,
-> +};
-> +
-> +static int pwm_vibrator_start(struct pwm_vibrator *vibrator)
-> +{
-> +	struct device *pdev = vibrator->input->dev.parent;
-> +	struct pwm_state state;
 > +	int err;
 > +
-> +	dev_dbg(pdev, "start vibrator with level=0x%04x", vibrator->level);
-> +
-> +	err = regulator_enable(vibrator->vcc);
-> +	if (err) {
-> +		dev_err(pdev, "failed to enable regulator: %d", err);
-> +		return err;
-> +	}
-> +
-> +	pwm_get_state(vibrator->pwm, &state);
-> +	state.enabled = true;
-> +
-> +	vibrator->hw->setup_pwm(vibrator->level, &state);
-> +	dev_dbg(pdev, "period=%u", state.period);
-> +
-> +	err = pwm_apply_state(vibrator->pwm, &state);
-> +	if (err) {
-> +		dev_err(pdev, "failed to apply pwm state: %d", err);
-> +		return err;
-> +	}
-> +
-> +	if (vibrator->pwm_dir) {
-> +		pwm_get_state(vibrator->pwm_dir, &state);
-> +		state.enabled = true;
-> +
-> +		/* always control via period */
-> +		vibrator->hw->setup_pwm_dir(vibrator->level, &state);
-> +
-> +		err = pwm_apply_state(vibrator->pwm_dir, &state);
-> +		if (err) {
-> +			dev_err(pdev, "failed to apply dir-pwm state: %d", err);
-> +			pwm_disable(vibrator->pwm);
-> +			return err;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void pwm_vibrator_stop(struct pwm_vibrator *vibrator)
-> +{
-> +	struct device *pdev = vibrator->input->dev.parent;
-> +
-> +	dev_dbg(pdev, "stop vibrator");
-> +
-> +	regulator_disable(vibrator->vcc);
-> +
-> +	if (vibrator->pwm_dir)
-> +		pwm_disable(vibrator->pwm_dir);
-> +	pwm_disable(vibrator->pwm);
-> +}
-> +
-> +static void vibra_play_work(struct work_struct *work)
-> +{
-> +	struct pwm_vibrator *vibrator = container_of(work,
-> +					struct pwm_vibrator, play_work);
-> +
-> +	if (vibrator->level)
-> +		pwm_vibrator_start(vibrator);
+> +	mutex_lock(&rtc->ops_lock);
+> +	if (!rtc->ops)
+> +		err = -ENODEV;
+> +	else if (index >= rtc->ops->scratch_size || !rtc->ops->read_scratch)
+> +		err = -EINVAL;
 > +	else
-> +		pwm_vibrator_stop(vibrator);
+> +		err = rtc->ops->read_scratch(rtc->dev.parent, index, value);
+> +	mutex_unlock(&rtc->ops_lock);
+> +	return err;
 > +}
+> +EXPORT_SYMBOL_GPL(rtc_read_scratch);
 > +
-> +static int pwm_vibrator_play_effect(struct input_dev *dev, void *data,
-> +				    struct ff_effect *effect)
+> +/* rtc_write_scratch - Write to RTC scratch register
+> + * @ rtc: rtc device to be used
+> + * @ index: index of scratch register
+> + * @ value: value to write
+> + *
+> + * Kernel interface write to an RTC scratch register
+> + */
+> +int rtc_write_scratch(struct rtc_device *rtc, unsigned int index, u32 value)
 > +{
-> +	struct pwm_vibrator *vibrator = input_get_drvdata(dev);
-> +
-> +	vibrator->level = effect->u.rumble.strong_magnitude;
-> +	if (!vibrator->level)
-> +		vibrator->level = effect->u.rumble.weak_magnitude;
-> +
-> +	schedule_work(&vibrator->play_work);
-> +
-> +	return 0;
-> +}
-> +
-> +static int pwm_vibrator_probe(struct platform_device *pdev)
-> +{
-> +	struct pwm_vibrator *vibrator;
-> +	struct input_dev *input;
-> +	struct pwm_state state;
 > +	int err;
 > +
-> +	vibrator = devm_kzalloc(&pdev->dev, sizeof(*vibrator), GFP_KERNEL);
-> +	if (!vibrator)
-> +		return -ENOMEM;
+> +	mutex_lock(&rtc->ops_lock);
 > +
-> +	input = devm_input_allocate_device(&pdev->dev);
-> +	if (!vibrator || !input)
-
-No need to check "!vibrator" here.
-
-> +		return -ENOMEM;
+> +	if (!rtc->ops)
+> +		err = -ENODEV;
+> +	else if (index >= rtc->ops->scratch_size ||
+> +		 !rtc->ops->write_scratch)
+> +		err = -EINVAL;
+> +	else
+> +		err = rtc->ops->write_scratch(rtc->dev.parent, index, value);
 > +
-> +	vibrator->input = input;
+> +	mutex_unlock(&rtc->ops_lock);
 > +
-> +	vibrator->vcc = devm_regulator_get(&pdev->dev, "vcc");
-> +	err = PTR_ERR_OR_ZERO(vibrator->vcc);
-> +	if (err) {
-> +		if (err != -EPROBE_DEFER)
-> +			dev_err(&pdev->dev, "Failed to request regulator: %d",
-> +				err);
-> +		return err;
-> +	}
-> +
-> +	vibrator->pwm = devm_pwm_get(&pdev->dev, "enable");
-> +	err = PTR_ERR_OR_ZERO(vibrator->pwm);
-> +	if (err) {
-> +		if (err != -EPROBE_DEFER)
-> +			dev_err(&pdev->dev, "Failed to request main pwm: %d",
-> +				err);
-> +		return err;
-> +	}
-> +
-> +	INIT_WORK(&vibrator->play_work, vibra_play_work);
-> +
-> +	/* Sync up PWM state and ensure it is off. */
-> +	pwm_init_state(vibrator->pwm, &state);
-> +	state.enabled = false;
-> +	err = pwm_apply_state(vibrator->pwm, &state);
-> +	if (err) {
-> +		dev_err(&pdev->dev, "failed to apply initial PWM state: %d",
-> +			err);
-> +		return err;
-> +	}
-> +
-> +	vibrator->pwm_dir = devm_pwm_get(&pdev->dev, "direction");
-> +	err = PTR_ERR_OR_ZERO(vibrator->pwm_dir);
-> +	if (err == -ENODATA) {
-> +		vibrator->pwm_dir = NULL;
-> +	} else if (err == -EPROBE_DEFER) {
-> +		return err;
-> +	} else if (err) {
-> +		dev_err(&pdev->dev, "Failed to request direction pwm: %d", err);
-> +		return err;
-> +	} else {
-> +		/* Sync up PWM state and ensure it is off. */
-> +		pwm_init_state(vibrator->pwm_dir, &state);
-> +		state.enabled = false;
-> +		err = pwm_apply_state(vibrator->pwm_dir, &state);
-> +		if (err) {
-> +			dev_err(&pdev->dev, "failed to apply initial PWM state: %d",
-> +				err);
-> +			return err;
-> +		}
-> +	}
-> +
-> +	vibrator->hw = of_device_get_match_data(&pdev->dev);
-> +	if (!vibrator->hw)
-> +		vibrator->hw = &pwm_vib_hw_generic;
-> +
-> +	input->name = "pwm-vibrator";
-> +	input->id.bustype = BUS_HOST;
-> +	input->dev.parent = &pdev->dev;
-> +
-> +	input_set_drvdata(input, vibrator);
-> +	input_set_capability(input, EV_FF, FF_RUMBLE);
-> +
-> +	err = input_ff_create_memless(input, NULL, pwm_vibrator_play_effect);
-> +	if (err) {
-> +		dev_err(&pdev->dev, "Couldn't create FF dev: %d", err);
-> +		return err;
-> +	}
-> +
-> +	err = input_register_device(input);
-> +	if (err) {
-> +		dev_err(&pdev->dev, "Couldn't register input dev: %d", err);
-> +		return err;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, vibrator);
-> +
-> +	dev_info(&pdev->dev, "pwm-vibrator probed.");
-
-Please drop, our boot is noisy enough and you should get message from
-input core when you register device.
-
-> +
-> +	return 0;
+> +	return err;
 > +}
+> +EXPORT_SYMBOL_GPL(rtc_write_scratch);
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index 13f7cd1..c90d93e 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -70,6 +70,10 @@
+>  #define OMAP_RTC_COMP_MSB_REG		0x50
+>  #define OMAP_RTC_OSC_REG		0x54
+>  
+> +#define OMAP_RTC_SCRATCH0_REG		0x60
+> +#define OMAP_RTC_SCRATCH1_REG		0x64
+> +#define OMAP_RTC_SCRATCH2_REG		0x68
 > +
-> +static int pwm_vibrator_remove(struct platform_device *pdev)
-> +{
-> +	struct pwm_vibrator *vibrator = platform_get_drvdata(pdev);
-> +
-> +	cancel_work_sync(&vibrator->play_work);
-> +	pwm_vibrator_stop(vibrator);
-
-Maybe put it into input->stop() method?
-
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_PM_SLEEP
-> +static int pwm_vibrator_suspend(struct device *dev)
-
-__maybe_unused.
-
-> +{
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct pwm_vibrator *vibrator = platform_get_drvdata(pdev);
-> +	struct input_dev *input = vibrator->input;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&input->event_lock, flags);
-> +	if (vibrator->level)
-> +		pwm_vibrator_stop(vibrator);
-
-What about work that might be running?
-
-> +	spin_unlock_irqrestore(&input->event_lock, flags);
-> +
-> +	return 0;
-> +}
-> +
-> +static int pwm_vibrator_resume(struct device *dev)
-
-__maybe_unused.
-
-> +{
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +	struct pwm_vibrator *vibrator = platform_get_drvdata(pdev);
-> +	struct input_dev *input = vibrator->input;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&input->event_lock, flags);
-> +	if (vibrator->level)
-> +		pwm_vibrator_start(vibrator);
-> +	spin_unlock_irqrestore(&input->event_lock, flags);
-> +
-> +	return 0;
-> +}
-> +#endif
-> +
-> +static SIMPLE_DEV_PM_OPS(pwm_vibrator_pm_ops,
-> +			 pwm_vibrator_suspend, pwm_vibrator_resume);
-> +
-> +#ifdef CONFIG_OF
-> +
-> +#define PWM_VIB_COMPAT(of_compatible, cfg) {			\
-> +			.compatible = of_compatible,		\
-> +			.data = &cfg,	\
-> +}
-> +
-> +static const struct of_device_id pwm_vibra_dt_match_table[] = {
-> +	PWM_VIB_COMPAT("pwm-vibrator", pwm_vib_hw_generic),
-> +	PWM_VIB_COMPAT("motorola,mapphone-pwm-vibrator", pwm_vib_hw_mapphone),
-> +	{},
+>  #define OMAP_RTC_KICK0_REG		0x6c
+>  #define OMAP_RTC_KICK1_REG		0x70
+>  
+> @@ -414,6 +418,34 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+>  
+>  static struct omap_rtc *omap_rtc_power_off_rtc;
+>  
+> +static const u32 omap_rtc_scratch_regs[] = {
+> +	OMAP_RTC_SCRATCH0_REG,
+> +	OMAP_RTC_SCRATCH1_REG,
+> +	OMAP_RTC_SCRATCH2_REG,
 > +};
-> +MODULE_DEVICE_TABLE(of, pwm_vibra_dt_match_table);
-> +#endif
 > +
-> +static struct platform_driver pwm_vibrator_driver = {
-> +	.probe	= pwm_vibrator_probe,
-> +	.remove	= pwm_vibrator_remove,
-> +	.driver	= {
-> +		.name	= "pwm-vibrator",
-> +		.pm	= &pwm_vibrator_pm_ops,
-> +		.of_match_table = of_match_ptr(pwm_vibra_dt_match_table),
-> +	},
-> +};
-> +module_platform_driver(pwm_vibrator_driver);
+> +static int omap_rtc_read_scratch(struct device *dev, unsigned int index,
+> +				 u32 *value)
+> +{
+> +	*value = readl(omap_rtc_power_off_rtc->base +
+> +		       omap_rtc_scratch_regs[index]);
 > +
-> +MODULE_AUTHOR("Sebastian Reichel <sre@kernel.org>");
-> +MODULE_DESCRIPTION("PWM vibrator driver");
-> +MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform:pwm-vibrator");
-> -- 
-> 2.11.0
+> +	return 0;
+> +}
+> +
+> +static int omap_rtc_write_scratch(struct device *dev, unsigned int index,
+> +				  u32 value)
+> +{
+> +	struct omap_rtc *rtc = dev_get_drvdata(dev);
+> +
+> +	rtc->type->unlock(rtc);
+> +	writel(value, omap_rtc_power_off_rtc->base +
+> +	       omap_rtc_scratch_regs[index]);
+> +	rtc->type->lock(rtc);
+> +
+> +	return 0;
+> +}
+> +
+>  /*
+>   * omap_rtc_poweroff: RTC-controlled power off
+>   *
+> @@ -484,6 +516,9 @@ static void omap_rtc_power_off(void)
+>  	.read_alarm	= omap_rtc_read_alarm,
+>  	.set_alarm	= omap_rtc_set_alarm,
+>  	.alarm_irq_enable = omap_rtc_alarm_irq_enable,
+> +	.read_scratch	= omap_rtc_read_scratch,
+> +	.write_scratch	= omap_rtc_write_scratch,
+> +	.scratch_size	= ARRAY_SIZE(omap_rtc_scratch_regs),
+>  };
+>  
+>  static const struct omap_rtc_device_type omap_rtc_default_type = {
+> diff --git a/include/linux/rtc.h b/include/linux/rtc.h
+> index b693ada..da5e003 100644
+> --- a/include/linux/rtc.h
+> +++ b/include/linux/rtc.h
+> @@ -91,6 +91,10 @@ struct rtc_class_ops {
+>  	int (*alarm_irq_enable)(struct device *, unsigned int enabled);
+>  	int (*read_offset)(struct device *, long *offset);
+>  	int (*set_offset)(struct device *, long offset);
+> +	int (*read_scratch)(struct device *, unsigned int, u32*);
+> +	int (*write_scratch)(struct device *, unsigned int, u32);
+> +
+> +	unsigned int scratch_size;
+>  };
+>  
+>  #define RTC_DEVICE_NAME_SIZE 20
+> @@ -214,6 +218,9 @@ int rtc_timer_start(struct rtc_device *rtc, struct rtc_timer *timer,
+>  int rtc_set_offset(struct rtc_device *rtc, long offset);
+>  void rtc_timer_do_work(struct work_struct *work);
+>  
+> +int rtc_read_scratch(struct rtc_device *rtc, unsigned int index, u32 *value);
+> +int rtc_write_scratch(struct rtc_device *rtc, unsigned int index, u32 value);
+> +
+>  static inline bool is_leap_year(unsigned int year)
+>  {
+>  	return (!(year % 4) && (year % 100)) || !(year % 400);
 > 
-
-Thanks.
 
 -- 
-Dmitry
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
