@@ -1,36 +1,61 @@
-From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Subject: [PATCHv2 2/4] ARM: dts: omap4-droid4: Use wl1285 for wifi compatible
-Date: Wed,  3 May 2017 16:22:24 +0200
-Message-ID: <20170503142226.32380-3-sebastian.reichel@collabora.co.uk>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv2 3/4] Bluetooth: hci_ll: Add compatible values for more WL chips
+Date: Wed,  3 May 2017 16:22:25 +0200
+Message-ID: <20170503142226.32380-4-sebastian.reichel@collabora.co.uk>
 References: <20170503142226.32380-1-sebastian.reichel@collabora.co.uk>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170503142226.32380-1-sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170503142226.32380-1-sebastian.reichel@collabora.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh+dt@kernel.org>, Kalle Valo <kvalo@codeaurora.org>
+Cc: linux-bluetooth@vger.kernel.org, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-The Motorola Droid 4 uses a WL 1285C, so let's use correct
-compatible value instead of relying on WL 1283 being very
-similar.
+Add compatible values for WiLink chips from 128x and 180x series.
+Also the DT binding already contained compatible values for the 127x
+series, but the driver did not. This brings the list on par with
+the list from wlcore (the wifi driver).
 
-Signed-off-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devicetree/bindings/net/ti,wilink-st.txt | 6 ++++++
+ drivers/bluetooth/hci_ll.c                             | 8 ++++++++
+ 2 files changed, 14 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-index 89eb607f4a9e..c09b51d6ccf7 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -301,7 +301,7 @@
- 	#address-cells = <1>;
- 	#size-cells = <0>;
- 	wlcore: wlcore@2 {
--		compatible = "ti,wl1283";
-+		compatible = "ti,wl1285";
- 		reg = <2>;
- 		interrupt-parent = <&gpio4>;
- 		interrupts = <4 IRQ_TYPE_LEVEL_HIGH>; /* gpio100 */
+diff --git a/Documentation/devicetree/bindings/net/ti,wilink-st.txt b/Documentation/devicetree/bindings/net/ti,wilink-st.txt
+index cbad73a84ac4..b1a421e2fde3 100644
+--- a/Documentation/devicetree/bindings/net/ti,wilink-st.txt
++++ b/Documentation/devicetree/bindings/net/ti,wilink-st.txt
+@@ -14,6 +14,12 @@ Required properties:
+  - compatible: should be one of the following:
+     "ti,wl1271-st"
+     "ti,wl1273-st"
++    "ti,wl1281-st"
++    "ti,wl1283-st"
++    "ti,wl1285-st"
++    "ti,wl1801-st"
++    "ti,wl1805-st"
++    "ti,wl1807-st"
+     "ti,wl1831-st"
+     "ti,wl1835-st"
+     "ti,wl1837-st"
+diff --git a/drivers/bluetooth/hci_ll.c b/drivers/bluetooth/hci_ll.c
+index adc444f309a3..d2f32a994daa 100644
+--- a/drivers/bluetooth/hci_ll.c
++++ b/drivers/bluetooth/hci_ll.c
+@@ -740,6 +740,14 @@ static void hci_ti_remove(struct serdev_device *serdev)
+ }
+ 
+ static const struct of_device_id hci_ti_of_match[] = {
++	{ .compatible = "ti,wl1271-st" },
++	{ .compatible = "ti,wl1273-st" },
++	{ .compatible = "ti,wl1281-st" },
++	{ .compatible = "ti,wl1283-st" },
++	{ .compatible = "ti,wl1285-st" },
++	{ .compatible = "ti,wl1801-st" },
++	{ .compatible = "ti,wl1805-st" },
++	{ .compatible = "ti,wl1807-st" },
+ 	{ .compatible = "ti,wl1831-st" },
+ 	{ .compatible = "ti,wl1835-st" },
+ 	{ .compatible = "ti,wl1837-st" },
 -- 
 2.11.0
