@@ -1,40 +1,36 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv2 0/4] Motorola Droid 4: Add WL1285C support
-Date: Wed,  3 May 2017 16:22:22 +0200
-Message-ID: <20170503142226.32380-1-sebastian.reichel@collabora.co.uk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh+dt@kernel.org>, Kalle Valo <kvalo@codeaurora.org>
-Cc: linux-bluetooth@vger.kernel.org, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Subject: [PATCHv2 2/4] ARM: dts: omap4-droid4: Use wl1285 for wifi compatible
+Date: Wed,  3 May 2017 16:22:24 +0200
+Message-ID: <20170503142226.32380-3-sebastian.reichel@collabora.co.uk>
+References: <20170503142226.32380-1-sebastian.reichel@collabora.co.uk>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170503142226.32380-1-sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The Motorola Droid 4 uses a WL 1285C, so let's use correct
+compatible value instead of relying on WL 1283 being very
+similar.
 
-Motorola Droid 4 uses a WL1285C, as visible on iFixit [0]. This
-fixes the DT file to use correct compatible for the wifi node
-and adds the bluetooth node.
+Signed-off-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+---
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[0] https://www.ifixit.com/Teardown/Motorola+Droid+4+Teardown/7759#s31961
-
-Changes to PATCHv1:
- - use proper compatible value for bluetooth / shared transport
- - add patches fixing wlcore compatible for Droid 4
-
--- Sebastian
-
-Sebastian Reichel (4):
-  wlcore: add wl1285 compatible
-  ARM: dts: omap4-droid4: Use wl1285 for wifi compatible
-  Bluetooth: hci_ll: Add compatible values for more WL chips
-  ARM: dts: omap4-droid4: Add bluetooth
-
- .../devicetree/bindings/net/ti,wilink-st.txt       |  6 ++++++
- .../devicetree/bindings/net/wireless/ti,wlcore.txt |  1 +
- arch/arm/boot/dts/omap4-droid4-xt894.dts           | 22 +++++++++++++++++++++-
- drivers/bluetooth/hci_ll.c                         |  8 ++++++++
- drivers/net/wireless/ti/wlcore/sdio.c              |  1 +
- drivers/net/wireless/ti/wlcore/spi.c               |  1 +
- 6 files changed, 38 insertions(+), 1 deletion(-)
-
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+index 89eb607f4a9e..c09b51d6ccf7 100644
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -301,7 +301,7 @@
+ 	#address-cells = <1>;
+ 	#size-cells = <0>;
+ 	wlcore: wlcore@2 {
+-		compatible = "ti,wl1283";
++		compatible = "ti,wl1285";
+ 		reg = <2>;
+ 		interrupt-parent = <&gpio4>;
+ 		interrupts = <4 IRQ_TYPE_LEVEL_HIGH>; /* gpio100 */
 -- 
 2.11.0
