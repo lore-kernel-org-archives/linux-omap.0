@@ -1,41 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/4] power: supply: cpcap-charger: Keep trickle charger bits disabled
-Date: Wed,  3 May 2017 17:15:32 -0700
-Message-ID: <20170504001532.10585-5-tony@atomide.com>
-References: <20170504001532.10585-1-tony@atomide.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20170504001532.10585-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+Subject: Re: [PATCHv2 0/4] Motorola Droid 4: Add WL1285C support
+Date: Wed, 3 May 2017 17:19:17 -0700
+Message-ID: <20170504001917.GM3780@atomide.com>
+References: <20170503142226.32380-1-sebastian.reichel@collabora.co.uk>
+ <CAL_JsqKktwFmxXijB0FVVoWGkswXm3twzD7She7zGR=rVQ4hWA@mail.gmail.com>
+ <F455FC62-BA1C-4A59-B526-DDB90362CFE8@holtmann.org>
+ <20170503160827.v5owcbiclea4f7kx@earth>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170503160827.v5owcbiclea4f7kx@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh+dt@kernel.org>, "David S. Miller" <davem@davemloft.net>, Kalle Valo <kvalo@codeaurora.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-wireless <linux-wireless@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Android does not seem to set the trickle charger bits, and these
-seem to be only used by the bootloader when bringing up a
-completely discharged battery. So let's keep the trickle charging
-bits disabled and avoid misconfiguring the hardware.
+* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170503 09:11]:
+> Hi,
+> 
+> On Wed, May 03, 2017 at 05:02:13PM +0200, Marcel Holtmann wrote:
+> > >> Motorola Droid 4 uses a WL1285C, as visible on iFixit [0]. This
+> > >> fixes the DT file to use correct compatible for the wifi node
+> > >> and adds the bluetooth node.
+> > >> 
+> > >> [0] https://www.ifixit.com/Teardown/Motorola+Droid+4+Teardown/7759#s31961
+> > >> 
+> > >> Changes to PATCHv1:
+> > >> - use proper compatible value for bluetooth / shared transport
+> > >> - add patches fixing wlcore compatible for Droid 4
+> > >> 
+> > >> -- Sebastian
+> > >> 
+> > >> Sebastian Reichel (4):
+> > >>  wlcore: add wl1285 compatible
+> > >>  ARM: dts: omap4-droid4: Use wl1285 for wifi compatible
+> > >>  Bluetooth: hci_ll: Add compatible values for more WL chips
+> > >>  ARM: dts: omap4-droid4: Add bluetooth
+> > > 
+> > > For the series,
+> > > 
+> > > Reviewed-by: Rob Herring <robh@kernel.org>
+> > 
+> > so now the question is if we merge this through a single
+> > maintainer or have each maintainer take the pieces? I would almost
+> > suggest that Dave Miller takes this directly into net-next to make
+> > this smoother.
+> 
+> I think the only complex thing is, that patch 2 should only be
+> applied after patch 1. So maybe patch 1 could be applied via
+> wireless/net-next for 4.12 and the other ones go through the
+> individual subsystems for 4.13?
 
-Fixes: 0c9888e3c192 ("power: supply: cpcap-charger: Add minimal
-CPCAP PMIC battery charger")
-Cc: Marcel Partap <mpartap@gmx.net>
-Cc: Michael Scott <michael.scott@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/power/supply/cpcap-charger.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Yeah removing dependencies where possible avoids pointless
+merge conflicts later on.
 
-diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/cpcap-charger.c
---- a/drivers/power/supply/cpcap-charger.c
-+++ b/drivers/power/supply/cpcap-charger.c
-@@ -470,8 +470,7 @@ static void cpcap_usb_detect(struct work_struct *work)
- 
- 		error = cpcap_charger_set_state(ddata,
- 						CPCAP_REG_CRM_VCHRG_4V35,
--						max_current,
--						CPCAP_REG_CRM_TR_0A72);
-+						max_current, 0);
- 		if (error)
- 			goto out_err;
- 	} else {
--- 
-2.12.2
+Please send patches 1 and 2 together as a single patch to
+Dave Miller and describe why it's needed for v4.12. The rest
+can then get merged via the BT and DT trees.
+
+Regards,
+
+Tony
