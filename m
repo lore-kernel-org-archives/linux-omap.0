@@ -1,75 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] usb: musb: tusb6010_omap: Convert to DMAengine
-Date: Thu, 4 May 2017 07:31:45 -0700
-Message-ID: <20170504143145.GO3780@atomide.com>
-References: <20170503105645.26759-1-peter.ujfalusi@ti.com>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: Re: [PATCH 0/4] Few cpcap charger fixes for v4.12-rc cycle
+Date: Thu, 4 May 2017 17:55:09 +0200
+Message-ID: <20170504155509.iyzqh62enevipw3a@earth>
+References: <20170504001532.10585-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="sm7aykd6vqty75l3"
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170503105645.26759-1-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: b-liu@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+In-Reply-To: <20170504001532.10585-1-tony@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [170503 04:00]:
-> Hi,
-> 
-> With port_window support implemented in DMAengine and the sDMA DMAengine driver,
-> the tusb6010_omap driver can be converted away from the custom legacy omap-dma
-> API to generic DMAengine.
-> 
-> The first two patch is to prepare the tusb6010_omap driver for the conversion.
-> The third one adds the needed entries for the dma_slave_map so we can request
-> the DMA channels. This can be reverted when the stack is converted to DT.
-> 
-> The last patch does the main work to move the driver to DMAengine API.
-> 
-> I have tested the set on top of next-20170503 on Nokia n810 with nfsroot using
-> CDC Ethernet (g_cdc) and copying files with scp to/form my host.
 
-Thanks for doing this! For this series:
+--sm7aykd6vqty75l3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Hi,
 
-> To force that the DMA is actually used I have:
-> diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
-> index 05aefcad40b5..a5fc2a6bdad3 100644
-> --- a/drivers/usb/musb/tusb6010_omap.c
-> +++ b/drivers/usb/musb/tusb6010_omap.c
-> @@ -216,8 +216,8 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
->  	 * use a timer for the callback, but it is unsafe as the XFR_SIZE
->  	 * register is corrupt, and we won't know if the DMA worked.
->  	 */
-> -	if (dma_addr & 0x2)
-> -		return false;
-> +// 	if (dma_addr & 0x2)
-> +// 		return false;
->  
->  	/*
->  	 * Because of HW issue #10, it seems like mixing sync DMA and async
-> 
-> Since this condition will almost all the time was true - effectively disabling
-> the DMA use.
+On Wed, May 03, 2017 at 05:15:28PM -0700, Tony Lindgren wrote:
+> While wondering how come the ADC values don't match the charger
+> values and Android kernel values, I noticed few issues that
+> would be good to fix for v4.12-rc cycle.
+>=20
+> Especially we should stick with the Android kernel name "usb"
+> for the charger as there's no need to break the compability
+> there.
+>=20
+> The other issues are fixes for misconfigured charger hardware.
+>=20
+> Regards,
+>=20
+> Tony
+>=20
+>=20
+> Tony Lindgren (4):
+>   power: supply: cpcap-charger: Fix charger name
+>   power: supply: cpcap-charger: Fix charge voltage configuration
+>   power: supply: cpcap-charger: Fix enable for 3.8V charge setting
+>   power: supply: cpcap-charger: Keep trickle charger bits disabled
+>=20
+>  drivers/power/supply/cpcap-charger.c | 11 +++++------
+>  1 file changed, 5 insertions(+), 6 deletions(-)
 
-Yeah this really should have the transfers aligned to 32-bit like
-the production kernel did. For reference, the following should do
-the trick but of course would have to be done conditionally.
+Thanks, queued.
 
-Regards,
+-- Sebastian
 
-Tony
+--sm7aykd6vqty75l3
+Content-Type: application/pgp-signature; name="signature.asc"
 
-8< ----------------------
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -2153,6 +2153,7 @@ __acquires(musb->lock)
- 	musb->g.a_alt_hnp_support = 0;
- 	musb->g.a_hnp_support = 0;
- 	musb->g.quirk_zlp_not_supp = 1;
-+	musb->g.quirk_avoids_skb_reserve = 1;
- 
- 	/* Normal reset, as B-Device;
- 	 * or else after HNP, as A-Device
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkLTt0ACgkQ2O7X88g7
++ppiFA//VEa+AAiP6l4ZbDB9oNvwnQySqVUvh6eK3GFr7jQ/IygUMV6nLUUI6wh2
+mxMXtV9da3xH2C7LnjFVlMeFXNzkoqWvgiNW810He64jAHyM2/vZbuBHdLpX0Bx3
+w1SL+ts94ZrwiTZIZSh1oFaOaptb3pzIBzRUTsIgsyUnuUXPGnJpTsT1yR4Wkjlf
+I+vxqvCYOIe53nym6FT8/yXZ0LnY/wCOF35Pc8c1qVNhtfQ3Yhxtryfk5a9aPpms
+JBb4corjp6dBFZJNFi+6EpWgpOL5YPNRdjYIqfExNQ/SzwmDxRvWCFla+aBcl7t7
+7a0pZc5m8fuBNc9/0USZecLiikC2c1E6YJUSV9TASzdjfXYoW49EB5aLHo/SHJKA
+7refiqR0H1LwR+UujHz02ckh4XEc7KLAZiVCyQgY69fOZZ4Vdu47c4ro5+569C9v
+AxAbu4OeHrAuHubxHhFHrHCS1wBRvsms2Jt9HELtQh7Xx4z/uUX1fhO4103WmqHk
+Bc5oYfmAoWWeC4wH1eDDgwhrnH65kSLGz2QTOjOWZww1sViGNCwO803Q2b3gywx6
+9vkytZuRbj2Vqf6C5W9EevzaTpBJ2y44JOBDuLxwX8M2bm/8AGCoC56N881Gl1E0
+PrTDMyriffCOmxRc4A//lmh0PI0CZYbPSK7CDf2rq9b+eLdMtJk=
+=SCAe
+-----END PGP SIGNATURE-----
+
+--sm7aykd6vqty75l3--
