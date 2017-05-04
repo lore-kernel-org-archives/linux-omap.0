@@ -1,74 +1,33 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH 0/4] Few cpcap charger fixes for v4.12-rc cycle
-Date: Thu, 4 May 2017 17:55:09 +0200
-Message-ID: <20170504155509.iyzqh62enevipw3a@earth>
-References: <20170504001532.10585-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] usb: musb: tusb6010_omap: Convert to DMAengine API
+Date: Thu, 4 May 2017 12:40:34 -0700
+Message-ID: <20170504194034.GA3489@atomide.com>
+References: <20170503105645.26759-1-peter.ujfalusi@ti.com>
+ <20170503105645.26759-5-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="sm7aykd6vqty75l3"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170504001532.10585-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
-
---sm7aykd6vqty75l3
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20170503105645.26759-5-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: b-liu@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Wed, May 03, 2017 at 05:15:28PM -0700, Tony Lindgren wrote:
-> While wondering how come the ADC values don't match the charger
-> values and Android kernel values, I noticed few issues that
-> would be good to fix for v4.12-rc cycle.
->=20
-> Especially we should stick with the Android kernel name "usb"
-> for the charger as there's no need to break the compability
-> there.
->=20
-> The other issues are fixes for misconfigured charger hardware.
->=20
-> Regards,
->=20
-> Tony
->=20
->=20
-> Tony Lindgren (4):
->   power: supply: cpcap-charger: Fix charger name
->   power: supply: cpcap-charger: Fix charge voltage configuration
->   power: supply: cpcap-charger: Fix enable for 3.8V charge setting
->   power: supply: cpcap-charger: Keep trickle charger bits disabled
->=20
->  drivers/power/supply/cpcap-charger.c | 11 +++++------
->  1 file changed, 5 insertions(+), 6 deletions(-)
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [170503 04:00]:
+> With the port_window support in DMAengine and the sDMA driver we can
+> convert the driver to DMAengine.
 
-Thanks, queued.
+Actually looks like this patch still has some issues.. Pinging
+the n8x0 with for example ping -s1 causes things to stop working.
 
--- Sebastian
+This is when using only with the async gpmc access as the sync
+gpmc access seems to have a regression not related to this series.
+I'll try to track down that sync gpmc issue as that most likely
+hints to something being wrong in the gpmc code in general.
 
---sm7aykd6vqty75l3
-Content-Type: application/pgp-signature; name="signature.asc"
+Regards,
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlkLTt0ACgkQ2O7X88g7
-+ppiFA//VEa+AAiP6l4ZbDB9oNvwnQySqVUvh6eK3GFr7jQ/IygUMV6nLUUI6wh2
-mxMXtV9da3xH2C7LnjFVlMeFXNzkoqWvgiNW810He64jAHyM2/vZbuBHdLpX0Bx3
-w1SL+ts94ZrwiTZIZSh1oFaOaptb3pzIBzRUTsIgsyUnuUXPGnJpTsT1yR4Wkjlf
-I+vxqvCYOIe53nym6FT8/yXZ0LnY/wCOF35Pc8c1qVNhtfQ3Yhxtryfk5a9aPpms
-JBb4corjp6dBFZJNFi+6EpWgpOL5YPNRdjYIqfExNQ/SzwmDxRvWCFla+aBcl7t7
-7a0pZc5m8fuBNc9/0USZecLiikC2c1E6YJUSV9TASzdjfXYoW49EB5aLHo/SHJKA
-7refiqR0H1LwR+UujHz02ckh4XEc7KLAZiVCyQgY69fOZZ4Vdu47c4ro5+569C9v
-AxAbu4OeHrAuHubxHhFHrHCS1wBRvsms2Jt9HELtQh7Xx4z/uUX1fhO4103WmqHk
-Bc5oYfmAoWWeC4wH1eDDgwhrnH65kSLGz2QTOjOWZww1sViGNCwO803Q2b3gywx6
-9vkytZuRbj2Vqf6C5W9EevzaTpBJ2y44JOBDuLxwX8M2bm/8AGCoC56N881Gl1E0
-PrTDMyriffCOmxRc4A//lmh0PI0CZYbPSK7CDf2rq9b+eLdMtJk=
-=SCAe
------END PGP SIGNATURE-----
-
---sm7aykd6vqty75l3--
+Tony
