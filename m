@@ -1,33 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] usb: musb: tusb6010_omap: Convert to DMAengine API
-Date: Thu, 4 May 2017 12:40:34 -0700
-Message-ID: <20170504194034.GA3489@atomide.com>
-References: <20170503105645.26759-1-peter.ujfalusi@ti.com>
- <20170503105645.26759-5-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 5/9] mfd: Drop unnecessary static
+Date: Thu,  4 May 2017 22:10:50 +0200
+Message-ID: <1493928654-18768-6-git-send-email-Julia.Lawall@lip6.fr>
+References: <1493928654-18768-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170503105645.26759-5-peter.ujfalusi@ti.com>
+In-Reply-To: <1493928654-18768-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: b-liu@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Tony Lindgren <tony@atomide.com>
+Cc: keescook@chromium.org, kernel-janitors@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Drop static on a local variable, when the variable is initialized before
+any use, on every possible execution path through the function.
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [170503 04:00]:
-> With the port_window support in DMAengine and the sDMA driver we can
-> convert the driver to DMAengine.
+The semantic patch that fixes this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-Actually looks like this patch still has some issues.. Pinging
-the n8x0 with for example ping -s1 causes things to stop working.
+// <smpl>
+@bad exists@
+position p;
+identifier x;
+type T;
+@@
 
-This is when using only with the async gpmc access as the sync
-gpmc access seems to have a regression not related to this series.
-I'll try to track down that sync gpmc issue as that most likely
-hints to something being wrong in the gpmc code in general.
+static T x@p;
+...
+x = <+...x...+>
 
-Regards,
+@@
+identifier x;
+expression e;
+type T;
+position p != bad.p;
+@@
 
-Tony
+-static
+ T x@p;
+ ... when != x
+     when strict
+?x = e;
+// </smpl>
+
+The change increases the code size but decreases the size of the bss segment.
+
+before:
+   text    data     bss     dec     hex filename
+   3369     272     300    3941     f65 drivers/mfd/twl4030-irq.o
+
+after:
+   text    data     bss     dec     hex filename
+   3401     272      28    3701     e75 drivers/mfd/twl4030-irq.o
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/mfd/twl4030-irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index b46c0cf..c775f27 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -683,7 +683,7 @@ int twl4030_sih_setup(struct device *dev, int module, int irq_base)
+ 
+ int twl4030_init_irq(struct device *dev, int irq_num)
+ {
+-	static struct irq_chip	twl4030_irq_chip;
++	struct irq_chip	twl4030_irq_chip;
+ 	int			status, i;
+ 	int			irq_base, irq_end, nr_irqs;
+ 	struct			device_node *node = dev->of_node;
