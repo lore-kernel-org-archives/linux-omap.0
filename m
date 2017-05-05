@@ -1,85 +1,44 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv3] wlcore: add wl1285 compatible
-Date: Fri,  5 May 2017 11:44:34 +0200
-Message-ID: <20170505094434.28312-1-sebastian.reichel@collabora.co.uk>
+From: Kalle Valo <kvalo@codeaurora.org>
+Subject: Re: [PATCHv3] wlcore: add wl1285 compatible
+Date: Fri, 05 May 2017 14:41:52 +0300
+Message-ID: <87wp9vwmwv.fsf@kamboji.qca.qualcomm.com>
+References: <20170505094434.28312-1-sebastian.reichel@collabora.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170505094434.28312-1-sebastian.reichel@collabora.co.uk>
+        (Sebastian Reichel's message of "Fri, 5 May 2017 11:44:34 +0200")
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, "David S. Miller" <davem@davemloft.net>, Kalle Valo <kvalo@codeaurora.org>
-Cc: Tony Lindgren <tony@atomide.com>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh+dt@kernel.org>, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Sebastian Reichel <sre@kernel.org>, "David S. Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh+dt@kernel.org>, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Motorola Droid 4 uses a WL1285C. With differences between the
-chips not being public let's add explicit binding for wl1285
-instead of relying on wl1283 being very similar.
+Sebastian Reichel <sebastian.reichel@collabora.co.uk> writes:
 
-Reviewed-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
----
-Hi Dave,
+> Motorola Droid 4 uses a WL1285C. With differences between the
+> chips not being public let's add explicit binding for wl1285
+> instead of relying on wl1283 being very similar.
+>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
-I previously send this in two patches, but its hard to apply without
-requiring multiple kernel releases (the driver must be updated before
-the DTS change). Since the actual change is not very complex Marcel
-Holtmann & Tony Lindgren suggested, that I send this directly to you
-in a single patch for inclusion into 4.12. This also means, that the
-remaining series can be queued normally for 4.13.
+For the wireless part:
 
--- Sebastian
----
- Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt | 1 +
- arch/arm/boot/dts/omap4-droid4-xt894.dts                     | 2 +-
- drivers/net/wireless/ti/wlcore/sdio.c                        | 1 +
- drivers/net/wireless/ti/wlcore/spi.c                         | 1 +
- 4 files changed, 4 insertions(+), 1 deletion(-)
+Acked-by: Kalle Valo <kvalo@codeaurora.org>
 
-diff --git a/Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt b/Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt
-index 2a3d90de18ee..7b2cbb14113e 100644
---- a/Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt
-+++ b/Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt
-@@ -10,6 +10,7 @@ Required properties:
-     * "ti,wl1273"
-     * "ti,wl1281"
-     * "ti,wl1283"
-+    * "ti,wl1285"
-     * "ti,wl1801"
-     * "ti,wl1805"
-     * "ti,wl1807"
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-index 89eb607f4a9e..c09b51d6ccf7 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -301,7 +301,7 @@
- 	#address-cells = <1>;
- 	#size-cells = <0>;
- 	wlcore: wlcore@2 {
--		compatible = "ti,wl1283";
-+		compatible = "ti,wl1285";
- 		reg = <2>;
- 		interrupt-parent = <&gpio4>;
- 		interrupts = <4 IRQ_TYPE_LEVEL_HIGH>; /* gpio100 */
-diff --git a/drivers/net/wireless/ti/wlcore/sdio.c b/drivers/net/wireless/ti/wlcore/sdio.c
-index 287023ef4a78..2fb38717346f 100644
---- a/drivers/net/wireless/ti/wlcore/sdio.c
-+++ b/drivers/net/wireless/ti/wlcore/sdio.c
-@@ -237,6 +237,7 @@ static const struct of_device_id wlcore_sdio_of_match_table[] = {
- 	{ .compatible = "ti,wl1273", .data = &wl127x_data },
- 	{ .compatible = "ti,wl1281", .data = &wl128x_data },
- 	{ .compatible = "ti,wl1283", .data = &wl128x_data },
-+	{ .compatible = "ti,wl1285", .data = &wl128x_data },
- 	{ .compatible = "ti,wl1801", .data = &wl18xx_data },
- 	{ .compatible = "ti,wl1805", .data = &wl18xx_data },
- 	{ .compatible = "ti,wl1807", .data = &wl18xx_data },
-diff --git a/drivers/net/wireless/ti/wlcore/spi.c b/drivers/net/wireless/ti/wlcore/spi.c
-index f949ad2bd898..1f5d9ebb0925 100644
---- a/drivers/net/wireless/ti/wlcore/spi.c
-+++ b/drivers/net/wireless/ti/wlcore/spi.c
-@@ -433,6 +433,7 @@ static const struct of_device_id wlcore_spi_of_match_table[] = {
- 	{ .compatible = "ti,wl1273", .data = &wl127x_data},
- 	{ .compatible = "ti,wl1281", .data = &wl128x_data},
- 	{ .compatible = "ti,wl1283", .data = &wl128x_data},
-+	{ .compatible = "ti,wl1285", .data = &wl128x_data},
- 	{ .compatible = "ti,wl1801", .data = &wl18xx_data},
- 	{ .compatible = "ti,wl1805", .data = &wl18xx_data},
- 	{ .compatible = "ti,wl1807", .data = &wl18xx_data},
+> Hi Dave,
+>
+> I previously send this in two patches, but its hard to apply without
+> requiring multiple kernel releases (the driver must be updated before
+> the DTS change). Since the actual change is not very complex Marcel
+> Holtmann & Tony Lindgren suggested, that I send this directly to you
+> in a single patch for inclusion into 4.12. This also means, that the
+> remaining series can be queued normally for 4.13.
+
+If you want Dave to take this you should CC also netdev, otherwise he
+won't see it in patchwork:
+
+https://patchwork.ozlabs.org/project/netdev/list/?order=date
+
 -- 
-2.11.0
+Kalle Valo
