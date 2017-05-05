@@ -1,92 +1,59 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/4] usb: musb: tusb6010_omap: Convert to DMAengine
-Date: Fri, 5 May 2017 10:28:17 +0300
-Message-ID: <0286755f-edc5-36a8-e268-aceed30de647@ti.com>
-References: <20170503105645.26759-1-peter.ujfalusi@ti.com>
- <20170504143145.GO3780@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170504143145.GO3780@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: b-liu@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Subject: [PATCHv3 0/2] PWM Vibrator driver
+Date: Fri,  5 May 2017 11:28:21 +0200
+Message-ID: <20170505092823.26009-1-sebastian.reichel@collabora.co.uk>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+The Motorola Droid 4 has a vibrator, that is connected
+to two GPIOs. Motorola's stock kernel names them vib_en
+and vib_dir, which probably stand for vibrator_enable
+and vibrator_direction. In their stock kernel both GPIOs
+are toggled using a hrtimer and a custom vibrator "misc"
+device is provided to userspace.
 
-On 2017-05-04 17:31, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [170503 04:00]:
->> Hi,
->>
->> With port_window support implemented in DMAengine and the sDMA DMAengine driver,
->> the tusb6010_omap driver can be converted away from the custom legacy omap-dma
->> API to generic DMAengine.
->>
->> The first two patch is to prepare the tusb6010_omap driver for the conversion.
->> The third one adds the needed entries for the dma_slave_map so we can request
->> the DMA channels. This can be reverted when the stack is converted to DT.
->>
->> The last patch does the main work to move the driver to DMAengine API.
->>
->> I have tested the set on top of next-20170503 on Nokia n810 with nfsroot using
->> CDC Ethernet (g_cdc) and copying files with scp to/form my host.
->
-> Thanks for doing this! For this series:
->
-> Acked-by: Tony Lindgren <tony@atomide.com>
->
->> To force that the DMA is actually used I have:
->> diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
->> index 05aefcad40b5..a5fc2a6bdad3 100644
->> --- a/drivers/usb/musb/tusb6010_omap.c
->> +++ b/drivers/usb/musb/tusb6010_omap.c
->> @@ -216,8 +216,8 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
->>  	 * use a timer for the callback, but it is unsafe as the XFR_SIZE
->>  	 * register is corrupt, and we won't know if the DMA worked.
->>  	 */
->> -	if (dma_addr & 0x2)
->> -		return false;
->> +// 	if (dma_addr & 0x2)
->> +// 		return false;
->>
->>  	/*
->>  	 * Because of HW issue #10, it seems like mixing sync DMA and async
->>
->> Since this condition will almost all the time was true - effectively disabling
->> the DMA use.
->
-> Yeah this really should have the transfers aligned to 32-bit like
-> the production kernel did. For reference, the following should do
-> the trick but of course would have to be done conditionally.
->
-> Regards,
->
-> Tony
->
-> 8< ----------------------
-> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-> --- a/drivers/usb/musb/musb_gadget.c
-> +++ b/drivers/usb/musb/musb_gadget.c
-> @@ -2153,6 +2153,7 @@ __acquires(musb->lock)
->  	musb->g.a_alt_hnp_support = 0;
->  	musb->g.a_hnp_support = 0;
->  	musb->g.quirk_zlp_not_supp = 1;
-> +	musb->g.quirk_avoids_skb_reserve = 1;
+Thankfully the hardware designers the used GPIOs can
+also be used from OMAP's dmtimers, so that they can
+be driven as PWM output instead saving some CPU cycles
+(and code).
 
-note for myself: this only works with g_ncm. I was using g_cdc, switched 
-to g_ether, then to g_ncm.
-However... If I revert this series and add this line, the ethernet will 
-not work at all, I can not ping the n810 and it will not get the nfsroot 
-either (next-20170503).
+The driver is loosely based on an old patch from Dmitry,
+that I found in the internet(tm) [0]. Note, that I did
+not check the generic vibrator stuff. I just kept it in
+the driver, since it's probably what other people expect
+from a pwm-vibra driver :)
 
-only f_ncm.c does:
-	ncm->port.no_skb_reserve =
-		gadget_avoids_skb_reserve(cdev->gadget);
+Also I wrote a small tool to test the vibrator running
+at different strength levels, since fftest(1) used a
+fixed one.
 
->  	/* Normal reset, as B-Device;
->  	 * or else after HNP, as A-Device
->
+[0] https://lkml.org/lkml/2012/4/10/41
+[1] https://git.collabora.com/cgit/user/sre/rumble-test.git/plain/rumble-test.c
 
-- Péter
+-- Sebastian
+
+Sebastian Reichel (2):
+  Input: pwm-vibra: new driver
+  ARM: dts: omap4-droid4: Add vibrator
+
+ .../devicetree/bindings/input/pwm-vibrator.txt     |  60 ++++
+ arch/arm/boot/dts/omap4-droid4-xt894.dts           |  38 +++
+ drivers/input/misc/Kconfig                         |  12 +
+ drivers/input/misc/Makefile                        |   1 +
+ drivers/input/misc/pwm-vibra.c                     | 343 +++++++++++++++++++++
+ 5 files changed, 454 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/input/pwm-vibrator.txt
+ create mode 100644 drivers/input/misc/pwm-vibra.c
+
+-- 
+2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
