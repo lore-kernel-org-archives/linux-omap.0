@@ -1,102 +1,545 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] usb: musb: tusb6010_omap: Convert to DMAengine API
-Date: Fri, 5 May 2017 15:55:23 -0700
-Message-ID: <20170505225523.GD3489@atomide.com>
-References: <20170503105645.26759-1-peter.ujfalusi@ti.com>
- <20170503105645.26759-5-peter.ujfalusi@ti.com>
- <20170504194034.GA3489@atomide.com>
- <20170504210529.GB3489@atomide.com>
- <e7a7db55-753f-7b3b-b2e6-290518e7371b@ti.com>
- <52c733a8-e8d3-abd9-2ea8-f3f91f823b89@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCHv3 1/2] Input: pwm-vibra: new driver
+Date: Sun, 7 May 2017 14:38:00 -0700
+Message-ID: <20170507213800.GA39686@dtor-ws>
+References: <20170505092823.26009-1-sebastian.reichel@collabora.co.uk>
+ <20170505092823.26009-2-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <52c733a8-e8d3-abd9-2ea8-f3f91f823b89@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: b-liu@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+In-Reply-To: <20170505092823.26009-2-sebastian.reichel@collabora.co.uk>
+Sender: linux-input-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [170505 08:20]:
-> On 2017-05-05 16:37, Peter Ujfalusi wrote:
-> > On 2017-05-05 00:05, Tony Lindgren wrote:
-> > > And this sync gpmc issue seems to be timing related. Setting
-> > > DEBUG in tusb6010_omap.c makes it happen easily while without
-> > > it it's much harder to trigger. So probably some kind of issue
-> > > with GPMC sync timings.
-> > 
-> > Indeed there are some interesting things happening...
-> > As I said, I was testing with g_cdc (CDC Composite (ECM + ACM)) and I
-> > found it pretty stable with DMAengine. But short story long:
-> > 
-> > With the series applied and getting rid of the dma_addr & 0x2, plus
-> > setting the set the quirk_avoids_skb_reserve flag:
-> > g_cdc (ECM + ACM) boots to nfsroot most of the time, ping, scp works
-> > g_ether (ECM) does not boot to nfsroot, ping does not work. However if I
-> > disable the rx DMA with:
-> > 
-> > diff --git a/drivers/usb/musb/tusb6010_omap.c
-> > b/drivers/usb/musb/tusb6010_omap.c
-> > index 8b43c4b99f04..8e0a19b47132 100644
-> > --- a/drivers/usb/musb/tusb6010_omap.c
-> > +++ b/drivers/usb/musb/tusb6010_omap.c
-> > @@ -512,6 +512,12 @@ tusb_omap_dma_allocate(struct dma_controller *c,
-> >          return NULL;
-> >      }
-> > 
-> > +    if (!tx) {
-> > +        dev_err(musb->controller, "Not allowing RX DMA for ep%i %s\n",
-> > +            chdat->epnum);
+Hi Sebastian,
+
+On Fri, May 05, 2017 at 11:28:22AM +0200, Sebastian Reichel wrote:
+> Provide a simple driver for PWM controllable vibrators. It
+> will be used by Motorola Droid 4.
 > 
-> Remove the %s and s/chdat/hw_ep
+> Tested-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> ---
+> Changes since PATCHv1:
+>  - move driver removal code to input->close function
+>  - mark PM functions __maybe_unused and drop #ifdef CONFIG_PM_SLEEP
+>  - remove duplicate NULL check for vibrator in probe function
+>  - cancel work in suspend function
+> Changes since PATCHv2:
+>  - Add Kconfig dependency on INPUT_FF_MEMLESS
+>  - Add Tested-by from Tiny Lindgren
+> ---
+>  .../devicetree/bindings/input/pwm-vibrator.txt     |  60 ++++
+>  drivers/input/misc/Kconfig                         |  12 +
+>  drivers/input/misc/Makefile                        |   1 +
+>  drivers/input/misc/pwm-vibra.c                     | 343 +++++++++++++++++++++
+>  4 files changed, 416 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/input/pwm-vibrator.txt
+>  create mode 100644 drivers/input/misc/pwm-vibra.c
 > 
-> and the kernel will not crash :( But still not booting with DMAengine when
-> RX DMA is disabled :o
+> diff --git a/Documentation/devicetree/bindings/input/pwm-vibrator.txt b/Documentation/devicetree/bindings/input/pwm-vibrator.txt
+> new file mode 100644
+> index 000000000000..c35be4691366
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/input/pwm-vibrator.txt
+> @@ -0,0 +1,60 @@
+> +* PWM vibrator device tree bindings
+> +
+> +Registers a PWM device as vibrator.
+> +
+> +Required properties:
+> +- compatible: should be
+> +  * "pwm-vibrator"
+> +    For vibrators controlled using the PWM channel's duty cycle (higher duty means
+> +    the vibrator becomes stronger).
+> +  * "motorola,mapphone-pwm-vibrator"
+> +     For vibrator found in Motorola Droid 4. This vibrator generates a pulse for
+> +     every rising edge, so its controlled using a duty cycle of 50% and changing
+> +     the period time.
+> +- pwm-names: Should contain "enable" and optionally "direction"
+> +- pwms: Should contain a PWM handle for each entry in pwm-names
+> +
+> +Example from Motorola Droid 4:
+> +
+> +&omap4_pmx_core {
+> +	vibrator_direction_pin: pinmux_vibrator_direction_pin {
+> +		pinctrl-single,pins = <
+> +		OMAP4_IOPAD(0x1ce, PIN_OUTPUT | MUX_MODE1) /* dmtimer8_pwm_evt (gpio_27) */
+> +		>;
+> +	};
+> +
+> +	vibrator_enable_pin: pinmux_vibrator_enable_pin {
+> +		pinctrl-single,pins = <
+> +		OMAP4_IOPAD(0X1d0, PIN_OUTPUT | MUX_MODE1) /* dmtimer9_pwm_evt (gpio_28) */
+> +		>;
+> +	};
+> +};
+> +
+> +/ {
+> +	pwm8: dmtimer-pwm {
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&vibrator_direction_pin>;
+> +
+> +		compatible = "ti,omap-dmtimer-pwm";
+> +		#pwm-cells = <3>;
+> +		ti,timers = <&timer8>;
+> +		ti,clock-source = <0x01>;
+> +	};
+> +
+> +	pwm9: dmtimer-pwm {
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&vibrator_enable_pin>;
+> +
+> +		compatible = "ti,omap-dmtimer-pwm";
+> +		#pwm-cells = <3>;
+> +		ti,timers = <&timer9>;
+> +		ti,clock-source = <0x01>;
+> +	};
+> +
+> +	vibrator {
+> +		compatible = "pwm-vibrator";
+> +		pwms = <&pwm8 0 1000000000 0>,
+> +		       <&pwm9 0 1000000000 0>;
+> +		pwm-names = "enable", "direction";
+> +	};
+> +};
+> diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+> index 5b6c52210d20..95cc4ed56980 100644
+> --- a/drivers/input/misc/Kconfig
+> +++ b/drivers/input/misc/Kconfig
+> @@ -571,6 +571,18 @@ config INPUT_PWM_BEEPER
+>  	  To compile this driver as a module, choose M here: the module will be
+>  	  called pwm-beeper.
+>  
+> +config INPUT_PWM_VIBRA
+> +	tristate "PWM vibrator support"
+> +	depends on PWM
+> +	depends on INPUT_FF_MEMLESS
+> +	help
+> +	  Say Y here to get support for PWM based vibrator devices.
+> +
+> +	  If unsure, say N.
+> +
+> +	  To compile this driver as a module, choose M here: the module will be
+> +	  called pwm-vibra.
+> +
+>  config INPUT_GPIO_ROTARY_ENCODER
+>  	tristate "Rotary encoders connected to GPIO pins"
+>  	depends on GPIOLIB || COMPILE_TEST
+> diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+> index b10523f2878e..9a6517f5458c 100644
+> --- a/drivers/input/misc/Makefile
+> +++ b/drivers/input/misc/Makefile
+> @@ -58,6 +58,7 @@ obj-$(CONFIG_INPUT_PM8XXX_VIBRATOR)	+= pm8xxx-vibrator.o
+>  obj-$(CONFIG_INPUT_PMIC8XXX_PWRKEY)	+= pmic8xxx-pwrkey.o
+>  obj-$(CONFIG_INPUT_POWERMATE)		+= powermate.o
+>  obj-$(CONFIG_INPUT_PWM_BEEPER)		+= pwm-beeper.o
+> +obj-$(CONFIG_INPUT_PWM_VIBRA)		+= pwm-vibra.o
+>  obj-$(CONFIG_INPUT_RB532_BUTTON)	+= rb532_button.o
+>  obj-$(CONFIG_INPUT_REGULATOR_HAPTIC)	+= regulator-haptic.o
+>  obj-$(CONFIG_INPUT_RETU_PWRBUTTON)	+= retu-pwrbutton.o
+> diff --git a/drivers/input/misc/pwm-vibra.c b/drivers/input/misc/pwm-vibra.c
+> new file mode 100644
+> index 000000000000..878a483f93ff
+> --- /dev/null
+> +++ b/drivers/input/misc/pwm-vibra.c
+> @@ -0,0 +1,343 @@
+> +/*
+> + *  PWM vibrator driver
+> + *
+> + *  Copyright (C) 2017 Collabora Ltd.
+> + *
+> + *  Based on previous work from:
+> + *  Copyright (C) 2012 Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> + *
+> + *  Based on PWM beeper driver:
+> + *  Copyright (C) 2010, Lars-Peter Clausen <lars@metafoo.de>
+> + *
+> + *  This program is free software; you can redistribute it and/or modify it
+> + *  under  the terms of the GNU General  Public License as published by the
+> + *  Free Software Foundation;  either version 2 of the License, or (at your
+> + *  option) any later version.
+> + */
+> +
+> +#define DEBUG
 
-OK I verified that with the current mainline kernel using dma
-and g_ether and your patches 1 to 3 I can run the variable size
-ping test loop for few minutes before it just stops working and
-I can see the legacy DMA interrupt increase depending on the
-size of the packet. Then I checked with v4.1 kernel, and that
-too seems to have the same issue.
+I do not think this is needed.
 
-I've also verified running the same variable size ping test with
-your patch 4/4 makes things stop within just a few seconds. The
-script I'm using for ping is below.
+> +
+> +#include <linux/input.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/of_device.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/pwm.h>
+> +#include <linux/regulator/consumer.h>
+> +#include <linux/slab.h>
+> +
+> +/**
 
-Anyways, what we really should ensure here is that the external
-dmarequest line is properly triggering things with dmaengine :)
-That's why I'm a bit worried your patch 4/4.
+This is not kernel doc, so no "/**".
 
-Oh and I also verified the GPMC timings we're using are the same
-as in production n810 kernel so that should not be the issue.
+> + * Motorola Droid 4 (also known as mapphone), has a vibrator, which pulses
+> + * 1x on rising edge. Increasing the pwm period results in more pulses per
+> + * second, but reduces intensity. There is also a second channel to control
+> + * the vibrator's rotation direction to increase effect. The following
+> + * numbers were determined manually. Going below 12.5 Hz means, clearly
+> + * noticeable pauses and at 30 Hz the vibration is just barely noticable
+> + * anymore.
+> + */
+> +#define MAPPHONE_MIN_FREQ 125 /* 12.5 Hz */
+> +#define MAPPHONE_MAX_FREQ 300 /* 30.0 Hz */
+> +
+> +struct pwm_vibrator_hw {
+> +	void (*setup_pwm)(u16 level, struct pwm_state *);
+> +	void (*setup_pwm_dir)(u16 level, struct pwm_state *);
+> +};
+> +
+> +struct pwm_vibrator {
+> +	struct input_dev *input;
+> +	struct pwm_device *pwm;
+> +	struct pwm_device *pwm_dir;
+> +	struct regulator *vcc;
+> +
+> +	struct work_struct play_work;
+> +	u16 level;
+> +
+> +	const struct pwm_vibrator_hw *hw;
+> +};
+> +
+> +static void pwm_vibrator_setup_generic(u16 level, struct pwm_state *state)
+> +{
+> +	/* period is configured by platform, duty cycle controls strength */
+> +	pwm_set_relative_duty_cycle(state, level, 0xffff);
+> +}
+> +
+> +static void pwm_vibrator_setup_dir_generic(u16 level, struct pwm_state *state)
+> +{
+> +	/* period is configured by platform, duty cycle controls strength */
+> +	pwm_set_relative_duty_cycle(state, 50, 100);
+> +}
+> +
+> +static struct pwm_vibrator_hw pwm_vib_hw_generic = {
+> +	.setup_pwm = pwm_vibrator_setup_generic,
+> +	.setup_pwm_dir = pwm_vibrator_setup_dir_generic,
+> +};
+> +
+> +static void pwm_vibrator_setup_mapphone(u16 level, struct pwm_state *state)
+> +{
+> +	unsigned int freq;
+> +
+> +	/* convert [0, 0xffff] -> [MAPPHONE_MAX_FREQ, MAPPHONE_MIN_FREQ] */
+> +	freq = 0xffff - level;
+> +	freq *= MAPPHONE_MAX_FREQ - MAPPHONE_MIN_FREQ;
+> +	freq /= 0xffff;
+> +	freq += MAPPHONE_MIN_FREQ;
+> +
+> +	state->period = DIV_ROUND_CLOSEST_ULL((u64) NSEC_PER_SEC * 10, freq);
+> +	pwm_set_relative_duty_cycle(state, 50, 100);
+> +}
+> +
+> +static struct pwm_vibrator_hw pwm_vib_hw_mapphone = {
+> +	.setup_pwm = pwm_vibrator_setup_mapphone,
+> +	.setup_pwm_dir = pwm_vibrator_setup_mapphone,
+> +};
+> +
+> +static int pwm_vibrator_start(struct pwm_vibrator *vibrator)
+> +{
+> +	struct device *pdev = vibrator->input->dev.parent;
+> +	struct pwm_state state;
+> +	int err;
+> +
+> +	dev_dbg(pdev, "start vibrator with level=0x%04x", vibrator->level);
+> +
+> +	err = regulator_enable(vibrator->vcc);
+> +	if (err) {
+> +		dev_err(pdev, "failed to enable regulator: %d", err);
+> +		return err;
+> +	}
+> +
+> +	pwm_get_state(vibrator->pwm, &state);
+> +	state.enabled = true;
+> +
+> +	vibrator->hw->setup_pwm(vibrator->level, &state);
+> +	dev_dbg(pdev, "period=%u", state.period);
+> +
+> +	err = pwm_apply_state(vibrator->pwm, &state);
+> +	if (err) {
+> +		dev_err(pdev, "failed to apply pwm state: %d", err);
+> +		return err;
+> +	}
+> +
+> +	if (vibrator->pwm_dir) {
+> +		pwm_get_state(vibrator->pwm_dir, &state);
+> +		state.enabled = true;
+> +
+> +		/* always control via period */
+> +		vibrator->hw->setup_pwm_dir(vibrator->level, &state);
+> +
+> +		err = pwm_apply_state(vibrator->pwm_dir, &state);
+> +		if (err) {
+> +			dev_err(pdev, "failed to apply dir-pwm state: %d", err);
+> +			pwm_disable(vibrator->pwm);
+> +			return err;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void pwm_vibrator_stop(struct pwm_vibrator *vibrator)
+> +{
+> +	struct device *pdev = vibrator->input->dev.parent;
+> +
+> +	dev_dbg(pdev, "stop vibrator");
+> +
+> +	regulator_disable(vibrator->vcc);
+> +
+> +	if (vibrator->pwm_dir)
+> +		pwm_disable(vibrator->pwm_dir);
+> +	pwm_disable(vibrator->pwm);
+> +}
+> +
+> +static void vibra_play_work(struct work_struct *work)
+> +{
+> +	struct pwm_vibrator *vibrator = container_of(work,
+> +					struct pwm_vibrator, play_work);
+> +
+> +	if (vibrator->level)
+> +		pwm_vibrator_start(vibrator);
+> +	else
+> +		pwm_vibrator_stop(vibrator);
+> +}
+> +
+> +static int pwm_vibrator_play_effect(struct input_dev *dev, void *data,
+> +				    struct ff_effect *effect)
+> +{
+> +	struct pwm_vibrator *vibrator = input_get_drvdata(dev);
+> +
+> +	vibrator->level = effect->u.rumble.strong_magnitude;
+> +	if (!vibrator->level)
+> +		vibrator->level = effect->u.rumble.weak_magnitude;
+> +
+> +	schedule_work(&vibrator->play_work);
+> +
+> +	return 0;
+> +}
+> +
+> +static void pwm_vibrator_close(struct input_dev *input)
+> +{
+> +	struct pwm_vibrator *vibrator = input_get_drvdata(input);
+> +
+> +	cancel_work_sync(&vibrator->play_work);
+> +	pwm_vibrator_stop(vibrator);
+> +}
+> +
+> +static int pwm_vibrator_probe(struct platform_device *pdev)
+> +{
+> +	struct pwm_vibrator *vibrator;
+> +	struct input_dev *input;
+> +	struct pwm_state state;
+> +	int err;
+> +
+> +	vibrator = devm_kzalloc(&pdev->dev, sizeof(*vibrator), GFP_KERNEL);
+> +	if (!vibrator)
+> +		return -ENOMEM;
+> +
+> +	input = devm_input_allocate_device(&pdev->dev);
+> +	if (!input)
+> +		return -ENOMEM;
+> +
+> +	vibrator->input = input;
+> +
+> +	vibrator->vcc = devm_regulator_get(&pdev->dev, "vcc");
+> +	err = PTR_ERR_OR_ZERO(vibrator->vcc);
+> +	if (err) {
+> +		if (err != -EPROBE_DEFER)
+> +			dev_err(&pdev->dev, "Failed to request regulator: %d",
+> +				err);
+> +		return err;
+> +	}
+> +
+> +	vibrator->pwm = devm_pwm_get(&pdev->dev, "enable");
+> +	err = PTR_ERR_OR_ZERO(vibrator->pwm);
+> +	if (err) {
+> +		if (err != -EPROBE_DEFER)
+> +			dev_err(&pdev->dev, "Failed to request main pwm: %d",
+> +				err);
+> +		return err;
+> +	}
+> +
+> +	INIT_WORK(&vibrator->play_work, vibra_play_work);
+> +
+> +	/* Sync up PWM state and ensure it is off. */
+> +	pwm_init_state(vibrator->pwm, &state);
+> +	state.enabled = false;
+> +	err = pwm_apply_state(vibrator->pwm, &state);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "failed to apply initial PWM state: %d",
+> +			err);
+> +		return err;
+> +	}
+> +
+> +	vibrator->pwm_dir = devm_pwm_get(&pdev->dev, "direction");
+> +	err = PTR_ERR_OR_ZERO(vibrator->pwm_dir);
+> +	if (err == -ENODATA) {
+> +		vibrator->pwm_dir = NULL;
+> +	} else if (err == -EPROBE_DEFER) {
+> +		return err;
+> +	} else if (err) {
+> +		dev_err(&pdev->dev, "Failed to request direction pwm: %d", err);
+> +		return err;
+> +	} else {
+> +		/* Sync up PWM state and ensure it is off. */
+> +		pwm_init_state(vibrator->pwm_dir, &state);
+> +		state.enabled = false;
+> +		err = pwm_apply_state(vibrator->pwm_dir, &state);
+> +		if (err) {
+> +			dev_err(&pdev->dev, "failed to apply initial PWM state: %d",
+> +				err);
+> +			return err;
+> +		}
+> +	}
 
-And using the async access on n800 will not work as it will
-produce corrupt transfer size register the report I posted
-earlier is from n800 allowing it to use async transfers. On
-n810 async transfers may work as I recall it having a newer
-tusb6010 version.
+I wonder if the above is not better with "switch":
 
-Regards,
+	switch (err) {
+	case 0:
+		/* Sync up PWM state and ensure it is off. */
+		pwm_init_state(vibrator->pwm_dir, &state);
+		state.enabled = false;
+		err = pwm_apply_state(vibrator->pwm_dir, &state);
+		if (err) {
+			dev_err(&pdev->dev,
+				"failed to apply initial PWM state: %d", err);
+			return err;
+		}
+		break;
 
-Tony
+	case -ENODATA:
+		/* Direction PWM is optional */
+		vibrator->pwm_dir = NULL;
+		break;
 
-8< ----------------
-#!/bin/bash
+	default:
+		dev_err(&pdev->dev, "Failed to request direction pwm: %d", err);
+		/* Fall through */
 
-device=$1
-size=$2
+	case -EPROBE_DEFER:
+		return err;
+	}
 
-while [ 1 ]; do
-        #echo "Pinging with size $size"
-        if ! ping -w0 -c1 -s$size $device > /dev/null 2>&1; then
-                break;
-        fi
-        size=$(expr $size + 1)
 
-        if [ $size -gt 8192 ]; then
-                size=1
-        fi
-done
-echo "Test ran up to $size"
+> +
+> +	vibrator->hw = of_device_get_match_data(&pdev->dev);
+> +	if (!vibrator->hw)
+> +		vibrator->hw = &pwm_vib_hw_generic;
+> +
+> +	input->name = "pwm-vibrator";
+> +	input->id.bustype = BUS_HOST;
+> +	input->dev.parent = &pdev->dev;
+> +	input->close = pwm_vibrator_close;
+> +
+> +	input_set_drvdata(input, vibrator);
+> +	input_set_capability(input, EV_FF, FF_RUMBLE);
+> +
+> +	err = input_ff_create_memless(input, NULL, pwm_vibrator_play_effect);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "Couldn't create FF dev: %d", err);
+> +		return err;
+> +	}
+> +
+> +	err = input_register_device(input);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "Couldn't register input dev: %d", err);
+> +		return err;
+> +	}
+> +
+> +	platform_set_drvdata(pdev, vibrator);
+> +
+> +	return 0;
+> +}
+> +
+> +static int __maybe_unused pwm_vibrator_suspend(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct pwm_vibrator *vibrator = platform_get_drvdata(pdev);
+> +	struct input_dev *input = vibrator->input;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&input->event_lock, flags);
+
+Hmm, no, this is not goting to work. The original patch had a chance if
+PWM was not sleeping, but with introduction of regulator and work this
+definitely sleeps.
+
+I think we should solve issue of events [not] being delivered during
+suspend transition in input core, and simply drop spin_lock_irqsave()
+here and in resume().
+
+> +	cancel_work_sync(&vibrator->play_work);
+> +	if (vibrator->level)
+> +		pwm_vibrator_stop(vibrator);
+> +	spin_unlock_irqrestore(&input->event_lock, flags);
+> +
+> +	return 0;
+> +}
+> +
+> +static int __maybe_unused pwm_vibrator_resume(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct pwm_vibrator *vibrator = platform_get_drvdata(pdev);
+> +	struct input_dev *input = vibrator->input;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&input->event_lock, flags);
+> +	if (vibrator->level)
+> +		pwm_vibrator_start(vibrator);
+> +	spin_unlock_irqrestore(&input->event_lock, flags);
+> +
+> +	return 0;
+> +}
+> +
+> +static SIMPLE_DEV_PM_OPS(pwm_vibrator_pm_ops,
+> +			 pwm_vibrator_suspend, pwm_vibrator_resume);
+> +
+> +#ifdef CONFIG_OF
+> +
+> +#define PWM_VIB_COMPAT(of_compatible, cfg) {			\
+> +			.compatible = of_compatible,		\
+> +			.data = &cfg,	\
+> +}
+> +
+> +static const struct of_device_id pwm_vibra_dt_match_table[] = {
+> +	PWM_VIB_COMPAT("pwm-vibrator", pwm_vib_hw_generic),
+> +	PWM_VIB_COMPAT("motorola,mapphone-pwm-vibrator", pwm_vib_hw_mapphone),
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, pwm_vibra_dt_match_table);
+> +#endif
+> +
+> +static struct platform_driver pwm_vibrator_driver = {
+> +	.probe	= pwm_vibrator_probe,
+> +	.driver	= {
+> +		.name	= "pwm-vibrator",
+> +		.pm	= &pwm_vibrator_pm_ops,
+> +		.of_match_table = of_match_ptr(pwm_vibra_dt_match_table),
+> +	},
+> +};
+> +module_platform_driver(pwm_vibrator_driver);
+> +
+> +MODULE_AUTHOR("Sebastian Reichel <sre@kernel.org>");
+> +MODULE_DESCRIPTION("PWM vibrator driver");
+> +MODULE_LICENSE("GPL");
+> +MODULE_ALIAS("platform:pwm-vibrator");
+> -- 
+> 2.11.0
+> 
+
+Thanks.
+
+-- 
+Dmitry
