@@ -1,35 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: ethernet: ti: cpsw: adjust cpsw fifos depth for
- fullduplex flow control
-Date: Mon, 08 May 2017 17:33:33 -0400 (EDT)
-Message-ID: <20170508.173333.1140782402828347971.davem@davemloft.net>
-References: <20170508192121.20451-1-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 26/28] ARM: OMAP2+: Remove unused omapdrm platform
+ device
+Date: Mon, 8 May 2017 10:09:06 -0700
+Message-ID: <20170508170905.GG3489@atomide.com>
+References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
+ <20170508113303.27521-27-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170508192121.20451-1-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, nsekhar@ti.com, ivan.khoronzhuk@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, spatton@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20170508113303.27521-27-laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Mon, 8 May 2017 14:21:21 -0500
-
-> When users set flow control using ethtool the bits are set properly in the
-> CPGMAC_SL MACCONTROL register, but the FIFO depth in the respective Port n
-> Maximum FIFO Blocks (Pn_MAX_BLKS) registers remains set to the minimum size
-> reset value. When receive flow control is enabled on a port, the port's
-> associated FIFO block allocation must be adjusted. The port RX allocation
-> must increase to accommodate the flow control runout. The TRM recommends
-> numbers of 5 or 6.
-> 
-> Hence, apply required Port FIFO configuration to
-> Pn_MAX_BLKS.Pn_TX_MAX_BLKS=0xF and Pn_MAX_BLKS.Pn_RX_MAX_BLKS=0x5 during
-> interface initialization.
-> 
-> Cc: Schuyler Patton <spatton@ti.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-
-Applied.
+KiBMYXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+IFsx
+NzA1MDggMDQ6MzZdOgo+IFRoZSBvbWFwZHJtIHBsYXRmb3JtIGRldmljZSBpcyB1bnVzZWQsIGFz
+IGEgcmVwbGFjZW1lbnQgaXMgbm93Cj4gcmVnaXN0ZXJlZCBpbiB0aGUgb21hcGRzcyBkcml2ZXIu
+IFJlbW92ZSBpdC4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBMYXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50
+LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+CgpUaGlzIHNob3VsZCBiZSBPSyB0byBtZXJnZSB2
+aWEgdGhlIGRybSBwYXRjaGVzIGFzIGxvbmcgYXMgdGhpbmdzCmhhdmUgYmVlbiBwcm9wZXJseSB0
+ZXN0ZWQgdG8gbm90IGNhdXNlIHJlZ3Jlc3Npb25zOgoKQWNrZWQtYnk6IFRvbnkgTGluZGdyZW4g
+PHRvbnlAYXRvbWlkZS5jb20+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
+dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
+aS1kZXZlbAo=
