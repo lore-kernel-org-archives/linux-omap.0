@@ -1,115 +1,92 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCHv3 1/2] Input: pwm-vibra: new driver
-Date: Mon, 8 May 2017 12:31:21 -0500
-Message-ID: <20170508173121.v45f76tyihk2x5xq@rob-hp-laptop>
-References: <20170505092823.26009-1-sebastian.reichel@collabora.co.uk>
- <20170505092823.26009-2-sebastian.reichel@collabora.co.uk>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv3] phy: cpcap-usb: Add CPCAP PMIC USB support
+Date: Mon, 8 May 2017 10:32:17 -0700
+Message-ID: <20170508173216.GI3489@atomide.com>
+References: <20170410041958.21269-1-tony@atomide.com>
+ <9bfee59a-faba-3f48-1234-2a5496b3fc14@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170505092823.26009-2-sebastian.reichel@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Sebastian Reichel <sre@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <9bfee59a-faba-3f48-1234-2a5496b3fc14-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 05, 2017 at 11:28:22AM +0200, Sebastian Reichel wrote:
-> Provide a simple driver for PWM controllable vibrators. It
-> will be used by Motorola Droid 4.
+* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [170507 23:23]:
+> Hi Tony,
 > 
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> ---
-> Changes since PATCHv1:
->  - move driver removal code to input->close function
->  - mark PM functions __maybe_unused and drop #ifdef CONFIG_PM_SLEEP
->  - remove duplicate NULL check for vibrator in probe function
->  - cancel work in suspend function
-> Changes since PATCHv2:
->  - Add Kconfig dependency on INPUT_FF_MEMLESS
->  - Add Tested-by from Tiny Lindgren
-> ---
->  .../devicetree/bindings/input/pwm-vibrator.txt     |  60 ++++
->  drivers/input/misc/Kconfig                         |  12 +
->  drivers/input/misc/Makefile                        |   1 +
->  drivers/input/misc/pwm-vibra.c                     | 343 +++++++++++++++++++++
->  4 files changed, 416 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/input/pwm-vibrator.txt
->  create mode 100644 drivers/input/misc/pwm-vibra.c
+> On Monday 10 April 2017 09:49 AM, Tony Lindgren wrote:
+> > Some Motorola phones like droid 4 use a custom CPCAP PMIC that has a
+> > multiplexing USB PHY.
+> > 
+> > This USB PHY can operate at least in four modes using pin multiplexing
+> > and two control GPIOS:
+> > 
+> > - Pass through companion PHY for the SoC USB PHY
+> > - ULPI PHY for the SoC
+> > - Pass through USB for the modem
+> > - UART debug console for the SoC
+> > 
+> > This patch adds support for droid 4 USB PHY and debug UART modes,
+> > support for other modes can be added later on as needed.
+> > 
+> > Both peripheral and host mode are working for the USB. The
+> > host mode depends on the cpcap-charger driver for VBUS.
+> > 
+> > VBUS and ID pin detection are done using cpcap-adc IIO ADC
+> > driver.
 > 
-> diff --git a/Documentation/devicetree/bindings/input/pwm-vibrator.txt b/Documentation/devicetree/bindings/input/pwm-vibrator.txt
-> new file mode 100644
-> index 000000000000..c35be4691366
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/input/pwm-vibrator.txt
-> @@ -0,0 +1,60 @@
-> +* PWM vibrator device tree bindings
-> +
-> +Registers a PWM device as vibrator.
-> +
-> +Required properties:
-> +- compatible: should be
-> +  * "pwm-vibrator"
-> +    For vibrators controlled using the PWM channel's duty cycle (higher duty means
-> +    the vibrator becomes stronger).
-> +  * "motorola,mapphone-pwm-vibrator"
-> +     For vibrator found in Motorola Droid 4. This vibrator generates a pulse for
-> +     every rising edge, so its controlled using a duty cycle of 50% and changing
+> I thought of using EXTCON differently from what was used below. Actually I
+> thought EXTCON shuld be used in cpcap-adc driver for notifying VBUS or ID
+> events to phy-cpcap driver which performs the various setting based on VBUS or
+> ID. (See drivers/usb/dwc3/dwc3-omap.c which receives VBUS/ID notifications fo
+> sample). That would have simply replaced the iio* calls with EXTCON calls in
+> phy-cpcap-usb driver (in addition to adding extcon API's in cpcap-adc driver).
 
-s/its/it's/
+OK sorry yeah I misunderstood what you wanted then. I actually started
+running into issues with extcon as it assumes that the extcon provider
+can't be removed if there are consumers. So yeah let's scrap this usage
+as it adds a bogus dependency between the charger driver and PHY driver.
 
-> +     the period time.
+> Usage of EXTCON like below is not of much use here since MUSB doesn't really
+> wait for notification of ID or VBUS events (This is unlike dwc3-omap. since we
+> invoke musb_mailbox functin directly).
 
-What does "controlled" mean? strength? Shorter period is stronger?
+OK
 
-> +- pwm-names: Should contain "enable" and optionally "direction"
+> If adding EXTCON in cpcap-adc isn't simple then we should stick to your patch
+> version 2 since extcon support in this version is not useful IMO.
 
-What does direction mean? Does that apply to both compatibles.
+OK. I'll check and will post v3. My gut feeling is that IIO is better
+for VBUS and ID as we want the values too.
 
-> +- pwms: Should contain a PWM handle for each entry in pwm-names
-> +
-> +Example from Motorola Droid 4:
-> +
-> +&omap4_pmx_core {
-> +	vibrator_direction_pin: pinmux_vibrator_direction_pin {
-> +		pinctrl-single,pins = <
-> +		OMAP4_IOPAD(0x1ce, PIN_OUTPUT | MUX_MODE1) /* dmtimer8_pwm_evt (gpio_27) */
-> +		>;
-> +	};
-> +
-> +	vibrator_enable_pin: pinmux_vibrator_enable_pin {
-> +		pinctrl-single,pins = <
-> +		OMAP4_IOPAD(0X1d0, PIN_OUTPUT | MUX_MODE1) /* dmtimer9_pwm_evt (gpio_28) */
-> +		>;
-> +	};
-> +};
-> +
-> +/ {
-> +	pwm8: dmtimer-pwm {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&vibrator_direction_pin>;
-> +
-> +		compatible = "ti,omap-dmtimer-pwm";
-> +		#pwm-cells = <3>;
-> +		ti,timers = <&timer8>;
-> +		ti,clock-source = <0x01>;
-> +	};
-> +
-> +	pwm9: dmtimer-pwm {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&vibrator_enable_pin>;
-> +
-> +		compatible = "ti,omap-dmtimer-pwm";
-> +		#pwm-cells = <3>;
-> +		ti,timers = <&timer9>;
-> +		ti,clock-source = <0x01>;
-> +	};
-> +
-> +	vibrator {
-> +		compatible = "pwm-vibrator";
-> +		pwms = <&pwm8 0 1000000000 0>,
-> +		       <&pwm9 0 1000000000 0>;
-> +		pwm-names = "enable", "direction";
-> +	};
-> +};
+For example ID pin can have multiple values, and it seems that many PHYs
+can detect 102/200/440K pull-up on the ID pin for "carkit" mode etc. I'm
+not yet sure if there are multiple ID pull-up values to be considered in
+this case, but there is at least one pull-up value for detecting
+"factory mode" where the device is supposed to be powered on USB only
+even if there is no battery.
+
+Also the VBUS in this case is the direct voltage from the battery as
+far as I can tell so the voltage value should be considered.
+
+> > +Example:
+> > +cpcap_usb2_phy: phy {
+> > +	compatible = "motorola,mapphone-cpcap-usb-phy";
+...
+> > +};
+> 
+> I would have preferred this to be a separate patch but since Rob has Acked it,
+> it is fine.
+
+OK
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
