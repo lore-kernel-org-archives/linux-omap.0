@@ -1,92 +1,72 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCHv3] phy: cpcap-usb: Add CPCAP PMIC USB support
-Date: Mon, 8 May 2017 10:32:17 -0700
-Message-ID: <20170508173216.GI3489@atomide.com>
-References: <20170410041958.21269-1-tony@atomide.com>
- <9bfee59a-faba-3f48-1234-2a5496b3fc14@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] memory: omap-gpmc: Fix debug output for access width
+Date: Mon, 8 May 2017 10:36:10 -0700
+Message-ID: <20170508173610.GJ3489@atomide.com>
+References: <20170505223706.4913-1-tony@atomide.com>
+ <a59b8a21-056a-0e1f-44a6-585256945747@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <9bfee59a-faba-3f48-1234-2a5496b3fc14-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+In-Reply-To: <a59b8a21-056a-0e1f-44a6-585256945747@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [170507 23:23]:
+* Roger Quadros <rogerq@ti.com> [170508 03:44]:
 > Hi Tony,
 > 
-> On Monday 10 April 2017 09:49 AM, Tony Lindgren wrote:
-> > Some Motorola phones like droid 4 use a custom CPCAP PMIC that has a
-> > multiplexing USB PHY.
-> > 
-> > This USB PHY can operate at least in four modes using pin multiplexing
-> > and two control GPIOS:
-> > 
-> > - Pass through companion PHY for the SoC USB PHY
-> > - ULPI PHY for the SoC
-> > - Pass through USB for the modem
-> > - UART debug console for the SoC
-> > 
-> > This patch adds support for droid 4 USB PHY and debug UART modes,
-> > support for other modes can be added later on as needed.
-> > 
-> > Both peripheral and host mode are working for the USB. The
-> > host mode depends on the cpcap-charger driver for VBUS.
-> > 
-> > VBUS and ID pin detection are done using cpcap-adc IIO ADC
-> > driver.
+> On 06/05/17 01:37, Tony Lindgren wrote:
+> > The width needs to be configured in bytes with 1 meaning 8-bit
+> > access and 2 meaning 16-bit access.
 > 
-> I thought of using EXTCON differently from what was used below. Actually I
-> thought EXTCON shuld be used in cpcap-adc driver for notifying VBUS or ID
-> events to phy-cpcap driver which performs the various setting based on VBUS or
-> ID. (See drivers/usb/dwc3/dwc3-omap.c which receives VBUS/ID notifications fo
-> sample). That would have simply replaced the iio* calls with EXTCON calls in
-> phy-cpcap-usb driver (in addition to adding extcon API's in cpcap-adc driver).
-
-OK sorry yeah I misunderstood what you wanted then. I actually started
-running into issues with extcon as it assumes that the extcon provider
-can't be removed if there are consumers. So yeah let's scrap this usage
-as it adds a bogus dependency between the charger driver and PHY driver.
-
-> Usage of EXTCON like below is not of much use here since MUSB doesn't really
-> wait for notification of ID or VBUS events (This is unlike dwc3-omap. since we
-> invoke musb_mailbox functin directly).
-
-OK
-
-> If adding EXTCON in cpcap-adc isn't simple then we should stick to your patch
-> version 2 since extcon support in this version is not useful IMO.
-
-OK. I'll check and will post v3. My gut feeling is that IIO is better
-for VBUS and ID as we want the values too.
-
-For example ID pin can have multiple values, and it seems that many PHYs
-can detect 102/200/440K pull-up on the ID pin for "carkit" mode etc. I'm
-not yet sure if there are multiple ID pull-up values to be considered in
-this case, but there is at least one pull-up value for detecting
-"factory mode" where the device is supposed to be powered on USB only
-even if there is no battery.
-
-Also the VBUS in this case is the direct voltage from the battery as
-far as I can tell so the voltage value should be considered.
-
-> > +Example:
-> > +cpcap_usb2_phy: phy {
-> > +	compatible = "motorola,mapphone-cpcap-usb-phy";
-...
-> > +};
+> As per the TRM, for GPMC_CONFIG1.DEVICESIZE
+> 0 means 8-bit
+> 1 means 16-bit
 > 
-> I would have preferred this to be a separate patch but since Rob has Acked it,
-> it is fine.
+> > 
+> > Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > Cc: Roger Quadros <rogerq@ti.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  drivers/memory/omap-gpmc.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> > --- a/drivers/memory/omap-gpmc.c
+> > +++ b/drivers/memory/omap-gpmc.c
+> > @@ -513,7 +513,7 @@ static void gpmc_cs_show_timings(int cs, const char *desc)
+> >  	pr_info("gpmc cs%i access configuration:\n", cs);
+> >  	GPMC_GET_RAW_BOOL(GPMC_CS_CONFIG1,  4,  4, "time-para-granularity");
+> >  	GPMC_GET_RAW(GPMC_CS_CONFIG1,  8,  9, "mux-add-data");
+> > -	GPMC_GET_RAW_MAX(GPMC_CS_CONFIG1, 12, 13,
+> > +	GPMC_GET_RAW_SHIFT_MAX(GPMC_CS_CONFIG1, 12, 13, 1,
+> >  			 GPMC_CONFIG1_DEVICESIZE_MAX, "device-width");
+> 
+> setting shift 1 means the value will be multiplied by 2
+> so this will read 0 for 8-bit and 2 for 16-bit.
+> 
+> Is this what we want?
 
-OK
+Yeah we already have debug output that is supposed to be usable
+for configuring a new device based on debug output of the bootloader
+timings. And the configured parameters use bytes for device-width.
+
+> I'd still prefer the old way of showing RAW values than interpreted ones.
+
+We have that too in the debug output as the raw values of
+all the GPMC_CS_CONFIG registers.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
