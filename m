@@ -1,99 +1,100 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v2 27/28] ARM: OMAP2+: Don't register omapdss device for
- omapdrm
-Date: Mon,  8 May 2017 14:33:02 +0300
-Message-ID: <20170508113303.27521-28-laurent.pinchart@ideasonboard.com>
-References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 4/4] usb: musb: tusb6010_omap: Convert to DMAengine API
+Date: Mon, 8 May 2017 18:12:56 +0300
+Message-ID: <10da9ac1-325c-792e-3fa1-ab44405ab1c9@ti.com>
+References: <20170503105645.26759-1-peter.ujfalusi@ti.com>
+ <20170503105645.26759-5-peter.ujfalusi@ti.com>
+ <20170504194034.GA3489@atomide.com> <20170504210529.GB3489@atomide.com>
+ <e7a7db55-753f-7b3b-b2e6-290518e7371b@ti.com>
+ <52c733a8-e8d3-abd9-2ea8-f3f91f823b89@ti.com>
+ <20170505225523.GD3489@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170505225523.GD3489@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: b-liu@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIG9tYXBkcm0gZHJpdmVyIGRvZXNuJ3QgbmVlZCB0aGUgb21hcGRzcyBkZXZpY2UgYW55bW9y
-ZS4gQWx0aG91Z2ggaXQKY2FuJ3QgYmUgcmVtb3ZlZCBjb21wbGV0ZWx5IGFzIHRoZSBmYmRldiBk
-cml2ZXIgc3RpbGwgcmVxdWlyZXMgaXQsIHdlCmNhbiBjb25kaXRpb24gaXRzIHJlZ2lzdHJhdGlv
-biB0byB0aGUgdXNhZ2Ugb2YgdGhlIG9tYXBmYiBkcml2ZXIuCgpTaWduZWQtb2ZmLWJ5OiBMYXVy
-ZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+Ci0tLQogYXJj
-aC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmMgfCAxMTEgKysrKysrKysrKysrKysrKysrKysrKyst
-LS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgNjAgaW5zZXJ0aW9ucygrKSwgNTEg
-ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmMg
-Yi9hcmNoL2FybS9tYWNoLW9tYXAyL2Rpc3BsYXkuYwppbmRleCA1ZjU2OTc2NjhkZTguLjc5OGZj
-NzE4ZmZmZSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmMKKysrIGIv
-YXJjaC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmMKQEAgLTY2LDYgKzY2LDcgQEAKICAqLwogI2Rl
-ZmluZSBGUkFNRURPTkVfSVJRX1RJTUVPVVQJCTEwMAogCisjaWYgZGVmaW5lZChDT05GSUdfRkJf
-T01BUDIpCiBzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSBvbWFwX2Rpc3BsYXlfZGV2aWNl
-ID0gewogCS5uYW1lICAgICAgICAgID0gIm9tYXBkc3MiLAogCS5pZCAgICAgICAgICAgID0gLTEs
-CkBAIC0xNjMsNiArMTY0LDY0IEBAIHN0YXRpYyBlbnVtIG9tYXBkc3NfdmVyc2lvbiBfX2luaXQg
-b21hcF9kaXNwbGF5X2dldF92ZXJzaW9uKHZvaWQpCiAJCXJldHVybiBPTUFQRFNTX1ZFUl9VTktO
-T1dOOwogfQogCitzdGF0aWMgaW50IF9faW5pdCBvbWFwZHNzX2luaXRfZmJkZXYodm9pZCkKK3sK
-KwlzdGF0aWMgc3RydWN0IG9tYXBfZHNzX2JvYXJkX2luZm8gYm9hcmRfZGF0YSA9IHsKKwkJLmRz
-aV9lbmFibGVfcGFkcyA9IG9tYXBfZHNpX2VuYWJsZV9wYWRzLAorCQkuZHNpX2Rpc2FibGVfcGFk
-cyA9IG9tYXBfZHNpX2Rpc2FibGVfcGFkcywKKwkJLnNldF9taW5fYnVzX3RwdXQgPSBvbWFwX2Rz
-c19zZXRfbWluX2J1c190cHV0LAorCX07CisJc3RydWN0IGRldmljZV9ub2RlICpub2RlOworCisJ
-Ym9hcmRfZGF0YS52ZXJzaW9uID0gb21hcF9kaXNwbGF5X2dldF92ZXJzaW9uKCk7CisJaWYgKGJv
-YXJkX2RhdGEudmVyc2lvbiA9PSBPTUFQRFNTX1ZFUl9VTktOT1dOKSB7CisJCXByX2VycigiRFNT
-IG5vdCBzdXBwb3J0ZWQgb24gdGhpcyBTb0NcbiIpOworCQlyZXR1cm4gLUVOT0RFVjsKKwl9CisK
-KwlvbWFwX2Rpc3BsYXlfZGV2aWNlLmRldi5wbGF0Zm9ybV9kYXRhID0gJmJvYXJkX2RhdGE7CisK
-KwlyID0gcGxhdGZvcm1fZGV2aWNlX3JlZ2lzdGVyKCZvbWFwX2Rpc3BsYXlfZGV2aWNlKTsKKwlp
-ZiAociA8IDApIHsKKwkJcHJfZXJyKCJVbmFibGUgdG8gcmVnaXN0ZXIgb21hcGRzcyBkZXZpY2Vc
-biIpOworCQlyZXR1cm4gcjsKKwl9CisKKwkvKiBjcmVhdGUgdnJmYiBkZXZpY2UgKi8KKwlyID0g
-b21hcF9pbml0X3ZyZmIoKTsKKwlpZiAociA8IDApIHsKKwkJcHJfZXJyKCJVbmFibGUgdG8gcmVn
-aXN0ZXIgb21hcHZyZmIgZGV2aWNlXG4iKTsKKwkJcmV0dXJuIHI7CisJfQorCisJLyogY3JlYXRl
-IEZCIGRldmljZSAqLworCXIgPSBvbWFwX2luaXRfZmIoKTsKKwlpZiAociA8IDApIHsKKwkJcHJf
-ZXJyKCJVbmFibGUgdG8gcmVnaXN0ZXIgb21hcGZiIGRldmljZVxuIik7CisJCXJldHVybiByOwor
-CX0KKworCS8qIGNyZWF0ZSBWNEwyIGRpc3BsYXkgZGV2aWNlICovCisJciA9IG9tYXBfaW5pdF92
-b3V0KCk7CisJaWYgKHIgPCAwKSB7CisJCXByX2VycigiVW5hYmxlIHRvIHJlZ2lzdGVyIG9tYXBf
-dm91dCBkZXZpY2VcbiIpOworCQlyZXR1cm4gcjsKKwl9CisKKwkvKiBhZGQgRFNJIGluZm8gZm9y
-IG9tYXA0ICovCisJbm9kZSA9IG9mX2ZpbmRfbm9kZV9ieV9uYW1lKE5VTEwsICJvbWFwNF9wYWRj
-b25mX2dsb2JhbCIpOworCWlmIChub2RlKQorCQlvbWFwNF9kc2lfbXV4X3N5c2NvbiA9IHN5c2Nv
-bl9ub2RlX3RvX3JlZ21hcChub2RlKTsKKworCXJldHVybiAwOworfQorI2Vsc2UKK3N0YXRpYyBp
-bmxpbmUgaW50IG9tYXBkc3NfaW5pdF9mYmRldih2b2lkKQoreworCXJldHVybiAwOworfQorI2Vu
-ZGlmIC8qIENPTkZJR19GQl9PTUFQMiAqLworCiBzdGF0aWMgdm9pZCBkaXNwY19kaXNhYmxlX291
-dHB1dHModm9pZCkKIHsKIAl1MzIgdiwgaXJxX21hc2sgPSAwOwpAQCAtMzM1LDE2ICszOTQsOSBA
-QCBzdGF0aWMgc3RydWN0IGRldmljZV9ub2RlICogX19pbml0IG9tYXBkc3NfZmluZF9kc3Nfb2Zf
-bm9kZSh2b2lkKQogaW50IF9faW5pdCBvbWFwZHNzX2luaXRfb2Yodm9pZCkKIHsKIAlpbnQgcjsK
-LQllbnVtIG9tYXBkc3NfdmVyc2lvbiB2ZXI7CiAJc3RydWN0IGRldmljZV9ub2RlICpub2RlOwog
-CXN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXY7CiAKLQlzdGF0aWMgc3RydWN0IG9tYXBfZHNz
-X2JvYXJkX2luZm8gYm9hcmRfZGF0YSA9IHsKLQkJLmRzaV9lbmFibGVfcGFkcyA9IG9tYXBfZHNp
-X2VuYWJsZV9wYWRzLAotCQkuZHNpX2Rpc2FibGVfcGFkcyA9IG9tYXBfZHNpX2Rpc2FibGVfcGFk
-cywKLQkJLnNldF9taW5fYnVzX3RwdXQgPSBvbWFwX2Rzc19zZXRfbWluX2J1c190cHV0LAotCX07
-Ci0KIAkvKiBvbmx5IGNyZWF0ZSBkc3MgaGVscGVyIGRldmljZXMgaWYgZHNzIGlzIGVuYWJsZWQg
-aW4gdGhlIC5kdHMgKi8KIAogCW5vZGUgPSBvbWFwZHNzX2ZpbmRfZHNzX29mX25vZGUoKTsKQEAg
-LTM1NCwxMyArNDA2LDYgQEAgaW50IF9faW5pdCBvbWFwZHNzX2luaXRfb2Yodm9pZCkKIAlpZiAo
-IW9mX2RldmljZV9pc19hdmFpbGFibGUobm9kZSkpCiAJCXJldHVybiAwOwogCi0JdmVyID0gb21h
-cF9kaXNwbGF5X2dldF92ZXJzaW9uKCk7Ci0KLQlpZiAodmVyID09IE9NQVBEU1NfVkVSX1VOS05P
-V04pIHsKLQkJcHJfZXJyKCJEU1Mgbm90IHN1cHBvcnRlZCBvbiB0aGlzIFNvQ1xuIik7Ci0JCXJl
-dHVybiAtRU5PREVWOwotCX0KLQogCXBkZXYgPSBvZl9maW5kX2RldmljZV9ieV9ub2RlKG5vZGUp
-OwogCiAJaWYgKCFwZGV2KSB7CkBAIC0zNzQsNDEgKzQxOSw1IEBAIGludCBfX2luaXQgb21hcGRz
-c19pbml0X29mKHZvaWQpCiAJCXJldHVybiByOwogCX0KIAotCWJvYXJkX2RhdGEudmVyc2lvbiA9
-IHZlcjsKLQotCW9tYXBfZGlzcGxheV9kZXZpY2UuZGV2LnBsYXRmb3JtX2RhdGEgPSAmYm9hcmRf
-ZGF0YTsKLQotCXIgPSBwbGF0Zm9ybV9kZXZpY2VfcmVnaXN0ZXIoJm9tYXBfZGlzcGxheV9kZXZp
-Y2UpOwotCWlmIChyIDwgMCkgewotCQlwcl9lcnIoIlVuYWJsZSB0byByZWdpc3RlciBvbWFwZHNz
-IGRldmljZVxuIik7Ci0JCXJldHVybiByOwotCX0KLQotCS8qIGNyZWF0ZSB2cmZiIGRldmljZSAq
-LwotCXIgPSBvbWFwX2luaXRfdnJmYigpOwotCWlmIChyIDwgMCkgewotCQlwcl9lcnIoIlVuYWJs
-ZSB0byByZWdpc3RlciBvbWFwdnJmYiBkZXZpY2VcbiIpOwotCQlyZXR1cm4gcjsKLQl9Ci0KLQkv
-KiBjcmVhdGUgRkIgZGV2aWNlICovCi0JciA9IG9tYXBfaW5pdF9mYigpOwotCWlmIChyIDwgMCkg
-ewotCQlwcl9lcnIoIlVuYWJsZSB0byByZWdpc3RlciBvbWFwZmIgZGV2aWNlXG4iKTsKLQkJcmV0
-dXJuIHI7Ci0JfQotCi0JLyogY3JlYXRlIFY0TDIgZGlzcGxheSBkZXZpY2UgKi8KLQlyID0gb21h
-cF9pbml0X3ZvdXQoKTsKLQlpZiAociA8IDApIHsKLQkJcHJfZXJyKCJVbmFibGUgdG8gcmVnaXN0
-ZXIgb21hcF92b3V0IGRldmljZVxuIik7Ci0JCXJldHVybiByOwotCX0KLQotCS8qIGFkZCBEU0kg
-aW5mbyBmb3Igb21hcDQgKi8KLQlub2RlID0gb2ZfZmluZF9ub2RlX2J5X25hbWUoTlVMTCwgIm9t
-YXA0X3BhZGNvbmZfZ2xvYmFsIik7Ci0JaWYgKG5vZGUpCi0JCW9tYXA0X2RzaV9tdXhfc3lzY29u
-ID0gc3lzY29uX25vZGVfdG9fcmVnbWFwKG5vZGUpOwotCi0JcmV0dXJuIDA7CisJcmV0dXJuIG9t
-YXBkc3NfaW5pdF9mYmRldigpOwogfQotLSAKUmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBt
-YWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
-LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Tony,
+
+On 2017-05-06 01:55, Tony Lindgren wrote:
+> OK I verified that with the current mainline kernel using dma
+> and g_ether and your patches 1 to 3 I can run the variable size
+> ping test loop for few minutes before it just stops working and
+> I can see the legacy DMA interrupt increase depending on the
+> size of the packet. Then I checked with v4.1 kernel, and that
+> too seems to have the same issue.
+>
+> I've also verified running the same variable size ping test with
+> your patch 4/4 makes things stop within just a few seconds. The
+> script I'm using for ping is below.
+>
+> Anyways, what we really should ensure here is that the external
+> dmarequest line is properly triggering things with dmaengine :)
+> That's why I'm a bit worried your patch 4/4.
+>
+> Oh and I also verified the GPMC timings we're using are the same
+> as in production n810 kernel so that should not be the issue.
+>
+> And using the async access on n800 will not work as it will
+> produce corrupt transfer size register the report I posted
+> earlier is from n800 allowing it to use async transfers. On
+> n810 async transfers may work as I recall it having a newer
+> tusb6010 version.
+
+I think I have nailed the issue. I had a bug in the omap-dma 
+implementation of the port_window (sigh) and couple of issues in the 
+tusb6010/*_omap, not introduced by the series.
+The ASYNC access is pretty unstable on n810 as well, I got corruption in 
+the XFR_SIZE.
+I have been using the g_ncm gadget with 
+"musb->g.quirk_avoids_skb_reserve = 1;" to ensure that we are using SYNC 
+access.
+
+I'm running your variable ping script for 2 hours now, it wrapped >130 
+times already, I also run a standalone ping with 2048 size in parallel, 
+the n810 is booted to nfsroot:
+
+# cat /proc/interrupts | grep dma
+  29:    9483598      INTC  13 Edge      omap-dma-engine
+#
+
+I need to clean up the code as I had debugs (disabled now) and stuff and 
+I want to try the tusb6010 changes w/o the DMAengine conversion.
+
+>
+> Regards,
+>
+> Tony
+>
+> 8< ----------------
+> #!/bin/bash
+>
+> device=$1
+> size=$2
+
++ wraps = 0
+
+>
+> while [ 1 ]; do
+>         #echo "Pinging with size $size"
+>         if ! ping -w0 -c1 -s$size $device > /dev/null 2>&1; then
+>                 break;
+>         fi
+>         size=$(expr $size + 1)
+>
+>         if [ $size -gt 8192 ]; then
+
++		wraps=$(expr $wraps + 1)
++		echo "wrapping ($wraps) at $size"
+
+>                 size=1
+>         fi
+> done
+> echo "Test ran up to $size"
+>
+
+- Péter
