@@ -1,13 +1,15 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
  platform code
-Date: Tue, 9 May 2017 15:10:40 +0300
-Message-ID: <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
+Date: Wed, 10 May 2017 01:18:58 +0300
+Message-ID: <1872968.7fdiNycxOH@avalon>
 References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
+ <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0301345606=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -17,93 +19,29 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---===============0301345606==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="X2BhMTolOdDpT3Ck6EJ9Lf9DNiTs0roGo"
-
---X2BhMTolOdDpT3Ck6EJ9Lf9DNiTs0roGo
-Content-Type: multipart/mixed; boundary="Dn9JqsADfVfxjca7iFu44gDvkjsFMC8tf";
- protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- dri-devel@lists.freedesktop.org
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
- Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>,
- Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>,
- linux-omap@vger.kernel.org
-Message-ID: <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
-Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
- platform code
-References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
-
---Dn9JqsADfVfxjca7iFu44gDvkjsFMC8tf
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 08/05/17 14:32, Laurent Pinchart wrote:
-> Hello,
->=20
-> This patch series is a second, extended version of the code previously =
-posted
-> as "[PATCH/RFC 0/7] Remove the omapdrm device from platform code".
-
-As this is a long series, I'd like to pick a bunch of patches from this
-series already:
-
-1-5, 7, 19, 21.
-
-I didn't test yet, but I think those should not cause conflicts with the
-rest of the series.
-
-I can then push the branch, which contains also the fences and cache
-patches, so you can base the rest on that.
-
-Is this ok?
-
- Tomi
-
-
---Dn9JqsADfVfxjca7iFu44gDvkjsFMC8tf--
-
---X2BhMTolOdDpT3Ck6EJ9Lf9DNiTs0roGo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJZEbHAAAoJEPo9qoy8lh71WYIP/RuUr6V4+ESpyNrgfwoNPCKS
-EZn0Jd/wSDVgGVgOOl7FNyhmiswlH/r/Nq0aJ6UeRURr8IhrxnAeeNbMQGQfL8tb
-CZEg9xaEysB6FTlGnxEfa3QTjl5tZ4QNicYgwO38U8prWVOyMxuTw4UfNvRfpGBb
-O+9zVA1txewHrfMm2nXTuzI1ss4mPXMIUErlCiwuC20e0GD3tch30HoyjSAZVkx+
-QA640a+BH8iyob31aLawofg6utNsdyVfJRV4U4fJzJp3hE18Js1mNUF5GqUBnMg2
-GdWbdJV4Tjvo6Voo2EFOr1fbMvlxsMjh1ghJ9kCJGni4HvW16g4IyOoc27ZO4x56
-XKywynzqmYonfHielaDjEvFn0KhBfHgMi/8JWGmjXmb4HnUQr4vKX6xzXfFyjjHl
-X3AbRM3w8LBeV9fdwhlaCibu692d7TKe2STOm2SKSw7EDVGIn8s60/Wy35icyiWU
-MXUgjpRS+ob2L3MY22aa/fBXx4vivDdQgQUuY2dKHVN53912p6vW25NQxb6UYnyO
-HzAWd1858qF6Sc838mUeYTpF93/cHHOVZ58U1kOiGNxSMW3x5dGyeeU90RVe+Oel
-S9qYxT+1jg394Pey8ns5HHgDiihWtI/DCNe8YN3/7exXu11j2ITCwPSlK7482XOY
-aitzIAeNmcdY2yYPBdqH
-=gERI
------END PGP SIGNATURE-----
-
---X2BhMTolOdDpT3Ck6EJ9Lf9DNiTs0roGo--
-
---===============0301345606==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============0301345606==--
+SGkgVG9taSwKCk9uIFR1ZXNkYXkgMDkgTWF5IDIwMTcgMTU6MTA6NDAgVG9taSBWYWxrZWluZW4g
+d3JvdGU6Cj4gT24gMDgvMDUvMTcgMTQ6MzIsIExhdXJlbnQgUGluY2hhcnQgd3JvdGU6Cj4gPiBI
+ZWxsbywKPiA+IAo+ID4gVGhpcyBwYXRjaCBzZXJpZXMgaXMgYSBzZWNvbmQsIGV4dGVuZGVkIHZl
+cnNpb24gb2YgdGhlIGNvZGUgcHJldmlvdXNseQo+ID4gcG9zdGVkIGFzICJbUEFUQ0gvUkZDIDAv
+N10gUmVtb3ZlIHRoZSBvbWFwZHJtIGRldmljZSBmcm9tIHBsYXRmb3JtIGNvZGUiLgo+IEFzIHRo
+aXMgaXMgYSBsb25nIHNlcmllcywgSSdkIGxpa2UgdG8gcGljayBhIGJ1bmNoIG9mIHBhdGNoZXMg
+ZnJvbSB0aGlzCj4gc2VyaWVzIGFscmVhZHk6Cj4gCj4gMS01LCA3LCAxOSwgMjEuCj4gCj4gSSBk
+aWRuJ3QgdGVzdCB5ZXQsIGJ1dCBJIHRoaW5rIHRob3NlIHNob3VsZCBub3QgY2F1c2UgY29uZmxp
+Y3RzIHdpdGggdGhlCj4gcmVzdCBvZiB0aGUgc2VyaWVzLgo+IAo+IEkgY2FuIHRoZW4gcHVzaCB0
+aGUgYnJhbmNoLCB3aGljaCBjb250YWlucyBhbHNvIHRoZSBmZW5jZXMgYW5kIGNhY2hlCj4gcGF0
+Y2hlcywgc28geW91IGNhbiBiYXNlIHRoZSByZXN0IG9uIHRoYXQuCj4gCj4gSXMgdGhpcyBvaz8K
+ClBhdGNoIDIxIHdpbGwgY29uZmxpY3QsIHRoZSBvdGhlciBvbmVzIHNob3VsZG4ndC4gRm9yIHlv
+dXIgY29udmVuaWVuY2UgSSd2ZSAKcGlja2VkIGFsbCB0aGUgUmV2aWV3ZWQtYnkgdGFncywgZml4
+ZWQgYSB0eXBvIGluIHBhdGNoIDAxLzI4IHRoYXQgYnJva2UgCmNvbXBpbGF0aW9uLCByZWJhc2Vk
+IHRoZSBwYXRjaGVzIHdpdGggMS01LCA3IGFuZCAxOSBtb3ZlZCB0byB0aGUgYmVnaW5uaW5nIG9m
+IAp0aGUgc2VyaWVzLCB0ZXN0ZWQgdGhlIHJlc3VsdCBhbmQgcHVzaGVkIGl0IHRvCgoJZ2l0Oi8v
+bGludXh0di5vcmcvcGluY2hhcnRsL21lZGlhLmdpdCBvbWFwZHJtL3BsYXRmb3JtCgpZb3UgY2Fu
+IGp1c3QgcGljayB0aGUgNyBmaXJzdCBwYXRjaGVzIGZyb20gdGhlcmUuCgotLSAKUmVnYXJkcywK
+CkxhdXJlbnQgUGluY2hhcnQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
+dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
+aS1kZXZlbAo=
