@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 03/10] usb: musb: tusb6010: Add MUSB_G_NO_SKB_RESERVE to quirks
-Date: Wed, 10 May 2017 11:42:25 +0300
-Message-ID: <20170510084231.19302-4-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 05/10] usb: musb: tusb6010_omap: Do not reset the other direction's packet size
+Date: Wed, 10 May 2017 11:42:27 +0300
+Message-ID: <20170510084231.19302-6-peter.ujfalusi@ti.com>
 References: <20170510084231.19302-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,28 +12,45 @@ To: b-liu@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel
 Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When using the g_ncm for networking this flag will make sure that the
-buffer is alligned to 32bit so the DMA can be used to offload the data
-movement.
+We have one register for each EP to set the maximum packet size for both
+TX and RX.
+If for example an RX programming would happen before the previous TX
+transfer finishes we would reset the TX packet side.
+
+To fix this issue, only modify the TX or RX part of the register.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/usb/musb/tusb6010.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/usb/musb/tusb6010_omap.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-index e85cc8e4e7a9..4253bfb22043 100644
---- a/drivers/usb/musb/tusb6010.c
-+++ b/drivers/usb/musb/tusb6010.c
-@@ -1181,7 +1181,8 @@ static int tusb_musb_exit(struct musb *musb)
- }
+diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
+index db2e4c379ccf..4e1a6e4a61b8 100644
+--- a/drivers/usb/musb/tusb6010_omap.c
++++ b/drivers/usb/musb/tusb6010_omap.c
+@@ -389,15 +389,19 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
  
- static const struct musb_platform_ops tusb_ops = {
--	.quirks		= MUSB_DMA_TUSB_OMAP | MUSB_IN_TUSB,
-+	.quirks		= MUSB_DMA_TUSB_OMAP | MUSB_IN_TUSB |
-+			  MUSB_G_NO_SKB_RESERVE,
- 	.init		= tusb_musb_init,
- 	.exit		= tusb_musb_exit,
+ 	if (chdat->tx) {
+ 		/* Send transfer_packet_sz packets at a time */
+-		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET,
+-			chdat->transfer_packet_sz);
++		u32 psize = musb_readl(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET);
++		psize &= ~0x7ff;
++		psize |= chdat->transfer_packet_sz;
++		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET, psize);
  
+ 		musb_writel(ep_conf, TUSB_EP_TX_OFFSET,
+ 			TUSB_EP_CONFIG_XFR_SIZE(chdat->transfer_len));
+ 	} else {
+ 		/* Receive transfer_packet_sz packets at a time */
+-		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET,
+-			chdat->transfer_packet_sz << 16);
++		u32 psize = musb_readl(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET);
++		psize &= ~(0x7ff << 16);
++		psize |= (chdat->transfer_packet_sz << 16);
++		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET, psize);
+ 
+ 		musb_writel(ep_conf, TUSB_EP_RX_OFFSET,
+ 			TUSB_EP_CONFIG_XFR_SIZE(chdat->transfer_len));
 -- 
 2.12.2
