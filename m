@@ -1,50 +1,40 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCHv3 1/2] Input: pwm-vibra: new driver
-Date: Wed, 10 May 2017 14:56:50 -0700
-Message-ID: <20170510215650.GA29507@dtor-ws>
-References: <20170505092823.26009-1-sebastian.reichel@collabora.co.uk>
- <20170505092823.26009-2-sebastian.reichel@collabora.co.uk>
- <20170507213800.GA39686@dtor-ws>
- <20170508185128.2vkgkxn6cfnmkqc7@earth>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH v2 05/10] usb: musb: tusb6010_omap: Do not reset the
+ other direction's packet size
+Date: Wed, 10 May 2017 16:16:28 -0700
+Message-ID: <1494458188.2028.5.camel@perches.com>
+References: <20170510084231.19302-1-peter.ujfalusi@ti.com>
+         <20170510084231.19302-6-peter.ujfalusi@ti.com>
+         <20170510170754.GA7154@uda0271908>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170508185128.2vkgkxn6cfnmkqc7@earth>
+In-Reply-To: <20170510170754.GA7154@uda0271908>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bin Liu <b-liu@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 08, 2017 at 08:51:28PM +0200, Sebastian Reichel wrote:
-> On Sun, May 07, 2017 at 02:38:00PM -0700, Dmitry Torokhov wrote:
-> > > +static int __maybe_unused pwm_vibrator_suspend(struct device *dev)
-> > > +{
-> > > +	struct platform_device *pdev = to_platform_device(dev);
-> > > +	struct pwm_vibrator *vibrator = platform_get_drvdata(pdev);
-> > > +	struct input_dev *input = vibrator->input;
-> > > +	unsigned long flags;
-> > > +
-> > > +	spin_lock_irqsave(&input->event_lock, flags);
+On Wed, 2017-05-10 at 12:07 -0500, Bin Liu wrote:
+> On Wed, May 10, 2017 at 11:42:27AM +0300, Peter Ujfalusi wrote:
+> > We have one register for each EP to set the maximum packet size for both
+> > TX and RX.
+> > If for example an RX programming would happen before the previous TX
+> > transfer finishes we would reset the TX packet side.
 > > 
-> > Hmm, no, this is not goting to work. The original patch had a chance if
-> > PWM was not sleeping, but with introduction of regulator and work this
-> > definitely sleeps.
+> > To fix this issue, only modify the TX or RX part of the register.
+[]
+> > diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
+[]
+> > @@ -389,15 +389,19 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
+> >  
+> >  	if (chdat->tx) {
+> >  		/* Send transfer_packet_sz packets at a time */
+> > -		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET,
+> > -			chdat->transfer_packet_sz);
+> > +		u32 psize = musb_readl(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET);
 > 
-> Actually PWM is sleeping, that's why I added work (regulator was
-> added later) :)
-> 
-> > I think we should solve issue of events [not] being delivered during
-> > suspend transition in input core, and simply drop spin_lock_irqsave()
-> > here and in resume().
-> 
-> Sounds good. will you take care of the input-core change?
+> checkpatch.pl complains about declaration and assignment together.
 
-Yeah, I'll add it to my todo... In the mean time, when you sending a new
-version of this driver simply drop
-spin_lock_irqsave/spin_unlock_irqrestore.
-
-Thanks.
-
--- 
-Dmitry
+No it doesn't.
