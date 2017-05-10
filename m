@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 05/10] usb: musb: tusb6010_omap: Do not reset the other direction's packet size
-Date: Wed, 10 May 2017 11:42:27 +0300
-Message-ID: <20170510084231.19302-6-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 01/10] dmaengine: omap-dma: port_window support correction for both direction
+Date: Wed, 10 May 2017 11:42:23 +0300
+Message-ID: <20170510084231.19302-2-peter.ujfalusi@ti.com>
 References: <20170510084231.19302-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,48 +9,98 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170510084231.19302-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: b-liu@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, dmaengine@vger.kernel.org, dan.j.williams@intel.com
 List-Id: linux-omap@vger.kernel.org
 
-We have one register for each EP to set the maximum packet size for both
-TX and RX.
-If for example an RX programming would happen before the previous TX
-transfer finishes we would reset the TX packet side.
+When the port_window support was verified it was done on setup where only
+the MEM_TO_DEV direction was enabled. This got un-noticed and thus only
+this direction worked.
 
-To fix this issue, only modify the TX or RX part of the register.
+Now that I have managed to get a setup to verify both direction it turned
+out that the setup was incorrect:
+omap_desc members are settings for the slave port while the omap_sg members
+apply to the memory side of the sDMA setup.
 
+Fixes: 527a27591312 ("dmaengine: omap-dma: Fix the port_window support")
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: dmaengine@vger.kernel.org
+Cc: dan.j.williams@intel.com
+Cc: vinod.koul@intel.com
 ---
- drivers/usb/musb/tusb6010_omap.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/dma/omap-dma.c | 39 +++++++++++++++------------------------
+ 1 file changed, 15 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
-index db2e4c379ccf..4e1a6e4a61b8 100644
---- a/drivers/usb/musb/tusb6010_omap.c
-+++ b/drivers/usb/musb/tusb6010_omap.c
-@@ -389,15 +389,19 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index eed745a598fa..4fc86d40b50c 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -948,12 +948,6 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 		return NULL;
+ 	}
  
- 	if (chdat->tx) {
- 		/* Send transfer_packet_sz packets at a time */
--		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET,
--			chdat->transfer_packet_sz);
-+		u32 psize = musb_readl(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET);
-+		psize &= ~0x7ff;
-+		psize |= chdat->transfer_packet_sz;
-+		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET, psize);
+-	/* When the port_window is used, one frame must cover the window */
+-	if (port_window) {
+-		burst = port_window;
+-		port_window_bytes = port_window * es_bytes[es];
+-	}
+-
+ 	/* Now allocate and setup the descriptor. */
+ 	d = kzalloc(sizeof(*d) + sglen * sizeof(d->sg[0]), GFP_ATOMIC);
+ 	if (!d)
+@@ -963,6 +957,21 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 	d->dev_addr = dev_addr;
+ 	d->es = es;
  
- 		musb_writel(ep_conf, TUSB_EP_TX_OFFSET,
- 			TUSB_EP_CONFIG_XFR_SIZE(chdat->transfer_len));
- 	} else {
- 		/* Receive transfer_packet_sz packets at a time */
--		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET,
--			chdat->transfer_packet_sz << 16);
-+		u32 psize = musb_readl(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET);
-+		psize &= ~(0x7ff << 16);
-+		psize |= (chdat->transfer_packet_sz << 16);
-+		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET, psize);
++	/* When the port_window is used, one frame must cover the window */
++	if (port_window) {
++		burst = port_window;
++		port_window_bytes = port_window * es_bytes[es];
++
++		d->ei = 1;
++		/*
++		 * One frame covers the port_window and by  configure
++		 * the source frame index to be -1 * (port_window - 1)
++		 * we instruct the sDMA that after a frame is processed
++		 * it should move back to the start of the window.
++		 */
++		d->fi = -(port_window_bytes - 1);
++	}
++
+ 	d->ccr = c->ccr | CCR_SYNC_FRAME;
+ 	if (dir == DMA_DEV_TO_MEM) {
+ 		d->csdp = CSDP_DST_BURST_64 | CSDP_DST_PACKED;
+@@ -987,14 +996,6 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 		d->ccr |= CCR_SRC_AMODE_POSTINC;
+ 		if (port_window) {
+ 			d->ccr |= CCR_DST_AMODE_DBLIDX;
+-			d->ei = 1;
+-			/*
+-			 * One frame covers the port_window and by  configure
+-			 * the source frame index to be -1 * (port_window - 1)
+-			 * we instruct the sDMA that after a frame is processed
+-			 * it should move back to the start of the window.
+-			 */
+-			d->fi = -(port_window_bytes - 1);
  
- 		musb_writel(ep_conf, TUSB_EP_RX_OFFSET,
- 			TUSB_EP_CONFIG_XFR_SIZE(chdat->transfer_len));
+ 			if (port_window_bytes >= 64)
+ 				d->csdp |= CSDP_DST_BURST_64;
+@@ -1050,16 +1051,6 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
+ 		osg->addr = sg_dma_address(sgent);
+ 		osg->en = en;
+ 		osg->fn = sg_dma_len(sgent) / frame_bytes;
+-		if (port_window && dir == DMA_DEV_TO_MEM) {
+-			osg->ei = 1;
+-			/*
+-			 * One frame covers the port_window and by  configure
+-			 * the source frame index to be -1 * (port_window - 1)
+-			 * we instruct the sDMA that after a frame is processed
+-			 * it should move back to the start of the window.
+-			 */
+-			osg->fi = -(port_window_bytes - 1);
+-		}
+ 
+ 		if (d->using_ll) {
+ 			osg->t2_desc = dma_pool_alloc(od->desc_pool, GFP_ATOMIC,
 -- 
 2.12.2
