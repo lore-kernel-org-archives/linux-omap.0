@@ -1,103 +1,109 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
- platform code
-Date: Wed, 10 May 2017 10:23:37 +0300
-Message-ID: <989d9224-7f13-c091-7030-3ceb68a6c600@ti.com>
-References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
- <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
- <20170509150550.bi4bzadesmma6ntp@earth>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 00/10] usb: musb: tusb6010_omap: Convert to DMAengine
+Date: Wed, 10 May 2017 11:42:22 +0300
+Message-ID: <20170510084231.19302-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0334437943=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20170509150550.bi4bzadesmma6ntp@earth>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: b-liu@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---===============0334437943==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature";
-	boundary="uS4b9ip4BsQo8tQqA8pS5REKouhm9FWDS"
+Hi,
 
---uS4b9ip4BsQo8tQqA8pS5REKouhm9FWDS
-Content-Type: multipart/mixed; boundary="IHN1W6RHQpc6V3CH0peJa1uWWXdcwWsxJ";
- protected-headers="v1"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
- dri-devel@lists.freedesktop.org,
- Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
- Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>,
- Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>,
- linux-omap@vger.kernel.org
-Message-ID: <989d9224-7f13-c091-7030-3ceb68a6c600@ti.com>
-Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
- platform code
-References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
- <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
- <20170509150550.bi4bzadesmma6ntp@earth>
-In-Reply-To: <20170509150550.bi4bzadesmma6ntp@earth>
+Changes since v1:
+- Fix the port_window support in omap-dma DMAengine driver
+- MUSB_G_NO_SKB_RESERVE quirk flag addition to msub core
+- packet size corruption fix for tusb6010
+- Handle DMA completion for TX also in the DMA callback
 
---IHN1W6RHQpc6V3CH0peJa1uWWXdcwWsxJ
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+The v1 series was tested with g_cdc where only the DMA was only enabled for TX
+and because of that I have not noticed that the sDMA code was not correct for RX,
+it only worked for TX case.
 
-On 09/05/17 18:05, Sebastian Reichel wrote:
+The ASYNC mode of tusb6010 is really unstable, we get corrupted TX/RX offset
+register quite easily, but the SYNC mode is stable.
 
-> patch 10:
-> I think dsi pin muxing should be done by providing pinmux
-> info via DT.
+The series was tested on top of next-20170510 with g_ncm module since with this
+we can use the quirk to avoid skb_reserve and get properly aligned buffers for
+DMA.
+The n810 is using nfsroot.
 
-Unfortunately there's no pinmux driver for the kind of register we have
-for DSI. At least this was the case not that long ago.
+The device would not boot to prompt most of the time before patch 5 (packet size
+reset fix).
+With that patch in, the device would boot up fine most of the cases, but will
+fail pretty fast with my stress test [1].
+After the first 9 patch the legacy DMA mode is going to be stable with g_ncm, it
+boots to prompt, and survives the stress test [1].
 
- Tomi
+The last patch is going the DMAengine conversion and I have run the stress test
+against it over 3 hours (ping-test.sh wrap count is 139).
 
+[1] Running these in parallel:
+ping -f 192.168.0.2
+ping -f -s 2048 192.168.0.2
+ping-test.sh 192.168.0.2 1
 
---IHN1W6RHQpc6V3CH0peJa1uWWXdcwWsxJ--
+and (nfsroot) time to time:
+scp root@192.168.0.1:/usr/portage/distfiles/thunderbird-52.1.0.source.tar.xz /
 
---uS4b9ip4BsQo8tQqA8pS5REKouhm9FWDS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+$ ls -alh /usr/portage/distfiles/thunderbird-52.1.0.source.tar.xz 
+218M Apr 30 15:46 /usr/portage/distfiles/thunderbird-52.1.0.source.tar.xz
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+In essence copy 218M from my host back to the host.
 
-iQIcBAEBCAAGBQJZEr/5AAoJEPo9qoy8lh717LsQAJ86j7S+1IVJc/mULViVQg1E
-jR1TAp37nB7m6KG7sYyxTEc7KuFsfFR/MmoquHDzaaO/tY2b4YUNatktFglLAGDj
-3Z3W6LpwmwPxCtc1V1sJnjmN3LttZ4wZxK2qqVis6/VI3yv0vYCOS7kA1mRpDeXw
-msbtM5/WIgK5m/NgfhFIre8MYC7PEoB5QNSSVbt9qjdTJ2CJcg0dov3sPsUR6LVq
-olyBnPx6HVWPeUe2RWPcxWIl16yoqclN14Dy+pUV/uCVQ1q5TWLwAgAkVTOR6Zmb
-lU8PZ1XOc2UtTE4+RGu9wO7GNBcZM7/8cROIfawD59CSYXq2Lvf5I4mEENn9GKDd
-kgmrCW6vAd+M6sNIskockKud9HDcWx2hOEPAhh4a5CPpB1fr+FyS8NT6kDBQzDqA
-As0f9IrAt6si2UtHwdpEmGlW5xeFStSztWQJqspW+fE1qAc2tcz0Pu3kGOAItaXS
-QNyFIa0Vrh2GpJ85IG4Hcqnh1diayEBGedFMKSl42QKXZWnnMVRG7dcptbEYd4lW
-u8XN2js8k0pRoR9DJxO3e0KlYMBPsPjef88tB9EOQV0/Xh+uq9fdXDiLAMw5uWvH
-vTGesXitUTyYswnkR2ga2aza7/SHmiFmEfbpjebdPYjz9bmnXK8gp2fv8LG7W9pk
-Zfm36omiYWfS4+EUE/4j
-=ifs2
------END PGP SIGNATURE-----
+ping-test.sh (modified version from Tony to show the wrap count):
+#!/bin/bash
 
---uS4b9ip4BsQo8tQqA8pS5REKouhm9FWDS--
+device=$1
+size=$2
+wraps=0
 
---===============0334437943==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+while [ 1 ]; do
+        #echo "Pinging with size $size"
+        if ! ping -w0 -c1 -s$size $device > /dev/null 2>&1; then
+                break;
+        fi
+        size=$(expr $size + 1)
 
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+        if [ $size -gt 8192 ]; then
+	        wraps=$(expr $wraps + 1)
+		echo "wrapping ($wraps) at $size"
+                size=1
+        fi
+done
+echo "Test ran up to $size"
 
---===============0334437943==--
+Regards,
+Peter
+
+CC: dmaengine@vger.kernel.org
+I only send the cover letter and the DMAengine patch for the dmaengine list, the
+rest can be checked - if there is interest - via lkml
+---
+Peter Ujfalusi (10):
+  dmaengine: omap-dma: port_window support correction for both direction
+  usb: musb: Add quirk to avoid skb reserve in gadget mode
+  usb: musb: tusb6010: Add MUSB_G_NO_SKB_RESERVE to quirks
+  usb: musb: tusb6010_omap: Use one musb_ep_select call in
+    tusb_omap_dma_program
+  usb: musb: tusb6010_omap: Do not reset the other direction's packet
+    size
+  usb: musb: tusb6010_omap: Create new struct for DMA data/parameters
+  usb: musb: tusb6010_omap: Allocate DMA channels upfront
+  usb: musb: tusb6010: Handle DMA TX completion in DMA callback as well
+  ARM: OMAP2+: DMA: Add slave map entries for 24xx external request
+    lines
+  usb: musb: tusb6010_omap: Convert to DMAengine API
+
+ arch/arm/mach-omap2/dma.c        |  24 +++
+ drivers/dma/omap-dma.c           |  39 ++--
+ drivers/usb/musb/musb_core.c     |   3 +
+ drivers/usb/musb/musb_core.h     |   1 +
+ drivers/usb/musb/tusb6010.c      |  21 +--
+ drivers/usb/musb/tusb6010_omap.c | 391 ++++++++++++++++-----------------------
+ 6 files changed, 211 insertions(+), 268 deletions(-)
+
+-- 
+2.12.2
