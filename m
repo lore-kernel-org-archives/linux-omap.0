@@ -1,40 +1,41 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v2 05/10] usb: musb: tusb6010_omap: Do not reset the
- other direction's packet size
-Date: Wed, 10 May 2017 16:16:28 -0700
-Message-ID: <1494458188.2028.5.camel@perches.com>
-References: <20170510084231.19302-1-peter.ujfalusi@ti.com>
-         <20170510084231.19302-6-peter.ujfalusi@ti.com>
-         <20170510170754.GA7154@uda0271908>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
+ platform code
+Date: Wed, 10 May 2017 09:46:13 -0700
+Message-ID: <20170510164612.GP3489@atomide.com>
+References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
+ <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
+ <20170509150550.bi4bzadesmma6ntp@earth>
+ <989d9224-7f13-c091-7030-3ceb68a6c600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170510170754.GA7154@uda0271908>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <989d9224-7f13-c091-7030-3ceb68a6c600@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Liam Girdwood <lgirdwood@gmail.com>, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2017-05-10 at 12:07 -0500, Bin Liu wrote:
-> On Wed, May 10, 2017 at 11:42:27AM +0300, Peter Ujfalusi wrote:
-> > We have one register for each EP to set the maximum packet size for both
-> > TX and RX.
-> > If for example an RX programming would happen before the previous TX
-> > transfer finishes we would reset the TX packet side.
-> > 
-> > To fix this issue, only modify the TX or RX part of the register.
-[]
-> > diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
-[]
-> > @@ -389,15 +389,19 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
-> >  
-> >  	if (chdat->tx) {
-> >  		/* Send transfer_packet_sz packets at a time */
-> > -		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET,
-> > -			chdat->transfer_packet_sz);
-> > +		u32 psize = musb_readl(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET);
-> 
-> checkpatch.pl complains about declaration and assignment together.
-
-No it doesn't.
+KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTcwNTEwIDAwOjI2XToK
+PiBPbiAwOS8wNS8xNyAxODowNSwgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cj4gCj4gPiBwYXRj
+aCAxMDoKPiA+IEkgdGhpbmsgZHNpIHBpbiBtdXhpbmcgc2hvdWxkIGJlIGRvbmUgYnkgcHJvdmlk
+aW5nIHBpbm11eAo+ID4gaW5mbyB2aWEgRFQuCj4gCj4gVW5mb3J0dW5hdGVseSB0aGVyZSdzIG5v
+IHBpbm11eCBkcml2ZXIgZm9yIHRoZSBraW5kIG9mIHJlZ2lzdGVyIHdlIGhhdmUKPiBmb3IgRFNJ
+LiBBdCBsZWFzdCB0aGlzIHdhcyB0aGUgY2FzZSBub3QgdGhhdCBsb25nIGFnby4KCldoYXQgYXJl
+IHRoZSBUUk0gbmFtZXMgZm9yIHRoZSByZWdpc3RlcnMgeW91IG5lZWQgdG8gbXV4PwoKQUZBSUsg
+cGluY3RybC1zaW5nbGUgc2hvdWxkIGJlIGNhcGFibGUgb2YgbXV4aW5nIGFueXRoaW5nIGluCnRo
+ZSBwYWRjb25mIHJlZ2lzdGVycyBhcmVhLiBJdCBzaG91bGQgYmUgb25seSB1c2VkIGZvciBleHRl
+cm5hbApwaW5zIHRob3VnaCwgbm90IGludGVybmFsIG11eGVzLgoKUmVnYXJkcywKClRvbnkKCgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
