@@ -1,14 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
  platform code
-Date: Wed, 10 May 2017 09:48:02 +0300
-Message-ID: <4cbcc8a9-ea2e-f442-1e91-138e18ed9620@ti.com>
+Date: Wed, 10 May 2017 10:23:37 +0300
+Message-ID: <989d9224-7f13-c091-7030-3ceb68a6c600@ti.com>
 References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
- <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com> <1872968.7fdiNycxOH@avalon>
+ <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
+ <20170509150550.bi4bzadesmma6ntp@earth>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0163308086=="
+Content-Type: multipart/mixed; boundary="===============0334437943=="
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1872968.7fdiNycxOH@avalon>
+In-Reply-To: <20170509150550.bi4bzadesmma6ntp@earth>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -18,85 +19,53 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---===============0163308086==
+--===============0334437943==
 Content-Type: multipart/signed; micalg=pgp-sha256;
 	protocol="application/pgp-signature";
-	boundary="DCsnrm4cUkEpGOU5UdxVcwiHd3IUbr38V"
+	boundary="uS4b9ip4BsQo8tQqA8pS5REKouhm9FWDS"
 
---DCsnrm4cUkEpGOU5UdxVcwiHd3IUbr38V
-Content-Type: multipart/mixed; boundary="jEUMxfeLMUkk6kOSXkFq78O34X7ChSCKd";
+--uS4b9ip4BsQo8tQqA8pS5REKouhm9FWDS
+Content-Type: multipart/mixed; boundary="IHN1W6RHQpc6V3CH0peJa1uWWXdcwWsxJ";
  protected-headers="v1"
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org,
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ dri-devel@lists.freedesktop.org,
  Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
- Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>,
- Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>,
+ Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>,
+ Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>,
  linux-omap@vger.kernel.org
-Message-ID: <4cbcc8a9-ea2e-f442-1e91-138e18ed9620@ti.com>
+Message-ID: <989d9224-7f13-c091-7030-3ceb68a6c600@ti.com>
 Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
  platform code
 References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
- <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com> <1872968.7fdiNycxOH@avalon>
-In-Reply-To: <1872968.7fdiNycxOH@avalon>
+ <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
+ <20170509150550.bi4bzadesmma6ntp@earth>
+In-Reply-To: <20170509150550.bi4bzadesmma6ntp@earth>
 
---jEUMxfeLMUkk6kOSXkFq78O34X7ChSCKd
+--IHN1W6RHQpc6V3CH0peJa1uWWXdcwWsxJ
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
+On 09/05/17 18:05, Sebastian Reichel wrote:
 
+> patch 10:
+> I think dsi pin muxing should be done by providing pinmux
+> info via DT.
 
-On 10/05/17 01:18, Laurent Pinchart wrote:
-> Hi Tomi,
->=20
-> On Tuesday 09 May 2017 15:10:40 Tomi Valkeinen wrote:
->> On 08/05/17 14:32, Laurent Pinchart wrote:
->>> Hello,
->>>
->>> This patch series is a second, extended version of the code previousl=
-y
->>> posted as "[PATCH/RFC 0/7] Remove the omapdrm device from platform co=
-de".
->> As this is a long series, I'd like to pick a bunch of patches from thi=
-s
->> series already:
->>
->> 1-5, 7, 19, 21.
->>
->> I didn't test yet, but I think those should not cause conflicts with t=
-he
->> rest of the series.
->>
->> I can then push the branch, which contains also the fences and cache
->> patches, so you can base the rest on that.
->>
->> Is this ok?
->=20
-> Patch 21 will conflict, the other ones shouldn't. For your convenience =
-I've=20
-> picked all the Reviewed-by tags, fixed a typo in patch 01/28 that broke=
-=20
-> compilation, rebased the patches with 1-5, 7 and 19 moved to the beginn=
-ing of=20
-> the series, tested the result and pushed it to
->=20
-> 	git://linuxtv.org/pinchartl/media.git omapdrm/platform
->=20
-> You can just pick the 7 first patches from there.
-
-Thanks, I picked those. A few minor conflicts with my branch, but I
-fixed them.
+Unfortunately there's no pinmux driver for the kind of register we have
+for DSI. At least this was the case not that long ago.
 
  Tomi
 
 
---jEUMxfeLMUkk6kOSXkFq78O34X7ChSCKd--
+--IHN1W6RHQpc6V3CH0peJa1uWWXdcwWsxJ--
 
---DCsnrm4cUkEpGOU5UdxVcwiHd3IUbr38V
+--uS4b9ip4BsQo8tQqA8pS5REKouhm9FWDS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -104,24 +73,24 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJZEreiAAoJEPo9qoy8lh71vIQP/3vYr8i63ZoTnXfelUFs17w+
-3zpWuwJBh1rRjQHo8A7AS44NCS+Skl9bDqwwq9i5kUl9SiL5bHmWS6bUDMbBDMVO
-lM+3o5YBBGsCA44Uy6rPlmU5LikCp8K48cBRj0kFd4d/q+iUfi7tTYiXgVemWbdx
-+qHLUIan6TekRTZJlwUTUBcvLZMnwjhFpe/88XCRkzUesVPvtpXuQeBb+ZxCBIEN
-tSTGNrhnhIzqgDRVDjjNlEPIy/loHJ4Q1y726pj121/Pa1SY3JVxxeABSiTNkp1O
-mxzl2EVto48iOf9yKmkHxytQYm0GD4AdNcTp8R+lHV7d4BogupFP1Sc+giAA9ytS
-uan5yyUT5bmFKbis0jCfhKRYr6HXEv0aMK+AdWaZX+/CIWr+hBPVKCbPvh4PBXcN
-JZnEZuo2sSxHq90teWd+ps6+GiBw65eayI2Rn1rcerx7Dbc+OxsCLwwfRkGlSYh6
-DmI4bzQvN8fmwaQDYXb1sEG2zYv/ZRqxAvalOAwqL9ByxCEpt+vIiqrolabMyVqj
-EQpkEmEodgKfDxdH6aUj/0aGS5Sn35TyZzibOWrBAXfk1KoHqgW69Kwsm6kHmlFK
-Z0fdYO4J5mrMr7/F7s2X4JfSqKChicz+fm7tDKxazHzhv6nzqOjBtVlp56p1ZvHh
-R6jEXCqic6QfQhROgnO+
-=rud5
+iQIcBAEBCAAGBQJZEr/5AAoJEPo9qoy8lh717LsQAJ86j7S+1IVJc/mULViVQg1E
+jR1TAp37nB7m6KG7sYyxTEc7KuFsfFR/MmoquHDzaaO/tY2b4YUNatktFglLAGDj
+3Z3W6LpwmwPxCtc1V1sJnjmN3LttZ4wZxK2qqVis6/VI3yv0vYCOS7kA1mRpDeXw
+msbtM5/WIgK5m/NgfhFIre8MYC7PEoB5QNSSVbt9qjdTJ2CJcg0dov3sPsUR6LVq
+olyBnPx6HVWPeUe2RWPcxWIl16yoqclN14Dy+pUV/uCVQ1q5TWLwAgAkVTOR6Zmb
+lU8PZ1XOc2UtTE4+RGu9wO7GNBcZM7/8cROIfawD59CSYXq2Lvf5I4mEENn9GKDd
+kgmrCW6vAd+M6sNIskockKud9HDcWx2hOEPAhh4a5CPpB1fr+FyS8NT6kDBQzDqA
+As0f9IrAt6si2UtHwdpEmGlW5xeFStSztWQJqspW+fE1qAc2tcz0Pu3kGOAItaXS
+QNyFIa0Vrh2GpJ85IG4Hcqnh1diayEBGedFMKSl42QKXZWnnMVRG7dcptbEYd4lW
+u8XN2js8k0pRoR9DJxO3e0KlYMBPsPjef88tB9EOQV0/Xh+uq9fdXDiLAMw5uWvH
+vTGesXitUTyYswnkR2ga2aza7/SHmiFmEfbpjebdPYjz9bmnXK8gp2fv8LG7W9pk
+Zfm36omiYWfS4+EUE/4j
+=ifs2
 -----END PGP SIGNATURE-----
 
---DCsnrm4cUkEpGOU5UdxVcwiHd3IUbr38V--
+--uS4b9ip4BsQo8tQqA8pS5REKouhm9FWDS--
 
---===============0163308086==
+--===============0334437943==
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
@@ -131,4 +100,4 @@ X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
 IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
 dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
 
---===============0163308086==--
+--===============0334437943==--
