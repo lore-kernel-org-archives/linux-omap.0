@@ -1,61 +1,42 @@
-From: Bin Liu <b-liu@ti.com>
-Subject: Re: [PATCH v2 05/10] usb: musb: tusb6010_omap: Do not reset the
- other direction's packet size
-Date: Thu, 11 May 2017 09:12:35 -0500
-Message-ID: <20170511141235.GD7154@uda0271908>
-References: <20170510084231.19302-1-peter.ujfalusi@ti.com>
- <20170510084231.19302-6-peter.ujfalusi@ti.com>
- <20170510170754.GA7154@uda0271908>
- <1494458188.2028.5.camel@perches.com>
- <2d693d53-ba32-1549-90bd-da92f061cbed@ti.com>
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: Re: [PATCH] ARM: remove duplicate 'const' annotations'
+Date: Thu, 11 May 2017 10:20:01 -0700
+Message-ID: <d4e668df-3a3a-f246-8b57-6faf2600cf1a@gmail.com>
+References: <20170511115059.2997141-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2d693d53-ba32-1549-90bd-da92f061cbed@ti.com>
+In-Reply-To: <20170511115059.2997141-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Joe Perches <joe@perches.com>, tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, arm@kernel.org
+Cc: Nicolas Pitre <nico@linaro.org>, Nicolas Ferre <nicolas.ferre@microchip.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Russell King <linux@armlinux.org.uk>, Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, bcm-kernel-feedback-list@broadcom.com, Krzysztof Halasa <khalasa@piap.pl>, Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Wenyou Yang <wenyou.yang@atmel.com>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 11, 2017 at 09:19:17AM +0300, Peter Ujfalusi wrote:
+On 05/11/2017 04:50 AM, Arnd Bergmann wrote:
+> gcc-7 warns about some declarations that are more 'const' than necessary:
 > 
+> arch/arm/mach-at91/pm.c:338:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+>  static const struct of_device_id const ramc_ids[] __initconst = {
+> arch/arm/mach-bcm/bcm_kona_smc.c:36:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+>  static const struct of_device_id const bcm_kona_smc_ids[] __initconst = {
+> arch/arm/mach-spear/time.c:207:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+>  static const struct of_device_id const timer_of_match[] __initconst = {
+> arch/arm/mach-omap2/prm_common.c:714:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+>  static const struct of_device_id const omap_prcm_dt_match_table[] __initconst = {
+> arch/arm/mach-omap2/vc.c:562:35: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+>  static const struct i2c_init_data const omap4_i2c_timing_data[] __initconst = {
 > 
-> On 2017-05-11 02:16, Joe Perches wrote:
-> >On Wed, 2017-05-10 at 12:07 -0500, Bin Liu wrote:
-> >>On Wed, May 10, 2017 at 11:42:27AM +0300, Peter Ujfalusi wrote:
-> >>>We have one register for each EP to set the maximum packet size for both
-> >>>TX and RX.
-> >>>If for example an RX programming would happen before the previous TX
-> >>>transfer finishes we would reset the TX packet side.
-> >>>
-> >>>To fix this issue, only modify the TX or RX part of the register.
-> >[]
-> >>>diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
-> >[]
-> >>>@@ -389,15 +389,19 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
-> >>>  	if (chdat->tx) {
-> >>>  		/* Send transfer_packet_sz packets at a time */
-> >>>-		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET,
-> >>>-			chdat->transfer_packet_sz);
-> >>>+		u32 psize = musb_readl(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET);
-> >>
-> >>checkpatch.pl complains about declaration and assignment together.
-> >
-> >No it doesn't.
+> The ones in arch/arm were apparently all introduced accidentally by one
+> commit that correctly marked a lot of variables as __initconst.
 > 
-> It 'only' complains about:
-> WARNING: Missing a blank line after declarations
+> Cc: Nicolas Pitre <nico@linaro.org>
+> Fixes: 19c233b79d1a ("ARM: appropriate __init annotation for const data")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
 
-It was it. My bad, I was multi-tasking and didn't read the log
-carefully.
+>  arch/arm/mach-bcm/bcm_kona_smc.c | 2 +-
 
-> 
-> which is valid.
-
-So will you update the patch to move the declaration to the beginning of
-the function to avoid this WARNING. I would just fix it locally if you
-prefer.
-
-Regards,
--Bin.
+Acked-by: Florian Fainelli <f.fainelli@gmail.com>
+-- 
+Florian
