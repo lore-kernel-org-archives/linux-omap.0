@@ -1,131 +1,60 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [PATCH] ARM: remove duplicate 'const' annotations'
-Date: Thu, 11 May 2017 11:07:39 -0400 (EDT)
-Message-ID: <alpine.LFD.2.20.1705111106570.3061@knanqh.ubzr>
-References: <20170511115059.2997141-1-arnd@arndb.de>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] omapfb: Use devm_kcalloc() in vrfb_probe()
+Date: Thu, 11 May 2017 17:22:54 +0200
+Message-ID: <2438676.F6TUoaB08n@amdc3058>
+References: <CGME20170426092018epcas4p343e69e32255faa796e7c55c3e89e40f2@epcas4p3.samsung.com>
+        <4a7b1751-4319-4bde-cf26-2de2a4096c68@users.sourceforge.net>
+        <1672837.1nPA5UjCzD@amdc3058>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170511115059.2997141-1-arnd@arndb.de>
+In-reply-to: <1672837.1nPA5UjCzD@amdc3058>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: arm@kernel.org, Nicolas Ferre <nicolas.ferre@microchip.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Russell King <linux@armlinux.org.uk>, Florian Fainelli <f.fainelli@gmail.com>, Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, bcm-kernel-feedback-list@broadcom.com, Krzysztof Halasa <khalasa@piap.pl>, Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Wenyou Yang <wenyou.yang@atmel.com>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 11 May 2017, Arnd Bergmann wrote:
+On Thursday, May 11, 2017 04:27:19 PM Bartlomiej Zolnierkiewicz wrote:
 
-> gcc-7 warns about some declarations that are more 'const' than necessary:
+> > @@ -358,11 +358,7 @@ static int __init vrfb_probe(struct platform_device *pdev)
+> >  		return PTR_ERR(vrfb_base);
+> >  
+> >  	num_ctxs = pdev->num_resources - 1;
+> > -
+> > -	ctxs = devm_kzalloc(&pdev->dev,
+> > -			sizeof(struct vrfb_ctx) * num_ctxs,
+> > -			GFP_KERNEL);
+> > -
+> > +	ctxs = devm_kcalloc(&pdev->dev, num_ctxs, sizeof(*ctxs), GFP_KERNEL);
 > 
-> arch/arm/mach-at91/pm.c:338:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct of_device_id const ramc_ids[] __initconst = {
-> arch/arm/mach-bcm/bcm_kona_smc.c:36:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct of_device_id const bcm_kona_smc_ids[] __initconst = {
-> arch/arm/mach-spear/time.c:207:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct of_device_id const timer_of_match[] __initconst = {
-> arch/arm/mach-omap2/prm_common.c:714:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct of_device_id const omap_prcm_dt_match_table[] __initconst = {
-> arch/arm/mach-omap2/vc.c:562:35: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct i2c_init_data const omap4_i2c_timing_data[] __initconst = {
-> 
-> The ones in arch/arm were apparently all introduced accidentally by one
-> commit that correctly marked a lot of variables as __initconst.
-> 
-> Cc: Nicolas Pitre <nico@linaro.org>
-> Fixes: 19c233b79d1a ("ARM: appropriate __init annotation for const data")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> This change makes the resulting binary larger by 24 bytes (probably
+> because of the need to have an additional function argument) and
 
-Acked-by: Nicolas Pitre <nico@linaro.org>
+24 bytes seemed too much for just an additional function argument
+so I've checked the source:
 
+static inline void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
+{
+	return devm_kmalloc(dev, size, gfp | __GFP_ZERO);
+}
+static inline void *devm_kmalloc_array(struct device *dev,
+				       size_t n, size_t size, gfp_t flags)
+{
+	if (size != 0 && n > SIZE_MAX / size)
+		return NULL;
+	return devm_kmalloc(dev, n * size, flags);
+}
+static inline void *devm_kcalloc(struct device *dev,
+				 size_t n, size_t size, gfp_t flags)
+{
+	return devm_kmalloc_array(dev, n, size, flags | __GFP_ZERO);
+}
 
+The extra kcalloc() checks are inlined currently into each instance.
 
-> ---
->  arch/arm/mach-at91/pm.c          | 2 +-
->  arch/arm/mach-bcm/bcm_kona_smc.c | 2 +-
->  arch/arm/mach-cns3xxx/core.c     | 2 +-
->  arch/arm/mach-omap2/prm_common.c | 2 +-
->  arch/arm/mach-omap2/vc.c         | 2 +-
->  arch/arm/mach-spear/time.c       | 2 +-
->  6 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/mach-at91/pm.c b/arch/arm/mach-at91/pm.c
-> index 2cd27c830ab6..283e79ab587d 100644
-> --- a/arch/arm/mach-at91/pm.c
-> +++ b/arch/arm/mach-at91/pm.c
-> @@ -335,7 +335,7 @@ static const struct ramc_info ramc_infos[] __initconst = {
->  	{ .idle = sama5d3_ddr_standby, .memctrl = AT91_MEMCTRL_DDRSDR},
->  };
->  
-> -static const struct of_device_id const ramc_ids[] __initconst = {
-> +static const struct of_device_id ramc_ids[] __initconst = {
->  	{ .compatible = "atmel,at91rm9200-sdramc", .data = &ramc_infos[0] },
->  	{ .compatible = "atmel,at91sam9260-sdramc", .data = &ramc_infos[1] },
->  	{ .compatible = "atmel,at91sam9g45-ddramc", .data = &ramc_infos[2] },
-> diff --git a/arch/arm/mach-bcm/bcm_kona_smc.c b/arch/arm/mach-bcm/bcm_kona_smc.c
-> index 5157faa502eb..3937bd5d452f 100644
-> --- a/arch/arm/mach-bcm/bcm_kona_smc.c
-> +++ b/arch/arm/mach-bcm/bcm_kona_smc.c
-> @@ -33,7 +33,7 @@ struct bcm_kona_smc_data {
->  	unsigned result;
->  };
->  
-> -static const struct of_device_id const bcm_kona_smc_ids[] __initconst = {
-> +static const struct of_device_id bcm_kona_smc_ids[] __initconst = {
->  	{.compatible = "brcm,kona-smc"},
->  	{.compatible = "bcm,kona-smc"}, /* deprecated name */
->  	{},
-> diff --git a/arch/arm/mach-cns3xxx/core.c b/arch/arm/mach-cns3xxx/core.c
-> index 03da3813f1ab..7d5a44a06648 100644
-> --- a/arch/arm/mach-cns3xxx/core.c
-> +++ b/arch/arm/mach-cns3xxx/core.c
-> @@ -346,7 +346,7 @@ static struct usb_ohci_pdata cns3xxx_usb_ohci_pdata = {
->  	.power_off	= csn3xxx_usb_power_off,
->  };
->  
-> -static const struct of_dev_auxdata const cns3xxx_auxdata[] __initconst = {
-> +static const struct of_dev_auxdata cns3xxx_auxdata[] __initconst = {
->  	{ "intel,usb-ehci", CNS3XXX_USB_BASE, "ehci-platform", &cns3xxx_usb_ehci_pdata },
->  	{ "intel,usb-ohci", CNS3XXX_USB_OHCI_BASE, "ohci-platform", &cns3xxx_usb_ohci_pdata },
->  	{ "cavium,cns3420-ahci", CNS3XXX_SATA2_BASE, "ahci", NULL },
-> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-> index 2b138b65129a..dc11841ca334 100644
-> --- a/arch/arm/mach-omap2/prm_common.c
-> +++ b/arch/arm/mach-omap2/prm_common.c
-> @@ -711,7 +711,7 @@ static struct omap_prcm_init_data scrm_data __initdata = {
->  };
->  #endif
->  
-> -static const struct of_device_id const omap_prcm_dt_match_table[] __initconst = {
-> +static const struct of_device_id omap_prcm_dt_match_table[] __initconst = {
->  #ifdef CONFIG_SOC_AM33XX
->  	{ .compatible = "ti,am3-prcm", .data = &am3_prm_data },
->  #endif
-> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-> index 2028167fff31..d76b1e5eb8ba 100644
-> --- a/arch/arm/mach-omap2/vc.c
-> +++ b/arch/arm/mach-omap2/vc.c
-> @@ -559,7 +559,7 @@ struct i2c_init_data {
->  	u8 hsscll_12;
->  };
->  
-> -static const struct i2c_init_data const omap4_i2c_timing_data[] __initconst = {
-> +static const struct i2c_init_data omap4_i2c_timing_data[] __initconst = {
->  	{
->  		.load = 50,
->  		.loadbits = 0x3,
-> diff --git a/arch/arm/mach-spear/time.c b/arch/arm/mach-spear/time.c
-> index 4878ba90026d..289e036c9c30 100644
-> --- a/arch/arm/mach-spear/time.c
-> +++ b/arch/arm/mach-spear/time.c
-> @@ -204,7 +204,7 @@ static void __init spear_clockevent_init(int irq)
->  	setup_irq(irq, &spear_timer_irq);
->  }
->  
-> -static const struct of_device_id const timer_of_match[] __initconst = {
-> +static const struct of_device_id timer_of_match[] __initconst = {
->  	{ .compatible = "st,spear-timer", },
->  	{ },
->  };
-> -- 
-> 2.9.0
-> 
-> 
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
