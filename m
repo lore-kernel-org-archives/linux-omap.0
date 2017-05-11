@@ -1,48 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
- platform code
-Date: Wed, 10 May 2017 11:29:41 -0700
-Message-ID: <20170510182940.GQ3489@atomide.com>
-References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
- <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
- <20170509150550.bi4bzadesmma6ntp@earth>
- <989d9224-7f13-c091-7030-3ceb68a6c600@ti.com>
- <20170510164612.GP3489@atomide.com>
- <f05cc81e-d61e-c54f-10e8-e8fba9de1719@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 05/10] usb: musb: tusb6010_omap: Do not reset the other
+ direction's packet size
+Date: Thu, 11 May 2017 09:19:17 +0300
+Message-ID: <2d693d53-ba32-1549-90bd-da92f061cbed@ti.com>
+References: <20170510084231.19302-1-peter.ujfalusi@ti.com>
+ <20170510084231.19302-6-peter.ujfalusi@ti.com>
+ <20170510170754.GA7154@uda0271908> <1494458188.2028.5.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <f05cc81e-d61e-c54f-10e8-e8fba9de1719@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Liam Girdwood <lgirdwood@gmail.com>, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1494458188.2028.5.camel@perches.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>, Bin Liu <b-liu@ti.com>
+Cc: tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTcwNTEwIDEwOjQ0XToK
-PiAKPiAKPiBPbiAxMC8wNS8xNyAxOTo0NiwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+ICogVG9t
-aSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4gWzE3MDUxMCAwMDoyNl06Cj4gPj4g
-T24gMDkvMDUvMTcgMTg6MDUsIFNlYmFzdGlhbiBSZWljaGVsIHdyb3RlOgo+ID4+Cj4gPj4+IHBh
-dGNoIDEwOgo+ID4+PiBJIHRoaW5rIGRzaSBwaW4gbXV4aW5nIHNob3VsZCBiZSBkb25lIGJ5IHBy
-b3ZpZGluZyBwaW5tdXgKPiA+Pj4gaW5mbyB2aWEgRFQuCj4gPj4KPiA+PiBVbmZvcnR1bmF0ZWx5
-IHRoZXJlJ3Mgbm8gcGlubXV4IGRyaXZlciBmb3IgdGhlIGtpbmQgb2YgcmVnaXN0ZXIgd2UgaGF2
-ZQo+ID4+IGZvciBEU0kuIEF0IGxlYXN0IHRoaXMgd2FzIHRoZSBjYXNlIG5vdCB0aGF0IGxvbmcg
-YWdvLgo+ID4gCj4gPiBXaGF0IGFyZSB0aGUgVFJNIG5hbWVzIGZvciB0aGUgcmVnaXN0ZXJzIHlv
-dSBuZWVkIHRvIG11eD8KPiAKPiBDT05UUk9MX0RTSVBIWQoKT2gganVzdCBvbmUgcmVnaXN0ZXIg
-d2l0aCBmZXcgYml0cz8gVGhhdCBzaG91bGQgYmUgZG9hYmxlIGluCmR0cyB3aXRoIHBpbmN0cmwt
-c2luZ2xlLGJpdC1wZXItbXV4IGFuZCBwaW5jdHJsLXNpbmdsZSxiaXRzLgoKVGhlcmUgYXJlIGV4
-YW1wbGVzIGluIHRoZSBrZXJuZWwgdHJlZToKCiQgZ2l0IGdyZXAgLWUgcGluY3RybC1zaW5nbGUs
-Yml0cyAtZSBwaW5jdHJsLXNpbmdsZSxiaXQtcGVyLW11eCBcCglhcmNoL2FybS9ib290L2R0cwoK
-UmVnYXJkcywKClRvbnkKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJp
-LWRldmVsCg==
+
+
+On 2017-05-11 02:16, Joe Perches wrote:
+> On Wed, 2017-05-10 at 12:07 -0500, Bin Liu wrote:
+>> On Wed, May 10, 2017 at 11:42:27AM +0300, Peter Ujfalusi wrote:
+>>> We have one register for each EP to set the maximum packet size for both
+>>> TX and RX.
+>>> If for example an RX programming would happen before the previous TX
+>>> transfer finishes we would reset the TX packet side.
+>>>
+>>> To fix this issue, only modify the TX or RX part of the register.
+> []
+>>> diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
+> []
+>>> @@ -389,15 +389,19 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
+>>>   
+>>>   	if (chdat->tx) {
+>>>   		/* Send transfer_packet_sz packets at a time */
+>>> -		musb_writel(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET,
+>>> -			chdat->transfer_packet_sz);
+>>> +		u32 psize = musb_readl(ep_conf, TUSB_EP_MAX_PACKET_SIZE_OFFSET);
+>>
+>> checkpatch.pl complains about declaration and assignment together.
+> 
+> No it doesn't.
+
+It 'only' complains about:
+WARNING: Missing a blank line after declarations
+
+which is valid.
+
+- Péter
