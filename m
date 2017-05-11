@@ -1,132 +1,80 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Re: [PATCH] ARM: remove duplicate 'const' annotations'
-Date: Thu, 11 May 2017 13:58:52 +0200
-Message-ID: <20170511115852.t33446wrsxedmomw@piout.net>
-References: <20170511115059.2997141-1-arnd@arndb.de>
+From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] usb: musb: musb_cppi41: Update an error message
+Date: Thu, 11 May 2017 09:06:27 -0500
+Message-ID: <20170511140627.GC7154@uda0271908>
+References: <20170505125233.27015-1-abailon@baylibre.com>
+ <20170510194513.GB7154@uda0271908>
+ <20170511075111.GM30445@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170511115059.2997141-1-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: arm@kernel.org, Nicolas Pitre <nico@linaro.org>, Nicolas Ferre <nicolas.ferre@microchip.com>, Russell King <linux@armlinux.org.uk>, Florian Fainelli <f.fainelli@gmail.com>, Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, bcm-kernel-feedback-list@broadcom.com, Krzysztof Halasa <khalasa@piap.pl>, Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <vireshk@kernel.org>, Wenyou Yang <wenyou.yang@atmel.com>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20170511075111.GM30445@localhost>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org" <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/05/2017 at 13:50:16 +0200, Arnd Bergmann wrote:
-> gcc-7 warns about some declarations that are more 'const' than necessary:
+On Thu, May 11, 2017 at 09:51:11AM +0200, Johan Hovold wrote:
+> On Wed, May 10, 2017 at 02:45:13PM -0500, Bin Liu wrote:
+> > On Fri, May 05, 2017 at 07:52:33AM -0500, Alexandre Bailon wrote:
+> > > If dma_request_slave_channel() failed to return a channel,
+> > > then the driver will print an error and request to defer probe,
+> > > regardless of the cause of the failure.
+> > > Only defer if the DMA is not ready yet and print an error to explain
+> > > that we are deferring probe.
+> > > 
+> > > Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> > 
+> > Applied. Thanks.
+> > 
+> > > ---
+> > >  drivers/usb/musb/musb_cppi41.c | 10 ++++++----
+> > >  1 file changed, 6 insertions(+), 4 deletions(-)
+> > > 
+> > > diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
+> > > index e7c8b1b..4718d0d 100644
+> > > --- a/drivers/usb/musb/musb_cppi41.c
+> > > +++ b/drivers/usb/musb/musb_cppi41.c
+> > > @@ -673,10 +673,12 @@ static int cppi41_dma_controller_start(struct cppi41_dma_controller *controller)
+> > >  		musb_dma->status = MUSB_DMA_STATUS_FREE;
+> > >  		musb_dma->max_len = SZ_4M;
+> > >  
+> > > -		dc = dma_request_slave_channel(dev->parent, str);
+> > > -		if (!dc) {
+> > > -			dev_err(dev, "Failed to request %s.\n", str);
+> > > -			ret = -EPROBE_DEFER;
+> > > +		dc = dma_request_chan(dev->parent, str);
+> > > +		if (IS_ERR(dc)) {
+> > > +			ret = PTR_ERR(dc);
+> > > +			dev_err(dev, "Failed to request %s%s.\n", str,
+> > > +				ret == -EPROBE_DEFER
+> > > +				? ", deferring probe" : "");
 > 
-> arch/arm/mach-at91/pm.c:338:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct of_device_id const ramc_ids[] __initconst = {
-> arch/arm/mach-bcm/bcm_kona_smc.c:36:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct of_device_id const bcm_kona_smc_ids[] __initconst = {
-> arch/arm/mach-spear/time.c:207:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct of_device_id const timer_of_match[] __initconst = {
-> arch/arm/mach-omap2/prm_common.c:714:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct of_device_id const omap_prcm_dt_match_table[] __initconst = {
-> arch/arm/mach-omap2/vc.c:562:35: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
->  static const struct i2c_init_data const omap4_i2c_timing_data[] __initconst = {
-> 
-> The ones in arch/arm were apparently all introduced accidentally by one
-> commit that correctly marked a lot of variables as __initconst.
-> 
-> Cc: Nicolas Pitre <nico@linaro.org>
-> Fixes: 19c233b79d1a ("ARM: appropriate __init annotation for const data")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+> Probe deferral is not really an error, and we typically suppress any
+> error messages otherwise printed when a subsystem requests it to avoid
+> noise during boot. (There is a debug statement in driver core that
 
-> ---
->  arch/arm/mach-at91/pm.c          | 2 +-
->  arch/arm/mach-bcm/bcm_kona_smc.c | 2 +-
->  arch/arm/mach-cns3xxx/core.c     | 2 +-
->  arch/arm/mach-omap2/prm_common.c | 2 +-
->  arch/arm/mach-omap2/vc.c         | 2 +-
->  arch/arm/mach-spear/time.c       | 2 +-
->  6 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/mach-at91/pm.c b/arch/arm/mach-at91/pm.c
-> index 2cd27c830ab6..283e79ab587d 100644
-> --- a/arch/arm/mach-at91/pm.c
-> +++ b/arch/arm/mach-at91/pm.c
-> @@ -335,7 +335,7 @@ static const struct ramc_info ramc_infos[] __initconst = {
->  	{ .idle = sama5d3_ddr_standby, .memctrl = AT91_MEMCTRL_DDRSDR},
->  };
->  
-> -static const struct of_device_id const ramc_ids[] __initconst = {
-> +static const struct of_device_id ramc_ids[] __initconst = {
->  	{ .compatible = "atmel,at91rm9200-sdramc", .data = &ramc_infos[0] },
->  	{ .compatible = "atmel,at91sam9260-sdramc", .data = &ramc_infos[1] },
->  	{ .compatible = "atmel,at91sam9g45-ddramc", .data = &ramc_infos[2] },
-> diff --git a/arch/arm/mach-bcm/bcm_kona_smc.c b/arch/arm/mach-bcm/bcm_kona_smc.c
-> index 5157faa502eb..3937bd5d452f 100644
-> --- a/arch/arm/mach-bcm/bcm_kona_smc.c
-> +++ b/arch/arm/mach-bcm/bcm_kona_smc.c
-> @@ -33,7 +33,7 @@ struct bcm_kona_smc_data {
->  	unsigned result;
->  };
->  
-> -static const struct of_device_id const bcm_kona_smc_ids[] __initconst = {
-> +static const struct of_device_id bcm_kona_smc_ids[] __initconst = {
->  	{.compatible = "brcm,kona-smc"},
->  	{.compatible = "bcm,kona-smc"}, /* deprecated name */
->  	{},
-> diff --git a/arch/arm/mach-cns3xxx/core.c b/arch/arm/mach-cns3xxx/core.c
-> index 03da3813f1ab..7d5a44a06648 100644
-> --- a/arch/arm/mach-cns3xxx/core.c
-> +++ b/arch/arm/mach-cns3xxx/core.c
-> @@ -346,7 +346,7 @@ static struct usb_ohci_pdata cns3xxx_usb_ohci_pdata = {
->  	.power_off	= csn3xxx_usb_power_off,
->  };
->  
-> -static const struct of_dev_auxdata const cns3xxx_auxdata[] __initconst = {
-> +static const struct of_dev_auxdata cns3xxx_auxdata[] __initconst = {
->  	{ "intel,usb-ehci", CNS3XXX_USB_BASE, "ehci-platform", &cns3xxx_usb_ehci_pdata },
->  	{ "intel,usb-ohci", CNS3XXX_USB_OHCI_BASE, "ohci-platform", &cns3xxx_usb_ohci_pdata },
->  	{ "cavium,cns3420-ahci", CNS3XXX_SATA2_BASE, "ahci", NULL },
-> diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-> index 2b138b65129a..dc11841ca334 100644
-> --- a/arch/arm/mach-omap2/prm_common.c
-> +++ b/arch/arm/mach-omap2/prm_common.c
-> @@ -711,7 +711,7 @@ static struct omap_prcm_init_data scrm_data __initdata = {
->  };
->  #endif
->  
-> -static const struct of_device_id const omap_prcm_dt_match_table[] __initconst = {
-> +static const struct of_device_id omap_prcm_dt_match_table[] __initconst = {
->  #ifdef CONFIG_SOC_AM33XX
->  	{ .compatible = "ti,am3-prcm", .data = &am3_prm_data },
->  #endif
-> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-> index 2028167fff31..d76b1e5eb8ba 100644
-> --- a/arch/arm/mach-omap2/vc.c
-> +++ b/arch/arm/mach-omap2/vc.c
-> @@ -559,7 +559,7 @@ struct i2c_init_data {
->  	u8 hsscll_12;
->  };
->  
-> -static const struct i2c_init_data const omap4_i2c_timing_data[] __initconst = {
-> +static const struct i2c_init_data omap4_i2c_timing_data[] __initconst = {
->  	{
->  		.load = 50,
->  		.loadbits = 0x3,
-> diff --git a/arch/arm/mach-spear/time.c b/arch/arm/mach-spear/time.c
-> index 4878ba90026d..289e036c9c30 100644
-> --- a/arch/arm/mach-spear/time.c
-> +++ b/arch/arm/mach-spear/time.c
-> @@ -204,7 +204,7 @@ static void __init spear_clockevent_init(int irq)
->  	setup_irq(irq, &spear_timer_irq);
->  }
->  
-> -static const struct of_device_id const timer_of_match[] __initconst = {
-> +static const struct of_device_id timer_of_match[] __initconst = {
->  	{ .compatible = "st,spear-timer", },
->  	{ },
->  };
-> -- 
-> 2.9.0
-> 
+Valid point, the deferral log shouldn't use the error level.
+So dropped this patch from my tree.
 
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+> anyone interested can enable instead).
+> 
+> > >  			goto err;
+> > >  		}
+> 
+> So this should really be
+> 
+> 	if (IS_ERR(DC)) {
+> 		ret = PTR_ERR(dc);
+> 		if (ret != -EPROBE_DEFER)
+> 			dev_err(dev, ...);
+> 		goto err;
+> 	}
+
+Regards,
+-Bin.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
