@@ -1,80 +1,66 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] usb: musb: musb_cppi41: Update an error message
-Date: Thu, 11 May 2017 09:06:27 -0500
-Message-ID: <20170511140627.GC7154@uda0271908>
-References: <20170505125233.27015-1-abailon@baylibre.com>
- <20170510194513.GB7154@uda0271908>
- <20170511075111.GM30445@localhost>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] omapfb: Use devm_kcalloc() in vrfb_probe()
+Date: Thu, 11 May 2017 16:27:19 +0200
+Message-ID: <1672837.1nPA5UjCzD@amdc3058>
+References: <CGME20170426092018epcas4p343e69e32255faa796e7c55c3e89e40f2@epcas4p3.samsung.com>
+ <4a7b1751-4319-4bde-cf26-2de2a4096c68@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170511075111.GM30445@localhost>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org" <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <4a7b1751-4319-4bde-cf26-2de2a4096c68@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 11, 2017 at 09:51:11AM +0200, Johan Hovold wrote:
-> On Wed, May 10, 2017 at 02:45:13PM -0500, Bin Liu wrote:
-> > On Fri, May 05, 2017 at 07:52:33AM -0500, Alexandre Bailon wrote:
-> > > If dma_request_slave_channel() failed to return a channel,
-> > > then the driver will print an error and request to defer probe,
-> > > regardless of the cause of the failure.
-> > > Only defer if the DMA is not ready yet and print an error to explain
-> > > that we are deferring probe.
-> > > 
-> > > Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> > 
-> > Applied. Thanks.
-> > 
-> > > ---
-> > >  drivers/usb/musb/musb_cppi41.c | 10 ++++++----
-> > >  1 file changed, 6 insertions(+), 4 deletions(-)
-> > > 
-> > > diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-> > > index e7c8b1b..4718d0d 100644
-> > > --- a/drivers/usb/musb/musb_cppi41.c
-> > > +++ b/drivers/usb/musb/musb_cppi41.c
-> > > @@ -673,10 +673,12 @@ static int cppi41_dma_controller_start(struct cppi41_dma_controller *controller)
-> > >  		musb_dma->status = MUSB_DMA_STATUS_FREE;
-> > >  		musb_dma->max_len = SZ_4M;
-> > >  
-> > > -		dc = dma_request_slave_channel(dev->parent, str);
-> > > -		if (!dc) {
-> > > -			dev_err(dev, "Failed to request %s.\n", str);
-> > > -			ret = -EPROBE_DEFER;
-> > > +		dc = dma_request_chan(dev->parent, str);
-> > > +		if (IS_ERR(dc)) {
-> > > +			ret = PTR_ERR(dc);
-> > > +			dev_err(dev, "Failed to request %s%s.\n", str,
-> > > +				ret == -EPROBE_DEFER
-> > > +				? ", deferring probe" : "");
-> 
-> Probe deferral is not really an error, and we typically suppress any
-> error messages otherwise printed when a subsystem requests it to avoid
-> noise during boot. (There is a debug statement in driver core that
 
-Valid point, the deferral log shouldn't use the error level.
-So dropped this patch from my tree.
+Hi,
 
-> anyone interested can enable instead).
+On Wednesday, April 26, 2017 11:20:07 AM SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Wed, 26 Apr 2017 11:08:30 +0200
 > 
-> > >  			goto err;
-> > >  		}
+> * A multiplication for the size determination of a memory allocation
+>   indicated that an array data structure should be processed.
+>   Thus use the corresponding function "devm_kcalloc".
 > 
-> So this should really be
+> * Replace the specification of a data structure by a pointer dereference
+>   to make the corresponding size determination a bit safer according to
+>   the Linux coding style convention.
 > 
-> 	if (IS_ERR(DC)) {
-> 		ret = PTR_ERR(dc);
-> 		if (ret != -EPROBE_DEFER)
-> 			dev_err(dev, ...);
-> 		goto err;
-> 	}
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/video/fbdev/omap2/omapfb/vrfb.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/drivers/video/fbdev/omap2/omapfb/vrfb.c b/drivers/video/fbdev/omap2/omapfb/vrfb.c
+> index f346b02eee1d..54b51a7a290a 100644
+> --- a/drivers/video/fbdev/omap2/omapfb/vrfb.c
+> +++ b/drivers/video/fbdev/omap2/omapfb/vrfb.c
+> @@ -358,11 +358,7 @@ static int __init vrfb_probe(struct platform_device *pdev)
+>  		return PTR_ERR(vrfb_base);
+>  
+>  	num_ctxs = pdev->num_resources - 1;
+> -
+> -	ctxs = devm_kzalloc(&pdev->dev,
+> -			sizeof(struct vrfb_ctx) * num_ctxs,
+> -			GFP_KERNEL);
+> -
+> +	ctxs = devm_kcalloc(&pdev->dev, num_ctxs, sizeof(*ctxs), GFP_KERNEL);
 
-Regards,
--Bin.
+This change makes the resulting binary larger by 24 bytes (probably
+because of the need to have an additional function argument) and
+I don't see an improvement from a security POV (pdev->num_resources
+is based on the size of static tables from arch/arm/mach-omap2/fb.c).
+
+I'm sorry but I'm not applying this patch.
+
+>  	if (!ctxs)
+>  		return -ENOMEM;
+
+Best regards,
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
