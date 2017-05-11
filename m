@@ -1,72 +1,73 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v5 2/3] phy: Move ULPI phy header out of drivers to
- include path
-Date: Thu, 11 May 2017 10:30:20 +0300
-Message-ID: <20170511073020.GA7676@kuha.fi.intel.com>
-References: <1494485262-18995-1-git-send-email-vivek.gautam@codeaurora.org>
- <1494485262-18995-2-git-send-email-vivek.gautam@codeaurora.org>
+From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2] usb: musb: musb_cppi41: Update an error message
+Date: Thu, 11 May 2017 09:51:11 +0200
+Message-ID: <20170511075111.GM30445@localhost>
+References: <20170505125233.27015-1-abailon@baylibre.com>
+ <20170510194513.GB7154@uda0271908>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1494485262-18995-2-git-send-email-vivek.gautam@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vivek Gautam <vivek.gautam@codeaurora.org>
-Cc: kishon@ti.com, linux-kernel@vger.kernel.org, Stephen Boyd <stephen.boyd@linaro.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+In-Reply-To: <20170510194513.GB7154@uda0271908>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org" <ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org" <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 11, 2017 at 12:17:41PM +0530, Vivek Gautam wrote:
-> Although ULPI phy is currently being used by tusb1210,
-> there can be other consumers too in future. So move this
-> to the includes path for phy.
+On Wed, May 10, 2017 at 02:45:13PM -0500, Bin Liu wrote:
+> On Fri, May 05, 2017 at 07:52:33AM -0500, Alexandre Bailon wrote:
+> > If dma_request_slave_channel() failed to return a channel,
+> > then the driver will print an error and request to defer probe,
+> > regardless of the cause of the failure.
+> > Only defer if the DMA is not ready yet and print an error to explain
+> > that we are deferring probe.
+> > 
+> > Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 > 
-> Signed-off-by: Vivek Gautam <vivek.gautam@codeaurora.org>
-> Cc: Stephen Boyd <stephen.boyd@linaro.org>
-> Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> Cc: Kishon Vijay Abraham I <kishon@ti.com>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-usb@vger.kernel.org
-> ---
+> Applied. Thanks.
+> 
+> > ---
+> >  drivers/usb/musb/musb_cppi41.c | 10 ++++++----
+> >  1 file changed, 6 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
+> > index e7c8b1b..4718d0d 100644
+> > --- a/drivers/usb/musb/musb_cppi41.c
+> > +++ b/drivers/usb/musb/musb_cppi41.c
+> > @@ -673,10 +673,12 @@ static int cppi41_dma_controller_start(struct cppi41_dma_controller *controller)
+> >  		musb_dma->status = MUSB_DMA_STATUS_FREE;
+> >  		musb_dma->max_len = SZ_4M;
+> >  
+> > -		dc = dma_request_slave_channel(dev->parent, str);
+> > -		if (!dc) {
+> > -			dev_err(dev, "Failed to request %s.\n", str);
+> > -			ret = -EPROBE_DEFER;
+> > +		dc = dma_request_chan(dev->parent, str);
+> > +		if (IS_ERR(dc)) {
+> > +			ret = PTR_ERR(dc);
+> > +			dev_err(dev, "Failed to request %s%s.\n", str,
+> > +				ret == -EPROBE_DEFER
+> > +				? ", deferring probe" : "");
 
-Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Probe deferral is not really an error, and we typically suppress any
+error messages otherwise printed when a subsystem requests it to avoid
+noise during boot. (There is a debug statement in driver core that
+anyone interested can enable instead).
 
-> Changes since v4:
->  - None.
-> 
-> Changes since v3:
->  - Removed qcom phy changes, since patch - 1/3 addressed that now.
-> 
-> Changes since v2:
->  - Updated the location for this header in drivers using it.
-> 
->  drivers/phy/phy-tusb1210.c                | 3 +--
->  {drivers => include/linux}/phy/ulpi_phy.h | 0
->  2 files changed, 1 insertion(+), 2 deletions(-)
->  rename {drivers => include/linux}/phy/ulpi_phy.h (100%)
-> 
-> diff --git a/drivers/phy/phy-tusb1210.c b/drivers/phy/phy-tusb1210.c
-> index 4f6d5e71507d..bb3fb031c478 100644
-> --- a/drivers/phy/phy-tusb1210.c
-> +++ b/drivers/phy/phy-tusb1210.c
-> @@ -12,8 +12,7 @@
->  #include <linux/module.h>
->  #include <linux/ulpi/driver.h>
->  #include <linux/gpio/consumer.h>
-> -
-> -#include "ulpi_phy.h"
-> +#include <linux/phy/ulpi_phy.h>
->  
->  #define TUSB1210_VENDOR_SPECIFIC2		0x80
->  #define TUSB1210_VENDOR_SPECIFIC2_IHSTX_SHIFT	0
-> diff --git a/drivers/phy/ulpi_phy.h b/include/linux/phy/ulpi_phy.h
-> similarity index 100%
-> rename from drivers/phy/ulpi_phy.h
-> rename to include/linux/phy/ulpi_phy.h
-> -- 
-> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-> a Linux Foundation Collaborative Project
+> >  			goto err;
+> >  		}
 
--- 
-heikki
+So this should really be
+
+	if (IS_ERR(DC)) {
+		ret = PTR_ERR(dc);
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, ...);
+		goto err;
+	}
+
+Johan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
