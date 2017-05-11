@@ -1,66 +1,40 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] omapfb: Use devm_kcalloc() in vrfb_probe()
-Date: Thu, 11 May 2017 16:27:19 +0200
-Message-ID: <1672837.1nPA5UjCzD@amdc3058>
-References: <CGME20170426092018epcas4p343e69e32255faa796e7c55c3e89e40f2@epcas4p3.samsung.com>
- <4a7b1751-4319-4bde-cf26-2de2a4096c68@users.sourceforge.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: remove duplicate 'const' annotations'
+Date: Thu, 11 May 2017 07:44:07 -0700
+Message-ID: <20170511144406.GS3489@atomide.com>
+References: <20170511115059.2997141-1-arnd@arndb.de>
+ <20170511115852.t33446wrsxedmomw@piout.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <4a7b1751-4319-4bde-cf26-2de2a4096c68@users.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <20170511115852.t33446wrsxedmomw@piout.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, arm@kernel.org, Nicolas Pitre <nico@linaro.org>, Nicolas Ferre <nicolas.ferre@microchip.com>, Russell King <linux@armlinux.org.uk>, Florian Fainelli <f.fainelli@gmail.com>, Ray Jui <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>, bcm-kernel-feedback-list@broadcom.com, Krzysztof Halasa <khalasa@piap.pl>, Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, Viresh Kumar <vireshk@kernel.org>, Wenyou Yang <wenyou.yang@atmel.com>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+* Alexandre Belloni <alexandre.belloni@free-electrons.com> [170511 05:02]:
+> On 11/05/2017 at 13:50:16 +0200, Arnd Bergmann wrote:
+> > gcc-7 warns about some declarations that are more 'const' than necessary:
+> > 
+> > arch/arm/mach-at91/pm.c:338:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+> >  static const struct of_device_id const ramc_ids[] __initconst = {
+> > arch/arm/mach-bcm/bcm_kona_smc.c:36:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+> >  static const struct of_device_id const bcm_kona_smc_ids[] __initconst = {
+> > arch/arm/mach-spear/time.c:207:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+> >  static const struct of_device_id const timer_of_match[] __initconst = {
+> > arch/arm/mach-omap2/prm_common.c:714:34: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+> >  static const struct of_device_id const omap_prcm_dt_match_table[] __initconst = {
+> > arch/arm/mach-omap2/vc.c:562:35: error: duplicate 'const' declaration specifier [-Werror=duplicate-decl-specifier]
+> >  static const struct i2c_init_data const omap4_i2c_timing_data[] __initconst = {
+> > 
+> > The ones in arch/arm were apparently all introduced accidentally by one
+> > commit that correctly marked a lot of variables as __initconst.
+> > 
+> > Cc: Nicolas Pitre <nico@linaro.org>
+> > Fixes: 19c233b79d1a ("ARM: appropriate __init annotation for const data")
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 
-Hi,
-
-On Wednesday, April 26, 2017 11:20:07 AM SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Wed, 26 Apr 2017 11:08:30 +0200
-> 
-> * A multiplication for the size determination of a memory allocation
->   indicated that an array data structure should be processed.
->   Thus use the corresponding function "devm_kcalloc".
-> 
-> * Replace the specification of a data structure by a pointer dereference
->   to make the corresponding size determination a bit safer according to
->   the Linux coding style convention.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/video/fbdev/omap2/omapfb/vrfb.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-> diff --git a/drivers/video/fbdev/omap2/omapfb/vrfb.c b/drivers/video/fbdev/omap2/omapfb/vrfb.c
-> index f346b02eee1d..54b51a7a290a 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/vrfb.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/vrfb.c
-> @@ -358,11 +358,7 @@ static int __init vrfb_probe(struct platform_device *pdev)
->  		return PTR_ERR(vrfb_base);
->  
->  	num_ctxs = pdev->num_resources - 1;
-> -
-> -	ctxs = devm_kzalloc(&pdev->dev,
-> -			sizeof(struct vrfb_ctx) * num_ctxs,
-> -			GFP_KERNEL);
-> -
-> +	ctxs = devm_kcalloc(&pdev->dev, num_ctxs, sizeof(*ctxs), GFP_KERNEL);
-
-This change makes the resulting binary larger by 24 bytes (probably
-because of the need to have an additional function argument) and
-I don't see an improvement from a security POV (pdev->num_resources
-is based on the size of static tables from arch/arm/mach-omap2/fb.c).
-
-I'm sorry but I'm not applying this patch.
-
->  	if (!ctxs)
->  		return -ENOMEM;
-
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Acked-by: Tony Lindgren <tony@atomide.com>
