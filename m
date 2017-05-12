@@ -1,112 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 0/9] usb: musb: tusb6010_omap: Convert to DMAengine
-Date: Fri, 12 May 2017 16:57:43 +0300
-Message-ID: <20170512135752.1800-1-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 2/9] usb: musb: Add quirk to avoid skb reserve in gadget mode
+Date: Fri, 12 May 2017 16:57:45 +0300
+Message-ID: <20170512135752.1800-3-peter.ujfalusi@ti.com>
+References: <20170512135752.1800-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-liu@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170512135752.1800-1-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: b-liu-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+For tusb6010 the DMA functionality only possible if the buffer is 32bit
+aligned (SYNC access to FIFO) since with ASYNC access the TX/RX offset
+registers will corrupt eventually.
+The MUSB_G_NO_SKB_RESERVE will set the quirk_avoids_skb_reserve flag in
+usb_gadget struct to provide correctly aligned buffer.
 
-Changes since v2:
-- patch 5 from the v1 has been sent separately
- (usb: musb: tusb6010_omap: Do not reset the other direction's packet size)
-- Added Tested-by from Tony.
-
-Changes since v1:
-- Fix the port_window support in omap-dma DMAengine driver
-- MUSB_G_NO_SKB_RESERVE quirk flag addition to msub core
-- packet size corruption fix for tusb6010
-- Handle DMA completion for TX also in the DMA callback
-
-The v1 series was tested with g_cdc where only the DMA was only enabled for TX
-and because of that I have not noticed that the sDMA code was not correct for RX,
-it only worked for TX case.
-
-The ASYNC mode of tusb6010 is really unstable, we get corrupted TX/RX offset
-register quite easily, but the SYNC mode is stable.
-
-The series was tested on top of next-20170510 with g_ncm module since with this
-we can use the quirk to avoid skb_reserve and get properly aligned buffers for
-DMA.
-The n810 is using nfsroot.
-
-The device would not boot to prompt most of the time before patch 5 (packet size
-reset fix).
-With that patch in, the device would boot up fine most of the cases, but will
-fail pretty fast with my stress test [1].
-After the first 9 patch the legacy DMA mode is going to be stable with g_ncm, it
-boots to prompt, and survives the stress test [1].
-
-The last patch is going the DMAengine conversion and I have run the stress test
-against it over 3 hours (ping-test.sh wrap count is 139).
-
-[1] Running these in parallel:
-ping -f 192.168.0.2
-ping -f -s 2048 192.168.0.2
-ping-test.sh 192.168.0.2 1
-
-and (nfsroot) time to time:
-scp root@192.168.0.1:/usr/portage/distfiles/thunderbird-52.1.0.source.tar.xz /
-
-$ ls -alh /usr/portage/distfiles/thunderbird-52.1.0.source.tar.xz 
-218M Apr 30 15:46 /usr/portage/distfiles/thunderbird-52.1.0.source.tar.xz
-
-In essence copy 218M from my host back to the host.
-
-ping-test.sh (modified version from Tony to show the wrap count):
-#!/bin/bash
-
-device=$1
-size=$2
-wraps=0
-
-while [ 1 ]; do
-        #echo "Pinging with size $size"
-        if ! ping -w0 -c1 -s$size $device > /dev/null 2>&1; then
-                break;
-        fi
-        size=$(expr $size + 1)
-
-        if [ $size -gt 8192 ]; then
-	        wraps=$(expr $wraps + 1)
-		echo "wrapping ($wraps) at $size"
-                size=1
-        fi
-done
-echo "Test ran up to $size"
-
-Regards,
-Peter
-
-CC: dmaengine@vger.kernel.org
-I only send the cover letter and the DMAengine patch for the dmaengine list, the
-rest can be checked - if there is interest - via lkml
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
-Peter Ujfalusi (9):
-  dmaengine: omap-dma: port_window support correction for both direction
-  usb: musb: Add quirk to avoid skb reserve in gadget mode
-  usb: musb: tusb6010: Add MUSB_G_NO_SKB_RESERVE to quirks
-  usb: musb: tusb6010_omap: Use one musb_ep_select call in
-    tusb_omap_dma_program
-  usb: musb: tusb6010_omap: Create new struct for DMA data/parameters
-  usb: musb: tusb6010_omap: Allocate DMA channels upfront
-  usb: musb: tusb6010: Handle DMA TX completion in DMA callback as well
-  ARM: OMAP2+: DMA: Add slave map entries for 24xx external request
-    lines
-  usb: musb: tusb6010_omap: Convert to DMAengine API
+ drivers/usb/musb/musb_core.c | 3 +++
+ drivers/usb/musb/musb_core.h | 1 +
+ 2 files changed, 4 insertions(+)
 
- arch/arm/mach-omap2/dma.c        |  24 +++
- drivers/dma/omap-dma.c           |  39 ++--
- drivers/usb/musb/musb_core.c     |   3 +
- drivers/usb/musb/musb_core.h     |   1 +
- drivers/usb/musb/tusb6010.c      |  21 +--
- drivers/usb/musb/tusb6010_omap.c | 379 ++++++++++++++++-----------------------
- 6 files changed, 203 insertions(+), 264 deletions(-)
-
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 870da18f5077..87cbd56cc761 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2224,6 +2224,9 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 		musb->io.ep_select = musb_flat_ep_select;
+ 	}
+ 
++	if (musb->io.quirks & MUSB_G_NO_SKB_RESERVE)
++		musb->g.quirk_avoids_skb_reserve = 1;
++
+ 	/* At least tusb6010 has its own offsets */
+ 	if (musb->ops->ep_offset)
+ 		musb->io.ep_offset = musb->ops->ep_offset;
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 3e98d4268a64..9f22c5b8ce37 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -172,6 +172,7 @@ struct musb_io;
+  */
+ struct musb_platform_ops {
+ 
++#define MUSB_G_NO_SKB_RESERVE	BIT(9)
+ #define MUSB_DA8XX		BIT(8)
+ #define MUSB_PRESERVE_SESSION	BIT(7)
+ #define MUSB_DMA_UX500		BIT(6)
 -- 
 2.13.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
