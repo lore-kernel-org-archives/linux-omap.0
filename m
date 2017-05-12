@@ -1,94 +1,41 @@
-From: Vivek Gautam <vivek.gautam@codeaurora.org>
-Subject: Re: [PATCH v5 3/3] phy: Group vendor specific phy drivers
-Date: Fri, 12 May 2017 15:07:01 +0530
-Message-ID: <8143c6b8-aaac-557b-98c1-00c957f3fcb6@codeaurora.org>
-References: <1494485262-18995-1-git-send-email-vivek.gautam@codeaurora.org>
- <1494485262-18995-3-git-send-email-vivek.gautam@codeaurora.org>
- <5fe76bcc-5ff7-0bf1-7fdd-c141211d86dc@ti.com>
+From: Bin Liu <b-liu@ti.com>
+Subject: Re: [PATCH v2 05/10] usb: musb: tusb6010_omap: Do not reset the
+ other direction's packet size
+Date: Fri, 12 May 2017 07:07:52 -0500
+Message-ID: <20170512120752.GJ7154@uda0271908>
+References: <20170510084231.19302-1-peter.ujfalusi@ti.com>
+ <20170510084231.19302-6-peter.ujfalusi@ti.com>
+ <20170510170754.GA7154@uda0271908>
+ <1494458188.2028.5.camel@perches.com>
+ <2d693d53-ba32-1549-90bd-da92f061cbed@ti.com>
+ <20170511141235.GD7154@uda0271908>
+ <625d78c1-88bf-08ee-e13d-19cbc57fa78a@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5fe76bcc-5ff7-0bf1-7fdd-c141211d86dc@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, linux-kernel@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Geert Uytterhoeven <geert+renesas@glider.be>, Martin Blumenstingl <martin.blumenstingl@googlemail.com>, Viresh Kumar <viresh.kumar@linaro.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>, Stephen Boyd <stephen.boyd@linaro.org>, Krzysztof Kozlowski <krzk@kernel.org>, Jaehoon Chung <jh80.chung@samsung.com>, linux-rockchip@lists.infradead.org, Chen-Yu Tsai <wens@csie.org>, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-arm-msm@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, linux-omap@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <625d78c1-88bf-08ee-e13d-19cbc57fa78a@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Joe Perches <joe@perches.com>, tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, May 12, 2017 at 09:53:55AM +0300, Peter Ujfalusi wrote:
+> Bin,
+> 
+> On 2017-05-11 17:12, Bin Liu wrote:
+> >>which is valid.
+> >
+> >So will you update the patch to move the declaration to the beginning of
+> >the function to avoid this WARNING. I would just fix it locally if you
+> >prefer.
+> 
+> I was waiting for Vinod or someone from the DMAengine guys to say
+> something for the first patch to send the v3, but I guess I can do
+> it right away.
 
+Yeah, this patch can go to the -rc in next week, but the rest will go to
+-next, so you can send this patch seperately.
 
-On 05/12/2017 02:15 PM, Kishon Vijay Abraham I wrote:
-> Hi Vivek,
->
-> On Thursday 11 May 2017 12:17 PM, Vivek Gautam wrote:
->> Adding vendor specific directories in phy to group
->> phy drivers under their respective vendor umbrella.
->>
->> Also updated the MAINTAINERS file to reflect the correct
->> directory structure for phy drivers.
->>
->> Signed-off-by: Vivek Gautam <vivek.gautam@codeaurora.org>
->> Acked-by: Heiko Stuebner <heiko@sntech.de>
->> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
->> Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
->> Acked-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
->> Reviewed-by: Jaehoon Chung <jh80.chung@samsung.com>
->> Cc: Kishon Vijay Abraham I <kishon@ti.com>
->> Cc: David S. Miller <davem@davemloft.net>
->> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
->> Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
->> Cc: Guenter Roeck <linux@roeck-us.net>
->> Cc: Heiko Stuebner <heiko@sntech.de>
->> Cc: Viresh Kumar <viresh.kumar@linaro.org>
->> Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
->> Cc: Chen-Yu Tsai <wens@csie.org>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Cc: Krzysztof Kozlowski <krzk@kernel.org>
->> Cc: Jaehoon Chung <jh80.chung@samsung.com>
->> Cc: Stephen Boyd <stephen.boyd@linaro.org>
->> Cc: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
->> Cc: linux-arm-kernel@lists.infradead.org
->> Cc: linux-arm-msm@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: linux-omap@vger.kernel.org
->> Cc: linux-renesas-soc@vger.kernel.org
->> Cc: linux-rockchip@lists.infradead.org
->> Cc: linux-samsung-soc@vger.kernel.org
->> Cc: linux-usb@vger.kernel.org
->> ---
->>
->> Changes since v4:
->>   - Reprepared the patch based on latest torvalds/master.
->>   - Added new directory for amlogic, since there's a new patch [1]
->>     coming in for amlogic platforms.
-> I don't prefer placeholder directories but this is not a placeholder directory
-> since phy-meson8b-usb2.c is already added in amlogic.
-
-Right, since phy-meson8b-usb2.c was already there and phy-meson-gxl-usb2.c
-is also coming, i decided to add this directory.
-> Btw, thank you for sending this patch. Will queue this once -rc1 is tagged.
-
-Cool. Thanks Kishon.
-
-Regards
-Vivek
-
->
-> Cheers
-> Kishon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-arm-msm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Regards,
+-Bin.
