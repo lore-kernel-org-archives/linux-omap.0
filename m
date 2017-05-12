@@ -1,69 +1,135 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH] omapfb: Use devm_kcalloc() in vrfb_probe()
-Date: Fri, 12 May 2017 09:07:18 +0200
-Message-ID: <CAMuHMdXA3FV+NstypjCLVg78THQawt-s=xWHRJK+reNYa9Oqnw@mail.gmail.com>
-References: <CGME20170426092018epcas4p343e69e32255faa796e7c55c3e89e40f2@epcas4p3.samsung.com>
- <4a7b1751-4319-4bde-cf26-2de2a4096c68@users.sourceforge.net>
- <1672837.1nPA5UjCzD@amdc3058> <2438676.F6TUoaB08n@amdc3058>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
+ platform code
+Date: Fri, 12 May 2017 10:29:19 +0300
+Message-ID: <4b7cadc5-f32b-f97f-29c3-a2de9927df6c@ti.com>
+References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
+ <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
+ <20170509150550.bi4bzadesmma6ntp@earth>
+ <989d9224-7f13-c091-7030-3ceb68a6c600@ti.com>
+ <20170510164612.GP3489@atomide.com>
+ <f05cc81e-d61e-c54f-10e8-e8fba9de1719@ti.com>
+ <20170510182940.GQ3489@atomide.com>
+ <67e56914-0075-8009-7013-f0cf69001749@ti.com>
+ <20170511141632.GR3489@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2438676.F6TUoaB08n@amdc3058>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: SF Markus Elfring <elfring@users.sourceforge.net>, Linux Fbdev development list <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============1228746788=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170511141632.GR3489@atomide.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Liam Girdwood <lgirdwood@gmail.com>, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 11, 2017 at 5:22 PM, Bartlomiej Zolnierkiewicz
-<b.zolnierkie@samsung.com> wrote:
-> On Thursday, May 11, 2017 04:27:19 PM Bartlomiej Zolnierkiewicz wrote:
->
->> > @@ -358,11 +358,7 @@ static int __init vrfb_probe(struct platform_device *pdev)
->> >             return PTR_ERR(vrfb_base);
->> >
->> >     num_ctxs = pdev->num_resources - 1;
->> > -
->> > -   ctxs = devm_kzalloc(&pdev->dev,
->> > -                   sizeof(struct vrfb_ctx) * num_ctxs,
->> > -                   GFP_KERNEL);
->> > -
->> > +   ctxs = devm_kcalloc(&pdev->dev, num_ctxs, sizeof(*ctxs), GFP_KERNEL);
->>
->> This change makes the resulting binary larger by 24 bytes (probably
->> because of the need to have an additional function argument) and
->
-> 24 bytes seemed too much for just an additional function argument
-> so I've checked the source:
->
-> static inline void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
-> {
->         return devm_kmalloc(dev, size, gfp | __GFP_ZERO);
-> }
-> static inline void *devm_kmalloc_array(struct device *dev,
->                                        size_t n, size_t size, gfp_t flags)
-> {
->         if (size != 0 && n > SIZE_MAX / size)
->                 return NULL;
->         return devm_kmalloc(dev, n * size, flags);
-> }
-> static inline void *devm_kcalloc(struct device *dev,
->                                  size_t n, size_t size, gfp_t flags)
-> {
->         return devm_kmalloc_array(dev, n, size, flags | __GFP_ZERO);
-> }
->
-> The extra kcalloc() checks are inlined currently into each instance.
+--===============1228746788==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="UtHnNfk3s75pJ23L6QTRVTgXTUxhmxBjI"
 
-And in this case the compiler cannot optimize them away as n is not
-known at compile time.
+--UtHnNfk3s75pJ23L6QTRVTgXTUxhmxBjI
+Content-Type: multipart/mixed; boundary="vaLuTvQWbJHdJHhNHKSTBg7Gf8B7ACWJ4";
+ protected-headers="v1"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+ dri-devel@lists.freedesktop.org,
+ Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+ Liam Girdwood <lgirdwood@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>,
+ Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org
+Message-ID: <4b7cadc5-f32b-f97f-29c3-a2de9927df6c@ti.com>
+Subject: Re: [PATCH v2 00/29] Remove the omapdrm and omapdss devices from
+ platform code
+References: <20170508113303.27521-1-laurent.pinchart@ideasonboard.com>
+ <f7d62ed5-f903-4356-8460-c7b0cf151cf3@ti.com>
+ <20170509150550.bi4bzadesmma6ntp@earth>
+ <989d9224-7f13-c091-7030-3ceb68a6c600@ti.com>
+ <20170510164612.GP3489@atomide.com>
+ <f05cc81e-d61e-c54f-10e8-e8fba9de1719@ti.com>
+ <20170510182940.GQ3489@atomide.com>
+ <67e56914-0075-8009-7013-f0cf69001749@ti.com>
+ <20170511141632.GR3489@atomide.com>
+In-Reply-To: <20170511141632.GR3489@atomide.com>
 
-Gr{oetje,eeting}s,
+--vaLuTvQWbJHdJHhNHKSTBg7Gf8B7ACWJ4
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-                        Geert
+On 11/05/17 17:16, Tony Lindgren wrote:
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+>> pinctrl-single doesn't allow to freely set the bits, but requires the
+>> pins to have similar bit structure (function-mask). In CONTROL_DSIPHY,=
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+>> DSI1 and DSI2 have different bit structures.
+>=20
+> OK if the register mixes different types of controllers that
+> can't be partitioned into separate 8 or 16 bit instances then
+> you're out of luck with pinctrl-single. If it does not fit, no
+> point trying to force it, then you need a custom pinctrl driver.
+
+Writing a driver for a single register on a legacy SoC feels like an
+overkill... But I guess a generic pinctrl driver which allows free
+writes to registers would do the trick, but, then again, if so far we
+have a single register in a single SoC that needs this, maybe it's not
+worth the effort.
+
+>> I don't understand why pinctrl-single tries so hard to fit things into=
+
+>> one mold...
+>=20
+> Basically on many SoCs pinctrl is just the same exact control
+> register repeated for each pin on the SoC:
+
+Right, I was just wondering why it forces one to have a function mask,
+versus allowing it to be left out and thus making it possible to handle
+also cases where the pins require different kinds of bit masks.
+
+ Tomi
+
+
+--vaLuTvQWbJHdJHhNHKSTBg7Gf8B7ACWJ4--
+
+--UtHnNfk3s75pJ23L6QTRVTgXTUxhmxBjI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJZFWRPAAoJEPo9qoy8lh713oMQAJn/zR0P2ETf0JP7zaweM+Ie
+t/W6LhDJqUzjAc6/6Zop6k9Eh44S43aEf502pB9PiXqfDPlURdbkbznoV8WV1NTy
+XD7x4s13DJdmToPf+qpa4AkXc2CpHcDe/GnQhhpzg43JkOeFtaZpcLhdTJ7GnGqw
+B6GLLivgQ42+bmT6uFZTpDD+RNk6VoCZhiV2mmMzT89rFVEGmJmSY6FboK7im5DX
+0a9gZ7LOFgtoLl4onzPc/bNbgV5EwFzwHOWNh/rfl+Npb7eFJ7eXlPA80CgOQSML
++LM1+LXHsCB5Owj+gHit/A0GdzLFQp1uAVNakS/n17ipt5ecplLieXgG9nbfuWIG
+oG246noLK71wVw2IYnpnxu1tuQ9x2sjOPGJHzjYxoUOS0++NBwJ2GHxQs0MSPIXc
+2d3NmF4z7Gi2bEsdRzc/s94mApUsUxrgh+ZeXI5TnZQzIS/J8DT6RC6N5r3BrBq8
+2RpOq1vUDFvHYPPhNSf4kfISPVajM2cY2D8GCvZx4Q3gdFjC3S37M9hmIG2rwvqf
+uFXNJ1+Br2gl3vA1gBVjgTt0Eo8xIOlUcVS9ps42OAxWURDesN+r6fbdi7j8kzrQ
+lhDEmbmeuAhAf+z+4o8R4YKCAAs9bemzMYrBBH7Ly/9OahGcBP7gMK9Ky+bebs/U
+zhxb1MXxjV97Wzd+mPVD
+=aqcN
+-----END PGP SIGNATURE-----
+
+--UtHnNfk3s75pJ23L6QTRVTgXTUxhmxBjI--
+
+--===============1228746788==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============1228746788==--
