@@ -1,50 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] usb-musb: keep VBUS on when device is disconnected
-Date: Fri, 12 May 2017 10:46:21 -0700
-Message-ID: <20170512174621.GJ3489@atomide.com>
-References: <20170511193810.GX3489@atomide.com>
- <20170511200220.GH7154@uda0271908>
- <20170511202306.GY3489@atomide.com>
- <20170511204406.GI7154@uda0271908>
- <20170511210628.GA3489@atomide.com>
- <20170512134042.GK7154@uda0271908>
- <20170512145849.GE3489@atomide.com>
- <20170512152144.GA651@uda0271908>
- <20170512172134.GI3489@atomide.com>
- <20170512174026.GB651@uda0271908>
+From: Bin Liu <b-liu@ti.com>
+Subject: Re: [PATCH] usb: musb: tusb6010_omap: Do not reset the other
+ direction's packet size
+Date: Fri, 12 May 2017 13:58:20 -0500
+Message-ID: <20170512185820.GC651@uda0271908>
+References: <20170512134848.468-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170512174026.GB651@uda0271908>
+In-Reply-To: <20170512134848.468-1-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>, Moreno Bartalucci <moreno.bartalucci@tecnorama.it>, Lars Melin <larsm17@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alessio Igor Bogani <abogani@kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Bin Liu <b-liu@ti.com> [170512 10:43]:
-> On Fri, May 12, 2017 at 10:21:35AM -0700, Tony Lindgren wrote:
-> > * Bin Liu <b-liu@ti.com> [170512 08:24]:
-> > > On Fri, May 12, 2017 at 07:58:49AM -0700, Tony Lindgren wrote:
-> > > > OK. No better ideas except I think we should probably have a separate
-> > > > timer for keeping VBUS on after state changes eventually.
-> > > 
-> > > Currently with the patch below, VBUS is constantly on for host-only
-> > > mode, and this is what we want. Why we need a separate timer? No one
-> > > cuts VBUs now for host-only mode.
-> > 
-> > Oh I was just thinking what we might want to do in the future if
-> > we want to cut off VBUS when no devices are connected. If we have
+On Fri, May 12, 2017 at 04:48:48PM +0300, Peter Ujfalusi wrote:
+> We have one register for each EP to set the maximum packet size for both
+> TX and RX.
+> If for example an RX programming would happen before the previous TX
+> transfer finishes we would reset the TX packet side.
 > 
-> Okay, I see. But I don't think we will ever want to turn off VBUS when
-> no devices attached for host-only mode. Any other controllers do this?
+> To fix this issue, only modify the TX or RX part of the register.
 > 
-> Turning off VBUS doesn't save us much, because it comes from an external
-> power rail, and no one consumes it when no devices are attached.
+> Fixes: 550a7375fe72 ("USB: Add MUSB and TUSB support")
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Tested-by: Tony Lindgren <tony@atomide.com>
+> ---
+> Bin,
 > 
-> I believe keeping the controller idle as what we have now is sufficient.
+> I have separated the patch from the tusb DMAengine conversion series and that
+> will depend on this patch.
 
-OK fine with me.
-
-Regards,
-
-Tony
+Applied. Thanks.
+-Bin.
