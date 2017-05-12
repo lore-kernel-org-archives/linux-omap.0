@@ -1,34 +1,69 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 05/10] usb: musb: tusb6010_omap: Do not reset the other
- direction's packet size
-Date: Fri, 12 May 2017 09:53:55 +0300
-Message-ID: <625d78c1-88bf-08ee-e13d-19cbc57fa78a@ti.com>
-References: <20170510084231.19302-1-peter.ujfalusi@ti.com>
- <20170510084231.19302-6-peter.ujfalusi@ti.com>
- <20170510170754.GA7154@uda0271908> <1494458188.2028.5.camel@perches.com>
- <2d693d53-ba32-1549-90bd-da92f061cbed@ti.com>
- <20170511141235.GD7154@uda0271908>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH] omapfb: Use devm_kcalloc() in vrfb_probe()
+Date: Fri, 12 May 2017 09:07:18 +0200
+Message-ID: <CAMuHMdXA3FV+NstypjCLVg78THQawt-s=xWHRJK+reNYa9Oqnw@mail.gmail.com>
+References: <CGME20170426092018epcas4p343e69e32255faa796e7c55c3e89e40f2@epcas4p3.samsung.com>
+ <4a7b1751-4319-4bde-cf26-2de2a4096c68@users.sourceforge.net>
+ <1672837.1nPA5UjCzD@amdc3058> <2438676.F6TUoaB08n@amdc3058>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170511141235.GD7154@uda0271908>
-Content-Language: en-US
+In-Reply-To: <2438676.F6TUoaB08n@amdc3058>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>, Joe Perches <joe@perches.com>, tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>, Linux Fbdev development list <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Bin,
+On Thu, May 11, 2017 at 5:22 PM, Bartlomiej Zolnierkiewicz
+<b.zolnierkie@samsung.com> wrote:
+> On Thursday, May 11, 2017 04:27:19 PM Bartlomiej Zolnierkiewicz wrote:
+>
+>> > @@ -358,11 +358,7 @@ static int __init vrfb_probe(struct platform_device *pdev)
+>> >             return PTR_ERR(vrfb_base);
+>> >
+>> >     num_ctxs = pdev->num_resources - 1;
+>> > -
+>> > -   ctxs = devm_kzalloc(&pdev->dev,
+>> > -                   sizeof(struct vrfb_ctx) * num_ctxs,
+>> > -                   GFP_KERNEL);
+>> > -
+>> > +   ctxs = devm_kcalloc(&pdev->dev, num_ctxs, sizeof(*ctxs), GFP_KERNEL);
+>>
+>> This change makes the resulting binary larger by 24 bytes (probably
+>> because of the need to have an additional function argument) and
+>
+> 24 bytes seemed too much for just an additional function argument
+> so I've checked the source:
+>
+> static inline void *devm_kzalloc(struct device *dev, size_t size, gfp_t gfp)
+> {
+>         return devm_kmalloc(dev, size, gfp | __GFP_ZERO);
+> }
+> static inline void *devm_kmalloc_array(struct device *dev,
+>                                        size_t n, size_t size, gfp_t flags)
+> {
+>         if (size != 0 && n > SIZE_MAX / size)
+>                 return NULL;
+>         return devm_kmalloc(dev, n * size, flags);
+> }
+> static inline void *devm_kcalloc(struct device *dev,
+>                                  size_t n, size_t size, gfp_t flags)
+> {
+>         return devm_kmalloc_array(dev, n, size, flags | __GFP_ZERO);
+> }
+>
+> The extra kcalloc() checks are inlined currently into each instance.
 
-On 2017-05-11 17:12, Bin Liu wrote:
->> which is valid.
-> 
-> So will you update the patch to move the declaration to the beginning of
-> the function to avoid this WARNING. I would just fix it locally if you
-> prefer.
+And in this case the compiler cannot optimize them away as n is not
+known at compile time.
 
-I was waiting for Vinod or someone from the DMAengine guys to say 
-something for the first patch to send the v3, but I guess I can do it 
-right away.
+Gr{oetje,eeting}s,
 
-- Péter
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
