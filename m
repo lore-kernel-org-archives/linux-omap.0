@@ -1,31 +1,80 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v3 1/9] dmaengine: omap-dma: port_window support
- correction for both direction
-Date: Sun, 14 May 2017 18:40:08 +0530
-Message-ID: <20170514131008.GL6263@localhost>
-References: <20170512135752.1800-1-peter.ujfalusi@ti.com>
- <20170512135752.1800-2-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Moreno Bartalucci <moreno.bartalucci@tecnorama.it>
+Subject: Re: [PATCH] usb-musb: keep VBUS on when device is disconnected
+Date: Mon, 15 May 2017 09:07:10 +0200
+Message-ID: <172B0853-86A2-4253-B56D-8F7E716E5E0E@tecnorama.it>
+References: <20170511190100.GF7154@uda0271908>
+ <20170511191005.GG7154@uda0271908> <20170511192013.GA4459@uda0271908>
+ <20170511193810.GX3489@atomide.com> <20170511200220.GH7154@uda0271908>
+ <20170511202306.GY3489@atomide.com> <20170511204406.GI7154@uda0271908>
+ <20170511210628.GA3489@atomide.com> <20170512134042.GK7154@uda0271908>
+ <20170512145849.GE3489@atomide.com> <20170512152144.GA651@uda0271908>
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170512135752.1800-2-peter.ujfalusi@ti.com>
+In-Reply-To: <20170512152144.GA651@uda0271908>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: b-liu@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, dmaengine@vger.kernel.org, dan.j.williams@intel.com
+To: Bin Liu <b-liu@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Lars Melin <larsm17@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alessio Igor Bogani <abogani@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 12, 2017 at 04:57:44PM +0300, Peter Ujfalusi wrote:
-> When the port_window support was verified it was done on setup where only
-> the MEM_TO_DEV direction was enabled. This got un-noticed and thus only
-> this direction worked.
+
+> Il giorno 12 mag 2017, alle ore 17:21, Bin Liu <b-liu@ti.com> ha scritto:
 > 
-> Now that I have managed to get a setup to verify both direction it turned
-> out that the setup was incorrect:
-> omap_desc members are settings for the slave port while the omap_sg members
-> apply to the memory side of the sDMA setup.
+> […]
+> 
+> Moreno, would you mind to test the patch below with your modem?
+> 
+> […]
+>> 
+>>> 8< --------------------
+>>> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+>>> index 9c7ee26ef388..465281244596 100644
+>>> --- a/drivers/usb/musb/musb_dsps.c
+>>> +++ b/drivers/usb/musb/musb_dsps.c
+>>> @@ -245,9 +245,14 @@ static int dsps_check_status(struct musb *musb, void *unused)
+>>>                dsps_mod_timer_optional(glue);
+>>>                break;
+>>>        case OTG_STATE_A_WAIT_BCON:
+>>> +               /* keep VBUS on for host-only mode */
+>>> +               if (musb->port_mode == MUSB_PORT_MODE_HOST) {
+>>> +                       dsps_mod_timer_optional(glue);
+>>> +                       break;
+>>> +               }
+>>>                musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+>>>                skip_session = 1;
+>>> -               /* fall */
+>>> +               /* fall through */
+>>> 
+>>>        case OTG_STATE_A_IDLE:
+>>>        case OTG_STATE_B_IDLE:
 
-Acked-by: Vinod Koul <vinod.koul@intel.com>
+Hello Bin,
 
--- 
-~Vinod
+I tested the above patch with my device and it seems to work correctly with the current mainline kernel.
+
+I tested it with my “production” kernel as well (4.9.20) but, for it to work, I had to change it slightly.
+
+This is what I tested for kernel 4.9.20:
+
+--- a/drivers/usb/musb/musb_dsps.c	2017-05-15 08:40:23.000000000 +0200
++++ b/drivers/usb/musb/musb_dsps.c	2017-05-15 08:49:17.000000000 +0200
+@@ -213,6 +213,12 @@ static int dsps_check_status(struct musb
+ 				msecs_to_jiffies(wrp->poll_timeout));
+ 		break;
+ 	case OTG_STATE_A_WAIT_BCON:
++		/* keep VBUS on for host-only mode */
++		if (musb->port_mode == MUSB_PORT_MODE_HOST) {
++			mod_timer(&glue->timer, jiffies +
++					msecs_to_jiffies(wrp->poll_timeout));
++			break;
++		}
+ 		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+ 		skip_session = 1;
+ 		/* fall */
+
+In this form, it appears to work properly for 4.9.20 too.
+
+Best regards,
+
+Moreno
