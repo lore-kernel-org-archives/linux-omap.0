@@ -1,32 +1,33 @@
-From: Peter Robinson <pbrobinson@gmail.com>
-Subject: [PATCH] pci: dwc: dra7xx: Depend on appropriate SoC or compile test
-Date: Mon, 15 May 2017 13:26:17 +0100
-Message-ID: <20170515122617.20706-1-pbrobinson@gmail.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: kishon@ti.com, bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
-Cc: Peter Robinson <pbrobinson@gmail.com>
+From: Karim Eshapa <karim.eshapa@gmail.com>
+Subject: [PATCH] video: fbdev: omap2: omapfb: displays: panel-dsi-cm: Use time comparison kernel macro.
+Date: Mon, 15 May 2017 21:14:26 +0200
+Message-ID: <1494875666-4109-1-git-send-email-karim.eshapa@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: b.zolnierkie@samsung.com, peter.ujfalusi@ti.com, tj@kernel.org, mingo@kernel.org, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Karim Eshapa <karim.eshapa@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-The PCI controller attached to a SoC isn't much use if the core SoC isn't
-enabled, unless of course it's compile testing, so add appropriate dependency.
+Use time_before_eq() kernel macro for
+time comparison more safe.
 
-Signed-off-by: Peter Robinson <pbrobinson@gmail.com>
+Signed-off-by: Karim Eshapa <karim.eshapa@gmail.com>
 ---
- drivers/pci/dwc/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/pci/dwc/Kconfig b/drivers/pci/dwc/Kconfig
-index b7e15526d676..d34b6dfbb351 100644
---- a/drivers/pci/dwc/Kconfig
-+++ b/drivers/pci/dwc/Kconfig
-@@ -16,6 +16,7 @@ config PCIE_DW_EP
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+index fd2b372d..7f20bc2 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.c
+@@ -100,7 +100,7 @@ static void hw_guard_wait(struct panel_drv_data *ddata)
+ {
+ 	unsigned long wait = ddata->hw_guard_end - jiffies;
  
- config PCI_DRA7XX
- 	bool "TI DRA7xx PCIe controller"
-+	depends on SOC_DRA7XX || COMPILE_TEST
- 	depends on (PCI && PCI_MSI_IRQ_DOMAIN) || PCI_ENDPOINT
- 	depends on OF && HAS_IOMEM && TI_PIPE3
- 	help
+-	if ((long)wait > 0 && wait <= ddata->hw_guard_wait) {
++	if ((long)wait > 0 && time_before_eq(wait, ddata->hw_guard_wait)) {
+ 		set_current_state(TASK_UNINTERRUPTIBLE);
+ 		schedule_timeout(wait);
+ 	}
 -- 
-2.13.0
+2.7.4
