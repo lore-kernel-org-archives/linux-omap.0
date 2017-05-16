@@ -1,24 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 4/4] ARM: dts: omap4-droid4: Add bluetooth
-Date: Tue, 16 May 2017 09:41:07 -0700
-Message-ID: <20170516164106.GL31418@atomide.com>
-References: <20170503142226.32380-1-sebastian.reichel@collabora.co.uk>
- <20170503142226.32380-5-sebastian.reichel@collabora.co.uk>
+Subject: Re: [PATCH v4] DTS: ARM: =?utf-8?Q?OMAP5?=
+ =?utf-8?Q?=3A_uevm=3A_add_=C2=B5SD?= card detect
+Date: Tue, 16 May 2017 09:47:17 -0700
+Message-ID: <20170516164717.GM31418@atomide.com>
+References: <90e9c1d71ce9ee47b55f4c0794e582167c6b961d.1494837075.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170503142226.32380-5-sebastian.reichel@collabora.co.uk>
+In-Reply-To: <90e9c1d71ce9ee47b55f4c0794e582167c6b961d.1494837075.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Sebastian Reichel <sre@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh+dt@kernel.org>, Kalle Valo <kvalo@codeaurora.org>, linux-bluetooth@vger.kernel.org, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170503 07:25]:
-> Droid 4 has WL 1285C connected to the OMAP's UART4 port, which is
-> used for Bluetooth and most likely can also be used for controlling
-> the FM radio and GPS receivers.
+* H. Nikolaus Schaller <hns@goldelico.com> [170515 01:35]:
+> If we have Linux installed in eMMC we can boot without
+> µSD card, but inserting one is not recognised.
+> 
+> The reason is that the card detect gpio (gpio5_152)
+> is not configured and attached to the mmc1 interface
+> driver and the mmc driver does not poll by default.
+> 
+> Hence we add pinmux and gpio setup for the SDCARD_NCD
+> signal.
 
-I'm picking this patch and applying into omap-for-v4.13/dt thanks.
+Applying into omap-for-v4.13/dt thanks.
 
 Tony
