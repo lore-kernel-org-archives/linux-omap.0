@@ -1,28 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V5 2/7] ARM: TI: Use - instead of @ for DT OPP entries
-Date: Tue, 16 May 2017 08:19:14 -0700
-Message-ID: <20170516151913.GE31418@atomide.com>
-References: <cover.1492685450.git.viresh.kumar@linaro.org>
- <5f0656140309d53a45058c048ca059c4ba294756.1492685450.git.viresh.kumar@linaro.org>
+Subject: Re: [PATCH 0/8] ARM: OMAP2+: AM33XX/AM43XX: Add suspend-resume
+ support
+Date: Tue, 16 May 2017 08:47:17 -0700
+Message-ID: <20170516154717.GF31418@atomide.com>
+References: <20170329015801.22240-1-d-gerlach@ti.com>
+ <20170329171314.GD10760@atomide.com>
+ <cd340d7a-c0cf-9227-1382-2277ffa5b1b0@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5f0656140309d53a45058c048ca059c4ba294756.1492685450.git.viresh.kumar@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: arm@kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linaro-kernel@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Rafael Wysocki <rjw@rjwysocki.net>, Krzysztof Kozlowski <krzk@kernel.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <cd340d7a-c0cf-9227-1382-2277ffa5b1b0@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy J <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Viresh Kumar <viresh.kumar@linaro.org> [170420 03:58]:
-> Compiling the DT file with W=1, DTC warns like follows:
+* Dave Gerlach <d-gerlach@ti.com> [170329 11:52]:
+> Hi Tony,
+> On 03/29/2017 12:13 PM, Tony Lindgren wrote:
+> > * Dave Gerlach <d-gerlach@ti.com> [170328 19:00]:
+> > > Hi,
+> > > This series contains the remaining code to enable suspend to mem and standby on
+> > > am335x and am437x platforms. It depends on the ti-emif-sram series sent here [1].
+> > 
+> > Looks good to me in general. To remove the dependency, can some
+> > of this be merged separately without breaking things before [1]?
+> > Maybe by disabling some of the PM states until [1] is in place?
 > 
-> Warning (unit_address_vs_reg): Node /opp_table0/opp@1000000000 has a
-> unit name, but no reg property
-> 
-> Fix this by replacing '@' with '-' as the OPP nodes will never have a
-> "reg" property.
+> Thanks for the feedback. Actually, patch 7 is the only patch with a
+> dependency to [1]. The rest of the patches just add platform PM support
+> needed for suspend but won't do much of anything until patch 7 actually
+> enables the suspend states, so there is no reason why patches 1-6 and patch
+> 8 can't be merged now.
 
-Applying into omap-for-v4.13/dt thanks.
+I'm applying patches 1-5 into omap-for-v4.13/soc. Patch 6 needs
+ack from Russell.
+
+Regards,
 
 Tony
