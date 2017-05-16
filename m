@@ -1,58 +1,75 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH 0/8] ARM: OMAP2+: AM33XX/AM43XX: Add suspend-resume support
-Date: Tue, 16 May 2017 10:49:36 -0500
-Message-ID: <597b3b18-154d-9e81-35c3-4790d813031b@ti.com>
-References: <20170329015801.22240-1-d-gerlach@ti.com>
- <20170329171314.GD10760@atomide.com>
- <cd340d7a-c0cf-9227-1382-2277ffa5b1b0@ti.com>
- <20170516154717.GF31418@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] usb: ohci: Allow ohci on omap5 also
+Date: Tue, 16 May 2017 08:59:01 -0700
+Message-ID: <20170516155901.GG31418@atomide.com>
+References: <Pine.LNX.4.44L0.1609092131150.8630-100000@netrider.rowland.org>
+ <Pine.LNX.4.44L0.1609102224120.31770-100000@netrider.rowland.org>
+ <20160913224808.hzbahh33vz2f44wl@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170516154717.GF31418@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Keerthy J <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160913224808.hzbahh33vz2f44wl-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 05/16/2017 10:47 AM, Tony Lindgren wrote:
-> * Dave Gerlach <d-gerlach@ti.com> [170329 11:52]:
->> Hi Tony,
->> On 03/29/2017 12:13 PM, Tony Lindgren wrote:
->>> * Dave Gerlach <d-gerlach@ti.com> [170328 19:00]:
->>>> Hi,
->>>> This series contains the remaining code to enable suspend to mem and standby on
->>>> am335x and am437x platforms. It depends on the ti-emif-sram series sent here [1].
->>>
->>> Looks good to me in general. To remove the dependency, can some
->>> of this be merged separately without breaking things before [1]?
->>> Maybe by disabling some of the PM states until [1] is in place?
->>
->> Thanks for the feedback. Actually, patch 7 is the only patch with a
->> dependency to [1]. The rest of the patches just add platform PM support
->> needed for suspend but won't do much of anything until patch 7 actually
->> enables the suspend states, so there is no reason why patches 1-6 and patch
->> 8 can't be merged now.
->
-> I'm applying patches 1-5 into omap-for-v4.13/soc. Patch 6 needs
-> ack from Russell.
->
+Hi,
 
-Thanks. I will resend patches 6-8 as a separate series.
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [160913 15:48]:
+> * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160910 19:27]:
+> > On Fri, 9 Sep 2016, Alan Stern wrote:
+> > 
+> > > On Fri, 9 Sep 2016, Tony Lindgren wrote:
+> > > 
+> > > > * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 13:41]:
+> > > > > On Fri, 9 Sep 2016, Tony Lindgren wrote:
+> > > > > 
+> > > > > > * Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [160909 12:47]:
+> > > > > > > You know, as far as I can tell the only thing that is OMAP-specific
+> > > > > > > about the ohci-omap3 driver is the initialization of OHCI_CTRL_RWC.  
+> > > > > > > This could be added to the platform data or the DT bindings, after
+> > > > > > > which this driver wouldn't be needed at all -- the ohci_platform driver
+> > > > > > > would work.  Does this seem reasonable?
+> > > > > > 
+> > > > > > Sure makes sense to me. Do we have some standard binding for
+> > > > > > OCHI_CTRL_RWC?
+> > > > > 
+> > > > > No, one would have to be created.
+> > > > 
+> > > > OK I can do a patch for that, what should be binding be?
+> > > > 
+> > > > ohci-ctrl-rwc-something?
+> > > 
+> > > OHCI_CTRL_RWC is just a single-bit flag; the RWC part stands for
+> > > "Remote Wakeup Control".
+> > 
+> > Sorry, careless mistake on my part.  It actually stands for "Remote 
+> > Wakeup Connected"; meaning that the remote-wakeup output signal from 
+> > the controller is connected to something really can wake up the system.
+> > This is exactly the sort of hardware implementation detail that the 
+> > firmware is supposed to know.
+> 
+> OK thanks. I think it can be set up as a generic wakeirq.
+
+Sorry for the slowness on this one, I have not forgotten about this.
+I now do have a nice testcase of a modem on the ohci bus I can test
+with :)
+
+Also looks we can pretty easily support GPIO wake-up events some
+integrated USB devices have with the Linux generic wakeirqs. I did
+some testing with that and the only question really is where to
+configure it. For my tests, I just patched it into bin/unbind in
+drivers/net/usb/cdc_ether.c, but I think it can be generic to all
+USB devices.
+
+Anyways, patches coming at some point, might take a while though.
 
 Regards,
-Dave
 
-> Regards,
->
-> Tony
->
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
