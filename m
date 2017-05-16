@@ -1,50 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] misc: sram-exec: Use aligned fncpy instead of memcpy
-Date: Tue, 16 May 2017 09:01:27 -0700
-Message-ID: <20170516160127.GH31418@atomide.com>
-References: <20170410145247.6023-1-d-gerlach@ti.com>
- <20170503185533.GS23750@n2100.armlinux.org.uk>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/1] ARM: dts: dra7x-evm: Enable dual-role mode for USB1
+Date: Tue, 16 May 2017 09:24:48 -0700
+Message-ID: <20170516162447.GI31418@atomide.com>
+References: <1491916575-16023-1-git-send-email-rogerq@ti.com>
+ <1491916575-16023-2-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170503185533.GS23750@n2100.armlinux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, Keerthy J <j-keerthy@ti.com>
+In-Reply-To: <1491916575-16023-2-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@armlinux.org.uk> [170503 11:58]:
-> On Mon, Apr 10, 2017 at 09:52:47AM -0500, Dave Gerlach wrote:
-> > Currently the sram-exec functionality, which allows allocation of
-> > executable memory and provides an API to move code to it, is only
-> > selected in configs for the ARM architecture. Based on commit
-> > 5756e9dd0de6 ("ARM: 6640/1: Thumb-2: Symbol manipulation macros for
-> > function body copying") simply copying a C function pointer address
-> > using memcpy without consideration of alignment and Thumb is unsafe on
-> > ARM platforms.
-> > 
-> > The aforementioned patch introduces the fncpy macro which is a safe way
-> > to copy executable code on ARM platforms, so let's make use of that here
-> > rather than the unsafe plain memcpy that was previously used by
-> > sram_exec_copy. Now sram_exec_copy will move the code to "dst" and
-> > return an address that is guaranteed to be safely callable.
-> > 
-> > In the future, architectures hoping to make use of the sram-exec
-> > functionality must define an fncpy macro just as ARM has done to
-> > guarantee or check for safe copying to executable memory before allowing
-> > the arch to select CONFIG_SRAM_EXEC.
-> > 
-> > Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+* Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [170411 06:19]:
+> USB1 port is micro-AB type and can function as peripheral
+> as well as host. Enable dual-role mode for USB1.
 > 
-> Looks a lot saner, thanks.  It's just a bit sad that we lose the type
-> checking.
-> 
-> Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
+> We don't want to use the OTG controller block on this
+> platform as it limits host mode to high-speed. Instead
+> we rely on extcon framework to give us ID events for
+> dual-role mode detection.
 
-Looks like this is still pending so I'll add it into
-omap-for-v4.12/fixes so we can get this out of the way.
-
-Regards,
+Applying into omap-for-v4.13/dt thanks.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
