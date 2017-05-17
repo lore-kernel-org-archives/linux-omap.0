@@ -1,66 +1,44 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 4/4] ARM: dts: Add remote-wakeup-connected for omap OHCI
-Date: Wed, 17 May 2017 15:59:22 -0700
-Message-ID: <20170517225922.17723-5-tony@atomide.com>
+Subject: [PATCH 3/4] usb: host: ohci-omap3: Print warning to get people to use ohci-platform
+Date: Wed, 17 May 2017 15:59:21 -0700
+Message-ID: <20170517225922.17723-4-tony@atomide.com>
 References: <20170517225922.17723-1-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170517225922.17723-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add remote-wakeup-connected for omap OHCI as that's needed by
-ehci-platform driver.
+We can't just remove ohci-omap3 as that could make some people's
+systems unusable for keyboard and mouse. Let's print a warning for
+now, and then remove the driver in a year or so.
 
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3.dtsi | 1 +
- arch/arm/boot/dts/omap4.dtsi | 1 +
- arch/arm/boot/dts/omap5.dtsi | 1 +
- 3 files changed, 3 insertions(+)
+ drivers/usb/host/ohci-omap3.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -715,6 +715,7 @@
- 				reg = <0x48064400 0x400>;
- 				interrupt-parent = <&intc>;
- 				interrupts = <76>;
-+				remote-wakeup-connected;
- 			};
+diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
+--- a/drivers/usb/host/ohci-omap3.c
++++ b/drivers/usb/host/ohci-omap3.c
+@@ -130,6 +130,9 @@ static int ohci_hcd_omap3_probe(struct platform_device *pdev)
+ 		dev_dbg(dev, "failed to add hcd with err %d\n", ret);
+ 		goto err_add_hcd;
+ 	}
++
++	WARN(1, "ohci-omap3 is deprecated, please use ohci-platform instead\n");
++
+ 	device_wakeup_enable(hcd->self.controller);
  
- 			usbhsehci: ehci@48064800 {
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -863,6 +863,7 @@
- 				reg = <0x4a064800 0x400>;
- 				interrupt-parent = <&gic>;
- 				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
-+				remote-wakeup-connected;
- 			};
- 
- 			usbhsehci: ehci@4a064c00 {
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -939,6 +939,7 @@
- 				compatible = "ti,ohci-omap3";
- 				reg = <0x4a064800 0x400>;
- 				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
-+				remote-wakeup-connected;
- 			};
- 
- 			usbhsehci: ehci@4a064c00 {
+ 	return 0;
 -- 
 2.13.0
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
