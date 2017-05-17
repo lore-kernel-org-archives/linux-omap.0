@@ -1,42 +1,62 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 0/4] Make ohci-platform usable for omap3/4/5
-Date: Wed, 17 May 2017 15:59:18 -0700
-Message-ID: <20170517225922.17723-1-tony@atomide.com>
+Subject: [PATCH 2/4] usb: host: ohci-platform: Add support for omap3 and later
+Date: Wed, 17 May 2017 15:59:20 -0700
+Message-ID: <20170517225922.17723-3-tony@atomide.com>
+References: <20170517225922.17723-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170517225922.17723-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+With the runtime PM implemented for ohci-platform driver, we can
+now support omap3 and later OHCI by adding one device tree
+property.
 
-Here are patches I promised several months ago so we can eventually
-get rid of ohci-omap3 in favor of ohci-platform as suggested by
-Alan Stern.
+Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ Documentation/devicetree/bindings/usb/usb-ohci.txt | 1 +
+ drivers/usb/host/ohci-platform.c                   | 5 +++++
+ 2 files changed, 6 insertions(+)
 
-I think we need to wait a while before removing ohci-omap3, so
-I just added a warning for now to urge people to move to use
-ohci-platform instead.
-
-Regards,
-
-Tony
-
-Tony Lindgren (4):
-  usb: host: ohci-platform: Add basic runtime PM support
-  usb: host: ohci-platform: Add support for omap3 and later
-  usb: host: ohci-omap3: Print warning to get people to use
-    ohci-platform
-  ARM: dts: Add remote-wakeup-connected for omap OHCI
-
- Documentation/devicetree/bindings/usb/usb-ohci.txt |  1 +
- arch/arm/boot/dts/omap3.dtsi                       |  1 +
- arch/arm/boot/dts/omap4.dtsi                       |  1 +
- arch/arm/boot/dts/omap5.dtsi                       |  1 +
- drivers/usb/host/ohci-omap3.c                      |  3 +++
- drivers/usb/host/ohci-platform.c                   | 16 ++++++++++++++++
- 6 files changed, 23 insertions(+)
-
+diff --git a/Documentation/devicetree/bindings/usb/usb-ohci.txt b/Documentation/devicetree/bindings/usb/usb-ohci.txt
+--- a/Documentation/devicetree/bindings/usb/usb-ohci.txt
++++ b/Documentation/devicetree/bindings/usb/usb-ohci.txt
+@@ -10,6 +10,7 @@ Optional properties:
+ - big-endian-desc : boolean, set this for hcds with big-endian descriptors
+ - big-endian : boolean, for hcds with big-endian-regs + big-endian-desc
+ - no-big-frame-no : boolean, set if frame_no lives in bits [15:0] of HCCA
++- remote-wakeup-connected: remote wakeup is wired on the platform
+ - num-ports : u32, to override the detected port count
+ - clocks : a list of phandle + clock specifier pairs
+ - phys : phandle + phy specifier pair
+diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
+--- a/drivers/usb/host/ohci-platform.c
++++ b/drivers/usb/host/ohci-platform.c
+@@ -170,6 +170,10 @@ static int ohci_platform_probe(struct platform_device *dev)
+ 		if (of_property_read_bool(dev->dev.of_node, "no-big-frame-no"))
+ 			ohci->flags |= OHCI_QUIRK_FRAME_NO;
+ 
++		if (of_property_read_bool(dev->dev.of_node,
++					  "remote-wakeup-connected"))
++			ohci->hc_control = OHCI_CTRL_RWC;
++
+ 		of_property_read_u32(dev->dev.of_node, "num-ports",
+ 				     &ohci->num_ports);
+ 
+@@ -361,6 +365,7 @@ static int ohci_platform_resume(struct device *dev)
+ static const struct of_device_id ohci_platform_ids[] = {
+ 	{ .compatible = "generic-ohci", },
+ 	{ .compatible = "cavium,octeon-6335-ohci", },
++	{ .compatible = "ti,ohci-omap3", },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(of, ohci_platform_ids);
 -- 
 2.13.0
 --
