@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 1/4] Documentation: dt-bindings: Add binding documentation for TI clkctrl clocks
-Date: Wed, 17 May 2017 18:50:06 +0300
-Message-ID: <1495036209-11298-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3 3/4] dt-bindings: clk: add omap4 clkctrl definitions
+Date: Wed, 17 May 2017 18:50:08 +0300
+Message-ID: <1495036209-11298-4-git-send-email-t-kristo@ti.com>
 References: <1495036209-11298-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,119 +9,170 @@ Return-path: <linux-clk-owner@vger.kernel.org>
 In-Reply-To: <1495036209-11298-1-git-send-email-t-kristo@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
 To: linux-clk@vger.kernel.org, tony@atomide.com, mturquette@baylibre.com, sboyd@codeaurora.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+Contains offsets for all omap4 clkctrl main and optional clocks.
 
-Texas Instruments omap variant SoCs starting with omap4 have a clkctrl
-clock controller instance for each interconnect target module. The clkctrl
-controls functional and interface clocks for the module.
-
-The clkctrl clocks are currently handled by arch/arm/mach-omap2 hwmod code.
-With this binding and a related clock device driver we can start moving the
-clkctrl clock handling to live in drivers/clk/ti.
-
-Note that this binding allows keeping the clockdomain related parts out of
-drivers/clock. The CLKCTCTRL and DYNAMICDEP registers can be handled by
-a separate driver in drivers/soc/ti and genpd. If the clockdomain driver
-needs to know it's clocks, we can just set the the clkctrl device
-instances to be children of the related clockdomain device.
-
-Each clkctrl clock can have multiple optional gate clocks, and multiple
-optional mux clocks. To represent this in device tree, it seems that
-it is best done using four clock cells #clock-cells = <2> property.
-
-The reasons for using #clock-cells = <2> are:
-
-1. We need to specify the clkctrl offset from the instance base. Otherwise
-   we end up with a large number of device tree nodes that need to be
-   patched when new clocks are discovered in a clkctrl clock with minor
-   hardware revision changes for example
-
-2. On omap5 CM_L3INIT_USB_HOST_HS_CLKCTRL has ten OPTFCLKEN bits. So we
-   need to use a separate cell for optional gate clocks to avoid address
-   space conflicts
-
-There is probably no need to list input clocks for each clkctrl clock
-instance in the binding. If we want to add them, the standard clocks
-binding can be used for that.
-
-For hardware reference, see omap4430 TRM "Table 3-1312. L4PER_CM2 Registers
-Mapping Summary" for example. It shows one instance of a clkctrl clock
-controller with multiple clkctrl registers.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- .../devicetree/bindings/clock/ti-clkctrl.txt       | 56 ++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+ include/dt-bindings/clock/omap4.h | 146 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 146 insertions(+)
+ create mode 100644 include/dt-bindings/clock/omap4.h
 
-diff --git a/Documentation/devicetree/bindings/clock/ti-clkctrl.txt b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+diff --git a/include/dt-bindings/clock/omap4.h b/include/dt-bindings/clock/omap4.h
 new file mode 100644
-index 0000000..48ee699
+index 0000000..e86c758
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/clock/ti-clkctrl.txt
-@@ -0,0 +1,56 @@
-+Texas Instruments clkctrl clock binding
++++ b/include/dt-bindings/clock/omap4.h
+@@ -0,0 +1,146 @@
++/*
++ * Copyright 2017 Texas Instruments, Inc.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef __DT_BINDINGS_CLK_OMAP4_H
++#define __DT_BINDINGS_CLK_OMAP4_H
 +
-+Texas Instruments SoCs can have a clkctrl clock controller for each
-+interconnect target module. The clkctrl clock controller manages functional
-+and interface clocks for each module. Each clkctrl controller can also
-+gate one or more optional functional clocks for a module, and can have one
-+or more clock muxes. There is a clkctrl clock controller typically for each
-+interconnect target module on omap4 and later variants.
-+
-+The clock consumers can specify the index of the clkctrl clock using
-+the hardware offset from the clkctrl instance register space. The optional
-+clocks can be specified by clkctrl hardware offset and the index of the
-+optional clock.
-+
-+For more information, please see the Linux clock framework binding at
-+Documentation/devicetree/bindings/clock/clock-bindings.txt.
-+
-+Required properties :
-+- compatible : shall be "ti,clkctrl"
-+- #clock-cells : shall contain 2 with the first entry being the instance
-+		 offset from the clock domain base and the second being the
-+		 clock index
-+
-+Example: Clock controller node on omap 4430:
-+
-+&cm2 {
-+	l4per: cm@1400 {
-+		cm_l4per@0 {
-+			cm_l4per_clkctrl: clk@20 {
-+				compatible = "ti,clkctrl";
-+				reg = <0x20 0x1b0>;
-+				#clock-cells = <2>;
-+			};
-+		};
-+	};
-+};
-+
-+Example: Preprocessor helper macros in dt-bindings/clock/ti-clkctrl.h
-+
-+#define OMAP4_CLKCTRL_OFFSET		0x20
++#define OMAP4_CLKCTRL_OFFSET	0x20
 +#define OMAP4_CLKCTRL_INDEX(offset)	((offset) - OMAP4_CLKCTRL_OFFSET)
-+#define MODULEMODE_HWCTRL		1
-+#define MODULEMODE_SWCTRL		2
 +
-+#define OMAP4_GPTIMER10_CLKTRL		OMAP4_CLKCTRL_INDEX(0x28)
-+#define OMAP4_GPTIMER11_CLKTRL		OMAP4_CLKCTRL_INDEX(0x30)
-+#define OMAP4_GPTIMER2_CLKTRL		OMAP4_CLKCTRL_INDEX(0x38)
-+...
-+#define OMAP4_GPIO2_CLKCTRL		OMAP_CLKCTRL_INDEX(0x60)
++/* mpuss clocks */
++#define OMAP4_MPU_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
 +
-+Example: Clock consumer node for GPIO2:
++/* tesla clocks */
++#define OMAP4_DSP_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
 +
-+&gpio2 {
-+       clocks = <&cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 0
-+		 &cm_l4per_clkctrl OMAP4_GPIO2_CLKCTRL 8>;
-+};
++/* abe clocks */
++#define OMAP4_L4_ABE_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++#define OMAP4_AESS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
++#define OMAP4_MCPDM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
++#define OMAP4_DMIC_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
++#define OMAP4_MCASP_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x40)
++#define OMAP4_MCBSP1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x48)
++#define OMAP4_MCBSP2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x50)
++#define OMAP4_MCBSP3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x58)
++#define OMAP4_SLIMBUS1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x60)
++#define OMAP4_TIMER5_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x68)
++#define OMAP4_TIMER6_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x70)
++#define OMAP4_TIMER7_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x78)
++#define OMAP4_TIMER8_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x80)
++#define OMAP4_WD_TIMER3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x88)
++
++/* l4_ao clocks */
++#define OMAP4_SMARTREFLEX_MPU_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
++#define OMAP4_SMARTREFLEX_IVA_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
++#define OMAP4_SMARTREFLEX_CORE_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
++
++/* l3_1 clocks */
++#define OMAP4_L3_MAIN_1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++
++/* l3_2 clocks */
++#define OMAP4_L3_MAIN_2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++#define OMAP4_GPMC_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
++#define OMAP4_OCMC_RAM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
++
++/* ducati clocks */
++#define OMAP4_IPU_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++
++/* l3_dma clocks */
++#define OMAP4_DMA_SYSTEM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++
++/* l3_emif clocks */
++#define OMAP4_DMM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++#define OMAP4_EMIF1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
++#define OMAP4_EMIF2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
++
++/* d2d clocks */
++#define OMAP4_C2C_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++
++/* l4_cfg clocks */
++#define OMAP4_L4_CFG_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++#define OMAP4_SPINLOCK_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
++#define OMAP4_MAILBOX_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
++
++/* l3_instr clocks */
++#define OMAP4_L3_MAIN_3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++#define OMAP4_L3_INSTR_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
++#define OMAP4_OCP_WP_NOC_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x40)
++
++/* ivahd clocks */
++#define OMAP4_IVA_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++#define OMAP4_SL2IF_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
++
++/* iss clocks */
++#define OMAP4_ISS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++#define OMAP4_FDIF_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
++
++/* l3_dss clocks */
++#define OMAP4_DSS_CORE_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++
++/* l3_gfx clocks */
++#define OMAP4_GPU_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++
++/* l3_init clocks */
++#define OMAP4_MMC1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
++#define OMAP4_MMC2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
++#define OMAP4_HSI_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
++#define OMAP4_USB_HOST_HS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x58)
++#define OMAP4_USB_OTG_HS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x60)
++#define OMAP4_USB_TLL_HS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x68)
++#define OMAP4_USB_HOST_FS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xd0)
++#define OMAP4_OCP2SCP_USB_PHY_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xe0)
++
++/* l4_per clocks */
++#define OMAP4_TIMER10_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x28)
++#define OMAP4_TIMER11_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
++#define OMAP4_TIMER2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
++#define OMAP4_TIMER3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x40)
++#define OMAP4_TIMER4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x48)
++#define OMAP4_TIMER9_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x50)
++#define OMAP4_ELM_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x58)
++#define OMAP4_GPIO2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x60)
++#define OMAP4_GPIO3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x68)
++#define OMAP4_GPIO4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x70)
++#define OMAP4_GPIO5_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x78)
++#define OMAP4_GPIO6_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x80)
++#define OMAP4_HDQ1W_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x88)
++#define OMAP4_I2C1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xa0)
++#define OMAP4_I2C2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xa8)
++#define OMAP4_I2C3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xb0)
++#define OMAP4_I2C4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xb8)
++#define OMAP4_L4_PER_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xc0)
++#define OMAP4_MCBSP4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xe0)
++#define OMAP4_MCSPI1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xf0)
++#define OMAP4_MCSPI2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0xf8)
++#define OMAP4_MCSPI3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x100)
++#define OMAP4_MCSPI4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x108)
++#define OMAP4_MMC3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x120)
++#define OMAP4_MMC4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x128)
++#define OMAP4_SLIMBUS2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x138)
++#define OMAP4_UART1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x140)
++#define OMAP4_UART2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x148)
++#define OMAP4_UART3_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x150)
++#define OMAP4_UART4_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x158)
++#define OMAP4_MMC5_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x160)
++
++/* l4_wkup clocks */
++#define OMAP4_L4_WKUP_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++#define OMAP4_WD_TIMER2_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x30)
++#define OMAP4_GPIO1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x38)
++#define OMAP4_TIMER1_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x40)
++#define OMAP4_COUNTER_32K_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x50)
++#define OMAP4_KBD_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x78)
++
++/* emu_sys clocks */
++#define OMAP4_DEBUGSS_CLKCTRL	OMAP4_CLKCTRL_INDEX(0x20)
++
++#endif
 -- 
 1.9.1
 
