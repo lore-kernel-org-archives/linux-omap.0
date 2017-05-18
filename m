@@ -1,39 +1,73 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 3/4] usb: host: ohci-omap3: Print warning to get people
- to use ohci-platform
-Date: Thu, 18 May 2017 07:08:58 -0700
-Message-ID: <20170518140857.GA10472@atomide.com>
-References: <20170517225922.17723-1-tony@atomide.com>
- <20170517225922.17723-4-tony@atomide.com>
- <20170518091502.f3q6opnoey7aw2aw@earth>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH 0/8] ARM: OMAP2+: AM33XX/AM43XX: Add suspend-resume support
+Date: Thu, 18 May 2017 09:19:32 -0500
+Message-ID: <0bf4723f-dd94-bbbf-21a8-2ec60dff58cb@ti.com>
+References: <20170329015801.22240-1-d-gerlach@ti.com>
+ <20170329171314.GD10760@atomide.com>
+ <cd340d7a-c0cf-9227-1382-2277ffa5b1b0@ti.com>
+ <20170516154717.GF31418@atomide.com>
+ <597b3b18-154d-9e81-35c3-4790d813031b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170518091502.f3q6opnoey7aw2aw@earth>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <597b3b18-154d-9e81-35c3-4790d813031b@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Keerthy J <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170518 02:18]:
-> On Wed, May 17, 2017 at 03:59:21PM -0700, Tony Lindgren wrote:
-> > We can't just remove ohci-omap3 as that could make some people's
-> > systems unusable for keyboard and mouse. Let's print a warning for
-> > now, and then remove the driver in a year or so.
+Tony,
+On 05/16/2017 10:49 AM, Dave Gerlach wrote:
+> On 05/16/2017 10:47 AM, Tony Lindgren wrote:
+>> * Dave Gerlach <d-gerlach@ti.com> [170329 11:52]:
+>>> Hi Tony,
+>>> On 03/29/2017 12:13 PM, Tony Lindgren wrote:
+>>>> * Dave Gerlach <d-gerlach@ti.com> [170328 19:00]:
+>>>>> Hi,
+>>>>> This series contains the remaining code to enable suspend to mem and
+>>>>> standby on
+>>>>> am335x and am437x platforms. It depends on the ti-emif-sram series sent
+>>>>> here [1].
+>>>>
+>>>> Looks good to me in general. To remove the dependency, can some
+>>>> of this be merged separately without breaking things before [1]?
+>>>> Maybe by disabling some of the PM states until [1] is in place?
+>>>
+>>> Thanks for the feedback. Actually, patch 7 is the only patch with a
+>>> dependency to [1]. The rest of the patches just add platform PM support
+>>> needed for suspend but won't do much of anything until patch 7 actually
+>>> enables the suspend states, so there is no reason why patches 1-6 and patch
+>>> 8 can't be merged now.
+>>
+>> I'm applying patches 1-5 into omap-for-v4.13/soc. Patch 6 needs
+>> ack from Russell.
+>>
 >
-> I guess you could drop the driver and modify the Kconfig entry,
-> so that it selects USB_OHCI_HCD_PLATFORM? I just checked and
-> there are already a few examples of this in the USB host Kconfig :)
+> Thanks. I will resend patches 6-8 as a separate series.
 
-Right but there's still nothing telling people to load ohci-platform
-instead of ohci-omap3 if we just remove ohci-omap3 without any warnings.
-I don't think there's any need to rush to remove ohci-omap3.
+On second thought, it's probably best to keep patches 4 and 5 as part of the new 
+series as well for review purposes, as they are not added to the build until 
+patch 6 but also make use of the asm-offsets macros introduced in patch 6. I 
+will send them along with patch 6-8 resend, making the new series patches 4-8.
 
 Regards,
+Dave
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Regards,
+> Dave
+>
+>> Regards,
+>>
+>> Tony
+>>
+>
