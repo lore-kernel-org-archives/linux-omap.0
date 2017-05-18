@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 2/9] usb: musb: Add quirk to avoid skb reserve in gadget mode
-Date: Thu, 18 May 2017 16:12:00 +0300
-Message-ID: <20170518131207.23046-3-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 4/9] usb: musb: tusb6010_omap: Use one musb_ep_select call in tusb_omap_dma_program
+Date: Thu, 18 May 2017 16:12:02 +0300
+Message-ID: <20170518131207.23046-5-peter.ujfalusi@ti.com>
 References: <20170518131207.23046-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,44 +12,35 @@ To: b-liu@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel
 Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-For tusb6010 the DMA functionality only possible if the buffer is 32bit
-aligned (SYNC access to FIFO) since with ASYNC access the TX/RX offset
-registers will corrupt eventually.
-The MUSB_G_NO_SKB_RESERVE will set the quirk_avoids_skb_reserve flag in
-usb_gadget struct to provide correctly aligned buffer.
+Having one musb_ep_select() instead the two calls in if/else is the same
+thing, but makes the code a bit simpler to follow.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Tested-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/musb/musb_core.c | 3 +++
- drivers/usb/musb/musb_core.h | 1 +
- 2 files changed, 4 insertions(+)
+ drivers/usb/musb/tusb6010_omap.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 870da18f5077..87cbd56cc761 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2224,6 +2224,9 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
- 		musb->io.ep_select = musb_flat_ep_select;
- 	}
- 
-+	if (musb->io.quirks & MUSB_G_NO_SKB_RESERVE)
-+		musb->g.quirk_avoids_skb_reserve = 1;
-+
- 	/* At least tusb6010 has its own offsets */
- 	if (musb->ops->ep_offset)
- 		musb->io.ep_offset = musb->ops->ep_offset;
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 3e98d4268a64..9f22c5b8ce37 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -172,6 +172,7 @@ struct musb_io;
-  */
- struct musb_platform_ops {
- 
-+#define MUSB_G_NO_SKB_RESERVE	BIT(9)
- #define MUSB_DA8XX		BIT(8)
- #define MUSB_PRESERVE_SESSION	BIT(7)
- #define MUSB_DMA_UX500		BIT(6)
+diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
+index 7870b37e0ea5..025b52e0b34d 100644
+--- a/drivers/usb/musb/tusb6010_omap.c
++++ b/drivers/usb/musb/tusb6010_omap.c
+@@ -368,15 +368,14 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
+ 	/*
+ 	 * Prepare MUSB for DMA transfer
+ 	 */
++	musb_ep_select(mbase, chdat->epnum);
+ 	if (chdat->tx) {
+-		musb_ep_select(mbase, chdat->epnum);
+ 		csr = musb_readw(hw_ep->regs, MUSB_TXCSR);
+ 		csr |= (MUSB_TXCSR_AUTOSET | MUSB_TXCSR_DMAENAB
+ 			| MUSB_TXCSR_DMAMODE | MUSB_TXCSR_MODE);
+ 		csr &= ~MUSB_TXCSR_P_UNDERRUN;
+ 		musb_writew(hw_ep->regs, MUSB_TXCSR, csr);
+ 	} else {
+-		musb_ep_select(mbase, chdat->epnum);
+ 		csr = musb_readw(hw_ep->regs, MUSB_RXCSR);
+ 		csr |= MUSB_RXCSR_DMAENAB;
+ 		csr &= ~(MUSB_RXCSR_AUTOCLEAR | MUSB_RXCSR_DMAMODE);
 -- 
 2.13.0
