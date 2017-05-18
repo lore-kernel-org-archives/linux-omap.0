@@ -1,42 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 0/3] ARM: OMAP2+: preparation for clk/clkctrl support
-Date: Thu, 18 May 2017 20:16:09 +0300
-Message-ID: <1495127772-7486-1-git-send-email-t-kristo@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH 1/4] usb: host: ohci-platform: Add basic runtime PM
+ support
+Date: Thu, 18 May 2017 13:21:28 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1705181313320.1619-100000@iolanthe.rowland.org>
+References: <20170517225922.17723-2-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170517225922.17723-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Wed, 17 May 2017, Tony Lindgren wrote:
 
-This series contains a couple of fixes for supporting clkctrl driver
-for OMAP4. The patches in this series can be applied separately,
-they don't have any dependency towards the clock driver related patches.
-Once the clockctrl driver support itself [1] and this series have
-been applied, the DTS changes can start flowing in.
+> This is needed in preparation of adding support for omap3 and
+> later OHCI. The runtime PM will only do something on platforms
+> that implement it.
 
-Reference branch with the clkctrl driver, this series and
-preliminary DTS patches pushed here:
+> @@ -51,6 +52,10 @@ static int ohci_platform_power_on(struct platform_device *dev)
+>  	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
+>  	int clk, ret, phy_num;
+>  
+> +	ret = pm_runtime_get_sync(&dev->dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
 
-Tree: https://github.com/t-kristo/linux-pm.git
-Branch: 4.12-rc1-clkctrl-integ
+I don't remember how probing for platform device drivers is set up.    
+So although this is definitely the wrong place for 
+pm_runtime_get_sync(), it may turn out that you need to do a 
+pm_runtime_get_noresume() before calling pm_runtime_enable(), and a 
+pm_runtime_put() at the end of ohci_platform_probe().  Otherwise 
+runtime PM might kick in during the middle of the probe sequence -- not 
+what you want.
 
-Tested the integrated branch with omap4 boot, suspend-resume, and
-also with the HDMI external display test (this was failing with some
-older revision of the series.)
+Similarly, you may need pm_runtime_get_sync() at the start of 
+ohci_platform_remove() and pm_runtime_put_noidle() at the end.
 
--Tero
+Alan Stern
 
-[1] https://www.spinics.net/lists/arm-kernel/msg581685.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
