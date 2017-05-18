@@ -1,82 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 3/3] ARM: OMAP4: hwmod_data: add opt clks for dss_hdmi and
- dss_venc
-Date: Thu, 18 May 2017 20:16:12 +0300
-Message-ID: <1495127772-7486-4-git-send-email-t-kristo@ti.com>
-References: <1495127772-7486-1-git-send-email-t-kristo@ti.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] ti-thermal-common: Delete an error message for a failed
+ memory allocation in ti_thermal_build_data()
+Date: Thu, 18 May 2017 22:30:07 +0200
+Message-ID: <d85aaf2b-0db5-1ad0-f57f-1000c96e1c38@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1495127772-7486-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Language: en-GB
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-omap@vger.kernel.org
 
-These extra optional clocks are required as main clock for these modules
-are going to be routed to the main module clock. Otherwise, the hdmi / tv
-clocks are not going to be enabled during usage, leading to failure.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 18 May 2017 22:20:12 +0200
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Omit an extra message for a memory allocation failure in this function.
+
+This issue was detected by using the Coccinelle software.
+
+Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 94f09c7..0855434 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -775,6 +775,7 @@
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index 02790f69e26c..5d29aa35cc34 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -160,10 +160,9 @@ static struct ti_thermal_data
+ 	struct ti_thermal_data *data;
  
- static struct omap_hwmod_opt_clk dss_hdmi_opt_clks[] = {
- 	{ .role = "sys_clk", .clk = "dss_sys_clk" },
-+	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
- };
- 
- static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
-@@ -785,7 +786,7 @@
- 	 * HDMI audio requires to use no-idle mode. Hence,
- 	 * set idle mode by software.
- 	 */
--	.flags		= HWMOD_SWSUP_SIDLE,
-+	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_OPT_CLKS_NEEDED,
- 	.mpu_irqs	= omap44xx_dss_hdmi_irqs,
- 	.xlate_irq	= omap4_xlate_irq,
- 	.sdma_reqs	= omap44xx_dss_hdmi_sdma_reqs,
-@@ -858,11 +859,16 @@
- };
- 
- /* dss_venc */
-+static struct omap_hwmod_opt_clk dss_venc_opt_clks[] = {
-+	{ .role = "tv_clk", .clk = "dss_tv_clk" },
-+};
+ 	data = devm_kzalloc(bgp->dev, sizeof(*data), GFP_KERNEL);
+-	if (!data) {
+-		dev_err(bgp->dev, "kzalloc fail\n");
++	if (!data)
+ 		return NULL;
+-	}
 +
- static struct omap_hwmod omap44xx_dss_venc_hwmod = {
- 	.name		= "dss_venc",
- 	.class		= &omap44xx_venc_hwmod_class,
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.main_clk	= "dss_tv_clk",
-+	.flags		= HWMOD_OPT_CLKS_NEEDED,
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
-@@ -870,6 +876,8 @@
- 		},
- 	},
- 	.parent_hwmod	= &omap44xx_dss_hwmod,
-+	.opt_clks	= dss_venc_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(dss_venc_opt_clks),
- };
- 
- /*
+ 	data->sensor_id = id;
+ 	data->bgp = bgp;
+ 	data->mode = THERMAL_DEVICE_ENABLED;
 -- 
-1.9.1
+2.13.0
