@@ -1,126 +1,143 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/4] usb: host: ohci-platform: Add basic runtime PM
- support
-Date: Thu, 18 May 2017 08:52:37 -0700
-Message-ID: <20170518155237.GD10472@atomide.com>
-References: <20170517225922.17723-2-tony@atomide.com>
- <Pine.LNX.4.44L0.1705181114280.1619-100000@iolanthe.rowland.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv3 1/3] ARM: OMAP2+: hwmod: assign main clock from DT if
+ available
+Date: Thu, 18 May 2017 20:16:10 +0300
+Message-ID: <1495127772-7486-2-git-send-email-t-kristo@ti.com>
+References: <1495127772-7486-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1705181114280.1619-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1495127772-7486-1-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [170518 08:28]:
-> On Wed, 17 May 2017, Tony Lindgren wrote:
-> 
-> > This is needed in preparation of adding support for omap3 and
-> > later OHCI. The runtime PM will only do something on platforms
-> > that implement it.
-> 
-> This patch isn't correct.  See below.
-> 
-> > Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> > Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
-> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > ---
-> >  drivers/usb/host/ohci-platform.c | 11 +++++++++++
-> >  1 file changed, 11 insertions(+)
-> > 
-> > diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
-> > --- a/drivers/usb/host/ohci-platform.c
-> > +++ b/drivers/usb/host/ohci-platform.c
-> > @@ -24,6 +24,7 @@
-> >  #include <linux/err.h>
-> >  #include <linux/phy/phy.h>
-> >  #include <linux/platform_device.h>
-> > +#include <linux/pm_runtime.h>
-> >  #include <linux/reset.h>
-> >  #include <linux/usb/ohci_pdriver.h>
-> >  #include <linux/usb.h>
-> > @@ -51,6 +52,10 @@ static int ohci_platform_power_on(struct platform_device *dev)
-> >  	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
-> >  	int clk, ret, phy_num;
-> >  
-> > +	ret = pm_runtime_get_sync(&dev->dev);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> >  	for (clk = 0; clk < OHCI_MAX_CLKS && priv->clks[clk]; clk++) {
-> >  		ret = clk_prepare_enable(priv->clks[clk]);
-> >  		if (ret)
-> > @@ -96,6 +101,8 @@ static void ohci_platform_power_off(struct platform_device *dev)
-> >  	for (clk = OHCI_MAX_CLKS - 1; clk >= 0; clk--)
-> >  		if (priv->clks[clk])
-> >  			clk_disable_unprepare(priv->clks[clk]);
-> > +
-> > +	pm_runtime_put_sync(&dev->dev);
-> >  }
-> 
-> ohci_platform_power_on() is invoked (by default) by the runtime-resume
-> callback routine ohci_platform_resume(), through the pdata->power_on
-> method pointer.  Likewise, ohci_platform_power_off() is invoked by the
-> runtime-suspend callback routine.
-> 
-> This means you shouldn't do pm_runtime_get/put calls from within these 
-> routines.
+Fix the main clock assignment to assign clkctrl clk from DT as the main
+clock if available. If main clock is assigned via DT, the direct PRCM
+access for module handling is not used on OMAP4+ architectures either,
+as it is assumed the main clock will be doing this instead.
 
-Oh OK great, so the above should not be needed at all.
+This patch also drops the obsolete "_mod_ck" search as the implementation
+required for this was not accepted upstream.
 
-> Is there any particular reason you wanted to add these calls?  In
-> general, USB host controllers are expected to go into runtime suspend
-> whenever there aren't any children keeping them awake.  Hence they
-> usually don't need to worry about initiating their own suspends and
-> resumes.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 57 ++++++++++++++++++++++++++--------------
+ 1 file changed, 37 insertions(+), 20 deletions(-)
 
-No particular reason as it sounds things work without it :) I'll check.
-
-> >  static struct hc_driver __read_mostly ohci_platform_hc_driver;
-> > @@ -242,6 +249,7 @@ static int ohci_platform_probe(struct platform_device *dev)
-> >  	}
-> >  #endif
-> >  
-> > +	pm_runtime_enable(&dev->dev);
-> 
-> There should be a pm_runtime_set_active() just before this.
-
-OK
-
-> >  	if (pdata->power_on) {
-> >  		err = pdata->power_on(dev);
-> >  		if (err < 0)
-> > @@ -271,6 +279,7 @@ static int ohci_platform_probe(struct platform_device *dev)
-> >  	if (pdata->power_off)
-> >  		pdata->power_off(dev);
-> >  err_reset:
-> > +	pm_runtime_disable(&dev->dev);
-> >  	while (--rst >= 0)
-> >  		reset_control_assert(priv->resets[rst]);
-> >  err_put_clks:
-> > @@ -305,6 +314,8 @@ static int ohci_platform_remove(struct platform_device *dev)
-> >  
-> >  	usb_put_hcd(hcd);
-> >  
-> > +	pm_runtime_disable(&dev->dev);
-> > +
-> >  	if (pdata == &ohci_platform_defaults)
-> >  		dev->dev.platform_data = NULL;
-> 
-> These changes make sense.
-
-OK thanks for looking.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 8bcea0d..6b8a2cf 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -693,31 +693,48 @@ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+ /**
+  * _init_main_clk - get a struct clk * for the the hwmod's main functional clk
+  * @oh: struct omap_hwmod *
++ * @np: device node mapped to this hwmod
+  *
+  * Called from _init_clocks().  Populates the @oh _clk (main
+  * functional clock pointer) if a clock matching the hwmod name is found,
+  * or a main_clk is present.  Returns 0 on success or -EINVAL on error.
+  */
+-static int _init_main_clk(struct omap_hwmod *oh)
++static int _init_main_clk(struct omap_hwmod *oh, struct device_node *np)
+ {
+ 	int ret = 0;
+-	char name[MOD_CLK_MAX_NAME_LEN];
+-	struct clk *clk;
+-	static const char modck[] = "_mod_ck";
+-
+-	if (strlen(oh->name) >= MOD_CLK_MAX_NAME_LEN - strlen(modck))
+-		pr_warn("%s: warning: cropping name for %s\n", __func__,
+-			oh->name);
++	struct clk *clk = NULL;
++	int i;
++	int count;
++	const char *name;
++	char clk_name[strlen("clkctrl-x") + 1];
+ 
+-	strlcpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - strlen(modck));
+-	strlcat(name, modck, MOD_CLK_MAX_NAME_LEN);
++	if (np) {
++		clk = of_clk_get_by_name(np, "clkctrl");
++		if (IS_ERR(clk)) {
++			/* Try matching by hwmod name */
++			count = of_property_count_strings(np, "ti,hwmods");
++			for (i = 0; i < count; i++) {
++				ret = of_property_read_string_index(np,
++								    "ti,hwmods",
++								    i, &name);
++				if (ret)
++					continue;
++				if (!strcmp(name, oh->name)) {
++					sprintf(clk_name, "clkctrl-%d", i);
++					clk = of_clk_get_by_name(np, clk_name);
++				}
++			}
++		}
++		if (!IS_ERR(clk)) {
++			pr_debug("%s: mapped main_clk %s for %s\n", __func__,
++				 __clk_get_name(clk), oh->name);
++			oh->main_clk = __clk_get_name(clk);
++			oh->_clk = clk;
++			soc_ops.disable_direct_prcm(oh);
++		}
++	}
+ 
+-	clk = clk_get(NULL, name);
+-	if (!IS_ERR(clk)) {
+-		oh->_clk = clk;
+-		soc_ops.disable_direct_prcm(oh);
+-		oh->main_clk = kstrdup(name, GFP_KERNEL);
+-	} else {
++	if (IS_ERR_OR_NULL(clk)) {
+ 		if (!oh->main_clk)
+ 			return 0;
+ 
+@@ -1482,13 +1499,13 @@ static int _init_clkdm(struct omap_hwmod *oh)
+  * _init_clocks - clk_get() all clocks associated with this hwmod. Retrieve as
+  * well the clockdomain.
+  * @oh: struct omap_hwmod *
+- * @data: not used; pass NULL
++ * @np: device_node mapped to this hwmod
+  *
+  * Called by omap_hwmod_setup_*() (after omap2_clk_init()).
+  * Resolves all clock names embedded in the hwmod.  Returns 0 on
+  * success, or a negative error code on failure.
+  */
+-static int _init_clocks(struct omap_hwmod *oh, void *data)
++static int _init_clocks(struct omap_hwmod *oh, struct device_node *np)
+ {
+ 	int ret = 0;
+ 
+@@ -1500,7 +1517,7 @@ static int _init_clocks(struct omap_hwmod *oh, void *data)
+ 	if (soc_ops.init_clkdm)
+ 		ret |= soc_ops.init_clkdm(oh);
+ 
+-	ret |= _init_main_clk(oh);
++	ret |= _init_main_clk(oh, np);
+ 	ret |= _init_interface_clks(oh);
+ 	ret |= _init_opt_clks(oh);
+ 
+@@ -2360,7 +2377,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+ 		return 0;
+ 	}
+ 
+-	r = _init_clocks(oh, NULL);
++	r = _init_clocks(oh, np);
+ 	if (r < 0) {
+ 		WARN(1, "omap_hwmod: %s: couldn't init clocks\n", oh->name);
+ 		return -EINVAL;
+-- 
+1.9.1
