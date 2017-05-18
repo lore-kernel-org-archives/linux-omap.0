@@ -1,63 +1,114 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH v2] misc: sram-exec: Use aligned fncpy instead of memcpy
-Date: Thu, 18 May 2017 10:09:41 -0500
-Message-ID: <b1edabef-09f3-43e5-3fda-fd87abf16432@ti.com>
-References: <20170410145247.6023-1-d-gerlach@ti.com>
- <20170518150134.GA3142@kroah.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH 1/4] usb: host: ohci-platform: Add basic runtime PM
+ support
+Date: Thu, 18 May 2017 11:25:07 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1705181114280.1619-100000@iolanthe.rowland.org>
+References: <20170517225922.17723-2-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170518150134.GA3142@kroah.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170517225922.17723-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 05/18/2017 10:01 AM, Greg Kroah-Hartman wrote:
-> On Mon, Apr 10, 2017 at 09:52:47AM -0500, Dave Gerlach wrote:
->> Currently the sram-exec functionality, which allows allocation of
->> executable memory and provides an API to move code to it, is only
->> selected in configs for the ARM architecture. Based on commit
->> 5756e9dd0de6 ("ARM: 6640/1: Thumb-2: Symbol manipulation macros for
->> function body copying") simply copying a C function pointer address
->> using memcpy without consideration of alignment and Thumb is unsafe on
->> ARM platforms.
->>
->> The aforementioned patch introduces the fncpy macro which is a safe way
->> to copy executable code on ARM platforms, so let's make use of that here
->> rather than the unsafe plain memcpy that was previously used by
->> sram_exec_copy. Now sram_exec_copy will move the code to "dst" and
->> return an address that is guaranteed to be safely callable.
->>
->> In the future, architectures hoping to make use of the sram-exec
->> functionality must define an fncpy macro just as ARM has done to
->> guarantee or check for safe copying to executable memory before allowing
->> the arch to select CONFIG_SRAM_EXEC.
->>
->> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->> Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
->> Reviewed-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
->> Acked-by: Tony Lindgren <tony@atomide.com>
->
-> Can you rebase this and resend as it doesn't apply to the tree right now
-> :(
->
+On Wed, 17 May 2017, Tony Lindgren wrote:
 
-Resent as v3 based on v4.12-rc1 and with Acks from v2 added, thanks.
+> This is needed in preparation of adding support for omap3 and
+> later OHCI. The runtime PM will only do something on platforms
+> that implement it.
 
-Regards,
-Dave
+This patch isn't correct.  See below.
 
-> thanks,
->
-> greg k-h
->
+> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/usb/host/ohci-platform.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+> 
+> diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
+> --- a/drivers/usb/host/ohci-platform.c
+> +++ b/drivers/usb/host/ohci-platform.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/err.h>
+>  #include <linux/phy/phy.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/reset.h>
+>  #include <linux/usb/ohci_pdriver.h>
+>  #include <linux/usb.h>
+> @@ -51,6 +52,10 @@ static int ohci_platform_power_on(struct platform_device *dev)
+>  	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
+>  	int clk, ret, phy_num;
+>  
+> +	ret = pm_runtime_get_sync(&dev->dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	for (clk = 0; clk < OHCI_MAX_CLKS && priv->clks[clk]; clk++) {
+>  		ret = clk_prepare_enable(priv->clks[clk]);
+>  		if (ret)
+> @@ -96,6 +101,8 @@ static void ohci_platform_power_off(struct platform_device *dev)
+>  	for (clk = OHCI_MAX_CLKS - 1; clk >= 0; clk--)
+>  		if (priv->clks[clk])
+>  			clk_disable_unprepare(priv->clks[clk]);
+> +
+> +	pm_runtime_put_sync(&dev->dev);
+>  }
+
+ohci_platform_power_on() is invoked (by default) by the runtime-resume
+callback routine ohci_platform_resume(), through the pdata->power_on
+method pointer.  Likewise, ohci_platform_power_off() is invoked by the
+runtime-suspend callback routine.
+
+This means you shouldn't do pm_runtime_get/put calls from within these 
+routines.
+
+Is there any particular reason you wanted to add these calls?  In
+general, USB host controllers are expected to go into runtime suspend
+whenever there aren't any children keeping them awake.  Hence they
+usually don't need to worry about initiating their own suspends and
+resumes.
+
+>  static struct hc_driver __read_mostly ohci_platform_hc_driver;
+> @@ -242,6 +249,7 @@ static int ohci_platform_probe(struct platform_device *dev)
+>  	}
+>  #endif
+>  
+> +	pm_runtime_enable(&dev->dev);
+
+There should be a pm_runtime_set_active() just before this.
+
+>  	if (pdata->power_on) {
+>  		err = pdata->power_on(dev);
+>  		if (err < 0)
+> @@ -271,6 +279,7 @@ static int ohci_platform_probe(struct platform_device *dev)
+>  	if (pdata->power_off)
+>  		pdata->power_off(dev);
+>  err_reset:
+> +	pm_runtime_disable(&dev->dev);
+>  	while (--rst >= 0)
+>  		reset_control_assert(priv->resets[rst]);
+>  err_put_clks:
+> @@ -305,6 +314,8 @@ static int ohci_platform_remove(struct platform_device *dev)
+>  
+>  	usb_put_hcd(hcd);
+>  
+> +	pm_runtime_disable(&dev->dev);
+> +
+>  	if (pdata == &ohci_platform_defaults)
+>  		dev->dev.platform_data = NULL;
+
+These changes make sense.
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
