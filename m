@@ -1,60 +1,45 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 28/41] ARM: dts: am571x-idk: Add pinmux configuration for MMC
-Date: Fri, 19 May 2017 13:45:28 +0530
-Message-ID: <20170519081541.26753-29-kishon@ti.com>
-References: <20170519081541.26753-1-kishon@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap fixes for v4.12-rc cycle
+Date: Fri, 19 May 2017 10:16:40 +0200
+Message-ID: <CAK8P3a0+C5VuYtuifk6SnAdXcfdDoFchQuD2efZtNf5kqPoGsw@mail.gmail.com>
+References: <158788626256017699@unknownmsgid>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170519081541.26753-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jonathan Corbet <corbet@lwn.net>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, nsekhar@ti.com, kishon@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <158788626256017699@unknownmsgid>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Include dra72x-mmc-iodelay.dtsi which has pinmux and IODelay
-configuration values for the various MMC modes for dra72 SoC
-and use it in the pinctrl properties of MMC devicetree
-nodes present in am571x-idk.dts.
+On Thu, May 18, 2017 at 5:59 PM, Tony Lindgren <tony@atomide.com> wrote:
+> The following changes since commit 2ea659a9ef488125eb46da6eb571de5eae5c43f6:
+>
+>   Linux 4.12-rc1 (2017-05-13 13:19:49 -0700)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.12/fixes-v2-signed
+>
+> for you to fetch changes up to bca5238816939436d72ae6bab124c4b0641a3a99:
+>
+>   ARM: dts: dra7: Reduce cpu thermal shutdown temperature (2017-05-17 06:51:38 -0700)
+>
+> ----------------------------------------------------------------
+> Fixes for omaps for v4.12-rc cycle most consisting of few minor dts fixes
+> for various devices. Also included is a memory controller (GPMC) debug output
+> fix as without that the shown bootloader configured GPMC bus width will
+> be wrong and won't work for kernel timings:
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/am571x-idk.dts | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+I see Olof has merged it into the fixes branch.
 
-diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
-index e685c8e811b0..875291d1bdd7 100644
---- a/arch/arm/boot/dts/am571x-idk.dts
-+++ b/arch/arm/boot/dts/am571x-idk.dts
-@@ -11,6 +11,7 @@
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/interrupt-controller/irq.h>
- #include "am57xx-idk-common.dtsi"
-+#include "dra72x-mmc-iodelay.dtsi"
- 
- / {
- 	model = "TI AM5718 IDK";
-@@ -72,3 +73,21 @@
- 	id-gpio = <&gpio5 7 GPIO_ACTIVE_HIGH>;
- 	vbus-gpio = <&gpio7 22 GPIO_ACTIVE_HIGH>;
- };
-+
-+&mmc1 {
-+	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50", "sdr104";
-+	pinctrl-0 = <&mmc1_pins_default>;
-+	pinctrl-1 = <&mmc1_pins_hs>;
-+	pinctrl-2 = <&mmc1_pins_sdr12>;
-+	pinctrl-3 = <&mmc1_pins_sdr25>;
-+	pinctrl-4 = <&mmc1_pins_sdr50>;
-+	pinctrl-5 = <&mmc1_pins_ddr50_rev20 &mmc1_iodelay_ddr50_conf>;
-+	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev20_conf>;
-+};
-+
-+&mmc2 {
-+	pinctrl-names = "default", "hs", "ddr_1_8v";
-+	pinctrl-0 = <&mmc2_pins_default>;
-+	pinctrl-1 = <&mmc2_pins_hs>;
-+	pinctrl-2 = <&mmc2_pins_ddr_rev20 &mmc2_iodelay_ddr_conf>;
-+};
--- 
-2.11.0
+      Arnd
