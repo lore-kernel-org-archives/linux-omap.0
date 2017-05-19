@@ -1,56 +1,71 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 3/4] usb: host: ohci-omap3: Print warning to get people
- to use ohci-platform
-Date: Fri, 19 May 2017 10:39:46 -0700
-Message-ID: <20170519173945.GF10472@atomide.com>
-References: <20170517225922.17723-1-tony@atomide.com>
- <20170517225922.17723-4-tony@atomide.com>
- <20170518091502.f3q6opnoey7aw2aw@earth>
- <20170518140857.GA10472@atomide.com>
- <20170518172157.huhmkllpub3bujyv@earth>
+Subject: Re: [PATCH 1/4] usb: host: ohci-platform: Add basic runtime PM
+ support
+Date: Fri, 19 May 2017 10:52:32 -0700
+Message-ID: <20170519175232.GG10472@atomide.com>
+References: <20170517225922.17723-2-tony@atomide.com>
+ <Pine.LNX.4.44L0.1705181313320.1619-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170518172157.huhmkllpub3bujyv@earth>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1705181313320.1619-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170518 10:25]:
-> Hi,
+* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [170518 10:24]:
+> On Wed, 17 May 2017, Tony Lindgren wrote:
 > 
-> On Thu, May 18, 2017 at 07:08:58AM -0700, Tony Lindgren wrote:
-> > * Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170518 02:18]:
-> > > On Wed, May 17, 2017 at 03:59:21PM -0700, Tony Lindgren wrote:
-> > > > We can't just remove ohci-omap3 as that could make some people's
-> > > > systems unusable for keyboard and mouse. Let's print a warning for
-> > > > now, and then remove the driver in a year or so.
-> > >
-> > > I guess you could drop the driver and modify the Kconfig entry,
-> > > so that it selects USB_OHCI_HCD_PLATFORM? I just checked and
-> > > there are already a few examples of this in the USB host Kconfig :)
-> > 
-> > Right but there's still nothing telling people to load ohci-platform
-> > instead of ohci-omap3 if we just remove ohci-omap3 without any warnings.
+> > This is needed in preparation of adding support for omap3 and
+> > later OHCI. The runtime PM will only do something on platforms
+> > that implement it.
 > 
-> Shouldn't the driver be loaded automatically due to the DT
-> compatible value?
+> > @@ -51,6 +52,10 @@ static int ohci_platform_power_on(struct platform_device *dev)
+> >  	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
+> >  	int clk, ret, phy_num;
+> >  
+> > +	ret = pm_runtime_get_sync(&dev->dev);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> 
+> I don't remember how probing for platform device drivers is set up.    
+> So although this is definitely the wrong place for 
+> pm_runtime_get_sync(), it may turn out that you need to do a 
+> pm_runtime_get_noresume() before calling pm_runtime_enable(), and a 
+> pm_runtime_put() at the end of ohci_platform_probe().  Otherwise 
+> runtime PM might kick in during the middle of the probe sequence -- not 
+> what you want.
 
-Doesn't that depend on a collection of user space software of
-varying quality and usability? :)
+Just removing those parts seems to work for probing.
 
-But I think we can actually ohci-omap3 once the issues are sorted
-out. That's because for OHCI omaps need an OHCI PHY. In most cases
-there is just EHCI PHY and an external hub is needed. I'll do some
-more testing.
+> Similarly, you may need pm_runtime_get_sync() at the start of 
+> ohci_platform_remove() and pm_runtime_put_noidle() at the end.
+
+Yup that I noticed that too trying to rmmod it with no devices
+connected.
+
+While testing I also saw once "external abort on non-linefetch":
+
+(ohci_hub_status_data [ohci_hcd]) from [<bf0298bc>]
+(usb_hcd_poll_rh_status+0x3c/0x128 [usbcore])
+(usb_hcd_poll_rh_status [usbcore]) from [<c01c790c>]
+(call_timer_fn+0xb0/0x3f8)
+(call_timer_fn) from [<c01c7d38>] (expire_timers+0xe4/0x220)
+(expire_timers) from [<c01c7f08>] (run_timer_softirq+0x94/0x19c)
+(run_timer_softirq) from [<c0141cf8>] (__do_softirq+0x140/0x570)
+
+Also I'm still checking if legacy usb_phy vs phy needs handling.
+So far it seems that no need to do anything because most devices
+need a USB hub anyways unless they have USB serial transceiver
+configured with drivers/mfd/omap-usb-host.c for LS/FS.
 
 Regards,
 
 Tony
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
