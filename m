@@ -1,106 +1,275 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v2 0/5] ARM: OMAP2+: AM33XX/AM43XX: Add suspend-resume support
-Date: Fri, 19 May 2017 15:04:33 -0500
-Message-ID: <20170519200438.9502-1-d-gerlach@ti.com>
+Subject: [PATCH v2 1/5] ARM: OMAP2+: Introduce low-level suspend code for AM33XX
+Date: Fri, 19 May 2017 15:04:34 -0500
+Message-ID: <20170519200438.9502-2-d-gerlach@ti.com>
+References: <20170519200438.9502-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170519200438.9502-1-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Russell King <linux@armlinux.org.uk>
-Cc: Keerthy J <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-This series contains the remaining code to enable suspend to mem and standby on
-am335x and am437x platforms. It depends on the ti-emif-sram series sent here
-[1], and the first 3 patches in v1 found here [2] which have been queued for
-merge already and dropped from this series. Apart from dropping the first three
-patches, changes from v1 are to update the sram_exec_copy usage to treat the
-return address as the proper callable pointer when copying functions and some
-small cleanups to the assembly code in the first two patches. However, as no
-review was done on v1 due to sram_exec_copy discussion I am including the
-original cover letter below.
+In preparation for suspend-resume support for AM33XX, add
+the assembly file with the code which is copied to internal
+memory (OCMC RAM) during bootup and runs from there.
 
-This code also depends on firmware for the wkup_m3 that is available here [3]
-that can either be placed in /lib/firmware or built in to the kernel.
+As part of the low power entry (DeepSleep0 mode in AM33XX TRM),
+the code running from OCMC RAM does the following
+1. Calls routine to store the EMIF configuration
+2. Calls routine to place external memory in self-refresh
+3. Disables EMIF clock
+4. Executes WFI after writing to MPU_CLKCTRL register.
 
-Patches 1 and 2 add the required low-level PM suspend code that is relocated to
-SRAM for each platform.  Patch 3 and patch 4 serve as the split between code
-that can live in drivers and code that must remain under mach-omap2. The idea
-here was to maintain the minimal amount of ARM and OMAP specific code inside
-mach-omap2 while providing ops that can be called into from a module that lives
-in drivers and contains the bulk of the PM code. Patch 3 also contains
-additions to the ARM asm-offsets file to allow us to automatically generate C
-struct member offsets and sizes to be used by the assembly code introduced
-earlier, more info can be seen in the changelog.  Patch 4 introduces the pm33xx
-driver which makes use of the wkup_m3_ipc and ti-emif-sram drivers to enable PM
-on the system.  Because pm33xx depends on modules it must be able to defer
-probe so patch 5 creates a dummy pm33xx platform device to cause pm33xx to
-probe initially but also defer if needed.
+If no interrupts have come, WFI execution on MPU gets registered
+as an interrupt with the WKUP-M3. WKUP-M3 takes care of disabling
+some clocks which MPU should not (L3, L4, OCMC RAM etc) and takes
+care of clockdomain and powerdomain transitions as part of the
+DeepSleep0 mode entry.
 
-As with the ti-emif-sram driver, which also contains relocatable SRAM code, we
-can only get read-only exectuable memory regions from the mmio-sram driver so
-we also provide a second region to the driver that is read/write to be used for
-data during execution. This is the reason two sram regions are mapped and so
-many offsets must be provided to the code section.
+In case a late interrupt comes in, WFI ends up as a NOP and MPU
+continues execution from internal memory. The 'abort path' code
+undoes whatever was done as part of the low power entry and indicates
+a suspend failure by passing a non-zero value to the cpu_resume routine.
 
-For testing the drivers required are:
+The 'resume path' code is similar to the 'abort path' with the key
+difference of MMU being enabled in the 'abort path' but being
+disabled in the 'resume path' due to MPU getting powered off.
 
-CONFIG_MAILBOX
-CONFIG_OMAP2PLUS_MBOX
-CONFIG_WKUP_M3_RPROC
-CONFIG_SOC_TI
-CONFIG_WKUP_M3_IPC
-CONFIG_TI_EMIF_SRAM
-CONFIG_AMX3_PM
-
-There is still a device tree patch series to follow that will completely enable
-PM but I will wait to send that until this series and the emif series have been
-reviewed, until then all patches have been pushed here for use [4].
-
-Regards,
-Dave
-
-[1] https://www.spinics.net/lists/arm-kernel/msg582278.html
-[2] https://www.spinics.net/lists/arm-kernel/msg572535.html
-[3] https://git.ti.com/processor-firmware/ti-amx3-cm3-pm-firmware/blobs/7eb9c0856a9e8b3b42bf64f761da135852b8eea7/bin/am335x-pm-firmware.elf
-[4] https://github.com/dgerlach/linux-pm/tree/upstream/v4.12/amx3-suspend-dev
-
-Dave Gerlach (5):
-  ARM: OMAP2+: Introduce low-level suspend code for AM33XX
-  ARM: OMAP2+: Introduce low-level suspend code for AM43XX
-  ARM: OMAP2+: pm33xx-core: Add platform code needed for PM
-  soc: ti: Add pm33xx driver for basic suspend support
-  ARM: OMAP2+: Create dummy platform_device for pm33xx
-
- arch/arm/kernel/asm-offsets.c        |   2 +
- arch/arm/mach-omap2/Kconfig          |   1 +
- arch/arm/mach-omap2/Makefile         |   4 +
- arch/arm/mach-omap2/common.h         |   7 +
- arch/arm/mach-omap2/io.c             |   2 +
- arch/arm/mach-omap2/pm.h             |   5 +
- arch/arm/mach-omap2/pm33xx-core.c    | 193 +++++++++++++++++
- arch/arm/mach-omap2/sleep33xx.S      | 221 ++++++++++++++++++++
- arch/arm/mach-omap2/sleep43xx.S      | 394 +++++++++++++++++++++++++++++++++++
- drivers/soc/ti/Kconfig               |   9 +
- drivers/soc/ti/Makefile              |   1 +
- drivers/soc/ti/pm33xx.c              | 337 ++++++++++++++++++++++++++++++
- include/linux/platform_data/pm33xx.h |  69 ++++++
- 13 files changed, 1245 insertions(+)
- create mode 100644 arch/arm/mach-omap2/pm33xx-core.c
+Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+---
+ arch/arm/mach-omap2/sleep33xx.S | 221 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 221 insertions(+)
  create mode 100644 arch/arm/mach-omap2/sleep33xx.S
- create mode 100644 arch/arm/mach-omap2/sleep43xx.S
- create mode 100644 drivers/soc/ti/pm33xx.c
- create mode 100644 include/linux/platform_data/pm33xx.h
 
+diff --git a/arch/arm/mach-omap2/sleep33xx.S b/arch/arm/mach-omap2/sleep33xx.S
+new file mode 100644
+index 000000000000..1141bfb5108f
+--- /dev/null
++++ b/arch/arm/mach-omap2/sleep33xx.S
+@@ -0,0 +1,221 @@
++/*
++ * Low level suspend code for AM33XX SoCs
++ *
++ * Copyright (C) 2012-2017 Texas Instruments Incorporated - http://www.ti.com/
++ *	Dave Gerlach, Vaibhav Bedia
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/linkage.h>
++#include <linux/ti-emif-sram.h>
++#include <asm/asm-offsets.h>
++#include <asm/assembler.h>
++#include <asm/memory.h>
++
++#include "iomap.h"
++#include "cm33xx.h"
++
++#define AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED			0x00030000
++#define AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE			0x0003
++#define AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE			0x0002
++
++	.arm
++	.align 3
++
++ENTRY(am33xx_do_wfi)
++	stmfd	sp!, {r4 - r11, lr}	@ save registers on stack
++
++	/*
++	 * Flush all data from the L1 and L2 data cache before disabling
++	 * SCTLR.C bit.
++	 */
++	ldr	r1, kernel_flush
++	blx	r1
++
++	/*
++	 * Clear the SCTLR.C bit to prevent further data cache
++	 * allocation. Clearing SCTLR.C would make all the data accesses
++	 * strongly ordered and would not hit the cache.
++	 */
++	mrc	p15, 0, r0, c1, c0, 0
++	bic	r0, r0, #(1 << 2)	@ Disable the C bit
++	mcr	p15, 0, r0, c1, c0, 0
++	isb
++
++	/*
++	 * Invalidate L1 and L2 data cache.
++	 */
++	ldr	r1, kernel_flush
++	blx	r1
++
++	adr	r9, am33xx_emif_sram_table
++
++	ldr	r3, [r9, #EMIF_PM_SAVE_CONTEXT_OFFSET]
++	blx	r3
++
++	ldr	r3, [r9, #EMIF_PM_ENTER_SR_OFFSET]
++	blx	r3
++
++	/* Disable EMIF */
++	ldr     r1, virt_emif_clkctrl
++	ldr     r2, [r1]
++	bic     r2, r2, #AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE
++	str     r2, [r1]
++
++	ldr	r1, virt_emif_clkctrl
++wait_emif_disable:
++	ldr	r2, [r1]
++	mov	r3, #AM33XX_CM_CLKCTRL_MODULESTATE_DISABLED
++	cmp	r2, r3
++	bne	wait_emif_disable
++
++	/*
++	 * For the MPU WFI to be registered as an interrupt
++	 * to WKUP_M3, MPU_CLKCTRL.MODULEMODE needs to be set
++	 * to DISABLED
++	 */
++	ldr	r1, virt_mpu_clkctrl
++	ldr	r2, [r1]
++	bic	r2, r2, #AM33XX_CM_CLKCTRL_MODULEMODE_DISABLE
++	str	r2, [r1]
++
++	/*
++	 * Execute an ISB instruction to ensure that all of the
++	 * CP15 register changes have been committed.
++	 */
++	isb
++
++	/*
++	 * Execute a barrier instruction to ensure that all cache,
++	 * TLB and branch predictor maintenance operations issued
++	 * have completed.
++	 */
++	dsb
++	dmb
++
++	/*
++	 * Execute a WFI instruction and wait until the
++	 * STANDBYWFI output is asserted to indicate that the
++	 * CPU is in idle and low power state. CPU can specualatively
++	 * prefetch the instructions so add NOPs after WFI. Thirteen
++	 * NOPs as per Cortex-A8 pipeline.
++	 */
++	wfi
++
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++
++	/* We come here in case of an abort due to a late interrupt */
++
++	/* Set MPU_CLKCTRL.MODULEMODE back to ENABLE */
++	ldr	r1, virt_mpu_clkctrl
++	mov	r2, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
++	str	r2, [r1]
++
++	/* Re-enable EMIF */
++	ldr	r1, virt_emif_clkctrl
++	mov	r2, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
++	str	r2, [r1]
++wait_emif_enable:
++	ldr	r3, [r1]
++	cmp	r2, r3
++	bne	wait_emif_enable
++
++
++	ldr	r1, [r9, #EMIF_PM_ABORT_SR_OFFSET]
++	blx	r1
++
++	/*
++	 * Set SCTLR.C bit to allow data cache allocation
++	 */
++	mrc	p15, 0, r0, c1, c0, 0
++	orr	r0, r0, #(1 << 2)	@ Enable the C bit
++	mcr	p15, 0, r0, c1, c0, 0
++	isb
++
++	/* Let the suspend code know about the abort */
++	mov	r0, #1
++	ldmfd	sp!, {r4 - r11, pc}	@ restore regs and return
++ENDPROC(am33xx_do_wfi)
++
++	.align
++ENTRY(am33xx_resume_offset)
++	.word . - am33xx_do_wfi
++
++ENTRY(am33xx_resume_from_deep_sleep)
++	/* Re-enable EMIF */
++	ldr	r0, phys_emif_clkctrl
++	mov	r1, #AM33XX_CM_CLKCTRL_MODULEMODE_ENABLE
++	str	r1, [r0]
++wait_emif_enable1:
++	ldr	r2, [r0]
++	cmp	r1, r2
++	bne	wait_emif_enable1
++
++	adr	r9, am33xx_emif_sram_table
++
++	ldr	r1, [r9, #EMIF_PM_RESTORE_CONTEXT_OFFSET]
++	blx	r1
++
++	ldr	r1, [r9, #EMIF_PM_EXIT_SR_OFFSET]
++	blx	r1
++
++resume_to_ddr:
++	/* We are back. Branch to the common CPU resume routine */
++	mov	r0, #0
++	ldr	pc, resume_addr
++ENDPROC(am33xx_resume_from_deep_sleep)
++
++/*
++ * Local variables
++ */
++	.align
++resume_addr:
++	.word	cpu_resume - PAGE_OFFSET + 0x80000000
++kernel_flush:
++	.word   v7_flush_dcache_all
++virt_mpu_clkctrl:
++	.word	AM33XX_CM_MPU_MPU_CLKCTRL
++virt_emif_clkctrl:
++	.word	AM33XX_CM_PER_EMIF_CLKCTRL
++phys_emif_clkctrl:
++	.word	(AM33XX_CM_BASE + AM33XX_CM_PER_MOD + \
++		AM33XX_CM_PER_EMIF_CLKCTRL_OFFSET)
++
++.align 3
++/* DDR related defines */
++am33xx_emif_sram_table:
++	.space EMIF_PM_FUNCTIONS_SIZE
++
++ENTRY(am33xx_pm_sram)
++.word am33xx_do_wfi
++.word am33xx_do_wfi_sz
++.word am33xx_resume_offset
++.word am33xx_emif_sram_table
++.word am33xx_pm_ro_sram_data
++
++.align 3
++ENTRY(am33xx_pm_ro_sram_data)
++	.space AMX3_PM_RO_SRAM_DATA_SIZE
++
++ENTRY(am33xx_do_wfi_sz)
++	.word	. - am33xx_do_wfi
 -- 
 2.13.0
