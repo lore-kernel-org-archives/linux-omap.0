@@ -1,71 +1,94 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/4] usb: host: ohci-platform: Add basic runtime PM
- support
-Date: Fri, 19 May 2017 10:52:32 -0700
-Message-ID: <20170519175232.GG10472@atomide.com>
-References: <20170517225922.17723-2-tony@atomide.com>
- <Pine.LNX.4.44L0.1705181313320.1619-100000@iolanthe.rowland.org>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: [PATCH v2 0/2] memory: Introduce ti-emif-sram driver
+Date: Fri, 19 May 2017 12:57:06 -0500
+Message-ID: <20170519175708.6070-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1705181313320.1619-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Russell King <linux@armlinux.org.uk>
+Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> [170518 10:24]:
-> On Wed, 17 May 2017, Tony Lindgren wrote:
-> 
-> > This is needed in preparation of adding support for omap3 and
-> > later OHCI. The runtime PM will only do something on platforms
-> > that implement it.
-> 
-> > @@ -51,6 +52,10 @@ static int ohci_platform_power_on(struct platform_device *dev)
-> >  	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
-> >  	int clk, ret, phy_num;
-> >  
-> > +	ret = pm_runtime_get_sync(&dev->dev);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> 
-> I don't remember how probing for platform device drivers is set up.    
-> So although this is definitely the wrong place for 
-> pm_runtime_get_sync(), it may turn out that you need to do a 
-> pm_runtime_get_noresume() before calling pm_runtime_enable(), and a 
-> pm_runtime_put() at the end of ohci_platform_probe().  Otherwise 
-> runtime PM might kick in during the middle of the probe sequence -- not 
-> what you want.
+Hi,
+This is v2 of the series introduces a ti-emif-sram driver to be used on am335x
+and am437x.  Minor updates were required in the usage of sram_exec_copy due to
+a change that was discussed in v1 here [1], that has since been queued for
+merge. This series depends on that patch. Note that we are not directly calling
+anything copied by sram_exec_copy which is why we are only using return value
+for error checking.
 
-Just removing those parts seems to work for probing.
+Because there was no discussion on this series last time, I have included the
+same cover letter as v1 below:
 
-> Similarly, you may need pm_runtime_get_sync() at the start of 
-> ohci_platform_remove() and pm_runtime_put_noidle() at the end.
+These SoCs have low power modes that require that the PER power domain be shut
+off. Because the EMIF (DDR Controller) resides within this power domain, it
+will lose context during a suspend operation, so we must save it so we can
+restore once we resume. However, we cannot execute this code from external
+memory, as it is not available at this point, so the code must be executed late
+in the suspend path and early in the resume path from SRAM.
 
-Yup that I noticed that too trying to rmmod it with no devices
-connected.
+Patch 2 includes several functions written in ARM ASM that can be relocated to
+on-chip SRAM.  It also exports a table containing the absolute addresses of the
+available PM functions so that other PM code also running from SRAM can branch
+to them. It must also calculate virtual addresses for the suspend path, but
+physical addresses for the resume path as the MMU is not active when the code
+runs.
 
-While testing I also saw once "external abort on non-linefetch":
+One thing that may not be immediately clear in the driver is that we can only
+get read-only exectuable memory regions from the mmio-sram driver so we also
+provide a second region to the driver that is read/write to be used for data
+during execution. This is the reason two sram regions are mapped and so many
+offsets must be provided to the code section.
 
-(ohci_hub_status_data [ohci_hcd]) from [<bf0298bc>]
-(usb_hcd_poll_rh_status+0x3c/0x128 [usbcore])
-(usb_hcd_poll_rh_status [usbcore]) from [<c01c790c>]
-(call_timer_fn+0xb0/0x3f8)
-(call_timer_fn) from [<c01c7d38>] (expire_timers+0xe4/0x220)
-(expire_timers) from [<c01c7f08>] (run_timer_softirq+0x94/0x19c)
-(run_timer_softirq) from [<c0141cf8>] (__do_softirq+0x140/0x570)
+In order for structs to co-exist in C and ASM, I went ahead and extended the
+generic asm-offsets.c for ARM and added a single function call for this driver
+that adds all the constants needed for the ASM code to get offsets into the
+struct members. I managed to do it without many direct additions to the
+asm-offsets file so I do not think it is too intrusive. This was the only way I
+saw to do peaceful C and ASM data structure co-existence. Due to the
+dependencies of all of the code on this I did not not split ARM vs drivers/
+changes into separate patches because I think it would be more confusing that
+way but if needed I think it can be done.
 
-Also I'm still checking if legacy usb_phy vs phy needs handling.
-So far it seems that no need to do anything because most devices
-need a USB hub anyways unless they have USB serial transceiver
-configured with drivers/mfd/omap-usb-host.c for LS/FS.
+This code is required for low-power modes to work on AM335x and AM437x and a
+forthcoming PM series for those platforms will depend on this series. After
+both this and the PM series are reviewed I will send the necessary device tree
+changes for both, but in the meantime all remaining patches for am335x and
+am437x PM can be found here [3].
 
 Regards,
+Dave
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] http://www.spinics.net/lists/arm-kernel/msg572489.html
+[2] http://www.spinics.net/lists/kernel/msg2511127.html
+[3] https://github.com/dgerlach/linux-pm/tree/upstream/v4.12/amx3-suspend-dev
+
+Dave Gerlach (2):
+  Documentation: dt: Update ti,emif bindings
+  memory: ti-emif-sram: introduce relocatable suspend/resume handlers
+
+ .../bindings/memory-controllers/ti/emif.txt        |  18 +-
+ arch/arm/kernel/asm-offsets.c                      |   6 +
+ drivers/memory/Kconfig                             |  10 +
+ drivers/memory/Makefile                            |   4 +
+ drivers/memory/emif.h                              |  17 ++
+ drivers/memory/ti-emif-pm.c                        | 297 ++++++++++++++++++
+ drivers/memory/ti-emif-sram-pm.S                   | 334 +++++++++++++++++++++
+ include/linux/ti-emif-sram.h                       | 143 +++++++++
+ 8 files changed, 828 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/memory/ti-emif-pm.c
+ create mode 100644 drivers/memory/ti-emif-sram-pm.S
+ create mode 100644 include/linux/ti-emif-sram.h
+
+-- 
+2.13.0
