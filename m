@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH v2 3/5] ARM: OMAP2+: pm33xx-core: Add platform code needed for PM
-Date: Fri, 19 May 2017 15:04:36 -0500
-Message-ID: <20170519200438.9502-4-d-gerlach@ti.com>
+Subject: [PATCH v2 4/5] soc: ti: Add pm33xx driver for basic suspend support
+Date: Fri, 19 May 2017 15:04:37 -0500
+Message-ID: <20170519200438.9502-5-d-gerlach@ti.com>
 References: <20170519200438.9502-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,117 +12,109 @@ To: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, R
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Most of the PM code needed for am335x and am437x can be moved into a
-module under drivers but some core code must remain in mach-omap2 at the
-moment. This includes some internal clockdomain APIs and low-level ARM
-APIs which are also not exported for use by modules.
+AM335x and AM437x support various low power modes as documented
+in section 8.1.4.3 of the AM335x Technical Reference Manual and
+section 6.4.3 of the AM437x Technical Reference Manual.
 
-Implement a few functions that handle these low-level platform
-operations can be passed to the pm33xx module through the use of
-platform data.
+DeepSleep0 mode offers the lowest power mode with limited
+wakeup sources without a system reboot and is mapped as
+the suspend state in the kernel. In this state, MPU and
+PER domains are turned off with the internal RAM held in
+retention to facilitate the resume process. As part of
+the boot process, the assembly code is copied over to OCMCRAM
+so it can be executed to turn of the EMIF and put DDR into self
+refresh.
 
-In addition to this, to be able to share data structures between C and
-the sleep33xx and sleep43xx assembly code, we can automatically generate
-all of the C struct member offsets and sizes as macros by making use of
-the ARM asm-offsets file. In the same header that we define our data
-structures in we also define all the macros in an inline function and by
-adding a call to this in the asm_offsets file all macros are properly
-generated and available to the assembly code without cluttering up the
-asm-offsets file.
+Both platforms have a Cortex-M3 (WKUP_M3) which assists the MPU
+in DeepSleep0 entry and exit. WKUP_M3 takes care
+of the clockdomain and powerdomain transitions based on the
+intended low power state. MPU needs to load the appropriate
+WKUP_M3 binary onto the WKUP_M3 memory space before it can
+leverage any of the PM features like DeepSleep. This loading
+is handled by the remoteproc driver wkup_m3_rproc.
+
+Communication with the WKUP_M3 is handled by a wkup_m3_ipc
+driver that exposes the specific PM functionality to be used
+the PM code.
+
+In the current implementation when the suspend process
+is initiated, MPU interrupts the WKUP_M3 to let it know about
+the intent of entering DeepSleep0 and waits for an ACK. When
+the ACK is received MPU continues with its suspend process
+to suspend all the drivers and then jumps to assembly in
+OCMC RAM. The assembly code puts the external RAM in self-refresh
+mode, gates the MPU clock, and then finally executes the WFI
+instruction. Execution of the WFI instruction with MPU clock gated
+triggers another interrupt to the WKUP_M3 which then continues
+with the power down sequence wherein the clockdomain and
+powerdomain transition takes place. As part of the sleep sequence,
+WKUP_M3 unmasks the interrupt lines for the wakeup sources. WFI
+execution on WKUP_M3 causes the hardware to disable the main
+oscillator of the SoC and from here system remains in sleep state
+until a wake source brings the system into resume path.
+
+When a wakeup event occurs, WKUP_M3 starts the power-up
+sequence by switching on the power domains and finally
+enabling the clock to MPU. Since the MPU gets powered down
+as part of the sleep sequence in the resume path ROM code
+starts executing. The ROM code detects a wakeup from sleep
+and then jumps to the resume location in OCMC which was
+populated in one of the IPC registers as part of the suspend
+sequence.
+
+Code is based on work by Vaibhav Bedia.
 
 Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 ---
- arch/arm/kernel/asm-offsets.c        |   2 +
- arch/arm/mach-omap2/Kconfig          |   1 +
- arch/arm/mach-omap2/Makefile         |   4 +
- arch/arm/mach-omap2/pm.h             |   5 +
- arch/arm/mach-omap2/pm33xx-core.c    | 181 +++++++++++++++++++++++++++++++++++
- include/linux/platform_data/pm33xx.h |  69 +++++++++++++
- 6 files changed, 262 insertions(+)
- create mode 100644 arch/arm/mach-omap2/pm33xx-core.c
- create mode 100644 include/linux/platform_data/pm33xx.h
+ drivers/soc/ti/Kconfig               |   9 +
+ drivers/soc/ti/Makefile              |   1 +
+ drivers/soc/ti/pm33xx.c              | 337 +++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/pm33xx.h |   4 +-
+ 4 files changed, 349 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/soc/ti/pm33xx.c
 
-diff --git a/arch/arm/kernel/asm-offsets.c b/arch/arm/kernel/asm-offsets.c
-index d728b5660e36..62253e7bfac4 100644
---- a/arch/arm/kernel/asm-offsets.c
-+++ b/arch/arm/kernel/asm-offsets.c
-@@ -28,6 +28,7 @@
- #include <asm/vdso_datapage.h>
- #include <asm/hardware/cache-l2x0.h>
- #include <linux/kbuild.h>
-+#include <linux/platform_data/pm33xx.h>
- #include <linux/ti-emif-sram.h>
+diff --git a/drivers/soc/ti/Kconfig b/drivers/soc/ti/Kconfig
+index 39e152abe6b9..92770d84a288 100644
+--- a/drivers/soc/ti/Kconfig
++++ b/drivers/soc/ti/Kconfig
+@@ -28,6 +28,15 @@ config KEYSTONE_NAVIGATOR_DMA
  
- /*
-@@ -187,6 +188,7 @@ int main(void)
- #if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
-   BLANK();
-   ti_emif_offsets();
-+  amx3_pm_asm_offsets();
- #endif
+ 	  If unsure, say N.
  
-   return 0; 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 0465338183c7..940173fa0992 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -72,6 +72,7 @@ config SOC_AM43XX
- 	select ARM_ERRATA_754322
- 	select ARM_ERRATA_775420
- 	select OMAP_INTERCONNECT
-+	select ARM_CPU_SUSPEND if PM
- 
- config SOC_DRA7XX
- 	bool "TI DRA7XX"
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index c89757abb0ae..8475ae3f9ff1 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -88,6 +88,8 @@ omap-4-5-pm-common			+= pm44xx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-4-5-pm-common)
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-4-5-pm-common)
- obj-$(CONFIG_SOC_DRA7XX)		+= $(omap-4-5-pm-common)
-+obj-$(CONFIG_SOC_AM33XX)		+= pm33xx-core.o sleep33xx.o
-+obj-$(CONFIG_SOC_AM43XX)		+= pm33xx-core.o sleep43xx.o
- obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
- 
- obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o
-@@ -95,6 +97,8 @@ obj-$(CONFIG_POWER_AVS_OMAP_CLASS3)    += smartreflex-class3.o
- 
- AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
- AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
-+AFLAGS_sleep33xx.o			:=-Wa,-march=armv7-a$(plus_sec)
-+AFLAGS_sleep43xx.o			:=-Wa,-march=armv7-a$(plus_sec)
- 
- endif
- 
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index b668719b9b25..2f9649b89053 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -81,6 +81,11 @@ extern unsigned int omap3_do_wfi_sz;
- /* ... and its pointer from SRAM after copy */
- extern void (*omap3_do_wfi_sram)(void);
- 
-+struct am33xx_pm_platform_data *am33xx_pm_get_pdata(void);
++config AMX3_PM
++	tristate "AMx3 Power Management"
++	depends on SOC_AM33XX || SOC_AM43XX
++	depends on WKUP_M3_IPC && TI_EMIF_SRAM && SRAM
++	help
++	  Enable power management on AM335x and AM437x. Required for suspend to mem
++	  and standby states on both AM335x and AM437x platforms and for deeper cpuidle
++	  c-states on AM335x.
 +
-+extern struct am33xx_pm_sram_addr am33xx_pm_sram;
-+extern struct am33xx_pm_sram_addr am43xx_pm_sram;
-+
- /* save_secure_ram_context function pointer and size, for copy to SRAM */
- extern int save_secure_ram_context(u32 *addr);
- extern unsigned int save_secure_ram_context_sz;
-diff --git a/arch/arm/mach-omap2/pm33xx-core.c b/arch/arm/mach-omap2/pm33xx-core.c
+ config WKUP_M3_IPC
+ 	tristate "TI AMx3 Wkup-M3 IPC Driver"
+ 	depends on WKUP_M3_RPROC
+diff --git a/drivers/soc/ti/Makefile b/drivers/soc/ti/Makefile
+index 7d572736c86e..d9bd4ba424be 100644
+--- a/drivers/soc/ti/Makefile
++++ b/drivers/soc/ti/Makefile
+@@ -4,5 +4,6 @@
+ obj-$(CONFIG_KEYSTONE_NAVIGATOR_QMSS)	+= knav_qmss.o
+ knav_qmss-y := knav_qmss_queue.o knav_qmss_acc.o
+ obj-$(CONFIG_KEYSTONE_NAVIGATOR_DMA)	+= knav_dma.o
++obj-$(CONFIG_AMX3_PM)			+= pm33xx.o
+ obj-$(CONFIG_WKUP_M3_IPC)		+= wkup_m3_ipc.o
+ obj-$(CONFIG_TI_SCI_PM_DOMAINS)		+= ti_sci_pm_domains.o
+diff --git a/drivers/soc/ti/pm33xx.c b/drivers/soc/ti/pm33xx.c
 new file mode 100644
-index 000000000000..c84ffc4de2e9
+index 000000000000..cfeb8df7e82a
 --- /dev/null
-+++ b/arch/arm/mach-omap2/pm33xx-core.c
-@@ -0,0 +1,181 @@
++++ b/drivers/soc/ti/pm33xx.c
+@@ -0,0 +1,337 @@
 +/*
-+ * AM33XX Arch Power Management Routines
++ * AM33XX Power Management Routines
 + *
-+ * Copyright (C) 2016-2017 Texas Instruments Incorporated - http://www.ti.com/
-+ *	Dave Gerlach
++ * Copyright (C) 2012-2017 Texas Instruments Incorporated - http://www.ti.com/
++ *	Vaibhav Bedia, Dave Gerlach
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License as
@@ -134,245 +126,345 @@ index 000000000000..c84ffc4de2e9
 + * GNU General Public License for more details.
 + */
 +
-+#include <asm/smp_scu.h>
-+#include <asm/suspend.h>
++#include <linux/cpu.h>
++#include <linux/err.h>
++#include <linux/genalloc.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/of.h>
 +#include <linux/platform_data/pm33xx.h>
++#include <linux/platform_device.h>
++#include <linux/sizes.h>
++#include <linux/sram.h>
++#include <linux/suspend.h>
++#include <linux/ti-emif-sram.h>
++#include <linux/wkup_m3_ipc.h>
 +
-+#include "cm33xx.h"
-+#include "common.h"
-+#include "control.h"
-+#include "clockdomain.h"
-+#include "iomap.h"
-+#include "omap_hwmod.h"
-+#include "pm.h"
-+#include "powerdomain.h"
-+#include "prm33xx.h"
-+#include "soc.h"
-+#include "sram.h"
++#include <asm/proc-fns.h>
++#include <asm/suspend.h>
++#include <asm/system_misc.h>
 +
-+static struct powerdomain *cefuse_pwrdm, *gfx_pwrdm, *per_pwrdm, *mpu_pwrdm;
-+static struct clockdomain *gfx_l4ls_clkdm;
-+static void __iomem *scu_base;
++#define AMX3_PM_SRAM_SYMBOL_OFFSET(sym) ((unsigned long)(sym) - \
++					 (unsigned long)pm_sram->do_wfi)
 +
-+static int __init am43xx_map_scu(void)
++static int (*am33xx_do_wfi_sram)(unsigned long unused);
++static phys_addr_t am33xx_do_wfi_sram_phys;
++
++static struct gen_pool *sram_pool, *sram_pool_data;
++static unsigned long ocmcram_location, ocmcram_location_data;
++
++static struct am33xx_pm_platform_data *pm_ops;
++static struct am33xx_pm_sram_addr *pm_sram;
++
++static struct wkup_m3_ipc *m3_ipc;
++
++static u32 sram_suspend_address(unsigned long addr)
 +{
-+	scu_base = ioremap(scu_a9_get_base(), SZ_256);
-+
-+	if (!scu_base)
-+		return -ENOMEM;
-+
-+	return 0;
++	return ((unsigned long)am33xx_do_wfi_sram +
++		AMX3_PM_SRAM_SYMBOL_OFFSET(addr));
 +}
 +
-+static int amx3_common_init(void)
++#ifdef CONFIG_SUSPEND
++static int am33xx_pm_suspend(suspend_state_t suspend_state)
 +{
-+	gfx_pwrdm = pwrdm_lookup("gfx_pwrdm");
-+	per_pwrdm = pwrdm_lookup("per_pwrdm");
-+	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
++	int i, ret = 0;
 +
-+	if ((!gfx_pwrdm) || (!per_pwrdm) || (!mpu_pwrdm))
++	ret = pm_ops->soc_suspend((unsigned long)suspend_state,
++				  am33xx_do_wfi_sram);
++
++	if (ret) {
++		pr_err("PM: Kernel suspend failure\n");
++	} else {
++		i = m3_ipc->ops->request_pm_status(m3_ipc);
++
++		switch (i) {
++		case 0:
++			pr_info("PM: Successfully put all powerdomains to target state\n");
++			break;
++		case 1:
++			pr_err("PM: Could not transition all powerdomains to target state\n");
++			ret = -1;
++			break;
++		default:
++			pr_err("PM: CM3 returned unknown result = %d\n", i);
++			ret = -1;
++		}
++	}
++
++	return ret;
++}
++
++static int am33xx_pm_enter(suspend_state_t suspend_state)
++{
++	int ret = 0;
++
++	switch (suspend_state) {
++	case PM_SUSPEND_MEM:
++	case PM_SUSPEND_STANDBY:
++		ret = am33xx_pm_suspend(suspend_state);
++		break;
++	default:
++		ret = -EINVAL;
++	}
++
++	return ret;
++}
++
++static int am33xx_pm_begin(suspend_state_t state)
++{
++	int ret = -EINVAL;
++
++	switch (state) {
++	case PM_SUSPEND_MEM:
++		ret = m3_ipc->ops->prepare_low_power(m3_ipc, WKUP_M3_DEEPSLEEP);
++		break;
++	case PM_SUSPEND_STANDBY:
++		ret = m3_ipc->ops->prepare_low_power(m3_ipc, WKUP_M3_STANDBY);
++		break;
++	}
++
++	return ret;
++}
++
++static void am33xx_pm_end(void)
++{
++	m3_ipc->ops->finish_low_power(m3_ipc);
++}
++
++static int am33xx_pm_valid(suspend_state_t state)
++{
++	switch (state) {
++	case PM_SUSPEND_STANDBY:
++	case PM_SUSPEND_MEM:
++		return 1;
++	default:
++		return 0;
++	}
++}
++
++static const struct platform_suspend_ops am33xx_pm_ops = {
++	.begin		= am33xx_pm_begin,
++	.end		= am33xx_pm_end,
++	.enter		= am33xx_pm_enter,
++	.valid		= am33xx_pm_valid,
++};
++#endif /* CONFIG_SUSPEND */
++
++static void am33xx_pm_set_ipc_ops(void)
++{
++	u32 resume_address;
++	int temp;
++
++	temp = ti_emif_get_mem_type();
++	if (temp < 0) {
++		pr_err("PM: Cannot determine memory type, no PM available\n");
++		return;
++	}
++	m3_ipc->ops->set_mem_type(m3_ipc, temp);
++
++	/* Physical resume address to be used by ROM code */
++	resume_address = am33xx_do_wfi_sram_phys +
++			 *pm_sram->resume_offset + 0x4;
++
++	m3_ipc->ops->set_resume_address(m3_ipc, (void *)resume_address);
++}
++
++static void am33xx_pm_free_sram(void)
++{
++	gen_pool_free(sram_pool, ocmcram_location, *pm_sram->do_wfi_sz);
++	gen_pool_free(sram_pool_data, ocmcram_location_data,
++		      sizeof(struct am33xx_pm_ro_sram_data));
++}
++
++/*
++ * Push the minimal suspend-resume code to SRAM
++ */
++static int am33xx_prepare_push_sram_idle(void)
++{
++	struct device_node *np;
++
++	np = of_find_compatible_node(NULL, NULL, "ti,omap3-mpu");
++
++	if (!np) {
++		np = of_find_compatible_node(NULL, NULL, "ti,omap4-mpu");
++		if (!np) {
++			pr_warn("PM: %s: Unable to find device node for mpu\n",
++				__func__);
++			return -ENODEV;
++		}
++	}
++
++	sram_pool = of_gen_pool_get(np, "pm-sram", 0);
++	if (!sram_pool) {
++		pr_warn("PM: %s: Unable to get sram pool for ocmcram\n",
++			__func__);
 +		return -ENODEV;
++	}
 +
-+	(void)clkdm_for_each(omap_pm_clkdms_setup, NULL);
++	sram_pool_data = of_gen_pool_get(np, "pm-sram", 1);
++	if (!sram_pool_data) {
++		pr_warn("PM: %s: Unable to get sram data pool for ocmcram\n",
++			__func__);
++		return -ENODEV;
++	}
 +
-+	/* CEFUSE domain can be turned off post bootup */
-+	cefuse_pwrdm = pwrdm_lookup("cefuse_pwrdm");
-+	if (cefuse_pwrdm)
-+		omap_set_pwrdm_state(cefuse_pwrdm, PWRDM_POWER_OFF);
-+	else
-+		pr_err("PM: Failed to get cefuse_pwrdm\n");
++	ocmcram_location = gen_pool_alloc(sram_pool, *pm_sram->do_wfi_sz);
++	if (!ocmcram_location) {
++		pr_warn("PM: %s: Unable to allocate memory from ocmcram\n",
++			__func__);
++		return -ENOMEM;
++	}
++
++	ocmcram_location_data = gen_pool_alloc(sram_pool_data,
++					       sizeof(struct emif_regs_amx3));
++	if (!ocmcram_location_data) {
++		pr_err("PM: Unable to allocate memory from ocmcram\n");
++		gen_pool_free(sram_pool, ocmcram_location, *pm_sram->do_wfi_sz);
++		return -ENOMEM;
++	}
 +
 +	return 0;
 +}
 +
-+static int am33xx_suspend_init(void)
++static int am33xx_push_sram_idle(void)
 +{
++	struct am33xx_pm_ro_sram_data ro_sram_data;
++	int ret;
++	void *copy_addr;
++
++	ro_sram_data.amx3_pm_sram_data_virt = ocmcram_location_data;
++	ro_sram_data.amx3_pm_sram_data_phys =
++		gen_pool_virt_to_phys(sram_pool_data, ocmcram_location_data);
++
++	/* Save physical address to calculate resume offset during pm init */
++	am33xx_do_wfi_sram_phys = gen_pool_virt_to_phys(sram_pool,
++							ocmcram_location);
++
++	am33xx_do_wfi_sram = sram_exec_copy(sram_pool, (void *)ocmcram_location,
++					    pm_sram->do_wfi,
++					    *pm_sram->do_wfi_sz);
++	if (!am33xx_do_wfi_sram) {
++		pr_err("PM: %s: am33xx_do_wfi copy to sram failed\n", __func__);
++		return -ENODEV;
++	}
++
++	ret = ti_emif_copy_pm_function_table(sram_pool,
++			(void *)sram_suspend_address((unsigned long)pm_sram->emif_sram_table));
++	if (ret) {
++		pr_warn("PM: %s: EMIF function copy failed\n", __func__);
++		return -EPROBE_DEFER;
++	}
++
++	copy_addr = sram_exec_copy(sram_pool,
++			(void *)sram_suspend_address((unsigned long)pm_sram->ro_sram_data),
++			&ro_sram_data,
++			sizeof(ro_sram_data));
++	if (!copy_addr) {
++		pr_err("PM: %s: ro_sram_data copy to sram failed\n", __func__);
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int am33xx_pm_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
 +	int ret;
 +
-+	gfx_l4ls_clkdm = clkdm_lookup("gfx_l4ls_gfx_clkdm");
++	if (!of_machine_is_compatible("ti,am33xx") &&
++	    !of_machine_is_compatible("ti,am43"))
++		return -ENODEV;
 +
-+	if (!gfx_l4ls_clkdm) {
-+		pr_err("PM: Cannot lookup gfx_l4ls_clkdm clockdomains\n");
++	pm_ops = dev->platform_data;
++	if (!pm_ops) {
++		pr_err("PM: Cannot get core PM ops!\n");
 +		return -ENODEV;
 +	}
 +
-+	ret = amx3_common_init();
-+
-+	return ret;
-+}
-+
-+static int am43xx_suspend_init(void)
-+{
-+	int ret = 0;
-+
-+	ret = am43xx_map_scu();
-+	if (ret) {
-+		pr_err("PM: Could not ioremap SCU\n");
-+		return ret;
++	pm_sram = pm_ops->get_sram_addrs();
++	if (!pm_sram) {
++		pr_err("PM: Cannot get PM asm function addresses!!\n");
++		return -ENODEV;
 +	}
 +
-+	ret = amx3_common_init();
++	ret = am33xx_prepare_push_sram_idle();
++	if (ret)
++		return ret;
 +
++	ret = am33xx_push_sram_idle();
++	if (ret)
++		goto err_free_sram;
++
++	m3_ipc = wkup_m3_ipc_get();
++	if (!m3_ipc) {
++		pr_err("PM: Cannot get wkup_m3_ipc handle\n");
++		ret = -EPROBE_DEFER;
++		goto err_free_sram;
++	}
++
++	am33xx_pm_set_ipc_ops();
++
++#ifdef CONFIG_SUSPEND
++	suspend_set_ops(&am33xx_pm_ops);
++#endif /* CONFIG_SUSPEND */
++
++	ret = pm_ops->init();
++	if (ret) {
++		pr_err("Unable to call core pm init!\n");
++		ret = -ENODEV;
++		goto err_put_wkup_m3_ipc;
++	}
++
++	return 0;
++
++err_put_wkup_m3_ipc:
++	wkup_m3_ipc_put(m3_ipc);
++err_free_sram:
++	am33xx_pm_free_sram();
 +	return ret;
 +}
 +
-+static void amx3_pre_suspend_common(void)
++static int am33xx_pm_remove(struct platform_device *pdev)
 +{
-+	omap_set_pwrdm_state(gfx_pwrdm, PWRDM_POWER_OFF);
++	suspend_set_ops(NULL);
++	wkup_m3_ipc_put(m3_ipc);
++	am33xx_pm_free_sram();
++	return 0;
 +}
 +
-+static void amx3_post_suspend_common(void)
-+{
-+	int status;
-+	/*
-+	 * Because gfx_pwrdm is the only one under MPU control,
-+	 * comment on transition status
-+	 */
-+	status = pwrdm_read_pwrst(gfx_pwrdm);
-+	if (status != PWRDM_POWER_OFF)
-+		pr_err("PM: GFX domain did not transition: %x\n", status);
-+}
-+
-+static int am33xx_suspend(unsigned int state, int (*fn)(unsigned long))
-+{
-+	int ret = 0;
-+
-+	amx3_pre_suspend_common();
-+	ret = cpu_suspend(0, fn);
-+	amx3_post_suspend_common();
-+
-+	/*
-+	 * BUG: GFX_L4LS clock domain needs to be woken up to
-+	 * ensure thet L4LS clock domain does not get stuck in
-+	 * transition. If that happens L3 module does not get
-+	 * disabled, thereby leading to PER power domain
-+	 * transition failing
-+	 */
-+
-+	clkdm_wakeup(gfx_l4ls_clkdm);
-+	clkdm_sleep(gfx_l4ls_clkdm);
-+
-+	return ret;
-+}
-+
-+static int am43xx_suspend(unsigned int state, int (*fn)(unsigned long))
-+{
-+	int ret = 0;
-+
-+	amx3_pre_suspend_common();
-+	scu_power_mode(scu_base, SCU_PM_POWEROFF);
-+	ret = cpu_suspend(0, fn);
-+	scu_power_mode(scu_base, SCU_PM_NORMAL);
-+	amx3_post_suspend_common();
-+
-+	return ret;
-+}
-+
-+static struct am33xx_pm_sram_addr *amx3_get_sram_addrs(void)
-+{
-+	if (soc_is_am33xx())
-+		return &am33xx_pm_sram;
-+	else if (soc_is_am437x())
-+		return &am43xx_pm_sram;
-+	else
-+		return NULL;
-+}
-+
-+static struct am33xx_pm_platform_data am33xx_ops = {
-+	.init = am33xx_suspend_init,
-+	.soc_suspend = am33xx_suspend,
-+	.get_sram_addrs = amx3_get_sram_addrs,
++static struct platform_driver am33xx_pm_driver = {
++	.driver = {
++		.name   = "pm33xx",
++	},
++	.probe = am33xx_pm_probe,
++	.remove = am33xx_pm_remove,
 +};
++module_platform_driver(am33xx_pm_driver);
 +
-+static struct am33xx_pm_platform_data am43xx_ops = {
-+	.init = am43xx_suspend_init,
-+	.soc_suspend = am43xx_suspend,
-+	.get_sram_addrs = amx3_get_sram_addrs,
-+};
-+
-+struct am33xx_pm_platform_data *am33xx_pm_get_pdata(void)
-+{
-+	if (soc_is_am33xx())
-+		return &am33xx_ops;
-+	else if (soc_is_am437x())
-+		return &am43xx_ops;
-+	else
-+		return NULL;
-+}
++MODULE_ALIAS("platform:pm33xx");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("am33xx power management driver");
 diff --git a/include/linux/platform_data/pm33xx.h b/include/linux/platform_data/pm33xx.h
-new file mode 100644
-index 000000000000..c191ab681093
---- /dev/null
+index c191ab681093..b8d6c3a9b46c 100644
+--- a/include/linux/platform_data/pm33xx.h
 +++ b/include/linux/platform_data/pm33xx.h
-@@ -0,0 +1,69 @@
-+/*
-+ * TI pm33xx platform data
-+ *
-+ * Copyright (C) 2016-2017 Texas Instruments, Inc.
-+ *	Dave Gerlach <d-gerlach@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _LINUX_PLATFORM_DATA_PM33XX_H
-+#define _LINUX_PLATFORM_DATA_PM33XX_H
-+
-+#include <linux/kbuild.h>
-+
-+#ifndef __ASSEMBLER__
-+struct am33xx_pm_sram_addr {
-+	void (*do_wfi)(void);
-+	unsigned long *do_wfi_sz;
-+	unsigned long *resume_offset;
-+	unsigned long *emif_sram_table;
-+	unsigned long *ro_sram_data;
-+};
-+
-+struct am33xx_pm_platform_data {
-+	int	(*init)(void);
-+	int	(*soc_suspend)(unsigned int state, int (*fn)(unsigned long));
-+	struct  am33xx_pm_sram_addr *(*get_sram_addrs)(void);
-+};
-+
-+struct am33xx_pm_sram_data {
-+	u32 wfi_flags;
-+	u32 l2_aux_ctrl_val;
-+	u32 l2_prefetch_ctrl_val;
-+};
-+
-+struct am33xx_pm_ro_sram_data {
-+	u32 amx3_pm_sram_data_virt;
-+	u32 amx3_pm_sram_data_phys;
-+};
-+
-+extern inline void amx3_pm_asm_offsets(void)
-+{
-+	DEFINE(AMX3_PM_WFI_FLAGS_OFFSET,
-+	       offsetof(struct am33xx_pm_sram_data, wfi_flags));
-+	DEFINE(AMX3_PM_L2_AUX_CTRL_VAL_OFFSET,
-+	       offsetof(struct am33xx_pm_sram_data, l2_aux_ctrl_val));
-+	DEFINE(AMX3_PM_L2_PREFETCH_CTRL_VAL_OFFSET,
-+	       offsetof(struct am33xx_pm_sram_data, l2_prefetch_ctrl_val));
-+	DEFINE(AMX3_PM_SRAM_DATA_SIZE, sizeof(struct am33xx_pm_sram_data));
-+
-+	BLANK();
-+
-+	DEFINE(AMX3_PM_RO_SRAM_DATA_VIRT_OFFSET,
-+	       offsetof(struct am33xx_pm_ro_sram_data, amx3_pm_sram_data_virt));
-+	DEFINE(AMX3_PM_RO_SRAM_DATA_PHYS_OFFSET,
-+	       offsetof(struct am33xx_pm_ro_sram_data, amx3_pm_sram_data_phys));
-+	DEFINE(AMX3_PM_RO_SRAM_DATA_SIZE,
-+	       sizeof(struct am33xx_pm_ro_sram_data));
-+}
-+
-+#endif /* __ASSEMBLER__ */
-+#endif /* _LINUX_PLATFORM_DATA_PM33XX_H */
+@@ -38,12 +38,12 @@ struct am33xx_pm_sram_data {
+ 	u32 wfi_flags;
+ 	u32 l2_aux_ctrl_val;
+ 	u32 l2_prefetch_ctrl_val;
+-};
++} __packed __aligned(8);
+ 
+ struct am33xx_pm_ro_sram_data {
+ 	u32 amx3_pm_sram_data_virt;
+ 	u32 amx3_pm_sram_data_phys;
+-};
++} __packed __aligned(8);
+ 
+ extern inline void amx3_pm_asm_offsets(void)
+ {
 -- 
 2.13.0
