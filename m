@@ -1,47 +1,30 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] ti-thermal-common: Delete an error message for a failed
- memory allocation in ti_thermal_build_data()
-Date: Thu, 18 May 2017 22:30:07 +0200
-Message-ID: <d85aaf2b-0db5-1ad0-f57f-1000c96e1c38@users.sourceforge.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Language: en-GB
-Sender: linux-pm-owner@vger.kernel.org
-To: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/3] Few non-critical cpcap ADC fixes
+Date: Thu, 18 May 2017 20:40:32 -0700
+Message-ID: <20170519034035.16795-1-tony@atomide.com>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 18 May 2017 22:20:12 +0200
+Hi all,
 
-Omit an extra message for a memory allocation failure in this function.
+Here are few fixes for cpcap ADC mostly to get temperature readings
+produce sane values. AFAIK no need for urgency with these and they
+can all wait for v4.13 merge window.
 
-This issue was detected by using the Coccinelle software.
+Regards,
 
-Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Tony
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index 02790f69e26c..5d29aa35cc34 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -160,10 +160,9 @@ static struct ti_thermal_data
- 	struct ti_thermal_data *data;
- 
- 	data = devm_kzalloc(bgp->dev, sizeof(*data), GFP_KERNEL);
--	if (!data) {
--		dev_err(bgp->dev, "kzalloc fail\n");
-+	if (!data)
- 		return NULL;
--	}
-+
- 	data->sensor_id = id;
- 	data->bgp = bgp;
- 	data->mode = THERMAL_DEVICE_ENABLED;
+Tony Lindgren (3):
+  iio: adc: cpcap: Fix default register values and battery temperature
+  iio: adc: cpcap: Fix die temperature
+  iio: adc: cpcap: Remove hung interrupt quirk
+
+ drivers/iio/adc/cpcap-adc.c | 101 ++++++++++++++++++++++++++++++++------------
+ 1 file changed, 73 insertions(+), 28 deletions(-)
+
 -- 
 2.13.0
