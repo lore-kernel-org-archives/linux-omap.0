@@ -1,53 +1,56 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 07/41] mmc: host: omap_hsmmc: Allow io voltage switch even for
- fixed vdd
-Date: Fri, 19 May 2017 13:45:07 +0530
-Message-ID: <20170519081541.26753-8-kishon@ti.com>
-References: <20170519081541.26753-1-kishon@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] dmaengine: ti-dma-crossbar: Correct am335x/am43xx mux value type
+Date: Fri, 19 May 2017 12:17:27 +0300
+Message-ID: <20170519091727.3239-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170519081541.26753-1-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-doc@vger.kernel.org, nsekhar@ti.com, Jonathan Corbet <corbet@lwn.net>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Now that vmmc regulator is made optional, do not bail out if vmmc
-regulator is not found.
+The used 0x1f mask is only valid for am335x family of SoC, different family
+using this type of crossbar might have different number of electable
+events. In case of am43xx family 0x3f mask should have been used for
+example.
+Instead of trying to handle each family's mask, just use u8 type to store
+the mux value since the event offsets are aligned to byte offset.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+Fixes: 42dbdcc6bf965 ("dmaengine: ti-dma-crossbar: Add support for crossbar on AM33xx/AM43xx")
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/mmc/host/omap_hsmmc.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/dma/ti-dma-crossbar.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index d8970a7ff4be..d47ef51fbe51 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -416,13 +416,6 @@ static int omap_hsmmc_set_power(struct omap_hsmmc_host *host, int power_on,
- 	if (mmc_pdata(host)->set_power)
- 		return mmc_pdata(host)->set_power(host->dev, power_on, iov);
+diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
+index 2403475a37cf..aaff35292c7d 100644
+--- a/drivers/dma/ti-dma-crossbar.c
++++ b/drivers/dma/ti-dma-crossbar.c
+@@ -49,12 +49,12 @@ struct ti_am335x_xbar_data {
  
--	/*
--	 * If we don't see a Vcc regulator, assume it's a fixed
--	 * voltage always-on regulator.
--	 */
--	if (!mmc->supply.vmmc)
--		return 0;
--
- 	if (mmc_pdata(host)->before_set_reg)
- 		mmc_pdata(host)->before_set_reg(host->dev, power_on, iov);
+ struct ti_am335x_xbar_map {
+ 	u16 dma_line;
+-	u16 mux_val;
++	u8 mux_val;
+ };
  
+-static inline void ti_am335x_xbar_write(void __iomem *iomem, int event, u16 val)
++static inline void ti_am335x_xbar_write(void __iomem *iomem, int event, u8 val)
+ {
+-	writeb_relaxed(val & 0x1f, iomem + event);
++	writeb_relaxed(val, iomem + event);
+ }
+ 
+ static void ti_am335x_xbar_free(struct device *dev, void *route_data)
+@@ -105,7 +105,7 @@ static void *ti_am335x_xbar_route_allocate(struct of_phandle_args *dma_spec,
+ 	}
+ 
+ 	map->dma_line = (u16)dma_spec->args[0];
+-	map->mux_val = (u16)dma_spec->args[2];
++	map->mux_val = (u8)dma_spec->args[2];
+ 
+ 	dma_spec->args[2] = 0;
+ 	dma_spec->args_count = 2;
 -- 
-2.11.0
+2.13.0
