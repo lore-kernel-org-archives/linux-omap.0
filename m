@@ -1,72 +1,89 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: [PATCH] pinctrl: single: use of_device_get_match_data() to get soc
- data
-Date: Sun, 21 May 2017 01:02:17 +0900
-Message-ID: <1495296137-6461-1-git-send-email-yamada.masahiro@socionext.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/3] iio: adc: cpcap: Fix die temperature
+Date: Sat, 20 May 2017 09:35:25 -0700
+Message-ID: <20170520163525.GM10472@atomide.com>
+References: <20170519034035.16795-1-tony@atomide.com>
+ <20170519034035.16795-3-tony@atomide.com>
+ <6b8ea7a4-5f5e-2d48-0893-94aa320433c6@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-gpio@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Masahiro Yamada <yamada.masahiro@socionext.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <6b8ea7a4-5f5e-2d48-0893-94aa320433c6-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use of_device_get_match_data() instead of of_match_device().
-It allows us to remove the forward declaration of pcs_of_match.
+* Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170520 08:58]:
+> On 19/05/17 04:40, Tony Lindgren wrote:
+> > It seems that "MC13783 Power Management and Audio Ciruit User's Guide"
+> > MC1378UG.pdf documents several similar components as in the CPCAP PMIC.
+> > 
+> > Chapter "9.5.5 Die Temperature and UID" says that the die temperature
+> > value is 282 at 25C with LSB of -1.14C. Converting CPCAP PMIC channel3
+> > values with following seems to produce values that make sense for a
+> > PMIC die:
+> > 
+> > temperature = 25000 + ((regval - 282) * 114)
+> > 
+> > As we don't have any other documentation, let's assume the die
+> > temperature is unconfigured in the Motorola mapphone Linux kernel
+> > and the current temperature conversion table should be only used
+> > for the battery thermistor and not for the die temperature.
+> Is there any route we have available to confirm this?  I.e. doe anyone
+> have one where we can check plausibility?
 
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
----
+Well there is also a tmp105 sensor for SoC temperature on board
+that I used for some sanity checks :) For the Motorola kernel, it
+seems it's doing all the interesting ADC stuff in user space for
+battery estimates. So if ch3 is used, it must be using the raw
+values. My guess is that ch3 is only used by the PMIC firmware to
+automatically cut off power if it gets too hot.
 
- drivers/pinctrl/pinctrl-single.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+The temperature values seem to make sense now when compared against
+the tmp105 values.. The following output is from an idle device with
+charger connected with reasonably full battery:
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 9c267dc..b8b3d93 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1270,8 +1270,6 @@ static void pcs_free_resources(struct pcs_device *pcs)
- #endif
- }
- 
--static const struct of_device_id pcs_of_match[];
--
- static int pcs_add_gpio_func(struct device_node *node, struct pcs_device *pcs)
- {
- 	const char *propname = "pinctrl-single,gpio-range";
-@@ -1637,15 +1635,14 @@ static int pcs_quirk_missing_pinctrl_cells(struct pcs_device *pcs,
- static int pcs_probe(struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
--	const struct of_device_id *match;
- 	struct pcs_pdata *pdata;
- 	struct resource *res;
- 	struct pcs_device *pcs;
- 	const struct pcs_soc_data *soc;
- 	int ret;
- 
--	match = of_match_device(pcs_of_match, &pdev->dev);
--	if (!match)
-+	soc = of_device_get_match_data(&pdev->dev);
-+	if (WARN_ON(!soc))
- 		return -EINVAL;
- 
- 	pcs = devm_kzalloc(&pdev->dev, sizeof(*pcs), GFP_KERNEL);
-@@ -1658,7 +1655,6 @@ static int pcs_probe(struct platform_device *pdev)
- 	raw_spin_lock_init(&pcs->lock);
- 	mutex_init(&pcs->mutex);
- 	INIT_LIST_HEAD(&pcs->gpiofuncs);
--	soc = match->data;
- 	pcs->flags = soc->flags;
- 	memcpy(&pcs->socdata, soc, sizeof(*soc));
- 
--- 
-2.7.4
+$ ./test-d4-temperature
+tmp105: 37187 bat ch0: 33675 die ch3: 46888
+tmp105: 37187 bat ch0: 33820 die ch3: 41074
+tmp105: 37187 bat ch0: 33525 die ch3: 40390
+tmp105: 37125 bat ch0: 33675 die ch3: 40162
+tmp105: 37125 bat ch0: 34410 die ch3: 40048
+tmp105: 37125 bat ch0: 34555 die ch3: 40162
+tmp105: 37125 bat ch0: 33525 die ch3: 40390
+...
+
+Add some load with two instances of dd if=/dev/urandom of=/dev/null:
+
+$ ./test-d4-temperature
+tmp105: 44250 bat ch0: 37240 die ch3: 51790
+tmp105: 44250 bat ch0: 34705 die ch3: 48940
+tmp105: 44250 bat ch0: 34705 die ch3: 48484
+tmp105: 44250 bat ch0: 34850 die ch3: 48370
+tmp105: 44312 bat ch0: 37585 die ch3: 48142
+tmp105: 44312 bat ch0: 36895 die ch3: 48484
+tmp105: 44375 bat ch0: 34705 die ch3: 48484
+tmp105: 44375 bat ch0: 36895 die ch3: 48484
+...
+
+So ch3 for the PMIC die temperature seems to follow the load
+numbers and makes sense as it provides power to all the devices.
+The first value of ch3 often is all over the map though, probably
+no way around that..
+
+The script I'm using is:
+
+#!/bin/sh
+
+while [ 1 ]; do
+	echo -n "tmp105: $(cat /sys/class/hwmon/hwmon0/temp1_input) "
+	echo -n "bat ch0: $(cat /sys/bus/iio/devices/iio:device0/in_temp0_input) "
+	echo "die ch3: $(cat /sys/bus/iio/devices/iio:device0/in_temp3_input)"
+	sleep 1
+done
+
+Regards,
+
+Tony
