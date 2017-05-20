@@ -1,98 +1,34 @@
-From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/3] iio: adc: cpcap: Remove hung interrupt quirk
-Date: Sat, 20 May 2017 16:56:22 +0100
-Message-ID: <4e16f167-d1a9-355e-02cf-371793053e09@kernel.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/3] iio: adc: cpcap: Fix default register values and
+ battery temperature
+Date: Sat, 20 May 2017 09:02:40 -0700
+Message-ID: <20170520160240.GL10472@atomide.com>
 References: <20170519034035.16795-1-tony@atomide.com>
- <20170519034035.16795-4-tony@atomide.com>
- <20170520122910.hqhphtrdr3wucnga@earth>
+ <20170519034035.16795-2-tony@atomide.com>
+ <CAJCx=gm7t=2nuHiLCXUohLXR62gZ-ux62tWyEQXyNXMrhTutKg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170520122910.hqhphtrdr3wucnga@earth>
-Content-Language: en-GH
+Content-Disposition: inline
+In-Reply-To: <CAJCx=gm7t=2nuHiLCXUohLXR62gZ-ux62tWyEQXyNXMrhTutKg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+To: Matt Ranostay <matt.ranostay-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, "open list:IIO SUBSYSTEM AND..." <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 20/05/17 13:29, Sebastian Reichel wrote:
-> Hi,
+* Matt Ranostay <matt.ranostay-OWPKS81ov/FWk0Htik3J/w@public.gmane.org> [170519 22:55]:
+> On Thu, May 18, 2017 at 8:40 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> >  enum cpcap_adc_channel {
+> >         /* Bank0 channels */
+> > -       CPCAP_ADC_AD0_BATTDETB, /* Battery detection */
+> > +       CPCAP_ADC_AD0_BATTDETB, /* Battery temperature */
 > 
-> On Thu, May 18, 2017 at 08:40:35PM -0700, Tony Lindgren wrote:
->> This is no longer needed as the real problem was interrupt flags
->> not getting passed properly from device tree to the cpcap-core.c
->> mfd driver. This got fixed with commit ac89473213c6 ("mfd: cpcap:
->> Fix interrupt to use level interrupt") So let's remove ADC
->> interrupt specific the quirk.
->>
->> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
->> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> 
-> Reviewed-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Good. Always nice to see an odd issue like this cleaned up.
+> Since this doesn't mean battery detection anymore I'd recommend
+> renaming to CPCAP_ADC_AD0_BATTEMP or similar.
 
-Will pick up V2 along with the previous two patches.
+OK I'll change it to just CPCAP_ADC_AD0 as it seems it's use has
+changed across revisions or products.
 
-Thanks,
+Regards,
 
-Jonathan
-> 
-> -- Sebastian
-> 
->> ---
->>   drivers/iio/adc/cpcap-adc.c | 24 +-----------------------
->>   1 file changed, 1 insertion(+), 23 deletions(-)
->>
->> diff --git a/drivers/iio/adc/cpcap-adc.c b/drivers/iio/adc/cpcap-adc.c
->> --- a/drivers/iio/adc/cpcap-adc.c
->> +++ b/drivers/iio/adc/cpcap-adc.c
->> @@ -89,7 +89,7 @@
->>   #define ST_ADC_CAL_BATTI_LOW_THRESHOLD	494
->>   #define ST_ADC_CALIBRATE_DIFF_THRESHOLD	3
->>   
->> -#define CPCAP_ADC_MAX_RETRIES		5	/* Calibration and quirk */
->> +#define CPCAP_ADC_MAX_RETRIES		5	/* Calibration */
->>   
->>   /**
->>    * struct cpcap_adc_ato - timing settings for cpcap adc
->> @@ -635,27 +635,6 @@ static void cpcap_adc_setup_bank(struct cpcap_adc *ddata,
->>   	}
->>   }
->>   
->> -/*
->> - * Occasionally the ADC does not seem to start and there will be no
->> - * interrupt. Let's re-init interrupt to prevent the ADC from hanging
->> - * for the next request. It is unclear why this happens, but the next
->> - * request will usually work after doing this.
->> - */
->> -static void cpcap_adc_quirk_reset_lost_irq(struct cpcap_adc *ddata)
->> -{
->> -	int error;
->> -
->> -	dev_info(ddata->dev, "lost ADC irq, attempting to reinit\n");
->> -	disable_irq(ddata->irq);
->> -	error = regmap_update_bits(ddata->reg, CPCAP_REG_ADCC2,
->> -				   CPCAP_BIT_ADTRIG_DIS,
->> -				   CPCAP_BIT_ADTRIG_DIS);
->> -	if (error)
->> -		dev_warn(ddata->dev, "%s reset failed: %i\n",
->> -			 __func__, error);
->> -	enable_irq(ddata->irq);
->> -}
->> -
->>   static int cpcap_adc_start_bank(struct cpcap_adc *ddata,
->>   				struct cpcap_adc_request *req)
->>   {
->> @@ -673,7 +652,6 @@ static int cpcap_adc_start_bank(struct cpcap_adc *ddata,
->>   			return 0;
->>   
->>   		if (error == 0) {
->> -			cpcap_adc_quirk_reset_lost_irq(ddata);
->>   			error = -ETIMEDOUT;
->>   			continue;
->>   		}
->> -- 
->> 2.13.0
+Tony
