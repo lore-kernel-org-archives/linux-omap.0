@@ -1,97 +1,61 @@
 From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v5 3/3] drivers:power:twl4030-charger: add deferred probing for phy and iio
-Date: Sun, 21 May 2017 12:38:18 +0200
-Message-ID: <6ed105f6c9c21c24184913a7be9e665453549d79.1495363097.git.hns@goldelico.com>
-References: <cover.1495363097.git.hns@goldelico.com>
+Subject: [RFC 1/3] DTS: gta04: add serdev nodes for w2sg00x4, w2cbw etc.
+Date: Sun, 21 May 2017 12:44:02 +0200
+Message-ID: <d375cce0be3107490a76424070a89723c0d90f98.1495363443.git.hns@goldelico.com>
+References: <cover.1495363443.git.hns@goldelico.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1495363097.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-In-Reply-To: <cover.1495363097.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-References: <cover.1495363097.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <cover.1495363443.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <cover.1495363443.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+References: <cover.1495363443.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: NeilBrown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-
-This fixes an issue if both this twl4030_charger driver and
-phy-twl4030-usb are compiled as modules and loaded in random order.
-It has been observed on GTA04 and OpenPandora devices that in worst
-case the boot process hangs and in best case the AC detection fails
-with a warning.
-
-Therefore we add deferred probing checks for the usb_phy and the
-iio channel for AC detection.
-
-For implementing this we must reorder code because we can't safely
-return -EPROBE_DEFER after allocating any devm managed interrupt
-(it might already/still be enabled without working interrupt handler).
-
-So the check for required resources that may abort probing by
-returning -EPROBE_DEFER, must come first.
 
 Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 ---
- drivers/power/supply/twl4030_charger.c | 37 ++++++++++++++++++++--------------
- 1 file changed, 22 insertions(+), 15 deletions(-)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/supply/twl4030_charger.c
-index 785a07bc4f39..945eabdbbc89 100644
---- a/drivers/power/supply/twl4030_charger.c
-+++ b/drivers/power/supply/twl4030_charger.c
-@@ -984,6 +984,28 @@ static int twl4030_bci_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, bci);
- 
-+	if (bci->dev->of_node) {
-+		struct device_node *phynode;
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index 430b438e0ee9..45f0c109960f 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -472,16 +472,34 @@
+ &uart1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart1_pins>;
 +
-+		phynode = of_find_compatible_node(bci->dev->of_node->parent,
-+						  NULL, "ti,twl4030-usb");
-+		if (phynode) {
-+			bci->transceiver = devm_usb_get_phy_by_node(
-+				bci->dev, phynode, &bci->usb_nb);
-+			if (IS_ERR(bci->transceiver) &&
-+			    PTR_ERR(bci->transceiver) == -EPROBE_DEFER)
-+				return -EPROBE_DEFER;	/* PHY not ready */
-+		}
-+	}
++	bluetooth: w2cbw003 {
++		compatible = "wi2wi,w2cbw003-bluetooth";
++		vdd-supply = <&vaux4>;
++	};
+ };
+ 
+ &uart2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart2_pins>;
 +
-+	bci->channel_vac = iio_channel_get(&pdev->dev, "vac");
-+	if (IS_ERR(bci->channel_vac)) {
-+		if (PTR_ERR(bci->channel_vac) == -EPROBE_DEFER)
-+			return -EPROBE_DEFER;	/* iio not ready */
-+		dev_warn(&pdev->dev, "could not request vac iio channel");
-+		bci->channel_vac = NULL;
-+	}
++	gps: w2sg0004 {
++		compatible = "wi2wi,w2sg0004";
++		lna-supply = <&vsim>;   /* LNA regulator */
++		on-off-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;    /* GPIO_145: trigger for turning on/off w2sg0004 */
++	};
+ };
+ 
+ &uart3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart3_pins>;
 +
- 	bci->ac = devm_power_supply_register(&pdev->dev, &twl4030_bci_ac_desc,
- 					     NULL);
- 	if (IS_ERR(bci->ac)) {
-@@ -1017,25 +1039,10 @@ static int twl4030_bci_probe(struct platform_device *pdev)
- 		return ret;
- 	}
++	rs232: trs3386 {
++		status = "disabled";
++		compatible = "ti,trs3386-mctrl";
++		gpios = <0>,		/* ... */
++			<&gpio1 21 0>;	/* DTR: GPIO_21 */
++	};
+ };
  
--	bci->channel_vac = iio_channel_get(&pdev->dev, "vac");
--	if (IS_ERR(bci->channel_vac)) {
--		bci->channel_vac = NULL;
--		dev_warn(&pdev->dev, "could not request vac iio channel");
--	}
--
- 	INIT_WORK(&bci->work, twl4030_bci_usb_work);
- 	INIT_DELAYED_WORK(&bci->current_worker, twl4030_current_worker);
- 
- 	bci->usb_nb.notifier_call = twl4030_bci_usb_ncb;
--	if (bci->dev->of_node) {
--		struct device_node *phynode;
--
--		phynode = of_find_compatible_node(bci->dev->of_node->parent,
--						  NULL, "ti,twl4030-usb");
--		if (phynode)
--			bci->transceiver = devm_usb_get_phy_by_node(
--				bci->dev, phynode, &bci->usb_nb);
--	}
- 
- 	/* Enable interrupts now. */
- 	reg = ~(u32)(TWL4030_ICHGLOW | TWL4030_ICHGEOC | TWL4030_TBATOR2 |
+ &charger {
 -- 
 2.12.2
 
