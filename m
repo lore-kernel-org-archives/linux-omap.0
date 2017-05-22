@@ -1,91 +1,49 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v4 00/20] eeprom: at24: Add OF device ID table
-Date: Mon, 22 May 2017 09:26:08 -0500
-Message-ID: <CAL_JsqL2P=C+xRyL-BCC=RtFah4BRf8BHSvWNPZ+6r2ioSk_Yw@mail.gmail.com>
-References: <20170522140208.24652-1-javier@dowhile0.org>
- <CAMuHMdXbhkGGFC80-39Axzv=BdEXyBNuPuHCSWW3eXWDB=SQ+w@mail.gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCHv4] wlcore: add wl1285 compatible
+Date: Mon, 22 May 2017 10:30:10 -0400 (EDT)
+Message-ID: <20170522.103010.1779800840743690143.davem@davemloft.net>
+References: <20170505141553.2605-1-sebastian.reichel@collabora.co.uk>
+        <8737bx5jgr.fsf@purkki.adurom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <CAMuHMdXbhkGGFC80-39Axzv=BdEXyBNuPuHCSWW3eXWDB=SQ+w@mail.gmail.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Andrew Lunn <andrew@lunn.ch>, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Will Deacon <will.deacon@arm.com>, Michal Simek <michal.simek@xilinx.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Paul Mackerras <paulus@samba.org>, Linux I2C <linux-i2c@vger.kernel.org>, Hongtao Jia <hongtao.jia@nxp.com>, Mark Jackson <mpfj@newflow.co.uk>, Jason Cooper <jason@lakedaemon.net>, Herbert Xu <herbert@gondor.apana.org.au>, =?UTF-8?Q?Horia_Geant=C4=83?= <horia.geanta@nxp.com>, Russell King <linux@armlinux.org.uk>, Andy Shevchenko <andy.shevchenko@gmail.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, Catalin Marinas <catalin.marinas@arm.com>, Javier Martinez Canillas <javier@dowhile0.org>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8737bx5jgr.fsf-5ukZ45wKbUHoml4zekdYB16hYfS7NtTn@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+Cc: sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 22, 2017 at 9:23 AM, Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> Hi Javier,
->
-> On Mon, May 22, 2017 at 4:01 PM, Javier Martinez Canillas
-> <javier@dowhile0.org> wrote:
->> This series is a follow-up to patch [0] that added an OF device ID table
->> to the at24 EEPROM driver. As you suggested [1], this version instead of
->> adding entries for every used <vendor,device> tuple, only adds a single
->> entry for each chip type using the "atmel" vendor as a generic fallback.
->>
->> This is a re-spin that addresses some issues pointed out by Rob Herring.
->>
->> The first patch documents in the DT binding what's the correct vendor to
->> use and what are the ones that are being deprecated. The second one adds
->> the OF device ID table for the at24 driver and the next patches use this
->> vendor in the compatible string to each DTS that defines a compatible I2C
->> EEPROM device node.
->>
->> Patches can be applied independently since the DTS changes without driver
->> changes are no-op and the OF table won't be used without the DTS changes.
->>
->> [0]: https://lkml.org/lkml/2017/3/14/589
->> [1]: https://lkml.org/lkml/2017/3/15/99
->>
->> Best regards,
->> Javier
->>
->> Changes in v4:
->> - Document the manufacturers that have been deprecated (Rob Herring).
->> - Only use the atmel manufacturer in the compatible string instead of
->>   keeping the deprecated ones (Rob Herring).
->
-> I think you're referring to this (https://lkml.org/lkml/2017/4/19/1136)?
->
-> | > --- a/arch/arm/boot/dts/am335x-baltos.dtsi
-> | > +++ b/arch/arm/boot/dts/am335x-baltos.dtsi
-> | > @@ -255,7 +255,7 @@
-> | >     };
-> | >
-> | >     at24@50 {
-> | > -           compatible = "at24,24c02";
-> | > +           compatible = "at24,24c02", "atmel,24c02";
-> |
-> | I think you can just drop the at24 compatibles. A new kernel doesn't
-> | need it. An old kernel ignores the manufacturer. I checked that u-boot
-> | only matches on "atmel,*", so okay there. Don't know about the *BSDs. I
-> | couldn't find anything.
->
-> I think you misunderstood what Rob means.
->
-> In the case above it makes sense to drop the first compatible, as "at24" is
-> not a manufacturer, but refers to ATMEL's "AT24" line of i2c FLASH ROMs.
->
-> However, in cases where a real vendor/part combo is specified, like on
-> r8a7791-koelsch.dts:
->
-> -               compatible = "renesas,24c02";
-> +               compatible = "atmel,24c02";
->
-> you do want to keep the real vendor/part combo, i.e.
->
->      compatible = "renesas,24c02", "atmel,24c02";
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Date: Mon, 22 May 2017 12:28:20 +0300
 
-Yes, Geert is correct.
+> Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org> writes:
+> 
+>> Motorola Droid 4 uses a WL1285C. With differences between the
+>> chips not being public let's add explicit binding for wl1285
+>> instead of relying on wl1283 being very similar.
+>>
+>> Reviewed-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> Acked-by: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+>> Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> Signed-off-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+>> ---
+>> Hi Dave,
+>>
+>> I previously send this in two patches, but its hard to apply without
+>> requiring multiple kernel releases (the driver must be updated before
+>> the DTS change). Since the actual change is not very complex Marcel
+>> Holtmann & Tony Lindgren suggested, that I send this directly to you
+>> in a single patch for inclusion into 4.12. This also means, that the
+>> remaining series can be queued normally for 4.13.
+> 
+> I noticed that Dave set this patch to Awaiting Upstream state on his
+> patchwork:
+> 
+> https://patchwork.ozlabs.org/patch/759042/
+> 
+> Which makes me suspect that he is waiting me to apply this (as I
+> normally apply wlcore patches). Dave, should I actually take this patch?
+> What do you prefer?
 
-Rob
+Anything that touches wireless drivers I defer to you, yes.
