@@ -1,55 +1,63 @@
-From: Kalle Valo <kvalo@codeaurora.org>
-Subject: Re: [PATCHv4] wlcore: add wl1285 compatible
-Date: Mon, 22 May 2017 12:28:20 +0300
-Message-ID: <8737bx5jgr.fsf@purkki.adurom.net>
-References: <20170505141553.2605-1-sebastian.reichel@collabora.co.uk>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 3/3] mfd: twl: move header file out of I2C realm
+Date: Mon, 22 May 2017 10:52:43 +0100
+Message-ID: <20170522095243.ff5uygzzrvo57jkd@sirena.org.uk>
+References: <20170521220212.1404-1-wsa@the-dreams.de>
+ <20170521220212.1404-4-wsa@the-dreams.de>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170505141553.2605-1-sebastian.reichel@collabora.co.uk>
-        (Sebastian Reichel's message of "Fri, 5 May 2017 16:15:53 +0200")
-Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh+dt@kernel.org>, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="tvcs7s5pzwvwzc4b"
+Return-path: <rtc-linux+bncBDQ2L75W5QGBBBPLRLEQKGQETT35RPA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Disposition: inline
+In-Reply-To: <20170521220212.1404-4-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Daniel Thompson <daniel.thompson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung>
 List-Id: linux-omap@vger.kernel.org
 
-Sebastian Reichel <sebastian.reichel@collabora.co.uk> writes:
 
-> Motorola Droid 4 uses a WL1285C. With differences between the
-> chips not being public let's add explicit binding for wl1285
-> instead of relying on wl1283 being very similar.
->
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Acked-by: Kalle Valo <kvalo@codeaurora.org>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> ---
-> Hi Dave,
->
-> I previously send this in two patches, but its hard to apply without
-> requiring multiple kernel releases (the driver must be updated before
-> the DTS change). Since the actual change is not very complex Marcel
-> Holtmann & Tony Lindgren suggested, that I send this directly to you
-> in a single patch for inclusion into 4.12. This also means, that the
-> remaining series can be queued normally for 4.13.
+--tvcs7s5pzwvwzc4b
+Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
 
-I noticed that Dave set this patch to Awaiting Upstream state on his
-patchwork:
+On Mon, May 22, 2017 at 12:02:10AM +0200, Wolfram Sang wrote:
+> include/linux/i2c is not for client devices. Move the header file to a
+> more appropriate location.
 
-https://patchwork.ozlabs.org/patch/759042/
+Acked-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Which makes me suspect that he is waiting me to apply this (as I
-normally apply wlcore patches). Dave, should I actually take this patch?
-What do you prefer?
-
-There's a small change to arm directory but I don't see that as a
-problem as Tony acked it:
-
- Documentation/devicetree/bindings/net/wireless/ti,wlcore.txt | 1 +
- arch/arm/boot/dts/omap4-droid4-xt894.dts                     | 2 +-
- drivers/net/wireless/ti/wlcore/sdio.c                        | 1 +
- drivers/net/wireless/ti/wlcore/spi.c                         | 1 +
- 4 files changed, 4 insertions(+), 1 deletion(-)
+I'm missing the rest of the series and/or the cover letter...
 
 -- 
-Kalle Valo
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
+
+--tvcs7s5pzwvwzc4b
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlkitOoACgkQJNaLcl1U
+h9DNBQf/W6MueE4T2MQLhzjv1GsoGBNNokoFrcJbPchpAPhw/DczZsF29IdybRFZ
+VacP62GRSx1hZcxR8/ydv0S6rRUXv9jTVnL04MI6lRCMEI+PisoVGYTW+M3TmvUF
+hfX/HTza1pis1bd5u5qpRJcV2MSK+cJ/tAHKgTIaZvt5u3LeF7JodmA1zYq03M8n
+xdpgRf00NHikCcSgfyuf1chUpvBz4/HBA3QCNC3UpTieY16B67ZQAr17TZLuUD1G
+eT9Jgt2hQHnRwzUQ6IlnO58hyFI4Q3DHJGgPCWqEp4FKTZjx1HSdXKjbDIZJeBR5
+SJ58jl2BjAjeGhP2am4Xcd+Vfqr1IQ==
+=pkjm
+-----END PGP SIGNATURE-----
+
+--tvcs7s5pzwvwzc4b--
