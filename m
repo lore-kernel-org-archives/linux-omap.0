@@ -1,190 +1,75 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] ARM: dts: Configure USB host for 37xx-evm
-Date: Mon, 22 May 2017 09:06:47 -0700
-Message-ID: <20170522160647.9606-1-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCHv4] wlcore: add wl1285 compatible
+Date: Mon, 22 May 2017 11:11:49 -0500
+Message-ID: <CAL_JsqL91sruKNaWmVEqT+L_OCh5xFkkGY07mBBUmqkKHc5fQw@mail.gmail.com>
+References: <20170505141553.2605-1-sebastian.reichel@collabora.co.uk>
+ <8737bx5jgr.fsf@purkki.adurom.net> <20170522.103010.1779800840743690143.davem@davemloft.net>
+ <87wp99t0hj.fsf@kamboji.qca.qualcomm.com> <20170522152112.634mnsv65lryrmkp@earth>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170522152112.634mnsv65lryrmkp@earth>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Kalle Valo <kvalo@codeaurora.org>, David Miller <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>, Marcel Holtmann <marcel@holtmann.org>, linux-wireless <linux-wireless@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Looks like nobody bothered to configure USB host for 37xx-evm
-when we converted things to device tree, so let's add it. This
-is similar to beagleboard configuration with few extra quirks
-to configure the port. And as with beagleboard, OHCI won't work
-because there is no USB LS/FS PHY. A HS USB hub is needed to use
-devices like keyboard and mice.
+On Mon, May 22, 2017 at 10:21 AM, Sebastian Reichel
+<sebastian.reichel@collabora.co.uk> wrote:
+> Hi,
+>
+> On Mon, May 22, 2017 at 05:44:24PM +0300, Kalle Valo wrote:
+>> David Miller <davem@davemloft.net> writes:
+>> > From: Kalle Valo <kvalo@codeaurora.org>
+>> > Date: Mon, 22 May 2017 12:28:20 +0300
+>> >
+>> >> Sebastian Reichel <sebastian.reichel@collabora.co.uk> writes:
+>> >>
+>> >>> Motorola Droid 4 uses a WL1285C. With differences between the
+>> >>> chips not being public let's add explicit binding for wl1285
+>> >>> instead of relying on wl1283 being very similar.
+>> >>>
+>> >>> Reviewed-by: Rob Herring <robh@kernel.org>
+>> >>> Acked-by: Kalle Valo <kvalo@codeaurora.org>
+>> >>> Acked-by: Tony Lindgren <tony@atomide.com>
+>> >>> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+>> >>> ---
+>> >>> Hi Dave,
+>> >>>
+>> >>> I previously send this in two patches, but its hard to apply without
+>> >>> requiring multiple kernel releases (the driver must be updated before
+>> >>> the DTS change). Since the actual change is not very complex Marcel
+>> >>> Holtmann & Tony Lindgren suggested, that I send this directly to you
+>> >>> in a single patch for inclusion into 4.12. This also means, that the
+>> >>> remaining series can be queued normally for 4.13.
+>> >>
+>> >> I noticed that Dave set this patch to Awaiting Upstream state on his
+>> >> patchwork:
+>> >>
+>> >> https://patchwork.ozlabs.org/patch/759042/
+>> >>
+>> >> Which makes me suspect that he is waiting me to apply this (as I
+>> >> normally apply wlcore patches). Dave, should I actually take this patch?
+>> >> What do you prefer?
+>> >
+>> > Anything that touches wireless drivers I defer to you, yes.
+>>
+>> Thanks, I'll take it then. Not sure why Sebastian was suggested to
+>> submit this patch via your tree in the first place.
+>>
+>> https://patchwork.kernel.org/patch/9713645/
+>
+> Thanks. The idea was to get into early 4.12-rc to avoid merge
+> conflicts in the droid 4 *.dts during 4.13 cycle. This strategy
+> obviously failed :)
 
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/boot/dts/omap3-evm-37xx.dts    | 82 +++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap3-evm-common.dtsi | 33 +++++++++++++
- 2 files changed, 115 insertions(+)
+First, I'm not sure why you combined everything. A maintainer can just
+as easily take a series as a single patch and we prefer binding doc,
+dts and driver changes all separate.
 
-diff --git a/arch/arm/boot/dts/omap3-evm-37xx.dts b/arch/arm/boot/dts/omap3-evm-37xx.dts
---- a/arch/arm/boot/dts/omap3-evm-37xx.dts
-+++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
-@@ -98,6 +98,32 @@
- 		>;
- 	};
- 
-+	hsusb2_pins: pinmux_hsusb2_pins {
-+		pinctrl-single,pins = <
-+
-+		/* On-board EHCI USB2 gpmc_nbe1.gpio_61 */
-+		OMAP3_CORE1_IOPAD(0x20c8, PIN_OUTPUT | MUX_MODE4)
-+
-+		/* mcspi1_cs3.hsusb2_data2 */
-+		OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* mcspi2_clk.hsusb2_data7 */
-+		OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* mcspi2_simo.hsusb2_data4 */
-+		OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* mcspi2_somi.hsusb2_data5 */
-+		OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* mcspi2_cs0.hsusb2_data6 */
-+		OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* mcspi2_cs1.hsusb2_data3 */
-+		OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+		>;
-+	};
-+
- 	wl12xx_gpio: pinmux_wl12xx_gpio {
- 		pinctrl-single,pins = <
- 			OMAP3_CORE1_IOPAD(0x2180, PIN_OUTPUT | MUX_MODE4)		/* uart1_cts.gpio_150 */
-@@ -112,6 +138,37 @@
- 	};
- };
- 
-+&omap3_pmx_core2 {
-+	hsusb2_2_pins: pinmux_hsusb2_2_pins {
-+		pinctrl-single,pins = <
-+
-+		/* EHCI PHY reset GPIO etk_d7.gpio_21 */
-+		OMAP3630_CORE2_IOPAD(0x25ea, PIN_OUTPUT | MUX_MODE4)
-+
-+		/* EHCI VBUS etk_d8.gpio_22 */
-+		OMAP3630_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)
-+
-+		/* etk_d10.hsusb2_clk */
-+		OMAP3630_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)
-+
-+		/* etk_d11.hsusb2_stp */
-+		OMAP3630_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)
-+
-+		/* etk_d12.hsusb2_dir */
-+		OMAP3630_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* etk_d13.hsusb2_nxt */
-+		OMAP3630_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* etk_d14.hsusb2_data0 */
-+		OMAP3630_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* etk_d15.hsusb2_data1 */
-+		OMAP3630_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+		>;
-+	};
-+};
-+
- &omap3_pmx_wkup {
- 	dss_dpi_pins2: pinmux_dss_dpi_pins1 {
- 		pinctrl-single,pins = <
-@@ -153,6 +210,31 @@
- 	pinctrl-0 = <&uart3_pins>;
- };
- 
-+&hsusb2_power {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&hsusb2_pins &hsusb2_2_pins>;
-+};
-+
-+/* GPIO_61 (nUSB2_EN_1V8) low for on-board EHCI USB2 interface */
-+&gpio2 {
-+	en_hsusb2_clk {
-+		gpio-hog;
-+		gpios = <29 GPIO_ACTIVE_HIGH>;
-+		output-low;
-+		line-name = "hsusb2 port";
-+	};
-+};
-+
-+/* T2_GPIO_2 low to route GPIO_61 to on-board devices */
-+&twl_gpio {
-+	en_hsusb2_clk {
-+		gpio-hog;
-+		gpios = <2 GPIO_ACTIVE_HIGH>;
-+		output-low;
-+		line-name = "en_hsusb2_clk";
-+	};
-+};
-+
- &gpmc {
- 	ranges = <0 0 0x30000000 0x1000000>,	/* CS0: 16MB for NAND */
- 		 <5 0 0x2c000000 0x01000000>;
-diff --git a/arch/arm/boot/dts/omap3-evm-common.dtsi b/arch/arm/boot/dts/omap3-evm-common.dtsi
---- a/arch/arm/boot/dts/omap3-evm-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-evm-common.dtsi
-@@ -12,6 +12,24 @@
- 		};
- 	};
- 
-+	/* HS USB Port 2 Power */
-+	hsusb2_power: hsusb2_power_reg {
-+		compatible = "regulator-fixed";
-+		regulator-name = "hsusb2_vbus";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio1 22 GPIO_ACTIVE_HIGH>; /* gpio_22 */
-+		startup-delay-us = <70000>;
-+		enable-active-high;
-+	};
-+
-+	/* HS USB Host PHY on PORT 2 */
-+	hsusb2_phy: hsusb2_phy {
-+		compatible = "usb-nop-xceiv";
-+		reset-gpios = <&gpio1 21 GPIO_ACTIVE_LOW>; /* gpio_21 */
-+		vcc-supply = <&hsusb2_power>;
-+	};
-+
- 	leds {
- 		compatible = "gpio-leds";
- 		ledb {
-@@ -143,6 +161,14 @@
- 			>;
- };
- 
-+&usbhshost {
-+	port2-mode = "ehci-phy";
-+};
-+
-+&usbhsehci {
-+	phys = <0 &hsusb2_phy>;
-+};
-+
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-@@ -159,3 +185,10 @@
- 		reg = <5 0 0xff>;
- 	};
- };
-+
-+&vaux2 {
-+	regulator-name = "usb_1v8";
-+	regulator-min-microvolt = <1800000>;
-+	regulator-max-microvolt = <1800000>;
-+	regulator-always-on;
-+};
--- 
-2.13.0
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Second, the dts changes could go thru arm-soc and the driver change
+thru netdev. The binding doc can be thru either. There's no bisecting
+dependency and things shouldn't break. It just won't all work until
+you have both branches.
+
+Rob
