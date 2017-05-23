@@ -1,96 +1,107 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 1/3] mfd: lp87565: Add lp87565 PMIC support
-Date: Tue, 23 May 2017 15:41:02 +0530
-Message-ID: <ce83f605-879b-dee0-d09e-63d01a7f66c7@ti.com>
-References: <1495197739-17446-1-git-send-email-j-keerthy@ti.com>
- <1495197739-17446-2-git-send-email-j-keerthy@ti.com>
- <20170522174806.nnpk5jso7jhgygm3@dell>
- <26169872-1b43-88d1-3e5b-367b4d446222@ti.com>
- <20170523065742.44ytkxdagw2wwttz@dell>
- <a753fdb4-feb9-0894-6f40-a19d3f05714c@ti.com>
- <20170523084531.oanijbheozgtoufe@dell>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: palmas: Drop unnecessary static" to the regulator tree
+Date: Tue, 23 May 2017 12:24:56 +0100
+Message-ID: <E1dD7vs-0004V7-Lb@finisterre>
+References: <1493928654-18768-7-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170523084531.oanijbheozgtoufe@dell>
+In-Reply-To: <1493928654-18768-7-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: broonie@kernel.org, robh+dt@kernel.org, t-kristo@ti.com, tony@atomide.com, mark.rutland@arm.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, keescook@chromium.org, kernel-janitors@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.orglinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+The patch
 
+   regulator: palmas: Drop unnecessary static
 
-On Tuesday 23 May 2017 02:15 PM, Lee Jones wrote:
-> On Tue, 23 May 2017, Keerthy wrote:
->> On Tuesday 23 May 2017 12:27 PM, Lee Jones wrote:
->>> On Tue, 23 May 2017, Keerthy wrote:
->>>> On Monday 22 May 2017 11:18 PM, Lee Jones wrote:
->>>>> On Fri, 19 May 2017, Keerthy wrote:
->>>>>
->>>>>> The LP87565 chip is a power management IC for Portable Navigation Systems
->>>>>> and Tablet Computing devices. It contains the following components:
->>>>>>
->>>>>>         - Configurable Bucks(Single and multi-phase).
->>>>>>         - Configurable General Purpose Output Signals (GPO).
->>>>>>
->>>>>> The LP87565-Q1 variant device uses two 2-phase outputs configuration,
->>>>>> Buck0 is master for Buck0/1 output and Buck2 is master for Buck2/3
->>>>>> output.
->>>>>>
->>>>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>>>>> ---
->>>>>>  Documentation/devicetree/bindings/mfd/lp87565.txt |  44 ++++
->>>>>>  drivers/mfd/Kconfig                               |  14 ++
->>>>>>  drivers/mfd/Makefile                              |   1 +
->>>>>>  drivers/mfd/lp87565.c                             | 103 ++++++++
->>>>>>  include/linux/mfd/lp87565.h                       | 275 ++++++++++++++++++++++
->>>>>>  5 files changed, 437 insertions(+)
->>>>>>  create mode 100644 Documentation/devicetree/bindings/mfd/lp87565.txt
->>>>>>  create mode 100644 drivers/mfd/lp87565.c
->>>>>>  create mode 100644 include/linux/mfd/lp87565.h
->>>>>>
->>>
->>> [...]
->>>
->>>>>> +/*
->>>>>> + * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
->>>>>> + *
->>>>>> + * Author: Keerthy <j-keerthy@ti.com>
->>>>>
->>>>> We usually ask for full "first last" names.
->>>>
->>>> Keerthy is my full name and i do not have a surname.
->>>
->>> What is the 'J' for in your email address?
->>
->> Father's initials.
-> 
-> Okay.
-> 
->>> [...]
->>>
->>>>>> +static const struct i2c_device_id lp87565_id_table[] = {
->>>>>> +	{ "lp87565-q1", 0 },
->>>>>> +	{ },
->>>>>> +};
->>>>>> +MODULE_DEVICE_TABLE(i2c, lp87565_id_table);
->>>>>
->>>>> Is this an OF only driver, or not?
->>>
->>> You didn't answer my question?
->>
->> Sorry i replied on top again. It will be an OF only driver.
-> 
-> Okay, then you don't need this table and you should depend on OF in
-> the Kconfig file.
+has been applied to the regulator tree at
 
-Okay. Cool thanks for this info.
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
-I am seeing this commit: 4895e493f91bff7f96f328b883c7f6448aa6abc6
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-mfd: Export OF module alias information in missing drivers
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-So no need of i2c_device_id for any of the OF-only mfd drivers?
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
-> 
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 96e4f5232c8cdb64cb18721ea0871c849346cbf5 Mon Sep 17 00:00:00 2001
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Date: Thu, 4 May 2017 22:10:51 +0200
+Subject: [PATCH] regulator: palmas: Drop unnecessary static
+
+Drop static on a local variable, when the variable is initialized before
+any use, on every possible execution path through the function.
+
+The semantic patch that fixes this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@bad exists@
+position p;
+identifier x;
+type T;
+@@
+
+static T x@p;
+...
+x = <+...x...+>
+
+@@
+identifier x;
+expression e;
+type T;
+position p != bad.p;
+@@
+
+-static
+ T x@p;
+ ... when != x
+     when strict
+?x = e;
+// </smpl>
+
+There is no reduction in code size in this case, but the change does reduce
+the size of the bss segment, containing uninitialized static data.
+
+before:
+   text    data     bss     dec     hex filename
+  12882    3480       8   16370    3ff2 drivers/regulator/palmas-regulator.o
+
+after:
+   text    data     bss     dec     hex filename
+  12882    3480       0   16362    3fea drivers/regulator/palmas-regulator.o
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/palmas-regulator.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
+index 31ae5ee3a80d..34d4a62283d7 100644
+--- a/drivers/regulator/palmas-regulator.c
++++ b/drivers/regulator/palmas-regulator.c
+@@ -1491,7 +1491,7 @@ static int palmas_dt_to_pdata(struct device *dev,
+ 	}
+ 
+ 	for (idx = 0; idx < ddata->max_reg; idx++) {
+-		static struct of_regulator_match *match;
++		struct of_regulator_match *match;
+ 		struct palmas_reg_init *rinit;
+ 		struct device_node *np;
+ 
+-- 
+2.11.0
