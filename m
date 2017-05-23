@@ -1,195 +1,117 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: [PATCH v5 00/20] eeprom: at24: Add OF device ID table
-Date: Tue, 23 May 2017 15:34:28 +0200
-Message-ID: <20170523133448.4794-1-javier@dowhile0.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org
-Cc: Mark Rutland <mark.rutland@arm.com>, Andrew Lunn <andrew@lunn.ch>, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@armlinux.org.uk>, Masahiro Yamada <yamada.masahiro@socionext.com>, Paul Mackerras <paulus@samba.org>, linux-i2c@vger.kernel.org, Hongtao Jia <hongtao.jia@nxp.com>, David Lechner <david@lechnology.com>, Rob Herring <robh@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, =?UTF-8?q?Horia=20Geant=C4=83?= <horia.geanta@nxp.com>, Michael Ellerman <mpe@ellerman.id.au>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-arm-kernel@lists.infradead.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Javier Martinez Canillas <javier@dowhile0.org>, Jason Cooper <jason>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [RFC 0/3] misc: new serdev based drivers for w2sg00x4 GPS module and w2cbw003 wifi/bluetooth
+Date: Tue, 23 May 2017 15:49:17 +0200
+Message-ID: <889E8F7F-FC0F-490E-B924-D04D9F4D3402@goldelico.com>
+References: <cover.1495363443.git.hns@goldelico.com> <CAL_Jsq+fmi2QwE7J8xv47ece1b+jqnOo99NghfjtocnrRvBkPg@mail.gmail.com> <78B1501A-B9AD-4C6E-A481-26F647AA2BCE@goldelico.com> <CAL_JsqJamBBggr9AOQtQWtZOG+FevK1XEU_D=nYL6=hyvjviVw@mail.gmail.com> <0D94BEA0-F98D-48F6-9DDC-99F932AE7834@goldelico.com> <CAL_JsqK5NxL+rHU2enW0Lo+e+HThp-iK3hpW-UxeFREbivRZOw@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAL_JsqK5NxL+rHU2enW0Lo+e+HThp-iK3hpW-UxeFREbivRZOw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com, Marcel Holtmann <marcel@holtmann.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Wolfram,
+Hi Rob,
 
-This series is a follow-up to patch [0] that added an OF device ID table
-to the at24 EEPROM driver. As you suggested [1], this version instead of
-adding entries for every used <vendor,device> tuple, only adds a single
-entry for each chip type using the "atmel" vendor as a generic fallback.
+> Am 23.05.2017 um 15:10 schrieb Rob Herring <robh+dt@kernel.org>:
+>=20
+> +Marcel
 
-The first patch documents in the DT binding what's the correct vendor to
-use and what are the ones that are being deprecated. The second one adds
-the OF device ID table for the at24 driver and the next patches use this
-vendor in the compatible string to each DTS that defines a compatible I2C
-EEPROM device node.
+Good!
 
-Patches can be applied independently since the DTS changes without driver
-changes are no-op and the OF table won't be used without the DTS changes.
+>=20
+> On Tue, May 23, 2017 at 7:48 AM, H. Nikolaus Schaller =
+<hns@goldelico.com> wrote:
+>> Hi Rob,
+>>=20
+>>> Am 23.05.2017 um 14:28 schrieb Rob Herring <robh+dt@kernel.org>:
+>>>=20
+>>> On Tue, May 23, 2017 at 12:43 AM, H. Nikolaus Schaller
+>>> <hns@goldelico.com> wrote:
+>>>> Hi Rob,
+>>>>=20
+>>>>> Am 23.05.2017 um 04:26 schrieb Rob Herring <robh+dt@kernel.org>:
+>>>>>=20
+>>>>> On Sun, May 21, 2017 at 5:44 AM, H. Nikolaus Schaller =
+<hns@goldelico.com> wrote:
+>>>>>> Since our proposed API was not acceptable and the new serdev API =
+has arrived in 4.11 kernels,
+>>>>>> we finally took the challenge to update the w2sg and w2cbw =
+drivers to use the serdev API.
+>>>>>>=20
+>>>>>> The approach is to write a "man in the middle" driver which is on =
+one side a serdev client
+>>>>>> which directly controls the UART where the device is connected to =
+and on the other side
+>>>>>> presents a new tty port so that user-space software can talk to =
+the chips as if they would
+>>>>>> directly talk to the UART of the SoC (e.g. ttyO1). This is =
+similar to connecting to a remote
+>>>>>> serial device e.g. through USB (ttyACM) or Bluetooth UART =
+profiles.
+>>>>>>=20
+>>>>>> For example gpsd or hciattach expect a /dev/tty they can control =
+(flow control, baud rate
+>>>>>> etc.).
+>>>>>=20
+>>>>> I understand from the prior discussion why you want to pass the =
+data
+>>>>> thru for gps, but why do you need to do that for BT?
+>>>>=20
+>>>> Because we otherwise can't turn on power when /dev/ttyBT0 is opened =
+and turn off when it
+>>>> is closed. I.e. it should not be powered unless someone does a =
+hciattach /dev/ttyBT0. And it
+>>>> should be turned off by a killall hciattach.
+>>>=20
+>>> Still, you can do power control within BT HCI drivers.
+>>=20
+>> We do not use any driver for bluetooth. We just start hciattach on =
+demand.
+>> And afaik there is no plugin mechanism for adding power control to =
+hciattach.
+>=20
+> You don't need hciattach. All userspace has to do for kernel BT
+> drivers is "hciconfig hci0 up|down".
 
-[0]: https://lkml.org/lkml/2017/3/14/589
-[1]: https://lkml.org/lkml/2017/3/15/99
+Hm. Well:
 
-Best regards,
-Javier
+root@letux:~# hciconfig hci0 up
+Can't get device info: No such device
+root@letux:~#
 
-Changes in v5:
-- Only deprecate the atmel variants at25 and at (Geert Uytterhoeven).
-- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
-- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
-- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
-- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
-- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
-- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
-- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
-- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
-- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
+I wonder how I can tell hciconfig about the UART port if not by running =
+hciattach /dev/ttyBT0?
 
-Changes in v4:
-- Document the manufacturers that have been deprecated (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
-- Only use the atmel manufacturer in the compatible string instead of
-  keeping the deprecated ones (Rob Herring).
+>=20
+>> Or do you have a link to what you think about?
+>=20
+> Look at the nokia BT or TI (HCI_LL) BT drivers. Those both have f/w
+> downloading and some GPIO controls. Given that this module is based on
+> Marvell chipset, I'd expect you need to add serdev support to
+> hci_mrvl.c.
 
-Changes in v3:
-- Fix wrong .data values for "atmel,24c02" and "atmel,24c64" entries.
-- Add Geert Uytterhoeven reviewed-by tag.
-- Add Geert Uytterhoeven reviewed-by tag.
+The w2cb003 has a Marvell WiFi (libertas) but a CSR Bluetooth side.
 
-Changes in v2:
-- Only add a single OF device ID entry for each device type (Wolfram Sang).
+It has built-in firmware and already talks serial HCI over simple UART =
+right
+after power-on. This is why our serdev driver has no firmware download.
 
-Javier Martinez Canillas (20):
-  dt-bindings: i2c: eeprom: Document vendor to be used and deprecated
-    ones
-  eeprom: at24: Add OF device ID table
-  ARM: dts: omap: Add generic compatible string for I2C EEPROM
-  ARM: dts: turris-omnia: Add generic compatible string for I2C EEPROM
-  ARM: dts: efm32: Add generic compatible string for I2C EEPROM
-  ARM: dts: imx: Add generic compatible string for I2C EEPROM
-  ARM: dts: keystone: Add generic compatible string for I2C EEPROM
-  ARM: dts: lpc18xx: Add generic compatible string for I2C EEPROM
-  ARM: dts: r7s72100: Add generic compatible string for I2C EEPROM
-  ARM: dts: koelsch: Add generic compatible string for I2C EEPROM
-  ARM: dts: socfpga: Add generic compatible string for I2C EEPROM
-  ARM: dts: uniphier: Add generic compatible string for I2C EEPROM
-  ARM: dts: zynq: Add generic compatible string for I2C EEPROM
-  arm64: dts: ls1043a: Add generic compatible string for I2C EEPROM
-  arm64: zynqmp: Add generic compatible string for I2C EEPROM
-  powerpc/5200: Add generic compatible string for I2C EEPROM
-  powerpc/fsl: Add generic compatible string for I2C EEPROM
-  powerpc/512x: Add generic compatible string for I2C EEPROM
-  powerpc/83xx: Add generic compatible string for I2C EEPROM
-  powerpc/44x: Add generic compatible string for I2C EEPROM
+>=20
+>>> You wouldn't be
+>>> limited to just open/close, but can handle suspend/resume as well.
+>>=20
+>> Well, it does not look as if we need more than open/close since =
+suspend/resume
+>> is already handled by the regulator driver. We just need to keep it =
+powered off
+>> if there is no user-space client.
+>=20
+> Okay.
+>=20
+> Rob
 
- .../devicetree/bindings/eeprom/eeprom.txt          |  6 +-
- arch/arm/boot/dts/am335x-baltos.dtsi               |  2 +-
- arch/arm/boot/dts/am335x-base0033.dts              |  2 +-
- arch/arm/boot/dts/am335x-bone-common.dtsi          | 10 ++--
- arch/arm/boot/dts/am335x-nano.dts                  |  2 +-
- arch/arm/boot/dts/am335x-pepper.dts                |  2 +-
- arch/arm/boot/dts/am335x-shc.dts                   |  2 +-
- arch/arm/boot/dts/am335x-sl50.dts                  |  2 +-
- arch/arm/boot/dts/am437x-idk-evm.dts               |  2 +-
- arch/arm/boot/dts/am437x-sk-evm.dts                |  2 +-
- arch/arm/boot/dts/am43x-epos-evm.dts               |  2 +-
- arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi    |  2 +-
- arch/arm/boot/dts/armada-385-turris-omnia.dts      |  2 +-
- arch/arm/boot/dts/efm32gg-dk3750.dts               |  2 +-
- arch/arm/boot/dts/imx27-phytec-phycard-s-som.dtsi  |  2 +-
- arch/arm/boot/dts/imx27-phytec-phycore-som.dtsi    |  2 +-
- arch/arm/boot/dts/imx28-evk.dts                    |  2 +-
- arch/arm/boot/dts/imx53-tqma53.dtsi                |  2 +-
- arch/arm/boot/dts/imx6q-cm-fx6.dts                 |  2 +-
- arch/arm/boot/dts/imx6q-utilite-pro.dts            |  2 +-
- arch/arm/boot/dts/keystone-k2e-evm.dts             |  2 +-
- arch/arm/boot/dts/keystone-k2hk-evm.dts            |  2 +-
- arch/arm/boot/dts/keystone-k2l-evm.dts             |  2 +-
- arch/arm/boot/dts/lpc4337-ciaa.dts                 |  6 +-
- arch/arm/boot/dts/lpc4350-hitex-eval.dts           |  2 +-
- arch/arm/boot/dts/lpc4357-ea4357-devkit.dts        |  2 +-
- arch/arm/boot/dts/omap3-cm-t3x.dtsi                |  2 +-
- arch/arm/boot/dts/omap3-gta04.dtsi                 |  2 +-
- arch/arm/boot/dts/omap3-sb-t35.dtsi                |  2 +-
- arch/arm/boot/dts/omap4-var-som-om44.dtsi          |  2 +-
- arch/arm/boot/dts/omap5-cm-t54.dts                 |  2 +-
- arch/arm/boot/dts/omap5-sbc-t54.dts                |  2 +-
- arch/arm/boot/dts/r7s72100-genmai.dts              |  2 +-
- arch/arm/boot/dts/r8a7791-koelsch.dts              |  2 +-
- arch/arm/boot/dts/socfpga_cyclone5_vining_fpga.dts |  2 +-
- arch/arm/boot/dts/uniphier-pro4-ace.dts            |  2 +-
- arch/arm/boot/dts/uniphier-pro4-sanji.dts          |  2 +-
- arch/arm/boot/dts/uniphier-pxs2-gentil.dts         |  2 +-
- arch/arm/boot/dts/zynq-zc702.dts                   |  2 +-
- arch/arm/boot/dts/zynq-zc706.dts                   |  2 +-
- arch/arm64/boot/dts/freescale/fsl-ls1043a-rdb.dts  |  4 +-
- arch/arm64/boot/dts/xilinx/zynqmp-ep108.dts        |  4 +-
- arch/powerpc/boot/dts/digsy_mtc.dts                |  2 +-
- arch/powerpc/boot/dts/fsl/b4qds.dtsi               |  8 +--
- arch/powerpc/boot/dts/fsl/c293pcie.dts             |  2 +-
- arch/powerpc/boot/dts/fsl/p1010rdb.dtsi            |  2 +-
- arch/powerpc/boot/dts/fsl/p1023rdb.dts             |  2 +-
- arch/powerpc/boot/dts/fsl/p2041rdb.dts             |  4 +-
- arch/powerpc/boot/dts/fsl/p3041ds.dts              |  4 +-
- arch/powerpc/boot/dts/fsl/p4080ds.dts              |  4 +-
- arch/powerpc/boot/dts/fsl/p5020ds.dts              |  4 +-
- arch/powerpc/boot/dts/fsl/p5040ds.dts              |  4 +-
- arch/powerpc/boot/dts/fsl/t208xqds.dtsi            |  8 +--
- arch/powerpc/boot/dts/fsl/t4240qds.dts             | 12 ++--
- arch/powerpc/boot/dts/fsl/t4240rdb.dts             |  6 +-
- arch/powerpc/boot/dts/mpc5121ads.dts               |  2 +-
- arch/powerpc/boot/dts/mpc8308_p1m.dts              |  2 +-
- arch/powerpc/boot/dts/mpc8349emitx.dts             |  4 +-
- arch/powerpc/boot/dts/mpc8377_rdb.dts              |  2 +-
- arch/powerpc/boot/dts/mpc8377_wlan.dts             |  2 +-
- arch/powerpc/boot/dts/mpc8378_rdb.dts              |  2 +-
- arch/powerpc/boot/dts/mpc8379_rdb.dts              |  2 +-
- arch/powerpc/boot/dts/pcm030.dts                   |  2 +-
- arch/powerpc/boot/dts/pcm032.dts                   |  2 +-
- arch/powerpc/boot/dts/warp.dts                     |  2 +-
- drivers/misc/eeprom/at24.c                         | 65 +++++++++++++++++++++-
- 66 files changed, 160 insertions(+), 93 deletions(-)
-
--- 
-2.9.3
+BR,
+Nikolaus
