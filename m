@@ -1,107 +1,56 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: palmas: Drop unnecessary static" to the regulator tree
-Date: Tue, 23 May 2017 12:24:56 +0100
-Message-ID: <E1dD7vs-0004V7-Lb@finisterre>
-References: <1493928654-18768-7-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1493928654-18768-7-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, keescook@chromium.org, kernel-janitors@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.orglinux-kernel@vger.kernel.org
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 0/3] mfd: lp87565: Add lp87565 PMIC support
+Date: Tue, 23 May 2017 17:46:53 +0530
+Message-ID: <1495541816-14801-1-git-send-email-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: j-keerthy-l0cyMroinI0@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, afd-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+The LP87565 chip is a power management IC for Portable Navigation Systems
+    and Tablet Computing devices. It contains the following components:
 
-   regulator: palmas: Drop unnecessary static
+     - Regulators.
+     - Configurable General Purpose Output Signals(GPO).
 
-has been applied to the regulator tree at
+PMIC interacts with the main processor through i2c. PMIC has
+a bunch of regulatos (Step-Down DC-DC Converter Cores)
+that can be programmed to be single phase or multi phase
+regulators. PMIC also has a couple of GPOs(General Purpose Output
+Signals).
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+The register sets and the individual bit fields of registers were
+compared against lp87* PMICs. None were matching even close. Hence
+came up with new drivers and is based on lp873x drivers. 
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+Keerthy (3):
+  mfd: lp87565: Add lp87565 PMIC support
+  regulator: lp87565: Add support for lp87565 PMIC      regulators
+  regulator: tps65917: Add support for SMPS12
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+ Documentation/devicetree/bindings/mfd/lp87565.txt |  45 ++++
+ drivers/mfd/Kconfig                               |  14 ++
+ drivers/mfd/Makefile                              |   1 +
+ drivers/mfd/lp87565.c                             | 101 ++++++++
+ drivers/regulator/Kconfig                         |   8 +
+ drivers/regulator/Makefile                        |   1 +
+ drivers/regulator/lp87565-regulator.c             | 237 +++++++++++++++++++
+ drivers/regulator/palmas-regulator.c              |  18 +-
+ include/linux/mfd/lp87565.h                       | 271 ++++++++++++++++++++++
+ include/linux/mfd/palmas.h                        |   2 +
+ 10 files changed, 695 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/lp87565.txt
+ create mode 100644 drivers/mfd/lp87565.c
+ create mode 100644 drivers/regulator/lp87565-regulator.c
+ create mode 100644 include/linux/mfd/lp87565.h
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From 96e4f5232c8cdb64cb18721ea0871c849346cbf5 Mon Sep 17 00:00:00 2001
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Date: Thu, 4 May 2017 22:10:51 +0200
-Subject: [PATCH] regulator: palmas: Drop unnecessary static
-
-Drop static on a local variable, when the variable is initialized before
-any use, on every possible execution path through the function.
-
-The semantic patch that fixes this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@bad exists@
-position p;
-identifier x;
-type T;
-@@
-
-static T x@p;
-...
-x = <+...x...+>
-
-@@
-identifier x;
-expression e;
-type T;
-position p != bad.p;
-@@
-
--static
- T x@p;
- ... when != x
-     when strict
-?x = e;
-// </smpl>
-
-There is no reduction in code size in this case, but the change does reduce
-the size of the bss segment, containing uninitialized static data.
-
-before:
-   text    data     bss     dec     hex filename
-  12882    3480       8   16370    3ff2 drivers/regulator/palmas-regulator.o
-
-after:
-   text    data     bss     dec     hex filename
-  12882    3480       0   16362    3fea drivers/regulator/palmas-regulator.o
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/regulator/palmas-regulator.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index 31ae5ee3a80d..34d4a62283d7 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -1491,7 +1491,7 @@ static int palmas_dt_to_pdata(struct device *dev,
- 	}
- 
- 	for (idx = 0; idx < ddata->max_reg; idx++) {
--		static struct of_regulator_match *match;
-+		struct of_regulator_match *match;
- 		struct palmas_reg_init *rinit;
- 		struct device_node *np;
- 
 -- 
-2.11.0
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
