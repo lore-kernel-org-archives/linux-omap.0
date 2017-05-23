@@ -1,109 +1,106 @@
-From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/3] mfd: lp87565: Add lp87565 PMIC support
-Date: Tue, 23 May 2017 16:39:01 +0100
-Message-ID: <20170523153901.d7o6la6b7hrxsrhe@dell>
-References: <1495197739-17446-1-git-send-email-j-keerthy@ti.com>
- <1495197739-17446-2-git-send-email-j-keerthy@ti.com>
- <20170522174806.nnpk5jso7jhgygm3@dell>
- <26169872-1b43-88d1-3e5b-367b4d446222@ti.com>
- <20170523065742.44ytkxdagw2wwttz@dell>
- <a753fdb4-feb9-0894-6f40-a19d3f05714c@ti.com>
- <20170523084531.oanijbheozgtoufe@dell>
- <ce83f605-879b-dee0-d09e-63d01a7f66c7@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH 1/3] usb: host: ohci-platform: Add basic runtime PM
+ support
+Date: Tue, 23 May 2017 12:53:47 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1705231250110.1853-100000@iolanthe.rowland.org>
+References: <20170522160007.9264-2-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <ce83f605-879b-dee0-d09e-63d01a7f66c7-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20170522160007.9264-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 23 May 2017, Keerthy wrote:
+On Mon, 22 May 2017, Tony Lindgren wrote:
 
+> This is needed in preparation of adding support for omap3 and
+> later OHCI. The runtime PM will only do something on platforms
+> that implement it.
 > 
+> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+> Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
 > 
-> On Tuesday 23 May 2017 02:15 PM, Lee Jones wrote:
-> > On Tue, 23 May 2017, Keerthy wrote:
-> >> On Tuesday 23 May 2017 12:27 PM, Lee Jones wrote:
-> >>> On Tue, 23 May 2017, Keerthy wrote:
-> >>>> On Monday 22 May 2017 11:18 PM, Lee Jones wrote:
-> >>>>> On Fri, 19 May 2017, Keerthy wrote:
-> >>>>>
-> >>>>>> The LP87565 chip is a power management IC for Portable Navigation Systems
-> >>>>>> and Tablet Computing devices. It contains the following components:
-> >>>>>>
-> >>>>>>         - Configurable Bucks(Single and multi-phase).
-> >>>>>>         - Configurable General Purpose Output Signals (GPO).
-> >>>>>>
-> >>>>>> The LP87565-Q1 variant device uses two 2-phase outputs configuration,
-> >>>>>> Buck0 is master for Buck0/1 output and Buck2 is master for Buck2/3
-> >>>>>> output.
-> >>>>>>
-> >>>>>> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> >>>>>> ---
-> >>>>>>  Documentation/devicetree/bindings/mfd/lp87565.txt |  44 ++++
-> >>>>>>  drivers/mfd/Kconfig                               |  14 ++
-> >>>>>>  drivers/mfd/Makefile                              |   1 +
-> >>>>>>  drivers/mfd/lp87565.c                             | 103 ++++++++
-> >>>>>>  include/linux/mfd/lp87565.h                       | 275 ++++++++++++++++++++++
-> >>>>>>  5 files changed, 437 insertions(+)
-> >>>>>>  create mode 100644 Documentation/devicetree/bindings/mfd/lp87565.txt
-> >>>>>>  create mode 100644 drivers/mfd/lp87565.c
-> >>>>>>  create mode 100644 include/linux/mfd/lp87565.h
-> >>>>>>
-> >>>
-> >>> [...]
-> >>>
-> >>>>>> +/*
-> >>>>>> + * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
-> >>>>>> + *
-> >>>>>> + * Author: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-> >>>>>
-> >>>>> We usually ask for full "first last" names.
-> >>>>
-> >>>> Keerthy is my full name and i do not have a surname.
-> >>>
-> >>> What is the 'J' for in your email address?
-> >>
-> >> Father's initials.
-> > 
-> > Okay.
-> > 
-> >>> [...]
-> >>>
-> >>>>>> +static const struct i2c_device_id lp87565_id_table[] = {
-> >>>>>> +	{ "lp87565-q1", 0 },
-> >>>>>> +	{ },
-> >>>>>> +};
-> >>>>>> +MODULE_DEVICE_TABLE(i2c, lp87565_id_table);
-> >>>>>
-> >>>>> Is this an OF only driver, or not?
-> >>>
-> >>> You didn't answer my question?
-> >>
-> >> Sorry i replied on top again. It will be an OF only driver.
-> > 
-> > Okay, then you don't need this table and you should depend on OF in
-> > the Kconfig file.
+> Alan, do you have some better ideas for the ohci_platform_remove()
+> path below?
 > 
-> Okay. Cool thanks for this info.
+> ---
+>  drivers/usb/host/ohci-platform.c | 17 ++++++++++++++++-
+>  1 file changed, 16 insertions(+), 1 deletion(-)
 > 
-> I am seeing this commit: 4895e493f91bff7f96f328b883c7f6448aa6abc6
-> 
-> mfd: Export OF module alias information in missing drivers
-> 
-> So no need of i2c_device_id for any of the OF-only mfd drivers?
+> diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
+> --- a/drivers/usb/host/ohci-platform.c
+> +++ b/drivers/usb/host/ohci-platform.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/err.h>
+>  #include <linux/phy/phy.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/reset.h>
+>  #include <linux/usb/ohci_pdriver.h>
+>  #include <linux/usb.h>
+> @@ -242,6 +243,8 @@ static int ohci_platform_probe(struct platform_device *dev)
+>  	}
+>  #endif
+>  
+> +	pm_runtime_set_active(&dev->dev);
+> +	pm_runtime_enable(&dev->dev);
+>  	if (pdata->power_on) {
+>  		err = pdata->power_on(dev);
+>  		if (err < 0)
+> @@ -271,6 +274,7 @@ static int ohci_platform_probe(struct platform_device *dev)
+>  	if (pdata->power_off)
+>  		pdata->power_off(dev);
+>  err_reset:
+> +	pm_runtime_disable(&dev->dev);
+>  	while (--rst >= 0)
+>  		reset_control_assert(priv->resets[rst]);
+>  err_put_clks:
+> @@ -290,7 +294,14 @@ static int ohci_platform_remove(struct platform_device *dev)
+>  	struct usb_hcd *hcd = platform_get_drvdata(dev);
+>  	struct usb_ohci_pdata *pdata = dev_get_platdata(&dev->dev);
+>  	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
+> -	int clk, rst;
+> +	int clk, rst, enabled;
+> +
+> +	enabled = pm_runtime_get_sync(&dev->dev);
+> +	if (enabled < 0) {
+> +		dev_warn(&dev->dev, "pm_runtime_get failed: %i\n",
+> +			 enabled);
+> +		pm_runtime_put_noidle(&dev->dev);
+> +	}
 
-So long as you don't depend on the .data attribute.
+I wouldn't worry about checking the return value.  There's no 
+particular reason for this call to fail, is there?
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+>  
+>  	usb_remove_hcd(hcd);
+>  
+> @@ -305,6 +316,10 @@ static int ohci_platform_remove(struct platform_device *dev)
+>  
+>  	usb_put_hcd(hcd);
+>  
+> +	if (enabled >= 0)
+> +		pm_runtime_put_sync(&dev->dev);
+> +	pm_runtime_disable(&dev->dev);
+
+And here you could just do the put_sync, with no test.  If the get_sync
+failed then this will probably fail too, but you won't be any worse off
+for the attempt.
+
+Alan Stern
+
+> +
+>  	if (pdata == &ohci_platform_defaults)
+>  		dev->dev.platform_data = NULL;
+
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
