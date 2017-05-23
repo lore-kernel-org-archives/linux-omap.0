@@ -1,320 +1,195 @@
-From: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
-Subject: [PATCH v5 03/20] ARM: dts: omap: Add generic compatible string for I2C EEPROM
-Date: Tue, 23 May 2017 15:34:31 +0200
-Message-ID: <20170523133448.4794-4-javier@dowhile0.org>
-References: <20170523133448.4794-1-javier@dowhile0.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170523133448.4794-1-javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Mark Jackson <mpfj-2FZW7xY0fHgqdlJmJB21zg@public.gmane.org>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: [PATCH v5 00/20] eeprom: at24: Add OF device ID table
+Date: Tue, 23 May 2017 15:34:28 +0200
+Message-ID: <20170523133448.4794-1-javier@dowhile0.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Andrew Lunn <andrew@lunn.ch>, Wolfram Sang <wsa@the-dreams.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@armlinux.org.uk>, Masahiro Yamada <yamada.masahiro@socionext.com>, Paul Mackerras <paulus@samba.org>, linux-i2c@vger.kernel.org, Hongtao Jia <hongtao.jia@nxp.com>, David Lechner <david@lechnology.com>, Rob Herring <robh@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, =?UTF-8?q?Horia=20Geant=C4=83?= <horia.geanta@nxp.com>, Michael Ellerman <mpe@ellerman.id.au>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-arm-kernel@lists.infradead.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Javier Martinez Canillas <javier@dowhile0.org>, Jason Cooper <jason>
 List-Id: linux-omap@vger.kernel.org
 
-The at24 driver allows to register I2C EEPROM chips using different vendor
-and devices, but the I2C subsystem does not take the vendor into account
-when matching using the I2C table since it only has device entries.
+Hello Wolfram,
 
-But when matching using an OF table, both the vendor and device has to be
-taken into account so the driver defines only a set of compatible strings
-using the "atmel" vendor as a generic fallback for compatible I2C devices.
+This series is a follow-up to patch [0] that added an OF device ID table
+to the at24 EEPROM driver. As you suggested [1], this version instead of
+adding entries for every used <vendor,device> tuple, only adds a single
+entry for each chip type using the "atmel" vendor as a generic fallback.
 
-So add this generic fallback to the device node compatible string to make
-the device to match the driver using the OF device ID table.
+The first patch documents in the DT binding what's the correct vendor to
+use and what are the ones that are being deprecated. The second one adds
+the OF device ID table for the at24 driver and the next patches use this
+vendor in the compatible string to each DTS that defines a compatible I2C
+EEPROM device node.
 
-Signed-off-by: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Patches can be applied independently since the DTS changes without driver
+changes are no-op and the OF table won't be used without the DTS changes.
 
----
+[0]: https://lkml.org/lkml/2017/3/14/589
+[1]: https://lkml.org/lkml/2017/3/15/99
+
+Best regards,
+Javier
 
 Changes in v5:
+- Only deprecate the atmel variants at25 and at (Geert Uytterhoeven).
+- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
+- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
+- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
+- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
+- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
+- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
+- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
+- Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
 - Only replace atmel variant but keep other EEPROM vendors (Geert Uytterhoeven).
 
 Changes in v4:
+- Document the manufacturers that have been deprecated (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
+- Only use the atmel manufacturer in the compatible string instead of
+  keeping the deprecated ones (Rob Herring).
 - Only use the atmel manufacturer in the compatible string instead of
   keeping the deprecated ones (Rob Herring).
 
-Changes in v3: None
-Changes in v2: None
+Changes in v3:
+- Fix wrong .data values for "atmel,24c02" and "atmel,24c64" entries.
+- Add Geert Uytterhoeven reviewed-by tag.
+- Add Geert Uytterhoeven reviewed-by tag.
 
- arch/arm/boot/dts/am335x-baltos.dtsi            |  2 +-
- arch/arm/boot/dts/am335x-base0033.dts           |  2 +-
- arch/arm/boot/dts/am335x-bone-common.dtsi       | 10 +++++-----
- arch/arm/boot/dts/am335x-nano.dts               |  2 +-
- arch/arm/boot/dts/am335x-pepper.dts             |  2 +-
- arch/arm/boot/dts/am335x-shc.dts                |  2 +-
- arch/arm/boot/dts/am335x-sl50.dts               |  2 +-
- arch/arm/boot/dts/am437x-idk-evm.dts            |  2 +-
- arch/arm/boot/dts/am437x-sk-evm.dts             |  2 +-
- arch/arm/boot/dts/am43x-epos-evm.dts            |  2 +-
- arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi |  2 +-
- arch/arm/boot/dts/omap3-cm-t3x.dtsi             |  2 +-
- arch/arm/boot/dts/omap3-gta04.dtsi              |  2 +-
- arch/arm/boot/dts/omap3-sb-t35.dtsi             |  2 +-
- arch/arm/boot/dts/omap4-var-som-om44.dtsi       |  2 +-
- arch/arm/boot/dts/omap5-cm-t54.dts              |  2 +-
- arch/arm/boot/dts/omap5-sbc-t54.dts             |  2 +-
- 17 files changed, 21 insertions(+), 21 deletions(-)
+Changes in v2:
+- Only add a single OF device ID entry for each device type (Wolfram Sang).
 
-diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
-index d42b98f15e8b..ec6052c521ef 100644
---- a/arch/arm/boot/dts/am335x-baltos.dtsi
-+++ b/arch/arm/boot/dts/am335x-baltos.dtsi
-@@ -255,7 +255,7 @@
- 	};
- 
- 	at24@50 {
--		compatible = "at24,24c02";
-+		compatible = "atmel,24c02";
- 		pagesize = <8>;
- 		reg = <0x50>;
- 	};
-diff --git a/arch/arm/boot/dts/am335x-base0033.dts b/arch/arm/boot/dts/am335x-base0033.dts
-index c2bee452dab8..29782be07605 100644
---- a/arch/arm/boot/dts/am335x-base0033.dts
-+++ b/arch/arm/boot/dts/am335x-base0033.dts
-@@ -89,7 +89,7 @@
- 
- &i2c0 {
- 	eeprom: eeprom@50 {
--		compatible = "at,24c256";
-+		compatible = "atmel,24c256";
- 		reg = <0x50>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index bf6b26abe35b..1d154444dfef 100644
---- a/arch/arm/boot/dts/am335x-bone-common.dtsi
-+++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -232,7 +232,7 @@
- 	};
- 
- 	baseboard_eeprom: baseboard_eeprom@50 {
--		compatible = "at,24c256";
-+		compatible = "atmel,24c256";
- 		reg = <0x50>;
- 
- 		#address-cells = <1>;
-@@ -251,7 +251,7 @@
- 	clock-frequency = <100000>;
- 
- 	cape_eeprom0: cape_eeprom0@54 {
--		compatible = "at,24c256";
-+		compatible = "atmel,24c256";
- 		reg = <0x54>;
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-@@ -261,7 +261,7 @@
- 	};
- 
- 	cape_eeprom1: cape_eeprom1@55 {
--		compatible = "at,24c256";
-+		compatible = "atmel,24c256";
- 		reg = <0x55>;
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-@@ -271,7 +271,7 @@
- 	};
- 
- 	cape_eeprom2: cape_eeprom2@56 {
--		compatible = "at,24c256";
-+		compatible = "atmel,24c256";
- 		reg = <0x56>;
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-@@ -281,7 +281,7 @@
- 	};
- 
- 	cape_eeprom3: cape_eeprom3@57 {
--		compatible = "at,24c256";
-+		compatible = "atmel,24c256";
- 		reg = <0x57>;
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-diff --git a/arch/arm/boot/dts/am335x-nano.dts b/arch/arm/boot/dts/am335x-nano.dts
-index 807494bc722b..946d7069f417 100644
---- a/arch/arm/boot/dts/am335x-nano.dts
-+++ b/arch/arm/boot/dts/am335x-nano.dts
-@@ -224,7 +224,7 @@
- 	};
- 
- 	eeprom@53 {
--		compatible = "microchip,24c02";
-+		compatible = "microchip,24c02", "atmel,24c02";
- 		reg = <0x53>;
- 		pagesize = <8>;
- 	};
-diff --git a/arch/arm/boot/dts/am335x-pepper.dts b/arch/arm/boot/dts/am335x-pepper.dts
-index 30e2f8770aaf..03c7d77023c6 100644
---- a/arch/arm/boot/dts/am335x-pepper.dts
-+++ b/arch/arm/boot/dts/am335x-pepper.dts
-@@ -67,7 +67,7 @@
- 	};
- 
- 	eeprom: eeprom@50 {
--		compatible = "at,24c256";
-+		compatible = "atmel,24c256";
- 		reg = <0x50>;
- 	};
- 
-diff --git a/arch/arm/boot/dts/am335x-shc.dts b/arch/arm/boot/dts/am335x-shc.dts
-index bf8727a19ece..4f6a286ea293 100644
---- a/arch/arm/boot/dts/am335x-shc.dts
-+++ b/arch/arm/boot/dts/am335x-shc.dts
-@@ -188,7 +188,7 @@
- 	};
- 
- 	at24@50 {
--		compatible = "at24,24c32";
-+		compatible = "atmel,24c32";
- 		pagesize = <32>;
- 		reg = <0x50>;
- 	};
-diff --git a/arch/arm/boot/dts/am335x-sl50.dts b/arch/arm/boot/dts/am335x-sl50.dts
-index c5d2589c55fc..a82a4042eb9d 100644
---- a/arch/arm/boot/dts/am335x-sl50.dts
-+++ b/arch/arm/boot/dts/am335x-sl50.dts
-@@ -309,7 +309,7 @@
- 	};
- 
- 	eeprom: eeprom@50 {
--		compatible = "at,24c256";
-+		compatible = "atmel,24c256";
- 		reg = <0x50>;
- 	};
- 
-diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-index c1f7f9336e64..5e364473067f 100644
---- a/arch/arm/boot/dts/am437x-idk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-@@ -339,7 +339,7 @@
- 	clock-frequency = <400000>;
- 
- 	at24@50 {
--		compatible = "at24,24c256";
-+		compatible = "atmel,24c256";
- 		pagesize = <64>;
- 		reg = <0x50>;
- 	};
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index 4dc54bee2f36..a62e1583da04 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -511,7 +511,7 @@
- 	};
- 
- 	at24@50 {
--		compatible = "at24,24c256";
-+		compatible = "atmel,24c256";
- 		pagesize = <64>;
- 		reg = <0x50>;
- 	};
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 9acd4ccdec4e..f6648ab10d29 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -477,7 +477,7 @@
- 	};
- 
- 	at24@50 {
--		compatible = "at24,24c256";
-+		compatible = "atmel,24c256";
- 		pagesize = <64>;
- 		reg = <0x50>;
- 	};
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-index 585d792a8fdd..fdfe5b16b806 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi
-@@ -388,7 +388,7 @@
- 	};
- 
- 	eeprom: eeprom@50 {
--		compatible = "at,24c32";
-+		compatible = "atmel,24c32";
- 		reg = <0x50>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap3-cm-t3x.dtsi b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
-index 57b9a028a49a..fccd5383243c 100644
---- a/arch/arm/boot/dts/omap3-cm-t3x.dtsi
-+++ b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
-@@ -188,7 +188,7 @@
- 	clock-frequency = <400000>;
- 
- 	at24@50 {
--		compatible = "at24,24c02";
-+		compatible = "atmel,24c02";
- 		pagesize = <16>;
- 		reg = <0x50>;
- 	};
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 9ec737069369..4504908c23fe 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -419,7 +419,7 @@
- 
- 	/* RFID EEPROM */
- 	m24lr64@50 {
--		compatible = "at,24c64";
-+		compatible = "atmel,24c64";
- 		reg = <0x50>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap3-sb-t35.dtsi b/arch/arm/boot/dts/omap3-sb-t35.dtsi
-index 73643fabde5d..b096b8549413 100644
---- a/arch/arm/boot/dts/omap3-sb-t35.dtsi
-+++ b/arch/arm/boot/dts/omap3-sb-t35.dtsi
-@@ -90,7 +90,7 @@
- 	clock-frequency = <400000>;
- 
- 	at24@50 {
--		compatible = "at24,24c02";
-+		compatible = "atmel,24c02";
- 		pagesize = <16>;
- 		reg = <0x50>;
- 	};
-diff --git a/arch/arm/boot/dts/omap4-var-som-om44.dtsi b/arch/arm/boot/dts/omap4-var-som-om44.dtsi
-index 758b6eb7ae43..6500bfc8d130 100644
---- a/arch/arm/boot/dts/omap4-var-som-om44.dtsi
-+++ b/arch/arm/boot/dts/omap4-var-som-om44.dtsi
-@@ -241,7 +241,7 @@
- 	};
- 
- 	eeprom@50 {
--		compatible = "microchip,24c32";
-+		compatible = "microchip,24c32", "atmel,24c32";
- 		reg = <0x50>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap5-cm-t54.dts b/arch/arm/boot/dts/omap5-cm-t54.dts
-index b153f604932a..78397f66d0b2 100644
---- a/arch/arm/boot/dts/omap5-cm-t54.dts
-+++ b/arch/arm/boot/dts/omap5-cm-t54.dts
-@@ -404,7 +404,7 @@
- 	clock-frequency = <400000>;
- 
- 	at24@50 {
--		compatible = "at24,24c02";
-+		compatible = "atmel,24c02";
- 		pagesize = <16>;
- 		reg = <0x50>;
- 	};
-diff --git a/arch/arm/boot/dts/omap5-sbc-t54.dts b/arch/arm/boot/dts/omap5-sbc-t54.dts
-index 337bbbc01a35..7b8810d13257 100644
---- a/arch/arm/boot/dts/omap5-sbc-t54.dts
-+++ b/arch/arm/boot/dts/omap5-sbc-t54.dts
-@@ -44,7 +44,7 @@
- 	clock-frequency = <400000>;
- 
- 	at24@50 {
--		compatible = "at24,24c02";
-+		compatible = "atmel,24c02";
- 		pagesize = <16>;
- 		reg = <0x50>;
- 	};
+Javier Martinez Canillas (20):
+  dt-bindings: i2c: eeprom: Document vendor to be used and deprecated
+    ones
+  eeprom: at24: Add OF device ID table
+  ARM: dts: omap: Add generic compatible string for I2C EEPROM
+  ARM: dts: turris-omnia: Add generic compatible string for I2C EEPROM
+  ARM: dts: efm32: Add generic compatible string for I2C EEPROM
+  ARM: dts: imx: Add generic compatible string for I2C EEPROM
+  ARM: dts: keystone: Add generic compatible string for I2C EEPROM
+  ARM: dts: lpc18xx: Add generic compatible string for I2C EEPROM
+  ARM: dts: r7s72100: Add generic compatible string for I2C EEPROM
+  ARM: dts: koelsch: Add generic compatible string for I2C EEPROM
+  ARM: dts: socfpga: Add generic compatible string for I2C EEPROM
+  ARM: dts: uniphier: Add generic compatible string for I2C EEPROM
+  ARM: dts: zynq: Add generic compatible string for I2C EEPROM
+  arm64: dts: ls1043a: Add generic compatible string for I2C EEPROM
+  arm64: zynqmp: Add generic compatible string for I2C EEPROM
+  powerpc/5200: Add generic compatible string for I2C EEPROM
+  powerpc/fsl: Add generic compatible string for I2C EEPROM
+  powerpc/512x: Add generic compatible string for I2C EEPROM
+  powerpc/83xx: Add generic compatible string for I2C EEPROM
+  powerpc/44x: Add generic compatible string for I2C EEPROM
+
+ .../devicetree/bindings/eeprom/eeprom.txt          |  6 +-
+ arch/arm/boot/dts/am335x-baltos.dtsi               |  2 +-
+ arch/arm/boot/dts/am335x-base0033.dts              |  2 +-
+ arch/arm/boot/dts/am335x-bone-common.dtsi          | 10 ++--
+ arch/arm/boot/dts/am335x-nano.dts                  |  2 +-
+ arch/arm/boot/dts/am335x-pepper.dts                |  2 +-
+ arch/arm/boot/dts/am335x-shc.dts                   |  2 +-
+ arch/arm/boot/dts/am335x-sl50.dts                  |  2 +-
+ arch/arm/boot/dts/am437x-idk-evm.dts               |  2 +-
+ arch/arm/boot/dts/am437x-sk-evm.dts                |  2 +-
+ arch/arm/boot/dts/am43x-epos-evm.dts               |  2 +-
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi    |  2 +-
+ arch/arm/boot/dts/armada-385-turris-omnia.dts      |  2 +-
+ arch/arm/boot/dts/efm32gg-dk3750.dts               |  2 +-
+ arch/arm/boot/dts/imx27-phytec-phycard-s-som.dtsi  |  2 +-
+ arch/arm/boot/dts/imx27-phytec-phycore-som.dtsi    |  2 +-
+ arch/arm/boot/dts/imx28-evk.dts                    |  2 +-
+ arch/arm/boot/dts/imx53-tqma53.dtsi                |  2 +-
+ arch/arm/boot/dts/imx6q-cm-fx6.dts                 |  2 +-
+ arch/arm/boot/dts/imx6q-utilite-pro.dts            |  2 +-
+ arch/arm/boot/dts/keystone-k2e-evm.dts             |  2 +-
+ arch/arm/boot/dts/keystone-k2hk-evm.dts            |  2 +-
+ arch/arm/boot/dts/keystone-k2l-evm.dts             |  2 +-
+ arch/arm/boot/dts/lpc4337-ciaa.dts                 |  6 +-
+ arch/arm/boot/dts/lpc4350-hitex-eval.dts           |  2 +-
+ arch/arm/boot/dts/lpc4357-ea4357-devkit.dts        |  2 +-
+ arch/arm/boot/dts/omap3-cm-t3x.dtsi                |  2 +-
+ arch/arm/boot/dts/omap3-gta04.dtsi                 |  2 +-
+ arch/arm/boot/dts/omap3-sb-t35.dtsi                |  2 +-
+ arch/arm/boot/dts/omap4-var-som-om44.dtsi          |  2 +-
+ arch/arm/boot/dts/omap5-cm-t54.dts                 |  2 +-
+ arch/arm/boot/dts/omap5-sbc-t54.dts                |  2 +-
+ arch/arm/boot/dts/r7s72100-genmai.dts              |  2 +-
+ arch/arm/boot/dts/r8a7791-koelsch.dts              |  2 +-
+ arch/arm/boot/dts/socfpga_cyclone5_vining_fpga.dts |  2 +-
+ arch/arm/boot/dts/uniphier-pro4-ace.dts            |  2 +-
+ arch/arm/boot/dts/uniphier-pro4-sanji.dts          |  2 +-
+ arch/arm/boot/dts/uniphier-pxs2-gentil.dts         |  2 +-
+ arch/arm/boot/dts/zynq-zc702.dts                   |  2 +-
+ arch/arm/boot/dts/zynq-zc706.dts                   |  2 +-
+ arch/arm64/boot/dts/freescale/fsl-ls1043a-rdb.dts  |  4 +-
+ arch/arm64/boot/dts/xilinx/zynqmp-ep108.dts        |  4 +-
+ arch/powerpc/boot/dts/digsy_mtc.dts                |  2 +-
+ arch/powerpc/boot/dts/fsl/b4qds.dtsi               |  8 +--
+ arch/powerpc/boot/dts/fsl/c293pcie.dts             |  2 +-
+ arch/powerpc/boot/dts/fsl/p1010rdb.dtsi            |  2 +-
+ arch/powerpc/boot/dts/fsl/p1023rdb.dts             |  2 +-
+ arch/powerpc/boot/dts/fsl/p2041rdb.dts             |  4 +-
+ arch/powerpc/boot/dts/fsl/p3041ds.dts              |  4 +-
+ arch/powerpc/boot/dts/fsl/p4080ds.dts              |  4 +-
+ arch/powerpc/boot/dts/fsl/p5020ds.dts              |  4 +-
+ arch/powerpc/boot/dts/fsl/p5040ds.dts              |  4 +-
+ arch/powerpc/boot/dts/fsl/t208xqds.dtsi            |  8 +--
+ arch/powerpc/boot/dts/fsl/t4240qds.dts             | 12 ++--
+ arch/powerpc/boot/dts/fsl/t4240rdb.dts             |  6 +-
+ arch/powerpc/boot/dts/mpc5121ads.dts               |  2 +-
+ arch/powerpc/boot/dts/mpc8308_p1m.dts              |  2 +-
+ arch/powerpc/boot/dts/mpc8349emitx.dts             |  4 +-
+ arch/powerpc/boot/dts/mpc8377_rdb.dts              |  2 +-
+ arch/powerpc/boot/dts/mpc8377_wlan.dts             |  2 +-
+ arch/powerpc/boot/dts/mpc8378_rdb.dts              |  2 +-
+ arch/powerpc/boot/dts/mpc8379_rdb.dts              |  2 +-
+ arch/powerpc/boot/dts/pcm030.dts                   |  2 +-
+ arch/powerpc/boot/dts/pcm032.dts                   |  2 +-
+ arch/powerpc/boot/dts/warp.dts                     |  2 +-
+ drivers/misc/eeprom/at24.c                         | 65 +++++++++++++++++++++-
+ 66 files changed, 160 insertions(+), 93 deletions(-)
+
 -- 
 2.9.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
