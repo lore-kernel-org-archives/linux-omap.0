@@ -1,107 +1,63 @@
 From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH 1/3] usb: host: ohci-platform: Add basic runtime PM
- support
-Date: Tue, 23 May 2017 12:53:47 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1705231250110.1853-100000@iolanthe.rowland.org>
-References: <20170522160007.9264-2-tony@atomide.com>
+Subject: Re: [PATCH 3/3] usb: host: ohci-omap3: Remove driver in favor of
+ ohci-platform
+Date: Tue, 23 May 2017 12:56:08 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1705231254120.1853-100000@iolanthe.rowland.org>
+References: <20170522160007.9264-4-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170522160007.9264-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170522160007.9264-4-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 On Mon, 22 May 2017, Tony Lindgren wrote:
 
-> This is needed in preparation of adding support for omap3 and
-> later OHCI. The runtime PM will only do something on platforms
-> that implement it.
+> This driver is no longer needed and can be removed. The reason why
+> it's safe to remove this driver is that most omap devices don't have a
+> USB low-speed or full-speed compatible PHY installed and configured
+> with drivers/mfd/omap-usb-host.c. This means that devices like
+> beagleboard and pandaboard need to use a high-speed USB hub in order
+> to use devices like keyboard and mice.
 > 
-> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Currently the only known configured for a full-speed PHY is the
+> mdm6600 modem on droid 4 and I've verified it works just fine with
+> ohci-platform.
+> 
 > Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 > Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-> Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
 > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > ---
+>  drivers/usb/host/Kconfig      |   6 +-
+>  drivers/usb/host/Makefile     |   1 -
+>  drivers/usb/host/ohci-omap3.c | 211 ------------------------------------------
+>  3 files changed, 5 insertions(+), 213 deletions(-)
+>  delete mode 100644 drivers/usb/host/ohci-omap3.c
 > 
-> Alan, do you have some better ideas for the ohci_platform_remove()
-> path below?
-> 
-> ---
->  drivers/usb/host/ohci-platform.c | 17 ++++++++++++++++-
->  1 file changed, 16 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
-> --- a/drivers/usb/host/ohci-platform.c
-> +++ b/drivers/usb/host/ohci-platform.c
-> @@ -24,6 +24,7 @@
->  #include <linux/err.h>
->  #include <linux/phy/phy.h>
->  #include <linux/platform_device.h>
-> +#include <linux/pm_runtime.h>
->  #include <linux/reset.h>
->  #include <linux/usb/ohci_pdriver.h>
->  #include <linux/usb.h>
-> @@ -242,6 +243,8 @@ static int ohci_platform_probe(struct platform_device *dev)
->  	}
->  #endif
->  
-> +	pm_runtime_set_active(&dev->dev);
-> +	pm_runtime_enable(&dev->dev);
->  	if (pdata->power_on) {
->  		err = pdata->power_on(dev);
->  		if (err < 0)
-> @@ -271,6 +274,7 @@ static int ohci_platform_probe(struct platform_device *dev)
->  	if (pdata->power_off)
->  		pdata->power_off(dev);
->  err_reset:
-> +	pm_runtime_disable(&dev->dev);
->  	while (--rst >= 0)
->  		reset_control_assert(priv->resets[rst]);
->  err_put_clks:
-> @@ -290,7 +294,14 @@ static int ohci_platform_remove(struct platform_device *dev)
->  	struct usb_hcd *hcd = platform_get_drvdata(dev);
->  	struct usb_ohci_pdata *pdata = dev_get_platdata(&dev->dev);
->  	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
-> -	int clk, rst;
-> +	int clk, rst, enabled;
+> diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+> --- a/drivers/usb/host/Kconfig
+> +++ b/drivers/usb/host/Kconfig
+> @@ -473,8 +473,12 @@ config USB_OHCI_HCD_AT91
+>  config USB_OHCI_HCD_OMAP3
+>  	tristate "OHCI support for OMAP3 and later chips"
+>  	depends on (ARCH_OMAP3 || ARCH_OMAP4 || SOC_OMAP5)
+> +	select USB_OHCI_HCD_PLATFORM
+>  	default y
+> -	---help---
+> +	help
+> +	  This option is deprecated now and the driver was removed, use
+> +	  USB_OHCI_HCD_PLATFORM instead.
 > +
-> +	enabled = pm_runtime_get_sync(&dev->dev);
-> +	if (enabled < 0) {
-> +		dev_warn(&dev->dev, "pm_runtime_get failed: %i\n",
-> +			 enabled);
-> +		pm_runtime_put_noidle(&dev->dev);
-> +	}
-
-I wouldn't worry about checking the return value.  There's no 
-particular reason for this call to fail, is there?
-
+>  	  Enables support for the on-chip OHCI controller on
+>  	  OMAP3 and later chips.
 >  
->  	usb_remove_hcd(hcd);
->  
-> @@ -305,6 +316,10 @@ static int ohci_platform_remove(struct platform_device *dev)
->  
->  	usb_put_hcd(hcd);
->  
-> +	if (enabled >= 0)
-> +		pm_runtime_put_sync(&dev->dev);
-> +	pm_runtime_disable(&dev->dev);
+...
 
-And here you could just do the put_sync, with no test.  If the get_sync
-failed then this will probably fail too, but you won't be any worse off
-for the attempt.
-
-Alan Stern
-
-> +
->  	if (pdata == &ohci_platform_defaults)
->  		dev->dev.platform_data = NULL;
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
