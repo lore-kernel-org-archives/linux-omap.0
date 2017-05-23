@@ -1,29 +1,28 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+From: Keerthy <j-keerthy@ti.com>
 Subject: Re: [PATCH 1/3] mfd: lp87565: Add lp87565 PMIC support
-Date: Tue, 23 May 2017 08:30:34 +0530
-Message-ID: <4ae39bed-4004-c7d3-4e3e-3eeac98ca98f@ti.com>
+Date: Tue, 23 May 2017 08:38:49 +0530
+Message-ID: <f62f225b-931e-c68b-4e59-243c0c0b0d02@ti.com>
 References: <1495197739-17446-1-git-send-email-j-keerthy@ti.com>
  <1495197739-17446-2-git-send-email-j-keerthy@ti.com>
- <20170522174806.nnpk5jso7jhgygm3@dell>
- <26169872-1b43-88d1-3e5b-367b4d446222@ti.com>
+ <f6a16fe0-4212-bc73-090c-351b189ed864@ti.com>
+ <986d6014-294c-c637-1c23-61fd2929fc30@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <26169872-1b43-88d1-3e5b-367b4d446222-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <986d6014-294c-c637-1c23-61fd2929fc30@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Andrew F. Davis" <afd@ti.com>, broonie@kernel.org, lee.jones@linaro.org, robh+dt@kernel.org
+Cc: t-kristo@ti.com, tony@atomide.com, mark.rutland@arm.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Tuesday 23 May 2017 08:05 AM, Keerthy wrote:
+On Monday 22 May 2017 09:53 AM, Keerthy wrote:
 > 
 > 
-> On Monday 22 May 2017 11:18 PM, Lee Jones wrote:
->> On Fri, 19 May 2017, Keerthy wrote:
->>
+> On Friday 19 May 2017 09:12 PM, Andrew F. Davis wrote:
+>> On 05/19/2017 07:42 AM, Keerthy wrote:
 >>> The LP87565 chip is a power management IC for Portable Navigation Systems
 >>> and Tablet Computing devices. It contains the following components:
 >>>
@@ -34,7 +33,7 @@ On Tuesday 23 May 2017 08:05 AM, Keerthy wrote:
 >>> Buck0 is master for Buck0/1 output and Buck2 is master for Buck2/3
 >>> output.
 >>>
->>> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
 >>> ---
 >>>  Documentation/devicetree/bindings/mfd/lp87565.txt |  44 ++++
 >>>  drivers/mfd/Kconfig                               |  14 ++
@@ -56,6 +55,14 @@ On Tuesday 23 May 2017 08:05 AM, Keerthy wrote:
 >>> +
 >>> +Required properties:
 >>> +  - compatible:	"ti,lp87565", "ti,lp87565-q1"
+>>
+>> The of_device_id table in the driver only seems to match for
+>> "ti,lp87565-q1", not "ti,lp87565".
+> 
+> I will add both. ti,lp87565 is the generic one and the ti,lp87565-q1 is
+> a specific one with dual phase regulators.
+> 
+>>
 >>> +  - reg:		I2C slave address.
 >>> +  - gpio-controller:	Marks the device node as a GPIO Controller.
 >>> +  - #gpio-cells:	Should be two.  The first cell is the pin number and
@@ -69,6 +76,29 @@ On Tuesday 23 May 2017 08:05 AM, Keerthy wrote:
 >>> +Example:
 >>> +
 >>> +lp87565: lp87565@60 {
+>>
+>> pmic: lp87565@60 {
+>>
+>> Is more standard.
+> 
+> Sure. I will change that.
+> 
+> Thanks for reviewing.
+
+Andrew,
+
+In case there are 2 PMICs on a board this would be confusing.
+Instead i would prefer to use:
+
+lp87565_pmic: lp87565@60 {
+
+There are already existing entries of that form.
+
+Thanks,
+Keerthy
+
+> 
+>>
 >>> +	compatible = "ti,lp87565-q1";
 >>> +	reg = <0x60>;
 >>> +	gpio-controller;
@@ -76,23 +106,9 @@ On Tuesday 23 May 2017 08:05 AM, Keerthy wrote:
 >>> +
 >>> +	buck10-in-supply =<&vsys_3v3>;
 >>> +	buck23-in-supply =<&vsys_3v3>;
->>
->> White space errors.
->>
->> '\n' here.
-> 
-> I will fix this.
-> 
->>
 >>> +	regulators: regulators {
 >>> +		buck10_reg: buck10 {
 >>> +			/*VDD_MPU*/
->>
->> Whitespace errors.
-> 
-> I will fix this.
-> 
->>
 >>> +			regulator-name = "buck10";
 >>> +			regulator-min-microvolt = <850000>;
 >>> +			regulator-max-microvolt = <1250000>;
@@ -102,12 +118,6 @@ On Tuesday 23 May 2017 08:05 AM, Keerthy wrote:
 >>> +
 >>> +		buck23_reg: buck23 {
 >>> +			/* VDD_GPU*/
->>
->> Whitespace errors.
-> 
-> I will fix this.
-> 
->>
 >>> +			regulator-name = "buck23";
 >>> +			regulator-min-microvolt = <850000>;
 >>> +			regulator-max-microvolt = <1250000>;
@@ -162,13 +172,8 @@ On Tuesday 23 May 2017 08:05 AM, Keerthy wrote:
 >>> +/*
 >>> + * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
 >>> + *
->>> + * Author: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->>
->> We usually ask for full "first last" names.
-> 
-> Keerthy is my full name and i do not have a surname.
-> 
->>
+>>> + * Author: Keerthy <j-keerthy@ti.com>
+>>> + *
 >>> + * This program is free software; you can redistribute it and/or
 >>> + * modify it under the terms of the GNU General Public License as
 >>> + * published by the Free Software Foundation version 2.
@@ -177,20 +182,6 @@ On Tuesday 23 May 2017 08:05 AM, Keerthy wrote:
 >>> + * kind, whether express or implied; without even the implied warranty
 >>> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 >>> + * GNU General Public License for more details.
->>
->> Can you use the short licence?
-> 
-> Okay Sure.
-
-I hope the below is what you are looking for:
-
-"This program is free software; you can redistribute  it and/or modify
-it under  the terms of  the GNU General  Public License as published by
-the Free Software Foundation;  either version 2 of the  License, or (at
-your option) any later version."
-
-> 
->>
 >>> + */
 >>> +
 >>> +#include <linux/interrupt.h>
@@ -250,12 +241,6 @@ your option) any later version."
 >>> +	}
 >>> +
 >>> +	lp87565->rev = otpid & LP87565_OTP_REV_OTP_ID;
->>
->> '\n' here.
-> 
-> Okay.
-> 
->>
 >>> +	of_id = of_match_device(of_lp87565_match_table, &client->dev);
 >>> +	if (of_id)
 >>> +		lp87565->dev_type = (enum lp87565_device_type)of_id->data;
@@ -273,12 +258,7 @@ your option) any later version."
 >>> +	{ },
 >>> +};
 >>> +MODULE_DEVICE_TABLE(i2c, lp87565_id_table);
->>
->> Is this an OF only driver, or not?
-
-Yes OF only driver.
-
->>
+>>> +
 >>> +static struct i2c_driver lp87565_driver = {
 >>> +	.driver	= {
 >>> +		.name	= "lp87565",
@@ -289,7 +269,7 @@ Yes OF only driver.
 >>> +};
 >>> +module_i2c_driver(lp87565_driver);
 >>> +
->>> +MODULE_AUTHOR("J Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>");
+>>> +MODULE_AUTHOR("J Keerthy <j-keerthy@ti.com>");
 >>> +MODULE_DESCRIPTION("lp87565 chip family Multi-Function Device driver");
 >>> +MODULE_LICENSE("GPL v2");
 >>> diff --git a/include/linux/mfd/lp87565.h b/include/linux/mfd/lp87565.h
@@ -302,14 +282,7 @@ Yes OF only driver.
 >>> + * Functions to access LP87565 power management chip.
 >>> + *
 >>> + * Copyright (C) 2016 Texas Instruments Incorporated - http://www.ti.com/
->>
->> Please update the Copyright.
-> 
-> Oops yes. Thanks for catching it. I will fix in v2.
-> 
-> Thanks for reviewing it.
-> 
->>
+>>> + *
 >>> + * This program is free software; you can redistribute it and/or
 >>> + * modify it under the terms of the GNU General Public License as
 >>> + * published by the Free Software Foundation version 2.
@@ -580,8 +553,4 @@ Yes OF only driver.
 >>> +	struct regmap *regmap;
 >>> +};
 >>> +#endif /* __LINUX_MFD_LP87565_H */
->>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
