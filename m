@@ -1,206 +1,69 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/3] mfd: tps65010: move header file out of I2C realm
-Date: Tue, 23 May 2017 08:18:19 +0100
-Message-ID: <20170523071819.4zpdef7ofzz3moil@dell>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH 3/3] mfd: twl: move header file out of I2C realm
+Date: Tue, 23 May 2017 09:21:43 +0200
+Message-ID: <20170523072143.njhh7mkbm2tt277l@ninjato>
 References: <20170521220212.1404-1-wsa@the-dreams.de>
- <20170521220212.1404-3-wsa@the-dreams.de>
+ <20170521220212.1404-4-wsa@the-dreams.de>
+ <20170523071636.hiws54msfxpg6qkb@dell>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="7yzzt65nmxassi3y"
+Return-path: <rtc-linux+bncBDP47C6LHEIIRRUPZECRUBH3JEKCG-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Content-Disposition: inline
-In-Reply-To: <20170521220212.1404-3-wsa@the-dreams.de>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org
+In-Reply-To: <20170523071636.hiws54msfxpg6qkb@dell>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Daniel Thompson <daniel.thompson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 22 May 2017, Wolfram Sang wrote:
 
-> include/linux/i2c is not for client devices. Move the header file to a
-> more appropriate location.
+--7yzzt65nmxassi3y
+Content-Type: text/plain; charset="UTF-8"
+Content-Disposition: inline
+
+
+> For my own reference:
+>   Acked-for-MFD-by: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 > 
-> Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-> ---
->  arch/arm/mach-omap1/board-h2-mmc.c      | 2 +-
->  arch/arm/mach-omap1/board-h2.c          | 2 +-
->  arch/arm/mach-omap1/board-h3-mmc.c      | 2 +-
->  arch/arm/mach-omap1/board-h3.c          | 2 +-
->  arch/arm/mach-omap1/board-osk.c         | 2 +-
->  arch/arm/mach-s3c24xx/mach-osiris-dvs.c | 2 +-
->  arch/arm/mach-s3c24xx/mach-osiris.c     | 2 +-
+> I guess this will be going through the MFD tree?
 
->  drivers/mfd/tps65010.c                  | 2 +-
-
-For my own reference:
-  Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
-  
->  drivers/usb/host/ohci-omap.c            | 2 +-
->  drivers/usb/phy/phy-isp1301-omap.c      | 2 +-
->  drivers/video/fbdev/omap/lcd_h3.c       | 2 +-
->  include/linux/{i2c => mfd}/tps65010.h   | 2 +-
->  12 files changed, 12 insertions(+), 12 deletions(-)
->  rename include/linux/{i2c => mfd}/tps65010.h (99%)
-> 
-> diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1/board-h2-mmc.c
-> index 357be2debc9da8..91bda9c802ff38 100644
-> --- a/arch/arm/mach-omap1/board-h2-mmc.c
-> +++ b/arch/arm/mach-omap1/board-h2-mmc.c
-> @@ -14,7 +14,7 @@
->  #include <linux/gpio.h>
->  #include <linux/platform_device.h>
->  #include <linux/platform_data/gpio-omap.h>
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  
->  #include "board-h2.h"
->  #include "mmc.h"
-> diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-> index 675254ee4b1e93..dece47d76282ac 100644
-> --- a/arch/arm/mach-omap1/board-h2.c
-> +++ b/arch/arm/mach-omap1/board-h2.c
-> @@ -28,7 +28,7 @@
->  #include <linux/mtd/partitions.h>
->  #include <linux/mtd/physmap.h>
->  #include <linux/input.h>
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  #include <linux/smc91x.h>
->  #include <linux/omapfb.h>
->  #include <linux/platform_data/gpio-omap.h>
-> diff --git a/arch/arm/mach-omap1/board-h3-mmc.c b/arch/arm/mach-omap1/board-h3-mmc.c
-> index 4f58bfa5e7549e..692c267a9a9052 100644
-> --- a/arch/arm/mach-omap1/board-h3-mmc.c
-> +++ b/arch/arm/mach-omap1/board-h3-mmc.c
-> @@ -14,7 +14,7 @@
->  #include <linux/gpio.h>
->  #include <linux/platform_device.h>
->  
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  
->  #include "common.h"
->  #include "board-h3.h"
-> diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-> index e62f9d454f1005..6d32beeb2d8857 100644
-> --- a/arch/arm/mach-omap1/board-h3.c
-> +++ b/arch/arm/mach-omap1/board-h3.c
-> @@ -28,7 +28,7 @@
->  #include <linux/mtd/physmap.h>
->  #include <linux/input.h>
->  #include <linux/spi/spi.h>
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  #include <linux/smc91x.h>
->  #include <linux/omapfb.h>
->  #include <linux/platform_data/gpio-omap.h>
-> diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-> index 4dfb995048103b..f20361b8ffb6e0 100644
-> --- a/arch/arm/mach-omap1/board-osk.c
-> +++ b/arch/arm/mach-omap1/board-osk.c
-> @@ -38,7 +38,7 @@
->  #include <linux/mtd/mtd.h>
->  #include <linux/mtd/partitions.h>
->  #include <linux/mtd/physmap.h>
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  #include <linux/platform_data/gpio-omap.h>
->  #include <linux/platform_data/omap1_bl.h>
->  
-> diff --git a/arch/arm/mach-s3c24xx/mach-osiris-dvs.c b/arch/arm/mach-s3c24xx/mach-osiris-dvs.c
-> index 262ab07447483a..6cac7da15e2b0d 100644
-> --- a/arch/arm/mach-s3c24xx/mach-osiris-dvs.c
-> +++ b/arch/arm/mach-s3c24xx/mach-osiris-dvs.c
-> @@ -17,7 +17,7 @@
->  #include <linux/cpufreq.h>
->  #include <linux/gpio.h>
->  
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  
->  #include <plat/cpu-freq.h>
->  #include <mach/gpio-samsung.h>
-> diff --git a/arch/arm/mach-s3c24xx/mach-osiris.c b/arch/arm/mach-s3c24xx/mach-osiris.c
-> index 70b0eb7d31347f..64b1a0b7b803a1 100644
-> --- a/arch/arm/mach-s3c24xx/mach-osiris.c
-> +++ b/arch/arm/mach-s3c24xx/mach-osiris.c
-> @@ -24,7 +24,7 @@
->  #include <linux/io.h>
->  #include <linux/platform_device.h>
->  
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
-> diff --git a/drivers/mfd/tps65010.c b/drivers/mfd/tps65010.c
-> index d829a6131f09e5..2ab67386b4ef1e 100644
-> --- a/drivers/mfd/tps65010.c
-> +++ b/drivers/mfd/tps65010.c
-> @@ -32,7 +32,7 @@
->  #include <linux/mutex.h>
->  #include <linux/platform_device.h>
->  
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  
->  #include <linux/gpio/driver.h>
->  
-> diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-> index a4d814b7f38066..91393ec7d8503c 100644
-> --- a/drivers/usb/host/ohci-omap.c
-> +++ b/drivers/usb/host/ohci-omap.c
-> @@ -53,7 +53,7 @@
->  #define DRIVER_DESC "OHCI OMAP driver"
->  
->  #ifdef CONFIG_TPS65010
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  #else
->  
->  #define LOW	0
-> diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
-> index 042c5a8fd423d8..c6052c814bcc24 100644
-> --- a/drivers/usb/phy/phy-isp1301-omap.c
-> +++ b/drivers/usb/phy/phy-isp1301-omap.c
-> @@ -96,7 +96,7 @@ struct isp1301 {
->  
->  #if IS_REACHABLE(CONFIG_TPS65010)
->  
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  
->  #else
->  
-> diff --git a/drivers/video/fbdev/omap/lcd_h3.c b/drivers/video/fbdev/omap/lcd_h3.c
-> index 9d2da146813ef0..796f4634c4c6f1 100644
-> --- a/drivers/video/fbdev/omap/lcd_h3.c
-> +++ b/drivers/video/fbdev/omap/lcd_h3.c
-> @@ -21,7 +21,7 @@
->  
->  #include <linux/module.h>
->  #include <linux/platform_device.h>
-> -#include <linux/i2c/tps65010.h>
-> +#include <linux/mfd/tps65010.h>
->  #include <linux/gpio.h>
->  
->  #include "omapfb.h"
-> diff --git a/include/linux/i2c/tps65010.h b/include/linux/mfd/tps65010.h
-> similarity index 99%
-> rename from include/linux/i2c/tps65010.h
-> rename to include/linux/mfd/tps65010.h
-> index 08aa92278d71cd..a1fb9bc5311de4 100644
-> --- a/include/linux/i2c/tps65010.h
-> +++ b/include/linux/mfd/tps65010.h
-> @@ -1,4 +1,4 @@
-> -/* linux/i2c/tps65010.h
-> +/* linux/mfd/tps65010.h
->   *
->   * Functions to access TPS65010 power management device.
->   *
+I'd prefer that, yes. Thanks!
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
+
+--7yzzt65nmxassi3y
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlkj4wMACgkQFA3kzBSg
+KbboAA/7BYWjzye3Zd9b4l7Uvdy3BTUglIU4h8PBWztw8snSPIIMd5ShjYZotX7x
+qXKUqi92du010bqAANjftdAl2ej4Dl1OdMm2NuaBlfGIV3bf1s+f+mx6iubHg+gC
+h3KYEBU3fUMc+dypGCd6xsM84DCtOLPcYmu/uaKKmvZLfyNvvsDaTFUOyUp15nup
+y8I9DNOmbirzmQj7sFF+38//j3SWfMO4EWGDBDUuQgT/CNf6DyclYITi1TVuh5Z6
+X4mJqOpMCE+GzPZvDe60b7oMDAJrVyrsyj3SjkgUNMegQwGW0ZFGdmyJf3I43FLx
+RUKeN4o48TPW4LS1rX9hzDIOvTlL6ZUc814/9q84zHly0RP5y4uzyJ8bOuZA2BJa
+O0Yu4Y+QL3OC1qGzktwbsBUHPVLUZZH7oRMY2haS+o+4rzOhiZbH9tZE4v2ALyfX
+8oGKWd2RYn76zG0Su6C5QCA/4ck1t2Wr4CwastYmdKuhyBEAF85uTvwmBoaXJxbp
+bea5aO2y2xBdvgTvSd0XkbMiJpqMFb9gFfoA7SMkIPVmgPHcX9ZqI7QT5nXi5ugy
+ZUfn/VYQUh8TyXZiRrOwJ595KjykkGIyxq2xgGFZR5eJ60N9t7ZEDqv6FBfhoj5V
+elD1t7D2bkdQm0hfSxal45Zedg/OquhGI+ktNbjMKWLBN70owfs=
+=bddv
+-----END PGP SIGNATURE-----
+
+--7yzzt65nmxassi3y--
