@@ -1,72 +1,75 @@
-From: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
-Subject: Re: [PATCH 1/3] iio: adc: cpcap: Fix default register values and
- battery temperature (fwd)
-Date: Wed, 24 May 2017 09:39:54 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1705240938520.2983@hadrien>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: dts: am43xx-clocks: Add support for CLKOUT2
+Date: Wed, 24 May 2017 11:43:41 +0300
+Message-ID: <20170524084341.16698-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, t-kristo@ti.com, robh+dt@kernel.org
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com
 List-Id: linux-omap@vger.kernel.org
 
-CPCAP_BIT_ADTRIG_DIS is duplicated on lines 77-82.
+Add the needed clock nodes for the CLKOUT2 to be usable by boards.
 
-julia
-
----------- Forwarded message ----------
-Date: Wed, 24 May 2017 03:18:35 +0800
-From: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-To: kbuild-JC7UmRfGjtg@public.gmane.org
-Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
-Subject: Re: [PATCH 1/3] iio: adc: cpcap: Fix default register values and
-    battery temperature
-
-Hi Tony,
-
-[auto build test WARNING on iio/togreg]
-[also build test WARNING on v4.12-rc2 next-20170523]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Tony-Lindgren/Few-non-critical-cpcap-ADC-fixes/20170524-012140
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git togreg
-:::::: branch date: 2 hours ago
-:::::: commit date: 2 hours ago
-
->> drivers/iio/adc/cpcap-adc.c:78:6-26: duplicated argument to & or |
-
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout 02e16000e23c899bba86e7dde2b3eaaf8fc76da2
-vim +78 drivers/iio/adc/cpcap-adc.c
-
-25ec2496 Tony Lindgren 2017-03-23  62  #define CPCAP_BIT_ADTRIG_ONESHOT	BIT(13)	/* Set for !TIMING_IMM */
-25ec2496 Tony Lindgren 2017-03-23  63  #define CPCAP_BIT_ASC			BIT(12)	/* Set for TIMING_IMM */
-25ec2496 Tony Lindgren 2017-03-23  64  #define CPCAP_BIT_ATOX_PS_FACTOR	BIT(11)
-25ec2496 Tony Lindgren 2017-03-23  65  #define CPCAP_BIT_ADC_PS_FACTOR1	BIT(10)
-25ec2496 Tony Lindgren 2017-03-23  66  #define CPCAP_BIT_ADC_PS_FACTOR0	BIT(9)
-25ec2496 Tony Lindgren 2017-03-23  67  #define CPCAP_BIT_AD4_SELECT		BIT(8)	/* Currently unused */
-25ec2496 Tony Lindgren 2017-03-23  68  #define CPCAP_BIT_ADC_BUSY		BIT(7)	/* Currently unused */
-02e16000 Tony Lindgren 2017-05-22  69  #define CPCAP_BIT_THERMBIAS_EN		BIT(6)	/* Bias for AD0_BATTDETB */
-25ec2496 Tony Lindgren 2017-03-23  70  #define CPCAP_BIT_ADTRIG_DIS		BIT(5)	/* Disable interrupt */
-25ec2496 Tony Lindgren 2017-03-23  71  #define CPCAP_BIT_LIADC			BIT(4)	/* Currently unused */
-25ec2496 Tony Lindgren 2017-03-23  72  #define CPCAP_BIT_TS_REFEN		BIT(3)	/* Currently unused */
-25ec2496 Tony Lindgren 2017-03-23  73  #define CPCAP_BIT_TS_M2			BIT(2)	/* Currently unused */
-25ec2496 Tony Lindgren 2017-03-23  74  #define CPCAP_BIT_TS_M1			BIT(1)	/* Currently unused */
-25ec2496 Tony Lindgren 2017-03-23  75  #define CPCAP_BIT_TS_M0			BIT(0)	/* Currently unused */
-25ec2496 Tony Lindgren 2017-03-23  76
-02e16000 Tony Lindgren 2017-05-22  77  #define CPCAP_REG_ADCC2_DEFAULTS	(CPCAP_BIT_AD4_SELECT | \
-02e16000 Tony Lindgren 2017-05-22 @78  					 CPCAP_BIT_ADTRIG_DIS | \
-02e16000 Tony Lindgren 2017-05-22  79  					 CPCAP_BIT_ADTRIG_DIS | \
-02e16000 Tony Lindgren 2017-05-22  80  					 CPCAP_BIT_LIADC | \
-02e16000 Tony Lindgren 2017-05-22  81  					 CPCAP_BIT_TS_M2 | \
-02e16000 Tony Lindgren 2017-05-22  82  					 CPCAP_BIT_TS_M1)
-02e16000 Tony Lindgren 2017-05-22  83
-25ec2496 Tony Lindgren 2017-03-23  84  #define CPCAP_MAX_TEMP_LVL		27
-25ec2496 Tony Lindgren 2017-03-23  85  #define CPCAP_FOUR_POINT_TWO_ADC	801
-25ec2496 Tony Lindgren 2017-03-23  86  #define ST_ADC_CAL_CHRGI_HIGH_THRESHOLD	530
-
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ arch/arm/boot/dts/am43xx-clocks.dtsi | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
+index d1d73b725f47..430be5829f8f 100644
+--- a/arch/arm/boot/dts/am43xx-clocks.dtsi
++++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
+@@ -833,4 +833,40 @@
+ 		ti,bit-shift = <23>;
+ 		reg = <0x4100>;
+ 	};
++
++	clkout2_src_mux_ck: clkout2_src_mux_ck {
++		#clock-cells = <0>;
++		compatible = "ti,mux-clock";
++		clocks = <&clk_rc32k_ck>, <&sysclk_div>, <&dpll_ddr_m2_ck>,
++			 <&dpll_per_m2_ck>, <&dpll_disp_m2_ck>,
++			 <&dpll_mpu_m2_ck>, <&dpll_extdev_ck>;
++		reg = <0x4108>;
++	};
++
++	clkout2_pre_div_ck: clkout2_pre_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&clkout2_src_mux_ck>;
++		ti,bit-shift = <4>;
++		ti,max-div = <8>;
++		reg = <0x4108>;
++	};
++
++	clkout2_post_div_ck: clkout2_post_div_ck {
++		#clock-cells = <0>;
++		compatible = "ti,divider-clock";
++		clocks = <&clkout2_pre_div_ck>;
++		ti,bit-shift = <8>;
++		ti,max-div = <32>;
++		ti,index-power-of-two;
++		reg = <0x4108>;
++	};
++
++	clkout2_ck: clkout2_ck {
++		#clock-cells = <0>;
++		compatible = "ti,gate-clock";
++		clocks = <&clkout2_post_div_ck>;
++		ti,bit-shift = <16>;
++		reg = <0x4108>;
++	};
+ };
+-- 
+2.13.0
