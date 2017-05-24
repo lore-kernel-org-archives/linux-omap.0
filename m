@@ -1,33 +1,37 @@
-From: Kalle Valo <kvalo@codeaurora.org>
-Subject: Re: [PATCHv4] wlcore: add wl1285 compatible
-Date: Wed, 24 May 2017 13:42:05 +0000 (UTC)
-Message-ID: <20170524134205.367AD611B4@smtp.codeaurora.org>
-References: <20170505141553.2605-1-sebastian.reichel@collabora.co.uk>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] arm: dts: da850: Add interrupt-controller property to
+ gpio node
+Date: Wed, 24 May 2017 19:19:03 +0530
+Message-ID: <4a6dca2b-b877-a975-3292-60ee08a33ad8@ti.com>
+References: <1495630095-1954-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170505141553.2605-1-sebastian.reichel@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh+dt@kernel.org>, linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1495630095-1954-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Sebastian Reichel <sebastian.reichel@collabora.co.uk> wrote:
-> Motorola Droid 4 uses a WL1285C. With differences between the
-> chips not being public let's add explicit binding for wl1285
-> instead of relying on wl1283 being very similar.
+On Wednesday 24 May 2017 06:18 PM, Keerthy wrote:
+> The gpio node has 144 gpios. Each gpio is capable of generating
+> an interrupt. Hence add interrupt-controller property to the gpio
+> node. With this in place one can use interrupts property in device
+> tree to request for the gpio interrupts.
 > 
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Acked-by: Kalle Valo <kvalo@codeaurora.org>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 
-My understanding is that there will be a new version. Please let me know
-if I misunderstood.
+Can you please resend with LAKML copied. Thats the right list to use for
+TI DaVinci patches (of course, please keep device tree lists and
+maintainers copied too for DT patches).
 
-Patch set to Changes Requested.
+I will fix the MAINTAINERS entry for TI DaVinci device-tree source files.
 
--- 
-https://patchwork.kernel.org/patch/9713645/
-
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+Thanks,
+Sekhar
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
