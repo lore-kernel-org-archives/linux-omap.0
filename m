@@ -1,31 +1,86 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] iio: adc: cpcap: Fix default register values and
- battery temperature (fwd)
-Date: Wed, 24 May 2017 08:46:12 -0700
-Message-ID: <20170524154612.GZ10472@atomide.com>
-References: <alpine.DEB.2.20.1705240938520.2983@hadrien>
+From: afzal mohammed <afzal.mohd.ma@gmail.com>
+Subject: Re: [CFT] Always enable SMP mode on MP capable CPUs
+Date: Wed, 24 May 2017 21:20:45 +0530
+Message-ID: <20170524155045.GA4082@afzalpc>
+References: <20170518105209.GN22219@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1705240938520.2983@hadrien>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
-Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170518105209.GN22219@n2100.armlinux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
+
+To make those handling AM43x aware, To'ing l-o
 
 Hi,
 
-* Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org> [170524 00:43]:
-> CPCAP_BIT_ADTRIG_DIS is duplicated on lines 77-82.
-> 02e16000 Tony Lindgren 2017-05-22  77  #define CPCAP_REG_ADCC2_DEFAULTS	(CPCAP_BIT_AD4_SELECT | \
-> 02e16000 Tony Lindgren 2017-05-22 @78  					 CPCAP_BIT_ADTRIG_DIS | \
-> 02e16000 Tony Lindgren 2017-05-22  79  					 CPCAP_BIT_ADTRIG_DIS | \
+On Thu, May 18, 2017 at 11:52:10AM +0100, Russell King - ARM Linux wrote:
+> As a result of a recent bug report, it has been found that certain CPUs
+> must always have SMP mode enabled in order for the caches to work.
+> 
+> Remove the conditional on setting the SMP bit(s).
+> 
+> Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+> ---
 
-Oops, thanks for letting me know.
+> I'm aware of a Cortex
+> A9 CPU out there that does mis-identify itself as SMP capable but
+> isn't:
+> 
+>         @ Core indicates it is SMP. Check for Aegis SOC where a single
+>         @ Cortex-A9 CPU is present but SMP operations fault.
+> 
+> This will also need testing.
 
-Jonathan, do you want an incremental patch or v3 of the whole set resent?
+With this change, AM437x, i.e. the above mentioned SoC stops
+booting (multi_v7 config)
 
-Regards,
+afzal
 
-Tony
+> 
+>  arch/arm/mm/proc-v7.S | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+> index 01d64c0b2563..4d48a4cf563b 100644
+> --- a/arch/arm/mm/proc-v7.S
+> +++ b/arch/arm/mm/proc-v7.S
+> @@ -286,14 +286,10 @@ ENDPROC(cpu_pj4b_do_resume)
+>  	stmia	r12, {r1-r6, lr}		@ v7_invalidate_l1 touches r0-r6
+>  	bl      v7_invalidate_l1
+>  	ldmia	r12, {r1-r6, lr}
+> -#ifdef CONFIG_SMP
+> +	mrc	p15, 0, r0, c1, c0, 1
+>  	orr	r10, r10, #(1 << 6)		@ Enable SMP/nAMP mode
+> -	ALT_SMP(mrc	p15, 0, r0, c1, c0, 1)
+> -	ALT_UP(mov	r0, r10)		@ fake it for UP
+>  	orr	r10, r10, r0			@ Set required bits
+> -	teq	r10, r0				@ Were they already set?
+> -	mcrne	p15, 0, r10, c1, c0, 1		@ No, update register
+> -#endif
+> +	mcr	p15, 0, r10, c1, c0, 1		@ No, update register
+>  	b	__v7_setup_cont
+>  
+>  /*
+> 
+> -- 
+> RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+> FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+> according to speedtest.net.
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
