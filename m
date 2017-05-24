@@ -1,75 +1,37 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: dts: am43xx-clocks: Add support for CLKOUT2
-Date: Wed, 24 May 2017 11:43:41 +0300
-Message-ID: <20170524084341.16698-1-peter.ujfalusi@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] arm: dts: da850: Add interrupt-controller property to gpio node
+Date: Wed, 24 May 2017 18:18:15 +0530
+Message-ID: <1495630095-1954-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, t-kristo@ti.com, robh+dt@kernel.org
-Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bcousson@baylibre.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: nsekhar@ti.com, linus.walleij@linaro.org
+Cc: j-keerthy@ti.com, tony@atomide.com, mark.rutland@arm.com, t-kristo@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, robh+dt@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add the needed clock nodes for the CLKOUT2 to be usable by boards.
+The gpio node has 144 gpios. Each gpio is capable of generating
+an interrupt. Hence add interrupt-controller property to the gpio
+node. With this in place one can use interrupts property in device
+tree to request for the gpio interrupts.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/boot/dts/am43xx-clocks.dtsi | 36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ arch/arm/boot/dts/da850.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am43xx-clocks.dtsi b/arch/arm/boot/dts/am43xx-clocks.dtsi
-index d1d73b725f47..430be5829f8f 100644
---- a/arch/arm/boot/dts/am43xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/am43xx-clocks.dtsi
-@@ -833,4 +833,40 @@
- 		ti,bit-shift = <23>;
- 		reg = <0x4100>;
- 	};
-+
-+	clkout2_src_mux_ck: clkout2_src_mux_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,mux-clock";
-+		clocks = <&clk_rc32k_ck>, <&sysclk_div>, <&dpll_ddr_m2_ck>,
-+			 <&dpll_per_m2_ck>, <&dpll_disp_m2_ck>,
-+			 <&dpll_mpu_m2_ck>, <&dpll_extdev_ck>;
-+		reg = <0x4108>;
-+	};
-+
-+	clkout2_pre_div_ck: clkout2_pre_div_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&clkout2_src_mux_ck>;
-+		ti,bit-shift = <4>;
-+		ti,max-div = <8>;
-+		reg = <0x4108>;
-+	};
-+
-+	clkout2_post_div_ck: clkout2_post_div_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,divider-clock";
-+		clocks = <&clkout2_pre_div_ck>;
-+		ti,bit-shift = <8>;
-+		ti,max-div = <32>;
-+		ti,index-power-of-two;
-+		reg = <0x4108>;
-+	};
-+
-+	clkout2_ck: clkout2_ck {
-+		#clock-cells = <0>;
-+		compatible = "ti,gate-clock";
-+		clocks = <&clkout2_post_div_ck>;
-+		ti,bit-shift = <16>;
-+		reg = <0x4108>;
-+	};
- };
+diff --git a/arch/arm/boot/dts/da850.dtsi b/arch/arm/boot/dts/da850.dtsi
+index 941d455..2693bd2 100644
+--- a/arch/arm/boot/dts/da850.dtsi
++++ b/arch/arm/boot/dts/da850.dtsi
+@@ -503,6 +503,8 @@
+ 			ti,ngpio = <144>;
+ 			ti,davinci-gpio-unbanked = <0>;
+ 			status = "disabled";
++			interrupt-controller;
++			#interrupt-cells = <2>;
+ 		};
+ 		pinconf: pin-controller@22c00c {
+ 			compatible = "ti,da850-pupd";
 -- 
-2.13.0
+1.9.1
