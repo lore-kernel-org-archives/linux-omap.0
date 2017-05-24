@@ -1,61 +1,27 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] usb: host: ohci-platform: Add basic runtime PM
- support
-Date: Wed, 24 May 2017 10:23:20 +0300
-Message-ID: <0d4d7f0f-2164-92f8-5826-d44af3f2a550@ti.com>
-References: <20170522160007.9264-1-tony@atomide.com>
- <20170522160007.9264-2-tony@atomide.com>
- <c040a768-dd2e-a85d-fb3f-3088988f61aa@ti.com>
- <20170523140831.GV10472@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 00/13] crypto: omap fixes / changes for 4.13
+Date: Wed, 24 May 2017 10:35:21 +0300
+Message-ID: <1495611334-15039-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170523140831.GV10472-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-GB
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Sender: linux-crypto-owner@vger.kernel.org
+To: herbert@gondor.apana.org.au, lokeshvutla@ti.com, davem@davemloft.net, linux-crypto@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 23/05/17 17:08, Tony Lindgren wrote:
-> * Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> [170523 00:14]:
->> On 22/05/17 19:00, Tony Lindgren wrote:
->>> --- a/drivers/usb/host/ohci-platform.c
->>> +++ b/drivers/usb/host/ohci-platform.c
->>> @@ -290,7 +294,14 @@ static int ohci_platform_remove(struct platform_device *dev)
->>>  	struct usb_hcd *hcd = platform_get_drvdata(dev);
->>>  	struct usb_ohci_pdata *pdata = dev_get_platdata(&dev->dev);
->>>  	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
->>> -	int clk, rst;
->>> +	int clk, rst, enabled;
->>> +
->>> +	enabled = pm_runtime_get_sync(&dev->dev);
->>
->> Why do we need to pm_runtime_get_sync() here?
-> 
-> ohci_platform_remove()
-> 	usb_remove_hcd()
-> 		ohci_stop()
-> 
-> Will cause "external abort on non-linefetch" otherwise.
+Hi,
 
-Got it, thanks.
+This series has a number of fixes towards 4.13 merge window (I don't
+think we need to rush these as nobody has complained of any of the
+issues so far), and the addition of AES GCM mode. Lokesh posted
+the support patch for GCM quite a while back, I have addressed
+the comments received back then as well as I could and done some
+additional changes on top. The series also introduces a base
+OMAP crypto support library for handling the various cases
+of buffer alignment. This is now used for both AES/DES. Addition
+of SHA to this is still pending as it requires certain things
+to be done slightly differently (need a couple of new flags for
+the API I believe.)
 
-> 
-> Regards,
-> 
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
--- 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tero
