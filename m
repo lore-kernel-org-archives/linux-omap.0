@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 12/13] crypto: omap-sham: fix closing of hash with separate finalize call
-Date: Wed, 24 May 2017 10:35:33 +0300
-Message-ID: <1495611334-15039-13-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 13/13] crypto: omap-sham: force word alignment on the xmit-buf also
+Date: Wed, 24 May 2017 10:35:34 +0300
+Message-ID: <1495611334-15039-14-git-send-email-t-kristo@ti.com>
 References: <1495611334-15039-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,55 +12,26 @@ To: herbert@gondor.apana.org.au, lokeshvutla@ti.com, davem@davemloft.net, linux-
 Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently there is an interesting corner case failure with omap-sham
-driver, if the finalize call is done separately with no data, but
-all previous data has already been processed. In this case, it is not
-possible to close the hash with the hardware without providing any data,
-so we get incorrect results. Fix this by adjusting the size of data
-sent to the hardware crypto engine in case the non-final data size falls
-on the block size boundary, by reducing the amount of data sent by one
-full block. This makes it sure that we always have some data available
-for the finalize call and we can close the hash properly.
+This was previously missed from the code, causing SDMA to hang in
+some cases where the buffer ended up being not aligned.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Reported-by: Aparna Balasubramanian <aparnab@ti.com>
 ---
- drivers/crypto/omap-sham.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/crypto/omap-sham.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index c65b49b..d8305dd 100644
+index d8305dd..1e7c9ef 100644
 --- a/drivers/crypto/omap-sham.c
 +++ b/drivers/crypto/omap-sham.c
-@@ -750,7 +750,10 @@ static int omap_sham_align_sgs(struct scatterlist *sg,
- 	if (final)
- 		new_len = DIV_ROUND_UP(new_len, bs) * bs;
- 	else
--		new_len = new_len / bs * bs;
-+		new_len = (new_len - 1) / bs * bs;
-+
-+	if (nbytes != new_len)
-+		list_ok = false;
+@@ -225,7 +225,7 @@ struct omap_sham_dev {
+ 	struct dma_chan		*dma_lch;
+ 	struct tasklet_struct	done_task;
+ 	u8			polling_mode;
+-	u8			xmit_buf[BUFLEN];
++	u8			xmit_buf[BUFLEN] OMAP_ALIGNED;
  
- 	while (nbytes > 0 && sg_tmp) {
- 		n++;
-@@ -846,6 +849,8 @@ static int omap_sham_prepare_request(struct ahash_request *req, bool update)
- 			xmit_len = DIV_ROUND_UP(xmit_len, bs) * bs;
- 		else
- 			xmit_len = xmit_len / bs * bs;
-+	} else if (!final) {
-+		xmit_len -= bs;
- 	}
- 
- 	hash_later = rctx->total - xmit_len;
-@@ -1137,7 +1142,7 @@ static int omap_sham_handle_queue(struct omap_sham_dev *dd,
- 	ctx = ahash_request_ctx(req);
- 
- 	err = omap_sham_prepare_request(req, ctx->op == OP_UPDATE);
--	if (err)
-+	if (err || !ctx->total)
- 		goto err1;
- 
- 	dev_dbg(dd->dev, "handling new req, op: %lu, nbytes: %d\n",
+ 	unsigned long		flags;
+ 	struct crypto_queue	queue;
 -- 
 1.9.1
