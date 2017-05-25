@@ -1,54 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [CFT] Always enable SMP mode on MP capable CPUs
-Date: Thu, 25 May 2017 08:11:03 -0700
-Message-ID: <20170525151103.GC10472@atomide.com>
-References: <20170518105209.GN22219@n2100.armlinux.org.uk>
- <CAOMZO5Da2R2_t2nU+MdrJiSzvcBQKS4pwYS96r4UyfGc8DtWww@mail.gmail.com>
- <CAOMZO5Dc=i7UdQH=r5RRr_4GmyZZT+rh7BTNV4WbfqKvtVDfsw@mail.gmail.com>
- <20170519171526.GW22219@n2100.armlinux.org.uk>
- <20170524153847.GY10472@atomide.com>
- <20170525144800.GV23750@n2100.armlinux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20170525144800.GV23750@n2100.armlinux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: afzal mohammed <afzal.mohd.ma@gmail.com>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@kernel.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCHv3 0/3] Make ohci-platform usable for omap3/4/5
+Date: Thu, 25 May 2017 09:13:30 -0700
+Message-ID: <20170525161333.32639-1-tony@atomide.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@armlinux.org.uk> [170525 07:51]:
-> On Wed, May 24, 2017 at 08:38:47AM -0700, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@armlinux.org.uk> [170519 10:19]:
-> > > We could expand the table to positively identify the SMP capable CPUs
-> > > and enable the SMP bit there, but it's going to add a lot of entries
-> > > there (one for each specific ARMv7 MP CPU) and is going to have to be
-> > > endlessly added to each time a new SMP CPU comes out.
-> > 
-> > Looks like commit e414690faa81 ("ARM: always enable SMP mode on SMP cores")
-> > causes booting to fail early at least on omap4430 duovero. It's a bit of
-> > a mystery as it is SMP.. And pandboard es (4460) and droid 4 (4430) work
-> > without the conditional write..
-> > 
-> > Partial revert like below seems to make it boot again.
-> 
-> Thanks for testing, I'll integrate your change, and it should be in
-> tonight's linux-next.
+Hi,
 
-OK. That may not work on am437x though as it's UP.
-
-Afzal, did the change that I posted work for you?
+Here's v3 of this series.
 
 Regards,
 
 Tony
+
+Changes since v2:
+
+- Ignore pm_runtime_get_sync for remove(), not much we can do there
+  as noted by Alan Stern
+
+- Add acks
+
+Changes since v1:                                                                                                                                                                                         - Update runtime PM support for ohci based on Alan's comments and
+  more testing                                                                                                                                                                                            - Just remove ohci-omap3 as it needs LS/FS USB PHY not available
+  on most hardware
+
+Tony Lindgren (3):
+  usb: host: ohci-platform: Add basic runtime PM support
+  usb: host: ohci-platform: Add support for omap3 and later
+  usb: host: ohci-omap3: Remove driver in favor of ohci-platform
+
+ Documentation/devicetree/bindings/usb/usb-ohci.txt |   1 +
+ drivers/usb/host/Kconfig                           |   6 +-
+ drivers/usb/host/Makefile                          |   1 -
+ drivers/usb/host/ohci-omap3.c                      | 211 ---------------------
+ drivers/usb/host/ohci-platform.c                   |  13 ++
+ 5 files changed, 19 insertions(+), 213 deletions(-)
+ delete mode 100644 drivers/usb/host/ohci-omap3.c
+
+-- 
+2.13.0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
