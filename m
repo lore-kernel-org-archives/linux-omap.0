@@ -1,16 +1,20 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
 Subject: Re: [CFT] Always enable SMP mode on MP capable CPUs
-Date: Thu, 25 May 2017 10:10:00 -0700
-Message-ID: <20170525171000.GD10472@atomide.com>
+Date: Thu, 25 May 2017 19:05:41 +0100
+Message-ID: <20170525180540.GW23750@n2100.armlinux.org.uk>
 References: <20170518105209.GN22219@n2100.armlinux.org.uk>
- <828a8817-b18d-6945-f35e-115abf30fe17@gmail.com>
- <20170525165651.GK22219@n2100.armlinux.org.uk>
+ <CAOMZO5Da2R2_t2nU+MdrJiSzvcBQKS4pwYS96r4UyfGc8DtWww@mail.gmail.com>
+ <CAOMZO5Dc=i7UdQH=r5RRr_4GmyZZT+rh7BTNV4WbfqKvtVDfsw@mail.gmail.com>
+ <20170519171526.GW22219@n2100.armlinux.org.uk>
+ <20170524153847.GY10472@atomide.com>
+ <20170525144800.GV23750@n2100.armlinux.org.uk>
+ <20170525151103.GC10472@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170525165651.GK22219@n2100.armlinux.org.uk>
+In-Reply-To: <20170525151103.GC10472@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,44 +24,41 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: linux-omap@vger.kernel.org, Florian Fainelli <f.fainelli@gmail.com>, afzal mohammed <afzal.mohd.ma@gmail.com>, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: afzal mohammed <afzal.mohd.ma@gmail.com>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@armlinux.org.uk> [170525 10:00]:
-> On Thu, May 25, 2017 at 09:15:19AM -0700, Florian Fainelli wrote:
-> > On 05/18/2017 03:52 AM, Russell King - ARM Linux wrote:
-> > > As a result of a recent bug report, it has been found that certain CPUs
-> > > must always have SMP mode enabled in order for the caches to work.
+On Thu, May 25, 2017 at 08:11:03AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@armlinux.org.uk> [170525 07:51]:
+> > On Wed, May 24, 2017 at 08:38:47AM -0700, Tony Lindgren wrote:
+> > > * Russell King - ARM Linux <linux@armlinux.org.uk> [170519 10:19]:
+> > > > We could expand the table to positively identify the SMP capable CPUs
+> > > > and enable the SMP bit there, but it's going to add a lot of entries
+> > > > there (one for each specific ARMv7 MP CPU) and is going to have to be
+> > > > endlessly added to each time a new SMP CPU comes out.
 > > > 
-> > > Remove the conditional on setting the SMP bit(s).
+> > > Looks like commit e414690faa81 ("ARM: always enable SMP mode on SMP cores")
+> > > causes booting to fail early at least on omap4430 duovero. It's a bit of
+> > > a mystery as it is SMP.. And pandboard es (4460) and droid 4 (4430) work
+> > > without the conditional write..
 > > > 
-> > > Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
-> > > ---
-> > > This needs to be tested on:
-> > > 
-> > > - Cortex A5MP
-> > > - Cortex A9MP
-> > > - Cortex R7MP
-> > > - Cortex A7MP
-> > > - Cortex A12MP
-> > > - Cortex A15MP
-> > > - Cortex A17MP
-> > > - Brahma B15
+> > > Partial revert like below seems to make it boot again.
 > > 
-> > Sorry just saw this, what kind of test do you want me to run on B15?
-> > Should I build a !SMP kernel, or force a SMP kernel with maxcpus=1?
+> > Thanks for testing, I'll integrate your change, and it should be in
+> > tonight's linux-next.
 > 
-> What I'm after is testing on any single-core systems with these SMP
-> capable cores.  If the core never appears in a single-core configuration,
-> then please let me know so it can be crossed off the list.
-> 
-> With the bug that crept in fixed (as pointed out by Tony) there is no
-> difference for kernels built with SMP enabled and detected as a SMP
-> capable CPU.
+> OK. That may not work on am437x though as it's UP.
 
-At least am437x needs to be tested as it's UP with some quirks.
+Maybe this is just too complicated to grasp - in which case just test
+tonight's linux-next on *all* your boards irrespective of the CPU, and
+let me know if there's a regression due to this patch, giving me full
+details of your CPUs (CPU ID numbers, number of CPUs, etc.)  If no one
+reports a regression that doesn't get fixed, I'll merge it during the
+next merge window.
 
-Regards,
+(I can't believe that this is proving to be soo complicated...)
 
-Tony
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
