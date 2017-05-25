@@ -1,43 +1,32 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] iio: adc: cpcap: Fix default register values and
- battery temperature (fwd)
-Date: Wed, 24 May 2017 15:01:25 -0700
-Message-ID: <20170524220125.GB10472@atomide.com>
-References: <alpine.DEB.2.20.1705240938520.2983@hadrien>
- <20170524154612.GZ10472@atomide.com>
- <20170524204110.1f2400d3@kernel.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v2 3/3] regulator: tps65917: Add support for SMPS12
+Date: Thu, 25 May 2017 09:05:25 +0530
+Message-ID: <98063d56-b5e7-09dd-2524-0bd83306166e@ti.com>
+References: <1495541816-14801-1-git-send-email-j-keerthy@ti.com>
+ <1495541816-14801-4-git-send-email-j-keerthy@ti.com>
+ <20170524172028.baxeku6ei373ckdr@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170524204110.1f2400d3-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170524172028.baxeku6ei373ckdr@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: lee.jones@linaro.org, robh+dt@kernel.org, t-kristo@ti.com, tony@atomide.com, mark.rutland@arm.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, afd@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-* Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170524 12:44]:
-> On Wed, 24 May 2017 08:46:12 -0700
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> 
-> > Hi,
-> > 
-> > * Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org> [170524 00:43]:
-> > > CPCAP_BIT_ADTRIG_DIS is duplicated on lines 77-82.
-> > > 02e16000 Tony Lindgren 2017-05-22  77  #define CPCAP_REG_ADCC2_DEFAULTS	(CPCAP_BIT_AD4_SELECT | \
-> > > 02e16000 Tony Lindgren 2017-05-22 @78  					 CPCAP_BIT_ADTRIG_DIS | \
-> > > 02e16000 Tony Lindgren 2017-05-22  79  					 CPCAP_BIT_ADTRIG_DIS | \  
-> > 
-> > Oops, thanks for letting me know.
-> > 
-> > Jonathan, do you want an incremental patch or v3 of the whole set resent?
-> > 
-> > Regards,
-> > 
-> > Tony
-> 
-> Fixed up and repushed out.  Thanks
 
-OK thanks!
 
-Tony
+On Wednesday 24 May 2017 10:50 PM, Mark Brown wrote:
+> On Tue, May 23, 2017 at 05:46:56PM +0530, Keerthy wrote:
+>> App support for SMPS12 dual phase regulator.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> Acked-by: Lee Jones <lee.jones@linaro.org>
+> 
+> What's the relationship between this and support for the lp87565?
+
+Nothing related. I should have sent this separately. Should i send a v3
+separately?
+
+> 
