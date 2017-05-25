@@ -1,76 +1,64 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/3] usb: host: ohci-platform: Add basic runtime PM support
-Date: Thu, 25 May 2017 09:13:31 -0700
-Message-ID: <20170525161333.32639-2-tony@atomide.com>
+Subject: [PATCH 2/3] usb: host: ohci-platform: Add support for omap3 and later
+Date: Thu, 25 May 2017 09:13:32 -0700
+Message-ID: <20170525161333.32639-3-tony@atomide.com>
 References: <20170525161333.32639-1-tony@atomide.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170525161333.32639-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-This is needed in preparation of adding support for omap3 and
-later OHCI. The runtime PM will only do something on platforms
-that implement it.
+With the runtime PM implemented for ohci-platform driver, we can
+now support omap3 and later OHCI by adding one device tree
+property.
 
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/usb/host/ohci-platform.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/devicetree/bindings/usb/usb-ohci.txt | 1 +
+ drivers/usb/host/ohci-platform.c                   | 5 +++++
+ 2 files changed, 6 insertions(+)
 
+diff --git a/Documentation/devicetree/bindings/usb/usb-ohci.txt b/Documentation/devicetree/bindings/usb/usb-ohci.txt
+--- a/Documentation/devicetree/bindings/usb/usb-ohci.txt
++++ b/Documentation/devicetree/bindings/usb/usb-ohci.txt
+@@ -10,6 +10,7 @@ Optional properties:
+ - big-endian-desc : boolean, set this for hcds with big-endian descriptors
+ - big-endian : boolean, for hcds with big-endian-regs + big-endian-desc
+ - no-big-frame-no : boolean, set if frame_no lives in bits [15:0] of HCCA
++- remote-wakeup-connected: remote wakeup is wired on the platform
+ - num-ports : u32, to override the detected port count
+ - clocks : a list of phandle + clock specifier pairs
+ - phys : phandle + phy specifier pair
 diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
 --- a/drivers/usb/host/ohci-platform.c
 +++ b/drivers/usb/host/ohci-platform.c
-@@ -24,6 +24,7 @@
- #include <linux/err.h>
- #include <linux/phy/phy.h>
- #include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
- #include <linux/reset.h>
- #include <linux/usb/ohci_pdriver.h>
- #include <linux/usb.h>
-@@ -242,6 +243,8 @@ static int ohci_platform_probe(struct platform_device *dev)
- 	}
- #endif
+@@ -164,6 +164,10 @@ static int ohci_platform_probe(struct platform_device *dev)
+ 		if (of_property_read_bool(dev->dev.of_node, "no-big-frame-no"))
+ 			ohci->flags |= OHCI_QUIRK_FRAME_NO;
  
-+	pm_runtime_set_active(&dev->dev);
-+	pm_runtime_enable(&dev->dev);
- 	if (pdata->power_on) {
- 		err = pdata->power_on(dev);
- 		if (err < 0)
-@@ -271,6 +274,7 @@ static int ohci_platform_probe(struct platform_device *dev)
- 	if (pdata->power_off)
- 		pdata->power_off(dev);
- err_reset:
-+	pm_runtime_disable(&dev->dev);
- 	while (--rst >= 0)
- 		reset_control_assert(priv->resets[rst]);
- err_put_clks:
-@@ -292,6 +296,7 @@ static int ohci_platform_remove(struct platform_device *dev)
- 	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
- 	int clk, rst;
- 
-+	pm_runtime_get_sync(&dev->dev);
- 	usb_remove_hcd(hcd);
- 
- 	if (pdata->power_off)
-@@ -305,6 +310,9 @@ static int ohci_platform_remove(struct platform_device *dev)
- 
- 	usb_put_hcd(hcd);
- 
-+	pm_runtime_put_sync(&dev->dev);
-+	pm_runtime_disable(&dev->dev);
++		if (of_property_read_bool(dev->dev.of_node,
++					  "remote-wakeup-connected"))
++			ohci->hc_control = OHCI_CTRL_RWC;
 +
- 	if (pdata == &ohci_platform_defaults)
- 		dev->dev.platform_data = NULL;
+ 		of_property_read_u32(dev->dev.of_node, "num-ports",
+ 				     &ohci->num_ports);
  
+@@ -358,6 +362,7 @@ static int ohci_platform_resume(struct device *dev)
+ static const struct of_device_id ohci_platform_ids[] = {
+ 	{ .compatible = "generic-ohci", },
+ 	{ .compatible = "cavium,octeon-6335-ohci", },
++	{ .compatible = "ti,ohci-omap3", },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(of, ohci_platform_ids);
 -- 
 2.13.0
 --
