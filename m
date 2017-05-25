@@ -1,84 +1,65 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH 1/3] usb: host: ohci-platform: Add basic runtime PM
- support
-Date: Thu, 25 May 2017 12:45:17 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1705251244520.1579-100000@iolanthe.rowland.org>
-References: <20170525161333.32639-2-tony@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC 0/3] misc: new serdev based drivers for w2sg00x4 GPS module
+ and w2cbw003 wifi/bluetooth
+Date: Thu, 25 May 2017 19:05:40 +0200
+Message-ID: <20170525170540.GF3085@amd>
+References: <cover.1495363443.git.hns@goldelico.com>
+ <CAL_Jsq+fmi2QwE7J8xv47ece1b+jqnOo99NghfjtocnrRvBkPg@mail.gmail.com>
+ <78B1501A-B9AD-4C6E-A481-26F647AA2BCE@goldelico.com>
+ <CAL_JsqJamBBggr9AOQtQWtZOG+FevK1XEU_D=nYL6=hyvjviVw@mail.gmail.com>
+ <0D94BEA0-F98D-48F6-9DDC-99F932AE7834@goldelico.com>
+ <CAL_JsqK5NxL+rHU2enW0Lo+e+HThp-iK3hpW-UxeFREbivRZOw@mail.gmail.com>
+ <889E8F7F-FC0F-490E-B924-D04D9F4D3402@goldelico.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170525161333.32639-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="sDKAb4OeUBrWWL6P"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <889E8F7F-FC0F-490E-B924-D04D9F4D3402@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com, Marcel Holtmann <marcel@holtmann.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 25 May 2017, Tony Lindgren wrote:
 
-> This is needed in preparation of adding support for omap3 and
-> later OHCI. The runtime PM will only do something on platforms
-> that implement it.
-> 
-> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-> Cc: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/usb/host/ohci-platform.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
-> --- a/drivers/usb/host/ohci-platform.c
-> +++ b/drivers/usb/host/ohci-platform.c
-> @@ -24,6 +24,7 @@
->  #include <linux/err.h>
->  #include <linux/phy/phy.h>
->  #include <linux/platform_device.h>
-> +#include <linux/pm_runtime.h>
->  #include <linux/reset.h>
->  #include <linux/usb/ohci_pdriver.h>
->  #include <linux/usb.h>
-> @@ -242,6 +243,8 @@ static int ohci_platform_probe(struct platform_device *dev)
->  	}
->  #endif
->  
-> +	pm_runtime_set_active(&dev->dev);
-> +	pm_runtime_enable(&dev->dev);
->  	if (pdata->power_on) {
->  		err = pdata->power_on(dev);
->  		if (err < 0)
-> @@ -271,6 +274,7 @@ static int ohci_platform_probe(struct platform_device *dev)
->  	if (pdata->power_off)
->  		pdata->power_off(dev);
->  err_reset:
-> +	pm_runtime_disable(&dev->dev);
->  	while (--rst >= 0)
->  		reset_control_assert(priv->resets[rst]);
->  err_put_clks:
-> @@ -292,6 +296,7 @@ static int ohci_platform_remove(struct platform_device *dev)
->  	struct ohci_platform_priv *priv = hcd_to_ohci_priv(hcd);
->  	int clk, rst;
->  
-> +	pm_runtime_get_sync(&dev->dev);
->  	usb_remove_hcd(hcd);
->  
->  	if (pdata->power_off)
-> @@ -305,6 +310,9 @@ static int ohci_platform_remove(struct platform_device *dev)
->  
->  	usb_put_hcd(hcd);
->  
-> +	pm_runtime_put_sync(&dev->dev);
-> +	pm_runtime_disable(&dev->dev);
-> +
->  	if (pdata == &ohci_platform_defaults)
->  		dev->dev.platform_data = NULL;
+--sDKAb4OeUBrWWL6P
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Hi!
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > You don't need hciattach. All userspace has to do for kernel BT
+> > drivers is "hciconfig hci0 up|down".
+>=20
+> Hm. Well:
+>=20
+> root@letux:~# hciconfig hci0 up
+> Can't get device info: No such device
+> root@letux:~#
+>=20
+> I wonder how I can tell hciconfig about the UART port if not by running h=
+ciattach /dev/ttyBT0?
+
+You should not have to tell hciconfig about ttyBT0. Kernel should
+automatically setup hci0<->ttyBT0 connection during boot, based on the
+device tree.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--sDKAb4OeUBrWWL6P
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlknDuQACgkQMOfwapXb+vLfygCglwuirnlxs5N9xPDBEzgZCPoM
+ao0AnRVwl260eN43zizM2TXLywWfwLM/
+=ULag
+-----END PGP SIGNATURE-----
+
+--sDKAb4OeUBrWWL6P--
