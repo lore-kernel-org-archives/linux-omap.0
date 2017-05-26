@@ -1,33 +1,31 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/2] Enable Mailboxes for AM57xx IDKs
-Date: Fri, 26 May 2017 08:46:39 -0700
-Message-ID: <20170526154639.GD3717@atomide.com>
-References: <20170519204742.1563-1-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: dts: boneblack-wireless: add WL1835 Bluetooth
+ device node
+Date: Fri, 26 May 2017 08:48:23 -0700
+Message-ID: <20170526154822.GE3717@atomide.com>
+References: <1495464701-12046-1-git-send-email-ricardo.salveti@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170519204742.1563-1-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <1495464701-12046-1-git-send-email-ricardo.salveti@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ricardo Salveti <ricardo.salveti@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, robertcnelson@gmail.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [170519 13:51]:
-> Hi Tony,
-> 
-> This series enables the mailbox nodes to be used for communicating with
-> the DSPs and IPUs on AM57xx IDKs using IPC 3.x. The mailbox nodes themselves
-> were already defined/added before for other DRA7 boards, and these patches
-> simply enable the respective nodes for the IDKs.
-> 
-> Patches are based on 4.12-rc1 and are intended for the 4.13 merge
-> window.
+* Ricardo Salveti <ricardo.salveti@linaro.org> [170522 07:55]:
+> This adds the serial slave device for the WL1835 Bluetooth interface.
 
 Applying into omap-for-v4.13/dt thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
