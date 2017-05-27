@@ -1,410 +1,67 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 3/7] clocksource: Rename clocksource_probe
-Date: Sat, 27 May 2017 11:58:44 +0200
-Message-ID: <1495879129-28109-3-git-send-email-daniel.lezcano@linaro.org>
-References: <1495879129-28109-1-git-send-email-daniel.lezcano@linaro.org>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [CFT] Always enable SMP mode on MP capable CPUs
+Date: Sat, 27 May 2017 14:22:37 +0100
+Message-ID: <20170527132237.GX23750@n2100.armlinux.org.uk>
+References: <20170518105209.GN22219@n2100.armlinux.org.uk>
+ <CAOMZO5Da2R2_t2nU+MdrJiSzvcBQKS4pwYS96r4UyfGc8DtWww@mail.gmail.com>
+ <CAOMZO5Dc=i7UdQH=r5RRr_4GmyZZT+rh7BTNV4WbfqKvtVDfsw@mail.gmail.com>
+ <20170519171526.GW22219@n2100.armlinux.org.uk>
+ <20170524153847.GY10472@atomide.com>
+ <20170525144800.GV23750@n2100.armlinux.org.uk>
+ <20170525151103.GC10472@atomide.com>
+ <20170525180540.GW23750@n2100.armlinux.org.uk>
+ <20170525221332.GE10472@atomide.com>
+ <20170526112210.GA3354@afzalpc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1495879129-28109-1-git-send-email-daniel.lezcano@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-snps-arc>,
- <mailto:linux-snps-arc-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-snps-arc/>
-List-Post: <mailto:linux-snps-arc@lists.infradead.org>
-List-Help: <mailto:linux-snps-arc-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-snps-arc>,
- <mailto:linux-snps-arc-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-snps-arc" <linux-snps-arc-bounces@lists.infradead.org>
-Errors-To: linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org
-To: tglx@linutronix.de, daniel.lezcano@linaro.org
-Cc: "open list:MIPS" <linux-mips@linux-mips.org>, Kefeng Wang <wangkefeng.wang@huawei.com>, Rich Felker <dalias@libc.org>, Heiko Stuebner <heiko@sntech.de>, "open list:SUPERH" <linux-sh@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Will Deacon <will.deacon@arm.com>, "moderated list:NIOS2 ARCHITECTURE" <nios2-dev@lists.rocketboards.org>, Michal Simek <michal.simek@xilinx.com>, Max Filippov <jcmvbkbc@gmail.com>, Ray Jui <ray.jui@broadcom.com>, Icenowy Zheng <icenowy@aosc.xyz>, Andrea Gelmini <andrea.gelmini@gelma.net>, Rob Herring <robh@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Viresh Kumar <vireshk@kernel.org>, Magnus Damm <magnus.damm@gmail.com>, Russell King <linux@armlinux.org.uk>, "open list:ARM/Rockchip SoC support" <linux-rockchip@lists.infradead.org>, Chen-Yu
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20170526112210.GA3354@afzalpc>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: afzal mohammed <afzal.mohd.ma@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The function name is now renamed to 'timer_probe' for consistency with
-the CLOCKSOURCE_OF_DECLARE => TIMER_OF_DECLARE change.
+On Fri, May 26, 2017 at 04:52:10PM +0530, afzal mohammed wrote:
+> Hi,
+> 
+> On Thu, May 25, 2017 at 03:13:33PM -0700, Tony Lindgren wrote:
+> 
+> > OK so got my am437x-idk back
+> > 
+> > And as suspected it won't boot with these changes.
+> 
+> Tested here too with your additional changes included & seeing same
+> behavior here as well on AM437x.
+> 
+> As an aside, when Russell posted this patch a week back itself was
+> suspecting this. i had a certain view on AM437x w.r.t SMP issue back
+> while officially working on it & since now not officially involved
+> with the issue at hand, i was uncomfortable dealing with this. But as
+> Russell's patch was not noticed by others w.r.t AM437x, upon being
+> able to confirm it yesterday, i at least wanted to bring it to notice
+> & runaway from the scene.
 
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
----
- arch/arc/kernel/setup.c                  |  2 +-
- arch/arm/kernel/time.c                   |  2 +-
- arch/arm/mach-mediatek/mediatek.c        |  2 +-
- arch/arm/mach-omap2/timer.c              | 10 +++++-----
- arch/arm/mach-rockchip/rockchip.c        |  2 +-
- arch/arm/mach-shmobile/setup-rcar-gen2.c |  2 +-
- arch/arm/mach-spear/spear13xx.c          |  2 +-
- arch/arm/mach-sunxi/sunxi.c              |  2 +-
- arch/arm/mach-u300/core.c                |  2 +-
- arch/arm/mach-zynq/common.c              |  2 +-
- arch/arm64/kernel/time.c                 |  2 +-
- arch/h8300/kernel/setup.c                |  2 +-
- arch/microblaze/kernel/setup.c           |  2 +-
- arch/mips/generic/init.c                 |  2 +-
- arch/mips/mti-malta/malta-time.c         |  2 +-
- arch/mips/pic32/pic32mzda/time.c         |  2 +-
- arch/mips/pistachio/time.c               |  2 +-
- arch/mips/ralink/clk.c                   |  2 +-
- arch/mips/ralink/timer-gic.c             |  2 +-
- arch/mips/xilfpga/time.c                 |  2 +-
- arch/nios2/kernel/time.c                 |  2 +-
- arch/sh/boards/of-generic.c              |  2 +-
- arch/xtensa/kernel/time.c                |  2 +-
- drivers/clocksource/clksrc-probe.c       |  2 +-
- include/linux/clocksource.h              |  4 ++--
- 25 files changed, 30 insertions(+), 30 deletions(-)
+Right, so I think the summary is: the kernel can't set the SMP bit
+correctly - it doesn't have the information at this point in time
+to know definitively whether the bit needs to be set or not.
 
-diff --git a/arch/arc/kernel/setup.c b/arch/arc/kernel/setup.c
-index 3093fa8..5eabf75 100644
---- a/arch/arc/kernel/setup.c
-+++ b/arch/arc/kernel/setup.c
-@@ -457,7 +457,7 @@ void __init setup_arch(char **cmdline_p)
- void __init time_init(void)
- {
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- }
- 
- static int __init customize_machine(void)
-diff --git a/arch/arm/kernel/time.c b/arch/arm/kernel/time.c
-index 97b22fa..629f8e9 100644
---- a/arch/arm/kernel/time.c
-+++ b/arch/arm/kernel/time.c
-@@ -120,6 +120,6 @@ void __init time_init(void)
- #ifdef CONFIG_COMMON_CLK
- 		of_clk_init(NULL);
- #endif
--		clocksource_probe();
-+		timer_probe();
- 	}
- }
-diff --git a/arch/arm/mach-mediatek/mediatek.c b/arch/arm/mach-mediatek/mediatek.c
-index a6e3c98..c3cf215 100644
---- a/arch/arm/mach-mediatek/mediatek.c
-+++ b/arch/arm/mach-mediatek/mediatek.c
-@@ -41,7 +41,7 @@ static void __init mediatek_timer_init(void)
- 	}
- 
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- };
- 
- static const char * const mediatek_board_dt_compat[] = {
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 07dd692..ae4bb9f 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -497,7 +497,7 @@ void __init omap_init_time(void)
- 	__omap_sync32k_timer_init(1, "timer_32k_ck", "ti,timer-alwon",
- 			2, "timer_sys_ck", NULL, false);
- 
--	clocksource_probe();
-+	timer_probe();
- }
- 
- #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_AM43XX)
-@@ -506,7 +506,7 @@ void __init omap3_secure_sync32k_timer_init(void)
- 	__omap_sync32k_timer_init(12, "secure_32k_fck", "ti,timer-secure",
- 			2, "timer_sys_ck", NULL, false);
- 
--	clocksource_probe();
-+	timer_probe();
- }
- #endif /* CONFIG_ARCH_OMAP3 */
- 
-@@ -517,7 +517,7 @@ void __init omap3_gptimer_timer_init(void)
- 	__omap_sync32k_timer_init(2, "timer_sys_ck", NULL,
- 			1, "timer_sys_ck", "ti,timer-alwon", true);
- 	if (of_have_populated_dt())
--		clocksource_probe();
-+		timer_probe();
- }
- #endif
- 
-@@ -532,7 +532,7 @@ static void __init omap4_sync32k_timer_init(void)
- void __init omap4_local_timer_init(void)
- {
- 	omap4_sync32k_timer_init();
--	clocksource_probe();
-+	timer_probe();
- }
- #endif
- 
-@@ -656,7 +656,7 @@ void __init omap5_realtime_timer_init(void)
- 	omap4_sync32k_timer_init();
- 	realtime_counter_init();
- 
--	clocksource_probe();
-+	timer_probe();
- }
- #endif /* CONFIG_SOC_OMAP5 || CONFIG_SOC_DRA7XX */
- 
-diff --git a/arch/arm/mach-rockchip/rockchip.c b/arch/arm/mach-rockchip/rockchip.c
-index ef0500a..5ab834e 100644
---- a/arch/arm/mach-rockchip/rockchip.c
-+++ b/arch/arm/mach-rockchip/rockchip.c
-@@ -55,7 +55,7 @@ static void __init rockchip_timer_init(void)
- 	}
- 
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- }
- 
- static void __init rockchip_dt_init(void)
-diff --git a/arch/arm/mach-shmobile/setup-rcar-gen2.c b/arch/arm/mach-shmobile/setup-rcar-gen2.c
-index 52d466b..a6e74f4 100644
---- a/arch/arm/mach-shmobile/setup-rcar-gen2.c
-+++ b/arch/arm/mach-shmobile/setup-rcar-gen2.c
-@@ -113,7 +113,7 @@ void __init rcar_gen2_timer_init(void)
- #endif /* CONFIG_ARM_ARCH_TIMER */
- 
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- }
- 
- struct memory_reserve_config {
-diff --git a/arch/arm/mach-spear/spear13xx.c b/arch/arm/mach-spear/spear13xx.c
-index ca2f6a8..31c43ca 100644
---- a/arch/arm/mach-spear/spear13xx.c
-+++ b/arch/arm/mach-spear/spear13xx.c
-@@ -124,5 +124,5 @@ void __init spear13xx_timer_init(void)
- 	clk_put(pclk);
- 
- 	spear_setup_of_timer();
--	clocksource_probe();
-+	timer_probe();
- }
-diff --git a/arch/arm/mach-sunxi/sunxi.c b/arch/arm/mach-sunxi/sunxi.c
-index f44e3ac..7ab353f 100644
---- a/arch/arm/mach-sunxi/sunxi.c
-+++ b/arch/arm/mach-sunxi/sunxi.c
-@@ -42,7 +42,7 @@ static void __init sun6i_timer_init(void)
- 	of_clk_init(NULL);
- 	if (IS_ENABLED(CONFIG_RESET_CONTROLLER))
- 		sun6i_reset_init();
--	clocksource_probe();
-+	timer_probe();
- }
- 
- DT_MACHINE_START(SUN6I_DT, "Allwinner sun6i (A31) Family")
-diff --git a/arch/arm/mach-u300/core.c b/arch/arm/mach-u300/core.c
-index a4910ea..048f15e 100644
---- a/arch/arm/mach-u300/core.c
-+++ b/arch/arm/mach-u300/core.c
-@@ -407,7 +407,7 @@ static const char * u300_board_compat[] = {
- DT_MACHINE_START(U300_DT, "U300 S335/B335 (Device Tree)")
- 	.map_io		= u300_map_io,
- 	.init_irq	= u300_init_irq_dt,
--	.init_time	= clocksource_probe,
-+	.init_time	= timer_probe,
- 	.init_machine	= u300_init_machine_dt,
- 	.restart	= u300_restart,
- 	.dt_compat      = u300_board_compat,
-diff --git a/arch/arm/mach-zynq/common.c b/arch/arm/mach-zynq/common.c
-index ed11864..6aba9eb 100644
---- a/arch/arm/mach-zynq/common.c
-+++ b/arch/arm/mach-zynq/common.c
-@@ -150,7 +150,7 @@ static void __init zynq_timer_init(void)
- {
- 	zynq_clock_init();
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- }
- 
- static struct map_desc zynq_cortex_a9_scu_map __initdata = {
-diff --git a/arch/arm64/kernel/time.c b/arch/arm64/kernel/time.c
-index 5977969..da33c90 100644
---- a/arch/arm64/kernel/time.c
-+++ b/arch/arm64/kernel/time.c
-@@ -70,7 +70,7 @@ void __init time_init(void)
- 	u32 arch_timer_rate;
- 
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- 
- 	tick_setup_hrtimer_broadcast();
- 
-diff --git a/arch/h8300/kernel/setup.c b/arch/h8300/kernel/setup.c
-index c8c25a4..6be15d6 100644
---- a/arch/h8300/kernel/setup.c
-+++ b/arch/h8300/kernel/setup.c
-@@ -246,5 +246,5 @@ void __init calibrate_delay(void)
- void __init time_init(void)
- {
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- }
-diff --git a/arch/microblaze/kernel/setup.c b/arch/microblaze/kernel/setup.c
-index f31ebb5..be98ffe 100644
---- a/arch/microblaze/kernel/setup.c
-+++ b/arch/microblaze/kernel/setup.c
-@@ -192,7 +192,7 @@ void __init time_init(void)
- {
- 	of_clk_init(NULL);
- 	setup_cpuinfo_clk();
--	clocksource_probe();
-+	timer_probe();
- }
- 
- #ifdef CONFIG_DEBUG_FS
-diff --git a/arch/mips/generic/init.c b/arch/mips/generic/init.c
-index 4af6192..1231b5a 100644
---- a/arch/mips/generic/init.c
-+++ b/arch/mips/generic/init.c
-@@ -161,7 +161,7 @@ void __init plat_time_init(void)
- 		}
- 	}
- 
--	clocksource_probe();
-+	timer_probe();
- }
- 
- void __init arch_init_irq(void)
-diff --git a/arch/mips/mti-malta/malta-time.c b/arch/mips/mti-malta/malta-time.c
-index 289edcf..cea4ec9 100644
---- a/arch/mips/mti-malta/malta-time.c
-+++ b/arch/mips/mti-malta/malta-time.c
-@@ -265,7 +265,7 @@ void __init plat_time_init(void)
- 		       (freq%1000000)*100/1000000);
- #ifdef CONFIG_CLKSRC_MIPS_GIC
- 		update_gic_frequency_dt();
--		clocksource_probe();
-+		timer_probe();
- #endif
- 	}
- #endif
-diff --git a/arch/mips/pic32/pic32mzda/time.c b/arch/mips/pic32/pic32mzda/time.c
-index 62a0a78..1894e50 100644
---- a/arch/mips/pic32/pic32mzda/time.c
-+++ b/arch/mips/pic32/pic32mzda/time.c
-@@ -64,5 +64,5 @@ void __init plat_time_init(void)
- 	pr_info("CPU Clock: %ldMHz\n", rate / 1000000);
- 	mips_hpt_frequency = rate / 2;
- 
--	clocksource_probe();
-+	timer_probe();
- }
-diff --git a/arch/mips/pistachio/time.c b/arch/mips/pistachio/time.c
-index 1022201..17a0f1d 100644
---- a/arch/mips/pistachio/time.c
-+++ b/arch/mips/pistachio/time.c
-@@ -39,7 +39,7 @@ void __init plat_time_init(void)
- 	struct clk *clk;
- 
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- 
- 	np = of_get_cpu_node(0, NULL);
- 	if (!np) {
-diff --git a/arch/mips/ralink/clk.c b/arch/mips/ralink/clk.c
-index df79588..eb1c619 100644
---- a/arch/mips/ralink/clk.c
-+++ b/arch/mips/ralink/clk.c
-@@ -82,5 +82,5 @@ void __init plat_time_init(void)
- 	pr_info("CPU Clock: %ldMHz\n", clk_get_rate(clk) / 1000000);
- 	mips_hpt_frequency = clk_get_rate(clk) / 2;
- 	clk_put(clk);
--	clocksource_probe();
-+	timer_probe();
- }
-diff --git a/arch/mips/ralink/timer-gic.c b/arch/mips/ralink/timer-gic.c
-index 069771d..b5f07d2 100644
---- a/arch/mips/ralink/timer-gic.c
-+++ b/arch/mips/ralink/timer-gic.c
-@@ -20,5 +20,5 @@ void __init plat_time_init(void)
- 	ralink_of_remap();
- 
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- }
-diff --git a/arch/mips/xilfpga/time.c b/arch/mips/xilfpga/time.c
-index cbb3fca..36f3f18 100644
---- a/arch/mips/xilfpga/time.c
-+++ b/arch/mips/xilfpga/time.c
-@@ -22,7 +22,7 @@ void __init plat_time_init(void)
- 	struct clk *clk;
- 
- 	of_clk_init(NULL);
--	clocksource_probe();
-+	timer_probe();
- 
- 	np = of_get_cpu_node(0, NULL);
- 	if (!np) {
-diff --git a/arch/nios2/kernel/time.c b/arch/nios2/kernel/time.c
-index 2954b66..645129a 100644
---- a/arch/nios2/kernel/time.c
-+++ b/arch/nios2/kernel/time.c
-@@ -350,7 +350,7 @@ void __init time_init(void)
- 	if (count < 2)
- 		panic("%d timer is found, it needs 2 timers in system\n", count);
- 
--	clocksource_probe();
-+	timer_probe();
- }
- 
- TIMER_OF_DECLARE(nios2_timer, ALTR_TIMER_COMPATIBLE, nios2_time_init);
-diff --git a/arch/sh/boards/of-generic.c b/arch/sh/boards/of-generic.c
-index 1fb6d57..4feb7c8 100644
---- a/arch/sh/boards/of-generic.c
-+++ b/arch/sh/boards/of-generic.c
-@@ -119,7 +119,7 @@ static void __init sh_of_mem_reserve(void)
- static void __init sh_of_time_init(void)
- {
- 	pr_info("SH generic board support: scanning for clocksource devices\n");
--	clocksource_probe();
-+	timer_probe();
- }
- 
- static void __init sh_of_setup(char **cmdline_p)
-diff --git a/arch/xtensa/kernel/time.c b/arch/xtensa/kernel/time.c
-index 668c105..fd524a5 100644
---- a/arch/xtensa/kernel/time.c
-+++ b/arch/xtensa/kernel/time.c
-@@ -187,7 +187,7 @@ void __init time_init(void)
- 	local_timer_setup(0);
- 	setup_irq(this_cpu_ptr(&ccount_timer)->evt.irq, &timer_irqaction);
- 	sched_clock_register(ccount_sched_clock_read, 32, ccount_freq);
--	clocksource_probe();
-+	timer_probe();
- }
- 
- /*
-diff --git a/drivers/clocksource/clksrc-probe.c b/drivers/clocksource/clksrc-probe.c
-index ac701ff..5d549c2 100644
---- a/drivers/clocksource/clksrc-probe.c
-+++ b/drivers/clocksource/clksrc-probe.c
-@@ -24,7 +24,7 @@ extern struct of_device_id __clksrc_of_table[];
- static const struct of_device_id __clksrc_of_table_sentinel
- 	__used __section(__clksrc_of_table_end);
- 
--void __init clocksource_probe(void)
-+void __init timer_probe(void)
- {
- 	struct device_node *np;
- 	const struct of_device_id *match;
-diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
-index a86b65f..010bb9f 100644
---- a/include/linux/clocksource.h
-+++ b/include/linux/clocksource.h
-@@ -253,9 +253,9 @@ extern int clocksource_i8253_init(void);
- 	OF_DECLARE_1_RET(clksrc, name, compat, fn)
- 
- #ifdef CONFIG_CLKSRC_PROBE
--extern void clocksource_probe(void);
-+extern void timer_probe(void);
- #else
--static inline void clocksource_probe(void) {}
-+static inline void timer_probe(void) {}
- #endif
- 
- #define CLOCKSOURCE_ACPI_DECLARE(name, table_id, fn)		\
+So, those who are suffering issues with their SMP cores in uniprocessor
+systems need to ensure that their boot loader correctly configures the
+CPU cores.
+
+Thanks for testing.
+
 -- 
-2.7.4
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
