@@ -1,67 +1,36 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [CFT] Always enable SMP mode on MP capable CPUs
-Date: Sat, 27 May 2017 14:22:37 +0100
-Message-ID: <20170527132237.GX23750@n2100.armlinux.org.uk>
-References: <20170518105209.GN22219@n2100.armlinux.org.uk>
- <CAOMZO5Da2R2_t2nU+MdrJiSzvcBQKS4pwYS96r4UyfGc8DtWww@mail.gmail.com>
- <CAOMZO5Dc=i7UdQH=r5RRr_4GmyZZT+rh7BTNV4WbfqKvtVDfsw@mail.gmail.com>
- <20170519171526.GW22219@n2100.armlinux.org.uk>
- <20170524153847.GY10472@atomide.com>
- <20170525144800.GV23750@n2100.armlinux.org.uk>
- <20170525151103.GC10472@atomide.com>
- <20170525180540.GW23750@n2100.armlinux.org.uk>
- <20170525221332.GE10472@atomide.com>
- <20170526112210.GA3354@afzalpc>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 3/7] clocksource: Rename clocksource_probe
+Date: Sun, 28 May 2017 15:49:38 +0200
+Message-ID: <CACRpkdZGUkcpE97cQ6a=tk-UZZf6j4MwRh+xq9L0LzuaGNaUKQ@mail.gmail.com>
+References: <1495879129-28109-1-git-send-email-daniel.lezcano@linaro.org>
+ <1495879129-28109-3-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20170526112210.GA3354@afzalpc>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: afzal mohammed <afzal.mohd.ma@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Fabio Estevam <festevam@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@kernel.org>
+Return-path: <linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1495879129-28109-3-git-send-email-daniel.lezcano@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-snps-arc/>
+List-Post: <mailto:linux-snps-arc@lists.infradead.org>
+List-Help: <mailto:linux-snps-arc-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-snps-arc" <linux-snps-arc-bounces@lists.infradead.org>
+Errors-To: linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: "open list:MIPS" <linux-mips@linux-mips.org>, Kefeng Wang <wangkefeng.wang@huawei.com>, Rich Felker <dalias@libc.org>, Heiko Stuebner <heiko@sntech.de>, "open list:SUPERH" <linux-sh@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "moderated list:NIOS2 ARCHITECTURE" <nios2-dev@lists.rocketboards.org>, Russell King <linux@armlinux.org.uk>, Max Filippov <jcmvbkbc@gmail.com>, Ray Jui <ray.jui@broadcom.com>, Icenowy Zheng <icenowy@aosc.xyz>, Andrea Gelmini <andrea.gelmini@gelma.net>, Rob Herring <robh@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Viresh Kumar <vireshk@kernel.org>, Magnus Damm <magnus.damm@gmail.com>, Michal Simek <michal.simek@xilinx.com>, "open list:ARM/Rockchip SoC support" <linux-rockchip@lists.infradead.org>, Chen-Yu Tsai <wens@csie.org>, Noam Camus <noamc@ezchip>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 26, 2017 at 04:52:10PM +0530, afzal mohammed wrote:
-> Hi,
-> 
-> On Thu, May 25, 2017 at 03:13:33PM -0700, Tony Lindgren wrote:
-> 
-> > OK so got my am437x-idk back
-> > 
-> > And as suspected it won't boot with these changes.
-> 
-> Tested here too with your additional changes included & seeing same
-> behavior here as well on AM437x.
-> 
-> As an aside, when Russell posted this patch a week back itself was
-> suspecting this. i had a certain view on AM437x w.r.t SMP issue back
-> while officially working on it & since now not officially involved
-> with the issue at hand, i was uncomfortable dealing with this. But as
-> Russell's patch was not noticed by others w.r.t AM437x, upon being
-> able to confirm it yesterday, i at least wanted to bring it to notice
-> & runaway from the scene.
+On Sat, May 27, 2017 at 11:58 AM, Daniel Lezcano
+<daniel.lezcano@linaro.org> wrote:
 
-Right, so I think the summary is: the kernel can't set the SMP bit
-correctly - it doesn't have the information at this point in time
-to know definitively whether the bit needs to be set or not.
+> The function name is now renamed to 'timer_probe' for consistency with
+> the CLOCKSOURCE_OF_DECLARE => TIMER_OF_DECLARE change.
+>
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-So, those who are suffering issues with their SMP cores in uniprocessor
-systems need to ensure that their boot loader correctly configures the
-CPU cores.
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-Thanks for testing.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Yours,
+Linus Walleij
