@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3b 4/5] ARM: OMAP4: cminst: add support for clkdm_xlate_address
-Date: Tue, 30 May 2017 17:47:48 +0300
-Message-ID: <1496155669-1677-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv3b 3/5] ARM: omap2+: clockdomain: add clkdm_xlate_address
+Date: Tue, 30 May 2017 17:47:47 +0300
+Message-ID: <1496155669-1677-4-git-send-email-t-kristo@ti.com>
 References: <1496155669-1677-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,55 +21,54 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This function gets the physical base address of a clockdomain.
+This new function can be used to get the physical address of a
+clockdomain. Required for mapping the clkctrl clocks under hwmod
+without modification to DT data.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/cminst44xx.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm/mach-omap2/clockdomain.c | 8 ++++++++
+ arch/arm/mach-omap2/clockdomain.h | 2 ++
+ 2 files changed, 10 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 2ab27ad..3df268e 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -31,6 +31,7 @@
- #include "prm44xx.h"
- #include "prcm_mpu44xx.h"
- #include "prcm-common.h"
-+#include "iomap.h"
- 
- #define OMAP4430_IDLEST_SHIFT		16
- #define OMAP4430_IDLEST_MASK		(0x3 << 16)
-@@ -475,6 +476,14 @@ static int omap4_clkdm_clk_disable(struct clockdomain *clkdm)
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index b79b1ca..5189264 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -1224,6 +1224,14 @@ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
  	return 0;
  }
  
-+static u32 omap4_clkdm_xlate_address(struct clockdomain *clkdm)
++u32 clkdm_xlate_address(struct clockdomain *clkdm)
 +{
-+	u32 addr = (u32)_cm_bases[clkdm->prcm_partition] - OMAP2_L4_IO_OFFSET +
-+		clkdm->cm_inst + clkdm->clkdm_offs;
++	if (arch_clkdm->clkdm_xlate_address)
++		return arch_clkdm->clkdm_xlate_address(clkdm);
 +
-+	return addr;
++	return 0;
 +}
 +
- struct clkdm_ops omap4_clkdm_operations = {
- 	.clkdm_add_wkdep	= omap4_clkdm_add_wkup_sleep_dep,
- 	.clkdm_del_wkdep	= omap4_clkdm_del_wkup_sleep_dep,
-@@ -490,6 +499,7 @@ struct clkdm_ops omap4_clkdm_operations = {
- 	.clkdm_deny_idle	= omap4_clkdm_deny_idle,
- 	.clkdm_clk_enable	= omap4_clkdm_clk_enable,
- 	.clkdm_clk_disable	= omap4_clkdm_clk_disable,
-+	.clkdm_xlate_address	= omap4_clkdm_xlate_address,
+ /**
+  * clkdm_hwmod_enable - add an enabled downstream hwmod to this clkdm
+  * @clkdm: struct clockdomain *
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 24667a5..827f01e 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -175,6 +175,7 @@ struct clkdm_ops {
+ 	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
+ 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
+ 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
++	u32	(*clkdm_xlate_address)(struct clockdomain *clkdm);
  };
  
- struct clkdm_ops am43xx_clkdm_operations = {
-@@ -499,6 +509,7 @@ struct clkdm_ops am43xx_clkdm_operations = {
- 	.clkdm_deny_idle	= omap4_clkdm_deny_idle,
- 	.clkdm_clk_enable	= omap4_clkdm_clk_enable,
- 	.clkdm_clk_disable	= omap4_clkdm_clk_disable,
-+	.clkdm_xlate_address	= omap4_clkdm_xlate_address,
- };
+ int clkdm_register_platform_funcs(struct clkdm_ops *co);
+@@ -213,6 +214,7 @@ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
+ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
+ int clkdm_hwmod_enable(struct clockdomain *clkdm, struct omap_hwmod *oh);
+ int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh);
++u32 clkdm_xlate_address(struct clockdomain *clkdm);
  
- static struct cm_ll_data omap4xxx_cm_ll_data = {
+ extern void __init omap242x_clockdomains_init(void);
+ extern void __init omap243x_clockdomains_init(void);
 -- 
 1.9.1
