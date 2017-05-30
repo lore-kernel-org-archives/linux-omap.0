@@ -1,63 +1,517 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4] usb: musb: musb_cppi41: Defer probe only if DMA is
- not ready
-Date: Tue, 30 May 2017 10:54:11 -0500
-Message-ID: <20170530155411.GB12478@uda0271908>
-References: <20170519142035.8341-1-abailon@baylibre.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170519142035.8341-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ARM: dts: Add am335x-boneblue
+Date: Tue, 30 May 2017 11:20:23 -0500
+Message-ID: <20170530162023.20391-1-robertcnelson@gmail.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Drew Fustini <drew-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, May 19, 2017 at 04:20:35PM +0200, Alexandre Bailon wrote:
-> If dma_request_slave_channel() failed to return a channel,
-> then the driver will print an error and request to defer probe,
-> regardless of the cause of the failure.
-> Defer if the DMA is not ready yet otherwise print an error.
-> 
-> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+BeagleBone Blue is robotics-oriented version of the BeagleBone Black (BBB).
 
-Applied. Thanks.
--Bin.
+This board can be indentified by the BLAx value after A335BNLT (BBB)
+in the at24 eeprom:
+BLAx [aa 55 33 ee 41 33 33 35  42 4e 4c 54 42 4c 41 30 |.U3.A335BNLTBLA2|]
 
-> ---
->  drivers/usb/musb/musb_cppi41.c | 11 +++++++----
->  1 file changed, 7 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-> index e7c8b1b..ba25528 100644
-> --- a/drivers/usb/musb/musb_cppi41.c
-> +++ b/drivers/usb/musb/musb_cppi41.c
-> @@ -673,12 +673,15 @@ static int cppi41_dma_controller_start(struct cppi41_dma_controller *controller)
->  		musb_dma->status = MUSB_DMA_STATUS_FREE;
->  		musb_dma->max_len = SZ_4M;
->  
-> -		dc = dma_request_slave_channel(dev->parent, str);
-> -		if (!dc) {
-> -			dev_err(dev, "Failed to request %s.\n", str);
-> -			ret = -EPROBE_DEFER;
-> +		dc = dma_request_chan(dev->parent, str);
-> +		if (IS_ERR(dc)) {
-> +			ret = PTR_ERR(dc);
-> +			if (ret != -EPROBE_DEFER)
-> +				dev_err(dev, "Failed to request %s: %d.\n",
-> +					str, ret);
->  			goto err;
->  		}
-> +
->  		cppi41_channel->dc = dc;
->  	}
->  	return 0;
-> -- 
-> 2.10.2
-> 
+http://beagleboard.org/blue
+https://github.com/beagleboard/beaglebone-blue
+
+firmware: https://github.com/beagleboard/beaglebone-black-wireless/tree/master/firmware
+wl18xx mac address: /proc/device-tree/ocp/ethernet@4a100000/slave@4a100200/mac-address
+
+Signed-off-by: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+CC: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
+CC: Drew Fustini <drew-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
+---
+ arch/arm/boot/dts/Makefile            |   1 +
+ arch/arm/boot/dts/am335x-boneblue.dts | 460 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 461 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-boneblue.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 3bd29feb8298..2ff82a5e92ee 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -608,6 +608,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-bone.dtb \
+ 	am335x-boneblack.dtb \
+ 	am335x-boneblack-wireless.dtb \
++	am335x-boneblue.dtb \
+ 	am335x-bonegreen.dtb \
+ 	am335x-bonegreen-wireless.dtb \
+ 	am335x-chiliboard.dtb \
+diff --git a/arch/arm/boot/dts/am335x-boneblue.dts b/arch/arm/boot/dts/am335x-boneblue.dts
+new file mode 100644
+index 000000000000..d4f15771055c
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-boneblue.dts
+@@ -0,0 +1,460 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am33xx.dtsi"
++#include <dt-bindings/interrupt-controller/irq.h>
++
++/ {
++	model = "TI AM335x BeagleBone Blue";
++	compatible = "ti,am335x-bone-blue", "ti,am33xx";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&dcdc2_reg>;
++		};
++	};
++
++	memory@80000000 {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++
++	chosen {
++		stdout-path = &uart0;
++	};
++
++	leds {
++		pinctrl-names = "default";
++		pinctrl-0 = <&user_leds_s0>;
++
++		compatible = "gpio-leds";
++
++		usr_0_led {
++			label = "beaglebone:green:usr0";
++			gpios = <&gpio1 21 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "heartbeat";
++			default-state = "off";
++		};
++
++		usr_1_led {
++			label = "beaglebone:green:usr1";
++			gpios = <&gpio1 22 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "mmc0";
++			default-state = "off";
++		};
++
++		usr_2_led {
++			label = "beaglebone:green:usr2";
++			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "cpu0";
++			default-state = "off";
++		};
++
++		usr_3_led {
++			label = "beaglebone:green:usr3";
++			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "mmc1";
++			default-state = "off";
++		};
++
++		wifi_led {
++			label = "wifi";
++			gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++			linux,default-trigger = "phy0assoc";
++		};
++
++		red_led {
++			label = "red";
++			gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++
++		green_led {
++			label = "green";
++			gpios = <&gpio2 3 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++
++		batt_1_led {
++			label = "bat25";
++			gpios = <&gpio0 27 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++
++		batt_2_led {
++			label = "bat50";
++			gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++
++		batt_3_led {
++			label = "bat75";
++			gpios = <&gpio1 29 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++
++		batt_4_led {
++			label = "bat100";
++			gpios = <&gpio0 26 GPIO_ACTIVE_HIGH>;
++			default-state = "off";
++		};
++	};
++
++	vmmcsd_fixed: fixedregulator0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcsd_fixed";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
++
++	wlan_en_reg: fixedregulator@2 {
++		compatible = "regulator-fixed";
++		regulator-name = "wlan-en-regulator";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		startup-delay-us= <70000>;
++
++		/* WL_EN */
++		gpio = <&gpio3 9 0>;
++		enable-active-high;
++	};
++};
++
++&am33xx_pinmux {
++	user_leds_s0: user_leds_s0 {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x854, PIN_OUTPUT | MUX_MODE7) /* (V15) gpmc_a5.gpio1[21] - USR_LED_0 */
++			AM33XX_IOPAD(0x858, PIN_OUTPUT | MUX_MODE7) /* (U15) gpmc_a6.gpio1[22] - USR_LED_1 */
++			AM33XX_IOPAD(0x85c, PIN_OUTPUT | MUX_MODE7) /* (T15) gpmc_a7.gpio1[23] - USR_LED_2 */
++			AM33XX_IOPAD(0x860, PIN_OUTPUT | MUX_MODE7) /* (V16) gpmc_a8.gpio1[24] - USR_LED_3 */
++			AM33XX_IOPAD(0x9b0, PIN_OUTPUT | MUX_MODE7) /* (A15) xdma_event_intr0.gpio0[19] - WIFI_LED */
++			AM33XX_IOPAD(0x890, PIN_OUTPUT | MUX_MODE7) /* (R7) gpmc_advn_ale.gpio2[2] - P8.7, LED_RED, GP1_PIN_5 */
++			AM33XX_IOPAD(0x894, PIN_OUTPUT | MUX_MODE7) /* (T7) gpmc_oen_ren.gpio2[3] - P8.8, LED_GREEN, GP1_PIN_6 */
++			AM33XX_IOPAD(0x82c, PIN_OUTPUT | MUX_MODE7) /* (U12) gpmc_ad11.gpio0[27] - P8.17, BATT_LED_1 */
++			AM33XX_IOPAD(0x8dc, PIN_OUTPUT | MUX_MODE7) /* (T5) lcd_data15.gpio0[11] - P8.32, BATT_LED_2 */
++			AM33XX_IOPAD(0x87c, PIN_OUTPUT | MUX_MODE7) /* (V6) gpmc_csn0.gpio1[29] - P8.26, BATT_LED_3 */
++			AM33XX_IOPAD(0x828, PIN_OUTPUT | MUX_MODE7) /* (T11) gpmc_ad10.gpio0[26] - P8.14, BATT_LED_4 */
++
++		>;
++	};
++
++	i2c0_pins: pinmux_i2c0_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x988, PIN_INPUT_PULLUP | MUX_MODE0)	/* (C17) I2C0_SDA.I2C0_SDA */
++			AM33XX_IOPAD(0x98c, PIN_INPUT_PULLUP | MUX_MODE0)	/* (C16) I2C0_SCL.I2C0_SCL */
++		>;
++	};
++
++	i2c2_pins: pinmux_i2c2_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x978, PIN_INPUT_PULLUP | MUX_MODE3)	/* (D18) uart1_ctsn.I2C2_SDA */
++			AM33XX_IOPAD(0x97c, PIN_INPUT_PULLUP | MUX_MODE3)	/* (D17) uart1_rtsn.I2C2_SCL */
++		>;
++	};
++
++	uart0_pins: pinmux_uart0_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x970, PIN_INPUT_PULLUP | MUX_MODE0)	/* (E15) uart0_rxd.uart0_rxd */
++			AM33XX_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* (E16) uart0_txd.uart0_txd */
++		>;
++	};
++
++	mmc1_pins: pinmux_mmc1_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x960, PIN_INPUT | MUX_MODE7)		/* (C15) spi0_cs1.gpio0[6] */
++		>;
++	};
++
++	mmc2_pins: pinmux_mmc2_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x880, PIN_INPUT_PULLUP | MUX_MODE2)	/* (U9) gpmc_csn1.mmc1_clk */
++			AM33XX_IOPAD(0x884, PIN_INPUT_PULLUP | MUX_MODE2)	/* (V9) gpmc_csn2.mmc1_cmd */
++			AM33XX_IOPAD(0x800, PIN_INPUT_PULLUP | MUX_MODE1)	/* (U7) gpmc_ad0.mmc1_dat0 */
++			AM33XX_IOPAD(0x804, PIN_INPUT_PULLUP | MUX_MODE1)	/* (V7) gpmc_ad1.mmc1_dat1 */
++			AM33XX_IOPAD(0x808, PIN_INPUT_PULLUP | MUX_MODE1)	/* (R8) gpmc_ad2.mmc1_dat2 */
++			AM33XX_IOPAD(0x80c, PIN_INPUT_PULLUP | MUX_MODE1)	/* (T8) gpmc_ad3.mmc1_dat3 */
++			AM33XX_IOPAD(0x810, PIN_INPUT_PULLUP | MUX_MODE1)	/* (U8) gpmc_ad4.mmc1_dat4 */
++			AM33XX_IOPAD(0x814, PIN_INPUT_PULLUP | MUX_MODE1)	/* (V8) gpmc_ad5.mmc1_dat5 */
++			AM33XX_IOPAD(0x818, PIN_INPUT_PULLUP | MUX_MODE1)	/* (R9) gpmc_ad6.mmc1_dat6 */
++			AM33XX_IOPAD(0x81c, PIN_INPUT_PULLUP | MUX_MODE1)	/* (T9) gpmc_ad7.mmc1_dat7 */
++		>;
++	};
++
++	mmc3_pins: pinmux_mmc3_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x93c, PIN_INPUT_PULLUP | MUX_MODE6)	/* (L15) gmii1_rxd1.mmc2_clk */
++			AM33XX_IOPAD(0x914, PIN_INPUT_PULLUP | MUX_MODE6)	/* (J16) gmii1_txen.mmc2_cmd */
++			AM33XX_IOPAD(0x918, PIN_INPUT_PULLUP | MUX_MODE5)	/* (J17) gmii1_rxdv.mmc2_dat0 */
++			AM33XX_IOPAD(0x91c, PIN_INPUT_PULLUP | MUX_MODE5)	/* (J18) gmii1_txd3.mmc2_dat1 */
++			AM33XX_IOPAD(0x920, PIN_INPUT_PULLUP | MUX_MODE5)	/* (K15) gmii1_txd2.mmc2_dat2 */
++			AM33XX_IOPAD(0x908, PIN_INPUT_PULLUP | MUX_MODE5)	/* (H16) gmii1_col.mmc2_dat3 */
++		>;
++	};
++
++	bt_pins: pinmux_bt_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x928, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* (K17) gmii1_txd0.gpio0[28] - BT_EN */
++		>;
++	};
++
++	uart3_pins: pinmux_uart3_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x934, PIN_INPUT_PULLUP | MUX_MODE1)	/* (L17) gmii1_rxd3.uart3_rxd */
++			AM33XX_IOPAD(0x938, PIN_OUTPUT_PULLDOWN | MUX_MODE1)	/* (L16) gmii1_rxd2.uart3_txd */
++			AM33XX_IOPAD(0x948, PIN_INPUT | MUX_MODE3)		/* (M17) mdio_data.uart3_ctsn */
++			AM33XX_IOPAD(0x94c, PIN_OUTPUT_PULLDOWN | MUX_MODE3)	/* (M18) mdio_clk.uart3_rtsn */
++		>;
++	};
++
++	wl18xx_pins: pinmux_wl18xx_pins {
++		pinctrl-single,pins = <
++			AM33XX_IOPAD(0x92c, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* (K18) gmii1_txclk.gpio3[9] - WL_EN */
++			AM33XX_IOPAD(0x944, PIN_INPUT_PULLDOWN | MUX_MODE7)	/* (H18) rmii1_refclk.gpio0[29] - WL_IRQ */
++			AM33XX_IOPAD(0x930, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* (L18) gmii1_rxclk.gpio3[10] - LS_BUF_EN */
++		>;
++	};
++};
++
++&uart0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart0_pins>;
++
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&usb1_phy {
++	status = "okay";
++};
++
++&usb0 {
++	status = "okay";
++	dr_mode = "peripheral";
++	interrupts-extended = <&intc 18 &tps 0>;
++	interrupt-names = "mc", "vbus";
++};
++
++&usb1 {
++	status = "okay";
++	dr_mode = "host";
++};
++
++&cppi41dma  {
++	status = "okay";
++};
++
++&i2c0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
++
++	status = "okay";
++	clock-frequency = <400000>;
++
++	tps: tps@24 {
++		reg = <0x24>;
++	};
++
++	baseboard_eeprom: baseboard_eeprom@50 {
++		compatible = "at,24c256";
++		reg = <0x50>;
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++		baseboard_data: baseboard_data@0 {
++			reg = <0 0x100>;
++		};
++	};
++};
++
++&i2c2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
++	status = "okay";
++	clock-frequency = <400000>;
++
++	mpu9250@68 {
++		compatible = "invensense,mpu9250";
++		reg = <0x68>;
++		interrupt-parent = <&gpio3>;
++		interrupts = <21 GPIO_ACTIVE_LOW>;
++		i2c-gate {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ax8975@c {
++				compatible = "ak,ak8975";
++				reg = <0x0c>;
++			};
++		};
++	};
++
++	pressure@76 {
++		compatible = "bosch,bmp280";
++		reg = <0x76>;
++	};
++};
++
++/include/ "tps65217.dtsi"
++
++&tps {
++	interrupts = <7>; /* NMI */
++	interrupt-parent = <&intc>;
++
++	charger {
++		interrupts = <0>, <1>;
++		interrupt-names = "USB", "AC";
++		status = "okay";
++	};
++
++	pwrbutton {
++		interrupts = <2>;
++		status = "okay";
++	};
++
++	regulators {
++		dcdc1_reg: regulator@0 {
++			regulator-name = "vdds_dpr";
++			regulator-always-on;
++		};
++
++		dcdc2_reg: regulator@1 {
++			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
++			regulator-name = "vdd_mpu";
++			regulator-min-microvolt = <925000>;
++			regulator-max-microvolt = <1351500>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		dcdc3_reg: regulator@2 {
++			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
++			regulator-name = "vdd_core";
++			regulator-min-microvolt = <925000>;
++			regulator-max-microvolt = <1150000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		ldo1_reg: regulator@3 {
++			regulator-name = "vio,vrtc,vdds";
++			regulator-always-on;
++		};
++
++		ldo2_reg: regulator@4 {
++			regulator-name = "vdd_3v3aux";
++			regulator-always-on;
++		};
++
++		ldo3_reg: regulator@5 {
++			regulator-name = "vdd_1v8";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <1800000>;
++			regulator-always-on;
++		};
++
++		ldo4_reg: regulator@6 {
++			regulator-name = "vdd_3v3a";
++			regulator-always-on;
++		};
++	};
++};
++
++&mmc1 {
++	status = "okay";
++	vmmc-supply = <&vmmcsd_fixed>;
++	bus-width = <4>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc1_pins>;
++	cd-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
++};
++
++&mmc2 {
++	status = "okay";
++	vmmc-supply = <&vmmcsd_fixed>;
++	bus-width = <8>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc2_pins>;
++};
++
++&mmc3 {
++	dmas = <&edma_xbar 12 0 1
++		&edma_xbar 13 0 2>;
++	dma-names = "tx", "rx";
++	status = "okay";
++	vmmc-supply = <&wlan_en_reg>;
++	bus-width = <4>;
++	non-removable;
++	cap-power-off-card;
++	ti,needs-special-hs-handling;
++	keep-power-in-suspend;
++	pinctrl-names = "default";
++	pinctrl-0 = <&mmc3_pins &wl18xx_pins>;
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++	wlcore: wlcore@2 {
++		compatible = "ti,wl1835";
++		reg = <2>;
++		interrupt-parent = <&gpio0>;
++		interrupts = <29 IRQ_TYPE_EDGE_RISING>;
++	};
++};
++
++&tscadc {
++	status = "okay";
++	adc {
++		ti,adc-channels = <0 1 2 3 4 5 6 7>;
++	};
++};
++
++&uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart3_pins &bt_pins>;
++	status = "okay";
++
++	bluetooth {
++		compatible = "ti,wl1835-st";
++		enable-gpios = <&gpio0 28 GPIO_ACTIVE_HIGH>;
++	};
++};
++
++&aes {
++	status = "okay";
++};
++
++&sham {
++	status = "okay";
++};
++
++&rtc {
++	system-power-controller;
++	clocks = <&clk_32768_ck>, <&clkdiv32k_ick>;
++	clock-names = "ext-clk", "int-clk";
++};
++
++&gpio3 {
++	ls_buf_en {
++		gpio-hog;
++		gpios = <10 GPIO_ACTIVE_HIGH>;
++		output-high;
++		line-name = "LS_BUF_EN";
++	};
++};
+-- 
+2.11.0
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
