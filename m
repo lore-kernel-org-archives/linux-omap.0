@@ -1,16 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3b 5/5] ARM: OMAP2+: hwmod: populate clkctrl clocks for
- hwmods if available
-Date: Tue, 30 May 2017 11:15:17 -0700
-Message-ID: <20170530181516.GB3730@atomide.com>
+Subject: Re: [PATCHv3b 0/5] ARM: OMAP2+: preparation for clk/clkctrl support
+Date: Tue, 30 May 2017 11:16:18 -0700
+Message-ID: <20170530181618.GC3730@atomide.com>
 References: <1496155669-1677-1-git-send-email-t-kristo@ti.com>
- <1496155669-1677-6-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1496155669-1677-6-git-send-email-t-kristo@ti.com>
+In-Reply-To: <1496155669-1677-1-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,58 +22,21 @@ To: Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [170530 07:52]:
-> If clkctrl clocks are available on a device, populate these automatically
-> to replace hwmod main_clk info. First, the patch parses all "ti,clkctrl"
-> compatible nodes and maps these against existing clockdomain data. Once
-> done, individual hwmod init routines can search for a clkctrl clock
-> handle based on the clockdomain info and the created mapping.
-...
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->  /**
->   * _init_main_clk - get a struct clk * for the the hwmod's main functional clk
->   * @oh: struct omap_hwmod *
-> + * @np: device node mapped to this hwmod
->   *
->   * Called from _init_clocks().  Populates the @oh _clk (main
->   * functional clock pointer) if a clock matching the hwmod name is found,
->   * or a main_clk is present.  Returns 0 on success or -EINVAL on error.
->   */
-> -static int _init_main_clk(struct omap_hwmod *oh)
-> +static int _init_main_clk(struct omap_hwmod *oh, struct device_node *np)
->  {
->  	int ret = 0;
-> -	char name[MOD_CLK_MAX_NAME_LEN];
-> -	struct clk *clk;
-> -	static const char modck[] = "_mod_ck";
-> +	struct clk *clk = NULL;
->  
-> -	if (strlen(oh->name) >= MOD_CLK_MAX_NAME_LEN - strlen(modck))
-> -		pr_warn("%s: warning: cropping name for %s\n", __func__,
-> -			oh->name);
-> -
-> -	strlcpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - strlen(modck));
-> -	strlcat(name, modck, MOD_CLK_MAX_NAME_LEN);
-> +	if (np) {
-> +		clk = _lookup_clkctrl_clk(oh, np);
-> +
-> +		if (!IS_ERR_OR_NULL(clk)) {
-> +			pr_debug("%s: mapped main_clk %s for %s\n", __func__,
-> +				 __clk_get_name(clk), oh->name);
-> +			oh->main_clk = __clk_get_name(clk);
-> +			oh->_clk = clk;
-> +			soc_ops.disable_direct_prcm(oh);
-> +		}
-> +	}
-
-Shouldn't we just parse all "ti,clkctrl" matches to
-a list, then match against that list?
-
-Again I'm worried that the "struct device_node *np"
-here won't really map to struct omap_hwmod but to one of
-the child devices. Or what is the np here?
-
-Regards,
-
-Tony
+KiBUZXJvIEtyaXN0byA8dC1rcmlzdG9AdGkuY29tPiBbMTcwNTMwIDA3OjUxXToKPiBIaSwKPiAK
+PiBUaGlzIGlzIGFuIGFsdGVybmF0aXZlIHNvbHV0aW9uIGFnYWluc3QgdjMgWzFdIG9mIHRoaXMg
+c2VyaWVzLgo+IAo+IFsxXcKgaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvYXJtLWtlcm5l
+bC9tc2c1ODE5NjUuaHRtbAo+IAo+IFRoaXMgc2VyaWVzIGlzIGRpZmZlcmVudCBpbiB0aGF0IGl0
+IHBhcnNlcyB0aGUgaHdtb2QgZGF0YSBpbiB0aGUgZmx5Cj4gYW5kIHN3YXBzIHRoZSBtYWluX2Ns
+ayBpbmZvIHdpdGggY2xrY3RybCBpbXBsZW1lbnRhdGlvbnMgaWYgdGhvc2UKPiBhcmUgcHJlc2Vu
+dC4gUGF0Y2ggIzEgLyAjMiBhcmUgb2xkIGZyb20gdjMgb2YgdGhlIHNlcmllcywgcmVzdCBhcmUK
+PiBuZXcuIFBhdGNoZXMgIzMgLyAjNCBhZGQgc29tZSBpbmZyYXN0cnVjdHVyZSBzdXBwb3J0IGZv
+ciBwYXJzaW5nCj4gdGhlIGNsb2NrIGRhdGEsIGFuZCBwYXRjaCAjNSBkb2VzIHRoZSBjbG9jayBz
+d2FwcGluZy4KPiAKPiBXaXRoIHRoaXMgc2VyaWVzLCBpdCBpcyBub3QgbmVjZXNzYXJ5IHRvIHBv
+cHVsYXRlIGNsa2N0cmwgY2xvY2sKPiBlbnRyaWVzIHRvIERUIGF0IGFsbCwgdGh1cyB0aGUgdHJh
+bnNpdGlvbiBzaG91bGQgYmUgc21vb3RoZXIuCgpZZWFoIE9LIEkgdGhpbmsgdGhpcyBpcyB0aGUg
+d2F5IHRvIGdvIHRvIGF2b2lkIGNoYW5naW5nCmRldmljZSB0cmVlIG11bHRpcGxlIHRpbWVzLiBU
+aGUgb25seSBpc3N1ZXMgSSBoYXZlIGFyZQpmb3IgcGF0Y2hlcyA0IGFuZCA1IHRoYXQgSSBhbHJl
+YWR5IGNvbW1lbnRlZCBvbiB0aGVyZS4KClJlZ2FyZHMsCgpUb255CgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcg
+bGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmlu
+ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
