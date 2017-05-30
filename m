@@ -1,285 +1,123 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3b 5/5] ARM: OMAP2+: hwmod: populate clkctrl clocks for hwmods
- if available
-Date: Tue, 30 May 2017 17:47:49 +0300
-Message-ID: <1496155669-1677-6-git-send-email-t-kristo@ti.com>
-References: <1496155669-1677-1-git-send-email-t-kristo@ti.com>
+From: Bin Liu <b-liu@ti.com>
+Subject: Re: [PATCH v4 0/9] usb: musb: tusb6010_omap: Convert to DMAengine
+Date: Tue, 30 May 2017 10:53:11 -0500
+Message-ID: <20170530155311.GA12478@uda0271908>
+References: <20170518131207.23046-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1496155669-1677-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170518131207.23046-1-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: tony@atomide.com, gregkh@linuxfoundation.org, vinod.koul@intel.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@kernel.org, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-If clkctrl clocks are available on a device, populate these automatically
-to replace hwmod main_clk info. First, the patch parses all "ti,clkctrl"
-compatible nodes and maps these against existing clockdomain data. Once
-done, individual hwmod init routines can search for a clkctrl clock
-handle based on the clockdomain info and the created mapping.
+On Thu, May 18, 2017 at 04:11:58PM +0300, Peter Ujfalusi wrote:
+> Hi,
+> 
+> Changes since v3:
+> - typos in commit message of patch 3 and 5 fixed
+> - long line fixed in patch 5
+> - Ack from Vinod is added to the first patch
+> - The series depends on: http://marc.info/?l=linux-omap&m=149459699415599&w=2
+> 
+> Changes since v2:
+> - patch 5 from the v1 has been sent separately
+>  (usb: musb: tusb6010_omap: Do not reset the other direction's packet size)
+> - Added Tested-by from Tony.
+> 
+> Changes since v1:
+> - Fix the port_window support in omap-dma DMAengine driver
+> - MUSB_G_NO_SKB_RESERVE quirk flag addition to msub core
+> - packet size corruption fix for tusb6010
+> - Handle DMA completion for TX also in the DMA callback
+> 
+> The v1 series was tested with g_cdc where only the DMA was only enabled for TX
+> and because of that I have not noticed that the sDMA code was not correct for RX,
+> it only worked for TX case.
+> 
+> The ASYNC mode of tusb6010 is really unstable, we get corrupted TX/RX offset
+> register quite easily, but the SYNC mode is stable.
+> 
+> The series was tested on top of next-20170510 with g_ncm module since with this
+> we can use the quirk to avoid skb_reserve and get properly aligned buffers for
+> DMA.
+> The n810 is using nfsroot.
+> 
+> The device would not boot to prompt most of the time before patch 5 (packet size
+> reset fix).
+> With that patch in, the device would boot up fine most of the cases, but will
+> fail pretty fast with my stress test [1].
+> After the first 9 patch the legacy DMA mode is going to be stable with g_ncm, it
+> boots to prompt, and survives the stress test [1].
+> 
+> The last patch is going the DMAengine conversion and I have run the stress test
+> against it over 3 hours (ping-test.sh wrap count is 139).
+> 
+> [1] Running these in parallel:
+> ping -f 192.168.0.2
+> ping -f -s 2048 192.168.0.2
+> ping-test.sh 192.168.0.2 1
+> 
+> and (nfsroot) time to time:
+> scp root@192.168.0.1:/usr/portage/distfiles/thunderbird-52.1.0.source.tar.xz /
+> 
+> $ ls -alh /usr/portage/distfiles/thunderbird-52.1.0.source.tar.xz 
+> 218M Apr 30 15:46 /usr/portage/distfiles/thunderbird-52.1.0.source.tar.xz
+> 
+> In essence copy 218M from my host back to the host.
+> 
+> ping-test.sh (modified version from Tony to show the wrap count):
+> #!/bin/bash
+> 
+> device=$1
+> size=$2
+> wraps=0
+> 
+> while [ 1 ]; do
+>         #echo "Pinging with size $size"
+>         if ! ping -w0 -c1 -s$size $device > /dev/null 2>&1; then
+>                 break;
+>         fi
+>         size=$(expr $size + 1)
+> 
+>         if [ $size -gt 8192 ]; then
+> 	        wraps=$(expr $wraps + 1)
+> 		echo "wrapping ($wraps) at $size"
+>                 size=1
+>         fi
+> done
+> echo "Test ran up to $size"
+> 
+> Regards,
+> Peter
+> 
+> CC: dmaengine@vger.kernel.org
+> I only send the cover letter and the DMAengine patch for the dmaengine list, the
+> rest can be checked - if there is interest - via lkml
+> ---
+> Peter Ujfalusi (9):
+>   dmaengine: omap-dma: port_window support correction for both direction
+>   usb: musb: Add quirk to avoid skb reserve in gadget mode
+>   usb: musb: tusb6010: Add MUSB_G_NO_SKB_RESERVE to quirks
+>   usb: musb: tusb6010_omap: Use one musb_ep_select call in
+>     tusb_omap_dma_program
+>   usb: musb: tusb6010_omap: Create new struct for DMA data/parameters
+>   usb: musb: tusb6010_omap: Allocate DMA channels upfront
+>   usb: musb: tusb6010: Handle DMA TX completion in DMA callback as well
+>   ARM: OMAP2+: DMA: Add slave map entries for 24xx external request
+>     lines
+>   usb: musb: tusb6010_omap: Convert to DMAengine API
+> 
+>  arch/arm/mach-omap2/dma.c        |  24 +++
+>  drivers/dma/omap-dma.c           |  39 ++--
+>  drivers/usb/musb/musb_core.c     |   3 +
+>  drivers/usb/musb/musb_core.h     |   1 +
+>  drivers/usb/musb/tusb6010.c      |  21 +--
+>  drivers/usb/musb/tusb6010_omap.c | 379 ++++++++++++++++-----------------------
+>  6 files changed, 203 insertions(+), 264 deletions(-)
+> 
 
-This patch also drops the obsolete "_mod_ck" search as the implementation
-required for this was not accepted usptream.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c | 161 ++++++++++++++++++++++++++++++++++-----
- 1 file changed, 141 insertions(+), 20 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 8bcea0d..4d752d8 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -141,6 +141,7 @@
- #include <linux/cpu.h>
- #include <linux/of.h>
- #include <linux/of_address.h>
-+#include <linux/bootmem.h>
- 
- #include <asm/system_misc.h>
- 
-@@ -182,6 +183,24 @@
- #define MOD_CLK_MAX_NAME_LEN		32
- 
- /**
-+ * struct clkctrl_provider - clkctrl provider mapping data
-+ * @addr: base address for the provider
-+ * @offset: base offset for the provider
-+ * @clkdm: base clockdomain for provider
-+ * @node: device node associated with the provider
-+ * @link: list link
-+ */
-+struct clkctrl_provider {
-+	u32			addr;
-+	u16			offset;
-+	struct clockdomain	*clkdm;
-+	struct device_node	*node;
-+	struct list_head	link;
-+};
-+
-+static LIST_HEAD(clkctrl_providers);
-+
-+/**
-  * struct omap_hwmod_soc_ops - fn ptrs for some SoC-specific operations
-  * @enable_module: function to enable a module (via MODULEMODE)
-  * @disable_module: function to disable a module (via MODULEMODE)
-@@ -204,6 +223,8 @@ struct omap_hwmod_soc_ops {
- 	void (*update_context_lost)(struct omap_hwmod *oh);
- 	int (*get_context_lost)(struct omap_hwmod *oh);
- 	int (*disable_direct_prcm)(struct omap_hwmod *oh);
-+	u32 (*xlate_clkctrl)(struct omap_hwmod *oh,
-+			     struct clkctrl_provider *provider);
- };
- 
- /* soc_ops: adapts the omap_hwmod code to the currently-booted SoC */
-@@ -690,34 +711,131 @@ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
- 	return clkdm_del_sleepdep(clkdm, init_clkdm);
- }
- 
-+static const struct of_device_id ti_clkctrl_match_table[] __initconst = {
-+	{ .compatible = "ti,clkctrl" },
-+	{ }
-+};
-+
-+static int _match_clkdm(struct clockdomain *clkdm, void *user)
-+{
-+	struct clkctrl_provider *provider = user;
-+
-+	if (clkdm_xlate_address(clkdm) == provider->addr) {
-+		pr_debug("%s: Matched clkdm %s for addr %x (%s)\n", __func__,
-+			 clkdm->name, provider->addr,
-+			 provider->node->parent->name);
-+		provider->clkdm = clkdm;
-+
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int _setup_clkctrl_provider(struct device_node *np)
-+{
-+	const __be32 *addrp;
-+	struct clkctrl_provider *provider;
-+
-+	provider = memblock_virt_alloc(sizeof(*provider), 0);
-+	if (!provider)
-+		return -ENOMEM;
-+
-+	addrp = of_get_address(np, 0, NULL, NULL);
-+	provider->addr = (u32)of_translate_address(np, addrp);
-+	provider->offset = provider->addr & 0xff;
-+	provider->addr &= ~0xff;
-+	provider->node = np;
-+
-+	clkdm_for_each(_match_clkdm, provider);
-+
-+	if (!provider->clkdm) {
-+		pr_err("%s: nothing matched for node %s (%x)\n",
-+		       __func__, np->parent->name, provider->addr);
-+		memblock_free_early(__pa(provider), sizeof(*provider));
-+		return -EINVAL;
-+	}
-+
-+	list_add(&provider->link, &clkctrl_providers);
-+
-+	return 0;
-+}
-+
-+static int _init_clkctrl_providers(void)
-+{
-+	struct device_node *np;
-+	int ret = 0;
-+
-+	for_each_matching_node(np, ti_clkctrl_match_table) {
-+		ret = _setup_clkctrl_provider(np);
-+		if (ret)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+
-+static u32 _omap4_xlate_clkctrl(struct omap_hwmod *oh,
-+				struct clkctrl_provider *provider)
-+{
-+	return oh->prcm.omap4.clkctrl_offs -
-+	       provider->offset - provider->clkdm->clkdm_offs;
-+}
-+
-+static struct clk *_lookup_clkctrl_clk(struct omap_hwmod *oh,
-+				       struct device_node *np)
-+{
-+	struct clkctrl_provider *provider;
-+	struct clk *clk;
-+
-+	if (!soc_ops.xlate_clkctrl)
-+		return NULL;
-+
-+	list_for_each_entry(provider, &clkctrl_providers, link) {
-+		if (provider->clkdm == oh->clkdm) {
-+			struct of_phandle_args clkspec;
-+
-+			clkspec.np = provider->node;
-+			clkspec.args_count = 2;
-+			clkspec.args[0] = soc_ops.xlate_clkctrl(oh, provider);
-+			clkspec.args[1] = 0;
-+
-+			clk = of_clk_get_from_provider(&clkspec);
-+
-+			return clk;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
- /**
-  * _init_main_clk - get a struct clk * for the the hwmod's main functional clk
-  * @oh: struct omap_hwmod *
-+ * @np: device node mapped to this hwmod
-  *
-  * Called from _init_clocks().  Populates the @oh _clk (main
-  * functional clock pointer) if a clock matching the hwmod name is found,
-  * or a main_clk is present.  Returns 0 on success or -EINVAL on error.
-  */
--static int _init_main_clk(struct omap_hwmod *oh)
-+static int _init_main_clk(struct omap_hwmod *oh, struct device_node *np)
- {
- 	int ret = 0;
--	char name[MOD_CLK_MAX_NAME_LEN];
--	struct clk *clk;
--	static const char modck[] = "_mod_ck";
-+	struct clk *clk = NULL;
- 
--	if (strlen(oh->name) >= MOD_CLK_MAX_NAME_LEN - strlen(modck))
--		pr_warn("%s: warning: cropping name for %s\n", __func__,
--			oh->name);
--
--	strlcpy(name, oh->name, MOD_CLK_MAX_NAME_LEN - strlen(modck));
--	strlcat(name, modck, MOD_CLK_MAX_NAME_LEN);
-+	if (np) {
-+		clk = _lookup_clkctrl_clk(oh, np);
-+
-+		if (!IS_ERR_OR_NULL(clk)) {
-+			pr_debug("%s: mapped main_clk %s for %s\n", __func__,
-+				 __clk_get_name(clk), oh->name);
-+			oh->main_clk = __clk_get_name(clk);
-+			oh->_clk = clk;
-+			soc_ops.disable_direct_prcm(oh);
-+		}
-+	}
- 
--	clk = clk_get(NULL, name);
--	if (!IS_ERR(clk)) {
--		oh->_clk = clk;
--		soc_ops.disable_direct_prcm(oh);
--		oh->main_clk = kstrdup(name, GFP_KERNEL);
--	} else {
-+	if (IS_ERR_OR_NULL(clk)) {
- 		if (!oh->main_clk)
- 			return 0;
- 
-@@ -1482,13 +1600,13 @@ static int _init_clkdm(struct omap_hwmod *oh)
-  * _init_clocks - clk_get() all clocks associated with this hwmod. Retrieve as
-  * well the clockdomain.
-  * @oh: struct omap_hwmod *
-- * @data: not used; pass NULL
-+ * @np: device_node mapped to this hwmod
-  *
-  * Called by omap_hwmod_setup_*() (after omap2_clk_init()).
-  * Resolves all clock names embedded in the hwmod.  Returns 0 on
-  * success, or a negative error code on failure.
-  */
--static int _init_clocks(struct omap_hwmod *oh, void *data)
-+static int _init_clocks(struct omap_hwmod *oh, struct device_node *np)
- {
- 	int ret = 0;
- 
-@@ -1500,7 +1618,7 @@ static int _init_clocks(struct omap_hwmod *oh, void *data)
- 	if (soc_ops.init_clkdm)
- 		ret |= soc_ops.init_clkdm(oh);
- 
--	ret |= _init_main_clk(oh);
-+	ret |= _init_main_clk(oh, np);
- 	ret |= _init_interface_clks(oh);
- 	ret |= _init_opt_clks(oh);
- 
-@@ -2360,7 +2478,7 @@ static int __init _init(struct omap_hwmod *oh, void *data)
- 		return 0;
- 	}
- 
--	r = _init_clocks(oh, NULL);
-+	r = _init_clocks(oh, np);
- 	if (r < 0) {
- 		WARN(1, "omap_hwmod: %s: couldn't init clocks\n", oh->name);
- 		return -EINVAL;
-@@ -3722,6 +3840,7 @@ void __init omap_hwmod_init(void)
- 		soc_ops.update_context_lost = _omap4_update_context_lost;
- 		soc_ops.get_context_lost = _omap4_get_context_lost;
- 		soc_ops.disable_direct_prcm = _omap4_disable_direct_prcm;
-+		soc_ops.xlate_clkctrl = _omap4_xlate_clkctrl;
- 	} else if (cpu_is_ti814x() || cpu_is_ti816x() || soc_is_am33xx() ||
- 		   soc_is_am43xx()) {
- 		soc_ops.enable_module = _omap4_enable_module;
-@@ -3736,6 +3855,8 @@ void __init omap_hwmod_init(void)
- 		WARN(1, "omap_hwmod: unknown SoC type\n");
- 	}
- 
-+	_init_clkctrl_providers();
-+
- 	inited = true;
- }
- 
--- 
-1.9.1
+Applied. Thanks.
+-Bin.
