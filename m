@@ -1,75 +1,536 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 3/3] mfd: twl: move header file out of I2C realm
-Date: Mon, 29 May 2017 11:20:33 +0200
-Message-ID: <7306372.PblijfWnMI@amdc3058>
-References: <20170521220212.1404-1-wsa@the-dreams.de>
-	<CGME20170521220224epcas2p4fbcfe69660d457b8af95ddc196c04a9b@epcas2p4.samsung.com>
-	<20170521220212.1404-4-wsa@the-dreams.de>
-Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v2 1/3] mfd: lp87565: Add lp87565 PMIC support
+Date: Tue, 30 May 2017 10:23:47 +0100
+Message-ID: <20170530092347.jlystyxrscuj3wvk@dell>
+References: <1495541816-14801-1-git-send-email-j-keerthy@ti.com>
+ <1495541816-14801-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <rtc-linux+bncBDMLN5HOIYIOPT5PZECRUBAITP5LK-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-In-reply-to: <20170521220212.1404-4-wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/rtc-linux
-List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/rtc-linux/subscribe>
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Daniel Thompson <daniel.thompson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Wim Van Sebroeck <wim@>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1495541816-14801-2-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: broonie@kernel.org, robh+dt@kernel.org, t-kristo@ti.com, tony@atomide.com, mark.rutland@arm.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, afd@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, May 22, 2017 12:02:10 AM Wolfram Sang wrote:
-> include/linux/i2c is not for client devices. Move the header file to a
-> more appropriate location.
+On Tue, 23 May 2017, Keerthy wrote:
+
+> The LP87565 chip is a power management IC for Portable Navigation Systems
+> and Tablet Computing devices. It contains the following components:
 > 
-> Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-
-Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-
+>         - Configurable Bucks(Single and multi-phase).
+>         - Configurable General Purpose Output Signals (GPO).
+> 
+> The LP87565-Q1 variant device uses two 2-phase outputs configuration,
+> Buck0 is master for Buck0/1 output and Buck2 is master for Buck2/3
+> output.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
->  arch/arm/mach-omap2/common.h            | 2 +-
->  arch/arm/mach-omap2/omap_twl.c          | 2 +-
->  drivers/gpio/gpio-twl4030.c             | 2 +-
->  drivers/iio/adc/twl4030-madc.c          | 2 +-
->  drivers/iio/adc/twl6030-gpadc.c         | 2 +-
->  drivers/input/keyboard/twl4030_keypad.c | 2 +-
->  drivers/input/misc/twl4030-pwrbutton.c  | 2 +-
->  drivers/input/misc/twl4030-vibra.c      | 2 +-
->  drivers/mfd/twl-core.c                  | 6 +++---
->  drivers/mfd/twl4030-audio.c             | 2 +-
->  drivers/mfd/twl4030-irq.c               | 2 +-
->  drivers/mfd/twl4030-power.c             | 2 +-
->  drivers/mfd/twl6030-irq.c               | 2 +-
->  drivers/phy/phy-twl4030-usb.c           | 2 +-
->  drivers/power/supply/twl4030_charger.c  | 2 +-
->  drivers/pwm/pwm-twl-led.c               | 2 +-
->  drivers/pwm/pwm-twl.c                   | 2 +-
->  drivers/regulator/twl-regulator.c       | 2 +-
->  drivers/regulator/twl6030-regulator.c   | 2 +-
->  drivers/rtc/rtc-twl.c                   | 2 +-
->  drivers/usb/phy/phy-twl6030-usb.c       | 2 +-
->  drivers/video/backlight/pandora_bl.c    | 2 +-
->  drivers/watchdog/twl4030_wdt.c          | 2 +-
->  include/linux/{i2c => mfd}/twl.h        | 0
->  sound/soc/codecs/twl4030.c              | 2 +-
->  25 files changed, 26 insertions(+), 26 deletions(-)
->  rename include/linux/{i2c => mfd}/twl.h (100%)
+> 
+> Changes in v2:
+> 
+>   * Fixed a bunch of whitespace errors.
+>   * Changed the License to short form.
+>   * Added the generic compatible lp87565
+>   * Removed i2c_device_id table.
+>   * Introduced probe_new function in place of probe.
+> 
+>  Documentation/devicetree/bindings/mfd/lp87565.txt |  45 ++++
+>  drivers/mfd/Kconfig                               |  14 ++
+>  drivers/mfd/Makefile                              |   1 +
+>  drivers/mfd/lp87565.c                             |  95 ++++++++
+>  include/linux/mfd/lp87565.h                       | 271 ++++++++++++++++++++++
+>  5 files changed, 426 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/mfd/lp87565.txt
+>  create mode 100644 drivers/mfd/lp87565.c
+>  create mode 100644 include/linux/mfd/lp87565.h
+> 
+> diff --git a/Documentation/devicetree/bindings/mfd/lp87565.txt b/Documentation/devicetree/bindings/mfd/lp87565.txt
+> new file mode 100644
+> index 0000000..f63d568
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mfd/lp87565.txt
+> @@ -0,0 +1,45 @@
+> +TI LP87565 PMIC MFD driver
+> +
+> +Required properties:
+> +  - compatible:	"ti,lp87565", "ti,lp87565-q1"
+> +  - reg:		I2C slave address.
+> +  - gpio-controller:	Marks the device node as a GPIO Controller.
+> +  - #gpio-cells:	Should be two.  The first cell is the pin number and
+> +			the second cell is used to specify flags.
+> +			See ../gpio/gpio.txt for more information.
+> +  - xxx-in-supply:	Phandle to parent supply node of each regulator
+> +			populated under regulators node. xxx should match
+> +			the supply_name populated in driver.
+> +  - regulators:	List of child nodes that specify the regulator
+> +			initialization data.
+> +Example:
+> +
+> +lp87565_pmic: lp87565@60 {
+> +	compatible = "ti,lp87565-q1";
+> +	reg = <0x60>;
+> +	gpio-controller;
+> +	#gpio-cells = <2>;
+> +
+> +	buck10-in-supply = <&vsys_3v3>;
+> +	buck23-in-supply = <&vsys_3v3>;
+> +
+> +	regulators: regulators {
+> +		buck10_reg: buck10 {
+> +			/* VDD_MPU */
+> +			regulator-name = "buck10";
+> +			regulator-min-microvolt = <850000>;
+> +			regulator-max-microvolt = <1250000>;
+> +			regulator-always-on;
+> +			regulator-boot-on;
+> +		};
+> +
+> +		buck23_reg: buck23 {
+> +			/* VDD_GPU */
+> +			regulator-name = "buck23";
+> +			regulator-min-microvolt = <850000>;
+> +			regulator-max-microvolt = <1250000>;
+> +			regulator-boot-on;
+> +			regulator-always-on;
+> +		};
+> +	};
+> +};
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index 3eb5c93..5e884f3 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -1325,6 +1325,20 @@ config MFD_TI_LP873X
+>  	  This driver can also be built as a module. If so, the module
+>  	  will be called lp873x.
+>  
+> +config MFD_TI_LP87565
+> +	tristate "TI LP87565 Power Management IC"
+> +	depends on I2C && OF
+> +	select MFD_CORE
+> +	select REGMAP_I2C
+> +	help
+> +	  If you say yes here then you get support for the LP87565 series of
+> +	  Power Management Integrated Circuits (PMIC).
+> +	  These include voltage regulators, thermal protection, configurable
+> +	  General Purpose Outputs (GPO) that are used in portable devices.
+> +
+> +	  This driver can also be built as a module. If so, the module
+> +	  will be called lp87565.
+> +
+>  config MFD_TPS65218
+>  	tristate "TI TPS65218 Power Management chips"
+>  	depends on I2C
+> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+> index c16bf1e..7edbe1b 100644
+> --- a/drivers/mfd/Makefile
+> +++ b/drivers/mfd/Makefile
+> @@ -25,6 +25,7 @@ obj-$(CONFIG_HTC_PASIC3)	+= htc-pasic3.o
+>  obj-$(CONFIG_HTC_I2CPLD)	+= htc-i2cpld.o
+>  
+>  obj-$(CONFIG_MFD_TI_LP873X)	+= lp873x.o
+> +obj-$(CONFIG_MFD_TI_LP87565)	+= lp87565.o
+>  
+>  obj-$(CONFIG_MFD_DAVINCI_VOICECODEC)	+= davinci_voicecodec.o
+>  obj-$(CONFIG_MFD_DM355EVM_MSP)	+= dm355evm_msp.o
+> diff --git a/drivers/mfd/lp87565.c b/drivers/mfd/lp87565.c
+> new file mode 100644
+> index 0000000..7df7070
+> --- /dev/null
+> +++ b/drivers/mfd/lp87565.c
+> @@ -0,0 +1,95 @@
+> +/*
+> + * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * Author: Keerthy <j-keerthy@ti.com>
+> + *
+> + *  This program is free software; you can redistribute  it and/or modify it
+> + *  under  the terms of  the GNU General  Public License as published by the
+> + *  Free Software Foundation;  either version 2 of the  License, or (at your
+> + *  option) any later version.
+> + */
+> +
+> +#include <linux/interrupt.h>
+> +#include <linux/mfd/core.h>
+> +#include <linux/module.h>
+> +#include <linux/of_device.h>
+> +#include <linux/regmap.h>
+> +
+> +#include <linux/mfd/lp87565.h>
+> +
+> +static const struct regmap_config lp87565_regmap_config = {
+> +	.reg_bits = 8,
+> +	.val_bits = 8,
+> +	.max_register = LP87565_REG_MAX,
+> +};
+> +
+> +static const struct mfd_cell lp87565_cells[] = {
+> +	{ .name = "lp87565-q1-regulator", },
+> +	{ .name = "lp87565-q1-gpio", },
+> +};
+> +
+> +static const struct of_device_id of_lp87565_match_table[] = {
+> +	{
+> +		.compatible = "ti,lp87565",
+> +	},
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Please place this one a single line..
+
+> +	{
+> +		.compatible = "ti,lp87565-q1",
+> +		.data = (void *)LP87565_DEVICE_TYPE_LP87565_Q1,
+> +	},
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(of, of_lp87565_match_table);
+> +
+> +static int lp87565_probe(struct i2c_client *client)
+> +{
+> +	struct lp87565 *lp87565;
+> +	const struct of_device_id *of_id;
+> +	int ret;
+> +	unsigned int otpid;
+> +
+> +	lp87565 = devm_kzalloc(&client->dev, sizeof(*lp87565), GFP_KERNEL);
+> +	if (!lp87565)
+> +		return -ENOMEM;
+> +
+> +	lp87565->dev = &client->dev;
+> +
+> +	lp87565->regmap = devm_regmap_init_i2c(client, &lp87565_regmap_config);
+> +	if (IS_ERR(lp87565->regmap)) {
+> +		ret = PTR_ERR(lp87565->regmap);
+> +		dev_err(lp87565->dev,
+> +			"Failed to initialize register map: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	ret = regmap_read(lp87565->regmap, LP87565_REG_OTP_REV, &otpid);
+> +	if (ret) {
+> +		dev_err(lp87565->dev, "Failed to read OTP ID\n");
+> +		return ret;
+> +	}
+> +
+> +	lp87565->rev = otpid & LP87565_OTP_REV_OTP_ID;
+> +
+> +	of_id = of_match_device(of_lp87565_match_table, &client->dev);
+> +	if (of_id)
+> +		lp87565->dev_type = (enum lp87565_device_type)of_id->data;
+
+So you can interigate the device for a revision number, but not a
+device type ID, is that correct?
+
+> +	i2c_set_clientdata(client, lp87565);
+> +
+> +	ret = mfd_add_devices(lp87565->dev, PLATFORM_DEVID_AUTO, lp87565_cells,
+> +			      ARRAY_SIZE(lp87565_cells), NULL, 0, NULL);
+> +
+> +	return ret;
+> +}
+> +
+> +static struct i2c_driver lp87565_driver = {
+> +	.driver	= {
+> +		.name	= "lp87565",
+> +		.of_match_table = of_lp87565_match_table,
+> +	},
+> +	.probe_new		= lp87565_probe,
+> +};
+
+What's with the random padding?
+
+Just use a single space before and after the '='.
+
+> +module_i2c_driver(lp87565_driver);
+> +
+> +MODULE_AUTHOR("J Keerthy <j-keerthy@ti.com>");
+> +MODULE_DESCRIPTION("lp87565 chip family Multi-Function Device driver");
+> +MODULE_LICENSE("GPL v2");
+
+This does not match the header comment.
+
+> diff --git a/include/linux/mfd/lp87565.h b/include/linux/mfd/lp87565.h
+> new file mode 100644
+> index 0000000..b298c62
+> --- /dev/null
+> +++ b/include/linux/mfd/lp87565.h
+> @@ -0,0 +1,271 @@
+> +/*
+> + * Functions to access LP87565 power management chip.
+> + *
+> + * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + *  This program is free software; you can redistribute  it and/or modify it
+> + *  under  the terms of  the GNU General  Public License as published by the
+> + *  Free Software Foundation;  either version 2 of the  License, or (at your
+> + *  option) any later version.
+> + */
+> +
+> +#ifndef __LINUX_MFD_LP87565_H
+> +#define __LINUX_MFD_LP87565_H
+> +
+> +#include <linux/i2c.h>
+> +#include <linux/regulator/driver.h>
+> +#include <linux/regulator/machine.h>
+> +
+> +enum lp87565_device_type {
+> +	LP87565_DEVICE_TYPE_UNKNOWN	= 0,
+> +	LP87565_DEVICE_TYPE_LP87565_Q1,
+> +};
+> +
+> +/* All register addresses */
+> +#define LP87565_REG_DEV_REV		0X00
+> +#define LP87565_REG_OTP_REV		0X01
+> +#define LP87565_REG_BUCK0_CTRL_1		0X02
+> +#define LP87565_REG_BUCK0_CTRL_2		0X03
+> +
+> +#define LP87565_REG_BUCK1_CTRL_1		0X04
+> +#define LP87565_REG_BUCK1_CTRL_2		0X05
+> +
+> +#define LP87565_REG_BUCK2_CTRL_1		0X06
+> +#define LP87565_REG_BUCK2_CTRL_2		0X07
+> +
+> +#define LP87565_REG_BUCK3_CTRL_1		0X08
+> +#define LP87565_REG_BUCK3_CTRL_2		0X09
+> +
+> +#define LP87565_REG_BUCK0_VOUT			0X0A
+> +#define LP87565_REG_BUCK0_FLOOR_VOUT		0X0B
+> +
+> +#define LP87565_REG_BUCK1_VOUT			0X0C
+> +#define LP87565_REG_BUCK1_FLOOR_VOUT		0X0D
+> +
+> +#define LP87565_REG_BUCK2_VOUT			0X0E
+> +#define LP87565_REG_BUCK2_FLOOR_VOUT		0X0F
+> +
+> +#define LP87565_REG_BUCK3_VOUT			0X10
+> +#define LP87565_REG_BUCK3_FLOOR_VOUT		0X11
+> +
+> +#define LP87565_REG_BUCK0_DELAY			0X12
+> +#define LP87565_REG_BUCK1_DELAY			0X13
+> +
+> +#define LP87565_REG_BUCK2_DELAY			0X14
+> +#define LP87565_REG_BUCK3_DELAY			0X15
+> +
+> +#define LP87565_REG_GPO2_DELAY			0X16
+> +#define LP87565_REG_GPO3_DELAY			0X17
+> +#define LP87565_REG_RESET			0X18
+> +#define LP87565_REG_CONFIG			0X19
+> +
+> +#define LP87565_REG_INT_TOP_1			0X1A
+> +#define LP87565_REG_INT_TOP_2			0X1B
+> +
+> +#define LP87565_REG_INT_BUCK_0_1		0X1C
+> +#define LP87565_REG_INT_BUCK_2_3		0X1D
+> +#define LP87565_REG_TOP_STAT			0X1E
+> +#define LP87565_REG_BUCK_0_1_STAT		0X1F
+> +#define LP87565_REG_BUCK_2_3_STAT		0x20
+> +
+> +#define LP87565_REG_TOP_MASK_1			0x21
+> +#define LP87565_REG_TOP_MASK_2			0x22
+> +
+> +#define LP87565_REG_BUCK_0_1_MASK		0x23
+> +#define LP87565_REG_BUCK_2_3_MASK		0x24
+> +#define LP87565_REG_SEL_I_LOAD			0x25
+> +
+> +#define LP87565_REG_I_LOAD_2			0x26
+> +#define LP87565_REG_I_LOAD_1			0x27
+> +
+> +#define LP87565_REG_PGOOD_CTRL1			0x28
+> +#define LP87565_REG_PGOOD_CTRL2			0x29
+> +#define LP87565_REG_PGOOD_FLT			0x2A
+> +#define LP87565_REG_PLL_CTRL			0x2B
+> +#define LP87565_REG_PIN_FUNCTION		0x2C
+> +#define LP87565_REG_GPIO_CONFIG			0x2D
+> +#define LP87565_REG_GPIO_IN			0x2E
+> +#define LP87565_REG_GPIO_OUT			0x2F
+> +
+> +#define LP87565_REG_MAX			LP87565_REG_GPIO_OUT
+> +
+> +/* Register field definitions */
+> +#define LP87565_DEV_REV_DEV_ID			0xC0
+> +#define LP87565_DEV_REV_ALL_LAYER		0x30
+> +#define LP87565_DEV_REV_METAL_LAYER		0x0F
+> +
+> +#define LP87565_OTP_REV_OTP_ID			0xFF
+> +
+> +#define LP87565_BUCK_CTRL_1_EN			BIT(7)
+> +#define LP87565_BUCK_CTRL_1_EN_PIN_CTRL		BIT(6)
+> +#define LP87565_BUCK_CTRL_1_PIN_SELECT_EN	0x30
+> +
+> +#define LP87565_BUCK_CTRL_1_ROOF_FLOOR_EN	BIT(3)
+> +#define LP87565_BUCK_CTRL_1_RDIS_EN		BIT(2)
+> +#define LP87565_BUCK_CTRL_1_FPWM		BIT(1)
+> +/* Bit0 is reserved for BUCK1 and BUCK3 and valid only for BUCK0 and BUCK2 */
+> +#define LP87565_BUCK_CTRL_1_FPWM_MP_0_2		BIT(0)
+> +
+> +#define LP87565_BUCK_CTRL_2_ILIM		0x38
+> +#define LP87565_BUCK_CTRL_2_SLEW_RATE		0x07
+> +
+> +#define LP87565_BUCK_VSET			0xFF
+> +#define LP87565_BUCK_FLOOR_VSET			0xFF
+> +
+> +#define LP87565_BUCK_SHUTDOWN_DELAY		0xF0
+> +#define LP87565_BUCK_STARTUP_DELAY		0x0F
+> +
+> +#define LP87565_GPIO_SHUTDOWN_DELAY		0xF0
+> +#define LP87565_GPIO_STARTUP_DELAY		0x0F
+> +
+> +#define LP87565_RESET_SW_RESET			BIT(0)
+> +
+> +#define LP87565_CONFIG_DOUBLE_DELAY		BIT(7)
+> +#define LP87565_CONFIG_CLKIN_PD			BIT(6)
+> +#define LP87565_CONFIG_EN4_PD			BIT(5)
+> +#define LP87565_CONFIG_EN3_PD			BIT(4)
+> +#define LP87565_CONFIG_TDIE_WARN_LEVEL		BIT(3)
+> +#define LP87565_CONFIG_EN2_PD			BIT(2)
+> +#define LP87565_CONFIG_EN1_PD			BIT(1)
+> +
+> +#define LP87565_INT_GPIO			BIT(7)
+> +#define LP87565_INT_BUCK23			BIT(6)
+> +#define LP87565_INT_BUCK01			BIT(5)
+> +#define LP87565_NO_SYNC_CLK			BIT(4)
+> +#define LP87565_TDIE_SD				BIT(3)
+> +#define LP87565_TDIE_WARN			BIT(2)
+> +#define LP87565_INT_OVP				BIT(1)
+> +#define LP87565_I_LOAD_READY			BIT(0)
+> +
+> +#define LP87565_INT_TOP2_RESET_REG		BIT(0)
+> +
+> +#define LP87565_BUCK1_PG_INT			BIT(6)
+> +#define LP87565_BUCK1_SC_INT			BIT(5)
+> +#define LP87565_BUCK1_ILIM_INT			BIT(4)
+> +#define LP87565_BUCK0_PG_INT			BIT(2)
+> +#define LP87565_BUCK0_SC_INT			BIT(1)
+> +#define LP87565_BUCK0_ILIM_INT			BIT(0)
+> +
+> +#define LP87565_BUCK3_PG_INT			BIT(6)
+> +#define LP87565_BUCK3_SC_INT			BIT(5)
+> +#define LP87565_BUCK3_ILIM_INT			BIT(4)
+> +#define LP87565_BUCK2_PG_INT			BIT(2)
+> +#define LP87565_BUCK2_SC_INT			BIT(1)
+> +#define LP87565_BUCK2_ILIM_INT			BIT(0)
+> +
+> +#define LP87565_SYNC_CLK_STAT			BIT(4)
+> +#define LP87565_TDIE_SD_STAT			BIT(3)
+> +#define LP87565_TDIE_WARN_STAT			BIT(2)
+> +#define LP87565_OVP_STAT			BIT(1)
+> +
+> +#define LP87565_BUCK1_STAT			BIT(7)
+> +#define LP87565_BUCK1_PG_STAT			BIT(6)
+> +#define LP87565_BUCK1_ILIM_STAT			BIT(4)
+> +#define LP87565_BUCK0_STAT			BIT(3)
+> +#define LP87565_BUCK0_PG_STAT			BIT(2)
+> +#define LP87565_BUCK0_ILIM_STAT			BIT(0)
+> +
+> +#define LP87565_BUCK3_STAT			BIT(7)
+> +#define LP87565_BUCK3_PG_STAT			BIT(6)
+> +#define LP87565_BUCK3_ILIM_STAT			BIT(4)
+> +#define LP87565_BUCK2_STAT			BIT(3)
+> +#define LP87565_BUCK2_PG_STAT			BIT(2)
+> +#define LP87565_BUCK2_ILIM_STAT			BIT(0)
+> +
+> +#define LPL87565_GPIO_MASK			BIT(7)
+> +#define LPL87565_SYNC_CLK_MASK			BIT(4)
+> +#define LPL87565_TDIE_WARN_MASK			BIT(2)
+> +#define LPL87565_I_LOAD_READY_MASK		BIT(0)
+> +
+> +#define LPL87565_RESET_REG_MASK			BIT(0)
+> +
+> +#define LPL87565_BUCK1_PG_MASK			BIT(6)
+> +#define LPL87565_BUCK1_ILIM_MASK		BIT(4)
+> +#define LPL87565_BUCK0_PG_MASK			BIT(2)
+> +#define LPL87565_BUCK0_ILIM_MASK		BIT(0)
+> +
+> +#define LPL87565_BUCK3_PG_MASK			BIT(6)
+> +#define LPL87565_BUCK3_ILIM_MASK		BIT(4)
+> +#define LPL87565_BUCK2_PG_MASK			BIT(2)
+> +#define LPL87565_BUCK2_ILIM_MASK		BIT(0)
+> +
+> +#define LP87565_LOAD_CURRENT_BUCK_SELECT	0x3
+> +
+> +#define LP87565_I_LOAD2_BUCK_LOAD_CURRENT	0x3
+> +#define LP87565_I_LOAD1_BUCK_LOAD_CURRENT	0xFF
+> +
+> +#define LP87565_PG3_SEL				0xC0
+> +#define LP87565_PG2_SEL				0x30
+> +#define LP87565_PG1_SEL				0x0C
+> +#define LP87565_PG0_SEL				0x03
+> +
+> +#define LP87565_HALF_DAY			BIT(7)
+> +#define LP87565_EN_PG0_NINT			BIT(6)
+> +#define LP87565_PGOOD_SET_DELAY			BIT(5)
+> +#define LP87565_EN_PGFLT_STAT			BIT(4)
+> +#define LP87565_PGOOD_WINDOW			BIT(2)
+> +#define LP87565_PGOOD_OD			BIT(1)
+> +#define LP87565_PGOOD_POL			BIT(0)
+> +
+> +#define LP87565_PG3_FLT				BIT(3)
+> +#define LP87565_PG2_FLT				BIT(2)
+> +#define LP87565_PG1_FLT				BIT(1)
+> +#define LP87565_PG0_FLT				BIT(0)
+> +
+> +#define LP87565_PLL_MODE			0xC0
+> +#define LP87565_EXT_CLK_FREQ			0x1F
+> +
+> +#define LP87565_EN_SPREAD_SPEC			BIT(7)
+> +#define LP87565_EN_PIN_CTRL_GPIO3		BIT(6)
+> +#define LP87565_EN_PIN_SELECT_GPIO3		BIT(5)
+> +#define LP87565_EN_PIN_CTRL_GPIO2		BIT(4)
+> +#define LP87565_EN_PIN_SELECT_GPIO2		BIT(3)
+> +#define LP87565_GPIO3_SEL			BIT(2)
+> +#define LP87565_GPIO2_SEL			BIT(1)
+> +#define LP87565_GPIO1_SEL			BIT(0)
+> +
+> +#define LP87565_GOIO3_OD			BIT(6)
+> +#define LP87565_GOIO2_OD			BIT(5)
+> +#define LP87565_GOIO1_OD			BIT(4)
+> +#define LP87565_GOIO3_DIR			BIT(2)
+> +#define LP87565_GOIO2_DIR			BIT(1)
+> +#define LP87565_GOIO1_DIR			BIT(0)
+> +
+> +#define LP87565_GOIO3_IN			BIT(2)
+> +#define LP87565_GOIO2_IN			BIT(1)
+> +#define LP87565_GOIO1_IN			BIT(0)
+> +
+> +#define LP87565_GOIO3_OUT			BIT(2)
+> +#define LP87565_GOIO2_OUT			BIT(1)
+> +#define LP87565_GOIO1_OUT			BIT(0)
+> +
+> +/* Number of step-down converters available */
+> +#define LP87565_NUM_BUCK		6
+> +
+> +enum LP87565_regulator_id {
+> +	/* BUCK's */
+> +	LP87565_BUCK_0,
+> +	LP87565_BUCK_1,
+> +	LP87565_BUCK_2,
+> +	LP87565_BUCK_3,
+> +	LP87565_BUCK_10,
+> +	LP87565_BUCK_23,
+> +};
+> +
+> +/**
+> + * struct LP87565 - state holder for the LP87565 driver
+> + * @dev: struct device pointer for MFD device
+> + * @rev: revision of the LP87565
+> + * @dev_type: The device type for example lp87565-q1
+> + * @lock: lock guarding the data structure
+> + * @regmap: register map of the LP87565 PMIC
+> + *
+> + * Device data may be used to access the LP87565 chip
+> + */
+> +struct lp87565 {
+> +	struct device *dev;
+> +	u8 rev;
+> +	u8 dev_type;
+> +	struct regmap *regmap;
+> +};
+> +#endif /* __LINUX_MFD_LP87565_H */
 
 -- 
-You received this message because you are subscribed to "rtc-linux".
-Membership options at http://groups.google.com/group/rtc-linux .
-Please read http://groups.google.com/group/rtc-linux/web/checklist
-before submitting a driver.
---- 
-You received this message because you are subscribed to the Google Groups "rtc-linux" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-For more options, visit https://groups.google.com/d/optout.
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
