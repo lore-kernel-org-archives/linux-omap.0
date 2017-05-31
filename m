@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/11] ARM: OMAP2+: Remove unused legacy code for interconnects
-Date: Wed, 31 May 2017 15:51:37 -0700
-Message-ID: <20170531225139.30723-10-tony@atomide.com>
+Subject: [PATCH 05/11] ARM: OMAP2+: Remove unused legacy code for McBSP
+Date: Wed, 31 May 2017 15:51:33 -0700
+Message-ID: <20170531225139.30723-6-tony@atomide.com>
 References: <20170531225139.30723-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,83 +27,85 @@ of_have_populated_dt() is not set is safe to remove now.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_device.c          |  5 +----
- arch/arm/mach-omap2/omap_hwmod.c           | 23 ++++++++++-------------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  3 +--
- 3 files changed, 12 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c | 70 ---------------------------------------------
+ 1 file changed, 70 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -65,7 +65,7 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -53,73 +53,3 @@ void __init omap3_mcbsp_init_pdata_callback(
  
- 	r = clk_get_sys(NULL, clk_name);
- 
--	if (IS_ERR(r) && of_have_populated_dt()) {
-+	if (IS_ERR(r)) {
- 		struct of_phandle_args clkspec;
- 
- 		clkspec.np = of_find_node_by_name(NULL, clk_name);
-@@ -953,9 +953,6 @@ static int __init omap_device_late_init(void)
- {
- 	bus_for_each_dev(&platform_bus_type, NULL, NULL, omap_device_late_idle);
- 
--	WARN(!of_have_populated_dt(),
--		"legacy booting deprecated, please update to boot with .dts\n");
--
- 	return 0;
+ 	pdata->force_ick_on = omap3_mcbsp_force_ick_on;
  }
- omap_late_initcall_sync(omap_device_late_init);
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2336,24 +2336,21 @@ static int __init _init(struct omap_hwmod *oh, void *data)
- {
- 	int r, index;
- 	struct device_node *np = NULL;
-+	struct device_node *bus;
- 
- 	if (oh->_state != _HWMOD_STATE_REGISTERED)
- 		return 0;
- 
--	if (of_have_populated_dt()) {
--		struct device_node *bus;
 -
--		bus = of_find_node_by_name(NULL, "ocp");
--		if (!bus)
--			return -ENODEV;
-+	bus = of_find_node_by_name(NULL, "ocp");
-+	if (!bus)
-+		return -ENODEV;
- 
--		r = of_dev_hwmod_lookup(bus, oh, &index, &np);
--		if (r)
--			pr_debug("omap_hwmod: %s missing dt data\n", oh->name);
--		else if (np && index)
--			pr_warn("omap_hwmod: %s using broken dt data from %s\n",
--				oh->name, np->name);
+-static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+-{
+-	int id, count = 1;
+-	char *name = "omap-mcbsp";
+-	struct omap_hwmod *oh_device[2];
+-	struct omap_mcbsp_platform_data *pdata = NULL;
+-	struct platform_device *pdev;
+-
+-	sscanf(oh->name, "mcbsp%d", &id);
+-
+-	pdata = kzalloc(sizeof(struct omap_mcbsp_platform_data), GFP_KERNEL);
+-	if (!pdata) {
+-		pr_err("%s: No memory for mcbsp\n", __func__);
+-		return -ENOMEM;
 -	}
-+	r = of_dev_hwmod_lookup(bus, oh, &index, &np);
-+	if (r)
-+		pr_debug("omap_hwmod: %s missing dt data\n", oh->name);
-+	else if (np && index)
-+		pr_warn("omap_hwmod: %s using broken dt data from %s\n",
-+			oh->name, np->name);
- 
- 	r = _init_mpu_rt_base(oh, NULL, index, np);
- 	if (r < 0) {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3204,8 +3204,7 @@ int __init omap3xxx_hwmod_init(void)
- 	 * If DT information is missing, enable them only for GP devices.
- 	 */
- 
--	if (of_have_populated_dt())
--		bus = of_find_node_by_name(NULL, "ocp");
-+	bus = of_find_node_by_name(NULL, "ocp");
- 
- 	if (h_sham && omap3xxx_hwmod_is_hs_ip_block_usable(bus, "sham")) {
- 		r = omap_hwmod_register_links(h_sham);
+-
+-	pdata->reg_step = 4;
+-	if (oh->class->rev < MCBSP_CONFIG_TYPE2) {
+-		pdata->reg_size = 2;
+-	} else {
+-		pdata->reg_size = 4;
+-		pdata->has_ccr = true;
+-	}
+-
+-	if (oh->class->rev == MCBSP_CONFIG_TYPE2) {
+-		/* The FIFO has 128 locations */
+-		pdata->buffer_size = 0x80;
+-	} else if (oh->class->rev == MCBSP_CONFIG_TYPE3) {
+-		if (id == 2)
+-			/* The FIFO has 1024 + 256 locations */
+-			pdata->buffer_size = 0x500;
+-		else
+-			/* The FIFO has 128 locations */
+-			pdata->buffer_size = 0x80;
+-	} else if (oh->class->rev == MCBSP_CONFIG_TYPE4) {
+-		/* The FIFO has 128 locations for all instances */
+-		pdata->buffer_size = 0x80;
+-	}
+-
+-	if (oh->class->rev >= MCBSP_CONFIG_TYPE3)
+-		pdata->has_wakeup = true;
+-
+-	oh_device[0] = oh;
+-
+-	if (oh->dev_attr) {
+-		oh_device[1] = omap_hwmod_lookup((
+-		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
+-		pdata->force_ick_on = omap3_mcbsp_force_ick_on;
+-		count++;
+-	}
+-	pdev = omap_device_build_ss(name, id, oh_device, count, pdata,
+-				    sizeof(*pdata));
+-	kfree(pdata);
+-	if (IS_ERR(pdev))  {
+-		pr_err("%s: Can't build omap_device for %s:%s.\n", __func__,
+-					name, oh->name);
+-		return PTR_ERR(pdev);
+-	}
+-	return 0;
+-}
+-
+-static int __init omap2_mcbsp_init(void)
+-{
+-	if (!of_have_populated_dt())
+-		omap_hwmod_for_each_by_class("mcbsp", omap_init_mcbsp, NULL);
+-
+-	return 0;
+-}
+-omap_arch_initcall(omap2_mcbsp_init);
 -- 
 2.13.0
