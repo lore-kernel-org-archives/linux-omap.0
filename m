@@ -1,80 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [CFT] Always enable SMP mode on MP capable CPUs
-Date: Wed, 31 May 2017 08:07:53 -0700
-Message-ID: <20170531150752.GE3730@atomide.com>
-References: <20170519171526.GW22219@n2100.armlinux.org.uk>
- <20170524153847.GY10472@atomide.com>
- <20170525144800.GV23750@n2100.armlinux.org.uk>
- <20170525151103.GC10472@atomide.com>
- <20170525180540.GW23750@n2100.armlinux.org.uk>
- <20170525221332.GE10472@atomide.com>
- <20170526112210.GA3354@afzalpc>
- <20170527132237.GX23750@n2100.armlinux.org.uk>
- <20170531143914.GD3730@atomide.com>
- <20170531145924.GY23750@n2100.armlinux.org.uk>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCHv2] power: supply: cpcap-battery: Add a battery driver
+Date: Wed, 31 May 2017 11:30:02 -0500
+Message-ID: <20170531163002.j4xb6fo3ipq6ly2d@rob-hp-laptop>
+References: <20170523005637.945-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170531145924.GY23750@n2100.armlinux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Fabio Estevam <festevam@gmail.com>, linux-omap@vger.kernel.org, afzal mohammed <afzal.mohd.ma@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@kernel.org>
+In-Reply-To: <20170523005637.945-1-tony@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sebastian Reichel <sre@kernel.org>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@armlinux.org.uk> [170531 08:03]:
-> On Wed, May 31, 2017 at 07:39:15AM -0700, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@armlinux.org.uk> [170527 06:26]:
-> > > On Fri, May 26, 2017 at 04:52:10PM +0530, afzal mohammed wrote:
-> > > > Hi,
-> > > > 
-> > > > On Thu, May 25, 2017 at 03:13:33PM -0700, Tony Lindgren wrote:
-> > > > 
-> > > > > OK so got my am437x-idk back
-> > > > > 
-> > > > > And as suspected it won't boot with these changes.
-> > > > 
-> > > > Tested here too with your additional changes included & seeing same
-> > > > behavior here as well on AM437x.
-> > > > 
-> > > > As an aside, when Russell posted this patch a week back itself was
-> > > > suspecting this. i had a certain view on AM437x w.r.t SMP issue back
-> > > > while officially working on it & since now not officially involved
-> > > > with the issue at hand, i was uncomfortable dealing with this. But as
-> > > > Russell's patch was not noticed by others w.r.t AM437x, upon being
-> > > > able to confirm it yesterday, i at least wanted to bring it to notice
-> > > > & runaway from the scene.
-> > > 
-> > > Right, so I think the summary is: the kernel can't set the SMP bit
-> > > correctly - it doesn't have the information at this point in time
-> > > to know definitively whether the bit needs to be set or not.
-> > > 
-> > > So, those who are suffering issues with their SMP cores in uniprocessor
-> > > systems need to ensure that their boot loader correctly configures the
-> > > CPU cores.
-> > 
-> > Russell, current Linux next still has commit e7cf836e9757 ("ARM:
-> > always enable SMP mode on SMP cores"). You're planning to drop
-> > it, right?
+On Mon, May 22, 2017 at 05:56:37PM -0700, Tony Lindgren wrote:
+> On the CPCAP PMIC we can use the ADCs for monitoring the battery,
+> and there is also a coulomb counter. So let's add basic support for
+> the battery driver.
 > 
-> Please have some patience.
+> I did not add any capacity prediction as that should probably be
+> done in the user space. Or at least user space should tell the kernel
+> some battery statistics and then the kernel driver could display the
+> capacity based on that.
 > 
-> Correct, it should be gone from tonight's linux-next.
+> Note that I left out the battery interrupt handling for now as I need
+> to spend more time on it for the battery empty interrupts. The driver
+> works just fine without the interrupts too.
 > 
-> The UK has two holidays in May, one of them was this Monday.  I dropped
-> the patch yesterday, which is the first opportunity since sending that
-> mail, but due to other pressures yesterday, my tree was in no state to
-> be pushed out for linux-next's grab last night.
+> Cc: devicetree@vger.kernel.org
+> Cc: Marcel Partap <mpartap@gmx.net>
+> Cc: Michael Scott <michael.scott@linaro.org>
+> Cc: Rob Herring <robh@kernel.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+> Changes since v1:
+> 
+> - Add support for battery low interrupts
+> 
+> - Fix POWER_SUPPLY_STATUS during charging to not flip constantly
+>   by using average current
+> 
+> ---
+>  .../bindings/power/supply/cpcap-battery.txt        |  27 +
+>  drivers/power/supply/Kconfig                       |   8 +
+>  drivers/power/supply/Makefile                      |   1 +
+>  drivers/power/supply/cpcap-battery.c               | 808 +++++++++++++++++++++
+>  4 files changed, 844 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
+>  create mode 100644 drivers/power/supply/cpcap-battery.c
+> 
+> diff --git a/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
+> new file mode 100644
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
+> @@ -0,0 +1,27 @@
+> +Motorola CPCAP PMIC battery driver binding
+> +
+> +Required properties:
+> +- compatible: Shall be "motorola,cpcap-battery"
+> +- interrupts: Interrupt specifier for each name in interrupt-names
+> +- interrupt-names: Should contain the following entries:
+> +		   "lowbph", "lowbpl", "chrgcurr1", "battdetb"
+> +- io-channels: IIO ADC channel specifier for each name in io-channel-names
+> +- io-channel-names: Should contain the following entries:
+> +		    "battdetb", "battp"
 
-OK thanks for confirming!
+Doesn't match the example.
 
-Tony
+> +
+> +Example:
+> +
+> +cpcap_battery: battery {
+> +	compatible = "motorola,cpcap-battery";
+> +	interrupts-extended = <
+> +		&cpcap 5 0 &cpcap 3 0
+> +		&cpcap 20 0 &cpcap 54 0
+> +	>;
+> +	interrupt-names =
+> +		"lowbph", "lowbpl",
+> +		"chrgcurr1", "battdetb";
+> +	io-channels = <&cpcap_adc 0 &cpcap_adc 1
+> +		       &cpcap_adc 5 &cpcap_adc 6>;
+> +	io-channel-names = "battdetb", "battp",
+> +			   "chg_isense", "batti";
+> +};
