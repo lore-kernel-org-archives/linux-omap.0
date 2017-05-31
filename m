@@ -1,23 +1,14 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [CFT] Always enable SMP mode on MP capable CPUs
-Date: Wed, 31 May 2017 15:59:25 +0100
-Message-ID: <20170531145924.GY23750@n2100.armlinux.org.uk>
-References: <CAOMZO5Dc=i7UdQH=r5RRr_4GmyZZT+rh7BTNV4WbfqKvtVDfsw@mail.gmail.com>
- <20170519171526.GW22219@n2100.armlinux.org.uk>
- <20170524153847.GY10472@atomide.com>
- <20170525144800.GV23750@n2100.armlinux.org.uk>
- <20170525151103.GC10472@atomide.com>
- <20170525180540.GW23750@n2100.armlinux.org.uk>
- <20170525221332.GE10472@atomide.com>
- <20170526112210.GA3354@afzalpc>
- <20170527132237.GX23750@n2100.armlinux.org.uk>
- <20170531143914.GD3730@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv4 2/6] ARM: OMAP4: hwmod_data: add opt clks for dss_hdmi and
+ dss_venc
+Date: Wed, 31 May 2017 17:59:59 +0300
+Message-ID: <1496242803-6101-3-git-send-email-t-kristo@ti.com>
+References: <1496242803-6101-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20170531143914.GD3730@atomide.com>
+In-Reply-To: <1496242803-6101-1-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -27,54 +18,65 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Fabio Estevam <festevam@gmail.com>, linux-omap@vger.kernel.org, afzal mohammed <afzal.mohd.ma@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@kernel.org>
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, May 31, 2017 at 07:39:15AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@armlinux.org.uk> [170527 06:26]:
-> > On Fri, May 26, 2017 at 04:52:10PM +0530, afzal mohammed wrote:
-> > > Hi,
-> > > 
-> > > On Thu, May 25, 2017 at 03:13:33PM -0700, Tony Lindgren wrote:
-> > > 
-> > > > OK so got my am437x-idk back
-> > > > 
-> > > > And as suspected it won't boot with these changes.
-> > > 
-> > > Tested here too with your additional changes included & seeing same
-> > > behavior here as well on AM437x.
-> > > 
-> > > As an aside, when Russell posted this patch a week back itself was
-> > > suspecting this. i had a certain view on AM437x w.r.t SMP issue back
-> > > while officially working on it & since now not officially involved
-> > > with the issue at hand, i was uncomfortable dealing with this. But as
-> > > Russell's patch was not noticed by others w.r.t AM437x, upon being
-> > > able to confirm it yesterday, i at least wanted to bring it to notice
-> > > & runaway from the scene.
-> > 
-> > Right, so I think the summary is: the kernel can't set the SMP bit
-> > correctly - it doesn't have the information at this point in time
-> > to know definitively whether the bit needs to be set or not.
-> > 
-> > So, those who are suffering issues with their SMP cores in uniprocessor
-> > systems need to ensure that their boot loader correctly configures the
-> > CPU cores.
-> 
-> Russell, current Linux next still has commit e7cf836e9757 ("ARM:
-> always enable SMP mode on SMP cores"). You're planning to drop
-> it, right?
+These extra optional clocks are required as main clock for these modules
+are going to be routed to the main module clock. Otherwise, the hdmi / tv
+clocks are not going to be enabled during usage, leading to failure.
 
-Please have some patience.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-Correct, it should be gone from tonight's linux-next.
-
-The UK has two holidays in May, one of them was this Monday.  I dropped
-the patch yesterday, which is the first opportunity since sending that
-mail, but due to other pressures yesterday, my tree was in no state to
-be pushed out for linux-next's grab last night.
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 94f09c7..0855434 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -775,6 +775,7 @@
+ 
+ static struct omap_hwmod_opt_clk dss_hdmi_opt_clks[] = {
+ 	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
+ };
+ 
+ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+@@ -785,7 +786,7 @@
+ 	 * HDMI audio requires to use no-idle mode. Hence,
+ 	 * set idle mode by software.
+ 	 */
+-	.flags		= HWMOD_SWSUP_SIDLE,
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_OPT_CLKS_NEEDED,
+ 	.mpu_irqs	= omap44xx_dss_hdmi_irqs,
+ 	.xlate_irq	= omap4_xlate_irq,
+ 	.sdma_reqs	= omap44xx_dss_hdmi_sdma_reqs,
+@@ -858,11 +859,16 @@
+ };
+ 
+ /* dss_venc */
++static struct omap_hwmod_opt_clk dss_venc_opt_clks[] = {
++	{ .role = "tv_clk", .clk = "dss_tv_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_venc_hwmod = {
+ 	.name		= "dss_venc",
+ 	.class		= &omap44xx_venc_hwmod_class,
+ 	.clkdm_name	= "l3_dss_clkdm",
+ 	.main_clk	= "dss_tv_clk",
++	.flags		= HWMOD_OPT_CLKS_NEEDED,
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM_DSS_DSS_CLKCTRL_OFFSET,
+@@ -870,6 +876,8 @@
+ 		},
+ 	},
+ 	.parent_hwmod	= &omap44xx_dss_hwmod,
++	.opt_clks	= dss_venc_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dss_venc_opt_clks),
+ };
+ 
+ /*
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+1.9.1
