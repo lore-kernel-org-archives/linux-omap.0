@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/11] ARM: OMAP2+: Remove unused legacy code for DMA
-Date: Wed, 31 May 2017 15:51:35 -0700
-Message-ID: <20170531225139.30723-8-tony@atomide.com>
+Subject: [PATCH 09/11] ARM: OMAP2+: Remove unused legacy code for interconnects
+Date: Wed, 31 May 2017 15:51:37 -0700
+Message-ID: <20170531225139.30723-10-tony@atomide.com>
 References: <20170531225139.30723-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,55 +27,83 @@ of_have_populated_dt() is not set is safe to remove now.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/dma.c | 30 +-----------------------------
- 1 file changed, 1 insertion(+), 29 deletions(-)
+ arch/arm/mach-omap2/omap_device.c          |  5 +----
+ arch/arm/mach-omap2/omap_hwmod.c           | 23 ++++++++++-------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  3 +--
+ 3 files changed, 12 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
---- a/arch/arm/mach-omap2/dma.c
-+++ b/arch/arm/mach-omap2/dma.c
-@@ -334,20 +334,6 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 	p.dma_attr = (struct omap_dma_dev_attr *)oh->dev_attr;
- 	p.errata = configure_dma_errata();
+diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+--- a/arch/arm/mach-omap2/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -65,7 +65,7 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
  
--	if (!of_have_populated_dt()) {
--		if (soc_is_omap24xx()) {
--			p.slave_map = omap24xx_sdma_map;
--			p.slavecnt = ARRAY_SIZE(omap24xx_sdma_map);
--		} else if (soc_is_omap34xx() || soc_is_omap3630()) {
--			p.slave_map = omap3xxx_sdma_map;
--			p.slavecnt = ARRAY_SIZE(omap3xxx_sdma_map);
--		} else {
--			pr_err("%s: The legacy DMA map is not provided!\n",
--			       __func__);
--			return -ENODEV;
--		}
--	}
--
- 	pdev = omap_device_build(name, 0, oh, &p, sizeof(p));
- 	if (IS_ERR(pdev)) {
- 		pr_err("%s: Can't build omap_device for %s:%s.\n",
-@@ -389,21 +375,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 	r = clk_get_sys(NULL, clk_name);
  
- static int __init omap2_system_dma_init(void)
+-	if (IS_ERR(r) && of_have_populated_dt()) {
++	if (IS_ERR(r)) {
+ 		struct of_phandle_args clkspec;
+ 
+ 		clkspec.np = of_find_node_by_name(NULL, clk_name);
+@@ -953,9 +953,6 @@ static int __init omap_device_late_init(void)
  {
--	struct platform_device *pdev;
--	int res;
+ 	bus_for_each_dev(&platform_bus_type, NULL, NULL, omap_device_late_idle);
+ 
+-	WARN(!of_have_populated_dt(),
+-		"legacy booting deprecated, please update to boot with .dts\n");
 -
--	res = omap_hwmod_for_each_by_class("dma",
-+	return omap_hwmod_for_each_by_class("dma",
- 			omap2_system_dma_init_dev, NULL);
--	if (res)
--		return res;
--
--	if (of_have_populated_dt())
--		return res;
--
--	pdev = platform_device_register_full(&omap_dma_dev_info);
--	if (IS_ERR(pdev))
--		return PTR_ERR(pdev);
--
--	return res;
+ 	return 0;
  }
- omap_arch_initcall(omap2_system_dma_init);
+ omap_late_initcall_sync(omap_device_late_init);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2336,24 +2336,21 @@ static int __init _init(struct omap_hwmod *oh, void *data)
+ {
+ 	int r, index;
+ 	struct device_node *np = NULL;
++	struct device_node *bus;
+ 
+ 	if (oh->_state != _HWMOD_STATE_REGISTERED)
+ 		return 0;
+ 
+-	if (of_have_populated_dt()) {
+-		struct device_node *bus;
+-
+-		bus = of_find_node_by_name(NULL, "ocp");
+-		if (!bus)
+-			return -ENODEV;
++	bus = of_find_node_by_name(NULL, "ocp");
++	if (!bus)
++		return -ENODEV;
+ 
+-		r = of_dev_hwmod_lookup(bus, oh, &index, &np);
+-		if (r)
+-			pr_debug("omap_hwmod: %s missing dt data\n", oh->name);
+-		else if (np && index)
+-			pr_warn("omap_hwmod: %s using broken dt data from %s\n",
+-				oh->name, np->name);
+-	}
++	r = of_dev_hwmod_lookup(bus, oh, &index, &np);
++	if (r)
++		pr_debug("omap_hwmod: %s missing dt data\n", oh->name);
++	else if (np && index)
++		pr_warn("omap_hwmod: %s using broken dt data from %s\n",
++			oh->name, np->name);
+ 
+ 	r = _init_mpu_rt_base(oh, NULL, index, np);
+ 	if (r < 0) {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3204,8 +3204,7 @@ int __init omap3xxx_hwmod_init(void)
+ 	 * If DT information is missing, enable them only for GP devices.
+ 	 */
+ 
+-	if (of_have_populated_dt())
+-		bus = of_find_node_by_name(NULL, "ocp");
++	bus = of_find_node_by_name(NULL, "ocp");
+ 
+ 	if (h_sham && omap3xxx_hwmod_is_hs_ip_block_usable(bus, "sham")) {
+ 		r = omap_hwmod_register_links(h_sham);
 -- 
 2.13.0
