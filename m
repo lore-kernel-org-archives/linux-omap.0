@@ -1,87 +1,41 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCHv2] power: supply: cpcap-battery: Add a battery driver
-Date: Wed, 31 May 2017 11:30:02 -0500
-Message-ID: <20170531163002.j4xb6fo3ipq6ly2d@rob-hp-laptop>
-References: <20170523005637.945-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH RFC 2/5] ARM: dts: am335x-baltos: use IRQ_TYPE_* to
+ specify irq flags
+Date: Wed, 31 May 2017 10:19:32 -0700
+Message-ID: <20170531171932.GH3730@atomide.com>
+References: <20170526180609.2699-1-uwe@kleine-koenig.org>
+ <20170526180609.2699-2-uwe@kleine-koenig.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170523005637.945-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sebastian Reichel <sre@kernel.org>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+In-Reply-To: <20170526180609.2699-2-uwe@kleine-koenig.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <uwe@kleine-koenig.org>
+Cc: Marek Vasut <marex@denx.de>, devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, linux-omap@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 22, 2017 at 05:56:37PM -0700, Tony Lindgren wrote:
-> On the CPCAP PMIC we can use the ADCs for monitoring the battery,
-> and there is also a coulomb counter. So let's add basic support for
-> the battery driver.
-> 
-> I did not add any capacity prediction as that should probably be
-> done in the user space. Or at least user space should tell the kernel
-> some battery statistics and then the kernel driver could display the
-> capacity based on that.
-> 
-> Note that I left out the battery interrupt handling for now as I need
-> to spend more time on it for the battery empty interrupts. The driver
-> works just fine without the interrupts too.
-> 
-> Cc: devicetree@vger.kernel.org
-> Cc: Marcel Partap <mpartap@gmx.net>
-> Cc: Michael Scott <michael.scott@linaro.org>
-> Cc: Rob Herring <robh@kernel.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
-> 
-> Changes since v1:
-> 
-> - Add support for battery low interrupts
-> 
-> - Fix POWER_SUPPLY_STATUS during charging to not flip constantly
->   by using average current
-> 
-> ---
->  .../bindings/power/supply/cpcap-battery.txt        |  27 +
->  drivers/power/supply/Kconfig                       |   8 +
->  drivers/power/supply/Makefile                      |   1 +
->  drivers/power/supply/cpcap-battery.c               | 808 +++++++++++++++++++++
->  4 files changed, 844 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
->  create mode 100644 drivers/power/supply/cpcap-battery.c
-> 
-> diff --git a/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
-> new file mode 100644
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
-> @@ -0,0 +1,27 @@
-> +Motorola CPCAP PMIC battery driver binding
-> +
-> +Required properties:
-> +- compatible: Shall be "motorola,cpcap-battery"
-> +- interrupts: Interrupt specifier for each name in interrupt-names
-> +- interrupt-names: Should contain the following entries:
-> +		   "lowbph", "lowbpl", "chrgcurr1", "battdetb"
-> +- io-channels: IIO ADC channel specifier for each name in io-channel-names
-> +- io-channel-names: Should contain the following entries:
-> +		    "battdetb", "battp"
-
-Doesn't match the example.
-
-> +
-> +Example:
-> +
-> +cpcap_battery: battery {
-> +	compatible = "motorola,cpcap-battery";
-> +	interrupts-extended = <
-> +		&cpcap 5 0 &cpcap 3 0
-> +		&cpcap 20 0 &cpcap 54 0
-> +	>;
-> +	interrupt-names =
-> +		"lowbph", "lowbpl",
-> +		"chrgcurr1", "battdetb";
-> +	io-channels = <&cpcap_adc 0 &cpcap_adc 1
-> +		       &cpcap_adc 5 &cpcap_adc 6>;
-> +	io-channel-names = "battdetb", "battp",
-> +			   "chg_isense", "batti";
-> +};
+KiBVd2UgS2xlaW5lLUvDtm5pZyA8dXdlQGtsZWluZS1rb2VuaWcub3JnPiBbMTcwNTI2IDExOjA5
+XToKPiBBY2NvcmRpbmcgdG8gdGhlIGJpbmRpbmcgZG9jdW1lbnRhdGlvbiBhbmQgdGhlIHNvdXJj
+ZSBjb2RlIHRoZSBvbWFwLWdwaW8KPiBjb250cm9sbGVyIHRha2VzIElSUV9UWVBFXyogYXMgaXRz
+IGZsYWdzIHZhbHVlcywgbm90IEdQSU9fQUNUSVZFXyouCj4gCj4gVGhpcyBwYXRjaCB1c2VzIHRo
+ZSByaWdodCB2YXJpYWJsZSB0eXBlIHdoaWNoIHlpZWxkcyB0aGUgc2FtZSByZXN1bHQKPiB3aGVu
+IGNvbXBpbGVkLiBOb3RlIHRoYXQgdGhpcyBtaWdodCBiZSB3cm9uZyBhbmQgYWN0dWFsbHkKPiBJ
+UlFfVFlQRV9MRVZFTF9MT1cgaXMgaW50ZW5kZWQgYnkgdGhlIGR0IGF1dGhvci4KPiAKPiBTaWdu
+ZWQtb2ZmLWJ5OiBVd2UgS2xlaW5lLUvDtm5pZyA8dXdlQGtsZWluZS1rb2VuaWcub3JnPgo+IC0t
+LQo+IEhlbGxvLAo+IAo+IGNhbiBzb21lYm9keSB3aXRoIHRoZSBoYXJkd2FyZSBvciBpdCdzIGRv
+Y3VtZW50YXRpb24gcGxlYXNlIGNoZWNrIHdoaWNoCj4gZmxhZyBpcyB0aGUgcmlnaHQgb25lPwoK
+SSdsbCB3YWl0IG9uIHRoaXMgb25lIHVudGlsIHdlIGhhdmUgc29tZWJvZHkgdGVzdCBpdC4KClJl
+Z2FyZHMsCgpUb255CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3Rz
+LmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1hcm0ta2VybmVsCg==
