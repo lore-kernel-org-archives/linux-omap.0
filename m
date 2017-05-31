@@ -1,14 +1,23 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 3/6] ARM: OMAP2+: PRCM: store also physical addresses for
- instances
-Date: Wed, 31 May 2017 18:00:00 +0300
-Message-ID: <1496242803-6101-4-git-send-email-t-kristo@ti.com>
-References: <1496242803-6101-1-git-send-email-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [CFT] Always enable SMP mode on MP capable CPUs
+Date: Wed, 31 May 2017 08:07:53 -0700
+Message-ID: <20170531150752.GE3730@atomide.com>
+References: <20170519171526.GW22219@n2100.armlinux.org.uk>
+ <20170524153847.GY10472@atomide.com>
+ <20170525144800.GV23750@n2100.armlinux.org.uk>
+ <20170525151103.GC10472@atomide.com>
+ <20170525180540.GW23750@n2100.armlinux.org.uk>
+ <20170525221332.GE10472@atomide.com>
+ <20170526112210.GA3354@afzalpc>
+ <20170527132237.GX23750@n2100.armlinux.org.uk>
+ <20170531143914.GD3730@atomide.com>
+ <20170531145924.GY23750@n2100.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1496242803-6101-1-git-send-email-t-kristo@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20170531145924.GY23750@n2100.armlinux.org.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,485 +27,54 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Fabio Estevam <festevam@gmail.com>, linux-omap@vger.kernel.org, afzal mohammed <afzal.mohd.ma@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-In some cases the physical address info is needed, so store this
-under the existing cm*_base, prm_base and prcm_mpu_base variables.
-These are converted now to structs that contain both virtual and
-physical address base for the instance.
+* Russell King - ARM Linux <linux@armlinux.org.uk> [170531 08:03]:
+> On Wed, May 31, 2017 at 07:39:15AM -0700, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@armlinux.org.uk> [170527 06:26]:
+> > > On Fri, May 26, 2017 at 04:52:10PM +0530, afzal mohammed wrote:
+> > > > Hi,
+> > > > 
+> > > > On Thu, May 25, 2017 at 03:13:33PM -0700, Tony Lindgren wrote:
+> > > > 
+> > > > > OK so got my am437x-idk back
+> > > > > 
+> > > > > And as suspected it won't boot with these changes.
+> > > > 
+> > > > Tested here too with your additional changes included & seeing same
+> > > > behavior here as well on AM437x.
+> > > > 
+> > > > As an aside, when Russell posted this patch a week back itself was
+> > > > suspecting this. i had a certain view on AM437x w.r.t SMP issue back
+> > > > while officially working on it & since now not officially involved
+> > > > with the issue at hand, i was uncomfortable dealing with this. But as
+> > > > Russell's patch was not noticed by others w.r.t AM437x, upon being
+> > > > able to confirm it yesterday, i at least wanted to bring it to notice
+> > > > & runaway from the scene.
+> > > 
+> > > Right, so I think the summary is: the kernel can't set the SMP bit
+> > > correctly - it doesn't have the information at this point in time
+> > > to know definitively whether the bit needs to be set or not.
+> > > 
+> > > So, those who are suffering issues with their SMP cores in uniprocessor
+> > > systems need to ensure that their boot loader correctly configures the
+> > > CPU cores.
+> > 
+> > Russell, current Linux next still has commit e7cf836e9757 ("ARM:
+> > always enable SMP mode on SMP cores"). You're planning to drop
+> > it, right?
+> 
+> Please have some patience.
+> 
+> Correct, it should be gone from tonight's linux-next.
+> 
+> The UK has two holidays in May, one of them was this Monday.  I dropped
+> the patch yesterday, which is the first opportunity since sending that
+> mail, but due to other pressures yesterday, my tree was in no state to
+> be pushed out for linux-next's grab last night.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/cm.h                 |  7 +++++--
- arch/arm/mach-omap2/cm2xxx_3xxx.h        |  4 ++--
- arch/arm/mach-omap2/cm33xx.c             |  4 ++--
- arch/arm/mach-omap2/cm3xxx.c             |  3 ++-
- arch/arm/mach-omap2/cm_common.c          | 31 +++++++++++++++++++------------
- arch/arm/mach-omap2/cminst44xx.c         | 19 ++++++++++---------
- arch/arm/mach-omap2/prcm-common.h        |  7 +++++++
- arch/arm/mach-omap2/prcm_mpu44xx.c       |  4 ++--
- arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h |  4 +++-
- arch/arm/mach-omap2/prm.h                |  2 +-
- arch/arm/mach-omap2/prm2xxx_3xxx.h       |  4 ++--
- arch/arm/mach-omap2/prm33xx.c            |  4 ++--
- arch/arm/mach-omap2/prm3xxx.c            |  2 +-
- arch/arm/mach-omap2/prm44xx.c            |  4 ++--
- arch/arm/mach-omap2/prm_common.c         | 23 +++++++++++++----------
- arch/arm/mach-omap2/prminst44xx.c        | 16 +++++++++-------
- 16 files changed, 82 insertions(+), 56 deletions(-)
+OK thanks for confirming!
 
-diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-index de75cbc..e833984 100644
---- a/arch/arm/mach-omap2/cm.h
-+++ b/arch/arm/mach-omap2/cm.h
-@@ -24,8 +24,11 @@
- 
- # ifndef __ASSEMBLER__
- #include <linux/clk/ti.h>
--extern void __iomem *cm_base;
--extern void __iomem *cm2_base;
-+
-+#include "prcm-common.h"
-+
-+extern struct omap_domain_base cm_base;
-+extern struct omap_domain_base cm2_base;
- extern void omap2_set_globals_cm(void __iomem *cm, void __iomem *cm2);
- # endif
- 
-diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.h b/arch/arm/mach-omap2/cm2xxx_3xxx.h
-index 72928a3..aa148cd 100644
---- a/arch/arm/mach-omap2/cm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/cm2xxx_3xxx.h
-@@ -52,12 +52,12 @@
- 
- static inline u32 omap2_cm_read_mod_reg(s16 module, u16 idx)
- {
--	return readl_relaxed(cm_base + module + idx);
-+	return readl_relaxed(cm_base.va + module + idx);
- }
- 
- static inline void omap2_cm_write_mod_reg(u32 val, s16 module, u16 idx)
- {
--	writel_relaxed(val, cm_base + module + idx);
-+	writel_relaxed(val, cm_base.va + module + idx);
- }
- 
- /* Read-modify-write a register in a CM module. Caller must lock */
-diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-index 6f2d0ae..a9e08d8 100644
---- a/arch/arm/mach-omap2/cm33xx.c
-+++ b/arch/arm/mach-omap2/cm33xx.c
-@@ -50,13 +50,13 @@
- /* Read a register in a CM instance */
- static inline u32 am33xx_cm_read_reg(u16 inst, u16 idx)
- {
--	return readl_relaxed(cm_base + inst + idx);
-+	return readl_relaxed(cm_base.va + inst + idx);
- }
- 
- /* Write into a register in a CM */
- static inline void am33xx_cm_write_reg(u32 val, u16 inst, u16 idx)
- {
--	writel_relaxed(val, cm_base + inst + idx);
-+	writel_relaxed(val, cm_base.va + inst + idx);
- }
- 
- /* Read-modify-write a register in CM */
-diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
-index 55b046a..961bc47 100644
---- a/arch/arm/mach-omap2/cm3xxx.c
-+++ b/arch/arm/mach-omap2/cm3xxx.c
-@@ -669,7 +669,8 @@ void omap3_cm_save_scratchpad_contents(u32 *ptr)
- 
- int __init omap3xxx_cm_init(const struct omap_prcm_init_data *data)
- {
--	omap2_clk_legacy_provider_init(TI_CLKM_CM, cm_base + OMAP3430_IVA2_MOD);
-+	omap2_clk_legacy_provider_init(TI_CLKM_CM, cm_base.va +
-+				       OMAP3430_IVA2_MOD);
- 	return cm_register(&omap3xxx_cm_ll_data);
- }
- 
-diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
-index bbe41f4..d555791 100644
---- a/arch/arm/mach-omap2/cm_common.c
-+++ b/arch/arm/mach-omap2/cm_common.c
-@@ -32,10 +32,10 @@
- static struct cm_ll_data *cm_ll_data = &null_cm_ll_data;
- 
- /* cm_base: base virtual address of the CM IP block */
--void __iomem *cm_base;
-+struct omap_domain_base cm_base;
- 
- /* cm2_base: base virtual address of the CM2 IP block (OMAP44xx only) */
--void __iomem *cm2_base;
-+struct omap_domain_base cm2_base;
- 
- #define CM_NO_CLOCKS		0x1
- #define CM_SINGLE_INSTANCE	0x2
-@@ -49,8 +49,8 @@
-  */
- void __init omap2_set_globals_cm(void __iomem *cm, void __iomem *cm2)
- {
--	cm_base = cm;
--	cm2_base = cm2;
-+	cm_base.va = cm;
-+	cm2_base.va = cm2;
- }
- 
- /**
-@@ -315,27 +315,34 @@ int __init omap2_cm_base_init(void)
- 	struct device_node *np;
- 	const struct of_device_id *match;
- 	struct omap_prcm_init_data *data;
--	void __iomem *mem;
-+	struct resource res;
-+	int ret;
-+	struct omap_domain_base *mem = NULL;
- 
- 	for_each_matching_node_and_match(np, omap_cm_dt_match_table, &match) {
- 		data = (struct omap_prcm_init_data *)match->data;
- 
--		mem = of_iomap(np, 0);
--		if (!mem)
--			return -ENOMEM;
-+		ret = of_address_to_resource(np, 0, &res);
-+		if (ret)
-+			return ret;
- 
- 		if (data->index == TI_CLKM_CM)
--			cm_base = mem + data->offset;
-+			mem = &cm_base;
- 
- 		if (data->index == TI_CLKM_CM2)
--			cm2_base = mem + data->offset;
-+			mem = &cm2_base;
-+
-+		data->mem = ioremap(res.start, resource_size(&res));
- 
--		data->mem = mem;
-+		if (mem) {
-+			mem->pa = res.start + data->offset;
-+			mem->va = data->mem + data->offset;
-+		}
- 
- 		data->np = np;
- 
- 		if (data->init && (data->flags & CM_SINGLE_INSTANCE ||
--				   (cm_base && cm2_base)))
-+				   (cm_base.va && cm2_base.va)))
- 			data->init(data);
- 	}
- 
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 2ab27ad..cfa10a3 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -55,7 +55,7 @@
- #define CLKCTRL_IDLEST_INTERFACE_IDLE		0x2
- #define CLKCTRL_IDLEST_DISABLED			0x3
- 
--static void __iomem *_cm_bases[OMAP4_MAX_PRCM_PARTITIONS];
-+static struct omap_domain_base _cm_bases[OMAP4_MAX_PRCM_PARTITIONS];
- 
- /**
-  * omap_cm_base_init - Populates the cm partitions
-@@ -65,10 +65,11 @@
-  */
- static void omap_cm_base_init(void)
- {
--	_cm_bases[OMAP4430_PRM_PARTITION] = prm_base;
--	_cm_bases[OMAP4430_CM1_PARTITION] = cm_base;
--	_cm_bases[OMAP4430_CM2_PARTITION] = cm2_base;
--	_cm_bases[OMAP4430_PRCM_MPU_PARTITION] = prcm_mpu_base;
-+	memcpy(&_cm_bases[OMAP4430_PRM_PARTITION], &prm_base, sizeof(prm_base));
-+	memcpy(&_cm_bases[OMAP4430_CM1_PARTITION], &cm_base, sizeof(cm_base));
-+	memcpy(&_cm_bases[OMAP4430_CM2_PARTITION], &cm2_base, sizeof(cm2_base));
-+	memcpy(&_cm_bases[OMAP4430_PRCM_MPU_PARTITION], &prcm_mpu_base,
-+	       sizeof(prcm_mpu_base));
- }
- 
- /* Private functions */
-@@ -116,8 +117,8 @@ static u32 omap4_cminst_read_inst_reg(u8 part, u16 inst, u16 idx)
- {
- 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
- 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
--	       !_cm_bases[part]);
--	return readl_relaxed(_cm_bases[part] + inst + idx);
-+	       !_cm_bases[part].va);
-+	return readl_relaxed(_cm_bases[part].va + inst + idx);
- }
- 
- /* Write into a register in a CM instance */
-@@ -125,8 +126,8 @@ static void omap4_cminst_write_inst_reg(u32 val, u8 part, u16 inst, u16 idx)
- {
- 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
- 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
--	       !_cm_bases[part]);
--	writel_relaxed(val, _cm_bases[part] + inst + idx);
-+	       !_cm_bases[part].va);
-+	writel_relaxed(val, _cm_bases[part].va + inst + idx);
- }
- 
- /* Read-modify-write a register in CM1. Caller must lock */
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index c8f590b..ee7041d 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -526,10 +526,16 @@ struct omap_prcm_irq_setup {
- 	.priority = _priority				\
- 	}
- 
-+struct omap_domain_base {
-+	u32 pa;
-+	void __iomem *va;
-+};
-+
- /**
-  * struct omap_prcm_init_data - PRCM driver init data
-  * @index: clock memory mapping index to be used
-  * @mem: IO mem pointer for this module
-+ * @phys: IO mem physical base address for this module
-  * @offset: module base address offset from the IO base
-  * @flags: PRCM module init flags
-  * @device_inst_offset: device instance offset within the module address space
-@@ -539,6 +545,7 @@ struct omap_prcm_irq_setup {
- struct omap_prcm_init_data {
- 	int index;
- 	void __iomem *mem;
-+	u32 phys;
- 	s16 offset;
- 	u16 flags;
- 	s32 device_inst_offset;
-diff --git a/arch/arm/mach-omap2/prcm_mpu44xx.c b/arch/arm/mach-omap2/prcm_mpu44xx.c
-index cdbee63..9c782f5 100644
---- a/arch/arm/mach-omap2/prcm_mpu44xx.c
-+++ b/arch/arm/mach-omap2/prcm_mpu44xx.c
-@@ -24,7 +24,7 @@
-  * prcm_mpu_base: the virtual address of the start of the PRCM_MPU IP
-  *   block registers
-  */
--void __iomem *prcm_mpu_base;
-+struct omap_domain_base prcm_mpu_base;
- 
- /* PRCM_MPU low-level functions */
- 
-@@ -58,5 +58,5 @@ u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 reg)
-  */
- void __init omap2_set_globals_prcm_mpu(void __iomem *prcm_mpu)
- {
--	prcm_mpu_base = prcm_mpu;
-+	prcm_mpu_base.va = prcm_mpu;
- }
-diff --git a/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h b/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
-index ca149e7..f565f7f 100644
---- a/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
-+++ b/arch/arm/mach-omap2/prcm_mpu_44xx_54xx.h
-@@ -24,7 +24,9 @@
- #define __ARCH_ARM_MACH_OMAP2_PRCM_MPU_44XX_54XX_H
- 
- #ifndef __ASSEMBLER__
--extern void __iomem *prcm_mpu_base;
-+#include "prcm-common.h"
-+
-+extern struct omap_domain_base prcm_mpu_base;
- 
- extern u32 omap4_prcm_mpu_read_inst_reg(s16 inst, u16 idx);
- extern void omap4_prcm_mpu_write_inst_reg(u32 val, s16 inst, u16 idx);
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index 233bc84..94dc356 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -16,7 +16,7 @@
- #include "prcm-common.h"
- 
- # ifndef __ASSEMBLER__
--extern void __iomem *prm_base;
-+extern struct omap_domain_base prm_base;
- extern u16 prm_features;
- extern void omap2_set_globals_prm(void __iomem *prm);
- int omap_prcm_init(void);
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index f57e29b..6775e10 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -55,12 +55,12 @@
- /* Power/reset management domain register get/set */
- static inline u32 omap2_prm_read_mod_reg(s16 module, u16 idx)
- {
--	return readl_relaxed(prm_base + module + idx);
-+	return readl_relaxed(prm_base.va + module + idx);
- }
- 
- static inline void omap2_prm_write_mod_reg(u32 val, s16 module, u16 idx)
- {
--	writel_relaxed(val, prm_base + module + idx);
-+	writel_relaxed(val, prm_base.va + module + idx);
- }
- 
- /* Read-modify-write a register in a PRM module. Caller must lock */
-diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
-index dcb5001..d2c5bca 100644
---- a/arch/arm/mach-omap2/prm33xx.c
-+++ b/arch/arm/mach-omap2/prm33xx.c
-@@ -30,13 +30,13 @@
- /* Read a register in a PRM instance */
- static u32 am33xx_prm_read_reg(s16 inst, u16 idx)
- {
--	return readl_relaxed(prm_base + inst + idx);
-+	return readl_relaxed(prm_base.va + inst + idx);
- }
- 
- /* Write into a register in a PRM instance */
- static void am33xx_prm_write_reg(u32 val, s16 inst, u16 idx)
- {
--	writel_relaxed(val, prm_base + inst + idx);
-+	writel_relaxed(val, prm_base.va + inst + idx);
- }
- 
- /* Read-modify-write a register in PRM. Caller must lock */
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 718981b..50291a0 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -676,7 +676,7 @@ struct pwrdm_ops omap3_pwrdm_operations = {
- int __init omap3xxx_prm_init(const struct omap_prcm_init_data *data)
- {
- 	omap2_clk_legacy_provider_init(TI_CLKM_PRM,
--				       prm_base + OMAP3430_IVA2_MOD);
-+				       prm_base.va + OMAP3430_IVA2_MOD);
- 	if (omap3_has_io_wakeup())
- 		prm_features |= PRM_HAS_IO_WAKEUP;
- 
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 3076800..090a131 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -91,13 +91,13 @@
- /* Read a register in a CM/PRM instance in the PRM module */
- static u32 omap4_prm_read_inst_reg(s16 inst, u16 reg)
- {
--	return readl_relaxed(prm_base + inst + reg);
-+	return readl_relaxed(prm_base.va + inst + reg);
- }
- 
- /* Write into a register in a CM/PRM instance in the PRM module */
- static void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 reg)
- {
--	writel_relaxed(val, prm_base + inst + reg);
-+	writel_relaxed(val, prm_base.va + inst + reg);
- }
- 
- /* Read-modify-write a register in a PRM module. Caller must lock */
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 2b138b6..ae13aa7 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -66,7 +66,7 @@
- static struct omap_prcm_irq_setup *prcm_irq_setup;
- 
- /* prm_base: base virtual address of the PRM IP block */
--void __iomem *prm_base;
-+struct omap_domain_base prm_base;
- 
- u16 prm_features;
- 
-@@ -325,7 +325,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- 
- 	for (i = 0; i < irq_setup->nr_regs; i++) {
- 		gc = irq_alloc_generic_chip("PRCM", 1,
--			irq_setup->base_irq + i * 32, prm_base,
-+			irq_setup->base_irq + i * 32, prm_base.va,
- 			handle_level_irq);
- 
- 		if (!gc) {
-@@ -364,7 +364,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
-  */
- void __init omap2_set_globals_prm(void __iomem *prm)
- {
--	prm_base = prm;
-+	prm_base.va = prm;
- }
- 
- /**
-@@ -755,19 +755,22 @@ int __init omap2_prm_base_init(void)
- 	struct device_node *np;
- 	const struct of_device_id *match;
- 	struct omap_prcm_init_data *data;
--	void __iomem *mem;
-+	struct resource res;
-+	int ret;
- 
- 	for_each_matching_node_and_match(np, omap_prcm_dt_match_table, &match) {
- 		data = (struct omap_prcm_init_data *)match->data;
- 
--		mem = of_iomap(np, 0);
--		if (!mem)
--			return -ENOMEM;
-+		ret = of_address_to_resource(np, 0, &res);
-+		if (ret)
-+			return ret;
- 
--		if (data->index == TI_CLKM_PRM)
--			prm_base = mem + data->offset;
-+		data->mem = ioremap(res.start, resource_size(&res));
- 
--		data->mem = mem;
-+		if (data->index == TI_CLKM_PRM) {
-+			prm_base.va = data->mem + data->offset;
-+			prm_base.pa = res.start + data->offset;
-+		}
- 
- 		data->np = np;
- 
-diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-index d0b15db..48b8127 100644
---- a/arch/arm/mach-omap2/prminst44xx.c
-+++ b/arch/arm/mach-omap2/prminst44xx.c
-@@ -29,7 +29,7 @@
- #include "prcm_mpu44xx.h"
- #include "soc.h"
- 
--static void __iomem *_prm_bases[OMAP4_MAX_PRCM_PARTITIONS];
-+static struct omap_domain_base _prm_bases[OMAP4_MAX_PRCM_PARTITIONS];
- 
- static s32 prm_dev_inst = PRM_INSTANCE_UNKNOWN;
- 
-@@ -41,8 +41,10 @@
-  */
- void omap_prm_base_init(void)
- {
--	_prm_bases[OMAP4430_PRM_PARTITION] = prm_base;
--	_prm_bases[OMAP4430_PRCM_MPU_PARTITION] = prcm_mpu_base;
-+	memcpy(&_prm_bases[OMAP4430_PRM_PARTITION], &prm_base,
-+	       sizeof(prm_base));
-+	memcpy(&_prm_bases[OMAP4430_PRCM_MPU_PARTITION], &prcm_mpu_base,
-+	       sizeof(prcm_mpu_base));
- }
- 
- s32 omap4_prmst_get_prm_dev_inst(void)
-@@ -60,8 +62,8 @@ u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx)
- {
- 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
- 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
--	       !_prm_bases[part]);
--	return readl_relaxed(_prm_bases[part] + inst + idx);
-+	       !_prm_bases[part].va);
-+	return readl_relaxed(_prm_bases[part].va + inst + idx);
- }
- 
- /* Write into a register in a PRM instance */
-@@ -69,8 +71,8 @@ void omap4_prminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx)
- {
- 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
- 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
--	       !_prm_bases[part]);
--	writel_relaxed(val, _prm_bases[part] + inst + idx);
-+	       !_prm_bases[part].va);
-+	writel_relaxed(val, _prm_bases[part].va + inst + idx);
- }
- 
- /* Read-modify-write a register in PRM. Caller must lock */
--- 
-1.9.1
+Tony
