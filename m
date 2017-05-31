@@ -1,15 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 0/6] ARM: OMAP2+: preparation for clk/clkctrl support
-Date: Wed, 31 May 2017 15:20:22 -0700
-Message-ID: <20170531222021.GM3730@atomide.com>
-References: <1496242803-6101-1-git-send-email-t-kristo@ti.com>
- <20170531195339.GL3730@atomide.com>
+Subject: [PATCH 00/11] Remove unused omap legacy code
+Date: Wed, 31 May 2017 15:51:28 -0700
+Message-ID: <20170531225139.30723-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20170531195339.GL3730@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,34 +15,54 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170531 12:57]:
-> * Tero Kristo <t-kristo@ti.com> [170531 08:03]:
-> > Hi,
-> > 
-> > This series is evolution of the v3b of the same series:
-> > https://www.spinics.net/lists/arm-kernel/msg584344.html
-> > 
-> > Changes compared to v3b:
-> > 
-> > - Added patch #3 which stores the physical address for PRCM instances
-> >   in addition to the virtual addresses
-> > - Fixed patch #5 to use physical base address for xlate instead of
-> >   the OMAP2_L4_IO_ADDRESS hack
-> > - Dropped unnecessary device node passing from patch #6 which makes
-> >   the code slightly more readable also
-> 
-> I gave this series a quick test with no other changes and
-> noticed that n8x0 stopped booting. Other than that looks
-> pretty good to me.
+Hi all,
 
-Sorry that was a false alert, n8x0 is booting just fine.
-It's the loading of kernel over USB that's flakey for me
-again..
+We can now remove quite a bit of clutter with legacy booting
+gone. Basically anything with of_have_populated_dt() not set
+can now go.
 
 Regards,
 
 Tony
+
+Tony Lindgren (11):
+  ARM: OMAP2+: Remove unused legacy code for opp
+  ARM: OMAP2+: Remove unused legacy code for timer
+  ARM: OMAP2+: Remove unused legacy code for PMU
+  ARM: OMAP2+: Remove unused legacy code for device init
+  ARM: OMAP2+: Remove unused legacy code for McBSP
+  ARM: OMAP2+: Remove unused legacy code for io.c
+  ARM: OMAP2+: Remove unused legacy code for DMA
+  ARM: OMAP2+: Remove unused legacy code for PRM
+  ARM: OMAP2+: Remove unused legacy code for interconnects
+  ARM: OMAP2+: Remove unused legacy code for watchdog
+  ARM: OMAP2+: Remove unused legacy code for n8x0
+
+ arch/arm/mach-omap2/Makefile               |   4 -
+ arch/arm/mach-omap2/board-n8x0.c           |  14 +--
+ arch/arm/mach-omap2/devices.c              | 163 ---------------------------
+ arch/arm/mach-omap2/dma.c                  |  30 +----
+ arch/arm/mach-omap2/io.c                   |  59 +++-------
+ arch/arm/mach-omap2/mcbsp.c                |  70 ------------
+ arch/arm/mach-omap2/omap_device.c          |   5 +-
+ arch/arm/mach-omap2/omap_hwmod.c           |  23 ++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   3 +-
+ arch/arm/mach-omap2/opp.c                  | 104 -----------------
+ arch/arm/mach-omap2/opp3xxx_data.c         |  86 ---------------
+ arch/arm/mach-omap2/opp4xxx_data.c         |  79 -------------
+ arch/arm/mach-omap2/pmu.c                  |  97 ----------------
+ arch/arm/mach-omap2/prm3xxx.c              |  17 ++-
+ arch/arm/mach-omap2/prm44xx.c              |  59 ----------
+ arch/arm/mach-omap2/prm_common.c           |   9 +-
+ arch/arm/mach-omap2/timer.c                | 172 ++++-------------------------
+ arch/arm/mach-omap2/wd_timer.c             |  28 -----
+ 18 files changed, 63 insertions(+), 959 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/opp.c
+ delete mode 100644 arch/arm/mach-omap2/pmu.c
+
+-- 
+2.13.0
