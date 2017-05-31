@@ -1,15 +1,23 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3b 0/5] ARM: OMAP2+: preparation for clk/clkctrl support
-Date: Wed, 31 May 2017 17:40:54 +0300
-Message-ID: <d683d2b5-0dcb-c311-b7ab-a543edc1c813@ti.com>
-References: <1496155669-1677-1-git-send-email-t-kristo@ti.com>
- <20170530181618.GC3730@atomide.com>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [CFT] Always enable SMP mode on MP capable CPUs
+Date: Wed, 31 May 2017 15:59:25 +0100
+Message-ID: <20170531145924.GY23750@n2100.armlinux.org.uk>
+References: <CAOMZO5Dc=i7UdQH=r5RRr_4GmyZZT+rh7BTNV4WbfqKvtVDfsw@mail.gmail.com>
+ <20170519171526.GW22219@n2100.armlinux.org.uk>
+ <20170524153847.GY10472@atomide.com>
+ <20170525144800.GV23750@n2100.armlinux.org.uk>
+ <20170525151103.GC10472@atomide.com>
+ <20170525180540.GW23750@n2100.armlinux.org.uk>
+ <20170525221332.GE10472@atomide.com>
+ <20170526112210.GA3354@afzalpc>
+ <20170527132237.GX23750@n2100.armlinux.org.uk>
+ <20170531143914.GD3730@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170530181618.GC3730@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170531143914.GD3730@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,31 +28,53 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Fabio Estevam <festevam@gmail.com>, linux-omap@vger.kernel.org, afzal mohammed <afzal.mohd.ma@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 30/05/17 21:16, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [170530 07:51]:
->> Hi,
->>
->> This is an alternative solution against v3 [1] of this series.
->>
->> [1] https://www.spinics.net/lists/arm-kernel/msg581965.html
->>
->> This series is different in that it parses the hwmod data in the fly
->> and swaps the main_clk info with clkctrl implementations if those
->> are present. Patch #1 / #2 are old from v3 of the series, rest are
->> new. Patches #3 / #4 add some infrastructure support for parsing
->> the clock data, and patch #5 does the clock swapping.
->>
->> With this series, it is not necessary to populate clkctrl clock
->> entries to DT at all, thus the transition should be smoother.
+On Wed, May 31, 2017 at 07:39:15AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@armlinux.org.uk> [170527 06:26]:
+> > On Fri, May 26, 2017 at 04:52:10PM +0530, afzal mohammed wrote:
+> > > Hi,
+> > > 
+> > > On Thu, May 25, 2017 at 03:13:33PM -0700, Tony Lindgren wrote:
+> > > 
+> > > > OK so got my am437x-idk back
+> > > > 
+> > > > And as suspected it won't boot with these changes.
+> > > 
+> > > Tested here too with your additional changes included & seeing same
+> > > behavior here as well on AM437x.
+> > > 
+> > > As an aside, when Russell posted this patch a week back itself was
+> > > suspecting this. i had a certain view on AM437x w.r.t SMP issue back
+> > > while officially working on it & since now not officially involved
+> > > with the issue at hand, i was uncomfortable dealing with this. But as
+> > > Russell's patch was not noticed by others w.r.t AM437x, upon being
+> > > able to confirm it yesterday, i at least wanted to bring it to notice
+> > > & runaway from the scene.
+> > 
+> > Right, so I think the summary is: the kernel can't set the SMP bit
+> > correctly - it doesn't have the information at this point in time
+> > to know definitively whether the bit needs to be set or not.
+> > 
+> > So, those who are suffering issues with their SMP cores in uniprocessor
+> > systems need to ensure that their boot loader correctly configures the
+> > CPU cores.
 > 
-> Yeah OK I think this is the way to go to avoid changing
-> device tree multiple times. The only issues I have are
-> for patches 4 and 5 that I already commented on there.
+> Russell, current Linux next still has commit e7cf836e9757 ("ARM:
+> always enable SMP mode on SMP cores"). You're planning to drop
+> it, right?
 
-Ok, I'll post v4 based on this series and fixup the issues with patch #4 
-/ #5. I'll abandon the original v3 series.
+Please have some patience.
 
--Tero
+Correct, it should be gone from tonight's linux-next.
+
+The UK has two holidays in May, one of them was this Monday.  I dropped
+the patch yesterday, which is the first opportunity since sending that
+mail, but due to other pressures yesterday, my tree was in no state to
+be pushed out for linux-next's grab last night.
+
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
