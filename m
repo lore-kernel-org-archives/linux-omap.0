@@ -1,102 +1,66 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC 2/3] misc: Add w2sg0004 (gps receiver) power control driver
-Date: Tue, 30 May 2017 18:09:03 -0500
-Message-ID: <20170530230903.jrg6ui5xiqfhqyfg@rob-hp-laptop>
-References: <cover.1495363443.git.hns@goldelico.com>
- <24579fa76fbf454526fddabe0b20070e46d488ba.1495363443.git.hns@goldelico.com>
+From: James Hartley <james.hartley-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 3/7] clocksource: Rename clocksource_probe
+Date: Wed, 31 May 2017 11:29:45 +0100
+Message-ID: <a974f62d-5a3c-629c-7e80-b45ba34f44dc@imgtec.com>
+References: <1495879129-28109-1-git-send-email-daniel.lezcano@linaro.org>
+ <1495879129-28109-3-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <24579fa76fbf454526fddabe0b20070e46d488ba.1495363443.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1495879129-28109-3-git-send-email-daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
+Cc: "open list:MIPS" <linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Kefeng Wang <wangkefeng.wang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Rich Felker <dalias-8zAoT0mYgF4@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, "open list:SUPERH" <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "moderated list:NIOS2 ARCHITECTURE" <nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Max Filippov <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ray Jui <ray.jui-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Icenowy Zheng <icenowy-ymACFijhrKM@public.gmane.org>, Andrea Gelmini <andrea.gelmini-PT7Us6ch6G9eoWH0uzbU5w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yoshinori Sato <ysato-Rn4VEauK+AKRv+LV9MX5uooqe+aC9MnS@public.gmane.org>, Viresh Kumar <vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, "open list:ARM/Rockchip SoC support" <linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Chen-Yu
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, May 21, 2017 at 12:44:03PM +0200, H. Nikolaus Schaller wrote:
-> Add driver for Wi2Wi W2SG0004/84 GPS module connected through uart.
-> 
-> Use serdev API hooks to monitor and forward the UART traffic to /dev/BTn
-> and turn on/off the module. It also detects if the module is turned on (sends data)
-> but should be off, e.g. if it was already turned on during boot or power-on-reset.
-> 
-> Additionally, rfkill block/unblock can be used to control an external LNA
-> (and power down the module if not needed).
-> 
-> The driver concept is based on code developed by NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-> but simplified and adapted to use the new serdev API introduced in 4.11.
-> 
-> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+
+
+On 27/05/17 10:58, Daniel Lezcano wrote:
+> The function name is now renamed to 'timer_probe' for consistency with
+> the CLOCKSOURCE_OF_DECLARE => TIMER_OF_DECLARE change.
+>
+> Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 > ---
->  .../devicetree/bindings/misc/wi2wi,w2sg0004.txt    |  20 +
->  .../devicetree/bindings/vendor-prefixes.txt        |   1 +
+>  arch/arc/kernel/setup.c                  |  2 +-
+>  arch/arm/kernel/time.c                   |  2 +-
+>  arch/arm/mach-mediatek/mediatek.c        |  2 +-
+>  arch/arm/mach-omap2/timer.c              | 10 +++++-----
+>  arch/arm/mach-rockchip/rockchip.c        |  2 +-
+>  arch/arm/mach-shmobile/setup-rcar-gen2.c |  2 +-
+>  arch/arm/mach-spear/spear13xx.c          |  2 +-
+>  arch/arm/mach-sunxi/sunxi.c              |  2 +-
+>  arch/arm/mach-u300/core.c                |  2 +-
+>  arch/arm/mach-zynq/common.c              |  2 +-
+>  arch/arm64/kernel/time.c                 |  2 +-
+>  arch/h8300/kernel/setup.c                |  2 +-
+>  arch/microblaze/kernel/setup.c           |  2 +-
+>  arch/mips/generic/init.c                 |  2 +-
+>  arch/mips/mti-malta/malta-time.c         |  2 +-
+>  arch/mips/pic32/pic32mzda/time.c         |  2 +-
+>  arch/mips/pistachio/time.c               |  2 +-
+>  arch/mips/ralink/clk.c                   |  2 +-
+>  arch/mips/ralink/timer-gic.c             |  2 +-
+>  arch/mips/xilfpga/time.c                 |  2 +-
+>  arch/nios2/kernel/time.c                 |  2 +-
+>  arch/sh/boards/of-generic.c              |  2 +-
+>  arch/xtensa/kernel/time.c                |  2 +-
+>  drivers/clocksource/clksrc-probe.c       |  2 +-
+>  include/linux/clocksource.h              |  4 ++--
+>  25 files changed, 30 insertions(+), 30 deletions(-)
+>
+>
+For pistachio:
 
-Please split binding patches.
+Acked-by: James Hartley <james.hartley-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>
 
->  drivers/misc/Kconfig                               |  16 +
->  drivers/misc/Makefile                              |   1 +
->  drivers/misc/w2sg0004.c                            | 646 +++++++++++++++++++++
->  include/linux/w2sg0004.h                           |  27 +
->  6 files changed, 711 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt
->  create mode 100644 drivers/misc/w2sg0004.c
->  create mode 100644 include/linux/w2sg0004.h
-> 
-> diff --git a/Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt b/Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt
-> new file mode 100644
-> index 000000000000..b7125c7a598c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt
-> @@ -0,0 +1,20 @@
-> +Wi2Wi GPS module connected through UART
-> +
-> +Should be a subnode of the SoC UART it is connected to (serdev).
-> +
-> +Required properties:
-> +- compatible:	wi2wi,w2sg0004 or wi2wi,w2sg0084
-
-Reformat to one per line.
-
-> +- on-off-gpio:	the GPIO that controls the module's on-off toggle input
-
-Does enable-gpios or powerdown-gpios work as those are semi-standard 
-names. Also, need to state the active state.
-
-> +
-> +Optional properties:
-> +- lna-suppy:	an (optional) LNA regulator that is enabled together with the GPS receiver
-
-typo
-
-> +
-> +Example:
-> +
-> +&uart2 {
-> +	gps: w2sg0004 {
-
-w2sg0004: gps {
-
-The node name should be generic. The label can be whatever you like.
-
-> +		compatible = "wi2wi,w2sg0004";
-> +		lna-supply = <&vsim>;   /* LNA regulator */
-> +		on-off-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;    /* GPIO_145: trigger for turning on/off w2sg0004 */
-> +        };
-> +};
-> diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> index c03d20140366..c56b3181b266 100644
-> --- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-> +++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-> @@ -345,6 +345,7 @@ voipac	Voipac Technologies s.r.o.
->  wd	Western Digital Corp.
->  wetek	WeTek Electronics, limited.
->  wexler	Wexler
-> +wi2wi	Wi2Wi, Inc.
->  winbond Winbond Electronics corp.
->  winstar	Winstar Display Corp.
->  wlf	Wolfson Microelectronics
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+James.
