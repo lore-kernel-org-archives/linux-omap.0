@@ -1,42 +1,33 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 4/7] ARM: dts: am57xx-beagle-x15-revb1: Fix supply name used for MMC1 IO lines
-Date: Thu, 1 Jun 2017 20:03:58 +0530
-Message-ID: <20170601143401.16852-5-kishon@ti.com>
-References: <20170601143401.16852-1-kishon@ti.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/5] ARM-OMAP1: Adjustments for three function implementations
+Date: Thu, 1 Jun 2017 22:46:28 +0200
+Message-ID: <85e2ec7f-f650-28a2-6cc5-0b4b52e44183@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170601143401.16852-1-kishon@ti.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, nsekhar@ti.com
-Cc: Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, kishon@ti.com
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The dt binding documentation of omap-hsmmc recommends using
-"vmmc_aux" for IO supply lines. However
-commit 0af28cc92690d8c ("ARM: dts: am57xx-beagle-x15: Add support
-for rev B1") added it as "vmmc-aux". Fix it here.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 1 Jun 2017 22:40:04 +0200
 
-Fixes: commit 0af28cc92690d8c ("ARM: dts: am57xx-beagle-x15: Add
-support for rev B1")
+A few update suggestions were taken into account
+from static source code analysis.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Markus Elfring (5):
+  Improve a size determination in omap1_system_dma_init()
+  Delete an error message for a failed memory allocation in omap1_system_dma_init()
+  Delete an unnecessary return statement in omap1_show_dma_caps()
+  Delete an error message for a failed memory allocation in omap1_dm_timer_init()
+  Fix a typo in a comment line
 
-diff --git a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
-index 39a92aff0a0d..6ae94ab52b7b 100644
---- a/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
-+++ b/arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts
-@@ -20,7 +20,7 @@
- 
- &mmc1 {
- 	vmmc-supply = <&vdd_3v3>;
--	vmmc-aux-supply = <&ldo1_reg>;
-+	vmmc_aux-supply = <&ldo1_reg>;
- };
- 
- /* errata i880 "Ethernet RGMII2 Limited to 10/100 Mbps" */
+ arch/arm/mach-omap1/dma.c   | 5 +----
+ arch/arm/mach-omap1/timer.c | 4 +---
+ 2 files changed, 2 insertions(+), 7 deletions(-)
+
 -- 
-2.11.0
+2.13.0
