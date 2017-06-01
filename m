@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 2/5] ARM: OMAP1: DMA: Delete an error message for a failed
- memory allocation in omap1_system_dma_init()
-Date: Thu, 1 Jun 2017 22:49:06 +0200
-Message-ID: <cda37778-b59c-ae5e-529d-b435750dcd8f@users.sourceforge.net>
+Subject: [PATCH 3/5] ARM: OMAP1: DMA: Delete an unnecessary return statement
+ in omap1_show_dma_caps()
+Date: Thu, 1 Jun 2017 22:50:06 +0200
+Message-ID: <3790e998-2d64-aef8-28ab-1bdad153738a@users.sourceforge.net>
 References: <85e2ec7f-f650-28a2-6cc5-0b4b52e44183@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,28 +24,30 @@ Cc: kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 1 Jun 2017 21:54:36 +0200
+Date: Thu, 1 Jun 2017 22:00:21 +0200
 
-Omit an extra message for a memory allocation failure in this function.
+The script "checkpatch.pl" pointed information out like the following.
 
-This issue was detected by using the Coccinelle software.
+WARNING: void function return statements are not generally useful
 
-Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
+Thus remove such a statement in the affected function.
+
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- arch/arm/mach-omap1/dma.c | 2 --
- 1 file changed, 2 deletions(-)
+ arch/arm/mach-omap1/dma.c | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
-index 823dba3dc033..c545b4e01d53 100644
+index c545b4e01d53..52d7eda1adec 100644
 --- a/arch/arm/mach-omap1/dma.c
 +++ b/arch/arm/mach-omap1/dma.c
-@@ -343,6 +343,4 @@ static int __init omap1_system_dma_init(void)
- 	if (!d) {
--		dev_err(&pdev->dev, "%s: Unable to allocate 'd' for %s\n",
--			__func__, pdev->name);
- 		ret = -ENOMEM;
- 		goto exit_iounmap;
+@@ -240,7 +240,6 @@ static void omap1_show_dma_caps(void)
+ 		w |= 1 << 3;
+ 		dma_write(w, GSCR, 0);
  	}
+-	return;
+ }
+ 
+ static unsigned configure_dma_errata(void)
 -- 
 2.13.0
