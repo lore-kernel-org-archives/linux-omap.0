@@ -1,69 +1,59 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 0/7] dra7: Fixes for MMC devicetree node
-Date: Fri, 2 Jun 2017 12:50:16 +0200
-Message-ID: <CAPDyKFqHHjZQnnaGLP=xDj3eYgzADDYoomzBuXRviBgh-n2QFw@mail.gmail.com>
-References: <20170601143401.16852-1-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20170601143401.16852-1-kishon@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
+From: Ruslan Bilovol <ruslan.bilovol-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 resend] omap: usb: host: remove deprecated flags and structures
+Date: Sat,  3 Jun 2017 01:52:31 +0300
+Message-ID: <1496443951-9158-1-git-send-email-ruslan.bilovol@gmail.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 1 June 2017 at 16:33, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> There are the set of fixes that were sent initially as part
-> of [1].
->
-> These are mostly fixes w.r.t populating regulators in
-> mmc dt node. It was working before because the regulators
-> connecting to the IO lines are always on regulators. This will
-> break once we add UHS support where voltage has to be changed
-> dynamically.
->
-> Performed enumeration testing on dra72-evm-revc, dra72-evm,
-> dra7-evm, am572x-evm, am571x-idk and am572x-idk.
->
-> This is a preparation series for adding UHS mode support in
-> the above mentioned platforms.
->
-> [1] -> https://lkml.org/lkml/2017/5/19/196
->
-> Kishon Vijay Abraham I (5):
->   ARM: dts: dra72-evm-common: Correct vmmc-supply for mmc2
->   ARM: dts: dra72-evm: Add vmmc_aux supply to mmc1
->   ARM: dts: dra72-evm-revc: Add vmmc_aux supply to mmc1
->   ARM: dts: am57xx-beagle-x15-revb1: Fix supply name used for MMC1 IO
->     lines
->   ARM: dts: dra7: Add "max-frequency" property to MMC dt nodes
->
-> Ravikumar Kattekola (1):
->   ARM: dts: dra7-evm: Correct the vmmc-supply for mmc2
->
-> Sekhar Nori (1):
->   ARM: OMAP2+: Add pdata-quirks for MMC/SD on DRA74x EVM
->
->  arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts |  2 +-
->  arch/arm/boot/dts/dra7-evm.dts                | 10 ++++++++-
->  arch/arm/boot/dts/dra7.dtsi                   |  5 +++++
->  arch/arm/boot/dts/dra71-evm.dts               | 14 ++++++++++++
->  arch/arm/boot/dts/dra72-evm-common.dtsi       |  2 --
->  arch/arm/boot/dts/dra72-evm-revc.dts          | 18 ++++++++++++++++
->  arch/arm/boot/dts/dra72-evm.dts               | 18 ++++++++++++++++
->  arch/arm/mach-omap2/pdata-quirks.c            | 31 +++++++++++++++++++++++++++
->  include/linux/platform_data/hsmmc-omap.h      |  3 +++
->  9 files changed, 99 insertions(+), 4 deletions(-)
+From: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
 
-This series add a bunch of new vmmc_aux regulators for the mmc
-controller nodes. I would rather see that omap_hsmmc also converts to
-use the generic mmc binding for this regulator, which is "vqmmc".
+These flags and structures are deprecated and there is
+no anymore users of them, so it's safe to remove them.
 
-To accomplish that, omap_hsmmc needs to convert to use
-mmc_regulator_get_supply(). If the "vqmmc" regulator isn't found, it
-should fallback to try the "vmmc_aux".
+Signed-off-by: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+---
 
-Can you do that?
+Although this patch was acked-by Felipe Balbi and Roger Quadros back
+in 2013, it was never picked up by maintainers.
 
-Kind regards
-Uffe
+Still applies to v4.12-rc3 and saves few bytes of memory
+
+
+ include/linux/platform_data/usb-omap.h | 20 --------------------
+ 1 file changed, 20 deletions(-)
+
+diff --git a/include/linux/platform_data/usb-omap.h b/include/linux/platform_data/usb-omap.h
+index fa579b4..4c7acbe 100644
+--- a/include/linux/platform_data/usb-omap.h
++++ b/include/linux/platform_data/usb-omap.h
+@@ -38,34 +38,14 @@ enum usbhs_omap_port_mode {
+ 	OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM
+ };
+ 
+-struct usbtll_omap_platform_data {
+-	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
+-};
+-
+-struct ehci_hcd_omap_platform_data {
+-	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+-	int				reset_gpio_port[OMAP3_HS_USB_PORTS];
+-	struct regulator		*regulator[OMAP3_HS_USB_PORTS];
+-	unsigned			phy_reset:1;
+-};
+-
+-struct ohci_hcd_omap_platform_data {
+-	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+-	unsigned			es2_compatibility:1;
+-};
+-
+ struct usbhs_omap_platform_data {
+ 	int				nports;
+ 	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+ 	int				reset_gpio_port[OMAP3_HS_USB_PORTS];
+ 	struct regulator		*regulator[OMAP3_HS_USB_PORTS];
+ 
+-	struct ehci_hcd_omap_platform_data	*ehci_data;
+-	struct ohci_hcd_omap_platform_data	*ohci_data;
