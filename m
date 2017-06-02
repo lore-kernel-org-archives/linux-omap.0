@@ -1,86 +1,69 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v2] ARM: dts: AM43XX: Remove min and max voltage values for
- dcdc3
-Date: Fri, 2 Jun 2017 14:54:01 +0530
-Message-ID: <1496395441-29526-1-git-send-email-j-keerthy@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 0/7] dra7: Fixes for MMC devicetree node
+Date: Fri, 2 Jun 2017 12:50:16 +0200
+Message-ID: <CAPDyKFqHHjZQnnaGLP=xDj3eYgzADDYoomzBuXRviBgh-n2QFw@mail.gmail.com>
+References: <20170601143401.16852-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: devicetree@vger.kernel.org, j-keerthy@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20170601143401.16852-1-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-dcdc3 supplies to DDR on AM43x series. When we set both
-min and max values to the same value. The regulator framework
-sets that particular voltage. This is bad as we are changing
-the ddr voltage when executing from ddr. Hence remove the min and
-max values. The ddr supply voltage shall be set from bootloader
-when not executing from ddr and not while executing from kernel.
+On 1 June 2017 at 16:33, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> There are the set of fixes that were sent initially as part
+> of [1].
+>
+> These are mostly fixes w.r.t populating regulators in
+> mmc dt node. It was working before because the regulators
+> connecting to the IO lines are always on regulators. This will
+> break once we add UHS support where voltage has to be changed
+> dynamically.
+>
+> Performed enumeration testing on dra72-evm-revc, dra72-evm,
+> dra7-evm, am572x-evm, am571x-idk and am572x-idk.
+>
+> This is a preparation series for adding UHS mode support in
+> the above mentioned platforms.
+>
+> [1] -> https://lkml.org/lkml/2017/5/19/196
+>
+> Kishon Vijay Abraham I (5):
+>   ARM: dts: dra72-evm-common: Correct vmmc-supply for mmc2
+>   ARM: dts: dra72-evm: Add vmmc_aux supply to mmc1
+>   ARM: dts: dra72-evm-revc: Add vmmc_aux supply to mmc1
+>   ARM: dts: am57xx-beagle-x15-revb1: Fix supply name used for MMC1 IO
+>     lines
+>   ARM: dts: dra7: Add "max-frequency" property to MMC dt nodes
+>
+> Ravikumar Kattekola (1):
+>   ARM: dts: dra7-evm: Correct the vmmc-supply for mmc2
+>
+> Sekhar Nori (1):
+>   ARM: OMAP2+: Add pdata-quirks for MMC/SD on DRA74x EVM
+>
+>  arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts |  2 +-
+>  arch/arm/boot/dts/dra7-evm.dts                | 10 ++++++++-
+>  arch/arm/boot/dts/dra7.dtsi                   |  5 +++++
+>  arch/arm/boot/dts/dra71-evm.dts               | 14 ++++++++++++
+>  arch/arm/boot/dts/dra72-evm-common.dtsi       |  2 --
+>  arch/arm/boot/dts/dra72-evm-revc.dts          | 18 ++++++++++++++++
+>  arch/arm/boot/dts/dra72-evm.dts               | 18 ++++++++++++++++
+>  arch/arm/mach-omap2/pdata-quirks.c            | 31 +++++++++++++++++++++++++++
+>  include/linux/platform_data/hsmmc-omap.h      |  3 +++
+>  9 files changed, 99 insertions(+), 4 deletions(-)
 
-The previous discussion can be found here:
+This series add a bunch of new vmmc_aux regulators for the mmc
+controller nodes. I would rather see that omap_hsmmc also converts to
+use the generic mmc binding for this regulator, which is "vqmmc".
 
-http://www.spinics.net/lists/devicetree/msg56399.html
+To accomplish that, omap_hsmmc needs to convert to use
+mmc_regulator_get_supply(). If the "vqmmc" regulator isn't found, it
+should fallback to try the "vmmc_aux".
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+Can you do that?
 
-Changes in v2:
-
-  * Corrected $subject
-
- arch/arm/boot/dts/am437x-gp-evm.dts  | 2 --
- arch/arm/boot/dts/am437x-sk-evm.dts  | 2 --
- arch/arm/boot/dts/am43x-epos-evm.dts | 2 --
- 3 files changed, 6 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 397e98b..29a538e 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -549,8 +549,6 @@
- 
- 		dcdc3: regulator-dcdc3 {
- 			regulator-name = "vdcdc3";
--			regulator-min-microvolt = <1500000>;
--			regulator-max-microvolt = <1500000>;
- 			regulator-boot-on;
- 			regulator-always-on;
- 			regulator-state-mem {
-diff --git a/arch/arm/boot/dts/am437x-sk-evm.dts b/arch/arm/boot/dts/am437x-sk-evm.dts
-index a62e158..2c6bf06 100644
---- a/arch/arm/boot/dts/am437x-sk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-sk-evm.dts
-@@ -451,8 +451,6 @@
- 
- 		dcdc3: regulator-dcdc3 {
- 			regulator-name = "vdds_ddr";
--			regulator-min-microvolt = <1500000>;
--			regulator-max-microvolt = <1500000>;
- 			regulator-boot-on;
- 			regulator-always-on;
- 			regulator-state-mem {
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index f6648ab..54f40f3 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -442,8 +442,6 @@
- 
- 		dcdc3: regulator-dcdc3 {
- 			regulator-name = "vdcdc3";
--			regulator-min-microvolt = <1500000>;
--			regulator-max-microvolt = <1500000>;
- 			regulator-boot-on;
- 			regulator-always-on;
- 		};
--- 
-1.9.1
+Kind regards
+Uffe
