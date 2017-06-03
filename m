@@ -1,7 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 7/9] ARM: OMAP2+: Use kcalloc() in sr_set_nvalues()
-Date: Sat, 3 Jun 2017 20:33:10 +0200
-Message-ID: <201e94ac-bbd7-5fb0-582b-4a6b2585bdab@users.sourceforge.net>
+Subject: [PATCH 8/9] ARM: OMAP2+: SmartReflex: Delete an error message for a
+ failed memory allocation in two functions
+Date: Sat, 3 Jun 2017 20:34:07 +0200
+Message-ID: <13210fb0-3a22-07f5-0bc5-b338b1ccfdeb@users.sourceforge.net>
 References: <e9d44aa5-9208-9ff3-46ec-cd58ac3f4696@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,35 +24,40 @@ Cc: kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 3 Jun 2017 19:09:07 +0200
+Date: Sat, 3 Jun 2017 19:16:27 +0200
 
-* A multiplication for the size determination of a memory allocation
-  indicated that an array data structure should be processed.
-  Thus use the corresponding function "kcalloc".
+Omit an extra message for a memory allocation failure in these functions.
 
-  This issue was detected by using the Coccinelle software.
+This issue was detected by using the Coccinelle software.
 
-* Replace the specification of a data structure by a pointer dereference
-  to make the corresponding size determination a bit safer according to
-  the Linux coding style convention.
-
+Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- arch/arm/mach-omap2/sr_device.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/arm/mach-omap2/sr_device.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index 01df4907c0e3..65775c6e8c27 100644
+index 65775c6e8c27..eef6935e0403 100644
 --- a/arch/arm/mach-omap2/sr_device.c
 +++ b/arch/arm/mach-omap2/sr_device.c
-@@ -44,7 +44,5 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
- 	while (volt_data[count].volt_nominal)
- 		count++;
+@@ -48,7 +48,5 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+-	if (!nvalue_table) {
+-		pr_err("OMAP: SmartReflex: cannot allocate memory for n-value table\n");
++	if (!nvalue_table)
+ 		return;
+-	}
  
--	nvalue_table = kzalloc(sizeof(struct omap_sr_nvalue_table)*count,
--			GFP_KERNEL);
--
-+	nvalue_table = kcalloc(count, sizeof(*nvalue_table), GFP_KERNEL);
- 	if (!nvalue_table) {
+ 	for (i = 0, j = 0; i < count; i++) {
+ 		u32 v;
+@@ -104,8 +102,5 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
+-	if (!sr_data) {
+-		pr_err("%s: Unable to allocate memory for %s sr_data\n",
+-		       __func__, oh->name);
++	if (!sr_data)
+ 		return -ENOMEM;
+-	}
+ 
+ 	sr_dev_attr = (struct omap_smartreflex_dev_attr *)oh->dev_attr;
+ 	if (!sr_dev_attr || !sr_dev_attr->sensor_voltdm_name) {
 -- 
 2.13.0
