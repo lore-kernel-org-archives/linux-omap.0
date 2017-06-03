@@ -1,69 +1,49 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v5 0/3] More fixes for twl4030 charger
-Date: Sat, 3 Jun 2017 08:01:13 +0200
-Message-ID: <421EB4BB-9E42-413B-8FB8-2B865FC25D15@goldelico.com>
-References: <cover.1495363097.git.hns@goldelico.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1495363097.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neil@brown.name>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Sebastian Reichel <sre@kernel.org>, Marek Belisko <marek@goldelico.com>, Nikolaus Schaller <hns@goldelico.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, notasas@gmail.com, linux-omap@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/9] ARM: OMAP2+: Adjustments for seven function
+ implementations
+Date: Sat, 3 Jun 2017 20:20:28 +0200
+Message-ID: <e9d44aa5-9208-9ff3-46ec-cd58ac3f4696@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Language: en-GB
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-No comments for this series? Everything fine? Has it been merged =
-somewhere?
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 3 Jun 2017 20:12:34 +0200
 
-> Am 21.05.2017 um 12:38 schrieb H. Nikolaus Schaller =
-<hns@goldelico.com>:
->=20
-> Changes V5:
-> * reworked max_current removal patch (comments by Sebastian Reichel)
-> * resubmit missing madc connection for AC power detection
-> * resubmit patch for irq allocation and -EPROBE_DEFER
-> * rebased on 4.12-rc1
->=20
-> Changes V4:
-> * resent commit (original one did contain material not upstream)
->=20
-> 2017-04-14 21:29:39: 2017-04-14 20:26:00: Changes V3:
-> * worked in comments by Sebsatian Reichel
-> * clarifications of some commit messages
-> * rebased on v4.11rc-6
->=20
-> It took a while (18 months) until we propose an updated patch for =
-upstream...
->=20
-> 2015-11-02 12:27:39: Changes V2:
-> * worked in comments by Nishanth Menon <nm@ti.com>
-> * added another patch which solves a probing/boot stall problem (irq =
-allocation vs. -EPROBE_DEFER)
->=20
-> V1:
-> 4.3-rc1 introduced a new charger driver for the twl4030. This patch =
-set fixes some
-> issues.
->=20
-> While making twl4030 changes from 4.3 operable we have found some =
-issues
-> during testing on GTA04 and OpenPandora.
->=20
-> H. Nikolaus Schaller (2):
->  drivers:power:twl4030-charger: remove nonstandard max_current sysfs
->    attribute
->  drivers:power:twl4030-charger: add deferred probing for phy and iio
->=20
-> Marek Belisko (1):
->  ARM: dts: twl4030: Add missing madc reference for bci subnode
->=20
-> .../ABI/testing/sysfs-class-power-twl4030          |  17 ----
-> arch/arm/boot/dts/twl4030.dtsi                     |   2 +
-> drivers/power/supply/twl4030_charger.c             | 100 =
-+++++----------------
-> 3 files changed, 24 insertions(+), 95 deletions(-)
->=20
-> --=20
-> 2.12.2
->=20
+Some update suggestions were taken into account
+from static source code analysis.
+
+Markus Elfring (9):
+  Delete an error message for a failed memory allocation in omap_mcspi_init()
+  Delete an error message for a failed memory allocation in two functions
+  Delete an unnecessary variable initialisation in omap_init_mcbsp()
+  Improve a size determination in omap_init_mcbsp()
+  Delete an error message for a failed memory allocation in omap_init_mcbsp()
+  Improve a size determination in sr_dev_init()
+  Use kcalloc() in sr_set_nvalues()
+  SmartReflex: Delete an error message for a failed memory allocation in two functions
+  Delete an error message for a failed memory allocation in omap_timer_init()
+
+ arch/arm/mach-omap2/devices.c   |  4 +---
+ arch/arm/mach-omap2/hsmmc.c     |  5 +----
+ arch/arm/mach-omap2/mcbsp.c     |  8 +++-----
+ arch/arm/mach-omap2/sr_device.c | 15 ++++-----------
+ arch/arm/mach-omap2/timer.c     |  4 +---
+ 5 files changed, 10 insertions(+), 26 deletions(-)
+
+-- 
+2.13.0
