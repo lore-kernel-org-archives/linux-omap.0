@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 4/9] ARM: OMAP2+: McBSP: Improve a size determination in
- omap_init_mcbsp()
-Date: Sat, 3 Jun 2017 20:30:14 +0200
-Message-ID: <b83f5bc2-c6a2-a53e-5dec-33e31f9addeb@users.sourceforge.net>
+Subject: [PATCH 5/9] ARM: OMAP2+: McBSP: Delete an error message for a failed
+ memory allocation in omap_init_mcbsp()
+Date: Sat, 3 Jun 2017 20:31:10 +0200
+Message-ID: <57bb7074-8283-23fe-6112-822bd40098dc@users.sourceforge.net>
 References: <e9d44aa5-9208-9ff3-46ec-cd58ac3f4696@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,25 +24,30 @@ Cc: kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 3 Jun 2017 17:56:57 +0200
+Date: Sat, 3 Jun 2017 18:03:25 +0200
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Omit an extra message for a memory allocation failure in this function.
 
+This issue was detected by using the Coccinelle software.
+
+Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- arch/arm/mach-omap2/mcbsp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/mcbsp.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 53c4a30e2963..408793d14fc5 100644
+index 408793d14fc5..0372e3358ec1 100644
 --- a/arch/arm/mach-omap2/mcbsp.c
 +++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -66,3 +66,3 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+@@ -68,7 +68,5 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+-	if (!pdata) {
+-		pr_err("%s: No memory for mcbsp\n", __func__);
++	if (!pdata)
+ 		return -ENOMEM;
+-	}
  
--	pdata = kzalloc(sizeof(struct omap_mcbsp_platform_data), GFP_KERNEL);
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata) {
+ 	pdata->reg_step = 4;
+ 	if (oh->class->rev < MCBSP_CONFIG_TYPE2) {
 -- 
 2.13.0
