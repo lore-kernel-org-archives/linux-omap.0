@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 7/9] mfd: tps65086: Remove redundant i2c_device_id
-Date: Sun, 4 Jun 2017 14:48:42 +0530
-Message-ID: <1496567924-4278-8-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 3/9] mfd: palmas: Remove redundant i2c_device_id
+Date: Sun, 4 Jun 2017 14:48:38 +0530
+Message-ID: <1496567924-4278-4-git-send-email-j-keerthy@ti.com>
 References: <1496567924-4278-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -19,46 +19,49 @@ instead of probe.
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
 
-Compile tested.
+Boot tested on dra7-evm and dra72-evm and checked for regulator registrations.
 
- drivers/mfd/tps65086.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/mfd/palmas.c | 15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/mfd/tps65086.c b/drivers/mfd/tps65086.c
-index 43119a6..975ac4a 100644
---- a/drivers/mfd/tps65086.c
-+++ b/drivers/mfd/tps65086.c
-@@ -68,8 +68,7 @@
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index 9103aff..db9e53c 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -499,8 +499,7 @@ struct palmas_driver_data {
  };
- MODULE_DEVICE_TABLE(of, tps65086_of_match_table);
+ MODULE_DEVICE_TABLE(of, of_palmas_match_tbl);
  
--static int tps65086_probe(struct i2c_client *client,
--			  const struct i2c_device_id *ids)
-+static int tps65086_probe(struct i2c_client *client)
+-static int palmas_i2c_probe(struct i2c_client *i2c,
+-			    const struct i2c_device_id *id)
++static int palmas_i2c_probe(struct i2c_client *i2c)
  {
- 	struct tps65086 *tps;
- 	unsigned int version;
-@@ -127,20 +126,13 @@ static int tps65086_remove(struct i2c_client *client)
+ 	struct palmas *palmas;
+ 	struct palmas_platform_data *pdata;
+@@ -717,23 +716,13 @@ static int palmas_i2c_remove(struct i2c_client *i2c)
  	return 0;
  }
  
--static const struct i2c_device_id tps65086_id_table[] = {
--	{ "tps65086", 0 },
--	{ /* sentinel */ }
+-static const struct i2c_device_id palmas_i2c_id[] = {
+-	{ "palmas", },
+-	{ "twl6035", },
+-	{ "twl6037", },
+-	{ "tps65913", },
+-	{ /* end */ }
 -};
--MODULE_DEVICE_TABLE(i2c, tps65086_id_table);
+-MODULE_DEVICE_TABLE(i2c, palmas_i2c_id);
 -
- static struct i2c_driver tps65086_driver = {
- 	.driver		= {
- 		.name	= "tps65086",
- 		.of_match_table = tps65086_of_match_table,
+ static struct i2c_driver palmas_i2c_driver = {
+ 	.driver = {
+ 		   .name = "palmas",
+ 		   .of_match_table = of_palmas_match_tbl,
  	},
--	.probe		= tps65086_probe,
-+	.probe_new	= tps65086_probe,
- 	.remove		= tps65086_remove,
--	.id_table       = tps65086_id_table,
+-	.probe = palmas_i2c_probe,
++	.probe_new = palmas_i2c_probe,
+ 	.remove = palmas_i2c_remove,
+-	.id_table = palmas_i2c_id,
  };
- module_i2c_driver(tps65086_driver);
  
+ static int __init palmas_i2c_init(void)
 -- 
 1.9.1
