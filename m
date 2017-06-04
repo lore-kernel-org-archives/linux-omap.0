@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 4/9] mfd: lp873x: Remove redundant i2c_device_id
-Date: Sun, 4 Jun 2017 14:48:39 +0530
-Message-ID: <1496567924-4278-5-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 6/9] mfd: lp3943: Remove redundant i2c_device_id
+Date: Sun, 4 Jun 2017 14:48:41 +0530
+Message-ID: <1496567924-4278-7-git-send-email-j-keerthy@ti.com>
 References: <1496567924-4278-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -19,45 +19,50 @@ instead of probe.
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
 
-Boot tested on dra71-evm and checked for regulator registrations.
+Compile tested.
 
- drivers/mfd/lp873x.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/mfd/lp3943.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/mfd/lp873x.c b/drivers/mfd/lp873x.c
-index 873c608..47be6b8 100644
---- a/drivers/mfd/lp873x.c
-+++ b/drivers/mfd/lp873x.c
-@@ -32,8 +32,7 @@
- 	{ .name = "lp873x-gpio", },
+diff --git a/drivers/mfd/lp3943.c b/drivers/mfd/lp3943.c
+index 65a2a8f1..84ec685 100644
+--- a/drivers/mfd/lp3943.c
++++ b/drivers/mfd/lp3943.c
+@@ -105,7 +105,7 @@ int lp3943_update_bits(struct lp3943 *lp3943, u8 reg, u8 mask, u8 data)
+ 	.max_register = LP3943_MAX_REGISTERS,
  };
  
--static int lp873x_probe(struct i2c_client *client,
--			const struct i2c_device_id *ids)
-+static int lp873x_probe(struct i2c_client *client)
+-static int lp3943_probe(struct i2c_client *cl, const struct i2c_device_id *id)
++static int lp3943_probe(struct i2c_client *cl)
  {
- 	struct lp873x *lp873;
- 	int ret;
-@@ -76,19 +75,12 @@ static int lp873x_probe(struct i2c_client *client,
- };
- MODULE_DEVICE_TABLE(of, of_lp873x_match_table);
+ 	struct lp3943 *lp3943;
+ 	struct device *dev = &cl->dev;
+@@ -128,12 +128,6 @@ static int lp3943_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+ 				    NULL, 0, NULL);
+ }
  
--static const struct i2c_device_id lp873x_id_table[] = {
--	{ "lp873x", 0 },
--	{ },
+-static const struct i2c_device_id lp3943_ids[] = {
+-	{ "lp3943", 0 },
+-	{ }
 -};
--MODULE_DEVICE_TABLE(i2c, lp873x_id_table);
+-MODULE_DEVICE_TABLE(i2c, lp3943_ids);
 -
- static struct i2c_driver lp873x_driver = {
- 	.driver	= {
- 		.name	= "lp873x",
- 		.of_match_table = of_lp873x_match_table,
- 	},
--	.probe		= lp873x_probe,
--	.id_table	= lp873x_id_table,
-+	.probe_new	= lp873x_probe,
- };
- module_i2c_driver(lp873x_driver);
+ #ifdef CONFIG_OF
+ static const struct of_device_id lp3943_of_match[] = {
+ 	{ .compatible = "ti,lp3943", },
+@@ -143,12 +137,11 @@ static int lp3943_probe(struct i2c_client *cl, const struct i2c_device_id *id)
+ #endif
  
+ static struct i2c_driver lp3943_driver = {
+-	.probe = lp3943_probe,
++	.probe_new = lp3943_probe,
+ 	.driver = {
+ 		.name = "lp3943",
+ 		.of_match_table = of_match_ptr(lp3943_of_match),
+ 	},
+-	.id_table = lp3943_ids,
+ };
+ 
+ module_i2c_driver(lp3943_driver);
 -- 
 1.9.1
