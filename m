@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 1/9] mfd: tps65217: Remove redundant i2c_device_id
-Date: Sun, 4 Jun 2017 14:48:36 +0530
-Message-ID: <1496567924-4278-2-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 4/9] mfd: lp873x: Remove redundant i2c_device_id
+Date: Sun, 4 Jun 2017 14:48:39 +0530
+Message-ID: <1496567924-4278-5-git-send-email-j-keerthy@ti.com>
 References: <1496567924-4278-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -19,50 +19,45 @@ instead of probe.
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
 
-Boot tested on am335x-bone and checked for regulator registrations.
+Boot tested on dra71-evm and checked for regulator registrations.
 
- drivers/mfd/tps65217.c | 14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ drivers/mfd/lp873x.c | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-index f769c7d..c2e8385 100644
---- a/drivers/mfd/tps65217.c
-+++ b/drivers/mfd/tps65217.c
-@@ -316,12 +316,11 @@ static bool tps65217_volatile_reg(struct device *dev, unsigned int reg)
+diff --git a/drivers/mfd/lp873x.c b/drivers/mfd/lp873x.c
+index 873c608..47be6b8 100644
+--- a/drivers/mfd/lp873x.c
++++ b/drivers/mfd/lp873x.c
+@@ -32,8 +32,7 @@
+ 	{ .name = "lp873x-gpio", },
  };
- MODULE_DEVICE_TABLE(of, tps65217_of_match);
  
--static int tps65217_probe(struct i2c_client *client,
--				const struct i2c_device_id *ids)
-+static int tps65217_probe(struct i2c_client *client)
+-static int lp873x_probe(struct i2c_client *client,
+-			const struct i2c_device_id *ids)
++static int lp873x_probe(struct i2c_client *client)
  {
- 	struct tps65217 *tps;
- 	unsigned int version;
--	unsigned long chip_id = ids->driver_data;
-+	unsigned long chip_id = 0;
- 	const struct of_device_id *match;
- 	bool status_off = false;
+ 	struct lp873x *lp873;
  	int ret;
-@@ -418,19 +417,12 @@ static int tps65217_remove(struct i2c_client *client)
- 	return 0;
- }
- 
--static const struct i2c_device_id tps65217_id_table[] = {
--	{"tps65217", TPS65217},
--	{ /* sentinel */ }
--};
--MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
--
- static struct i2c_driver tps65217_driver = {
- 	.driver		= {
- 		.name	= "tps65217",
- 		.of_match_table = tps65217_of_match,
- 	},
--	.id_table	= tps65217_id_table,
--	.probe		= tps65217_probe,
-+	.probe_new	= tps65217_probe,
- 	.remove		= tps65217_remove,
+@@ -76,19 +75,12 @@ static int lp873x_probe(struct i2c_client *client,
  };
+ MODULE_DEVICE_TABLE(of, of_lp873x_match_table);
+ 
+-static const struct i2c_device_id lp873x_id_table[] = {
+-	{ "lp873x", 0 },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(i2c, lp873x_id_table);
+-
+ static struct i2c_driver lp873x_driver = {
+ 	.driver	= {
+ 		.name	= "lp873x",
+ 		.of_match_table = of_lp873x_match_table,
+ 	},
+-	.probe		= lp873x_probe,
+-	.id_table	= lp873x_id_table,
++	.probe_new	= lp873x_probe,
+ };
+ module_i2c_driver(lp873x_driver);
  
 -- 
 1.9.1
