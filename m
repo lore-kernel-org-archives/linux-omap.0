@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 5/9] mfd: lp8788: Remove redundant i2c_device_id
-Date: Sun, 4 Jun 2017 14:48:40 +0530
-Message-ID: <1496567924-4278-6-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 8/9] mfd: tps65090: Remove redundant i2c_device_id
+Date: Sun, 4 Jun 2017 14:48:43 +0530
+Message-ID: <1496567924-4278-9-git-send-email-j-keerthy@ti.com>
 References: <1496567924-4278-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -21,42 +21,44 @@ Signed-off-by: Keerthy <j-keerthy@ti.com>
 
 Compile tested.
 
- drivers/mfd/lp8788.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/mfd/tps65090.c | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/mfd/lp8788.c b/drivers/mfd/lp8788.c
-index acf6165..a46139d 100644
---- a/drivers/mfd/lp8788.c
-+++ b/drivers/mfd/lp8788.c
-@@ -170,7 +170,7 @@ static int lp8788_platform_init(struct lp8788 *lp)
- 	.max_register = MAX_LP8788_REGISTERS,
- };
+diff --git a/drivers/mfd/tps65090.c b/drivers/mfd/tps65090.c
+index d7ec318..200a9c8 100644
+--- a/drivers/mfd/tps65090.c
++++ b/drivers/mfd/tps65090.c
+@@ -174,8 +174,7 @@ static bool is_volatile_reg(struct device *dev, unsigned int reg)
+ MODULE_DEVICE_TABLE(of, tps65090_of_match);
+ #endif
  
--static int lp8788_probe(struct i2c_client *cl, const struct i2c_device_id *id)
-+static int lp8788_probe(struct i2c_client *cl)
+-static int tps65090_i2c_probe(struct i2c_client *client,
+-			      const struct i2c_device_id *id)
++static int tps65090_i2c_probe(struct i2c_client *client)
  {
- 	struct lp8788 *lp;
- 	struct lp8788_platform_data *pdata = dev_get_platdata(&cl->dev);
-@@ -212,19 +212,12 @@ static int lp8788_remove(struct i2c_client *cl)
+ 	struct tps65090_platform_data *pdata = dev_get_platdata(&client->dev);
+ 	int irq_base = 0;
+@@ -249,20 +248,13 @@ static int tps65090_i2c_remove(struct i2c_client *client)
  	return 0;
  }
  
--static const struct i2c_device_id lp8788_ids[] = {
--	{"lp8788", 0},
--	{ }
+-static const struct i2c_device_id tps65090_id_table[] = {
+-	{ "tps65090", 0 },
+-	{ },
 -};
--MODULE_DEVICE_TABLE(i2c, lp8788_ids);
+-MODULE_DEVICE_TABLE(i2c, tps65090_id_table);
 -
- static struct i2c_driver lp8788_driver = {
- 	.driver = {
- 		.name = "lp8788",
+ static struct i2c_driver tps65090_driver = {
+ 	.driver	= {
+ 		.name	= "tps65090",
+ 		.of_match_table = of_match_ptr(tps65090_of_match),
  	},
--	.probe = lp8788_probe,
-+	.probe_new = lp8788_probe,
- 	.remove = lp8788_remove,
--	.id_table = lp8788_ids,
+-	.probe		= tps65090_i2c_probe,
++	.probe_new	= tps65090_i2c_probe,
+ 	.remove		= tps65090_i2c_remove,
+-	.id_table	= tps65090_id_table,
  };
  
- static int __init lp8788_init(void)
+ static int __init tps65090_init(void)
 -- 
 1.9.1
