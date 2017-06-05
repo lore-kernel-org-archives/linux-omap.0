@@ -1,55 +1,41 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 0/9] mfd: Remove redundant i2c_device_id
-Date: Mon, 5 Jun 2017 20:07:37 +0530
-Message-ID: <e8cbe8fb-50fd-76ef-a5e3-59a7913622c5@ti.com>
-References: <1496567924-4278-1-git-send-email-j-keerthy@ti.com>
- <20170605103740.g4t3veigzpdzfkxi@dell>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170605103740.g4t3veigzpdzfkxi@dell>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: tony@atomide.com, milo.kim@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ARM: dts: bonegreen-wireless: add WL1835 Bluetooth device node
+Date: Mon,  5 Jun 2017 10:33:32 -0500
+Message-ID: <20170605153332.8827-1-robertcnelson@gmail.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ricardo Salveti <ricardo.salveti-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Signed-off-by: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+CC: Ricardo Salveti <ricardo.salveti-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+CC: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
+---
+ arch/arm/boot/dts/am335x-bonegreen-wireless.dts | 5 +++++
+ 1 file changed, 5 insertions(+)
 
+diff --git a/arch/arm/boot/dts/am335x-bonegreen-wireless.dts b/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
+index 9d1a0fd555f3..57731f0daf10 100644
+--- a/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
++++ b/arch/arm/boot/dts/am335x-bonegreen-wireless.dts
+@@ -97,6 +97,11 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart3_pins &bt_pins>;
+ 	status = "okay";
++
++	bluetooth {
++		compatible = "ti,wl1835-st";
++		enable-gpios = <&gpio1 28 GPIO_ACTIVE_HIGH>;
++	};
+ };
+ 
+ &gpio1 {
+-- 
+2.11.0
 
-On Monday 05 June 2017 04:07 PM, Lee Jones wrote:
-> On Sun, 04 Jun 2017, Keerthy wrote:
-> 
->> With the introduction of probe_new function the i2c_device_id
->> is no longer needed. Hence the remove the same and use probe_new
->> instead of probe. 
->>
->> Keerthy (9):
->>   mfd: tps65217: Remove redundant i2c_device_id
->>   mfd: tps65218: Remove redundant i2c_device_id
->>   mfd: palmas: Remove redundant i2c_device_id
->>   mfd: lp873x: Remove redundant i2c_device_id
->>   mfd: lp8788: Remove redundant i2c_device_id
->>   mfd: lp3943: Remove redundant i2c_device_id
->>   mfd: tps65086: Remove redundant i2c_device_id
->>   mfd: tps65090: Remove redundant i2c_device_id
->>   mfd: tps6586x: Remove redundant i2c_device_id
->>
->>  drivers/mfd/lp3943.c   | 11 ++---------
->>  drivers/mfd/lp873x.c   | 12 ++----------
->>  drivers/mfd/lp8788.c   | 11 ++---------
->>  drivers/mfd/palmas.c   | 15 ++-------------
->>  drivers/mfd/tps65086.c | 12 ++----------
->>  drivers/mfd/tps65090.c | 12 ++----------
->>  drivers/mfd/tps65217.c | 14 +++-----------
->>  drivers/mfd/tps65218.c |  9 +++++----
->>  drivers/mfd/tps6586x.c | 12 ++----------
-> 
-> Are all of these drivers DT only?
-
-At least i did not find any platform code calling on to these drivers.
-No dependency on OF as such. Hence sent these 9.
-
-> 
->>  9 files changed, 22 insertions(+), 86 deletions(-)
-> 
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
