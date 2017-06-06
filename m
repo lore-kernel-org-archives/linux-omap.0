@@ -1,38 +1,27 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4 0/6] ARM: OMAP2+: preparation for clk/clkctrl support
-Date: Tue, 6 Jun 2017 00:17:04 -0700
-Message-ID: <20170606071703.GS3730@atomide.com>
-References: <1496242803-6101-1-git-send-email-t-kristo@ti.com>
- <20170531195339.GL3730@atomide.com>
- <20170531222021.GM3730@atomide.com>
+Subject: Re: [PATCH v5 2/3] ARM: dts: twl4030: Add missing madc reference for
+ bci subnode
+Date: Tue, 6 Jun 2017 00:23:58 -0700
+Message-ID: <20170606072358.GT3730@atomide.com>
+References: <cover.1495363097.git.hns@goldelico.com>
+ <69d95172f257cee8d6abc1eaab57865e536be73c.1495363097.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170531222021.GM3730@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <69d95172f257cee8d6abc1eaab57865e536be73c.1495363097.git.hns@goldelico.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: NeilBrown <neil@brown.name>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Sebastian Reichel <sre@kernel.org>, Marek Belisko <marek@goldelico.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, notasas@gmail.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170531 15:24]:
+* H. Nikolaus Schaller <hns@goldelico.com> [170521 03:44]:
+> From: Marek Belisko <marek@goldelico.com>
 > 
-> Sorry that was a false alert, n8x0 is booting just fine.
-> It's the loading of kernel over USB that's flakey for me
-> again..
+> The twl4030_charger driver expects an iio channel to detect the
+> presence of an AC charger by looking at VAC (madc channel 11).
+> This definition is missing in the device tree.
 
-So I'll apply the whole series into omap-for-v4.13/clkctrl
-today so we get this into Linux next for few weeks.
-
-Regards,
+I'm picking this patch into omap-for-v4.13/dt thanks.
 
 Tony
