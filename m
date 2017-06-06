@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 5/5] mfd: lp3943: Add a dependency on OF
-Date: Tue, 6 Jun 2017 20:15:40 +0530
-Message-ID: <1496760340-27959-6-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 2/5] mfd: tps65218: Add a dependency on OF
+Date: Tue, 6 Jun 2017 20:15:37 +0530
+Message-ID: <1496760340-27959-3-git-send-email-j-keerthy@ti.com>
 References: <1496760340-27959-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -21,17 +21,17 @@ Signed-off-by: Keerthy <j-keerthy@ti.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 83d6b57..4decbfb 100644
+index b845d28..75b59f1 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
-@@ -1178,7 +1178,7 @@ config MFD_DM355EVM_MSP
+@@ -1327,7 +1327,7 @@ config MFD_TI_LP873X
  
- config MFD_LP3943
- 	tristate "TI/National Semiconductor LP3943 MFD Driver"
+ config MFD_TPS65218
+ 	tristate "TI TPS65218 Power Management chips"
 -	depends on I2C
 +	depends on I2C && OF
  	select MFD_CORE
  	select REGMAP_I2C
- 	help
+ 	select REGMAP_IRQ
 -- 
 1.9.1
