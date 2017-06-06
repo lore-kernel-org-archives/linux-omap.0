@@ -1,53 +1,69 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: Add am335x-boneblue
-Date: Tue, 6 Jun 2017 00:29:46 -0700
-Message-ID: <20170606072945.GU3730@atomide.com>
-References: <20170530162023.20391-1-robertcnelson@gmail.com>
- <CA+T6QPngRrST_T5HcTXxiGnBq6ba+txocaxrW-QVTuqxzogYuw@mail.gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 0/9] mfd: Remove redundant i2c_device_id
+Date: Tue, 6 Jun 2017 13:00:49 +0530
+Message-ID: <9017b16c-e9f3-ea05-4e71-d7920841ce57@ti.com>
+References: <1496567924-4278-1-git-send-email-j-keerthy@ti.com>
+ <20170605103740.g4t3veigzpdzfkxi@dell>
+ <e8cbe8fb-50fd-76ef-a5e3-59a7913622c5@ti.com>
+ <20170606071703.o6dnzu4vjeywpoxn@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CA+T6QPngRrST_T5HcTXxiGnBq6ba+txocaxrW-QVTuqxzogYuw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
-Cc: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Drew Fustini <drew-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, James Strawson <jstrawso-fWt/sZ2FBdz2fBVCVOL8/A@public.gmane.org>, Erik Welsh <Erik.Welsh-SM+ZqDzOZfu/3pe1ocb+swC/G2K4zDHf@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170606071703.o6dnzu4vjeywpoxn@dell>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: tony@atomide.com, milo.kim@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org> [170601 00:43]:
-> On Tue, May 30, 2017 at 12:20 PM, Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > BeagleBone Blue is robotics-oriented version of the BeagleBone Black (BBB).
-> >
-> > This board can be indentified by the BLAx value after A335BNLT (BBB)
-> > in the at24 eeprom:
-> > BLAx [aa 55 33 ee 41 33 33 35  42 4e 4c 54 42 4c 41 30 |.U3.A335BNLTBLA2|]
-> >
-> > http://beagleboard.org/blue
-> > https://github.com/beagleboard/beaglebone-blue
-> >
-> > firmware: https://github.com/beagleboard/beaglebone-black-wireless/tree/master/firmware
-> > wl18xx mac address: /proc/device-tree/ocp/ethernet@4a100000/slave@4a100200/mac-address
-> >
-> > Signed-off-by: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > CC: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > CC: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
+
+
+On Tuesday 06 June 2017 12:47 PM, Lee Jones wrote:
+> On Mon, 05 Jun 2017, Keerthy wrote:
 > 
-> Acked-by: Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
+>>
+>>
+>> On Monday 05 June 2017 04:07 PM, Lee Jones wrote:
+>>> On Sun, 04 Jun 2017, Keerthy wrote:
+>>>
+>>>> With the introduction of probe_new function the i2c_device_id
+>>>> is no longer needed. Hence the remove the same and use probe_new
+>>>> instead of probe. 
+>>>>
+>>>> Keerthy (9):
+>>>>   mfd: tps65217: Remove redundant i2c_device_id
+>>>>   mfd: tps65218: Remove redundant i2c_device_id
+>>>>   mfd: palmas: Remove redundant i2c_device_id
+>>>>   mfd: lp873x: Remove redundant i2c_device_id
+>>>>   mfd: lp8788: Remove redundant i2c_device_id
+>>>>   mfd: lp3943: Remove redundant i2c_device_id
+>>>>   mfd: tps65086: Remove redundant i2c_device_id
+>>>>   mfd: tps65090: Remove redundant i2c_device_id
+>>>>   mfd: tps6586x: Remove redundant i2c_device_id
+>>>>
+>>>>  drivers/mfd/lp3943.c   | 11 ++---------
+>>>>  drivers/mfd/lp873x.c   | 12 ++----------
+>>>>  drivers/mfd/lp8788.c   | 11 ++---------
+>>>>  drivers/mfd/palmas.c   | 15 ++-------------
+>>>>  drivers/mfd/tps65086.c | 12 ++----------
+>>>>  drivers/mfd/tps65090.c | 12 ++----------
+>>>>  drivers/mfd/tps65217.c | 14 +++-----------
+>>>>  drivers/mfd/tps65218.c |  9 +++++----
+>>>>  drivers/mfd/tps6586x.c | 12 ++----------
+>>>
+>>> Are all of these drivers DT only?
+>>
+>> At least i did not find any platform code calling on to these drivers.
+>> No dependency on OF as such. Hence sent these 9.
+> 
+> I can't accept these changes on any drivers which does not depend on
+> OF as a hard requirement.
 
-Applying into omap-for-v4.13/dt.
+Okay. So that is a per-requisite. At least palmas, tps65218, lp873x,
+tps65217 imho can have the OF dependency. I will post patches for that
+and then will resurrect this series.
 
-> Discussed offline the fact that the couple of connectors where we'd
-> like to support dynamic pinmuxing that the required pinmux helper code
-> is not upstream.
+Thanks for your feedback.
 
-Hmm do you have some link for that? We do have dynamic muxing
-working with mainline tree using the named pinctrl modes. At
-least omap_hsmmc.c is doing it for am335x SDIO interrupt pin.
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
