@@ -1,69 +1,37 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 0/9] mfd: Remove redundant i2c_device_id
-Date: Tue, 6 Jun 2017 13:00:49 +0530
-Message-ID: <9017b16c-e9f3-ea05-4e71-d7920841ce57@ti.com>
-References: <1496567924-4278-1-git-send-email-j-keerthy@ti.com>
- <20170605103740.g4t3veigzpdzfkxi@dell>
- <e8cbe8fb-50fd-76ef-a5e3-59a7913622c5@ti.com>
- <20170606071703.o6dnzu4vjeywpoxn@dell>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: dts: AM43XX: Remove min and max voltage values
+ for dcdc3
+Date: Tue, 6 Jun 2017 00:32:07 -0700
+Message-ID: <20170606073207.GV3730@atomide.com>
+References: <1496395441-29526-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170606071703.o6dnzu4vjeywpoxn@dell>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: tony@atomide.com, milo.kim@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1496395441-29526-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Tuesday 06 June 2017 12:47 PM, Lee Jones wrote:
-> On Mon, 05 Jun 2017, Keerthy wrote:
+* Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [170602 02:27]:
+> dcdc3 supplies to DDR on AM43x series. When we set both
+> min and max values to the same value. The regulator framework
+> sets that particular voltage. This is bad as we are changing
+> the ddr voltage when executing from ddr. Hence remove the min and
+> max values. The ddr supply voltage shall be set from bootloader
+> when not executing from ddr and not while executing from kernel.
 > 
->>
->>
->> On Monday 05 June 2017 04:07 PM, Lee Jones wrote:
->>> On Sun, 04 Jun 2017, Keerthy wrote:
->>>
->>>> With the introduction of probe_new function the i2c_device_id
->>>> is no longer needed. Hence the remove the same and use probe_new
->>>> instead of probe. 
->>>>
->>>> Keerthy (9):
->>>>   mfd: tps65217: Remove redundant i2c_device_id
->>>>   mfd: tps65218: Remove redundant i2c_device_id
->>>>   mfd: palmas: Remove redundant i2c_device_id
->>>>   mfd: lp873x: Remove redundant i2c_device_id
->>>>   mfd: lp8788: Remove redundant i2c_device_id
->>>>   mfd: lp3943: Remove redundant i2c_device_id
->>>>   mfd: tps65086: Remove redundant i2c_device_id
->>>>   mfd: tps65090: Remove redundant i2c_device_id
->>>>   mfd: tps6586x: Remove redundant i2c_device_id
->>>>
->>>>  drivers/mfd/lp3943.c   | 11 ++---------
->>>>  drivers/mfd/lp873x.c   | 12 ++----------
->>>>  drivers/mfd/lp8788.c   | 11 ++---------
->>>>  drivers/mfd/palmas.c   | 15 ++-------------
->>>>  drivers/mfd/tps65086.c | 12 ++----------
->>>>  drivers/mfd/tps65090.c | 12 ++----------
->>>>  drivers/mfd/tps65217.c | 14 +++-----------
->>>>  drivers/mfd/tps65218.c |  9 +++++----
->>>>  drivers/mfd/tps6586x.c | 12 ++----------
->>>
->>> Are all of these drivers DT only?
->>
->> At least i did not find any platform code calling on to these drivers.
->> No dependency on OF as such. Hence sent these 9.
+> The previous discussion can be found here:
 > 
-> I can't accept these changes on any drivers which does not depend on
-> OF as a hard requirement.
-
-Okay. So that is a per-requisite. At least palmas, tps65218, lp873x,
-tps65217 imho can have the OF dependency. I will post patches for that
-and then will resurrect this series.
-
-Thanks for your feedback.
-
-
+> http://www.spinics.net/lists/devicetree/msg56399.html
 > 
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+
+Applying into omap-for-v4.13/dt thanks.
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
