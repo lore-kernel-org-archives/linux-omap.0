@@ -1,73 +1,99 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 0/7] dra7: Fixes for MMC devicetree node
-Date: Tue, 6 Jun 2017 17:27:13 +0530
-Message-ID: <08b140b7-de76-c912-9f81-c7cdeca45641@ti.com>
-References: <20170601143401.16852-1-kishon@ti.com>
- <CAPDyKFqHHjZQnnaGLP=xDj3eYgzADDYoomzBuXRviBgh-n2QFw@mail.gmail.com>
- <f78dd61c-6689-4dbc-d1db-128f92be8e51@ti.com>
- <1d15c9e9-f257-fd97-a9a2-055ee90d7e84@ti.com>
- <20170606105131.GZ3730@atomide.com>
+From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: Re: [PATCH RFC 2/5] ARM: dts: am335x-baltos: use IRQ_TYPE_* to
+ specify irq flags
+Date: Tue, 6 Jun 2017 16:33:23 +0200
+Message-ID: <CAGm1_kuKxVOetzMLdnVO+xQ7egX+paqOHLS+ckz6nFwKD5QBuQ@mail.gmail.com>
+References: <20170526180609.2699-1-uwe@kleine-koenig.org> <20170526180609.2699-2-uwe@kleine-koenig.org>
+ <20170531171932.GH3730@atomide.com> <CAGm1_ktJp+3t9ExuFJhKTmbM63yt-82PGP26KkEHGqK-tnfWRg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170606105131.GZ3730@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAGm1_ktJp+3t9ExuFJhKTmbM63yt-82PGP26KkEHGqK-tnfWRg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tuesday 06 June 2017 04:21 PM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [170606 03:40]:
->> omap3-overo-base.dtsi has the following dt node for mmc.
->> /* optional on board WiFi */
->> &mmc2 {
->>         pinctrl-names = "default";
->>         pinctrl-0 = <&mmc2_pins>;
->>         vmmc-supply = <&w3cbw003c_npoweron>;
->>         vqmmc-supply = <&w3cbw003c_bt_nreset>;
->>         vmmc_aux-supply = <&w3cbw003c_wifi_nreset>;
->>         bus-width = <4>;
->>         cap-sdio-irq;
->>         non-removable;
->> };
+On Wed, May 31, 2017 at 7:22 PM, Yegor Yefremov
+<yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> wrote:
+> Hi Uwe, Tony,
+>
+> On Wed, May 31, 2017 at 7:19 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+>> * Uwe Kleine-K=C3=B6nig <uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org> [170526 11:09]:
+>>> According to the binding documentation and the source code the omap-gpi=
+o
+>>> controller takes IRQ_TYPE_* as its flags values, not GPIO_ACTIVE_*.
+>>>
+>>> This patch uses the right variable type which yields the same result
+>>> when compiled. Note that this might be wrong and actually
+>>> IRQ_TYPE_LEVEL_LOW is intended by the dt author.
+>>>
+>>> Signed-off-by: Uwe Kleine-K=C3=B6nig <uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org>
+>>> ---
+>>> Hello,
+>>>
+>>> can somebody with the hardware or it's documentation please check which
+>>> flag is the right one?
 >>
->> It has both "vqmmc-supply" and "vmmc_aux-supply". However omap-hsmmc driver has
->> never parsed vqmmc so far. So I'd assume bt was never functional and it's used
->> only for wifi.
-> 
-> Hmm yeah the vqmmc-supply probably got copied from some
-> other SoC for w3cbw003c.
+>> I'll wait on this one until we have somebody test it.
+>
+> I'll look at it this week.
 
-Okay. So I think we can remove vqmmc-supply here without breaking any existing
-functionality.
-> 
->> So for the change suggested by Ulf, Can I do something like below, so that we
->> can keep wifi functional (ignoring bt since that was never functional)?
->> -       vqmmc-supply = <&w3cbw003c_bt_nreset>;
->> -       vmmc_aux-supply = <&w3cbw003c_wifi_nreset>;
->> +       vqmmc-supply = <&w3cbw003c_wifi_nreset>;
-> 
-> Optional sdio pins 4 - 8 need separate power and that's
-> why we have the vmmc_aux supply to start with. But here
-> there are only four pins, so my guess is that only one
-> regulator is needed and the the other two are gpio pins
-> for wland and bt that nowadays should be handled by the
-> mmc power sequence driver.
+This is what works for me (at least it doesn't produce "irq 88: nobody
+cared (try booting with the "irqpoll" option)").
 
-Yeah. Just now checked the pwrseq driver (pwrseq_simple), but it has it's own
-binding. So even if we move to the pwrseq, we still have to support
-"vqmmc-supply = <&w3cbw003c_wifi_nreset>" to avoid breaking old dt compatibiltiy.
+As for tca6416 it is working with all possible settings (from
+IRQ_TYPE_EDGE_RISING till IRQ_TYPE_LEVEL_LOW). "cat /proc/interrupts"
+always shows Level type:
 
-Thanks
-Kishon
+47:          5  44e07000.gpio  20 Level     1-0020
+
+diff --git a/arch/arm/boot/dts/am335x-baltos-ir3220.dts
+b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
+index 1b215c4..944b095 100644
+--- a/arch/arm/boot/dts/am335x-baltos-ir3220.dts
++++ b/arch/arm/boot/dts/am335x-baltos-ir3220.dts
+@@ -85,7 +85,7 @@
+                gpio-controller;
+                #gpio-cells =3D <2>;
+                interrupt-parent =3D <&gpio0>;
+-               interrupts =3D <20 IRQ_TYPE_EDGE_RISING>;
++               interrupts =3D <20 IRQ_TYPE_LEVEL_LOW>;
+                pinctrl-names =3D "default";
+                pinctrl-0 =3D <&tca6416_pins>;
+        };
+diff --git a/arch/arm/boot/dts/am335x-baltos-ir5221.dts
+b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
+index 832ead8..ae5692b 100644
+--- a/arch/arm/boot/dts/am335x-baltos-ir5221.dts
++++ b/arch/arm/boot/dts/am335x-baltos-ir5221.dts
+@@ -94,7 +94,7 @@
+                gpio-controller;
+                #gpio-cells =3D <2>;
+                interrupt-parent =3D <&gpio0>;
+-               interrupts =3D <20 IRQ_TYPE_EDGE_RISING>;
++               interrupts =3D <20 IRQ_TYPE_LEVEL_LOW>;
+                pinctrl-names =3D "default";
+                pinctrl-0 =3D <&tca6416_pins>;
+        };
+diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi
+b/arch/arm/boot/dts/am335x-baltos.dtsi
+index e3234d4..863942d 100644
+--- a/arch/arm/boot/dts/am335x-baltos.dtsi
++++ b/arch/arm/boot/dts/am335x-baltos.dtsi
+@@ -249,7 +249,7 @@
+                gpio-controller;
+                #gpio-cells =3D <2>;
+                interrupt-parent =3D <&gpio1>;
+-               interrupts =3D <28 IRQ_TYPE_EDGE_RISING>;
++               interrupts =3D <28 IRQ_TYPE_EDGE_FALLING>;
+                pinctrl-names =3D "default";
+                pinctrl-0 =3D <&tps65910_pins>;
+        };
+
+Yegor
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
