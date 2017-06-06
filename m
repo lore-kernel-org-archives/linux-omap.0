@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 1/5] mfd: palmas: Add a dependency on OF
-Date: Tue, 6 Jun 2017 20:15:36 +0530
-Message-ID: <1496760340-27959-2-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 3/5] mfd: tps65217: Add a dependency on OF
+Date: Tue, 6 Jun 2017 20:15:38 +0530
+Message-ID: <1496760340-27959-4-git-send-email-j-keerthy@ti.com>
 References: <1496760340-27959-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -21,17 +21,17 @@ Signed-off-by: Keerthy <j-keerthy@ti.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 3eb5c93..b845d28 100644
+index 75b59f1..2d1425d 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
-@@ -1223,7 +1223,7 @@ config MFD_PALMAS
+@@ -1297,7 +1297,7 @@ config MFD_TPS65090
+ 
+ config MFD_TPS65217
+ 	tristate "TI TPS65217 Power Management / White LED chips"
+-	depends on I2C
++	depends on I2C && OF
  	select MFD_CORE
  	select REGMAP_I2C
- 	select REGMAP_IRQ
--	depends on I2C=y
-+	depends on I2C=y && OF
- 	help
- 	  If you say yes here you get support for the Palmas
- 	  series of PMIC chips from Texas Instruments.
+ 	select IRQ_DOMAIN
 -- 
 1.9.1
