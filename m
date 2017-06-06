@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 3/5] mfd: tps65217: Add a dependency on OF
-Date: Tue, 6 Jun 2017 20:15:38 +0530
-Message-ID: <1496760340-27959-4-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 4/5] mfd: lp873x: Add a dependency on OF
+Date: Tue, 6 Jun 2017 20:15:39 +0530
+Message-ID: <1496760340-27959-5-git-send-email-j-keerthy@ti.com>
 References: <1496760340-27959-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -21,17 +21,17 @@ Signed-off-by: Keerthy <j-keerthy@ti.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 75b59f1..2d1425d 100644
+index 2d1425d..83d6b57 100644
 --- a/drivers/mfd/Kconfig
 +++ b/drivers/mfd/Kconfig
-@@ -1297,7 +1297,7 @@ config MFD_TPS65090
+@@ -1313,7 +1313,7 @@ config MFD_TPS65217
  
- config MFD_TPS65217
- 	tristate "TI TPS65217 Power Management / White LED chips"
+ config MFD_TI_LP873X
+ 	tristate "TI LP873X Power Management IC"
 -	depends on I2C
 +	depends on I2C && OF
  	select MFD_CORE
  	select REGMAP_I2C
- 	select IRQ_DOMAIN
+ 	help
 -- 
 1.9.1
