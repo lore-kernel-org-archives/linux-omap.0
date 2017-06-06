@@ -1,45 +1,76 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH] net: ethernet: ti: cpdma: do not enable host error misc irq
-Date: Mon, 5 Jun 2017 18:23:50 -0500
-Message-ID: <20170605232350.13564-1-grygorii.strashko@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 0/7] dra7: Fixes for MMC devicetree node
+Date: Tue, 6 Jun 2017 09:47:13 +0530
+Message-ID: <f78dd61c-6689-4dbc-d1db-128f92be8e51@ti.com>
+References: <20170601143401.16852-1-kishon@ti.com>
+ <CAPDyKFqHHjZQnnaGLP=xDj3eYgzADDYoomzBuXRviBgh-n2QFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFqHHjZQnnaGLP=xDj3eYgzADDYoomzBuXRviBgh-n2QFw@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-CPSW driver does not handle this interrupt, so there are no reasons to enable
-it in hardware.
+Hi,
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/davinci_cpdma.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+On Friday 02 June 2017 04:20 PM, Ulf Hansson wrote:
+> On 1 June 2017 at 16:33, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> There are the set of fixes that were sent initially as part
+>> of [1].
+>>
+>> These are mostly fixes w.r.t populating regulators in
+>> mmc dt node. It was working before because the regulators
+>> connecting to the IO lines are always on regulators. This will
+>> break once we add UHS support where voltage has to be changed
+>> dynamically.
+>>
+>> Performed enumeration testing on dra72-evm-revc, dra72-evm,
+>> dra7-evm, am572x-evm, am571x-idk and am572x-idk.
+>>
+>> This is a preparation series for adding UHS mode support in
+>> the above mentioned platforms.
+>>
+>> [1] -> https://lkml.org/lkml/2017/5/19/196
+>>
+>> Kishon Vijay Abraham I (5):
+>>   ARM: dts: dra72-evm-common: Correct vmmc-supply for mmc2
+>>   ARM: dts: dra72-evm: Add vmmc_aux supply to mmc1
+>>   ARM: dts: dra72-evm-revc: Add vmmc_aux supply to mmc1
+>>   ARM: dts: am57xx-beagle-x15-revb1: Fix supply name used for MMC1 IO
+>>     lines
+>>   ARM: dts: dra7: Add "max-frequency" property to MMC dt nodes
+>>
+>> Ravikumar Kattekola (1):
+>>   ARM: dts: dra7-evm: Correct the vmmc-supply for mmc2
+>>
+>> Sekhar Nori (1):
+>>   ARM: OMAP2+: Add pdata-quirks for MMC/SD on DRA74x EVM
+>>
+>>  arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts |  2 +-
+>>  arch/arm/boot/dts/dra7-evm.dts                | 10 ++++++++-
+>>  arch/arm/boot/dts/dra7.dtsi                   |  5 +++++
+>>  arch/arm/boot/dts/dra71-evm.dts               | 14 ++++++++++++
+>>  arch/arm/boot/dts/dra72-evm-common.dtsi       |  2 --
+>>  arch/arm/boot/dts/dra72-evm-revc.dts          | 18 ++++++++++++++++
+>>  arch/arm/boot/dts/dra72-evm.dts               | 18 ++++++++++++++++
+>>  arch/arm/mach-omap2/pdata-quirks.c            | 31 +++++++++++++++++++++++++++
+>>  include/linux/platform_data/hsmmc-omap.h      |  3 +++
+>>  9 files changed, 99 insertions(+), 4 deletions(-)
+> 
+> This series add a bunch of new vmmc_aux regulators for the mmc
+> controller nodes. I would rather see that omap_hsmmc also converts to
+> use the generic mmc binding for this regulator, which is "vqmmc".
+> 
+> To accomplish that, omap_hsmmc needs to convert to use
+> mmc_regulator_get_supply(). If the "vqmmc" regulator isn't found, it
+> should fallback to try the "vmmc_aux".
+> 
+> Can you do that?
 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index 7ecc6b7..e4d6edf 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -645,7 +645,7 @@ EXPORT_SYMBOL_GPL(cpdma_ctlr_destroy);
- int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
- {
- 	unsigned long flags;
--	int i, reg;
-+	int i;
- 
- 	spin_lock_irqsave(&ctlr->lock, flags);
- 	if (ctlr->state != CPDMA_STATE_ACTIVE) {
-@@ -653,9 +653,6 @@ int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
- 		return -EINVAL;
- 	}
- 
--	reg = enable ? CPDMA_DMAINTMASKSET : CPDMA_DMAINTMASKCLEAR;
--	dma_reg_write(ctlr, reg, CPDMA_DMAINT_HOSTERR);
--
- 	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
- 		if (ctlr->channels[i])
- 			cpdma_chan_int_ctrl(ctlr->channels[i], enable);
--- 
-2.10.1
+sure, I'll prepare that change.
+
+Thanks
+Kishon
