@@ -1,31 +1,83 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] arm: dts: am33xx: Remove redundant interrupt-parent
- property
-Date: Tue, 6 Jun 2017 00:34:23 -0700
-Message-ID: <20170606073422.GX3730@atomide.com>
-References: <1496686636-19194-1-git-send-email-sunil.m@techveda.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH 0/9] mfd: Remove redundant i2c_device_id
+Date: Tue, 6 Jun 2017 13:18:50 +0530
+Message-ID: <918f5112-b200-b5ae-c4d2-c75e5e227e9a@ti.com>
+References: <1496567924-4278-1-git-send-email-j-keerthy@ti.com>
+ <20170605103740.g4t3veigzpdzfkxi@dell>
+ <e8cbe8fb-50fd-76ef-a5e3-59a7913622c5@ti.com>
+ <20170606071703.o6dnzu4vjeywpoxn@dell>
+ <9017b16c-e9f3-ea05-4e71-d7920841ce57@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1496686636-19194-1-git-send-email-sunil.m-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sunil.m-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, suniel.spartan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9017b16c-e9f3-ea05-4e71-d7920841ce57@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>, tony@atomide.com
+Cc: milo.kim@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* sunil.m-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org <sunil.m-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org> [170605 11:21]:
-> From: Suniel Mahesh <sunil.m-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org>
+
+
+On Tuesday 06 June 2017 01:00 PM, Keerthy wrote:
 > 
-> Interrupt-parent property is defined in the root node as
-> "interrupt-parent = <&intc>". This interrupt-parent value becomes
-> the default for the system, so removed redundant "interrupt-parent"
-> property from mmc, mac, lcdc and tscadc nodes.
+> 
+> On Tuesday 06 June 2017 12:47 PM, Lee Jones wrote:
+>> On Mon, 05 Jun 2017, Keerthy wrote:
+>>
+>>>
+>>>
+>>> On Monday 05 June 2017 04:07 PM, Lee Jones wrote:
+>>>> On Sun, 04 Jun 2017, Keerthy wrote:
+>>>>
+>>>>> With the introduction of probe_new function the i2c_device_id
+>>>>> is no longer needed. Hence the remove the same and use probe_new
+>>>>> instead of probe. 
+>>>>>
+>>>>> Keerthy (9):
+>>>>>   mfd: tps65217: Remove redundant i2c_device_id
+>>>>>   mfd: tps65218: Remove redundant i2c_device_id
+>>>>>   mfd: palmas: Remove redundant i2c_device_id
+>>>>>   mfd: lp873x: Remove redundant i2c_device_id
+>>>>>   mfd: lp8788: Remove redundant i2c_device_id
+>>>>>   mfd: lp3943: Remove redundant i2c_device_id
+>>>>>   mfd: tps65086: Remove redundant i2c_device_id
+>>>>>   mfd: tps65090: Remove redundant i2c_device_id
+>>>>>   mfd: tps6586x: Remove redundant i2c_device_id
+>>>>>
+>>>>>  drivers/mfd/lp3943.c   | 11 ++---------
+>>>>>  drivers/mfd/lp873x.c   | 12 ++----------
+>>>>>  drivers/mfd/lp8788.c   | 11 ++---------
+>>>>>  drivers/mfd/palmas.c   | 15 ++-------------
+>>>>>  drivers/mfd/tps65086.c | 12 ++----------
+>>>>>  drivers/mfd/tps65090.c | 12 ++----------
+>>>>>  drivers/mfd/tps65217.c | 14 +++-----------
+>>>>>  drivers/mfd/tps65218.c |  9 +++++----
+>>>>>  drivers/mfd/tps6586x.c | 12 ++----------
+>>>>
+>>>> Are all of these drivers DT only?
+>>>
+>>> At least i did not find any platform code calling on to these drivers.
+>>> No dependency on OF as such. Hence sent these 9.
+>>
+>> I can't accept these changes on any drivers which does not depend on
+>> OF as a hard requirement.
+> 
+> Okay. So that is a per-requisite. At least palmas, tps65218, lp873x,
+> tps65217 imho can have the OF dependency. I will post patches for that
+> and then will resurrect this series.
+> 
+> Thanks for your feedback.
 
-Thanks seems safe to remove so applying into omap-for-v4.13/dt.
+Tony,
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I do not see any platform specific code for tps65218, tps65217 and
+palmas. I believe they are all completely Device Tree based. Can i make
+them depend on OF? It helps me clear up some unused data from their mfd
+drivers.
+
+Regards,
+Keerthy
+> 
+> 
+>>
