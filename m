@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/6] ARM: dts: omap44xx-clocks: Set IVA DPLL and its output clock rates
-Date: Wed, 7 Jun 2017 16:27:25 -0500
-Message-ID: <20170607212730.33002-2-s-anna@ti.com>
+Subject: [PATCH 6/6] ARM: dts: dra7xx-clocks: Use DPLL_GPU for GPU clocks
+Date: Wed, 7 Jun 2017 16:27:30 -0500
+Message-ID: <20170607212730.33002-7-s-anna@ti.com>
 References: <20170607212730.33002-1-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,66 +12,84 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Subhajit Paul <subhajit_paul-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The IVA DPLL is not an essential DPLL for the functionality of a
-bootloader and is usually not configured (e.g. older u-boots configure
-it only if CONFIG_SYS_CLOCKS_ENABLE_ALL is enabled and u-boots newer
-than 2014.01 do not even have an option), and this results in incorrect
-operating frequencies when trying to use a DSP or IVAHD, whose root
-clocks are derived from this DPLL. Use the DT standard properties
-"assigned-clocks" and "assigned-clock-rates" to set the IVA DPLL clock
-rate and the rates for its derivative clocks at boot time to properly
-initialize/lock this DPLL. The DPLL will automatically transition
-into a low-power stop mode when the associated output clocks are
-not utilized or gated automatically.
+From: Subhajit Paul <subhajit_paul-l0cyMroinI0@public.gmane.org>
 
-The reset values of the dividers M4 & M5 (functional clocks for DSP and
-IVAHD respectively) are identical to each other, but are different at
-each OPP. The reset values also do not match a specific OPP. So, the
-derived output clocks from the IVA DPLL have to be initialized as well
-to avoid initializing these divider outputs to incorrect frequencies.
+The GPU has two functional clocks - GPU_CORE_GCLK and GPU_HYD_GCLK.
+Both of these are mux clocks and are derived from the DPLL_CORE
+H14 output clock CORE_GPU_CLK by default. These clocks can also be
+be derived from DPLL_PER or DPLL_GPU.
 
-The clock rates are chosen based on the OPP100 values as defined in the
-OMAP4430 ES2.x Public TRM vAP, section "3.6.3.8.7 DPLL_IVA Preferred
-Settings". The DPLL locked frequency is 1862.4 MHz (value for
-DPLL_IVA_X2_CLK), so the dpll_iva_ck clock rate used is half of
-this value.
+The GPU DPLL provides the output clocks primarily for the GPU.
+Configuring the GPU for different OPP clock frequencies is easier
+to achieve when using the DPLL_GPU rather than the other two DPLLs
+due to:
+1. minimal affect on any other output clocks from these DPLLs
+2. may require an impossible post-divider values on existing DPLLs
+   without affecting other clocks.
 
+So, switch the GPU functional clocks to be sourced from GPU DPLL by
+default. This is done using the DT standard properties "assigned-clocks"
+and "assigned-clock-parents". Newer u-boots (from 2017.01 onwards) reuse
+and can update these properties to choose an appropriate one-time fixed
+OPP configuration as all the required ABB/AVS setup is performed within
+the bootloader. Note that there is no DVFS supported for any of the
+non-MPU domains. The DPLL will automatically transition into a low-power
+stop mode when the associated output clocks are not utilized or gated
+automatically.
+
+This patch also sets the initial values for the DPLL_GPU outputs.
+These values are chosen based on the OPP_NOM values defined as per
+recommendation from design team. The DPLL locked frequency is kept
+at 1277 MHz, so that the value for the divider clock, dpll_gpu_m2_ck,
+can be set to 425.67 MHz for OPP_NOM.
+
+Signed-off-by: Subhajit Paul <subhajit_paul-l0cyMroinI0@public.gmane.org>
+[s-anna-l0cyMroinI0@public.gmane.org: revise patch description]
 Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap44xx-clocks.dtsi | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/boot/dts/dra7xx-clocks.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-index 9573b37fbaa7..9cb205b87835 100644
---- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-@@ -357,6 +357,8 @@
+diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+index 76e2b7478141..cf229dfabf61 100644
+--- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
++++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+@@ -414,6 +414,8 @@
  		compatible = "ti,omap4-dpll-clock";
- 		clocks = <&sys_clkin_ck>, <&iva_hsd_byp_clk_mux_ck>;
- 		reg = <0x01a0>, <0x01a4>, <0x01ac>, <0x01a8>;
-+		assigned-clocks = <&dpll_iva_ck>;
-+		assigned-clock-rates = <931200000>;
+ 		clocks = <&sys_clkin1>, <&dpll_gpu_byp_mux>;
+ 		reg = <0x02d8>, <0x02dc>, <0x02e4>, <0x02e0>;
++		assigned-clocks = <&dpll_gpu_ck>;
++		assigned-clock-rates = <1277000000>;
  	};
  
- 	dpll_iva_x2_ck: dpll_iva_x2_ck {
-@@ -374,6 +376,8 @@
- 		reg = <0x01b8>;
+ 	dpll_gpu_m2_ck: dpll_gpu_m2_ck@2e8 {
+@@ -425,6 +427,8 @@
+ 		reg = <0x02e8>;
  		ti,index-starts-at-one;
  		ti,invert-autoidle-bit;
-+		assigned-clocks = <&dpll_iva_m4x2_ck>;
-+		assigned-clock-rates = <465600000>;
++		assigned-clocks = <&dpll_gpu_m2_ck>;
++		assigned-clock-rates = <425666667>;
  	};
  
- 	dpll_iva_m5x2_ck: dpll_iva_m5x2_ck@1bc {
-@@ -385,6 +389,8 @@
- 		reg = <0x01bc>;
- 		ti,index-starts-at-one;
- 		ti,invert-autoidle-bit;
-+		assigned-clocks = <&dpll_iva_m5x2_ck>;
-+		assigned-clock-rates = <266100000>;
+ 	dpll_core_m2_ck: dpll_core_m2_ck@130 {
+@@ -1760,6 +1764,8 @@
+ 		clocks = <&dpll_core_h14x2_ck>, <&dpll_per_h14x2_ck>, <&dpll_gpu_m2_ck>;
+ 		ti,bit-shift = <24>;
+ 		reg = <0x1220>;
++		assigned-clocks = <&gpu_core_gclk_mux>;
++		assigned-clock-parents = <&dpll_gpu_m2_ck>;
  	};
  
- 	dpll_mpu_ck: dpll_mpu_ck@160 {
+ 	gpu_hyd_gclk_mux: gpu_hyd_gclk_mux@1220 {
+@@ -1768,6 +1774,8 @@
+ 		clocks = <&dpll_core_h14x2_ck>, <&dpll_per_h14x2_ck>, <&dpll_gpu_m2_ck>;
+ 		ti,bit-shift = <26>;
+ 		reg = <0x1220>;
++		assigned-clocks = <&gpu_hyd_gclk_mux>;
++		assigned-clock-parents = <&dpll_gpu_m2_ck>;
+ 	};
+ 
+ 	l3instr_ts_gclk_div: l3instr_ts_gclk_div@e50 {
 -- 
 2.12.0
 
