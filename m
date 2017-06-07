@@ -1,85 +1,45 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [linux-next][PATCH] usb: dwc3: omap: remove IRQ_NOAUTOEN used
- with shared irq
-Date: Fri, 30 Jun 2017 14:34:34 -0500
-Message-ID: <dac573e2-31e3-b431-8510-973d691fc0ed@ti.com>
-References: <20170628233131.19114-1-grygorii.strashko@ti.com>
- <463ea19c-dc60-5926-56b4-0f10d2e23e94@ti.com>
- <20170629060353.GE3730@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] two omap fixes for v4.12-rc cycle
+Date: Wed,  7 Jun 2017 05:23:01 -0700
+Message-ID: <5782.86836757815$1505301650@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170629060353.GE3730@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Vignesh R <vigneshr@ti.com>
-Cc: "GregKroah-Hartmangregkh@linuxfoundation.org" <GregKroah-Hartmangregkh@linuxfoundation.org>, Felipe Balbi <balbi@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+The following changes since commit bca5238816939436d72ae6bab124c4b0641a3a99:
 
+  ARM: dts: dra7: Reduce cpu thermal shutdown temperature (2017-05-17 06:51:38 -0700)
 
-On 06/29/2017 01:03 AM, Tony Lindgren wrote:
-> * Vignesh R <vigneshr@ti.com> [170628 21:21]:
->>
->>
->> On Thursday 29 June 2017 05:01 AM, Strashko, Grygorii wrote:
->>> IRQ_NOAUTOEN can't be used with shared IRQs and Kernel now will triggers
->>> warning if it happns, since commit 04c848d39879 ("genirq: Warn when
->>> IRQ_NOAUTOEN is used with shared interrupts"). And this is the case for
->>> OMAP DWC 3 driver.
->>>
->>> Hence, remove IRQ_NOAUTOEN flag and instead call disable_irq() before
->>> disabling PM runtime in probe error path handling.
->>
->> Or, how about requesting the irq at the end of probe after extcon
->> registration?
-> 
-> Hmm yeah, what prevents the issue that we tried to fix with commit
-> 12a7f17fac5b ("usb: dwc3: omap: fix race of pm runtime with irq handler
-> in probe")?
+are available in the git repository at:
 
-No, I think. There should be the disable_irq() call any way
-before pm_runtime_put_sync(dev);| pm_runtime_disable(dev); -
-once IRQ is requested driver can't know if IRQ handler is running now or not
-unless it will call disable_irq()/free_irq().
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.12/fixes-sl50
 
-But, I've also thought about moving request_irq() down (seems
-it can be moved even after of_platform_populate()).
-looks like it can be separate patch.
+for you to fetch changes up to db145db99f5bf30acc12d7450b9ad0707072a7be:
 
+  ARM: dts: am335x-sl50: Fix cannot claim requested pins for spi0 (2017-05-26 08:25:42 -0700)
 
->>> Fixes: 12a7f17fac5b ("usb: dwc3: omap: fix race of pm runtime with...")
->>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->>> ---
->>>   drivers/usb/dwc3/dwc3-omap.c | 3 +--
->>>   1 file changed, 1 insertion(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
->>> index 9892650..cd9bef5 100644
->>> --- a/drivers/usb/dwc3/dwc3-omap.c
->>> +++ b/drivers/usb/dwc3/dwc3-omap.c
->>> @@ -512,7 +512,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
->>>   
->>>   	/* check the DMA Status */
->>>   	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
->>> -	irq_set_status_flags(omap->irq, IRQ_NOAUTOEN);
->>>   	ret = devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
->>>   					dwc3_omap_interrupt_thread, IRQF_SHARED,
->>>   					"dwc3-omap", omap);
->>> @@ -533,10 +532,10 @@ static int dwc3_omap_probe(struct platform_device *pdev)
->>>   	}
->>>   
->>>   	dwc3_omap_enable_irqs(omap);
->>> -	enable_irq(omap->irq);
->>>   	return 0;
->>>   
->>>   err1:
->>> +	disable_irq(omap->irq);
->>>   	pm_runtime_put_sync(dev);
->>>   	pm_runtime_disable(dev);
->>>   
+----------------------------------------------------------------
+Two fixes for am335x-sl50 to fix a boot time error
+for claiming SPI pins, and to fix a SDIO card detect
+pin for production version of the device.
 
--- 
-regards,
--grygorii
+----------------------------------------------------------------
+Enric Balletbo i Serra (2):
+      ARM: dts: am335x-sl50: Fix card detect pin for mmc1
+      ARM: dts: am335x-sl50: Fix cannot claim requested pins for spi0
+
+ arch/arm/boot/dts/am335x-sl50.dts | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
