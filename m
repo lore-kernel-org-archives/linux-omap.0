@@ -1,43 +1,75 @@
-From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Subject: [PATCH 3/4] regulator: tps65217: Fix module autoload for devices registered via OF
-Date: Wed,  7 Jun 2017 12:32:41 +0200
-Message-ID: <20170607103242.16008-3-enric.balletbo@collabora.com>
-References: <20170607103242.16008-1-enric.balletbo@collabora.com>
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-Reply-To: <20170607103242.16008-1-enric.balletbo@collabora.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-leds@vger.kernel.org, linux-input@vger.kernel.org
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Jingoo Han <jingoohan1@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Pavel Machek <pavel@ucw.cz>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>, javier@dowhile0.org
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 3/5] mfd: tps65217: Add a dependency on OF
+Date: Wed, 7 Jun 2017 11:37:53 +0100
+Message-ID: <20170607103753.n3entu2ylxvhdax7@dell>
+References: <1496760340-27959-1-git-send-email-j-keerthy@ti.com>
+ <1496760340-27959-4-git-send-email-j-keerthy@ti.com>
+ <CAFqH_52OncBvwCmu6JiFSdVckky9Gqzm7ZoUNxpqF-82oO2GAw@mail.gmail.com>
+ <c13efc60-d4fd-7c1a-e889-f867ebd18446@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <c13efc60-d4fd-7c1a-e889-f867ebd18446@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Tony Lindgren <tony@atomide.com>, milo.kim@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-The driver doesn't have a OF device ID table and so if devices are
-registered via OF, module autoloading won't work.
+On Wed, 07 Jun 2017, Keerthy wrote:
 
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
----
- drivers/regulator/tps65217-regulator.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+> 
+> 
+> On Tuesday 06 June 2017 08:34 PM, Enric Balletbo Serra wrote:
+> > Hi Keerthy,
+> > 
+> > By change I was looking at this. Some comments below that I think can
+> > be applied to all patches in this series
+> > 
+> > 2017-06-06 16:45 GMT+02:00 Keerthy <j-keerthy@ti.com>:
+> >> Currently the driver boots only via device tree hence add a
+> >> dependency on OF.
+> >>
+> >> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> >> ---
+> >>  drivers/mfd/Kconfig | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> >> index 75b59f1..2d1425d 100644
+> >> --- a/drivers/mfd/Kconfig
+> >> +++ b/drivers/mfd/Kconfig
+> >> @@ -1297,7 +1297,7 @@ config MFD_TPS65090
+> >>
+> >>  config MFD_TPS65217
+> >>         tristate "TI TPS65217 Power Management / White LED chips"
+> >> -       depends on I2C
+> >> +       depends on I2C && OF
+> > 
+> > Shouldn't you add || COMPILE_TEST here ?
+> 
+> Sure.
+> 
+> > 
+> >>         select MFD_CORE
+> >>         select REGMAP_I2C
+> >>         select IRQ_DOMAIN
+> >>
+> > 
+> > I think you can remove the of_match_device checks in some drivers too
+> > 
+> > i.e:
+> > 
+> > http://elixir.free-electrons.com/linux/latest/source/drivers/mfd/tps65217.c#L330
+> 
+> Yes that and removal of unused i2c_device_id. I will follow it up once
+> this OF dependency is in.
 
-diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
-index 5324dc9..2c05360 100644
---- a/drivers/regulator/tps65217-regulator.c
-+++ b/drivers/regulator/tps65217-regulator.c
-@@ -263,9 +263,16 @@ static int tps65217_regulator_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct of_device_id tps65217_regulator_match_table[] = {
-+	{ .compatible = "ti,tps65217-pmic", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, tps65217_regulator_match_table);
-+
- static struct platform_driver tps65217_regulator_driver = {
- 	.driver = {
- 		.name = "tps65217-pmic",
-+		.of_match_table = tps65217_regulator_match_table,
- 	},
- 	.probe = tps65217_regulator_probe,
- };
+The of_match_device() checks should be removed with the OF patch.
+
 -- 
-2.9.3
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
