@@ -1,48 +1,49 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] iio: adc: cpcap: Fix default register values and
- battery temperature
-Date: Tue, 6 Jun 2017 23:22:00 -0700
-Message-ID: <20170607062200.GD3730@atomide.com>
-References: <20170523005146.726-1-tony@atomide.com>
- <20170523005146.726-2-tony@atomide.com>
- <20170524201831.3504c42d@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/9] ARM: OMAP2+: Adjustments for seven function
+ implementations
+Date: Tue, 6 Jun 2017 23:51:46 -0700
+Message-ID: <20170607065146.GE3730@atomide.com>
+References: <e9d44aa5-9208-9ff3-46ec-cd58ac3f4696@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170524201831.3504c42d-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <e9d44aa5-9208-9ff3-46ec-cd58ac3f4696@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170524 12:22]:
-> On Mon, 22 May 2017 17:51:44 -0700
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+* SF Markus Elfring <elfring@users.sourceforge.net> [170603 11:24]:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sat, 3 Jun 2017 20:12:34 +0200
 > 
-> > Looking at the register dumps from Android kernel on droid 4, I noticed
-> > the values with the mainline kernel don't match. Let's fix this by
-> > initializing the ADC registers to what Android does.
-> > 
-> > For getting correct values from the battery thermistor, we need to
-> > toggle the CPCAP_BIT_THERMBIAS_EN when measuring battery temperature
-> > to get correct battery temperatures. And looks like we also need to
-> > wait a little bit before reading the battery temperature as otherwise
-> > the results are inaccurate.
-> > 
-> > Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-> > Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Applied to the togreg branch of iio.git and will be shortly pushed
-> out as testing for the autobuilders to play with it.
+> Some update suggestions were taken into account
+> from static source code analysis.
+> 
+> Markus Elfring (9):
+>   Delete an error message for a failed memory allocation in omap_mcspi_init()
+>   Delete an error message for a failed memory allocation in two functions
+>   Delete an unnecessary variable initialisation in omap_init_mcbsp()
+>   Improve a size determination in omap_init_mcbsp()
+>   Delete an error message for a failed memory allocation in omap_init_mcbsp()
+>   Improve a size determination in sr_dev_init()
+>   Use kcalloc() in sr_set_nvalues()
+>   SmartReflex: Delete an error message for a failed memory allocation in two functions
+>   Delete an error message for a failed memory allocation in omap_timer_init()
 
-Not seeing these in your togreg brach or in next? The
-branch I just checked is the one below, maybe I'm looking
-at a wrong branch or something.
+Thanks for the patches. Many of these are no longer needed as
+I've now dropped more of the legacy boot code as everything
+for mach-omap2 is booting in device tree mode.
+
+So I'm applying the following ones into omap-for-v4.13/soc.
 
 Regards,
 
 Tony
 
-https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/log/?h=togreg
+8< -------
+ARM: OMAP2+: SmartReflex: Delete an error message for a failed memory allocation in two functions
+ARM: OMAP2+: Use kcalloc() in sr_set_nvalues()
+ARM: OMAP2+: Improve a size determination in sr_dev_init()
+ARM: OMAP2+: Delete an error message for a failed memory allocation in two functions
