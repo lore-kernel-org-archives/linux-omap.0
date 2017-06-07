@@ -1,10 +1,10 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] two omap fixes for v4.12-rc cycle
-Date: Wed,  7 Jun 2017 05:23:01 -0700
-Message-ID: <5782.86836757815$1505301650@news.gmane.org>
+Subject: [GIT PULL 1/2] omap gpmc changes for v4.13
+Date: Wed,  7 Jun 2017 05:25:24 -0700
+Message-ID: <43452.7448997416$1505301656@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -16,30 +16,28 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: arm@kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit bca5238816939436d72ae6bab124c4b0641a3a99:
-
-  ARM: dts: dra7: Reduce cpu thermal shutdown temperature (2017-05-17 06:51:38 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.12/fixes-sl50
-
-for you to fetch changes up to db145db99f5bf30acc12d7450b9ad0707072a7be:
-
-  ARM: dts: am335x-sl50: Fix cannot claim requested pins for spi0 (2017-05-26 08:25:42 -0700)
-
-----------------------------------------------------------------
-Two fixes for am335x-sl50 to fix a boot time error
-for claiming SPI pins, and to fix a SDIO card detect
-pin for production version of the device.
-
-----------------------------------------------------------------
-Enric Balletbo i Serra (2):
-      ARM: dts: am335x-sl50: Fix card detect pin for mmc1
-      ARM: dts: am335x-sl50: Fix cannot claim requested pins for spi0
-
- arch/arm/boot/dts/am335x-sl50.dts | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+VGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCAyZWE2NTlhOWVmNDg4MTI1ZWI0NmRh
+NmViNTcxZGU1ZWFlNWM0M2Y2OgoKICBMaW51eCA0LjEyLXJjMSAoMjAxNy0wNS0xMyAxMzoxOTo0
+OSAtMDcwMCkKCmFyZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5IGF0OgoKICBnaXQ6
+Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG1saW5kL2xpbnV4LW9t
+YXAgdGFncy9vbWFwLWZvci12NC4xMy9ncG1jLXNpZ25lZAoKZm9yIHlvdSB0byBmZXRjaCBjaGFu
+Z2VzIHVwIHRvIGM5ZWFiZjQwZDkxYjRmZTk1NGVmZTM4MGQ4ODU5MGQ5MzNiYWEwNmQ6CgogIG1l
+bW9yeTogb21hcC1ncG1jOiBhZGQgZXJyb3IgbWVzc2FnZSBpZiBiYW5rLXdpZHRoIHByb3BlcnR5
+IGlzIGFic2VudCAoMjAxNy0wNS0zMSAxMDowODoxMCAtMDcwMCkKCi0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRmV3IGltcHJv
+dm1lbnRzIGZvciBHUE1DIChHZW5lcmFsIFB1cnBvc2UgTWVtb3J5IENvbnRyb2xsZXIpCmZvdW5k
+IG9uIFRJIFNvQ3MgdG8gcHJvZHVjZSBhbiBlcnJvciBmb3IgbWlzc2luZyBiYW5rLXdpZHRoCmFu
+ZCB0byBtYWtlIHRoZSBib290bG9hZGVyIHRpbWluZyBkZWJ1ZyBvdXRwdXQgdXNhYmxlIGZvcgpk
+ZXZpY2UgdHJlZSB0aW1pbmdzLgoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpVd2UgS2xlaW5lLUvDtm5pZyAoMik6CiAgICAg
+IG1lbW9yeTogb21hcC1ncG1jOiBtYWtlIGR0cyBzbmlwcGV0IGluY2x1ZGUgc2VtaWNvbG9uCiAg
+ICAgIG1lbW9yeTogb21hcC1ncG1jOiBhZGQgZXJyb3IgbWVzc2FnZSBpZiBiYW5rLXdpZHRoIHBy
+b3BlcnR5IGlzIGFic2VudAoKIGRyaXZlcnMvbWVtb3J5L29tYXAtZ3BtYy5jIHwgOSArKysrKyst
+LS0KIDEgZmlsZSBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2Vy
+bmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0
+cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVs
+Cg==
