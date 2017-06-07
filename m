@@ -1,42 +1,163 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 3/5] mfd: tps65217: Add a dependency on OF
-Date: Wed, 7 Jun 2017 16:27:53 +0200
-Message-ID: <CABxcv=mBXBYvi1z4pdeeA-nDuo10a1uJMe9=ZSqdRo-Q7uHQbg@mail.gmail.com>
-References: <1496760340-27959-1-git-send-email-j-keerthy@ti.com>
- <1496760340-27959-4-git-send-email-j-keerthy@ti.com> <CAFqH_52OncBvwCmu6JiFSdVckky9Gqzm7ZoUNxpqF-82oO2GAw@mail.gmail.com>
- <c13efc60-d4fd-7c1a-e889-f867ebd18446@ti.com> <20170607103753.n3entu2ylxvhdax7@dell>
- <20170607103839.2bydxqxussxyahvn@dell> <41600d7d-3754-2907-151e-57fa20f88222@ti.com>
- <CAFqH_53jSPcKB8rOiODDv3Jmbrq6h3UvW+gZLSV7JFXM1j_bWA@mail.gmail.com>
- <c5b31280-28fb-3dc3-dd7b-bcd9294e5b61@ti.com> <CABxcv=mSqGOG+Z9eHhAnfw=ZR4-US_zVzvo3kNWY4o2mT_C-Ew@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 4/4] mfd: tps65217: Instantiate sub-devices from device
+ tree
+Date: Wed, 7 Jun 2017 11:05:32 -0500
+Message-ID: <6359abe2-9a21-78a2-f5ea-87e2e3335af3@ti.com>
+References: <20170607103242.16008-1-enric.balletbo@collabora.com>
+ <20170607103242.16008-4-enric.balletbo@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABxcv=mSqGOG+Z9eHhAnfw=ZR4-US_zVzvo3kNWY4o2mT_C-Ew@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Milo Kim <milo.kim@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170607103242.16008-4-enric.balletbo@collabora.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Enric Balletbo i Serra <enric.balletbo@collabora.com>, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-leds@vger.kernel.org, linux-input@vger.kernel.org, Mark Brown <broonie@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Daniel Thompson <daniel.thompson@linaro.org>, Tony Lindgren <tony@atomide.com>, Jingoo Han <jingoohan1@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Russell King <linux@armlinux.org.uk>, Rob Herring <robh+dt@kernel.org>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Pavel Machek <pavel@ucw.cz>, javier@dowhile0.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 7, 2017 at 4:10 PM, Javier Martinez Canillas
-<javier@dowhile0.org> wrote:
 
-[snip]
 
->>
->> chip_id = (unsigned long)match->data;
->>
->
-> ...but this particular driver only has a single entry in the OF table
-> and so you can just do:
->
-> tps->id = TPS65217;
->
+On 06/07/2017 05:32 AM, Enric Balletbo i Serra wrote:
+> The driver boots only via device tree but currently all the MFD sub-devices
+> are instatiated independently of the device tree configuration, i.e
+> although tps65217-charger is disabled by default it's instantiated by the
+> MFD driver.
+> 
+> Instead of register all sub-devices, if the TPS65217 device tree node has a
+> sub-node enabled, try to instatiate them as MFD sub-devices but not
+> instantiate sub-nodes that are not enabled.
+> 
+> Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+> ---
+>   drivers/mfd/tps65217.c       | 56 +++++++-------------------------------------
+>   include/linux/mfd/tps65217.h |  6 -----
+>   2 files changed, 9 insertions(+), 53 deletions(-)
+> 
+> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+> index f769c7d..9effdda 100644
+> --- a/drivers/mfd/tps65217.c
+> +++ b/drivers/mfd/tps65217.c
+> @@ -33,14 +33,7 @@
+>   #include <linux/mfd/core.h>
+>   #include <linux/mfd/tps65217.h>
+>   
+> -static struct resource charger_resources[] = {
+> -	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_AC, "AC"),
+> -	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_USB, "USB"),
+> -};
+> -
+> -static struct resource pb_resources[] = {
+> -	DEFINE_RES_IRQ_NAMED(TPS65217_IRQ_PB, "PB"),
+> -};
 
-In fact, it seems that the whole chip id logic can go away since no
-one is using it. I see that the regulator driver checks for the chip
-id value but I don't think that makes sense since the regulator
-driver's probe function won't be called for other chips since they
-won't match.
+May be I messed smth, but how about interrupts for charger and pwrbutton?
 
-Best regards,
-Javier
+> +#define TPS65217_NUM_IRQ	3
+>   
+>   static void tps65217_irq_lock(struct irq_data *data)
+>   {
+> @@ -86,29 +79,6 @@ static struct irq_chip tps65217_irq_chip = {
+>   	.irq_disable		= tps65217_irq_disable,
+>   };
+>   
+> -static struct mfd_cell tps65217s[] = {
+> -	{
+> -		.name = "tps65217-pmic",
+> -		.of_compatible = "ti,tps65217-pmic",
+> -	},
+> -	{
+> -		.name = "tps65217-bl",
+> -		.of_compatible = "ti,tps65217-bl",
+> -	},
+> -	{
+> -		.name = "tps65217-charger",
+> -		.num_resources = ARRAY_SIZE(charger_resources),
+> -		.resources = charger_resources,
+> -		.of_compatible = "ti,tps65217-charger",
+> -	},
+> -	{
+> -		.name = "tps65217-pwrbutton",
+> -		.num_resources = ARRAY_SIZE(pb_resources),
+> -		.resources = pb_resources,
+> -		.of_compatible = "ti,tps65217-pwrbutton",
+> -	},
+> -};
+> -
+>   static irqreturn_t tps65217_irq_thread(int irq, void *data)
+>   {
+>   	struct tps65217 *tps = data;
+> @@ -359,23 +329,8 @@ static int tps65217_probe(struct i2c_client *client,
+>   		return ret;
+>   	}
+>   
+> -	if (client->irq) {
+> +	if (client->irq)
+>   		tps65217_irq_init(tps, client->irq);
+> -	} else {
+> -		int i;
+> -
+> -		/* Don't tell children about IRQ resources which won't fire */
+> -		for (i = 0; i < ARRAY_SIZE(tps65217s); i++)
+> -			tps65217s[i].num_resources = 0;
+> -	}
+> -
+> -	ret = devm_mfd_add_devices(tps->dev, -1, tps65217s,
+> -				   ARRAY_SIZE(tps65217s), NULL, 0,
+> -				   tps->irq_domain);
+> -	if (ret < 0) {
+> -		dev_err(tps->dev, "mfd_add_devices failed: %d\n", ret);
+> -		return ret;
+> -	}
+
+And as I remember there was a request to use mfd_add_devices()
+and not of_platform_populate() for mfd sub-devices instantiation.
+
+ 
+>   
+>   	ret = tps65217_reg_read(tps, TPS65217_REG_CHIPID, &version);
+>   	if (ret < 0) {
+> @@ -384,6 +339,13 @@ static int tps65217_probe(struct i2c_client *client,
+>   		return ret;
+>   	}
+>   
+> +	ret = of_platform_populate(client->dev.of_node, NULL, NULL,
+> +				   &client->dev);
+> +	if (ret) {
+> +		dev_err(&client->dev, "Failed to register sub-devices\n");
+> +		return ret;
+> +	}
+> +
+>   	/* Set the PMIC to shutdown on PWR_EN toggle */
+>   	if (status_off) {
+>   		ret = tps65217_set_bits(tps, TPS65217_REG_STATUS,
+> diff --git a/include/linux/mfd/tps65217.h b/include/linux/mfd/tps65217.h
+> index eac2857..dfc51f5 100644
+> --- a/include/linux/mfd/tps65217.h
+> +++ b/include/linux/mfd/tps65217.h
+> @@ -236,12 +236,6 @@ struct tps65217_bl_pdata {
+>   	int dft_brightness;
+>   };
+>   
+> -/* Interrupt numbers */
+> -#define TPS65217_IRQ_USB		0
+> -#define TPS65217_IRQ_AC			1
+> -#define TPS65217_IRQ_PB			2
+> -#define TPS65217_NUM_IRQ		3
+> -
+>   /**
+>    * struct tps65217_board - packages regulator init data
+>    * @tps65217_regulator_data: regulator initialization values
+> 
+
+-- 
+regards,
+-grygorii
