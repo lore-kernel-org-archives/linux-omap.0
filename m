@@ -1,205 +1,152 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v5 1/3] drivers:power:twl4030-charger: remove nonstandard
- max_current sysfs attribute
-Date: Wed, 7 Jun 2017 22:23:14 +0200
-Message-ID: <20170607202313.qko7tgzocfhwbdwv@earth>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v5 3/3] drivers:power:twl4030-charger: add deferred
+ probing for phy and iio
+Date: Wed, 7 Jun 2017 22:44:44 +0200
+Message-ID: <20170607204444.zumcreuqdnv7euv2@earth>
 References: <cover.1495363097.git.hns@goldelico.com>
- <2cfdb1799219d883cde31779e97d570dc003f8cf.1495363097.git.hns@goldelico.com>
+ <6ed105f6c9c21c24184913a7be9e665453549d79.1495363097.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="eijpqohsafa43cdd"
-Return-path: <linux-pm-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="42ssb5kxbkw37n7a"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2cfdb1799219d883cde31779e97d570dc003f8cf.1495363097.git.hns@goldelico.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: NeilBrown <neil@brown.name>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Marek Belisko <marek@goldelico.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, notasas@gmail.com, linux-omap@vger.kernel.org
+In-Reply-To: <6ed105f6c9c21c24184913a7be9e665453549d79.1495363097.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: NeilBrown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---eijpqohsafa43cdd
+--42ssb5kxbkw37n7a
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sun, May 21, 2017 at 12:38:16PM +0200, H. Nikolaus Schaller wrote:
-> Since we now support the standard 'input_current_limit' property by
+On Sun, May 21, 2017 at 12:38:18PM +0200, H. Nikolaus Schaller wrote:
+> This fixes an issue if both this twl4030_charger driver and
+> phy-twl4030-usb are compiled as modules and loaded in random order.
+> It has been observed on GTA04 and OpenPandora devices that in worst
+> case the boot process hangs and in best case the AC detection fails
+> with a warning.
+>
+> Therefore we add deferred probing checks for the usb_phy and the
+> iio channel for AC detection.
 >=20
-> commit 3fb319c2cdcd ("power: supply: twl4030-charger: add writable INPUT_=
-CURRENT_LIMIT property")
->=20
-> we can now remove the nonstandard 'max_current' sysfs attribute.
->=20
-> See Documentation/power/power_supply_class.txt line 125
->=20
-> Both are functionally equivalent. From ABI point of view it is just a ren=
-ame
-> of the property.
->=20
-> This also removes the entry in Documentation/ABI/testing/sysfs-class-powe=
-r-twl4030
->=20
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> For implementing this we must reorder code because we can't safely
+> return -EPROBE_DEFER after allocating any devm managed interrupt
+> (it might already/still be enabled without working interrupt handler).
+>
+> So the check for required resources that may abort probing by
+> returning -EPROBE_DEFER, must come first.
 
-Thanks, queued.
+This sounds fishy. EPROBE_DEFER should not be different from
+other error codes in this regard and devm_ requested resources
+should be free'd on any error. Why is irq handler not working?
+
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> ---
+>  drivers/power/supply/twl4030_charger.c | 37 ++++++++++++++++++++--------=
+------
+>  1 file changed, 22 insertions(+), 15 deletions(-)
+>=20
+> diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/suppl=
+y/twl4030_charger.c
+> index 785a07bc4f39..945eabdbbc89 100644
+> --- a/drivers/power/supply/twl4030_charger.c
+> +++ b/drivers/power/supply/twl4030_charger.c
+> @@ -984,6 +984,28 @@ static int twl4030_bci_probe(struct platform_device =
+*pdev)
+> =20
+>  	platform_set_drvdata(pdev, bci);
+> =20
+> +	if (bci->dev->of_node) {
+> +		struct device_node *phynode;
+> +
+> +		phynode =3D of_find_compatible_node(bci->dev->of_node->parent,
+> +						  NULL, "ti,twl4030-usb");
+> +		if (phynode) {
+> +			bci->transceiver =3D devm_usb_get_phy_by_node(
+> +				bci->dev, phynode, &bci->usb_nb);
+> +			if (IS_ERR(bci->transceiver) &&
+> +			    PTR_ERR(bci->transceiver) =3D=3D -EPROBE_DEFER)
+> +				return -EPROBE_DEFER;	/* PHY not ready */
+> +		}
+> +	}
+> +
+> +	bci->channel_vac =3D iio_channel_get(&pdev->dev, "vac");
+> +	if (IS_ERR(bci->channel_vac)) {
+> +		if (PTR_ERR(bci->channel_vac) =3D=3D -EPROBE_DEFER)
+> +			return -EPROBE_DEFER;	/* iio not ready */
+> +		dev_warn(&pdev->dev, "could not request vac iio channel");
+> +		bci->channel_vac =3D NULL;
+> +	}
+> +
+
+You should not request non-devm managed iio_channel before
+devm-managed power-supply. This could be fixed by switching to
+devm_iio_channel_get(), which also cleans up some code.
+
+I suspect, that this is also your IRQ problem, since iio_channel
+is currently free'd before irqs are free'd, but its used in irq
+code.
+
+>  	bci->ac =3D devm_power_supply_register(&pdev->dev, &twl4030_bci_ac_desc,
+>  					     NULL);
+>  	if (IS_ERR(bci->ac)) {
+> @@ -1017,25 +1039,10 @@ static int twl4030_bci_probe(struct platform_devi=
+ce *pdev)
+>  		return ret;
+>  	}
+> =20
+> -	bci->channel_vac =3D iio_channel_get(&pdev->dev, "vac");
+> -	if (IS_ERR(bci->channel_vac)) {
+> -		bci->channel_vac =3D NULL;
+> -		dev_warn(&pdev->dev, "could not request vac iio channel");
+> -	}
+> -
+>  	INIT_WORK(&bci->work, twl4030_bci_usb_work);
+>  	INIT_DELAYED_WORK(&bci->current_worker, twl4030_current_worker);
+> =20
+>  	bci->usb_nb.notifier_call =3D twl4030_bci_usb_ncb;
+> -	if (bci->dev->of_node) {
+> -		struct device_node *phynode;
+> -
+> -		phynode =3D of_find_compatible_node(bci->dev->of_node->parent,
+> -						  NULL, "ti,twl4030-usb");
+> -		if (phynode)
+> -			bci->transceiver =3D devm_usb_get_phy_by_node(
+> -				bci->dev, phynode, &bci->usb_nb);
+> -	}
+> =20
+>  	/* Enable interrupts now. */
+>  	reg =3D ~(u32)(TWL4030_ICHGLOW | TWL4030_ICHGEOC | TWL4030_TBATOR2 |
 
 -- Sebastian
 
-> ---
->  .../ABI/testing/sysfs-class-power-twl4030          | 17 ------
->  drivers/power/supply/twl4030_charger.c             | 63 ----------------=
-------
->  2 files changed, 80 deletions(-)
->=20
-> diff --git a/Documentation/ABI/testing/sysfs-class-power-twl4030 b/Docume=
-ntation/ABI/testing/sysfs-class-power-twl4030
-> index be26af0f1895..b4fd32d210c5 100644
-> --- a/Documentation/ABI/testing/sysfs-class-power-twl4030
-> +++ b/Documentation/ABI/testing/sysfs-class-power-twl4030
-> @@ -1,20 +1,3 @@
-> -What: /sys/class/power_supply/twl4030_ac/max_current
-> -      /sys/class/power_supply/twl4030_usb/max_current
-> -Description:
-> -	Read/Write limit on current which may
-> -	be drawn from the ac (Accessory Charger) or
-> -	USB port.
-> -
-> -	Value is in micro-Amps.
-> -
-> -	Value is set automatically to an appropriate
-> -	value when a cable is plugged or unplugged.
-> -
-> -	Value can the set by writing to the attribute.
-> -	The change will only persist until the next
-> -	plug event.  These event are reported via udev.
-> -
-> -
->  What: /sys/class/power_supply/twl4030_usb/mode
->  Description:
->  	Changing mode for USB port.
-> diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/suppl=
-y/twl4030_charger.c
-> index 2f82d0e9ec1b..785a07bc4f39 100644
-> --- a/drivers/power/supply/twl4030_charger.c
-> +++ b/drivers/power/supply/twl4030_charger.c
-> @@ -624,63 +624,6 @@ static irqreturn_t twl4030_bci_interrupt(int irq, vo=
-id *arg)
->  	return IRQ_HANDLED;
->  }
-> =20
-> -/*
-> - * Provide "max_current" attribute in sysfs.
-> - */
-> -static ssize_t
-> -twl4030_bci_max_current_store(struct device *dev, struct device_attribut=
-e *attr,
-> -	const char *buf, size_t n)
-> -{
-> -	struct twl4030_bci *bci =3D dev_get_drvdata(dev->parent);
-> -	int cur =3D 0;
-> -	int status =3D 0;
-> -	status =3D kstrtoint(buf, 10, &cur);
-> -	if (status)
-> -		return status;
-> -	if (cur < 0)
-> -		return -EINVAL;
-> -	if (dev =3D=3D &bci->ac->dev)
-> -		bci->ac_cur =3D cur;
-> -	else
-> -		bci->usb_cur_target =3D cur;
-> -
-> -	twl4030_charger_update_current(bci);
-> -	return n;
-> -}
-> -
-> -/*
-> - * sysfs max_current show
-> - */
-> -static ssize_t twl4030_bci_max_current_show(struct device *dev,
-> -	struct device_attribute *attr, char *buf)
-> -{
-> -	int status =3D 0;
-> -	int cur =3D -1;
-> -	u8 bcictl1;
-> -	struct twl4030_bci *bci =3D dev_get_drvdata(dev->parent);
-> -
-> -	if (dev =3D=3D &bci->ac->dev) {
-> -		if (!bci->ac_is_active)
-> -			cur =3D bci->ac_cur;
-> -	} else {
-> -		if (bci->ac_is_active)
-> -			cur =3D bci->usb_cur_target;
-> -	}
-> -	if (cur < 0) {
-> -		cur =3D twl4030bci_read_adc_val(TWL4030_BCIIREF1);
-> -		if (cur < 0)
-> -			return cur;
-> -		status =3D twl4030_bci_read(TWL4030_BCICTL1, &bcictl1);
-> -		if (status < 0)
-> -			return status;
-> -		cur =3D regval2ua(cur, bcictl1 & TWL4030_CGAIN);
-> -	}
-> -	return scnprintf(buf, PAGE_SIZE, "%u\n", cur);
-> -}
-> -
-> -static DEVICE_ATTR(max_current, 0644, twl4030_bci_max_current_show,
-> -			twl4030_bci_max_current_store);
-> -
->  static void twl4030_bci_usb_work(struct work_struct *data)
->  {
->  	struct twl4030_bci *bci =3D container_of(data, struct twl4030_bci, work=
-);
-> @@ -1111,14 +1054,10 @@ static int twl4030_bci_probe(struct platform_devi=
-ce *pdev)
->  		dev_warn(&pdev->dev, "failed to unmask interrupts: %d\n", ret);
-> =20
->  	twl4030_charger_update_current(bci);
-> -	if (device_create_file(&bci->usb->dev, &dev_attr_max_current))
-> -		dev_warn(&pdev->dev, "could not create sysfs file\n");
->  	if (device_create_file(&bci->usb->dev, &dev_attr_mode))
->  		dev_warn(&pdev->dev, "could not create sysfs file\n");
->  	if (device_create_file(&bci->ac->dev, &dev_attr_mode))
->  		dev_warn(&pdev->dev, "could not create sysfs file\n");
-> -	if (device_create_file(&bci->ac->dev, &dev_attr_max_current))
-> -		dev_warn(&pdev->dev, "could not create sysfs file\n");
-> =20
->  	twl4030_charger_enable_ac(bci, true);
->  	if (!IS_ERR_OR_NULL(bci->transceiver))
-> @@ -1150,9 +1089,7 @@ static int twl4030_bci_remove(struct platform_devic=
-e *pdev)
-> =20
->  	iio_channel_release(bci->channel_vac);
-> =20
-> -	device_remove_file(&bci->usb->dev, &dev_attr_max_current);
->  	device_remove_file(&bci->usb->dev, &dev_attr_mode);
-> -	device_remove_file(&bci->ac->dev, &dev_attr_max_current);
->  	device_remove_file(&bci->ac->dev, &dev_attr_mode);
->  	/* mask interrupts */
->  	twl_i2c_write_u8(TWL4030_MODULE_INTERRUPTS, 0xff,
-> --=20
-> 2.12.2
->=20
-
---eijpqohsafa43cdd
+--42ssb5kxbkw37n7a
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlk4YLEACgkQ2O7X88g7
-+po70Q//X9SFuDZ0T8FVR7k5JTqTVoyz5OXAEBX8qjzWXa2kwebxzgb/ipD6DF2P
-nS9nxU7815skIRp7IFldPN35jO//jLqEovdc7PCfkIUgjn/RoTeBfMRpZAqocCYV
-QCAXeuLz6CAQEjDPwaAdn4kxq2bPkshL/+FW506ApUengeso/B6B3v9+TSwmnVyl
-40OYgEBbIL4x3kErgnEXl8FetDAPKzWV/b85sq2q2R731k0JQmXuwzo+a1Kw2aVa
-7E8BQeRKkJd9pgc/4BNw6lGLxccYw6rHM6jvgnnXdXd0KWXoeZbxMR0UNijhhU1g
-V305tmrc4L54hIh/BApjTxtIx/Dr/cUTowO319nk6crNMfwJbE+YEhJyau4qbD2s
-DblX2qS81LCFTajkMO0EX8Hidu6Oi0+PrSfqQwvcCIcTfuRIZuVfNHmHLtRb5p/m
-29FJ7mfrB/7IjYQXl6hOAithbiCn2Xv3JW7EA8kwAmiB7T0NBebcgWTeZRAgFG5V
-xS4OsSI67YevsRMYNu2eyCfh+5kXOMEchNrURoU73thzgLhhgqmRTMOZHNJ/b1fY
-uHWlTuwSPDN1COR4SHi7mqCB6f5xjPwRAJ4/V6jb6oCSQ0qGxwYEBZw7wlo2k1JV
-XTaj2IM0ffTSqoVdmN/+U1+jY1pffkGppbFV+cJFLEXYnpD3UmA=
-=vuXA
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlk4ZbkACgkQ2O7X88g7
++pptvw//a8dYAo4KgM93YvGnAAi2yCSPaj4XmIoIs+bRi8KO5bsap3leBhGshK96
+EnYbLABAQ6a5OULJqEbefvwgpMHRyy09zJl++DhyQgQi0d3nS9n3YS0g5xac0qVY
+cfHpAt8KGEkXdyUQRovlZJ8AVkDcXWGeyDI1bO30BY+GHLprQQ5t8Gi38VO3ErUB
+DPZgVCzn+ALCDIzLHTPXWJJ27TZKOylc++lXil2ptktI4l+YJXpMY9YmM64Al61I
+0Etx6XVZ73QgRxEa+SgEs0ovmHJ6B09tpk6v+8Q95XG6lhTFyVrKt9LA8pBGuhAP
+zgkVLE7gvFM8FedVt3M82OTwK/vcU3XCwZQhWfDr61aGO8bpxPuQ3iyZrHCD0g80
+YCJvxPwLd5EtFOE8Vo4SvT+fOG25nCjpCg0MKRgMp1zy9mab3zdAGbR2qxqgUhqw
+iPIONO60zpGczDsE2M8roU0MyXrhk03gsMYNrugmULILQr9zvJTQocF/NpbSmtOo
+gobXaUNdULo0FR8fSrJMwNdXXncShriA5tnUpFsk3Bn2cfKvx7RNNWQo56CPbgO2
+HVCrqJdmGlxAkfodzU4IZXl9ctfwJ570J5qJaM0VVr/uglpc8NEkGG7+9s0mtX+2
+DOhJgqJtDlVJAGtg76HWwRsWDdRd3NxPUvgEljRkdyu3GYSZT9s=
+=JPQe
 -----END PGP SIGNATURE-----
 
---eijpqohsafa43cdd--
+--42ssb5kxbkw37n7a--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
