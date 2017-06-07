@@ -1,14 +1,13 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 3/3] Documentation: dt-bindings: Document deprecation of
- "vmmc_aux" and using "vqmmc"
-Date: Wed, 7 Jun 2017 14:06:12 +0530
-Message-ID: <20170607083612.14224-4-kishon@ti.com>
-References: <20170607083612.14224-1-kishon@ti.com>
+Subject: Re: [PATCH] PCI: dwc: Constify dw_pcie_host_ops structures
+Date: Wed, 7 Jun 2017 14:21:16 +0530
+Message-ID: <16308efb-9df8-0244-618c-18caefd2982c@ti.com>
+References: <20170605085346.3732-1-jszhang@marvell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170607083612.14224-1-kishon@ti.com>
+In-Reply-To: <20170605085346.3732-1-jszhang@marvell.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,30 +17,189 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, nsekhar@ti.com
-Cc: devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jisheng Zhang <jszhang@marvell.com>, bhelgaas@google.com, jingoohan1@gmail.com, kgene@kernel.org, krzk@kernel.org, javier@osg.samsung.com, hongxing.zhu@nxp.com, l.stach@pengutronix.de, m-karicheri2@ti.com, minghuan.Lian@freescale.com, mingkai.hu@freescale.com, tie-fei.zang@freescale.com, thomas.petazzoni@free-electrons.com, niklas.cassel@axis.com, jesper.nilsson@axis.com, Joao.Pinto@synopsys.com, svarbanov@mm-sol.com, pratyush.anand@gmail.com
+Cc: linux-samsung-soc@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Document deprecation of "vmmc_aux" for io regulator and use of generic
-mmc binding "vqmmc" in omap-hsmmc.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-index 74166a0d460d..0e026c151c1c 100644
---- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-+++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-@@ -18,7 +18,7 @@ Required properties:
- Optional properties:
- ti,dual-volt: boolean, supports dual voltage cards
- <supply-name>-supply: phandle to the regulator device tree node
--"supply-name" examples are "vmmc", "vmmc_aux" etc
-+"supply-name" examples are "vmmc", "vmmc_aux"(deprecated)/"vqmmc" etc
- ti,non-removable: non-removable slot (like eMMC)
- ti,needs-special-reset: Requires a special softreset sequence
- ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
--- 
-2.11.0
+On Monday 05 June 2017 02:23 PM, Jisheng Zhang wrote:
+> The dw_pcie_host_ops structures are never modified. Constify these
+> structures such that these can be write-protected.
+> 
+> Signed-off-by: Jisheng Zhang <jszhang@marvell.com>
+
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c           | 2 +-
+>  drivers/pci/dwc/pci-exynos.c           | 2 +-
+>  drivers/pci/dwc/pci-imx6.c             | 2 +-
+>  drivers/pci/dwc/pci-keystone.c         | 2 +-
+>  drivers/pci/dwc/pci-layerscape.c       | 6 +++---
+>  drivers/pci/dwc/pcie-armada8k.c        | 2 +-
+>  drivers/pci/dwc/pcie-artpec6.c         | 2 +-
+>  drivers/pci/dwc/pcie-designware-plat.c | 2 +-
+>  drivers/pci/dwc/pcie-designware.h      | 2 +-
+>  drivers/pci/dwc/pcie-qcom.c            | 2 +-
+>  drivers/pci/dwc/pcie-spear13xx.c       | 2 +-
+>  11 files changed, 13 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 8decf46cf525..e4166032b3c6 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -208,7 +208,7 @@ static void dra7xx_pcie_host_init(struct pcie_port *pp)
+>  	dra7xx_pcie_enable_interrupts(dra7xx);
+>  }
+>  
+> -static struct dw_pcie_host_ops dra7xx_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops dra7xx_pcie_host_ops = {
+>  	.host_init = dra7xx_pcie_host_init,
+>  };
+>  
+> diff --git a/drivers/pci/dwc/pci-exynos.c b/drivers/pci/dwc/pci-exynos.c
+> index 546082ad5a3f..c78c06552590 100644
+> --- a/drivers/pci/dwc/pci-exynos.c
+> +++ b/drivers/pci/dwc/pci-exynos.c
+> @@ -590,7 +590,7 @@ static void exynos_pcie_host_init(struct pcie_port *pp)
+>  	exynos_pcie_enable_interrupts(ep);
+>  }
+>  
+> -static struct dw_pcie_host_ops exynos_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops exynos_pcie_host_ops = {
+>  	.rd_own_conf = exynos_pcie_rd_own_conf,
+>  	.wr_own_conf = exynos_pcie_wr_own_conf,
+>  	.host_init = exynos_pcie_host_init,
+> diff --git a/drivers/pci/dwc/pci-imx6.c b/drivers/pci/dwc/pci-imx6.c
+> index a98cba55c7f0..fb4816088a7a 100644
+> --- a/drivers/pci/dwc/pci-imx6.c
+> +++ b/drivers/pci/dwc/pci-imx6.c
+> @@ -602,7 +602,7 @@ static int imx6_pcie_link_up(struct dw_pcie *pci)
+>  			PCIE_PHY_DEBUG_R1_XMLH_LINK_UP;
+>  }
+>  
+> -static struct dw_pcie_host_ops imx6_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops imx6_pcie_host_ops = {
+>  	.host_init = imx6_pcie_host_init,
+>  };
+>  
+> diff --git a/drivers/pci/dwc/pci-keystone.c b/drivers/pci/dwc/pci-keystone.c
+> index fcc9723bad6e..4783cec1f78d 100644
+> --- a/drivers/pci/dwc/pci-keystone.c
+> +++ b/drivers/pci/dwc/pci-keystone.c
+> @@ -291,7 +291,7 @@ static void __init ks_pcie_host_init(struct pcie_port *pp)
+>  			"Asynchronous external abort");
+>  }
+>  
+> -static struct dw_pcie_host_ops keystone_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops keystone_pcie_host_ops = {
+>  	.rd_other_conf = ks_dw_pcie_rd_other_conf,
+>  	.wr_other_conf = ks_dw_pcie_wr_other_conf,
+>  	.host_init = ks_pcie_host_init,
+> diff --git a/drivers/pci/dwc/pci-layerscape.c b/drivers/pci/dwc/pci-layerscape.c
+> index 27d638c4e134..fd861289ad8b 100644
+> --- a/drivers/pci/dwc/pci-layerscape.c
+> +++ b/drivers/pci/dwc/pci-layerscape.c
+> @@ -39,7 +39,7 @@ struct ls_pcie_drvdata {
+>  	u32 lut_offset;
+>  	u32 ltssm_shift;
+>  	u32 lut_dbg;
+> -	struct dw_pcie_host_ops *ops;
+> +	const struct dw_pcie_host_ops *ops;
+>  	const struct dw_pcie_ops *dw_pcie_ops;
+>  };
+>  
+> @@ -185,12 +185,12 @@ static int ls_pcie_msi_host_init(struct pcie_port *pp,
+>  	return 0;
+>  }
+>  
+> -static struct dw_pcie_host_ops ls1021_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops ls1021_pcie_host_ops = {
+>  	.host_init = ls1021_pcie_host_init,
+>  	.msi_host_init = ls_pcie_msi_host_init,
+>  };
+>  
+> -static struct dw_pcie_host_ops ls_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops ls_pcie_host_ops = {
+>  	.host_init = ls_pcie_host_init,
+>  	.msi_host_init = ls_pcie_msi_host_init,
+>  };
+> diff --git a/drivers/pci/dwc/pcie-armada8k.c b/drivers/pci/dwc/pcie-armada8k.c
+> index 495b023042b3..ea8f34af6a85 100644
+> --- a/drivers/pci/dwc/pcie-armada8k.c
+> +++ b/drivers/pci/dwc/pcie-armada8k.c
+> @@ -160,7 +160,7 @@ static irqreturn_t armada8k_pcie_irq_handler(int irq, void *arg)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -static struct dw_pcie_host_ops armada8k_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops armada8k_pcie_host_ops = {
+>  	.host_init = armada8k_pcie_host_init,
+>  };
+>  
+> diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
+> index 82a04acc42fd..01c6f7823672 100644
+> --- a/drivers/pci/dwc/pcie-artpec6.c
+> +++ b/drivers/pci/dwc/pcie-artpec6.c
+> @@ -184,7 +184,7 @@ static void artpec6_pcie_host_init(struct pcie_port *pp)
+>  	artpec6_pcie_enable_interrupts(artpec6_pcie);
+>  }
+>  
+> -static struct dw_pcie_host_ops artpec6_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops artpec6_pcie_host_ops = {
+>  	.host_init = artpec6_pcie_host_init,
+>  };
+>  
+> diff --git a/drivers/pci/dwc/pcie-designware-plat.c b/drivers/pci/dwc/pcie-designware-plat.c
+> index a9865d91b43c..091b4e7ad059 100644
+> --- a/drivers/pci/dwc/pcie-designware-plat.c
+> +++ b/drivers/pci/dwc/pcie-designware-plat.c
+> @@ -46,7 +46,7 @@ static void dw_plat_pcie_host_init(struct pcie_port *pp)
+>  		dw_pcie_msi_init(pp);
+>  }
+>  
+> -static struct dw_pcie_host_ops dw_plat_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops dw_plat_pcie_host_ops = {
+>  	.host_init = dw_plat_pcie_host_init,
+>  };
+>  
+> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+> index c6a840575796..b4d2a89f8e58 100644
+> --- a/drivers/pci/dwc/pcie-designware.h
+> +++ b/drivers/pci/dwc/pcie-designware.h
+> @@ -162,7 +162,7 @@ struct pcie_port {
+>  	struct resource		*mem;
+>  	struct resource		*busn;
+>  	int			irq;
+> -	struct dw_pcie_host_ops	*ops;
+> +	const struct dw_pcie_host_ops *ops;
+>  	int			msi_irq;
+>  	struct irq_domain	*irq_domain;
+>  	unsigned long		msi_data;
+> diff --git a/drivers/pci/dwc/pcie-qcom.c b/drivers/pci/dwc/pcie-qcom.c
+> index 96ee527c1ed2..39e8c0095715 100644
+> --- a/drivers/pci/dwc/pcie-qcom.c
+> +++ b/drivers/pci/dwc/pcie-qcom.c
+> @@ -634,7 +634,7 @@ static int qcom_pcie_rd_own_conf(struct pcie_port *pp, int where, int size,
+>  	return dw_pcie_read(pci->dbi_base + where, size, val);
+>  }
+>  
+> -static struct dw_pcie_host_ops qcom_pcie_dw_ops = {
+> +static const struct dw_pcie_host_ops qcom_pcie_dw_ops = {
+>  	.host_init = qcom_pcie_host_init,
+>  	.rd_own_conf = qcom_pcie_rd_own_conf,
+>  };
+> diff --git a/drivers/pci/dwc/pcie-spear13xx.c b/drivers/pci/dwc/pcie-spear13xx.c
+> index 8ff36b3dbbdf..80897291e0fb 100644
+> --- a/drivers/pci/dwc/pcie-spear13xx.c
+> +++ b/drivers/pci/dwc/pcie-spear13xx.c
+> @@ -186,7 +186,7 @@ static void spear13xx_pcie_host_init(struct pcie_port *pp)
+>  	spear13xx_pcie_enable_interrupts(spear13xx_pcie);
+>  }
+>  
+> -static struct dw_pcie_host_ops spear13xx_pcie_host_ops = {
+> +static const struct dw_pcie_host_ops spear13xx_pcie_host_ops = {
+>  	.host_init = spear13xx_pcie_host_init,
+>  };
+>  
+> 
