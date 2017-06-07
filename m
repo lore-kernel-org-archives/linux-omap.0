@@ -1,129 +1,208 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [RFC 2/3] misc: Add w2sg0004 (gps receiver) power control driver
-Date: Wed, 7 Jun 2017 12:08:17 +0200
-Message-ID: <8F1B0629-A5FD-4794-9A50-BA6D18C0C34C@goldelico.com>
-References: <cover.1495363443.git.hns@goldelico.com> <24579fa76fbf454526fddabe0b20070e46d488ba.1495363443.git.hns@goldelico.com> <20170607073459.qg4giwqdajtmpy4n@lenoch>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+From: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Subject: [PATCH 1/4] dt-bindings: tps65217: Update binding documentation.
+Date: Wed,  7 Jun 2017 12:32:39 +0200
+Message-ID: <20170607103242.16008-1-enric.balletbo@collabora.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170607073459.qg4giwqdajtmpy4n@lenoch>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Daniel Thompson <daniel.thompson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Richard Purdie <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, Jacek Anaszewski <jacek.anaszewski-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ladislav,
+This patch adds a new binding documentation for the TPS65217 MFD and
+updates the documentation for all the sub-devices in accordance to get
+each individual sub-driver functioning correctly.
 
-> Am 07.06.2017 um 09:34 schrieb Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>:
->=20
-> Dear Nikolaus,
->=20
-> On Sun, May 21, 2017 at 12:44:03PM +0200, H. Nikolaus Schaller wrote:
->> Add driver for Wi2Wi W2SG0004/84 GPS module connected through uart.
->>=20
->> Use serdev API hooks to monitor and forward the UART traffic to =
-/dev/BTn
->> and turn on/off the module. It also detects if the module is turned =
-on (sends data)
->> but should be off, e.g. if it was already turned on during boot or =
-power-on-reset.
->>=20
->> Additionally, rfkill block/unblock can be used to control an external =
-LNA
->> (and power down the module if not needed).
->>=20
->> The driver concept is based on code developed by NeilBrown =
-<neilb-l3A5Bk7waGM@public.gmane.org>
->> but simplified and adapted to use the new serdev API introduced in =
-4.11.
-> [snip]
->> diff --git =
-a/Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt =
-b/Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt
->> new file mode 100644
->> index 000000000000..b7125c7a598c
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt
->> @@ -0,0 +1,20 @@
->> +Wi2Wi GPS module connected through UART
->> +
->> +Should be a subnode of the SoC UART it is connected to (serdev).
->> +
->> +Required properties:
->> +- compatible:	wi2wi,w2sg0004 or wi2wi,w2sg0084
->> +- on-off-gpio:	the GPIO that controls the module's on-off =
-toggle input
->> +
->> +Optional properties:
->> +- lna-suppy:	an (optional) LNA regulator that is enabled =
-together with the GPS receiver
->> +
->> +Example:
->> +
->> +&uart2 {
->> +	gps: w2sg0004 {
->> +		compatible =3D "wi2wi,w2sg0004";
->> +		lna-supply =3D <&vsim>;   /* LNA regulator */
->> +		on-off-gpios =3D <&gpio5 17 GPIO_ACTIVE_HIGH>;    /* =
-GPIO_145: trigger for turning on/off w2sg0004 */
->> +        };
->> +};
->=20
-> Here it seems is nothing specific to GPS receiver in this driver
+Signed-off-by: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+---
+ .../bindings/input/tps65218-pwrbutton.txt          |   2 +-
+ .../bindings/leds/backlight/tps65217-backlight.txt |  24 ++---
+ Documentation/devicetree/bindings/mfd/tps65217.txt | 100 +++++++++++++++++++++
+ .../devicetree/bindings/regulator/tps65217.txt     |   8 +-
+ 4 files changed, 119 insertions(+), 15 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/tps65217.txt
 
-Well, most serdev subnodes will look similar to this but still will
-need different drivers (timing, pulses, other logic, special functions,
-firmware download etc.).
-
-> and
-> basically UART connected GSM modules could benefit from such =
-functionality
-> too - as they need power supply, had reset and ignition pin and often
-> status pin. See for example:
-> http://simcom.ee/documents/SIM5300E/SIM5300E_Hardware_Design_V1.08.pdf
-> page 14 or
-> http://www.robotshop.com/media/files/pdf/datasheet-gsm-tc35.pdf
-> page 19 for block diagrams.
-> So I wonder if you would accept making this driver a bit more generic
-> to cover also GSM modems use case.
-
-We also have such a 2G/3G/4G module in the GTA04 and Pyra devices but =
-there
-we have significantly different power control needs because they are =
-connected
-through USB and not as UART / serdev.
-
-But you could simply try to use and extend our proposed w2cbw003 =
-bluetooth
-driver [RFC 3/3] for that purpose.
-
-It already has most of what you need: provides a user-space /dev/tty for =
-the
-serdev and controls some power-control gpio or regulator.
-
-This w2sg0004 gps chip is very specific for this chip since it has no =
-simple
-power-enable to be controlled. This also differs too much from GSM =
-modules
-with ignition. Especially it has no status feedback.
-
-Another aspect is that there are plans to have some gps infrastructure =
-in the
-kernel. Then, this driver wouldn't be the right solution for gsm.
-
-Therefore it is and should remain a special purpose driver for this type =
-of
-gps chips.
-
-The common denominator of all these things is the serdev and gpio =
-infrastructure.
-
-Feel free to take both drivers as blueprints to propose some new driver
-for your chips.
-
-BR,
-Nikolaus
+diff --git a/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt b/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
+index 8682ab6..603a3f0 100644
+--- a/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
++++ b/Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
+@@ -1,7 +1,7 @@
+ Texas Instruments TPS65217 and TPS65218 power button
+ 
+ This module is part of the TPS65217/TPS65218. For more details about the whole
+-TPS65217 chip see Documentation/devicetree/bindings/regulator/tps65217.txt.
++TPS65217 chip see Documentation/devicetree/bindings/mfd/tps65217.txt.
+ 
+ This driver provides a simple power button event via an Interrupt.
+ 
+diff --git a/Documentation/devicetree/bindings/leds/backlight/tps65217-backlight.txt b/Documentation/devicetree/bindings/leds/backlight/tps65217-backlight.txt
+index 5fb9279..a1bc465 100644
+--- a/Documentation/devicetree/bindings/leds/backlight/tps65217-backlight.txt
++++ b/Documentation/devicetree/bindings/leds/backlight/tps65217-backlight.txt
+@@ -1,11 +1,13 @@
+-TPS65217 family of regulators
++Texas Instruments TPS65217 backlight regulator
++
++This module is part of the TPS65217. For more details about the whole
++TPS65217 chip see Documentation/devicetree/bindings/mfd/tps65217.txt.
+ 
+ The TPS65217 chip contains a boost converter and current sinks which can be
+ used to drive LEDs for use as backlights.
+ 
+ Required properties:
+-- compatible: "ti,tps65217"
+-- reg: I2C slave address
++- compatible: "ti,tps65217-bl"
+ - backlight: node for specifying WLED1 and WLED2 lines in TPS65217
+ - isel: selection bit, valid values: 1 for ISEL1 (low-level) and 2 for ISEL2 (high-level)
+ - fdim: PWM dimming frequency, valid values: 100, 200, 500, 1000
+@@ -15,13 +17,13 @@ Each regulator is defined using the standard binding for regulators.
+ 
+ Example:
+ 
+-	tps: tps@24 {
+-		reg = <0x24>;
+-		compatible = "ti,tps65217";
+-		backlight {
+-			isel = <1>;  /* 1 - ISET1, 2 ISET2 */
+-			fdim = <100>; /* TPS65217_BL_FDIM_100HZ */
+-			default-brightness = <50>;
+-		};
++&tps {
++	backlight {
++		compatible = "ti,tps65217-bl";
++		status = "okay";
++		isel = <1>;  /* 1 - ISET1, 2 ISET2 */
++		fdim = <100>; /* TPS65217_BL_FDIM_100HZ */
++		default-brightness = <50>;
+ 	};
++};
+ 
+diff --git a/Documentation/devicetree/bindings/mfd/tps65217.txt b/Documentation/devicetree/bindings/mfd/tps65217.txt
+new file mode 100644
+index 0000000..40c84ba
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mfd/tps65217.txt
+@@ -0,0 +1,100 @@
++Texas Instruments TPS65217 Single-Chip PMIC for Battery-Powered Systems
++
++Required properties:
++- compatible: "ti,tps65217"
++- reg: I2C slave address.
++- interrupt-controller: Marks the device node as an interrupt controller.
++- #interrupt-cells: The number of cells to describe an IRQ, this should be 1.
++- backlight: Child node that specify the backlight regulator sub-device. See:
++	Documentation/devicetree/bindings/leds/backlight/tps65217-backlight.txt
++- charger: Child node that specify the charger sub-device. See:
++	Documentation/devicetree/bindings/power/supply/tps65217_charger.txt
++- pwrbutton: Child node that specify the power button sub-device. See:
++	Documentation/devicetree/bindings/input/tps65218-pwrbutton.txt
++- regulators: List of child nodes that specify the regulator initialization
++	data. See:
++	Documentation/devicetree/bindings/regulator/tps65217.txt.
++
++Optional properties:
++- ti,pmic-shutdown-controller: Telling the PMIC to shutdown on PWR_EN toggle.
++
++Example:
++
++	tps: tps@24 {
++		compatible = "ti,tps65217";
++		interrupt-controller;
++		#interrupt-cells = <1>;
++
++		ti,pmic-shutdown-controller;
++
++		backlight {
++			compatible = "ti,tps65217-bl";
++			status = "disabled";
++		};
++
++		charger {
++			compatible = "ti,tps65217-charger";
++			status = "disabled";
++		};
++
++		pwrbutton {
++			compatible = "ti,tps65217-pwrbutton";
++			status = "disabled";
++		};
++
++		regulators {
++			compatible = "ti,tps65217-pmic";
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			dcdc1_reg: dcdc1 {
++				regulator-min-microvolt = <900000>;
++				regulator-max-microvolt = <1800000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			dcdc2_reg: dcdc2 {
++				regulator-min-microvolt = <900000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			dcdc3_reg: dcc3 {
++				regulator-min-microvolt = <900000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			ldo1_reg: ldo1 {
++				regulator-min-microvolt = <1000000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			ldo2_reg: ldo2 {
++				regulator-min-microvolt = <900000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			ldo3_reg: ldo3 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			ldo4_reg: ldo4 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++		};
++	};
++
+diff --git a/Documentation/devicetree/bindings/regulator/tps65217.txt b/Documentation/devicetree/bindings/regulator/tps65217.txt
+index 4f05d20..2d9b519 100644
+--- a/Documentation/devicetree/bindings/regulator/tps65217.txt
++++ b/Documentation/devicetree/bindings/regulator/tps65217.txt
+@@ -1,8 +1,10 @@
+-TPS65217 family of regulators
++Texas Instruments TPS65217 family of regulators
++
++This module is part of the TPS65217. For more details about the whole
++TPS65217 chip see Documentation/devicetree/bindings/mfd/tps65217.txt.
+ 
+ Required properties:
+-- compatible: "ti,tps65217"
+-- reg: I2C slave address
++- compatible: "ti,tps65217-pmic"
+ - regulators: list of regulators provided by this controller, must be named
+   after their hardware counterparts: dcdc[1-3] and ldo[1-4]
+ - regulators: This is the list of child nodes that specify the regulator
+-- 
+2.9.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
