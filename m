@@ -1,75 +1,48 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [RFC 2/3] misc: Add w2sg0004 (gps receiver) power control driver
-Date: Wed, 7 Jun 2017 09:34:59 +0200
-Message-ID: <20170607073459.qg4giwqdajtmpy4n@lenoch>
-References: <cover.1495363443.git.hns@goldelico.com>
- <24579fa76fbf454526fddabe0b20070e46d488ba.1495363443.git.hns@goldelico.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 0/3] omap_hsmmc: use mmc_regulator_get_supply() to get
+ regulators
+Date: Wed, 7 Jun 2017 14:06:09 +0530
+Message-ID: <20170607083612.14224-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Received: (from localhost user: 'ladis' uid#1021 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S23990601AbdFGHe7yGR7i (ORCPT <rfc822;linux-omap@vger.kernel.org>
-        + 2 others); Wed, 7 Jun 2017 09:34:59 +0200
-Content-Disposition: inline
-In-Reply-To: <24579fa76fbf454526fddabe0b20070e46d488ba.1495363443.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-2?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, nsekhar@ti.com
+Cc: devicetree@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Dear Nikolaus,
+This series deprecates "vmmc_aux" supply property and uses the generic
+"vqmmc" property.
 
-On Sun, May 21, 2017 at 12:44:03PM +0200, H. Nikolaus Schaller wrote:
-> Add driver for Wi2Wi W2SG0004/84 GPS module connected through uart.
-> 
-> Use serdev API hooks to monitor and forward the UART traffic to /dev/BTn
-> and turn on/off the module. It also detects if the module is turned on (sends data)
-> but should be off, e.g. if it was already turned on during boot or power-on-reset.
-> 
-> Additionally, rfkill block/unblock can be used to control an external LNA
-> (and power down the module if not needed).
-> 
-> The driver concept is based on code developed by NeilBrown <neilb@suse.de>
-> but simplified and adapted to use the new serdev API introduced in 4.11.
-[snip]
-> diff --git a/Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt b/Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt
-> new file mode 100644
-> index 000000000000..b7125c7a598c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/misc/wi2wi,w2sg0004.txt
-> @@ -0,0 +1,20 @@
-> +Wi2Wi GPS module connected through UART
-> +
-> +Should be a subnode of the SoC UART it is connected to (serdev).
-> +
-> +Required properties:
-> +- compatible:	wi2wi,w2sg0004 or wi2wi,w2sg0084
-> +- on-off-gpio:	the GPIO that controls the module's on-off toggle input
-> +
-> +Optional properties:
-> +- lna-suppy:	an (optional) LNA regulator that is enabled together with the GPS receiver
-> +
-> +Example:
-> +
-> +&uart2 {
-> +	gps: w2sg0004 {
-> +		compatible = "wi2wi,w2sg0004";
-> +		lna-supply = <&vsim>;   /* LNA regulator */
-> +		on-off-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;    /* GPIO_145: trigger for turning on/off w2sg0004 */
-> +        };
-> +};
+Not sure how exactly to handle omap3-overo-base.dtsi which already has
+both vqmmc-supply and vmmc_aux-supply without breaking old dt
+compatibility. (vqmmc-supply seems to have been added there by mistake
+from 3.15).
 
-Here it seems is nothing specific to GPS receiver in this driver and
-basically UART connected GSM modules could benefit from such functionality
-too - as they need power supply, had reset and ignition pin and often
-status pin. See for example:
-http://simcom.ee/documents/SIM5300E/SIM5300E_Hardware_Design_V1.08.pdf
-page 14 or
-http://www.robotshop.com/media/files/pdf/datasheet-gsm-tc35.pdf
-page 19 for block diagrams.
-So I wonder if you would accept making this driver a bit more generic
-to cover also GSM modems use case.
+In the dt series that will follow, will replace all vmmc_aux-supply
+with vqmmc-supply (In omap3-overo-base.dtsi remove the existing
+vqmmc-supply and then replace vmmc_aux-supply with vqmmc-supply).
 
-Best regards,
-	ladis
+Kishon Vijay Abraham I (3):
+  mmc: host: omap_hsmmc: Do not initialize MMC regulators to NULL on
+    error
+  mmc: host: omap_hsmmc: use mmc_regulator_get_supply() to get
+    regulators
+  Documentation: dt-bindings: Document deprecation of "vmmc_aux" and
+    using "vqmmc"
+
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |  2 +-
+ drivers/mmc/host/omap_hsmmc.c                      | 55 +++++++++-------------
+ 2 files changed, 24 insertions(+), 33 deletions(-)
+
+-- 
+2.11.0
