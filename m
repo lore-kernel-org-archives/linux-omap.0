@@ -1,56 +1,56 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH v2] mfd: tps65217: Introduce dependency on CONFIG_OF
-Date: Thu, 8 Jun 2017 16:11:16 +0200
-Message-ID: <CABxcv=n7V1KRcdypxYz+9vsDdSzXrANGFiyFW7ZXtA4GYLJ20Q@mail.gmail.com>
-References: <1496918764-23438-1-git-send-email-j-keerthy@ti.com> <CAFqH_52yTzmJaxxWpmdu+Kq-8T1LPbmQVb2yx=CXXQLd4POAgQ@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [GIT PULL] clk: ti: clkctrl support for 4.13 merge window
+Date: Thu, 8 Jun 2017 17:51:38 +0300
+Message-ID: <6d66f78a-5d39-6396-c492-b79a687ce58a@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFqH_52yTzmJaxxWpmdu+Kq-8T1LPbmQVb2yx=CXXQLd4POAgQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: Keerthy <j-keerthy@ti.com>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Jingoo Han <jingoohan1@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-clk-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>, Michael Turquette <mturquette@baylibre.com>
+Cc: linux-clk <linux-clk@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 8, 2017 at 3:32 PM, Enric Balletbo Serra
-<eballetbo@gmail.com> wrote:
-> Hi Keerthy:
->
-> 2017-06-08 12:46 GMT+02:00 Keerthy <j-keerthy@ti.com>:
->> Currently the driver boots only via device tree hence add a
->> dependency on CONFIG_OF. This leaves with a bunch of unused code
->> so clean that up.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->
+Hi Stephen, Mike,
 
-[snip]
+This pull contains the v3 of the clkctrl base driver support posted 
+couple of weeks back, with Tony's acks added to patch #2 and #4.
 
->>
->>  config MFD_TPS65217
->>         tristate "TI TPS65217 Power Management / White LED chips"
->> -       depends on I2C
->> +       depends on I2C && OF
->
-> I think you should append || COMPILE_TEST here.
->
+-Tero
 
-For me it should be a separate patch, it's nice to have COMPILE_TEST
-but not related to this change IMHO.
+===============================================
 
->>
->> -static const struct i2c_device_id tps65217_id_table[] = {
->> -       {"tps65217", TPS65217},
->> -       { /* sentinel */ }
->> -};
->> -MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
+The following changes since commit 2ea659a9ef488125eb46da6eb571de5eae5c43f6:
 
-Unfortunately you can't get rid of this table (yet) since the I2C
-subsystem always reports a MODALIAS of the form "i2c:tps65217" even
-when the devices have been registered via OF. There are only a couple
-of drivers more to clean-up and then I'll post a patch that fixes the
-I2C core to report a proper OF modalias. But for now, removing will
-mean that module autoload will be broken for this driver.
+   Linux 4.12-rc1 (2017-05-13 13:19:49 -0700)
 
-Best regards,
-Javier
+are available in the git repository at:
+
+   https://github.com/t-kristo/linux-pm.git for-4.13-ti-clkctrl
+
+for you to fetch changes up to 19b5ebbe7680a754e3bf6ad80f3b8e9dd91a8463:
+
+   clk: ti: omap4: add clkctrl clock data (2017-06-08 17:46:32 +0300)
+
+----------------------------------------------------------------
+Tero Kristo (3):
+       clk: ti: add support for clkctrl clocks
+       dt-bindings: clk: add omap4 clkctrl definitions
+       clk: ti: omap4: add clkctrl clock data
+
+Tony Lindgren (1):
+       Documentation: dt-bindings: Add binding documentation for TI 
+clkctrl clocks
+
+  .../devicetree/bindings/clock/ti-clkctrl.txt       |  56 ++
+  drivers/clk/ti/Makefile                            |   3 +-
+  drivers/clk/ti/clk-44xx.c                          | 663 
++++++++++++++++++++++
+  drivers/clk/ti/clkctrl.c                           | 486 +++++++++++++++
+  drivers/clk/ti/clock.h                             |  31 +
+  include/dt-bindings/clock/omap4.h                  | 146 +++++
+  6 files changed, 1384 insertions(+), 1 deletion(-)
+  create mode 100644 Documentation/devicetree/bindings/clock/ti-clkctrl.txt
+  create mode 100644 drivers/clk/ti/clkctrl.c
+  create mode 100644 include/dt-bindings/clock/omap4.h
