@@ -1,37 +1,32 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 04/11] ARM: OMAP2+: Remove unused legacy code for device
- init
-Date: Thu, 8 Jun 2017 01:28:25 -0700
-Message-ID: <20170608082825.GG3730@atomide.com>
-References: <20170531225139.30723-1-tony@atomide.com>
- <20170531225139.30723-5-tony@atomide.com>
- <20170607222711.6kdhuvkymiseootn@earth>
+Subject: Re: [PATCH v2 0/8] omap*: Fixes/Cleanups for MMC devicetree node
+Date: Thu, 8 Jun 2017 01:46:20 -0700
+Message-ID: <20170608084619.GH3730@atomide.com>
+References: <20170607093749.15656-1-kishon@ti.com>
+ <CAPDyKFrJh9qAz6q2-TH8rMshuMjDTkT5pHP==FUUH9KZEOehOQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170607222711.6kdhuvkymiseootn@earth>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <CAPDyKFrJh9qAz6q2-TH8rMshuMjDTkT5pHP==FUUH9KZEOehOQ@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Rob Herring <robh+dt@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [170607 15:30]:
-> I guess you can drop omap2_init_devices() completly?
+* Ulf Hansson <ulf.hansson@linaro.org> [170608 00:24]:
+> If it helps, I can host a branch with the updates on the omap_hsmmc
+> driver, such it can be pulled in from arm soc?
 
-We still have omap_init_sti() left there, but it's
-just static inline void omap_init_sti(void) {} :)
+Great that works for me. Let's just make sure git bisect
+keeps working.
 
-So yeah will remove that too.
+> I guess you need that as, the DT changes relies on the new vqmmc
+> binding. Or you thing it doesn't matter, because for the current
+> changes that regulator is always an always on regulator?
+
+Or maybe we can just add the new regulator, then do a
+follow-up series to remove the old ones?
 
 Regards,
 
