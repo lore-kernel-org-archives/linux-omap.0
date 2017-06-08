@@ -1,81 +1,48 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv3 0/2] Add cpcap battery driver
-Date: Thu, 8 Jun 2017 13:06:43 +0200
-Message-ID: <20170608110642.smjb3txlrpmz4chs@earth>
-References: <20170601001921.11091-1-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 04/11] ARM: OMAP2+: Remove unused legacy code for device
+ init
+Date: Thu, 8 Jun 2017 04:10:40 -0700
+Message-ID: <20170608111040.GL3730@atomide.com>
+References: <20170531225139.30723-1-tony@atomide.com>
+ <20170531225139.30723-5-tony@atomide.com>
+ <20170607222711.6kdhuvkymiseootn@earth>
+ <20170608082825.GG3730@atomide.com>
+ <20170608094712.GI3730@atomide.com>
+ <20170608105553.dq7rhfwhvz3wwa3e@earth>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="r5bwbupd6mni47t3"
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170601001921.11091-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20170608105553.dq7rhfwhvz3wwa3e@earth>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170608 03:59]:
+> On Thu, Jun 08, 2017 at 02:47:12AM -0700, Tony Lindgren wrote:
+> > Here's this one updated.
+> 
+> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
---r5bwbupd6mni47t3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks for looking.
 
-Hi,
+> Defines for L3_MODULES_MAX_LEN + L3_MODULES and most of the includes
+> could be dropped now.
 
-On Wed, May 31, 2017 at 05:19:19PM -0700, Tony Lindgren wrote:
-> Here's v3 cpcap pmic battery driver.
+Yeah I bet we have tons of unused defines now. I think
+I used to have some shell script to grep for those
+somewhere.
 
-Thanks, queued. If you send *.dts patch for Droid 4, don't forget
-to add power-supplies property as described in
+Regards,
 
-Documentation/devicetree/bindings/power/supply/power_supply.txt
-
--- Sebastian
-
-> Changes since v2:
-> - Fix binding doc as noted by Rob Herring
-> - Separate the binding doc into a separate patch
->=20
-> Changes since v1:
-> - Add support for battery low interrupts
-> - Fix POWER_SUPPLY_STATUS during charging to not flip constantly
->   by using average current
->=20
-> Tony Lindgren (2):
->   dt-bindings: cpcap-battery: Add binding
->   power: supply: cpcap-battery: Add a battery driver
->=20
->  .../bindings/power/supply/cpcap-battery.txt        |  27 +
->  drivers/power/supply/Kconfig                       |   8 +
->  drivers/power/supply/Makefile                      |   1 +
->  drivers/power/supply/cpcap-battery.c               | 808 +++++++++++++++=
-++++++
->  4 files changed, 844 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/power/supply/cpcap-=
-battery.txt
->  create mode 100644 drivers/power/supply/cpcap-battery.c
->=20
-> --=20
-> 2.13.0
-
---r5bwbupd6mni47t3
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlk5L70ACgkQ2O7X88g7
-+prYlA//UIyrrq1eEZVHRRjTSa5AsofSJjwBfRNKtx+ONfBTIbY8md8QtlgECfjH
-dyGkCsJWmTEqndUJDCPoyrkxqlSiW8qeCW1HqoB9w1f4hIWrZXRwHQIRc9CjwDHO
-7b5umcFHUmJZruRtJJG98rYn0OMVSvH1nZO502yL5IWZmdXRl50KbK9NSfFrPym1
-XDX8cnWsMzBez84HJ/8VO/qN8jvYeO1959XsLhkCI04FFhNK+7x5KK28dBVuYO56
-6lrZ5/V+tp9WlC+qa4UydAcbh29Tq6TvIixqV34TclV+Ew6YyQ7tbX1Lbv0JjGjt
-R1XHJBz9Ort+WzbCdruJlhIB5kcqPAKRG7Tl4cAIhw9ve0AwBvnpCGyWS3XfV6Jm
-OY2O+MX85sYAdRVDpkQUk4ifuQJhl8NIiWm5epkrmk+MtuBamPFsvA8DXM2HG5+U
-+I3iEl/CzIyaluYhrcTEpBJwU9Sadw5yKUUbnGlCS8drnKQSMNC8kdz6va3T3bIp
-p0TsyVfO9vlle35Gchkx3CtPon/FIpnQYfXxFTULrgF/V0OoUxAHQQzaW79yH6iM
-lFkVJXn3wQPGkH4SggCCPDCfv8Uqh2ELpOdmBHHZX+aPHJGua6F2fY1OEdfvC6aL
-ame+dtl97ECM1yVQ+a6CTkJgZ5dj8FjC6yBqpVeFPRc5My7V/1U=
-=0ZAV
------END PGP SIGNATURE-----
-
---r5bwbupd6mni47t3--
+Tony
