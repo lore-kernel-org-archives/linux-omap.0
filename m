@@ -1,40 +1,43 @@
-From: Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCHv3] Bluetooth: hci_ll: Add compatible values for more WL chips
-Date: Thu, 8 Jun 2017 16:02:11 -0500
-Message-ID: <CAL_JsqKh0MMiKjPbzcy+4tCagvyYHM72fyCfYaiWcpBc2ZCy1w@mail.gmail.com>
-References: <20170608205845.4903-1-sebastian.reichel@collabora.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: [PATCH] ARM: dts: omap4-droid4: Fix WLAN compatible
+Date: Thu,  8 Jun 2017 23:16:08 +0200
+Message-ID: <20170608211608.9051-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170608205845.4903-1-sebastian.reichel@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Sebastian Reichel <sre@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 8, 2017 at 3:58 PM, Sebastian Reichel
-<sebastian.reichel@collabora.co.uk> wrote:
-> Add compatible values for WiLink chips from 128x and 180x series.
-> Also the DT binding already contained compatible values for the 127x
-> series, but the driver did not. This brings the list on par with
-> the list from wlcore (the wifi driver).
->
-> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> ---
-> Hi,
->
-> This patch originally was part of the "Motorola Droid 4: Add WL1285C support"
-> series. It can be queued standalone via the bluetooth tree, though.
->
-> Changes since PATCHv2:
->  * none
-> Changes since PATCHv1:
->  * patch did not exist
->
-> -- Sebastian
-> ---
->  Documentation/devicetree/bindings/net/ti,wilink-st.txt | 6 ++++++
->  drivers/bluetooth/hci_ll.c                             | 8 ++++++++
->  2 files changed, 14 insertions(+)
+Motorola Droid 4 uses a WL1285C, so use proper compatible value.
+To avoid regressions while support for the new compatible value
+is added to the Linux kernel, the old compatible value is preserved
+as fallback.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+---
+Hi,
+
+The patch adding ti,wl1285 support to wlcore has been send separately.
+Due to the fallback compatible value there is no dependency between
+the patches.
+
+-- Sebastian
+---
+ arch/arm/boot/dts/omap4-droid4-xt894.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+index 13f8d8640208..caf320ea5b4f 100644
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -301,7 +301,7 @@
+ 	#address-cells = <1>;
+ 	#size-cells = <0>;
+ 	wlcore: wlcore@2 {
+-		compatible = "ti,wl1283";
++		compatible = "ti,wl1285", "ti,wl1283";
+ 		reg = <2>;
+ 		interrupt-parent = <&gpio4>;
+ 		interrupts = <4 IRQ_TYPE_LEVEL_HIGH>; /* gpio100 */
+-- 
+2.11.0
