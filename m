@@ -1,47 +1,71 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next] net: ethernet: ti: cpdma: do not enable host error misc irq
-Date: Thu, 8 Jun 2017 13:51:52 -0500
-Message-ID: <20170608185152.32710-1-grygorii.strashko@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv3] Bluetooth: hci_ll: Add compatible values for more WL chips
+Date: Thu,  8 Jun 2017 22:58:45 +0200
+Message-ID: <20170608205845.4903-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+To: Sebastian Reichel <sre@kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Rob Herring <robh+dt@kernel.org>
+Cc: linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-CPSW driver does not handle this interrupt, so there are no reasons to enable
-it in hardware.
+Add compatible values for WiLink chips from 128x and 180x series.
+Also the DT binding already contained compatible values for the 127x
+series, but the driver did not. This brings the list on par with
+the list from wlcore (the wifi driver).
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
-no changes, just resubmitting with proper subj line.
+Hi,
 
- drivers/net/ethernet/ti/davinci_cpdma.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+This patch originally was part of the "Motorola Droid 4: Add WL1285C support"
+series. It can be queued standalone via the bluetooth tree, though.
 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index 7ecc6b7..e4d6edf 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -645,7 +645,7 @@ EXPORT_SYMBOL_GPL(cpdma_ctlr_destroy);
- int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
- {
- 	unsigned long flags;
--	int i, reg;
-+	int i;
+Changes since PATCHv2:
+ * none
+Changes since PATCHv1:
+ * patch did not exist
+
+-- Sebastian
+---
+ Documentation/devicetree/bindings/net/ti,wilink-st.txt | 6 ++++++
+ drivers/bluetooth/hci_ll.c                             | 8 ++++++++
+ 2 files changed, 14 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/net/ti,wilink-st.txt b/Documentation/devicetree/bindings/net/ti,wilink-st.txt
+index cbad73a84ac4..b1a421e2fde3 100644
+--- a/Documentation/devicetree/bindings/net/ti,wilink-st.txt
++++ b/Documentation/devicetree/bindings/net/ti,wilink-st.txt
+@@ -14,6 +14,12 @@ Required properties:
+  - compatible: should be one of the following:
+     "ti,wl1271-st"
+     "ti,wl1273-st"
++    "ti,wl1281-st"
++    "ti,wl1283-st"
++    "ti,wl1285-st"
++    "ti,wl1801-st"
++    "ti,wl1805-st"
++    "ti,wl1807-st"
+     "ti,wl1831-st"
+     "ti,wl1835-st"
+     "ti,wl1837-st"
+diff --git a/drivers/bluetooth/hci_ll.c b/drivers/bluetooth/hci_ll.c
+index adc444f309a3..d2f32a994daa 100644
+--- a/drivers/bluetooth/hci_ll.c
++++ b/drivers/bluetooth/hci_ll.c
+@@ -740,6 +740,14 @@ static void hci_ti_remove(struct serdev_device *serdev)
+ }
  
- 	spin_lock_irqsave(&ctlr->lock, flags);
- 	if (ctlr->state != CPDMA_STATE_ACTIVE) {
-@@ -653,9 +653,6 @@ int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
- 		return -EINVAL;
- 	}
- 
--	reg = enable ? CPDMA_DMAINTMASKSET : CPDMA_DMAINTMASKCLEAR;
--	dma_reg_write(ctlr, reg, CPDMA_DMAINT_HOSTERR);
--
- 	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
- 		if (ctlr->channels[i])
- 			cpdma_chan_int_ctrl(ctlr->channels[i], enable);
+ static const struct of_device_id hci_ti_of_match[] = {
++	{ .compatible = "ti,wl1271-st" },
++	{ .compatible = "ti,wl1273-st" },
++	{ .compatible = "ti,wl1281-st" },
++	{ .compatible = "ti,wl1283-st" },
++	{ .compatible = "ti,wl1285-st" },
++	{ .compatible = "ti,wl1801-st" },
++	{ .compatible = "ti,wl1805-st" },
++	{ .compatible = "ti,wl1807-st" },
+ 	{ .compatible = "ti,wl1831-st" },
+ 	{ .compatible = "ti,wl1835-st" },
+ 	{ .compatible = "ti,wl1837-st" },
 -- 
-2.10.1
+2.11.0
