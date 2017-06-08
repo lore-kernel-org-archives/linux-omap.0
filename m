@@ -1,18 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 04/11] ARM: OMAP2+: Remove unused legacy code for device
- init
-Date: Thu, 8 Jun 2017 02:47:12 -0700
-Message-ID: <20170608094712.GI3730@atomide.com>
+Subject: Re: [PATCH 07/11] ARM: OMAP2+: Remove unused legacy code for DMA
+Date: Thu, 8 Jun 2017 02:56:19 -0700
+Message-ID: <20170608095618.GJ3730@atomide.com>
 References: <20170531225139.30723-1-tony@atomide.com>
- <20170531225139.30723-5-tony@atomide.com>
- <20170607222711.6kdhuvkymiseootn@earth>
- <20170608082825.GG3730@atomide.com>
+ <20170531225139.30723-8-tony@atomide.com>
+ <10f65a24-0459-5df7-378d-84933b83c070@ti.com>
+ <20170608082432.GF3730@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170608082825.GG3730@atomide.com>
+In-Reply-To: <20170608082432.GF3730@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,18 +21,25 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastian Reichel <sre@kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170608 01:32]:
-> * Sebastian Reichel <sre@kernel.org> [170607 15:30]:
-> > I guess you can drop omap2_init_devices() completly?
+* Tony Lindgren <tony@atomide.com> [170608 01:28]:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [170607 23:29]:
+> > 
+> > This will conflict with the changes introduced by the tusb6010 DMAengine
+> > conversion:
+> > https://patchwork.kernel.org/patch/9734219/
 > 
-> We still have omap_init_sti() left there, but it's
-> just static inline void omap_init_sti(void) {} :)
+> Oops forgot about that one. I'll take a look if it makes sense
+> to leave the braces for now to avoid a merge conflict.
 > 
-> So yeah will remove that too.
+> > with this patch I think the omap24xx_sdma_map and omap3xxx_sdma_map can
+> > also be removed, but we need to keep the omap24xx_sdma_dt_map for now
+> > till we have proper DT support for tusb.
+> 
+> OK good point, will check.
 
 Here's this one updated.
 
@@ -41,213 +47,176 @@ Regards,
 
 Tony
 
-8< -----------------
+8< ------------------
 >From tony Mon Sep 17 00:00:00 2001
 From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 31 May 2017 15:51:32 -0700
-Subject: [PATCH] ARM: OMAP2+: Remove unused legacy code for device init
+Date: Wed, 31 May 2017 15:51:35 -0700
+Subject: [PATCH] ARM: OMAP2+: Remove unused legacy code for DMA
 
 We are now booting all mach-omap2 in device tree only mode.
 Any code that is only called in legacy boot mode where
 of_have_populated_dt() is not set is safe to remove now.
 
-Note that omap_init_sti() won't do anything so we can
-remove omap2_init_devices() as pointed out by Sebastian
-Reichel <sebastian.reichel@collabora.co.uk>.
+Let's leave the dummy omap2_system_dma_init_dev() check
+in place for now to avoid a pointless merge conflict with
+tusb6010 dmaengine conversion as pointed out by Peter
+Ujfalusi <peter.ujfalusi@ti.com>.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/devices.c | 175 ------------------------------------------
- 1 file changed, 175 deletions(-)
+ arch/arm/mach-omap2/dma.c | 125 +---------------------------------------------
+ 1 file changed, 2 insertions(+), 123 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -36,130 +36,6 @@
- #define L3_MODULES_MAX_LEN 12
- #define L3_MODULES 3
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -204,108 +204,6 @@ static unsigned configure_dma_errata(void)
+ 	return errata;
+ }
  
--static int __init omap3_l3_init(void)
--{
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--	char oh_name[L3_MODULES_MAX_LEN];
+-static const struct dma_slave_map omap24xx_sdma_map[] = {
+-	{ "omap-gpmc", "rxtx", SDMA_FILTER_PARAM(4) },
+-	{ "omap-aes", "tx", SDMA_FILTER_PARAM(9) },
+-	{ "omap-aes", "rx", SDMA_FILTER_PARAM(10) },
+-	{ "omap-sham", "rx", SDMA_FILTER_PARAM(13) },
+-	{ "omap2_mcspi.2", "tx0", SDMA_FILTER_PARAM(15) },
+-	{ "omap2_mcspi.2", "rx0", SDMA_FILTER_PARAM(16) },
+-	{ "omap-mcbsp.3", "tx", SDMA_FILTER_PARAM(17) },
+-	{ "omap-mcbsp.3", "rx", SDMA_FILTER_PARAM(18) },
+-	{ "omap-mcbsp.4", "tx", SDMA_FILTER_PARAM(19) },
+-	{ "omap-mcbsp.4", "rx", SDMA_FILTER_PARAM(20) },
+-	{ "omap-mcbsp.5", "tx", SDMA_FILTER_PARAM(21) },
+-	{ "omap-mcbsp.5", "rx", SDMA_FILTER_PARAM(22) },
+-	{ "omap2_mcspi.2", "tx1", SDMA_FILTER_PARAM(23) },
+-	{ "omap2_mcspi.2", "rx1", SDMA_FILTER_PARAM(24) },
+-	{ "omap_i2c.1", "tx", SDMA_FILTER_PARAM(27) },
+-	{ "omap_i2c.1", "rx", SDMA_FILTER_PARAM(28) },
+-	{ "omap_i2c.2", "tx", SDMA_FILTER_PARAM(29) },
+-	{ "omap_i2c.2", "rx", SDMA_FILTER_PARAM(30) },
+-	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(31) },
+-	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(32) },
+-	{ "omap-mcbsp.2", "tx", SDMA_FILTER_PARAM(33) },
+-	{ "omap-mcbsp.2", "rx", SDMA_FILTER_PARAM(34) },
+-	{ "omap2_mcspi.0", "tx0", SDMA_FILTER_PARAM(35) },
+-	{ "omap2_mcspi.0", "rx0", SDMA_FILTER_PARAM(36) },
+-	{ "omap2_mcspi.0", "tx1", SDMA_FILTER_PARAM(37) },
+-	{ "omap2_mcspi.0", "rx1", SDMA_FILTER_PARAM(38) },
+-	{ "omap2_mcspi.0", "tx2", SDMA_FILTER_PARAM(39) },
+-	{ "omap2_mcspi.0", "rx2", SDMA_FILTER_PARAM(40) },
+-	{ "omap2_mcspi.0", "tx3", SDMA_FILTER_PARAM(41) },
+-	{ "omap2_mcspi.0", "rx3", SDMA_FILTER_PARAM(42) },
+-	{ "omap2_mcspi.1", "tx0", SDMA_FILTER_PARAM(43) },
+-	{ "omap2_mcspi.1", "rx0", SDMA_FILTER_PARAM(44) },
+-	{ "omap2_mcspi.1", "tx1", SDMA_FILTER_PARAM(45) },
+-	{ "omap2_mcspi.1", "rx1", SDMA_FILTER_PARAM(46) },
+-	{ "omap_hsmmc.1", "tx", SDMA_FILTER_PARAM(47) },
+-	{ "omap_hsmmc.1", "rx", SDMA_FILTER_PARAM(48) },
+-	{ "omap_uart.0", "tx", SDMA_FILTER_PARAM(49) },
+-	{ "omap_uart.0", "rx", SDMA_FILTER_PARAM(50) },
+-	{ "omap_uart.1", "tx", SDMA_FILTER_PARAM(51) },
+-	{ "omap_uart.1", "rx", SDMA_FILTER_PARAM(52) },
+-	{ "omap_uart.2", "tx", SDMA_FILTER_PARAM(53) },
+-	{ "omap_uart.2", "rx", SDMA_FILTER_PARAM(54) },
+-	{ "omap_hsmmc.0", "tx", SDMA_FILTER_PARAM(61) },
+-	{ "omap_hsmmc.0", "rx", SDMA_FILTER_PARAM(62) },
+-};
 -
--	/*
--	 * To avoid code running on other OMAPs in
--	 * multi-omap builds
--	 */
--	if (!(cpu_is_omap34xx()) || of_have_populated_dt())
--		return -ENODEV;
+-static const struct dma_slave_map omap3xxx_sdma_map[] = {
+-	{ "omap-gpmc", "rxtx", SDMA_FILTER_PARAM(4) },
+-	{ "omap2_mcspi.2", "tx0", SDMA_FILTER_PARAM(15) },
+-	{ "omap2_mcspi.2", "rx0", SDMA_FILTER_PARAM(16) },
+-	{ "omap-mcbsp.3", "tx", SDMA_FILTER_PARAM(17) },
+-	{ "omap-mcbsp.3", "rx", SDMA_FILTER_PARAM(18) },
+-	{ "omap-mcbsp.4", "tx", SDMA_FILTER_PARAM(19) },
+-	{ "omap-mcbsp.4", "rx", SDMA_FILTER_PARAM(20) },
+-	{ "omap-mcbsp.5", "tx", SDMA_FILTER_PARAM(21) },
+-	{ "omap-mcbsp.5", "rx", SDMA_FILTER_PARAM(22) },
+-	{ "omap2_mcspi.2", "tx1", SDMA_FILTER_PARAM(23) },
+-	{ "omap2_mcspi.2", "rx1", SDMA_FILTER_PARAM(24) },
+-	{ "omap_i2c.3", "tx", SDMA_FILTER_PARAM(25) },
+-	{ "omap_i2c.3", "rx", SDMA_FILTER_PARAM(26) },
+-	{ "omap_i2c.1", "tx", SDMA_FILTER_PARAM(27) },
+-	{ "omap_i2c.1", "rx", SDMA_FILTER_PARAM(28) },
+-	{ "omap_i2c.2", "tx", SDMA_FILTER_PARAM(29) },
+-	{ "omap_i2c.2", "rx", SDMA_FILTER_PARAM(30) },
+-	{ "omap-mcbsp.1", "tx", SDMA_FILTER_PARAM(31) },
+-	{ "omap-mcbsp.1", "rx", SDMA_FILTER_PARAM(32) },
+-	{ "omap-mcbsp.2", "tx", SDMA_FILTER_PARAM(33) },
+-	{ "omap-mcbsp.2", "rx", SDMA_FILTER_PARAM(34) },
+-	{ "omap2_mcspi.0", "tx0", SDMA_FILTER_PARAM(35) },
+-	{ "omap2_mcspi.0", "rx0", SDMA_FILTER_PARAM(36) },
+-	{ "omap2_mcspi.0", "tx1", SDMA_FILTER_PARAM(37) },
+-	{ "omap2_mcspi.0", "rx1", SDMA_FILTER_PARAM(38) },
+-	{ "omap2_mcspi.0", "tx2", SDMA_FILTER_PARAM(39) },
+-	{ "omap2_mcspi.0", "rx2", SDMA_FILTER_PARAM(40) },
+-	{ "omap2_mcspi.0", "tx3", SDMA_FILTER_PARAM(41) },
+-	{ "omap2_mcspi.0", "rx3", SDMA_FILTER_PARAM(42) },
+-	{ "omap2_mcspi.1", "tx0", SDMA_FILTER_PARAM(43) },
+-	{ "omap2_mcspi.1", "rx0", SDMA_FILTER_PARAM(44) },
+-	{ "omap2_mcspi.1", "tx1", SDMA_FILTER_PARAM(45) },
+-	{ "omap2_mcspi.1", "rx1", SDMA_FILTER_PARAM(46) },
+-	{ "omap_hsmmc.1", "tx", SDMA_FILTER_PARAM(47) },
+-	{ "omap_hsmmc.1", "rx", SDMA_FILTER_PARAM(48) },
+-	{ "omap_uart.0", "tx", SDMA_FILTER_PARAM(49) },
+-	{ "omap_uart.0", "rx", SDMA_FILTER_PARAM(50) },
+-	{ "omap_uart.1", "tx", SDMA_FILTER_PARAM(51) },
+-	{ "omap_uart.1", "rx", SDMA_FILTER_PARAM(52) },
+-	{ "omap_uart.2", "tx", SDMA_FILTER_PARAM(53) },
+-	{ "omap_uart.2", "rx", SDMA_FILTER_PARAM(54) },
+-	{ "omap_hsmmc.0", "tx", SDMA_FILTER_PARAM(61) },
+-	{ "omap_hsmmc.0", "rx", SDMA_FILTER_PARAM(62) },
+-	{ "omap-aes", "tx", SDMA_FILTER_PARAM(65) },
+-	{ "omap-aes", "rx", SDMA_FILTER_PARAM(66) },
+-	{ "omap-sham", "rx", SDMA_FILTER_PARAM(69) },
+-	{ "omap2_mcspi.3", "tx0", SDMA_FILTER_PARAM(70) },
+-	{ "omap2_mcspi.3", "rx0", SDMA_FILTER_PARAM(71) },
+-	{ "omap_hsmmc.2", "tx", SDMA_FILTER_PARAM(77) },
+-	{ "omap_hsmmc.2", "rx", SDMA_FILTER_PARAM(78) },
+-	{ "omap_uart.3", "tx", SDMA_FILTER_PARAM(81) },
+-	{ "omap_uart.3", "rx", SDMA_FILTER_PARAM(82) },
+-};
 -
--	snprintf(oh_name, L3_MODULES_MAX_LEN, "l3_main");
--
--	oh = omap_hwmod_lookup(oh_name);
--
--	if (!oh)
--		pr_err("could not look up %s\n", oh_name);
--
--	pdev = omap_device_build("omap_l3_smx", 0, oh, NULL, 0);
--
--	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
--
--	return PTR_ERR_OR_ZERO(pdev);
--}
--omap_postcore_initcall(omap3_l3_init);
--
--static inline void omap_init_sti(void) {}
--
--#if IS_ENABLED(CONFIG_SPI_OMAP24XX)
--
--#include <linux/platform_data/spi-omap2-mcspi.h>
--
--static int __init omap_mcspi_init(struct omap_hwmod *oh, void *unused)
--{
--	struct platform_device *pdev;
--	char *name = "omap2_mcspi";
--	struct omap2_mcspi_platform_config *pdata;
--	static int spi_num;
--	struct omap2_mcspi_dev_attr *mcspi_attrib = oh->dev_attr;
--
--	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
--	if (!pdata) {
--		pr_err("Memory allocation for McSPI device failed\n");
--		return -ENOMEM;
--	}
--
--	pdata->num_cs = mcspi_attrib->num_chipselect;
--	switch (oh->class->rev) {
--	case OMAP2_MCSPI_REV:
--	case OMAP3_MCSPI_REV:
--			pdata->regs_offset = 0;
--			break;
--	case OMAP4_MCSPI_REV:
--			pdata->regs_offset = OMAP4_MCSPI_REG_OFFSET;
--			break;
--	default:
--			pr_err("Invalid McSPI Revision value\n");
--			kfree(pdata);
--			return -EINVAL;
--	}
--
--	spi_num++;
--	pdev = omap_device_build(name, spi_num, oh, pdata, sizeof(*pdata));
--	WARN(IS_ERR(pdev), "Can't build omap_device for %s:%s\n",
--				name, oh->name);
--	kfree(pdata);
--	return 0;
--}
--
--static void omap_init_mcspi(void)
--{
--	omap_hwmod_for_each_by_class("mcspi", omap_mcspi_init, NULL);
--}
--
--#else
--static inline void omap_init_mcspi(void) {}
--#endif
--
--/**
-- * omap_init_rng - bind the RNG hwmod to the RNG omap_device
-- *
-- * Bind the RNG hwmod to the RNG omap_device.  No return value.
-- */
--static void __init omap_init_rng(void)
--{
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--
--	oh = omap_hwmod_lookup("rng");
--	if (!oh)
--		return;
--
--	pdev = omap_device_build("omap_rng", -1, oh, NULL, 0);
--	WARN(IS_ERR(pdev), "Can't build omap_device for omap_rng\n");
--}
--
--static void __init omap_init_sham(void)
--{
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--
--	oh = omap_hwmod_lookup("sham");
--	if (!oh)
--		return;
--
--	pdev = omap_device_build("omap-sham", -1, oh, NULL, 0);
--	WARN(IS_ERR(pdev), "Can't build omap_device for omap-sham\n");
--}
--
--static void __init omap_init_aes(void)
--{
--	struct omap_hwmod *oh;
--	struct platform_device *pdev;
--
--	oh = omap_hwmod_lookup("aes");
--	if (!oh)
--		return;
--
--	pdev = omap_device_build("omap-aes", -1, oh, NULL, 0);
--	WARN(IS_ERR(pdev), "Can't build omap_device for omap-aes\n");
--}
--
- /*-------------------------------------------------------------------------*/
+ static struct omap_system_dma_plat_info dma_plat_info __initdata = {
+ 	.reg_map	= reg_map,
+ 	.channel_stride	= 0x60,
+@@ -334,14 +232,9 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 	p.dma_attr = (struct omap_dma_dev_attr *)oh->dev_attr;
+ 	p.errata = configure_dma_errata();
  
- #if IS_ENABLED(CONFIG_VIDEO_OMAP2_VOUT)
-@@ -185,54 +61,3 @@ int __init omap_init_vout(void)
- #else
- int __init omap_init_vout(void) { return 0; }
- #endif
--
--/*-------------------------------------------------------------------------*/
--
--static int __init omap2_init_devices(void)
--{
--	/* Enable dummy states for those platforms without pinctrl support */
--	if (!of_have_populated_dt())
--		pinctrl_provide_dummies();
--
--	/* If dtb is there, the devices will be created dynamically */
--	if (!of_have_populated_dt()) {
--		/*
--		 * please keep these calls, and their implementations above,
--		 * in alphabetical order so they're easier to sort through.
--		 */
--		omap_init_mcspi();
--		omap_init_sham();
--		omap_init_aes();
--		omap_init_rng();
--	}
--	omap_init_sti();
--
--	return 0;
--}
--omap_arch_initcall(omap2_init_devices);
--
--static int __init omap_gpmc_init(void)
--{
--	struct omap_hwmod *oh;
++	/* REVISIT: Remove after v4.13 with a follow-up patch */
+ 	if (!of_have_populated_dt()) {
+ 		if (soc_is_omap24xx()) {
+-			p.slave_map = omap24xx_sdma_map;
+-			p.slavecnt = ARRAY_SIZE(omap24xx_sdma_map);
+-		} else if (soc_is_omap34xx() || soc_is_omap3630()) {
+-			p.slave_map = omap3xxx_sdma_map;
+-			p.slavecnt = ARRAY_SIZE(omap3xxx_sdma_map);
+-		} else {
+ 			pr_err("%s: The legacy DMA map is not provided!\n",
+ 			       __func__);
+ 			return -ENODEV;
+@@ -389,21 +282,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 
+ static int __init omap2_system_dma_init(void)
+ {
 -	struct platform_device *pdev;
--	char *oh_name = "gpmc";
+-	int res;
 -
--	/*
--	 * if the board boots up with a populated DT, do not
--	 * manually add the device from this initcall
--	 */
+-	res = omap_hwmod_for_each_by_class("dma",
++	return omap_hwmod_for_each_by_class("dma",
+ 			omap2_system_dma_init_dev, NULL);
+-	if (res)
+-		return res;
+-
 -	if (of_have_populated_dt())
--		return -ENODEV;
+-		return res;
 -
--	oh = omap_hwmod_lookup(oh_name);
--	if (!oh) {
--		pr_err("Could not look up %s\n", oh_name);
--		return -ENODEV;
--	}
+-	pdev = platform_device_register_full(&omap_dma_dev_info);
+-	if (IS_ERR(pdev))
+-		return PTR_ERR(pdev);
 -
--	pdev = omap_device_build("omap-gpmc", -1, oh, NULL, 0);
--	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
--
--	return PTR_ERR_OR_ZERO(pdev);
--}
--omap_postcore_initcall(omap_gpmc_init);
+-	return res;
+ }
+ omap_arch_initcall(omap2_system_dma_init);
 -- 
 2.13.0
