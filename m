@@ -1,87 +1,122 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 3/5] mfd: tps65217: Add a dependency on OF
-Date: Thu, 8 Jun 2017 10:01:19 +0530
-Message-ID: <c09e6c87-53eb-bcc4-0268-9cbf17251f20@ti.com>
-References: <1496760340-27959-1-git-send-email-j-keerthy@ti.com>
- <1496760340-27959-4-git-send-email-j-keerthy@ti.com>
- <CAFqH_52OncBvwCmu6JiFSdVckky9Gqzm7ZoUNxpqF-82oO2GAw@mail.gmail.com>
- <c13efc60-d4fd-7c1a-e889-f867ebd18446@ti.com>
- <20170607103753.n3entu2ylxvhdax7@dell> <20170607103839.2bydxqxussxyahvn@dell>
- <41600d7d-3754-2907-151e-57fa20f88222@ti.com>
- <CAFqH_53jSPcKB8rOiODDv3Jmbrq6h3UvW+gZLSV7JFXM1j_bWA@mail.gmail.com>
- <c5b31280-28fb-3dc3-dd7b-bcd9294e5b61@ti.com>
- <CABxcv=mSqGOG+Z9eHhAnfw=ZR4-US_zVzvo3kNWY4o2mT_C-Ew@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 05/11] ARM: OMAP2+: Remove unused legacy code for McBSP
+Date: Thu, 8 Jun 2017 09:20:18 +0300
+Message-ID: <453777a3-ba95-61ef-494c-af0442b42284@ti.com>
+References: <20170531225139.30723-1-tony@atomide.com>
+ <20170531225139.30723-6-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABxcv=mSqGOG+Z9eHhAnfw=ZR4-US_zVzvo3kNWY4o2mT_C-Ew@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Milo Kim <milo.kim@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170531225139.30723-6-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On 2017-06-01 01:51, Tony Lindgren wrote:
+> We are now booting all mach-omap2 in device tree only mode.
+> Any code that is only called in legacy boot mode where
+> of_have_populated_dt() is not set is safe to remove now.
+> =
+
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> ---
+>  arch/arm/mach-omap2/mcbsp.c | 70 ---------------------------------------=
+------
+>  1 file changed, 70 deletions(-)
+> =
+
+> diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+> --- a/arch/arm/mach-omap2/mcbsp.c
+> +++ b/arch/arm/mach-omap2/mcbsp.c
+> @@ -53,73 +53,3 @@ void __init omap3_mcbsp_init_pdata_callback(
+>  =
+
+>  	pdata->force_ick_on =3D omap3_mcbsp_force_ick_on;
+>  }
+> -
+> -static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+> -{
+> -	int id, count =3D 1;
+> -	char *name =3D "omap-mcbsp";
+> -	struct omap_hwmod *oh_device[2];
+> -	struct omap_mcbsp_platform_data *pdata =3D NULL;
+> -	struct platform_device *pdev;
+> -
+> -	sscanf(oh->name, "mcbsp%d", &id);
+> -
+> -	pdata =3D kzalloc(sizeof(struct omap_mcbsp_platform_data), GFP_KERNEL);
+> -	if (!pdata) {
+> -		pr_err("%s: No memory for mcbsp\n", __func__);
+> -		return -ENOMEM;
+> -	}
+> -
+> -	pdata->reg_step =3D 4;
+> -	if (oh->class->rev < MCBSP_CONFIG_TYPE2) {
+> -		pdata->reg_size =3D 2;
+> -	} else {
+> -		pdata->reg_size =3D 4;
+> -		pdata->has_ccr =3D true;
+> -	}
+> -
+> -	if (oh->class->rev =3D=3D MCBSP_CONFIG_TYPE2) {
+> -		/* The FIFO has 128 locations */
+> -		pdata->buffer_size =3D 0x80;
+> -	} else if (oh->class->rev =3D=3D MCBSP_CONFIG_TYPE3) {
+> -		if (id =3D=3D 2)
+> -			/* The FIFO has 1024 + 256 locations */
+> -			pdata->buffer_size =3D 0x500;
+> -		else
+> -			/* The FIFO has 128 locations */
+> -			pdata->buffer_size =3D 0x80;
+> -	} else if (oh->class->rev =3D=3D MCBSP_CONFIG_TYPE4) {
+> -		/* The FIFO has 128 locations for all instances */
+> -		pdata->buffer_size =3D 0x80;
+> -	}
+> -
+> -	if (oh->class->rev >=3D MCBSP_CONFIG_TYPE3)
+> -		pdata->has_wakeup =3D true;
+> -
+> -	oh_device[0] =3D oh;
+> -
+> -	if (oh->dev_attr) {
+> -		oh_device[1] =3D omap_hwmod_lookup((
+> -		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
+> -		pdata->force_ick_on =3D omap3_mcbsp_force_ick_on;
+> -		count++;
+> -	}
+> -	pdev =3D omap_device_build_ss(name, id, oh_device, count, pdata,
+> -				    sizeof(*pdata));
+> -	kfree(pdata);
+> -	if (IS_ERR(pdev))  {
+> -		pr_err("%s: Can't build omap_device for %s:%s.\n", __func__,
+> -					name, oh->name);
+> -		return PTR_ERR(pdev);
+> -	}
+> -	return 0;
+> -}
+> -
+> -static int __init omap2_mcbsp_init(void)
+> -{
+> -	if (!of_have_populated_dt())
+> -		omap_hwmod_for_each_by_class("mcbsp", omap_init_mcbsp, NULL);
+> -
+> -	return 0;
+> -}
+> -omap_arch_initcall(omap2_mcbsp_init);
+> =
 
 
-On Wednesday 07 June 2017 07:40 PM, Javier Martinez Canillas wrote:
-> Hello Keerthy,
-> 
-> On Wed, Jun 7, 2017 at 3:45 PM, Keerthy <j-keerthy@ti.com> wrote:
-> 
-> [snip]
-> 
->>>>>>>>>
->>>>>>>>
->>>>>>>> I think you can remove the of_match_device checks in some drivers too
->>>>>>>>
->>>>>>>> i.e:
->>>>>>>>
->>>>>>>> http://elixir.free-electrons.com/linux/latest/source/drivers/mfd/tps65217.c#L330
->>>>>>>
->>>>>>> Yes that and removal of unused i2c_device_id. I will follow it up once
->>>>>>> this OF dependency is in.
->>>>>>
->>>>>> The of_match_device() checks should be removed with the OF patch.
->>>>
->>>> Lee Jones/ Enric,
->>>>
->>>> IIUC of_match_device call is still needed to obtain a match and in case
->>>> there are multiple compatibles with different match data then this call
->>>> is definitely needed.
->>>>
-> 
-> That's correct...
-
-That is what i wanted to know. Thanks.
-
-> 
->>>
->>> Not sure if I follow you. My understanding is that with DT the probe
->>> of this driver is only called if there is a node with the compatible =
->>> "ti,tps65217" string. So if probe is called there is always a match
->>> and the call to of_match_device is redundant.
->>
->> How will you get the matching data?
->>
->> For the tps65217 case you mentioned we need the match pointer to get the
->> chip_id right?
->>
->> chip_id = (unsigned long)match->data;
->>
-> 
-> ...but this particular driver only has a single entry in the OF table
-> and so you can just do:
-> 
-> tps->id = TPS65217;
-> 
-> Later if there's a variant for this chip, then you can add the logic
-> to query the struct of_device_id .data. But for now I think that's
-> better to just remove as Enric proposes and also remove the .data
-> field from the struct of_device_id entry.
-
-okay agreed for tps65217.
-
-> 
-> Best regards,
-> Javier
-> 
+- P=E9ter
