@@ -1,18 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] cpsw: cpts: enable HWTSTAMP_FILTER_PTP_V1_L4_EVENT
- filter
-Date: Thu, 08 Jun 2017 09:52:33 -0400 (EDT)
-Message-ID: <20170608.095233.1595372713471104187.davem@davemloft.net>
-References: <20170605232108.13453-1-grygorii.strashko@ti.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH v2] mfd: tps65217: Introduce dependency on CONFIG_OF
+Date: Thu, 8 Jun 2017 16:11:16 +0200
+Message-ID: <CABxcv=n7V1KRcdypxYz+9vsDdSzXrANGFiyFW7ZXtA4GYLJ20Q@mail.gmail.com>
+References: <1496918764-23438-1-git-send-email-j-keerthy@ti.com> <CAFqH_52yTzmJaxxWpmdu+Kq-8T1LPbmQVb2yx=CXXQLd4POAgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170605232108.13453-1-grygorii.strashko@ti.com>
+In-Reply-To: <CAFqH_52yTzmJaxxWpmdu+Kq-8T1LPbmQVb2yx=CXXQLd4POAgQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Enric Balletbo Serra <eballetbo@gmail.com>
+Cc: Keerthy <j-keerthy@ti.com>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Jingoo Han <jingoohan1@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Jun 8, 2017 at 3:32 PM, Enric Balletbo Serra
+<eballetbo@gmail.com> wrote:
+> Hi Keerthy:
+>
+> 2017-06-08 12:46 GMT+02:00 Keerthy <j-keerthy@ti.com>:
+>> Currently the driver boots only via device tree hence add a
+>> dependency on CONFIG_OF. This leaves with a bunch of unused code
+>> so clean that up.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>
 
-These two patches do not apply cleanly to my net GIT tree, please respin.
+[snip]
+
+>>
+>>  config MFD_TPS65217
+>>         tristate "TI TPS65217 Power Management / White LED chips"
+>> -       depends on I2C
+>> +       depends on I2C && OF
+>
+> I think you should append || COMPILE_TEST here.
+>
+
+For me it should be a separate patch, it's nice to have COMPILE_TEST
+but not related to this change IMHO.
+
+>>
+>> -static const struct i2c_device_id tps65217_id_table[] = {
+>> -       {"tps65217", TPS65217},
+>> -       { /* sentinel */ }
+>> -};
+>> -MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
+
+Unfortunately you can't get rid of this table (yet) since the I2C
+subsystem always reports a MODALIAS of the form "i2c:tps65217" even
+when the devices have been registered via OF. There are only a couple
+of drivers more to clean-up and then I'll post a patch that fixes the
+I2C core to report a proper OF modalias. But for now, removing will
+mean that module autoload will be broken for this driver.
+
+Best regards,
+Javier
