@@ -1,88 +1,73 @@
-From: Liviu Dudau <liviu.dudau@arm.com>
-Subject: Re: [PATCH 01/35] ARM: defconfig: Cleanup from old Kconfig options
-Date: Fri, 9 Jun 2017 10:08:02 +0100
-Message-ID: <20170609090802.GL10049@e110455-lin.cambridge.arm.com>
-References: <20170608160836.12196-1-krzk@kernel.org>
- <20170608161049.12421-1-krzk@kernel.org>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH 4/4] mfd: tps65217: Instantiate sub-devices from device tree
+Date: Fri, 9 Jun 2017 11:55:05 +0200
+Message-ID: <CAFqH_50MDAAMcj0RW8Vzu71n=vAHAukpGw--mn3+PZBfj+m88w@mail.gmail.com>
+References: <20170607103242.16008-1-enric.balletbo@collabora.com>
+ <20170607103242.16008-4-enric.balletbo@collabora.com> <6359abe2-9a21-78a2-f5ea-87e2e3335af3@ti.com>
+ <CAFqH_53v32iODN4xhoh4ho4s6grxknEDS3Ak6CHBcTAQo6fDNw@mail.gmail.com>
+ <578f348c-509f-79d3-9770-73c9fcffe19c@ti.com> <CAFqH_52rU7ZBG_Muy2JHoqJGdXOdsNfmtJxsZoPRyx3V1aWmFw@mail.gmail.com>
+ <CABxcv=mN6=hbDSqrVkwSL8zccCntN7m_3DP6ZCbkOT6CLw+skQ@mail.gmail.com>
+ <fba09819-7d7e-57bb-c147-46c39098cff8@ti.com> <CABxcv=nzCreCSm9wkY+Kv_-vmoQN12Ct=_VegsfTrbe6H-1hTw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20170608161049.12421-1-krzk@kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Joachim Eastwood <manabian@gmail.com>, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Chen-Yu Tsai <wens@csie.org>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Fabio Estevam <fabio.estevam@nxp.com>, Maxime Ripard <maxime.ripard@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CABxcv=nzCreCSm9wkY+Kv_-vmoQN12Ct=_VegsfTrbe6H-1hTw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-leds@vger.kernel.org, linux-input@vger.kernel.org, Daniel Thompson <daniel.thompson@linaro.org>, Jingoo Han <jingoohan1@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <jacek.anaszewski@gmail.com>Pavel Machek <p>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCBKdW4gMDgsIDIwMTcgYXQgMDY6MTA6MTJQTSArMDIwMCwgS3J6eXN6dG9mIEtvemxv
-d3NraSB3cm90ZToKPiBSZW1vdmUgb2xkLCBkZWFkIEtjb25maWcgb3B0aW9ucyAoaW4gb3JkZXIg
-YXBwZWFyaW5nIGluIHRoaXMgY29tbWl0KToKPiAgLSBFWFBFUklNRU5UQUwgaXMgZ29uZSBzaW5j
-ZSB2My45Owo+ICAtIElORVRfTFJPOiBjb21taXQgN2JiZjNjYWU2NWI2ICgiaXB2NDogUmVtb3Zl
-IGluZXRfbHJvIGxpYnJhcnkiKTsKPiAgLSBNVERfQ09OQ0FUOiBjb21taXQgZjUzZmRlYmNjM2Ux
-ICgibXRkOiBkcm9wIE1URF9DT05DQVQgZnJvbSBLY29uZmlnCj4gICAgZW50aXJlbHkiKTsKPiAg
-LSBNVERfUEFSVElUSU9OUzogY29tbWl0IDZhOGE5OGIyMmIxMCAoIm10ZDoga2lsbAo+ICAgIENP
-TkZJR19NVERfUEFSVElUSU9OUyIpOwo+ICAtIE1URF9DSEFSOiBjb21taXQgNjYwNjg1ZDlkMWI0
-ICgibXRkOiBtZXJnZSBtdGRjaGFyIG1vZHVsZSB3aXRoCj4gICAgbXRkY29yZSIpOwo+ICAtIE5F
-VERFVl8xMDAwIGFuZCBORVRERVZfMTAwMDA6IGNvbW1pdCBmODYwYjA1MjJmNjUgKCJkcml2ZXJz
-L25ldDoKPiAgICBLY29uZmlnIGFuZCBNYWtlZmlsZSBjbGVhbnVwIik7IE5FVF9FVEhFUk5FVCBz
-aG91bGQgYmUgcmVwbGFjZWQgd2l0aAo+ICAgIGp1c3QgRVRIRVJORVQgYnV0IHRoYXQgaXMgc2Vw
-YXJhdGUgY2hhbmdlOwo+ICAtIElOT1RJRlk6IGNvbW1pdCAyZGZjMWNhZTRjNDIgKCJpbm90aWZ5
-OiByZW1vdmUgaW5vdGlmeSBpbiBrZXJuZWwKPiAgICBpbnRlcmZhY2UiKTsKPiAgLSBNSVNDX0RF
-VklDRVM6IGNvbW1pdCA3YzU3NjNiODQ1M2EgKCJkcml2ZXJzOiBtaXNjOiBSZW1vdmUKPiAgICBN
-SVNDX0RFVklDRVMgY29uZmlnIG9wdGlvbiIpOwo+ICAtIEhJRF9TVVBQT1JUOiBjb21taXQgMWY0
-MWE2YTk5NDc2ICgiSElEOiBGaXggdGhlIGdlbmVyaWMgS2NvbmZpZwo+ICAgIG9wdGlvbnMiKTsK
-PiAgLSBCVF9MMkNBUCBhbmQgQlRfU0NPOiBjb21taXQgZjFlOTFlMTY0MGQ4ICgiQmx1ZXRvb3Ro
-OiBBbHdheXMgY29tcGlsZQo+ICAgIFNDTyBhbmQgTDJDQVAgaW4gQmx1ZXRvb3RoIENvcmUiKTsK
-PiAgLSBERUJVR19FUlJPUlM6IGNvbW1pdCBiMDI1YTNmODM2ZDEgKCJBUk06IDY4NzYvMTogS2Nv
-bmZpZy5kZWJ1ZzoKPiAgICBSZW1vdmUgdW51c2VkIENPTkZJR19ERUJVR19FUlJPUlMiKTsKPiAg
-LSBVU0JfREVWSUNFX0NMQVNTOiBjb21taXQgMDA3YmFiOTEzMjRlICgiVVNCOiByZW1vdmUKPiAg
-ICBDT05GSUdfVVNCX0RFVklDRV9DTEFTUyIpOwo+ICAtIFJDVV9DUFVfU1RBTExfREVURUNUT1I6
-IGNvbW1pdCBhMDBlMGQ3MTRmYmQgKCJyY3U6IFJlbW92ZSBjb25kaXRpb25hbAo+ICAgIGNvbXBp
-bGF0aW9uIGZvciBSQ1UgQ1BVIHN0YWxsIHdhcm5pbmdzIik7Cj4gIC0gU1lTQ1RMX1NZU0NBTExf
-Q0hFQ0s6IGNvbW1pdCA3YzYwYzQ4ZjU4YTcgKCJzeXNjdGw6IEltcHJvdmUgdGhlCj4gICAgc3lz
-Y3RsIHNhbml0eSBjaGVja3MiKTsKPiAgLSBJUF9ORl9RVUVVRTogY29tbWl0IDNkZDY2NjRmYWM3
-ZSAoIm5ldGZpbHRlcjogcmVtb3ZlIHVudXNlZCAiY29uZmlnCj4gICAgSVBfTkZfUVVFVUUiIik7
-Cj4gIC0gSVBfTkZfVEFSR0VUX1VMT0c6IGNvbW1pdCBkNGRhODQzZTZmYWQgKCJuZXRmaWx0ZXI6
-IGtpbGwgcmVtbmFudHMgb2YKPiAgICB1bG9nIHRhcmdldHMiKTsKPiAgLSBJUDZfTkZfUVVFVUU6
-IGNvbW1pdCBkMTZjZjIwZTJmMmYgKCJuZXRmaWx0ZXI6IHJlbW92ZSBpcF9xdWV1ZQo+ICAgIHN1
-cHBvcnQiKTsKPiAgLSBJUDZfTkZfVEFSR0VUX0xPRzogY29tbWl0IDY5MzljMzNhNzU3YiAoIm5l
-dGZpbHRlcjogbWVyZ2UgaXB0X0xPRyBhbmQKPiAgICBpcDZfTE9HIGludG8geHRfTE9HIik7Cj4g
-IC0gVVNCX0xFRDogY29tbWl0IGEzMzVhYWYzMTI1YyAoInVzYjogbWlzYzogcmVtb3ZlIG91dGRh
-dGVkIFVTQiBMRUQKPiAgICBkcml2ZXIiKTsKPiAgLSBNTUNfVU5TQUZFX1JFU1VNRTogY29tbWl0
-IDI1MDFjOTE3OWRmZiAoIm1tYzogY29yZTogVXNlCj4gICAgTU1DX1VOU0FGRV9SRVNVTUUgYXMg
-ZGVmYXVsdCBiZWhhdmlvciIpOwo+ICAtIEFVVE9GU19GUzogY29tbWl0IDU2MWM1Y2Y5MjM2YSAo
-InN0YWdpbmc6IFJlbW92ZSBhdXRvZnMzIik7Cj4gIC0gRElTUExBWV9TVVBQT1JUOiBjb21taXQg
-NWE2YjVlMDJkNjczICgiZmJkZXY6IHJlbW92ZSBkaXNwbGF5Cj4gICAgc3Vic3lzdGVtIik7Cj4g
-IC0gQ0ZHODAyMTFfUkVHX0RFQlVHOiBjb21taXQgYzc5OWJhNmVhYjdhICgiY2ZnODAyMTE6IHJl
-bW92ZQo+ICAgIENGRzgwMjExX1JFR19ERUJVRyIpOwo+ICAtIFZJREVPX09VVFBVVF9DT05UUk9M
-OiBjb21taXQgZjE2N2E2NGU5ZDY3ICgidmlkZW8gLyBvdXRwdXQ6IERyb3AKPiAgICBkaXNwbGF5
-IG91dHB1dCBjbGFzcyBzdXBwb3J0Iik7Cj4gIC0gVVNCX0xJQlVTVUFMOiBjb21taXQgZjYxODcw
-ZWU2ZjhjICgidXNiOiByZW1vdmUgbGlidXN1YWwiKTsKPiAgLSBDUllQVE9fWkxJQjogY29tbWl0
-IDExMDQ5MjE4M2M0YiAoImNyeXB0bzogY29tcHJlc3MgLSByZW1vdmUgdW51c2VkCj4gICAgcGNv
-bXAgaW50ZXJmYWNlIik7Cj4gIC0gQkxLX0RFVl9VQjogY29tbWl0IDY4YTUwNTllY2Y4MiAoImJs
-b2NrOiByZW1vdmUgdGhlIGRlcHJlY2F0ZWQgdWIKPiAgICBkcml2ZXIiKTsKPiAKPiBTaWduZWQt
-b2ZmLWJ5OiBLcnp5c3p0b2YgS296bG93c2tpIDxrcnprQGtlcm5lbC5vcmc+CgpbLi4uLl0KPiBk
-aWZmIC0tZ2l0IGEvYXJjaC9hcm0vY29uZmlncy92ZXhwcmVzc19kZWZjb25maWcgYi9hcmNoL2Fy
-bS9jb25maWdzL3ZleHByZXNzX2RlZmNvbmZpZwo+IGluZGV4IDM3ZmU2MDdhNGVkZS4uMGZhMGVk
-NTc3YjE1IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL2NvbmZpZ3MvdmV4cHJlc3NfZGVmY29uZmln
-Cj4gKysrIGIvYXJjaC9hcm0vY29uZmlncy92ZXhwcmVzc19kZWZjb25maWcKPiBAQCAtNDYsNyAr
-NDYsNiBAQCBDT05GSUdfSU5FVD15Cj4gIENPTkZJR19JUF9QTlA9eQo+ICBDT05GSUdfSVBfUE5Q
-X0RIQ1A9eQo+ICBDT05GSUdfSVBfUE5QX0JPT1RQPXkKPiAtIyBDT05GSUdfSU5FVF9MUk8gaXMg
-bm90IHNldAo+ICAjIENPTkZJR19JUFY2IGlzIG5vdCBzZXQKPiAgIyBDT05GSUdfV0lSRUxFU1Mg
-aXMgbm90IHNldAo+ICBDT05GSUdfTkVUXzlQPXkKWy4uLl0KCkFja2VkLWJ5OiBMaXZpdSBEdWRh
-dSA8bGl2aXUuZHVkYXVAYXJtLmNvbT4KClRoYW5rcyBmb3IgdGhlIGNsZWFudXAhCkxpdml1Ci0t
-IAo9PT09PT09PT09PT09PT09PT09PQp8IEkgd291bGQgbGlrZSB0byB8CnwgZml4IHRoZSB3b3Js
-ZCwgIHwKfCBidXQgdGhleSdyZSBub3QgfAp8IGdpdmluZyBtZSB0aGUgICB8CiBcIHNvdXJjZSBj
-b2RlISAgLwogIC0tLS0tLS0tLS0tLS0tLQogICAgwq9cXyjjg4QpXy/CrwoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
-aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
-cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Hello Grygorii, Javier,
+
+2017-06-09 2:00 GMT+02:00 Javier Martinez Canillas <javier@dowhile0.org>:
+> Hello Grygorii,
+>
+> [snip]
+>
+>>>
+>>> For tps65218 couldn't instead of using mfd_add_devices() for all the
+>>> sub-devs, had used of_platform_populate() for the ones that have
+>>> device nodes and mfd_add_devices() only for the "tps65218-regulator"?
+>>>
+>>> The commit talks about nodes without compatibles but's actually about
+>>> sub-devices without an associated device node. For me it makes sense
+>>> to use of_platform_populate() when the MFD has device nodes for their
+>>> sub-devices and mfd_add_devices() when DT knows nothing about the
+>>> sub-devices.
+>>
+>> FYI. Below is link discussion I'm referring to between Mark Brown and Andrew F. Davis
+>> https://lkml.org/lkml/2015/10/22/823
+>> the same - https://groups.google.com/forum/#!topic/linux.kernel/wQsdSpPMroQ
+>>
+>
+> Thanks a lot for the pointer. There's a subtle difference between the
+> argument you made and the one that Mark is making in this thread
+> though.
+>
+> Because you said (sorry if I misunderstood) that mfd_add_devices()
+> should be used instead of of_device_populate() even when sub-devices
+> are described as DT nodes (as is the case in the commit you shared)
+> while Mark is saying that if the sub-devs IP blocks are part of the
+> MFD, then it shouldn't be exposed in the DT and be instantiated via
+> mfd_add_devices() and I absolutely agree with that.
+>
+> So I was arguing for using of_device_populate() if the sub-devices are
+> described in the DT. If that makes sense or not to expose the
+> sub-devices in the DT for this particular driver is a different
+> discussion and I can't comment on that since I'm not familiar with the
+> HW.
+>
+
+I'm agree with Grygorii here that has no sense describe the static
+interrupts resources in the DT here unless DT maintainers prefer have
+them (dunno their preferences). OTOH, for the charger we need a way to
+disable (or having a mfd propriety or having a DT subnode with the
+status). I have a new idea that might be acceptable by Grygorii and
+also solve my use case. Let me prepare a second patchset and lets
+continue the discussion there?
+
+Best regards,
+ Enric
+
+> Best regards,
+> Javier
