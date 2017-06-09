@@ -1,115 +1,141 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 0/8] omap*: Fixes/Cleanups for MMC devicetree node
-Date: Fri, 9 Jun 2017 13:35:58 +0530
-Message-ID: <4a4c4eb2-d865-25e6-cd53-a74d4f7b1f62@ti.com>
-References: <20170607093749.15656-1-kishon@ti.com>
- <CAPDyKFrJh9qAz6q2-TH8rMshuMjDTkT5pHP==FUUH9KZEOehOQ@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: lp87565: Add support for GPIO
+Date: Fri, 9 Jun 2017 10:36:25 +0200
+Message-ID: <CACRpkdZFYSj0=O1PpPzWpcgV+k7WoKCDRPW3fcQ5+B-pDvEWEw@mail.gmail.com>
+References: <1496286631-6295-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAPDyKFrJh9qAz6q2-TH8rMshuMjDTkT5pHP==FUUH9KZEOehOQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1496286631-6295-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Lee Jones <lee.jones@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Andrew F. Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, Jun 1, 2017 at 5:10 AM, Keerthy <j-keerthy@ti.com> wrote:
 
-On Thursday 08 June 2017 12:50 PM, Ulf Hansson wrote:
-> On 7 June 2017 at 11:37, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->> There are the set of fixes that were sent initially as part
->> of [1].
->>
->> These are mostly fixes w.r.t populating regulators in
->> mmc dt node. It was working before because the regulators
->> connecting to the IO lines are always on regulators. This will
->> break once we add UHS support where voltage has to be changed
->> dynamically.
->>
->> It also includes a patch to replace all vmmc_aux-supply
->> with vqmmc-supply (In omap3-overo-base.dtsi remove the existing
->> vqmmc-supply and then replace vmmc_aux-supply with vqmmc-supply).
->> This will break old dt compatibility but not sure how better
->> to handle this.
->>
->> Performed enumeration testing on dra72-evm-revc, dra72-evm,
->> dra7-evm, am572x-evm, am571x-idk, am572x-idk, omap5-evm,
->> pandaboard-es, am43xx-evm, am335x-evm, beagleboard etc.,
->>
->> This is a preparation series for adding UHS mode support in
->> the above mentioned platforms.
->>
->> Changes from v1:
->> *) Included a patch to replace deprecated "vmmc_aux" with
->>    "vqmmc"
->>
->> [1] -> https://lkml.org/lkml/2017/5/19/196
->>
->> Kishon Vijay Abraham I (6):
->>   ARM: dts: dra72-evm-common: Correct vmmc-supply for mmc2
->>   ARM: dts: dra72-evm: Add vqmmc supply to mmc1
->>   ARM: dts: dra72-evm-revc: Add vqmmc supply to mmc1
->>   ARM: dts: am57xx-beagle-x15-revb1: Fix supply name used for MMC1 IO
->>     lines
->>   ARM: dts: dra7: Add "max-frequency" property to MMC dt nodes
->>   ARM: dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc"
->>
->> Ravikumar Kattekola (1):
->>   ARM: dts: dra7-evm: Correct the vmmc-supply for mmc2
->>
->> Sekhar Nori (1):
->>   ARM: OMAP2+: Add pdata-quirks for MMC/SD on DRA74x EVM
->>
->>  arch/arm/boot/dts/am572x-idk.dts               |  2 +-
->>  arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts  |  2 +-
->>  arch/arm/boot/dts/dra7-evm.dts                 | 12 ++++++++--
->>  arch/arm/boot/dts/dra7.dtsi                    |  5 +++++
->>  arch/arm/boot/dts/dra71-evm.dts                | 16 ++++++++++++-
->>  arch/arm/boot/dts/dra72-evm-common.dtsi        |  2 --
->>  arch/arm/boot/dts/dra72-evm-revc.dts           | 18 +++++++++++++++
->>  arch/arm/boot/dts/dra72-evm-tps65917.dtsi      |  2 +-
->>  arch/arm/boot/dts/dra72-evm.dts                | 18 +++++++++++++++
->>  arch/arm/boot/dts/omap3-beagle-xm.dts          |  2 +-
->>  arch/arm/boot/dts/omap3-beagle.dts             |  2 +-
->>  arch/arm/boot/dts/omap3-cm-t3517.dts           |  2 +-
->>  arch/arm/boot/dts/omap3-cm-t3730.dts           |  2 +-
->>  arch/arm/boot/dts/omap3-devkit8000-common.dtsi |  2 +-
->>  arch/arm/boot/dts/omap3-evm-common.dtsi        |  2 +-
->>  arch/arm/boot/dts/omap3-n900.dts               |  2 +-
->>  arch/arm/boot/dts/omap3-overo-base.dtsi        |  3 +--
->>  arch/arm/boot/dts/omap3-tao3530.dtsi           |  2 +-
->>  arch/arm/boot/dts/omap3-zoom3.dts              |  2 +-
->>  arch/arm/boot/dts/omap3430-sdp.dts             |  2 +-
->>  arch/arm/mach-omap2/pdata-quirks.c             | 31 ++++++++++++++++++++++++++
->>  include/linux/platform_data/hsmmc-omap.h       |  3 +++
->>  22 files changed, 114 insertions(+), 20 deletions(-)
->>
->> --
->> 2.11.0
->>
-> 
-> If it helps, I can host a branch with the updates on the omap_hsmmc
-> driver, such it can be pulled in from arm soc?
-> 
-> I guess you need that as, the DT changes relies on the new vqmmc
-> binding. Or you thing it doesn't matter, because for the current
-> changes that regulator is always an always on regulator?
+> Add driver for lp87565 PMIC family GPIOs. Three GPIOs are supported
+> and can be configured in Open-drain output or Push-pull output.
+>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
 
-Since there is fallback mechanism in omap_hsmmc driver (falls back to
-vmmc_aux), dt changes shouldn't rely on the omap_hsmmc driver.
+(...)
+> The latest version of mfd driver for this pmic is posted:
+> https://lkml.org/lkml/2017/5/30/463
+(...)
+> +config GPIO_LP87565
+> +       tristate "TI LP87565 GPIO"
+> +       depends on MFD_TI_LP87565
 
-However I'll send a fix for omap3-overo-base which used vqmmc incorrectly (that
-should be merged before omap_hsmmc driver changes) so that git bisect does not
-break.
+Hm I guess that means I could merge it since it will only compile once
+that symbol turns up in the kernel tree.
 
-Thanks
-Kishon
+> +#include <linux/gpio.h>
+
+Please use
+#include <linux/gpio/driver.h>
+only.
+
+> +#include <linux/mfd/lp87565.h>
+
+Is this API stable enough that I could merge this and count on it to
+"just work" once the MFD driver lands?
+
+> +struct lp87565_gpio {
+> +       struct gpio_chip chip;
+> +       struct lp87565 *lp87565;
+> +};
+
+It seems the code would be easier to read if you store the struct regmap *map
+pointer here instead of the whole struct lp87565.
+
+But it's no strong preference.
+
+> +static int lp87565_gpio_get(struct gpio_chip *chip, unsigned int offset)
+> +{
+> +       struct lp87565_gpio *gpio = gpiochip_get_data(chip);
+> +       int ret, val;
+> +
+> +       ret = regmap_read(gpio->lp87565->regmap, LP87565_REG_GPIO_IN, &val);
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       return val & BIT(offset);
+
+return !!(val & BIT(offset));
+
+please, so it's clear that we clamp to [0,1].
+
+> +static int lp87565_gpio_request(struct gpio_chip *gc, unsigned int offset)
+> +{
+> +       struct lp87565_gpio *gpio = gpiochip_get_data(gc);
+> +       int ret;
+> +
+> +       switch (offset) {
+> +       case 0:
+> +       case 1:
+> +       case 2:
+> +               /* Setup the GPIO*_SEL MUX to GPIO mode */
+> +               ret = regmap_update_bits(gpio->lp87565->regmap,
+> +                                        LP87565_REG_PIN_FUNCTION,
+> +                                        BIT(offset), BIT(offset));
+
+Hm. Hm.
+
+If this IC has several function modes for the pins it should also
+be a pin controller... I know it is a lot of upfront code, but... it will
+benefit you in the long run. Is it really just these three pins?
+
+Maybe we should merge it into
+drivers/pinctrl/pinctrl-lp87565.c so that at least file placement does
+not become a problem later?
+
+> +static int lp87565_gpio_set_config(struct gpio_chip *gc, unsigned int offset,
+> +                                  unsigned long config)
+> +{
+> +       struct lp87565_gpio *gpio = gpiochip_get_data(gc);
+> +
+> +       switch (pinconf_to_config_param(config)) {
+> +       case PIN_CONFIG_DRIVE_OPEN_DRAIN:
+> +               return regmap_update_bits(gpio->lp87565->regmap,
+> +                                         LP87565_REG_GPIO_CONFIG,
+> +                                         BIT(offset +
+> +                                             __ffs(LP87565_GOIO1_OD)),
+> +                                         BIT(offset +
+> +                                             __ffs(LP87565_GOIO1_OD)));
+> +       case PIN_CONFIG_DRIVE_PUSH_PULL:
+> +               return regmap_update_bits(gpio->lp87565->regmap,
+> +                                         LP87565_REG_GPIO_CONFIG,
+> +                                         BIT(offset +
+> +                                             __ffs(LP87565_GOIO1_OD)), 0);
+> +       default:
+> +               return -ENOTSUPP;
+> +       }
+> +}
+
+Nice.
+
+If this was a split GPIO+pin control driver this would just be a call
+into the pinctrl back-end from the GPIO controller, like
+drivers/pinctrl/intel/pinctrl-intel.c does with just using
+gpiochip_generic_config().
+
+> +static int lp87565_gpio_probe(struct platform_device *pdev)
+> +{
+> +       struct lp87565_gpio *gpio;
+> +       int ret;
+> +
+> +       gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+> +       if (!gpio)
+> +               return -ENOMEM;
+> +
+> +       platform_set_drvdata(pdev, gpio);
+
+Is this pointer used anywhere?
+
+> +       gpio->lp87565 = dev_get_drvdata(pdev->dev.parent);
+
+So maybe assign the regmap instead.
+
+Yours,
+Linus Walleij
