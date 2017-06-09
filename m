@@ -1,39 +1,27 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 0/8] omap*: Fixes/Cleanups for MMC devicetree node
-Date: Fri, 9 Jun 2017 17:51:30 +0530
-Message-ID: <a6ed36ef-9552-3bfb-c863-0819add51850@ti.com>
-References: <20170607093749.15656-1-kishon@ti.com>
- <CAPDyKFrJh9qAz6q2-TH8rMshuMjDTkT5pHP==FUUH9KZEOehOQ@mail.gmail.com>
- <20170608084619.GH3730@atomide.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 3/3] Documentation: dt-bindings: Document deprecation of
+ "vmmc_aux" and using "vqmmc"
+Date: Fri, 9 Jun 2017 08:53:28 -0500
+Message-ID: <20170609135328.frpf36hk242b3dxh@rob-hp-laptop>
+References: <20170607083612.14224-1-kishon@ti.com>
+ <20170607083612.14224-4-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20170608084619.GH3730@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170607083612.14224-4-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On Thursday 08 June 2017 02:16 PM, Tony Lindgren wrote:
-> * Ulf Hansson <ulf.hansson@linaro.org> [170608 00:24]:
->> If it helps, I can host a branch with the updates on the omap_hsmmc
->> driver, such it can be pulled in from arm soc?
+On Wed, Jun 07, 2017 at 02:06:12PM +0530, Kishon Vijay Abraham I wrote:
+> Document deprecation of "vmmc_aux" for io regulator and use of generic
+> mmc binding "vqmmc" in omap-hsmmc.
 > 
-> Great that works for me. Let's just make sure git bisect
-> keeps working.
-> 
->> I guess you need that as, the DT changes relies on the new vqmmc
->> binding. Or you thing it doesn't matter, because for the current
->> changes that regulator is always an always on regulator?
-> 
-> Or maybe we can just add the new regulator, then do a
-> follow-up series to remove the old ones?
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Since the driver has a fallback mechanism wherein if it's not able to find
-vqmmc, it'll fallback to vmmc_aux, I don't think that's required.
-
-Thanks
-Kishon
+Acked-by: Rob Herring <robh@kernel.org>
