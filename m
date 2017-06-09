@@ -1,57 +1,46 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 4/4] mfd: tps65217: Instantiate sub-devices from device tree
-Date: Fri, 9 Jun 2017 02:00:01 +0200
-Message-ID: <CABxcv=nzCreCSm9wkY+Kv_-vmoQN12Ct=_VegsfTrbe6H-1hTw@mail.gmail.com>
-References: <20170607103242.16008-1-enric.balletbo@collabora.com>
- <20170607103242.16008-4-enric.balletbo@collabora.com> <6359abe2-9a21-78a2-f5ea-87e2e3335af3@ti.com>
- <CAFqH_53v32iODN4xhoh4ho4s6grxknEDS3Ak6CHBcTAQo6fDNw@mail.gmail.com>
- <578f348c-509f-79d3-9770-73c9fcffe19c@ti.com> <CAFqH_52rU7ZBG_Muy2JHoqJGdXOdsNfmtJxsZoPRyx3V1aWmFw@mail.gmail.com>
- <CABxcv=mN6=hbDSqrVkwSL8zccCntN7m_3DP6ZCbkOT6CLw+skQ@mail.gmail.com> <fba09819-7d7e-57bb-c147-46c39098cff8@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCHv3] Bluetooth: hci_ll: Add compatible values for more WL
+ chips
+Date: Fri, 9 Jun 2017 07:49:09 +0200
+Message-ID: <377C5292-109E-4B78-992A-6552759A95A9@holtmann.org>
+References: <20170608205845.4903-1-sebastian.reichel@collabora.co.uk>
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <fba09819-7d7e-57bb-c147-46c39098cff8@ti.com>
+In-Reply-To: <20170608205845.4903-1-sebastian.reichel@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Mark Brown <broonie@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-leds@vger.kernel.org, linux-input@vger.kernel.org, Daniel Thompson <daniel.thompson@linaro.org>, Jingoo Han <jingoohan1@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Pavel Machek <pav>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, linux-bluetooth@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Grygorii,
+Hi Sebastian,
 
-[snip]
+> Add compatible values for WiLink chips from 128x and 180x series.
+> Also the DT binding already contained compatible values for the 127x
+> series, but the driver did not. This brings the list on par with
+> the list from wlcore (the wifi driver).
+> 
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> ---
+> Hi,
+> 
+> This patch originally was part of the "Motorola Droid 4: Add WL1285C support"
+> series. It can be queued standalone via the bluetooth tree, though.
+> 
+> Changes since PATCHv2:
+> * none
+> Changes since PATCHv1:
+> * patch did not exist
+> 
+> -- Sebastian
+> ---
+> Documentation/devicetree/bindings/net/ti,wilink-st.txt | 6 ++++++
+> drivers/bluetooth/hci_ll.c                             | 8 ++++++++
+> 2 files changed, 14 insertions(+)
 
->>
->> For tps65218 couldn't instead of using mfd_add_devices() for all the
->> sub-devs, had used of_platform_populate() for the ones that have
->> device nodes and mfd_add_devices() only for the "tps65218-regulator"?
->>
->> The commit talks about nodes without compatibles but's actually about
->> sub-devices without an associated device node. For me it makes sense
->> to use of_platform_populate() when the MFD has device nodes for their
->> sub-devices and mfd_add_devices() when DT knows nothing about the
->> sub-devices.
->
-> FYI. Below is link discussion I'm referring to between Mark Brown and Andrew F. Davis
-> https://lkml.org/lkml/2015/10/22/823
-> the same - https://groups.google.com/forum/#!topic/linux.kernel/wQsdSpPMroQ
->
+patch has been applied to bluetooth-next tree.
 
-Thanks a lot for the pointer. There's a subtle difference between the
-argument you made and the one that Mark is making in this thread
-though.
+Regards
 
-Because you said (sorry if I misunderstood) that mfd_add_devices()
-should be used instead of of_device_populate() even when sub-devices
-are described as DT nodes (as is the case in the commit you shared)
-while Mark is saying that if the sub-devs IP blocks are part of the
-MFD, then it shouldn't be exposed in the DT and be instantiated via
-mfd_add_devices() and I absolutely agree with that.
-
-So I was arguing for using of_device_populate() if the sub-devices are
-described in the DT. If that makes sense or not to expose the
-sub-devices in the DT for this particular driver is a different
-discussion and I can't comment on that since I'm not familiar with the
-HW.
-
-Best regards,
-Javier
+Marcel
