@@ -1,48 +1,58 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] ARM: dts: omap3-overo: Remove "vqmmc-supply" property
- from MMC dt node
-Date: Fri, 9 Jun 2017 16:32:09 +0530
-Message-ID: <275a0313-2cda-2328-e9e1-32bc91aca701@ti.com>
-References: <20170609084141.15582-1-kishon@ti.com>
- <CAPDyKFrZvnCPWUxDeewB=BTQPvuMnJ5tUg7CN=VK5=v+e+du4Q@mail.gmail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1] ASoC: omap-mcbsp: Use sysfs_match_string()
+	helper
+Date: Fri,  9 Jun 2017 15:06:54 +0300
+Message-ID: <20170609120654.21809-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAPDyKFrZvnCPWUxDeewB=BTQPvuMnJ5tUg7CN=VK5=v+e+du4Q@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Florian Vaussard <florian.vaussard@epfl.ch>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Use sysfs_match_string() helper instead of open coded variant.
 
-On Friday 09 June 2017 04:07 PM, Ulf Hansson wrote:
-> On 9 June 2017 at 10:41, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->> commit 94647a30124e2c7 ("ARM: dts: omap3-overo: Enable WiFi/BT combo")
->> while enabling WiFi/BT combo added regulator to trigger the nReset
->> signal of the Bluetooth module in vqmmc-supply. However BT should be
->> handled by UART. Moreover "vqmmc" is not a defined binding for
->> omap_hsmmc. While "vqmmc" in mmc2 hasn't caused any issues so far,
->> mmc2 will start to mis-behave once omap_hsmmc defines "vqmmc"
->> binding.
->>
->> Remove "vqmmc-supply" property in mmc2 here.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> 
-> Okay, so I assume I also need to carry this in my immutable branch for
-> the omap driver changes. More precisely before the driver changes?
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Mark Brown <broonie@kernel.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ sound/soc/omap/mcbsp.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-yeah, that's right!
-
-Thanks
-Kishon
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 06fec5699cc8..7a54e3083203 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -835,15 +835,11 @@ static ssize_t dma_op_mode_store(struct device *dev,
+ 				const char *buf, size_t size)
+ {
+ 	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
+-	const char * const *s;
+-	int i = 0;
+-
+-	for (s = &dma_op_modes[i]; i < ARRAY_SIZE(dma_op_modes); s++, i++)
+-		if (sysfs_streq(buf, *s))
+-			break;
++	int i;
+ 
+-	if (i == ARRAY_SIZE(dma_op_modes))
+-		return -EINVAL;
++	i = sysfs_match_string(dma_op_modes, buf);
++	if (i < 0)
++		return i;
+ 
+ 	spin_lock_irq(&mcbsp->lock);
+ 	if (!mcbsp->free) {
+-- 
+2.11.0
