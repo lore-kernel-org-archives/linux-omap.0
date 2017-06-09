@@ -1,63 +1,88 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: dts: omap3-overo: Remove "vqmmc-supply" property from MMC dt node
-Date: Fri, 9 Jun 2017 14:11:41 +0530
-Message-ID: <20170609084141.15582-1-kishon@ti.com>
+From: Liviu Dudau <liviu.dudau@arm.com>
+Subject: Re: [PATCH 01/35] ARM: defconfig: Cleanup from old Kconfig options
+Date: Fri, 9 Jun 2017 10:08:02 +0100
+Message-ID: <20170609090802.GL10049@e110455-lin.cambridge.arm.com>
+References: <20170608160836.12196-1-krzk@kernel.org>
+ <20170608161049.12421-1-krzk@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20170608161049.12421-1-krzk@kernel.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Joachim Eastwood <manabian@gmail.com>, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Chen-Yu Tsai <wens@csie.org>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <kernel@pengutronix.de>, Sudeep Holla <sudeep.holla@arm.com>, Fabio Estevam <fabio.estevam@nxp.com>, Maxime Ripard <maxime.ripard@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-commit 94647a30124e2c7 ("ARM: dts: omap3-overo: Enable WiFi/BT combo")
-while enabling WiFi/BT combo added regulator to trigger the nReset
-signal of the Bluetooth module in vqmmc-supply. However BT should be
-handled by UART. Moreover "vqmmc" is not a defined binding for
-omap_hsmmc. While "vqmmc" in mmc2 hasn't caused any issues so far,
-mmc2 will start to mis-behave once omap_hsmmc defines "vqmmc"
-binding.
-
-Remove "vqmmc-supply" property in mmc2 here.
-
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/omap3-overo-base.dtsi | 11 -----------
- 1 file changed, 11 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3-overo-base.dtsi b/arch/arm/boot/dts/omap3-overo-base.dtsi
-index 401fae838fe9..cd220342a805 100644
---- a/arch/arm/boot/dts/omap3-overo-base.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo-base.dtsi
-@@ -74,16 +74,6 @@
- 		gpio = <&gpio1 16 GPIO_ACTIVE_HIGH>;		/* gpio_16: WiFi nReset */
- 		startup-delay-us = <10000>;
- 	};
--
--	/* Regulator to trigger the nReset signal of the Bluetooth module */
--	w3cbw003c_bt_nreset: regulator-w3cbw003c-bt-nreset {
--		compatible = "regulator-fixed";
--		regulator-name = "regulator-w3cbw003c-bt-nreset";
--		regulator-min-microvolt = <3300000>;
--		regulator-max-microvolt = <3300000>;
--		gpio = <&gpio6 4 GPIO_ACTIVE_HIGH>;		/* gpio_164: BT nReset */
--		startup-delay-us = <10000>;
--	};
- };
- 
- &omap3_pmx_core {
-@@ -191,7 +181,6 @@
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&mmc2_pins>;
- 	vmmc-supply = <&w3cbw003c_npoweron>;
--	vqmmc-supply = <&w3cbw003c_bt_nreset>;
- 	vmmc_aux-supply = <&w3cbw003c_wifi_nreset>;
- 	bus-width = <4>;
- 	cap-sdio-irq;
--- 
-2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVGh1LCBKdW4gMDgsIDIwMTcgYXQgMDY6MTA6MTJQTSArMDIwMCwgS3J6eXN6dG9mIEtvemxv
+d3NraSB3cm90ZToKPiBSZW1vdmUgb2xkLCBkZWFkIEtjb25maWcgb3B0aW9ucyAoaW4gb3JkZXIg
+YXBwZWFyaW5nIGluIHRoaXMgY29tbWl0KToKPiAgLSBFWFBFUklNRU5UQUwgaXMgZ29uZSBzaW5j
+ZSB2My45Owo+ICAtIElORVRfTFJPOiBjb21taXQgN2JiZjNjYWU2NWI2ICgiaXB2NDogUmVtb3Zl
+IGluZXRfbHJvIGxpYnJhcnkiKTsKPiAgLSBNVERfQ09OQ0FUOiBjb21taXQgZjUzZmRlYmNjM2Ux
+ICgibXRkOiBkcm9wIE1URF9DT05DQVQgZnJvbSBLY29uZmlnCj4gICAgZW50aXJlbHkiKTsKPiAg
+LSBNVERfUEFSVElUSU9OUzogY29tbWl0IDZhOGE5OGIyMmIxMCAoIm10ZDoga2lsbAo+ICAgIENP
+TkZJR19NVERfUEFSVElUSU9OUyIpOwo+ICAtIE1URF9DSEFSOiBjb21taXQgNjYwNjg1ZDlkMWI0
+ICgibXRkOiBtZXJnZSBtdGRjaGFyIG1vZHVsZSB3aXRoCj4gICAgbXRkY29yZSIpOwo+ICAtIE5F
+VERFVl8xMDAwIGFuZCBORVRERVZfMTAwMDA6IGNvbW1pdCBmODYwYjA1MjJmNjUgKCJkcml2ZXJz
+L25ldDoKPiAgICBLY29uZmlnIGFuZCBNYWtlZmlsZSBjbGVhbnVwIik7IE5FVF9FVEhFUk5FVCBz
+aG91bGQgYmUgcmVwbGFjZWQgd2l0aAo+ICAgIGp1c3QgRVRIRVJORVQgYnV0IHRoYXQgaXMgc2Vw
+YXJhdGUgY2hhbmdlOwo+ICAtIElOT1RJRlk6IGNvbW1pdCAyZGZjMWNhZTRjNDIgKCJpbm90aWZ5
+OiByZW1vdmUgaW5vdGlmeSBpbiBrZXJuZWwKPiAgICBpbnRlcmZhY2UiKTsKPiAgLSBNSVNDX0RF
+VklDRVM6IGNvbW1pdCA3YzU3NjNiODQ1M2EgKCJkcml2ZXJzOiBtaXNjOiBSZW1vdmUKPiAgICBN
+SVNDX0RFVklDRVMgY29uZmlnIG9wdGlvbiIpOwo+ICAtIEhJRF9TVVBQT1JUOiBjb21taXQgMWY0
+MWE2YTk5NDc2ICgiSElEOiBGaXggdGhlIGdlbmVyaWMgS2NvbmZpZwo+ICAgIG9wdGlvbnMiKTsK
+PiAgLSBCVF9MMkNBUCBhbmQgQlRfU0NPOiBjb21taXQgZjFlOTFlMTY0MGQ4ICgiQmx1ZXRvb3Ro
+OiBBbHdheXMgY29tcGlsZQo+ICAgIFNDTyBhbmQgTDJDQVAgaW4gQmx1ZXRvb3RoIENvcmUiKTsK
+PiAgLSBERUJVR19FUlJPUlM6IGNvbW1pdCBiMDI1YTNmODM2ZDEgKCJBUk06IDY4NzYvMTogS2Nv
+bmZpZy5kZWJ1ZzoKPiAgICBSZW1vdmUgdW51c2VkIENPTkZJR19ERUJVR19FUlJPUlMiKTsKPiAg
+LSBVU0JfREVWSUNFX0NMQVNTOiBjb21taXQgMDA3YmFiOTEzMjRlICgiVVNCOiByZW1vdmUKPiAg
+ICBDT05GSUdfVVNCX0RFVklDRV9DTEFTUyIpOwo+ICAtIFJDVV9DUFVfU1RBTExfREVURUNUT1I6
+IGNvbW1pdCBhMDBlMGQ3MTRmYmQgKCJyY3U6IFJlbW92ZSBjb25kaXRpb25hbAo+ICAgIGNvbXBp
+bGF0aW9uIGZvciBSQ1UgQ1BVIHN0YWxsIHdhcm5pbmdzIik7Cj4gIC0gU1lTQ1RMX1NZU0NBTExf
+Q0hFQ0s6IGNvbW1pdCA3YzYwYzQ4ZjU4YTcgKCJzeXNjdGw6IEltcHJvdmUgdGhlCj4gICAgc3lz
+Y3RsIHNhbml0eSBjaGVja3MiKTsKPiAgLSBJUF9ORl9RVUVVRTogY29tbWl0IDNkZDY2NjRmYWM3
+ZSAoIm5ldGZpbHRlcjogcmVtb3ZlIHVudXNlZCAiY29uZmlnCj4gICAgSVBfTkZfUVVFVUUiIik7
+Cj4gIC0gSVBfTkZfVEFSR0VUX1VMT0c6IGNvbW1pdCBkNGRhODQzZTZmYWQgKCJuZXRmaWx0ZXI6
+IGtpbGwgcmVtbmFudHMgb2YKPiAgICB1bG9nIHRhcmdldHMiKTsKPiAgLSBJUDZfTkZfUVVFVUU6
+IGNvbW1pdCBkMTZjZjIwZTJmMmYgKCJuZXRmaWx0ZXI6IHJlbW92ZSBpcF9xdWV1ZQo+ICAgIHN1
+cHBvcnQiKTsKPiAgLSBJUDZfTkZfVEFSR0VUX0xPRzogY29tbWl0IDY5MzljMzNhNzU3YiAoIm5l
+dGZpbHRlcjogbWVyZ2UgaXB0X0xPRyBhbmQKPiAgICBpcDZfTE9HIGludG8geHRfTE9HIik7Cj4g
+IC0gVVNCX0xFRDogY29tbWl0IGEzMzVhYWYzMTI1YyAoInVzYjogbWlzYzogcmVtb3ZlIG91dGRh
+dGVkIFVTQiBMRUQKPiAgICBkcml2ZXIiKTsKPiAgLSBNTUNfVU5TQUZFX1JFU1VNRTogY29tbWl0
+IDI1MDFjOTE3OWRmZiAoIm1tYzogY29yZTogVXNlCj4gICAgTU1DX1VOU0FGRV9SRVNVTUUgYXMg
+ZGVmYXVsdCBiZWhhdmlvciIpOwo+ICAtIEFVVE9GU19GUzogY29tbWl0IDU2MWM1Y2Y5MjM2YSAo
+InN0YWdpbmc6IFJlbW92ZSBhdXRvZnMzIik7Cj4gIC0gRElTUExBWV9TVVBQT1JUOiBjb21taXQg
+NWE2YjVlMDJkNjczICgiZmJkZXY6IHJlbW92ZSBkaXNwbGF5Cj4gICAgc3Vic3lzdGVtIik7Cj4g
+IC0gQ0ZHODAyMTFfUkVHX0RFQlVHOiBjb21taXQgYzc5OWJhNmVhYjdhICgiY2ZnODAyMTE6IHJl
+bW92ZQo+ICAgIENGRzgwMjExX1JFR19ERUJVRyIpOwo+ICAtIFZJREVPX09VVFBVVF9DT05UUk9M
+OiBjb21taXQgZjE2N2E2NGU5ZDY3ICgidmlkZW8gLyBvdXRwdXQ6IERyb3AKPiAgICBkaXNwbGF5
+IG91dHB1dCBjbGFzcyBzdXBwb3J0Iik7Cj4gIC0gVVNCX0xJQlVTVUFMOiBjb21taXQgZjYxODcw
+ZWU2ZjhjICgidXNiOiByZW1vdmUgbGlidXN1YWwiKTsKPiAgLSBDUllQVE9fWkxJQjogY29tbWl0
+IDExMDQ5MjE4M2M0YiAoImNyeXB0bzogY29tcHJlc3MgLSByZW1vdmUgdW51c2VkCj4gICAgcGNv
+bXAgaW50ZXJmYWNlIik7Cj4gIC0gQkxLX0RFVl9VQjogY29tbWl0IDY4YTUwNTllY2Y4MiAoImJs
+b2NrOiByZW1vdmUgdGhlIGRlcHJlY2F0ZWQgdWIKPiAgICBkcml2ZXIiKTsKPiAKPiBTaWduZWQt
+b2ZmLWJ5OiBLcnp5c3p0b2YgS296bG93c2tpIDxrcnprQGtlcm5lbC5vcmc+CgpbLi4uLl0KPiBk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm0vY29uZmlncy92ZXhwcmVzc19kZWZjb25maWcgYi9hcmNoL2Fy
+bS9jb25maWdzL3ZleHByZXNzX2RlZmNvbmZpZwo+IGluZGV4IDM3ZmU2MDdhNGVkZS4uMGZhMGVk
+NTc3YjE1IDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL2NvbmZpZ3MvdmV4cHJlc3NfZGVmY29uZmln
+Cj4gKysrIGIvYXJjaC9hcm0vY29uZmlncy92ZXhwcmVzc19kZWZjb25maWcKPiBAQCAtNDYsNyAr
+NDYsNiBAQCBDT05GSUdfSU5FVD15Cj4gIENPTkZJR19JUF9QTlA9eQo+ICBDT05GSUdfSVBfUE5Q
+X0RIQ1A9eQo+ICBDT05GSUdfSVBfUE5QX0JPT1RQPXkKPiAtIyBDT05GSUdfSU5FVF9MUk8gaXMg
+bm90IHNldAo+ICAjIENPTkZJR19JUFY2IGlzIG5vdCBzZXQKPiAgIyBDT05GSUdfV0lSRUxFU1Mg
+aXMgbm90IHNldAo+ICBDT05GSUdfTkVUXzlQPXkKWy4uLl0KCkFja2VkLWJ5OiBMaXZpdSBEdWRh
+dSA8bGl2aXUuZHVkYXVAYXJtLmNvbT4KClRoYW5rcyBmb3IgdGhlIGNsZWFudXAhCkxpdml1Ci0t
+IAo9PT09PT09PT09PT09PT09PT09PQp8IEkgd291bGQgbGlrZSB0byB8CnwgZml4IHRoZSB3b3Js
+ZCwgIHwKfCBidXQgdGhleSdyZSBub3QgfAp8IGdpdmluZyBtZSB0aGUgICB8CiBcIHNvdXJjZSBj
+b2RlISAgLwogIC0tLS0tLS0tLS0tLS0tLQogICAgwq9cXyjjg4QpXy/CrwoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
+aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
+cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
