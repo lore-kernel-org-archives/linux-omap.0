@@ -1,43 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: omap3-overo: Remove "vqmmc-supply" property
- from MMC dt node
-Date: Sat, 10 Jun 2017 01:44:27 -0700
-Message-ID: <20170610084426.GM3730@atomide.com>
-References: <20170609084141.15582-1-kishon@ti.com>
- <CAPDyKFrZvnCPWUxDeewB=BTQPvuMnJ5tUg7CN=VK5=v+e+du4Q@mail.gmail.com>
- <275a0313-2cda-2328-e9e1-32bc91aca701@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] drm: omapdrm: remove unused variable
+Date: Sat, 10 Jun 2017 12:04:40 +0300
+Message-ID: <2360322.E0GRGgjHx9@avalon>
+References: <20170609103143.3095325-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <275a0313-2cda-2328-e9e1-32bc91aca701@ti.com>
+In-Reply-To: <20170609103143.3095325-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Florian Vaussard <florian.vaussard@epfl.ch>, linux-omap <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [170609 04:05]:
-> Hi,
-> 
-> On Friday 09 June 2017 04:07 PM, Ulf Hansson wrote:
-> > On 9 June 2017 at 10:41, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> >> commit 94647a30124e2c7 ("ARM: dts: omap3-overo: Enable WiFi/BT combo")
-> >> while enabling WiFi/BT combo added regulator to trigger the nReset
-> >> signal of the Bluetooth module in vqmmc-supply. However BT should be
-> >> handled by UART. Moreover "vqmmc" is not a defined binding for
-> >> omap_hsmmc. While "vqmmc" in mmc2 hasn't caused any issues so far,
-> >> mmc2 will start to mis-behave once omap_hsmmc defines "vqmmc"
-> >> binding.
-> >>
-> >> Remove "vqmmc-supply" property in mmc2 here.
-> >>
-> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > 
-> > Okay, so I assume I also need to carry this in my immutable branch for
-> > the omap driver changes. More precisely before the driver changes?
-> 
-> yeah, that's right!
+Hi Arnd,
 
-As far as I can tell this regulator won't do anything right now so:
+Thank you for the patch.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+On Friday 09 Jun 2017 12:31:03 Arnd Bergmann wrote:
+> Removing the default display name left a harmless warning:
+> 
+> fbdev/omap2/omapfb/dss/core.c: In function 'omap_dss_probe':
+> fbdev/omap2/omapfb/dss/core.c:196:30: error: unused variable 'pdata'
+> [-Werror=unused-variable]
+> 
+> This removes the now-unused variable as well.
+> 
+> Fixes: 278cba7eaf54 ("drm: omapdrm: Remove unused default display name
+> support")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/video/fbdev/omap2/omapfb/dss/core.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c
+> b/drivers/video/fbdev/omap2/omapfb/dss/core.c index
+> eecf695c16f4..09e5bb013d28 100644
+> --- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
+> +++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
+> @@ -193,7 +193,6 @@ static struct notifier_block omap_dss_pm_notif_block = {
+> 
+>  static int __init omap_dss_probe(struct platform_device *pdev)
+>  {
+> -	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
+>  	int r;
+> 
+>  	core.pdev = pdev;
+
+-- 
+Regards,
+
+Laurent Pinchart
