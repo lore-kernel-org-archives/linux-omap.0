@@ -1,56 +1,51 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] drm: omapdrm: remove unused variable
-Date: Sat, 10 Jun 2017 12:04:40 +0300
-Message-ID: <2360322.E0GRGgjHx9@avalon>
-References: <20170609103143.3095325-1-arnd@arndb.de>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: [PATCH 00/35] defconfig: Cleanup from old entries
+Date: Sat, 10 Jun 2017 18:43:51 +0200
+Message-ID: <20170610164351.7sxzvj4ojj3fbc7h@kozik-lap>
+References: <20170608160836.12196-1-krzk@kernel.org>
+ <CAK8P3a3bUeC3H2oNfdBedVY4UTCe8OgKbWmv46d5xfu8tC7tAg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170609103143.3095325-1-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a3bUeC3H2oNfdBedVY4UTCe8OgKbWmv46d5xfu8tC7tAg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-snps-arc/>
+List-Post: <mailto:linux-snps-arc@lists.infradead.org>
+List-Help: <mailto:linux-snps-arc-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-snps-arc" <linux-snps-arc-bounces@lists.infradead.org>
+Errors-To: linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Rich Felker <dalias@libc.org>, Aurelien Jacquiot <a-jacquiot@ti.com>, Tony Lindgren <tony@atomide.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Liviu Dudau <liviu.dudau@arm.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, David Howells <dhowells@redhat.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux <sparclinux@vger.kernel.org>, linux-hexagon@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, Thomas Gleixner <tglx@linutronix.de>, Lennox Wu <lennox.wu@gmail.com>, Jonas Bonn <jonas@southpole.se>, Chen Liqin <liqin.linux@gmail.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-sh@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
-
-Thank you for the patch.
-
-On Friday 09 Jun 2017 12:31:03 Arnd Bergmann wrote:
-> Removing the default display name left a harmless warning:
+On Fri, Jun 09, 2017 at 09:59:48PM +0200, Arnd Bergmann wrote:
+> On Thu, Jun 8, 2017 at 6:08 PM, Krzysztof Kozlowski <krzk@kernel.org> wrote:
+> > Hi,
+> >
+> > While cleaning Samsung ARM defconfigs with savedefconfig, I encountered
+> > similar obsolete entries in other files.
+> >
+> > Except the ARM, no dependencies.
+> > For ARM, the rest of patches depend on the first change (otherwise
+> > it might not apply cleanly).
 > 
-> fbdev/omap2/omapfb/dss/core.c: In function 'omap_dss_probe':
-> fbdev/omap2/omapfb/dss/core.c:196:30: error: unused variable 'pdata'
-> [-Werror=unused-variable]
+> Great work!
 > 
-> This removes the now-unused variable as well.
+> I looked at all the ARM patches, and everything looks good to me (the
+> changlog linewrapping may be suboptimal for readability in some cases,
+> if I had to say anything negative ;-) ).
 > 
-> Fixes: 278cba7eaf54 ("drm: omapdrm: Remove unused default display name
-> support")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Please add my Acked-by to the ARM patches and send a pull request.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Thanks, I'll send you ARM part in pull request.
 
-> ---
->  drivers/video/fbdev/omap2/omapfb/dss/core.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/video/fbdev/omap2/omapfb/dss/core.c
-> b/drivers/video/fbdev/omap2/omapfb/dss/core.c index
-> eecf695c16f4..09e5bb013d28 100644
-> --- a/drivers/video/fbdev/omap2/omapfb/dss/core.c
-> +++ b/drivers/video/fbdev/omap2/omapfb/dss/core.c
-> @@ -193,7 +193,6 @@ static struct notifier_block omap_dss_pm_notif_block = {
-> 
->  static int __init omap_dss_probe(struct platform_device *pdev)
->  {
-> -	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
->  	int r;
-> 
->  	core.pdev = pdev;
+As for the rest, I think respective arch/platform maintainers should
+take it.
 
--- 
-Regards,
-
-Laurent Pinchart
+Best regards,
+Krzysztof
