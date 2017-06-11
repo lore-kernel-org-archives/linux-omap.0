@@ -1,60 +1,96 @@
-From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/3] iio: adc: cpcap: Fix default register values and
- battery temperature
-Date: Sun, 11 Jun 2017 15:12:41 +0100
-Message-ID: <20170611151241.34f80929@kernel.org>
-References: <20170523005146.726-1-tony@atomide.com>
-        <20170523005146.726-2-tony@atomide.com>
-        <20170524201831.3504c42d@kernel.org>
-        <20170607062200.GD3730@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v2] mfd: tps65217: Introduce dependency on CONFIG_OF
+Date: Sun, 11 Jun 2017 23:42:14 +0530
+Message-ID: <8ad3c0ba-8e84-b75c-7873-882f90fa39d5@ti.com>
+References: <1496918764-23438-1-git-send-email-j-keerthy@ti.com>
+ <CAFqH_52yTzmJaxxWpmdu+Kq-8T1LPbmQVb2yx=CXXQLd4POAgQ@mail.gmail.com>
+ <CABxcv=n7V1KRcdypxYz+9vsDdSzXrANGFiyFW7ZXtA4GYLJ20Q@mail.gmail.com>
+ <481f45bd-7970-7254-6c38-654e412e4f9c@ti.com>
+ <CABxcv=kcJQBYJhZiacCX1xC_hzJrwwcwSQtz8rh8mHtSog8euQ@mail.gmail.com>
+ <31c8a0f3-885e-c464-f597-29d3894c19f9@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170607062200.GD3730-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <31c8a0f3-885e-c464-f597-29d3894c19f9@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Jingoo Han <jingoohan1@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 6 Jun 2017 23:22:00 -0700
-Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
 
-> * Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170524 12:22]:
-> > On Mon, 22 May 2017 17:51:44 -0700
-> > Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> >   
-> > > Looking at the register dumps from Android kernel on droid 4, I noticed
-> > > the values with the mainline kernel don't match. Let's fix this by
-> > > initializing the ADC registers to what Android does.
-> > > 
-> > > For getting correct values from the battery thermistor, we need to
-> > > toggle the CPCAP_BIT_THERMBIAS_EN when measuring battery temperature
-> > > to get correct battery temperatures. And looks like we also need to
-> > > wait a little bit before reading the battery temperature as otherwise
-> > > the results are inaccurate.
-> > > 
-> > > Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-> > > Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > > Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>  
-> > Applied to the togreg branch of iio.git and will be shortly pushed
-> > out as testing for the autobuilders to play with it.  
-> 
-> Not seeing these in your togreg brach or in next? The
-> branch I just checked is the one below, maybe I'm looking
-> at a wrong branch or something.
-I think I was being a muppet last weekend.  Forgot to actually
-push out anything much.
 
-Done now, though still as testing as obviously the autobuilders haven't
-looked at it yet.
-Sorry about that and thanks for point it out!
+On Sunday 11 June 2017 10:50 AM, Keerthy wrote:
+> 
+> 
+> On Friday 09 June 2017 05:18 AM, Javier Martinez Canillas wrote:
+>> On Fri, Jun 9, 2017 at 1:18 AM, Keerthy <j-keerthy@ti.com> wrote:
+>>
+>> [snip]
+>>
+>>>>
+>>>>>>
+>>>>>> -static const struct i2c_device_id tps65217_id_table[] = {
+>>>>>> -       {"tps65217", TPS65217},
+>>>>>> -       { /* sentinel */ }
+>>>>>> -};
+>>>>>> -MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
+>>>>
+>>>> Unfortunately you can't get rid of this table (yet) since the I2C
+>>>> subsystem always reports a MODALIAS of the form "i2c:tps65217" even
+>>>> when the devices have been registered via OF. There are only a couple
+>>>> of drivers more to clean-up and then I'll post a patch that fixes the
+>>>> I2C core to report a proper OF modalias. But for now, removing will
+>>>> mean that module autoload will be broken for this driver.
+>>>
+>>> So this means whole logic of probe_new without i2c_device_id is not
+>>> ready? I will have to revert all that logic right?
+>>>
+>>
+>> No, that's not what I meant.
+>>
+>> It's absolutely correct for drivers that can't be build as a module
+>> (i.e: have a boolean instead of tristate Kconfig symbol) or if you
+>> want to get rid of the struct i2c_device_id pointed passed to your
+>> probe callback since isn't used in the driver.
+>>
+>> But it's not enough to get rid of the struct i2c_device_id table for
+>> the reason I mentioned before.
+> 
+> Thanks for clarifying!
+> 
+>>
+>>> Lee Jones,
+>>>
+>>> Does that mean even for LP87565 driver we need MODULE_DEVICE_TABLE for
+>>> module autoload?
+>>>
+>>
+>> I guess you are talking about [0], right?
+>>
+>> Yes, it's needed because the driver can be built as a module.
+> 
+> Okay.
 
-Jonathan
+Javier,
+
+I found one instance where in the config is tristate MFD_MAX77686.
+The driver already seems to be using probe_new.
+
+mfd: max77686: Use the struct i2c_driver .probe_new instead of .probe
+
+So for the above module auto probe would be broken?
+
+- Keerthy
 > 
-> Regards,
+>>
+>> [0]: https://lkml.org/lkml/2017/5/19/394
+>>
+>> Best regards,
+>> Javier
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> Tony
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/log/?h=togreg
