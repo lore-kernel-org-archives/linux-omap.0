@@ -1,92 +1,60 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4] mfd: lp87565: Add lp87565 PMIC support
-Date: Sun, 11 Jun 2017 10:52:17 +0530
-Message-ID: <7e352aa3-4483-1fa4-e424-cc90f62cdf46@ti.com>
-References: <1496894894-6969-1-git-send-email-j-keerthy@ti.com>
- <20170609142855.tfixhw3cb5qjkcne@rob-hp-laptop>
- <7596b39a-3135-7cca-e3dc-18c05cf54a8b@ti.com>
+From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/3] iio: adc: cpcap: Fix default register values and
+ battery temperature
+Date: Sun, 11 Jun 2017 15:12:41 +0100
+Message-ID: <20170611151241.34f80929@kernel.org>
+References: <20170523005146.726-1-tony@atomide.com>
+        <20170523005146.726-2-tony@atomide.com>
+        <20170524201831.3504c42d@kernel.org>
+        <20170607062200.GD3730@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7596b39a-3135-7cca-e3dc-18c05cf54a8b-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170607062200.GD3730-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, 6 Jun 2017 23:22:00 -0700
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
 
-
-On Sunday 11 June 2017 10:36 AM, Keerthy wrote:
+> * Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170524 12:22]:
+> > On Mon, 22 May 2017 17:51:44 -0700
+> > Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> >   
+> > > Looking at the register dumps from Android kernel on droid 4, I noticed
+> > > the values with the mainline kernel don't match. Let's fix this by
+> > > initializing the ADC registers to what Android does.
+> > > 
+> > > For getting correct values from the battery thermistor, we need to
+> > > toggle the CPCAP_BIT_THERMBIAS_EN when measuring battery temperature
+> > > to get correct battery temperatures. And looks like we also need to
+> > > wait a little bit before reading the battery temperature as otherwise
+> > > the results are inaccurate.
+> > > 
+> > > Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+> > > Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > > Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>  
+> > Applied to the togreg branch of iio.git and will be shortly pushed
+> > out as testing for the autobuilders to play with it.  
 > 
+> Not seeing these in your togreg brach or in next? The
+> branch I just checked is the one below, maybe I'm looking
+> at a wrong branch or something.
+I think I was being a muppet last weekend.  Forgot to actually
+push out anything much.
+
+Done now, though still as testing as obviously the autobuilders haven't
+looked at it yet.
+Sorry about that and thanks for point it out!
+
+Jonathan
 > 
-> On Friday 09 June 2017 07:58 PM, Rob Herring wrote:
->> On Thu, Jun 08, 2017 at 09:38:14AM +0530, Keerthy wrote:
->>> The LP87565 chip is a power management IC for Portable Navigation Systems
->>> and Tablet Computing devices. It contains the following components:
->>>
->>>         - Configurable Bucks(Single and multi-phase).
->>>         - Configurable General Purpose Output Signals (GPO).
->>>
->>> The LP87565-Q1 variant device uses two 2-phase outputs configuration,
->>> Buck0 is master for Buck0/1 output and Buck2 is master for Buck2/3
->>> output.
->>>
-
-Lee Jones,
-
-Shall i add back i2c_device_id as pointed here:
-http://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1417316.html
-
-Best Regards,
-Keerthy
-
-
->>> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->>> ---
->>>
->>> The other patches are already pulled by Mark. Hence posting
->>> the remaining patch.
->>>
->>> Changes in v4:
->>>
->>>   * Fixed device tree comments from Rob on the pmic node name.
->>>   * removed regulators from properties list as it is a node.
->>>  
->>> Changes in v3:
->>>
->>>   * Fixed License to GPL v2.
->>>   * Fixed an indentation issue.
->>>
->>> Changes in v2:
->>>
->>>   * Fixed a bunch of whitespace errors.
->>>   * Changed the License to short form.
->>>   * Added the generic compatible lp87565
->>>   * Removed i2c_device_id table.
->>>   * Introduced probe_new function in place of probe.
->>>
->>>  Documentation/devicetree/bindings/mfd/lp87565.txt |  43 ++++
->>
->> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Regards,
 > 
-> Thanks Rob.
+> Tony
 > 
->>
->>>  drivers/mfd/Kconfig                               |  14 ++
->>>  drivers/mfd/Makefile                              |   1 +
->>>  drivers/mfd/lp87565.c                             |  92 ++++++++
->>>  include/linux/mfd/lp87565.h                       | 270 ++++++++++++++++++++++
->>>  5 files changed, 420 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/mfd/lp87565.txt
->>>  create mode 100644 drivers/mfd/lp87565.c
->>>  create mode 100644 include/linux/mfd/lp87565.h
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/log/?h=togreg
