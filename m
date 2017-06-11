@@ -1,76 +1,92 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v2] mfd: tps65217: Introduce dependency on CONFIG_OF
-Date: Sun, 11 Jun 2017 10:50:30 +0530
-Message-ID: <31c8a0f3-885e-c464-f597-29d3894c19f9@ti.com>
-References: <1496918764-23438-1-git-send-email-j-keerthy@ti.com>
- <CAFqH_52yTzmJaxxWpmdu+Kq-8T1LPbmQVb2yx=CXXQLd4POAgQ@mail.gmail.com>
- <CABxcv=n7V1KRcdypxYz+9vsDdSzXrANGFiyFW7ZXtA4GYLJ20Q@mail.gmail.com>
- <481f45bd-7970-7254-6c38-654e412e4f9c@ti.com>
- <CABxcv=kcJQBYJhZiacCX1xC_hzJrwwcwSQtz8rh8mHtSog8euQ@mail.gmail.com>
+From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4] mfd: lp87565: Add lp87565 PMIC support
+Date: Sun, 11 Jun 2017 10:52:17 +0530
+Message-ID: <7e352aa3-4483-1fa4-e424-cc90f62cdf46@ti.com>
+References: <1496894894-6969-1-git-send-email-j-keerthy@ti.com>
+ <20170609142855.tfixhw3cb5qjkcne@rob-hp-laptop>
+ <7596b39a-3135-7cca-e3dc-18c05cf54a8b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABxcv=kcJQBYJhZiacCX1xC_hzJrwwcwSQtz8rh8mHtSog8euQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Jingoo Han <jingoohan1@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <7596b39a-3135-7cca-e3dc-18c05cf54a8b-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Friday 09 June 2017 05:18 AM, Javier Martinez Canillas wrote:
-> On Fri, Jun 9, 2017 at 1:18 AM, Keerthy <j-keerthy@ti.com> wrote:
+On Sunday 11 June 2017 10:36 AM, Keerthy wrote:
 > 
-> [snip]
 > 
+> On Friday 09 June 2017 07:58 PM, Rob Herring wrote:
+>> On Thu, Jun 08, 2017 at 09:38:14AM +0530, Keerthy wrote:
+>>> The LP87565 chip is a power management IC for Portable Navigation Systems
+>>> and Tablet Computing devices. It contains the following components:
 >>>
->>>>>
->>>>> -static const struct i2c_device_id tps65217_id_table[] = {
->>>>> -       {"tps65217", TPS65217},
->>>>> -       { /* sentinel */ }
->>>>> -};
->>>>> -MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
+>>>         - Configurable Bucks(Single and multi-phase).
+>>>         - Configurable General Purpose Output Signals (GPO).
 >>>
->>> Unfortunately you can't get rid of this table (yet) since the I2C
->>> subsystem always reports a MODALIAS of the form "i2c:tps65217" even
->>> when the devices have been registered via OF. There are only a couple
->>> of drivers more to clean-up and then I'll post a patch that fixes the
->>> I2C core to report a proper OF modalias. But for now, removing will
->>> mean that module autoload will be broken for this driver.
->>
->> So this means whole logic of probe_new without i2c_device_id is not
->> ready? I will have to revert all that logic right?
->>
-> 
-> No, that's not what I meant.
-> 
-> It's absolutely correct for drivers that can't be build as a module
-> (i.e: have a boolean instead of tristate Kconfig symbol) or if you
-> want to get rid of the struct i2c_device_id pointed passed to your
-> probe callback since isn't used in the driver.
-> 
-> But it's not enough to get rid of the struct i2c_device_id table for
-> the reason I mentioned before.
+>>> The LP87565-Q1 variant device uses two 2-phase outputs configuration,
+>>> Buck0 is master for Buck0/1 output and Buck2 is master for Buck2/3
+>>> output.
+>>>
 
-Thanks for clarifying!
+Lee Jones,
 
-> 
->> Lee Jones,
+Shall i add back i2c_device_id as pointed here:
+http://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1417316.html
+
+Best Regards,
+Keerthy
+
+
+>>> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+>>> ---
+>>>
+>>> The other patches are already pulled by Mark. Hence posting
+>>> the remaining patch.
+>>>
+>>> Changes in v4:
+>>>
+>>>   * Fixed device tree comments from Rob on the pmic node name.
+>>>   * removed regulators from properties list as it is a node.
+>>>  
+>>> Changes in v3:
+>>>
+>>>   * Fixed License to GPL v2.
+>>>   * Fixed an indentation issue.
+>>>
+>>> Changes in v2:
+>>>
+>>>   * Fixed a bunch of whitespace errors.
+>>>   * Changed the License to short form.
+>>>   * Added the generic compatible lp87565
+>>>   * Removed i2c_device_id table.
+>>>   * Introduced probe_new function in place of probe.
+>>>
+>>>  Documentation/devicetree/bindings/mfd/lp87565.txt |  43 ++++
 >>
->> Does that mean even for LP87565 driver we need MODULE_DEVICE_TABLE for
->> module autoload?
+>> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> 
+> Thanks Rob.
+> 
 >>
+>>>  drivers/mfd/Kconfig                               |  14 ++
+>>>  drivers/mfd/Makefile                              |   1 +
+>>>  drivers/mfd/lp87565.c                             |  92 ++++++++
+>>>  include/linux/mfd/lp87565.h                       | 270 ++++++++++++++++++++++
+>>>  5 files changed, 420 insertions(+)
+>>>  create mode 100644 Documentation/devicetree/bindings/mfd/lp87565.txt
+>>>  create mode 100644 drivers/mfd/lp87565.c
+>>>  create mode 100644 include/linux/mfd/lp87565.h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> I guess you are talking about [0], right?
-> 
-> Yes, it's needed because the driver can be built as a module.
-
-Okay.
-
-> 
-> [0]: https://lkml.org/lkml/2017/5/19/394
-> 
-> Best regards,
-> Javier
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
