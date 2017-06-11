@@ -1,51 +1,175 @@
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Subject: Re: [PATCH 00/35] defconfig: Cleanup from old entries
-Date: Sat, 10 Jun 2017 18:43:51 +0200
-Message-ID: <20170610164351.7sxzvj4ojj3fbc7h@kozik-lap>
-References: <20170608160836.12196-1-krzk@kernel.org>
- <CAK8P3a3bUeC3H2oNfdBedVY4UTCe8OgKbWmv46d5xfu8tC7tAg@mail.gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH] gpio: lp87565: Add support for GPIO
+Date: Sun, 11 Jun 2017 09:57:02 +0530
+Message-ID: <74fd6c53-7801-73eb-5236-d7a72c93d715@ti.com>
+References: <1496286631-6295-1-git-send-email-j-keerthy@ti.com>
+ <CACRpkdZFYSj0=O1PpPzWpcgV+k7WoKCDRPW3fcQ5+B-pDvEWEw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a3bUeC3H2oNfdBedVY4UTCe8OgKbWmv46d5xfu8tC7tAg@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-snps-arc>,
- <mailto:linux-snps-arc-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-snps-arc/>
-List-Post: <mailto:linux-snps-arc@lists.infradead.org>
-List-Help: <mailto:linux-snps-arc-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-snps-arc>,
- <mailto:linux-snps-arc-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-snps-arc" <linux-snps-arc-bounces@lists.infradead.org>
-Errors-To: linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Rich Felker <dalias@libc.org>, Aurelien Jacquiot <a-jacquiot@ti.com>, Tony Lindgren <tony@atomide.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Liviu Dudau <liviu.dudau@arm.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, David Howells <dhowells@redhat.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux <sparclinux@vger.kernel.org>, linux-hexagon@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, Thomas Gleixner <tglx@linutronix.de>, Lennox Wu <lennox.wu@gmail.com>, Jonas Bonn <jonas@southpole.se>, Chen Liqin <liqin.linux@gmail.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Aaro Koskinen <aaro.koskinen@iki.fi>, linux-sh@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdZFYSj0=O1PpPzWpcgV+k7WoKCDRPW3fcQ5+B-pDvEWEw@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Lee Jones <lee.jones@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Tero Kristo <t-kristo@ti.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Andrew F. Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 09, 2017 at 09:59:48PM +0200, Arnd Bergmann wrote:
-> On Thu, Jun 8, 2017 at 6:08 PM, Krzysztof Kozlowski <krzk@kernel.org> wrote:
-> > Hi,
-> >
-> > While cleaning Samsung ARM defconfigs with savedefconfig, I encountered
-> > similar obsolete entries in other files.
-> >
-> > Except the ARM, no dependencies.
-> > For ARM, the rest of patches depend on the first change (otherwise
-> > it might not apply cleanly).
-> 
-> Great work!
-> 
-> I looked at all the ARM patches, and everything looks good to me (the
-> changlog linewrapping may be suboptimal for readability in some cases,
-> if I had to say anything negative ;-) ).
-> 
-> Please add my Acked-by to the ARM patches and send a pull request.
 
-Thanks, I'll send you ARM part in pull request.
 
-As for the rest, I think respective arch/platform maintainers should
-take it.
+On Friday 09 June 2017 02:06 PM, Linus Walleij wrote:
+> On Thu, Jun 1, 2017 at 5:10 AM, Keerthy <j-keerthy@ti.com> wrote:
+> 
+>> Add driver for lp87565 PMIC family GPIOs. Three GPIOs are supported
+>> and can be configured in Open-drain output or Push-pull output.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> 
+> (...)
+>> The latest version of mfd driver for this pmic is posted:
+>> https://lkml.org/lkml/2017/5/30/463
+> (...)
+>> +config GPIO_LP87565
+>> +       tristate "TI LP87565 GPIO"
+>> +       depends on MFD_TI_LP87565
+> 
+> Hm I guess that means I could merge it since it will only compile once
+> that symbol turns up in the kernel tree.
 
-Best regards,
-Krzysztof
+Yes.
+
+> 
+>> +#include <linux/gpio.h>
+> 
+> Please use
+> #include <linux/gpio/driver.h>
+> only.
+
+Okay
+
+> 
+>> +#include <linux/mfd/lp87565.h>
+> 
+> Is this API stable enough that I could merge this and count on it to
+> "just work" once the MFD driver lands?
+> 
+>> +struct lp87565_gpio {
+>> +       struct gpio_chip chip;
+>> +       struct lp87565 *lp87565;
+>> +};
+> 
+> It seems the code would be easier to read if you store the struct regmap *map
+> pointer here instead of the whole struct lp87565.
+> 
+> But it's no strong preference.
+
+Okay
+
+> 
+>> +static int lp87565_gpio_get(struct gpio_chip *chip, unsigned int offset)
+>> +{
+>> +       struct lp87565_gpio *gpio = gpiochip_get_data(chip);
+>> +       int ret, val;
+>> +
+>> +       ret = regmap_read(gpio->lp87565->regmap, LP87565_REG_GPIO_IN, &val);
+>> +       if (ret < 0)
+>> +               return ret;
+>> +
+>> +       return val & BIT(offset);
+> 
+> return !!(val & BIT(offset));
+> 
+> please, so it's clear that we clamp to [0,1].
+
+Okay
+
+> 
+>> +static int lp87565_gpio_request(struct gpio_chip *gc, unsigned int offset)
+>> +{
+>> +       struct lp87565_gpio *gpio = gpiochip_get_data(gc);
+>> +       int ret;
+>> +
+>> +       switch (offset) {
+>> +       case 0:
+>> +       case 1:
+>> +       case 2:
+>> +               /* Setup the GPIO*_SEL MUX to GPIO mode */
+>> +               ret = regmap_update_bits(gpio->lp87565->regmap,
+>> +                                        LP87565_REG_PIN_FUNCTION,
+>> +                                        BIT(offset), BIT(offset));
+> 
+> Hm. Hm.
+> 
+> If this IC has several function modes for the pins it should also
+> be a pin controller... I know it is a lot of upfront code, but... it will
+> benefit you in the long run. Is it really just these three pins?
+> 
+> Maybe we should merge it into
+> drivers/pinctrl/pinctrl-lp87565.c so that at least file placement does
+> not become a problem later?
+
+No Linus. Only 2 modes. So went along the lines of
+drivers/gpio/gpio-lp873x.c. If you are not okay with this. I can as well
+remove this part.
+
+> 
+>> +static int lp87565_gpio_set_config(struct gpio_chip *gc, unsigned int offset,
+>> +                                  unsigned long config)
+>> +{
+>> +       struct lp87565_gpio *gpio = gpiochip_get_data(gc);
+>> +
+>> +       switch (pinconf_to_config_param(config)) {
+>> +       case PIN_CONFIG_DRIVE_OPEN_DRAIN:
+>> +               return regmap_update_bits(gpio->lp87565->regmap,
+>> +                                         LP87565_REG_GPIO_CONFIG,
+>> +                                         BIT(offset +
+>> +                                             __ffs(LP87565_GOIO1_OD)),
+>> +                                         BIT(offset +
+>> +                                             __ffs(LP87565_GOIO1_OD)));
+>> +       case PIN_CONFIG_DRIVE_PUSH_PULL:
+>> +               return regmap_update_bits(gpio->lp87565->regmap,
+>> +                                         LP87565_REG_GPIO_CONFIG,
+>> +                                         BIT(offset +
+>> +                                             __ffs(LP87565_GOIO1_OD)), 0);
+>> +       default:
+>> +               return -ENOTSUPP;
+>> +       }
+>> +}
+> 
+> Nice.
+> 
+> If this was a split GPIO+pin control driver this would just be a call
+> into the pinctrl back-end from the GPIO controller, like
+> drivers/pinctrl/intel/pinctrl-intel.c does with just using
+> gpiochip_generic_config().
+
+okay. These are the two modes. Do you prefer have the driver split. I
+took the reference of lp873x and tps65218. So let me know.
+
+> 
+>> +static int lp87565_gpio_probe(struct platform_device *pdev)
+>> +{
+>> +       struct lp87565_gpio *gpio;
+>> +       int ret;
+>> +
+>> +       gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+>> +       if (!gpio)
+>> +               return -ENOMEM;
+>> +
+>> +       platform_set_drvdata(pdev, gpio);
+> 
+> Is this pointer used anywhere?
+
+Actually no. I can remove this.
+
+> 
+>> +       gpio->lp87565 = dev_get_drvdata(pdev->dev.parent);
+> 
+> So maybe assign the regmap instead.
+
+Sure. Seems that is the only thing i am using out of the lp87565
+structure. I will do that.
+
+> 
+> Yours,
+> Linus Walleij
+> 
