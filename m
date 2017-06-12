@@ -1,39 +1,77 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] net: phy: Make phy_ethtool_ksettings_get return void
-Date: Mon, 12 Jun 2017 10:59:05 -0400 (EDT)
-Message-ID: <20170612.105905.1031273319008486521.davem@davemloft.net>
-References: <20170612141508.29229-1-yuval.shaia@oracle.com>
-        <20170612.102525.1159274040679939960.davem@davemloft.net>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] dt-bindings: power: supply: cpcap-battery: Add
+ power-supplies property
+Date: Mon, 12 Jun 2017 09:04:00 -0700
+Message-ID: <20170612160400.GY3730@atomide.com>
+References: <20170612072025.30033-1-tony@atomide.com>
+ <20170612142217.tg7gidqg63uagwm4@earth>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-7
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170612.102525.1159274040679939960.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: yuval.shaia@oracle.com
-Cc: michael.chan@broadcom.com, f.fainelli@gmail.com, siva.kallam@broadcom.com, prashant@broadcom.com, madalin.bucur@nxp.com, leoli@freescale.com, sebastian.hesselbarth@gmail.com, sergei.shtylyov@cogentembedded.com, grygorii.strashko@ti.com, w-kwok2@ti.com, m-karicheri2@ti.com, andrew@lunn.ch, woojung.huh@microchip.com, UNGLinuxDriver@microchip.com, vivien.didelot@savoirfairelinux.com, arnd@arndb.de, tremyfr@gmail.com, jarod@redhat.com, horms+renesas@verge.net.au, kazuya.mizuguchi.ks@renesas.com, dan.carpenter@oracle.com, niklas.soderlund+renesas@ragnatech.se, johan@kernel.org, masaru.nagai.vx@renesas.com, geert+renesas@glider.be, laurent.pinchart@ideasonboard.com, chris.brandt@renesas.com, ivan.khoronzhuk@linaro.org, mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-arm-kernel
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170612142217.tg7gidqg63uagwm4@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogRGF2aWQgTWlsbGVyIDxkYXZlbUBkYXZlbWxvZnQubmV0Pg0KRGF0ZTogTW9uLCAxMiBK
-dW4gMjAxNyAxMDoyNToyNSAtMDQwMCAoRURUKQ0KDQo+IEZyb206IFl1dmFsIFNoYWlhIDx5dXZh
-bC5zaGFpYUBvcmFjbGUuY29tPg0KPiBEYXRlOiBNb24sIDEyIEp1biAyMDE3IDE3OjE1OjA4ICsw
-MzAwDQo+IA0KPj4gTWFrZSByZXR1cm4gdmFsdWUgdm9pZCBzaW5jZSBmdW5jdGlvbiBuZXZlciBy
-ZXR1cm4gbWVhbmluZ2Z1bGwgdmFsdWUNCj4+IA0KPj4gU2lnbmVkLW9mZi1ieTogWXV2YWwgU2hh
-aWEgPHl1dmFsLnNoYWlhQG9yYWNsZS5jb20+DQo+PiBBY2tlZC1ieTogU2VyZ2VpIFNodHlseW92
-IDxzZXJnZWkuc2h0eWx5b3ZAY29nZW50ZW1iZWRkZWQuY29tPg0KPj4gLS0tDQo+PiB2MCAtPnYx
-Og0KPj4gCSogVGhlc2UgZmlsZXMgd2VyZSBtaXNzaW5nIGluIHYwDQo+PiAJCSogZHJpdmVycy9u
-ZXQvZXRoZXJuZXQvcmVuZXNhcy9yYXZiX21haW4uYw0KPj4gCQkqIGRyaXZlcnMvbmV0L2V0aGVy
-bmV0L3JlbmVzYXMvc2hfZXRoLmMNCj4+IAkJKiBkcml2ZXJzL25ldC9ldGhlcm5ldC90aS9uZXRj
-cF9ldGhzcy5jDQo+PiAJKiBBZGQgQWNrZWQtYnk6IFNlcmdlaSBTaHR5bHlvdg0KPj4gdjEgLT4g
-djI6DQo+PiAJKiBBZGp1c3QgdG8gbmV0LW5leHQgdHJlZQ0KPiANCj4gQXBwbGllZCwgdGhhbmsg
-eW91Lg0KDQpSZXZlcnRlZCwgcGxlYXNlIHRlc3QgeW91ciBidWlsZCBwcm9wZXJseToNCg0KZHJp
-dmVycy9uZXQvZXRoZXJuZXQvYXBtL3hnZW5lL3hnZW5lX2VuZXRfZXRodG9vbC5jOiBJbiBmdW5j
-dGlvbiCheGdlbmVfZ2V0X2xpbmtfa3NldHRpbmdzojoNCmRyaXZlcnMvbmV0L2V0aGVybmV0L2Fw
-bS94Z2VuZS94Z2VuZV9lbmV0X2V0aHRvb2wuYzoxMzQ6MTA6IGVycm9yOiB2b2lkIHZhbHVlIG5v
-dCBpZ25vcmVkIGFzIGl0IG91Z2h0IHRvIGJlDQogICByZXR1cm4gcGh5X2V0aHRvb2xfa3NldHRp
-bmdzX2dldChwaHlkZXYsIGNtZCk7DQogICAgICAgICAgXg0KZHJpdmVycy9uZXQvZXRoZXJuZXQv
-YXBtL3hnZW5lL3hnZW5lX2VuZXRfZXRodG9vbC5jOjE0MDoxMTogZXJyb3I6IHZvaWQgdmFsdWUg
-bm90IGlnbm9yZWQgYXMgaXQgb3VnaHQgdG8gYmUNCiAgICByZXR1cm4gcGh5X2V0aHRvb2xfa3Nl
-dHRpbmdzX2dldChwaHlkZXYsIGNtZCk7DQogICAgICAgICAgIF4NCnNjcmlwdHMvTWFrZWZpbGUu
-YnVpbGQ6MzAyOiByZWNpcGUgZm9yIHRhcmdldCAnZHJpdmVycy9uZXQvZXRoZXJuZXQvYXBtL3hn
-ZW5lL3hnZW5lX2VuZXRfZXRodG9vbC5vJyBmYWlsZWQNCg==
+* Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org> [170612 07:26]:
+> On Mon, Jun 12, 2017 at 12:20:25AM -0700, Tony Lindgren wrote:
+> > +- power-supplies: List of devices that supply power, typically cpcap_charger
+> 
+> This is missing the info, that its about phandles. Maybe:
+> 
+> - power-supplies: List of phandles for power-supplying devices, as
+>                   described in power_supply.txt. Typically a reference
+>                   to cpcap_charger.
+
+Sure, updated patch below.
+
+Regards,
+
+Tony
+
+8< ------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Date: Mon, 12 Jun 2017 00:13:45 -0700
+Subject: [PATCH] dt-bindings: power: supply: cpcap-battery: Add
+ power-supplies property
+
+The binding for cpcap-battery is missing the standard power-supplies
+property as noted by Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>.
+
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ Documentation/devicetree/bindings/power/supply/cpcap-battery.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
+--- a/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
++++ b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
+@@ -8,6 +8,9 @@ Required properties:
+ - io-channels: IIO ADC channel specifier for each name in io-channel-names
+ - io-channel-names: Should contain the following entries:
+ 		    "battdetb", "battp", "chg_isense", "batti"
++- power-supplies: List of phandles for power-supplying devices, as
++		  described in power_supply.txt. Typically a reference
++		  to cpcap_charger.
+ 
+ Example:
+ 
+@@ -24,4 +27,5 @@ cpcap_battery: battery {
+ 		       &cpcap_adc 5 &cpcap_adc 6>;
+ 	io-channel-names = "battdetb", "battp",
+ 			   "chg_isense", "batti";
++	power-supplies = <&cpcap_charger>;
+ };
+-- 
+2.13.0
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
