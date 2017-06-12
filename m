@@ -1,53 +1,54 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] ARM: dts: omap4-droid4: Configure CPCAP battery driver
-Date: Mon, 12 Jun 2017 00:21:38 -0700
-Message-ID: <20170612072138.30203-1-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] ARM: dts: omap4: add missing des_fck
+Date: Mon, 12 Jun 2017 00:26:47 -0700
+Message-ID: <20170612072647.GQ3730@atomide.com>
+References: <20170609231206.19798-1-sre@kernel.org>
+ <20170609231206.19798-2-sre@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170609231206.19798-2-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Paul Walmsley <paul@pwsan.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Configure CPCAP battery driver.
+* Sebastian Reichel <sre@kernel.org> [170609 16:16]:
+> Add missing functional clock for DES3DES IP core. This is
+> documented in the TRM as CM_L4SEC_DES3DES_CLKCTRL.
 
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+Tero care to ack? Also, see the other two hwmod patches
+in this series for your clkctrl changes.
 
-diff --git a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
---- a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
-+++ b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
-@@ -26,6 +26,22 @@
- 			#io-channel-cells = <1>;
- 		};
- 
-+		cpcap_battery: battery {
-+			compatible = "motorola,cpcap-battery";
-+			interrupts-extended = <
-+				&cpcap 6 0 &cpcap 5 0 &cpcap 3 0
-+				&cpcap 20 0 &cpcap 54 0
-+			>;
-+			interrupt-names =
-+				"eol", "lowbph", "lowbpl",
-+				"chrgcurr1", "battdetb";
-+			io-channels = <&cpcap_adc 0 &cpcap_adc 1
-+				       &cpcap_adc 5 &cpcap_adc 6>;
-+			io-channel-names = "battdetb", "battp",
-+					   "chg_isense", "batti";
-+			power-supplies = <&cpcap_charger>;
-+		};
-+
- 		cpcap_charger: charger {
- 			compatible = "motorola,mapphone-cpcap-charger";
- 			interrupts-extended = <
--- 
-2.13.0
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
+
+> Signed-off-by: Sebastian Reichel <sre@kernel.org>
+> ---
+>  arch/arm/boot/dts/omap44xx-clocks.dtsi | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+> index 9573b37fbaa7..e997265460d4 100644
+> --- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+> @@ -985,6 +985,14 @@
+>  		reg = <0x15a8>;
+>  	};
+>  
+> +	des_fck: des_fck@15b0 {
+> +		#clock-cells = <0>;
+> +		compatible = "ti,gate-clock";
+> +		clocks = <&l3_div_ck>;
+> +		ti,bit-shift = <1>;
+> +		reg = <0x15b0>;
+> +	};
+> +
+>  	dss_sys_clk: dss_sys_clk@1120 {
+>  		#clock-cells = <0>;
+>  		compatible = "ti,gate-clock";
+> -- 
+> 2.11.0
+> 
