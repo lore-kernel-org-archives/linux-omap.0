@@ -1,46 +1,93 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 0/6] Init Clock frequences for accelerators
-Date: Mon, 12 Jun 2017 11:32:37 +0300
-Message-ID: <ea1b56dd-1a91-42a1-6247-2acd0dcc1dab@ti.com>
-References: <20170607212730.33002-1-s-anna@ti.com>
- <20170612073635.GT3730@atomide.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v4] mfd: lp87565: Add lp87565 PMIC support
+Date: Mon, 12 Jun 2017 10:11:33 +0100
+Message-ID: <20170612091133.kt2doom32bun6ujp@dell>
+References: <1496894894-6969-1-git-send-email-j-keerthy@ti.com>
+ <20170609142855.tfixhw3cb5qjkcne@rob-hp-laptop>
+ <7596b39a-3135-7cca-e3dc-18c05cf54a8b@ti.com>
+ <7e352aa3-4483-1fa4-e424-cc90f62cdf46@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170612073635.GT3730@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Subhajit Paul <subhajit_paul@ti.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <7e352aa3-4483-1fa4-e424-cc90f62cdf46@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Rob Herring <robh@kernel.org>, broonie@kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, mark.rutland@arm.com
 List-Id: linux-omap@vger.kernel.org
 
-On 12/06/17 10:36, Tony Lindgren wrote:
-> * Suman Anna <s-anna@ti.com> [170607 14:31]:
->> Hi Tony,
->>
->> The following series configures the initial frequencies for the required
->> DPLLs and corresponding output divider clocks used by various remoteproc
->> accelerators (DSP, IVAHD) on OMAP4, OMAP5 & DRA7xx/AM57xx SoCs and the
->> GPU on DRA7xx/AM57xx SoCs. All these devices require Adaptive Voltage
->> Scaling (AVS) to be programmed at all OPPs at boot time, which is
->> programmed in the bootloader. Furthermore, DVFS is not supported on
->> these domains implying a one-time OPP clock frequency setup.
+On Sun, 11 Jun 2017, Keerthy wrote:
+
 > 
-> Tero, care to comment or ack this series?
+> 
+> On Sunday 11 June 2017 10:36 AM, Keerthy wrote:
+> > 
+> > 
+> > On Friday 09 June 2017 07:58 PM, Rob Herring wrote:
+> >> On Thu, Jun 08, 2017 at 09:38:14AM +0530, Keerthy wrote:
+> >>> The LP87565 chip is a power management IC for Portable Navigation Systems
+> >>> and Tablet Computing devices. It contains the following components:
+> >>>
+> >>>         - Configurable Bucks(Single and multi-phase).
+> >>>         - Configurable General Purpose Output Signals (GPO).
+> >>>
+> >>> The LP87565-Q1 variant device uses two 2-phase outputs configuration,
+> >>> Buck0 is master for Buck0/1 output and Buck2 is master for Buck2/3
+> >>> output.
+> >>>
+> 
+> Lee Jones,
+> 
+> Shall i add back i2c_device_id as pointed here:
+> http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1417316.html
 
-These have been in use in TI releases for quite a while already, and 
-look fine, thus:
+Hasn't that been fixed yet?
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
+I guess so then. :(
 
-(Didn't quite think my ack was needed for them so didn't respond 
-earlier, sorry.)
+> >>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> >>> ---
+> >>>
+> >>> The other patches are already pulled by Mark. Hence posting
+> >>> the remaining patch.
+> >>>
+> >>> Changes in v4:
+> >>>
+> >>>   * Fixed device tree comments from Rob on the pmic node name.
+> >>>   * removed regulators from properties list as it is a node.
+> >>>  
+> >>> Changes in v3:
+> >>>
+> >>>   * Fixed License to GPL v2.
+> >>>   * Fixed an indentation issue.
+> >>>
+> >>> Changes in v2:
+> >>>
+> >>>   * Fixed a bunch of whitespace errors.
+> >>>   * Changed the License to short form.
+> >>>   * Added the generic compatible lp87565
+> >>>   * Removed i2c_device_id table.
+> >>>   * Introduced probe_new function in place of probe.
+> >>>
+> >>>  Documentation/devicetree/bindings/mfd/lp87565.txt |  43 ++++
+> >>
+> >> Acked-by: Rob Herring <robh@kernel.org>
+> > 
+> > Thanks Rob.
+> > 
+> >>
+> >>>  drivers/mfd/Kconfig                               |  14 ++
+> >>>  drivers/mfd/Makefile                              |   1 +
+> >>>  drivers/mfd/lp87565.c                             |  92 ++++++++
+> >>>  include/linux/mfd/lp87565.h                       | 270 ++++++++++++++++++++++
+> >>>  5 files changed, 420 insertions(+)
+> >>>  create mode 100644 Documentation/devicetree/bindings/mfd/lp87565.txt
+> >>>  create mode 100644 drivers/mfd/lp87565.c
+> >>>  create mode 100644 include/linux/mfd/lp87565.h
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
