@@ -1,35 +1,43 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/6] Init Clock frequences for accelerators
-Date: Mon, 12 Jun 2017 00:36:36 -0700
-Message-ID: <20170612073635.GT3730@atomide.com>
-References: <20170607212730.33002-1-s-anna@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: PM: stop early on systems without twl
+Date: Mon, 12 Jun 2017 00:39:47 -0700
+Message-ID: <20170612073946.GU3730@atomide.com>
+References: <20170609223223.19079-1-sre@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170607212730.33002-1-s-anna-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Subhajit Paul <subhajit_paul-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <20170609223223.19079-1-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [170607 14:31]:
-> Hi Tony,
+* Sebastian Reichel <sre@kernel.org> [170609 15:36]:
+> Motorola Droid 4 has an OMAP4, but no TWL6030. It currently
+> complains verbosely about this during boot:
 > 
-> The following series configures the initial frequencies for the required
-> DPLLs and corresponding output divider clocks used by various remoteproc
-> accelerators (DSP, IVAHD) on OMAP4, OMAP5 & DRA7xx/AM57xx SoCs and the
-> GPU on DRA7xx/AM57xx SoCs. All these devices require Adaptive Voltage
-> Scaling (AVS) to be programmed at all OPPs at boot time, which is
-> programmed in the bootloader. Furthermore, DVFS is not supported on
-> these domains implying a one-time OPP clock frequency setup.
+> twl: not initialized
+> twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+> twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+> twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+> twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+> twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+> twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+> twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1410000 Vs max 1316660
+> omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+> omap2_set_init_voltage: unable to set vdd_core
+> omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
+> omap2_set_init_voltage: unable to set vdd_iva
+> 
+> While proper support for CPCAP should be added at some point,
+> let's exit early in omap2_common_pm_late_init() until that
+> has been implemented to avoid the above errors. There is still
+> a reminder about missing PM in dmesg:
+> 
+> Missing OMAP4 PM for this platform!
 
-Tero, care to comment or ack this series?
-
-Regards,
+Great good to see this dmesg spam go away. Applying into
+omap-for-v4.13/soc-v3 thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
