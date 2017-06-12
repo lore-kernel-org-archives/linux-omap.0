@@ -1,91 +1,33 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH] dt-bindings: power: supply: cpcap-battery: Add
- power-supplies property
-Date: Mon, 12 Jun 2017 16:22:17 +0200
-Message-ID: <20170612142217.tg7gidqg63uagwm4@earth>
-References: <20170612072025.30033-1-tony@atomide.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2] net: phy: Make phy_ethtool_ksettings_get return void
+Date: Mon, 12 Jun 2017 10:25:25 -0400 (EDT)
+Message-ID: <20170612.102525.1159274040679939960.davem@davemloft.net>
+References: <20170612141508.29229-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="oltktef4nxtw3wip"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170612072025.30033-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+In-Reply-To: <20170612141508.29229-1-yuval.shaia@oracle.com>
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: yuval.shaia@oracle.com
+Cc: michael.chan@broadcom.com, f.fainelli@gmail.com, siva.kallam@broadcom.com, prashant@broadcom.com, madalin.bucur@nxp.com, leoli@freescale.com, sebastian.hesselbarth@gmail.com, sergei.shtylyov@cogentembedded.com, grygorii.strashko@ti.com, w-kwok2@ti.com, m-karicheri2@ti.com, andrew@lunn.ch, woojung.huh@microchip.com, UNGLinuxDriver@microchip.com, vivien.didelot@savoirfairelinux.com, arnd@arndb.de, tremyfr@gmail.com, jarod@redhat.com, horms+renesas@verge.net.au, kazuya.mizuguchi.ks@renesas.com, dan.carpenter@oracle.com, niklas.soderlund+renesas@ragnatech.se, johan@kernel.org, masaru.nagai.vx@renesas.com, geert+renesas@glider.be, laurent.pinchart@ideasonboard.com, chris.brandt@renesas.com, ivan.khoronzhuk@linaro.org, mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-arm-kernel
 List-Id: linux-omap@vger.kernel.org
 
+From: Yuval Shaia <yuval.shaia@oracle.com>
+Date: Mon, 12 Jun 2017 17:15:08 +0300
 
---oltktef4nxtw3wip
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Jun 12, 2017 at 12:20:25AM -0700, Tony Lindgren wrote:
-> The binding for cpcap-battery is missing the standard power-supplies
-> property as noted by Sebastian Reichel <sebastian.reichel@collabora.co.uk=
->.
->=20
-> Cc: devicetree@vger.kernel.org
-> Cc: Marcel Partap <mpartap@gmx.net>
-> Cc: Michael Scott <michael.scott@linaro.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Make return value void since function never return meaningfull value
+> 
+> Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
+> Acked-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 > ---
->  Documentation/devicetree/bindings/power/supply/cpcap-battery.txt | 2 ++
->  1 file changed, 2 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/power/supply/cpcap-battery=
-=2Etxt b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
-> --- a/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
-> +++ b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
-> @@ -8,6 +8,7 @@ Required properties:
->  - io-channels: IIO ADC channel specifier for each name in io-channel-nam=
-es
->  - io-channel-names: Should contain the following entries:
->  		    "battdetb", "battp", "chg_isense", "batti"
-> +- power-supplies: List of devices that supply power, typically cpcap_cha=
-rger
+> v0 ->v1:
+> 	* These files were missing in v0
+> 		* drivers/net/ethernet/renesas/ravb_main.c
+> 		* drivers/net/ethernet/renesas/sh_eth.c
+> 		* drivers/net/ethernet/ti/netcp_ethss.c
+> 	* Add Acked-by: Sergei Shtylyov
+> v1 -> v2:
+> 	* Adjust to net-next tree
 
-This is missing the info, that its about phandles. Maybe:
-
-- power-supplies: List of phandles for power-supplying devices, as
-                  described in power_supply.txt. Typically a reference
-                  to cpcap_charger.
-
--- Sebastian
-
-> =20
->  Example:
-> =20
-> @@ -24,4 +25,5 @@ cpcap_battery: battery {
->  		       &cpcap_adc 5 &cpcap_adc 6>;
->  	io-channel-names =3D "battdetb", "battp",
->  			   "chg_isense", "batti";
-> +	power-supplies =3D <&cpcap_charger>;
->  };
-> --=20
-> 2.13.0
-
---oltktef4nxtw3wip
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlk+o5kACgkQ2O7X88g7
-+prqWA/+Lh/fb1Ivoj3suhrc5PAvjq4BKXrie0bkDLcEAhuvA18wOW1YrfAzex5i
-aI5rHQ87kQaEwygK9ANrha9C9V93l8UJA6uFKwH3FX0kZ19tUvHXbfVW9Vat8NnJ
-wo4ntXjX5pfyXeB1ypy8eR1wLpJH2Y2l08s3mq/cz6NrjK9Rb3PGSSR+apoC2AQa
-efsAxjN9SXeX2snQsYENm+Stjhj5D0bbrrnGAXI0xQe7Tz+uCZYAFfxtcmi3GUXY
-K3RNheYjBdQjiLp5SFsd1Lh7oA2ysPHS9oLxzVBt9y9yRi9kh2AWuyY9xyy44mfl
-JH2WHRrhuBQ27Ja3b0Of8zJgjHFVc6QFSIRj7caOqcsUgehEQ6ukxjm/LSgDxBjK
-X/NJV1++wARtaeqVNXfx3usl1ImOdc6hnazS8P1hYNz/Nu5wRHJemObofjBa0P42
-s+vjeEfanWiKyx3YkIxxDSwhC5DL4IsoH0yzBTpJsHGhCKEgKDCl8rq78Oj8KF+W
-Ul/tdhMj7OhLHOPPKQ87LWQqvzP+i+QhG/5gpc/T8HUqQ9HMfRWMRuST8WQ+B8ca
-jOK7VjMc8B52QhumggwweZSDzLEut8Tud5kxvrPeeQB8bgcl9HFmdcIHu8VhzcMz
-ox272EKEh6HLpulHTbKInYC69bRnIXy8YmduJHn821EGVfJ+sDo=
-=xQHx
------END PGP SIGNATURE-----
-
---oltktef4nxtw3wip--
+Applied, thank you.
