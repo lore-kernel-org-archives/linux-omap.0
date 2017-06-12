@@ -1,68 +1,62 @@
-From: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: [PATCH 1/4] ARM: dts: tps65217: Add charger interrupts to the common tps65217.dtsi file
-Date: Mon, 12 Jun 2017 23:24:09 +0200
-Message-ID: <20170612212412.22719-1-enric.balletbo@collabora.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, grygorii.strashko-l0cyMroinI0@public.gmane.org, javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org
+From: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Subject: [PATCH 2/4] ARM: dts: tps65217: Add power button interrupt to the common tps65217.dtsi file
+Date: Mon, 12 Jun 2017 23:24:10 +0200
+Message-ID: <20170612212412.22719-2-enric.balletbo@collabora.com>
+References: <20170612212412.22719-1-enric.balletbo@collabora.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170612212412.22719-1-enric.balletbo@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, grygorii.strashko@ti.com, javier@dowhile0.org
 List-Id: linux-omap@vger.kernel.org
 
-The interrupt specifiers for USB and AC charger input are static data that
-comes from the datasheet, there is no reason to need to define these values
-on every board so seem reasonable put this information into the common
-tps65217 file.
+The interrupt for power button is static data that comes from the
+datasheet, there is no reason to need to define this value on every
+board so seams reasonable put this information into the common tps65217
+file.
 
-Signed-off-by: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
 ---
- arch/arm/boot/dts/am335x-bone-common.dtsi | 2 --
- arch/arm/boot/dts/am335x-chiliboard.dts   | 2 --
- arch/arm/boot/dts/tps65217.dtsi           | 2 ++
- 3 files changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 1 -
+ arch/arm/boot/dts/am335x-chiliboard.dts   | 1 -
+ arch/arm/boot/dts/tps65217.dtsi           | 1 +
+ 3 files changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
-index bf6b26a..bfa4258 100644
+index bfa4258..89daaeb 100644
 --- a/arch/arm/boot/dts/am335x-bone-common.dtsi
 +++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
-@@ -319,8 +319,6 @@
- 	ti,pmic-shutdown-controller;
+@@ -323,7 +323,6 @@
+ 	};
  
- 	charger {
--		interrupts = <0>, <1>;
--		interrupt-names = "USB", "AC";
+ 	pwrbutton {
+-		interrupts = <2>;
  		status = "okay";
  	};
  
 diff --git a/arch/arm/boot/dts/am335x-chiliboard.dts b/arch/arm/boot/dts/am335x-chiliboard.dts
-index d876979..5c25f3a 100644
+index 5c25f3a..59431b2 100644
 --- a/arch/arm/boot/dts/am335x-chiliboard.dts
 +++ b/arch/arm/boot/dts/am335x-chiliboard.dts
-@@ -191,8 +191,6 @@
- 	interrupts = <7>; /* NNMI */
- 
- 	charger {
--		interrupts = <0>, <1>;
--		interrupt-names = "USB", "AC";
- 		status = "okay";
+@@ -195,7 +195,6 @@
  	};
  
+ 	pwrbutton {
+-		interrupts = <2>;
+ 		status = "okay";
+ 	};
+ };
 diff --git a/arch/arm/boot/dts/tps65217.dtsi b/arch/arm/boot/dts/tps65217.dtsi
-index 02de56b..1973159 100644
+index 1973159..399baaa 100644
 --- a/arch/arm/boot/dts/tps65217.dtsi
 +++ b/arch/arm/boot/dts/tps65217.dtsi
-@@ -18,6 +18,8 @@
+@@ -25,6 +25,7 @@
  
- 	charger {
- 		compatible = "ti,tps65217-charger";
-+		interrupts = <0>, <1>;
-+		interrupt-names = "USB", "AC";
+ 	pwrbutton {
+ 		compatible = "ti,tps65217-pwrbutton";
++		interrupts = <2>;
  		status = "disabled";
  	};
  
 -- 
 2.9.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
