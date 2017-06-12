@@ -1,62 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: PM: stop early on systems without twl
-Date: Mon, 12 Jun 2017 03:25:28 -0700
-Message-ID: <20170612102527.GX3730@atomide.com>
-References: <20170609223223.19079-1-sre@kernel.org>
- <20170612073946.GU3730@atomide.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v1] net/phy: Make phy_ethtool_ksettings_get return void
+Date: Mon, 12 Jun 2017 09:51:21 -0400 (EDT)
+Message-ID: <20170612.095121.1880452682603577061.davem@davemloft.net>
+References: <20170612074233.8688-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170612073946.GU3730@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+In-Reply-To: <20170612074233.8688-1-yuval.shaia@oracle.com>
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: yuval.shaia@oracle.com
+Cc: michael.chan@broadcom.com, f.fainelli@gmail.com, siva.kallam@broadcom.com, prashant@broadcom.com, madalin.bucur@nxp.com, leoli@freescale.com, sebastian.hesselbarth@gmail.com, sergei.shtylyov@cogentembedded.com, grygorii.strashko@ti.com, w-kwok2@ti.com, m-karicheri2@ti.com, andrew@lunn.ch, woojung.huh@microchip.com, UNGLinuxDriver@microchip.com, vivien.didelot@savoirfairelinux.com, arnd@arndb.de, tremyfr@gmail.com, jarod@redhat.com, horms+renesas@verge.net.au, kazuya.mizuguchi.ks@renesas.com, dan.carpenter@oracle.com, niklas.soderlund+renesas@ragnatech.se, johan@kernel.org, masaru.nagai.vx@renesas.com, geert+renesas@glider.be, laurent.pinchart@ideasonboard.com, chris.brandt@renesas.com, ivan.khoronzhuk@linaro.org, mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-arm-kernel
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170612 00:43]:
-> * Sebastian Reichel <sre@kernel.org> [170609 15:36]:
-> > Motorola Droid 4 has an OMAP4, but no TWL6030. It currently
-> > complains verbosely about this during boot:
-> > 
-> > twl: not initialized
-> > twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-> > twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-> > twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-> > twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-> > twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-> > twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
-> > twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1410000 Vs max 1316660
-> > omap2_set_init_voltage: unable to find boot up OPP for vdd_core
-> > omap2_set_init_voltage: unable to set vdd_core
-> > omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
-> > omap2_set_init_voltage: unable to set vdd_iva
-> > 
-> > While proper support for CPCAP should be added at some point,
-> > let's exit early in omap2_common_pm_late_init() until that
-> > has been implemented to avoid the above errors. There is still
-> > a reminder about missing PM in dmesg:
-> > 
-> > Missing OMAP4 PM for this platform!
+From: Yuval Shaia <yuval.shaia@oracle.com>
+Date: Mon, 12 Jun 2017 10:42:33 +0300
+
+> Make return value void since function never return meaningfull value
 > 
-> Great good to see this dmesg spam go away. Applying into
-> omap-for-v4.13/soc-v3 thanks.
+> Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
+> Acked-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> ---
+> Re-sending since last time forgot to add netdev-list
+> v0 ->v1:
+> 	* These files were missing in v0
+> 		* drivers/net/ethernet/renesas/ravb_main.c
+> 		* drivers/net/ethernet/renesas/sh_eth.c
+> 		* drivers/net/ethernet/ti/netcp_ethss.c
+> 	* Add Acked-by: Sergei Shtylyov
 
-After running make randconfig builds over lunch I noticed
-we can now get "undefined reference to `twl_rev'" so we
-need something more here if CONFIG_TWL4030_CORE or
-CONFIG_TWL6040_CORE is not selected or is a loadable module.
+This doesn't apply cleanly to net-next at all.
 
-Maybe making the whole function depend on the following
-might work:
-
-#if IS_BUILTIN(CONFIG_TWL6040_CORE) || \
-	IS_BUILTIN(CONFIG_TWL4030_CORE)
-...
-#endif
-
-Anyways dropping for now.
-
-Regards,
-
-Tony
+Please respin against an uptodate net-next tree, thank you.
