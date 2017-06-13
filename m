@@ -1,49 +1,73 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv2 2/5] ARM: dts: omap4.dtsi: remove aes[12]_fck
-Date: Tue, 13 Jun 2017 11:28:44 +0200
-Message-ID: <20170613092847.16732-3-sebastian.reichel@collabora.co.uk>
-References: <20170613092847.16732-1-sebastian.reichel@collabora.co.uk>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: [PATCHv2] ARM: OMAP: PM: stop early on systems without twl
+Date: Tue, 13 Jun 2017 11:46:17 +0200
+Message-ID: <20170613094617.29166-1-sre@kernel.org>
+References: <20170612102527.GX3730@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170613092847.16732-1-sebastian.reichel@collabora.co.uk>
+In-Reply-To: <20170612102527.GX3730@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@kernel.org>
 Cc: Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-"aes1_fck" and "aes2_fck" are controlled by hwmod. Drop clock
-entries to avoid conflicts.
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+
+Motorola Droid 4 has an OMAP4, but no TWL6030. It currently
+complains verbosely about this during boot:
+
+twl: not initialized
+twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1375000 Vs max 1316660
+twl6030_uv_to_vsel:OUT OF RANGE! non mapped vsel for 1410000 Vs max 1316660
+omap2_set_init_voltage: unable to find boot up OPP for vdd_core
+omap2_set_init_voltage: unable to set vdd_core
+omap2_set_init_voltage: unable to find boot up OPP for vdd_iva
+omap2_set_init_voltage: unable to set vdd_iva
+
+While proper support for CPCAP should be added at some point,
+let's exit early in omap2_common_pm_late_init() until that
+has been implemented to avoid the above errors. There is still
+a reminder about missing PM in dmesg:
+
+Missing OMAP4 PM for this platform!
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- arch/arm/boot/dts/omap44xx-clocks.dtsi | 16 ----------------
- 1 file changed, 16 deletions(-)
+Changes since PATCHv1:
+ * actually add the message about missing PM support
+ * check if TWL is enabled at all
+---
+ arch/arm/mach-omap2/pm.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-index 9573b37fbaa7..008693b0b17a 100644
---- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
-@@ -969,22 +969,6 @@
- 		ti,max-div = <2>;
- 	};
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 63027e60cc20..92e335decc61 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -240,6 +240,10 @@ omap_postcore_initcall(omap2_common_pm_init);
  
--	aes1_fck: aes1_fck@15a0 {
--		#clock-cells = <0>;
--		compatible = "ti,gate-clock";
--		clocks = <&l3_div_ck>;
--		ti,bit-shift = <1>;
--		reg = <0x15a0>;
--	};
--
--	aes2_fck: aes2_fck@15a8 {
--		#clock-cells = <0>;
--		compatible = "ti,gate-clock";
--		clocks = <&l3_div_ck>;
--		ti,bit-shift = <1>;
--		reg = <0x15a8>;
--	};
--
- 	dss_sys_clk: dss_sys_clk@1120 {
- 		#clock-cells = <0>;
- 		compatible = "ti,gate-clock";
+ int __init omap2_common_pm_late_init(void)
+ {
++#if IS_BUILTIN(CONFIG_TWL6040_CORE) || IS_BUILTIN(CONFIG_TWL4030_CORE)
++	if (!twl_rev())
++		goto no_twl;
++
+ 	/* Init the voltage layer */
+ 	omap3_twl_init();
+ 	omap4_twl_init();
+@@ -253,4 +257,9 @@ int __init omap2_common_pm_late_init(void)
+ 	omap_devinit_smartreflex();
+ 
+ 	return 0;
++
++no_twl:
++#endif
++	pr_err("OMAP4 PM not supported!\n");
++	return -ENODEV;
+ }
 -- 
 2.11.0
