@@ -1,48 +1,39 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [PATCH 2/4] ARM: dts: tps65217: Add power button interrupt to the
- common tps65217.dtsi file
-Date: Tue, 13 Jun 2017 11:08:39 +0200
-Message-ID: <CAFqH_50syu5aHBQtJkh-Dpz8Yc_6w0X853DO46T3ZAAJ10F-Pw@mail.gmail.com>
-References: <20170612212412.22719-1-enric.balletbo@collabora.com>
- <20170612212412.22719-2-enric.balletbo@collabora.com> <20170613073519.GA3730@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv2 0/5] OMAP4: crypto support
+Date: Tue, 13 Jun 2017 11:28:42 +0200
+Message-ID: <20170613092847.16732-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170613073519.GA3730@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Enric Balletbo i Serra <enric.balletbo@collabora.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-pm@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Lee Jones <lee.jones@linaro.org>, Sebastian Reichel <sre@kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Javier Martinez Canillas <javier@dowhile0.org>
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>
+Cc: Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi,
 
-2017-06-13 9:35 GMT+02:00 Tony Lindgren <tony@atomide.com>:
-> * Enric Balletbo i Serra <enric.balletbo@collabora.com> [170612 14:28]:
->> The interrupt for power button is static data that comes from the
->> datasheet, there is no reason to need to define this value on every
->> board so seams reasonable put this information into the common tps65217
->> file.
->
-> I think there's a problem with these patches where we no longer know
-> if the interrupts are wired up on a board. For example, if the USB PHY
-> VBUS interrupt is not connected, the phy driver needs poll the
-> cable state.
->
+This adds crypto support for OMAP4, which was missing for some reason.
+This fixes error about missing hwmod on Droid 4. IP-Cores for AES and
+DES are working according to selftest.
 
-Hmm, the tps65217 doesn't have a USB PHY like others tps, so not sure
-how could affect this patch. Did you see this issue in any board that
-uses tps65217 or any am335x based board which commonly uses this pmic?
+Changes since PATCHv1:
+ * remove patch adding des_fck to DT
+ * add patch removing aes[12]_fck from DT
+ * add patch renaming hwmod aes to aes1 in DT
+ * update hwmod patches according to feedback from Tero
+ * add patch for aes2 hwmod
 
-> And on some PMICs some pins can be muxed to GPIO mode, don't
-> remember if that can be done with tps65217.
->
+-- Sebastian
 
-i don't think this is the case of the boards that use tps65217 as the
-pins can't be muxed to GPIO mode.
+Sebastian Reichel (5):
+  ARM: dts: omap4: Fix aes entry
+  ARM: dts: omap4.dtsi: remove aes[12]_fck
+  ARM: OMAP4: hwmod data: add aes1
+  ARM: OMAP4: hwmod data: add aes2
+  ARM: OMAP4: hwmod data: add des
 
-> Regards,
->
-> Tony
+ arch/arm/boot/dts/omap4.dtsi               |   4 +-
+ arch/arm/boot/dts/omap44xx-clocks.dtsi     |  16 -----
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 100 +++++++++++++++++++++++++++++
+ 3 files changed, 102 insertions(+), 18 deletions(-)
 
-Regards,
- Enric
+-- 
+2.11.0
