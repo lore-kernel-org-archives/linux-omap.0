@@ -1,53 +1,55 @@
-From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH v2 2/2] regulator: tps65910: Allow supply references to
  the same chip
-Date: Tue, 13 Jun 2017 22:22:17 +0200
-Message-ID: <20170613202217.nj23xkahpz3jc4h5@qmqm.qmqm.pl>
+Date: Tue, 13 Jun 2017 21:42:39 +0100
+Message-ID: <20170613204239.ans4j535st7kjee6@sirena.org.uk>
 References: <f2aee03834d8cdcc7195b9272982617d93f978dc.1497364762.git.mirq-linux@rere.qmqm.pl>
  <053529c206a2afc453b52e2c0f024acd85341a83.1497364762.git.mirq-linux@rere.qmqm.pl>
  <20170613174628.sv4v76s7torrn5jx@sirena.org.uk>
+ <20170613202217.nj23xkahpz3jc4h5@qmqm.qmqm.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="p5j3qn75wj7kj2dj"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170613174628.sv4v76s7torrn5jx@sirena.org.uk>
+In-Reply-To: <20170613202217.nj23xkahpz3jc4h5@qmqm.qmqm.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
+To: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>
 Cc: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, j-keerthy@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 13, 2017 at 06:46:28PM +0100, Mark Brown wrote:
-> On Tue, Jun 13, 2017 at 04:41:58PM +0200, Micha³ Miros³aw wrote:
-> > This allows for (acyclic) references from tps6591x supplies to
-> > its outputs.
-> This is clearly not something that should be open coded in individual
-> drivers, aside from the code duplication it is obviously possible to
-> have two different chips supplying each other which this wouldn't help
-> at all.  Is this happening for you with current kernels, we have a few
-> mechanisms for deferring bindings of supplies which should help here.
 
-What mechanisms would that be? What I observed is that whenever
-a regulator's supply is not available but described in device-tree,
-the whole device's registration is deferred.
+--p5j3qn75wj7kj2dj
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The device-tree I'm working on contains:
+On Tue, Jun 13, 2017 at 10:22:17PM +0200, Micha=C5=82 Miros=C5=82aw wrote:
+> On Tue, Jun 13, 2017 at 06:46:28PM +0100, Mark Brown wrote:
 
-pmic: tps65911@2d { 
-    compatible = "ti,tps65911"; 
-    reg = <0x2d>; 
-    ...
-    vcc3-supply = <&vio_reg>; // ldo6, ldo7, ldo8
-    ...
-    regulators {
-        vio_reg: vio {
-            regulator-min-microvolt = <1800000>;
-            regulator-max-microvolt = <1800000>;
-            regulator-always-on;
-        };
-        ...
-    }
-}
+> > at all.  Is this happening for you with current kernels, we have a few
+> > mechanisms for deferring bindings of supplies which should help here.
 
-Best Regards,
-Micha³ Miros³aw
+> What mechanisms would that be? What I observed is that whenever
+> a regulator's supply is not available but described in device-tree,
+> the whole device's registration is deferred.
+
+Mainly "Don't use regulators as supplies until the parent is bound",
+there were some older ones IIRC.
+
+--p5j3qn75wj7kj2dj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllATj8ACgkQJNaLcl1U
+h9CnWgf+Ii6mBvf0hARwh9WR9SbfjjMHySd26hcr0fd1gRTQUOAw3zT315ZD9llf
+IAk29CoU9v4zKb7YNL0oHCrMZSlcyIkb/aQolRICF9gd7CNYPgvIu9hgIxnf4uEz
+ihQIytNlLiY6N8hCnmNkRUhZjre1A5BlLDFKy7OfdVssnJkMtoMf7IzHwTh2de+I
+XY5vM3B8VdtKz34gVa0n0tm6NPSIpDUaSO+Nv9OtxG4sK5xRgtlslL1/K4U5PII7
+X5f6UAwHlX1uEpkAUji0XEXbL/fRu4m6DgxMhLV0fgzW5SLW1TYACMTzwWR1y9Jn
+3juRmgY29CMSrR/YrRe2j3zC0llz5Q==
+=JrJv
+-----END PGP SIGNATURE-----
+
+--p5j3qn75wj7kj2dj--
