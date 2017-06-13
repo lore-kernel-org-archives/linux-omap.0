@@ -1,109 +1,88 @@
-From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH v2 2/2] regulator: tps65910: Allow supply references to the same
- chip
-Date: Tue, 13 Jun 2017 16:41:58 +0200
-Message-ID: <053529c206a2afc453b52e2c0f024acd85341a83.1497364762.git.mirq-linux@rere.qmqm.pl>
-References: <f2aee03834d8cdcc7195b9272982617d93f978dc.1497364762.git.mirq-linux@rere.qmqm.pl>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/4] dt-bindings: tps65217: Update binding documentation.
+Date: Tue, 13 Jun 2017 09:43:20 -0500
+Message-ID: <CAL_JsqJ8--8Wj9L3LFDrUpeQ33MUu3RwZfxM2x5tAr0Dp4uVqg@mail.gmail.com>
+References: <20170607103242.16008-1-enric.balletbo@collabora.com>
+ <20170609140309.zhagc5g662d4la3z@rob-hp-laptop> <CAFqH_53+diszv4QtKU0CgVPb3TO-MeDWjbPpFQuVzLXZsQ=Zog@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f2aee03834d8cdcc7195b9272982617d93f978dc.1497364762.git.mirq-linux@rere.qmqm.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, j-keerthy@ti.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-Reply-To: <CAFqH_53+diszv4QtKU0CgVPb3TO-MeDWjbPpFQuVzLXZsQ=Zog@mail.gmail.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Enric Balletbo Serra <eballetbo@gmail.com>
+Cc: Enric Balletbo i Serra <enric.balletbo@collabora.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Linux LED Subsystem <linux-leds@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Jingoo Han <jingoohan1@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Pavel Machek <pavel@ucw.cz>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Tony
 List-Id: linux-omap@vger.kernel.org
 
-This allows for (acyclic) references from tps6591x supplies to
-its outputs.
+On Fri, Jun 9, 2017 at 5:30 PM, Enric Balletbo Serra
+<eballetbo@gmail.com> wrote:
+> Hello Rob,
+>
+> 2017-06-09 16:03 GMT+02:00 Rob Herring <robh@kernel.org>:
+>> On Wed, Jun 07, 2017 at 12:32:39PM +0200, Enric Balletbo i Serra wrote:
+>>> This patch adds a new binding documentation for the TPS65217 MFD and
+>>> updates the documentation for all the sub-devices in accordance to get
+>>> each individual sub-driver functioning correctly.
+>>
+>> Explain why breaking compatibility is okay.
+>>
+>
+> We had some discussion in patch 4 that make me rethink a bit all this,
+> please let me send a new version and continue the discussion there
+> (now I'm not sure if I'll break the compatibility or not)
+>
+> But let me ask a question. The TPS65217 MFD has different sub-nodes
+> (charger, backlight, pwrbutton, regulators) in DT, I suspect the
+> answer is no, but is it ok that some of them were not described in the
+> DT because there is nothing to configure?
 
-Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
----
-v2:
-  - no changes
+But you are configuring the interrupts. I'm all for not creating nodes
+just for the purpose instantiating a driver (DT is not the only way to
+create platform devices) when the parent node is sufficient. We see
+both models, but we don't really want a mixture of both ways so I'd
+stick with the latter here.
 
- drivers/regulator/tps65910-regulator.c | 39 ++++++++++++++++++++++++++++------
- 1 file changed, 33 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
-index 81672a58fcc23..f7987168ba4ed 100644
---- a/drivers/regulator/tps65910-regulator.c
-+++ b/drivers/regulator/tps65910-regulator.c
-@@ -1082,7 +1082,8 @@ static int tps65910_probe(struct platform_device *pdev)
- 	struct tps65910_reg *pmic;
- 	struct tps65910_board *pmic_plat_data;
- 	struct of_regulator_match *tps65910_reg_matches = NULL;
--	int i, err;
-+	bool made_progress;
-+	int i, err, pending;
- 
- 	pmic_plat_data = dev_get_platdata(tps65910->dev);
- 	if (!pmic_plat_data && tps65910->dev->of_node)
-@@ -1146,6 +1147,7 @@ static int tps65910_probe(struct platform_device *pdev)
- 	if (!pmic->rdev)
- 		return -ENOMEM;
- 
-+	/* prepare regulator description */
- 	for (i = 0; i < pmic->num_regulators; i++, info++) {
- 		/* Register the regulators */
- 		pmic->info[i] = info;
-@@ -1196,18 +1198,32 @@ static int tps65910_probe(struct platform_device *pdev)
- 		pmic->desc[i].owner = THIS_MODULE;
- 		pmic->desc[i].enable_reg = pmic->get_ctrl_reg(i);
- 		pmic->desc[i].enable_mask = TPS65910_SUPPLY_STATE_ENABLED;
-+	}
-+
-+	/* Register regulators - loop, as one regulator's output
-+	 * might be anothers input */
-+
-+	config.dev = pmic->mfd->dev;
-+	config.driver_data = pmic;
-+	config.regmap = pmic->mfd->regmap;
-+	pending = pmic->num_regulators;
-+
-+reg_retry:
-+	made_progress = false;
-+	for (i = 0; i < pmic->num_regulators; i++) {
-+		if (pmic->rdev[i])
-+			continue;
- 
--		config.dev = tps65910->dev;
- 		config.init_data = pmic_plat_data->tps65910_pmic_init_data[i];
--		config.driver_data = pmic;
--		config.regmap = tps65910->regmap;
--
- 		if (tps65910_reg_matches)
- 			config.of_node = tps65910_reg_matches[i].of_node;
- 
- 		rdev = devm_regulator_register(&pdev->dev, &pmic->desc[i],
- 					       &config);
- 		if (IS_ERR(rdev)) {
-+			if (PTR_ERR(rdev) == -EPROBE_DEFER)
-+				continue;
-+
- 			dev_err(tps65910->dev,
- 				"failed to register %s regulator\n",
- 				pdev->name);
-@@ -1216,8 +1232,19 @@ static int tps65910_probe(struct platform_device *pdev)
- 
- 		/* Save regulator for cleanup */
- 		pmic->rdev[i] = rdev;
-+
-+		made_progress = true;
-+		--pending;
- 	}
--	return 0;
-+
-+	/* all done? */
-+	if (!pending)
-+		return 0;
-+
-+	if (made_progress)
-+		goto reg_retry;
-+
-+	return -EPROBE_DEFER;
- }
- 
- static void tps65910_shutdown(struct platform_device *pdev)
--- 
-2.11.0
+> i.e: Have this because the resources of charger and pwrbutton are
+> static so can be hard-coded in the driver
+>
+> &tps {
+>         compatible = "ti,tps65217";
+>         interrupt-controller;
+>         #interrupt-cells = <1>;
+>
+>         regulators {
+>                 #address-cells = <1>;
+>                 #size-cells = <0>;
+>
+>                 dcdc1_reg: regulator@0 {
+>                         reg = <0>;
+>                 ...
+>        };
+> };
+>
+> instead of :
+>
+> &tps {
+>         compatible = "ti,tps65217";
+>         interrupt-controller;
+>         #interrupt-cells = <1>;
+>
+>         charger {
+>                 compatible = "ti,tps65217-charger";
+>                 interrupts = <0>, <1>;
+>                 interrupt-names = "USB", "AC";
+>         };
+>
+>         pwrbutton {
+>                 compatible = "ti,tps65217-pwrbutton";
+>                 interrupts = <2>;
+>         };
+>
+>         regulators {
+>                 #address-cells = <1>;
+>                 #size-cells = <0>;
+>
+>                 dcdc1_reg: regulator@0 {
+>                         reg = <0>;
+>                 ...
+>        };
+> };
