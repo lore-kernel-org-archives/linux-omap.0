@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 3/3] ARM: OMAP4: hwmod_data: add SHAM crypto accelerator
-Date: Tue, 13 Jun 2017 16:45:50 +0300
-Message-ID: <1497361550-4735-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 2/3] ARM: dts: omap4: add SHAM node
+Date: Tue, 13 Jun 2017 16:45:49 +0300
+Message-ID: <1497361550-4735-3-git-send-email-t-kristo@ti.com>
 References: <1497361550-4735-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,74 +21,32 @@ To: linux-omap@vger.kernel.org, tony@atomide.com
 Cc: sebastian.reichel@collabora.co.uk, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-OMAP4 SoC contains SHAM crypto hardware accelerator. Add hwmod data for
-this IP so that it can be utilized by crypto frameworks.
+Add SHAM crypto accelerator.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 37 ++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ arch/arm/boot/dts/omap4.dtsi | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 6353e8d..7580db5 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -872,6 +872,33 @@
- 	.parent_hwmod	= &omap44xx_dss_hwmod,
- };
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 00e7656..64d00f5 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -927,6 +927,15 @@
+ 			dma-names = "tx", "rx";
+ 		};
  
-+/* sha0 HIB2 (the 'P' (public) device) */
-+static struct omap_hwmod_class_sysconfig omap44xx_sha0_sysc = {
-+	.rev_offs	= 0x100,
-+	.sysc_offs	= 0x110,
-+	.syss_offs	= 0x114,
-+	.sysc_flags	= SYSS_HAS_RESET_STATUS,
-+};
++		sham: sham@4b100000 {
++			compatible = "ti,omap4-sham";
++			ti,hwmods = "sham";
++			reg = <0x4b100000 0x300>;
++			interrupts = <GIC_SPI 51 IRQ_TYPE_LEVEL_HIGH>;
++			dmas = <&sdma 119>;
++			dma-names = "rx";
++		};
 +
-+static struct omap_hwmod_class omap44xx_sha0_hwmod_class = {
-+	.name		= "sham",
-+	.sysc		= &omap44xx_sha0_sysc,
-+};
-+
-+struct omap_hwmod omap44xx_sha0_hwmod = {
-+	.name		= "sham",
-+	.class		= &omap44xx_sha0_hwmod_class,
-+	.clkdm_name	= "l4_secure_clkdm",
-+	.main_clk	= "l3_div_ck",
-+	.prcm		= {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP4_CM_L4SEC_SHA2MD51_CLKCTRL_OFFSET,
-+			.context_offs = OMAP4_RM_L4SEC_SHA2MD51_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
- /*
-  * 'elm' class
-  * bch error location module
-@@ -3979,6 +4007,14 @@ struct omap_hwmod_ocp_if omap44xx_l3_main_2__des = {
- 	.user		= OCP_USER_MPU,
- };
- 
-+/* l3_main_2 -> sham */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_2__sha0 = {
-+	.master		= &omap44xx_l3_main_2_hwmod,
-+	.slave		= &omap44xx_sha0_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l4_per -> elm */
- static struct omap_hwmod_ocp_if omap44xx_l4_per__elm = {
- 	.master		= &omap44xx_l4_per_hwmod,
-@@ -4893,6 +4929,7 @@ struct omap_hwmod_ocp_if omap44xx_l3_main_2__des = {
- 	&omap44xx_l3_main_2__aes1,
- 	&omap44xx_l3_main_2__aes2,
- 	&omap44xx_l3_main_2__des,
-+	&omap44xx_l3_main_2__sha0,
- 	NULL,
- };
- 
+ 		abb_mpu: regulator-abb-mpu {
+ 			compatible = "ti,abb-v2";
+ 			regulator-name = "abb_mpu";
 -- 
 1.9.1
