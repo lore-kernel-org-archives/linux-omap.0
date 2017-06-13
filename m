@@ -1,88 +1,64 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 1/4] dt-bindings: tps65217: Update binding documentation.
-Date: Tue, 13 Jun 2017 09:43:20 -0500
-Message-ID: <CAL_JsqJ8--8Wj9L3LFDrUpeQ33MUu3RwZfxM2x5tAr0Dp4uVqg@mail.gmail.com>
-References: <20170607103242.16008-1-enric.balletbo@collabora.com>
- <20170609140309.zhagc5g662d4la3z@rob-hp-laptop> <CAFqH_53+diszv4QtKU0CgVPb3TO-MeDWjbPpFQuVzLXZsQ=Zog@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 0/5] OMAP4: crypto support
+Date: Tue, 13 Jun 2017 17:42:05 +0300
+Message-ID: <027b40b6-1961-275b-7b7e-00a51e86e8f3@ti.com>
+References: <20170613092847.16732-1-sebastian.reichel@collabora.co.uk>
+ <ab778bfd-9397-4cb0-0741-557da57bba83@ti.com>
+ <20170613142458.32g3iqcijc4ij4b7@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-Reply-To: <CAFqH_53+diszv4QtKU0CgVPb3TO-MeDWjbPpFQuVzLXZsQ=Zog@mail.gmail.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: Enric Balletbo i Serra <enric.balletbo@collabora.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Linux LED Subsystem <linux-leds@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Jingoo Han <jingoohan1@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <jacek.anaszewski@gmail.com>, Pavel Machek <pavel@ucw.cz>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Tony
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170613142458.32g3iqcijc4ij4b7@earth>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 9, 2017 at 5:30 PM, Enric Balletbo Serra
-<eballetbo@gmail.com> wrote:
-> Hello Rob,
->
-> 2017-06-09 16:03 GMT+02:00 Rob Herring <robh@kernel.org>:
->> On Wed, Jun 07, 2017 at 12:32:39PM +0200, Enric Balletbo i Serra wrote:
->>> This patch adds a new binding documentation for the TPS65217 MFD and
->>> updates the documentation for all the sub-devices in accordance to get
->>> each individual sub-driver functioning correctly.
+On 13/06/17 17:24, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Tue, Jun 13, 2017 at 04:49:18PM +0300, Tero Kristo wrote:
+>> On 13/06/17 12:28, Sebastian Reichel wrote:
+>>> This adds crypto support for OMAP4, which was missing for some reason.
+>>> This fixes error about missing hwmod on Droid 4. IP-Cores for AES and
+>>> DES are working according to selftest.
+>>>
+>>> Changes since PATCHv1:
+>>>    * remove patch adding des_fck to DT
+>>>    * add patch removing aes[12]_fck from DT
+>>>    * add patch renaming hwmod aes to aes1 in DT
+>>>    * update hwmod patches according to feedback from Tero
+>>>    * add patch for aes2 hwmod
+>>>
+>>> -- Sebastian
 >>
->> Explain why breaking compatibility is okay.
->>
->
-> We had some discussion in patch 4 that make me rethink a bit all this,
-> please let me send a new version and continue the discussion there
-> (now I'm not sure if I'll break the compatibility or not)
->
-> But let me ask a question. The TPS65217 MFD has different sub-nodes
-> (charger, backlight, pwrbutton, regulators) in DT, I suspect the
-> answer is no, but is it ok that some of them were not described in the
-> DT because there is nothing to configure?
+>> I just posted a few extra patches on top of this series, for adding
+>> the missing dts data for aes2 and adding sham accelerator also.
+> 
+> Thanks :)
+> 
+>> The dts data should be applied first if you want to avoid any
+>> issues with hwmod core complaining about missing DT data, so the
+>> sequencing of this series and mine need to be done carefully.
+> 
+> There is also a warning printed if DT references a missing hwmod
+> entry (that's how I noticed this in the first place). It's less
+> noisy, though. Since kernel builds and boots with any order and
+> crypto hardware does not work at the moment there is no real
+> problem with bisect. I suggest to merge the DTS patches normally
+> through the separate dt branch.
 
-But you are configuring the interrupts. I'm all for not creating nodes
-just for the purpose instantiating a driver (DT is not the only way to
-create platform devices) when the parent node is sufficient. We see
-both models, but we don't really want a mixture of both ways so I'd
-stick with the latter here.
+Yeah thats actually true also. Up to Tony to decide how he wants to 
+handle these. The huge warning is mainly an annoyance.
 
-> i.e: Have this because the resources of charger and pwrbutton are
-> static so can be hard-coded in the driver
->
-> &tps {
->         compatible = "ti,tps65217";
->         interrupt-controller;
->         #interrupt-cells = <1>;
->
->         regulators {
->                 #address-cells = <1>;
->                 #size-cells = <0>;
->
->                 dcdc1_reg: regulator@0 {
->                         reg = <0>;
->                 ...
->        };
-> };
->
-> instead of :
->
-> &tps {
->         compatible = "ti,tps65217";
->         interrupt-controller;
->         #interrupt-cells = <1>;
->
->         charger {
->                 compatible = "ti,tps65217-charger";
->                 interrupts = <0>, <1>;
->                 interrupt-names = "USB", "AC";
->         };
->
->         pwrbutton {
->                 compatible = "ti,tps65217-pwrbutton";
->                 interrupts = <2>;
->         };
->
->         regulators {
->                 #address-cells = <1>;
->                 #size-cells = <0>;
->
->                 dcdc1_reg: regulator@0 {
->                         reg = <0>;
->                 ...
->        };
-> };
+-Tero
