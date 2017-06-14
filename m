@@ -1,48 +1,42 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
 Subject: Re: [PATCH] regulator: tps65910: wire up sleep control configuration
-Date: Wed, 14 Jun 2017 15:42:08 +0100
-Message-ID: <20170614144208.nmiq2zijkyoajqgn@sirena.org.uk>
+Date: Wed, 14 Jun 2017 17:13:29 +0200
+Message-ID: <20170614151329.7kb266gnksryr45y@qmqm.qmqm.pl>
 References: <efc798c2a1140c545cc210a29ed2791495956510.1497442770.git.mirq-linux@rere.qmqm.pl>
+ <20170614144208.nmiq2zijkyoajqgn@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="entw33bfvv42ovxt"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <efc798c2a1140c545cc210a29ed2791495956510.1497442770.git.mirq-linux-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+In-Reply-To: <20170614144208.nmiq2zijkyoajqgn@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Jun 14, 2017 at 03:42:08PM +0100, Mark Brown wrote:
+> On Wed, Jun 14, 2017 at 02:25:13PM +0200, Micha³ Miros³aw wrote:
+> > References: 201cf052810d20814a77ca0e0045a2c1a3508a1f
+> I have no idea what you mean by this, sorry.
 
---entw33bfvv42ovxt
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This is a commit id which introduced the feature:
 
-On Wed, Jun 14, 2017 at 02:25:13PM +0200, Micha=C5=82 Miros=C5=82aw wrote:
+commit 201cf052810d20814a77ca0e0045a2c1a3508a1f
+Author: Laxman Dewangan <ldewangan@nvidia.com>
+Date:   Wed Apr 18 12:13:51 2012 +0200
 
-> References: 201cf052810d20814a77ca0e0045a2c1a3508a1f
+    mfd: Add support for tps65910 device sleep
 
-I have no idea what you mean by this, sorry.
+    Adding support for device sleep through the external input control
+    signal "SLEEP".
+    Changing the SLEEP signal state can switch the device into SLEEP and
+    ACTIVE state.
+    Also adding sleep configuration for different resources so that they
+    should be keep on during sleep state of device.
 
---entw33bfvv42ovxt
-Content-Type: application/pgp-signature; name="signature.asc"
+    Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+    Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
 
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllBSz8ACgkQJNaLcl1U
-h9BHQgf9EHRCBmgb3o+GMEIDHu5kk8tFrKX0KFdKBZfCb3fyP8iPxy/cOSACMrvk
-kh0Rrx69o0qzEy+V6t/T3WexUMQDyOgoREtAPHTPv2qyO3kk/EL3sbZWpMJ6NfVU
-cxyI8goNUtMbz7ciOsEyc8AImGDlPGhvV1d4QXrE2ApPB/Vccsdw58tlDclNa5KP
-btx5hhakN5L85mn/cs0zmlVHS3NakEJeualRjTyLFfl2liHqHBiYfU+BRvfRdvZV
-45tJ/Ar/QcuUQdjPOzGVkTGBfhKIIfKYDD785VSvhwFmXzrcuvucTEKqdGiCZ0Jj
-E1QuKKpKJJ/jayVOOoPOJJtBHRaFTw==
-=WeDp
------END PGP SIGNATURE-----
-
---entw33bfvv42ovxt--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best Regards,
+Micha³ Miros³aw
