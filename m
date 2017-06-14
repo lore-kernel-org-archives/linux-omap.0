@@ -1,62 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 0/5] OMAP4: crypto support
-Date: Wed, 14 Jun 2017 00:57:51 -0700
-Message-ID: <20170614075750.GG3730@atomide.com>
-References: <20170613092847.16732-1-sebastian.reichel@collabora.co.uk>
- <ab778bfd-9397-4cb0-0741-557da57bba83@ti.com>
- <20170613142458.32g3iqcijc4ij4b7@earth>
- <027b40b6-1961-275b-7b7e-00a51e86e8f3@ti.com>
+From: Hoeun Ryu <hoeun.ryu@gmail.com>
+Subject: Re: [PATCH 0/7] Clean-up for debug_ll for omap variants
+Date: Wed, 14 Jun 2017 17:12:09 +0900
+Message-ID: <1497427929.1935.6.camel@gmail.com>
+References: <20170614073118.28246-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <027b40b6-1961-275b-7b7e-00a51e86e8f3@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170614073118.28246-1-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [170613 07:46]:
-> On 13/06/17 17:24, Sebastian Reichel wrote:
-> > Hi,
-> > 
-> > On Tue, Jun 13, 2017 at 04:49:18PM +0300, Tero Kristo wrote:
-> > > On 13/06/17 12:28, Sebastian Reichel wrote:
-> > > > This adds crypto support for OMAP4, which was missing for some reason.
-> > > > This fixes error about missing hwmod on Droid 4. IP-Cores for AES and
-> > > > DES are working according to selftest.
-> > > > 
-> > > > Changes since PATCHv1:
-> > > >    * remove patch adding des_fck to DT
-> > > >    * add patch removing aes[12]_fck from DT
-> > > >    * add patch renaming hwmod aes to aes1 in DT
-> > > >    * update hwmod patches according to feedback from Tero
-> > > >    * add patch for aes2 hwmod
-> > > > 
-> > > > -- Sebastian
-> > > 
-> > > I just posted a few extra patches on top of this series, for adding
-> > > the missing dts data for aes2 and adding sham accelerator also.
-> > 
-> > Thanks :)
-> > 
-> > > The dts data should be applied first if you want to avoid any
-> > > issues with hwmod core complaining about missing DT data, so the
-> > > sequencing of this series and mine need to be done carefully.
-> > 
-> > There is also a warning printed if DT references a missing hwmod
-> > entry (that's how I noticed this in the first place). It's less
-> > noisy, though. Since kernel builds and boots with any order and
-> > crypto hardware does not work at the moment there is no real
-> > problem with bisect. I suggest to merge the DTS patches normally
-> > through the separate dt branch.
-> 
-> Yeah thats actually true also. Up to Tony to decide how he wants to handle
-> these. The huge warning is mainly an annoyance.
-
-Applying patches from both Sebastian's and Tero's sets into
-split into omap-for-v4.13/dt and omap-for-v4.13/soc-v4 branches.
-
-Thanks,
-
-Tony
+T24gV2VkLCAyMDE3LTA2LTE0IGF0IDAwOjMxIC0wNzAwLCBUb255IExpbmRncmVuIHdyb3RlOgo+
+IEhpIGFsbCwKPiAKPiBJbnNwaXJlZCBieSBlYXJsaWVyIHBhdGNoZXMgdG8gcmVtb3ZlIERFQlVH
+X09NQVAyUExVU19VQVJUIGRlcGVuZGVuY3kKPiB0byBERUJVR19VTkNPTVBSRVNTIGJ5IEhvZXVu
+IFJ5dSA8aG9ldW4ucnl1QGdtYWlsLmNvbT4sIEkgY29udmVydGVkCj4gYWxsIG1hY2gtb21hcDIg
+dG8gdXNlIGdlbmVyaWMgODI1MCBkZWJ1Z19sbCBjb2RlLgoKR3JlYXQhIFRoYW5rIHlvdS4KCj4g
+Cj4gSSd2ZSB0ZXN0ZWQgdGhpcyBvbiBvbWFwMi8zLzQvNSwgdGk4MXh4IGFuZCBhbTQzN3ggc28g
+ZmFyIGFuZCB0aGluZ3MKPiBzZWVtIHRvIHdvcmsgYXMgZXhwZWN0ZWQuCj4gCj4gUmVnYXJkcywK
+PiAKPiBUb255Cj4gCj4gVG9ueSBMaW5kZ3JlbiAoNyk6Cj4gwqAgQVJNOiBkZWJ1ZzogVXNlIGdl
+bmVyaWMgODI1MCBkZWJ1Z19sbCBmb3Igb21hcDIgYW5kIG9tYXAzLzQvNQo+IGNvbW1vbgo+IMKg
+wqDCoMKgdWFydHMKPiDCoCBBUk06IGRlYnVnOiBVc2UgZ2VuZXJpYyA4MjUwIGRlYnVnX2xsIGZv
+ciBvbWFwMy80LzUKPiDCoCBBUk06IGRlYnVnOiBVc2UgZ2VuZXJpYyA4MjUwIGRlYnVnX2xsIGZv
+ciB0aTgxeHgKPiDCoCBBUk06IGRlYnVnOiBVc2UgZ2VuZXJpYyA4MjUwIGRlYnVnX2xsIGZvciBh
+bTM1MTcgYW5kIGFtMzM1eAo+IMKgIEFSTTogZGVidWc6IFVzZSBnZW5lcmljIDgyNTAgZGVidWdf
+bGwgZm9yIG9tYXAgem9vbQo+IMKgIEFSTTogZGVidWc6IFVwZGF0ZSBwb3J0IGRlc2NyaXB0aW9u
+cyBmb3Igb21hcCB2YXJpYW50cwo+IMKgIEFSTTogT01BUDIrOiBEcm9wIHVudXNlZCBzZXJpYWwu
+aAo+IAo+IMKgYXJjaC9hcm0vS2NvbmZpZy5kZWJ1Z8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDYwICsrKystLS0KPiDCoGFyY2gv
+YXJtL2luY2x1ZGUvZGVidWcvb21hcDJwbHVzLlPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgfCAxOTAgLS0tLS0tLS0tCj4gLS0tLS0tLS0tLS0tCj4gwqBhcmNoL2FybS9tYWNoLW9t
+YXAyL2NvbW1vbi5owqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oHzCoMKgwqAxIC0KPiDCoGFyY2gvYXJtL21hY2gtb21hcDIvaW5jbHVkZS9tYWNoL3NlcmlhbC5o
+wqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDY2IC0tLS0tLS0KPiDCoGFyY2gvYXJtL21hY2gtb21h
+cDIvaW8uY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoHzCoMKgwqAxIC0KPiDCoGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF8yNDIwX2Rh
+dGEuY8KgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxIC0KPiDCoC4uLi9tYWNoLW9tYXAyL29tYXBf
+aHdtb2RfMnh4eF9pbnRlcmNvbm5lY3RfZGF0YS5jIHzCoMKgwqAxIC0KPiDCoGFyY2gvYXJtL21h
+Y2gtb21hcDIvb21hcF9od21vZF8zeHh4X2RhdGEuY8KgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAx
+IC0KPiDCoGFyY2gvYXJtL21hY2gtb21hcDIvc2VyaWFsLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDEgLQo+IMKgOSBmaWxlcyBjaGFuZ2VkLCA0
+MCBpbnNlcnRpb25zKCspLCAyODIgZGVsZXRpb25zKC0pCj4gwqBkZWxldGUgbW9kZSAxMDA2NDQg
+YXJjaC9hcm0vaW5jbHVkZS9kZWJ1Zy9vbWFwMnBsdXMuUwo+IMKgZGVsZXRlIG1vZGUgMTAwNjQ0
+IGFyY2gvYXJtL21hY2gtb21hcDIvaW5jbHVkZS9tYWNoL3NlcmlhbC5oCj4gwqBkZWxldGUgbW9k
+ZSAxMDA2NDQgYXJjaC9hcm0vbWFjaC1vbWFwMi9zZXJpYWwuaAo+IAoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5n
+IGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5p
+bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
