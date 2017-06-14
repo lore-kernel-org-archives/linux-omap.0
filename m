@@ -1,64 +1,72 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v6 4/4] power: supply: twl4030-charger: add deferred probing for phy and iio
-Date: Wed, 14 Jun 2017 11:25:56 +0200
-Message-ID: <6573ec523aa73971562c9b7e7d89f6045185d8c4.1497432355.git.hns@goldelico.com>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v6 0/4] More fixes for twl4030 charger
+Date: Wed, 14 Jun 2017 11:29:09 +0200
+Message-ID: <8AEF614C-8C30-4C3A-9357-F9FB44ECBA00@goldelico.com>
 References: <cover.1497432355.git.hns@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1497432355.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-In-Reply-To: <cover.1497432355.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-References: <cover.1497432355.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, NeilBrown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1497432355.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, NeilBrown <neil@brown.name>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Sebastian Reichel <sre@kernel.org>, Marek Belisko <marek@goldelico.com>, Nikolaus Schaller <hns@goldelico.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, notasas@gmail.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This fixes an issue if both this twl4030_charger driver and
-phy-twl4030-usb are compiled as modules and loaded in random order.
 
-It has been observed on GTA04 and OpenPandora devices that in worst
-case the boot process hangs and in best case the AC detection fails
-with a warning.
+> Am 14.06.2017 um 11:25 schrieb H. Nikolaus Schaller =
+<hns@goldelico.com>:
+>=20
+> Changes V6:
+> * split up -EPROBE_DEFER and irq allocation patch into small steps:
+> 	* convert iio to devm allocation (by Sebsatian Reichel)
+> 	* fix potentially wrong initialization sequence (by Grygorii =
+Strashko)
+> 	* add -EPROBE_DEFER
+>=20
+> 2017-05-21 12:38:24: Changes V5:
+> * reworked max_current removal patch (comments by Sebastian Reichel)
+> * resubmit missing madc connection for AC power detection
+> * resubmit patch for irq allocation and -EPROBE_DEFER
+> * rebased on 4.12-rc1
+>=20
+> Changes V4:
+> * resent commit (original one did contain material not upstream)
+>=20
+> 2017-04-14 21:29:39: 2017-04-14 20:26:00: Changes V3:
+> * worked in comments by Sebsatian Reichel
+> * clarifications of some commit messages
+> * rebased on v4.11rc-6
+>=20
+> It took a while (18 months) until we propose an updated patch for =
+upstream...
+>=20
+> 2015-11-02 12:27:39: Changes V2:
+> * worked in comments by Nishanth Menon <nm@ti.com>
+> * added another patch which solves a probing/boot stall problem (irq =
+allocation vs. -EPROBE_DEFER)
+>=20
+> V1:
+> 4.3-rc1 introduced a new charger driver for the twl4030. This patch =
+set fixes some
+> issues.
+>=20
+> While making twl4030 changes from 4.3 operable we have found some =
+issues
+> during testing on GTA04 and OpenPandora.
+>=20
+> H. Nikolaus Schaller (4):
+>  power: supply: twl4030-charger: allocate iio by =
+devm_iio_channel_get()
+>    and fix error path
+>  power: supply: twl4030-charger: move allocation of iio channel to the
+>    beginning
+>  power: supply: twl4030-charger: move irq allocation to just before
+>    irqs are enabled
+>  power: supply: twl4030-charger: add deferred probing for phy and iio
 
-Therefore we add deferred probing checks for the usb_phy and the
-iio channel for AC detection.
+I should note that I have split up the original single commit into 4 =
+separate patches.
+If maintainers thing this is too fine granularity, please squash them.
 
-Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
----
- drivers/power/supply/twl4030_charger.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/supply/twl4030_charger.c
-index 3bebeecb4a1f..6ac8816262bd 100644
---- a/drivers/power/supply/twl4030_charger.c
-+++ b/drivers/power/supply/twl4030_charger.c
-@@ -989,15 +989,21 @@ static int twl4030_bci_probe(struct platform_device *pdev)
- 
- 		phynode = of_find_compatible_node(bci->dev->of_node->parent,
- 						  NULL, "ti,twl4030-usb");
--		if (phynode)
-+		if (phynode) {
- 			bci->transceiver = devm_usb_get_phy_by_node(
- 				bci->dev, phynode, &bci->usb_nb);
-+			if (IS_ERR(bci->transceiver) &&
-+			    PTR_ERR(bci->transceiver) == -EPROBE_DEFER)
-+				return -EPROBE_DEFER;	/* PHY not ready */
-+		}
- 	}
- 
- 	bci->channel_vac = devm_iio_channel_get(&pdev->dev, "vac");
- 	if (IS_ERR(bci->channel_vac)) {
--		bci->channel_vac = NULL;
-+		if (PTR_ERR(bci->channel_vac) == -EPROBE_DEFER)
-+			return -EPROBE_DEFER;	/* iio not ready */
- 		dev_warn(&pdev->dev, "could not request vac iio channel");
-+		bci->channel_vac = NULL;
- 	}
- 
- 	bci->ac = devm_power_supply_register(&pdev->dev, &twl4030_bci_ac_desc,
--- 
-2.12.2
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The result is tested to work on GTA04.
