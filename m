@@ -1,59 +1,64 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI: dwc: dra7xx: Fix compilation warning.
-Date: Wed, 14 Jun 2017 11:11:10 -0500
-Message-ID: <20170614161110.GA4918@bhelgaas-glaptop.roam.corp.google.com>
-References: <9ec4f891371506238afa813227b4be90341fee88.1497338120.git.arvind.yadav.cs@gmail.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] regulator: tps65910: wire up sleep control configuration
+Date: Wed, 14 Jun 2017 18:15:18 +0100
+Message-ID: <20170614171518.xlhpidf4fm65g7tf@sirena.org.uk>
+References: <efc798c2a1140c545cc210a29ed2791495956510.1497442770.git.mirq-linux@rere.qmqm.pl>
+ <20170614144208.nmiq2zijkyoajqgn@sirena.org.uk>
+ <20170614151329.7kb266gnksryr45y@qmqm.qmqm.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ypglzravmf3l5ks3"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <9ec4f891371506238afa813227b4be90341fee88.1497338120.git.arvind.yadav.cs@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: kishon@ti.com, bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170614151329.7kb266gnksryr45y-cHozx32mtrEEUmgCuDUIdw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 13, 2017 at 12:48:24PM +0530, Arvind Yadav wrote:
-> drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_msi_interrupts’:
-> drivers/pci/dwc/pci-dra7xx.c:177:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->        ~LEG_EP_INTERRUPTS & ~MSI);
->        ^
-> drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_wrapper_interrupts’:
-> drivers/pci/dwc/pci-dra7xx.c:187:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->        ~INTERRUPTS);
-> 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-> ---
->  drivers/pci/dwc/pci-dra7xx.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 8decf46..328d480 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -174,7 +174,7 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
->  static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
->  {
->  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
-> -			   ~LEG_EP_INTERRUPTS & ~MSI);
-> +			   (u32)~LEG_EP_INTERRUPTS & (u32)~MSI);
 
-Can you put the casts in the definitions of LEG_EP_INTERRUPTS, MSI,
-INTERRUPTS, etc., instead of at every use?
+--ypglzravmf3l5ks3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->  
->  	dra7xx_pcie_writel(dra7xx,
->  			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
-> @@ -184,7 +184,7 @@ static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
->  static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
->  {
->  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
-> -			   ~INTERRUPTS);
-> +			   (u32)~INTERRUPTS);
->  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
->  			   INTERRUPTS);
->  }
-> -- 
-> 1.9.1
-> 
+On Wed, Jun 14, 2017 at 05:13:29PM +0200, Micha=C5=82 Miros=C5=82aw wrote:
+> On Wed, Jun 14, 2017 at 03:42:08PM +0100, Mark Brown wrote:
+> > On Wed, Jun 14, 2017 at 02:25:13PM +0200, Micha=C5=82 Miros=C5=82aw wro=
+te:
+> > > References: 201cf052810d20814a77ca0e0045a2c1a3508a1f
+
+> > I have no idea what you mean by this, sorry.
+
+> This is a commit id which introduced the feature:
+
+Please include human readable descriptions of things like commits and
+issues being discussed in e-mail in your mails, this makes them much
+easier for humans to read especially when they have no internet access.
+I do frequently catch up on my mail on flights or while otherwise
+travelling so this is even more pressing for me than just being about
+making things a bit easier to read.
+
+I also still don't entirely know what you're trying to tell me with
+this...  as far as I can tell it's just noise?
+
+--ypglzravmf3l5ks3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllBbyYACgkQJNaLcl1U
+h9D5mgf+OOYzXzKkschNdJnrcL9e3eX2ihGrp1f+NO2yUoVc+AgIQRa4KYKcWg8W
+Z7zDCeT7LGwCyiYuNcBhpzw/NEfa52lpJHl6zUQS6ZhtKPuCoi14e9+n/uo4DmlW
+22nccNttDFCLQ6JwweQip0jONKqKaQ6gka5t/udKNB4zMf3GtGMz6e4j/v53WKvr
+iyz09W0vU+RRwsxv0SGZew/ZRmmRw06VtO9IHpAewf7svV1mOFg3GNJm2tBIGJqu
+Hd4Gn42FcDvEAlQaqkU2GWYF2LuFgatWJI305uGRnOkhbZX7mJp1SbzlEbWYk5kk
+Xhrq4hHYLVthDLopmtR6IE1k545a5A==
+=y8rO
+-----END PGP SIGNATURE-----
+
+--ypglzravmf3l5ks3--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
