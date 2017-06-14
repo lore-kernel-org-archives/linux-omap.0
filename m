@@ -1,41 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/RFT PATCH 4/4] [debug] ARM: am335x: illustrate hwstamp
-Date: Tue, 13 Jun 2017 22:38:27 -0700
-Message-ID: <20170614053827.GD3730@atomide.com>
-References: <20170613231623.28353-1-grygorii.strashko@ti.com>
- <20170613231623.28353-5-grygorii.strashko@ti.com>
+Subject: Re: [PATCHv2] ARM: OMAP: PM: stop early on systems without twl
+Date: Tue, 13 Jun 2017 22:47:27 -0700
+Message-ID: <20170614054727.GE3730@atomide.com>
+References: <20170612102527.GX3730@atomide.com>
+ <20170613094617.29166-1-sre@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170613231623.28353-5-grygorii.strashko@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Richard Cochran <richardcochran@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ivan.khoronzhuk@linaro.org
+In-Reply-To: <20170613094617.29166-1-sre@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [170613 16:20]:
-> This patch allows to test CPTS HW_TS_PUSH functionality on am335x boards
-> 
-> below sequence of commands will enable Timer7 to trigger 1sec
-> periodic pulses on CPTS HW4_TS_PUSH input pin:
-> 
->  # echo 1000000000 > /sys/class/pwm/pwmchip0/pwm0/period
->  # echo 500000000 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
->  # echo 1 > /sys/class/pwm/pwmchip0/pwm0/enable
->  # ./ptp/testptp -e 10 -i 3
-> external time stamp request okay
-> event index 3 at 1493259028.376600798
-> event index 3 at 1493259029.377170898
-> event index 3 at 1493259030.377741039
-> event index 3 at 1493259031.378311139
-> event index 3 at 1493259032.378881279
-> event index 3 at 1493259033.379451424
-> event index 3 at 1493259034.380021520
-> event index 3 at 1493259035.380591660
-> event index 3 at 1493259036.381161765
-> event index 3 at 1493259037.381731909
+* Sebastian Reichel <sre@kernel.org> [170613 02:50]:
+> From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 63027e60cc20..92e335decc61 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -240,6 +240,10 @@ omap_postcore_initcall(omap2_common_pm_init);
+>  
+>  int __init omap2_common_pm_late_init(void)
+>  {
+> +#if IS_BUILTIN(CONFIG_TWL6040_CORE) || IS_BUILTIN(CONFIG_TWL4030_CORE)
+> +	if (!twl_rev())
+> +		goto no_twl;
+> +
+>  	/* Init the voltage layer */
+>  	omap3_twl_init();
+>  	omap4_twl_init();
+> @@ -253,4 +257,9 @@ int __init omap2_common_pm_late_init(void)
+>  	omap_devinit_smartreflex();
+>  
+>  	return 0;
+> +
+> +no_twl:
+> +#endif
+> +	pr_err("OMAP4 PM not supported!\n");
+> +	return -ENODEV;
 
-Cool :)
+This should probably just say "OMAP4 SmartReflex not supported".
+We already have omap4 CPUs hit off mode during idle. What's
+missing is save and restore of registers for various domains.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+SmartReflex is also doable without twl PMICs, at least ti81xx
+are doing SmartReflex over a group of GPIO pins without twl.
+
+So maybe just put the twl specific parts into IS_BUILTIN so
+we can optionally add other PM init here if needed?
+
+Regards,
+
+Tony
