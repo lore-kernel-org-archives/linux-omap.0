@@ -1,7 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/7] ARM: debug: Use generic 8250 debug_ll for ti81xx
-Date: Wed, 14 Jun 2017 00:31:14 -0700
-Message-ID: <20170614073118.28246-4-tony@atomide.com>
+Subject: [PATCH 1/7] ARM: debug: Use generic 8250 debug_ll for omap2 and
+ omap3/4/5 common uarts
+Date: Wed, 14 Jun 2017 00:31:12 -0700
+Message-ID: <20170614073118.28246-2-tony@atomide.com>
 References: <20170614073118.28246-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -34,107 +35,113 @@ Cc: Hoeun Ryu <hoeun.ryu@gmail.com>
 Cc: Russell King <linux@armlinux.org.uk>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/Kconfig.debug             | 14 +++++++++-----
- arch/arm/include/debug/omap2plus.S | 28 ----------------------------
- 2 files changed, 9 insertions(+), 33 deletions(-)
+ arch/arm/Kconfig.debug             | 16 +++++++++++++---
+ arch/arm/include/debug/omap2plus.S | 23 -----------------------
+ 2 files changed, 13 insertions(+), 26 deletions(-)
 
 diff --git a/arch/arm/Kconfig.debug b/arch/arm/Kconfig.debug
 --- a/arch/arm/Kconfig.debug
 +++ b/arch/arm/Kconfig.debug
-@@ -712,17 +712,17 @@ choice
- 	config DEBUG_TI81XXUART1
- 		bool "Kernel low-level debugging messages via TI81XX UART1 (ti8148evm)"
+@@ -646,7 +646,7 @@ choice
+ 	config DEBUG_OMAP2UART1
+ 		bool "OMAP2/3/4 UART1 (omap2/3 sdp boards and some omap3 boards)"
+ 		depends on ARCH_OMAP2PLUS
+-		select DEBUG_OMAP2PLUS_UART
++		select DEBUG_UART_8250
+ 		help
+ 		  This covers at least h4, 2430sdp, 3430sdp, 3630sdp,
+ 		  omap3 torpedo and 3530 lv som.
+@@ -654,12 +654,12 @@ choice
+ 	config DEBUG_OMAP2UART2
+ 		bool "Kernel low-level debugging messages via OMAP2/3/4 UART2"
  		depends on ARCH_OMAP2PLUS
 -		select DEBUG_OMAP2PLUS_UART
 +		select DEBUG_UART_8250
  
- 	config DEBUG_TI81XXUART2
- 		bool "Kernel low-level debugging messages via TI81XX UART2"
+ 	config DEBUG_OMAP2UART3
+ 		bool "Kernel low-level debugging messages via OMAP2 UART3 (n8x0)"
  		depends on ARCH_OMAP2PLUS
 -		select DEBUG_OMAP2PLUS_UART
 +		select DEBUG_UART_8250
  
- 	config DEBUG_TI81XXUART3
- 		bool "Kernel low-level debugging messages via TI81XX UART3 (ti8168evm)"
- 		depends on ARCH_OMAP2PLUS
--		select DEBUG_OMAP2PLUS_UART
-+		select DEBUG_UART_8250
- 
- 	config DEBUG_AM33XXUART1
- 		bool "Kernel low-level debugging messages via AM33XX UART1"
-@@ -1523,7 +1523,9 @@ config DEBUG_UART_PHYS
+ 	config DEBUG_OMAP3UART3
+ 		bool "Kernel low-level debugging messages via OMAP3 UART3 (most omap3 boards)"
+@@ -1523,6 +1523,11 @@ config DEBUG_UART_PHYS
  	default 0x40090000 if DEBUG_LPC32XX
  	default 0x40100000 if DEBUG_PXA_UART1
  	default 0x42000000 if DEBUG_GEMINI
--	default 0x48020000 if DEBUG_OMAP4UART3
-+	default 0x48020000 if DEBUG_OMAP4UART3 || DEBUG_TI81XXUART1
-+	default 0x48022000 if DEBUG_TI81XXUART2
-+	default 0x48024000 if DEBUG_TI81XXUART3
- 	default 0x4806a000 if DEBUG_OMAP2UART1 || DEBUG_OMAP3UART1 || \
- 				DEBUG_OMAP4UART1 || DEBUG_OMAP5UART1
- 	default 0x4806c000 if DEBUG_OMAP2UART2 || DEBUG_OMAP3UART2 || \
-@@ -1649,7 +1651,9 @@ config DEBUG_UART_VIRT
++	default 0x4806a000 if DEBUG_OMAP2UART1 || DEBUG_OMAP3UART1 || \
++				DEBUG_OMAP4UART1 || DEBUG_OMAP5UART1
++	default 0x4806c000 if DEBUG_OMAP2UART2 || DEBUG_OMAP3UART2 || \
++				DEBUG_OMAP4UART2 || DEBUG_OMAP5UART2
++	default 0x4806e000 if DEBUG_OMAP2UART3
+ 	default 0x50000000 if DEBUG_S3C24XX_UART && (DEBUG_S3C_UART0 || \
+ 				DEBUG_S3C2410_UART0)
+ 	default 0x50004000 if DEBUG_S3C24XX_UART && (DEBUG_S3C_UART1 || \
+@@ -1641,6 +1646,11 @@ config DEBUG_UART_VIRT
  	default 0xf8090000 if DEBUG_VEXPRESS_UART0_RS1
  	default 0xf8ffee00 if DEBUG_AT91_SAM9263_DBGU
  	default 0xf8fff200 if DEBUG_AT91_RM9200_DBGU
-- 	default 0xfa020000 if DEBUG_OMAP4UART3
-+ 	default 0xfa020000 if DEBUG_OMAP4UART3 || DEBUG_TI81XXUART1
-+	default 0xfa022000 if DEBUG_TI81XXUART2
-+	default 0xfa024000 if DEBUG_TI81XXUART3
- 	default 0xfa06a000 if DEBUG_OMAP2UART1 || DEBUG_OMAP3UART1 || \
- 				DEBUG_OMAP4UART1 || DEBUG_OMAP5UART1
- 	default 0xfa06c000 if DEBUG_OMAP2UART2 || DEBUG_OMAP3UART2 || \
++	default 0xfa06a000 if DEBUG_OMAP2UART1 || DEBUG_OMAP3UART1 || \
++				DEBUG_OMAP4UART1 || DEBUG_OMAP5UART1
++	default 0xfa06c000 if DEBUG_OMAP2UART2 || DEBUG_OMAP3UART2 || \
++				DEBUG_OMAP4UART2 || DEBUG_OMAP5UART2
++	default 0xfa06e000 if DEBUG_OMAP2UART3
+ 	default 0xfa71e000 if DEBUG_QCOM_UARTDM
+ 	default 0xfb002000 if DEBUG_CNS3XXX
+ 	default 0xfb009000 if DEBUG_REALVIEW_STD_PORT
 diff --git a/arch/arm/include/debug/omap2plus.S b/arch/arm/include/debug/omap2plus.S
 --- a/arch/arm/include/debug/omap2plus.S
 +++ b/arch/arm/include/debug/omap2plus.S
-@@ -15,11 +15,6 @@
+@@ -12,21 +12,12 @@
+ 
+ #include <linux/serial_reg.h>
+ 
+-/* OMAP2 serial ports */
+-#define OMAP2_UART1_BASE	0x4806a000
+-#define OMAP2_UART2_BASE	0x4806c000
+-#define OMAP2_UART3_BASE	0x4806e000
+-
  /* OMAP3 serial ports */
+-#define OMAP3_UART1_BASE	OMAP2_UART1_BASE
+-#define OMAP3_UART2_BASE	OMAP2_UART2_BASE
+ #define OMAP3_UART3_BASE	0x49020000
+ #define OMAP3_UART4_BASE	0x49042000	/* Only on 36xx */
  #define OMAP3_UART4_AM35XX_BASE	0x4809E000	/* Only on AM35xx */
  
--/* TI81XX serial ports */
--#define TI81XX_UART1_BASE	0x48020000
--#define TI81XX_UART2_BASE	0x48022000
--#define TI81XX_UART3_BASE	0x48024000
--
- /* AM3505/3517 UART4 */
- #define AM35XX_UART4_BASE	0x4809E000	/* Only on AM3505/3517 */
+ /* OMAP4 serial ports */
+-#define OMAP4_UART1_BASE	OMAP2_UART1_BASE
+-#define OMAP4_UART2_BASE	OMAP2_UART2_BASE
+ #define OMAP4_UART3_BASE	0x48020000
+ #define OMAP4_UART4_BASE	0x4806e000
  
-@@ -56,18 +51,6 @@ omap_uart_lsr:	.word	0
+@@ -42,8 +33,6 @@
+ #define AM33XX_UART1_BASE	0x44E09000
+ 
+ /* OMAP5 serial ports */
+-#define OMAP5_UART1_BASE	OMAP2_UART1_BASE
+-#define OMAP5_UART2_BASE	OMAP2_UART2_BASE
+ #define OMAP5_UART3_BASE	OMAP4_UART3_BASE
+ #define OMAP5_UART4_BASE	OMAP4_UART4_BASE
+ #define OMAP5_UART5_BASE	0x48066000
+@@ -79,18 +68,6 @@ omap_uart_lsr:	.word	0
  		bne	100f			@ already configured
  
  		/* Configure the UART offset from the phys/virt base */
--#ifdef CONFIG_DEBUG_TI81XXUART1
--		mov	\rp, #UART_OFFSET(TI81XX_UART1_BASE)
+-#ifdef CONFIG_DEBUG_OMAP2UART1
+-		mov	\rp, #UART_OFFSET(OMAP2_UART1_BASE)	@ omap2/3/4
 -		b	98f
 -#endif
--#ifdef CONFIG_DEBUG_TI81XXUART2
--		mov	\rp, #UART_OFFSET(TI81XX_UART2_BASE)
+-#ifdef CONFIG_DEBUG_OMAP2UART2
+-		mov	\rp, #UART_OFFSET(OMAP2_UART2_BASE)	@ omap2/3/4
 -		b	98f
 -#endif
--#ifdef CONFIG_DEBUG_TI81XXUART3
--		mov	\rp, #UART_OFFSET(TI81XX_UART3_BASE)
+-#ifdef CONFIG_DEBUG_OMAP2UART3
+-		mov	\rp, #UART_OFFSET(OMAP2_UART3_BASE)
 -		b	98f
 -#endif
- #ifdef CONFIG_DEBUG_AM33XXUART1
- 		ldr	\rp, =AM33XX_UART1_BASE
- 		and	\rp, \rp, #0x00ffffff
-@@ -94,17 +77,6 @@ omap_uart_lsr:	.word	0
- 
- 		b	10b
- 
--		/* Store both phys and virt address for the uart */
--98:		add	\rp, \rp, #0x48000000	@ phys base
--		str	\rp, [\tmp, #0]		@ omap_uart_phys
--		sub	\rp, \rp, #0x48000000	@ phys base
--		add	\rp, \rp, #0xfa000000	@ virt base
--		str	\rp, [\tmp, #4]		@ omap_uart_virt
--		mov	\rp, #(UART_LSR << OMAP_PORT_SHIFT)
--		str	\rp, [\tmp, #8]		@ omap_uart_lsr
--
--		b	10b
--
- 		.align
- 99:		.word	.
- 		.word	omap_uart_phys
+ #ifdef CONFIG_DEBUG_OMAP3UART3
+ 		mov	\rp, #UART_OFFSET(OMAP3_UART1_BASE)
+ 		add	\rp, \rp, #0x00fb0000
 -- 
 2.13.0
