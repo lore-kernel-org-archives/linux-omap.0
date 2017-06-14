@@ -1,51 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCH 1/2] arm:omap2+: put omap_uart_phys/virt/lsr in
- .text section when ZIMAGE is true
-Date: Tue, 13 Jun 2017 22:27:50 -0700
-Message-ID: <20170614052750.GC3730@atomide.com>
-References: <1497316206-11110-1-git-send-email-hoeun.ryu@gmail.com>
+Subject: Re: [RFC/RFT PATCH 4/4] [debug] ARM: am335x: illustrate hwstamp
+Date: Tue, 13 Jun 2017 22:38:27 -0700
+Message-ID: <20170614053827.GD3730@atomide.com>
+References: <20170613231623.28353-1-grygorii.strashko@ti.com>
+ <20170613231623.28353-5-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1497316206-11110-1-git-send-email-hoeun.ryu@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hoeun Ryu <hoeun.ryu@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170613231623.28353-5-grygorii.strashko@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Richard Cochran <richardcochran@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ivan.khoronzhuk@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+* Grygorii Strashko <grygorii.strashko@ti.com> [170613 16:20]:
+> This patch allows to test CPTS HW_TS_PUSH functionality on am335x boards
+> 
+> below sequence of commands will enable Timer7 to trigger 1sec
+> periodic pulses on CPTS HW4_TS_PUSH input pin:
+> 
+>  # echo 1000000000 > /sys/class/pwm/pwmchip0/pwm0/period
+>  # echo 500000000 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+>  # echo 1 > /sys/class/pwm/pwmchip0/pwm0/enable
+>  # ./ptp/testptp -e 10 -i 3
+> external time stamp request okay
+> event index 3 at 1493259028.376600798
+> event index 3 at 1493259029.377170898
+> event index 3 at 1493259030.377741039
+> event index 3 at 1493259031.378311139
+> event index 3 at 1493259032.378881279
+> event index 3 at 1493259033.379451424
+> event index 3 at 1493259034.380021520
+> event index 3 at 1493259035.380591660
+> event index 3 at 1493259036.381161765
+> event index 3 at 1493259037.381731909
 
-* Hoeun Ryu <hoeun.ryu@gmail.com> [170612 18:18]:
-> --- a/arch/arm/include/debug/omap2plus.S
-> +++ b/arch/arm/include/debug/omap2plus.S
-> @@ -58,11 +58,22 @@
->  
->  #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
->  
-> +/*
-> + * Definition of ZIMAGE is in arch/arm/boot/compressed/Makefile.
-> + * Place the following block in .text section only when this file is
-> + * included by arch/arm/boot/compressed/* to make it possible to
-> + * enable CONFIG_DEBUG_UNCOMPRESS and DEBUG in arch/arm/boot/compressed/head.S
-> + * on OMAP2+ SoCs.
-> + */
-> +#ifndef ZIMAGE
->  		.pushsection .data
-> +#endif
->  omap_uart_phys:	.word	0
->  omap_uart_virt:	.word	0
->  omap_uart_lsr:	.word	0
-> +#ifndef ZIMAGE
->  		.popsection
-> +#endif
+Cool :)
 
-So I converted all these to use the 8250 debug_ll yesterday
-which should solve the DEBUG_UNCOMPRESS issue for you and
-allows us to remove this file. Will post the series shortly
-for testing with you in Cc after I've done a bit more testing
-here.
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
