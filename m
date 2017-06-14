@@ -1,42 +1,59 @@
-From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
-Subject: Re: [PATCH] regulator: tps65910: wire up sleep control configuration
-Date: Wed, 14 Jun 2017 17:13:29 +0200
-Message-ID: <20170614151329.7kb266gnksryr45y@qmqm.qmqm.pl>
-References: <efc798c2a1140c545cc210a29ed2791495956510.1497442770.git.mirq-linux@rere.qmqm.pl>
- <20170614144208.nmiq2zijkyoajqgn@sirena.org.uk>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI: dwc: dra7xx: Fix compilation warning.
+Date: Wed, 14 Jun 2017 11:11:10 -0500
+Message-ID: <20170614161110.GA4918@bhelgaas-glaptop.roam.corp.google.com>
+References: <9ec4f891371506238afa813227b4be90341fee88.1497338120.git.arvind.yadav.cs@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170614144208.nmiq2zijkyoajqgn@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
+In-Reply-To: <9ec4f891371506238afa813227b4be90341fee88.1497338120.git.arvind.yadav.cs@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: kishon@ti.com, bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 14, 2017 at 03:42:08PM +0100, Mark Brown wrote:
-> On Wed, Jun 14, 2017 at 02:25:13PM +0200, Micha³ Miros³aw wrote:
-> > References: 201cf052810d20814a77ca0e0045a2c1a3508a1f
-> I have no idea what you mean by this, sorry.
+On Tue, Jun 13, 2017 at 12:48:24PM +0530, Arvind Yadav wrote:
+> drivers/pci/dwc/pci-dra7xx.c: In function â€˜dra7xx_pcie_enable_msi_interruptsâ€™:
+> drivers/pci/dwc/pci-dra7xx.c:177:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
+>        ~LEG_EP_INTERRUPTS & ~MSI);
+>        ^
+> drivers/pci/dwc/pci-dra7xx.c: In function â€˜dra7xx_pcie_enable_wrapper_interruptsâ€™:
+> drivers/pci/dwc/pci-dra7xx.c:187:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
+>        ~INTERRUPTS);
+> 
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 8decf46..328d480 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -174,7 +174,7 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
+>  static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
+>  {
+>  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
+> -			   ~LEG_EP_INTERRUPTS & ~MSI);
+> +			   (u32)~LEG_EP_INTERRUPTS & (u32)~MSI);
 
-This is a commit id which introduced the feature:
+Can you put the casts in the definitions of LEG_EP_INTERRUPTS, MSI,
+INTERRUPTS, etc., instead of at every use?
 
-commit 201cf052810d20814a77ca0e0045a2c1a3508a1f
-Author: Laxman Dewangan <ldewangan@nvidia.com>
-Date:   Wed Apr 18 12:13:51 2012 +0200
-
-    mfd: Add support for tps65910 device sleep
-
-    Adding support for device sleep through the external input control
-    signal "SLEEP".
-    Changing the SLEEP signal state can switch the device into SLEEP and
-    ACTIVE state.
-    Also adding sleep configuration for different resources so that they
-    should be keep on during sleep state of device.
-
-    Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-    Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
-
-Best Regards,
-Micha³ Miros³aw
+>  
+>  	dra7xx_pcie_writel(dra7xx,
+>  			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
+> @@ -184,7 +184,7 @@ static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
+>  static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
+>  {
+>  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
+> -			   ~INTERRUPTS);
+> +			   (u32)~INTERRUPTS);
+>  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
+>  			   INTERRUPTS);
+>  }
+> -- 
+> 1.9.1
+> 
