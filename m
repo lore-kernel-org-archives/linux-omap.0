@@ -1,56 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] ARM: OMAP: PM: stop early on systems without twl
-Date: Tue, 13 Jun 2017 22:47:27 -0700
-Message-ID: <20170614054727.GE3730@atomide.com>
-References: <20170612102527.GX3730@atomide.com>
- <20170613094617.29166-1-sre@kernel.org>
+From: Hoeun Ryu <hoeun.ryu@gmail.com>
+Subject: Re: [RESEND PATCH 1/2] arm:omap2+: put omap_uart_phys/virt/lsr in
+ .text section when ZIMAGE is true
+Date: Wed, 14 Jun 2017 15:48:46 +0900
+Message-ID: <1497422926.1935.4.camel@gmail.com>
+References: <1497316206-11110-1-git-send-email-hoeun.ryu@gmail.com>
+         <20170614052750.GC3730@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170613094617.29166-1-sre@kernel.org>
+In-Reply-To: <20170614052750.GC3730@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Kevin Hilman <khilman@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@kernel.org> [170613 02:50]:
-> From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 63027e60cc20..92e335decc61 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -240,6 +240,10 @@ omap_postcore_initcall(omap2_common_pm_init);
->  
->  int __init omap2_common_pm_late_init(void)
->  {
-> +#if IS_BUILTIN(CONFIG_TWL6040_CORE) || IS_BUILTIN(CONFIG_TWL4030_CORE)
-> +	if (!twl_rev())
-> +		goto no_twl;
-> +
->  	/* Init the voltage layer */
->  	omap3_twl_init();
->  	omap4_twl_init();
-> @@ -253,4 +257,9 @@ int __init omap2_common_pm_late_init(void)
->  	omap_devinit_smartreflex();
->  
->  	return 0;
-> +
-> +no_twl:
-> +#endif
-> +	pr_err("OMAP4 PM not supported!\n");
-> +	return -ENODEV;
+On Tue, 2017-06-13 at 22:27 -0700, Tony Lindgren wrote:
+> Hi,
+> 
+> * Hoeun Ryu <hoeun.ryu@gmail.com> [170612 18:18]:
+> > 
+> > --- a/arch/arm/include/debug/omap2plus.S
+> > +++ b/arch/arm/include/debug/omap2plus.S
+> > @@ -58,11 +58,22 @@
+> >  
+> >  #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
+> >  
+> > +/*
+> > + * Definition of ZIMAGE is in arch/arm/boot/compressed/Makefile.
+> > + * Place the following block in .text section only when this file
+> > is
+> > + * included by arch/arm/boot/compressed/* to make it possible to
+> > + * enable CONFIG_DEBUG_UNCOMPRESS and DEBUG in
+> > arch/arm/boot/compressed/head.S
+> > + * on OMAP2+ SoCs.
+> > + */
+> > +#ifndef ZIMAGE
+> >  		.pushsection .data
+> > +#endif
+> >  omap_uart_phys:	.word	0
+> >  omap_uart_virt:	.word	0
+> >  omap_uart_lsr:	.word	0
+> > +#ifndef ZIMAGE
+> >  		.popsection
+> > +#endif
+> So I converted all these to use the 8250 debug_ll yesterday
+> which should solve the DEBUG_UNCOMPRESS issue for you and
+> allows us to remove this file. Will post the series shortly
+> for testing with you in Cc after I've done a bit more testing
+> here.
 
-This should probably just say "OMAP4 SmartReflex not supported".
-We already have omap4 CPUs hit off mode during idle. What's
-missing is save and restore of registers for various domains.
+It sounds good.
+patch 01 is dropped though, are you using the second patch ?
+"[PATCH 2/2] arm:omap2+: drop dependence on DEBUG_OMAP2PLUS_UART for
+DEBUG_UNCOMPRESS"
 
-SmartReflex is also doable without twl PMICs, at least ti81xx
-are doing SmartReflex over a group of GPIO pins without twl.
+Thank you.
 
-So maybe just put the twl specific parts into IS_BUILTIN so
-we can optionally add other PM init here if needed?
-
-Regards,
-
-Tony
+> 
+> Regards,
+> 
+> Tony
