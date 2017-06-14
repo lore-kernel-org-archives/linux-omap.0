@@ -1,62 +1,50 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC/RFT PATCH 0/4] net: ethernat: ti: cpts: enable irq and HW_TS_PUSH
-Date: Tue, 13 Jun 2017 18:16:19 -0500
-Message-ID: <20170613231623.28353-1-grygorii.strashko@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/4] ARM: dts: tps65217: Add power button interrupt to
+ the common tps65217.dtsi file
+Date: Tue, 13 Jun 2017 21:55:52 -0700
+Message-ID: <20170614045551.GB3730@atomide.com>
+References: <20170612212412.22719-1-enric.balletbo@collabora.com>
+ <20170612212412.22719-2-enric.balletbo@collabora.com>
+ <20170613073519.GA3730@atomide.com>
+ <CAFqH_50syu5aHBQtJkh-Dpz8Yc_6w0X853DO46T3ZAAJ10F-Pw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Richard Cochran <richardcochran@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, ivan.khoronzhuk@linaro.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAFqH_50syu5aHBQtJkh-Dpz8Yc_6w0X853DO46T3ZAAJ10F-Pw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Intention of this post is to get some early review and wider testing.
+* Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170613 02:12]:
+> Hi Tony,
+> 
+> 2017-06-13 9:35 GMT+02:00 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+> > * Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org> [170612 14:28]:
+> >> The interrupt for power button is static data that comes from the
+> >> datasheet, there is no reason to need to define this value on every
+> >> board so seams reasonable put this information into the common tps65217
+> >> file.
+> >
+> > I think there's a problem with these patches where we no longer know
+> > if the interrupts are wired up on a board. For example, if the USB PHY
+> > VBUS interrupt is not connected, the phy driver needs poll the
+> > cable state.
+> >
+> 
+> Hmm, the tps65217 doesn't have a USB PHY like others tps, so not sure
+> how could affect this patch. Did you see this issue in any board that
+> uses tps65217 or any am335x based board which commonly uses this pmic?
 
-This series adds CPTS IRQ support, which allows to fix TX timestamping issue
-and add support for HW_TS_PUSH events.
+Oh sorry I misread your patch. I thought you're removing
+the interrupts from dts, but you're just moving the dts entries
+to the common dtsi file :) So seems just fine with me.
 
-The idea of using CPTS IRQ for proper support of HW_TS_PUSH events
-was originally discussed in [1].
+Regards,
 
-Further TX timestamping issue was discovered and enabling of CPTS IRQ allows to
-fix it also.
- - TX timestamp can be missed with the low Ethernet link connection speed.
-In this case CPDMA notification about packet processing can be received before
-CPTS TX timestamp event, which is sent when packet actually left CPSW while
-cpdma notification is sent when packet pushed in CPSW fifo. 
-As result, when connection is slow and CPU is fast enough TX timestamping is not
-working properly. Issue was discovered on am57x boards with Ethernet link
-connection speed forced to 100M and on am335x-evm with thernet link
-connection speed forced to 10M using timestamping tool.
-
-PATCH 4: provided to illustrate how HW_TS_PUSH can be used.
-
-I've tested it on am57/dra7 and am335.
-
-!!! Unfortunatelly, I still trying to enable CPTS IRQ on Keystone 2 and
-this is blocker for now.
-
-Series based on top of net-next tree,
-commit a1fa1a0 net: phy: marvell: Show complete link partner advertising.
-
-[1] https://www.mail-archive.com/netdev@vger.kernel.org/msg141466.html
-
-Grygorii Strashko (4):
-  net: ethernet: ti: cpts: use own highpri workqueue
-  net: ethernat: ti: cpts: enable irq
-  net: ethernet: ti: cpts: add support of cpts HW_TS_PUSH
-  [debug] ARM: am335x: illustrate hwstamp
-
- Documentation/devicetree/bindings/net/cpsw.txt     |   4 +
- .../devicetree/bindings/net/keystone-netcp.txt     |   6 +
- arch/arm/boot/dts/am335x-boneblack.dts             |   6 +
- arch/arm/boot/dts/am335x-evm.dts                   |   7 +
- arch/arm/boot/dts/am33xx.dtsi                      |   1 +
- arch/arm/configs/omap2plus_defconfig               |   2 +-
- drivers/net/ethernet/ti/cpsw.c                     |  42 +-
- drivers/net/ethernet/ti/cpts.c                     | 432 ++++++++++++++++-----
- drivers/net/ethernet/ti/cpts.h                     |  23 +-
- 9 files changed, 409 insertions(+), 114 deletions(-)
-
--- 
-2.10.1
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
