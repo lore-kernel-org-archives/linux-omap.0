@@ -1,51 +1,117 @@
-From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org>
-Subject: Re: [PATCH] regulator: tps65910: wire up sleep control configuration
-Date: Wed, 14 Jun 2017 20:54:58 +0200
-Message-ID: <20170614185458.3vhuhjdpf5pabsis@qmqm.qmqm.pl>
-References: <efc798c2a1140c545cc210a29ed2791495956510.1497442770.git.mirq-linux@rere.qmqm.pl>
- <20170614144208.nmiq2zijkyoajqgn@sirena.org.uk>
- <20170614151329.7kb266gnksryr45y@qmqm.qmqm.pl>
- <20170614171518.xlhpidf4fm65g7tf@sirena.org.uk>
+From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org>
+Subject: [PATCH v2] regulator: tps65910: wire up sleep control configuration
+Date: Wed, 14 Jun 2017 21:04:14 +0200
+Message-ID: <48ab466a6832807a585012209f94855ff67ddc95.1497466956.git.mirq-linux@rere.qmqm.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170614171518.xlhpidf4fm65g7tf-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 14, 2017 at 06:15:18PM +0100, Mark Brown wrote:
-> On Wed, Jun 14, 2017 at 05:13:29PM +0200, Micha≥ Miros≥aw wrote:
-> > On Wed, Jun 14, 2017 at 03:42:08PM +0100, Mark Brown wrote:
-> > > On Wed, Jun 14, 2017 at 02:25:13PM +0200, Micha≥ Miros≥aw wrote:
-> > > > References: 201cf052810d20814a77ca0e0045a2c1a3508a1f
-> 
-> > > I have no idea what you mean by this, sorry.
-> 
-> > This is a commit id which introduced the feature:
-> 
-> Please include human readable descriptions of things like commits and
-> issues being discussed in e-mail in your mails, this makes them much
-> easier for humans to read especially when they have no internet access.
-> I do frequently catch up on my mail on flights or while otherwise
-> travelling so this is even more pressing for me than just being about
-> making things a bit easier to read.
-> 
-> I also still don't entirely know what you're trying to tell me with
-> this...  as far as I can tell it's just noise?
+This enables configuring the PMIC's sleep mode via device-tree.
 
-As the patch only modifies device-tree binding, I included reference
-to a patch that implements the feature. I guess this is not of much
-use to you if you don't have access to the git tree while reviewing.
+A pointer indirection to sleep mode data is removed, as it simplifies
+the implementation slightly. In current kernel tree, platform data
+structure is not used outside MFD cell drivers.
 
-Since this is rather easy to find in git history, I will just remove the
-References line.
+Signed-off-by: Micha≈Ç Miros≈Çaw <mirq-linux-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org>
+---
+v2:
+  - updated commit message
 
-Best Regards,
-Micha≥†Miros≥aw
+ Documentation/devicetree/bindings/mfd/tps65910.txt |  4 ++++
+ drivers/mfd/tps65910.c                             | 22 +++++++++++++++-------
+ include/linux/mfd/tps65910.h                       |  2 +-
+ 3 files changed, 20 insertions(+), 8 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/mfd/tps65910.txt b/Documentation/devicetree/bindings/mfd/tps65910.txt
+index 38833e63a59f9..8af1202b381dc 100644
+--- a/Documentation/devicetree/bindings/mfd/tps65910.txt
++++ b/Documentation/devicetree/bindings/mfd/tps65910.txt
+@@ -61,6 +61,10 @@ Optional properties:
+   There should be 9 entries here, one for each gpio.
+ - ti,system-power-controller: Telling whether or not this pmic is controlling
+   the system power.
++- ti,sleep-enable: Enable SLEEP state.
++- ti,sleep-keep-therm: Keep thermal monitoring on in sleep state.
++- ti,sleep-keep-ck32k: Keep the 32KHz clock output on in sleep state.
++- ti,sleep-keep-hsclk: Keep high speed internal clock on in sleep state.
+ 
+ Regulator Optional properties:
+ - ti,regulator-ext-sleep-control: enable external sleep
+diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
+index 11cab1582f2f2..8263605f6d2fa 100644
+--- a/drivers/mfd/tps65910.c
++++ b/drivers/mfd/tps65910.c
+@@ -328,11 +328,7 @@ static int tps65910_sleepinit(struct tps65910 *tps65910,
+ 		goto err_sleep_init;
+ 	}
+ 
+-	/* Return if there is no sleep keepon data. */
+-	if (!pmic_pdata->slp_keepon)
+-		return 0;
+-
+-	if (pmic_pdata->slp_keepon->therm_keepon) {
++	if (pmic_pdata->slp_keepon.therm_keepon) {
+ 		ret = tps65910_reg_set_bits(tps65910,
+ 				TPS65910_SLEEP_KEEP_RES_ON,
+ 				SLEEP_KEEP_RES_ON_THERM_KEEPON_MASK);
+@@ -342,7 +338,7 @@ static int tps65910_sleepinit(struct tps65910 *tps65910,
+ 		}
+ 	}
+ 
+-	if (pmic_pdata->slp_keepon->clkout32k_keepon) {
++	if (pmic_pdata->slp_keepon.clkout32k_keepon) {
+ 		ret = tps65910_reg_set_bits(tps65910,
+ 				TPS65910_SLEEP_KEEP_RES_ON,
+ 				SLEEP_KEEP_RES_ON_CLKOUT32K_KEEPON_MASK);
+@@ -352,7 +348,7 @@ static int tps65910_sleepinit(struct tps65910 *tps65910,
+ 		}
+ 	}
+ 
+-	if (pmic_pdata->slp_keepon->i2chs_keepon) {
++	if (pmic_pdata->slp_keepon.i2chs_keepon) {
+ 		ret = tps65910_reg_set_bits(tps65910,
+ 				TPS65910_SLEEP_KEEP_RES_ON,
+ 				SLEEP_KEEP_RES_ON_I2CHS_KEEPON_MASK);
+@@ -415,6 +411,18 @@ static struct tps65910_board *tps65910_parse_dt(struct i2c_client *client,
+ 	prop = of_property_read_bool(np, "ti,en-ck32k-xtal");
+ 	board_info->en_ck32k_xtal = prop;
+ 
++	prop = of_property_read_bool(np, "ti,sleep-enable");
++	board_info->en_dev_slp = prop;
++
++	prop = of_property_read_bool(np, "ti,sleep-keep-therm");
++	board_info->slp_keepon.therm_keepon = prop;
++
++	prop = of_property_read_bool(np, "ti,sleep-keep-ck32k");
++	board_info->slp_keepon.clkout32k_keepon = prop;
++
++	prop = of_property_read_bool(np, "ti,sleep-keep-hsclk");
++	board_info->slp_keepon.i2chs_keepon = prop;
++
+ 	board_info->irq = client->irq;
+ 	board_info->irq_base = -1;
+ 	board_info->pm_off = of_property_read_bool(np,
+diff --git a/include/linux/mfd/tps65910.h b/include/linux/mfd/tps65910.h
+index ffb21e79204d6..deffdcd0236f9 100644
+--- a/include/linux/mfd/tps65910.h
++++ b/include/linux/mfd/tps65910.h
+@@ -879,7 +879,7 @@ struct tps65910_board {
+ 	bool en_ck32k_xtal;
+ 	bool en_dev_slp;
+ 	bool pm_off;
+-	struct tps65910_sleep_keepon_data *slp_keepon;
++	struct tps65910_sleep_keepon_data slp_keepon;
+ 	bool en_gpio_sleep[TPS6591X_MAX_NUM_GPIO];
+ 	unsigned long regulator_ext_sleep_control[TPS65910_NUM_REGS];
+ 	struct regulator_init_data *tps65910_pmic_init_data[TPS65910_NUM_REGS];
+-- 
+2.11.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
