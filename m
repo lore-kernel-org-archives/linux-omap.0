@@ -1,59 +1,55 @@
-From: Hoeun Ryu <hoeun.ryu@gmail.com>
-Subject: Re: [PATCH 0/7] Clean-up for debug_ll for omap variants
-Date: Wed, 14 Jun 2017 17:12:09 +0900
-Message-ID: <1497427929.1935.6.camel@gmail.com>
-References: <20170614073118.28246-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170614073118.28246-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v6 2/4] power: supply: twl4030-charger: move allocation of iio channel to the beginning
+Date: Wed, 14 Jun 2017 11:25:54 +0200
+Message-ID: <0aa7052c6c8183ef12c08ed6aa069ddf8c748809.1497432355.git.hns@goldelico.com>
+References: <cover.1497432355.git.hns@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1497432355.git.hns@goldelico.com>
+In-Reply-To: <cover.1497432355.git.hns@goldelico.com>
+References: <cover.1497432355.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, NeilBrown <neil@brown.name>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Sebastian Reichel <sre@kernel.org>, Marek Belisko <marek@goldelico.com>, "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, notasas@gmail.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCAyMDE3LTA2LTE0IGF0IDAwOjMxIC0wNzAwLCBUb255IExpbmRncmVuIHdyb3RlOgo+
-IEhpIGFsbCwKPiAKPiBJbnNwaXJlZCBieSBlYXJsaWVyIHBhdGNoZXMgdG8gcmVtb3ZlIERFQlVH
-X09NQVAyUExVU19VQVJUIGRlcGVuZGVuY3kKPiB0byBERUJVR19VTkNPTVBSRVNTIGJ5IEhvZXVu
-IFJ5dSA8aG9ldW4ucnl1QGdtYWlsLmNvbT4sIEkgY29udmVydGVkCj4gYWxsIG1hY2gtb21hcDIg
-dG8gdXNlIGdlbmVyaWMgODI1MCBkZWJ1Z19sbCBjb2RlLgoKR3JlYXQhIFRoYW5rIHlvdS4KCj4g
-Cj4gSSd2ZSB0ZXN0ZWQgdGhpcyBvbiBvbWFwMi8zLzQvNSwgdGk4MXh4IGFuZCBhbTQzN3ggc28g
-ZmFyIGFuZCB0aGluZ3MKPiBzZWVtIHRvIHdvcmsgYXMgZXhwZWN0ZWQuCj4gCj4gUmVnYXJkcywK
-PiAKPiBUb255Cj4gCj4gVG9ueSBMaW5kZ3JlbiAoNyk6Cj4gwqAgQVJNOiBkZWJ1ZzogVXNlIGdl
-bmVyaWMgODI1MCBkZWJ1Z19sbCBmb3Igb21hcDIgYW5kIG9tYXAzLzQvNQo+IGNvbW1vbgo+IMKg
-wqDCoMKgdWFydHMKPiDCoCBBUk06IGRlYnVnOiBVc2UgZ2VuZXJpYyA4MjUwIGRlYnVnX2xsIGZv
-ciBvbWFwMy80LzUKPiDCoCBBUk06IGRlYnVnOiBVc2UgZ2VuZXJpYyA4MjUwIGRlYnVnX2xsIGZv
-ciB0aTgxeHgKPiDCoCBBUk06IGRlYnVnOiBVc2UgZ2VuZXJpYyA4MjUwIGRlYnVnX2xsIGZvciBh
-bTM1MTcgYW5kIGFtMzM1eAo+IMKgIEFSTTogZGVidWc6IFVzZSBnZW5lcmljIDgyNTAgZGVidWdf
-bGwgZm9yIG9tYXAgem9vbQo+IMKgIEFSTTogZGVidWc6IFVwZGF0ZSBwb3J0IGRlc2NyaXB0aW9u
-cyBmb3Igb21hcCB2YXJpYW50cwo+IMKgIEFSTTogT01BUDIrOiBEcm9wIHVudXNlZCBzZXJpYWwu
-aAo+IAo+IMKgYXJjaC9hcm0vS2NvbmZpZy5kZWJ1Z8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDYwICsrKystLS0KPiDCoGFyY2gv
-YXJtL2luY2x1ZGUvZGVidWcvb21hcDJwbHVzLlPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgfCAxOTAgLS0tLS0tLS0tCj4gLS0tLS0tLS0tLS0tCj4gwqBhcmNoL2FybS9tYWNoLW9t
-YXAyL2NvbW1vbi5owqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oHzCoMKgwqAxIC0KPiDCoGFyY2gvYXJtL21hY2gtb21hcDIvaW5jbHVkZS9tYWNoL3NlcmlhbC5o
-wqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDY2IC0tLS0tLS0KPiDCoGFyY2gvYXJtL21hY2gtb21h
-cDIvaW8uY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoHzCoMKgwqAxIC0KPiDCoGFyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF8yNDIwX2Rh
-dGEuY8KgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxIC0KPiDCoC4uLi9tYWNoLW9tYXAyL29tYXBf
-aHdtb2RfMnh4eF9pbnRlcmNvbm5lY3RfZGF0YS5jIHzCoMKgwqAxIC0KPiDCoGFyY2gvYXJtL21h
-Y2gtb21hcDIvb21hcF9od21vZF8zeHh4X2RhdGEuY8KgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAx
-IC0KPiDCoGFyY2gvYXJtL21hY2gtb21hcDIvc2VyaWFsLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDEgLQo+IMKgOSBmaWxlcyBjaGFuZ2VkLCA0
-MCBpbnNlcnRpb25zKCspLCAyODIgZGVsZXRpb25zKC0pCj4gwqBkZWxldGUgbW9kZSAxMDA2NDQg
-YXJjaC9hcm0vaW5jbHVkZS9kZWJ1Zy9vbWFwMnBsdXMuUwo+IMKgZGVsZXRlIG1vZGUgMTAwNjQ0
-IGFyY2gvYXJtL21hY2gtb21hcDIvaW5jbHVkZS9tYWNoL3NlcmlhbC5oCj4gwqBkZWxldGUgbW9k
-ZSAxMDA2NDQgYXJjaC9hcm0vbWFjaC1vbWFwMi9zZXJpYWwuaAo+IAoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5n
-IGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5p
-bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+This is in prepraration for EPROBE_DEFER handling because it is quite
+likely that geting the (madc) iio channel is deferred more often than
+later steps.
+
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ drivers/power/supply/twl4030_charger.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/supply/twl4030_charger.c
+index 9507c24495ba..1fbbe0cc216a 100644
+--- a/drivers/power/supply/twl4030_charger.c
++++ b/drivers/power/supply/twl4030_charger.c
+@@ -984,6 +984,12 @@ static int twl4030_bci_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, bci);
+ 
++	bci->channel_vac = devm_iio_channel_get(&pdev->dev, "vac");
++	if (IS_ERR(bci->channel_vac)) {
++		bci->channel_vac = NULL;
++		dev_warn(&pdev->dev, "could not request vac iio channel");
++	}
++
+ 	bci->ac = devm_power_supply_register(&pdev->dev, &twl4030_bci_ac_desc,
+ 					     NULL);
+ 	if (IS_ERR(bci->ac)) {
+@@ -1017,12 +1023,6 @@ static int twl4030_bci_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
+-	bci->channel_vac = devm_iio_channel_get(&pdev->dev, "vac");
+-	if (IS_ERR(bci->channel_vac)) {
+-		bci->channel_vac = NULL;
+-		dev_warn(&pdev->dev, "could not request vac iio channel");
+-	}
+-
+ 	INIT_WORK(&bci->work, twl4030_bci_usb_work);
+ 	INIT_DELAYED_WORK(&bci->current_worker, twl4030_current_worker);
+ 
+-- 
+2.12.2
