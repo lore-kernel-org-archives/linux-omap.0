@@ -1,151 +1,62 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH v2 2/2] regulator: tps65910: Allow supply references to
- the same chip
-Date: Wed, 14 Jun 2017 09:56:37 +0200
-Message-ID: <CABxcv==FqU7y1dpDC7eausDwu6eGwBm4C_NeupYtzdbYYfkoSw@mail.gmail.com>
-References: <f2aee03834d8cdcc7195b9272982617d93f978dc.1497364762.git.mirq-linux@rere.qmqm.pl>
- <053529c206a2afc453b52e2c0f024acd85341a83.1497364762.git.mirq-linux@rere.qmqm.pl>
- <20170613174628.sv4v76s7torrn5jx@sirena.org.uk> <20170613202217.nj23xkahpz3jc4h5@qmqm.qmqm.pl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 0/5] OMAP4: crypto support
+Date: Wed, 14 Jun 2017 00:57:51 -0700
+Message-ID: <20170614075750.GG3730@atomide.com>
+References: <20170613092847.16732-1-sebastian.reichel@collabora.co.uk>
+ <ab778bfd-9397-4cb0-0741-557da57bba83@ti.com>
+ <20170613142458.32g3iqcijc4ij4b7@earth>
+ <027b40b6-1961-275b-7b7e-00a51e86e8f3@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170613202217.nj23xkahpz3jc4h5@qmqm.qmqm.pl>
+Content-Disposition: inline
+In-Reply-To: <027b40b6-1961-275b-7b7e-00a51e86e8f3@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>
-Cc: Mark Brown <broonie@kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Keerthy <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Paul Walmsley <paul@pwsan.com>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Michal,
+* Tero Kristo <t-kristo@ti.com> [170613 07:46]:
+> On 13/06/17 17:24, Sebastian Reichel wrote:
+> > Hi,
+> > 
+> > On Tue, Jun 13, 2017 at 04:49:18PM +0300, Tero Kristo wrote:
+> > > On 13/06/17 12:28, Sebastian Reichel wrote:
+> > > > This adds crypto support for OMAP4, which was missing for some reason.
+> > > > This fixes error about missing hwmod on Droid 4. IP-Cores for AES and
+> > > > DES are working according to selftest.
+> > > > 
+> > > > Changes since PATCHv1:
+> > > >    * remove patch adding des_fck to DT
+> > > >    * add patch removing aes[12]_fck from DT
+> > > >    * add patch renaming hwmod aes to aes1 in DT
+> > > >    * update hwmod patches according to feedback from Tero
+> > > >    * add patch for aes2 hwmod
+> > > > 
+> > > > -- Sebastian
+> > > 
+> > > I just posted a few extra patches on top of this series, for adding
+> > > the missing dts data for aes2 and adding sham accelerator also.
+> > 
+> > Thanks :)
+> > 
+> > > The dts data should be applied first if you want to avoid any
+> > > issues with hwmod core complaining about missing DT data, so the
+> > > sequencing of this series and mine need to be done carefully.
+> > 
+> > There is also a warning printed if DT references a missing hwmod
+> > entry (that's how I noticed this in the first place). It's less
+> > noisy, though. Since kernel builds and boots with any order and
+> > crypto hardware does not work at the moment there is no real
+> > problem with bisect. I suggest to merge the DTS patches normally
+> > through the separate dt branch.
+> 
+> Yeah thats actually true also. Up to Tony to decide how he wants to handle
+> these. The huge warning is mainly an annoyance.
 
-What kernel version are you using?
+Applying patches from both Sebastian's and Tero's sets into
+split into omap-for-v4.13/dt and omap-for-v4.13/soc-v4 branches.
 
-It shouldn't be necessary anymore to resolve regulators dependencies
-during regulator_register(), now that logic to lookup the parent
-supply has been moved to regulator_get() instead.
+Thanks,
 
-On Tue, Jun 13, 2017 at 10:22 PM, Micha=C5=82 Miros=C5=82aw
-<mirq-linux@rere.qmqm.pl> wrote:
-> On Tue, Jun 13, 2017 at 06:46:28PM +0100, Mark Brown wrote:
->> On Tue, Jun 13, 2017 at 04:41:58PM +0200, Micha=C5=82 Miros=C5=82aw wrot=
-e:
->> > This allows for (acyclic) references from tps6591x supplies to
->> > its outputs.
->> This is clearly not something that should be open coded in individual
->> drivers, aside from the code duplication it is obviously possible to
->> have two different chips supplying each other which this wouldn't help
->> at all.  Is this happening for you with current kernels, we have a few
->> mechanisms for deferring bindings of supplies which should help here.
->
-> What mechanisms would that be? What I observed is that whenever
-
-The specific commit that adds the mechanism Mark is referring to is:
-
-commit 6261b06de565baafa590e58a531a1a5522cea0b6
-Author: Bjorn Andersson <bjorn.andersson@sonymobile.com>
-Date:   Tue Mar 24 18:56:05 2015 -0700
-
-    regulator: Defer lookup of supply to regulator_get
-
-    Instead of resolving regulator supplies during registration move this t=
-o
-    the time of a consumer retrieving a handle. The benefit is that it's
-    possible for one driver to register regulators with internal
-    dependencies out of order.
-
-    Signed-off-by: Bjorn Andersson <bjorn.andersson@sonymobile.com>
-    Signed-off-by: Mark Brown <broonie@kernel.org>
-
-> a regulator's supply is not available but described in device-tree,
-
-What do you mean by not available? At some point it the parent supply
-should be registered with the regulator core and prevent the client
-device to defer its probe when calling regulator_get().
-
-Now, if you don't have a client device that calls regulator_get() to
-resolve the parent supply but still need the parent supply to be
-enabled, this commit does in the core what you attempt to do in your
-driver:
-
-commit 5e3ca2b349b1e2c80b060b51bbf2af37448fad85
-Author: Javier Martinez Canillas <javier@osg.samsung.com>
-Date:   Wed Mar 23 20:59:34 2016 -0300
-
-    regulator: Try to resolve regulators supplies on registration
-
-    Commit 6261b06de565 ("regulator: Defer lookup of supply to regulator_ge=
-t")
-    moved the regulator supplies lookup logic from the regulators registrat=
-ion
-    to the regulators get time.
-
-    Unfortunately, that changed the behavior of the regulator core since no=
-w a
-    parent supply with a child regulator marked as always-on, won't be enab=
-led
-    unless a client driver attempts to get the child regulator during boot.
-
-    This patch tries to resolve the parent supply for the already registere=
-d
-    regulators each time that a new regulator is registered. So the regulat=
-ors
-    that have child regulators marked as always on will be enabled regardle=
-ss
-    if a driver gets the child regulator or not.
-
-    That was the behavior before the mentioned commit, since parent supplie=
-s
-    were looked up at regulator registration time instead of during child g=
-et.
-
-    Since regulator_resolve_supply() checks for rdev->supply, most of the t=
-imes
-    it will be a no-op. Errors aren't checked to keep the possible out of o=
-rder
-    dependencies which was the motivation for the mentioned commit.
-
-    Also, the supply being available will be enforced on regulator get anyw=
-ays
-    in case the resolve fails on regulators registration.
-
-    Fixes: 6261b06de565 ("regulator: Defer lookup of supply to regulator_ge=
-t")
-    Suggested-by: Mark Brown <broonie@kernel.org>
-    Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-    Signed-off-by: Mark Brown <broonie@kernel.org>
-    Cc: <stable@vger.kernel.org> # 4.1+
-
-> the whole device's registration is deferred.
->
-> The device-tree I'm working on contains:
->
-> pmic: tps65911@2d {
->     compatible =3D "ti,tps65911";
->     reg =3D <0x2d>;
->     ...
->     vcc3-supply =3D <&vio_reg>; // ldo6, ldo7, ldo8
->     ...
->     regulators {
->         vio_reg: vio {
->             regulator-min-microvolt =3D <1800000>;
->             regulator-max-microvolt =3D <1800000>;
->             regulator-always-on;
->         };
->         ...
->     }
-> }
-
-I don't see anything wrong with this DTS, it should work....
-
-I did something similar for the max77802 PMIC in
-arch/arm/boot/dts/exynos5800-peach-pi.dts, some regulators have as
-input supplies regulators from the same PMIC and may not be
-necessarily registered in the order to resolve parent supplies on
-child registration.
-
->
-> Best Regards,
-> Micha=C5=82 Miros=C5=82aw
-
-Best regards,
-Javier
+Tony
