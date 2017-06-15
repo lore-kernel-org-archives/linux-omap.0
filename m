@@ -1,117 +1,94 @@
-From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Subject: Re: [PATCH] dt-bindings: power: supply: cpcap-battery: Add
- power-supplies property
-Date: Thu, 15 Jun 2017 14:54:48 +0200
-Message-ID: <20170615125448.mwrk6zpcfdbbvtuo@earth>
-References: <20170612072025.30033-1-tony@atomide.com>
- <20170612142217.tg7gidqg63uagwm4@earth>
- <20170612160400.GY3730@atomide.com>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: Re: [PATCH] power: supply: cpcap-charger: Add missing
+ power_supply_config
+Date: Thu, 15 Jun 2017 14:55:18 +0200
+Message-ID: <20170615125518.xesqz6a2qwjtal7x@earth>
+References: <20170615044108.26707-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="k5jlhrxa5bgsgjhf"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="fh5tfmqzfinl3wiw"
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170612160400.GY3730-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>, Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170615044108.26707-1-tony@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---k5jlhrxa5bgsgjhf
+--fh5tfmqzfinl3wiw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jun 12, 2017 at 09:04:00AM -0700, Tony Lindgren wrote:
-> * Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org> [170612 07:26]:
-> > On Mon, Jun 12, 2017 at 12:20:25AM -0700, Tony Lindgren wrote:
-> > > +- power-supplies: List of devices that supply power, typically cpcap=
-_charger
-> >=20
-> > This is missing the info, that its about phandles. Maybe:
-> >=20
-> > - power-supplies: List of phandles for power-supplying devices, as
-> >                   described in power_supply.txt. Typically a reference
-> >                   to cpcap_charger.
+On Wed, Jun 14, 2017 at 09:41:08PM -0700, Tony Lindgren wrote:
+> Otherwise cpcap-battery won't probe properly with the power-supplies
+> property configured but will fail with "Not all required supplies found,
+> defer probe".
 >=20
-> Sure, updated patch below.
+> Cc: Marcel Partap <mpartap@gmx.net>
+> Cc: Michael Scott <michael.scott@linaro.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-I queued that one.
+Thanks, queued.
 
 -- Sebastian
 
-> 8< ------
-> From tony Mon Sep 17 00:00:00 2001
-> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Date: Mon, 12 Jun 2017 00:13:45 -0700
-> Subject: [PATCH] dt-bindings: power: supply: cpcap-battery: Add
->  power-supplies property
->=20
-> The binding for cpcap-battery is missing the standard power-supplies
-> property as noted by Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org=
->.
->=20
-> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Marcel Partap <mpartap-hi6Y0CQ0nG0@public.gmane.org>
-> Cc: Michael Scott <michael.scott-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > ---
->  Documentation/devicetree/bindings/power/supply/cpcap-battery.txt | 4 ++++
->  1 file changed, 4 insertions(+)
+>  drivers/power/supply/cpcap-charger.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 >=20
-> diff --git a/Documentation/devicetree/bindings/power/supply/cpcap-battery=
-=2Etxt b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
-> --- a/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
-> +++ b/Documentation/devicetree/bindings/power/supply/cpcap-battery.txt
-> @@ -8,6 +8,9 @@ Required properties:
->  - io-channels: IIO ADC channel specifier for each name in io-channel-nam=
-es
->  - io-channel-names: Should contain the following entries:
->  		    "battdetb", "battp", "chg_isense", "batti"
-> +- power-supplies: List of phandles for power-supplying devices, as
-> +		  described in power_supply.txt. Typically a reference
-> +		  to cpcap_charger.
+> diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/=
+cpcap-charger.c
+> --- a/drivers/power/supply/cpcap-charger.c
+> +++ b/drivers/power/supply/cpcap-charger.c
+> @@ -637,6 +637,7 @@ static int cpcap_charger_probe(struct platform_device=
+ *pdev)
+>  {
+>  	struct cpcap_charger_ddata *ddata;
+>  	const struct of_device_id *of_id;
+> +	struct power_supply_config psy_cfg =3D {};
+>  	int error;
 > =20
->  Example:
+>  	of_id =3D of_match_device(of_match_ptr(cpcap_charger_id_table),
+> @@ -665,9 +666,12 @@ static int cpcap_charger_probe(struct platform_devic=
+e *pdev)
 > =20
-> @@ -24,4 +27,5 @@ cpcap_battery: battery {
->  		       &cpcap_adc 5 &cpcap_adc 6>;
->  	io-channel-names =3D "battdetb", "battp",
->  			   "chg_isense", "batti";
-> +	power-supplies =3D <&cpcap_charger>;
->  };
+>  	atomic_set(&ddata->active, 1);
+> =20
+> +	psy_cfg.of_node =3D pdev->dev.of_node;
+> +	psy_cfg.drv_data =3D ddata;
+> +
+>  	ddata->usb =3D devm_power_supply_register(ddata->dev,
+>  						&cpcap_charger_usb_desc,
+> -						NULL);
+> +						&psy_cfg);
+>  	if (IS_ERR(ddata->usb)) {
+>  		error =3D PTR_ERR(ddata->usb);
+>  		dev_err(ddata->dev, "failed to register USB charger: %i\n",
 > --=20
 > 2.13.0
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---k5jlhrxa5bgsgjhf
+--fh5tfmqzfinl3wiw
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllCg5gACgkQ2O7X88g7
-+pphlw//QAviHbafPaQdODRke0+XDgy2kzwFZJBWX4VsWKCwdpsoTXYzUY4Spfu2
-6nrmGwhgkpRLjDS5CBjd49f+ITjklUyio6cdiJ3wtkXnOZN0YQ4S9shNBkFuYJfJ
-I5CJblsnI4z+SLLrZHqfPLBaRiKIFIetA1tpGn/8ruCu5akWnO3KLwbf13KPmM5Z
-ytluZYHVYFEZsFohHZ9GgGp0hayILU+cWk1tvBSHkmKh8wrHtR7DRl+y1sZwQRMg
-OC3E+vWimgPZWlFIXvPEb57n1JbJ1QMS4dOGH8bdHw1D86ri3aPoOK1hAXubGyb1
-zbGSnDVhFsa8vcWX93IUVJ5GICNRUZBZAfpwGk7GbtNwNm1Spl04uGiHacioPe6E
-Tci+PZcqyoNnatxf2wI+1iqCc+fZRgDfrsdD/71iUZcgdJFJmsh1UDjHkgIhj/Hw
-ZqhzFUaIjFwnUl3i8pHQYuPwao3Vea7l7fiw653fqjjSOg9miPPJw6Gjauh3JT9/
-CWOAfG/QFQNjwNgF+6R0v2gvwxN28k7Xfjn7b/yO/rnpHx87T8kJ1Qt/4BOAAiZQ
-cO6MQ2g2HeuQ4PAsNXILtR+AfWitTrGabxQd5VKVE2ef90AwXPIBRQPRKuo4jkYn
-llgJbL7z3betGkDTNfRdQBqmw1YsMQImMSFLz+VVcI8LEDwaeMo=
-=ADmv
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllCg7YACgkQ2O7X88g7
++ppgAA/+OrT/7a/9NSb21Sh6z/S977OXk6960D/STLWby5UHpIPWx1qMwcN9mg1Q
+fcQS/nWBXtVq2kUpR7YRgkYuwSj4XmE86/upv+DsY5oeLsbJEU43qUZPU8J8PBa3
+xu13tKnk6BW2kMlok5vLztZ4wccAKYKr8T84jnrNn1r7c1LuPLV0vBiL/XbFkMCZ
+xoj0U7I0S4Tgw/6Os1dst8RnUOiy8IlLLy0suJ3GEs20ffiy1aH5ogYGzkWN62yO
+jPFo7/6x8zgpqBCH9FlJl3cZYoZpg0JhFlUer/SMke2VjBvvcfBlOHK/69h39k7x
+KJVbLj8qy+KXC//iJ8Bowpke+sk/xfqFNitN0QJThLwswifO0uUnSXwESL7oF/oM
+Sjd2rfa40JSRM1GZUFc8b4wM0M/aHqH9fxTYbhFZi2FNjPOfngS4A4O9G2lsm8zu
+i4Xk1QGJePta2KYkocIGnO3zn5y8Fh0eaYJQDZJZGRnyuzF6Zxnld/BEFy2ygQVH
+EBuu5xUinFG9ujvXyDNAFseZoleDaXUjpO6rgpxXAcv849KzaUqFQg9ZDDvrMxQM
+hUjtco8/3oQCtjTQVsiDlNmEBEuQkOmQZHOgElK5qA4pr3Q/BTqbGjYMXQom/nDy
+wycuUlTT9na4xsTt8oplGK5zPhCtRfePoxwkNvalw7bm/mVIz6w=
+=LY3m
 -----END PGP SIGNATURE-----
 
---k5jlhrxa5bgsgjhf--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--fh5tfmqzfinl3wiw--
