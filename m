@@ -1,94 +1,52 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH] power: supply: cpcap-charger: Add missing
- power_supply_config
-Date: Thu, 15 Jun 2017 14:55:18 +0200
-Message-ID: <20170615125518.xesqz6a2qwjtal7x@earth>
-References: <20170615044108.26707-1-tony@atomide.com>
+From: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 13/23] clocksource/drivers: Rename clocksource_probe to
+ timer_probe
+Date: Thu, 15 Jun 2017 18:02:00 +0200
+Message-ID: <a6614bcf-5552-b168-eee9-a1d604673494@gmail.com>
+References: <20170614123800.GH2261@mai>
+ <1497443984-12371-1-git-send-email-daniel.lezcano@linaro.org>
+ <1497443984-12371-13-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="fh5tfmqzfinl3wiw"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170615044108.26707-1-tony@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1497443984-12371-13-git-send-email-daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
+Cc: "open list:MIPS" <linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Kefeng Wang <wangkefeng.wang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Rich Felker <dalias-8zAoT0mYgF4@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, "open list:SUPERH" <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "moderated list:NIOS2 ARCHITECTURE" <nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org>, Michal Simek <michal.simek-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Max Filippov <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yoshinori Sato <ysato-Rn4VEauK+AKRv+LV9MX5uooqe+aC9MnS@public.gmane.org>, Viresh Kumar <vireshk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, "open list:ARM/Rockchip SoC..." <linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Chen-Yu Tsai <wens-jdAy2FN1RRM@public.gmane.org>, Noam Camus <noamc-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, "moderated list:ARM PORT" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---fh5tfmqzfinl3wiw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Wed, Jun 14, 2017 at 09:41:08PM -0700, Tony Lindgren wrote:
-> Otherwise cpcap-battery won't probe properly with the power-supplies
-> property configured but will fail with "Not all required supplies found,
-> defer probe".
->=20
-> Cc: Marcel Partap <mpartap@gmx.net>
-> Cc: Michael Scott <michael.scott@linaro.org>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Thanks, queued.
-
--- Sebastian
-
+On 14/06/17 14:39, Daniel Lezcano wrote:
+> The function name is now renamed to 'timer_probe' for consistency with
+> the CLOCKSOURCE_OF_DECLARE => TIMER_OF_DECLARE change.
+> 
+> Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Acked-by: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Acked-by: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>
+> Reviewed-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 > ---
->  drivers/power/supply/cpcap-charger.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/=
-cpcap-charger.c
-> --- a/drivers/power/supply/cpcap-charger.c
-> +++ b/drivers/power/supply/cpcap-charger.c
-> @@ -637,6 +637,7 @@ static int cpcap_charger_probe(struct platform_device=
- *pdev)
->  {
->  	struct cpcap_charger_ddata *ddata;
->  	const struct of_device_id *of_id;
-> +	struct power_supply_config psy_cfg =3D {};
->  	int error;
-> =20
->  	of_id =3D of_match_device(of_match_ptr(cpcap_charger_id_table),
-> @@ -665,9 +666,12 @@ static int cpcap_charger_probe(struct platform_devic=
-e *pdev)
-> =20
->  	atomic_set(&ddata->active, 1);
-> =20
-> +	psy_cfg.of_node =3D pdev->dev.of_node;
-> +	psy_cfg.drv_data =3D ddata;
-> +
->  	ddata->usb =3D devm_power_supply_register(ddata->dev,
->  						&cpcap_charger_usb_desc,
-> -						NULL);
-> +						&psy_cfg);
->  	if (IS_ERR(ddata->usb)) {
->  		error =3D PTR_ERR(ddata->usb);
->  		dev_err(ddata->dev, "failed to register USB charger: %i\n",
-> --=20
-> 2.13.0
+[...]
+> diff --git a/arch/arm/mach-mediatek/mediatek.c b/arch/arm/mach-mediatek/mediatek.c
+> index a6e3c98..c3cf215 100644
+> --- a/arch/arm/mach-mediatek/mediatek.c
+> +++ b/arch/arm/mach-mediatek/mediatek.c
+> @@ -41,7 +41,7 @@ static void __init mediatek_timer_init(void)
+>   	}
+>   
+>   	of_clk_init(NULL);
+> -	clocksource_probe();
+> +	timer_probe();
+>   };
 
---fh5tfmqzfinl3wiw
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllCg7YACgkQ2O7X88g7
-+ppgAA/+OrT/7a/9NSb21Sh6z/S977OXk6960D/STLWby5UHpIPWx1qMwcN9mg1Q
-fcQS/nWBXtVq2kUpR7YRgkYuwSj4XmE86/upv+DsY5oeLsbJEU43qUZPU8J8PBa3
-xu13tKnk6BW2kMlok5vLztZ4wccAKYKr8T84jnrNn1r7c1LuPLV0vBiL/XbFkMCZ
-xoj0U7I0S4Tgw/6Os1dst8RnUOiy8IlLLy0suJ3GEs20ffiy1aH5ogYGzkWN62yO
-jPFo7/6x8zgpqBCH9FlJl3cZYoZpg0JhFlUer/SMke2VjBvvcfBlOHK/69h39k7x
-KJVbLj8qy+KXC//iJ8Bowpke+sk/xfqFNitN0QJThLwswifO0uUnSXwESL7oF/oM
-Sjd2rfa40JSRM1GZUFc8b4wM0M/aHqH9fxTYbhFZi2FNjPOfngS4A4O9G2lsm8zu
-i4Xk1QGJePta2KYkocIGnO3zn5y8Fh0eaYJQDZJZGRnyuzF6Zxnld/BEFy2ygQVH
-EBuu5xUinFG9ujvXyDNAFseZoleDaXUjpO6rgpxXAcv849KzaUqFQg9ZDDvrMxQM
-hUjtco8/3oQCtjTQVsiDlNmEBEuQkOmQZHOgElK5qA4pr3Q/BTqbGjYMXQom/nDy
-wycuUlTT9na4xsTt8oplGK5zPhCtRfePoxwkNvalw7bm/mVIz6w=
-=LY3m
------END PGP SIGNATURE-----
-
---fh5tfmqzfinl3wiw--
+Acked-by: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
