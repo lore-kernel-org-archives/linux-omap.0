@@ -1,65 +1,89 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2] PCI: dwc: dra7xx: Fix compilation warning.
-Date: Thu, 15 Jun 2017 12:58:24 +0530
-Message-ID: <2de7127a-78c3-36dc-fa74-5d29e15fc64c@ti.com>
-References: <673ccda2e1a722fa1b511a9c3bf1af6fbfc262a3.1497507582.git.arvind.yadav.cs@gmail.com>
+From: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4] mfd: lp87565: Add lp87565 PMIC support
+Date: Thu, 15 Jun 2017 08:52:07 +0100
+Message-ID: <20170615075207.frl24lgybya6ttgo@dell>
+References: <1496894894-6969-1-git-send-email-j-keerthy@ti.com>
+ <20170609142855.tfixhw3cb5qjkcne@rob-hp-laptop>
+ <7596b39a-3135-7cca-e3dc-18c05cf54a8b@ti.com>
+ <7e352aa3-4483-1fa4-e424-cc90f62cdf46@ti.com>
+ <20170612091133.kt2doom32bun6ujp@dell>
+ <373e82d1-39fb-9cbb-300a-aa8a99544cdc@ti.com>
+ <CABxcv=nHOtGtwpt+fAMtHf6DpAzerxoho45yCJiJoS8cP-0c4Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <673ccda2e1a722fa1b511a9c3bf1af6fbfc262a3.1497507582.git.arvind.yadav.cs@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>, bhelgaas@google.com
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CABxcv=nHOtGtwpt+fAMtHf6DpAzerxoho45yCJiJoS8cP-0c4Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
+Cc: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 12 Jun 2017, Javier Martinez Canillas wrote:
 
-On Thursday 15 June 2017 11:52 AM, Arvind Yadav wrote:
-> drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_msi_interrupts’:
-> drivers/pci/dwc/pci-dra7xx.c:177:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->        ~LEG_EP_INTERRUPTS & ~MSI);
->        ^
-> drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_wrapper_interrupts’:
-> drivers/pci/dwc/pci-dra7xx.c:187:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->        ~INTERRUPTS);
-
-Er.. actually both PCIECTRL_TI_CONF_IRQSTATUS_MSI and
-PCIECTRL_TI_CONF_IRQSTATUS_MAIN are "write 1 to clear" registers. So writing
-'0' here means no action.
-
-So the right fix should be
-
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 8decf46cf525..aab0187cdf87 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -174,7 +174,7 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
- static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
- {
-        dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
--                          ~LEG_EP_INTERRUPTS & ~MSI);
-+                          MSI | LEG_EP_INTERRUPTS);
-
-        dra7xx_pcie_writel(dra7xx,
-                           PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
-@@ -184,7 +184,7 @@ static void dra7xx_pcie_enable_msi_interrupts(struct
-dra7xx_pcie *dra7xx)
- static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
- {
-        dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
--                          ~INTERRUPTS);
-+                          INTERRUPTS);
-        dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
-                           INTERRUPTS);
- }
+> Hello Lee and Keerthy,
 > 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> On Mon, Jun 12, 2017 at 11:17 AM, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> wrote:
+> >
+> >
+> > On Monday 12 June 2017 02:41 PM, Lee Jones wrote:
+> >> On Sun, 11 Jun 2017, Keerthy wrote:
+> >>
+> >>>
+> >>>
+> >>> On Sunday 11 June 2017 10:36 AM, Keerthy wrote:
+> >>>>
+> >>>>
+> >>>> On Friday 09 June 2017 07:58 PM, Rob Herring wrote:
+> >>>>> On Thu, Jun 08, 2017 at 09:38:14AM +0530, Keerthy wrote:
+> >>>>>> The LP87565 chip is a power management IC for Portable Navigation Systems
+> >>>>>> and Tablet Computing devices. It contains the following components:
+> >>>>>>
+> >>>>>>         - Configurable Bucks(Single and multi-phase).
+> >>>>>>         - Configurable General Purpose Output Signals (GPO).
+> >>>>>>
+> >>>>>> The LP87565-Q1 variant device uses two 2-phase outputs configuration,
+> >>>>>> Buck0 is master for Buck0/1 output and Buck2 is master for Buck2/3
+> >>>>>> output.
+> >>>>>>
+> >>>
+> >>> Lee Jones,
+> >>>
+> >>> Shall i add back i2c_device_id as pointed here:
+> >>> http://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1417316.html
+> >>
+> >> Hasn't that been fixed yet?
+> >>
 > 
-> Changes in v2:
->              Add casts in the definitions.
+> There are only 2 patch series remaining to be merged so we can finally
+> fix this in the I2C core, making sure that no drivers will be
+> regressed. One of the series is for MFD and have been around for a
+> while (it already contains all the relevant acks AFAICT), it would be
+> very helpful if you can look at it and merge if you think is correct:
+> 
+> https://lkml.org/lkml/2017/5/4/11
 
-please move the change log below "---"
+Please use the normal procedure and [RESEND].
 
-Thanks
-Kishon
+> >> I guess so then. :(
+> >
+> > Okay. So with that i assume i should reintroduce probe instead of probe_new.
+> >
+> 
+> It's orthogonal, you can have probe_new and also the I2C device ID
+> table (the OF table will be used for matching, you just need the I2C
+> table to export the aliases with MODULE_DEVICE_TABLE(i2c,.. ).
+> 
+> Best regards,
+> Javier
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
