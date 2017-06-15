@@ -1,87 +1,160 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v3] PCI: dwc: dra7xx: Fix compilation warning.
-Date: Thu, 15 Jun 2017 15:49:51 -0500
-Message-ID: <20170615204951.GD12735@bhelgaas-glaptop.roam.corp.google.com>
-References: <a2736e3907827e7b39dd85381101c1080012584c.1497514167.git.arvind.yadav.cs@gmail.com>
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: Re: [PATCH v3] misc: sram-exec: Use aligned fncpy instead of memcpy
+Date: Thu, 15 Jun 2017 13:51:36 -0700
+Message-ID: <48cd8ef0-1d66-2cfd-2d7e-8ff2089d3c02@gmail.com>
+References: <20170518150706.9235-1-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a2736e3907827e7b39dd85381101c1080012584c.1497514167.git.arvind.yadav.cs@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: kishon@ti.com, bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170518150706.9235-1-d-gerlach@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 15, 2017 at 02:19:20PM +0530, Arvind Yadav wrote:
-> drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_msi_interrupts’:
-> drivers/pci/dwc/pci-dra7xx.c:177:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->        ~LEG_EP_INTERRUPTS & ~MSI);
->        ^
-> drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_wrapper_interrupts’:
-> drivers/pci/dwc/pci-dra7xx.c:187:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->        ~INTERRUPTS);
+On 05/18/2017 08:07 AM, Dave Gerlach wrote:
+> Currently the sram-exec functionality, which allows allocation of
+> executable memory and provides an API to move code to it, is only
+> selected in configs for the ARM architecture. Based on commit
+> 5756e9dd0de6 ("ARM: 6640/1: Thumb-2: Symbol manipulation macros for
+> function body copying") simply copying a C function pointer address
+> using memcpy without consideration of alignment and Thumb is unsafe on
+> ARM platforms.
+> 
+> The aforementioned patch introduces the fncpy macro which is a safe way
+> to copy executable code on ARM platforms, so let's make use of that here
+> rather than the unsafe plain memcpy that was previously used by
+> sram_exec_copy. Now sram_exec_copy will move the code to "dst" and
+> return an address that is guaranteed to be safely callable.
+> 
+> In the future, architectures hoping to make use of the sram-exec
+> functionality must define an fncpy macro just as ARM has done to
+> guarantee or check for safe copying to executable memory before allowing
+> the arch to select CONFIG_SRAM_EXEC.
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
+> Reviewed-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 
-I don't object to the patch itself (hopefully Kishon will verify that
-it's correct), but the subject and changelog are now completely wrong.
+It would be nice if this could be applied to an upcoming v4.12-rc pull
+request.
 
-If the patch is correct, it is now a bug fix and is not at all about
-fixing a compilation warning.  We used to write
+Thanks!
 
-  ~LEG_EP_INTERRUPTS & ~MSI
-  ~(INTA | INTB | INTC | INTD) & ~MSI
-  ~(BIT(0) | BIT(1) | BIT(2) | BIT(3)) & ~(BIT(4))
-  ~(0x1 | 0x2 | 0x4 | 0x8) & ~(0x10)
-  ~(0xf) & ~(0x10)
-  0xfffffff0 & 0xffffffef
-  0xffffffe0
-
-and now we write
-
-  LEG_EP_INTERRUPTS | MSI
-  ...
-  0x1f
-
-It is about using these two registers correctly, and the fact that the
-compilation warning goes away is a happy coincidence but not even
-worth mentioning in the changelog.
-
-So, if Kishon acks the content of the patch, please post this again
-with an updated subject and changelog.
-
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 > ---
-> Changes in v2:
->              Add casts in the definitions.
-> Changes in v3:
->              Change logic insted of casting.
 > 
->  drivers/pci/dwc/pci-dra7xx.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> v3 changes: Rebase on v4.12-rc1 and added Acks from v2.
+> v2: https://www.spinics.net/lists/kernel/msg2485366.html
+> v1: http://www.spinics.net/lists/linux-omap/msg136517.html
 > 
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 8decf46..668dc15 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -174,7 +174,7 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
->  static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
->  {
->  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
-> -			   ~LEG_EP_INTERRUPTS & ~MSI);
-> +			   LEG_EP_INTERRUPTS | MSI);
+> 
+>  drivers/misc/sram-exec.c | 27 ++++++++++++++++++++-------
+>  include/linux/sram.h     |  8 ++++----
+>  2 files changed, 24 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/misc/sram-exec.c b/drivers/misc/sram-exec.c
+> index 3d528a13b8fc..426ad912b441 100644
+> --- a/drivers/misc/sram-exec.c
+> +++ b/drivers/misc/sram-exec.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/mm.h>
+>  #include <linux/sram.h>
 >  
->  	dra7xx_pcie_writel(dra7xx,
->  			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
-> @@ -184,7 +184,7 @@ static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
->  static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
+> +#include <asm/fncpy.h>
+>  #include <asm/set_memory.h>
+>  
+>  #include "sram.h"
+> @@ -58,20 +59,32 @@ int sram_add_protect_exec(struct sram_partition *part)
+>   * @src: Source address for the data to copy
+>   * @size: Size of copy to perform, which starting from dst, must reside in pool
+>   *
+> + * Return: Address for copied data that can safely be called through function
+> + *	   pointer, or NULL if problem.
+> + *
+>   * This helper function allows sram driver to act as central control location
+>   * of 'protect-exec' pools which are normal sram pools but are always set
+>   * read-only and executable except when copying data to them, at which point
+>   * they are set to read-write non-executable, to make sure no memory is
+>   * writeable and executable at the same time. This region must be page-aligned
+>   * and is checked during probe, otherwise page attribute manipulation would
+> - * not be possible.
+> + * not be possible. Care must be taken to only call the returned address as
+> + * dst address is not guaranteed to be safely callable.
+> + *
+> + * NOTE: This function uses the fncpy macro to move code to the executable
+> + * region. Some architectures have strict requirements for relocating
+> + * executable code, so fncpy is a macro that must be defined by any arch
+> + * making use of this functionality that guarantees a safe copy of exec
+> + * data and returns a safe address that can be called as a C function
+> + * pointer.
+>   */
+> -int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
+> -		   size_t size)
+> +void *sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
+> +		     size_t size)
 >  {
->  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
-> -			   ~INTERRUPTS);
-> +			   INTERRUPTS);
->  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
->  			   INTERRUPTS);
+>  	struct sram_partition *part = NULL, *p;
+>  	unsigned long base;
+>  	int pages;
+> +	void *dst_cpy;
+>  
+>  	mutex_lock(&exec_pool_list_mutex);
+>  	list_for_each_entry(p, &exec_pool_list, list) {
+> @@ -81,10 +94,10 @@ int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
+>  	mutex_unlock(&exec_pool_list_mutex);
+>  
+>  	if (!part)
+> -		return -EINVAL;
+> +		return NULL;
+>  
+>  	if (!addr_in_gen_pool(pool, (unsigned long)dst, size))
+> -		return -EINVAL;
+> +		return NULL;
+>  
+>  	base = (unsigned long)part->base;
+>  	pages = PAGE_ALIGN(size) / PAGE_SIZE;
+> @@ -94,13 +107,13 @@ int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
+>  	set_memory_nx((unsigned long)base, pages);
+>  	set_memory_rw((unsigned long)base, pages);
+>  
+> -	memcpy(dst, src, size);
+> +	dst_cpy = fncpy(dst, src, size);
+>  
+>  	set_memory_ro((unsigned long)base, pages);
+>  	set_memory_x((unsigned long)base, pages);
+>  
+>  	mutex_unlock(&part->lock);
+>  
+> -	return 0;
+> +	return dst_cpy;
 >  }
-> -- 
-> 1.9.1
+>  EXPORT_SYMBOL_GPL(sram_exec_copy);
+> diff --git a/include/linux/sram.h b/include/linux/sram.h
+> index c97dcbe8ce25..4fb405fb0480 100644
+> --- a/include/linux/sram.h
+> +++ b/include/linux/sram.h
+> @@ -16,12 +16,12 @@
+>  struct gen_pool;
+>  
+>  #ifdef CONFIG_SRAM_EXEC
+> -int sram_exec_copy(struct gen_pool *pool, void *dst, void *src, size_t size);
+> +void *sram_exec_copy(struct gen_pool *pool, void *dst, void *src, size_t size);
+>  #else
+> -static inline int sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
+> -				 size_t size)
+> +static inline void *sram_exec_copy(struct gen_pool *pool, void *dst, void *src,
+> +				   size_t size)
+>  {
+> -	return -ENODEV;
+> +	return NULL;
+>  }
+>  #endif /* CONFIG_SRAM_EXEC */
+>  #endif /* __LINUX_SRAM_H__ */
 > 
+
+
+-- 
+Florian
