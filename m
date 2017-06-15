@@ -1,48 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] power: supply: cpcap-charger: Add missing power_supply_config
-Date: Wed, 14 Jun 2017 21:41:08 -0700
-Message-ID: <20170615044108.26707-1-tony@atomide.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Marcel Partap <mpartap@gmx.net>, Michael Scott <michael.scott@linaro.org>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH v2] PCI: dwc: dra7xx: Fix compilation warning.
+Date: Thu, 15 Jun 2017 11:52:13 +0530
+Message-ID: <673ccda2e1a722fa1b511a9c3bf1af6fbfc262a3.1497507582.git.arvind.yadav.cs@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: kishon@ti.com, bhelgaas@google.com
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Otherwise cpcap-battery won't probe properly with the power-supplies
-property configured but will fail with "Not all required supplies found,
-defer probe".
+drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_msi_interrupts’:
+drivers/pci/dwc/pci-dra7xx.c:177:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
+       ~LEG_EP_INTERRUPTS & ~MSI);
+       ^
+drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_wrapper_interrupts’:
+drivers/pci/dwc/pci-dra7xx.c:187:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
+       ~INTERRUPTS);
 
-Cc: Marcel Partap <mpartap@gmx.net>
-Cc: Michael Scott <michael.scott@linaro.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+
+Changes in v2:
+             Add casts in the definitions.
 ---
- drivers/power/supply/cpcap-charger.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/pci/dwc/pci-dra7xx.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/power/supply/cpcap-charger.c b/drivers/power/supply/cpcap-charger.c
---- a/drivers/power/supply/cpcap-charger.c
-+++ b/drivers/power/supply/cpcap-charger.c
-@@ -637,6 +637,7 @@ static int cpcap_charger_probe(struct platform_device *pdev)
- {
- 	struct cpcap_charger_ddata *ddata;
- 	const struct of_device_id *of_id;
-+	struct power_supply_config psy_cfg = {};
- 	int error;
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 8decf46..0286d6d 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -48,7 +48,7 @@
+ #define	LINK_UP_EVT					BIT(12)
+ #define	CFG_BME_EVT					BIT(13)
+ #define	CFG_MSE_EVT					BIT(14)
+-#define	INTERRUPTS (ERR_SYS | ERR_FATAL | ERR_NONFATAL | ERR_COR | ERR_AXI | \
++#define	INTERRUPTS (u32)(ERR_SYS | ERR_FATAL | ERR_NONFATAL | ERR_COR | ERR_AXI | \
+ 			ERR_ECRC | PME_TURN_OFF | PME_TO_ACK | PM_PME | \
+ 			LINK_REQ_RST | LINK_UP_EVT | CFG_BME_EVT | CFG_MSE_EVT)
  
- 	of_id = of_match_device(of_match_ptr(cpcap_charger_id_table),
-@@ -665,9 +666,12 @@ static int cpcap_charger_probe(struct platform_device *pdev)
+@@ -58,8 +58,8 @@
+ #define	INTB						BIT(1)
+ #define	INTC						BIT(2)
+ #define	INTD						BIT(3)
+-#define	MSI						BIT(4)
+-#define	LEG_EP_INTERRUPTS (INTA | INTB | INTC | INTD)
++#define	MSI						(u32)(BIT(4))
++#define	LEG_EP_INTERRUPTS (u32)(INTA | INTB | INTC | INTD)
  
- 	atomic_set(&ddata->active, 1);
- 
-+	psy_cfg.of_node = pdev->dev.of_node;
-+	psy_cfg.drv_data = ddata;
-+
- 	ddata->usb = devm_power_supply_register(ddata->dev,
- 						&cpcap_charger_usb_desc,
--						NULL);
-+						&psy_cfg);
- 	if (IS_ERR(ddata->usb)) {
- 		error = PTR_ERR(ddata->usb);
- 		dev_err(ddata->dev, "failed to register USB charger: %i\n",
+ #define	PCIECTRL_TI_CONF_DEVICE_TYPE			0x0100
+ #define	DEVICE_TYPE_EP					0x0
 -- 
-2.13.0
+1.9.1
