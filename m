@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] clean-up for omap1 for v4.13
-Date: Wed, 14 Jun 2017 03:32:44 -0700
-Message-ID: <44784.9790835336$1505302021@news.gmane.org>
+Subject: [GIT PULL 1/2] more omap device tree changes for v4.13
+Date: Wed, 14 Jun 2017 22:42:02 -0700
+Message-ID: <39703.2472109005$1505302038@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,29 +19,56 @@ To: arm@kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 2ea659a9ef488125eb46da6eb571de5eae5c43f6:
+The following changes since commit de09eb52a1cceb6f80464a008c67c7bebb242314:
 
-  Linux 4.12-rc1 (2017-05-13 13:19:49 -0700)
+  arm: dts: am33xx: Remove redundant interrupt-parent property (2017-06-06 00:33:48 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.13/omap1-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.13/dt-part2-signed
 
-for you to fetch changes up to 764e4ef0a8871339eeddaf27ccc47aeeea28b974:
+for you to fetch changes up to 45f1d5e3c71d479995cefe9dd30344c62efd60c8:
 
-  ARM: OMAP1: Fix a typo in a comment line (2017-06-06 23:54:13 -0700)
-
-----------------------------------------------------------------
-A series of omap1 changes for issues found by Coccinelle.
+  ARM: dts: omap4: add SHAM node (2017-06-14 00:46:01 -0700)
 
 ----------------------------------------------------------------
-Markus Elfring (5):
-      ARM: OMAP1: DMA: Improve a size determination in omap1_system_dma_init()
-      ARM: OMAP1: DMA: Delete an error message for a failed memory allocation in omap1_system_dma_init()
-      ARM: OMAP1: DMA: Delete an unnecessary return statement in omap1_show_dma_caps()
-      ARM: OMAP1: Delete an error message for a failed memory allocation in omap1_dm_timer_init()
-      ARM: OMAP1: Fix a typo in a comment line
+Second set of device tree changes for omaps for v4.13 merge
+window:
 
- arch/arm/mach-omap1/dma.c   | 5 +----
- arch/arm/mach-omap1/timer.c | 4 +---
- 2 files changed, 2 insertions(+), 7 deletions(-)
+- Updates for droid 4 proximity sensor, WLAN and battery
+
+- Configure clocks for remoteproc devices for omap5 and dra7
+
+- Configure omap4 crypto accelerators
+
+----------------------------------------------------------------
+Sebastian Reichel (4):
+      ARM: dts: omap4-droid4: Add isl29030 ALS/proximity sensor
+      ARM: dts: omap4-droid4: Fix WLAN compatible
+      ARM: dts: omap4: Fix aes entry
+      ARM: dts: omap4.dtsi: remove aes[12]_fck
+
+Subhajit Paul (1):
+      ARM: dts: dra7xx-clocks: Use DPLL_GPU for GPU clocks
+
+Suman Anna (5):
+      ARM: dts: omap44xx-clocks: Set IVA DPLL and its output clock rates
+      ARM: dts: omap54xx-clocks: Set IVA DPLL and its output clock rates
+      ARM: dts: dra7xx-clocks: Source IPU1 functional clock from CORE DPLL
+      ARM: dts: dra7xx-clocks: Set DSP DPLL and its output clock rates
+      ARM: dts: dra7xx-clocks: Set IVA DPLL and its output clock rates
+
+Tero Kristo (2):
+      ARM: dts: omap4: add aes2 instance
+      ARM: dts: omap4: add SHAM node
+
+Tony Lindgren (1):
+      ARM: dts: omap4-droid4: Configure CPCAP battery driver
+
+ arch/arm/boot/dts/dra7xx-clocks.dtsi           | 20 ++++++++++++++++++++
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 16 ++++++++++++++++
+ arch/arm/boot/dts/omap4-droid4-xt894.dts       | 19 ++++++++++++++++++-
+ arch/arm/boot/dts/omap4.dtsi                   | 22 ++++++++++++++++++++--
+ arch/arm/boot/dts/omap44xx-clocks.dtsi         | 22 ++++++----------------
+ arch/arm/boot/dts/omap54xx-clocks.dtsi         |  6 ++++++
+ 6 files changed, 86 insertions(+), 19 deletions(-)
