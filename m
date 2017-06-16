@@ -1,42 +1,79 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH] ARM/hw_breakpoint: Fix possible recursive locking for
- arch_hw_breakpoint_init
-Date: Fri, 16 Jun 2017 17:42:45 +0200
-Message-ID: <20170616154245.5fry4lclgmp3gfdi@linutronix.de>
-References: <20170616082238.15553-1-tony@atomide.com>
+From: Cyrille Pitchen <cyrille.pitchen-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] spi: spi-ti-qspi: Use bounce buffer if read buffer
+ is not DMA'ble
+Date: Fri, 16 Jun 2017 17:54:57 +0200
+Message-ID: <c9dbe3d1-549c-f510-fa76-8e326601ecdc@atmel.com>
+References: <20170411115225.31709-1-vigneshr@ti.com>
+ <20170411115225.31709-3-vigneshr@ti.com>
+ <20170421170655.dpyxlwipfwnwjjwy@sirena.org.uk>
+ <3955ad22-28a2-5222-4ae3-aa34dc69cde6@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170616082238.15553-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "Paul E . McKenney" <paulmck@linux.vnet.ibm.com>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Russell King <linux@armlinux.org.uk>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3955ad22-28a2-5222-4ae3-aa34dc69cde6-l0cyMroinI0@public.gmane.org>
+Content-Language: en-GB
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, Boris BREZILLON <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 2017-06-16 01:22:38 [-0700], Tony Lindgren wrote:
-> Recent change to use cpuhp_setup_state_cpuslocked() with commit
-> fe2a5cd8aa03 ("ARM/hw_breakpoint: Use cpuhp_setup_state_cpuslocked()")
-> missed to change the related paired cpuhp_remove_state_nocalls_cpuslocked().
+Hi all,
+
++ Richard and Boris as MTD maintainers
+
+Le 25/04/2017 à 14:18, Vignesh R a écrit :
 > 
-> Now if arch_hw_breakpoint_init() fails, we get "WARNING: possible recursive
-> locking detected" on the exit path.
 > 
-> Fixes: fe2a5cd8aa03 ("ARM/hw_breakpoint: Use
-> cpuhp_setup_state_cpuslocked()")
-> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Cc: Ingo Molnar <mingo@kernel.org>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> On Friday 21 April 2017 10:36 PM, Mark Brown wrote:
+>> On Tue, Apr 11, 2017 at 05:22:25PM +0530, Vignesh R wrote:
+>>> Flash filesystems like JFFS2, UBIFS and MTD block layer can provide
+>>> vmalloc'd or kmap'd buffers that cannot be mapped using dma_map_sg() and
+>>> can potentially be in memory region above 32bit addressable region(ie
+>>> buffers belonging to memory region backed by LPAE) of DMA, implement
+>>> spi_flash_can_dma() interface to inform SPI core not to map such
+>>> buffers.
+>>
+>> I'll apply this since it fixes bugs for your systems but it feels like
+>> something that we should be moving further into the core since LPAE
+>> isn't specific to your devices.  We should ideally have something
+>> (possibly in the DMA mapping code even) which does the remapping without
+>> the driver needing to know about it.
+>>
+> 
+> I agree, there is a need to have generic remapping code. Also, I guess,
+> once UBIFS is moved to use kmalloc'd buffers SPI flash devices will not
+> have to worry much about vmalloc'd buffers.
+> 
 
-Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+I've just discussed with Richard and Boris and AFAIK, nothing is planned
+at the UBIFS side to replace vmalloc'd buffers by kmalloc'd buffers.
+There are reasons for using vmalloc() but Richard can explain better
+than me :)
 
-Thank you.
+Also, depending on the cache model used by Atmel SoCs, the spi-atmel.c
+driver may suffer from the same issue too: using spi_map_buf() hence
+mapping vmalloc'ed buffers for DMA usage will be OK with ARM Cortex A5
+(PIPT data cache, so no cache aliasing issue at all) hence with SAMA5
+series but is not OK for some older cores like ARM926 (VIVT data cache)
+hence the SAM9 series.
 
-Sebastian
+So to fix the spi-atmel.c driver when used with SAM9 SoCs, we are
+thinking about sending a first patch to simply disable the use of DMA
+transfers on SAM9 SoCs in case of vmalloc'ed buffers and use CPU
+transfers instead.
+The code will be left unchanged for SAMA5 SoCs so there would be no
+performance loss on those SoCs.
+It won't be optimal on SAM9 SoCs but at least it would work.
+
+Then in a new series, if nobody has started to work on this topic yet,
+we could propose a generic solution using a bounce buffer at the SPI
+core level. however we first need to think how we could do this.
+
+Best regards,
+
+Cyrille
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
