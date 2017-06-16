@@ -1,47 +1,30 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM/hw_breakpoint: Fix possible recursive locking for arch_hw_breakpoint_init
-Date: Fri, 16 Jun 2017 01:22:38 -0700
-Message-ID: <20170616082238.15553-1-tony@atomide.com>
+Subject: Re: [PATCH 1/3] ARM: Generalize fncpy implementation
+Date: Fri, 16 Jun 2017 01:35:24 -0700
+Message-ID: <20170616083524.GJ3730@atomide.com>
+References: <20170615232117.29727-1-f.fainelli@gmail.com>
+ <20170615232117.29727-2-f.fainelli@gmail.com>
+ <577f22f3-ff16-05a0-8204-39e86d47dd9f@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <577f22f3-ff16-05a0-8204-39e86d47dd9f@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "Paul E . McKenney" <paulmck@linux.vnet.ibm.com>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Russell King <linux@armlinux.org.uk>
+To: Florian Fainelli <f.fainelli@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, open list <linux-kernel@vger.kernel.org>, "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>, Keerthy J <j-keerthy@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Recent change to use cpuhp_setup_state_cpuslocked() with commit
-fe2a5cd8aa03 ("ARM/hw_breakpoint: Use cpuhp_setup_state_cpuslocked()")
-missed to change the related paired cpuhp_remove_state_nocalls_cpuslocked().
+* Florian Fainelli <f.fainelli@gmail.com> [170615 16:27]:
+> On 06/15/2017 04:21 PM, Florian Fainelli wrote:
+> > ARM's fncpy implementation is actually suitable for a large number of
+> > platforms since the only assumption it makes is just the function's
+> > alignment (8 bytes) which also happens to fulfil other architectures,
+> > including but not limited to ARM64.
 
-Now if arch_hw_breakpoint_init() fails, we get "WARNING: possible recursive
-locking detected" on the exit path.
+Yeah I'm all for it. Maybe mention in the next version that this helps
+with making SoC specific PM code into just regular Linux device drivers.
 
-Fixes: fe2a5cd8aa03 ("ARM/hw_breakpoint: Use
-cpuhp_setup_state_cpuslocked()")
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/kernel/hw_breakpoint.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards,
 
-diff --git a/arch/arm/kernel/hw_breakpoint.c b/arch/arm/kernel/hw_breakpoint.c
---- a/arch/arm/kernel/hw_breakpoint.c
-+++ b/arch/arm/kernel/hw_breakpoint.c
-@@ -1106,7 +1106,7 @@ static int __init arch_hw_breakpoint_init(void)
- 		core_num_brps = 0;
- 		core_num_wrps = 0;
- 		if (ret > 0)
--			cpuhp_remove_state_nocalls(ret);
-+			cpuhp_remove_state_nocalls_cpuslocked(ret);
- 		cpus_read_unlock();
- 		return 0;
- 	}
--- 
-2.13.0
+Tony
