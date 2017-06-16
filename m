@@ -1,48 +1,47 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH 1/3] ARM: Generalize fncpy implementation
-Date: Thu, 15 Jun 2017 16:23:44 -0700
-Message-ID: <577f22f3-ff16-05a0-8204-39e86d47dd9f@gmail.com>
-References: <20170615232117.29727-1-f.fainelli@gmail.com>
- <20170615232117.29727-2-f.fainelli@gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] phy: cpcap-usb: Fix missing return statement
+Date: Fri, 16 Jun 2017 11:25:37 +0530
+Message-ID: <e3ea6b6d-fd49-103b-2962-3ae42d2d0c24@ti.com>
+References: <20170612081223.20743-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <20170615232117.29727-2-f.fainelli@gmail.com>
-Content-Language: en-US
-Sender: linux-arch-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, open list <linux-kernel@vger.kernel.org>, "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170612081223.20743-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/15/2017 04:21 PM, Florian Fainelli wrote:
-> ARM's fncpy implementation is actually suitable for a large number of
-> platforms since the only assumption it makes is just the function's
-> alignment (8 bytes) which also happens to fulfil other architectures,
-> including but not limited to ARM64.
+
+
+On Monday 12 June 2017 01:42 PM, Tony Lindgren wrote:
+> Commit 8ae904e3c236 ("phy: cpcap-usb: Add CPCAP PMIC USB support")
+> is missing return statement as noted by Colin Ian King
+> <colin.king@canonical.com>. If the optional pins are not configured,
+> we just want to return early and not attempt to configure the pins.
 > 
-> Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+> Fixes: 8ae904e3c236 ("phy: cpcap-usb: Add CPCAP PMIC USB support")
+> Reported-by: Colin Ian King <colin.king@canonical.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+merged, thanks!
+
+-Kishon
 > ---
->  arch/arm/include/asm/fncpy.h | 77 ++----------------------------------
->  include/asm-generic/fncpy.h  | 94 ++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 97 insertions(+), 74 deletions(-)
->  create mode 100644 include/asm-generic/fncpy.h
+>  drivers/phy/motorola/phy-cpcap-usb.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> diff --git a/arch/arm/include/asm/fncpy.h b/arch/arm/include/asm/fncpy.h
-> index de5354746924..32465aef7932 100644
-> --- a/arch/arm/include/asm/fncpy.h
-> +++ b/arch/arm/include/asm/fncpy.h
-> @@ -16,79 +16,8 @@
->   * along with this program; if not, write to the Free Software
->   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
->   */
-> +#ifndef _ASMARM_FNCPY_H
-
-and of course I missed a
-
-#define _ASMARM_FNCPY_H
-
-I will wait for feedback on whether this is acceptable before
-resubmitting...
--- 
-Florian
+> diff --git a/drivers/phy/motorola/phy-cpcap-usb.c b/drivers/phy/motorola/phy-cpcap-usb.c
+> --- a/drivers/phy/motorola/phy-cpcap-usb.c
+> +++ b/drivers/phy/motorola/phy-cpcap-usb.c
+> @@ -468,6 +468,8 @@ static int cpcap_usb_init_optional_pins(struct cpcap_phy_ddata *ddata)
+>  		dev_info(ddata->dev, "default pins not configured: %ld\n",
+>  			 PTR_ERR(ddata->pins));
+>  		ddata->pins = NULL;
+> +
+> +		return 0;
+>  	}
+>  
+>  	ddata->pins_ulpi = pinctrl_lookup_state(ddata->pins, "ulpi");
+> 
