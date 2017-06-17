@@ -1,34 +1,69 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH v3 3/4] arm64: Provide a fncpy implementation
-Date: Fri, 16 Jun 2017 17:07:43 -0700
-Message-ID: <20170617000744.22158-4-f.fainelli@gmail.com>
-References: <20170617000744.22158-1-f.fainelli@gmail.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH] serial: 8250: 8250_omap: Fix race b/w dma completion and RX timeout
+Date: Sat, 17 Jun 2017 19:22:24 +0530
+Message-ID: <20170617135224.31675-1-vigneshr@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170617000744.22158-1-f.fainelli@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: bcm-kernel-feedback-list@broadcom.com, Florian Fainelli <f.fainelli@gmail.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, open list <linux-kernel@vger.kernel.org>, "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>, Peter Hurley <peter@hurleysoftware.com>, Vignesh R <vigneshr@ti.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Utilize the asm-generic/fncpy.h implementation for ARM64 to allow the
-use of drivers/misc/sram*.c on these platforms as well.
+DMA RX completion handler for UART is called from a tasklet and hence
+may be delayed depending on the system load. In meanwhile, there may be
+RX timeout interrupt which can get serviced first before DMA RX
+completion handler is executed for the completed transfer.
+omap_8250_rx_dma_flush() which is called on RX timeout interrupt makes
+sure that the DMA RX buffer is pushed and then the FIFO is drained and
+also queues a new DMA request. But, when DMA RX completion handler
+executes, it will erroneously flush the currently queued DMA transfer
+which sometimes results in data corruption and double queueing of DMA RX
+requests.
 
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Fix this by checking whether RX completion is for the currently queued
+transfer or not. And also hold port lock when in DMA completion to avoid
+race wrt RX timeout handler preempting it.
+
+Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
- arch/arm64/include/asm/Kbuild | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm64/include/asm/Kbuild b/arch/arm64/include/asm/Kbuild
-index a7a97a608033..5cfd822d3256 100644
---- a/arch/arm64/include/asm/Kbuild
-+++ b/arch/arm64/include/asm/Kbuild
-@@ -7,6 +7,7 @@ generic-y += dma-contiguous.h
- generic-y += early_ioremap.h
- generic-y += emergency-restart.h
- generic-y += errno.h
-+generic-y += fncpy.h
- generic-y += hw_irq.h
- generic-y += ioctl.h
- generic-y += ioctls.h
+Tested on AM335x, AM437x, DRA74x EVM with lockdep enabled.
+
+ drivers/tty/serial/8250/8250_omap.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
+index d81bac98d190..f418808a2062 100644
+--- a/drivers/tty/serial/8250/8250_omap.c
++++ b/drivers/tty/serial/8250/8250_omap.c
+@@ -786,8 +786,25 @@ static void __dma_rx_do_complete(struct uart_8250_port *p)
+ 
+ static void __dma_rx_complete(void *param)
+ {
+-	__dma_rx_do_complete(param);
+-	omap_8250_rx_dma(param);
++	struct uart_8250_port *p = param;
++	struct uart_8250_dma *dma = p->dma;
++	unsigned long flags;
++
++	spin_lock_irqsave(&p->port.lock, flags);
++
++	/*
++	 * If the completion is for the current cookie then handle it,
++	 * else a previous RX timeout flush would have already pushed
++	 * data from DMA buffers, so exit.
++	 */
++	if (dma->rx_cookie != dma->rxchan->completed_cookie) {
++		spin_unlock_irqrestore(&p->port.lock, flags);
++		return;
++	}
++	__dma_rx_do_complete(p);
++	omap_8250_rx_dma(p);
++
++	spin_unlock_irqrestore(&p->port.lock, flags);
+ }
+ 
+ static void omap_8250_rx_dma_flush(struct uart_8250_port *p)
 -- 
-2.9.3
+2.13.0
