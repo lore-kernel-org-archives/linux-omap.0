@@ -1,46 +1,46 @@
-From: Yury Norov <ynorov@caviumnetworks.com>
-Subject: Re: [PATCH v3 2/4] asm-generic: Provide a fncpy() implementation
-Date: Mon, 19 Jun 2017 04:11:05 +0300
-Message-ID: <20170619011105.gjkisjrrtzlmgk6s@yury-thinkpad>
-References: <20170617000744.22158-1-f.fainelli@gmail.com>
- <20170617000744.22158-3-f.fainelli@gmail.com>
- <20170618235108.peaxdi367jpkt542@yury-thinkpad>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] two omap fixes for v4.12-rc cycle
+Date: Sun, 18 Jun 2017 18:55:35 -0700
+Message-ID: <20170619015535.GB30022@localhost>
+References: <5937f02e.1766ca0a.9ddce.eb58SMTPIN_ADDED_BROKEN@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170618235108.peaxdi367jpkt542@yury-thinkpad>
-Sender: linux-arch-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>
-Cc: "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Keerthy J <j-keerthy@ti.com>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@armlinux.org.uk>, open list <linux-kernel@vger.kernel.org>, bcm-kernel-feedback-list@broadcom.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <5937f02e.1766ca0a.9ddce.eb58SMTPIN_ADDED_BROKEN@mx.google.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-> > +/*
-> > + * Minimum alignment requirement for the source and destination addresses
-> > + * for function copying.
-> > + */
-> > +#define FNCPY_ALIGN 8
+On Wed, Jun 07, 2017 at 05:23:01AM -0700, Tony Lindgren wrote:
+> The following changes since commit bca5238816939436d72ae6bab124c4b0641a3a99:
 > 
-> >From now this is not arm-only, and it's possible that some architectures
-> might want to redefine it in their arch/xxx/include/asm/fncpy.h files.
-> So it will be easier for them if you'll wrap FNCPY_ALIGN here with #ifdef
-> guards.
+>   ARM: dts: dra7: Reduce cpu thermal shutdown temperature (2017-05-17 06:51:38 -0700)
 > 
-> By the way, compiler already has an information on the proper alignment.
-> Maybe it's better to use it as the default value here instead of the
-> hardcoded value?
+> are available in the git repository at:
 > 
-> #ifndef FNCPY_ALIGN
-> #define FNCPY_ALIGN ({void foo(); __alignof__(&foo);})
-> #endif
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.12/fixes-sl50
+> 
+> for you to fetch changes up to db145db99f5bf30acc12d7450b9ad0707072a7be:
+> 
+>   ARM: dts: am335x-sl50: Fix cannot claim requested pins for spi0 (2017-05-26 08:25:42 -0700)
+> 
+> ----------------------------------------------------------------
+> Two fixes for am335x-sl50 to fix a boot time error
+> for claiming SPI pins, and to fix a SDIO card detect
+> pin for production version of the device.
 
-Ah sorry, at first it should be like this:
-#define FNCPY_ALIGN ({void foo(); __alignof__(foo);})
+Thanks, merged.
 
-And at second, the correct version returns 1 always.
 
-Even if I pass falign-functions=4096 to gcc, and I see that functions
-are aligned accordingly in elf file, the macro returns 1 anyway. So if 
-it doesn't work, the hardcoded '8' is the only option.
-
-Yury
+-Olof
