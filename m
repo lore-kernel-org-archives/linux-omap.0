@@ -1,70 +1,36 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH] serial: 8250: 8250_omap: Fix race b/w dma completion and
- RX timeout
-Date: Mon, 19 Jun 2017 10:42:41 +0530
-Message-ID: <f3905c42-74e2-5897-43f3-a0ffe2991c73@ti.com>
-References: <20170617135224.31675-1-vigneshr@ti.com>
- <1497710243.22624.150.camel@linux.intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 12/16] mmc: host: omap_hsmmc: Add support to set IODELAY
+ values
+Date: Sun, 18 Jun 2017 23:02:57 -0700
+Message-ID: <20170619060256.GK3730@atomide.com>
+References: <20170616124544.15046-1-kishon@ti.com>
+ <20170616124544.15046-13-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1497710243.22624.150.camel@linux.intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.com>, Peter Hurley <peter@hurleysoftware.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170616124544.15046-13-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh+dt@kernel.org>, nsekhar@ti.com, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Saturday 17 June 2017 08:07 PM, Andy Shevchenko wrote:
-> On Sat, 2017-06-17 at 19:22 +0530, Vignesh R wrote:
->> DMA RX completion handler for UART is called from a tasklet and hence
->> may be delayed depending on the system load. In meanwhile, there may
->> be
->> RX timeout interrupt which can get serviced first before DMA RX
->> completion handler is executed for the completed transfer.
->> omap_8250_rx_dma_flush() which is called on RX timeout interrupt makes
->> sure that the DMA RX buffer is pushed and then the FIFO is drained and
->> also queues a new DMA request. But, when DMA RX completion handler
->> executes, it will erroneously flush the currently queued DMA transfer
->> which sometimes results in data corruption and double queueing of DMA
->> RX
->> requests.
->>
->> Fix this by checking whether RX completion is for the currently queued
->> transfer or not. And also hold port lock when in DMA completion to
->> avoid
->> race wrt RX timeout handler preempting it.
+* Kishon Vijay Abraham I <kishon@ti.com> [170616 05:47]:
+> The data manual of J6/J6 Eco recommends to set different IODELAY values
+> depending on the mode in which the MMC/SD is enumerated in order to
+> ensure IO timings are met.
 > 
-> 
->>  static void __dma_rx_complete(void *param)
->>  {
->> -	__dma_rx_do_complete(param);
->> -	omap_8250_rx_dma(param);
->> +	struct uart_8250_port *p = param;
->> +	struct uart_8250_dma *dma = p->dma;
->> +	unsigned long flags;
->> +
->> +	spin_lock_irqsave(&p->port.lock, flags);
->> +
->> +	/*
->> +	 * If the completion is for the current cookie then handle
->> it,
->> +	 * else a previous RX timeout flush would have already pushed
->> +	 * data from DMA buffers, so exit.
->> +	 */
-> 
->> +	if (dma->rx_cookie != dma->rxchan->completed_cookie) {
-> 
-> Wouldn't be better to call DMAEngine API for that?
-> dmaengine_tx_status() I suppose
+> Add support to set the IODELAY values depending on the various MMC
+> modes using the pinctrl APIs.
 
-Yeah, will update the patch. Thanks!
+This does not seem to apply against Linux next for me for
+the binding. Fixing that, compile fails for me with:
 
+drivers/mmc/host/omap_hsmmc.c:2384:13: error:
+'struct omap_hsmmc_platform_data' has no member named 'version'
 
+So will wait for updates before giving this a try.
 
--- 
-Regards
-Vignesh
+Regards,
+
+Tony
