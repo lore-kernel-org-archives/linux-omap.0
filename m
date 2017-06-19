@@ -1,59 +1,49 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ARM/hw_breakpoint: Fix possible recursive locking for
- arch_hw_breakpoint_init
-Date: Mon, 19 Jun 2017 16:17:21 +0100
-Message-ID: <20170619151720.GC9291@arm.com>
-References: <20170616082238.15553-1-tony@atomide.com>
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: Re: [PATCH v3 2/4] asm-generic: Provide a fncpy() implementation
+Date: Mon, 19 Jun 2017 18:18:18 +0300
+Message-ID: <20170619151818.pvjygbdvm6arvarq@yury-thinkpad>
+References: <20170617000744.22158-1-f.fainelli@gmail.com>
+ <20170617000744.22158-3-f.fainelli@gmail.com>
+ <20170618235108.peaxdi367jpkt542@yury-thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20170616082238.15553-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Mark Rutland <mark.rutland@arm.com>, "Paul E . McKenney" <paulmck@linux.vnet.ibm.com>, Peter Zijlstra <peterz@infradead.org>, Steven Rostedt <rostedt@goodmis.org>, Russell King <linux@armlinux.org.uk>
+In-Reply-To: <20170618235108.peaxdi367jpkt542@yury-thinkpad>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Florian Fainelli <f.fainelli@gmail.com>
+Cc: "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@armlinux.org.uk>, open list <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, bcm-kernel-feedback-list@broadcom.com, Catalin Marinas <catalin.marinas@arm.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 16, 2017 at 01:22:38AM -0700, Tony Lindgren wrote:
-> Recent change to use cpuhp_setup_state_cpuslocked() with commit
-> fe2a5cd8aa03 ("ARM/hw_breakpoint: Use cpuhp_setup_state_cpuslocked()")
-> missed to change the related paired cpuhp_remove_state_nocalls_cpuslocked().
+On Mon, Jun 19, 2017 at 02:51:08AM +0300, Yury Norov wrote:
+> Hi Florian,
 > 
-> Now if arch_hw_breakpoint_init() fails, we get "WARNING: possible recursive
-> locking detected" on the exit path.
+> Some questions and thoughts inline.
 > 
-> Fixes: fe2a5cd8aa03 ("ARM/hw_breakpoint: Use
-> cpuhp_setup_state_cpuslocked()")
-> Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Cc: Ingo Molnar <mingo@kernel.org>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/kernel/hw_breakpoint.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Yury
+> 
+> On Fri, Jun 16, 2017 at 05:07:42PM -0700, Florian Fainelli wrote:
+> > Define a generic fncpy() implementation largely based on the ARM version
+> > that requires an 8 bytes alignment for the destination address where to
+> > copy this function as well as the function's own address.
+> > 
+> > Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+> > ---
+> >  include/asm-generic/fncpy.h | 93 +++++++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 93 insertions(+)
+> >  create mode 100644 include/asm-generic/fncpy.h
 
-This looks correct to me, so I guess it should go via -tip (where the
-problematic patch is queued already).
+One else thing I forgot to ask - now you have the generic
+implementation for fncpy(), so do you really need to save arm
+version of it?
 
-Will
-
-> diff --git a/arch/arm/kernel/hw_breakpoint.c b/arch/arm/kernel/hw_breakpoint.c
-> --- a/arch/arm/kernel/hw_breakpoint.c
-> +++ b/arch/arm/kernel/hw_breakpoint.c
-> @@ -1106,7 +1106,7 @@ static int __init arch_hw_breakpoint_init(void)
->  		core_num_brps = 0;
->  		core_num_wrps = 0;
->  		if (ret > 0)
-> -			cpuhp_remove_state_nocalls(ret);
-> +			cpuhp_remove_state_nocalls_cpuslocked(ret);
->  		cpus_read_unlock();
->  		return 0;
->  	}
-> -- 
-> 2.13.0
+Yury
