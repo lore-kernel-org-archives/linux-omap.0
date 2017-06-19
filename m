@@ -1,64 +1,58 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v7 2/2] power: supply: twl4030-charger: add deferred probing for phy and iio
-Date: Mon, 19 Jun 2017 10:41:46 +0200
-Message-ID: <63d2c2c5bfb1bb8ec006c1991bbd01e8d102c341.1497861705.git.hns@goldelico.com>
-References: <cover.1497861705.git.hns@goldelico.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1497861705.git.hns@goldelico.com>
-In-Reply-To: <cover.1497861705.git.hns@goldelico.com>
-References: <cover.1497861705.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, NeilBrown <neil@brown.name>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, Sebastian Reichel <sre@kernel.org>, Marek Belisko <marek@goldelico.com>, "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, letux-kernel@openphoenux.org, notasas@gmail.com, linux-omap@vger.kernel.org
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3] PCI: dwc: dra7xx: Fix compilation warning.
+Date: Mon, 19 Jun 2017 14:49:25 +0530
+Message-ID: <277fbefd-cbd8-47ee-2707-937c2b014b89@ti.com>
+References: <a2736e3907827e7b39dd85381101c1080012584c.1497514167.git.arvind.yadav.cs@gmail.com>
+ <20170615204951.GD12735@bhelgaas-glaptop.roam.corp.google.com>
+ <16817169-9f2e-5406-f61c-b2d683559815@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <16817169-9f2e-5406-f61c-b2d683559815@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This fixes an issue if both this twl4030_charger driver and
-phy-twl4030-usb are compiled as modules and loaded in random order.
+Hi,
 
-It has been observed on GTA04 and OpenPandora devices that in worst
-case the boot process hangs and in best case the AC detection fails
-with a warning.
+On Friday 16 June 2017 01:48 PM, Arvind Yadav wrote:
+> Hi Kishon/Bjorn,
+> 
+> What is correct Setting for these two PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI and
+> PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN register.
+> 
+> Value of register After change:
+>  register[PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI] = LEG_EP_INTERRUPTS |  MSI
+>                                           = 0x1f
+> register[PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN] =  INTERRUPTS
+>                   =  0x1fff
+> Is this correct?
 
-Therefore we add deferred probing checks for the usb_phy and the
-iio channel for AC detection.
+That's correct. That patch as such is correct but the changelog and subject has
+to be fixed. You can use something like below for subject and changelog.
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- drivers/power/supply/twl4030_charger.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+"PCI: dwc: dra7xx: Fix incorrect usage of IRQSTATUS_* registers
 
-diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/supply/twl4030_charger.c
-index 9d974f1e3957..0d2125e4f735 100644
---- a/drivers/power/supply/twl4030_charger.c
-+++ b/drivers/power/supply/twl4030_charger.c
-@@ -989,8 +989,12 @@ static int twl4030_bci_probe(struct platform_device *pdev)
- 
- 	bci->channel_vac = devm_iio_channel_get(&pdev->dev, "vac");
- 	if (IS_ERR(bci->channel_vac)) {
-+		ret = PTR_ERR(bci->channel_vac);
-+		if (ret == -EPROBE_DEFER)
-+			return ret;	/* iio not ready */
-+		dev_warn(&pdev->dev, "could not request vac iio channel (%d)",
-+			ret);
- 		bci->channel_vac = NULL;
--		dev_warn(&pdev->dev, "could not request vac iio channel");
- 	}
- 
- 	if (bci->dev->of_node) {
-@@ -1002,6 +1006,14 @@ static int twl4030_bci_probe(struct platform_device *pdev)
- 			bci->transceiver = devm_usb_get_phy_by_node(
- 				bci->dev, phynode, &bci->usb_nb);
- 			bci->usb_nb.notifier_call = twl4030_bci_usb_ncb;
-+			if (IS_ERR(bci->transceiver)) {
-+				ret = PTR_ERR(bci->transceiver);
-+				if (ret == -EPROBE_DEFER)
-+					return ret;	/* phy not ready */
-+				dev_warn(&pdev->dev, "could not request transceiver (%d)",
-+					ret);
-+				bci->transceiver = NULL;
-+			}
- 		}
- 	}
- 
--- 
-2.12.2
+commit 47ff3de911 ("PCI: dra7xx: Add TI DRA7xx PCIe driver") in order to clear
+MSI and MAIN interrupts requests wrote '0' to PCIECTRL_TI_CONF_IRQSTATUS_MSI
+and PCIECTRL_TI_CONF_IRQSTATUS_MAIN registers. However the TRM has mentioned to
+write '1' to clear pending event in these two registers. Fix it here.
+
+This also helps to get rid of the following compilation warning:
+drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_msi_interrupts’:
+drivers/pci/dwc/pci-dra7xx.c:177:7: warning: large integer implicitly truncated
+to unsigned type [-Woverflow]
+       ~LEG_EP_INTERRUPTS & ~MSI);
+       ^
+drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_wrapper_interrupts’:
+drivers/pci/dwc/pci-dra7xx.c:187:7: warning: large integer implicitly truncated
+to unsigned type [-Woverflow]
+       ~INTERRUPTS);"
+
+For the patch itself
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+Thanks
+Kishon
