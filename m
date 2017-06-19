@@ -1,56 +1,45 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH v4] PCI: dwc: dra7xx: Fix incorrect usage of IRQSTATUS_* registers
-Date: Mon, 19 Jun 2017 15:21:36 +0530
-Message-ID: <9ebe7f77c2fd10219f78ecbae3c672064102444d.1497865713.git.arvind.yadav.cs@gmail.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [PATCH v3 0/4] Generalize fncpy availability
+Date: Mon, 19 Jun 2017 13:24:44 +0100
+Message-ID: <20170619122444.GJ10246@leverpostej>
+References: <20170617000744.22158-1-f.fainelli@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, bhelgaas@google.com
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170617000744.22158-1-f.fainelli@gmail.com>
+Sender: linux-arch-owner@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@armlinux.org.uk>, open list <linux-kernel@vger.kernel.org>, bcm-kernel-feedback-list@broadcom.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, Keerthy J <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-'commit 47ff3de911a7 ("PCI: dra7xx: Add TI DRA7xx PCIe driver")' in order to clear
-MSI and MAIN interrupts requests wrote '0' to PCIECTRL_TI_CONF_IRQSTATUS_MSI
-and PCIECTRL_TI_CONF_IRQSTATUS_MAIN registers. However the TRM has mentioned to
-write '1' to clear pending event in these two registers. Fix it here.
+On Fri, Jun 16, 2017 at 05:07:40PM -0700, Florian Fainelli wrote:
+> Hi all,
 
-This also helps to get rid of the following compilation warning:
-drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_msi_interrupts’:
-drivers/pci/dwc/pci-dra7xx.c:177:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
-       ~LEG_EP_INTERRUPTS & ~MSI);
-       ^
-drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_wrapper_interrupts’:
-drivers/pci/dwc/pci-dra7xx.c:187:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
-       ~INTERRUPTS);
+Hi Florian,
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/pci/dwc/pci-dra7xx.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> This patch series makes ARM's fncpy() implementation more generic (dropping the
+> Thumb-specifics) and available in an asm-generic header file.
+> 
+> Tested on a Broadcom ARM64 STB platform with code that is written to SRAM.
+> 
+> Changes in v3 (thanks Doug!):
+> - correct include guard names in asm-generic/fncpy.h to __ASM_FNCPY_H
+> - utilize Kbuild to provide the fncpy.h header on ARM64
+> 
+> Changes in v2:
+> - leave the ARM implementation where it is
+> - make the generic truly generic (no)
+> 
+> This is helpful in making SoC-specific power management code become true drivers
+> that can be shared between different architectures.
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 8decf46..668dc15 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -174,7 +174,7 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
- static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
- {
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
--			   ~LEG_EP_INTERRUPTS & ~MSI);
-+			   LEG_EP_INTERRUPTS | MSI);
- 
- 	dra7xx_pcie_writel(dra7xx,
- 			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
-@@ -184,7 +184,7 @@ static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
- static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
- {
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
--			   ~INTERRUPTS);
-+			   INTERRUPTS);
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
- 			   INTERRUPTS);
- }
--- 
-1.9.1
+Could you elaborate on what this is needed for?
+
+My understanding was that on 32-bit, this was to handle idle / suspend
+cases, whereas for arm64 that should be handled by PSCI.
+
+what exactly do you intend to use this for?
+
+Thanks,
+Mark.
