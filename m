@@ -1,186 +1,279 @@
-From: Florian Fainelli <florian.fainelli@broadcom.com>
-Subject: Re: [PATCH v3 2/4] asm-generic: Provide a fncpy() implementation
-Date: Mon, 19 Jun 2017 13:58:53 -0700
-Message-ID: <25e87a4c-ecd9-a205-5a25-207a293e0204@broadcom.com>
-References: <20170617000744.22158-1-f.fainelli@gmail.com>
- <20170617000744.22158-3-f.fainelli@gmail.com>
- <20170618235108.peaxdi367jpkt542@yury-thinkpad>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v2] gpio: lp87565: Add support for GPIO
+Date: Tue, 20 Jun 2017 08:53:42 +0530
+Message-ID: <0b4b407a-439c-b306-c8db-34bb7a976a85@ti.com>
+References: <1497508391-2806-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <20170618235108.peaxdi367jpkt542@yury-thinkpad>
-Content-Language: en-US
-Sender: linux-arch-owner@vger.kernel.org
-To: Yury Norov <ynorov@caviumnetworks.com>, Florian Fainelli <f.fainelli@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, bcm-kernel-feedback-list@broadcom.com, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, open list <linux-kernel@vger.kernel.org>, "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1497508391-2806-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linus.walleij@linaro.org
+Cc: linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 06/18/2017 04:51 PM, Yury Norov wrote:
-> Hi Florian,
-> 
-> Some questions and thoughts inline.
-> 
-> Yury
-> 
-> On Fri, Jun 16, 2017 at 05:07:42PM -0700, Florian Fainelli wrote:
->> Define a generic fncpy() implementation largely based on the ARM version
->> that requires an 8 bytes alignment for the destination address where to
->> copy this function as well as the function's own address.
->>
->> Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
->> ---
->>  include/asm-generic/fncpy.h | 93 +++++++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 93 insertions(+)
->>  create mode 100644 include/asm-generic/fncpy.h
->>
->> diff --git a/include/asm-generic/fncpy.h b/include/asm-generic/fncpy.h
->> new file mode 100644
->> index 000000000000..ec03b83b8535
->> --- /dev/null
->> +++ b/include/asm-generic/fncpy.h
->> @@ -0,0 +1,93 @@
->> +/*
->> + * include/asm-generic/fncpy.h - helper macros for function body copying
->> + *
->> + * Copyright (C) 2011 Linaro Limited
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
->> + */
->> +
->> +/*
->> + * These macros are intended for use when there is a need to copy a low-level
->> + * function body into special memory.
->> + *
->> + * For example, when reconfiguring the SDRAM controller, the code doing the
->> + * reconfiguration may need to run from SRAM.
->> + *
->> + * NOTE: that the copied function body must be entirely self-contained and
->> + * position-independent in order for this to work properly.
->> + *
->> + * NOTE: in order for embedded literals and data to get referenced correctly,
->> + * the alignment of functions must be preserved when copying.  To ensure this,
->> + * the source and destination addresses for fncpy() must be aligned to a
->> + * multiple of 8 bytes: you will be get a BUG() if this condition is not met.
->> + * You will typically need a ".align 3" directive in the assembler where the
->> + * function to be copied is defined, and ensure that your allocator for the
->> + * destination buffer returns 8-byte-aligned pointers.
->> + *
->> + * Typical usage example:
->> + *
->> + * extern int f(args);
->> + * extern uint32_t size_of_f;
->> + * int (*copied_f)(args);
->> + * void *sram_buffer;
->> + *
->> + * copied_f = fncpy(sram_buffer, &f, size_of_f);
->> + *
->> + * ... later, call the function: ...
->> + *
->> + * copied_f(args);
->> + *
->> + * The size of the function to be copied can't be determined from C:
->> + * this must be determined by other means, such as adding assmbler directives
->> + * in the file where f is defined.
->> + */
->> +
->> +#ifndef __ASM_FNCPY_H
->> +#define __ASM_FNCPY_H
->> +
->> +#include <linux/types.h>
->> +#include <linux/string.h>
->> +
->> +#include <asm/bug.h>
->> +#include <asm/cacheflush.h>
->> +
->> +/*
->> + * Minimum alignment requirement for the source and destination addresses
->> + * for function copying.
->> + */
->> +#define FNCPY_ALIGN 8
-> 
-> From now this is not arm-only, and it's possible that some architectures
-> might want to redefine it in their arch/xxx/include/asm/fncpy.h files.
-> So it will be easier for them if you'll wrap FNCPY_ALIGN here with #ifdef
-> guards.
-> 
-> By the way, compiler already has an information on the proper alignment.
-> Maybe it's better to use it as the default value here instead of the
-> hardcoded value?
-> 
-> #ifndef FNCPY_ALIGN
-> #define FNCPY_ALIGN ({void foo(); __alignof__(&foo);})
-> #endif
-> 
->> +
->> +#define fncpy(dest_buf, funcp, size) ({					\
-> 
-> Do you really need to check types inside the macro? If not, you can
-> declare it as function, which is better in general, with the memcpy-like
-> prototype.
-> 
->> +	uintptr_t __funcp_address;					\
->> +	typeof(funcp) __result;						\
->> +									\
->> +	asm("" : "=r" (__funcp_address) : "0" (funcp));			\
->> +									\
->> +	/*								\
->> +	 * Ensure alignment of source and destination addresses.	\
->> +	 */								\
->> +	BUG_ON((uintptr_t)(dest_buf) & (FNCPY_ALIGN - 1) ||		\
-> 
-> People don't like new BUG_ONs. Maybe it's better to use BUILD_BUG_ON()
-> at compile time and WARN_ON() at runtime?
-
-If you have a BUILD_BUG_ON() what's the point of the WARN_ON()?
-
-> 
->> +		(__funcp_address & (FNCPY_ALIGN - 1)));			\
-> 
-> There is IS_ALIGNED() macro for things like this.
-
-Sure, makes sense.
-
-> 
-> And I frankly don't understand the 2nd check. One can imagine the
-> situation when someone wants copy the function from the packed blob or
-> some intermediate location were the function is unaligned, and it's
-> impossible with the current implementation.
-
-That's a good point, I am not sure if this is historical, or if there is
-a reason for that from the ARM/Linux implementation. It sounds unlikely
-that the function would be unaligned though considering that you'd have
-to refer to the function being copied by its symbolic name, which
-assumes it's in the kernel image or a module, and highly probable that
-it is also aligned.
-
-> 
->> +									\
->> +	memcpy(dest_buf, (void const *)__funcp_address, size);		\
->> +	flush_icache_range((unsigned long)(dest_buf),			\
->> +		(unsigned long)(dest_buf) + (size));			\
->> +									\
->> +	asm("" : "=r" (__result)					\
->> +		: "0" ((uintptr_t)(dest_buf)));				\
->> +									\
->> +	__result;							\
->> +})
->> +
->> +#endif /* !__ASM_FNCPY_H */
->> -- 
->> 2.9.3
 
 
--- 
-Florian
+On Thursday 15 June 2017 12:03 PM, Keerthy wrote:
+> Add driver for lp87565 PMIC family GPIOs. Three GPIOs are supported
+> and can be configured in Open-drain output or Push-pull output.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+> 
+> Latest version of mfd patch:
+> 
+> https://patchwork.kernel.org/patch/9783079/
+
+The latest version is pulled by Lee Jones.
+
+https://patchwork.kernel.org/patch/9783081/
+
+Thanks,
+Keerthy
+> 
+> Changes in v2:
+> 
+>   * included <linux/gpio/driver.h>
+>   * stored the struct regmap *map instead of whole lp87565 struct
+>   * clamped return values to [0,1] where necessary.
+>   * Added more comments to explain the 2 modes.
+>   * platform_set_drvdata(pdev, gpio)
+> 
+>  drivers/gpio/Kconfig        |  10 +++
+>  drivers/gpio/Makefile       |   1 +
+>  drivers/gpio/gpio-lp87565.c | 190 ++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 201 insertions(+)
+>  create mode 100644 drivers/gpio/gpio-lp87565.c
+> 
+> diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+> index 2e7d9ff..f235eae 100644
+> --- a/drivers/gpio/Kconfig
+> +++ b/drivers/gpio/Kconfig
+> @@ -965,6 +965,16 @@ config GPIO_LP873X
+>  	  This driver can also be built as a module. If so, the module will be
+>            called gpio-lp873x.
+>  
+> +config GPIO_LP87565
+> +	tristate "TI LP87565 GPIO"
+> +	depends on MFD_TI_LP87565
+> +	help
+> +	  This driver supports the GPIO on TI Lp873565 PMICs. 3 GPIOs are present
+> +	  on LP87565 PMICs.
+> +
+> +	  This driver can also be built as a module. If so, the module will be
+> +	  called gpio-lp87565.
+> +
+>  config GPIO_MAX77620
+>  	tristate "GPIO support for PMIC MAX77620 and MAX20024"
+>  	depends on MFD_MAX77620
+> diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+> index bcd0a0b..a9fda6c 100644
+> --- a/drivers/gpio/Makefile
+> +++ b/drivers/gpio/Makefile
+> @@ -67,6 +67,7 @@ obj-$(CONFIG_GPIO_LP3943)	+= gpio-lp3943.o
+>  obj-$(CONFIG_GPIO_LPC18XX)	+= gpio-lpc18xx.o
+>  obj-$(CONFIG_ARCH_LPC32XX)	+= gpio-lpc32xx.o
+>  obj-$(CONFIG_GPIO_LP873X)	+= gpio-lp873x.o
+> +obj-$(CONFIG_GPIO_LP87565)	+= gpio-lp87565.o
+>  obj-$(CONFIG_GPIO_LYNXPOINT)	+= gpio-lynxpoint.o
+>  obj-$(CONFIG_GPIO_MAX730X)	+= gpio-max730x.o
+>  obj-$(CONFIG_GPIO_MAX7300)	+= gpio-max7300.o
+> diff --git a/drivers/gpio/gpio-lp87565.c b/drivers/gpio/gpio-lp87565.c
+> new file mode 100644
+> index 0000000..6313c50
+> --- /dev/null
+> +++ b/drivers/gpio/gpio-lp87565.c
+> @@ -0,0 +1,190 @@
+> +/*
+> + * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
+> + *	Keerthy <j-keerthy@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> + * kind, whether expressed or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License version 2 for more details.
+> + *
+> + * Based on the LP873X driver
+> + */
+> +
+> +#include <linux/gpio/driver.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/regmap.h>
+> +
+> +#include <linux/mfd/lp87565.h>
+> +
+> +struct lp87565_gpio {
+> +	struct gpio_chip chip;
+> +	struct regmap *map;
+> +};
+> +
+> +static int lp87565_gpio_get_direction(struct gpio_chip *chip,
+> +				      unsigned int offset)
+> +{
+> +	struct lp87565_gpio *gpio = gpiochip_get_data(chip);
+> +	int ret, val;
+> +
+> +	ret = regmap_read(gpio->map, LP87565_REG_GPIO_CONFIG, &val);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return !(val & BIT(offset));
+> +}
+> +
+> +static int lp87565_gpio_direction_input(struct gpio_chip *chip,
+> +					unsigned int offset)
+> +{
+> +	struct lp87565_gpio *gpio = gpiochip_get_data(chip);
+> +
+> +	return regmap_update_bits(gpio->map,
+> +				  LP87565_REG_GPIO_CONFIG,
+> +				  BIT(offset), 0);
+> +}
+> +
+> +static int lp87565_gpio_direction_output(struct gpio_chip *chip,
+> +					 unsigned int offset, int value)
+> +{
+> +	struct lp87565_gpio *gpio = gpiochip_get_data(chip);
+> +
+> +	return regmap_update_bits(gpio->map,
+> +				  LP87565_REG_GPIO_CONFIG,
+> +				  BIT(offset), !value ? BIT(offset) : 0);
+> +}
+> +
+> +static int lp87565_gpio_get(struct gpio_chip *chip, unsigned int offset)
+> +{
+> +	struct lp87565_gpio *gpio = gpiochip_get_data(chip);
+> +	int ret, val;
+> +
+> +	ret = regmap_read(gpio->map, LP87565_REG_GPIO_IN, &val);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return !!(val & BIT(offset));
+> +}
+> +
+> +static void lp87565_gpio_set(struct gpio_chip *chip, unsigned int offset,
+> +			     int value)
+> +{
+> +	struct lp87565_gpio *gpio = gpiochip_get_data(chip);
+> +
+> +	regmap_update_bits(gpio->map, LP87565_REG_GPIO_OUT,
+> +			   BIT(offset), value ? BIT(offset) : 0);
+> +}
+> +
+> +static int lp87565_gpio_request(struct gpio_chip *gc, unsigned int offset)
+> +{
+> +	struct lp87565_gpio *gpio = gpiochip_get_data(gc);
+> +	int ret;
+> +
+> +	switch (offset) {
+> +	case 0:
+> +	case 1:
+> +	case 2:
+> +		/*
+> +		 * MUX can program the pin to be in EN1/2/3 pin mode
+> +		 * Or GPIO1/2/3 mode.
+> +		 * Setup the GPIO*_SEL MUX to GPIO mode
+> +		 */
+> +		ret = regmap_update_bits(gpio->map,
+> +					 LP87565_REG_PIN_FUNCTION,
+> +					 BIT(offset), BIT(offset));
+> +		if (ret)
+> +			return ret;
+> +
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int lp87565_gpio_set_config(struct gpio_chip *gc, unsigned int offset,
+> +				   unsigned long config)
+> +{
+> +	struct lp87565_gpio *gpio = gpiochip_get_data(gc);
+> +
+> +	switch (pinconf_to_config_param(config)) {
+> +	case PIN_CONFIG_DRIVE_OPEN_DRAIN:
+> +		return regmap_update_bits(gpio->map,
+> +					  LP87565_REG_GPIO_CONFIG,
+> +					  BIT(offset +
+> +					      __ffs(LP87565_GOIO1_OD)),
+> +					  BIT(offset +
+> +					      __ffs(LP87565_GOIO1_OD)));
+> +	case PIN_CONFIG_DRIVE_PUSH_PULL:
+> +		return regmap_update_bits(gpio->map,
+> +					  LP87565_REG_GPIO_CONFIG,
+> +					  BIT(offset +
+> +					      __ffs(LP87565_GOIO1_OD)), 0);
+> +	default:
+> +		return -ENOTSUPP;
+> +	}
+> +}
+> +
+> +static const struct gpio_chip template_chip = {
+> +	.label			= "lp87565-gpio",
+> +	.owner			= THIS_MODULE,
+> +	.request		= lp87565_gpio_request,
+> +	.get_direction		= lp87565_gpio_get_direction,
+> +	.direction_input	= lp87565_gpio_direction_input,
+> +	.direction_output	= lp87565_gpio_direction_output,
+> +	.get			= lp87565_gpio_get,
+> +	.set			= lp87565_gpio_set,
+> +	.set_config		= lp87565_gpio_set_config,
+> +	.base			= -1,
+> +	.ngpio			= 3,
+> +	.can_sleep		= true,
+> +};
+> +
+> +static int lp87565_gpio_probe(struct platform_device *pdev)
+> +{
+> +	struct lp87565_gpio *gpio;
+> +	struct lp87565 *lp87565;
+> +	int ret;
+> +
+> +	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+> +	if (!gpio)
+> +		return -ENOMEM;
+> +
+> +	lp87565 = dev_get_drvdata(pdev->dev.parent);
+> +	gpio->chip = template_chip;
+> +	gpio->chip.parent = lp87565->dev;
+> +	gpio->map = lp87565->regmap;
+> +
+> +	ret = devm_gpiochip_add_data(&pdev->dev, &gpio->chip, gpio);
+> +	if (ret < 0) {
+> +		dev_err(&pdev->dev, "Could not register gpiochip, %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct platform_device_id lp87565_gpio_id_table[] = {
+> +	{ "lp87565-q1-gpio", },
+> +	{ /* sentinel */ }
+> +};
+> +MODULE_DEVICE_TABLE(platform, lp87565_gpio_id_table);
+> +
+> +static struct platform_driver lp87565_gpio_driver = {
+> +	.driver = {
+> +		.name = "lp87565-gpio",
+> +	},
+> +	.probe = lp87565_gpio_probe,
+> +	.id_table = lp87565_gpio_id_table,
+> +};
+> +module_platform_driver(lp87565_gpio_driver);
+> +
+> +MODULE_AUTHOR("Keerthy <j-keerthy@ti.com>");
+> +MODULE_DESCRIPTION("LP87565 GPIO driver");
+> +MODULE_LICENSE("GPL v2");
+> 
