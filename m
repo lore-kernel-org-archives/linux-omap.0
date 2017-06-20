@@ -1,82 +1,85 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3 0/4] Generalize fncpy availability
-Date: Tue, 20 Jun 2017 10:10:25 +0100
-Message-ID: <20170620091025.GA26846@red-moon>
-References: <20170617000744.22158-1-f.fainelli@gmail.com>
- <20170619122444.GJ10246@leverpostej>
- <c8b7789c-38fb-6793-050f-7c60ccb8ca17@broadcom.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v2 2/2] spi: spi-ti-qspi: Use bounce buffer if read buffer
+ is not DMA'ble
+Date: Tue, 20 Jun 2017 15:15:34 +0530
+Message-ID: <faa7fdc4-25d1-aa9e-762b-25d5e89a771f@ti.com>
+References: <20170411115225.31709-1-vigneshr@ti.com>
+ <20170411115225.31709-3-vigneshr@ti.com>
+ <20170421170655.dpyxlwipfwnwjjwy@sirena.org.uk>
+ <3955ad22-28a2-5222-4ae3-aa34dc69cde6@ti.com>
+ <c9dbe3d1-549c-f510-fa76-8e326601ecdc@atmel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <c8b7789c-38fb-6793-050f-7c60ccb8ca17@broadcom.com>
+In-Reply-To: <c9dbe3d1-549c-f510-fa76-8e326601ecdc@atmel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <florian.fainelli@broadcom.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Florian Fainelli <f.fainelli@gmail.com>, linux-arm-kernel@lists.infradead.org, "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@armlinux.org.uk>, open list <linux-kernel@vger.kernel.org>, bcm-kernel-feedback-list@broadcom.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, Keerthy J <j-keerthy@ti.com>, sudeep.holla@arm.com
+To: Cyrille Pitchen <cyrille.pitchen@atmel.com>, Mark Brown <broonie@kernel.org>
+Cc: "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Weinberger <richard@nod.at>, Boris BREZILLON <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-[+Sudeep]
+Hi,
 
-On Mon, Jun 19, 2017 at 10:32:38AM -0700, Florian Fainelli wrote:
-> On 06/19/2017 05:24 AM, Mark Rutland wrote:
-> > On Fri, Jun 16, 2017 at 05:07:40PM -0700, Florian Fainelli wrote:
-> >> Hi all,
-> > 
-> > Hi Florian,
-> > 
-> >> This patch series makes ARM's fncpy() implementation more generic (dropping the
-> >> Thumb-specifics) and available in an asm-generic header file.
-> >>
-> >> Tested on a Broadcom ARM64 STB platform with code that is written to SRAM.
-> >>
-> >> Changes in v3 (thanks Doug!):
-> >> - correct include guard names in asm-generic/fncpy.h to __ASM_FNCPY_H
-> >> - utilize Kbuild to provide the fncpy.h header on ARM64
-> >>
-> >> Changes in v2:
-> >> - leave the ARM implementation where it is
-> >> - make the generic truly generic (no)
-> >>
-> >> This is helpful in making SoC-specific power management code become true drivers
-> >> that can be shared between different architectures.
-> > > Could you elaborate on what this is needed for?
+On Friday 16 June 2017 09:24 PM, Cyrille Pitchen wrote:
+> Hi all,
 > 
-> Several uses cases come to mind:
+> + Richard and Boris as MTD maintainers
 > 
-> - it could be used as a trampoline code prior to entering S2 for systems
-> that do not support PSCI 1.0
-
-I think S2 here means PM_SUSPEND_MEM. It is very wrong to manage power
-states through platform specific hooks on PSCI based systems, consider
-upgrading to PSCI 1.0 please (or implement PSCI CPU_SUSPEND power
-states that allow to achieve same power savings as PM_SUSPEND_MEM
-by just entering suspend-to-idle).
-
-> - any code that has a specific need to relocate a performance, security
-> sensitive code into SRAM and use it as another pool of memory.
+> Le 25/04/2017 à 14:18, Vignesh R a écrit :
+>>
+>>
+>> On Friday 21 April 2017 10:36 PM, Mark Brown wrote:
+>>> On Tue, Apr 11, 2017 at 05:22:25PM +0530, Vignesh R wrote:
+>>>> Flash filesystems like JFFS2, UBIFS and MTD block layer can provide
+>>>> vmalloc'd or kmap'd buffers that cannot be mapped using dma_map_sg() and
+>>>> can potentially be in memory region above 32bit addressable region(ie
+>>>> buffers belonging to memory region backed by LPAE) of DMA, implement
+>>>> spi_flash_can_dma() interface to inform SPI core not to map such
+>>>> buffers.
+>>>
+>>> I'll apply this since it fixes bugs for your systems but it feels like
+>>> something that we should be moving further into the core since LPAE
+>>> isn't specific to your devices.  We should ideally have something
+>>> (possibly in the DMA mapping code even) which does the remapping without
+>>> the driver needing to know about it.
+>>>
+>>
+>> I agree, there is a need to have generic remapping code. Also, I guess,
+>> once UBIFS is moved to use kmalloc'd buffers SPI flash devices will not
+>> have to worry much about vmalloc'd buffers.
+>>
 > 
-> > 
-> > My understanding was that on 32-bit, this was to handle idle / suspend
-> > cases, whereas for arm64 that should be handled by PSCI.
+> I've just discussed with Richard and Boris and AFAIK, nothing is planned
+> at the UBIFS side to replace vmalloc'd buffers by kmalloc'd buffers.
+> There are reasons for using vmalloc() but Richard can explain better
+> than me :)
 > 
-> For systems that support PSCI 1.0, I agree, but it may not be possible
-> to update those systems easily, still use case 2 is completely valid.
-
-Just to be clear, thinking of using platform specific suspend hooks
-on PSCI systems is not a viable solution, I will let other people
-comment on option 2.
-
-> > what exactly do you intend to use this for?
+> Also, depending on the cache model used by Atmel SoCs, the spi-atmel.c
+> driver may suffer from the same issue too: using spi_map_buf() hence
+> mapping vmalloc'ed buffers for DMA usage will be OK with ARM Cortex A5
+> (PIPT data cache, so no cache aliasing issue at all) hence with SAMA5
+> series but is not OK for some older cores like ARM926 (VIVT data cache)
+> hence the SAM9 series.
 > 
-> At the moment we use it to enter S2 on ARM64 systems (ARCH_BRCMSTB)
+> So to fix the spi-atmel.c driver when used with SAM9 SoCs, we are
+> thinking about sending a first patch to simply disable the use of DMA
+> transfers on SAM9 SoCs in case of vmalloc'ed buffers and use CPU
+> transfers instead.
+> The code will be left unchanged for SAMA5 SoCs so there would be no
+> performance loss on those SoCs.
+> It won't be optimal on SAM9 SoCs but at least it would work.
+> 
+> Then in a new series, if nobody has started to work on this topic yet,
+> we could propose a generic solution using a bounce buffer at the SPI
+> core level. however we first need to think how we could do this.
+> 
 
-"At the moment", where ?
+One of the questions that was hovering around when this issue was
+discussed last time around was where should the code to detect whether
+or not to use bounce buffer reside? Some extension to generic DMA APIs
+or SPI drivers or somewhere else?
 
-> which are PSCI 0.2 only. And yes, we do have a plan to evaluate
-> upgrading to PSCI 1.0, but in general, any SoC which as an addressable
-> SRAM could use it for whatever purpose it sees fit.
-
-Not to implement suspend hooks on PSCI 0.2 systems.
-
-Thanks,
-Lorenzo
+-- 
+Regards
+Vignesh
