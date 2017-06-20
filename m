@@ -1,69 +1,56 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: lp87565: Fix the initial voltage range" to the regulator tree
-Date: Tue, 20 Jun 2017 18:40:27 +0100
-Message-ID: <E1dNN8d-000865-MW@debutante>
-References: <1497929815-4565-1-git-send-email-j-keerthy@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1497929815-4565-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: Mark Brown <broonie@kernel.org>broonie@kernel.org, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.comlinux-kernel@vger.kernel.org
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] memory: ti-emif-sram: introduce relocatable
+ suspend/resume handlers
+Date: Tue, 20 Jun 2017 14:03:35 -0500
+Message-ID: <fdfa1059-17f7-74f7-4b88-2941af07a538@ti.com>
+References: <20170519175708.6070-1-d-gerlach@ti.com>
+ <20170519175708.6070-3-d-gerlach@ti.com>
+ <20170620144243.GB23750@n2100.armlinux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170620144243.GB23750-l+eeeJia6m9URfEZ8mYm6t73F7V6hmMc@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+Hi,
+On 06/20/2017 09:42 AM, Russell King - ARM Linux wrote:
+> On Fri, May 19, 2017 at 12:57:08PM -0500, Dave Gerlach wrote:
+>> +	.arm
+>> +	.align 3
+>> +
+>> +ENTRY(ti_emif_sram)
+> 
+> Will you ever want to have any of this code as Thumb?
 
-   regulator: lp87565: Fix the initial voltage range
+I cannot see any requirement for that. I will say it is tested and
+inter-operates happily with CONFIG_THUMB_KERNEL, but because it's constrained to
+am335x and am437x I don't think there are unknown situations where every single
+instruction must be THUMB.
 
-has been applied to the regulator tree at
+> 
+>> +extern inline void ti_emif_offsets(void)
+>> +{
+> 
+> "extern inline" is frowned upon in the kernel - any reason this
+> can't be "static inline" ?
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+It should be static.
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+> 
+> Any reason not to provide a stub for when it's not configured,
+> and eliminate the ifdef in arch/arm/kernel/asm-offsets.c ?
+> 
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
+No, I just was following the ifdef example set by others in the file, a stub
+would be cleaner I agree.
 
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From 42f1ea48efd99394a4790e8ab956f1fb8e0a931e Mon Sep 17 00:00:00 2001
-From: Keerthy <j-keerthy@ti.com>
-Date: Tue, 20 Jun 2017 09:06:55 +0530
-Subject: [PATCH] regulator: lp87565: Fix the initial voltage range
-
-The latest documentation reveals that initial voltage range that is
-supported is starting from 0.6V for all the PMICs belonging to lp87565
-family. Fix the same.
-
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Fixes: f0168a9bf ("regulator: lp87565: Add support for lp87565 PMIC regulators")
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/regulator/lp87565-regulator.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/regulator/lp87565-regulator.c b/drivers/regulator/lp87565-regulator.c
-index 6d92c3fe39a3..cfdbe294fb6a 100644
---- a/drivers/regulator/lp87565-regulator.c
-+++ b/drivers/regulator/lp87565-regulator.c
-@@ -46,7 +46,7 @@ struct lp87565_regulator {
- static const struct lp87565_regulator regulators[];
- 
- static const struct regulator_linear_range buck0_1_2_3_ranges[] = {
--	REGULATOR_LINEAR_RANGE(500000, 0x0, 0x17, 10000),
-+	REGULATOR_LINEAR_RANGE(600000, 0xA, 0x17, 10000),
- 	REGULATOR_LINEAR_RANGE(735000, 0x18, 0x9d, 5000),
- 	REGULATOR_LINEAR_RANGE(1420000, 0x9e, 0xff, 20000),
- };
--- 
-2.11.0
+Regards,
+Dave
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
