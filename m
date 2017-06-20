@@ -1,92 +1,69 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH v3 0/4] Generalize fncpy availability
-Date: Tue, 20 Jun 2017 10:03:53 -0700
-Message-ID: <e4d75953-b12f-7157-d3a7-84a5f417cac9@gmail.com>
-References: <20170617000744.22158-1-f.fainelli@gmail.com>
- <20170619122444.GJ10246@leverpostej>
- <c8b7789c-38fb-6793-050f-7c60ccb8ca17@broadcom.com>
- <20170620091025.GA26846@red-moon>
- <3834f2fa-5ac0-5b48-7c19-a1b68c1e9c65@gmail.com>
- <962aa9c2-05a2-e109-8126-7e18ef9b157b@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: lp87565: Fix the initial voltage range" to the regulator tree
+Date: Tue, 20 Jun 2017 18:40:27 +0100
+Message-ID: <E1dNN8d-000865-MW@debutante>
+References: <1497929815-4565-1-git-send-email-j-keerthy@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <962aa9c2-05a2-e109-8126-7e18ef9b157b@arm.com>
-Content-Language: en-US
+In-Reply-To: <1497929815-4565-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Florian Fainelli <florian.fainelli@broadcom.com>, Mark Rutland <mark.rutland@arm.com>, linux-arm-kernel@lists.infradead.org, "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@armlinux.org.uk>, open list <linux-kernel@vger.kernel.org>, bcm-kernel-feedback-list@broadcom.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, Keerthy J <j-keerthy@ti.com>
+Cc: Mark Brown <broonie@kernel.org>broonie@kernel.org, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.comlinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 06/20/2017 09:54 AM, Sudeep Holla wrote:
-> 
-> 
-> On 20/06/17 17:20, Florian Fainelli wrote:
->> On 06/20/2017 02:10 AM, Lorenzo Pieralisi wrote:
->>> [+Sudeep]
->>>
->>> On Mon, Jun 19, 2017 at 10:32:38AM -0700, Florian Fainelli wrote:
->>>> On 06/19/2017 05:24 AM, Mark Rutland wrote:
->>>>> On Fri, Jun 16, 2017 at 05:07:40PM -0700, Florian Fainelli wrote:
->>>>>> Hi all,
->>>>>
->>>>> Hi Florian,
->>>>>
->>>>>> This patch series makes ARM's fncpy() implementation more generic (dropping the
->>>>>> Thumb-specifics) and available in an asm-generic header file.
->>>>>>
->>>>>> Tested on a Broadcom ARM64 STB platform with code that is written to SRAM.
->>>>>>
->>>>>> Changes in v3 (thanks Doug!):
->>>>>> - correct include guard names in asm-generic/fncpy.h to __ASM_FNCPY_H
->>>>>> - utilize Kbuild to provide the fncpy.h header on ARM64
->>>>>>
->>>>>> Changes in v2:
->>>>>> - leave the ARM implementation where it is
->>>>>> - make the generic truly generic (no)
->>>>>>
->>>>>> This is helpful in making SoC-specific power management code become true drivers
->>>>>> that can be shared between different architectures.
->>>>>> Could you elaborate on what this is needed for?
->>>>
->>>> Several uses cases come to mind:
->>>>
->>>> - it could be used as a trampoline code prior to entering S2 for systems
->>>> that do not support PSCI 1.0
->>>
->>> I think S2 here means PM_SUSPEND_MEM. It is very wrong to manage power
->>> states through platform specific hooks on PSCI based systems, consider
->>> upgrading to PSCI 1.0 please (or implement PSCI CPU_SUSPEND power
->>> states that allow to achieve same power savings as PM_SUSPEND_MEM
->>> by just entering suspend-to-idle).
->>
->> S2 is PM_SUSPEND_STANDBY and S3 is PM_SUSPEND_MEM, at least that how I
->> read it. I would rather we update to PSCI 1.0 (at least) to properly
->> support SYSTEM_SUSPEND rather than retrofitting a system-wide suspend
->> state into CPU_SUSPEND since that seems wrong.
->>
-> 
-> This has been discussed multiple times in the past. No one has come back
-> with strong reason to add that to the PSCI SYSTEM_SUSPEND API.
-> 
-> Care to explain the difference between PM_SUSPEND_STANDBY and S3 is
-> PM_SUSPEND_MEM on your platform. And why it can't be achieved with
-> suspend-to-idle ?
+The patch
 
-S2 preserves the ON/OFF island power and allows wake logic to wake the
-system (infrared, GPIOs, Wake-on-LAN/WLAN, etc.) whereas S3 allows
-powering off the ON/OFF island entirely, and allows for a lower power
-consumption, with a subset of the wake peripherals to actually wake the
-system. S5 is also implemented although its use case is narrower (soft-off).
+   regulator: lp87565: Fix the initial voltage range
 
-The higher latency involved in S3 entry/exit is totally accepted due to
-the higher power savings that it yields.
+has been applied to the regulator tree at
 
-> 
-> You can always report any issue with PSCI specification at
-> errata@arm.com as mentioned in the document.
+   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
-I just did because there are a few other things missing.
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
+
+>From 42f1ea48efd99394a4790e8ab956f1fb8e0a931e Mon Sep 17 00:00:00 2001
+From: Keerthy <j-keerthy@ti.com>
+Date: Tue, 20 Jun 2017 09:06:55 +0530
+Subject: [PATCH] regulator: lp87565: Fix the initial voltage range
+
+The latest documentation reveals that initial voltage range that is
+supported is starting from 0.6V for all the PMICs belonging to lp87565
+family. Fix the same.
+
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Fixes: f0168a9bf ("regulator: lp87565: Add support for lp87565 PMIC regulators")
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/lp87565-regulator.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/lp87565-regulator.c b/drivers/regulator/lp87565-regulator.c
+index 6d92c3fe39a3..cfdbe294fb6a 100644
+--- a/drivers/regulator/lp87565-regulator.c
++++ b/drivers/regulator/lp87565-regulator.c
+@@ -46,7 +46,7 @@ struct lp87565_regulator {
+ static const struct lp87565_regulator regulators[];
+ 
+ static const struct regulator_linear_range buck0_1_2_3_ranges[] = {
+-	REGULATOR_LINEAR_RANGE(500000, 0x0, 0x17, 10000),
++	REGULATOR_LINEAR_RANGE(600000, 0xA, 0x17, 10000),
+ 	REGULATOR_LINEAR_RANGE(735000, 0x18, 0x9d, 5000),
+ 	REGULATOR_LINEAR_RANGE(1420000, 0x9e, 0xff, 20000),
+ };
 -- 
-Florian
+2.11.0
