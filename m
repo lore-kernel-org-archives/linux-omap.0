@@ -1,37 +1,60 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] regulator: lp87565: Fix the initial voltage range
-Date: Tue, 20 Jun 2017 09:06:55 +0530
-Message-ID: <1497929815-4565-1-git-send-email-j-keerthy@ti.com>
+From: Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: am437x-gp-evm: Add support for buzzer
+Date: Tue, 20 Jun 2017 10:39:21 +0530
+Message-ID: <1497935361-11019-1-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: broonie@kernel.org
-Cc: j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, t-kristo@ti.com
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The latest documentation reveals that initial voltage range that is
-supported is starting from 0.6V for all the PMICs belonging to lp87565
-family. Fix the same.
+Add support for onboard gpio buzzer. It works using
+the gpio-beeper driver. Pinmux entries for GPIO
+controlling the buzzer are also added.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Fixes: f0168a9bf ("regulator: lp87565: Add support for lp87565 PMIC regulators")
+Signed-off-by: Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>
 ---
- drivers/regulator/lp87565-regulator.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/am437x-gp-evm.dts | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/regulator/lp87565-regulator.c b/drivers/regulator/lp87565-regulator.c
-index 6d92c3f..cfdbe29 100644
---- a/drivers/regulator/lp87565-regulator.c
-+++ b/drivers/regulator/lp87565-regulator.c
-@@ -46,7 +46,7 @@ struct lp87565_regulator {
- static const struct lp87565_regulator regulators[];
- 
- static const struct regulator_linear_range buck0_1_2_3_ranges[] = {
--	REGULATOR_LINEAR_RANGE(500000, 0x0, 0x17, 10000),
-+	REGULATOR_LINEAR_RANGE(600000, 0xA, 0x17, 10000),
- 	REGULATOR_LINEAR_RANGE(735000, 0x18, 0x9d, 5000),
- 	REGULATOR_LINEAR_RANGE(1420000, 0x9e, 0xff, 20000),
+diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
+index 397e98b..24cdf6d 100644
+--- a/arch/arm/boot/dts/am437x-gp-evm.dts
++++ b/arch/arm/boot/dts/am437x-gp-evm.dts
+@@ -149,6 +149,13 @@
+ 			system-clock-frequency = <12000000>;
+ 		};
+ 	};
++
++	beeper: beeper {
++		compatible = "gpio-beeper";
++		pinctrl-names = "default";
++		pinctrl-0 = <&beeper_pins>;
++		gpios = <&gpio4 12 GPIO_ACTIVE_HIGH>;
++	};
  };
+ 
+ &am43xx_pinmux {
+@@ -510,6 +517,13 @@
+ 			AM4372_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
+ 		>;
+ 	};
++
++	beeper_pins: beeper_pins {
++		pinctrl-single,pins = <
++			AM4372_IOPAD(0x9e0, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* cam1_field.gpio4_12 */
++		>;
++	};
++
+ };
+ 
+ &uart0 {
 -- 
-1.9.1
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
