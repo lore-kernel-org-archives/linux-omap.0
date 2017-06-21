@@ -1,48 +1,77 @@
-From: Tom Rini <trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/2] ARM: dts: dm816x: Correct the state of the write protect pin
-Date: Wed, 21 Jun 2017 07:42:27 -0400
-Message-ID: <1498045347-27324-2-git-send-email-trini@konsulko.com>
-References: <1498045347-27324-1-git-send-email-trini@konsulko.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498045347-27324-1-git-send-email-trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Mihail Grigorov <michael.grigorov-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+From: Will Newton <will.newton@gmail.com>
+Subject: Re: [PATCH] omap_hsmmc: Reduce max_segs
+Date: Wed, 21 Jun 2017 16:09:45 +0100
+Message-ID: <CAFbHwiRRAdmJ6OL2u32dcYwiS-5jgmqgT9mgnf3FLkyco2A-5Q@mail.gmail.com>
+References: <20170619093644.16054-1-willn@resin.io> <CAFbHwiSuAAophPr2tyHOq2iWrC1Uo2N+EOuvhiNcc9xERuvZZA@mail.gmail.com>
+ <20170621062427.GP3730@atomide.com> <CAFbHwiQO5dHq59Bab4+9A6-QVcjsTVMzNfni0PQDQA1g3YCcgw@mail.gmail.com>
+ <20170621083252.GQ3730@atomide.com> <ec8e0bbd-e278-3067-6340-f7b3db293b05@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <ec8e0bbd-e278-3067-6340-f7b3db293b05@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ravikumar <rk@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Mihail Grigorov <michael.grigorov-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+On Wed, Jun 21, 2017 at 10:16 AM, Ravikumar <rk@ti.com> wrote:
 
-Commit 599c376c4932 ("ARM: dts: Fix gpio interrupts for dm816x")
-corrected some problems with the MMC.  However, it gets the write
-protect pin backwards.  It needs to be ACTIVE_HIGH not ACTIVE_LOW.
+Hi Ravikumar,
 
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Mihail Grigorov <michael.grigorov-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Tom Rini <trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
----
- arch/arm/boot/dts/dm8168-evm.dts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> On Wednesday 21 June 2017 02:02 PM, Tony Lindgren wrote:
+>>
+>> * Will Newton <will.newton@gmail.com> [170621 01:18]:
+>>>
+>>> On Wed, Jun 21, 2017 at 7:24 AM, Tony Lindgren <tony@atomide.com> wrote:
+>>>
+>>> Hi Tony,
+>>>
+>>>> * Will Newton <will.newton@gmail.com> [170620 05:39]:
+>>>>>
+>>>>> Just adding a few people to CC. I'd love to get some feedback as to
+>>>>> whether this patch makes sense or not.
+>>>>>
+>>>>> On Mon, Jun 19, 2017 at 10:36 AM, Will Newton <will.newton@gmail.com>
+>>>>> wrote:
+>>>>>>
+>>>>>> Reduce max_segs to a value that allows allocation of an entire
+>>>>>> descriptor list within a single page. This avoids doing a
+>>>>>> higher order GFP_ATOMIC allocation when setting up a transfer
+>>>>>> which can potentially fail and lead to I/O failures.
+>>>>
+>>>> I recall we only ever have few SG entries so if there is no performance
+>>>> impact I see no reason to lower it to save memory. Care to check
+>>>> if that's the case still?
+>>>
+>>> I have been seeing allocation failures in edma_prep_slave_sg
+>>> allocating the descriptor list of order 3, which from my rough
+>>> calculations is an sg_len of ~800. The memory usage itself doesn't
+>>> seem like a problem but doing a GFP_ATOMIC allocation of higher order
+>>> under I/O load seems like it is always going to cause problems.
+>
+> max_segs= 64  looks like a sensible value to me for edma/sdma, with each
+> param set ~40Bytes - this will ensure to fit in a single page.
+> IIRC, edma splits the list at 20. MAX_NR_SEGS set to 20 in edma.c. So,
+> having a bigger number *may not* guarantee a proportional increase
+> in throughput.
+>
+>> OK
+>>
+>>> I'm not an expert on this code but it looks like the scatterlist is
+>>> created from the queue so if the queue gets full we can get a very
+>>> large scatterlist. The current value of 1024 seems to be something of
+>>> an outlier:
+>
+> When using ADMA, since you allocate the table only once during probe,
+> there'll be no alloc calls at a later time.
+> And increase in number of sg entries would increase efficiency. I've seen
+> as many as 290-300 sg entries being used during file-system init/mount. So,
+> for ADMA, I would say at least max_segs = 512 is a better option since
+> descriptor size is 8B,
+> would still fit in a page.
+> You can over-wirte it under  "if (host->adma)"
 
-diff --git a/arch/arm/boot/dts/dm8168-evm.dts b/arch/arm/boot/dts/dm8168-evm.dts
-index 996eba0c2e7a..c72a2132aa82 100644
---- a/arch/arm/boot/dts/dm8168-evm.dts
-+++ b/arch/arm/boot/dts/dm8168-evm.dts
-@@ -196,7 +196,7 @@
- 	vmmc-supply = <&vmmcsd_fixed>;
- 	bus-width = <4>;
- 	cd-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>;
--	wp-gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
-+	wp-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
- };
- 
- /* At least dm8168-evm rev c won't support multipoint, later may */
--- 
-1.9.1
+I can't find this member in struct mmc_host on master, is there
+somewhere else I should be looking?
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
