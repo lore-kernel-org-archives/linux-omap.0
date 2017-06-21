@@ -1,77 +1,233 @@
-From: Will Newton <will.newton@gmail.com>
-Subject: Re: [PATCH] omap_hsmmc: Reduce max_segs
-Date: Wed, 21 Jun 2017 16:09:45 +0100
-Message-ID: <CAFbHwiRRAdmJ6OL2u32dcYwiS-5jgmqgT9mgnf3FLkyco2A-5Q@mail.gmail.com>
-References: <20170619093644.16054-1-willn@resin.io> <CAFbHwiSuAAophPr2tyHOq2iWrC1Uo2N+EOuvhiNcc9xERuvZZA@mail.gmail.com>
- <20170621062427.GP3730@atomide.com> <CAFbHwiQO5dHq59Bab4+9A6-QVcjsTVMzNfni0PQDQA1g3YCcgw@mail.gmail.com>
- <20170621083252.GQ3730@atomide.com> <ec8e0bbd-e278-3067-6340-f7b3db293b05@ti.com>
+From: Adam Ford <aford173@gmail.com>
+Subject: OMAP3630 ISP V4L2 Camera Not Streaming to LCD
+Date: Wed, 21 Jun 2017 16:34:41 -0500
+Message-ID: <CAHCN7xJVjDoVUUuCayJ9-oDix711GSqZR842U_V4_tH8_GZAUQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <ec8e0bbd-e278-3067-6340-f7b3db293b05@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ravikumar <rk@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 21, 2017 at 10:16 AM, Ravikumar <rk@ti.com> wrote:
+I have a Leopard Imaging LI-5M03 camera attached in 8-bit mode, and I
+am trying to capture an image on  camera and stream it to the LCD
+(/dev/fb0) without using the DSP or proprietary codecs.
 
-Hi Ravikumar,
+I was hoping to do it with either gstreamer (preferrably 1.0) or ffpeg.
 
-> On Wednesday 21 June 2017 02:02 PM, Tony Lindgren wrote:
->>
->> * Will Newton <will.newton@gmail.com> [170621 01:18]:
->>>
->>> On Wed, Jun 21, 2017 at 7:24 AM, Tony Lindgren <tony@atomide.com> wrote:
->>>
->>> Hi Tony,
->>>
->>>> * Will Newton <will.newton@gmail.com> [170620 05:39]:
->>>>>
->>>>> Just adding a few people to CC. I'd love to get some feedback as to
->>>>> whether this patch makes sense or not.
->>>>>
->>>>> On Mon, Jun 19, 2017 at 10:36 AM, Will Newton <will.newton@gmail.com>
->>>>> wrote:
->>>>>>
->>>>>> Reduce max_segs to a value that allows allocation of an entire
->>>>>> descriptor list within a single page. This avoids doing a
->>>>>> higher order GFP_ATOMIC allocation when setting up a transfer
->>>>>> which can potentially fail and lead to I/O failures.
->>>>
->>>> I recall we only ever have few SG entries so if there is no performance
->>>> impact I see no reason to lower it to save memory. Care to check
->>>> if that's the case still?
->>>
->>> I have been seeing allocation failures in edma_prep_slave_sg
->>> allocating the descriptor list of order 3, which from my rough
->>> calculations is an sg_len of ~800. The memory usage itself doesn't
->>> seem like a problem but doing a GFP_ATOMIC allocation of higher order
->>> under I/O load seems like it is always going to cause problems.
->
-> max_segs= 64  looks like a sensible value to me for edma/sdma, with each
-> param set ~40Bytes - this will ensure to fit in a single page.
-> IIRC, edma splits the list at 20. MAX_NR_SEGS set to 20 in edma.c. So,
-> having a bigger number *may not* guarantee a proportional increase
-> in throughput.
->
->> OK
->>
->>> I'm not an expert on this code but it looks like the scatterlist is
->>> created from the queue so if the queue gets full we can get a very
->>> large scatterlist. The current value of 1024 seems to be something of
->>> an outlier:
->
-> When using ADMA, since you allocate the table only once during probe,
-> there'll be no alloc calls at a later time.
-> And increase in number of sg entries would increase efficiency. I've seen
-> as many as 290-300 sg entries being used during file-system init/mount. So,
-> for ADMA, I would say at least max_segs = 512 is a better option since
-> descriptor size is 8B,
-> would still fit in a page.
-> You can over-wirte it under  "if (host->adma)"
+My board has mainline device tree (logicpd-torpedo-37xx-devkit).
+( have played wtih some of the settings, but nothing seems to make any
+difference)
 
-I can't find this member in struct mmc_host on master, is there
-somewhere else I should be looking?
 
-Thanks,
+Using (https://github.com/Alaganraj/omap3isp/blob/master/0001-ARM-omap3-beagle-Add-.dtsi-for-the-LI-5M03-camera-se.patch)
+as an example.
+
+Using Linux 4.11.y stable branch, I setup the camera as follows:
+
+media-ctl -v -r -l '"mt9p031 1-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+ISP CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3
+ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+output":0[1]'
+
+media-ctl -v -V '"mt9p031 1-0048":0 [SGRBG8 1298x970
+(664,541)/1298x970], "OMAP3 ISP CCDC":2 [SGRBG10 1298x970], "OMAP3 ISP
+preview":1 [UYVY 1298x970], "OMAP3 ISP resizer":1 [UYVY 320x240]'
+
+
+The media controller shows that this part appears to work correctly.
+# media-ctl -p
+Media controller API version 0.1.0
+
+Media device information
+------------------------
+driver          omap3isp
+model           TI OMAP3 ISP
+serial
+bus info
+hw revision     0xf0
+driver version  0.0.0
+
+Device topology
+- entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev0
+        pad0: Sink
+                [fmt:SGRBG10_1X10/4096x4096 field:none]
+                <- "OMAP3 ISP CCP2 input":0 []
+        pad1: Source
+                [fmt:SGRBG10_1X10/4096x4096 field:none]
+                -> "OMAP3 ISP CCDC":0 []
+
+- entity 4: OMAP3 ISP CCP2 input (1 pad, 1 link)
+            type Node subtype V4L flags 0
+            device node name /dev/video0
+        pad0: Source
+                -> "OMAP3 ISP CCP2":0 []
+
+- entity 8: OMAP3 ISP CSI2a (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev1
+        pad0: Sink
+                [fmt:SGRBG10_1X10/4096x4096 field:none]
+        pad1: Source
+                [fmt:SGRBG10_1X10/4096x4096 field:none]
+                -> "OMAP3 ISP CSI2a output":0 []
+                -> "OMAP3 ISP CCDC":0 []
+
+- entity 11: OMAP3 ISP CSI2a output (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video1
+        pad0: Sink
+                <- "OMAP3 ISP CSI2a":1 []
+
+- entity 15: OMAP3 ISP CCDC (3 pads, 9 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev2
+        pad0: Sink
+                [fmt:SGRBG12_1X12/1298x970 field:none]
+                <- "OMAP3 ISP CCP2":1 []
+                <- "OMAP3 ISP CSI2a":1 []
+                <- "mt9p031 1-0048":0 [ENABLED]
+        pad1: Source
+                [fmt:SGRBG12_1X12/1296x970 field:none
+                 crop.bounds:(0,0)/1312x970
+                 crop:(0,0)/1296x970]
+                -> "OMAP3 ISP CCDC output":0 []
+                -> "OMAP3 ISP resizer":0 []
+        pad2: Source
+                [fmt:SGRBG10_1X10/1298x969 field:none]
+                -> "OMAP3 ISP preview":0 [ENABLED]
+                -> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
+                -> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
+                -> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
+
+- entity 19: OMAP3 ISP CCDC output (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video2
+        pad0: Sink
+                <- "OMAP3 ISP CCDC":1 []
+
+- entity 23: OMAP3 ISP preview (2 pads, 4 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev3
+        pad0: Sink
+                [fmt:SGRBG10_1X10/1298x969 field:none
+                 crop.bounds:(10,4)/1280x961
+                 crop:(10,4)/1280x961]
+                <- "OMAP3 ISP CCDC":2 [ENABLED]
+                <- "OMAP3 ISP preview input":0 []
+        pad1: Source
+                [fmt:UYVY8_1X16/1280x961 field:none]
+                -> "OMAP3 ISP preview output":0 []
+                -> "OMAP3 ISP resizer":0 [ENABLED]
+
+- entity 26: OMAP3 ISP preview input (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video3
+        pad0: Source
+                -> "OMAP3 ISP preview":0 []
+
+- entity 30: OMAP3 ISP preview output (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video4
+        pad0: Sink
+                <- "OMAP3 ISP preview":1 []
+
+- entity 34: OMAP3 ISP resizer (2 pads, 4 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev4
+        pad0: Sink
+                [fmt:UYVY8_1X16/1280x961 field:none
+                 crop.bounds:(0,0)/1280x961
+                 crop:(0,0)/1280x961]
+                <- "OMAP3 ISP CCDC":1 []
+                <- "OMAP3 ISP preview":1 [ENABLED]
+                <- "OMAP3 ISP resizer input":0 []
+        pad1: Source
+                [fmt:UYVY8_1X16/320x240 field:none]
+                -> "OMAP3 ISP resizer output":0 [ENABLED]
+
+- entity 37: OMAP3 ISP resizer input (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video5
+        pad0: Source
+                -> "OMAP3 ISP resizer":0 []
+
+- entity 41: OMAP3 ISP resizer output (1 pad, 1 link)
+             type Node subtype V4L flags 1
+             device node name /dev/video6
+        pad0: Sink
+                <- "OMAP3 ISP resizer":1 [ENABLED]
+
+- entity 45: OMAP3 ISP AEWB (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev5
+        pad0: Sink
+                <- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+
+- entity 47: OMAP3 ISP AF (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev6
+        pad0: Sink
+                <- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+
+- entity 49: OMAP3 ISP histogram (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev7
+        pad0: Sink
+                <- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+
+- entity 81: mt9p031 1-0048 (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev8
+        pad0: Source
+                [fmt:SGRBG12_1X12/1298x970 field:none
+                 crop:(664,542)/1298x970]
+                -> "OMAP3 ISP CCDC":0 [ENABLED]
+
+#
+
+Unfortunately, when I run ffmpeg, I get a nothing but white pixels but
+the resolution matches the resolution I configured as  320x240.
+
+export LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so
+ffmpeg -an -re -i /dev/video6 -f v4l2  -vcodec rawvideo -pix_fmt
+rgb565le -f fbdev /dev/fb0
+
+
+I got a bunch of repeated messages that read:
+  libv4l2: error dequeuing buf: Resource temporarily unavailable
+
+Then it stabilizes and shows:
+
+Input #0, video4linux2,v4l2, from '/dev/video6':
+  Duration: N/A, start: 2744.553524, bitrate: N/A
+    Stream #0:0: Video: rawvideo (UYVY / 0x59565955), uyvy422, 320x240, 23.08 tb
+r, 1000k tbn, 1000k tbc
+Stream mapping:
+  Stream #0:0 -> #0:0 (rawvideo (native) -> rawvideo (native))
+Press [q] to stop, [?] for help
+Output #0, fbdev, to '/dev/fb0':
+  Metadata:
+    encoder         : Lavf57.71.100
+    Stream #0:0: Video: rawvideo (RGB[16] / 0x10424752), rgb565le, 320x240, q=2-
+31, 28364 kb/s, 23.08 fps, 23.08 tbn, 23.08 tbc
+    Metadata:
+      encoder         : Lavc57.89.100 rawvideo
+
+It looks like it's appearing to stream, but it's just white pixels.
+
+
+My omapfb is setup as 16 bit parallel LCD, but I wasn't sure if I need
+to configure the omap_vout or not to stream using V4L2.
+
+When omap_vout initializes, I get errors as well:
+
+[    4.080017] omap_vout omap_vout: probed for an unknown device
+[    4.086944] omap_vout:Could not register Video driver
+
+If anyone has any suggestions, I thought it might help others who
+still use the OMAP3630 and DM3730.
+
+adam
