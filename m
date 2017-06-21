@@ -1,56 +1,64 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] memory: ti-emif-sram: introduce relocatable
- suspend/resume handlers
-Date: Tue, 20 Jun 2017 14:03:35 -0500
-Message-ID: <fdfa1059-17f7-74f7-4b88-2941af07a538@ti.com>
-References: <20170519175708.6070-1-d-gerlach@ti.com>
- <20170519175708.6070-3-d-gerlach@ti.com>
- <20170620144243.GB23750@n2100.armlinux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap_hsmmc: Reduce max_segs
+Date: Tue, 20 Jun 2017 23:24:27 -0700
+Message-ID: <20170621062427.GP3730@atomide.com>
+References: <20170619093644.16054-1-willn@resin.io>
+ <CAFbHwiSuAAophPr2tyHOq2iWrC1Uo2N+EOuvhiNcc9xERuvZZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170620144243.GB23750-l+eeeJia6m9URfEZ8mYm6t73F7V6hmMc@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAFbHwiSuAAophPr2tyHOq2iWrC1Uo2N+EOuvhiNcc9xERuvZZA@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Will Newton <will.newton@gmail.com>
+Cc: linux-omap@vger.kernel.org, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Ravikumar Kattekola <rk@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-On 06/20/2017 09:42 AM, Russell King - ARM Linux wrote:
-> On Fri, May 19, 2017 at 12:57:08PM -0500, Dave Gerlach wrote:
->> +	.arm
->> +	.align 3
->> +
->> +ENTRY(ti_emif_sram)
-> 
-> Will you ever want to have any of this code as Thumb?
+* Will Newton <will.newton@gmail.com> [170620 05:39]:
+> Just adding a few people to CC. I'd love to get some feedback as to
+> whether this patch makes sense or not.
+>
+> On Mon, Jun 19, 2017 at 10:36 AM, Will Newton <will.newton@gmail.com> wrote:
+> > Reduce max_segs to a value that allows allocation of an entire
+> > descriptor list within a single page. This avoids doing a
+> > higher order GFP_ATOMIC allocation when setting up a transfer
+> > which can potentially fail and lead to I/O failures.
 
-I cannot see any requirement for that. I will say it is tested and
-inter-operates happily with CONFIG_THUMB_KERNEL, but because it's constrained to
-am335x and am437x I don't think there are unknown situations where every single
-instruction must be THUMB.
-
-> 
->> +extern inline void ti_emif_offsets(void)
->> +{
-> 
-> "extern inline" is frowned upon in the kernel - any reason this
-> can't be "static inline" ?
-
-It should be static.
-
-> 
-> Any reason not to provide a stub for when it's not configured,
-> and eliminate the ifdef in arch/arm/kernel/asm-offsets.c ?
-> 
-
-No, I just was following the ifdef example set by others in the file, a stub
-would be cleaner I agree.
+I recall we only ever have few SG entries so if there is no performance
+impact I see no reason to lower it to save memory. Care to check
+if that's the case still?
 
 Regards,
-Dave
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Tony
+
+
+> > Signed-off-by: Will Newton <willn@resin.io>
+> > ---
+> >  drivers/mmc/host/omap_hsmmc.c | 6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> > index 1438a72..d5f42d9 100644
+> > --- a/drivers/mmc/host/omap_hsmmc.c
+> > +++ b/drivers/mmc/host/omap_hsmmc.c
+> > @@ -2864,9 +2864,9 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+> >                         host->use_adma = true;
+> >         }
+> >
+> > -       /* Since we do only SG emulation, we can have as many segs
+> > -        * as we want. */
+> > -       mmc->max_segs = 1024;
+> > +       /* Set this to a value that allows allocating an entire descriptor
+> > +          list within a page (zero order allocation). */
+> > +       mmc->max_segs = 64;
+> >
+> >         mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
+> >         mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
+> > --
+> > 2.7.4
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
