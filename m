@@ -1,52 +1,28 @@
-From: Will Newton <will.newton@gmail.com>
-Subject: [PATCH v2] omap_hsmmc: Reduce max_segs for reliability
-Date: Thu, 22 Jun 2017 11:57:53 +0100
-Message-ID: <20170622105753.28708-1-willn@resin.io>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mmc@vger.kernel.org, tony@atomide.com, kishon@ti.com, rk@ti.com, Will Newton <willn@resin.io>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] drivers: net: cpsw-common: Fix reading of mac address
+ for am43 SoCs
+Date: Thu, 22 Jun 2017 11:16:35 -0400 (EDT)
+Message-ID: <20170622.111635.1512769508376550536.davem@davemloft.net>
+References: <20170621084204.1512-1-lokeshvutla@ti.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170621084204.1512-1-lokeshvutla@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: lokeshvutla@ti.com
+Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Reduce max_segs to 64, a value that allows allocation of an entire
-EDMA descriptor list within a single page - EDMA descriptors
-are 40 bytes and the header is much larger. This avoids doing a
-higher order GFP_ATOMIC allocation in edma_prep_slave_sg
-when setting up a transfer which can potentially fail due to
-fragmentation under heavy I/O load.
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Date: Wed, 21 Jun 2017 14:12:04 +0530
 
-The current value of 1024 is unusually high in comparison to
-other mmc host drivers which mostly use values of between 1
-and 256. The EDMA driver at present splits lists above 20
-segments in any case so reducing the size of lists we pass to
-it shouldn't add much overhead.
+> cpsw driver tries to get macid for am43xx SoCs using the compatible
+> ti,am4372. But not all variants of am43x uses this complatible like
+> epos evm uses ti,am438x. So use a generic compatible ti,am43 to get
+> macid for all am43 based platforms.
+> 
+> Reviewed-by: Dave Gerlach <d-gerlach@ti.com>
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 
-Signed-off-by: Will Newton <willn@resin.io>
----
- drivers/mmc/host/omap_hsmmc.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-Changes in v2:
- - More verbose commit message
- - Rebased onto current master
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 8c39dcc..bbcca93 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2097,9 +2097,9 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
- 		host->dbclk = NULL;
- 	}
- 
--	/* Since we do only SG emulation, we can have as many segs
--	 * as we want. */
--	mmc->max_segs = 1024;
-+	/* Set this to a value that allows allocating an entire descriptor
-+	 * list within a page (zero order allocation). */
-+	mmc->max_segs = 64;
- 
- 	mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
- 	mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
--- 
-2.9.4
-
+Applied.
