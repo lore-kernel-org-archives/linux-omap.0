@@ -1,28 +1,64 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] drivers: net: cpsw-common: Fix reading of mac address
- for am43 SoCs
-Date: Thu, 22 Jun 2017 11:16:35 -0400 (EDT)
-Message-ID: <20170622.111635.1512769508376550536.davem@davemloft.net>
-References: <20170621084204.1512-1-lokeshvutla@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: patchwork: on whose behalf is it working? was Re: [linux-media]
+ Patch notification: 3 patches updated
+Date: Thu, 22 Jun 2017 17:19:03 +0200
+Message-ID: <20170622151903.GA14761@amd>
+References: <20170622150601.4956.51414@www.linuxtv.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170621084204.1512-1-lokeshvutla@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: lokeshvutla@ti.com
-Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, t-kristo@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, d-gerlach@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="wac7ysb48OaltWcw"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170622150601.4956.51414@www.linuxtv.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Patchwork <patchwork@linuxtv.org>, sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org, mchehab@kernel.org
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Date: Wed, 21 Jun 2017 14:12:04 +0530
 
-> cpsw driver tries to get macid for am43xx SoCs using the compatible
-> ti,am4372. But not all variants of am43x uses this complatible like
-> epos evm uses ti,am438x. So use a generic compatible ti,am43 to get
-> macid for all am43 based platforms.
-> 
-> Reviewed-by: Dave Gerlach <d-gerlach@ti.com>
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+--wac7ysb48OaltWcw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Applied.
+Hi!
+
+
+> The following patches (submitted by you) have been updated in patchwork:
+>=20
+>  * linux-media: [RFC,07/13] v4l2: device_register_subdev_nodes: allow cal=
+ling multiple times
+>      - http://patchwork.linuxtv.org/patch/39403/
+>      - for: Linux Media kernel patches
+>     was: New
+>     now: Accepted
+
+Dear patchwork, I'm not sure on who's behalf you are mailing me. (And
+that would be really nice to fix.)
+
+If you are writing on Sakari's behalf, all is well.
+
+If you are writing on someone else's behalf, you may tell that
+someone to coordinate with Sakari, because he likely has it in his
+tree already.
+
+Thanks,
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--wac7ysb48OaltWcw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllL3+cACgkQMOfwapXb+vKCuwCfX5CULVIJ3APnq8Wfri9/k/gJ
+YDUAoL8KuRukPTBWjrIzG6uMqgzvjEHU
+=V5sX
+-----END PGP SIGNATURE-----
+
+--wac7ysb48OaltWcw--
