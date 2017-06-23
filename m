@@ -1,65 +1,60 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH] fbdev: omapfb: constify ctrl_caps, color_caps, panel_attr_grp and ctrl_attr_grp
-Date: Fri, 23 Jun 2017 11:12:14 +0530
-Message-ID: <6008756483cab9ccb8566866367d30ef6d98f181.1498196466.git.arvind.yadav.cs@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tomi.valkeinen@ti.com, b.zolnierkie@samsung.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+        <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: [PATCH v2 6/9] serial: omap-serial: Use common rs485 device tree parsing function
+Date: Fri, 23 Jun 2017 11:49:42 +0200
+Message-ID: <20170623094945.31908-7-u.kleine-koenig@pengutronix.de>
+References: <20170623094945.31908-1-u.kleine-koenig@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170623094945.31908-1-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-  13007	   1536	    156	  14699	   396b	drivers/video/fbdev/omap/omapfb_main.o
+From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-  13135	   1408	    156	  14699	   396b	drivers/video/fbdev/omap/omapfb_main.o
+We just got a common helper for parsing the rs485 specific
+device tree properties. Use it and drop the open coded parser.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 ---
- drivers/video/fbdev/omap/omapfb_main.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Changes since v1:
+ - drop paragraph in commit log that of_get_rs485_mode is more strict as this is wrong in v2.
 
-diff --git a/drivers/video/fbdev/omap/omapfb_main.c b/drivers/video/fbdev/omap/omapfb_main.c
-index f4cbfb3..3479a47 100644
---- a/drivers/video/fbdev/omap/omapfb_main.c
-+++ b/drivers/video/fbdev/omap/omapfb_main.c
-@@ -62,7 +62,7 @@ struct caps_table_struct {
- 	const char *name;
- };
+ drivers/tty/serial/omap-serial.c | 12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 1ea05ac57aa7..6e4728d3a24c 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1638,17 +1638,7 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
+ 		up->rts_gpio = -EINVAL;
+ 	}
  
--static struct caps_table_struct ctrl_caps[] = {
-+static const struct caps_table_struct ctrl_caps[] = {
- 	{ OMAPFB_CAPS_MANUAL_UPDATE,  "manual update" },
- 	{ OMAPFB_CAPS_TEARSYNC,       "tearing synchronization" },
- 	{ OMAPFB_CAPS_PLANE_RELOCATE_MEM, "relocate plane memory" },
-@@ -74,7 +74,7 @@ struct caps_table_struct {
- 	{ OMAPFB_CAPS_SET_BACKLIGHT,  "backlight setting" },
- };
+-	if (of_property_read_u32_array(np, "rs485-rts-delay",
+-				    rs485_delay, 2) == 0) {
+-		rs485conf->delay_rts_before_send = rs485_delay[0];
+-		rs485conf->delay_rts_after_send = rs485_delay[1];
+-	}
+-
+-	if (of_property_read_bool(np, "rs485-rx-during-tx"))
+-		rs485conf->flags |= SER_RS485_RX_DURING_TX;
+-
+-	if (of_property_read_bool(np, "linux,rs485-enabled-at-boot-time"))
+-		rs485conf->flags |= SER_RS485_ENABLED;
++	of_get_rs485_mode(np, rs485conf);
  
--static struct caps_table_struct color_caps[] = {
-+static const struct caps_table_struct color_caps[] = {
- 	{ 1 << OMAPFB_COLOR_RGB565,	"RGB565", },
- 	{ 1 << OMAPFB_COLOR_YUV422,	"YUV422", },
- 	{ 1 << OMAPFB_COLOR_YUV420,	"YUV420", },
-@@ -1384,7 +1384,7 @@ static DEVICE_ATTR(backlight_level, 0664,
- 	NULL,
- };
- 
--static struct attribute_group panel_attr_grp = {
-+static const struct attribute_group panel_attr_grp = {
- 	.name  = "panel",
- 	.attrs = panel_attrs,
- };
-@@ -1406,7 +1406,7 @@ static ssize_t omapfb_show_ctrl_name(struct device *dev,
- 	NULL,
- };
- 
--static struct attribute_group ctrl_attr_grp = {
-+static const struct attribute_group ctrl_attr_grp = {
- 	.name  = "ctrl",
- 	.attrs = ctrl_attrs,
- };
+ 	return 0;
+ }
 -- 
-1.9.1
+2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
