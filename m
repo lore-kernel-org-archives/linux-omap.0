@@ -1,58 +1,38 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 2/2] spi: spi-ti-qspi: Use bounce buffer if read
- buffer is not DMA'ble
-Date: Fri, 23 Jun 2017 13:12:21 +0100
-Message-ID: <20170623121221.3zrxziqjuwb47cwq@sirena.org.uk>
-References: <20170411115225.31709-1-vigneshr@ti.com>
- <20170411115225.31709-3-vigneshr@ti.com>
- <20170421170655.dpyxlwipfwnwjjwy@sirena.org.uk>
- <3955ad22-28a2-5222-4ae3-aa34dc69cde6@ti.com>
- <c9dbe3d1-549c-f510-fa76-8e326601ecdc@atmel.com>
- <faa7fdc4-25d1-aa9e-762b-25d5e89a771f@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 12/16] mmc: host: omap_hsmmc: Add support to set IODELAY
+ values
+Date: Fri, 23 Jun 2017 13:52:45 -0500
+Message-ID: <20170623185245.e4frut72cf6jhzb4@rob-hp-laptop>
+References: <20170616124544.15046-1-kishon@ti.com>
+ <20170616124544.15046-13-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="i5lubso6u3fjsmzh"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <faa7fdc4-25d1-aa9e-762b-25d5e89a771f@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Cyrille Pitchen <cyrille.pitchen@atmel.com>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Weinberger <richard@nod.at>, Boris BREZILLON <boris.brezillon@free-electrons.com>
+In-Reply-To: <20170616124544.15046-13-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Ravikumar Kattekola <rk-l0cyMroinI0@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Jun 16, 2017 at 06:15:40PM +0530, Kishon Vijay Abraham I wrote:
+> The data manual of J6/J6 Eco recommends to set different IODELAY values
+> depending on the mode in which the MMC/SD is enumerated in order to
+> ensure IO timings are met.
+> 
+> Add support to set the IODELAY values depending on the various MMC
+> modes using the pinctrl APIs.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> ---
+>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   5 +
 
---i5lubso6u3fjsmzh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-On Tue, Jun 20, 2017 at 03:15:34PM +0530, Vignesh R wrote:
-> On Friday 16 June 2017 09:24 PM, Cyrille Pitchen wrote:
-
-> > Then in a new series, if nobody has started to work on this topic yet,
-> > we could propose a generic solution using a bounce buffer at the SPI
-> > core level. however we first need to think how we could do this.
-
-> One of the questions that was hovering around when this issue was
-> discussed last time around was where should the code to detect whether
-> or not to use bounce buffer reside? Some extension to generic DMA APIs
-> or SPI drivers or somewhere else?
-
-It seems like it's a generic DMA thing - presumably it's going to be an
-issue for other devices as well sometimes.
-
---i5lubso6u3fjsmzh
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllNBaQACgkQJNaLcl1U
-h9B2RAf/dt+Z7PCBzfFRNjn1499OcyBSPIsVV381XJQl0e35HzXyPkI17i+icLdC
-9wubJgD2PZplg32frF+pnfuLGAlsVUWkycxg5V9v9UvcXFU9cXZIa23Jv7joETus
-yjyrVZ1boavUkwn8rj1LrzTG41sv6RVjLGRKOhnzIkh/+oQ8uSfDdSF6FYDnjhBj
-4UE007dgacpFanYwfqqLLGHOCYK8+mvqp1hQNItQN1C5X7D83pmpWmg85Qj967i2
-8BuvbK+HaN4kT3/EfmLPwcMLzIcLx9FRtvH+ByALzFycXRcgYE1adBqRlx8JHoQ4
-wCLCF3ZlRkDSrR4AZNrjFEQ+vZMShg==
-=vk8U
------END PGP SIGNATURE-----
-
---i5lubso6u3fjsmzh--
+>  drivers/mmc/host/omap_hsmmc.c                      | 152 ++++++++++++++++++++-
+>  2 files changed, 154 insertions(+), 3 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
