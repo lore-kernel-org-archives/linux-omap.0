@@ -1,71 +1,58 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-        <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: [PATCH v2.5 6/9] serial: omap-serial: Use common rs485 device tree parsing function
-Date: Fri, 23 Jun 2017 11:58:22 +0200
-Message-ID: <20170623095822.6306-1-u.kleine-koenig@pengutronix.de>
-References: <20170623094945.31908-7-u.kleine-koenig@pengutronix.de>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2 2/2] spi: spi-ti-qspi: Use bounce buffer if read
+ buffer is not DMA'ble
+Date: Fri, 23 Jun 2017 13:12:21 +0100
+Message-ID: <20170623121221.3zrxziqjuwb47cwq@sirena.org.uk>
+References: <20170411115225.31709-1-vigneshr@ti.com>
+ <20170411115225.31709-3-vigneshr@ti.com>
+ <20170421170655.dpyxlwipfwnwjjwy@sirena.org.uk>
+ <3955ad22-28a2-5222-4ae3-aa34dc69cde6@ti.com>
+ <c9dbe3d1-549c-f510-fa76-8e326601ecdc@atmel.com>
+ <faa7fdc4-25d1-aa9e-762b-25d5e89a771f@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170623094945.31908-7-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="i5lubso6u3fjsmzh"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <faa7fdc4-25d1-aa9e-762b-25d5e89a771f@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Cyrille Pitchen <cyrille.pitchen@atmel.com>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Weinberger <richard@nod.at>, Boris BREZILLON <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 
-We just got a common helper for parsing the rs485 specific
-device tree properties. Use it and drop the open coded parser.
+--i5lubso6u3fjsmzh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
----
-Changes since v2:
- - remove now unused variable
+On Tue, Jun 20, 2017 at 03:15:34PM +0530, Vignesh R wrote:
+> On Friday 16 June 2017 09:24 PM, Cyrille Pitchen wrote:
 
-Changes since v1:
- - drop paragraph in commit log that of_get_rs485_mode is more strict as this is wrong in v2.
+> > Then in a new series, if nobody has started to work on this topic yet,
+> > we could propose a generic solution using a bounce buffer at the SPI
+> > core level. however we first need to think how we could do this.
 
- drivers/tty/serial/omap-serial.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+> One of the questions that was hovering around when this issue was
+> discussed last time around was where should the code to detect whether
+> or not to use bounce buffer reside? Some extension to generic DMA APIs
+> or SPI drivers or somewhere else?
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 1ea05ac57aa7..6d22097e6dd0 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -1607,7 +1607,6 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
- 				   struct device_node *np)
- {
- 	struct serial_rs485 *rs485conf = &up->port.rs485;
--	u32 rs485_delay[2];
- 	enum of_gpio_flags flags;
- 	int ret;
- 
-@@ -1638,17 +1637,7 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
- 		up->rts_gpio = -EINVAL;
- 	}
- 
--	if (of_property_read_u32_array(np, "rs485-rts-delay",
--				    rs485_delay, 2) == 0) {
--		rs485conf->delay_rts_before_send = rs485_delay[0];
--		rs485conf->delay_rts_after_send = rs485_delay[1];
--	}
--
--	if (of_property_read_bool(np, "rs485-rx-during-tx"))
--		rs485conf->flags |= SER_RS485_RX_DURING_TX;
--
--	if (of_property_read_bool(np, "linux,rs485-enabled-at-boot-time"))
--		rs485conf->flags |= SER_RS485_ENABLED;
-+	of_get_rs485_mode(np, rs485conf);
- 
- 	return 0;
- }
--- 
-2.11.0
+It seems like it's a generic DMA thing - presumably it's going to be an
+issue for other devices as well sometimes.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--i5lubso6u3fjsmzh
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllNBaQACgkQJNaLcl1U
+h9B2RAf/dt+Z7PCBzfFRNjn1499OcyBSPIsVV381XJQl0e35HzXyPkI17i+icLdC
+9wubJgD2PZplg32frF+pnfuLGAlsVUWkycxg5V9v9UvcXFU9cXZIa23Jv7joETus
+yjyrVZ1boavUkwn8rj1LrzTG41sv6RVjLGRKOhnzIkh/+oQ8uSfDdSF6FYDnjhBj
+4UE007dgacpFanYwfqqLLGHOCYK8+mvqp1hQNItQN1C5X7D83pmpWmg85Qj967i2
+8BuvbK+HaN4kT3/EfmLPwcMLzIcLx9FRtvH+ByALzFycXRcgYE1adBqRlx8JHoQ4
+wCLCF3ZlRkDSrR4AZNrjFEQ+vZMShg==
+=vk8U
+-----END PGP SIGNATURE-----
+
+--i5lubso6u3fjsmzh--
