@@ -1,66 +1,32 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: dra71-evm: mdio: Fix impedance values
-Date: Mon, 26 Jun 2017 02:37:18 -0700
-Message-ID: <20170626093718.GT3730@atomide.com>
-References: <20170621084522.1828-1-lokeshvutla@ti.com>
+Subject: Re: [PATCH 1/2] ARM: dts: dm816x: Correct NAND support nodes
+Date: Mon, 26 Jun 2017 02:38:36 -0700
+Message-ID: <20170626093835.GU3730@atomide.com>
+References: <1498045347-27324-1-git-send-email-trini@konsulko.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170621084522.1828-1-lokeshvutla-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1498045347-27324-1-git-send-email-trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+To: Tom Rini <trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Mihail Grigorov <michael.grigorov-OWPKS81ov/FWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170621 01:48]:
-> v1 series[1] for dp83867 phy impedance-control support,
-> specifies to use ti,impedance-control with a value. These
-> properties got updated iduring review to specify whether
-> min or max impedance. But the DT still uses the old values
-> which never takes effect. Update the DT node by using the
-> proper DT properties.
+* Tom Rini <trini-OWPKS81ov/FWk0Htik3J/w@public.gmane.org> [170621 04:42]:
+> The ELM node in dm816x.dtsi needs to declare the correct compatible
+> value here as per the binding only one value is correct, and the current
+> driver handles it correctly.  We then add pinmux information for the
+> NAND found on the EVM so that we do not rely on the ROM to do this for
+> us, and also so that we do not try and probe NAND before we probe the
+> ELM.
 
-I'll apply this into omap-for-v4.13/dt as it's a fix
-even though we're close to merge window opening.
+OK applying into omap-for-v4.13/dt as it's a fix. Only taking fixes
+until -rc1 FYI all.
 
 Regards,
 
 Tony
-
-> [1] https://patchwork.kernel.org/patch/9239729/
-> 
-> Fixes: 9868bc585ae2c ("ARM: dts: Add support for dra718-evm")
-> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/boot/dts/dra71-evm.dts | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/dra71-evm.dts b/arch/arm/boot/dts/dra71-evm.dts
-> index 4d57a55473af..a6298eb56978 100644
-> --- a/arch/arm/boot/dts/dra71-evm.dts
-> +++ b/arch/arm/boot/dts/dra71-evm.dts
-> @@ -190,7 +190,7 @@
->  		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_25_NS>;
->  		ti,tx-internal-delay = <DP83867_RGMIIDCTL_250_PS>;
->  		ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_8_B_NIB>;
-> -		ti,impedance-control = <0x1f>;
-> +		ti,min-output-impedance;
->  	};
->  
->  	dp83867_1: ethernet-phy@3 {
-> @@ -198,7 +198,7 @@
->  		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_25_NS>;
->  		ti,tx-internal-delay = <DP83867_RGMIIDCTL_250_PS>;
->  		ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_8_B_NIB>;
-> -		ti,impedance-control = <0x1f>;
-> +		ti,min-output-impedance;
->  	};
->  };
->  
-> -- 
-> 2.13.0
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
