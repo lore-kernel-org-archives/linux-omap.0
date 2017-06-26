@@ -1,38 +1,60 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 12/16] mmc: host: omap_hsmmc: Add support to set IODELAY
- values
-Date: Fri, 23 Jun 2017 13:52:45 -0500
-Message-ID: <20170623185245.e4frut72cf6jhzb4@rob-hp-laptop>
-References: <20170616124544.15046-1-kishon@ti.com>
- <20170616124544.15046-13-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] multi_v7_defconfig: Enable OMAP MTD and DM816 AHCI
+Date: Mon, 26 Jun 2017 00:33:34 -0700
+Message-ID: <20170626073333.GR3730@atomide.com>
+References: <1498045359-27376-1-git-send-email-trini@konsulko.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170616124544.15046-13-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, nsekhar-l0cyMroinI0@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Ravikumar Kattekola <rk-l0cyMroinI0@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <1498045359-27376-1-git-send-email-trini@konsulko.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tom Rini <trini@konsulko.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Mihail Grigorov <michael.grigorov@konsulko.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 16, 2017 at 06:15:40PM +0530, Kishon Vijay Abraham I wrote:
-> The data manual of J6/J6 Eco recommends to set different IODELAY values
-> depending on the mode in which the MMC/SD is enumerated in order to
-> ensure IO timings are met.
+* Tom Rini <trini@konsulko.com> [170621 04:42]:
+> A wide variety of TI platforms support NAND via the
+> CONFIG_MTD_NAND_OMAP2 driver (and related BCH options), so enable this.
+> In addition, multi_v7_defconfig supports the dm8168-evm and that
+> supports root being on a SATA drive, so build the DM816 AHCI driver into
+> the resulting kernel as well.
 > 
-> Add support to set the IODELAY values depending on the various MMC
-> modes using the pinctrl APIs.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> Cc: Russell King <linux@armlinux.org.uk>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Mihail Grigorov <michael.grigorov@konsulko.com>
+> Signed-off-by: Tom Rini <trini@konsulko.com>
+
+Best that Arnd picks up this one directly:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
 > ---
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   5 +
-
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
->  drivers/mmc/host/omap_hsmmc.c                      | 152 ++++++++++++++++++++-
->  2 files changed, 154 insertions(+), 3 deletions(-)
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  arch/arm/configs/multi_v7_defconfig | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+> index 2685e03600b1..69b0b3c0fb6c 100644
+> --- a/arch/arm/configs/multi_v7_defconfig
+> +++ b/arch/arm/configs/multi_v7_defconfig
+> @@ -202,6 +202,8 @@ CONFIG_MTD_BLOCK=y
+>  CONFIG_MTD_M25P80=y
+>  CONFIG_MTD_NAND=y
+>  CONFIG_MTD_NAND_DENALI_DT=y
+> +CONFIG_MTD_NAND_OMAP2=y
+> +CONFIG_MTD_NAND_OMAP_BCH=y
+>  CONFIG_MTD_NAND_ATMEL=y
+>  CONFIG_MTD_NAND_BRCMNAND=y
+>  CONFIG_MTD_NAND_VF610_NFC=y
+> @@ -229,6 +231,7 @@ CONFIG_ATA=y
+>  CONFIG_SATA_AHCI=y
+>  CONFIG_SATA_AHCI_PLATFORM=y
+>  CONFIG_AHCI_BRCM=y
+> +CONFIG_AHCI_DM816=y
+>  CONFIG_AHCI_ST=y
+>  CONFIG_AHCI_IMX=y
+>  CONFIG_AHCI_SUNXI=y
+> -- 
+> 1.9.1
+> 
