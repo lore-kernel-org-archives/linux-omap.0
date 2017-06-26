@@ -1,65 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] omap_hsmmc: Reduce max_segs for reliability
-Date: Mon, 26 Jun 2017 00:35:09 -0700
-Message-ID: <20170626073508.GS3730@atomide.com>
-References: <20170622105753.28708-1-willn@resin.io>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+        <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: [PATCH v3 6/9] serial: omap-serial: Use common rs485 device tree parsing function
+Date: Mon, 26 Jun 2017 11:08:00 +0200
+Message-ID: <20170626090803.10981-7-u.kleine-koenig@pengutronix.de>
+References: <20170626090803.10981-1-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170622105753.28708-1-willn@resin.io>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Will Newton <will.newton@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, kishon@ti.com, rk@ti.com, Will Newton <willn@resin.io>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170626090803.10981-1-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Will Newton <will.newton@gmail.com> [170622 03:58]:
-> Reduce max_segs to 64, a value that allows allocation of an entire
-> EDMA descriptor list within a single page - EDMA descriptors
-> are 40 bytes and the header is much larger. This avoids doing a
-> higher order GFP_ATOMIC allocation in edma_prep_slave_sg
-> when setting up a transfer which can potentially fail due to
-> fragmentation under heavy I/O load.
-> 
-> The current value of 1024 is unusually high in comparison to
-> other mmc host drivers which mostly use values of between 1
-> and 256. The EDMA driver at present splits lists above 20
-> segments in any case so reducing the size of lists we pass to
-> it shouldn't add much overhead.
+From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 
-Thanks for updating the description, makes sense to me. Sounds
-like we may want to set the size different for ADMA later on if
-needed and there's nothing preventing that, so:
+We just got a common helper for parsing the rs485 specific
+device tree properties. Use it and drop the open coded parser.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+---
+ drivers/tty/serial/omap-serial.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-> 
-> Signed-off-by: Will Newton <willn@resin.io>
-> ---
->  drivers/mmc/host/omap_hsmmc.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> Changes in v2:
->  - More verbose commit message
->  - Rebased onto current master
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 8c39dcc..bbcca93 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2097,9 +2097,9 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
->  		host->dbclk = NULL;
->  	}
->  
-> -	/* Since we do only SG emulation, we can have as many segs
-> -	 * as we want. */
-> -	mmc->max_segs = 1024;
-> +	/* Set this to a value that allows allocating an entire descriptor
-> +	 * list within a page (zero order allocation). */
-> +	mmc->max_segs = 64;
->  
->  	mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
->  	mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
-> -- 
-> 2.9.4
-> 
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 1ea05ac57aa7..6d22097e6dd0 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1607,7 +1607,6 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
+ 				   struct device_node *np)
+ {
+ 	struct serial_rs485 *rs485conf = &up->port.rs485;
+-	u32 rs485_delay[2];
+ 	enum of_gpio_flags flags;
+ 	int ret;
+ 
+@@ -1638,17 +1637,7 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
+ 		up->rts_gpio = -EINVAL;
+ 	}
+ 
+-	if (of_property_read_u32_array(np, "rs485-rts-delay",
+-				    rs485_delay, 2) == 0) {
+-		rs485conf->delay_rts_before_send = rs485_delay[0];
+-		rs485conf->delay_rts_after_send = rs485_delay[1];
+-	}
+-
+-	if (of_property_read_bool(np, "rs485-rx-during-tx"))
+-		rs485conf->flags |= SER_RS485_RX_DURING_TX;
+-
+-	if (of_property_read_bool(np, "linux,rs485-enabled-at-boot-time"))
+-		rs485conf->flags |= SER_RS485_ENABLED;
++	of_get_rs485_mode(np, rs485conf);
+ 
+ 	return 0;
+ }
+-- 
+2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
