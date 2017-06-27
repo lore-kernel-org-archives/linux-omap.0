@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-Date: Tue, 27 Jun 2017 03:06:54 -0700
-Message-ID: <20170627100654.GA3730@atomide.com>
+Date: Tue, 27 Jun 2017 03:09:26 -0700
+Message-ID: <20170627100926.GB3730@atomide.com>
 References: <20170414102512.48834-1-hverkuil@xs4all.nl>
  <20170414102512.48834-2-hverkuil@xs4all.nl>
  <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
@@ -9,33 +9,22 @@ References: <20170414102512.48834-1-hverkuil@xs4all.nl>
  <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
  <20170627091421.GZ3730@atomide.com>
  <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
+ <a6f7c3d6-f4a6-1dba-2da0-b36ea2dd8803@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
+In-Reply-To: <a6f7c3d6-f4a6-1dba-2da0-b36ea2dd8803@ti.com>
 Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jyri Sarha <jsarha@ti.com>
+To: Jyri Sarha <jsarha@ti.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Hans Verkuil <hverkuil@xs4all.nl> [170627 02:27]:
-> On 27/06/17 11:14, Tony Lindgren wrote:
-> > Adding Jyri to Cc, hopefully the CEC support allows also setting the
-> > HDMI audio volume level on devices implementing it? Or am I too
-> > optimistic? :)
-> 
-> I'm not quite sure what you mean. Do you want CEC to change the volume on the
-> TV, or use the TV's remote to change the volume of the HDMI audio output of the
-> omap4?
+* Jyri Sarha <jsarha@ti.com> [170627 02:47]:
+> There is no real volume on HDMI audio output as it is a digital
+> interface, but it should be possible to provide some volume control
+> using TV's volume trough CEC.
 
-I'm hoping to change audio volume on a USB+HDMI lapdock from omap4.
-
-> Anyway, either is supported, but it requires a userspace implementation.
-> 
-> Although TV remote control messages will be mapped to an input device, and if
-> those are hooked up to the alsa audio volume, then this already works.
-
-OK great thanks,
+OK great!
 
 Tony
