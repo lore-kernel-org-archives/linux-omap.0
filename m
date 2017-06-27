@@ -1,56 +1,51 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/3] ARM: dts: dra72-evm-revc: workaround incorrect DP83867 RX_CTRL pin strap
-Date: Tue, 27 Jun 2017 20:36:11 +0530
-Message-ID: <f534218be6ade8f0f54c9897840116ad8238cdd0.1498573382.git.nsekhar@ti.com>
-References: <cover.1498573382.git.nsekhar@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH 0/3] ARM: dts: omap: workarounds for Ethernet PHY strap on
+ DRA71 and DRA72 EVMs
+Date: Tue, 27 Jun 2017 20:36:09 +0530
+Message-ID: <cover.1498573382.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1498573382.git.nsekhar-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Device Tree Mailing List <devicetree@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-The DRA72 EVM Rev C straps the DP83867 GigaBit Ethernet phy's RX_DV/RX_CTRL
-pin in mode 1. Unfortunately, the phy data manual disallows this.
+Hi Tony,
 
-Add "ti,dp83867-rxctrl-strap-quirk" property to the phy's device-tree node
-to allow kernel to enable software workaround for this incorrect strap
-setting. This is as suggested by the phy's datamanual and ensures proper
-operation of this PHY.
+Here are some patches to overcome incorrect Ethernet PHY strap settings
+on DRA72x EVM Rev C and DRA71 EVM. Both of these boards use TI's DP83867
+PHY.
 
-This needs to be done for both instances of this PHY present on the board.
+The incorrect PHY strap settings cause a voilation of PHY specification
+and need to be worked around in software as documented in the commit
+messages. But there is no known issue that these patches fix.
 
-Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
----
+I did verify that there are no regressions with NFS boot on these boards
+after the patches are applied on v4.12-rc4.
+
+The series itself has been rebased on your omap-for-v4.13/dt branch since
+it has some conflicts with patches you have queued.
+
+Sekhar Nori (3):
+  ARM: dts: dra71-evm: workaround incorrect DP83867 RX_CTRL pin strap
+  ARM: dts: dra72-evm-revc: workaround incorrect DP83867 RX_CTRL pin
+    strap
+  ARM: omap2plus_defconfig: enable DP83867 phy driver
+
+ arch/arm/boot/dts/dra71-evm.dts      | 2 ++
  arch/arm/boot/dts/dra72-evm-revc.dts | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/configs/omap2plus_defconfig | 1 +
+ 3 files changed, 5 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra72-evm-revc.dts b/arch/arm/boot/dts/dra72-evm-revc.dts
-index 5532309971ae..9b439851ff79 100644
---- a/arch/arm/boot/dts/dra72-evm-revc.dts
-+++ b/arch/arm/boot/dts/dra72-evm-revc.dts
-@@ -80,6 +80,7 @@
- 		ti,min-output-impedance;
- 		interrupt-parent = <&gpio6>;
- 		interrupts = <16 IRQ_TYPE_EDGE_FALLING>;
-+		ti,dp83867-rxctrl-strap-quirk;
- 	};
- 
- 	dp83867_1: ethernet-phy@3 {
-@@ -90,6 +91,7 @@
- 		ti,min-output-impedance;
- 		interrupt-parent = <&gpio6>;
- 		interrupts = <16 IRQ_TYPE_EDGE_FALLING>;
-+		ti,dp83867-rxctrl-strap-quirk;
- 	};
- };
- 
 -- 
 2.9.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
