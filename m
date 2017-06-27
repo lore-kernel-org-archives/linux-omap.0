@@ -1,95 +1,140 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP2+: Fix omap3 prm shared irq
-Date: Tue, 27 Jun 2017 01:48:38 -0700
-Message-ID: <20170627084838.30275-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@baylibre.com>, linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] ARM: dts: Disable HDMI CEC internal pull-ups
+Date: Tue, 27 Jun 2017 01:58:32 -0700
+Message-ID: <20170627085832.30949-1-tony@atomide.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Shared interrupts with IRQ_NOAUTOEN got a warning added with commit
-04c848d39879 ("genirq: Warn when IRQ_NOAUTOEN is used with shared
-interrupts").
+Devices using an external encoder, ESD protection and level shifter
+such as tpd12s015 or ip4791cz12 have the CEC pull in the encoder
+chip. And on var-som-om44, there is external pull up resistor R30.
 
-Let's just drop the IRQ_NOAUTOEN use for omap3 PRM shared interrupt as
-it does not seem to cause any other issues based on my testing. We have
-moved a lot of the code to initialize later, and whatever problems the
-legacy booting had seem to be gone now with pinctrl driver and device
-tree based booting.
+So the internal CEC pull-up resistor needs to be disabled as otherwise
+the external and internal pull are parallel making the pull value
+much smaller than intended. This leads into the CEC not working as
+reported by Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>.
 
-Otherwise we will get:
-
-WARNING: CPU: 0 PID: 1 at kernel/irq/manage.c:1348 __setup_irq+0x5d0/0x64c
-[<c01b0260>] (__setup_irq) from [<c01b0480>]
-(request_threaded_irq+0xdc/0x188)
-[<c01b0480>] (request_threaded_irq) from [<c051c780>]
-(pcs_probe+0x6ec/0x8a4)
-[<c051c780>] (pcs_probe) from [<c05a84b8>] (platform_drv_probe+0x50/0xb0)
-[<c05a84b8>] (platform_drv_probe) from [<c05a6288>]
-(driver_probe_device+0x33c/0x478)
-
-Note that we also need to remove the related enable_irq() to avoid
-getting the following:
-
-WARNING: CPU: 0 PID: 1 at kernel/irq/manage.c:529 enable_irq+0x34/0x70
-[<c01afa04>] (enable_irq) from [<c0c0f1fc>] (omap3_pm_init+0x118/0x3f8)
-[<c0c0f1fc>] (omap3_pm_init) from [<c0c0ae7c>] (am35xx_init_late+0x10/0x18)
-
-Cc: Kevin Hilman <khilman@baylibre.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Reported-by: Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
+Cc: Dmitry Lifshitz <lifshitz-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- arch/arm/mach-omap2/pm34xx.c  | 1 -
- arch/arm/mach-omap2/prm3xxx.c | 7 +------
- 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -483,7 +483,6 @@ int __init omap3_pm_init(void)
- 	ret = request_irq(omap_prcm_event_to_irq("io"),
- 		_prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
- 		omap3_pm_init);
--	enable_irq(omap_prcm_event_to_irq("io"));
+Dmitry, care to check that also omap5-cm-t54 has external pull on CEC pin?
+
+---
+ arch/arm/boot/dts/omap4-droid4-xt894.dts         | 2 +-
+ arch/arm/boot/dts/omap4-duovero-parlor.dts       | 2 +-
+ arch/arm/boot/dts/omap4-panda-common.dtsi        | 2 +-
+ arch/arm/boot/dts/omap4-sdp-es23plus.dts         | 2 +-
+ arch/arm/boot/dts/omap4-sdp.dts                  | 2 +-
+ arch/arm/boot/dts/omap4-var-om44customboard.dtsi | 2 +-
+ arch/arm/boot/dts/omap5-board-common.dtsi        | 2 +-
+ arch/arm/boot/dts/omap5-cm-t54.dts               | 2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+--- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
++++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
+@@ -373,7 +373,7 @@
+ 	/* hdmi_cec.hdmi_cec, hdmi_scl.hdmi_scl, hdmi_sda.hdmi_sda */
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+-		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)
++		OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)
+ 		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)
+ 		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)
+ 		>;
+diff --git a/arch/arm/boot/dts/omap4-duovero-parlor.dts b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+--- a/arch/arm/boot/dts/omap4-duovero-parlor.dts
++++ b/arch/arm/boot/dts/omap4-duovero-parlor.dts
+@@ -100,7 +100,7 @@
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+ 			OMAP4_IOPAD(0x098, PIN_INPUT | MUX_MODE3)		/* hdmi_hpd.gpio_63 */
+-			OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
+ 			OMAP4_IOPAD(0x09c, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_ddc_scl.hdmi_ddc_scl */
+ 			OMAP4_IOPAD(0x09e, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_ddc_sda.hdmi_ddc_sda */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
+--- a/arch/arm/boot/dts/omap4-panda-common.dtsi
++++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
+@@ -267,7 +267,7 @@
  
- 	if (ret) {
- 		pr_err("pm: Failed to request pm_io irq\n");
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -692,7 +692,6 @@ static int omap3xxx_prm_late_init(void)
- {
- 	struct device_node *np;
- 	int irq_num;
--	int ret;
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+-			OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
+ 			OMAP4_IOPAD(0x09c, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_scl.hdmi_scl */
+ 			OMAP4_IOPAD(0x09e, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_sda.hdmi_sda */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap4-sdp-es23plus.dts b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
+--- a/arch/arm/boot/dts/omap4-sdp-es23plus.dts
++++ b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
+@@ -10,7 +10,7 @@
+ /* SDP boards with 4430 ES2.3+ or 4460 have external pullups on SCL & SDA */
+ &dss_hdmi_pins {
+ 	pinctrl-single,pins = <
+-		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++		OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
+ 		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
+ 		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -290,7 +290,7 @@
  
- 	if (!(prm_features & PRM_HAS_IO_WAKEUP))
- 		return 0;
-@@ -712,12 +711,8 @@ static int omap3xxx_prm_late_init(void)
- 	}
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+-			OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
+ 			OMAP4_IOPAD(0x09c, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_scl.hdmi_scl */
+ 			OMAP4_IOPAD(0x09e, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_sda.hdmi_sda */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap4-var-om44customboard.dtsi b/arch/arm/boot/dts/omap4-var-om44customboard.dtsi
+--- a/arch/arm/boot/dts/omap4-var-om44customboard.dtsi
++++ b/arch/arm/boot/dts/omap4-var-om44customboard.dtsi
+@@ -122,7 +122,7 @@
  
- 	omap3xxx_prm_enable_io_wakeup();
--	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
--	if (!ret)
--		irq_set_status_flags(omap_prcm_event_to_irq("io"),
--				     IRQ_NOAUTOEN);
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+-			OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
+ 			OMAP4_IOPAD(0x09c, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_scl.hdmi_scl */
+ 			OMAP4_IOPAD(0x09e, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_sda.hdmi_sda */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
+--- a/arch/arm/boot/dts/omap5-board-common.dtsi
++++ b/arch/arm/boot/dts/omap5-board-common.dtsi
+@@ -294,7 +294,7 @@
  
--	return ret;
-+	return omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
- }
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+-			OMAP5_IOPAD(0x13c, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
++			OMAP5_IOPAD(0x13c, PIN_INPUT | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
+ 			OMAP5_IOPAD(0x140, PIN_INPUT | MUX_MODE0)	/* hdmi_ddc_scl.hdmi_ddc_scl */
+ 			OMAP5_IOPAD(0x142, PIN_INPUT | MUX_MODE0)	/* hdmi_ddc_sda.hdmi_ddc_sda */
+ 		>;
+diff --git a/arch/arm/boot/dts/omap5-cm-t54.dts b/arch/arm/boot/dts/omap5-cm-t54.dts
+--- a/arch/arm/boot/dts/omap5-cm-t54.dts
++++ b/arch/arm/boot/dts/omap5-cm-t54.dts
+@@ -266,7 +266,7 @@
  
- static void __exit omap3xxx_prm_exit(void)
+ 	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+ 		pinctrl-single,pins = <
+-			OMAP5_IOPAD(0x013c, PIN_INPUT_PULLUP | MUX_MODE0) /* hdmi_cec */
++			OMAP5_IOPAD(0x013c, PIN_INPUT | MUX_MODE0) /* hdmi_cec */
+ 			OMAP5_IOPAD(0x0140, PIN_INPUT | MUX_MODE0) /* hdmi_ddc_scl */
+ 			OMAP5_IOPAD(0x0142, PIN_INPUT | MUX_MODE0) /* hdmi_ddc_sda */
+ 		>;
 -- 
 2.13.0
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
