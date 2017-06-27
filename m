@@ -1,70 +1,71 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
+From: Jyri Sarha <jsarha@ti.com>
 Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-Date: Tue, 27 Jun 2017 11:27:11 +0200
-Message-ID: <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
+Date: Tue, 27 Jun 2017 12:47:15 +0300
+Message-ID: <a6f7c3d6-f4a6-1dba-2da0-b36ea2dd8803@ti.com>
 References: <20170414102512.48834-1-hverkuil@xs4all.nl>
  <20170414102512.48834-2-hverkuil@xs4all.nl>
  <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
  <20170626110711.GW3730@atomide.com>
  <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
  <20170627091421.GZ3730@atomide.com>
+ <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20170627091421.GZ3730@atomide.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jyri Sarha <jsarha@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
+Content-Language: en-GB
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Hans Verkuil <hans.verkuil@cisco.com>, dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 27/06/17 11:14, Tony Lindgren wrote:
-> * Hans Verkuil <hverkuil@xs4all.nl> [170627 01:39]:
->> On 26/06/17 13:07, Tony Lindgren wrote:
->>> Tomi,
->>>
->>> * Tomi Valkeinen <tomi.valkeinen@ti.com> [170428 04:15]:
->>>> On 14/04/17 13:25, Hans Verkuil wrote:
->>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>
->>>>> The CEC pin was always pulled up, making it impossible to use it.
->>> ...
->>>
->>>> Tony, can you queue this? It's safe to apply separately from the rest of
->>>> the HDMI CEC work.
->>>
->>> So the dts changes are merged now but what's the status of the CEC driver
->>> changes? Were there some issues as I don't see them in next?
->>
->> Tomi advised me to wait until a 'hotplug-interrupt-handling series' for the
->> omap driver is merged to prevent conflicts. Last I heard (about 3 weeks ago)
->> this was still pending review.
-> 
-> OK thanks for the update.
-> 
-> Adding Jyri to Cc, hopefully the CEC support allows also setting the
-> HDMI audio volume level on devices implementing it? Or am I too
-> optimistic? :)
-
-I'm not quite sure what you mean. Do you want CEC to change the volume on the
-TV, or use the TV's remote to change the volume of the HDMI audio output of the
-omap4?
-
-Anyway, either is supported, but it requires a userspace implementation.
-
-Although TV remote control messages will be mapped to an input device, and if
-those are hooked up to the alsa audio volume, then this already works.
-
-Regards,
-
-	Hans
-
-> 
->> Tomi, any updates on this? It would be nice to get this in for 4.14.
-> 
-> Yeah seems like we have real mainline kernel user needs for this one.
-> 
-> Regards,
-> 
-> Tony
-> 
+T24gMDYvMjcvMTcgMTI6MjcsIEhhbnMgVmVya3VpbCB3cm90ZToKPiBPbiAyNy8wNi8xNyAxMTox
+NCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPj4gKiBIYW5zIFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFs
+bC5ubD4gWzE3MDYyNyAwMTozOV06Cj4+PiBPbiAyNi8wNi8xNyAxMzowNywgVG9ueSBMaW5kZ3Jl
+biB3cm90ZToKPj4+PiBUb21pLAo+Pj4+Cj4+Pj4gKiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxr
+ZWluZW5AdGkuY29tPiBbMTcwNDI4IDA0OjE1XToKPj4+Pj4gT24gMTQvMDQvMTcgMTM6MjUsIEhh
+bnMgVmVya3VpbCB3cm90ZToKPj4+Pj4+IEZyb206IEhhbnMgVmVya3VpbCA8aGFucy52ZXJrdWls
+QGNpc2NvLmNvbT4KPj4+Pj4+Cj4+Pj4+PiBUaGUgQ0VDIHBpbiB3YXMgYWx3YXlzIHB1bGxlZCB1
+cCwgbWFraW5nIGl0IGltcG9zc2libGUgdG8gdXNlIGl0Lgo+Pj4+IC4uLgo+Pj4+Cj4+Pj4+IFRv
+bnksIGNhbiB5b3UgcXVldWUgdGhpcz8gSXQncyBzYWZlIHRvIGFwcGx5IHNlcGFyYXRlbHkgZnJv
+bSB0aGUgcmVzdCBvZgo+Pj4+PiB0aGUgSERNSSBDRUMgd29yay4KPj4+Pgo+Pj4+IFNvIHRoZSBk
+dHMgY2hhbmdlcyBhcmUgbWVyZ2VkIG5vdyBidXQgd2hhdCdzIHRoZSBzdGF0dXMgb2YgdGhlIENF
+QyBkcml2ZXIKPj4+PiBjaGFuZ2VzPyBXZXJlIHRoZXJlIHNvbWUgaXNzdWVzIGFzIEkgZG9uJ3Qg
+c2VlIHRoZW0gaW4gbmV4dD8KPj4+Cj4+PiBUb21pIGFkdmlzZWQgbWUgdG8gd2FpdCB1bnRpbCBh
+ICdob3RwbHVnLWludGVycnVwdC1oYW5kbGluZyBzZXJpZXMnIGZvciB0aGUKPj4+IG9tYXAgZHJp
+dmVyIGlzIG1lcmdlZCB0byBwcmV2ZW50IGNvbmZsaWN0cy4gTGFzdCBJIGhlYXJkIChhYm91dCAz
+IHdlZWtzIGFnbykKPj4+IHRoaXMgd2FzIHN0aWxsIHBlbmRpbmcgcmV2aWV3Lgo+Pgo+PiBPSyB0
+aGFua3MgZm9yIHRoZSB1cGRhdGUuCj4+Cj4+IEFkZGluZyBKeXJpIHRvIENjLCBob3BlZnVsbHkg
+dGhlIENFQyBzdXBwb3J0IGFsbG93cyBhbHNvIHNldHRpbmcgdGhlCj4+IEhETUkgYXVkaW8gdm9s
+dW1lIGxldmVsIG9uIGRldmljZXMgaW1wbGVtZW50aW5nIGl0PyBPciBhbSBJIHRvbwo+PiBvcHRp
+bWlzdGljPyA6KQo+IAo+IEknbSBub3QgcXVpdGUgc3VyZSB3aGF0IHlvdSBtZWFuLiBEbyB5b3Ug
+d2FudCBDRUMgdG8gY2hhbmdlIHRoZSB2b2x1bWUgb24gdGhlCj4gVFYsIG9yIHVzZSB0aGUgVFYn
+cyByZW1vdGUgdG8gY2hhbmdlIHRoZSB2b2x1bWUgb2YgdGhlIEhETUkgYXVkaW8gb3V0cHV0IG9m
+IHRoZQo+IG9tYXA0Pwo+IAoKVGhlcmUgaXMgbm8gcmVhbCB2b2x1bWUgb24gSERNSSBhdWRpbyBv
+dXRwdXQgYXMgaXQgaXMgYSBkaWdpdGFsCmludGVyZmFjZSwgYnV0IGl0IHNob3VsZCBiZSBwb3Nz
+aWJsZSB0byBwcm92aWRlIHNvbWUgdm9sdW1lIGNvbnRyb2wKdXNpbmcgVFYncyB2b2x1bWUgdHJv
+dWdoIENFQy4KCj4gQW55d2F5LCBlaXRoZXIgaXMgc3VwcG9ydGVkLCBidXQgaXQgcmVxdWlyZXMg
+YSB1c2Vyc3BhY2UgaW1wbGVtZW50YXRpb24uCj4gCgpBIG1vZHVsZSB0byBwdWxzZWF1ZGlvIG9y
+IHNvbWUgZXh0cmEgZmVhdHVyZXMgdG8gYWxzYS1saWIgc2hvdWxkIGJlCmdlbmVyaWMgZW5vdWdo
+ICh3aG8ga25vd3MsIG1heWJlIHRoZXJlIGlzIGFscmVhZHkgc29tZXRoaW5nKS4KCkp1c3QgYW4g
+aWRlYS4gSWYgc29tZW9uZSByZWFsbHkgbmVlZHMgdGhpcywgdGhlIHBpZWNlcyB0byBwdXQgaXQK
+dG9nZXRoZXIgc2hvdWxkIGJlIHRoZXJlLgoKQmVzdCByZWdhcmRzLApKeXJpCgo+IEFsdGhvdWdo
+IFRWIHJlbW90ZSBjb250cm9sIG1lc3NhZ2VzIHdpbGwgYmUgbWFwcGVkIHRvIGFuIGlucHV0IGRl
+dmljZSwgYW5kIGlmCj4gdGhvc2UgYXJlIGhvb2tlZCB1cCB0byB0aGUgYWxzYSBhdWRpbyB2b2x1
+bWUsIHRoZW4gdGhpcyBhbHJlYWR5IHdvcmtzLgo+PiBSZWdhcmRzLAo+IAo+IAlIYW5zCj4gCj4+
+Cj4+PiBUb21pLCBhbnkgdXBkYXRlcyBvbiB0aGlzPyBJdCB3b3VsZCBiZSBuaWNlIHRvIGdldCB0
+aGlzIGluIGZvciA0LjE0Lgo+Pgo+PiBZZWFoIHNlZW1zIGxpa2Ugd2UgaGF2ZSByZWFsIG1haW5s
+aW5lIGtlcm5lbCB1c2VyIG5lZWRzIGZvciB0aGlzIG9uZS4KPj4KPj4gUmVnYXJkcywKPj4KPj4g
+VG9ueQo+Pgo+IAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+Cg==
