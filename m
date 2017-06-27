@@ -1,7 +1,7 @@
-From: Jyri Sarha <jsarha@ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
 Subject: Re: [PATCH 1/8] arm: omap4: enable CEC pin for Pandaboard A4 and ES
-Date: Tue, 27 Jun 2017 12:23:34 +0300
-Message-ID: <0b04a7bc-a969-7cdf-9f98-45d70337cf40@ti.com>
+Date: Tue, 27 Jun 2017 11:27:11 +0200
+Message-ID: <1d970218-d24a-d460-7d95-b31102d735f2@xs4all.nl>
 References: <20170414102512.48834-1-hverkuil@xs4all.nl>
  <20170414102512.48834-2-hverkuil@xs4all.nl>
  <4355dab4-9c70-77f7-f89b-9a1cf24976cf@ti.com>
@@ -9,17 +9,16 @@ References: <20170414102512.48834-1-hverkuil@xs4all.nl>
  <701dbbfa-000a-2b93-405b-246aa90b6dd6@xs4all.nl>
  <20170627091421.GZ3730@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <20170627091421.GZ3730@atomide.com>
-Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jyri Sarha <jsarha@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 06/27/17 12:14, Tony Lindgren wrote:
+On 27/06/17 11:14, Tony Lindgren wrote:
 > * Hans Verkuil <hverkuil@xs4all.nl> [170627 01:39]:
 >> On 26/06/17 13:07, Tony Lindgren wrote:
 >>> Tomi,
@@ -46,16 +45,21 @@ On 06/27/17 12:14, Tony Lindgren wrote:
 > Adding Jyri to Cc, hopefully the CEC support allows also setting the
 > HDMI audio volume level on devices implementing it? Or am I too
 > optimistic? :)
+
+I'm not quite sure what you mean. Do you want CEC to change the volume on the
+TV, or use the TV's remote to change the volume of the HDMI audio output of the
+omap4?
+
+Anyway, either is supported, but it requires a userspace implementation.
+
+Although TV remote control messages will be mapped to an input device, and if
+those are hooked up to the alsa audio volume, then this already works.
+
+Regards,
+
+	Hans
+
 > 
-
-As long as you do not expect a regular ALSA-volume to work.. But I don't
-see why some CEC application would not work. However, I guess one could
-implement this as feature to ALSA too but AFAIK no such thing exists at
-the moment.
-
-Best regards,
-Jyri
-
 >> Tomi, any updates on this? It would be nice to get this in for 4.14.
 > 
 > Yeah seems like we have real mainline kernel user needs for this one.
