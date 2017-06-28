@@ -1,52 +1,66 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: usb-related linux-next boot failures
-Date: Wed, 28 Jun 2017 12:13:55 -0500
-Message-ID: <b3c56d5d-59a7-1881-f78c-64f4057d5f38@ti.com>
-References: <0d1a491c-41c4-a02d-cdf8-e1a95a1fe989@ti.com>
- <20170628045543.GA28759@kroah.com> <87r2y45x97.fsf@linux.intel.com>
- <20170628103014.GC3730@atomide.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v4] PCI: dwc: dra7xx: Fix incorrect usage of IRQSTATUS_*
+ registers
+Date: Wed, 28 Jun 2017 15:02:56 -0500
+Message-ID: <20170628200255.GS17844@bhelgaas-glaptop.roam.corp.google.com>
+References: <9ebe7f77c2fd10219f78ecbae3c672064102444d.1497865713.git.arvind.yadav.cs@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170628103014.GC3730-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Carlos Hernandez <ceh-l0cyMroinI0@public.gmane.org>, "lcpd_connectivity-uAqBSO/uNfhBDgjK7y7TUQ@public.gmane.org - Linux Core Product Development -
-        Connectivity" <lcpd_connectivity-uAqBSO/uNfhBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <9ebe7f77c2fd10219f78ecbae3c672064102444d.1497865713.git.arvind.yadav.cs@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: kishon@ti.com, bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 06/28/2017 05:30 AM, Tony Lindgren wrote:
->   Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> [170628 01:32]:
->> Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org> writes:
->>> On Tue, Jun 27, 2017 at 02:28:56PM -0400, Carlos Hernandez wrote:
->>>> Still seeing AM57xx/DRA72/DRA7x usb-related boot failures on linux-next...
->>>
->>> Is this a regression?  If so, any specific commit that caused it?
->>
->> I did ask for a bisection last time but nobody from TI replied ;-)
->>
->> https://marc.info/?i=87h8zi4gmx.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
->>
->> Can't really help without bisection logs :-)
+On Mon, Jun 19, 2017 at 03:21:36PM +0530, Arvind Yadav wrote:
+> 'commit 47ff3de911a7 ("PCI: dra7xx: Add TI DRA7xx PCIe driver")' in order to clear
+> MSI and MAIN interrupts requests wrote '0' to PCIECTRL_TI_CONF_IRQSTATUS_MSI
+> and PCIECTRL_TI_CONF_IRQSTATUS_MAIN registers. However the TRM has mentioned to
+> write '1' to clear pending event in these two registers. Fix it here.
 > 
-> Seems this warning got add with 04c848d39879 ("genirq: Warn when
-> IRQ_NOAUTOEN is used with shared interrupts"). The fix is to get
-> rid of IRQ_NOAUTOEN and enable_irq for a shared interrupt. Hard
-> to say as the warning line does not match the version of next I
-> have so this should be verified.
+> This also helps to get rid of the following compilation warning:
+> drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_msi_interrupts’:
+> drivers/pci/dwc/pci-dra7xx.c:177:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
+>        ~LEG_EP_INTERRUPTS & ~MSI);
+>        ^
+> drivers/pci/dwc/pci-dra7xx.c: In function ‘dra7xx_pcie_enable_wrapper_interrupts’:
+> drivers/pci/dwc/pci-dra7xx.c:187:7: warning: large integer implicitly truncated to unsigned type [-Woverflow]
+>        ~INTERRUPTS);
 > 
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-The first warning in the log can't cause crash reported later in the log :(
-But, yah, it need to be fixed.
+Added a Fixes: tag and applied with Kishon's ack (from v3, where the patch
+is identical) to pci/host-dra7xx for v4.13, thanks!
 
--- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 8decf46..668dc15 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -174,7 +174,7 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
+>  static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
+>  {
+>  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
+> -			   ~LEG_EP_INTERRUPTS & ~MSI);
+> +			   LEG_EP_INTERRUPTS | MSI);
+>  
+>  	dra7xx_pcie_writel(dra7xx,
+>  			   PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MSI,
+> @@ -184,7 +184,7 @@ static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
+>  static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
+>  {
+>  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
+> -			   ~INTERRUPTS);
+> +			   INTERRUPTS);
+>  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
+>  			   INTERRUPTS);
+>  }
+> -- 
+> 1.9.1
+> 
