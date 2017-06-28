@@ -1,52 +1,59 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v3 4/4] misc: sram: Allow ARM64 to select SRAM_EXEC
-Date: Wed, 28 Jun 2017 15:55:59 +0100
-Message-ID: <20170628145558.GA8252@leverpostej>
-References: <20170617000744.22158-1-f.fainelli@gmail.com>
- <20170617000744.22158-5-f.fainelli@gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 3/3] ARM: omap2plus_defconfig: enable DP83867 phy driver
+Date: Wed, 28 Jun 2017 11:54:46 -0500
+Message-ID: <8b0c4fb9-978b-0d67-85e2-af994f1a66e8@ti.com>
+References: <cover.1498573382.git.nsekhar@ti.com>
+ <3e141e778cedc0cc6168a9f9a3787a49042681c5.1498573382.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170617000744.22158-5-f.fainelli@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@armlinux.org.uk>, open list <linux-kernel@vger.kernel.org>, bcm-kernel-feedback-list@broadcom.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-omap@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>, Keerthy J <j-keerthy@ti.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <3e141e778cedc0cc6168a9f9a3787a49042681c5.1498573382.git.nsekhar@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sekhar Nori <nsekhar@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Device Tree Mailing List <devicetree@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jun 16, 2017 at 05:07:44PM -0700, Florian Fainelli wrote:
-> Now that ARM64 also has a fncpy() implementation, allow selection
-> SRAM_EXEC for ARM64 as well.
+
+
+On 06/27/2017 10:06 AM, Sekhar Nori wrote:
+> TI's DP83867 phy is used on DRA72x EVM rev C and DRA71x
+> EVMs. Enable support for it in omap2plus_defconfig.
 > 
-> Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+> The driver is built into the kernel to help NFS booting.
+> 
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+
+Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+
+this can go alone I think.
 > ---
->  drivers/misc/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>   arch/arm/configs/omap2plus_defconfig | 1 +
+>   1 file changed, 1 insertion(+)
 > 
-> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-> index 07bbd4cc1852..ac8779278c0c 100644
-> --- a/drivers/misc/Kconfig
-> +++ b/drivers/misc/Kconfig
-> @@ -464,7 +464,7 @@ config SRAM
->  	bool "Generic on-chip SRAM driver"
->  	depends on HAS_IOMEM
->  	select GENERIC_ALLOCATOR
-> -	select SRAM_EXEC if ARM
-> +	select SRAM_EXEC if ARM || ARM64
->  	help
->  	  This driver allows you to declare a memory region to be managed by
->  	  the genalloc API. It is supposed to be used for small on-chip SRAM
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index a120ae816260..d4afa2ca2537 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -170,6 +170,7 @@ CONFIG_TI_CPTS=y
+>   # CONFIG_NET_VENDOR_WIZNET is not set
+>   CONFIG_AT803X_PHY=y
+>   CONFIG_DP83848_PHY=y
+> +CONFIG_DP83867_PHY=y
+>   CONFIG_MICREL_PHY=y
+>   CONFIG_SMSC_PHY=y
+>   CONFIG_PPP=m
+> 
 
-As stated in another thread [1], NAK to this patch.
-
-Currently there are no users of this interface that we wish to enable
-for arm64, and this is liable to be abused to add platform-specific
-stuff that we expect to live in PSCI or other secure FW.
-
-Until we have a user that does not fall into that bucket, I see no
-reason to enable this for arm64.
-
-Thanks,
-Mark.
-
-[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2017-June/516161.html
+-- 
+regards,
+-grygorii
