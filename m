@@ -1,28 +1,45 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: usb-related linux-next boot failures
-Date: Wed, 28 Jun 2017 06:55:43 +0200
-Message-ID: <20170628045543.GA28759@kroah.com>
-References: <0d1a491c-41c4-a02d-cdf8-e1a95a1fe989@ti.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/3] ARM: dts: omap: workarounds for Ethernet PHY strap on
+ DRA71 and DRA72 EVMs
+Date: Wed, 28 Jun 2017 10:39:08 +0530
+Message-ID: <80147da4-a405-cdc2-7d2c-95c16dfb08e6@ti.com>
+References: <cover.1498573382.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <0d1a491c-41c4-a02d-cdf8-e1a95a1fe989-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Carlos Hernandez <ceh-l0cyMroinI0@public.gmane.org>
-Cc: "lcpd_connectivity-uAqBSO/uNfhBDgjK7y7TUQ@public.gmane.org - Linux Core Product Development -
-        Connectivity" <lcpd_connectivity-uAqBSO/uNfhBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1498573382.git.nsekhar-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 27, 2017 at 02:28:56PM -0400, Carlos Hernandez wrote:
-> Still seeing AM57xx/DRA72/DRA7x usb-related boot failures on linux-next...
+Hi Tony,
 
-Is this a regression?  If so, any specific commit that caused it?
+On Tuesday 27 June 2017 08:36 PM, Sekhar Nori wrote:
+> Hi Tony,
+> 
+> Here are some patches to overcome incorrect Ethernet PHY strap settings
+> on DRA72x EVM Rev C and DRA71 EVM. Both of these boards use TI's DP83867
+> PHY.
+> 
+> The incorrect PHY strap settings cause a voilation of PHY specification
+> and need to be worked around in software as documented in the commit
+> messages. But there is no known issue that these patches fix.
+> 
+> I did verify that there are no regressions with NFS boot on these boards
+> after the patches are applied on v4.12-rc4.
 
-thanks,
+Please ignore this series. It is prematurely posted. The DT property I
+use is not upstream yet. I relied on some recollection of it being
+upstream. I should have grepped instead. Since there was no regression
+and no change in behavior could also be explained, I did not catch it in
+my testing. Thanks Grygorii for pointing out.
 
-greg k-h
+Regards,
+Sekhar
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
