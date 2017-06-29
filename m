@@ -1,43 +1,29 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH] mmc: host: omap_hsmmc: constify dev_pm_ops structures.
-Date: Thu, 29 Jun 2017 13:39:29 +0530
-Message-ID: <8a917dbec5b7eb9fd463cc9b7a596ab831f04965.1498723559.git.arvind.yadav.cs@gmail.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: ulf.hansson@linaro.org, dan.carpenter@oracle.com, linus.walleij@linaro.org, hkallweit1@gmail.com
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] multi_v7_defconfig: Enable OMAP MTD and DM816 AHCI
+Date: Thu, 29 Jun 2017 17:22:52 +0200
+Message-ID: <CAK8P3a1qN79DhoQ-SCNaF8i+60N0RDMOGpfWQ+gRLBdjKcXoPg@mail.gmail.com>
+References: <1498045359-27376-1-git-send-email-trini@konsulko.com> <20170626073333.GR3730@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170626073333.GR3730@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tom Rini <trini@konsulko.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Linux ARM <linux-arm-kernel@lists.infradead.org>, Russell King <linux@armlinux.org.uk>, Mihail Grigorov <michael.grigorov@konsulko.com>
 List-Id: linux-omap@vger.kernel.org
 
-dev_pm_ops are not supposed to change at runtime. All functions
-working with dev_pm_ops provided by <linux/device.h> work with const
-dev_pm_ops. So mark the non-const structs as const.
+On Mon, Jun 26, 2017 at 9:33 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Tom Rini <trini@konsulko.com> [170621 04:42]:
+>> A wide variety of TI platforms support NAND via the
+>> CONFIG_MTD_NAND_OMAP2 driver (and related BCH options), so enable this.
+>> In addition, multi_v7_defconfig supports the dm8168-evm and that
+>> supports root being on a SATA drive, so build the DM816 AHCI driver into
+>> the resulting kernel as well.
+>
+> Best that Arnd picks up this one directly:
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-  11586	    624	      0	  12210	   2fb2	drivers/mmc/host/omap_hsmmc.o
+Pulled into next/defconfig, thanks!
 
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-  11778	    432	      0	  12210	   2fb2	drivers/mmc/host/omap_hsmmc.o
-
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/mmc/host/omap_hsmmc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 8c39dcc..5b391dc 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2342,7 +2342,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
- 	return 0;
- }
- 
--static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
-+static const struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(omap_hsmmc_suspend, omap_hsmmc_resume)
- 	.runtime_suspend = omap_hsmmc_runtime_suspend,
- 	.runtime_resume = omap_hsmmc_runtime_resume,
--- 
-1.9.1
-
+        Arnd
