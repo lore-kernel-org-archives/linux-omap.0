@@ -1,166 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/11] ARM: OMAP2+: Remove unused legacy code for PRM
-Date: Fri, 30 Jun 2017 03:42:56 -0700
-Message-ID: <20170630104256.GG3730@atomide.com>
-References: <20170531225139.30723-1-tony@atomide.com>
- <20170531225139.30723-9-tony@atomide.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [BISECTED, REGRESSION] v4.12-rc: omapdrm fails to probe on Nokia
+ N900
+Date: Fri, 30 Jun 2017 14:36:27 +0200
+Message-ID: <20170630123627.l2c46kprbyihkvyy@phenom.ffwll.local>
+References: <20170614221133.k7gmbzzjsbmbjgbc@darkstar.musicnaut.iki.fi>
+ <f7697b9f-b506-bf18-43f9-921ed7f27607@ti.com>
+ <20170629185013.aec7qhvrl3waifww@darkstar.musicnaut.iki.fi>
+ <e0373c98-a2e3-1231-3aa9-2092d012fe7e@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20170531225139.30723-9-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+In-Reply-To: <e0373c98-a2e3-1231-3aa9-2092d012fe7e@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170531 15:55]:
-> We are now booting all mach-omap2 in device tree only mode.
-> Any code that is only called in legacy boot mode where
-> of_have_populated_dt() is not set is safe to remove now.
-...
-
-> diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-> --- a/arch/arm/mach-omap2/prm44xx.c
-> +++ b/arch/arm/mach-omap2/prm44xx.c
-...
-
-> -static int omap44xx_prm_late_init(void)
-> -{
-> -	int irq_num;
-> -
-> -	if (!(prm_features & PRM_HAS_IO_WAKEUP))
-> -		return 0;
-> -
-> -	/* OMAP4+ is DT only now */
-> -	if (!of_have_populated_dt())
-> -		return 0;
-
-Turns out I misread the above and this code is still needed for omap4 PRM
-interrupts, so applying a partial revert below to fix it.
-
-Regards,
-
-Tony
-
-8< ----------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Fri, 30 Jun 2017 03:37:03 -0700
-Subject: [PATCH] ARM: OMAP4: Fix legacy code clean-up regression
-
-Commit 2a26d31b1bae ("ARM: OMAP2+: Remove unused legacy code for PRM")
-removed PRM platform init code that I thought is unused. Turns out omap4
-still needs this code, so let's do a partial revert to add it back.
-
-I probably missed this earlier as the comments used to say
-"OMAP4+ is DT only now" for !of_have_populated_dt() to exit early and
-missed the negative test. Let's not add those lines back as they are
-confusing and no longer needed as we only boot in device tree mode.
-
-Without things things can mysterious fail for i2c, for example LM75
-I2C temperature sensor can stop working as the PRM interrupts won't work.
-
-Fixes: 2a26d31b1bae ("ARM: OMAP2+: Remove unused legacy code for PRM")
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/prm44xx.c | 55 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -337,6 +337,27 @@ static void omap44xx_prm_reconfigure_io_chain(void)
- }
- 
- /**
-+ * omap44xx_prm_enable_io_wakeup - enable wakeup events from I/O wakeup latches
-+ *
-+ * Activates the I/O wakeup event latches and allows events logged by
-+ * those latches to signal a wakeup event to the PRCM.  For I/O wakeups
-+ * to occur, WAKEUPENABLE bits must be set in the pad mux registers, and
-+ * omap44xx_prm_reconfigure_io_chain() must be called.  No return value.
-+ */
-+static void __init omap44xx_prm_enable_io_wakeup(void)
-+{
-+	s32 inst = omap4_prmst_get_prm_dev_inst();
-+
-+	if (inst == PRM_INSTANCE_UNKNOWN)
-+		return;
-+
-+	omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
-+				    OMAP4430_GLOBAL_WUEN_MASK,
-+				    inst,
-+				    omap4_prcm_irq_setup.pm_ctrl);
-+}
-+
-+/**
-  * omap44xx_prm_read_reset_sources - return the last SoC reset source
-  *
-  * Return a u32 representing the last reset sources of the SoC.  The
-@@ -668,6 +689,8 @@ struct pwrdm_ops omap4_pwrdm_operations = {
- 	.pwrdm_has_voltdm	= omap4_check_vcvp,
- };
- 
-+static int omap44xx_prm_late_init(void);
-+
- /*
-  * XXX document
-  */
-@@ -675,6 +698,7 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
- 	.read_reset_sources = &omap44xx_prm_read_reset_sources,
- 	.was_any_context_lost_old = &omap44xx_prm_was_any_context_lost_old,
- 	.clear_context_loss_flags_old = &omap44xx_prm_clear_context_loss_flags_old,
-+	.late_init = &omap44xx_prm_late_init,
- 	.assert_hardreset	= omap4_prminst_assert_hardreset,
- 	.deassert_hardreset	= omap4_prminst_deassert_hardreset,
- 	.is_hardreset_asserted	= omap4_prminst_is_hardreset_asserted,
-@@ -711,6 +735,37 @@ int __init omap44xx_prm_init(const struct omap_prcm_init_data *data)
- 	return prm_register(&omap44xx_prm_ll_data);
- }
- 
-+static int omap44xx_prm_late_init(void)
-+{
-+	int irq_num;
-+
-+	if (!(prm_features & PRM_HAS_IO_WAKEUP))
-+		return 0;
-+
-+	irq_num = of_irq_get(prm_init_data->np, 0);
-+	/*
-+	 * Already have OMAP4 IRQ num. For all other platforms, we need
-+	 * IRQ numbers from DT
-+	 */
-+	if (irq_num < 0 && !(prm_init_data->flags & PRM_IRQ_DEFAULT)) {
-+		if (irq_num == -EPROBE_DEFER)
-+			return irq_num;
-+
-+		/* Have nothing to do */
-+		return 0;
-+	}
-+
-+	/* Once OMAP4 DT is filled as well */
-+	if (irq_num >= 0) {
-+		omap4_prcm_irq_setup.irq = irq_num;
-+		omap4_prcm_irq_setup.xlate_irq = NULL;
-+	}
-+
-+	omap44xx_prm_enable_io_wakeup();
-+
-+	return omap_prcm_register_chain_handler(&omap4_prcm_irq_setup);
-+}
-+
- static void __exit omap44xx_prm_exit(void)
- {
- 	prm_unregister(&omap44xx_prm_ll_data);
--- 
-2.13.1
+T24gRnJpLCBKdW4gMzAsIDIwMTcgYXQgMDk6NDE6MzVBTSArMDMwMCwgVG9taSBWYWxrZWluZW4g
+d3JvdGU6Cj4gT24gMjkvMDYvMTcgMjE6NTAsIEFhcm8gS29za2luZW4gd3JvdGU6Cj4gPiBIaSwK
+PiA+IAo+ID4gT24gVGh1LCBKdW4gMTUsIDIwMTcgYXQgMDk6NTE6MDZBTSArMDMwMCwgVG9taSBW
+YWxrZWluZW4gd3JvdGU6Cj4gPj4gT24gMTUvMDYvMTcgMDE6MTEsIEFhcm8gS29za2luZW4gd3Jv
+dGU6Cj4gPj4+IFdoZW4gYm9vdGluZyB2NC4xMi1yYzUgb24gTm9raWEgTjkwMCwgb21hcGRybSBm
+YWlscyB0byBwcm9iZSBhbmQgdGhlcmUKPiA+Pj4gaXMgbm8gZGlzcGxheS4KPiA+Pgo+ID4+IEFy
+ZSB5b3Ugc3VyZSBpdCBkb2Vzbid0IHByb2JlPyBJdCBmYWlscyB0aGUgb21hcGRzc19zdGFja19p
+c19yZWFkeSgpCj4gPj4gY2hlY2s/Cj4gPiAKPiA+IEl0IGFwcGVhcnMgdGhlIHJlYXNvbiB3YXMg
+dGhhdCBJIGRpZG4ndCBoYXZlCj4gPiBDT05GSUdfRFJNX09NQVBfQ09OTkVDVE9SX0FOQUxPR19U
+ViBlbmFibGVkLgo+ID4gCj4gPiBJIHRoaW5rIHRoYXQncyB3cm9uZy4gSSBkb24ndCBvd24gYW4g
+YW5hbG9nIFRWLCBzbyB3aHkgc2hvdWxkIEkgZW5hYmxlCj4gPiBzdWNoIG9wdGlvbiB0byBnZXQg
+ZGV2aWNlJ3MgYnVpbHQtaW4gZGlzcGxheSB3b3JraW5nPwo+IAo+IEluZGVlZC4gVW5mb3J0dW5h
+dGVseSBJIGRvbid0IGhhdmUgYSBzb2x1dGlvbiBmb3IgdGhhdC4KPiAKPiBEUk0gZG9lc24ndCBz
+dXBwb3J0IGFkZGluZyBkZXZpY2VzIGFmdGVyIHByb2JlLiBTbyBhdCBvbWFwZHJtIHByb2JlIHRp
+bWUKPiB3ZSBoYXZlIHRvIGRlY2lkZSB3aGljaCBkaXNwbGF5cyB0byB1c2UuIEluIHRoZSBkdHMg
+ZmlsZSwgbjkwMCBkZWZpbmVzCj4gdGhlIGxjZCBhbmQgYW5hbG9nIHR2LiBvbWFwZHJtIHNlZXMg
+dGhvc2UsIGFuZCwgb2YgY291cnNlLCBtdXN0IHdhaXQKPiB1bnRpbCB0aGVpciByZXNwZWN0aXZl
+IGRyaXZlcnMgaGF2ZSBwcm9iZWQuIElmIHlvdSBkb24ndCBoYXZlIHRoZQo+IGRpc3BsYXkgZHJp
+dmVyIGVuYWJsZWQsIGl0J3MgbmV2ZXIgbG9hZGVkIGFuZCBvbWFwZHJtIG5ldmVyIHByb2JlcyBh
+cyBpdAo+IGtlZXBzIHdhaXRpbmcgZm9yIHRob3NlLgo+IAo+IG9tYXBkcm0gY291bGQgc3RhcnQg
+d2hlbiBzb21lIG9mIHRoZSBkcml2ZXJzIGFyZSBtaXNzaW5nLCBidXQgdGhlbiB0aGUKPiBxdWVz
+dGlvbiBjb21lczogd2hlbj8gb21hcGRybSBkb2Vzbid0IGtub3cgaWYgdGhlIGRyaXZlciB3aWxs
+IGJlIHByb2JlZAo+IGF0IHNvbWUgbGF0ZXIgdGltZSwgb3IgbWF5YmUgaXQgaXMgYSBtb2R1bGUs
+IGxvYWRlZCBsYXRlciBieSB0aGUgdXNlcnNwYWNlLgo+IAo+IFNvLCB1bmxlc3MgdGhlIERSTSBm
+cmFtZXdvcmsgaXMgbW9kaWZpZWQgdG8gc3VwcG9ydCBhZGRpbmcgZGlzcGxheXMKPiBhZnRlciBw
+cm9iZSwgSSBkb24ndCBzZWUgYSBzb2x1dGlvbiBmb3IgdGhpcy4KPiAKPiA+PiBJZiB0aGF0J3Mg
+dGhlIGNhc2UgdGhlbiB0aGlzIGlzIGVhc2llciB0byBkZWJ1Zy4KPiA+IAo+ID4gU3VyZSBpdCdz
+IGFsd2F5cyBlYXN5Li4uIHdoZW4gdXNlcnMgZG8gYWxsIHRoZSB0ZXN0aW5nIGFuZCBkZWJ1Z2dp
+bmcuCj4gPiAKPiA+IElzIGl0IGp1c3QgbWUgb3IgZG8gb3RoZXIgT01BUCB1c2VycyBmYWlsIHRv
+IHNlZSBvbWFwZHJtIGNoYW5nZXMgYmVpbmcKPiA+IHBvc3RlZCB0byBsaW51eC1vbWFwIGZvciB0
+ZXN0aW5nIG9yIHJldmlldyBwdXJwb3Nlcz8KPiAKPiBJIHRob3VnaHQgbGludXgtb21hcCB3YXMg
+bW9yZSBmb3Igb21hcCBwbGF0Zm9ybSB0aGluZ2llcy4gQnV0IHN1cmUsIEkKPiBjYW4gc3RhcnQg
+Y2MnaW5nIGxpbnV4LW9tYXAgZm9yIGFsbCBvbWFwZHJtIHBhdGNoZXMuCj4gCj4gPiBBbmQgbm93
+IEkgZmFjZSBhbm90aGVyIGlzc3VlLiBXaGVuIEkgYm9vdCB2NC4xMi1yYzcgd2l0aAo+ID4gQ09O
+RklHX0RSTV9PTUFQX0NPTk5FQ1RPUl9BTkFMT0dfVFYgZW5hYmxlZCBhbmQgeW91ciAibWlzYyBm
+aXhlcyIKPiA+IHBhdGNoZXMgb24gTjkwMCwgSSBnZXQgdGhlIGVycm9yIGZsb29kIGFnYWluLCBh
+bmQgdGhlIGRldmljZSBpcyB1bnVzYWJsZToKPiAKPiBZZXMsIEkgdGhpbmsgdGhlcmUncyBzdGls
+bCBzb21ldGhpbmcgd3JvbmcuIEkgaGF2ZW4ndCBiZWVuIGFibGUgdG8gZmluZAo+IG91dCB3aGF0
+Lgo+IAo+IFNvbWVob3cgZGVsYXlzIHNlZW0gdG8gaGVscCAobGlrZSBlbmFibGluZyBkZWJ1ZyBw
+cmludHMpLCBidXQgSSBoYXZlbid0Cj4gYmVlbiBhYmxlIHRvIGZpbmQgb3V0IHdoZXJlIGV4YWN0
+bHkgdGhlIGRlbGF5IGlzIG5lZWRlZC4KPiAKPiBBbmQgSSdkIHJhdGhlciBub3QgcmV2ZXJ0IHRo
+ZSBwYXRjaCwgYmVjYXVzZSB0aGVyZSdzIG5vdGhpbmcgd3Jvbmcgd2l0aAo+IHRoYXQgcGF0Y2gg
+YXMgc3VjaCwgYW5kIGl0IGZpeGVzIGlzc3VlcyBvbiBhbGwgcGxhdGZvcm1zLgo+IAo+IFNvLCBJ
+IGRvbid0IGtub3cuLi4gSSBndWVzcyBJIG5lZWQgdG8gdHJ5IHRvIGludmVudCBzb21lIGhvcnJp
+YmxlIGhhY2tzCj4gYXJvdW5kIHRoZSBkcml2ZXIgdG8gc29tZWhvdyBtYW5hZ2UgdGhlIG9tYXAz
+IHByb2JsZW1zLiBQZXJoYXBzCj4gZGlzYWJsaW5nL2VuYWJsaW5nIHRoZSBvdXRwdXRzIHdoZW4g
+c3luYyBsb3N0IGhhcHBlbnMuLi4KCkkgZG9uJ3QgdGhpbmsgcmVnaXN0ZXJpbmcgYmVmb3JlIGV2
+ZXJ5dGhpbmcgaXMgbG9hZGVkIG1ha2Ugc2Vuc2UuIE9uIHRoZQpiaWcgZGVza3RvcCBkcml2ZXIg
+Y2hpcHMgd2UgaGF2ZSBhbGwgdGhlIGJyaWRnZS9lbmNvZGVyL3BhbmVsIGRyaXZlcnMKYnVpbHQg
+aW50byB0aGUgZHJpdmVyLiBhcm0tc29jIGxvdmVzIHRvIG1ha2UgZXZlcnl0aGluZyBhIHNlcGFy
+YXRlIG1vZHVsZSwKYnV0IGluIHRoZSBlbmQgaWYgeW91IGRlY2lkZWQgdG8gbm90IGNvbXBpbGUg
+aGFsZiBvZiB0aGUgZHJpdmVyIHlvdSBuZWVkLAp0aGVuIGl0J3Mgbm90IGdvaW5nIHRvIHdvcmsu
+CgpJbW8gdGhlIG9ubHkgdGhpbmcgd2Ugc2hvdWxkIHN1cHBvcnQgdG8gYmUgaG90cGx1Z2dlZCBp
+biBkcm0gaXMgc3R1ZmYgeW91CmNhbiBwaHlzaWNhbGx5IGhvdHBsdWcgKGxpa2UgYXRtIGNvbm5l
+Y3RvcnMpLiBFdmVyeXRoaW5nIGVsc2UganVzdApjb21wbGljYXRlcyB0aGUgY29kZSBmb3Igbm8g
+Z29vZCByZWFzb24gYXQgYWxsLgoKdGxkcjsgV3JvbmcgLmNvbmZpZyBnaXZlcyB5b3UgYSBub24t
+d29ya2luZyBkcml2ZXIsIG5vIHN1cnByaXNlcy4gQW5kIGR1ZQp0byB0aGUgImRlZmF1bHQgbiIg
+cnVsZSB0aGlzIGNhbiBldmVuIGxvb2sgbGlrZSBhIHJlZ3Jlc3Npb24uCi1EYW5pZWwKLS0gCkRh
+bmllbCBWZXR0ZXIKU29mdHdhcmUgRW5naW5lZXIsIEludGVsIENvcnBvcmF0aW9uCmh0dHA6Ly9i
+bG9nLmZmd2xsLmNoCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
+ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
+bAo=
