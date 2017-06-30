@@ -1,91 +1,85 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [BISECTED, REGRESSION] v4.12-rc: omapdrm fails to probe on Nokia
- N900
-Date: Fri, 30 Jun 2017 14:36:27 +0200
-Message-ID: <20170630123627.l2c46kprbyihkvyy@phenom.ffwll.local>
-References: <20170614221133.k7gmbzzjsbmbjgbc@darkstar.musicnaut.iki.fi>
- <f7697b9f-b506-bf18-43f9-921ed7f27607@ti.com>
- <20170629185013.aec7qhvrl3waifww@darkstar.musicnaut.iki.fi>
- <e0373c98-a2e3-1231-3aa9-2092d012fe7e@ti.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [linux-next][PATCH] usb: dwc3: omap: remove IRQ_NOAUTOEN used
+ with shared irq
+Date: Fri, 30 Jun 2017 14:34:34 -0500
+Message-ID: <dac573e2-31e3-b431-8510-973d691fc0ed@ti.com>
+References: <20170628233131.19114-1-grygorii.strashko@ti.com>
+ <463ea19c-dc60-5926-56b4-0f10d2e23e94@ti.com>
+ <20170629060353.GE3730@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <e0373c98-a2e3-1231-3aa9-2092d012fe7e@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170629060353.GE3730@atomide.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Vignesh R <vigneshr@ti.com>
+Cc: "GregKroah-Hartmangregkh@linuxfoundation.org" <GregKroah-Hartmangregkh@linuxfoundation.org>, Felipe Balbi <balbi@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBKdW4gMzAsIDIwMTcgYXQgMDk6NDE6MzVBTSArMDMwMCwgVG9taSBWYWxrZWluZW4g
-d3JvdGU6Cj4gT24gMjkvMDYvMTcgMjE6NTAsIEFhcm8gS29za2luZW4gd3JvdGU6Cj4gPiBIaSwK
-PiA+IAo+ID4gT24gVGh1LCBKdW4gMTUsIDIwMTcgYXQgMDk6NTE6MDZBTSArMDMwMCwgVG9taSBW
-YWxrZWluZW4gd3JvdGU6Cj4gPj4gT24gMTUvMDYvMTcgMDE6MTEsIEFhcm8gS29za2luZW4gd3Jv
-dGU6Cj4gPj4+IFdoZW4gYm9vdGluZyB2NC4xMi1yYzUgb24gTm9raWEgTjkwMCwgb21hcGRybSBm
-YWlscyB0byBwcm9iZSBhbmQgdGhlcmUKPiA+Pj4gaXMgbm8gZGlzcGxheS4KPiA+Pgo+ID4+IEFy
-ZSB5b3Ugc3VyZSBpdCBkb2Vzbid0IHByb2JlPyBJdCBmYWlscyB0aGUgb21hcGRzc19zdGFja19p
-c19yZWFkeSgpCj4gPj4gY2hlY2s/Cj4gPiAKPiA+IEl0IGFwcGVhcnMgdGhlIHJlYXNvbiB3YXMg
-dGhhdCBJIGRpZG4ndCBoYXZlCj4gPiBDT05GSUdfRFJNX09NQVBfQ09OTkVDVE9SX0FOQUxPR19U
-ViBlbmFibGVkLgo+ID4gCj4gPiBJIHRoaW5rIHRoYXQncyB3cm9uZy4gSSBkb24ndCBvd24gYW4g
-YW5hbG9nIFRWLCBzbyB3aHkgc2hvdWxkIEkgZW5hYmxlCj4gPiBzdWNoIG9wdGlvbiB0byBnZXQg
-ZGV2aWNlJ3MgYnVpbHQtaW4gZGlzcGxheSB3b3JraW5nPwo+IAo+IEluZGVlZC4gVW5mb3J0dW5h
-dGVseSBJIGRvbid0IGhhdmUgYSBzb2x1dGlvbiBmb3IgdGhhdC4KPiAKPiBEUk0gZG9lc24ndCBz
-dXBwb3J0IGFkZGluZyBkZXZpY2VzIGFmdGVyIHByb2JlLiBTbyBhdCBvbWFwZHJtIHByb2JlIHRp
-bWUKPiB3ZSBoYXZlIHRvIGRlY2lkZSB3aGljaCBkaXNwbGF5cyB0byB1c2UuIEluIHRoZSBkdHMg
-ZmlsZSwgbjkwMCBkZWZpbmVzCj4gdGhlIGxjZCBhbmQgYW5hbG9nIHR2LiBvbWFwZHJtIHNlZXMg
-dGhvc2UsIGFuZCwgb2YgY291cnNlLCBtdXN0IHdhaXQKPiB1bnRpbCB0aGVpciByZXNwZWN0aXZl
-IGRyaXZlcnMgaGF2ZSBwcm9iZWQuIElmIHlvdSBkb24ndCBoYXZlIHRoZQo+IGRpc3BsYXkgZHJp
-dmVyIGVuYWJsZWQsIGl0J3MgbmV2ZXIgbG9hZGVkIGFuZCBvbWFwZHJtIG5ldmVyIHByb2JlcyBh
-cyBpdAo+IGtlZXBzIHdhaXRpbmcgZm9yIHRob3NlLgo+IAo+IG9tYXBkcm0gY291bGQgc3RhcnQg
-d2hlbiBzb21lIG9mIHRoZSBkcml2ZXJzIGFyZSBtaXNzaW5nLCBidXQgdGhlbiB0aGUKPiBxdWVz
-dGlvbiBjb21lczogd2hlbj8gb21hcGRybSBkb2Vzbid0IGtub3cgaWYgdGhlIGRyaXZlciB3aWxs
-IGJlIHByb2JlZAo+IGF0IHNvbWUgbGF0ZXIgdGltZSwgb3IgbWF5YmUgaXQgaXMgYSBtb2R1bGUs
-IGxvYWRlZCBsYXRlciBieSB0aGUgdXNlcnNwYWNlLgo+IAo+IFNvLCB1bmxlc3MgdGhlIERSTSBm
-cmFtZXdvcmsgaXMgbW9kaWZpZWQgdG8gc3VwcG9ydCBhZGRpbmcgZGlzcGxheXMKPiBhZnRlciBw
-cm9iZSwgSSBkb24ndCBzZWUgYSBzb2x1dGlvbiBmb3IgdGhpcy4KPiAKPiA+PiBJZiB0aGF0J3Mg
-dGhlIGNhc2UgdGhlbiB0aGlzIGlzIGVhc2llciB0byBkZWJ1Zy4KPiA+IAo+ID4gU3VyZSBpdCdz
-IGFsd2F5cyBlYXN5Li4uIHdoZW4gdXNlcnMgZG8gYWxsIHRoZSB0ZXN0aW5nIGFuZCBkZWJ1Z2dp
-bmcuCj4gPiAKPiA+IElzIGl0IGp1c3QgbWUgb3IgZG8gb3RoZXIgT01BUCB1c2VycyBmYWlsIHRv
-IHNlZSBvbWFwZHJtIGNoYW5nZXMgYmVpbmcKPiA+IHBvc3RlZCB0byBsaW51eC1vbWFwIGZvciB0
-ZXN0aW5nIG9yIHJldmlldyBwdXJwb3Nlcz8KPiAKPiBJIHRob3VnaHQgbGludXgtb21hcCB3YXMg
-bW9yZSBmb3Igb21hcCBwbGF0Zm9ybSB0aGluZ2llcy4gQnV0IHN1cmUsIEkKPiBjYW4gc3RhcnQg
-Y2MnaW5nIGxpbnV4LW9tYXAgZm9yIGFsbCBvbWFwZHJtIHBhdGNoZXMuCj4gCj4gPiBBbmQgbm93
-IEkgZmFjZSBhbm90aGVyIGlzc3VlLiBXaGVuIEkgYm9vdCB2NC4xMi1yYzcgd2l0aAo+ID4gQ09O
-RklHX0RSTV9PTUFQX0NPTk5FQ1RPUl9BTkFMT0dfVFYgZW5hYmxlZCBhbmQgeW91ciAibWlzYyBm
-aXhlcyIKPiA+IHBhdGNoZXMgb24gTjkwMCwgSSBnZXQgdGhlIGVycm9yIGZsb29kIGFnYWluLCBh
-bmQgdGhlIGRldmljZSBpcyB1bnVzYWJsZToKPiAKPiBZZXMsIEkgdGhpbmsgdGhlcmUncyBzdGls
-bCBzb21ldGhpbmcgd3JvbmcuIEkgaGF2ZW4ndCBiZWVuIGFibGUgdG8gZmluZAo+IG91dCB3aGF0
-Lgo+IAo+IFNvbWVob3cgZGVsYXlzIHNlZW0gdG8gaGVscCAobGlrZSBlbmFibGluZyBkZWJ1ZyBw
-cmludHMpLCBidXQgSSBoYXZlbid0Cj4gYmVlbiBhYmxlIHRvIGZpbmQgb3V0IHdoZXJlIGV4YWN0
-bHkgdGhlIGRlbGF5IGlzIG5lZWRlZC4KPiAKPiBBbmQgSSdkIHJhdGhlciBub3QgcmV2ZXJ0IHRo
-ZSBwYXRjaCwgYmVjYXVzZSB0aGVyZSdzIG5vdGhpbmcgd3Jvbmcgd2l0aAo+IHRoYXQgcGF0Y2gg
-YXMgc3VjaCwgYW5kIGl0IGZpeGVzIGlzc3VlcyBvbiBhbGwgcGxhdGZvcm1zLgo+IAo+IFNvLCBJ
-IGRvbid0IGtub3cuLi4gSSBndWVzcyBJIG5lZWQgdG8gdHJ5IHRvIGludmVudCBzb21lIGhvcnJp
-YmxlIGhhY2tzCj4gYXJvdW5kIHRoZSBkcml2ZXIgdG8gc29tZWhvdyBtYW5hZ2UgdGhlIG9tYXAz
-IHByb2JsZW1zLiBQZXJoYXBzCj4gZGlzYWJsaW5nL2VuYWJsaW5nIHRoZSBvdXRwdXRzIHdoZW4g
-c3luYyBsb3N0IGhhcHBlbnMuLi4KCkkgZG9uJ3QgdGhpbmsgcmVnaXN0ZXJpbmcgYmVmb3JlIGV2
-ZXJ5dGhpbmcgaXMgbG9hZGVkIG1ha2Ugc2Vuc2UuIE9uIHRoZQpiaWcgZGVza3RvcCBkcml2ZXIg
-Y2hpcHMgd2UgaGF2ZSBhbGwgdGhlIGJyaWRnZS9lbmNvZGVyL3BhbmVsIGRyaXZlcnMKYnVpbHQg
-aW50byB0aGUgZHJpdmVyLiBhcm0tc29jIGxvdmVzIHRvIG1ha2UgZXZlcnl0aGluZyBhIHNlcGFy
-YXRlIG1vZHVsZSwKYnV0IGluIHRoZSBlbmQgaWYgeW91IGRlY2lkZWQgdG8gbm90IGNvbXBpbGUg
-aGFsZiBvZiB0aGUgZHJpdmVyIHlvdSBuZWVkLAp0aGVuIGl0J3Mgbm90IGdvaW5nIHRvIHdvcmsu
-CgpJbW8gdGhlIG9ubHkgdGhpbmcgd2Ugc2hvdWxkIHN1cHBvcnQgdG8gYmUgaG90cGx1Z2dlZCBp
-biBkcm0gaXMgc3R1ZmYgeW91CmNhbiBwaHlzaWNhbGx5IGhvdHBsdWcgKGxpa2UgYXRtIGNvbm5l
-Y3RvcnMpLiBFdmVyeXRoaW5nIGVsc2UganVzdApjb21wbGljYXRlcyB0aGUgY29kZSBmb3Igbm8g
-Z29vZCByZWFzb24gYXQgYWxsLgoKdGxkcjsgV3JvbmcgLmNvbmZpZyBnaXZlcyB5b3UgYSBub24t
-d29ya2luZyBkcml2ZXIsIG5vIHN1cnByaXNlcy4gQW5kIGR1ZQp0byB0aGUgImRlZmF1bHQgbiIg
-cnVsZSB0aGlzIGNhbiBldmVuIGxvb2sgbGlrZSBhIHJlZ3Jlc3Npb24uCi1EYW5pZWwKLS0gCkRh
-bmllbCBWZXR0ZXIKU29mdHdhcmUgRW5naW5lZXIsIEludGVsIENvcnBvcmF0aW9uCmh0dHA6Ly9i
-bG9nLmZmd2xsLmNoCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
-ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
-bAo=
+
+
+On 06/29/2017 01:03 AM, Tony Lindgren wrote:
+> * Vignesh R <vigneshr@ti.com> [170628 21:21]:
+>>
+>>
+>> On Thursday 29 June 2017 05:01 AM, Strashko, Grygorii wrote:
+>>> IRQ_NOAUTOEN can't be used with shared IRQs and Kernel now will triggers
+>>> warning if it happns, since commit 04c848d39879 ("genirq: Warn when
+>>> IRQ_NOAUTOEN is used with shared interrupts"). And this is the case for
+>>> OMAP DWC 3 driver.
+>>>
+>>> Hence, remove IRQ_NOAUTOEN flag and instead call disable_irq() before
+>>> disabling PM runtime in probe error path handling.
+>>
+>> Or, how about requesting the irq at the end of probe after extcon
+>> registration?
+> 
+> Hmm yeah, what prevents the issue that we tried to fix with commit
+> 12a7f17fac5b ("usb: dwc3: omap: fix race of pm runtime with irq handler
+> in probe")?
+
+No, I think. There should be the disable_irq() call any way
+before pm_runtime_put_sync(dev);| pm_runtime_disable(dev); -
+once IRQ is requested driver can't know if IRQ handler is running now or not
+unless it will call disable_irq()/free_irq().
+
+But, I've also thought about moving request_irq() down (seems
+it can be moved even after of_platform_populate()).
+looks like it can be separate patch.
+
+
+>>> Fixes: 12a7f17fac5b ("usb: dwc3: omap: fix race of pm runtime with...")
+>>> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>> ---
+>>>   drivers/usb/dwc3/dwc3-omap.c | 3 +--
+>>>   1 file changed, 1 insertion(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+>>> index 9892650..cd9bef5 100644
+>>> --- a/drivers/usb/dwc3/dwc3-omap.c
+>>> +++ b/drivers/usb/dwc3/dwc3-omap.c
+>>> @@ -512,7 +512,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+>>>   
+>>>   	/* check the DMA Status */
+>>>   	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
+>>> -	irq_set_status_flags(omap->irq, IRQ_NOAUTOEN);
+>>>   	ret = devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
+>>>   					dwc3_omap_interrupt_thread, IRQF_SHARED,
+>>>   					"dwc3-omap", omap);
+>>> @@ -533,10 +532,10 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+>>>   	}
+>>>   
+>>>   	dwc3_omap_enable_irqs(omap);
+>>> -	enable_irq(omap->irq);
+>>>   	return 0;
+>>>   
+>>>   err1:
+>>> +	disable_irq(omap->irq);
+>>>   	pm_runtime_put_sync(dev);
+>>>   	pm_runtime_disable(dev);
+>>>   
+
+-- 
+regards,
+-grygorii
