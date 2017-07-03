@@ -1,94 +1,96 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 5/9] mfd: Drop unnecessary static
-Date: Mon, 3 Jul 2017 12:42:29 +0100
-Message-ID: <20170703114229.4457nmk627l75nly@dell>
-References: <1493928654-18768-1-git-send-email-Julia.Lawall@lip6.fr>
- <1493928654-18768-6-git-send-email-Julia.Lawall@lip6.fr>
- <CAGXu5jKgHObu8Ms4KNsO8g_PkoYp4YZbuHzyz0qPMK5xEkT90w@mail.gmail.com>
+From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Subject: Re: [PATCH v7 1/2] power: supply: twl4030-charger: move irq
+ allocation to just before irqs are enabled
+Date: Mon, 3 Jul 2017 14:55:56 +0200
+Message-ID: <20170703125556.kaeds2qwk3hxgkw4@earth>
+References: <cover.1497861705.git.hns@goldelico.com>
+ <2b919bea97f23c952e0141ed63d04dbbcea5c695.1497861705.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="45iesxufwisbf3hp"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAGXu5jKgHObu8Ms4KNsO8g_PkoYp4YZbuHzyz0qPMK5xEkT90w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: kernel-janitors@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, Julia Lawall <Julia.Lawall@lip6.fr>, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <2b919bea97f23c952e0141ed63d04dbbcea5c695.1497861705.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, NeilBrown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Marek Belisko <marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 27 Jun 2017, Kees Cook wrote:
 
-> On Thu, May 4, 2017 at 1:10 PM, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
-> > Drop static on a local variable, when the variable is initialized before
-> > any use, on every possible execution path through the function.
-> >
-> > The semantic patch that fixes this problem is as follows:
-> > (http://coccinelle.lip6.fr/)
-> >
-> > // <smpl>
-> > @bad exists@
-> > position p;
-> > identifier x;
-> > type T;
-> > @@
-> >
-> > static T x@p;
-> > ...
-> > x = <+...x...+>
-> >
-> > @@
-> > identifier x;
-> > expression e;
-> > type T;
-> > position p != bad.p;
-> > @@
-> >
-> > -static
-> >  T x@p;
-> >  ... when != x
-> >      when strict
-> > ?x = e;
-> > // </smpl>
-> >
-> > The change increases the code size but decreases the size of the bss segment.
-> >
-> > before:
-> >    text    data     bss     dec     hex filename
-> >    3369     272     300    3941     f65 drivers/mfd/twl4030-irq.o
-> >
-> > after:
-> >    text    data     bss     dec     hex filename
-> >    3401     272      28    3701     e75 drivers/mfd/twl4030-irq.o
-> >
-> > Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> >
-> > ---
-> >  drivers/mfd/twl4030-irq.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-> > index b46c0cf..c775f27 100644
-> > --- a/drivers/mfd/twl4030-irq.c
-> > +++ b/drivers/mfd/twl4030-irq.c
-> > @@ -683,7 +683,7 @@ int twl4030_sih_setup(struct device *dev, int module, int irq_base)
-> >
-> >  int twl4030_init_irq(struct device *dev, int irq_num)
-> >  {
-> > -       static struct irq_chip  twl4030_irq_chip;
-> > +       struct irq_chip twl4030_irq_chip;
-> >         int                     status, i;
-> >         int                     irq_base, irq_end, nr_irqs;
-> >         struct                  device_node *node = dev->of_node;
-> >
-> 
-> Acked-by: Kees Cook <keescook@chromium.org>
-> 
-> Kernel janitors or Andrew, can you pick this up?
+--45iesxufwisbf3hp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Same.
+Hi,
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+On Mon, Jun 19, 2017 at 10:41:45AM +0200, H. Nikolaus Schaller wrote:
+> And initialize workers and notifiers as soon as possible.
+>=20
+> This avoids a potential race if irqs are enabled and triggered too early
+> before the worker is properly set up.
+>=20
+> Suggested-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> ---
+>  drivers/power/supply/twl4030_charger.c | 29 +++++++++++++++--------------
+>  1 file changed, 15 insertions(+), 14 deletions(-)
+>=20
+> diff --git a/drivers/power/supply/twl4030_charger.c b/drivers/power/suppl=
+y/twl4030_charger.c
+> index 1fbbe0cc216a..9d974f1e3957 100644
+> --- a/drivers/power/supply/twl4030_charger.c
+> +++ b/drivers/power/supply/twl4030_charger.c
+> @@ -984,12 +984,27 @@ static int twl4030_bci_probe(struct platform_device=
+ *pdev)
+> =20
+>  	platform_set_drvdata(pdev, bci);
+> =20
+> +	INIT_WORK(&bci->work, twl4030_bci_usb_work);
+> +	INIT_DELAYED_WORK(&bci->current_worker, twl4030_current_worker);
+> +
+>  	bci->channel_vac =3D devm_iio_channel_get(&pdev->dev, "vac");
+>  	if (IS_ERR(bci->channel_vac)) {
+>  		bci->channel_vac =3D NULL;
+>  		dev_warn(&pdev->dev, "could not request vac iio channel");
+>  	}
+> =20
+> +	if (bci->dev->of_node) {
+> +		struct device_node *phynode;
+> +
+> +		phynode =3D of_find_compatible_node(bci->dev->of_node->parent,
+> +						  NULL, "ti,twl4030-usb");
+> +		if (phynode) {
+> +			bci->transceiver =3D devm_usb_get_phy_by_node(
+> +				bci->dev, phynode, &bci->usb_nb);
+> +			bci->usb_nb.notifier_call =3D twl4030_bci_usb_ncb;
+
+those two should be the other way around.
+
+-- Sebastian
+
+--45iesxufwisbf3hp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllaPtkACgkQ2O7X88g7
++pqw1Q//R09pCXLxnVIrPjpWMn8qY26Hsi9Kz6EX1mUpHdJVjR2tdu5LqsIifbNb
+e3Re4XLt0lQs/gMga+6CWRChlYiGYCZKqrCaKVNG61r97KWthXdvmyPgN36b8nMm
+dmpCjyzU4nf5vOfz3EzmUnpgkvDpLCegMXSPXwTYjX4TupZkFcX2c1ZVL09Jf7je
+1dHiMm8AxpcxK16uBdFUCC56tDG/EgG1qns7IqIXB4+mk2KtzRhNnO1Kf5hdfT/M
+DF9IXM7+G2rmWSJKYluLIzPxcgC1IsbqaL7IbD28pzCiZCauEaoP85+6fum8k+D5
+STXNVTMayt+Do29/N4hDugWsO9q/z7BpujH9aXet7VDdefCofJyQIVot78zR/fb3
+hprw/S1vKuMZ65JoGKuukz3I0ScW2+0cAcLtvn/97tEtjKo8sUu4sMQGqj13apqM
+HP+fQbbUtFMvnI1zNlxC6yazMaSIx4BVbVFsUKwQ4i3mHSapLiHAihyxie+0qB2A
+3b/ygQx9oQR9Bloce+Qyz702+sSenxjLn5hN83zf/SXaOLuoIEgVAvCotFJqVi1W
+nqBeyPHIKV33B5QxEWZ+ncLSA8HX1qEyPI+pex+pVuS0pUYgH6AbY84BdbwXyV46
+LV5fgiNNdaEQfgLeU9UfYcdBXWlUKJWsvDh3O5ayrx4m6gDvr5E=
+=Wxp8
+-----END PGP SIGNATURE-----
+
+--45iesxufwisbf3hp--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
