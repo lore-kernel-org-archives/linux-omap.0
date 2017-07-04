@@ -1,34 +1,29 @@
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH] omapfb: panel-dsi-cm: constify dsicm_attr_group
-Date: Tue, 04 Jul 2017 16:33:43 +0200
-Message-ID: <3864187.P2DtsQDzSm@amdc3058>
-References: <CGME20170623052716epcas2p47c5c0848b3cb9b3d2b53fd805bc15099@epcas2p4.samsung.com>
-        <624ffdf87293646671d3fef7079d19528108a381.1498195469.git.arvind.yadav.cs@gmail.com>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH 0/2] net: phy: dp83867: workaround incorrect RX_CTRL pin
+ strap
+Date: Tue, 4 Jul 2017 16:47:52 +0200
+Message-ID: <20170704144752.GB10312@lunn.ch>
+References: <cover.1499162046.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <624ffdf87293646671d3fef7079d19528108a381.1498195469.git.arvind.yadav.cs@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1499162046.git.nsekhar@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Florian Fainelli <f.fainelli@gmail.com>, Device Tree Mailing List <devicetree@vger.kernel.org>, "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday, June 23, 2017 10:56:32 AM Arvind Yadav wrote:
-> File size before:
->    text	   data	    bss	    dec	    hex	filename
->    4657	    464	      0	   5121	   1401	drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.o
+On Tue, Jul 04, 2017 at 04:23:22PM +0530, Sekhar Nori wrote:
+> Hi,
 > 
-> File size After adding 'const':
->    text	   data	    bss	    dec	    hex	filename
->    4713	    400	      0	   5113	   13f9	drivers/video/fbdev/omap2/omapfb/displays/panel-dsi-cm.o
-> 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> This patch series adds workaround for incorrect RX_CTRL pin strap
+> setting that can be found on some TI boards.
 
-Patch queued for 4.13, thanks.
+Hi Sekhar
 
-Best regards,
---
-Bartlomiej Zolnierkiewicz
-Samsung R&D Institute Poland
-Samsung Electronics
+Do you plan to post some DT patches to make use of this? It would be
+good to seem them as well.
+
+     Thanks
+	Andrew
