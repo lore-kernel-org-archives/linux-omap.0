@@ -1,48 +1,154 @@
-From: William Breathitt Gray <vilhelm.gray@gmail.com>
-Subject: Re: [PATCH] gpio: drop unnecessary includes from
- include/linux/gpio/driver.h
-Date: Tue, 4 Jul 2017 08:58:51 -0400
-Message-ID: <20170704125851.GA20504@sophia>
-References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [PATCH v2 3/5] ARM: OMAP2+: pm33xx-core: Add platform code
+ needed for PM
+Date: Tue, 4 Jul 2017 15:14:41 +0200
+Message-ID: <20170704131441.GH27842@localhost>
+References: <20170519200438.9502-1-d-gerlach@ti.com>
+ <20170519200438.9502-4-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: linux-gpio@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Ray Jui <rjui@broadcom.com>, =?utf-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, linux-acpi@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kevin Hilman <khilman@kernel.org>, linux-tegra@vger.kernel.org, Joel Stanley <joel@jms.id.au>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.o
+In-Reply-To: <20170519200438.9502-4-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Keerthy J <j-keerthy@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 04, 2017 at 12:53:34PM +0900, Masahiro Yamada wrote:
->Some of include directives in include/linux/gpio/driver.h are
->unneeded because the header does not need to know the content of
->struct device, irq_chip, etc.  Just declare they are structures.
->
->On the other hand, <linux/irqhandler.h> and <linux/spinlock_types.h>
->turned out to be necessary for irq_flow_handler_t and spinlock_t,
->respectively.
->
->Each driver should include what it needs without relying on what is
->implicitly included from <linux/gpio/driver.h>.  This will cut down
->unnecessary header parsing.
->
->Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
->---
->
-> drivers/gpio/gpio-104-dio-48e.c  |  1 +
-> drivers/gpio/gpio-104-idi-48.c   |  1 +
-> drivers/gpio/gpio-104-idio-16.c  |  1 +
-> drivers/gpio/gpio-pci-idio-16.c  |  2 ++
-> drivers/gpio/gpio-ws16c48.c      |  1 +
+On Fri, May 19, 2017 at 03:04:36PM -0500, Dave Gerlach wrote:
+> Most of the PM code needed for am335x and am437x can be moved into a
+> module under drivers but some core code must remain in mach-omap2 at the
+> moment. This includes some internal clockdomain APIs and low-level ARM
+> APIs which are also not exported for use by modules.
+> 
+> Implement a few functions that handle these low-level platform
+> operations can be passed to the pm33xx module through the use of
+> platform data.
+> 
+> In addition to this, to be able to share data structures between C and
+> the sleep33xx and sleep43xx assembly code, we can automatically generate
+> all of the C struct member offsets and sizes as macros by making use of
+> the ARM asm-offsets file. In the same header that we define our data
+> structures in we also define all the macros in an inline function and by
+> adding a call to this in the asm_offsets file all macros are properly
+> generated and available to the assembly code without cluttering up the
+> asm-offsets file.
+> 
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
 
-The changes to the above drivers look fine to me:
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index b668719b9b25..2f9649b89053 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -81,6 +81,11 @@ extern unsigned int omap3_do_wfi_sz;
+>  /* ... and its pointer from SRAM after copy */
+>  extern void (*omap3_do_wfi_sram)(void);
+>  
+> +struct am33xx_pm_platform_data *am33xx_pm_get_pdata(void);
 
-Acked-by: William Breathitt Gray <vilhelm.gray@gmail.com>
+This one is not used outside of pm33xx-core.c so can now be static, and
+this declaration can be dropped.
 
-However, this patch as a whole does too many things; I'd like to see it
-split-up logically similar to how Andy Shevchenko suggested in his
-reply. That should allow ACKs by respective driver maintainers to be
-accounted more properly.
+> diff --git a/arch/arm/mach-omap2/pm33xx-core.c b/arch/arm/mach-omap2/pm33xx-core.c
+> new file mode 100644
+> index 000000000000..c84ffc4de2e9
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/pm33xx-core.c
+> @@ -0,0 +1,181 @@
+> +/*
+> + * AM33XX Arch Power Management Routines
+> + *
+> + * Copyright (C) 2016-2017 Texas Instruments Incorporated - http://www.ti.com/
+> + *	Dave Gerlach
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation version 2.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+> + * kind, whether express or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <asm/smp_scu.h>
 
-William Breathitt Gray
+I get a compilation error here when compiling for am335x without
+CONFIG_HAVE_ARM_SCU due to a missing errno.h include:
+
+In file included from /home/johan/work/omicron/src/linux/arch/arm/mach-omap2/pm33xx-core.c:17:0:
+/home/johan/work/omicron/src/linux/arch/arm/include/asm/smp_scu.h: In function 'scu_power_mode':
+/home/johan/work/omicron/src/linux/arch/arm/include/asm/smp_scu.h:36:10: error: 'EINVAL' undeclared (first use in this function)
+  return -EINVAL;
+          ^
+/home/johan/work/omicron/src/linux/arch/arm/include/asm/smp_scu.h:36:10: note: each undeclared identifier is reported only once for each function it appears in
+
+This is arguably a bug in the header, which I'm submitting a fix for,
+but you should include errno.h above anyway as you use its definitions
+below as well.
+
+> +#include <asm/suspend.h>
+> +#include <linux/platform_data/pm33xx.h>
+
+<snip>
+
+> diff --git a/include/linux/platform_data/pm33xx.h b/include/linux/platform_data/pm33xx.h
+> new file mode 100644
+> index 000000000000..c191ab681093
+> --- /dev/null
+> +++ b/include/linux/platform_data/pm33xx.h
+> @@ -0,0 +1,69 @@
+> +/*
+> + * TI pm33xx platform data
+> + *
+> + * Copyright (C) 2016-2017 Texas Instruments, Inc.
+> + *	Dave Gerlach <d-gerlach@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#ifndef _LINUX_PLATFORM_DATA_PM33XX_H
+> +#define _LINUX_PLATFORM_DATA_PM33XX_H
+> +
+
+And here you should add a linux/types.h include to make this header
+self-contained. Right now you are depending on the scu header to pull in
+the types for pm33xx-core.c above.
+
+> +#include <linux/kbuild.h>
+> +
+> +#ifndef __ASSEMBLER__
+> +struct am33xx_pm_sram_addr {
+> +	void (*do_wfi)(void);
+> +	unsigned long *do_wfi_sz;
+> +	unsigned long *resume_offset;
+> +	unsigned long *emif_sram_table;
+> +	unsigned long *ro_sram_data;
+> +};
+> +
+> +struct am33xx_pm_platform_data {
+> +	int	(*init)(void);
+> +	int	(*soc_suspend)(unsigned int state, int (*fn)(unsigned long));
+> +	struct  am33xx_pm_sram_addr *(*get_sram_addrs)(void);
+> +};
+> +
+> +struct am33xx_pm_sram_data {
+> +	u32 wfi_flags;
+> +	u32 l2_aux_ctrl_val;
+> +	u32 l2_prefetch_ctrl_val;
+> +};
+> +
+> +struct am33xx_pm_ro_sram_data {
+> +	u32 amx3_pm_sram_data_virt;
+> +	u32 amx3_pm_sram_data_phys;
+> +};
+
+Johan
