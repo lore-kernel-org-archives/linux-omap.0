@@ -1,77 +1,48 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [linux-next][PATCH] usb: dwc3: omap: remove IRQ_NOAUTOEN used
- with shared irq
-Date: Tue, 4 Jul 2017 18:20:10 +0530
-Message-ID: <473f2c00-b57b-ce97-0d3a-d5da4622e9d4@ti.com>
-References: <20170628233131.19114-1-grygorii.strashko@ti.com>
- <463ea19c-dc60-5926-56b4-0f10d2e23e94@ti.com>
- <20170629060353.GE3730@atomide.com>
- <dac573e2-31e3-b431-8510-973d691fc0ed@ti.com>
- <c54d656c-469f-b81d-5af4-91aec6f9da20@ti.com>
- <9b8d09f8-a52d-9992-142d-b3727062b234@ti.com>
+From: William Breathitt Gray <vilhelm.gray@gmail.com>
+Subject: Re: [PATCH] gpio: drop unnecessary includes from
+ include/linux/gpio/driver.h
+Date: Tue, 4 Jul 2017 08:58:51 -0400
+Message-ID: <20170704125851.GA20504@sophia>
+References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9b8d09f8-a52d-9992-142d-b3727062b234@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "GregKroah-Hartmangregkh@linuxfoundation.org" <GregKroah-Hartmangregkh@linuxfoundation.org>, Felipe Balbi <balbi@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: linux-gpio@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Ray Jui <rjui@broadcom.com>, =?utf-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, linux-acpi@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kevin Hilman <khilman@kernel.org>, linux-tegra@vger.kernel.org, Joel Stanley <joel@jms.id.au>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.o
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, Jul 04, 2017 at 12:53:34PM +0900, Masahiro Yamada wrote:
+>Some of include directives in include/linux/gpio/driver.h are
+>unneeded because the header does not need to know the content of
+>struct device, irq_chip, etc.  Just declare they are structures.
+>
+>On the other hand, <linux/irqhandler.h> and <linux/spinlock_types.h>
+>turned out to be necessary for irq_flow_handler_t and spinlock_t,
+>respectively.
+>
+>Each driver should include what it needs without relying on what is
+>implicitly included from <linux/gpio/driver.h>.  This will cut down
+>unnecessary header parsing.
+>
+>Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+>---
+>
+> drivers/gpio/gpio-104-dio-48e.c  |  1 +
+> drivers/gpio/gpio-104-idi-48.c   |  1 +
+> drivers/gpio/gpio-104-idio-16.c  |  1 +
+> drivers/gpio/gpio-pci-idio-16.c  |  2 ++
+> drivers/gpio/gpio-ws16c48.c      |  1 +
 
-On 7/3/2017 11:58 PM, Grygorii Strashko wrote:
-> 
-> 
-> On 07/02/2017 11:27 PM, Vignesh R wrote:
->> Hi,
->>
->> On Saturday 01 July 2017 01:04 AM, Strashko, Grygorii wrote:
->>>
->>>
->>> On 06/29/2017 01:03 AM, Tony Lindgren wrote:
->>>> * Vignesh R <vigneshr@ti.com> [170628 21:21]:
->>>>>
->>>>>
->>>>> On Thursday 29 June 2017 05:01 AM, Strashko, Grygorii wrote:
->>>>>> IRQ_NOAUTOEN can't be used with shared IRQs and Kernel now will
->>>>>> triggers
->>>>>> warning if it happns, since commit 04c848d39879 ("genirq: Warn when
->>>>>> IRQ_NOAUTOEN is used with shared interrupts"). And this is the
->>>>>> case for
->>>>>> OMAP DWC 3 driver.
->>>>>>
->>>>>> Hence, remove IRQ_NOAUTOEN flag and instead call disable_irq() before
->>>>>> disabling PM runtime in probe error path handling.
->>>>>
->>>>> Or, how about requesting the irq at the end of probe after extcon
->>>>> registration?
->>>>
->>>> Hmm yeah, what prevents the issue that we tried to fix with commit
->>>> 12a7f17fac5b ("usb: dwc3: omap: fix race of pm runtime with irq handler
->>>> in probe")?
->>>
->>> No, I think. There should be the disable_irq() call any way
->>> before pm_runtime_put_sync(dev);| pm_runtime_disable(dev); -
->>> once IRQ is requested driver can't know if IRQ handler is running now
->>> or not
->>> unless it will call disable_irq()/free_irq().
->>>
->>> But, I've also thought about moving request_irq() down (seems
->>> it can be moved even after of_platform_populate()).
->>> looks like it can be separate patch.
->>>
->>
->> commit 12a7f17fac5b says PM runtime can race with IRQ handler when
->> deferred probing happening due to extcon, therefore IRQ_NOAUTOEN was set
->> and disable_irq() call was added. If IRQ handler registration is moved
->> to a place after of_platform_populate(), then we can be sure that extcon
->> is registered and there wont be any deferred probe or race with irq
->> handler and PM runtime. Would disable_irq() still be needed then?
->>
-> 
-> You might be correct, so feel free to send a patch.
+The changes to the above drivers look fine to me:
 
-Ok, will send a patch moving irq registration after of_platform_populate().
+Acked-by: William Breathitt Gray <vilhelm.gray@gmail.com>
+
+However, this patch as a whole does too many things; I'd like to see it
+split-up logically similar to how Andy Shevchenko suggested in his
+reply. That should allow ACKs by respective driver maintainers to be
+accounted more properly.
+
+William Breathitt Gray
