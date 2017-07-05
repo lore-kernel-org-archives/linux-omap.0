@@ -1,35 +1,45 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] gpio: drop unnecessary includes from include/linux/gpio/driver.h
-Date: Tue, 4 Jul 2017 18:51:36 +0300
-Message-ID: <CAHp75VcfDdSCoU=DZyF1BD0YX9KfmLnptnHU9fgBQY3g-NW7PQ@mail.gmail.com>
-References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
- <20170704125851.GA20504@sophia> <CAK7LNATRrngmVFPDSKmUm3Td7RXnSZSPGNF9Ds_y+DU=i7mRag@mail.gmail.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/2] net: phy: dp83867: workaround incorrect RX_CTRL pin
+ strap
+Date: Wed, 5 Jul 2017 10:49:37 +0530
+Message-ID: <b1169d1b-3129-850a-2137-4606e1756939@ti.com>
+References: <cover.1499162046.git.nsekhar@ti.com>
+ <20170704144752.GB10312@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK7LNATRrngmVFPDSKmUm3Td7RXnSZSPGNF9Ds_y+DU=i7mRag@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: William Breathitt Gray <vilhelm.gray@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Ray Jui <rjui@broadcom.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Broadcom Kernel Feedback List <bcm-kernel-feedback-list@broadcom.com>, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kev
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170704144752.GB10312-g2DYL2Zd6BY@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 4, 2017 at 6:43 PM, Masahiro Yamada
-<yamada.masahiro@socionext.com> wrote:
-> 2017-07-04 21:58 GMT+09:00 William Breathitt Gray <vilhelm.gray@gmail.com>:
+Hi Andrew,
 
-> So, I need to think about how to merge this (if the basic idea of this is OK).
->
-> Maybe,
->
-> [1] Send patches to subsystems (gpio, pinctrl, etc.) for v4.14
-> [2] Drop unneeded includes from linux/gpio/driver.h for v4.15
+On Tuesday 04 July 2017 08:17 PM, Andrew Lunn wrote:
+> On Tue, Jul 04, 2017 at 04:23:22PM +0530, Sekhar Nori wrote:
+>> Hi,
+>>
+>> This patch series adds workaround for incorrect RX_CTRL pin strap
+>> setting that can be found on some TI boards.
+> 
+> Hi Sekhar
+> 
+> Do you plan to post some DT patches to make use of this? It would be
+> good to seem them as well.
 
-Perhaps, fixing users (drivers!) first. then frameworks / libraries,
-at last header itself (in each case perhaps follow the split I
-proposed earlier).
+Actually I ended up posting those prior to this series (done in error)
+and have promised Tony a resend once this is accepted.
 
-My wish is to get gpiolib-acpi patch completely separate from the bunch.
+http://www.spinics.net/lists/devicetree/msg183487.html
 
--- 
-With Best Regards,
-Andy Shevchenko
+I will Cc the same audience on the resend.
+
+Thanks,
+Sekhar
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
