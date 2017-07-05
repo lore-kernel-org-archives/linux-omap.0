@@ -1,25 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] net: phy: dp83867: workaround incorrect RX_CTRL
- pin strap
-Date: Wed, 05 Jul 2017 09:25:37 +0100 (WEST)
-Message-ID: <20170705.092537.2229563531210589008.davem@davemloft.net>
-References: <cover.1499162046.git.nsekhar@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 2/2] ARM: pm: add missing types include
+Date: Wed, 5 Jul 2017 18:01:00 +0200
+Message-ID: <20170705160057.GD17293@xo-6d-61-c0.localdomain>
+References: <20170704132542.27644-1-johan@kernel.org>
+ <20170704132542.27644-3-johan@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1499162046.git.nsekhar@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: nsekhar@ti.com
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, andrew@lunn.ch, f.fainelli@gmail.com, devicetree@vger.kernel.org, netdev@vger.kernel.org, tony@atomide.com, linux-omap@vger.kernel.org, grygorii.strashko@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170704132542.27644-3-johan@kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Russell King <linux@armlinux.org.uk>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Dave Gerlach <d-gerlach@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Sekhar Nori <nsekhar@ti.com>
-Date: Tue, 4 Jul 2017 16:23:22 +0530
-
-> This patch series adds workaround for incorrect RX_CTRL pin strap
-> setting that can be found on some TI boards.
+On Tue 2017-07-04 15:25:42, Johan Hovold wrote:
+> Add missing types.h include to make the suspend header self-contained
+> and avoid compilation breakage due to include-directive ordering.
 > 
-> This is required to be complaint to PHY datamanual specification.
+> Signed-off-by: Johan Hovold <johan@kernel.org>
 
-Series applied.
+Acked-by: Pavel Machek <pavel@ucw.cz>
+
+> +++ b/arch/arm/include/asm/suspend.h
+>  #define __ASM_ARM_SUSPEND_H
+>  
+> +#include <linux/types.h>
+> +
+>  struct sleep_save_sp {
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
