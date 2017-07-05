@@ -1,70 +1,49 @@
 From: Joe Perches <joe@perches.com>
-Subject: [PATCH 00/18] treewide: Move storage class before
-	return type
-Date: Wed,  5 Jul 2017 13:02:09 -0700
-Message-ID: <cover.1499284835.git.joe@perches.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Andrew Morton <akpm@linux-foundation.org>, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-m68k@lists.linux-m68k.org, linux-efi@vger.kernel.org, linux-s390@vger.kernel.org, linux-serial@vger.kernel.org, linux-ia64@vger.kernel.org, linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com, linux-sh@vger.kernel.org
+Subject: [PATCH 16/18] video: fbdev: omap: Move inline before return type
+Date: Wed,  5 Jul 2017 13:02:25 -0700
+Message-ID: <bc5927726abc70d7c066df7ab4cb7cfce4a7b577.1499284835.git.joe@perches.com>
+References: <cover.1499284835.git.joe@perches.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1499284835.git.joe@perches.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Move the inline/asmlinkage keywords before the return types
-Add a checkpatch test for this too.
+Make the code like the rest of the kernel.
 
-Joe Perches (18):
-  checkpatch: improve the STORAGE_CLASS test
-  ARM: KVM: Move asmlinkage before type
-  ARM: HP Jornada 7XX: Move inline before return type
-  CRIS: gpio: Move inline before return type
-  FRV: tlbflush: Move asmlinkage before return type
-  ia64: Move inline before return type
-  ia64: sn: pci: Move inline before type
-  m68k: coldfire: Move inline before return type
-  MIPS: SMP: Move asmlinkage before return type
-  sh: Move inline before return type
-  x86/efi: Move asmlinkage before return type
-  drivers: s390: Move static and inline before return type
-  drivers: tty: serial: Move inline before return type
-  USB: serial: safe_serial: Move __inline__ before return type
-  video: fbdev: intelfb: Move inline before return type
-  video: fbdev: omap: Move inline before return type
-  ARM: samsung: usb-ohci: Move inline before return type
-  ALSA: opl4: Move inline before return type
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/video/fbdev/omap/lcdc.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- arch/arm/include/asm/kvm_hyp.h                 |  8 ++++----
- arch/arm/mach-sa1100/jornada720_ssp.c          |  2 +-
- arch/cris/arch-v10/drivers/gpio.c              |  4 ++--
- arch/frv/include/asm/tlbflush.h                |  8 ++++----
- arch/ia64/kernel/mca.c                         |  2 +-
- arch/ia64/sn/pci/pcibr/pcibr_ate.c             |  2 +-
- arch/ia64/sn/pci/tioce_provider.c              |  4 ++--
- arch/m68k/coldfire/intc-simr.c                 |  4 ++--
- arch/mips/include/asm/smp.h                    |  2 +-
- arch/sh/mm/cache-sh5.c                         |  2 +-
- arch/x86/include/asm/efi.h                     |  4 ++--
- drivers/s390/net/ctcm_main.c                   |  2 +-
- drivers/s390/net/qeth_l3_main.c                |  2 +-
- drivers/tty/serial/ioc3_serial.c               |  4 ++--
- drivers/tty/serial/ioc4_serial.c               |  4 ++--
- drivers/usb/serial/safe_serial.c               |  2 +-
- drivers/video/fbdev/intelfb/intelfbdrv.c       |  2 +-
- drivers/video/fbdev/omap/lcdc.c                |  6 +++---
- include/linux/platform_data/usb-ohci-s3c2410.h |  2 +-
- scripts/checkpatch.pl                          | 12 ++++++++++--
- sound/drivers/opl4/opl4_lib.c                  |  2 +-
- 21 files changed, 44 insertions(+), 36 deletions(-)
-
+diff --git a/drivers/video/fbdev/omap/lcdc.c b/drivers/video/fbdev/omap/lcdc.c
+index e3d9b9ea5498..938cba0d24ae 100644
+--- a/drivers/video/fbdev/omap/lcdc.c
++++ b/drivers/video/fbdev/omap/lcdc.c
+@@ -79,12 +79,12 @@ static struct omap_lcd_controller {
+ 	unsigned long		vram_size;
+ } lcdc;
+ 
+-static void inline enable_irqs(int mask)
++static inline void enable_irqs(int mask)
+ {
+ 	lcdc.irq_mask |= mask;
+ }
+ 
+-static void inline disable_irqs(int mask)
++static inline void disable_irqs(int mask)
+ {
+ 	lcdc.irq_mask &= ~mask;
+ }
+@@ -466,7 +466,7 @@ static void calc_ck_div(int is_tft, int pck, int *pck_div)
+ 	}
+ }
+ 
+-static void inline setup_regs(void)
++static inline void setup_regs(void)
+ {
+ 	u32 l;
+ 	struct lcd_panel *panel = lcdc.fbdev->panel;
 -- 
 2.10.0.rc2.1.g053435c
