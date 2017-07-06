@@ -1,57 +1,64 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: Re: [PATCH v2 5/5] ARM: OMAP2+: Create dummy platform_device for
- pm33xx
-Date: Thu, 6 Jul 2017 14:08:42 -0500
-Message-ID: <931417b7-d080-3877-252a-a5d39706dfb3@ti.com>
-References: <20170519200438.9502-1-d-gerlach@ti.com>
- <20170519200438.9502-6-d-gerlach@ti.com> <20170703165844.GD27842@localhost>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.13-rc0 on nokia n900: spinlock bad magic
+Date: Thu, 6 Jul 2017 21:39:23 +0200
+Message-ID: <20170706193922.GA31830@amd>
+References: <20170706180337.GA26875@amd>
+ <201707062015.54343@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170703165844.GD27842@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201707062015.54343@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/03/2017 11:58 AM, Johan Hovold wrote:
-> On Fri, May 19, 2017 at 03:04:38PM -0500, Dave Gerlach wrote:
->> Add amx3_common_pm_init to create a dummy platform_device for
->> pm33xx so that our pm33xx module can probe and am335x and am437x
->> platforms to enable basic suspend to mem and standby support.
->>
->> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
->> ---
-> 
->> +void __init amx3_common_pm_init(void)
->> +{
->> +	struct platform_device_info devinfo = { };
-> 
-> You should make sure devinfo is zeroed, and also set .id to -1. 
 
-Thanks for the comment, will look into updating this for next version.
+--OgqxwSJOaUobr8KG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
-Dave
+Hi!
 
-> 
->> +	struct am33xx_pm_platform_data *pdata;
->> +
->> +	pdata = am33xx_pm_get_pdata();
->> +	devinfo.name = "pm33xx";
->> +	devinfo.data = pdata;
->> +	devinfo.size_data = sizeof(*pdata);
->> +	platform_device_register_full(&devinfo);
->> +}
-> 
-> Johan
-> 
+> On Thursday 06 July 2017 20:03:37 Pavel Machek wrote:
+> > Hi!
+> >=20
+> > I don't think this is new in v4.13, but perhaps someone knows how to
+> > debug it?
+> >=20
+> > [ 5611.801147] g_ether gadget: packet filter 0e
+> > [ 5611.801177] g_ether gadget: ecm req21.43 v000e i0000 l0
+> > [ 5668.771453] BUG: spinlock bad magic on CPU#0, kworker/u2:3/9745
+> > [ 5668.771850]  lock: 0xce63ef20, .magic: 00000000, .owner:
+> > <none>/-1, .owner_cpu: 0
+> > [ 5668.772277] CPU: 0 PID: 9745 Comm: kworker/u2:3 Tainted: G      =20
+> > W 4.12.0-03002-gec979a4-dirty #40
+> > [ 5668.772796] Hardware name: Nokia RX-51 board
+> > [ 5668.773071] Workqueue: phy1 wl1251_irq_work
+>=20
+> I do not remember that I saw this problem.
+
+I guess I have some debug options enabled... do you want a .config to
+play with?
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--OgqxwSJOaUobr8KG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllekeoACgkQMOfwapXb+vK5XwCdExzMPRaMdYya/aeOjUI+r0IZ
+OGYAoJFRJdhcddRdK+aylvPWvRXiYpeM
+=J00E
+-----END PGP SIGNATURE-----
+
+--OgqxwSJOaUobr8KG--
