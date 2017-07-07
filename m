@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCH 1/2] regulator: cpcap: Fix standby mode
-Date: Fri,  7 Jul 2017 22:08:12 +0200
-Message-ID: <20170707200813.20371-2-sebastian.reichel@collabora.co.uk>
+Subject: [PATCH 2/2] ARM: dts: motorola-cpcap-mapphone: set initial mode for vaudio
+Date: Fri,  7 Jul 2017 22:08:13 +0200
+Message-ID: <20170707200813.20371-3-sebastian.reichel@collabora.co.uk>
 References: <20170707200813.20371-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170707200813.20371-1-sebastian.reichel@collabora.co.uk>
@@ -10,64 +10,24 @@ To: Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mar
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-While working on the audio-codec I noticed, that the
-low power mode of the regulators are not properly
-supported. This fixes the issue for vaudio.
+Set default mode for vaudio, which may be left in standby mode
+if the system is booted via kexec from Android.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/regulator/cpcap-regulator.c | 17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
-index cc98aceed1c1..65da6dba0b82 100644
---- a/drivers/regulator/cpcap-regulator.c
-+++ b/drivers/regulator/cpcap-regulator.c
-@@ -121,6 +121,7 @@ struct cpcap_regulator {
- 		.enable_val = (mode_val),				\
- 		.disable_val = (off_val),				\
- 		.ramp_delay = (volt_trans_time),			\
-+		.of_map_mode = cpcap_map_mode,				\
- 	},								\
- 	.assign_reg = (assignment_reg),					\
- 	.assign_mask = (assignment_mask),				\
-@@ -211,13 +212,23 @@ static int cpcap_regulator_disable(struct regulator_dev *rdev)
- 	return error;
- }
- 
-+static unsigned int cpcap_map_mode(unsigned int mode)
-+{
-+	switch (mode) {
-+	case CPCAP_BIT_AUDIO_LOW_PWR:
-+		return REGULATOR_MODE_STANDBY;
-+	default:
-+		return REGULATOR_MODE_NORMAL;
-+	}
-+}
-+
- static unsigned int cpcap_regulator_get_mode(struct regulator_dev *rdev)
- {
- 	int value;
- 
- 	regmap_read(rdev->regmap, rdev->desc->enable_reg, &value);
- 
--	if (!(value & CPCAP_BIT_AUDIO_LOW_PWR))
-+	if (value & CPCAP_BIT_AUDIO_LOW_PWR)
- 		return REGULATOR_MODE_STANDBY;
- 
- 	return REGULATOR_MODE_NORMAL;
-@@ -230,10 +241,10 @@ static int cpcap_regulator_set_mode(struct regulator_dev *rdev,
- 
- 	switch (mode) {
- 	case REGULATOR_MODE_NORMAL:
--		value = CPCAP_BIT_AUDIO_LOW_PWR;
-+		value = 0;
- 		break;
- 	case REGULATOR_MODE_STANDBY:
--		value = 0;
-+		value = CPCAP_BIT_AUDIO_LOW_PWR;
- 		break;
- 	default:
- 		return -EINVAL;
+diff --git a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+index 86033aee8a29..7c6d61fb5cf2 100644
+--- a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
++++ b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+@@ -261,5 +261,6 @@
+ 		regulator-min-microvolt = <2775000>;
+ 		regulator-max-microvolt = <2775000>;
+ 		regulator-enable-ramp-delay = <1000>;
++		regulator-initial-mode = <0x00>; /* NORMAL */
+ 	};
+ };
 -- 
 2.13.2
