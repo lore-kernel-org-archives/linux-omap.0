@@ -1,75 +1,55 @@
-From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] usb: dwc3: omap: remove IRQ_NOAUTOEN used with shared irq
-Date: Fri, 7 Jul 2017 11:52:52 +0530
-Message-ID: <20170707062252.10086-1-vigneshr@ti.com>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: [PATCH 0/3] Motorola Droid 4 Audio Support
+Date: Fri,  7 Jul 2017 18:42:26 +0200
+Message-ID: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Carlos Hernandez <ceh-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-IRQ_NOAUTOEN cannot be used with shared IRQs, since commit 04c848d39879
-("genirq: Warn when IRQ_NOAUTOEN is used with shared interrupts") and
-kernel now throws a warn dump. But OMAP DWC3 driver uses this flag. As
-per commit 12a7f17fac5b ("usb: dwc3: omap: fix race of pm runtime with
-irq handler in probe") that introduced this flag, PM runtime can race
-with IRQ handler when deferred probing happens due to extcon,
-therefore IRQ_NOAUTOEN needs to be set so that irq is not enabled until
-extcon is registered.
+Hi,
 
-Remove setting of IRQ_NOAUTOEN and move the registration of
-shared irq to a point after dwc3_omap_extcon_register() and
-of_platform_populate(). This avoids possibility of probe deferring and
-above said race condition.
+I got working sound on Droid 4 with mainline \o/. The codec is
+currently missing support for detecting if something has been
+plugged into the 3.5mm connector, since that seems to require
+some closed source firmware and needs further investigation. I
+think this can be added later.
 
-Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/dwc3/dwc3-omap.c | 18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+Tested:
+ - Playing via [HiFi] using Speaker, Earpiece, Headphone
+ - Playing via [Voice] using Speaker, Earpiece, Headphone
+ - Recording via [Voice] using Mic
+ - Volume Controls
+ - Checking that DAPM graph look correct
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 98926504b55b..f5aaa0cf3873 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -512,15 +512,6 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 
- 	/* check the DMA Status */
- 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
--	irq_set_status_flags(omap->irq, IRQ_NOAUTOEN);
--	ret = devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
--					dwc3_omap_interrupt_thread, IRQF_SHARED,
--					"dwc3-omap", omap);
--	if (ret) {
--		dev_err(dev, "failed to request IRQ #%d --> %d\n",
--				omap->irq, ret);
--		goto err1;
--	}
- 
- 	ret = dwc3_omap_extcon_register(omap);
- 	if (ret < 0)
-@@ -532,8 +523,15 @@ static int dwc3_omap_probe(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
-+	ret = devm_request_threaded_irq(dev, omap->irq, dwc3_omap_interrupt,
-+					dwc3_omap_interrupt_thread, IRQF_SHARED,
-+					"dwc3-omap", omap);
-+	if (ret) {
-+		dev_err(dev, "failed to request IRQ #%d --> %d\n",
-+			omap->irq, ret);
-+		goto err1;
-+	}
- 	dwc3_omap_enable_irqs(omap);
--	enable_irq(omap->irq);
- 	return 0;
- 
- err1:
+-- Sebastian
+
+Sebastian Reichel (3):
+  ASoC: codec: cpcap: new codec
+  ARM: dts: motorola-cpcap-mapphone: add audio-codec
+  ARM: dts: omap4-droid4: add soundcard
+
+ .../bindings/sound/motorola,cpcap-audio-codec.txt  |   19 +
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi     |    6 +
+ arch/arm/boot/dts/omap4-droid4-xt894.dts           |   76 ++
+ sound/soc/codecs/Kconfig                           |    3 +
+ sound/soc/codecs/Makefile                          |    2 +
+ sound/soc/codecs/cpcap.c                           | 1422 ++++++++++++++++++++
+ 6 files changed, 1528 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt
+ create mode 100644 sound/soc/codecs/cpcap.c
+
 -- 
-2.13.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.13.2
