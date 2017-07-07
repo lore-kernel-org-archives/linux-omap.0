@@ -1,124 +1,50 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCH 3/3] ARM: dts: omap4-droid4: add soundcard
-Date: Fri,  7 Jul 2017 18:42:29 +0200
-Message-ID: <20170707164229.5868-4-sebastian.reichel@collabora.co.uk>
+Subject: [PATCH 2/3] ARM: dts: motorola-cpcap-mapphone: add
+	audio-codec
+Date: Fri,  7 Jul 2017 18:42:28 +0200
+Message-ID: <20170707164229.5868-3-sebastian.reichel@collabora.co.uk>
 References: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add sound support to Motorola Droid 4 using simple-soundcard
-and CPCAP's audio codec. This does not yet correctly represent
-the whole audio routing, since McBSP3 is also connected to
-Bluetooth and MDM6600 modem (and probably also 4G modem).
-These extra DAI links are not yet supported and have not been
-tested.
+Add node for audio-codec to its DT file.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 76 ++++++++++++++++++++++++++++++++
- 1 file changed, 76 insertions(+)
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-index 10ca1c174995..642b7ed1713b 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -116,6 +116,50 @@
- 
+diff --git a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+index 1eb5da1dc8f0..86033aee8a29 100644
+--- a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
++++ b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+@@ -68,6 +68,12 @@
+ 			};
  		};
- 	};
-+
-+	soundcard {
-+		compatible = "simple-audio-card";
-+		simple-audio-card,name = "Droid 4 Audio";
-+
-+		simple-audio-card,widgets =
-+			"Speaker", "Earpiece",
-+			"Speaker", "Loudspeaker",
-+			"Headphone", "Headphone Jack",
-+			"Microphone", "Internal Mic";
-+
-+		simple-audio-card,routing =
-+			"Earpiece", "EP",
-+			"Loudspeaker", "SPKR",
-+			"Headphone Jack", "HSL",
-+			"Headphone Jack", "HSR",
-+			"MICR", "Internal Mic";
-+
-+		simple-audio-card,dai-link@0 {
-+			format = "i2s";
-+			frame-master = <&codec0>;
-+			bitclock-master = <&codec0>;
-+			cpu {
-+				sound-dai = <&mcbsp2>;
-+			};
-+			codec0: codec {
-+				sound-dai = <&cpcap_audio 0>;
-+			};
+ 
++		cpcap_audio: audio-codec {
++			#sound-dai-cells = <1>;
++			compatible = "motorola,cpcap-audio-codec";
++			vdd-supply = <&vaudio>;
 +		};
 +
-+		simple-audio-card,dai-link@1 {
-+			format = "dsp_a";
-+			frame-master = <&codec1>;
-+			bitclock-master = <&codec1>;
-+			bitclock-inversion;
-+
-+			cpu {
-+				sound-dai = <&mcbsp3>;
-+			};
-+			codec1: codec {
-+				sound-dai = <&cpcap_audio 1>;
-+			};
-+		};
-+	};
- };
+ 		cpcap_rtc: rtc {
+ 			compatible = "motorola,cpcap-rtc";
  
- &dss {
-@@ -479,6 +523,24 @@
- 		OMAP4_IOPAD(0x112, PIN_OUTPUT_PULLUP | MUX_MODE5)	/* uart4_rts */
- 		>;
- 	};
-+
-+	mcbsp2_pins: pinmux_mcbsp2_pins {
-+		pinctrl-single,pins = <
-+		OMAP4_IOPAD(0x0f6, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_clkx */
-+		OMAP4_IOPAD(0x0f8, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_dr */
-+		OMAP4_IOPAD(0x0fa, PIN_OUTPUT | MUX_MODE0)	/* abe_mcbsp2_dx */
-+		OMAP4_IOPAD(0x0fc, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_fsx */
-+		>;
-+	};
-+
-+	mcbsp3_pins: pinmux_mcbsp3_pins {
-+		pinctrl-single,pins = <
-+		OMAP4_IOPAD(0x106, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_dr */
-+		OMAP4_IOPAD(0x108, PIN_OUTPUT | MUX_MODE1)	/* abe_mcbsp3_dx */
-+		OMAP4_IOPAD(0x10a, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_clkx */
-+		OMAP4_IOPAD(0x10c, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_fsx */
-+		>;
-+	};
- };
- 
- &omap4_pmx_wkup {
-@@ -552,3 +614,17 @@
- 				  "0", "0", "1";
- 	};
- };
-+
-+&mcbsp2 {
-+	#sound-dai-cells = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcbsp2_pins>;
-+	status = "okay";
-+};
-+
-+&mcbsp3 {
-+	#sound-dai-cells = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcbsp3_pins>;
-+	status = "okay";
-+};
 -- 
 2.13.2
