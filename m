@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv2 2/3] regulator: cpcap: Add OF mode mapping
-Date: Mon, 10 Jul 2017 16:33:40 +0200
-Message-ID: <20170710143341.25543-3-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv2 3/3] ARM: dts: motorola-cpcap-mapphone: set initial mode for vaudio
+Date: Mon, 10 Jul 2017 16:33:41 +0200
+Message-ID: <20170710143341.25543-4-sebastian.reichel@collabora.co.uk>
 References: <20170710143341.25543-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170710143341.25543-1-sebastian.reichel@collabora.co.uk>
@@ -10,44 +10,24 @@ To: Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mar
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Add device tree mode mapping capabilities to the cpcap driver.
+Set default mode for vaudio, which may be left in standby mode
+if the system is booted via kexec from Android.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/regulator/cpcap-regulator.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
-index ce1cab320f6f..f541b80f1b54 100644
---- a/drivers/regulator/cpcap-regulator.c
-+++ b/drivers/regulator/cpcap-regulator.c
-@@ -123,6 +123,7 @@ struct cpcap_regulator {
- 		.enable_val = (mode_val),				\
- 		.disable_val = (off_val),				\
- 		.ramp_delay = (volt_trans_time),			\
-+		.of_map_mode = cpcap_map_mode,				\
- 	},								\
- 	.assign_reg = (assignment_reg),					\
- 	.assign_mask = (assignment_mask),				\
-@@ -213,6 +214,18 @@ static int cpcap_regulator_disable(struct regulator_dev *rdev)
- 	return error;
- }
- 
-+static unsigned int cpcap_map_mode(unsigned int mode)
-+{
-+	switch (mode) {
-+	case CPCAP_BIT_AUDIO_NORMAL_MODE:
-+		return REGULATOR_MODE_NORMAL;
-+	case CPCAP_BIT_AUDIO_LOW_PWR:
-+		return REGULATOR_MODE_STANDBY;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
- static unsigned int cpcap_regulator_get_mode(struct regulator_dev *rdev)
- {
- 	int value;
+diff --git a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+index 86033aee8a29..7c6d61fb5cf2 100644
+--- a/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
++++ b/arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi
+@@ -261,5 +261,6 @@
+ 		regulator-min-microvolt = <2775000>;
+ 		regulator-max-microvolt = <2775000>;
+ 		regulator-enable-ramp-delay = <1000>;
++		regulator-initial-mode = <0x00>; /* NORMAL */
+ 	};
+ };
 -- 
 2.13.2
