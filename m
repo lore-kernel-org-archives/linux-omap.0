@@ -1,18 +1,18 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: cpcap: Fix standby mode" to the regulator tree
-Date: Mon, 10 Jul 2017 19:42:29 +0100
-Message-ID: <E1dUddd-0000KE-BF@debutante>
-References: <20170710143341.25543-2-sebastian.reichel@collabora.co.uk>
+Subject: Applied "regulator: cpcap: Add OF mode mapping" to the regulator tree
+Date: Mon, 10 Jul 2017 19:42:26 +0100
+Message-ID: <E1dUdda-0000JE-Ah@debutante>
+References: <20170710143341.25543-3-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170710143341.25543-2-sebastian.reichel@collabora.co.uk>
+In-Reply-To: <20170710143341.25543-3-sebastian.reichel@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, stable@vger.kernel.org, Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orglinux-kernel@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orglinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   regulator: cpcap: Fix standby mode
+   regulator: cpcap: Add OF mode mapping
 
 has been applied to the regulator tree at
 
@@ -37,59 +37,50 @@ to this mail.
 Thanks,
 Mark
 
->From 4ebb9d7f901027e1740f69829cf10af0193e8e17 Mon Sep 17 00:00:00 2001
+>From 8c02843cb0f9f2c8857d9228ec56ce931e957f62 Mon Sep 17 00:00:00 2001
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Date: Mon, 10 Jul 2017 16:33:39 +0200
-Subject: [PATCH] regulator: cpcap: Fix standby mode
+Date: Mon, 10 Jul 2017 16:33:40 +0200
+Subject: [PATCH] regulator: cpcap: Add OF mode mapping
 
-The original patch from Tony uses standby mode bit inverted, which is
-not correct. This fixes all instances in the driver code for get & set
-mode. This did not yet make problems, since mode has not been changed
-by any mainline driver so far.
+Add device tree mode mapping capabilities to the cpcap driver.
 
-Fixes: 0ad4c07edd41 ("regulator: cpcap: Add basic regulator support")
 Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 Signed-off-by: Mark Brown <broonie@kernel.org>
-Cc: stable@vger.kernel.org
 ---
- drivers/regulator/cpcap-regulator.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/regulator/cpcap-regulator.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
 diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
-index cc98aceed1c1..ce1cab320f6f 100644
+index ce1cab320f6f..f541b80f1b54 100644
 --- a/drivers/regulator/cpcap-regulator.c
 +++ b/drivers/regulator/cpcap-regulator.c
-@@ -77,6 +77,8 @@
- #define CPCAP_BIT_VAUDIO_MODE0		BIT(1)
- #define CPCAP_BIT_V_AUDIO_EN		BIT(0)
+@@ -123,6 +123,7 @@ struct cpcap_regulator {
+ 		.enable_val = (mode_val),				\
+ 		.disable_val = (off_val),				\
+ 		.ramp_delay = (volt_trans_time),			\
++		.of_map_mode = cpcap_map_mode,				\
+ 	},								\
+ 	.assign_reg = (assignment_reg),					\
+ 	.assign_mask = (assignment_mask),				\
+@@ -213,6 +214,18 @@ static int cpcap_regulator_disable(struct regulator_dev *rdev)
+ 	return error;
+ }
  
-+#define CPCAP_BIT_AUDIO_NORMAL_MODE	0x00
++static unsigned int cpcap_map_mode(unsigned int mode)
++{
++	switch (mode) {
++	case CPCAP_BIT_AUDIO_NORMAL_MODE:
++		return REGULATOR_MODE_NORMAL;
++	case CPCAP_BIT_AUDIO_LOW_PWR:
++		return REGULATOR_MODE_STANDBY;
++	default:
++		return -EINVAL;
++	}
++}
 +
- /*
-  * Off mode configuration bit. Used currently only by SW5 on omap4. There's
-  * the following comment in Motorola Linux kernel tree for it:
-@@ -217,7 +219,7 @@ static unsigned int cpcap_regulator_get_mode(struct regulator_dev *rdev)
- 
- 	regmap_read(rdev->regmap, rdev->desc->enable_reg, &value);
- 
--	if (!(value & CPCAP_BIT_AUDIO_LOW_PWR))
-+	if (value & CPCAP_BIT_AUDIO_LOW_PWR)
- 		return REGULATOR_MODE_STANDBY;
- 
- 	return REGULATOR_MODE_NORMAL;
-@@ -230,10 +232,10 @@ static int cpcap_regulator_set_mode(struct regulator_dev *rdev,
- 
- 	switch (mode) {
- 	case REGULATOR_MODE_NORMAL:
--		value = CPCAP_BIT_AUDIO_LOW_PWR;
-+		value = CPCAP_BIT_AUDIO_NORMAL_MODE;
- 		break;
- 	case REGULATOR_MODE_STANDBY:
--		value = 0;
-+		value = CPCAP_BIT_AUDIO_LOW_PWR;
- 		break;
- 	default:
- 		return -EINVAL;
+ static unsigned int cpcap_regulator_get_mode(struct regulator_dev *rdev)
+ {
+ 	int value;
 -- 
 2.13.2
