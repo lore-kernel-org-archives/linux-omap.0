@@ -1,42 +1,49 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH] thermal: ti-soc-thermal: Potential error pointer dereferences
-Date: Mon, 10 Jul 2017 10:24:23 +0300
-Message-ID: <20170710072422.rs25i5oawmiaofrp@mwanda>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [RESEND PATCH v6 0/8] mfd: Add OF device table to I2C drivers
+ that are missing it
+Date: Mon, 10 Jul 2017 09:40:46 +0200
+Message-ID: <CABxcv=k8g8c3KmLK+ZqQiG+-+j2Y=FuRpadQ=xguXG5qGGWwhg@mail.gmail.com>
+References: <20170615184928.12007-1-javier@dowhile0.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170615184928.12007-1-javier@dowhile0.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Javier Martinez Canillas <javier@dowhile0.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Rutland <mark.rutland@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux I2C <linux-i2c@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-ti_bandgap_get_sensor_data() can return error pointers so we should
-check for that.  There is no need to check "data->ti_thermal" for NULL
-and we removed that from the other cleanup function so we may as well
-from it in ti_thermal_remove_sensor() to be consistent.
+Hello Lee,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+On Thu, Jun 15, 2017 at 8:49 PM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
+>
+> This series add OF device ID tables to mfd I2C drivers whose devices are
+> either used in Device Tree source files or are listed in binding docs as
+> a compatible string.
+>
+> That's done because the plan is to change the I2C core to report proper OF
+> modaliases instead of always reporting a MODALIAS=i2c:<foo> regardless if
+> a device was registered via DT or using the legacy platform data mechanism.
+>
+> So these patches will make sure that mfd I2C drivers modules will continue
+> to be autoloaded once the I2C core is changed to report proper OF modalias.
+>
+> Users didn't have a vendor prefix in the used compatible strings, but since
+> there wasn't a DT binding document for these drivers, it can be said that
+> were working for mere luck and so this series fixes the users and add a DT
+> binding doc for the drivers.
+>
+> Most patches can be applied independently, with the exception of patches
+> 2 to 4 that should be applied in the same tree to keep bisect-ability. I
+> suggest these to go through the MFD subsystem tree.
+>
+> Best regards,
+> Javier
+>
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-index c211a8e4a210..9fea354ca90c 100644
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -210,7 +210,7 @@ int ti_thermal_remove_sensor(struct ti_bandgap *bgp, int id)
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 
--	if (data && data->ti_thermal) {
-+	if (data && !IS_ERR(data)) {
- 		if (data->our_zone)
- 			thermal_zone_device_unregister(data->ti_thermal);
- 	}
-@@ -276,7 +276,7 @@ int ti_thermal_unregister_cpu_cooling(struct ti_bandgap *bgp, int id)
- 
- 	data = ti_bandgap_get_sensor_data(bgp, id);
- 
--	if (data) {
-+	if (data && !IS_ERR(data)) {
- 		cpufreq_cooling_unregister(data->cool_dev);
- 		cpufreq_cpu_put(data->policy);
- 	}
+Are you planning to pick this series? It has been in the list for
+months and were resent many times...
+
+Best regards,
+Javier
