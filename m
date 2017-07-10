@@ -1,40 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 4.13-rc0: stopped booting on Nokia N900
-Date: Mon, 10 Jul 2017 06:46:21 -0700
-Message-ID: <20170710134620.GT3730@atomide.com>
-References: <20170710074610.GA22846@amd>
- <20170710081334.GA29726@amd>
- <20170710101608.qdamqomegbjwuweh@earth>
- <20170710130602.GS3730@atomide.com>
- <20170710133656.og2egbse5plp3afm@earth>
+Subject: Re: [PATCH 1/2] regulator: cpcap: Fix standby mode
+Date: Mon, 10 Jul 2017 06:48:32 -0700
+Message-ID: <20170710134831.GU3730@atomide.com>
+References: <20170707200813.20371-1-sebastian.reichel@collabora.co.uk>
+ <20170707200813.20371-2-sebastian.reichel@collabora.co.uk>
+ <20170710122345.i7q2z7sbjhsthn5g@sirena.org.uk>
+ <20170710134510.v3xvkvdjqxkyz5n5@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170710133656.og2egbse5plp3afm@earth>
+In-Reply-To: <20170710134510.v3xvkvdjqxkyz5n5@earth>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170710 06:37]:
+* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170710 06:45]:
 > Hi,
 > 
-> On Mon, Jul 10, 2017 at 06:06:03AM -0700, Tony Lindgren wrote:
-> > > I just rebased my droid4 development branch. I do not have any
-> > > problems with segfaulting toolchain, but boot also fails on OMAP4
-> > > based Droid 4. The problem seems to be SPI being accessed without
-> > > runtime PM (clocks) being enabled:
+> On Mon, Jul 10, 2017 at 01:23:45PM +0100, Mark Brown wrote:
+> > On Fri, Jul 07, 2017 at 10:08:12PM +0200, Sebastian Reichel wrote:
 > > 
-> > Care to check if commit c5b3955828ba ("ARM: OMAP4: Fix legacy code
-> > clean-up regression") make that one go away? I have already sent
-> > a pull request for that one.
-> 
-> I bisected to the same commit, that you also found. I just replied
-> to Thomas' pull-request from yesterday with bootlog + bisect result
-> + info that current master works again after reverting the patch.
+> > > While working on the audio-codec I noticed, that the
+> > > low power mode of the regulators are not properly
+> > > supported. This fixes the issue for vaudio.
+> > 
+> > In what way is it not properly supported and how does this change ensure
+> > that it is properly supported?
 
-Oh OK thanks for clarifying it.
+Just to clarify this, I had inverted use of a register bit bug in my
+original patch that $subject patch fixes.
+
+Regards,
 
 Tony
