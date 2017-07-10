@@ -1,70 +1,42 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/3] ASoC: codec: cpcap: new codec
-Date: Sat, 8 Jul 2017 22:39:39 -0700
-Message-ID: <20170709053939.GQ3730@atomide.com>
-References: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
- <20170707164229.5868-2-sebastian.reichel@collabora.co.uk>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH] thermal: ti-soc-thermal: Potential error pointer dereferences
+Date: Mon, 10 Jul 2017 10:24:23 +0300
+Message-ID: <20170710072422.rs25i5oawmiaofrp@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170707164229.5868-2-sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-pm-owner@vger.kernel.org
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Keerthy <j-keerthy@ti.com>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org> [170707 09:43]:
-> Motorola CPCAP is a PMIC with audio functionality, that can be
-> found on Motorola Droid 4 and probably a few other phones from
-> Motorola's Droid series.
-> 
-> The driver has been written from scratch using Motorola's Android
-> driver, register dumps from running Android and datasheet for NXP
-> MC13783UG (which is similar to Motorola CPCAP, but not the same).
-> 
-> The chip provides two audio interfaces, that can be muxed to two
-> different audio codecs. One provides support for stereo output
-> (named StDAC or HiFi), while the other only provides mono output
-> (named Voice). Only the Voice codec provides a Capture interface.
+ti_bandgap_get_sensor_data() can return error pointers so we should
+check for that.  There is no need to check "data->ti_thermal" for NULL
+and we removed that from the other cleanup function so we may as well
+from it in ti_thermal_remove_sensor() to be consistent.
 
-I needed the patch below for modular .config. Other than that,
-plays music fine for me, so feel free to add:
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-
-8< -----------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Sat, 8 Jul 2017 21:43:46 -0700
-Subject: [PATCH] ALSA: pcm: Export soc_dpcm_runtime_update
-
-Some drivers may need to use this from loadable modules. Otherwise we
-will get:
-
-ERROR: "soc_dpcm_runtime_update" [sound/soc/codecs/snd-soc-cpcap.ko]
-undefined!
-
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- sound/soc/soc-pcm.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/sound/soc/soc-pcm.c b/sound/soc/soc-pcm.c
---- a/sound/soc/soc-pcm.c
-+++ b/sound/soc/soc-pcm.c
-@@ -2539,6 +2539,8 @@ int soc_dpcm_runtime_update(struct snd_soc_card *card)
- 	mutex_unlock(&card->mutex);
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(soc_dpcm_runtime_update);
-+
- int soc_dpcm_be_digital_mute(struct snd_soc_pcm_runtime *fe, int mute)
- {
- 	struct snd_soc_dpcm *dpcm;
--- 
-2.13.2
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index c211a8e4a210..9fea354ca90c 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -210,7 +210,7 @@ int ti_thermal_remove_sensor(struct ti_bandgap *bgp, int id)
+ 
+ 	data = ti_bandgap_get_sensor_data(bgp, id);
+ 
+-	if (data && data->ti_thermal) {
++	if (data && !IS_ERR(data)) {
+ 		if (data->our_zone)
+ 			thermal_zone_device_unregister(data->ti_thermal);
+ 	}
+@@ -276,7 +276,7 @@ int ti_thermal_unregister_cpu_cooling(struct ti_bandgap *bgp, int id)
+ 
+ 	data = ti_bandgap_get_sensor_data(bgp, id);
+ 
+-	if (data) {
++	if (data && !IS_ERR(data)) {
+ 		cpufreq_cooling_unregister(data->cool_dev);
+ 		cpufreq_cpu_put(data->policy);
+ 	}
