@@ -1,31 +1,32 @@
 From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] mmc: host: omap_hsmmc: constify dev_pm_ops structures.
-Date: Tue, 11 Jul 2017 16:42:55 +0200
-Message-ID: <CAPDyKFqUGoHLt7DqhP_Tz0VKOL83TKfCFW7K21ptwjKAoNdPBg@mail.gmail.com>
-References: <8a917dbec5b7eb9fd463cc9b7a596ab831f04965.1498723559.git.arvind.yadav.cs@gmail.com>
+Subject: Re: [PATCH v2] omap_hsmmc: Reduce max_segs for reliability
+Date: Tue, 11 Jul 2017 16:43:09 +0200
+Message-ID: <CAPDyKFrm5cdPH+otqKYEpDyRqHZciy=Lj+z+Ma98vDyEVF4hbA@mail.gmail.com>
+References: <20170622105753.28708-1-willn@resin.io>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8a917dbec5b7eb9fd463cc9b7a596ab831f04965.1498723559.git.arvind.yadav.cs@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, Linus Walleij <linus.walleij@linaro.org>, Heiner Kallweit <hkallweit1@gmail.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20170622105753.28708-1-willn@resin.io>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Will Newton <will.newton@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kishon <kishon@ti.com>, Ravikumar Kattekola <rk@ti.com>, Will Newton <willn@resin.io>
 List-Id: linux-omap@vger.kernel.org
 
-On 29 June 2017 at 10:09, Arvind Yadav <arvind.yadav.cs@gmail.com> wrote:
-> dev_pm_ops are not supposed to change at runtime. All functions
-> working with dev_pm_ops provided by <linux/device.h> work with const
-> dev_pm_ops. So mark the non-const structs as const.
+On 22 June 2017 at 12:57, Will Newton <will.newton@gmail.com> wrote:
+> Reduce max_segs to 64, a value that allows allocation of an entire
+> EDMA descriptor list within a single page - EDMA descriptors
+> are 40 bytes and the header is much larger. This avoids doing a
+> higher order GFP_ATOMIC allocation in edma_prep_slave_sg
+> when setting up a transfer which can potentially fail due to
+> fragmentation under heavy I/O load.
 >
-> File size before:
->    text    data     bss     dec     hex filename
->   11586     624       0   12210    2fb2 drivers/mmc/host/omap_hsmmc.o
+> The current value of 1024 is unusually high in comparison to
+> other mmc host drivers which mostly use values of between 1
+> and 256. The EDMA driver at present splits lists above 20
+> segments in any case so reducing the size of lists we pass to
+> it shouldn't add much overhead.
 >
-> File size After adding 'const':
->    text    data     bss     dec     hex filename
->   11778     432       0   12210    2fb2 drivers/mmc/host/omap_hsmmc.o
->
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> Signed-off-by: Will Newton <willn@resin.io>
 
 Thanks, applied for next!
 
@@ -33,22 +34,34 @@ Kind regards
 Uffe
 
 > ---
->  drivers/mmc/host/omap_hsmmc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/mmc/host/omap_hsmmc.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> Changes in v2:
+>  - More verbose commit message
+>  - Rebased onto current master
 >
 > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 8c39dcc..5b391dc 100644
+> index 8c39dcc..bbcca93 100644
 > --- a/drivers/mmc/host/omap_hsmmc.c
 > +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2342,7 +2342,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
->         return 0;
->  }
+> @@ -2097,9 +2097,9 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>                 host->dbclk = NULL;
+>         }
 >
-> -static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
-> +static const struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
->         SET_SYSTEM_SLEEP_PM_OPS(omap_hsmmc_suspend, omap_hsmmc_resume)
->         .runtime_suspend = omap_hsmmc_runtime_suspend,
->         .runtime_resume = omap_hsmmc_runtime_resume,
+> -       /* Since we do only SG emulation, we can have as many segs
+> -        * as we want. */
+> -       mmc->max_segs = 1024;
+> +       /* Set this to a value that allows allocating an entire descriptor
+> +        * list within a page (zero order allocation). */
+> +       mmc->max_segs = 64;
+>
+>         mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
+>         mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
 > --
-> 1.9.1
+> 2.9.4
 >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
