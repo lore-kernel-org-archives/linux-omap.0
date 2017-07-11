@@ -1,86 +1,54 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: cpcap: Add OF mode mapping" to the regulator tree
-Date: Mon, 10 Jul 2017 19:42:26 +0100
-Message-ID: <E1dUdda-0000JE-Ah@debutante>
-References: <20170710143341.25543-3-sebastian.reichel@collabora.co.uk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170710143341.25543-3-sebastian.reichel@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>, Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>Mark Brown <broonie@kernel.org>Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.orglinux-kernel@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] ASoC: codec: cpcap: new codec
+Date: Mon, 10 Jul 2017 22:15:41 -0700
+Message-ID: <20170711051540.GV3730@atomide.com>
+References: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
+ <20170707164229.5868-2-sebastian.reichel@collabora.co.uk>
+ <20170710175152.2jglyjezvptamreq@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20170710175152.2jglyjezvptamreq@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+* Mark Brown <broonie@kernel.org> [170710 10:52]:
+> On Fri, Jul 07, 2017 at 06:42:27PM +0200, Sebastian Reichel wrote:
+> > +#ifdef CONFIG_OF
+> > +static const struct of_device_id cpcap_audio_of_match[] = {
+> > +	{ .compatible = "motorola,cpcap-audio-codec", },
+> > +	{},
+> > +};
+> > +MODULE_DEVICE_TABLE(of, cpcap_audio_of_match);
+> > +#endif
+> 
+> If this is part of a MFD shouldn't the parent device register it without
+> it needing to be in the DT?
 
-   regulator: cpcap: Add OF mode mapping
+Having the MFD core part just do devm_of_platform_populate() leaves out
+dependencies between the MFD core and it's child devices.
 
-has been applied to the regulator tree at
+There are also a lot of board specific configuration to be done for many
+child devices such as ADC wiring, GPIO pins used, and macro firmware
+usage.
 
-   git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
+Not sure what all board specific stuff needs to be configured for this
+driver yet, but it seems at least the macro interrupt wiring needs to
+be configured. I would not be surprised to find GPIOs or ADC being used
+for some connector detection too.
 
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
+Regards,
 
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From 8c02843cb0f9f2c8857d9228ec56ce931e957f62 Mon Sep 17 00:00:00 2001
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Date: Mon, 10 Jul 2017 16:33:40 +0200
-Subject: [PATCH] regulator: cpcap: Add OF mode mapping
-
-Add device tree mode mapping capabilities to the cpcap driver.
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/regulator/cpcap-regulator.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
-index ce1cab320f6f..f541b80f1b54 100644
---- a/drivers/regulator/cpcap-regulator.c
-+++ b/drivers/regulator/cpcap-regulator.c
-@@ -123,6 +123,7 @@ struct cpcap_regulator {
- 		.enable_val = (mode_val),				\
- 		.disable_val = (off_val),				\
- 		.ramp_delay = (volt_trans_time),			\
-+		.of_map_mode = cpcap_map_mode,				\
- 	},								\
- 	.assign_reg = (assignment_reg),					\
- 	.assign_mask = (assignment_mask),				\
-@@ -213,6 +214,18 @@ static int cpcap_regulator_disable(struct regulator_dev *rdev)
- 	return error;
- }
- 
-+static unsigned int cpcap_map_mode(unsigned int mode)
-+{
-+	switch (mode) {
-+	case CPCAP_BIT_AUDIO_NORMAL_MODE:
-+		return REGULATOR_MODE_NORMAL;
-+	case CPCAP_BIT_AUDIO_LOW_PWR:
-+		return REGULATOR_MODE_STANDBY;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
- static unsigned int cpcap_regulator_get_mode(struct regulator_dev *rdev)
- {
- 	int value;
--- 
-2.13.2
+Tony
