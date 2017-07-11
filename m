@@ -1,54 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ASoC: codec: cpcap: new codec
-Date: Mon, 10 Jul 2017 22:15:41 -0700
-Message-ID: <20170711051540.GV3730@atomide.com>
-References: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
- <20170707164229.5868-2-sebastian.reichel@collabora.co.uk>
- <20170710175152.2jglyjezvptamreq@sirena.org.uk>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RESEND PATCH] bus: omap-ocp2scp: Fix error handling in
+ omap_ocp2scp_probe
+Date: Tue, 11 Jul 2017 15:46:38 +0530
+Message-ID: <20170711101638.2233-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20170710175152.2jglyjezvptamreq@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, nsekhar@ti.com
+Cc: kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "arnd @ arndb . de" <arnd@arndb.de>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@kernel.org> [170710 10:52]:
-> On Fri, Jul 07, 2017 at 06:42:27PM +0200, Sebastian Reichel wrote:
-> > +#ifdef CONFIG_OF
-> > +static const struct of_device_id cpcap_audio_of_match[] = {
-> > +	{ .compatible = "motorola,cpcap-audio-codec", },
-> > +	{},
-> > +};
-> > +MODULE_DEVICE_TABLE(of, cpcap_audio_of_match);
-> > +#endif
-> 
-> If this is part of a MFD shouldn't the parent device register it without
-> it needing to be in the DT?
+The error handling code in omap_ocp2scp_probe fails to invoke
+pm_runtime_disable and fails to initialize return value in
+certain cases. Fix it here.
 
-Having the MFD core part just do devm_of_platform_populate() leaves out
-dependencies between the MFD core and it's child devices.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ drivers/bus/omap-ocp2scp.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-There are also a lot of board specific configuration to be done for many
-child devices such as ADC wiring, GPIO pins used, and macro firmware
-usage.
-
-Not sure what all board specific stuff needs to be configured for this
-driver yet, but it seems at least the macro interrupt wiring needs to
-be configured. I would not be surprised to find GPIOs or ADC being used
-for some connector detection too.
-
-Regards,
-
-Tony
+diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
+index bf500e0e7362..77791f3dcfc6 100644
+--- a/drivers/bus/omap-ocp2scp.c
++++ b/drivers/bus/omap-ocp2scp.c
+@@ -70,8 +70,10 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
+ 	if (!of_device_is_compatible(np, "ti,am437x-ocp2scp")) {
+ 		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 		regs = devm_ioremap_resource(&pdev->dev, res);
+-		if (IS_ERR(regs))
+-			goto err0;
++		if (IS_ERR(regs)) {
++			ret = PTR_ERR(regs);
++			goto err1;
++		}
+ 
+ 		pm_runtime_get_sync(&pdev->dev);
+ 		reg = readl_relaxed(regs + OCP2SCP_TIMING);
+@@ -83,6 +85,9 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
++err1:
++	pm_runtime_disable(&pdev->dev);
++
+ err0:
+ 	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
+ 
+-- 
+2.11.0
