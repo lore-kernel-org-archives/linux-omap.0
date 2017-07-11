@@ -1,124 +1,53 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 00/16] omap_hsmmc: Add ADMA support and UHS/HS200/DDR support
-Date: Tue, 11 Jul 2017 15:10:37 +0200
-Message-ID: <CAPDyKFo+ORA=OpdikiUZWj3gpx+ssuqbC5MtqiFJneyJhu84dA@mail.gmail.com>
-References: <20170616124544.15046-1-kishon@ti.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/3] ASoC: codec: cpcap: new codec
+Date: Tue, 11 Jul 2017 14:33:06 +0100
+Message-ID: <20170711133306.ut4pjiwdl5xsu27j@sirena.org.uk>
+References: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
+ <20170707164229.5868-2-sebastian.reichel@collabora.co.uk>
+ <20170710175152.2jglyjezvptamreq@sirena.org.uk>
+ <20170711051540.GV3730@atomide.com>
+ <20170711104911.wmzmt5fjkzghwljz@sirena.org.uk>
+ <20170711121331.7q5bhfrylwwwyyte@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20170616124544.15046-1-kishon@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="7owssxqsb5h6oedp"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170711121331.7q5bhfrylwwwyyte@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 16 June 2017 at 14:45, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> This is the final part of the series originally sent as
-> part of [2].
->
-> This series adds UHS, HS200, DDR mode and ADMA support to
-> omap_hsmmc driver used to improve the throughput of MMC/SD in dra7
-> SoCs.
->
-> Changes from [2]:
-> *) No more updating omap2plus_defconfig or multi_v7_defconfig is
->    required, so those patches are removed.
-> *) Addressed Rob Herring's comment on implementing a function
->    instead of having a macro while getting pinctrl state.
->
-> This series is created on top of [3], [4], [5] AND [6]
-> (i.e after
->   ARM: dts: omap3-overo: Remove "vqmmc-supply" property from MMC dt node
->   omap_hsmmc: use mmc_regulator_get_supply() to get regulators
->   omap*: Fixes/Cleanups for MMC devicetree node
->   ARM: dts: Add iodelay data for MMC)
->
-> The functionality implemented in this series was sent before ([1]) but
-> was never followed up since supporting high speed modes in dra7 required
-> IODelay values to be configured. With IODelay driver being merged into
-> kernel, sending it as a fresh series with support for configuring IODelay
-> values.
 
-Is it safe to queue this via mmc tree for 4.14 or is there a
-dependency I must consider? The above didn't quite tell me that, could
-you please elaborate.
+--7owssxqsb5h6oedp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
->
-> Suggestions of migrating to sdhci driver (from omap_hsmmc driver) is not
-> addressed since
-> *) tuning ratio of MMC in dra7 is different from sdhci
-> *) IOdelay is required for dra7
-> *) GPIO based card detect is not supported in sdhci
+On Tue, Jul 11, 2017 at 02:13:31PM +0200, Sebastian Reichel wrote:
 
-Lots of sdhci drivers calls mmc_of_parse(), and uses the mmc slot gpio
-APIs, so I don't this this is correct statement.
+> How is having a subnode without a compatible property different?
 
-> *) Some of the registers don't always have correct values as in sdhci
->    (like PSTATE).
-> Supporting all of these in sdhci will result in adding lot of quirks in
-> sdhci driver.
+You don't *need* to have the subnode, I was only mentioning that if for
+some reason it was super useful for organizing the properties.
 
-Is it really that much different? It would be nice if some really took
-on the challenge of converting omap_hsmmc into an sdhci variant.
+--7owssxqsb5h6oedp
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Especially by looking at the number new lines added in this series, I
-am starting to think that we have reached this point. That in
-conjunction with that sdhci is maintained and well supported,
-comparing to what the omap_hsmmc driver seems to be.
+-----BEGIN PGP SIGNATURE-----
 
->
-> This series has been tested on beagleboard, pandaboard, beaglebone-black,
-> beaglebone, am335x-evm, am437x-evm, dra7xx-evm, dra72x-evm, am571x-idk
-> and am572x-idk.
->
-> I can split the series to go into Ulf Hansson's tree and Tony's tree
-> separately if that is required.
->
-> [1] -> https://lkml.org/lkml/2015/8/25/213
-> [2] -> https://lkml.org/lkml/2017/5/19/19
->
-> [3] -> https://lkml.org/lkml/2017/6/9/206
-> [4] -> https://lkml.org/lkml/2017/6/7/169
-> [5] -> https://www.spinics.net/lists/arm-kernel/msg586215.html /
->        http://www.spinics.net/lists/devicetree/msg180747.html
-> [6] -> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1423381.html
->
-> Kishon Vijay Abraham I (15):
->   mmc: host: omap_hsmmc: Support pbias and vmmc_aux to switch to 1.8v
->   mmc: host: omap_hsmmc: Separate setting voltage capabilities from bus
->     power
->   mmc: host: omap_hsmmc: Remove incorrect voltage switch sequence
->   mmc: host: omap_hsmmc: Add voltage switch support for UHS SD card
->   mmc: host: omap_hsmmc: Set clk rate to the max frequency
->   mmc: host: omap_hsmmc: Add tuning support
->   mmc: host: omap_hsmmc: Allow io voltage switch even for fixed vdd
->   mmc: host: omap_hsmmc: Prepare *set_timing() to be used for iodelay
->     setting
->   mmc: host: omap_hsmmc: Add new compatible string to support dra7
->   mmc: host: omap_hsmmc: Fix error path sequence
->   mmc: host: omap_hsmmc: Add support to set IODELAY values
->   mmc: host: omap_hsmmc: Remove *use_dma* member
->   mmc: host: omap_hsmmc: Enable ADMA2
->   ARM: dts: dra7: Use new dra7-specific compatible string
->   ARM: dts: dra7: Add supported MMC/SD modes in MMC dt nodes
->
-> Mugunthan V N (1):
->   mmc: host: omap_hsmmc: Add software timer when timeout greater than
->     hardware capablility
->
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    6 +
->  arch/arm/boot/dts/am571x-idk.dts                   |    1 +
->  arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts      |    1 +
->  arch/arm/boot/dts/am57xx-beagle-x15.dts            |    6 +
->  arch/arm/boot/dts/am57xx-idk-common.dtsi           |    1 +
->  arch/arm/boot/dts/dra7.dtsi                        |   22 +-
->  drivers/mmc/host/omap_hsmmc.c                      | 1179 ++++++++++++++++----
->  include/linux/platform_data/hsmmc-omap.h           |    2 +
->  8 files changed, 1021 insertions(+), 197 deletions(-)
->
-> --
-> 2.11.0
->
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllk05EACgkQJNaLcl1U
+h9De/wf/azAIsxxbEP5Wr6pjOJsVedm0ZcdfM/ro0N5QXKwh6BGLwFESCe8DBGQV
+rf8U0T/U5LHw0FWKZ4XN6wUX0aHTiLCzBJD3PsqPGwJPk/fJUuGlh/m3D4R2I/N3
+2E8XaFReMSd10GbzNuEopRpwISAzP1wmjlYxlC8SJ/S5kw3x23s5P16KyxqsSKbb
+zwbaUVjRIVWKgN/ioYeTEaykbYNWWRMTcVG9Ru9nYT3sAFerk5H/3wh+eB/UXFdu
+uNXjOvwED9K6Seou531AT9912hePFNMyY6iMOEhN0yz7Gv5X/Ewu3ePhh58v5CIe
+h1poiYCcxYCVJLvgo5wrarher5Mjgg==
+=DSvi
+-----END PGP SIGNATURE-----
 
-Kind regards
-Ulf Hansson
+--7owssxqsb5h6oedp--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
