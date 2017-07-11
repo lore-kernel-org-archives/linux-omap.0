@@ -1,61 +1,86 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RESEND PATCH] bus: omap-ocp2scp: Fix error handling in
- omap_ocp2scp_probe
-Date: Tue, 11 Jul 2017 15:46:38 +0530
-Message-ID: <20170711101638.2233-1-kishon@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 1/3] ASoC: codec: cpcap: new codec
+Date: Tue, 11 Jul 2017 11:49:11 +0100
+Message-ID: <20170711104911.wmzmt5fjkzghwljz@sirena.org.uk>
+References: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
+ <20170707164229.5868-2-sebastian.reichel@collabora.co.uk>
+ <20170710175152.2jglyjezvptamreq@sirena.org.uk>
+ <20170711051540.GV3730@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, nsekhar@ti.com
-Cc: kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "arnd @ arndb . de" <arnd@arndb.de>, linux-kernel@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============8422302910975721272=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20170711051540.GV3730@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sre@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The error handling code in omap_ocp2scp_probe fails to invoke
-pm_runtime_disable and fails to initialize return value in
-certain cases. Fix it here.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- drivers/bus/omap-ocp2scp.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+--===============8422302910975721272==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="x5yqljhevb3mrh7m"
+Content-Disposition: inline
 
-diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
-index bf500e0e7362..77791f3dcfc6 100644
---- a/drivers/bus/omap-ocp2scp.c
-+++ b/drivers/bus/omap-ocp2scp.c
-@@ -70,8 +70,10 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
- 	if (!of_device_is_compatible(np, "ti,am437x-ocp2scp")) {
- 		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 		regs = devm_ioremap_resource(&pdev->dev, res);
--		if (IS_ERR(regs))
--			goto err0;
-+		if (IS_ERR(regs)) {
-+			ret = PTR_ERR(regs);
-+			goto err1;
-+		}
- 
- 		pm_runtime_get_sync(&pdev->dev);
- 		reg = readl_relaxed(regs + OCP2SCP_TIMING);
-@@ -83,6 +85,9 @@ static int omap_ocp2scp_probe(struct platform_device *pdev)
- 
- 	return 0;
- 
-+err1:
-+	pm_runtime_disable(&pdev->dev);
-+
- err0:
- 	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
- 
--- 
-2.11.0
+
+--x5yqljhevb3mrh7m
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jul 10, 2017 at 10:15:41PM -0700, Tony Lindgren wrote:
+> * Mark Brown <broonie@kernel.org> [170710 10:52]:
+
+> > If this is part of a MFD shouldn't the parent device register it without
+> > it needing to be in the DT?
+
+> Having the MFD core part just do devm_of_platform_populate() leaves out
+> dependencies between the MFD core and it's child devices.
+
+> There are also a lot of board specific configuration to be done for many
+> child devices such as ADC wiring, GPIO pins used, and macro firmware
+> usage.
+
+> Not sure what all board specific stuff needs to be configured for this
+> driver yet, but it seems at least the macro interrupt wiring needs to
+> be configured. I would not be surprised to find GPIOs or ADC being used
+> for some connector detection too.
+
+We can use subnodes without compatible strings, that's not a problem,
+but having to have compatible strings means we're encoding the way Linux
+splits device drivers up into the DT which might not work for other OSs
+or even future versions of Linux.  For example with CODEC drivers it's
+common to have a good chunk of clock control in there which we might at
+some point want to move over to the clock subsystem.
+
+--x5yqljhevb3mrh7m
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAllkrSYACgkQJNaLcl1U
+h9B+oggAg7qkWrWF2zXm947SZpquxhPChkVKwO3tCNStbQ38UZ5MhZzifBXRNzQE
+msSQXlV+BMfqe1IMiWT6jfIcFy04ziBCaRM2aYjHxmit5Dlta5L0roujS4pq+vaN
+zzXsNH3PlGtQyFsbbKsfZirbJRqQPWwM3tjAXrfUmwKGnfvL6DD0hdG0cybSY937
+ffWWOvLjz8q6Sn3JKfpwkK8Mj6tpvmxK8Z/q69rQU2P4AJxCoIVaB6XFpEGEDZj3
+aJ+mypdij74WVBoy0HCdwOu6bazphzymhQrMdfX0yfe/K726f9nWDIir8YLwN32N
+smb3wYjPdRLJ2zWZv/gBCBrNdTuORw==
+=cifa
+-----END PGP SIGNATURE-----
+
+--x5yqljhevb3mrh7m--
+
+--===============8422302910975721272==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============8422302910975721272==--
