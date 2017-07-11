@@ -1,105 +1,124 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH 1/3] ASoC: codec: cpcap: new codec
-Date: Tue, 11 Jul 2017 14:13:31 +0200
-Message-ID: <20170711121331.7q5bhfrylwwwyyte@earth>
-References: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
- <20170707164229.5868-2-sebastian.reichel@collabora.co.uk>
- <20170710175152.2jglyjezvptamreq@sirena.org.uk>
- <20170711051540.GV3730@atomide.com>
- <20170711104911.wmzmt5fjkzghwljz@sirena.org.uk>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 00/16] omap_hsmmc: Add ADMA support and UHS/HS200/DDR support
+Date: Tue, 11 Jul 2017 15:10:37 +0200
+Message-ID: <CAPDyKFo+ORA=OpdikiUZWj3gpx+ssuqbC5MtqiFJneyJhu84dA@mail.gmail.com>
+References: <20170616124544.15046-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6527179532664384158=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20170711104911.wmzmt5fjkzghwljz@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20170616124544.15046-1-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 16 June 2017 at 14:45, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> This is the final part of the series originally sent as
+> part of [2].
+>
+> This series adds UHS, HS200, DDR mode and ADMA support to
+> omap_hsmmc driver used to improve the throughput of MMC/SD in dra7
+> SoCs.
+>
+> Changes from [2]:
+> *) No more updating omap2plus_defconfig or multi_v7_defconfig is
+>    required, so those patches are removed.
+> *) Addressed Rob Herring's comment on implementing a function
+>    instead of having a macro while getting pinctrl state.
+>
+> This series is created on top of [3], [4], [5] AND [6]
+> (i.e after
+>   ARM: dts: omap3-overo: Remove "vqmmc-supply" property from MMC dt node
+>   omap_hsmmc: use mmc_regulator_get_supply() to get regulators
+>   omap*: Fixes/Cleanups for MMC devicetree node
+>   ARM: dts: Add iodelay data for MMC)
+>
+> The functionality implemented in this series was sent before ([1]) but
+> was never followed up since supporting high speed modes in dra7 required
+> IODelay values to be configured. With IODelay driver being merged into
+> kernel, sending it as a fresh series with support for configuring IODelay
+> values.
 
---===============6527179532664384158==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="4tfxbgrb2biabhwv"
-Content-Disposition: inline
+Is it safe to queue this via mmc tree for 4.14 or is there a
+dependency I must consider? The above didn't quite tell me that, could
+you please elaborate.
 
+>
+> Suggestions of migrating to sdhci driver (from omap_hsmmc driver) is not
+> addressed since
+> *) tuning ratio of MMC in dra7 is different from sdhci
+> *) IOdelay is required for dra7
+> *) GPIO based card detect is not supported in sdhci
 
---4tfxbgrb2biabhwv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Lots of sdhci drivers calls mmc_of_parse(), and uses the mmc slot gpio
+APIs, so I don't this this is correct statement.
 
-Hi,
+> *) Some of the registers don't always have correct values as in sdhci
+>    (like PSTATE).
+> Supporting all of these in sdhci will result in adding lot of quirks in
+> sdhci driver.
 
-On Tue, Jul 11, 2017 at 11:49:11AM +0100, Mark Brown wrote:
-> On Mon, Jul 10, 2017 at 10:15:41PM -0700, Tony Lindgren wrote:
-> > * Mark Brown <broonie@kernel.org> [170710 10:52]:
->=20
-> > > If this is part of a MFD shouldn't the parent device register it with=
-out
-> > > it needing to be in the DT?
->=20
-> > Having the MFD core part just do devm_of_platform_populate() leaves out
-> > dependencies between the MFD core and it's child devices.
->=20
-> > There are also a lot of board specific configuration to be done for many
-> > child devices such as ADC wiring, GPIO pins used, and macro firmware
-> > usage.
->=20
-> > Not sure what all board specific stuff needs to be configured for this
-> > driver yet, but it seems at least the macro interrupt wiring needs to
-> > be configured. I would not be surprised to find GPIOs or ADC being used
-> > for some connector detection too.
->=20
-> We can use subnodes without compatible strings, that's not a problem,
-> but having to have compatible strings means we're encoding the way Linux
-> splits device drivers up into the DT which might not work for other OSs
-> or even future versions of Linux.  For example with CODEC drivers it's
-> common to have a good chunk of clock control in there which we might at
-> some point want to move over to the clock subsystem.
+Is it really that much different? It would be nice if some really took
+on the challenge of converting omap_hsmmc into an sdhci variant.
 
-How is having a subnode without a compatible property different?
-Sure we will bind the driver manually and make our code (a little
-bit) more complex, but we still encoded the way Linux splits the
-device into DT. My understanding is, that adding a node without a
-compatible value is almost always not ok.
+Especially by looking at the number new lines added in this series, I
+am starting to think that we have reached this point. That in
+conjunction with that sdhci is maintained and well supported,
+comparing to what the omap_hsmmc driver seems to be.
 
--- Sebastian
+>
+> This series has been tested on beagleboard, pandaboard, beaglebone-black,
+> beaglebone, am335x-evm, am437x-evm, dra7xx-evm, dra72x-evm, am571x-idk
+> and am572x-idk.
+>
+> I can split the series to go into Ulf Hansson's tree and Tony's tree
+> separately if that is required.
+>
+> [1] -> https://lkml.org/lkml/2015/8/25/213
+> [2] -> https://lkml.org/lkml/2017/5/19/19
+>
+> [3] -> https://lkml.org/lkml/2017/6/9/206
+> [4] -> https://lkml.org/lkml/2017/6/7/169
+> [5] -> https://www.spinics.net/lists/arm-kernel/msg586215.html /
+>        http://www.spinics.net/lists/devicetree/msg180747.html
+> [6] -> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1423381.html
+>
+> Kishon Vijay Abraham I (15):
+>   mmc: host: omap_hsmmc: Support pbias and vmmc_aux to switch to 1.8v
+>   mmc: host: omap_hsmmc: Separate setting voltage capabilities from bus
+>     power
+>   mmc: host: omap_hsmmc: Remove incorrect voltage switch sequence
+>   mmc: host: omap_hsmmc: Add voltage switch support for UHS SD card
+>   mmc: host: omap_hsmmc: Set clk rate to the max frequency
+>   mmc: host: omap_hsmmc: Add tuning support
+>   mmc: host: omap_hsmmc: Allow io voltage switch even for fixed vdd
+>   mmc: host: omap_hsmmc: Prepare *set_timing() to be used for iodelay
+>     setting
+>   mmc: host: omap_hsmmc: Add new compatible string to support dra7
+>   mmc: host: omap_hsmmc: Fix error path sequence
+>   mmc: host: omap_hsmmc: Add support to set IODELAY values
+>   mmc: host: omap_hsmmc: Remove *use_dma* member
+>   mmc: host: omap_hsmmc: Enable ADMA2
+>   ARM: dts: dra7: Use new dra7-specific compatible string
+>   ARM: dts: dra7: Add supported MMC/SD modes in MMC dt nodes
+>
+> Mugunthan V N (1):
+>   mmc: host: omap_hsmmc: Add software timer when timeout greater than
+>     hardware capablility
+>
+>  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    6 +
+>  arch/arm/boot/dts/am571x-idk.dts                   |    1 +
+>  arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts      |    1 +
+>  arch/arm/boot/dts/am57xx-beagle-x15.dts            |    6 +
+>  arch/arm/boot/dts/am57xx-idk-common.dtsi           |    1 +
+>  arch/arm/boot/dts/dra7.dtsi                        |   22 +-
+>  drivers/mmc/host/omap_hsmmc.c                      | 1179 ++++++++++++++++----
+>  include/linux/platform_data/hsmmc-omap.h           |    2 +
+>  8 files changed, 1021 insertions(+), 197 deletions(-)
+>
+> --
+> 2.11.0
+>
 
---4tfxbgrb2biabhwv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllkwOkACgkQ2O7X88g7
-+pqWdA/+JKo7S+MZtCH5vKEnPLPr2IIF5Nfsm8N+e9BzylE/3N1ZWT6/Vjfb0w7M
-EpPWLGGT1zAOYFCV2ayx69uTeBarX4mjBFPlkZL/Rf6iDYuzmcKzuhXJSnZ6aAwr
-s/txq4vm9TU7KCgGklla8st/4FsuqeeqS99RHFkEuY5sFXresW1T/xlRFue09sjp
-GKo7QAzWyFbKqNWGKdMcETGHQ5/gXPLYHjaQVPH1AYLRDAG1DjO8M5z+DDNq9fiY
-ro3BeFEdN1mCWraPI5B7Zp9awnXwJut0xKlCLDcpl8x/dmAFPV2GXMGDslN7zrBz
-RUGz+oetfMFlcUnXwre1uWSJ4y/Vouwt3Q5Sd4ptAhZkNTE2H5nzT1j7VSFCHmRA
-dcnSa1Tti0kpuDB49MO8QfZTRy937lEBZvV7JNTT3VSWkG5hsJotq87biOfmWfzH
-fumO1Vsf03QKMtnsavQ3Ya+qG1ZFK2qN+C1h1pkh4wZNgsFrO7snOGTGZ4Y0KlsS
-5dGhzlP5dOd0hdiTVp/i2YPNDAfduN79+v2aUZ58wGoBachcEJJ2dz2f60H01yJR
-Jq5zbASShnB6XRWnRSjelDXHx9sfqx1ytku8RSvnx7SucRvUf6sO1YjT0YSQ6H6f
-KLufghKamFzt5XLyDzRIMruo5Rhcp6t0tmIaJMk94Mj3yDaS0SE=
-=qw1m
------END PGP SIGNATURE-----
-
---4tfxbgrb2biabhwv--
-
---===============6527179532664384158==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============6527179532664384158==--
+Kind regards
+Ulf Hansson
