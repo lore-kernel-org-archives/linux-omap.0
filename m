@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv2 6/6] ARM: dts: omap4-droid4: add soundcard
-Date: Wed, 12 Jul 2017 17:18:46 +0200
-Message-ID: <20170712151846.24621-7-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv2 2/6] dt-bindings: sound: add motorola,cpcap-audio-codec
+Date: Wed, 12 Jul 2017 17:18:42 +0200
+Message-ID: <20170712151846.24621-3-sebastian.reichel@collabora.co.uk>
 References: <20170712151846.24621-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170712151846.24621-1-sebastian.reichel@collabora.co.uk>
@@ -10,122 +10,43 @@ To: Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mar
 Cc: Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Add sound support to Motorola Droid 4 using simple-soundcard
-and CPCAP's audio codec. This does not yet correctly represent
-the whole audio routing, since McBSP3 is also connected to
-Bluetooth and MDM6600 modem (and probably also 4G modem).
-These extra DAI links are not yet supported and have not been
-tested.
+Motorola CPCAP is a PMIC with audio functionality, that can be
+found on Motorola Droid 4 and probably a few other phones from
+Motorola's Droid series.
 
+This adds the DT binding for the codec sub-module found inside
+the PMIC.
+
+Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 84 ++++++++++++++++++++++++++++++++
- 1 file changed, 84 insertions(+)
+ .../bindings/sound/motorola,cpcap-audio-codec.txt     | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-index 10ca1c174995..a182f9fb1c7a 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -116,6 +116,26 @@
- 
- 		};
- 	};
+diff --git a/Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt b/Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt
+new file mode 100644
+index 000000000000..6b8cd616bd46
+--- /dev/null
++++ b/Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt
+@@ -0,0 +1,19 @@
++Motorola CPCAP audio CODEC
++--------------------------
 +
-+	soundcard {
-+		compatible = "audio-graph-card";
-+		label = "Droid 4 Audio";
++This module is part of the CPCAP. For more details about the whole
++chip see Documentation/devicetree/bindings/mfd/motorola-cpcap.txt.
 +
-+		simple-graph-card,widgets =
-+			"Speaker", "Earpiece",
-+			"Speaker", "Loudspeaker",
-+			"Headphone", "Headphone Jack",
-+			"Microphone", "Internal Mic";
++Required properties:
 +
-+		simple-graph-card,routing =
-+			"Earpiece", "EP",
-+			"Loudspeaker", "SPKR",
-+			"Headphone Jack", "HSL",
-+			"Headphone Jack", "HSR",
-+			"MICR", "Internal Mic";
++  - compatible : "motorola,cpcap-audio-codec"
++  - vdd-supply : Phandle to audio regulator
 +
-+		dais = <&mcbsp2_port>, <&mcbsp3_port>;
-+	};
- };
- 
- &dss {
-@@ -479,6 +499,24 @@
- 		OMAP4_IOPAD(0x112, PIN_OUTPUT_PULLUP | MUX_MODE5)	/* uart4_rts */
- 		>;
- 	};
++Example:
 +
-+	mcbsp2_pins: pinmux_mcbsp2_pins {
-+		pinctrl-single,pins = <
-+		OMAP4_IOPAD(0x0f6, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_clkx */
-+		OMAP4_IOPAD(0x0f8, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_dr */
-+		OMAP4_IOPAD(0x0fa, PIN_OUTPUT | MUX_MODE0)	/* abe_mcbsp2_dx */
-+		OMAP4_IOPAD(0x0fc, PIN_INPUT | MUX_MODE0)	/* abe_mcbsp2_fsx */
-+		>;
-+	};
-+
-+	mcbsp3_pins: pinmux_mcbsp3_pins {
-+		pinctrl-single,pins = <
-+		OMAP4_IOPAD(0x106, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_dr */
-+		OMAP4_IOPAD(0x108, PIN_OUTPUT | MUX_MODE1)	/* abe_mcbsp3_dx */
-+		OMAP4_IOPAD(0x10a, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_clkx */
-+		OMAP4_IOPAD(0x10c, PIN_INPUT | MUX_MODE1)	/* abe_mcbsp3_fsx */
-+		>;
-+	};
- };
- 
- &omap4_pmx_wkup {
-@@ -552,3 +590,49 @@
- 				  "0", "0", "1";
- 	};
- };
-+
-+&mcbsp2 {
-+	#sound-dai-cells = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcbsp2_pins>;
-+	status = "okay";
-+
-+	mcbsp2_port: port {
-+		cpu_dai2: endpoint {
-+			dai-format = "i2s";
-+			remote-endpoint = <&cpcap_audio_codec0>;
-+			frame-master = <&cpcap_audio_codec0>;
-+			bitclock-master = <&cpcap_audio_codec0>;
-+		};
-+	};
-+};
-+
-+&mcbsp3 {
-+	#sound-dai-cells = <0>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mcbsp3_pins>;
-+	status = "okay";
-+
-+	mcbsp3_port: port {
-+		cpu_dai3: endpoint {
-+			dai-format = "dsp_a";
-+			frame-master = <&cpcap_audio_codec1>;
-+			bitclock-master = <&cpcap_audio_codec1>;
-+			remote-endpoint = <&cpcap_audio_codec1>;
-+		};
-+	};
-+};
-+
-+&cpcap_audio {
-+	port@0 {
-+		cpcap_audio_codec0: endpoint {
-+			remote-endpoint = <&cpu_dai2>;
-+		};
-+	};
-+
-+	port@1 {
-+		cpcap_audio_codec1: endpoint {
-+			remote-endpoint = <&cpu_dai3>;
-+		};
++&cpcap {
++	audio-codec {
++		compatible = "motorola,cpcap-audio-codec";
++		vdd-supply = <&vaudio>;
 +	};
 +};
 -- 
