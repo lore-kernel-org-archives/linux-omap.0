@@ -1,38 +1,73 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [RESEND PATCH] bus: omap-ocp2scp: Fix error handling in
- omap_ocp2scp_probe
-Date: Wed, 12 Jul 2017 16:27:34 +0530
-Message-ID: <7291e53a-cc06-0056-9f50-50d3c35fba31@ti.com>
-References: <20170711101638.2233-1-kishon@ti.com>
- <20170712092616.GC16509@atomide.com>
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv2 0/6] Motorola Droid 4 Audio Support
+Date: Wed, 12 Jul 2017 17:18:40 +0200
+Message-ID: <20170712151846.24621-1-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170712092616.GC16509@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, nsekhar@ti.com, linux-arm-kernel@lists.infradead.org, "arnd @ arndb . de" <arnd@arndb.de>, linux-kernel@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+This adds audio support to Motorola Droid 4.
 
-On Wednesday 12 July 2017 02:56 PM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [170711 03:17]:
->> The error handling code in omap_ocp2scp_probe fails to invoke
->> pm_runtime_disable and fails to initialize return value in
->> certain cases. Fix it here.
-> 
-> Applying into omap-for-v4.13/fixes thanks.
+Tested:
+ - Playing via both DACs using Speaker, Earpiece, Headphone
+ - Recording using internal Mic
+ - Volume Controls
 
-Thanks!
+Known not to work:
+ - 3.5mm detection support (requires closed source firmware,
+   needs further investigation)
+ - Modem / Bluetooth Audio (actually untested, but probably
+   needs some quirks)
 
--Kishon
+Changes since PATCHv1:
+ * Add patch from Tony exporting soc_dpcm_runtime_update
+ * Integrate DT patch for vaudio initial mode
+ * Split dt-binding from codec patch and add Ack from Rob
+ * Fix CPCAP position in Kconfig/Makefile
+ * Avoid "err +=" constructs
+ * Simplify reset function
+ * Drop cpcap_audio_read/write helpers
+ * Do not use tertiary operator for mute register value
+ * Update Input Mux logic
+ * Switch from simple-audio-card to audio-graph-card
+
+-- Sebastian
+
+Sebastian Reichel (5):
+  dt-bindings: sound: add motorola,cpcap-audio-codec
+  ASoC: codec: cpcap: new codec
+  ARM: dts: motorola-cpcap-mapphone: add audio-codec
+  ARM: dts: motorola-cpcap-mapphone: set initial mode for vaudio
+  ARM: dts: omap4-droid4: add soundcard
+
+Tony Lindgren (1):
+  ALSA: pcm: Export soc_dpcm_runtime_update
+
+ .../bindings/sound/motorola,cpcap-audio-codec.txt  |   19 +
+ arch/arm/boot/dts/motorola-cpcap-mapphone.dtsi     |    7 +
+ arch/arm/boot/dts/omap4-droid4-xt894.dts           |   84 +
+ sound/soc/codecs/Kconfig                           |    5 +
+ sound/soc/codecs/Makefile                          |    2 +
+ sound/soc/codecs/cpcap.c                           | 1607 ++++++++++++++++++++
+ sound/soc/soc-pcm.c                                |    2 +
+ 7 files changed, 1726 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt
+ create mode 100644 sound/soc/codecs/cpcap.c
+
+-- 
+2.13.2
