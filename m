@@ -1,36 +1,49 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: Regression with suspicious RCU usage splats with cpu_pm change
-Date: Thu, 13 Jul 2017 05:43:18 -0700
-Message-ID: <20170713124318.GK2393@linux.vnet.ibm.com>
-References: <20170713070749.GE16509@atomide.com>
- <c00272dc-cf84-81a2-b2e2-d52cadf7bcc6@linaro.org>
- <CAJZ5v0j15uWyCRAPep4KwqSiC4UD4ZppAG++SUvN3Ok1wzDwNQ@mail.gmail.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Re: [rtc-linux] Re: [PATCH] RTC: Add functionality to read/write rtc
+ scratch registers
+Date: Thu, 13 Jul 2017 22:43:55 +0200
+Message-ID: <20170713204355.sbtjip5skms6zwdq@piout.net>
+References: <1492492807-20316-1-git-send-email-j-keerthy@ti.com>
+ <8b28ca13-9822-4172-95b0-59802187ec93@ti.com>
+ <20170504223827.l56sbaozuarq5xwi@piout.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0j15uWyCRAPep4KwqSiC4UD4ZppAG++SUvN3Ok1wzDwNQ@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Alex Shi <alex.shi@linaro.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>
+In-Reply-To: <20170504223827.l56sbaozuarq5xwi@piout.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: linux-rtc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 13, 2017 at 01:50:26PM +0200, Rafael J. Wysocki wrote:
-> On Thu, Jul 13, 2017 at 11:43 AM, Alex Shi <alex.shi@linaro.org> wrote:
-> >
-> > On 07/13/2017 03:07 PM, Tony Lindgren wrote:
-> >> Hi,
-> >>
-> >> Looks like next-20170713 gives me a bunch of "suspicious RCU usage"
-> >> splats with cpuidle_coupled on duovero, see below. I bisected it down
-> >> to commit 2f027e003d05 ("cpu_pm: replace raw_notifier with
-> >> atomic_notifier").
+Hi,
+
+On 05/05/2017 at 00:38:27 +0200, Alexandre Belloni wrote:
+> Hi,
 > 
-> OK, so I'm dropping this commit.
+> On 03/05/2017 at 11:39:34 +0530, Keerthy wrote:
+> > On Tuesday 18 April 2017 10:50 AM, Keerthy wrote:
+> > > From: Russ Dill <Russ.Dill@ti.com>
+> > > 
+> > > Many RTCs provide scratch registers that are maintained so long as the RTC
+> > > has power. Provide a generic method to access these registers.
+> > > 
+> > 
+> > A gentle ping on this
+> > 
+> 
+> Yeah, I apologize for the delay (I know you already sent this 6-8 months
+> ago).
+> I'm not satisfied with the interface (and its name). I gave a lot of
+> thought into it and I'm currently reworking part of the subsystem to
+> create a similar feature. I'm planning to have it in 4.13.
+> 
 
-You can surround idle-loop RCU-reading code with RCU_NONIDLE().
-This will tell RCU to pay attention even though the CPU is otherwise
-idle.
+So, the nvmem stuff is now in 4.13. If you can still wait a bit, I'll
+implement it myself and test on am335x.
 
-							Thanx, Paul
+
+-- 
+Alexandre Belloni, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
