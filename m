@@ -1,161 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Regression with suspicious RCU usage splats with cpu_pm change
-Date: Thu, 13 Jul 2017 00:07:49 -0700
-Message-ID: <20170713070749.GE16509@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [patch] autogain support for bayer10 format (was Re: [patch]
+ propagating controls in libv4l2)
+Date: Thu, 13 Jul 2017 09:57:06 +0200
+Message-ID: <20170713075706.GB1363@amd>
+References: <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426081330.6ca10e42@vento.lan>
+ <20170426132337.GA6482@amd>
+ <cedfd68d-d0fe-6fa8-2676-b61f3ddda652@gmail.com>
+ <20170426225150.GA4188@amd>
+ <8a129dca-69c2-366f-1a81-c64dbabc1983@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="l76fUT7nc3MelDdI"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-pm-owner@vger.kernel.org
-To: Alex Shi <alex.shi@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <8a129dca-69c2-366f-1a81-c64dbabc1983@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-Looks like next-20170713 gives me a bunch of "suspicious RCU usage"
-splats with cpuidle_coupled on duovero, see below. I bisected it down
-to commit 2f027e003d05 ("cpu_pm: replace raw_notifier with
-atomic_notifier").
+--l76fUT7nc3MelDdI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+Hi!
 
-Tony
+> Oh, somehow I got confused that this is kernel code :)
+>=20
+> >But I'd say NEON conversion is not neccessary anytime soon. First,
+> >this is just trying to get average luminosity. We can easily skip
+> >quite a lot of pixels, and still get reasonable answer.
+> >
+> >Second, omap3isp actually has a hardware block computing statistics
+> >for us. We just don't use it for simplicity.
+> >
+>=20
+> Right, I forgot about that.
+>=20
+> >(But if you want to play with camera, I'll get you patches; there's
+> >ton of work to be done, both kernel and userspace :-).
+>=20
+> Well, I saw a low hanging fruit I thought I can convert to NEON in a day =
+or
+> two, while having some rest from the huge "project" I am devoting all my
+> spare time recently (rebasing hildon/maemo 5 on top of devuan Jessie).
+> Still, if there is something relatively small to be done, just email me a=
+nd
+> I'll have a look.
 
-8< -----------------------
-=============================
-WARNING: suspicious RCU usage
-4.12.0-next-20170713+ #118 Tainted: G        W
------------------------------
-./include/linux/rcupdate.h:611 rcu_read_lock() used illegally while idle!
-[    2.928802]
-other info that might help us debug this:
-[    2.928802]
-[    2.946777]
-RCU used illegally from idle CPU!
-rcu_scheduler_active = 2, debug_locks = 1
-RCU used illegally from extended quiescent state!
-1 lock held by swapper/1/0:
- #0:  (rcu_read_lock){......}, at: [<c01624fc>] __atomic_notifier_call_chain+0x0/0x150
-[    2.975433]
-stack backtrace:
-CPU: 1 PID: 0 Comm: swapper/1 Tainted: G        W       4.12.0-next-20170713+ #118
-Hardware name: Generic OMAP4 (Flattened Device Tree)
-[<c0111524>] (unwind_backtrace) from [<c010d20c>] (show_stack+0x10/0x14)
-[<c010d20c>] (show_stack) from [<c086259c>] (dump_stack+0xac/0xe0)
-[<c086259c>] (dump_stack) from [<c0162624>] (__atomic_notifier_call_chain+0x128/0x150)
-[<c0162624>] (__atomic_notifier_call_chain) from [<c023d9e8>] (cpu_pm_enter+0x24/0x64)
-[<c023d9e8>] (cpu_pm_enter) from [<c0128e68>] (omap_enter_idle_coupled+0x188/0x208)
-[<c0128e68>] (omap_enter_idle_coupled) from [<c069e640>] (cpuidle_enter_state+0x118/0x514)
-[<c069e640>] (cpuidle_enter_state) from [<c06a07c0>] (cpuidle_enter_state_coupled+0x3a8/0x40c)
-[<c06a07c0>] (cpuidle_enter_state_coupled) from [<c018d844>] (do_idle+0x1a8/0x21c)
-[<c018d844>] (do_idle) from [<c018dc3c>] (cpu_startup_entry+0x18/0x1c)
-[<c018dc3c>] (cpu_startup_entry) from [<8010164c>] (0x8010164c)
-[    3.088043]
-=============================
-WARNING: suspicious RCU usage
-4.12.0-next-20170713+ #118 Tainted: G        W
------------------------------
-./include/linux/rcupdate.h:611 rcu_read_lock() used illegally while idle!
-[    3.115661]
-other info that might help us debug this:
-[    3.115661]
-[    3.123718]
-RCU used illegally from idle CPU!
-rcu_scheduler_active = 2, debug_locks = 1
-RCU used illegally from extended quiescent state!
-2 locks held by swapper/1/0:
- #0:  (rcu_read_lock){......}, at: [<c01624fc>] __atomic_notifier_call_chain+0x0/0x150
- #1:  (rcu_read_lock){......}, at: [<c0216434>] __is_insn_slot_addr+0x0/0x16c
-[    3.161773]
-stack backtrace:
-CPU: 1 PID: 0 Comm: swapper/1 Tainted: G        W       4.12.0-next-20170713+ #118
-Hardware name: Generic OMAP4 (Flattened Device Tree)
-[<c0111524>] (unwind_backtrace) from [<c010d20c>] (show_stack+0x10/0x14)
-[<c010d20c>] (show_stack) from [<c086259c>] (dump_stack+0xac/0xe0)
-[<c086259c>] (dump_stack) from [<c0216578>] (__is_insn_slot_addr+0x144/0x16c)
-[<c0216578>] (__is_insn_slot_addr) from [<c015eecc>] (kernel_text_address+0x70/0x9c)
-[<c015eecc>] (kernel_text_address) from [<c0110f0c>] (unwind_frame+0x3c/0x654)
-[<c0110f0c>] (unwind_frame) from [<c01115c0>] (unwind_backtrace+0x9c/0x120)
-[<c01115c0>] (unwind_backtrace) from [<c010d20c>] (show_stack+0x10/0x14)
-[<c010d20c>] (show_stack) from [<c086259c>] (dump_stack+0xac/0xe0)
-[<c086259c>] (dump_stack) from [<c0162624>] (__atomic_notifier_call_chain+0x128/0x150)
-[<c0162624>] (__atomic_notifier_call_chain) from [<c023d9e8>] (cpu_pm_enter+0x24/0x64)
-[<c023d9e8>] (cpu_pm_enter) from [<c0128e68>] (omap_enter_idle_coupled+0x188/0x208)
-[<c0128e68>] (omap_enter_idle_coupled) from [<c069e640>] (cpuidle_enter_state+0x118/0x514)
-[<c069e640>] (cpuidle_enter_state) from [<c06a07c0>] (cpuidle_enter_state_coupled+0x3a8/0x40c)
-[<c06a07c0>] (cpuidle_enter_state_coupled) from [<c018d844>] (do_idle+0x1a8/0x21c)
-[<c018d844>] (do_idle) from [<c018dc3c>] (cpu_startup_entry+0x18/0x1c)
-[<c018dc3c>] (cpu_startup_entry) from [<8010164c>] (0x8010164c)
-[    3.313781]
-=============================
-WARNING: suspicious RCU usage
-4.12.0-next-20170713+ #118 Tainted: G        W
------------------------------
-./include/linux/rcupdate.h:662 rcu_read_unlock() used illegally while idle!
-[    3.341583]
-other info that might help us debug this:
-[    3.341583]
-[    3.349639]
-RCU used illegally from idle CPU!
-rcu_scheduler_active = 2, debug_locks = 1
-RCU used illegally from extended quiescent state!
-3 locks held by swapper/1/0:
- #0:  (rcu_read_lock){......}, at: [<c01624fc>] __atomic_notifier_call_chain+0x0/0x150
- #1:  (rcu_read_lock){......}, at: [<c0216434>] __is_insn_slot_addr+0x0/0x16c
- #2:  (rcu_read_lock){......}, at: [<c0216434>] __is_insn_slot_addr+0x0/0x16c
-[    3.395996]
-stack backtrace:
-CPU: 1 PID: 0 Comm: swapper/1 Tainted: G        W       4.12.0-next-20170713+ #118
-Hardware name: Generic OMAP4 (Flattened Device Tree)
-[<c0111524>] (unwind_backtrace) from [<c010d20c>] (show_stack+0x10/0x14)
-[<c010d20c>] (show_stack) from [<c086259c>] (dump_stack+0xac/0xe0)
-[<c086259c>] (dump_stack) from [<c0216550>] (__is_insn_slot_addr+0x11c/0x16c)
-[<c0216550>] (__is_insn_slot_addr) from [<c015eecc>] (kernel_text_address+0x70/0x9c)
-[<c015eecc>] (kernel_text_address) from [<c0110f0c>] (unwind_frame+0x3c/0x654)
-[<c0110f0c>] (unwind_frame) from [<c01115c0>] (unwind_backtrace+0x9c/0x120)
-[<c01115c0>] (unwind_backtrace) from [<c010d20c>] (show_stack+0x10/0x14)
-[<c010d20c>] (show_stack) from [<c086259c>] (dump_stack+0xac/0xe0)
-[<c086259c>] (dump_stack) from [<c0216578>] (__is_insn_slot_addr+0x144/0x16c)
-[<c0216578>] (__is_insn_slot_addr) from [<c015eecc>] (kernel_text_address+0x70/0x9c)
-[<c015eecc>] (kernel_text_address) from [<c0110f0c>] (unwind_frame+0x3c/0x654)
-[<c0110f0c>] (unwind_frame) from [<c01115c0>] (unwind_backtrace+0x9c/0x120)
-[<c01115c0>] (unwind_backtrace) from [<c010d20c>] (show_stack+0x10/0x14)
-[<c010d20c>] (show_stack) from [<c086259c>] (dump_stack+0xac/0xe0)
-[<c086259c>] (dump_stack) from [<c0162624>] (__atomic_notifier_call_chain+0x128/0x150)
-[<c0162624>] (__atomic_notifier_call_chain) from [<c023d9e8>] (cpu_pm_enter+0x24/0x64)
-[<c023d9e8>] (cpu_pm_enter) from [<c0128e68>] (omap_enter_idle_coupled+0x188/0x208)
-[<c0128e68>] (omap_enter_idle_coupled) from [<c069e640>] (cpuidle_enter_state+0x118/0x514)
-[<c069e640>] (cpuidle_enter_state) from [<c06a07c0>] (cpuidle_enter_state_coupled+0x3a8/0x40c)
-[<c06a07c0>] (cpuidle_enter_state_coupled) from [<c018d844>] (do_idle+0x1a8/0x21c)
-[<c018d844>] (do_idle) from [<c018dc3c>] (cpu_startup_entry+0x18/0x1c)
-[<c018dc3c>] (cpu_startup_entry) from [<8010164c>] (0x8010164c)
-[    3.596588]
-=============================
-WARNING: suspicious RCU usage
-4.12.0-next-20170713+ #118 Tainted: G        W
------------------------------
-./include/linux/rcupdate.h:662 rcu_read_unlock() used illegally while idle!
-[    3.624328]
-other info that might help us debug this:
-[    3.624328]
-[    3.632385]
-RCU used illegally from idle CPU!
-rcu_scheduler_active = 2, debug_locks = 1
-RCU used illegally from extended quiescent state!
-1 lock held by swapper/1/0:
- #0:  (rcu_read_lock){......}, at: [<c01624fc>] __atomic_notifier_call_chain+0x0/0x150
-[    3.662048]
-stack backtrace:
-CPU: 1 PID: 0 Comm: swapper/1 Tainted: G        W       4.12.0-next-20170713+ #118
-Hardware name: Generic OMAP4 (Flattened Device Tree)
-[<c0111524>] (unwind_backtrace) from [<c010d20c>] (show_stack+0x10/0x14)
-[<c010d20c>] (show_stack) from [<c086259c>] (dump_stack+0xac/0xe0)
-[<c086259c>] (dump_stack) from [<c01625fc>] (__atomic_notifier_call_chain+0x100/0x150)
-[<c01625fc>] (__atomic_notifier_call_chain) from [<c023d9e8>] (cpu_pm_enter+0x24/0x64)
-[<c023d9e8>] (cpu_pm_enter) from [<c0128e68>] (omap_enter_idle_coupled+0x188/0x208)
-[<c0128e68>] (omap_enter_idle_coupled) from [<c069e640>] (cpuidle_enter_state+0x118/0x514)
-[<c069e640>] (cpuidle_enter_state) from [<c06a07c0>] (cpuidle_enter_state_coupled+0x3a8/0x40c)
-[<c06a07c0>] (cpuidle_enter_state_coupled) from [<c018d844>] (do_idle+0x1a8/0x21c)
-[<c018d844>] (do_idle) from [<c018dc3c>] (cpu_startup_entry+0x18/0x1c)
-[<c018dc3c>] (cpu_startup_entry) from [<8010164c>] (0x8010164c)
+Well, there's a ton of work on camera, and some work on
+libcmtspeechdata. The later is rather self-contained.
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--l76fUT7nc3MelDdI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllnJ9IACgkQMOfwapXb+vLwLACeKB6N8oWUnTUjQgZaJ94QkMic
+CNgAn177IBqBxeyO0DDHUAGGUrZdoWvx
+=IlMZ
+-----END PGP SIGNATURE-----
+
+--l76fUT7nc3MelDdI--
