@@ -1,49 +1,34 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Re: [rtc-linux] Re: [PATCH] RTC: Add functionality to read/write rtc
- scratch registers
-Date: Thu, 13 Jul 2017 22:43:55 +0200
-Message-ID: <20170713204355.sbtjip5skms6zwdq@piout.net>
-References: <1492492807-20316-1-git-send-email-j-keerthy@ti.com>
- <8b28ca13-9822-4172-95b0-59802187ec93@ti.com>
- <20170504223827.l56sbaozuarq5xwi@piout.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] drivers/video/fbdev/omap/lcd_mipid.c: add const to lcd_panel structure
+Date: Fri, 14 Jul 2017 14:44:06 +0530
+Message-ID: <1500023646-8846-1-git-send-email-bhumirks@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170504223827.l56sbaozuarq5xwi@piout.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: linux-rtc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>
+To: julia.lawall@lip6.fr, tomi.valkeinen@ti.com, b.zolnierkie@samsung.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Make lcd_panel structure const as it is only copied to some object.
+As the only usage of this structure is a copy operation, so it can be
+made const.
 
-On 05/05/2017 at 00:38:27 +0200, Alexandre Belloni wrote:
-> Hi,
-> 
-> On 03/05/2017 at 11:39:34 +0530, Keerthy wrote:
-> > On Tuesday 18 April 2017 10:50 AM, Keerthy wrote:
-> > > From: Russ Dill <Russ.Dill@ti.com>
-> > > 
-> > > Many RTCs provide scratch registers that are maintained so long as the RTC
-> > > has power. Provide a generic method to access these registers.
-> > > 
-> > 
-> > A gentle ping on this
-> > 
-> 
-> Yeah, I apologize for the delay (I know you already sent this 6-8 months
-> ago).
-> I'm not satisfied with the interface (and its name). I gave a lot of
-> thought into it and I'm currently reworking part of the subsystem to
-> create a similar feature. I'm planning to have it in 4.13.
-> 
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/video/fbdev/omap/lcd_mipid.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-So, the nvmem stuff is now in 4.13. If you can still wait a bit, I'll
-implement it myself and test on am335x.
-
-
+diff --git a/drivers/video/fbdev/omap/lcd_mipid.c b/drivers/video/fbdev/omap/lcd_mipid.c
+index df9e6eb..e3a8543 100644
+--- a/drivers/video/fbdev/omap/lcd_mipid.c
++++ b/drivers/video/fbdev/omap/lcd_mipid.c
+@@ -496,7 +496,7 @@ static void mipid_cleanup(struct lcd_panel *panel)
+ 		mipid_esd_stop_check(md);
+ }
+ 
+-static struct lcd_panel mipid_panel = {
++static const struct lcd_panel mipid_panel = {
+ 	.config		= OMAP_LCDC_PANEL_TFT,
+ 
+ 	.bpp		= 16,
 -- 
-Alexandre Belloni, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+1.9.1
