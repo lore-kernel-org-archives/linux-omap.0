@@ -1,54 +1,55 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH 1/2] PCI: dwc: dra7xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros
-Date: Fri, 14 Jul 2017 14:07:34 +0200
-Message-ID: <20170714120735.11993-2-niklas.cassel@axis.com>
-References: <20170714120735.11993-1-niklas.cassel@axis.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Back camera working at 1MPix, not working at 5Mpix
+Date: Fri, 14 Jul 2017 14:10:27 +0200
+Message-ID: <20170714121027.GA31248@amd>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170714120735.11993-1-niklas.cassel@axis.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
----
- drivers/pci/dwc/pci-dra7xx.c | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index f2fc5f47064e..e30c837c4437 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -145,22 +145,20 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
- 	}
- 
- 	if (dra7xx->link_gen == 1) {
--		dw_pcie_read(pci->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
--			     4, &reg);
-+		reg = dw_pcie_readl_dbi(pci, exp_cap_off + PCI_EXP_LNKCAP);
- 		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
- 			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
- 			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
--			dw_pcie_write(pci->dbi_base + exp_cap_off +
--				      PCI_EXP_LNKCAP, 4, reg);
-+			dw_pcie_writel_dbi(pci, exp_cap_off + PCI_EXP_LNKCAP,
-+					   reg);
- 		}
- 
--		dw_pcie_read(pci->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
--			     2, &reg);
-+		reg = dw_pcie_readw_dbi(pci, exp_cap_off + PCI_EXP_LNKCTL2);
- 		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
- 			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
- 			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
--			dw_pcie_write(pci->dbi_base + exp_cap_off +
--				      PCI_EXP_LNKCTL2, 2, reg);
-+			dw_pcie_writew_dbi(pci, exp_cap_off + PCI_EXP_LNKCTL2,
-+					   reg);
- 		}
- 	}
- 
--- 
-2.11.0
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+=46rom cca v4.6 kernel, I have working back camera in 1Mpix resolution.
+
+I can't get 5Mpix to work at all. In preview mode, display is
+distorted in various ways, in raw mode, I get
+[  522.576354] omap3isp 480bc000.isp: Unable to stop OMAP3 ISP CCDC
+and no data.
+
+If you have recent kernel tree where 5MPix mode works, let me
+know. 2.6.x probably does not help me, but 4.x would be interesting.=20
+
+BTW my tree with camera is at
+kernel.org:pub/scm/linux/kernel/git/pavel/linux-n900.git branch
+camera-fw6-2 ... if someone wants to play.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllotLMACgkQMOfwapXb+vL0xgCeIJeikh20QwSUnzVISnjHLzBk
+mH0AnRRyL8U/9BpaGu0PZBHYeC3trhw6
+=znSQ
+-----END PGP SIGNATURE-----
+
+--17pEHd4RhPHOinZp--
