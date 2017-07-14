@@ -1,55 +1,31 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Back camera working at 1MPix, not working at 5Mpix
-Date: Fri, 14 Jul 2017 14:10:27 +0200
-Message-ID: <20170714121027.GA31248@amd>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH 0/2] mmc: omap: Remove Unused Code
+Date: Fri, 14 Jul 2017 18:16:42 +0530
+Message-ID: <1500036404-5556-1-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+To: tony@atomide.com, ulf.hansson@linaro.org
+Cc: linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kishon@ti.com, rk@ti.com, nsekhar@ti.com, linus.walleij@linaro.org, hkallweit1@gmail.com, peter.ujfalusi@ti.com, Faiz Abbas <faiz_abbas@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+This patch series removes some code in omap_hsmmc.c
+and hsmmc.c and members from hsmmc.h and 
+hsmmc-omap.h which are not used anymore post 
+conversion to device-tree.
 
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Patch 2 depends on Patch 1
 
-Hi!
+Faiz Abbas (2):
+  ARM: OMAP2+: hsmmc.c: Remove dead code
+  mmc: host: omap_hsmmc: remove unused platform callbacks
 
-=46rom cca v4.6 kernel, I have working back camera in 1Mpix resolution.
+ arch/arm/mach-omap2/hsmmc.c              | 239 +------------------------------
+ arch/arm/mach-omap2/hsmmc.h              |   9 --
+ drivers/mmc/host/omap_hsmmc.c            |  11 --
+ include/linux/platform_data/hsmmc-omap.h |  10 --
+ 4 files changed, 2 insertions(+), 267 deletions(-)
 
-I can't get 5Mpix to work at all. In preview mode, display is
-distorted in various ways, in raw mode, I get
-[  522.576354] omap3isp 480bc000.isp: Unable to stop OMAP3 ISP CCDC
-and no data.
-
-If you have recent kernel tree where 5MPix mode works, let me
-know. 2.6.x probably does not help me, but 4.x would be interesting.=20
-
-BTW my tree with camera is at
-kernel.org:pub/scm/linux/kernel/git/pavel/linux-n900.git branch
-camera-fw6-2 ... if someone wants to play.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---17pEHd4RhPHOinZp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAllotLMACgkQMOfwapXb+vL0xgCeIJeikh20QwSUnzVISnjHLzBk
-mH0AnRRyL8U/9BpaGu0PZBHYeC3trhw6
-=znSQ
------END PGP SIGNATURE-----
-
---17pEHd4RhPHOinZp--
+-- 
+2.7.4
