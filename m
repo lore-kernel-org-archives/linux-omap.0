@@ -1,28 +1,54 @@
 From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH 0/2] PCI: dwc: convert remaining dbi read/writes to dw_pcie_readX_dbi/dw_pcie_writeX_dbi
-Date: Fri, 14 Jul 2017 14:07:33 +0200
-Message-ID: <20170714120735.11993-1-niklas.cassel@axis.com>
+Subject: [PATCH 1/2] PCI: dwc: dra7xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros
+Date: Fri, 14 Jul 2017 14:07:34 +0200
+Message-ID: <20170714120735.11993-2-niklas.cassel@axis.com>
+References: <20170714120735.11993-1-niklas.cassel@axis.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
-Cc: Niklas Cassel <niklass@axis.com>, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170714120735.11993-1-niklas.cassel@axis.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Since the introduction of the dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros,
-most dw_pcie_read(pci->dbi_base, ..)/dw_pcie_write(pci->dbi_base, ..) calls
-have been converted to dw_pcie_readX_dbi/dw_pcie_writeX_dbi calls.
-Convert the remaining calls.
+Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
+---
+ drivers/pci/dwc/pci-dra7xx.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-Niklas Cassel (2):
-  PCI: dwc: dra7xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros
-  PCI: dwc: spear13xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi
-    macros
-
- drivers/pci/dwc/pci-dra7xx.c     | 14 ++++++--------
- drivers/pci/dwc/pcie-spear13xx.c | 22 ++++++++++------------
- 2 files changed, 16 insertions(+), 20 deletions(-)
-
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index f2fc5f47064e..e30c837c4437 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -145,22 +145,20 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
+ 	}
+ 
+ 	if (dra7xx->link_gen == 1) {
+-		dw_pcie_read(pci->dbi_base + exp_cap_off + PCI_EXP_LNKCAP,
+-			     4, &reg);
++		reg = dw_pcie_readl_dbi(pci, exp_cap_off + PCI_EXP_LNKCAP);
+ 		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+ 			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
+ 			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
+-			dw_pcie_write(pci->dbi_base + exp_cap_off +
+-				      PCI_EXP_LNKCAP, 4, reg);
++			dw_pcie_writel_dbi(pci, exp_cap_off + PCI_EXP_LNKCAP,
++					   reg);
+ 		}
+ 
+-		dw_pcie_read(pci->dbi_base + exp_cap_off + PCI_EXP_LNKCTL2,
+-			     2, &reg);
++		reg = dw_pcie_readw_dbi(pci, exp_cap_off + PCI_EXP_LNKCTL2);
+ 		if ((reg & PCI_EXP_LNKCAP_SLS) != PCI_EXP_LNKCAP_SLS_2_5GB) {
+ 			reg &= ~((u32)PCI_EXP_LNKCAP_SLS);
+ 			reg |= PCI_EXP_LNKCAP_SLS_2_5GB;
+-			dw_pcie_write(pci->dbi_base + exp_cap_off +
+-				      PCI_EXP_LNKCTL2, 2, reg);
++			dw_pcie_writew_dbi(pci, exp_cap_off + PCI_EXP_LNKCTL2,
++					   reg);
+ 		}
+ 	}
+ 
 -- 
 2.11.0
