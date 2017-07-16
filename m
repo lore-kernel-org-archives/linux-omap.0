@@ -1,62 +1,52 @@
-From: Roman Gushchin <guro@fb.com>
-Subject: Re: Droid 4 boot failure due to 422580c3cea7 (mm/oom_kill.c: add
- tracepoints for oom reaper-related events)
-Date: Sun, 16 Jul 2017 13:53:54 +0100
-Message-ID: <20170716125354.GA20017@castle>
-References: <20170714134330.bsdoopceecuk5yem@earth>
- <B9634541-43B8-45FD-8DD2-38FB4F0FAD14@fb.com>
- <20170714172343.szrjbeob5alpgzpe@earth>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [rtc-linux] Re: [PATCH] RTC: Add functionality to read/write rtc
+ scratch registers
+Date: Sun, 16 Jul 2017 19:19:26 +0530
+Message-ID: <10b05dc7-74fd-8fbf-6b57-5443cf9f520b@ti.com>
+References: <1492492807-20316-1-git-send-email-j-keerthy@ti.com>
+ <8b28ca13-9822-4172-95b0-59802187ec93@ti.com>
+ <20170504223827.l56sbaozuarq5xwi@piout.net>
+ <20170713204355.sbtjip5skms6zwdq@piout.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170714172343.szrjbeob5alpgzpe@earth>
+In-Reply-To: <20170713204355.sbtjip5skms6zwdq@piout.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, Linux-Kernel <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: linux-rtc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jul 14, 2017 at 07:23:43PM +0200, Sebastian Reichel wrote:
+
+
+On Friday 14 July 2017 02:13 AM, Alexandre Belloni wrote:
 > Hi,
 > 
-> On Fri, Jul 14, 2017 at 02:12:21PM +0000, Roman Gushchin wrote:
-> > > On 14 Jul 2017, at 14:43, Sebastian Reichel <sebastian.reichel@collabora.co.uk> wrote:
-> > > I just bisected another issue breaking boot on Droid 4. My
-> > > bisect points to 422580c3cea7 (mm/oom_kill.c: add tracepoints
-> > > for oom reaper-related events). It do not see any message
-> > > printed to UART (with earlyprintk) once that commit is part
-> > > of my image. Kernel config is below.
+> On 05/05/2017 at 00:38:27 +0200, Alexandre Belloni wrote:
+>> Hi,
+>>
+>> On 03/05/2017 at 11:39:34 +0530, Keerthy wrote:
+>>> On Tuesday 18 April 2017 10:50 AM, Keerthy wrote:
+>>>> From: Russ Dill <Russ.Dill@ti.com>
+>>>>
+>>>> Many RTCs provide scratch registers that are maintained so long as the RTC
+>>>> has power. Provide a generic method to access these registers.
+>>>>
+>>>
+>>> A gentle ping on this
+>>>
+>>
+>> Yeah, I apologize for the delay (I know you already sent this 6-8 months
+>> ago).
+>> I'm not satisfied with the interface (and its name). I gave a lot of
+>> thought into it and I'm currently reworking part of the subsystem to
+>> create a similar feature. I'm planning to have it in 4.13.
+>>
 > 
-> > This is really interesting, because this patch adds few
-> > tracepoints and all of them are called from the oom code, which is
-> > hopefully not a part of the boot process.
-> > 
-> > Can you, please, confirm, that it can be reproduced with some
-> > confidence? If so, can you, please, eliminate the tracepoints
-> > calls and try to reproduce the boot failure?
+> So, the nvmem stuff is now in 4.13. If you can still wait a bit, I'll
+> implement it myself and test on am335x.
+
+Sure.
+
 > 
-> I can boot 9967468c0a10 ("Merge branch 'akpm' (patches from
-> Andrew)") after adding
 > 
->  - http://git.kernel.org/tip/19d39a3810e7032f311ef83effdac40339b9d022
->    (another issue, that breaks Droid 4 boot)
->  - a git revert of 422580c3cea7
-> 
-> OTOH there are strange problems. Using da16dd9785f8 + above
-> two commits also works. Using b5e16170f59b + above commits
-> does not work and bisection ended up in the merge commit.
-
-Hi, Sebastian!
-
-As commit 422580c3cea7 hasn't added any code, which is executed
-during the boot process, I could imagine only two options:
-1) Added code/data occasionally broke some alignment/size contraints.
-2) There is another instable bug, which compromised bisect results.
-
-Unfortunately, I can't help you with reproducing, because I haven't
-necessary hardware.
-
-Can you, please, try some older known to be good revision with
-the 422580c3cea7 patch applied?
-
-Roman
