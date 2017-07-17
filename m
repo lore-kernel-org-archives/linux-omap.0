@@ -1,52 +1,70 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH] mfd: twl-core: Improve the documentation
-Date: Mon, 17 Jul 2017 11:45:14 +0100
-Message-ID: <20170717104514.u4n3vkhaiz355ohi@dell>
-References: <20170630080220.ctwetsy2jfrxyn4s@mwanda>
+Subject: Re: [PATCH 5/9] mfd: Drop unnecessary static
+Date: Mon, 17 Jul 2017 12:01:09 +0100
+Message-ID: <20170717110109.c53tmzvvcd64f7c4@dell>
+References: <1493928654-18768-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1493928654-18768-6-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170630080220.ctwetsy2jfrxyn4s@mwanda>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <1493928654-18768-6-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Tony Lindgren <tony@atomide.com>, keescook@chromium.org, kernel-janitors@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 30 Jun 2017, Dan Carpenter wrote:
+On Thu, 04 May 2017, Julia Lawall wrote:
 
-> Saying it "returns the result" seems tautological.  The read function
-> does not return num_bytes on success, it returns zero on success.  I
-> noticed this discrepancy because some of the callers were checking for
-> >= 0.
+> Drop static on a local variable, when the variable is initialized before
+> any use, on every possible execution path through the function.
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> The semantic patch that fixes this problem is as follows:
+> (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @bad exists@
+> position p;
+> identifier x;
+> type T;
+> @@
+> 
+> static T x@p;
+> ...
+> x = <+...x...+>
+> 
+> @@
+> identifier x;
+> expression e;
+> type T;
+> position p != bad.p;
+> @@
+> 
+> -static
+>  T x@p;
+>  ... when != x
+>      when strict
+> ?x = e;
+> // </smpl>
+> 
+> The change increases the code size but decreases the size of the bss segment.
+> 
+> before:
+>    text    data     bss     dec     hex filename
+>    3369     272     300    3941     f65 drivers/mfd/twl4030-irq.o
+> 
+> after:
+>    text    data     bss     dec     hex filename
+>    3401     272      28    3701     e75 drivers/mfd/twl4030-irq.o
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
+> ---
+>  drivers/mfd/twl4030-irq.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
 Applied, thanks.
-
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index c64615dca2bd..07d168f8cc81 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -448,7 +448,7 @@ static struct regmap *twl_get_regmap(u8 mod_no)
->   * @reg: register address (just offset will do)
->   * @num_bytes: number of bytes to transfer
->   *
-> - * Returns the result of operation - 0 is success
-> + * Returns 0 on success or else a negative error code.
->   */
->  int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
->  {
-> @@ -476,7 +476,7 @@ EXPORT_SYMBOL(twl_i2c_write);
->   * @reg: register address (just offset will do)
->   * @num_bytes: number of bytes to transfer
->   *
-> - * Returns result of operation - num_bytes is success else failure.
-> + * Returns 0 on success or else a negative error code.
->   */
->  int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
->  {
 
 -- 
 Lee Jones
