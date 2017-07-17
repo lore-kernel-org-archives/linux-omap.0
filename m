@@ -1,47 +1,97 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: hsmmc.c: Remove dead code
-Date: Mon, 17 Jul 2017 15:08:54 +0200
-Message-ID: <CAPDyKFpwb3T4PhQSyUwWDwpEnOwVDxLeK7hAMS0Q4P3tzPXXrQ@mail.gmail.com>
-References: <1500036404-5556-1-git-send-email-faiz_abbas@ti.com> <1500036404-5556-2-git-send-email-faiz_abbas@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv2 1/2] dt-bindings: backlight: add ti-lmu-backlight binding
+Date: Mon, 17 Jul 2017 15:39:55 +0200
+Message-ID: <20170717133956.20691-2-sebastian.reichel@collabora.co.uk>
+References: <20170717133956.20691-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1500036404-5556-2-git-send-email-faiz_abbas@ti.com>
+In-Reply-To: <20170717133956.20691-1-sebastian.reichel@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kishon <kishon@ti.com>, Ravikumar Kattekola <rk@ti.com>, Sekhar Nori <nsekhar@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Heiner Kallweit <hkallweit1@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Sebastian Reichel <sre@kernel.org>, Milo Kim <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Milo Kim <milo.kim@ti.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On 14 July 2017 at 14:46, Faiz Abbas <faiz_abbas@ti.com> wrote:
-> Most platforms using OMAP hsmmc driver have switched to device tree
-> for passing platform data to omap_hsmmc.c driver.
->
-> The hsmmc.c file in mach-omap2 exists only to support pandora board
-> which uses wl1251 driver in legacy platform data mode.
->
-> Hence, remove the dead code not used by the pandora board.
->
-> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+From: Milo Kim <Milo.Kim@ti.com>
 
-I just got an ack from Tony to pick this up. So I did that (including
-the mmc change in patch 2) and intend to send this for 4.13 rcs, via
-my fixes branch in my mmc tree.
+Add DT binding for ti-lmu devices.
 
-However the below comment for testing puzzles me. Either it's dead
-code or not, so then what is there to test? :-)
+Signed-off-by: Milo Kim <milo.kim@ti.com>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+---
+ .../bindings/leds/backlight/ti-lmu-backlight.txt   | 66 ++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/backlight/ti-lmu-backlight.txt
 
-Anyway, it's available on my fixes and next branch, so let's see if
-zero build reports some issues.
-
-> ---
-> This is only compile tested. Someone with a pandora board should help
-> test this for functionality.
->
->  arch/arm/mach-omap2/hsmmc.c | 239 +-------------------------------------------
->  arch/arm/mach-omap2/hsmmc.h |   9 --
->  2 files changed, 2 insertions(+), 246 deletions(-)
-
-[...]
-
-Kind regards
-Uffe
+diff --git a/Documentation/devicetree/bindings/leds/backlight/ti-lmu-backlight.txt b/Documentation/devicetree/bindings/leds/backlight/ti-lmu-backlight.txt
+new file mode 100644
+index 000000000000..5fb1458a9136
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/backlight/ti-lmu-backlight.txt
+@@ -0,0 +1,66 @@
++TI LMU backlight device tree bindings
++
++Required property:
++ - compatible: Should be one of:
++        "ti,lm3532-backlight"
++        "ti,lm3631-backlight"
++        "ti,lm3632-backlight"
++        "ti,lm3633-backlight"
++        "ti,lm3695-backlight"
++        "ti,lm3697-backlight"
++
++Optional properties:
++ There are two backlight control mode. One is I2C, the other is PWM mode.
++ Following properties are only specified in PWM mode.
++ Please note that LMU backlight device can have only one PWM channel.
++
++ - pwms: OF device-tree PWM specification.
++ - pwm-names: a list of names for the PWM devices specified in the "pwms"
++              property.
++
++ For the PWM user nodes, please refer to [1].
++
++Child nodes:
++ LMU backlight is represented as sub-nodes of the TI LMU device [2].
++ So, LMU backlight should have more than one backlight child node.
++ Each node exactly matches with backlight control bank configuration.
++ Maximum numbers of child nodes depend on the device.
++
++ 1 = LM3631, LM3632, LM3695
++ 2 = LM3633, LM3697
++ 3 = LM3532
++
++ Required property of a child node:
++ - led-sources: List of enabled channels from 0 to 2.
++                Please refer to LED binding [3].
++                For output channels, please refer to the datasheets [4].
++
++ Optional properties of a child node:
++ - label: Backlight channel identification.
++          Please refer to LED binding [3].
++ - default-brightness-level: Backlight initial brightness value.
++                             Type is <u32>. It is set as soon as backlight
++                             device is created.
++                             0 ~ 2047 = LM3631, LM3632, LM3633, LM3695 and
++                                        LM3697
++                             0 ~ 255  = LM3532
++ - ramp-up-msec, ramp-down-msec: Light dimming effect properties.
++                                 Type is <u32>. Unit is millisecond.
++                                 0 ~ 65 msec    = LM3532
++                                 0 ~ 4000 msec  = LM3631
++                                 0 ~ 16000 msec = LM3633 and LM3697
++ - pwm-period: PWM period. Only valid in PWM brightness mode.
++               Type is <u32>. If this property is missing, then control
++               mode is set to I2C by default.
++
++Examples: Please refer to ti-lmu dt-bindings. [2].
++
++[1] ../pwm/pwm.txt
++[2] ../mfd/ti-lmu.txt
++[3] ../leds/common.txt
++[4] LM3532: http://www.ti.com/product/LM3532/datasheet
++    LM3631: http://www.ti.com/product/LM3631/datasheet
++    LM3632: http://www.ti.com/product/LM3632A/datasheet
++    LM3633: http://www.ti.com/product/LM3633/datasheet
++    LM3695: Datasheet is not opened yet, but only two strings are used.
++    LM3697: http://www.ti.com/product/LM3697/datasheet
+-- 
+2.13.2
