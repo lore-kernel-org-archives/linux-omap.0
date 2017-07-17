@@ -1,52 +1,47 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: Regression with suspicious RCU usage splats with cpu_pm change
-Date: Mon, 17 Jul 2017 05:39:38 -0700
-Message-ID: <20170717123938.GP2393@linux.vnet.ibm.com>
-References: <20170713070749.GE16509@atomide.com>
- <c00272dc-cf84-81a2-b2e2-d52cadf7bcc6@linaro.org>
- <CAJZ5v0j15uWyCRAPep4KwqSiC4UD4ZppAG++SUvN3Ok1wzDwNQ@mail.gmail.com>
- <20170713124318.GK2393@linux.vnet.ibm.com>
- <c5c6623b-ea1d-1bbf-ea80-5d93e7e81c6f@linaro.org>
- <20170717060806.GC10026@atomide.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: hsmmc.c: Remove dead code
+Date: Mon, 17 Jul 2017 15:08:54 +0200
+Message-ID: <CAPDyKFpwb3T4PhQSyUwWDwpEnOwVDxLeK7hAMS0Q4P3tzPXXrQ@mail.gmail.com>
+References: <1500036404-5556-1-git-send-email-faiz_abbas@ti.com> <1500036404-5556-2-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170717060806.GC10026@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Alex Shi <alex.shi@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1500036404-5556-2-git-send-email-faiz_abbas@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kishon <kishon@ti.com>, Ravikumar Kattekola <rk@ti.com>, Sekhar Nori <nsekhar@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Heiner Kallweit <hkallweit1@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jul 16, 2017 at 11:08:07PM -0700, Tony Lindgren wrote:
-> * Alex Shi <alex.shi@linaro.org> [170716 16:25]:
-> > I reused the rcu_irq_enter_irqson() from RCU_NONIDLE to avoid this issue. 
-> > It works fine.
-> > 
-> > Tony, Could you like to give a tested-by if this patch works for you.
-> 
-> Yeah that keeps things booting for me with no splats so:
-> 
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> 
-> In general, it seems we're missing the knowledge in Linux kernel
-> of when the entire system is idle. Right now it seems that only
-> cpuidle_coupled knows that?
-> 
-> We could probably simplify things by adding some PM state for
-> entire system idle. Then cpuidle code and timer code could use
-> that to test when it's safe to do whatever the SoC needs to do
-> to enter deeper power states.
-> 
-> If we already have something like that, please do let me know :)
+On 14 July 2017 at 14:46, Faiz Abbas <faiz_abbas@ti.com> wrote:
+> Most platforms using OMAP hsmmc driver have switched to device tree
+> for passing platform data to omap_hsmmc.c driver.
+>
+> The hsmmc.c file in mach-omap2 exists only to support pandora board
+> which uses wl1251 driver in legacy platform data mode.
+>
+> Hence, remove the dead code not used by the pandora board.
+>
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 
-Well, we used to have CONFIG_NO_HZ_FULL_SYSIDLE, which detected
-full-system idle lazily so as to avoid scalability bottlenecks.
-https://lwn.net/Articles/558284/
+I just got an ack from Tony to pick this up. So I did that (including
+the mmc change in patch 2) and intend to send this for 4.13 rcs, via
+my fixes branch in my mmc tree.
 
-No one was using it, so I removed it last merge window.  The
-patch that removed it is at sysidle.2017.05.11a, which can
-probably still be reverted cleanly.  Or just use v4.11 or earlier.
+However the below comment for testing puzzles me. Either it's dead
+code or not, so then what is there to test? :-)
 
-						Thanx, Paul
+Anyway, it's available on my fixes and next branch, so let's see if
+zero build reports some issues.
+
+> ---
+> This is only compile tested. Someone with a pandora board should help
+> test this for functionality.
+>
+>  arch/arm/mach-omap2/hsmmc.c | 239 +-------------------------------------------
+>  arch/arm/mach-omap2/hsmmc.h |   9 --
+>  2 files changed, 2 insertions(+), 246 deletions(-)
+
+[...]
+
+Kind regards
+Uffe
