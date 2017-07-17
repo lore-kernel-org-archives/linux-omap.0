@@ -1,107 +1,138 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: Droid 4 boot failure due to 422580c3cea7 (mm/oom_kill.c: add
- tracepoints for oom reaper-related events)
-Date: Mon, 17 Jul 2017 11:51:39 +0200
-Message-ID: <20170717095139.gv3dmh7mhyzmh7bn@earth>
-References: <20170714134330.bsdoopceecuk5yem@earth>
- <B9634541-43B8-45FD-8DD2-38FB4F0FAD14@fb.com>
- <20170714172343.szrjbeob5alpgzpe@earth>
- <20170716125354.GA20017@castle>
- <20170717055942.GA10026@atomide.com>
+Subject: Re: [PATCHv2 0/6] Motorola Droid 4 Audio Support
+Date: Mon, 17 Jul 2017 12:12:58 +0200
+Message-ID: <20170717101258.llyly7kwfnwtoftr@earth>
+References: <20170712151846.24621-1-sebastian.reichel@collabora.co.uk>
+ <20170717092904.GG10026@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="q5ebqwxsxom4775d"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170717055942.GA10026@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7721364405840618863=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20170717092904.GG10026@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Roman Gushchin <guro@fb.com>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux-Kernel <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Rob Herring <robh+dt@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---q5ebqwxsxom4775d
+--===============7721364405840618863==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="mc2oyjl5s67xweu2"
+Content-Disposition: inline
+
+
+--mc2oyjl5s67xweu2
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Sun, Jul 16, 2017 at 10:59:42PM -0700, Tony Lindgren wrote:
-> * Roman Gushchin <guro@fb.com> [170716 05:55]:
-> > On Fri, Jul 14, 2017 at 07:23:43PM +0200, Sebastian Reichel wrote:
-> > > On Fri, Jul 14, 2017 at 02:12:21PM +0000, Roman Gushchin wrote:
-> > > > > On 14 Jul 2017, at 14:43, Sebastian Reichel <sebastian.reichel@co=
-llabora.co.uk> wrote:
-> > > > > I just bisected another issue breaking boot on Droid 4. My
-> > > > > bisect points to 422580c3cea7 (mm/oom_kill.c: add tracepoints
-> > > > > for oom reaper-related events). It do not see any message
-> > > > > printed to UART (with earlyprintk) once that commit is part
-> > > > > of my image. Kernel config is below.
-> > >=20
-> > > > This is really interesting, because this patch adds few
-> > > > tracepoints and all of them are called from the oom code, which is
-> > > > hopefully not a part of the boot process.
-> > > >=20
-> > > > Can you, please, confirm, that it can be reproduced with some
-> > > > confidence? If so, can you, please, eliminate the tracepoints
-> > > > calls and try to reproduce the boot failure?
-> > >=20
-> > > I can boot 9967468c0a10 ("Merge branch 'akpm' (patches from
-> > > Andrew)") after adding
-> > >=20
-> > >  - http://git.kernel.org/tip/19d39a3810e7032f311ef83effdac40339b9d022
-> > >    (another issue, that breaks Droid 4 boot)
-> > >  - a git revert of 422580c3cea7
-> > >=20
-> > > OTOH there are strange problems. Using da16dd9785f8 + above
-> > > two commits also works. Using b5e16170f59b + above commits
-> > > does not work and bisection ended up in the merge commit.
-> >=20
-> > Hi, Sebastian!
-> >=20
-> > As commit 422580c3cea7 hasn't added any code, which is executed
-> > during the boot process, I could imagine only two options:
-> > 1) Added code/data occasionally broke some alignment/size contraints.
-> > 2) There is another instable bug, which compromised bisect results.
-> >=20
-> > Unfortunately, I can't help you with reproducing, because I haven't
-> > necessary hardware.
-> >=20
-> > Can you, please, try some older known to be good revision with
-> > the 422580c3cea7 patch applied?
+On Mon, Jul 17, 2017 at 02:29:04AM -0700, Tony Lindgren wrote:
+> * Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170712 08:19]:
+> >  * Switch from simple-audio-card to audio-graph-card
 >=20
-> Sebastian, for me droid 4 boots just fine with v4.13-rc1 +
-> 19d39a3810e if that helps. So that's with commit 422580c3cea7.
+> Gave this a quick try against v4.13-rc1 with SND_AUDIO_GRAPH_CARD
+> enabled as a loadable module. However loading it oopses for me,
+> see below. Maybe some dependencies are missing?
 
-v4.13-rc1 + 19d39a3810e was also broken for me. I just disabled
-some unused bits in my .config and now the kernel boots with
-(with 422580c3cea7 that is). Maybe I hit some maximum image size
-limit for Droid 4?
-
-Anyways it looks like 422580c3cea7 is not the actual problem
-and merely reveals some other problem.
+It works for me on top of v4.13-rc1 (my kernel is monolithic).
+Looking at the stacktrace it seems to be a bug in audio graph
+card and not in the codec driver.
 
 -- Sebastian
 
---q5ebqwxsxom4775d
+> 8< --------------------
+> BUG: sleeping function called from invalid context at kernel/locking/mute=
+x.c:747
+> in_atomic(): 1, irqs_disabled(): 128, pid: 1590, name: modprobe
+> INFO: lockdep is turned off.
+> irq event stamp: 0
+> hardirqs last  enabled at (0): [<  (null)>]   (null)
+> hardirqs last disabled at (0): [<c0137464>] copy_process.part.5+0x2c4/0x1=
+ac8
+> softirqs last  enabled at (0): [<c0137464>] copy_process.part.5+0x2c4/0x1=
+ac8
+> softirqs last disabled at (0): [<  (null)>]   (null)
+> CPU: 0 PID: 1590 Comm: modprobe Tainted: G        W       4.13.0-rc1+ #126
+> Hardware name: Generic OMAP4 (Flattened Device Tree)
+> [<c0111524>] (unwind_backtrace) from [<c010d1fc>] (show_stack+0x10/0x14)
+> [<c010d1fc>] (show_stack) from [<c086375c>] (dump_stack+0xac/0xe0)
+> [<c086375c>] (dump_stack) from [<c0168c2c>] (___might_sleep+0x228/0x2ac)
+> [<c0168c2c>] (___might_sleep) from [<c087a86c>] (__mutex_lock+0x28/0x9fc)
+> [<c087a86c>] (__mutex_lock) from [<c087b25c>] (mutex_lock_nested+0x1c/0x2=
+4)
+> [<c087b25c>] (mutex_lock_nested) from [<c03532fc>] (kernfs_remove+0x18/0x=
+30)
+> [<c03532fc>] (kernfs_remove) from [<c0867abc>] (kobject_del+0x14/0x44)
+> [<c0867abc>] (kobject_del) from [<c0867948>] (kobject_put+0x114/0x224)
+> [<c0867948>] (kobject_put) from [<c06c8e74>] (of_get_next_parent+0x2c/0x4=
+c)
+> [<c06c8e74>] (of_get_next_parent) from [<c06ccd24>] (of_graph_get_port_pa=
+rent+0x10/0x70)
+> [<c06ccd24>] (of_graph_get_port_parent) from [<bf4685e8>] (asoc_simple_ca=
+rd_parse_graph_dai+0x98/0xe0 [snd_soc_simple_card_utils])
+> [<bf4685e8>] (asoc_simple_card_parse_graph_dai [snd_soc_simple_card_utils=
+]) from [<bf8e5330>] (asoc_graph_card_probe+0x200/0x444 [snd_soc_audio_grap=
+h_card])
+> [<bf8e5330>] (asoc_graph_card_probe [snd_soc_audio_graph_card]) from [<c0=
+5aa2b8>] (platform_drv_probe+0x50/0xb0)
+> [<c05aa2b8>] (platform_drv_probe) from [<c05a8088>] (driver_probe_device+=
+0x33c/0x478)
+> [<c05a8088>] (driver_probe_device) from [<c05a82ac>] (__driver_attach+0xe=
+8/0x110)
+> [<c05a82ac>] (__driver_attach) from [<c05a61c8>] (bus_for_each_dev+0x6c/0=
+xa0)
+> [<c05a61c8>] (bus_for_each_dev) from [<c05a7354>] (bus_add_driver+0x198/0=
+x270)
+> [<c05a7354>] (bus_add_driver) from [<c05a92c8>] (driver_register+0x78/0xf=
+4)
+> [<c05a92c8>] (driver_register) from [<c010189c>] (do_one_initcall+0x3c/0x=
+170)
+> [<c010189c>] (do_one_initcall) from [<c01edc24>] (do_init_module+0x5c/0x1=
+e0)
+> [<c01edc24>] (do_init_module) from [<c01ec904>] (load_module+0x1270/0x14e=
+c)
+> [<c01ec904>] (load_module) from [<c01ece08>] (SyS_finit_module+0xa8/0xec)
+> [<c01ece08>] (SyS_finit_module) from [<c0108440>] (ret_fast_syscall+0x0/0=
+x1c)
+> OF: ERROR: Bad of_node_put() on /ocp/spi@48098000/pmic@0/audio-codec/port=
+@0/endpoint
+
+--mc2oyjl5s67xweu2
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllsiKgACgkQ2O7X88g7
-+prnShAAkFnsOMcXdqkxv1DpAjmCHC59xHbGxwye4aOo1ypkiJWS7uCGTfnXiH4h
-RN0W87kPuTJW+PGtvbMwFcitL1kfE7E3xACEMP6IiwZAF712XyhLgLH6iVAlU5Xt
-KJ3vodY8/br81wZu6a1GwS/zVWr82FJE68zrVjO7+gPNP87o+SCypbCvRGcKIAqh
-cPVObYhGj7qg/MCNwDUyYKAnmT1irLeMLoXAPNwmmCeZ3Rz0kqrRD2DwLp4ZTY1r
-MKJR2ev+qiUyTomHSbaVGqstLqHHPSR/v7VuAJeXFpLozkPzm14s/xBZp7M3FgSA
-lYuaEhXDYTMtsiYH6dWatr+HWtjph+OVG8wfersMAEA5IYNt9irFDoduPaYcZ/Do
-e3WE2E63BZrtiipT76d0FtAED0VKSVUJxPZupWB1yMKQvg6kzUSUhxfSEJPmFZIQ
-2XfzW1o0fGQgg204Qvr+yp8+RVFIYyLmjh58Ih1gi9kjiT1zq99Ousb8ADFF32PA
-O4bY+w3bAPo6NsR1UX2uhRKGSoAunEvdwz+XxJ/mra7OEDi05lIr9JveV9iZdR/2
-756SOC1O7N275CK8tY6bI223EWEbjBuGs04y/0DItGO4Lpe24dBHQDkp3vYldpcW
-vwBalsKQdah3Ve2WQU+oahOfHsEQGoRVCdBNP+tJ4wrkpp+MrZY=
-=CFDc
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAllsjacACgkQ2O7X88g7
++prvCg//fZUbCSIXBJx1isxVl1jiQ6Y+VpuMwFtyCeuJTxY3iVlioRSVeJelkF3d
+TkEr6RgV9wMeH967lDgcYLSECYpWu9otWBLbogqWrdvjmDnDWJaiqnWTY5fjdwKP
+OMk0THL4m9X3hOvPTdPUkxPEC5V+IsdsQj5mdcdTyubD1WEWi6O+IJOPEA1RvGtd
+CAGiGOZ8gdwRp+02lm/JxZAdtajslpx/7zaxIUb7lxvYXsnHCtz1Vjqy7/3U1npO
+S5ukL/MmsFzbb9vrjTBbYIaK8SHeATzWMpcm6Amh8xFNjvglYqgYjVeZxHgdc4kP
+eZf72n2+9Vv9gZvpBv+3uj28Vs00eVRzf8PzSnzlmxg8udfI837YlmxirH2IPcRv
+kVfNCQs62aP148CvLIO9R21KD+QBMTBPoROPTDMaTKy1LPCFGkOFPp9l+OUWx0It
+SYsoJsvZosyPimtcgkbK6dkqZV5f1Mq80mPLo5m/sADXxhxaSeBM/86fEWMH1kkn
+sCC2ssyeLPb5C6892dTC3mPd2brvXZaMtJ+/CIFen2yRWLgMeo9Y7OjQ5Ph+J+yx
+gixlXY0HAgCasvckHcCv1TC3ltOUK0fVIZxemQGPuKDj74gnQYxFI1j0FQUlzbxX
+Zf6JWG/m0GSK2S9m0YteUqdUSGslP239N9c9LeEPJ6BY6ZBpXhM=
+=TOkW
 -----END PGP SIGNATURE-----
 
---q5ebqwxsxom4775d--
+--mc2oyjl5s67xweu2--
+
+--===============7721364405840618863==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============7721364405840618863==--
