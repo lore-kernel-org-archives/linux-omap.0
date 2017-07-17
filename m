@@ -1,39 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Droid 4 boot failure due to 422580c3cea7 (mm/oom_kill.c: add
- tracepoints for oom reaper-related events)
-Date: Mon, 17 Jul 2017 03:19:28 -0700
-Message-ID: <20170717101927.GJ10026@atomide.com>
-References: <20170714134330.bsdoopceecuk5yem@earth>
- <B9634541-43B8-45FD-8DD2-38FB4F0FAD14@fb.com>
- <20170714172343.szrjbeob5alpgzpe@earth>
- <20170716125354.GA20017@castle>
- <20170717055942.GA10026@atomide.com>
- <20170717095139.gv3dmh7mhyzmh7bn@earth>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: twl-core: Improve the documentation
+Date: Mon, 17 Jul 2017 11:45:14 +0100
+Message-ID: <20170717104514.u4n3vkhaiz355ohi@dell>
+References: <20170630080220.ctwetsy2jfrxyn4s@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170717095139.gv3dmh7mhyzmh7bn@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Roman Gushchin <guro@fb.com>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux-Kernel <linux-kernel@vger.kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+In-Reply-To: <20170630080220.ctwetsy2jfrxyn4s@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170717 02:52]:
-> On Sun, Jul 16, 2017 at 10:59:42PM -0700, Tony Lindgren wrote:
-> > Sebastian, for me droid 4 boots just fine with v4.13-rc1 +
-> > 19d39a3810e if that helps. So that's with commit 422580c3cea7.
-> 
-> v4.13-rc1 + 19d39a3810e was also broken for me. I just disabled
-> some unused bits in my .config and now the kernel boots with
-> (with 422580c3cea7 that is). Maybe I hit some maximum image size
-> limit for Droid 4?
-> 
-> Anyways it looks like 422580c3cea7 is not the actual problem
-> and merely reveals some other problem.
+On Fri, 30 Jun 2017, Dan Carpenter wrote:
 
-OK. Maybe check kexec --image-size configuration if you have
-a huge static kernel?
+> Saying it "returns the result" seems tautological.  The read function
+> does not return num_bytes on success, it returns zero on success.  I
+> noticed this discrepancy because some of the callers were checking for
+> >= 0.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Tony
+Applied, thanks.
+
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index c64615dca2bd..07d168f8cc81 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -448,7 +448,7 @@ static struct regmap *twl_get_regmap(u8 mod_no)
+>   * @reg: register address (just offset will do)
+>   * @num_bytes: number of bytes to transfer
+>   *
+> - * Returns the result of operation - 0 is success
+> + * Returns 0 on success or else a negative error code.
+>   */
+>  int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  {
+> @@ -476,7 +476,7 @@ EXPORT_SYMBOL(twl_i2c_write);
+>   * @reg: register address (just offset will do)
+>   * @num_bytes: number of bytes to transfer
+>   *
+> - * Returns result of operation - num_bytes is success else failure.
+> + * Returns 0 on success or else a negative error code.
+>   */
+>  int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+>  {
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
