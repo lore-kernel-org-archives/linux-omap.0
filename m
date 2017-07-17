@@ -1,76 +1,30 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] mfd: twl4030-irq: remove unnecessary static in
- twl4030_init_irq()
-Date: Mon, 17 Jul 2017 11:26:36 -0500
-Message-ID: <20170717162636.GA30142@embeddedgus>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv4 1/3] dt-bindings: input: add pwm-vibrator
+Date: Mon, 17 Jul 2017 13:54:57 -0500
+Message-ID: <20170717185457.i3hqy3ocv6l4gadz@rob-hp-laptop>
+References: <20170714100151.31234-1-sebastian.reichel@collabora.co.uk>
+ <20170714100151.31234-2-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+In-Reply-To: <20170714100151.31234-2-sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove unnecessary static on local variable twl4030_irq_chip.
-Such variable is initialized before being used, on every
-execution path throughout the function. The static has no
-benefit and, removing it reduces the object file size.
+On Fri, Jul 14, 2017 at 12:01:49PM +0200, Sebastian Reichel wrote:
+> Add DT binding document for PWM controlled vibrator devices.
+> 
+> Signed-off-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+> ---
+>  .../devicetree/bindings/input/pwm-vibrator.txt     | 66 ++++++++++++++++++++++
+>  1 file changed, 66 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/input/pwm-vibrator.txt
 
-This issue was detected using Coccinelle and the following semantic patch:
-
-@bad exists@
-position p;
-identifier x;
-type T;
-@@
-
-static T x@p;
-...
-x = <+...x...+>
-
-@@
-identifier x;
-expression e;
-type T;
-position p != bad.p;
-@@
-
--static
- T x@p;
- ... when != x
-     when strict
-?x = e;
-
-In the following log you can see a significant difference in the object
-file size. This log is the output of the size command, before and after
-the code change:
-
-before:
-   text    data     bss     dec     hex filename
-   7076    2400     640   10116    2784 drivers/mfd/twl4030-irq.o
-
-after:
-   text    data     bss     dec     hex filename
-   7119    2344     320    9783    2637 drivers/mfd/twl4030-irq.o
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/mfd/twl4030-irq.c             | 2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index 378c02d..65d5500 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -685,7 +685,7 @@ int twl4030_sih_setup(struct device *dev, int module, int irq_base)
- 
- int twl4030_init_irq(struct device *dev, int irq_num)
- {
--	static struct irq_chip	twl4030_irq_chip;
-+	struct irq_chip	twl4030_irq_chip;
- 	int			status, i;
- 	int			irq_base, irq_end, nr_irqs;
- 	struct			device_node *node = dev->of_node;
--- 
-2.5.0
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
