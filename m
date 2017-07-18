@@ -1,255 +1,214 @@
-From: Rob Herring <robh@kernel.org>
-Subject: [PATCH] ARM: Convert to using %pOF instead of full_name
-Date: Tue, 18 Jul 2017 16:42:41 -0500
-Message-ID: <20170718214339.7774-1-robh@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-Sender: linux-renesas-soc-owner@vger.kernel.org
-To: arm@kernel.org
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Shawn Guo <shawnguo@kernel.org>, Sascha Hauer <kernel@pengutronix.de>, Fabio Estevam <fabio.estevam@nxp.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Gregory Clement <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Tony Lindgren <tony@atomide.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Heiko Stuebner <heiko@sntech.de>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, linux-arm-kernel
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] memory: Convert to using %pOF instead of full_name
+Date: Tue, 18 Jul 2017 16:43:14 -0500
+Message-ID: <20170718214339.7774-34-robh@kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicolas Ferre <nicolas.ferre-UWL1GkI3JZL3oGB3hsPCZA@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 Now that we have a custom printf format specifier, convert users of
 full_name to use %pOF instead. This is preparation to remove storing
 of the full path string for each node.
 
-Signed-off-by: Rob Herring <robh@kernel.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Kukjin Kim <kgene@kernel.org>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Shawn Guo <shawnguo@kernel.org>
-Cc: Sascha Hauer <kernel@pengutronix.de>
-Cc: Fabio Estevam <fabio.estevam@nxp.com>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Andrew Lunn <andrew@lunn.ch>
-Cc: Gregory Clement <gregory.clement@free-electrons.com>
-Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: "Benoît Cousson" <bcousson@baylibre.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Heiko Stuebner <heiko@sntech.de>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-samsung-soc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: linux-rockchip@lists.infradead.org
-Cc: linux-renesas-soc@vger.kernel.org
+Signed-off-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Nicolas Ferre <nicolas.ferre-UWL1GkI3JZL3oGB3hsPCZA@public.gmane.org>
+Cc: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 ---
- arch/arm/kernel/cpuidle.c            | 4 ++--
- arch/arm/kernel/devtree.c            | 6 +++---
- arch/arm/kernel/topology.c           | 4 ++--
- arch/arm/mach-exynos/suspend.c       | 8 ++++----
- arch/arm/mach-imx/gpc.c              | 4 ++--
- arch/arm/mach-mvebu/kirkwood.c       | 4 ++--
- arch/arm/mach-omap2/omap-wakeupgen.c | 4 ++--
- arch/arm/mach-omap2/omap_hwmod.c     | 4 ++--
- arch/arm/mach-rockchip/platsmp.c     | 4 ++--
- arch/arm/mach-shmobile/pm-rmobile.c  | 8 ++++----
- 10 files changed, 25 insertions(+), 25 deletions(-)
+ drivers/memory/atmel-ebi.c    | 17 ++++++++---------
+ drivers/memory/jz4780-nemc.c  | 12 ++++++------
+ drivers/memory/mvebu-devbus.c | 12 ++++++------
+ drivers/memory/omap-gpmc.c    | 18 +++++++++---------
+ 4 files changed, 29 insertions(+), 30 deletions(-)
 
-diff --git a/arch/arm/kernel/cpuidle.c b/arch/arm/kernel/cpuidle.c
-index a3308ad1a024..fda5579123a8 100644
---- a/arch/arm/kernel/cpuidle.c
-+++ b/arch/arm/kernel/cpuidle.c
-@@ -101,8 +101,8 @@ static int __init arm_cpuidle_read_ops(struct device_node *dn, int cpu)
-
- 	ops = arm_cpuidle_get_ops(enable_method);
- 	if (!ops) {
--		pr_warn("%s: unsupported enable-method property: %s\n",
--			dn->full_name, enable_method);
-+		pr_warn("%pOF: unsupported enable-method property: %s\n",
-+			dn, enable_method);
- 		return -EOPNOTSUPP;
- 	}
-
-diff --git a/arch/arm/kernel/devtree.c b/arch/arm/kernel/devtree.c
-index f676febbb270..28174c9a94ac 100644
---- a/arch/arm/kernel/devtree.c
-+++ b/arch/arm/kernel/devtree.c
-@@ -95,7 +95,7 @@ void __init arm_dt_init_cpu_maps(void)
- 		if (of_node_cmp(cpu->type, "cpu"))
- 			continue;
-
--		pr_debug(" * %s...\n", cpu->full_name);
-+		pr_debug(" * %pOF...\n", cpu);
- 		/*
- 		 * A device tree containing CPU nodes with missing "reg"
- 		 * properties is considered invalid to build the
-@@ -103,8 +103,8 @@ void __init arm_dt_init_cpu_maps(void)
- 		 */
- 		cell = of_get_property(cpu, "reg", &prop_bytes);
- 		if (!cell || prop_bytes < sizeof(*cell)) {
--			pr_debug(" * %s missing reg property\n",
--				     cpu->full_name);
-+			pr_debug(" * %pOF missing reg property\n",
-+				     cpu);
- 			of_node_put(cpu);
- 			return;
- 		}
-diff --git a/arch/arm/kernel/topology.c b/arch/arm/kernel/topology.c
-index bf949a763dbe..e596c5b8f931 100644
---- a/arch/arm/kernel/topology.c
-+++ b/arch/arm/kernel/topology.c
-@@ -127,8 +127,8 @@ static void __init parse_dt_topology(void)
-
- 		rate = of_get_property(cn, "clock-frequency", &len);
- 		if (!rate || len != 4) {
--			pr_err("%s missing clock-frequency property\n",
--				cn->full_name);
-+			pr_err("%pOF missing clock-frequency property\n",
-+				cn);
- 			continue;
- 		}
-
-diff --git a/arch/arm/mach-exynos/suspend.c b/arch/arm/mach-exynos/suspend.c
-index 748cfb8d5212..3c7b66c22697 100644
---- a/arch/arm/mach-exynos/suspend.c
-+++ b/arch/arm/mach-exynos/suspend.c
-@@ -187,21 +187,21 @@ static int __init exynos_pmu_irq_init(struct device_node *node,
- 	struct irq_domain *parent_domain, *domain;
-
- 	if (!parent) {
--		pr_err("%s: no parent, giving up\n", node->full_name);
-+		pr_err("%pOF: no parent, giving up\n", node);
- 		return -ENODEV;
- 	}
-
- 	parent_domain = irq_find_host(parent);
- 	if (!parent_domain) {
--		pr_err("%s: unable to obtain parent domain\n", node->full_name);
-+		pr_err("%pOF: unable to obtain parent domain\n", node);
- 		return -ENXIO;
- 	}
-
- 	pmu_base_addr = of_iomap(node, 0);
-
- 	if (!pmu_base_addr) {
--		pr_err("%s: failed to find exynos pmu register\n",
--		       node->full_name);
-+		pr_err("%pOF: failed to find exynos pmu register\n",
-+		       node);
- 		return -ENOMEM;
- 	}
-
-diff --git a/arch/arm/mach-imx/gpc.c b/arch/arm/mach-imx/gpc.c
-index 93f584ba0130..de535cb679b3 100644
---- a/arch/arm/mach-imx/gpc.c
-+++ b/arch/arm/mach-imx/gpc.c
-@@ -224,13 +224,13 @@ static int __init imx_gpc_init(struct device_node *node,
- 	int i;
-
- 	if (!parent) {
--		pr_err("%s: no parent, giving up\n", node->full_name);
-+		pr_err("%pOF: no parent, giving up\n", node);
- 		return -ENODEV;
- 	}
-
- 	parent_domain = irq_find_host(parent);
- 	if (!parent_domain) {
--		pr_err("%s: unable to obtain parent domain\n", node->full_name);
-+		pr_err("%pOF: unable to obtain parent domain\n", node);
- 		return -ENXIO;
- 	}
-
-diff --git a/arch/arm/mach-mvebu/kirkwood.c b/arch/arm/mach-mvebu/kirkwood.c
-index 7d9f2fd9e450..419da435bc94 100644
---- a/arch/arm/mach-mvebu/kirkwood.c
-+++ b/arch/arm/mach-mvebu/kirkwood.c
-@@ -107,8 +107,8 @@ static void __init kirkwood_dt_eth_fixup(void)
- 		clk_prepare_enable(clk);
-
- 		/* store MAC address register contents in local-mac-address */
--		pr_err(FW_INFO "%s: local-mac-address is not set\n",
--		       np->full_name);
-+		pr_err(FW_INFO "%pOF: local-mac-address is not set\n",
-+		       np);
-
- 		pmac = kzalloc(sizeof(*pmac) + 6, GFP_KERNEL);
- 		if (!pmac)
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index 33ed5d53fa45..4bb6751864a5 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -522,13 +522,13 @@ static int __init wakeupgen_init(struct device_node *node,
- 	u32 val;
-
- 	if (!parent) {
--		pr_err("%s: no parent, giving up\n", node->full_name);
-+		pr_err("%pOF: no parent, giving up\n", node);
- 		return -ENODEV;
- 	}
-
- 	parent_domain = irq_find_host(parent);
- 	if (!parent_domain) {
--		pr_err("%s: unable to obtain parent domain\n", node->full_name);
-+		pr_err("%pOF: unable to obtain parent domain\n", node);
- 		return -ENXIO;
- 	}
- 	/* Not supported on OMAP4 ES1.0 silicon */
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 3b47ded5fa0c..2dbd63239c54 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2417,8 +2417,8 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
- 		if (mem)
- 			pr_err("omap_hwmod: %s: Could not ioremap\n", oh->name);
- 		else
--			pr_err("omap_hwmod: %s: Missing dt reg%i for %s\n",
--			       oh->name, index, np->full_name);
-+			pr_err("omap_hwmod: %s: Missing dt reg%i for %pOF\n",
-+			       oh->name, index, np);
- 		return -ENXIO;
- 	}
-
-diff --git a/arch/arm/mach-rockchip/platsmp.c b/arch/arm/mach-rockchip/platsmp.c
-index 3abafdbdd7f4..2b5b0e43d657 100644
---- a/arch/arm/mach-rockchip/platsmp.c
-+++ b/arch/arm/mach-rockchip/platsmp.c
-@@ -182,8 +182,8 @@ static int __init rockchip_smp_prepare_sram(struct device_node *node)
-
- 	ret = of_address_to_resource(node, 0, &res);
- 	if (ret < 0) {
--		pr_err("%s: could not get address for node %s\n",
--		       __func__, node->full_name);
-+		pr_err("%s: could not get address for node %pOF\n",
-+		       __func__, node);
+diff --git a/drivers/memory/atmel-ebi.c b/drivers/memory/atmel-ebi.c
+index 99e644cda4d1..597282e35c69 100644
+--- a/drivers/memory/atmel-ebi.c
++++ b/drivers/memory/atmel-ebi.c
+@@ -156,8 +156,8 @@ static int atmel_ebi_xslate_smc_timings(struct atmel_ebi_dev *ebid,
+ out:
+ 	if (ret) {
+ 		dev_err(ebid->ebi->dev,
+-			"missing or invalid timings definition in %s",
+-			np->full_name);
++			"missing or invalid timings definition in %pOF",
++			np);
  		return ret;
  	}
 
-diff --git a/arch/arm/mach-shmobile/pm-rmobile.c b/arch/arm/mach-shmobile/pm-rmobile.c
-index 699429f28b73..4c395f9fd178 100644
---- a/arch/arm/mach-shmobile/pm-rmobile.c
-+++ b/arch/arm/mach-shmobile/pm-rmobile.c
-@@ -195,8 +195,8 @@ static void __init add_special_pd(struct device_node *np, enum pd_types type)
- 		return;
+@@ -267,8 +267,8 @@ static int atmel_ebi_xslate_smc_config(struct atmel_ebi_dev *ebid,
+ 		return -EINVAL;
+
+ 	if ((ret > 0 && !required) || (!ret && required)) {
+-		dev_err(ebid->ebi->dev, "missing atmel,smc- properties in %s",
+-			np->full_name);
++		dev_err(ebid->ebi->dev, "missing atmel,smc- properties in %pOF",
++			np);
+ 		return -EINVAL;
  	}
 
--	pr_debug("Special PM domain %s type %d for %s\n", pd->name, type,
--		 np->full_name);
-+	pr_debug("Special PM domain %s type %d for %pOF\n", pd->name, type,
-+		 np);
+@@ -311,8 +311,7 @@ static int atmel_ebi_dev_setup(struct atmel_ebi *ebi, struct device_node *np,
 
- 	special_pds[num_special_pds].pd = pd;
- 	special_pds[num_special_pds].type = type;
-@@ -331,13 +331,13 @@ static int __init rmobile_init_pm_domains(void)
- 	for_each_compatible_node(np, NULL, "renesas,sysc-rmobile") {
- 		base = of_iomap(np, 0);
- 		if (!base) {
--			pr_warn("%s cannot map reg 0\n", np->full_name);
-+			pr_warn("%pOF cannot map reg 0\n", np);
+ 		if (cs >= AT91_MATRIX_EBI_NUM_CS ||
+ 		    !(ebi->caps->available_cs & BIT(cs))) {
+-			dev_err(dev, "invalid reg property in %s\n",
+-				np->full_name);
++			dev_err(dev, "invalid reg property in %pOF\n", np);
+ 			return -EINVAL;
+ 		}
+
+@@ -321,7 +320,7 @@ static int atmel_ebi_dev_setup(struct atmel_ebi *ebi, struct device_node *np,
+ 	}
+
+ 	if (!numcs) {
+-		dev_err(dev, "invalid reg property in %s\n", np->full_name);
++		dev_err(dev, "invalid reg property in %pOF\n", np);
+ 		return -EINVAL;
+ 	}
+
+@@ -569,8 +568,8 @@ static int atmel_ebi_probe(struct platform_device *pdev)
+
+ 		ret = atmel_ebi_dev_setup(ebi, child, reg_cells);
+ 		if (ret) {
+-			dev_err(dev, "failed to configure EBI bus for %s, disabling the device",
+-				child->full_name);
++			dev_err(dev, "failed to configure EBI bus for %pOF, disabling the device",
++				child);
+
+ 			ret = atmel_ebi_dev_disable(ebi, child);
+ 			if (ret)
+diff --git a/drivers/memory/jz4780-nemc.c b/drivers/memory/jz4780-nemc.c
+index 919d1925acb9..bcf06adefc96 100644
+--- a/drivers/memory/jz4780-nemc.c
++++ b/drivers/memory/jz4780-nemc.c
+@@ -322,8 +322,8 @@ static int jz4780_nemc_probe(struct platform_device *pdev)
+ 			bank = of_read_number(prop, 1);
+ 			if (bank < 1 || bank >= JZ4780_NEMC_NUM_BANKS) {
+ 				dev_err(nemc->dev,
+-					"%s requests invalid bank %u\n",
+-					child->full_name, bank);
++					"%pOF requests invalid bank %u\n",
++					child, bank);
+
+ 				/* Will continue the outer loop below. */
+ 				referenced = 0;
+@@ -334,12 +334,12 @@ static int jz4780_nemc_probe(struct platform_device *pdev)
+ 		}
+
+ 		if (!referenced) {
+-			dev_err(nemc->dev, "%s has no addresses\n",
+-				child->full_name);
++			dev_err(nemc->dev, "%pOF has no addresses\n",
++				child);
+ 			continue;
+ 		} else if (nemc->banks_present & referenced) {
+-			dev_err(nemc->dev, "%s conflicts with another node\n",
+-				child->full_name);
++			dev_err(nemc->dev, "%pOF conflicts with another node\n",
++				child);
  			continue;
  		}
 
- 		pmd = of_get_child_by_name(np, "pm-domains");
- 		if (!pmd) {
--			pr_warn("%s lacks pm-domains node\n", np->full_name);
-+			pr_warn("%pOF lacks pm-domains node\n", np);
- 			continue;
- 		}
+diff --git a/drivers/memory/mvebu-devbus.c b/drivers/memory/mvebu-devbus.c
+index 24852812fd44..981860879d02 100644
+--- a/drivers/memory/mvebu-devbus.c
++++ b/drivers/memory/mvebu-devbus.c
+@@ -105,8 +105,8 @@ static int get_timing_param_ps(struct devbus *devbus,
 
+ 	err = of_property_read_u32(node, name, &time_ps);
+ 	if (err < 0) {
+-		dev_err(devbus->dev, "%s has no '%s' property\n",
+-			name, node->full_name);
++		dev_err(devbus->dev, "%pOF has no '%s' property\n",
++			node, name);
+ 		return err;
+ 	}
+
+@@ -127,8 +127,8 @@ static int devbus_get_timing_params(struct devbus *devbus,
+ 	err = of_property_read_u32(node, "devbus,bus-width", &r->bus_width);
+ 	if (err < 0) {
+ 		dev_err(devbus->dev,
+-			"%s has no 'devbus,bus-width' property\n",
+-			node->full_name);
++			"%pOF has no 'devbus,bus-width' property\n",
++			node);
+ 		return err;
+ 	}
+
+@@ -180,8 +180,8 @@ static int devbus_get_timing_params(struct devbus *devbus,
+ 					   &w->sync_enable);
+ 		if (err < 0) {
+ 			dev_err(devbus->dev,
+-				"%s has no 'devbus,sync-enable' property\n",
+-				node->full_name);
++				"%pOF has no 'devbus,sync-enable' property\n",
++				node);
+ 			return err;
+ 		}
+ 	}
+diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+index a80e17de906d..f7f393541934 100644
+--- a/drivers/memory/omap-gpmc.c
++++ b/drivers/memory/omap-gpmc.c
+@@ -960,7 +960,7 @@ static int gpmc_cs_remap(int cs, u32 base)
+ 	 * Make sure we ignore any device offsets from the GPMC partition
+ 	 * allocated for the chip select and that the new base confirms
+ 	 * to the GPMC 16MB minimum granularity.
+-	 */
++	 */
+ 	base &= ~(SZ_16M - 1);
+
+ 	gpmc_cs_get_memconf(cs, &old_base, &size);
+@@ -1930,8 +1930,8 @@ static int gpmc_probe_onenand_child(struct platform_device *pdev,
+ 	struct omap_onenand_platform_data *gpmc_onenand_data;
+
+ 	if (of_property_read_u32(child, "reg", &val) < 0) {
+-		dev_err(&pdev->dev, "%s has no 'reg' property\n",
+-			child->full_name);
++		dev_err(&pdev->dev, "%pOF has no 'reg' property\n",
++			child);
+ 		return -ENODEV;
+ 	}
+
+@@ -1979,14 +1979,14 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 	struct gpmc_device *gpmc = platform_get_drvdata(pdev);
+
+ 	if (of_property_read_u32(child, "reg", &cs) < 0) {
+-		dev_err(&pdev->dev, "%s has no 'reg' property\n",
+-			child->full_name);
++		dev_err(&pdev->dev, "%pOF has no 'reg' property\n",
++			child);
+ 		return -ENODEV;
+ 	}
+
+ 	if (of_address_to_resource(child, 0, &res) < 0) {
+-		dev_err(&pdev->dev, "%s has malformed 'reg' property\n",
+-			child->full_name);
++		dev_err(&pdev->dev, "%pOF has malformed 'reg' property\n",
++			child);
+ 		return -ENODEV;
+ 	}
+
+@@ -2084,8 +2084,8 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+ 		ret = of_property_read_u32(child, "bank-width",
+ 					   &gpmc_s.device_width);
+ 		if (ret < 0) {
+-			dev_err(&pdev->dev, "%s has no 'bank-width' property\n",
+-				child->full_name);
++			dev_err(&pdev->dev, "%pOF has no 'bank-width' property\n",
++				child);
+ 			goto err;
+ 		}
+ 	}
 --
 2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
