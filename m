@@ -1,65 +1,84 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-        <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: [PATCH v4 6/9] serial: omap-serial: Use common rs485 device tree parsing function
-Date: Tue, 18 Jul 2017 12:59:45 +0200
-Message-ID: <20170718105948.21986-7-u.kleine-koenig@pengutronix.de>
-References: <20170718105948.21986-1-u.kleine-koenig@pengutronix.de>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: Regression with suspicious RCU usage splats with cpu_pm change
+Date: Tue, 18 Jul 2017 10:00:01 -0700
+Message-ID: <20170718170001.GD3981@linux.vnet.ibm.com>
+References: <20170713070749.GE16509@atomide.com>
+ <c00272dc-cf84-81a2-b2e2-d52cadf7bcc6@linaro.org>
+ <CAJZ5v0j15uWyCRAPep4KwqSiC4UD4ZppAG++SUvN3Ok1wzDwNQ@mail.gmail.com>
+ <20170713124318.GK2393@linux.vnet.ibm.com>
+ <c5c6623b-ea1d-1bbf-ea80-5d93e7e81c6f@linaro.org>
+ <20170717060806.GC10026@atomide.com>
+ <20170717123938.GP2393@linux.vnet.ibm.com>
+ <20170718054137.GK10026@atomide.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170718105948.21986-1-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170718054137.GK10026@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Alex Shi <alex.shi@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+On Mon, Jul 17, 2017 at 10:41:38PM -0700, Tony Lindgren wrote:
+> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [170717 05:40]:
+> > On Sun, Jul 16, 2017 at 11:08:07PM -0700, Tony Lindgren wrote:
+> > > * Alex Shi <alex.shi@linaro.org> [170716 16:25]:
+> > > > I reused the rcu_irq_enter_irqson() from RCU_NONIDLE to avoid this issue. 
+> > > > It works fine.
+> > > > 
+> > > > Tony, Could you like to give a tested-by if this patch works for you.
+> > > 
+> > > Yeah that keeps things booting for me with no splats so:
+> > > 
+> > > Tested-by: Tony Lindgren <tony@atomide.com>
+> > > 
+> > > In general, it seems we're missing the knowledge in Linux kernel
+> > > of when the entire system is idle. Right now it seems that only
+> > > cpuidle_coupled knows that?
+> > > 
+> > > We could probably simplify things by adding some PM state for
+> > > entire system idle. Then cpuidle code and timer code could use
+> > > that to test when it's safe to do whatever the SoC needs to do
+> > > to enter deeper power states.
+> > > 
+> > > If we already have something like that, please do let me know :)
+> > 
+> > Well, we used to have CONFIG_NO_HZ_FULL_SYSIDLE, which detected
+> > full-system idle lazily so as to avoid scalability bottlenecks.
+> > https://lwn.net/Articles/558284/
+> > 
+> > No one was using it, so I removed it last merge window.  The
+> > patch that removed it is at sysidle.2017.05.11a, which can
+> > probably still be reverted cleanly.  Or just use v4.11 or earlier.
+> 
+> OK thanks for the pointer, for reference that commit is
+> fe5ac724d81a ("rcu: Remove nohz_full full-system-idle state
+> machine").
+> 
+> For a potential user, I think we could use it for example in
+> cpuidle_enter_state_coupled() + omap_enter_idle_coupled() where
+> we try to figure out if the system is fully idle before calling
+> tick_broadcast_enter().
 
-We just got a common helper for parsing the rs485 specific
-device tree properties. Use it and drop the open coded parser.
+Would you be willing to prototype your usage on v4.12?  It still has
+NO_HZ_FULL_SYSIDLE.  You have to enable NO_HZ_FULL in order to enable
+NO_HZ_FULL_SYSIDLE at the moment.
 
-Signed-off-by: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
----
- drivers/tty/serial/omap-serial.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+Either way, here is the important bit for usage:
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 1ea05ac57aa7..6d22097e6dd0 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -1607,7 +1607,6 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
- 				   struct device_node *np)
- {
- 	struct serial_rs485 *rs485conf = &up->port.rs485;
--	u32 rs485_delay[2];
- 	enum of_gpio_flags flags;
- 	int ret;
- 
-@@ -1638,17 +1637,7 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
- 		up->rts_gpio = -EINVAL;
- 	}
- 
--	if (of_property_read_u32_array(np, "rs485-rts-delay",
--				    rs485_delay, 2) == 0) {
--		rs485conf->delay_rts_before_send = rs485_delay[0];
--		rs485conf->delay_rts_after_send = rs485_delay[1];
--	}
--
--	if (of_property_read_bool(np, "rs485-rx-during-tx"))
--		rs485conf->flags |= SER_RS485_RX_DURING_TX;
--
--	if (of_property_read_bool(np, "linux,rs485-enabled-at-boot-time"))
--		rs485conf->flags |= SER_RS485_ENABLED;
-+	of_get_rs485_mode(np, rs485conf);
- 
- 	return 0;
- }
--- 
-2.11.0
+	bool rcu_sys_is_idle(void);
+	void rcu_sysidle_force_exit(void);
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The rcu_sys_is_idle() function returns true if all CPUs other than the
+time-keeping CPU (that is, tick_do_timer_cpu, which is usually CPU 0)
+are in their idle loop.  Of course, if you invoke rcu_sys_is_idle()
+from any CPU other than the time-keeping CPU, you will automatically
+get a return value of false.
+
+RCU's idle-exit code already sets state appropriately, but if there
+is some other circumstance where you need to force the state machine
+out of all-CPUs-idle state, you can call rcu_sysidle_force_exit().
+
+							Thanx, Paul
