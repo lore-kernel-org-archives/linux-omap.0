@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/8] ARM: dra7: hwmod: Register dra76x specific hwmod
-Date: Wed, 19 Jul 2017 01:24:58 +0530
-Message-ID: <20170718195503.1700-4-lokeshvutla@ti.com>
+Subject: [PATCH 1/8] ARM: OMAP2+: board-generic: add support for dra76x family
+Date: Wed, 19 Jul 2017 01:24:56 +0530
+Message-ID: <20170718195503.1700-2-lokeshvutla@ti.com>
 References: <20170718195503.1700-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,48 +12,40 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mai
 Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Certain IPs are available on dra76 which are not present
-either in dra74 or dra72. So register dra76 specific IPs
-separately.
+Adding board generic support for dra76 family.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/arm/omap/omap.txt | 3 +++
+ arch/arm/mach-omap2/board-generic.c                 | 1 +
+ 2 files changed, 4 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index b3abb8d8b2f6..f040244c57e7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -4070,6 +4070,11 @@ static struct omap_hwmod_ocp_if *dra7xx_gp_hwmod_ocp_ifs[] __initdata = {
- };
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index 8219b2c6bb29..ffe02755a285 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -80,6 +80,9 @@ SoCs:
+ - OMAP5432
+   compatible = "ti,omap5432", "ti,omap5"
  
- /* SoC variant specific hwmod links */
-+static struct omap_hwmod_ocp_if *dra76x_hwmod_ocp_ifs[] __initdata = {
-+	&dra7xx_l4_per3__usb_otg_ss4,
-+	NULL,
-+};
++- DRA762
++  compatible = "ti,dra76", "ti,dra7"
 +
- static struct omap_hwmod_ocp_if *dra74x_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_per3__usb_otg_ss4,
- 	NULL,
-@@ -4095,12 +4100,14 @@ int __init dra7xx_hwmod_init(void)
- 		ret = omap_hwmod_register_links(dra74x_hwmod_ocp_ifs);
- 	else if (!ret && soc_is_dra72x())
- 		ret = omap_hwmod_register_links(dra72x_hwmod_ocp_ifs);
-+	else if (!ret && soc_is_dra76x())
-+		ret = omap_hwmod_register_links(dra76x_hwmod_ocp_ifs);
+ - DRA742
+   compatible = "ti,dra742", "ti,dra74", "ti,dra7"
  
- 	if (!ret && omap_type() == OMAP2_DEVICE_TYPE_GP)
- 		ret = omap_hwmod_register_links(dra7xx_gp_hwmod_ocp_ifs);
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index dc9e34e670a2..e5d9d769a76e 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -312,6 +312,7 @@ MACHINE_END
  
--	/* now for the IPs *NOT* in dra71 */
--	if (!ret && !of_machine_is_compatible("ti,dra718"))
-+	/* now for the IPs available only in dra74 and dra72 */
-+	if (!ret && !of_machine_is_compatible("ti,dra718") && !soc_is_dra76x())
- 		ret = omap_hwmod_register_links(dra74x_dra72x_hwmod_ocp_ifs);
- 
- 	return ret;
+ #ifdef CONFIG_SOC_DRA7XX
+ static const char *const dra74x_boards_compat[] __initconst = {
++	"ti,dra76",
+ 	"ti,am5728",
+ 	"ti,am5726",
+ 	"ti,dra742",
 -- 
 2.13.0
 
