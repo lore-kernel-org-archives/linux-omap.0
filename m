@@ -1,64 +1,64 @@
-From: "Jingoo Han" <jingoohan1@gmail.com>
-Subject: Re: [PATCH 1/3] PCI: dwc: Handle host_init failures
-Date: Mon, 17 Jul 2017 15:28:13 -0400
-Message-ID: <000a01d2ff32$d5d59e00$8180da00$@gmail.com>
-References: <20170716063947.3272-1-bjorn.andersson@linaro.org> <73b9c442-38f6-cc5b-c6e0-4ce7187dc0a8@synopsys.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Regression with suspicious RCU usage splats with cpu_pm change
+Date: Mon, 17 Jul 2017 22:41:38 -0700
+Message-ID: <20170718054137.GK10026@atomide.com>
+References: <20170713070749.GE16509@atomide.com>
+ <c00272dc-cf84-81a2-b2e2-d52cadf7bcc6@linaro.org>
+ <CAJZ5v0j15uWyCRAPep4KwqSiC4UD4ZppAG++SUvN3Ok1wzDwNQ@mail.gmail.com>
+ <20170713124318.GK2393@linux.vnet.ibm.com>
+ <c5c6623b-ea1d-1bbf-ea80-5d93e7e81c6f@linaro.org>
+ <20170717060806.GC10026@atomide.com>
+ <20170717123938.GP2393@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <73b9c442-38f6-cc5b-c6e0-4ce7187dc0a8@synopsys.com>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20170717123938.GP2393@linux.vnet.ibm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: 'Joao Pinto' <Joao.Pinto@synopsys.com>, 'Bjorn Andersson' <bjorn.andersson@linaro.org>
-Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>, 'Bjorn Helgaas' <bhelgaas@google.com>, 'Kukjin Kim' <kgene@kernel.org>, 'Krzysztof Kozlowski' <krzk@kernel.org>, 'Richard Zhu' <hongxing.zhu@nxp.com>, 'Lucas Stach' <l.stach@pengutronix.de>, 'Murali Karicheri' <m-karicheri2@ti.com>, 'Minghuan Lian' <minghuan.Lian@freescale.com>, 'Mingkai Hu' <mingkai.hu@freescale.com>, 'Roy Zang' <tie-fei.zang@freescale.com>, 'Thomas Petazzoni' <thomas.petazzoni@free-electrons.com>, 'Niklas Cassel' <niklas.cassel@axis.com>, 'Jesper Nilsson' <jesper.nilsson@axis.com>, 'Xiaowei Song' <songxiaowei@hisilicon.com>, 'Binghui Wang' <wangbinghui@hisilicon.com>, 'Stanimir Varbanov' <svarbanov@mm-sol.com>, 'Pratyush Anand' <pratyush.anand@gmail.com>
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Alex Shi <alex.shi@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday, July 17, 2017 7:18 AM, Joao Pinto wrote:
->=20
-> Hi Bjorn Andersson,
->=20
-> =C3=80s 7:39 AM de 7/16/2017, Bjorn Andersson escreveu:
-> > In several dwc based drivers host_init can fail, so make sure to
-> > propagate and handle this to avoid continuing operation of a driver =
-or
-> > hardware in an invalid state.
-> >
-> > Signed-off-by: Bjorn Andersson <bjorn.andersson@linaro.org>
-> > ---
-> >  drivers/pci/dwc/pci-dra7xx.c           |  4 +++-
-> >  drivers/pci/dwc/pci-exynos.c           |  4 +++-
-> >  drivers/pci/dwc/pci-imx6.c             |  4 +++-
-> >  drivers/pci/dwc/pci-keystone.c         |  4 +++-
-> >  drivers/pci/dwc/pci-layerscape.c       | 14 ++++++++++----
-> >  drivers/pci/dwc/pcie-armada8k.c        |  4 +++-
-> >  drivers/pci/dwc/pcie-artpec6.c         |  4 +++-
-> >  drivers/pci/dwc/pcie-designware-host.c |  7 +++++--
-> >  drivers/pci/dwc/pcie-designware-plat.c |  4 +++-
-> >  drivers/pci/dwc/pcie-designware.h      |  2 +-
-> >  drivers/pci/dwc/pcie-kirin.c           |  4 +++-
-> >  drivers/pci/dwc/pcie-qcom.c            |  6 ++++--
-> >  drivers/pci/dwc/pcie-spear13xx.c       |  4 +++-
-> >  13 files changed, 47 insertions(+), 18 deletions(-)
-> >
+* Paul E. McKenney <paulmck@linux.vnet.ibm.com> [170717 05:40]:
+> On Sun, Jul 16, 2017 at 11:08:07PM -0700, Tony Lindgren wrote:
+> > * Alex Shi <alex.shi@linaro.org> [170716 16:25]:
+> > > I reused the rcu_irq_enter_irqson() from RCU_NONIDLE to avoid this issue. 
+> > > It works fine.
+> > > 
+> > > Tony, Could you like to give a tested-by if this patch works for you.
+> > 
+> > Yeah that keeps things booting for me with no splats so:
+> > 
+> > Tested-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > In general, it seems we're missing the knowledge in Linux kernel
+> > of when the entire system is idle. Right now it seems that only
+> > cpuidle_coupled knows that?
+> > 
+> > We could probably simplify things by adding some PM state for
+> > entire system idle. Then cpuidle code and timer code could use
+> > that to test when it's safe to do whatever the SoC needs to do
+> > to enter deeper power states.
+> > 
+> > If we already have something like that, please do let me know :)
+> 
+> Well, we used to have CONFIG_NO_HZ_FULL_SYSIDLE, which detected
+> full-system idle lazily so as to avoid scalability bottlenecks.
+> https://lwn.net/Articles/558284/
+> 
+> No one was using it, so I removed it last merge window.  The
+> patch that removed it is at sysidle.2017.05.11a, which can
+> probably still be reverted cleanly.  Or just use v4.11 or earlier.
 
-[.....]
+OK thanks for the pointer, for reference that commit is
+fe5ac724d81a ("rcu: Remove nohz_full full-system-idle state
+machine").
 
->=20
-> A step in the right direction :). In the future we should add host =
-init
-> validation in the specific SoC drivers, like Layerscape and Qcom have, =
-to
-> assure
-> that any problem is treated properly in the core driver.
+For a potential user, I think we could use it for example in
+cpuidle_enter_state_coupled() + omap_enter_idle_coupled() where
+we try to figure out if the system is fully idle before calling
+tick_broadcast_enter().
 
-I agree with your opinion.
+Regards,
 
->=20
-> Acked-by: Joao Pinto <jpinto@synopsys.com>
-
-Acked-by: Jingoo Han <jingoohan1@gmail.com>
-
-Best regards,
-Jingoo Han
+Tony
