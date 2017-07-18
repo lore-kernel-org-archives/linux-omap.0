@@ -1,84 +1,89 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: Regression with suspicious RCU usage splats with cpu_pm change
-Date: Tue, 18 Jul 2017 10:00:01 -0700
-Message-ID: <20170718170001.GD3981@linux.vnet.ibm.com>
-References: <20170713070749.GE16509@atomide.com>
- <c00272dc-cf84-81a2-b2e2-d52cadf7bcc6@linaro.org>
- <CAJZ5v0j15uWyCRAPep4KwqSiC4UD4ZppAG++SUvN3Ok1wzDwNQ@mail.gmail.com>
- <20170713124318.GK2393@linux.vnet.ibm.com>
- <c5c6623b-ea1d-1bbf-ea80-5d93e7e81c6f@linaro.org>
- <20170717060806.GC10026@atomide.com>
- <20170717123938.GP2393@linux.vnet.ibm.com>
- <20170718054137.GK10026@atomide.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/8] ARM: dra76: Add support for device identification
+Date: Wed, 19 Jul 2017 01:24:57 +0530
+Message-ID: <20170718195503.1700-3-lokeshvutla@ti.com>
+References: <20170718195503.1700-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170718054137.GK10026@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Alex Shi <alex.shi@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170718195503.1700-1-lokeshvutla-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 17, 2017 at 10:41:38PM -0700, Tony Lindgren wrote:
-> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [170717 05:40]:
-> > On Sun, Jul 16, 2017 at 11:08:07PM -0700, Tony Lindgren wrote:
-> > > * Alex Shi <alex.shi@linaro.org> [170716 16:25]:
-> > > > I reused the rcu_irq_enter_irqson() from RCU_NONIDLE to avoid this issue. 
-> > > > It works fine.
-> > > > 
-> > > > Tony, Could you like to give a tested-by if this patch works for you.
-> > > 
-> > > Yeah that keeps things booting for me with no splats so:
-> > > 
-> > > Tested-by: Tony Lindgren <tony@atomide.com>
-> > > 
-> > > In general, it seems we're missing the knowledge in Linux kernel
-> > > of when the entire system is idle. Right now it seems that only
-> > > cpuidle_coupled knows that?
-> > > 
-> > > We could probably simplify things by adding some PM state for
-> > > entire system idle. Then cpuidle code and timer code could use
-> > > that to test when it's safe to do whatever the SoC needs to do
-> > > to enter deeper power states.
-> > > 
-> > > If we already have something like that, please do let me know :)
-> > 
-> > Well, we used to have CONFIG_NO_HZ_FULL_SYSIDLE, which detected
-> > full-system idle lazily so as to avoid scalability bottlenecks.
-> > https://lwn.net/Articles/558284/
-> > 
-> > No one was using it, so I removed it last merge window.  The
-> > patch that removed it is at sysidle.2017.05.11a, which can
-> > probably still be reverted cleanly.  Or just use v4.11 or earlier.
-> 
-> OK thanks for the pointer, for reference that commit is
-> fe5ac724d81a ("rcu: Remove nohz_full full-system-idle state
-> machine").
-> 
-> For a potential user, I think we could use it for example in
-> cpuidle_enter_state_coupled() + omap_enter_idle_coupled() where
-> we try to figure out if the system is fully idle before calling
-> tick_broadcast_enter().
+Add ID code detection for dra76 SoC.
 
-Would you be willing to prototype your usage on v4.12?  It still has
-NO_HZ_FULL_SYSIDLE.  You have to enable NO_HZ_FULL in order to enable
-NO_HZ_FULL_SYSIDLE at the moment.
+Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/id.c  | 9 +++++++++
+ arch/arm/mach-omap2/soc.h | 5 +++++
+ 2 files changed, 14 insertions(+)
 
-Either way, here is the important bit for usage:
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index e2274a162b74..16cb1c195fd8 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -663,6 +663,15 @@ void __init dra7xxx_check_revision(void)
+ 	hawkeye = (idcode >> 12) & 0xffff;
+ 	rev = (idcode >> 28) & 0xff;
+ 	switch (hawkeye) {
++	case 0xbb50:
++		switch (rev) {
++		case 0:
++		default:
++			omap_revision = DRA762_REV_ES1_0;
++			break;
++		}
++		break;
++
+ 	case 0xb990:
+ 		switch (rev) {
+ 		case 0:
+diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
+index 2aa01c270898..754cd0fc0e7b 100644
+--- a/arch/arm/mach-omap2/soc.h
++++ b/arch/arm/mach-omap2/soc.h
+@@ -167,6 +167,7 @@ IS_TI_SUBCLASS(816x, 0x816)
+ IS_TI_SUBCLASS(814x, 0x814)
+ IS_AM_SUBCLASS(335x, 0x335)
+ IS_AM_SUBCLASS(437x, 0x437)
++IS_DRA_SUBCLASS(76x, 0x76)
+ IS_DRA_SUBCLASS(75x, 0x75)
+ IS_DRA_SUBCLASS(72x, 0x72)
+ 
+@@ -185,6 +186,7 @@ IS_DRA_SUBCLASS(72x, 0x72)
+ #define soc_is_omap54xx()		0
+ #define soc_is_omap543x()		0
+ #define soc_is_dra7xx()			0
++#define soc_is_dra76x()			0
+ #define soc_is_dra74x()			0
+ #define soc_is_dra72x()			0
+ 
+@@ -314,9 +316,11 @@ IS_OMAP_TYPE(3430, 0x3430)
+ 
+ #if defined(CONFIG_SOC_DRA7XX)
+ #undef soc_is_dra7xx
++#undef soc_is_dra76x
+ #undef soc_is_dra74x
+ #undef soc_is_dra72x
+ #define soc_is_dra7xx()	is_dra7xx()
++#define soc_is_dra76x()	is_dra76x()
+ #define soc_is_dra74x()	is_dra75x()
+ #define soc_is_dra72x()	is_dra72x()
+ #endif
+@@ -386,6 +390,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define OMAP5432_REV_ES2_0	(OMAP54XX_CLASS | (0x32 << 16) | (0x20 << 8))
+ 
+ #define DRA7XX_CLASS		0x07000000
++#define DRA762_REV_ES1_0	(DRA7XX_CLASS | (0x62 << 16) | (0x10 << 8))
+ #define DRA752_REV_ES1_0	(DRA7XX_CLASS | (0x52 << 16) | (0x10 << 8))
+ #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
+ #define DRA752_REV_ES2_0	(DRA7XX_CLASS | (0x52 << 16) | (0x20 << 8))
+-- 
+2.13.0
 
-	bool rcu_sys_is_idle(void);
-	void rcu_sysidle_force_exit(void);
-
-The rcu_sys_is_idle() function returns true if all CPUs other than the
-time-keeping CPU (that is, tick_do_timer_cpu, which is usually CPU 0)
-are in their idle loop.  Of course, if you invoke rcu_sys_is_idle()
-from any CPU other than the time-keeping CPU, you will automatically
-get a return value of false.
-
-RCU's idle-exit code already sets state appropriately, but if there
-is some other circumstance where you need to force the state machine
-out of all-CPUs-idle state, you can call rcu_sysidle_force_exit().
-
-							Thanx, Paul
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
