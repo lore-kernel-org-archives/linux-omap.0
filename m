@@ -1,69 +1,65 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: hsmmc.c: Remove dead code
-Date: Tue, 18 Jul 2017 15:49:13 +0530
-Message-ID: <4d41e743-0971-18ea-59ef-6e2f869e42e8@ti.com>
-References: <1500036404-5556-1-git-send-email-faiz_abbas@ti.com>
- <1500036404-5556-2-git-send-email-faiz_abbas@ti.com>
- <CAPDyKFpwb3T4PhQSyUwWDwpEnOwVDxLeK7hAMS0Q4P3tzPXXrQ@mail.gmail.com>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+        <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: [PATCH v4 6/9] serial: omap-serial: Use common rs485 device tree parsing function
+Date: Tue, 18 Jul 2017 12:59:45 +0200
+Message-ID: <20170718105948.21986-7-u.kleine-koenig@pengutronix.de>
+References: <20170718105948.21986-1-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAPDyKFpwb3T4PhQSyUwWDwpEnOwVDxLeK7hAMS0Q4P3tzPXXrQ@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Kishon <kishon@ti.com>, Ravikumar Kattekola <rk@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Heiner Kallweit <hkallweit1@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170718105948.21986-1-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Ulfe,
+From: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
 
-I just wanted to make sure that no regressions happen on pandora board.
-I have tested this on dra71x-evm.
+We just got a common helper for parsing the rs485 specific
+device tree properties. Use it and drop the open coded parser.
 
-Regards,
-Faiz
+Signed-off-by: Sascha Hauer <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+---
+ drivers/tty/serial/omap-serial.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-On Monday 17 July 2017 06:38 PM, Ulf Hansson wrote:
-> On 14 July 2017 at 14:46, Faiz Abbas <faiz_abbas@ti.com> wrote:
->> Most platforms using OMAP hsmmc driver have switched to device tree
->> for passing platform data to omap_hsmmc.c driver.
->>
->> The hsmmc.c file in mach-omap2 exists only to support pandora board
->> which uses wl1251 driver in legacy platform data mode.
->>
->> Hence, remove the dead code not used by the pandora board.
->>
->> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
-> 
-> I just got an ack from Tony to pick this up. So I did that (including
-> the mmc change in patch 2) and intend to send this for 4.13 rcs, via
-> my fixes branch in my mmc tree.
-> 
-> However the below comment for testing puzzles me. Either it's dead
-> code or not, so then what is there to test? :-)
-> 
-> Anyway, it's available on my fixes and next branch, so let's see if
-> zero build reports some issues.
-> 
->> ---
->> This is only compile tested. Someone with a pandora board should help
->> test this for functionality.
->>
->>  arch/arm/mach-omap2/hsmmc.c | 239 +-------------------------------------------
->>  arch/arm/mach-omap2/hsmmc.h |   9 --
->>  2 files changed, 2 insertions(+), 246 deletions(-)
-> 
-> [...]
-> 
-> Kind regards
-> Uffe
-> 
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 1ea05ac57aa7..6d22097e6dd0 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1607,7 +1607,6 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
+ 				   struct device_node *np)
+ {
+ 	struct serial_rs485 *rs485conf = &up->port.rs485;
+-	u32 rs485_delay[2];
+ 	enum of_gpio_flags flags;
+ 	int ret;
+ 
+@@ -1638,17 +1637,7 @@ static int serial_omap_probe_rs485(struct uart_omap_port *up,
+ 		up->rts_gpio = -EINVAL;
+ 	}
+ 
+-	if (of_property_read_u32_array(np, "rs485-rts-delay",
+-				    rs485_delay, 2) == 0) {
+-		rs485conf->delay_rts_before_send = rs485_delay[0];
+-		rs485conf->delay_rts_after_send = rs485_delay[1];
+-	}
+-
+-	if (of_property_read_bool(np, "rs485-rx-during-tx"))
+-		rs485conf->flags |= SER_RS485_RX_DURING_TX;
+-
+-	if (of_property_read_bool(np, "linux,rs485-enabled-at-boot-time"))
+-		rs485conf->flags |= SER_RS485_ENABLED;
++	of_get_rs485_mode(np, rs485conf);
+ 
+ 	return 0;
+ }
+-- 
+2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
