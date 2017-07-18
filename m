@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/8] ARM: OMAP2+: board-generic: add support for dra76x family
-Date: Wed, 19 Jul 2017 01:24:56 +0530
-Message-ID: <20170718195503.1700-2-lokeshvutla@ti.com>
+Subject: [PATCH 7/8] ARM: dts: Add support for dra76x family of devices
+Date: Wed, 19 Jul 2017 01:25:02 +0530
+Message-ID: <20170718195503.1700-8-lokeshvutla@ti.com>
 References: <20170718195503.1700-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,40 +12,56 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mai
 Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Adding board generic support for dra76 family.
+dra76 family is a high-performance, infotainment application
+device, based on OMAP architecture on a 28-nm technology.
+This contains most of the subsystems, peripherals that are
+available on dra74, dra72 family. This SoC mainly features
+Subsystems:
+- 2 x Cortex-A15 with max speed of 1.8GHz
+- 2 X DSP
+- 2 X Cortex-M4 IPU
+- ISS
+- CAL
+- DSS
+- VPE
+- VIP
+Connectivity peripherals:
+- 1 USB3.0 and 3 USB2.0 subsystems
+- 2 x SATA
+- 2 x PCI Express Gen2
+- 3-port Gigabit ethernet switch
+- 2 x CAN
+- MCAN
+
+Adding basic dts support for DRA76 family while reusing the
+data available in dra7.dtsi, dra74x.dtsi.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/arm/omap/omap.txt | 3 +++
- arch/arm/mach-omap2/board-generic.c                 | 1 +
- 2 files changed, 4 insertions(+)
+ arch/arm/boot/dts/dra76x.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 arch/arm/boot/dts/dra76x.dtsi
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index 8219b2c6bb29..ffe02755a285 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -80,6 +80,9 @@ SoCs:
- - OMAP5432
-   compatible = "ti,omap5432", "ti,omap5"
- 
-+- DRA762
-+  compatible = "ti,dra76", "ti,dra7"
+diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+new file mode 100644
+index 000000000000..f33bcab005ea
+--- /dev/null
++++ b/arch/arm/boot/dts/dra76x.dtsi
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
- - DRA742
-   compatible = "ti,dra742", "ti,dra74", "ti,dra7"
- 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index dc9e34e670a2..e5d9d769a76e 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -312,6 +312,7 @@ MACHINE_END
- 
- #ifdef CONFIG_SOC_DRA7XX
- static const char *const dra74x_boards_compat[] __initconst = {
-+	"ti,dra76",
- 	"ti,am5728",
- 	"ti,am5726",
- 	"ti,dra742",
++#include "dra74x.dtsi"
++
++/ {
++	compatible = "ti,dra76", "ti,dra7";
++
++};
 -- 
 2.13.0
 
