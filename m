@@ -1,106 +1,143 @@
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH] clk: Convert to using %pOF instead of full_name
-Date: Wed, 19 Jul 2017 08:23:01 +0200
-Message-ID: <20170719062301.bextqsjufe7gjozt@flea>
-References: <20170718214339.7774-12-robh@kernel.org>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: Convert to using %pOF instead of full_name
+Date: Wed, 19 Jul 2017 08:22:20 +0200
+Message-ID: <20170719062220.wefnkqhd7javbcee@pengutronix.de>
+References: <20170718214339.7774-1-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="l25m4zfpvpydcgma"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170718214339.7774-12-robh@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Maxime Coquelin <mcoquelin.stm32@gmail.com>, Alexandre Torgue <alexandre.torgue@st.com>, Russell King <linux@armlinux.org.uk>, Matthias Brugger <matthias.bgg@gmail.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Chen-Yu Tsai <wens@csie.org>, Emilio =?iso-8859-1?Q?L=F3pez?= <emilio@elopez.com.ar>, Peter De Schrijver <pdeschrijver@nvidia.com>, Prashant Gaikwad <pgaikwad@nvidia.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Tero Kristo <t-kristo@ti.com>, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org, linux-renesas-soc
+In-Reply-To: <20170718214339.7774-1-robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-rockchip/>
+List-Post: <mailto:linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-rockchip>,
+ <mailto:linux-rockchip-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-rockchip" <linux-rockchip-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-rockchip-bounces+glpar-linux-rockchip=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Krzysztof Kozlowski <krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>, Gregory Clement <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kukjin Kim <kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Fabio Estevam <fabio.estevam@nx>
 List-Id: linux-omap@vger.kernel.org
 
-
---l25m4zfpvpydcgma
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jul 18, 2017 at 04:42:52PM -0500, Rob Herring wrote:
+On Tue, Jul 18, 2017 at 04:42:41PM -0500, Rob Herring wrote:
 > Now that we have a custom printf format specifier, convert users of
 > full_name to use %pOF instead. This is preparation to remove storing
+
+Oh nice. If the commit adding %pOF is already set in stone, i'd suggest
+to mention the commit id here in the commit log.
+
 > of the full path string for each node.
->=20
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> Cc: Michael Turquette <mturquette@baylibre.com>
-> Cc: Stephen Boyd <sboyd@codeaurora.org>
-> Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-> Cc: Alexandre Torgue <alexandre.torgue@st.com>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: Matthias Brugger <matthias.bgg@gmail.com>
-> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-> Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
-> Cc: Chen-Yu Tsai <wens@csie.org>
-> Cc: "Emilio L=F3pez" <emilio@elopez.com.ar>
-> Cc: Peter De Schrijver <pdeschrijver@nvidia.com>
-> Cc: Prashant Gaikwad <pgaikwad@nvidia.com>
-> Cc: Thierry Reding <thierry.reding@gmail.com>
-> Cc: Jonathan Hunter <jonathanh@nvidia.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: linux-clk@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-mediatek@lists.infradead.org
-> Cc: linux-renesas-soc@vger.kernel.org
-> Cc: linux-tegra@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
+> =
+
+> Signed-off-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+> Cc: Kukjin Kim <kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Krzysztof Kozlowski <krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
+> Cc: Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> Cc: Fabio Estevam <fabio.estevam-3arQi8VN3Tc@public.gmane.org>
+> Cc: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
+> Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
+> Cc: Gregory Clement <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> Cc: Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: "Beno=EEt Cousson" <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> Cc: Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>
+> Cc: Simon Horman <horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org>
+> Cc: Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> Cc: linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > ---
->  drivers/clk/berlin/bg2.c             |  3 +--
->  drivers/clk/berlin/bg2q.c            |  7 +++----
->  drivers/clk/clk-asm9260.c            |  4 ++--
->  drivers/clk/clk-conf.c               | 16 ++++++++--------
->  drivers/clk/clk-moxart.c             | 12 ++++++------
->  drivers/clk/clk-qoriq.c              |  7 +++----
->  drivers/clk/clk-stm32f4.c            |  4 ++--
->  drivers/clk/clk-xgene.c              | 15 ++++++---------
->  drivers/clk/clk.c                    |  4 ++--
->  drivers/clk/clkdev.c                 |  4 ++--
->  drivers/clk/mediatek/clk-cpumux.c    |  2 +-
->  drivers/clk/mediatek/clk-mtk.c       |  2 +-
->  drivers/clk/mediatek/reset.c         |  2 +-
->  drivers/clk/renesas/clk-mstp.c       |  2 +-
->  drivers/clk/renesas/clk-rcar-gen2.c  |  3 +--
->  drivers/clk/sunxi-ng/ccu-sun5i.c     |  3 +--
->  drivers/clk/sunxi-ng/ccu-sun6i-a31.c |  3 +--
->  drivers/clk/sunxi-ng/ccu-sun8i-a23.c |  3 +--
->  drivers/clk/sunxi-ng/ccu-sun8i-a33.c |  3 +--
->  drivers/clk/sunxi-ng/ccu-sun8i-h3.c  |  3 +--
->  drivers/clk/sunxi-ng/ccu-sun8i-r.c   |  3 +--
->  drivers/clk/sunxi-ng/ccu-sun8i-v3s.c |  3 +--
->  drivers/clk/sunxi/clk-sunxi.c        | 17 +++++++----------
+>  arch/arm/kernel/cpuidle.c            | 4 ++--
+>  arch/arm/kernel/devtree.c            | 6 +++---
+>  arch/arm/kernel/topology.c           | 4 ++--
+>  arch/arm/mach-exynos/suspend.c       | 8 ++++----
+>  arch/arm/mach-imx/gpc.c              | 4 ++--
+>  arch/arm/mach-mvebu/kirkwood.c       | 4 ++--
+>  arch/arm/mach-omap2/omap-wakeupgen.c | 4 ++--
+>  arch/arm/mach-omap2/omap_hwmod.c     | 4 ++--
+>  arch/arm/mach-rockchip/platsmp.c     | 4 ++--
+>  arch/arm/mach-shmobile/pm-rmobile.c  | 8 ++++----
+>  10 files changed, 25 insertions(+), 25 deletions(-)
+> =
 
-For the sunxi and sunxi-ng clocks:
-Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> diff --git a/arch/arm/kernel/cpuidle.c b/arch/arm/kernel/cpuidle.c
+> index a3308ad1a024..fda5579123a8 100644
+> --- a/arch/arm/kernel/cpuidle.c
+> +++ b/arch/arm/kernel/cpuidle.c
+> @@ -101,8 +101,8 @@ static int __init arm_cpuidle_read_ops(struct device_=
+node *dn, int cpu)
+> =
 
-Thanks!
-Maxime
+>  	ops =3D arm_cpuidle_get_ops(enable_method);
+>  	if (!ops) {
+> -		pr_warn("%s: unsupported enable-method property: %s\n",
+> -			dn->full_name, enable_method);
+> +		pr_warn("%pOF: unsupported enable-method property: %s\n",
+> +			dn, enable_method);
+>  		return -EOPNOTSUPP;
+>  	}
+> =
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+> diff --git a/arch/arm/kernel/devtree.c b/arch/arm/kernel/devtree.c
+> index f676febbb270..28174c9a94ac 100644
+> --- a/arch/arm/kernel/devtree.c
+> +++ b/arch/arm/kernel/devtree.c
+> @@ -95,7 +95,7 @@ void __init arm_dt_init_cpu_maps(void)
+>  		if (of_node_cmp(cpu->type, "cpu"))
+>  			continue;
+> =
 
---l25m4zfpvpydcgma
-Content-Type: application/pgp-signature; name="signature.asc"
+> -		pr_debug(" * %s...\n", cpu->full_name);
+> +		pr_debug(" * %pOF...\n", cpu);
+>  		/*
+>  		 * A device tree containing CPU nodes with missing "reg"
+>  		 * properties is considered invalid to build the
+> @@ -103,8 +103,8 @@ void __init arm_dt_init_cpu_maps(void)
+>  		 */
+>  		cell =3D of_get_property(cpu, "reg", &prop_bytes);
+>  		if (!cell || prop_bytes < sizeof(*cell)) {
+> -			pr_debug(" * %s missing reg property\n",
+> -				     cpu->full_name);
+> +			pr_debug(" * %pOF missing reg property\n",
+> +				     cpu);
 
------BEGIN PGP SIGNATURE-----
+You could join lines here and in the next hunk. And there are two more
+further down.
 
-iQIcBAEBAgAGBQJZbvrFAAoJEBx+YmzsjxAgYCIQAIG0Ck1n/kBpT7SJHMICc1Pk
-JvosVmqrSK8FMljtVqFNa7wTxpbhiwtkWPBfFrvvv4lNN/9eyCFsJjlkjFYmPj9z
-EtIQNMK6gZVRWSD+apOrPbOz8PPpnW5g7IyZhKrzc2XTw5ypsGO+Uz0pbYfG1oui
-b+YODRsG/GFA9M4JG3pM0WCBFzoC3Je1PMo27jOjxWO7E0VeJWQVVkqXShw1rZaV
-QEz3EhYZ79x+Wn7kV6L3jxRG6oljmJRKuqVqOiHoMgfM6oSOcuDTrhse/JfBqkoT
-p1FummTm0I+1LcztAiqGQWePjS2dIYluueX3OdCsANfd8/OHwGdKPzcyQ0cOIR3o
-o3s2udAKdQI8CWl2SEbUp9qyTwF+CjkAzICcY5RF05iHdL2WrAbbZ3G6MHjNQC39
-/Y2mfVZ5iRv+Crtuue+uytZ6xbKb7sp5j0+SQwYaPi+vmnONQK+tiPPgTxi0deaD
-Wt+8+2YovasnYHSMBfN4DtIEbESRN3vnEYUiTbg5NYqTrVNw6SeqIbwhIMYFEM7f
-kn1SvLfqcDdMq4qQd3cguiKKEJnCAlh4JtO3wWPocJNA73J7SgaM8tmPoQNQ+6V/
-2y7hSSjLNh1Is6o888H58cjQ0DNnTHDWOhezIk9Y7jVtVyEj/dPoZ1MJL9j5miQt
-si9tNGjJSr2RAVVdbnYk
-=PpBl
------END PGP SIGNATURE-----
+>  			of_node_put(cpu);
+>  			return;
+>  		}
+> diff --git a/arch/arm/kernel/topology.c b/arch/arm/kernel/topology.c
+> index bf949a763dbe..e596c5b8f931 100644
+> --- a/arch/arm/kernel/topology.c
+> +++ b/arch/arm/kernel/topology.c
+> @@ -127,8 +127,8 @@ static void __init parse_dt_topology(void)
+> =
 
---l25m4zfpvpydcgma--
+>  		rate =3D of_get_property(cn, "clock-frequency", &len);
+>  		if (!rate || len !=3D 4) {
+> -			pr_err("%s missing clock-frequency property\n",
+> -				cn->full_name);
+> +			pr_err("%pOF missing clock-frequency property\n",
+> +				cn);
+>  			continue;
+>  		}
+> =
+
+
+Best regards
+Uwe
+
+-- =
+
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
