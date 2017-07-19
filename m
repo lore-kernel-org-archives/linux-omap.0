@@ -1,25 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: Convert to using %pOF instead of full_name
-Date: Tue, 18 Jul 2017 14:51:46 -0700 (PDT)
-Message-ID: <20170718.145146.1983238254018568174.davem@davemloft.net>
-References: <20170718214339.7774-39-robh@kernel.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH] omapfb: panel-tpo-td043mtea1: constify attribute_group structures.
+Date: Wed, 19 Jul 2017 10:53:11 +0530
+Message-ID: <fe9b4aed7a13f673cbc9419c43840443052ebaa8.1500441685.git.arvind.yadav.cs@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170718214339.7774-39-robh@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: robh@kernel.org
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, andrew@lunn.ch, vivien.didelot@savoirfairelinux.com, f.fainelli@gmail.com, madalin.bucur@nxp.com, dougmill@linux.vnet.ibm.com, grygorii.strashko@ti.com, michal.simek@xilinx.com, soren.brinkmann@xilinx.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: tomi.valkeinen@ti.com, b.zolnierkie@samsung.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Rob Herring <robh@kernel.org>
-Date: Tue, 18 Jul 2017 16:43:19 -0500
+attribute_group are not supposed to change at runtime. All functions
+working with attribute_group provided by <linux/sysfs.h> work
+with const attribute_group. So mark the non-const structs as const.
 
-> Now that we have a custom printf format specifier, convert users of
-> full_name to use %pOF instead. This is preparation to remove storing
-> of the full path string for each node.
-> 
-> Signed-off-by: Rob Herring <robh@kernel.org>
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+   2673	    368	      0	   3041	    be1	panel-tpo-td043mtea1.o
 
-Acked-by: David S. Miller <davem@davemloft.net>
+File size After adding 'const':
+   text	   data	    bss	    dec	    hex	filename
+   2737	    304	      0	   3041	    be1	panel-tpo-td043mtea1.o
+
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
+index 51e628b..ea8c79a 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td043mtea1.c
+@@ -282,7 +282,7 @@ static DEVICE_ATTR(gamma, S_IRUGO | S_IWUSR,
+ 	NULL,
+ };
+ 
+-static struct attribute_group tpo_td043_attr_group = {
++static const struct attribute_group tpo_td043_attr_group = {
+ 	.attrs = tpo_td043_attrs,
+ };
+ 
+-- 
+1.9.1
