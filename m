@@ -1,99 +1,99 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] net: ethernet: ti: cpsw: Push the request_irq function to the end of probe
-Date: Thu, 20 Jul 2017 16:59:52 +0530
-Message-ID: <1500550192-6550-1-git-send-email-j-keerthy@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 00/16] omap_hsmmc: Add ADMA support and UHS/HS200/DDR
+ support
+Date: Thu, 20 Jul 2017 19:06:47 +0530
+Message-ID: <27776609-2425-9423-3eaa-dc128c4b07f0@ti.com>
+References: <20170616124544.15046-1-kishon@ti.com>
+ <CAPDyKFo+ORA=OpdikiUZWj3gpx+ssuqbC5MtqiFJneyJhu84dA@mail.gmail.com>
+ <fc9c1576-7419-b174-ea42-97ccf4666cee@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, johan@kernel.org, ivan.khoronzhuk@linaro.org, t-kristo@ti.com, grygorii.strashko@ti.com, nsekhar@ti.com, j-keerthy@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <fc9c1576-7419-b174-ea42-97ccf4666cee@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Ravikumar Kattekola <rk@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Push the request_irq function to the end of probe so as
-to ensure all the required fields are populated in the event
-of an ISR getting executed right after requesting the irq.
+Hi Ulf,
 
-Currently while loading the crash kernel a crash was seen as
-soon as devm_request_threaded_irq was called. This was due to
-n->poll being NULL which is called as part of net_rx_action
-function.
+On Tuesday 11 July 2017 07:27 PM, Kishon Vijay Abraham I wrote:
+> Hi Ulf,
+> 
+> On Tuesday 11 July 2017 06:40 PM, Ulf Hansson wrote:
+>> On 16 June 2017 at 14:45, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>> This is the final part of the series originally sent as
+>>> part of [2].
+>>>
+>>> This series adds UHS, HS200, DDR mode and ADMA support to
+>>> omap_hsmmc driver used to improve the throughput of MMC/SD in dra7
+>>> SoCs.
+>>>
+>>> Changes from [2]:
+>>> *) No more updating omap2plus_defconfig or multi_v7_defconfig is
+>>>    required, so those patches are removed.
+>>> *) Addressed Rob Herring's comment on implementing a function
+>>>    instead of having a macro while getting pinctrl state.
+>>>
+>>> This series is created on top of [3], [4], [5] AND [6]
+>>> (i.e after
+>>>   ARM: dts: omap3-overo: Remove "vqmmc-supply" property from MMC dt node
+>>>   omap_hsmmc: use mmc_regulator_get_supply() to get regulators
+>>>   omap*: Fixes/Cleanups for MMC devicetree node
+>>>   ARM: dts: Add iodelay data for MMC)
+>>>
+>>> The functionality implemented in this series was sent before ([1]) but
+>>> was never followed up since supporting high speed modes in dra7 required
+>>> IODelay values to be configured. With IODelay driver being merged into
+>>> kernel, sending it as a fresh series with support for configuring IODelay
+>>> values.
+>>
+>> Is it safe to queue this via mmc tree for 4.14 or is there a
+>> dependency I must consider? The above didn't quite tell me that, could
+>> you please elaborate.
+> 
+> There is a dependency with https://www.spinics.net/lists/arm-kernel/msg586215.html.
+> 
+> I'll resend the series after all the platform data specific stuff is merged.
+>>
+>>>
+>>> Suggestions of migrating to sdhci driver (from omap_hsmmc driver) is not
+>>> addressed since
+>>> *) tuning ratio of MMC in dra7 is different from sdhci
+>>> *) IOdelay is required for dra7
+>>> *) GPIO based card detect is not supported in sdhci
+>>
+>> Lots of sdhci drivers calls mmc_of_parse(), and uses the mmc slot gpio
+>> APIs, so I don't this this is correct statement.
+>>
+>>> *) Some of the registers don't always have correct values as in sdhci
+>>>    (like PSTATE).
+>>> Supporting all of these in sdhci will result in adding lot of quirks in
+>>> sdhci driver.
+>>
+>> Is it really that much different? It would be nice if some really took
+>> on the challenge of converting omap_hsmmc into an sdhci variant.
+> 
+> Okay. I'll give that a shot and see how far I can get.
 
-Suggested-by: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c | 49 +++++++++++++++++++++---------------------
- 1 file changed, 25 insertions(+), 24 deletions(-)
+I created a sdhci variant and was able to get it working with high speed mode
+in dra7.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 37fc165..94892d5 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -3085,6 +3085,31 @@ static int cpsw_probe(struct platform_device *pdev)
- 			cpsw->quirk_irq = true;
- 	}
- 
-+	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
-+
-+	ndev->netdev_ops = &cpsw_netdev_ops;
-+	ndev->ethtool_ops = &cpsw_ethtool_ops;
-+	netif_napi_add(ndev, &cpsw->napi_rx, cpsw_rx_poll, CPSW_POLL_WEIGHT);
-+	netif_tx_napi_add(ndev, &cpsw->napi_tx, cpsw_tx_poll, CPSW_POLL_WEIGHT);
-+	cpsw_split_res(ndev);
-+
-+	/* register the network device */
-+	SET_NETDEV_DEV(ndev, &pdev->dev);
-+	ret = register_netdev(ndev);
-+	if (ret) {
-+		dev_err(priv->dev, "error registering net device\n");
-+		ret = -ENODEV;
-+		goto clean_ale_ret;
-+	}
-+
-+	if (cpsw->data.dual_emac) {
-+		ret = cpsw_probe_dual_emac(priv);
-+		if (ret) {
-+			cpsw_err(priv, probe, "error probe slave 2 emac interface\n");
-+			goto clean_unregister_netdev_ret;
-+		}
-+	}
-+
- 	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
- 	 * MISC IRQs which are always kept disabled with this driver so
- 	 * we will not request them.
-@@ -3123,33 +3148,9 @@ static int cpsw_probe(struct platform_device *pdev)
- 		goto clean_ale_ret;
- 	}
- 
--	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
--
--	ndev->netdev_ops = &cpsw_netdev_ops;
--	ndev->ethtool_ops = &cpsw_ethtool_ops;
--	netif_napi_add(ndev, &cpsw->napi_rx, cpsw_rx_poll, CPSW_POLL_WEIGHT);
--	netif_tx_napi_add(ndev, &cpsw->napi_tx, cpsw_tx_poll, CPSW_POLL_WEIGHT);
--	cpsw_split_res(ndev);
--
--	/* register the network device */
--	SET_NETDEV_DEV(ndev, &pdev->dev);
--	ret = register_netdev(ndev);
--	if (ret) {
--		dev_err(priv->dev, "error registering net device\n");
--		ret = -ENODEV;
--		goto clean_ale_ret;
--	}
--
- 	cpsw_notice(priv, probe,
- 		    "initialized device (regs %pa, irq %d, pool size %d)\n",
- 		    &ss_res->start, ndev->irq, dma_params.descs_pool_size);
--	if (cpsw->data.dual_emac) {
--		ret = cpsw_probe_dual_emac(priv);
--		if (ret) {
--			cpsw_err(priv, probe, "error probe slave 2 emac interface\n");
--			goto clean_unregister_netdev_ret;
--		}
--	}
- 
- 	pm_runtime_put(&pdev->dev);
- 
--- 
-1.9.1
+I have a query on sdhci_set_power_noreg() in sdhci.c. sdhci_set_power_noreg
+sets SDHCI_POWER_CONTROL based on *vdd* value. However SDHCI_POWER_CONTROL is
+for setting bus voltage and need not be based on *vdd*. IMHO
+SDHCI_POWER_CONTROL should be set based on "ios->signal_voltage".
+
+Let me know if my understanding is wrong.
+
+Thanks
+Kishon
