@@ -1,47 +1,99 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH] ARM: Convert to using %pOF instead of full_name
-Date: Wed, 19 Jul 2017 10:35:20 -0500
-Message-ID: <CAL_JsqK1Y3xhZwNxme934UF_t=6ZdSyqBtrMmceUC798ftL+mQ@mail.gmail.com>
-References: <20170718214339.7774-1-robh@kernel.org> <20170719062220.wefnkqhd7javbcee@pengutronix.de>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] net: ethernet: ti: cpsw: Push the request_irq function to the end of probe
+Date: Thu, 20 Jul 2017 16:59:52 +0530
+Message-ID: <1500550192-6550-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170719062220.wefnkqhd7javbcee@pengutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: "arm@kernel.org" <arm@kernel.org>, Andrew Lunn <andrew@lunn.ch>, Heiko Stuebner <heiko@sntech.de>, Tony Lindgren <tony@atomide.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>, Magnus Damm <magnus.damm@gmail.com>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Kukjin Kim <kgene@kernel.org>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Jason Cooper <jason@lakedaemon.net>, Simon Horman <horms@verge.net.au>, Gregory Clement <gregory.clement@free-electrons.com>, linux-omap <linux-omap@vger.kernel.org>, Sasc
+To: davem@davemloft.net
+Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, johan@kernel.org, ivan.khoronzhuk@linaro.org, t-kristo@ti.com, grygorii.strashko@ti.com, nsekhar@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 19, 2017 at 1:22 AM, Uwe Kleine-König
-<u.kleine-koenig@pengutronix.de> wrote:
-> On Tue, Jul 18, 2017 at 04:42:41PM -0500, Rob Herring wrote:
->> Now that we have a custom printf format specifier, convert users of
->> full_name to use %pOF instead. This is preparation to remove storing
->
-> Oh nice. If the commit adding %pOF is already set in stone, i'd suggest
-> to mention the commit id here in the commit log.
+Push the request_irq function to the end of probe so as
+to ensure all the required fields are populated in the event
+of an ISR getting executed right after requesting the irq.
 
-It is in 4.13, but I'm not really eager to update all 60 patches and
-I'd prefer consistency in the commit msg as quite a few have already
-been applied.
+Currently while loading the crash kernel a crash was seen as
+soon as devm_request_threaded_irq was called. This was due to
+n->poll being NULL which is called as part of net_rx_action
+function.
 
->> of the full path string for each node.
+Suggested-by: Sekhar Nori <nsekhar@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c | 49 +++++++++++++++++++++---------------------
+ 1 file changed, 25 insertions(+), 24 deletions(-)
 
-[...]
-
->> @@ -103,8 +103,8 @@ void __init arm_dt_init_cpu_maps(void)
->>                */
->>               cell = of_get_property(cpu, "reg", &prop_bytes);
->>               if (!cell || prop_bytes < sizeof(*cell)) {
->> -                     pr_debug(" * %s missing reg property\n",
->> -                                  cpu->full_name);
->> +                     pr_debug(" * %pOF missing reg property\n",
->> +                                  cpu);
->
-> You could join lines here and in the next hunk. And there are two more
-> further down.
-
-Okay. I did that generally, but missed a few.
-
-Rob
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 37fc165..94892d5 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -3085,6 +3085,31 @@ static int cpsw_probe(struct platform_device *pdev)
+ 			cpsw->quirk_irq = true;
+ 	}
+ 
++	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
++
++	ndev->netdev_ops = &cpsw_netdev_ops;
++	ndev->ethtool_ops = &cpsw_ethtool_ops;
++	netif_napi_add(ndev, &cpsw->napi_rx, cpsw_rx_poll, CPSW_POLL_WEIGHT);
++	netif_tx_napi_add(ndev, &cpsw->napi_tx, cpsw_tx_poll, CPSW_POLL_WEIGHT);
++	cpsw_split_res(ndev);
++
++	/* register the network device */
++	SET_NETDEV_DEV(ndev, &pdev->dev);
++	ret = register_netdev(ndev);
++	if (ret) {
++		dev_err(priv->dev, "error registering net device\n");
++		ret = -ENODEV;
++		goto clean_ale_ret;
++	}
++
++	if (cpsw->data.dual_emac) {
++		ret = cpsw_probe_dual_emac(priv);
++		if (ret) {
++			cpsw_err(priv, probe, "error probe slave 2 emac interface\n");
++			goto clean_unregister_netdev_ret;
++		}
++	}
++
+ 	/* Grab RX and TX IRQs. Note that we also have RX_THRESHOLD and
+ 	 * MISC IRQs which are always kept disabled with this driver so
+ 	 * we will not request them.
+@@ -3123,33 +3148,9 @@ static int cpsw_probe(struct platform_device *pdev)
+ 		goto clean_ale_ret;
+ 	}
+ 
+-	ndev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
+-
+-	ndev->netdev_ops = &cpsw_netdev_ops;
+-	ndev->ethtool_ops = &cpsw_ethtool_ops;
+-	netif_napi_add(ndev, &cpsw->napi_rx, cpsw_rx_poll, CPSW_POLL_WEIGHT);
+-	netif_tx_napi_add(ndev, &cpsw->napi_tx, cpsw_tx_poll, CPSW_POLL_WEIGHT);
+-	cpsw_split_res(ndev);
+-
+-	/* register the network device */
+-	SET_NETDEV_DEV(ndev, &pdev->dev);
+-	ret = register_netdev(ndev);
+-	if (ret) {
+-		dev_err(priv->dev, "error registering net device\n");
+-		ret = -ENODEV;
+-		goto clean_ale_ret;
+-	}
+-
+ 	cpsw_notice(priv, probe,
+ 		    "initialized device (regs %pa, irq %d, pool size %d)\n",
+ 		    &ss_res->start, ndev->irq, dma_params.descs_pool_size);
+-	if (cpsw->data.dual_emac) {
+-		ret = cpsw_probe_dual_emac(priv);
+-		if (ret) {
+-			cpsw_err(priv, probe, "error probe slave 2 emac interface\n");
+-			goto clean_unregister_netdev_ret;
+-		}
+-	}
+ 
+ 	pm_runtime_put(&pdev->dev);
+ 
+-- 
+1.9.1
