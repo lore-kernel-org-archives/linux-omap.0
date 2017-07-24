@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv1 12/14] drm/omap: panel-dsi-cm: switch to gpiod
-Date: Mon, 24 Jul 2017 19:33:09 +0200
-Message-ID: <20170724173311.27170-13-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv1 10/14] drm/omap: panel-dsi-cm: add physical size support
+Date: Mon, 24 Jul 2017 19:33:07 +0200
+Message-ID: <20170724173311.27170-11-sebastian.reichel@collabora.co.uk>
 References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
@@ -10,169 +10,64 @@ To: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Use the new descriptor based GPIO API instead of
-the legacy one, which results in cleaner code
-with less lines of code.
+Add support to load physical size information from DT using
+the properties defined by the common panel binding.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 74 +++++++++----------------
- 1 file changed, 27 insertions(+), 47 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 1eeb8b0d10c2..8f7463392047 100644
+index 95c28f518239..b50b1e81b2f5 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -22,7 +22,6 @@
- #include <linux/slab.h>
- #include <linux/workqueue.h>
- #include <linux/of_device.h>
--#include <linux/of_gpio.h>
- #include <linux/regulator/consumer.h>
+@@ -66,6 +66,9 @@ struct panel_drv_data {
  
- #include <video/mipi_display.h>
-@@ -59,8 +58,8 @@ struct panel_drv_data {
- 	unsigned long	hw_guard_wait;	/* max guard time in jiffies */
+ 	bool use_dsi_backlight;
  
- 	/* panel HW configuration from DT or platform data */
--	int reset_gpio;
--	int ext_te_gpio;
-+	struct gpio_desc *reset_gpio;
-+	struct gpio_desc *ext_te_gpio;
++	int width_mm;
++	int height_mm;
++
+ 	struct omap_dsi_pin_config pin_config;
  
- 	struct regulator *vpnl;
- 	struct regulator *vddi;
-@@ -288,8 +287,8 @@ static int dsicm_enter_ulps(struct panel_drv_data *ddata)
- 	if (r)
- 		goto err;
- 
--	if (gpio_is_valid(ddata->ext_te_gpio))
--		disable_irq(gpio_to_irq(ddata->ext_te_gpio));
-+	if (ddata->ext_te_gpio)
-+		disable_irq(gpiod_to_irq(ddata->ext_te_gpio));
- 
- 	in->ops.dsi->disable(in, false, true);
- 
-@@ -330,8 +329,8 @@ static int dsicm_exit_ulps(struct panel_drv_data *ddata)
- 		goto err2;
- 	}
- 
--	if (gpio_is_valid(ddata->ext_te_gpio))
--		enable_irq(gpio_to_irq(ddata->ext_te_gpio));
-+	if (ddata->ext_te_gpio)
-+		enable_irq(gpiod_to_irq(ddata->ext_te_gpio));
- 
- 	dsicm_queue_ulps_work(ddata);
- 
-@@ -344,8 +343,8 @@ static int dsicm_exit_ulps(struct panel_drv_data *ddata)
- 
- 	r = dsicm_panel_reset(ddata);
- 	if (!r) {
--		if (gpio_is_valid(ddata->ext_te_gpio))
--			enable_irq(gpio_to_irq(ddata->ext_te_gpio));
-+		if (ddata->ext_te_gpio)
-+			enable_irq(gpiod_to_irq(ddata->ext_te_gpio));
- 		ddata->ulps_enabled = false;
- 	}
- err1:
-@@ -591,16 +590,13 @@ static struct attribute_group dsicm_attr_group = {
- 
- static void dsicm_hw_reset(struct panel_drv_data *ddata)
- {
--	if (!gpio_is_valid(ddata->reset_gpio))
--		return;
--
--	gpio_set_value(ddata->reset_gpio, 1);
-+	gpiod_set_value(ddata->reset_gpio, 1);
- 	udelay(10);
- 	/* reset the panel */
--	gpio_set_value(ddata->reset_gpio, 0);
-+	gpiod_set_value(ddata->reset_gpio, 0);
- 	/* assert reset */
- 	udelay(10);
--	gpio_set_value(ddata->reset_gpio, 1);
-+	gpiod_set_value(ddata->reset_gpio, 1);
- 	/* wait after releasing reset */
- 	usleep_range(5000, 10000);
+ 	/* runtime variables */
+@@ -1163,6 +1166,15 @@ static int dsicm_check_timings(struct omap_dss_device *dssdev,
+ 	return ret;
  }
-@@ -954,7 +950,7 @@ static int dsicm_update(struct omap_dss_device *dssdev,
- 	if (r)
- 		goto err;
  
--	if (ddata->te_enabled && gpio_is_valid(ddata->ext_te_gpio)) {
-+	if (ddata->te_enabled && ddata->ext_te_gpio) {
- 		schedule_delayed_work(&ddata->te_timeout_work,
- 				msecs_to_jiffies(250));
- 		atomic_set(&ddata->do_update, 1);
-@@ -1001,7 +997,7 @@ static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable)
- 	else
- 		r = dsicm_dcs_write_0(ddata, MIPI_DCS_SET_TEAR_OFF);
++static void dsicm_get_size(struct omap_dss_device *dssdev,
++			  unsigned int *width, unsigned int *height)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++
++	*width = ddata->width_mm;
++	*height = ddata->height_mm;
++}
++
+ static struct omap_dss_driver dsicm_ops = {
+ 	.connect	= dsicm_connect,
+ 	.disconnect	= dsicm_disconnect,
+@@ -1175,6 +1187,7 @@ static struct omap_dss_driver dsicm_ops = {
  
--	if (!gpio_is_valid(ddata->ext_te_gpio))
-+	if (!ddata->ext_te_gpio)
- 		in->ops.dsi->enable_te(in, enable);
+ 	.get_timings	= dsicm_get_timings,
+ 	.check_timings	= dsicm_check_timings,
++	.get_size	= dsicm_get_size,
  
- 	/* possible panel bug */
-@@ -1229,21 +1225,21 @@ static int dsicm_probe_of(struct platform_device *pdev)
- 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
- 	struct omap_dss_device *in;
- 	struct display_timing timing;
--	int gpio, err;
-+	int err;
- 
--	gpio = of_get_named_gpio(node, "reset-gpios", 0);
--	if (!gpio_is_valid(gpio)) {
--		dev_err(&pdev->dev, "failed to parse reset gpio\n");
--		return gpio;
-+	ddata->reset_gpio = devm_gpiod_get(&pdev->dev, "reset", GPIOD_OUT_LOW);
-+	if (IS_ERR(ddata->reset_gpio)) {
-+		err = PTR_ERR(ddata->reset_gpio);
-+		dev_err(&pdev->dev, "reset gpio request failed: %d", err);
-+		return err;
- 	}
--	ddata->reset_gpio = gpio;
- 
--	gpio = of_get_named_gpio(node, "te-gpios", 0);
--	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
--		ddata->ext_te_gpio = gpio;
--	} else {
--		dev_err(&pdev->dev, "failed to parse TE gpio\n");
--		return gpio;
-+	ddata->ext_te_gpio = devm_gpiod_get_optional(&pdev->dev, "te",
-+						     GPIOD_IN);
-+	if (IS_ERR(ddata->ext_te_gpio)) {
-+		err = PTR_ERR(ddata->ext_te_gpio);
-+		dev_err(&pdev->dev, "TE gpio request failed: %d", err);
-+		return err;
+ 	.enable_te	= dsicm_enable_te,
+ 	.get_te		= dsicm_get_te,
+@@ -1216,6 +1229,12 @@ static int dsicm_probe_of(struct platform_device *pdev)
+ 			 "failed to get video timing, using defaults\n");
  	}
  
- 	err = of_get_display_timing(node, "panel-timing", &timing);
-@@ -1353,24 +1349,8 @@ static int dsicm_probe(struct platform_device *pdev)
- 
- 	atomic_set(&ddata->do_update, 0);
- 
--	if (gpio_is_valid(ddata->reset_gpio)) {
--		r = devm_gpio_request_one(dev, ddata->reset_gpio,
--				GPIOF_OUT_INIT_LOW, "taal rst");
--		if (r) {
--			dev_err(dev, "failed to request reset gpio\n");
--			goto err_reg;
--		}
--	}
--
--	if (gpio_is_valid(ddata->ext_te_gpio)) {
--		r = devm_gpio_request_one(dev, ddata->ext_te_gpio,
--				GPIOF_IN, "taal irq");
--		if (r) {
--			dev_err(dev, "GPIO request failed\n");
--			goto err_reg;
--		}
--
--		r = devm_request_irq(dev, gpio_to_irq(ddata->ext_te_gpio),
-+	if (ddata->ext_te_gpio) {
-+		r = devm_request_irq(dev, gpiod_to_irq(ddata->ext_te_gpio),
- 				dsicm_te_isr,
- 				IRQF_TRIGGER_RISING,
- 				"taal vsync", ddata);
++	ddata->width_mm = 0;
++	of_property_read_u32(node, "width-mm", &ddata->width_mm);
++
++	ddata->height_mm = 0;
++	of_property_read_u32(node, "height-mm", &ddata->height_mm);
++
+ 	in = omapdss_of_find_source_for_first_ep(node);
+ 	if (IS_ERR(in)) {
+ 		dev_err(&pdev->dev, "failed to find video source\n");
 -- 
 2.13.2
