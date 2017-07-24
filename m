@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv1 10/14] drm/omap: panel-dsi-cm: add physical size support
-Date: Mon, 24 Jul 2017 19:33:07 +0200
-Message-ID: <20170724173311.27170-11-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv1 09/14] drm/omap: panel-dsi-cm: add regulator support
+Date: Mon, 24 Jul 2017 19:33:06 +0200
+Message-ID: <20170724173311.27170-10-sebastian.reichel@collabora.co.uk>
 References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
@@ -10,64 +10,132 @@ To: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Add support to load physical size information from DT using
-the properties defined by the common panel binding.
+Add support for regulators used by panels found inside
+of the Nokia N950, N9 and Motorola Droid 4.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 57 +++++++++++++++++++++++--
+ 1 file changed, 53 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 95c28f518239..b50b1e81b2f5 100644
+index 3845a50537a6..95c28f518239 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -66,6 +66,9 @@ struct panel_drv_data {
+@@ -23,6 +23,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/of_device.h>
+ #include <linux/of_gpio.h>
++#include <linux/regulator/consumer.h>
  
+ #include <video/mipi_display.h>
+ #include <video/of_display_timing.h>
+@@ -60,6 +61,9 @@ struct panel_drv_data {
+ 	int reset_gpio;
+ 	int ext_te_gpio;
+ 
++	struct regulator *vpnl;
++	struct regulator *vddi;
++
  	bool use_dsi_backlight;
  
-+	int width_mm;
-+	int height_mm;
-+
  	struct omap_dsi_pin_config pin_config;
+@@ -590,25 +594,43 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+ 		.lp_clk_max = 10000000,
+ 	};
  
- 	/* runtime variables */
-@@ -1163,6 +1166,15 @@ static int dsicm_check_timings(struct omap_dss_device *dssdev,
- 	return ret;
- }
- 
-+static void dsicm_get_size(struct omap_dss_device *dssdev,
-+			  unsigned int *width, unsigned int *height)
-+{
-+	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	if (ddata->vpnl) {
++		r = regulator_enable(ddata->vpnl);
++		if (r) {
++			dev_err(&ddata->pdev->dev,
++				"failed to enable VPNL: %d\n", r);
++			return r;
++		}
++	}
 +
-+	*width = ddata->width_mm;
-+	*height = ddata->height_mm;
-+}
++	if (ddata->vddi) {
++		r = regulator_enable(ddata->vddi);
++		if (r) {
++			dev_err(&ddata->pdev->dev,
++				"failed to enable VDDI: %d\n", r);
++			goto err_vpnl;
++		}
++	}
 +
- static struct omap_dss_driver dsicm_ops = {
- 	.connect	= dsicm_connect,
- 	.disconnect	= dsicm_disconnect,
-@@ -1175,6 +1187,7 @@ static struct omap_dss_driver dsicm_ops = {
- 
- 	.get_timings	= dsicm_get_timings,
- 	.check_timings	= dsicm_check_timings,
-+	.get_size	= dsicm_get_size,
- 
- 	.enable_te	= dsicm_enable_te,
- 	.get_te		= dsicm_get_te,
-@@ -1216,6 +1229,12 @@ static int dsicm_probe_of(struct platform_device *pdev)
- 			 "failed to get video timing, using defaults\n");
+ 	if (ddata->pin_config.num_pins > 0) {
+ 		r = in->ops.dsi->configure_pins(in, &ddata->pin_config);
+ 		if (r) {
+ 			dev_err(&ddata->pdev->dev,
+ 				"failed to configure DSI pins\n");
+-			goto err0;
++			goto err_vddi;
+ 		}
  	}
  
-+	ddata->width_mm = 0;
-+	of_property_read_u32(node, "width-mm", &ddata->width_mm);
+ 	r = in->ops.dsi->set_config(in, &dsi_config);
+ 	if (r) {
+ 		dev_err(&ddata->pdev->dev, "failed to configure DSI\n");
+-		goto err0;
++		goto err_vddi;
+ 	}
+ 
+ 	r = in->ops.dsi->enable(in);
+ 	if (r) {
+ 		dev_err(&ddata->pdev->dev, "failed to enable DSI\n");
+-		goto err0;
++		goto err_vddi;
+ 	}
+ 
+ 	dsicm_hw_reset(ddata);
+@@ -666,7 +688,13 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
+ 	dsicm_hw_reset(ddata);
+ 
+ 	in->ops.dsi->disable(in, true, false);
+-err0:
++err_vddi:
++	if (ddata->vddi)
++		regulator_disable(ddata->vddi);
++err_vpnl:
++	if (ddata->vpnl)
++		regulator_disable(ddata->vpnl);
 +
-+	ddata->height_mm = 0;
-+	of_property_read_u32(node, "height-mm", &ddata->height_mm);
+ 	return r;
+ }
+ 
+@@ -689,6 +717,11 @@ static void dsicm_power_off(struct panel_drv_data *ddata)
+ 
+ 	in->ops.dsi->disable(in, true, false);
+ 
++	if (ddata->vddi)
++		regulator_disable(ddata->vddi);
++	if (ddata->vpnl)
++		regulator_disable(ddata->vpnl);
 +
- 	in = omapdss_of_find_source_for_first_ep(node);
- 	if (IS_ERR(in)) {
- 		dev_err(&pdev->dev, "failed to find video source\n");
+ 	ddata->enabled = 0;
+ }
+ 
+@@ -1189,6 +1222,22 @@ static int dsicm_probe_of(struct platform_device *pdev)
+ 		return PTR_ERR(in);
+ 	}
+ 
++	ddata->vpnl = devm_regulator_get_optional(&pdev->dev, "vpnl");
++	if (IS_ERR(ddata->vpnl)) {
++		err = PTR_ERR(ddata->vpnl);
++		if (err == -EPROBE_DEFER)
++			return err;
++		ddata->vpnl = NULL;
++	}
++
++	ddata->vddi = devm_regulator_get_optional(&pdev->dev, "vddi");
++	if (IS_ERR(ddata->vddi)) {
++		err = PTR_ERR(ddata->vddi);
++		if (err == -EPROBE_DEFER)
++			return err;
++		ddata->vddi = NULL;
++	}
++
+ 	ddata->in = in;
+ 
+ 	/* TODO: ulps, backlight */
 -- 
 2.13.2
