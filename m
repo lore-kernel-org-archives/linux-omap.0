@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv1 14/14] ARM: dts: n950: add display support
-Date: Mon, 24 Jul 2017 19:33:11 +0200
-Message-ID: <20170724173311.27170-15-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv1 12/14] drm/omap: panel-dsi-cm: switch to gpiod
+Date: Mon, 24 Jul 2017 19:33:09 +0200
+Message-ID: <20170724173311.27170-13-sebastian.reichel@collabora.co.uk>
 References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
@@ -10,118 +10,169 @@ To: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Add basic panel support for the Nokia N950. It must be tweaked a
-little bit later, since the panel was built into the device
-upside-down. Also the first 5 and the last 5 pixels are covered
-by plastic.
+Use the new descriptor based GPIO API instead of
+the legacy one, which results in cleaner code
+with less lines of code.
 
-Signed-off-By: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- arch/arm/boot/dts/omap3-n950.dts | 88 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 88 insertions(+)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 74 +++++++++----------------
+ 1 file changed, 27 insertions(+), 47 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 646601a3ebd8..ef70aae99d1b 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -51,6 +51,26 @@
- 	};
- };
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index 1eeb8b0d10c2..8f7463392047 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -22,7 +22,6 @@
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+ #include <linux/of_device.h>
+-#include <linux/of_gpio.h>
+ #include <linux/regulator/consumer.h>
  
-+&omap3_pmx_core {
-+	dsi_pins: pinmux_dsi_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x20dc, PIN_OUTPUT | MUX_MODE1) /* dsi_dx0 - data0+ */
-+			OMAP3_CORE1_IOPAD(0x20de, PIN_OUTPUT | MUX_MODE1) /* dsi_dy0 - data0- */
-+			OMAP3_CORE1_IOPAD(0x20e0, PIN_OUTPUT | MUX_MODE1) /* dsi_dx1 - clk+   */
-+			OMAP3_CORE1_IOPAD(0x20e2, PIN_OUTPUT | MUX_MODE1) /* dsi_dy1 - clk-   */
-+			OMAP3_CORE1_IOPAD(0x20e4, PIN_OUTPUT | MUX_MODE1) /* dsi_dx2 - data1+ */
-+			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE1) /* dsi_dy2 - data1- */
-+		>;
-+	};
-+
-+	display_pins: pinmux_display_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x20ca, PIN_INPUT | MUX_MODE4) /* gpio 62 - display te */
-+			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE4) /* gpio 87 - display reset */
-+		>;
-+	};
-+};
-+
- &i2c2 {
- 	smia_1: camera@10 {
- 		compatible = "nokia,smia";
-@@ -185,3 +205,71 @@
- 	st,max-limit-y = <32>;
- 	st,max-limit-z = <32>;
- };
-+
-+&dss {
-+	status = "ok";
-+
-+	vdda_video-supply = <&vdac>;
-+};
-+
-+&dsi {
-+	status = "ok";
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&dsi_pins>;
-+
-+	vdd-supply = <&vpll2>;
-+
-+	port {
-+		dsi_out_ep: endpoint {
-+			remote-endpoint = <&lcd0_in>;
-+			lanes = <2 3 0 1 4 5>;
-+		};
-+	};
-+
-+	lcd0: display {
-+		compatible = "nokia,himalaya", "panel-dsi-cm";
-+		label = "lcd0";
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&display_pins>;
-+
-+		vpnl-supply = <&vmmc2>;
-+		vddi-supply = <&vio>;
-+
-+		reset-gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;	/* 87 */
-+		te-gpios = <&gpio2 30 GPIO_ACTIVE_HIGH>;	/* 62 */
-+
-+		width-mm = <49>; /* 48.960 mm */
-+		height-mm = <88>; /* 88.128 mm */
-+
-+		/* TODO:
-+		 * - panel is upside-down
-+		 * - top + bottom 5px are not visible
-+		 */
-+		panel-timing {
-+			clock-frequency = <0>;          /* Calculated by dsi */
-+
-+			hback-porch = <2>;
-+			hactive = <480>;
-+			hfront-porch = <0>;
-+			hsync-len = <2>;
-+
-+			vback-porch = <1>;
-+			vactive = <864>;
-+			vfront-porch = <0>;
-+			vsync-len = <1>;
-+
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			de-active = <1>;
-+			pixelclk-active = <1>;
-+		};
-+
-+		port {
-+			lcd0_in: endpoint {
-+				remote-endpoint = <&dsi_out_ep>;
-+			};
-+		};
-+	};
-+};
+ #include <video/mipi_display.h>
+@@ -59,8 +58,8 @@ struct panel_drv_data {
+ 	unsigned long	hw_guard_wait;	/* max guard time in jiffies */
+ 
+ 	/* panel HW configuration from DT or platform data */
+-	int reset_gpio;
+-	int ext_te_gpio;
++	struct gpio_desc *reset_gpio;
++	struct gpio_desc *ext_te_gpio;
+ 
+ 	struct regulator *vpnl;
+ 	struct regulator *vddi;
+@@ -288,8 +287,8 @@ static int dsicm_enter_ulps(struct panel_drv_data *ddata)
+ 	if (r)
+ 		goto err;
+ 
+-	if (gpio_is_valid(ddata->ext_te_gpio))
+-		disable_irq(gpio_to_irq(ddata->ext_te_gpio));
++	if (ddata->ext_te_gpio)
++		disable_irq(gpiod_to_irq(ddata->ext_te_gpio));
+ 
+ 	in->ops.dsi->disable(in, false, true);
+ 
+@@ -330,8 +329,8 @@ static int dsicm_exit_ulps(struct panel_drv_data *ddata)
+ 		goto err2;
+ 	}
+ 
+-	if (gpio_is_valid(ddata->ext_te_gpio))
+-		enable_irq(gpio_to_irq(ddata->ext_te_gpio));
++	if (ddata->ext_te_gpio)
++		enable_irq(gpiod_to_irq(ddata->ext_te_gpio));
+ 
+ 	dsicm_queue_ulps_work(ddata);
+ 
+@@ -344,8 +343,8 @@ static int dsicm_exit_ulps(struct panel_drv_data *ddata)
+ 
+ 	r = dsicm_panel_reset(ddata);
+ 	if (!r) {
+-		if (gpio_is_valid(ddata->ext_te_gpio))
+-			enable_irq(gpio_to_irq(ddata->ext_te_gpio));
++		if (ddata->ext_te_gpio)
++			enable_irq(gpiod_to_irq(ddata->ext_te_gpio));
+ 		ddata->ulps_enabled = false;
+ 	}
+ err1:
+@@ -591,16 +590,13 @@ static struct attribute_group dsicm_attr_group = {
+ 
+ static void dsicm_hw_reset(struct panel_drv_data *ddata)
+ {
+-	if (!gpio_is_valid(ddata->reset_gpio))
+-		return;
+-
+-	gpio_set_value(ddata->reset_gpio, 1);
++	gpiod_set_value(ddata->reset_gpio, 1);
+ 	udelay(10);
+ 	/* reset the panel */
+-	gpio_set_value(ddata->reset_gpio, 0);
++	gpiod_set_value(ddata->reset_gpio, 0);
+ 	/* assert reset */
+ 	udelay(10);
+-	gpio_set_value(ddata->reset_gpio, 1);
++	gpiod_set_value(ddata->reset_gpio, 1);
+ 	/* wait after releasing reset */
+ 	usleep_range(5000, 10000);
+ }
+@@ -954,7 +950,7 @@ static int dsicm_update(struct omap_dss_device *dssdev,
+ 	if (r)
+ 		goto err;
+ 
+-	if (ddata->te_enabled && gpio_is_valid(ddata->ext_te_gpio)) {
++	if (ddata->te_enabled && ddata->ext_te_gpio) {
+ 		schedule_delayed_work(&ddata->te_timeout_work,
+ 				msecs_to_jiffies(250));
+ 		atomic_set(&ddata->do_update, 1);
+@@ -1001,7 +997,7 @@ static int _dsicm_enable_te(struct panel_drv_data *ddata, bool enable)
+ 	else
+ 		r = dsicm_dcs_write_0(ddata, MIPI_DCS_SET_TEAR_OFF);
+ 
+-	if (!gpio_is_valid(ddata->ext_te_gpio))
++	if (!ddata->ext_te_gpio)
+ 		in->ops.dsi->enable_te(in, enable);
+ 
+ 	/* possible panel bug */
+@@ -1229,21 +1225,21 @@ static int dsicm_probe_of(struct platform_device *pdev)
+ 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+ 	struct omap_dss_device *in;
+ 	struct display_timing timing;
+-	int gpio, err;
++	int err;
+ 
+-	gpio = of_get_named_gpio(node, "reset-gpios", 0);
+-	if (!gpio_is_valid(gpio)) {
+-		dev_err(&pdev->dev, "failed to parse reset gpio\n");
+-		return gpio;
++	ddata->reset_gpio = devm_gpiod_get(&pdev->dev, "reset", GPIOD_OUT_LOW);
++	if (IS_ERR(ddata->reset_gpio)) {
++		err = PTR_ERR(ddata->reset_gpio);
++		dev_err(&pdev->dev, "reset gpio request failed: %d", err);
++		return err;
+ 	}
+-	ddata->reset_gpio = gpio;
+ 
+-	gpio = of_get_named_gpio(node, "te-gpios", 0);
+-	if (gpio_is_valid(gpio) || gpio == -ENOENT) {
+-		ddata->ext_te_gpio = gpio;
+-	} else {
+-		dev_err(&pdev->dev, "failed to parse TE gpio\n");
+-		return gpio;
++	ddata->ext_te_gpio = devm_gpiod_get_optional(&pdev->dev, "te",
++						     GPIOD_IN);
++	if (IS_ERR(ddata->ext_te_gpio)) {
++		err = PTR_ERR(ddata->ext_te_gpio);
++		dev_err(&pdev->dev, "TE gpio request failed: %d", err);
++		return err;
+ 	}
+ 
+ 	err = of_get_display_timing(node, "panel-timing", &timing);
+@@ -1353,24 +1349,8 @@ static int dsicm_probe(struct platform_device *pdev)
+ 
+ 	atomic_set(&ddata->do_update, 0);
+ 
+-	if (gpio_is_valid(ddata->reset_gpio)) {
+-		r = devm_gpio_request_one(dev, ddata->reset_gpio,
+-				GPIOF_OUT_INIT_LOW, "taal rst");
+-		if (r) {
+-			dev_err(dev, "failed to request reset gpio\n");
+-			goto err_reg;
+-		}
+-	}
+-
+-	if (gpio_is_valid(ddata->ext_te_gpio)) {
+-		r = devm_gpio_request_one(dev, ddata->ext_te_gpio,
+-				GPIOF_IN, "taal irq");
+-		if (r) {
+-			dev_err(dev, "GPIO request failed\n");
+-			goto err_reg;
+-		}
+-
+-		r = devm_request_irq(dev, gpio_to_irq(ddata->ext_te_gpio),
++	if (ddata->ext_te_gpio) {
++		r = devm_request_irq(dev, gpiod_to_irq(ddata->ext_te_gpio),
+ 				dsicm_te_isr,
+ 				IRQF_TRIGGER_RISING,
+ 				"taal vsync", ddata);
 -- 
 2.13.2
