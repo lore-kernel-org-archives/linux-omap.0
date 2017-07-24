@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv1 09/14] drm/omap: panel-dsi-cm: add regulator support
-Date: Mon, 24 Jul 2017 19:33:06 +0200
-Message-ID: <20170724173311.27170-10-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv1 08/14] drm/omap: panel-dsi-cm: fix driver
+Date: Mon, 24 Jul 2017 19:33:05 +0200
+Message-ID: <20170724173311.27170-9-sebastian.reichel@collabora.co.uk>
 References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
@@ -10,132 +10,123 @@ To: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Add support for regulators used by panels found inside
-of the Nokia N950, N9 and Motorola Droid 4.
+From: Tony Lindgren <tony@atomide.com>
 
+This adds support for get_timings() and check_timings()
+to get the driver working and properly initializes the
+timing information from DT.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 57 +++++++++++++++++++++++--
- 1 file changed, 53 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 56 ++++++++++++++++++++++---
+ 1 file changed, 51 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index 3845a50537a6..95c28f518239 100644
+index 76787a75a4dc..3845a50537a6 100644
 --- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
 +++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -23,6 +23,7 @@
- #include <linux/workqueue.h>
- #include <linux/of_device.h>
+@@ -25,6 +25,7 @@
  #include <linux/of_gpio.h>
-+#include <linux/regulator/consumer.h>
  
  #include <video/mipi_display.h>
- #include <video/of_display_timing.h>
-@@ -60,6 +61,9 @@ struct panel_drv_data {
- 	int reset_gpio;
- 	int ext_te_gpio;
++#include <video/of_display_timing.h>
  
-+	struct regulator *vpnl;
-+	struct regulator *vddi;
-+
- 	bool use_dsi_backlight;
+ #include "../dss/omapdss.h"
  
- 	struct omap_dsi_pin_config pin_config;
-@@ -590,25 +594,43 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 		.lp_clk_max = 10000000,
- 	};
- 
-+	if (ddata->vpnl) {
-+		r = regulator_enable(ddata->vpnl);
-+		if (r) {
-+			dev_err(&ddata->pdev->dev,
-+				"failed to enable VPNL: %d\n", r);
-+			return r;
-+		}
-+	}
-+
-+	if (ddata->vddi) {
-+		r = regulator_enable(ddata->vddi);
-+		if (r) {
-+			dev_err(&ddata->pdev->dev,
-+				"failed to enable VDDI: %d\n", r);
-+			goto err_vpnl;
-+		}
-+	}
-+
- 	if (ddata->pin_config.num_pins > 0) {
- 		r = in->ops.dsi->configure_pins(in, &ddata->pin_config);
- 		if (r) {
- 			dev_err(&ddata->pdev->dev,
- 				"failed to configure DSI pins\n");
--			goto err0;
-+			goto err_vddi;
- 		}
- 	}
- 
- 	r = in->ops.dsi->set_config(in, &dsi_config);
- 	if (r) {
- 		dev_err(&ddata->pdev->dev, "failed to configure DSI\n");
--		goto err0;
-+		goto err_vddi;
- 	}
- 
- 	r = in->ops.dsi->enable(in);
- 	if (r) {
- 		dev_err(&ddata->pdev->dev, "failed to enable DSI\n");
--		goto err0;
-+		goto err_vddi;
- 	}
- 
- 	dsicm_hw_reset(ddata);
-@@ -666,7 +688,13 @@ static int dsicm_power_on(struct panel_drv_data *ddata)
- 	dsicm_hw_reset(ddata);
- 
- 	in->ops.dsi->disable(in, true, false);
--err0:
-+err_vddi:
-+	if (ddata->vddi)
-+		regulator_disable(ddata->vddi);
-+err_vpnl:
-+	if (ddata->vpnl)
-+		regulator_disable(ddata->vpnl);
-+
- 	return r;
+@@ -1099,6 +1100,36 @@ static void dsicm_ulps_work(struct work_struct *work)
+ 	mutex_unlock(&ddata->lock);
  }
  
-@@ -689,6 +717,11 @@ static void dsicm_power_off(struct panel_drv_data *ddata)
- 
- 	in->ops.dsi->disable(in, true, false);
- 
-+	if (ddata->vddi)
-+		regulator_disable(ddata->vddi);
-+	if (ddata->vpnl)
-+		regulator_disable(ddata->vpnl);
++static void dsicm_get_timings(struct omap_dss_device *dssdev,
++			      struct videomode *vm)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
 +
- 	ddata->enabled = 0;
- }
++	*vm = ddata->vm;
++}
++
++static int dsicm_check_timings(struct omap_dss_device *dssdev,
++			       struct videomode *vm)
++{
++	struct panel_drv_data *ddata = to_panel_data(dssdev);
++	int ret = 0;
++
++	if (vm->hactive != ddata->vm.hactive)
++		ret = -EINVAL;
++
++	if (vm->vactive != ddata->vm.vactive)
++		ret = -EINVAL;
++
++	if (ret) {
++		dev_warn(dssdev->dev, "wrong resolution: %d x %d",
++			 vm->hactive, vm->vactive);
++		dev_warn(dssdev->dev, "panel resolution: %d x %d",
++			 ddata->vm.hactive, ddata->vm.vactive);
++	}
++
++	return ret;
++}
++
+ static struct omap_dss_driver dsicm_ops = {
+ 	.connect	= dsicm_connect,
+ 	.disconnect	= dsicm_disconnect,
+@@ -1109,6 +1140,9 @@ static struct omap_dss_driver dsicm_ops = {
+ 	.update		= dsicm_update,
+ 	.sync		= dsicm_sync,
  
-@@ -1189,6 +1222,22 @@ static int dsicm_probe_of(struct platform_device *pdev)
- 		return PTR_ERR(in);
++	.get_timings	= dsicm_get_timings,
++	.check_timings	= dsicm_check_timings,
++
+ 	.enable_te	= dsicm_enable_te,
+ 	.get_te		= dsicm_get_te,
+ 
+@@ -1120,7 +1154,8 @@ static int dsicm_probe_of(struct platform_device *pdev)
+ 	struct device_node *node = pdev->dev.of_node;
+ 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+ 	struct omap_dss_device *in;
+-	int gpio;
++	struct display_timing timing;
++	int gpio, err;
+ 
+ 	gpio = of_get_named_gpio(node, "reset-gpios", 0);
+ 	if (!gpio_is_valid(gpio)) {
+@@ -1137,6 +1172,17 @@ static int dsicm_probe_of(struct platform_device *pdev)
+ 		return gpio;
  	}
  
-+	ddata->vpnl = devm_regulator_get_optional(&pdev->dev, "vpnl");
-+	if (IS_ERR(ddata->vpnl)) {
-+		err = PTR_ERR(ddata->vpnl);
-+		if (err == -EPROBE_DEFER)
-+			return err;
-+		ddata->vpnl = NULL;
++	err = of_get_display_timing(node, "panel-timing", &timing);
++	if (!err) {
++		videomode_from_timing(&timing, &ddata->vm);
++		if (!ddata->vm.pixelclock)
++			ddata->vm.pixelclock =
++				ddata->vm.hactive * ddata->vm.vactive * 60;
++	} else {
++		dev_warn(&pdev->dev,
++			 "failed to get video timing, using defaults\n");
 +	}
 +
-+	ddata->vddi = devm_regulator_get_optional(&pdev->dev, "vddi");
-+	if (IS_ERR(ddata->vddi)) {
-+		err = PTR_ERR(ddata->vddi);
-+		if (err == -EPROBE_DEFER)
-+			return err;
-+		ddata->vddi = NULL;
-+	}
-+
- 	ddata->in = in;
+ 	in = omapdss_of_find_source_for_first_ep(node);
+ 	if (IS_ERR(in)) {
+ 		dev_err(&pdev->dev, "failed to find video source\n");
+@@ -1171,14 +1217,14 @@ static int dsicm_probe(struct platform_device *pdev)
+ 	if (!pdev->dev.of_node)
+ 		return -ENODEV;
  
- 	/* TODO: ulps, backlight */
+-	r = dsicm_probe_of(pdev);
+-	if (r)
+-		return r;
+-
+ 	ddata->vm.hactive = 864;
+ 	ddata->vm.vactive = 480;
+ 	ddata->vm.pixelclock = 864 * 480 * 60;
+ 
++	r = dsicm_probe_of(pdev);
++	if (r)
++		return r;
++
+ 	dssdev = &ddata->dssdev;
+ 	dssdev->dev = dev;
+ 	dssdev->driver = &dsicm_ops;
 -- 
 2.13.2
