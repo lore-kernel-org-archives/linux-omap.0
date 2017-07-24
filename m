@@ -1,65 +1,81 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/8] ARM: OMAP2+: board-generic: add support for dra76x
- family
-Date: Mon, 24 Jul 2017 14:02:36 -0500
-Message-ID: <20170724190236.k3xbxrmgdfc5nogj@rob-hp-laptop>
-References: <20170718195503.1700-1-lokeshvutla@ti.com>
- <20170718195503.1700-2-lokeshvutla@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 3/3] ARM: dts: omap4-droid4: add soundcard
+Date: Mon, 24 Jul 2017 21:19:54 +0200
+Message-ID: <20170724191954.GC32425@amd>
+References: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
+ <20170707164229.5868-4-sebastian.reichel@collabora.co.uk>
+ <20170710122602.srdzonm3s6gcqhnf@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170718195503.1700-2-lokeshvutla-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============6879533132275166700=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20170710122602.srdzonm3s6gcqhnf@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Liam Girdwood <lgirdwood@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 19, 2017 at 01:24:56AM +0530, Lokesh Vutla wrote:
-> Adding board generic support for dra76 family.
-> 
-> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/arm/omap/omap.txt | 3 +++
->  arch/arm/mach-omap2/board-generic.c                 | 1 +
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> index 8219b2c6bb29..ffe02755a285 100644
-> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> @@ -80,6 +80,9 @@ SoCs:
->  - OMAP5432
->    compatible = "ti,omap5432", "ti,omap5"
->  
-> +- DRA762
-> +  compatible = "ti,dra76", "ti,dra7"
 
-76 or 762?
+--===============6879533132275166700==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yLVHuoLXiP9kZBkt"
+Content-Disposition: inline
 
-How many of these 2 or 3 compatible strings actually get used? I'd 
-prefer to see one of these less specific compatibles get dropped.
 
-> +
->  - DRA742
->    compatible = "ti,dra742", "ti,dra74", "ti,dra7"
->  
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index dc9e34e670a2..e5d9d769a76e 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -312,6 +312,7 @@ MACHINE_END
->  
->  #ifdef CONFIG_SOC_DRA7XX
->  static const char *const dra74x_boards_compat[] __initconst = {
-> +	"ti,dra76",
->  	"ti,am5728",
->  	"ti,am5726",
->  	"ti,dra742",
-> -- 
-> 2.13.0
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--yLVHuoLXiP9kZBkt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon 2017-07-10 13:26:02, Mark Brown wrote:
+> On Fri, Jul 07, 2017 at 06:42:29PM +0200, Sebastian Reichel wrote:
+>=20
+> > +	soundcard {
+> > +		compatible =3D "simple-audio-card";
+> > +		simple-audio-card,name =3D "Droid 4 Audio";
+>=20
+> New systems should be using the of-graph card which is more flexible and
+> extensible than simple-card.
+
+Well, if simple-card does what is needed here, and dts looks
+reasonable, is there reason for anything more complex?
+
+Anyway, congratulations for getting the sound to work!
+
+									Pavel
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--yLVHuoLXiP9kZBkt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAll2SFoACgkQMOfwapXb+vIQvQCdGrQmZGK4DmTCF4ww/qkVwiJU
+2kkAoIaxX98+vWU9C/gLE1FX5YWndFg0
+=f1xv
+-----END PGP SIGNATURE-----
+
+--yLVHuoLXiP9kZBkt--
+
+--===============6879533132275166700==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============6879533132275166700==--
