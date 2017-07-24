@@ -1,83 +1,115 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH] USB: musb: fix external abort on suspend
-Date: Mon, 24 Jul 2017 17:20:59 +0200
-Message-ID: <20170724152059.GA27453@localhost>
-References: <20170724094939.21477-1-johan@kernel.org>
- <Pine.LNX.4.44L0.1707241029380.1739-100000@iolanthe.rowland.org>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCHv2 1/2] dt-bindings: backlight: add ti-lmu-backlight
+ binding
+Date: Mon, 24 Jul 2017 11:58:26 -0500
+Message-ID: <20170724165826.3jcnrsirfqzefldj@rob-hp-laptop>
+References: <20170717133956.20691-1-sebastian.reichel@collabora.co.uk>
+ <20170717133956.20691-2-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1707241029380.1739-100000@iolanthe.rowland.org>
-Sender: stable-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Johan Hovold <johan@kernel.org>, Bin Liu <b-liu@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, stable <stable@vger.kernel.org>, Daniel Mack <zonque@gmail.com>, Dave Gerlach <d-gerlach@ti.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tony Lindgren <tony@atomide.com>
+In-Reply-To: <20170717133956.20691-2-sebastian.reichel@collabora.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Sebastian Reichel <sre@kernel.org>, Milo Kim <Milo.Kim@ti.com>, Lee Jones <lee.jones@linaro.org>, Daniel Thompson <daniel.thompson@linaro.org>, Tony Lindgren <tony@atomide.com>, Jingoo Han <jingoohan1@gmail.com>, Mark Rutland <mark.rutland@arm.com>, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 24, 2017 at 10:38:41AM -0400, Alan Stern wrote:
-> On Mon, 24 Jul 2017, Johan Hovold wrote:
+On Mon, Jul 17, 2017 at 03:39:55PM +0200, Sebastian Reichel wrote:
+> From: Milo Kim <Milo.Kim@ti.com>
 > 
-> > Make sure that the controller is runtime resumed when system suspending
-> > to avoid an external abort when accessing the interrupt registers:
-> > 
-> >   Unhandled fault: external abort on non-linefetch (0x1008) at 0xd025840a
-> >   ...
-> >   [<c05481a4>] (musb_default_readb) from [<c0545abc>] (musb_disable_interrupts+0x84/0xa8)
-> >   [<c0545abc>] (musb_disable_interrupts) from [<c0546b08>] (musb_suspend+0x38/0xb8)
-> >   [<c0546b08>] (musb_suspend) from [<c04a57f8>] (platform_pm_suspend+0x3c/0x64)
-> > 
-> > This is easily reproduced on a BBB by enabling the peripheral port only
-> > (as the host port may enable the shared clock) and keeping it
-> > disconnected so that the controller is runtime suspended. (Well, you
-> > would also need to the not-yet-merged am33xx-suspend patches by Dave
-> > Gerlach to be able to suspend the BBB.)
-> > 
-> > This is a regression that was introduced by commit 1c4d0b4e1806 ("usb:
-> > musb: Remove pm_runtime_set_irq_safe") which allowed the parent glue
-> > device to runtime suspend and thereby exposed a couple of older issues:
-> > 
-> > Register accesses without explicitly making sure the controller is
-> > runtime resumed during suspend was first introduced by commit
-> > c338412b5ded ("usb: musb: unconditionally save and restore the context
-> > on suspend") in 3.14.
-> > 
-> > Commit a1fc1920aaaa ("usb: musb: core: make sure musb is in RPM_ACTIVE on
-> > resume") later started setting the RPM status to active during resume
-> > without first making sure that the parent was runtime resumed. This was
-> > also implicitly relying on the parent always being active. Since commit
-> > 71723f95463d ("PM / runtime: print error when activating a child to
-> > unactive parent") this now also results in following warning:
-> > 
-> >   musb-hdrc musb-hdrc.0: runtime PM trying to activate child device
-> >     musb-hdrc.0 but parent (47401400.usb) is not active
+> Add DT binding for ti-lmu devices.
 > 
-> I don't understand this.  Why wouldn't the parent be in RPM_ACTIVE at
-> this time?  After all, how could the system be expected to resume a
-> child device if its parent wasn't fully active?
+> Signed-off-by: Milo Kim <milo.kim@ti.com>
+> Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> ---
+>  .../bindings/leds/backlight/ti-lmu-backlight.txt   | 66 ++++++++++++++++++++++
+>  1 file changed, 66 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/leds/backlight/ti-lmu-backlight.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/leds/backlight/ti-lmu-backlight.txt b/Documentation/devicetree/bindings/leds/backlight/ti-lmu-backlight.txt
+> new file mode 100644
+> index 000000000000..5fb1458a9136
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/leds/backlight/ti-lmu-backlight.txt
+> @@ -0,0 +1,66 @@
+> +TI LMU backlight device tree bindings
+> +
+> +Required property:
+> + - compatible: Should be one of:
+> +        "ti,lm3532-backlight"
+> +        "ti,lm3631-backlight"
+> +        "ti,lm3632-backlight"
+> +        "ti,lm3633-backlight"
+> +        "ti,lm3695-backlight"
+> +        "ti,lm3697-backlight"
 
-The parent for a musb controller is a "glue" device (e.g. musb_dsps)
-which previously was always kept active, but that's no longer the case
-as mentioned above.
+Some of the parts only do backlight, so drop the "-backlight" on those. 
+And having a sub-node makes no sense in that case. Perhaps it should be 
+2 binding documents separating the single function devices and MFDs. The 
+binding doc(s) doesn't have to align with the driver(s). You can have 1 
+driver serve 2 bindings.
 
-In a system with two controllers (e.g. a Beagle Bone Black), the host
-port may be active and keep the shared clock enabled (managed by the
-grandparent device). Thereby the external-abort crash can be avoided
-when suspending a disconnected (and runtime suspended) peripheral port.
+> +
+> +Optional properties:
+> + There are two backlight control mode. One is I2C, the other is PWM mode.
 
-When the system is later resumed, you would hit that broken activation
-code of the runtime suspended device, with a likewise runtime suspended
-parent, and the warning would be printed.
+The wording here is weird. My take of the datasheet is it is not 
+necessarily either I2C or PWM mode as I gathered from this description.
 
-> In general, during a system resume callback we should bring a device
-> back to full power, tell the PM core that this has been done, and leave
-> it at full power until the whole system resume is finished.  For
-> efficiency we can avoid doing this in cases where the device was in
-> runtime suspend before the system suspend began, but you have to be
-> very careful about it -- see the documentation for the ->prepare
-> callback in Documentation/driver-api/pm/devices.rst.
-
-Right, this is how things should have been implemented if it is at all
-possible too keep the device runtime suspended across system suspend.
-
-Thanks,
-Johan
+> + Following properties are only specified in PWM mode.
+> + Please note that LMU backlight device can have only one PWM channel.
+> +
+> + - pwms: OF device-tree PWM specification.
+> + - pwm-names: a list of names for the PWM devices specified in the "pwms"
+> +              property.
+> +
+> + For the PWM user nodes, please refer to [1].
+> +
+> +Child nodes:
+> + LMU backlight is represented as sub-nodes of the TI LMU device [2].
+> + So, LMU backlight should have more than one backlight child node.
+> + Each node exactly matches with backlight control bank configuration.
+> + Maximum numbers of child nodes depend on the device.
+> +
+> + 1 = LM3631, LM3632, LM3695
+> + 2 = LM3633, LM3697
+> + 3 = LM3532
+> +
+> + Required property of a child node:
+> + - led-sources: List of enabled channels from 0 to 2.
+> +                Please refer to LED binding [3].
+> +                For output channels, please refer to the datasheets [4].
+> +
+> + Optional properties of a child node:
+> + - label: Backlight channel identification.
+> +          Please refer to LED binding [3].
+> + - default-brightness-level: Backlight initial brightness value.
+> +                             Type is <u32>. It is set as soon as backlight
+> +                             device is created.
+> +                             0 ~ 2047 = LM3631, LM3632, LM3633, LM3695 and
+> +                                        LM3697
+> +                             0 ~ 255  = LM3532
+> + - ramp-up-msec, ramp-down-msec: Light dimming effect properties.
+> +                                 Type is <u32>. Unit is millisecond.
+> +                                 0 ~ 65 msec    = LM3532
+> +                                 0 ~ 4000 msec  = LM3631
+> +                                 0 ~ 16000 msec = LM3633 and LM3697
+> + - pwm-period: PWM period. Only valid in PWM brightness mode.
+> +               Type is <u32>. If this property is missing, then control
+> +               mode is set to I2C by default.
+> +
+> +Examples: Please refer to ti-lmu dt-bindings. [2].
+> +
+> +[1] ../pwm/pwm.txt
+> +[2] ../mfd/ti-lmu.txt
+> +[3] ../leds/common.txt
+> +[4] LM3532: http://www.ti.com/product/LM3532/datasheet
+> +    LM3631: http://www.ti.com/product/LM3631/datasheet
+> +    LM3632: http://www.ti.com/product/LM3632A/datasheet
+> +    LM3633: http://www.ti.com/product/LM3633/datasheet
+> +    LM3695: Datasheet is not opened yet, but only two strings are used.
+> +    LM3697: http://www.ti.com/product/LM3697/datasheet
+> -- 
+> 2.13.2
+> 
