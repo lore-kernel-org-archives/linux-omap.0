@@ -1,87 +1,53 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCHv4 1/3] dt-bindings: input: add pwm-vibrator
-Date: Mon, 24 Jul 2017 21:20:17 +0200
-Message-ID: <20170724192017.GE32425@amd>
-References: <20170714100151.31234-1-sebastian.reichel@collabora.co.uk>
- <20170714100151.31234-2-sebastian.reichel@collabora.co.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 07/11] mfd: Drop unnecessary static
+Date: Mon, 24 Jul 2017 21:20:26 +0200
+Message-ID: <20170724192026.GF32425@amd>
+References: <1500149266-32357-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1500149266-32357-8-git-send-email-Julia.Lawall@lip6.fr>
+ <D2DCD2EA-E216-45D4-87F5-375C30F4AC76@gmail.com>
+ <alpine.DEB.2.20.1707152254380.5105@hadrien>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="BZaMRJmqxGScZ8Mx"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="ExXT7PjY8AI4Hyfa"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170714100151.31234-2-sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <alpine.DEB.2.20.1707152254380.5105@hadrien>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Mark D Rustad <mrustad@gmail.com>, Tony Lindgren <tony@atomide.com>, keescook@chromium.org, kernel-janitors@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---BZaMRJmqxGScZ8Mx
+--ExXT7PjY8AI4Hyfa
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri 2017-07-14 12:01:49, Sebastian Reichel wrote:
-> Add DT binding document for PWM controlled vibrator devices.
->=20
-> Signed-off-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Hi!
 
-Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> > > Drop static on a local variable, when the variable is initialized bef=
+ore
+> > > any possible use.  Thus, the static has no benefit.
 
-> index 000000000000..09145d18491d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/input/pwm-vibrator.txt
-> @@ -0,0 +1,66 @@
-> +* PWM vibrator device tree bindings
-> +
-> +Registers a PWM device as vibrator. It is expected, that the vibrator's
-> +strength increases based on the duty cycle of the enable PWM channel
-> +(100% duty cycle meaning strongest vibration, 0% meaning no vibration).
-> +
-> +The binding supports an optional direction PWM channel, that can be
-> +driven at fixed duty cycle. If available this is can be used to increase
-> +the vibration effect of some devices.
+Actually... it has possible other benefit -- saving stack space. I've
+used static for that purpose before. So ... careful with the
+automation.
 
-Actually what "direction" does would be nice to explain, because I
-don't know. Does it make the motor turn the other way around?
-
-> +Required properties:
-> +- compatible: should contain "pwm-vibrator"
-
-should->Should.
-
-> +- pwm-names: Should contain "enable" and optionally "direction"
-> +- pwms: Should contain a PWM handle for each entry in pwm-names
-> +
-> +Optional properties:
-> +- vcc-supply: Phandle for the regulator supplying power
-> +- direction-duty-cycle-ns: Duty cycle of the direction PWM channel in
-> +                           nanoseconds, defaults to 50% of the channel's
-> +			   period.
-
-Is nanoseconds right unit here? It drives a motor...
-
-Thanks,
-									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---BZaMRJmqxGScZ8Mx
+--ExXT7PjY8AI4Hyfa
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAll2SHEACgkQMOfwapXb+vL6eQCgnQ/nkXsG/SRMySTB9qHW4rWu
-wz8An1IVCctTyOwSxPrUvtsT+MdeqlYa
-=0UQO
+iEYEARECAAYFAll2SHoACgkQMOfwapXb+vJ/BgCeJV9jNXiD3P7c9ZgXkWNaMmdy
+Wu0An0OKd8tWIa0ig042NowwGtXv727U
+=OuPP
 -----END PGP SIGNATURE-----
 
---BZaMRJmqxGScZ8Mx--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--ExXT7PjY8AI4Hyfa--
