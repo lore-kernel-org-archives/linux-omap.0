@@ -1,253 +1,65 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv1 11/14] drm/omap: panel-dsi-cm: add external backlight support
-Date: Mon, 24 Jul 2017 19:33:08 +0200
-Message-ID: <20170724173311.27170-12-sebastian.reichel@collabora.co.uk>
-References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/8] ARM: OMAP2+: board-generic: add support for dra76x
+ family
+Date: Mon, 24 Jul 2017 14:02:36 -0500
+Message-ID: <20170724190236.k3xbxrmgdfc5nogj@rob-hp-laptop>
+References: <20170718195503.1700-1-lokeshvutla@ti.com>
+ <20170718195503.1700-2-lokeshvutla@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170718195503.1700-2-lokeshvutla-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Droid 4 has a command mode DSI panel, which does not have/use
-DSI based backlight support. This adds proper support for this
-using a backlight phandle property, which follows the common
-panel binding.
+On Wed, Jul 19, 2017 at 01:24:56AM +0530, Lokesh Vutla wrote:
+> Adding board generic support for dra76 family.
+> 
+> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/arm/omap/omap.txt | 3 +++
+>  arch/arm/mach-omap2/board-generic.c                 | 1 +
+>  2 files changed, 4 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> index 8219b2c6bb29..ffe02755a285 100644
+> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
+> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+> @@ -80,6 +80,9 @@ SoCs:
+>  - OMAP5432
+>    compatible = "ti,omap5432", "ti,omap5"
+>  
+> +- DRA762
+> +  compatible = "ti,dra76", "ti,dra7"
 
-If no backlight phandle is found, it is assumed, that the
-native backlight should be used instead. This is used by
-the Nokia N950.
+76 or 762?
 
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
----
- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 91 ++++++++++++++++---------
- 1 file changed, 60 insertions(+), 31 deletions(-)
+How many of these 2 or 3 compatible strings actually get used? I'd 
+prefer to see one of these less specific compatibles get dropped.
 
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-index b50b1e81b2f5..1eeb8b0d10c2 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -51,6 +51,7 @@ struct panel_drv_data {
- 	struct mutex lock;
- 
- 	struct backlight_device *bldev;
-+	struct backlight_device *extbldev;
- 
- 	unsigned long	hw_guard_end;	/* next value of jiffies when we can
- 					 * issue the next sleep in/out command
-@@ -100,6 +101,30 @@ static int dsicm_panel_reset(struct panel_drv_data *ddata);
- 
- static void dsicm_ulps_work(struct work_struct *work);
- 
-+static void dsicm_bl_power(struct panel_drv_data *ddata, bool enable)
-+{
-+	struct backlight_device *backlight;
-+
-+	if (ddata->bldev)
-+		backlight = ddata->bldev;
-+	else if (ddata->extbldev)
-+		backlight = ddata->extbldev;
-+	else
-+		return;
-+
-+	if (enable) {
-+		backlight->props.fb_blank = FB_BLANK_UNBLANK;
-+		backlight->props.state = ~(BL_CORE_FBBLANK | BL_CORE_SUSPENDED);
-+		backlight->props.power = FB_BLANK_UNBLANK;
-+	} else {
-+		backlight->props.fb_blank = FB_BLANK_NORMAL;
-+		backlight->props.power = FB_BLANK_POWERDOWN;
-+		backlight->props.state |= BL_CORE_FBBLANK | BL_CORE_SUSPENDED;
-+	}
-+
-+	backlight_update_status(backlight);
-+}
-+
- static void hw_guard_start(struct panel_drv_data *ddata, int guard_msec)
- {
- 	ddata->hw_guard_wait = msecs_to_jiffies(guard_msec);
-@@ -343,7 +368,7 @@ static int dsicm_bl_update_status(struct backlight_device *dev)
- {
- 	struct panel_drv_data *ddata = dev_get_drvdata(&dev->dev);
- 	struct omap_dss_device *in = ddata->in;
--	int r;
-+	int r = 0;
- 	int level;
- 
- 	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
-@@ -364,8 +389,6 @@ static int dsicm_bl_update_status(struct backlight_device *dev)
- 			r = dsicm_dcs_write_1(ddata, DCS_BRIGHTNESS, level);
- 
- 		in->ops.dsi->bus_unlock(in);
--	} else {
--		r = 0;
- 	}
- 
- 	mutex_unlock(&ddata->lock);
-@@ -819,6 +842,8 @@ static int dsicm_enable(struct omap_dss_device *dssdev)
- 
- 	mutex_unlock(&ddata->lock);
- 
-+	dsicm_bl_power(ddata, true);
-+
- 	return 0;
- err:
- 	dev_dbg(&ddata->pdev->dev, "enable failed\n");
-@@ -834,6 +859,8 @@ static void dsicm_disable(struct omap_dss_device *dssdev)
- 
- 	dev_dbg(&ddata->pdev->dev, "disable\n");
- 
-+	dsicm_bl_power(ddata, false);
-+
- 	mutex_lock(&ddata->lock);
- 
- 	dsicm_cancel_ulps_work(ddata);
-@@ -1198,6 +1225,7 @@ static struct omap_dss_driver dsicm_ops = {
- static int dsicm_probe_of(struct platform_device *pdev)
- {
- 	struct device_node *node = pdev->dev.of_node;
-+	struct device_node *backlight;
- 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
- 	struct omap_dss_device *in;
- 	struct display_timing timing;
-@@ -1259,14 +1287,25 @@ static int dsicm_probe_of(struct platform_device *pdev)
- 
- 	ddata->in = in;
- 
--	/* TODO: ulps, backlight */
-+	backlight = of_parse_phandle(node, "backlight", 0);
-+	if (backlight) {
-+		ddata->extbldev = of_find_backlight_by_node(backlight);
-+		of_node_put(backlight);
-+
-+		if (!ddata->extbldev)
-+			return -EPROBE_DEFER;
-+	} else {
-+		/* assume native backlight support */
-+		ddata->use_dsi_backlight = true;
-+	}
-+
-+	/* TODO: ulps */
- 
- 	return 0;
- }
- 
- static int dsicm_probe(struct platform_device *pdev)
- {
--	struct backlight_properties props;
- 	struct panel_drv_data *ddata;
- 	struct backlight_device *bldev = NULL;
- 	struct device *dev = &pdev->dev;
-@@ -1319,7 +1358,7 @@ static int dsicm_probe(struct platform_device *pdev)
- 				GPIOF_OUT_INIT_LOW, "taal rst");
- 		if (r) {
- 			dev_err(dev, "failed to request reset gpio\n");
--			return r;
-+			goto err_reg;
- 		}
- 	}
- 
-@@ -1328,7 +1367,7 @@ static int dsicm_probe(struct platform_device *pdev)
- 				GPIOF_IN, "taal irq");
- 		if (r) {
- 			dev_err(dev, "GPIO request failed\n");
--			return r;
-+			goto err_reg;
- 		}
- 
- 		r = devm_request_irq(dev, gpio_to_irq(ddata->ext_te_gpio),
-@@ -1338,7 +1377,7 @@ static int dsicm_probe(struct platform_device *pdev)
- 
- 		if (r) {
- 			dev_err(dev, "IRQ request failed\n");
--			return r;
-+			goto err_reg;
- 		}
- 
- 		INIT_DEFERRABLE_WORK(&ddata->te_timeout_work,
-@@ -1348,48 +1387,43 @@ static int dsicm_probe(struct platform_device *pdev)
- 	}
- 
- 	ddata->workqueue = create_singlethread_workqueue("dsicm_wq");
--	if (ddata->workqueue == NULL) {
--		dev_err(dev, "can't create workqueue\n");
--		return -ENOMEM;
-+	if (!ddata->workqueue) {
-+		r = -ENOMEM;
-+		goto err_reg;
- 	}
- 	INIT_DELAYED_WORK(&ddata->ulps_work, dsicm_ulps_work);
- 
- 	dsicm_hw_reset(ddata);
- 
- 	if (ddata->use_dsi_backlight) {
--		memset(&props, 0, sizeof(props));
-+		struct backlight_properties props = { 0 };
- 		props.max_brightness = 255;
--
- 		props.type = BACKLIGHT_RAW;
--		bldev = backlight_device_register(dev_name(dev),
--				dev, ddata, &dsicm_bl_ops, &props);
-+
-+		bldev = devm_backlight_device_register(dev, dev_name(dev),
-+			dev, ddata, &dsicm_bl_ops, &props);
- 		if (IS_ERR(bldev)) {
- 			r = PTR_ERR(bldev);
- 			goto err_bl;
- 		}
- 
- 		ddata->bldev = bldev;
--
--		bldev->props.fb_blank = FB_BLANK_UNBLANK;
--		bldev->props.power = FB_BLANK_UNBLANK;
--		bldev->props.brightness = 255;
--
--		dsicm_bl_update_status(bldev);
- 	}
- 
- 	r = sysfs_create_group(&dev->kobj, &dsicm_attr_group);
- 	if (r) {
- 		dev_err(dev, "failed to create sysfs files\n");
--		goto err_sysfs_create;
-+		goto err_bl;
- 	}
- 
- 	return 0;
- 
--err_sysfs_create:
--	backlight_device_unregister(bldev);
- err_bl:
- 	destroy_workqueue(ddata->workqueue);
- err_reg:
-+	if (ddata->extbldev)
-+		put_device(&ddata->extbldev->dev);
-+
- 	return r;
- }
- 
-@@ -1397,7 +1431,6 @@ static int __exit dsicm_remove(struct platform_device *pdev)
- {
- 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
- 	struct omap_dss_device *dssdev = &ddata->dssdev;
--	struct backlight_device *bldev;
- 
- 	dev_dbg(&pdev->dev, "remove\n");
- 
-@@ -1408,12 +1441,8 @@ static int __exit dsicm_remove(struct platform_device *pdev)
- 
- 	sysfs_remove_group(&pdev->dev.kobj, &dsicm_attr_group);
- 
--	bldev = ddata->bldev;
--	if (bldev != NULL) {
--		bldev->props.power = FB_BLANK_POWERDOWN;
--		dsicm_bl_update_status(bldev);
--		backlight_device_unregister(bldev);
--	}
-+	if (ddata->extbldev)
-+		put_device(&ddata->extbldev->dev);
- 
- 	omap_dss_put_device(ddata->in);
- 
--- 
-2.13.2
+> +
+>  - DRA742
+>    compatible = "ti,dra742", "ti,dra74", "ti,dra7"
+>  
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index dc9e34e670a2..e5d9d769a76e 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -312,6 +312,7 @@ MACHINE_END
+>  
+>  #ifdef CONFIG_SOC_DRA7XX
+>  static const char *const dra74x_boards_compat[] __initconst = {
+> +	"ti,dra76",
+>  	"ti,am5728",
+>  	"ti,am5726",
+>  	"ti,dra742",
+> -- 
+> 2.13.0
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
