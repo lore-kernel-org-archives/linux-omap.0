@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv1 02/14] drm/omap: drop incorrect comment
-Date: Mon, 24 Jul 2017 19:32:59 +0200
-Message-ID: <20170724173311.27170-3-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv1 11/14] drm/omap: panel-dsi-cm: add external backlight support
+Date: Mon, 24 Jul 2017 19:33:08 +0200
+Message-ID: <20170724173311.27170-12-sebastian.reichel@collabora.co.uk>
 References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
@@ -10,29 +10,244 @@ To: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-The wrappers have been removed in commit 5a35876e2830
-(drm: omapdrm: Remove manual update display support)
-and will not be reintroduced, since the normal sys
-functions properly call the dirty callback.
+Droid 4 has a command mode DSI panel, which does not have/use
+DSI based backlight support. This adds proper support for this
+using a backlight phandle property, which follows the common
+panel binding.
+
+If no backlight phandle is found, it is assumed, that the
+native backlight should be used instead. This is used by
+the Nokia N950.
 
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/gpu/drm/omapdrm/omap_fbdev.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 91 ++++++++++++++++---------
+ 1 file changed, 60 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/gpu/drm/omapdrm/omap_fbdev.c b/drivers/gpu/drm/omapdrm/omap_fbdev.c
-index daf81a0a2899..929a3ef0fba0 100644
---- a/drivers/gpu/drm/omapdrm/omap_fbdev.c
-+++ b/drivers/gpu/drm/omapdrm/omap_fbdev.c
-@@ -84,9 +84,6 @@ static struct fb_ops omap_fb_ops = {
- 	.owner = THIS_MODULE,
- 	DRM_FB_HELPER_DEFAULT_OPS,
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+index b50b1e81b2f5..1eeb8b0d10c2 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+@@ -51,6 +51,7 @@ struct panel_drv_data {
+ 	struct mutex lock;
  
--	/* Note: to properly handle manual update displays, we wrap the
--	 * basic fbdev ops which write to the framebuffer
--	 */
- 	.fb_read = drm_fb_helper_sys_read,
- 	.fb_write = drm_fb_helper_sys_write,
- 	.fb_fillrect = drm_fb_helper_sys_fillrect,
+ 	struct backlight_device *bldev;
++	struct backlight_device *extbldev;
+ 
+ 	unsigned long	hw_guard_end;	/* next value of jiffies when we can
+ 					 * issue the next sleep in/out command
+@@ -100,6 +101,30 @@ static int dsicm_panel_reset(struct panel_drv_data *ddata);
+ 
+ static void dsicm_ulps_work(struct work_struct *work);
+ 
++static void dsicm_bl_power(struct panel_drv_data *ddata, bool enable)
++{
++	struct backlight_device *backlight;
++
++	if (ddata->bldev)
++		backlight = ddata->bldev;
++	else if (ddata->extbldev)
++		backlight = ddata->extbldev;
++	else
++		return;
++
++	if (enable) {
++		backlight->props.fb_blank = FB_BLANK_UNBLANK;
++		backlight->props.state = ~(BL_CORE_FBBLANK | BL_CORE_SUSPENDED);
++		backlight->props.power = FB_BLANK_UNBLANK;
++	} else {
++		backlight->props.fb_blank = FB_BLANK_NORMAL;
++		backlight->props.power = FB_BLANK_POWERDOWN;
++		backlight->props.state |= BL_CORE_FBBLANK | BL_CORE_SUSPENDED;
++	}
++
++	backlight_update_status(backlight);
++}
++
+ static void hw_guard_start(struct panel_drv_data *ddata, int guard_msec)
+ {
+ 	ddata->hw_guard_wait = msecs_to_jiffies(guard_msec);
+@@ -343,7 +368,7 @@ static int dsicm_bl_update_status(struct backlight_device *dev)
+ {
+ 	struct panel_drv_data *ddata = dev_get_drvdata(&dev->dev);
+ 	struct omap_dss_device *in = ddata->in;
+-	int r;
++	int r = 0;
+ 	int level;
+ 
+ 	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
+@@ -364,8 +389,6 @@ static int dsicm_bl_update_status(struct backlight_device *dev)
+ 			r = dsicm_dcs_write_1(ddata, DCS_BRIGHTNESS, level);
+ 
+ 		in->ops.dsi->bus_unlock(in);
+-	} else {
+-		r = 0;
+ 	}
+ 
+ 	mutex_unlock(&ddata->lock);
+@@ -819,6 +842,8 @@ static int dsicm_enable(struct omap_dss_device *dssdev)
+ 
+ 	mutex_unlock(&ddata->lock);
+ 
++	dsicm_bl_power(ddata, true);
++
+ 	return 0;
+ err:
+ 	dev_dbg(&ddata->pdev->dev, "enable failed\n");
+@@ -834,6 +859,8 @@ static void dsicm_disable(struct omap_dss_device *dssdev)
+ 
+ 	dev_dbg(&ddata->pdev->dev, "disable\n");
+ 
++	dsicm_bl_power(ddata, false);
++
+ 	mutex_lock(&ddata->lock);
+ 
+ 	dsicm_cancel_ulps_work(ddata);
+@@ -1198,6 +1225,7 @@ static struct omap_dss_driver dsicm_ops = {
+ static int dsicm_probe_of(struct platform_device *pdev)
+ {
+ 	struct device_node *node = pdev->dev.of_node;
++	struct device_node *backlight;
+ 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+ 	struct omap_dss_device *in;
+ 	struct display_timing timing;
+@@ -1259,14 +1287,25 @@ static int dsicm_probe_of(struct platform_device *pdev)
+ 
+ 	ddata->in = in;
+ 
+-	/* TODO: ulps, backlight */
++	backlight = of_parse_phandle(node, "backlight", 0);
++	if (backlight) {
++		ddata->extbldev = of_find_backlight_by_node(backlight);
++		of_node_put(backlight);
++
++		if (!ddata->extbldev)
++			return -EPROBE_DEFER;
++	} else {
++		/* assume native backlight support */
++		ddata->use_dsi_backlight = true;
++	}
++
++	/* TODO: ulps */
+ 
+ 	return 0;
+ }
+ 
+ static int dsicm_probe(struct platform_device *pdev)
+ {
+-	struct backlight_properties props;
+ 	struct panel_drv_data *ddata;
+ 	struct backlight_device *bldev = NULL;
+ 	struct device *dev = &pdev->dev;
+@@ -1319,7 +1358,7 @@ static int dsicm_probe(struct platform_device *pdev)
+ 				GPIOF_OUT_INIT_LOW, "taal rst");
+ 		if (r) {
+ 			dev_err(dev, "failed to request reset gpio\n");
+-			return r;
++			goto err_reg;
+ 		}
+ 	}
+ 
+@@ -1328,7 +1367,7 @@ static int dsicm_probe(struct platform_device *pdev)
+ 				GPIOF_IN, "taal irq");
+ 		if (r) {
+ 			dev_err(dev, "GPIO request failed\n");
+-			return r;
++			goto err_reg;
+ 		}
+ 
+ 		r = devm_request_irq(dev, gpio_to_irq(ddata->ext_te_gpio),
+@@ -1338,7 +1377,7 @@ static int dsicm_probe(struct platform_device *pdev)
+ 
+ 		if (r) {
+ 			dev_err(dev, "IRQ request failed\n");
+-			return r;
++			goto err_reg;
+ 		}
+ 
+ 		INIT_DEFERRABLE_WORK(&ddata->te_timeout_work,
+@@ -1348,48 +1387,43 @@ static int dsicm_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	ddata->workqueue = create_singlethread_workqueue("dsicm_wq");
+-	if (ddata->workqueue == NULL) {
+-		dev_err(dev, "can't create workqueue\n");
+-		return -ENOMEM;
++	if (!ddata->workqueue) {
++		r = -ENOMEM;
++		goto err_reg;
+ 	}
+ 	INIT_DELAYED_WORK(&ddata->ulps_work, dsicm_ulps_work);
+ 
+ 	dsicm_hw_reset(ddata);
+ 
+ 	if (ddata->use_dsi_backlight) {
+-		memset(&props, 0, sizeof(props));
++		struct backlight_properties props = { 0 };
+ 		props.max_brightness = 255;
+-
+ 		props.type = BACKLIGHT_RAW;
+-		bldev = backlight_device_register(dev_name(dev),
+-				dev, ddata, &dsicm_bl_ops, &props);
++
++		bldev = devm_backlight_device_register(dev, dev_name(dev),
++			dev, ddata, &dsicm_bl_ops, &props);
+ 		if (IS_ERR(bldev)) {
+ 			r = PTR_ERR(bldev);
+ 			goto err_bl;
+ 		}
+ 
+ 		ddata->bldev = bldev;
+-
+-		bldev->props.fb_blank = FB_BLANK_UNBLANK;
+-		bldev->props.power = FB_BLANK_UNBLANK;
+-		bldev->props.brightness = 255;
+-
+-		dsicm_bl_update_status(bldev);
+ 	}
+ 
+ 	r = sysfs_create_group(&dev->kobj, &dsicm_attr_group);
+ 	if (r) {
+ 		dev_err(dev, "failed to create sysfs files\n");
+-		goto err_sysfs_create;
++		goto err_bl;
+ 	}
+ 
+ 	return 0;
+ 
+-err_sysfs_create:
+-	backlight_device_unregister(bldev);
+ err_bl:
+ 	destroy_workqueue(ddata->workqueue);
+ err_reg:
++	if (ddata->extbldev)
++		put_device(&ddata->extbldev->dev);
++
+ 	return r;
+ }
+ 
+@@ -1397,7 +1431,6 @@ static int __exit dsicm_remove(struct platform_device *pdev)
+ {
+ 	struct panel_drv_data *ddata = platform_get_drvdata(pdev);
+ 	struct omap_dss_device *dssdev = &ddata->dssdev;
+-	struct backlight_device *bldev;
+ 
+ 	dev_dbg(&pdev->dev, "remove\n");
+ 
+@@ -1408,12 +1441,8 @@ static int __exit dsicm_remove(struct platform_device *pdev)
+ 
+ 	sysfs_remove_group(&pdev->dev.kobj, &dsicm_attr_group);
+ 
+-	bldev = ddata->bldev;
+-	if (bldev != NULL) {
+-		bldev->props.power = FB_BLANK_POWERDOWN;
+-		dsicm_bl_update_status(bldev);
+-		backlight_device_unregister(bldev);
+-	}
++	if (ddata->extbldev)
++		put_device(&ddata->extbldev->dev);
+ 
+ 	omap_dss_put_device(ddata->in);
+ 
 -- 
 2.13.2
