@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv1 13/14] ARM: dts: omap4-droid4: improve LCD description
-Date: Mon, 24 Jul 2017 19:33:10 +0200
-Message-ID: <20170724173311.27170-14-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv1 14/14] ARM: dts: n950: add display support
+Date: Mon, 24 Jul 2017 19:33:11 +0200
+Message-ID: <20170724173311.27170-15-sebastian.reichel@collabora.co.uk>
 References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
@@ -10,36 +10,118 @@ To: Sebastian Reichel <sre@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, 
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-This improves LCD support for the Droid 4.
+Add basic panel support for the Nokia N950. It must be tweaked a
+little bit later, since the panel was built into the device
+upside-down. Also the first 5 and the last 5 pixels are covered
+by plastic.
 
-Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Signed-off-By: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- arch/arm/boot/dts/omap4-droid4-xt894.dts | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap3-n950.dts | 88 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 88 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-index 3af4905a6b61..942bb6ec99e5 100644
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -192,6 +192,10 @@
- 		vddi-supply = <&lcd_regulator>;
- 		reset-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;	/* gpio101 */
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
+index 646601a3ebd8..ef70aae99d1b 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -51,6 +51,26 @@
+ 	};
+ };
  
-+		width-mm = <50>;
-+		height-mm = <89>;
-+		backlight = <&lcd_backlight>;
++&omap3_pmx_core {
++	dsi_pins: pinmux_dsi_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x20dc, PIN_OUTPUT | MUX_MODE1) /* dsi_dx0 - data0+ */
++			OMAP3_CORE1_IOPAD(0x20de, PIN_OUTPUT | MUX_MODE1) /* dsi_dy0 - data0- */
++			OMAP3_CORE1_IOPAD(0x20e0, PIN_OUTPUT | MUX_MODE1) /* dsi_dx1 - clk+   */
++			OMAP3_CORE1_IOPAD(0x20e2, PIN_OUTPUT | MUX_MODE1) /* dsi_dy1 - clk-   */
++			OMAP3_CORE1_IOPAD(0x20e4, PIN_OUTPUT | MUX_MODE1) /* dsi_dx2 - data1+ */
++			OMAP3_CORE1_IOPAD(0x20e6, PIN_OUTPUT | MUX_MODE1) /* dsi_dy2 - data1- */
++		>;
++	};
 +
- 		panel-timing {
- 			clock-frequency = <0>;		/* Calculated by dsi */
- 
-@@ -361,7 +365,7 @@
- 
- 		enable-gpios = <&gpio6 12 GPIO_ACTIVE_HIGH>;
- 
--		backlight {
-+		lcd_backlight: backlight {
- 			compatible = "ti,lm3532-backlight";
- 
- 			lcd {
++	display_pins: pinmux_display_pins {
++		pinctrl-single,pins = <
++			OMAP3_CORE1_IOPAD(0x20ca, PIN_INPUT | MUX_MODE4) /* gpio 62 - display te */
++			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE4) /* gpio 87 - display reset */
++		>;
++	};
++};
++
+ &i2c2 {
+ 	smia_1: camera@10 {
+ 		compatible = "nokia,smia";
+@@ -185,3 +205,71 @@
+ 	st,max-limit-y = <32>;
+ 	st,max-limit-z = <32>;
+ };
++
++&dss {
++	status = "ok";
++
++	vdda_video-supply = <&vdac>;
++};
++
++&dsi {
++	status = "ok";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&dsi_pins>;
++
++	vdd-supply = <&vpll2>;
++
++	port {
++		dsi_out_ep: endpoint {
++			remote-endpoint = <&lcd0_in>;
++			lanes = <2 3 0 1 4 5>;
++		};
++	};
++
++	lcd0: display {
++		compatible = "nokia,himalaya", "panel-dsi-cm";
++		label = "lcd0";
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&display_pins>;
++
++		vpnl-supply = <&vmmc2>;
++		vddi-supply = <&vio>;
++
++		reset-gpios = <&gpio3 23 GPIO_ACTIVE_HIGH>;	/* 87 */
++		te-gpios = <&gpio2 30 GPIO_ACTIVE_HIGH>;	/* 62 */
++
++		width-mm = <49>; /* 48.960 mm */
++		height-mm = <88>; /* 88.128 mm */
++
++		/* TODO:
++		 * - panel is upside-down
++		 * - top + bottom 5px are not visible
++		 */
++		panel-timing {
++			clock-frequency = <0>;          /* Calculated by dsi */
++
++			hback-porch = <2>;
++			hactive = <480>;
++			hfront-porch = <0>;
++			hsync-len = <2>;
++
++			vback-porch = <1>;
++			vactive = <864>;
++			vfront-porch = <0>;
++			vsync-len = <1>;
++
++			hsync-active = <0>;
++			vsync-active = <0>;
++			de-active = <1>;
++			pixelclk-active = <1>;
++		};
++
++		port {
++			lcd0_in: endpoint {
++				remote-endpoint = <&dsi_out_ep>;
++			};
++		};
++	};
++};
 -- 
 2.13.2
