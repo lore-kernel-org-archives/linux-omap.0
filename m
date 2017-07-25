@@ -1,102 +1,75 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv4 1/3] dt-bindings: input: add pwm-vibrator
-Date: Tue, 25 Jul 2017 10:59:49 +0200
-Message-ID: <20170725085949.2v3b373p5xkje47a@earth>
-References: <20170714100151.31234-1-sebastian.reichel@collabora.co.uk>
- <20170714100151.31234-2-sebastian.reichel@collabora.co.uk>
- <20170724192017.GE32425@amd>
+From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Subject: Re: [PATCH 3/3] ARM: dts: omap4-droid4: add soundcard
+Date: Tue, 25 Jul 2017 11:08:33 +0200
+Message-ID: <20170725090833.lkqxwk4oakafsmgr@earth>
+References: <20170707164229.5868-1-sebastian.reichel@collabora.co.uk>
+ <20170707164229.5868-4-sebastian.reichel@collabora.co.uk>
+ <20170710122602.srdzonm3s6gcqhnf@sirena.org.uk>
+ <20170724191954.GC32425@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="gj2fo7nfy4g724kh"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="3hmefpqmnp2nosxp"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170724192017.GE32425@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170724191954.GC32425@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---gj2fo7nfy4g724kh
+--3hmefpqmnp2nosxp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jul 24, 2017 at 09:20:17PM +0200, Pavel Machek wrote:
-> On Fri 2017-07-14 12:01:49, Sebastian Reichel wrote:
-> > Add DT binding document for PWM controlled vibrator devices.
+On Mon, Jul 24, 2017 at 09:19:54PM +0200, Pavel Machek wrote:
+> On Mon 2017-07-10 13:26:02, Mark Brown wrote:
+> > On Fri, Jul 07, 2017 at 06:42:29PM +0200, Sebastian Reichel wrote:
 > >=20
-> > Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> > > +	soundcard {
+> > > +		compatible =3D "simple-audio-card";
+> > > +		simple-audio-card,name =3D "Droid 4 Audio";
+> >=20
+> > New systems should be using the of-graph card which is more flexible and
+> > extensible than simple-card.
 >=20
-> Acked-by: Pavel Machek <pavel@ucw.cz>
->=20
-> > index 000000000000..09145d18491d
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/input/pwm-vibrator.txt
-> > @@ -0,0 +1,66 @@
-> > +* PWM vibrator device tree bindings
-> > +
-> > +Registers a PWM device as vibrator. It is expected, that the vibrator's
-> > +strength increases based on the duty cycle of the enable PWM channel
-> > +(100% duty cycle meaning strongest vibration, 0% meaning no vibration).
-> > +
-> > +The binding supports an optional direction PWM channel, that can be
-> > +driven at fixed duty cycle. If available this is can be used to increa=
-se
-> > +the vibration effect of some devices.
->=20
-> Actually what "direction" does would be nice to explain, because I
-> don't know. Does it make the motor turn the other way around?
+> Well, if simple-card does what is needed here, and dts looks
+> reasonable, is there reason for anything more complex?
 
-Yes, at least that's how I understand it. IIUIC this will increase
-the imbalance effect and thus the vibration.
+There is already a PATCHv2 for this patchset, that switched to
+the graph based card.
 
-> > +Required properties:
-> > +- compatible: should contain "pwm-vibrator"
->=20
-> should->Should.
->
-> > +- pwm-names: Should contain "enable" and optionally "direction"
-> > +- pwms: Should contain a PWM handle for each entry in pwm-names
-> > +
-> > +Optional properties:
-> > +- vcc-supply: Phandle for the regulator supplying power
-> > +- direction-duty-cycle-ns: Duty cycle of the direction PWM channel in
-> > +                           nanoseconds, defaults to 50% of the channel=
-'s
-> > +			   period.
->=20
-> Is nanoseconds right unit here? It drives a motor...
+> Anyway, congratulations for getting the sound to work!
 
-Yes, for the driving the motor the values will be very big
-and we could use milliseconds. But the PWM specifier [0] uses
-nanoseconds for the period and I think period and duty cycle
-should be described in the same scale.
-
-[0] Documentation/devicetree/bindings/pwm/pwm.txt
+Thanks.
 
 -- Sebastian
 
---gj2fo7nfy4g724kh
+--3hmefpqmnp2nosxp
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAll3CIIACgkQ2O7X88g7
-+poeDg//efMooQSkEg59ZZ2bwL3s1NuVIbz/TNcA8qYzqOIycTh5ZAEaU6HNprlE
-SD1JAzj/VpTcV3bpZG85jghmYVdFMxMZWBHQCo29A5A5k+0BFF9BU8nOIHth44aa
-Yb5iee0sf45Ye5DqVJrdmQLFGN9ykQTuHZdw0rebOCOfiuUq6cer2Doiq93pHPk0
-HeFrvOn1pe2ExQkxWKO5w4pdKpAsFMmkmaPKzvf0JtbZ66ebpQM9u2GzTZlfr6Wg
-Cf0qEGRMj7W63LQ9PhpnZNSQXMOV1uvP9rBGLNPKDqLnVAQAvGy5drC88KZ3PXWA
-reltaAgX3xdwb4SFz3RU5Oa/keWadu9Ok03Xj8fPsijLVT/W789d/GjQ2suCu2iV
-SXQ7+vY9KOGeJyFSNo/8XRZTEm+Xnm1tLK0tRs09BcNIXjM5uyyG2MgpJ2reTcFg
-b15iOgOlDmMGXr/fdTkql/6Y4aeLj741yxgBCv5saU4/l3A09qlyRtzyu4qi+3Wi
-igeWvo07e6aNLZ1OOpykpKELNjfDpkOuN9kXCoxZKPluNspst6/k/931V6KRlZ9h
-y1ZUpF0IBJilhautAn4csNQgmvDf+H1bZ/ykXonFHdQiDwqBLJD3soIRFohIyMV3
-teTXijvdXRX3qqcKpFS/+ydDmzpJLUAlCkJ8b9IcaHmp8vcdhBw=
-=FHp6
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAll3CpAACgkQ2O7X88g7
++pr5ehAAne4NZqj6gQH/r9gmRmPhGut8z86SsMpEYoQzyiU+hMPNMepwB3NiZg86
+t01vN1nlVmngyZFHnuyJvGAGCzc5MAGKZZPpTdI3dvMWvrVZsw9oMlcjOB8a1U4d
+jYVC03+wfwUtSJ0jwHQlVYWLM3YOexNdLDuKUwPiWLD+YzxZ8egYUNYmSwhTXw9T
+6ZPdSg8ahEAIyuLo3w31vXvM2JUH/F+ZKgyUs/TaqfAsDCfw8BpvHNeFLpyftgre
+gklrjSKi7VNPbVmyvtKzUQXW41+stginclUy2KgMVtEXpy0xwzHXCS/LsEVodcLY
+6MwqF69CIeBgC+w8F6gr7FWJZse1pRUdJzuQfTUC0wXm0RmlvNmsPVhOXlGMNXWB
+80Z1X3C0w8elqbiboy6c3cAmPRak5eDmDqF4QIA8ZP+33SJcJiQ3LyotylXjPbo2
+tJ5G7TmdjLGF6U+LYPvk5Ea9eyDBWSpl5V3HASzEbe8XmVU6BstBzA+pSoS3VZQx
+gszAaTTf3drTiakmQGsM0dfxThUIxfE+uyA/haQyak9rc5/yOY2seKT7z24O7s7z
+01xvu4toElz/j/IXQFi0MIKPjNX4AePlcwmHOkV2+2dy6r02jhwpX0eU2xnAl2mO
+iz8AMrPitLQZ7VZ1B0uDecPjcWbX4ow/dayAZj+hHKZN9YN3kLk=
+=2dE1
 -----END PGP SIGNATURE-----
 
---gj2fo7nfy4g724kh--
+--3hmefpqmnp2nosxp--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
