@@ -1,7 +1,7 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: [PATCHv3 1/6] ALSA: pcm: Export soc_dpcm_runtime_update
-Date: Tue, 25 Jul 2017 17:10:25 +0200
-Message-ID: <20170725151030.26863-2-sebastian.reichel@collabora.co.uk>
+Subject: [PATCHv3 2/6] dt-bindings: sound: add motorola,cpcap-audio-codec
+Date: Tue, 25 Jul 2017 17:10:26 +0200
+Message-ID: <20170725151030.26863-3-sebastian.reichel@collabora.co.uk>
 References: <20170725151030.26863-1-sebastian.reichel@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170725151030.26863-1-sebastian.reichel@collabora.co.uk>
@@ -10,33 +10,44 @@ To: Sebastian Reichel <sre@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Mar
 Cc: Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
-From: Tony Lindgren <tony@atomide.com>
+Motorola CPCAP is a PMIC with audio functionality, that can be
+found on Motorola Droid 4 and probably a few other phones from
+Motorola's Droid series.
 
-Some codecs may need to use this from loadable modules. Without
-this patch compilation for this kind of codec will fail with the
-following error:
+This adds the DT binding for the codec sub-module found inside
+the PMIC.
 
-ERROR: "soc_dpcm_runtime_update" [sound/soc/codecs/snd-soc-cpcap.ko]
-undefined!
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Rob Herring <robh@kernel.org>
 Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- sound/soc/soc-pcm.c | 2 ++
- 1 file changed, 2 insertions(+)
+ .../bindings/sound/motorola,cpcap-audio-codec.txt     | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt
 
-diff --git a/sound/soc/soc-pcm.c b/sound/soc/soc-pcm.c
-index dcc5ece08668..4de7d86ea6fb 100644
---- a/sound/soc/soc-pcm.c
-+++ b/sound/soc/soc-pcm.c
-@@ -2539,6 +2539,8 @@ int soc_dpcm_runtime_update(struct snd_soc_card *card)
- 	mutex_unlock(&card->mutex);
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(soc_dpcm_runtime_update);
+diff --git a/Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt b/Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt
+new file mode 100644
+index 000000000000..6b8cd616bd46
+--- /dev/null
++++ b/Documentation/devicetree/bindings/sound/motorola,cpcap-audio-codec.txt
+@@ -0,0 +1,19 @@
++Motorola CPCAP audio CODEC
++--------------------------
 +
- int soc_dpcm_be_digital_mute(struct snd_soc_pcm_runtime *fe, int mute)
- {
- 	struct snd_soc_dpcm *dpcm;
++This module is part of the CPCAP. For more details about the whole
++chip see Documentation/devicetree/bindings/mfd/motorola-cpcap.txt.
++
++Required properties:
++
++  - compatible : "motorola,cpcap-audio-codec"
++  - vdd-supply : Phandle to audio regulator
++
++Example:
++
++&cpcap {
++	audio-codec {
++		compatible = "motorola,cpcap-audio-codec";
++		vdd-supply = <&vaudio>;
++	};
++};
 -- 
 2.13.2
