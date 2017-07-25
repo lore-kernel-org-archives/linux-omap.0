@@ -1,49 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap_device: drop broken RPM status update
- from suspend_noirq
-Date: Tue, 25 Jul 2017 00:10:49 -0700
-Message-ID: <20170725071048.GP10026@atomide.com>
-References: <20170724095201.21601-1-johan@kernel.org>
- <05ae4585-8da0-6fb1-8cfd-6b236ec3a8a2@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 07/11] mfd: Drop unnecessary static
+Date: Tue, 25 Jul 2017 09:00:09 +0100
+Message-ID: <20170725080009.sm675kxlj7mhjqhi@dell>
+References: <1500149266-32357-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1500149266-32357-8-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <05ae4585-8da0-6fb1-8cfd-6b236ec3a8a2@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Johan Hovold <johan@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Dave Gerlach <d-gerlach@ti.com>, Kevin Hilman <khilman@baylibre.com>, Nishanth Menon <nm@ti.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>
+In-Reply-To: <1500149266-32357-8-git-send-email-Julia.Lawall@lip6.fr>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Tony Lindgren <tony@atomide.com>, keescook@chromium.org, kernel-janitors@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Grygorii Strashko <grygorii.strashko@ti.com> [170724 15:17]:
-> My personal thought here is that removing of pm_runtime_set_active() will not fix
-> root cause of the problem, but rather hide it :( and, probably, real fix will be 
-> to update USB framework to ensure that all suspend devices are also PM runtime suspend
-> (not sure how) or add few more pm_suspend_ignore_children() calls 
->  (for example as I've tried to do in [2], but this was unfinished).
-> 
-> I've found very simple steps to reproduce suspend failure on am335x-evm (should also
-> work on BBB) -  do below sequence with USB device plugged:
-> 
->    echo platform > /sys/power/pm_test 
->    echo 1 > /sys/power/pm_print_times 
->    [ echo 0 > /sys/module/printk/parameters/console_suspend ]
->    echo mem > /sys/power/state 
-> 
-> [   95.499685] calling  47400000.usb+ @ 733, parent: ocp
-> [   95.504818] am335x-usb-childs 47400000.usb: runtime PM trying to suspend device but active child
-> [   95.513750] am335x-usb-childs 47400000.usb: omap device suspend failure 0
-> 
-> Below I've attached possible patch which converts OMAP device to
-> use pm_runtime_force_suspend/resume().
+On Sat, 15 Jul 2017, Julia Lawall wrote:
 
-It seems to almost work for my PM test cases.. It seems that serial console
-somehow won't get restored after suspend/resume cycle on omap3 though.
+> Drop static on a local variable, when the variable is initialized before
+> any possible use.  Thus, the static has no benefit.
+> 
+> The semantic patch that fixes this problem is as follows:
+> (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @bad exists@
+> position p;
+> identifier x;
+> type T;
+> @@
+> static T x@p;
+> ...
+> x = <+...x...+>
+> 
+> @@
+> identifier x;
+> expression e;
+> type T;
+> position p != bad.p;
+> @@
+> -static
+>  T x@p;
+>  ... when != x
+>      when strict
+> ?x = e;
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
+> ---
+> These patches are all independent of each other.
+> 
+>  drivers/mfd/twl4030-irq.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-The system enters off mode during suspend, and wakes up properly so I can
-ssh to it after resume. But the serial console no longer works after resume.
-This is with 8250-omap driver.
+Looks like I didn't reply to this patch.
 
-Regards,
+Just to let you know, it has been applied.
 
-Tony
+> diff -u -p a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+> --- a/drivers/mfd/twl4030-irq.c
+> +++ b/drivers/mfd/twl4030-irq.c
+> @@ -685,7 +685,7 @@ int twl4030_sih_setup(struct device *dev
+>  
+>  int twl4030_init_irq(struct device *dev, int irq_num)
+>  {
+> -	static struct irq_chip	twl4030_irq_chip;
+> +	struct irq_chip		twl4030_irq_chip;
+>  	int			status, i;
+>  	int			irq_base, irq_end, nr_irqs;
+>  	struct			device_node *node = dev->of_node;
+> 
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
