@@ -1,63 +1,53 @@
-From: karthik-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org
-Subject: [RESEND PATCH] arm: dts: omap3: Remove needless interrupt-parent property
-Date: Tue, 25 Jul 2017 15:17:29 +0530
-Message-ID: <1500976049-5825-1-git-send-email-karthik@techveda.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sunil.m-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org, Karthik Tummala <karthik-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org>
+From: Shawn Guo <shawnguo@kernel.org>
+Subject: Re: [PATCH v2] ARM: Convert to using %pOF instead of full_name
+Date: Tue, 25 Jul 2017 21:53:34 +0800
+Message-ID: <20170725135332.GD29754@dragon>
+References: <20170721192835.25555-1-robh@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170721192835.25555-1-robh@kernel.org>
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: arm@kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Kukjin Kim <kgene@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Sascha Hauer <kernel@pengutronix.de>, Fabio Estevam <fabio.estevam@nxp.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, Tony Lindgren <tony@atomide.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-renesas-soc@vger.kernel.o
 List-Id: linux-omap@vger.kernel.org
 
-From: Karthik Tummala <karthik-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org>
+On Fri, Jul 21, 2017 at 02:28:32PM -0500, Rob Herring wrote:
+> Now that we have a custom printf format specifier, convert users of
+> full_name to use %pOF instead. This is preparation to remove storing
+> of the full path string for each node.
+> 
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+> Acked-by: Heiko Stuebner <heiko@sntech.de>
+> Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> Acked-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+> Cc: Russell King <linux@armlinux.org.uk>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+> Cc: Shawn Guo <shawnguo@kernel.org>
+> Cc: Sascha Hauer <kernel@pengutronix.de>
+> Cc: Fabio Estevam <fabio.estevam@nxp.com>
+> Cc: Jason Cooper <jason@lakedaemon.net>
+> Cc: Andrew Lunn <andrew@lunn.ch>
+> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: "Benoît Cousson" <bcousson@baylibre.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Simon Horman <horms@verge.net.au>
+> Cc: Magnus Damm <magnus.damm@gmail.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-rockchip@lists.infradead.org
+> Cc: linux-renesas-soc@vger.kernel.org
+> ---
+> v2:
+> - Merge several 2 line prints to single line.
+> - Add acks
+...
+>  arch/arm/mach-imx/gpc.c              | 4 ++--
 
-All nodes inhert "interrupt-parent" property from root
-node. Removed the aforementioned property from usbhsohci,
-usbhsehci, ssi_port1, ssi_port2 nodes to avoid duplication.
-
-Signed-off-by: Karthik Tummala <karthik-fINqtvHxh+hg9hUCZPvPmw@public.gmane.org>
----
- arch/arm/boot/dts/omap3.dtsi | 4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index a3ff493..bdaf30c 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -713,14 +713,12 @@
- 			usbhsohci: ohci@48064400 {
- 				compatible = "ti,ohci-omap3";
- 				reg = <0x48064400 0x400>;
--				interrupt-parent = <&intc>;
- 				interrupts = <76>;
- 			};
- 
- 			usbhsehci: ehci@48064800 {
- 				compatible = "ti,ehci-omap";
- 				reg = <0x48064800 0x400>;
--				interrupt-parent = <&intc>;
- 				interrupts = <77>;
- 			};
- 		};
-@@ -831,7 +829,6 @@
- 				reg-names = "tx",
- 					    "rx";
- 
--				interrupt-parent = <&intc>;
- 				interrupts = <67>,
- 					     <68>;
- 			};
-@@ -844,7 +841,6 @@
- 				reg-names = "tx",
- 					    "rx";
- 
--				interrupt-parent = <&intc>;
- 				interrupts = <69>,
- 					     <70>;
- 			};
--- 
-1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Shawn Guo <shawnguo@kernel.org>
