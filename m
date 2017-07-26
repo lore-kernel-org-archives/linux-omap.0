@@ -1,7 +1,7 @@
 From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH 2/3] ARM: dts: am437xx: Enable NAND dma prefetch by default
-Date: Tue, 25 Jul 2017 21:15:51 -0500
-Message-ID: <20170726021552.19880-3-fcooper@ti.com>
+Subject: [PATCH 1/3] ARM: dts: am335x-evm: Enable NAND dma prefetch by default
+Date: Tue, 25 Jul 2017 21:15:50 -0500
+Message-ID: <20170726021552.19880-2-fcooper@ti.com>
 References: <20170726021552.19880-1-fcooper@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -27,32 +27,19 @@ it is likely what most users would prefer.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 ---
- arch/arm/boot/dts/am437x-gp-evm.dts  | 1 +
- arch/arm/boot/dts/am43x-epos-evm.dts | 1 +
- 2 files changed, 2 insertions(+)
+ arch/arm/boot/dts/am335x-evm.dts | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-index 29a538e..a0a4ed0 100644
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -842,6 +842,7 @@
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 1c37a7c..ddd8975 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -531,6 +531,7 @@
  		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
  			     <1 IRQ_TYPE_NONE>;	/* termcount */
- 		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>;	/* gpmc_wait0 */
+ 		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
 +		ti,nand-xfer-type = "prefetch-dma";
- 		ti,nand-ecc-opt = "bch16";
- 		ti,elm-id = <&elm>;
- 		nand-bus-width = <8>;
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 54f40f3..9d276af 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -564,6 +564,7 @@
- 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
- 			     <1 IRQ_TYPE_NONE>;	/* termcount */
- 		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>;	/* gpmc_wait0 */
-+		ti,nand-xfer-type = "prefetch-dma";
- 		ti,nand-ecc-opt = "bch16";
+ 		ti,nand-ecc-opt = "bch8";
  		ti,elm-id = <&elm>;
  		nand-bus-width = <8>;
 -- 
