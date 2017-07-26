@@ -1,57 +1,109 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH RESEND] fbdev: omapfb: remove unused variable
-Date: Wed, 26 Jul 2017 16:50:52 +0200
-Message-ID: <20170726145052.qpuxx37dible2vie@phenom.ffwll.local>
-References: <CGME20170726135825epcas4p3c5326b3893927c4be0db0fde076d0799@epcas4p3.samsung.com>
- <20170726135816.2216688-1-arnd@arndb.de>
- <10646277.hB6jvi1uWb@amdc3058>
- <CAK8P3a3CrnkRW61eX03tWnd4gt6uA+fq2Oe+VHf=00W5AHyNXA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a3CrnkRW61eX03tWnd4gt6uA+fq2Oe+VHf=00W5AHyNXA@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
+From: Johan Hovold <johan@kernel.org>
+Subject: [PATCH v2 1/2] USB: musb: fix external abort on suspend
+Date: Wed, 26 Jul 2017 17:00:45 +0200
+Message-ID: <20170726150046.22757-2-johan@kernel.org>
+References: <20170726150046.22757-1-johan@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170726150046.22757-1-johan@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bin Liu <b-liu@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, stable <stable@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Mack <zonque@gmail.com>, Dave Gerlach <d-gerlach@ti.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCBKdWwgMjYsIDIwMTcgYXQgMDQ6MzE6MzhQTSArMDIwMCwgQXJuZCBCZXJnbWFubiB3
-cm90ZToKPiBPbiBXZWQsIEp1bCAyNiwgMjAxNyBhdCA0OjI3IFBNLCBCYXJ0bG9taWVqIFpvbG5p
-ZXJraWV3aWN6Cj4gPGIuem9sbmllcmtpZUBzYW1zdW5nLmNvbT4gd3JvdGU6Cj4gPgo+ID4gSGks
-Cj4gPgo+ID4gT24gV2VkbmVzZGF5LCBKdWx5IDI2LCAyMDE3IDAzOjU3OjU1IFBNIEFybmQgQmVy
-Z21hbm4gd3JvdGU6Cj4gPj4gUmVtb3ZpbmcgdGhlIGRlZmF1bHQgZGlzcGxheSBuYW1lIGxlZnQg
-YSBoYXJtbGVzcyB3YXJuaW5nOgo+ID4+Cj4gPj4gZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9jb3Jl
-LmM6IEluIGZ1bmN0aW9uICdvbWFwX2Rzc19wcm9iZSc6Cj4gPj4gZmJkZXYvb21hcDIvb21hcGZi
-L2Rzcy9jb3JlLmM6MTk2OjMwOiBlcnJvcjogdW51c2VkIHZhcmlhYmxlICdwZGF0YScgWy1XZXJy
-b3I9dW51c2VkLXZhcmlhYmxlXQo+ID4+Cj4gPj4gVGhpcyByZW1vdmVzIHRoZSBub3ctdW51c2Vk
-IHZhcmlhYmxlIGFzIHdlbGwuCj4gPj4KPiA+PiBGaXhlczogMjc4Y2JhN2VhZjU0ICgiZHJtOiBv
-bWFwZHJtOiBSZW1vdmUgdW51c2VkIGRlZmF1bHQgZGlzcGxheSBuYW1lIHN1cHBvcnQiKQo+ID4+
-IFNpZ25lZC1vZmYtYnk6IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+Cj4gPj4gUmV2aWV3
-ZWQtYnk6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNv
-bT4KPiA+PiAtLS0KPiA+PiBPcmlnaW5hbGx5IHN1Ym1pdHRlZCBvbiBKdW5lIDksIG5vIHJlcGx5
-IG90aGVyIHRoYW4gdGhlIFJldmlld2VkLWJ5IHRhZy4KPiA+PiBUaGUgcGF0Y2ggaXMgc3RpbGwg
-bmVlZGVkCj4gPgo+ID4gSXQgaXMgbm90IGxvc3QgYW5kIHdpbGwgYmUgcXVldWVkIGZvciA0LjEz
-IGZiZGV2IGZpeGVzIHB1bGwgcmVxdWVzdC4KPiAKPiBPaywgdGhhbmtzIGEgbG90IQo+IAo+ID4g
-WyBUaGUgZ3VpbHR5IGNvbW1pdCB3ZW50IHRocm91Z2ggRFJNIHRyZWUgYW5kIHB1bGxpbmcgaXQg
-aW50byBmYmRldgo+ID4gICB0cmVlIGp1c3QgdG8gZml4IHRoZSB3YXJuaW5nIHdhcyBub3QgZmVh
-c2libGUuLiBdCj4gCj4gWWVzLCBJIHdhcyBvcmlnaW5hbGx5IGhvcGluZyB0aGUgZml4IGNvdWxk
-IGJlIG1lcmdlZCBhbG9uZyB3aXRoIHRoZQo+IHBhdGNoIHRoYXQgaW50cm9kdWNlZCB0aGUgYnVn
-LiBJIG1heSBoYXZlIG1lc3NlZCB1cCB0aGUgQ2MgbGlzdCBmb3IgdGhhdAo+IHRob3VnaC4KClNo
-b3VsZCB3ZSBhZGQgZHJpLWRldmVsIGFzIGFuIG1haWxpbmcgbGlzdCBlbnRyeSB0byB0aGUgZmJk
-ZXYgc3lzdGVtIGluCk1BSU5UQUlORVJTPyBJaXJjIHRoZXJlJ3MgYWxtb3N0IG5vIHRyYWZmaWMg
-Zm9yIGZiZGV2IGl0c2VsZiwgYW5kIHRoaXMKd291bGQgYXZvaWQgc3VjaCBhIGZ1bWJsZSBpbiB0
-aGUgZnV0dXJlLgotRGFuaWVsCi0tIApEYW5pZWwgVmV0dGVyClNvZnR3YXJlIEVuZ2luZWVyLCBJ
-bnRlbCBDb3Jwb3JhdGlvbgpodHRwOi8vYmxvZy5mZndsbC5jaApfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1k
-ZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcv
-bWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+Make sure that the controller is runtime resumed when system suspending
+to avoid an external abort when accessing the interrupt registers:
+
+  Unhandled fault: external abort on non-linefetch (0x1008) at 0xd025840a
+  ...
+  [<c05481a4>] (musb_default_readb) from [<c0545abc>] (musb_disable_interrupts+0x84/0xa8)
+  [<c0545abc>] (musb_disable_interrupts) from [<c0546b08>] (musb_suspend+0x38/0xb8)
+  [<c0546b08>] (musb_suspend) from [<c04a57f8>] (platform_pm_suspend+0x3c/0x64)
+
+This is easily reproduced on a BBB by enabling the peripheral port only
+(as the host port may enable the shared clock) and keeping it
+disconnected so that the controller is runtime suspended. (Well, you
+would also need to the not-yet-merged am33xx-suspend patches by Dave
+Gerlach to be able to suspend the BBB.)
+
+This is a regression that was introduced by commit 1c4d0b4e1806 ("usb:
+musb: Remove pm_runtime_set_irq_safe") which allowed the parent glue
+device to runtime suspend and thereby exposed a couple of older issues:
+
+Register accesses without explicitly making sure the controller is
+runtime resumed during suspend was first introduced by commit
+c338412b5ded ("usb: musb: unconditionally save and restore the context
+on suspend") in 3.14.
+
+Commit a1fc1920aaaa ("usb: musb: core: make sure musb is in RPM_ACTIVE on
+resume") later started setting the RPM status to active during resume,
+and this was also implicitly relying on the parent always being active.
+Since commit 71723f95463d ("PM / runtime: print error when activating a
+child to unactive parent") this now also results in the following
+warning:
+
+  musb-hdrc musb-hdrc.0: runtime PM trying to activate child device
+    musb-hdrc.0 but parent (47401400.usb) is not active
+
+This patch has been verified on 4.13-rc2, 4.12 and 4.9 using a BBB
+(the dsps glue would always be active also in 4.8).
+
+Fixes: c338412b5ded ("usb: musb: unconditionally save and restore the context on suspend")
+Fixes: a1fc1920aaaa ("usb: musb: core: make sure musb is in RPM_ACTIVE on resume")
+Fixes: 1c4d0b4e1806 ("usb: musb: Remove pm_runtime_set_irq_safe")
+Cc: stable <stable@vger.kernel.org>	# 4.8
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Daniel Mack <zonque@gmail.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Johan Hovold <johan@kernel.org>
+---
+ drivers/usb/musb/musb_core.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 87cbd56cc761..b67692857daf 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2671,6 +2671,13 @@ static int musb_suspend(struct device *dev)
+ {
+ 	struct musb	*musb = dev_to_musb(dev);
+ 	unsigned long	flags;
++	int ret;
++
++	ret = pm_runtime_get_sync(dev);
++	if (ret < 0) {
++		pm_runtime_put_noidle(dev);
++		return ret;
++	}
+ 
+ 	musb_platform_disable(musb);
+ 	musb_disable_interrupts(musb);
+@@ -2721,14 +2728,6 @@ static int musb_resume(struct device *dev)
+ 	if ((devctl & mask) != (musb->context.devctl & mask))
+ 		musb->port1_status = 0;
+ 
+-	/*
+-	 * The USB HUB code expects the device to be in RPM_ACTIVE once it came
+-	 * out of suspend
+-	 */
+-	pm_runtime_disable(dev);
+-	pm_runtime_set_active(dev);
+-	pm_runtime_enable(dev);
+-
+ 	musb_start(musb);
+ 
+ 	spin_lock_irqsave(&musb->lock, flags);
+@@ -2738,6 +2737,9 @@ static int musb_resume(struct device *dev)
+ 			error);
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+ 
++	pm_runtime_mark_last_busy(dev);
++	pm_runtime_put_autosuspend(dev);
++
+ 	return 0;
+ }
+ 
+-- 
+2.13.3
