@@ -1,46 +1,84 @@
-From: Franklin S Cooper Jr <fcooper@ti.com>
-Subject: [PATCH 1/3] ARM: dts: am335x-evm: Enable NAND dma prefetch by default
-Date: Tue, 25 Jul 2017 21:15:50 -0500
-Message-ID: <20170726021552.19880-2-fcooper@ti.com>
-References: <20170726021552.19880-1-fcooper@ti.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH v2 1/3] ptp: introduce ptp auxiliary worker
+Date: Wed, 26 Jul 2017 06:24:39 +0200
+Message-ID: <20170726042439.b2ulx4zx4iyhirxh@localhost.localdomain>
+References: <20170725202420.28229-1-grygorii.strashko@ti.com>
+ <20170725202420.28229-2-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170726021552.19880-1-fcooper@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20170725202420.28229-2-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bcousson@baylibre.com, tony@atomide.com, robh+dt@kernel.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Franklin S Cooper Jr <fcooper@ti.com>
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wingman Kwok <w-kwok2@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently the default method of prefetch polled shows the highest
-possible read and write speed when minimal non NAND background
-activity is being done. But it is also very CPU intensive to reach
-these high speeds (CPU load of 99% via mtd performance tests). While
-DMA prefetch only uses 50% of the CPU to achieve around 23% less in
-top read and write performance.
 
-However, as the non NAND CPU load increases the read and write
-performance takes a large hit when using polled prefetch. Therefore,
-prefetch dma mode ends up outperforming prefetch polled in general
-"system level" test. So switch to using dma prefetch by default since
-it is likely what most users would prefer.
+Thanks for coding this up.  I'd like to get some broader review.  On
+the next round, please include lkml, John Stultz, and Thomas Gleixner.
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
----
- arch/arm/boot/dts/am335x-evm.dts | 1 +
- 1 file changed, 1 insertion(+)
+On Tue, Jul 25, 2017 at 03:24:18PM -0500, Grygorii Strashko wrote:
+> @@ -217,6 +231,19 @@ struct ptp_clock *ptp_clock_register(struct ptp_clock_info *info,
+>  	mutex_init(&ptp->pincfg_mux);
+>  	init_waitqueue_head(&ptp->tsev_wq);
+>  
+> +	if (ptp->info->do_aux_work) {
+> +		char *worker_name = kasprintf(GFP_KERNEL, "ptp%d", ptp->index);
+> +
+> +		kthread_init_delayed_work(&ptp->aux_work, ptp_aux_kworker);
+> +		ptp->kworker = kthread_create_worker(0, worker_name ?
+> +						     worker_name : info->name);
+> +		if (IS_ERR(ptp->kworker)) {
+> +			pr_err("failed to create ptp aux_worker task %ld\n",
+> +			       PTR_ERR(ptp->kworker));
+> +			return ERR_CAST(ptp->kworker);
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 1c37a7c..ddd8975 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -531,6 +531,7 @@
- 		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
- 			     <1 IRQ_TYPE_NONE>;	/* termcount */
- 		rb-gpios = <&gpmc 0 GPIO_ACTIVE_HIGH>; /* gpmc_wait0 */
-+		ti,nand-xfer-type = "prefetch-dma";
- 		ti,nand-ecc-opt = "bch8";
- 		ti,elm-id = <&elm>;
- 		nand-bus-width = <8>;
--- 
-2.10.0
+In case of error, we should undo the allocations.  
+
+> +		}
+> +	}
+> +
+>  	err = ptp_populate_pin_groups(ptp);
+>  	if (err)
+>  		goto no_pin_groups;
+
+> @@ -339,6 +371,14 @@ int ptp_find_pin(struct ptp_clock *ptp,
+>  }
+>  EXPORT_SYMBOL(ptp_find_pin);
+>  
+> +int ptp_schedule_worker(struct ptp_clock *ptp, unsigned long delay)
+> +{
+> +	if (!ptp->kworker)
+> +		return -EOPNOTSUPP;
+
+We don't need error checking here.  Surely the driver knows whether to
+call this function or not.
+
+> +	return kthread_mod_delayed_work(ptp->kworker, &ptp->aux_work, delay);
+> +}
+> +EXPORT_SYMBOL(ptp_schedule_worker);
+> +
+>  /* module operations */
+>  
+>  static void __exit ptp_exit(void)
+
+> diff --git a/include/linux/ptp_clock_kernel.h b/include/linux/ptp_clock_kernel.h
+> index a026bfd..ec86fd2 100644
+> --- a/include/linux/ptp_clock_kernel.h
+> +++ b/include/linux/ptp_clock_kernel.h
+> @@ -98,6 +98,10 @@ struct system_device_crosststamp;
+>   *            parameter pin: index of the pin in question.
+>   *            parameter func: the desired function to use.
+>   *            parameter chan: the function channel index to use.
+
+Blank comment line here please.
+
+> + * @do_work:  Request driver to perform auxiliary (periodic) operations
+> + *	      Driver should return delay of the next auxiliary work scheduling
+> + *	      time (>=0) or negative value in case further scheduling
+> + *	      is not required.
+>   *
+
+Thanks,
+Richard
