@@ -1,81 +1,89 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: [PATCH v2 2/2] USB: musb: dsps: add explicit runtime resume at suspend
-Date: Wed, 26 Jul 2017 17:00:46 +0200
-Message-ID: <20170726150046.22757-3-johan@kernel.org>
-References: <20170726150046.22757-1-johan@kernel.org>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH v3 2/2] memory: ti-emif-sram: introduce relocatable
+ suspend/resume handlers
+Date: Wed, 26 Jul 2017 09:54:15 -0700
+Message-ID: <9b856bf5-f404-5cfc-6f1e-5ae527c6e0b1@oracle.com>
+References: <20170724212454.27574-1-d-gerlach@ti.com>
+ <20170724212454.27574-3-d-gerlach@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170726150046.22757-1-johan@kernel.org>
+In-Reply-To: <20170724212454.27574-3-d-gerlach@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bin Liu <b-liu@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>
+To: Dave Gerlach <d-gerlach@ti.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-The musb_dsps driver is special in that the parent (glue) device's
-driver is accessing registers mapped by the child. The clock is however
-shared and is managed by the grandparent device.
 
-Since commit 869c59782981 ("usb: musb: dsps: add support for suspend and
-resume") the dsps driver has been accessing these registers as part of
-suspend and resume.
+On 7/24/2017 2:24 PM, Dave Gerlach wrote:
+> Certain SoCs like Texas Instruments AM335x and AM437x require parts
+> of the EMIF PM code to run late in the suspend sequence from SRAM,
+> such as saving and restoring the EMIF context and placing the memory
+> into self-refresh.
+> 
+> One requirement for these SoCs to suspend and enter its lowest power
+> mode, called DeepSleep0, is that the PER power domain must be shut off.
+> Because the EMIF (DDR Controller) resides within this power domain, it
+> will lose context during a suspend operation, so we must save it so we
+> can restore once we resume. However, we cannot execute this code from
+> external memory, as it is not available at this point, so the code must
+> be executed late in the suspend path from SRAM.
+> 
+> This patch introduces a ti-emif-sram driver that includes several
+> functions written in ARM ASM that are relocatable so the PM SRAM
+> code can use them. It also allocates a region of writable SRAM to
+> be used by the code running in the executable region of SRAM to save
+> and restore the EMIF context. It can export a table containing the
+> absolute addresses of the available PM functions so that other SRAM
+> code can branch to them. This code is required for suspend/resume on
+> AM335x and AM437x to work.
+> 
+> In addition to this, to be able to share data structures between C and
+> the ti-emif-sram-pm assembly code, we can automatically generate all of
+> the C struct member offsets and sizes as macros by making use of the ARM
+> asm-offsets file. In the same header that we define our data structures
+> in we also define all the macros in an inline function and by adding a
+> call to this in the asm_offsets file all macros are properly generated
+> and available to the assembly code without cluttering up the asm-offsets
+> file.
+> 
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+> v2->v3:
+> * Move all static vars into common struct and instead point to one static
+>    instance of this struct and pass this struct around for internal calls.
+> * Rename ti_emif_prepare_push_sram to ti_emif_alloc_sram
+> * Clean up probe path to avoid leftover vairable values from being used
+>    after probe defer or failure.
+> * Fix mistake in ASM code that stored EMIF_POWER_MANAGEMENT_CONTROL into
+>    location for shadow register.
+> * Avoid extern definition for asm-offsets definition and use a stub instead
+>    of defining out in asm-offsets.
+> * A few general fixups to code.
+> 
+>   arch/arm/kernel/asm-offsets.c    |   4 +
+>   drivers/memory/Kconfig           |  10 ++
+>   drivers/memory/Makefile          |   4 +
+>   drivers/memory/emif.h            |  17 ++
+>   drivers/memory/ti-emif-pm.c      | 339 +++++++++++++++++++++++++++++++++++++++
+>   drivers/memory/ti-emif-sram-pm.S | 334 ++++++++++++++++++++++++++++++++++++++
+>   include/linux/ti-emif-sram.h     | 147 +++++++++++++++++
+>   7 files changed, 855 insertions(+)
+>   create mode 100644 drivers/memory/ti-emif-pm.c
+>   create mode 100644 drivers/memory/ti-emif-sram-pm.S
+>   create mode 100644 include/linux/ti-emif-sram.h
+> 
+I will need RMKs blessing since he reviewed the ASM code.
 
-The parent driver obviously cannot runtime resume the child during
-system suspend and is currently relying on the fact that the child will
-be RPM_ACTIVE throughout suspend. The suspend implementation also makes
-sure to check that the child is indeed present (and hence the clock
-enabled) before accessing the registers.
+Also need work out how to line this up. Typically I use to get
+driver/memory patches via Greg's driver-core but this is more
+PM code than memory driver and very SOC specific.
 
-Let's add an explicit runtime resume of the glue device itself to enable the
-clock before doing the register accesses in case these assumptions ever change
-(i.e. if the child is left runtime suspended).
+Hi Arnd/Olof,
+Will you be ok to pull this via arm-soc ? There is also follow
+up platform PM code and DTS series which will make use of this.
 
-Note that the glue-timer cancellation is moved after the child-presence
-check to keep error handling simple. This should be fine as the timer is
-not setup until the controller is being registered and at that time
-glue->musb and its driver data have already been initialised.
-
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Daniel Mack <zonque@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Johan Hovold <johan@kernel.org>
----
- drivers/usb/musb/musb_dsps.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index bc6a9be2ccc5..f6b526606ad1 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -1015,13 +1015,20 @@ static int dsps_suspend(struct device *dev)
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	struct musb *musb = platform_get_drvdata(glue->musb);
- 	void __iomem *mbase;
--
--	del_timer_sync(&glue->timer);
-+	int ret;
- 
- 	if (!musb)
- 		/* This can happen if the musb device is in -EPROBE_DEFER */
- 		return 0;
- 
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0) {
-+		pm_runtime_put_noidle(dev);
-+		return ret;
-+	}
-+
-+	del_timer_sync(&glue->timer);
-+
- 	mbase = musb->ctrl_base;
- 	glue->context.control = musb_readl(mbase, wrp->control);
- 	glue->context.epintr = musb_readl(mbase, wrp->epintr_set);
-@@ -1060,6 +1067,8 @@ static int dsps_resume(struct device *dev)
- 	    musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
- 		dsps_mod_timer(glue, -1);
- 
-+	pm_runtime_put(dev);
-+
- 	return 0;
- }
- #endif
--- 
-2.13.3
+Regards,
+Santosh
