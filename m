@@ -1,61 +1,42 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [GIT PULL] Immutable branch between MFD, ARM and I2C due for the
- v4.14 merge window
-Date: Thu, 27 Jul 2017 14:21:15 +0200
-Message-ID: <20170727122115.kvwq6qk7pjp73lkn@ninjato>
-References: <20170615184928.12007-1-javier@dowhile0.org>
- <20170718080441.g3kmastovt32y33y@dell>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ufwtyazw4hbcs3it"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170718080441.g3kmastovt32y33y@dell>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Javier Martinez Canillas <javier@dowhile0.org>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Linus Walleij <linus.walleij@linaro.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org
+From: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
+Subject: [PATCH 0/3] tty: serial: 8250 introduce mctrl_gpio helpers
+Date: Thu, 27 Jul 2017 15:17:33 +0200
+Message-ID: <1501161456-13367-1-git-send-email-yegorslists@googlemail.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, jslaby-IBi9RG/b67k@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 
---ufwtyazw4hbcs3it
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch series aims to reintroduce the  mctrl_gpio helpers for 8250
+UARTs.
 
-On Tue, Jul 18, 2017 at 09:04:41AM +0100, Lee Jones wrote:
-> Enjoy!
->=20
-> The following changes since commit 5771a8c08880cdca3bfb4a3fc6d309d6bba208=
-77:
->=20
->   Linux v4.13-rc1 (2017-07-15 15:22:10 -0700)
->=20
-> are available in the git repository at:
->=20
->   git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git ib-mfd-arm-i2=
-c-v4.14
+There are some UARTs that use GPIO signals as a wakeup-sourse.
+The first patch addresses this issue and tries to destinguish GPIO usage
+via searching for "wakeup-sourse" property. Though it must be decided whether
+this property is secure to use for this purpose.
 
-Pulled, thanks!
+Yegor Yefremov (3):
+  serial: mctrl_gpio: restrict MCTRL initialization
+  tty/serial/8250: use mctrl_gpio helpers
+  tty/serial/8250: add DT bindings description for mctrl_gpio helpers
 
+ Documentation/devicetree/bindings/serial/8250.txt | 26 +++++++++++++++++
+ drivers/tty/serial/8250/8250.h                    | 35 ++++++++++++++++++++++-
+ drivers/tty/serial/8250/8250_core.c               |  9 ++++++
+ drivers/tty/serial/8250/8250_omap.c               | 31 +++++++++++---------
+ drivers/tty/serial/8250/8250_port.c               |  7 ++++-
+ drivers/tty/serial/8250/Kconfig                   |  1 +
+ drivers/tty/serial/serial_mctrl_gpio.c            |  4 +++
+ include/linux/serial_8250.h                       |  1 +
+ 8 files changed, 99 insertions(+), 15 deletions(-)
 
---ufwtyazw4hbcs3it
-Content-Type: application/pgp-signature; name="signature.asc"
+-- 
+2.1.4
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAll52rcACgkQFA3kzBSg
-KbaLUQ//dDrho4sppWiFcCDTWswRI4zmTOUCCB2gRoybkiS8jcrO+b0zlLVBB70N
-PSw3fyvweXwwYzLMzmKnlS/fKid3ROGWDiAo2GReMnZP9l88Msr0ylyrM5RmzDop
-GP6pU9oJl6yfyQ3gP6oEEREz/AaMIEEO7lAhW4BdqABrms65d4JsaJwxrwnUKjBP
-bUatFJ56B/B/cAz/YG/SA9N0Kdh1wuzyaoCOVl8J7brOdCuUmCxAr0+1uaCL7/Sx
-9axljcJ67TWa1J48JZptGZuc2iShK5BRpcTHPrwnefnaxE6kciJ+2XrRALDY7o6V
-lJC0Iz8wjDqEcGA5vClt77er0s8CEOnJVvuxTfk1eQtEJG9vFDgRlCM238jcrK5Q
-KoPFM8+Wm8rKtdIUVmpi39pa6oQJHBYD4n0v/Tz/7sQTh79BzQWSn3lZ9FWGGQtf
-huvTtaVjAELaNZwi1lIsKI5Hf4gSDIwnedvJ78iGspIoCEBW1ZJF71ZqZzUnOyjD
-LRb8+q/jJaNt9idvdkYGaB2ghbs1+5L3IFMJUuAnqWJ9TeqMZt6quc/Wk00J3yec
-jlqNv74hmyH2nruM3MpE+tdkEx/NCTKVvHg/LO5UyUss6NxmKzVqeisMnG+Iagv1
-wQgLG0K2/Uvh94B/9L96QQPsgQzjsCNbX6rwvzQ/c+zXKIV+8N0=
-=S1kz
------END PGP SIGNATURE-----
-
---ufwtyazw4hbcs3it--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
