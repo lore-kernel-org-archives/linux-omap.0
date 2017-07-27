@@ -1,39 +1,25 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH v3 1/3] ptp: introduce ptp auxiliary worker
-Date: Thu, 27 Jul 2017 22:08:29 +0200
-Message-ID: <20170727200829.cqe2gb6kl4lfzyux@localhost.localdomain>
-References: <20170726221138.12986-1-grygorii.strashko@ti.com>
- <20170726221138.12986-2-grygorii.strashko@ti.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Regression with suspicious RCU usage splats with cpu_pm change
+Date: Thu, 27 Jul 2017 23:32:31 +0200
+Message-ID: <12130551.tgrm1NBPQm@aspire.rjw.lan>
+References: <20170713070749.GE16509@atomide.com> <c5c6623b-ea1d-1bbf-ea80-5d93e7e81c6f@linaro.org> <461af072-9b01-b08b-9ae6-09f14c9b187a@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170726221138.12986-2-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wingman Kwok <w-kwok2@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <461af072-9b01-b08b-9ae6-09f14c9b187a@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Alex Shi <alex.shi@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, paulmck@linux.vnet.ibm.com, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 26, 2017 at 05:11:36PM -0500, Grygorii Strashko wrote:
-> @@ -217,6 +231,19 @@ struct ptp_clock *ptp_clock_register(struct ptp_clock_info *info,
->  	mutex_init(&ptp->pincfg_mux);
->  	init_waitqueue_head(&ptp->tsev_wq);
->  
-> +	if (ptp->info->do_aux_work) {
-> +		char *worker_name = kasprintf(GFP_KERNEL, "ptp%d", ptp->index);
+On Thursday, July 27, 2017 05:55:19 PM Alex Shi wrote:
+> Hi Rafael,
+> 
+> Guess you overlook my new patch in this thread. :)
+> Do I need to recent this patch as new? or you could pick it up here?
 
-This string is allocated but never freed.
-
-> +		kthread_init_delayed_work(&ptp->aux_work, ptp_aux_kworker);
-> +		ptp->kworker = kthread_create_worker(0, worker_name ?
-> +						     worker_name : info->name);
-> +		if (IS_ERR(ptp->kworker)) {
-> +			err = PTR_ERR(ptp->kworker);
-> +			pr_err("failed to create ptp aux_worker %d\n", err);
-> +			goto kworker_err;
-> +		}
-> +	}
-> +
+Please resend it, add all of the applicable tags etc.
 
 Thanks,
-Richard
+Rafael
