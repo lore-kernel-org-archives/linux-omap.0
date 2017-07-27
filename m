@@ -1,7 +1,7 @@
 From: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
-Subject: [PATCH 1/3] serial: mctrl_gpio: restrict MCTRL initialization
-Date: Thu, 27 Jul 2017 15:17:34 +0200
-Message-ID: <1501161456-13367-2-git-send-email-yegorslists@googlemail.com>
+Subject: [PATCH 3/3] tty/serial/8250: add DT bindings description for mctrl_gpio helpers
+Date: Thu, 27 Jul 2017 15:17:36 +0200
+Message-ID: <1501161456-13367-4-git-send-email-yegorslists@googlemail.com>
 References: <1501161456-13367-1-git-send-email-yegorslists@googlemail.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1501161456-13367-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
@@ -12,38 +12,55 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 
-GPIOs specified for serial port can be used either as GPIO driven MCTRL
-or as a wakeup-source. Use the latter property to abort the MCTRL
-initialization.
+Describe {rts,cts,dtr,dsr,rng,dcd}-gpios usage.
 
 Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Signed-off-by: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 ---
- drivers/tty/serial/serial_mctrl_gpio.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/devicetree/bindings/serial/8250.txt | 26 +++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/drivers/tty/serial/serial_mctrl_gpio.c b/drivers/tty/serial/serial_mctrl_gpio.c
-index d2da6aa..dce661c 100644
---- a/drivers/tty/serial/serial_mctrl_gpio.c
-+++ b/drivers/tty/serial/serial_mctrl_gpio.c
-@@ -19,6 +19,7 @@
- #include <linux/irq.h>
- #include <linux/gpio/consumer.h>
- #include <linux/termios.h>
-+#include <linux/property.h>
- #include <linux/serial_core.h>
- #include <linux/module.h>
+diff --git a/Documentation/devicetree/bindings/serial/8250.txt b/Documentation/devicetree/bindings/serial/8250.txt
+index 419ff6c..1c09db2 100644
+--- a/Documentation/devicetree/bindings/serial/8250.txt
++++ b/Documentation/devicetree/bindings/serial/8250.txt
+@@ -48,6 +48,16 @@ Optional properties:
+ - tx-threshold: Specify the TX FIFO low water indication for parts with
+   programmable TX FIFO thresholds.
+ - resets : phandle + reset specifier pairs
++- rts-gpios:
++- cts-gpios:
++- dtr-gpios:
++- dsr-gpios:
++- rng-gpios:
++- dcd-gpios: specify a GPIO for RTS/CTS/DTR/DSR/RI/DCD
++  line respectively. It will use specified GPIO instead of the peripheral
++  function pin for the UART feature. If unsure, don't specify this property.
++  If "wakeup-source" property is specified for the device this GPIO
++  initialization will be aborted.
  
-@@ -118,6 +119,9 @@ struct mctrl_gpios *mctrl_gpio_init_noauto(struct device *dev, unsigned int idx)
- 	struct mctrl_gpios *gpios;
- 	enum mctrl_gpio_idx i;
- 
-+	if (device_property_present(dev, "wakeup-source"))
-+		return ERR_PTR(-ENOSYS);
+ Note:
+ * fsl,ns16550:
+@@ -69,3 +79,19 @@ Example:
+ 		interrupts = <10>;
+ 		reg-shift = <2>;
+ 	};
 +
- 	gpios = devm_kzalloc(dev, sizeof(*gpios), GFP_KERNEL);
- 	if (!gpios)
- 		return ERR_PTR(-ENOMEM);
++Example for OMAP UART using GPIO-based modem control signals:
++
++	uart4: serial@49042000 {
++		compatible = "ti,omap3-uart";
++		reg = <0x49042000 0x400>;
++		interrupts = <80>;
++		ti,hwmods = "uart4";
++		clock-frequency = <48000000>;
++		cts-gpios = <&gpio3 5 GPIO_ACTIVE_LOW>;
++		rts-gpios = <&gpio3 6 GPIO_ACTIVE_LOW>;
++		dtr-gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
++		dsr-gpios = <&gpio1 13 GPIO_ACTIVE_LOW>;
++		dcd-gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;
++		rng-gpios = <&gpio1 15 GPIO_ACTIVE_LOW>;
++	};
 -- 
 2.1.4
 
