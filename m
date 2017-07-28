@@ -1,203 +1,378 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v3 3/3] net: ethernet: ti: cpts: fix tx timestamping
- timeout
-Date: Fri, 28 Jul 2017 12:30:42 -0500
-Message-ID: <b9cf2261-e451-9bc9-f22e-871292bd4621@ti.com>
-References: <20170726221138.12986-1-grygorii.strashko@ti.com>
- <20170726221138.12986-4-grygorii.strashko@ti.com>
- <20170728170233.GA19760@khorivan>
+From: Josue Albarran <j-albarran@ti.com>
+Subject: [PATCH 2/2] iommu/omap: Use DMA-API for performing cache flushes
+Date: Fri, 28 Jul 2017 15:49:14 -0500
+Message-ID: <1501274954-20973-3-git-send-email-j-albarran@ti.com>
+References: <1501274954-20973-1-git-send-email-j-albarran@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170728170233.GA19760@khorivan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Richard Cochran <richardcochran@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wingman Kwok <w-kwok2@ti.com>, John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1501274954-20973-1-git-send-email-j-albarran@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+The OMAP IOMMU driver was using ARM assembly code directly for
+flushing the MMU page table entries from the caches. This caused
+MMU faults on OMAP4 (Cortex-A9 based SoCs) as L2 caches were not
+handled due to the presence of a PL310 L2 Cache Controller. These
+faults were however not seen on OMAP5/DRA7 SoCs (Cortex-A15 based
+SoCs).
 
+The OMAP IOMMU driver is adapted to use the DMA Streaming API
+instead now to flush the page table/directory table entries from
+the CPU caches. This ensures that the devices always see the
+updated page table entries. The outer caches are now addressed
+automatically with the usage of the DMA API.
 
-On 07/28/2017 12:02 PM, Ivan Khoronzhuk wrote:
-> On Wed, Jul 26, 2017 at 05:11:38PM -0500, Grygorii Strashko wrote:
->> With the low speed Ethernet connection CPDMA notification about packet
->> processing can be received before CPTS TX timestamp event, which is set
->> when packet actually left CPSW while cpdma notification is sent when packet
->> pushed in CPSW fifo.  As result, when connection is slow and CPU is fast
->> enough TX timestamping is not working properly.
->>
->> Fix it, by introducing TX SKB queue to store PTP SKBs for which Ethernet
->> Transmit Event hasn't been received yet and then re-check this queue
->> with new Ethernet Transmit Events by scheduling CPTS overflow
->> work more often (every 1 jiffies) until TX SKB queue is not empty.
->>
->> Side effect of this change is:
->>   - User space tools require to take into account possible delay in TX
->> timestamp processing (for example ptp4l works with tx_timestamp_timeout=400
->> under net traffic and tx_timestamp_timeout=25 in idle).
->>
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> 
-> 
->> ---
->>   drivers/net/ethernet/ti/cpts.c | 86 ++++++++++++++++++++++++++++++++++++++++--
->>   drivers/net/ethernet/ti/cpts.h |  1 +
->>   2 files changed, 84 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
->> index 3ed438e..c2121d2 100644
->> --- a/drivers/net/ethernet/ti/cpts.c
->> +++ b/drivers/net/ethernet/ti/cpts.c
->> @@ -31,9 +31,18 @@
->>   
->>   #include "cpts.h"
->>   
->> +#define CPTS_SKB_TX_WORK_TIMEOUT 1 /* jiffies */
->> +
->> +struct cpts_skb_cb_data {
->> +	unsigned long tmo;
->> +};
->> +
->>   #define cpts_read32(c, r)	readl_relaxed(&c->reg->r)
->>   #define cpts_write32(c, v, r)	writel_relaxed(v, &c->reg->r)
->>   
->> +static int cpts_match(struct sk_buff *skb, unsigned int ptp_class,
->> +		      u16 ts_seqid, u8 ts_msgtype);
->> +
->>   static int event_expired(struct cpts_event *event)
->>   {
->>   	return time_after(jiffies, event->tmo);
->> @@ -77,6 +86,47 @@ static int cpts_purge_events(struct cpts *cpts)
->>   	return removed ? 0 : -1;
->>   }
->>   
->> +static bool cpts_match_tx_ts(struct cpts *cpts, struct cpts_event *event)
->> +{
->> +	struct sk_buff *skb, *tmp;
->> +	u16 seqid;
->> +	u8 mtype;
->> +	bool found = false;
->> +
->> +	mtype = (event->high >> MESSAGE_TYPE_SHIFT) & MESSAGE_TYPE_MASK;
->> +	seqid = (event->high >> SEQUENCE_ID_SHIFT) & SEQUENCE_ID_MASK;
->> +
->> +	/* no need to grab txq.lock as access is always done under cpts->lock */
->> +	skb_queue_walk_safe(&cpts->txq, skb, tmp) {
->> +		struct skb_shared_hwtstamps ssh;
->> +		unsigned int class = ptp_classify_raw(skb);
->> +		struct cpts_skb_cb_data *skb_cb =
->> +					(struct cpts_skb_cb_data *)skb->cb;
->> +
->> +		if (cpts_match(skb, class, seqid, mtype)) {
->> +			u64 ns = timecounter_cyc2time(&cpts->tc, event->low);
->> +
->> +			memset(&ssh, 0, sizeof(ssh));
->> +			ssh.hwtstamp = ns_to_ktime(ns);
->> +			skb_tstamp_tx(skb, &ssh);
->> +			found = true;
->> +			__skb_unlink(skb, &cpts->txq);
->> +			dev_consume_skb_any(skb);
->> +			dev_dbg(cpts->dev, "match tx timestamp mtype %u seqid %04x\n",
->> +				mtype, seqid);
->> +		} else if (time_after(jiffies, skb_cb->tmo)) {
->> +			/* timeout any expired skbs over 1s */
->> +			dev_dbg(cpts->dev,
->> +				"expiring tx timestamp mtype %u seqid %04x\n",
->> +				mtype, seqid);
->> +			__skb_unlink(skb, &cpts->txq);
->> +			dev_consume_skb_any(skb);
->> +		}
->> +	}
->> +
->> +	return found;
->> +}
->> +
->>   /*
->>    * Returns zero if matching event type was found.
->>    */
->> @@ -101,9 +151,15 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
->>   		event->low = lo;
->>   		type = event_type(event);
->>   		switch (type) {
->> +		case CPTS_EV_TX:
->> +			if (cpts_match_tx_ts(cpts, event)) {
->> +				/* if the new event matches an existing skb,
->> +				 * then don't queue it
->> +				 */
->> +				break;
->> +			}
->>   		case CPTS_EV_PUSH:
->>   		case CPTS_EV_RX:
->> -		case CPTS_EV_TX:
->>   			list_del_init(&event->list);
->>   			list_add_tail(&event->list, &cpts->events);
->>   			break;
->> @@ -229,8 +285,15 @@ static long cpts_overflow_check(struct ptp_clock_info *ptp)
->>   	struct cpts *cpts = container_of(ptp, struct cpts, info);
->>   	unsigned long delay = cpts->ov_check_period;
->>   	struct timespec64 ts;
->> +	unsigned long flags;
->> +
->> +	spin_lock_irqsave(&cpts->lock, flags);
->> +	ts = ns_to_timespec64(timecounter_read(&cpts->tc));
->> +
->> +	if (!skb_queue_empty(&cpts->txq))
->> +		delay = CPTS_SKB_TX_WORK_TIMEOUT;
->> +	spin_unlock_irqrestore(&cpts->lock, flags);
->>   
->> -	cpts_ptp_gettime(&cpts->info, &ts);
->>   	pr_debug("cpts overflow check at %lld.%09lu\n", ts.tv_sec, ts.tv_nsec);
->>   	return (long)delay;
->>   }
->> @@ -301,7 +364,7 @@ static u64 cpts_find_ts(struct cpts *cpts, struct sk_buff *skb, int ev_type)
->>   		return 0;
->>   
->>   	spin_lock_irqsave(&cpts->lock, flags);
->> -	cpts_fifo_read(cpts, CPTS_EV_PUSH);
->> +	cpts_fifo_read(cpts, -1);
-> Seems it should be explained or send as separate patch before this one.
-> Not sure, but smth like "Don't stop read fifo if PUSH event is found",
-> but how it can happen that push event is present w/o TS_PUSH request..,
-> anyway, if there is some valuable reason for that - should be explained.
+Signed-off-by: Josue Albarran <j-albarran@ti.com>
+---
+ drivers/iommu/omap-iommu.c | 123 +++++++++++++++++++++++++++++----------------
+ drivers/iommu/omap-iommu.h |   1 +
+ 2 files changed, 80 insertions(+), 44 deletions(-)
 
-ok. I'll drop it from this series.
-
-> 
->>   	list_for_each_safe(this, next, &cpts->events) {
->>   		event = list_entry(this, struct cpts_event, list);
->>   		if (event_expired(event)) {
->> @@ -319,6 +382,19 @@ static u64 cpts_find_ts(struct cpts *cpts, struct sk_buff *skb, int ev_type)
->>   			break;
->>   		}
->>   	}
->> +
->> +	if (ev_type == CPTS_EV_TX && !ns) {
->> +		struct cpts_skb_cb_data *skb_cb =
->> +				(struct cpts_skb_cb_data *)skb->cb;
->> +		/* Not found, add frame to queue for processing later.
->> +		 * The periodic FIFO check will handle this.
->> +		 */
->> +		skb_get(skb);
->> +		/* get the timestamp for timeouts */
->> +		skb_cb->tmo = jiffies + msecs_to_jiffies(100);
->> +		__skb_queue_tail(&cpts->txq, skb);
->> +		ptp_schedule_worker(cpts->clock, 0);
->> +	}
-> As I see no need in separate irq handler for cpts events after this.
-> Is that caused by h/w limitations on keystone2?
-
-It's still required for proper support of HW_TS_PUSH events.
-This fixes current issue which blocks CPTS usage.
-
-> 
-> And what about rx path introduced in RFC, is it not needed any more or are
-> you going to send additional series?
-
-And I'm still trying to work on enabling CPTS IRQs and if it will be 
-enabled - the RX path will also need to be modified.
-
-
-
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index 10c9de8de45d..bd67e1b2c64e 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -11,6 +11,7 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include <linux/dma-mapping.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+@@ -29,8 +30,6 @@
+ #include <linux/regmap.h>
+ #include <linux/mfd/syscon.h>
+ 
+-#include <asm/cacheflush.h>
+-
+ #include <linux/platform_data/iommu-omap.h>
+ 
+ #include "omap-iopgtable.h"
+@@ -454,36 +453,35 @@ static void flush_iotlb_all(struct omap_iommu *obj)
+ /*
+  *	H/W pagetable operations
+  */
+-static void flush_iopgd_range(u32 *first, u32 *last)
++static void flush_iopte_range(struct device *dev, dma_addr_t dma,
++			      unsigned long offset, int num_entries)
+ {
+-	/* FIXME: L2 cache should be taken care of if it exists */
+-	do {
+-		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
+-		    : : "r" (first));
+-		first += L1_CACHE_BYTES / sizeof(*first);
+-	} while (first <= last);
+-}
++	size_t size = num_entries * sizeof(u32);
+ 
+-static void flush_iopte_range(u32 *first, u32 *last)
+-{
+-	/* FIXME: L2 cache should be taken care of if it exists */
+-	do {
+-		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pte"
+-		    : : "r" (first));
+-		first += L1_CACHE_BYTES / sizeof(*first);
+-	} while (first <= last);
++	dma_sync_single_range_for_device(dev, dma, offset, size, DMA_TO_DEVICE);
+ }
+ 
+-static void iopte_free(u32 *iopte)
++static void iopte_free(struct omap_iommu *obj, u32 *iopte, bool dma_valid)
+ {
++	dma_addr_t pt_dma;
++
+ 	/* Note: freed iopte's must be clean ready for re-use */
+-	if (iopte)
++	if (iopte) {
++		if (dma_valid) {
++			pt_dma = virt_to_phys(iopte);
++			dma_unmap_single(obj->dev, pt_dma, IOPTE_TABLE_SIZE,
++					 DMA_TO_DEVICE);
++		}
++
+ 		kmem_cache_free(iopte_cachep, iopte);
++	}
+ }
+ 
+-static u32 *iopte_alloc(struct omap_iommu *obj, u32 *iopgd, u32 da)
++static u32 *iopte_alloc(struct omap_iommu *obj, u32 *iopgd,
++			dma_addr_t *pt_dma, u32 da)
+ {
+ 	u32 *iopte;
++	unsigned long offset = iopgd_index(da) * sizeof(da);
+ 
+ 	/* a table has already existed */
+ 	if (*iopgd)
+@@ -500,18 +498,38 @@ static u32 *iopte_alloc(struct omap_iommu *obj, u32 *iopgd, u32 da)
+ 		if (!iopte)
+ 			return ERR_PTR(-ENOMEM);
+ 
++		*pt_dma = dma_map_single(obj->dev, iopte, IOPTE_TABLE_SIZE,
++					 DMA_TO_DEVICE);
++		if (dma_mapping_error(obj->dev, *pt_dma)) {
++			dev_err(obj->dev, "DMA map error for L2 table\n");
++			iopte_free(obj, iopte, false);
++			return ERR_PTR(-ENOMEM);
++		}
++
++		/*
++		 * we rely on dma address and the physical address to be
++		 * the same for mapping the L2 table
++		 */
++		if (WARN_ON(*pt_dma != virt_to_phys(iopte))) {
++			dev_err(obj->dev, "DMA translation error for L2 table\n");
++			dma_unmap_single(obj->dev, *pt_dma, IOPTE_TABLE_SIZE,
++					 DMA_TO_DEVICE);
++			iopte_free(obj, iopte, false);
++			return ERR_PTR(-ENOMEM);
++		}
++
+ 		*iopgd = virt_to_phys(iopte) | IOPGD_TABLE;
+-		flush_iopgd_range(iopgd, iopgd);
+ 
++		flush_iopte_range(obj->dev, obj->pd_dma, offset, 1);
+ 		dev_vdbg(obj->dev, "%s: a new pte:%p\n", __func__, iopte);
+ 	} else {
+ 		/* We raced, free the reduniovant table */
+-		iopte_free(iopte);
++		iopte_free(obj, iopte, false);
+ 	}
+ 
+ pte_ready:
+ 	iopte = iopte_offset(iopgd, da);
+-
++	*pt_dma = virt_to_phys(iopte);
+ 	dev_vdbg(obj->dev,
+ 		 "%s: da:%08x pgd:%p *pgd:%08x pte:%p *pte:%08x\n",
+ 		 __func__, da, iopgd, *iopgd, iopte, *iopte);
+@@ -522,6 +540,7 @@ static u32 *iopte_alloc(struct omap_iommu *obj, u32 *iopgd, u32 da)
+ static int iopgd_alloc_section(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+ {
+ 	u32 *iopgd = iopgd_offset(obj, da);
++	unsigned long offset = iopgd_index(da) * sizeof(da);
+ 
+ 	if ((da | pa) & ~IOSECTION_MASK) {
+ 		dev_err(obj->dev, "%s: %08x:%08x should aligned on %08lx\n",
+@@ -530,13 +549,14 @@ static int iopgd_alloc_section(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+ 	}
+ 
+ 	*iopgd = (pa & IOSECTION_MASK) | prot | IOPGD_SECTION;
+-	flush_iopgd_range(iopgd, iopgd);
++	flush_iopte_range(obj->dev, obj->pd_dma, offset, 1);
+ 	return 0;
+ }
+ 
+ static int iopgd_alloc_super(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+ {
+ 	u32 *iopgd = iopgd_offset(obj, da);
++	unsigned long offset = iopgd_index(da) * sizeof(da);
+ 	int i;
+ 
+ 	if ((da | pa) & ~IOSUPER_MASK) {
+@@ -547,20 +567,22 @@ static int iopgd_alloc_super(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+ 
+ 	for (i = 0; i < 16; i++)
+ 		*(iopgd + i) = (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
+-	flush_iopgd_range(iopgd, iopgd + 15);
++	flush_iopte_range(obj->dev, obj->pd_dma, offset, 16);
+ 	return 0;
+ }
+ 
+ static int iopte_alloc_page(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+ {
+ 	u32 *iopgd = iopgd_offset(obj, da);
+-	u32 *iopte = iopte_alloc(obj, iopgd, da);
++	dma_addr_t pt_dma;
++	u32 *iopte = iopte_alloc(obj, iopgd, &pt_dma, da);
++	unsigned long offset = iopte_index(da) * sizeof(da);
+ 
+ 	if (IS_ERR(iopte))
+ 		return PTR_ERR(iopte);
+ 
+ 	*iopte = (pa & IOPAGE_MASK) | prot | IOPTE_SMALL;
+-	flush_iopte_range(iopte, iopte);
++	flush_iopte_range(obj->dev, pt_dma, offset, 1);
+ 
+ 	dev_vdbg(obj->dev, "%s: da:%08x pa:%08x pte:%p *pte:%08x\n",
+ 		 __func__, da, pa, iopte, *iopte);
+@@ -571,7 +593,9 @@ static int iopte_alloc_page(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+ static int iopte_alloc_large(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+ {
+ 	u32 *iopgd = iopgd_offset(obj, da);
+-	u32 *iopte = iopte_alloc(obj, iopgd, da);
++	dma_addr_t pt_dma;
++	u32 *iopte = iopte_alloc(obj, iopgd, &pt_dma, da);
++	unsigned long offset = iopte_index(da) * sizeof(da);
+ 	int i;
+ 
+ 	if ((da | pa) & ~IOLARGE_MASK) {
+@@ -585,7 +609,7 @@ static int iopte_alloc_large(struct omap_iommu *obj, u32 da, u32 pa, u32 prot)
+ 
+ 	for (i = 0; i < 16; i++)
+ 		*(iopte + i) = (pa & IOLARGE_MASK) | prot | IOPTE_LARGE;
+-	flush_iopte_range(iopte, iopte + 15);
++	flush_iopte_range(obj->dev, pt_dma, offset, 16);
+ 	return 0;
+ }
+ 
+@@ -674,6 +698,9 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
+ 	size_t bytes;
+ 	u32 *iopgd = iopgd_offset(obj, da);
+ 	int nent = 1;
++	dma_addr_t pt_dma;
++	unsigned long pd_offset = iopgd_index(da) * sizeof(da);
++	unsigned long pt_offset = iopte_index(da) * sizeof(da);
+ 
+ 	if (!*iopgd)
+ 		return 0;
+@@ -690,7 +717,8 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
+ 		}
+ 		bytes *= nent;
+ 		memset(iopte, 0, nent * sizeof(*iopte));
+-		flush_iopte_range(iopte, iopte + (nent - 1) * sizeof(*iopte));
++		pt_dma = virt_to_phys(iopte);
++		flush_iopte_range(obj->dev, pt_dma, pt_offset, nent);
+ 
+ 		/*
+ 		 * do table walk to check if this table is necessary or not
+@@ -700,7 +728,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
+ 			if (iopte[i])
+ 				goto out;
+ 
+-		iopte_free(iopte);
++		iopte_free(obj, iopte, true);
+ 		nent = 1; /* for the next L1 entry */
+ 	} else {
+ 		bytes = IOPGD_SIZE;
+@@ -712,7 +740,7 @@ static size_t iopgtable_clear_entry_core(struct omap_iommu *obj, u32 da)
+ 		bytes *= nent;
+ 	}
+ 	memset(iopgd, 0, nent * sizeof(*iopgd));
+-	flush_iopgd_range(iopgd, iopgd + (nent - 1) * sizeof(*iopgd));
++	flush_iopte_range(obj->dev, obj->pd_dma, pd_offset, nent);
+ out:
+ 	return bytes;
+ }
+@@ -738,6 +766,7 @@ static size_t iopgtable_clear_entry(struct omap_iommu *obj, u32 da)
+ 
+ static void iopgtable_clear_entry_all(struct omap_iommu *obj)
+ {
++	unsigned long offset;
+ 	int i;
+ 
+ 	spin_lock(&obj->page_table_lock);
+@@ -748,15 +777,16 @@ static void iopgtable_clear_entry_all(struct omap_iommu *obj)
+ 
+ 		da = i << IOPGD_SHIFT;
+ 		iopgd = iopgd_offset(obj, da);
++		offset = iopgd_index(da) * sizeof(da);
+ 
+ 		if (!*iopgd)
+ 			continue;
+ 
+ 		if (iopgd_is_table(*iopgd))
+-			iopte_free(iopte_offset(iopgd, 0));
++			iopte_free(obj, iopte_offset(iopgd, 0), true);
+ 
+ 		*iopgd = 0;
+-		flush_iopgd_range(iopgd, iopgd);
++		flush_iopte_range(obj->dev, obj->pd_dma, offset, 1);
+ 	}
+ 
+ 	flush_iotlb_all(obj);
+@@ -815,10 +845,18 @@ static int omap_iommu_attach(struct omap_iommu *obj, u32 *iopgd)
+ 
+ 	spin_lock(&obj->iommu_lock);
+ 
++	obj->pd_dma = dma_map_single(obj->dev, iopgd, IOPGD_TABLE_SIZE,
++				     DMA_TO_DEVICE);
++	if (dma_mapping_error(obj->dev, obj->pd_dma)) {
++		dev_err(obj->dev, "DMA map error for L1 table\n");
++		err = -ENOMEM;
++		goto out_err;
++	}
++
+ 	obj->iopgd = iopgd;
+ 	err = iommu_enable(obj);
+ 	if (err)
+-		goto err_enable;
++		goto out_err;
+ 	flush_iotlb_all(obj);
+ 
+ 	spin_unlock(&obj->iommu_lock);
+@@ -827,7 +865,7 @@ static int omap_iommu_attach(struct omap_iommu *obj, u32 *iopgd)
+ 
+ 	return 0;
+ 
+-err_enable:
++out_err:
+ 	spin_unlock(&obj->iommu_lock);
+ 
+ 	return err;
+@@ -844,7 +882,10 @@ static void omap_iommu_detach(struct omap_iommu *obj)
+ 
+ 	spin_lock(&obj->iommu_lock);
+ 
++	dma_unmap_single(obj->dev, obj->pd_dma, IOPGD_TABLE_SIZE,
++			 DMA_TO_DEVICE);
+ 	iommu_disable(obj);
++	obj->pd_dma = 0;
+ 	obj->iopgd = NULL;
+ 
+ 	spin_unlock(&obj->iommu_lock);
+@@ -1008,11 +1049,6 @@ static struct platform_driver omap_iommu_driver = {
+ 	},
+ };
+ 
+-static void iopte_cachep_ctor(void *iopte)
+-{
+-	clean_dcache_area(iopte, IOPTE_TABLE_SIZE);
+-}
+-
+ static u32 iotlb_init_entry(struct iotlb_entry *e, u32 da, u32 pa, int pgsz)
+ {
+ 	memset(e, 0, sizeof(*e));
+@@ -1159,7 +1195,6 @@ static struct iommu_domain *omap_iommu_domain_alloc(unsigned type)
+ 	if (WARN_ON(!IS_ALIGNED((long)omap_domain->pgtable, IOPGD_TABLE_SIZE)))
+ 		goto fail_align;
+ 
+-	clean_dcache_area(omap_domain->pgtable, IOPGD_TABLE_SIZE);
+ 	spin_lock_init(&omap_domain->lock);
+ 
+ 	omap_domain->domain.geometry.aperture_start = 0;
+@@ -1347,7 +1382,7 @@ static int __init omap_iommu_init(void)
+ 	of_node_put(np);
+ 
+ 	p = kmem_cache_create("iopte_cache", IOPTE_TABLE_SIZE, align, flags,
+-			      iopte_cachep_ctor);
++			      NULL);
+ 	if (!p)
+ 		return -ENOMEM;
+ 	iopte_cachep = p;
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index 6e70515e6038..a675af29a6ec 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -61,6 +61,7 @@ struct omap_iommu {
+ 	 */
+ 	u32		*iopgd;
+ 	spinlock_t	page_table_lock; /* protect iopgd */
++	dma_addr_t	pd_dma;
+ 
+ 	int		nr_tlb_entries;
+ 
 -- 
-regards,
--grygorii
+2.7.4
