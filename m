@@ -1,112 +1,220 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] tty: serial: 8250 introduce mctrl_gpio helpers
-Date: Fri, 28 Jul 2017 04:29:16 -0700
-Message-ID: <20170728112916.GM10026@atomide.com>
-References: <1501161456-13367-1-git-send-email-yegorslists@googlemail.com>
- <20170728064004.GI10026@atomide.com>
- <1501238206.29303.277.camel@linux.intel.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH v3 3/3] net: ethernet: ti: cpts: fix tx timestamping
+ timeout
+Date: Fri, 28 Jul 2017 20:02:34 +0300
+Message-ID: <20170728170233.GA19760@khorivan>
+References: <20170726221138.12986-1-grygorii.strashko@ti.com>
+ <20170726221138.12986-4-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1501238206.29303.277.camel-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, jslaby-IBi9RG/b67k@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170726221138.12986-4-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Richard Cochran <richardcochran@gmail.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wingman Kwok <w-kwok2@ti.com>, John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> [170728 03:37]:
-> On Thu, 2017-07-27 at 23:40 -0700, Tony Lindgren wrote:
-> > * yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> [170727
-> > 06:18]:
-> > > From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-> > > 
-> > > This patch series aims to reintroduce the  mctrl_gpio helpers for
-> > > 8250
-> > > UARTs.
-> > > 
-> > > There are some UARTs that use GPIO signals as a wakeup-sourse.
-> > > The first patch addresses this issue and tries to destinguish GPIO
-> > > usage
-> > > via searching for "wakeup-sourse" property. Though it must be
-> > > decided whether
-> > > this property is secure to use for this purpose.
-> > 
-> > The wakeup-source part you should be able to handle pretty much
-> > out of box with Linux generic wakeirqs if configured. See for example
-> > drivers/i2c/i2c-core.c for the dev_pm_set_dedicated_wake_irq() part.
+On Wed, Jul 26, 2017 at 05:11:38PM -0500, Grygorii Strashko wrote:
+> With the low speed Ethernet connection CPDMA notification about packet
+> processing can be received before CPTS TX timestamp event, which is set
+> when packet actually left CPSW while cpdma notification is sent when packet
+> pushed in CPSW fifo.  As result, when connection is slow and CPU is fast
+> enough TX timestamping is not working properly.
 > 
-> Here are 3 cases:
-> 1) out-of-band interrupt (usually GPIO) which can be wake source;
-> 2) in-band interrupt (have not seen this for UART, though it's supported
-> by tty framework for a long time AFAIU);
-
-And case 2) is somewhat useless as it requires the uart to be
-clocked.
-
-> 3) special case when Out-of-band interrupt uses the pin in UART pool of
-> pins.
+> Fix it, by introducing TX SKB queue to store PTP SKBs for which Ethernet
+> Transmit Event hasn't been received yet and then re-check this queue
+> with new Ethernet Transmit Events by scheduling CPTS overflow
+> work more often (every 1 jiffies) until TX SKB queue is not empty.
 > 
-> We are talking here about case 3).
-
-OK at least for am335x/am437x, changing it's mode between gpio and
-uart use can be done with pinctrl framework with named pinctrl
-named modes.
-
-> > As long as the 8250 driver has runtime PM implemented
+> Side effect of this change is:
+>  - User space tools require to take into account possible delay in TX
+> timestamp processing (for example ptp4l works with tx_timestamp_timeout=400
+> under net traffic and tx_timestamp_timeout=25 in idle).
 > 
-> As you remember it has not (the ugly hack which is used right now is not
-> correct implementation of RPM).
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+
+
+> ---
+>  drivers/net/ethernet/ti/cpts.c | 86 ++++++++++++++++++++++++++++++++++++++++--
+>  drivers/net/ethernet/ti/cpts.h |  1 +
+>  2 files changed, 84 insertions(+), 3 deletions(-)
 > 
-> >  it will wake
-> > up the 8250 device.
+> diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+> index 3ed438e..c2121d2 100644
+> --- a/drivers/net/ethernet/ti/cpts.c
+> +++ b/drivers/net/ethernet/ti/cpts.c
+> @@ -31,9 +31,18 @@
+>  
+>  #include "cpts.h"
+>  
+> +#define CPTS_SKB_TX_WORK_TIMEOUT 1 /* jiffies */
+> +
+> +struct cpts_skb_cb_data {
+> +	unsigned long tmo;
+> +};
+> +
+>  #define cpts_read32(c, r)	readl_relaxed(&c->reg->r)
+>  #define cpts_write32(c, v, r)	writel_relaxed(v, &c->reg->r)
+>  
+> +static int cpts_match(struct sk_buff *skb, unsigned int ptp_class,
+> +		      u16 ts_seqid, u8 ts_msgtype);
+> +
+>  static int event_expired(struct cpts_event *event)
+>  {
+>  	return time_after(jiffies, event->tmo);
+> @@ -77,6 +86,47 @@ static int cpts_purge_events(struct cpts *cpts)
+>  	return removed ? 0 : -1;
+>  }
+>  
+> +static bool cpts_match_tx_ts(struct cpts *cpts, struct cpts_event *event)
+> +{
+> +	struct sk_buff *skb, *tmp;
+> +	u16 seqid;
+> +	u8 mtype;
+> +	bool found = false;
+> +
+> +	mtype = (event->high >> MESSAGE_TYPE_SHIFT) & MESSAGE_TYPE_MASK;
+> +	seqid = (event->high >> SEQUENCE_ID_SHIFT) & SEQUENCE_ID_MASK;
+> +
+> +	/* no need to grab txq.lock as access is always done under cpts->lock */
+> +	skb_queue_walk_safe(&cpts->txq, skb, tmp) {
+> +		struct skb_shared_hwtstamps ssh;
+> +		unsigned int class = ptp_classify_raw(skb);
+> +		struct cpts_skb_cb_data *skb_cb =
+> +					(struct cpts_skb_cb_data *)skb->cb;
+> +
+> +		if (cpts_match(skb, class, seqid, mtype)) {
+> +			u64 ns = timecounter_cyc2time(&cpts->tc, event->low);
+> +
+> +			memset(&ssh, 0, sizeof(ssh));
+> +			ssh.hwtstamp = ns_to_ktime(ns);
+> +			skb_tstamp_tx(skb, &ssh);
+> +			found = true;
+> +			__skb_unlink(skb, &cpts->txq);
+> +			dev_consume_skb_any(skb);
+> +			dev_dbg(cpts->dev, "match tx timestamp mtype %u seqid %04x\n",
+> +				mtype, seqid);
+> +		} else if (time_after(jiffies, skb_cb->tmo)) {
+> +			/* timeout any expired skbs over 1s */
+> +			dev_dbg(cpts->dev,
+> +				"expiring tx timestamp mtype %u seqid %04x\n",
+> +				mtype, seqid);
+> +			__skb_unlink(skb, &cpts->txq);
+> +			dev_consume_skb_any(skb);
+> +		}
+> +	}
+> +
+> +	return found;
+> +}
+> +
+>  /*
+>   * Returns zero if matching event type was found.
+>   */
+> @@ -101,9 +151,15 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
+>  		event->low = lo;
+>  		type = event_type(event);
+>  		switch (type) {
+> +		case CPTS_EV_TX:
+> +			if (cpts_match_tx_ts(cpts, event)) {
+> +				/* if the new event matches an existing skb,
+> +				 * then don't queue it
+> +				 */
+> +				break;
+> +			}
+>  		case CPTS_EV_PUSH:
+>  		case CPTS_EV_RX:
+> -		case CPTS_EV_TX:
+>  			list_del_init(&event->list);
+>  			list_add_tail(&event->list, &cpts->events);
+>  			break;
+> @@ -229,8 +285,15 @@ static long cpts_overflow_check(struct ptp_clock_info *ptp)
+>  	struct cpts *cpts = container_of(ptp, struct cpts, info);
+>  	unsigned long delay = cpts->ov_check_period;
+>  	struct timespec64 ts;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&cpts->lock, flags);
+> +	ts = ns_to_timespec64(timecounter_read(&cpts->tc));
+> +
+> +	if (!skb_queue_empty(&cpts->txq))
+> +		delay = CPTS_SKB_TX_WORK_TIMEOUT;
+> +	spin_unlock_irqrestore(&cpts->lock, flags);
+>  
+> -	cpts_ptp_gettime(&cpts->info, &ts);
+>  	pr_debug("cpts overflow check at %lld.%09lu\n", ts.tv_sec, ts.tv_nsec);
+>  	return (long)delay;
+>  }
+> @@ -301,7 +364,7 @@ static u64 cpts_find_ts(struct cpts *cpts, struct sk_buff *skb, int ev_type)
+>  		return 0;
+>  
+>  	spin_lock_irqsave(&cpts->lock, flags);
+> -	cpts_fifo_read(cpts, CPTS_EV_PUSH);
+> +	cpts_fifo_read(cpts, -1);
+Seems it should be explained or send as separate patch before this one.
+Not sure, but smth like "Don't stop read fifo if PUSH event is found",
+but how it can happen that push event is present w/o TS_PUSH request..,
+anyway, if there is some valuable reason for that - should be explained.
+
+>  	list_for_each_safe(this, next, &cpts->events) {
+>  		event = list_entry(this, struct cpts_event, list);
+>  		if (event_expired(event)) {
+> @@ -319,6 +382,19 @@ static u64 cpts_find_ts(struct cpts *cpts, struct sk_buff *skb, int ev_type)
+>  			break;
+>  		}
+>  	}
+> +
+> +	if (ev_type == CPTS_EV_TX && !ns) {
+> +		struct cpts_skb_cb_data *skb_cb =
+> +				(struct cpts_skb_cb_data *)skb->cb;
+> +		/* Not found, add frame to queue for processing later.
+> +		 * The periodic FIFO check will handle this.
+> +		 */
+> +		skb_get(skb);
+> +		/* get the timestamp for timeouts */
+> +		skb_cb->tmo = jiffies + msecs_to_jiffies(100);
+> +		__skb_queue_tail(&cpts->txq, skb);
+> +		ptp_schedule_worker(cpts->clock, 0);
+> +	}
+As I see no need in separate irq handler for cpts events after this.
+Is that caused by h/w limitations on keystone2?
+
+And what about rx path introduced in RFC, is it not needed any more or are
+you going to send additional series?
+
+>  	spin_unlock_irqrestore(&cpts->lock, flags);
+>  
+>  	return ns;
+> @@ -360,6 +436,7 @@ int cpts_register(struct cpts *cpts)
+>  {
+>  	int err, i;
+>  
+> +	skb_queue_head_init(&cpts->txq);
+>  	INIT_LIST_HEAD(&cpts->events);
+>  	INIT_LIST_HEAD(&cpts->pool);
+>  	for (i = 0; i < CPTS_MAX_EVENTS; i++)
+> @@ -400,6 +477,9 @@ void cpts_unregister(struct cpts *cpts)
+>  	cpts_write32(cpts, 0, int_enable);
+>  	cpts_write32(cpts, 0, control);
+>  
+> +	/* Drop all packet */
+> +	skb_queue_purge(&cpts->txq);
+> +
+>  	clk_disable(cpts->refclk);
+>  }
+>  EXPORT_SYMBOL_GPL(cpts_unregister);
+> diff --git a/drivers/net/ethernet/ti/cpts.h b/drivers/net/ethernet/ti/cpts.h
+> index 586edd9..73d73fa 100644
+> --- a/drivers/net/ethernet/ti/cpts.h
+> +++ b/drivers/net/ethernet/ti/cpts.h
+> @@ -125,6 +125,7 @@ struct cpts {
+>  	struct list_head pool;
+>  	struct cpts_event pool_data[CPTS_MAX_EVENTS];
+>  	unsigned long ov_check_period;
+> +	struct sk_buff_head txq;
+>  };
+>  
+>  void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb);
+> -- 
+> 2.10.1
 > 
-> See above, in case 3) we would be able to achieve that when pin mode is
-> switched to GPIO and back. I don't remember if OMAP uses this approach.
-
-Yes that's needed for am335x and am437x to get a wake-up event from
-rx pin for example. Not needed for omap3/4/5.
-
-> > This should work just fine also with am335x gpios, just configure the
-> > secondary wakeup gpio interrupt using interrupts-extended in device
-> > tree. Typically the interrupts are named "irq" and "wakeup". And if
-> > the
-> > pin is used as gpio, you can just dev_pm_clear_wake_irq() during
-> > runtime.
-> 
-> I think this one is not related to case 3).
-
-Hmm but it seems we already have that working for 8250_omap for
-omap3/4/5 where rx pin provides wakeup events when 8250_omap is
-in runtime suspend state. See the dev_pm_set_dedicated_wake_irq()
-parts in 8250_omap.c. For am335x/am437x I think the only thing
-missing is toggling between uart and gpio mode for the rx pin
-using pinctrl named modes. There's an example for am335x in
-omap_hsmmc.c with pinctrl_pm_select_idle_state() if that helps.
-
-But maybe you have something in case 3) that I don't follow?
-
-> > If having issues, we're still missing the wakeirq level configuration,
-> > the patch below should do the trick there.
-> 
-> >  	err = request_threaded_irq(irq, NULL,
-> > handle_threaded_wake_irq,
-> > -				   IRQF_ONESHOT, dev_name(dev),
-> > wirq);
-> > +				   irq_get_trigger_type(irq) |
-> > IRQF_ONESHOT,
-> 
-> This is not needed if you use DT or ACPI and framework (serial in this
-> case) checks for interrupt correctly.
-
-I think it's needed in the DT gpio interrupt case as some
-gpio controllers need to configure edge vs level.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
