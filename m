@@ -1,103 +1,85 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix omap3 prm shared irq
-Date: Fri, 28 Jul 2017 12:35:53 +0300
-Message-ID: <cdac8d51-580b-c6d8-60be-39e31337c3af@ti.com>
-References: <20170627084838.30275-1-tony@atomide.com>
+From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 0/3] tty: serial: 8250 introduce mctrl_gpio helpers
+Date: Fri, 28 Jul 2017 13:36:46 +0300
+Message-ID: <1501238206.29303.277.camel@linux.intel.com>
+References: <1501161456-13367-1-git-send-email-yegorslists@googlemail.com>
+         <20170728064004.GI10026@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170627084838.30275-1-tony@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@baylibre.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170728064004.GI10026-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
+Cc: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, jslaby-IBi9RG/b67k@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 27/06/17 11:48, Tony Lindgren wrote:
-> Shared interrupts with IRQ_NOAUTOEN got a warning added with commit
-> 04c848d39879 ("genirq: Warn when IRQ_NOAUTOEN is used with shared
-> interrupts").
+On Thu, 2017-07-27 at 23:40 -0700, Tony Lindgren wrote:
+> * yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> [170727
+> 06:18]:
+> > From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+> > 
+> > This patch series aims to reintroduce the  mctrl_gpio helpers for
+> > 8250
+> > UARTs.
+> > 
+> > There are some UARTs that use GPIO signals as a wakeup-sourse.
+> > The first patch addresses this issue and tries to destinguish GPIO
+> > usage
+> > via searching for "wakeup-sourse" property. Though it must be
+> > decided whether
+> > this property is secure to use for this purpose.
 > 
-> Let's just drop the IRQ_NOAUTOEN use for omap3 PRM shared interrupt as
-> it does not seem to cause any other issues based on my testing. We have
-> moved a lot of the code to initialize later, and whatever problems the
-> legacy booting had seem to be gone now with pinctrl driver and device
-> tree based booting.
-> 
-> Otherwise we will get:
-> 
-> WARNING: CPU: 0 PID: 1 at kernel/irq/manage.c:1348 __setup_irq+0x5d0/0x64c
-> [<c01b0260>] (__setup_irq) from [<c01b0480>]
-> (request_threaded_irq+0xdc/0x188)
-> [<c01b0480>] (request_threaded_irq) from [<c051c780>]
-> (pcs_probe+0x6ec/0x8a4)
-> [<c051c780>] (pcs_probe) from [<c05a84b8>] (platform_drv_probe+0x50/0xb0)
-> [<c05a84b8>] (platform_drv_probe) from [<c05a6288>]
-> (driver_probe_device+0x33c/0x478)
-> 
-> Note that we also need to remove the related enable_irq() to avoid
-> getting the following:
-> 
-> WARNING: CPU: 0 PID: 1 at kernel/irq/manage.c:529 enable_irq+0x34/0x70
-> [<c01afa04>] (enable_irq) from [<c0c0f1fc>] (omap3_pm_init+0x118/0x3f8)
-> [<c0c0f1fc>] (omap3_pm_init) from [<c0c0ae7c>] (am35xx_init_late+0x10/0x18)
-> 
-> Cc: Kevin Hilman <khilman@baylibre.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> The wakeup-source part you should be able to handle pretty much
+> out of box with Linux generic wakeirqs if configured. See for example
+> drivers/i2c/i2c-core.c for the dev_pm_set_dedicated_wake_irq() part.
 
-Looks fine to me.
+Here are 3 cases:
+1) out-of-band interrupt (usually GPIO) which can be wake source;
+2) in-band interrupt (have not seen this for UART, though it's supported
+by tty framework for a long time AFAIU);
+3) special case when Out-of-band interrupt uses the pin in UART pool of
+pins.
 
--Tero
+We are talking here about case 3).
 
-> ---
->   arch/arm/mach-omap2/pm34xx.c  | 1 -
->   arch/arm/mach-omap2/prm3xxx.c | 7 +------
->   2 files changed, 1 insertion(+), 7 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -483,7 +483,6 @@ int __init omap3_pm_init(void)
->   	ret = request_irq(omap_prcm_event_to_irq("io"),
->   		_prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
->   		omap3_pm_init);
-> -	enable_irq(omap_prcm_event_to_irq("io"));
->   
->   	if (ret) {
->   		pr_err("pm: Failed to request pm_io irq\n");
-> diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-> --- a/arch/arm/mach-omap2/prm3xxx.c
-> +++ b/arch/arm/mach-omap2/prm3xxx.c
-> @@ -692,7 +692,6 @@ static int omap3xxx_prm_late_init(void)
->   {
->   	struct device_node *np;
->   	int irq_num;
-> -	int ret;
->   
->   	if (!(prm_features & PRM_HAS_IO_WAKEUP))
->   		return 0;
-> @@ -712,12 +711,8 @@ static int omap3xxx_prm_late_init(void)
->   	}
->   
->   	omap3xxx_prm_enable_io_wakeup();
-> -	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
-> -	if (!ret)
-> -		irq_set_status_flags(omap_prcm_event_to_irq("io"),
-> -				     IRQ_NOAUTOEN);
->   
-> -	return ret;
-> +	return omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
->   }
->   
->   static void __exit omap3xxx_prm_exit(void)
-> 
+> As long as the 8250 driver has runtime PM implemented
+
+As you remember it has not (the ugly hack which is used right now is not
+correct implementation of RPM).
+
+>  it will wake
+> up the 8250 device.
+
+See above, in case 3) we would be able to achieve that when pin mode is
+switched to GPIO and back. I don't remember if OMAP uses this approach.
+
+> This should work just fine also with am335x gpios, just configure the
+> secondary wakeup gpio interrupt using interrupts-extended in device
+> tree. Typically the interrupts are named "irq" and "wakeup". And if
+> the
+> pin is used as gpio, you can just dev_pm_clear_wake_irq() during
+> runtime.
+
+I think this one is not related to case 3).
+
+> If having issues, we're still missing the wakeirq level configuration,
+> the patch below should do the trick there.
+
+>  	err = request_threaded_irq(irq, NULL,
+> handle_threaded_wake_irq,
+> -				   IRQF_ONESHOT, dev_name(dev),
+> wirq);
+> +				   irq_get_trigger_type(irq) |
+> IRQF_ONESHOT,
+
+This is not needed if you use DT or ACPI and framework (serial in this
+case) checks for interrupt correctly.
+
+-- 
+Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Intel Finland Oy
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
