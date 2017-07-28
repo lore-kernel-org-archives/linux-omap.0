@@ -1,80 +1,103 @@
-From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: Re: [PATCH 1/3] serial: mctrl_gpio: restrict MCTRL initialization
-Date: Fri, 28 Jul 2017 10:42:22 +0200
-Message-ID: <CAGm1_ktkN6_7jD_mdcC=No=pNTW_aGrKE7D+U8av5b2R7BFqSA@mail.gmail.com>
-References: <1501161456-13367-1-git-send-email-yegorslists@googlemail.com>
- <1501161456-13367-2-git-send-email-yegorslists@googlemail.com> <1501164092.29303.270.camel@linux.intel.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix omap3 prm shared irq
+Date: Fri, 28 Jul 2017 12:35:53 +0300
+Message-ID: <cdac8d51-580b-c6d8-60be-39e31337c3af@ti.com>
+References: <20170627084838.30275-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501164092.29303.270.camel-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170627084838.30275-1-tony@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@baylibre.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 27, 2017 at 4:01 PM, Andy Shevchenko
-<andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
-> On Thu, 2017-07-27 at 15:17 +0200, yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org wrote:
->> From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
->>
->> GPIOs specified for serial port can be used either as GPIO driven
->> MCTRL
->> or as a wakeup-source. Use the latter property to abort the MCTRL
->> initialization.
->
-> Please, elaborate on a choice of error code for this (-ENOSYS).
+On 27/06/17 11:48, Tony Lindgren wrote:
+> Shared interrupts with IRQ_NOAUTOEN got a warning added with commit
+> 04c848d39879 ("genirq: Warn when IRQ_NOAUTOEN is used with shared
+> interrupts").
+> 
+> Let's just drop the IRQ_NOAUTOEN use for omap3 PRM shared interrupt as
+> it does not seem to cause any other issues based on my testing. We have
+> moved a lot of the code to initialize later, and whatever problems the
+> legacy booting had seem to be gone now with pinctrl driver and device
+> tree based booting.
+> 
+> Otherwise we will get:
+> 
+> WARNING: CPU: 0 PID: 1 at kernel/irq/manage.c:1348 __setup_irq+0x5d0/0x64c
+> [<c01b0260>] (__setup_irq) from [<c01b0480>]
+> (request_threaded_irq+0xdc/0x188)
+> [<c01b0480>] (request_threaded_irq) from [<c051c780>]
+> (pcs_probe+0x6ec/0x8a4)
+> [<c051c780>] (pcs_probe) from [<c05a84b8>] (platform_drv_probe+0x50/0xb0)
+> [<c05a84b8>] (platform_drv_probe) from [<c05a6288>]
+> (driver_probe_device+0x33c/0x478)
+> 
+> Note that we also need to remove the related enable_irq() to avoid
+> getting the following:
+> 
+> WARNING: CPU: 0 PID: 1 at kernel/irq/manage.c:529 enable_irq+0x34/0x70
+> [<c01afa04>] (enable_irq) from [<c0c0f1fc>] (omap3_pm_init+0x118/0x3f8)
+> [<c0c0f1fc>] (omap3_pm_init) from [<c0c0ae7c>] (am35xx_init_late+0x10/0x18)
+> 
+> Cc: Kevin Hilman <khilman@baylibre.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Something like this:
+Looks fine to me.
 
-Return -ENOSYS as this would just skip mctrl initialization in the
-case of wakeup source usage and not disable the port completely due to
-failed serial8250_register_8250_port().
+-Tero
 
-Yegor
-
->>
->> Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->
-> Suggested-by: I suppose.
->
-> I dunno about documentation part for this property, I leave it for DT
-> people to decide. Below part looks good to me.
->
->> Signed-off-by: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
->> ---
->>  drivers/tty/serial/serial_mctrl_gpio.c | 4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/drivers/tty/serial/serial_mctrl_gpio.c
->> b/drivers/tty/serial/serial_mctrl_gpio.c
->> index d2da6aa..dce661c 100644
->> --- a/drivers/tty/serial/serial_mctrl_gpio.c
->> +++ b/drivers/tty/serial/serial_mctrl_gpio.c
->> @@ -19,6 +19,7 @@
->>  #include <linux/irq.h>
->>  #include <linux/gpio/consumer.h>
->>  #include <linux/termios.h>
->> +#include <linux/property.h>
->>  #include <linux/serial_core.h>
->>  #include <linux/module.h>
->>
->> @@ -118,6 +119,9 @@ struct mctrl_gpios *mctrl_gpio_init_noauto(struct
->> device *dev, unsigned int idx)
->>       struct mctrl_gpios *gpios;
->>       enum mctrl_gpio_idx i;
->>
->> +     if (device_property_present(dev, "wakeup-source"))
->> +             return ERR_PTR(-ENOSYS);
->> +
->>       gpios = devm_kzalloc(dev, sizeof(*gpios), GFP_KERNEL);
->>       if (!gpios)
->>               return ERR_PTR(-ENOMEM);
->
-> --
-> Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Intel Finland Oy
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>   arch/arm/mach-omap2/pm34xx.c  | 1 -
+>   arch/arm/mach-omap2/prm3xxx.c | 7 +------
+>   2 files changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -483,7 +483,6 @@ int __init omap3_pm_init(void)
+>   	ret = request_irq(omap_prcm_event_to_irq("io"),
+>   		_prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
+>   		omap3_pm_init);
+> -	enable_irq(omap_prcm_event_to_irq("io"));
+>   
+>   	if (ret) {
+>   		pr_err("pm: Failed to request pm_io irq\n");
+> diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
+> --- a/arch/arm/mach-omap2/prm3xxx.c
+> +++ b/arch/arm/mach-omap2/prm3xxx.c
+> @@ -692,7 +692,6 @@ static int omap3xxx_prm_late_init(void)
+>   {
+>   	struct device_node *np;
+>   	int irq_num;
+> -	int ret;
+>   
+>   	if (!(prm_features & PRM_HAS_IO_WAKEUP))
+>   		return 0;
+> @@ -712,12 +711,8 @@ static int omap3xxx_prm_late_init(void)
+>   	}
+>   
+>   	omap3xxx_prm_enable_io_wakeup();
+> -	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
+> -	if (!ret)
+> -		irq_set_status_flags(omap_prcm_event_to_irq("io"),
+> -				     IRQ_NOAUTOEN);
+>   
+> -	return ret;
+> +	return omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
+>   }
+>   
+>   static void __exit omap3xxx_prm_exit(void)
+> 
