@@ -1,83 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] device property: Fix usecount for
- of_graph_get_port_parent()
-Date: Thu, 27 Jul 2017 23:01:27 -0700
-Message-ID: <20170728060127.GH10026@atomide.com>
-References: <20170727094405.19778-1-tony@atomide.com>
- <CAL_JsqJ9Xmbws8gBRCxn2Nt=tj1HLnF-MGvnW+oOourvgbm9Nw@mail.gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/3] tty: serial: 8250 introduce mctrl_gpio helpers
+Date: Thu, 27 Jul 2017 23:40:05 -0700
+Message-ID: <20170728064004.GI10026@atomide.com>
+References: <1501161456-13367-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqJ9Xmbws8gBRCxn2Nt=tj1HLnF-MGvnW+oOourvgbm9Nw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>
-Cc: Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Takashi Iwai <tiwai@suse.com>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Linux-ALSA <alsa-devel@alsa-project.org>
+In-Reply-To: <1501161456-13367-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
+Cc: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, jslaby-IBi9RG/b67k@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh+dt@kernel.org> [170727 15:19]:
-> On Thu, Jul 27, 2017 at 4:44 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > --- a/drivers/of/property.c
-> > +++ b/drivers/of/property.c
-> > @@ -708,6 +708,15 @@ struct device_node *of_graph_get_port_parent(struct device_node *node)
-> >  {
-> >         unsigned int depth;
-> >
-> > +       if (!node)
-> > +               return NULL;
-> > +
-> > +       /*
-> > +        * Preserve usecount for passed in node as of_get_next_parent()
-> > +        * will do of_node_put() on it.
-> > +        */
-> > +       of_node_get(node);
+* yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> [170727 06:18]:
+> From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 > 
-> I think this messes up of_graph_get_remote_port_parent(). First it
-> calls of_graph_get_remote_endpoint which returns the endpoint node
-> with ref count incremented. Then you are incrementing it again here.
-
-Hmm OK looks like I missed that one. If we want to have
-of_graph_get_port_parent not trash the node passed to it, we should
-just change things there too:
-
-struct device_node *of_graph_get_remote_port_parent(
-		const struct device_node *node)
-{
-	struct device_node *np, *pp;
-
-	/* Get remote endpoint node. */
-	np = of_graph_get_remote_endpoint(node);
-
-	pp = of_graph_get_port_parent(np);
-	of_node_put(np);
-
-	return pp;
-}
-EXPORT_SYMBOL(of_graph_get_remote_port_parent);
-
-Does that make sense to you?
-
-> > diff --git a/sound/soc/generic/audio-graph-card.c b/sound/soc/generic/audio-graph-card.c
-> > --- a/sound/soc/generic/audio-graph-card.c
-> > +++ b/sound/soc/generic/audio-graph-card.c
-> > @@ -224,7 +224,6 @@ static int asoc_graph_card_parse_of(struct graph_card_data *priv)
-> >
-> >         of_for_each_phandle(&it, rc, node, "dais", NULL, 0) {
-> >                 ret = asoc_graph_card_dai_link_of(it.node, priv, idx++);
-> > -               of_node_put(it.node);
-> >                 if (ret < 0)
-> >                         return ret;
+> This patch series aims to reintroduce the  mctrl_gpio helpers for 8250
+> UARTs.
 > 
-> I think you need a put here.
+> There are some UARTs that use GPIO signals as a wakeup-sourse.
+> The first patch addresses this issue and tries to destinguish GPIO usage
+> via searching for "wakeup-sourse" property. Though it must be decided whether
+> this property is secure to use for this purpose.
 
-Do you mean on error it should be as below, right?
+The wakeup-source part you should be able to handle pretty much
+out of box with Linux generic wakeirqs if configured. See for example
+drivers/i2c/i2c-core.c for the dev_pm_set_dedicated_wake_irq() part.
+As long as the 8250 driver has runtime PM implemented it will wake
+up the 8250 device.
 
-	ret = asoc_graph_card_dai_link_of(it.node, priv, idx++);
-	if (ret < 0) {
-		of_node_put(it.node);
-		return ret;
-	}
+This should work just fine also with am335x gpios, just configure the
+secondary wakeup gpio interrupt using interrupts-extended in device
+tree. Typically the interrupts are named "irq" and "wakeup". And if the
+pin is used as gpio, you can just dev_pm_clear_wake_irq() during
+runtime.
+
+If having issues, we're still missing the wakeirq level configuration,
+the patch below should do the trick there.
 
 Regards,
 
 Tony
+
+8< -----------
+diff --git a/drivers/base/power/wakeirq.c b/drivers/base/power/wakeirq.c
+--- a/drivers/base/power/wakeirq.c
++++ b/drivers/base/power/wakeirq.c
+@@ -198,7 +198,8 @@ int dev_pm_set_dedicated_wake_irq(struct device *dev, int irq)
+ 	 * so we use a threaded irq.
+ 	 */
+ 	err = request_threaded_irq(irq, NULL, handle_threaded_wake_irq,
+-				   IRQF_ONESHOT, dev_name(dev), wirq);
++				   irq_get_trigger_type(irq) | IRQF_ONESHOT,
++				   dev_name(dev), wirq);
+ 	if (err)
+ 		goto err_free;
+ 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
