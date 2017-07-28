@@ -1,47 +1,71 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH v4 4/4] net: ethernet: ti: cpts: fix fifo read in cpts_find_ts
-Date: Fri, 28 Jul 2017 17:30:05 -0500
-Message-ID: <20170728223005.21420-5-grygorii.strashko@ti.com>
-References: <20170728223005.21420-1-grygorii.strashko@ti.com>
+Subject: [PATCH v4 0/4] net: ethernet: ti: cpts: fix tx timestamping timeout
+Date: Fri, 28 Jul 2017 17:30:01 -0500
+Message-ID: <20170728223005.21420-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170728223005.21420-1-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Richard Cochran <richardcochran@gmail.com>
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Wingman Kwok <w-kwok2@ti.com>, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Now the call chain
- cpts_find_ts()
-  |- cpts_fifo_read(cpts, CPTS_EV_PUSH)
+Hi
 
-will stop reading CPTS FIFO if PUSH event is found. But this is not
-expected and CPTS FIFI should be completely drained here. This is most
-probably copy-paste error and it has no negative impact as CPTS_EV_PUSH
-should not be present in FIFO without TS_PUSH request and
-cpts_systim_read() and cpts_find_ts() synchronized by spin_lock.
+With the low Ethernet connection speed cpdma notification about packet
+processing can be received before CPTS TX timestamp event, which is set
+when packet actually left CPSW while cpdma notification is sent when packet
+pushed in CPSW fifo. As result, when connection is slow and CPU is fast
+enough TX timestamping is not working properly.
+Issue was discovered using timestamping tool on am57x boards with Ethernet link
+speed forced to 100M and on am335x-evm with Ethernet link speed forced to 10M.
 
-Correct above by calling cpts_fifo_read() with -1 parameter, so it will
-read all CPTS event from FIFO.
+Patch3 - This series fixes it by introducing TX SKB queue to store PTP SKBs for
+which Ethernet Transmit Event hasn't been received yet and then re-check this
+queue with new Ethernet Transmit Events by scheduling CPTS overflow
+work more often until TX SKB queue is not empty.
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/cpts.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Patch 1,2 - As CPTS overflow work is time critical task it important to ensure
+that its scheduling is not delayed. Unfortunately, There could be significant
+delay in CPTS work schedule under high system load and on -RT which could cause
+CPTS misbehavior due to internal counter overflow and there is no way to tune
+CPTS overflow work execution policy and priority manually. The kthread_worker
+can be used instead of workqueues, as it creates separate named kthread for
+each worker and its its execution policy and priority can be configured
+using chrt tool. Instead of modifying CPTS driver itself it was proposed to
+it was proposed to add PTP auxiliary worker to the PHC subsystem [1], so
+other drivers can benefit from this feature also.
 
-diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index 95a0076..c2121d2 100644
---- a/drivers/net/ethernet/ti/cpts.c
-+++ b/drivers/net/ethernet/ti/cpts.c
-@@ -364,7 +364,7 @@ static u64 cpts_find_ts(struct cpts *cpts, struct sk_buff *skb, int ev_type)
- 		return 0;
- 
- 	spin_lock_irqsave(&cpts->lock, flags);
--	cpts_fifo_read(cpts, CPTS_EV_PUSH);
-+	cpts_fifo_read(cpts, -1);
- 	list_for_each_safe(this, next, &cpts->events) {
- 		event = list_entry(this, struct cpts_event, list);
- 		if (event_expired(event)) {
+[1] https://www.spinics.net/lists/netdev/msg445392.html
+
+changes in v4:
+- fixed memleak in ptp_clock_register()
+- undocumented change in cpts_find_ts() moved to separate patch (minor fix)
+
+changes in v3:
+- patch 1: added proper error handling in ptp_clock_register. 
+  minor comments applied.
+
+changes in v2:
+- added PTP auxiliary worker to the PHC subsystem
+
+Links
+v3: https://www.spinics.net/lists/netdev/msg446058.html
+v2: https://www.spinics.net/lists/netdev/msg445859.html
+v1: https://www.spinics.net/lists/netdev/msg445387.html
+
+Grygorii Strashko (4):
+  ptp: introduce ptp auxiliary worker
+  net: ethernet: ti: cpts: convert to use ptp auxiliary worker
+  net: ethernet: ti: cpts: fix tx timestamping timeout
+  net: ethernet: ti: cpts: fix fifo read in cpts_find_ts
+
+ drivers/net/ethernet/ti/cpts.c   | 111 +++++++++++++++++++++++++++++++++------
+ drivers/net/ethernet/ti/cpts.h   |   2 +-
+ drivers/ptp/ptp_clock.c          |  42 +++++++++++++++
+ drivers/ptp/ptp_private.h        |   3 ++
+ include/linux/ptp_clock_kernel.h |  20 +++++++
+ 5 files changed, 161 insertions(+), 17 deletions(-)
+
 -- 
 2.10.1
