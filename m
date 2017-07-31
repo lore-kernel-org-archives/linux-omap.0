@@ -1,234 +1,146 @@
-From: yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org
-Subject: [PATCH v2 2/3] tty/serial/8250: use mctrl_gpio helpers
-Date: Mon, 31 Jul 2017 09:13:22 +0200
-Message-ID: <1501485203-13185-3-git-send-email-yegorslists@googlemail.com>
-References: <1501485203-13185-1-git-send-email-yegorslists@googlemail.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501485203-13185-1-git-send-email-yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, jslaby-IBi9RG/b67k@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, uwe-rXY34ruvC2xidJT2blvkqNi2O/JbrIOy@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org, Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [BISECTED, REGRESSION] v4.12-rc: omapdrm fails to probe on Nokia
+ N900
+Date: Mon, 31 Jul 2017 15:59:43 +0300
+Message-ID: <1c44c560-a8f3-04e2-9558-1639441e3e32@ti.com>
+References: <20170614221133.k7gmbzzjsbmbjgbc@darkstar.musicnaut.iki.fi>
+ <f7697b9f-b506-bf18-43f9-921ed7f27607@ti.com>
+ <20170629185013.aec7qhvrl3waifww@darkstar.musicnaut.iki.fi>
+ <e0373c98-a2e3-1231-3aa9-2092d012fe7e@ti.com>
+ <20170630085851.j5apctivufhmhp64@darkstar.musicnaut.iki.fi>
+ <5bc9976e-228c-5cba-c2ae-bfc5135f17a0@ti.com>
+ <20170704150902.GB10703@localhost>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============2143186083=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170704150902.GB10703@localhost>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+--===============2143186083==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="lv8Dlu5MqJQeL2cIRFkQ1FgPRak2HQtDj"
 
-This patch permits the usage for GPIOs to control
-the CTS/RTS/DTR/DSR/DCD/RI signals.
+--lv8Dlu5MqJQeL2cIRFkQ1FgPRak2HQtDj
+Content-Type: multipart/mixed; boundary="3jOwMwUT5Jo5FEVgMPx5Waer6rP2FfrqW";
+ protected-headers="v1"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>,
+ linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+ dri-devel@lists.freedesktop.org,
+ Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-ID: <1c44c560-a8f3-04e2-9558-1639441e3e32@ti.com>
+Subject: Re: [BISECTED, REGRESSION] v4.12-rc: omapdrm fails to probe on Nokia
+ N900
+References: <20170614221133.k7gmbzzjsbmbjgbc@darkstar.musicnaut.iki.fi>
+ <f7697b9f-b506-bf18-43f9-921ed7f27607@ti.com>
+ <20170629185013.aec7qhvrl3waifww@darkstar.musicnaut.iki.fi>
+ <e0373c98-a2e3-1231-3aa9-2092d012fe7e@ti.com>
+ <20170630085851.j5apctivufhmhp64@darkstar.musicnaut.iki.fi>
+ <5bc9976e-228c-5cba-c2ae-bfc5135f17a0@ti.com>
+ <20170704150902.GB10703@localhost>
+In-Reply-To: <20170704150902.GB10703@localhost>
 
-Signed-off-by: Yegor Yefremov <yegorslists-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
----
- drivers/tty/serial/8250/8250.h      | 35 ++++++++++++++++++++++++++++++++++-
- drivers/tty/serial/8250/8250_core.c | 12 ++++++++++++
- drivers/tty/serial/8250/8250_omap.c | 31 ++++++++++++++++++-------------
- drivers/tty/serial/8250/8250_port.c |  7 ++++++-
- drivers/tty/serial/8250/Kconfig     |  1 +
- include/linux/serial_8250.h         |  1 +
- 6 files changed, 72 insertions(+), 15 deletions(-)
+--3jOwMwUT5Jo5FEVgMPx5Waer6rP2FfrqW
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/tty/serial/8250/8250.h b/drivers/tty/serial/8250/8250.h
-index b2bdc35..c47ef69 100644
---- a/drivers/tty/serial/8250/8250.h
-+++ b/drivers/tty/serial/8250/8250.h
-@@ -15,6 +15,8 @@
- #include <linux/serial_reg.h>
- #include <linux/dmaengine.h>
- 
-+#include "../serial_mctrl_gpio.h"
-+
- struct uart_8250_dma {
- 	int (*tx_dma)(struct uart_8250_port *p);
- 	int (*rx_dma)(struct uart_8250_port *p);
-@@ -145,12 +147,43 @@ void serial8250_em485_destroy(struct uart_8250_port *p);
- 
- static inline void serial8250_out_MCR(struct uart_8250_port *up, int value)
- {
-+	int mctrl_gpio = 0;
-+
- 	serial_out(up, UART_MCR, value);
-+
-+	if (value & UART_MCR_RTS)
-+		mctrl_gpio |= TIOCM_RTS;
-+	if (value & UART_MCR_DTR)
-+		mctrl_gpio |= TIOCM_DTR;
-+
-+	mctrl_gpio_set(up->gpios, mctrl_gpio);
- }
- 
- static inline int serial8250_in_MCR(struct uart_8250_port *up)
- {
--	return serial_in(up, UART_MCR);
-+	int mctrl, mctrl_gpio = 0;
-+
-+	mctrl = serial_in(up, UART_MCR);
-+
-+	/* save current MCR values */
-+	if (mctrl & UART_MCR_RTS)
-+		mctrl_gpio |= TIOCM_RTS;
-+	if (mctrl & UART_MCR_DTR)
-+		mctrl_gpio |= TIOCM_DTR;
-+
-+	mctrl_gpio = mctrl_gpio_get_outputs(up->gpios, &mctrl_gpio);
-+
-+	if (mctrl_gpio & TIOCM_RTS)
-+		mctrl |= UART_MCR_RTS;
-+	else
-+		mctrl &= ~UART_MCR_RTS;
-+
-+	if (mctrl_gpio & TIOCM_DTR)
-+		mctrl |= UART_MCR_DTR;
-+	else
-+		mctrl &= ~UART_MCR_DTR;
-+
-+	return mctrl;
- }
- 
- #if defined(__alpha__) && !defined(CONFIG_PCI)
-diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
-index b5def35..3371c5c 100644
---- a/drivers/tty/serial/8250/8250_core.c
-+++ b/drivers/tty/serial/8250/8250_core.c
-@@ -975,6 +975,8 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
- 
- 	uart = serial8250_find_match_or_unused(&up->port);
- 	if (uart && uart->port.type != PORT_8250_CIR) {
-+		struct mctrl_gpios *gpios;
-+
- 		if (uart->port.dev)
- 			uart_remove_one_port(&serial8250_reg, &uart->port);
- 
-@@ -1012,6 +1014,15 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
- 		if (up->port.flags & UPF_FIXED_TYPE)
- 			uart->port.type = up->port.type;
- 
-+		gpios = mctrl_gpio_init(&uart->port, 0);
-+		if (IS_ERR(gpios)) {
-+			if (PTR_ERR(gpios) != -ENOSYS) {
-+				ret = PTR_ERR(gpios);
-+				goto out;
-+			}
-+		} else
-+			uart->gpios = gpios;
-+
- 		serial8250_set_defaults(uart);
- 
- 		/* Possibly override default I/O functions.  */
-@@ -1051,6 +1062,7 @@ int serial8250_register_8250_port(struct uart_8250_port *up)
- 		if (ret == 0)
- 			ret = uart->port.line;
- 	}
-+out:
- 	mutex_unlock(&serial_mutex);
- 
- 	return ret;
-diff --git a/drivers/tty/serial/8250/8250_omap.c b/drivers/tty/serial/8250/8250_omap.c
-index 833771b..93fe5b9 100644
---- a/drivers/tty/serial/8250/8250_omap.c
-+++ b/drivers/tty/serial/8250/8250_omap.c
-@@ -134,18 +134,21 @@ static void omap8250_set_mctrl(struct uart_port *port, unsigned int mctrl)
- 
- 	serial8250_do_set_mctrl(port, mctrl);
- 
--	/*
--	 * Turn off autoRTS if RTS is lowered and restore autoRTS setting
--	 * if RTS is raised
--	 */
--	lcr = serial_in(up, UART_LCR);
--	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
--	if ((mctrl & TIOCM_RTS) && (port->status & UPSTAT_AUTORTS))
--		priv->efr |= UART_EFR_RTS;
--	else
--		priv->efr &= ~UART_EFR_RTS;
--	serial_out(up, UART_EFR, priv->efr);
--	serial_out(up, UART_LCR, lcr);
-+	if (IS_ERR_OR_NULL(mctrl_gpio_to_gpiod(up->gpios,
-+						UART_GPIO_RTS))) {
-+		/*
-+		 * Turn off autoRTS if RTS is lowered and restore autoRTS
-+		 * setting if RTS is raised
-+		 */
-+		lcr = serial_in(up, UART_LCR);
-+		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-+		if ((mctrl & TIOCM_RTS) && (port->status & UPSTAT_AUTORTS))
-+			priv->efr |= UART_EFR_RTS;
-+		else
-+			priv->efr &= ~UART_EFR_RTS;
-+		serial_out(up, UART_EFR, priv->efr);
-+		serial_out(up, UART_LCR, lcr);
-+	}
- }
- 
- /*
-@@ -446,7 +449,9 @@ static void omap_8250_set_termios(struct uart_port *port,
- 	priv->efr = 0;
- 	up->port.status &= ~(UPSTAT_AUTOCTS | UPSTAT_AUTORTS | UPSTAT_AUTOXOFF);
- 
--	if (termios->c_cflag & CRTSCTS && up->port.flags & UPF_HARD_FLOW) {
-+	if (termios->c_cflag & CRTSCTS && up->port.flags & UPF_HARD_FLOW
-+		&& IS_ERR_OR_NULL(mctrl_gpio_to_gpiod(up->gpios,
-+							UART_GPIO_RTS))) {
- 		/* Enable AUTOCTS (autoRTS is enabled when RTS is raised) */
- 		up->port.status |= UPSTAT_AUTOCTS | UPSTAT_AUTORTS;
- 		priv->efr |= UART_EFR_CTS;
-diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
-index a5fe0e6..f173cda 100644
---- a/drivers/tty/serial/8250/8250_port.c
-+++ b/drivers/tty/serial/8250/8250_port.c
-@@ -1631,6 +1631,8 @@ static void serial8250_disable_ms(struct uart_port *port)
- 	if (up->bugs & UART_BUG_NOMSR)
- 		return;
- 
-+	mctrl_gpio_disable_ms(up->gpios);
-+
- 	up->ier &= ~UART_IER_MSI;
- 	serial_port_out(port, UART_IER, up->ier);
- }
-@@ -1643,6 +1645,8 @@ static void serial8250_enable_ms(struct uart_port *port)
- 	if (up->bugs & UART_BUG_NOMSR)
- 		return;
- 
-+	mctrl_gpio_enable_ms(up->gpios);
-+
- 	up->ier |= UART_IER_MSI;
- 
- 	serial8250_rpm_get(up);
-@@ -1946,7 +1950,8 @@ unsigned int serial8250_do_get_mctrl(struct uart_port *port)
- 		ret |= TIOCM_DSR;
- 	if (status & UART_MSR_CTS)
- 		ret |= TIOCM_CTS;
--	return ret;
-+
-+	return mctrl_gpio_get(up->gpios, &ret);
- }
- EXPORT_SYMBOL_GPL(serial8250_do_get_mctrl);
- 
-diff --git a/drivers/tty/serial/8250/Kconfig b/drivers/tty/serial/8250/Kconfig
-index a1161ec..c0e51b0 100644
---- a/drivers/tty/serial/8250/Kconfig
-+++ b/drivers/tty/serial/8250/Kconfig
-@@ -6,6 +6,7 @@
- config SERIAL_8250
- 	tristate "8250/16550 and compatible serial support"
- 	select SERIAL_CORE
-+	select SERIAL_MCTRL_GPIO if GPIOLIB
- 	---help---
- 	  This selects whether you want to include the driver for the standard
- 	  serial ports.  The standard answer is Y.  People who might say N
-diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
-index 61fbb44..23b6ab1 100644
---- a/include/linux/serial_8250.h
-+++ b/include/linux/serial_8250.h
-@@ -113,6 +113,7 @@ struct uart_8250_port {
- 						 *   if no_console_suspend
- 						 */
- 	unsigned char		probe;
-+	struct mctrl_gpios	*gpios;
- #define UART_PROBE_RSA	(1 << 0)
- 
- 	/*
--- 
-2.1.4
+On 04/07/17 18:09, Pavel Machek wrote:
+> Hi!
+>=20
+>>>>>> Are you sure it doesn't probe? It fails the omapdss_stack_is_ready=
+()
+>>>>>> check?
+>>>>>
+>>>>> It appears the reason was that I didn't have
+>>>>> CONFIG_DRM_OMAP_CONNECTOR_ANALOG_TV enabled.
+>>>>>
+>>>>> I think that's wrong. I don't own an analog TV, so why should I ena=
+ble
+>>>>> such option to get device's built-in display working?
+>>>>
+>>>> Indeed. Unfortunately I don't have a solution for that.
+>>>>
+>>>> DRM doesn't support adding devices after probe. So at omapdrm probe =
+time
+>>>> we have to decide which displays to use. In the dts file, n900 defin=
+es
+>>>> the lcd and analog tv. omapdrm sees those, and, of course, must wait=
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>> until their respective drivers have probed. If you don't have the
+>>>> display driver enabled, it's never loaded and omapdrm never probes a=
+s it
+>>>> keeps waiting for those.
+>>>
+>>> Could you at least print some kind of message early in the boot ("oma=
+pdrm
+>>> is waiting for drivers for display x and y")?
+>>
+>> That could be quite spammy. omapdrm will defer probe if the displays a=
+re
+>> not present, and the deferred probing machinery will then cause a new
+>> omapdrm probe later. That can happen a lot of times before the drivers=
+
+>> are there.
+>=20
+> Well doing printk just once should not be a problem...?
+
+I'm not sure if that would really help much... And you would practically
+always see the print, even when everything works fine, which would be
+useless and could raise false alarms.
+
+ Tomi
+
+
+--3jOwMwUT5Jo5FEVgMPx5Waer6rP2FfrqW--
+
+--lv8Dlu5MqJQeL2cIRFkQ1FgPRak2HQtDj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJZfym/AAoJEPo9qoy8lh71ja4QAIGer74qfoFCdW52GBliFdWq
+jOC3mVREQOYmdHMENmIAPiGN8f/T0vEJqFdsprJes1IR7FNIb179AvV2AlCBQRSB
+GbEXL87O7nP3PlUB6b9bQGOjoauUEgzy0d3QEtb7DZkg+6tBKbGuCit1eiyN4e/N
+m18KjZrnFldMJuou4H6txILO7bTcU/odEiCQ7YhW0LMMKBpO4rew5HvH1C1cmGsU
+k7OVkE4UdpyBWaiY6urpr2t0MHKfAbQdsDvLkpvGckcYEKyJUdTdZcCoYlQUyqCU
+HHdxCRfLja86vGQvaPqNIairORwJGBEyGLvDKnD/WVNFZwGh8GVkJ2er7aovKNXi
+Twt3xcFBHHbdANFqpO6ZM3c72sMZbmfwDzWz6RyF5YtH3vcCmLYeVhqvzt/XV4HW
+l8HolqtOHAUwfHtiXx1n/kATI8ODUyO3iKgWWKo8/ecHtXCi04mPxkYzrNK9cnN8
+xpC0n5ph9G+kBcV1oLilrhn/Vt9YHJkIvt3+Oy5sgpPIzXHlZXyFCRnR5KQMg1Oj
+bZzEe1B4rpqVfaKGgW+tC4l8xvf81FhFMSoT8YqqQXSi1X3xd7R57AXR851SfDKZ
+BzadUtJe+EtlRJfmCeEAjl6rD/bL3p+fbScmMnZYyhUYjWDHaUtco1rSLzECirJq
+oJgLig0/Ob9WUlYTn4Or
+=rYLb
+-----END PGP SIGNATURE-----
+
+--lv8Dlu5MqJQeL2cIRFkQ1FgPRak2HQtDj--
+
+--===============2143186083==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============2143186083==--
