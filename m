@@ -1,62 +1,46 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH] gpio: drop unnecessary includes from
- include/linux/gpio/driver.h
-Date: Mon, 31 Jul 2017 17:04:27 +0300
-Message-ID: <1501509867.29303.303.camel@linux.intel.com>
-References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
-         <1499162760.22624.246.camel@linux.intel.com>
-         <CACRpkdaxgxaXV8XjLTzu68JqjyeZ8Jr2YMR3L46wm3zmnMrPsg@mail.gmail.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH RESEND] fbdev: omapfb: remove unused variable
+Date: Mon, 31 Jul 2017 18:38:19 +0200
+Message-ID: <2971705.ICzXV4uNZt@amdc3058>
+References: <CGME20170726135825epcas4p3c5326b3893927c4be0db0fde076d0799@epcas4p3.samsung.com>
+ <20170726135816.2216688-1-arnd@arndb.de> <10646277.hB6jvi1uWb@amdc3058>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdaxgxaXV8XjLTzu68JqjyeZ8Jr2YMR3L46wm3zmnMrPsg@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Ray Jui <rjui@broadcom.com>, =?ISO-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kevin Hilman <khilman@kernel.org>"linux-tegra@vger.kernel.org" <l>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-reply-to: <10646277.hB6jvi1uWb@amdc3058>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 2017-07-31 at 15:48 +0200, Linus Walleij wrote:
-> On Tue, Jul 4, 2017 at 12:06 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Tue, 2017-07-04 at 12:53 +0900, Masahiro Yamada wrote:
-> > > Some of include directives in include/linux/gpio/driver.h are
-> > > unneeded because the header does not need to know the content of
-> > > struct device, irq_chip, etc.  Just declare they are structures.
-> > > 
-> > > On the other hand, <linux/irqhandler.h> and
-> > > <linux/spinlock_types.h>
-> > > turned out to be necessary for irq_flow_handler_t and spinlock_t,
-> > > respectively.
-> > > 
-> > > Each driver should include what it needs without relying on what
-> > > is
-> > > implicitly included from <linux/gpio/driver.h>.  This will cut
-> > > down
-> > > unnecessary header parsing.
-> > 
-> > If Linus is okay with the following proposal I would rather go with
-> > it,
-> > i.e. logical split the series to
-> > 
-> > 1. Fix IRQ related headers inclusion
-> > 2. Fix pinconf-generic.h inclusion
-> > 3. Fix OF headers inclusion (btw, of_gpio.h is not enough there?)
-> 
-> That works fine with me, but also one big patch actually, I do not
-> want to make it too much work to refactor obviously incorrect things.
-> 
-> As soon as we have rough consensus on this and the build robot
-> are happy I will apply it to GPIO and also pull it into the pinctrl
-> subsystem.
-
-For me priorities like this:
-1) it works after the patch being applied (no regressions);
-2) it makes code cleaner at the end;
-3) it is presented in logically split parts.
-
-So, as long as 1) and 2) are satisfied I can neglect on 3).
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+T24gV2VkbmVzZGF5LCBKdWx5IDI2LCAyMDE3IDA0OjI3OjMwIFBNIEJhcnRsb21pZWogWm9sbmll
+cmtpZXdpY3ogd3JvdGU6Cj4gCj4gSGksCj4gCj4gT24gV2VkbmVzZGF5LCBKdWx5IDI2LCAyMDE3
+IDAzOjU3OjU1IFBNIEFybmQgQmVyZ21hbm4gd3JvdGU6Cj4gPiBSZW1vdmluZyB0aGUgZGVmYXVs
+dCBkaXNwbGF5IG5hbWUgbGVmdCBhIGhhcm1sZXNzIHdhcm5pbmc6Cj4gPiAKPiA+IGZiZGV2L29t
+YXAyL29tYXBmYi9kc3MvY29yZS5jOiBJbiBmdW5jdGlvbiAnb21hcF9kc3NfcHJvYmUnOgo+ID4g
+ZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9jb3JlLmM6MTk2OjMwOiBlcnJvcjogdW51c2VkIHZhcmlh
+YmxlICdwZGF0YScgWy1XZXJyb3I9dW51c2VkLXZhcmlhYmxlXQo+ID4gCj4gPiBUaGlzIHJlbW92
+ZXMgdGhlIG5vdy11bnVzZWQgdmFyaWFibGUgYXMgd2VsbC4KPiA+IAo+ID4gRml4ZXM6IDI3OGNi
+YTdlYWY1NCAoImRybTogb21hcGRybTogUmVtb3ZlIHVudXNlZCBkZWZhdWx0IGRpc3BsYXkgbmFt
+ZSBzdXBwb3J0IikKPiA+IFNpZ25lZC1vZmYtYnk6IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIu
+ZGU+Cj4gPiBSZXZpZXdlZC1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBp
+ZGVhc29uYm9hcmQuY29tPgo+ID4gLS0tCj4gPiBPcmlnaW5hbGx5IHN1Ym1pdHRlZCBvbiBKdW5l
+IDksIG5vIHJlcGx5IG90aGVyIHRoYW4gdGhlIFJldmlld2VkLWJ5IHRhZy4KPiA+IFRoZSBwYXRj
+aCBpcyBzdGlsbCBuZWVkZWQKPiAKPiBJdCBpcyBub3QgbG9zdCBhbmQgd2lsbCBiZSBxdWV1ZWQg
+Zm9yIDQuMTMgZmJkZXYgZml4ZXMgcHVsbCByZXF1ZXN0Lgo+IAo+IFsgVGhlIGd1aWx0eSBjb21t
+aXQgd2VudCB0aHJvdWdoIERSTSB0cmVlIGFuZCBwdWxsaW5nIGl0IGludG8gZmJkZXYKPiAgIHRy
+ZWUganVzdCB0byBmaXggdGhlIHdhcm5pbmcgd2FzIG5vdCBmZWFzaWJsZS4uIF0KClBhdGNoIHF1
+ZXVlZCBmb3IgNC4xMywgdGhhbmtzLiAKCkJlc3QgcmVnYXJkcywKLS0KQmFydGxvbWllaiBab2xu
+aWVya2lld2ljegpTYW1zdW5nIFImRCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcgRWxlY3Ryb25p
+Y3MKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
+ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
+L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
