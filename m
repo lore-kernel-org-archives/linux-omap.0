@@ -1,47 +1,46 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH 2/2] gpio: omap : Add missing clk_unprepare().
-Date: Tue, 1 Aug 2017 14:40:07 -0500
-Message-ID: <6a5f3a21-c69f-1437-85fb-bd5fafc07f52@ti.com>
-References: <e84a2b010f0632369030f92fa30572ba1e4aaaf2.1501569628.git.arvind.yadav.cs@gmail.com>
- <f41f83c5a540065ca9fc1cae754b5b4d4a2749a2.1501569628.git.arvind.yadav.cs@gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v4 0/4] net: ethernet: ti: cpts: fix tx timestamping
+ timeout
+Date: Tue, 01 Aug 2017 15:24:48 -0700 (PDT)
+Message-ID: <20170801.152448.1138483934474397257.davem@davemloft.net>
+References: <20170728223005.21420-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <f41f83c5a540065ca9fc1cae754b5b4d4a2749a2.1501569628.git.arvind.yadav.cs@gmail.com>
-Content-Language: en-US
-Sender: linux-gpio-owner@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>, ssantosh@kernel.org, khilman@kernel.org, linus.walleij@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170728223005.21420-1-grygorii.strashko@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, richardcochran@gmail.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, w-kwok2@ti.com, ivan.khoronzhuk@linaro.org, john.stultz@linaro.org, tglx@linutronix.de
 List-Id: linux-omap@vger.kernel.org
 
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Date: Fri, 28 Jul 2017 17:30:01 -0500
 
-
-On 08/01/2017 01:44 AM, Arvind Yadav wrote:
-> omap_gpio_probe() can fail here and we must disable clock.
+> With the low Ethernet connection speed cpdma notification about packet
+> processing can be received before CPTS TX timestamp event, which is set
+> when packet actually left CPSW while cpdma notification is sent when packet
+> pushed in CPSW fifo. As result, when connection is slow and CPU is fast
+> enough TX timestamping is not working properly.
+> Issue was discovered using timestamping tool on am57x boards with Ethernet link
+> speed forced to 100M and on am335x-evm with Ethernet link speed forced to 10M.
 > 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-> ---
->   drivers/gpio/gpio-omap.c | 2 ++
->   1 file changed, 2 insertions(+)
+> Patch3 - This series fixes it by introducing TX SKB queue to store PTP SKBs for
+> which Ethernet Transmit Event hasn't been received yet and then re-check this
+> queue with new Ethernet Transmit Events by scheduling CPTS overflow
+> work more often until TX SKB queue is not empty.
 > 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index f8c550de..dbf869f 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1247,6 +1247,8 @@ static int omap_gpio_probe(struct platform_device *pdev)
->   	if (ret) {
->   		pm_runtime_put_sync(dev);
->   		pm_runtime_disable(dev);
-> +		if (bank->dbck_flag)
-> +			clk_unprepare(bank->dbck);
->   		return ret;
->   	}
->   
+> Patch 1,2 - As CPTS overflow work is time critical task it important to ensure
+> that its scheduling is not delayed. Unfortunately, There could be significant
+> delay in CPTS work schedule under high system load and on -RT which could cause
+> CPTS misbehavior due to internal counter overflow and there is no way to tune
+> CPTS overflow work execution policy and priority manually. The kthread_worker
+> can be used instead of workqueues, as it creates separate named kthread for
+> each worker and its its execution policy and priority can be configured
+> using chrt tool. Instead of modifying CPTS driver itself it was proposed to
+> it was proposed to add PTP auxiliary worker to the PHC subsystem [1], so
+> other drivers can benefit from this feature also.
 > 
+> [1] https://www.spinics.net/lists/netdev/msg445392.html
 
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-
--- 
-regards,
--grygorii
+Series applied to 'net', thanks.
