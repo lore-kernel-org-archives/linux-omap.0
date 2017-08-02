@@ -1,46 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v4 0/4] net: ethernet: ti: cpts: fix tx timestamping
- timeout
-Date: Tue, 01 Aug 2017 15:24:48 -0700 (PDT)
-Message-ID: <20170801.152448.1138483934474397257.davem@davemloft.net>
-References: <20170728223005.21420-1-grygorii.strashko@ti.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [PATCH] gpio: drop unnecessary includes from include/linux/gpio/driver.h
+Date: Wed, 2 Aug 2017 10:19:32 +0900
+Message-ID: <CAK7LNASoNWVxJCRneD1GFo41vw0+9oduzLq1Jep_f3ckABfA1A@mail.gmail.com>
+References: <1499140415-31677-1-git-send-email-yamada.masahiro@socionext.com>
+ <1499162760.22624.246.camel@linux.intel.com> <CACRpkdaxgxaXV8XjLTzu68JqjyeZ8Jr2YMR3L46wm3zmnMrPsg@mail.gmail.com>
+ <1501509867.29303.303.camel@linux.intel.com> <CACRpkdZ9q5vub3sQkA2xsQaZ+CGHeAp4RRueposnTPiHoFbSsA@mail.gmail.com>
+ <CAHp75VeLwM8Q5vVLeeGz9hL8AWa2J47NTaeX0ogJk6v7y18diw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170728223005.21420-1-grygorii.strashko@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, richardcochran@gmail.com, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, w-kwok2@ti.com, ivan.khoronzhuk@linaro.org, john.stultz@linaro.org, tglx@linutronix.de
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <CAHp75VeLwM8Q5vVLeeGz9hL8AWa2J47NTaeX0ogJk6v7y18diw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, William Breathitt Gray <vilhelm.gray@gmail.com>, Ray Jui <rjui@broadcom.com>, =?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>, David Cohen <david.a.cohen@linux.intel.com>, Scott Branden <sbranden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>, Florian Fainelli <f.fainelli@gmail.com>, Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, Alexander Shiyan <shc_work@mail.ru>, Michal Simek <michal.simek@xilinx.com>, Kevin Hilman <khilman@kernel.org>, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Fri, 28 Jul 2017 17:30:01 -0500
+Hi.
 
-> With the low Ethernet connection speed cpdma notification about packet
-> processing can be received before CPTS TX timestamp event, which is set
-> when packet actually left CPSW while cpdma notification is sent when packet
-> pushed in CPSW fifo. As result, when connection is slow and CPU is fast
-> enough TX timestamping is not working properly.
-> Issue was discovered using timestamping tool on am57x boards with Ethernet link
-> speed forced to 100M and on am335x-evm with Ethernet link speed forced to 10M.
-> 
-> Patch3 - This series fixes it by introducing TX SKB queue to store PTP SKBs for
-> which Ethernet Transmit Event hasn't been received yet and then re-check this
-> queue with new Ethernet Transmit Events by scheduling CPTS overflow
-> work more often until TX SKB queue is not empty.
-> 
-> Patch 1,2 - As CPTS overflow work is time critical task it important to ensure
-> that its scheduling is not delayed. Unfortunately, There could be significant
-> delay in CPTS work schedule under high system load and on -RT which could cause
-> CPTS misbehavior due to internal counter overflow and there is no way to tune
-> CPTS overflow work execution policy and priority manually. The kthread_worker
-> can be used instead of workqueues, as it creates separate named kthread for
-> each worker and its its execution policy and priority can be configured
-> using chrt tool. Instead of modifying CPTS driver itself it was proposed to
-> it was proposed to add PTP auxiliary worker to the PHC subsystem [1], so
-> other drivers can benefit from this feature also.
-> 
-> [1] https://www.spinics.net/lists/netdev/msg445392.html
+2017-08-01 20:04 GMT+09:00 Andy Shevchenko <andy.shevchenko@gmail.com>:
+> On Tue, Aug 1, 2017 at 10:53 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
+>> On Mon, Jul 31, 2017 at 4:04 PM, Andy Shevchenko
+>> <andriy.shevchenko@linux.intel.com> wrote:
+>>> On Mon, 2017-07-31 at 15:48 +0200, Linus Walleij wrote:
+>>>> On Tue, Jul 4, 2017 at 12:06 PM, Andy Shevchenko
+>>>> <andriy.shevchenko@linux.intel.com> wrote:
+>
+>>>> > If Linus is okay with the following proposal I would rather go with
+>>>> > it,
+>>>> > i.e. logical split the series to
+>>>> >
+>>>> > 1. Fix IRQ related headers inclusion
+>>>> > 2. Fix pinconf-generic.h inclusion
+>>>> > 3. Fix OF headers inclusion (btw, of_gpio.h is not enough there?)
+>>>>
+>>>> That works fine with me, but also one big patch actually, I do not
+>>>> want to make it too much work to refactor obviously incorrect things.
+>>>>
+>>>> As soon as we have rough consensus on this and the build robot
+>>>> are happy I will apply it to GPIO and also pull it into the pinctrl
+>>>> subsystem.
+>>>
+>>> For me priorities like this:
+>>> 1) it works after the patch being applied (no regressions);
+>>> 2) it makes code cleaner at the end;
+>>> 3) it is presented in logically split parts.
+>>>
+>>> So, as long as 1) and 2) are satisfied I can neglect on 3).
+>>
+>> We are in violent agreement :D
+>
+> What I would like to say is that is up to you after all :-)
+> For me looks better to split.
 
-Series applied to 'net', thanks.
+
+
+I will split this into sensible chunks.
+
+
+As I mentioned before, linux/gpio/driver.h is included from several sub-systems,
+so I need at least two development cycles to finish this task.
+
+
+Maybe,
+
+[1] Send patches to subsystems (gpio, pinctrl, etc.) for v4.14
+     (splitting into sensible chunks, like per-driver)
+[2] Drop unneeded includes from linux/gpio/driver.h for v4.15
+
+
+
+
+-- 
+Best Regards
+Masahiro Yamada
