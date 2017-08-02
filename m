@@ -1,74 +1,75 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH] ARM: dts: am437x-gp-evm: Add support for buzzer
-Date: Wed, 2 Aug 2017 15:00:49 +0530
-Message-ID: <c135a805-868a-87fc-ce78-b4e49139211d@ti.com>
-References: <1497935361-11019-1-git-send-email-faiz_abbas@ti.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [BISECTED, REGRESSION] v4.12-rc: omapdrm fails to probe on Nokia
+ N900
+Date: Wed, 2 Aug 2017 12:12:12 +0200
+Message-ID: <20170802101212.33zdmacx4olvwbgw@phenom.ffwll.local>
+References: <20170614221133.k7gmbzzjsbmbjgbc@darkstar.musicnaut.iki.fi>
+ <f7697b9f-b506-bf18-43f9-921ed7f27607@ti.com>
+ <20170629185013.aec7qhvrl3waifww@darkstar.musicnaut.iki.fi>
+ <e0373c98-a2e3-1231-3aa9-2092d012fe7e@ti.com>
+ <20170630123627.l2c46kprbyihkvyy@phenom.ffwll.local>
+ <06d8cdc8-7449-9ac4-c791-1ed8f01c15b0@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1497935361-11019-1-git-send-email-faiz_abbas@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com
-Cc: mark.rutland@arm.com, devicetree@vger.kernel.org, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, robh+dt@kernel.org, bcousson@baylibre.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <06d8cdc8-7449-9ac4-c791-1ed8f01c15b0@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Tuesday 20 June 2017 10:39 AM, Faiz Abbas wrote:
-> Add support for onboard gpio buzzer. It works using
-> the gpio-beeper driver. Pinmux entries for GPIO
-> controlling the buzzer are also added.
-
-Gentle ping
-
-Regards,
-Faiz
-> 
-> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
-> ---
->  arch/arm/boot/dts/am437x-gp-evm.dts | 14 ++++++++++++++
->  1 file changed, 14 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
-> index 397e98b..24cdf6d 100644
-> --- a/arch/arm/boot/dts/am437x-gp-evm.dts
-> +++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-> @@ -149,6 +149,13 @@
->  			system-clock-frequency = <12000000>;
->  		};
->  	};
-> +
-> +	beeper: beeper {
-> +		compatible = "gpio-beeper";
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&beeper_pins>;
-> +		gpios = <&gpio4 12 GPIO_ACTIVE_HIGH>;
-> +	};
->  };
->  
->  &am43xx_pinmux {
-> @@ -510,6 +517,13 @@
->  			AM4372_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
->  		>;
->  	};
-> +
-> +	beeper_pins: beeper_pins {
-> +		pinctrl-single,pins = <
-> +			AM4372_IOPAD(0x9e0, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* cam1_field.gpio4_12 */
-> +		>;
-> +	};
-> +
->  };
->  
->  &uart0 {
-> 
+T24gTW9uLCBKdWwgMzEsIDIwMTcgYXQgMDQ6MjE6NTFQTSArMDMwMCwgVG9taSBWYWxrZWluZW4g
+d3JvdGU6Cj4gT24gMzAvMDYvMTcgMTU6MzYsIERhbmllbCBWZXR0ZXIgd3JvdGU6Cj4gCj4gPiBJ
+IGRvbid0IHRoaW5rIHJlZ2lzdGVyaW5nIGJlZm9yZSBldmVyeXRoaW5nIGlzIGxvYWRlZCBtYWtl
+IHNlbnNlLiBPbiB0aGUKPiA+IGJpZyBkZXNrdG9wIGRyaXZlciBjaGlwcyB3ZSBoYXZlIGFsbCB0
+aGUgYnJpZGdlL2VuY29kZXIvcGFuZWwgZHJpdmVycwo+ID4gYnVpbHQgaW50byB0aGUgZHJpdmVy
+LiBhcm0tc29jIGxvdmVzIHRvIG1ha2UgZXZlcnl0aGluZyBhIHNlcGFyYXRlIG1vZHVsZSwKPiA+
+IGJ1dCBpbiB0aGUgZW5kIGlmIHlvdSBkZWNpZGVkIHRvIG5vdCBjb21waWxlIGhhbGYgb2YgdGhl
+IGRyaXZlciB5b3UgbmVlZCwKPiA+IHRoZW4gaXQncyBub3QgZ29pbmcgdG8gd29yay4KPiAKPiBJ
+IGRvbid0IHRoaW5rIHRoYXQncyBxdWl0ZSB0aGUgc2FtZS4gT24gdGhlIGRlc2t0b3AgeW91IGp1
+c3QgaGF2ZSB0aGUKPiB2aWRlbyBjYXJkLCBhbmQgaXQncyBlYXN5IHRvIGVuYWJsZSB0aGF0IHNp
+bmdsZSBjb21wb25lbnQuIE9uIGFuCj4gZW1iZWRkZWQgZGV2aWNlIHlvdSBoYXZlIHRoZSBTb0Mn
+cyBkaXNwbGF5IGNvbnRyb2xsZXIgYW5kIHRoZW4gcG9zc2libHkKPiBtdWx0aXBsZSBleHRlcm5h
+bCBlbmNvZGVycy9wYW5lbHMgb24gdGhlIGJvYXJkLiBUaG9zZSBleHRlcm5hbAo+IGNvbXBvbmVu
+dHMgaGF2ZSB0byBiZSBzZXBhcmF0ZSBtb2R1bGVzLCB0aGV5IGNhbid0IGJlIHBhcnQgb2YgdGhl
+IFNvQwo+IGRyaXZlci4gVGhlIGRlc2t0b3AgdmlkZW8gY2FyZCBtYXRjaGVzIG9ubHkgdG8gdGhl
+IFNvQydzIGRpc3BsYXkgY29udHJvbGxlci4KClBsZWFzZSB0YWtlIGEgbG9vayBhdCB0aGUgZW5j
+b2RlciBkcml2ZXJzIGJvdGggbm91dmVhdSBhbmQgaTkxNSBoYXZlIGhhZAooZm9yIG9sZGVyIGh3
+KS4gSW4gbmVpdGhlciBvZiB0aGVzZSBjYXNlcyBkaWQgd2UgcmVnaXN0ZXIgYW4gaW5jb21wbGV0
+ZQpkcml2ZXIuCgo+ID4gSW1vIHRoZSBvbmx5IHRoaW5nIHdlIHNob3VsZCBzdXBwb3J0IHRvIGJl
+IGhvdHBsdWdnZWQgaW4gZHJtIGlzIHN0dWZmIHlvdQo+ID4gY2FuIHBoeXNpY2FsbHkgaG90cGx1
+ZyAobGlrZSBhdG0gY29ubmVjdG9ycykuIEV2ZXJ5dGhpbmcgZWxzZSBqdXN0Cj4gPiBjb21wbGlj
+YXRlcyB0aGUgY29kZSBmb3Igbm8gZ29vZCByZWFzb24gYXQgYWxsLgo+IAo+ICJ1bnBsdWdnaW5n
+IiBjb21wb25lbnRzIHdvdWxkIG5vdCBnaXZlIG11Y2gsIEkgdGhpbmssIGJ1dCBhbGxvd2luZwo+
+IGFkZGluZyBuZXcgZGlzcGxheXMgYXQgcnVudGltZSB3b3VsZCBiZSBhIHZlcnkgZ29vZCB0aGlu
+Zy4KCldlIGRvLCBqdXN0IHJlZ2lzdGVyIGFub3RoZXIgZHJtX2RldmljZS4KCj4gSXQncyBub3Qg
+b25seSBhYm91dCBtaXN0YWtlbmx5IGhhdmluZyB0aGUgZHJpdmVyIGRpc2FibGVkIGluIHRoZSBr
+ZXJuZWwKPiBjb25maWcsIGl0IGNvdWxkIGFsc28gYmUgdGhhdCBzb21lIGJhc2UgZHJpdmVyIGZh
+aWxlZCB0byBwcm9iZSwgd2hpY2gKPiB0aGVuIG1ha2VzIGFuIGVuY29kZXIgb3IgYSBwYW5lbCB0
+byBkZWZlciBwcm9iaW5nIGFzIGl0IGNhbid0IGdldCB0aGUKPiBiYXNlIHJlc291cmNlLiBCdXQg
+SERNSSBvciBzb21lIG90aGVyIHBhbmVsIHdvdWxkIHdvcmsgZmluZSwgYnV0IHdpdGgKPiBjdXJy
+ZW50IGFyY2hpdGVjdHVyZSBjYW4ndCBiZSB1c2VkLgo+IAo+IEFuZCBpZiB5b3UgcmVhbGx5IHdh
+bnQgdG8gb3B0aW1pemUsIG9uZSBhIHBob25lLXR5cGUgZGV2aWNlIHlvdSBjb3VsZAo+IGhhdmUg
+dGhlIExDRCBkcml2ZXIgYnVpbHQtaW4sIGJ1dCBIRE1JIGRyaXZlcnMgYXMgbW9kdWxlcywgYW5k
+IG9ubHkgbG9hZAo+IHRoZSBIRE1JIGRyaXZlcnMgaWYgdGhlIHVzZXIgYWN0dWFsbHkgbmVlZHMg
+dGhlIEhETUkuCgpJIGRvbid0IHNlZSB3aHkgd2Ugc2hvdWxkIHN1cHBvcnQgdGhpcyBhcyBhIHZh
+bGlkIHVzZS1jYXNlLiBFLmcuIGlmIGk5MTUKZmFpbHMgdG8gbG9hZCBhIGNvbXBvbmVudCAoanVz
+dCBiZWNhdXNlIGl0J3MgYWxsIGluIHRoZSBzYW1lIC5rbyBkb2Vzbid0Cm1lYW4gaXQncyBub3Qg
+bXVsdGlwbGUgYml0cywgc2FtZSB3YXkgeW91IGNhbiBoYXZlIG11bHRpcGxlIGRyaXZlcnMgaW4g
+dGhlCnNhbWUgLmtvKSwgd2UgYWxzbyBmYWlsIHRoZSBvdmVyYWxsIGRyaXZlciBiaW5kLiBSZWFs
+bHkgbm90IHNlZWluZyBhbnkKZGlmZmVyZW5jZSB3aXRoIGFybS1zb2MgdnMuIGRlc2t0b3AgaGVy
+ZS4KLURhbmllbAotLSAKRGFuaWVsIFZldHRlcgpTb2Z0d2FyZSBFbmdpbmVlciwgSW50ZWwgQ29y
+cG9yYXRpb24KaHR0cDovL2Jsb2cuZmZ3bGwuY2gKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
+bGlzdGluZm8vZHJpLWRldmVsCg==
