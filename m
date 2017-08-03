@@ -1,22 +1,23 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
+From: Vignesh R <vigneshr@ti.com>
 Subject: Re: [PATCH 0/2] PCI: dwc: convert remaining dbi read/writes to
  dw_pcie_readX_dbi/dw_pcie_writeX_dbi
-Date: Wed, 2 Aug 2017 16:32:56 -0500
-Message-ID: <20170802213255.GB7667@bhelgaas-glaptop.roam.corp.google.com>
+Date: Thu, 3 Aug 2017 10:33:23 +0530
+Message-ID: <20fbc8e2-b4d6-c660-176a-86f9cd20d53d@ti.com>
 References: <20170714120735.11993-1-niklas.cassel@axis.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <20170714120735.11993-1-niklas.cassel@axis.com>
+Content-Language: en-US
 Sender: linux-pci-owner@vger.kernel.org
-To: Niklas Cassel <niklas.cassel@axis.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, Niklas Cassel <niklass@axis.com>, linux-kernel@vger.kernel.org
+To: Niklas Cassel <niklas.cassel@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: Niklas Cassel <niklass@axis.com>, linux-kernel@vger.kernel.org, KISHON VIJAY ABRAHAM <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-[+cc Kishon, Pratyush]
++cc kishon for dra7xx
 
-On Fri, Jul 14, 2017 at 02:07:33PM +0200, Niklas Cassel wrote:
+On Friday 14 July 2017 05:37 PM, Niklas Cassel wrote:
 > Since the introduction of the dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros,
 > most dw_pcie_read(pci->dbi_base, ..)/dw_pcie_write(pci->dbi_base, ..) calls
 > have been converted to dw_pcie_readX_dbi/dw_pcie_writeX_dbi calls.
@@ -30,5 +31,8 @@ On Fri, Jul 14, 2017 at 02:07:33PM +0200, Niklas Cassel wrote:
 >  drivers/pci/dwc/pci-dra7xx.c     | 14 ++++++--------
 >  drivers/pci/dwc/pcie-spear13xx.c | 22 ++++++++++------------
 >  2 files changed, 16 insertions(+), 20 deletions(-)
+> 
 
-Waiting for ack from maintainers (cc'd).
+-- 
+Regards
+Vignesh
