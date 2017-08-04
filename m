@@ -1,101 +1,259 @@
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+From: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH] mtd: nand: Rename nand.h into rawnand.h
-Date: Fri, 04 Aug 2017 17:45:46 +0200
-Message-ID: <87pocb72vp.fsf@free-electrons.com>
+Date: Fri, 4 Aug 2017 17:59:04 +0200
+Message-ID: <c1b8cd3f-2db8-6f9f-286f-28992c8b5a8d@baylibre.com>
 References: <1501860550-16506-1-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1501860550-16506-1-git-send-email-boris.brezillon@free-electrons.com>
- (Boris Brezillon's message of "Fri, 4 Aug 2017 17:29:09 +0200")
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Rich Felker <dalias@libc.org>, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-mips@linux-mips.org, Sekhar Nori <nsekhar@ti.com>, Stefan A gner <stefan@agner.ch>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-mtd@lists.infradead.org, Marc Gonzalez <marc_gonzalez@sigmadesigns.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-omap@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Jonathan Corbet <corbet@lwn.net>, linux-sh@vger.kernel.org, Richard Weinberger <richard@nod.at>, linux-doc@vger.kernel.org, linux-mediatek@lists.infradead.org, Krzysztof Kozlowski <krzk@kernel.org>, Marek Vasut <marek.vasut@gmail.com>, Kukjin Kim <kgene@kernel.>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1501860550-16506-1-git-send-email-boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>,
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, Rich Felker <dalias-8zAoT0mYgF4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Stefan Agner <stefan-XLVq0VzYD2Y@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Marc Gonzalez <marc_gonzalez-y1yR0Z3OICC7zZZRDBGcUA@public.gmane.org>, Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>, Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Jesper Nilsson <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maxim Levitsky <maximlevitsky-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yoshinori Sato <ysato-Rn4VEauK+AKRv+LV9MX5uooqe+aC9MnS@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Josh Wu <rainyfeeling-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Krzysztof Kozlowski <krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kukjin Kim <kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>Matthias Brugger <ma>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgQm9yaXMsCiAKIE9uIHZlbi4sIGFvw7t0IDA0IDIwMTcsIEJvcmlzIEJyZXppbGxvbiA8Ym9y
-aXMuYnJlemlsbG9uQGZyZWUtZWxlY3Ryb25zLmNvbT4gd3JvdGU6Cgo+IFdlIGFyZSBwbGFubmlu
-ZyB0byBzaGFyZSBtb3JlIGNvZGUgYmV0d2VlbiBkaWZmZXJlbnQgTkFORCBiYXNlZAo+IGRldmlj
-ZXMgKFNQSSBOQU5ELCBPbmVOQU5EIGFuZCByYXcgTkFORHMpLCBidXQgYmVmb3JlIGRvaW5nIHRo
-YXQKPiB3ZSBuZWVkIHRvIG1vdmUgdGhlIGV4aXN0aW5nIGluY2x1ZGUvbGludXgvbXRkL25hbmQu
-aCBmaWxlIGludG8KPiBpbmNsdWRlL2xpbnV4L210ZC9yYXduYW5kLmggc28gd2UgY2FuIGxhdGVy
-IGNyZWF0ZSBhIG5hbmQuaCBoZWFkZXIKPiBjb250YWluaW5nIGFsbCBjb21tb24gc3RydWN0dXJl
-IGFuZCBmdW5jdGlvbiBwcm90b3R5cGVzLgo+Cj4gU2lnbmVkLW9mZi1ieTogQm9yaXMgQnJlemls
-bG9uIDxib3Jpcy5icmV6aWxsb25AZnJlZS1lbGVjdHJvbnMuY29tPgo+IFNpZ25lZC1vZmYtYnk6
-IFBldGVyIFBhbiA8cGV0ZXJwYW5kb25nQG1pY3Jvbi5jb20+Cj4gQ2M6IEpvbmF0aGFuIENvcmJl
-dCA8Y29yYmV0QGx3bi5uZXQ+Cj4gQ2M6IFNla2hhciBOb3JpIDxuc2VraGFyQHRpLmNvbT4KPiBD
-YzogS2V2aW4gSGlsbWFuIDxraGlsbWFuQGtlcm5lbC5vcmc+Cj4gQ2M6IEphc29uIENvb3BlciA8
-amFzb25AbGFrZWRhZW1vbi5uZXQ+Cj4gQ2M6IEFuZHJldyBMdW5uIDxhbmRyZXdAbHVubi5jaD4K
-PiBDYzogU2ViYXN0aWFuIEhlc3NlbGJhcnRoIDxzZWJhc3RpYW4uaGVzc2VsYmFydGhAZ21haWwu
-Y29tPgo+IENjOiBHcmVnb3J5IENsZW1lbnQgPGdyZWdvcnkuY2xlbWVudEBmcmVlLWVsZWN0cm9u
-cy5jb20+Cj4gQ2M6IEhhcnRsZXkgU3dlZXRlbiA8aHN3ZWV0ZW5AdmlzaW9uZW5ncmF2ZXJzLmNv
-bT4KPiBDYzogQWxleGFuZGVyIFN2ZXJkbGluIDxhbGV4YW5kZXIuc3ZlcmRsaW5AZ21haWwuY29t
-Pgo+IENjOiBTaGF3biBHdW8gPHNoYXduZ3VvQGtlcm5lbC5vcmc+Cj4gQ2M6IFNhc2NoYSBIYXVl
-ciA8a2VybmVsQHBlbmd1dHJvbml4LmRlPgo+IENjOiBGYWJpbyBFc3RldmFtIDxmYWJpby5lc3Rl
-dmFtQG54cC5jb20+Cj4gQ2M6IEltcmUgS2Fsb3ogPGthbG96QG9wZW53cnQub3JnPgo+IENjOiBL
-cnp5c3p0b2YgSGFsYXNhIDxraGFsYXNhQHBpYXAucGw+Cj4gQ2M6IEVyaWMgTWlhbyA8ZXJpYy55
-Lm1pYW9AZ21haWwuY29tPgo+IENjOiBIYW9qaWFuIFpodWFuZyA8aGFvamlhbi56aHVhbmdAZ21h
-aWwuY29tPgo+IENjOiBBYXJvIEtvc2tpbmVuIDxhYXJvLmtvc2tpbmVuQGlraS5maT4KPiBDYzog
-VG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiBDYzogQWxleGFuZGVyIENsb3V0ZXIg
-PGFsZXhAZGlncml6Lm9yZy51az4KPiBDYzogRGFuaWVsIE1hY2sgPGRhbmllbEB6b25xdWUub3Jn
-Pgo+IENjOiBSb2JlcnQgSmFyem1payA8cm9iZXJ0LmphcnptaWtAZnJlZS5mcj4KPiBDYzogTWFy
-ZWsgVmFzdXQgPG1hcmVrLnZhc3V0QGdtYWlsLmNvbT4KPiBDYzogS3VramluIEtpbSA8a2dlbmVA
-a2VybmVsLm9yZz4KPiBDYzogS3J6eXN6dG9mIEtvemxvd3NraSA8a3J6a0BrZXJuZWwub3JnPgo+
-IENjOiBTaW10ZWMgTGludXggVGVhbSA8bGludXhAc2ltdGVjLmNvLnVrPgo+IENjOiBTdGV2ZW4g
-TWlhbyA8cmVhbG16NkBnbWFpbC5jb20+Cj4gQ2M6IE1pa2FlbCBTdGFydmlrIDxzdGFydmlrQGF4
-aXMuY29tPgo+IENjOiBKZXNwZXIgTmlsc3NvbiA8amVzcGVyLm5pbHNzb25AYXhpcy5jb20+Cj4g
-Q2M6IFJhbGYgQmFlY2hsZSA8cmFsZkBsaW51eC1taXBzLm9yZz4KPiBDYzogWW9zaGlub3JpIFNh
-dG8gPHlzYXRvQHVzZXJzLnNvdXJjZWZvcmdlLmpwPgo+IENjOiBSaWNoIEZlbGtlciA8ZGFsaWFz
-QGxpYmMub3JnPgo+IENjOiBXZW55b3UgWWFuZyA8d2VueW91LnlhbmdAYXRtZWwuY29tPgo+IENj
-OiBKb3NoIFd1IDxyYWlueWZlZWxpbmdAb3V0bG9vay5jb20+Cj4gQ2M6IEthbWFsIERhc3UgPGtk
-YXN1LmtkZXZAZ21haWwuY29tPgo+IENjOiBNYXNhaGlybyBZYW1hZGEgPHlhbWFkYS5tYXNhaGly
-b0Bzb2Npb25leHQuY29tPgo+IENjOiBIYW4gWHUgPGhhbi54dUBueHAuY29tPgo+IENjOiBIYXJ2
-ZXkgSHVudCA8aGFydmV5aHVudG5leHVzQGdtYWlsLmNvbT4KPiBDYzogVmxhZGltaXIgWmFwb2xz
-a2l5IDx2ekBtbGVpYS5jb20+Cj4gQ2M6IFN5bHZhaW4gTGVtaWV1eCA8c2xlbWlldXgudHljb0Bn
-bWFpbC5jb20+Cj4gQ2M6IE1hdHRoaWFzIEJydWdnZXIgPG1hdHRoaWFzLmJnZ0BnbWFpbC5jb20+
-Cj4gQ2M6IFdhbiBab25nU2h1biA8bWN1b3MuY29tQGdtYWlsLmNvbT4KPiBDYzogTmVpbCBBcm1z
-dHJvbmcgPG5hcm1zdHJvbmdAYmF5bGlicmUuY29tPgo+IENjOiBFemVxdWllbCBHYXJjaWEgPGV6
-ZXF1aWVsLmdhcmNpYUBmcmVlLWVsZWN0cm9ucy5jb20+Cj4gQ2M6IE1heGltIExldml0c2t5IDxt
-YXhpbWxldml0c2t5QGdtYWlsLmNvbT4KPiBDYzogTWFyYyBHb256YWxleiA8bWFyY19nb256YWxl
-ekBzaWdtYWRlc2lnbnMuY29tPgo+IENjOiBTdGVmYW4gQWduZXIgPHN0ZWZhbkBhZ25lci5jaD4K
-PiBDYzogR3JlZyBLcm9haC1IYXJ0bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZz4KPiBD
-YzogTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIDxtY2hlaGFiQGtlcm5lbC5vcmc+Cj4gQ2M6IGxpbnV4
-LWRvY0B2Z2VyLmtlcm5lbC5vcmcKPiBDYzogbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRl
-YWQub3JnCj4gQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LXNhbXN1
-bmctc29jQHZnZXIua2VybmVsLm9yZwo+IENjOiBhZGktYnVpbGRyb290LWRldmVsQGxpc3RzLnNv
-dXJjZWZvcmdlLm5ldAo+IENjOiBsaW51eC1jcmlzLWtlcm5lbEBheGlzLmNvbQo+IENjOiBsaW51
-eC1taXBzQGxpbnV4LW1pcHMub3JnCj4gQ2M6IGxpbnV4LXNoQHZnZXIua2VybmVsLm9yZwo+IENj
-OiBiY20ta2VybmVsLWZlZWRiYWNrLWxpc3RAYnJvYWRjb20uY29tCj4gQ2M6IGxpbnV4LW1lZGlh
-dGVrQGxpc3RzLmluZnJhZGVhZC5vcmcKPiBDYzogbGludXgtb3huYXNAbGlzdHMudHV4ZmFtaWx5
-Lm9yZwo+IENjOiBsaW51eHBwYy1kZXZAbGlzdHMub3psYWJzLm9yZwo+IENjOiBkZXZlbEBkcml2
-ZXJkZXYub3N1b3NsLm9yZwo+IC0tLQo+IEhpIEFsbCwKPgo+IFNvcnJ5IGZvciB0aGUgaHVnZSBD
-YyBsaXN0LCBidXQgSSdkIGxpa2UgdG8gY29sbGVjdCBhcyBtdWNoIGFja3MgYXMKPiBwb3NzaWJs
-ZSBmb3IgdGhpcyBwYXRjaCB3aGljaCBpcyBhY3R1YWxseSBwYXJ0IG9mIGEgYmlnZ2VyIHNlcmll
-cyBbMV0uCj4KPiBOb3RlIHRoYXQgdGhlcmUncyBub3RoaW5nIGNvbXBsaWNhdGVkIGhlcmUsIGl0
-J3MganVzdCBhIG1lY2hhbmljYWwKPiBzL25hbmRcLmgvcmF3bmFuZFwuaC8gcmVwbGFjZW1lbnQs
-IGJ1dCBpdCBpbXBhY3RzIHNldmVyYWwgYXJjaGl0ZWN0dXJlcywKPiB0aGUgZG9jIGFuZCBzdGFn
-aW5nIGRpcmVjdG9yaWVzLgo+Cj4gUmVnYXJkcywKPgo+IEJvcmlzCj4KPiBbMV1odHRwczovL2x3
-bi5uZXQvQXJ0aWNsZXMvNzIzNjk0Lwo+IC0tLQpbLi4uXQo+ICBhcmNoL2FybS9tYWNoLW9yaW9u
-NXgvZGI4OGY1MjgxLXNldHVwLmMgICAgICAgICB8IDIgKy0KPiAgYXJjaC9hcm0vbWFjaC1vcmlv
-bjV4L2t1cm9ib3hfcHJvLXNldHVwLmMgICAgICAgfCAyICstCj4gIGFyY2gvYXJtL21hY2gtb3Jp
-b241eC90czIwOS1zZXR1cC5jICAgICAgICAgICAgIHwgMiArLQo+ICBhcmNoL2FybS9tYWNoLW9y
-aW9uNXgvdHM3OHh4LXNldHVwLmMgICAgICAgICAgICB8IDIgKy0KRm9yIHRoZSBvcmlvbjV4IGZp
-bGUgeW91IGhhdmUgbXkKQWNrZWQtYnk6IEdyZWdvcnkgQ0xFTUVOVCA8Z3JlZ29yeS5jbGVtZW50
-QGZyZWUtZWxlY3Ryb25zLmNvbT4KCkluZGVlZCB0aGVyZSBpcyBhbnl0aGluZyBjb250cm92ZXJz
-aWFsLCBhbmQgSSBkb24ndCBleHBlY3QgYW55IGNoYW5nZSBvbgp0aGVzZSBmaWxlIGZvciB0aGUg
-bmV4dCByZWxlYXNlIHNvIG5vIG1lcmdlIGNvbmZsaWN0IHRvIGZlYXIgb2YhCgpUaGFua3MsCgpH
-cmVnb3J5CgoKCi0tIApHcmVnb3J5IENsZW1lbnQsIEZyZWUgRWxlY3Ryb25zCktlcm5lbCwgZHJp
-dmVycywgcmVhbC10aW1lIGFuZCBlbWJlZGRlZCBMaW51eApkZXZlbG9wbWVudCwgY29uc3VsdGlu
-ZywgdHJhaW5pbmcgYW5kIHN1cHBvcnQuCmh0dHA6Ly9mcmVlLWVsZWN0cm9ucy5jb20KX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2ZWwgbWFpbGluZyBs
-aXN0CmRldmVsQGxpbnV4ZHJpdmVycHJvamVjdC5vcmcKaHR0cDovL2RyaXZlcmRldi5saW51eGRy
-aXZlcnByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vZHJpdmVyZGV2LWRldmVsCg==
+On 08/04/2017 05:29 PM, Boris Brezillon wrote:
+> We are planning to share more code between different NAND based
+> devices (SPI NAND, OneNAND and raw NANDs), but before doing that
+> we need to move the existing include/linux/mtd/nand.h file into
+> include/linux/mtd/rawnand.h so we can later create a nand.h header
+> containing all common structure and function prototypes.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> Signed-off-by: Peter Pan <peterpandong-AL4WhLSQfzjQT0dZR+AlfA@public.gmane.org>
+> Cc: Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>
+> Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> Cc: Kevin Hilman <khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>
+> Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
+> Cc: Sebastian Hesselbarth <sebastian.hesselbarth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Gregory Clement <gregory.clement-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> Cc: Hartley Sweeten <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>
+> Cc: Alexander Sverdlin <alexander.sverdlin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Shawn Guo <shawnguo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> Cc: Fabio Estevam <fabio.estevam-3arQi8VN3Tc@public.gmane.org>
+> Cc: Imre Kaloz <kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>
+> Cc: Krzysztof Halasa <khalasa-NlWvg49iv0c@public.gmane.org>
+> Cc: Eric Miao <eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Alexander Clouter <alex-L4GPcECwBoDe9xe1eoZjHA@public.gmane.org>
+> Cc: Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>
+> Cc: Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>
+> Cc: Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Kukjin Kim <kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Krzysztof Kozlowski <krzk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Simtec Linux Team <linux-Y5A6D6n0/KfQXOPxS62xeg@public.gmane.org>
+> Cc: Steven Miao <realmz6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Mikael Starvik <starvik-VrBV9hrLPhE@public.gmane.org>
+> Cc: Jesper Nilsson <jesper.nilsson-VrBV9hrLPhE@public.gmane.org>
+> Cc: Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+> Cc: Yoshinori Sato <ysato-Rn4VEauK+AKRv+LV9MX5uooqe+aC9MnS@public.gmane.org>
+> Cc: Rich Felker <dalias-8zAoT0mYgF4@public.gmane.org>
+> Cc: Wenyou Yang <wenyou.yang-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
+> Cc: Josh Wu <rainyfeeling-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>
+> Cc: Kamal Dasu <kdasu.kdev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>
+> Cc: Han Xu <han.xu-3arQi8VN3Tc@public.gmane.org>
+> Cc: Harvey Hunt <harveyhuntnexus-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Vladimir Zapolskiy <vz-ChpfBGZJDbMAvxtiuMwx3w@public.gmane.org>
+> Cc: Sylvain Lemieux <slemieux.tyco-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Wan ZongShun <mcuos.com-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> Cc: Ezequiel Garcia <ezequiel.garcia-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+> Cc: Maxim Levitsky <maximlevitsky-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Marc Gonzalez <marc_gonzalez-y1yR0Z3OICC7zZZRDBGcUA@public.gmane.org>
+> Cc: Stefan Agner <stefan-XLVq0VzYD2Y@public.gmane.org>
+> Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+> Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Cc: linux-cris-kernel-VrBV9hrLPhE@public.gmane.org
+> Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org
+> Cc: linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: bcm-kernel-feedback-list-dY08KVG/lbpWk0Htik3J/w@public.gmane.org
+> Cc: linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> Cc: linux-oxnas-Xt5XgHjqiBU06sgRBLv0+0B+6BGkLq7r@public.gmane.org
+> Cc: linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+> Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+> ---
+> Hi All,
+> 
+> Sorry for the huge Cc list, but I'd like to collect as much acks as
+> possible for this patch which is actually part of a bigger series [1].
+> 
+> Note that there's nothing complicated here, it's just a mechanical
+> s/nand\.h/rawnand\.h/ replacement, but it impacts several architectures,
+> the doc and staging directories.
+> 
+> Regards,
+> 
+> Boris
+> 
+> [1]https://lwn.net/Articles/723694/
+> ---
+>  Documentation/driver-api/mtdnand.rst            | 8 ++++----
+>  MAINTAINERS                                     | 2 +-
+>  arch/arm/mach-davinci/board-da850-evm.c         | 2 +-
+>  arch/arm/mach-davinci/board-dm355-evm.c         | 2 +-
+>  arch/arm/mach-davinci/board-dm355-leopard.c     | 2 +-
+>  arch/arm/mach-davinci/board-dm365-evm.c         | 2 +-
+>  arch/arm/mach-davinci/board-dm644x-evm.c        | 2 +-
+>  arch/arm/mach-davinci/board-dm646x-evm.c        | 2 +-
+>  arch/arm/mach-davinci/board-sffsdr.c            | 2 +-
+>  arch/arm/mach-dove/dove-db-setup.c              | 2 +-
+>  arch/arm/mach-ep93xx/snappercl15.c              | 2 +-
+>  arch/arm/mach-ep93xx/ts72xx.c                   | 2 +-
+>  arch/arm/mach-imx/mach-qong.c                   | 2 +-
+>  arch/arm/mach-ixp4xx/ixdp425-setup.c            | 2 +-
+>  arch/arm/mach-mmp/aspenite.c                    | 2 +-
+>  arch/arm/mach-omap1/board-fsample.c             | 2 +-
+>  arch/arm/mach-omap1/board-h2.c                  | 2 +-
+>  arch/arm/mach-omap1/board-h3.c                  | 2 +-
+>  arch/arm/mach-omap1/board-nand.c                | 2 +-
+>  arch/arm/mach-omap1/board-perseus2.c            | 2 +-
+>  arch/arm/mach-orion5x/db88f5281-setup.c         | 2 +-
+>  arch/arm/mach-orion5x/kurobox_pro-setup.c       | 2 +-
+>  arch/arm/mach-orion5x/ts209-setup.c             | 2 +-
+>  arch/arm/mach-orion5x/ts78xx-setup.c            | 2 +-
+>  arch/arm/mach-pxa/balloon3.c                    | 2 +-
+>  arch/arm/mach-pxa/em-x270.c                     | 2 +-
+>  arch/arm/mach-pxa/eseries.c                     | 2 +-
+>  arch/arm/mach-pxa/palmtx.c                      | 2 +-
+>  arch/arm/mach-pxa/tosa.c                        | 2 +-
+>  arch/arm/mach-s3c24xx/common-smdk.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-anubis.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-at2440evb.c          | 2 +-
+>  arch/arm/mach-s3c24xx/mach-bast.c               | 2 +-
+>  arch/arm/mach-s3c24xx/mach-gta02.c              | 2 +-
+>  arch/arm/mach-s3c24xx/mach-jive.c               | 2 +-
+>  arch/arm/mach-s3c24xx/mach-mini2440.c           | 2 +-
+>  arch/arm/mach-s3c24xx/mach-osiris.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-qt2410.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-rx3715.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-vstms.c              | 2 +-
+>  arch/blackfin/mach-bf537/boards/dnp5370.c       | 2 +-
+>  arch/blackfin/mach-bf537/boards/stamp.c         | 2 +-
+>  arch/blackfin/mach-bf561/boards/acvilon.c       | 2 +-
+>  arch/cris/arch-v32/drivers/mach-a3/nandflash.c  | 2 +-
+>  arch/cris/arch-v32/drivers/mach-fs/nandflash.c  | 2 +-
+>  arch/mips/alchemy/devboards/db1200.c            | 2 +-
+>  arch/mips/alchemy/devboards/db1300.c            | 2 +-
+>  arch/mips/alchemy/devboards/db1550.c            | 2 +-
+>  arch/mips/include/asm/mach-jz4740/jz4740_nand.h | 2 +-
+>  arch/mips/netlogic/xlr/platform-flash.c         | 2 +-
+>  arch/mips/pnx833x/common/platform.c             | 2 +-
+>  arch/mips/rb532/devices.c                       | 2 +-
+>  arch/sh/boards/mach-migor/setup.c               | 2 +-
+>  drivers/mtd/inftlcore.c                         | 2 +-
+>  drivers/mtd/nand/ams-delta.c                    | 2 +-
+>  drivers/mtd/nand/atmel/nand-controller.c        | 2 +-
+>  drivers/mtd/nand/atmel/pmecc.c                  | 2 +-
+>  drivers/mtd/nand/au1550nd.c                     | 2 +-
+>  drivers/mtd/nand/bcm47xxnflash/bcm47xxnflash.h  | 2 +-
+>  drivers/mtd/nand/bf5xx_nand.c                   | 2 +-
+>  drivers/mtd/nand/brcmnand/brcmnand.c            | 2 +-
+>  drivers/mtd/nand/cafe_nand.c                    | 2 +-
+>  drivers/mtd/nand/cmx270_nand.c                  | 2 +-
+>  drivers/mtd/nand/cs553x_nand.c                  | 2 +-
+>  drivers/mtd/nand/davinci_nand.c                 | 2 +-
+>  drivers/mtd/nand/denali.h                       | 2 +-
+>  drivers/mtd/nand/diskonchip.c                   | 2 +-
+>  drivers/mtd/nand/docg4.c                        | 2 +-
+>  drivers/mtd/nand/fsl_elbc_nand.c                | 2 +-
+>  drivers/mtd/nand/fsl_ifc_nand.c                 | 2 +-
+>  drivers/mtd/nand/fsl_upm.c                      | 2 +-
+>  drivers/mtd/nand/fsmc_nand.c                    | 2 +-
+>  drivers/mtd/nand/gpio.c                         | 2 +-
+>  drivers/mtd/nand/gpmi-nand/gpmi-nand.h          | 2 +-
+>  drivers/mtd/nand/hisi504_nand.c                 | 2 +-
+>  drivers/mtd/nand/jz4740_nand.c                  | 2 +-
+>  drivers/mtd/nand/jz4780_nand.c                  | 2 +-
+>  drivers/mtd/nand/lpc32xx_mlc.c                  | 2 +-
+>  drivers/mtd/nand/lpc32xx_slc.c                  | 2 +-
+>  drivers/mtd/nand/mpc5121_nfc.c                  | 2 +-
+>  drivers/mtd/nand/mtk_nand.c                     | 2 +-
+>  drivers/mtd/nand/mxc_nand.c                     | 2 +-
+>  drivers/mtd/nand/nand_amd.c                     | 2 +-
+>  drivers/mtd/nand/nand_base.c                    | 2 +-
+>  drivers/mtd/nand/nand_bbt.c                     | 2 +-
+>  drivers/mtd/nand/nand_bch.c                     | 2 +-
+>  drivers/mtd/nand/nand_ecc.c                     | 2 +-
+>  drivers/mtd/nand/nand_hynix.c                   | 2 +-
+>  drivers/mtd/nand/nand_ids.c                     | 2 +-
+>  drivers/mtd/nand/nand_macronix.c                | 2 +-
+>  drivers/mtd/nand/nand_micron.c                  | 2 +-
+>  drivers/mtd/nand/nand_samsung.c                 | 2 +-
+>  drivers/mtd/nand/nand_timings.c                 | 2 +-
+>  drivers/mtd/nand/nand_toshiba.c                 | 2 +-
+>  drivers/mtd/nand/nandsim.c                      | 2 +-
+>  drivers/mtd/nand/ndfc.c                         | 2 +-
+>  drivers/mtd/nand/nuc900_nand.c                  | 2 +-
+>  drivers/mtd/nand/omap2.c                        | 2 +-
+>  drivers/mtd/nand/orion_nand.c                   | 2 +-
+>  drivers/mtd/nand/oxnas_nand.c                   | 2 +-
+>  drivers/mtd/nand/pasemi_nand.c                  | 2 +-
+>  drivers/mtd/nand/plat_nand.c                    | 2 +-
+>  drivers/mtd/nand/pxa3xx_nand.c                  | 2 +-
+>  drivers/mtd/nand/qcom_nandc.c                   | 2 +-
+>  drivers/mtd/nand/r852.h                         | 2 +-
+>  drivers/mtd/nand/s3c2410.c                      | 2 +-
+>  drivers/mtd/nand/sh_flctl.c                     | 2 +-
+>  drivers/mtd/nand/sharpsl.c                      | 2 +-
+>  drivers/mtd/nand/sm_common.c                    | 2 +-
+>  drivers/mtd/nand/socrates_nand.c                | 2 +-
+>  drivers/mtd/nand/sunxi_nand.c                   | 2 +-
+>  drivers/mtd/nand/tango_nand.c                   | 2 +-
+>  drivers/mtd/nand/tmio_nand.c                    | 2 +-
+>  drivers/mtd/nand/txx9ndfmc.c                    | 2 +-
+>  drivers/mtd/nand/vf610_nfc.c                    | 2 +-
+>  drivers/mtd/nand/xway_nand.c                    | 2 +-
+>  drivers/mtd/nftlcore.c                          | 2 +-
+>  drivers/mtd/nftlmount.c                         | 2 +-
+>  drivers/mtd/ssfdc.c                             | 2 +-
+>  drivers/mtd/tests/nandbiterrs.c                 | 2 +-
+>  drivers/staging/mt29f_spinand/mt29f_spinand.c   | 2 +-
+>  fs/jffs2/wbuf.c                                 | 2 +-
+>  include/linux/mtd/nand-gpio.h                   | 2 +-
+>  include/linux/mtd/{nand.h => rawnand.h}         | 8 +++-----
+>  include/linux/mtd/sh_flctl.h                    | 2 +-
+>  include/linux/mtd/sharpsl.h                     | 2 +-
+>  include/linux/platform_data/mtd-davinci.h       | 2 +-
+>  include/linux/platform_data/mtd-nand-s3c2410.h  | 2 +-
+>  128 files changed, 133 insertions(+), 135 deletions(-)
+>  rename include/linux/mtd/{nand.h => rawnand.h} (99%)
+> 
+[...]
+> diff --git a/drivers/mtd/nand/oxnas_nand.c b/drivers/mtd/nand/oxnas_nand.c
+> index 7061bb2923b4..d649d5944826 100644
+> --- a/drivers/mtd/nand/oxnas_nand.c
+> +++ b/drivers/mtd/nand/oxnas_nand.c
+> @@ -21,7 +21,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/reset.h>
+>  #include <linux/mtd/mtd.h>
+> -#include <linux/mtd/nand.h>
+> +#include <linux/mtd/rawnand.h>
+>  #include <linux/mtd/partitions.h>
+>  #include <linux/of.h>
+>  
+[...]
+
+For oxnas_nand.c :
+Acked-by: Neil Armstrong <narmstrong-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
