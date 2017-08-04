@@ -1,13 +1,11 @@
 From: Boris Brezillon <boris.brezillon@free-electrons.com>
 Subject: [PATCH] mtd: nand: Rename nand.h into rawnand.h
-Date: Fri,  4 Aug 2017 17:29:10 +0200
-Message-ID: <1501860550-16506-2-git-send-email-boris.brezillon@free-electrons.com>
-References: <1501860550-16506-1-git-send-email-boris.brezillon@free-electrons.com>
+Date: Fri,  4 Aug 2017 17:29:09 +0200
+Message-ID: <1501860550-16506-1-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1501860550-16506-1-git-send-email-boris.brezillon@free-electrons.com>
 List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
  <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
 List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
