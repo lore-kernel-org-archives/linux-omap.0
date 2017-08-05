@@ -1,8 +1,8 @@
 From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: [PATCH 06/15] ARM: sleep.S: use PC-relative insn sequence for
- sleep_save_sp/mpidr_hash
-Date: Sat,  5 Aug 2017 21:52:13 +0100
-Message-ID: <20170805205222.19868-7-ard.biesheuvel@linaro.org>
+Subject: [PATCH 08/15] ARM: head.S: use PC relative insn sequence to calculate
+ PHYS_OFFSET
+Date: Sat,  5 Aug 2017 21:52:15 +0100
+Message-ID: <20170805205222.19868-9-ard.biesheuvel@linaro.org>
 References: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,54 +22,40 @@ To: linux-arm-kernel@lists.infradead.org, linux-renesas-soc@vger.kernel.org, lin
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Replace the open coded PC relative offset calculations with adr_l and
-ldr_l invocations.
+Replace the open coded arithmetic with a simple adr_l/sub pair.
 
 Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 ---
- arch/arm/kernel/sleep.S | 16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ arch/arm/kernel/head.S | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
-index 0f6c1000582c..3026b119d3ff 100644
---- a/arch/arm/kernel/sleep.S
-+++ b/arch/arm/kernel/sleep.S
-@@ -137,9 +137,8 @@ ARM_BE8(setend be)			@ ensure we are in BE mode
- 	mov	r1, #0
- 	ALT_SMP(mrc p15, 0, r0, c0, c0, 5)
- 	ALT_UP_B(1f)
--	adr	r2, mpidr_hash_ptr
--	ldr	r3, [r2]
--	add	r2, r2, r3		@ r2 = struct mpidr_hash phys address
-+	adr_l	r2, mpidr_hash		@ r2 = struct mpidr_hash phys address
-+
- 	/*
- 	 * This ldmia relies on the memory layout of the mpidr_hash
- 	 * struct mpidr_hash.
-@@ -147,10 +146,7 @@ ARM_BE8(setend be)			@ ensure we are in BE mode
- 	ldmia	r2, { r3-r6 }	@ r3 = mpidr mask (r4,r5,r6) = l[0,1,2] shifts
- 	compute_mpidr_hash	r1, r4, r5, r6, r0, r3
- 1:
--	adr	r0, _sleep_save_sp
--	ldr	r2, [r0]
--	add	r0, r0, r2
--	ldr	r0, [r0, #SLEEP_SAVE_SP_PHYS]
-+	ldr_l	r0, sleep_save_sp + SLEEP_SAVE_SP_PHYS
- 	ldr	r0, [r0, r1, lsl #2]
- 
- 	@ load phys pgd, stack, resume fn
-@@ -164,12 +160,6 @@ ENDPROC(cpu_resume)
- ENDPROC(cpu_resume_arm)
+diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
+index 939543e73874..e08a4623a980 100644
+--- a/arch/arm/kernel/head.S
++++ b/arch/arm/kernel/head.S
+@@ -106,10 +106,8 @@ ENTRY(stext)
  #endif
  
--	.align 2
--_sleep_save_sp:
--	.long	sleep_save_sp - .
--mpidr_hash_ptr:
--	.long	mpidr_hash - .			@ mpidr_hash struct offset
--
- 	.data
- 	.type	sleep_save_sp, #object
- ENTRY(sleep_save_sp)
+ #ifndef CONFIG_XIP_KERNEL
+-	adr	r3, 2f
+-	ldmia	r3, {r4, r8}
+-	sub	r4, r3, r4			@ (PHYS_OFFSET - PAGE_OFFSET)
+-	add	r8, r8, r4			@ PHYS_OFFSET
++	adr_l	r8, _text			@ __pa(_text)
++	sub	r8, r8, #TEXT_OFFSET		@ PHYS_OFFSET
+ #else
+ 	ldr	r8, =PLAT_PHYS_OFFSET		@ always constant in this case
+ #endif
+@@ -161,10 +159,6 @@ ENTRY(stext)
+ 1:	b	__enable_mmu
+ ENDPROC(stext)
+ 	.ltorg
+-#ifndef CONFIG_XIP_KERNEL
+-2:	.long	.
+-	.long	PAGE_OFFSET
+-#endif
+ 
+ /*
+  * Setup the initial page tables.  We only setup the barest
 -- 
 2.11.0
