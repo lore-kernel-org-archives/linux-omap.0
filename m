@@ -1,167 +1,845 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3 00/35] omapdrm: Deconstruct DSS features
-Date: Sat, 05 Aug 2017 01:49:03 +0300
-Message-ID: <1596020.QcH2enfq9l@avalon>
-References: <20170804224419.30758-1-laurent.pinchart@ideasonboard.com>
+From: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] regulator: make regulator_ops structures const
+Date: Sat,  5 Aug 2017 15:43:57 +0530
+Message-ID: <1501928037-12441-1-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20170804224419.30758-1-laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org
-Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: julia.lawall@lip6.fr, lgirdwood@gmail.com, broonie@kernel.org, tony@atomide.com, liviu.dudau@arm.com, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gU2F0dXJkYXkgMDUgQXVnIDIwMTcgMDE6NDM6NDQgTGF1cmVudCBQaW5jaGFydCB3cm90ZToK
-PiBIZWxsbywKPiAKPiBUaGlzIHBhdGNoIHNlcmllcyBpcyBhIHRoaXJkIHZlcnNpb24gb2YgdGhl
-IGNvZGUgcHJldmlvdXNseSBwb3N0ZWQgYXMKPiAiW1BBVENIIHYyIDAwLzI5XSBSZW1vdmUgdGhl
-IG9tYXBkcm0gYW5kIG9tYXBkc3MgZGV2aWNlcyBmcm9tIHBsYXRmb3JtCj4gY29kZSIuCj4gCj4g
-VGhlIG9tYXBkc3Mvb21hcGRybSBpbml0aWFsaXphdGlvbiBjb2RlIGlzIHF1aXRlIGEgbWVzcy4g
-VGhlIHBoeXNpY2FsCj4gZGV2aWNlcyBhcmUgaW5zdGFudGlhdGVkIGZyb20gRFQsIGJ1dCB0d28g
-dmlydHVhbCBkZXZpY2VzIG5hbWVkIG9tYXBkcm0gYW5kCj4gb21hcGRzcyBhcmUgaW5zdGFuY2lh
-dGVkIGZyb20gcGxhdGZvcm0gY29kZSB0byBwYXNzIHZhcmlvdXMgcGllY2VzIG9mCj4gcGxhdGZv
-cm0gZGF0YSB0byB0aGUgZHJpdmVycy4KPiAKPiBUaGUgb21hcGRybSBhbmQgb21hcGRzcyBwbGF0
-Zm9ybSBkZXZpY2VzIGFyZSBjdXJyZW50bHkgdXNlZCB0byBwYXNzIGRhdGEgYW5kCj4gZnVuY3Rp
-b24gcG9pbnRlcnMgZnJvbSBib2FyZCBjb2RlIHRvIHRoZSBkcml2ZXJzIGZvciB0aGUgcHVycG9z
-ZSBvZgo+IAo+IC0gaWRlbnRpZnlpbmcgdGhlIE9NQVAgU29DIHJldmlzaW9uCj4gLSBjb250cm9s
-bGluZyB0aGUgRFNJIHBhZHMKPiAtIGNvbmZpZ3VyaW5nIGJ1cyB0aHJvdWdocHV0Cj4gCj4gSXQg
-dHVybnMgb3V0IHRoYXQgYWxsIHRoZXNlIGNhbiBiZSBoYW5kbGVkIGluIHRoZSBvbWFwZHJtIGFu
-ZCBvbWFwZHNzCj4gZHJpdmVycyB3aXRob3V0IHRoZSBuZWVkIGZvciBwbGF0Zm9ybSBkYXRhLgo+
-IAo+IC0gVGhlIFNvQyByZXZpc2lvbiBpcyB1c2VkIHRvIGlkZW50aWZ5IHRoZSB2ZXJzaW9uIG9m
-IHZhcmlvdXMgRFNTIElQIGNvcmVzLAo+IHdoaWNoIGNhbiBpbnN0ZWFkIGJlIGRvbmUgdGhyb3Vn
-aCBjb21wYXRpYmxlIHN0cmluZyBtYXRjaGluZyAod2l0aCB0aGUgaGVscAo+IG9mIHNvY19kZXZp
-Y2VfbWF0Y2goKSBpbiB0d28gY2FzZXMgd2hlcmUgRVMgdmVyc2lvbiBpcyBuZWVkZWQpLgo+IAo+
-IC0gVGhlIERTSSBwYWRzIGNvbnRyb2wgY2FuIGJlIHBlcmZvcm1lZCBieSB0aGUgZHJpdmVyIGRp
-cmVjdGx5IHdpdGhvdXQKPiBjYWxsaW5nIGJvYXJkIGNvZGUsIGFjY2Vzc2luZyB0aGUgcmVsYXRl
-ZCByZWdpc3RlcnMgdGhyb3VnaCBzeXNjb24uCj4gCj4gLSBCdXMgdGhyb3VnaHB1dCBjb250cm9s
-IGlzIGltcGxlbWVudGVkIGluIG1hY2gtb21hcDIgYXMgYSBuby1vcCwgc28gd2UgY2FuCj4ganVz
-dCBkcm9wIHRoZSBjb2RlLgo+IAo+IFRoaXMgcGF0Y2ggc2VyaWVzIHN0YXJ0cyB3aXRoIGEgbmV3
-IHBhdGNoIHRoYXQgZml4ZXMgc29jX2RldmljZV9tYXRjaCgpCj4gdXNhZ2Ugb24gT01BUDIrLiBJ
-dCB0dXJuZWQgb3V0IHRoYXQgT01BUDIrIHJlZ2lzdGVycyBTb0MgZGV2aWNlIGF0dHJpYnV0ZXMK
-PiBhdCBsYXRlIGluaXQgdGltZSwgbWFraW5nIHNvY19kZXZpY2VfbWF0Y2goKSBpbXBvc3NpYmxl
-IHRvIHVzZSBmb3IgZHJpdmVycwo+IGF0IHByb2JlIHRpbWUsIHdoaWNoIGlzIHVuZm9ydHVuYXRl
-bHkgdGhlIGxvY2F0aW9uIHdoZXJlIHRoZSBmZWF0dXJlIGlzCj4gbW9zdCBuZWVkZWQuCj4gCj4g
-VGhlIG5leHQgZml2ZSBwYXRjaGVzICgwMi8zNSB0byAwNi8zNSkgYXJlIHNtYWxsIGFuZCBzaW1w
-bGUgdW5uZWVkZWQgb3IKPiB1bnVzZWQgY29kZSByZW1vdmFsLiBUaGUgbmV4dCB0d28gcGF0Y2hl
-cyAoMDcvMzUgYW5kIDA4LzM1KSBhcmUgY2xlYW51cHMKPiB0aGF0IG1ha2Ugc2Vuc2UgYnkgdGhl
-bXNlbHZlcyBhbmQgd2lsbCBiZSBuZWVkZWQgYnkgbGF0ZXIgcmVmYWN0b3JpbmcuCj4gCj4gVGhl
-IHNlcmllcyB0aGVuIHN0YXJ0cyByZW1vdmluZyB1c2FnZSBvZiB0aGUgRFNTIHBsYXRmb3JtIGRh
-dGEuIEl0IGZpcnN0Cj4gcmVtb3ZlcyBjYWxsYmFja3MgdG8gcGxhdGZvcm0gY29kZSBpbiBwYXRj
-aGVzIDA5LzM1IGFuZCAxMC8zNSwgYW5kIHRoZW4KPiB0YWNrbGVzIHRoZSBsYXJnZXIgdGFzayBv
-ZiByZXBsYWNpbmcgRFNTIHZlcnNpb24gdXNhZ2Ugd2l0aCBtb2RlbCBkYXRhCj4gc3RvcmVkIGlu
-IE9GIG9yIFNvQyBkZXZpY2UgbWF0Y2ggZW50cmllcyAocGF0Y2hlcyAxMS8zNSB0byAxNC8zNSku
-Cj4gCj4gVGhlIG5leHQgbGFyZ2UgdXNlciBvZiB0aGUgRFNTIHZlcnNpb24gaXMgdGhlIG9tYXBf
-ZHNzX2ZlYXR1cmVzCj4gaW5mcmFzdHJ1Y3R1cmUgbm90IHRvIGJlIGNvbmZ1c2VkIHdpdGggdGhl
-IHNpbWlsYXJseSBuYW1lZCBkc3NfZmVhdHVyZXMuCj4gVGhlIGZvcm1lciBpcyBhIGRpcnR5IG1p
-eCBvZiBkYXRhIHJlbGF0ZWQgdG8gYWxsIElQIGNvcmVzIGluIHRoZSB3aGlsZQo+IGRpc3BsYXkg
-ZGV2aWNlLCB3aGlsZSB0aGUgbGF0dGVyIGNvbnRhaW5zIGRhdGEgcmVsYXRlZCB0byB0aGUgRFNT
-IGl0c2VsZi4KPiBUaGUgbmV4dCBwYXRjaGVzIGRlY29uc3RydWN0IG9tYXBfZHNzX2ZlYXR1cmVz
-IGJ5IHJlbW92aW5nIG9uZSB1bm5lZWRlZAo+IGZlYXR1cmVzIGZpZWxkICgxNS8zNSksIGFuZCBz
-bG93bHkgbW92aW5nIGZlYXR1cmVzIHRvIHdoZXJlIHRoZXkgYmVsb25nCj4gKHBhdGNoZXMgMTYv
-MzUgdG8gMzQvMzUpLiBQYXRjaCAzNS8zNSBmaW5hbGx5IHJlbW92ZXMgdGhlIG9tYXBfZHNzX2Zl
-YXR1cmVzCj4gYWx0b2dldGhlciBhcyB0aGV5J3JlIHRoZW4gZW1wdHkuCj4gCj4gTm90ZSB0aGF0
-IHBhdGNoZXMgMTcvMzUgYW5kIDE4LzM1IGFyZSBub3Qgc3RyaWN0bHkgcmVsYXRlZCB0bwo+IG9t
-YXBfZHNzX2ZlYXR1cmVzIGRlY29uc3RydWN0aW9uLCBidXQgdGhleSBwYXZlIHRoZSByb2FkIHRv
-IHJlbW92aW5nIHRoZQo+IG9tYXBkc3MgcGxhdGZvcm0gZHJpdmVyIChmb3IgdGhlIHZpcnR1YWwg
-b21hcGRzcyBwbGF0Zm9ybSBkZXZpY2UsIGFsc28ga25vd24KPiBhcyBjb3JlIGNvZGUsIG5vdCB0
-byBiZSBjb25mdXNlZCB3aXRoIHRoZSBvbWFwZHNzX2RzcyBkcml2ZXIgZm9yIHRoZSBEU1MKPiBo
-YXJkd2FyZSBkZXZpY2UpIHdoaWNoIGlzIHRoZSB1bHRpbWF0ZSBnb2FsIG9mIHRoaXMgZWZmb3J0
-IGFuZCBzaG91bGQgYmUKPiByZWFkeSBmb3IgdXBzdHJlYW1pbmcuCj4gCj4gQ29tcGFyZWQgdG8g
-djIsIHRoZSBEU1MgdmVyc2lvbiB1c2FnZSBpbiB0aGUgSERNSTQgYW5kIEhETUk1IGRyaXZlcnMg
-aXMKPiBzdGlsbCBwcmVzZW50LCBhcyB0aGUgcmVsYXRlZCBwYXRjaGVzIHdlcmUgbW9yZSBjb250
-cm92ZXJzaWFsIGFuZCByZXF1aXJlCj4gbW9yZSB3b3JrLiBJIHdpbGwgdGFja2xlIHRoYXQgbmV4
-dCBhcyBhIHNlcGFyYXRlIHBhdGNoIHNlcmllcyB0aGF0IHdpbGwKPiBmaW5hbGx5IHJlbW92ZSBv
-bWFwZHNzIHBsYXRmb3JtIGRyaXZlcgo+IAo+IFRoaXMgdmVyc2lvbiBzaG91bGQgYmUgc2ltcGxl
-ciB0byBtZXJnZSBnaXZlbiB0aGF0IGl0IGRvZXNuJ3QgdG91Y2ggdGhlCj4gRkJERVYgYW5kIEFM
-U0Egc3Vic3lzdGVtcywgYnV0IHN0aWxsIGNhcnJpZXMgYW4gYW5ub3lpbmcgZGVwZW5kZW5jeSBv
-bgo+IE9NQVAyKyBwbGF0Zm9ybSBjb2RlLiBUaGUgZWFzaWVzdCBzb2x1dGlvbiB3b3VsZCBiZSB0
-byBtZXJnZSB0aGUgc2luZ2xlCj4gT01BUDIrIHBhdGNoICgwMS8zNSkgdGhyb3VnaCB0aGUgRFJN
-IHRyZWUgYXMgdGhhdCdzIHdoZXJlIHRoZSBidWxrIG9mCj4gY2hhbmdlcyBsaWVzLgo+IAo+IFRo
-ZSBwYXRjaGVzIGFyZSBjdXJyZW50bHkgYmFzZWQgb24gdG9wIG9mIHY0LjEzLXJjMiAoLXJjMSBk
-b2Vzbid0IGJvb3Qgb24KPiB0aGUgQU01N3h4IGJvYXJkIEkgdXNlIGZvciB0ZXN0aW5nKSBhbmQg
-aGF2ZSBiZWVuIHRlc3RlZCBvbiBPTUFQMwo+IChCZWFnbGVCb2FyZC14TSwgRE0zNzMwKSwgT01B
-UDQgKHBhbmRhYm9hcmQsIE9NQVA0NDYwKSBhbmQgT01BUDUgKEFNNTcyeAo+IEVWTSwgQU01NzJ4
-KS4gTWFueSByZWdyZXNzaW9ucyB3ZXJlIGZvdW5kLCBhbmQgZml4ZWQgOi0pCgpUaGlzIHNob3Vs
-ZCBvZiBjb3Vyc2UgaGF2ZSByZWFkIERSQTcsIG5vdCBPTUFQNS4KCj4gTGF1cmVudCBQaW5jaGFy
-dCAoMzUpOgo+ICAgQVJNOiBPTUFQMis6IFJlZ2lzdGVyIFNvQyBkZXZpY2UgYXR0cmlidXRlcyBm
-cm9tIG1hY2hpbmUgLmluaXQoKQo+ICAgZHJtOiBvbWFwZHJtOiBhY3g1NjVha206IFJlbW92ZSB1
-bm5lZWRlZCBjaGVjayBmb3IgT0Ygbm9kZQo+ICAgZHJtOiBvbWFwZHJtOiBjb25uZWN0b3ItYW5h
-bG9nLXR2OiBSZW1vdmUgdW5uZWVkZWQgY2hlY2sgZm9yIE9GIG5vZGUKPiAgIGRybTogb21hcGRy
-bTogcGFuZWwtZHBpOiBSZW1vdmUgdW5uZWVkZWQgY2hlY2sgZm9yIE9GIG5vZGUKPiAgIGRybTog
-b21hcGRybTogZHBpOiBSZW1vdmUgdW5uZWVkZWQgcmVndWxhdG9yIGNoZWNrCj4gICBkcm06IG9t
-YXBkcm06IHZlbmM6IERvbid0IGV4cG9ydCBvbWFwX2Rzc19wYWxfdm0gYW5kIG9tYXBfZHNzX250
-c2Nfdm0KPiAgIGRybTogb21hcGRybTogaGRtaTogU3RvcmUgUEhZIGZlYXR1cmVzIGluIFBIWSBk
-YXRhIHN0cnVjdHVyZQo+ICAgZHJtOiBvbWFwZHJtOiBkc3M6IFNwbGl0IG9wZXJhdGlvbnMgb3V0
-IG9mIGRzc19mZWF0dXJlcyBzdHJ1Y3R1cmUKPiAgIGRybTogb21hcGRybTogZHNpOiBIYW5kbGUg
-cGluIG11eGluZyBpbnRlcm5hbGx5Cj4gICBkcm06IG9tYXBkcm06IERvbid0IGZvcndhcmQgc2V0
-X21pbl9idXNfdHB1dCgpIHRvIG5vLW9wIHBsYXRmb3JtIGNvZGUKPiAgIGRybTogb21hcGRybTog
-ZGlzcGM6IFNlbGVjdCBmZWF0dXJlcyBiYXNlZCBvbiBjb21wYXRpYmxlIHN0cmluZwo+ICAgZHJt
-OiBvbWFwZHJtOiBkcGk6IFJlcGxhY2UgT01BUCBTb0MgbW9kZWwgY2hlY2tzIHdpdGggRFNTIG1v
-ZGVsCj4gICBkcm06IG9tYXBkcm06IGRzaTogU3RvcmUgRFNJIG1vZGVsIGFuZCBQTEwgaGFyZHdh
-cmUgZGF0YSBpbiBPRiBkYXRhCj4gICBkcm06IG9tYXBkcm06IGRzczogU2VsZWN0IGZlYXR1cmVz
-IGJhc2VkIG9uIGNvbXBhdGlibGUgc3RyaW5nCj4gICBkcm06IG9tYXBkcm06IGRzczogVXNlIHN1
-cHBvcnRlZCBvdXRwdXRzIGluc3RlYWQgb2YgZGlzcGxheSB0eXBlcwo+ICAgZHJtOiBvbWFwZHJt
-OiBkc3M6IEluaXRpYWxpemUgRFNTIGludGVybmFsIGZlYXR1cmVzIGF0IHByb2JlIHRpbWUKPiAg
-IGRybTogb21hcGRybTogTW92ZSBhbGwgZGVidWdmcyBjb2RlIGZyb20gY29yZSB0byBkc3MKPiAg
-IGRybTogb21hcGRybTogTW92ZSBzaHV0ZG93bigpIGhhbmRsZXIgZnJvbSBjb3JlIHRvIGRzcwo+
-ICAgZHJtOiBvbWFwZHJtOiBNb3ZlIHNpemUgdW5pdCBmZWF0dXJlcyB0byBkaXNwY19mZWF0dXJl
-cyBzdHJ1Y3R1cmUKPiAgIGRybTogb21hcGRybTogTW92ZSBjb2xvciBtb2RlcyBmZWF0dXJlIHRv
-IGRpc3BjX2ZlYXR1cmVzIHN0cnVjdHVyZQo+ICAgZHJtOiBvbWFwZHJtOiBNb3ZlIG92ZXJsYXkg
-Y2FwcyBmZWF0dXJlcyB0byBkaXNwY19mZWF0dXJlcyBzdHJ1Y3R1cmUKPiAgIGRybTogb21hcGRy
-bTogTW92ZSBudW1fb3ZscyBhbmQgbnVtX21ncnMgdG8gZGlzcGNfZmVhdHVyZXMgc3RydWN0dXJl
-Cj4gICBkcm06IG9tYXBkcm06IE1vdmUgRElTUENfQ0xLX1NXSVRDSCByZWcgZmVhdHVyZSB0byBz
-dHJ1Y3QgZHNzX2ZlYXR1cmVzCj4gICBkcm06IG9tYXBkcm06IE1vdmUgcmVnX2ZpZWxkcyB0byBk
-aXNwY19mZWF0dXJlcyBzdHJ1Y3R1cmUKPiAgIGRybTogb21hcGRybTogTW92ZSBGRUFUX1ZFTkNf
-UkVRVUlSRVNfVFZfREFDX0NMSyB0byB2ZW5jIGRyaXZlcgo+ICAgZHJtOiBvbWFwZHJtOiBNb3Zl
-IEZFQVRfRFNJXyogZmVhdHVyZXMgdG8gZHNpIGRyaXZlcgo+ICAgZHJtOiBvbWFwZHJtOiBNb3Zl
-IEZFQVRfSERNSV8qIGZlYXR1cmVzIHRvIGhkbWk0IGRyaXZlcgo+ICAgZHJtOiBvbWFwZHJtOiBN
-b3ZlIEZFQVRfRFBJX1VTRVNfVkREU19EU0kgZmVhdHVyZSB0byBkcGkgY29kZQo+ICAgZHJtOiBv
-bWFwZHJtOiBNb3ZlIEZFQVRfTENEX0NMS19TUkMgZmVhdHVyZSB0byBkc3NfZmVhdHVyZXMgc3Ry
-dWN0dXJlCj4gICBkcm06IG9tYXBkcm06IE1vdmUgRkVBVF8qIGZlYXR1cmVzIHRvIGRpc3BjIGRy
-aXZlcgo+ICAgZHJtOiBvbWFwZHJtOiBNb3ZlIEZFQVRfUEFSQU1fRFNJKiBmZWF0dXJlcyB0byBk
-c2kgZHJpdmVyCj4gICBkcm06IG9tYXBkcm06IE1vdmUgUENELCBMSU5FV0lEVEggYW5kIERPV05T
-Q0FMRSBmZWF0dXJlcyB0byBkaXNwYwo+ICAgICBkcml2ZXIKPiAgIGRybTogb21hcGRybTogTW92
-ZSBEU1NfRkNLIGZlYXR1cmUgdG8gZHNzIGRyaXZlcgo+ICAgZHJtOiBvbWFwZHJtOiBNb3ZlIHN1
-cHBvcnRlZCBvdXRwdXRzIGZlYXR1cmUgdG8gZHNzIGRyaXZlcgo+ICAgZHJtOiBvbWFwZHJtOiBS
-ZW1vdmUgZHNzX2ZlYXR1cmVzLmgKPiAKPiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1nZW5l
-cmljLmMgICAgICAgICAgICAgICAgfCAgIDEgKwo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2lvLmMg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgMSAtCj4gIC4uLi9ncHUvZHJtL29tYXBkcm0v
-ZGlzcGxheXMvY29ubmVjdG9yLWFuYWxvZy10di5jIHwgICAzICsKPiAgZHJpdmVycy9ncHUvZHJt
-L29tYXBkcm0vZGlzcGxheXMvcGFuZWwtZHBpLmMgICAgICAgfCAgIDMgKwo+ICAuLi4vZHJtL29t
-YXBkcm0vZGlzcGxheXMvcGFuZWwtc29ueS1hY3g1NjVha20uYyAgICB8ICAgMyArCj4gIGRyaXZl
-cnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9NYWtlZmlsZSAgICAgICAgICAgICAgIHwgICAyICstCj4g
-IGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9jb3JlLmMgICAgICAgICAgICAgICAgIHwgMTMz
-IC0tLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZGlzcGMuYyAgICAgICAgICAgICAg
-ICB8IDgyNCArKysrKysrKysrKystLS0tLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3Mv
-ZHBpLmMgICAgICAgICAgICAgICAgICB8ICA4OCArLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRy
-bS9kc3MvZHNpLmMgICAgICAgICAgICAgICAgICB8IDMwNyArKysrLS0tCj4gIGRyaXZlcnMvZ3B1
-L2RybS9vbWFwZHJtL2Rzcy9kc3MuYyAgICAgICAgICAgICAgICAgIHwgNDA2ICsrKysrKy0tLQo+
-ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNzLmggICAgICAgICAgICAgICAgICB8ICA0
-NiArLQo+ICBkcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNzX2ZlYXR1cmVzLmMgICAgICAg
-ICB8IDkwNSAtLS0tLS0tLS0tLS0tLS0tLS0KPiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNz
-L2Rzc19mZWF0dXJlcy5oICAgICAgICAgfCAxMDkgLS0tCj4gIGRyaXZlcnMvZ3B1L2RybS9vbWFw
-ZHJtL2Rzcy9oZG1pLmggICAgICAgICAgICAgICAgIHwgICA5ICsKPiAgZHJpdmVycy9ncHUvZHJt
-L29tYXBkcm0vZHNzL2hkbWk0LmMgICAgICAgICAgICAgICAgfCAgIDEgLQo+ICBkcml2ZXJzL2dw
-dS9kcm0vb21hcGRybS9kc3MvaGRtaTRfY29yZS5jICAgICAgICAgICB8ICAzOCArLQo+ICBkcml2
-ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvaGRtaTUuYyAgICAgICAgICAgICAgICB8ICAgMSAtCj4g
-IGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9oZG1pX3BoeS5jICAgICAgICAgICAgIHwgIDIz
-ICstCj4gIGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9vbWFwZHNzLmggICAgICAgICAgICAg
-IHwgICA3IC0KPiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL3ZlbmMuYyAgICAgICAgICAg
-ICAgICAgfCAgMjEgKy0KPiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL3ZpZGVvLXBsbC5j
-ICAgICAgICAgICAgfCAgIDEgLQo+ICAyMiBmaWxlcyBjaGFuZ2VkLCAxMjk2IGluc2VydGlvbnMo
-KyksIDE2MzYgZGVsZXRpb25zKC0pCj4gIGRlbGV0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2dwdS9k
-cm0vb21hcGRybS9kc3MvZHNzX2ZlYXR1cmVzLmMKPiAgZGVsZXRlIG1vZGUgMTAwNjQ0IGRyaXZl
-cnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc3NfZmVhdHVyZXMuaAoKLS0gClJlZ2FyZHMsCgpMYXVy
-ZW50IFBpbmNoYXJ0CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
-cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
-ZWwK
+Declare regulator_ops structures as const as they are either used as a
+copy operation or stored in the const field of a regulator_desc structure.
+As they are never modified after initialization, so make them const.
+Done using Coccinelle:
+
+@match disable optional_qualifier@
+identifier s;
+@@
+static struct regulator_ops s={...};
+
+@ref@
+position p;
+identifier match.s;
+@@
+s@p
+
+@good1@
+position ref.p;
+identifier match.s,f,c;
+expression e;
+@@
+
+(
+e = s@p
+|
+e = s@p.f
+|
+c(...,s@p.f,...)
+|
+c(...,s@p,...)
+)
+
+@good2@
+identifier y;
+position ref.p;
+identifier match.s;
+@@
+struct regulator_desc y ={...,.ops=&s@p,...};
+
+@good3@
+struct regulator_desc y;
+identifier match.s;
+position ref.p;
+@@
+y.ops=&s@p
+
+@bad depends on !good1 && !good2 && !good3@
+position ref.p;
+identifier match.s;
+@@
+s@p
+
+@depends on forall !bad disable optional_qualifier@
+identifier match.s;
+@@
+static
++ const
+struct regulator_ops s;
+
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/regulator/anatop-regulator.c    |  2 +-
+ drivers/regulator/bd9571mwv-regulator.c |  6 +++---
+ drivers/regulator/cpcap-regulator.c     |  2 +-
+ drivers/regulator/fixed.c               |  2 +-
+ drivers/regulator/gpio-regulator.c      |  4 ++--
+ drivers/regulator/lp873x-regulator.c    |  4 ++--
+ drivers/regulator/lp87565-regulator.c   |  2 +-
+ drivers/regulator/max8997-regulator.c   | 14 +++++++-------
+ drivers/regulator/mc13783-regulator.c   |  4 ++--
+ drivers/regulator/mc13892-regulator.c   |  8 ++++----
+ drivers/regulator/sky81452-regulator.c  |  2 +-
+ drivers/regulator/stw481x-vmmc.c        |  2 +-
+ drivers/regulator/ti-abb-regulator.c    |  2 +-
+ drivers/regulator/tps51632-regulator.c  |  2 +-
+ drivers/regulator/tps6105x-regulator.c  |  2 +-
+ drivers/regulator/tps62360-regulator.c  |  2 +-
+ drivers/regulator/tps6507x-regulator.c  |  2 +-
+ drivers/regulator/tps65086-regulator.c  |  4 ++--
+ drivers/regulator/tps65090-regulator.c  |  8 ++++----
+ drivers/regulator/tps65132-regulator.c  |  2 +-
+ drivers/regulator/tps65217-regulator.c  |  4 ++--
+ drivers/regulator/tps65218-regulator.c  |  8 ++++----
+ drivers/regulator/tps6524x-regulator.c  |  2 +-
+ drivers/regulator/tps6586x-regulator.c  |  8 ++++----
+ drivers/regulator/tps65910-regulator.c  | 10 +++++-----
+ drivers/regulator/tps65912-regulator.c  |  4 ++--
+ drivers/regulator/tps80031-regulator.c  | 10 +++++-----
+ drivers/regulator/twl-regulator.c       |  6 +++---
+ drivers/regulator/twl6030-regulator.c   |  8 ++++----
+ drivers/regulator/vexpress-regulator.c  |  4 ++--
+ 30 files changed, 70 insertions(+), 70 deletions(-)
+
+diff --git a/drivers/regulator/anatop-regulator.c b/drivers/regulator/anatop-regulator.c
+index 7d6478e..0a2865f 100644
+--- a/drivers/regulator/anatop-regulator.c
++++ b/drivers/regulator/anatop-regulator.c
+@@ -163,7 +163,7 @@ static int anatop_regmap_set_bypass(struct regulator_dev *reg, bool enable)
+ 	.map_voltage = regulator_map_voltage_linear,
+ };
+ 
+-static struct regulator_ops anatop_core_rops = {
++static const struct regulator_ops anatop_core_rops = {
+ 	.enable = anatop_regmap_enable,
+ 	.disable = anatop_regmap_disable,
+ 	.is_enabled = anatop_regmap_is_enabled,
+diff --git a/drivers/regulator/bd9571mwv-regulator.c b/drivers/regulator/bd9571mwv-regulator.c
+index c67a83d..8dee379 100644
+--- a/drivers/regulator/bd9571mwv-regulator.c
++++ b/drivers/regulator/bd9571mwv-regulator.c
+@@ -95,7 +95,7 @@ static int bd9571mwv_reg_set_voltage_sel_regmap(struct regulator_dev *rdev,
+ }
+ 
+ /* Operations permitted on AVS voltage regulator */
+-static struct regulator_ops avs_ops = {
++static const struct regulator_ops avs_ops = {
+ 	.set_voltage_sel	= bd9571mwv_avs_set_voltage_sel_regmap,
+ 	.map_voltage		= regulator_map_voltage_linear,
+ 	.get_voltage_sel	= bd9571mwv_avs_get_voltage_sel_regmap,
+@@ -103,7 +103,7 @@ static int bd9571mwv_reg_set_voltage_sel_regmap(struct regulator_dev *rdev,
+ };
+ 
+ /* Operations permitted on voltage regulators */
+-static struct regulator_ops reg_ops = {
++static const struct regulator_ops reg_ops = {
+ 	.set_voltage_sel	= bd9571mwv_reg_set_voltage_sel_regmap,
+ 	.map_voltage		= regulator_map_voltage_linear,
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+@@ -111,7 +111,7 @@ static int bd9571mwv_reg_set_voltage_sel_regmap(struct regulator_dev *rdev,
+ };
+ 
+ /* Operations permitted on voltage monitors */
+-static struct regulator_ops vid_ops = {
++static const struct regulator_ops vid_ops = {
+ 	.map_voltage		= regulator_map_voltage_linear,
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+ 	.list_voltage		= regulator_list_voltage_linear,
+diff --git a/drivers/regulator/cpcap-regulator.c b/drivers/regulator/cpcap-regulator.c
+index f541b80..0bd8b6a 100644
+--- a/drivers/regulator/cpcap-regulator.c
++++ b/drivers/regulator/cpcap-regulator.c
+@@ -258,7 +258,7 @@ static int cpcap_regulator_set_mode(struct regulator_dev *rdev,
+ 				  CPCAP_BIT_AUDIO_LOW_PWR, value);
+ }
+ 
+-static struct regulator_ops cpcap_regulator_ops = {
++static const struct regulator_ops cpcap_regulator_ops = {
+ 	.enable = cpcap_regulator_enable,
+ 	.disable = cpcap_regulator_disable,
+ 	.is_enabled = regulator_is_enabled_regmap,
+diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
+index 988a747..ca0ddb6 100644
+--- a/drivers/regulator/fixed.c
++++ b/drivers/regulator/fixed.c
+@@ -94,7 +94,7 @@ struct fixed_voltage_data {
+ 	return config;
+ }
+ 
+-static struct regulator_ops fixed_voltage_ops = {
++static const struct regulator_ops fixed_voltage_ops = {
+ };
+ 
+ static int reg_fixed_voltage_probe(struct platform_device *pdev)
+diff --git a/drivers/regulator/gpio-regulator.c b/drivers/regulator/gpio-regulator.c
+index 0fce06a..3f9a3ec 100644
+--- a/drivers/regulator/gpio-regulator.c
++++ b/drivers/regulator/gpio-regulator.c
+@@ -126,7 +126,7 @@ static int gpio_regulator_set_current_limit(struct regulator_dev *dev,
+ 	return 0;
+ }
+ 
+-static struct regulator_ops gpio_regulator_voltage_ops = {
++static const struct regulator_ops gpio_regulator_voltage_ops = {
+ 	.get_voltage = gpio_regulator_get_value,
+ 	.set_voltage = gpio_regulator_set_voltage,
+ 	.list_voltage = gpio_regulator_list_voltage,
+@@ -243,7 +243,7 @@ static int gpio_regulator_set_current_limit(struct regulator_dev *dev,
+ 	return config;
+ }
+ 
+-static struct regulator_ops gpio_regulator_current_ops = {
++static const struct regulator_ops gpio_regulator_current_ops = {
+ 	.get_current_limit = gpio_regulator_get_value,
+ 	.set_current_limit = gpio_regulator_set_current_limit,
+ };
+diff --git a/drivers/regulator/lp873x-regulator.c b/drivers/regulator/lp873x-regulator.c
+index 70e3df6..2ec5e83 100644
+--- a/drivers/regulator/lp873x-regulator.c
++++ b/drivers/regulator/lp873x-regulator.c
+@@ -146,7 +146,7 @@ static int lp873x_buck_get_current_limit(struct regulator_dev *rdev)
+ }
+ 
+ /* Operations permitted on BUCK0, BUCK1 */
+-static struct regulator_ops lp873x_buck01_ops = {
++static const struct regulator_ops lp873x_buck01_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -161,7 +161,7 @@ static int lp873x_buck_get_current_limit(struct regulator_dev *rdev)
+ };
+ 
+ /* Operations permitted on LDO0 and LDO1 */
+-static struct regulator_ops lp873x_ldo01_ops = {
++static const struct regulator_ops lp873x_ldo01_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+diff --git a/drivers/regulator/lp87565-regulator.c b/drivers/regulator/lp87565-regulator.c
+index cfdbe29..f20e048 100644
+--- a/drivers/regulator/lp87565-regulator.c
++++ b/drivers/regulator/lp87565-regulator.c
+@@ -136,7 +136,7 @@ static int lp87565_buck_get_current_limit(struct regulator_dev *rdev)
+ }
+ 
+ /* Operations permitted on BUCK0, BUCK1 */
+-static struct regulator_ops lp87565_buck_ops = {
++static const struct regulator_ops lp87565_buck_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+diff --git a/drivers/regulator/max8997-regulator.c b/drivers/regulator/max8997-regulator.c
+index 559b9ac..8766a37 100644
+--- a/drivers/regulator/max8997-regulator.c
++++ b/drivers/regulator/max8997-regulator.c
+@@ -747,7 +747,7 @@ static int max8997_reg_disable_suspend(struct regulator_dev *rdev)
+ 	return max8997_update_reg(i2c, reg, ~pattern, mask);
+ }
+ 
+-static struct regulator_ops max8997_ldo_ops = {
++static const struct regulator_ops max8997_ldo_ops = {
+ 	.list_voltage		= max8997_list_voltage,
+ 	.is_enabled		= max8997_reg_is_enabled,
+ 	.enable			= max8997_reg_enable,
+@@ -757,7 +757,7 @@ static int max8997_reg_disable_suspend(struct regulator_dev *rdev)
+ 	.set_suspend_disable	= max8997_reg_disable_suspend,
+ };
+ 
+-static struct regulator_ops max8997_buck_ops = {
++static const struct regulator_ops max8997_buck_ops = {
+ 	.list_voltage		= max8997_list_voltage,
+ 	.is_enabled		= max8997_reg_is_enabled,
+ 	.enable			= max8997_reg_enable,
+@@ -768,7 +768,7 @@ static int max8997_reg_disable_suspend(struct regulator_dev *rdev)
+ 	.set_suspend_disable	= max8997_reg_disable_suspend,
+ };
+ 
+-static struct regulator_ops max8997_fixedvolt_ops = {
++static const struct regulator_ops max8997_fixedvolt_ops = {
+ 	.list_voltage		= max8997_list_voltage,
+ 	.is_enabled		= max8997_reg_is_enabled,
+ 	.enable			= max8997_reg_enable,
+@@ -776,7 +776,7 @@ static int max8997_reg_disable_suspend(struct regulator_dev *rdev)
+ 	.set_suspend_disable	= max8997_reg_disable_suspend,
+ };
+ 
+-static struct regulator_ops max8997_safeout_ops = {
++static const struct regulator_ops max8997_safeout_ops = {
+ 	.list_voltage		= regulator_list_voltage_table,
+ 	.is_enabled		= max8997_reg_is_enabled,
+ 	.enable			= max8997_reg_enable,
+@@ -786,7 +786,7 @@ static int max8997_reg_disable_suspend(struct regulator_dev *rdev)
+ 	.set_suspend_disable	= max8997_reg_disable_suspend,
+ };
+ 
+-static struct regulator_ops max8997_fixedstate_ops = {
++static const struct regulator_ops max8997_fixedstate_ops = {
+ 	.list_voltage		= max8997_list_voltage_charger_cv,
+ 	.get_voltage_sel	= max8997_get_voltage_sel,
+ 	.set_voltage		= max8997_set_voltage_charger_cv,
+@@ -820,7 +820,7 @@ static int max8997_get_current_limit(struct regulator_dev *rdev)
+ 	return max8997_list_voltage(rdev, sel);
+ }
+ 
+-static struct regulator_ops max8997_charger_ops = {
++static const struct regulator_ops max8997_charger_ops = {
+ 	.is_enabled		= max8997_reg_is_enabled,
+ 	.enable			= max8997_reg_enable,
+ 	.disable		= max8997_reg_disable,
+@@ -828,7 +828,7 @@ static int max8997_get_current_limit(struct regulator_dev *rdev)
+ 	.set_current_limit	= max8997_set_current_limit,
+ };
+ 
+-static struct regulator_ops max8997_charger_fixedstate_ops = {
++static const struct regulator_ops max8997_charger_fixedstate_ops = {
+ 	.get_current_limit	= max8997_get_current_limit,
+ 	.set_current_limit	= max8997_set_current_limit,
+ };
+diff --git a/drivers/regulator/mc13783-regulator.c b/drivers/regulator/mc13783-regulator.c
+index fe4c7d6..86e315e 100644
+--- a/drivers/regulator/mc13783-regulator.c
++++ b/drivers/regulator/mc13783-regulator.c
+@@ -230,7 +230,7 @@
+ 	5500000,
+ };
+ 
+-static struct regulator_ops mc13783_gpo_regulator_ops;
++static const struct regulator_ops mc13783_gpo_regulator_ops;
+ 
+ #define MC13783_DEFINE(prefix, name, reg, vsel_reg, voltages)	\
+ 	MC13xxx_DEFINE(MC13783_REG_, name, reg, vsel_reg, voltages, \
+@@ -384,7 +384,7 @@ static int mc13783_gpo_regulator_is_enabled(struct regulator_dev *rdev)
+ 	return (val & mc13xxx_regulators[id].enable_bit) != 0;
+ }
+ 
+-static struct regulator_ops mc13783_gpo_regulator_ops = {
++static const struct regulator_ops mc13783_gpo_regulator_ops = {
+ 	.enable = mc13783_gpo_regulator_enable,
+ 	.disable = mc13783_gpo_regulator_disable,
+ 	.is_enabled = mc13783_gpo_regulator_is_enabled,
+diff --git a/drivers/regulator/mc13892-regulator.c b/drivers/regulator/mc13892-regulator.c
+index 0d17c92..2237f51 100644
+--- a/drivers/regulator/mc13892-regulator.c
++++ b/drivers/regulator/mc13892-regulator.c
+@@ -246,8 +246,8 @@
+ 	5000000,
+ };
+ 
+-static struct regulator_ops mc13892_gpo_regulator_ops;
+-static struct regulator_ops mc13892_sw_regulator_ops;
++static const struct regulator_ops mc13892_gpo_regulator_ops;
++static const struct regulator_ops mc13892_sw_regulator_ops;
+ 
+ 
+ #define MC13892_FIXED_DEFINE(name, reg, voltages)		\
+@@ -391,7 +391,7 @@ static int mc13892_gpo_regulator_is_enabled(struct regulator_dev *rdev)
+ }
+ 
+ 
+-static struct regulator_ops mc13892_gpo_regulator_ops = {
++static const struct regulator_ops mc13892_gpo_regulator_ops = {
+ 	.enable = mc13892_gpo_regulator_enable,
+ 	.disable = mc13892_gpo_regulator_disable,
+ 	.is_enabled = mc13892_gpo_regulator_is_enabled,
+@@ -483,7 +483,7 @@ static int mc13892_sw_regulator_set_voltage_sel(struct regulator_dev *rdev,
+ 	return ret;
+ }
+ 
+-static struct regulator_ops mc13892_sw_regulator_ops = {
++static const struct regulator_ops mc13892_sw_regulator_ops = {
+ 	.list_voltage = regulator_list_voltage_table,
+ 	.map_voltage = regulator_map_voltage_ascend,
+ 	.set_voltage_sel = mc13892_sw_regulator_set_voltage_sel,
+diff --git a/drivers/regulator/sky81452-regulator.c b/drivers/regulator/sky81452-regulator.c
+index 6478606..eb2b609 100644
+--- a/drivers/regulator/sky81452-regulator.c
++++ b/drivers/regulator/sky81452-regulator.c
+@@ -34,7 +34,7 @@
+ #define SKY81452_LEN	0x40
+ #define SKY81452_LOUT	0x1F
+ 
+-static struct regulator_ops sky81452_reg_ops = {
++static const struct regulator_ops sky81452_reg_ops = {
+ 	.list_voltage = regulator_list_voltage_linear_range,
+ 	.map_voltage = regulator_map_voltage_linear_range,
+ 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
+diff --git a/drivers/regulator/stw481x-vmmc.c b/drivers/regulator/stw481x-vmmc.c
+index 342f5da..edd8fa7 100644
+--- a/drivers/regulator/stw481x-vmmc.c
++++ b/drivers/regulator/stw481x-vmmc.c
+@@ -28,7 +28,7 @@
+ 	3300000,
+ };
+ 
+-static struct regulator_ops stw481x_vmmc_ops = {
++static const struct regulator_ops stw481x_vmmc_ops = {
+ 	.list_voltage = regulator_list_voltage_table,
+ 	.enable      = regulator_enable_regmap,
+ 	.disable     = regulator_disable_regmap,
+diff --git a/drivers/regulator/ti-abb-regulator.c b/drivers/regulator/ti-abb-regulator.c
+index d2f9942..a263148 100644
+--- a/drivers/regulator/ti-abb-regulator.c
++++ b/drivers/regulator/ti-abb-regulator.c
+@@ -629,7 +629,7 @@ static int ti_abb_init_table(struct device *dev, struct ti_abb *abb,
+ 	return 0;
+ }
+ 
+-static struct regulator_ops ti_abb_reg_ops = {
++static const struct regulator_ops ti_abb_reg_ops = {
+ 	.list_voltage = regulator_list_voltage_table,
+ 
+ 	.set_voltage_sel = ti_abb_set_voltage_sel,
+diff --git a/drivers/regulator/tps51632-regulator.c b/drivers/regulator/tps51632-regulator.c
+index c139890..a15e415 100644
+--- a/drivers/regulator/tps51632-regulator.c
++++ b/drivers/regulator/tps51632-regulator.c
+@@ -108,7 +108,7 @@ static int tps51632_dcdc_set_ramp_delay(struct regulator_dev *rdev,
+ 	return ret;
+ }
+ 
+-static struct regulator_ops tps51632_dcdc_ops = {
++static const struct regulator_ops tps51632_dcdc_ops = {
+ 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+ 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
+ 	.list_voltage		= regulator_list_voltage_linear,
+diff --git a/drivers/regulator/tps6105x-regulator.c b/drivers/regulator/tps6105x-regulator.c
+index 584ef3d..c3d48a8 100644
+--- a/drivers/regulator/tps6105x-regulator.c
++++ b/drivers/regulator/tps6105x-regulator.c
+@@ -27,7 +27,7 @@
+ 	5000000, /* There is an additional 5V */
+ };
+ 
+-static struct regulator_ops tps6105x_regulator_ops = {
++static const struct regulator_ops tps6105x_regulator_ops = {
+ 	.enable		= regulator_enable_regmap,
+ 	.disable	= regulator_disable_regmap,
+ 	.is_enabled	= regulator_is_enabled_regmap,
+diff --git a/drivers/regulator/tps62360-regulator.c b/drivers/regulator/tps62360-regulator.c
+index f6a6d36..315cd5d 100644
+--- a/drivers/regulator/tps62360-regulator.c
++++ b/drivers/regulator/tps62360-regulator.c
+@@ -233,7 +233,7 @@ static unsigned int tps62360_get_mode(struct regulator_dev *rdev)
+ 				REGULATOR_MODE_FAST : REGULATOR_MODE_NORMAL;
+ }
+ 
+-static struct regulator_ops tps62360_dcdc_ops = {
++static const struct regulator_ops tps62360_dcdc_ops = {
+ 	.get_voltage_sel	= tps62360_dcdc_get_voltage_sel,
+ 	.set_voltage_sel	= tps62360_dcdc_set_voltage_sel,
+ 	.list_voltage		= regulator_list_voltage_linear,
+diff --git a/drivers/regulator/tps6507x-regulator.c b/drivers/regulator/tps6507x-regulator.c
+index c179a3a..2b3064f 100644
+--- a/drivers/regulator/tps6507x-regulator.c
++++ b/drivers/regulator/tps6507x-regulator.c
+@@ -349,7 +349,7 @@ static int tps6507x_pmic_set_voltage_sel(struct regulator_dev *dev,
+ 	return tps6507x_pmic_reg_write(tps, reg, data);
+ }
+ 
+-static struct regulator_ops tps6507x_pmic_ops = {
++static const struct regulator_ops tps6507x_pmic_ops = {
+ 	.is_enabled = tps6507x_pmic_is_enabled,
+ 	.enable = tps6507x_pmic_enable,
+ 	.disable = tps6507x_pmic_disable,
+diff --git a/drivers/regulator/tps65086-regulator.c b/drivers/regulator/tps65086-regulator.c
+index 45e96e1..3b61840 100644
+--- a/drivers/regulator/tps65086-regulator.c
++++ b/drivers/regulator/tps65086-regulator.c
+@@ -101,7 +101,7 @@ struct tps65086_regulator {
+ };
+ 
+ /* Operations permitted on regulators */
+-static struct regulator_ops reg_ops = {
++static const struct regulator_ops reg_ops = {
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+ 	.is_enabled		= regulator_is_enabled_regmap,
+@@ -112,7 +112,7 @@ struct tps65086_regulator {
+ };
+ 
+ /* Operations permitted on load switches */
+-static struct regulator_ops switch_ops = {
++static const struct regulator_ops switch_ops = {
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+ 	.is_enabled		= regulator_is_enabled_regmap,
+diff --git a/drivers/regulator/tps65090-regulator.c b/drivers/regulator/tps65090-regulator.c
+index 395f35d..db341d9 100644
+--- a/drivers/regulator/tps65090-regulator.c
++++ b/drivers/regulator/tps65090-regulator.c
+@@ -57,7 +57,7 @@ struct tps65090_regulator {
+ 	int			overcurrent_wait;
+ };
+ 
+-static struct regulator_ops tps65090_ext_control_ops = {
++static const struct regulator_ops tps65090_ext_control_ops = {
+ };
+ 
+ /**
+@@ -177,19 +177,19 @@ static int tps65090_fet_enable(struct regulator_dev *rdev)
+ 	return ret;
+ }
+ 
+-static struct regulator_ops tps65090_reg_control_ops = {
++static const struct regulator_ops tps65090_reg_control_ops = {
+ 	.enable		= regulator_enable_regmap,
+ 	.disable	= regulator_disable_regmap,
+ 	.is_enabled	= regulator_is_enabled_regmap,
+ };
+ 
+-static struct regulator_ops tps65090_fet_control_ops = {
++static const struct regulator_ops tps65090_fet_control_ops = {
+ 	.enable		= tps65090_fet_enable,
+ 	.disable	= regulator_disable_regmap,
+ 	.is_enabled	= regulator_is_enabled_regmap,
+ };
+ 
+-static struct regulator_ops tps65090_ldo_ops = {
++static const struct regulator_ops tps65090_ldo_ops = {
+ };
+ 
+ #define tps65090_REG_DESC(_id, _sname, _en_reg, _en_bits, _nvolt, _volt, _ops) \
+diff --git a/drivers/regulator/tps65132-regulator.c b/drivers/regulator/tps65132-regulator.c
+index 73978dd..8c18010 100644
+--- a/drivers/regulator/tps65132-regulator.c
++++ b/drivers/regulator/tps65132-regulator.c
+@@ -120,7 +120,7 @@ static int tps65132_regulator_is_enabled(struct regulator_dev *rdev)
+ 	return 1;
+ }
+ 
+-static struct regulator_ops tps65132_regulator_ops = {
++static const struct regulator_ops tps65132_regulator_ops = {
+ 	.enable = tps65132_regulator_enable,
+ 	.disable = tps65132_regulator_disable,
+ 	.is_enabled = tps65132_regulator_is_enabled,
+diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
+index 5324dc9..74b1180 100644
+--- a/drivers/regulator/tps65217-regulator.c
++++ b/drivers/regulator/tps65217-regulator.c
+@@ -150,7 +150,7 @@ static int tps65217_pmic_set_suspend_disable(struct regulator_dev *dev)
+ }
+ 
+ /* Operations permitted on DCDCx, LDO2, LDO3 and LDO4 */
+-static struct regulator_ops tps65217_pmic_ops = {
++static const struct regulator_ops tps65217_pmic_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= tps65217_pmic_enable,
+ 	.disable		= tps65217_pmic_disable,
+@@ -163,7 +163,7 @@ static int tps65217_pmic_set_suspend_disable(struct regulator_dev *dev)
+ };
+ 
+ /* Operations permitted on LDO1 */
+-static struct regulator_ops tps65217_pmic_ldo1_ops = {
++static const struct regulator_ops tps65217_pmic_ldo1_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= tps65217_pmic_enable,
+ 	.disable		= tps65217_pmic_disable,
+diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
+index 9aafbb0..d746f27 100644
+--- a/drivers/regulator/tps65218-regulator.c
++++ b/drivers/regulator/tps65218-regulator.c
+@@ -165,7 +165,7 @@ static int tps65218_pmic_set_suspend_disable(struct regulator_dev *dev)
+ }
+ 
+ /* Operations permitted on DCDC1, DCDC2 */
+-static struct regulator_ops tps65218_dcdc12_ops = {
++static const struct regulator_ops tps65218_dcdc12_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= tps65218_pmic_enable,
+ 	.disable		= tps65218_pmic_disable,
+@@ -179,7 +179,7 @@ static int tps65218_pmic_set_suspend_disable(struct regulator_dev *dev)
+ };
+ 
+ /* Operations permitted on DCDC3, DCDC4 and LDO1 */
+-static struct regulator_ops tps65218_ldo1_dcdc34_ops = {
++static const struct regulator_ops tps65218_ldo1_dcdc34_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= tps65218_pmic_enable,
+ 	.disable		= tps65218_pmic_disable,
+@@ -244,7 +244,7 @@ static int tps65218_pmic_get_current_limit(struct regulator_dev *dev)
+ 	return ls3_currents[index];
+ }
+ 
+-static struct regulator_ops tps65218_ls3_ops = {
++static const struct regulator_ops tps65218_ls3_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= tps65218_pmic_enable,
+ 	.disable		= tps65218_pmic_disable,
+@@ -254,7 +254,7 @@ static int tps65218_pmic_get_current_limit(struct regulator_dev *dev)
+ };
+ 
+ /* Operations permitted on DCDC5, DCDC6 */
+-static struct regulator_ops tps65218_dcdc56_pmic_ops = {
++static const struct regulator_ops tps65218_dcdc56_pmic_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= tps65218_pmic_enable,
+ 	.disable		= tps65218_pmic_disable,
+diff --git a/drivers/regulator/tps6524x-regulator.c b/drivers/regulator/tps6524x-regulator.c
+index 67cac26..c09223c 100644
+--- a/drivers/regulator/tps6524x-regulator.c
++++ b/drivers/regulator/tps6524x-regulator.c
+@@ -565,7 +565,7 @@ static int is_supply_enabled(struct regulator_dev *rdev)
+ 	return read_field(hw, &info->enable);
+ }
+ 
+-static struct regulator_ops regulator_ops = {
++static const struct regulator_ops regulator_ops = {
+ 	.is_enabled		= is_supply_enabled,
+ 	.enable			= enable_supply,
+ 	.disable		= disable_supply,
+diff --git a/drivers/regulator/tps6586x-regulator.c b/drivers/regulator/tps6586x-regulator.c
+index 9e9d220..8186508 100644
+--- a/drivers/regulator/tps6586x-regulator.c
++++ b/drivers/regulator/tps6586x-regulator.c
+@@ -63,7 +63,7 @@ struct tps6586x_regulator {
+ 	int enable_reg[2];
+ };
+ 
+-static struct regulator_ops tps6586x_rw_regulator_ops = {
++static const struct regulator_ops tps6586x_rw_regulator_ops = {
+ 	.list_voltage = regulator_list_voltage_table,
+ 	.map_voltage = regulator_map_voltage_ascend,
+ 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
+@@ -74,7 +74,7 @@ struct tps6586x_regulator {
+ 	.disable = regulator_disable_regmap,
+ };
+ 
+-static struct regulator_ops tps6586x_rw_linear_regulator_ops = {
++static const struct regulator_ops tps6586x_rw_linear_regulator_ops = {
+ 	.list_voltage = regulator_list_voltage_linear,
+ 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
+ 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
+@@ -84,7 +84,7 @@ struct tps6586x_regulator {
+ 	.disable = regulator_disable_regmap,
+ };
+ 
+-static struct regulator_ops tps6586x_ro_regulator_ops = {
++static const struct regulator_ops tps6586x_ro_regulator_ops = {
+ 	.list_voltage = regulator_list_voltage_table,
+ 	.map_voltage = regulator_map_voltage_ascend,
+ 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
+@@ -94,7 +94,7 @@ struct tps6586x_regulator {
+ 	.disable = regulator_disable_regmap,
+ };
+ 
+-static struct regulator_ops tps6586x_sys_regulator_ops = {
++static const struct regulator_ops tps6586x_sys_regulator_ops = {
+ };
+ 
+ static const unsigned int tps6586x_ldo0_voltages[] = {
+diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
+index 81672a5..1d3170e 100644
+--- a/drivers/regulator/tps65910-regulator.c
++++ b/drivers/regulator/tps65910-regulator.c
+@@ -762,7 +762,7 @@ static int tps65911_list_voltage(struct regulator_dev *dev, unsigned selector)
+ }
+ 
+ /* Regulator ops (except VRTC) */
+-static struct regulator_ops tps65910_ops_dcdc = {
++static const struct regulator_ops tps65910_ops_dcdc = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -775,7 +775,7 @@ static int tps65911_list_voltage(struct regulator_dev *dev, unsigned selector)
+ 	.map_voltage		= regulator_map_voltage_ascend,
+ };
+ 
+-static struct regulator_ops tps65910_ops_vdd3 = {
++static const struct regulator_ops tps65910_ops_vdd3 = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -786,7 +786,7 @@ static int tps65911_list_voltage(struct regulator_dev *dev, unsigned selector)
+ 	.map_voltage		= regulator_map_voltage_ascend,
+ };
+ 
+-static struct regulator_ops tps65910_ops_vbb = {
++static const struct regulator_ops tps65910_ops_vbb = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -798,7 +798,7 @@ static int tps65911_list_voltage(struct regulator_dev *dev, unsigned selector)
+ 	.map_voltage		= regulator_map_voltage_iterate,
+ };
+ 
+-static struct regulator_ops tps65910_ops = {
++static const struct regulator_ops tps65910_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -810,7 +810,7 @@ static int tps65911_list_voltage(struct regulator_dev *dev, unsigned selector)
+ 	.map_voltage		= regulator_map_voltage_ascend,
+ };
+ 
+-static struct regulator_ops tps65911_ops = {
++static const struct regulator_ops tps65911_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+diff --git a/drivers/regulator/tps65912-regulator.c b/drivers/regulator/tps65912-regulator.c
+index a4921a7..d615a3f 100644
+--- a/drivers/regulator/tps65912-regulator.c
++++ b/drivers/regulator/tps65912-regulator.c
+@@ -56,7 +56,7 @@ enum tps65912_regulators { DCDC1, DCDC2, DCDC3, DCDC4, LDO1, LDO2, LDO3,
+ };
+ 
+ /* Operations permitted on DCDCx */
+-static struct regulator_ops tps65912_ops_dcdc = {
++static const struct regulator_ops tps65912_ops_dcdc = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+@@ -66,7 +66,7 @@ enum tps65912_regulators { DCDC1, DCDC2, DCDC3, DCDC4, LDO1, LDO2, LDO3,
+ };
+ 
+ /* Operations permitted on LDOx */
+-static struct regulator_ops tps65912_ops_ldo = {
++static const struct regulator_ops tps65912_ops_ldo = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+ 	.enable			= regulator_enable_regmap,
+ 	.disable		= regulator_disable_regmap,
+diff --git a/drivers/regulator/tps80031-regulator.c b/drivers/regulator/tps80031-regulator.c
+index d4cc60a..947cc49 100644
+--- a/drivers/regulator/tps80031-regulator.c
++++ b/drivers/regulator/tps80031-regulator.c
+@@ -378,7 +378,7 @@ static int tps80031_vbus_disable(struct regulator_dev *rdev)
+ 	return ret;
+ }
+ 
+-static struct regulator_ops tps80031_dcdc_ops = {
++static const struct regulator_ops tps80031_dcdc_ops = {
+ 	.list_voltage		= tps80031_dcdc_list_voltage,
+ 	.set_voltage_sel	= tps80031_dcdc_set_voltage_sel,
+ 	.get_voltage_sel	= tps80031_dcdc_get_voltage_sel,
+@@ -387,7 +387,7 @@ static int tps80031_vbus_disable(struct regulator_dev *rdev)
+ 	.is_enabled	= tps80031_reg_is_enabled,
+ };
+ 
+-static struct regulator_ops tps80031_ldo_ops = {
++static const struct regulator_ops tps80031_ldo_ops = {
+ 	.list_voltage		= tps80031_ldo_list_voltage,
+ 	.map_voltage		= tps80031_ldo_map_voltage,
+ 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
+@@ -397,18 +397,18 @@ static int tps80031_vbus_disable(struct regulator_dev *rdev)
+ 	.is_enabled		= tps80031_reg_is_enabled,
+ };
+ 
+-static struct regulator_ops tps80031_vbus_sw_ops = {
++static const struct regulator_ops tps80031_vbus_sw_ops = {
+ 	.list_voltage	= regulator_list_voltage_linear,
+ 	.enable		= tps80031_vbus_enable,
+ 	.disable	= tps80031_vbus_disable,
+ 	.is_enabled	= tps80031_vbus_is_enabled,
+ };
+ 
+-static struct regulator_ops tps80031_vbus_hw_ops = {
++static const struct regulator_ops tps80031_vbus_hw_ops = {
+ 	.list_voltage	= regulator_list_voltage_linear,
+ };
+ 
+-static struct regulator_ops tps80031_ext_reg_ops = {
++static const struct regulator_ops tps80031_ext_reg_ops = {
+ 	.list_voltage	= regulator_list_voltage_linear,
+ 	.enable		= tps80031_reg_enable,
+ 	.disable	= tps80031_reg_disable,
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 6c9ec84..8c2e2be 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -392,7 +392,7 @@ static int twl4030ldo_get_voltage_sel(struct regulator_dev *rdev)
+ 	return vsel;
+ }
+ 
+-static struct regulator_ops twl4030ldo_ops = {
++static const struct regulator_ops twl4030ldo_ops = {
+ 	.list_voltage	= twl4030ldo_list_voltage,
+ 
+ 	.set_voltage_sel = twl4030ldo_set_voltage_sel,
+@@ -430,14 +430,14 @@ static int twl4030smps_get_voltage(struct regulator_dev *rdev)
+ 	return vsel * 12500 + 600000;
+ }
+ 
+-static struct regulator_ops twl4030smps_ops = {
++static const struct regulator_ops twl4030smps_ops = {
+ 	.set_voltage	= twl4030smps_set_voltage,
+ 	.get_voltage	= twl4030smps_get_voltage,
+ };
+ 
+ /*----------------------------------------------------------------------*/
+ 
+-static struct regulator_ops twl4030fixed_ops = {
++static const struct regulator_ops twl4030fixed_ops = {
+ 	.list_voltage	= regulator_list_voltage_linear,
+ 
+ 	.enable		= twl4030reg_enable,
+diff --git a/drivers/regulator/twl6030-regulator.c b/drivers/regulator/twl6030-regulator.c
+index 56aada3..22c0e8a 100644
+--- a/drivers/regulator/twl6030-regulator.c
++++ b/drivers/regulator/twl6030-regulator.c
+@@ -247,7 +247,7 @@ static int twl6030coresmps_get_voltage(struct regulator_dev *rdev)
+ 	return -ENODEV;
+ }
+ 
+-static struct regulator_ops twl6030coresmps_ops = {
++static const struct regulator_ops twl6030coresmps_ops = {
+ 	.set_voltage	= twl6030coresmps_set_voltage,
+ 	.get_voltage	= twl6030coresmps_get_voltage,
+ };
+@@ -290,7 +290,7 @@ static int twl6030ldo_get_voltage_sel(struct regulator_dev *rdev)
+ 	return vsel;
+ }
+ 
+-static struct regulator_ops twl6030ldo_ops = {
++static const struct regulator_ops twl6030ldo_ops = {
+ 	.list_voltage	= twl6030ldo_list_voltage,
+ 
+ 	.set_voltage_sel = twl6030ldo_set_voltage_sel,
+@@ -305,7 +305,7 @@ static int twl6030ldo_get_voltage_sel(struct regulator_dev *rdev)
+ 	.get_status	= twl6030reg_get_status,
+ };
+ 
+-static struct regulator_ops twl6030fixed_ops = {
++static const struct regulator_ops twl6030fixed_ops = {
+ 	.list_voltage	= regulator_list_voltage_linear,
+ 
+ 	.enable		= twl6030reg_enable,
+@@ -496,7 +496,7 @@ static int twl6030smps_get_voltage_sel(struct regulator_dev *rdev)
+ 	return twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_VOLTAGE_SMPS);
+ }
+ 
+-static struct regulator_ops twlsmps_ops = {
++static const struct regulator_ops twlsmps_ops = {
+ 	.list_voltage		= twl6030smps_list_voltage,
+ 	.map_voltage		= twl6030smps_map_voltage,
+ 
+diff --git a/drivers/regulator/vexpress-regulator.c b/drivers/regulator/vexpress-regulator.c
+index c810cbb..ca4230f 100644
+--- a/drivers/regulator/vexpress-regulator.c
++++ b/drivers/regulator/vexpress-regulator.c
+@@ -46,11 +46,11 @@ static int vexpress_regulator_set_voltage(struct regulator_dev *regdev,
+ 	return regmap_write(reg->regmap, 0, min_uV);
+ }
+ 
+-static struct regulator_ops vexpress_regulator_ops_ro = {
++static const struct regulator_ops vexpress_regulator_ops_ro = {
+ 	.get_voltage = vexpress_regulator_get_voltage,
+ };
+ 
+-static struct regulator_ops vexpress_regulator_ops = {
++static const struct regulator_ops vexpress_regulator_ops = {
+ 	.get_voltage = vexpress_regulator_get_voltage,
+ 	.set_voltage = vexpress_regulator_set_voltage,
+ };
+-- 
+1.9.1
