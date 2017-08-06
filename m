@@ -1,66 +1,30 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: [PATCH 14/15] arm-soc: shmobile: replace open coded VA->PA calculation
-Date: Sat,  5 Aug 2017 21:52:21 +0100
-Message-ID: <20170805205222.19868-15-ard.biesheuvel@linaro.org>
-References: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: [PATCH 0/2] OMAP3/4 PRM: fix of_irq_get() result checks
+Date: Sun, 06 Aug 2017 16:38:49 +0300
+Message-ID: <20170806133849.722783266@cogentembedded.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: linux-arm-kernel@lists.infradead.org, linux-renesas-soc@vger.kernel.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, kvm@vger.kernel.org, kvmarm@lists.cs.columbia.edu, krzk@kernel.org, jason@lakedaemon.net, arm@kernel.org, andrew@lunn.ch, gregory.clement@free-electrons.com, sebastian.hesselbarth@gmail.com, tony@atomide.com, baohua@kernel.org, horms@verge.net.au, magnus.damm@gmail.com, vireshk@kernel.org, shiraz.linux.kernel@gmail.com, patrice.chotard@st.com, nico@linaro.org, dave.martin@arm.com, marc.zyngier@arm.com
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This replaces a couple of open coded calculations to obtain the
-physical address of a far symbol with calls to the new adr_l etc
-macros.
+Hello!
 
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
----
- arch/arm/mach-shmobile/headsmp.S | 14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+Here's the set of 2 patches against the 'master' branch of Tony Lingren's
+'linux-omap.git' repo.  I'm fixing  of_irq_get() DT API result mischecking.
 
-diff --git a/arch/arm/mach-shmobile/headsmp.S b/arch/arm/mach-shmobile/headsmp.S
-index 32e0bf6e3ccb..f5e0d7c93cda 100644
---- a/arch/arm/mach-shmobile/headsmp.S
-+++ b/arch/arm/mach-shmobile/headsmp.S
-@@ -46,11 +46,10 @@ ENTRY(shmobile_smp_boot)
- 	and	r0, r1, #0xffffff		@ MPIDR_HWID_BITMASK
- 						@ r0 = cpu_logical_map() value
- 	mov	r1, #0				@ r1 = CPU index
--	adr	r2, 1f
--	ldmia	r2, {r5, r6, r7}
--	add	r5, r5, r2			@ array of per-cpu mpidr values
--	add	r6, r6, r2			@ array of per-cpu functions
--	add	r7, r7, r2			@ array of per-cpu arguments
-+
-+	adr_l	r5, shmobile_smp_mpidr		@ array of per-cpu mpidr values
-+	adr_l	r6, shmobile_smp_fn		@ array of per-cpu functions
-+	adr_l	r7, shmobile_smp_arg		@ array of per-cpu arguments
- 
- shmobile_smp_boot_find_mpidr:
- 	ldr	r8, [r5, r1, lsl #2]
-@@ -78,11 +77,6 @@ ENTRY(shmobile_smp_sleep)
- 	b	shmobile_smp_boot
- ENDPROC(shmobile_smp_sleep)
- 
--	.align	2
--1:	.long	shmobile_smp_mpidr - .
--	.long	shmobile_smp_fn - 1b
--	.long	shmobile_smp_arg - 1b
--
- 	.bss
- 	.globl	shmobile_smp_mpidr
- shmobile_smp_mpidr:
--- 
-2.11.0
+[1/2] ARM: OMAP3: PRM: fix of_irq_get() result check
+[2/2] ARM: OMAP4: PRM: fix of_irq_get() result checks
+
+MBR, Sergei
