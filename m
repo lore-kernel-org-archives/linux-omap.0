@@ -1,39 +1,42 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: PRM: fix of_irq_get() result checks
-Date: Sun, 6 Aug 2017 18:19:19 +0300
-Message-ID: <80dd8051-456b-2331-b847-0631d94f85b1@cogentembedded.com>
-References: <20170806151714.108596802@cogentembedded.com>
+From: Mikko Rapeli <mikko.rapeli@iki.fi>
+Subject: [PATCH v06 19/36] uapi linux/omapfb.h: use __kernel_size_t instead of size_t
+Date: Sun,  6 Aug 2017 18:44:10 +0200
+Message-ID: <20170806164428.2273-20-mikko.rapeli@iki.fi>
+References: <20170806164428.2273-1-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170806151714.108596802@cogentembedded.com>
-Content-Language: en-MW
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@codeaurora.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170806164428.2273-1-mikko.rapeli@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
+Cc: Mikko Rapeli <mikko.rapeli@iki.fi>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/06/2017 06:14 PM, Sergei Shtylyov wrote:
+Fixes userspace compilation error:
 
-> of_irq_get() may return 0 as well as a nagative error number on failure,
+error: unknown type name ‘size_t’
 
-    Oops, forgot to kill comma...
+Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
+Cc: linux-omap@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ include/uapi/linux/omapfb.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> (and never on success), however omap44xx_prm_late_init() regards 0 as a
-> valid IRQ -- fix this.
-> 
-> Fixes: a8f83aefcd5a ("ARM: OMAP4+: PRM: register interrupt information from DT")
-> Fixes: c5b3955828ba ("ARM: OMAP4: Fix legacy code clean-up regression")
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-[...]
-
-MBR, Sergei
+diff --git a/include/uapi/linux/omapfb.h b/include/uapi/linux/omapfb.h
+index 7c97bc00ac6d..b637a924618f 100644
+--- a/include/uapi/linux/omapfb.h
++++ b/include/uapi/linux/omapfb.h
+@@ -181,7 +181,7 @@ struct omapfb_memory_read {
+ 	__u16 y;
+ 	__u16 w;
+ 	__u16 h;
+-	size_t buffer_size;
++	__kernel_size_t buffer_size;
+ 	void __user *buffer;
+ };
+ 
+-- 
+2.13.3
