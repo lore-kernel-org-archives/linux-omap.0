@@ -1,42 +1,46 @@
-From: Mikko Rapeli <mikko.rapeli@iki.fi>
-Subject: [PATCH v06 19/36] uapi linux/omapfb.h: use __kernel_size_t instead of size_t
-Date: Sun,  6 Aug 2017 18:44:10 +0200
-Message-ID: <20170806164428.2273-20-mikko.rapeli@iki.fi>
-References: <20170806164428.2273-1-mikko.rapeli@iki.fi>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v2 0/2] OMAP3+/4+ PRM: fix of_irq_get() result checks
+Date: Sun, 6 Aug 2017 21:57:21 +0300
+Message-ID: <CAHp75VfdGkac6PUMSJLydR9GcZ8UAmqRR6zq2xNhYL8mMe3iUg@mail.gmail.com>
+References: <20170806151420.104225294@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170806164428.2273-1-mikko.rapeli@iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
-Cc: Mikko Rapeli <mikko.rapeli@iki.fi>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170806151420.104225294@cogentembedded.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@codeaurora.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Fixes userspace compilation error:
+On Sun, Aug 6, 2017 at 6:14 PM, Sergei Shtylyov
+<sergei.shtylyov@cogentembedded.com> wrote:
+> Hello!
+>
+> Here's the set of 2 patches against the 'omap-for-v4.13/fixes' branch of Tony
+> Lingren's 'linux-omap.git' repo.  I'm  fixing of_irq_get() DT API result
+> checks.
+>
+> [1/2] ARM: OMAP3+: PRM: fix of_irq_get() result check
+> [2/2] ARM: OMAP4+: PRM: fix of_irq_get() result checks
 
-error: unknown type name ‘size_t’
+What IRQ domain did you consider? In case of STRICT the mapping will
+be 1:1 and 0 is _valid_ IRQ number for hwirq.
+0 in Linux kernel IRQ numbering often means NO_IRQ. But there might be
+exceptions.
 
-Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
-Cc: linux-omap@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- include/uapi/linux/omapfb.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+So, it would be nice to see if there is a problem on certain platform
+if the patch is not applied, or is it problem on OF IRQ code, or
+wrong interpratation of 0?
 
-diff --git a/include/uapi/linux/omapfb.h b/include/uapi/linux/omapfb.h
-index 7c97bc00ac6d..b637a924618f 100644
---- a/include/uapi/linux/omapfb.h
-+++ b/include/uapi/linux/omapfb.h
-@@ -181,7 +181,7 @@ struct omapfb_memory_read {
- 	__u16 y;
- 	__u16 w;
- 	__u16 h;
--	size_t buffer_size;
-+	__kernel_size_t buffer_size;
- 	void __user *buffer;
- };
- 
 -- 
-2.13.3
+With Best Regards,
+Andy Shevchenko
