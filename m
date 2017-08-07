@@ -1,63 +1,157 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v2 0/2] OMAP3+/4+ PRM: fix of_irq_get() result checks
-Date: Mon, 7 Aug 2017 20:26:21 +0300
-Message-ID: <4a63fd34-2822-e887-e485-c24568981448@cogentembedded.com>
-References: <20170806151420.104225294@cogentembedded.com>
- <CAHp75VfdGkac6PUMSJLydR9GcZ8UAmqRR6zq2xNhYL8mMe3iUg@mail.gmail.com>
- <CAHp75Vfg9k5e=9O=Be=irKE88U-zKLM3WdQit6BZVBKZR2SVCA@mail.gmail.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: Re: [PATCH] mtd: nand: Rename nand.h into rawnand.h
+Date: Mon, 7 Aug 2017 21:06:09 +0200
+Message-ID: <20170807190609.uz6fpatkzijfgifr@kozik-lap>
+References: <1501860550-16506-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1501860550-16506-2-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAHp75Vfg9k5e=9O=Be=irKE88U-zKLM3WdQit6BZVBKZR2SVCA@mail.gmail.com>
-Content-Language: en-MW
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@codeaurora.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <1501860550-16506-2-git-send-email-boris.brezillon@free-electrons.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Rich Felker <dalias@libc.org>, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-mips@linux-mips.org, Sekhar Nori <nsekhar@ti.com>, Stefan Agner <stefan@agner.ch>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-mtd@lists.infradead.org, Marc Gonzalez <marc_gonzalez@sigmadesigns.com>, bcm-kernel-feedback-list@broadcom.com, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-omap@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Jonathan Corbet <corbet@lwn.net>, linux-sh@vger.kernel.org, Richard Weinberger <richard@nod.at>, linux-doc@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-oxnas@lists.tuxfamily.org, Marek Vasut <marek.vasut@gmail.>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/06/2017 10:38 PM, Andy Shevchenko wrote:
-
->>> Hello!
->>>
->>> Here's the set of 2 patches against the 'omap-for-v4.13/fixes' branch of Tony
->>> Lingren's 'linux-omap.git' repo.  I'm  fixing of_irq_get() DT API result
->>> checks.
->>>
->>> [1/2] ARM: OMAP3+: PRM: fix of_irq_get() result check
->>> [2/2] ARM: OMAP4+: PRM: fix of_irq_get() result checks
->>
->> What IRQ domain did you consider? In case of STRICT the mapping will
->> be 1:1 and 0 is _valid_ IRQ number for hwirq.
->> 0 in Linux kernel IRQ numbering often means NO_IRQ. But there might be
->> exceptions.
->>
->> So, it would be nice to see if there is a problem on certain platform
->> if the patch is not applied, or is it problem on OF IRQ code, or
->> wrong interpratation of 0?
+On Fri, Aug 04, 2017 at 05:29:10PM +0200, Boris Brezillon wrote:
+> We are planning to share more code between different NAND based
+> devices (SPI NAND, OneNAND and raw NANDs), but before doing that
+> we need to move the existing include/linux/mtd/nand.h file into
+> include/linux/mtd/rawnand.h so we can later create a nand.h header
+> containing all common structure and function prototypes.
 > 
-> Okay, I have looked into OF code and it seems always allocating
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> Signed-off-by: Peter Pan <peterpandong@micron.com>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Sekhar Nori <nsekhar@ti.com>
+> Cc: Kevin Hilman <khilman@kernel.org>
+> Cc: Jason Cooper <jason@lakedaemon.net>
+> Cc: Andrew Lunn <andrew@lunn.ch>
+> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+> Cc: Gregory Clement <gregory.clement@free-electrons.com>
+> Cc: Hartley Sweeten <hsweeten@visionengravers.com>
+> Cc: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+> Cc: Shawn Guo <shawnguo@kernel.org>
+> Cc: Sascha Hauer <kernel@pengutronix.de>
+> Cc: Fabio Estevam <fabio.estevam@nxp.com>
+> Cc: Imre Kaloz <kaloz@openwrt.org>
+> Cc: Krzysztof Halasa <khalasa@piap.pl>
+> Cc: Eric Miao <eric.y.miao@gmail.com>
+> Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Alexander Clouter <alex@digriz.org.uk>
+> Cc: Daniel Mack <daniel@zonque.org>
+> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+> Cc: Marek Vasut <marek.vasut@gmail.com>
+> Cc: Kukjin Kim <kgene@kernel.org>
+> Cc: Krzysztof Kozlowski <krzk@kernel.org>
+> Cc: Simtec Linux Team <linux@simtec.co.uk>
+> Cc: Steven Miao <realmz6@gmail.com>
+> Cc: Mikael Starvik <starvik@axis.com>
+> Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+> Cc: Ralf Baechle <ralf@linux-mips.org>
+> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+> Cc: Rich Felker <dalias@libc.org>
+> Cc: Wenyou Yang <wenyou.yang@atmel.com>
+> Cc: Josh Wu <rainyfeeling@outlook.com>
+> Cc: Kamal Dasu <kdasu.kdev@gmail.com>
+> Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+> Cc: Han Xu <han.xu@nxp.com>
+> Cc: Harvey Hunt <harveyhuntnexus@gmail.com>
+> Cc: Vladimir Zapolskiy <vz@mleia.com>
+> Cc: Sylvain Lemieux <slemieux.tyco@gmail.com>
+> Cc: Matthias Brugger <matthias.bgg@gmail.com>
+> Cc: Wan ZongShun <mcuos.com@gmail.com>
+> Cc: Neil Armstrong <narmstrong@baylibre.com>
+> Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+> Cc: Marc Gonzalez <marc_gonzalez@sigmadesigns.com>
+> Cc: Stefan Agner <stefan@agner.ch>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: linux-doc@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: adi-buildroot-devel@lists.sourceforge.net
+> Cc: linux-cris-kernel@axis.com
+> Cc: linux-mips@linux-mips.org
+> Cc: linux-sh@vger.kernel.org
+> Cc: bcm-kernel-feedback-list@broadcom.com
+> Cc: linux-mediatek@lists.infradead.org
+> Cc: linux-oxnas@lists.tuxfamily.org
+> Cc: linuxppc-dev@lists.ozlabs.org
+> Cc: devel@driverdev.osuosl.org
+> ---
+> Hi All,
+> 
+> Sorry for the huge Cc list, but I'd like to collect as much acks as
+> possible for this patch which is actually part of a bigger series [1].
+> 
+> Note that there's nothing complicated here, it's just a mechanical
+> s/nand\.h/rawnand\.h/ replacement, but it impacts several architectures,
+> the doc and staging directories.
+> 
+> Regards,
+> 
+> Boris
+> 
+> [1]https://lwn.net/Articles/723694/
+> ---
+>  Documentation/driver-api/mtdnand.rst            | 8 ++++----
+>  MAINTAINERS                                     | 2 +-
+>  arch/arm/mach-davinci/board-da850-evm.c         | 2 +-
+>  arch/arm/mach-davinci/board-dm355-evm.c         | 2 +-
+>  arch/arm/mach-davinci/board-dm355-leopard.c     | 2 +-
+>  arch/arm/mach-davinci/board-dm365-evm.c         | 2 +-
+>  arch/arm/mach-davinci/board-dm644x-evm.c        | 2 +-
+>  arch/arm/mach-davinci/board-dm646x-evm.c        | 2 +-
+>  arch/arm/mach-davinci/board-sffsdr.c            | 2 +-
+>  arch/arm/mach-dove/dove-db-setup.c              | 2 +-
+>  arch/arm/mach-ep93xx/snappercl15.c              | 2 +-
+>  arch/arm/mach-ep93xx/ts72xx.c                   | 2 +-
+>  arch/arm/mach-imx/mach-qong.c                   | 2 +-
+>  arch/arm/mach-ixp4xx/ixdp425-setup.c            | 2 +-
+>  arch/arm/mach-mmp/aspenite.c                    | 2 +-
+>  arch/arm/mach-omap1/board-fsample.c             | 2 +-
+>  arch/arm/mach-omap1/board-h2.c                  | 2 +-
+>  arch/arm/mach-omap1/board-h3.c                  | 2 +-
+>  arch/arm/mach-omap1/board-nand.c                | 2 +-
+>  arch/arm/mach-omap1/board-perseus2.c            | 2 +-
+>  arch/arm/mach-orion5x/db88f5281-setup.c         | 2 +-
+>  arch/arm/mach-orion5x/kurobox_pro-setup.c       | 2 +-
+>  arch/arm/mach-orion5x/ts209-setup.c             | 2 +-
+>  arch/arm/mach-orion5x/ts78xx-setup.c            | 2 +-
+>  arch/arm/mach-pxa/balloon3.c                    | 2 +-
+>  arch/arm/mach-pxa/em-x270.c                     | 2 +-
+>  arch/arm/mach-pxa/eseries.c                     | 2 +-
+>  arch/arm/mach-pxa/palmtx.c                      | 2 +-
+>  arch/arm/mach-pxa/tosa.c                        | 2 +-
+>  arch/arm/mach-s3c24xx/common-smdk.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-anubis.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-at2440evb.c          | 2 +-
+>  arch/arm/mach-s3c24xx/mach-bast.c               | 2 +-
+>  arch/arm/mach-s3c24xx/mach-gta02.c              | 2 +-
+>  arch/arm/mach-s3c24xx/mach-jive.c               | 2 +-
+>  arch/arm/mach-s3c24xx/mach-mini2440.c           | 2 +-
+>  arch/arm/mach-s3c24xx/mach-osiris.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-qt2410.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-rx3715.c             | 2 +-
+>  arch/arm/mach-s3c24xx/mach-vstms.c              | 2 +-
 
-    Heh, I was going to send you down the of_irq_get()'s call chains -- it 
-became obvious to me that 0 is a "bad IRQ" indication from looking at 
-irq_create_fwspec_mapping()...
+For s3c24xx:
+Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
 
-> descriptors where numbering starts from 1 (see hint variable deep in
-> the code).
-
-    In kernel/irq/irqdomain.c::irq_domain_alloc_descs(), you mean?
-I haven't plunged so deep. :-) But it's hardly an OF code, IIRC...
-
-> This series is a good fix.
-
-    Thank you (especially for spending your Sunday time)! :-)
-
-MBR, Sergei
+Best regards,
+Krzysztof
