@@ -1,53 +1,52 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: linux-next 2017-08-08 failure on Nokia N900
-Date: Tue, 8 Aug 2017 12:34:44 +0200
-Message-ID: <20170808103444.GA18247@amd>
-References: <20170808101756.GA12922@amd>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH] mmc: host: omap_hsmmc: Add CMD23 capability to omap_hsmmc driver
+Date: Tue, 8 Aug 2017 12:37:25 +0200
+Message-ID: <CAPDyKFo7dyYFTBtwshqk7p46jUMr_2J55iC=NVi6-a0r2G_bcw@mail.gmail.com>
+References: <20170808051815.24219-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="zhXaljGHf11kAtnf"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170808101756.GA12922@amd>
+In-Reply-To: <20170808051815.24219-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 8 August 2017 at 07:18, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> omap_hsmmc driver always relied on CMD12 to stop transmission.
+> However if CMD12 is not issued at the correct timing, the card will
+> indicate a out of range error. With certain cards in some of the
+> DRA7 based boards, -EIO error is observed. By Adding CMD23 capability,
+> the MMC core will send MMC_SET_BLOCK_COUNT command before
+> MMC_READ_MULTIPLE_BLOCK/MMC_WRITE_MULTIPLE_BLOCK commands.
+>
+> commit a04e6bae9e6f12 ("mmc: core: check also R1 response for
+> stop commands") exposed this bug in omap_hsmmc driver.
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
---zhXaljGHf11kAtnf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks, applied for fixes!
 
-Hi!
+Kind regards
+Uffe
 
-> I tried today's linux-next. It boots on n900 (up to X), but then my
-> screen locks and I can't get back. Touchscreen worked, so my guess is
-> keyboard does not...? Ssh connection over usb still works.
-
-Confirmed, its the keyboard.
-
-Additionally, battery monitoring fails, because neither
-
-/sys/class/power_supply/{n900-,rx51-}battery/voltage_now
-
-exists.
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---zhXaljGHf11kAtnf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlmJk8QACgkQMOfwapXb+vLcSgCfcLDB+ZpCFWmSfz2CF9I1yQF0
-8UsAnAkOjHutYg8I+i39jd8/NeBFIpQE
-=X3eK
------END PGP SIGNATURE-----
-
---zhXaljGHf11kAtnf--
+> ---
+>  drivers/mmc/host/omap_hsmmc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 04ff3c97a535..2ab4788d021f 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2086,7 +2086,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+>         mmc->max_seg_size = mmc->max_req_size;
+>
+>         mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+> -                    MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_ERASE;
+> +                    MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_ERASE | MMC_CAP_CMD23;
+>
+>         mmc->caps |= mmc_pdata(host)->caps;
+>         if (mmc->caps & MMC_CAP_8_BIT_DATA)
+> --
+> 2.11.0
+>
