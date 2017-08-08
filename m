@@ -1,124 +1,89 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [PATCH 01/15] ARM: assembler: introduce adr_l, ldr_l and str_l
- macros
-Date: Tue, 8 Aug 2017 11:39:19 -0400 (EDT)
-Message-ID: <alpine.LFD.2.20.1708081131340.8927@knanqh.ubzr>
-References: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
- <20170805205222.19868-2-ard.biesheuvel@linaro.org>
- <alpine.LFD.2.20.1708081030030.8927@knanqh.ubzr>
- <CAKv+Gu8W68ruOsD9Fit0MrJ=JVDO3xF-SmQ-8qcpBSQm0si-UA@mail.gmail.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: linux-next 2017-08-08 keyboard failure on Nokia N900
+Date: Tue, 8 Aug 2017 14:59:05 -0500
+Message-ID: <61264d43-eda3-df9d-0c06-28611f373ce7@ti.com>
+References: <20170808101756.GA12922@amd> <20170808103444.GA18247@amd>
+ <20170808111243.GA20328@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <CAKv+Gu8W68ruOsD9Fit0MrJ=JVDO3xF-SmQ-8qcpBSQm0si-UA@mail.gmail.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Andrew Lunn <andrew@lunn.ch>, baohua@kernel.org, Dave Martin <dave.martin@arm.com>, Jason Cooper <jason@lakedaemon.net>, KVM devel mailing list <kvm@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Russell King - ARM Linux <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Patrice CHOTARD <patrice.chotard@st.com>, linux-renesas-soc@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, arm@kernel.org, vireshk@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170808111243.GA20328@amd>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Julia Lawall <Julia.Lawall@lip6.fr>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 8 Aug 2017, Ard Biesheuvel wrote:
-
-> On 8 August 2017 at 16:10, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
-> > On Sat, 5 Aug 2017, Ard Biesheuvel wrote:
-> >
-> >> Like arm64, ARM supports position independent code sequences that
-> >> produce symbol references with a greater reach than the ordinary
-> >> adr/ldr instructions.
-> >>
-> >> Currently, we use open coded instruction sequences involving literals
-> >> and arithmetic operations. Instead, we can use movw/movt pairs on v7
-> >> CPUs, circumventing the D-cache entirely. For older CPUs, we can emit
-> >> the literal into a subsection, allowing it to be emitted out of line
-> >> while retaining the ability to perform arithmetic on label offsets.
-> >>
-> >> E.g., on pre-v7 CPUs, we can emit a PC-relative reference as follows:
-> >>
-> >>        ldr          <reg>, 222f
-> >>   111: add          <reg>, <reg>, pc
-> >>        .subsection  1
-> >>   222: .long        <sym> - (111b + 8)
-> >>        .previous
-> >>
-> >> This is allowed by the assembler because, unlike ordinary sections,
-> >> subsections are combined into a single section into the object file,
-> >> and so the label references are not true cross-section references that
-> >> are visible as relocations. Note that we could even do something like
-> >>
-> >>        add          <reg>, pc, #(222f - 111f) & ~0xfff
-> >>        ldr          <reg>, [<reg>, #(222f - 111f) & 0xfff]
-> >>   111: add          <reg>, <reg>, pc
-> >>        .subsection  1
-> >>   222: .long        <sym> - (111b + 8)
-> >>        .previous
-> >>
-> >> if it turns out that the 4 KB range of the ldr instruction is insufficient
-> >> to reach the literal in the subsection, although this is currently not a
-> >> problem (of the 98 objects built from .S files in a multi_v7_defconfig
-> >> build, only 11 have .text sections that are over 1 KB, and the largest one
-> >> [entry-armv.o] is 3308 bytes)
-> >>
-> >> Subsections have been available in binutils since 2004 at least, so
-> >> they should not cause any issues with older toolchains.
-> >>
-> >> So use the above to implement the macros mov_l, adr_l, adrm_l (using ldm
-> >> to load multiple literals at once), ldr_l and str_l, all of which will
-> >> use movw/movt pairs on v7 and later CPUs, and use PC-relative literals
-> >> otherwise.
-> >
-> > There is no adrm_l definition in this patch.
-> >
-> 
-> Ah yes, I played around with it but it becomes a bit clunky so I removed it:
-> 
->         adrl         <reg1>, 222f
->         ldm          <reg1>, {<reg1>, <reg2>}
->    111: add          <reg1>, <reg1>, pc
->         add          <reg2>, <reg2>, pc
->         .subsection  1
->    222: .long        <sym1> - (111b + 8)
->         .long        <sym2> - (111b + 12)
->         .previous
-> 
-> The adrl pseudo op always assembles to two instructions, so you need 5
-> instructions while using adr_l twice uses only 4. I am not sure if
-> eliminating one of the loads would make a huge difference, given that
-> there are no use cases for adrm_l on hot paths, at least not in this
-> series.
-
-I'd suggest you keep it to a minimum.  Using adr_l twice is clear and 
-obvious.
-
-> > Also, might it be better to change mov_l to movl? Tthis looks similar to
-> > the ARM64 movl pseudo-instruction, and unlike all the other _l variants,
-> > this is not producing a pc relative result.
-> >
-> 
-> On arm64, we have mov_q for a 64-bit absolute load, and I thought
-> mov_l was less confusing than mov_w. In general, I like the underscore
-> in the middle because on the one hand, it looks like a ordinary
-> mnemonic but on the other hand, it is obvious that it is not a true
-> instruction. mov_abs perhaps?
-> 
-> > Talking about the _l suffix: I wonder if this could be more meaningful,
-> > like _rel maybe? At least in the adr_l case, this could easily be
-> > confused with adrl.
-> >
-> 
-> On arm64, we have ldr_l, str_l and adr_l as well, and I usually try to
-> align between ARM and arm64 if I can.
-
-OK. I'm much less versed into ARM64 assembly so I'll defer to your 
-judgment.  It's good if this mnemonic scheme already exists there with 
-a similar meaning.
 
 
-Nicolas
+On 08/08/2017 06:12 AM, Pavel Machek wrote:
+> Hi!
+> 
+>>> I tried today's linux-next. It boots on n900 (up to X), but then my
+>>> screen locks and I can't get back. Touchscreen worked, so my guess is
+>>> keyboard does not...? Ssh connection over usb still works.
+>>
+>> Confirmed, its the keyboard.
+>>
+>> Additionally, battery monitoring fails, because neither
+>>
+>> /sys/class/power_supply/{n900-,rx51-}battery/voltage_now
+>>
+>> exists.
+> 
+> And dmesg is helpful in this case:
+> 
+> [    0.675201] input: twl4030_pwrbutton as
+> /devices/platform/68000000.ocp/48070000.i2c/i2c-1/1-0048/48070000.i2c:twl@48:pwrbutton/input/input1
+> [    0.676635] input: TWL4030 Keypad as
+> /devices/platform/68000000.ocp/48070000.i2c/i2c-1/1-0048/48070000.i2c:twl@48:keypad/input/input2
+> [    0.679138] twl4030_keypad 48070000.i2c:twl@48:keypad: request_irq
+> failed for irq no=156: -13
+> [    0.679779] twl4030_keypad: probe of 48070000.i2c:twl@48:keypad
+> failed with error -13
+> [    0.682769] twl4030_madc 48070000.i2c:twl@48:madc: could not
+> request irq
+> [    0.684051] twl4030_madc: probe of 48070000.i2c:twl@48:madc failed
+> with error -13
+> [    0.685852] input: twl4030:vibrator as
+> /devices/platform/68000000.ocp/48070000.i2c/i2c-1/1-0048/48070000.i2c:twl@48:audio/twl4030-vibra/input/input3
+> [    0.768890] omap_i2c 48070000.i2c: bus 1 rev3.3 at 2200 kHz
+> 
+
+I've not precisely checked it, but smth is telling me that below 
+patch  can cause this:
+
+commit 78daaca78ee57dead0f4aa5ee399f0499e81cd9e
+Author: Julia Lawall <Julia.Lawall@lip6.fr>
+Date:   Thu May 4 22:10:50 2017 +0200
+
+    mfd: twl4030-irq: Drop unnecessary static
+    
+    Drop static on a local variable, when the variable is initialized before
+    any use, on every possible execution path through the function.
+
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -685,7 +685,7 @@ int twl4030_sih_setup(struct device *dev, int module, int irq_base)
+ 
+ int twl4030_init_irq(struct device *dev, int irq_num)
+ {
+-       static struct irq_chip  twl4030_irq_chip;
++       struct irq_chip twl4030_irq_chip;
+
+
+but if we will look at code - it can be seen that this variable is passed by reference to
+irq_set_chip_and_handler(). 
+Ops. And what will happen when twl4030_init_irq() returns ;)
+
+-- 
+regards,
+-grygorii
