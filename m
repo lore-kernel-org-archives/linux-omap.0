@@ -1,76 +1,33 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: linux-next 2017-08-08 keyboard failure on Nokia N900
-Date: Tue, 8 Aug 2017 13:12:43 +0200
-Message-ID: <20170808111243.GA20328@amd>
-References: <20170808101756.GA12922@amd>
- <20170808103444.GA18247@amd>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
+From: Doug Wilson <doug.lkml@gmail.com>
+Subject: [PATCH] omap/hsmmc: constify dev_pm_ops
+Date: Tue,  8 Aug 2017 16:44:17 +0530
+Message-ID: <1502190857-3762-1-git-send-email-doug.lkml@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170808103444.GA18247@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+To: linux-omap@vger.kernel.org
+Cc: linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Doug Wilson <doug.lkml@gmail.com>, Doug Wilson <doug.wilson@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+dev_pm_ops is not supposed to change at runtime. Marking it
+constant.
 
---ReaqsoxgOBHFXBhH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Doug Wilson <doug.wilson@gmail.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Hi!
-
-> > I tried today's linux-next. It boots on n900 (up to X), but then my
-> > screen locks and I can't get back. Touchscreen worked, so my guess is
-> > keyboard does not...? Ssh connection over usb still works.
->=20
-> Confirmed, its the keyboard.
->=20
-> Additionally, battery monitoring fails, because neither
->=20
-> /sys/class/power_supply/{n900-,rx51-}battery/voltage_now
->=20
-> exists.
-
-And dmesg is helpful in this case:
-
-[    0.675201] input: twl4030_pwrbutton as
-/devices/platform/68000000.ocp/48070000.i2c/i2c-1/1-0048/48070000.i2c:twl@4=
-8:pwrbutton/input/input1
-[    0.676635] input: TWL4030 Keypad as
-/devices/platform/68000000.ocp/48070000.i2c/i2c-1/1-0048/48070000.i2c:twl@4=
-8:keypad/input/input2
-[    0.679138] twl4030_keypad 48070000.i2c:twl@48:keypad: request_irq
-failed for irq no=3D156: -13
-[    0.679779] twl4030_keypad: probe of 48070000.i2c:twl@48:keypad
-failed with error -13
-[    0.682769] twl4030_madc 48070000.i2c:twl@48:madc: could not
-request irq
-[    0.684051] twl4030_madc: probe of 48070000.i2c:twl@48:madc failed
-with error -13
-[    0.685852] input: twl4030:vibrator as
-/devices/platform/68000000.ocp/48070000.i2c/i2c-1/1-0048/48070000.i2c:twl@4=
-8:audio/twl4030-vibra/input/input3
-[    0.768890] omap_i2c 48070000.i2c: bus 1 rev3.3 at 2200 kHz
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---ReaqsoxgOBHFXBhH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlmJnKsACgkQMOfwapXb+vIopwCfV6ULHfXhwxi7royejHsIr3GM
-HJcAoLN9JjjRADZr7+7FAuTiWCxoyH+i
-=TRx2
------END PGP SIGNATURE-----
-
---ReaqsoxgOBHFXBhH--
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 04ff3c9..a280c7f 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2322,7 +2322,7 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
+ 	return 0;
+ }
+ 
+-static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
++static const struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(omap_hsmmc_suspend, omap_hsmmc_resume)
+ 	.runtime_suspend = omap_hsmmc_runtime_suspend,
+ 	.runtime_resume = omap_hsmmc_runtime_resume,
+-- 
+2.7.4
