@@ -1,46 +1,43 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] usb: dwc3: omap: fix error return code in dwc3_omap_probe()
-Date: Mon, 7 Aug 2017 23:25:34 -0500
-Message-ID: <20170808042534.GA8103@embeddedgus>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH] mmc: host: omap_hsmmc: Add CMD23 capability to omap_hsmmc driver
+Date: Tue, 8 Aug 2017 10:48:15 +0530
+Message-ID: <20170808051815.24219-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: kishon@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-platform_get_irq() returns an error code, but the dwc3-omap driver
-ignores it and always returns -EINVAL. This is not correct and,
-prevents -EPROBE_DEFER from being propagated properly.
+omap_hsmmc driver always relied on CMD12 to stop transmission.
+However if CMD12 is not issued at the correct timing, the card will
+indicate a out of range error. With certain cards in some of the
+DRA7 based boards, -EIO error is observed. By Adding CMD23 capability,
+the MMC core will send MMC_SET_BLOCK_COUNT command before
+MMC_READ_MULTIPLE_BLOCK/MMC_WRITE_MULTIPLE_BLOCK commands.
 
-Notice that platform_get_irq() no longer returns 0 on error:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e330b9a6bb35dc7097a4f02cb1ae7b6f96df92af
+commit a04e6bae9e6f12 ("mmc: core: check also R1 response for
+stop commands") exposed this bug in omap_hsmmc driver.
 
-Print and propagate the return value of platform_get_irq on failure.
-
-This issue was detected with the help of Coccinelle.
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index f5aaa0c..3530795 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -478,8 +478,8 @@ static int dwc3_omap_probe(struct platform_device *pdev)
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 04ff3c97a535..2ab4788d021f 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2086,7 +2086,7 @@ static int omap_hsmmc_probe(struct platform_device *pdev)
+ 	mmc->max_seg_size = mmc->max_req_size;
  
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
--		dev_err(dev, "missing IRQ resource\n");
--		return -EINVAL;
-+		dev_err(dev, "missing IRQ resource: %d\n", irq);
-+		return irq;
- 	}
+ 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+-		     MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_ERASE;
++		     MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_ERASE | MMC_CAP_CMD23;
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	mmc->caps |= mmc_pdata(host)->caps;
+ 	if (mmc->caps & MMC_CAP_8_BIT_DATA)
 -- 
-2.5.0
+2.11.0
+
