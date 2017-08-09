@@ -1,44 +1,36 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] PCI: dwc: dra7xx: fix error return code in
- dra7xx_pcie_probe()
-Date: Wed, 9 Aug 2017 11:16:03 -0500
-Message-ID: <20170809161603.GA31297@embeddedgus>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 12/15] arm-soc: omap: replace open coded VA->PA
+ calculations
+Date: Wed, 9 Aug 2017 12:05:57 -0700
+Message-ID: <20170809190556.GD3934@atomide.com>
+References: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
+ <20170805205222.19868-13-ard.biesheuvel@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+In-Reply-To: <20170805205222.19868-13-ard.biesheuvel@linaro.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: andrew@lunn.ch, baohua@kernel.org, dave.martin@arm.com, jason@lakedaemon.net, kvm@vger.kernel.org, nico@linaro.org, marc.zyngier@arm.com, horms@verge.net.au, magnus.damm@gmail.com, linux@armlinux.org.uk, krzk@kernel.org, patrice.chotard@st.com, linux-renesas-soc@vger.kernel.org, arm@kernel.org, vireshk@kernel.org, gregory.clement@free-electrons.com, linux-omap@vger.kernel.org, shiraz.linux.kernel@gmail.com, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, sebastian.hesselbarth@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-platform_get_irq() returns an error code, but the pci-dra7xx driver
-ignores it and always returns -EINVAL. This is not correct and,
-prevents -EPROBE_DEFER from being propagated properly.
+* Ard Biesheuvel <ard.biesheuvel@linaro.org> [170805 13:54]:
+> This replaces a couple of open coded calculations to obtain the
+> physical address of a far symbol with calls to the new adr_l etc
+> macros.
 
-Print and propagate the return value of platform_get_irq on failure.
+I gave this series a quick test and omap3 no longer boots it seems.
 
-This issue was detected with the help of Coccinelle.
+Regards,
 
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/pci/dwc/pci-dra7xx.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index f2fc5f4..f58e1b4 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -616,8 +616,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
--		dev_err(dev, "missing IRQ resource\n");
--		return -EINVAL;
-+		dev_err(dev, "missing IRQ resource: %d\n", irq);
-+		return irq;
- 	}
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
--- 
-2.5.0
+Tony
