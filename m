@@ -1,34 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mtd: nand: Rename nand.h into rawnand.h
-Date: Wed, 9 Aug 2017 14:41:03 -0700
-Message-ID: <20170809214101.GG3934@atomide.com>
-References: <1501860550-16506-1-git-send-email-boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: PRM: fix of_irq_get() result checks
+Date: Wed, 9 Aug 2017 15:02:30 -0700
+Message-ID: <20170809220229.GI3934@atomide.com>
+References: <20170806151714.108596802@cogentembedded.com>
+ <80dd8051-456b-2331-b847-0631d94f85b1@cogentembedded.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1501860550-16506-1-git-send-email-boris.brezillon@free-electrons.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Rich Felker <dalias@libc.org>, Neil Armstrong <narmstrong@baylibre.com>, linux-samsung-soc@vger.kernel.org, linux-mips@linux-mips.org, Sekhar Nori <nsekhar@ti.com>, Stefan Agner <stefan@agner.ch>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-mtd@lists.infradead.org, Marc Gonzalez <marc_gonzalez@sigmadesigns.com>, bcm-kernel-feedback-list@broadcom.com, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-omap@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Jonathan Corbet <corbet@lwn.net>, linux-sh@vger.kernel.org, Richard Weinberger <richard@nod.at>, linux-doc@vger.kernel.org, linux-mediatek@lists.infradead.org, Krzysztof Kozlowski <krzk@kernel.org>, Marek Vasut <marek.vasut>
+In-Reply-To: <80dd8051-456b-2331-b847-0631d94f85b1@cogentembedded.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Boris Brezillon <boris.brezillon@free-electrons.com> [170804 08:30]:
-> We are planning to share more code between different NAND based
-> devices (SPI NAND, OneNAND and raw NANDs), but before doing that
-> we need to move the existing include/linux/mtd/nand.h file into
-> include/linux/mtd/rawnand.h so we can later create a nand.h header
-> containing all common structure and function prototypes.
+* Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> [170806 08:20]:
+> On 08/06/2017 06:14 PM, Sergei Shtylyov wrote:
+> 
+> > of_irq_get() may return 0 as well as a nagative error number on failure,
+> 
+>    Oops, forgot to kill comma...
 
-For omap:
+I can fix that while applying.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+> > (and never on success), however omap44xx_prm_late_init() regards 0 as a
+> > valid IRQ -- fix this.
+> > 
+> > Fixes: a8f83aefcd5a ("ARM: OMAP4+: PRM: register interrupt information from DT")
+> > Fixes: c5b3955828ba ("ARM: OMAP4: Fix legacy code clean-up regression")
+> > Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> [...]
+
+Seems these both should be safe to apply into fixes-not-urgent for
+v4.14 merge window as we have not seen any issues with this? Or
+are there some known bugs related to this?
+
+Regards,
+
+Tony
