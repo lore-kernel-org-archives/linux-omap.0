@@ -1,53 +1,75 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/2] iommu/omap: Rework cache functionality with DMA Streaming API
-Date: Wed, 09 Aug 2017 14:20:42 +0300
-Message-ID: <1541952.tFANgzzemW@avalon>
-References: <1501274954-20973-1-git-send-email-j-albarran@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: linux-next 2017-08-08 keyboard failure on Nokia N900
+Date: Wed, 9 Aug 2017 13:45:56 +0100
+Message-ID: <20170809124556.3u6b2fqlxabykgs4@dell>
+References: <20170808101756.GA12922@amd>
+ <20170808103444.GA18247@amd>
+ <20170808111243.GA20328@amd>
+ <61264d43-eda3-df9d-0c06-28611f373ce7@ti.com>
+ <alpine.DEB.2.20.1708082203510.2095@hadrien>
+ <43d915d2-3260-88b6-095d-4de8240ff29e@ti.com>
+ <alpine.DEB.2.20.1708082228400.4939@hadrien>
+ <20170808214400.GA18961@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1501274954-20973-1-git-send-email-j-albarran@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20170808214400.GA18961@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Josue Albarran <j-albarran@ti.com>
-Cc: Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Julia Lawall <julia.lawall@lip6.fr>, Grygorii Strashko <grygorii.strashko@ti.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Josue,
+On Tue, 08 Aug 2017, Pavel Machek wrote:
 
-Thank you for the patches.
+> Hi!
+> 
+> > > > > I've not precisely checked it, but smth is telling me that below
+> > > > > patch  can cause this:
+> > > > >
+> > > > > commit 78daaca78ee57dead0f4aa5ee399f0499e81cd9e
+> ...
+> > > > >      mfd: twl4030-irq: Drop unnecessary static
+> > > > >
+> > > > >      Drop static on a local variable, when the variable is initialized
+> > > > > before
+> > > > >      any use, on every possible execution path through the function.
+> > > > >
+> > > > > --- a/drivers/mfd/twl4030-irq.c
+> > > > > +++ b/drivers/mfd/twl4030-irq.c
+> ...
+> > > > >   int twl4030_init_irq(struct device *dev, int irq_num)
+> > > > >   {
+> > > > > -       static struct irq_chip  twl4030_irq_chip;
+> > > > > +       struct irq_chip twl4030_irq_chip;
+> > > > >
+> > > > >
+> > > > > but if we will look at code - it can be seen that this variable is passed
+> > > > > by reference to
+> > > > > irq_set_chip_and_handler().
+> > > > > Ops. And what will happen when twl4030_init_irq() returns ;)
+> > > >
+> > > > The patch is not correct as was already noted when it was submitted:
+> ..
+> > > Hm. This one is in linux-next, but shouldn't. Right?
+> > >
+> > >  git log --oneline  -10 linux-next/master
+> > > c0b96db Add linux-next specific files for 20170808
+> > >
+> > > git log --oneline  linux-next/master | grep "Drop unnecessary static"
+> > > 78daaca mfd: twl4030-irq: Drop unnecessary static
+> > 
+> > OK, it seems like the patch was made twice, the second one was commented
+> > on and the first one was applied.  78daaca should not be there.
+> 
+> Lee, it has your sign-off, can you drop the patch from your tree? It
+> is known bad.
 
-On Friday 28 Jul 2017 15:49:12 Josue Albarran wrote:
-> Hi Joerg,
-> 
-> This series adapts the OMAP IOMMU driver to use the DMA API to flush
-> the page table/directory table entries from the CPU caches instead of
-> the ARM assembly calls. The patches are baselined on 4.13-rc1.
-> 
-> Following is the patch summary:
->  1. Patch 1 disables the OMAP IOMMU fault interrupts instead of
->     disabling the MMU upon a fault, and resulted in recurring bus
->     errors during remoteproc recovery on OMAP4. The MMU fault itself
->     is triggered due to the missing PL310 L2 cache operations, and
->     this patch fixes the recurring bus errors.
->  2. The second patch makes the adaptation to the DMA API for flushing
->     the caches. This fixes the MMU fault triggering issues in the
->     first place on OMAP4.
-> 
-> I have tested these patches on DRA7, OMAP5, and OMAP4 platforms using
-> both OMAP IOMMU unit tests and some out-of-tree patches for exercising
-> the MMUs using the OMAP remoteproc driver.
-> 
-> Laurent,
-> Appreciate it if you can check the OMAP3ISP functionality with these
-> patches once.
-
-I apologize for the delay, I had to resurrect my Beagleboard-xM, which 
-involved updating and then debugging U-Boot.
-
-Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Done, thanks.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
