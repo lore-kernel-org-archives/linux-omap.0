@@ -1,44 +1,44 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 3/3] ARM: omap2plus_defconfig: enable DP83867 phy driver
-Date: Wed, 9 Aug 2017 19:32:49 +0530
-Message-ID: <c4cc6b8d3fc2c6d900c0e43e32af0bd89228f5a9.1502284400.git.nsekhar@ti.com>
-References: <cover.1502284400.git.nsekhar@ti.com>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] PCI: dwc: dra7xx: fix error return code in
+ dra7xx_pcie_probe()
+Date: Wed, 9 Aug 2017 11:16:03 -0500
+Message-ID: <20170809161603.GA31297@embeddedgus>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1502284400.git.nsekhar-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 List-Id: linux-omap@vger.kernel.org
 
-TI's DP83867 phy is used on DRA72x EVM rev C and DRA71x
-EVMs. Enable support for it in omap2plus_defconfig.
+platform_get_irq() returns an error code, but the pci-dra7xx driver
+ignores it and always returns -EINVAL. This is not correct and,
+prevents -EPROBE_DEFER from being propagated properly.
 
-The driver is built into the kernel to help NFS booting.
+Print and propagate the return value of platform_get_irq on failure.
 
-Reviewed-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+This issue was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- arch/arm/configs/omap2plus_defconfig | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/dwc/pci-dra7xx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index a120ae816260..d4afa2ca2537 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -170,6 +170,7 @@ CONFIG_TI_CPTS=y
- # CONFIG_NET_VENDOR_WIZNET is not set
- CONFIG_AT803X_PHY=y
- CONFIG_DP83848_PHY=y
-+CONFIG_DP83867_PHY=y
- CONFIG_MICREL_PHY=y
- CONFIG_SMSC_PHY=y
- CONFIG_PPP=m
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index f2fc5f4..f58e1b4 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -616,8 +616,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+-		dev_err(dev, "missing IRQ resource\n");
+-		return -EINVAL;
++		dev_err(dev, "missing IRQ resource: %d\n", irq);
++		return irq;
+ 	}
+ 
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
 -- 
-2.9.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.5.0
