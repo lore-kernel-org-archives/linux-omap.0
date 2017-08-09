@@ -1,61 +1,54 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: [PATCH v2 1/3] ARM: dts: dra71-evm: workaround incorrect DP83867
- RX_CTRL pin strap
-Date: Wed, 9 Aug 2017 19:32:47 +0530
-Message-ID: <dfb0980a35c345bc82f42128028c4d08ac6ae58c.1502284400.git.nsekhar@ti.com>
-References: <cover.1502284400.git.nsekhar@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH] usb: ehci-omap: fix error return code in ehci_hcd_omap_probe()
+Date: Wed, 9 Aug 2017 10:03:27 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1708091002520.2109-100000@iolanthe.rowland.org>
+References: <20170808222613.GA4796@embeddedgus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cover.1502284400.git.nsekhar@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170808222613.GA4796@embeddedgus>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gustavo A. R. Silva" <gustavo-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The DRA71 EVM straps the DP83867 GigaBit Ethernet phy's RX_DV/RX_CTRL pin
-in mode 1. Unfortunately, the phy data manual disallows this.
+On Tue, 8 Aug 2017, Gustavo A. R. Silva wrote:
 
-Add "ti,dp83867-rxctrl-strap-quirk" property to the phy's device-tree node
-to allow kernel to enable software workaround for this incorrect strap
-setting. This is as suggested by the phy's datamanual and ensures proper
-operation of this PHY.
+> platform_get_irq() returns an error code, but the ehci-omap driver
+> ignores it and always returns -ENODEV. This is not correct and,
+> prevents -EPROBE_DEFER from being propagated properly.
+> 
+> Also, notice that platform_get_irq() no longer returns 0 on error:
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e330b9a6bb35dc7097a4f02cb1ae7b6f96df92af
+> 
+> Print and propagate the return value of platform_get_irq on failure.
+> 
+> This issue was detected with the help of Coccinelle.
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavo-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
+> ---
+>  drivers/usb/host/ehci-omap.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index 94ea9ff..4d30853 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -130,8 +130,8 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+>  
+>  	irq = platform_get_irq(pdev, 0);
+>  	if (irq < 0) {
+> -		dev_err(dev, "EHCI irq failed\n");
+> -		return -ENODEV;
+> +		dev_err(dev, "EHCI irq failed: %d\n", irq);
+> +		return irq;
+>  	}
+>  
+>  	res =  platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
-This needs to be done for both instances of this PHY present on the board.
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- arch/arm/boot/dts/dra71-evm.dts | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/arch/arm/boot/dts/dra71-evm.dts b/arch/arm/boot/dts/dra71-evm.dts
-index a6298eb56978..9897e8fa6845 100644
---- a/arch/arm/boot/dts/dra71-evm.dts
-+++ b/arch/arm/boot/dts/dra71-evm.dts
-@@ -191,6 +191,7 @@
- 		ti,tx-internal-delay = <DP83867_RGMIIDCTL_250_PS>;
- 		ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_8_B_NIB>;
- 		ti,min-output-impedance;
-+		ti,dp83867-rxctrl-strap-quirk;
- 	};
- 
- 	dp83867_1: ethernet-phy@3 {
-@@ -199,6 +200,7 @@
- 		ti,tx-internal-delay = <DP83867_RGMIIDCTL_250_PS>;
- 		ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_8_B_NIB>;
- 		ti,min-output-impedance;
-+		ti,dp83867-rxctrl-strap-quirk;
- 	};
- };
- 
--- 
-2.9.0
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
