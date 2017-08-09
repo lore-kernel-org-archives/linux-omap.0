@@ -1,88 +1,53 @@
-From: "Dmitry V. Levin" <ldv@altlinux.org>
-Subject: Re: [PATCH v06 19/36] uapi linux/omapfb.h: use __kernel_size_t
- instead of size_t
-Date: Wed, 9 Aug 2017 02:11:58 +0300
-Message-ID: <20170808231158.GH10552@altlinux.org>
-References: <20170806164428.2273-1-mikko.rapeli@iki.fi>
- <20170806164428.2273-20-mikko.rapeli@iki.fi>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/2] iommu/omap: Rework cache functionality with DMA Streaming API
+Date: Wed, 09 Aug 2017 14:20:42 +0300
+Message-ID: <1541952.tFANgzzemW@avalon>
+References: <1501274954-20973-1-git-send-email-j-albarran@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6lXr1rPCNTf1w0X8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170806164428.2273-20-mikko.rapeli@iki.fi>
+In-Reply-To: <1501274954-20973-1-git-send-email-j-albarran@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mikko Rapeli <mikko.rapeli@iki.fi>
-Cc: linux-kernel@vger.kernel.org, linux-api@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Josue Albarran <j-albarran@ti.com>
+Cc: Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Josue,
 
---6lXr1rPCNTf1w0X8
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patches.
 
-On Sun, Aug 06, 2017 at 06:44:10PM +0200, Mikko Rapeli wrote:
-> Fixes userspace compilation error:
->=20
-> error: unknown type name =E2=80=98size_t=E2=80=99
->=20
-> Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
-> Cc: linux-omap@vger.kernel.org
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->  include/uapi/linux/omapfb.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/include/uapi/linux/omapfb.h b/include/uapi/linux/omapfb.h
-> index 7c97bc00ac6d..b637a924618f 100644
-> --- a/include/uapi/linux/omapfb.h
-> +++ b/include/uapi/linux/omapfb.h
-> @@ -181,7 +181,7 @@ struct omapfb_memory_read {
->  	__u16 y;
->  	__u16 w;
->  	__u16 h;
-> -	size_t buffer_size;
-> +	__kernel_size_t buffer_size;
->  	void __user *buffer;
->  };
+On Friday 28 Jul 2017 15:49:12 Josue Albarran wrote:
+> Hi Joerg,
+> 
+> This series adapts the OMAP IOMMU driver to use the DMA API to flush
+> the page table/directory table entries from the CPU caches instead of
+> the ARM assembly calls. The patches are baselined on 4.13-rc1.
+> 
+> Following is the patch summary:
+>  1. Patch 1 disables the OMAP IOMMU fault interrupts instead of
+>     disabling the MMU upon a fault, and resulted in recurring bus
+>     errors during remoteproc recovery on OMAP4. The MMU fault itself
+>     is triggered due to the missing PL310 L2 cache operations, and
+>     this patch fixes the recurring bus errors.
+>  2. The second patch makes the adaptation to the DMA API for flushing
+>     the caches. This fixes the MMU fault triggering issues in the
+>     first place on OMAP4.
+> 
+> I have tested these patches on DRA7, OMAP5, and OMAP4 platforms using
+> both OMAP IOMMU unit tests and some out-of-tree patches for exercising
+> the MMUs using the OMAP remoteproc driver.
+> 
+> Laurent,
+> Appreciate it if you can check the OMAP3ISP functionality with these
+> patches once.
 
-You generally cannot replace size_t with __kernel_size_t in a header that
-affects x32, but this case is really bad one: the kernel treats
-struct omapfb_memory_read.buffer_size as __kernel_size_t, while
-x32 userspace treats it as size_t.  As result, the offset of
-struct omapfb_memory_read.buffer on x32 is different between the kernel
-and userspace.
+I apologize for the delay, I had to resurrect my Beagleboard-xM, which 
+involved updating and then debugging U-Boot.
 
-In other words, the whole thing seems to be totally broken on x32 already
-and it's not important whether you use __kernel_size_t or
-__kernel_uapi_size_t as a type of struct omapfb_memory_read.buffer_size.
+Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-This deserves a word in the commit message, though.
+-- 
+Regards,
 
-
---=20
-ldv
-
---6lXr1rPCNTf1w0X8
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCAAGBQJZikU+AAoJEAVFT+BVnCUI/MUQAIxLaUcxieTdqI2PjFLjEEXY
-SCzgrtplrDXoOXhbh7H8B2N63Jtf7zQNyUveyKaWNX8jyzH3GpCDCrh8JOy39bGk
-nrrhOVCo9fo4ryc6jtyoZm6c6BapzvrxP6POvgliFvnjXmjJJn0JysHGDEf/eEtG
-rY5Xn9PIB4dSgVJ3VlzeihkCotSFhZMN78PFExwsP0vzJaCO3hGOxACTJ4J9+gp+
-7nOmN9G4vYQDoNDhJ1SdXWH9Ar8Wn1R2jTYmGyj2YIZp+jKdvW+f8eRFmIWnablA
-EG3UFovXXA+Ax1LgWcCJ5DlyqeeQE+34IT3YDubNwDjjy6n6vs1Hv4ipHe2id35d
-zc07SDGSxTwJCV0vZoO0UEQYRv20yQ8E5auuYP0h47fNyzuJF9UX7Ai97X3k7RQa
-KoqdlPIW0Xg5CIyVYBfqZ2mGZukYXmzcM5F622/0vJ5q+8yUFMACpR9EuX2CW3TY
-2kHxpp2GVDVNHNmlVD/VDimqB7qZdQQE+fWPATxkuYJpGD23b1Z6UcvmurxH0gS7
-0wZf2jRtr1tlFIpVDZOJMIaQHD5keerx4C5VZPkJx0mn9IBs3AmKmAGL/01JA8OU
-57gTj7hrHym9JlBVrsWEfmWQhEOrHch1pXqLLwuPr+lVpuj3ZOP9RzKHuL39/uNj
-cREUz55q+f9RZc+WuqLq
-=O5MJ
------END PGP SIGNATURE-----
-
---6lXr1rPCNTf1w0X8--
+Laurent Pinchart
