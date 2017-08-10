@@ -1,55 +1,38 @@
-From: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] ARM: dts: omap: workarounds for Ethernet PHY strap
- on DRA71 and DRA72 EVMs
-Date: Wed, 9 Aug 2017 17:26:37 -0500
-Message-ID: <ca0d0615-d813-d00b-e853-25df9a5c49b6@ti.com>
-References: <cover.1502284400.git.nsekhar@ti.com>
+From: Shawn Guo <shawnguo@kernel.org>
+Subject: Re: [PATCH] mtd: nand: Rename nand.h into rawnand.h
+Date: Thu, 10 Aug 2017 08:58:05 +0800
+Message-ID: <20170810005804.GB31819@dragon>
+References: <1501860550-16506-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1501860550-16506-2-git-send-email-boris.brezillon@free-electrons.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1502284400.git.nsekhar-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <1501860550-16506-2-git-send-email-boris.brezillon@free-electrons.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Rich Felker <dalias@libc.org>, Neil Armstrong <narmstrong@baylibre.com>, Tony Lindgren <tony@atomide.com>, linux-mips@linux-mips.org, Sekhar Nori <nsekhar@ti.com>, Stefan Agner <stefan@agner.ch>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-mtd@lists.infradead.org, Marc Gonzalez <marc_gonzalez@sigmadesigns.com>, bcm-kernel-feedback-list@broadcom.com, Robert Jarzmik <robert.jarzmik@free.fr>, Alexander Clouter <alex@digriz.org.uk>, devel@driverdev.osuosl.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-omap@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Jonathan Corbet <corbet@lwn.net>, linux-sh@vger.kernel.org, Richard Weinberger <richard@nod.at>, linux-doc@vger.kernel.org, linux-mediatek@lists.infradead.org, Krzysztof Kozlowski <krzk@kernel.org>, Marek Vasut <marek.vasut@>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Aug 04, 2017 at 05:29:10PM +0200, Boris Brezillon wrote:
+> We are planning to share more code between different NAND based
+> devices (SPI NAND, OneNAND and raw NANDs), but before doing that
+> we need to move the existing include/linux/mtd/nand.h file into
+> include/linux/mtd/rawnand.h so we can later create a nand.h header
+> containing all common structure and function prototypes.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> Signed-off-by: Peter Pan <peterpandong@micron.com>
+...
+>  arch/arm/mach-imx/mach-qong.c                   | 2 +-
 
-
-On 08/09/2017 09:02 AM, Sekhar Nori wrote:
-> Hi Tony,
-> 
-> Here are some patches to overcome incorrect Ethernet PHY strap settings
-> on DRA72x EVM Rev C and DRA71 EVM. Both of these boards use TI's DP83867
-> PHY.
-> 
-> The incorrect PHY strap settings cause a voilation of PHY specification
-> and need to be worked around in software as documented in the commit
-> messages. But there is no known issue that these patches fix.
-> 
-> Changes from v1:
-> - Add Grygorii's reviewed-by to 3/3
-> - Rebase on latest mainline master
-> 
-> Sekhar Nori (3):
->    ARM: dts: dra71-evm: workaround incorrect DP83867 RX_CTRL pin strap
->    ARM: dts: dra72-evm-revc: workaround incorrect DP83867 RX_CTRL pin
->      strap
->    ARM: omap2plus_defconfig: enable DP83867 phy driver
-> 
->   arch/arm/boot/dts/dra71-evm.dts      | 2 ++
->   arch/arm/boot/dts/dra72-evm-revc.dts | 3 +++
->   arch/arm/configs/omap2plus_defconfig | 1 +
->   3 files changed, 6 insertions(+)
-> 
-
-Reviewed-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-
--- 
-regards,
--grygorii
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Shawn Guo <shawnguo@kernel.org>
