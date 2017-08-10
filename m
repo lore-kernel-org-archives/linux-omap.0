@@ -1,39 +1,38 @@
 From: Max Uvarov <muvarov@gmail.com>
-Subject: [PATCHv2 2/2] drivers: net: davinci_mdio: print bus frequency
-Date: Thu, 10 Aug 2017 10:47:47 +0300
-Message-ID: <1502351267-23841-2-git-send-email-muvarov@gmail.com>
-References: <1502351267-23841-1-git-send-email-muvarov@gmail.com>
+Subject: [PATCHv2 1/2] drivers: net: davinci_mdio: remove busy loop on wait user access
+Date: Thu, 10 Aug 2017 10:47:46 +0300
+Message-ID: <1502351267-23841-1-git-send-email-muvarov@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1502351267-23841-1-git-send-email-muvarov@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, Max Uvarov <muvarov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Frequency can be adjusted in DT it make sense to
-print current used value on driver init.
+Polling 14 mdio devices on single mdio bus eats 30% of 1Ghz cpu time
+due to busy loop in wait(). Add small delay to relax cpu.
 
 Signed-off-by: Max Uvarov <muvarov@gmail.com>
 ---
- drivers/net/ethernet/ti/davinci_mdio.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ v2: fix spelling in commit description.
+
+ drivers/net/ethernet/ti/davinci_mdio.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-index 611e7cc..3c33f45 100644
+index 33df340..611e7cc 100644
 --- a/drivers/net/ethernet/ti/davinci_mdio.c
 +++ b/drivers/net/ethernet/ti/davinci_mdio.c
-@@ -159,8 +159,10 @@ static int davinci_mdio_reset(struct mii_bus *bus)
+@@ -198,8 +198,10 @@ static inline int wait_for_user_access(struct davinci_mdio_data *data)
+ 			return 0;
  
- 	/* dump hardware version info */
- 	ver = __raw_readl(&data->regs->version);
--	dev_info(data->dev, "davinci mdio revision %d.%d\n",
--		 (ver >> 8) & 0xff, ver & 0xff);
-+	dev_info(data->dev,
-+		 "davinci mdio revision %d.%d, bus freq %ld\n",
-+		 (ver >> 8) & 0xff, ver & 0xff,
-+		 data->pdata.bus_freq);
+ 		reg = __raw_readl(&regs->control);
+-		if ((reg & CONTROL_IDLE) == 0)
++		if ((reg & CONTROL_IDLE) == 0) {
++			usleep_range(100, 200);
+ 			continue;
++		}
  
- 	if (data->skip_scan)
- 		goto done;
+ 		/*
+ 		 * An emac soft_reset may have clobbered the mdio controller's
 -- 
 2.5.0
