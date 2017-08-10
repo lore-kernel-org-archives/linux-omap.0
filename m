@@ -1,33 +1,39 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 1/2] ARM: dts: am571x-idk: Fix GPIO polarity for MMC1 card
- detect
-Date: Thu, 10 Aug 2017 13:15:15 +0530
-Message-ID: <f75b361c-a8a8-f6c0-dd8a-cca5522e5181@ti.com>
-References: <20170808052057.24433-1-kishon@ti.com>
- <20170809220800.GJ3934@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20170809220800.GJ3934@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@armlinux.org.uk>, Ulf Hansson <ulf.hansson@linaro.org>, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Max Uvarov <muvarov@gmail.com>
+Subject: [PATCHv2 2/2] drivers: net: davinci_mdio: print bus frequency
+Date: Thu, 10 Aug 2017 10:47:47 +0300
+Message-ID: <1502351267-23841-2-git-send-email-muvarov@gmail.com>
+References: <1502351267-23841-1-git-send-email-muvarov@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1502351267-23841-1-git-send-email-muvarov@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, Max Uvarov <muvarov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+Frequency can be adjusted in DT it make sense to
+print current used value on driver init.
 
-On Thursday 10 August 2017 03:38 AM, Tony Lindgren wrote:
-> * Kishon Vijay Abraham I <kishon@ti.com> [170807 22:22]:
->> The GPIO polarity for MMC1 card detect is set to '0' which means
->> active-high. However the polarity should be active-low. Fix it
->> here.
-> 
-> Can these wait for v4.14 merge window or do these fix known
-> issues?
+Signed-off-by: Max Uvarov <muvarov@gmail.com>
+---
+ drivers/net/ethernet/ti/davinci_mdio.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-These can go in the next merge window. I didn't observe any issue without this
-in omap_hsmmc driver.
-
-Thanks
-Kishon
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index 611e7cc..3c33f45 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -159,8 +159,10 @@ static int davinci_mdio_reset(struct mii_bus *bus)
+ 
+ 	/* dump hardware version info */
+ 	ver = __raw_readl(&data->regs->version);
+-	dev_info(data->dev, "davinci mdio revision %d.%d\n",
+-		 (ver >> 8) & 0xff, ver & 0xff);
++	dev_info(data->dev,
++		 "davinci mdio revision %d.%d, bus freq %ld\n",
++		 (ver >> 8) & 0xff, ver & 0xff,
++		 data->pdata.bus_freq);
+ 
+ 	if (data->skip_scan)
+ 		goto done;
+-- 
+2.5.0
