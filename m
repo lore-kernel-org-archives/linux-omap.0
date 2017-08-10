@@ -1,51 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 01/35] ARM: OMAP2+: Register SoC device attributes
- from machine .init()
-Date: Wed, 9 Aug 2017 14:49:25 -0700
-Message-ID: <20170809214925.GH3934@atomide.com>
-References: <20170804224419.30758-1-laurent.pinchart@ideasonboard.com>
- <20170804224419.30758-2-laurent.pinchart@ideasonboard.com>
- <201708091256.v79Culwe004765@dlelxv90.itg.ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] PCI: dwc: dra7xx: fix error return code in
+ dra7xx_pcie_probe()
+Date: Thu, 10 Aug 2017 11:10:24 +0530
+Message-ID: <6aedb314-9765-92f0-c3e2-a1fc6e6c4b95@ti.com>
+References: <20170809161603.GA31297@embeddedgus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <201708091256.v79Culwe004765@dlelxv90.itg.ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20170809161603.GA31297@embeddedgus>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTcwODA5IDA1OjU3XToK
-PiA+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWdlbmVyaWMuYyBiL2Fy
-Y2gvYXJtL21hY2gtb21hcDIvYm9hcmQtZ2VuZXJpYy5jCj4gPiBpbmRleCBkYzllMzRlNjcwYTIu
-LjUzMDM0MDJlZDVjMiAxMDA2NDQKPiA+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQt
-Z2VuZXJpYy5jCj4gPiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWdlbmVyaWMuYwo+
-ID4gQEAgLTMzLDYgKzMzLDcgQEAgc3RhdGljIHZvaWQgX19pbml0IG9tYXBfZ2VuZXJpY19pbml0
-KHZvaWQpCj4gPiAgCXBkYXRhX3F1aXJrc19pbml0KG9tYXBfZHRfbWF0Y2hfdGFibGUpOwo+ID4g
-IAo+ID4gIAlvbWFwZHNzX2luaXRfb2YoKTsKPiA+ICsJb21hcF9zb2NfZGV2aWNlX2luaXQoKTsK
-PiA+ICB9Cj4gPiAgCj4gPiAgI2lmZGVmIENPTkZJR19TT0NfT01BUDI0MjAKPiA+IGRpZmYgLS1n
-aXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2lvLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2lvLmMK
-PiA+IGluZGV4IDFkNzM5ZDFhMGE2NS4uOTUyZTM2YjRjNGQzIDEwMDY0NAo+ID4gLS0tIGEvYXJj
-aC9hcm0vbWFjaC1vbWFwMi9pby5jCj4gPiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2lvLmMK
-PiA+IEBAIC00MjgsNyArNDI4LDYgQEAgc3RhdGljIHZvaWQgX19pbml0IG9tYXBfaHdtb2RfaW5p
-dF9wb3N0c2V0dXAodm9pZCkKPiA+ICBzdGF0aWMgdm9pZCBfX2luaXQgX19tYXliZV91bnVzZWQg
-b21hcF9jb21tb25fbGF0ZV9pbml0KHZvaWQpCj4gPiAgewo+ID4gIAlvbWFwMl9jb21tb25fcG1f
-bGF0ZV9pbml0KCk7Cj4gPiAtCW9tYXBfc29jX2RldmljZV9pbml0KCk7Cj4gPiAgfQo+ID4gIAo+
-ID4gICNpZmRlZiBDT05GSUdfU09DX09NQVAyNDIwCj4gPiAKPiAKPiBUb255LCBob3cgZG9lcyB0
-aGlzIGxvb2s/IENhbiBJIHB1c2ggaXQgdmlhIHRoZSBkcm0gdHJlZSwgYWxvbmcgd2l0aCB0aGUK
-PiBzZXJpZXM/CgpZZXMgc2VlbXMgc2FmZSB0byBtZSwgcGxlYXNlIGZlZWwgZnJlZSB0byBtZXJn
-ZSBpdCB3aXRoIHlvdXIKc2VyaWVzOgoKQWNrZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRv
-bWlkZS5jb20+CgoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
-cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
-ZWwK
+
+
+On Wednesday 09 August 2017 09:46 PM, Gustavo A. R. Silva wrote:
+> platform_get_irq() returns an error code, but the pci-dra7xx driver
+> ignores it and always returns -EINVAL. This is not correct and,
+> prevents -EPROBE_DEFER from being propagated properly.
+> 
+> Print and propagate the return value of platform_get_irq on failure.
+> 
+> This issue was detected with the help of Coccinelle.
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index f2fc5f4..f58e1b4 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -616,8 +616,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  
+>  	irq = platform_get_irq(pdev, 0);
+>  	if (irq < 0) {
+> -		dev_err(dev, "missing IRQ resource\n");
+> -		return -EINVAL;
+> +		dev_err(dev, "missing IRQ resource: %d\n", irq);
+> +		return irq;
+>  	}
+>  
+>  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
+> 
