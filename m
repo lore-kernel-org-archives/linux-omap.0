@@ -1,53 +1,55 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCHv2 2/2] drivers: net: davinci_mdio: print bus frequency
-Date: Thu, 10 Aug 2017 11:18:20 -0500
-Message-ID: <2611695a-c93d-7176-666c-1350eecff5d6@ti.com>
-References: <1502351267-23841-1-git-send-email-muvarov@gmail.com>
- <1502351267-23841-2-git-send-email-muvarov@gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/4] ARM: dts: tps65217: Add power button interrupt to
+ the common tps65217.dtsi file
+Date: Thu, 10 Aug 2017 09:24:46 -0700
+Message-ID: <20170810162446.GE8569@atomide.com>
+References: <20170612212412.22719-1-enric.balletbo@collabora.com>
+ <20170612212412.22719-2-enric.balletbo@collabora.com>
+ <20170613073519.GA3730@atomide.com>
+ <CAFqH_50syu5aHBQtJkh-Dpz8Yc_6w0X853DO46T3ZAAJ10F-Pw@mail.gmail.com>
+ <20170614045551.GB3730@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1502351267-23841-2-git-send-email-muvarov@gmail.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Max Uvarov <muvarov@gmail.com>, netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170614045551.GB3730-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Javier Martinez Canillas <javier-0uQlZySMnqxg9hUCZPvPmw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 08/10/2017 02:47 AM, Max Uvarov wrote:
-> Frequency can be adjusted in DT it make sense to
-> print current used value on driver init.
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170613 22:00]:
+> * Enric Balletbo Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170613 02:12]:
+> > Hi Tony,
+> > 
+> > 2017-06-13 9:35 GMT+02:00 Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+> > > * Enric Balletbo i Serra <enric.balletbo-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org> [170612 14:28]:
+> > >> The interrupt for power button is static data that comes from the
+> > >> datasheet, there is no reason to need to define this value on every
+> > >> board so seams reasonable put this information into the common tps65217
+> > >> file.
+> > >
+> > > I think there's a problem with these patches where we no longer know
+> > > if the interrupts are wired up on a board. For example, if the USB PHY
+> > > VBUS interrupt is not connected, the phy driver needs poll the
+> > > cable state.
+> > >
+> > 
+> > Hmm, the tps65217 doesn't have a USB PHY like others tps, so not sure
+> > how could affect this patch. Did you see this issue in any board that
+> > uses tps65217 or any am335x based board which commonly uses this pmic?
 > 
-> Signed-off-by: Max Uvarov <muvarov@gmail.com>
+> Oh sorry I misread your patch. I thought you're removing
+> the interrupts from dts, but you're just moving the dts entries
+> to the common dtsi file :) So seems just fine with me.
 
-  Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Applying patches 1 and 2 of this series into omap-for-v4.14/dt
+thanks.
 
-> ---
->   drivers/net/ethernet/ti/davinci_mdio.c | 6 ++++--
->   1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-> index 611e7cc..3c33f45 100644
-> --- a/drivers/net/ethernet/ti/davinci_mdio.c
-> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
-> @@ -159,8 +159,10 @@ static int davinci_mdio_reset(struct mii_bus *bus)
->   
->   	/* dump hardware version info */
->   	ver = __raw_readl(&data->regs->version);
-> -	dev_info(data->dev, "davinci mdio revision %d.%d\n",
-> -		 (ver >> 8) & 0xff, ver & 0xff);
-> +	dev_info(data->dev,
-> +		 "davinci mdio revision %d.%d, bus freq %ld\n",
-> +		 (ver >> 8) & 0xff, ver & 0xff,
-> +		 data->pdata.bus_freq);
->   
->   	if (data->skip_scan)
->   		goto done;
-> 
+Regards,
 
--- 
-regards,
--grygorii
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
