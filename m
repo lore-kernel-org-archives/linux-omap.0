@@ -1,46 +1,84 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH 12/15] arm-soc: omap: replace open coded VA->PA
- calculations
-Date: Thu, 10 Aug 2017 10:22:20 +0100
-Message-ID: <CAKv+Gu_vKJJAsEMY9o-MWLpY8jztcXWB25eQRAMo=FMZfVJfHg@mail.gmail.com>
-References: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
- <20170805205222.19868-13-ard.biesheuvel@linaro.org>
- <20170809190556.GD3934@atomide.com>
- <CAKv+Gu-kdjN8nXVNL2frsegu-z7HVnG8qcXpQbvM-oBbxKjUGA@mail.gmail.com>
- <20170809210517.GE3934@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2] drm/omap: add OMAP5 DSIPHY lane-enable support
+Date: Thu, 10 Aug 2017 12:44:01 +0300
+Message-ID: <1502358241-12374-1-git-send-email-tomi.valkeinen@ti.com>
+References: <1502347520-27306-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20170809210517.GE3934@atomide.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, baohua@kernel.org, Dave Martin <dave.martin@arm.com>, Jason Cooper <jason@lakedaemon.net>, KVM devel mailing list <kvm@vger.kernel.org>, "nico@linaro.org" <nico@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Patrice CHOTARD <patrice.chotard@st.com>, linux-renesas-soc@vger.kernel.org, arm@kernel.org, vireshk@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1502347520-27306-1-git-send-email-tomi.valkeinen@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "H . Nikolaus Schaller" <hns@goldelico.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 9 August 2017 at 22:05, Tony Lindgren <tony@atomide.com> wrote:
-> * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170809 12:24]:
->> On 9 August 2017 at 20:05, Tony Lindgren <tony@atomide.com> wrote:
->> > * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170805 13:54]:
->> >> This replaces a couple of open coded calculations to obtain the
->> >> physical address of a far symbol with calls to the new adr_l etc
->> >> macros.
->> >
->> > I gave this series a quick test and omap3 no longer boots it seems.
->> >
->>
->> Thanks Tony. I will investigate
->
-> Thanks. Looks like omap4 still boots with all your patches, but
-> omap3 won't boot even with patch 12 left out.
->
-
-Are you using the same image on both? Which .config?
+77u/V2UgYXJlIG1pc3NpbmcgT01BUDUgRFNJUEhZIGxhbmUtZW5hYmxlIHN1cHBvcnQsIHdoaWNo
+IGhhcyBwcmV2ZW50ZWQKT01BUDUgRFNJIHdvcmtpbmcgaW4gbWFpbmxpbmUuIFRoaXMgcGF0Y2gg
+YWRkcyB0aGUgbGFuZS1lbmFibGUgc2ltaWxhcmx5CnRvIHRoZSByZWNlbnRseSBhZGRlZCBPTUFQ
+NCB2ZXJzaW9uLgoKU2lnbmVkLW9mZi1ieTogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVu
+QHRpLmNvbT4KLS0tCgpDaGFuZ2VzOgoKLSBGaXhlZCB0aGUgY2hlY2sgZm9yIERTSSBtb2RlbAot
+IFVzZSBlbHNlIGlmCi0gRHJvcCB0aGUgdW5uZWNlc3Nhcnkgc3lzY29uIGNoZWNrCgogZHJpdmVy
+cy9ncHUvZHJtL29tYXBkcm0vZHNzL2RzaS5jIHwgNTAgKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKystLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgNDIgaW5zZXJ0aW9ucygrKSwgOCBkZWxl
+dGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNpLmMg
+Yi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNpLmMKaW5kZXggYTY2ZDJiMWE2Yzc0Li44
+ODlmMmQzMDA1MGIgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2ku
+YworKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNpLmMKQEAgLTIxMDksOSArMjEw
+OSw2IEBAIHN0YXRpYyBpbnQgZHNpX29tYXA0X211eF9wYWRzKHN0cnVjdCBkc2lfZGF0YSAqZHNp
+LCB1bnNpZ25lZCBpbnQgbGFuZXMpCiAJdTMyIHBpcGRfbWFzaywgcGlwZF9zaGlmdDsKIAl1MzIg
+cmVnOwogCi0JaWYgKCFkc2ktPnN5c2NvbikKLQkJcmV0dXJuIDA7Ci0KIAlpZiAoZHNpLT5tb2R1
+bGVfaWQgPT0gMCkgewogCQllbmFibGVfbWFzayA9IE9NQVA0X0RTSTFfTEFORUVOQUJMRV9NQVNL
+OwogCQllbmFibGVfc2hpZnQgPSBPTUFQNF9EU0kxX0xBTkVFTkFCTEVfU0hJRlQ7CkBAIC0yMTM5
+LDE0ICsyMTM2LDQ4IEBAIHN0YXRpYyBpbnQgZHNpX29tYXA0X211eF9wYWRzKHN0cnVjdCBkc2lf
+ZGF0YSAqZHNpLCB1bnNpZ25lZCBpbnQgbGFuZXMpCiAJcmV0dXJuIDA7CiB9CiAKKyNkZWZpbmUg
+T01BUDVfRFNJUEhZX1NZU0NPTl9PRkZTRVQJMHg3NAorCisjZGVmaW5lIE9NQVA1X0RTSTFfTEFO
+RUVOQUJMRV9TSElGVAkyNAorI2RlZmluZSBPTUFQNV9EU0kyX0xBTkVFTkFCTEVfU0hJRlQJMTkK
+KyNkZWZpbmUgT01BUDVfRFNJX0xBTkVFTkFCTEVfTUFTSwkweDFmCisKK3N0YXRpYyBpbnQgZHNp
+X29tYXA1X211eF9wYWRzKHN0cnVjdCBkc2lfZGF0YSAqZHNpLCB1bnNpZ25lZCBpbnQgbGFuZXMp
+Cit7CisJdTMyIGVuYWJsZV9tYXNrLCBlbmFibGVfc2hpZnQsIHJlZzsKKworCWlmIChkc2ktPm1v
+ZHVsZV9pZCA9PSAwKQorCQllbmFibGVfc2hpZnQgPSBPTUFQNV9EU0kxX0xBTkVFTkFCTEVfU0hJ
+RlQ7CisJZWxzZSBpZiAoZHNpLT5tb2R1bGVfaWQgPT0gMSkKKwkJZW5hYmxlX3NoaWZ0ID0gT01B
+UDVfRFNJMl9MQU5FRU5BQkxFX1NISUZUOworCWVsc2UKKwkJcmV0dXJuIC1FTk9ERVY7CisKKwll
+bmFibGVfbWFzayA9IE9NQVA1X0RTSV9MQU5FRU5BQkxFX01BU0sgPDwgZW5hYmxlX3NoaWZ0Owor
+CisJcmVnbWFwX3JlYWQoZHNpLT5zeXNjb24sIE9NQVA1X0RTSVBIWV9TWVNDT05fT0ZGU0VULCAm
+cmVnKTsKKwlyZWcgJj0gfmVuYWJsZV9tYXNrOworCXJlZyB8PSAobGFuZXMgPDwgZW5hYmxlX3No
+aWZ0KSAmIGVuYWJsZV9tYXNrOworCXJlZ21hcF93cml0ZShkc2ktPnN5c2NvbiwgT01BUDVfRFNJ
+UEhZX1NZU0NPTl9PRkZTRVQsIHJlZyk7CisKKwlyZXR1cm4gMDsKK30KKwogc3RhdGljIGludCBk
+c2lfZW5hYmxlX3BhZHMoc3RydWN0IGRzaV9kYXRhICpkc2ksIHVuc2lnbmVkIGludCBsYW5lX21h
+c2spCiB7Ci0JcmV0dXJuIGRzaV9vbWFwNF9tdXhfcGFkcyhkc2ksIGxhbmVfbWFzayk7CisJaWYg
+KGRzaS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01PREVMX09NQVA0KQorCQlyZXR1cm4gZHNpX29tYXA0
+X211eF9wYWRzKGRzaSwgbGFuZV9tYXNrKTsKKwlpZiAoZHNpLT5kYXRhLT5tb2RlbCA9PSBEU0lf
+TU9ERUxfT01BUDUpCisJCXJldHVybiBkc2lfb21hcDVfbXV4X3BhZHMoZHNpLCBsYW5lX21hc2sp
+OworCXJldHVybiAwOwogfQogCiBzdGF0aWMgdm9pZCBkc2lfZGlzYWJsZV9wYWRzKHN0cnVjdCBk
+c2lfZGF0YSAqZHNpKQogewotCWRzaV9vbWFwNF9tdXhfcGFkcyhkc2ksIDApOworCWlmIChkc2kt
+PmRhdGEtPm1vZGVsID09IERTSV9NT0RFTF9PTUFQNCkKKwkJZHNpX29tYXA0X211eF9wYWRzKGRz
+aSwgMCk7CisJZWxzZSBpZiAoZHNpLT5kYXRhLT5tb2RlbCA9PSBEU0lfTU9ERUxfT01BUDUpCisJ
+CWRzaV9vbWFwNV9tdXhfcGFkcyhkc2ksIDApOwogfQogCiBzdGF0aWMgaW50IGRzaV9jaW9faW5p
+dChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpkc2lkZXYpCkBAIC01NDgwLDE0ICs1NTExLDE3IEBA
+IHN0YXRpYyBpbnQgZHNpX2JpbmQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlICpt
+YXN0ZXIsIHZvaWQgKmRhdGEpCiAKIAlkc2ktPm1vZHVsZV9pZCA9IGQtPmlkOwogCi0JaWYgKGRz
+aS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01PREVMX09NQVA0KSB7CisJaWYgKGRzaS0+ZGF0YS0+bW9k
+ZWwgPT0gRFNJX01PREVMX09NQVA0IHx8CisJICAgIGRzaS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01P
+REVMX09NQVA1KSB7CiAJCXN0cnVjdCBkZXZpY2Vfbm9kZSAqbnA7CiAKIAkJLyoKLQkJICogVGhl
+IE9NQVA0IGRpc3BsYXkgRFQgYmluZGluZ3MgZG9uJ3QgcmVmZXJlbmNlIHRoZSBwYWRjb25mCisJ
+CSAqIFRoZSBPTUFQNC81IGRpc3BsYXkgRFQgYmluZGluZ3MgZG9uJ3QgcmVmZXJlbmNlIHRoZSBw
+YWRjb25mCiAJCSAqIHN5c2Nvbi4gT3VyIG9ubHkgb3B0aW9uIHRvIHJldHJpZXZlIGl0IGlzIHRv
+IGZpbmQgaXQgYnkgbmFtZS4KIAkJICovCi0JCW5wID0gb2ZfZmluZF9ub2RlX2J5X25hbWUoTlVM
+TCwgIm9tYXA0X3BhZGNvbmZfZ2xvYmFsIik7CisJCW5wID0gb2ZfZmluZF9ub2RlX2J5X25hbWUo
+TlVMTCwKKwkJCWRzaS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01PREVMX09NQVA0ID8KKwkJCSJvbWFw
+NF9wYWRjb25mX2dsb2JhbCIgOiAib21hcDVfcGFkY29uZl9nbG9iYWwiKTsKIAkJaWYgKCFucCkK
+IAkJCXJldHVybiAtRU5PREVWOwogCi0tIAoyLjcuNAoKClRleGFzIEluc3RydW1lbnRzIEZpbmxh
+bmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVz
+cyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQoKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
+IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
+ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
