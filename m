@@ -1,50 +1,77 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH] PCI: dwc: dra7xx: fix error return code in
- dra7xx_pcie_probe()
-Date: Thu, 10 Aug 2017 11:10:24 +0530
-Message-ID: <6aedb314-9765-92f0-c3e2-a1fc6e6c4b95@ti.com>
-References: <20170809161603.GA31297@embeddedgus>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH] drm/omap: add OMAP5 DSIPHY lane-enable support
+Date: Thu, 10 Aug 2017 09:45:20 +0300
+Message-ID: <1502347520-27306-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170809161603.GA31297@embeddedgus>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "H . Nikolaus Schaller" <hns@goldelico.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Wednesday 09 August 2017 09:46 PM, Gustavo A. R. Silva wrote:
-> platform_get_irq() returns an error code, but the pci-dra7xx driver
-> ignores it and always returns -EINVAL. This is not correct and,
-> prevents -EPROBE_DEFER from being propagated properly.
-> 
-> Print and propagate the return value of platform_get_irq on failure.
-> 
-> This issue was detected with the help of Coccinelle.
-> 
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/pci/dwc/pci-dra7xx.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index f2fc5f4..f58e1b4 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -616,8 +616,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  
->  	irq = platform_get_irq(pdev, 0);
->  	if (irq < 0) {
-> -		dev_err(dev, "missing IRQ resource\n");
-> -		return -EINVAL;
-> +		dev_err(dev, "missing IRQ resource: %d\n", irq);
-> +		return irq;
->  	}
->  
->  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
-> 
+77u/V2UgYXJlIG1pc3NpbmcgT01BUDUgRFNJUEhZIGxhbmUtZW5hYmxlIHN1cHBvcnQsIHdoaWNo
+IGhhcyBwcmV2ZW50ZWQKT01BUDUgRFNJIHdvcmtpbmcgaW4gbWFpbmxpbmUuIFRoaXMgcGF0Y2gg
+YWRkcyB0aGUgbGFuZS1lbmFibGUgc2ltaWxhcmx5CnRvIHRoZSByZWNlbnRseSBhZGRlZCBPTUFQ
+NCB2ZXJzaW9uLgoKU2lnbmVkLW9mZi1ieTogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVu
+QHRpLmNvbT4KLS0tCgpCYXNlZCBvbiBMYXVyZW50J3MgcmVjZW50IG9tYXBkcm0gc2VyaWVzLgoK
+IGRyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYyB8IDUwICsrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrLS0tLQogMSBmaWxlIGNoYW5nZWQsIDQ1IGluc2VydGlvbnMoKyks
+IDUgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNz
+L2RzaS5jIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2RzaS5jCmluZGV4IGE2NmQyYjFh
+NmM3NC4uMWYwYjI5YWY5Yjg2IDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9k
+c3MvZHNpLmMKKysrIGIvZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2RzaS5jCkBAIC0yMTM5
+LDE0ICsyMTM5LDUxIEBAIHN0YXRpYyBpbnQgZHNpX29tYXA0X211eF9wYWRzKHN0cnVjdCBkc2lf
+ZGF0YSAqZHNpLCB1bnNpZ25lZCBpbnQgbGFuZXMpCiAJcmV0dXJuIDA7CiB9CiAKKyNkZWZpbmUg
+T01BUDVfRFNJUEhZX1NZU0NPTl9PRkZTRVQJMHg3NAorCisjZGVmaW5lIE9NQVA1X0RTSTFfTEFO
+RUVOQUJMRV9TSElGVAkyNAorI2RlZmluZSBPTUFQNV9EU0kyX0xBTkVFTkFCTEVfU0hJRlQJMTkK
+KyNkZWZpbmUgT01BUDVfRFNJX0xBTkVFTkFCTEVfTUFTSwkweDFmCisKK3N0YXRpYyBpbnQgZHNp
+X29tYXA1X211eF9wYWRzKHN0cnVjdCBkc2lfZGF0YSAqZHNpLCB1bnNpZ25lZCBpbnQgbGFuZXMp
+Cit7CisJdTMyIGVuYWJsZV9tYXNrLCBlbmFibGVfc2hpZnQsIHJlZzsKKworCWlmICghZHNpLT5z
+eXNjb24pCisJCXJldHVybiAwOworCisJaWYgKGRzaS0+bW9kdWxlX2lkID09IDApCisJCWVuYWJs
+ZV9zaGlmdCA9IE9NQVA1X0RTSTFfTEFORUVOQUJMRV9TSElGVDsKKwllbHNlIGlmIChkc2ktPm1v
+ZHVsZV9pZCA9PSAxKQorCQllbmFibGVfc2hpZnQgPSBPTUFQNV9EU0kyX0xBTkVFTkFCTEVfU0hJ
+RlQ7CisJZWxzZQorCQlyZXR1cm4gLUVOT0RFVjsKKworCWVuYWJsZV9tYXNrID0gT01BUDVfRFNJ
+X0xBTkVFTkFCTEVfTUFTSyA8PCBlbmFibGVfc2hpZnQ7CisKKwlyZWdtYXBfcmVhZChkc2ktPnN5
+c2NvbiwgT01BUDVfRFNJUEhZX1NZU0NPTl9PRkZTRVQsICZyZWcpOworCXJlZyAmPSB+ZW5hYmxl
+X21hc2s7CisJcmVnIHw9IChsYW5lcyA8PCBlbmFibGVfc2hpZnQpICYgZW5hYmxlX21hc2s7CisJ
+cmVnbWFwX3dyaXRlKGRzaS0+c3lzY29uLCBPTUFQNV9EU0lQSFlfU1lTQ09OX09GRlNFVCwgcmVn
+KTsKKworCXJldHVybiAwOworfQorCiBzdGF0aWMgaW50IGRzaV9lbmFibGVfcGFkcyhzdHJ1Y3Qg
+ZHNpX2RhdGEgKmRzaSwgdW5zaWduZWQgaW50IGxhbmVfbWFzaykKIHsKLQlyZXR1cm4gZHNpX29t
+YXA0X211eF9wYWRzKGRzaSwgbGFuZV9tYXNrKTsKKwlpZiAoZHNpLT5kYXRhLT5tb2RlbCA9PSBE
+U0lfTU9ERUxfT01BUDQpCisJCXJldHVybiBkc2lfb21hcDRfbXV4X3BhZHMoZHNpLCBsYW5lX21h
+c2spOworCWlmIChkc2ktPmRhdGEtPm1vZGVsID09IERTSV9NT0RFTF9PTUFQNSkKKwkJcmV0dXJu
+IGRzaV9vbWFwNV9tdXhfcGFkcyhkc2ksIGxhbmVfbWFzayk7CisJcmV0dXJuIDA7CiB9CiAKIHN0
+YXRpYyB2b2lkIGRzaV9kaXNhYmxlX3BhZHMoc3RydWN0IGRzaV9kYXRhICpkc2kpCiB7Ci0JZHNp
+X29tYXA0X211eF9wYWRzKGRzaSwgMCk7CisJaWYgKGRzaS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01P
+REVMX09NQVA0KQorCQlkc2lfb21hcDRfbXV4X3BhZHMoZHNpLCAwKTsKKwlpZiAoZHNpLT5kYXRh
+LT5tb2RlbCA9PSBEU0lfTU9ERUxfT01BUDQpCisJCWRzaV9vbWFwNV9tdXhfcGFkcyhkc2ksIDAp
+OwogfQogCiBzdGF0aWMgaW50IGRzaV9jaW9faW5pdChzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpk
+c2lkZXYpCkBAIC01NDgwLDE0ICs1NTE3LDE3IEBAIHN0YXRpYyBpbnQgZHNpX2JpbmQoc3RydWN0
+IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlICptYXN0ZXIsIHZvaWQgKmRhdGEpCiAKIAlkc2kt
+Pm1vZHVsZV9pZCA9IGQtPmlkOwogCi0JaWYgKGRzaS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01PREVM
+X09NQVA0KSB7CisJaWYgKGRzaS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01PREVMX09NQVA0IHx8CisJ
+ICAgIGRzaS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01PREVMX09NQVA1KSB7CiAJCXN0cnVjdCBkZXZp
+Y2Vfbm9kZSAqbnA7CiAKIAkJLyoKLQkJICogVGhlIE9NQVA0IGRpc3BsYXkgRFQgYmluZGluZ3Mg
+ZG9uJ3QgcmVmZXJlbmNlIHRoZSBwYWRjb25mCisJCSAqIFRoZSBPTUFQNC81IGRpc3BsYXkgRFQg
+YmluZGluZ3MgZG9uJ3QgcmVmZXJlbmNlIHRoZSBwYWRjb25mCiAJCSAqIHN5c2Nvbi4gT3VyIG9u
+bHkgb3B0aW9uIHRvIHJldHJpZXZlIGl0IGlzIHRvIGZpbmQgaXQgYnkgbmFtZS4KIAkJICovCi0J
+CW5wID0gb2ZfZmluZF9ub2RlX2J5X25hbWUoTlVMTCwgIm9tYXA0X3BhZGNvbmZfZ2xvYmFsIik7
+CisJCW5wID0gb2ZfZmluZF9ub2RlX2J5X25hbWUoTlVMTCwKKwkJCWRzaS0+ZGF0YS0+bW9kZWwg
+PT0gRFNJX01PREVMX09NQVA0ID8KKwkJCSJvbWFwNF9wYWRjb25mX2dsb2JhbCIgOiAib21hcDVf
+cGFkY29uZl9nbG9iYWwiKTsKIAkJaWYgKCFucCkKIAkJCXJldHVybiAtRU5PREVWOwogCi0tIAoy
+LjcuNAoKClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAw
+MTgwIEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2th
+L0RvbWljaWxlOiBIZWxzaW5raQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
+ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2RyaS1kZXZlbAo=
