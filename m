@@ -1,56 +1,29 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCHv2 1/2] drivers: net: davinci_mdio: remove busy loop on
- wait user access
-Date: Thu, 10 Aug 2017 11:24:50 -0500
-Message-ID: <d176da18-b608-9738-317c-6ca01cb937e9@ti.com>
-References: <1502351267-23841-1-git-send-email-muvarov@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/12] ARM: dts: Add iodelay data for MMC
+Date: Thu, 10 Aug 2017 09:33:56 -0700
+Message-ID: <20170810163356.GF8569@atomide.com>
+References: <20170616115439.8508-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1502351267-23841-1-git-send-email-muvarov@gmail.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Max Uvarov <muvarov@gmail.com>, netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170616115439.8508-1-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: nsekhar@ti.com, Rob Herring <robh+dt@kernel.org>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 08/10/2017 02:47 AM, Max Uvarov wrote:
-> Polling 14 mdio devices on single mdio bus eats 30% of 1Ghz cpu time
-> due to busy loop in wait(). Add small delay to relax cpu.
+* Kishon Vijay Abraham I <kishon@ti.com> [170616 04:54]:
+> This is the second part of the series originally sent as
+> part of [1] with one important modification.
 > 
-> Signed-off-by: Max Uvarov <muvarov@gmail.com>
-
-yep. cover letter is good to have.
-
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-
-> ---
->   v2: fix spelling in commit description.
+> Now PINCTRL_TI_IODELAY will be enabled for SOC_DRA7XX
+> (in mach-omap2/Kconfig) so that omap2plus_defconfig or
+> multi_v7_defconfig don't have to be modified.
 > 
->   drivers/net/ethernet/ti/davinci_mdio.c | 4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-> index 33df340..611e7cc 100644
-> --- a/drivers/net/ethernet/ti/davinci_mdio.c
-> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
-> @@ -198,8 +198,10 @@ static inline int wait_for_user_access(struct davinci_mdio_data *data)
->   			return 0;
->   
->   		reg = __raw_readl(&regs->control);
-> -		if ((reg & CONTROL_IDLE) == 0)
-> +		if ((reg & CONTROL_IDLE) == 0) {
-> +			usleep_range(100, 200);
->   			continue;
-> +		}
->   
->   		/*
->   		 * An emac soft_reset may have clobbered the mdio controller's
-> 
+> This series only adds data and it won't be used until
+> the next series which adds UHS support to omap_hsmmc driver.
 
--- 
-regards,
--grygorii
+Applying these finally into omap-for-v4.14/dt thanks.
+
+Tony
