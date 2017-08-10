@@ -1,88 +1,36 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] drm/omap: add OMAP5 DSIPHY lane-enable support
-Date: Thu, 10 Aug 2017 10:22:34 +0300
-Message-ID: <1545191.ArXLlpMNYh@avalon>
-References: <1502347520-27306-1-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1502347520-27306-1-git-send-email-tomi.valkeinen@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "H . Nikolaus Schaller" <hns@goldelico.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+From: Max Uvarov <muvarov@gmail.com>
+Subject: [PATCH 1/2] drivers: net: davinci_mdio: remove busy loop on wait user access
+Date: Thu, 10 Aug 2017 10:41:59 +0300
+Message-ID: <1502350920-22750-1-git-send-email-muvarov@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, Max Uvarov <muvarov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgVG9taSwKClRoYW5rIHlvdSBmb3IgdGhlIHBhdGNoLgoKT24gVGh1cnNkYXkgMTAgQXVnIDIw
-MTcgMDk6NDU6MjAgVG9taSBWYWxrZWluZW4gd3JvdGU6Cj4gV2UgYXJlIG1pc3NpbmcgT01BUDUg
-RFNJUEhZIGxhbmUtZW5hYmxlIHN1cHBvcnQsIHdoaWNoIGhhcyBwcmV2ZW50ZWQKPiBPTUFQNSBE
-U0kgd29ya2luZyBpbiBtYWlubGluZS4gVGhpcyBwYXRjaCBhZGRzIHRoZSBsYW5lLWVuYWJsZSBz
-aW1pbGFybHkKPiB0byB0aGUgcmVjZW50bHkgYWRkZWQgT01BUDQgdmVyc2lvbi4KPiAKPiBTaWdu
-ZWQtb2ZmLWJ5OiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPgo+IC0tLQo+
-IAo+IEJhc2VkIG9uIExhdXJlbnQncyByZWNlbnQgb21hcGRybSBzZXJpZXMuCj4gCj4gIGRyaXZl
-cnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYyB8IDUwICsrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKystLS0tCj4gIDEgZmlsZSBjaGFuZ2VkLCA0NSBpbnNlcnRpb25zKCspLCA1IGRlbGV0
-aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNp
-LmMKPiBiL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kc2kuYyBpbmRleCBhNjZkMmIxYTZj
-NzQuLjFmMGIyOWFmOWI4NiAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9k
-c3MvZHNpLmMKPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vb21hcGRybS9kc3MvZHNpLmMKPiBAQCAt
-MjEzOSwxNCArMjEzOSw1MSBAQCBzdGF0aWMgaW50IGRzaV9vbWFwNF9tdXhfcGFkcyhzdHJ1Y3Qg
-ZHNpX2RhdGEgKmRzaSwKPiB1bnNpZ25lZCBpbnQgbGFuZXMpIHJldHVybiAwOwo+ICB9Cj4gCj4g
-KyNkZWZpbmUgT01BUDVfRFNJUEhZX1NZU0NPTl9PRkZTRVQJMHg3NAo+ICsKPiArI2RlZmluZSBP
-TUFQNV9EU0kxX0xBTkVFTkFCTEVfU0hJRlQJMjQKPiArI2RlZmluZSBPTUFQNV9EU0kyX0xBTkVF
-TkFCTEVfU0hJRlQJMTkKPiArI2RlZmluZSBPTUFQNV9EU0lfTEFORUVOQUJMRV9NQVNLCTB4MWYK
-PiArCj4gK3N0YXRpYyBpbnQgZHNpX29tYXA1X211eF9wYWRzKHN0cnVjdCBkc2lfZGF0YSAqZHNp
-LCB1bnNpZ25lZCBpbnQgbGFuZXMpCj4gK3sKPiArCXUzMiBlbmFibGVfbWFzaywgZW5hYmxlX3No
-aWZ0LCByZWc7Cj4gKwo+ICsJaWYgKCFkc2ktPnN5c2NvbikKPiArCQlyZXR1cm4gMDsKClRoZSBw
-dXJwb3NlIG9mIHRoaXMgY2hlY2sgaW4gZHNpX29tYXA0X211eF9wYWRzKCkgd2FzIHRvIGhhbmRs
-ZSB0aGUgU29DcyB0aGF0IApkb24ndCByZXF1aXJlIGFueSBkcml2ZXIgYWN0aW9uIHRvIG11eCB0
-aGUgRFNJIHBpbnMuIE5vdyB0aGF0IApkc2lfZW5hYmxlX3BhZHMoKSBhbmQgZHNpX2Rpc2FibGVf
-cGFkcygpIGhhdmUgbmV3IFNvQyBjaGVja3MsIHRoaXMgaXNuJ3QgCm5lZWRlZCBhbnltb3JlLCBk
-c2ktPnN5c2NvbiBjYW4ndCBiZSBOVUxMIG9uIE9NQVA0IG9yIE9NQVA1LgoKPiArCWlmIChkc2kt
-Pm1vZHVsZV9pZCA9PSAwKQo+ICsJCWVuYWJsZV9zaGlmdCA9IE9NQVA1X0RTSTFfTEFORUVOQUJM
-RV9TSElGVDsKPiArCWVsc2UgaWYgKGRzaS0+bW9kdWxlX2lkID09IDEpCj4gKwkJZW5hYmxlX3No
-aWZ0ID0gT01BUDVfRFNJMl9MQU5FRU5BQkxFX1NISUZUOwo+ICsJZWxzZQo+ICsJCXJldHVybiAt
-RU5PREVWOwo+ICsKPiArCWVuYWJsZV9tYXNrID0gT01BUDVfRFNJX0xBTkVFTkFCTEVfTUFTSyA8
-PCBlbmFibGVfc2hpZnQ7Cj4gKwo+ICsJcmVnbWFwX3JlYWQoZHNpLT5zeXNjb24sIE9NQVA1X0RT
-SVBIWV9TWVNDT05fT0ZGU0VULCAmcmVnKTsKPiArCXJlZyAmPSB+ZW5hYmxlX21hc2s7Cj4gKwly
-ZWcgfD0gKGxhbmVzIDw8IGVuYWJsZV9zaGlmdCkgJiBlbmFibGVfbWFzazsKPiArCXJlZ21hcF93
-cml0ZShkc2ktPnN5c2NvbiwgT01BUDVfRFNJUEhZX1NZU0NPTl9PRkZTRVQsIHJlZyk7Cj4gKwo+
-ICsJcmV0dXJuIDA7Cj4gK30KPiArCj4gIHN0YXRpYyBpbnQgZHNpX2VuYWJsZV9wYWRzKHN0cnVj
-dCBkc2lfZGF0YSAqZHNpLCB1bnNpZ25lZCBpbnQgbGFuZV9tYXNrKQo+ICB7Cj4gLQlyZXR1cm4g
-ZHNpX29tYXA0X211eF9wYWRzKGRzaSwgbGFuZV9tYXNrKTsKPiArCWlmIChkc2ktPmRhdGEtPm1v
-ZGVsID09IERTSV9NT0RFTF9PTUFQNCkKPiArCQlyZXR1cm4gZHNpX29tYXA0X211eF9wYWRzKGRz
-aSwgbGFuZV9tYXNrKTsKPiArCWlmIChkc2ktPmRhdGEtPm1vZGVsID09IERTSV9NT0RFTF9PTUFQ
-NSkKPiArCQlyZXR1cm4gZHNpX29tYXA1X211eF9wYWRzKGRzaSwgbGFuZV9tYXNrKTsKPiArCXJl
-dHVybiAwOwo+ICB9Cj4gCj4gIHN0YXRpYyB2b2lkIGRzaV9kaXNhYmxlX3BhZHMoc3RydWN0IGRz
-aV9kYXRhICpkc2kpCj4gIHsKPiAtCWRzaV9vbWFwNF9tdXhfcGFkcyhkc2ksIDApOwo+ICsJaWYg
-KGRzaS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01PREVMX09NQVA0KQo+ICsJCWRzaV9vbWFwNF9tdXhf
-cGFkcyhkc2ksIDApOwo+ICsJaWYgKGRzaS0+ZGF0YS0+bW9kZWwgPT0gRFNJX01PREVMX09NQVA0
-KQoKRGlkIHlvdSBtZWFuIERTSV9NT0RFTF9PTUFQNSA/IEFzIHRoZSB0d28gYXJlIG11dHVhbGx5
-IGV4Y2x1c2l2ZSwgSSB3b3VsZCB1c2UgCmFuICJlbHNlIGlmIi4KCj4gKwkJZHNpX29tYXA1X211
-eF9wYWRzKGRzaSwgMCk7Cj4gIH0KPiAKPiAgc3RhdGljIGludCBkc2lfY2lvX2luaXQoc3RydWN0
-IHBsYXRmb3JtX2RldmljZSAqZHNpZGV2KQo+IEBAIC01NDgwLDE0ICs1NTE3LDE3IEBAIHN0YXRp
-YyBpbnQgZHNpX2JpbmQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QKPiBkZXZpY2UgKm1hc3Rl
-ciwgdm9pZCAqZGF0YSkKPiAKPiAgCWRzaS0+bW9kdWxlX2lkID0gZC0+aWQ7Cj4gCj4gLQlpZiAo
-ZHNpLT5kYXRhLT5tb2RlbCA9PSBEU0lfTU9ERUxfT01BUDQpIHsKPiArCWlmIChkc2ktPmRhdGEt
-Pm1vZGVsID09IERTSV9NT0RFTF9PTUFQNCB8fAo+ICsJICAgIGRzaS0+ZGF0YS0+bW9kZWwgPT0g
-RFNJX01PREVMX09NQVA1KSB7Cj4gIAkJc3RydWN0IGRldmljZV9ub2RlICpucDsKPiAKPiAgCQkv
-Kgo+IC0JCSAqIFRoZSBPTUFQNCBkaXNwbGF5IERUIGJpbmRpbmdzIGRvbid0IHJlZmVyZW5jZSB0
-aGUgcGFkY29uZgo+ICsJCSAqIFRoZSBPTUFQNC81IGRpc3BsYXkgRFQgYmluZGluZ3MgZG9uJ3Qg
-cmVmZXJlbmNlIHRoZSBwYWRjb25mCj4gIAkJICogc3lzY29uLiBPdXIgb25seSBvcHRpb24gdG8g
-cmV0cmlldmUgaXQgaXMgdG8gZmluZCBpdCBieSAKbmFtZS4KPiAgCQkgKi8KPiAtCQlucCA9IG9m
-X2ZpbmRfbm9kZV9ieV9uYW1lKE5VTEwsICJvbWFwNF9wYWRjb25mX2dsb2JhbCIpOwo+ICsJCW5w
-ID0gb2ZfZmluZF9ub2RlX2J5X25hbWUoTlVMTCwKPiArCQkJZHNpLT5kYXRhLT5tb2RlbCA9PSBE
-U0lfTU9ERUxfT01BUDQgPwo+ICsJCQkib21hcDRfcGFkY29uZl9nbG9iYWwiIDogIm9tYXA1X3Bh
-ZGNvbmZfZ2xvYmFsIik7Cj4gIAkJaWYgKCFucCkKPiAgCQkJcmV0dXJuIC1FTk9ERVY7CgotLSAK
-UmVnYXJkcywKCkxhdXJlbnQgUGluY2hhcnQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3Rz
-LmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2RyaS1kZXZlbAo=
+Polling 14 mdio devices on single mdio bus eats 30% of 1Ghz cpu time
+due to busy loop in waiti(). Aadd small delay to relax cpu.
+
+Signed-off-by: Max Uvarov <muvarov@gmail.com>
+---
+ drivers/net/ethernet/ti/davinci_mdio.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index 33df340..611e7cc 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -198,8 +198,10 @@ static inline int wait_for_user_access(struct davinci_mdio_data *data)
+ 			return 0;
+ 
+ 		reg = __raw_readl(&regs->control);
+-		if ((reg & CONTROL_IDLE) == 0)
++		if ((reg & CONTROL_IDLE) == 0) {
++			usleep_range(100, 200);
+ 			continue;
++		}
+ 
+ 		/*
+ 		 * An emac soft_reset may have clobbered the mdio controller's
+-- 
+2.5.0
