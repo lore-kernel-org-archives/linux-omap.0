@@ -1,77 +1,40 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: linux-next 2017-08-08 keyboard failure on Nokia N900
-Date: Thu, 10 Aug 2017 19:10:34 +0200
-Message-ID: <20170810171034.GA26019@amd>
-References: <20170808101756.GA12922@amd>
- <20170808103444.GA18247@amd>
- <20170808111243.GA20328@amd>
- <61264d43-eda3-df9d-0c06-28611f373ce7@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] ARM: dts: omap: workarounds for Ethernet PHY
+ strap on DRA71 and DRA72 EVMs
+Date: Thu, 10 Aug 2017 10:37:19 -0700
+Message-ID: <20170810173718.GP8569@atomide.com>
+References: <cover.1502284400.git.nsekhar@ti.com>
+ <ca0d0615-d813-d00b-e853-25df9a5c49b6@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <61264d43-eda3-df9d-0c06-28611f373ce7@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, Julia Lawall <Julia.Lawall@lip6.fr>
+In-Reply-To: <ca0d0615-d813-d00b-e853-25df9a5c49b6-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+* Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org> [170809 15:27]:
+> On 08/09/2017 09:02 AM, Sekhar Nori wrote:
+> > Here are some patches to overcome incorrect Ethernet PHY strap settings
+> > on DRA72x EVM Rev C and DRA71 EVM. Both of these boards use TI's DP83867
+> > PHY.
+> > 
+> > The incorrect PHY strap settings cause a voilation of PHY specification
+> > and need to be worked around in software as documented in the commit
+> > messages. But there is no known issue that these patches fix.
+...
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Reviewed-by: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
 
-Hi!
+Applying dts changes into omap-for-v4.14/fixes-not-urgent
+and defconfig into omap-for-v4.14/defconfig.
 
-> >>> I tried today's linux-next. It boots on n900 (up to X), but then my
-> >>> screen locks and I can't get back. Touchscreen worked, so my guess is
-> >>> keyboard does not...? Ssh connection over usb still works.
-> >>
-> >> Confirmed, its the keyboard.
-> >>
-=2E..
-> > [    0.682769] twl4030_madc 48070000.i2c:twl@48:madc: could not
-> > request irq
-> > [    0.684051] twl4030_madc: probe of 48070000.i2c:twl@48:madc failed
->=20
-> I've not precisely checked it, but smth is telling me that below=20
-> patch  can cause this:
->=20
-> commit 78daaca78ee57dead0f4aa5ee399f0499e81cd9e
-=2E..
->  int twl4030_init_irq(struct device *dev, int irq_num)
->  {
-> -       static struct irq_chip  twl4030_irq_chip;
-> +       struct irq_chip twl4030_irq_chip;
->=20
->=20
-> but if we will look at code - it can be seen that this variable is passed=
- by reference to
-> irq_set_chip_and_handler().=20
-> Ops. And what will happen when twl4030_init_irq() returns ;)
+Thanks,
 
-Thanks, this would take me a while to figure out. I'm testing
-next-..-08-10, which should have this fixed... and yes, it does.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlmMk4oACgkQMOfwapXb+vJWFgCfXgm08iGewaBL9K74uu7qvUZ1
-T68AnjIp1HYBCUE+yWKK6lZfJ2RT/VBC
-=3TNn
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
