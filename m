@@ -1,91 +1,72 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v3 09/11] ARM: OMAP2+: Remove unused omapdrm platform device
-Date: Fri, 11 Aug 2017 16:49:10 +0300
-Message-ID: <20170811134912.6429-10-laurent.pinchart@ideasonboard.com>
-References: <20170811134912.6429-1-laurent.pinchart@ideasonboard.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 12/15] arm-soc: omap: replace open coded VA->PA
+ calculations
+Date: Fri, 11 Aug 2017 08:00:10 -0700
+Message-ID: <20170811150007.GQ8569@atomide.com>
+References: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
+ <20170805205222.19868-13-ard.biesheuvel@linaro.org>
+ <20170809190556.GD3934@atomide.com>
+ <CAKv+Gu-kdjN8nXVNL2frsegu-z7HVnG8qcXpQbvM-oBbxKjUGA@mail.gmail.com>
+ <20170809210517.GE3934@atomide.com>
+ <CAKv+Gu_vKJJAsEMY9o-MWLpY8jztcXWB25eQRAMo=FMZfVJfHg@mail.gmail.com>
+ <20170810140357.GA8569@atomide.com>
+ <CAKv+Gu-uwxF628w1WT-9bBnRbX9y98BH5YQWS+qA1pXFU97sqg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20170811134912.6429-1-laurent.pinchart@ideasonboard.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: dri-devel@lists.freedesktop.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <CAKv+Gu-uwxF628w1WT-9bBnRbX9y98BH5YQWS+qA1pXFU97sqg@mail.gmail.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Andrew Lunn <andrew@lunn.ch>, baohua@kernel.org, Dave Martin <dave.martin@arm.com>, Jason Cooper <jason@lakedaemon.net>, KVM devel mailing list <kvm@vger.kernel.org>, "nico@linaro.org" <nico@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, Patrice CHOTARD <patrice.chotard@st.com>, linux-renesas-soc@vger.kernel.org, arm@kernel.org, vireshk@kernel.org, Gregory CLEMENT <gregory.clement@free-electrons.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIG9tYXBkcm0gcGxhdGZvcm0gZGV2aWNlIGlzIHVudXNlZCwgYXMgYSByZXBsYWNlbWVudCBp
-cyBub3cKcmVnaXN0ZXJlZCBpbiB0aGUgb21hcGRzcyBkcml2ZXIuIFJlbW92ZSBpdC4KClNpZ25l
-ZC1vZmYtYnk6IExhdXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJk
-LmNvbT4KQWNrZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+ClJldmlld2Vk
-LWJ5OiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPgotLS0KIGFyY2gvYXJt
-L21hY2gtb21hcDIvTWFrZWZpbGUgIHwgIDIgKy0KIGFyY2gvYXJtL21hY2gtb21hcDIvZGlzcGxh
-eS5jIHwgIDcgLS0tLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2Rpc3BsYXkuaCB8ICAxIC0KIGFy
-Y2gvYXJtL21hY2gtb21hcDIvZHJtLmMgICAgIHwgNTMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLQogNCBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgNjIg
-ZGVsZXRpb25zKC0pCiBkZWxldGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vbWFjaC1vbWFwMi9kcm0u
-YwoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUgYi9hcmNoL2FybS9t
-YWNoLW9tYXAyL01ha2VmaWxlCmluZGV4IDc3OWZiMWY2ODBiMy4uYjNiM2IzYTE5MTgzIDEwMDY0
-NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlCisrKyBiL2FyY2gvYXJtL21hY2gt
-b21hcDIvTWFrZWZpbGUKQEAgLTgsNyArOCw3IEBAIGNjZmxhZ3MteSA6PSAtSSQoc3JjdHJlZSkv
-JChzcmMpL2luY2x1ZGUgXAogIyBDb21tb24gc3VwcG9ydAogb2JqLXkgOj0gaWQubyBpby5vIGNv
-bnRyb2wubyBkZXZpY2VzLm8gZmIubyB0aW1lci5vIHBtLm8gXAogCSBjb21tb24ubyBkbWEubyB3
-ZF90aW1lci5vIGRpc3BsYXkubyBpMmMubyBoZHExdy5vIG9tYXBfaHdtb2QubyBcCi0JIG9tYXBf
-ZGV2aWNlLm8gb21hcC1oZWFkc21wLm8gc3JhbS5vIGRybS5vCisJIG9tYXBfZGV2aWNlLm8gb21h
-cC1oZWFkc21wLm8gc3JhbS5vCiAKIGh3bW9kLWNvbW1vbgkJCQk9IG9tYXBfaHdtb2QubyBvbWFw
-X2h3bW9kX3Jlc2V0Lm8gXAogCQkJCQkgIG9tYXBfaHdtb2RfY29tbW9uX2RhdGEubwpkaWZmIC0t
-Z2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmMgYi9hcmNoL2FybS9tYWNoLW9tYXAy
-L2Rpc3BsYXkuYwppbmRleCA4ZmEwMWMwZWNkYjIuLjVmNTY5NzY2OGRlOCAxMDA2NDQKLS0tIGEv
-YXJjaC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9k
-aXNwbGF5LmMKQEAgLTM4NCwxMyArMzg0LDYgQEAgaW50IF9faW5pdCBvbWFwZHNzX2luaXRfb2Yo
-dm9pZCkKIAkJcmV0dXJuIHI7CiAJfQogCi0JLyogY3JlYXRlIERSTSBkZXZpY2UgKi8KLQlyID0g
-b21hcF9pbml0X2RybSgpOwotCWlmIChyIDwgMCkgewotCQlwcl9lcnIoIlVuYWJsZSB0byByZWdp
-c3RlciBvbWFwZHJtIGRldmljZVxuIik7Ci0JCXJldHVybiByOwotCX0KLQogCS8qIGNyZWF0ZSB2
-cmZiIGRldmljZSAqLwogCXIgPSBvbWFwX2luaXRfdnJmYigpOwogCWlmIChyIDwgMCkgewpkaWZm
-IC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmggYi9hcmNoL2FybS9tYWNoLW9t
-YXAyL2Rpc3BsYXkuaAppbmRleCA5YTM5NjQ2ZDQzMTYuLjQyZWMyZTk5YTJmNCAxMDA2NDQKLS0t
-IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9kaXNwbGF5LmgKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFw
-Mi9kaXNwbGF5LmgKQEAgLTI2LDcgKzI2LDYgQEAgc3RydWN0IG9tYXBfZHNzX2Rpc3BjX2Rldl9h
-dHRyIHsKIAlib29sCWhhc19mcmFtZWRvbmV0dl9pcnE7CiB9OwogCi1pbnQgb21hcF9pbml0X2Ry
-bSh2b2lkKTsKIGludCBvbWFwX2luaXRfdnJmYih2b2lkKTsKIGludCBvbWFwX2luaXRfZmIodm9p
-ZCk7CiBpbnQgb21hcF9pbml0X3ZvdXQodm9pZCk7CmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNo
-LW9tYXAyL2RybS5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9kcm0uYwpkZWxldGVkIGZpbGUgbW9k
-ZSAxMDA2NDQKaW5kZXggNDRmZWY5NjFiYjcwLi4wMDAwMDAwMDAwMDAKLS0tIGEvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9kcm0uYworKysgL2Rldi9udWxsCkBAIC0xLDUzICswLDAgQEAKLS8qCi0gKiBE
-Uk0vS01TIGRldmljZSByZWdpc3RyYXRpb24gZm9yIFRJIE9NQVAgcGxhdGZvcm1zCi0gKgotICog
-Q29weXJpZ2h0IChDKSAyMDEyIFRleGFzIEluc3RydW1lbnRzCi0gKiBBdXRob3I6IFJvYiBDbGFy
-ayA8cm9iLmNsYXJrQGxpbmFyby5vcmc+Ci0gKgotICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29m
-dHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkgaXQKLSAqIHVuZGVy
-IHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgdmVyc2lvbiAyIGFz
-IHB1Ymxpc2hlZCBieQotICogdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbi4KLSAqCi0gKiBU
-aGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVz
-ZWZ1bCwgYnV0IFdJVEhPVVQKLSAqIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVuIHRoZSBpbXBs
-aWVkIHdhcnJhbnR5IG9mIE1FUkNIQU5UQUJJTElUWSBvcgotICogRklUTkVTUyBGT1IgQSBQQVJU
-SUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvcgot
-ICogbW9yZSBkZXRhaWxzLgotICoKLSAqIFlvdSBzaG91bGQgaGF2ZSByZWNlaXZlZCBhIGNvcHkg
-b2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFsb25nIHdpdGgKLSAqIHRoaXMgcHJv
-Z3JhbS4gIElmIG5vdCwgc2VlIDxodHRwOi8vd3d3LmdudS5vcmcvbGljZW5zZXMvPi4KLSAqLwot
-Ci0jaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+Ci0jaW5jbHVkZSA8bGludXgva2VybmVsLmg+Ci0j
-aW5jbHVkZSA8bGludXgvbW0uaD4KLSNpbmNsdWRlIDxsaW51eC9pbml0Lmg+Ci0jaW5jbHVkZSA8
-bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+Ci0jaW5jbHVkZSA8bGludXgvZG1hLW1hcHBpbmcuaD4K
-LSNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kYXRhL29tYXBfZHJtLmg+Ci0KLSNpbmNsdWRlICJz
-b2MuaCIKLSNpbmNsdWRlICJkaXNwbGF5LmgiCi0KLSNpZiBJU19FTkFCTEVEKENPTkZJR19EUk1f
-T01BUCkKLQotc3RhdGljIHN0cnVjdCBvbWFwX2RybV9wbGF0Zm9ybV9kYXRhIHBsYXRmb3JtX2Rh
-dGE7Ci0KLXN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlIG9tYXBfZHJtX2RldmljZSA9IHsK
-LQkuZGV2ID0gewotCQkuY29oZXJlbnRfZG1hX21hc2sgPSBETUFfQklUX01BU0soMzIpLAotCQku
-cGxhdGZvcm1fZGF0YSA9ICZwbGF0Zm9ybV9kYXRhLAotCX0sCi0JLm5hbWUgPSAib21hcGRybSIs
-Ci0JLmlkID0gMCwKLX07Ci0KLWludCBfX2luaXQgb21hcF9pbml0X2RybSh2b2lkKQotewotCXBs
-YXRmb3JtX2RhdGEub21hcHJldiA9IEdFVF9PTUFQX1RZUEU7Ci0KLQlyZXR1cm4gcGxhdGZvcm1f
-ZGV2aWNlX3JlZ2lzdGVyKCZvbWFwX2RybV9kZXZpY2UpOwotCi19Ci0jZWxzZQotaW50IF9faW5p
-dCBvbWFwX2luaXRfZHJtKHZvaWQpIHsgcmV0dXJuIDA7IH0KLSNlbmRpZgotLSAKUmVnYXJkcywK
-CkxhdXJlbnQgUGluY2hhcnQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
-dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
-aS1kZXZlbAo=
+* Ard Biesheuvel <ard.biesheuvel@linaro.org> [170811 06:48]:
+> On 10 August 2017 at 15:03, Tony Lindgren <tony@atomide.com> wrote:
+> > * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170810 02:23]:
+> >> On 9 August 2017 at 22:05, Tony Lindgren <tony@atomide.com> wrote:
+> >> > * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170809 12:24]:
+> >> >> On 9 August 2017 at 20:05, Tony Lindgren <tony@atomide.com> wrote:
+> >> >> > * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170805 13:54]:
+> >> >> >> This replaces a couple of open coded calculations to obtain the
+> >> >> >> physical address of a far symbol with calls to the new adr_l etc
+> >> >> >> macros.
+> >> >> >
+> >> >> > I gave this series a quick test and omap3 no longer boots it seems.
+> >> >> >
+> >> >>
+> >> >> Thanks Tony. I will investigate
+> >> >
+> >> > Thanks. Looks like omap4 still boots with all your patches, but
+> >> > omap3 won't boot even with patch 12 left out.
+> >> >
+> >>
+> >> Are you using the same image on both? Which .config?
+> >
+> > Yes it's the same image compiled with omap2plus_defconfig.
+> >
+> 
+> Unfortunately, I am failing to reproduce this on beaglebone white or
+> QEMU's beagle-xm emulation.
+> 
+> Anything you can share regarding the failure mode? Do you get any output at all?
+
+No output at all, I've tried omap3-evm, logicpd torpedo
+and n900. We do copy some of the PM code to SRAM on
+omap3 though that's not done on am335x.
+
+But as it's not caused by this patch, I'll try to
+narrow it down to the patch causing it.
+
+Regards,
+
+Tony
