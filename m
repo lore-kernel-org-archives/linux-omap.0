@@ -1,40 +1,46 @@
-From: Max Uvarov <muvarov@gmail.com>
-Subject: [PATCHv3 1/2] drivers: net: davinci_mdio: remove busy loop on wait user access
-Date: Fri, 11 Aug 2017 13:57:40 +0300
-Message-ID: <1502449061-30373-2-git-send-email-muvarov@gmail.com>
-References: <1502449061-30373-1-git-send-email-muvarov@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1502449061-30373-1-git-send-email-muvarov@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, grygorii.strashko@ti.com, Max Uvarov <muvarov@gmail.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH 12/15] arm-soc: omap: replace open coded VA->PA calculations
+Date: Fri, 11 Aug 2017 14:48:27 +0100
+Message-ID: <CAKv+Gu-uwxF628w1WT-9bBnRbX9y98BH5YQWS+qA1pXFU97sqg@mail.gmail.com>
+References: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
+ <20170805205222.19868-13-ard.biesheuvel@linaro.org> <20170809190556.GD3934@atomide.com>
+ <CAKv+Gu-kdjN8nXVNL2frsegu-z7HVnG8qcXpQbvM-oBbxKjUGA@mail.gmail.com>
+ <20170809210517.GE3934@atomide.com> <CAKv+Gu_vKJJAsEMY9o-MWLpY8jztcXWB25eQRAMo=FMZfVJfHg@mail.gmail.com>
+ <20170810140357.GA8569@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+In-Reply-To: <20170810140357.GA8569@atomide.com>
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-renesas-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, KVM devel mailing list <kvm@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, Krzysztof Kozlowski <krzk@kernel.org>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, Andrew Lunn <andrew@lunn.ch>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, baohua@kernel.org, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, vireshk@kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Patrice CHOTARD <patrice.chotard@st.com>, nico@linaro.o
 List-Id: linux-omap@vger.kernel.org
 
-Polling 14 mdio devices on single mdio bus eats 30% of 1Ghz cpu time
-due to busy loop in wait(). Add small delay to relax cpu.
+On 10 August 2017 at 15:03, Tony Lindgren <tony@atomide.com> wrote:
+> * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170810 02:23]:
+>> On 9 August 2017 at 22:05, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170809 12:24]:
+>> >> On 9 August 2017 at 20:05, Tony Lindgren <tony@atomide.com> wrote:
+>> >> > * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170805 13:54]:
+>> >> >> This replaces a couple of open coded calculations to obtain the
+>> >> >> physical address of a far symbol with calls to the new adr_l etc
+>> >> >> macros.
+>> >> >
+>> >> > I gave this series a quick test and omap3 no longer boots it seems.
+>> >> >
+>> >>
+>> >> Thanks Tony. I will investigate
+>> >
+>> > Thanks. Looks like omap4 still boots with all your patches, but
+>> > omap3 won't boot even with patch 12 left out.
+>> >
+>>
+>> Are you using the same image on both? Which .config?
+>
+> Yes it's the same image compiled with omap2plus_defconfig.
+>
 
-Signed-off-by: Max Uvarov <muvarov@gmail.com>
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/davinci_mdio.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Unfortunately, I am failing to reproduce this on beaglebone white or
+QEMU's beagle-xm emulation.
 
-diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
-index 33df340..611e7cc 100644
---- a/drivers/net/ethernet/ti/davinci_mdio.c
-+++ b/drivers/net/ethernet/ti/davinci_mdio.c
-@@ -198,8 +198,10 @@ static inline int wait_for_user_access(struct davinci_mdio_data *data)
- 			return 0;
- 
- 		reg = __raw_readl(&regs->control);
--		if ((reg & CONTROL_IDLE) == 0)
-+		if ((reg & CONTROL_IDLE) == 0) {
-+			usleep_range(100, 200);
- 			continue;
-+		}
- 
- 		/*
- 		 * An emac soft_reset may have clobbered the mdio controller's
--- 
-2.5.0
+Anything you can share regarding the failure mode? Do you get any output at all?
