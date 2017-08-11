@@ -1,70 +1,97 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/8] ARM: OMAP2+: board-generic: add support for dra76x
- family
-Date: Fri, 11 Aug 2017 08:42:53 -0700
-Message-ID: <20170811154253.GT8569@atomide.com>
-References: <20170718195503.1700-1-lokeshvutla@ti.com>
- <20170718195503.1700-2-lokeshvutla@ti.com>
- <20170724190236.k3xbxrmgdfc5nogj@rob-hp-laptop>
- <5fcdf90c-4630-0834-ff09-46339dce90f6@ti.com>
- <f0d5b151-c699-c683-97ce-d6689135e3ac@ti.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v3 2/2] memory: ti-emif-sram: introduce relocatable
+ suspend/resume handlers
+Date: Fri, 11 Aug 2017 10:42:34 -0500
+Message-ID: <42672b14-8242-0a5b-f343-8e0fa38ffaaf@ti.com>
+References: <20170724212454.27574-1-d-gerlach@ti.com>
+ <20170724212454.27574-3-d-gerlach@ti.com>
+ <9b856bf5-f404-5cfc-6f1e-5ae527c6e0b1@oracle.com>
+ <cfb8007b-7f3a-1787-bb9d-9486f547f23f@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <f0d5b151-c699-c683-97ce-d6689135e3ac-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cfb8007b-7f3a-1787-bb9d-9486f547f23f@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: Russell King <linux@armlinux.org.uk>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170730 04:20]:
-> Rob,
+Russell/Johan,
+On 08/01/2017 01:08 PM, Santosh Shilimkar wrote:
+> On 7/26/2017 9:54 AM, Santosh Shilimkar wrote:
+>>
+>> On 7/24/2017 2:24 PM, Dave Gerlach wrote:
+>>> Certain SoCs like Texas Instruments AM335x and AM437x require parts
+>>> of the EMIF PM code to run late in the suspend sequence from SRAM,
+>>> such as saving and restoring the EMIF context and placing the memory
+>>> into self-refresh.
+>>>
+>>> One requirement for these SoCs to suspend and enter its lowest power
+>>> mode, called DeepSleep0, is that the PER power domain must be shut off.
+>>> Because the EMIF (DDR Controller) resides within this power domain, it
+>>> will lose context during a suspend operation, so we must save it so we
+>>> can restore once we resume. However, we cannot execute this code from
+>>> external memory, as it is not available at this point, so the code must
+>>> be executed late in the suspend path from SRAM.
+>>>
+>>> This patch introduces a ti-emif-sram driver that includes several
+>>> functions written in ARM ASM that are relocatable so the PM SRAM
+>>> code can use them. It also allocates a region of writable SRAM to
+>>> be used by the code running in the executable region of SRAM to save
+>>> and restore the EMIF context. It can export a table containing the
+>>> absolute addresses of the available PM functions so that other SRAM
+>>> code can branch to them. This code is required for suspend/resume on
+>>> AM335x and AM437x to work.
+>>>
+>>> In addition to this, to be able to share data structures between C and
+>>> the ti-emif-sram-pm assembly code, we can automatically generate all of
+>>> the C struct member offsets and sizes as macros by making use of the ARM
+>>> asm-offsets file. In the same header that we define our data structures
+>>> in we also define all the macros in an inline function and by adding a
+>>> call to this in the asm_offsets file all macros are properly generated
+>>> and available to the assembly code without cluttering up the asm-offsets
+>>> file.
+>>>
+>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>> ---
+> [...]
 > 
-> On 7/25/2017 12:10 PM, Lokesh Vutla wrote:
-> > 
-> > 
-> > On 7/25/2017 12:32 AM, Rob Herring wrote:
-> >> On Wed, Jul 19, 2017 at 01:24:56AM +0530, Lokesh Vutla wrote:
-> >>> Adding board generic support for dra76 family.
-> >>>
-> >>> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-> >>> ---
-> >>>  Documentation/devicetree/bindings/arm/omap/omap.txt | 3 +++
-> >>>  arch/arm/mach-omap2/board-generic.c                 | 1 +
-> >>>  2 files changed, 4 insertions(+)
-> >>>
-> >>> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> >>> index 8219b2c6bb29..ffe02755a285 100644
-> >>> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> >>> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> >>> @@ -80,6 +80,9 @@ SoCs:
-> >>>  - OMAP5432
-> >>>    compatible = "ti,omap5432", "ti,omap5"
-> >>>  
-> >>> +- DRA762
-> >>> +  compatible = "ti,dra76", "ti,dra7"
-> >>
-> >> 76 or 762?
-> > 
-> > Just wanted to cover all variants of dra76x with this compatible. Okay
-> > ill use 762.
-> > 
-> >>
-> >> How many of these 2 or 3 compatible strings actually get used? I'd 
-> >> prefer to see one of these less specific compatibles get dropped.
-> > 
-> > ti,dra76 is being used. Ill try not to include ti,dra7 and post it again.
-> 
-> ti,dra7 is being used by cpufreq driver . So, I would like to use both
-> ti,dra762 and ti,dra7 as compatible.
+>>>
+>>>   arch/arm/kernel/asm-offsets.c    |   4 +
+>>>   drivers/memory/Kconfig           |  10 ++
+>>>   drivers/memory/Makefile          |   4 +
+>>>   drivers/memory/emif.h            |  17 ++
+>>>   drivers/memory/ti-emif-pm.c      | 339 
+>>> +++++++++++++++++++++++++++++++++++++++
+>>>   drivers/memory/ti-emif-sram-pm.S | 334 
+>>> ++++++++++++++++++++++++++++++++++++++
+>>>   include/linux/ti-emif-sram.h     | 147 +++++++++++++++++
+>>>   7 files changed, 855 insertions(+)
+>>>   create mode 100644 drivers/memory/ti-emif-pm.c
+>>>   create mode 100644 drivers/memory/ti-emif-sram-pm.S
+>>>   create mode 100644 include/linux/ti-emif-sram.h
+>>>
+>> I will need RMKs blessing since he reviewed the ASM code.
+>>
+>> Also need work out how to line this up. Typically I use to get
+>> driver/memory patches via Greg's driver-core but this is more
+>> PM code than memory driver and very SOC specific.
+>>
+>> Hi Arnd/Olof,
+>> Will you be ok to pull this via arm-soc ? There is also follow
+>> up platform PM code and DTS series which will make use of this.
+>>
+> Looks like I missed to copy Olof. Let me know guys if you are
+> ok to pull this into your driver-soc given the dependencies.
 
-So are you going to repost this one with ti,dra762 and ti,dra7?
+Any additional comments here? I believe I have addressed everything from v2 so
+hopefully this is acceptable now.
 
 Regards,
+Dave
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Regards
+> Santosh
+> 
