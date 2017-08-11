@@ -1,46 +1,101 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH 12/15] arm-soc: omap: replace open coded VA->PA calculations
-Date: Fri, 11 Aug 2017 14:48:27 +0100
-Message-ID: <CAKv+Gu-uwxF628w1WT-9bBnRbX9y98BH5YQWS+qA1pXFU97sqg@mail.gmail.com>
-References: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
- <20170805205222.19868-13-ard.biesheuvel@linaro.org> <20170809190556.GD3934@atomide.com>
- <CAKv+Gu-kdjN8nXVNL2frsegu-z7HVnG8qcXpQbvM-oBbxKjUGA@mail.gmail.com>
- <20170809210517.GE3934@atomide.com> <CAKv+Gu_vKJJAsEMY9o-MWLpY8jztcXWB25eQRAMo=FMZfVJfHg@mail.gmail.com>
- <20170810140357.GA8569@atomide.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v3 10/11] ARM: OMAP2+: Don't register omapdss device for
+ omapdrm
+Date: Fri, 11 Aug 2017 16:49:11 +0300
+Message-ID: <20170811134912.6429-11-laurent.pinchart@ideasonboard.com>
+References: <20170811134912.6429-1-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-In-Reply-To: <20170810140357.GA8569@atomide.com>
-Sender: linux-renesas-soc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-renesas-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, KVM devel mailing list <kvm@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, Krzysztof Kozlowski <krzk@kernel.org>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, Andrew Lunn <andrew@lunn.ch>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, baohua@kernel.org, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, vireshk@kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Patrice CHOTARD <patrice.chotard@st.com>, nico@linaro.o
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170811134912.6429-1-laurent.pinchart@ideasonboard.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: dri-devel@lists.freedesktop.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 10 August 2017 at 15:03, Tony Lindgren <tony@atomide.com> wrote:
-> * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170810 02:23]:
->> On 9 August 2017 at 22:05, Tony Lindgren <tony@atomide.com> wrote:
->> > * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170809 12:24]:
->> >> On 9 August 2017 at 20:05, Tony Lindgren <tony@atomide.com> wrote:
->> >> > * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170805 13:54]:
->> >> >> This replaces a couple of open coded calculations to obtain the
->> >> >> physical address of a far symbol with calls to the new adr_l etc
->> >> >> macros.
->> >> >
->> >> > I gave this series a quick test and omap3 no longer boots it seems.
->> >> >
->> >>
->> >> Thanks Tony. I will investigate
->> >
->> > Thanks. Looks like omap4 still boots with all your patches, but
->> > omap3 won't boot even with patch 12 left out.
->> >
->>
->> Are you using the same image on both? Which .config?
->
-> Yes it's the same image compiled with omap2plus_defconfig.
->
-
-Unfortunately, I am failing to reproduce this on beaglebone white or
-QEMU's beagle-xm emulation.
-
-Anything you can share regarding the failure mode? Do you get any output at all?
+VGhlIG9tYXBkcm0gZHJpdmVyIGRvZXNuJ3QgbmVlZCB0aGUgb21hcGRzcyBkZXZpY2UgYW55bW9y
+ZS4gQWx0aG91Z2ggaXQKY2FuJ3QgYmUgcmVtb3ZlZCBjb21wbGV0ZWx5IGFzIHRoZSBmYmRldiBk
+cml2ZXIgc3RpbGwgcmVxdWlyZXMgaXQsIHdlCmNhbiBjb25kaXRpb24gaXRzIHJlZ2lzdHJhdGlv
+biB0byB0aGUgdXNhZ2Ugb2YgdGhlIG9tYXBmYiBkcml2ZXIuCgpTaWduZWQtb2ZmLWJ5OiBMYXVy
+ZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+CkFja2VkLWJ5
+OiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPgpSZXZpZXdlZC1ieTogVG9taSBWYWxr
+ZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2Rp
+c3BsYXkuYyB8IDExMSArKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0K
+IDEgZmlsZSBjaGFuZ2VkLCA2MCBpbnNlcnRpb25zKCspLCA1MSBkZWxldGlvbnMoLSkKCmRpZmYg
+LS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2Rpc3BsYXkuYyBiL2FyY2gvYXJtL21hY2gtb21h
+cDIvZGlzcGxheS5jCmluZGV4IDVmNTY5NzY2OGRlOC4uNzk4ZmM3MThmZmZlIDEwMDY0NAotLS0g
+YS9hcmNoL2FybS9tYWNoLW9tYXAyL2Rpc3BsYXkuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAy
+L2Rpc3BsYXkuYwpAQCAtNjYsNiArNjYsNyBAQAogICovCiAjZGVmaW5lIEZSQU1FRE9ORV9JUlFf
+VElNRU9VVAkJMTAwCiAKKyNpZiBkZWZpbmVkKENPTkZJR19GQl9PTUFQMikKIHN0YXRpYyBzdHJ1
+Y3QgcGxhdGZvcm1fZGV2aWNlIG9tYXBfZGlzcGxheV9kZXZpY2UgPSB7CiAJLm5hbWUgICAgICAg
+ICAgPSAib21hcGRzcyIsCiAJLmlkICAgICAgICAgICAgPSAtMSwKQEAgLTE2Myw2ICsxNjQsNjQg
+QEAgc3RhdGljIGVudW0gb21hcGRzc192ZXJzaW9uIF9faW5pdCBvbWFwX2Rpc3BsYXlfZ2V0X3Zl
+cnNpb24odm9pZCkKIAkJcmV0dXJuIE9NQVBEU1NfVkVSX1VOS05PV047CiB9CiAKK3N0YXRpYyBp
+bnQgX19pbml0IG9tYXBkc3NfaW5pdF9mYmRldih2b2lkKQoreworCXN0YXRpYyBzdHJ1Y3Qgb21h
+cF9kc3NfYm9hcmRfaW5mbyBib2FyZF9kYXRhID0geworCQkuZHNpX2VuYWJsZV9wYWRzID0gb21h
+cF9kc2lfZW5hYmxlX3BhZHMsCisJCS5kc2lfZGlzYWJsZV9wYWRzID0gb21hcF9kc2lfZGlzYWJs
+ZV9wYWRzLAorCQkuc2V0X21pbl9idXNfdHB1dCA9IG9tYXBfZHNzX3NldF9taW5fYnVzX3RwdXQs
+CisJfTsKKwlzdHJ1Y3QgZGV2aWNlX25vZGUgKm5vZGU7CisKKwlib2FyZF9kYXRhLnZlcnNpb24g
+PSBvbWFwX2Rpc3BsYXlfZ2V0X3ZlcnNpb24oKTsKKwlpZiAoYm9hcmRfZGF0YS52ZXJzaW9uID09
+IE9NQVBEU1NfVkVSX1VOS05PV04pIHsKKwkJcHJfZXJyKCJEU1Mgbm90IHN1cHBvcnRlZCBvbiB0
+aGlzIFNvQ1xuIik7CisJCXJldHVybiAtRU5PREVWOworCX0KKworCW9tYXBfZGlzcGxheV9kZXZp
+Y2UuZGV2LnBsYXRmb3JtX2RhdGEgPSAmYm9hcmRfZGF0YTsKKworCXIgPSBwbGF0Zm9ybV9kZXZp
+Y2VfcmVnaXN0ZXIoJm9tYXBfZGlzcGxheV9kZXZpY2UpOworCWlmIChyIDwgMCkgeworCQlwcl9l
+cnIoIlVuYWJsZSB0byByZWdpc3RlciBvbWFwZHNzIGRldmljZVxuIik7CisJCXJldHVybiByOwor
+CX0KKworCS8qIGNyZWF0ZSB2cmZiIGRldmljZSAqLworCXIgPSBvbWFwX2luaXRfdnJmYigpOwor
+CWlmIChyIDwgMCkgeworCQlwcl9lcnIoIlVuYWJsZSB0byByZWdpc3RlciBvbWFwdnJmYiBkZXZp
+Y2VcbiIpOworCQlyZXR1cm4gcjsKKwl9CisKKwkvKiBjcmVhdGUgRkIgZGV2aWNlICovCisJciA9
+IG9tYXBfaW5pdF9mYigpOworCWlmIChyIDwgMCkgeworCQlwcl9lcnIoIlVuYWJsZSB0byByZWdp
+c3RlciBvbWFwZmIgZGV2aWNlXG4iKTsKKwkJcmV0dXJuIHI7CisJfQorCisJLyogY3JlYXRlIFY0
+TDIgZGlzcGxheSBkZXZpY2UgKi8KKwlyID0gb21hcF9pbml0X3ZvdXQoKTsKKwlpZiAociA8IDAp
+IHsKKwkJcHJfZXJyKCJVbmFibGUgdG8gcmVnaXN0ZXIgb21hcF92b3V0IGRldmljZVxuIik7CisJ
+CXJldHVybiByOworCX0KKworCS8qIGFkZCBEU0kgaW5mbyBmb3Igb21hcDQgKi8KKwlub2RlID0g
+b2ZfZmluZF9ub2RlX2J5X25hbWUoTlVMTCwgIm9tYXA0X3BhZGNvbmZfZ2xvYmFsIik7CisJaWYg
+KG5vZGUpCisJCW9tYXA0X2RzaV9tdXhfc3lzY29uID0gc3lzY29uX25vZGVfdG9fcmVnbWFwKG5v
+ZGUpOworCisJcmV0dXJuIDA7Cit9CisjZWxzZQorc3RhdGljIGlubGluZSBpbnQgb21hcGRzc19p
+bml0X2ZiZGV2KHZvaWQpCit7CisJcmV0dXJuIDA7Cit9CisjZW5kaWYgLyogQ09ORklHX0ZCX09N
+QVAyICovCisKIHN0YXRpYyB2b2lkIGRpc3BjX2Rpc2FibGVfb3V0cHV0cyh2b2lkKQogewogCXUz
+MiB2LCBpcnFfbWFzayA9IDA7CkBAIC0zMzUsMTYgKzM5NCw5IEBAIHN0YXRpYyBzdHJ1Y3QgZGV2
+aWNlX25vZGUgKiBfX2luaXQgb21hcGRzc19maW5kX2Rzc19vZl9ub2RlKHZvaWQpCiBpbnQgX19p
+bml0IG9tYXBkc3NfaW5pdF9vZih2b2lkKQogewogCWludCByOwotCWVudW0gb21hcGRzc192ZXJz
+aW9uIHZlcjsKIAlzdHJ1Y3QgZGV2aWNlX25vZGUgKm5vZGU7CiAJc3RydWN0IHBsYXRmb3JtX2Rl
+dmljZSAqcGRldjsKIAotCXN0YXRpYyBzdHJ1Y3Qgb21hcF9kc3NfYm9hcmRfaW5mbyBib2FyZF9k
+YXRhID0gewotCQkuZHNpX2VuYWJsZV9wYWRzID0gb21hcF9kc2lfZW5hYmxlX3BhZHMsCi0JCS5k
+c2lfZGlzYWJsZV9wYWRzID0gb21hcF9kc2lfZGlzYWJsZV9wYWRzLAotCQkuc2V0X21pbl9idXNf
+dHB1dCA9IG9tYXBfZHNzX3NldF9taW5fYnVzX3RwdXQsCi0JfTsKLQogCS8qIG9ubHkgY3JlYXRl
+IGRzcyBoZWxwZXIgZGV2aWNlcyBpZiBkc3MgaXMgZW5hYmxlZCBpbiB0aGUgLmR0cyAqLwogCiAJ
+bm9kZSA9IG9tYXBkc3NfZmluZF9kc3Nfb2Zfbm9kZSgpOwpAQCAtMzU0LDEzICs0MDYsNiBAQCBp
+bnQgX19pbml0IG9tYXBkc3NfaW5pdF9vZih2b2lkKQogCWlmICghb2ZfZGV2aWNlX2lzX2F2YWls
+YWJsZShub2RlKSkKIAkJcmV0dXJuIDA7CiAKLQl2ZXIgPSBvbWFwX2Rpc3BsYXlfZ2V0X3ZlcnNp
+b24oKTsKLQotCWlmICh2ZXIgPT0gT01BUERTU19WRVJfVU5LTk9XTikgewotCQlwcl9lcnIoIkRT
+UyBub3Qgc3VwcG9ydGVkIG9uIHRoaXMgU29DXG4iKTsKLQkJcmV0dXJuIC1FTk9ERVY7Ci0JfQot
+CiAJcGRldiA9IG9mX2ZpbmRfZGV2aWNlX2J5X25vZGUobm9kZSk7CiAKIAlpZiAoIXBkZXYpIHsK
+QEAgLTM3NCw0MSArNDE5LDUgQEAgaW50IF9faW5pdCBvbWFwZHNzX2luaXRfb2Yodm9pZCkKIAkJ
+cmV0dXJuIHI7CiAJfQogCi0JYm9hcmRfZGF0YS52ZXJzaW9uID0gdmVyOwotCi0Jb21hcF9kaXNw
+bGF5X2RldmljZS5kZXYucGxhdGZvcm1fZGF0YSA9ICZib2FyZF9kYXRhOwotCi0JciA9IHBsYXRm
+b3JtX2RldmljZV9yZWdpc3Rlcigmb21hcF9kaXNwbGF5X2RldmljZSk7Ci0JaWYgKHIgPCAwKSB7
+Ci0JCXByX2VycigiVW5hYmxlIHRvIHJlZ2lzdGVyIG9tYXBkc3MgZGV2aWNlXG4iKTsKLQkJcmV0
+dXJuIHI7Ci0JfQotCi0JLyogY3JlYXRlIHZyZmIgZGV2aWNlICovCi0JciA9IG9tYXBfaW5pdF92
+cmZiKCk7Ci0JaWYgKHIgPCAwKSB7Ci0JCXByX2VycigiVW5hYmxlIHRvIHJlZ2lzdGVyIG9tYXB2
+cmZiIGRldmljZVxuIik7Ci0JCXJldHVybiByOwotCX0KLQotCS8qIGNyZWF0ZSBGQiBkZXZpY2Ug
+Ki8KLQlyID0gb21hcF9pbml0X2ZiKCk7Ci0JaWYgKHIgPCAwKSB7Ci0JCXByX2VycigiVW5hYmxl
+IHRvIHJlZ2lzdGVyIG9tYXBmYiBkZXZpY2VcbiIpOwotCQlyZXR1cm4gcjsKLQl9Ci0KLQkvKiBj
+cmVhdGUgVjRMMiBkaXNwbGF5IGRldmljZSAqLwotCXIgPSBvbWFwX2luaXRfdm91dCgpOwotCWlm
+IChyIDwgMCkgewotCQlwcl9lcnIoIlVuYWJsZSB0byByZWdpc3RlciBvbWFwX3ZvdXQgZGV2aWNl
+XG4iKTsKLQkJcmV0dXJuIHI7Ci0JfQotCi0JLyogYWRkIERTSSBpbmZvIGZvciBvbWFwNCAqLwot
+CW5vZGUgPSBvZl9maW5kX25vZGVfYnlfbmFtZShOVUxMLCAib21hcDRfcGFkY29uZl9nbG9iYWwi
+KTsKLQlpZiAobm9kZSkKLQkJb21hcDRfZHNpX211eF9zeXNjb24gPSBzeXNjb25fbm9kZV90b19y
+ZWdtYXAobm9kZSk7Ci0KLQlyZXR1cm4gMDsKKwlyZXR1cm4gb21hcGRzc19pbml0X2ZiZGV2KCk7
+CiB9Ci0tIApSZWdhcmRzLAoKTGF1cmVudCBQaW5jaGFydAoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
+ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
+aWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
