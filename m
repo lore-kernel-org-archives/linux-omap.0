@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 1/8] ARM: OMAP2+: board-generic: add support for dra762 family
-Date: Sat, 12 Aug 2017 09:35:58 +0530
-Message-ID: <20170812040605.21259-2-lokeshvutla@ti.com>
+Subject: [PATCH v2 4/8] ARM: dra762: Enable SMP for dra762
+Date: Sat, 12 Aug 2017 09:36:01 +0530
+Message-ID: <20170812040605.21259-5-lokeshvutla@ti.com>
 References: <20170812040605.21259-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,40 +12,37 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mai
 Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Adding board generic support for dra762 family.
+smp specific routines are called based on soc_is_*() api in omap-smc.c.
+Add soc_is_dra76x() to the condition so that smp specific routines are
+called for dra76 SoC.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- Documentation/devicetree/bindings/arm/omap/omap.txt | 3 +++
- arch/arm/mach-omap2/board-generic.c                 | 1 +
- 2 files changed, 4 insertions(+)
+ arch/arm/mach-omap2/omap-smp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index 8219b2c6bb29..9c6bebe43449 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -80,6 +80,9 @@ SoCs:
- - OMAP5432
-   compatible = "ti,omap5432", "ti,omap5"
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 33e4953c61a8..69df3620eca5 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -342,7 +342,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
+ 		c = &omap443x_cfg;
+ 	else if (soc_is_omap446x())
+ 		c = &omap446x_cfg;
+-	else if (soc_is_dra74x() || soc_is_omap54xx())
++	else if (soc_is_dra74x() || soc_is_omap54xx() || soc_is_dra76x())
+ 		c = &omap5_cfg;
  
-+- DRA762
-+  compatible = "ti,dra762", "ti,dra7"
-+
- - DRA742
-   compatible = "ti,dra742", "ti,dra74", "ti,dra7"
+ 	if (!c) {
+@@ -355,7 +355,7 @@ static void __init omap4_smp_prepare_cpus(unsigned int max_cpus)
+ 	cfg.startup_addr = c->startup_addr;
+ 	cfg.wakeupgen_base = omap_get_wakeupgen_base();
  
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index b1e661bb5521..d4ae95dd6ee3 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -312,6 +312,7 @@ MACHINE_END
- 
- #ifdef CONFIG_SOC_DRA7XX
- static const char *const dra74x_boards_compat[] __initconst = {
-+	"ti,dra762",
- 	"ti,am5728",
- 	"ti,am5726",
- 	"ti,dra742",
+-	if (soc_is_dra74x() || soc_is_omap54xx()) {
++	if (soc_is_dra74x() || soc_is_omap54xx() || soc_is_dra76x()) {
+ 		if ((__boot_cpu_mode & MODE_MASK) == HYP_MODE)
+ 			cfg.startup_addr = omap5_secondary_hyp_startup;
+ 		omap5_erratum_workaround_801819();
 -- 
 2.13.0
 
