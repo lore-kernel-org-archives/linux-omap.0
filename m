@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 2/8] ARM: dra762: Add support for device identification
-Date: Sat, 12 Aug 2017 09:35:59 +0530
-Message-ID: <20170812040605.21259-3-lokeshvutla@ti.com>
+Subject: [PATCH v2 5/8] ARM: OMAP: dra7: powerdomain data: Register SoC specific powerdomains
+Date: Sat, 12 Aug 2017 09:36:02 +0530
+Message-ID: <20170812040605.21259-6-lokeshvutla@ti.com>
 References: <20170812040605.21259-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,74 +12,82 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mai
 Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add ID code detection for dra762 SoC.
+Custom efuse powerdomain is always on in dra72 ES2.0
+and dra76 SoCs. So register it as aon for these SoCs.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/id.c  | 9 +++++++++
- arch/arm/mach-omap2/soc.h | 5 +++++
- 2 files changed, 14 insertions(+)
+ arch/arm/mach-omap2/powerdomains7xx_data.c | 33 +++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index e2274a162b74..16cb1c195fd8 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -663,6 +663,15 @@ void __init dra7xxx_check_revision(void)
- 	hawkeye = (idcode >> 12) & 0xffff;
- 	rev = (idcode >> 28) & 0xff;
- 	switch (hawkeye) {
-+	case 0xbb50:
-+		switch (rev) {
-+		case 0:
-+		default:
-+			omap_revision = DRA762_REV_ES1_0;
-+			break;
-+		}
-+		break;
+diff --git a/arch/arm/mach-omap2/powerdomains7xx_data.c b/arch/arm/mach-omap2/powerdomains7xx_data.c
+index eb350a673133..f50963916a21 100644
+--- a/arch/arm/mach-omap2/powerdomains7xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains7xx_data.c
+@@ -29,6 +29,7 @@
+ #include "prcm44xx.h"
+ #include "prm7xx.h"
+ #include "prcm_mpu7xx.h"
++#include "soc.h"
+ 
+ /* iva_7xx_pwrdm: IVA-HD power domain */
+ static struct powerdomain iva_7xx_pwrdm = {
+@@ -63,6 +64,14 @@ static struct powerdomain custefuse_7xx_pwrdm = {
+ 	.flags		  = PWRDM_HAS_LOWPOWERSTATECHANGE,
+ };
+ 
++/* custefuse_aon_7xx_pwrdm: Customer efuse controller power domain */
++static struct powerdomain custefuse_aon_7xx_pwrdm = {
++	.name		  = "custefuse_pwrdm",
++	.prcm_offs	  = DRA7XX_PRM_CUSTEFUSE_INST,
++	.prcm_partition	  = DRA7XX_PRM_PARTITION,
++	.pwrsts		  = PWRSTS_ON,
++};
 +
- 	case 0xb990:
- 		switch (rev) {
- 		case 0:
-diff --git a/arch/arm/mach-omap2/soc.h b/arch/arm/mach-omap2/soc.h
-index 2aa01c270898..754cd0fc0e7b 100644
---- a/arch/arm/mach-omap2/soc.h
-+++ b/arch/arm/mach-omap2/soc.h
-@@ -167,6 +167,7 @@ IS_TI_SUBCLASS(816x, 0x816)
- IS_TI_SUBCLASS(814x, 0x814)
- IS_AM_SUBCLASS(335x, 0x335)
- IS_AM_SUBCLASS(437x, 0x437)
-+IS_DRA_SUBCLASS(76x, 0x76)
- IS_DRA_SUBCLASS(75x, 0x75)
- IS_DRA_SUBCLASS(72x, 0x72)
+ /* ipu_7xx_pwrdm: Audio back end power domain */
+ static struct powerdomain ipu_7xx_pwrdm = {
+ 	.name		  = "ipu_pwrdm",
+@@ -350,7 +359,6 @@ static struct powerdomain eve1_7xx_pwrdm = {
+ static struct powerdomain *powerdomains_dra7xx[] __initdata = {
+ 	&iva_7xx_pwrdm,
+ 	&rtc_7xx_pwrdm,
+-	&custefuse_7xx_pwrdm,
+ 	&ipu_7xx_pwrdm,
+ 	&dss_7xx_pwrdm,
+ 	&l4per_7xx_pwrdm,
+@@ -374,9 +382,32 @@ static struct powerdomain *powerdomains_dra7xx[] __initdata = {
+ 	NULL
+ };
  
-@@ -185,6 +186,7 @@ IS_DRA_SUBCLASS(72x, 0x72)
- #define soc_is_omap54xx()		0
- #define soc_is_omap543x()		0
- #define soc_is_dra7xx()			0
-+#define soc_is_dra76x()			0
- #define soc_is_dra74x()			0
- #define soc_is_dra72x()			0
- 
-@@ -314,9 +316,11 @@ IS_OMAP_TYPE(3430, 0x3430)
- 
- #if defined(CONFIG_SOC_DRA7XX)
- #undef soc_is_dra7xx
-+#undef soc_is_dra76x
- #undef soc_is_dra74x
- #undef soc_is_dra72x
- #define soc_is_dra7xx()	is_dra7xx()
-+#define soc_is_dra76x()	is_dra76x()
- #define soc_is_dra74x()	is_dra75x()
- #define soc_is_dra72x()	is_dra72x()
- #endif
-@@ -386,6 +390,7 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP5432_REV_ES2_0	(OMAP54XX_CLASS | (0x32 << 16) | (0x20 << 8))
- 
- #define DRA7XX_CLASS		0x07000000
-+#define DRA762_REV_ES1_0	(DRA7XX_CLASS | (0x62 << 16) | (0x10 << 8))
- #define DRA752_REV_ES1_0	(DRA7XX_CLASS | (0x52 << 16) | (0x10 << 8))
- #define DRA752_REV_ES1_1	(DRA7XX_CLASS | (0x52 << 16) | (0x11 << 8))
- #define DRA752_REV_ES2_0	(DRA7XX_CLASS | (0x52 << 16) | (0x20 << 8))
++static struct powerdomain *powerdomains_dra76x[] __initdata = {
++	&custefuse_aon_7xx_pwrdm,
++	NULL
++};
++
++static struct powerdomain *powerdomains_dra74x[] __initdata = {
++	&custefuse_7xx_pwrdm,
++	NULL
++};
++
++static struct powerdomain *powerdomains_dra72x[] __initdata = {
++	&custefuse_aon_7xx_pwrdm,
++	NULL
++};
++
+ void __init dra7xx_powerdomains_init(void)
+ {
+ 	pwrdm_register_platform_funcs(&omap4_pwrdm_operations);
+ 	pwrdm_register_pwrdms(powerdomains_dra7xx);
++
++	if (soc_is_dra76x())
++		pwrdm_register_pwrdms(powerdomains_dra76x);
++	else if (soc_is_dra74x())
++		pwrdm_register_pwrdms(powerdomains_dra74x);
++	else if (soc_is_dra72x())
++		pwrdm_register_pwrdms(powerdomains_dra72x);
++
+ 	pwrdm_complete_init();
+ }
 -- 
 2.13.0
 
