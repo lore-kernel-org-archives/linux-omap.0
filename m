@@ -1,7 +1,7 @@
 From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 6/8] ARM: omap2plus_defconfig: Enable LP87565
-Date: Sat, 12 Aug 2017 09:36:03 +0530
-Message-ID: <20170812040605.21259-7-lokeshvutla@ti.com>
+Subject: [PATCH v2 7/8] ARM: dts: Add support for dra76x family of devices
+Date: Sat, 12 Aug 2017 09:36:04 +0530
+Message-ID: <20170812040605.21259-8-lokeshvutla@ti.com>
 References: <20170812040605.21259-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,41 +12,61 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mai
 Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-dra76-evm has LP87565. Enable it in omap2plus_defconfig.
+dra76 family is a high-performance, infotainment application
+device, based on OMAP architecture on a 28-nm technology.
+This contains most of the subsystems, peripherals that are
+available on dra74, dra72 family. This SoC mainly features
+Subsystems:
+- 2 x Cortex-A15 with max speed of 1.8GHz
+- 2 X DSP
+- 2 X Cortex-M4 IPU
+- ISS
+- CAL
+- DSS
+- VPE
+- VIP
+Connectivity peripherals:
+- 1 USB3.0 and 3 USB2.0 subsystems
+- 2 x SATA
+- 2 x PCI Express Gen2
+- 3-port Gigabit ethernet switch
+- 2 x CAN
+- MCAN
+
+Adding basic dts support for DRA76 family while reusing the
+data available in dra7.dtsi, dra74x.dtsi.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/configs/omap2plus_defconfig | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/boot/dts/dra76x.dtsi | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 arch/arm/boot/dts/dra76x.dtsi
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index a120ae816260..0079bbdff7b3 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -250,6 +250,7 @@ CONFIG_DEBUG_GPIO=y
- CONFIG_GPIO_SYSFS=y
- CONFIG_GPIO_PCA953X=m
- CONFIG_GPIO_PCF857X=y
-+CONFIG_GPIO_LP87565=y
- CONFIG_GPIO_PALMAS=y
- CONFIG_GPIO_TWL4030=y
- CONFIG_W1=m
-@@ -284,6 +285,7 @@ CONFIG_MFD_TI_AM335X_TSCADC=m
- CONFIG_MFD_PALMAS=y
- CONFIG_MFD_TPS65217=y
- CONFIG_MFD_TI_LP873X=y
-+CONFIG_MFD_TI_LP87565=y
- CONFIG_MFD_TPS65218=y
- CONFIG_MFD_TPS65910=y
- CONFIG_TWL6040_CORE=y
-@@ -292,6 +294,7 @@ CONFIG_REGULATOR_GPIO=y
- CONFIG_REGULATOR_LM363X=m
- CONFIG_REGULATOR_LP872X=y
- CONFIG_REGULATOR_LP873X=y
-+CONFIG_REGULATOR_LP87565=y
- CONFIG_REGULATOR_PALMAS=y
- CONFIG_REGULATOR_PBIAS=y
- CONFIG_REGULATOR_TI_ABB=y
+diff --git a/arch/arm/boot/dts/dra76x.dtsi b/arch/arm/boot/dts/dra76x.dtsi
+new file mode 100644
+index 000000000000..1c88c581ff18
+--- /dev/null
++++ b/arch/arm/boot/dts/dra76x.dtsi
+@@ -0,0 +1,19 @@
++/*
++ * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "dra74x.dtsi"
++
++/ {
++	compatible = "ti,dra762", "ti,dra7";
++
++};
++
++/* MCAN interrupts are hard-wired to irqs 67, 68 */
++&crossbar_mpu {
++	ti,irqs-skip = <10 67 68 133 139 140>;
++};
 -- 
 2.13.0
 
