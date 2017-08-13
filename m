@@ -1,69 +1,107 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH 2/3] mfd: tps65010: move header file out of I2C realm
-Date: Sun, 13 Aug 2017 15:34:45 +0200
-Message-ID: <20170813133445.vqbfelwshvrififp@ninjato>
+From: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: Re: [PATCH 3/3] mfd: twl: move header file out of I2C realm
+Date: Sun, 13 Aug 2017 15:37:00 +0200
+Message-ID: <20170813133700.tv4ka7anvbzcplr7@ninjato>
 References: <20170521220212.1404-1-wsa@the-dreams.de>
- <20170521220212.1404-3-wsa@the-dreams.de>
- <20170523071819.4zpdef7ofzz3moil@dell>
+ <20170521220212.1404-4-wsa@the-dreams.de>
+ <20170706064453.GH16144@ulmo.fritz.box>
+ <20170706070352.xdecvsnremwqed72@dell>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="x7iu3k54wogfx4rq"
-Return-path: <linux-i2c-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="bf2u36sx3yv46k44"
+Return-path: <rtc-linux+bncBDP47C6LHEIP3K6BZQCRUBG2SV53C-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Content-Disposition: inline
-In-Reply-To: <20170523071819.4zpdef7ofzz3moil@dell>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-i2c@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org
+In-Reply-To: <20170706070352.xdecvsnremwqed72@dell>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Daniel Thompson <daniel.thompson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.>
 List-Id: linux-omap@vger.kernel.org
 
 
---x7iu3k54wogfx4rq
-Content-Type: text/plain; charset=us-ascii
+--bf2u36sx3yv46k44
+Content-Type: text/plain; charset="UTF-8"
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 23, 2017 at 08:18:19AM +0100, Lee Jones wrote:
-> On Mon, 22 May 2017, Wolfram Sang wrote:
->=20
-> > include/linux/i2c is not for client devices. Move the header file to a
-> > more appropriate location.
-> >=20
-> > Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-> > ---
-> >  arch/arm/mach-omap1/board-h2-mmc.c      | 2 +-
-> >  arch/arm/mach-omap1/board-h2.c          | 2 +-
-> >  arch/arm/mach-omap1/board-h3-mmc.c      | 2 +-
-> >  arch/arm/mach-omap1/board-h3.c          | 2 +-
-> >  arch/arm/mach-omap1/board-osk.c         | 2 +-
-> >  arch/arm/mach-s3c24xx/mach-osiris-dvs.c | 2 +-
-> >  arch/arm/mach-s3c24xx/mach-osiris.c     | 2 +-
->=20
-> >  drivers/mfd/tps65010.c                  | 2 +-
->=20
-> For my own reference:
->   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
+On Thu, Jul 06, 2017 at 08:03:52AM +0100, Lee Jones wrote:
+> On Thu, 06 Jul 2017, Thierry Reding wrote:
+> 
+> > On Mon, May 22, 2017 at 12:02:10AM +0200, Wolfram Sang wrote:
+> > > include/linux/i2c is not for client devices. Move the header file to a
+> > > more appropriate location.
+> > > 
+> > > Signed-off-by: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+> > > ---
+> > >  arch/arm/mach-omap2/common.h            | 2 +-
+> > >  arch/arm/mach-omap2/omap_twl.c          | 2 +-
+> > >  drivers/gpio/gpio-twl4030.c             | 2 +-
+> > >  drivers/iio/adc/twl4030-madc.c          | 2 +-
+> > >  drivers/iio/adc/twl6030-gpadc.c         | 2 +-
+> > >  drivers/input/keyboard/twl4030_keypad.c | 2 +-
+> > >  drivers/input/misc/twl4030-pwrbutton.c  | 2 +-
+> > >  drivers/input/misc/twl4030-vibra.c      | 2 +-
+> > >  drivers/mfd/twl-core.c                  | 6 +++---
+> > >  drivers/mfd/twl4030-audio.c             | 2 +-
+> > >  drivers/mfd/twl4030-irq.c               | 2 +-
+> > >  drivers/mfd/twl4030-power.c             | 2 +-
+> > >  drivers/mfd/twl6030-irq.c               | 2 +-
+> > >  drivers/phy/phy-twl4030-usb.c           | 2 +-
+> > >  drivers/power/supply/twl4030_charger.c  | 2 +-
+> > >  drivers/pwm/pwm-twl-led.c               | 2 +-
+> > >  drivers/pwm/pwm-twl.c                   | 2 +-
+> > >  drivers/regulator/twl-regulator.c       | 2 +-
+> > >  drivers/regulator/twl6030-regulator.c   | 2 +-
+> > >  drivers/rtc/rtc-twl.c                   | 2 +-
+> > >  drivers/usb/phy/phy-twl6030-usb.c       | 2 +-
+> > >  drivers/video/backlight/pandora_bl.c    | 2 +-
+> > >  drivers/watchdog/twl4030_wdt.c          | 2 +-
+> > >  include/linux/{i2c => mfd}/twl.h        | 0
+> > >  sound/soc/codecs/twl4030.c              | 2 +-
+> > >  25 files changed, 26 insertions(+), 26 deletions(-)
+> > >  rename include/linux/{i2c => mfd}/twl.h (100%)
+> > 
+> > I didn't see this get applied yet, so just in case anyone was waiting
+> > for me (this is trivial, so I don't think there's a need):
+> 
+> You're not the last. :)
 
-Same here: ok for 4.14 or something needed?
+Given the triviality of the change for non-MFD subsystems, can we apply
+this for 4.14?
 
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
 
---x7iu3k54wogfx4rq
+--bf2u36sx3yv46k44
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlmQVXUACgkQFA3kzBSg
-Kbb82A/8CWo5vCRGkKENB8LF59ZtbSiHZ+oAa+LsTkUcagwRNzUTCEr7OMvOh+70
-NFUc1G2mA45kzj9zLkpequWxb7RwOo45fv282ORORVThw7ZQYVlX1fujHjxvkVKV
-RYzQFQv3AcO8cp2CXq+ajRpBNbKNr9PeORq5EnJFdJmfrUeuSurxbRIBFWqULBMY
-K5K12DRQDjFMRKEtLj0ob/6vmm4P0TUF2rhmHQtIvpzdao1+RKIjeb7RKf81Qnqd
-CFRHxCE6pEolJzbnxk9bJqY01nYsDwD0Z3Vq/dU78c1YHvSbQwsvc2VM5QZIjhic
-/Uk1NrjBsVc2CoWGa4EYCvDVG+Co+JJuBHZRRVtKsB+/tKLDginU1+Ebb93HpvWe
-PmlZPmUa+QQPVcYfBAwCkqzJ/MJZriWpBUVLAI43bcJeV1OYBt2E0Qn9Mwd38Hcq
-DsGavA7Gr6mxZh6WiJUbhXgAAUno3ZyJ4zO/vXRNHcL7wW1UOTVNq2M8YSOdIeOu
-F5fJL9gT4dY7VT+evobejFIqYSQ2GWZpYUzGLRDT5s7SVjyaGzUDLUNx0tQDnb/t
-EWbo9tu+0svV6vAz7Qm53vnjK5QR/PdGpmgsmBy7tL4yLxiqt3uz9DDHHoRVpaFP
-Jx5vvOk62RXKv7eeCRC2Iv7Ncm9sEdAX/loqAb3noUwrGsPo6dk=
-=p1dJ
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlmQVfwACgkQFA3kzBSg
+KbanFg//dxik+zStgiZtWtrgtgSmpeUOGOsX3FXnRhJCPNTaXUuGOMuuhjFgK3p3
+uDOXYfGtsdDPrnAGj3m8yjJI8JqQ1GI/9FtMxW9Jwcr3N6ZJ9dQYqzN7XMXwgnhd
+prXN/iTZgkF/XT1ZOc6GMXne2jbqhJOuRY3sk+N40xQHsOBa8ThqxqssFyJbn0BF
+jjSQP5TNp0KefTYS9ZyJGbnFxNZQhMb+AWHCMDgib2jCTQIIAQD5iMLH3aoCZEOn
+rQDxnEHlOwcR+qYKdz8LVPU5tOR2uEsY16F4awUYVR+6lkx3KLKsBFHZr7tZ2QPn
++w0767Mr+wyphuuG77YoBvTLU8pDJxwSYR21XGYqvJvYNdwVHCy5Y4M+DTV3xG8g
+DsY45lDHNspdDJvwBpZZRBO29uGPtqfCJfDgUpxvDllF99ES72urbNUXn5YrdvVy
+sTrUzmgX4kiBRzA6mpyG4autZE9Z6q/xNslSrV/0ll0arUMbzpMmVFQwE6yRgRsB
+1Ha3prXevF/UNZQcvnhHruUcakuzPgvK0hpdhirON2OTqXChTOHLKWquA+aYQ9lB
+cBe7cZhAUXkimtWvNheqOYEg8ZStjW1uNup5eHujXNYw/HY8+3p/cr/9Jf05xvQz
+H3Qawecv5x3sLjvuv0PuhEdFPr5dKQfLGoDZrLqmFLfYTJ3NWoE=
+=hKZZ
 -----END PGP SIGNATURE-----
 
---x7iu3k54wogfx4rq--
+--bf2u36sx3yv46k44--
