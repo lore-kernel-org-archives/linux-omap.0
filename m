@@ -1,56 +1,50 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 2/3] mfd: tps65010: move header file out of I2C realm
-Date: Mon, 14 Aug 2017 09:44:12 +0100
-Message-ID: <20170814084412.dfbsqfwrgmy5bsu3@dell>
-References: <20170521220212.1404-1-wsa@the-dreams.de>
- <20170521220212.1404-3-wsa@the-dreams.de>
- <20170523071819.4zpdef7ofzz3moil@dell>
- <20170813133445.vqbfelwshvrififp@ninjato>
- <20170814064355.foiilzr5cmwk65hr@dell>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 00/11] ASoC: make snd_soc_platform_driver const
+Date: Mon, 14 Aug 2017 17:08:39 +0530
+Message-ID: <1502710730-18912-1-git-send-email-bhumirks@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170814064355.foiilzr5cmwk65hr@dell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: julia.lawall@lip6.fr, brian.austin@cirrus.com, Paul.Handrigan@cirrus.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, bardliao@realtek.com, chiou@realtek.com, timur@tabi.org, nicoleotsuka@gmail.com, Xiubo.Lee@gmail.com, fabio.estevam@nxp.com, yang.jie@linux.intel.com, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, plai@codeaurora.org, bgoswami@codeaurora.org, krzk@kernel.org, sbkim73@samsung.com, s.nawrocki@samsung.com, alsa-devel@alsa-project.org, patches@opensource.cirrus.com, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 14 Aug 2017, Lee Jones wrote:
+Make snd_soc_platform_driver const.
 
-> On Sun, 13 Aug 2017, Wolfram Sang wrote:
-> 
-> > On Tue, May 23, 2017 at 08:18:19AM +0100, Lee Jones wrote:
-> > > On Mon, 22 May 2017, Wolfram Sang wrote:
-> > > 
-> > > > include/linux/i2c is not for client devices. Move the header file to a
-> > > > more appropriate location.
-> > > > 
-> > > > Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-> > > > ---
-> > > >  arch/arm/mach-omap1/board-h2-mmc.c      | 2 +-
-> > > >  arch/arm/mach-omap1/board-h2.c          | 2 +-
-> > > >  arch/arm/mach-omap1/board-h3-mmc.c      | 2 +-
-> > > >  arch/arm/mach-omap1/board-h3.c          | 2 +-
-> > > >  arch/arm/mach-omap1/board-osk.c         | 2 +-
-> > > >  arch/arm/mach-s3c24xx/mach-osiris-dvs.c | 2 +-
-> > > >  arch/arm/mach-s3c24xx/mach-osiris.c     | 2 +-
-> > > 
-> > > >  drivers/mfd/tps65010.c                  | 2 +-
-> > > 
-> > > For my own reference:
-> > >   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
-> > 
-> > Same here: ok for 4.14 or something needed?
-> 
-> Can this patch be applied on its own, or does it have dependencies?
+Bhumika Goyal (11):
+  ASoC: codecs: make snd_soc_platform_driver const
+  ASoC: Intel: make snd_soc_platform_driver const
+  ASoC: fsl: make snd_soc_platform_driver const
+  ASoC: nuc900: make snd_soc_platform_driver const
+  ASoC: omap: make snd_soc_platform_driver const
+  ASoC: pxa: make snd_soc_platform_driver const
+  ASoC: qcom: make snd_soc_platform_driver const
+  ASoC: samsung: make snd_soc_platform_driver const
+  ASoC: sh: make snd_soc_platform_driver const
+  ASoC: txx9: make snd_soc_platform_driver const
+  ASoC: soc-utils: make snd_soc_platform_driver const
 
-Even if it doesn't, it still requires Acks.
+ sound/soc/codecs/cs47l24.c                   | 2 +-
+ sound/soc/codecs/rt5514-spi.c                | 2 +-
+ sound/soc/codecs/wm5102.c                    | 2 +-
+ sound/soc/codecs/wm5110.c                    | 2 +-
+ sound/soc/fsl/imx-pcm-fiq.c                  | 2 +-
+ sound/soc/fsl/mpc5200_dma.c                  | 2 +-
+ sound/soc/intel/atom/sst-mfld-platform-pcm.c | 2 +-
+ sound/soc/intel/baytrail/sst-baytrail-pcm.c  | 2 +-
+ sound/soc/intel/haswell/sst-haswell-pcm.c    | 2 +-
+ sound/soc/intel/skylake/skl-pcm.c            | 2 +-
+ sound/soc/nuc900/nuc900-pcm.c                | 2 +-
+ sound/soc/omap/omap-pcm.c                    | 2 +-
+ sound/soc/pxa/mmp-pcm.c                      | 2 +-
+ sound/soc/pxa/pxa2xx-pcm.c                   | 2 +-
+ sound/soc/qcom/lpass-platform.c              | 2 +-
+ sound/soc/samsung/idma.c                     | 2 +-
+ sound/soc/sh/dma-sh7760.c                    | 2 +-
+ sound/soc/sh/fsi.c                           | 2 +-
+ sound/soc/sh/rcar/core.c                     | 2 +-
+ sound/soc/soc-utils.c                        | 2 +-
+ sound/soc/txx9/txx9aclc.c                    | 2 +-
+ 21 files changed, 21 insertions(+), 21 deletions(-)
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+1.9.1
