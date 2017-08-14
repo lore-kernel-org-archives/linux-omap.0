@@ -1,58 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: PRM: fix of_irq_get() result checks
-Date: Mon, 14 Aug 2017 10:17:48 -0700
-Message-ID: <20170814171746.GY8569@atomide.com>
-References: <20170806151714.108596802@cogentembedded.com>
- <80dd8051-456b-2331-b847-0631d94f85b1@cogentembedded.com>
- <20170809220229.GI3934@atomide.com>
- <2dfd399c-2760-7d64-a43f-caefde03b39a@cogentembedded.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 0/8] ARM: dra7: Add support for dra76-evm
+Date: Mon, 14 Aug 2017 10:41:01 -0700
+Message-ID: <20170814174101.GZ8569@atomide.com>
+References: <20170812040605.21259-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2dfd399c-2760-7d64-a43f-caefde03b39a@cogentembedded.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20170812040605.21259-1-lokeshvutla-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> [170814 04:44]:
-> On 08/10/2017 01:02 AM, Tony Lindgren wrote:
+* Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org> [170811 21:10]:
+> dra76 family is a high-performance, infotainment application
+> device, based on OMAP architecture on a 28-nm technology.
+> This contains most of the subsystems, peripherals that are
+> available on dra74, dra72 family. This SoC mainly features
+> Subsystems:
+> - 2 x Cortex-A15 with max speed of 1.8GHz
+> - 2 X DSP
+> - 2 X Cortex-M4 IPU
+> - ISS
+> - CAL
+> - DSS
+> - VPE
+> - VIP
+> Connectivity peripherals:
+> - 1 USB3.0 and 3 USB2.0 subsystems
+> - 2 x SATA
+> - 2 x PCI Express Gen2
+> - 3-port Gigabit ethernet switch
+> - 2 x CAN
+> - MCAN
 > 
-> > > > of_irq_get() may return 0 as well as a nagative error number on failure,
-> > > 
-> > >     Oops, forgot to kill comma...
-> > 
-> > I can fix that while applying.
+> This series adds support for dra76-evm.
 > 
->    Thanks!
+> Tested on dra76-evm: http://pastebin.ubuntu.com/25294546/
 > 
-> > > > (and never on success), however omap44xx_prm_late_init() regards 0 as a
-> > > > valid IRQ -- fix this.
-> > > > 
-> > > > Fixes: a8f83aefcd5a ("ARM: OMAP4+: PRM: register interrupt information from DT")
-> > > > Fixes: c5b3955828ba ("ARM: OMAP4: Fix legacy code clean-up regression")
-> > > > Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> > > [...]
+> Changes since v1:
+> - Changed the compatible to ti,dra762 instead of ti,dra76 as suggested by Rob
+> - Updated crossbar skip irqs
 > 
-> > Seems these both should be safe to apply into fixes-not-urgent for
-> > v4.14 merge window as we have not seen any issues with this? Or
-> 
->    Yes, probably.
-> 
-> > are there some known bugs related to this?
-> 
->    Dunno, I was just auditing the call sites of of_irq_get[_byname]()...
+> NOTE: As said earlier, this is a version based on dra76-evm pre production
+> boards. There might be minimal changes once production boards comes out.
 
-OK thanks I'll apply both into omap-for-v4.14/fixes-not-urgent.
+That's fine. Applying all for v4.14 split into soc, dt-v2 and
+defconfig branches.
+
+Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
