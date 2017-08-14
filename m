@@ -1,112 +1,59 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH 05/15] ARM: head: use PC-relative insn sequence for __smp_alt
-Date: Mon, 14 Aug 2017 17:20:55 +0100
-Message-ID: <CAKv+Gu8FtmOSd3OPvN-p0WyVnAmJeyteDP9ey5XhF6fvmazA9g@mail.gmail.com>
-References: <20170805205222.19868-1-ard.biesheuvel@linaro.org>
- <20170805205222.19868-6-ard.biesheuvel@linaro.org> <20170811151346.GR8569@atomide.com>
- <CAKv+Gu8d8BxRTy6-h5BHTyPvtJrrQraMaMJP+EG2RRRo-Wvv0Q@mail.gmail.com> <20170814161909.GV8569@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3] mfd: tps65010: move header file out of I2C realm
+Date: Mon, 14 Aug 2017 09:21:08 -0700
+Message-ID: <20170814162108.GW8569@atomide.com>
+References: <20170521220212.1404-1-wsa@the-dreams.de>
+ <20170521220212.1404-3-wsa@the-dreams.de>
+ <20170523071819.4zpdef7ofzz3moil@dell>
+ <20170813133445.vqbfelwshvrififp@ninjato>
+ <20170814064355.foiilzr5cmwk65hr@dell>
+ <20170814084412.dfbsqfwrgmy5bsu3@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-renesas-soc-owner@vger.kernel.org>
-In-Reply-To: <20170814161909.GV8569@atomide.com>
-Sender: linux-renesas-soc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-renesas-soc@vger.kernel.org, Russell King <linux@armlinux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, KVM devel mailing list <kvm@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, Krzysztof Kozlowski <krzk@kernel.org>, Jason Cooper <jason@lakedaemon.net>, arm@kernel.org, Andrew Lunn <andrew@lunn.ch>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, baohua@kernel.org, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, vireshk@kernel.org, Shiraz Hashim <shiraz.linux.kernel@gmail.com>, Patrice CHOTARD <patrice.chotard@st.com>, nico@linaro.o
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170814084412.dfbsqfwrgmy5bsu3@dell>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 14 August 2017 at 17:19, Tony Lindgren <tony@atomide.com> wrote:
-> * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170811 12:37]:
->> On 11 August 2017 at 16:13, Tony Lindgren <tony@atomide.com> wrote:
->> > * Ard Biesheuvel <ard.biesheuvel@linaro.org> [170805 13:54]:
->> >> Replace the open coded PC relative offset calculations with a pair
->> >> of adr_l invocations.
->> >>
->> >> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
->> >> ---
->> >>  arch/arm/kernel/head.S | 12 ++----------
->> >>  1 file changed, 2 insertions(+), 10 deletions(-)
->> >>
->> >> diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
->> >> index 6e9df3663a57..aed341e0f530 100644
->> >> --- a/arch/arm/kernel/head.S
->> >> +++ b/arch/arm/kernel/head.S
->> >> @@ -523,19 +523,11 @@ ARM_BE8(rev     r0, r0)                 @ byteswap if big endian
->> >>       retne   lr
->> >>
->> >>  __fixup_smp_on_up:
->> >> -     adr     r0, 1f
->> >> -     ldmia   r0, {r3 - r5}
->> >> -     sub     r3, r0, r3
->> >> -     add     r4, r4, r3
->> >> -     add     r5, r5, r3
->> >> +     adr_l   r4, __smpalt_begin
->> >> +     adr_l   r5, __smpalt_end
->> >>       b       __do_fixup_smp_on_up
->> >>  ENDPROC(__fixup_smp)
->> >>
->> >> -     .align
->> >> -1:   .word   .
->> >> -     .word   __smpalt_begin
->> >> -     .word   __smpalt_end
->> >> -
->> >>       .pushsection .data
->> >>       .globl  smp_on_up
->> >>  smp_on_up:
->> >
->> > Ard, it's this one that cause boot to fail on omap3.
->> > The rest of your set works for me with just this one
->> > left out.
->> >
->>
->> I'm completely puzzled. The change is so simple that it is difficult
->> to reduce it in parts, but if you still have the time to spare, mind
->> trying the diff below?
->>
->>
->> diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
->> index 6e9df3663a57..c0361e608210 100644
->> --- a/arch/arm/kernel/head.S
->> +++ b/arch/arm/kernel/head.S
->> @@ -524,17 +524,15 @@ ARM_BE8(rev       r0, r0)                 @
->> byteswap if big endian
->>
->>  __fixup_smp_on_up:
->>         adr     r0, 1f
->> -       ldmia   r0, {r3 - r5}
->> -       sub     r3, r0, r3
->> -       add     r4, r4, r3
->> -       add     r5, r5, r3
->> +       ldmia   r0, {r4 - r5}
->> +       add     r4, r4, r0
->> +       add     r5, r5, r0
->>         b       __do_fixup_smp_on_up
->>  ENDPROC(__fixup_smp)
->>
->>         .align
->> -1:     .word   .
->> -       .word   __smpalt_begin
->> -       .word   __smpalt_end
->> +1:     .word   __smpalt_begin - 1b
->> +       .word   __smpalt_end - 1b
->>
->>         .pushsection .data
->>         .globl  smp_on_up
->>
->> The main point of these changes is to eliminate absolute references,
->> not to use the new macros, so if this does work, I will go with this
->> instead.
->
-> For reference, I manually did this changes as it did not apply
-> after reverting your earlier version of this patch. No luck with
-> this change, so I'll test again when you you have updated patches
-> available.
->
+* Lee Jones <lee.jones@linaro.org> [170814 01:44]:
+> On Mon, 14 Aug 2017, Lee Jones wrote:
+> 
+> > On Sun, 13 Aug 2017, Wolfram Sang wrote:
+> > 
+> > > On Tue, May 23, 2017 at 08:18:19AM +0100, Lee Jones wrote:
+> > > > On Mon, 22 May 2017, Wolfram Sang wrote:
+> > > > 
+> > > > > include/linux/i2c is not for client devices. Move the header file to a
+> > > > > more appropriate location.
+> > > > > 
+> > > > > Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+> > > > > ---
+> > > > >  arch/arm/mach-omap1/board-h2-mmc.c      | 2 +-
+> > > > >  arch/arm/mach-omap1/board-h2.c          | 2 +-
+> > > > >  arch/arm/mach-omap1/board-h3-mmc.c      | 2 +-
+> > > > >  arch/arm/mach-omap1/board-h3.c          | 2 +-
+> > > > >  arch/arm/mach-omap1/board-osk.c         | 2 +-
+> > > > >  arch/arm/mach-s3c24xx/mach-osiris-dvs.c | 2 +-
+> > > > >  arch/arm/mach-s3c24xx/mach-osiris.c     | 2 +-
+> > > > 
+> > > > >  drivers/mfd/tps65010.c                  | 2 +-
+> > > > 
+> > > > For my own reference:
+> > > >   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
+> > > 
+> > > Same here: ok for 4.14 or something needed?
+> > 
+> > Can this patch be applied on its own, or does it have dependencies?
+> 
+> Even if it doesn't, it still requires Acks.
 
-Thanks Tony,
+As long as this has been compile tested with omap1_defconfig:
 
-But Nico already found the issue: I was looking at the code with
-another patch on top, which removed the reference to r3 in the
-followup code.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-In the KASLR series I just posted, I reordered that patch with this
-one, so everything should be good.
+Regards,
+
+Tony
