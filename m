@@ -1,7 +1,7 @@
 From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 07/11] ASoC: qcom: make snd_soc_platform_driver const
-Date: Mon, 14 Aug 2017 17:08:46 +0530
-Message-ID: <1502710730-18912-8-git-send-email-bhumirks@gmail.com>
+Subject: [PATCH 08/11] ASoC: samsung: make snd_soc_platform_driver const
+Date: Mon, 14 Aug 2017 17:08:47 +0530
+Message-ID: <1502710730-18912-9-git-send-email-bhumirks@gmail.com>
 References: <1502710730-18912-1-git-send-email-bhumirks@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1502710730-18912-1-git-send-email-bhumirks@gmail.com>
@@ -10,27 +10,27 @@ To: julia.lawall@lip6.fr, brian.austin@cirrus.com, Paul.Handrigan@cirrus.com, lg
 Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Make this const as it is only passed as the 2nd argument to the
-function devm_snd_soc_register_platform, which is of type const.
+Make this const as it is only passed as the 2nd argument to the function
+devm_snd_soc_register_platform, which is of type const.
 Done using Coccinelle.
 
 Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- sound/soc/qcom/lpass-platform.c | 2 +-
+ sound/soc/samsung/idma.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/sound/soc/qcom/lpass-platform.c b/sound/soc/qcom/lpass-platform.c
-index 7aabf08..fb3576a 100644
---- a/sound/soc/qcom/lpass-platform.c
-+++ b/sound/soc/qcom/lpass-platform.c
-@@ -557,7 +557,7 @@ static void lpass_platform_pcm_free(struct snd_pcm *pcm)
- 	}
+diff --git a/sound/soc/samsung/idma.c b/sound/soc/samsung/idma.c
+index 3e40815..ee16e4c 100644
+--- a/sound/soc/samsung/idma.c
++++ b/sound/soc/samsung/idma.c
+@@ -399,7 +399,7 @@ void idma_reg_addr_init(void __iomem *regs, dma_addr_t addr)
  }
+ EXPORT_SYMBOL_GPL(idma_reg_addr_init);
  
--static struct snd_soc_platform_driver lpass_platform_driver = {
-+static const struct snd_soc_platform_driver lpass_platform_driver = {
- 	.pcm_new	= lpass_platform_pcm_new,
- 	.pcm_free	= lpass_platform_pcm_free,
- 	.ops		= &lpass_platform_pcm_ops,
+-static struct snd_soc_platform_driver asoc_idma_platform = {
++static const struct snd_soc_platform_driver asoc_idma_platform = {
+ 	.ops = &idma_ops,
+ 	.pcm_new = idma_new,
+ 	.pcm_free = idma_free,
 -- 
 1.9.1
