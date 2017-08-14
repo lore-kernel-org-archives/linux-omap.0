@@ -1,59 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3] mfd: tps65010: move header file out of I2C realm
-Date: Mon, 14 Aug 2017 09:21:08 -0700
-Message-ID: <20170814162108.GW8569@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 3/3] mfd: twl: move header file out of I2C realm
+Date: Mon, 14 Aug 2017 09:22:20 -0700
+Message-ID: <20170814162219.GX8569@atomide.com>
 References: <20170521220212.1404-1-wsa@the-dreams.de>
- <20170521220212.1404-3-wsa@the-dreams.de>
- <20170523071819.4zpdef7ofzz3moil@dell>
- <20170813133445.vqbfelwshvrififp@ninjato>
- <20170814064355.foiilzr5cmwk65hr@dell>
- <20170814084412.dfbsqfwrgmy5bsu3@dell>
+ <20170521220212.1404-4-wsa@the-dreams.de>
+ <20170706064453.GH16144@ulmo.fritz.box>
+ <20170706070352.xdecvsnremwqed72@dell>
+ <20170813133700.tv4ka7anvbzcplr7@ninjato>
+ <20170814064247.qvggx4ito4vgjqvs@dell>
+ <20170814084340.65morabelapfegph@ninjato>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <rtc-linux+bncBCQPVKWLVAIRBRE4Y7GAKGQEQSRITUA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Content-Disposition: inline
-In-Reply-To: <20170814084412.dfbsqfwrgmy5bsu3@dell>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <krzk@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-usb@vger.kernel.org, linux-fbdev@vger.kernel.org
+In-Reply-To: <20170814084340.65morabelapfegph@ninjato>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: Lee Jones <lee.jones-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Daniel Thompson <daniel.thompson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jingoo Han <jingoohan1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.>
 List-Id: linux-omap@vger.kernel.org
 
-* Lee Jones <lee.jones@linaro.org> [170814 01:44]:
-> On Mon, 14 Aug 2017, Lee Jones wrote:
+* Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org> [170814 01:43]:
 > 
-> > On Sun, 13 Aug 2017, Wolfram Sang wrote:
+> > > Given the triviality of the change for non-MFD subsystems, can we apply
+> > > this for 4.14?
 > > 
-> > > On Tue, May 23, 2017 at 08:18:19AM +0100, Lee Jones wrote:
-> > > > On Mon, 22 May 2017, Wolfram Sang wrote:
-> > > > 
-> > > > > include/linux/i2c is not for client devices. Move the header file to a
-> > > > > more appropriate location.
-> > > > > 
-> > > > > Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
-> > > > > ---
-> > > > >  arch/arm/mach-omap1/board-h2-mmc.c      | 2 +-
-> > > > >  arch/arm/mach-omap1/board-h2.c          | 2 +-
-> > > > >  arch/arm/mach-omap1/board-h3-mmc.c      | 2 +-
-> > > > >  arch/arm/mach-omap1/board-h3.c          | 2 +-
-> > > > >  arch/arm/mach-omap1/board-osk.c         | 2 +-
-> > > > >  arch/arm/mach-s3c24xx/mach-osiris-dvs.c | 2 +-
-> > > > >  arch/arm/mach-s3c24xx/mach-osiris.c     | 2 +-
-> > > > 
-> > > > >  drivers/mfd/tps65010.c                  | 2 +-
-> > > > 
-> > > > For my own reference:
-> > > >   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
-> > > 
-> > > Same here: ok for 4.14 or something needed?
-> > 
-> > Can this patch be applied on its own, or does it have dependencies?
+> > I can't apply anything without Acks for *all* of the subsystems above.
 > 
-> Even if it doesn't, it still requires Acks.
+> Well, there are cases when you can. Those should be exceptions and well
+> justified, of course.
+> 
+> > My suggestion would be to collect the Acks you've received up until
+> > this point and identify which SS's are still lacking in change log
+> > section of a RESEND.
+> 
+> I agree, though, that I can try a second round to get the acks.
 
-As long as this has been compile tested with omap1_defconfig:
+As long as it's been compile tested with omap2plus_defconfig:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-Regards,
 
-Tony
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
