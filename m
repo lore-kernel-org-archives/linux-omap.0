@@ -1,36 +1,58 @@
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 11/11] ASoC: soc-utils: make snd_soc_platform_driver const
-Date: Mon, 14 Aug 2017 17:08:50 +0530
-Message-ID: <1502710730-18912-12-git-send-email-bhumirks@gmail.com>
-References: <1502710730-18912-1-git-send-email-bhumirks@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1502710730-18912-1-git-send-email-bhumirks@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: julia.lawall@lip6.fr, brian.austin@cirrus.com, Paul.Handrigan@cirrus.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, bardliao@realtek.com, chiou@realtek.com, timur@tabi.org, nicoleotsuka@gmail.com, Xiubo.Lee@gmail.com, fabio.estevam@nxp.com, yang.jie@linux.intel.com, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, plai@codeaurora.org, bgoswami@codeaurora.org, krzk@kernel.org, sbkim73@samsung.com, s.nawrocki@samsung.com, alsa-devel@alsa-project.org, patches@opensource.cirrus.com, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: PRM: fix of_irq_get() result checks
+Date: Mon, 14 Aug 2017 14:44:12 +0300
+Message-ID: <2dfd399c-2760-7d64-a43f-caefde03b39a@cogentembedded.com>
+References: <20170806151714.108596802@cogentembedded.com>
+ <80dd8051-456b-2331-b847-0631d94f85b1@cogentembedded.com>
+ <20170809220229.GI3934@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170809220229.GI3934@atomide.com>
+Content-Language: en-MW
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Make this const as it is only passed as the 2nd argument to the function
-snd_soc_register_platform, which is of type const.
-Done using Coccinelle
+On 08/10/2017 01:02 AM, Tony Lindgren wrote:
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- sound/soc/soc-utils.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>>> of_irq_get() may return 0 as well as a nagative error number on failure,
+>>
+>>     Oops, forgot to kill comma...
+> 
+> I can fix that while applying.
 
-diff --git a/sound/soc/soc-utils.c b/sound/soc/soc-utils.c
-index 644d9a9..e30aacb 100644
---- a/sound/soc/soc-utils.c
-+++ b/sound/soc/soc-utils.c
-@@ -284,7 +284,7 @@ static int dummy_dma_open(struct snd_pcm_substream *substream)
- 	.ioctl		= snd_pcm_lib_ioctl,
- };
- 
--static struct snd_soc_platform_driver dummy_platform = {
-+static const struct snd_soc_platform_driver dummy_platform = {
- 	.ops = &dummy_dma_ops,
- };
- 
--- 
-1.9.1
+    Thanks!
+
+>>> (and never on success), however omap44xx_prm_late_init() regards 0 as a
+>>> valid IRQ -- fix this.
+>>>
+>>> Fixes: a8f83aefcd5a ("ARM: OMAP4+: PRM: register interrupt information from DT")
+>>> Fixes: c5b3955828ba ("ARM: OMAP4: Fix legacy code clean-up regression")
+>>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>> [...]
+
+> Seems these both should be safe to apply into fixes-not-urgent for
+> v4.14 merge window as we have not seen any issues with this? Or
+
+    Yes, probably.
+
+> are there some known bugs related to this?
+
+    Dunno, I was just auditing the call sites of of_irq_get[_byname]()...
+
+> Regards,
+> 
+> Tony
+
+MBR, Sergei
