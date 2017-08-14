@@ -1,58 +1,55 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: PRM: fix of_irq_get() result checks
-Date: Mon, 14 Aug 2017 14:44:12 +0300
-Message-ID: <2dfd399c-2760-7d64-a43f-caefde03b39a@cogentembedded.com>
-References: <20170806151714.108596802@cogentembedded.com>
- <80dd8051-456b-2331-b847-0631d94f85b1@cogentembedded.com>
- <20170809220229.GI3934@atomide.com>
+From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] usb: musb: musb_cppi41: Fix the address of teardown
+ and autoreq registers
+Date: Mon, 14 Aug 2017 19:01:52 +0530
+Message-ID: <7ee74cb1-19aa-5323-5325-ef9cc3410762@ti.com>
+References: <20170813120423.16371-1-abailon@baylibre.com>
+ <20170813120423.16371-2-abailon@baylibre.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170809220229.GI3934@atomide.com>
-Content-Language: en-MW
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170813120423.16371-2-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, b-liu-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/10/2017 01:02 AM, Tony Lindgren wrote:
+Hi,
 
->>> of_irq_get() may return 0 as well as a nagative error number on failure,
->>
->>     Oops, forgot to kill comma...
+On Sunday 13 August 2017 05:34 PM, Alexandre Bailon wrote:
+> The DA8xx and DSPS platforms don't use the same address for few registers.
+> On Da8xx, this is causing some issues (e.g. teardown that doesn't work).
+> Configure the address of the register during the init and use them instead
+> of constants.
 > 
-> I can fix that while applying.
-
-    Thanks!
-
->>> (and never on success), however omap44xx_prm_late_init() regards 0 as a
->>> valid IRQ -- fix this.
->>>
->>> Fixes: a8f83aefcd5a ("ARM: OMAP4+: PRM: register interrupt information from DT")
->>> Fixes: c5b3955828ba ("ARM: OMAP4: Fix legacy code clean-up regression")
->>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->> [...]
-
-> Seems these both should be safe to apply into fixes-not-urgent for
-> v4.14 merge window as we have not seen any issues with this? Or
-
-    Yes, probably.
-
-> are there some known bugs related to this?
-
-    Dunno, I was just auditing the call sites of of_irq_get[_byname]()...
-
-> Regards,
+> Reported-by: nsekhar-l0cyMroinI0@public.gmane.org
+> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_cppi41.c | 23 +++++++++++++++++++----
+>  1 file changed, 19 insertions(+), 4 deletions(-)
 > 
-> Tony
+> diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
+> index ba255280a624..dbff0e0a4ff5 100644
+> --- a/drivers/usb/musb/musb_cppi41.c
+> +++ b/drivers/usb/musb/musb_cppi41.c
+> @@ -26,6 +26,9 @@
+>  
+>  #define MUSB_DMA_NUM_CHANNELS 15
+>  
+> +#define DA8XX_USB_AUTOREQ_REG	0x14
+> +#define DA8XX_USB_TEARDOWN_REG	0x1c
 
-MBR, Sergei
+Nice catch. I noticed that the USB_CTRL_TX_MODE and USB_CTRL_RX_MODE are
+incorrect for DA8xx too. Perhaps those should be fixed too.
+
+Also, since the original code does not use the _REG suffix for register
+offsets, perhaps the new defines should avoid those as well for consistency.
+
+Thanks,
+Sekhar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
