@@ -1,11 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/4] soc changes for omaps for v4.14
-Date: Tue, 15 Aug 2017 09:52:23 -0700
-Message-ID: <39512.7597301782$1505308698@news.gmane.org>
+Subject: [GIT PULL 2/4] defconfig changes for omaps for v4.14
+Date: Tue, 15 Aug 2017 09:52:24 -0700
+Message-ID: <22487.683237023$1505308701@news.gmane.org>
+References: <pull-1502815785-702769>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1502815785-702769>
+In-Reply-To: <pull-1502815785-702769>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,49 +24,29 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 5771a8c08880cdca3bfb4a3fc6d309d6bba20877:
+The following changes since commit 9b51f04424e17051a89ab32d892ca66b2a104825:
 
-  Linux v4.13-rc1 (2017-07-15 15:22:10 -0700)
+  Merge branch 'parisc-4.13-2' of git://git.kernel.org/pub/scm/linux/kernel/git/deller/parisc-linux (2017-07-05 17:41:31 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.14/soc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.14/defconfig-signed
 
-for you to fetch changes up to 3af6ccc3d1b167c14fd195341092073820361de1:
+for you to fetch changes up to 6a60a2aca111fd71c5229dbcb3de8ecf0e0e9a12:
 
-  ARM: OMAP: dra7: powerdomain data: Register SoC specific powerdomains (2017-08-14 10:33:29 -0700)
-
-----------------------------------------------------------------
-SoC updates for omaps for v4.14. Most of the chages are to add
-support for new dra762 SoC. The other changes are are for legacy
-DMA code removal, and MMC quirk and iodelay config for dra7.
+  ARM: omap2plus_defconfig: Enable LP87565 (2017-08-14 10:33:49 -0700)
 
 ----------------------------------------------------------------
-Kishon Vijay Abraham I (1):
-      ARM: OMAP2+: Select PINCTRL_TI_IODELAY for SOC_DRA7XX
+Defconfig updates for omaps for v4.14 to enable DP83867
+phy driver on dra72x and dra71x evm, and LP87565 that is
+on dra76-evm.
 
-Lokesh Vutla (5):
-      ARM: OMAP2+: board-generic: add support for dra762 family
-      ARM: dra762: Add support for device identification
-      ARM: dra7: hwmod: Register dra76x specific hwmod
-      ARM: dra762: Enable SMP for dra762
-      ARM: OMAP: dra7: powerdomain data: Register SoC specific powerdomains
+----------------------------------------------------------------
+Lokesh Vutla (1):
+      ARM: omap2plus_defconfig: Enable LP87565
 
 Sekhar Nori (1):
-      ARM: OMAP2+: Add pdata-quirks for MMC/SD on DRA74x EVM
+      ARM: omap2plus_defconfig: enable DP83867 phy driver
 
-Tony Lindgren (1):
-      ARM: OMAP2+: Remove unused legacy code for DMA
-
- .../devicetree/bindings/arm/omap/omap.txt          |   3 +
- arch/arm/mach-omap2/Kconfig                        |   1 +
- arch/arm/mach-omap2/board-generic.c                |   1 +
- arch/arm/mach-omap2/dma.c                          | 148 +--------------------
- arch/arm/mach-omap2/id.c                           |   9 ++
- arch/arm/mach-omap2/omap-smp.c                     |   4 +-
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  11 +-
- arch/arm/mach-omap2/pdata-quirks.c                 |  31 +++++
- arch/arm/mach-omap2/powerdomains7xx_data.c         |  33 ++++-
- arch/arm/mach-omap2/soc.h                          |   5 +
- include/linux/platform_data/hsmmc-omap.h           |   3 +
- 11 files changed, 101 insertions(+), 148 deletions(-)
+ arch/arm/configs/omap2plus_defconfig | 4 ++++
+ 1 file changed, 4 insertions(+)
