@@ -1,36 +1,93 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 05/11] ASoC: omap: make snd_soc_platform_driver const
-Date: Tue, 15 Aug 2017 09:05:55 +0300
-Message-ID: <20170815060555.GA3824@bitmer.com>
-References: <1502710730-18912-1-git-send-email-bhumirks@gmail.com>
- <1502710730-18912-6-git-send-email-bhumirks@gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] thermal: ti-soc-thermal: Potential error pointer
+ dereferences
+Date: Tue, 15 Aug 2017 14:26:43 +0800
+Message-ID: <1502778403.2591.3.camel@intel.com>
+References: <20170710072422.rs25i5oawmiaofrp@mwanda>
+         <1502416833.2598.3.camel@intel.com>
+         <20170811075510.cnaisfliycev43w4@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1502710730-18912-6-git-send-email-bhumirks@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: alsa-devel@alsa-project.org, bgoswami@codeaurora.org, Xiubo.Lee@gmail.com, yang.jie@linux.intel.com, timur@tabi.org, lgirdwood@gmail.com, krzk@kernel.org, s.nawrocki@samsung.com, bardliao@realtek.com, robert.jarzmik@free.fr, linux-omap@vger.kernel.org, plai@codeaurora.org, Paul.Handrigan@cirrus.com, chiou@realtek.com, haojian.zhuang@gmail.com, nicoleotsuka@gmail.com, julia.lawall@lip6.fr, broonie@kernel.org, perex@perex.cz, linux-arm-kernel@lists.infradead.org, brian.austin@cirrus.com, sbkim73@samsung.com, patches@opensource.cirrus.com, tiwai@suse.com, linux-kernel@vger.kernel.org, fabio.estevam@nxp.com, linuxppc-dev@lists.ozlabs.org, daniel@zonque.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20170811075510.cnaisfliycev43w4@mwanda>
+Sender: linux-pm-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, Keerthy <j-keerthy@ti.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 14, 2017 at 05:08:44PM +0530, Bhumika Goyal wrote:
-> Make this const as it is only passed as the 2nd argument to the
-> function devm_snd_soc_register_platform, which is of type const.
-> Done using Coccinelle.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
->  sound/soc/omap/omap-pcm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+On Fri, 2017-08-11 at 10:55 +0300, Dan Carpenter wrote:
+> On Fri, Aug 11, 2017 at 10:00:33AM +0800, Zhang Rui wrote:
+> > 
+> > On Mon, 2017-07-10 at 10:24 +0300, Dan Carpenter wrote:
+> > > 
+> > > ti_bandgap_get_sensor_data() can return error pointers so we
+> > > should
+> > > check for that.  There is no need to check "data->ti_thermal" for
+> > > NULL
+> > > and we removed that from the other cleanup function so we may as
+> > > well
+> > > from it in ti_thermal_remove_sensor() to be consistent.
+> > > 
+> > > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > > 
+> > > diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> > > b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> > > index c211a8e4a210..9fea354ca90c 100644
+> > > --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> > > +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+> > > @@ -210,7 +210,7 @@ int ti_thermal_remove_sensor(struct
+> > > ti_bandgap
+> > > *bgp, int id)
+> > >  
+> > >  	data = ti_bandgap_get_sensor_data(bgp, id);
+> > >  
+> > > -	if (data && data->ti_thermal) {
+> > > +	if (data && !IS_ERR(data)) {
+> > what about
+> > 	if (!IS_ERR_OR_NULL(data))
+> > 
+> Duh.  Of course, let me resend.
+
+that's okay, patch has been updated and applied.
+
+>From 474b6dbed714ff5786a0d4ae084717bb75bc7169 Mon Sep 17 00:00:00 2001
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Mon, 10 Jul 2017 10:24:23 +0300
+Subject: [PATCH] thermal: ti-soc-thermal: Potential error pointer dereferences
+
+ti_bandgap_get_sensor_data() can return error pointers so we should
+check for that.  There is no need to check "data->ti_thermal" for NULL
+and we removed that from the other cleanup function so we may as well
+from it in ti_thermal_remove_sensor() to be consistent.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index c211a8e..92b3207 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -210,7 +210,7 @@ int ti_thermal_remove_sensor(struct ti_bandgap *bgp, int id)
+ 
+ 	data = ti_bandgap_get_sensor_data(bgp, id);
+ 
+-	if (data && data->ti_thermal) {
++	if (!IS_ERR_OR_NULL(data)) {
+ 		if (data->our_zone)
+ 			thermal_zone_device_unregister(data->ti_thermal);
+ 	}
+@@ -276,7 +276,7 @@ int ti_thermal_unregister_cpu_cooling(struct ti_bandgap *bgp, int id)
+ 
+ 	data = ti_bandgap_get_sensor_data(bgp, id);
+ 
+-	if (data) {
++	if (!IS_ERR_OR_NULL(data)) {
+ 		cpufreq_cooling_unregister(data->cool_dev);
+ 		cpufreq_cpu_put(data->policy);
+ 	}
+-- 
+2.7.4
