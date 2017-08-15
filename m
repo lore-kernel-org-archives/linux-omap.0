@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] debug_ll update for omaps for v4.14
-Date: Tue, 15 Aug 2017 09:27:27 -0700
-Message-ID: <42616.2917087369$1505308695@news.gmane.org>
+Subject: [GIT PULL 1/4] soc changes for omaps for v4.14
+Date: Tue, 15 Aug 2017 09:52:23 -0700
+Message-ID: <39512.7597301782$1505308698@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -27,19 +27,43 @@ The following changes since commit 5771a8c08880cdca3bfb4a3fc6d309d6bba20877:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap-for-v4.14/debug-ll
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.14/soc-signed
 
-for you to fetch changes up to 51ef70037ebc2f63739c518ef357b364a802b648:
+for you to fetch changes up to 3af6ccc3d1b167c14fd195341092073820361de1:
 
-  ARM: debug: Use generic 8250 debug_ll for am3517 and am335x (2017-07-17 00:53:42 -0700)
+  ARM: OMAP: dra7: powerdomain data: Register SoC specific powerdomains (2017-08-14 10:33:29 -0700)
 
 ----------------------------------------------------------------
-Tony Lindgren (4):
-      ARM: debug: Use generic 8250 debug_ll for omap2 and omap3/4/5 common uarts
-      ARM: debug: Use generic 8250 debug_ll for omap3/4/5
-      ARM: debug: Use generic 8250 debug_ll for ti81xx
-      ARM: debug: Use generic 8250 debug_ll for am3517 and am335x
+SoC updates for omaps for v4.14. Most of the chages are to add
+support for new dra762 SoC. The other changes are are for legacy
+DMA code removal, and MMC quirk and iodelay config for dra7.
 
- arch/arm/Kconfig.debug             |  44 +++++++++++----
- arch/arm/include/debug/omap2plus.S | 108 -------------------------------------
- 2 files changed, 33 insertions(+), 119 deletions(-)
+----------------------------------------------------------------
+Kishon Vijay Abraham I (1):
+      ARM: OMAP2+: Select PINCTRL_TI_IODELAY for SOC_DRA7XX
+
+Lokesh Vutla (5):
+      ARM: OMAP2+: board-generic: add support for dra762 family
+      ARM: dra762: Add support for device identification
+      ARM: dra7: hwmod: Register dra76x specific hwmod
+      ARM: dra762: Enable SMP for dra762
+      ARM: OMAP: dra7: powerdomain data: Register SoC specific powerdomains
+
+Sekhar Nori (1):
+      ARM: OMAP2+: Add pdata-quirks for MMC/SD on DRA74x EVM
+
+Tony Lindgren (1):
+      ARM: OMAP2+: Remove unused legacy code for DMA
+
+ .../devicetree/bindings/arm/omap/omap.txt          |   3 +
+ arch/arm/mach-omap2/Kconfig                        |   1 +
+ arch/arm/mach-omap2/board-generic.c                |   1 +
+ arch/arm/mach-omap2/dma.c                          | 148 +--------------------
+ arch/arm/mach-omap2/id.c                           |   9 ++
+ arch/arm/mach-omap2/omap-smp.c                     |   4 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  11 +-
+ arch/arm/mach-omap2/pdata-quirks.c                 |  31 +++++
+ arch/arm/mach-omap2/powerdomains7xx_data.c         |  33 ++++-
+ arch/arm/mach-omap2/soc.h                          |   5 +
+ include/linux/platform_data/hsmmc-omap.h           |   3 +
+ 11 files changed, 101 insertions(+), 148 deletions(-)
