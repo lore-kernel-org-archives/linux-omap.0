@@ -1,87 +1,45 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 12/17] ARM: dts: Add missing aess node and binding for
- omap4
-Date: Thu, 31 Aug 2017 07:51:12 -0700
-Message-ID: <20170831145112.GL6008@atomide.com>
-References: <20170830151953.30856-1-tony@atomide.com>
- <20170830151953.30856-13-tony@atomide.com>
- <30241474-5f96-2d94-b1a9-4f163c8a4914@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] debug_ll update for omaps for v4.14
+Date: Tue, 15 Aug 2017 09:27:27 -0700
+Message-ID: <42616.2917087369$1505308695@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <30241474-5f96-2d94-b1a9-4f163c8a4914-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [170830 22:54]:
-> On 2017-08-30 18:19, Tony Lindgren wrote:
-> > +		aess: aess@401f1000 {
-> > +			compatible = "ti,omap4-aess";
-> > +			reg = <0x401f1000 0x400>, /* MPU private access */
-> > +			      <0x490f1000 0x400>; /* L3 Interconnect */
-> > +			reg-names = "mpu", "dma";
-> > +			ti,hwmods = "aess";
-> 
-> status = "disabled"
+From: "Tony Lindgren" <tony@atomide.com>
 
-That could be done for it's children if needed like I replied in
-the McASP patch as this is for the interconnect target module.
-And this will need to just use the "ti,sysc-type2" compatible.
+The following changes since commit 5771a8c08880cdca3bfb4a3fc6d309d6bba20877:
 
-> Similar comment applies to AESS as to the McASP. We don't have driver
-> for it and we most likely not going to have.
+  Linux v4.13-rc1 (2017-07-15 15:22:10 -0700)
 
-OK
+are available in the git repository at:
 
-> But the binding is not correct in any case. The latest official Android
-> kernel is 3.4(ish) to support AESS/ABE. I have rewritten the whole thing
-> as an effort to upstream it and maintained the code up to 3.15. There
-> the DT node looks like this:
-> 
-> aess: aess@0x401f1000 {
-> 	compatible = "ti,omap4-aess";
-> 	reg = <0x401f1000 0x3ff>, /* MPU private access */
-> 		<0x40180000 0xffff>, /* DMEM - MPU */
-> 		<0x401a0000 0x1fff>, /* CMEM - MPU */
-> 		<0x401c0000 0x5fff>, /* SMEM - MPU */
-> 		<0x401e0000 0x1fff>, /* PMEM - MPU */
-> 		<0x490f1000 0x3ff>, /* L3 Interconnect */
-> 		<0x49080000 0xffff>, /* DMEM - MPU */
-> 		<0x490a0000 0x1fff>, /* CMEM - MPU */
-> 		<0x490ce000 0x5fff>, /* SMEM - MPU */
-> 		<0x490e0000 0x1fff>; /* PMEM - MPU */
-> 	reg-names = "mpu", "dmem", "cmem", "smem", "pmem",
-> 			"dma","dmem_dma", "cmem_dma", "smem_dma",
-> 			"pmem_dma";
-> 	interrupts = <0 99 0x4>;
-> 	ti,hwmods = "aess";
-> 	dmas = <&sdma 101>,
-> 		<&sdma 102>,
-> 		<&sdma 103>,
-> 		<&sdma 104>,
-> 		<&sdma 105>,
-> 		<&sdma 106>,
-> 		<&sdma 107>,
-> 		<&sdma 108>;
-> 	dma-names = "fifo0", "fifo1", "fifo2", "fifo3", "fifo4",
-> 			"fifo5", "fifo6", "fifo7";
-> };
-> 
-> This is more closer to what we might need to describe AESS, but it might
-> be not correct if I ever have the time to forward port and convert it to
-> current upstream framework (DPCM, graph, whatever)
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap-for-v4.14/debug-ll
 
-Yeah OK thanks. If there ever is a driver for it, those can then
-be added as child nodes of the "ti,sysc-type2" interconnect target
-node.
+for you to fetch changes up to 51ef70037ebc2f63739c518ef357b364a802b648:
 
-Regards,
+  ARM: debug: Use generic 8250 debug_ll for am3517 and am335x (2017-07-17 00:53:42 -0700)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----------------------------------------------------------------
+Tony Lindgren (4):
+      ARM: debug: Use generic 8250 debug_ll for omap2 and omap3/4/5 common uarts
+      ARM: debug: Use generic 8250 debug_ll for omap3/4/5
+      ARM: debug: Use generic 8250 debug_ll for ti81xx
+      ARM: debug: Use generic 8250 debug_ll for am3517 and am335x
+
+ arch/arm/Kconfig.debug             |  44 +++++++++++----
+ arch/arm/include/debug/omap2plus.S | 108 -------------------------------------
+ 2 files changed, 33 insertions(+), 119 deletions(-)
