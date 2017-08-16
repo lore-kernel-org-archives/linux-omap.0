@@ -1,88 +1,91 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 03/10] ARM: dts: dra7-evm: Add pinmux configuration for MMC
-Date: Wed, 16 Aug 2017 19:15:01 +0530
-Message-ID: <20170816134508.8887-4-kishon@ti.com>
+Subject: [PATCH v2 05/10] ARM: dts: am57xx-idk: Move common MMC/SD properties to common file
+Date: Wed, 16 Aug 2017 19:15:03 +0530
+Message-ID: <20170816134508.8887-6-kishon@ti.com>
 References: <20170816134508.8887-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170816134508.8887-1-kishon@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, linux-pci@vger.kernel.org, nsekhar@ti.com, linux-kernel@vger.kernel.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: kishon@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Include dra74x-mmc-iodelay.dtsi which has pinmux and IODelay
-configuration values for the various MMC modes for dra74 SoC
-and use it in the pinctrl properties of MMC devicetree
-nodes present in dra7-evm.
+From: Sekhar Nori <nsekhar@ti.com>
 
+AM572x IDK and AM571x IDK boards have equivalent
+design of how SD card and eMMC are connected.
+
+The two EVMs mainly differ in IOdelay configuration
+needed (because of difference in SoC used).
+
+Move the common properties to am57xx-idk-common.dtsi
+file which is common for both EVMs.
+
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7-evm.dts | 22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/am571x-idk.dts         | 7 -------
+ arch/arm/boot/dts/am572x-idk.dts         | 8 --------
+ arch/arm/boot/dts/am57xx-idk-common.dtsi | 8 ++++++++
+ 3 files changed, 8 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index 5e3f9ba861f0..aa426dabb6c3 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -9,6 +9,7 @@
- 
- #include "dra74x.dtsi"
- #include "dra7-evm-common.dtsi"
-+#include "dra74x-mmc-iodelay.dtsi"
- 
- / {
- 	model = "TI DRA742";
-@@ -326,8 +327,6 @@
- 
- &mmc1 {
- 	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&mmc1_pins_default>;
- 	vmmc-supply = <&evm_3v3_sd>;
- 	vqmmc-supply = <&ldo1_reg>;
- 	bus-width = <4>;
-@@ -336,14 +335,29 @@
- 	 * is always hardwired.
- 	 */
- 	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>;
-+	pinctrl-names = "default", "hs", "sdr12", "sdr25", "sdr50", "ddr50-rev11", "sdr104-rev11", "ddr50", "sdr104";
-+	pinctrl-0 = <&mmc1_pins_default>;
-+	pinctrl-1 = <&mmc1_pins_hs>;
-+	pinctrl-2 = <&mmc1_pins_sdr12>;
-+	pinctrl-3 = <&mmc1_pins_sdr25>;
-+	pinctrl-4 = <&mmc1_pins_sdr50>;
-+	pinctrl-5 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_rev11_conf>;
-+	pinctrl-6 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev11_conf>;
-+	pinctrl-7 = <&mmc1_pins_ddr50 &mmc1_iodelay_ddr_rev20_conf>;
-+	pinctrl-8 = <&mmc1_pins_sdr104 &mmc1_iodelay_sdr104_rev20_conf>;
+diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
+index 0c0bb4e93f25..78c5c7462fcc 100644
+--- a/arch/arm/boot/dts/am571x-idk.dts
++++ b/arch/arm/boot/dts/am571x-idk.dts
+@@ -64,13 +64,6 @@
+ 	};
  };
  
+-&mmc1 {
+-	status = "okay";
+-	vmmc-supply = <&ldo1_reg>;
+-	bus-width = <4>;
+-	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>; /* gpio 219 */
+-};
+-
+ &omap_dwc3_2 {
+ 	extcon = <&extcon_usb2>;
+ };
+diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
+index 604d52554eda..5b22944fedad 100644
+--- a/arch/arm/boot/dts/am572x-idk.dts
++++ b/arch/arm/boot/dts/am572x-idk.dts
+@@ -76,14 +76,6 @@
+ 	vbus-gpio = <&gpio3 26 GPIO_ACTIVE_HIGH>;
+ };
+ 
+-&mmc1 {
+-	status = "okay";
+-	vmmc-supply = <&v3_3d>;
+-	vqmmc-supply = <&ldo1_reg>;
+-	bus-width = <4>;
+-	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>; /* gpio 219 */
+-};
+-
+ &sn65hvs882 {
+ 	load-gpios = <&gpio3 19 GPIO_ACTIVE_LOW>;
+ };
+diff --git a/arch/arm/boot/dts/am57xx-idk-common.dtsi b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+index c536b2f5389f..97aa8e6a56da 100644
+--- a/arch/arm/boot/dts/am57xx-idk-common.dtsi
++++ b/arch/arm/boot/dts/am57xx-idk-common.dtsi
+@@ -399,6 +399,14 @@
+ 	dr_mode = "peripheral";
+ };
+ 
++&mmc1 {
++	status = "okay";
++	vmmc-supply = <&v3_3d>;
++	vqmmc-supply = <&ldo1_reg>;
++	bus-width = <4>;
++	cd-gpios = <&gpio6 27 GPIO_ACTIVE_LOW>; /* gpio 219 */
++};
++
  &mmc2 {
  	status = "okay";
--	pinctrl-names = "default";
--	pinctrl-0 = <&mmc2_pins_default>;
- 	vmmc-supply = <&evm_1v8_sw>;
- 	bus-width = <8>;
-+	pinctrl-names = "default", "hs", "ddr_1_8v-rev11", "ddr_1_8v", "hs200_1_8v-rev11", "hs200_1_8v";
-+	pinctrl-0 = <&mmc2_pins_default>;
-+	pinctrl-1 = <&mmc2_pins_hs>;
-+	pinctrl-2 = <&mmc2_pins_ddr_1_8v_rev11 &mmc2_iodelay_ddr_1_8v_rev11_conf>;
-+	pinctrl-3 = <&mmc2_pins_ddr_rev20>;
-+	pinctrl-4 = <&mmc2_pins_hs200 &mmc2_iodelay_hs200_rev11_conf>;
-+	pinctrl-5 = <&mmc2_pins_hs200 &mmc2_iodelay_hs200_rev20_conf>;
- };
- 
- &cpu0 {
+ 	vmmc-supply = <&v3_3d>;
 -- 
 2.11.0
