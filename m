@@ -1,59 +1,55 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] nokia n900: update dts with camera support
-Date: Thu, 17 Aug 2017 00:23:44 +0300
-Message-ID: <20170816212343.hfd4azb4dq2qrlkc@valkosipuli.retiisi.org.uk>
-References: <20170810204923.GA18442@amd>
- <20170814201950.sbtyuksn3ntuigyp@valkosipuli.retiisi.org.uk>
- <20170815220349.GA15441@amd>
- <20170816205332.rqcuenvuxfs5jvuw@earth>
- <20170816205915.GA5386@atrey.karlin.mff.cuni.cz>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL 4/4] device tree changes for omaps for v4.14
+Date: Wed, 16 Aug 2017 23:28:24 +0200
+Message-ID: <CAK8P3a1EuWq4pS_JTEcrKbQKZLpUncLE5d226Z-xnyauLTWcqA@mail.gmail.com>
+References: <5246773866334625482@unknownmsgid>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170816205915.GA5386@atrey.karlin.mff.cuni.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5246773866334625482@unknownmsgid>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 16, 2017 at 10:59:15PM +0200, Pavel Machek wrote:
-> > Hi,
-> > 
-> > On Wed, Aug 16, 2017 at 12:03:49AM +0200, Pavel Machek wrote:
-> > > diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > index 852041a..aade681 100644
-> > > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > @@ -119,6 +119,8 @@ Optional endpoint properties
-> > >    as 0 (normal). This property is valid for serial busses only.
-> > >  - strobe: Whether the clock signal is used as clock (0) or strobe (1). Used
-> > >    with CCP2, for instance.
-> > > +- clock-inv: polarity of clock/strobe signal. 0 - not inverted, 1 - inverted
-> > > +- crc: crc is in use
-> > 
-> > booleans in DT are not done with <0> and <1>, but as properties without
-> > values. True = property exists, False = property does not exist.
+On Tue, Aug 15, 2017 at 6:52 PM, Tony Lindgren <tony@atomide.com> wrote:
+> From: "Tony Lindgren" <tony@atomide.com>
+> ----------------------------------------------------------------
+> Device tree changes for omaps for v4.14 merge window:
+>
+> - A series of changes for dra7 and am572 to use generic
+>   MMC vqmmc regulator
+>
+> - Clean-up tps65217 internal interrupts to define them
+>   only in tps65217.dtsi
+>
+> - Add dra7 iodelay pinctrl driver configuration
+>
+> - Add buzzer support for am437x-gp-evm
+>
+> - Disable HDMI CEC internal pull-ups as it seems that
+>   all boards have an external pull for these
+>
+> - Remove unnecessary interrupt-parent for omap3
+>
+> - Configure droid 4 vaudio regulator initial mode and
+>   add vibrator
+>
+> - Enable NAND dma prefetch for am335x-evm, am437x and dra7
+>
+> - Add pcie1 dt node for EP mode for am57x and dra7
+>
+> - Add support for new dra76x SoCs and dra76x-evm
 
-Now that you mention it, I remember that now.
+Pulled into next/dt, thanks!
 
-> 
-> Well, strobe property above already uses = <0>/<1> format, as do
-> others.
-> 
-> Problem with "false = property does not exist" is that you don't know
-> if it is "someone forgot to define it" or "someone made a typo" or
-> "dts is too old to know about this property" or "the property indeed
-> should be false"...
-
-As this is an established practice, I think we should follow it for bool
-properties.
-
-We could change the existing ones, too, and leave some extra checks in
-place to handle old dtbs.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+    Arnd
