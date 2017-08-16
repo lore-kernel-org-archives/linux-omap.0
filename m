@@ -1,57 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 2/4] defconfig changes for omaps for v4.14
-Date: Wed, 16 Aug 2017 13:47:54 -0700
-Message-ID: <20170816204754.GK8569@atomide.com>
-References: <-2831898822533480273@unknownmsgid>
- <CAK8P3a2CaT4KxGHJRkyuu+0i_NGN876E7X8YZ+dm8-27PG5ffQ@mail.gmail.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH] nokia n900: update dts with camera support
+Date: Wed, 16 Aug 2017 22:53:32 +0200
+Message-ID: <20170816205332.rqcuenvuxfs5jvuw@earth>
+References: <20170810204923.GA18442@amd>
+ <20170814201950.sbtyuksn3ntuigyp@valkosipuli.retiisi.org.uk>
+ <20170815220349.GA15441@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="manly3vkr375a3su"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAK8P3a2CaT4KxGHJRkyuu+0i_NGN876E7X8YZ+dm8-27PG5ffQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20170815220349.GA15441@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [170816 13:45]:
-> On Tue, Aug 15, 2017 at 6:52 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > From: "Tony Lindgren" <tony@atomide.com>
-> >
-> > The following changes since commit 9b51f04424e17051a89ab32d892ca66b2a104825:
-> >
-> >   Merge branch 'parisc-4.13-2' of git://git.kernel.org/pub/scm/linux/kernel/git/deller/parisc-linux (2017-07-05 17:41:31 -0700)
-> >
-> > are available in the git repository at:
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.14/defconfig-signed
-> >
-> > for you to fetch changes up to 6a60a2aca111fd71c5229dbcb3de8ecf0e0e9a12:
-> >
-> >   ARM: omap2plus_defconfig: Enable LP87565 (2017-08-14 10:33:49 -0700)
-> >
-> > ----------------------------------------------------------------
-> > Defconfig updates for omaps for v4.14 to enable DP83867
-> > phy driver on dra72x and dra71x evm, and LP87565 that is
-> > on dra76-evm.
-> 
-> Pulled into next/defconfig, thanks!
-> 
-> Should we enable those drivers on multi_v7_defconfig as well?
 
-Yeah, I actually started a series enabling options for
-multi_v7_defconfig from omap2plus_defconfig before I went
-offline :) Will continue on that at some point.
+--manly3vkr375a3su
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regards,
+Hi,
 
-Tony
+On Wed, Aug 16, 2017 at 12:03:49AM +0200, Pavel Machek wrote:
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index 852041a..aade681 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -119,6 +119,8 @@ Optional endpoint properties
+>    as 0 (normal). This property is valid for serial busses only.
+>  - strobe: Whether the clock signal is used as clock (0) or strobe (1). Used
+>    with CCP2, for instance.
+> +- clock-inv: polarity of clock/strobe signal. 0 - not inverted, 1 - inverted
+> +- crc: crc is in use
+
+booleans in DT are not done with <0> and <1>, but as properties without
+values. True = property exists, False = property does not exist.
+
+-- Sebastian
+
+--manly3vkr375a3su
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlmUsMkACgkQ2O7X88g7
++prFUw/9EWRBF6rHkp7vC6zJ9pt989oDpiddog9s1TuJR+RkAL6ZoEKcG2JqCCFe
+S7yajRpK1mPd5vAj4v5ZHaPHqTt6MZdFu35VHLJ6eMXv1Gimb39NHTI6huMNDF5S
+WfOvgdi1wfYvGfOSTxzN/Wos56kgisZlRIiITfnnESfwVDIyrJfX5bpq/QoJGiWF
+YvJwP2Nv4kmDxsCdVKbm6crffHJSkEXFWMUD1BlXzuuk9Auky954I3tsqd2ePaXp
+/qK+HHF9thkN3R1a4NBND+dUXhYkQvLQ1lwyyhl2w3Zgw+gmD56onBcPivE4IKh/
+6Th4+5X/UcHQaftkaoXxxdcN8aLsYqq4AXD6OfPsf96kh9IFQpyH5ejCiBP861Qh
+DhmMp2tGEvYE2FoG40RkBBK0FKji1OiJLmYgOPOUPgLSyqEyKpM9Eu2CAFc7Z/Td
+1F3gWP8ru++DR+pbr4Nmbyh0YG9tXtxaOVNMPSZY9m6Vk58eHBKmaoFu/MdKZruy
+msbGCABFWlk6zpMGLnj1OyFdF/p+Yk1XDhPyEKjx1XS2uzAbI2pJeoFRB6YK4h2n
+RHyo24Lx5h584ng5m4LDUo2IfEoFsbJVcBovasj0wEeE/norytJ0SzJWv00zdm7L
+eRPFhweF7bQRxX7F7pyTJMQ3fHrc38baf6QxixsiG4m0jV529e8=
+=b0oD
+-----END PGP SIGNATURE-----
+
+--manly3vkr375a3su--
