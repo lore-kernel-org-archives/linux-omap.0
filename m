@@ -1,65 +1,51 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 0/2] PCI: dwc: convert remaining dbi read/writes to
- dw_pcie_readX_dbi/dw_pcie_writeX_dbi
-Date: Tue, 15 Aug 2017 17:39:46 -0500
-Message-ID: <20170815223946.GQ32525@bhelgaas-glaptop.roam.corp.google.com>
-References: <20170714120735.11993-1-niklas.cassel@axis.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 00/10] ARM: dts: Add iodelay data for MMC
+Date: Wed, 16 Aug 2017 19:14:58 +0530
+Message-ID: <20170816134508.8887-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170714120735.11993-1-niklas.cassel@axis.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Niklas Cassel <niklas.cassel@axis.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, Niklas Cassel <niklass@axis.com>, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Pratyush Anand <pratyush.anand@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: kishon@ti.com, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-[+cc Kishon, Pratyush]
+This series only adds data and it won't be used until
+the next series which adds UHS support to omap_hsmmc/sdhci driver.
 
-On Fri, Jul 14, 2017 at 02:07:33PM +0200, Niklas Cassel wrote:
-> Since the introduction of the dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros,
-> most dw_pcie_read(pci->dbi_base, ..)/dw_pcie_write(pci->dbi_base, ..) calls
-> have been converted to dw_pcie_readX_dbi/dw_pcie_writeX_dbi calls.
-> Convert the remaining calls.
-> 
-> Niklas Cassel (2):
->   PCI: dwc: dra7xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros
->   PCI: dwc: spear13xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi
->     macros
-> 
->  drivers/pci/dwc/pci-dra7xx.c     | 14 ++++++--------
->  drivers/pci/dwc/pcie-spear13xx.c | 22 ++++++++++------------
->  2 files changed, 16 insertions(+), 20 deletions(-)
+Changes from v1:
+*) Add missing Signed-off-by in a couple of patches
+*) Fixed Author of "Move common MMC/SD properties to common file" patch.
 
-These patches are short, but obscure, e.g.,
+Kishon Vijay Abraham I (7):
+  ARM: dts: dra7-evm: Add pinmux configuration for MMC
+  ARM: dts: am57xx-beagle-x15: Add pinmux configuration for MMC
+  ARM: dts: am571x-idk: Add pinmux configuration for MMC
+  ARM: dts: am572x-idk: Add pinmux configuration for MMC
+  ARM: dts: dra72-evm: Add pinmux configuration for MMC
+  ARM: dts: dra72-evm-revc: Add pinmux configuration for MMC
+  ARM: dts: dra71-evm: Add pinmux configuration for MMC
 
-  - dw_pcie_read(pci->dbi_base + exp_cap_off + PCI_EXP_LNKCAP, 4, &val);
-  + val = dw_pcie_readl_dbi(pci, exp_cap_off + PCI_EXP_LNKCAP);
+Sekhar Nori (3):
+  ARM: dts: dra72x: Create a common file with MMC/SD IOdelay data
+  ARM: dts: dra74x: Create a common file with MMC/SD IOdelay data
+  ARM: dts: am57xx-idk: Move common MMC/SD properties to common file
 
-The original call path was:
+ arch/arm/boot/dts/am571x-idk.dts                |  26 +-
+ arch/arm/boot/dts/am572x-idk.dts                |  27 +-
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi |  29 +-
+ arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts   |  15 +
+ arch/arm/boot/dts/am57xx-beagle-x15.dts         |  11 +
+ arch/arm/boot/dts/am57xx-idk-common.dtsi        |   8 +
+ arch/arm/boot/dts/dra7-evm.dts                  |  22 +-
+ arch/arm/boot/dts/dra71-evm.dts                 |  14 +
+ arch/arm/boot/dts/dra72-evm-revc.dts            |  14 +
+ arch/arm/boot/dts/dra72-evm.dts                 |  14 +
+ arch/arm/boot/dts/dra72x-mmc-iodelay.dtsi       | 350 +++++++++++++
+ arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi       | 647 ++++++++++++++++++++++++
+ 12 files changed, 1130 insertions(+), 47 deletions(-)
+ create mode 100644 arch/arm/boot/dts/dra72x-mmc-iodelay.dtsi
+ create mode 100644 arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi
 
-  dw_pcie_read(addr, ...)
-    readl(addr) 
-
-and we're replacing it with the much more complicated:
-
-  dw_pcie_readl_dbi
-    __dw_pcie_read_dbi
-      if (pci->ops->read_dbi)
-	return pci->ops->read_dbi(pci, base, reg, size)
-      dw_pcie_read(base + reg, size, &val)
-	readl
-
-This is not functionally equivalent (the new path uses ops->read_dbi
-if it's set), so the changelog should say something about why we need
-this change.
-
-Neither dra7xx nor spear13xx sets .read_dbi, so my guess is this
-doesn't actually fix anything that's broken and this is just for
-consistency.
-
-That's fine, but I'm confused because I looked for some of the
-previous conversions you mentioned but couldn't find any.  I'm lost in
-a maze of twisty little passages.
-
-Bjorn
+-- 
+2.11.0
