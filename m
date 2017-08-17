@@ -1,31 +1,55 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 1/8] ARM: OMAP2+: board-generic: add support for
- dra762 family
-Date: Thu, 17 Aug 2017 15:30:47 -0500
-Message-ID: <20170817203047.3rthcl22tewboscj@rob-hp-laptop>
-References: <20170812040605.21259-1-lokeshvutla@ti.com>
- <20170812040605.21259-2-lokeshvutla@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/3] omap5 cpu off mode support
+Date: Thu, 17 Aug 2017 16:01:19 -0700
+Message-ID: <20170817230122.30655-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170812040605.21259-2-lokeshvutla-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Ian Campbell <ijc+devicetree-KcIKpvwj1kUDXYZnReoRVg@public.gmane.org>, Kumar Gala <galak-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>, Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>, Praneeth Bajjuri <praneeth-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Aug 12, 2017 at 09:35:58AM +0530, Lokesh Vutla wrote:
-> Adding board generic support for dra762 family.
-> 
-> Signed-off-by: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/arm/omap/omap.txt | 3 +++
->  arch/arm/mach-omap2/board-generic.c                 | 1 +
->  2 files changed, 4 insertions(+)
+Hi all,
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Here are few patches to enable omap5 cpu off mode similar to
+what we do for omap4. This seems to save about 0.2W power on
+omap5-uevm while idle compared to retention idle.
+
+Note that this won't work for dra7 as it does not support
+deeper idle modes.
+
+Regards,
+
+Tony
+
+clone of "next-bak-2017-07-17-20170717-001945"
+
+Santosh Shilimkar (1):
+  ARM: OMAP5: Add cpuidle assembly code
+
+Tony Lindgren (2):
+  ARM: OMAP2+: Separate dra7 cpuidle from omap5
+  ARM: OMAP5: Enable CPU off idle states
+
+ arch/arm/mach-omap2/common.h                |  11 +++
+ arch/arm/mach-omap2/cpuidle44xx.c           |  56 ++++++++++++
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c   |   8 +-
+ arch/arm/mach-omap2/omap-secure.h           |   6 ++
+ arch/arm/mach-omap2/omap-wakeupgen.c        |   5 +-
+ arch/arm/mach-omap2/pm44xx.c                |   2 +-
+ arch/arm/mach-omap2/powerdomains54xx_data.c |  10 +-
+ arch/arm/mach-omap2/sleep44xx.S             | 137 ++++++++++++++++++++++++++++
+ 8 files changed, 226 insertions(+), 9 deletions(-)
+
+-- 
+2.14.1
