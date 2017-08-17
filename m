@@ -1,100 +1,90 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] nokia n900: update dts with camera support
-Date: Thu, 17 Aug 2017 02:08:45 +0200
-Message-ID: <20170817000845.agkcuvqaheejm33j@earth>
-References: <20170810204923.GA18442@amd>
- <20170814201950.sbtyuksn3ntuigyp@valkosipuli.retiisi.org.uk>
- <20170815220349.GA15441@amd>
- <20170816205332.rqcuenvuxfs5jvuw@earth>
- <20170816205915.GA5386@atrey.karlin.mff.cuni.cz>
- <20170816212343.hfd4azb4dq2qrlkc@valkosipuli.retiisi.org.uk>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 1/7] mmc: sdhci: Add quirk to indicate no CRC
+ stripping in MMC_RSP_136
+Date: Thu, 17 Aug 2017 10:50:38 +0530
+Message-ID: <e7592ed0-dda2-6850-098e-7c6bba69df40@ti.com>
+References: <20170807160142.12134-1-kishon@ti.com>
+ <20170807160142.12134-2-kishon@ti.com>
+ <872c7194-3d48-47e5-6396-7189bf841a42@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="75xnpki7yhyrrcpi"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170816212343.hfd4azb4dq2qrlkc@valkosipuli.retiisi.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <872c7194-3d48-47e5-6396-7189bf841a42-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Adrian,
 
---75xnpki7yhyrrcpi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 15 August 2017 12:57 PM, Adrian Hunter wrote:
+> On 07/08/17 19:01, Kishon Vijay Abraham I wrote:
+>> TI's implementation of sdhci controller used in DRA7 SoC's doesn't
+>> strip CRC in responses with length 136 bits. Add quirk to indicate
+>> the controller does not strip CRC in MMC_RSP_136. If this quirk is
+>> set sdhci library shouldn't shift the response present in
+>> SDHCI_RESPONSE register.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/mmc/host/sdhci.c | 27 +++++++++++++++++++--------
+>>  drivers/mmc/host/sdhci.h |  2 ++
+>>  2 files changed, 21 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+>> index ecd0d4350e8a..ece3751d2a25 100644
+>> --- a/drivers/mmc/host/sdhci.c
+>> +++ b/drivers/mmc/host/sdhci.c
+>> @@ -1182,14 +1182,25 @@ static void sdhci_finish_command(struct sdhci_host *host)
+>>  
+>>  	if (cmd->flags & MMC_RSP_PRESENT) {
+>>  		if (cmd->flags & MMC_RSP_136) {
+>> -			/* CRC is stripped so we need to do some shifting. */
+>> -			for (i = 0;i < 4;i++) {
+>> -				cmd->resp[i] = sdhci_readl(host,
+>> -					SDHCI_RESPONSE + (3-i)*4) << 8;
+>> -				if (i != 3)
+>> -					cmd->resp[i] |=
+>> -						sdhci_readb(host,
+>> -						SDHCI_RESPONSE + (3-i)*4-1);
+>> +			if (!(host->quirks2 & SDHCI_QUIRK2_NO_CRC_STRIPPING)) {
+> 
+> This is about the 136-bit response so let's put that in the quirk name.  How about SDHCI_QUIRK2_RSP_136_HAS_CRC
 
-Hi,
+Since omap seems to be the only platform that doesn't have CRC, I prefer adding
+SDHCI_QUIRK2_RSP_136_NO_CRC. That way we can add the quirk only in sdhci-omap
+instead of all the existing sdhci drivers.
 
-On Thu, Aug 17, 2017 at 12:23:44AM +0300, Sakari Ailus wrote:
-> On Wed, Aug 16, 2017 at 10:59:15PM +0200, Pavel Machek wrote:
-> > > On Wed, Aug 16, 2017 at 12:03:49AM +0200, Pavel Machek wrote:
-> > > > diff --git a/Documentation/devicetree/bindings/media/video-interfac=
-es.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > > index 852041a..aade681 100644
-> > > > --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > > +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> > > > @@ -119,6 +119,8 @@ Optional endpoint properties
-> > > >    as 0 (normal). This property is valid for serial busses only.
-> > > >  - strobe: Whether the clock signal is used as clock (0) or strobe =
-(1). Used
-> > > >    with CCP2, for instance.
-> > > > +- clock-inv: polarity of clock/strobe signal. 0 - not inverted, 1 =
-- inverted
-> > > > +- crc: crc is in use
-> > >=20
-> > > booleans in DT are not done with <0> and <1>, but as properties witho=
-ut
-> > > values. True =3D property exists, False =3D property does not exist.
->=20
-> Now that you mention it, I remember that now.
->=20
-> > Well, strobe property above already uses =3D <0>/<1> format, as do
-> > others.
->
-> > Problem with "false =3D property does not exist" is that you don't know
-> > if it is "someone forgot to define it" or "someone made a typo" or
-> > "dts is too old to know about this property" or "the property indeed
-> > should be false"...
->
-> As this is an established practice, I think we should follow it for bool
-> properties.
+> 
+>> +				/*
+>> +				 * CRC is stripped so we need to do some
+>> +				 * shifting.
+>> +				 */
+>> +				for (i = 0; i < 4; i++) {
+>> +					cmd->resp[i] =
+>> +						sdhci_readl(host, SDHCI_RESPONSE
+>> +							    + (3 - i) * 4) << 8;
+>> +					if (i != 3)
+>> +						cmd->resp[i] |=
+>> +						sdhci_readb(host, SDHCI_RESPONSE
+>> +							    + (3 - i) * 4 - 1);
+>> +				}
+>> +			} else {
+>> +				for (i = 0; i < 4; i++)
+>> +					cmd->resp[i] =
+>> +					sdhci_readl(host, SDHCI_RESPONSE +
+>> +						    (3 - i) * 4);
+>>  			}
+> 
+> This is all very jammed up against the 80 column margin.  Please make a new patch to separate it into a new function sdhci_read_rsp_136() and then another patch to add the quirk.
+> i.e. completely untested!
 
-Yes it's common practice, there is also device_property_read_bool()
-to get the value.
+Sure. Thanks for the patch.
 
-> We could change the existing ones, too, and leave some extra checks in
-> place to handle old dtbs.
-
-The following should be downward compatible:
-
-var =3D read_bool();
-if (var && !read_int())
-    var =3D false;
-
-Btw. DT people should be CC'd for DT binding additions/changes.
-
--- Sebastian
-
---75xnpki7yhyrrcpi
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlmU3ooACgkQ2O7X88g7
-+prp1hAAoAd4wzMwvbZZJAQU7Gphvf/LuvvE9ay0hA1iSsk5Cx/MBy5Mtmk6/hmh
-52gpVbZWz3ODP+ptsqycAPMM0mN0Wb8Gq9qj4CRtDhc0ud/jBjqf8/dvAkjqUGLl
-kwhhoii2lXbTqtFUkJM/ormmLgxsXRQRFbuJLw9SCduDQ4MWXgTFMUiwSA84cxVw
-EtP6RfqVw1xLrbK2IMLeIdHlX/9v0yLFh4+2zwwDWqxAcIMSuJbCxvbJdjkb3keb
-r1xy8+312ED3zNSgj5qnZfJlF79ZlXC4zajXWF0Ybs9//2NfKpdGZAK0oQ5APS4l
-xd+6931i9rpLXduNeUC+HhbMHO2LLMAAabMtPcSkUTLeMOmfKD/M5NeKQcPYXSxl
-3gdi09ue/quTVf9jyUvaQvT2epL6ALtN1Fgc43ZjyKZQ1Zv+zbwKPWMHqIax61tl
-ZOXtSeYc5RvbDBP6vVHnYaLNz7/Ka8O2dpZLfRd84gj9uyj2kZF0ArGH+eSiZnBp
-V0uqiL4kt3Bkj0sp/XnIDZdBjyoMJ3kEb78H2zGWZvdiXByIFZNyKqYdeaT6jbqQ
-qIYFTEwGj7xhW+7DwdEQ/C+B0UkiyyLk2puuiieBqLrAUgVocsk1ZZhJIRZsZhKj
-PgjKnxqCzcHSQgcGOYwhXww8NKs4mlGxg9di9/OhRDBVmCo82DM=
-=urWq
------END PGP SIGNATURE-----
-
---75xnpki7yhyrrcpi--
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
