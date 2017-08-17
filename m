@@ -1,72 +1,95 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] nokia n900: update dts with camera support
-Date: Thu, 17 Aug 2017 09:20:40 +0300
-Message-ID: <2e7561f4-a160-9009-baa6-e056aa8f3887@iki.fi>
-References: <20170810204923.GA18442@amd>
- <20170814201950.sbtyuksn3ntuigyp@valkosipuli.retiisi.org.uk>
- <20170815220349.GA15441@amd> <20170816205332.rqcuenvuxfs5jvuw@earth>
- <20170816205915.GA5386@atrey.karlin.mff.cuni.cz>
- <20170816212343.hfd4azb4dq2qrlkc@valkosipuli.retiisi.org.uk>
- <20170817000845.agkcuvqaheejm33j@earth>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [RFC PATCH 1/7] mmc: sdhci: Add quirk to indicate no CRC
+ stripping in MMC_RSP_136
+Date: Thu, 17 Aug 2017 09:31:50 +0300
+Message-ID: <f85729ab-09c2-1e88-626b-caca57cef702@intel.com>
+References: <20170807160142.12134-1-kishon@ti.com>
+ <20170807160142.12134-2-kishon@ti.com>
+ <872c7194-3d48-47e5-6396-7189bf841a42@intel.com>
+ <e7592ed0-dda2-6850-098e-7c6bba69df40@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170817000845.agkcuvqaheejm33j@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <e7592ed0-dda2-6850-098e-7c6bba69df40@ti.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
+Cc: nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Sebastian Reichel wrote:
-> Hi,
+On 17/08/17 08:20, Kishon Vijay Abraham I wrote:
+> Hi Adrian,
 > 
-> On Thu, Aug 17, 2017 at 12:23:44AM +0300, Sakari Ailus wrote:
->> On Wed, Aug 16, 2017 at 10:59:15PM +0200, Pavel Machek wrote:
->>>> On Wed, Aug 16, 2017 at 12:03:49AM +0200, Pavel Machek wrote:
->>>>> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
->>>>> index 852041a..aade681 100644
->>>>> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
->>>>> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
->>>>> @@ -119,6 +119,8 @@ Optional endpoint properties
->>>>>    as 0 (normal). This property is valid for serial busses only.
->>>>>  - strobe: Whether the clock signal is used as clock (0) or strobe (1). Used
->>>>>    with CCP2, for instance.
->>>>> +- clock-inv: polarity of clock/strobe signal. 0 - not inverted, 1 - inverted
->>>>> +- crc: crc is in use
->>>>
->>>> booleans in DT are not done with <0> and <1>, but as properties without
->>>> values. True = property exists, False = property does not exist.
+> On Tuesday 15 August 2017 12:57 PM, Adrian Hunter wrote:
+>> On 07/08/17 19:01, Kishon Vijay Abraham I wrote:
+>>> TI's implementation of sdhci controller used in DRA7 SoC's doesn't
+>>> strip CRC in responses with length 136 bits. Add quirk to indicate
+>>> the controller does not strip CRC in MMC_RSP_136. If this quirk is
+>>> set sdhci library shouldn't shift the response present in
+>>> SDHCI_RESPONSE register.
+>>>
+>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>> ---
+>>>  drivers/mmc/host/sdhci.c | 27 +++++++++++++++++++--------
+>>>  drivers/mmc/host/sdhci.h |  2 ++
+>>>  2 files changed, 21 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+>>> index ecd0d4350e8a..ece3751d2a25 100644
+>>> --- a/drivers/mmc/host/sdhci.c
+>>> +++ b/drivers/mmc/host/sdhci.c
+>>> @@ -1182,14 +1182,25 @@ static void sdhci_finish_command(struct sdhci_host *host)
+>>>  
+>>>  	if (cmd->flags & MMC_RSP_PRESENT) {
+>>>  		if (cmd->flags & MMC_RSP_136) {
+>>> -			/* CRC is stripped so we need to do some shifting. */
+>>> -			for (i = 0;i < 4;i++) {
+>>> -				cmd->resp[i] = sdhci_readl(host,
+>>> -					SDHCI_RESPONSE + (3-i)*4) << 8;
+>>> -				if (i != 3)
+>>> -					cmd->resp[i] |=
+>>> -						sdhci_readb(host,
+>>> -						SDHCI_RESPONSE + (3-i)*4-1);
+>>> +			if (!(host->quirks2 & SDHCI_QUIRK2_NO_CRC_STRIPPING)) {
 >>
->> Now that you mention it, I remember that now.
->>
->>> Well, strobe property above already uses = <0>/<1> format, as do
->>> others.
->>
->>> Problem with "false = property does not exist" is that you don't know
->>> if it is "someone forgot to define it" or "someone made a typo" or
->>> "dts is too old to know about this property" or "the property indeed
->>> should be false"...
->>
->> As this is an established practice, I think we should follow it for bool
->> properties.
+>> This is about the 136-bit response so let's put that in the quirk name.  How about SDHCI_QUIRK2_RSP_136_HAS_CRC
 > 
-> Yes it's common practice, there is also device_property_read_bool()
-> to get the value.
-> 
->> We could change the existing ones, too, and leave some extra checks in
->> place to handle old dtbs.
-> 
-> The following should be downward compatible:
-> 
-> var = read_bool();
-> if (var && !read_int())
->     var = false;
-> 
-> Btw. DT people should be CC'd for DT binding additions/changes.
+> Since omap seems to be the only platform that doesn't have CRC, I prefer adding
+> SDHCI_QUIRK2_RSP_136_NO_CRC. That way we can add the quirk only in sdhci-omap
+> instead of all the existing sdhci drivers.
 
-Pavel: could you also add linux-media as well for the next version, please?
+Except that it is the way I described.  All the others strip the CRC and we
+have to shift to pretend it is still there.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+> 
+>>
+>>> +				/*
+>>> +				 * CRC is stripped so we need to do some
+>>> +				 * shifting.
+>>> +				 */
+>>> +				for (i = 0; i < 4; i++) {
+>>> +					cmd->resp[i] =
+>>> +						sdhci_readl(host, SDHCI_RESPONSE
+>>> +							    + (3 - i) * 4) << 8;
+>>> +					if (i != 3)
+>>> +						cmd->resp[i] |=
+>>> +						sdhci_readb(host, SDHCI_RESPONSE
+>>> +							    + (3 - i) * 4 - 1);
+>>> +				}
+>>> +			} else {
+>>> +				for (i = 0; i < 4; i++)
+>>> +					cmd->resp[i] =
+>>> +					sdhci_readl(host, SDHCI_RESPONSE +
+>>> +						    (3 - i) * 4);
+>>>  			}
+>>
+>> This is all very jammed up against the 80 column margin.  Please make a new patch to separate it into a new function sdhci_read_rsp_136() and then another patch to add the quirk.
+>> i.e. completely untested!
+> 
+> Sure. Thanks for the patch.
+> 
+> Thanks
+> Kishon
+> 
+
