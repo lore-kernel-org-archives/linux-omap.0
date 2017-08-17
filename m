@@ -1,71 +1,47 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [RFC PATCH 1/7] mmc: sdhci: Add quirk to indicate no CRC
- stripping in MMC_RSP_136
-Date: Thu, 17 Aug 2017 13:10:14 +0530
-Message-ID: <49848573-1c34-1322-26f5-144b9ec7f171@ti.com>
-References: <20170807160142.12134-1-kishon@ti.com>
- <20170807160142.12134-2-kishon@ti.com>
- <872c7194-3d48-47e5-6396-7189bf841a42@intel.com>
- <e7592ed0-dda2-6850-098e-7c6bba69df40@ti.com>
- <f85729ab-09c2-1e88-626b-caca57cef702@intel.com>
+From: Banajit Goswami <bgoswami@codeaurora.org>
+Subject: Re: [PATCH 07/11] ASoC: qcom: make snd_soc_platform_driver const
+Date: Thu, 17 Aug 2017 00:59:29 -0700
+Message-ID: <20170817075929.GA11689@codeaurora.org>
+References: <1502710730-18912-1-git-send-email-bhumirks@gmail.com>
+ <1502710730-18912-8-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f85729ab-09c2-1e88-626b-caca57cef702@intel.com>
+Content-Disposition: inline
+In-Reply-To: <1502710730-18912-8-git-send-email-bhumirks@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
-Cc: nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, brian.austin@cirrus.com, Paul.Handrigan@cirrus.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, bardliao@realtek.com, chiou@realtek.com, timur@tabi.org, nicoleotsuka@gmail.com, Xiubo.Lee@gmail.com, fabio.estevam@nxp.com, yang.jie@linux.intel.com, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, daniel@zonque.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, plai@codeaurora.org, krzk@kernel.org, sbkim73@samsung.com, s.nawrocki@samsung.com, alsa-devel@alsa-project.org, patches@opensource.cirrus.com, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Thursday 17 August 2017 12:01 PM, Adrian Hunter wrote:
-> On 17/08/17 08:20, Kishon Vijay Abraham I wrote:
->> Hi Adrian,
->>
->> On Tuesday 15 August 2017 12:57 PM, Adrian Hunter wrote:
->>> On 07/08/17 19:01, Kishon Vijay Abraham I wrote:
->>>> TI's implementation of sdhci controller used in DRA7 SoC's doesn't
->>>> strip CRC in responses with length 136 bits. Add quirk to indicate
->>>> the controller does not strip CRC in MMC_RSP_136. If this quirk is
->>>> set sdhci library shouldn't shift the response present in
->>>> SDHCI_RESPONSE register.
->>>>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>> ---
->>>>  drivers/mmc/host/sdhci.c | 27 +++++++++++++++++++--------
->>>>  drivers/mmc/host/sdhci.h |  2 ++
->>>>  2 files changed, 21 insertions(+), 8 deletions(-)
->>>>
->>>> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
->>>> index ecd0d4350e8a..ece3751d2a25 100644
->>>> --- a/drivers/mmc/host/sdhci.c
->>>> +++ b/drivers/mmc/host/sdhci.c
->>>> @@ -1182,14 +1182,25 @@ static void sdhci_finish_command(struct sdhci_host *host)
->>>>  
->>>>  	if (cmd->flags & MMC_RSP_PRESENT) {
->>>>  		if (cmd->flags & MMC_RSP_136) {
->>>> -			/* CRC is stripped so we need to do some shifting. */
->>>> -			for (i = 0;i < 4;i++) {
->>>> -				cmd->resp[i] = sdhci_readl(host,
->>>> -					SDHCI_RESPONSE + (3-i)*4) << 8;
->>>> -				if (i != 3)
->>>> -					cmd->resp[i] |=
->>>> -						sdhci_readb(host,
->>>> -						SDHCI_RESPONSE + (3-i)*4-1);
->>>> +			if (!(host->quirks2 & SDHCI_QUIRK2_NO_CRC_STRIPPING)) {
->>>
->>> This is about the 136-bit response so let's put that in the quirk name.  How about SDHCI_QUIRK2_RSP_136_HAS_CRC
->>
->> Since omap seems to be the only platform that doesn't have CRC, I prefer adding
->> SDHCI_QUIRK2_RSP_136_NO_CRC. That way we can add the quirk only in sdhci-omap
->> instead of all the existing sdhci drivers.
+On Mon, Aug 14, 2017 at 04:38:46AM -0700, Bhumika Goyal wrote:
+> Make this const as it is only passed as the 2nd argument to the
+> function devm_snd_soc_register_platform, which is of type const.
+> Done using Coccinelle.
 > 
-> Except that it is the way I described.  All the others strip the CRC and we
-> have to shift to pretend it is still there.
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 
-right. I made a totally bogus statement.
+Acked-by: Banajit Goswami <bgoswami@codeaurora.org>
 
-Thanks
-Kishon
+> ---
+>  sound/soc/qcom/lpass-platform.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/sound/soc/qcom/lpass-platform.c
+> b/sound/soc/qcom/lpass-platform.c
+> index 7aabf08..fb3576a 100644
+> --- a/sound/soc/qcom/lpass-platform.c
+> +++ b/sound/soc/qcom/lpass-platform.c
+> @@ -557,7 +557,7 @@ static void lpass_platform_pcm_free(struct snd_pcm
+> *pcm)
+>  	}
+>  }
+>  
+> -static struct snd_soc_platform_driver lpass_platform_driver = {
+> +static const struct snd_soc_platform_driver lpass_platform_driver = {
+>  	.pcm_new	= lpass_platform_pcm_new,
+>  	.pcm_free	= lpass_platform_pcm_free,
+>  	.ops		= &lpass_platform_pcm_ops,
+> -- 
+> 1.9.1
+> 
