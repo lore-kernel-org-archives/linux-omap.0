@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] non-urgent fixes for omaps for v4.14
-Date: Thu, 17 Aug 2017 10:50:49 -0700
-Message-ID: <38603.6077667542$1505308773@news.gmane.org>
+Subject: [GIT PULL] device tree changes for omaps for v4.14, part2
+Date: Thu, 17 Aug 2017 11:28:54 -0700
+Message-ID: <2763.88414572484$1505308777@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,43 +21,67 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit ff570a01b1bd15cf8a87c9ea774fc9c52ea07f15:
+The following changes since commit d510d12f26f49905d53ab550fcb40e848a01a60e:
 
-  ARM: dts: dra71-evm: mdio: Fix impedance values (2017-07-05 00:54:52 -0700)
+  ARM: dts: nokia n900: update dts with camera support (2017-08-14 11:34:25 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.14/fixes-not-urgent-v2-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.14/dt-v3-pt2-signed
 
-for you to fetch changes up to 879dce79531ea82f78d662c4651be07761c6e41a:
+for you to fetch changes up to b7ace5ed8867ca54503727988adec6b20af54eeb:
 
-  ARM: OMAP4+: PRM: fix of_irq_get() result checks (2017-08-15 08:53:28 -0700)
-
-----------------------------------------------------------------
-Non-urgent fixes for omaps for v4.14 merge window. These all
-can wait for the merge window as we have not seemed to hit
-any of these so far:
-
-- Fix error handling in omap_ocp2scp_probe affecting runtime
-  PM error path
-
-- Drop broken RPM status update for omap_device
-
-- Two fixes for of_irq_get() usage that can return 0
+  ARM: dts: omap3: logicpd-torpedo-37xx-devkit: Fix MMC1 cd-gpio (2017-08-17 09:23:13 -0700)
 
 ----------------------------------------------------------------
-Johan Hovold (1):
-      ARM: OMAP2+: omap_device: drop broken RPM status update from suspend_noirq
+Second set of device tree changes for omaps for v4.14 merge window.
+These got delayed a bit because the iodelay changes had to be
+reworked for a missing Signed-off-by. And the beagleboard-x15
+wants to use iodelay too for mmc:
 
-Kishon Vijay Abraham I (1):
-      bus: omap-ocp2scp: Fix error handling in omap_ocp2scp_probe
+- A series of changes to add dra7 iodelay data used for mmc
 
-Sergei Shtylyov (2):
-      ARM: OMAP3+: PRM: fix of_irq_get() result check
-      ARM: OMAP4+: PRM: fix of_irq_get() result checks
+- Add support for new beagleBoard-x15 revision c
 
- arch/arm/mach-omap2/omap_device.c | 10 ----------
- arch/arm/mach-omap2/prm3xxx.c     |  2 +-
- arch/arm/mach-omap2/prm44xx.c     |  4 ++--
- drivers/bus/omap-ocp2scp.c        |  9 +++++++--
- 4 files changed, 10 insertions(+), 15 deletions(-)
+- Fix logicpd-torpedo-37xx-devkit mmc card detect direction
+
+----------------------------------------------------------------
+Adam Ford (1):
+      ARM: dts: omap3: logicpd-torpedo-37xx-devkit: Fix MMC1 cd-gpio
+
+Kishon Vijay Abraham I (7):
+      ARM: dts: dra7-evm: Add pinmux configuration for MMC
+      ARM: dts: am57xx-beagle-x15: Add pinmux configuration for MMC
+      ARM: dts: am571x-idk: Add pinmux configuration for MMC
+      ARM: dts: am572x-idk: Add pinmux configuration for MMC
+      ARM: dts: dra72-evm: Add pinmux configuration for MMC
+      ARM: dts: dra72-evm-revc: Add pinmux configuration for MMC
+      ARM: dts: dra71-evm: Add pinmux configuration for MMC
+
+Robert Nelson (1):
+      ARM: dts: am57xx-beagle-x15: Add support for rev C
+
+Sekhar Nori (3):
+      ARM: dts: dra72x: Create a common file with MMC/SD IOdelay data
+      ARM: dts: dra74x: Create a common file with MMC/SD IOdelay data
+      ARM: dts: am57xx-idk: Move common MMC/SD properties to common file
+
+ arch/arm/boot/dts/Makefile                        |   1 +
+ arch/arm/boot/dts/am571x-idk.dts                  |  26 +-
+ arch/arm/boot/dts/am572x-idk.dts                  |  27 +-
+ arch/arm/boot/dts/am57xx-beagle-x15-common.dtsi   |  29 +-
+ arch/arm/boot/dts/am57xx-beagle-x15-revb1.dts     |  15 +
+ arch/arm/boot/dts/am57xx-beagle-x15-revc.dts      |  39 ++
+ arch/arm/boot/dts/am57xx-beagle-x15.dts           |  11 +
+ arch/arm/boot/dts/am57xx-idk-common.dtsi          |   8 +
+ arch/arm/boot/dts/dra7-evm.dts                    |  22 +-
+ arch/arm/boot/dts/dra71-evm.dts                   |  14 +
+ arch/arm/boot/dts/dra72-evm-revc.dts              |  14 +
+ arch/arm/boot/dts/dra72-evm.dts                   |  14 +
+ arch/arm/boot/dts/dra72x-mmc-iodelay.dtsi         | 350 ++++++++++++
+ arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi         | 647 ++++++++++++++++++++++
+ arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts |   2 +-
+ 15 files changed, 1171 insertions(+), 48 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am57xx-beagle-x15-revc.dts
+ create mode 100644 arch/arm/boot/dts/dra72x-mmc-iodelay.dtsi
+ create mode 100644 arch/arm/boot/dts/dra74x-mmc-iodelay.dtsi
