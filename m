@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/3] ARM: OMAP2+: Separate dra7 cpuidle from omap5
-Date: Thu, 17 Aug 2017 16:01:20 -0700
-Message-ID: <20170817230122.30655-2-tony@atomide.com>
+Subject: [PATCH 3/3] ARM: OMAP5: Enable CPU off idle states
+Date: Thu, 17 Aug 2017 16:01:22 -0700
+Message-ID: <20170817230122.30655-4-tony@atomide.com>
 References: <20170817230122.30655-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,9 +21,14 @@ To: linux-omap@vger.kernel.org
 Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-As omap5 supports deeper idle states compared to dra7, let's
-separate dra7 from omap5 in preparation for adding more support
-for omap5.
+With the idle code in place needed for supporting off mode for cpus,
+let's enable it. This seems to save about 0.2W of power compared to
+CPU retention states based on quick measurement on omap5-uevm.
+
+Some parts of the code is based on an earlier patch done by Santosh
+Shilimkar <santosh.shilimkar@oracle.com> in TI Linux kernel tree as
+commit 7e3035cf0e9b ("ARM: OMAP4+: CPUidle: Add OMAP5 idle driver
+support")
 
 Cc: Dave Gerlach <d-gerlach@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
@@ -31,74 +36,87 @@ Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/cpuidle44xx.c | 42 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ arch/arm/mach-omap2/cpuidle44xx.c           | 14 ++++++++++++++
+ arch/arm/mach-omap2/pm44xx.c                |  2 +-
+ arch/arm/mach-omap2/powerdomains54xx_data.c | 10 +++++-----
+ 3 files changed, 20 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
 --- a/arch/arm/mach-omap2/cpuidle44xx.c
 +++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -65,6 +65,19 @@ static struct idle_statedata omap5_idle_data[] = {
+@@ -63,6 +63,11 @@ static struct idle_statedata omap5_idle_data[] = {
+ 		.mpu_state = PWRDM_POWER_RET,
+ 		.mpu_logic_state = PWRDM_POWER_RET,
  	},
- };
- 
-+static struct idle_statedata dra7_idle_data[] = {
 +	{
-+		.cpu_state = PWRDM_POWER_ON,
-+		.mpu_state = PWRDM_POWER_ON,
-+		.mpu_logic_state = PWRDM_POWER_ON,
-+	},
-+	{
-+		.cpu_state = PWRDM_POWER_RET,
++		.cpu_state = PWRDM_POWER_OFF,
 +		.mpu_state = PWRDM_POWER_RET,
-+		.mpu_logic_state = PWRDM_POWER_RET,
++		.mpu_logic_state = PWRDM_POWER_OFF,
 +	},
-+};
-+
- static struct powerdomain *mpu_pd, *cpu_pd[MAX_CPUS];
- static struct clockdomain *cpu_clkdm[MAX_CPUS];
- 
-@@ -288,6 +301,32 @@ static struct cpuidle_driver omap5_idle_driver = {
- 	.safe_state_index = 0,
  };
  
-+static struct cpuidle_driver dra7_idle_driver = {
-+	.name				= "dra7_idle",
-+	.owner				= THIS_MODULE,
-+	.states = {
+ static struct idle_statedata dra7_idle_data[] = {
+@@ -296,6 +301,15 @@ static struct cpuidle_driver omap5_idle_driver = {
+ 			.name = "C2",
+ 			.desc = "CPUx CSWR, MPUSS CSWR",
+ 		},
 +		{
-+			/* C1 - CPU0 ON + CPU1 ON + MPU ON */
-+			.exit_latency = 2 + 2,
-+			.target_residency = 5,
-+			.enter = omap_enter_idle_simple,
-+			.name = "C1",
-+			.desc = "CPUx WFI, MPUSS ON"
++			/* C3 - CPU0 OFF + CPU1 OFF + MPU OSWR */
++			.exit_latency = 460 + 518,
++			.target_residency = 1100,
++			.flags = CPUIDLE_FLAG_TIMER_STOP | CPUIDLE_FLAG_COUPLED,
++			.enter = omap_enter_idle_coupled,
++			.name = "C3",
++			.desc = "CPUx OFF, MPUSS OSWR",
 +		},
-+		{
-+			/* C2 - CPU0 RET + CPU1 RET + MPU CSWR */
-+			.exit_latency = 48 + 60,
-+			.target_residency = 100,
-+			.flags = CPUIDLE_FLAG_TIMER_STOP,
-+			.enter = omap_enter_idle_smp,
-+			.name = "C2",
-+			.desc = "CPUx CSWR, MPUSS CSWR",
-+		},
-+	},
-+	.state_count = ARRAY_SIZE(dra7_idle_data),
-+	.safe_state_index = 0,
-+};
-+
- /* Public functions */
+ 	},
+ 	.state_count = ARRAY_SIZE(omap5_idle_data),
+ 	.safe_state_index = 0,
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -225,7 +225,7 @@ int __init omap4_pm_init_early(void)
+ 	if (cpu_is_omap446x())
+ 		pm44xx_errata |= PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD;
  
- /**
-@@ -303,6 +342,9 @@ int __init omap4_idle_init(void)
- 	if (soc_is_omap54xx()) {
- 		state_ptr = &omap5_idle_data[0];
- 		idle_driver = &omap5_idle_driver;
-+	} else if (soc_is_dra7xx()) {
-+		state_ptr = &dra7_idle_data[0];
-+		idle_driver = &dra7_idle_driver;
- 	} else {
- 		state_ptr = &omap4_idle_data[0];
- 		idle_driver = &omap4_idle_driver;
+-	if (soc_is_omap54xx() || soc_is_dra7xx())
++	if (soc_is_dra7xx())
+ 		pm44xx_errata |= PM_OMAP4_CPU_OSWR_DISABLE;
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/powerdomains54xx_data.c b/arch/arm/mach-omap2/powerdomains54xx_data.c
+--- a/arch/arm/mach-omap2/powerdomains54xx_data.c
++++ b/arch/arm/mach-omap2/powerdomains54xx_data.c
+@@ -107,8 +107,8 @@ static struct powerdomain cpu0_54xx_pwrdm = {
+ 	.voltdm		  = { .name = "mpu" },
+ 	.prcm_offs	  = OMAP54XX_PRCM_MPU_PRM_C0_INST,
+ 	.prcm_partition	  = OMAP54XX_PRCM_MPU_PARTITION,
+-	.pwrsts		  = PWRSTS_RET_ON,
+-	.pwrsts_logic_ret = PWRSTS_RET,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRSTS_OFF_RET,	/* cpu0_l1 */
+@@ -124,8 +124,8 @@ static struct powerdomain cpu1_54xx_pwrdm = {
+ 	.voltdm		  = { .name = "mpu" },
+ 	.prcm_offs	  = OMAP54XX_PRCM_MPU_PRM_C1_INST,
+ 	.prcm_partition	  = OMAP54XX_PRCM_MPU_PARTITION,
+-	.pwrsts		  = PWRSTS_RET_ON,
+-	.pwrsts_logic_ret = PWRSTS_RET,
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRSTS_OFF_RET,	/* cpu1_l1 */
+@@ -158,7 +158,7 @@ static struct powerdomain mpu_54xx_pwrdm = {
+ 	.prcm_offs	  = OMAP54XX_PRM_MPU_INST,
+ 	.prcm_partition	  = OMAP54XX_PRM_PARTITION,
+ 	.pwrsts		  = PWRSTS_RET_ON,
+-	.pwrsts_logic_ret = PWRSTS_RET,
++	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 2,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRSTS_OFF_RET,	/* mpu_l2 */
 -- 
 2.14.1
