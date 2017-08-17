@@ -1,43 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 5/7] dt-bindings: ti-omap-hsmmc: Document new
- compatible for sdhci omap
-Date: Thu, 17 Aug 2017 09:05:37 -0700
-Message-ID: <20170817160537.GL8569@atomide.com>
-References: <20170807160142.12134-1-kishon@ti.com>
- <20170807160142.12134-6-kishon@ti.com>
- <20170809221222.GK3934@atomide.com>
- <2cdf9bbe-b98b-8811-7587-268b7ef4ac66@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: dts: am57xx-beagle-x15: Add support for rev C
+Date: Thu, 17 Aug 2017 09:22:34 -0700
+Message-ID: <20170817162233.GA6008@atomide.com>
+References: <20170816165053.19450-1-robertcnelson@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2cdf9bbe-b98b-8811-7587-268b7ef4ac66@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170816165053.19450-1-robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Drew Fustini <drew-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Kishon Vijay Abraham I <kishon@ti.com> [170816 22:44]:
-> Hi Tony,
+* Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170816 09:51]:
+> Latest update to the BeagleBoard-X15 platform (revision C). This board contains
+> a silicon update (Rev 2.0), which includes a fix for the 2nd ethernet phy when
+> running at 1000 Mbps speeds.
 > 
-> On Thursday 10 August 2017 03:42 AM, Tony Lindgren wrote:
-> > * Kishon Vijay Abraham I <kishon@ti.com> [170807 09:03]:
-> >> Document the new compatible string "ti,dra7-sdhci" to be used for
-> >> MMC controllers in DRA7 and DRA72 SoCs.
-> > 
-> > I wonder if this should really be documented for sdhci
-> > instead of ti-omap-hsmmc.txt?
+> This board can be indentified by the [C.00] after [BBRDX15_] in the at24 eeprom:
+> [BBRDX15_C.001731PX150249]
 > 
-> hmm.. yeah, having a separate binding document for sdhci would make the binding
-> really clean and we also don't have to carry legacy binding code. But we'll be
-> never able to remove omap-hsmmc driver then and end up maintaining 2 drivers
-> for the same controller.
+> Rev C is now in full production and boards are available for end users.
 
-Well I think it's best to be able to enable sdhci one board at
-a time after testing. Then eventually when fully supported, we
-can just have sdhci also parse the legacy omap binding and just
-drop the omap-hsmmc driver.
+Thanks applying into omap-for-v4.14/dt-v3.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
