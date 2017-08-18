@@ -1,81 +1,111 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCHv3 2/6] dt-bindings: sound: add motorola,
-	cpcap-audio-codec
-Date: Fri, 18 Aug 2017 12:47:30 +0100
-Message-ID: <20170818114730.57yc2r6d3temrepa@sirena.org.uk>
-References: <20170725151030.26863-1-sebastian.reichel@collabora.co.uk>
- <20170725151030.26863-3-sebastian.reichel@collabora.co.uk>
- <20170726114827.pye3jm2b7x2nqo5v@sirena.org.uk>
- <20170727090141.sxzm6mq5cv4jzucg@earth>
- <20170810165358.GK8569@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 00/18] PCI: endpoint: Make pci-epf-test more flexible
+Date: Fri, 18 Aug 2017 20:27:52 +0530
+Message-ID: <20170818145810.17649-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2782198961296867222=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20170810165358.GK8569@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Bjorn,
 
---===============2782198961296867222==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="mk63f6qznskjx7fv"
-Content-Disposition: inline
+I've collected all the patches for PCI Endpoint in this series. This
+series contains PCI endpoint fixes and making pci-epf-test more
+flexible in terms of mapping PCI_ENDPOINT_TEST regs to any BARs,
+work with linkup notification etc.
 
+I've been having most of these patches in my local tree created while
+adding support for endpoint in TI's K2G platform. I've also included fix
+from others who are trying to use the PCI Endpoint Framework in their
+own platforms.
 
---mk63f6qznskjx7fv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+It also contains minor changes in pci/dwc/ like resetting BARs in the
+EP controller and providing a page size to pci_epc_mem. I can send this
+part separately based on some of your branch if you'd prefer that.
 
-On Thu, Aug 10, 2017 at 09:53:59AM -0700, Tony Lindgren wrote:
-> * Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170727 02:02]:
+This also contains patches for host side pci_endpoint_test driver
+in drivers/misc.
 
-> > I don't follow you here. Why can't other parts of the chip use the
-> > same supply? Regarding the other point: Handling the audio-codec
+I've pushed the series to pci-endpoint tree, the details of which are
+given below.
 
-They can, they know they're part of the parent chip and should be
-looking for the supply on the chip level.
+Thanks
+Kishon
 
-> > differently than all other sub-modules of cpcap seems much more
-> > problematic to me and the codec is basically the last one
-> > missing:
+The following changes since commit 5771a8c08880cdca3bfb4a3fc6d309d6bba20877:
 
-> Mark, any comments on the above? I'm just wondering if the
-> related dts changes are safe for me to pick.
+  Linux v4.13-rc1 (2017-07-15 15:22:10 -0700)
 
-No, they don't make sense.
+are available in the git repository at:
 
---mk63f6qznskjx7fv
-Content-Type: application/pgp-signature; name="signature.asc"
+  git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git tags/pci-ep-for-4.14
 
------BEGIN PGP SIGNATURE-----
+for you to fetch changes up to 31802acb56e040bf5f269b2bad159583fc804d68:
 
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlmW09EACgkQJNaLcl1U
-h9AKCAf9EWXupYCrST1QW4exCFfksCiJ0trEm2Xx2+o96FUOo3EOZ9AoLL/F4pgS
-z7LgS+zdMIdITKfWfI/+TljgC2+WLsqys1Mjhq5Xyw1ud584QoXq78n0xp6+Zksw
-1NKjfXLhvCtkin6eoCiKuKgMLLvMRnd8gSIS3kOKdqi6uWwEzRdDm0STjZAPQHO3
-zjiZczKhrR/aVpoM6GkCMDumRmLocRWFWgBHGRYXuhfYuiNocmgGqFlLj/zs2NJ4
-5wSgykajv6cLpZnZIaOonivd6p8BP1x6et1mpEpH9UlHI18ipHK9JRIIo0D3/6PC
-CvyjhPEU3k5UpEfvWpuebZqV/jgywA==
-=4Hpm
------END PGP SIGNATURE-----
+  tools: PCI: Add a missing option help line (2017-08-18 19:23:36 +0530)
 
---mk63f6qznskjx7fv--
+----------------------------------------------------------------
+PCI: endpoint: for 4.14
 
---===============2782198961296867222==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+PCI endpoint core:
+ *) Add support for page size to be configurable (for managing address
+    region within the controller)
+ *) Add an API to get matching "pci_epf_device_id"
+ *) Use of_dma_configure() to set initial dma mask of pci_epf device
+ *) Do not abort if endpoint function drivers have not populated
+    ->remove() callback
 
+pci-epf-test function driver:
+ *) Add support to poll early for host commands
+ *) Add support to use _any_ BAR's to map PCI_ENDPOINT_TEST regs
 
---===============2782198961296867222==--
+pci_endpoint_test PCI driver:
+ *) Add support for PCI_ENDPOINT_TEST regs to be mapped to any BAR
+ *) Add support to provide aligned buffer addresses
+ *) Enable/Disable MSI using module param
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+----------------------------------------------------------------
+Kishon Vijay Abraham I (16):
+      PCI: endpoint: pci-epc-core: Use of_dma_configure() to set initial dma mask
+      PCI: endpoint: pci-epf-core: Add an API to get matching "pci_epf_device_id"
+      PCI: endpoint: pci-epf-core: Make ->remove() callback optional
+      PCI: endpoint: pci-epc-mem: Add support for configurable page size
+      PCI: endpoint: functions/pci-epf-test: Add "volatile" to pci_epf_test_reg
+      PCI: endpoint: functions/pci-epf-test: Do not reset *command* inadvertently
+      PCI: endpoint: functions/pci-epf-test: Add support to use _any_ BAR's to map PCI_ENDPOINT_TEST regs
+      PCI: endpoint: functions/pci-epf-test: Add support to poll early for host commands
+      PCI: dwc: designware: Provide page_size to pci_epc_mem
+      PCI: dwc: dra7xx: Reset all BARs during initialization
+      PCI: dwc: designware-ep: Do not disable BARs during initialization
+      misc: pci_endpoint_test: Add support for PCI_ENDPOINT_TEST regs to be mapped to any BAR
+      misc: pci_endpoint_test: Add support to provide aligned buffer addresses
+      misc: pci_endpoint_test: Add support to not enable MSI interrupts
+      misc: pci_endpoint_test: Avoid using hard coded BAR sizes
+      misc: pci_endpoint_test: Enable/Disable MSI using module param
+
+Shawn Lin (1):
+      PCI: endpoint: functions/pci-epf-test: Remove the ->remove() callback
+
+Stan Drozd (1):
+      tools: PCI: Add a missing option help line
+
+ drivers/misc/pci_endpoint_test.c              | 132 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------
+ drivers/pci/dwc/pci-dra7xx.c                  |  13 +++++++++++++
+ drivers/pci/dwc/pcie-designware-ep.c          |   7 ++-----
+ drivers/pci/dwc/pcie-designware.h             |   1 +
+ drivers/pci/endpoint/functions/pci-epf-test.c |  99 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------
+ drivers/pci/endpoint/pci-epc-core.c           |  11 +++++++++--
+ drivers/pci/endpoint/pci-epc-mem.c            |  59 ++++++++++++++++++++++++++++++++++++++++++++++++++---------
+ drivers/pci/endpoint/pci-epf-core.c           |  21 +++++++++++++++++++--
+ include/linux/pci-epc.h                       |   8 +++++++-
+ include/linux/pci-epf.h                       |   2 ++
+ tools/pci/pcitest.c                           |   1 +
+ 11 files changed, 276 insertions(+), 78 deletions(-)
+-- 
+2.11.0
