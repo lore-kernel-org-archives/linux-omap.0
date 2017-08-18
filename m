@@ -1,13 +1,13 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] device tree changes for omaps for v4.14, part2
-Date: Fri, 18 Aug 2017 22:56:46 +0200
-Message-ID: <CAK8P3a3pFcE79fMMX1fkj_H3=_2xORK7xKARpWTQszok43FTOg@mail.gmail.com>
-References: <-4579924122609271736@unknownmsgid>
+Subject: Re: [GIT PULL] non-urgent fixes for omaps for v4.14
+Date: Sat, 19 Aug 2017 00:08:53 +0200
+Message-ID: <CAK8P3a0WDkzUwLz2ZUQdGrOX0oW+gvGgF3zyktum==OqvCmUpg@mail.gmail.com>
+References: <-7291673037985203159@unknownmsgid>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <-4579924122609271736@unknownmsgid>
+In-Reply-To: <-7291673037985203159@unknownmsgid>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,19 +21,18 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 17, 2017 at 8:28 PM, Tony Lindgren <tony@atomide.com> wrote:
-> ----------------------------------------------------------------
-> Second set of device tree changes for omaps for v4.14 merge window.
-> These got delayed a bit because the iodelay changes had to be
-> reworked for a missing Signed-off-by. And the beagleboard-x15
-> wants to use iodelay too for mmc:
+On Thu, Aug 17, 2017 at 7:50 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Non-urgent fixes for omaps for v4.14 merge window. These all
+> can wait for the merge window as we have not seemed to hit
+> any of these so far:
 >
-> - A series of changes to add dra7 iodelay data used for mmc
+> - Fix error handling in omap_ocp2scp_probe affecting runtime
+>   PM error path
 >
-> - Add support for new beagleBoard-x15 revision c
+> - Drop broken RPM status update for omap_device
 >
-> - Fix logicpd-torpedo-37xx-devkit mmc card detect direction
+> - Two fixes for of_irq_get() usage that can return 0
 
-Pulled into next/dt, thanks!
+Pulled into next/cleanup, thanks!
 
        Arnd
