@@ -1,69 +1,55 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 01/18] PCI: endpoint: pci-epc-core: Use of_dma_configure() to set initial dma mask
-Date: Fri, 18 Aug 2017 20:27:53 +0530
-Message-ID: <20170818145810.17649-2-kishon@ti.com>
-References: <20170818145810.17649-1-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP5: Enable CPU off idle states
+Date: Fri, 18 Aug 2017 08:26:00 -0700
+Message-ID: <20170818152600.GE6008@atomide.com>
+References: <20170817230122.30655-1-tony@atomide.com>
+ <20170817230122.30655-4-tony@atomide.com>
+ <c31a90c4-8dbe-926a-831c-5fac92ebae80@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170818145810.17649-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <c31a90c4-8dbe-926a-831c-5fac92ebae80@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Use of_dma_configure() to set the initial dma mask of epf device. This
-helps to get rid of "Coherent DMA mask 0x0 (pfn 0x0-0x1) covers a smaller
-range of system memory than the DMA zone pfn" warning in certain platforms
-like TI's K2G resulting in coherent dma mask not being set.
-
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/endpoint/pci-epc-core.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/pci/endpoint/pci-epc-core.c b/drivers/pci/endpoint/pci-epc-core.c
-index caa7be10e473..42c2a1156325 100644
---- a/drivers/pci/endpoint/pci-epc-core.c
-+++ b/drivers/pci/endpoint/pci-epc-core.c
-@@ -21,6 +21,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-+#include <linux/of_device.h>
- 
- #include <linux/pci-epc.h>
- #include <linux/pci-epf.h>
-@@ -370,6 +371,7 @@ EXPORT_SYMBOL_GPL(pci_epc_write_header);
- int pci_epc_add_epf(struct pci_epc *epc, struct pci_epf *epf)
- {
- 	unsigned long flags;
-+	struct device *dev = epc->dev.parent;
- 
- 	if (epf->epc)
- 		return -EBUSY;
-@@ -381,8 +383,12 @@ int pci_epc_add_epf(struct pci_epc *epc, struct pci_epf *epf)
- 		return -EINVAL;
- 
- 	epf->epc = epc;
--	dma_set_coherent_mask(&epf->dev, epc->dev.coherent_dma_mask);
--	epf->dev.dma_mask = epc->dev.dma_mask;
-+	if (dev->of_node) {
-+		of_dma_configure(&epf->dev, dev->of_node);
-+	} else {
-+		dma_set_coherent_mask(&epf->dev, epc->dev.coherent_dma_mask);
-+		epf->dev.dma_mask = epc->dev.dma_mask;
-+	}
- 
- 	spin_lock_irqsave(&epc->lock, flags);
- 	list_add_tail(&epf->list, &epc->pci_epf);
-@@ -500,6 +506,7 @@ __pci_epc_create(struct device *dev, const struct pci_epc_ops *ops,
- 	dma_set_coherent_mask(&epc->dev, dev->coherent_dma_mask);
- 	epc->dev.class = pci_epc_class;
- 	epc->dev.dma_mask = dev->dma_mask;
-+	epc->dev.parent = dev;
- 	epc->ops = ops;
- 
- 	ret = dev_set_name(&epc->dev, "%s", dev_name(dev));
--- 
-2.11.0
+KiBOaXNoYW50aCBNZW5vbiA8bm1AdGkuY29tPiBbMTcwODE3IDE4OjMwXToKPiBPbiAwOC8xNy8y
+MDE3IDA2OjAxIFBNLCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gV2l0aCB0aGUgaWRsZSBjb2Rl
+IGluIHBsYWNlIG5lZWRlZCBmb3Igc3VwcG9ydGluZyBvZmYgbW9kZSBmb3IgY3B1cywKPiA+IGxl
+dCdzIGVuYWJsZSBpdC4gVGhpcyBzZWVtcyB0byBzYXZlIGFib3V0IDAuMlcgb2YgcG93ZXIgY29t
+cGFyZWQgdG8KPiA+IENQVSByZXRlbnRpb24gc3RhdGVzIGJhc2VkIG9uIHF1aWNrIG1lYXN1cmVt
+ZW50IG9uIG9tYXA1LXVldm0uCj4gCj4gVGhhdCBtYWtlcyBzZW5zZSBzaW5jZSB0aGUgU2lsaWNv
+biB5b3UgcHJvYmFibHkgaGF2ZSBpcyBwcmUtcHJvZHVjdGlvbgo+IHNpbGljb24uCgpJdCBzZWVt
+cyB0byBiZSBlczIuMCwgdGhlIG1lYXN1cmVtZW50IHdhcyBqdXN0IGJhc2VkIG9uIGEgZ2xhbmNl
+Cm9mIHRoZSBwb3dlciBzdXBwbHkgYWZ0ZXIgcm1tb2Qgb2YgZWhjaS1vbWFwIGFuZCBvaGNpLXBs
+YXRmb3JtCm1vZHVsZXMuCgo+IHVuZm9ydHVuYXRlbHksIHlvdSBoYXZlIGJlZW4gbG9va2luZyBh
+dCBzb21lIHByZXByb2R1Y3Rpb24gY29kZSB3aGljaCB3YXMKPiBiZWluZyBkZXZlbG9wZWQgcHJp
+b3IgdG8gdGhlIHNpbGljb24gZ29pbmcgaW50byBwcm9kdWN0aW9uIChhbHNvIHRoZSByZWFzb24K
+PiB3aHkgSSBoYXZlJ250IHVwc3RyZWFtZWQgdGhvc2UgY2hhbmdlcykuCgpPaCBJIGRpZCBub3Qg
+a25vdyB0aGF0LCBJIHdhcyBqdXN0IGxvb2tpbmcgYXQgdGhlIG9sZAp0aS1saW51eC0zLTgteS1r
+ZXJuZWwgdGhhdCB0aGUgaWdlcHY1IGtlcm5lbCB0cmVlIGlzCmJhc2VkIG9uLgoKPiB1bmZvcnR1
+bmF0ZWx5LCBJIGhhdmUgdG8gTkFLIHRoaXMgcGF0Y2guCj4gCj4gaHR0cHM6Ly9naXQua2VybmVs
+Lm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGludXguZ2l0L2NvbW1pdC8/
+aWQ9OWY1ZGM5MWI2OTFjZjI5NmM0OWFlZGYwYTY3MWZkNjU5YTcwZjczNwo+IGFzIHBlciBUZWNo
+bmljYWwgUmVmZXJlbmNlIE1hbnVhbCBTV1BVMjgyQUbigJNNYXkgMjAxMuKAk1JldmlzZWQgQXVn
+dXN0IDIwMTYsCj4gUE1fTVBVX1BXUlNUQ1RSTCBjYW4gb25seSBzdXBwb3J0OiBPTiBJTkEsIFJF
+VC4gKENTV1Igb25seSkuCj4gCj4gU2FtZSBhcHBsaWVzIHRvIENQVXMgYXMgd2VsbC4gd2hpY2gg
+d2FzIHRoZSByZWFzb24gaW4gdGhlIGZpcnN0IHBsYWNlIGZvciBtZQo+IHRvIHNlbmQgdGhlIHBh
+dGNoIHVwc3RyZWFtLgoKT0ssIGlzIHRoZXJlIHNvbWUgaGFyZHdhcmUgZXJyYXRhIGlzc3VlZCBv
+biB0aGF0PwoKSSBhbHNvIG5vdGljZWQgdGhlc2UgcGF0Y2hlcyB3b24ndCB3b3JrIHdoZW4gYm9v
+dGVkIHdpdGggTFBBRQplbmFibGVkIGtlcm5lbCBmb3Igc29tZSByZWFzb24uCgpSZWdhcmRzLAoK
+VG9ueQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGlu
+dXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRl
+YWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+YXJtLWtlcm5lbAo=
