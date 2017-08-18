@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 03/18] PCI: endpoint: pci-epf-core: Make ->remove() callback optional
-Date: Fri, 18 Aug 2017 20:27:55 +0530
-Message-ID: <20170818145810.17649-4-kishon@ti.com>
+Subject: [PATCH 09/18] PCI: endpoint: functions/pci-epf-test: Remove the ->remove() callback
+Date: Fri, 18 Aug 2017 20:28:01 +0530
+Message-ID: <20170818145810.17649-10-kishon@ti.com>
 References: <20170818145810.17649-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,35 +9,48 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170818145810.17649-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Shawn Lin <shawn.lin@rock-chips.com>
 List-Id: linux-omap@vger.kernel.org
 
-Make ->remove() callback optional so that endpoint function drivers
-don't have to populate empty ->remove() callback functions.
+From: Shawn Lin <shawn.lin@rock-chips.com>
 
+epf_test is allocated using devm_kzalloc. Hence it's not required to
+explicitly free it in remove() callback. Since ->remove() callback
+doesn't do anything other than freeing epf_test, remove the
+->remove() callback.
+
+Signed-off-by: Shawn Lin <shawn.lin@rock-chips.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/endpoint/pci-epf-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/pci/endpoint/functions/pci-epf-test.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/drivers/pci/endpoint/pci-epf-core.c b/drivers/pci/endpoint/pci-epf-core.c
-index 60ea0c51161e..ae6fac5995e3 100644
---- a/drivers/pci/endpoint/pci-epf-core.c
-+++ b/drivers/pci/endpoint/pci-epf-core.c
-@@ -333,11 +333,12 @@ static int pci_epf_device_probe(struct device *dev)
+diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
+index a0aea2500690..4ddc6e8f9fe7 100644
+--- a/drivers/pci/endpoint/functions/pci-epf-test.c
++++ b/drivers/pci/endpoint/functions/pci-epf-test.c
+@@ -496,14 +496,6 @@ static int pci_epf_test_probe(struct pci_epf *epf)
+ 	return 0;
+ }
  
- static int pci_epf_device_remove(struct device *dev)
- {
--	int ret;
-+	int ret = 0;
- 	struct pci_epf *epf = to_pci_epf(dev);
- 	struct pci_epf_driver *driver = to_pci_epf_driver(dev->driver);
- 
--	ret = driver->remove(epf);
-+	if (driver->remove)
-+		ret = driver->remove(epf);
- 	epf->driver = NULL;
- 
- 	return ret;
+-static int pci_epf_test_remove(struct pci_epf *epf)
+-{
+-	struct pci_epf_test *epf_test = epf_get_drvdata(epf);
+-
+-	kfree(epf_test);
+-	return 0;
+-}
+-
+ static struct pci_epf_ops ops = {
+ 	.unbind	= pci_epf_test_unbind,
+ 	.bind	= pci_epf_test_bind,
+@@ -513,7 +505,6 @@ static struct pci_epf_ops ops = {
+ static struct pci_epf_driver test_driver = {
+ 	.driver.name	= "pci_epf_test",
+ 	.probe		= pci_epf_test_probe,
+-	.remove		= pci_epf_test_remove,
+ 	.id_table	= pci_epf_test_ids,
+ 	.ops		= &ops,
+ 	.owner		= THIS_MODULE,
 -- 
 2.11.0
