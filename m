@@ -1,13 +1,17 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] non-urgent fixes for omaps for v4.14
-Date: Sat, 19 Aug 2017 00:08:53 +0200
-Message-ID: <CAK8P3a0WDkzUwLz2ZUQdGrOX0oW+gvGgF3zyktum==OqvCmUpg@mail.gmail.com>
-References: <-7291673037985203159@unknownmsgid>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP5: Enable CPU off idle states
+Date: Fri, 18 Aug 2017 17:27:08 -0500
+Message-ID: <77854a91-80f0-3622-93a2-2eefe1e8b1aa@ti.com>
+References: <20170817230122.30655-1-tony@atomide.com>
+ <20170817230122.30655-4-tony@atomide.com>
+ <c31a90c4-8dbe-926a-831c-5fac92ebae80@ti.com>
+ <20170818152600.GE6008@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <-7291673037985203159@unknownmsgid>
+In-Reply-To: <20170818152600.GE6008@atomide.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,21 +22,50 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 17, 2017 at 7:50 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Non-urgent fixes for omaps for v4.14 merge window. These all
-> can wait for the merge window as we have not seemed to hit
-> any of these so far:
->
-> - Fix error handling in omap_ocp2scp_probe affecting runtime
->   PM error path
->
-> - Drop broken RPM status update for omap_device
->
-> - Two fixes for of_irq_get() usage that can return 0
-
-Pulled into next/cleanup, thanks!
-
-       Arnd
+T24gMDgvMTgvMjAxNyAxMDoyNiBBTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAqIE5pc2hhbnRo
+IE1lbm9uIDxubUB0aS5jb20+IFsxNzA4MTcgMTg6MzBdOgo+PiBPbiAwOC8xNy8yMDE3IDA2OjAx
+IFBNLCBUb255IExpbmRncmVuIHdyb3RlOgo+Pj4gV2l0aCB0aGUgaWRsZSBjb2RlIGluIHBsYWNl
+IG5lZWRlZCBmb3Igc3VwcG9ydGluZyBvZmYgbW9kZSBmb3IgY3B1cywKPj4+IGxldCdzIGVuYWJs
+ZSBpdC4gVGhpcyBzZWVtcyB0byBzYXZlIGFib3V0IDAuMlcgb2YgcG93ZXIgY29tcGFyZWQgdG8K
+Pj4+IENQVSByZXRlbnRpb24gc3RhdGVzIGJhc2VkIG9uIHF1aWNrIG1lYXN1cmVtZW50IG9uIG9t
+YXA1LXVldm0uCj4+Cj4+IFRoYXQgbWFrZXMgc2Vuc2Ugc2luY2UgdGhlIFNpbGljb24geW91IHBy
+b2JhYmx5IGhhdmUgaXMgcHJlLXByb2R1Y3Rpb24KPj4gc2lsaWNvbi4KPiAKPiBJdCBzZWVtcyB0
+byBiZSBlczIuMCwgdGhlIG1lYXN1cmVtZW50IHdhcyBqdXN0IGJhc2VkIG9uIGEgZ2xhbmNlCj4g
+b2YgdGhlIHBvd2VyIHN1cHBseSBhZnRlciBybW1vZCBvZiBlaGNpLW9tYXAgYW5kIG9oY2ktcGxh
+dGZvcm0KPiBtb2R1bGVzLgoKeWVhaCAtPiBFUzIuMCBkaWQgaGF2ZSB0d28gc3RhZ2VzIHByaW9y
+IHRvIGJlaW5nIGFwcHJvdmVkIGZvciBwcm9kdWN0aW9uLgoKPiAKPj4gdW5mb3J0dW5hdGVseSwg
+eW91IGhhdmUgYmVlbiBsb29raW5nIGF0IHNvbWUgcHJlcHJvZHVjdGlvbiBjb2RlIHdoaWNoIHdh
+cwo+PiBiZWluZyBkZXZlbG9wZWQgcHJpb3IgdG8gdGhlIHNpbGljb24gZ29pbmcgaW50byBwcm9k
+dWN0aW9uIChhbHNvIHRoZSByZWFzb24KPj4gd2h5IEkgaGF2ZSdudCB1cHN0cmVhbWVkIHRob3Nl
+IGNoYW5nZXMpLgo+IAo+IE9oIEkgZGlkIG5vdCBrbm93IHRoYXQsIEkgd2FzIGp1c3QgbG9va2lu
+ZyBhdCB0aGUgb2xkCj4gdGktbGludXgtMy04LXkta2VybmVsIHRoYXQgdGhlIGlnZXB2NSBrZXJu
+ZWwgdHJlZSBpcwo+IGJhc2VkIG9uLgo+IAoKdW5mb3J0dW5hdGVseSBzby4KCj4+IHVuZm9ydHVu
+YXRlbHksIEkgaGF2ZSB0byBOQUsgdGhpcyBwYXRjaC4KPj4KPj4gaHR0cHM6Ly9naXQua2VybmVs
+Lm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGludXguZ2l0L2NvbW1pdC8/
+aWQ9OWY1ZGM5MWI2OTFjZjI5NmM0OWFlZGYwYTY3MWZkNjU5YTcwZjczNwo+PiBhcyBwZXIgVGVj
+aG5pY2FsIFJlZmVyZW5jZSBNYW51YWwgU1dQVTI4MkFG4oCTTWF5IDIwMTLigJNSZXZpc2VkIEF1
+Z3VzdCAyMDE2LAo+PiBQTV9NUFVfUFdSU1RDVFJMIGNhbiBvbmx5IHN1cHBvcnQ6IE9OIElOQSwg
+UkVULiAoQ1NXUiBvbmx5KS4KPj4KPj4gU2FtZSBhcHBsaWVzIHRvIENQVXMgYXMgd2VsbC4gd2hp
+Y2ggd2FzIHRoZSByZWFzb24gaW4gdGhlIGZpcnN0IHBsYWNlIGZvciBtZQo+PiB0byBzZW5kIHRo
+ZSBwYXRjaCB1cHN0cmVhbS4KPiAKPiBPSywgaXMgdGhlcmUgc29tZSBoYXJkd2FyZSBlcnJhdGEg
+aXNzdWVkIG9uIHRoYXQ/CgpUbyBteSBrbm93bGVkZ2UsIGVycmF0YSBpcyBvbmx5IHdoZW4gVFJN
+IGlzIG5vdCB1cGRhdGVkIChmZWF0dXJlIHRoYXQgCmlzIHN1cHBvc2VkIHRvIHdvcmssIGJ1dCBk
+b2VzJ250KS4gVFJNJ3MgdmVyc2lvbiBoaXN0b3J5IGluZGljYXRlcyAKZGVzY29wZS4gQXQgbGVh
+c3QgdG8gbXkgaW5mb3JtYXRpb24gYWxsIHByb2R1Y3Rpb24gY3VzdG9tZXJzIHNob3VsZCAKaGF2
+ZSBiZWVuIGluZm9ybWVkIGFib3V0IHRoaXMgYXMgd2VsbC4KCj4gCj4gSSBhbHNvIG5vdGljZWQg
+dGhlc2UgcGF0Y2hlcyB3b24ndCB3b3JrIHdoZW4gYm9vdGVkIHdpdGggTFBBRQo+IGVuYWJsZWQg
+a2VybmVsIGZvciBzb21lIHJlYXNvbi4KPiAKCk9idmlvdXNseSwgSSBkb250IHRoaW5rIEkgYW0g
+aW50ZXJlc3RlZCBpbiBjaGFzaW5nIGFueSBmdXJ0aGVyIGRvd24gCnRoaXMgcm9hZC4gU29DIGRl
+c2NvcGUgaXMgYSBzZXZlcmUgZGVjaXNpb24gdGhhdCBoYXMgYmVlbiB0YWtlbiBhZnRlciAKYSBs
+b3Qgb2YgaW50ZXJuYWwgYW5kICBjdXN0b21lciBjb25zaWRlcmF0aW9ucy4gdGhlcmUgaXMgbm8g
+cG9pbnQgaW4gCnRyeWluZyB0byBlbmFibGUgYSBkZXNjb3BlZCBmZWF0dXJlIHdoZW4gZXZlbiBp
+ZiBpdCB3b3JrZWQgb24gMTAgCmJvYXJkcyBtZWFucyBub3RoaW5nIGZyb20gYSBwcm9kdWN0aW9u
+IGRldmljZSBwZXJzcGVjdGl2ZSwgYW5kIHRoZXJlIAphcmUgZGV2aWNlcyBvdXQgdGhlcmUgaW4g
+cHJvZHVjdGlvbiB3aXRoIE9NQVA1LgoKCi0tIApSZWdhcmRzLApOaXNoYW50aCBNZW5vbgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
+cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
+dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
+bAo=
