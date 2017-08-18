@@ -1,114 +1,53 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 00/18] PCI: endpoint: Make pci-epf-test more flexible
-Date: Fri, 18 Aug 2017 10:53:31 -0500
-Message-ID: <20170818155331.GM28977@bhelgaas-glaptop.roam.corp.google.com>
-References: <20170818145810.17649-1-kishon@ti.com>
+From: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [balbi-usb:testing/next 48/49]
+ drivers/usb//gadget/function/u_serial.c:540:19: error: invalid operands to
+ binary & (have 'unsigned int' and 'struct tty_struct *')
+Date: Fri, 18 Aug 2017 16:10:47 +0000
+Message-ID: <31ad87c0ef114d2893eed54b93f62108@HQMAIL107.nvidia.com>
+References: <201708181625.uPy8R6nk%fengguang.wu@intel.com>
+ <87d17tql3l.fsf@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170818145810.17649-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87d17tql3l.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "kbuild-all-JC7UmRfGjtg@public.gmane.org" <kbuild-all-JC7UmRfGjtg@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 18, 2017 at 08:27:52PM +0530, Kishon Vijay Abraham I wrote:
-> Hi Bjorn,
+Felipe Balbi wrote at Friday, August 18, 2017 3:30 AM:
+> Hi,
 > 
-> I've collected all the patches for PCI Endpoint in this series. This
-> series contains PCI endpoint fixes and making pci-epf-test more
-> flexible in terms of mapping PCI_ENDPOINT_TEST regs to any BARs,
-> work with linkup notification etc.
+> kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
+> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git testing/next
+> > head:   862b43460309779e5814616a68aa36d29a70d6e0
+> > commit: 2b4e4d3c929db0fc7cf99212bfac0570b6902c14 [48/49] usb: gadget: serial: fix oops when data rx'd after close
+> > config: xtensa-allmodconfig (attached as .config)
+> > compiler: xtensa-linux-gcc (GCC) 4.9.0
+> > reproduce:
+> >         wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+> >         chmod +x ~/bin/make.cross
+> >         git checkout 2b4e4d3c929db0fc7cf99212bfac0570b6902c14
+> >         # save the attached .config to linux build tree
+> >         make.cross ARCH=xtensa
+> >
+> > All errors (new ones prefixed by >>):
+> >
+> >    drivers/usb//gadget/function/u_serial.c: In function 'gs_rx_push':
+> >>> drivers/usb//gadget/function/u_serial.c:540:19: error: invalid operands to binary & (have 'unsigned int' and 'struct tty_struct *')
+> >       if (req->actual & tty) {
 > 
-> I've been having most of these patches in my local tree created while
-> adding support for endpoint in TI's K2G platform. I've also included fix
-> from others who are trying to use the PCI Endpoint Framework in their
-> own platforms.
-> 
-> It also contains minor changes in pci/dwc/ like resetting BARs in the
-> EP controller and providing a page size to pci_epc_mem. I can send this
-> part separately based on some of your branch if you'd prefer that.
-> 
-> This also contains patches for host side pci_endpoint_test driver
-> in drivers/misc.
-> 
-> I've pushed the series to pci-endpoint tree, the details of which are
-> given below.
+> fixed locally.
 
-Applied to pci/endpoint for v4.14, thanks!
+Sorry about that, and thanks for fixing it. When I moved this between kernel
+trees I re-implemented it since it was so trivial, rather than copying the
+patch via git mechanisms. That's obviously a very bad idea:-(
 
-> The following changes since commit 5771a8c08880cdca3bfb4a3fc6d309d6bba20877:
-> 
->   Linux v4.13-rc1 (2017-07-15 15:22:10 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/kishon/pci-endpoint.git tags/pci-ep-for-4.14
-> 
-> for you to fetch changes up to 31802acb56e040bf5f269b2bad159583fc804d68:
-> 
->   tools: PCI: Add a missing option help line (2017-08-18 19:23:36 +0530)
-> 
-> ----------------------------------------------------------------
-> PCI: endpoint: for 4.14
-> 
-> PCI endpoint core:
->  *) Add support for page size to be configurable (for managing address
->     region within the controller)
->  *) Add an API to get matching "pci_epf_device_id"
->  *) Use of_dma_configure() to set initial dma mask of pci_epf device
->  *) Do not abort if endpoint function drivers have not populated
->     ->remove() callback
-> 
-> pci-epf-test function driver:
->  *) Add support to poll early for host commands
->  *) Add support to use _any_ BAR's to map PCI_ENDPOINT_TEST regs
-> 
-> pci_endpoint_test PCI driver:
->  *) Add support for PCI_ENDPOINT_TEST regs to be mapped to any BAR
->  *) Add support to provide aligned buffer addresses
->  *) Enable/Disable MSI using module param
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> 
-> ----------------------------------------------------------------
-> Kishon Vijay Abraham I (16):
->       PCI: endpoint: pci-epc-core: Use of_dma_configure() to set initial dma mask
->       PCI: endpoint: pci-epf-core: Add an API to get matching "pci_epf_device_id"
->       PCI: endpoint: pci-epf-core: Make ->remove() callback optional
->       PCI: endpoint: pci-epc-mem: Add support for configurable page size
->       PCI: endpoint: functions/pci-epf-test: Add "volatile" to pci_epf_test_reg
->       PCI: endpoint: functions/pci-epf-test: Do not reset *command* inadvertently
->       PCI: endpoint: functions/pci-epf-test: Add support to use _any_ BAR's to map PCI_ENDPOINT_TEST regs
->       PCI: endpoint: functions/pci-epf-test: Add support to poll early for host commands
->       PCI: dwc: designware: Provide page_size to pci_epc_mem
->       PCI: dwc: dra7xx: Reset all BARs during initialization
->       PCI: dwc: designware-ep: Do not disable BARs during initialization
->       misc: pci_endpoint_test: Add support for PCI_ENDPOINT_TEST regs to be mapped to any BAR
->       misc: pci_endpoint_test: Add support to provide aligned buffer addresses
->       misc: pci_endpoint_test: Add support to not enable MSI interrupts
->       misc: pci_endpoint_test: Avoid using hard coded BAR sizes
->       misc: pci_endpoint_test: Enable/Disable MSI using module param
-> 
-> Shawn Lin (1):
->       PCI: endpoint: functions/pci-epf-test: Remove the ->remove() callback
-> 
-> Stan Drozd (1):
->       tools: PCI: Add a missing option help line
-> 
->  drivers/misc/pci_endpoint_test.c              | 132 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------
->  drivers/pci/dwc/pci-dra7xx.c                  |  13 +++++++++++++
->  drivers/pci/dwc/pcie-designware-ep.c          |   7 ++-----
->  drivers/pci/dwc/pcie-designware.h             |   1 +
->  drivers/pci/endpoint/functions/pci-epf-test.c |  99 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------
->  drivers/pci/endpoint/pci-epc-core.c           |  11 +++++++++--
->  drivers/pci/endpoint/pci-epc-mem.c            |  59 ++++++++++++++++++++++++++++++++++++++++++++++++++---------
->  drivers/pci/endpoint/pci-epf-core.c           |  21 +++++++++++++++++++--
->  include/linux/pci-epc.h                       |   8 +++++++-
->  include/linux/pci-epf.h                       |   2 ++
->  tools/pci/pcitest.c                           |   1 +
->  11 files changed, 276 insertions(+), 78 deletions(-)
-> -- 
-> 2.11.0
-> 
+-- 
+nvpublic
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
