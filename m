@@ -1,185 +1,106 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 04/18] PCI: endpoint: pci-epc-mem: Add support for configurable page size
-Date: Fri, 18 Aug 2017 20:27:56 +0530
-Message-ID: <20170818145810.17649-5-kishon@ti.com>
+Subject: [PATCH 06/18] PCI: endpoint: functions/pci-epf-test: Do not reset *command* inadvertently
+Date: Fri, 18 Aug 2017 20:27:58 +0530
+Message-ID: <20170818145810.17649-7-kishon@ti.com>
 References: <20170818145810.17649-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170818145810.17649-1-kishon@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-pci-epc-mem uses a page size equal to *PAGE_SIZE* (usually 4KB) to
-manage the address space. However certain platforms like TI's K2G
-has a restriction that this address space should be either divided
-into 1MB/2MB/4MB or 8MB sizes (Ref: 11.14.4.9.1 Outbound Address
-Translation in K2G TRM SPRUHY8F January 2016 – Revised May 2017).
-Add support to handle different page sizes here.
+pci_epf_test_cmd_handler() is the delayed work function which reads
+*command* (set by the host) and performs various actions requested
+by the host periodically. If the value in *command* is '0', it
+goes to the reset_handler where it resets *command* to '0' and queues
+pci_epf_test_cmd_handler().
+However if the host writes a value to the *command* just after the
+pci-epf-test driver checks *command* for '0' and before the control goes
+to reset_handler, the *command* will be reset to '0' and the pci-epf-test
+driver won't be able to perform the actions requested by the host.
+Fix it here by not resetting the *command* in the reset_handler.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/pci/endpoint/pci-epc-mem.c | 59 ++++++++++++++++++++++++++++++++------
- include/linux/pci-epc.h            |  8 +++++-
- 2 files changed, 57 insertions(+), 10 deletions(-)
+ drivers/pci/endpoint/functions/pci-epf-test.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/pci/endpoint/pci-epc-mem.c b/drivers/pci/endpoint/pci-epc-mem.c
-index 3a94cc1caf22..83b7d5d3fc3e 100644
---- a/drivers/pci/endpoint/pci-epc-mem.c
-+++ b/drivers/pci/endpoint/pci-epc-mem.c
-@@ -24,21 +24,54 @@
- #include <linux/pci-epc.h>
- 
- /**
-- * pci_epc_mem_init() - initialize the pci_epc_mem structure
-+ * pci_epc_mem_get_order() - determine the allocation order of a memory size
-+ * @mem: address space of the endpoint controller
-+ * @size: the size for which to get the order
-+ *
-+ * Reimplement get_order() for mem->page_size since the generic get_order
-+ * always gets order with a constant PAGE_SIZE.
-+ */
-+static int pci_epc_mem_get_order(struct pci_epc_mem *mem, size_t size)
-+{
-+	int order;
-+	unsigned int page_shift = ilog2(mem->page_size);
-+
-+	size--;
-+	size >>= page_shift;
-+#if BITS_PER_LONG == 32
-+	order = fls(size);
-+#else
-+	order = fls64(size);
-+#endif
-+	return order;
-+}
-+
-+/**
-+ * __pci_epc_mem_init() - initialize the pci_epc_mem structure
-  * @epc: the EPC device that invoked pci_epc_mem_init
-  * @phys_base: the physical address of the base
-  * @size: the size of the address space
-+ * @page_size: size of each page
-  *
-  * Invoke to initialize the pci_epc_mem structure used by the
-  * endpoint functions to allocate mapped PCI address.
-  */
--int pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_base, size_t size)
-+int __pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_base, size_t size,
-+		       size_t page_size)
- {
+diff --git a/drivers/pci/endpoint/functions/pci-epf-test.c b/drivers/pci/endpoint/functions/pci-epf-test.c
+index 5cbc05a0762d..1a27d7950f2c 100644
+--- a/drivers/pci/endpoint/functions/pci-epf-test.c
++++ b/drivers/pci/endpoint/functions/pci-epf-test.c
+@@ -263,22 +263,26 @@ static void pci_epf_test_cmd_handler(struct work_struct *work)
  	int ret;
- 	struct pci_epc_mem *mem;
- 	unsigned long *bitmap;
--	int pages = size >> PAGE_SHIFT;
--	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
-+	unsigned int page_shift;
-+	int pages;
-+	int bitmap_size;
+ 	u8 irq;
+ 	u8 msi_count;
++	u32 command;
+ 	struct pci_epf_test *epf_test = container_of(work, struct pci_epf_test,
+ 						     cmd_handler.work);
+ 	struct pci_epf *epf = epf_test->epf;
+ 	struct pci_epc *epc = epf->epc;
+ 	volatile struct pci_epf_test_reg *reg = epf_test->reg[0];
+ 
+-	if (!reg->command)
++	command = reg->command;
++	if (!command)
+ 		goto reset_handler;
+ 
+-	if (reg->command & COMMAND_RAISE_LEGACY_IRQ) {
++	reg->command = 0;
 +
-+	if (page_size < PAGE_SIZE)
-+		page_size = PAGE_SIZE;
-+
-+	page_shift = ilog2(page_size);
-+	pages = size >> page_shift;
-+	bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
++	if (command & COMMAND_RAISE_LEGACY_IRQ) {
+ 		reg->status = STATUS_IRQ_RAISED;
+ 		pci_epc_raise_irq(epc, PCI_EPC_IRQ_LEGACY, 0);
+ 		goto reset_handler;
+ 	}
  
- 	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
- 	if (!mem) {
-@@ -54,6 +87,7 @@ int pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_base, size_t size)
+-	if (reg->command & COMMAND_WRITE) {
++	if (command & COMMAND_WRITE) {
+ 		ret = pci_epf_test_write(epf_test);
+ 		if (ret)
+ 			reg->status |= STATUS_WRITE_FAIL;
+@@ -288,7 +292,7 @@ static void pci_epf_test_cmd_handler(struct work_struct *work)
+ 		goto reset_handler;
+ 	}
  
- 	mem->bitmap = bitmap;
- 	mem->phys_base = phys_base;
-+	mem->page_size = page_size;
- 	mem->pages = pages;
- 	mem->size = size;
+-	if (reg->command & COMMAND_READ) {
++	if (command & COMMAND_READ) {
+ 		ret = pci_epf_test_read(epf_test);
+ 		if (!ret)
+ 			reg->status |= STATUS_READ_SUCCESS;
+@@ -298,7 +302,7 @@ static void pci_epf_test_cmd_handler(struct work_struct *work)
+ 		goto reset_handler;
+ 	}
  
-@@ -67,7 +101,7 @@ int pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_base, size_t size)
- err:
- return ret;
+-	if (reg->command & COMMAND_COPY) {
++	if (command & COMMAND_COPY) {
+ 		ret = pci_epf_test_copy(epf_test);
+ 		if (!ret)
+ 			reg->status |= STATUS_COPY_SUCCESS;
+@@ -308,9 +312,9 @@ static void pci_epf_test_cmd_handler(struct work_struct *work)
+ 		goto reset_handler;
+ 	}
+ 
+-	if (reg->command & COMMAND_RAISE_MSI_IRQ) {
++	if (command & COMMAND_RAISE_MSI_IRQ) {
+ 		msi_count = pci_epc_get_msi(epc);
+-		irq = (reg->command & MSI_NUMBER_MASK) >> MSI_NUMBER_SHIFT;
++		irq = (command & MSI_NUMBER_MASK) >> MSI_NUMBER_SHIFT;
+ 		if (irq > msi_count || msi_count <= 0)
+ 			goto reset_handler;
+ 		reg->status = STATUS_IRQ_RAISED;
+@@ -319,8 +323,6 @@ static void pci_epf_test_cmd_handler(struct work_struct *work)
+ 	}
+ 
+ reset_handler:
+-	reg->command = 0;
+-
+ 	queue_delayed_work(kpcitest_workqueue, &epf_test->cmd_handler,
+ 			   msecs_to_jiffies(1));
  }
--EXPORT_SYMBOL_GPL(pci_epc_mem_init);
-+EXPORT_SYMBOL_GPL(__pci_epc_mem_init);
- 
- /**
-  * pci_epc_mem_exit() - cleanup the pci_epc_mem structure
-@@ -101,13 +135,17 @@ void __iomem *pci_epc_mem_alloc_addr(struct pci_epc *epc,
- 	int pageno;
- 	void __iomem *virt_addr;
- 	struct pci_epc_mem *mem = epc->mem;
--	int order = get_order(size);
-+	unsigned int page_shift = ilog2(mem->page_size);
-+	int order;
-+
-+	size = ALIGN(size, mem->page_size);
-+	order = pci_epc_mem_get_order(mem, size);
- 
- 	pageno = bitmap_find_free_region(mem->bitmap, mem->pages, order);
- 	if (pageno < 0)
- 		return NULL;
- 
--	*phys_addr = mem->phys_base + (pageno << PAGE_SHIFT);
-+	*phys_addr = mem->phys_base + (pageno << page_shift);
- 	virt_addr = ioremap(*phys_addr, size);
- 	if (!virt_addr)
- 		bitmap_release_region(mem->bitmap, pageno, order);
-@@ -129,11 +167,14 @@ void pci_epc_mem_free_addr(struct pci_epc *epc, phys_addr_t phys_addr,
- 			   void __iomem *virt_addr, size_t size)
- {
- 	int pageno;
--	int order = get_order(size);
- 	struct pci_epc_mem *mem = epc->mem;
-+	unsigned int page_shift = ilog2(mem->page_size);
-+	int order;
- 
- 	iounmap(virt_addr);
--	pageno = (phys_addr - mem->phys_base) >> PAGE_SHIFT;
-+	pageno = (phys_addr - mem->phys_base) >> page_shift;
-+	size = ALIGN(size, mem->page_size);
-+	order = pci_epc_mem_get_order(mem, size);
- 	bitmap_release_region(mem->bitmap, pageno, order);
- }
- EXPORT_SYMBOL_GPL(pci_epc_mem_free_addr);
-diff --git a/include/linux/pci-epc.h b/include/linux/pci-epc.h
-index af5edbf3eea3..f7a04e1af112 100644
---- a/include/linux/pci-epc.h
-+++ b/include/linux/pci-epc.h
-@@ -62,11 +62,13 @@ struct pci_epc_ops {
-  * @size: the size of the PCI address space
-  * @bitmap: bitmap to manage the PCI address space
-  * @pages: number of bits representing the address region
-+ * @page_size: size of each page
-  */
- struct pci_epc_mem {
- 	phys_addr_t	phys_base;
- 	size_t		size;
- 	unsigned long	*bitmap;
-+	size_t		page_size;
- 	int		pages;
- };
- 
-@@ -98,6 +100,9 @@ struct pci_epc {
- #define devm_pci_epc_create(dev, ops)    \
- 		__devm_pci_epc_create((dev), (ops), THIS_MODULE)
- 
-+#define pci_epc_mem_init(epc, phys_addr, size)	\
-+		__pci_epc_mem_init((epc), (phys_addr), (size), PAGE_SIZE)
-+
- static inline void epc_set_drvdata(struct pci_epc *epc, void *data)
- {
- 	dev_set_drvdata(&epc->dev, data);
-@@ -135,7 +140,8 @@ void pci_epc_stop(struct pci_epc *epc);
- struct pci_epc *pci_epc_get(const char *epc_name);
- void pci_epc_put(struct pci_epc *epc);
- 
--int pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_addr, size_t size);
-+int __pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_addr, size_t size,
-+		       size_t page_size);
- void pci_epc_mem_exit(struct pci_epc *epc);
- void __iomem *pci_epc_mem_alloc_addr(struct pci_epc *epc,
- 				     phys_addr_t *phys_addr, size_t size);
 -- 
 2.11.0
