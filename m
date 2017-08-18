@@ -1,11 +1,10 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 10/18] PCI: dwc: designware: Provide page_size to pci_epc_mem
-Date: Fri, 18 Aug 2017 20:28:02 +0530
-Message-ID: <20170818145810.17649-11-kishon@ti.com>
+Subject: [PATCH 16/18] misc: pci_endpoint_test: Avoid using hard coded BAR sizes
+Date: Fri, 18 Aug 2017 20:28:08 +0530
+Message-ID: <20170818145810.17649-17-kishon@ti.com>
 References: <20170818145810.17649-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170818145810.17649-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -13,44 +12,43 @@ To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Use the newly introduced __pci_epc_mem_init instead of pci_epc_mem_init
-to provide page_size to pci_epc_mem. This is in preparation for
-adding EP support to K2G which has a restriction that the
-address region should be either divided into 1MB/2MB/4MB or 8MB
-sizes (Ref: 11.14.4.9.1 Outbound Address Translation in K2G TRM SPRUHY8F
-January 2016 – Revised May 2017).
+BAR sizes are hard coded in pci_endpoint_test driver corresponding to
+the sizes used in pci-epf-test function driver. This might break if
+the sizes in pci-epf-test function driver is modified (and the
+corresponding change is not done in pci_endpoint_test pci driver).
+To avoid hard coding BAR sizes, use pci_resource_len API.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pcie-designware-ep.c | 3 ++-
- drivers/pci/dwc/pcie-designware.h    | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/misc/pci_endpoint_test.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pci/dwc/pcie-designware-ep.c b/drivers/pci/dwc/pcie-designware-ep.c
-index 398406393f37..e70ebe3b9b6f 100644
---- a/drivers/pci/dwc/pcie-designware-ep.c
-+++ b/drivers/pci/dwc/pcie-designware-ep.c
-@@ -328,7 +328,8 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
- 	if (ret < 0)
- 		epc->max_functions = 1;
+diff --git a/drivers/misc/pci_endpoint_test.c b/drivers/misc/pci_endpoint_test.c
+index 5cbb25cf276c..1f37ad39b169 100644
+--- a/drivers/misc/pci_endpoint_test.c
++++ b/drivers/misc/pci_endpoint_test.c
+@@ -100,8 +100,6 @@ struct pci_endpoint_test_data {
+ 	bool no_msi;
+ };
  
--	ret = pci_epc_mem_init(epc, ep->phys_base, ep->addr_size);
-+	ret = __pci_epc_mem_init(epc, ep->phys_base, ep->addr_size,
-+				 ep->page_size);
- 	if (ret < 0) {
- 		dev_err(dev, "Failed to initialize address space\n");
- 		return ret;
-diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index b4d2a89f8e58..714f6f21ea93 100644
---- a/drivers/pci/dwc/pcie-designware.h
-+++ b/drivers/pci/dwc/pcie-designware.h
-@@ -186,6 +186,7 @@ struct dw_pcie_ep {
- 	struct dw_pcie_ep_ops	*ops;
- 	phys_addr_t		phys_base;
- 	size_t			addr_size;
-+	size_t			page_size;
- 	u8			bar_to_atu[6];
- 	phys_addr_t		*outbound_addr;
- 	unsigned long		ib_window_map;
+-static int bar_size[] = { 512, 512, 1024, 16384, 131072, 1048576 };
+-
+ static inline u32 pci_endpoint_test_readl(struct pci_endpoint_test *test,
+ 					  u32 offset)
+ {
+@@ -149,11 +147,12 @@ static bool pci_endpoint_test_bar(struct pci_endpoint_test *test,
+ 	int j;
+ 	u32 val;
+ 	int size;
++	struct pci_dev *pdev = test->pdev;
+ 
+ 	if (!test->bar[barno])
+ 		return false;
+ 
+-	size = bar_size[barno];
++	size = pci_resource_len(pdev, barno);
+ 
+ 	if (barno == test->test_reg_bar)
+ 		size = 0x4;
 -- 
 2.11.0
