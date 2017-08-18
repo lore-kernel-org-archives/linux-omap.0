@@ -1,15 +1,15 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: Separate dra7 cpuidle from omap5
-Date: Thu, 17 Aug 2017 16:42:19 -0700
-Message-ID: <20170817234218.GC6008@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP5: Enable CPU off idle states
+Date: Thu, 17 Aug 2017 20:29:47 -0500
+Message-ID: <c31a90c4-8dbe-926a-831c-5fac92ebae80@ti.com>
 References: <20170817230122.30655-1-tony@atomide.com>
- <20170817230122.30655-2-tony@atomide.com>
+ <20170817230122.30655-4-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20170817230122.30655-2-tony@atomide.com>
+In-Reply-To: <20170817230122.30655-4-tony@atomide.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,34 +19,65 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Nishanth Menon <nm@ti.com>, Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [170817 16:01]:
-> As omap5 supports deeper idle states compared to dra7, let's
-> separate dra7 from omap5 in preparation for adding more support
-> for omap5.
-
-Oops, sorry this first patch can be ignored. I forgot we already
-separated out things for dra7 when we added omap5 cpu
-retention mode support earlir. So there's nothing left
-to move away for dra7.
-
-> @@ -303,6 +342,9 @@ int __init omap4_idle_init(void)
->  	if (soc_is_omap54xx()) {
->  		state_ptr = &omap5_idle_data[0];
->  		idle_driver = &omap5_idle_driver;
-> +	} else if (soc_is_dra7xx()) {
-> +		state_ptr = &dra7_idle_data[0];
-> +		idle_driver = &dra7_idle_driver;
->  	} else {
->  		state_ptr = &omap4_idle_data[0];
->  		idle_driver = &omap4_idle_driver;
-
-And then this part now wrongly enables things for dra7 while
-it can't be done.
-
-Regards,
-
-Tony
+T24gMDgvMTcvMjAxNyAwNjowMSBQTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiBXaXRoIHRoZSBp
+ZGxlIGNvZGUgaW4gcGxhY2UgbmVlZGVkIGZvciBzdXBwb3J0aW5nIG9mZiBtb2RlIGZvciBjcHVz
+LAo+IGxldCdzIGVuYWJsZSBpdC4gVGhpcyBzZWVtcyB0byBzYXZlIGFib3V0IDAuMlcgb2YgcG93
+ZXIgY29tcGFyZWQgdG8KPiBDUFUgcmV0ZW50aW9uIHN0YXRlcyBiYXNlZCBvbiBxdWljayBtZWFz
+dXJlbWVudCBvbiBvbWFwNS11ZXZtLgoKVGhhdCBtYWtlcyBzZW5zZSBzaW5jZSB0aGUgU2lsaWNv
+biB5b3UgcHJvYmFibHkgaGF2ZSBpcyBwcmUtcHJvZHVjdGlvbiAKc2lsaWNvbi4KCj4gCj4gU29t
+ZSBwYXJ0cyBvZiB0aGUgY29kZSBpcyBiYXNlZCBvbiBhbiBlYXJsaWVyIHBhdGNoIGRvbmUgYnkg
+U2FudG9zaAo+IFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAb3JhY2xlLmNvbT4gaW4gVEkg
+TGludXgga2VybmVsIHRyZWUgYXMKPiBjb21taXQgN2UzMDM1Y2YwZTliICgiQVJNOiBPTUFQNCs6
+IENQVWlkbGU6IEFkZCBPTUFQNSBpZGxlIGRyaXZlcgo+IHN1cHBvcnQiKQo+IAoKCnVuZm9ydHVu
+YXRlbHksIHlvdSBoYXZlIGJlZW4gbG9va2luZyBhdCBzb21lIHByZXByb2R1Y3Rpb24gY29kZSB3
+aGljaCAKd2FzIGJlaW5nIGRldmVsb3BlZCBwcmlvciB0byB0aGUgc2lsaWNvbiBnb2luZyBpbnRv
+IHByb2R1Y3Rpb24gKGFsc28gCnRoZSByZWFzb24gd2h5IEkgaGF2ZSdudCB1cHN0cmVhbWVkIHRo
+b3NlIGNoYW5nZXMpLgoKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTQ0eHgu
+YyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcG00NHh4LmMKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9t
+YXAyL3BtNDR4eC5jCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTQ0eHguYwo+IEBAIC0y
+MjUsNyArMjI1LDcgQEAgaW50IF9faW5pdCBvbWFwNF9wbV9pbml0X2Vhcmx5KHZvaWQpCj4gICAJ
+aWYgKGNwdV9pc19vbWFwNDQ2eCgpKQo+ICAgCQlwbTQ0eHhfZXJyYXRhIHw9IFBNX09NQVA0X1JP
+TV9TTVBfQk9PVF9FUlJBVFVNX0dJQ0Q7Cj4gICAKPiAtCWlmIChzb2NfaXNfb21hcDU0eHgoKSB8
+fCBzb2NfaXNfZHJhN3h4KCkpCj4gKwlpZiAoc29jX2lzX2RyYTd4eCgpKQo+ICAgCQlwbTQ0eHhf
+ZXJyYXRhIHw9IFBNX09NQVA0X0NQVV9PU1dSX0RJU0FCTEU7Cj4gICAKPiAgIAlyZXR1cm4gMDsK
+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9wb3dlcmRvbWFpbnM1NHh4X2RhdGEu
+YyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcG93ZXJkb21haW5zNTR4eF9kYXRhLmMKPiAtLS0gYS9h
+cmNoL2FybS9tYWNoLW9tYXAyL3Bvd2VyZG9tYWluczU0eHhfZGF0YS5jCj4gKysrIGIvYXJjaC9h
+cm0vbWFjaC1vbWFwMi9wb3dlcmRvbWFpbnM1NHh4X2RhdGEuYwo+IEBAIC0xMDcsOCArMTA3LDgg
+QEAgc3RhdGljIHN0cnVjdCBwb3dlcmRvbWFpbiBjcHUwXzU0eHhfcHdyZG0gPSB7Cj4gICAJLnZv
+bHRkbQkJICA9IHsgLm5hbWUgPSAibXB1IiB9LAo+ICAgCS5wcmNtX29mZnMJICA9IE9NQVA1NFhY
+X1BSQ01fTVBVX1BSTV9DMF9JTlNULAo+ICAgCS5wcmNtX3BhcnRpdGlvbgkgID0gT01BUDU0WFhf
+UFJDTV9NUFVfUEFSVElUSU9OLAo+IC0JLnB3cnN0cwkJICA9IFBXUlNUU19SRVRfT04sCj4gLQku
+cHdyc3RzX2xvZ2ljX3JldCA9IFBXUlNUU19SRVQsCj4gKwkucHdyc3RzCQkgID0gUFdSU1RTX09G
+Rl9SRVRfT04sCj4gKwkucHdyc3RzX2xvZ2ljX3JldCA9IFBXUlNUU19PRkZfUkVULAo+ICAgCS5i
+YW5rcwkJICA9IDEsCj4gICAJLnB3cnN0c19tZW1fcmV0CT0gewo+ICAgCQlbMF0gPSBQV1JTVFNf
+T0ZGX1JFVCwJLyogY3B1MF9sMSAqLwo+IEBAIC0xMjQsOCArMTI0LDggQEAgc3RhdGljIHN0cnVj
+dCBwb3dlcmRvbWFpbiBjcHUxXzU0eHhfcHdyZG0gPSB7Cj4gICAJLnZvbHRkbQkJICA9IHsgLm5h
+bWUgPSAibXB1IiB9LAo+ICAgCS5wcmNtX29mZnMJICA9IE9NQVA1NFhYX1BSQ01fTVBVX1BSTV9D
+MV9JTlNULAo+ICAgCS5wcmNtX3BhcnRpdGlvbgkgID0gT01BUDU0WFhfUFJDTV9NUFVfUEFSVElU
+SU9OLAo+IC0JLnB3cnN0cwkJICA9IFBXUlNUU19SRVRfT04sCj4gLQkucHdyc3RzX2xvZ2ljX3Jl
+dCA9IFBXUlNUU19SRVQsCj4gKwkucHdyc3RzCQkgID0gUFdSU1RTX09GRl9SRVRfT04sCj4gKwku
+cHdyc3RzX2xvZ2ljX3JldCA9IFBXUlNUU19PRkZfUkVULAo+ICAgCS5iYW5rcwkJICA9IDEsCj4g
+ICAJLnB3cnN0c19tZW1fcmV0CT0gewo+ICAgCQlbMF0gPSBQV1JTVFNfT0ZGX1JFVCwJLyogY3B1
+MV9sMSAqLwo+IEBAIC0xNTgsNyArMTU4LDcgQEAgc3RhdGljIHN0cnVjdCBwb3dlcmRvbWFpbiBt
+cHVfNTR4eF9wd3JkbSA9IHsKPiAgIAkucHJjbV9vZmZzCSAgPSBPTUFQNTRYWF9QUk1fTVBVX0lO
+U1QsCj4gICAJLnByY21fcGFydGl0aW9uCSAgPSBPTUFQNTRYWF9QUk1fUEFSVElUSU9OLAo+ICAg
+CS5wd3JzdHMJCSAgPSBQV1JTVFNfUkVUX09OLAo+IC0JLnB3cnN0c19sb2dpY19yZXQgPSBQV1JT
+VFNfUkVULAo+ICsJLnB3cnN0c19sb2dpY19yZXQgPSBQV1JTVFNfT0ZGX1JFVCwKPiAgIAkuYmFu
+a3MJCSAgPSAyLAo+ICAgCS5wd3JzdHNfbWVtX3JldAk9IHsKPiAgIAkJWzBdID0gUFdSU1RTX09G
+Rl9SRVQsCS8qIG1wdV9sMiAqLwo+IAoKdW5mb3J0dW5hdGVseSwgSSBoYXZlIHRvIE5BSyB0aGlz
+IHBhdGNoLgoKaHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQv
+dG9ydmFsZHMvbGludXguZ2l0L2NvbW1pdC8/aWQ9OWY1ZGM5MWI2OTFjZjI5NmM0OWFlZGYwYTY3
+MWZkNjU5YTcwZjczNwphcyBwZXIgVGVjaG5pY2FsIFJlZmVyZW5jZSBNYW51YWwgU1dQVTI4MkFG
+4oCTTWF5IDIwMTLigJNSZXZpc2VkIEF1Z3VzdCAyMDE2LApQTV9NUFVfUFdSU1RDVFJMIGNhbiBv
+bmx5IHN1cHBvcnQ6IE9OIElOQSwgUkVULiAoQ1NXUiBvbmx5KS4KClNhbWUgYXBwbGllcyB0byBD
+UFVzIGFzIHdlbGwuIHdoaWNoIHdhcyB0aGUgcmVhc29uIGluIHRoZSBmaXJzdCBwbGFjZSAKZm9y
+IG1lIHRvIHNlbmQgdGhlIHBhdGNoIHVwc3RyZWFtLgoKLS0gClJlZ2FyZHMsCk5pc2hhbnRoIE1l
+bm9uCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
+eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVh
+ZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1h
+cm0ta2VybmVsCg==
