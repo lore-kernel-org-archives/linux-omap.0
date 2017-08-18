@@ -1,14 +1,14 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP5: Enable CPU off idle states
-Date: Thu, 17 Aug 2017 20:29:47 -0500
-Message-ID: <c31a90c4-8dbe-926a-831c-5fac92ebae80@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP5: Add cpuidle assembly code
+Date: Thu, 17 Aug 2017 20:38:44 -0500
+Message-ID: <97a05a99-3fc5-7fb8-f6d0-708c5d0ddcdc@ti.com>
 References: <20170817230122.30655-1-tony@atomide.com>
- <20170817230122.30655-4-tony@atomide.com>
+ <20170817230122.30655-3-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170817230122.30655-4-tony@atomide.com>
+In-Reply-To: <20170817230122.30655-3-tony@atomide.com>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -23,61 +23,32 @@ To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 Cc: Tero Kristo <t-kristo@ti.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDgvMTcvMjAxNyAwNjowMSBQTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiBXaXRoIHRoZSBp
-ZGxlIGNvZGUgaW4gcGxhY2UgbmVlZGVkIGZvciBzdXBwb3J0aW5nIG9mZiBtb2RlIGZvciBjcHVz
-LAo+IGxldCdzIGVuYWJsZSBpdC4gVGhpcyBzZWVtcyB0byBzYXZlIGFib3V0IDAuMlcgb2YgcG93
-ZXIgY29tcGFyZWQgdG8KPiBDUFUgcmV0ZW50aW9uIHN0YXRlcyBiYXNlZCBvbiBxdWljayBtZWFz
-dXJlbWVudCBvbiBvbWFwNS11ZXZtLgoKVGhhdCBtYWtlcyBzZW5zZSBzaW5jZSB0aGUgU2lsaWNv
-biB5b3UgcHJvYmFibHkgaGF2ZSBpcyBwcmUtcHJvZHVjdGlvbiAKc2lsaWNvbi4KCj4gCj4gU29t
-ZSBwYXJ0cyBvZiB0aGUgY29kZSBpcyBiYXNlZCBvbiBhbiBlYXJsaWVyIHBhdGNoIGRvbmUgYnkg
-U2FudG9zaAo+IFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAb3JhY2xlLmNvbT4gaW4gVEkg
-TGludXgga2VybmVsIHRyZWUgYXMKPiBjb21taXQgN2UzMDM1Y2YwZTliICgiQVJNOiBPTUFQNCs6
-IENQVWlkbGU6IEFkZCBPTUFQNSBpZGxlIGRyaXZlcgo+IHN1cHBvcnQiKQo+IAoKCnVuZm9ydHVu
-YXRlbHksIHlvdSBoYXZlIGJlZW4gbG9va2luZyBhdCBzb21lIHByZXByb2R1Y3Rpb24gY29kZSB3
-aGljaCAKd2FzIGJlaW5nIGRldmVsb3BlZCBwcmlvciB0byB0aGUgc2lsaWNvbiBnb2luZyBpbnRv
-IHByb2R1Y3Rpb24gKGFsc28gCnRoZSByZWFzb24gd2h5IEkgaGF2ZSdudCB1cHN0cmVhbWVkIHRo
-b3NlIGNoYW5nZXMpLgoKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTQ0eHgu
-YyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcG00NHh4LmMKPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9t
-YXAyL3BtNDR4eC5jCj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTQ0eHguYwo+IEBAIC0y
-MjUsNyArMjI1LDcgQEAgaW50IF9faW5pdCBvbWFwNF9wbV9pbml0X2Vhcmx5KHZvaWQpCj4gICAJ
-aWYgKGNwdV9pc19vbWFwNDQ2eCgpKQo+ICAgCQlwbTQ0eHhfZXJyYXRhIHw9IFBNX09NQVA0X1JP
-TV9TTVBfQk9PVF9FUlJBVFVNX0dJQ0Q7Cj4gICAKPiAtCWlmIChzb2NfaXNfb21hcDU0eHgoKSB8
-fCBzb2NfaXNfZHJhN3h4KCkpCj4gKwlpZiAoc29jX2lzX2RyYTd4eCgpKQo+ICAgCQlwbTQ0eHhf
-ZXJyYXRhIHw9IFBNX09NQVA0X0NQVV9PU1dSX0RJU0FCTEU7Cj4gICAKPiAgIAlyZXR1cm4gMDsK
-PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9wb3dlcmRvbWFpbnM1NHh4X2RhdGEu
-YyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcG93ZXJkb21haW5zNTR4eF9kYXRhLmMKPiAtLS0gYS9h
-cmNoL2FybS9tYWNoLW9tYXAyL3Bvd2VyZG9tYWluczU0eHhfZGF0YS5jCj4gKysrIGIvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9wb3dlcmRvbWFpbnM1NHh4X2RhdGEuYwo+IEBAIC0xMDcsOCArMTA3LDgg
-QEAgc3RhdGljIHN0cnVjdCBwb3dlcmRvbWFpbiBjcHUwXzU0eHhfcHdyZG0gPSB7Cj4gICAJLnZv
-bHRkbQkJICA9IHsgLm5hbWUgPSAibXB1IiB9LAo+ICAgCS5wcmNtX29mZnMJICA9IE9NQVA1NFhY
-X1BSQ01fTVBVX1BSTV9DMF9JTlNULAo+ICAgCS5wcmNtX3BhcnRpdGlvbgkgID0gT01BUDU0WFhf
-UFJDTV9NUFVfUEFSVElUSU9OLAo+IC0JLnB3cnN0cwkJICA9IFBXUlNUU19SRVRfT04sCj4gLQku
-cHdyc3RzX2xvZ2ljX3JldCA9IFBXUlNUU19SRVQsCj4gKwkucHdyc3RzCQkgID0gUFdSU1RTX09G
-Rl9SRVRfT04sCj4gKwkucHdyc3RzX2xvZ2ljX3JldCA9IFBXUlNUU19PRkZfUkVULAo+ICAgCS5i
-YW5rcwkJICA9IDEsCj4gICAJLnB3cnN0c19tZW1fcmV0CT0gewo+ICAgCQlbMF0gPSBQV1JTVFNf
-T0ZGX1JFVCwJLyogY3B1MF9sMSAqLwo+IEBAIC0xMjQsOCArMTI0LDggQEAgc3RhdGljIHN0cnVj
-dCBwb3dlcmRvbWFpbiBjcHUxXzU0eHhfcHdyZG0gPSB7Cj4gICAJLnZvbHRkbQkJICA9IHsgLm5h
-bWUgPSAibXB1IiB9LAo+ICAgCS5wcmNtX29mZnMJICA9IE9NQVA1NFhYX1BSQ01fTVBVX1BSTV9D
-MV9JTlNULAo+ICAgCS5wcmNtX3BhcnRpdGlvbgkgID0gT01BUDU0WFhfUFJDTV9NUFVfUEFSVElU
-SU9OLAo+IC0JLnB3cnN0cwkJICA9IFBXUlNUU19SRVRfT04sCj4gLQkucHdyc3RzX2xvZ2ljX3Jl
-dCA9IFBXUlNUU19SRVQsCj4gKwkucHdyc3RzCQkgID0gUFdSU1RTX09GRl9SRVRfT04sCj4gKwku
-cHdyc3RzX2xvZ2ljX3JldCA9IFBXUlNUU19PRkZfUkVULAo+ICAgCS5iYW5rcwkJICA9IDEsCj4g
-ICAJLnB3cnN0c19tZW1fcmV0CT0gewo+ICAgCQlbMF0gPSBQV1JTVFNfT0ZGX1JFVCwJLyogY3B1
-MV9sMSAqLwo+IEBAIC0xNTgsNyArMTU4LDcgQEAgc3RhdGljIHN0cnVjdCBwb3dlcmRvbWFpbiBt
-cHVfNTR4eF9wd3JkbSA9IHsKPiAgIAkucHJjbV9vZmZzCSAgPSBPTUFQNTRYWF9QUk1fTVBVX0lO
-U1QsCj4gICAJLnByY21fcGFydGl0aW9uCSAgPSBPTUFQNTRYWF9QUk1fUEFSVElUSU9OLAo+ICAg
-CS5wd3JzdHMJCSAgPSBQV1JTVFNfUkVUX09OLAo+IC0JLnB3cnN0c19sb2dpY19yZXQgPSBQV1JT
-VFNfUkVULAo+ICsJLnB3cnN0c19sb2dpY19yZXQgPSBQV1JTVFNfT0ZGX1JFVCwKPiAgIAkuYmFu
-a3MJCSAgPSAyLAo+ICAgCS5wd3JzdHNfbWVtX3JldAk9IHsKPiAgIAkJWzBdID0gUFdSU1RTX09G
-Rl9SRVQsCS8qIG1wdV9sMiAqLwo+IAoKdW5mb3J0dW5hdGVseSwgSSBoYXZlIHRvIE5BSyB0aGlz
-IHBhdGNoLgoKaHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQv
-dG9ydmFsZHMvbGludXguZ2l0L2NvbW1pdC8/aWQ9OWY1ZGM5MWI2OTFjZjI5NmM0OWFlZGYwYTY3
-MWZkNjU5YTcwZjczNwphcyBwZXIgVGVjaG5pY2FsIFJlZmVyZW5jZSBNYW51YWwgU1dQVTI4MkFG
-4oCTTWF5IDIwMTLigJNSZXZpc2VkIEF1Z3VzdCAyMDE2LApQTV9NUFVfUFdSU1RDVFJMIGNhbiBv
-bmx5IHN1cHBvcnQ6IE9OIElOQSwgUkVULiAoQ1NXUiBvbmx5KS4KClNhbWUgYXBwbGllcyB0byBD
-UFVzIGFzIHdlbGwuIHdoaWNoIHdhcyB0aGUgcmVhc29uIGluIHRoZSBmaXJzdCBwbGFjZSAKZm9y
-IG1lIHRvIHNlbmQgdGhlIHBhdGNoIHVwc3RyZWFtLgoKLS0gClJlZ2FyZHMsCk5pc2hhbnRoIE1l
-bm9uCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
-eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVh
-ZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1h
-cm0ta2VybmVsCg==
+On 08/17/2017 06:01 PM, Tony Lindgren wrote:
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> 
+> In order to support CPU off modes during idle like omap4 already
+> does, we need to add the assembly code needed for restoring the
+> CPU state from off mode.
+> 
+> The code is a combination of the following earlier patches done
+> by Santosh Shilimkar <santosh.shilimkar@oracle.com> in TI Linux
+> kernel tree:
+> 
+> 881603c3f97f ("ARM: OMAP5: PM: Add CPU power off mode support")
+> 411533444365 ("ARM: OMAP5: PM: Add MPU Open Switch Retention support")
+> 3f9ea63594c3 ("ARM: OMAP5: PM: Add L2 memory power down support")
+
+Ref: 
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=9f5dc91b691cf296c49aedf0a671fd659a70f737 
+and the fact that OSWR and OFF both have been descoped in production 
+silicon, is again the reason why TI has not posted these preproduction 
+experimentation patches upstream.
+
+NAK once again. Sorry.
+
+PS: deleting Santosh's old TI ID which should unfortunately be 
+bouncing now.
+
+-- 
+Regards,
+Nishanth Menon
