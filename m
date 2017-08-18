@@ -1,44 +1,81 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [balbi-usb:testing/next 48/49] drivers/usb//gadget/function/u_serial.c:540:19: error: invalid operands to binary & (have 'unsigned int' and 'struct tty_struct *')
-Date: Fri, 18 Aug 2017 12:30:22 +0300
-Message-ID: <87d17tql3l.fsf@linux.intel.com>
-References: <201708181625.uPy8R6nk%fengguang.wu@intel.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCHv3 2/6] dt-bindings: sound: add motorola,
+	cpcap-audio-codec
+Date: Fri, 18 Aug 2017 12:47:30 +0100
+Message-ID: <20170818114730.57yc2r6d3temrepa@sirena.org.uk>
+References: <20170725151030.26863-1-sebastian.reichel@collabora.co.uk>
+ <20170725151030.26863-3-sebastian.reichel@collabora.co.uk>
+ <20170726114827.pye3jm2b7x2nqo5v@sirena.org.uk>
+ <20170727090141.sxzm6mq5cv4jzucg@earth>
+ <20170810165358.GK8569@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201708181625.uPy8R6nk%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============2782198961296867222=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20170810165358.GK8569@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
 
 
-Hi,
+--===============2782198961296867222==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="mk63f6qznskjx7fv"
+Content-Disposition: inline
 
-kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git testing/next
-> head:   862b43460309779e5814616a68aa36d29a70d6e0
-> commit: 2b4e4d3c929db0fc7cf99212bfac0570b6902c14 [48/49] usb: gadget: serial: fix oops when data rx'd after close
-> config: xtensa-allmodconfig (attached as .config)
-> compiler: xtensa-linux-gcc (GCC) 4.9.0
-> reproduce:
->         wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         git checkout 2b4e4d3c929db0fc7cf99212bfac0570b6902c14
->         # save the attached .config to linux build tree
->         make.cross ARCH=xtensa 
->
-> All errors (new ones prefixed by >>):
->
->    drivers/usb//gadget/function/u_serial.c: In function 'gs_rx_push':
->>> drivers/usb//gadget/function/u_serial.c:540:19: error: invalid operands to binary & (have 'unsigned int' and 'struct tty_struct *')
->       if (req->actual & tty) {
 
-fixed locally.
+--mk63f6qznskjx7fv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, Aug 10, 2017 at 09:53:59AM -0700, Tony Lindgren wrote:
+> * Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170727 02:02]:
+
+> > I don't follow you here. Why can't other parts of the chip use the
+> > same supply? Regarding the other point: Handling the audio-codec
+
+They can, they know they're part of the parent chip and should be
+looking for the supply on the chip level.
+
+> > differently than all other sub-modules of cpcap seems much more
+> > problematic to me and the codec is basically the last one
+> > missing:
+
+> Mark, any comments on the above? I'm just wondering if the
+> related dts changes are safe for me to pick.
+
+No, they don't make sense.
+
+--mk63f6qznskjx7fv
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlmW09EACgkQJNaLcl1U
+h9AKCAf9EWXupYCrST1QW4exCFfksCiJ0trEm2Xx2+o96FUOo3EOZ9AoLL/F4pgS
+z7LgS+zdMIdITKfWfI/+TljgC2+WLsqys1Mjhq5Xyw1ud584QoXq78n0xp6+Zksw
+1NKjfXLhvCtkin6eoCiKuKgMLLvMRnd8gSIS3kOKdqi6uWwEzRdDm0STjZAPQHO3
+zjiZczKhrR/aVpoM6GkCMDumRmLocRWFWgBHGRYXuhfYuiNocmgGqFlLj/zs2NJ4
+5wSgykajv6cLpZnZIaOonivd6p8BP1x6et1mpEpH9UlHI18ipHK9JRIIo0D3/6PC
+CvyjhPEU3k5UpEfvWpuebZqV/jgywA==
+=4Hpm
+-----END PGP SIGNATURE-----
+
+--mk63f6qznskjx7fv--
+
+--===============2782198961296867222==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============2782198961296867222==--
