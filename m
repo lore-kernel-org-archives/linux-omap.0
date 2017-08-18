@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 11/18] PCI: dwc: dra7xx: Reset all BARs during initialization
-Date: Fri, 18 Aug 2017 20:28:03 +0530
-Message-ID: <20170818145810.17649-12-kishon@ti.com>
+Subject: [PATCH 12/18] PCI: dwc: designware-ep: Do not disable BARs during initialization
+Date: Fri, 18 Aug 2017 20:28:04 +0530
+Message-ID: <20170818145810.17649-13-kishon@ti.com>
 References: <20170818145810.17649-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,42 +12,35 @@ To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-dra7xx has all base address registers (BAR) enabled by default. Reset all
-BARs during initialization and so that BARs are enabled only if they are
-actually used.
+Some platforms like K2G has reserved use of BAR_0 which shouldn't be
+disabled by software. Avoid disabling all BARs during initialization.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/pci/dwc/pcie-designware-ep.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index f2fc5f47064e..ee61f833b62c 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -335,10 +335,23 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	return IRQ_HANDLED;
- }
- 
-+static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
-+{
-+	u32 reg;
-+
-+	reg = PCI_BASE_ADDRESS_0 + (4 * bar);
-+	dw_pcie_writel_dbi2(pci, reg, 0x0);
-+	dw_pcie_writel_dbi(pci, reg, 0x0);
-+}
-+
- static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
+diff --git a/drivers/pci/dwc/pcie-designware-ep.c b/drivers/pci/dwc/pcie-designware-ep.c
+index e70ebe3b9b6f..b3205df38d52 100644
+--- a/drivers/pci/dwc/pcie-designware-ep.c
++++ b/drivers/pci/dwc/pcie-designware-ep.c
+@@ -283,7 +283,6 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
  {
+ 	int ret;
+ 	void *addr;
+-	enum pci_barno bar;
+ 	struct pci_epc *epc;
  	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
- 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
-+	enum pci_barno bar;
-+
-+	for (bar = BAR_0; bar <= BAR_5; bar++)
-+		dw_pcie_ep_reset_bar(pci, bar);
+ 	struct device *dev = pci->dev;
+@@ -312,9 +311,6 @@ int dw_pcie_ep_init(struct dw_pcie_ep *ep)
+ 		return -ENOMEM;
+ 	ep->outbound_addr = addr;
  
- 	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
- }
+-	for (bar = BAR_0; bar <= BAR_5; bar++)
+-		dw_pcie_ep_reset_bar(pci, bar);
+-
+ 	if (ep->ops->ep_init)
+ 		ep->ops->ep_init(ep);
+ 
 -- 
 2.11.0
