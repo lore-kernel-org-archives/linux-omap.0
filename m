@@ -1,66 +1,185 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 02/18] PCI: endpoint: pci-epf-core: Add an API to get matching "pci_epf_device_id"
-Date: Fri, 18 Aug 2017 20:27:54 +0530
-Message-ID: <20170818145810.17649-3-kishon@ti.com>
+Subject: [PATCH 04/18] PCI: endpoint: pci-epc-mem: Add support for configurable page size
+Date: Fri, 18 Aug 2017 20:27:56 +0530
+Message-ID: <20170818145810.17649-5-kishon@ti.com>
 References: <20170818145810.17649-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20170818145810.17649-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Joao Pinto <Joao.Pinto@synopsys.com>, Arnd Bergmann <arnd@arndb.de>, gregkh@linuxfoundation.org, kishon@ti.com, nsekhar@ti.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add an API to get "pci_epf_device_id" matching the epf name. This can be
-used by the epf driver to get the driver data corresponding to the epf
-device name.
+pci-epc-mem uses a page size equal to *PAGE_SIZE* (usually 4KB) to
+manage the address space. However certain platforms like TI's K2G
+has a restriction that this address space should be either divided
+into 1MB/2MB/4MB or 8MB sizes (Ref: 11.14.4.9.1 Outbound Address
+Translation in K2G TRM SPRUHY8F January 2016 – Revised May 2017).
+Add support to handle different page sizes here.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/endpoint/pci-epf-core.c | 16 ++++++++++++++++
- include/linux/pci-epf.h             |  2 ++
- 2 files changed, 18 insertions(+)
+ drivers/pci/endpoint/pci-epc-mem.c | 59 ++++++++++++++++++++++++++++++++------
+ include/linux/pci-epc.h            |  8 +++++-
+ 2 files changed, 57 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/pci/endpoint/pci-epf-core.c b/drivers/pci/endpoint/pci-epf-core.c
-index 6877d6a5bcc9..60ea0c51161e 100644
---- a/drivers/pci/endpoint/pci-epf-core.c
-+++ b/drivers/pci/endpoint/pci-epf-core.c
-@@ -267,6 +267,22 @@ struct pci_epf *pci_epf_create(const char *name)
- }
- EXPORT_SYMBOL_GPL(pci_epf_create);
+diff --git a/drivers/pci/endpoint/pci-epc-mem.c b/drivers/pci/endpoint/pci-epc-mem.c
+index 3a94cc1caf22..83b7d5d3fc3e 100644
+--- a/drivers/pci/endpoint/pci-epc-mem.c
++++ b/drivers/pci/endpoint/pci-epc-mem.c
+@@ -24,21 +24,54 @@
+ #include <linux/pci-epc.h>
  
-+const struct pci_epf_device_id *
-+pci_epf_match_device(const struct pci_epf_device_id *id, struct pci_epf *epf)
+ /**
+- * pci_epc_mem_init() - initialize the pci_epc_mem structure
++ * pci_epc_mem_get_order() - determine the allocation order of a memory size
++ * @mem: address space of the endpoint controller
++ * @size: the size for which to get the order
++ *
++ * Reimplement get_order() for mem->page_size since the generic get_order
++ * always gets order with a constant PAGE_SIZE.
++ */
++static int pci_epc_mem_get_order(struct pci_epc_mem *mem, size_t size)
 +{
-+	if (!id || !epf)
-+		return NULL;
++	int order;
++	unsigned int page_shift = ilog2(mem->page_size);
 +
-+	while (id) {
-+		if (strcmp(epf->name, id->name) == 0)
-+			return id;
-+		id++;
-+	}
-+
-+	return NULL;
++	size--;
++	size >>= page_shift;
++#if BITS_PER_LONG == 32
++	order = fls(size);
++#else
++	order = fls64(size);
++#endif
++	return order;
 +}
-+EXPORT_SYMBOL_GPL(pci_epf_match_device);
 +
- static void pci_epf_dev_release(struct device *dev)
++/**
++ * __pci_epc_mem_init() - initialize the pci_epc_mem structure
+  * @epc: the EPC device that invoked pci_epc_mem_init
+  * @phys_base: the physical address of the base
+  * @size: the size of the address space
++ * @page_size: size of each page
+  *
+  * Invoke to initialize the pci_epc_mem structure used by the
+  * endpoint functions to allocate mapped PCI address.
+  */
+-int pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_base, size_t size)
++int __pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_base, size_t size,
++		       size_t page_size)
  {
- 	struct pci_epf *epf = to_pci_epf(dev);
-diff --git a/include/linux/pci-epf.h b/include/linux/pci-epf.h
-index 0d529cb90143..6ed63b5e106b 100644
---- a/include/linux/pci-epf.h
-+++ b/include/linux/pci-epf.h
-@@ -149,6 +149,8 @@ static inline void *epf_get_drvdata(struct pci_epf *epf)
- 	return dev_get_drvdata(&epf->dev);
- }
+ 	int ret;
+ 	struct pci_epc_mem *mem;
+ 	unsigned long *bitmap;
+-	int pages = size >> PAGE_SHIFT;
+-	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
++	unsigned int page_shift;
++	int pages;
++	int bitmap_size;
++
++	if (page_size < PAGE_SIZE)
++		page_size = PAGE_SIZE;
++
++	page_shift = ilog2(page_size);
++	pages = size >> page_shift;
++	bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
  
-+const struct pci_epf_device_id *
-+pci_epf_match_device(const struct pci_epf_device_id *id, struct pci_epf *epf);
- struct pci_epf *pci_epf_create(const char *name);
- void pci_epf_destroy(struct pci_epf *epf);
- int __pci_epf_register_driver(struct pci_epf_driver *driver,
+ 	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
+ 	if (!mem) {
+@@ -54,6 +87,7 @@ int pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_base, size_t size)
+ 
+ 	mem->bitmap = bitmap;
+ 	mem->phys_base = phys_base;
++	mem->page_size = page_size;
+ 	mem->pages = pages;
+ 	mem->size = size;
+ 
+@@ -67,7 +101,7 @@ int pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_base, size_t size)
+ err:
+ return ret;
+ }
+-EXPORT_SYMBOL_GPL(pci_epc_mem_init);
++EXPORT_SYMBOL_GPL(__pci_epc_mem_init);
+ 
+ /**
+  * pci_epc_mem_exit() - cleanup the pci_epc_mem structure
+@@ -101,13 +135,17 @@ void __iomem *pci_epc_mem_alloc_addr(struct pci_epc *epc,
+ 	int pageno;
+ 	void __iomem *virt_addr;
+ 	struct pci_epc_mem *mem = epc->mem;
+-	int order = get_order(size);
++	unsigned int page_shift = ilog2(mem->page_size);
++	int order;
++
++	size = ALIGN(size, mem->page_size);
++	order = pci_epc_mem_get_order(mem, size);
+ 
+ 	pageno = bitmap_find_free_region(mem->bitmap, mem->pages, order);
+ 	if (pageno < 0)
+ 		return NULL;
+ 
+-	*phys_addr = mem->phys_base + (pageno << PAGE_SHIFT);
++	*phys_addr = mem->phys_base + (pageno << page_shift);
+ 	virt_addr = ioremap(*phys_addr, size);
+ 	if (!virt_addr)
+ 		bitmap_release_region(mem->bitmap, pageno, order);
+@@ -129,11 +167,14 @@ void pci_epc_mem_free_addr(struct pci_epc *epc, phys_addr_t phys_addr,
+ 			   void __iomem *virt_addr, size_t size)
+ {
+ 	int pageno;
+-	int order = get_order(size);
+ 	struct pci_epc_mem *mem = epc->mem;
++	unsigned int page_shift = ilog2(mem->page_size);
++	int order;
+ 
+ 	iounmap(virt_addr);
+-	pageno = (phys_addr - mem->phys_base) >> PAGE_SHIFT;
++	pageno = (phys_addr - mem->phys_base) >> page_shift;
++	size = ALIGN(size, mem->page_size);
++	order = pci_epc_mem_get_order(mem, size);
+ 	bitmap_release_region(mem->bitmap, pageno, order);
+ }
+ EXPORT_SYMBOL_GPL(pci_epc_mem_free_addr);
+diff --git a/include/linux/pci-epc.h b/include/linux/pci-epc.h
+index af5edbf3eea3..f7a04e1af112 100644
+--- a/include/linux/pci-epc.h
++++ b/include/linux/pci-epc.h
+@@ -62,11 +62,13 @@ struct pci_epc_ops {
+  * @size: the size of the PCI address space
+  * @bitmap: bitmap to manage the PCI address space
+  * @pages: number of bits representing the address region
++ * @page_size: size of each page
+  */
+ struct pci_epc_mem {
+ 	phys_addr_t	phys_base;
+ 	size_t		size;
+ 	unsigned long	*bitmap;
++	size_t		page_size;
+ 	int		pages;
+ };
+ 
+@@ -98,6 +100,9 @@ struct pci_epc {
+ #define devm_pci_epc_create(dev, ops)    \
+ 		__devm_pci_epc_create((dev), (ops), THIS_MODULE)
+ 
++#define pci_epc_mem_init(epc, phys_addr, size)	\
++		__pci_epc_mem_init((epc), (phys_addr), (size), PAGE_SIZE)
++
+ static inline void epc_set_drvdata(struct pci_epc *epc, void *data)
+ {
+ 	dev_set_drvdata(&epc->dev, data);
+@@ -135,7 +140,8 @@ void pci_epc_stop(struct pci_epc *epc);
+ struct pci_epc *pci_epc_get(const char *epc_name);
+ void pci_epc_put(struct pci_epc *epc);
+ 
+-int pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_addr, size_t size);
++int __pci_epc_mem_init(struct pci_epc *epc, phys_addr_t phys_addr, size_t size,
++		       size_t page_size);
+ void pci_epc_mem_exit(struct pci_epc *epc);
+ void __iomem *pci_epc_mem_alloc_addr(struct pci_epc *epc,
+ 				     phys_addr_t *phys_addr, size_t size);
 -- 
 2.11.0
