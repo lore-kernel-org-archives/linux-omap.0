@@ -1,71 +1,62 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP5: Enable CPU off idle states
-Date: Fri, 18 Aug 2017 17:27:08 -0500
-Message-ID: <77854a91-80f0-3622-93a2-2eefe1e8b1aa@ti.com>
-References: <20170817230122.30655-1-tony@atomide.com>
- <20170817230122.30655-4-tony@atomide.com>
- <c31a90c4-8dbe-926a-831c-5fac92ebae80@ti.com>
- <20170818152600.GE6008@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [RFC PATCH 6/7] mmc: sdhci-omap: Add OMAP SDHCI driver
+Date: Sun, 20 Aug 2017 16:33:19 +0530
+Message-ID: <946e5930-7897-5f66-8d75-c112202857d1@ti.com>
+References: <20170807160142.12134-1-kishon@ti.com>
+ <20170807160142.12134-7-kishon@ti.com>
+ <a45cf402-26c9-d9d0-1ca0-cbeeddad388c@intel.com>
+ <46568bdf-c11f-e04b-edd4-25d5363ae504@ti.com>
+ <0b109f07-f7f3-1a12-0c65-45d96eb23b13@intel.com>
+ <7822a805-3379-1d08-5a01-f422ab23f863@ti.com>
+ <158e88c4-da08-6091-96ed-daa8467b6e69@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170818152600.GE6008@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-arm-kernel@lists.infradead.org, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <158e88c4-da08-6091-96ed-daa8467b6e69@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
+Cc: nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDgvMTgvMjAxNyAxMDoyNiBBTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAqIE5pc2hhbnRo
-IE1lbm9uIDxubUB0aS5jb20+IFsxNzA4MTcgMTg6MzBdOgo+PiBPbiAwOC8xNy8yMDE3IDA2OjAx
-IFBNLCBUb255IExpbmRncmVuIHdyb3RlOgo+Pj4gV2l0aCB0aGUgaWRsZSBjb2RlIGluIHBsYWNl
-IG5lZWRlZCBmb3Igc3VwcG9ydGluZyBvZmYgbW9kZSBmb3IgY3B1cywKPj4+IGxldCdzIGVuYWJs
-ZSBpdC4gVGhpcyBzZWVtcyB0byBzYXZlIGFib3V0IDAuMlcgb2YgcG93ZXIgY29tcGFyZWQgdG8K
-Pj4+IENQVSByZXRlbnRpb24gc3RhdGVzIGJhc2VkIG9uIHF1aWNrIG1lYXN1cmVtZW50IG9uIG9t
-YXA1LXVldm0uCj4+Cj4+IFRoYXQgbWFrZXMgc2Vuc2Ugc2luY2UgdGhlIFNpbGljb24geW91IHBy
-b2JhYmx5IGhhdmUgaXMgcHJlLXByb2R1Y3Rpb24KPj4gc2lsaWNvbi4KPiAKPiBJdCBzZWVtcyB0
-byBiZSBlczIuMCwgdGhlIG1lYXN1cmVtZW50IHdhcyBqdXN0IGJhc2VkIG9uIGEgZ2xhbmNlCj4g
-b2YgdGhlIHBvd2VyIHN1cHBseSBhZnRlciBybW1vZCBvZiBlaGNpLW9tYXAgYW5kIG9oY2ktcGxh
-dGZvcm0KPiBtb2R1bGVzLgoKeWVhaCAtPiBFUzIuMCBkaWQgaGF2ZSB0d28gc3RhZ2VzIHByaW9y
-IHRvIGJlaW5nIGFwcHJvdmVkIGZvciBwcm9kdWN0aW9uLgoKPiAKPj4gdW5mb3J0dW5hdGVseSwg
-eW91IGhhdmUgYmVlbiBsb29raW5nIGF0IHNvbWUgcHJlcHJvZHVjdGlvbiBjb2RlIHdoaWNoIHdh
-cwo+PiBiZWluZyBkZXZlbG9wZWQgcHJpb3IgdG8gdGhlIHNpbGljb24gZ29pbmcgaW50byBwcm9k
-dWN0aW9uIChhbHNvIHRoZSByZWFzb24KPj4gd2h5IEkgaGF2ZSdudCB1cHN0cmVhbWVkIHRob3Nl
-IGNoYW5nZXMpLgo+IAo+IE9oIEkgZGlkIG5vdCBrbm93IHRoYXQsIEkgd2FzIGp1c3QgbG9va2lu
-ZyBhdCB0aGUgb2xkCj4gdGktbGludXgtMy04LXkta2VybmVsIHRoYXQgdGhlIGlnZXB2NSBrZXJu
-ZWwgdHJlZSBpcwo+IGJhc2VkIG9uLgo+IAoKdW5mb3J0dW5hdGVseSBzby4KCj4+IHVuZm9ydHVu
-YXRlbHksIEkgaGF2ZSB0byBOQUsgdGhpcyBwYXRjaC4KPj4KPj4gaHR0cHM6Ly9naXQua2VybmVs
-Lm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG9ydmFsZHMvbGludXguZ2l0L2NvbW1pdC8/
-aWQ9OWY1ZGM5MWI2OTFjZjI5NmM0OWFlZGYwYTY3MWZkNjU5YTcwZjczNwo+PiBhcyBwZXIgVGVj
-aG5pY2FsIFJlZmVyZW5jZSBNYW51YWwgU1dQVTI4MkFG4oCTTWF5IDIwMTLigJNSZXZpc2VkIEF1
-Z3VzdCAyMDE2LAo+PiBQTV9NUFVfUFdSU1RDVFJMIGNhbiBvbmx5IHN1cHBvcnQ6IE9OIElOQSwg
-UkVULiAoQ1NXUiBvbmx5KS4KPj4KPj4gU2FtZSBhcHBsaWVzIHRvIENQVXMgYXMgd2VsbC4gd2hp
-Y2ggd2FzIHRoZSByZWFzb24gaW4gdGhlIGZpcnN0IHBsYWNlIGZvciBtZQo+PiB0byBzZW5kIHRo
-ZSBwYXRjaCB1cHN0cmVhbS4KPiAKPiBPSywgaXMgdGhlcmUgc29tZSBoYXJkd2FyZSBlcnJhdGEg
-aXNzdWVkIG9uIHRoYXQ/CgpUbyBteSBrbm93bGVkZ2UsIGVycmF0YSBpcyBvbmx5IHdoZW4gVFJN
-IGlzIG5vdCB1cGRhdGVkIChmZWF0dXJlIHRoYXQgCmlzIHN1cHBvc2VkIHRvIHdvcmssIGJ1dCBk
-b2VzJ250KS4gVFJNJ3MgdmVyc2lvbiBoaXN0b3J5IGluZGljYXRlcyAKZGVzY29wZS4gQXQgbGVh
-c3QgdG8gbXkgaW5mb3JtYXRpb24gYWxsIHByb2R1Y3Rpb24gY3VzdG9tZXJzIHNob3VsZCAKaGF2
-ZSBiZWVuIGluZm9ybWVkIGFib3V0IHRoaXMgYXMgd2VsbC4KCj4gCj4gSSBhbHNvIG5vdGljZWQg
-dGhlc2UgcGF0Y2hlcyB3b24ndCB3b3JrIHdoZW4gYm9vdGVkIHdpdGggTFBBRQo+IGVuYWJsZWQg
-a2VybmVsIGZvciBzb21lIHJlYXNvbi4KPiAKCk9idmlvdXNseSwgSSBkb250IHRoaW5rIEkgYW0g
-aW50ZXJlc3RlZCBpbiBjaGFzaW5nIGFueSBmdXJ0aGVyIGRvd24gCnRoaXMgcm9hZC4gU29DIGRl
-c2NvcGUgaXMgYSBzZXZlcmUgZGVjaXNpb24gdGhhdCBoYXMgYmVlbiB0YWtlbiBhZnRlciAKYSBs
-b3Qgb2YgaW50ZXJuYWwgYW5kICBjdXN0b21lciBjb25zaWRlcmF0aW9ucy4gdGhlcmUgaXMgbm8g
-cG9pbnQgaW4gCnRyeWluZyB0byBlbmFibGUgYSBkZXNjb3BlZCBmZWF0dXJlIHdoZW4gZXZlbiBp
-ZiBpdCB3b3JrZWQgb24gMTAgCmJvYXJkcyBtZWFucyBub3RoaW5nIGZyb20gYSBwcm9kdWN0aW9u
-IGRldmljZSBwZXJzcGVjdGl2ZSwgYW5kIHRoZXJlIAphcmUgZGV2aWNlcyBvdXQgdGhlcmUgaW4g
-cHJvZHVjdGlvbiB3aXRoIE9NQVA1LgoKCi0tIApSZWdhcmRzLApOaXNoYW50aCBNZW5vbgoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtl
-cm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0
-dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5l
-bAo=
+Adrian,
+
+On Thursday 17 August 2017 01:53 PM, Adrian Hunter wrote:
+> On 17/08/17 10:59, Kishon Vijay Abraham I wrote:
+>> Hi Adrian,
+>>
+>> On Thursday 17 August 2017 12:13 PM, Adrian Hunter wrote:
+>>> On 17/08/17 08:57, Kishon Vijay Abraham I wrote:
+>>>> Hi Adrian,
+>>>>
+>>>> On Tuesday 15 August 2017 01:52 PM, Adrian Hunter wrote:
+>>>>> On 07/08/17 19:01, Kishon Vijay Abraham I wrote:
+> 
+> <SNIP>
+> 
+>>>>>> +	pm_runtime_enable(dev);
+>>>>>> +	ret = pm_runtime_get_sync(dev);
+>>>>>
+>>>>> What are you trying to do with runtime pm?  There don't seem to be any pm
+>>>>> callbacks, so does this do anything?
+>>>>
+>>>> yeah, pm_runtime_get_sync enables the functional clock and also configures the
+>>>> SYSCONFIG regiters present in the controller. It gets the details for
+>>>> configuring those from arch/arm/mach-omap2/omap_hwmod_*
+>>>
+>>> You mean it will do those things when you add the callbacks?  I would prefer
+>>> you leave out runtime pm until you can add the callbacks as well.
+>>
+>> No. Generally in callbacks, 'optional' functional clocks are enabled. But main
+>> functional clock and interface clocks are enabled in pm_runtime_get_sync.
+>> Without pm_runtime_get_sync, we won't be able to access controller registers.
+> 
+> So that is done by the pm domain?  Please add comments to the code to explain.
+
+right, it's done by omap_device_pm_domain.
+Invoking pm_runtime_get_sync of a platform device in OMAP platforms will
+eventually come to omap_hwmod_enable where main functional clock, interface
+clock and sysconfig are programmed.
+
+Thanks
+Kishon
