@@ -1,62 +1,56 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [RFC PATCH 6/7] mmc: sdhci-omap: Add OMAP SDHCI driver
-Date: Sun, 20 Aug 2017 16:33:19 +0530
-Message-ID: <946e5930-7897-5f66-8d75-c112202857d1@ti.com>
-References: <20170807160142.12134-1-kishon@ti.com>
- <20170807160142.12134-7-kishon@ti.com>
- <a45cf402-26c9-d9d0-1ca0-cbeeddad388c@intel.com>
- <46568bdf-c11f-e04b-edd4-25d5363ae504@ti.com>
- <0b109f07-f7f3-1a12-0c65-45d96eb23b13@intel.com>
- <7822a805-3379-1d08-5a01-f422ab23f863@ti.com>
- <158e88c4-da08-6091-96ed-daa8467b6e69@intel.com>
+Subject: [PATCH 2/5] mmc: sdhci: Add quirk to indicate MMC_RSP_136 has CRC
+Date: Mon, 21 Aug 2017 13:11:29 +0530
+Message-ID: <20170821074132.4622-3-kishon@ti.com>
+References: <20170821074132.4622-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <158e88c4-da08-6091-96ed-daa8467b6e69@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>
-Cc: nsekhar@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20170821074132.4622-1-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Adrian,
+TI's implementation of sdhci controller used in DRA7 SoC's has
+CRC in responses with length 136 bits. Add quirk to indicate
+the controller has CRC in MMC_RSP_136. If this quirk is
+set sdhci library shouldn't shift the response present in
+SDHCI_RESPONSE register.
 
-On Thursday 17 August 2017 01:53 PM, Adrian Hunter wrote:
-> On 17/08/17 10:59, Kishon Vijay Abraham I wrote:
->> Hi Adrian,
->>
->> On Thursday 17 August 2017 12:13 PM, Adrian Hunter wrote:
->>> On 17/08/17 08:57, Kishon Vijay Abraham I wrote:
->>>> Hi Adrian,
->>>>
->>>> On Tuesday 15 August 2017 01:52 PM, Adrian Hunter wrote:
->>>>> On 07/08/17 19:01, Kishon Vijay Abraham I wrote:
-> 
-> <SNIP>
-> 
->>>>>> +	pm_runtime_enable(dev);
->>>>>> +	ret = pm_runtime_get_sync(dev);
->>>>>
->>>>> What are you trying to do with runtime pm?  There don't seem to be any pm
->>>>> callbacks, so does this do anything?
->>>>
->>>> yeah, pm_runtime_get_sync enables the functional clock and also configures the
->>>> SYSCONFIG regiters present in the controller. It gets the details for
->>>> configuring those from arch/arm/mach-omap2/omap_hwmod_*
->>>
->>> You mean it will do those things when you add the callbacks?  I would prefer
->>> you leave out runtime pm until you can add the callbacks as well.
->>
->> No. Generally in callbacks, 'optional' functional clocks are enabled. But main
->> functional clock and interface clocks are enabled in pm_runtime_get_sync.
->> Without pm_runtime_get_sync, we won't be able to access controller registers.
-> 
-> So that is done by the pm domain?  Please add comments to the code to explain.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/mmc/host/sdhci.c | 3 +++
+ drivers/mmc/host/sdhci.h | 2 ++
+ 2 files changed, 5 insertions(+)
 
-right, it's done by omap_device_pm_domain.
-Invoking pm_runtime_get_sync of a platform device in OMAP platforms will
-eventually come to omap_hwmod_enable where main functional clock, interface
-clock and sysconfig are programmed.
+diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+index ba639b7851cb..9c8d7428df3c 100644
+--- a/drivers/mmc/host/sdhci.c
++++ b/drivers/mmc/host/sdhci.c
+@@ -1182,6 +1182,9 @@ static void sdhci_read_rsp_136(struct sdhci_host *host, struct mmc_command *cmd)
+ 		cmd->resp[i] = sdhci_readl(host, reg);
+ 	}
+ 
++	if (host->quirks2 & SDHCI_QUIRK2_RSP_136_HAS_CRC)
++		return;
++
+ 	/* CRC is stripped so we need to do some shifting */
+ 	for (i = 0; i < 4; i++) {
+ 		cmd->resp[i] <<= 8;
+diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
+index 399edc681623..54bc444c317f 100644
+--- a/drivers/mmc/host/sdhci.h
++++ b/drivers/mmc/host/sdhci.h
+@@ -435,6 +435,8 @@ struct sdhci_host {
+ #define SDHCI_QUIRK2_ACMD23_BROKEN			(1<<14)
+ /* Broken Clock divider zero in controller */
+ #define SDHCI_QUIRK2_CLOCK_DIV_ZERO_BROKEN		(1<<15)
++/* Controller has CRC in 136 bit Command Response */
++#define SDHCI_QUIRK2_RSP_136_HAS_CRC			(1<<16)
+ 
+ 	int irq;		/* Device IRQ */
+ 	void __iomem *ioaddr;	/* Mapped address */
+-- 
+2.11.0
 
-Thanks
-Kishon
