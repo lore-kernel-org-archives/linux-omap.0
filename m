@@ -1,7 +1,7 @@
 From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH 8/8] ARM: DRA7: hwmod_data: Add data for DSPs
-Date: Mon, 21 Aug 2017 18:48:18 -0500
-Message-ID: <20170821234818.4755-9-s-anna@ti.com>
+Subject: [PATCH 6/8] ARM: OMAP5: hwmod_data: Add data for IPU & DSP processors
+Date: Mon, 21 Aug 2017 18:48:16 -0500
+Message-ID: <20170821234818.4755-7-s-anna@ti.com>
 References: <20170821234818.4755-1-s-anna@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,18 +21,11 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The DRA7xx family of SoCs can have up to two identical DSP
-processor subsystems, with most of them having a single DSP
-processor subsystem. The second DSP is present only on DRA74x
-and DRA76x variants currently.
+OMAP5, like OMAP4, also has an IPU and a DSP processor subsystems.
+The relevant hwmod classes and data structures are added for these
+devices.
 
-These subsystems are very similar to the respective processor
-subsystems on OMAP4/OMAP5 in terms of clock and reset integration.
-The relevant hwmod class and data structures are added for both
-the DSP remoteproc devices, with the data for DSP2 added only
-on DRA74x/DRA76x variants.
-
-Do note that these hwmod data structures do not have a .modulemode
+Do note that these hwmod data strucutures do not have a .modulemode
 field as the devices are managed together with their corresponding
 MMUs. Each of the processor subsystem and its MMU are present within
 the same clock domain and requires the domain be clocked and enabled
@@ -42,14 +35,14 @@ disabling the MMU.
 
 Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 66 +++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c | 79 ++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index e65a02855633..2a6341753c70 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -555,6 +555,53 @@ static struct omap_hwmod dra7xx_tptc1_hwmod = {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+index 9a67f013ebad..15f217b5e462 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_54xx_data.c
+@@ -335,6 +335,36 @@ static struct omap_hwmod omap54xx_dmic_hwmod = {
  };
  
  /*
@@ -57,98 +50,112 @@ index e65a02855633..2a6341753c70 100644
 + * dsp sub-system
 + */
 +
-+static struct omap_hwmod_class dra7xx_dsp_hwmod_class = {
-+	.name   = "dsp",
++static struct omap_hwmod_class omap54xx_dsp_hwmod_class = {
++	.name	= "dsp",
 +};
 +
-+static struct omap_hwmod_rst_info dra7xx_dsp_resets[] = {
++static struct omap_hwmod_rst_info omap54xx_dsp_resets[] = {
 +	{ .name = "dsp", .rst_shift = 0 },
 +};
 +
-+/* dsp1 processor */
-+static struct omap_hwmod dra7xx_dsp1_hwmod = {
-+	.name		= "dsp1",
-+	.class		= &dra7xx_dsp_hwmod_class,
-+	.clkdm_name	= "dsp1_clkdm",
-+	.rst_lines	= dra7xx_dsp_resets,
-+	.rst_lines_cnt	= ARRAY_SIZE(dra7xx_dsp_resets),
-+	.main_clk	= "dpll_dsp_m2_ck",
++/* dsp */
++static struct omap_hwmod omap54xx_dsp_hwmod = {
++	.name		= "dsp",
++	.class		= &omap54xx_dsp_hwmod_class,
++	.clkdm_name	= "dsp_clkdm",
++	.rst_lines	= omap54xx_dsp_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(omap54xx_dsp_resets),
++	.main_clk	= "dpll_iva_h11x2_ck",
 +	.prcm = {
 +		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_DSP1_DSP1_CLKCTRL_OFFSET,
-+			.rstctrl_offs = DRA7XX_RM_DSP1_RSTCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_DSP1_DSP1_CONTEXT_OFFSET,
-+		},
-+	},
-+};
-+
-+/* dsp2 processor */
-+static struct omap_hwmod dra7xx_dsp2_hwmod = {
-+	.name		= "dsp2",
-+	.class		= &dra7xx_dsp_hwmod_class,
-+	.clkdm_name	= "dsp2_clkdm",
-+	.rst_lines	= dra7xx_dsp_resets,
-+	.rst_lines_cnt	= ARRAY_SIZE(dra7xx_dsp_resets),
-+	.main_clk	= "dpll_dsp_m2_ck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_DSP2_DSP2_CLKCTRL_OFFSET,
-+			.rstctrl_offs = DRA7XX_RM_DSP2_RSTCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_DSP2_DSP2_CONTEXT_OFFSET,
++			.clkctrl_offs = OMAP54XX_CM_DSP_DSP_CLKCTRL_OFFSET,
++			.rstctrl_offs = OMAP54XX_RM_DSP_RSTCTRL_OFFSET,
++			.context_offs = OMAP54XX_RM_DSP_DSP_CONTEXT_OFFSET,
 +		},
 +	},
 +};
 +
 +/*
   * 'dss' class
-  *
+  * display sub-system
   */
-@@ -3266,6 +3313,22 @@ static struct omap_hwmod_ocp_if dra7xx_l3_main_1__tptc1 = {
- 	.user		= OCP_USER_MPU,
+@@ -940,6 +970,37 @@ static struct omap_hwmod omap54xx_i2c5_hwmod = {
  };
  
-+/* dsp1 -> l3_main_1 */
-+static struct omap_hwmod_ocp_if dra7xx_dsp1__l3_main_1 = {
-+	.master		= &dra7xx_dsp1_hwmod,
-+	.slave		= &dra7xx_l3_main_1_hwmod,
+ /*
++ * 'ipu' class
++ * image processor unit
++ */
++
++static struct omap_hwmod_class omap54xx_ipu_hwmod_class = {
++	.name	= "ipu",
++};
++
++static struct omap_hwmod_rst_info omap54xx_ipu_resets[] = {
++	{ .name = "cpu0", .rst_shift = 0 },
++	{ .name = "cpu1", .rst_shift = 1 },
++};
++
++/* ipu */
++static struct omap_hwmod omap54xx_ipu_hwmod = {
++	.name		= "ipu",
++	.class		= &omap54xx_ipu_hwmod_class,
++	.clkdm_name	= "ipu_clkdm",
++	.rst_lines	= omap54xx_ipu_resets,
++	.rst_lines_cnt	= ARRAY_SIZE(omap54xx_ipu_resets),
++	.main_clk	= "dpll_core_h22x2_ck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP54XX_CM_IPU_IPU_CLKCTRL_OFFSET,
++			.rstctrl_offs = OMAP54XX_RM_IPU_RSTCTRL_OFFSET,
++			.context_offs = OMAP54XX_RM_IPU_IPU_CONTEXT_OFFSET,
++		},
++	},
++};
++
++/*
+  * 'kbd' class
+  * keyboard controller
+  */
+@@ -2135,6 +2196,14 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__l3_main_1 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* dsp -> l3_main_1 */
++static struct omap_hwmod_ocp_if omap54xx_dsp__l3_main_1 = {
++	.master		= &omap54xx_dsp_hwmod,
++	.slave		= &omap54xx_l3_main_1_hwmod,
 +	.clk		= "l3_iclk_div",
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
-+/* dsp2 -> l3_main_1 */
-+static struct omap_hwmod_ocp_if dra7xx_dsp2__l3_main_1 = {
-+	.master		= &dra7xx_dsp2_hwmod,
-+	.slave		= &dra7xx_l3_main_1_hwmod,
+ /* l4_cfg -> mmu_dsp */
+ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__mmu_dsp = {
+ 	.master		= &omap54xx_l4_cfg_hwmod,
+@@ -2167,6 +2236,14 @@ static struct omap_hwmod_ocp_if omap54xx_l4_cfg__l3_main_2 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* l3_main_2 -> ipu */
++static struct omap_hwmod_ocp_if omap54xx_l3_main_2__ipu = {
++	.master		= &omap54xx_l3_main_2_hwmod,
++	.slave		= &omap54xx_ipu_hwmod,
 +	.clk		= "l3_iclk_div",
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
- /* l3_main_1 -> dss */
- static struct omap_hwmod_ocp_if dra7xx_l3_main_1__dss = {
- 	.master		= &dra7xx_l3_main_1_hwmod,
-@@ -4215,6 +4278,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l3_main_1__tptc1,
- 	&dra7xx_l3_main_1__dss,
- 	&dra7xx_l3_main_1__dispc,
-+	&dra7xx_dsp1__l3_main_1,
- 	&dra7xx_l3_main_1__hdmi,
- 	&dra7xx_l3_main_1__aes1,
- 	&dra7xx_l3_main_1__aes2,
-@@ -4326,6 +4390,7 @@ static struct omap_hwmod_ocp_if *dra76x_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_per3__usb_otg_ss4,
- 	&dra7xx_l3_main_1__mmu0_dsp2,
- 	&dra7xx_l3_main_1__mmu1_dsp2,
-+	&dra7xx_dsp2__l3_main_1,
- 	NULL,
- };
- 
-@@ -4333,6 +4398,7 @@ static struct omap_hwmod_ocp_if *dra74x_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_per3__usb_otg_ss4,
- 	&dra7xx_l3_main_1__mmu0_dsp2,
- 	&dra7xx_l3_main_1__mmu1_dsp2,
-+	&dra7xx_dsp2__l3_main_1,
- 	NULL,
- };
- 
+ /* l3_main_2 -> mmu_ipu */
+ static struct omap_hwmod_ocp_if omap54xx_l3_main_2__mmu_ipu = {
+ 	.master		= &omap54xx_l3_main_2_hwmod,
+@@ -2766,7 +2843,9 @@ static struct omap_hwmod_ocp_if *omap54xx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap54xx_l3_main_3__l3_instr,
+ 	&omap54xx_l3_main_2__l3_main_1,
+ 	&omap54xx_l4_cfg__l3_main_1,
++	&omap54xx_dsp__l3_main_1,
+ 	&omap54xx_mpu__l3_main_1,
++	&omap54xx_l3_main_2__ipu,
+ 	&omap54xx_l3_main_1__l3_main_2,
+ 	&omap54xx_l4_cfg__l3_main_2,
+ 	&omap54xx_l3_main_1__l3_main_3,
 -- 
 2.13.1
