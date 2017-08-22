@@ -1,70 +1,67 @@
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] clk: ti: make clk_ops const
-Date: Tue, 22 Aug 2017 18:41:15 +0530
-Message-ID: <1503407475-11620-1-git-send-email-bhumirks@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: julia.lawall@lip6.fr, t-kristo@ti.com, mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 3/5] dt-bindings: sdhci-omap: Add bindings for the
+ sdhci-omap controller
+Date: Tue, 22 Aug 2017 19:09:07 +0530
+Message-ID: <20170822133907.21549-1-kishon@ti.com>
+References: <20170821142132.GH6008@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170821142132.GH6008@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Make these const as they are only stored in the const field of a
-clk_init_data structure.
+Add binding for the TI's sdhci-omap controller. This now includes only
+a subset of properties documented in ti-omap-hsmmc.txt but will eventually
+include all the properties.
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/clk/ti/adpll.c | 2 +-
- drivers/clk/ti/apll.c  | 2 +-
- drivers/clk/ti/fapll.c | 4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+Changes from v1:
+*) Create a new sdhci-omap.txt document for TI's sdhci-omap controller instead
+   of using the ti-omap-hsmmc.txt as suggested by Tony
+ .../devicetree/bindings/mmc/sdhci-omap.txt         | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mmc/sdhci-omap.txt
 
-diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
-index 255cafb..d5c6db4 100644
---- a/drivers/clk/ti/adpll.c
-+++ b/drivers/clk/ti/adpll.c
-@@ -486,7 +486,7 @@ static u8 ti_adpll_get_parent(struct clk_hw *hw)
- 	return 0;
- }
- 
--static struct clk_ops ti_adpll_ops = {
-+static const struct clk_ops ti_adpll_ops = {
- 	.prepare = ti_adpll_prepare,
- 	.unprepare = ti_adpll_unprepare,
- 	.is_prepared = ti_adpll_is_prepared,
-diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-index 06f486b..83b148f 100644
---- a/drivers/clk/ti/apll.c
-+++ b/drivers/clk/ti/apll.c
-@@ -304,7 +304,7 @@ static void omap2_apll_disable(struct clk_hw *hw)
- 	ti_clk_ll_ops->clk_writel(v, &ad->control_reg);
- }
- 
--static struct clk_ops omap2_apll_ops = {
-+static const struct clk_ops omap2_apll_ops = {
- 	.enable		= &omap2_apll_enable,
- 	.disable	= &omap2_apll_disable,
- 	.is_enabled	= &omap2_apll_is_enabled,
-diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
-index 66a0d0e..071af44 100644
---- a/drivers/clk/ti/fapll.c
-+++ b/drivers/clk/ti/fapll.c
-@@ -268,7 +268,7 @@ static int ti_fapll_set_rate(struct clk_hw *hw, unsigned long rate,
- 	return 0;
- }
- 
--static struct clk_ops ti_fapll_ops = {
-+static const struct clk_ops ti_fapll_ops = {
- 	.enable = ti_fapll_enable,
- 	.disable = ti_fapll_disable,
- 	.is_enabled = ti_fapll_is_enabled,
-@@ -478,7 +478,7 @@ static int ti_fapll_synth_set_rate(struct clk_hw *hw, unsigned long rate,
- 	return 0;
- }
- 
--static struct clk_ops ti_fapll_synt_ops = {
-+static const struct clk_ops ti_fapll_synt_ops = {
- 	.enable = ti_fapll_synth_enable,
- 	.disable = ti_fapll_synth_disable,
- 	.is_enabled = ti_fapll_synth_is_enabled,
+diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+new file mode 100644
+index 000000000000..139695ad2d58
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+@@ -0,0 +1,22 @@
++* TI OMAP SDHCI Controller
++
++Refer to mmc.txt for standard MMC bindings.
++
++Required properties:
++- compatible: Should be "ti,dra7-sdhci" for DRA7 and DRA72 controllers
++- ti,hwmods: Must be "mmc<n>", <n> is controller instance starting 1
++
++Optional properties:
++- ti,dual-volt: boolean, supports dual voltage cards
++- ti,non-removable: non-removable slot (like eMMC)
++
++Example:
++	mmc1: mmc@0x4809c000 {
++		compatible = "ti,omap4-hsmmc";
++		reg = <0x4809c000 0x400>;
++		ti,hwmods = "mmc1";
++		ti,dual-volt;
++		bus-width = <4>;
++		vmmc-supply = <&vmmc>; /* phandle to regulator node */
++		ti,non-removable;
++	};
 -- 
-1.9.1
+2.11.0
