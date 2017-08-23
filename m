@@ -1,47 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] mfd: omap-usb-tll: fix register offsets
-Date: Wed, 23 Aug 2017 16:44:51 +0200
-Message-ID: <20170823144501.2292044-1-arnd@arndb.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: fix missing variable declaration
+Date: Wed, 23 Aug 2017 07:53:29 -0700
+Message-ID: <20170823145328.GN6008@atomide.com>
+References: <20170823132841.642239-1-arnd@arndb.de>
+ <12875092.dy1RW0XmqV@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <12875092.dy1RW0XmqV@avalon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Lee Jones <lee.jones@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-gcc-8 notices that the register number calculation is wrong
-when the offset is an 'u8' but the number is larger than 256:
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [170823 06:53]:
+> Hi Arnd,
+> 
+> On Wednesday, 23 August 2017 16:28:19 EEST Arnd Bergmann wrote:
+> > The function that was added doesn't actually build:
+> > 
+> > arch/arm/mach-omap2/display.c: In function 'omapdss_init_fbdev':
+> > arch/arm/mach-omap2/display.c:184:2: error: 'r' undeclared (first use in
+> > this function)
+> > 
+> > This adds a declaration for 'r' to fix it.
+> > 
+> > Fixes: 5ce783025c82 ("ARM: OMAP2+: Don't register omapdss device for
+> > omapdrm")
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> Looks like I haven't tested the patch with CONFIG_FB_OMAP2 enabled after the 
+> last rebase. I'm very sorry about that :-(
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Tomi, I assume you will pick this up and sent it to Dave for v4.14-rc1.
 
-drivers/mfd/omap-usb-tll.c: In function 'omap_tll_init':
-drivers/mfd/omap-usb-tll.c:90:46: error: overflow in conversion from 'int' to 'u8 {aka unsigned char}' chages value from 'i * 256 + 2070' to '22' [-Werror=overflow]
-
-This addresses it by always using a 32-bit offset number for
-the register. This is apparently an old problem that previous
-compilers did not find.
-
-Fixes: 16fa3dc75c22 ("mfd: omap-usb-tll: HOST TLL platform driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/mfd/omap-usb-tll.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index 6f5300b0eb31..44a5d66314c6 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -131,12 +131,12 @@ static inline u32 usbtll_read(void __iomem *base, u32 reg)
- 	return readl_relaxed(base + reg);
- }
- 
--static inline void usbtll_writeb(void __iomem *base, u8 reg, u8 val)
-+static inline void usbtll_writeb(void __iomem *base, u32 reg, u8 val)
- {
- 	writeb_relaxed(val, base + reg);
- }
- 
--static inline u8 usbtll_readb(void __iomem *base, u8 reg)
-+static inline u8 usbtll_readb(void __iomem *base, u32 reg)
- {
- 	return readb_relaxed(base + reg);
- }
--- 
-2.9.0
+Acked-by: Tony Lindgren <tony@atomide.com>
