@@ -1,70 +1,88 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 3/5] dt-bindings: sdhci-omap: Add bindings for the
- sdhci-omap controller
-Date: Wed, 23 Aug 2017 11:12:46 +0530
-Message-ID: <20170823054246.23927-1-kishon@ti.com>
-References: <20170821142132.GH6008@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] clk: ti: make clk_ops const
+Date: Wed, 23 Aug 2017 12:31:22 +0300
+Message-ID: <a7632b61-a3de-e4c5-032d-e91fbb7b5f4e@ti.com>
+References: <1503407475-11620-1-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170821142132.GH6008@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <1503407475-11620-1-git-send-email-bhumirks@gmail.com>
+Content-Language: en-US
+Sender: linux-clk-owner@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add binding for the TI's sdhci-omap controller. This now includes only
-a subset of properties documented in ti-omap-hsmmc.txt but will eventually
-include all the properties.
+=EF=BB=BF
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
+siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Changes from v2:
-*) Fixed example to use the updated compatible
+On 22/08/17 16:11, Bhumika Goyal wrote:
+> Make these const as they are only stored in the const field of a
+> clk_init_data structure.
+>=20
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 
-Changes from v1:
-*) Create a new sdhci-omap.txt document for TI's sdhci-omap controller instead
-   of using the ti-omap-hsmmc.txt as suggested by Tony
- .../devicetree/bindings/mmc/sdhci-omap.txt         | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+Looks fine.
 
-diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
-new file mode 100644
-index 000000000000..139695ad2d58
---- /dev/null
-+++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
-@@ -0,0 +1,22 @@
-+* TI OMAP SDHCI Controller
-+
-+Refer to mmc.txt for standard MMC bindings.
-+
-+Required properties:
-+- compatible: Should be "ti,dra7-sdhci" for DRA7 and DRA72 controllers
-+- ti,hwmods: Must be "mmc<n>", <n> is controller instance starting 1
-+
-+Optional properties:
-+- ti,dual-volt: boolean, supports dual voltage cards
-+- ti,non-removable: non-removable slot (like eMMC)
-+
-+Example:
-+	mmc1: mmc@0x4809c000 {
-+		compatible = "ti,dra7-sdhci";
-+		reg = <0x4809c000 0x400>;
-+		ti,hwmods = "mmc1";
-+		ti,dual-volt;
-+		bus-width = <4>;
-+		vmmc-supply = <&vmmc>; /* phandle to regulator node */
-+		ti,non-removable;
-+	};
--- 
-2.11.0
+Acked-by: Tero Kristo <t-kristo@ti.com>
+
+> ---
+>   drivers/clk/ti/adpll.c | 2 +-
+>   drivers/clk/ti/apll.c  | 2 +-
+>   drivers/clk/ti/fapll.c | 4 ++--
+>   3 files changed, 4 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
+> index 255cafb..d5c6db4 100644
+> --- a/drivers/clk/ti/adpll.c
+> +++ b/drivers/clk/ti/adpll.c
+> @@ -486,7 +486,7 @@ static u8 ti_adpll_get_parent(struct clk_hw *hw)
+>   	return 0;
+>   }
+>  =20
+> -static struct clk_ops ti_adpll_ops =3D {
+> +static const struct clk_ops ti_adpll_ops =3D {
+>   	.prepare =3D ti_adpll_prepare,
+>   	.unprepare =3D ti_adpll_unprepare,
+>   	.is_prepared =3D ti_adpll_is_prepared,
+> diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
+> index 06f486b..83b148f 100644
+> --- a/drivers/clk/ti/apll.c
+> +++ b/drivers/clk/ti/apll.c
+> @@ -304,7 +304,7 @@ static void omap2_apll_disable(struct clk_hw *hw)
+>   	ti_clk_ll_ops->clk_writel(v, &ad->control_reg);
+>   }
+>  =20
+> -static struct clk_ops omap2_apll_ops =3D {
+> +static const struct clk_ops omap2_apll_ops =3D {
+>   	.enable		=3D &omap2_apll_enable,
+>   	.disable	=3D &omap2_apll_disable,
+>   	.is_enabled	=3D &omap2_apll_is_enabled,
+> diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
+> index 66a0d0e..071af44 100644
+> --- a/drivers/clk/ti/fapll.c
+> +++ b/drivers/clk/ti/fapll.c
+> @@ -268,7 +268,7 @@ static int ti_fapll_set_rate(struct clk_hw *hw, unsig=
+ned long rate,
+>   	return 0;
+>   }
+>  =20
+> -static struct clk_ops ti_fapll_ops =3D {
+> +static const struct clk_ops ti_fapll_ops =3D {
+>   	.enable =3D ti_fapll_enable,
+>   	.disable =3D ti_fapll_disable,
+>   	.is_enabled =3D ti_fapll_is_enabled,
+> @@ -478,7 +478,7 @@ static int ti_fapll_synth_set_rate(struct clk_hw *hw,=
+ unsigned long rate,
+>   	return 0;
+>   }
+>  =20
+> -static struct clk_ops ti_fapll_synt_ops =3D {
+> +static const struct clk_ops ti_fapll_synt_ops =3D {
+>   	.enable =3D ti_fapll_synth_enable,
+>   	.disable =3D ti_fapll_synth_disable,
+>   	.is_enabled =3D ti_fapll_synth_is_enabled,
+>=20
+
+
