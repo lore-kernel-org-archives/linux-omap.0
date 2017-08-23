@@ -1,40 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: fix missing variable declaration
-Date: Wed, 23 Aug 2017 07:53:29 -0700
-Message-ID: <20170823145328.GN6008@atomide.com>
-References: <20170823132841.642239-1-arnd@arndb.de>
- <12875092.dy1RW0XmqV@avalon>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 06/11] ASoC: pxa: make snd_soc_platform_driver const
+Date: Wed, 23 Aug 2017 21:33:26 +0200
+Message-ID: <87wp5uoz95.fsf@belgarion.home>
+References: <1502710730-18912-1-git-send-email-bhumirks@gmail.com>
+        <1502710730-18912-7-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <12875092.dy1RW0XmqV@avalon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, brian.austin@cirrus.com, Paul.Handrigan@cirrus.com, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, bardliao@realtek.com, chiou@realtek.com, timur@tabi.org, nicoleotsuka@gmail.com, Xiubo.Lee@gmail.com, fabio.estevam@nxp.com, yang.jie@linux.intel.com, peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, daniel@zonque.org, haojian.zhuang@gmail.com, plai@codeaurora.org, bgoswami@codeaurora.org, krzk@kernel.org, sbkim73@samsung.com, s.nawrocki@samsung.com, alsa-devel@alsa-project.org, patches@opensource.cirrus.com, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [170823 06:53]:
-> Hi Arnd,
-> 
-> On Wednesday, 23 August 2017 16:28:19 EEST Arnd Bergmann wrote:
-> > The function that was added doesn't actually build:
-> > 
-> > arch/arm/mach-omap2/display.c: In function 'omapdss_init_fbdev':
-> > arch/arm/mach-omap2/display.c:184:2: error: 'r' undeclared (first use in
-> > this function)
-> > 
-> > This adds a declaration for 'r' to fix it.
-> > 
-> > Fixes: 5ce783025c82 ("ARM: OMAP2+: Don't register omapdss device for
-> > omapdrm")
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> 
-> Looks like I haven't tested the patch with CONFIG_FB_OMAP2 enabled after the 
-> last rebase. I'm very sorry about that :-(
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Tomi, I assume you will pick this up and sent it to Dave for v4.14-rc1.
+Bhumika Goyal <bhumirks@gmail.com> writes:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+> Make these const as they are only passed as the 2nd argument to the
+> function devm_snd_soc_register_platform, which is of type const.
+> Done using Coccinelle.
+>
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> ---
+>  sound/soc/pxa/mmp-pcm.c    | 2 +-
+>  sound/soc/pxa/pxa2xx-pcm.c | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+
+For sound/soc/pxa/pxa2xx-pcm.c :
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+
+Cheers.
+
+--
+Robert
