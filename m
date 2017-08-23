@@ -1,61 +1,70 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: Re: [PATCH] PCI: dwc: dra7xx: fix error return code in
- dra7xx_pcie_probe()
-Date: Tue, 22 Aug 2017 15:39:38 -0500
-Message-ID: <6de244a4-8efb-95c4-ff4b-ab9221ef5751@embeddedor.com>
-References: <20170809161603.GA31297@embeddedgus>
- <20170822203750.GF6948@bhelgaas-glaptop.roam.corp.google.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 3/5] dt-bindings: sdhci-omap: Add bindings for the
+ sdhci-omap controller
+Date: Wed, 23 Aug 2017 11:12:46 +0530
+Message-ID: <20170823054246.23927-1-kishon@ti.com>
+References: <20170821142132.GH6008@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20170822203750.GF6948@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170821142132.GH6008@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Bjorn,
+Add binding for the TI's sdhci-omap controller. This now includes only
+a subset of properties documented in ti-omap-hsmmc.txt but will eventually
+include all the properties.
 
-On 08/22/2017 03:37 PM, Bjorn Helgaas wrote:
-> On Wed, Aug 09, 2017 at 11:16:03AM -0500, Gustavo A. R. Silva wrote:
->> platform_get_irq() returns an error code, but the pci-dra7xx driver
->> ignores it and always returns -EINVAL. This is not correct and,
->> prevents -EPROBE_DEFER from being propagated properly.
->>
->> Print and propagate the return value of platform_get_irq on failure.
->>
->> This issue was detected with the help of Coccinelle.
->>
->> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->
-> Applied with Kishon's ack to pci/host-dra7xx for v4.14, thanks!
->
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+Changes from v2:
+*) Fixed example to use the updated compatible
 
-Glad to help. :)
+Changes from v1:
+*) Create a new sdhci-omap.txt document for TI's sdhci-omap controller instead
+   of using the ti-omap-hsmmc.txt as suggested by Tony
+ .../devicetree/bindings/mmc/sdhci-omap.txt         | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mmc/sdhci-omap.txt
 
->> ---
->>  drivers/pci/dwc/pci-dra7xx.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
->> index f2fc5f4..f58e1b4 100644
->> --- a/drivers/pci/dwc/pci-dra7xx.c
->> +++ b/drivers/pci/dwc/pci-dra7xx.c
->> @@ -616,8 +616,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>
->>  	irq = platform_get_irq(pdev, 0);
->>  	if (irq < 0) {
->> -		dev_err(dev, "missing IRQ resource\n");
->> -		return -EINVAL;
->> +		dev_err(dev, "missing IRQ resource: %d\n", irq);
->> +		return irq;
->>  	}
->>
->>  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ti_conf");
->> --
->> 2.5.0
->>
-
+diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+new file mode 100644
+index 000000000000..139695ad2d58
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+@@ -0,0 +1,22 @@
++* TI OMAP SDHCI Controller
++
++Refer to mmc.txt for standard MMC bindings.
++
++Required properties:
++- compatible: Should be "ti,dra7-sdhci" for DRA7 and DRA72 controllers
++- ti,hwmods: Must be "mmc<n>", <n> is controller instance starting 1
++
++Optional properties:
++- ti,dual-volt: boolean, supports dual voltage cards
++- ti,non-removable: non-removable slot (like eMMC)
++
++Example:
++	mmc1: mmc@0x4809c000 {
++		compatible = "ti,dra7-sdhci";
++		reg = <0x4809c000 0x400>;
++		ti,hwmods = "mmc1";
++		ti,dual-volt;
++		bus-width = <4>;
++		vmmc-supply = <&vmmc>; /* phandle to regulator node */
++		ti,non-removable;
++	};
 -- 
-Gustavo A. R. Silva
+2.11.0
