@@ -1,88 +1,84 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: make clk_ops const
-Date: Wed, 23 Aug 2017 12:31:22 +0300
-Message-ID: <a7632b61-a3de-e4c5-032d-e91fbb7b5f4e@ti.com>
-References: <1503407475-11620-1-git-send-email-bhumirks@gmail.com>
+From: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 3/5] dt-bindings: sdhci-omap: Add bindings for the
+ sdhci-omap controller
+Date: Wed, 23 Aug 2017 15:07:54 +0200
+Message-ID: <CAPDyKFp7gchVQ+JPNqv4LktvHRm2Lzx6KakOw85zEZxDEX0OhA@mail.gmail.com>
+References: <20170821142132.GH6008@atomide.com> <20170823054246.23927-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <1503407475-11620-1-git-send-email-bhumirks@gmail.com>
-Content-Language: en-US
-Sender: linux-clk-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, mturquette@baylibre.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170823054246.23927-1-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Ravikumar Kattekola <rk-l0cyMroinI0@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-=EF=BB=BF
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
-On 22/08/17 16:11, Bhumika Goyal wrote:
-> Make these const as they are only stored in the const field of a
-> clk_init_data structure.
->=20
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-
-Looks fine.
-
-Acked-by: Tero Kristo <t-kristo@ti.com>
-
+On 23 August 2017 at 07:42, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> wrote:
+> Add binding for the TI's sdhci-omap controller. This now includes only
+> a subset of properties documented in ti-omap-hsmmc.txt but will eventually
+> include all the properties.
+>
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 > ---
->   drivers/clk/ti/adpll.c | 2 +-
->   drivers/clk/ti/apll.c  | 2 +-
->   drivers/clk/ti/fapll.c | 4 ++--
->   3 files changed, 4 insertions(+), 4 deletions(-)
->=20
-> diff --git a/drivers/clk/ti/adpll.c b/drivers/clk/ti/adpll.c
-> index 255cafb..d5c6db4 100644
-> --- a/drivers/clk/ti/adpll.c
-> +++ b/drivers/clk/ti/adpll.c
-> @@ -486,7 +486,7 @@ static u8 ti_adpll_get_parent(struct clk_hw *hw)
->   	return 0;
->   }
->  =20
-> -static struct clk_ops ti_adpll_ops =3D {
-> +static const struct clk_ops ti_adpll_ops =3D {
->   	.prepare =3D ti_adpll_prepare,
->   	.unprepare =3D ti_adpll_unprepare,
->   	.is_prepared =3D ti_adpll_is_prepared,
-> diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
-> index 06f486b..83b148f 100644
-> --- a/drivers/clk/ti/apll.c
-> +++ b/drivers/clk/ti/apll.c
-> @@ -304,7 +304,7 @@ static void omap2_apll_disable(struct clk_hw *hw)
->   	ti_clk_ll_ops->clk_writel(v, &ad->control_reg);
->   }
->  =20
-> -static struct clk_ops omap2_apll_ops =3D {
-> +static const struct clk_ops omap2_apll_ops =3D {
->   	.enable		=3D &omap2_apll_enable,
->   	.disable	=3D &omap2_apll_disable,
->   	.is_enabled	=3D &omap2_apll_is_enabled,
-> diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
-> index 66a0d0e..071af44 100644
-> --- a/drivers/clk/ti/fapll.c
-> +++ b/drivers/clk/ti/fapll.c
-> @@ -268,7 +268,7 @@ static int ti_fapll_set_rate(struct clk_hw *hw, unsig=
-ned long rate,
->   	return 0;
->   }
->  =20
-> -static struct clk_ops ti_fapll_ops =3D {
-> +static const struct clk_ops ti_fapll_ops =3D {
->   	.enable =3D ti_fapll_enable,
->   	.disable =3D ti_fapll_disable,
->   	.is_enabled =3D ti_fapll_is_enabled,
-> @@ -478,7 +478,7 @@ static int ti_fapll_synth_set_rate(struct clk_hw *hw,=
- unsigned long rate,
->   	return 0;
->   }
->  =20
-> -static struct clk_ops ti_fapll_synt_ops =3D {
-> +static const struct clk_ops ti_fapll_synt_ops =3D {
->   	.enable =3D ti_fapll_synth_enable,
->   	.disable =3D ti_fapll_synth_disable,
->   	.is_enabled =3D ti_fapll_synth_is_enabled,
->=20
+> Changes from v2:
+> *) Fixed example to use the updated compatible
+>
+> Changes from v1:
+> *) Create a new sdhci-omap.txt document for TI's sdhci-omap controller instead
+>    of using the ti-omap-hsmmc.txt as suggested by Tony
+>  .../devicetree/bindings/mmc/sdhci-omap.txt         | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+>
+> diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+> new file mode 100644
+> index 000000000000..139695ad2d58
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+> @@ -0,0 +1,22 @@
+> +* TI OMAP SDHCI Controller
+> +
+> +Refer to mmc.txt for standard MMC bindings.
+> +
+> +Required properties:
+> +- compatible: Should be "ti,dra7-sdhci" for DRA7 and DRA72 controllers
+> +- ti,hwmods: Must be "mmc<n>", <n> is controller instance starting 1
+> +
+> +Optional properties:
+> +- ti,dual-volt: boolean, supports dual voltage cards
+> +- ti,non-removable: non-removable slot (like eMMC)
+> +
+> +Example:
+> +       mmc1: mmc@0x4809c000 {
+> +               compatible = "ti,dra7-sdhci";
+> +               reg = <0x4809c000 0x400>;
+> +               ti,hwmods = "mmc1";
+> +               ti,dual-volt;
+> +               bus-width = <4>;
+> +               vmmc-supply = <&vmmc>; /* phandle to regulator node */
+> +               ti,non-removable;
+> +       };
+> --
+> 2.11.0
+>
 
+I am wondering a bit on the long term plan here.
 
+Ideally at some point in future, we would like to remove the old
+omap_hsmmc driver, but from compatible string point of view, that
+means we first needs to deprecate the old ones for a while. Right?
+
+That said, what is then the reason to why we should bring over the
+existing omap_hsmmc bindings to the sdhci-omap bindings?
+
+For example, "ti,dual-volt" can likely be replaced with something
+better that already exists (either a common mmc binding or an sdhci
+binding). For "ti,non-removable", we already have a common mmc binding
+"non-removable" for this.
+
+Kind regards
+Uffe
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
