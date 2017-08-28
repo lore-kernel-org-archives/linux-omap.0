@@ -1,47 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: fix missing variable declaration
-Date: Thu, 24 Aug 2017 15:18:43 +0300
-Message-ID: <02160c46-d0c1-dc49-2f4f-01d46d9f7723@ti.com>
-References: <20170823132841.642239-1-arnd@arndb.de>
- <12875092.dy1RW0XmqV@avalon>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH 2/5] mmc: sdhci: Add quirk to indicate MMC_RSP_136 has CRC
+Date: Mon, 28 Aug 2017 10:57:32 +0300
+Message-ID: <24fa9713-1367-08d7-54b6-b853e32fd6aa@intel.com>
+References: <20170821074132.4622-1-kishon@ti.com>
+ <20170821074132.4622-3-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <12875092.dy1RW0XmqV@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20170821074132.4622-3-kishon@ti.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-77u/CgpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4
-MCBIZWxzaW5raS4gWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9E
-b21pY2lsZTogSGVsc2lua2kKCk9uIDIzLzA4LzE3IDE2OjUzLCBMYXVyZW50IFBpbmNoYXJ0IHdy
-b3RlOgo+IEhpIEFybmQsCj4gCj4gT24gV2VkbmVzZGF5LCAyMyBBdWd1c3QgMjAxNyAxNjoyODox
-OSBFRVNUIEFybmQgQmVyZ21hbm4gd3JvdGU6Cj4+IFRoZSBmdW5jdGlvbiB0aGF0IHdhcyBhZGRl
-ZCBkb2Vzbid0IGFjdHVhbGx5IGJ1aWxkOgo+Pgo+PiBhcmNoL2FybS9tYWNoLW9tYXAyL2Rpc3Bs
-YXkuYzogSW4gZnVuY3Rpb24gJ29tYXBkc3NfaW5pdF9mYmRldic6Cj4+IGFyY2gvYXJtL21hY2gt
-b21hcDIvZGlzcGxheS5jOjE4NDoyOiBlcnJvcjogJ3InIHVuZGVjbGFyZWQgKGZpcnN0IHVzZSBp
-bgo+PiB0aGlzIGZ1bmN0aW9uKQo+Pgo+PiBUaGlzIGFkZHMgYSBkZWNsYXJhdGlvbiBmb3IgJ3In
-IHRvIGZpeCBpdC4KPj4KPj4gRml4ZXM6IDVjZTc4MzAyNWM4MiAoIkFSTTogT01BUDIrOiBEb24n
-dCByZWdpc3RlciBvbWFwZHNzIGRldmljZSBmb3IKPj4gb21hcGRybSIpCj4+IFNpZ25lZC1vZmYt
-Ynk6IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+Cj4gCj4gTG9va3MgbGlrZSBJIGhhdmVu
-J3QgdGVzdGVkIHRoZSBwYXRjaCB3aXRoIENPTkZJR19GQl9PTUFQMiBlbmFibGVkIGFmdGVyIHRo
-ZSAKPiBsYXN0IHJlYmFzZS4gSSdtIHZlcnkgc29ycnkgYWJvdXQgdGhhdCA6LSgKPiAKPiBSZXZp
-ZXdlZC1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9hcmQu
-Y29tPgo+IAo+IFRvbWksIEkgYXNzdW1lIHlvdSB3aWxsIHBpY2sgdGhpcyB1cCBhbmQgc2VudCBp
-dCB0byBEYXZlIGZvciB2NC4xNC1yYzEuCgpZZXAsIEknbGwgcGljayBpdCB1cC4gSSBjb3VsZCBz
-d2VhciBJIHRlc3RlZCBvbWFwZmIgYnVpbGQsIGJ1dC4uLgpPYnZpb3VzbHkgbm90LgoKIFRvbWkK
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1h
-cm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5v
-cmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0t
-a2VybmVsCg==
+On 21/08/17 10:41, Kishon Vijay Abraham I wrote:
+> TI's implementation of sdhci controller used in DRA7 SoC's has
+> CRC in responses with length 136 bits. Add quirk to indicate
+> the controller has CRC in MMC_RSP_136. If this quirk is
+> set sdhci library shouldn't shift the response present in
+> SDHCI_RESPONSE register.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+Acked-by: Adrian Hunter <adrian.hunter@intel.com>
+
+> ---
+>  drivers/mmc/host/sdhci.c | 3 +++
+>  drivers/mmc/host/sdhci.h | 2 ++
+>  2 files changed, 5 insertions(+)
+> 
+> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+> index ba639b7851cb..9c8d7428df3c 100644
+> --- a/drivers/mmc/host/sdhci.c
+> +++ b/drivers/mmc/host/sdhci.c
+> @@ -1182,6 +1182,9 @@ static void sdhci_read_rsp_136(struct sdhci_host *host, struct mmc_command *cmd)
+>  		cmd->resp[i] = sdhci_readl(host, reg);
+>  	}
+>  
+> +	if (host->quirks2 & SDHCI_QUIRK2_RSP_136_HAS_CRC)
+> +		return;
+> +
+>  	/* CRC is stripped so we need to do some shifting */
+>  	for (i = 0; i < 4; i++) {
+>  		cmd->resp[i] <<= 8;
+> diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
+> index 399edc681623..54bc444c317f 100644
+> --- a/drivers/mmc/host/sdhci.h
+> +++ b/drivers/mmc/host/sdhci.h
+> @@ -435,6 +435,8 @@ struct sdhci_host {
+>  #define SDHCI_QUIRK2_ACMD23_BROKEN			(1<<14)
+>  /* Broken Clock divider zero in controller */
+>  #define SDHCI_QUIRK2_CLOCK_DIV_ZERO_BROKEN		(1<<15)
+> +/* Controller has CRC in 136 bit Command Response */
+> +#define SDHCI_QUIRK2_RSP_136_HAS_CRC			(1<<16)
+>  
+>  	int irq;		/* Device IRQ */
+>  	void __iomem *ioaddr;	/* Mapped address */
+> 
+
