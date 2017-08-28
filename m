@@ -1,46 +1,61 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH 5/5] MAINTAINERS: Add TI OMAP SDHCI Maintainer
-Date: Mon, 28 Aug 2017 12:07:33 +0300
-Message-ID: <e4617962-25dc-b286-85d6-c5a78c969428@intel.com>
-References: <20170821074132.4622-1-kishon@ti.com>
- <20170821074132.4622-6-kishon@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCH linux-next] fix compilation error in mach-omap2/display.c
+Date: Mon, 28 Aug 2017 11:32:07 +0200
+Message-ID: <20170828093207.GA29080@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="zhXaljGHf11kAtnf"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170821074132.4622-6-kishon@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-On 21/08/17 10:41, Kishon Vijay Abraham I wrote:
-> Add Maintainer for the TI OMAP SDHCI driver.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-Acked-by: Adrian Hunter <adrian.hunter@intel.com>
+--zhXaljGHf11kAtnf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ---
->  MAINTAINERS | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 44cb004c765d..c9871351c16f 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -11777,6 +11777,12 @@ L:	linux-mmc@vger.kernel.org
->  S:	Maintained
->  F:	drivers/mmc/host/sdhci-spear.c
->  
-> +SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) TI OMAP DRIVER
-> +M:	Kishon Vijay Abraham I <kishon@ti.com>
-> +L:	linux-mmc@vger.kernel.org
-> +S:	Maintained
-> +F:	drivers/mmc/host/sdhci-omap.c
-> +
->  SECURE ENCRYPTING DEVICE (SED) OPAL DRIVER
->  M:	Scott Bauer <scott.bauer@intel.com>
->  M:	Jonathan Derrick <jonathan.derrick@intel.com>
-> 
+
+In linux-next 0828, I get
+
+  CC      arch/arm/mach-omap2/display.o
+  arch/arm/mach-omap2/display.c: In function 'omapdss_init_fbdev':
+  arch/arm/mach-omap2/display.c:184:2: error: 'r' undeclared (first
+
+Fix it.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 798fc71..b3f6eb5 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -172,6 +172,7 @@ static int __init omapdss_init_fbdev(void)
+ 		.set_min_bus_tput =3D omap_dss_set_min_bus_tput,
+ 	};
+ 	struct device_node *node;
++	int r;
+=20
+ 	board_data.version =3D omap_display_get_version();
+ 	if (board_data.version =3D=3D OMAPDSS_VER_UNKNOWN) {
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--zhXaljGHf11kAtnf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlmj4xcACgkQMOfwapXb+vLC6QCdEzxxC+oUtIEN7NyWNwLTX9TH
+57YAn3AqjTRkLsY3LvQnPaJhJJCalx/6
+=SPqr
+-----END PGP SIGNATURE-----
+
+--zhXaljGHf11kAtnf--
