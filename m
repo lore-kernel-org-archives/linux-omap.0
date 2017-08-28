@@ -1,93 +1,73 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 17/17] ARM: dts: Add missing hwmod related properties for dra7
-Date: Mon, 28 Aug 2017 14:19:18 -0700
-Message-ID: <20170828211918.11573-18-tony@atomide.com>
+Subject: [PATCH 08/17] ARM: dts: Add missing hsi node for omap4
+Date: Mon, 28 Aug 2017 14:19:09 -0700
+Message-ID: <20170828211918.11573-9-tony@atomide.com>
 References: <20170828211918.11573-1-tony@atomide.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170828211918.11573-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On dra7 we're missing the smartreflex and hdq nodes with their
-related "ti,hwmods" property that the SoC interconnect code needs.
+On omap4 we're missing the hsi node with it's related "ti,hwmods"
+property that the SoC interconnect code needs.
 
 Note that this will only show up as a bug with "doesn't have
 mpu register target base" boot errors when the legacy platform
 data is removed.
 
-Note that the related driver also needs to be updated to probe
-using device tree and get the platform data passed to it using
-auxdata with arch/arm/mach-omap2/pdata-quirks.c.
+Let's also update the binding accrodingly while at it.
 
-Let's also update the related binding documentation while at it.
-
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- .../devicetree/bindings/power/ti-smartreflex.txt     |  2 ++
- arch/arm/boot/dts/dra7.dtsi                          | 20 ++++++++++++++++++++
- 2 files changed, 22 insertions(+)
+ Documentation/devicetree/bindings/hsi/omap-ssi.txt | 6 +++++-
+ arch/arm/boot/dts/omap4.dtsi                       | 9 +++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/power/ti-smartreflex.txt b/Documentation/devicetree/bindings/power/ti-smartreflex.txt
---- a/Documentation/devicetree/bindings/power/ti-smartreflex.txt
-+++ b/Documentation/devicetree/bindings/power/ti-smartreflex.txt
-@@ -11,6 +11,8 @@ compatible: Shall be one of the following:
- 	    "ti,omap4-smartreflex-core"
- 	    "ti,omap4-smartreflex-mpu"
- 	    "ti,omap4-smartreflex-iva"
-+	    "ti,dra7-smartreflex-core"
-+	    "ti,dra7-smartreflex-mpu"
+diff --git a/Documentation/devicetree/bindings/hsi/omap-ssi.txt b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+--- a/Documentation/devicetree/bindings/hsi/omap-ssi.txt
++++ b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+@@ -4,7 +4,7 @@ OMAP Synchronous Serial Interface (SSI) controller implements a legacy
+ variant of MIPI's High Speed Synchronous Serial Interface (HSI).
  
- reg: Shall contain the device instance IO range
+ Required properties:
+-- compatible:		Should include "ti,omap3-ssi".
++- compatible:		Should include "ti,omap3-ssi" or "ti,omap4-hsi"
+ - reg-names:		Contains the values "sys" and "gdd" (in this order).
+ - reg:			Contains a matching register specifier for each entry
+ 			in reg-names.
+@@ -38,6 +38,10 @@ Required Port sub-node properties:
+ 			property. If it's missing the port will not be
+ 			enabled.
  
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -457,6 +457,7 @@
- 			#dma-cells = <1>;
- 			dma-channels = <32>;
- 			dma-requests = <127>;
-+			ti,hwmods = "dma_system";
++Optional properties:
++- ti,hwmods:		Shall contain TI interconnect module name if needed
++			by the SoC
++
+ Example for Nokia N900:
+ 
+ ssi-controller@48058000 {
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -632,6 +632,15 @@
+ 			dma-names = "tx", "rx";
  		};
  
- 		edma: edma@43300000 {
-@@ -1069,6 +1070,13 @@
- 			max-frequency = <192000000>;
- 		};
- 
-+		hdqw1w: 1w@480b2000 {
-+			compatible = "ti,omap3-1w";
-+			reg = <0x480b2000 0x1000>;
-+			interrupts = <GIC_SPI 53 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "hdq1w";
++		hsi: hsi@4a058000 {
++			compatible = "ti,omap4-hsi";
++			reg = <0x4a058000 0x4000>;
++			interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>;
++			ti,hwmods = "hsi";
 +		};
 +
- 		mmc2: mmc@480b4000 {
- 			compatible = "ti,omap4-hsmmc";
- 			reg = <0x480b4000 0x400>;
-@@ -1489,6 +1497,18 @@
- 			};
- 		};
- 
-+		smartreflex_core: smartreflex4a0dd000 {
-+			compatible = "ti,dra7-smartreflex-core";
-+			ti,hwmods = "smartreflex_core";
-+			reg = <0x4a0dd000 0x80>;
-+		};
-+
-+		smartreflex_mpu: smartreflex@4a0d9000 {
-+			compatible = "ti,dra7-smartreflex-mpu";
-+			ti,hwmods = "smartreflex_mpu";
-+			reg = <0x4a0d9000 0x80>;
-+		};
-+
- 		omap_dwc3_1: omap_dwc3_1@48880000 {
- 			compatible = "ti,dwc3";
- 			ti,hwmods = "usb_otg_ss1";
+ 		mmu_dsp: mmu@4a066000 {
+ 			compatible = "ti,omap4-iommu";
+ 			reg = <0x4a066000 0x100>;
 -- 
 2.14.1
 --
