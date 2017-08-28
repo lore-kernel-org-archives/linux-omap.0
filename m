@@ -1,75 +1,58 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 16/17] ARM: dts: Add missing hwmod related nodes for am33xx
-Date: Mon, 28 Aug 2017 14:19:17 -0700
-Message-ID: <20170828211918.11573-17-tony@atomide.com>
+Subject: [PATCH 02/17] ARM: dts: Configure pmu without interrupt for omap4430
+Date: Mon, 28 Aug 2017 14:19:03 -0700
+Message-ID: <20170828211918.11573-3-tony@atomide.com>
 References: <20170828211918.11573-1-tony@atomide.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170828211918.11573-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On am33xx we're missing the pmu and emif nodes with their related
-"ti,hwmods" properties that the SoC interconnect code needs.
+On omap4430, the PMU is not configure unlike on omap4460 because
+of the missing handling.
+
+The missing pmu node with the missing ti,hwmods entry will cause
+boot time errors when the legacy platform data is removed as
+the SoC interconnect code needs it.
 
 Note that this will only show up as a bug with "doesn't have
 mpu register target base" boot errors when the legacy platform
 data is removed.
 
-Let's also update the related binding documentation while at it.
+Let's fix the issue by configuring PMU but without the interrupts.
+Then when cross trigger interface (CTI) is supported, we can add
+interrupts also for omap4430.
 
+Cc: Jon Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- .../devicetree/bindings/memory-controllers/ti/emif.txt         |  6 ++++--
- arch/arm/boot/dts/am33xx.dtsi                                  | 10 +++++++++-
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
---- a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
-+++ b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
-@@ -7,8 +7,10 @@ of the EMIF IP and memory parts attached to it.
- 
- Required properties:
- - compatible	: Should be of the form "ti,emif-<ip-rev>" where <ip-rev>
--  is the IP revision of the specific EMIF instance.
--		  For am437x should be ti,emif-am4372.
-+  is the IP revision of the specific EMIF instance. For newer controllers,
-+  compatible should be one of the following:
-+  	     "ti,emif-am3352"
-+	     "ti,emif-am4372"
- 
- - phy-type	: <u32> indicating the DDR phy type. Following are the
-   allowed values
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -128,9 +128,11 @@
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -51,6 +51,17 @@
  		};
  	};
  
--	pmu {
-+	pmu@4b000000 {
- 		compatible = "arm,cortex-a8-pmu";
- 		interrupts = <3>;
-+		reg = <0x4b000000 0x1000000>;
++	/*
++	 * Note that 4430 needs cross trigger interface (CTI) supported
++	 * before we can configure the interrupts. This means sampling
++	 * events are not supported for pmu. Note that 4460 does not use
++	 * CTI, see also 4460.dtsi.
++	 */
++	pmu {
++		compatible = "arm,cortex-a9-pmu";
 +		ti,hwmods = "debugss";
- 	};
- 
- 	/*
-@@ -927,6 +929,12 @@
- 			};
- 		};
- 
-+		emif: emif@4c000000 {
-+			compatible = "ti,emif-am3352";
-+			reg = <0x4c000000 0x1000000>;
-+			ti,hwmods = "emif";
-+		};
++	};
 +
- 		gpmc: gpmc@50000000 {
- 			compatible = "ti,am3352-gpmc";
- 			ti,hwmods = "gpmc";
+ 	gic: interrupt-controller@48241000 {
+ 		compatible = "arm,cortex-a9-gic";
+ 		interrupt-controller;
 -- 
 2.14.1
 --
