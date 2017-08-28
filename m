@@ -1,49 +1,50 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 06/17] ARM: dts: Add missing slimbus node and binding for omap4
-Date: Mon, 28 Aug 2017 14:19:07 -0700
-Message-ID: <20170828211918.11573-7-tony@atomide.com>
+Subject: [PATCH 13/17] ARM: dts: Add missing fdif node and binding for omap4
+Date: Mon, 28 Aug 2017 14:19:14 -0700
+Message-ID: <20170828211918.11573-14-tony@atomide.com>
 References: <20170828211918.11573-1-tony@atomide.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170828211918.11573-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On omap4 we're missing the slimbus node and it's related
-"ti,hwmods" property that the SoC interconnect code needs.
+On omap4 we're missing the fdif node with it's related "ti,hwmods"
+property that the SoC interconnect code needs.
 
 Note that this will only show up as a bug with "doesn't have
 mpu register target base" boot errors when the legacy platform
 data is removed.
 
-Let's also add the missing slimbus device tree binding
-documentation while at it.
-
-Cc: Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- .../devicetree/bindings/sound/ti-slimbus.txt       | 34 ++++++++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi                       | 17 +++++++++++
- 2 files changed, 51 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/sound/ti-slimbus.txt
+ .../devicetree/bindings/media/ti-fdif.txt          | 37 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |  7 ++++
+ 2 files changed, 44 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/ti-fdif.txt
 
-diff --git a/Documentation/devicetree/bindings/sound/ti-slimbus.txt b/Documentation/devicetree/bindings/sound/ti-slimbus.txt
+diff --git a/Documentation/devicetree/bindings/media/ti-fdif.txt b/Documentation/devicetree/bindings/media/ti-fdif.txt
 new file mode 100644
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/sound/ti-slimbus.txt
-@@ -0,0 +1,34 @@
-+Texas Instruments Serial Low-power Inter-chip Media Bus (SLIMbus) binding
++++ b/Documentation/devicetree/bindings/media/ti-fdif.txt
+@@ -0,0 +1,37 @@
++Texas Instruments Face Detect (FDIF) binding
 +
-+SLIMbus is used for communication between digital audio components and the SoC.
++FDD can be used for face detection on Texas Instruments SoCs.
++
++Note that the fdif binding is currently only used by the SoC interconnect
++code to idle the module on init and no open source driver is available
++for fdif. Please update this documentation if that changes.
 +
 +
 +Required properties:
 +
 +compatible: Shall be one of the following:
-+	    "ti,omap4-slimbus"
++	    "ti,omap4-fdif"
 +
 +reg: Shall contain the device instance IO range
 +
@@ -61,48 +62,30 @@ new file mode 100644
 +
 +Example:
 +
-+	slimbus1: slimbus@4012c000 {
-+		compatible = "ti,omap4-slimbus";
-+		reg = <0x4012c000 0x400>, /* MPU private access */
-+		      <0x4902c000 0x400>; /* L3 Interconnect */
-+		reg-names = "mpu", "dma";
-+		interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH>;
-+		ti,hwmods = "slimbus1";
++	fdif: fdif@4a10a000 {
++		compatible = "ti,omap4-fdif";
++		reg = <0x4a10a000 0x200>;
++		interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
++		ti,hwmods = "fdif";
 +	};
++
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -382,6 +382,14 @@
- 			#interrupt-cells = <2>;
+@@ -864,6 +864,13 @@
+ 			};
  		};
  
-+		slimbus2: slimbus@48076000 {
-+			compatible = "ti,omap4-slimbus";
-+			reg = <0x48076000 0x400>;
-+			reg-names = "mpu";
-+			interrupts = <GIC_SPI 98 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "slimbus2";
++		fdif: fdif@4a10a000 {
++			compatible = "ti,omap4-fdif";
++			reg = <0x4a10a000 0x200>;
++			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
++			ti,hwmods = "fdif";
 +		};
 +
- 		elm: elm@48078000 {
- 			compatible = "ti,am3352-elm";
- 			reg = <0x48078000 0x2000>;
-@@ -711,6 +719,15 @@
- 			status = "disabled";
- 		};
- 
-+		slimbus1: slimbus@4012c000 {
-+			compatible = "ti,omap4-slimbus";
-+			reg = <0x4012c000 0x400>, /* MPU private access */
-+			      <0x4902c000 0x400>; /* L3 Interconnect */
-+			reg-names = "mpu", "dma";
-+			interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_HIGH>;
-+			ti,hwmods = "slimbus1";
-+		};
-+
- 		mcbsp4: mcbsp@48096000 {
- 			compatible = "ti,omap4-mcbsp";
- 			reg = <0x48096000 0xff>; /* L4 Interconnect */
+ 		timer1: timer@4a318000 {
+ 			compatible = "ti,omap3430-timer";
+ 			reg = <0x4a318000 0x80>;
 -- 
 2.14.1
 --
