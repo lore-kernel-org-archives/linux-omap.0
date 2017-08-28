@@ -1,63 +1,70 @@
-From: Adam Ford <aford173@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: Fwd: DA850-evm MAC Address is random
-Date: Mon, 28 Aug 2017 15:32:40 -0500
-Message-ID: <CAHCN7xLHEjda9DcVw5iHA9RaJ7UnyMVxf7e4e8NTEj9Op1JaBw@mail.gmail.com>
+Date: Mon, 28 Aug 2017 14:12:17 -0700
+Message-ID: <20170828211217.GO6008@atomide.com>
 References: <CAHCN7xKwFd7dHF0ySEd1hOSr0sZEgh9fuwy=RkUTHvEh59hojQ@mail.gmail.com>
  <b7aab9fc-17ba-077b-3ff3-28087e0b25bc@ti.com>
+ <CAHCN7xLHEjda9DcVw5iHA9RaJ7UnyMVxf7e4e8NTEj9Op1JaBw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <b7aab9fc-17ba-077b-3ff3-28087e0b25bc@ti.com>
+Content-Disposition: inline
+In-Reply-To: <CAHCN7xLHEjda9DcVw5iHA9RaJ7UnyMVxf7e4e8NTEj9Op1JaBw@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-omap@vger.kernel.org, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
+To: Adam Ford <aford173@gmail.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 28, 2017 at 1:54 PM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
-> Cc: Sekhar
->
-> On 08/28/2017 10:32 AM, Adam Ford wrote:
->>
->> The davinvi_emac MAC address seems to attempt a call to
->> ti_cm_get_macid in cpsw-common.c but it returns the message
->> 'davinci_emac davinci_emac.1: incompatible machine/device type for
->> reading mac address ' and then generates a random MAC address.
->>
->> The function appears to lookup varions boards using
->> 'of_machine_is_compaible' and supports dm8148, am33xx, am3517, dm816,
->> am4372 and dra7.  I don't see the ti,davinci-dm6467-emac which is
->> what's shown in the da850 device tree.
->>
->> Is there a patch somewhere for supporting the da850-evm?
->
->
-> Not sure if MAC address can be read from Control module.
-> May be Sekhar can say more?
+* Adam Ford <aford173@gmail.com> [170828 13:33]:
+> On Mon, Aug 28, 2017 at 1:54 PM, Grygorii Strashko
+> <grygorii.strashko@ti.com> wrote:
+> > Cc: Sekhar
+> >
+> > On 08/28/2017 10:32 AM, Adam Ford wrote:
+> >>
+> >> The davinvi_emac MAC address seems to attempt a call to
+> >> ti_cm_get_macid in cpsw-common.c but it returns the message
+> >> 'davinci_emac davinci_emac.1: incompatible machine/device type for
+> >> reading mac address ' and then generates a random MAC address.
+> >>
+> >> The function appears to lookup varions boards using
+> >> 'of_machine_is_compaible' and supports dm8148, am33xx, am3517, dm816,
+> >> am4372 and dra7.  I don't see the ti,davinci-dm6467-emac which is
+> >> what's shown in the da850 device tree.
+> >>
+> >> Is there a patch somewhere for supporting the da850-evm?
+> >
+> >
+> > Not sure if MAC address can be read from Control module.
+> > May be Sekhar can say more?
+> 
+> My understanding is that the MAC address is programmed by Logic PD
+> into the SPI flash.  The Bootloader reads this from either SPI or its
+> env variables.  Looking at the partition info listed in the
+> da850-evm.dts file, it appears as if they've reserved space for it.
+> Unfortunately, I don't see any code that reads it out.  I was hoping
+> there might be a way to just pass cmdline parameter from the
+> bootloader to the kernel to accept the MAC address.
+> 
+> >
+> >>
+> >> If not, is there a way to pass the MAC address from U-Boot to the
+> >> driver so it doesn't generate a random MAC?
+> >
+> >
+> > "local-mac-address" dt porp
+> 
+> The downside here, is that we'd have to have the Bootloader modify the
+> device tree.
 
-My understanding is that the MAC address is programmed by Logic PD
-into the SPI flash.  The Bootloader reads this from either SPI or its
-env variables.  Looking at the partition info listed in the
-da850-evm.dts file, it appears as if they've reserved space for it.
-Unfortunately, I don't see any code that reads it out.  I was hoping
-there might be a way to just pass cmdline parameter from the
-bootloader to the kernel to accept the MAC address.
+That piece of code exists somewhere in u-boot already. Note how
+we are populating the mac address for USB Ethernet drivers in
+u-boot and then the Ethernet driver code parses it. See commit
+055d31de7158 ("ARM: omap3: beagleboard-xm: dt: Add ethernet to
+the device tree") for some more information.
 
->
->>
->> If not, is there a way to pass the MAC address from U-Boot to the
->> driver so it doesn't generate a random MAC?
->
->
-> "local-mac-address" dt porp
+I think u-boot needs the ethernet alias for finding the interface.
 
-The downside here, is that we'd have to have the Bootloader modify the
-device tree.
->
-> --
-> regards,
-> -grygorii
+Regards,
 
-thanks
-
-adam
+Tony
