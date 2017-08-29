@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/5] ARM: OMAP2+: Fix access to reserved smartreflex registers
- for dra7
-Date: Tue, 29 Aug 2017 10:03:31 -0700
-Message-ID: <20170829170335.11536-2-tony@atomide.com>
+Subject: [PATCH 3/5] ARM: OMAP2+: Fix overwriting of clkctrl and modulemode
+ values
+Date: Tue, 29 Aug 2017 10:03:33 -0700
+Message-ID: <20170829170335.11536-4-tony@atomide.com>
 References: <20170829170335.11536-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,162 +19,139 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The TRM has marked dra7 SmartReflex as reserved and we should not
-touch those registers as pointed out by Nishanth Menon <nm@ti.com>.
-So let's remove these registers.
+We are currently overwiting the hwmod clkctrl registers if we
+configure a clock ctrl clock from device tree.
 
-If it later on turns out that these registers are needed for
-some reason, the struct omap_hwmod_addr_space needs be mapped in
-the device tree instead.
+While this does not expose any bugs except for kernel coders
+when debugging things, it should be fixed for correctness.
+It is now impossible to use the hwmod data for checking the
+clkctrl register values after booting for debugging or
+generating dts data from hwmod data.
+
+Let's fix the issue by adding a helper to detect if clkctrl
+clock is configured.
 
 Cc: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 106 ------------------------------
- 1 file changed, 106 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c | 49 +++++++++++++++++++++++++++++++++-------
+ arch/arm/mach-omap2/omap_hwmod.h |  3 +++
+ 2 files changed, 44 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -20,7 +20,6 @@
- #include <linux/io.h>
- #include <linux/platform_data/gpio-omap.h>
- #include <linux/platform_data/hsmmc-omap.h>
--#include <linux/power/smartreflex.h>
- #include <linux/i2c-omap.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -993,6 +993,34 @@ static int _enable_clocks(struct omap_hwmod *oh)
+ 	return 0;
+ }
  
- #include <linux/omap-dma.h>
-@@ -2054,73 +2053,6 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
- 	},
- };
++/**
++ * _omap4_clkctrl_managed_by_clkfwk - true if clkctrl managed by clock framework
++ * @oh: struct omap_hwmod *
++ */
++static bool _omap4_clkctrl_managed_by_clkfwk(struct omap_hwmod *oh)
++{
++	if (oh->prcm.omap4.flags & HWMOD_OMAP4_CLKFWK_CLKCTR_CLOCK)
++		return true;
++
++	return false;
++}
++
++/**
++ * _omap4_has_clkctrl_clock - returns true if a module has clkctrl clock
++ * @oh: struct omap_hwmod *
++ */
++static bool _omap4_has_clkctrl_clock(struct omap_hwmod *oh)
++{
++	if (oh->prcm.omap4.clkctrl_offs)
++		return true;
++
++	if (!oh->prcm.omap4.clkctrl_offs &&
++	    oh->prcm.omap4.flags & HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET)
++		return true;
++
++	return false;
++}
++
+ /**
+  * _disable_clocks - disable hwmod main clock and interface clocks
+  * @oh: struct omap_hwmod *
+@@ -1030,7 +1058,8 @@ static int _disable_clocks(struct omap_hwmod *oh)
+  */
+ static void _omap4_enable_module(struct omap_hwmod *oh)
+ {
+-	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
++	if (!oh->clkdm || !oh->prcm.omap4.modulemode ||
++	    _omap4_clkctrl_managed_by_clkfwk(oh))
+ 		return;
  
--/*
-- * 'smartreflex' class
-- *
-- */
--
--/* The IP is not compliant to type1 / type2 scheme */
--static struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_smartreflex = {
--	.sidle_shift	= 24,
--	.enwkup_shift	= 26,
--};
--
--static struct omap_hwmod_class_sysconfig dra7xx_smartreflex_sysc = {
--	.sysc_offs	= 0x0038,
--	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE),
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   SIDLE_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type_smartreflex,
--};
--
--static struct omap_hwmod_class dra7xx_smartreflex_hwmod_class = {
--	.name	= "smartreflex",
--	.sysc	= &dra7xx_smartreflex_sysc,
--	.rev	= 2,
--};
--
--/* smartreflex_core */
--/* smartreflex_core dev_attr */
--static struct omap_smartreflex_dev_attr smartreflex_core_dev_attr = {
--	.sensor_voltdm_name	= "core",
--};
--
--static struct omap_hwmod dra7xx_smartreflex_core_hwmod = {
--	.name		= "smartreflex_core",
--	.class		= &dra7xx_smartreflex_hwmod_class,
--	.clkdm_name	= "coreaon_clkdm",
--	.main_clk	= "wkupaon_iclk_mux",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = DRA7XX_CM_COREAON_SMARTREFLEX_CORE_CLKCTRL_OFFSET,
--			.context_offs = DRA7XX_RM_COREAON_SMARTREFLEX_CORE_CONTEXT_OFFSET,
--			.modulemode   = MODULEMODE_SWCTRL,
--		},
--	},
--	.dev_attr	= &smartreflex_core_dev_attr,
--};
--
--/* smartreflex_mpu */
--/* smartreflex_mpu dev_attr */
--static struct omap_smartreflex_dev_attr smartreflex_mpu_dev_attr = {
--	.sensor_voltdm_name	= "mpu",
--};
--
--static struct omap_hwmod dra7xx_smartreflex_mpu_hwmod = {
--	.name		= "smartreflex_mpu",
--	.class		= &dra7xx_smartreflex_hwmod_class,
--	.clkdm_name	= "coreaon_clkdm",
--	.main_clk	= "wkupaon_iclk_mux",
--	.prcm = {
--		.omap4 = {
--			.clkctrl_offs = DRA7XX_CM_COREAON_SMARTREFLEX_MPU_CLKCTRL_OFFSET,
--			.context_offs = DRA7XX_RM_COREAON_SMARTREFLEX_MPU_CONTEXT_OFFSET,
--			.modulemode   = MODULEMODE_SWCTRL,
--		},
--	},
--	.dev_attr	= &smartreflex_mpu_dev_attr,
--};
--
- /*
-  * 'spinlock' class
-  *
-@@ -3569,42 +3501,6 @@ static struct omap_hwmod_ocp_if dra7xx_l4_cfg__sata = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+ 	pr_debug("omap_hwmod: %s: %s: %d\n",
+@@ -1061,8 +1090,10 @@ static int _omap4_wait_target_disable(struct omap_hwmod *oh)
+ 	if (oh->flags & HWMOD_NO_IDLEST)
+ 		return 0;
  
--static struct omap_hwmod_addr_space dra7xx_smartreflex_core_addrs[] = {
--	{
--		.pa_start	= 0x4a0dd000,
--		.pa_end		= 0x4a0dd07f,
--		.flags		= ADDR_TYPE_RT
--	},
--	{ }
--};
--
--/* l4_cfg -> smartreflex_core */
--static struct omap_hwmod_ocp_if dra7xx_l4_cfg__smartreflex_core = {
--	.master		= &dra7xx_l4_cfg_hwmod,
--	.slave		= &dra7xx_smartreflex_core_hwmod,
--	.clk		= "l4_root_clk_div",
--	.addr		= dra7xx_smartreflex_core_addrs,
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--static struct omap_hwmod_addr_space dra7xx_smartreflex_mpu_addrs[] = {
--	{
--		.pa_start	= 0x4a0d9000,
--		.pa_end		= 0x4a0d907f,
--		.flags		= ADDR_TYPE_RT
--	},
--	{ }
--};
--
--/* l4_cfg -> smartreflex_mpu */
--static struct omap_hwmod_ocp_if dra7xx_l4_cfg__smartreflex_mpu = {
--	.master		= &dra7xx_l4_cfg_hwmod,
--	.slave		= &dra7xx_smartreflex_mpu_hwmod,
--	.clk		= "l4_root_clk_div",
--	.addr		= dra7xx_smartreflex_mpu_addrs,
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
- /* l4_cfg -> spinlock */
- static struct omap_hwmod_ocp_if dra7xx_l4_cfg__spinlock = {
- 	.master		= &dra7xx_l4_cfg_hwmod,
-@@ -4019,8 +3915,6 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
- 	&dra7xx_l4_cfg__pciess2,
- 	&dra7xx_l3_main_1__qspi,
- 	&dra7xx_l4_cfg__sata,
--	&dra7xx_l4_cfg__smartreflex_core,
--	&dra7xx_l4_cfg__smartreflex_mpu,
- 	&dra7xx_l4_cfg__spinlock,
- 	&dra7xx_l4_wkup__timer1,
- 	&dra7xx_l4_per1__timer2,
+-	if (!oh->prcm.omap4.clkctrl_offs &&
+-	    !(oh->prcm.omap4.flags & HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET))
++	if (_omap4_clkctrl_managed_by_clkfwk(oh))
++		return 0;
++
++	if (!_omap4_has_clkctrl_clock(oh))
+ 		return 0;
+ 
+ 	return omap_cm_wait_module_idle(oh->clkdm->prcm_partition,
+@@ -1847,7 +1878,8 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
+ {
+ 	int v;
+ 
+-	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
++	if (!oh->clkdm || !oh->prcm.omap4.modulemode ||
++	    _omap4_clkctrl_managed_by_clkfwk(oh))
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -2831,8 +2863,10 @@ static int _omap4_wait_target_ready(struct omap_hwmod *oh)
+ 	if (!_find_mpu_rt_port(oh))
+ 		return 0;
+ 
+-	if (!oh->prcm.omap4.clkctrl_offs &&
+-	    !(oh->prcm.omap4.flags & HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET))
++	if (_omap4_clkctrl_managed_by_clkfwk(oh))
++		return 0;
++
++	if (!_omap4_has_clkctrl_clock(oh))
+ 		return 0;
+ 
+ 	/* XXX check module SIDLEMODE, hardreset status */
+@@ -2988,8 +3022,7 @@ static int _omap4_disable_direct_prcm(struct omap_hwmod *oh)
+ 	if (!oh)
+ 		return -EINVAL;
+ 
+-	oh->prcm.omap4.clkctrl_offs = 0;
+-	oh->prcm.omap4.modulemode = 0;
++	oh->prcm.omap4.flags |= HWMOD_OMAP4_CLKFWK_CLKCTR_CLOCK;
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -446,9 +446,12 @@ struct omap_hwmod_omap2_prcm {
+  * HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET: Some IP blocks have a valid CLKCTRL
+  *	offset of zero; this flag bit should be set in those cases to
+  *	distinguish from hwmods that have no clkctrl offset.
++ * HWMOD_OMAP4_CLKFWK_CLKCTR_CLOCK: Module clockctrl clock is managed
++ *	by the common clock framework and not hwmod.
+  */
+ #define HWMOD_OMAP4_NO_CONTEXT_LOSS_BIT		(1 << 0)
+ #define HWMOD_OMAP4_ZERO_CLKCTRL_OFFSET		(1 << 1)
++#define HWMOD_OMAP4_CLKFWK_CLKCTR_CLOCK		(1 << 2)
+ 
+ /**
+  * struct omap_hwmod_omap4_prcm - OMAP4-specific PRCM data
 -- 
 2.14.1
