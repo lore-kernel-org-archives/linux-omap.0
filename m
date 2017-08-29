@@ -1,86 +1,122 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 3/5] dt-bindings: sdhci-omap: Add bindings for the
- sdhci-omap controller
-Date: Tue, 29 Aug 2017 06:58:23 -0700
-Message-ID: <20170829135822.GR6008@atomide.com>
-References: <20170821142132.GH6008@atomide.com>
- <20170823054246.23927-1-kishon@ti.com>
- <CAPDyKFp7gchVQ+JPNqv4LktvHRm2Lzx6KakOw85zEZxDEX0OhA@mail.gmail.com>
- <c9342689-f09e-44af-0975-d43ef122a477@ti.com>
- <CAPDyKFqCZFM7UmHyQCm=DwwZXJvzUde3pW0HqARKrsgfgxSuaw@mail.gmail.com>
- <0c7e0705-d9c2-4499-54ba-cbd84589dc01@ti.com>
- <20170829115050.3axlr5uysmqlhvd2@earth>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 08/17] ARM: dts: Add missing hsi node for omap4
+Date: Tue, 29 Aug 2017 07:20:30 -0700
+Message-ID: <20170829142029.GS6008@atomide.com>
+References: <20170828211918.11573-1-tony@atomide.com>
+ <20170828211918.11573-9-tony@atomide.com>
+ <20170829091825.aye2ulcurnhs24uw@earth>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170829115050.3axlr5uysmqlhvd2@earth>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20170829091825.aye2ulcurnhs24uw@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170829 04:51]:
-> On Tue, Aug 29, 2017 at 04:50:22PM +0530, Kishon Vijay Abraham I wrote:
-> > On Thursday 24 August 2017 04:59 PM, Ulf Hansson wrote:
-> > > I guess we have two options.
-> > > 
-> > > 1) Allow us to invent and use new bindings - and a new compatible.
-> > > When everything is implemented in sdhci-omap, we can deprecate the old
-> > > omap_hsmmc driver and its corresponding compatible/bindings. At some
-> > > point later we can remove the legacy driver/bindings altogether - of
-> > > course that might take a while. This option allows us to re-think some
-> > > of the old bindings and really clean up some if its related code. For
-> > > example, I think "ti,dual-volt" is a bad binding. Instead it would be
-> > > better to use the existing mmc bindings about which speed mode the
-> > > controller/board supports (as the voltage level comes with it).
-> > > 
-> > > 2) Invent only a new compatible, but stick to use the old omap hsmmc
-> > > bindings and thus also deploy the similar code dealing with them. When
-> > > everything is implemented move the old omap_hsmmc compatibles into the
-> > > new sdhci-omap driver and them remove the old omap_hsmmc driver. At
-> > > that point we could also deprecate the old omap hsmmc compatibles, but
-> > > to me that is rather pointless.
-> > > 
-> > > The two options has different advantages, feel free to pick any of them!
-> > 
-> > Okay. I'll send a new version with option '1' (new compatible/new bindings).
-
-Agreed.
-
-> > And when we deprecate the omap_hsmmc driver (some time later), we'll add
-> > support for the legacy bindings in sdhci-omap driver (so that old dtbs continue
-> > to work). Tony, are you okay with this?
+* Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org> [170829 02:18]:
+> Hi,
 > 
-> I think you should Cc Rob Herring and Mark Rutland (DT binding
-> maintainers). This sounds like "I use DT to describe driver
-> behaviour" instead of "I use DT to describe hardware".
+> On Mon, Aug 28, 2017 at 02:19:09PM -0700, Tony Lindgren wrote:
+> > On omap4 we're missing the hsi node with it's related "ti,hwmods"
+> > property that the SoC interconnect code needs.
+> > 
+> > Note that this will only show up as a bug with "doesn't have
+> > mpu register target base" boot errors when the legacy platform
+> > data is removed.
+> > 
+> > Let's also update the binding accrodingly while at it.
+> > 
+> > Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > ---
+> >  Documentation/devicetree/bindings/hsi/omap-ssi.txt | 6 +++++-
+> >  arch/arm/boot/dts/omap4.dtsi                       | 9 +++++++++
+> >  2 files changed, 14 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/Documentation/devicetree/bindings/hsi/omap-ssi.txt b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+> > --- a/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+> > +++ b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+> > @@ -4,7 +4,7 @@ OMAP Synchronous Serial Interface (SSI) controller implements a legacy
+> >  variant of MIPI's High Speed Synchronous Serial Interface (HSI).
+> >  
+> >  Required properties:
+> > -- compatible:		Should include "ti,omap3-ssi".
+> > +- compatible:		Should include "ti,omap3-ssi" or "ti,omap4-hsi"
+> >  - reg-names:		Contains the values "sys" and "gdd" (in this order).
+> >  - reg:			Contains a matching register specifier for each entry
+> >  			in reg-names.
+> > @@ -38,6 +38,10 @@ Required Port sub-node properties:
+> >  			property. If it's missing the port will not be
+> >  			enabled.
+> >  
+> > +Optional properties:
+> > +- ti,hwmods:		Shall contain TI interconnect module name if needed
+> > +			by the SoC
+> > +
+> >  Example for Nokia N900:
+> >  
+> >  ssi-controller@48058000 {
+> > diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> > --- a/arch/arm/boot/dts/omap4.dtsi
+> > +++ b/arch/arm/boot/dts/omap4.dtsi
+> > @@ -632,6 +632,15 @@
+> >  			dma-names = "tx", "rx";
+> >  		};
+> >  
+> > +		hsi: hsi@4a058000 {
+> > +			compatible = "ti,omap4-hsi";
+> > +			reg = <0x4a058000 0x4000>;
+> > +			interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>,
+> > +				     <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>,
+> > +				     <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>;
+> > +			ti,hwmods = "hsi";
+> > +		};
+> > +
+> 
+> This does not follow the binding, which expects one subnode per
+> port and splits memory areas + interrupts accordingly. Fortunately
+> HSI is properly documented in the public OMAP4 TRM (in opposit to
+> SSI, which is missing completly in OMAP3 TRM). I think the node
+> should look like this:
 
-Yes please.
+OK sure let's add the subnodes too :)
 
-> I would expect the conversion to look like the one done for UART,
-> see CONFIG_SERIAL_OMAP vs CONFIG_SERIAL_8250_OMAP. Both use the
-> same compatible value and you can choose using kernel configuration.
+> hsi: hsi@4a058000 {
+>     compatible = "ti,omap4-hsi";
+>     ti,hwmods = "hsi";
+> 
+>     reg = <0x4a058000 0x5000>,
+>           <0x4a058000 0x1000>;
+>     reg-names = "sys", "gdd";
 
-That does not work unfortunately :( We are now stuck in a situation
-where two drivers are attempting to probe with the same compatible
-and we can't enable 8250_OMAP because of the user space breakage
-with the device names. And I'm actuallly thinking we should add a
-new compatible for 8250-omap to be able to start enabling it one
-board at a time.
+The module size is 0x4000 in the hardware. Then there's the L4
+interconnect registers at 0x5c000 0x1000:
 
-It's best to enable devices to use the new compatible as things are
-tested rather than hope for some magic "flag day" flip that might
-never happen. Having two days attempting to probe with the same
-binding just won't work.
+	reg = <0x4a058000 0x4000>,
+	      <0x4a05c000 0x1000>;
+	reg-names = "sys", "gdd";
 
-So yeah, I agree with Kishon that we should stick with generic
-and sdhci bindings. And then we can start already using it for
-boards that can use it, then eventually when we're ready, start
-parsing also the legacy bindings and maybe drop the old driver.
+Hmm, what's the "gdd" name for? Probably it would be be to use "ta"
+there for "target agent" as that's generic and available for every
+module.
+
+>     clocks = <&hsi_fck>;
+>     clock-names = "hsi_fck";
+> 
+>     interrupts = <71>;
+>     interrupt-names = "gdd_mpu";
+
+And the interrupts need to be mapped for omap4. I'll post
+v2 with the subnodes.
 
 Regards,
 
 Tony
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
