@@ -1,50 +1,62 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
- omap4
-Date: Tue, 29 Aug 2017 09:26:06 -0700
-Message-ID: <20170829162606.GC6008@atomide.com>
-References: <20170828211918.11573-1-tony@atomide.com>
- <20170828211918.11573-15-tony@atomide.com>
- <20170829090034.ytepjfv2jkkd2b3z@earth>
- <201708291135.v7TBZCHH020827@dflxv15.itg.ti.com>
- <20170829121041.dweciryplio5i4jr@earth>
- <e0c6447f-5a0f-b43a-7087-5ee37af2a1c1@ti.com>
- <20170829143453.GV6008@atomide.com>
- <20170829155738.GB6008@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 4/5] ARM: OMAP2+: Drop unused omap_init_hdq
+Date: Tue, 29 Aug 2017 10:03:34 -0700
+Message-ID: <20170829170335.11536-5-tony@atomide.com>
+References: <20170829170335.11536-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170829155738.GB6008-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170829170335.11536-1-tony@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170829 08:58]:
-> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170829 07:35]:
-> > * Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [170829 05:25]:
-> > > Maybe. At the moment we have this in TI's tree for DRA7:
-> > > 
-> > > gpu: gpu@56000000 {
-> > > 	compatible = "ti,dra7-sgx544", "img,sgx544";
-> 
-> I'll leave out "img,sgx544" as that's the generic component
-> that's really a child of this interconnect target module.
+We now boot all of mach-omap2 in device tree only mode and
+this is now dead code.
 
-And for the gpu clock, on omap4, it seems that the clocks
-are just the module clktrl with a mux option. So the top
-level module driver implementing runtime PM should be
-enough there. And on dra7, there are two functional clocks
-maybe as the SGX instance is dual core. And the mainline
-kernel is using "fck" naming vs "fclk" naming. So more
-consideration is for the clocks and I'll leave them out
-for now.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/hdq1w.c | 22 ----------------------
+ 1 file changed, 22 deletions(-)
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/hdq1w.c b/arch/arm/mach-omap2/hdq1w.c
+--- a/arch/arm/mach-omap2/hdq1w.c
++++ b/arch/arm/mach-omap2/hdq1w.c
+@@ -75,25 +75,3 @@ int omap_hdq1w_reset(struct omap_hwmod *oh)
+ 
+ 	return 0;
+ }
+-
+-#ifndef CONFIG_OF
+-static int __init omap_init_hdq(void)
+-{
+-	int id = -1;
+-	struct platform_device *pdev;
+-	struct omap_hwmod *oh;
+-	char *oh_name = "hdq1w";
+-	char *devname = "omap_hdq";
+-
+-	oh = omap_hwmod_lookup(oh_name);
+-	if (!oh)
+-		return 0;
+-
+-	pdev = omap_device_build(devname, id, oh, NULL, 0);
+-	WARN(IS_ERR(pdev), "Can't build omap_device for %s:%s.\n",
+-	     devname, oh->name);
+-
+-	return 0;
+-}
+-omap_arch_initcall(omap_init_hdq);
+-#endif
+-- 
+2.14.1
