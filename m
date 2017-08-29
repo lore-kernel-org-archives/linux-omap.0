@@ -1,117 +1,86 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH 13/17] ARM: dts: Add missing fdif node and binding for omap4
-Date: Tue, 29 Aug 2017 15:48:17 +0300
-Message-ID: <5996934.WE9heBV2Dy@avalon>
-References: <20170828211918.11573-1-tony@atomide.com> <20170828211918.11573-14-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 3/5] dt-bindings: sdhci-omap: Add bindings for the
+ sdhci-omap controller
+Date: Tue, 29 Aug 2017 06:58:23 -0700
+Message-ID: <20170829135822.GR6008@atomide.com>
+References: <20170821142132.GH6008@atomide.com>
+ <20170823054246.23927-1-kishon@ti.com>
+ <CAPDyKFp7gchVQ+JPNqv4LktvHRm2Lzx6KakOw85zEZxDEX0OhA@mail.gmail.com>
+ <c9342689-f09e-44af-0975-d43ef122a477@ti.com>
+ <CAPDyKFqCZFM7UmHyQCm=DwwZXJvzUde3pW0HqARKrsgfgxSuaw@mail.gmail.com>
+ <0c7e0705-d9c2-4499-54ba-cbd84589dc01@ti.com>
+ <20170829115050.3axlr5uysmqlhvd2@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170828211918.11573-14-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170829115050.3axlr5uysmqlhvd2@earth>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+* Sebastian Reichel <sebastian.reichel@collabora.co.uk> [170829 04:51]:
+> On Tue, Aug 29, 2017 at 04:50:22PM +0530, Kishon Vijay Abraham I wrote:
+> > On Thursday 24 August 2017 04:59 PM, Ulf Hansson wrote:
+> > > I guess we have two options.
+> > > 
+> > > 1) Allow us to invent and use new bindings - and a new compatible.
+> > > When everything is implemented in sdhci-omap, we can deprecate the old
+> > > omap_hsmmc driver and its corresponding compatible/bindings. At some
+> > > point later we can remove the legacy driver/bindings altogether - of
+> > > course that might take a while. This option allows us to re-think some
+> > > of the old bindings and really clean up some if its related code. For
+> > > example, I think "ti,dual-volt" is a bad binding. Instead it would be
+> > > better to use the existing mmc bindings about which speed mode the
+> > > controller/board supports (as the voltage level comes with it).
+> > > 
+> > > 2) Invent only a new compatible, but stick to use the old omap hsmmc
+> > > bindings and thus also deploy the similar code dealing with them. When
+> > > everything is implemented move the old omap_hsmmc compatibles into the
+> > > new sdhci-omap driver and them remove the old omap_hsmmc driver. At
+> > > that point we could also deprecate the old omap hsmmc compatibles, but
+> > > to me that is rather pointless.
+> > > 
+> > > The two options has different advantages, feel free to pick any of them!
+> > 
+> > Okay. I'll send a new version with option '1' (new compatible/new bindings).
 
-Thank you for the patch.
+Agreed.
 
-On Tuesday, 29 August 2017 00:19:14 EEST Tony Lindgren wrote:
-> On omap4 we're missing the fdif node with it's related "ti,hwmods"
-> property that the SoC interconnect code needs.
+> > And when we deprecate the omap_hsmmc driver (some time later), we'll add
+> > support for the legacy bindings in sdhci-omap driver (so that old dtbs continue
+> > to work). Tony, are you okay with this?
 > 
-> Note that this will only show up as a bug with "doesn't have
-> mpu register target base" boot errors when the legacy platform
-> data is removed.
-> 
-> Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  .../devicetree/bindings/media/ti-fdif.txt          | 37 +++++++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi                       |  7 ++++
->  2 files changed, 44 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/ti-fdif.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/ti-fdif.txt
-> b/Documentation/devicetree/bindings/media/ti-fdif.txt new file mode 100644
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/ti-fdif.txt
-> @@ -0,0 +1,37 @@
-> +Texas Instruments Face Detect (FDIF) binding
-> +
-> +FDD can be used for face detection on Texas Instruments SoCs.
+> I think you should Cc Rob Herring and Mark Rutland (DT binding
+> maintainers). This sounds like "I use DT to describe driver
+> behaviour" instead of "I use DT to describe hardware".
 
-Did you mean s/FDD/FDIF/ ?
+Yes please.
 
-> +Note that the fdif binding is currently only used by the SoC interconnect
-> +code to idle the module on init and no open source driver is available
-> +for fdif. Please update this documentation if that changes.
+> I would expect the conversion to look like the one done for UART,
+> see CONFIG_SERIAL_OMAP vs CONFIG_SERIAL_8250_OMAP. Both use the
+> same compatible value and you can choose using kernel configuration.
 
-Device tree bindings should be driver-agnostic. I don't think this paragraph 
-is needed.
+That does not work unfortunately :( We are now stuck in a situation
+where two drivers are attempting to probe with the same compatible
+and we can't enable 8250_OMAP because of the user space breakage
+with the device names. And I'm actuallly thinking we should add a
+new compatible for 8250-omap to be able to start enabling it one
+board at a time.
 
-> +Required properties:
-> +
-> +compatible: Shall be one of the following:
-> +	    "ti,omap4-fdif"
-> +
-> +reg: Shall contain the device instance IO range
-> +
-> +interrupts: Shall contain the device instance interrupt
-> +
-> +
-> +Optional properties:
-> +
-> +reg-names: Shall contain the IO range names if multiple IO
-> +	   ranges are used by the SoC
+It's best to enable devices to use the new compatible as things are
+tested rather than hope for some magic "flag day" flip that might
+never happen. Having two days attempting to probe with the same
+binding just won't work.
 
-Is this ever the case on OMAP4 ? If not you can drop this property.
+So yeah, I agree with Kishon that we should stick with generic
+and sdhci bindings. And then we can start already using it for
+boards that can use it, then eventually when we're ready, start
+parsing also the legacy bindings and maybe drop the old driver.
 
-> +ti,hwmods: Shall contain the TI interconnect module name if needed
-> +	   by the SoC
-
-Are there SoCs that don't need this ?
-
-> +Example:
-> +
-> +	fdif: fdif@4a10a000 {
-> +		compatible = "ti,omap4-fdif";
-> +		reg = <0x4a10a000 0x200>;
-> +		interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
-> +		ti,hwmods = "fdif";
-> +	};
-> +
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -864,6 +864,13 @@
->  			};
->  		};
-> 
-> +		fdif: fdif@4a10a000 {
-> +			compatible = "ti,omap4-fdif";
-> +			reg = <0x4a10a000 0x200>;
-
-According to the OMAP4460 datasheet the register range is 0x390 bytes long.
-
-> +			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
-> +			ti,hwmods = "fdif";
-> +		};
-> +
->  		timer1: timer@4a318000 {
->  			compatible = "ti,omap3430-timer";
->  			reg = <0x4a318000 0x80>;
-
-
--- 
 Regards,
 
-Laurent Pinchart
+Tony
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
