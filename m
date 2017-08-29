@@ -1,45 +1,103 @@
-From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
- omap4
-Date: Tue, 29 Aug 2017 15:27:31 +0300
-Message-ID: <5efc9078-5886-5826-834e-facd67ddfbe5@ti.com>
-References: <20170828211918.11573-1-tony@atomide.com>
- <20170828211918.11573-15-tony@atomide.com>
- <20170829090034.ytepjfv2jkkd2b3z@earth>
- <201708291135.v7TBZCHH020827@dflxv15.itg.ti.com>
- <20170829121041.dweciryplio5i4jr@earth>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH 09/17] ARM: dts: Add missing iss node and binding for omap4
+Date: Tue, 29 Aug 2017 15:37:18 +0300
+Message-ID: <1768059.eopKmxhyQx@avalon>
+References: <20170828211918.11573-1-tony@atomide.com> <20170828211918.11573-10-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170829121041.dweciryplio5i4jr@earth>
-Content-Language: en-US
+In-Reply-To: <20170828211918.11573-10-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-=EF=BB=BF
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Hi Tony,
 
-On 29/08/17 15:10, Sebastian Reichel wrote:
+Thank you for the patch.
 
->> Do we even want to add SGX to the .dts? We don't have proper drivers for
->> SGX. If we ever do, who knows what kind of DT data they need. I know the
->> DT data for SGX in TI's kernel tree has changed at least once.
->=20
-> I don't think reg or interrupts will be removed, so the properties
-> added by Tony look pretty safe?. I guess if we ever have a driver
+On Tuesday, 29 August 2017 00:19:10 EEST Tony Lindgren wrote:
+> On omap4 we're missing the iss node with it's related "ti,hwmods"
+> property that the SoC interconnect code needs.
+> 
+> Note that this will only show up as a bug with "doesn't have
+> mpu register target base" boot errors when the legacy platform
+> data is removed.
+> 
+> Cc: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/media/ti-iss.txt | 32 +++++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi                       |  7 +++++
+>  2 files changed, 39 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/ti-iss.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/ti-iss.txt
+> b/Documentation/devicetree/bindings/media/ti-iss.txt new file mode 100644
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/ti-iss.txt
+> @@ -0,0 +1,32 @@
+> +Texas Instruments Imaging Subsystem (ISS) binding
+> +
+> +ISS is used for cameras on Texas Instruments SoCs.
+> +
+> +
+> +Required properties:
+> +
+> +compatible: Shall be one of the following:
+> +	    "ti,omap4-iss"
+> +
+> +reg: Shall contain the device instance IO range
+> +
+> +interrupts: Shall contain the device instance interrupt
+> +
+> +
+> +Optional properties:
+> +
+> +reg-names: Shall contain the IO range names if multiple IO
+> +	   ranges are used by the SoC
+> +
+> +ti,hwmods: Shall contain the TI interconnect module name if needed
+> +	   by the SoC
 
-Oh, and one more thing about the regs. I believe SGX consists of
-multiple register blocks. But as it's not documented in any public docs,
-there's just that single block in the DT data. I'm not sure if single
-block or multiple blocks would be the right approach, but then, I guess
-we can always live with just a single block and if needed split the
-blocks inside the driver.
+This isn't enough. The ISS isn't a stand-alone IP core, it is connected to 
+external devices and those connections must be modelled in DT similarly to the 
+OMAP3 ISP.
 
- Tomi
+> +Example:
+> +
+> +	iss: iss@52000000 {
+> +		compatible = "ti,omap4-iss";
+> +		reg = <0x52000000 0x1000000>;
+> +		interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
+> +		ti,hwmods = "iss";
+> +	};
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -649,6 +649,13 @@
+>  			#iommu-cells = <0>;
+>  		};
+> 
+> +		iss: iss@52000000 {
+> +			compatible = "ti,omap4-iss";
+> +			reg = <0x52000000 0x1000000>;
+> +			interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
+> +			ti,hwmods = "iss";
+> +		};
+> +
+>  		mmu_ipu: mmu@55082000 {
+>  			compatible = "ti,omap4-iommu";
+>  			reg = <0x55082000 0x100>;
+
+
+-- 
+Regards,
+
+Laurent Pinchart
 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
