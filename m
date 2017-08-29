@@ -1,114 +1,101 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: Fwd: DA850-evm MAC Address is random
-Date: Tue, 29 Aug 2017 07:02:01 -0500
-Message-ID: <CAHCN7xK2=PN5MOr48HOkZnwKwkM4ypcvQct+Ko+ChNFG3Pv62w@mail.gmail.com>
-References: <CAHCN7xKwFd7dHF0ySEd1hOSr0sZEgh9fuwy=RkUTHvEh59hojQ@mail.gmail.com>
- <b7aab9fc-17ba-077b-3ff3-28087e0b25bc@ti.com> <CAHCN7xLHEjda9DcVw5iHA9RaJ7UnyMVxf7e4e8NTEj9Op1JaBw@mail.gmail.com>
- <20170828211217.GO6008@atomide.com> <94c4cbb0-1df3-2f2f-69f3-f9a788e610fa@ti.com>
- <CAHCN7x+-wymsqw96mt7Du=Huxh5rq=Rj9GidWPLXptJSW7taEA@mail.gmail.com> <f0f5e11f-cd7a-cb86-58b5-8ce44cdbc032@ti.com>
+From: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
+ omap4
+Date: Tue, 29 Aug 2017 14:10:41 +0200
+Message-ID: <20170829121041.dweciryplio5i4jr@earth>
+References: <20170828211918.11573-1-tony@atomide.com>
+ <20170828211918.11573-15-tony@atomide.com>
+ <20170829090034.ytepjfv2jkkd2b3z@earth>
+ <201708291135.v7TBZCHH020827@dflxv15.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <f0f5e11f-cd7a-cb86-58b5-8ce44cdbc032@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="nly25ubm6cbfj44w"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <201708291135.v7TBZCHH020827-mYkuYio3Bc71T2qfsofKZtBPR1lH4CV8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 29, 2017 at 6:42 AM, Sekhar Nori <nsekhar@ti.com> wrote:
-> On Tuesday 29 August 2017 03:53 PM, Adam Ford wrote:
->> On Tue, Aug 29, 2017 at 3:23 AM, Sekhar Nori <nsekhar@ti.com> wrote:
->>> On Tuesday 29 August 2017 02:42 AM, Tony Lindgren wrote:
->>>> * Adam Ford <aford173@gmail.com> [170828 13:33]:
->>>>> On Mon, Aug 28, 2017 at 1:54 PM, Grygorii Strashko
->>>>> <grygorii.strashko@ti.com> wrote:
->>>>>> Cc: Sekhar
->>>>>>
->>>>>> On 08/28/2017 10:32 AM, Adam Ford wrote:
->>>>>>>
->>>>>>> The davinvi_emac MAC address seems to attempt a call to
->>>>>>> ti_cm_get_macid in cpsw-common.c but it returns the message
->>>>>>> 'davinci_emac davinci_emac.1: incompatible machine/device type for
->>>>>>> reading mac address ' and then generates a random MAC address.
->>>>>>>
->>>>>>> The function appears to lookup varions boards using
->>>>>>> 'of_machine_is_compaible' and supports dm8148, am33xx, am3517, dm816,
->>>>>>> am4372 and dra7.  I don't see the ti,davinci-dm6467-emac which is
->>>>>>> what's shown in the da850 device tree.
->>>>>>>
->>>>>>> Is there a patch somewhere for supporting the da850-evm?
->>>>>>
->>>>>>
->>>>>> Not sure if MAC address can be read from Control module.
->>>>>> May be Sekhar can say more?
->>>>>
->>>>> My understanding is that the MAC address is programmed by Logic PD
->>>>> into the SPI flash.  The Bootloader reads this from either SPI or its
->>>>> env variables.  Looking at the partition info listed in the
->>>>> da850-evm.dts file, it appears as if they've reserved space for it.
->>>>> Unfortunately, I don't see any code that reads it out.  I was hoping
->>>
->>> This code is present in U-Boot sources at
->>> board/davinci/da8xxevm/da850evm.c. See the function get_mac_addr() and
->>> its usage in misc_init_r().
->>>
->>>>> there might be a way to just pass cmdline parameter from the
->>>>> bootloader to the kernel to accept the MAC address.
->>>>>
->>>>>>
->>>>>>>
->>>>>>> If not, is there a way to pass the MAC address from U-Boot to the
->>>>>>> driver so it doesn't generate a random MAC?
->>>>>>
->>>>>>
->>>>>> "local-mac-address" dt porp
->>>>>
->>>>> The downside here, is that we'd have to have the Bootloader modify the
->>>>> device tree.
->>>>
->>>> That piece of code exists somewhere in u-boot already. Note how
->>>
->>> Yes, it is fdt_fixup_ethernet() and its usage is in common/image-fdt.c.
->>>
->>>> we are populating the mac address for USB Ethernet drivers in
->>>> u-boot and then the Ethernet driver code parses it. See commit
->>>> 055d31de7158 ("ARM: omap3: beagleboard-xm: dt: Add ethernet to
->>>> the device tree") for some more information.
->>>>
->>>> I think u-boot needs the ethernet alias for finding the interface.
->>>
->>> That's exactly what was missing. I have sent a patch for fixing that and
->>> copied you there.
->>
->> Thanks for doing that.
->>
->>>
->>> Adam, if I can get your Tested-by, I will make an attempt to send it for
->>> v4.13 itself.
->>
->> I will test it.  Do need to run some instruction or do something
->> special in U-Boot to pass this in the proper place for the kernel to
->> pull it?  Tony's patch reference showed
->> command for fdt set, but I am not sure I fully understand the
->> parameters that went along with that.
->
-> Nope, just applying the patch and booting the with the new dtb should
-> result in the random mac address going away.
 
-Unfortunately, I am not seeing any change with the patch (at least
-with Kernel 4.12.9 from stable).
+--nly25ubm6cbfj44w
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-netconsole: network logging started
-davinci_emac davinci_emac.1: incompatible machine/device type for
-reading mac address
-davinci_emac davinci_emac.1: using random MAC addr: ee:74:c3:3a:15:be
+Hi,
 
-Looking at the source for cpsw-common.c function ti_cm_get_macid()
-doesn't have a case for the  ti,davinci-dm6467-emac so I wonder if
-there might be more to it.
+On Tue, Aug 29, 2017 at 02:35:09PM +0300, Tomi Valkeinen wrote:
+> =EF=BB=BFThis message contains a digitally signed email which can be read=
+ by opening the attachment.
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/=
+Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
-adam
+> Date: Tue, 29 Aug 2017 14:35:09 +0300
+> From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+> To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Tony Lindgren
+>  <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> CC: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Beno=C3=AEt Cousson <bcousson-rdvid1DuHRDQFizaE/u3fw@public.gmane.org=
+m>,
+>  devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
+>  omap4
+>=20
+> On 29/08/17 12:00, Sebastian Reichel wrote:
+> > Hi,
+> >=20
+> > On Mon, Aug 28, 2017 at 02:19:15PM -0700, Tony Lindgren wrote:
+> >> On omap4 we're missing the PowerVR SGX GPU node with it's related
+> >> "ti,hwmods" property that the SoC interconnect code needs.
+> >>
+> >> Note that this will only show up as a bug with "doesn't have
+> >> mpu register target base" boot errors when the legacy platform
+> >> data is removed.
+> >>
+> >> Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+> >> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> >> ---
+> >=20
+> > I think OMAP3 & OMAP5 should also be documented and getting a
+> > node in this series?
+>=20
+> Do we even want to add SGX to the .dts? We don't have proper drivers for
+> SGX. If we ever do, who knows what kind of DT data they need. I know the
+> DT data for SGX in TI's kernel tree has changed at least once.
 
->
-> Thanks,
-> Sekhar
+I don't think reg or interrupts will be removed, so the properties
+added by Tony look pretty safe?. I guess if we ever have a driver
+it would need some more properties and would bail out. Having no
+DT data is does not load at all, the result is the same. OTOH having
+the node means the kernel can properly send the module to idle.
+
+I think this patchset should Cc Rob and Mark.=20
+
+-- Sebastian
+
+--nly25ubm6cbfj44w
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlmlWb4ACgkQ2O7X88g7
++po/qQ/8Du4eBCEmoahu5RI42B6l9uJTmd00ED1C7UcFTeGs7uwGBe+k63DtVu2u
+811fA9Qr50By1Y18zcFhqpIXF/gnMCj0jwIJx9SPGiuawIarslcV/yLvPZfXmRXS
+GTw9MU06nlffcQ44y2T2OZis5Kp8jF4HvnRl8GIHI0wTyYBN4QHLSa7dJobYpaOZ
+UW8ohfMdYjkOBszTA/WfOtZObWqoMB0FrocwCrRYYfi8PrB+fAV7Q2MaUhjnDCv1
+xOkLPer6z+lDvcvys0C/eIGbkEXRXEb1VCz3Ud5uKhLijqcGcl5tkmsekh3SwrpS
+XE5zd6phzMEQmGNZjlPzb8R8kRb9I6oPqshBQg1faT7XjXD61+wqDYN7vaKf7qzJ
+5WiZL6l+r4EmhFs282JcMGWHBpeQU4b6/K945cArKdD1UY0+YeRu+HdZWIbENa2l
+T00xoie0vblRVtj5f9UiAEFl/e2eK7ncDVNu36+jWNp1fZuXGzGUnziCurKU1v2w
+ZN3Bv4Gw6fqUkSvLXAvKgt+GTsMokFCqXBm1nxGJugzL2Llvlu/Gw6X0A+wrcmgW
+A4I47HU2pNnRkc6BoclkxaPUoBm9w77p0JF1/d1q6u1YAo+7bSnTKQb6Ow5q7mpm
+8W9SW6JIaOEYmgIAfdJy+kw7eoNcdaPXj8yWQJ8fmPLHmcUdY80=
+=I1Dx
+-----END PGP SIGNATURE-----
+
+--nly25ubm6cbfj44w--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
