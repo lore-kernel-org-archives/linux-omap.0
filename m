@@ -1,121 +1,142 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v3 3/5] dt-bindings: sdhci-omap: Add bindings for the
- sdhci-omap controller
-Date: Tue, 29 Aug 2017 16:50:22 +0530
-Message-ID: <0c7e0705-d9c2-4499-54ba-cbd84589dc01@ti.com>
-References: <20170821142132.GH6008@atomide.com>
- <20170823054246.23927-1-kishon@ti.com>
- <CAPDyKFp7gchVQ+JPNqv4LktvHRm2Lzx6KakOw85zEZxDEX0OhA@mail.gmail.com>
- <c9342689-f09e-44af-0975-d43ef122a477@ti.com>
- <CAPDyKFqCZFM7UmHyQCm=DwwZXJvzUde3pW0HqARKrsgfgxSuaw@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
+ omap4
+Date: Tue, 29 Aug 2017 14:35:09 +0300
+Message-ID: <201708291135.v7TBZCHH020827@dflxv15.itg.ti.com>
+References: <20170828211918.11573-1-tony@atomide.com>
+ <20170828211918.11573-15-tony@atomide.com>
+ <20170829090034.ytepjfv2jkkd2b3z@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFqCZFM7UmHyQCm=DwwZXJvzUde3pW0HqARKrsgfgxSuaw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/mixed;
+        boundary="_ec08611b-5b20-425a-8d95-7f5ecfd35ddb_"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170829090034.ytepjfv2jkkd2b3z@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Uffe,
+--_ec08611b-5b20-425a-8d95-7f5ecfd35ddb_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 24 August 2017 04:59 PM, Ulf Hansson wrote:
-> On 23 August 2017 at 15:56, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->> Hi Uffe,
+=EF=BB=BFThis message contains a digitally signed email which can be read b=
+y opening the attachment.
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
+siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+
+
+--_ec08611b-5b20-425a-8d95-7f5ecfd35ddb_
+Content-Type: message/rfc822
+
+Received: from DLEE110.ent.ti.com (157.170.170.21) by DLEE107.ent.ti.com
+ (157.170.170.37) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384_P256) id 15.1.845.34; Tue, 29
+ Aug 2017 06:35:11 -0500
+Received: from dflp33.itg.ti.com (10.64.6.16) by DLEE110.ent.ti.com
+ (157.170.170.21) with Microsoft SMTP Server (version=TLS1_0,
+ cipher=TLS_RSA_WITH_AES_256_CBC_SHA) id 15.1.845.34 via Frontend Transport;
+ Tue, 29 Aug 2017 06:35:11 -0500
+Received: from [192.168.2.6] (ileax41-snat.itg.ti.com [10.172.224.153])
+	by dflp33.itg.ti.com (8.14.3/8.13.8) with ESMTP id v7TBZ9wb002802;
+	Tue, 29 Aug 2017 06:35:10 -0500
+Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
+ omap4
+To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Tony Lindgren
+	<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+CC: <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?Q?Beno=c3=aet_Cousson?=
+	<bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+References: <20170828211918.11573-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+ <20170828211918.11573-15-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+ <20170829090034.ytepjfv2jkkd2b3z@earth>
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Message-ID: <78162d2c-9916-d47f-5110-66838bed6c15-l0cyMroinI0@public.gmane.org>
+Date: Tue, 29 Aug 2017 14:35:09 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.1
+MIME-Version: 1.0
+In-Reply-To: <20170829090034.ytepjfv2jkkd2b3z@earth>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="_7a665538-c497-4720-8855-dea368b6f911_"
+Return-Path: tomi.valkeinen-l0cyMroinI0@public.gmane.org
+
+--_7a665538-c497-4720-8855-dea368b6f911_
+Content-Type: multipart/mixed; boundary="765VM5d6Q9vIFGpiNcT79mitwktvSgsA3";
+	protected-headers=v1
+From: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+To: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>,
+ Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+CC: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?Q?Beno=c3=aet_Cousson?=
+ <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <78162d2c-9916-d47f-5110-66838bed6c15-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
+ omap4
+References: <20170828211918.11573-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+ <20170828211918.11573-15-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+ <20170829090034.ytepjfv2jkkd2b3z@earth>
+In-Reply-To: <20170829090034.ytepjfv2jkkd2b3z@earth>
+
+--765VM5d6Q9vIFGpiNcT79mitwktvSgsA3
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+
+On 29/08/17 12:00, Sebastian Reichel wrote:
+> Hi,
+>=20
+> On Mon, Aug 28, 2017 at 02:19:15PM -0700, Tony Lindgren wrote:
+>> On omap4 we're missing the PowerVR SGX GPU node with it's related
+>> "ti,hwmods" property that the SoC interconnect code needs.
 >>
->> On Wednesday 23 August 2017 06:37 PM, Ulf Hansson wrote:
->>> On 23 August 2017 at 07:42, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>>> Add binding for the TI's sdhci-omap controller. This now includes only
->>>> a subset of properties documented in ti-omap-hsmmc.txt but will eventually
->>>> include all the properties.
->>>>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>> ---
->>>> Changes from v2:
->>>> *) Fixed example to use the updated compatible
->>>>
->>>> Changes from v1:
->>>> *) Create a new sdhci-omap.txt document for TI's sdhci-omap controller instead
->>>>    of using the ti-omap-hsmmc.txt as suggested by Tony
->>>>  .../devicetree/bindings/mmc/sdhci-omap.txt         | 22 ++++++++++++++++++++++
->>>>  1 file changed, 22 insertions(+)
->>>>  create mode 100644 Documentation/devicetree/bindings/mmc/sdhci-omap.txt
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
->>>> new file mode 100644
->>>> index 000000000000..139695ad2d58
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
->>>> @@ -0,0 +1,22 @@
->>>> +* TI OMAP SDHCI Controller
->>>> +
->>>> +Refer to mmc.txt for standard MMC bindings.
->>>> +
->>>> +Required properties:
->>>> +- compatible: Should be "ti,dra7-sdhci" for DRA7 and DRA72 controllers
->>>> +- ti,hwmods: Must be "mmc<n>", <n> is controller instance starting 1
->>>> +
->>>> +Optional properties:
->>>> +- ti,dual-volt: boolean, supports dual voltage cards
->>>> +- ti,non-removable: non-removable slot (like eMMC)
->>>> +
->>>> +Example:
->>>> +       mmc1: mmc@0x4809c000 {
->>>> +               compatible = "ti,dra7-sdhci";
->>>> +               reg = <0x4809c000 0x400>;
->>>> +               ti,hwmods = "mmc1";
->>>> +               ti,dual-volt;
->>>> +               bus-width = <4>;
->>>> +               vmmc-supply = <&vmmc>; /* phandle to regulator node */
->>>> +               ti,non-removable;
->>>> +       };
->>>> --
->>>> 2.11.0
->>>>
->>>
->>> I am wondering a bit on the long term plan here.
->>>
->>> Ideally at some point in future, we would like to remove the old
->>> omap_hsmmc driver, but from compatible string point of view, that
->>> means we first needs to deprecate the old ones for a while. Right?
+>> Note that this will only show up as a bug with "doesn't have
+>> mpu register target base" boot errors when the legacy platform
+>> data is removed.
 >>
->> right but sdhci-omap is still lacking features that was present in omap_hsmmc
->> like context save/restore, SDIO support etc. I think we should deprecate
->> omap_hsmmc compatible once we add all the features in sdhci-omap?
->>>
->>> That said, what is then the reason to why we should bring over the
->>> existing omap_hsmmc bindings to the sdhci-omap bindings?
->>
->> This is mainly for old dt compatibility. Even after removing the omap_hsmmc
->> driver, users should still be able to use newer kernel with their existing dtbs.
-> 
-> I guess we have two options.
-> 
-> 1) Allow us to invent and use new bindings - and a new compatible.
-> When everything is implemented in sdhci-omap, we can deprecate the old
-> omap_hsmmc driver and its corresponding compatible/bindings. At some
-> point later we can remove the legacy driver/bindings altogether - of
-> course that might take a while. This option allows us to re-think some
-> of the old bindings and really clean up some if its related code. For
-> example, I think "ti,dual-volt" is a bad binding. Instead it would be
-> better to use the existing mmc bindings about which speed mode the
-> controller/board supports (as the voltage level comes with it).
-> 
-> 2) Invent only a new compatible, but stick to use the old omap hsmmc
-> bindings and thus also deploy the similar code dealing with them. When
-> everything is implemented move the old omap_hsmmc compatibles into the
-> new sdhci-omap driver and them remove the old omap_hsmmc driver. At
-> that point we could also deprecate the old omap hsmmc compatibles, but
-> to me that is rather pointless.
-> 
-> The two options has different advantages, feel free to pick any of them!
+>> Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> ---
+>=20
+> I think OMAP3 & OMAP5 should also be documented and getting a
+> node in this series?
 
-Okay. I'll send a new version with option '1' (new compatible/new bindings).
+Do we even want to add SGX to the .dts? We don't have proper drivers for
+SGX. If we ever do, who knows what kind of DT data they need. I know the
+DT data for SGX in TI's kernel tree has changed at least once.
 
-And when we deprecate the omap_hsmmc driver (some time later), we'll add
-support for the legacy bindings in sdhci-omap driver (so that old dtbs continue
-to work). Tony, are you okay with this?
+ Tomi
 
-Thanks
-Kishon
+
+--765VM5d6Q9vIFGpiNcT79mitwktvSgsA3--
+
+--_7a665538-c497-4720-8855-dea368b6f911_
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJZpVFtAAoJEPo9qoy8lh71omEP/j9anpyLiqdYRPu4z2C9ndeQ
+ygLZslb8JmonJQHNH93IIwr8GVf1QEZX5vgryx4c1K/K0ueDHOl+9c6bYAKgN7OD
+aWT0j1LKB2Ovbia9uUBx5tVePBpIB0CwPcPnZdDVWsN7h2U1NNXiMpKeYXEL/A1O
+8wY20cwKldKW/m1MWQzF0ASdQq80SSEcMdLnHZbLzkFUrAjeZzVekrNWGofMLzzP
+nxhq3feTmAnI4DImq4miFxFRRhhxcgON2fe0HbnYG9IVhyhuQrQLems+KdxQ5kSO
+4kF7izY4XC6ip6BJbf1KCx4H5N8SXexemsnpOVSRekm5NfRHoDpgpzml9Pm+/K9a
+x6qOhGuGPjPmR7KhMgsmJS/SnoEv79FPCe7OIogfE7wJmunuqYR0CGSgbByBEOSE
+AiLlti81BqHhpb8NFx2YNEKUosNV+SFFytZxa/oFm4Ax4cZh92vN7cmRXoFtmRWS
+QoAjgsbCy/jBjeRteP3e33LOPkjRaPjfG+g62qUaob1IcN1epl/MajAmzeh9x3KN
+Y+/Kc1HY4d+/VLtgrrEOlAoRhAoik6A8ujQtzNdHOL33XYwpJpJllj9kF81sPpwy
+WmR5w0tuWgCdEZG9AEPVnKyB71nEvq16D59zQJLBCE25Py2t+isrGJuRkwqKvXMd
+ssTGeCemq6BcRLHZnihM
+=9roz
+-----END PGP SIGNATURE-----
+
+--_7a665538-c497-4720-8855-dea368b6f911_--
+
+--_ec08611b-5b20-425a-8d95-7f5ecfd35ddb_--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
