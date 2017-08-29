@@ -1,53 +1,34 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
  omap4
-Date: Tue, 29 Aug 2017 08:35:22 -0700
-Message-ID: <20170829153522.GA6008@atomide.com>
+Date: Tue, 29 Aug 2017 08:57:38 -0700
+Message-ID: <20170829155738.GB6008@atomide.com>
 References: <20170828211918.11573-1-tony@atomide.com>
  <20170828211918.11573-15-tony@atomide.com>
  <20170829090034.ytepjfv2jkkd2b3z@earth>
- <20170829144205.GX6008@atomide.com>
- <CAHCN7xK7Vy8Hw1OV3AQb4vAo3n=6qfE_8xunL1MXQaTLY0Yy4w@mail.gmail.com>
+ <201708291135.v7TBZCHH020827@dflxv15.itg.ti.com>
+ <20170829121041.dweciryplio5i4jr@earth>
+ <e0c6447f-5a0f-b43a-7087-5ee37af2a1c1@ti.com>
+ <20170829143453.GV6008@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAHCN7xK7Vy8Hw1OV3AQb4vAo3n=6qfE_8xunL1MXQaTLY0Yy4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170829143453.GV6008-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adam Ford <aford173-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Adam Ford <aford173-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170829 08:31]:
-> On Tue, Aug 29, 2017 at 9:42 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > * Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org> [170829 02:01]:
-> >> Hi,
-> >>
-> >> On Mon, Aug 28, 2017 at 02:19:15PM -0700, Tony Lindgren wrote:
-> >> > On omap4 we're missing the PowerVR SGX GPU node with it's related
-> >> > "ti,hwmods" property that the SoC interconnect code needs.
-> >> >
-> >> > Note that this will only show up as a bug with "doesn't have
-> >> > mpu register target base" boot errors when the legacy platform
-> >> > data is removed.
-> >>
-> >> I think OMAP3 & OMAP5 should also be documented and getting a
-> >> node in this series?
-> >
-> > Looks like we don't currently have any interconnect data defined
-> > for those, but yeah sure I can add those.
-> >
-> 
-> If there is anything I can test, I had modified the SGX driver for the
-> OMAP36, but abandoned my attempts since much of the device tree and
-> reset stuff was missing.  I'd love to see SGX work again.  :-)
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [170829 07:35]:
+> * Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [170829 05:25]:
+> > Maybe. At the moment we have this in TI's tree for DRA7:
+> > 
+> > gpu: gpu@56000000 {
+> > 	compatible = "ti,dra7-sgx544", "img,sgx544";
 
-Well the resets can be handled using platform data callbacks
-for now with pdata-quirks.c. Then when the reset driver is available,
-we can just remove the platform data.
-
-And maybe push your changes to some tree so others can participate?
-I'm sure the n900 users would like to see it working too.
+I'll leave out "img,sgx544" as that's the generic component
+that's really a child of this interconnect target module.
 
 Regards,
 
