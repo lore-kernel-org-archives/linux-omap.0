@@ -1,95 +1,121 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: Fwd: DA850-evm MAC Address is random
-Date: Tue, 29 Aug 2017 05:23:30 -0500
-Message-ID: <CAHCN7x+-wymsqw96mt7Du=Huxh5rq=Rj9GidWPLXptJSW7taEA@mail.gmail.com>
-References: <CAHCN7xKwFd7dHF0ySEd1hOSr0sZEgh9fuwy=RkUTHvEh59hojQ@mail.gmail.com>
- <b7aab9fc-17ba-077b-3ff3-28087e0b25bc@ti.com> <CAHCN7xLHEjda9DcVw5iHA9RaJ7UnyMVxf7e4e8NTEj9Op1JaBw@mail.gmail.com>
- <20170828211217.GO6008@atomide.com> <94c4cbb0-1df3-2f2f-69f3-f9a788e610fa@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v3 3/5] dt-bindings: sdhci-omap: Add bindings for the
+ sdhci-omap controller
+Date: Tue, 29 Aug 2017 16:50:22 +0530
+Message-ID: <0c7e0705-d9c2-4499-54ba-cbd84589dc01@ti.com>
+References: <20170821142132.GH6008@atomide.com>
+ <20170823054246.23927-1-kishon@ti.com>
+ <CAPDyKFp7gchVQ+JPNqv4LktvHRm2Lzx6KakOw85zEZxDEX0OhA@mail.gmail.com>
+ <c9342689-f09e-44af-0975-d43ef122a477@ti.com>
+ <CAPDyKFqCZFM7UmHyQCm=DwwZXJvzUde3pW0HqARKrsgfgxSuaw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <94c4cbb0-1df3-2f2f-69f3-f9a788e610fa@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFqCZFM7UmHyQCm=DwwZXJvzUde3pW0HqARKrsgfgxSuaw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 29, 2017 at 3:23 AM, Sekhar Nori <nsekhar@ti.com> wrote:
-> On Tuesday 29 August 2017 02:42 AM, Tony Lindgren wrote:
->> * Adam Ford <aford173@gmail.com> [170828 13:33]:
->>> On Mon, Aug 28, 2017 at 1:54 PM, Grygorii Strashko
->>> <grygorii.strashko@ti.com> wrote:
->>>> Cc: Sekhar
->>>>
->>>> On 08/28/2017 10:32 AM, Adam Ford wrote:
->>>>>
->>>>> The davinvi_emac MAC address seems to attempt a call to
->>>>> ti_cm_get_macid in cpsw-common.c but it returns the message
->>>>> 'davinci_emac davinci_emac.1: incompatible machine/device type for
->>>>> reading mac address ' and then generates a random MAC address.
->>>>>
->>>>> The function appears to lookup varions boards using
->>>>> 'of_machine_is_compaible' and supports dm8148, am33xx, am3517, dm816,
->>>>> am4372 and dra7.  I don't see the ti,davinci-dm6467-emac which is
->>>>> what's shown in the da850 device tree.
->>>>>
->>>>> Is there a patch somewhere for supporting the da850-evm?
->>>>
->>>>
->>>> Not sure if MAC address can be read from Control module.
->>>> May be Sekhar can say more?
->>>
->>> My understanding is that the MAC address is programmed by Logic PD
->>> into the SPI flash.  The Bootloader reads this from either SPI or its
->>> env variables.  Looking at the partition info listed in the
->>> da850-evm.dts file, it appears as if they've reserved space for it.
->>> Unfortunately, I don't see any code that reads it out.  I was hoping
->
-> This code is present in U-Boot sources at
-> board/davinci/da8xxevm/da850evm.c. See the function get_mac_addr() and
-> its usage in misc_init_r().
->
->>> there might be a way to just pass cmdline parameter from the
->>> bootloader to the kernel to accept the MAC address.
->>>
->>>>
->>>>>
->>>>> If not, is there a way to pass the MAC address from U-Boot to the
->>>>> driver so it doesn't generate a random MAC?
->>>>
->>>>
->>>> "local-mac-address" dt porp
->>>
->>> The downside here, is that we'd have to have the Bootloader modify the
->>> device tree.
+Hi Uffe,
+
+On Thursday 24 August 2017 04:59 PM, Ulf Hansson wrote:
+> On 23 August 2017 at 15:56, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>> Hi Uffe,
 >>
->> That piece of code exists somewhere in u-boot already. Note how
->
-> Yes, it is fdt_fixup_ethernet() and its usage is in common/image-fdt.c.
->
->> we are populating the mac address for USB Ethernet drivers in
->> u-boot and then the Ethernet driver code parses it. See commit
->> 055d31de7158 ("ARM: omap3: beagleboard-xm: dt: Add ethernet to
->> the device tree") for some more information.
+>> On Wednesday 23 August 2017 06:37 PM, Ulf Hansson wrote:
+>>> On 23 August 2017 at 07:42, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>>> Add binding for the TI's sdhci-omap controller. This now includes only
+>>>> a subset of properties documented in ti-omap-hsmmc.txt but will eventually
+>>>> include all the properties.
+>>>>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> ---
+>>>> Changes from v2:
+>>>> *) Fixed example to use the updated compatible
+>>>>
+>>>> Changes from v1:
+>>>> *) Create a new sdhci-omap.txt document for TI's sdhci-omap controller instead
+>>>>    of using the ti-omap-hsmmc.txt as suggested by Tony
+>>>>  .../devicetree/bindings/mmc/sdhci-omap.txt         | 22 ++++++++++++++++++++++
+>>>>  1 file changed, 22 insertions(+)
+>>>>  create mode 100644 Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+>>>> new file mode 100644
+>>>> index 000000000000..139695ad2d58
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+>>>> @@ -0,0 +1,22 @@
+>>>> +* TI OMAP SDHCI Controller
+>>>> +
+>>>> +Refer to mmc.txt for standard MMC bindings.
+>>>> +
+>>>> +Required properties:
+>>>> +- compatible: Should be "ti,dra7-sdhci" for DRA7 and DRA72 controllers
+>>>> +- ti,hwmods: Must be "mmc<n>", <n> is controller instance starting 1
+>>>> +
+>>>> +Optional properties:
+>>>> +- ti,dual-volt: boolean, supports dual voltage cards
+>>>> +- ti,non-removable: non-removable slot (like eMMC)
+>>>> +
+>>>> +Example:
+>>>> +       mmc1: mmc@0x4809c000 {
+>>>> +               compatible = "ti,dra7-sdhci";
+>>>> +               reg = <0x4809c000 0x400>;
+>>>> +               ti,hwmods = "mmc1";
+>>>> +               ti,dual-volt;
+>>>> +               bus-width = <4>;
+>>>> +               vmmc-supply = <&vmmc>; /* phandle to regulator node */
+>>>> +               ti,non-removable;
+>>>> +       };
+>>>> --
+>>>> 2.11.0
+>>>>
+>>>
+>>> I am wondering a bit on the long term plan here.
+>>>
+>>> Ideally at some point in future, we would like to remove the old
+>>> omap_hsmmc driver, but from compatible string point of view, that
+>>> means we first needs to deprecate the old ones for a while. Right?
 >>
->> I think u-boot needs the ethernet alias for finding the interface.
->
-> That's exactly what was missing. I have sent a patch for fixing that and
-> copied you there.
+>> right but sdhci-omap is still lacking features that was present in omap_hsmmc
+>> like context save/restore, SDIO support etc. I think we should deprecate
+>> omap_hsmmc compatible once we add all the features in sdhci-omap?
+>>>
+>>> That said, what is then the reason to why we should bring over the
+>>> existing omap_hsmmc bindings to the sdhci-omap bindings?
+>>
+>> This is mainly for old dt compatibility. Even after removing the omap_hsmmc
+>> driver, users should still be able to use newer kernel with their existing dtbs.
+> 
+> I guess we have two options.
+> 
+> 1) Allow us to invent and use new bindings - and a new compatible.
+> When everything is implemented in sdhci-omap, we can deprecate the old
+> omap_hsmmc driver and its corresponding compatible/bindings. At some
+> point later we can remove the legacy driver/bindings altogether - of
+> course that might take a while. This option allows us to re-think some
+> of the old bindings and really clean up some if its related code. For
+> example, I think "ti,dual-volt" is a bad binding. Instead it would be
+> better to use the existing mmc bindings about which speed mode the
+> controller/board supports (as the voltage level comes with it).
+> 
+> 2) Invent only a new compatible, but stick to use the old omap hsmmc
+> bindings and thus also deploy the similar code dealing with them. When
+> everything is implemented move the old omap_hsmmc compatibles into the
+> new sdhci-omap driver and them remove the old omap_hsmmc driver. At
+> that point we could also deprecate the old omap hsmmc compatibles, but
+> to me that is rather pointless.
+> 
+> The two options has different advantages, feel free to pick any of them!
 
-Thanks for doing that.
+Okay. I'll send a new version with option '1' (new compatible/new bindings).
 
->
-> Adam, if I can get your Tested-by, I will make an attempt to send it for
-> v4.13 itself.
+And when we deprecate the omap_hsmmc driver (some time later), we'll add
+support for the legacy bindings in sdhci-omap driver (so that old dtbs continue
+to work). Tony, are you okay with this?
 
-I will test it.  Do need to run some instruction or do something
-special in U-Boot to pass this in the proper place for the kernel to
-pull it?  Tony's patch reference showed
-command for fdt set, but I am not sure I fully understand the
-parameters that went along with that.
-
-adam
->
-> Thanks,
-> Sekhar
+Thanks
+Kishon
