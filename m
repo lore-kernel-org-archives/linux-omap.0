@@ -1,104 +1,68 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 13/17] ARM: dts: Add missing fdif node and binding for
+Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
  omap4
-Date: Tue, 29 Aug 2017 07:29:42 -0700
-Message-ID: <20170829142941.GU6008@atomide.com>
+Date: Tue, 29 Aug 2017 07:34:53 -0700
+Message-ID: <20170829143453.GV6008@atomide.com>
 References: <20170828211918.11573-1-tony@atomide.com>
- <20170828211918.11573-14-tony@atomide.com>
- <5996934.WE9heBV2Dy@avalon>
+ <20170828211918.11573-15-tony@atomide.com>
+ <20170829090034.ytepjfv2jkkd2b3z@earth>
+ <201708291135.v7TBZCHH020827@dflxv15.itg.ti.com>
+ <20170829121041.dweciryplio5i4jr@earth>
+ <e0c6447f-5a0f-b43a-7087-5ee37af2a1c1@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5996934.WE9heBV2Dy@avalon>
+In-Reply-To: <e0c6447f-5a0f-b43a-7087-5ee37af2a1c1-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [170829 05:48]:
-> On Tuesday, 29 August 2017 00:19:14 EEST Tony Lindgren wrote:
-> > On omap4 we're missing the fdif node with it's related "ti,hwmods"
-> > property that the SoC interconnect code needs.
+* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [170829 05:25]:
+> ﻿
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> 
+> On 29/08/17 15:10, Sebastian Reichel wrote:
+> 
+> >> Do we even want to add SGX to the .dts? We don't have proper drivers for
+> >> SGX. If we ever do, who knows what kind of DT data they need. I know the
+> >> DT data for SGX in TI's kernel tree has changed at least once.
 > > 
-> > Note that this will only show up as a bug with "doesn't have
-> > mpu register target base" boot errors when the legacy platform
-> > data is removed.
-...
-
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/ti-fdif.txt
-> > @@ -0,0 +1,37 @@
-> > +Texas Instruments Face Detect (FDIF) binding
-> > +
-> > +FDD can be used for face detection on Texas Instruments SoCs.
+> > I don't think reg or interrupts will be removed, so the properties
+> > added by Tony look pretty safe?. I guess if we ever have a driver
 > 
-> Did you mean s/FDD/FDIF/ ?
-
-Oops thanks for spotting that.
-
-> > +Note that the fdif binding is currently only used by the SoC interconnect
-> > +code to idle the module on init and no open source driver is available
-> > +for fdif. Please update this documentation if that changes.
+> Maybe. At the moment we have this in TI's tree for DRA7:
 > 
-> Device tree bindings should be driver-agnostic. I don't think this paragraph 
-> is needed.
-
-OK will drop.
-
-> > +Required properties:
-> > +
-> > +compatible: Shall be one of the following:
-> > +	    "ti,omap4-fdif"
-> > +
-> > +reg: Shall contain the device instance IO range
-> > +
-> > +interrupts: Shall contain the device instance interrupt
-> > +
-> > +
-> > +Optional properties:
-> > +
-> > +reg-names: Shall contain the IO range names if multiple IO
-> > +	   ranges are used by the SoC
+> gpu: gpu@56000000 {
+> 	compatible = "ti,dra7-sgx544", "img,sgx544";
+> 	reg = <0x56000000 0x10000>;
+> 	reg-names = "gpu_ocp_base";
+> 	interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
+> 	ti,hwmods = "gpu";
+> 	clocks = <&l3_iclk_div>, <&gpu_core_gclk_mux>,
+> 		<&gpu_hyd_gclk_mux>;
+> 	clock-names = "iclk", "fclk1", "fclk2";
+> };
 > 
-> Is this ever the case on OMAP4 ? If not you can drop this property.
-
-Oh right, that's only for audio related devices in the abe l4
-instance. Will drop.
-
-> > +ti,hwmods: Shall contain the TI interconnect module name if needed
-> > +	   by the SoC
+> > it would need some more properties and would bail out. Having no
+> > DT data is does not load at all, the result is the same. OTOH having
+> > the node means the kernel can properly send the module to idle.
 > 
-> Are there SoCs that don't need this ?
+> I just get uneasy when adding DT data that we're not really sure if it's
+> ok or not. I've been fighting with such data for ages. But, as you say,
+> this probably won't matter if the driver will just reject DT data that
+> doesn't have all the details.
 
-DaVinci or Keystone maybe? And I do have patches coming that will
-remove the need for "ti,hwmods" but that's still maybe 200 patches
-away or something..
+The above example looks OK to me, the interrupt is different for omap4.
 
-> > +Example:
-> > +
-> > +	fdif: fdif@4a10a000 {
-> > +		compatible = "ti,omap4-fdif";
-> > +		reg = <0x4a10a000 0x200>;
-> > +		interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
-> > +		ti,hwmods = "fdif";
-> > +	};
-> > +
-> > diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> > --- a/arch/arm/boot/dts/omap4.dtsi
-> > +++ b/arch/arm/boot/dts/omap4.dtsi
-> > @@ -864,6 +864,13 @@
-> >  			};
-> >  		};
-> > 
-> > +		fdif: fdif@4a10a000 {
-> > +			compatible = "ti,omap4-fdif";
-> > +			reg = <0x4a10a000 0x200>;
-> 
-> According to the OMAP4460 datasheet the register range is 0x390 bytes long.
+> If we need the DT node to idle SGX, and we don't even mean to actually
+> use an SGX driver with this data, it sounds fine to me.
 
-OK we have it wrong in the legacy platform data then. And the module
-size is 0x1000 in the hardware, so I'll use that.
+Well ideally the SGX driver will make use of it too. Let me know
+if you want to leave out some parts of the above example from
+TI tree.
 
 Regards,
 
