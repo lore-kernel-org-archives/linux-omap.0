@@ -1,72 +1,86 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 17/17] ARM: dts: Add missing hwmod related properties for
- dra7
-Date: Mon, 28 Aug 2017 15:27:46 -0700
-Message-ID: <20170828222746.GQ6008@atomide.com>
-References: <20170828211918.11573-1-tony@atomide.com>
- <20170828211918.11573-18-tony@atomide.com>
- <8c0ecbf6-26fb-1998-6bb5-0a74d9daa2ab@ti.com>
- <20170828213753.GP6008@atomide.com>
- <fd064c10-2051-1579-bde1-60c3fed2b4a0@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: Fwd: DA850-evm MAC Address is random
+Date: Tue, 29 Aug 2017 13:53:12 +0530
+Message-ID: <94c4cbb0-1df3-2f2f-69f3-f9a788e610fa@ti.com>
+References: <CAHCN7xKwFd7dHF0ySEd1hOSr0sZEgh9fuwy=RkUTHvEh59hojQ@mail.gmail.com>
+ <b7aab9fc-17ba-077b-3ff3-28087e0b25bc@ti.com>
+ <CAHCN7xLHEjda9DcVw5iHA9RaJ7UnyMVxf7e4e8NTEj9Op1JaBw@mail.gmail.com>
+ <20170828211217.GO6008@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <fd064c10-2051-1579-bde1-60c3fed2b4a0-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170828211217.GO6008@atomide.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Adam Ford <aford173@gmail.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [170828 14:53]:
-> On 08/28/2017 04:37 PM, Tony Lindgren wrote:
-> > * Nishanth Menon <nm-l0cyMroinI0@public.gmane.org> [170828 14:35]:
-> > > On 08/28/2017 04:19 PM, Tony Lindgren wrote:
-> > > > On dra7 we're missing the smartreflex and hdq nodes with their
-> > > > related "ti,hwmods" property that the SoC interconnect code needs.
-> > > > 
-> > > > Note that this will only show up as a bug with "doesn't have
-> > > > mpu register target base" boot errors when the legacy platform
-> > > > data is removed.
-> > > > 
-> > > > Note that the related driver also needs to be updated to probe
-> > > > using device tree and get the platform data passed to it using
-> > > > auxdata with arch/arm/mach-omap2/pdata-quirks.c.
-> > > > 
-> > > > Let's also update the related binding documentation while at it.
-> > ...
-> > > > @@ -1489,6 +1497,18 @@
-> > > >    			};
-> > > >    		};
-> > > > +		smartreflex_core: smartreflex4a0dd000 {
-> > > > +			compatible = "ti,dra7-smartreflex-core";
-> > > > +			ti,hwmods = "smartreflex_core";
-> > > > +			reg = <0x4a0dd000 0x80>;
-> > > > +		};
-> > > > +
-> > > > +		smartreflex_mpu: smartreflex@4a0d9000 {
-> > > > +			compatible = "ti,dra7-smartreflex-mpu";
-> > > > +			ti,hwmods = "smartreflex_mpu";
-> > > > +			reg = <0x4a0d9000 0x80>;
-> > > > +		};
-> > > 
-> > > 
-> > > Have you checked TRM for these?
-> > > http://www.ti.com/lit/ug/sprui30d/sprui30d.pdf
-> > > 
-> > > These are disabled on the SoC and marked as reserved.
-> > 
-> > Then why do we still have legacy hwmod data for them?
+On Tuesday 29 August 2017 02:42 AM, Tony Lindgren wrote:
+> * Adam Ford <aford173@gmail.com> [170828 13:33]:
+>> On Mon, Aug 28, 2017 at 1:54 PM, Grygorii Strashko
+>> <grygorii.strashko@ti.com> wrote:
+>>> Cc: Sekhar
+>>>
+>>> On 08/28/2017 10:32 AM, Adam Ford wrote:
+>>>>
+>>>> The davinvi_emac MAC address seems to attempt a call to
+>>>> ti_cm_get_macid in cpsw-common.c but it returns the message
+>>>> 'davinci_emac davinci_emac.1: incompatible machine/device type for
+>>>> reading mac address ' and then generates a random MAC address.
+>>>>
+>>>> The function appears to lookup varions boards using
+>>>> 'of_machine_is_compaible' and supports dm8148, am33xx, am3517, dm816,
+>>>> am4372 and dra7.  I don't see the ti,davinci-dm6467-emac which is
+>>>> what's shown in the da850 device tree.
+>>>>
+>>>> Is there a patch somewhere for supporting the da850-evm?
+>>>
+>>>
+>>> Not sure if MAC address can be read from Control module.
+>>> May be Sekhar can say more?
+>>
+>> My understanding is that the MAC address is programmed by Logic PD
+>> into the SPI flash.  The Bootloader reads this from either SPI or its
+>> env variables.  Looking at the partition info listed in the
+>> da850-evm.dts file, it appears as if they've reserved space for it.
+>> Unfortunately, I don't see any code that reads it out.  I was hoping
+
+This code is present in U-Boot sources at
+board/davinci/da8xxevm/da850evm.c. See the function get_mac_addr() and
+its usage in misc_init_r().
+
+>> there might be a way to just pass cmdline parameter from the
+>> bootloader to the kernel to accept the MAC address.
+>>
+>>>
+>>>>
+>>>> If not, is there a way to pass the MAC address from U-Boot to the
+>>>> driver so it doesn't generate a random MAC?
+>>>
+>>>
+>>> "local-mac-address" dt porp
+>>
+>> The downside here, is that we'd have to have the Bootloader modify the
+>> device tree.
 > 
-> We should probably drop them - probably legacy of autogeneration at some
-> point in history.
+> That piece of code exists somewhere in u-boot already. Note how
 
-OK thanks, will drop them and update this patch accordingly.
+Yes, it is fdt_fixup_ethernet() and its usage is in common/image-fdt.c.
 
-Regards,
+> we are populating the mac address for USB Ethernet drivers in
+> u-boot and then the Ethernet driver code parses it. See commit
+> 055d31de7158 ("ARM: omap3: beagleboard-xm: dt: Add ethernet to
+> the device tree") for some more information.
+> 
+> I think u-boot needs the ethernet alias for finding the interface.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That's exactly what was missing. I have sent a patch for fixing that and
+copied you there.
+
+Adam, if I can get your Tested-by, I will make an attempt to send it for
+v4.13 itself.
+
+Thanks,
+Sekhar
