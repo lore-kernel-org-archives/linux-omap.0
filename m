@@ -1,11 +1,13 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/6] Drop omap hwmod legacy resources
-Date: Tue, 29 Aug 2017 10:29:55 -0700
-Message-ID: <20170829173001.20358-1-tony@atomide.com>
+Subject: [PATCH 3/6] ARM: OMAP4: Remove legacy IRQ for PRM
+Date: Tue, 29 Aug 2017 10:29:58 -0700
+Message-ID: <20170829173001.20358-4-tony@atomide.com>
+References: <20170829173001.20358-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170829173001.20358-1-tony@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,59 +21,120 @@ To: linux-omap@vger.kernel.org
 Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Lokesh Vutla <lokeshvutla@ti.com>, Tero Kristo <t-kristo@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+We have the PRM IRQ mapped in device tree and this legacy code
+is no longer needed.
 
-Here are changes to drop hwmod legacy resources for dma, irq and io.
+Cc: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/prcm-common.h |  1 -
+ arch/arm/mach-omap2/prm.h         |  2 --
+ arch/arm/mach-omap2/prm44xx.c     | 21 +++------------------
+ arch/arm/mach-omap2/prm_common.c  | 12 +++---------
+ 4 files changed, 6 insertions(+), 30 deletions(-)
 
-Note that these are against current next and needs the following
-two sets of fixes in preparation:
-
-[PATCH 00/17] Fix missing device tree hwmods and IO ranges omap variants
-[PATCH 0/5] Fixes for omap hwmod for dropping legacy data
-
-These are naturally too late for v4.14 merge window but might be
-doable for v4.15.
-
-Regards,
-
-Tony
-
-
-Tony Lindgren (6):
-  ARM: OMAP2+: Populate legacy resources for dma and smartreflex
-  ARM: OMAP3: Remove legacy IRQ for PRM
-  ARM: OMAP4: Remove legacy IRQ for PRM
-  ARM: OMAP2+: Drop omap_hwmod_irq_info
-  ARM: OMAP2+: Drop omap_hwmod_dma_info
-  ARM: OMAP2+: Drop legacy struct omap_hwmod_addr_space
-
- arch/arm/mach-omap2/Makefile                       |   1 -
- arch/arm/mach-omap2/common.h                       |   1 -
- arch/arm/mach-omap2/omap4-common.c                 |  24 -
- arch/arm/mach-omap2/omap_device.c                  | 269 ++++------
- arch/arm/mach-omap2/omap_device.h                  |   4 -
- arch/arm/mach-omap2/omap_hwmod.c                   | 444 +----------------
- arch/arm/mach-omap2/omap_hwmod.h                   |  62 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   2 -
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   2 -
- .../omap_hwmod_2xxx_3xxx_interconnect_data.c       |  27 -
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |  15 -
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   6 -
- .../omap_hwmod_33xx_43xx_interconnect_data.c       | 100 ----
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  39 --
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  43 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 548 ---------------------
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  20 -
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  38 --
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  44 --
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |  41 --
- arch/arm/mach-omap2/prcm-common.h                  |   1 -
- arch/arm/mach-omap2/prm.h                          |   2 -
- arch/arm/mach-omap2/prm3xxx.c                      |  14 +-
- arch/arm/mach-omap2/prm44xx.c                      |  21 +-
- arch/arm/mach-omap2/prm_common.c                   |  12 +-
- 25 files changed, 107 insertions(+), 1673 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c
-
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -506,7 +506,6 @@ struct omap_prcm_irq_setup {
+ 	u8 nr_irqs;
+ 	const struct omap_prcm_irq *irqs;
+ 	int irq;
+-	unsigned int (*xlate_irq)(unsigned int);
+ 	void (*read_pending_irqs)(unsigned long *events);
+ 	void (*ocp_barrier)(void);
+ 	void (*save_and_clear_irqen)(u32 *saved_mask);
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -29,11 +29,9 @@ int omap2_prcm_base_init(void);
+  *
+  * PRM_HAS_IO_WAKEUP: has IO wakeup capability
+  * PRM_HAS_VOLTAGE: has voltage domains
+- * PRM_IRQ_DEFAULT: use default irq number for PRM irq
+  */
+ #define PRM_HAS_IO_WAKEUP	BIT(0)
+ #define PRM_HAS_VOLTAGE		BIT(1)
+-#define PRM_IRQ_DEFAULT		BIT(2)
+ 
+ /*
+  * MAX_MODULE_SOFTRESET_WAIT: Maximum microseconds to wait for OMAP
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -50,8 +50,6 @@ static struct omap_prcm_irq_setup omap4_prcm_irq_setup = {
+ 	.nr_regs		= 2,
+ 	.irqs			= omap4_prcm_irqs,
+ 	.nr_irqs		= ARRAY_SIZE(omap4_prcm_irqs),
+-	.irq			= 11 + OMAP44XX_IRQ_GIC_START,
+-	.xlate_irq		= omap4_xlate_irq,
+ 	.read_pending_irqs	= &omap44xx_prm_read_pending_irqs,
+ 	.ocp_barrier		= &omap44xx_prm_ocp_barrier,
+ 	.save_and_clear_irqen	= &omap44xx_prm_save_and_clear_irqen,
+@@ -743,23 +741,10 @@ static int omap44xx_prm_late_init(void)
+ 		return 0;
+ 
+ 	irq_num = of_irq_get(prm_init_data->np, 0);
+-	/*
+-	 * Already have OMAP4 IRQ num. For all other platforms, we need
+-	 * IRQ numbers from DT
+-	 */
+-	if (irq_num <= 0 && !(prm_init_data->flags & PRM_IRQ_DEFAULT)) {
+-		if (irq_num == -EPROBE_DEFER)
+-			return irq_num;
+-
+-		/* Have nothing to do */
+-		return 0;
+-	}
++	if (irq_num == -EPROBE_DEFER)
++		return irq_num;
+ 
+-	/* Once OMAP4 DT is filled as well */
+-	if (irq_num > 0) {
+-		omap4_prcm_irq_setup.irq = irq_num;
+-		omap4_prcm_irq_setup.xlate_irq = NULL;
+-	}
++	omap4_prcm_irq_setup.irq = irq_num;
+ 
+ 	omap44xx_prm_enable_io_wakeup();
+ 
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -218,10 +218,7 @@ void omap_prcm_irq_cleanup(void)
+ 	kfree(prcm_irq_setup->priority_mask);
+ 	prcm_irq_setup->priority_mask = NULL;
+ 
+-	if (prcm_irq_setup->xlate_irq)
+-		irq = prcm_irq_setup->xlate_irq(prcm_irq_setup->irq);
+-	else
+-		irq = prcm_irq_setup->irq;
++	irq = prcm_irq_setup->irq;
+ 	irq_set_chained_handler(irq, NULL);
+ 
+ 	if (prcm_irq_setup->base_irq > 0)
+@@ -307,10 +304,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
+ 				1 << (offset & 0x1f);
+ 	}
+ 
+-	if (irq_setup->xlate_irq)
+-		irq = irq_setup->xlate_irq(irq_setup->irq);
+-	else
+-		irq = irq_setup->irq;
++	irq = irq_setup->irq;
+ 	irq_set_chained_handler(irq, omap_prcm_irq_handler);
+ 
+ 	irq_setup->base_irq = irq_alloc_descs(-1, 0, irq_setup->nr_regs * 32,
+@@ -671,7 +665,7 @@ static struct omap_prcm_init_data omap4_prm_data __initdata = {
+ 	.index = TI_CLKM_PRM,
+ 	.init = omap44xx_prm_init,
+ 	.device_inst_offset = OMAP4430_PRM_DEVICE_INST,
+-	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE | PRM_IRQ_DEFAULT,
++	.flags = PRM_HAS_IO_WAKEUP | PRM_HAS_VOLTAGE,
+ };
+ #endif
+ 
 -- 
 2.14.1
