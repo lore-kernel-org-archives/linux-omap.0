@@ -1,116 +1,77 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [PATCH 13/17] ARM: dts: Add missing fdif node and binding for omap4
-Date: Tue, 29 Aug 2017 20:13:40 +0300
-Message-ID: <5659095.JaecBxseot@avalon>
-References: <20170828211918.11573-1-tony@atomide.com> <5996934.WE9heBV2Dy@avalon> <20170829142941.GU6008@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/6] Drop omap hwmod legacy resources
+Date: Tue, 29 Aug 2017 10:29:55 -0700
+Message-ID: <20170829173001.20358-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170829142941.GU6008-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Lokesh Vutla <lokeshvutla@ti.com>, Tero Kristo <t-kristo@ti.com>, Marc Zyngier <marc.zyngier@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi all,
 
-On Tuesday, 29 August 2017 17:29:42 EEST Tony Lindgren wrote:
-> * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [170829 05:48]:
-> > On Tuesday, 29 August 2017 00:19:14 EEST Tony Lindgren wrote:
-> >> On omap4 we're missing the fdif node with it's related "ti,hwmods"
-> >> property that the SoC interconnect code needs.
-> >> 
-> >> Note that this will only show up as a bug with "doesn't have
-> >> mpu register target base" boot errors when the legacy platform
-> >> data is removed.
-> 
-> ...
-> 
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/ti-fdif.txt
-> >> @@ -0,0 +1,37 @@
-> >> +Texas Instruments Face Detect (FDIF) binding
-> >> +
-> >> +FDD can be used for face detection on Texas Instruments SoCs.
-> > 
-> > Did you mean s/FDD/FDIF/ ?
-> 
-> Oops thanks for spotting that.
-> 
-> >> +Note that the fdif binding is currently only used by the SoC
-> >> interconnect
-> >> +code to idle the module on init and no open source driver is available
-> >> +for fdif. Please update this documentation if that changes.
-> > 
-> > Device tree bindings should be driver-agnostic. I don't think this
-> > paragraph is needed.
-> 
-> OK will drop.
-> 
-> >> +Required properties:
-> >> +
-> >> +compatible: Shall be one of the following:
-> >> +	    "ti,omap4-fdif"
-> >> +
-> >> +reg: Shall contain the device instance IO range
-> >> +
-> >> +interrupts: Shall contain the device instance interrupt
-> >> +
-> >> +
-> >> +Optional properties:
-> >> +
-> >> +reg-names: Shall contain the IO range names if multiple IO
-> >> +	   ranges are used by the SoC
-> > 
-> > Is this ever the case on OMAP4 ? If not you can drop this property.
-> 
-> Oh right, that's only for audio related devices in the abe l4
-> instance. Will drop.
-> 
-> >> +ti,hwmods: Shall contain the TI interconnect module name if needed
-> >> +	   by the SoC
-> > 
-> > Are there SoCs that don't need this ?
-> 
-> DaVinci or Keystone maybe? And I do have patches coming that will
-> remove the need for "ti,hwmods" but that's still maybe 200 patches
-> away or something..
+Here are changes to drop hwmod legacy resources for dma, irq and io.
 
-That would be amazing :-)
+Note that these are against current next and needs the following
+two sets of fixes in preparation:
 
-> >> +Example:
-> >> +
-> >> +	fdif: fdif@4a10a000 {
-> >> +		compatible = "ti,omap4-fdif";
-> >> +		reg = <0x4a10a000 0x200>;
-> >> +		interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
-> >> +		ti,hwmods = "fdif";
-> >> +	};
-> >> +
-> >> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> >> --- a/arch/arm/boot/dts/omap4.dtsi
-> >> +++ b/arch/arm/boot/dts/omap4.dtsi
-> >> @@ -864,6 +864,13 @@
-> >>  			};
-> >>  		};
-> >> 
-> >> +		fdif: fdif@4a10a000 {
-> >> +			compatible = "ti,omap4-fdif";
-> >> +			reg = <0x4a10a000 0x200>;
-> > 
-> > According to the OMAP4460 datasheet the register range is 0x390 bytes
-> > long.
-> 
-> OK we have it wrong in the legacy platform data then. And the module
-> size is 0x1000 in the hardware, so I'll use that.
+[PATCH 00/17] Fix missing device tree hwmods and IO ranges omap variants
+[PATCH 0/5] Fixes for omap hwmod for dropping legacy data
 
--- 
+These are naturally too late for v4.14 merge window but might be
+doable for v4.15.
+
 Regards,
 
-Laurent Pinchart
+Tony
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Tony Lindgren (6):
+  ARM: OMAP2+: Populate legacy resources for dma and smartreflex
+  ARM: OMAP3: Remove legacy IRQ for PRM
+  ARM: OMAP4: Remove legacy IRQ for PRM
+  ARM: OMAP2+: Drop omap_hwmod_irq_info
+  ARM: OMAP2+: Drop omap_hwmod_dma_info
+  ARM: OMAP2+: Drop legacy struct omap_hwmod_addr_space
+
+ arch/arm/mach-omap2/Makefile                       |   1 -
+ arch/arm/mach-omap2/common.h                       |   1 -
+ arch/arm/mach-omap2/omap4-common.c                 |  24 -
+ arch/arm/mach-omap2/omap_device.c                  | 269 ++++------
+ arch/arm/mach-omap2/omap_device.h                  |   4 -
+ arch/arm/mach-omap2/omap_hwmod.c                   | 444 +----------------
+ arch/arm/mach-omap2/omap_hwmod.h                   |  62 ---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   2 -
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   2 -
+ .../omap_hwmod_2xxx_3xxx_interconnect_data.c       |  27 -
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |  15 -
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   6 -
+ .../omap_hwmod_33xx_43xx_interconnect_data.c       | 100 ----
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  39 --
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  43 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 548 ---------------------
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  20 -
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  38 --
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  44 --
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |  41 --
+ arch/arm/mach-omap2/prcm-common.h                  |   1 -
+ arch/arm/mach-omap2/prm.h                          |   2 -
+ arch/arm/mach-omap2/prm3xxx.c                      |  14 +-
+ arch/arm/mach-omap2/prm44xx.c                      |  21 +-
+ arch/arm/mach-omap2/prm_common.c                   |  12 +-
+ 25 files changed, 107 insertions(+), 1673 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c
+
+-- 
+2.14.1
