@@ -1,26 +1,26 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
  omap4
-Date: Tue, 29 Aug 2017 07:34:53 -0700
-Message-ID: <20170829143453.GV6008@atomide.com>
+Date: Tue, 29 Aug 2017 07:37:23 -0700
+Message-ID: <20170829143723.GW6008@atomide.com>
 References: <20170828211918.11573-1-tony@atomide.com>
  <20170828211918.11573-15-tony@atomide.com>
  <20170829090034.ytepjfv2jkkd2b3z@earth>
  <201708291135.v7TBZCHH020827@dflxv15.itg.ti.com>
  <20170829121041.dweciryplio5i4jr@earth>
- <e0c6447f-5a0f-b43a-7087-5ee37af2a1c1@ti.com>
+ <5efc9078-5886-5826-834e-facd67ddfbe5@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <e0c6447f-5a0f-b43a-7087-5ee37af2a1c1-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <5efc9078-5886-5826-834e-facd67ddfbe5-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [170829 05:25]:
+* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [170829 05:28]:
 > ﻿
 > Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 > 
@@ -33,36 +33,17 @@ List-Id: linux-omap@vger.kernel.org
 > > I don't think reg or interrupts will be removed, so the properties
 > > added by Tony look pretty safe?. I guess if we ever have a driver
 > 
-> Maybe. At the moment we have this in TI's tree for DRA7:
-> 
-> gpu: gpu@56000000 {
-> 	compatible = "ti,dra7-sgx544", "img,sgx544";
-> 	reg = <0x56000000 0x10000>;
-> 	reg-names = "gpu_ocp_base";
-> 	interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
-> 	ti,hwmods = "gpu";
-> 	clocks = <&l3_iclk_div>, <&gpu_core_gclk_mux>,
-> 		<&gpu_hyd_gclk_mux>;
-> 	clock-names = "iclk", "fclk1", "fclk2";
-> };
-> 
-> > it would need some more properties and would bail out. Having no
-> > DT data is does not load at all, the result is the same. OTOH having
-> > the node means the kernel can properly send the module to idle.
-> 
-> I just get uneasy when adding DT data that we're not really sure if it's
-> ok or not. I've been fighting with such data for ages. But, as you say,
-> this probably won't matter if the driver will just reject DT data that
-> doesn't have all the details.
+> Oh, and one more thing about the regs. I believe SGX consists of
+> multiple register blocks. But as it's not documented in any public docs,
+> there's just that single block in the DT data. I'm not sure if single
+> block or multiple blocks would be the right approach, but then, I guess
+> we can always live with just a single block and if needed split the
+> blocks inside the driver.
 
-The above example looks OK to me, the interrupt is different for omap4.
-
-> If we need the DT node to idle SGX, and we don't even mean to actually
-> use an SGX driver with this data, it sounds fine to me.
-
-Well ideally the SGX driver will make use of it too. Let me know
-if you want to leave out some parts of the above example from
-TI tree.
+OK, those register blocks can easily be child nodes of the module
+if needed. This is for the parent interconnect target module
+revc/sysc/syss registers that we already have mapped in legacy
+platform data for the interconnect code.
 
 Regards,
 
