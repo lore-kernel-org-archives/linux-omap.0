@@ -1,72 +1,116 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v3 3/5] dt-bindings: sdhci-omap: Add bindings for the
- sdhci-omap controller
-Date: Tue, 29 Aug 2017 12:11:21 -0500
-Message-ID: <20170829171121.cxjwrzhbotdkddec@rob-hp-laptop>
-References: <20170821142132.GH6008@atomide.com>
- <20170823054246.23927-1-kishon@ti.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH 13/17] ARM: dts: Add missing fdif node and binding for omap4
+Date: Tue, 29 Aug 2017 20:13:40 +0300
+Message-ID: <5659095.JaecBxseot@avalon>
+References: <20170828211918.11573-1-tony@atomide.com> <5996934.WE9heBV2Dy@avalon> <20170829142941.GU6008@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170823054246.23927-1-kishon@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170829142941.GU6008-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 23, 2017 at 11:12:46AM +0530, Kishon Vijay Abraham I wrote:
-> Add binding for the TI's sdhci-omap controller. This now includes only
-> a subset of properties documented in ti-omap-hsmmc.txt but will eventually
-> include all the properties.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
-> Changes from v2:
-> *) Fixed example to use the updated compatible
-> 
-> Changes from v1:
-> *) Create a new sdhci-omap.txt document for TI's sdhci-omap controller instead
->    of using the ti-omap-hsmmc.txt as suggested by Tony
->  .../devicetree/bindings/mmc/sdhci-omap.txt         | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/mmc/sdhci-omap.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
-> new file mode 100644
-> index 000000000000..139695ad2d58
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
-> @@ -0,0 +1,22 @@
-> +* TI OMAP SDHCI Controller
-> +
-> +Refer to mmc.txt for standard MMC bindings.
-> +
-> +Required properties:
-> +- compatible: Should be "ti,dra7-sdhci" for DRA7 and DRA72 controllers
-> +- ti,hwmods: Must be "mmc<n>", <n> is controller instance starting 1
-> +
-> +Optional properties:
-> +- ti,dual-volt: boolean, supports dual voltage cards
-> +- ti,non-removable: non-removable slot (like eMMC)
+Hi Tony,
 
-Well, if you are doing a new compatible, then why aren't you using 
-common properties?
-
-> +
-> +Example:
-> +	mmc1: mmc@0x4809c000 {
-
-Drop the '0x'.
-
-> +		compatible = "ti,dra7-sdhci";
-> +		reg = <0x4809c000 0x400>;
-> +		ti,hwmods = "mmc1";
-> +		ti,dual-volt;
-> +		bus-width = <4>;
-> +		vmmc-supply = <&vmmc>; /* phandle to regulator node */
-> +		ti,non-removable;
-> +	};
-> -- 
-> 2.11.0
+On Tuesday, 29 August 2017 17:29:42 EEST Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> [170829 05:48]:
+> > On Tuesday, 29 August 2017 00:19:14 EEST Tony Lindgren wrote:
+> >> On omap4 we're missing the fdif node with it's related "ti,hwmods"
+> >> property that the SoC interconnect code needs.
+> >> 
+> >> Note that this will only show up as a bug with "doesn't have
+> >> mpu register target base" boot errors when the legacy platform
+> >> data is removed.
 > 
+> ...
+> 
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/ti-fdif.txt
+> >> @@ -0,0 +1,37 @@
+> >> +Texas Instruments Face Detect (FDIF) binding
+> >> +
+> >> +FDD can be used for face detection on Texas Instruments SoCs.
+> > 
+> > Did you mean s/FDD/FDIF/ ?
+> 
+> Oops thanks for spotting that.
+> 
+> >> +Note that the fdif binding is currently only used by the SoC
+> >> interconnect
+> >> +code to idle the module on init and no open source driver is available
+> >> +for fdif. Please update this documentation if that changes.
+> > 
+> > Device tree bindings should be driver-agnostic. I don't think this
+> > paragraph is needed.
+> 
+> OK will drop.
+> 
+> >> +Required properties:
+> >> +
+> >> +compatible: Shall be one of the following:
+> >> +	    "ti,omap4-fdif"
+> >> +
+> >> +reg: Shall contain the device instance IO range
+> >> +
+> >> +interrupts: Shall contain the device instance interrupt
+> >> +
+> >> +
+> >> +Optional properties:
+> >> +
+> >> +reg-names: Shall contain the IO range names if multiple IO
+> >> +	   ranges are used by the SoC
+> > 
+> > Is this ever the case on OMAP4 ? If not you can drop this property.
+> 
+> Oh right, that's only for audio related devices in the abe l4
+> instance. Will drop.
+> 
+> >> +ti,hwmods: Shall contain the TI interconnect module name if needed
+> >> +	   by the SoC
+> > 
+> > Are there SoCs that don't need this ?
+> 
+> DaVinci or Keystone maybe? And I do have patches coming that will
+> remove the need for "ti,hwmods" but that's still maybe 200 patches
+> away or something..
+
+That would be amazing :-)
+
+> >> +Example:
+> >> +
+> >> +	fdif: fdif@4a10a000 {
+> >> +		compatible = "ti,omap4-fdif";
+> >> +		reg = <0x4a10a000 0x200>;
+> >> +		interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
+> >> +		ti,hwmods = "fdif";
+> >> +	};
+> >> +
+> >> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> >> --- a/arch/arm/boot/dts/omap4.dtsi
+> >> +++ b/arch/arm/boot/dts/omap4.dtsi
+> >> @@ -864,6 +864,13 @@
+> >>  			};
+> >>  		};
+> >> 
+> >> +		fdif: fdif@4a10a000 {
+> >> +			compatible = "ti,omap4-fdif";
+> >> +			reg = <0x4a10a000 0x200>;
+> > 
+> > According to the OMAP4460 datasheet the register range is 0x390 bytes
+> > long.
+> 
+> OK we have it wrong in the legacy platform data then. And the module
+> size is 0x1000 in the hardware, so I'll use that.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
