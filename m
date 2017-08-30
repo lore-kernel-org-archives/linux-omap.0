@@ -1,41 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Regression in next with gpiolib
-Date: Wed, 30 Aug 2017 14:41:28 -0700
-Message-ID: <20170830214127.GJ6008@atomide.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] net: cpsw: Don't handle SIOC[GS]HWTSTAMP when
+ CPTS is disabled
+Date: Wed, 30 Aug 2017 14:47:45 -0700 (PDT)
+Message-ID: <20170830.144745.947488279115809130.davem@davemloft.net>
+References: <20170830065055.419-1-stefan.sorensen@spectralink.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-gpio-owner@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170830065055.419-1-stefan.sorensen@spectralink.com>
+Sender: netdev-owner@vger.kernel.org
+To: stefan.sorensen@spectralink.com
+Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Timur, Linus & Grygorii,
+From: Stefan Sørensen <stefan.sorensen@spectralink.com>
+Date: Wed, 30 Aug 2017 08:50:55 +0200
 
-Looks like commit 108d23e322a2 ("gpiolib: request the gpio before
-querying its direction") caused a regression on at least pandaboard
-es with booting hanging shortly after gpio init.
+> There is no reason to handle SIOC[GS]HWTSTAMP and return -EOPNOTSUPP when
+> CPTS is disabled, so just pass them on to the phy. This will allow PTP
+> timestamping on a capable phy by disabling CPTS.
+> 
+> Signed-off-by: Stefan Sørensen <stefan.sorensen@spectralink.com>
 
-It seems to be that we're now calling request and free on all gpios
-before they are properly configured?
+It should not be required to disable a Kconfig option just to get PHY
+timestamping to work properly.
 
-I narrowed the hang down to gpio bank1 lines 7 and possibly 8 where
-not calling omap_gpio_free() on them makes the system boot again.
+Rather, if the CPTS code returns -EOPNOTSUPP we should try to
+fallthrough to the PHY library based methods.
 
-These lines are used for the leds in omap4-panda-common.dtsi, and
-omap_gpio_free() will by default set the unused lines for input
-and bad things happen. I guess hardware failure could also happen
-although I have not seen it here.
-
-It seems a similar issue can exist on other platforms too,
-so it's probably a good idea to revert this for now.
-
-Any ideas on how we should fix this?
-
-Regards,
-
-Tony
-
-
-
+Thanks.
