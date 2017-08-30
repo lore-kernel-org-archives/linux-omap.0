@@ -1,168 +1,41 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 08/17] ARM: dts: Add missing hsi node for omap4
-Date: Wed, 30 Aug 2017 13:25:20 -0700
-Message-ID: <20170830202519.GI6008@atomide.com>
-References: <20170830151953.30856-1-tony@atomide.com>
- <20170830151953.30856-9-tony@atomide.com>
- <20170830193745.ygotb3nuyfmdlaaf@earth>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Regression in next with gpiolib
+Date: Wed, 30 Aug 2017 14:41:28 -0700
+Message-ID: <20170830214127.GJ6008@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170830193745.ygotb3nuyfmdlaaf@earth>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Timur Tabi <timur@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [170830 12:38]:
-> On Wed, Aug 30, 2017 at 08:19:44AM -0700, Tony Lindgren wrote:
-> Maybe change the leading text:
-> 
-> OMAP3's Synchronous Serial Interface (SSI) controller implements a
-> legacy variant of MIPI's High Speed Synchronous Serial Interface (HSI),
-> while the controller found inside OMAP4 is supposed to be fully compliant
-> with the HSI standard.
+Hi Timur, Linus & Grygorii,
 
-OK
+Looks like commit 108d23e322a2 ("gpiolib: request the gpio before
+querying its direction") caused a regression on at least pandaboard
+es with booting hanging shortly after gpio init.
 
-> >  Required properties:
-> > -- compatible:		Should include "ti,omap3-ssi".
-> > +- compatible:		Should include "ti,omap3-ssi" or "ti,omap4-hsi"
-> >  - reg-names:		Contains the values "sys" and "gdd" (in this order).
-> >  - reg:			Contains a matching register specifier for each entry
-> >  			in reg-names.
-> > @@ -27,6 +27,7 @@ Each port is represented as a sub-node of the ti,omap3-ssi device.
-> >  Required Port sub-node properties:
-> >  - compatible:		Should be set to the following value
-> >  			ti,omap3-ssi-port (applicable to OMAP34xx devices)
-> > +			ti,omap4-ssi-port (applicable to OMAP44xx devices)
->                      ^^^
-> 
-> this should be hsi.
+It seems to be that we're now calling request and free on all gpios
+before they are properly configured?
 
-Oops fixed.
+I narrowed the hang down to gpio bank1 lines 7 and possibly 8 where
+not calling omap_gpio_free() on them makes the system boot again.
 
-> otherwise:
-> 
-> Reviewed-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+These lines are used for the leds in omap4-panda-common.dtsi, and
+omap_gpio_free() will by default set the unused lines for input
+and bad things happen. I guess hardware failure could also happen
+although I have not seen it here.
 
-Thanks, updated patch below.
+It seems a similar issue can exist on other platforms too,
+so it's probably a good idea to revert this for now.
+
+Any ideas on how we should fix this?
 
 Regards,
 
 Tony
 
-8< --------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Wed, 30 Aug 2017 08:07:51 -0700
-Subject: [PATCH] ARM: dts: Add missing hsi node for omap4
 
-On omap4 we're missing the hsi node with it's related "ti,hwmods"
-property that the SoC interconnect code needs.
 
-Note that this will only show up as a bug with "doesn't have
-mpu register target base" boot errors when the legacy platform
-data is removed.
-
-Let's also update the binding accrodingly while at it.
-
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Reviewed-by: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- Documentation/devicetree/bindings/hsi/omap-ssi.txt | 13 +++++++--
- arch/arm/boot/dts/omap4.dtsi                       | 34 ++++++++++++++++++++++
- 2 files changed, 44 insertions(+), 3 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/hsi/omap-ssi.txt b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
---- a/Documentation/devicetree/bindings/hsi/omap-ssi.txt
-+++ b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
-@@ -1,10 +1,12 @@
- OMAP SSI controller bindings
- 
--OMAP Synchronous Serial Interface (SSI) controller implements a legacy
--variant of MIPI's High Speed Synchronous Serial Interface (HSI).
-+OMAP3's Synchronous Serial Interface (SSI) controller implements a
-+legacy variant of MIPI's High Speed Synchronous Serial Interface (HSI),
-+while the controller found inside OMAP4 is supposed to be fully compliant
-+with the HSI standard.
- 
- Required properties:
--- compatible:		Should include "ti,omap3-ssi".
-+- compatible:		Should include "ti,omap3-ssi" or "ti,omap4-hsi"
- - reg-names:		Contains the values "sys" and "gdd" (in this order).
- - reg:			Contains a matching register specifier for each entry
- 			in reg-names.
-@@ -27,6 +29,7 @@ Each port is represented as a sub-node of the ti,omap3-ssi device.
- Required Port sub-node properties:
- - compatible:		Should be set to the following value
- 			ti,omap3-ssi-port (applicable to OMAP34xx devices)
-+			ti,omap4-hsi-port (applicable to OMAP44xx devices)
- - reg-names:		Contains the values "tx" and "rx" (in this order).
- - reg:			Contains a matching register specifier for each entry
- 			in reg-names.
-@@ -38,6 +41,10 @@ Required Port sub-node properties:
- 			property. If it's missing the port will not be
- 			enabled.
- 
-+Optional properties:
-+- ti,hwmods:		Shall contain TI interconnect module name if needed
-+			by the SoC
-+
- Example for Nokia N900:
- 
- ssi-controller@48058000 {
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -632,6 +632,40 @@
- 			dma-names = "tx", "rx";
- 		};
- 
-+		hsi: hsi@4a058000 {
-+			compatible = "ti,omap4-hsi";
-+			reg = <0x4a058000 0x4000>,
-+			      <0x4a05c000 0x1000>;
-+			reg-names = "sys", "gdd";
-+			ti,hwmods = "hsi";
-+
-+			clocks = <&hsi_fck>;
-+			clock-names = "hsi_fck";
-+
-+			interrupts = <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>;
-+			interrupt-names = "gdd_mpu";
-+
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges = <0 0x4a058000 0x4000>;
-+
-+			hsi_port1: hsi-port@2000 {
-+				compatible = "ti,omap4-hsi-port";
-+				reg = <0x2000 0x800>,
-+				      <0x2800 0x800>;
-+				reg-names = "tx", "rx";
-+				interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
-+			};
-+
-+			hsi_port2: hsi-port@3000 {
-+				compatible = "ti,omap4-hsi-port";
-+				reg = <0x3000 0x800>,
-+				      <0x3800 0x800>;
-+				reg-names = "tx", "rx";
-+				interrupts = <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
-+			};
-+		};
-+
- 		mmu_dsp: mmu@4a066000 {
- 			compatible = "ti,omap4-iommu";
- 			reg = <0x4a066000 0x100>;
--- 
-2.14.1
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
