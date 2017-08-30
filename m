@@ -1,190 +1,82 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v4] mfd: tps65217: Introduce dependency on CONFIG_OF
-Date: Wed, 30 Aug 2017 14:59:10 +0530
-Message-ID: <1504085350-20824-1-git-send-email-j-keerthy@ti.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 1/5] mmc: sdhci: Tidy reading 136-bit responses
+Date: Wed, 30 Aug 2017 15:13:12 +0200
+Message-ID: <CAPDyKFqF0TsCBj-GQnWsH3huxWMCuJnmCgbOWZ0nE88d6pCwnA@mail.gmail.com>
+References: <20170821074132.4622-1-kishon@ti.com> <20170821074132.4622-2-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170821074132.4622-2-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: lee.jones@linaro.org
-Cc: eballetbo@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@kernel.org, tony@atomide.com, b.zolnierkie@samsung.com, javier@dowhile0.org, j-keerthy@ti.com
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently the driver boots only via device tree hence add a
-dependency on CONFIG_OF. This leaves with a bunch of unused code
-so clean that up. This patch also makes use of probe_new function
-in place of the probe function so as to avoid passing i2c_device_id.
+On 21 August 2017 at 09:41, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> From: Adrian Hunter <adrian.hunter@intel.com>
+>
+> Read each register only once and move the code to a separate function so
+> that it is not jammed against the 80 column margin.
+>
+> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
----
+Thanks, applied for next!
 
-Changes in v4:
+Kind regards
+Uffe
 
-  * Added Javier's Reviewed-by.
-  * Added back I2C Device ID struct as it is needed for module autoprobe.
-
-Changes in v3:
-
-  * Added more details to commit log.
-  * No changes in code. Rebased to latest next branch.
-
-Changes in v2:
-
-  * Cleaned up chip_id and data attached to the match.
-  * Cleaned up i2c_dev_id
-  * dropped the rest of the patches in series for now
-
-Boot tested and checked for regulator registrations on am335x-boneblack
-both as part of zImage and as module autoprobed.
-
- drivers/mfd/Kconfig                    |  2 +-
- drivers/mfd/tps65217.c                 | 28 +++++-----------------------
- drivers/regulator/tps65217-regulator.c |  5 -----
- drivers/video/backlight/tps65217_bl.c  | 14 +++-----------
- include/linux/mfd/tps65217.h           |  6 ------
- 5 files changed, 9 insertions(+), 46 deletions(-)
-
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index c601ee1..1d5be80 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -1338,7 +1338,7 @@ config MFD_TPS65090
- 
- config MFD_TPS65217
- 	tristate "TI TPS65217 Power Management / White LED chips"
--	depends on I2C
-+	depends on I2C && OF
- 	select MFD_CORE
- 	select REGMAP_I2C
- 	select IRQ_DOMAIN
-diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
-index f769c7d..7566ce4 100644
---- a/drivers/mfd/tps65217.c
-+++ b/drivers/mfd/tps65217.c
-@@ -311,37 +311,20 @@ static bool tps65217_volatile_reg(struct device *dev, unsigned int reg)
- };
- 
- static const struct of_device_id tps65217_of_match[] = {
--	{ .compatible = "ti,tps65217", .data = (void *)TPS65217 },
-+	{ .compatible = "ti,tps65217"},
- 	{ /* sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, tps65217_of_match);
- 
--static int tps65217_probe(struct i2c_client *client,
--				const struct i2c_device_id *ids)
-+static int tps65217_probe(struct i2c_client *client)
- {
- 	struct tps65217 *tps;
- 	unsigned int version;
--	unsigned long chip_id = ids->driver_data;
--	const struct of_device_id *match;
- 	bool status_off = false;
- 	int ret;
- 
--	if (client->dev.of_node) {
--		match = of_match_device(tps65217_of_match, &client->dev);
--		if (!match) {
--			dev_err(&client->dev,
--				"Failed to find matching dt id\n");
--			return -EINVAL;
--		}
--		chip_id = (unsigned long)match->data;
--		status_off = of_property_read_bool(client->dev.of_node,
--					"ti,pmic-shutdown-controller");
--	}
--
--	if (!chip_id) {
--		dev_err(&client->dev, "id is null.\n");
--		return -ENODEV;
--	}
-+	status_off = of_property_read_bool(client->dev.of_node,
-+					   "ti,pmic-shutdown-controller");
- 
- 	tps = devm_kzalloc(&client->dev, sizeof(*tps), GFP_KERNEL);
- 	if (!tps)
-@@ -349,7 +332,6 @@ static int tps65217_probe(struct i2c_client *client,
- 
- 	i2c_set_clientdata(client, tps);
- 	tps->dev = &client->dev;
--	tps->id = chip_id;
- 
- 	tps->regmap = devm_regmap_init_i2c(client, &tps65217_regmap_config);
- 	if (IS_ERR(tps->regmap)) {
-@@ -430,7 +412,7 @@ static int tps65217_remove(struct i2c_client *client)
- 		.of_match_table = tps65217_of_match,
- 	},
- 	.id_table	= tps65217_id_table,
--	.probe		= tps65217_probe,
-+	.probe_new	= tps65217_probe,
- 	.remove		= tps65217_remove,
- };
- 
-diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
-index 5324dc9..7b12e88 100644
---- a/drivers/regulator/tps65217-regulator.c
-+++ b/drivers/regulator/tps65217-regulator.c
-@@ -228,11 +228,6 @@ static int tps65217_regulator_probe(struct platform_device *pdev)
- 	int i, ret;
- 	unsigned int val;
- 
--	if (tps65217_chip_id(tps) != TPS65217) {
--		dev_err(&pdev->dev, "Invalid tps chip version\n");
--		return -ENODEV;
--	}
--
- 	/* Allocate memory for strobes */
- 	tps->strobes = devm_kzalloc(&pdev->dev, sizeof(u8) *
- 				    TPS65217_NUM_REGULATOR, GFP_KERNEL);
-diff --git a/drivers/video/backlight/tps65217_bl.c b/drivers/video/backlight/tps65217_bl.c
-index fd524ad..5ce8791 100644
---- a/drivers/video/backlight/tps65217_bl.c
-+++ b/drivers/video/backlight/tps65217_bl.c
-@@ -275,17 +275,9 @@ static int tps65217_bl_probe(struct platform_device *pdev)
- 	struct tps65217_bl_pdata *pdata;
- 	struct backlight_properties bl_props;
- 
--	if (tps->dev->of_node) {
--		pdata = tps65217_bl_parse_dt(pdev);
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
--	} else {
--		pdata = dev_get_platdata(&pdev->dev);
--		if (!pdata) {
--			dev_err(&pdev->dev, "no platform data provided\n");
--			return -EINVAL;
--		}
--	}
-+	pdata = tps65217_bl_parse_dt(pdev);
-+	if (IS_ERR(pdata))
-+		return PTR_ERR(pdata);
- 
- 	tps65217_bl = devm_kzalloc(&pdev->dev, sizeof(*tps65217_bl),
- 				GFP_KERNEL);
-diff --git a/include/linux/mfd/tps65217.h b/include/linux/mfd/tps65217.h
-index eac2857..b5dd108 100644
---- a/include/linux/mfd/tps65217.h
-+++ b/include/linux/mfd/tps65217.h
-@@ -263,7 +263,6 @@ struct tps65217_board {
- struct tps65217 {
- 	struct device *dev;
- 	struct tps65217_board *pdata;
--	unsigned long id;
- 	struct regulator_desc desc[TPS65217_NUM_REGULATOR];
- 	struct regmap *regmap;
- 	u8 *strobes;
-@@ -278,11 +277,6 @@ static inline struct tps65217 *dev_to_tps65217(struct device *dev)
- 	return dev_get_drvdata(dev);
- }
- 
--static inline unsigned long tps65217_chip_id(struct tps65217 *tps65217)
--{
--	return tps65217->id;
--}
--
- int tps65217_reg_read(struct tps65217 *tps, unsigned int reg,
- 					unsigned int *val);
- int tps65217_reg_write(struct tps65217 *tps, unsigned int reg,
--- 
-1.9.1
+> ---
+>  drivers/mmc/host/sdhci.c | 28 ++++++++++++++++++----------
+>  1 file changed, 18 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+> index a1ad2ddadca1..ba639b7851cb 100644
+> --- a/drivers/mmc/host/sdhci.c
+> +++ b/drivers/mmc/host/sdhci.c
+> @@ -1173,24 +1173,32 @@ void sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
+>  }
+>  EXPORT_SYMBOL_GPL(sdhci_send_command);
+>
+> +static void sdhci_read_rsp_136(struct sdhci_host *host, struct mmc_command *cmd)
+> +{
+> +       int i, reg;
+> +
+> +       for (i = 0; i < 4; i++) {
+> +               reg = SDHCI_RESPONSE + (3 - i) * 4;
+> +               cmd->resp[i] = sdhci_readl(host, reg);
+> +       }
+> +
+> +       /* CRC is stripped so we need to do some shifting */
+> +       for (i = 0; i < 4; i++) {
+> +               cmd->resp[i] <<= 8;
+> +               if (i != 3)
+> +                       cmd->resp[i] |= cmd->resp[i + 1] >> 24;
+> +       }
+> +}
+> +
+>  static void sdhci_finish_command(struct sdhci_host *host)
+>  {
+>         struct mmc_command *cmd = host->cmd;
+> -       int i;
+>
+>         host->cmd = NULL;
+>
+>         if (cmd->flags & MMC_RSP_PRESENT) {
+>                 if (cmd->flags & MMC_RSP_136) {
+> -                       /* CRC is stripped so we need to do some shifting. */
+> -                       for (i = 0;i < 4;i++) {
+> -                               cmd->resp[i] = sdhci_readl(host,
+> -                                       SDHCI_RESPONSE + (3-i)*4) << 8;
+> -                               if (i != 3)
+> -                                       cmd->resp[i] |=
+> -                                               sdhci_readb(host,
+> -                                               SDHCI_RESPONSE + (3-i)*4-1);
+> -                       }
+> +                       sdhci_read_rsp_136(host, cmd);
+>                 } else {
+>                         cmd->resp[0] = sdhci_readl(host, SDHCI_RESPONSE);
+>                 }
+> --
+> 2.11.0
+>
