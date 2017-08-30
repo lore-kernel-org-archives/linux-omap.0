@@ -1,59 +1,62 @@
-From: =?UTF-8?q?Stefan=20S=C3=B8rensen?=
-        <stefan.sorensen@spectralink.com>
-Subject: [PATCH net-next] net: cpsw: Don't handle SIOC[GS]HWTSTAMP when CPTS is disabled
-Date: Wed, 30 Aug 2017 08:50:55 +0200
-Message-ID: <20170830065055.419-1-stefan.sorensen@spectralink.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH v3] mfd: tps65217: Introduce dependency on CONFIG_OF
+Date: Wed, 30 Aug 2017 10:05:42 +0200
+Message-ID: <CABxcv=kMOJsPEC-x_eRtt-K76sF5-tFnC7ye6FuBh4WC_f2KRQ@mail.gmail.com>
+References: <1504072208-28888-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: grygorii.strashko@ti.com, davem@davemloft.net, netdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: =?UTF-8?q?Stefan=20S=C3=B8rensen?= <stefan.sorensen@spectralink.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1504072208-28888-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Lee Jones <lee.jones@linaro.org>, =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-There is no reason to handle SIOC[GS]HWTSTAMP and return -EOPNOTSUPP when
-CPTS is disabled, so just pass them on to the phy. This will allow PTP
-timestamping on a capable phy by disabling CPTS.
+Hello Keerthy,
 
-Signed-off-by: Stefan Sørensen <stefan.sorensen@spectralink.com>
----
- drivers/net/ethernet/ti/cpsw.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+On Wed, Aug 30, 2017 at 7:50 AM, Keerthy <j-keerthy@ti.com> wrote:
+> Currently the driver boots only via device tree hence add a
+> dependency on CONFIG_OF. This leaves with a bunch of unused code
+> so clean that up. This patch also makes use of probe_new function
+> in place of the probe function so as to avoid passing i2c_device_id.
+>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>
+> Changes in v3:
+>
+>   * Added more details to commit log.
+>   * No changes in code. Rebased to latest next branch.
+>
+> Changes in v2:
+>
+>   * Cleaned up chip_id and data attached to the match.
+>   * Cleaned up i2c_dev_id
+>   * dropped the rest of the patches in series for now
+>
+> Boot tested and checked for regulator registrations on am335x-boneblack
+>
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index db8a4bcfc6c7..4413a669fd79 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -1791,16 +1791,6 @@ static int cpsw_hwtstamp_get(struct net_device *dev, struct ifreq *ifr)
- 
- 	return copy_to_user(ifr->ifr_data, &cfg, sizeof(cfg)) ? -EFAULT : 0;
- }
--#else
--static int cpsw_hwtstamp_get(struct net_device *dev, struct ifreq *ifr)
--{
--	return -EOPNOTSUPP;
--}
--
--static int cpsw_hwtstamp_set(struct net_device *dev, struct ifreq *ifr)
--{
--	return -EOPNOTSUPP;
--}
- #endif /*CONFIG_TI_CPTS*/
- 
- static int cpsw_ndo_ioctl(struct net_device *dev, struct ifreq *req, int cmd)
-@@ -1813,10 +1803,12 @@ static int cpsw_ndo_ioctl(struct net_device *dev, struct ifreq *req, int cmd)
- 		return -EINVAL;
- 
- 	switch (cmd) {
-+#if IS_ENABLED(CONFIG_TI_CPTS)
- 	case SIOCSHWTSTAMP:
- 		return cpsw_hwtstamp_set(dev, req);
- 	case SIOCGHWTSTAMP:
- 		return cpsw_hwtstamp_get(dev, req);
-+#endif
- 	}
- 
- 	if (!cpsw->slaves[slave_no].phy)
--- 
-2.13.5
+Did you check building as a module? Autoload won't work if you remove
+the I2C device ID table.
+
+[snip]
+
+>
+> -static const struct i2c_device_id tps65217_id_table[] = {
+> -       {"tps65217", TPS65217},
+> -       { /* sentinel */ }
+> -};
+> -MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
+> -
+
+Unfortunately this can't be removed yet. We are getting there but
+still some patches need to land.
+
+Rest of the patch looks good, so if you keep the I2C device ID table
+feel free to add:
+
+Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
+
+Best regards,
+Javier
