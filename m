@@ -1,118 +1,108 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 03/17] ARM: dts: Add missing properties for omap4 control modules
-Date: Wed, 30 Aug 2017 08:19:39 -0700
-Message-ID: <20170830151953.30856-4-tony@atomide.com>
+Subject: [PATCH 08/17] ARM: dts: Add missing hsi node for omap4
+Date: Wed, 30 Aug 2017 08:19:44 -0700
+Message-ID: <20170830151953.30856-9-tony@atomide.com>
 References: <20170830151953.30856-1-tony@atomide.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170830151953.30856-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On omap4, we are missing several ti,hwmods properties and IO
-ranges for system control modules. These are needed by the SoC
-interconnect code.
+On omap4 we're missing the hsi node with it's related "ti,hwmods"
+property that the SoC interconnect code needs.
 
 Note that this will only show up as a bug with "doesn't have
 mpu register target base" boot errors when the legacy platform
 data is removed.
 
-In order to add these, we need to move omap4_pmx_wkup to be a
-child of omap4_padconf_wkup.
-
-On omap4 there are separate modules for control module and
-control module pads. For control module core, we have this
-already configured except for the missing ti,hwmods and reg
-entries.
+Let's also update the binding accrodingly while at it.
 
 Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
 Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- .../devicetree/bindings/arm/omap/ctrl.txt          |  2 ++
- arch/arm/boot/dts/omap4.dtsi                       | 39 ++++++++++++++++------
- 2 files changed, 31 insertions(+), 10 deletions(-)
+ Documentation/devicetree/bindings/hsi/omap-ssi.txt |  7 ++++-
+ arch/arm/boot/dts/omap4.dtsi                       | 34 ++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/ctrl.txt b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
---- a/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/ctrl.txt
-@@ -21,6 +21,8 @@ Required properties:
- 		"ti,omap3-scm"
- 		"ti,omap4-scm-core"
- 		"ti,omap4-scm-padconf-core"
-+		"ti,omap4-scm-wkup"
-+		"ti,omap4-scm-padconf-wkup"
- 		"ti,omap5-scm-core"
- 		"ti,omap5-scm-padconf-core"
- 		"ti,dra7-scm-core"
+diff --git a/Documentation/devicetree/bindings/hsi/omap-ssi.txt b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+--- a/Documentation/devicetree/bindings/hsi/omap-ssi.txt
++++ b/Documentation/devicetree/bindings/hsi/omap-ssi.txt
+@@ -4,7 +4,7 @@ OMAP Synchronous Serial Interface (SSI) controller implements a legacy
+ variant of MIPI's High Speed Synchronous Serial Interface (HSI).
+ 
+ Required properties:
+-- compatible:		Should include "ti,omap3-ssi".
++- compatible:		Should include "ti,omap3-ssi" or "ti,omap4-hsi"
+ - reg-names:		Contains the values "sys" and "gdd" (in this order).
+ - reg:			Contains a matching register specifier for each entry
+ 			in reg-names.
+@@ -27,6 +27,7 @@ Each port is represented as a sub-node of the ti,omap3-ssi device.
+ Required Port sub-node properties:
+ - compatible:		Should be set to the following value
+ 			ti,omap3-ssi-port (applicable to OMAP34xx devices)
++			ti,omap4-ssi-port (applicable to OMAP44xx devices)
+ - reg-names:		Contains the values "tx" and "rx" (in this order).
+ - reg:			Contains a matching register specifier for each entry
+ 			in reg-names.
+@@ -38,6 +39,10 @@ Required Port sub-node properties:
+ 			property. If it's missing the port will not be
+ 			enabled.
+ 
++Optional properties:
++- ti,hwmods:		Shall contain TI interconnect module name if needed
++			by the SoC
++
+ Example for Nokia N900:
+ 
+ ssi-controller@48058000 {
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -174,6 +174,7 @@
- 				#address-cells = <1>;
- 				#size-cells = <1>;
- 				ranges = <0 0x2000 0x1000>;
-+				ti,hwmods = "ctrl_module_core";
- 
- 				scm_conf: scm_conf@0 {
- 					compatible = "syscon";
-@@ -186,9 +187,11 @@
- 			omap4_padconf_core: scm@100000 {
- 				compatible = "ti,omap4-scm-padconf-core",
- 					     "simple-bus";
-+				reg = <0x100000 0x1000>;
- 				#address-cells = <1>;
- 				#size-cells = <1>;
- 				ranges = <0 0x100000 0x1000>;
-+				ti,hwmods = "ctrl_module_pad_core";
- 
- 				omap4_pmx_core: pinmux@40 {
- 					compatible = "ti,omap4-padconf",
-@@ -263,17 +266,33 @@
- 					};
- 				};
- 
--				omap4_pmx_wkup: pinmux@1e040 {
--					compatible = "ti,omap4-padconf",
--						     "pinctrl-single";
--					reg = <0x1e040 0x0038>;
-+				omap4_scm_wkup: scm@c000 {
-+					compatible = "ti,omap4-scm-wkup";
-+					reg = <0xc000 0x1000>;
-+					ti,hwmods = "ctrl_module_wkup";
-+				};
-+
-+				omap4_padconf_wkup: padconf@1e000 {
-+					compatible = "ti,omap4-scm-padconf-wkup",
-+						     "simple-bus";
-+					reg = <0x1e000 0x1000>;
- 					#address-cells = <1>;
--					#size-cells = <0>;
--					#pinctrl-cells = <1>;
--					#interrupt-cells = <1>;
--					interrupt-controller;
--					pinctrl-single,register-width = <16>;
--					pinctrl-single,function-mask = <0x7fff>;
-+					#size-cells = <1>;
-+					ranges = <0 0x1e000 0x1000>;
-+					ti,hwmods = "ctrl_module_pad_wkup";
-+
-+					omap4_pmx_wkup: pinmux@40 {
-+						compatible = "ti,omap4-padconf",
-+							     "pinctrl-single";
-+						reg = <0x40 0x0038>;
-+						#address-cells = <1>;
-+						#size-cells = <0>;
-+						#pinctrl-cells = <1>;
-+						#interrupt-cells = <1>;
-+						interrupt-controller;
-+						pinctrl-single,register-width = <16>;
-+						pinctrl-single,function-mask = <0x7fff>;
-+					};
- 				};
- 			};
+@@ -632,6 +632,40 @@
+ 			dma-names = "tx", "rx";
  		};
+ 
++		hsi: hsi@4a058000 {
++			compatible = "ti,omap4-hsi";
++			reg = <0x4a058000 0x4000>,
++			      <0x4a05c000 0x1000>;
++			reg-names = "sys", "gdd";
++			ti,hwmods = "hsi";
++
++			clocks = <&hsi_fck>;
++			clock-names = "hsi_fck";
++
++			interrupts = <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "gdd_mpu";
++
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges = <0 0x4a058000 0x4000>;
++
++			hsi_port1: hsi-port@2000 {
++				compatible = "ti,omap4-hsi-port";
++				reg = <0x2000 0x800>,
++				      <0x2800 0x800>;
++				reg-names = "tx", "rx";
++				interrupts = <GIC_SPI 67 IRQ_TYPE_LEVEL_HIGH>;
++			};
++
++			hsi_port2: hsi-port@3000 {
++				compatible = "ti,omap4-hsi-port";
++				reg = <0x3000 0x800>,
++				      <0x3800 0x800>;
++				reg-names = "tx", "rx";
++				interrupts = <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
++			};
++		};
++
+ 		mmu_dsp: mmu@4a066000 {
+ 			compatible = "ti,omap4-iommu";
+ 			reg = <0x4a066000 0x100>;
 -- 
 2.14.1
 --
