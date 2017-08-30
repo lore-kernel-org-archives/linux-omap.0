@@ -1,32 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] net: cpsw: Don't handle SIOC[GS]HWTSTAMP when
- CPTS is disabled
-Date: Wed, 30 Aug 2017 14:47:45 -0700 (PDT)
-Message-ID: <20170830.144745.947488279115809130.davem@davemloft.net>
-References: <20170830065055.419-1-stefan.sorensen@spectralink.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: Regression in next with gpiolib
+Date: Wed, 30 Aug 2017 16:49:43 -0500
+Message-ID: <5c672146-2a4c-6da5-85b1-5f2bb2ae5649@codeaurora.org>
+References: <20170830214127.GJ6008@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170830065055.419-1-stefan.sorensen@spectralink.com>
-Sender: netdev-owner@vger.kernel.org
-To: stefan.sorensen@spectralink.com
-Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20170830214127.GJ6008@atomide.com>
+Content-Language: en-US
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Stefan Sørensen <stefan.sorensen@spectralink.com>
-Date: Wed, 30 Aug 2017 08:50:55 +0200
+On 08/30/2017 04:41 PM, Tony Lindgren wrote:
+> It seems to be that we're now calling request and free on all gpios
+> before they are properly configured?
 
-> There is no reason to handle SIOC[GS]HWTSTAMP and return -EOPNOTSUPP when
-> CPTS is disabled, so just pass them on to the phy. This will allow PTP
-> timestamping on a capable phy by disabling CPTS.
-> 
-> Signed-off-by: Stefan Sørensen <stefan.sorensen@spectralink.com>
+Yes, that's what my patch does.  At the time, it seemed like a good idea 
+-- request the GPIO before touching its hardware.  But it appears that 
+the 'request' function of some drivers also re-muxes the GPIO in order 
+to honor the request.
 
-It should not be required to disable a Kconfig option just to get PHY
-timestamping to work properly.
+The question is whether that's correct behavior.  I don't know.
 
-Rather, if the CPTS code returns -EOPNOTSUPP we should try to
-fallthrough to the PHY library based methods.
-
-Thanks.
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
+Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
