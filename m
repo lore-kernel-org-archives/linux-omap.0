@@ -1,62 +1,42 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH v3] mfd: tps65217: Introduce dependency on CONFIG_OF
-Date: Wed, 30 Aug 2017 10:05:42 +0200
-Message-ID: <CABxcv=kMOJsPEC-x_eRtt-K76sF5-tFnC7ye6FuBh4WC_f2KRQ@mail.gmail.com>
-References: <1504072208-28888-1-git-send-email-j-keerthy@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH] net: ti: cpsw-common: dont print error if ti_cm_get_macid() fails
+Date: Wed, 30 Aug 2017 13:37:13 +0530
+Message-ID: <423afc6874d8911615c4df941957067aebfc09dd.1504080198.git.nsekhar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1504072208-28888-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Lee Jones <lee.jones@linaro.org>, =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Tony Lindgren <tony@atomide.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, David Miller <davem@davemloft.net>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux netdev Mailing List <netdev@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Adam Ford <aford173@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello Keerthy,
+It is quite common for ti_cm_get_macid() to fail on some of the
+platforms it is invoked on. They include any platform where
+mac address is not part of SoC register space.
 
-On Wed, Aug 30, 2017 at 7:50 AM, Keerthy <j-keerthy@ti.com> wrote:
-> Currently the driver boots only via device tree hence add a
-> dependency on CONFIG_OF. This leaves with a bunch of unused code
-> so clean that up. This patch also makes use of probe_new function
-> in place of the probe function so as to avoid passing i2c_device_id.
->
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->
-> Changes in v3:
->
->   * Added more details to commit log.
->   * No changes in code. Rebased to latest next branch.
->
-> Changes in v2:
->
->   * Cleaned up chip_id and data attached to the match.
->   * Cleaned up i2c_dev_id
->   * dropped the rest of the patches in series for now
->
-> Boot tested and checked for regulator registrations on am335x-boneblack
->
+On these platforms, mac address is read and populated in
+device-tree by bootloader. An example is TI DA850.
 
-Did you check building as a module? Autoload won't work if you remove
-the I2C device ID table.
+Downgrade the severity of message to "information", so it does
+not spam logs when 'quiet' boot is desired.
 
-[snip]
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->
-> -static const struct i2c_device_id tps65217_id_table[] = {
-> -       {"tps65217", TPS65217},
-> -       { /* sentinel */ }
-> -};
-> -MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
-> -
-
-Unfortunately this can't be removed yet. We are getting there but
-still some patches need to land.
-
-Rest of the patch looks good, so if you keep the I2C device ID table
-feel free to add:
-
-Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
-
-Best regards,
-Javier
+diff --git a/drivers/net/ethernet/ti/cpsw-common.c b/drivers/net/ethernet/ti/cpsw-common.c
+index 56ba411421f0..38d1cc557c11 100644
+--- a/drivers/net/ethernet/ti/cpsw-common.c
++++ b/drivers/net/ethernet/ti/cpsw-common.c
+@@ -96,7 +96,7 @@ int ti_cm_get_macid(struct device *dev, int slave, u8 *mac_addr)
+ 	if (of_machine_is_compatible("ti,dra7"))
+ 		return davinci_emac_3517_get_macid(dev, 0x514, slave, mac_addr);
+ 
+-	dev_err(dev, "incompatible machine/device type for reading mac address\n");
++	dev_info(dev, "incompatible machine/device type for reading mac address\n");
+ 	return -ENOENT;
+ }
+ EXPORT_SYMBOL_GPL(ti_cm_get_macid);
+-- 
+2.9.0
