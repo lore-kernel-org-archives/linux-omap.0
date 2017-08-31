@@ -1,86 +1,129 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH v3 2/4] power: supply: bq27xxx: enable writing capacity
- values for bq27500
-Date: Thu, 31 Aug 2017 10:38:10 +0200
-Message-ID: <20170831083810.pk7d2qqetwc356rs@earth>
-References: <cover.1504162792.git.hns@goldelico.com>
- <af9c1a4e95640e744a104780bfed269d0a6c63cb.1504162792.git.hns@goldelico.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 1/6] mmc: host: omap_hsmmc: Remove setting PBIAS voltage
+Date: Thu, 31 Aug 2017 15:48:44 +0530
+Message-ID: <20170831101849.9489-2-kishon@ti.com>
+References: <20170831101849.9489-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="plyamg76nvk3t7m6"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <af9c1a4e95640e744a104780bfed269d0a6c63cb.1504162792.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: afd@ti.com, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, gta04-owner@goldelico.com, marek@goldelico.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20170831101849.9489-1-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+Cc: Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+PBIAS voltage should be set along with setting vqmmc voltage and
+these voltages should be set as part of start_signal_voltage_switch
+callback. However since omap_hsmmc is about to be deprecated,
+remove setting of PBIAS voltage leaving the PBIAS voltage to be
+at the reset value of 3.3V (we'll never have to change this to 1.8V
+since UHS mode support will not be added to omap_hsmmc). This will
+let pbias regulator driver to be fixed to support a maximum voltage of
+3.3V.
 
---plyamg76nvk3t7m6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 33 ++++++++-------------------------
+ 1 file changed, 8 insertions(+), 25 deletions(-)
 
-Hi,
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 3b5e6d11069b..f2a1137be8bc 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -147,10 +147,6 @@
+ #define OMAP_MMC_MAX_CLOCK	52000000
+ #define DRIVER_NAME		"omap_hsmmc"
+ 
+-#define VDD_1V8			1800000		/* 180000 uV */
+-#define VDD_3V0			3000000		/* 300000 uV */
+-#define VDD_165_195		(ffs(MMC_VDD_165_195) - 1)
+-
+ /*
+  * One controller can have multiple slots, like on some omap boards using
+  * omap.c controller driver. Luckily this is not currently done on any known
+@@ -308,8 +304,7 @@ static int omap_hsmmc_disable_supply(struct mmc_host *mmc)
+ 	return ret;
+ }
+ 
+-static int omap_hsmmc_set_pbias(struct omap_hsmmc_host *host, bool power_on,
+-				int vdd)
++static int omap_hsmmc_set_pbias(struct omap_hsmmc_host *host, bool power_on)
+ {
+ 	int ret;
+ 
+@@ -317,17 +312,6 @@ static int omap_hsmmc_set_pbias(struct omap_hsmmc_host *host, bool power_on,
+ 		return 0;
+ 
+ 	if (power_on) {
+-		if (vdd <= VDD_165_195)
+-			ret = regulator_set_voltage(host->pbias, VDD_1V8,
+-						    VDD_1V8);
+-		else
+-			ret = regulator_set_voltage(host->pbias, VDD_3V0,
+-						    VDD_3V0);
+-		if (ret < 0) {
+-			dev_err(host->dev, "pbias set voltage fail\n");
+-			return ret;
+-		}
+-
+ 		if (host->pbias_enabled == 0) {
+ 			ret = regulator_enable(host->pbias);
+ 			if (ret) {
+@@ -350,8 +334,7 @@ static int omap_hsmmc_set_pbias(struct omap_hsmmc_host *host, bool power_on,
+ 	return 0;
+ }
+ 
+-static int omap_hsmmc_set_power(struct omap_hsmmc_host *host, int power_on,
+-				int vdd)
++static int omap_hsmmc_set_power(struct omap_hsmmc_host *host, int power_on)
+ {
+ 	struct mmc_host *mmc = host->mmc;
+ 	int ret = 0;
+@@ -363,7 +346,7 @@ static int omap_hsmmc_set_power(struct omap_hsmmc_host *host, int power_on,
+ 	if (IS_ERR(mmc->supply.vmmc))
+ 		return 0;
+ 
+-	ret = omap_hsmmc_set_pbias(host, false, 0);
++	ret = omap_hsmmc_set_pbias(host, false);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -385,7 +368,7 @@ static int omap_hsmmc_set_power(struct omap_hsmmc_host *host, int power_on,
+ 		if (ret)
+ 			return ret;
+ 
+-		ret = omap_hsmmc_set_pbias(host, true, vdd);
++		ret = omap_hsmmc_set_pbias(host, true);
+ 		if (ret)
+ 			goto err_set_voltage;
+ 	} else {
+@@ -1220,11 +1203,11 @@ static int omap_hsmmc_switch_opcond(struct omap_hsmmc_host *host, int vdd)
+ 		clk_disable_unprepare(host->dbclk);
+ 
+ 	/* Turn the power off */
+-	ret = omap_hsmmc_set_power(host, 0, 0);
++	ret = omap_hsmmc_set_power(host, 0);
+ 
+ 	/* Turn the power ON with given VDD 1.8 or 3.0v */
+ 	if (!ret)
+-		ret = omap_hsmmc_set_power(host, 1, vdd);
++		ret = omap_hsmmc_set_power(host, 1);
+ 	if (host->dbclk)
+ 		clk_prepare_enable(host->dbclk);
+ 
+@@ -1621,10 +1604,10 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 	if (ios->power_mode != host->power_mode) {
+ 		switch (ios->power_mode) {
+ 		case MMC_POWER_OFF:
+-			omap_hsmmc_set_power(host, 0, 0);
++			omap_hsmmc_set_power(host, 0);
+ 			break;
+ 		case MMC_POWER_UP:
+-			omap_hsmmc_set_power(host, 1, ios->vdd);
++			omap_hsmmc_set_power(host, 1);
+ 			break;
+ 		case MMC_POWER_ON:
+ 			do_send_init_stream = 1;
+-- 
+2.11.0
 
-On Thu, Aug 31, 2017 at 08:59:51AM +0200, H. Nikolaus Schaller wrote:
-> Tested on OpenPandora with bq27500.
->=20
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
-
-Thanks, queued.
-
--- Sebastian
-
->  drivers/power/supply/bq27xxx_battery.c | 4 ----
->  1 file changed, 4 deletions(-)
->=20
-> diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/suppl=
-y/bq27xxx_battery.c
-> index e80571cf7be1..5562f998330f 100644
-> --- a/drivers/power/supply/bq27xxx_battery.c
-> +++ b/drivers/power/supply/bq27xxx_battery.c
-> @@ -653,15 +653,11 @@ enum bq27xxx_dm_reg_id {
->  #define bq2751x_dm_regs 0
->  #define bq2752x_dm_regs 0
-> =20
-> -#if 0 /* not yet tested */
->  static struct bq27xxx_dm_reg bq27500_dm_regs[] =3D {
->  	[BQ27XXX_DM_DESIGN_CAPACITY]   =3D { 48, 10, 2,    0, 65535 },
->  	[BQ27XXX_DM_DESIGN_ENERGY]     =3D { }, /* missing on chip */
->  	[BQ27XXX_DM_TERMINATE_VOLTAGE] =3D { 80, 48, 2, 1000, 32767 },
->  };
-> -#else
-> -#define bq27500_dm_regs 0
-> -#endif
-> =20
->  /* todo create data memory definitions from datasheets and test on chips=
- */
->  #define bq27510g1_dm_regs 0
-> --=20
-> 2.12.2
->=20
-
---plyamg76nvk3t7m6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlmnyvIACgkQ2O7X88g7
-+ppLlQ//XoR0Hs7BnqgbBgNIkqfaC4abz+cCQ9TYCFrqyKJa/W75mL4bhjcXu8ZN
-f4WBubWJ0tR7HjxP7cHvzgYkDpZykdC4JznB5McKrndCLGyDrxd+Jpw72WdWWAMN
-RlOQ4O5FNyXHVHbiztqeRUdJ/25JI304SD5RIEE/vZ6RzJ1Kc5FQNR/PhH4lxfI3
-uG+Iek7N7l0guV/yHxBKzZtAiXf4uBpYZRNpSk7EJKiPnEPxW1qYjidKQbFPGjQg
-3IG7RVArlm3nDjZFpmM81IWVtrlTevq7IQi9ievREYAzf3NRaJvqFzsqJzN+hw9F
-n/yf/8kyTx7EaUYr+QAGEknlU/V8w8E0mSyuTNliB8ZkfXsOL6TRZh2U+cOC8SlP
-iK5xHVFOTvxyVRzWyVWu5hUM292hIQ12kFt6CPSfu2EGNL+YtQnmBK2KA0lN2X14
-4Sxxozm/KaWfa5Zelts9/a8r8Az//mGjiPfy+4XwokWnMc9ZU/4dO6dCK7wnjf0i
-C7QDveRdDMDqhiD6ZEgDXJG2lqUCQGxE1PryzqXoVTXHxpoqkh1Sd8eZXb3crNir
-UKij0FHbjC758Szg8OFpJhKJKzDet5Z3ePRxsdHefrL+BZk68UGXXvazKhXZneyR
-JiTRZpTsQYUnQXOEuJsZkpOefZ5rWWlQ8s+nLSzkr7zpefXcR4U=
-=VpbH
------END PGP SIGNATURE-----
-
---plyamg76nvk3t7m6--
