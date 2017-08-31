@@ -1,43 +1,38 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 3/4] DT: OpenPandora: add battery node to describe OpenPandora battery
-Date: Thu, 31 Aug 2017 08:59:52 +0200
-Message-ID: <9930208cc7cde7c595b95469804e09b674a57ef4.1504162792.git.hns@goldelico.com>
-References: <cover.1504162792.git.hns@goldelico.com>
+Subject: [PATCH v3 0/4] fixes for latest bq27xxx driver and OpenPandora DT nodes
+Date: Thu, 31 Aug 2017 08:59:49 +0200
+Message-ID: <cover.1504162792.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1504162792.git.hns@goldelico.com>
-In-Reply-To: <cover.1504162792.git.hns@goldelico.com>
-References: <cover.1504162792.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: afd@ti.com, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>
 Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, gta04-owner@goldelico.com, marek@goldelico.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add DT node to describe the standard OpenPandora battery PB-4000-001
-so that its properties can be used by the fuel gauge driver.
+Latest bq27xxx drivers allow to write RAM/NVRAM parameters
+of the fuel gauge chip from values defined in board specific
+device tree.
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- arch/arm/boot/dts/omap3-pandora-common.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+This allows to specify the battery properties of a standard
+battery.
 
-diff --git a/arch/arm/boot/dts/omap3-pandora-common.dtsi b/arch/arm/boot/dts/omap3-pandora-common.dtsi
-index 582e1fe25602..154865289dba 100644
---- a/arch/arm/boot/dts/omap3-pandora-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-pandora-common.dtsi
-@@ -273,6 +273,14 @@
- 		enable-active-high;
- 		gpio = <&twl_gpio 13 GPIO_ACTIVE_HIGH>;
- 	};
-+
-+	/* standard OpenPandora battery (PB-4000-001) */
-+	bat: battery {
-+		compatible = "simple-battery", "openpandora-battery";
-+		voltage-min-design-microvolt = <3200000>;
-+		energy-full-design-microwatt-hours = <14800000>;
-+		charge-full-design-microamp-hours = <4000000>;
-+	};
- };
- 
- &omap3_pmx_core {
+This patch set enables this for two chips where I have tested
+it on real devices:
+
+bq27421: Pyra handheld prototype
+bq27500: OpenPandora 600 Mhz standard device
+
+Since the Pyra DT is not yet mainlined, there are only DT
+patches for the OpenPandora.
+
+H. Nikolaus Schaller (4):
+  power: supply: bq27xxx: enable writing capacity values for bq27421
+  power: supply: bq27xxx: enable writing capacity values for bq27500
+  DT: OpenPandora: add battery node to describe OpenPandora battery
+  DT: OpenPandora: fix for configuration of bq27500 fuel gauge
+
+ arch/arm/boot/dts/omap3-pandora-common.dtsi | 11 ++++++++++-
+ drivers/power/supply/bq27xxx_battery.c      |  8 --------
+ 2 files changed, 10 insertions(+), 9 deletions(-)
+
 -- 
 2.12.2
