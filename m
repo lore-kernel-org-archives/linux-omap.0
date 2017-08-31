@@ -1,37 +1,43 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH net-next] net: cpsw: Don't handle SIOC[GS]HWTSTAMP when
- CPTS is disabled
-Date: Thu, 31 Aug 2017 09:48:07 +0200
-Message-ID: <20170831074807.3dbbt6qhqxdquipa@localhost>
-References: <20170830065055.419-1-stefan.sorensen@spectralink.com>
- <20170830.144745.947488279115809130.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170830.144745.947488279115809130.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: stefan.sorensen@spectralink.com, grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v3 3/4] DT: OpenPandora: add battery node to describe OpenPandora battery
+Date: Thu, 31 Aug 2017 10:21:51 +0200
+Message-ID: <9930208cc7cde7c595b95469804e09b674a57ef4.1504167711.git.hns@goldelico.com>
+References: <cover.1504167711.git.hns@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1504167711.git.hns@goldelico.com>
+In-Reply-To: <cover.1504167711.git.hns@goldelico.com>
+References: <cover.1504167711.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: afd@ti.com, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>
+Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, gta04-owner@goldelico.com, marek@goldelico.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 30, 2017 at 02:47:45PM -0700, David Miller wrote:
-> It should not be required to disable a Kconfig option just to get PHY
-> timestamping to work properly.
+Add DT node to describe the standard OpenPandora battery PB-4000-001
+so that its properties can be used by the fuel gauge driver.
 
-Well, if the MAC driver handles the ioctl and enables time stamping,
-then the PHY driver's time stamping remains disabled.  We don't have a
-way to choose PHY time stamping at run time.
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ arch/arm/boot/dts/omap3-pandora-common.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap3-pandora-common.dtsi b/arch/arm/boot/dts/omap3-pandora-common.dtsi
+index 582e1fe25602..154865289dba 100644
+--- a/arch/arm/boot/dts/omap3-pandora-common.dtsi
++++ b/arch/arm/boot/dts/omap3-pandora-common.dtsi
+@@ -273,6 +273,14 @@
+ 		enable-active-high;
+ 		gpio = <&twl_gpio 13 GPIO_ACTIVE_HIGH>;
+ 	};
++
++	/* standard OpenPandora battery (PB-4000-001) */
++	bat: battery {
++		compatible = "simple-battery", "openpandora-battery";
++		voltage-min-design-microvolt = <3200000>;
++		energy-full-design-microwatt-hours = <14800000>;
++		charge-full-design-microamp-hours = <4000000>;
++	};
+ };
  
-> Rather, if the CPTS code returns -EOPNOTSUPP we should try to
-> fallthrough to the PHY library based methods.
-
-I agree that it would be better for the core (rather than the
-individual drivers) to handle this case.
-
-There are a few callers of .ndo_do_ioctl to consider.  Besides
-dev_ifsioc() there is at least vlan_dev_ioctl() that needs to handle
-the EOPNOTSUPP.
-
-Thanks,
-Richard
+ &omap3_pmx_core {
+-- 
+2.12.2
