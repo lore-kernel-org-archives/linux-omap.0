@@ -1,57 +1,39 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: Applied "regulator: pbias: Select voltage table based on
- max-voltage" to the regulator tree
-Date: Thu, 31 Aug 2017 17:37:34 +0530
-Message-ID: <64d9c623-456c-9142-9c5b-a94593628643@ti.com>
-References: <E1dnO3z-0000tI-7K@debutante>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH 4/5] mmc: sdhci-omap: Add OMAP SDHCI driver
+Date: Thu, 31 Aug 2017 16:02:23 +0300
+Message-ID: <dfe1b4e2-bcb5-c969-efe6-7cddd0eb0bf9@intel.com>
+References: <20170821074132.4622-1-kishon@ti.com>
+ <20170821074132.4622-5-kishon@ti.com>
+ <4f0a7225-1843-b353-1a2a-9adcb49554d3@intel.com>
+ <c7972f00-ef62-1736-822f-ebf6822b6d33@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <E1dnO3z-0000tI-7K@debutante>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@kernel.org>, Ravikumar Kattekola <rk@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-mmc@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, Liam Girdwood <lgirdwood@gmail.com>, Rob Herring <robh+dt@kernel.org>, linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <c7972f00-ef62-1736-822f-ebf6822b6d33@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
+On 30/08/17 16:53, Kishon Vijay Abraham I wrote:
+> On Monday 28 August 2017 02:36 PM, Adrian Hunter wrote:
+>> On 21/08/17 10:41, Kishon Vijay Abraham I wrote:
+>>> +
+>>> +static void sdhci_omap_set_clock(struct sdhci_host *host, unsigned int clock)
+>>> +{
+>>> +	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
+>>> +	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
+>>> +	unsigned long clkdiv;
+>>> +
+>>> +	if (!clock)
+>>> +		return;
+>>
+>> Are you sure you don't want to stop the clock.
+> 
+> There is never a case where the MMC core sends a request to stop the clock.
+> Maybe this check is not required at all.
 
-On Thursday 31 August 2017 05:25 PM, Mark Brown wrote:
-> The patch
-> 
->    regulator: pbias: Select voltage table based on max-voltage
-> 
-> has been applied to the regulator tree at
-> 
->    git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
-> 
-> All being well this means that it will be integrated into the linux-next
-> tree (usually sometime in the next 24 hours) and sent to Linus during
-> the next merge window (or sooner if it is a bug fix), however if
-> problems are discovered then the patch may be dropped or reverted.  
-> 
-> You may get further e-mails resulting from automated or manual testing
-> and review of the tree, please engage with people reporting problems and
-> send followup patches addressing any issues that are reported if needed.
-> 
-> If any updates are required or you are submitting further changes they
-> should be sent as incremental updates against current git, existing
-> patches will not be replaced.
-> 
-> Please add any relevant lists and maintainers to the CCs when replying
-> to this mail.
-
-This patch should be merged along with the 1st patch of the series "mmc: host:
-omap_hsmmc: Remove setting PBIAS voltage". Or else it'll break MMC with
-omap_hsmmc driver.
-
-Thanks
-Kishon
+It does when voltage switching e.g. mmc_set_uhs_voltage(), but host drivers
+should support the possibility anyway.
