@@ -1,40 +1,48 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: Regression in next with gpiolib
-Date: Thu, 31 Aug 2017 07:59:29 +0200
-Message-ID: <CACRpkdYUd2+FjhL_koEYjJXnci+khSOM9H6ahpXnzJoiYFCJdQ@mail.gmail.com>
-References: <20170830214127.GJ6008@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170830214127.GJ6008@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Timur Tabi <timur@codeaurora.org>, Grygorii Strashko <grygorii.strashko@ti.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH v3 1/4] power: supply: bq27xxx: enable writing capacity values for bq27421
+Date: Thu, 31 Aug 2017 08:59:50 +0200
+Message-ID: <8d323718d7d1dcd7633da236abcd782f88200113.1504162792.git.hns@goldelico.com>
+References: <cover.1504162792.git.hns@goldelico.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1504162792.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <cover.1504162792.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+References: <cover.1504162792.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: afd-l0cyMroinI0@public.gmane.org, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Eremin-Solenikov <dbaryshkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gta04-owner-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, marek-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 30, 2017 at 11:41 PM, Tony Lindgren <tony@atomide.com> wrote:
+Tested on Pyra prototype with bq27421.
 
-> Hi Timur, Linus & Grygorii,
->
-> Looks like commit 108d23e322a2 ("gpiolib: request the gpio before
-> querying its direction") caused a regression on at least pandaboard
-> es with booting hanging shortly after gpio init.
->
-> It seems to be that we're now calling request and free on all gpios
-> before they are properly configured?
->
-> I narrowed the hang down to gpio bank1 lines 7 and possibly 8 where
-> not calling omap_gpio_free() on them makes the system boot again.
->
-> These lines are used for the leds in omap4-panda-common.dtsi, and
-> omap_gpio_free() will by default set the unused lines for input
-> and bad things happen. I guess hardware failure could also happen
-> although I have not seen it here.
->
-> It seems a similar issue can exist on other platforms too,
-> so it's probably a good idea to revert this for now.
+Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+---
+ drivers/power/supply/bq27xxx_battery.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-I reverted it for now.
+diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/bq27xxx_battery.c
+index ad876a3abe01..e80571cf7be1 100644
+--- a/drivers/power/supply/bq27xxx_battery.c
++++ b/drivers/power/supply/bq27xxx_battery.c
+@@ -688,15 +688,11 @@ static struct bq27xxx_dm_reg bq27545_dm_regs[] = {
+ #define bq27545_dm_regs 0
+ #endif
+ 
+-#if 0 /* not yet tested */
+ static struct bq27xxx_dm_reg bq27421_dm_regs[] = {
+ 	[BQ27XXX_DM_DESIGN_CAPACITY]   = { 82, 10, 2,    0,  8000 },
+ 	[BQ27XXX_DM_DESIGN_ENERGY]     = { 82, 12, 2,    0, 32767 },
+ 	[BQ27XXX_DM_TERMINATE_VOLTAGE] = { 82, 16, 2, 2500,  3700 },
+ };
+-#else
+-#define bq27421_dm_regs 0
+-#endif
+ 
+ static struct bq27xxx_dm_reg bq27425_dm_regs[] = {
+ 	[BQ27XXX_DM_DESIGN_CAPACITY]   = { 82, 12, 2,    0, 32767 },
+-- 
+2.12.2
 
-Yours,
-Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
