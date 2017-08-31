@@ -1,14 +1,15 @@
 From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 11/17] ARM: dts: Add missing mcasp node for omap4
-Date: Thu, 31 Aug 2017 08:47:32 +0300
-Message-ID: <aef213f9-723f-dbf9-f0d2-8b1dd8b1eae1@ti.com>
+Subject: Re: [PATCH 12/17] ARM: dts: Add missing aess node and binding for
+ omap4
+Date: Thu, 31 Aug 2017 08:54:25 +0300
+Message-ID: <30241474-5f96-2d94-b1a9-4f163c8a4914@ti.com>
 References: <20170830151953.30856-1-tony@atomide.com>
- <20170830151953.30856-12-tony@atomide.com>
+ <20170830151953.30856-13-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170830151953.30856-12-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170830151953.30856-13-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -21,7 +22,7 @@ Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
 siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
 On 2017-08-30 18:19, Tony Lindgren wrote:
-> On omap4 we're missing the mcasp node with it's related "ti,hwmods"
+> On omap4 we're missing the aess node with it's related "ti,hwmods"
 > property that the SoC interconnect code needs.
 >=20
 > Note that this will only show up as a bug with "doesn't have
@@ -35,62 +36,113 @@ On 2017-08-30 18:19, Tony Lindgren wrote:
 > Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > ---
->  Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt | 1 +
->  arch/arm/boot/dts/omap4.dtsi                                    | 9 ++++=
-+++++
->  2 files changed, 10 insertions(+)
+>  .../devicetree/bindings/sound/ti-aess.txt          | 33 ++++++++++++++++=
+++++++
+>  arch/arm/boot/dts/omap4.dtsi                       |  8 ++++++
+>  2 files changed, 41 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/sound/ti-aess.txt
 >=20
-> diff --git a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.=
-txt b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-> --- a/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-> +++ b/Documentation/devicetree/bindings/sound/davinci-mcasp-audio.txt
-> @@ -6,6 +6,7 @@ Required properties:
->  	"ti,da830-mcasp-audio"	: for both DA830 & DA850 platforms
->  	"ti,am33xx-mcasp-audio"	: for AM33xx platforms (AM33xx, AM43xx, TI81xx)
->  	"ti,dra7-mcasp-audio"	: for DRA7xx platforms
-> +	"ti,omap4-mcasp-audio"	: for OMAP4 platforms
-> =20
->  - reg : Should contain reg specifiers for the entries in the reg-names p=
-roperty.
->  - reg-names : Should contain:
+> diff --git a/Documentation/devicetree/bindings/sound/ti-aess.txt b/Docume=
+ntation/devicetree/bindings/sound/ti-aess.txt
+> new file mode 100644
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/sound/ti-aess.txt
+> @@ -0,0 +1,33 @@
+> +Texas Instruments Audio Engine Subsystem (AESS) binding
+> +
+> +AESS performs real-time signal processing on TI SoCs.
+> +
+> +
+> +Required properties:
+> +
+> +compatible: Shall be one of the following:
+> +	    "ti,omap4-aess"
+> +
+> +reg: Shall contain the device instance IO range
+> +
+> +interrupts: Shall contain the device instance interrupt
+> +
+> +
+> +Optional properties:
+> +
+> +reg-names: Shall contain the IO range names if multiple IO
+> +	   ranges are used by the SoC
+> +
+> +ti,hwmods: Shall contain the TI interconnect module name if needed
+> +	   by the SoC
+> +
+> +
+> +Example:
+> +
+> +	aess: aess@401f1000 {
+> +		compatible =3D "ti,omap4-aess";
+> +		reg =3D <0x401f1000 0x400>, /* MPU private access */
+> +		      <0x490f1000 0x400>; /* L3 Interconnect */
+> +		reg-names =3D "mpu", "dma";
+> +		ti,hwmods =3D "aess";
+> +	};
 > diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
 > --- a/arch/arm/boot/dts/omap4.dtsi
 > +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -775,6 +775,15 @@
->  			status =3D "disabled";
+> @@ -793,6 +793,14 @@
+>  			ti,hwmods =3D "slimbus1";
 >  		};
 > =20
-> +		mcasp: mcasp@40128000 {
-> +			compatible =3D "ti,omap4-mcasp-audio";
-> +			reg =3D <0x40128000 0x400>, /* MPU private access */
-> +			      <0x49028000 0x400>; /* L3 Interconnect */
+> +		aess: aess@401f1000 {
+> +			compatible =3D "ti,omap4-aess";
+> +			reg =3D <0x401f1000 0x400>, /* MPU private access */
+> +			      <0x490f1000 0x400>; /* L3 Interconnect */
 > +			reg-names =3D "mpu", "dma";
-> +			interrupts =3D <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH>;
-> +			ti,hwmods =3D "mcasp";
+> +			ti,hwmods =3D "aess";
+
+status =3D "disabled"
+
 > +		};
 
-I would not do this. We don't support the NcASP on OMAP4 or OMAP5 for
-that matter.
-In theory it is the same IP as found in other SoCs, but in OMAP4 the TX
-path is disabled and (in theory) the i2s support is also a thing which
-is not supported - only DIT mode.
-We do not even have any hardware where it can be tested (Galaxy Nexus
-uses McASP for S/PDIF output when it is docked.
-For Android we have had omap-mcasp driver, but it is not upstream and is
-never will as if we are going to support McASP it should be done via the
-davinci-mcasp driver.
+Similar comment applies to AESS as to the McASP. We don't have driver
+for it and we most likely not going to have.
+But the binding is not correct in any case. The latest official Android
+kernel is 3.4(ish) to support AESS/ABE. I have rewritten the whole thing
+as an effort to upstream it and maintained the code up to 3.15. There
+the DT node looks like this:
 
-By adding the node we might give the impression that McASP on OMAP4/5 is
-usable, which is not.
+aess: aess@0x401f1000 {
+	compatible =3D "ti,omap4-aess";
+	reg =3D <0x401f1000 0x3ff>, /* MPU private access */
+		<0x40180000 0xffff>, /* DMEM - MPU */
+		<0x401a0000 0x1fff>, /* CMEM - MPU */
+		<0x401c0000 0x5fff>, /* SMEM - MPU */
+		<0x401e0000 0x1fff>, /* PMEM - MPU */
+		<0x490f1000 0x3ff>, /* L3 Interconnect */
+		<0x49080000 0xffff>, /* DMEM - MPU */
+		<0x490a0000 0x1fff>, /* CMEM - MPU */
+		<0x490ce000 0x5fff>, /* SMEM - MPU */
+		<0x490e0000 0x1fff>; /* PMEM - MPU */
+	reg-names =3D "mpu", "dmem", "cmem", "smem", "pmem",
+			"dma","dmem_dma", "cmem_dma", "smem_dma",
+			"pmem_dma";
+	interrupts =3D <0 99 0x4>;
+	ti,hwmods =3D "aess";
+	dmas =3D <&sdma 101>,
+		<&sdma 102>,
+		<&sdma 103>,
+		<&sdma 104>,
+		<&sdma 105>,
+		<&sdma 106>,
+		<&sdma 107>,
+		<&sdma 108>;
+	dma-names =3D "fifo0", "fifo1", "fifo2", "fifo3", "fifo4",
+			"fifo5", "fifo6", "fifo7";
+};
 
-On the other hand, the DT describes the HW, so it should be OK to add
-all peripherals even if there is no driver to support it. In this case
-the status =3D "disabled"; must be there.
+This is more closer to what we might need to describe AESS, but it might
+be not correct if I ever have the time to forward port and convert it to
+current upstream framework (DPCM, graph, whatever)
 
 > +
->  		slimbus1: slimbus@4012c000 {
->  			compatible =3D "ti,omap4-slimbus";
->  			reg =3D <0x4012c000 0x400>, /* MPU private access */
+>  		mcbsp4: mcbsp@48096000 {
+>  			compatible =3D "ti,omap4-mcbsp";
+>  			reg =3D <0x48096000 0xff>; /* L4 Interconnect */
 >=20
 
 - P=C3=A9ter
