@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 3/4] DT: OpenPandora: add battery node to describe OpenPandora battery
-Date: Thu, 31 Aug 2017 10:21:51 +0200
-Message-ID: <9930208cc7cde7c595b95469804e09b674a57ef4.1504167711.git.hns@goldelico.com>
+Subject: [PATCH v3 1/4] power: supply: bq27xxx: enable writing capacity values for bq27421
+Date: Thu, 31 Aug 2017 10:21:49 +0200
+Message-ID: <8d323718d7d1dcd7633da236abcd782f88200113.1504167711.git.hns@goldelico.com>
 References: <cover.1504167711.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1504167711.git.hns@goldelico.com>
@@ -12,32 +12,32 @@ To: afd@ti.com, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Sebastian 
 Cc: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, gta04-owner@goldelico.com, marek@goldelico.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, "H. Nikolaus Schaller" <hns@goldelico.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add DT node to describe the standard OpenPandora battery PB-4000-001
-so that its properties can be used by the fuel gauge driver.
+Tested on Pyra prototype with bq27421.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- arch/arm/boot/dts/omap3-pandora-common.dtsi | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/power/supply/bq27xxx_battery.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-pandora-common.dtsi b/arch/arm/boot/dts/omap3-pandora-common.dtsi
-index 582e1fe25602..154865289dba 100644
---- a/arch/arm/boot/dts/omap3-pandora-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-pandora-common.dtsi
-@@ -273,6 +273,14 @@
- 		enable-active-high;
- 		gpio = <&twl_gpio 13 GPIO_ACTIVE_HIGH>;
- 	};
-+
-+	/* standard OpenPandora battery (PB-4000-001) */
-+	bat: battery {
-+		compatible = "simple-battery", "openpandora-battery";
-+		voltage-min-design-microvolt = <3200000>;
-+		energy-full-design-microwatt-hours = <14800000>;
-+		charge-full-design-microamp-hours = <4000000>;
-+	};
- };
+diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/bq27xxx_battery.c
+index ad876a3abe01..e80571cf7be1 100644
+--- a/drivers/power/supply/bq27xxx_battery.c
++++ b/drivers/power/supply/bq27xxx_battery.c
+@@ -688,15 +688,11 @@ static struct bq27xxx_dm_reg bq27545_dm_regs[] = {
+ #define bq27545_dm_regs 0
+ #endif
  
- &omap3_pmx_core {
+-#if 0 /* not yet tested */
+ static struct bq27xxx_dm_reg bq27421_dm_regs[] = {
+ 	[BQ27XXX_DM_DESIGN_CAPACITY]   = { 82, 10, 2,    0,  8000 },
+ 	[BQ27XXX_DM_DESIGN_ENERGY]     = { 82, 12, 2,    0, 32767 },
+ 	[BQ27XXX_DM_TERMINATE_VOLTAGE] = { 82, 16, 2, 2500,  3700 },
+ };
+-#else
+-#define bq27421_dm_regs 0
+-#endif
+ 
+ static struct bq27xxx_dm_reg bq27425_dm_regs[] = {
+ 	[BQ27XXX_DM_DESIGN_CAPACITY]   = { 82, 12, 2,    0, 32767 },
 -- 
 2.12.2
