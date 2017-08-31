@@ -1,59 +1,89 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH v3 2/2] memory: ti-emif-sram: introduce relocatable
- suspend/resume handlers
-Date: Thu, 31 Aug 2017 15:03:32 +0100
-Message-ID: <20170831140332.GD23750@n2100.armlinux.org.uk>
-References: <20170724212454.27574-1-d-gerlach@ti.com>
- <20170724212454.27574-3-d-gerlach@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 11/17] ARM: dts: Add missing mcasp node for omap4
+Date: Thu, 31 Aug 2017 07:44:25 -0700
+Message-ID: <20170831144425.GP3930@atomide.com>
+References: <20170830151953.30856-1-tony@atomide.com>
+ <20170830151953.30856-12-tony@atomide.com>
+ <aef213f9-723f-dbf9-f0d2-8b1dd8b1eae1@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170724212454.27574-3-d-gerlach@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>
+In-Reply-To: <aef213f9-723f-dbf9-f0d2-8b1dd8b1eae1-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jul 24, 2017 at 04:24:54PM -0500, Dave Gerlach wrote:
-> diff --git a/arch/arm/kernel/asm-offsets.c b/arch/arm/kernel/asm-offsets.c
-> index 608008229c7d..46a7a6c41db7 100644
-> --- a/arch/arm/kernel/asm-offsets.c
-> +++ b/arch/arm/kernel/asm-offsets.c
-> @@ -28,6 +28,7 @@
->  #include <asm/vdso_datapage.h>
->  #include <asm/hardware/cache-l2x0.h>
->  #include <linux/kbuild.h>
-> +#include <linux/ti-emif-sram.h>
->  
->  /*
->   * Make sure that the compiler and target are compatible.
-> @@ -183,5 +184,8 @@ int main(void)
->  #ifdef CONFIG_VDSO
->    DEFINE(VDSO_DATA_SIZE,	sizeof(union vdso_data_store));
->  #endif
-> +  BLANK();
-> +  ti_emif_offsets();
-> +
->    return 0; 
->  }
+* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [170830 22:48]:
+> On 2017-08-30 18:19, Tony Lindgren wrote:
+> > diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> > --- a/arch/arm/boot/dts/omap4.dtsi
+> > +++ b/arch/arm/boot/dts/omap4.dtsi
+> > @@ -775,6 +775,15 @@
+> >  			status = "disabled";
+> >  		};
+> >  
+> > +		mcasp: mcasp@40128000 {
+> > +			compatible = "ti,omap4-mcasp-audio";
+> > +			reg = <0x40128000 0x400>, /* MPU private access */
+> > +			      <0x49028000 0x400>; /* L3 Interconnect */
+> > +			reg-names = "mpu", "dma";
+> > +			interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH>;
+> > +			ti,hwmods = "mcasp";
+> > +		};
+> 
+> I would not do this. We don't support the NcASP on OMAP4 or OMAP5 for
+> that matter.
+> In theory it is the same IP as found in other SoCs, but in OMAP4 the TX
+> path is disabled and (in theory) the i2s support is also a thing which
+> is not supported - only DIT mode.
+> We do not even have any hardware where it can be tested (Galaxy Nexus
+> uses McASP for S/PDIF output when it is docked.
+> For Android we have had omap-mcasp driver, but it is not upstream and is
+> never will as if we are going to support McASP it should be done via the
+> davinci-mcasp driver.
 
-This doesn't make me happy - I've been thinking about this for some time,
-and I think it's completely wrong for drivers to hook into asm-offsets.
+OK
 
-Looking at the top-level Kbuild file, it looks like it would be easy
-for emif to auto-generate its own offsets.h header - it looks like it's
-a matter of using linux/kbuild.h to get the definitions, compiling to
-assembly (using $(call if_changed_dep,cc_s_c)) and then converting the
-assembly to the header file format ( using
-$(call filechk,offsets,__ASM_OFFSETS_H__), replacing __ASM_OFFSETS_H__
-with a more appropriate symbol.)
+> By adding the node we might give the impression that McASP on OMAP4/5 is
+> usable, which is not.
 
-Could you please check whether this is possible, so we don't end up
-needing to hook lots of driver-specific assembly offsets stuff into
-the arch files?
+OK. Yeah we need to make sure this is for the interconnect
+target module, and not for it's child device(s) mcasp.
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+> On the other hand, the DT describes the HW, so it should be OK to add
+> all peripherals even if there is no driver to support it. In this case
+> the status = "disabled"; must be there.
+
+Yeah well this is for the interconnect target module that we are
+already accessing during init to idle it. But it's actually the
+children of this node that should have the status = "disabled"!
+
+I think we can solve your concernd by adding the generic minimal
+binding and compatible properites for the interconnect target
+module for which I already posted an RFC a while back.
+
+So we can just use compatibles "ti,sysc-type1", "ti,sysc-type2"
+and "ti,sysc-type3" as are going to need those anyways soonish.
+
+So the McASP interconnect target module would just become:
+
+	target_module@40128000 {
+		compatible = "ti,sysc-type2";
+		reg = <0x40128000 0x400>, /* MPU private access */
+		      <0x49028000 0x400>; /* L3 Interconnect */
+		reg-names = "mpu", "dma";
+		ti,hwmods = "mcasp";
+	};
+
+And if there ever is a McASP driver, it can be a child of
+this node. And eventually we will just drop ti,hwmods too.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
