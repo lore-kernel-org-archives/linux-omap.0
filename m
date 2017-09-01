@@ -1,48 +1,39 @@
-From: Suman Anna via iommu <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Subject: Re: [PATCH 2/2] iommu/omap: Add support to program multiple iommus
-Date: Fri, 1 Sep 2017 12:05:37 -0500
-Message-ID: <2c8dd7ee-e645-420e-054c-8bdd16bb5338@ti.com>
-References: <20170831131402.29502-1-s-anna@ti.com>
-	<20170831131402.29502-3-s-anna@ti.com>
-	<20170901100141.2ooccy7ns2fwxceg@8bytes.org>
-	<d8b503a1-eaff-e4cc-215d-92520a91e205@ti.com>
-	<20170901163312.GM19533@8bytes.org>
-Reply-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+From: Liam Breck <liam@networkimprov.net>
+Subject: Fwd: power: supply: bq27xxx: enable writing capacity values for bq27500
+Date: Fri, 1 Sep 2017 13:09:34 -0700
+Message-ID: <CAKvHMgTtxYUXGmCOq3MEB5-r3xvuR7RoCdMPkq2CTHBXvw-+7g@mail.gmail.com>
+References: <CAKvHMgRhmRKsC-2DrxD0sx3rXBN9xyv3W9cbXAUO7oTHEawm8Q@mail.gmail.com>
+ <CAKvHMgTTUuoaSMON6o=+chBv53aSZrDukz06DTdOYYGtTbovag@mail.gmail.com>
+ <CAKvHMgSztFGS_KmeNoT7Fe-xTpgiH_-Y3=Us_QCtK9FzMM67kg@mail.gmail.com>
+ <CAKvHMgTH7-e7TTKj--5HjDCV5kZCr_=aY73wRRePMDiLPdE55g@mail.gmail.com>
+ <CAKvHMgR6jEjY08v95mYenHo=V+n59EfFVFb8R+P_Mx8kHJc+3A@mail.gmail.com>
+ <CAKvHMgTDwhbXerhybL1=WemLmn_fpKWdhmZPVvGPQ_Xzu-m1Uw@mail.gmail.com>
+ <CAKvHMgQVQYcyS-Ku7VeNLoZ6MtP331nbfooskiHM9wuF1pC9gQ@mail.gmail.com>
+ <CAKvHMgQ+W-mX4TMo4ggiVJZ=8==Okr5ZeD_A84SfGYshA1Zn3Q@mail.gmail.com>
+ <CAKvHMgQGhqG_5WcDO9Ovt9wp1oxy-08RbyMR5gcLNeiYdeXAeg@mail.gmail.com>
+ <CAKvHMgTDaoLcw80Y7inM3sqc5r5fgVb3TYSfARg=3QBXOWhJ0w@mail.gmail.com>
+ <CAKvHMgRBnktcaxF2GKGMUSbctQsUK-UFf8S1mBMR5dP4Tw8htA@mail.gmail.com> <CAKvHMgSpyAUsm-AH9eO7KAzuxxfKsOROtRqx=-KfuqprwWRMYw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20170901163312.GM19533-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAKvHMgSpyAUsm-AH9eO7KAzuxxfKsOROtRqx=-KfuqprwWRMYw@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/01/2017 11:33 AM, Joerg Roedel wrote:
-> Hi Suman,
-> On Fri, Sep 01, 2017 at 11:21:45AM -0500, Suman Anna wrote:
->> It's primarily a question of whether each iommu platform device need to
->> be represented as a unique iommu_device or not. If you still think that
->> both these need to be presented to iommu core as one device, I would
->> have to add some glue logic in probe to tie the two devices together.
-> 
-> I think that you should only call iommu_device_register and friends for
-> the mmu-device you link the other devices against in .add_device.
-> Otherwise people will see two mmus in sysfs, one of them with no devices
-> behind it. That is inconsistent with the rest of the patch-set, which
-> basically handles bots mmus as one. But changing that should be easy, I
-> think.
+[resend in plaintext]
 
-Thanks for the feedback and suggestions, let me look at adding that logic.
+Hi Sebastian,
 
-regards
-Suman
+This chip definition, enabled by this patch from Nikolaus, is not
+fully tested yet. I just sent him a new fix to try, and his previous
+kernel logs for it aren't definitely correct.
+
+Could you drop this from -next? Hopefully he'll have a new patch for
+you shortly...
+
+power: supply: bq27xxx: enable writing capacity values for bq27500
+https://patchwork.kernel.org/patch/9931511/
+
+Cc Tony re OpenPandora dtsi patches
