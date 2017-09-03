@@ -1,7 +1,7 @@
 From: "Derald D. Woods" <woods.technical@gmail.com>
-Subject: [PATCH 1/2] ARM: dts: omap3-evm-37xx: Add common processor module support
-Date: Sat,  2 Sep 2017 19:38:15 -0500
-Message-ID: <20170903003816.5536-2-woods.technical@gmail.com>
+Subject: [PATCH 2/2] ARM: dts: omap3-evm: Add OMAP3530 specific device tree processor data
+Date: Sat,  2 Sep 2017 19:38:16 -0500
+Message-ID: <20170903003816.5536-3-woods.technical@gmail.com>
 References: <20170903003816.5536-1-woods.technical@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170903003816.5536-1-woods.technical@gmail.com>
@@ -10,473 +10,103 @@ To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, linux-kernel@vger.kernel.org, "Derald D. Woods" <woods.technical@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-This commit moves common OMAP3-EVM processor module device tree data
-to a separate include file. This will allow for 'omap3-evm.dts' to use
-device tree data that is unique to the OMAP3530 version of the
-processor module, while making use of the work already done for the
-'omap3-evm-37xx.dts'.
+This commit allows OMAP3530 variants to use common data that is
+available in 'omap3-evm-processor-common.dtsi'. It adds proper pinmux
+macros for 'omap3_pmx_core2' on OMAP3430. The Micron NAND chip is also
+added for the TMDSEVM3530 processor module.
 ---
- arch/arm/boot/dts/omap3-evm-37xx.dts              | 209 +--------------------
- arch/arm/boot/dts/omap3-evm-processor-common.dtsi | 214 ++++++++++++++++++++++
- 2 files changed, 215 insertions(+), 208 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-evm-processor-common.dtsi
+ arch/arm/boot/dts/omap3-evm.dts | 76 ++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 72 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-evm-37xx.dts b/arch/arm/boot/dts/omap3-evm-37xx.dts
-index c963b31ec3b3..5a4ba0aea447 100644
---- a/arch/arm/boot/dts/omap3-evm-37xx.dts
-+++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
-@@ -9,146 +9,11 @@
+diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+index 99b2bfcd1059..21a3b88aef0c 100644
+--- a/arch/arm/boot/dts/omap3-evm.dts
++++ b/arch/arm/boot/dts/omap3-evm.dts
+@@ -9,13 +9,81 @@
  
- #include "omap36xx.dtsi"
+ #include "omap34xx.dtsi"
  #include "omap3-evm-common.dtsi"
--
 +#include "omap3-evm-processor-common.dtsi"
  
  / {
- 	model = "TI OMAP37XX EVM (TMDSEVM3730)";
- 	compatible = "ti,omap3-evm-37xx", "ti,omap3630", "ti,omap3";
--
--	memory@80000000 {
--		device_type = "memory";
--		reg = <0x80000000 0x10000000>; /* 256 MB */
--	};
--
--	wl12xx_vmmc: wl12xx_vmmc {
--		pinctrl-names = "default";
--		pinctrl-0 = <&wl12xx_gpio>;
--	};
--};
--
--&dss {
--	pinctrl-names = "default";
--	pinctrl-0 = <
--		&dss_dpi_pins1
--		&dss_dpi_pins2
--	>;
--};
--
--&hsusb2_phy {
--	pinctrl-names = "default";
--	pinctrl-0 = <&ehci_phy_pins>;
--};
--
--&omap3_pmx_core {
--	pinctrl-names = "default";
--	pinctrl-0 = <&on_board_gpio_61 &hsusb2_pins>;
--
--	dss_dpi_pins1: pinmux_dss_dpi_pins2 {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x20d4, PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
--			OMAP3_CORE1_IOPAD(0x20d6, PIN_OUTPUT | MUX_MODE0)   /* dss_hsync.dss_hsync */
--			OMAP3_CORE1_IOPAD(0x20d8, PIN_OUTPUT | MUX_MODE0)   /* dss_vsync.dss_vsync */
--			OMAP3_CORE1_IOPAD(0x20da, PIN_OUTPUT | MUX_MODE0)   /* dss_acbias.dss_acbias */
--
--			OMAP3_CORE1_IOPAD(0x20e8, PIN_OUTPUT | MUX_MODE0)   /* dss_data6.dss_data6 */
--			OMAP3_CORE1_IOPAD(0x20ea, PIN_OUTPUT | MUX_MODE0)   /* dss_data7.dss_data7 */
--			OMAP3_CORE1_IOPAD(0x20ec, PIN_OUTPUT | MUX_MODE0)   /* dss_data8.dss_data8 */
--			OMAP3_CORE1_IOPAD(0x20ee, PIN_OUTPUT | MUX_MODE0)   /* dss_data9.dss_data9 */
--			OMAP3_CORE1_IOPAD(0x20f0, PIN_OUTPUT | MUX_MODE0)   /* dss_data10.dss_data10 */
--			OMAP3_CORE1_IOPAD(0x20f2, PIN_OUTPUT | MUX_MODE0)   /* dss_data11.dss_data11 */
--			OMAP3_CORE1_IOPAD(0x20f4, PIN_OUTPUT | MUX_MODE0)   /* dss_data12.dss_data12 */
--			OMAP3_CORE1_IOPAD(0x20f6, PIN_OUTPUT | MUX_MODE0)   /* dss_data13.dss_data13 */
--			OMAP3_CORE1_IOPAD(0x20f8, PIN_OUTPUT | MUX_MODE0)   /* dss_data14.dss_data14 */
--			OMAP3_CORE1_IOPAD(0x20fa, PIN_OUTPUT | MUX_MODE0)   /* dss_data15.dss_data15 */
--			OMAP3_CORE1_IOPAD(0x20fc, PIN_OUTPUT | MUX_MODE0)   /* dss_data16.dss_data16 */
--			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE0)   /* dss_data17.dss_data17 */
--
--			OMAP3_CORE1_IOPAD(0x2100, PIN_OUTPUT | MUX_MODE3)   /* dss_data18.dss_data0 */
--			OMAP3_CORE1_IOPAD(0x2102, PIN_OUTPUT | MUX_MODE3)   /* dss_data19.dss_data1 */
--			OMAP3_CORE1_IOPAD(0x2104, PIN_OUTPUT | MUX_MODE3)   /* dss_data20.dss_data2 */
--			OMAP3_CORE1_IOPAD(0x2106, PIN_OUTPUT | MUX_MODE3)   /* dss_data21.dss_data3 */
--			OMAP3_CORE1_IOPAD(0x2108, PIN_OUTPUT | MUX_MODE3)   /* dss_data22.dss_data4 */
--			OMAP3_CORE1_IOPAD(0x210a, PIN_OUTPUT | MUX_MODE3)   /* dss_data23.dss_data5 */
--		>;
--	};
--
--	mmc1_pins: pinmux_mmc1_pins {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x2144, PIN_OUTPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk.sdmmc1_clk */
--			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc1_cmd.sdmmc1_cmd */
--			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat0.sdmmc1_dat0 */
--			OMAP3_CORE1_IOPAD(0x214a, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat1.sdmmc1_dat1 */
--			OMAP3_CORE1_IOPAD(0x214c, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat2.sdmmc1_dat2 */
--			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat3.sdmmc1_dat3 */
--			OMAP3_CORE1_IOPAD(0x2150, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat4.sdmmc1_dat4 */
--			OMAP3_CORE1_IOPAD(0x2152, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat5.sdmmc1_dat5 */
--			OMAP3_CORE1_IOPAD(0x2154, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat6.sdmmc1_dat6 */
--			OMAP3_CORE1_IOPAD(0x2156, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat7.sdmmc1_dat7 */
--		>;
--	};
--
--	/* NOTE: Clocked externally, needs INPUT also for sdmmc2_clk.sdmmc2_clk */
--	mmc2_pins: pinmux_mmc2_pins {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
--			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
--			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat0.sdmmc2_dat0 */
--			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat1.sdmmc2_dat1 */
--			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
--			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
--		>;
--	};
--
--	uart3_pins: pinmux_uart3_pins {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x219e, WAKEUP_EN | PIN_INPUT | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
--			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
--		>;
--	};
--
--	/* Devices are routed with gpmc_nbe1.gpio_61 to on-board devices */
--	on_board_gpio_61: pinmux_ehci_port_select_pins {
--		pinctrl-single,pins = <
--		OMAP3_CORE1_IOPAD(0x20c8, PIN_OUTPUT | MUX_MODE4)
--		>;
--	};
--
--	/* Used by OHCI and EHCI. OHCI won't work without external phy */
--	hsusb2_pins: pinmux_hsusb2_pins {
--		pinctrl-single,pins = <
--
--		/* mcspi1_cs3.hsusb2_data2 */
--		OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)
--
--		/* mcspi2_clk.hsusb2_data7 */
--		OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)
--
--		/* mcspi2_simo.hsusb2_data4 */
--		OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)
--
--		/* mcspi2_somi.hsusb2_data5 */
--		OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)
--
--		/* mcspi2_cs0.hsusb2_data6 */
--		OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)
--
--		/* mcspi2_cs1.hsusb2_data3 */
--		OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)
--		>;
--	};
--
--	wl12xx_gpio: pinmux_wl12xx_gpio {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x2180, PIN_OUTPUT | MUX_MODE4)		/* uart1_cts.gpio_150 */
--			OMAP3_CORE1_IOPAD(0x217e, PIN_INPUT | MUX_MODE4)		/* uart1_rts.gpio_149 */
--		>;
--	};
--
--	smsc911x_pins: pinmux_smsc911x_pins {
--		pinctrl-single,pins = <
--			OMAP3_CORE1_IOPAD(0x21d2, PIN_INPUT | MUX_MODE4)		/* mcspi1_cs2.gpio_176 */
--		>;
--	};
- };
- 
- &omap3_pmx_core2 {
-@@ -191,74 +56,7 @@
- 	};
- };
- 
--&omap3_pmx_wkup {
--	dss_dpi_pins2: pinmux_dss_dpi_pins1 {
--		pinctrl-single,pins = <
--			OMAP3_WKUP_IOPAD(0x2a0a, PIN_OUTPUT | MUX_MODE3)   /* sys_boot0.dss_data18 */
--			OMAP3_WKUP_IOPAD(0x2a0c, PIN_OUTPUT | MUX_MODE3)   /* sys_boot1.dss_data19 */
--			OMAP3_WKUP_IOPAD(0x2a10, PIN_OUTPUT | MUX_MODE3)   /* sys_boot3.dss_data20 */
--			OMAP3_WKUP_IOPAD(0x2a12, PIN_OUTPUT | MUX_MODE3)   /* sys_boot4.dss_data21 */
--			OMAP3_WKUP_IOPAD(0x2a14, PIN_OUTPUT | MUX_MODE3)   /* sys_boot5.dss_data22 */
--			OMAP3_WKUP_IOPAD(0x2a16, PIN_OUTPUT | MUX_MODE3)   /* sys_boot6.dss_data23 */
--		>;
--	};
--};
--
--&mmc1 {
--	pinctrl-names = "default";
--	pinctrl-0 = <&mmc1_pins>;
--};
--
--&mmc2 {
--	pinctrl-names = "default";
--	pinctrl-0 = <&mmc2_pins>;
--};
--
--&mmc3 {
--	status = "disabled";
--};
--
--&uart1 {
--	interrupts-extended = <&intc 72 &omap3_pmx_core OMAP3_UART1_RX>;
--};
--
--&uart2 {
--	interrupts-extended = <&intc 73 &omap3_pmx_core OMAP3_UART2_RX>;
--};
--
--&uart3 {
--	interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
--	pinctrl-names = "default";
--	pinctrl-0 = <&uart3_pins>;
--};
--
--/*
-- * GPIO_61 (nUSB2_EN_1V8) must be low to enable on-board EHCI USB2 interface
-- * for bus switch SN74CB3Q3384A, level-shifter SN74AVC16T245DGGR, and 1.8V.
-- */
--&gpio2 {
--	en_usb2_port {
--		gpio-hog;
--		gpios = <29 GPIO_ACTIVE_HIGH>;	/* gpio_61 */
--		output-low;
--		line-name = "enable usb2 port";
--	};
--};
--
--/* T2_GPIO_2 low to route GPIO_61 to on-board devices */
--&twl_gpio {
--	en_on_board_gpio_61 {
--		gpio-hog;
--		gpios = <2 GPIO_ACTIVE_HIGH>;
--		output-low;
--		line-name = "en_hsusb2_clk";
--	};
--};
--
- &gpmc {
--	ranges = <0 0 0x30000000 0x1000000>,	/* CS0: 16MB for NAND */
--		 <5 0 0x2c000000 0x01000000>;
--
- 	nand@0,0 {
- 		compatible = "ti,omap2-nand";
- 		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
-@@ -309,9 +107,4 @@
- 			reg = <0x780000 0x1f880000>;
- 		};
- 	};
--
--	ethernet@gpmc {
--		pinctrl-names = "default";
--		pinctrl-0 = <&smsc911x_pins>;
--	};
- };
-diff --git a/arch/arm/boot/dts/omap3-evm-processor-common.dtsi b/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
-new file mode 100644
-index 000000000000..c1fb6ecd5aff
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-evm-processor-common.dtsi
-@@ -0,0 +1,214 @@
-+/*
-+ * Common support for omap3 EVM 35xx/37xx processor modules
-+ */
-+
-+/ {
-+	memory@80000000 {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+
-+	wl12xx_vmmc: wl12xx_vmmc {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&wl12xx_gpio>;
-+	};
+ 	model = "TI OMAP35XX EVM (TMDSEVM3530)";
+-	compatible = "ti,omap3-evm", "ti,omap3";
++	compatible = "ti,omap3-evm", "ti,omap3430", "ti,omap3";
 +};
 +
-+&dss {
++&omap3_pmx_core2 {
 +	pinctrl-names = "default";
-+	pinctrl-0 = <
-+		&dss_dpi_pins1
-+		&dss_dpi_pins2
-+	>;
-+};
++	pinctrl-0 = <&hsusb2_2_pins>;
 +
-+&hsusb2_phy {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&ehci_phy_pins>;
-+};
-+
-+&omap3_pmx_core {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&on_board_gpio_61 &hsusb2_pins>;
-+
-+	dss_dpi_pins1: pinmux_dss_dpi_pins2 {
++	ehci_phy_pins: pinmux_ehci_phy_pins {
 +		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x20d4, PIN_OUTPUT | MUX_MODE0)   /* dss_pclk.dss_pclk */
-+			OMAP3_CORE1_IOPAD(0x20d6, PIN_OUTPUT | MUX_MODE0)   /* dss_hsync.dss_hsync */
-+			OMAP3_CORE1_IOPAD(0x20d8, PIN_OUTPUT | MUX_MODE0)   /* dss_vsync.dss_vsync */
-+			OMAP3_CORE1_IOPAD(0x20da, PIN_OUTPUT | MUX_MODE0)   /* dss_acbias.dss_acbias */
 +
-+			OMAP3_CORE1_IOPAD(0x20e8, PIN_OUTPUT | MUX_MODE0)   /* dss_data6.dss_data6 */
-+			OMAP3_CORE1_IOPAD(0x20ea, PIN_OUTPUT | MUX_MODE0)   /* dss_data7.dss_data7 */
-+			OMAP3_CORE1_IOPAD(0x20ec, PIN_OUTPUT | MUX_MODE0)   /* dss_data8.dss_data8 */
-+			OMAP3_CORE1_IOPAD(0x20ee, PIN_OUTPUT | MUX_MODE0)   /* dss_data9.dss_data9 */
-+			OMAP3_CORE1_IOPAD(0x20f0, PIN_OUTPUT | MUX_MODE0)   /* dss_data10.dss_data10 */
-+			OMAP3_CORE1_IOPAD(0x20f2, PIN_OUTPUT | MUX_MODE0)   /* dss_data11.dss_data11 */
-+			OMAP3_CORE1_IOPAD(0x20f4, PIN_OUTPUT | MUX_MODE0)   /* dss_data12.dss_data12 */
-+			OMAP3_CORE1_IOPAD(0x20f6, PIN_OUTPUT | MUX_MODE0)   /* dss_data13.dss_data13 */
-+			OMAP3_CORE1_IOPAD(0x20f8, PIN_OUTPUT | MUX_MODE0)   /* dss_data14.dss_data14 */
-+			OMAP3_CORE1_IOPAD(0x20fa, PIN_OUTPUT | MUX_MODE0)   /* dss_data15.dss_data15 */
-+			OMAP3_CORE1_IOPAD(0x20fc, PIN_OUTPUT | MUX_MODE0)   /* dss_data16.dss_data16 */
-+			OMAP3_CORE1_IOPAD(0x20fe, PIN_OUTPUT | MUX_MODE0)   /* dss_data17.dss_data17 */
++		/* EHCI PHY reset GPIO etk_d7.gpio_21 */
++		OMAP3430_CORE2_IOPAD(0x25ea, PIN_OUTPUT | MUX_MODE4)
 +
-+			OMAP3_CORE1_IOPAD(0x2100, PIN_OUTPUT | MUX_MODE3)   /* dss_data18.dss_data0 */
-+			OMAP3_CORE1_IOPAD(0x2102, PIN_OUTPUT | MUX_MODE3)   /* dss_data19.dss_data1 */
-+			OMAP3_CORE1_IOPAD(0x2104, PIN_OUTPUT | MUX_MODE3)   /* dss_data20.dss_data2 */
-+			OMAP3_CORE1_IOPAD(0x2106, PIN_OUTPUT | MUX_MODE3)   /* dss_data21.dss_data3 */
-+			OMAP3_CORE1_IOPAD(0x2108, PIN_OUTPUT | MUX_MODE3)   /* dss_data22.dss_data4 */
-+			OMAP3_CORE1_IOPAD(0x210a, PIN_OUTPUT | MUX_MODE3)   /* dss_data23.dss_data5 */
-+		>;
-+	};
-+
-+	mmc1_pins: pinmux_mmc1_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2144, PIN_OUTPUT_PULLUP | MUX_MODE0)	/* sdmmc1_clk.sdmmc1_clk */
-+			OMAP3_CORE1_IOPAD(0x2146, PIN_INPUT_PULLUP | MUX_MODE0)		/* sdmmc1_cmd.sdmmc1_cmd */
-+			OMAP3_CORE1_IOPAD(0x2148, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat0.sdmmc1_dat0 */
-+			OMAP3_CORE1_IOPAD(0x214a, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat1.sdmmc1_dat1 */
-+			OMAP3_CORE1_IOPAD(0x214c, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat2.sdmmc1_dat2 */
-+			OMAP3_CORE1_IOPAD(0x214e, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat3.sdmmc1_dat3 */
-+			OMAP3_CORE1_IOPAD(0x2150, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat4.sdmmc1_dat4 */
-+			OMAP3_CORE1_IOPAD(0x2152, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat5.sdmmc1_dat5 */
-+			OMAP3_CORE1_IOPAD(0x2154, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat6.sdmmc1_dat6 */
-+			OMAP3_CORE1_IOPAD(0x2156, PIN_INPUT_PULLUP | MUX_MODE0) 	/* sdmmc1_dat7.sdmmc1_dat7 */
-+		>;
-+	};
-+
-+	/* NOTE: Clocked externally, needs INPUT also for sdmmc2_clk.sdmmc2_clk */
-+	mmc2_pins: pinmux_mmc2_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2158, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_clk.sdmmc2_clk */
-+			OMAP3_CORE1_IOPAD(0x215a, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_cmd.sdmmc2_cmd */
-+			OMAP3_CORE1_IOPAD(0x215c, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat0.sdmmc2_dat0 */
-+			OMAP3_CORE1_IOPAD(0x215e, PIN_INPUT_PULLUP | MUX_MODE0) /* sdmmc2_dat1.sdmmc2_dat1 */
-+			OMAP3_CORE1_IOPAD(0x2160, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat2.sdmmc2_dat2 */
-+			OMAP3_CORE1_IOPAD(0x2162, PIN_INPUT_PULLUP | MUX_MODE0)	/* sdmmc2_dat3.sdmmc2_dat3 */
-+		>;
-+	};
-+
-+	uart3_pins: pinmux_uart3_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x219e, WAKEUP_EN | PIN_INPUT | MUX_MODE0) /* uart3_rx_irrx.uart3_rx_irrx */
-+			OMAP3_CORE1_IOPAD(0x21a0, PIN_OUTPUT | MUX_MODE0)		/* uart3_tx_irtx.uart3_tx_irtx */
-+		>;
-+	};
-+
-+	/* Devices are routed with gpmc_nbe1.gpio_61 to on-board devices */
-+	on_board_gpio_61: pinmux_ehci_port_select_pins {
-+		pinctrl-single,pins = <
-+		OMAP3_CORE1_IOPAD(0x20c8, PIN_OUTPUT | MUX_MODE4)
++		/* EHCI VBUS etk_d8.gpio_22 */
++		OMAP3430_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)
 +		>;
 +	};
 +
 +	/* Used by OHCI and EHCI. OHCI won't work without external phy */
-+	hsusb2_pins: pinmux_hsusb2_pins {
++	hsusb2_2_pins: pinmux_hsusb2_2_pins {
 +		pinctrl-single,pins = <
 +
-+		/* mcspi1_cs3.hsusb2_data2 */
-+		OMAP3_CORE1_IOPAD(0x21d4, PIN_INPUT_PULLDOWN | MUX_MODE3)
++		/* etk_d10.hsusb2_clk */
++		OMAP3430_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)
 +
-+		/* mcspi2_clk.hsusb2_data7 */
-+		OMAP3_CORE1_IOPAD(0x21d6, PIN_INPUT_PULLDOWN | MUX_MODE3)
++		/* etk_d11.hsusb2_stp */
++		OMAP3430_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)
 +
-+		/* mcspi2_simo.hsusb2_data4 */
-+		OMAP3_CORE1_IOPAD(0x21d8, PIN_INPUT_PULLDOWN | MUX_MODE3)
++		/* etk_d12.hsusb2_dir */
++		OMAP3430_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)
 +
-+		/* mcspi2_somi.hsusb2_data5 */
-+		OMAP3_CORE1_IOPAD(0x21da, PIN_INPUT_PULLDOWN | MUX_MODE3)
++		/* etk_d13.hsusb2_nxt */
++		OMAP3430_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)
 +
-+		/* mcspi2_cs0.hsusb2_data6 */
-+		OMAP3_CORE1_IOPAD(0x21dc, PIN_INPUT_PULLDOWN | MUX_MODE3)
++		/* etk_d14.hsusb2_data0 */
++		OMAP3430_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)
 +
-+		/* mcspi2_cs1.hsusb2_data3 */
-+		OMAP3_CORE1_IOPAD(0x21de, PIN_INPUT_PULLDOWN | MUX_MODE3)
++		/* etk_d15.hsusb2_data1 */
++		OMAP3430_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)
 +		>;
-+	};
-+
-+	wl12xx_gpio: pinmux_wl12xx_gpio {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x2180, PIN_OUTPUT | MUX_MODE4)		/* uart1_cts.gpio_150 */
-+			OMAP3_CORE1_IOPAD(0x217e, PIN_INPUT | MUX_MODE4)		/* uart1_rts.gpio_149 */
-+		>;
-+	};
-+
-+	smsc911x_pins: pinmux_smsc911x_pins {
-+		pinctrl-single,pins = <
-+			OMAP3_CORE1_IOPAD(0x21d2, PIN_INPUT | MUX_MODE4)		/* mcspi1_cs2.gpio_176 */
-+		>;
-+	};
-+};
-+
-+&omap3_pmx_wkup {
-+	dss_dpi_pins2: pinmux_dss_dpi_pins1 {
-+		pinctrl-single,pins = <
-+			OMAP3_WKUP_IOPAD(0x2a0a, PIN_OUTPUT | MUX_MODE3)   /* sys_boot0.dss_data18 */
-+			OMAP3_WKUP_IOPAD(0x2a0c, PIN_OUTPUT | MUX_MODE3)   /* sys_boot1.dss_data19 */
-+			OMAP3_WKUP_IOPAD(0x2a10, PIN_OUTPUT | MUX_MODE3)   /* sys_boot3.dss_data20 */
-+			OMAP3_WKUP_IOPAD(0x2a12, PIN_OUTPUT | MUX_MODE3)   /* sys_boot4.dss_data21 */
-+			OMAP3_WKUP_IOPAD(0x2a14, PIN_OUTPUT | MUX_MODE3)   /* sys_boot5.dss_data22 */
-+			OMAP3_WKUP_IOPAD(0x2a16, PIN_OUTPUT | MUX_MODE3)   /* sys_boot6.dss_data23 */
-+		>;
-+	};
-+};
-+
-+&mmc1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc1_pins>;
-+};
-+
-+&mmc2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&mmc2_pins>;
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+&uart1 {
-+	interrupts-extended = <&intc 72 &omap3_pmx_core OMAP3_UART1_RX>;
-+};
-+
-+&uart2 {
-+	interrupts-extended = <&intc 73 &omap3_pmx_core OMAP3_UART2_RX>;
-+};
-+
-+&uart3 {
-+	interrupts-extended = <&intc 74 &omap3_pmx_core OMAP3_UART3_RX>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&uart3_pins>;
-+};
-+
-+/*
-+ * GPIO_61 (nUSB2_EN_1V8) must be low to enable on-board EHCI USB2 interface
-+ * for bus switch SN74CB3Q3384A, level-shifter SN74AVC16T245DGGR, and 1.8V.
-+ */
-+&gpio2 {
-+	en_usb2_port {
-+		gpio-hog;
-+		gpios = <29 GPIO_ACTIVE_HIGH>;	/* gpio_61 */
-+		output-low;
-+		line-name = "enable usb2 port";
-+	};
-+};
-+
-+/* T2_GPIO_2 low to route GPIO_61 to on-board devices */
-+&twl_gpio {
-+	en_on_board_gpio_61 {
-+		gpio-hog;
-+		gpios = <2 GPIO_ACTIVE_HIGH>;
-+		output-low;
-+		line-name = "en_hsusb2_clk";
 +	};
 +};
 +
 +&gpmc {
-+	ranges = <0 0 0x30000000 0x1000000>,	/* CS0: 16MB for NAND */
-+		 <5 0 0x2c000000 0x01000000>;	/* CS5: 16MB for LAN9220 */
++	nand@0,0 {
++		compatible = "ti,omap2-nand";
++		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
++		interrupt-parent = <&gpmc>;
++		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
++			     <1 IRQ_TYPE_NONE>;	/* termcount */
++		linux,mtd-name= "micron,mt29f2g16abdhc";
++		nand-bus-width = <16>;
++		gpmc,device-width = <2>;
++		ti,nand-ecc-opt = "bch8";
 +
-+	ethernet@gpmc {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&smsc911x_pins>;
-+	};
-+};
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <44>;
++		gpmc,cs-wr-off-ns = <44>;
++		gpmc,adv-on-ns = <6>;
++		gpmc,adv-rd-off-ns = <34>;
++		gpmc,adv-wr-off-ns = <44>;
++		gpmc,we-off-ns = <40>;
++		gpmc,oe-off-ns = <54>;
++		gpmc,access-ns = <64>;
++		gpmc,rd-cycle-ns = <82>;
++		gpmc,wr-cycle-ns = <82>;
++		gpmc,wr-access-ns = <40>;
++		gpmc,wr-data-mux-bus-ns = <0>;
+ 
+-	memory@80000000 {
+-		device_type = "memory";
+-		reg = <0x80000000 0x10000000>; /* 256 MB */
++		#address-cells = <1>;
++		#size-cells = <1>;
+ 	};
+ };
 -- 
 2.14.1
