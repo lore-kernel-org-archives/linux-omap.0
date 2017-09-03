@@ -1,39 +1,27 @@
-From: Liam Breck <liam@networkimprov.net>
-Subject: Fwd: power: supply: bq27xxx: enable writing capacity values for bq27500
-Date: Fri, 1 Sep 2017 13:09:34 -0700
-Message-ID: <CAKvHMgTtxYUXGmCOq3MEB5-r3xvuR7RoCdMPkq2CTHBXvw-+7g@mail.gmail.com>
-References: <CAKvHMgRhmRKsC-2DrxD0sx3rXBN9xyv3W9cbXAUO7oTHEawm8Q@mail.gmail.com>
- <CAKvHMgTTUuoaSMON6o=+chBv53aSZrDukz06DTdOYYGtTbovag@mail.gmail.com>
- <CAKvHMgSztFGS_KmeNoT7Fe-xTpgiH_-Y3=Us_QCtK9FzMM67kg@mail.gmail.com>
- <CAKvHMgTH7-e7TTKj--5HjDCV5kZCr_=aY73wRRePMDiLPdE55g@mail.gmail.com>
- <CAKvHMgR6jEjY08v95mYenHo=V+n59EfFVFb8R+P_Mx8kHJc+3A@mail.gmail.com>
- <CAKvHMgTDwhbXerhybL1=WemLmn_fpKWdhmZPVvGPQ_Xzu-m1Uw@mail.gmail.com>
- <CAKvHMgQVQYcyS-Ku7VeNLoZ6MtP331nbfooskiHM9wuF1pC9gQ@mail.gmail.com>
- <CAKvHMgQ+W-mX4TMo4ggiVJZ=8==Okr5ZeD_A84SfGYshA1Zn3Q@mail.gmail.com>
- <CAKvHMgQGhqG_5WcDO9Ovt9wp1oxy-08RbyMR5gcLNeiYdeXAeg@mail.gmail.com>
- <CAKvHMgTDaoLcw80Y7inM3sqc5r5fgVb3TYSfARg=3QBXOWhJ0w@mail.gmail.com>
- <CAKvHMgRBnktcaxF2GKGMUSbctQsUK-UFf8S1mBMR5dP4Tw8htA@mail.gmail.com> <CAKvHMgSpyAUsm-AH9eO7KAzuxxfKsOROtRqx=-KfuqprwWRMYw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAKvHMgSpyAUsm-AH9eO7KAzuxxfKsOROtRqx=-KfuqprwWRMYw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+From: "Derald D. Woods" <woods.technical@gmail.com>
+Subject: [PATCH 0/2] Update TMDSEVM3530 support for omap3-evm
+Date: Sat,  2 Sep 2017 19:38:14 -0500
+Message-ID: <20170903003816.5536-1-woods.technical@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-kernel@vger.kernel.org, "Derald D. Woods" <woods.technical@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-[resend in plaintext]
+This patch set allows TMDSEVM3530(omap3-evm.dts) to boot using common
+processor module data that is shared with 'omap3-evm-37xx.dts'. A new
+common file for processor module data is introduced to help facilitate
+the updated OMAP3530 support.
 
-Hi Sebastian,
+Derald D. Woods (2):
+  ARM: dts: omap3-evm-37xx: Add common processor module support
+  ARM: dts: omap3-evm: Add OMAP3530 specific device tree processor data
 
-This chip definition, enabled by this patch from Nikolaus, is not
-fully tested yet. I just sent him a new fix to try, and his previous
-kernel logs for it aren't definitely correct.
+ arch/arm/boot/dts/omap3-evm-37xx.dts              | 209 +--------------------
+ arch/arm/boot/dts/omap3-evm-processor-common.dtsi | 214 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-evm.dts                   |  76 +++++++-
+ 3 files changed, 287 insertions(+), 212 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-evm-processor-common.dtsi
 
-Could you drop this from -next? Hopefully he'll have a new patch for
-you shortly...
-
-power: supply: bq27xxx: enable writing capacity values for bq27500
-https://patchwork.kernel.org/patch/9931511/
-
-Cc Tony re OpenPandora dtsi patches
+-- 
+2.14.1
