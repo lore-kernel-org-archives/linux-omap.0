@@ -1,91 +1,59 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: Re: [PATCH 0/2] PCI: dwc: convert remaining dbi read/writes to
- dw_pcie_readX_dbi/dw_pcie_writeX_dbi
-Date: Mon, 4 Sep 2017 18:10:55 +0200
-Message-ID: <90a9daea-d962-07a6-6c5d-be7a16810123@axis.com>
-References: <20170714120735.11993-1-niklas.cassel@axis.com>
- <20170815223946.GQ32525@bhelgaas-glaptop.roam.corp.google.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: Applied "regulator: pbias: Select voltage table based on
+ max-voltage" to the regulator tree
+Date: Mon, 4 Sep 2017 17:48:09 +0100
+Message-ID: <20170904164809.5coe6vhgyc7iwy6q@sirena.org.uk>
+References: <E1dnO3z-0000tI-7K@debutante>
+ <64d9c623-456c-9142-9c5b-a94593628643@ti.com>
+ <20170831135050.adiek6iqqzhndgci@sirena.org.uk>
+ <CAPDyKFo=UdnVhFU7k+K1=N0e-1sniC+WZjZ4dZKSF8mXhM43Uw@mail.gmail.com>
+ <20170901162322.xrjnim4khn3wfslj@sirena.org.uk>
+ <f50319d6-9b18-0538-4eb1-6ff4226cac02@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170815223946.GQ32525@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Pratyush Anand <pratyush.anand@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="r5bvgvhkxf5hn5ix"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <f50319d6-9b18-0538-4eb1-6ff4226cac02@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Ravikumar Kattekola <rk@ti.com>, Sekhar Nori <nsekhar@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Russell King <linux@armlinux.org.uk>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/16/2017 12:39 AM, Bjorn Helgaas wrote:
-> [+cc Kishon, Pratyush]
-> 
-> On Fri, Jul 14, 2017 at 02:07:33PM +0200, Niklas Cassel wrote:
->> Since the introduction of the dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros,
->> most dw_pcie_read(pci->dbi_base, ..)/dw_pcie_write(pci->dbi_base, ..) calls
->> have been converted to dw_pcie_readX_dbi/dw_pcie_writeX_dbi calls.
->> Convert the remaining calls.
->>
->> Niklas Cassel (2):
->>   PCI: dwc: dra7xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros
->>   PCI: dwc: spear13xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi
->>     macros
->>
->>  drivers/pci/dwc/pci-dra7xx.c     | 14 ++++++--------
->>  drivers/pci/dwc/pcie-spear13xx.c | 22 ++++++++++------------
->>  2 files changed, 16 insertions(+), 20 deletions(-)
-> 
-> These patches are short, but obscure, e.g.,
-> 
->   - dw_pcie_read(pci->dbi_base + exp_cap_off + PCI_EXP_LNKCAP, 4, &val);
->   + val = dw_pcie_readl_dbi(pci, exp_cap_off + PCI_EXP_LNKCAP);
-> 
-> The original call path was:
-> 
->   dw_pcie_read(addr, ...)
->     readl(addr) 
-> 
-> and we're replacing it with the much more complicated:
-> 
->   dw_pcie_readl_dbi
->     __dw_pcie_read_dbi
->       if (pci->ops->read_dbi)
-> 	return pci->ops->read_dbi(pci, base, reg, size)
->       dw_pcie_read(base + reg, size, &val)
-> 	readl
-> 
-> This is not functionally equivalent (the new path uses ops->read_dbi
-> if it's set), so the changelog should say something about why we need
-> this change.
-> 
-> Neither dra7xx nor spear13xx sets .read_dbi, so my guess is this
-> doesn't actually fix anything that's broken and this is just for
-> consistency.
 
-Hello Bjorn,
+--r5bvgvhkxf5hn5ix
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-It is just for consistency.
+On Mon, Sep 04, 2017 at 11:16:54AM +0530, Kishon Vijay Abraham I wrote:
+> On Friday 01 September 2017 09:53 PM, Mark Brown wrote:
 
-Sorry for my misleading cover letter.
-It should have said: "For consistency, convert all
-dw_pcie_read(pci->dbi_base, ..)/dw_pcie_write(pci->dbi_base, ..)
-calls to use the dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros".
+> > Hang on, how can this break anything?  If it breaks things shouldn't
+> > there be bugfixes for incorrect constraints somewhere?
 
-It is true that dw_pcie_readX_dbi/dw_pcie_writeX_dbi will use
-ops->read_dbi if it is set. However, if ops->read_dbi is set,
-you will most likely want to use that function for reading the dbi.
-Anyway, neither spear13xx nor dra7xx has ops->read_dbi set,
-so these patches shouldn't change their current behavior.
+> omap_hsmmc sets the pbias voltage to 3V. But here we program the volt table to
+> support either 1.8V or 3.3V (Initially the volt table was programmed to support
+> 3V because of a bug in TRM). So set_voltage of pbias voltage in omap_hsmmc will
+> fail.
 
-Do you want me to resend these patches or would you prefer
-to just drop them?
+Oh, that's appauling.  I guess this is some voltage that doesn't get
+presented to cards because otherwise I'm surprised nobody noticed.
+Anyway I've dropped the commit from my pull request for now, it'll not
+go for v4.14, but the pull request is still there.
 
-Best regards,
-Niklas
+--r5bvgvhkxf5hn5ix
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> 
-> That's fine, but I'm confused because I looked for some of the
-> previous conversions you mentioned but couldn't find any.  I'm lost in
-> a maze of twisty little passages.
-> 
-> Bjorn
-> 
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlmtg8gACgkQJNaLcl1U
+h9B5Zgf/TDLrsvs7hGxL/iwhRobHGhAMdZYWPpy8z1g4OC2XUYp95pT50Ebw6JS2
+R/3Rv6EDJzUHgcA77yWLVqgC9w906a3bbTigKaRY2s+c0I90LwxkXgzOXujlIgQh
+rzebytXHdAEj2EYRu/XdlNtXhsuIcS/OF/28nt5qsFslIp0ZIkh2M4ycXHp5ktn1
+jNu08aZ0mOVH6woHS7w8ZmjCqYXvudIja/4/Rw8GHWAdkAxe147mL9zqx3R0oCe9
+d5Qe1AE0b8Z9l9pmHzARNAcoXfQhSUNYc0e+ZE+LgUk8idE7HhI9i3YSyS7kIv02
+3DBD60YtXVzCrLTCI0XD3UNHvITAQg==
+=PRU/
+-----END PGP SIGNATURE-----
+
+--r5bvgvhkxf5hn5ix--
