@@ -1,60 +1,91 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v4] mfd: tps65217: Introduce dependency on CONFIG_OF
-Date: Mon, 4 Sep 2017 16:14:19 +0100
-Message-ID: <20170904151419.5bjqz2wp7kq2uqmy@dell>
-References: <1504085350-20824-1-git-send-email-j-keerthy@ti.com>
+From: Niklas Cassel <niklas.cassel@axis.com>
+Subject: Re: [PATCH 0/2] PCI: dwc: convert remaining dbi read/writes to
+ dw_pcie_readX_dbi/dw_pcie_writeX_dbi
+Date: Mon, 4 Sep 2017 18:10:55 +0200
+Message-ID: <90a9daea-d962-07a6-6c5d-be7a16810123@axis.com>
+References: <20170714120735.11993-1-niklas.cassel@axis.com>
+ <20170815223946.GQ32525@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1504085350-20824-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <20170815223946.GQ32525@bhelgaas-glaptop.roam.corp.google.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: eballetbo@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@kernel.org, tony@atomide.com, b.zolnierkie@samsung.com, javier@dowhile0.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, Pratyush Anand <pratyush.anand@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 30 Aug 2017, Keerthy wrote:
+On 08/16/2017 12:39 AM, Bjorn Helgaas wrote:
+> [+cc Kishon, Pratyush]
+> 
+> On Fri, Jul 14, 2017 at 02:07:33PM +0200, Niklas Cassel wrote:
+>> Since the introduction of the dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros,
+>> most dw_pcie_read(pci->dbi_base, ..)/dw_pcie_write(pci->dbi_base, ..) calls
+>> have been converted to dw_pcie_readX_dbi/dw_pcie_writeX_dbi calls.
+>> Convert the remaining calls.
+>>
+>> Niklas Cassel (2):
+>>   PCI: dwc: dra7xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros
+>>   PCI: dwc: spear13xx: utilize dw_pcie_readX_dbi/dw_pcie_writeX_dbi
+>>     macros
+>>
+>>  drivers/pci/dwc/pci-dra7xx.c     | 14 ++++++--------
+>>  drivers/pci/dwc/pcie-spear13xx.c | 22 ++++++++++------------
+>>  2 files changed, 16 insertions(+), 20 deletions(-)
+> 
+> These patches are short, but obscure, e.g.,
+> 
+>   - dw_pcie_read(pci->dbi_base + exp_cap_off + PCI_EXP_LNKCAP, 4, &val);
+>   + val = dw_pcie_readl_dbi(pci, exp_cap_off + PCI_EXP_LNKCAP);
+> 
+> The original call path was:
+> 
+>   dw_pcie_read(addr, ...)
+>     readl(addr) 
+> 
+> and we're replacing it with the much more complicated:
+> 
+>   dw_pcie_readl_dbi
+>     __dw_pcie_read_dbi
+>       if (pci->ops->read_dbi)
+> 	return pci->ops->read_dbi(pci, base, reg, size)
+>       dw_pcie_read(base + reg, size, &val)
+> 	readl
+> 
+> This is not functionally equivalent (the new path uses ops->read_dbi
+> if it's set), so the changelog should say something about why we need
+> this change.
+> 
+> Neither dra7xx nor spear13xx sets .read_dbi, so my guess is this
+> doesn't actually fix anything that's broken and this is just for
+> consistency.
 
-> Currently the driver boots only via device tree hence add a
-> dependency on CONFIG_OF. This leaves with a bunch of unused code
-> so clean that up. This patch also makes use of probe_new function
-> in place of the probe function so as to avoid passing i2c_device_id.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
-> ---
-> 
-> Changes in v4:
-> 
->   * Added Javier's Reviewed-by.
->   * Added back I2C Device ID struct as it is needed for module autoprobe.
-> 
-> Changes in v3:
-> 
->   * Added more details to commit log.
->   * No changes in code. Rebased to latest next branch.
-> 
-> Changes in v2:
-> 
->   * Cleaned up chip_id and data attached to the match.
->   * Cleaned up i2c_dev_id
->   * dropped the rest of the patches in series for now
-> 
-> Boot tested and checked for regulator registrations on am335x-boneblack
-> both as part of zImage and as module autoprobed.
-> 
->  drivers/mfd/Kconfig                    |  2 +-
->  drivers/mfd/tps65217.c                 | 28 +++++-----------------------
->  drivers/regulator/tps65217-regulator.c |  5 -----
->  drivers/video/backlight/tps65217_bl.c  | 14 +++-----------
->  include/linux/mfd/tps65217.h           |  6 ------
->  5 files changed, 9 insertions(+), 46 deletions(-)
+Hello Bjorn,
 
-Applied for v4.15.
+It is just for consistency.
 
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Sorry for my misleading cover letter.
+It should have said: "For consistency, convert all
+dw_pcie_read(pci->dbi_base, ..)/dw_pcie_write(pci->dbi_base, ..)
+calls to use the dw_pcie_readX_dbi/dw_pcie_writeX_dbi macros".
+
+It is true that dw_pcie_readX_dbi/dw_pcie_writeX_dbi will use
+ops->read_dbi if it is set. However, if ops->read_dbi is set,
+you will most likely want to use that function for reading the dbi.
+Anyway, neither spear13xx nor dra7xx has ops->read_dbi set,
+so these patches shouldn't change their current behavior.
+
+Do you want me to resend these patches or would you prefer
+to just drop them?
+
+Best regards,
+Niklas
+
+> 
+> That's fine, but I'm confused because I looked for some of the
+> previous conversions you mentioned but couldn't find any.  I'm lost in
+> a maze of twisty little passages.
+> 
+> Bjorn
+> 
