@@ -1,47 +1,60 @@
-From: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: musb: musb_cppi41: Fix the address of teardown
- and autoreq registers
-Date: Mon, 4 Sep 2017 18:32:11 +0530
-Message-ID: <868405c0-0731-7546-509c-8270eb20f30e@ti.com>
-References: <20170813120423.16371-1-abailon@baylibre.com>
- <20170813120423.16371-2-abailon@baylibre.com>
- <7ee74cb1-19aa-5323-5325-ef9cc3410762@ti.com>
- <abce1d79-bc75-2018-2112-d701a8ca69d5@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v4] mfd: tps65217: Introduce dependency on CONFIG_OF
+Date: Mon, 4 Sep 2017 16:14:19 +0100
+Message-ID: <20170904151419.5bjqz2wp7kq2uqmy@dell>
+References: <1504085350-20824-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <abce1d79-bc75-2018-2112-d701a8ca69d5-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, b-liu-l0cyMroinI0@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1504085350-20824-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: eballetbo@gmail.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, broonie@kernel.org, tony@atomide.com, b.zolnierkie@samsung.com, javier@dowhile0.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 14 August 2017 07:06 PM, Sekhar Nori wrote:
-> On Monday 14 August 2017 07:01 PM, Sekhar Nori wrote:
->> Hi,
->>
->> On Sunday 13 August 2017 05:34 PM, Alexandre Bailon wrote:
->>> The DA8xx and DSPS platforms don't use the same address for few registers.
->>> On Da8xx, this is causing some issues (e.g. teardown that doesn't work).
->>> Configure the address of the register during the init and use them instead
->>> of constants.
->>>
->>> Reported-by: nsekhar-l0cyMroinI0@public.gmane.org
+On Wed, 30 Aug 2017, Keerthy wrote:
+
+> Currently the driver boots only via device tree hence add a
+> dependency on CONFIG_OF. This leaves with a bunch of unused code
+> so clean that up. This patch also makes use of probe_new function
+> in place of the probe function so as to avoid passing i2c_device_id.
 > 
-> Reported-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Reviewed-by: Javier Martinez Canillas <javierm@redhat.com>
+> ---
+> 
+> Changes in v4:
+> 
+>   * Added Javier's Reviewed-by.
+>   * Added back I2C Device ID struct as it is needed for module autoprobe.
+> 
+> Changes in v3:
+> 
+>   * Added more details to commit log.
+>   * No changes in code. Rebased to latest next branch.
+> 
+> Changes in v2:
+> 
+>   * Cleaned up chip_id and data attached to the match.
+>   * Cleaned up i2c_dev_id
+>   * dropped the rest of the patches in series for now
+> 
+> Boot tested and checked for regulator registrations on am335x-boneblack
+> both as part of zImage and as module autoprobed.
+> 
+>  drivers/mfd/Kconfig                    |  2 +-
+>  drivers/mfd/tps65217.c                 | 28 +++++-----------------------
+>  drivers/regulator/tps65217-regulator.c |  5 -----
+>  drivers/video/backlight/tps65217_bl.c  | 14 +++-----------
+>  include/linux/mfd/tps65217.h           |  6 ------
+>  5 files changed, 9 insertions(+), 46 deletions(-)
 
-Tested-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+Applied for v4.15.
 
-Hi Bin,
-
-Do you have any additional comments on this series or are you waiting
-for v2 to be posted?
-
-Thanks,
-Sekhar
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
