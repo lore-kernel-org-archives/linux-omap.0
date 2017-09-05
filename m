@@ -1,80 +1,680 @@
-From: Suman Anna <s-anna@ti.com>
-Subject: [PATCH v2 1/2] iommu/omap: Change the attach detection logic
-Date: Tue, 5 Sep 2017 17:56:17 -0500
-Message-ID: <20170905225618.912-2-s-anna@ti.com>
+From: Suman Anna via iommu <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Subject: [PATCH v2 2/2] iommu/omap: Add support to program multiple iommus
+Date: Tue, 5 Sep 2017 17:56:18 -0500
+Message-ID: <20170905225618.912-3-s-anna@ti.com>
 References: <20170905225618.912-1-s-anna@ti.com>
+Reply-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170905225618.912-1-s-anna@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: iommu@lists.linux-foundation.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170905225618.912-1-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The OMAP IOMMU driver allows only a single device (eg: a rproc
-device) to be attached per domain. The current attach detection
-logic relies on a check for an attached iommu for the respective
-client device. Change this logic to use the client device pointer
-instead in preparation for supporting multiple iommu devices to be
-bound to a single iommu domain, and thereby to a client device.
+A client user instantiates and attaches to an iommu_domain to
+program the OMAP IOMMU associated with the domain. The iommus
+programmed by a client user are bound with the iommu_domain
+through the user's device archdata. The OMAP IOMMU driver
+currently supports only one IOMMU per IOMMU domain per user.
 
-Signed-off-by: Suman Anna <s-anna@ti.com>
+The OMAP IOMMU driver has been enhanced to support allowing
+multiple IOMMUs to be programmed by a single client user. This
+support is being added mainly to handle the DSP subsystems on
+the DRA7xx SoCs, which have two MMUs within the same subsystem.
+These MMUs provide translations for a processor core port and
+an internal EDMA port. This support allows both the MMUs to
+be programmed together, but with each one retaining it's own
+internal state objects. The internal EDMA block is managed by
+the software running on the DSPs, and this design provides
+on-par functionality with previous generation OMAP DSPs where
+the EDMA and the DSP core shared the same MMU.
+
+The multiple iommus are expected to be provided through a
+sentinel terminated array of omap_iommu_arch_data objects
+through the client user's device archdata. The OMAP driver
+core is enhanced to loop through the array of attached
+iommus and program them for all common operations. The
+sentinel-terminated logic is used so as to not change the
+omap_iommu_arch_data structure.
+
+NOTE:
+1. The IOMMU group and IOMMU core registration is done only for
+   the DSP processor core MMU even though both MMUs are represented
+   by their own platform device and are probed individually. The
+   IOMMU device linking uses this registered MMU device. The struct
+   iommu_device for the second MMU is not used even though memory
+   for it is allocated.
+2. The OMAP IOMMU debugfs code still continues to operate on
+   individual IOMMU objects.
+
+Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+[t-kristo-l0cyMroinI0@public.gmane.org: ported support to 4.13 based kernel]
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
-v2: No changes
+v2:
+ - Added a new helper omap_iommu_can_register() function which is
+   used in probe to selectively register the probed IOMMU platform
+   devices with the IOMMU core.
+ - The driver remove function is also adjusted accordingly for the
+   iommu_group removal and unregistration
+ - Revised the patch description with NOTE #1 rewritten.
+ - All other changes are same as v1
+v1: https://patchwork.kernel.org/patch/9932177/
 
- drivers/iommu/omap-iommu.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ drivers/iommu/omap-iommu.c | 358 ++++++++++++++++++++++++++++++++++-----------
+ drivers/iommu/omap-iommu.h |  30 ++--
+ 2 files changed, 285 insertions(+), 103 deletions(-)
 
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index bd67e1b2c64e..81ef729994ce 100644
+index 81ef729994ce..e135ab830ebf 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -805,7 +805,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
- 	struct iommu_domain *domain = obj->domain;
- 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
- 
--	if (!omap_domain->iommu_dev)
-+	if (!omap_domain->dev)
- 		return IRQ_NONE;
- 
- 	errs = iommu_report_fault(obj, &da);
-@@ -1118,8 +1118,8 @@ omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
- 
- 	spin_lock(&omap_domain->lock);
- 
--	/* only a single device is supported per domain for now */
--	if (omap_domain->iommu_dev) {
-+	/* only a single client device can be attached to a domain */
-+	if (omap_domain->dev) {
- 		dev_err(dev, "iommu domain is already attached\n");
- 		ret = -EBUSY;
- 		goto out;
-@@ -1148,9 +1148,14 @@ static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
+@@ -2,6 +2,7 @@
+  * omap iommu: tlb and pagetable primitives
+  *
+  * Copyright (C) 2008-2010 Nokia Corporation
++ * Copyright (C) 2013-2017 Texas Instruments Incorporated - http://www.ti.com/
+  *
+  * Written by Hiroshi DOYU <Hiroshi.DOYU-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>,
+  *		Paul Mundt and Toshihiro Kobayashi
+@@ -71,13 +72,23 @@ static struct omap_iommu_domain *to_omap_domain(struct iommu_domain *dom)
+  **/
+ void omap_iommu_save_ctx(struct device *dev)
  {
- 	struct omap_iommu *oiommu = dev_to_omap_iommu(dev);
+-	struct omap_iommu *obj = dev_to_omap_iommu(dev);
+-	u32 *p = obj->ctx;
++	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
++	struct omap_iommu *obj;
++	u32 *p;
+ 	int i;
  
-+	if (!omap_domain->dev) {
-+		dev_err(dev, "domain has no attached device\n");
+-	for (i = 0; i < (MMU_REG_SIZE / sizeof(u32)); i++) {
+-		p[i] = iommu_read_reg(obj, i * sizeof(u32));
+-		dev_dbg(obj->dev, "%s\t[%02d] %08x\n", __func__, i, p[i]);
++	if (!arch_data)
 +		return;
++
++	while (arch_data->iommu_dev) {
++		obj = arch_data->iommu_dev;
++		p = obj->ctx;
++		for (i = 0; i < (MMU_REG_SIZE / sizeof(u32)); i++) {
++			p[i] = iommu_read_reg(obj, i * sizeof(u32));
++			dev_dbg(obj->dev, "%s\t[%02d] %08x\n", __func__, i,
++				p[i]);
++		}
++		arch_data++;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(omap_iommu_save_ctx);
+@@ -88,13 +99,23 @@ EXPORT_SYMBOL_GPL(omap_iommu_save_ctx);
+  **/
+ void omap_iommu_restore_ctx(struct device *dev)
+ {
+-	struct omap_iommu *obj = dev_to_omap_iommu(dev);
+-	u32 *p = obj->ctx;
++	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
++	struct omap_iommu *obj;
++	u32 *p;
+ 	int i;
+ 
+-	for (i = 0; i < (MMU_REG_SIZE / sizeof(u32)); i++) {
+-		iommu_write_reg(obj, p[i], i * sizeof(u32));
+-		dev_dbg(obj->dev, "%s\t[%02d] %08x\n", __func__, i, p[i]);
++	if (!arch_data)
++		return;
++
++	while (arch_data->iommu_dev) {
++		obj = arch_data->iommu_dev;
++		p = obj->ctx;
++		for (i = 0; i < (MMU_REG_SIZE / sizeof(u32)); i++) {
++			iommu_write_reg(obj, p[i], i * sizeof(u32));
++			dev_dbg(obj->dev, "%s\t[%02d] %08x\n", __func__, i,
++				p[i]);
++		}
++		arch_data++;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(omap_iommu_restore_ctx);
+@@ -893,6 +914,24 @@ static void omap_iommu_detach(struct omap_iommu *obj)
+ 	dev_dbg(obj->dev, "%s: %s\n", __func__, obj->name);
+ }
+ 
++static bool omap_iommu_can_register(struct platform_device *pdev)
++{
++	struct device_node *np = pdev->dev.of_node;
++
++	if (!of_device_is_compatible(np, "ti,dra7-dsp-iommu"))
++		return true;
++
++	/*
++	 * restrict IOMMU core registration only for processor-port MDMA MMUs
++	 * on DRA7 DSPs
++	 */
++	if ((!strcmp(dev_name(&pdev->dev), "40d01000.mmu")) ||
++	    (!strcmp(dev_name(&pdev->dev), "41501000.mmu")))
++		return true;
++
++	return false;
++}
++
+ static int omap_iommu_dra7_get_dsp_system_cfg(struct platform_device *pdev,
+ 					      struct omap_iommu *obj)
+ {
+@@ -984,19 +1023,22 @@ static int omap_iommu_probe(struct platform_device *pdev)
+ 		return err;
+ 	platform_set_drvdata(pdev, obj);
+ 
+-	obj->group = iommu_group_alloc();
+-	if (IS_ERR(obj->group))
+-		return PTR_ERR(obj->group);
++	if (omap_iommu_can_register(pdev)) {
++		obj->group = iommu_group_alloc();
++		if (IS_ERR(obj->group))
++			return PTR_ERR(obj->group);
+ 
+-	err = iommu_device_sysfs_add(&obj->iommu, obj->dev, NULL, obj->name);
+-	if (err)
+-		goto out_group;
++		err = iommu_device_sysfs_add(&obj->iommu, obj->dev, NULL,
++					     obj->name);
++		if (err)
++			goto out_group;
+ 
+-	iommu_device_set_ops(&obj->iommu, &omap_iommu_ops);
++		iommu_device_set_ops(&obj->iommu, &omap_iommu_ops);
+ 
+-	err = iommu_device_register(&obj->iommu);
+-	if (err)
+-		goto out_sysfs;
++		err = iommu_device_register(&obj->iommu);
++		if (err)
++			goto out_sysfs;
++	}
+ 
+ 	pm_runtime_irq_safe(obj->dev);
+ 	pm_runtime_enable(obj->dev);
+@@ -1018,11 +1060,13 @@ static int omap_iommu_remove(struct platform_device *pdev)
+ {
+ 	struct omap_iommu *obj = platform_get_drvdata(pdev);
+ 
+-	iommu_group_put(obj->group);
+-	obj->group = NULL;
++	if (obj->group) {
++		iommu_group_put(obj->group);
++		obj->group = NULL;
+ 
+-	iommu_device_sysfs_remove(&obj->iommu);
+-	iommu_device_unregister(&obj->iommu);
++		iommu_device_sysfs_remove(&obj->iommu);
++		iommu_device_unregister(&obj->iommu);
++	}
+ 
+ 	omap_iommu_debugfs_remove(obj);
+ 
+@@ -1068,11 +1112,13 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
+ 			  phys_addr_t pa, size_t bytes, int prot)
+ {
+ 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
+-	struct omap_iommu *oiommu = omap_domain->iommu_dev;
+-	struct device *dev = oiommu->dev;
++	struct device *dev = omap_domain->dev;
++	struct omap_iommu_device *iommu;
++	struct omap_iommu *oiommu;
+ 	struct iotlb_entry e;
+ 	int omap_pgsz;
+-	u32 ret;
++	u32 ret = -EINVAL;
++	int i;
+ 
+ 	omap_pgsz = bytes_to_iopgsz(bytes);
+ 	if (omap_pgsz < 0) {
+@@ -1084,9 +1130,24 @@ static int omap_iommu_map(struct iommu_domain *domain, unsigned long da,
+ 
+ 	iotlb_init_entry(&e, da, pa, omap_pgsz);
+ 
+-	ret = omap_iopgtable_store_entry(oiommu, &e);
+-	if (ret)
+-		dev_err(dev, "omap_iopgtable_store_entry failed: %d\n", ret);
++	iommu = omap_domain->iommus;
++	for (i = 0; i < omap_domain->num_iommus; i++, iommu++) {
++		oiommu = iommu->iommu_dev;
++		ret = omap_iopgtable_store_entry(oiommu, &e);
++		if (ret) {
++			dev_err(dev, "omap_iopgtable_store_entry failed: %d\n",
++				ret);
++			break;
++		}
 +	}
 +
- 	/* only a single device is supported per domain for now */
--	if (omap_domain->iommu_dev != oiommu) {
--		dev_err(dev, "invalid iommu device\n");
-+	if (omap_domain->dev != dev) {
-+		dev_err(dev, "invalid attached device\n");
++	if (ret) {
++		while (i--) {
++			iommu--;
++			oiommu = iommu->iommu_dev;
++			iopgtable_clear_entry(oiommu, da);
++		}
++	}
+ 
+ 	return ret;
+ }
+@@ -1095,12 +1156,90 @@ static size_t omap_iommu_unmap(struct iommu_domain *domain, unsigned long da,
+ 			       size_t size)
+ {
+ 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
+-	struct omap_iommu *oiommu = omap_domain->iommu_dev;
+-	struct device *dev = oiommu->dev;
++	struct device *dev = omap_domain->dev;
++	struct omap_iommu_device *iommu;
++	struct omap_iommu *oiommu;
++	bool error = false;
++	size_t bytes = 0;
++	int i;
+ 
+ 	dev_dbg(dev, "unmapping da 0x%lx size %u\n", da, size);
+ 
+-	return iopgtable_clear_entry(oiommu, da);
++	iommu = omap_domain->iommus;
++	for (i = 0; i < omap_domain->num_iommus; i++, iommu++) {
++		oiommu = iommu->iommu_dev;
++		bytes = iopgtable_clear_entry(oiommu, da);
++		if (!bytes)
++			error = true;
++	}
++
++	/*
++	 * simplify return - we are only checking if any of the iommus
++	 * reported an error, but not if all of them are unmapping the
++	 * same number of entries. This should not occur due to the
++	 * mirror programming.
++	 */
++	return error ? 0 : bytes;
++}
++
++static int omap_iommu_count(struct device *dev)
++{
++	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
++	int count = 0;
++
++	while (arch_data->iommu_dev) {
++		count++;
++		arch_data++;
++	}
++
++	return count;
++}
++
++/* caller should call cleanup if this function fails */
++static int omap_iommu_attach_init(struct device *dev,
++				  struct omap_iommu_domain *odomain)
++{
++	struct omap_iommu_device *iommu;
++	int i;
++
++	odomain->num_iommus = omap_iommu_count(dev);
++	if (!odomain->num_iommus)
++		return -EINVAL;
++
++	odomain->iommus = kcalloc(odomain->num_iommus, sizeof(*iommu),
++				  GFP_ATOMIC);
++	if (!odomain->iommus)
++		return -ENOMEM;
++
++	iommu = odomain->iommus;
++	for (i = 0; i < odomain->num_iommus; i++, iommu++) {
++		iommu->pgtable = kzalloc(IOPGD_TABLE_SIZE, GFP_ATOMIC);
++		if (!iommu->pgtable)
++			return -ENOMEM;
++
++		/*
++		 * should never fail, but please keep this around to ensure
++		 * we keep the hardware happy
++		 */
++		if (WARN_ON(!IS_ALIGNED((long)iommu->pgtable,
++					IOPGD_TABLE_SIZE)))
++			return -EINVAL;
++	}
++
++	return 0;
++}
++
++static void omap_iommu_detach_fini(struct omap_iommu_domain *odomain)
++{
++	int i;
++	struct omap_iommu_device *iommu = odomain->iommus;
++
++	for (i = 0; iommu && i < odomain->num_iommus; i++, iommu++)
++		kfree(iommu->pgtable);
++
++	kfree(odomain->iommus);
++	odomain->num_iommus = 0;
++	odomain->iommus = NULL;
+ }
+ 
+ static int
+@@ -1108,8 +1247,10 @@ omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ {
+ 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
+ 	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
++	struct omap_iommu_device *iommu;
+ 	struct omap_iommu *oiommu;
+ 	int ret = 0;
++	int i;
+ 
+ 	if (!arch_data || !arch_data->iommu_dev) {
+ 		dev_err(dev, "device doesn't have an associated iommu\n");
+@@ -1125,19 +1266,42 @@ omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ 		goto out;
+ 	}
+ 
+-	oiommu = arch_data->iommu_dev;
+-
+-	/* get a handle to and enable the omap iommu */
+-	ret = omap_iommu_attach(oiommu, omap_domain->pgtable);
++	ret = omap_iommu_attach_init(dev, omap_domain);
+ 	if (ret) {
+-		dev_err(dev, "can't get omap iommu: %d\n", ret);
+-		goto out;
++		dev_err(dev, "failed to allocate required iommu data %d\n",
++			ret);
++		goto init_fail;
++	}
++
++	iommu = omap_domain->iommus;
++	for (i = 0; i < omap_domain->num_iommus; i++, iommu++, arch_data++) {
++		/* configure and enable the omap iommu */
++		oiommu = arch_data->iommu_dev;
++		ret = omap_iommu_attach(oiommu, iommu->pgtable);
++		if (ret) {
++			dev_err(dev, "can't get omap iommu: %d\n", ret);
++			goto attach_fail;
++		}
++
++		oiommu->domain = domain;
++		iommu->iommu_dev = oiommu;
+ 	}
+ 
+-	omap_domain->iommu_dev = oiommu;
+ 	omap_domain->dev = dev;
+-	oiommu->domain = domain;
+ 
++	goto out;
++
++attach_fail:
++	while (i--) {
++		iommu--;
++		arch_data--;
++		oiommu = iommu->iommu_dev;
++		omap_iommu_detach(oiommu);
++		iommu->iommu_dev = NULL;
++		oiommu->domain = NULL;
++	}
++init_fail:
++	omap_iommu_detach_fini(omap_domain);
+ out:
+ 	spin_unlock(&omap_domain->lock);
+ 	return ret;
+@@ -1146,7 +1310,10 @@ omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
+ 				   struct device *dev)
+ {
+-	struct omap_iommu *oiommu = dev_to_omap_iommu(dev);
++	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
++	struct omap_iommu_device *iommu = omap_domain->iommus;
++	struct omap_iommu *oiommu;
++	int i;
+ 
+ 	if (!omap_domain->dev) {
+ 		dev_err(dev, "domain has no attached device\n");
+@@ -1159,13 +1326,24 @@ static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
  		return;
  	}
  
-@@ -1219,7 +1224,7 @@ static void omap_iommu_domain_free(struct iommu_domain *domain)
- 	 * An iommu device is still attached
- 	 * (currently, only one device can be attached) ?
- 	 */
--	if (omap_domain->iommu_dev)
-+	if (omap_domain->dev)
+-	iopgtable_clear_entry_all(oiommu);
++	/*
++	 * cleanup in the reverse order of attachment - this addresses
++	 * any h/w dependencies between multiple instances, if any
++	 */
++	iommu += (omap_domain->num_iommus - 1);
++	arch_data += (omap_domain->num_iommus - 1);
++	for (i = 0; i < omap_domain->num_iommus; i++, iommu--, arch_data--) {
++		oiommu = iommu->iommu_dev;
++		iopgtable_clear_entry_all(oiommu);
++
++		omap_iommu_detach(oiommu);
++		iommu->iommu_dev = NULL;
++		oiommu->domain = NULL;
++	}
+ 
+-	omap_iommu_detach(oiommu);
++	omap_iommu_detach_fini(omap_domain);
+ 
+-	omap_domain->iommu_dev = NULL;
+ 	omap_domain->dev = NULL;
+-	oiommu->domain = NULL;
+ }
+ 
+ static void omap_iommu_detach_dev(struct iommu_domain *domain,
+@@ -1187,18 +1365,7 @@ static struct iommu_domain *omap_iommu_domain_alloc(unsigned type)
+ 
+ 	omap_domain = kzalloc(sizeof(*omap_domain), GFP_KERNEL);
+ 	if (!omap_domain)
+-		goto out;
+-
+-	omap_domain->pgtable = kzalloc(IOPGD_TABLE_SIZE, GFP_KERNEL);
+-	if (!omap_domain->pgtable)
+-		goto fail_nomem;
+-
+-	/*
+-	 * should never fail, but please keep this around to ensure
+-	 * we keep the hardware happy
+-	 */
+-	if (WARN_ON(!IS_ALIGNED((long)omap_domain->pgtable, IOPGD_TABLE_SIZE)))
+-		goto fail_align;
++		return NULL;
+ 
+ 	spin_lock_init(&omap_domain->lock);
+ 
+@@ -1207,13 +1374,6 @@ static struct iommu_domain *omap_iommu_domain_alloc(unsigned type)
+ 	omap_domain->domain.geometry.force_aperture = true;
+ 
+ 	return &omap_domain->domain;
+-
+-fail_align:
+-	kfree(omap_domain->pgtable);
+-fail_nomem:
+-	kfree(omap_domain);
+-out:
+-	return NULL;
+ }
+ 
+ static void omap_iommu_domain_free(struct iommu_domain *domain)
+@@ -1227,7 +1387,6 @@ static void omap_iommu_domain_free(struct iommu_domain *domain)
+ 	if (omap_domain->dev)
  		_omap_iommu_detach_dev(omap_domain, omap_domain->dev);
  
- 	kfree(omap_domain->pgtable);
+-	kfree(omap_domain->pgtable);
+ 	kfree(omap_domain);
+ }
+ 
+@@ -1235,11 +1394,16 @@ static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
+ 					   dma_addr_t da)
+ {
+ 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
+-	struct omap_iommu *oiommu = omap_domain->iommu_dev;
++	struct omap_iommu_device *iommu = omap_domain->iommus;
++	struct omap_iommu *oiommu = iommu->iommu_dev;
+ 	struct device *dev = oiommu->dev;
+ 	u32 *pgd, *pte;
+ 	phys_addr_t ret = 0;
+ 
++	/*
++	 * all the iommus within the domain will have identical programming,
++	 * so perform the lookup using just the first iommu
++	 */
+ 	iopgtable_lookup_entry(oiommu, da, &pgd, &pte);
+ 
+ 	if (pte) {
+@@ -1265,11 +1429,12 @@ static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
+ 
+ static int omap_iommu_add_device(struct device *dev)
+ {
+-	struct omap_iommu_arch_data *arch_data;
++	struct omap_iommu_arch_data *arch_data, *tmp;
+ 	struct omap_iommu *oiommu;
+ 	struct iommu_group *group;
+ 	struct device_node *np;
+ 	struct platform_device *pdev;
++	int num_iommus, i;
+ 	int ret;
+ 
+ 	/*
+@@ -1281,36 +1446,57 @@ static int omap_iommu_add_device(struct device *dev)
+ 	if (!dev->of_node)
+ 		return 0;
+ 
+-	np = of_parse_phandle(dev->of_node, "iommus", 0);
+-	if (!np)
++	/*
++	 * retrieve the count of IOMMU nodes using phandle size as element size
++	 * since #iommu-cells = 0 for OMAP
++	 */
++	num_iommus = of_property_count_elems_of_size(dev->of_node, "iommus",
++						     sizeof(phandle));
++	if (num_iommus < 0)
+ 		return 0;
+ 
+-	pdev = of_find_device_by_node(np);
+-	if (WARN_ON(!pdev)) {
+-		of_node_put(np);
+-		return -EINVAL;
+-	}
++	arch_data = kzalloc((num_iommus + 1) * sizeof(*arch_data), GFP_KERNEL);
++	if (!arch_data)
++		return -ENOMEM;
+ 
+-	oiommu = platform_get_drvdata(pdev);
+-	if (!oiommu) {
+-		of_node_put(np);
+-		return -EINVAL;
+-	}
++	for (i = 0, tmp = arch_data; i < num_iommus; i++, tmp++) {
++		np = of_parse_phandle(dev->of_node, "iommus", i);
++		if (!np) {
++			kfree(arch_data);
++			return -EINVAL;
++		}
++
++		pdev = of_find_device_by_node(np);
++		if (WARN_ON(!pdev)) {
++			of_node_put(np);
++			kfree(arch_data);
++			return -EINVAL;
++		}
++
++		oiommu = platform_get_drvdata(pdev);
++		if (!oiommu) {
++			of_node_put(np);
++			kfree(arch_data);
++			return -EINVAL;
++		}
++
++		tmp->iommu_dev = oiommu;
+ 
+-	arch_data = kzalloc(sizeof(*arch_data), GFP_KERNEL);
+-	if (!arch_data) {
+ 		of_node_put(np);
+-		return -ENOMEM;
+ 	}
+ 
++	/*
++	 * use the first IOMMU alone for the sysfs device linking.
++	 * TODO: Evaluate if a single iommu_group needs to be
++	 * maintained for both IOMMUs
++	 */
++	oiommu = arch_data->iommu_dev;
+ 	ret = iommu_device_link(&oiommu->iommu, dev);
+ 	if (ret) {
+ 		kfree(arch_data);
+-		of_node_put(np);
+ 		return ret;
+ 	}
+ 
+-	arch_data->iommu_dev = oiommu;
+ 	dev->archdata.iommu = arch_data;
+ 
+ 	/*
+@@ -1326,8 +1512,6 @@ static int omap_iommu_add_device(struct device *dev)
+ 	}
+ 	iommu_group_put(group);
+ 
+-	of_node_put(np);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
+index a675af29a6ec..1703159ef5af 100644
+--- a/drivers/iommu/omap-iommu.h
++++ b/drivers/iommu/omap-iommu.h
+@@ -29,17 +29,26 @@ struct iotlb_entry {
+ };
+ 
+ /**
++ * struct omap_iommu_device - omap iommu device data
++ * @pgtable:	page table used by an omap iommu attached to a domain
++ * @iommu_dev:	pointer to store an omap iommu instance attached to a domain
++ */
++struct omap_iommu_device {
++	u32 *pgtable;
++	struct omap_iommu *iommu_dev;
++};
++
++/**
+  * struct omap_iommu_domain - omap iommu domain
+- * @pgtable:	the page table
+- * @iommu_dev:	an omap iommu device attached to this domain. only a single
+- *		iommu device can be attached for now.
++ * @num_iommus: number of iommus in this domain
++ * @iommus:	omap iommu device data for all iommus in this domain
+  * @dev:	Device using this domain.
+  * @lock:	domain lock, should be taken when attaching/detaching
+  * @domain:	generic domain handle used by iommu core code
+  */
+ struct omap_iommu_domain {
+-	u32 *pgtable;
+-	struct omap_iommu *iommu_dev;
++	u32 num_iommus;
++	struct omap_iommu_device *iommus;
+ 	struct device *dev;
+ 	spinlock_t lock;
+ 	struct iommu_domain domain;
+@@ -97,17 +106,6 @@ struct iotlb_lock {
+ 	short vict;
+ };
+ 
+-/**
+- * dev_to_omap_iommu() - retrieves an omap iommu object from a user device
+- * @dev: iommu client device
+- */
+-static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+-{
+-	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
+-
+-	return arch_data->iommu_dev;
+-}
+-
+ /*
+  * MMU Register offsets
+  */
 -- 
 2.13.1
