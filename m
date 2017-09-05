@@ -1,145 +1,105 @@
-From: Suman Anna via iommu <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Subject: [PATCH v2 0/2] Dual MMU support for TI DRA7xx DSPs
-Date: Tue, 5 Sep 2017 17:56:16 -0500
-Message-ID: <20170905225618.912-1-s-anna@ti.com>
-Reply-To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: Re: n900 in next-20170901
+Date: Wed, 6 Sep 2017 08:32:42 +0900
+Message-ID: <20170905233241.GA19231@js1304-P5Q-DELUXE>
+References: <20170903203737.GA12475@amd>
+ <20170905201314.GE5024@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170905201314.GE5024@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Joerg,
+On Tue, Sep 05, 2017 at 01:13:15PM -0700, Tony Lindgren wrote:
+> * Pavel Machek <pavel@ucw.cz> [170903 13:38]:
+> > Hi!
+> >
+> > It compiles ok, but it hangs on boot; black screen, so sometime before
+> > display is initialized.
+> 
+> Thanks for reporting it. Based on git bisect, the regression causing
+> commit is 9caf25f996e8 ("mm/cma: manage the memory of the CMA area
+> by using the ZONE_MOVABLE"). With this path applied, booting hangs
+> with an error in omap3_save_secure_ram_context() after a call to
+> _omap_save_secure_sram() that calls the related assembly code
+> save_secure_ram_context.
+> 
+> However, looks like there is also some other commit causing issue.
+> 
+> Just reverting 9caf25f996e8 on Linux next causes the oops below.
+> 
+> Anybody got ideas why this now happens?
+> 
+> Regards,
+> 
+> Tony
+> 
+> 8< --------------------
+> Unable to handle kernel paging request at virtual address ce800000
+> pgd = c0004000 [ce800000] *pgd=00000000
+> Internal error: Oops: 805 [#1] SMP ARM
+> Modules linked in:
+> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.13.0-next-20170905+ #662
+> Hardware name: Nokia RX-51 board
+> task: ce0a0040 task.stack: ce0a4000
+> PC is at __memzero+0x24/0x7c
+> LR is at 0x0
+> pc : [<c084fa84>]    lr : [<00000000>]    psr: 20000013
+> sp : ce0a5e84  ip : 00000000  fp : c0c005a8
+> r10: 00040000  r9 : cfc95000  r8 : 00000247
+> r7 : ce0a5ef4  r6 : 00000000  r5 : 00000001  r4 : ce800000
+> r3 : 00000000  r2 : 00000000  r1 : 0003ffc0  r0 : ce800000
+> Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
+> Control: 10c5387d  Table: 80004019  DAC: 00000051
+> Process swapper/0 (pid: 1, stack limit = 0xce0a4218)
+> Stack: (0xce0a5e84 to 0xce0a6000)
+> 5e80:          c0116718 00000040 00000006 c01a1470 00040000 00000001 00000040
+> 5ea0: ce0a5ef4 00000247 cfc95000 00000000 c0c005a8 c0116844 c0dce000 c01a1484
+> 5ec0: 00000247 c0d0e2e0 c0dce29c c0b5cbbc c0dce000 00000003 c0c5389c c0c06c54
+> 5ee0: c0c06bd8 00000001 00000000 014000c0 00000000 c0b5cbbc ffffe000 c0c06bd8
+> 5f00: 00000000 c0101ef8 000000aa 00000000 cfdfcbdb cfdfcbe7 c0b5d904 000000aa
+> 5f20: 000000aa c015cf54 c0b5cbbc 00000000 00000002 00000002 cfdfcbe7 cfdfcbec
+> 5f40: c0c6c59c 00000002 c0dce000 c0c53880 c0c6c66c c0dce000 c0c53884 c0dce000
+> 5f60: 00000003 c0c00ecc 00000002 00000002 00000000 c0c005a8 c0864f3c 000000aa
+> 5f80: 00000000 00000000 c0864f3c 00000000 00000000 00000000 00000000 00000000
+> 5fa0: 00000000 c0864f44 00000000 c0107e98 00000000 00000000 00000000 00000000
+> 5fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+> 5fe0: 00000000 00000000 00000000 00000000 00000013 00000000 ffffffff ffffffff
+> [<c084fa84>] (__memzero) from [<c0116718>] (__dma_clear_buffer+0x140/0x154)
+> [<c0116718>] (__dma_clear_buffer) from [<c0116844>] (__alloc_from_contiguous+0x50/0xdc)
+> [<c0116844>] (__alloc_from_contiguous) from [<c0c06c54>] (atomic_pool_init+0x7c/0x178)
+> [<c0c06c54>] (atomic_pool_init) from [<c0101ef8>] (do_one_initcall+0x3c/0x170)
+> [<c0101ef8>] (do_one_initcall) from [<c0c00ecc>] (kernel_init_freeable+0x1fc/0x2c4)
+> [<c0c00ecc>] (kernel_init_freeable) from [<c0864f44>] (kernel_init+0x8/0x110)
+> [<c0864f44>] (kernel_init) from [<c0107e98>] (ret_from_fork+0x14/0x3c)
+> Code: e52de004 e1a0c002 e1a0e002 e2511040 (a8a0500c)
 
-The following is v2 of the patch series that enhances the OMAP IOMMU driver
-to support the mirror-programming of the two MMUs present within the DSP
-subsystems on TI DRA7xx/AM57xx family of SoCs.
+Hello,
 
-The main changes are to address the review comments on the registration of
-the MMU devices with the IOMMU core. I have added logic in omap_iommu_probe
-function to not register the second MMU device with the IOMMU core. There is
-also only one iommu_group now and the iommu sysfs entries do not show the second
-core anymore. Example output log given below.
+I think that I made a mistake for configuration CONFIG_HIGHMEM=y and
+CONFIG_HAVE_MEMBLOCK_NODE_MAP=y. In this case, the MOVABLE_ZONE can
+be *!highmem*. Could you check that your configuration have above
+options?
 
-I have chosen to make the modifications in the probe rather than the .add_device
-callback as this is much simpler. It eliminates the need for additional logic for
-refcounting (need the iommu_group allocation only for the first client) and moving
-the iommu_group allocation out of probe. This also ensures the IOMMU device and
-group registration is done during probe itself irrespective of whether there are
-client nodes defined or not in the DTS (for the .add_device callbacks to be
-effective).
+And, could you check that following patch works for you?
 
-Patches still based on your 4.13 arm/omap branch. DT representation and usage
-details are the same as described in v1 [1].
+Thanks.
 
-regards
-Suman
-
-[1] https://marc.info/?l=linux-omap&m=150418532431811&w=2
-
-Following is the output of sysfs with these MMUs exercised
-with additional patches now:
-
-root@am57xx-evm:~# dmesg | grep mmu
-[    0.520328] omap-iommu 40d01000.mmu: 40d01000.mmu registered
-[    0.520676] omap-iommu 40d02000.mmu: 40d02000.mmu registered
-[    0.521148] omap-iommu 58882000.mmu: 58882000.mmu registered
-[    0.521638] omap-iommu 55082000.mmu: 55082000.mmu registered
-[    0.522226] omap-iommu 41501000.mmu: 41501000.mmu registered
-[    0.522575] omap-iommu 41502000.mmu: 41502000.mmu registered
-[    0.523040] iommu: Adding device 58820000.ipu to group 1
-[    0.523192] iommu: Adding device 55020000.ipu to group 2
-[    0.523444] iommu: Adding device 40800000.dsp to group 0
-[    0.523841] iommu: Adding device 41000000.dsp to group 3
-root@am57xx-evm:~# ls -l /sys/class/iommu/
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 40d01000.mmu -> ../../devices/platform/44000000.ocp/40d01000.mmu/iommu/40d01000.mmu
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 41501000.mmu -> ../../devices/platform/44000000.ocp/41501000.mmu/iommu/41501000.mmu
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 55082000.mmu -> ../../devices/platform/44000000.ocp/55082000.mmu/iommu/55082000.mmu
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 58882000.mmu -> ../../devices/platform/44000000.ocp/58882000.mmu/iommu/58882000.mmu
-root@am57xx-evm:~# ls -l /sys/kernel/iommu_groups/
-drwxr-xr-x    3 root     root             0 Aug  8 03:59 0
-drwxr-xr-x    3 root     root             0 Aug  8 03:59 1
-drwxr-xr-x    3 root     root             0 Aug  8 03:59 2
-drwxr-xr-x    3 root     root             0 Aug  8 03:59 3
-root@am57xx-evm:~# ls -l /sys/kernel/iommu_groups/*/devices
-/sys/kernel/iommu_groups/0/devices:
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 40800000.dsp -> ../../../../devices/platform/44000000.ocp/40800000.dsp
-
-/sys/kernel/iommu_groups/1/devices:
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 58820000.ipu -> ../../../../devices/platform/44000000.ocp/58820000.ipu
-
-/sys/kernel/iommu_groups/2/devices:
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 55020000.ipu -> ../../../../devices/platform/44000000.ocp/55020000.ipu
-
-/sys/kernel/iommu_groups/3/devices:
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 41000000.dsp -> ../../../../devices/platform/44000000.ocp/41000000.dsp
-root@am57xx-evm:~# ls -l /sys/kernel/iommu_groups/*/devices/*/                                                                                                                                  
-/sys/kernel/iommu_groups/0/devices/40800000.dsp/:
-lrwxrwxrwx    1 root     root             0 Aug  8 04:04 driver -> ../../../../bus/platform/drivers/omap-rproc
--rw-r--r--    1 root     root          4096 Aug  8 03:59 driver_override
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 iommu -> ../40d01000.mmu/iommu/40d01000.mmu
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 iommu_group -> ../../../../kernel/iommu_groups/0
--r--r--r--    1 root     root          4096 Aug  8 03:59 modalias
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 of_node -> ../../../../firmware/devicetree/base/ocp/dsp@40800000
-drwxr-xr-x    2 root     root             0 Aug  8 03:59 power
-drwxr-xr-x    3 root     root             0 Aug  8 04:04 remoteproc
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 subsystem -> ../../../../bus/platform
--rw-r--r--    1 root     root          4096 Aug  8 03:59 uevent
-
-/sys/kernel/iommu_groups/1/devices/58820000.ipu/:
-lrwxrwxrwx    1 root     root             0 Aug  8 04:04 driver -> ../../../../bus/platform/drivers/omap-rproc
--rw-r--r--    1 root     root          4096 Aug  8 03:59 driver_override
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 iommu -> ../58882000.mmu/iommu/58882000.mmu
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 iommu_group -> ../../../../kernel/iommu_groups/1
--r--r--r--    1 root     root          4096 Aug  8 03:59 modalias
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 of_node -> ../../../../firmware/devicetree/base/ocp/ipu@58820000
-drwxr-xr-x    2 root     root             0 Aug  8 03:59 power
-drwxr-xr-x    3 root     root             0 Aug  8 04:04 remoteproc
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 subsystem -> ../../../../bus/platform
--rw-r--r--    1 root     root          4096 Aug  8 03:59 uevent
-
-/sys/kernel/iommu_groups/2/devices/55020000.ipu/:
-lrwxrwxrwx    1 root     root             0 Aug  8 04:04 driver -> ../../../../bus/platform/drivers/omap-rproc
--rw-r--r--    1 root     root          4096 Aug  8 03:59 driver_override
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 iommu -> ../55082000.mmu/iommu/55082000.mmu
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 iommu_group -> ../../../../kernel/iommu_groups/2
--r--r--r--    1 root     root          4096 Aug  8 03:59 modalias
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 of_node -> ../../../../firmware/devicetree/base/ocp/ipu@55020000
-drwxr-xr-x    2 root     root             0 Aug  8 03:59 power
-drwxr-xr-x    3 root     root             0 Aug  8 04:04 remoteproc
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 subsystem -> ../../../../bus/platform
--rw-r--r--    1 root     root          4096 Aug  8 03:59 uevent
-
-/sys/kernel/iommu_groups/3/devices/41000000.dsp/:
-lrwxrwxrwx    1 root     root             0 Aug  8 04:04 driver -> ../../../../bus/platform/drivers/omap-rproc
--rw-r--r--    1 root     root          4096 Aug  8 03:59 driver_override
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 iommu -> ../41501000.mmu/iommu/41501000.mmu
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 iommu_group -> ../../../../kernel/iommu_groups/3
--r--r--r--    1 root     root          4096 Aug  8 03:59 modalias
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 of_node -> ../../../../firmware/devicetree/base/ocp/dsp@41000000
-drwxr-xr-x    2 root     root             0 Aug  8 03:59 power
-drwxr-xr-x    3 root     root             0 Aug  8 04:04 remoteproc
-lrwxrwxrwx    1 root     root             0 Aug  8 03:59 subsystem -> ../../../../bus/platform
--rw-r--r--    1 root     root          4096 Aug  8 03:59 uevent
-
-Suman Anna (2):
-  iommu/omap: Change the attach detection logic
-  iommu/omap: Add support to program multiple iommus
-
- drivers/iommu/omap-iommu.c | 375 ++++++++++++++++++++++++++++++++++-----------
- drivers/iommu/omap-iommu.h |  30 ++--
- 2 files changed, 296 insertions(+), 109 deletions(-)
-
--- 
-2.13.1
+------------>8-----------------
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index 38f0fde..4c39c92 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -518,7 +518,7 @@ void __init dma_contiguous_remap(void)
+                 * considered as highmem even if it's physical address belong
+                 * to lowmem. Therefore, re-mapping isn't required.
+                 */
+-               if (!IS_ENABLED(CONFIG_HIGHMEM))
++               if (!is_highmem_idx(ZONE_MOVABLE))
+                        iotable_init(&map, 1);
+        }
+ }
