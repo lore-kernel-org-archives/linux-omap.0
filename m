@@ -1,148 +1,80 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH net-next] net: cpsw: Don't handle SIOC[GS]HWTSTAMP when
- CPTS is disabled
-Date: Tue, 5 Sep 2017 16:25:22 -0500
-Message-ID: <c470bbf2-fadf-88ba-f944-f0b373d211ad@ti.com>
-References: <20170830065055.419-1-stefan.sorensen@spectralink.com>
- <20170830.144745.947488279115809130.davem@davemloft.net>
- <20170831074807.3dbbt6qhqxdquipa@localhost>
+From: Suman Anna <s-anna@ti.com>
+Subject: [PATCH v2 1/2] iommu/omap: Change the attach detection logic
+Date: Tue, 5 Sep 2017 17:56:17 -0500
+Message-ID: <20170905225618.912-2-s-anna@ti.com>
+References: <20170905225618.912-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170831074807.3dbbt6qhqxdquipa@localhost>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>, David Miller <davem@davemloft.net>
-Cc: stefan.sorensen@spectralink.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170905225618.912-1-s-anna@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: iommu@lists.linux-foundation.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Suman Anna <s-anna@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+The OMAP IOMMU driver allows only a single device (eg: a rproc
+device) to be attached per domain. The current attach detection
+logic relies on a check for an attached iommu for the respective
+client device. Change this logic to use the client device pointer
+instead in preparation for supporting multiple iommu devices to be
+bound to a single iommu domain, and thereby to a client device.
 
-On 08/31/2017 02:48 AM, Richard Cochran wrote:
-> On Wed, Aug 30, 2017 at 02:47:45PM -0700, David Miller wrote:
->> It should not be required to disable a Kconfig option just to get PHY
->> timestamping to work properly.
-> 
-> Well, if the MAC driver handles the ioctl and enables time stamping,
-> then the PHY driver's time stamping remains disabled.  We don't have a
-> way to choose PHY time stamping at run time.
->   
->> Rather, if the CPTS code returns -EOPNOTSUPP we should try to
->> fallthrough to the PHY library based methods.
-> 
-> I agree that it would be better for the core (rather than the
-> individual drivers) to handle this case.
-
-I'd like to clarify one thing here - what is the preferable time-stamping
-device: PHY over MAC, or MAC over PHY? 
-my understanding it's PHY and ethtool_get_ts_info() seems already implemented this way.
-
-> 
-> There are a few callers of .ndo_do_ioctl to consider.  Besides
-> dev_ifsioc() there is at least vlan_dev_ioctl() that needs to handle
-> the EOPNOTSUPP.
-
-Sry, I've not tried to do solution in Net core, but below patch updates CPSW
-driver to selected PHY time-stamping over MAC if supported without disabling CPTS in Kconfig
-(at least it's expected to fix it) - not tested as I do not have HW with dp83640 phy.
-
------------------------------------------------------------------------
->From 51347692087732320f2f5615030f5f36ed3c7724 Mon Sep 17 00:00:00 2001
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Date: Tue, 5 Sep 2017 15:24:44 -0500
-Subject: [PATCH] net: ethernet: cpsw: allow phy timestamping over mac
-
-Allow phy timestamping to be used over mac timestamping if supported.
-
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c | 21 +++++++++++++++++----
- drivers/net/ethernet/ti/cpts.c |  2 ++
- 2 files changed, 19 insertions(+), 4 deletions(-)
+v2: No changes
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 95ac926..8831cb9 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -291,6 +291,10 @@ struct cpsw_ss_regs {
- #define CPSW_MAX_BLKS_TX_SHIFT		4
- #define CPSW_MAX_BLKS_RX		5
+ drivers/iommu/omap-iommu.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index bd67e1b2c64e..81ef729994ce 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -805,7 +805,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+ 	struct iommu_domain *domain = obj->domain;
+ 	struct omap_iommu_domain *omap_domain = to_omap_domain(domain);
  
-+#define HAS_PHY_TXTSTAMP(p) ((p) && (p)->drv && (p)->drv->txtstamp)
-+#define HAS_PHY_TSTAMP(p) ((p) && (p)->drv && \
-+	((p)->drv->rxtstamp || (p)->drv->rxtstamp))
-+
- struct cpsw_host_regs {
- 	u32	max_blks;
- 	u32	blk_cnt;
-@@ -1600,6 +1604,8 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
+-	if (!omap_domain->iommu_dev)
++	if (!omap_domain->dev)
+ 		return IRQ_NONE;
+ 
+ 	errs = iommu_report_fault(obj, &da);
+@@ -1118,8 +1118,8 @@ omap_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
+ 
+ 	spin_lock(&omap_domain->lock);
+ 
+-	/* only a single device is supported per domain for now */
+-	if (omap_domain->iommu_dev) {
++	/* only a single client device can be attached to a domain */
++	if (omap_domain->dev) {
+ 		dev_err(dev, "iommu domain is already attached\n");
+ 		ret = -EBUSY;
+ 		goto out;
+@@ -1148,9 +1148,14 @@ static void _omap_iommu_detach_dev(struct omap_iommu_domain *omap_domain,
  {
- 	struct cpsw_priv *priv = netdev_priv(ndev);
- 	struct cpsw_common *cpsw = priv->cpsw;
-+	int slave_no = cpsw_slave_index(cpsw, priv);
-+	struct phy_device *phy = cpsw->slaves[slave_no].phy;
- 	struct cpts *cpts = cpsw->cpts;
- 	struct netdev_queue *txq;
- 	struct cpdma_chan *txch;
-@@ -1611,8 +1617,9 @@ static netdev_tx_t cpsw_ndo_start_xmit(struct sk_buff *skb,
- 		return NET_XMIT_DROP;
- 	}
+ 	struct omap_iommu *oiommu = dev_to_omap_iommu(dev);
  
--	if (skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP &&
--	    cpts_is_tx_enabled(cpts) && cpts_can_timestamp(cpts, skb))
-+	if ((skb_shinfo(skb)->tx_flags & SKBTX_HW_TSTAMP) &&
-+	    cpts_can_timestamp(cpts, skb) &&
-+	    (cpts_is_tx_enabled(cpts) || HAS_PHY_TXTSTAMP(phy)))
- 		skb_shinfo(skb)->tx_flags |= SKBTX_IN_PROGRESS;
- 
- 	q_idx = skb_get_queue_mapping(skb);
-@@ -1810,20 +1817,26 @@ static int cpsw_ndo_ioctl(struct net_device *dev, struct ifreq *req, int cmd)
- 	struct cpsw_priv *priv = netdev_priv(dev);
- 	struct cpsw_common *cpsw = priv->cpsw;
- 	int slave_no = cpsw_slave_index(cpsw, priv);
-+	struct phy_device *phy = cpsw->slaves[slave_no].phy;
-+
- 
- 	if (!netif_running(dev))
- 		return -EINVAL;
- 
- 	switch (cmd) {
- 	case SIOCSHWTSTAMP:
-+		if (HAS_PHY_TSTAMP(phy))
-+			break;
- 		return cpsw_hwtstamp_set(dev, req);
- 	case SIOCGHWTSTAMP:
-+		if (HAS_PHY_TSTAMP(phy))
-+			break;
- 		return cpsw_hwtstamp_get(dev, req);
- 	}
- 
--	if (!cpsw->slaves[slave_no].phy)
-+	if (!phy)
- 		return -EOPNOTSUPP;
--	return phy_mii_ioctl(cpsw->slaves[slave_no].phy, req, cmd);
-+	return phy_mii_ioctl(phy, req, cmd);
- }
- 
- static void cpsw_ndo_tx_timeout(struct net_device *ndev)
-diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-index c2121d2..f257f54 100644
---- a/drivers/net/ethernet/ti/cpts.c
-+++ b/drivers/net/ethernet/ti/cpts.c
-@@ -421,6 +421,8 @@ void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
- 	u64 ns;
- 	struct skb_shared_hwtstamps ssh;
- 
-+	if (!cpts->rx_enable)
++	if (!omap_domain->dev) {
++		dev_err(dev, "domain has no attached device\n");
 +		return;
- 	if (!(skb_shinfo(skb)->tx_flags & SKBTX_IN_PROGRESS))
++	}
++
+ 	/* only a single device is supported per domain for now */
+-	if (omap_domain->iommu_dev != oiommu) {
+-		dev_err(dev, "invalid iommu device\n");
++	if (omap_domain->dev != dev) {
++		dev_err(dev, "invalid attached device\n");
  		return;
- 	ns = cpts_find_ts(cpts, skb, CPTS_EV_TX);
+ 	}
+ 
+@@ -1219,7 +1224,7 @@ static void omap_iommu_domain_free(struct iommu_domain *domain)
+ 	 * An iommu device is still attached
+ 	 * (currently, only one device can be attached) ?
+ 	 */
+-	if (omap_domain->iommu_dev)
++	if (omap_domain->dev)
+ 		_omap_iommu_detach_dev(omap_domain, omap_domain->dev);
+ 
+ 	kfree(omap_domain->pgtable);
 -- 
-2.10.1
-
-
--- 
-regards,
--grygorii
+2.13.1
