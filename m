@@ -1,64 +1,52 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] clk: ti: dra7xx: Reset the mcasp3_ahclkx_mux clock value
-Date: Wed, 6 Sep 2017 18:59:46 +0530
-Message-ID: <46878cd0-9f7c-dc34-e230-8c4a11bcb096@ti.com>
-References: <1504694199-32227-1-git-send-email-j-keerthy@ti.com>
- <26063901-be4f-dbe3-514b-e9a1a8ab3b10@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: n900 in next-20170901
+Date: Wed, 6 Sep 2017 06:30:57 -0700
+Message-ID: <20170906133057.GH5024@atomide.com>
+References: <20170903203737.GA12475@amd>
+ <20170905201314.GE5024@atomide.com>
+ <20170905233241.GA19231@js1304-P5Q-DELUXE>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <26063901-be4f-dbe3-514b-e9a1a8ab3b10@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20170905233241.GA19231@js1304-P5Q-DELUXE>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, sboyd@codeaurora.org
-Cc: linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
+To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
+
+* Joonsoo Kim <iamjoonsoo.kim@lge.com> [170905 16:32]:
+> I think that I made a mistake for configuration CONFIG_HIGHMEM=y and
+> CONFIG_HAVE_MEMBLOCK_NODE_MAP=y. In this case, the MOVABLE_ZONE can
+> be *!highmem*. Could you check that your configuration have above
+> options?
+
+CONFIG_HIGHMEM is set yeah.
+
+> And, could you check that following patch works for you?
+
+Does not seem to help, tried against next with just 9caf25f996e8
+revert and also with 9caf25f996e8.
+
+Regards,
+
+Tony
 
 
-On Wednesday 06 September 2017 05:12 PM, Tero Kristo wrote:
-> On 06/09/17 13:36, Keerthy wrote:
->> Reset the mcasp3_ahclkx_mux to abe_24m_fclk. This is needed
->> in case of kexec where the reset values might be wiped off.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> 
-> Why not do this in DT with the assigned-clock-xyz properties available?
-
-Works for me. I will send a v2 with your suggested-by.
-
-Thanks,
-Keerthy
-
-> 
-> -Tero
-> 
->> ---
->>   drivers/clk/ti/clk-7xx.c | 9 ++++++++-
->>   1 file changed, 8 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
->> index 9fd6043..2c3a36c 100644
->> --- a/drivers/clk/ti/clk-7xx.c
->> +++ b/drivers/clk/ti/clk-7xx.c
->> @@ -312,7 +312,7 @@
->>   int __init dra7xx_dt_clk_init(void)
->>   {
->>       int rc;
->> -    struct clk *dpll_ck, *hdcp_ck;
->> +    struct clk *dpll_ck, *hdcp_ck, *mcasp3_ahclkx_ck, *abe_ck;
->>         ti_dt_clocks_register(dra7xx_clks);
->>   @@ -338,5 +338,12 @@ int __init dra7xx_dt_clk_init(void)
->>       if (rc)
->>           pr_err("%s: failed to set dss_deshdcp_clk\n", __func__);
->>   +    mcasp3_ahclkx_ck = clk_get_sys(NULL, "mcasp3_ahclkx_mux");
->> +    abe_ck = clk_get_sys(NULL, "abe_24m_fclk");
->> +    rc = clk_set_parent(mcasp3_ahclkx_ck, abe_ck);
->> +    if (rc)
->> +        pr_err("%s: failed to set parent for mcasp3_ahclkx_mux\n",
->> +               __func__);
->> +
->>       return rc;
->>   }
->>
+> ------------>8-----------------
+> diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+> index 38f0fde..4c39c92 100644
+> --- a/arch/arm/mm/dma-mapping.c
+> +++ b/arch/arm/mm/dma-mapping.c
+> @@ -518,7 +518,7 @@ void __init dma_contiguous_remap(void)
+>                  * considered as highmem even if it's physical address belong
+>                  * to lowmem. Therefore, re-mapping isn't required.
+>                  */
+> -               if (!IS_ENABLED(CONFIG_HIGHMEM))
+> +               if (!is_highmem_idx(ZONE_MOVABLE))
+>                         iotable_init(&map, 1);
+>         }
+>  }
 > 
