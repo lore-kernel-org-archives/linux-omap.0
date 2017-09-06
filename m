@@ -1,61 +1,46 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] clk: ti: dra7xx: Reset the mcasp3_ahclkx_mux clock value
-Date: Wed, 6 Sep 2017 14:42:31 +0300
-Message-ID: <26063901-be4f-dbe3-514b-e9a1a8ab3b10@ti.com>
-References: <1504694199-32227-1-git-send-email-j-keerthy@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 1/3] dt-bindings: sdhci-omap: Add bindings for the sdhci-omap controller
+Date: Wed, 6 Sep 2017 17:15:54 +0530
+Message-ID: <20170906114556.32532-2-kishon@ti.com>
+References: <20170906114556.32532-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1504694199-32227-1-git-send-email-j-keerthy@ti.com>
-Content-Language: en-US
+In-Reply-To: <20170906114556.32532-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, sboyd@codeaurora.org
-Cc: linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
+To: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
+Cc: Sekhar Nori <nsekhar@ti.com>, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-=EF=BB=BF
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Add binding for the TI's sdhci-omap controller.
 
-On 06/09/17 13:36, Keerthy wrote:
-> Reset the mcasp3_ahclkx_mux to abe_24m_fclk. This is needed
-> in case of kexec where the reset values might be wiped off.
->=20
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ Documentation/devicetree/bindings/mmc/sdhci-omap.txt | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/mmc/sdhci-omap.txt
 
-Why not do this in DT with the assigned-clock-xyz properties available?
-
--Tero
-
-> ---
->   drivers/clk/ti/clk-7xx.c | 9 ++++++++-
->   1 file changed, 8 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-> index 9fd6043..2c3a36c 100644
-> --- a/drivers/clk/ti/clk-7xx.c
-> +++ b/drivers/clk/ti/clk-7xx.c
-> @@ -312,7 +312,7 @@
->   int __init dra7xx_dt_clk_init(void)
->   {
->   	int rc;
-> -	struct clk *dpll_ck, *hdcp_ck;
-> +	struct clk *dpll_ck, *hdcp_ck, *mcasp3_ahclkx_ck, *abe_ck;
->  =20
->   	ti_dt_clocks_register(dra7xx_clks);
->  =20
-> @@ -338,5 +338,12 @@ int __init dra7xx_dt_clk_init(void)
->   	if (rc)
->   		pr_err("%s: failed to set dss_deshdcp_clk\n", __func__);
->  =20
-> +	mcasp3_ahclkx_ck =3D clk_get_sys(NULL, "mcasp3_ahclkx_mux");
-> +	abe_ck =3D clk_get_sys(NULL, "abe_24m_fclk");
-> +	rc =3D clk_set_parent(mcasp3_ahclkx_ck, abe_ck);
-> +	if (rc)
-> +		pr_err("%s: failed to set parent for mcasp3_ahclkx_mux\n",
-> +		       __func__);
-> +
->   	return rc;
->   }
->=20
+diff --git a/Documentation/devicetree/bindings/mmc/sdhci-omap.txt b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+new file mode 100644
+index 000000000000..51775a372c06
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mmc/sdhci-omap.txt
+@@ -0,0 +1,16 @@
++* TI OMAP SDHCI Controller
++
++Refer to mmc.txt for standard MMC bindings.
++
++Required properties:
++- compatible: Should be "ti,dra7-sdhci" for DRA7 and DRA72 controllers
++- ti,hwmods: Must be "mmc<n>", <n> is controller instance starting 1
++
++Example:
++	mmc1: mmc@4809c000 {
++		compatible = "ti,dra7-sdhci";
++		reg = <0x4809c000 0x400>;
++		ti,hwmods = "mmc1";
++		bus-width = <4>;
++		vmmc-supply = <&vmmc>; /* phandle to regulator node */
++	};
+-- 
+2.11.0
