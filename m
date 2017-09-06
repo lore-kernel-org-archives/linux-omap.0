@@ -1,48 +1,52 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] clk: ti: dra7xx: Reset the mcasp3_ahclkx_mux clock value
-Date: Wed, 6 Sep 2017 16:06:39 +0530
-Message-ID: <1504694199-32227-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH] pci: dwc: dra7xx: Add shutdown handler to cleanly turn off clocks
+Date: Wed, 6 Sep 2017 16:09:11 +0530
+Message-ID: <1504694351-32358-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: sboyd@codeaurora.org, t-kristo@ti.com
-Cc: linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, j-keerthy@ti.com
+To: kishon@ti.com, bhelgaas@google.com
+Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Reset the mcasp3_ahclkx_mux to abe_24m_fclk. This is needed
-in case of kexec where the reset values might be wiped off.
+Add shutdown handler to cleanly turn off clocks.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- drivers/clk/ti/clk-7xx.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/pci/dwc/pci-dra7xx.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index 9fd6043..2c3a36c 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -312,7 +312,7 @@
- int __init dra7xx_dt_clk_init(void)
- {
- 	int rc;
--	struct clk *dpll_ck, *hdcp_ck;
-+	struct clk *dpll_ck, *hdcp_ck, *mcasp3_ahclkx_ck, *abe_ck;
- 
- 	ti_dt_clocks_register(dra7xx_clks);
- 
-@@ -338,5 +338,12 @@ int __init dra7xx_dt_clk_init(void)
- 	if (rc)
- 		pr_err("%s: failed to set dss_deshdcp_clk\n", __func__);
- 
-+	mcasp3_ahclkx_ck = clk_get_sys(NULL, "mcasp3_ahclkx_mux");
-+	abe_ck = clk_get_sys(NULL, "abe_24m_fclk");
-+	rc = clk_set_parent(mcasp3_ahclkx_ck, abe_ck);
-+	if (rc)
-+		pr_err("%s: failed to set parent for mcasp3_ahclkx_mux\n",
-+		       __func__);
-+
- 	return rc;
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index d4e98f3..66d1cfe 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -874,6 +874,19 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
+ 	return 0;
  }
+ 
++void dra7xx_pcie_shutdown(struct platform_device *pdev)
++{
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(&pdev->dev);
++	int ret;
++
++	ret = pm_runtime_put_sync(&pdev->dev);
++	if (ret < 0)
++		dev_dbg(&pdev->dev, "pm_runtime_put_sync failed\n");
++
++	pm_runtime_disable(&pdev->dev);
++	dra7xx_pcie_disable_phy(dra7xx);
++}
++
+ static int dra7xx_pcie_resume_noirq(struct device *dev)
+ {
+ 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+@@ -902,5 +915,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+ 		.suppress_bind_attrs = true,
+ 		.pm	= &dra7xx_pcie_pm_ops,
+ 	},
++	.shutdown = dra7xx_pcie_shutdown,
+ };
+ builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
 -- 
 1.9.1
