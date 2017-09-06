@@ -1,38 +1,62 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] ARM: dts: dra7: Set a default parent to mcasp3_ahclkx_mux
-Date: Wed, 6 Sep 2017 19:09:32 +0530
-Message-ID: <1504705172-17781-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v2] pci: dwc: dra7xx: Add shutdown handler to cleanly turn off clocks
+Date: Wed, 6 Sep 2017 19:26:06 +0530
+Message-ID: <1504706166-2854-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: robh+dt@kernel.org, mark.rutland@arm.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, j-keerthy@ti.com
+To: kishon@ti.com, bhelgaas@google.com
+Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Assign a default parent to mcasp3_ahclkx_mux clock using
-the assigned-clock-parents property. This is helpful in
-cases like kexec where in the clock parent can be something
-other than the value at reset.
+Add shutdown handler to cleanly turn off clocks.
 
-Suggested-by: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Keerthy <j-keerthy@ti.com>
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-index cf229df..e62b628 100644
---- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
-+++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
-@@ -1817,6 +1817,8 @@
- 		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
- 		ti,bit-shift = <24>;
- 		reg = <0x1868>;
-+		assigned-clocks = <&mcasp3_ahclkx_mux>;
-+		assigned-clock-parents = <&abe_24m_fclk>;
- 	};
+Changes in v2:
+
+  * used a local dev pointer instead of dereferencing dev at multiple places.
+  * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
+
+ drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 0f9adf2..0d8307a 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -779,6 +779,22 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
+ 	return 0;
+ }
  
- 	mcasp3_aux_gfclk_mux: mcasp3_aux_gfclk_mux@1868 {
++void dra7xx_pcie_shutdown(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
++	int ret;
++
++	dra7xx_pcie_stop_link(dra7xx->pci);
++
++	ret = pm_runtime_put_sync(dev);
++	if (ret < 0)
++		dev_dbg(dev, "pm_runtime_put_sync failed\n");
++
++	pm_runtime_disable(dev);
++	dra7xx_pcie_disable_phy(dra7xx);
++}
++
+ static int dra7xx_pcie_resume_noirq(struct device *dev)
+ {
+ 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+@@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+ 		.suppress_bind_attrs = true,
+ 		.pm	= &dra7xx_pcie_pm_ops,
+ 	},
++	.shutdown = dra7xx_pcie_shutdown,
+ };
+ builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
 -- 
 1.9.1
