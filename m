@@ -1,35 +1,48 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] arm: omap: dra7xx: Set OPT_CLKS_IN_RESET flag for gpio1
-Date: Wed, 6 Sep 2017 16:03:58 +0530
-Message-ID: <1504694038-32159-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH] clk: ti: dra7xx: Reset the mcasp3_ahclkx_mux clock value
+Date: Wed, 6 Sep 2017 16:06:39 +0530
+Message-ID: <1504694199-32227-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, j-keerthy@ti.com
+To: sboyd@codeaurora.org, t-kristo@ti.com
+Cc: linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-gpio1 soft reset fails in the kexec path as the optional clock
-is not enabled hence enable the HWMOD_CONTROL_OPT_CLKS_IN_RESET
-flag for gpio1 hwmod.
+Reset the mcasp3_ahclkx_mux to abe_24m_fclk. This is needed
+in case of kexec where the reset values might be wiped off.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/clk/ti/clk-7xx.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 7cc3247..6ae729a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -1037,6 +1037,7 @@ struct omap_hwmod dra7xx_sha0_hwmod = {
- 	.name		= "gpio1",
- 	.class		= &dra7xx_gpio_hwmod_class,
- 	.clkdm_name	= "wkupaon_clkdm",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.main_clk	= "wkupaon_iclk_mux",
- 	.prcm = {
- 		.omap4 = {
+diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
+index 9fd6043..2c3a36c 100644
+--- a/drivers/clk/ti/clk-7xx.c
++++ b/drivers/clk/ti/clk-7xx.c
+@@ -312,7 +312,7 @@
+ int __init dra7xx_dt_clk_init(void)
+ {
+ 	int rc;
+-	struct clk *dpll_ck, *hdcp_ck;
++	struct clk *dpll_ck, *hdcp_ck, *mcasp3_ahclkx_ck, *abe_ck;
+ 
+ 	ti_dt_clocks_register(dra7xx_clks);
+ 
+@@ -338,5 +338,12 @@ int __init dra7xx_dt_clk_init(void)
+ 	if (rc)
+ 		pr_err("%s: failed to set dss_deshdcp_clk\n", __func__);
+ 
++	mcasp3_ahclkx_ck = clk_get_sys(NULL, "mcasp3_ahclkx_mux");
++	abe_ck = clk_get_sys(NULL, "abe_24m_fclk");
++	rc = clk_set_parent(mcasp3_ahclkx_ck, abe_ck);
++	if (rc)
++		pr_err("%s: failed to set parent for mcasp3_ahclkx_mux\n",
++		       __func__);
++
+ 	return rc;
+ }
 -- 
 1.9.1
