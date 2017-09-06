@@ -1,52 +1,47 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH] pci: dwc: dra7xx: Add shutdown handler to cleanly turn off clocks
-Date: Wed, 6 Sep 2017 16:09:11 +0530
-Message-ID: <1504694351-32358-1-git-send-email-j-keerthy@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH] pci: dwc: dra7xx: Add shutdown handler to cleanly turn
+ off clocks
+Date: Wed, 6 Sep 2017 16:23:39 +0530
+Message-ID: <ab942ae4-5152-e041-4084-825a20d732be@ti.com>
+References: <1504694351-32358-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1504694351-32358-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, bhelgaas@google.com
-Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, j-keerthy@ti.com
+To: Keerthy <j-keerthy@ti.com>, bhelgaas@google.com
+Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add shutdown handler to cleanly turn off clocks.
+Keerthy,
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/pci/dwc/pci-dra7xx.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+On Wednesday 06 September 2017 04:09 PM, Keerthy wrote:
+> Add shutdown handler to cleanly turn off clocks.
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index d4e98f3..66d1cfe 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -874,6 +874,19 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
- 	return 0;
- }
- 
-+void dra7xx_pcie_shutdown(struct platform_device *pdev)
-+{
-+	struct dra7xx_pcie *dra7xx = dev_get_drvdata(&pdev->dev);
-+	int ret;
-+
-+	ret = pm_runtime_put_sync(&pdev->dev);
-+	if (ret < 0)
-+		dev_dbg(&pdev->dev, "pm_runtime_put_sync failed\n");
-+
-+	pm_runtime_disable(&pdev->dev);
-+	dra7xx_pcie_disable_phy(dra7xx);
-+}
-+
- static int dra7xx_pcie_resume_noirq(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-@@ -902,5 +915,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
- 		.suppress_bind_attrs = true,
- 		.pm	= &dra7xx_pcie_pm_ops,
- 	},
-+	.shutdown = dra7xx_pcie_shutdown,
- };
- builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
--- 
-1.9.1
+one minor comment below.. with that fixed you can add my
+
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index d4e98f3..66d1cfe 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -874,6 +874,19 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
+>  	return 0;
+>  }
+>  
+> +void dra7xx_pcie_shutdown(struct platform_device *pdev)
+> +{
+> +	struct dra7xx_pcie *dra7xx = dev_get_drvdata(&pdev->dev);
+
+Use struct device *dev = &pdev->dev, instead of de-referencing device pointer
+multiple times.
+
+Thanks
+Kishon
