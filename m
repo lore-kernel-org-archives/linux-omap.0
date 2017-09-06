@@ -1,36 +1,35 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH net-next] net: cpsw: Don't handle SIOC[GS]HWTSTAMP when
- CPTS is disabled
-Date: Wed, 6 Sep 2017 10:59:01 +0200
-Message-ID: <20170906085901.qauya3ogfewjcyv3@localhost>
-References: <20170830065055.419-1-stefan.sorensen@spectralink.com>
- <20170830.144745.947488279115809130.davem@davemloft.net>
- <20170831074807.3dbbt6qhqxdquipa@localhost>
- <c470bbf2-fadf-88ba-f944-f0b373d211ad@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] arm: omap: dra7xx: Set OPT_CLKS_IN_RESET flag for gpio1
+Date: Wed, 6 Sep 2017 16:03:58 +0530
+Message-ID: <1504694038-32159-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <c470bbf2-fadf-88ba-f944-f0b373d211ad@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: David Miller <davem@davemloft.net>, stefan.sorensen@spectralink.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 05, 2017 at 04:25:22PM -0500, Grygorii Strashko wrote:
-> I'd like to clarify one thing here - what is the preferable time-stamping
-> device: PHY over MAC, or MAC over PHY? 
-> my understanding it's PHY and ethtool_get_ts_info() seems already implemented this way.
+gpio1 soft reset fails in the kexec path as the optional clock
+is not enabled hence enable the HWMOD_CONTROL_OPT_CLKS_IN_RESET
+flag for gpio1 hwmod.
 
-We simply do not have a way to support MAC and PHY time stamping and
-PTP Hardware Clocks at the same time.  Sure, it must be somehow
-possible, but that would involve extending SO_TIMESTAMPING yet again,
-and this is not worth the effort, IMHO.
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-There is exactly one PHY on the market that supports time stamping,
-and yes, people who design their boards with it generally want to use
-it.  They have to enable CONFIG_NETWORK_PHY_TIMESTAMPING and disable
-MAC time stamping.
-
-Thanks,
-Richard
+diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+index 7cc3247..6ae729a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+@@ -1037,6 +1037,7 @@ struct omap_hwmod dra7xx_sha0_hwmod = {
+ 	.name		= "gpio1",
+ 	.class		= &dra7xx_gpio_hwmod_class,
+ 	.clkdm_name	= "wkupaon_clkdm",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.main_clk	= "wkupaon_iclk_mux",
+ 	.prcm = {
+ 		.omap4 = {
+-- 
+1.9.1
