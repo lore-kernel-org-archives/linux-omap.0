@@ -1,103 +1,65 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 0/3] mmc: Add OMAP SDHCI driver
-Date: Wed, 6 Sep 2017 17:15:53 +0530
-Message-ID: <20170906114556.32532-1-kishon@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH] pci: dwc: dra7xx: Add shutdown handler to cleanly turn
+ off clocks
+Date: Wed, 6 Sep 2017 18:29:32 +0530
+Message-ID: <02d56b4e-f1d0-e062-1833-28b9f4131622@ti.com>
+References: <1504694351-32358-1-git-send-email-j-keerthy@ti.com>
+ <ab942ae4-5152-e041-4084-825a20d732be@ti.com>
+ <f0ffc120-c655-70ec-3b79-5bccbd98f169@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>
-Cc: devicetree@vger.kernel.org, kishon@ti.com, Sekhar Nori <nsekhar@ti.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <linux@armlinux.org.uk>, Ravikumar Kattekola <rk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <f0ffc120-c655-70ec-3b79-5bccbd98f169@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, bhelgaas@google.com
+Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is the first step in deprecating omap_hsmmc driver completely
-and moving to sdhci-omap driver which uses the sdhci library.
 
-This patch that adds a new SDHCI quirk "MMC_RSP_136" has already been
-merged and hence removed it in this revision.
 
-Apart from the quirk, sdhci-omap has it's own callbacks
-to set_clock (clock divider programming is different from generic sdhci)
-, set_power, set_bus_width, set_bus_mode and platform_send_init_74_clocks.
-These callback functions are implemented based on omap_hsmmc driver.
-Since sdhci-omap driver requires pbias regulator fixes to be present, I've
-sent them as part of this series.
+On Wednesday 06 September 2017 04:26 PM, Kishon Vijay Abraham I wrote:
+> 
+> 
+> On Wednesday 06 September 2017 04:23 PM, Kishon Vijay Abraham I wrote:
+>> Keerthy,
+>>
+>> On Wednesday 06 September 2017 04:09 PM, Keerthy wrote:
+>>> Add shutdown handler to cleanly turn off clocks.
+>>
+>> one minor comment below.. with that fixed you can add my
+>>
+>> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>
+>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>>> ---
+>>>  drivers/pci/dwc/pci-dra7xx.c | 14 ++++++++++++++
+>>>  1 file changed, 14 insertions(+)
+>>>
+>>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+>>> index d4e98f3..66d1cfe 100644
+>>> --- a/drivers/pci/dwc/pci-dra7xx.c
+>>> +++ b/drivers/pci/dwc/pci-dra7xx.c
+>>> @@ -874,6 +874,19 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
+>>>  	return 0;
+>>>  }
+>>>  
+>>> +void dra7xx_pcie_shutdown(struct platform_device *pdev)
+>>> +{
+>>> +	struct dra7xx_pcie *dra7xx = dev_get_drvdata(&pdev->dev);
+>>
+>> Use struct device *dev = &pdev->dev, instead of de-referencing device pointer
+>> multiple times.
+> 
+> You might also have to dra7xx_pcie_stop_link() before disabling the clocks.
 
-The sdhci-omap driver supports only the high speed mode and UHS/HS200
-mode will be added in a later series.
+Thanks for the quick review. I will incorporate the above comments and
+post v2.
 
-It has been tested only in boards having DRA7 SoCs like dra7-evm, dra72-evm,
-am571x-idk, am572x-idk, am57xx-evm. (Tested only eMMC and SD.
-SDIO support will be added later). The plan is to fully convert DRA7
-SoC to use SDHCI driver and then convert other legacy platforms to use
-SDHCI.
+Regards,
+Keerthy
 
-For sdhci-omap to be functional, the following tag should be merged (There
-are no compilation dependencies).
-git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator
-tags/regulator-pbias-variants
-
-However the above regulator tag will impact omap_hsmmc driver. so [1]
-should be merged before everything else is merged.
-
-[1] -> https://lkml.org/lkml/2017/8/31/300
-
-The patch to add config and dts changes to use sdhci-omap will be sent
-separately.
-
-Next Steps:
-*) Add UHS support to sdhci-omap
-*) Add SDIO support
-*) Add support for older TI platforms
-
-Changes from v3:
-*) removed omap_hsmmc and pbias-regulator patches from the series
-*) Fixed dt-binding documentation (remove '0x' in node name)
-*) stop clock if MMC core sends '0' in frequency
-
-Changes from v2:
-*) Rebased on git://git.kernel.org/pub/scm/linux/kernel/git/ulfh/mmc.git next
-*) Included a couple of patches from Ravikumar to fix pbias-regulator driver
-   to support max-voltage of 3.3V. This is required for sdhci-omap driver.
-*) Create sdhci-omap as a new driver with MMC generic bindings and hence doesn't
-   have bindings like ti,dual-volt added for omap-hsmmc. (Instead of
-   ti,dual-volt, sdhci-omap driver uses the supported regulator voltage to
-   set controller IO voltage capabilities).
-   When omap-hsmmc driver is deprecated, support for these properties will
-   be added to sdhci-omap.
-*) Fixed minor comments from Adrian).
-
-Changes from v1:
-*) Remove the quirks and instead use sdhci_omap specific callbacks for
-   set_power, set_busmode etc.
-*) Add a patch from Adrian to tidy reading 136-bit responses
-
-I've also pushed the entire series along with dependent dt patches @
-https://github.com/kishon/linux-wip.git sdhci_v3 (in case someone
-wants to test)
-
-Kishon Vijay Abraham I (3):
-  dt-bindings: sdhci-omap: Add bindings for the sdhci-omap controller
-  mmc: sdhci-omap: Add OMAP SDHCI driver
-  MAINTAINERS: Add TI OMAP SDHCI Maintainer
-
- .../devicetree/bindings/mmc/sdhci-omap.txt         |  16 +
- MAINTAINERS                                        |   6 +
- drivers/mmc/host/Kconfig                           |  12 +
- drivers/mmc/host/Makefile                          |   1 +
- drivers/mmc/host/sdhci-omap.c                      | 607 +++++++++++++++++++++
- 5 files changed, 642 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/mmc/sdhci-omap.txt
- create mode 100644 drivers/mmc/host/sdhci-omap.c
-
--- 
-2.11.0
+> 
+> Thanks
+> Kishon
+> 
