@@ -1,58 +1,46 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: Fwd: DA850-evm MAC Address is random
-Date: Wed, 6 Sep 2017 16:41:40 -0500
-Message-ID: <CAHCN7xLTfELMtcMLx=mKAsJrkuvH4Ubd-8rTGswUWC5nofU7mg@mail.gmail.com>
-References: <CAHCN7xKwFd7dHF0ySEd1hOSr0sZEgh9fuwy=RkUTHvEh59hojQ@mail.gmail.com>
- <b7aab9fc-17ba-077b-3ff3-28087e0b25bc@ti.com> <CAHCN7xLHEjda9DcVw5iHA9RaJ7UnyMVxf7e4e8NTEj9Op1JaBw@mail.gmail.com>
- <20170828211217.GO6008@atomide.com> <94c4cbb0-1df3-2f2f-69f3-f9a788e610fa@ti.com>
- <CAHCN7x+-wymsqw96mt7Du=Huxh5rq=Rj9GidWPLXptJSW7taEA@mail.gmail.com>
- <f0f5e11f-cd7a-cb86-58b5-8ce44cdbc032@ti.com> <CAHCN7xK2=PN5MOr48HOkZnwKwkM4ypcvQct+Ko+ChNFG3Pv62w@mail.gmail.com>
- <955b0b1b-9bb7-ad25-4d6c-676be1efb943@ti.com> <CAHCN7x+paAdW7cXrALhtLZZiJbkE6v_8_qRXBec7hxLJPvSMbw@mail.gmail.com>
- <CAHCN7xKfZeyTHZShWGYYen50NSzTErh8X8np3WJfrYTBrO_RPw@mail.gmail.com>
- <ffec81da-78b6-7f1a-e477-ab0a9d2e4f37@ti.com> <1865772b-482e-042e-7c66-d33290f0d8fb@ti.com>
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: Re: n900 in next-20170901
+Date: Thu, 7 Sep 2017 16:30:38 +0900
+Message-ID: <20170907073038.GA2111@js1304-P5Q-DELUXE>
+References: <20170903203737.GA12475@amd>
+ <20170905201314.GE5024@atomide.com>
+ <20170905233241.GA19231@js1304-P5Q-DELUXE>
+ <20170906133057.GH5024@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1865772b-482e-042e-7c66-d33290f0d8fb@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170906133057.GH5024@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 4, 2017 at 11:42 PM, Sekhar Nori <nsekhar@ti.com> wrote:
-> Hi Adam,
->
-> On Wednesday 30 August 2017 11:08 AM, Sekhar Nori wrote:
->>> I wonder if U-Boot isn't pushing something to Linux because it doesn't
->>> appear to be running some of the da850 specific code even when I run
->>> linux-next.  Can you tell me what verision of U-Boot you're using?
->>> Other than using davinci_all_defconfig, did you change the
->>> configuration at all?
->
->> I am using U-Boot 2017.01. Yes, the kernel was built using
->> davinci_all_defconfig and no other config change. Before booting kernel,
->> can you confirm that ethaddr is set in U-Boot environment? This is what
->> fdt_fixup_ethernet() reads to fixup the FDT before boot.
->>
->> Here is my complete boot log with environment variable dump.
->>
->> http://pastebin.ubuntu.com/25430265/
->
-> Were you able to get rid of the random mac address problem?
+On Wed, Sep 06, 2017 at 06:30:57AM -0700, Tony Lindgren wrote:
+> Hi,
+> 
+> * Joonsoo Kim <iamjoonsoo.kim@lge.com> [170905 16:32]:
+> > I think that I made a mistake for configuration CONFIG_HIGHMEM=y and
+> > CONFIG_HAVE_MEMBLOCK_NODE_MAP=y. In this case, the MOVABLE_ZONE can
+> > be *!highmem*. Could you check that your configuration have above
+> > options?
+> 
+> CONFIG_HIGHMEM is set yeah.
+> 
+> > And, could you check that following patch works for you?
+> 
+> Does not seem to help, tried against next with just 9caf25f996e8
+> revert and also with 9caf25f996e8.
 
-Not yet.  I haven't been able to rebuild Arago using TI's instructions
-on the Wiki.  I am not sure if it's a dependency issue or something
-else.  When I run Linux 4.13 using Buildroot as the rootfs, it does
-not appear to run da850_evm_m25p80_notify_add().  I am going to
-investigate whether or not da850_evm_init() is getting called.  I was
-wondering if you had some insight as to what calls that function?  It
-looks like it's defined as part of MACHINE_START(DAVINCI_DA850_EVM,
-"DaVinci DA850/OMAP-L138/AM18x EVM"), but I don't know how it gets
-called.
+Oops. I misunderstood your problem. Could you test with
+CONFIG_DEBUG_VIRTUAL?
 
-thanks
+After commit 9caf25f996e8, user for CMA memory should use to check
+PageHighmem in order to get proper virtual address of the page. If
+someone doesn't use it, it is possible to use wrong virtual address
+and it then causes the use of wrong physical address.
+CONFIG_DEBUG_VIRTUAL would catch this case.
 
-adam
->
-> Thanks,
-> Sekhar
+If it doesn't help, is there a way to test n900 configuration in QEMU?
+
+Thanks.
