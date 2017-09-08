@@ -1,51 +1,72 @@
-From: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: musb: musb_cppi41: Fix the address of teardown
- and autoreq registers
-Date: Thu, 7 Sep 2017 12:16:02 -0500
-Message-ID: <20170907171602.GB21905@LTA0271908.dhcp.ti.com>
-References: <20170813120423.16371-1-abailon@baylibre.com>
- <20170813120423.16371-2-abailon@baylibre.com>
- <7ee74cb1-19aa-5323-5325-ef9cc3410762@ti.com>
- <abce1d79-bc75-2018-2112-d701a8ca69d5@ti.com>
- <868405c0-0731-7546-509c-8270eb20f30e@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v2] pci: dwc: dra7xx: Add shutdown handler to cleanly turn
+ off clocks
+Date: Fri, 8 Sep 2017 10:35:32 +0530
+Message-ID: <b7016944-8bf8-cb26-6d20-5a8f583745d2@ti.com>
+References: <1504706166-2854-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <868405c0-0731-7546-509c-8270eb20f30e-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-Cc: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1504706166-2854-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: kishon@ti.com, bhelgaas@google.com
+Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 04, 2017 at 06:32:11PM +0530, Sekhar Nori wrote:
-> On Monday 14 August 2017 07:06 PM, Sekhar Nori wrote:
-> > On Monday 14 August 2017 07:01 PM, Sekhar Nori wrote:
-> >> Hi,
-> >>
-> >> On Sunday 13 August 2017 05:34 PM, Alexandre Bailon wrote:
-> >>> The DA8xx and DSPS platforms don't use the same address for few registers.
-> >>> On Da8xx, this is causing some issues (e.g. teardown that doesn't work).
-> >>> Configure the address of the register during the init and use them instead
-> >>> of constants.
-> >>>
-> >>> Reported-by: nsekhar-l0cyMroinI0@public.gmane.org
-> > 
-> > Reported-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> 
-> Tested-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> 
-> Hi Bin,
-> 
-> Do you have any additional comments on this series or are you waiting
-> for v2 to be posted?
 
-I don't have other comments, just am waiting for v2.
 
-Regards,
--Bin.
+On Wednesday 06 September 2017 07:26 PM, Keerthy wrote:
+> Add shutdown handler to cleanly turn off clocks.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+> 
+> Changes in v2:
+> 
+>   * used a local dev pointer instead of dereferencing dev at multiple places.
+>   * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
+> 
+>  drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 0f9adf2..0d8307a 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -779,6 +779,22 @@ static int dra7xx_pcie_suspend_noirq(struct device *dev)
+>  	return 0;
+>  }
+>  
+> +void dra7xx_pcie_shutdown(struct platform_device *pdev)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is currently under #ifdef CONFIG_PM_SLEEP. I need to push this
+function out of that. So i will post a v3.
+
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+> +	int ret;
+> +
+> +	dra7xx_pcie_stop_link(dra7xx->pci);
+> +
+> +	ret = pm_runtime_put_sync(dev);
+> +	if (ret < 0)
+> +		dev_dbg(dev, "pm_runtime_put_sync failed\n");
+> +
+> +	pm_runtime_disable(dev);
+> +	dra7xx_pcie_disable_phy(dra7xx);
+> +}
+> +
+>  static int dra7xx_pcie_resume_noirq(struct device *dev)
+>  {
+>  	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+> @@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+>  		.suppress_bind_attrs = true,
+>  		.pm	= &dra7xx_pcie_pm_ops,
+>  	},
+> +	.shutdown = dra7xx_pcie_shutdown,
+>  };
+>  builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
+> 
