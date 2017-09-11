@@ -1,22 +1,22 @@
 From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 09/17] ARM: dts: Add missing iss node and binding for
+Subject: Re: [PATCH 13/17] ARM: dts: Add missing fdif node and binding for
  omap4
-Date: Mon, 11 Sep 2017 16:44:21 -0500
-Message-ID: <20170911214421.fayhxjvxo6cosjcf@rob-hp-laptop>
+Date: Mon, 11 Sep 2017 16:47:37 -0500
+Message-ID: <20170911214737.nty5fgl4hhctwdr6@rob-hp-laptop>
 References: <20170830151953.30856-1-tony@atomide.com>
- <20170830151953.30856-10-tony@atomide.com>
+ <20170830151953.30856-14-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170830151953.30856-10-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170830151953.30856-14-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 30, 2017 at 08:19:45AM -0700, Tony Lindgren wrote:
-> On omap4 we're missing the iss node with it's related "ti,hwmods"
+On Wed, Aug 30, 2017 at 08:19:49AM -0700, Tony Lindgren wrote:
+> On omap4 we're missing the fdif node with it's related "ti,hwmods"
 > property that the SoC interconnect code needs.
 > 
 > Note that this will only show up as a bug with "doesn't have
@@ -30,72 +30,12 @@ On Wed, Aug 30, 2017 at 08:19:45AM -0700, Tony Lindgren wrote:
 > Cc: Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>
 > Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 > ---
->  Documentation/devicetree/bindings/media/ti-iss.txt | 33 ++++++++++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi                       |  7 +++++
->  2 files changed, 40 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/ti-iss.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/ti-iss.txt b/Documentation/devicetree/bindings/media/ti-iss.txt
-> new file mode 100644
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/ti-iss.txt
-> @@ -0,0 +1,33 @@
-> +Texas Instruments Imaging Subsystem (ISS) binding
-> +
-> +ISS is used for cameras on Texas Instruments SoCs. Note that this
-> +binding is still missing the connections to the external devices
-> +modeled for the driver.
-> +
-> +Required properties:
-> +
-> +compatible: Shall be one of the following:
-> +	    "ti,omap4-iss"
-> +
-> +reg: Shall contain the device instance IO range
-> +
-> +interrupts: Shall contain the device instance interrupt
-> +
-> +
-> +Optional properties:
-> +
-> +reg-names: Shall contain the IO range names if multiple IO
-> +	   ranges are used by the SoC
+>  .../devicetree/bindings/media/ti-fdif.txt          | 29 ++++++++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi                       |  7 ++++++
+>  2 files changed, 36 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/ti-fdif.txt
 
-Need to define how many. *-names is pointless if there's only ever 1 
-entry.
-
-> +
-> +ti,hwmods: Shall contain the TI interconnect module name if needed
-> +	   by the SoC
-> +
-> +
-> +Example:
-> +
-> +	iss: iss@52000000 {
-> +		compatible = "ti,omap4-iss";
-> +		reg = <0x52000000 0x1000000>;
-> +		interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
-> +		ti,hwmods = "iss";
-> +	};
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -674,6 +674,13 @@
->  			#iommu-cells = <0>;
->  		};
->  
-> +		iss: iss@52000000 {
-> +			compatible = "ti,omap4-iss";
-> +			reg = <0x52000000 0x1000000>;
-> +			interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
-> +			ti,hwmods = "iss";
-> +		};
-> +
->  		mmu_ipu: mmu@55082000 {
->  			compatible = "ti,omap4-iommu";
->  			reg = <0x55082000 0x100>;
-> -- 
-> 2.14.1
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
