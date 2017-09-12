@@ -1,42 +1,44 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 14/17] ARM: dts: Add missing gpu node and binding for
- omap4
-Date: Mon, 11 Sep 2017 16:50:16 -0500
-Message-ID: <20170911215016.far2rpihdd423ybt@rob-hp-laptop>
-References: <20170830151953.30856-1-tony@atomide.com>
- <20170830151953.30856-15-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170830151953.30856-15-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+From: "Derald D. Woods" <woods.technical@gmail.com>
+Subject: [PATCH v3 0/4] Update TMDSEVM3530 support for omap3-evm
+Date: Tue, 12 Sep 2017 18:48:20 -0500
+Message-ID: <20170912234824.6706-1-woods.technical@gmail.com>
+References: <20170912034659.13184-1-woods.technical@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170912034659.13184-1-woods.technical@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-kernel@vger.kernel.org, "Derald D. Woods" <woods.technical@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 30, 2017 at 08:19:50AM -0700, Tony Lindgren wrote:
-> On omap4 we're missing the PowerVR SGX GPU node with it's related
-> "ti,hwmods" property that the SoC interconnect code needs.
-> 
-> Note that this will only show up as a bug with "doesn't have
-> mpu register target base" boot errors when the legacy platform
-> data is removed.
-> 
-> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  .../devicetree/bindings/gpu/ti-powervr-sgx.txt     | 39 ++++++++++++++++++++++
+This patch set allows TMDSEVM3530(omap3-evm.dts) to boot using common
+processor module data that is shared with 'omap3-evm-37xx.dts'. A new
+common file for processor module data is introduced to help facilitate
+the updated OMAP3530 support.
 
-While the compatible strings should be TI specific, the doc shouldn't 
-be. 
+Changes in v3
+-------------
+- Drop unnecessary compatible string change to Sharp LCD panel
 
->  arch/arm/boot/dts/omap4.dtsi                       |  7 ++++
->  2 files changed, 46 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/gpu/ti-powervr-sgx.txt
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes in v2
+-------------
+- Pull in change from linux-next
+  (ARM: dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc")
+- Add compatible and supply fix for LCD panel
+- Add supply references for DSS
+- Add "Signed-off-by" for each patch
+
+Derald D. Woods (4):
+  ARM: dts: omap3-evm-37xx: Add common processor module support
+  ARM: dts: omap3-evm: Add OMAP3530 specific device tree processor data
+  ARM: dts: omap3: Add Sharp LS037V7DW01 'envdd' supply
+  ARM: dts: omap3-evm: Add DSS {vdds_dsi,vdda_video}-supply references
+
+ arch/arm/boot/dts/omap3-evm-37xx.dts               | 209 +-------------------
+ arch/arm/boot/dts/omap3-evm-processor-common.dtsi  | 216 +++++++++++++++++++++
+ arch/arm/boot/dts/omap3-evm.dts                    |  76 +++++++-
+ .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   1 +
+ 4 files changed, 290 insertions(+), 212 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-evm-processor-common.dtsi
+
+-- 
+2.14.1
