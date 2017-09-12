@@ -1,116 +1,56 @@
-From: "Derald D. Woods" <woods.technical@gmail.com>
-Subject: [PATCH v2 2/4] ARM: dts: omap3-evm: Add OMAP3530 specific device tree processor data
-Date: Mon, 11 Sep 2017 22:46:57 -0500
-Message-ID: <20170912034659.13184-3-woods.technical@gmail.com>
-References: <20170903003816.5536-1-woods.technical@gmail.com>
- <20170912034659.13184-1-woods.technical@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170912034659.13184-1-woods.technical@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-kernel@vger.kernel.org, "Derald D. Woods" <woods.technical@gmail.com>
+From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/2] usb: musb: musb_cppi41: Fix the address of teardown
+ and autoreq registers
+Date: Tue, 12 Sep 2017 08:42:18 +0200
+Message-ID: <b762ca17-613c-1c35-78d4-39a006d1a8c4@baylibre.com>
+References: <20170813120423.16371-1-abailon@baylibre.com>
+ <20170813120423.16371-2-abailon@baylibre.com>
+ <7ee74cb1-19aa-5323-5325-ef9cc3410762@ti.com>
+ <abce1d79-bc75-2018-2112-d701a8ca69d5@ti.com>
+ <868405c0-0731-7546-509c-8270eb20f30e@ti.com>
+ <20170907171602.GB21905@LTA0271908.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170907171602.GB21905-zlS79ln5qqxp6PWD+TyudpdHMjK6IpyN@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This commit allows OMAP3530 variants to use common data that is
-available in 'omap3-evm-processor-common.dtsi'. It adds proper pinmux
-macros for 'omap3_pmx_core2' on OMAP3430. The Micron NAND chip is also
-added for the TMDSEVM3530 processor module.
+Hi Bin, Sekhar
+On 09/07/2017 07:16 PM, Bin Liu wrote:
+> On Mon, Sep 04, 2017 at 06:32:11PM +0530, Sekhar Nori wrote:
+>> On Monday 14 August 2017 07:06 PM, Sekhar Nori wrote:
+>>> On Monday 14 August 2017 07:01 PM, Sekhar Nori wrote:
+>>>> Hi,
+>>>>
+>>>> On Sunday 13 August 2017 05:34 PM, Alexandre Bailon wrote:
+>>>>> The DA8xx and DSPS platforms don't use the same address for few registers.
+>>>>> On Da8xx, this is causing some issues (e.g. teardown that doesn't work).
+>>>>> Configure the address of the register during the init and use them instead
+>>>>> of constants.
+>>>>>
+>>>>> Reported-by: nsekhar-l0cyMroinI0@public.gmane.org
+>>> Reported-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>> Tested-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>>
+>> Hi Bin,
+>>
+>> Do you have any additional comments on this series or are you waiting
+>> for v2 to be posted?
+> I don't have other comments, just am waiting for v2.
+My apologize. I was in vacation. I will send the v2 soon.
 
-Signed-off-by: Derald D. Woods <woods.technical@gmail.com>
+Best Regards,
+Alexandre
+>
+> Regards,
+> -Bin.
+>
 
----
- arch/arm/boot/dts/omap3-evm.dts | 76 ++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 72 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-index 99b2bfcd1059..21a3b88aef0c 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -9,13 +9,81 @@
- 
- #include "omap34xx.dtsi"
- #include "omap3-evm-common.dtsi"
-+#include "omap3-evm-processor-common.dtsi"
- 
- / {
- 	model = "TI OMAP35XX EVM (TMDSEVM3530)";
--	compatible = "ti,omap3-evm", "ti,omap3";
-+	compatible = "ti,omap3-evm", "ti,omap3430", "ti,omap3";
-+};
-+
-+&omap3_pmx_core2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&hsusb2_2_pins>;
-+
-+	ehci_phy_pins: pinmux_ehci_phy_pins {
-+		pinctrl-single,pins = <
-+
-+		/* EHCI PHY reset GPIO etk_d7.gpio_21 */
-+		OMAP3430_CORE2_IOPAD(0x25ea, PIN_OUTPUT | MUX_MODE4)
-+
-+		/* EHCI VBUS etk_d8.gpio_22 */
-+		OMAP3430_CORE2_IOPAD(0x25ec, PIN_OUTPUT | MUX_MODE4)
-+		>;
-+	};
-+
-+	/* Used by OHCI and EHCI. OHCI won't work without external phy */
-+	hsusb2_2_pins: pinmux_hsusb2_2_pins {
-+		pinctrl-single,pins = <
-+
-+		/* etk_d10.hsusb2_clk */
-+		OMAP3430_CORE2_IOPAD(0x25f0, PIN_OUTPUT | MUX_MODE3)
-+
-+		/* etk_d11.hsusb2_stp */
-+		OMAP3430_CORE2_IOPAD(0x25f2, PIN_OUTPUT | MUX_MODE3)
-+
-+		/* etk_d12.hsusb2_dir */
-+		OMAP3430_CORE2_IOPAD(0x25f4, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* etk_d13.hsusb2_nxt */
-+		OMAP3430_CORE2_IOPAD(0x25f6, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* etk_d14.hsusb2_data0 */
-+		OMAP3430_CORE2_IOPAD(0x25f8, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+
-+		/* etk_d15.hsusb2_data1 */
-+		OMAP3430_CORE2_IOPAD(0x25fa, PIN_INPUT_PULLDOWN | MUX_MODE3)
-+		>;
-+	};
-+};
-+
-+&gpmc {
-+	nand@0,0 {
-+		compatible = "ti,omap2-nand";
-+		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
-+		interrupt-parent = <&gpmc>;
-+		interrupts = <0 IRQ_TYPE_NONE>, /* fifoevent */
-+			     <1 IRQ_TYPE_NONE>;	/* termcount */
-+		linux,mtd-name= "micron,mt29f2g16abdhc";
-+		nand-bus-width = <16>;
-+		gpmc,device-width = <2>;
-+		ti,nand-ecc-opt = "bch8";
-+
-+		gpmc,sync-clk-ps = <0>;
-+		gpmc,cs-on-ns = <0>;
-+		gpmc,cs-rd-off-ns = <44>;
-+		gpmc,cs-wr-off-ns = <44>;
-+		gpmc,adv-on-ns = <6>;
-+		gpmc,adv-rd-off-ns = <34>;
-+		gpmc,adv-wr-off-ns = <44>;
-+		gpmc,we-off-ns = <40>;
-+		gpmc,oe-off-ns = <54>;
-+		gpmc,access-ns = <64>;
-+		gpmc,rd-cycle-ns = <82>;
-+		gpmc,wr-cycle-ns = <82>;
-+		gpmc,wr-access-ns = <40>;
-+		gpmc,wr-data-mux-bus-ns = <0>;
- 
--	memory@80000000 {
--		device_type = "memory";
--		reg = <0x80000000 0x10000000>; /* 256 MB */
-+		#address-cells = <1>;
-+		#size-cells = <1>;
- 	};
- };
--- 
-2.14.1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
