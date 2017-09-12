@@ -1,57 +1,48 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/5] dmaengine: omap-dma: Implement protection for invalid max_burst
-Date: Tue, 12 Sep 2017 13:44:21 +0300
-Message-ID: <20170912104424.18495-3-peter.ujfalusi@ti.com>
-References: <20170912104424.18495-1-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 3/4] ARM: dts: omap3: Fix Sharp LS037V7DW01 compatible
+ string and envdd supply
+Date: Tue, 12 Sep 2017 07:34:46 -0700
+Message-ID: <20170912143444.GR5024@atomide.com>
+References: <20170903003816.5536-1-woods.technical@gmail.com>
+ <20170912034659.13184-1-woods.technical@gmail.com>
+ <20170912034659.13184-4-woods.technical@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170912104424.18495-1-peter.ujfalusi@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20170912034659.13184-4-woods.technical@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com
+To: "Derald D. Woods" <woods.technical@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-=EF=BB=BFSet the device's max_burst to 16777215 (EN is 24bit unsigned value=
-) so
-clients can take this into consideration when setting up the trasnfer.
+* Derald D. Woods <woods.technical@gmail.com> [170911 20:48]:
+> The Sharp panel driver and regulator are now selected properly. This
+> commit eliminates a dummy regulator assignment.
+> 
+> Signed-off-by: Derald D. Woods <woods.technical@gmail.com>
+> 
+> ---
+>  arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi b/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
+> index 157345bb8e79..15f73e5adfdf 100644
+> --- a/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
+> +++ b/arch/arm/boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi
+> @@ -26,9 +26,10 @@
+>  	};
+>  
+>  	lcd0: display {
+> -		compatible = "sharp,ls037v7dw01";
+> +		compatible = "omapdss,sharp,ls037v7dw01";
 
-During slave transfer preparation check if the requested maxburst is valid.
+Is this change needed? I think the driver automatically matches
+even with the "omapdss" part missing?
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/dma/omap-dma.c | 5 +++++
- 1 file changed, 5 insertions(+)
+If it's needed, can you please update the description for why
+it's needed.
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index 8c1665c8fe33..f6dd849159d8 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -1288,6 +1288,10 @@ static int omap_dma_slave_config(struct dma_chan *ch=
-an, struct dma_slave_config
- 	    cfg->dst_addr_width =3D=3D DMA_SLAVE_BUSWIDTH_8_BYTES)
- 		return -EINVAL;
-=20
-+	if (cfg->src_maxburst > chan->device->max_burst ||
-+	    cfg->dst_maxburst > chan->device->max_burst)
-+		return -EINVAL;
-+
- 	memcpy(&c->cfg, cfg, sizeof(c->cfg));
-=20
- 	return 0;
-@@ -1482,6 +1486,7 @@ static int omap_dma_probe(struct platform_device *pde=
-v)
- 	od->ddev.dst_addr_widths =3D OMAP_DMA_BUSWIDTHS;
- 	od->ddev.directions =3D BIT(DMA_DEV_TO_MEM) | BIT(DMA_MEM_TO_DEV);
- 	od->ddev.residue_granularity =3D DMA_RESIDUE_GRANULARITY_BURST;
-+	od->ddev.max_burst =3D SZ_16M - 1; /* CCEN: 24bit unsigned */
- 	od->ddev.dev =3D &pdev->dev;
- 	INIT_LIST_HEAD(&od->ddev.channels);
- 	spin_lock_init(&od->lock);
---=20
-2.14.1
+Regards,
 
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Tony
