@@ -1,40 +1,41 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 16/17] ARM: dts: Add missing hwmod related nodes for
- am33xx
-Date: Mon, 11 Sep 2017 16:51:07 -0500
-Message-ID: <20170911215107.esv3njrxao5vcmew@rob-hp-laptop>
-References: <20170830151953.30856-1-tony@atomide.com>
- <20170830151953.30856-17-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170830151953.30856-17-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+From: "Derald D. Woods" <woods.technical@gmail.com>
+Subject: [PATCH v2 0/4] Update TMDSEVM3530 support for omap3-evm
+Date: Mon, 11 Sep 2017 22:46:55 -0500
+Message-ID: <20170912034659.13184-1-woods.technical@gmail.com>
+References: <20170903003816.5536-1-woods.technical@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170903003816.5536-1-woods.technical@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-kernel@vger.kernel.org, "Derald D. Woods" <woods.technical@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 30, 2017 at 08:19:52AM -0700, Tony Lindgren wrote:
-> On am33xx we're missing the pmu and emif nodes with their related
-> "ti,hwmods" properties that the SoC interconnect code needs.
-> 
-> Note that this will only show up as a bug with "doesn't have
-> mpu register target base" boot errors when the legacy platform
-> data is removed.
-> 
-> Let's also update the related binding documentation while at it.
-> 
-> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  .../devicetree/bindings/memory-controllers/ti/emif.txt         |  6 ++++--
->  arch/arm/boot/dts/am33xx.dtsi                                  | 10 +++++++++-
->  2 files changed, 13 insertions(+), 3 deletions(-)
+This patch set allows TMDSEVM3530(omap3-evm.dts) to boot using common
+processor module data that is shared with 'omap3-evm-37xx.dts'. A new
+common file for processor module data is introduced to help facilitate
+the updated OMAP3530 support.
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes in v2
+-------------
+- Pull in change from linux-next
+  (ARM: dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc")
+- Add compatible and supply fix for LCD panel
+- Add supply references for DSS
+- Add "Signed-off-by" for each patch
+
+Derald D. Woods (4):
+  ARM: dts: omap3-evm-37xx: Add common processor module support
+  ARM: dts: omap3-evm: Add OMAP3530 specific device tree processor data
+  ARM: dts: omap3: Fix Sharp LS037V7DW01 compatible string and envdd
+    supply
+  ARM: dts: omap3-evm: Add DSS {vdds_dsi,vdda_video}-supply references
+
+ arch/arm/boot/dts/omap3-evm-37xx.dts               | 209 +-------------------
+ arch/arm/boot/dts/omap3-evm-processor-common.dtsi  | 216 +++++++++++++++++++++
+ arch/arm/boot/dts/omap3-evm.dts                    |  76 +++++++-
+ .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   3 +-
+ 4 files changed, 291 insertions(+), 213 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-evm-processor-common.dtsi
+
+-- 
+2.14.1
