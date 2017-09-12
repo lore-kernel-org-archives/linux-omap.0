@@ -1,66 +1,84 @@
-From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: musb: musb_cppi41: Fix the address of teardown
- and autoreq registers
-Date: Tue, 12 Sep 2017 08:49:48 +0200
-Message-ID: <81bb645e-9324-d9e4-de78-23139e9dea50@baylibre.com>
-References: <20170813120423.16371-1-abailon@baylibre.com>
- <20170813120423.16371-2-abailon@baylibre.com>
- <6e5b0e12-d298-b698-bc06-d9c3ae8fb5c3@cogentembedded.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 3/5] dmaengine: Support for querying maximum trasnfer length (of an SG element)
+Date: Tue, 12 Sep 2017 13:44:22 +0300
+Message-ID: <20170912104424.18495-4-peter.ujfalusi@ti.com>
+References: <20170912104424.18495-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6e5b0e12-d298-b698-bc06-d9c3ae8fb5c3-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, b-liu-l0cyMroinI0@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170912104424.18495-1-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 08/15/2017 12:12 PM, Sergei Shtylyov wrote:
-> Hello!
->
-> On 8/13/2017 3:04 PM, Alexandre Bailon wrote:
->
->> The DA8xx and DSPS platforms don't use the same address for few
->> registers.
->> On Da8xx, this is causing some issues (e.g. teardown that doesn't work).
->> Configure the address of the register during the init and use them
->> instead
->> of constants.
->>
->> Reported-by: nsekhar-l0cyMroinI0@public.gmane.org
->> Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
->> ---
->>   drivers/usb/musb/musb_cppi41.c | 23 +++++++++++++++++++----
->>   1 file changed, 19 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/usb/musb/musb_cppi41.c
->> b/drivers/usb/musb/musb_cppi41.c
->> index ba255280a624..dbff0e0a4ff5 100644
->> --- a/drivers/usb/musb/musb_cppi41.c
->> +++ b/drivers/usb/musb/musb_cppi41.c
->> @@ -26,6 +26,9 @@
->>     #define MUSB_DMA_NUM_CHANNELS 15
->>   +#define DA8XX_USB_AUTOREQ_REG    0x14
->> +#define DA8XX_USB_TEARDOWN_REG    0x1c
->
->    Why these _REG suffixes suddenly?
-I took these defines in da8xx.c.
-Actually, I think I should make a third patch to remove them from
-da8xx.c because they are not even used.
->
-> [...]
->
->    Other than that looks sane. Need my ACK?
-I don't know if that is needed but I guess it would be appreciated.
+=EF=BB=BFCertain DMA engines have limitation on the maximum size of a trans=
+fer they
+can support. This size limitation is per SG element or for period length in
+cyclic transfers.
+In TI's eDMA and sDMA this limitation is not really a length limit, but it
+is the number of bursts that we can support in one transfer.
 
-Best Regards,
-Alexandre
->
-> WBR, Sergei
+With this callback the DMA drivers can provide hints to clients on how they
+should set up their buffers (sglist, cyclic buffer). Without this the
+clients must have open coded workarounds in place for each and every DMA
+engine they might be interfacing with to have correct length for the
+transfers.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ include/linux/dmaengine.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index 8319101170fc..739824b94c1b 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -705,6 +705,9 @@ struct dma_filter {
+  * @device_prep_dma_imm_data: DMA's 8 byte immediate data to the dst addre=
+ss
+  * @device_config: Pushes a new configuration to a channel, return 0 or an=
+ error
+  *	code
++ * @device_get_max_len: Get the maximum supported length in bytes of a sla=
+ve
++ *	transfer based on the set dma_slave_config. The length limitation
++ *	applies to each SG element's length.
+  * @device_pause: Pauses any transfer happening on a channel. Returns
+  *	0 or an error code
+  * @device_resume: Resumes any transfer on a channel previously
+@@ -792,6 +795,8 @@ struct dma_device {
+=20
+ 	int (*device_config)(struct dma_chan *chan,
+ 			     struct dma_slave_config *config);
++	u32 (*device_get_max_len)(struct dma_chan *chan,
++				  enum dma_transfer_direction dir);
+ 	int (*device_pause)(struct dma_chan *chan);
+ 	int (*device_resume)(struct dma_chan *chan);
+ 	int (*device_terminate_all)(struct dma_chan *chan);
+@@ -812,6 +817,15 @@ static inline int dmaengine_slave_config(struct dma_ch=
+an *chan,
+ 	return -ENOSYS;
+ }
+=20
++static inline u32 dmaengine_slave_get_max_len(struct dma_chan *chan,
++					      enum dma_transfer_direction dir)
++{
++	if (chan->device->device_get_max_len)
++		return chan->device->device_get_max_len(chan, dir);
++
++	return 0;
++}
++
+ static inline bool is_slave_direction(enum dma_transfer_direction directio=
+n)
+ {
+ 	return (direction =3D=3D DMA_MEM_TO_DEV) || (direction =3D=3D DMA_DEV_TO_=
+MEM);
+--=20
+2.14.1
+
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
+siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
