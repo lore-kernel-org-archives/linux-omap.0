@@ -1,56 +1,51 @@
-From: Claudio Foellmi <claudio.foellmi@ergon.ch>
-Subject: [PATCH] i2c-omap: Trigger bus recovery in lockup case
-Date: Thu, 14 Sep 2017 17:39:09 +0200
-Message-ID: <1505403549-12992-1-git-send-email-claudio.foellmi@ergon.ch>
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Claudio Foellmi <claudio.foellmi@ergon.ch>, Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
+From: "Andrew F. Davis" <afd@ti.com>
+Subject: [PATCH] ARM: dts: am43xx-epos-evm: Remove extra CPSW EMAC entry
+Date: Thu, 14 Sep 2017 14:30:07 -0500
+Message-ID: <20170914193007.7246-1-afd@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-A very conservative check for bus activity (to prevent interference
-in multimaster setups) prevented the bus recovery methods from being
-triggered in the case that SDA or SCL was stuck low.
-This defeats the purpose of the recovery mechanism, which was introduced
-for exactly this situation (a slave device keeping SDA pulled down).
+From: Yogesh Siraswar <yogeshs@ti.com>
 
-Note that bus lockups can persist across reboots. The only other options
-are to reset or power cycle the offending slave device, and many i2c
-slaves do not even have a reset pin.
+On am438x EPOS boards there is only one ethernet port, remove extra
+port definition.
 
-If we see that one of the lines is low for the entire timeout duration,
-we can actually be sure that there is no other master driving the bus.
-It is therefore save for us to attempt a bus recovery.
+This boot log warnings during PHY detection.
 
-Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
+Signed-off-by: Yogesh Siraswar <yogeshs@ti.com>
+Signed-off-by: Andrew F. Davis <afd@ti.com>
 ---
-Caveat: It turns out I don't have the hardware to fully test the
-recovery mechanism. My faulty i2c slave device actually pulls down SCL,
-not SDA (so the recovery will not succeed in my case).
-But by directly connecting SDA to ground, I could at least make sure
-the recovery function gets called after applying this patch.
+ arch/arm/boot/dts/am43x-epos-evm.dts | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
- drivers/i2c/busses/i2c-omap.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 1ebb5e9..4b25fd1 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -563,8 +563,13 @@ static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *omap)
- 		}
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 9d276af7c539..081fa68b6f98 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -388,6 +388,7 @@
+ 	pinctrl-0 = <&cpsw_default>;
+ 	pinctrl-1 = <&cpsw_sleep>;
+ 	status = "okay";
++	slaves = <1>;
+ };
  
- 		if (time_after(jiffies, timeout)) {
-+			/*
-+			 * SDA or SCL were low for the entire timeout without
-+			 * any activity detected. Most likely, a slave is
-+			 * locking up the bus with no master driving the clock.
-+			 */
- 			dev_warn(omap->dev, "timeout waiting for bus ready\n");
--			return -ETIMEDOUT;
-+			return i2c_recover_bus(&omap->adapter);
- 		}
+ &davinci_mdio {
+@@ -402,11 +403,6 @@
+ 	phy-mode = "rmii";
+ };
  
- 		msleep(1);
+-&cpsw_emac1 {
+-	phy_id = <&davinci_mdio>, <1>;
+-	phy-mode = "rmii";
+-};
+-
+ &phy_sel {
+ 	rmii-clock-ext;
+ };
 -- 
-2.7.4
+2.14.1
