@@ -1,51 +1,51 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH] ARM: dts: am43xx-epos-evm: Remove extra CPSW EMAC entry
-Date: Thu, 14 Sep 2017 14:30:07 -0500
-Message-ID: <20170914193007.7246-1-afd@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 14/16] gpio: Add support for banked GPIO controllers
+Date: Thu, 14 Sep 2017 16:37:32 -0700
+Message-ID: <20170914233731.GU5024@atomide.com>
+References: <20170901185736.28051-1-thierry.reding@gmail.com>
+ <20170901185736.28051-15-thierry.reding@gmail.com>
+ <CACRpkdZ7QwyrqqO8iLXDcDimWk5iwOEKZBvXQ-2mBO5s+vg13A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdZ7QwyrqqO8iLXDcDimWk5iwOEKZBvXQ-2mBO5s+vg13A@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Thierry Reding <thierry.reding@gmail.com>, Jonathan Hunter <jonathanh@nvidia.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Grygorii Strashko <grygorii.strashko@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Yogesh Siraswar <yogeshs@ti.com>
+* Linus Walleij <linus.walleij@linaro.org> [170914 07:00]:
+> On Fri, Sep 1, 2017 at 8:57 PM, Thierry Reding <thierry.reding@gmail.com> wrote:
+> 
+> > From: Thierry Reding <treding@nvidia.com>
+> >
+> > Some GPIO controllers are subdivided into multiple logical blocks called
+> > banks (or ports). This is often caused by the design assigning separate
+> > resources, such as register regions or interrupts, to each bank, or some
+> > set of banks.
+> >
+> > This commit adds support for describing controllers that have such a
+> > banked design and provides common code for dealing with them.
+> >
+> > Signed-off-by: Thierry Reding <treding@nvidia.com>
+> 
+> This patch makes me really happy.
+> 
+> It pulls in a lot of weirdness to the OF core and creates a coherent
+> way of handling these "banked" GPIO chips.
+> 
+> CC to Tony to make sure he checks that OMAP is ready to use this
+> too.
 
-On am438x EPOS boards there is only one ethernet port, remove extra
-port definition.
+Adding Grygorii to Cc as well, we'll take a look.
 
-This boot log warnings during PHY detection.
+Probably the runtime PM will be an issue here still. We must currently
+do runtime PM on per GPIO bank basis instead of per GPIO pin level as
+we constantly runtime_suspend/resume the whole GPIO bank for idle modes
+on the SoCs that support PM. So the usage count for the bank needs to
+be either 0 or 1 and cannot be the lines used in the bank.
 
-Signed-off-by: Yogesh Siraswar <yogeshs@ti.com>
-Signed-off-by: Andrew F. Davis <afd@ti.com>
----
- arch/arm/boot/dts/am43x-epos-evm.dts | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+Regards,
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 9d276af7c539..081fa68b6f98 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -388,6 +388,7 @@
- 	pinctrl-0 = <&cpsw_default>;
- 	pinctrl-1 = <&cpsw_sleep>;
- 	status = "okay";
-+	slaves = <1>;
- };
- 
- &davinci_mdio {
-@@ -402,11 +403,6 @@
- 	phy-mode = "rmii";
- };
- 
--&cpsw_emac1 {
--	phy_id = <&davinci_mdio>, <1>;
--	phy-mode = "rmii";
--};
--
- &phy_sel {
- 	rmii-clock-ext;
- };
--- 
-2.14.1
+Tony
