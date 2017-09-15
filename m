@@ -1,53 +1,51 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] dmaengine: edma: Align the memcpy acnt array size with
- the transfer
-Date: Fri, 15 Sep 2017 21:52:36 +0300
-Message-ID: <aa913f99-189a-fda0-9867-a3897a5e0fa3@ti.com>
-References: <20170915072328.7415-1-peter.ujfalusi@ti.com>
- <20170915164707.GD27343@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] omap: hwmod: fix section mismatch warnings
+Date: Fri, 15 Sep 2017 21:45:12 +0200
+Message-ID: <20170915194527.1171677-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170915164707.GD27343@kroah.com>
-Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: vinod.koul@intel.com, dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-=EF=BB=BF
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Older compilers choose not to inline _setup_clkctrl_provider(),
+leading to a harmless warning:
 
-On 09/15/2017 07:47 PM, Greg KH wrote:
-> On Fri, Sep 15, 2017 at 10:23:28AM +0300, Peter Ujfalusi wrote:
->> =EF=BB=BFMemory to Memory transfers does not have any special alignment =
-needs
->> regarding to acnt array size, but if one of the areas are in memory mapp=
-ed
->> regions (like PCIe memory), we need to make sure that the acnt array siz=
-e
->> is aligned with the mem copy parameters.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> ---
->>  drivers/dma/edma.c | 19 ++++++++++++++++---
->>  1 file changed, 16 insertions(+), 3 deletions(-)
->=20
-> <formletter>
->=20
-> This is not the correct way to submit patches for inclusion in the
-> stable kernel tree.  Please read:
->     https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.ht=
-ml
-> for how to do this properly.
->=20
-> </formletter>
+WARNING: vmlinux.o(.text+0x27b34): Section mismatch in reference from the function _setup_clkctrl_provider() to the function .init.text:memblock_virt_alloc_try_nid()
+The function _setup_clkctrl_provider() references
+the function __init memblock_virt_alloc_try_nid().
+This is often because _setup_clkctrl_provider lacks a __init
+annotation or the annotation of memblock_virt_alloc_try_nid is wrong.
 
-Sorry, I forgot to add the CC to the patch itself. I will resend it with th=
-e
-correct form.
+This annotates it as __init as well, which lets the linker
+see that it is actually correct.
 
---=20
-P=C3=A9ter
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 2dbd63239c54..91ec0ca4822b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -732,7 +732,7 @@ static int _match_clkdm(struct clockdomain *clkdm, void *user)
+ 	return 0;
+ }
+ 
+-static int _setup_clkctrl_provider(struct device_node *np)
++static int __init _setup_clkctrl_provider(struct device_node *np)
+ {
+ 	const __be32 *addrp;
+ 	struct clkctrl_provider *provider;
+@@ -761,7 +761,7 @@ static int _setup_clkctrl_provider(struct device_node *np)
+ 	return 0;
+ }
+ 
+-static int _init_clkctrl_providers(void)
++static int __init _init_clkctrl_providers(void)
+ {
+ 	struct device_node *np;
+ 	int ret = 0;
+-- 
+2.9.0
