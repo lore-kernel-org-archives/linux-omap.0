@@ -1,71 +1,43 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH] i2c-omap: Trigger bus recovery in lockup case
-Date: Fri, 15 Sep 2017 18:31:51 -0500
-Message-ID: <9d3e3029-f775-a9aa-8025-badccb699ed8@ti.com>
-References: <1505403549-12992-1-git-send-email-claudio.foellmi@ergon.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1505403549-12992-1-git-send-email-claudio.foellmi@ergon.ch>
-Content-Language: en-US
-Sender: linux-i2c-owner@vger.kernel.org
-To: Claudio Foellmi <claudio.foellmi@ergon.ch>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Franklin S Cooper Jr <fcooper@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] gpio: omap: omap_gpio_show_rev is not __init
+Date: Sat, 16 Sep 2017 22:42:21 +0200
+Message-ID: <20170916204234.725130-1-arnd@arndb.de>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+The probe function calls omap_gpio_show_rev(), which on most
+compilers is inlined, but on the old gcc-4.6 is not, causing
+a valid warning about the incorrect __init annotation:
 
+WARNING: vmlinux.o(.text+0x40f614): Section mismatch in reference from the function omap_gpio_probe() to the function .init.text:omap_gpio_show_rev()
+The function omap_gpio_probe() references
+the function __init omap_gpio_show_rev().
+This is often because omap_gpio_probe lacks a __init
+annotation or the annotation of omap_gpio_show_rev is wrong.
 
-On 09/14/2017 10:39 AM, Claudio Foellmi wrote:
-> A very conservative check for bus activity (to prevent interference
-> in multimaster setups) prevented the bus recovery methods from being
-> triggered in the case that SDA or SCL was stuck low.
-> This defeats the purpose of the recovery mechanism, which was introduced
-> for exactly this situation (a slave device keeping SDA pulled down).
-> 
-> Note that bus lockups can persist across reboots. The only other options
-> are to reset or power cycle the offending slave device, and many i2c
-> slaves do not even have a reset pin.
-> 
-> If we see that one of the lines is low for the entire timeout duration,
-> we can actually be sure that there is no other master driving the bus.
-> It is therefore save for us to attempt a bus recovery.
-> 
+This removes the __init.
 
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/gpio/gpio-omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
-> ---
-> Caveat: It turns out I don't have the hardware to fully test the
-> recovery mechanism. My faulty i2c slave device actually pulls down SCL,
-> not SDA (so the recovery will not succeed in my case).
-> But by directly connecting SDA to ground, I could at least make sure
-> the recovery function gets called after applying this patch.
-> 
->   drivers/i2c/busses/i2c-omap.c | 7 ++++++-
->   1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 1ebb5e9..4b25fd1 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -563,8 +563,13 @@ static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *omap)
->   		}
->   
->   		if (time_after(jiffies, timeout)) {
-> +			/*
-> +			 * SDA or SCL were low for the entire timeout without
-> +			 * any activity detected. Most likely, a slave is
-> +			 * locking up the bus with no master driving the clock.
-> +			 */
->   			dev_warn(omap->dev, "timeout waiting for bus ready\n");
-> -			return -ETIMEDOUT;
-> +			return i2c_recover_bus(&omap->adapter);
->   		}
->   
->   		msleep(1);
-> 
-
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index dbf869fb63ce..22d7d4838265 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1010,7 +1010,7 @@ static void omap_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
+ 
+ /*---------------------------------------------------------------------*/
+ 
+-static void __init omap_gpio_show_rev(struct gpio_bank *bank)
++static void omap_gpio_show_rev(struct gpio_bank *bank)
+ {
+ 	static bool called;
+ 	u32 rev;
 -- 
-regards,
--grygorii
+2.9.0
+
