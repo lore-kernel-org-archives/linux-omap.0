@@ -1,87 +1,85 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH] i2c-omap: Trigger bus recovery in lockup case
-Date: Mon, 18 Sep 2017 10:54:06 +0530
-Message-ID: <48ddc9bc-2b83-97c9-fbd7-90d4da9f2687@ti.com>
-References: <1505403549-12992-1-git-send-email-claudio.foellmi@ergon.ch>
- <9d3e3029-f775-a9aa-8025-badccb699ed8@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Linux-next broken for 2 weeks was Re: n900 in next-20170901
+Date: Mon, 18 Sep 2017 10:11:09 +0200
+Message-ID: <20170918081109.GA11661@amd>
+References: <20170903203737.GA12475@amd>
+ <20170905201314.GE5024@atomide.com>
+ <20170905233241.GA19231@js1304-P5Q-DELUXE>
+ <20170906133057.GH5024@atomide.com>
+ <20170907073038.GA2111@js1304-P5Q-DELUXE>
+ <20170907161650.GP5024@atomide.com>
+ <20170915131817.GA19486@amd>
+ <20170918020126.GA19200@js1304-P5Q-DELUXE>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <9d3e3029-f775-a9aa-8025-badccb699ed8@ti.com>
-Content-Language: en-US
-Sender: linux-i2c-owner@vger.kernel.org
-To: "Strashko, Grygorii" <grygorii.strashko@ti.com>, Claudio Foellmi <claudio.foellmi@ergon.ch>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "Cooper Jr., Franklin" <fcooper@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ikeVEW9yuYc//A+q"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170918020126.GA19200@js1304-P5Q-DELUXE>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
 
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Saturday 16 September 2017 05:01 AM, Strashko, Grygorii wrote:
-> 
-> 
-> On 09/14/2017 10:39 AM, Claudio Foellmi wrote:
->> A very conservative check for bus activity (to prevent interference
->> in multimaster setups) prevented the bus recovery methods from being
->> triggered in the case that SDA or SCL was stuck low.
->> This defeats the purpose of the recovery mechanism, which was introduced
->> for exactly this situation (a slave device keeping SDA pulled down).
->>
->> Note that bus lockups can persist across reboots. The only other options
->> are to reset or power cycle the offending slave device, and many i2c
->> slaves do not even have a reset pin.
->>
->> If we see that one of the lines is low for the entire timeout duration,
->> we can actually be sure that there is no other master driving the bus.
->> It is therefore save for us to attempt a bus recovery.
->>
-> 
-> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> 
->> Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
->> ---
->> Caveat: It turns out I don't have the hardware to fully test the
->> recovery mechanism. My faulty i2c slave device actually pulls down SCL,
->> not SDA (so the recovery will not succeed in my case).
+Hi!
 
-Maybe, you could detect SCL stuck low case by reading status of SCL line
-from OMAP_I2C_SYSTEST_REG and then call IP reset (there is nothing much
-that can be done) instead of bus recovery.
+> > > > After commit 9caf25f996e8, user for CMA memory should use to check
+> > > > PageHighmem in order to get proper virtual address of the page. If
+> > > > someone doesn't use it, it is possible to use wrong virtual address
+> > > > and it then causes the use of wrong physical address.
+> > > > CONFIG_DEBUG_VIRTUAL would catch this case.
+> > >=20
+> > > OK, no extra output of current next with CONFIG_DEBUG_VIRTUAL=3Dy.
+> > > Booting of n900 hangs with just the same error:
+> > >=20
+> > > save_secure_sram() returns 0000ff02
+> > >=20
+> > > > If it doesn't help, is there a way to test n900 configuration in QE=
+MU?
+> > >=20
+> > > I doubt that QEMU n900 boots in secure mode but instead shows
+> > > the SoC as general purpose SoC. If so, you'd have to patch the
+> > > omap3_save_secure_ram_context() to attempt to save secure RAM
+> > > context in all cases. If that works then debugging with any
+> > > omap3 board like beagleboard in QEMU should work.
+> >=20
+> > Okay, linux-next from today still does not boot on n900. Is it
+> > something new, or was this still not fixed in -next?
+>=20
+> Hello,
+>=20
+> Still not fixed in -next since I cannot regenerate the error.
 
->> But by directly connecting SDA to ground, I could at least make sure
->> the recovery function gets called after applying this patch.
->>
+Unfortunately, rest of the world can reproduce the error, and it means
+linux-next is useless for us.
 
-I had seen flood of XRDY & RRDY interrupts as soon as TMODE is set to
-0x3 as part of omap_i2c_prepare_recovery() leading to unusable system.
-Did you observe this behavior on your system? Could you mention the
-platform on which this experiment done?
+I'd expect you to drop the relevant tree from linux-next when the
+error was reported. Clearly, those patches are unsuitable for 4.15, as
+they are broken, so they should not be in linux-next.
 
->>   drivers/i2c/busses/i2c-omap.c | 7 ++++++-
->>   1 file changed, 6 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index 1ebb5e9..4b25fd1 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -563,8 +563,13 @@ static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *omap)
->>   		}
->>   
->>   		if (time_after(jiffies, timeout)) {
->> +			/*
->> +			 * SDA or SCL were low for the entire timeout without
->> +			 * any activity detected. Most likely, a slave is
->> +			 * locking up the bus with no master driving the clock.
->> +			 */
->>   			dev_warn(omap->dev, "timeout waiting for bus ready\n");
->> -			return -ETIMEDOUT;
->> +			return i2c_recover_bus(&omap->adapter);
->>   		}
->>   
->>   		msleep(1);
->>
-> 
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
--- 
-Regards
-Vignesh
+--ikeVEW9yuYc//A+q
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlm/f50ACgkQMOfwapXb+vLSegCgicSe52c3dugEW4wOXdGZb4UC
+y9UAoK3qu2t9VCaQpOPuMePdttYfOfEJ
+=QiCB
+-----END PGP SIGNATURE-----
+
+--ikeVEW9yuYc//A+q--
