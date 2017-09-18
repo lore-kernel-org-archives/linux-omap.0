@@ -1,102 +1,51 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2] dmaengine: edma: Align the memcpy acnt array size with the transfer
-Date: Mon, 18 Sep 2017 11:16:26 +0300
-Message-ID: <20170918081626.12878-1-peter.ujfalusi@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH] ARM: dts: dra7: Set a default parent to mcasp3_ahclkx_mux
+Date: Mon, 18 Sep 2017 17:03:45 +0530
+Message-ID: <c1d80795-f86c-23e4-5a6b-4829c0f9f8a0@ti.com>
+References: <1504705172-17781-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1504705172-17781-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org
+To: tony@atomide.com
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-=EF=BB=BFMemory to Memory transfers does not have any special alignment nee=
-ds
-regarding to acnt array size, but if one of the areas are in memory mapped
-regions (like PCIe memory), we need to make sure that the acnt array size
-is aligned with the mem copy parameters.
 
-Before "dmaengine: edma: Optimize memcpy operation" change the memcpy was s=
-et
-up in a different way: acnt =3D=3D number of bytes in a word based on
-__ffs((src | dest | len), bcnt and ccnt for looping the necessary number of
-words to comlete the trasnfer.
 
-Instead of reverting the commit we can fix it to make sure that the ACNT si=
-ze
-is aligned to the traswnfer.
+On Wednesday 06 September 2017 07:09 PM, Keerthy wrote:
+> Assign a default parent to mcasp3_ahclkx_mux clock using
+> the assigned-clock-parents property. This is helpful in
+> cases like kexec where in the clock parent can be something
+> other than the value at reset.
 
-Fixes: df6694f80365a (dmaengine: edma: Optimize memcpy operation)
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: stable@vger.kernel.org
----
-Hi,
+Hi Tony,
 
-Changes since v1:
-- Added Cc and Fixes tags to the commit massage for proper Stable handling.
-- Extended the commit message a bit to explain the issue a bit more.
+A gentle ping on this.
 
 Regards,
-Peter
+Keerthy
 
- drivers/dma/edma.c | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
-index 14c52574262c..2f880010297d 100644
---- a/drivers/dma/edma.c
-+++ b/drivers/dma/edma.c
-@@ -1169,11 +1169,24 @@ static struct dma_async_tx_descriptor *edma_prep_dm=
-a_memcpy(
- 	struct edma_desc *edesc;
- 	struct device *dev =3D chan->device->dev;
- 	struct edma_chan *echan =3D to_edma_chan(chan);
--	unsigned int width, pset_len;
-+	unsigned int width, pset_len, array_size;
-=20
- 	if (unlikely(!echan || !len))
- 		return NULL;
-=20
-+	/* Align the array size (acnt block) with the transfer properties */
-+	switch (__ffs((src | dest | len))) {
-+	case 0:
-+		array_size =3D SZ_32K - 1;
-+		break;
-+	case 1:
-+		array_size =3D SZ_32K - 2;
-+		break;
-+	default:
-+		array_size =3D SZ_32K - 4;
-+		break;
-+	}
-+
- 	if (len < SZ_64K) {
- 		/*
- 		 * Transfer size less than 64K can be handled with one paRAM
-@@ -1195,7 +1208,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma_=
-memcpy(
- 		 * When the full_length is multibple of 32767 one slot can be
- 		 * used to complete the transfer.
- 		 */
--		width =3D SZ_32K - 1;
-+		width =3D array_size;
- 		pset_len =3D rounddown(len, width);
- 		/* One slot is enough for lengths multiple of (SZ_32K -1) */
- 		if (unlikely(pset_len =3D=3D len))
-@@ -1243,7 +1256,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma_=
-memcpy(
- 		}
- 		dest +=3D pset_len;
- 		src +=3D pset_len;
--		pset_len =3D width =3D len % (SZ_32K - 1);
-+		pset_len =3D width =3D len % array_size;
-=20
- 		ret =3D edma_config_pset(chan, &edesc->pset[1], src, dest, 1,
- 				       width, pset_len, DMA_MEM_TO_MEM);
---=20
-2.14.1
-
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> 
+> Suggested-by: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  arch/arm/boot/dts/dra7xx-clocks.dtsi | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/dra7xx-clocks.dtsi b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> index cf229df..e62b628 100644
+> --- a/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> +++ b/arch/arm/boot/dts/dra7xx-clocks.dtsi
+> @@ -1817,6 +1817,8 @@
+>  		clocks = <&abe_24m_fclk>, <&abe_sys_clk_div>, <&func_24m_clk>, <&atl_clkin3_ck>, <&atl_clkin2_ck>, <&atl_clkin1_ck>, <&atl_clkin0_ck>, <&sys_clkin2>, <&ref_clkin0_ck>, <&ref_clkin1_ck>, <&ref_clkin2_ck>, <&ref_clkin3_ck>, <&mlb_clk>, <&mlbp_clk>;
+>  		ti,bit-shift = <24>;
+>  		reg = <0x1868>;
+> +		assigned-clocks = <&mcasp3_ahclkx_mux>;
+> +		assigned-clock-parents = <&abe_24m_fclk>;
+>  	};
+>  
+>  	mcasp3_aux_gfclk_mux: mcasp3_aux_gfclk_mux@1868 {
+> 
