@@ -1,44 +1,87 @@
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: Re: n900 in next-20170901
-Date: Mon, 18 Sep 2017 11:07:17 +0900
-Message-ID: <20170918020716.GB19200@js1304-P5Q-DELUXE>
-References: <20170903203737.GA12475@amd>
- <20170905201314.GE5024@atomide.com>
- <20170905233241.GA19231@js1304-P5Q-DELUXE>
- <20170906133057.GH5024@atomide.com>
- <20170907073038.GA2111@js1304-P5Q-DELUXE>
- <20170915132844.GW32278@pali>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH] i2c-omap: Trigger bus recovery in lockup case
+Date: Mon, 18 Sep 2017 10:54:06 +0530
+Message-ID: <48ddc9bc-2b83-97c9-fbd7-90d4da9f2687@ti.com>
+References: <1505403549-12992-1-git-send-email-claudio.foellmi@ergon.ch>
+ <9d3e3029-f775-a9aa-8025-badccb699ed8@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170915132844.GW32278@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Pavel Machek <pavel@ucw.cz>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <9d3e3029-f775-a9aa-8025-badccb699ed8@ti.com>
+Content-Language: en-US
+Sender: linux-i2c-owner@vger.kernel.org
+To: "Strashko, Grygorii" <grygorii.strashko@ti.com>, Claudio Foellmi <claudio.foellmi@ergon.ch>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "Cooper Jr., Franklin" <fcooper@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
 
-On Fri, Sep 15, 2017 at 03:28:44PM +0200, Pali Rohár wrote:
-> On Thursday 07 September 2017 16:30:38 Joonsoo Kim wrote:
-> > If it doesn't help, is there a way to test n900 configuration in QEMU?
+
+On Saturday 16 September 2017 05:01 AM, Strashko, Grygorii wrote:
 > 
-> Hi Joonsoo, linaro version of QEMU has support for n900 machine. For
-> more information how to prepare & run kernel image see this email:
-> https://lists.denx.de/pipermail/u-boot/2015-January/200171.html
-> (instead u-boot.bin you would supply kernel's zImage)
+> 
+> On 09/14/2017 10:39 AM, Claudio Foellmi wrote:
+>> A very conservative check for bus activity (to prevent interference
+>> in multimaster setups) prevented the bus recovery methods from being
+>> triggered in the case that SDA or SCL was stuck low.
+>> This defeats the purpose of the recovery mechanism, which was introduced
+>> for exactly this situation (a slave device keeping SDA pulled down).
+>>
+>> Note that bus lockups can persist across reboots. The only other options
+>> are to reset or power cycle the offending slave device, and many i2c
+>> slaves do not even have a reset pin.
+>>
+>> If we see that one of the lines is low for the entire timeout duration,
+>> we can actually be sure that there is no other master driving the bus.
+>> It is therefore save for us to attempt a bus recovery.
+>>
+> 
+> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> 
+>> Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
+>> ---
+>> Caveat: It turns out I don't have the hardware to fully test the
+>> recovery mechanism. My faulty i2c slave device actually pulls down SCL,
+>> not SDA (so the recovery will not succeed in my case).
 
-I tried to search to download required tools but cannot find a qflasher.
-Looks like you have qflasher and other *.bin for n900 image.
-Could you share them to me, please?
+Maybe, you could detect SCL stuck low case by reading status of SCL line
+from OMAP_I2C_SYSTEST_REG and then call IP reset (there is nothing much
+that can be done) instead of bus recovery.
 
-> But QEMU does not support HS mode, so there is probably no secure ram.
-> IIRC smc instructions should not be used in normal GP mode.
+>> But by directly connecting SDA to ground, I could at least make sure
+>> the recovery function gets called after applying this patch.
+>>
 
-Okay. Thanks for information. I'm not sure that I can regenerate the
-error with n900 QEMU emulation but that would be my best so I will
-try.
+I had seen flood of XRDY & RRDY interrupts as soon as TMODE is set to
+0x3 as part of omap_i2c_prepare_recovery() leading to unusable system.
+Did you observe this behavior on your system? Could you mention the
+platform on which this experiment done?
 
-Thanks.
+>>   drivers/i2c/busses/i2c-omap.c | 7 ++++++-
+>>   1 file changed, 6 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index 1ebb5e9..4b25fd1 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -563,8 +563,13 @@ static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *omap)
+>>   		}
+>>   
+>>   		if (time_after(jiffies, timeout)) {
+>> +			/*
+>> +			 * SDA or SCL were low for the entire timeout without
+>> +			 * any activity detected. Most likely, a slave is
+>> +			 * locking up the bus with no master driving the clock.
+>> +			 */
+>>   			dev_warn(omap->dev, "timeout waiting for bus ready\n");
+>> -			return -ETIMEDOUT;
+>> +			return i2c_recover_bus(&omap->adapter);
+>>   		}
+>>   
+>>   		msleep(1);
+>>
+> 
+
+-- 
+Regards
+Vignesh
