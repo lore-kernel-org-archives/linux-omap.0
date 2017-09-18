@@ -1,37 +1,33 @@
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: [PATCH] ARM: dts: am43xx-epos-evm: Enable SGX on EPOS boards
-Date: Mon, 18 Sep 2017 12:31:30 -0500
-Message-ID: <20170918173130.17657-1-afd@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH] gpio: omap: omap_gpio_show_rev is not __init
+Date: Mon, 18 Sep 2017 11:18:23 -0700
+Message-ID: <ffcec36b-f7b3-c03d-58fc-a2c9c5235350@oracle.com>
+References: <20170916204234.725130-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170916204234.725130-1-arnd@arndb.de>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Yogesh Siraswar <yogeshs@ti.com>
 
-The SGX IP is valid and usable on AM438x devices, enable this
-here.
-
-Signed-off-by: Yogesh Siraswar <yogeshs@ti.com>
-Signed-off-by: Andrew F. Davis <afd@ti.com>
----
- arch/arm/boot/dts/am43x-epos-evm.dts | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 9d276af7c539..17c081b2cff3 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -796,3 +796,7 @@
- 	assigned-clocks = <&mux_synctimer32k_ck>;
- 	assigned-clock-parents = <&clkdiv32k_ick>;
- };
-+
-+&sgx {
-+	status = "okay";
-+};
--- 
-2.14.1
+On 9/16/2017 1:42 PM, Arnd Bergmann wrote:
+> The probe function calls omap_gpio_show_rev(), which on most
+> compilers is inlined, but on the old gcc-4.6 is not, causing
+> a valid warning about the incorrect __init annotation:
+> 
+> WARNING: vmlinux.o(.text+0x40f614): Section mismatch in reference from the function omap_gpio_probe() to the function .init.text:omap_gpio_show_rev()
+> The function omap_gpio_probe() references
+> the function __init omap_gpio_show_rev().
+> This is often because omap_gpio_probe lacks a __init
+> annotation or the annotation of omap_gpio_show_rev is wrong.
+> 
+> This removes the __init.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
