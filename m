@@ -1,85 +1,102 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Linux-next broken for 2 weeks was Re: n900 in next-20170901
-Date: Mon, 18 Sep 2017 10:11:09 +0200
-Message-ID: <20170918081109.GA11661@amd>
-References: <20170903203737.GA12475@amd>
- <20170905201314.GE5024@atomide.com>
- <20170905233241.GA19231@js1304-P5Q-DELUXE>
- <20170906133057.GH5024@atomide.com>
- <20170907073038.GA2111@js1304-P5Q-DELUXE>
- <20170907161650.GP5024@atomide.com>
- <20170915131817.GA19486@amd>
- <20170918020126.GA19200@js1304-P5Q-DELUXE>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2] dmaengine: edma: Align the memcpy acnt array size with the transfer
+Date: Mon, 18 Sep 2017 11:16:26 +0300
+Message-ID: <20170918081626.12878-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ikeVEW9yuYc//A+q"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170918020126.GA19200@js1304-P5Q-DELUXE>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+=EF=BB=BFMemory to Memory transfers does not have any special alignment nee=
+ds
+regarding to acnt array size, but if one of the areas are in memory mapped
+regions (like PCIe memory), we need to make sure that the acnt array size
+is aligned with the mem copy parameters.
 
---ikeVEW9yuYc//A+q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Before "dmaengine: edma: Optimize memcpy operation" change the memcpy was s=
+et
+up in a different way: acnt =3D=3D number of bytes in a word based on
+__ffs((src | dest | len), bcnt and ccnt for looping the necessary number of
+words to comlete the trasnfer.
 
-Hi!
+Instead of reverting the commit we can fix it to make sure that the ACNT si=
+ze
+is aligned to the traswnfer.
 
-> > > > After commit 9caf25f996e8, user for CMA memory should use to check
-> > > > PageHighmem in order to get proper virtual address of the page. If
-> > > > someone doesn't use it, it is possible to use wrong virtual address
-> > > > and it then causes the use of wrong physical address.
-> > > > CONFIG_DEBUG_VIRTUAL would catch this case.
-> > >=20
-> > > OK, no extra output of current next with CONFIG_DEBUG_VIRTUAL=3Dy.
-> > > Booting of n900 hangs with just the same error:
-> > >=20
-> > > save_secure_sram() returns 0000ff02
-> > >=20
-> > > > If it doesn't help, is there a way to test n900 configuration in QE=
-MU?
-> > >=20
-> > > I doubt that QEMU n900 boots in secure mode but instead shows
-> > > the SoC as general purpose SoC. If so, you'd have to patch the
-> > > omap3_save_secure_ram_context() to attempt to save secure RAM
-> > > context in all cases. If that works then debugging with any
-> > > omap3 board like beagleboard in QEMU should work.
-> >=20
-> > Okay, linux-next from today still does not boot on n900. Is it
-> > something new, or was this still not fixed in -next?
->=20
-> Hello,
->=20
-> Still not fixed in -next since I cannot regenerate the error.
+Fixes: df6694f80365a (dmaengine: edma: Optimize memcpy operation)
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: stable@vger.kernel.org
+---
+Hi,
 
-Unfortunately, rest of the world can reproduce the error, and it means
-linux-next is useless for us.
+Changes since v1:
+- Added Cc and Fixes tags to the commit massage for proper Stable handling.
+- Extended the commit message a bit to explain the issue a bit more.
 
-I'd expect you to drop the relevant tree from linux-next when the
-error was reported. Clearly, those patches are unsuitable for 4.15, as
-they are broken, so they should not be in linux-next.
+Regards,
+Peter
 
-Thanks,
-									Pavel
+ drivers/dma/edma.c | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 14c52574262c..2f880010297d 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -1169,11 +1169,24 @@ static struct dma_async_tx_descriptor *edma_prep_dm=
+a_memcpy(
+ 	struct edma_desc *edesc;
+ 	struct device *dev =3D chan->device->dev;
+ 	struct edma_chan *echan =3D to_edma_chan(chan);
+-	unsigned int width, pset_len;
++	unsigned int width, pset_len, array_size;
+=20
+ 	if (unlikely(!echan || !len))
+ 		return NULL;
+=20
++	/* Align the array size (acnt block) with the transfer properties */
++	switch (__ffs((src | dest | len))) {
++	case 0:
++		array_size =3D SZ_32K - 1;
++		break;
++	case 1:
++		array_size =3D SZ_32K - 2;
++		break;
++	default:
++		array_size =3D SZ_32K - 4;
++		break;
++	}
++
+ 	if (len < SZ_64K) {
+ 		/*
+ 		 * Transfer size less than 64K can be handled with one paRAM
+@@ -1195,7 +1208,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma_=
+memcpy(
+ 		 * When the full_length is multibple of 32767 one slot can be
+ 		 * used to complete the transfer.
+ 		 */
+-		width =3D SZ_32K - 1;
++		width =3D array_size;
+ 		pset_len =3D rounddown(len, width);
+ 		/* One slot is enough for lengths multiple of (SZ_32K -1) */
+ 		if (unlikely(pset_len =3D=3D len))
+@@ -1243,7 +1256,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma_=
+memcpy(
+ 		}
+ 		dest +=3D pset_len;
+ 		src +=3D pset_len;
+-		pset_len =3D width =3D len % (SZ_32K - 1);
++		pset_len =3D width =3D len % array_size;
+=20
+ 		ret =3D edma_config_pset(chan, &edesc->pset[1], src, dest, 1,
+ 				       width, pset_len, DMA_MEM_TO_MEM);
 --=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+2.14.1
 
---ikeVEW9yuYc//A+q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlm/f50ACgkQMOfwapXb+vLSegCgicSe52c3dugEW4wOXdGZb4UC
-y9UAoK3qu2t9VCaQpOPuMePdttYfOfEJ
-=QiCB
------END PGP SIGNATURE-----
-
---ikeVEW9yuYc//A+q--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
+siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
