@@ -1,31 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: hwmod: fix section mismatch warnings
-Date: Mon, 18 Sep 2017 09:52:04 -0700
-Message-ID: <20170918165204.GX5024@atomide.com>
-References: <20170915194527.1171677-1-arnd@arndb.de>
+From: "Andrew F. Davis" <afd@ti.com>
+Subject: [PATCH] ARM: dts: am43xx-epos-evm: Enable SGX on EPOS boards
+Date: Mon, 18 Sep 2017 12:31:30 -0500
+Message-ID: <20170918173130.17657-1-afd@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170915194527.1171677-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson@baylibre.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Andrew F . Davis" <afd@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [170915 12:46]:
-> Older compilers choose not to inline _setup_clkctrl_provider(),
-> leading to a harmless warning:
-> 
-> WARNING: vmlinux.o(.text+0x27b34): Section mismatch in reference from the function _setup_clkctrl_provider() to the function .init.text:memblock_virt_alloc_try_nid()
-> The function _setup_clkctrl_provider() references
-> the function __init memblock_virt_alloc_try_nid().
-> This is often because _setup_clkctrl_provider lacks a __init
-> annotation or the annotation of memblock_virt_alloc_try_nid is wrong.
-> 
-> This annotates it as __init as well, which lets the linker
-> see that it is actually correct.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+From: Yogesh Siraswar <yogeshs@ti.com>
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+The SGX IP is valid and usable on AM438x devices, enable this
+here.
+
+Signed-off-by: Yogesh Siraswar <yogeshs@ti.com>
+Signed-off-by: Andrew F. Davis <afd@ti.com>
+---
+ arch/arm/boot/dts/am43x-epos-evm.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
+index 9d276af7c539..17c081b2cff3 100644
+--- a/arch/arm/boot/dts/am43x-epos-evm.dts
++++ b/arch/arm/boot/dts/am43x-epos-evm.dts
+@@ -796,3 +796,7 @@
+ 	assigned-clocks = <&mux_synctimer32k_ck>;
+ 	assigned-clock-parents = <&clkdiv32k_ick>;
+ };
++
++&sgx {
++	status = "okay";
++};
+-- 
+2.14.1
