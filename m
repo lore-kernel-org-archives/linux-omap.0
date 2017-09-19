@@ -1,53 +1,34 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH] input: touchscreen: ti_am335x_tsc: Fix incorrect step config for 5 wire touchscreen
-Date: Tue, 19 Sep 2017 11:59:06 +0530
-Message-ID: <20170919062906.501-1-vigneshr@ti.com>
+From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 0/2] Dual MMU support for TI DRA7xx DSPs
+Date: Tue, 19 Sep 2017 11:32:45 +0200
+Message-ID: <20170919093245.mp4erzlkhfb5wrlg@8bytes.org>
+References: <20170905225618.912-1-s-anna@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Vignesh R <vigneshr@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170905225618.912-1-s-anna-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Jeff Lance <j-lance1@ti.com>
+On Tue, Sep 05, 2017 at 05:56:16PM -0500, Suman Anna wrote:
+> Suman Anna (2):
+>   iommu/omap: Change the attach detection logic
+>   iommu/omap: Add support to program multiple iommus
+> 
+>  drivers/iommu/omap-iommu.c | 375 ++++++++++++++++++++++++++++++++++-----------
+>  drivers/iommu/omap-iommu.h |  30 ++--
+>  2 files changed, 296 insertions(+), 109 deletions(-)
 
-Step config setting for 5 wire touchscreen is incorrect for Y coordinates.
-It was broken while we moved to DT. If you look close at the offending
-commit bb76dc09ddfc ("input: ti_am33x_tsc: Order of TSC wires, made
-configurable"), the change was:
-
-- STEPCONFIG_XNP | STEPCONFIG_YPN;
-+ ts_dev->bit_xn | ts_dev->bit_yp;
-
-while bit_xn = STEPCONFIG_XNN and bit_yp = STEPCONFIG_YNN. Not quite the
-same.
-
-Fixes: bb76dc09ddfc ("input: ti_am33x_tsc: Order of TSC wires, made configurable")
-Signed-off-by: Jeff Lance <j-lance1@ti.com>
-[vigneshr@ti.com: Rebase to v4.14-rc1]
-Signed-off-by: Vignesh R <vigneshr@ti.com>
----
-
-Tested on AM335x EVM with 5 wire tsc module. Also sanity tested
-on a 4 wire tsc as well.
-
- drivers/input/touchscreen/ti_am335x_tsc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
-index 7953381d939a..f1043ae71dcc 100644
---- a/drivers/input/touchscreen/ti_am335x_tsc.c
-+++ b/drivers/input/touchscreen/ti_am335x_tsc.c
-@@ -161,7 +161,7 @@ static void titsc_step_config(struct titsc *ts_dev)
- 		break;
- 	case 5:
- 		config |= ts_dev->bit_xp | STEPCONFIG_INP_AN4 |
--				ts_dev->bit_xn | ts_dev->bit_yp;
-+				STEPCONFIG_XNP | STEPCONFIG_YPN;
- 		break;
- 	case 8:
- 		config |= ts_dev->bit_yp | STEPCONFIG_INP(ts_dev->inp_xp);
--- 
-2.14.1
-
+Applied, thanks.
