@@ -1,66 +1,53 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Linux-next broken for 2 weeks was Re: n900 in next-20170901
-Date: Tue, 19 Sep 2017 00:16:37 +0200
-Message-ID: <20170918221637.GA7537@amd>
-References: <20170903203737.GA12475@amd>
- <20170905201314.GE5024@atomide.com>
- <20170905233241.GA19231@js1304-P5Q-DELUXE>
- <20170906133057.GH5024@atomide.com>
- <20170907073038.GA2111@js1304-P5Q-DELUXE>
- <20170907161650.GP5024@atomide.com>
- <20170915131817.GA19486@amd>
- <20170918020126.GA19200@js1304-P5Q-DELUXE>
- <20170918081109.GA11661@amd>
- <20170919080000.59a79ba2@canb.auug.org.au>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH] input: touchscreen: ti_am335x_tsc: Fix incorrect step config for 5 wire touchscreen
+Date: Tue, 19 Sep 2017 11:59:06 +0530
+Message-ID: <20170919062906.501-1-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170919080000.59a79ba2@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>, Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Russell King <linux@armlinux.org.uk>
+Content-Type: text/plain
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Vignesh R <vigneshr@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+From: Jeff Lance <j-lance1@ti.com>
 
---tKW2IUtsqtDRztdT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Step config setting for 5 wire touchscreen is incorrect for Y coordinates.
+It was broken while we moved to DT. If you look close at the offending
+commit bb76dc09ddfc ("input: ti_am33x_tsc: Order of TSC wires, made
+configurable"), the change was:
 
-On Tue 2017-09-19 08:00:10, Stephen Rothwell wrote:
-> Hi Pavel,
->=20
-> On Mon, 18 Sep 2017 10:11:09 +0200 Pavel Machek <pavel@ucw.cz> wrote:
-> >
-> > Unfortunately, rest of the world can reproduce the error, and it means
-> > linux-next is useless for us.
-> >=20
-> > I'd expect you to drop the relevant tree from linux-next when the
-> > error was reported. Clearly, those patches are unsuitable for 4.15, as
-> > they are broken, so they should not be in linux-next.
->=20
-> Andrew has asked me to drop the patches from linux-next today and I
-> have done so.
+- STEPCONFIG_XNP | STEPCONFIG_YPN;
++ ts_dev->bit_xn | ts_dev->bit_yp;
 
-Thanks!
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+while bit_xn = STEPCONFIG_XNN and bit_yp = STEPCONFIG_YNN. Not quite the
+same.
 
---tKW2IUtsqtDRztdT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Fixes: bb76dc09ddfc ("input: ti_am33x_tsc: Order of TSC wires, made configurable")
+Signed-off-by: Jeff Lance <j-lance1@ti.com>
+[vigneshr@ti.com: Rebase to v4.14-rc1]
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Tested on AM335x EVM with 5 wire tsc module. Also sanity tested
+on a 4 wire tsc as well.
 
-iEYEARECAAYFAlnARcUACgkQMOfwapXb+vLFEwCcCmBIA/KufRYLZwLzcBwX+FR/
-AJ8AnRTloSEbC5v0QsOOTOBOEsDylK/M
-=EvxH
------END PGP SIGNATURE-----
+ drivers/input/touchscreen/ti_am335x_tsc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---tKW2IUtsqtDRztdT--
+diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+index 7953381d939a..f1043ae71dcc 100644
+--- a/drivers/input/touchscreen/ti_am335x_tsc.c
++++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+@@ -161,7 +161,7 @@ static void titsc_step_config(struct titsc *ts_dev)
+ 		break;
+ 	case 5:
+ 		config |= ts_dev->bit_xp | STEPCONFIG_INP_AN4 |
+-				ts_dev->bit_xn | ts_dev->bit_yp;
++				STEPCONFIG_XNP | STEPCONFIG_YPN;
+ 		break;
+ 	case 8:
+ 		config |= ts_dev->bit_yp | STEPCONFIG_INP(ts_dev->inp_xp);
+-- 
+2.14.1
+
