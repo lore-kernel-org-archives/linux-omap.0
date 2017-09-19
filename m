@@ -1,67 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] nokia n900: drop unneeded/undocumented parts of the dts
-Date: Tue, 19 Sep 2017 10:42:14 -0700
-Message-ID: <20170919174214.GZ5024@atomide.com>
-References: <20170810204923.GA18442@amd>
- <20170814201950.sbtyuksn3ntuigyp@valkosipuli.retiisi.org.uk>
- <20170828131816.GB30115@amd>
+Subject: Re: [PATCH] arm: omap: dra7xx: Set OPT_CLKS_IN_RESET flag for gpio1
+Date: Tue, 19 Sep 2017 10:44:45 -0700
+Message-ID: <20170919174444.GA5024@atomide.com>
+References: <1504694038-32159-1-git-send-email-j-keerthy@ti.com>
+ <c8768202-96e1-8bda-7e09-ddf296c19c57@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170828131816.GB30115@amd>
+In-Reply-To: <c8768202-96e1-8bda-7e09-ddf296c19c57@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, sakari.ailus@linux.intel.com, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com
+To: Keerthy <j-keerthy@ti.com>
+Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pavel Machek <pavel@ucw.cz> [170828 06:18]:
+* Keerthy <j-keerthy@ti.com> [170918 04:40]:
 > 
-> Sakari mentioned that some parts of the dts are not needed and do
-> not have proper documentation, yet.
 > 
-> As the camera works without them, remove them for now.
+> On Wednesday 06 September 2017 04:03 PM, Keerthy wrote:
+> > gpio1 soft reset fails in the kexec path as the optional clock
+> > is not enabled hence enable the HWMOD_CONTROL_OPT_CLKS_IN_RESET
+> > flag for gpio1 hwmod.
 > 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> A gentle ping on this as well.
 
-Applying into omap-for-v4.14/fixes to correct what already
-got merged during the merge window.
+With v4.14-rc1 now out, applying into omap-for-v4.14/fixes.
+I usually don't start applying fixes during the merge window
+unless really needed.
 
 Regards,
 
 Tony
 
-> --- a/arch/arm/boot/dts/omap3-n900.dts
-> +++ b/arch/arm/boot/dts/omap3-n900.dts
-> @@ -144,15 +144,6 @@
->  		io-channel-names = "temp", "bsi", "vbat";
->  	};
->  
-> -	rear_camera: camera@0 {
-> -		compatible = "linux,camera";
-> -
-> -		module {
-> -			model = "TCM8341MD";
-> -			sensor = <&cam1>;
-> -		};
-> -	};
-> -
->  	pwm9: dmtimer-pwm {
->  		compatible = "ti,omap-dmtimer-pwm";
->  		#pwm-cells = <3>;
-> @@ -189,10 +180,8 @@
->  				clock-lanes = <1>;
->  				data-lanes = <0>;
->  				lane-polarity = <0 0>;
-> -				clock-inv = <0>;
->  				/* Select strobe = <1> for back camera, <0> for front camera */
->  				strobe = <1>;
-> -				crc = <0>;
->  			};
->  		};
->  	};
-> 
-> -- 
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+
+> > Signed-off-by: Keerthy <j-keerthy@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > index 7cc3247..6ae729a 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
+> > @@ -1037,6 +1037,7 @@ struct omap_hwmod dra7xx_sha0_hwmod = {
+> >  	.name		= "gpio1",
+> >  	.class		= &dra7xx_gpio_hwmod_class,
+> >  	.clkdm_name	= "wkupaon_clkdm",
+> > +	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+> >  	.main_clk	= "wkupaon_iclk_mux",
+> >  	.prcm = {
+> >  		.omap4 = {
+> > 
