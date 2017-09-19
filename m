@@ -1,53 +1,32 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: dra7xx: Set OPT_CLKS_IN_RESET flag for gpio1
-Date: Tue, 19 Sep 2017 10:44:45 -0700
-Message-ID: <20170919174444.GA5024@atomide.com>
-References: <1504694038-32159-1-git-send-email-j-keerthy@ti.com>
- <c8768202-96e1-8bda-7e09-ddf296c19c57@ti.com>
+Subject: Re: [PATCH] ARM: dts: dra7: Set a default parent to mcasp3_ahclkx_mux
+Date: Tue, 19 Sep 2017 10:45:40 -0700
+Message-ID: <20170919174539.GB5024@atomide.com>
+References: <1504705172-17781-1-git-send-email-j-keerthy@ti.com>
+ <c1d80795-f86c-23e4-5a6b-4829c0f9f8a0@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <c8768202-96e1-8bda-7e09-ddf296c19c57@ti.com>
+In-Reply-To: <c1d80795-f86c-23e4-5a6b-4829c0f9f8a0@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
-Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [170918 04:40]:
+* Keerthy <j-keerthy@ti.com> [170918 04:35]:
 > 
 > 
-> On Wednesday 06 September 2017 04:03 PM, Keerthy wrote:
-> > gpio1 soft reset fails in the kexec path as the optional clock
-> > is not enabled hence enable the HWMOD_CONTROL_OPT_CLKS_IN_RESET
-> > flag for gpio1 hwmod.
+> On Wednesday 06 September 2017 07:09 PM, Keerthy wrote:
+> > Assign a default parent to mcasp3_ahclkx_mux clock using
+> > the assigned-clock-parents property. This is helpful in
+> > cases like kexec where in the clock parent can be something
+> > other than the value at reset.
 > 
-> A gentle ping on this as well.
+> Hi Tony,
+> 
+> A gentle ping on this.
 
-With v4.14-rc1 now out, applying into omap-for-v4.14/fixes.
-I usually don't start applying fixes during the merge window
-unless really needed.
-
-Regards,
+Applying into omap-for-v4.14/fixes thanks.
 
 Tony
-
-
-> > Signed-off-by: Keerthy <j-keerthy@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 1 +
-> >  1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > index 7cc3247..6ae729a 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-> > @@ -1037,6 +1037,7 @@ struct omap_hwmod dra7xx_sha0_hwmod = {
-> >  	.name		= "gpio1",
-> >  	.class		= &dra7xx_gpio_hwmod_class,
-> >  	.clkdm_name	= "wkupaon_clkdm",
-> > +	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
-> >  	.main_clk	= "wkupaon_iclk_mux",
-> >  	.prcm = {
-> >  		.omap4 = {
-> > 
