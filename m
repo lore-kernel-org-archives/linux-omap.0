@@ -1,169 +1,342 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 05/10] ARM: OMAP2+: Parse module IO range from dts for legacy "ti,hwmods" support
-Date: Wed, 20 Sep 2017 15:46:16 -0700
-Message-ID: <20170920224621.16236-6-tony@atomide.com>
+Subject: [PATCH 04/10] ARM: dts: omap4: add clkctrl nodes
+Date: Wed, 20 Sep 2017 15:46:15 -0700
+Message-ID: <20170920224621.16236-5-tony@atomide.com>
 References: <20170920224621.16236-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170920224621.16236-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-When removing legacy platform data for IO ranges for the hwmod
-interconnect code, we still need to support the "ti,hwmods"
-property.
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 
-And as we're going to use a generic sysc device driver to handle the
-interconnect target instances, we can parse the information needed
-for legacy "ti,hwmods" IO range from the dts. It's always the first
-range the interconnect target module provides.
+Add clkctrl nodes for OMAP4 SoC. These are going to be acting as
+replacement for part of the existing clock data and the existing
+clkctrl hooks under hwmod data.
 
-Note that we want to parse the range instead of the first child
-device IO regs as the child device may not always be defined.
-
-The child IP device node may not exist in cases where there is no
-driver binding for the device, or when the child IP block may not
-even be functional for some SoC revisions. But the IO range of the
-interconnect target module is always known.
-
-Cc: "Benoît Cousson" <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Cc: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- arch/arm/mach-omap2/omap_hwmod.c | 80 +++++++++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod.h |  5 +++
- 2 files changed, 84 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/omap4.dtsi           |   1 +
+ arch/arm/boot/dts/omap44xx-clocks.dtsi | 289 +++++++++++++++++++++++++++++++++
+ 2 files changed, 290 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2395,6 +2395,75 @@ static int of_dev_hwmod_lookup(struct device_node *np,
- 	return -ENODEV;
- }
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -9,6 +9,7 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
+ #include <dt-bindings/pinctrl/omap.h>
++#include <dt-bindings/clock/omap4.h>
  
-+/**
-+ * omap_hwmod_parse_module_range - map module IO range from device tree
-+ * @oh: struct omap_hwmod *
-+ * @np: struct device_node *
-+ *
-+ * Parse the device tree range an interconnect target module provides
-+ * for it's child device IP blocks. This way we can support the old
-+ * "ti,hwmods" property with just dts data without a need for platform
-+ * data for IO resources. And we don't need all the child IP device
-+ * nodes available in the dts.
-+ */
-+int omap_hwmod_parse_module_range(struct omap_hwmod *oh,
-+				  struct device_node *np,
-+				  struct resource *res)
-+{
-+	struct property *prop;
-+	const __be32 *ranges;
-+	const char *name;
-+	u32 nr_addr, nr_size;
-+	u64 base, size;
-+	int len, error;
-+
-+	if (!res)
-+		return -EINVAL;
-+
-+	ranges = of_get_property(np, "ranges", &len);
-+	if (!ranges)
-+		return -ENOENT;
-+
-+	len /= sizeof(*ranges);
-+
-+	if (len < 3)
-+		return -EINVAL;
-+
-+	of_property_for_each_string(np, "compatible", prop, name)
-+		if (!strncmp("ti,sysc-", name, 8))
-+			break;
-+
-+	if (!name)
-+		return -ENOENT;
-+
-+	error = of_property_read_u32(np, "#address-cells", &nr_addr);
-+	if (error)
-+		return -ENOENT;
-+
-+	error = of_property_read_u32(np, "#size-cells", &nr_size);
-+	if (error)
-+		return -ENOENT;
-+
-+	if (nr_addr != 1 || nr_size != 1) {
-+		pr_err("%s: invalid range for %s->%s\n", __func__,
-+		       oh->name, np->name);
-+		return -EINVAL;
-+	}
-+
-+	ranges++;
-+	base = of_translate_address(np, ranges++);
-+	size = be32_to_cpup(ranges);
-+
-+	pr_debug("omap_hwmod: %s %s at 0x%llx size 0x%llx\n",
-+		 oh->name, np->name, base, size);
-+
-+	res->start = base;
-+	res->end = base + size - 1;
-+	res->flags = IORESOURCE_MEM;
-+
-+	return 0;
-+}
-+
- /**
-  * _init_mpu_rt_base - populate the virtual address for a hwmod
-  * @oh: struct omap_hwmod * to locate the virtual address
-@@ -2417,6 +2486,8 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
- {
- 	struct omap_hwmod_addr_space *mem;
- 	void __iomem *va_start = NULL;
-+	struct resource res;
-+	int error;
- 
- 	if (!oh)
- 		return -EINVAL;
-@@ -2442,7 +2513,14 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
- 			return -ENXIO;
- 		}
- 
--		va_start = of_iomap(np, index + oh->mpu_rt_idx);
-+		/* Do we have a dts range for the interconnect target module? */
-+		error = omap_hwmod_parse_module_range(oh, np, &res);
-+		if (!error)
-+			va_start = ioremap(res.start, resource_size(&res));
-+
-+		/* No ranges, rely on device reg entry */
-+		if (!va_start)
-+			va_start = of_iomap(np, index + oh->mpu_rt_idx);
- 	} else {
- 		va_start = ioremap(mem->pa_start, mem->pa_end - mem->pa_start);
- 	}
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -690,11 +690,16 @@ struct omap_hwmod {
- 	struct omap_hwmod		*parent_hwmod;
+ / {
+ 	compatible = "ti,omap4430", "ti,omap4";
+diff --git a/arch/arm/boot/dts/omap44xx-clocks.dtsi b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+--- a/arch/arm/boot/dts/omap44xx-clocks.dtsi
++++ b/arch/arm/boot/dts/omap44xx-clocks.dtsi
+@@ -628,6 +628,7 @@
+ 		clock-frequency = <0>;
+ 	};
  };
- 
-+struct device_node;
 +
- struct omap_hwmod *omap_hwmod_lookup(const char *name);
- int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
- 			void *data);
- 
- int __init omap_hwmod_setup_one(const char *name);
-+int omap_hwmod_parse_module_range(struct omap_hwmod *oh,
-+				  struct device_node *np,
-+				  struct resource *res);
- 
- int omap_hwmod_enable(struct omap_hwmod *oh);
- int omap_hwmod_idle(struct omap_hwmod *oh);
+ &prm_clocks {
+ 	sys_clkin_ck: sys_clkin_ck@110 {
+ 		#clock-cells = <0>;
+@@ -1631,3 +1632,291 @@
+ 		reg = <0x0224>;
+ 	};
+ };
++
++&cm1 {
++	mpuss_cm: mpuss_cm@300 {
++		compatible = "ti,omap4-cm";
++		reg = <0x300 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x300 0x100>;
++
++		mpuss_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x4>;
++			#clock-cells = <2>;
++		};
++	};
++
++	tesla_cm: tesla_cm@400 {
++		compatible = "ti,omap4-cm";
++		reg = <0x400 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x400 0x100>;
++
++		tesla_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x4>;
++			#clock-cells = <2>;
++		};
++	};
++
++	abe_cm: abe_cm@500 {
++		compatible = "ti,omap4-cm";
++		reg = <0x500 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x500 0x100>;
++
++		abe_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x6c>;
++			#clock-cells = <2>;
++		};
++	};
++
++};
++
++&cm2 {
++	l4_ao_cm: l4_ao_cm@600 {
++		compatible = "ti,omap4-cm";
++		reg = <0x600 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x600 0x100>;
++
++		l4_ao_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x1c>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l3_1_cm: l3_1_cm@700 {
++		compatible = "ti,omap4-cm";
++		reg = <0x700 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x700 0x100>;
++
++		l3_1_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x4>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l3_2_cm: l3_2_cm@800 {
++		compatible = "ti,omap4-cm";
++		reg = <0x800 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x800 0x100>;
++
++		l3_2_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x14>;
++			#clock-cells = <2>;
++		};
++	};
++
++	ducati_cm: ducati_cm@900 {
++		compatible = "ti,omap4-cm";
++		reg = <0x900 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x900 0x100>;
++
++		ducati_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x4>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l3_dma_cm: l3_dma_cm@a00 {
++		compatible = "ti,omap4-cm";
++		reg = <0xa00 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0xa00 0x100>;
++
++		l3_dma_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x4>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l3_emif_cm: l3_emif_cm@b00 {
++		compatible = "ti,omap4-cm";
++		reg = <0xb00 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0xb00 0x100>;
++
++		l3_emif_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x1c>;
++			#clock-cells = <2>;
++		};
++	};
++
++	d2d_cm: d2d_cm@c00 {
++		compatible = "ti,omap4-cm";
++		reg = <0xc00 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0xc00 0x100>;
++
++		d2d_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x4>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l4_cfg_cm: l4_cfg_cm@d00 {
++		compatible = "ti,omap4-cm";
++		reg = <0xd00 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0xd00 0x100>;
++
++		l4_cfg_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x14>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l3_instr_cm: l3_instr_cm@e00 {
++		compatible = "ti,omap4-cm";
++		reg = <0xe00 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0xe00 0x100>;
++
++		l3_instr_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x24>;
++			#clock-cells = <2>;
++		};
++	};
++
++	ivahd_cm: ivahd_cm@f00 {
++		compatible = "ti,omap4-cm";
++		reg = <0xf00 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0xf00 0x100>;
++
++		ivahd_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0xc>;
++			#clock-cells = <2>;
++		};
++	};
++
++	iss_cm: iss_cm@1000 {
++		compatible = "ti,omap4-cm";
++		reg = <0x1000 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1000 0x100>;
++
++		iss_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0xc>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l3_dss_cm: l3_dss_cm@1100 {
++		compatible = "ti,omap4-cm";
++		reg = <0x1100 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1100 0x100>;
++
++		l3_dss_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x4>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l3_gfx_cm: l3_gfx_cm@1200 {
++		compatible = "ti,omap4-cm";
++		reg = <0x1200 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1200 0x100>;
++
++		l3_gfx_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x4>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l3_init_cm: l3_init_cm@1300 {
++		compatible = "ti,omap4-cm";
++		reg = <0x1300 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1300 0x100>;
++
++		l3_init_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0xc4>;
++			#clock-cells = <2>;
++		};
++	};
++
++	l4_per_cm: l4_per_cm@1400 {
++		compatible = "ti,omap4-cm";
++		reg = <0x1400 0x200>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1400 0x200>;
++
++		l4_per_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x144>;
++			#clock-cells = <2>;
++		};
++	};
++
++};
++
++&prm {
++	l4_wkup_cm: l4_wkup_cm@1800 {
++		compatible = "ti,omap4-cm";
++		reg = <0x1800 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1800 0x100>;
++
++		l4_wkup_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x5c>;
++			#clock-cells = <2>;
++		};
++	};
++
++	emu_sys_cm: emu_sys_cm@1a00 {
++		compatible = "ti,omap4-cm";
++		reg = <0x1a00 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1a00 0x100>;
++
++		emu_sys_clkctrl: clk@20 {
++			compatible = "ti,clkctrl";
++			reg = <0x20 0x4>;
++			#clock-cells = <2>;
++		};
++	};
++};
 -- 
 2.14.1
 --
