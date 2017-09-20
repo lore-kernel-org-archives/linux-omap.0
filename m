@@ -1,41 +1,129 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 0/4] Update MUSB CPPI 4.1 driver to correctly manage the DA8xx
-Date: Wed, 20 Sep 2017 09:35:09 +0200
-Message-ID: <20170920073513.11650-1-abailon@baylibre.com>
+Subject: [PATCH v2 3/4] usb: musb: musb_cppi41: Configure the number of channels for DA8xx
+Date: Wed, 20 Sep 2017 09:35:12 +0200
+Message-ID: <20170920073513.11650-4-abailon@baylibre.com>
+References: <20170920073513.11650-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170920073513.11650-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: b-liu-l0cyMroinI0@public.gmane.org
 Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-A couple of weeks ago, Sekhar reported a warning issue happening in
-CPPI 4.1. The teardown sequence was not correctly programmed.
-The caused was a couple of difference between the DSPS and the DA8xx.
-These differences are the way to program the autoreq, the teardown and
-the DMA mode.
-This series intends to fix the teardown and to correctly program
-the DMA mode.
+Currently, the number of channels is set to 15 but in the case of DA8xx,
+the number of channels is 4.
+Update the driver to configure the number of channels at runtime.
 
-This series has been roughly tested.
-I have only tried it on the DA580 LCK and the BeagleBone Black.
-Only the device mode (msc and ecm) have been tested.
+Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+---
+ drivers/usb/musb/musb_cppi41.c | 31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
-Changes in v2:
- - Fix some typo (indentation and symbols name)
- - Limit the number of channels to 4 for DA8xx
- - Remove duplicated defines
-
-Alexandre Bailon (4):
-  usb: musb: musb_cppi41: Fix the address of teardown and autoreq
-    registers
-  usb: musb: musb_cppi41: Fix cppi41_set_dma_mode() for DA8xx
-  usb: musb: musb_cppi41: Configure the number of channels for DA8xx
-  usb: musb: da8xx: Remove duplicated defines
-
- drivers/usb/musb/da8xx.c       |  3 --
- drivers/usb/musb/musb_cppi41.c | 94 ++++++++++++++++++++++++++++++++++++------
- 2 files changed, 82 insertions(+), 15 deletions(-)
-
+diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
+index b2b1306c01cf..2d1468cccae0 100644
+--- a/drivers/usb/musb/musb_cppi41.c
++++ b/drivers/usb/musb/musb_cppi41.c
+@@ -30,10 +30,12 @@
+ #define DA8XX_USB_AUTOREQ	0x14
+ #define DA8XX_USB_TEARDOWN	0x1c
+ 
++#define DA8XX_DMA_NUM_CHANNELS 4
++
+ struct cppi41_dma_controller {
+ 	struct dma_controller controller;
+-	struct cppi41_dma_channel rx_channel[MUSB_DMA_NUM_CHANNELS];
+-	struct cppi41_dma_channel tx_channel[MUSB_DMA_NUM_CHANNELS];
++	struct cppi41_dma_channel *rx_channel;
++	struct cppi41_dma_channel *tx_channel;
+ 	struct hrtimer early_tx;
+ 	struct list_head early_tx_list;
+ 	u32 rx_mode;
+@@ -45,6 +47,7 @@ struct cppi41_dma_controller {
+ 
+ 	void (*set_dma_mode)(struct cppi41_dma_channel *cppi41_channel,
+ 			     unsigned int mode);
++	u8 num_channels;
+ };
+ 
+ static void save_rx_toggle(struct cppi41_dma_channel *cppi41_channel)
+@@ -483,7 +486,7 @@ static struct dma_channel *cppi41_dma_channel_allocate(struct dma_controller *c,
+ 	struct cppi41_dma_channel *cppi41_channel = NULL;
+ 	u8 ch_num = hw_ep->epnum - 1;
+ 
+-	if (ch_num >= MUSB_DMA_NUM_CHANNELS)
++	if (ch_num >= controller->num_channels)
+ 		return NULL;
+ 
+ 	if (is_tx)
+@@ -643,7 +646,7 @@ static void cppi41_release_all_dma_chans(struct cppi41_dma_controller *ctrl)
+ 	struct dma_chan *dc;
+ 	int i;
+ 
+-	for (i = 0; i < MUSB_DMA_NUM_CHANNELS; i++) {
++	for (i = 0; i < ctrl->num_channels; i++) {
+ 		dc = ctrl->tx_channel[i].dc;
+ 		if (dc)
+ 			dma_release_channel(dc);
+@@ -695,7 +698,7 @@ static int cppi41_dma_controller_start(struct cppi41_dma_controller *controller)
+ 			goto err;
+ 
+ 		ret = -EINVAL;
+-		if (port > MUSB_DMA_NUM_CHANNELS || !port)
++		if (port > controller->num_channels || !port)
+ 			goto err;
+ 		if (is_tx)
+ 			cppi41_channel = &controller->tx_channel[port - 1];
+@@ -736,6 +739,8 @@ void cppi41_dma_controller_destroy(struct dma_controller *c)
+ 
+ 	hrtimer_cancel(&controller->early_tx);
+ 	cppi41_dma_controller_stop(controller);
++	kfree(controller->rx_channel);
++	kfree(controller->tx_channel);
+ 	kfree(controller);
+ }
+ EXPORT_SYMBOL_GPL(cppi41_dma_controller_destroy);
+@@ -744,6 +749,7 @@ struct dma_controller *
+ cppi41_dma_controller_create(struct musb *musb, void __iomem *base)
+ {
+ 	struct cppi41_dma_controller *controller;
++	int channel_size;
+ 	int ret = 0;
+ 
+ 	if (!musb->controller->parent->of_node) {
+@@ -770,18 +776,33 @@ cppi41_dma_controller_create(struct musb *musb, void __iomem *base)
+ 		controller->tdown_reg = DA8XX_USB_TEARDOWN;
+ 		controller->autoreq_reg = DA8XX_USB_AUTOREQ;
+ 		controller->set_dma_mode = da8xx_set_dma_mode;
++		controller->num_channels = DA8XX_DMA_NUM_CHANNELS;
+ 	} else {
+ 		controller->tdown_reg = USB_TDOWN;
+ 		controller->autoreq_reg = USB_CTRL_AUTOREQ;
+ 		controller->set_dma_mode = cppi41_set_dma_mode;
++		controller->num_channels = MUSB_DMA_NUM_CHANNELS;
+ 	}
+ 
++	channel_size = controller->num_channels *
++			sizeof(struct cppi41_dma_channel);
++	controller->rx_channel = kzalloc(channel_size, GFP_KERNEL);
++	if (controller->rx_channel)
++		goto rx_channel_alloc_fail;
++	controller->tx_channel = kzalloc(channel_size, GFP_KERNEL);
++	if (controller->tx_channel)
++		goto tx_channel_alloc_fail;
++
+ 	ret = cppi41_dma_controller_start(controller);
+ 	if (ret)
+ 		goto plat_get_fail;
+ 	return &controller->controller;
+ 
+ plat_get_fail:
++	kfree(controller->tx_channel);
++tx_channel_alloc_fail:
++	kfree(controller->rx_channel);
++rx_channel_alloc_fail:
+ 	kfree(controller);
+ kzalloc_fail:
+ 	if (ret == -EPROBE_DEFER)
 -- 
 2.13.5
 
