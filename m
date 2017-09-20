@@ -1,7 +1,7 @@
 From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH 2/3] ASoC: fsl-asoc-card: Handle return value of devm_kasprintf
-Date: Wed, 20 Sep 2017 15:36:10 +0530
-Message-ID: <1505901971-12004-3-git-send-email-arvind.yadav.cs@gmail.com>
+Subject: [PATCH 3/3] ASoC: omap-hdmi-audio: Handle return value of devm_kasprintf
+Date: Wed, 20 Sep 2017 15:36:11 +0530
+Message-ID: <1505901971-12004-4-git-send-email-arvind.yadav.cs@gmail.com>
 References: <1505901971-12004-1-git-send-email-arvind.yadav.cs@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1505901971-12004-1-git-send-email-arvind.yadav.cs@gmail.com>
@@ -14,21 +14,22 @@ devm_kasprintf() can fail here and we must check its return value.
 
 Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- sound/soc/fsl/fsl-asoc-card.c | 2 ++
- 1 file changed, 2 insertions(+)
+ sound/soc/omap/omap-hdmi-audio.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/sound/soc/fsl/fsl-asoc-card.c b/sound/soc/fsl/fsl-asoc-card.c
-index 2db4d0c..86f240b 100644
---- a/sound/soc/fsl/fsl-asoc-card.c
-+++ b/sound/soc/fsl/fsl-asoc-card.c
-@@ -639,6 +639,8 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
- 				devm_kasprintf(&pdev->dev, GFP_KERNEL,
- 					       "ac97-codec.%u",
- 					       (unsigned int)idx);
-+		if (!priv->dai_link[0].codec_name)
-+			goto asrc_fail;
- 	}
+diff --git a/sound/soc/omap/omap-hdmi-audio.c b/sound/soc/omap/omap-hdmi-audio.c
+index 3e9cc48..8eeac7c 100644
+--- a/sound/soc/omap/omap-hdmi-audio.c
++++ b/sound/soc/omap/omap-hdmi-audio.c
+@@ -362,6 +362,9 @@ static int omap_hdmi_audio_probe(struct platform_device *pdev)
  
- 	priv->dai_link[0].platform_of_node = cpu_np;
+ 	card->name = devm_kasprintf(dev, GFP_KERNEL,
+ 				    "HDMI %s", dev_name(ad->dssdev));
++	if (!card->name)
++		return -ENOMEM;
++
+ 	card->owner = THIS_MODULE;
+ 	card->dai_link =
+ 		devm_kzalloc(dev, sizeof(*(card->dai_link)), GFP_KERNEL);
 -- 
 1.9.1
