@@ -1,44 +1,72 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH] cpufreq: ti-cpufreq: Support additional am43xx platforms
-Date: Tue, 19 Sep 2017 15:38:22 -0700
-Message-ID: <20170919223822.GE30848@ubuntu>
-References: <20170919200613.31625-1-d-gerlach@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v4] pci: dwc: dra7xx: Add shutdown handler to cleanly turn off clocks
+Date: Wed, 20 Sep 2017 10:54:15 +0530
+Message-ID: <1505885055-30657-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170919200613.31625-1-d-gerlach@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: kishon@ti.com, bhelgaas@google.com
+Cc: t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 19-09-17, 15:06, Dave Gerlach wrote:
-> Rather than letting the ti-cpufreq driver match against 'ti,am4372'
-> machine compatible during probe let's match against 'ti,am43' so that we
-> can support both 'ti,am4372' and 'ti,am438x' platforms which both match
-> to this compatible.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
-> ---
->  drivers/cpufreq/ti-cpufreq.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
-> index b29cd3398463..4bf47de6101f 100644
-> --- a/drivers/cpufreq/ti-cpufreq.c
-> +++ b/drivers/cpufreq/ti-cpufreq.c
-> @@ -190,7 +190,7 @@ static int ti_cpufreq_setup_syscon_register(struct ti_cpufreq_data *opp_data)
->  
->  static const struct of_device_id ti_cpufreq_of_match[] = {
->  	{ .compatible = "ti,am33xx", .data = &am3x_soc_data, },
-> -	{ .compatible = "ti,am4372", .data = &am4x_soc_data, },
-> +	{ .compatible = "ti,am43", .data = &am4x_soc_data, },
->  	{ .compatible = "ti,dra7", .data = &dra7_soc_data },
->  	{},
->  };
+Add shutdown handler to cleanly turn off clocks. This will help
+in cases of kexec where in a new kernel can boot abruptly.
 
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
 
+Changes in v4:
+
+  * Added the missing changes from v2!
+
+Changes in v3:
+
+  * Pushed the function outside #ifdef CONFIG_PM_SLEEP.
+  * Added more details to commit log.
+
+Changes in v2:
+
+  * used a local dev pointer instead of dereferencing dev at multiple places.
+  * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
+
+ drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 34427a6..d084800 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -794,6 +794,22 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+ }
+ #endif
+ 
++void dra7xx_pcie_shutdown(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
++	int ret;
++
++	dra7xx_pcie_stop_link(dra7xx->pci);
++
++	ret = pm_runtime_put_sync(dev);
++	if (ret < 0)
++		dev_dbg(dev, "pm_runtime_put_sync failed\n");
++
++	pm_runtime_disable(dev);
++	dra7xx_pcie_disable_phy(dra7xx);
++}
++
+ static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend, dra7xx_pcie_resume)
+ 	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend_noirq,
+@@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+ 		.suppress_bind_attrs = true,
+ 		.pm	= &dra7xx_pcie_pm_ops,
+ 	},
++	.shutdown = dra7xx_pcie_shutdown,
+ };
+ builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
 -- 
-viresh
+1.9.1
