@@ -1,77 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/10] ARM: dts: omap4: add bus functionality to base PRCM
- nodes
-Date: Wed, 20 Sep 2017 15:46:14 -0700
-Message-ID: <20170920224621.16236-4-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 10/10] ARM: dts: Use ti-sysc module driver for omap4 musb
+Date: Wed, 20 Sep 2017 15:46:21 -0700
+Message-ID: <20170920224621.16236-11-tony@atomide.com>
 References: <20170920224621.16236-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20170920224621.16236-1-tony@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, devicetree@vger.kernel.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170920224621.16236-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <t-kristo@ti.com>
+Let's make use of the generic ti-sysc module for musb to have
+a child device with working runtime PM.
 
-Add simple-bus compatibility and ranges properties to cm1, cm2 and prm
-nodes. This is done in preparation of adding the support for clkctrl
-nodes.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4.dtsi | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi | 38 ++++++++++++++++++++++++++------------
+ 1 file changed, 26 insertions(+), 12 deletions(-)
 
 diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
 --- a/arch/arm/boot/dts/omap4.dtsi
 +++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -143,8 +143,11 @@
- 			ranges = <0 0x4a000000 0x1000000>;
+@@ -1135,19 +1135,33 @@
+ 			reg-names = "otghs_control";
+ 		};
  
- 			cm1: cm1@4000 {
--				compatible = "ti,omap4-cm1";
-+				compatible = "ti,omap4-cm1", "simple-bus";
- 				reg = <0x4000 0x2000>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				ranges = <0 0x4000 0x2000>;
+-		usb_otg_hs: usb_otg_hs@4a0ab000 {
+-			compatible = "ti,omap4-musb";
+-			reg = <0x4a0ab000 0x7ff>;
+-			interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>, <GIC_SPI 93 IRQ_TYPE_LEVEL_HIGH>;
+-			interrupt-names = "mc", "dma";
++		target-module@4a0ab000 {
++			compatible = "ti,sysc-type1";
+ 			ti,hwmods = "usb_otg_hs";
+-			usb-phy = <&usb2_phy>;
+-			phys = <&usb2_phy>;
+-			phy-names = "usb2-phy";
+-			multipoint = <1>;
+-			num-eps = <16>;
+-			ram-bits = <12>;
+-			ctrl-module = <&omap_control_usbotg>;
++			#address-cells = <1>;
++			#size-cells = <1>;
++			reg = <0x4a0ab000 0x4>,
++			      <0x4a0ab004 0x4>,
++			      <0x4a0ab008 0x4>;
++			reg-names = "rev", "sysc", "syss";
++			ranges = <0 0x4a0ab000 0x1000>;
++			clocks = <&l3_init_clkctrl OMAP4_USB_OTG_HS_CLKCTRL 0>;
++			clock-names = "clkctrl";
++
++			usb_otg_hs: otg@0 {
++				compatible = "ti,omap4-musb";
++				reg = <0x0 0x7ff>;
++				interrupts = <GIC_SPI 92 IRQ_TYPE_LEVEL_HIGH>,
++					     <GIC_SPI 93 IRQ_TYPE_LEVEL_HIGH>;
++				interrupt-names = "mc", "dma";
++				usb-phy = <&usb2_phy>;
++				phys = <&usb2_phy>;
++				phy-names = "usb2-phy";
++				multipoint = <1>;
++				num-eps = <16>;
++				ram-bits = <12>;
++				ctrl-module = <&omap_control_usbotg>;
++			};
+ 		};
  
- 				cm1_clocks: clocks {
- 					#address-cells = <1>;
-@@ -156,8 +159,11 @@
- 			};
- 
- 			cm2: cm2@8000 {
--				compatible = "ti,omap4-cm2";
-+				compatible = "ti,omap4-cm2", "simple-bus";
- 				reg = <0x8000 0x3000>;
-+				#address-cells = <1>;
-+				#size-cells = <1>;
-+				ranges = <0 0x8000 0x3000>;
- 
- 				cm2_clocks: clocks {
- 					#address-cells = <1>;
-@@ -243,6 +249,9 @@
- 					compatible = "ti,omap4-prm";
- 					reg = <0x6000 0x3000>;
- 					interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
-+					#address-cells = <1>;
-+					#size-cells = <1>;
-+					ranges = <0 0x6000 0x3000>;
- 
- 					prm_clocks: clocks {
- 						#address-cells = <1>;
+ 		aes1: aes@4b501000 {
 -- 
 2.14.1
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
