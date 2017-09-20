@@ -1,7 +1,7 @@
 From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH 1/3] ASoC: davinci-mcasp: Handle return value of devm_kasprintf
-Date: Wed, 20 Sep 2017 15:36:09 +0530
-Message-ID: <1505901971-12004-2-git-send-email-arvind.yadav.cs@gmail.com>
+Subject: [PATCH 2/3] ASoC: fsl-asoc-card: Handle return value of devm_kasprintf
+Date: Wed, 20 Sep 2017 15:36:10 +0530
+Message-ID: <1505901971-12004-3-git-send-email-arvind.yadav.cs@gmail.com>
 References: <1505901971-12004-1-git-send-email-arvind.yadav.cs@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1505901971-12004-1-git-send-email-arvind.yadav.cs@gmail.com>
@@ -14,45 +14,21 @@ devm_kasprintf() can fail here and we must check its return value.
 
 Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- sound/soc/davinci/davinci-mcasp.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ sound/soc/fsl/fsl-asoc-card.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
-index f395bbc..d1a4aa2 100644
---- a/sound/soc/davinci/davinci-mcasp.c
-+++ b/sound/soc/davinci/davinci-mcasp.c
-@@ -1867,6 +1867,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	if (irq >= 0) {
- 		irq_name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s_common",
- 					  dev_name(&pdev->dev));
-+		if (!irq_name) {
-+			ret = -ENOMEM;
-+			goto err;
-+		}
- 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
- 						davinci_mcasp_common_irq_handler,
- 						IRQF_ONESHOT | IRQF_SHARED,
-@@ -1884,6 +1888,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	if (irq >= 0) {
- 		irq_name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s_rx",
- 					  dev_name(&pdev->dev));
-+		if (!irq_name) {
-+			ret = -ENOMEM;
-+			goto err;
-+		}
- 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
- 						davinci_mcasp_rx_irq_handler,
- 						IRQF_ONESHOT, irq_name, mcasp);
-@@ -1899,6 +1907,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
- 	if (irq >= 0) {
- 		irq_name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s_tx",
- 					  dev_name(&pdev->dev));
-+		if (!irq_name) {
-+			ret = -ENOMEM;
-+			goto err;
-+		}
- 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
- 						davinci_mcasp_tx_irq_handler,
- 						IRQF_ONESHOT, irq_name, mcasp);
+diff --git a/sound/soc/fsl/fsl-asoc-card.c b/sound/soc/fsl/fsl-asoc-card.c
+index 2db4d0c..86f240b 100644
+--- a/sound/soc/fsl/fsl-asoc-card.c
++++ b/sound/soc/fsl/fsl-asoc-card.c
+@@ -639,6 +639,8 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
+ 				devm_kasprintf(&pdev->dev, GFP_KERNEL,
+ 					       "ac97-codec.%u",
+ 					       (unsigned int)idx);
++		if (!priv->dai_link[0].codec_name)
++			goto asrc_fail;
+ 	}
+ 
+ 	priv->dai_link[0].platform_of_node = cpu_np;
 -- 
 1.9.1
