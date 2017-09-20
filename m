@@ -1,7 +1,7 @@
 From: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 3/4] usb: musb: musb_cppi41: Configure the number of channels for DA8xx
-Date: Wed, 20 Sep 2017 21:26:11 +0200
-Message-ID: <20170920192612.16169-4-abailon@baylibre.com>
+Subject: [PATCH v3 4/4] usb: musb: da8xx: Remove duplicated defines
+Date: Wed, 20 Sep 2017 21:26:12 +0200
+Message-ID: <20170920192612.16169-5-abailon@baylibre.com>
 References: <20170920192612.16169-1-abailon@baylibre.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170920192612.16169-1-abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
@@ -10,120 +10,30 @@ To: b-liu-l0cyMroinI0@public.gmane.org
 Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, ptitiano-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently, the number of channels is set to 15 but in the case of DA8xx,
-the number of channels is 4.
-Update the driver to configure the number of channels at runtime.
+There is some registers defined in da8xx.c though they are not used.
+These registers are also defined and used in musb_cppi41.c
+Remove these defines from da8xx.c.
 
 Signed-off-by: Alexandre Bailon <abailon-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
 ---
- drivers/usb/musb/musb_cppi41.c | 31 ++++++++++++++++++++++++++-----
- 1 file changed, 26 insertions(+), 5 deletions(-)
+ drivers/usb/musb/da8xx.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-index b2b1306c01cf..1ec0a4947b6b 100644
---- a/drivers/usb/musb/musb_cppi41.c
-+++ b/drivers/usb/musb/musb_cppi41.c
-@@ -30,10 +30,12 @@
- #define DA8XX_USB_AUTOREQ	0x14
- #define DA8XX_USB_TEARDOWN	0x1c
- 
-+#define DA8XX_DMA_NUM_CHANNELS 4
-+
- struct cppi41_dma_controller {
- 	struct dma_controller controller;
--	struct cppi41_dma_channel rx_channel[MUSB_DMA_NUM_CHANNELS];
--	struct cppi41_dma_channel tx_channel[MUSB_DMA_NUM_CHANNELS];
-+	struct cppi41_dma_channel *rx_channel;
-+	struct cppi41_dma_channel *tx_channel;
- 	struct hrtimer early_tx;
- 	struct list_head early_tx_list;
- 	u32 rx_mode;
-@@ -45,6 +47,7 @@ struct cppi41_dma_controller {
- 
- 	void (*set_dma_mode)(struct cppi41_dma_channel *cppi41_channel,
- 			     unsigned int mode);
-+	u8 num_channels;
- };
- 
- static void save_rx_toggle(struct cppi41_dma_channel *cppi41_channel)
-@@ -483,7 +486,7 @@ static struct dma_channel *cppi41_dma_channel_allocate(struct dma_controller *c,
- 	struct cppi41_dma_channel *cppi41_channel = NULL;
- 	u8 ch_num = hw_ep->epnum - 1;
- 
--	if (ch_num >= MUSB_DMA_NUM_CHANNELS)
-+	if (ch_num >= controller->num_channels)
- 		return NULL;
- 
- 	if (is_tx)
-@@ -643,7 +646,7 @@ static void cppi41_release_all_dma_chans(struct cppi41_dma_controller *ctrl)
- 	struct dma_chan *dc;
- 	int i;
- 
--	for (i = 0; i < MUSB_DMA_NUM_CHANNELS; i++) {
-+	for (i = 0; i < ctrl->num_channels; i++) {
- 		dc = ctrl->tx_channel[i].dc;
- 		if (dc)
- 			dma_release_channel(dc);
-@@ -695,7 +698,7 @@ static int cppi41_dma_controller_start(struct cppi41_dma_controller *controller)
- 			goto err;
- 
- 		ret = -EINVAL;
--		if (port > MUSB_DMA_NUM_CHANNELS || !port)
-+		if (port > controller->num_channels || !port)
- 			goto err;
- 		if (is_tx)
- 			cppi41_channel = &controller->tx_channel[port - 1];
-@@ -736,6 +739,8 @@ void cppi41_dma_controller_destroy(struct dma_controller *c)
- 
- 	hrtimer_cancel(&controller->early_tx);
- 	cppi41_dma_controller_stop(controller);
-+	kfree(controller->rx_channel);
-+	kfree(controller->tx_channel);
- 	kfree(controller);
- }
- EXPORT_SYMBOL_GPL(cppi41_dma_controller_destroy);
-@@ -744,6 +749,7 @@ struct dma_controller *
- cppi41_dma_controller_create(struct musb *musb, void __iomem *base)
- {
- 	struct cppi41_dma_controller *controller;
-+	int channel_size;
- 	int ret = 0;
- 
- 	if (!musb->controller->parent->of_node) {
-@@ -770,18 +776,33 @@ cppi41_dma_controller_create(struct musb *musb, void __iomem *base)
- 		controller->tdown_reg = DA8XX_USB_TEARDOWN;
- 		controller->autoreq_reg = DA8XX_USB_AUTOREQ;
- 		controller->set_dma_mode = da8xx_set_dma_mode;
-+		controller->num_channels = DA8XX_DMA_NUM_CHANNELS;
- 	} else {
- 		controller->tdown_reg = USB_TDOWN;
- 		controller->autoreq_reg = USB_CTRL_AUTOREQ;
- 		controller->set_dma_mode = cppi41_set_dma_mode;
-+		controller->num_channels = MUSB_DMA_NUM_CHANNELS;
- 	}
- 
-+	channel_size = controller->num_channels *
-+			sizeof(struct cppi41_dma_channel);
-+	controller->rx_channel = kzalloc(channel_size, GFP_KERNEL);
-+	if (!controller->rx_channel)
-+		goto rx_channel_alloc_fail;
-+	controller->tx_channel = kzalloc(channel_size, GFP_KERNEL);
-+	if (!controller->tx_channel)
-+		goto tx_channel_alloc_fail;
-+
- 	ret = cppi41_dma_controller_start(controller);
- 	if (ret)
- 		goto plat_get_fail;
- 	return &controller->controller;
- 
- plat_get_fail:
-+	kfree(controller->tx_channel);
-+tx_channel_alloc_fail:
-+	kfree(controller->rx_channel);
-+rx_channel_alloc_fail:
- 	kfree(controller);
- kzalloc_fail:
- 	if (ret == -EPROBE_DEFER)
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index df88123274ca..2ec2039eee86 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -50,10 +50,7 @@
+ #define DA8XX_USB_CTRL_REG	0x04
+ #define DA8XX_USB_STAT_REG	0x08
+ #define DA8XX_USB_EMULATION_REG 0x0c
+-#define DA8XX_USB_MODE_REG	0x10	/* Transparent, CDC, [Generic] RNDIS */
+-#define DA8XX_USB_AUTOREQ_REG	0x14
+ #define DA8XX_USB_SRP_FIX_TIME_REG 0x18
+-#define DA8XX_USB_TEARDOWN_REG	0x1c
+ #define DA8XX_USB_INTR_SRC_REG	0x20
+ #define DA8XX_USB_INTR_SRC_SET_REG 0x24
+ #define DA8XX_USB_INTR_SRC_CLEAR_REG 0x28
 -- 
 2.13.5
 
