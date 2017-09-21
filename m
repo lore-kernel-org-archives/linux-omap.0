@@ -1,18 +1,18 @@
 From: Mark Brown <broonie@kernel.org>
-Subject: Applied "ASoC: fsl-asoc-card: Handle return value of devm_kasprintf" to the asoc tree
-Date: Thu, 21 Sep 2017 16:55:28 +0100
-Message-ID: <E1dv3p2-0006Lg-0Q@debutante>
-References: <d973fbc962f750ef87c0bccf7b2df6536c8e987f.1505971045.git.arvind.yadav.cs@gmail.com>
+Subject: Applied "ASoC: davinci-mcasp: Handle return value of devm_kasprintf" to the asoc tree
+Date: Thu, 21 Sep 2017 16:55:48 +0100
+Message-ID: <E1dv3pM-0006Oy-DZ@debutante>
+References: <1505901971-12004-2-git-send-email-arvind.yadav.cs@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d973fbc962f750ef87c0bccf7b2df6536c8e987f.1505971045.git.arvind.yadav.cs@gmail.com>
+In-Reply-To: <1505901971-12004-2-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>, lgirdwood@gmail.combroonie@kernel.org, perex@perex.cz, tiwai@suse.com, timur@tabi.org, nicoleotsuka@gmail.com, Xiubo.Lee@gmail.com, fabio.estevam@nxp.com, peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.orgalsa-devel@alsa-project.org
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@kernel.org>, lgirdwood@gmail.combroonie@kernel.org, perex@perex.cz, tiwai@suse.com, timur@tabi.org, nicoleotsuka@gmail.com, Xiubo.Lee@gmail.com, fabio.estevam@nxp.competer.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.orgalsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
 The patch
 
-   ASoC: fsl-asoc-card: Handle return value of devm_kasprintf
+   ASoC: davinci-mcasp: Handle return value of devm_kasprintf
 
 has been applied to the asoc tree at
 
@@ -37,33 +37,56 @@ to this mail.
 Thanks,
 Mark
 
->From 7add71b623a2b2abc2e0947a21fb31e2c8f71e18 Mon Sep 17 00:00:00 2001
+>From 0c8b794c4a10aaf7ac0d4a49be2b2638e2038adb Mon Sep 17 00:00:00 2001
 From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Date: Thu, 21 Sep 2017 10:50:03 +0530
-Subject: [PATCH] ASoC: fsl-asoc-card: Handle return value of devm_kasprintf
+Date: Wed, 20 Sep 2017 15:36:09 +0530
+Subject: [PATCH] ASoC: davinci-mcasp: Handle return value of devm_kasprintf
 
 devm_kasprintf() can fail here and we must check its return value.
 
 Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Signed-off-by: Mark Brown <broonie@kernel.org>
 ---
- sound/soc/fsl/fsl-asoc-card.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ sound/soc/davinci/davinci-mcasp.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/sound/soc/fsl/fsl-asoc-card.c b/sound/soc/fsl/fsl-asoc-card.c
-index 3772abbdd7b7..1225e0399de8 100644
---- a/sound/soc/fsl/fsl-asoc-card.c
-+++ b/sound/soc/fsl/fsl-asoc-card.c
-@@ -639,6 +639,10 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
- 				devm_kasprintf(&pdev->dev, GFP_KERNEL,
- 					       "ac97-codec.%u",
- 					       (unsigned int)idx);
-+		if (!priv->dai_link[0].codec_name) {
+diff --git a/sound/soc/davinci/davinci-mcasp.c b/sound/soc/davinci/davinci-mcasp.c
+index 40be08cecea4..804c6f2bcf21 100644
+--- a/sound/soc/davinci/davinci-mcasp.c
++++ b/sound/soc/davinci/davinci-mcasp.c
+@@ -1868,6 +1868,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 	if (irq >= 0) {
+ 		irq_name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s_common",
+ 					  dev_name(&pdev->dev));
++		if (!irq_name) {
 +			ret = -ENOMEM;
-+			goto asrc_fail;
++			goto err;
 +		}
- 	}
- 
- 	priv->dai_link[0].platform_of_node = cpu_np;
+ 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
+ 						davinci_mcasp_common_irq_handler,
+ 						IRQF_ONESHOT | IRQF_SHARED,
+@@ -1885,6 +1889,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 	if (irq >= 0) {
+ 		irq_name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s_rx",
+ 					  dev_name(&pdev->dev));
++		if (!irq_name) {
++			ret = -ENOMEM;
++			goto err;
++		}
+ 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
+ 						davinci_mcasp_rx_irq_handler,
+ 						IRQF_ONESHOT, irq_name, mcasp);
+@@ -1900,6 +1908,10 @@ static int davinci_mcasp_probe(struct platform_device *pdev)
+ 	if (irq >= 0) {
+ 		irq_name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s_tx",
+ 					  dev_name(&pdev->dev));
++		if (!irq_name) {
++			ret = -ENOMEM;
++			goto err;
++		}
+ 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
+ 						davinci_mcasp_tx_irq_handler,
+ 						IRQF_ONESHOT, irq_name, mcasp);
 -- 
 2.14.1
