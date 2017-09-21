@@ -1,53 +1,34 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] dmaengine: ti-dma-crossbar: Fix possible race condition with dma_inuse
-Date: Thu, 21 Sep 2017 14:35:32 +0300
-Message-ID: <20170921113532.15297-1-peter.ujfalusi@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: omap: omap_gpio_show_rev is not __init
+Date: Thu, 21 Sep 2017 14:02:39 +0200
+Message-ID: <CACRpkdajuXZyg547s5Jss5-gffu6yazNrWpzOOo49oQZFCSodQ@mail.gmail.com>
+References: <20170916204234.725130-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: vinod.koul@intel.com, dan.j.williams@intel.com
-Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20170916204234.725130-1-arnd@arndb.de>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-=EF=BB=BFWhen looking for unused xbar_out lane we should also protect the s=
-et_bit()
-call with the same mutex to protect against concurrent threads picking the
-same ID.
+On Sat, Sep 16, 2017 at 10:42 PM, Arnd Bergmann <arnd@arndb.de> wrote:
 
-Fixes: ec9bfa1e1a796 ("dmaengine: ti-dma-crossbar: dra7: Use bitops instead=
- of idr")
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: stable@vger.kernel.org
----
- drivers/dma/ti-dma-crossbar.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> The probe function calls omap_gpio_show_rev(), which on most
+> compilers is inlined, but on the old gcc-4.6 is not, causing
+> a valid warning about the incorrect __init annotation:
+>
+> WARNING: vmlinux.o(.text+0x40f614): Section mismatch in reference from the function omap_gpio_probe() to the function .init.text:omap_gpio_show_rev()
+> The function omap_gpio_probe() references
+> the function __init omap_gpio_show_rev().
+> This is often because omap_gpio_probe lacks a __init
+> annotation or the annotation of omap_gpio_show_rev is wrong.
+>
+> This removes the __init.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
-index 10ef9d5d5a66..7df910e7c348 100644
---- a/drivers/dma/ti-dma-crossbar.c
-+++ b/drivers/dma/ti-dma-crossbar.c
-@@ -262,13 +262,14 @@ static void *ti_dra7_xbar_route_allocate(struct of_ph=
-andle_args *dma_spec,
- 	mutex_lock(&xbar->mutex);
- 	map->xbar_out =3D find_first_zero_bit(xbar->dma_inuse,
- 					    xbar->dma_requests);
--	mutex_unlock(&xbar->mutex);
- 	if (map->xbar_out =3D=3D xbar->dma_requests) {
-+		mutex_unlock(&xbar->mutex);
- 		dev_err(&pdev->dev, "Run out of free DMA requests\n");
- 		kfree(map);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 	set_bit(map->xbar_out, xbar->dma_inuse);
-+	mutex_unlock(&xbar->mutex);
-=20
- 	map->xbar_in =3D (u16)dma_spec->args[0];
-=20
---=20
-2.14.1
+Patch applied for fixes.
 
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Yours,
+Linus Walleij
