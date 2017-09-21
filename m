@@ -1,67 +1,40 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [v2,1/3] can: m_can: Make hclk optional
-Date: Thu, 21 Sep 2017 19:38:22 +0530
-Message-ID: <895ab55a-fede-3a67-27aa-1ac1af9843d7@ti.com>
-References: <20170724225142.19975-2-fcooper@ti.com>
- <6f574628-51cd-0db8-e5aa-e7ae4a9cf79a@ti.com>
- <eb45fe94-c476-3919-603d-ff2a6b13487c@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 08/10] ARM: dts: Add nodes for missing omap4 interconnect
+ target modules
+Date: Thu, 21 Sep 2017 07:27:49 -0700
+Message-ID: <20170921142748.GA4394@atomide.com>
+References: <20170920224621.16236-1-tony@atomide.com>
+ <20170920224621.16236-9-tony@atomide.com>
+ <20170921025656.omeoippus7b4mmig@squirrel.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <eb45fe94-c476-3919-603d-ff2a6b13487c@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Franklin S Cooper Jr <fcooper@ti.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, wg@grandegger.com, mkl@pengutronix.de, robh+dt@kernel.org, quentin.schulz@free-electrons.com
-Cc: "Kristo, Tero" <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170921025656.omeoippus7b4mmig-2pNSKKP3PSK44ywRPIzf9A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 21 September 2017 06:01 AM, Franklin S Cooper Jr wrote:
+* Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170920 19:57]:
+> On Wed, Sep 20, 2017 at 03:46:19PM -0700, Tony Lindgren wrote:
+> > For AESS there is old Android 3.4 kernel
+> > driver available but it's unlikely that anybody is going to update
+> > it for the mainline kernel.
 > 
-> 
-> On 08/24/2017 03:00 AM, Sekhar Nori wrote:
->> + some OMAP folks and Linux OMAP list
->>
->> On Tuesday 25 July 2017 04:21 AM, Franklin Cooper wrote:
->>> Hclk is the MCAN's interface clock. However, for OMAP based devices such as
->>> DRA7 SoC family the interface clock is handled by hwmod. Therefore, this
->>> interface clock is managed by hwmod driver via pm_runtime_get and
->>> pm_runtime_put calls. Therefore, this interface clock isn't defined in DT
->>> and thus the driver shouldn't fail if this clock isn't found.
->>
->> I agree that hclk is defined as interface clock for M_CAN IP on DRA76x.
->>
->> However, there may be a need for the driver to know the value of hclk to
->> properly configure the RAM watchdog register which has a counter
->> counting down using hclk. Looks like the driver does not use the RAM
->> watchdog today. But if there is a need to configure it in future, it
->> might be a problem.
-> 
-> Honestly the RAM watchdog seems like a fundamental design problem.
-> This RAM watchdog seems to be used in case a request to access the
-> message ram is made but it hangs for what ever reason. Its even more
-> complicated since the Message RAM is external to the MCAN IP so its
-> implementation or how its handled probably differs from device to
-> device. From example say you do have this error it isn't clear how you
-> would recover from it. A logically answer would be to reset the entire
-> IP but that also assumes that Message RAM will be reset along with the
-> ip which likely depends on each SoC.
-> 
-> But if a readl/writel command hangs will the kernel eventually throw an
-> error on its on or will the driver just hang? If it does hang can a
-> driver in the ISR do something to properly terminate the driver or even
-> recover from it?
->>
->> Is there a restriction in OMAP architecture against passing the
->> interface clock also in the 'clocks' property in DT. I have not tried it
->> myself, but wonder if you hit an issue that led to this patch.
-> 
-> No but not passing the interface clock is typical.
+> We do actually hope to get the Audio Engine in ABE working eventually on
+> omap5 (which would presumably also make it work on omap4). and there are
+> more recent kernels that support it: a TI 3.8 kernel and a 3.15 branch
+> from Peter Ujfalusi [1].
 
-Okay, then it sounds like it will just be easier to pass the hclk too?
+OK cool, so I'll drop the "but it's unlikely that anybody is going to update
+it for the mainline kernel" part.
 
-So it can be used if needed in future and also so that the driver can
-stay the same as today.
+Regards,
 
-Thanks,
-Sekhar
+Tony
+
+> [1] https://pyra-handheld.com/pipermail/kernel/2017-September/002060.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
