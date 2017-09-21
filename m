@@ -1,35 +1,37 @@
-From: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 08/10] ARM: dts: Add nodes for missing omap4 interconnect
- target modules
-Date: Thu, 21 Sep 2017 04:56:56 +0200
-Message-ID: <20170921025656.omeoippus7b4mmig@squirrel.local>
-References: <20170920224621.16236-1-tony@atomide.com>
- <20170920224621.16236-9-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170920224621.16236-9-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH v2 2/3] ASoC: fsl-asoc-card: Handle return value of devm_kasprintf
+Date: Thu, 21 Sep 2017 10:50:03 +0530
+Message-ID: <d973fbc962f750ef87c0bccf7b2df6536c8e987f.1505971045.git.arvind.yadav.cs@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, timur@tabi.org, nicoleotsuka@gmail.com, Xiubo.Lee@gmail.com, fabio.estevam@nxp.com, peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 20, 2017 at 03:46:19PM -0700, Tony Lindgren wrote:
-> For AESS there is old Android 3.4 kernel
-> driver available but it's unlikely that anybody is going to update
-> it for the mainline kernel.
+devm_kasprintf() can fail here and we must check its return value.
 
-We do actually hope to get the Audio Engine in ABE working eventually on
-omap5 (which would presumably also make it work on omap4). and there are
-more recent kernels that support it: a TI 3.8 kernel and a 3.15 branch
-from Peter Ujfalusi [1].
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+changes in v2:
+               Set return 'ret' to -ENOMEM.
 
-[1] https://pyra-handheld.com/pipermail/kernel/2017-September/002060.html
+ sound/soc/fsl/fsl-asoc-card.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
+diff --git a/sound/soc/fsl/fsl-asoc-card.c b/sound/soc/fsl/fsl-asoc-card.c
+index 2db4d0c..a389885 100644
+--- a/sound/soc/fsl/fsl-asoc-card.c
++++ b/sound/soc/fsl/fsl-asoc-card.c
+@@ -639,6 +639,10 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
+ 				devm_kasprintf(&pdev->dev, GFP_KERNEL,
+ 					       "ac97-codec.%u",
+ 					       (unsigned int)idx);
++		if (!priv->dai_link[0].codec_name) {
++			ret = -ENOMEM;
++			goto asrc_fail;
++		}
+ 	}
+ 
+ 	priv->dai_link[0].platform_of_node = cpu_np;
 -- 
-Matthijs van Duin
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.9.1
