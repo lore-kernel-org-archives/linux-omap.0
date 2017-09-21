@@ -1,37 +1,62 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH v2 2/3] ASoC: fsl-asoc-card: Handle return value of devm_kasprintf
-Date: Thu, 21 Sep 2017 10:50:03 +0530
-Message-ID: <d973fbc962f750ef87c0bccf7b2df6536c8e987f.1505971045.git.arvind.yadav.cs@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, timur@tabi.org, nicoleotsuka@gmail.com, Xiubo.Lee@gmail.com, fabio.estevam@nxp.com, peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org, linux-omap@vger.kernel.org
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/3] ASoC: davinci-mcasp: Handle return
+ value of devm_kasprintf
+Date: Thu, 21 Sep 2017 14:11:54 +0300
+Message-ID: <2fcb7f93-0449-118a-aa8d-4de51ee39895@ti.com>
+References: <1505901971-12004-1-git-send-email-arvind.yadav.cs@gmail.com>
+ <1505901971-12004-2-git-send-email-arvind.yadav.cs@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1505901971-12004-2-git-send-email-arvind.yadav.cs@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>, lgirdwood@gmail.com, broonie@kernel.org, perex@perex.cz, tiwai@suse.com, timur@tabi.org, nicoleotsuka@gmail.com, Xiubo.Lee@gmail.com, fabio.estevam@nxp.com, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-devm_kasprintf() can fail here and we must check its return value.
-
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
-changes in v2:
-               Set return 'ret' to -ENOMEM.
-
- sound/soc/fsl/fsl-asoc-card.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/sound/soc/fsl/fsl-asoc-card.c b/sound/soc/fsl/fsl-asoc-card.c
-index 2db4d0c..a389885 100644
---- a/sound/soc/fsl/fsl-asoc-card.c
-+++ b/sound/soc/fsl/fsl-asoc-card.c
-@@ -639,6 +639,10 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
- 				devm_kasprintf(&pdev->dev, GFP_KERNEL,
- 					       "ac97-codec.%u",
- 					       (unsigned int)idx);
-+		if (!priv->dai_link[0].codec_name) {
-+			ret = -ENOMEM;
-+			goto asrc_fail;
-+		}
- 	}
- 
- 	priv->dai_link[0].platform_of_node = cpu_np;
--- 
-1.9.1
+77u/ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgw
+IEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0Rv
+bWljaWxlOiBIZWxzaW5raQoKT24gMjAxNy0wOS0yMCAxMzowNiwgQXJ2aW5kIFlhZGF2IHdyb3Rl
+Ogo+IGRldm1fa2FzcHJpbnRmKCkgY2FuIGZhaWwgaGVyZSBhbmQgd2UgbXVzdCBjaGVjayBpdHMg
+cmV0dXJuIHZhbHVlLgoKQWNrZWQtYnk6IFBldGVyIFVqZmFsdXNpIDxwZXRlci51amZhbHVzaUB0
+aS5jb20+Cgo+IFNpZ25lZC1vZmYtYnk6IEFydmluZCBZYWRhdiA8YXJ2aW5kLnlhZGF2LmNzQGdt
+YWlsLmNvbT4KPiAtLS0KPiAgc291bmQvc29jL2RhdmluY2kvZGF2aW5jaS1tY2FzcC5jIHwgMTIg
+KysrKysrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspCj4gCj4gZGlm
+ZiAtLWdpdCBhL3NvdW5kL3NvYy9kYXZpbmNpL2RhdmluY2ktbWNhc3AuYyBiL3NvdW5kL3NvYy9k
+YXZpbmNpL2RhdmluY2ktbWNhc3AuYwo+IGluZGV4IGYzOTViYmMuLmQxYTRhYTIgMTAwNjQ0Cj4g
+LS0tIGEvc291bmQvc29jL2RhdmluY2kvZGF2aW5jaS1tY2FzcC5jCj4gKysrIGIvc291bmQvc29j
+L2RhdmluY2kvZGF2aW5jaS1tY2FzcC5jCj4gQEAgLTE4NjcsNiArMTg2NywxMCBAQCBzdGF0aWMg
+aW50IGRhdmluY2lfbWNhc3BfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAg
+CWlmIChpcnEgPj0gMCkgewo+ICAJCWlycV9uYW1lID0gZGV2bV9rYXNwcmludGYoJnBkZXYtPmRl
+diwgR0ZQX0tFUk5FTCwgIiVzX2NvbW1vbiIsCj4gIAkJCQkJICBkZXZfbmFtZSgmcGRldi0+ZGV2
+KSk7Cj4gKwkJaWYgKCFpcnFfbmFtZSkgewo+ICsJCQlyZXQgPSAtRU5PTUVNOwo+ICsJCQlnb3Rv
+IGVycjsKPiArCQl9Cj4gIAkJcmV0ID0gZGV2bV9yZXF1ZXN0X3RocmVhZGVkX2lycSgmcGRldi0+
+ZGV2LCBpcnEsIE5VTEwsCj4gIAkJCQkJCWRhdmluY2lfbWNhc3BfY29tbW9uX2lycV9oYW5kbGVy
+LAo+ICAJCQkJCQlJUlFGX09ORVNIT1QgfCBJUlFGX1NIQVJFRCwKPiBAQCAtMTg4NCw2ICsxODg4
+LDEwIEBAIHN0YXRpYyBpbnQgZGF2aW5jaV9tY2FzcF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2
+aWNlICpwZGV2KQo+ICAJaWYgKGlycSA+PSAwKSB7Cj4gIAkJaXJxX25hbWUgPSBkZXZtX2thc3By
+aW50ZigmcGRldi0+ZGV2LCBHRlBfS0VSTkVMLCAiJXNfcngiLAo+ICAJCQkJCSAgZGV2X25hbWUo
+JnBkZXYtPmRldikpOwo+ICsJCWlmICghaXJxX25hbWUpIHsKPiArCQkJcmV0ID0gLUVOT01FTTsK
+PiArCQkJZ290byBlcnI7Cj4gKwkJfQo+ICAJCXJldCA9IGRldm1fcmVxdWVzdF90aHJlYWRlZF9p
+cnEoJnBkZXYtPmRldiwgaXJxLCBOVUxMLAo+ICAJCQkJCQlkYXZpbmNpX21jYXNwX3J4X2lycV9o
+YW5kbGVyLAo+ICAJCQkJCQlJUlFGX09ORVNIT1QsIGlycV9uYW1lLCBtY2FzcCk7Cj4gQEAgLTE4
+OTksNiArMTkwNywxMCBAQCBzdGF0aWMgaW50IGRhdmluY2lfbWNhc3BfcHJvYmUoc3RydWN0IHBs
+YXRmb3JtX2RldmljZSAqcGRldikKPiAgCWlmIChpcnEgPj0gMCkgewo+ICAJCWlycV9uYW1lID0g
+ZGV2bV9rYXNwcmludGYoJnBkZXYtPmRldiwgR0ZQX0tFUk5FTCwgIiVzX3R4IiwKPiAgCQkJCQkg
+IGRldl9uYW1lKCZwZGV2LT5kZXYpKTsKPiArCQlpZiAoIWlycV9uYW1lKSB7Cj4gKwkJCXJldCA9
+IC1FTk9NRU07Cj4gKwkJCWdvdG8gZXJyOwo+ICsJCX0KPiAgCQlyZXQgPSBkZXZtX3JlcXVlc3Rf
+dGhyZWFkZWRfaXJxKCZwZGV2LT5kZXYsIGlycSwgTlVMTCwKPiAgCQkJCQkJZGF2aW5jaV9tY2Fz
+cF90eF9pcnFfaGFuZGxlciwKPiAgCQkJCQkJSVJRRl9PTkVTSE9ULCBpcnFfbmFtZSwgbWNhc3Ap
+Owo+IAoKLSBQw6l0ZXIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9y
+ZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxzYS1k
+ZXZlbAo=
