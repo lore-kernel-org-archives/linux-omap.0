@@ -1,34 +1,36 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 00/16] gpio: Tight IRQ chip integration and banked infrastructure
-Date: Thu, 21 Sep 2017 14:06:35 +0200
-Message-ID: <CACRpkdarDaDtWieC0rfGOQH-Hp9xa3kwhT2fPttU-dOGErE8Pw@mail.gmail.com>
-References: <20170901185736.28051-1-thierry.reding@gmail.com>
- <CACRpkdaRsG-9YU2ufb+FxGOO38+x=AAfVUqxH5s56NH2iLw7oA@mail.gmail.com>
- <20170914185233.GA6410@aiwendil> <20170915165750.GW5024@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] pinctrl: single: make two arrays static const, reduces
+ object code size
+Date: Thu, 21 Sep 2017 14:10:28 +0200
+Message-ID: <CACRpkdZOxpEYgxYJ=xTRUQ3jGY0ovZbmvi3nKspO8oCv-5pJ9Q@mail.gmail.com>
+References: <20170919144218.23607-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170915165750.GW5024-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Hunter <jonathanh-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Linux-OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20170919144218.23607-1-colin.king@canonical.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Tony Lindgren <tony@atomide.com>, Haojian Zhuang <haojian.zhuang@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, kernel-janitors@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 15, 2017 at 6:57 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+On Tue, Sep 19, 2017 at 4:42 PM, Colin King <colin.king@canonical.com> wrote:
 
-> On omaps, each bank is a separate driver instance with it's own
-> interrupt. Maybe really all we need to do is get rid of the "bank"
-> naming, I think that's left over from 15 years ago when we did not
-> have separate driver instances. It seems we should s/bank/ddata/
-> on the driver to avoid confusion.
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> Don't populate the read-only arrays prop2 and prop4 on the stack, instead
+> make them static const.  Makes the object code smaller by over 230 bytes:
+>
+> Before:
+>    text    data     bss     dec     hex filename
+>   28235    5820     192   34247    85c7 drivers/pinctrl/pinctrl-single.o
+>
+> After:
+>    text    data     bss     dec     hex filename
+>   27839    5980     192   34011    84db drivers/pinctrl/pinctrl-single.o
+>
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-OK sorry maybe OMAP is not a target for this, I just thought so
-since it was one of the platforms that is patches in the patch
-series.
-
-But I'm pretty sure we have chips with banking like this: separate
-interrupts but a single device. I would have to read through them
-all I guess.
+Patch applied with Tony's ACK.
 
 Yours,
 Linus Walleij
