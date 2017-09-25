@@ -1,71 +1,157 @@
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: Re: n900 in next-20170901
-Date: Mon, 25 Sep 2017 17:08:06 +0900
-Message-ID: <20170925080806.GA9837@js1304-P5Q-DELUXE>
-References: <20170903203737.GA12475@amd>
- <20170905201314.GE5024@atomide.com>
- <20170905233241.GA19231@js1304-P5Q-DELUXE>
- <20170906133057.GH5024@atomide.com>
- <20170907073038.GA2111@js1304-P5Q-DELUXE>
- <20170907161650.GP5024@atomide.com>
- <20170913075516.GA25036@js1304-P5Q-DELUXE>
- <20170913163126.GS5024@atomide.com>
- <20170915065608.GA8567@js1304-P5Q-DELUXE>
- <20170921172811.GB4394@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: bq27xxx: add battery protection
+Date: Mon, 25 Sep 2017 10:18:11 +0200
+Message-ID: <20170925081810.GA32216@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170921172811.GB4394@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 21, 2017 at 10:28:11AM -0700, Tony Lindgren wrote:
-> * Joonsoo Kim <iamjoonsoo.kim@lge.com> [170914 23:55]:
-> > On Wed, Sep 13, 2017 at 09:31:27AM -0700, Tony Lindgren wrote:
-> > > Yes I disabled CONFIG_HIGHMEM and n900 boots. To disable it,
-> > > you need to remove it from arch/arm/mach-omap2/Kconfig that
-> > > selects it if ARCH_OMAP2PLUS_TYPICAL is selected.
-> > 
-> > Okay. Problem would be related to address traslation. I'd like to
-> > check address traslation more. Could you apply following patch and
-> > test it? And, please send me the dmesg log and your kernel config.
-> > Please test this with CONFIG_DEBUG_VIRTUAL = n and CONFIG_CMA_DEBUG=y and
-> > CONFIG_HIGHMEM=y and with kernel bootparam 'ignore_loglevel'.
-> > 
-> > It would be really appreciate if you send me two logs for before/after
-> > commit 9caf25f996e8.
-> 
-> Sorry for the delays, I finally got around testing this for you.
 
-No problem! I really appreciate your help!
+--+QahgC5+KEYLbs62
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Compile with your patch failed for modules with __virt_to_phys_debug
-> being undefined so I added EXPORT_SYMBOL there. I also enabled DEBUG_LL
-> and EARLYPRINTK to get output.
-> 
-> Below is dmesg output for 9caf25f996e8 + your patch. I'll send you
-> the full logs separately.
 
-Hmm...there is only one caller for the CMA memory, that is, atomic_pool_init().
-Could you test one more time with 9caf25f996e8 + following patch?  I'd like to
-know the actual user for the CMA memory.
+Add battery protection for bq27xxx. Note that thresholds are very low,
+so this only kills system long after reasonable userspace should have
+reacted.
 
-Thanks.
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
--------------------------->8------------------------
-diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index 519c294..c68f34a 100644
---- a/arch/arm/mm/dma-mapping.c
-+++ b/arch/arm/mm/dma-mapping.c
-@@ -587,6 +587,8 @@ static void *__alloc_from_pool(size_t size, struct page **ret_page)
-                ptr = (void *)val;
-        }
- 
-+       dump_stack();
-+
-        return ptr;
+
+diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/=
+bq27xxx_battery.c
+index 51f0961..08dc193 100644
+--- a/drivers/power/supply/bq27xxx_battery.c
++++ b/drivers/power/supply/bq27xxx_battery.c
+@@ -53,6 +53,7 @@
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
+ #include <linux/power_supply.h>
++#include <linux/reboot.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
+=20
+@@ -1580,6 +1577,56 @@ void bq27xxx_battery_update(struct bq27xxx_device_in=
+fo *di)
  }
- 
+ EXPORT_SYMBOL_GPL(bq27xxx_battery_update);
+=20
++static void shutdown(char *reason)
++{
++	pr_alert("Forcing shutdown: %s\n", reason);
++	orderly_poweroff(true);
++}
++
++static int generic_protect(struct power_supply *psy)
++{
++	union power_supply_propval val;
++	int res;
++	int mV, mA, mVadj =3D 0;
++	const int mOhm =3D 430;
++	const int mV_limit =3D 2950;
++	const int mV_open_limit =3D 3150;
++
++	res =3D psy->desc->get_property(psy, POWER_SUPPLY_PROP_HEALTH, &val);
++	if (res)
++		return res;
++
++	if (val.intval =3D=3D POWER_SUPPLY_HEALTH_OVERHEAT)
++		shutdown("Battery overheat.");
++	if (val.intval =3D=3D POWER_SUPPLY_HEALTH_DEAD)
++		shutdown("Battery dead.");
++
++	res =3D psy->desc->get_property(psy, POWER_SUPPLY_PROP_VOLTAGE_NOW, &val);
++	if (res)
++		return res;
++	mV =3D val.intval / 1000;
++
++	if (mV < mV_limit) {
++		pr_alert("Battery below %d mV.", mV_limit);
++		orderly_poweroff(true);
++	}
++
++	res =3D psy->desc->get_property(psy, POWER_SUPPLY_PROP_CURRENT_NOW, &val);
++	if (res)
++		return res;
++	mA =3D val.intval / 1000;
++	mVadj =3D mV + (mA * mOhm) / 1000;
++
++	if (mVadj < mV_open_limit) {
++		pr_alert("Battery open circuit voltage below %d mV.", mV_open_limit);
++		orderly_poweroff(true);
++	}
++=09
++	printk(KERN_INFO "Main battery %d mV, open circuit voltage %d mV\n",
++	       mV, mVadj);
++	return 0;
++}
++
+ static void bq27xxx_battery_poll(struct work_struct *work)
+ {
+ 	struct bq27xxx_device_info *di =3D
+@@ -1592,6 +1639,16 @@ static void bq27xxx_battery_poll(struct work_struct =
+*work)
+ 		schedule_delayed_work(&di->work, poll_interval * HZ);
+ }
+=20
++static void bq27xxx_battery_poll_protect(struct work_struct *work)
++{
++	struct bq27xxx_device_info *di =3D
++			container_of(work, struct bq27xxx_device_info,
++				     work.work);
++
++	bq27xxx_battery_poll(work);
++	generic_protect(di->bat);
++}
++
+ /*
+  * Return the battery average current in =B5A
+  * Note that current can be negative signed as well
+@@ -1684,8 +1741,8 @@ static int bq27xxx_battery_capacity_level(struct bq27=
+xxx_device_info *di,
+ }
+=20
+ /*
+- * Return the battery Voltage in millivolts
+- * Or < 0 if something fails.
++ * Set val->intval to the battery Voltage in millivolts.
++ * Return < 0 if something fails.
+  */
+ static int bq27xxx_battery_voltage(struct bq27xxx_device_info *di,
+ 				   union power_supply_propval *val)
+@@ -1821,7 +1878,7 @@ int bq27xxx_battery_setup(struct bq27xxx_device_info =
+*di)
+ 		.drv_data =3D di,
+ 	};
+=20
+-	INIT_DELAYED_WORK(&di->work, bq27xxx_battery_poll);
++	INIT_DELAYED_WORK(&di->work, bq27xxx_battery_poll_protect);
+ 	mutex_init(&di->lock);
+=20
+ 	di->regs       =3D bq27xxx_chip_data[di->chip].regs;
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--+QahgC5+KEYLbs62
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlnIu8IACgkQMOfwapXb+vKCYQCfaDjPCkBfv7bES9SwXiaHxDDr
+2joAn1BYE2CLDOEyQmjt8Piztu0JxE9e
+=SQYk
+-----END PGP SIGNATURE-----
+
+--+QahgC5+KEYLbs62--
