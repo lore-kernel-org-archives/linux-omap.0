@@ -1,36 +1,60 @@
-From: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 01/10] dt-bindings: bus: Minimal TI sysc interconnect
- target module binding
-Date: Mon, 25 Sep 2017 09:03:45 +0200
-Message-ID: <20170925070345.2uraikhswru77rm4@squirrel.local>
-References: <20170920224621.16236-1-tony@atomide.com>
- <20170920224621.16236-2-tony@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: bq27xxx: what is going on with MSLEEP() macro
+Date: Mon, 25 Sep 2017 10:05:11 +0200
+Message-ID: <20170925080510.GA31768@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170920224621.16236-2-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: sebastian.reichel@collabora.co.uk, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, kernel@networkimprov.net
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 20, 2017 at 03:46:12PM -0700, Tony Lindgren wrote:
-> TI sysc interconnect target module hardware is independent of the
-> interconnect. It is used at least with TI L3 interconnect (Arteris NoC)
-> and TI L4 interconnect (Sonics s3220).
 
-This is because the interface between interconnect and module is
-standardized (Open Core Protocol), so it doesn't really matter which
-interconnect technology is used.
+--9jxsPFA5p3P2qPhR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Also, afaik sysc mostly just concerns the interaction between module and
-PRCM.  The only role the interconnect plays here is that it participates
-in the OCP Disconnect Protocol to allow the module to safely disconnect
-itself when it or the interconnect enters idle state.
+Hi!
 
-Matthijs
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+0670c9b35 drivers/power/supply/bq27xxx_battery.c #define BQ27XXX_MSLEEP(i) =
+usleep_range((i)*1000, (i)*1000+500)
+
+Liam, is this really neccessary? Defining MSLEEP to be USLEEP_RANGE is
+quite sneaky and confusing. Plus I don't believe we should be
+usleep-ing for 25msec. Can we just replace it with regular msleep?
+
+0670c9b35 drivers/power/supply/bq27xxx_battery.c         /* DO NOT read BQ2=
+7XXX_DM_CKSUM
+here to verify it! That may cause NVM
+
+Normal kernel style for multi-line comments is
+
+/*
+ * foo
+ */
+
+Can you fix those?
+
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--9jxsPFA5p3P2qPhR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlnIuLYACgkQMOfwapXb+vIL6QCfTi1+/E3yAmGNblgCPRxhoVjR
+6fIAn1CnL63kQP79UGGfXmnKsFfj7cL5
+=b+kv
+-----END PGP SIGNATURE-----
+
+--9jxsPFA5p3P2qPhR--
