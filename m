@@ -1,41 +1,78 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 01/10] dt-bindings: bus: Minimal TI sysc interconnect
- target module binding
-Date: Mon, 25 Sep 2017 07:37:34 -0700
-Message-ID: <20170925143733.GF4394@atomide.com>
-References: <20170920224621.16236-1-tony@atomide.com>
- <20170920224621.16236-2-tony@atomide.com>
- <20170925070345.2uraikhswru77rm4@squirrel.local>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: n900 in next-20170901
+Date: Mon, 25 Sep 2017 07:54:37 -0700
+Message-ID: <20170925145437.GG4394@atomide.com>
+References: <20170905201314.GE5024@atomide.com>
+ <20170905233241.GA19231@js1304-P5Q-DELUXE>
+ <20170906133057.GH5024@atomide.com>
+ <20170907073038.GA2111@js1304-P5Q-DELUXE>
+ <20170907161650.GP5024@atomide.com>
+ <20170913075516.GA25036@js1304-P5Q-DELUXE>
+ <20170913163126.GS5024@atomide.com>
+ <20170915065608.GA8567@js1304-P5Q-DELUXE>
+ <20170921172811.GB4394@atomide.com>
+ <20170925080806.GA9837@js1304-P5Q-DELUXE>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170925070345.2uraikhswru77rm4-2pNSKKP3PSK44ywRPIzf9A@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20170925080806.GA9837@js1304-P5Q-DELUXE>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170925 00:04]:
-> On Wed, Sep 20, 2017 at 03:46:12PM -0700, Tony Lindgren wrote:
-> > TI sysc interconnect target module hardware is independent of the
-> > interconnect. It is used at least with TI L3 interconnect (Arteris NoC)
-> > and TI L4 interconnect (Sonics s3220).
+* Joonsoo Kim <iamjoonsoo.kim@lge.com> [170925 01:06]:
+> On Thu, Sep 21, 2017 at 10:28:11AM -0700, Tony Lindgren wrote:
+> > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [170914 23:55]:
+> > > On Wed, Sep 13, 2017 at 09:31:27AM -0700, Tony Lindgren wrote:
+> > > > Yes I disabled CONFIG_HIGHMEM and n900 boots. To disable it,
+> > > > you need to remove it from arch/arm/mach-omap2/Kconfig that
+> > > > selects it if ARCH_OMAP2PLUS_TYPICAL is selected.
+> > > 
+> > > Okay. Problem would be related to address traslation. I'd like to
+> > > check address traslation more. Could you apply following patch and
+> > > test it? And, please send me the dmesg log and your kernel config.
+> > > Please test this with CONFIG_DEBUG_VIRTUAL = n and CONFIG_CMA_DEBUG=y and
+> > > CONFIG_HIGHMEM=y and with kernel bootparam 'ignore_loglevel'.
+> > > 
+> > > It would be really appreciate if you send me two logs for before/after
+> > > commit 9caf25f996e8.
+> > 
+> > Sorry for the delays, I finally got around testing this for you.
 > 
-> This is because the interface between interconnect and module is
-> standardized (Open Core Protocol), so it doesn't really matter which
-> interconnect technology is used.
+> No problem! I really appreciate your help!
 > 
-> Also, afaik sysc mostly just concerns the interaction between module and
-> PRCM.  The only role the interconnect plays here is that it participates
-> in the OCP Disconnect Protocol to allow the module to safely disconnect
-> itself when it or the interconnect enters idle state.
+> > Compile with your patch failed for modules with __virt_to_phys_debug
+> > being undefined so I added EXPORT_SYMBOL there. I also enabled DEBUG_LL
+> > and EARLYPRINTK to get output.
+> > 
+> > Below is dmesg output for 9caf25f996e8 + your patch. I'll send you
+> > the full logs separately.
+> 
+> Hmm...there is only one caller for the CMA memory, that is, atomic_pool_init().
+> Could you test one more time with 9caf25f996e8 + following patch?  I'd like to
+> know the actual user for the CMA memory.
 
-OK thanks for clarifying it, I'll add a note regarding OCP there.
+Hmm not getting any stack with that patch after manually applying
+it because of tabs to spaces mangling.
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+> -------------------------->8------------------------
+> diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+> index 519c294..c68f34a 100644
+> --- a/arch/arm/mm/dma-mapping.c
+> +++ b/arch/arm/mm/dma-mapping.c
+> @@ -587,6 +587,8 @@ static void *__alloc_from_pool(size_t size, struct page **ret_page)
+>                 ptr = (void *)val;
+>         }
+>  
+> +       dump_stack();
+> +
+>         return ptr;
+>  }
+>  
