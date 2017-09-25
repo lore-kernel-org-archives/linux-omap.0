@@ -1,157 +1,94 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: bq27xxx: add battery protection
-Date: Mon, 25 Sep 2017 10:18:11 +0200
-Message-ID: <20170925081810.GA32216@amd>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 01/10] dt-bindings: bus: Minimal TI sysc interconnect
+ target module binding
+Date: Mon, 25 Sep 2017 07:25:20 -0700
+Message-ID: <20170925142520.GE4394@atomide.com>
+References: <20170920224621.16236-1-tony@atomide.com>
+ <20170920224621.16236-2-tony@atomide.com>
+ <20170925063545.nn3gr5drea6o2g6m@squirrel.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
+In-Reply-To: <20170925063545.nn3gr5drea6o2g6m-2pNSKKP3PSK44ywRPIzf9A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170924 23:36]:
+> On Wed, Sep 20, 2017 at 03:46:12PM -0700, Tony Lindgren wrote:
+> > +- compatible	shall be one of the following generic types:
+> > +
+> > +		"ti,sysc-type1"
+> > +		"ti,sysc-type2"
+> > +		"ti,sysc-type3"
+> 
+> Is the meaning of these documented anywhere?  I'm assuming one of them
+> corresponds to the standard omap2/3 sysconfig/sysstatus:
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yes that's the type1 sysc. Pretty much the only documentation is what
+we already have defined in the kernel, see:
 
+$ grep "#define SYSC_TYPE" arch/arm/mach-omap2/omap_hwmod.h
 
-Add battery protection for bq27xxx. Note that thresholds are very low,
-so this only kills system long after reasonable userspace should have
-reacted.
+> 	sysconfig:
+> 	bit   0     rw  auto-idle / auto-gating
+> 	bit   1     -x  soft-reset
+> 	bit   2     rw  wakeup enabled
+> 	bits  3- 4  rw  (slave) idle mode
+> 	bit   5     rw  emu-free
+> 	bits  6- 7  z-
+> 	bit   8     rw  interface clock not gated when module in idle
+> 	bit   9     rw  functional clock not gated when module in idle
+> 	bits 10-11  z-
+> 	bits 12-13  rw  standby mode (master idle mode)
+> 	sysstatus:
+> 	bit   0     r-  reset done
+> 
+> and one to the standard omap4/5 sysconfig:
+> 
+> 	bit   0     rx  soft-reset
+> 	bit   1     rw  emu-free
+> 	bits  2- 3  rw  (slave) idle mode
+> 	bits  4- 5  rw  standby mode (master idle mode)
+> 	bits  6- 7  z-
+> 	bits  8-15  rw  auxiliary clocks (rare)
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Yeah and that's what we call sysc type 2 in the kernel.
 
+> What's the third?  I'm not really aware of any other standard layout,
+> just a whole bunch of non-standard ones.
 
-diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/=
-bq27xxx_battery.c
-index 51f0961..08dc193 100644
---- a/drivers/power/supply/bq27xxx_battery.c
-+++ b/drivers/power/supply/bq27xxx_battery.c
-@@ -53,6 +53,7 @@
- #include <linux/delay.h>
- #include <linux/platform_device.h>
- #include <linux/power_supply.h>
-+#include <linux/reboot.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-=20
-@@ -1580,6 +1577,56 @@ void bq27xxx_battery_update(struct bq27xxx_device_in=
-fo *di)
- }
- EXPORT_SYMBOL_GPL(bq27xxx_battery_update);
-=20
-+static void shutdown(char *reason)
-+{
-+	pr_alert("Forcing shutdown: %s\n", reason);
-+	orderly_poweroff(true);
-+}
-+
-+static int generic_protect(struct power_supply *psy)
-+{
-+	union power_supply_propval val;
-+	int res;
-+	int mV, mA, mVadj =3D 0;
-+	const int mOhm =3D 430;
-+	const int mV_limit =3D 2950;
-+	const int mV_open_limit =3D 3150;
-+
-+	res =3D psy->desc->get_property(psy, POWER_SUPPLY_PROP_HEALTH, &val);
-+	if (res)
-+		return res;
-+
-+	if (val.intval =3D=3D POWER_SUPPLY_HEALTH_OVERHEAT)
-+		shutdown("Battery overheat.");
-+	if (val.intval =3D=3D POWER_SUPPLY_HEALTH_DEAD)
-+		shutdown("Battery dead.");
-+
-+	res =3D psy->desc->get_property(psy, POWER_SUPPLY_PROP_VOLTAGE_NOW, &val);
-+	if (res)
-+		return res;
-+	mV =3D val.intval / 1000;
-+
-+	if (mV < mV_limit) {
-+		pr_alert("Battery below %d mV.", mV_limit);
-+		orderly_poweroff(true);
-+	}
-+
-+	res =3D psy->desc->get_property(psy, POWER_SUPPLY_PROP_CURRENT_NOW, &val);
-+	if (res)
-+		return res;
-+	mA =3D val.intval / 1000;
-+	mVadj =3D mV + (mA * mOhm) / 1000;
-+
-+	if (mVadj < mV_open_limit) {
-+		pr_alert("Battery open circuit voltage below %d mV.", mV_open_limit);
-+		orderly_poweroff(true);
-+	}
-+=09
-+	printk(KERN_INFO "Main battery %d mV, open circuit voltage %d mV\n",
-+	       mV, mVadj);
-+	return 0;
-+}
-+
- static void bq27xxx_battery_poll(struct work_struct *work)
- {
- 	struct bq27xxx_device_info *di =3D
-@@ -1592,6 +1639,16 @@ static void bq27xxx_battery_poll(struct work_struct =
-*work)
- 		schedule_delayed_work(&di->work, poll_interval * HZ);
- }
-=20
-+static void bq27xxx_battery_poll_protect(struct work_struct *work)
-+{
-+	struct bq27xxx_device_info *di =3D
-+			container_of(work, struct bq27xxx_device_info,
-+				     work.work);
-+
-+	bq27xxx_battery_poll(work);
-+	generic_protect(di->bat);
-+}
-+
- /*
-  * Return the battery average current in =B5A
-  * Note that current can be negative signed as well
-@@ -1684,8 +1741,8 @@ static int bq27xxx_battery_capacity_level(struct bq27=
-xxx_device_info *di,
- }
-=20
- /*
-- * Return the battery Voltage in millivolts
-- * Or < 0 if something fails.
-+ * Set val->intval to the battery Voltage in millivolts.
-+ * Return < 0 if something fails.
-  */
- static int bq27xxx_battery_voltage(struct bq27xxx_device_info *di,
- 				   union power_supply_propval *val)
-@@ -1821,7 +1878,7 @@ int bq27xxx_battery_setup(struct bq27xxx_device_info =
-*di)
- 		.drv_data =3D di,
- 	};
-=20
--	INIT_DELAYED_WORK(&di->work, bq27xxx_battery_poll);
-+	INIT_DELAYED_WORK(&di->work, bq27xxx_battery_poll_protect);
- 	mutex_init(&di->lock);
-=20
- 	di->regs       =3D bq27xxx_chip_data[di->chip].regs;
+The sysc type3 is what we have on am335x/ti81xx, see:
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+$ git grep -B10 -A1 "&omap_hwmod_sysc_type3" arch/arm/mach-omap2
 
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> > +		or one of the following derivative types for hardware
+> > +		needing special workarounds:
+> 
+> To add to the collection: omap4/5 isp5 (part of iss) has:
+> 	bit   0     r-  auto-idle / auto-gating
+> 	bit   1     rx  soft-reset (requires special procedure)
+> 	bits  2- 3  z-
+> 	bits  4- 5  rw  standby mode (master idle mode)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+OK, I don't think we have that yet.
 
-iEYEARECAAYFAlnIu8IACgkQMOfwapXb+vKCYQCfaDjPCkBfv7bES9SwXiaHxDDr
-2joAn1BYE2CLDOEyQmjt8Piztu0JxE9e
-=SQYk
------END PGP SIGNATURE-----
+> > +Note that other SoCs, such as am335x can have multipe child devices. On am335x
+> > +there are two MUSB instances, two USB PHY instances, and a single CPPI41 DMA
+> > +instance as children of a single interconnet target module.
+> 
+> ISS (omap4/5, dm814x) is also fun since it has top-level sysconfig, but
+> most of the child modules (e.g. isp5 and simcop) also have their own
+> sysconfig, and some child modules of simcop again have sysconfig.
 
---+QahgC5+KEYLbs62--
+Interesting. Sounds like there's yet another interconnect instance
+lurking there similar to L4 ABE?
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
