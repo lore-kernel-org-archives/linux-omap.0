@@ -1,8 +1,8 @@
 From: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH 01/10] dt-bindings: bus: Minimal TI sysc interconnect
  target module binding
-Date: Mon, 25 Sep 2017 08:35:45 +0200
-Message-ID: <20170925063545.nn3gr5drea6o2g6m@squirrel.local>
+Date: Mon, 25 Sep 2017 09:03:45 +0200
+Message-ID: <20170925070345.2uraikhswru77rm4@squirrel.local>
 References: <20170920224621.16236-1-tony@atomide.com>
  <20170920224621.16236-2-tony@atomide.com>
 Mime-Version: 1.0
@@ -16,57 +16,18 @@ Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreC
 List-Id: linux-omap@vger.kernel.org
 
 On Wed, Sep 20, 2017 at 03:46:12PM -0700, Tony Lindgren wrote:
-> +- compatible	shall be one of the following generic types:
-> +
-> +		"ti,sysc-type1"
-> +		"ti,sysc-type2"
-> +		"ti,sysc-type3"
+> TI sysc interconnect target module hardware is independent of the
+> interconnect. It is used at least with TI L3 interconnect (Arteris NoC)
+> and TI L4 interconnect (Sonics s3220).
 
-Is the meaning of these documented anywhere?  I'm assuming one of them
-corresponds to the standard omap2/3 sysconfig/sysstatus:
+This is because the interface between interconnect and module is
+standardized (Open Core Protocol), so it doesn't really matter which
+interconnect technology is used.
 
-	sysconfig:
-	bit   0     rw  auto-idle / auto-gating
-	bit   1     -x  soft-reset
-	bit   2     rw  wakeup enabled
-	bits  3- 4  rw  (slave) idle mode
-	bit   5     rw  emu-free
-	bits  6- 7  z-
-	bit   8     rw  interface clock not gated when module in idle
-	bit   9     rw  functional clock not gated when module in idle
-	bits 10-11  z-
-	bits 12-13  rw  standby mode (master idle mode)
-	sysstatus:
-	bit   0     r-  reset done
-
-and one to the standard omap4/5 sysconfig:
-
-	bit   0     rx  soft-reset
-	bit   1     rw  emu-free
-	bits  2- 3  rw  (slave) idle mode
-	bits  4- 5  rw  standby mode (master idle mode)
-	bits  6- 7  z-
-	bits  8-15  rw  auxiliary clocks (rare)
-
-What's the third?  I'm not really aware of any other standard layout,
-just a whole bunch of non-standard ones.
-
-> +		or one of the following derivative types for hardware
-> +		needing special workarounds:
-
-To add to the collection: omap4/5 isp5 (part of iss) has:
-	bit   0     r-  auto-idle / auto-gating
-	bit   1     rx  soft-reset (requires special procedure)
-	bits  2- 3  z-
-	bits  4- 5  rw  standby mode (master idle mode)
-
-> +Note that other SoCs, such as am335x can have multipe child devices. On am335x
-> +there are two MUSB instances, two USB PHY instances, and a single CPPI41 DMA
-> +instance as children of a single interconnet target module.
-
-ISS (omap4/5, dm814x) is also fun since it has top-level sysconfig, but
-most of the child modules (e.g. isp5 and simcop) also have their own
-sysconfig, and some child modules of simcop again have sysconfig.
+Also, afaik sysc mostly just concerns the interaction between module and
+PRCM.  The only role the interconnect plays here is that it participates
+in the OCP Disconnect Protocol to allow the module to safely disconnect
+itself when it or the interconnect enters idle state.
 
 Matthijs
 --
