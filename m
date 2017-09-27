@@ -1,79 +1,38 @@
-From: Zumeng Chen <zumeng.chen@windriver.com>
-Subject: [PATCH ] cpufreq: ti-cpufreq: kfree opp_data when failure
-Date: Wed, 27 Sep 2017 15:08:17 +0800
-Message-ID: <1506496097-30852-1-git-send-email-zumeng.chen@windriver.com>
+From: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 01/10] dt-bindings: bus: Minimal TI sysc interconnect
+ target module binding
+Date: Wed, 27 Sep 2017 11:56:46 +0200
+Message-ID: <20170927095646.fi4l7jbbvrubfe25@squirrel.local>
+References: <20170920224621.16236-1-tony@atomide.com>
+ <20170920224621.16236-2-tony@atomide.com>
+ <20170925063545.nn3gr5drea6o2g6m@squirrel.local>
+ <20170925142520.GE4394@atomide.com>
+ <20170925172120.xu6k3leg4ac6mjya@squirrel.local>
+ <20170925174413.GH4394@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, viresh.kumar@linaro.org, rjw@rjwysocki.net, d-gerlach@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170925174413.GH4394-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Zumeng Chen <zumeng.chen@gmail.com>
+On Mon, Sep 25, 2017 at 10:44:14AM -0700, Tony Lindgren wrote:
+> * Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170925 10:22]:
+> > Ah... three "foreign" modules with an idlemode carelessly thrown into a
+> > register without care for existing layouts.  I think these are more just
+> > exceptional cases which happen to agree by coincidence since they all
+> > just added idlemode in the simplest way possible, but I can understand
+> > how it came to be viewed as a standard type.
+> 
+> So we shall then name this fine centauroid sysc ti,81xx-sysc?
 
-memory leakage was found by kmemleak. opp_data needs to be freed
-when failure, including fail_put_node.
+There's nothing centauroid specific about this, mcasp on omap4 has it too.
 
-unreferenced object 0xccdd4c40 (size 64):
-  comm "swapper", pid 1, jiffies 4294938465 (age 888.520s)
-  hex dump (first 32 bytes):
-    00 7c 00 c1 98 69 d8 ce 00 24 03 ce 00 24 03 ce  .|...i...$...$..
-    20 35 23 c1 00 00 00 00 00 00 00 00 00 00 00 00   5#.............
-  backtrace:
-    [<c028fb64>] kmem_cache_alloc_trace+0x2c4/0x3cc
-    [<c076d5f0>] ti_cpufreq_probe+0x6c/0x334
-    [<c068d6e4>] platform_drv_probe+0x60/0xc0
-    [<c068b384>] driver_probe_device+0x218/0x2c4
-    [<c068b5a4>] __device_attach_driver+0xa8/0xdc
-    [<c0689340>] bus_for_each_drv+0x70/0xa4
-    [<c068b020>] __device_attach+0xc0/0x124
-    [<c068b634>] device_initial_probe+0x1c/0x20
-    [<c068a3b8>] bus_probe_device+0x94/0x9c
-    [<c0688300>] device_add+0x404/0x590
-    [<c068d408>] platform_device_add+0x11c/0x230
-    [<c068df40>] platform_device_register_full+0x10c/0x128
-    [<c076d578>] ti_cpufreq_init+0x44/0x50
-    [<c01017c4>] do_one_initcall+0x54/0x180
-    [<c0e00fe0>] kernel_init_freeable+0x270/0x33c
-    [<c093f2bc>] kernel_init+0x18/0x124
-
-Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
----
- drivers/cpufreq/ti-cpufreq.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
-index 4bf47de..ffcddcd 100644
---- a/drivers/cpufreq/ti-cpufreq.c
-+++ b/drivers/cpufreq/ti-cpufreq.c
-@@ -217,7 +217,8 @@ static int ti_cpufreq_init(void)
- 	opp_data->cpu_dev = get_cpu_device(0);
- 	if (!opp_data->cpu_dev) {
- 		pr_err("%s: Failed to get device for CPU0\n", __func__);
--		return -ENODEV;
-+		ret = ENODEV;
-+		goto free_opp_data;
- 	}
- 
- 	opp_data->opp_node = dev_pm_opp_of_get_opp_desc_node(opp_data->cpu_dev);
-@@ -262,6 +263,8 @@ static int ti_cpufreq_init(void)
- 
- fail_put_node:
- 	of_node_put(opp_data->opp_node);
-+free_opp_data:
-+	kfree(opp_data);
- 
- 	return ret;
- }
--- 
-2.7.4
+Matthijs
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
