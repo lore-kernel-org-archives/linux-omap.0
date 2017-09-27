@@ -1,63 +1,79 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 0/2] memory: Introduce ti-emif-sram driver
-Date: Tue, 26 Sep 2017 19:03:53 -0500
-Message-ID: <20170927000355.30597-1-d-gerlach@ti.com>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: [PATCH ] cpufreq: ti-cpufreq: kfree opp_data when failure
+Date: Wed, 27 Sep 2017 15:08:17 +0800
+Message-ID: <1506496097-30852-1-git-send-email-zumeng.chen@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, viresh.kumar@linaro.org, rjw@rjwysocki.net, d-gerlach@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-This is v4 of the series introduces a ti-emif-sram driver to be used on
-am335x and am437x, based on v4.14-rc1. This version addresses some
-comments from Russell King and Johan Hovold in v3 found here [1].
+From: Zumeng Chen <zumeng.chen@gmail.com>
 
-The main change in this version is dropping the additions to the
-arch/arm/kernel/asm-offsets.c file and instead generating our own local
-"emif-asm-offsets.h" using the same strategy in the drivers/memory Makefile.
-This keeps our driver changes out of the arch or platform code and is a
-cleaner implementation. Otherwise some small fixups based on comments from
-Johan in v3 were done.
+memory leakage was found by kmemleak. opp_data needs to be freed
+when failure, including fail_put_node.
 
-This code is required for low-power modes to work on AM335x and AM437x and a
-forthcoming PM series for those platforms will depend on this series. After
-both this and the PM series are reviewed I will send the necessary device tree
-changes for both, but in the meantime all remaining patches for am335x and
-am437x PM can be found here [2].
+unreferenced object 0xccdd4c40 (size 64):
+  comm "swapper", pid 1, jiffies 4294938465 (age 888.520s)
+  hex dump (first 32 bytes):
+    00 7c 00 c1 98 69 d8 ce 00 24 03 ce 00 24 03 ce  .|...i...$...$..
+    20 35 23 c1 00 00 00 00 00 00 00 00 00 00 00 00   5#.............
+  backtrace:
+    [<c028fb64>] kmem_cache_alloc_trace+0x2c4/0x3cc
+    [<c076d5f0>] ti_cpufreq_probe+0x6c/0x334
+    [<c068d6e4>] platform_drv_probe+0x60/0xc0
+    [<c068b384>] driver_probe_device+0x218/0x2c4
+    [<c068b5a4>] __device_attach_driver+0xa8/0xdc
+    [<c0689340>] bus_for_each_drv+0x70/0xa4
+    [<c068b020>] __device_attach+0xc0/0x124
+    [<c068b634>] device_initial_probe+0x1c/0x20
+    [<c068a3b8>] bus_probe_device+0x94/0x9c
+    [<c0688300>] device_add+0x404/0x590
+    [<c068d408>] platform_device_add+0x11c/0x230
+    [<c068df40>] platform_device_register_full+0x10c/0x128
+    [<c076d578>] ti_cpufreq_init+0x44/0x50
+    [<c01017c4>] do_one_initcall+0x54/0x180
+    [<c0e00fe0>] kernel_init_freeable+0x270/0x33c
+    [<c093f2bc>] kernel_init+0x18/0x124
 
-Regards,
-Dave
+Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
+---
+ drivers/cpufreq/ti-cpufreq.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-[1] https://www.spinics.net/lists/linux-omap/msg138314.html
-[2] https://github.com/dgerlach/linux-pm/tree/upstream/v4.14/amx3-suspend-v4
-
-Dave Gerlach (2):
-  Documentation: dt: Update ti,emif bindings
-  memory: ti-emif-sram: introduce relocatable suspend/resume handlers
-
- .../bindings/memory-controllers/ti/emif.txt        |  18 +-
- drivers/memory/.gitignore                          |   1 +
- drivers/memory/Kconfig                             |  10 +
- drivers/memory/Makefile                            |  20 ++
- drivers/memory/emif-asm-offsets.c                  |  22 ++
- drivers/memory/emif.h                              |  17 ++
- drivers/memory/ti-emif-pm.c                        | 339 +++++++++++++++++++++
- drivers/memory/ti-emif-sram-pm.S                   | 334 ++++++++++++++++++++
- include/linux/ti-emif-sram.h                       | 148 +++++++++
- 9 files changed, 908 insertions(+), 1 deletion(-)
- create mode 100644 drivers/memory/.gitignore
- create mode 100644 drivers/memory/emif-asm-offsets.c
- create mode 100644 drivers/memory/ti-emif-pm.c
- create mode 100644 drivers/memory/ti-emif-sram-pm.S
- create mode 100644 include/linux/ti-emif-sram.h
-
+diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
+index 4bf47de..ffcddcd 100644
+--- a/drivers/cpufreq/ti-cpufreq.c
++++ b/drivers/cpufreq/ti-cpufreq.c
+@@ -217,7 +217,8 @@ static int ti_cpufreq_init(void)
+ 	opp_data->cpu_dev = get_cpu_device(0);
+ 	if (!opp_data->cpu_dev) {
+ 		pr_err("%s: Failed to get device for CPU0\n", __func__);
+-		return -ENODEV;
++		ret = ENODEV;
++		goto free_opp_data;
+ 	}
+ 
+ 	opp_data->opp_node = dev_pm_opp_of_get_opp_desc_node(opp_data->cpu_dev);
+@@ -262,6 +263,8 @@ static int ti_cpufreq_init(void)
+ 
+ fail_put_node:
+ 	of_node_put(opp_data->opp_node);
++free_opp_data:
++	kfree(opp_data);
+ 
+ 	return ret;
+ }
 -- 
-2.13.4
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.4
