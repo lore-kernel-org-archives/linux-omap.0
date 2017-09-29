@@ -1,7 +1,7 @@
 From: "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 02/11] ARM: dts: am43xx-epos-evm: Add sleep pinmux for spi0 and spi1
-Date: Fri, 29 Sep 2017 11:44:20 -0500
-Message-ID: <20170929164429.780-3-afd@ti.com>
+Subject: [PATCH 05/11] ARM: dts: am43xx-epos-evm: Add sleep pinmux for gpmc
+Date: Fri, 29 Sep 2017 11:44:23 -0500
+Message-ID: <20170929164429.780-6-afd@ti.com>
 References: <20170929164429.780-1-afd@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,78 +14,62 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am43x-epos-evm.dts | 32 ++++++++++++++++++++++++++------
- 1 file changed, 26 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/am43x-epos-evm.dts | 28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 9d276af7c539..f73c22ce4003 100644
+index 8f9c901b0ccd..822e54cffd29 100644
 --- a/arch/arm/boot/dts/am43x-epos-evm.dts
 +++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -232,7 +232,7 @@
+@@ -198,7 +198,7 @@
  			>;
  		};
  
--		spi0_pins: pinmux_spi0_pins {
-+		spi0_pins_default: pinmux_spi0_pins_default {
+-		nand_flash_x8: nand_flash_x8 {
++		nand_flash_x8_default: nand_flash_x8_default {
  			pinctrl-single,pins = <
- 				AM4372_IOPAD(0x950, PIN_INPUT | MUX_MODE0)           /* spi0_clk.spi0_clk */
- 				AM4372_IOPAD(0x954, PIN_OUTPUT | MUX_MODE0)           /* spi0_d0.spi0_d0 */
-@@ -241,7 +241,16 @@
+ 				AM4372_IOPAD(0x840, PIN_OUTPUT_PULLDOWN | MUX_MODE7)	/* gpmc_a0.SELQSPIorNAND/GPIO */
+ 				AM4372_IOPAD(0x800, PIN_INPUT_PULLDOWN | MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */
+@@ -219,6 +219,27 @@
  			>;
  		};
  
--		spi1_pins: pinmux_spi1_pins {
-+		spi0_pins_sleep: pinmux_spi0_pins_sleep {
++		nand_flash_x8_sleep: nand_flash_x8_sleep {
 +			pinctrl-single,pins = <
-+				AM4372_IOPAD(0x950, DS0_PIN_OUTPUT_PULLUP | PIN_OUTPUT_PULLUP | MUX_MODE7)
-+				AM4372_IOPAD(0x954, DS0_PIN_OUTPUT_PULLUP | PIN_OUTPUT_PULLUP | MUX_MODE7)
-+				AM4372_IOPAD(0x958, DS0_PIN_OUTPUT_PULLUP | PIN_OUTPUT_PULLUP | MUX_MODE7)
-+				AM4372_IOPAD(0x95c, DS0_PIN_OUTPUT_PULLUP | PIN_OUTPUT_PULLUP | MUX_MODE7)
++				AM4372_IOPAD(0x840, DS0_PIN_OUTPUT_PULLDOWN | MUX_MODE7)
++				AM4372_IOPAD(0x800, DS0_PIN_OUTPUT_PULLDOWN | MUX_MODE7)
++				AM4372_IOPAD(0x804, DS0_PIN_OUTPUT_PULLDOWN | MUX_MODE7)
++				AM4372_IOPAD(0x808, DS0_PIN_OUTPUT_PULLDOWN | MUX_MODE7)
++				AM4372_IOPAD(0x80c, DS0_PIN_OUTPUT_PULLDOWN | MUX_MODE7)
++				AM4372_IOPAD(0x810, DS0_PIN_OUTPUT_PULLDOWN | MUX_MODE7)
++				AM4372_IOPAD(0x814, DS0_PIN_OUTPUT_PULLDOWN | MUX_MODE7)
++				AM4372_IOPAD(0x818, DS0_PIN_OUTPUT_PULLDOWN | MUX_MODE7)
++				AM4372_IOPAD(0x81c, DS0_PIN_OUTPUT_PULLDOWN | MUX_MODE7)
++				AM4372_IOPAD(0x870, DS0_PIN_OUTPUT_PULLUP | MUX_MODE7)
++				AM4372_IOPAD(0x874, DS0_PIN_OUTPUT_PULLUP | MUX_MODE7)
++				AM4372_IOPAD(0x87c, DS0_PIN_OUTPUT_PULLUP | MUX_MODE7)
++				AM4372_IOPAD(0x890, DS0_PIN_OUTPUT_PULLUP | MUX_MODE7)
++				AM4372_IOPAD(0x894, DS0_PIN_OUTPUT_PULLUP | MUX_MODE7)
++				AM4372_IOPAD(0x898, DS0_PIN_OUTPUT_PULLUP | MUX_MODE7)
++				AM4372_IOPAD(0x89c, DS0_PIN_OUTPUT_PULLUP | MUX_MODE7)
 +			>;
 +		};
 +
-+		spi1_pins_default: pinmux_spi1_pins_default {
+ 		ecap0_pins_default: backlight_pins_default {
  			pinctrl-single,pins = <
- 				AM4372_IOPAD(0x990, PIN_INPUT | MUX_MODE3)           /* mcasp0_aclkx.spi1_clk */
- 				AM4372_IOPAD(0x994, PIN_OUTPUT | MUX_MODE3)           /* mcasp0_fsx.spi1_d0 */
-@@ -250,6 +259,15 @@
- 			>;
- 		};
+ 				AM4372_IOPAD(0x964, MUX_MODE0)         /* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
+@@ -589,8 +610,9 @@
  
-+		spi1_pins_sleep: pinmux_spi1_pins_sleep {
-+			pinctrl-single,pins = <
-+				AM4372_IOPAD(0x990, DS0_PIN_OUTPUT_PULLDOWN | PIN_OUTPUT_PULLDOWN | MUX_MODE7)
-+				AM4372_IOPAD(0x994, DS0_PIN_OUTPUT_PULLDOWN | PIN_OUTPUT_PULLDOWN | MUX_MODE7)
-+				AM4372_IOPAD(0x998, DS0_PIN_OUTPUT_PULLDOWN | PIN_OUTPUT_PULLDOWN | MUX_MODE7)
-+				AM4372_IOPAD(0x99c, DS0_PIN_OUTPUT_PULLDOWN | PIN_OUTPUT_PULLDOWN | MUX_MODE7)
-+			>;
-+		};
-+
- 		mmc1_pins: pinmux_mmc1_pins {
- 			pinctrl-single,pins = <
- 				AM4372_IOPAD(0x960, PIN_INPUT | MUX_MODE7) /* spi0_cs1.gpio0_6 */
-@@ -656,15 +674,17 @@
- };
- 
- &spi0 {
+ &gpmc {
+ 	status = "okay";	/* Disable QSPI when enabling GPMC (NAND) */
 -	pinctrl-names = "default";
--	pinctrl-0 = <&spi0_pins>;
- 	status = "okay";
+-	pinctrl-0 = <&nand_flash_x8>;
 +	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&spi0_pins_default>;
-+	pinctrl-1 = <&spi0_pins_sleep>;
- };
- 
- &spi1 {
--	pinctrl-names = "default";
--	pinctrl-0 = <&spi1_pins>;
- 	status = "okay";
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&spi1_pins_default>;
-+	pinctrl-1 = <&spi1_pins_sleep>;
- };
- 
- &usb2_phy1 {
++	pinctrl-0 = <&nand_flash_x8_default>;
++	pinctrl-1 = <&nand_flash_x8_sleep>;
+ 	ranges = <0 0 0x08000000 0x01000000>;	/* CS0 space. Min partition = 16MB */
+ 	nand@0,0 {
+ 		compatible = "ti,omap2-nand";
 -- 
 2.14.1
 
