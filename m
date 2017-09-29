@@ -1,113 +1,158 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv1 00/14] omapdrm: DSI command mode panel support
-Date: Fri, 29 Sep 2017 15:26:49 +0200
-Message-ID: <20170929132649.63dy7mzjgknaevoa@earth>
-References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
+From: Claudio Foellmi <claudio.foellmi@ergon.ch>
+Subject: Re: [PATCH] i2c-omap: Trigger bus recovery in lockup case
+Date: Fri, 29 Sep 2017 17:17:47 +0200
+Message-ID: <ad684ace-272a-1e45-f65b-b280be86ffc2@ergon.ch>
+References: <1505403549-12992-1-git-send-email-claudio.foellmi@ergon.ch>
+ <9d3e3029-f775-a9aa-8025-badccb699ed8@ti.com>
+ <48ddc9bc-2b83-97c9-fbd7-90d4da9f2687@ti.com>
+ <0a506277-6c9b-1407-dea3-f9895fdc3e63@ergon.ch>
+ <cbb3aaa2-44d1-8a7d-1d8e-1433b0a7b9d3@ti.com>
+ <3778fa75-0327-0c36-1721-e89e23a782b6@ergon.ch>
+ <20170929125213.by5mwverw2a47lmo@earth>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="zakfdqd34v2mc5zq"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20170929125213.by5mwverw2a47lmo@earth>
+Content-Language: en-US
+Sender: linux-i2c-owner@vger.kernel.org
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Vignesh R <vigneshr@ti.com>
+Cc: "Strashko, Grygorii" <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "Cooper Jr., Franklin" <fcooper@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On 29.09.2017 14:52, Sebastian Reichel wrote:
+> Hi Claudio,
+> 
+> On Tue, Sep 26, 2017 at 02:24:59PM +0200, Claudio Foellmi wrote:
+>> On 19.09.2017 12:50, Vignesh R wrote:
+>>>
+>>>
+>>> On Monday 18 September 2017 05:31 PM, Claudio Foellmi wrote:
+>>>> On 18.09.2017 07:24, Vignesh R wrote:
+>>>>>
+>>>>>
+>>>>> On Saturday 16 September 2017 05:01 AM, Strashko, Grygorii wrote:
+>>>>>>
+>>>>>>
+>>>>>> On 09/14/2017 10:39 AM, Claudio Foellmi wrote:
+>>>>>>> A very conservative check for bus activity (to prevent interference
+>>>>>>> in multimaster setups) prevented the bus recovery methods from being
+>>>>>>> triggered in the case that SDA or SCL was stuck low.
+>>>>>>> This defeats the purpose of the recovery mechanism, which was introduced
+>>>>>>> for exactly this situation (a slave device keeping SDA pulled down).
+>>>>>>>
+>>>>>>> Note that bus lockups can persist across reboots. The only other options
+>>>>>>> are to reset or power cycle the offending slave device, and many i2c
+>>>>>>> slaves do not even have a reset pin.
+>>>>>>>
+>>>>>>> If we see that one of the lines is low for the entire timeout duration,
+>>>>>>> we can actually be sure that there is no other master driving the bus.
+>>>>>>> It is therefore save for us to attempt a bus recovery.
+>>>>>>>
+>>>>>>
+>>>>>> Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+>>>>>>
+>>>>>>> Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
+>>>>>>> ---
+>>>>>>> Caveat: It turns out I don't have the hardware to fully test the
+>>>>>>> recovery mechanism. My faulty i2c slave device actually pulls down SCL,
+>>>>>>> not SDA (so the recovery will not succeed in my case).
+>>>>>
+>>>>> Maybe, you could detect SCL stuck low case by reading status of SCL line
+>>>>> from OMAP_I2C_SYSTEST_REG and then call IP reset (there is nothing much
+>>>>> that can be done) instead of bus recovery.
+>>>>>
+>>>>
+>>>> I plan on posting a related patch soon, that will print better messages
+>>>> if the generic recovery fails. If SCL is stuck low, I think the best we
+>>>> can do is make the problem visible in the kernel log.
+>>>>
+>>>>>>> But by directly connecting SDA to ground, I could at least make sure
+>>>>>>> the recovery function gets called after applying this patch.
+>>>>>>>
+>>>>>
+>>>>> I had seen flood of XRDY & RRDY interrupts as soon as TMODE is set to
+>>>>> 0x3 as part of omap_i2c_prepare_recovery() leading to unusable system.
+>>>>> Did you observe this behavior on your system? Could you mention the
+>>>>> platform on which this experiment done?
+>>>>>
+>>>>
+>>>> So attempting bus recovery is dangerous on some platforms?
+>>>> I did not notice any obvious problems (assuming an 'unusable system'
+>>>> would be hard to miss), but then again I only have one target to test on.
+>>>> I'm working with a TI AM3352, the slave is a NXP NT3H2211 on i2c-1.
+>>>>
+>>>
+>>> I hit a situation where when communicating with a faulty i2c device, the
+>>> last transaction on the bus does not end with proper STOP condition on
+>>> the i2c bus. Since, STOP condition was not detected by IP, Bus Busy will
+>>> remain set even though both SCL and SDA are high. Thus,
+>>> omap_i2c_wait_for_bb() function would end up calling bus recovery. And
+>>> as soon as TMODE is set to 0x3 and ST_EN to 0x1, there is a flood of
+>>> XRDY & RRDY interrupts.
+>>>
+>>> This spurious irqs can be reproduced easily by setting TMODE to 0x3 and
+>>> ST_EN to 0x1 in OMAP_I2C_SYSTEST_REG when both SCL and SDA are high (bus
+>>> is idle) even on AM335x.
+>>>
+>>> So, if you are not seeing irq flood when SCL/SDA is stuck low, then
+>>> maybe its safe to enter TMODE 0x3 in such cases. Could you modify the
+>>> patch to test whether or not SDA is stuck low before initiating bus
+>>> recovery?
+>>>
+>>
+>> This sounds more like a problem with the interrupt handler than with
+>> bus recovery, so I'm a bit hesitant to just add such a workaround.
+>> Instead, I spent a few hours looking through the interrupt handling
+>> (and poking my i2c bus with a wire to induce random faults), and
+>> I suspect to have found the underlying cause, or at least part of it:
+>>
+>> We sometimes ignore some interrupts (such as RRDY if we think we are
+>> not in receiving mode), but don't really deal with their cause.
+>> As a result, the same interrupt will just be raised again as soon as
+>> we leave the handler. It will then be ignored again, and raised again...
+>>
+>> I'm still not quite sure how we can reliably get into such situations in
+>> the first place, but not sending a stop condition seems to be part of it.
+>> Maybe it is somehow connected to the automatic internal state change
+>> that happens as part of AL or NACK interrupts.
+>>
+>>
+>> Below is a small patch that should test my assumptions.
+>> It clears the incoming fifo and acks the ignored RRDY interrupts.
+>>
+>> Sebastian, can you please check if this helps with your problems on N950?
+>> If it does, I'll turn it into a proper standalone patch.
+> 
+> No, it does not. Also no interrupts ignoring messages appearing
+> in dmesg:
+> 
+> n950# dmesg | grep -E "48072000.i2c|lp5523x"
+> [    0.791046] omap_i2c 48072000.i2c: bus 1 rev4.4 at 400 kHz
+> [    4.934265] lp5523x 1-0032: reset command sent (no ACK)!
+> [    6.003875] omap_i2c 48072000.i2c: controller timed out
+> [    6.033874] lp5523x 1-0032: device detection err: -110
+> [    6.039154] lp5523x: probe of 1-0032 failed with error -110
+> 
 
---zakfdqd34v2mc5zq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Sebastian
 
-Hi Tomi & Laurent,
+Thank you for trying it out.
+It seems that your symptoms are quite different from the ones that Vignesh
+described earlier. He had never-ending storms of spurious interrupts
+(which that patch would have addressed), but you don't seem to get
+any interrupts at all. Not even the NACK one, which just looks wrong.
 
-ping?
+If you want to still dig deeper, you can enable debug logs for i2c-omap,
+so you can see every single interrupt. But if there are none, I don't see
+what we could possibly do to fix it.
 
--- Sebastian
 
-On Mon, Jul 24, 2017 at 07:32:57PM +0200, Sebastian Reichel wrote:
-> Hi,
->=20
-> This adds support for command mode DSI panels to
-> omapdrm. I tested the patches on Nokia N950 (omap3)
-> and Motorola Droid 4 (omap4). This is basically
-> PATCHv3 of my series adding N950 display support,
-> but I started from scratch without reverting the
-> removal of manual display update support.
->=20
-> Tested:
->  * Framebuffer Console
->  * Display blanking
->  * kmstest
->  * Xorg with omap and modesetting driver
->  * No updates send when nothing needs to be sent
->=20
-> Known issues:
->  * Proper display rotation support
->  * N950 (and N9) has first and last few lines
->    covered by plastic, so we should expose a
->    smaller screen
->=20
-> I plan to look into these issues once basic support
-> has been merged.
->=20
-> -- Sebastian
->=20
-> Sebastian Reichel (13):
->   drm/omap: remove unused function defines
->   drm/omap: drop incorrect comment
->   drm/omap: plane: update fifo size on ovl setup
->   drm/omap: add framedone interrupt support
->   drm/omap: add manual update detection helper
->   drm/omap: add support for manually updated displays
->   drm/omap: add support for physical size hints from display drivers
->   drm/omap: panel-dsi-cm: add regulator support
->   drm/omap: panel-dsi-cm: add physical size support
->   drm/omap: panel-dsi-cm: add external backlight support
->   drm/omap: panel-dsi-cm: switch to gpiod
->   ARM: dts: omap4-droid4: improve LCD description
->   ARM: dts: n950: add display support
->=20
-> Tony Lindgren (1):
->   drm/omap: panel-dsi-cm: fix driver
->=20
->  arch/arm/boot/dts/omap3-n950.dts                |  88 ++++++++
->  arch/arm/boot/dts/omap4-droid4-xt894.dts        |   6 +-
->  drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c | 289 +++++++++++++++++-=
-------
->  drivers/gpu/drm/omapdrm/dss/dispc.c             |  16 ++
->  drivers/gpu/drm/omapdrm/dss/omapdss.h           |   5 +-
->  drivers/gpu/drm/omapdrm/omap_connector.c        |  14 ++
->  drivers/gpu/drm/omapdrm/omap_crtc.c             | 158 ++++++++++++-
->  drivers/gpu/drm/omapdrm/omap_drv.h              |   4 +
->  drivers/gpu/drm/omapdrm/omap_fb.c               |  20 ++
->  drivers/gpu/drm/omapdrm/omap_fbdev.c            |   3 -
->  drivers/gpu/drm/omapdrm/omap_irq.c              |  24 ++
->  11 files changed, 529 insertions(+), 98 deletions(-)
->=20
-> --=20
-> 2.13.2
->=20
+Vignesh, do you still have access to any of those devices with interrupt
+floods? If so, could you try the previous patch on one of them?
 
---zakfdqd34v2mc5zq
-Content-Type: application/pgp-signature; name="signature.asc"
+Also note that Sebastian's issue is definitely not caused (or helped)
+by bus recovery, the timeout he sees resets the adapter right away.
+So he is not affected by my original patch either way.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnOShQACgkQ2O7X88g7
-+prU9hAAlTXkjoJIWogqfnRIQsRrFeHDAeKsZZQFsaHe9MiWl3Pos6mNpzXYyzqE
-G5GD6PAxokSDT7of/NoKmCBhEV7RpadSg/j1LxwRRDTSJHn4qR6EgV+dldZ4pQ5m
-XIwfWiv7d+Leu0jN7vCIj0sRm6Kby6+W2las4J6fYlFjxqUmjyAvImhw8hE2Uvw8
-VKEY2YLyHL5N9B0L6N9QsI4QzJOsXlbT/EBrmxupw76YK3N78XlM1rlk3V1VmENW
-IbFdzjtQfHRQsAzf65QOOFeXOHwCuv4FY22zpjGoyRoBSSbLMrvcityCKJTD7+UX
-GxXb7+9db9s33XrEcl0h5ySN7mG58tVwDd2EJzCwCHDECB6wzf4f4gg6nnNnPjuA
-cEa6WbmmyM7EcYALw1HEls9zxqRmkJXXMEPmwk12wTygaPGkY1QYasCdaCWZJbfZ
-XXwNKjSz0bDTQakWBpjT/Xz2YHCb4G8PcSktq6/rljOSa66Y2w2ln0SWCrr97A32
-MWoBkWF+E3z/oSXx6WCXI5l0or4LaPFEL0Mczh/ZYT0V5JPjNvkV1lJQBQkht6Ca
-p1znq5f4pGEV9PADgvUYE1FO2CvecS2gwJbUYzBoHZ+zVk8Mxo1Q+0/kdw/2F6Gb
-RRBl7ttbS80RLSIzAkIhyieJqnZpp04vLnBuiSTqDaE23LXNLhk=
-=h8N9
------END PGP SIGNATURE-----
-
---zakfdqd34v2mc5zq--
+-- Claudio
