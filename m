@@ -1,64 +1,57 @@
-From: Felipe Balbi <balbi@kernel.org>
-Subject: Re: [PATCH v2 16/31] usb/phy-isp1301-omap: Remove .data assignment
-Date: Thu, 28 Sep 2017 12:36:15 +0300
-Message-ID: <874lrnkvw0.fsf@linux.intel.com>
-References: <1505950075-50223-1-git-send-email-keescook@chromium.org> <1505950075-50223-17-git-send-email-keescook@chromium.org>
+From: "Derald D. Woods" <woods.technical@gmail.com>
+Subject: Re: [PATCH v3 0/4] Update TMDSEVM3530 support for omap3-evm
+Date: Thu, 28 Sep 2017 21:04:10 -0500
+Message-ID: <20170929020347.GA30051@exodus.localdomain>
+References: <20170912034659.13184-1-woods.technical@gmail.com>
+ <20170912234824.6706-1-woods.technical@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1505950075-50223-17-git-send-email-keescook@chromium.org>
+Content-Disposition: inline
+In-Reply-To: <20170912234824.6706-1-woods.technical@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Kees Cook <keescook@chromium.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Tue, Sep 12, 2017 at 06:48:20PM -0500, Derald D. Woods wrote:
+> This patch set allows TMDSEVM3530(omap3-evm.dts) to boot using common
+> processor module data that is shared with 'omap3-evm-37xx.dts'. A new
+> common file for processor module data is introduced to help facilitate
+> the updated OMAP3530 support.
+> 
 
 
-Hi,
+Are there any further concerns after v3?
 
-Kees Cook <keescook@chromium.org> writes:
-> The .data assignment appears to be redundant to the WORK_STOP bit for
-> stopping the timer. Also, it appears this timer is entirely unused
-> as it is only ever started under #define VERBOSE, which is explicitly
-> undefined.
->
-> Cc: Felipe Balbi <balbi@kernel.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: linux-usb@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+Derald
 
-Are you merging these as part of a larger series altogether, or should I
-pick the patches that concern me?
 
-If you're taking them all together:
-
-Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlnMwo8ACgkQzL64meEa
-mQaDwxAAznM8HRHE/FZ1nkD3Q0ulJT45YK5mOAbl9eIuFjs6BjHiMGPpPFFithEd
-iLJhvKlHG1nppH+g7kVTtH2tlSoTNxIINEoNST+IGJMCC3XrDhqbZjmN51KNglFu
-GWX2PCXxsIG0traYc0Yp0y2GZNd4IISTyQzIOTI0W6okNEtJxFxAWpoGAJkAU9+x
-2Gp6c1KYOM8ONyFxyZqcKBtpMQeAXHx/CLIucapdkjYRaa7YkYKIJpdlDFugvfQ4
-oEtwAHAGVNRcY4Ifq72MA1VvaTnYMGxFDN+5V42w0aa52PpvR8IpU3RDIN62GqpK
-edbmemty9INw/NdXeoUNIgw8dyZODnYnx9rCjaMh4CbsFPauec7NAO4NeY6PTqF9
-P8LZJtpWUIFyaf4R2/rMgDVV2oJZPhWfpg/EBYoyRK6XapxSAZ+1sYLzuQIteSWn
-xExUSWCp6L5vVGGjPIWutok2llwayw5U5X1wIoenyW1eRu4hpxiEOTvABsvFKxY/
-E3RemE5OWCFjXbo6GO2Gu2Xmwl5R9qRYZ1VnoqmiR9MlSAwcssu43NDunEiQsojJ
-YXFv00QguGj65HH64I/YHntwbzJgOrWX+GBjfzusCtGy8YOMpoipgCxNGzBqXPxH
-q/NwBEmraQM2thqzEBZtsdya9eVULT1aoJ8z1a5iSt9hP0oeZhA=
-=ubfo
------END PGP SIGNATURE-----
---=-=-=--
+> Changes in v3
+> -------------
+> - Drop unnecessary compatible string change to Sharp LCD panel
+> 
+> Changes in v2
+> -------------
+> - Pull in change from linux-next
+>   (ARM: dts: omap*: Replace deprecated "vmmc_aux" with "vqmmc")
+> - Add compatible and supply fix for LCD panel
+> - Add supply references for DSS
+> - Add "Signed-off-by" for each patch
+> 
+> Derald D. Woods (4):
+>   ARM: dts: omap3-evm-37xx: Add common processor module support
+>   ARM: dts: omap3-evm: Add OMAP3530 specific device tree processor data
+>   ARM: dts: omap3: Add Sharp LS037V7DW01 'envdd' supply
+>   ARM: dts: omap3-evm: Add DSS {vdds_dsi,vdda_video}-supply references
+> 
+>  arch/arm/boot/dts/omap3-evm-37xx.dts               | 209 +-------------------
+>  arch/arm/boot/dts/omap3-evm-processor-common.dtsi  | 216 +++++++++++++++++++++
+>  arch/arm/boot/dts/omap3-evm.dts                    |  76 +++++++-
+>  .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   1 +
+>  4 files changed, 290 insertions(+), 212 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/omap3-evm-processor-common.dtsi
+> 
+> -- 
+> 2.14.1
+> 
