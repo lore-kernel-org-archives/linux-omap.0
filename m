@@ -1,68 +1,43 @@
-From: "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 09/11] ARM: dts: am43xx-epos-evm: Add default and sleep pinmux for uart0
-Date: Fri, 29 Sep 2017 11:44:27 -0500
-Message-ID: <20170929164429.780-10-afd@ti.com>
-References: <20170929164429.780-1-afd@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 01/10] dt-bindings: bus: Minimal TI sysc interconnect
+ target module binding
+Date: Fri, 29 Sep 2017 10:51:54 -0700
+Message-ID: <20170929175153.GJ4394@atomide.com>
+References: <20170920224621.16236-1-tony@atomide.com>
+ <20170920224621.16236-2-tony@atomide.com>
+ <20170925063545.nn3gr5drea6o2g6m@squirrel.local>
+ <20170925142520.GE4394@atomide.com>
+ <20170925172120.xu6k3leg4ac6mjya@squirrel.local>
+ <20170925174413.GH4394@atomide.com>
+ <20170927095646.fi4l7jbbvrubfe25@squirrel.local>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170929164429.780-1-afd-l0cyMroinI0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170927095646.fi4l7jbbvrubfe25-2pNSKKP3PSK44ywRPIzf9A@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Andrew F . Davis" <afd-l0cyMroinI0@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am43x-epos-evm.dts | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+* Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170927 02:57]:
+> On Mon, Sep 25, 2017 at 10:44:14AM -0700, Tony Lindgren wrote:
+> > * Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [170925 10:22]:
+> > > Ah... three "foreign" modules with an idlemode carelessly thrown into a
+> > > register without care for existing layouts.  I think these are more just
+> > > exceptional cases which happen to agree by coincidence since they all
+> > > just added idlemode in the simplest way possible, but I can understand
+> > > how it came to be viewed as a standard type.
+> > 
+> > So we shall then name this fine centauroid sysc ti,81xx-sysc?
+> 
+> There's nothing centauroid specific about this, mcasp on omap4 has it too.
 
-diff --git a/arch/arm/boot/dts/am43x-epos-evm.dts b/arch/arm/boot/dts/am43x-epos-evm.dts
-index 569c9ac200c8..ce7a44daf839 100644
---- a/arch/arm/boot/dts/am43x-epos-evm.dts
-+++ b/arch/arm/boot/dts/am43x-epos-evm.dts
-@@ -452,6 +452,24 @@
- 			>;
- 		};
- 
-+		uart0_pins_default: uart0_pins_default {
-+			pinctrl-single,pins = <
-+				AM4372_IOPAD(0x968, DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE0) /* uart0_ctsn.uart0_ctsn */
-+				AM4372_IOPAD(0x96C, DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE0) /* uart0_rtsn.uart0_rtsn */
-+				AM4372_IOPAD(0x970, PIN_INPUT_PULLUP | SLEWCTRL_FAST | DS0_PULL_UP_DOWN_EN | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
-+				AM4372_IOPAD(0x974, PIN_INPUT | SLEWCTRL_FAST | DS0_PULL_UP_DOWN_EN | MUX_MODE0)	/* uart0_txd.uart0_txd */
-+			>;
-+		};
-+
-+		uart0_pins_sleep: uart0_pins_sleep {
-+			pinctrl-single,pins = <
-+				AM4372_IOPAD(0x968, DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+				AM4372_IOPAD(0x96C, DS0_PULL_UP_DOWN_EN | INPUT_EN | MUX_MODE7)
-+				AM4372_IOPAD(0x970, PIN_INPUT_PULLUP | SLEWCTRL_FAST | DS0_PULL_UP_DOWN_EN | MUX_MODE0)
-+				AM4372_IOPAD(0x974, PIN_INPUT | SLEWCTRL_FAST | DS0_PULL_UP_DOWN_EN | MUX_MODE0)
-+			>;
-+		};
-+
- 		mcasp1_pins: mcasp1_pins {
- 			pinctrl-single,pins = <
- 				AM4372_IOPAD(0x9a0, PIN_INPUT_PULLDOWN | MUX_MODE3) /* MCASP0_ACLKR/MCASP1_ACLKX */
-@@ -879,6 +897,13 @@
- 	};
- };
- 
-+&uart0 {
-+	status = "okay";
-+	pinctrl-names = "default", "sleep";
-+	pinctrl-0 = <&uart0_pins_default>;
-+	pinctrl-1 = <&uart0_pins_sleep>;
-+};
-+
- &mcasp1 {
- 	#sound-dai-cells = <0>;
- 	pinctrl-names = "default", "sleep";
--- 
-2.14.1
+OK and for that we have ti,sysc-mcasp. We can call the generic one
+ti,sysc-omap4-simple.
 
+Regards,
+
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
