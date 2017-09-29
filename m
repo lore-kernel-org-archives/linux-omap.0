@@ -1,94 +1,169 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCHv4 0/7] Fix remaining issues to drop more omap platform data
-Date: Fri, 29 Sep 2017 15:34:04 -0700
-Message-ID: <20170929223411.9691-1-tony@atomide.com>
+Subject: [PATCH 2/7] ARM: OMAP2+: Parse module IO range from dts for legacy "ti,hwmods" support
+Date: Fri, 29 Sep 2017 15:34:06 -0700
+Message-ID: <20170929223411.9691-3-tony@atomide.com>
+References: <20170929223411.9691-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170929223411.9691-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+When removing legacy platform data for IO ranges for the hwmod
+interconnect code, we still need to support the "ti,hwmods"
+property.
 
-Here's v4 of the remaining fixes needed before we can drop omap hwmod
-platform data for interrupts, dma channels and IO ranges.
+And as we're going to use a generic sysc device driver to handle the
+interconnect target instances, we can parse the information needed
+for legacy "ti,hwmods" IO range from the dts. It's always the first
+range the interconnect target module provides.
 
-I've dropped the clockctrl clock nodes and dts patches to avoid a
-dependency to Tero's pending clock patches. As we are still relying on
-"ti,hwmods" property this is just fine, and can be patched later once
-the dependencies have cleared.
+Note that we want to parse the range instead of the first child
+device IO regs as the child device may not always be defined.
 
-These patches are based on current Linux next.
+The child IP device node may not exist in cases where there is no
+driver binding for the device, or when the child IP block may not
+even be functional for some SoC revisions. But the IO range of the
+interconnect target module is always known.
 
-Regards,
+Cc: "Benoît Cousson" <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ arch/arm/mach-omap2/omap_hwmod.c | 80 +++++++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod.h |  5 +++
+ 2 files changed, 84 insertions(+), 1 deletion(-)
 
-Tony
-
-
-Changes since v3:
-
-- Use sysc compatible names based on the SoC name where they are first
-  seen instead of type1/2/3 as suggested by Matthijs
-
-- Use "fck" and "ick" naming instead of "clkctrl" for clocks as we will
-  need the interface clock too in many cases, and udpate the ti-sysc
-  driver accordingly
-
-- Drop the clock nodes for now to avoid a dependency to pending clock
-  patches, the clock nodes can be added later on after the dependencies
-  have cleared
-
-Changes since v2:
-
-- Drop attempted bindings for devices with no drivers and start using
-  generic ti sysc interconnect target module binding, the bindings
-  for the child devices can be sent separately as needed
-
-- Add Tero's pathces for omap4 clkctrl nodes as we need those
-
-- Add support for parsing IO ranges from dts if "ti,hwmods" is set
-  and fix-up omap device code to work without platform data for
-  legacy dma and smartreflex
-
-- Add minimal ti-sysc driver
-
-Changes since v1:
-
-- Updated hsi, iss, fdif, gpu, and smartreflex patches based on
-  the subsystem maintainer comments
-
-- Added Rob and Mark in Cc for the patches touching binding
-  documentation
-
-Tony Lindgren (7):
-  dt-bindings: bus: Minimal TI sysc interconnect target module binding
-  ARM: OMAP2+: Parse module IO range from dts for legacy "ti,hwmods"
-    support
-  ARM: OMAP2+: Populate legacy resources for dma and smartreflex
-  bus: ti-sysc: Add minimal TI sysc interconnect target driver
-  ARM: dts: Add nodes for missing omap4 interconnect target modules
-  ARM: dts: Configure SmartReflex only to idle the interconnect target
-    module
-  ARM: dts: Use ti-sysc module driver for omap4 musb
-
- Documentation/devicetree/bindings/bus/ti-sysc.txt |  93 ++++
- arch/arm/boot/dts/dra7.dtsi                       |  26 +
- arch/arm/boot/dts/omap4.dtsi                      | 195 +++++++-
- arch/arm/mach-omap2/Kconfig                       |   1 +
- arch/arm/mach-omap2/omap_device.c                 | 137 ++++--
- arch/arm/mach-omap2/omap_device.h                 |   4 -
- arch/arm/mach-omap2/omap_hwmod.c                  |  80 +++-
- arch/arm/mach-omap2/omap_hwmod.h                  |   5 +
- drivers/bus/Kconfig                               |   7 +
- drivers/bus/Makefile                              |   1 +
- drivers/bus/ti-sysc.c                             | 558 ++++++++++++++++++++++
- 11 files changed, 1047 insertions(+), 60 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/bus/ti-sysc.txt
- create mode 100644 drivers/bus/ti-sysc.c
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2395,6 +2395,75 @@ static int of_dev_hwmod_lookup(struct device_node *np,
+ 	return -ENODEV;
+ }
+ 
++/**
++ * omap_hwmod_parse_module_range - map module IO range from device tree
++ * @oh: struct omap_hwmod *
++ * @np: struct device_node *
++ *
++ * Parse the device tree range an interconnect target module provides
++ * for it's child device IP blocks. This way we can support the old
++ * "ti,hwmods" property with just dts data without a need for platform
++ * data for IO resources. And we don't need all the child IP device
++ * nodes available in the dts.
++ */
++int omap_hwmod_parse_module_range(struct omap_hwmod *oh,
++				  struct device_node *np,
++				  struct resource *res)
++{
++	struct property *prop;
++	const __be32 *ranges;
++	const char *name;
++	u32 nr_addr, nr_size;
++	u64 base, size;
++	int len, error;
++
++	if (!res)
++		return -EINVAL;
++
++	ranges = of_get_property(np, "ranges", &len);
++	if (!ranges)
++		return -ENOENT;
++
++	len /= sizeof(*ranges);
++
++	if (len < 3)
++		return -EINVAL;
++
++	of_property_for_each_string(np, "compatible", prop, name)
++		if (!strncmp("ti,sysc-", name, 8))
++			break;
++
++	if (!name)
++		return -ENOENT;
++
++	error = of_property_read_u32(np, "#address-cells", &nr_addr);
++	if (error)
++		return -ENOENT;
++
++	error = of_property_read_u32(np, "#size-cells", &nr_size);
++	if (error)
++		return -ENOENT;
++
++	if (nr_addr != 1 || nr_size != 1) {
++		pr_err("%s: invalid range for %s->%s\n", __func__,
++		       oh->name, np->name);
++		return -EINVAL;
++	}
++
++	ranges++;
++	base = of_translate_address(np, ranges++);
++	size = be32_to_cpup(ranges);
++
++	pr_debug("omap_hwmod: %s %s at 0x%llx size 0x%llx\n",
++		 oh->name, np->name, base, size);
++
++	res->start = base;
++	res->end = base + size - 1;
++	res->flags = IORESOURCE_MEM;
++
++	return 0;
++}
++
+ /**
+  * _init_mpu_rt_base - populate the virtual address for a hwmod
+  * @oh: struct omap_hwmod * to locate the virtual address
+@@ -2417,6 +2486,8 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
+ {
+ 	struct omap_hwmod_addr_space *mem;
+ 	void __iomem *va_start = NULL;
++	struct resource res;
++	int error;
+ 
+ 	if (!oh)
+ 		return -EINVAL;
+@@ -2442,7 +2513,14 @@ static int __init _init_mpu_rt_base(struct omap_hwmod *oh, void *data,
+ 			return -ENXIO;
+ 		}
+ 
+-		va_start = of_iomap(np, index + oh->mpu_rt_idx);
++		/* Do we have a dts range for the interconnect target module? */
++		error = omap_hwmod_parse_module_range(oh, np, &res);
++		if (!error)
++			va_start = ioremap(res.start, resource_size(&res));
++
++		/* No ranges, rely on device reg entry */
++		if (!va_start)
++			va_start = of_iomap(np, index + oh->mpu_rt_idx);
+ 	} else {
+ 		va_start = ioremap(mem->pa_start, mem->pa_end - mem->pa_start);
+ 	}
+diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
+--- a/arch/arm/mach-omap2/omap_hwmod.h
++++ b/arch/arm/mach-omap2/omap_hwmod.h
+@@ -690,11 +690,16 @@ struct omap_hwmod {
+ 	struct omap_hwmod		*parent_hwmod;
+ };
+ 
++struct device_node;
++
+ struct omap_hwmod *omap_hwmod_lookup(const char *name);
+ int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
+ 			void *data);
+ 
+ int __init omap_hwmod_setup_one(const char *name);
++int omap_hwmod_parse_module_range(struct omap_hwmod *oh,
++				  struct device_node *np,
++				  struct resource *res);
+ 
+ int omap_hwmod_enable(struct omap_hwmod *oh);
+ int omap_hwmod_idle(struct omap_hwmod *oh);
 -- 
 2.14.2
 --
