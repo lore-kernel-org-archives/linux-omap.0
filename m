@@ -1,76 +1,87 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/7] dt-bindings: bus: Minimal TI sysc interconnect
- target module binding
-Date: Sun, 1 Oct 2017 10:14:07 -0700
-Message-ID: <20171001171406.GL4394@atomide.com>
-References: <20170929223411.9691-1-tony@atomide.com>
- <20170929223411.9691-2-tony@atomide.com>
- <20171001131151.loanjnvarkihbhik@earth>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: i2c-omap.c vs. qemu: too much work in one irq (and broken boot)
+Date: Sun, 1 Oct 2017 22:42:15 +0200
+Message-ID: <20171001204215.GA9928@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
+Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171001131151.loanjnvarkihbhik@earth>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, wsa@the-dreams.de, linux-i2c@vger.kernel.org, balbi@ti.com, jlu@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre-GFxCN5SEZAc@public.gmane.org> [171001 06:12]:
-> On Fri, Sep 29, 2017 at 03:34:05PM -0700, Tony Lindgren wrote:
-> > Note that additional properties for sysc capabilities will be added
-> > later on. For now, we can already use this binding for interconnect
-> > target modules that do not have any child device drivers available.
-> > This allows us to idle the unused interconnect target modules during
-> > init without the need for legacy hwmod platform data for doing it.
-> 
-> DT backwards compatibility is about booting an old DT file with a
-> newer kernel. Since old DT file does not contain a "ti,sysc-omap*"
-> node you don't need to add "ti,hwmod = *" support to it. Instead a
-> DT file, that uses ti,hwmod in the device node and does not have a
-> "ti,sysc-omap*" at all should still work.
 
-Not sure if I parse that right, but I'm assuming you suggest leaving
-out ti,hwmod to start with. Well I considered that, but it causes
-the "waiting for a magical flip issue". So initially we need to use
-both ti,sysc and ti,hwmod until ti,sysc alone has the equal
-functionality. That's because then we can do the following steps:
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-1. We want to add compatible = ti,sysc so we can define the
-   nodes and get the parent-children hierarhcy right. We can
-   already use the parent-child features even with ti,hwmods
-   before we have complete dts based data. We are currently
-   missing that capability without doing device specific parent
-   drivers like we do with drivers/usb/musb/musb_am335x.c. Note
-   that in this step we are moving the ti,hwmod to the parent
-   node
+Hi!
 
-2. When ti,sysc can configure things based on dts data alone the
-   same way as the legacy platform data, we can just drop the
-   ti,hwmod property. We also want to be able to test one driver
-   at a time between ti,sysc + ti,hwmod vs ti,sysc only
+I'm trying to get qemu emulation of Nokia N900 to work, but
+unfortunately i2c-omap.c breaks boot in the emulator (real hardware
+works ok).
 
-3. Once ti,hwmod properties have been removed from the mainline
-   kernel, we can add a warning about ti,hwmod properties being
-   deprecated
+[    0.837524] omap2-onenand omap2-onenand: initializing on CS0, phys
+base 0x01000000, virtual base d00c0000, freq 66 MHz
+[    0.838958] Muxed OneNAND 256MB 1.8V 16-bit (0x40)
+[    0.839752] OneNAND version =3D 0x0121
+[    0.842102] Scanning device for bad blocks
+[    1.012451] 6 ofpart partitions found on MTD device omap2-onenand
+[    1.013153] Creating 6 MTD partitions on "omap2-onenand":
+[    1.014007] 0x000000000000-0x000000020000 : "bootloader"
+[    1.018066] 0x000000020000-0x000000080000 : "config"
+[    1.020660] 0x000000080000-0x0000000c0000 : "log"
+[    1.022827] 0x0000000c0000-0x0000002c0000 : "kernel"
+[    1.025848] 0x0000002c0000-0x0000004c0000 : "initfs"
+[    1.028106] 0x0000004c0000-0x000010000000 : "rootfs"
+[    1.047668] omap_i2c 48070000.i2c: addr: 0x004b, len: 2, flags:
+0x0, stop: 1
+[    1.048828] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.049530] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.050018] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.050476] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.050872] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.051422] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.052001] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.052398] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.052825] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.053222] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.053619] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.054016] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.054412] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+[    1.054840] omap_i2c 48070000.i2c: IRQ (ISR =3D 0x0010)
+=2E..
 
-4. Then later on, we can also drop the hwmod platform data and
-   continue produce warnings if ti,hwmod is seen
+After 100 messages I get "Too much work in one IRQ" message, and then
+repeat. I tried just disabling omap_i2c in the dts, but 1) its not
+easy 2) I'd lose quite fundamental functionality.
 
-> IMHO we should break DT ABI for OMAP at some point, so that we can
-> get rid of the hwmod database. My suggestion would be, that
-> simple-bus checks if any child device is != "ti,omap-sysc*" and
-> does panic("please update DT!").
+Ideas welcome.
 
-Yes we can eventually drop the static data and ti,hwmod while
-providing helpful information to the users.
+Best regards,
+								Pavel
+							=09
+PS: If anyone is interested, this is why working qemu would be useful:
+https://wiki.postmarketos.org/wiki/Nokia_N900_(nokia-rx51) . There's a
+lot of work to be done in the userspace, and swapping SD cards is kind
+of slow.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Regards,
+--ZPt4rx8FFjLCG7dd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Tony
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iEYEARECAAYFAlnRUycACgkQMOfwapXb+vJdawCaA2+oahAaudhhm9xPgsY9nwKu
+mtwAoLl+JxkT+p8iP8haBidGRUtOies/
+=Cyga
+-----END PGP SIGNATURE-----
+
+--ZPt4rx8FFjLCG7dd--
