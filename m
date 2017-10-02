@@ -1,46 +1,96 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: i2c-omap.c vs. qemu: too much work in one irq (and broken boot)
-Date: Mon, 2 Oct 2017 09:23:31 +0200
-Message-ID: <20171002072331.GB25930@pali>
-References: <20171001204215.GA9928@amd>
- <20171001221935.GA29628@amd>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 3/5] dmaengine: Support for querying maximum trasnfer
+ length (of an SG element)
+Date: Mon, 2 Oct 2017 14:24:12 +0300
+Message-ID: <11471508-b61c-7842-2080-7f5c2f292c2b@ti.com>
+References: <20170912104424.18495-1-peter.ujfalusi@ti.com>
+ <20170912104424.18495-4-peter.ujfalusi@ti.com>
+ <20170921171451.GG30097@localhost>
+ <02509904-4ae8-c6f8-3514-5f77d665c9a6@ti.com>
+ <20170926165413.GQ30097@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171001221935.GA29628@amd>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, wsa@the-dreams.de, linux-i2c@vger.kernel.org, balbi@ti.com, jlu@pengutronix.de, bigeasy@linutronix.de
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170926165413.GQ30097@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 02 October 2017 00:19:35 Pavel Machek wrote:
-> Hi!
-> 
-> > I'm trying to get qemu emulation of Nokia N900 to work, but
-> > unfortunately i2c-omap.c breaks boot in the emulator (real hardware
-> > works ok).
-> 
-> I started bisection. v4.6 works, v4.7 is broken. (It still may be
-> config difference or something).
-> 
-> This looked suspect, so I tried reverting it, but it did not help. And
-> it is only significant change in i2c-omap.c. So... this may be a lot
-> of fun.
-> 
-> commit 126a66caec4a00b8d66dbc3174b0efa905cf68c3
-> Author: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Date:   Mon Apr 4 16:55:23 2016 +0300
-> 
-> Unfortunately, mmc is broken in v4.6, so its useless for
-> emulation... [ 3.236724] mmc1: error -22 whilst initialising SDIO card
+=EF=BB=BF
 
-Hi! You can apply special patch to make mmc work in both qemu and real
-N900 device for previous kernel versions...
 
-https://github.com/pali/linux-n900/commit/eb080ecdcfc5868d8e36d0f5f42d9cb7f13b4db9
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
+siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
--- 
-Pali Rohár
-pali.rohar@gmail.com
+On 2017-09-26 19:54, Vinod Koul wrote:
+>>>
+>>> not another callback :)
+>>>
+>>> on a serious note, why shouldn't this be one more capability in
+>>> dma_slave_caps. looking at next patch it seems static
+>>
+>> It is not really static, the size in bytes depends on the dev_width and
+>> the maxburst:
+>> dev_width * burst * (SZ_64K - 1);
+>=20
+> well DMAengines work on FIFOs, in above you are giving length as SZ_64K -=
+ 1
+> 'items' which IIUC in DMAengine terms for bytes would always refer wrt wi=
+dth
+> used and burst applied.
+
+I think we can live with this and let the user to figure out what to do
+with this information.
+
+But I'm having hard time to figure out a good name for this. It is not
+the number of SGs we can support, but the number of 'items' within one
+SG that we have the limit. It could be:
+u32 max_bursts_per_sg;
+
+which would also apply to period length (for cyclic) in a similar way.
+
+> Return length in bytes does make sense (from user PoV), but then you need=
+ to
+> "know" the applied  width and burst. How do you decide those?
+
+The number of items works eDMA and sDMA, but we also have the cpp41. It
+is a packet DMA and it has no understanding of bursts, address widths or
+any of the 'traditional' things. It only cares about the number of bytes
+we want to transfer and it has limitation of 4194303 bytes (21bits for
+length). This is again per SG. How this could report the
+'max_bursts_per_sg' ?
+
+This was one of the reasons that I have settled with the callback.
+
+What we can also do is to code this within the DMA drivers itself.
+
+When setting up the transfer and we realize that one of the SG will not
+going to fit, we destroy what we have done so far, pass the sg list
+along with length/sg limit to create a new sg list where all sg item's
+length is under the limit. Then using this new sg list we can set up the
+transfer.
+
+I'm not sure how hard is to do the sg list optimization, I see that
+sg_split() is not what we want so we might need to code this in
+dmaengine or in the scatterlist code.
+
+We certainly don't want to verify all slave_sg transfers proactively to
+avoid adding latency when it is not necessary.
+
+
+>>
+>> The number of (dev_width * burst) is static, yes. Other DMA engines
+>> might have similar interpretation, but returning the maximum length in
+>> bytes sounded more generic for other engines to be able to adopt.
+>>
+>> Initially I had maxburst_cnt in struct dma_device for maximum burst
+>> count within one SG, but it felt clumsy and not too intuitive either.
+>=20
+>>
+>> - P=C3=A9ter
+>>
+>=20
+
+- P=C3=A9ter
