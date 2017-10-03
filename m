@@ -1,117 +1,175 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH] i2c-omap: Trigger bus recovery in lockup case
-Date: Tue, 3 Oct 2017 16:02:15 +0530
-Message-ID: <e9b43138-6c01-bc99-9bac-355823bc0c19@ti.com>
-References: <1505403549-12992-1-git-send-email-claudio.foellmi@ergon.ch>
- <9d3e3029-f775-a9aa-8025-badccb699ed8@ti.com>
- <48ddc9bc-2b83-97c9-fbd7-90d4da9f2687@ti.com>
- <0a506277-6c9b-1407-dea3-f9895fdc3e63@ergon.ch>
- <cbb3aaa2-44d1-8a7d-1d8e-1433b0a7b9d3@ti.com>
- <3778fa75-0327-0c36-1721-e89e23a782b6@ergon.ch>
- <20170929125213.by5mwverw2a47lmo@earth>
- <ad684ace-272a-1e45-f65b-b280be86ffc2@ergon.ch>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v4 2/2] memory: ti-emif-sram: introduce relocatable
+ suspend/resume handlers
+Date: Tue, 3 Oct 2017 10:14:23 -0500
+Message-ID: <169e5257-3e05-3c61-32ae-27b34123859c@ti.com>
+References: <20170927000355.30597-1-d-gerlach@ti.com>
+ <20170927000355.30597-3-d-gerlach@ti.com>
+ <20170928083827.GE23750@n2100.armlinux.org.uk>
+ <0bbba52e-c7d8-647e-9b58-55cbbe236d4a@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <ad684ace-272a-1e45-f65b-b280be86ffc2@ergon.ch>
-Content-Language: en-US
-Sender: linux-i2c-owner@vger.kernel.org
-To: Claudio Foellmi <claudio.foellmi@ergon.ch>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Cc: "Strashko, Grygorii" <grygorii.strashko@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "Cooper Jr., Franklin" <fcooper@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <0bbba52e-c7d8-647e-9b58-55cbbe236d4a@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, Rob Herring <robh+dt@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Friday 29 September 2017 08:47 PM, Claudio Foellmi wrote:
-[...]
->>>> I hit a situation where when communicating with a faulty i2c device, the
->>>> last transaction on the bus does not end with proper STOP condition on
->>>> the i2c bus. Since, STOP condition was not detected by IP, Bus Busy will
->>>> remain set even though both SCL and SDA are high. Thus,
->>>> omap_i2c_wait_for_bb() function would end up calling bus recovery. And
->>>> as soon as TMODE is set to 0x3 and ST_EN to 0x1, there is a flood of
->>>> XRDY & RRDY interrupts.
->>>>
->>>> This spurious irqs can be reproduced easily by setting TMODE to 0x3 and
->>>> ST_EN to 0x1 in OMAP_I2C_SYSTEST_REG when both SCL and SDA are high (bus
->>>> is idle) even on AM335x.
->>>>
->>>> So, if you are not seeing irq flood when SCL/SDA is stuck low, then
->>>> maybe its safe to enter TMODE 0x3 in such cases. Could you modify the
->>>> patch to test whether or not SDA is stuck low before initiating bus
->>>> recovery?
->>>>
->>>
->>> This sounds more like a problem with the interrupt handler than with
->>> bus recovery, so I'm a bit hesitant to just add such a workaround.
-
-I would not say its a workaround. As per I2C spec, bus recovery is to be
-tried only when SDA is stuck low. My suggestion is to check this
-condition before requesting recovery.
-
->>> Instead, I spent a few hours looking through the interrupt handling
->>> (and poking my i2c bus with a wire to induce random faults), and
->>> I suspect to have found the underlying cause, or at least part of it:
->>>
->>> We sometimes ignore some interrupts (such as RRDY if we think we are
->>> not in receiving mode), but don't really deal with their cause.
->>> As a result, the same interrupt will just be raised again as soon as
->>> we leave the handler. It will then be ignored again, and raised again...
->>>
->>> I'm still not quite sure how we can reliably get into such situations in
->>> the first place, but not sending a stop condition seems to be part of it.
->>> Maybe it is somehow connected to the automatic internal state change
->>> that happens as part of AL or NACK interrupts.
->>>
->>>
->>> Below is a small patch that should test my assumptions.
->>> It clears the incoming fifo and acks the ignored RRDY interrupts.
->>>
->>> Sebastian, can you please check if this helps with your problems on N950?
->>> If it does, I'll turn it into a proper standalone patch.
+On 10/02/2017 10:34 AM, Dave Gerlach wrote:
+> Russell,
+> On 09/28/2017 03:38 AM, Russell King - ARM Linux wrote:
+>> On Tue, Sep 26, 2017 at 07:03:55PM -0500, Dave Gerlach wrote:
+>>> diff --git a/drivers/memory/emif-asm-offsets.c b/drivers/memory/emif-asm-offsets.c
+>>> new file mode 100644
+>>> index 000000000000..bdb153c9e948
+>>> --- /dev/null
+>>> +++ b/drivers/memory/emif-asm-offsets.c
+>>> @@ -0,0 +1,22 @@
+>>> +/*
+>>> + * TI AM33XX EMIF PM Assembly Offsets
+>>> + *
+>>> + * Copyright (C) 2016-2017 Texas Instruments Inc.
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or
+>>> + * modify it under the terms of the GNU General Public License as
+>>> + * published by the Free Software Foundation version 2.
+>>> + *
+>>> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+>>> + * kind, whether express or implied; without even the implied warranty
+>>> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>> + * GNU General Public License for more details.
+>>> + */
+>>> +#include <linux/ti-emif-sram.h>
+>>> +
+>>> +int main(void)
+>>> +{
+>>> +	ti_emif_offsets();
+>>> +
+>>> +	return 0;
+>>> +}
 >>
->> No, it does not. Also no interrupts ignoring messages appearing
->> in dmesg:
+>> ...
 >>
->> n950# dmesg | grep -E "48072000.i2c|lp5523x"
->> [    0.791046] omap_i2c 48072000.i2c: bus 1 rev4.4 at 400 kHz
->> [    4.934265] lp5523x 1-0032: reset command sent (no ACK)!
->> [    6.003875] omap_i2c 48072000.i2c: controller timed out
->> [    6.033874] lp5523x 1-0032: device detection err: -110
->> [    6.039154] lp5523x: probe of 1-0032 failed with error -110
+>>> +#if defined(CONFIG_SOC_AM33XX) || defined(CONFIG_SOC_AM43XX)
+>>> +static inline void ti_emif_offsets(void)
+>>> +{
+>>> +	DEFINE(EMIF_SDCFG_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_sdcfg_val));
+>>> +	DEFINE(EMIF_TIMING1_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_timing1_val));
+>>> +	DEFINE(EMIF_TIMING2_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_timing2_val));
+>>> +	DEFINE(EMIF_TIMING3_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_timing3_val));
+>>> +	DEFINE(EMIF_REF_CTRL_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_ref_ctrl_val));
+>>> +	DEFINE(EMIF_ZQCFG_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_zqcfg_val));
+>>> +	DEFINE(EMIF_PMCR_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_pmcr_val));
+>>> +	DEFINE(EMIF_PMCR_SHDW_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_pmcr_shdw_val));
+>>> +	DEFINE(EMIF_RD_WR_LEVEL_RAMP_CTRL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_rd_wr_level_ramp_ctrl));
+>>> +	DEFINE(EMIF_RD_WR_EXEC_THRESH_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_rd_wr_exec_thresh));
+>>> +	DEFINE(EMIF_COS_CONFIG_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_cos_config));
+>>> +	DEFINE(EMIF_PRIORITY_TO_COS_MAPPING_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_priority_to_cos_mapping));
+>>> +	DEFINE(EMIF_CONNECT_ID_SERV_1_MAP_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_connect_id_serv_1_map));
+>>> +	DEFINE(EMIF_CONNECT_ID_SERV_2_MAP_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_connect_id_serv_2_map));
+>>> +	DEFINE(EMIF_OCP_CONFIG_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_ocp_config_val));
+>>> +	DEFINE(EMIF_LPDDR2_NVM_TIM_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_lpddr2_nvm_tim));
+>>> +	DEFINE(EMIF_LPDDR2_NVM_TIM_SHDW_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_lpddr2_nvm_tim_shdw));
+>>> +	DEFINE(EMIF_DLL_CALIB_CTRL_VAL_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_dll_calib_ctrl_val));
+>>> +	DEFINE(EMIF_DLL_CALIB_CTRL_VAL_SHDW_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_dll_calib_ctrl_val_shdw));
+>>> +	DEFINE(EMIF_DDR_PHY_CTLR_1_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_ddr_phy_ctlr_1));
+>>> +	DEFINE(EMIF_EXT_PHY_CTRL_VALS_OFFSET,
+>>> +	       offsetof(struct emif_regs_amx3, emif_ext_phy_ctrl_vals));
+>>> +	DEFINE(EMIF_REGS_AMX3_SIZE, sizeof(struct emif_regs_amx3));
+>>> +
+>>> +	BLANK();
+>>> +
+>>> +	DEFINE(EMIF_PM_BASE_ADDR_VIRT_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_data, ti_emif_base_addr_virt));
+>>> +	DEFINE(EMIF_PM_BASE_ADDR_PHYS_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_data, ti_emif_base_addr_phys));
+>>> +	DEFINE(EMIF_PM_CONFIG_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_data, ti_emif_sram_config));
+>>> +	DEFINE(EMIF_PM_REGS_VIRT_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_data, regs_virt));
+>>> +	DEFINE(EMIF_PM_REGS_PHYS_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_data, regs_phys));
+>>> +	DEFINE(EMIF_PM_DATA_SIZE, sizeof(struct ti_emif_pm_data));
+>>> +
+>>> +	BLANK();
+>>> +
+>>> +	DEFINE(EMIF_PM_SAVE_CONTEXT_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_functions, save_context));
+>>> +	DEFINE(EMIF_PM_RESTORE_CONTEXT_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_functions, restore_context));
+>>> +	DEFINE(EMIF_PM_ENTER_SR_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_functions, enter_sr));
+>>> +	DEFINE(EMIF_PM_EXIT_SR_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_functions, exit_sr));
+>>> +	DEFINE(EMIF_PM_ABORT_SR_OFFSET,
+>>> +	       offsetof(struct ti_emif_pm_functions, abort_sr));
+>>> +	DEFINE(EMIF_PM_FUNCTIONS_SIZE, sizeof(struct ti_emif_pm_functions));
+>>> +}
+>>> +#else
+>>> +static inline void ti_emif_offsets(void) {}
+>>> +#endif
+>>
+>> Any reason the above can't be part of emif-asm-offsets.c ?
 >>
 > 
-> Hi Sebastian
-> 
-> Thank you for trying it out.
-> It seems that your symptoms are quite different from the ones that Vignesh
-> described earlier. He had never-ending storms of spurious interrupts
-> (which that patch would have addressed), but you don't seem to get
-> any interrupts at all. Not even the NACK one, which just looks wrong.
-> 
-> If you want to still dig deeper, you can enable debug logs for i2c-omap,
-> so you can see every single interrupt. But if there are none, I don't see
-> what we could possibly do to fix it.
-> 
-> 
-> Vignesh, do you still have access to any of those devices with interrupt
-> floods? If so, could you try the previous patch on one of them?
+> Yes that's a good point. I was focused on moving the macros and didn't think
+> about why I hid everything away in the header in the first place, to avoid
+> cluttering the global asm-offsets.c. Now that we have our own file there's no
+> reason for this, I will fix this and the kbuild robot issue and send v5. I can
+> simplify the makefile more which will avoid that build error.
 
-In past, I had tried to ACK all the IRQs instead of ignoring, but that
-did not help. Anyway, I tried your patch, but unfortunately that does
-not help either. I see interrupts being ignored, but the IRQ flood
-continues. Here is the log:
-http://pastebin.ubuntu.com/25666141/
+On second thought, perhaps it is best we keep these offsets in the header so
+that they can be easily included for generation in the pm-asm-offsets header.
+
+Before, everything was generated in the top-level asm-offsets.h so I could
+easily access all macros from ti-emif-sram-pm.S and also the sleep33xx.S found
+here [1]. Now I can generate emif-asm-offsets.h and pm-asm-offsets.h as separate
+files but the sleep33xx.S code requires the macros from both, and because
+emif-asm-offsets.h is generated at build it is hard to describe the build
+dependency from the arch/arm/mach-omap2/Makefile to a generated header in
+drivers/memory.
+
+The cleanest solution I have found is to include the emif macros in
+pm-asm-offsets.h directly by placing ti_emif_offsets() in the c file used to
+generate the PM macros. Next version I send will do it this way unless there is
+an objection.
+
+Regards,
+Dave
+
+[1] https://www.spinics.net/lists/arm-kernel/msg595934.html
 
 > 
-> Also note that Sebastian's issue is definitely not caused (or helped)
-> by bus recovery, the timeout he sees resets the adapter right away.
-> So he is not affected by my original patch either way.
+> Regards,
+> Dave
 > 
-> -- Claudio
-> 
-
--- 
-Regards
-Vignesh
