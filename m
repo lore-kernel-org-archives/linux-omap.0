@@ -1,39 +1,32 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [RESEND PATCH] gpio: omap: Fix lost edge interrupts
-Date: Tue, 3 Oct 2017 11:15:38 -0700
-Message-ID: <e7de2f01-bb4b-184e-64b1-f46796ad7636@oracle.com>
-References: <20171003161705.23398-1-grygorii.strashko@ti.com>
- <7b8f3c6a-0f4b-98ed-3887-91a01ed6cdbb@oracle.com>
- <81906eda-58ac-38e3-bc0a-8ead2b6aa8df@ti.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/4] ARM-OMAP: Adjustments for three function implementations
+Date: Tue, 3 Oct 2017 22:12:01 +0200
+Message-ID: <b196ffac-4bd1-4465-cee9-e46b7405633d@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <81906eda-58ac-38e3-bc0a-8ead2b6aa8df@ti.com>
-Content-Language: en-US
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/3/2017 9:52 AM, Grygorii Strashko wrote:
-> Hi Santosh,
-> 
-> On 10/03/2017 11:41 AM, Santosh Shilimkar wrote:
->>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 3 Oct 2017 22:04:22 +0200
 
-[...]
+A few update suggestions were taken into account
+from static source code analysis.
 
->> This was one of the concern I was thinking when GPIO IRQ conversion
->> was done. Grygorii since you did that conversion, can you please
->> check since I see now that the irq code is becoming increasingly
->> complex.
-> 
-> This patch was developed in coop with Ladislav and he intensively tested it and
-> this patch actually simplifies IRQ handling. Also, OMAP driver parts which
-> this patch touches are ancient.
-> 
-Good to know that its being tested and thanksfor the background.
+Markus Elfring (4):
+  Delete an error message for a failed memory allocation in two functions
+  Improve a size determination in two functions
+  Use kcalloc() in omap_system_dma_probe()
+  Fix typos in two comment lines in _omap_dm_timer_request()
 
-regards,
-Santosh
+ arch/arm/plat-omap/dma.c     | 12 +++++-------
+ arch/arm/plat-omap/dmtimer.c | 10 ++++------
+ 2 files changed, 9 insertions(+), 13 deletions(-)
+
+-- 
+2.14.2
