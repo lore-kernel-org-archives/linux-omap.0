@@ -1,63 +1,28 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] fixes for omaps for v4.14-rc cycle
-Date: Tue, 3 Oct 2017 18:16:11 -0700
-Message-ID: <20171004011611.5fl7uzzma6r3klvk@localhost>
-References: <pull-1506976058-232051@atomide.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH ] cpufreq: ti-cpufreq: kfree opp_data when failure
+Date: Wed, 4 Oct 2017 11:06:42 +0530
+Message-ID: <20171004053642.GA8478@vireshk-i7>
+References: <1506496097-30852-1-git-send-email-zumeng.chen@windriver.com>
+ <20170927174026.GB12211@ubuntu>
+ <7b7315f0-c2e4-a09e-8769-2d15a167fa73@windriver.com>
+ <20170928041933.GG12211@ubuntu>
+ <7a2171a3-d594-7fd7-2ccf-75ef7110dd98@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1506976058-232051@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <7a2171a3-d594-7fd7-2ccf-75ef7110dd98@windriver.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Zumeng Chen <zumeng.chen@windriver.com>
+Cc: linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, rjw@rjwysocki.net, d-gerlach@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 02, 2017 at 01:28:05PM -0700, Tony Lindgren wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
-> 
-> The following changes since commit 2bd6bf03f4c1c59381d62c61d03f6cc3fe71f66e:
-> 
->   Linux 4.14-rc1 (2017-09-16 15:47:51 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.14/fixes-rc3
-> 
-> for you to fetch changes up to 4afa616ce937f88d9a69a71b8c561551596a81e3:
-> 
->   ARM: dts: am43xx-epos-evm: Remove extra CPSW EMAC entry (2017-09-19 10:59:26 -0700)
-> 
-> ----------------------------------------------------------------
-> Fixes for omaps for v4.14-rc cycle
-> 
-> Few minor fixes for omaps, mostly just boot time warning fixes:
-> 
-> - Drop undocumented camera binding that got merged during the merge window by
->   accident as I applied before Sakari's comments
-> 
-> - Fix soft reset warning for dra7 kexec boot for gpio1 as the optional clocks
->   need to be enabled for reset
-> 
-> - Fix dra7 kexec boot clock rate for McASP as the rate is no longer the default
->   rate after kexec
-> 
-> - Fix omap3 pandora MMC warning during boot
-> 
-> - Add am33xx SPI alias like we have on other SoCs
-> 
-> - Remove node for non-existing CPSW EMAC Ethernet on am43xx-epos-evm
+On 28-09-17, 13:00, Zumeng Chen wrote:
+> Yes, you are right, it seems of_node_put(np) that you mentioned were
+> ignored by both paths. If you don't mind I can deliver a separate patch
+> to fix this based on some testing later.
 
-Merged, thanks.
+Yeah, that's exactly how I want it.
 
-
--Olof
+-- 
+viresh
