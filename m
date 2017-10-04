@@ -1,15 +1,14 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 4/4] ARM: OMAP: Fix typos in two comment lines in
- _omap_dm_timer_request()
-Date: Tue, 3 Oct 2017 22:16:45 +0200
-Message-ID: <fba4ace8-a277-fb08-7a6b-89d518ada080@users.sourceforge.net>
-References: <b196ffac-4bd1-4465-cee9-e46b7405633d@users.sourceforge.net>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] fixes for omaps for v4.14-rc cycle
+Date: Tue, 3 Oct 2017 18:16:11 -0700
+Message-ID: <20171004011611.5fl7uzzma6r3klvk@localhost>
+References: <pull-1506976058-232051@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <b196ffac-4bd1-4465-cee9-e46b7405633d@users.sourceforge.net>
-Content-Language: en-GB
+Content-Disposition: inline
+In-Reply-To: <pull-1506976058-232051@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,34 +18,46 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Russell King <linux@armlinux.org.uk>, Tony Lindgren <tony@atomide.com>
-Cc: kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 3 Oct 2017 21:24:00 +0200
+On Mon, Oct 02, 2017 at 01:28:05PM -0700, Tony Lindgren wrote:
+> From: "Tony Lindgren" <tony@atomide.com>
+> 
+> The following changes since commit 2bd6bf03f4c1c59381d62c61d03f6cc3fe71f66e:
+> 
+>   Linux 4.14-rc1 (2017-09-16 15:47:51 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.14/fixes-rc3
+> 
+> for you to fetch changes up to 4afa616ce937f88d9a69a71b8c561551596a81e3:
+> 
+>   ARM: dts: am43xx-epos-evm: Remove extra CPSW EMAC entry (2017-09-19 10:59:26 -0700)
+> 
+> ----------------------------------------------------------------
+> Fixes for omaps for v4.14-rc cycle
+> 
+> Few minor fixes for omaps, mostly just boot time warning fixes:
+> 
+> - Drop undocumented camera binding that got merged during the merge window by
+>   accident as I applied before Sakari's comments
+> 
+> - Fix soft reset warning for dra7 kexec boot for gpio1 as the optional clocks
+>   need to be enabled for reset
+> 
+> - Fix dra7 kexec boot clock rate for McASP as the rate is no longer the default
+>   rate after kexec
+> 
+> - Fix omap3 pandora MMC warning during boot
+> 
+> - Add am33xx SPI alias like we have on other SoCs
+> 
+> - Remove node for non-existing CPSW EMAC Ethernet on am43xx-epos-evm
 
-Adjust three words in this description.
+Merged, thanks.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- arch/arm/plat-omap/dmtimer.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 14779d6f425d..d443e481c3e9 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -254,8 +254,8 @@ static struct omap_dm_timer *_omap_dm_timer_request(int req_type, void *data)
- 			if (cap == (t->capability & cap)) {
- 				/*
- 				 * If timer is not NULL, we have already found
--				 * one timer but it was not an exact match
--				 * because it had more capabilites that what
-+				 * one timer. But it was not an exact match
-+				 * because it had more capabilities than what
- 				 * was required. Therefore, unreserve the last
- 				 * timer found and see if this one is a better
- 				 * match.
--- 
-2.14.2
+-Olof
