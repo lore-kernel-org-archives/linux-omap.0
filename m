@@ -1,115 +1,44 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: Re: [PATCH v2] i2c: omap: Trigger bus recovery in lockup case
-Date: Thu, 5 Oct 2017 11:31:30 +0530
-Message-ID: <4aa7db09-f9b5-3140-24e7-179e8933e832@ti.com>
-References: <1507110225-3050-1-git-send-email-claudio.foellmi@ergon.ch>
+From: Lars Poeschel <poeschel@lemonage.de>
+Subject: [PATCH] ARM: dts: omap3: Replace deprecated mcp prefix
+Date: Thu,  5 Oct 2017 09:33:57 +0200
+Message-ID: <20171005073357.9427-1-poeschel@lemonage.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1507110225-3050-1-git-send-email-claudio.foellmi@ergon.ch>
-Content-Language: en-US
-Sender: linux-i2c-owner@vger.kernel.org
-To: Claudio Foellmi <claudio.foellmi@ergon.ch>, Tony Lindgren <tony@atomide.com>
-Cc: "Nori, Sekhar" <nsekhar@ti.com>, "Cooper Jr., Franklin" <fcooper@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Lars Poeschel <poeschel@lemonage.de>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The devicetree prefix mcp is deprecated in favour of microchip. Thus
+this replaces mcp with microchip for the mcp23017 gpio expander chip.
 
-On Wednesday 04 October 2017 03:13 PM, Claudio Foellmi wrote:
-> A very conservative check for bus activity (to prevent interference
-> in multimaster setups) prevented the bus recovery methods from being
-> triggered in the case that SDA or SCL was stuck low.
-> This defeats the purpose of the recovery mechanism, which was introduced
-> for exactly this situation (a slave device keeping SDA pulled down).
-> 
-> Also added a check to make sure SDA is low before attempting recovery.
-> If SDA is not stuck low, recovery will not help, so we can skip it.
-> 
-> Note that bus lockups can persist across reboots. The only other options
-> are to reset or power cycle the offending slave device, and many i2c
-> slaves do not even have a reset pin.
-> 
-> If we see that one of the lines is low for the entire timeout duration,
-> we can actually be sure that there is no other master driving the bus.
-> It is therefore save for us to attempt a bus recovery.
-> 
-> Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Vignesh R <vigneshr@ti.com>
-> ---
-> Changes since v1:
-> Added a check before all bus recoveries, to make sure SDA actually is
-> low. This should prevent most unnecessary attempts, which are not
-> without risk.
-> 
+Signed-off-by: Lars Poeschel <poeschel@lemonage.de>
+---
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks for the patch! This fixes my case. I no longer see recovery
-attempt or IRQ flood:
-Tested-by: Vignesh R <vigneshr@ti.com>
-
-Regards
-Vignesh
-
-> The full discussion of v1 can be found at
-> http://patchwork.ozlabs.org/patch/813889/
-> 
->  drivers/i2c/busses/i2c-omap.c | 25 +++++++++++++++++++++++--
->  1 file changed, 23 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 1ebb5e9..8cdf40a 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -473,6 +473,22 @@ static int omap_i2c_init(struct omap_i2c_dev *omap)
->  }
->  
->  /*
-> + * Try bus recovery, but only if SDA is actually low.
-> + */
-> +static int omap_i2c_recover_bus(struct omap_i2c_dev *omap)
-> +{
-> +	u16 systest;
-> +
-> +	systest = omap_i2c_read_reg(omap, OMAP_I2C_SYSTEST_REG);
-> +	if ((systest & OMAP_I2C_SYSTEST_SCL_I_FUNC) &&
-> +	    (systest & OMAP_I2C_SYSTEST_SDA_I_FUNC))
-> +		return 0; /* bus seems to already be fine */
-> +	if (!(systest & OMAP_I2C_SYSTEST_SCL_I_FUNC))
-> +		return -ETIMEDOUT; /* recovery would not fix SCL */
-> +	return i2c_recover_bus(&omap->adapter);
-> +}
-> +
-> +/*
->   * Waiting on Bus Busy
->   */
->  static int omap_i2c_wait_for_bb(struct omap_i2c_dev *omap)
-> @@ -482,7 +498,7 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *omap)
->  	timeout = jiffies + OMAP_I2C_TIMEOUT;
->  	while (omap_i2c_read_reg(omap, OMAP_I2C_STAT_REG) & OMAP_I2C_STAT_BB) {
->  		if (time_after(jiffies, timeout))
-> -			return i2c_recover_bus(&omap->adapter);
-> +			return omap_i2c_recover_bus(omap);
->  		msleep(1);
->  	}
->  
-> @@ -563,8 +579,13 @@ static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *omap)
->  		}
->  
->  		if (time_after(jiffies, timeout)) {
-> +			/*
-> +			 * SDA or SCL were low for the entire timeout without
-> +			 * any activity detected. Most likely, a slave is
-> +			 * locking up the bus with no master driving the clock.
-> +			 */
->  			dev_warn(omap->dev, "timeout waiting for bus ready\n");
-> -			return -ETIMEDOUT;
-> +			return omap_i2c_recover_bus(omap);
->  		}
->  
->  		msleep(1);
-> 
-
+diff --git a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
+index fa611a5e4850..343a36d8031d 100644
+--- a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
++++ b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
+@@ -257,7 +257,7 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c3_pins>;
+ 		gpiom1: gpio@20 {
+-			compatible = "mcp,mcp23017";
++			compatible = "microchip,mcp23017";
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+ 			reg = <0x20>;
 -- 
-Regards
-Vignesh
+2.14.2
