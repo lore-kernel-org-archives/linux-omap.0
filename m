@@ -1,67 +1,115 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH] usb: isp1301-omap: Convert timers to use timer_setup()
-Date: Wed, 4 Oct 2017 17:53:59 -0700
-Message-ID: <20171005005359.GA23866@beast>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH v2] i2c: omap: Trigger bus recovery in lockup case
+Date: Thu, 5 Oct 2017 11:31:30 +0530
+Message-ID: <4aa7db09-f9b5-3140-24e7-179e8933e832@ti.com>
+References: <1507110225-3050-1-git-send-email-claudio.foellmi@ergon.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1507110225-3050-1-git-send-email-claudio.foellmi@ergon.ch>
+Content-Language: en-US
+Sender: linux-i2c-owner@vger.kernel.org
+To: Claudio Foellmi <claudio.foellmi@ergon.ch>, Tony Lindgren <tony@atomide.com>
+Cc: "Nori, Sekhar" <nsekhar@ti.com>, "Cooper Jr., Franklin" <fcooper@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-In preparation for unconditionally passing the struct timer_list pointer to
-all timer callbacks, switch to using the new timer_setup() and from_timer()
-to pass the timer pointer explicitly.
+Hi,
 
-Cc: Felipe Balbi <balbi@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
-This requires commit 686fef928bba ("timer: Prepare to change timer
-callback argument type") in v4.14-rc3, but should be otherwise
-stand-alone.
----
- drivers/usb/phy/phy-isp1301-omap.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+On Wednesday 04 October 2017 03:13 PM, Claudio Foellmi wrote:
+> A very conservative check for bus activity (to prevent interference
+> in multimaster setups) prevented the bus recovery methods from being
+> triggered in the case that SDA or SCL was stuck low.
+> This defeats the purpose of the recovery mechanism, which was introduced
+> for exactly this situation (a slave device keeping SDA pulled down).
+> 
+> Also added a check to make sure SDA is low before attempting recovery.
+> If SDA is not stuck low, recovery will not help, so we can skip it.
+> 
+> Note that bus lockups can persist across reboots. The only other options
+> are to reset or power cycle the offending slave device, and many i2c
+> slaves do not even have a reset pin.
+> 
+> If we see that one of the lines is low for the entire timeout duration,
+> we can actually be sure that there is no other master driving the bus.
+> It is therefore save for us to attempt a bus recovery.
+> 
+> Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Vignesh R <vigneshr@ti.com>
+> ---
+> Changes since v1:
+> Added a check before all bus recoveries, to make sure SDA actually is
+> low. This should prevent most unnecessary attempts, which are not
+> without risk.
+> 
 
-diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
-index c6052c814bcc..43866e0f9217 100644
---- a/drivers/usb/phy/phy-isp1301-omap.c
-+++ b/drivers/usb/phy/phy-isp1301-omap.c
-@@ -1183,9 +1183,11 @@ static irqreturn_t isp1301_irq(int irq, void *isp)
- 	return IRQ_HANDLED;
- }
- 
--static void isp1301_timer(unsigned long _isp)
-+static void isp1301_timer(struct timer_list *t)
- {
--	isp1301_defer_work((void *)_isp, WORK_TIMER);
-+	struct isp1301 *isp = from_timer(isp, t, timer);
-+
-+	isp1301_defer_work(isp, WORK_TIMER);
- }
- 
- /*-------------------------------------------------------------------------*/
-@@ -1507,9 +1509,7 @@ isp1301_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
- 	}
- 
- 	INIT_WORK(&isp->work, isp1301_work);
--	init_timer(&isp->timer);
--	isp->timer.function = isp1301_timer;
--	isp->timer.data = (unsigned long) isp;
-+	timer_setup(&isp->timer, isp1301_timer, 0);
- 
- 	i2c_set_clientdata(i2c, isp);
- 	isp->client = i2c;
+Thanks for the patch! This fixes my case. I no longer see recovery
+attempt or IRQ flood:
+Tested-by: Vignesh R <vigneshr@ti.com>
+
+Regards
+Vignesh
+
+> The full discussion of v1 can be found at
+> http://patchwork.ozlabs.org/patch/813889/
+> 
+>  drivers/i2c/busses/i2c-omap.c | 25 +++++++++++++++++++++++--
+>  1 file changed, 23 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 1ebb5e9..8cdf40a 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -473,6 +473,22 @@ static int omap_i2c_init(struct omap_i2c_dev *omap)
+>  }
+>  
+>  /*
+> + * Try bus recovery, but only if SDA is actually low.
+> + */
+> +static int omap_i2c_recover_bus(struct omap_i2c_dev *omap)
+> +{
+> +	u16 systest;
+> +
+> +	systest = omap_i2c_read_reg(omap, OMAP_I2C_SYSTEST_REG);
+> +	if ((systest & OMAP_I2C_SYSTEST_SCL_I_FUNC) &&
+> +	    (systest & OMAP_I2C_SYSTEST_SDA_I_FUNC))
+> +		return 0; /* bus seems to already be fine */
+> +	if (!(systest & OMAP_I2C_SYSTEST_SCL_I_FUNC))
+> +		return -ETIMEDOUT; /* recovery would not fix SCL */
+> +	return i2c_recover_bus(&omap->adapter);
+> +}
+> +
+> +/*
+>   * Waiting on Bus Busy
+>   */
+>  static int omap_i2c_wait_for_bb(struct omap_i2c_dev *omap)
+> @@ -482,7 +498,7 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *omap)
+>  	timeout = jiffies + OMAP_I2C_TIMEOUT;
+>  	while (omap_i2c_read_reg(omap, OMAP_I2C_STAT_REG) & OMAP_I2C_STAT_BB) {
+>  		if (time_after(jiffies, timeout))
+> -			return i2c_recover_bus(&omap->adapter);
+> +			return omap_i2c_recover_bus(omap);
+>  		msleep(1);
+>  	}
+>  
+> @@ -563,8 +579,13 @@ static int omap_i2c_wait_for_bb_valid(struct omap_i2c_dev *omap)
+>  		}
+>  
+>  		if (time_after(jiffies, timeout)) {
+> +			/*
+> +			 * SDA or SCL were low for the entire timeout without
+> +			 * any activity detected. Most likely, a slave is
+> +			 * locking up the bus with no master driving the clock.
+> +			 */
+>  			dev_warn(omap->dev, "timeout waiting for bus ready\n");
+> -			return -ETIMEDOUT;
+> +			return omap_i2c_recover_bus(omap);
+>  		}
+>  
+>  		msleep(1);
+> 
+
 -- 
-2.7.4
-
-
--- 
-Kees Cook
-Pixel Security
+Regards
+Vignesh
