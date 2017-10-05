@@ -1,59 +1,52 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2] i2c: omap: Trigger bus recovery in lockup case
-Date: Thu, 5 Oct 2017 07:30:43 -0500
-Message-ID: <fe0ccc55-06c1-bedd-60f4-a2d10d2434b0@ti.com>
-References: <1507110225-3050-1-git-send-email-claudio.foellmi@ergon.ch>
- <4aa7db09-f9b5-3140-24e7-179e8933e832@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 0/2] USB: musb: PM fixes
+Date: Thu, 5 Oct 2017 08:11:55 -0700
+Message-ID: <20171005151154.GD3962@atomide.com>
+References: <20170907133748.7400-1-johan@kernel.org>
+ <20171005091436.GA2618@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <4aa7db09-f9b5-3140-24e7-179e8933e832@ti.com>
-Content-Language: en-US
-Sender: linux-i2c-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>, Claudio Foellmi <claudio.foellmi@ergon.ch>, Tony Lindgren <tony@atomide.com>
-Cc: "Nori, Sekhar" <nsekhar@ti.com>, "Cooper Jr., Franklin" <fcooper@ti.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Wolfram Sang <wsa@the-dreams.de>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171005091436.GA2618@localhost>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 10/05/2017 01:01 AM, Vignesh R wrote:
-> Hi,
+* Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [171005 02:15]:
+> On Thu, Sep 07, 2017 at 03:37:46PM +0200, Johan Hovold wrote:
+> > These patches fix a couple of bugs introduced by the recent runtime-PM
+> > work (details in the individual commit messages).
+> > 
+> > Note that the external abort was due to the irq work never being flushed
+> > on suspend, and that we may need similar fixes for the delayed reset and
+> > resume work which are likewise never cancelled on suspend.
+> > 
+> > As I just mentioned in the v1 thread, there are a number of further issues with
+> > musb suspend (e.g. on BBB):
+> > 
+> >  1. System suspend appears to break any active gadget (which then can be
+> >     restarted manually).
+> > 
+> >  2. The early_tx polling in musb_cppi41 lacks a timeout, something which can
+> >     lead to the hrtimer rescheduling itself indefinitely if the fifo never
+> >     empties (e.g. if a transfer is is initiated post suspend due to issue 1).
+> > 
+> >     See commit a655f481d83d ("usb: musb: musb_cppi41: handle pre-mature TX
+> >     complete interrupt").
+> > 
+> >  3. In host mode, if a device is disconnected while the system is suspended,
+> >     this will keep the controller runtime active after resume as the session
+> >     bit is always set.
 > 
-> On Wednesday 04 October 2017 03:13 PM, Claudio Foellmi wrote:
->> A very conservative check for bus activity (to prevent interference
->> in multimaster setups) prevented the bus recovery methods from being
->> triggered in the case that SDA or SCL was stuck low.
->> This defeats the purpose of the recovery mechanism, which was introduced
->> for exactly this situation (a slave device keeping SDA pulled down).
->>
->> Also added a check to make sure SDA is low before attempting recovery.
->> If SDA is not stuck low, recovery will not help, so we can skip it.
->>
->> Note that bus lockups can persist across reboots. The only other options
->> are to reset or power cycle the offending slave device, and many i2c
->> slaves do not even have a reset pin.
->>
->> If we see that one of the lines is low for the entire timeout duration,
->> we can actually be sure that there is no other master driving the bus.
->> It is therefore save for us to attempt a bus recovery.
->>
->> Signed-off-by: Claudio Foellmi <claudio.foellmi@ergon.ch>
->> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
->> Cc: Vignesh R <vigneshr@ti.com>
->> ---
->> Changes since v1:
->> Added a check before all bus recoveries, to make sure SDA actually is
->> low. This should prevent most unnecessary attempts, which are not
->> without risk.
->>
-> 
-> Thanks for the patch! This fixes my case. I no longer see recovery
-> attempt or IRQ flood:
-> Tested-by: Vignesh R <vigneshr@ti.com>
+> Bin and Tony, any comments to this series?
 
-Reviewed-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Oops sorry I forgot to test these after two recent conferences. I just gave
+these a try and they both behave for me. Nice fixes, for both:
 
--- 
-regards,
--grygorii
+Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
