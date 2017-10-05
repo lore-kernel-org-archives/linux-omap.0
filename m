@@ -1,58 +1,32 @@
-From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 0/2] USB: musb: PM fixes
-Date: Thu, 5 Oct 2017 17:14:24 +0200
-Message-ID: <20171005151424.GE2618@localhost>
-References: <20170907133748.7400-1-johan@kernel.org>
- <20171005091436.GA2618@localhost>
- <20171005151154.GD3962@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] usb: isp1301-omap: Convert timers to use timer_setup()
+Date: Thu, 5 Oct 2017 12:27:58 -0700
+Message-ID: <20171005192758.GU4394@atomide.com>
+References: <20171005005359.GA23866@beast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171005151154.GD3962-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20171005005359.GA23866@beast>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: linux-kernel@vger.kernel.org, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 05, 2017 at 08:11:55AM -0700, Tony Lindgren wrote:
-> * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [171005 02:15]:
-> > On Thu, Sep 07, 2017 at 03:37:46PM +0200, Johan Hovold wrote:
-> > > These patches fix a couple of bugs introduced by the recent runtime-PM
-> > > work (details in the individual commit messages).
-> > > 
-> > > Note that the external abort was due to the irq work never being flushed
-> > > on suspend, and that we may need similar fixes for the delayed reset and
-> > > resume work which are likewise never cancelled on suspend.
-> > > 
-> > > As I just mentioned in the v1 thread, there are a number of further issues with
-> > > musb suspend (e.g. on BBB):
-> > > 
-> > >  1. System suspend appears to break any active gadget (which then can be
-> > >     restarted manually).
-> > > 
-> > >  2. The early_tx polling in musb_cppi41 lacks a timeout, something which can
-> > >     lead to the hrtimer rescheduling itself indefinitely if the fifo never
-> > >     empties (e.g. if a transfer is is initiated post suspend due to issue 1).
-> > > 
-> > >     See commit a655f481d83d ("usb: musb: musb_cppi41: handle pre-mature TX
-> > >     complete interrupt").
-> > > 
-> > >  3. In host mode, if a device is disconnected while the system is suspended,
-> > >     this will keep the controller runtime active after resume as the session
-> > >     bit is always set.
-> > 
-> > Bin and Tony, any comments to this series?
+* Kees Cook <keescook@chromium.org> [171004 17:57]:
+> In preparation for unconditionally passing the struct timer_list pointer to
+> all timer callbacks, switch to using the new timer_setup() and from_timer()
+> to pass the timer pointer explicitly.
 > 
-> Oops sorry I forgot to test these after two recent conferences. I just gave
-> these a try and they both behave for me. Nice fixes, for both:
-> 
-> Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Felipe Balbi <balbi@kernel.org>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: linux-usb@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> ---
+> This requires commit 686fef928bba ("timer: Prepare to change timer
+> callback argument type") in v4.14-rc3, but should be otherwise
+> stand-alone.
 
-Great, thanks for testing!
-
-Johan
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
