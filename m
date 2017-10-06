@@ -1,143 +1,151 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Questions about bluetooth on N900
-Date: Fri, 6 Oct 2017 09:29:57 +0200
-Message-ID: <20171006072957.GA18994@amd>
-References: <87tvzow7jv.fsf@sange.fi>
- <20170927160611.GA10775@xo-6d-61-c0.localdomain>
- <87h8vkpvtu.fsf@sange.fi>
- <20171001090133.GA16848@amd>
- <20171001145051.7pyzz4bpodkd6i2b@earth>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: [RESEND PATCH] mtd: nand: omap2: Remove omap_nand_platform_data
+Date: Fri, 6 Oct 2017 12:35:43 +0200
+Message-ID: <20171006103543.gnb2hxq7msallyzl@lenoch>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20171001145051.7pyzz4bpodkd6i2b@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Aura Kelloniemi <kaura.dev@sange.fi>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: linux-mtd@lists.infradead.org
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, linux-omap@vger.kernel.org, Richard Weinberger <richard@nod.at>
 List-Id: linux-omap@vger.kernel.org
 
+As driver is now configured using DT, omap_nand_platform_data structure
+is no longer needed.
 
---Nq2Wo0NMKNjxTN9z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ Resend to linux-mtd as other part this patch was depending on
+ was merged months ago via linux-omap tree...
 
-Hi!
+ drivers/mtd/nand/omap2.c                     | 40 +++++++---------------------
+ include/linux/platform_data/mtd-nand-omap2.h | 17 ------------
+ 2 files changed, 10 insertions(+), 47 deletions(-)
 
-> > >  > There is some interest. I'd like to have working bluetooth, and pe=
-ople from postmarketos
-> > >  > would probably like something, too. Unfortunately my experience is=
- same as yours -- current
-> > >  > mainline does not work well on N900.
-> > >=20
-> > > I might try debugging that at some point, but I doubt I can resolve t=
-he issue,
-> > > because I have no experience in serial port programming. With latest =
-BlueZ I
-> > > got my braille display working for few seconds, before it stalled.
-> > >=20
-> > >  > > I'm considering to rebase the old hci_h4p driver on current main=
-line, because
-> > >  > > I just need a working BT connection, not code that is of good qu=
-ality. Some
-> > >=20
-> > >  > Ok, I may save you some work. I have rebased version, it should be=
- in
-> > >  > linux-n900 on kernel.org.
-> > >=20
-> > > I found a repo from
-> > > https://kernel.googlesource.com/pub/scm/linux/kernel/git/pavel/linux-=
-n900/. I
-> > > assume that's what you meant.
-> > >=20
-> > > The latest version is based on 4.13, but it has also some changes whi=
-ch seem
-> > > not to be related to BT. I incorporated them also, but I don't know i=
-f they
-> > > are valid.
-> >=20
-> > Feel free to take those or not.
-> >=20
-> > > I was lucky that you had done rebasing of nokia_h4p, because I wouldn=
-'t have
-> > > known what to do with DTS.
-> > >=20
-> > > Unfortunately the driver does not work properly. I can access N900 to=
- some
-> > > extent with my braille display, but the connection has random freezes=
-, and
-> > > accessing my GPS receiver (through RFCOMM) causes the whole system to=
- hang.
-> > >=20
-> > > I get the following message to syslog something like 100 times per se=
-cond when
-> > > BRLTTY (the braille display daemon) is communicating with the display:
-> > > Got IIR_RX_TIMEOUT, handling it as IIR_DRI
-> > >=20
-> > > Active BT connection also seems to trigger a bug in nokia_h4p related=
- to
-> > > spinlocks. This happens in random intervals between 0.1 s and 30 s.
-> > >=20
-> > > The bugs are:
-> > > BUG: scheduling while atomic
-> > > and
-> > > BUG: workqueue leaked lock or atomic
-> > >=20
-> > > Stack traces suggest that it is (at least sometimes) caused by h4p_se=
-t_clk
-> > > calling clk_prepare_enable and clk_disable_unprepare functions, which=
- should
-> > > only be used in non-atomic context.
-> > >=20
-> > > So, I thought it would be good for you to know that BT does not reall=
-y work. I
-> > > would like to work on this, but I'm afraid my knowledge is too limite=
-d to
-> > > track this down. It would be good to know what is causing those IIR RX
-> > > timeouts.
-> > >=20
-> > > Also working on an obsolete driver feels like stupid now that there i=
-s a
-> > > driver written more properly.
-> >=20
-> > Yes, fixing obsolete driver is hard and has drawbacks. The new one
-> > should be fixed.
-> >=20
-> > I believe the way forward would be
-> >=20
-> > a) add logging to the old driver, to see exact data being exchanged
-> > during initialization.
-> >=20
-> > b) add logging to the new driver, and compare old and new driver
-> >=20
-> > c) fix the new driver to do the initialization same way the old driver
-> > did
->=20
-> FWIW I don't think the problem on N900 with hci_nokia ("new") driver is
-> related to incorrect data/packets being sent. I'm pretty sure there is
-> still some problem with the handling of flow control signals (RTS/CTS +
-> the GPIOs) resulting in packets not being sent and/or received properly.
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 54540c8fa1a2..b1fc070c8279 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1588,8 +1588,7 @@ static bool is_elm_present(struct omap_nand_info *info,
+ 	return true;
+ }
+ 
+-static bool omap2_nand_ecc_check(struct omap_nand_info *info,
+-				 struct omap_nand_platform_data	*pdata)
++static bool omap2_nand_ecc_check(struct omap_nand_info *info)
+ {
+ 	bool ecc_needs_bch, ecc_needs_omap_bch, ecc_needs_elm;
+ 
+@@ -1804,7 +1803,6 @@ static const struct mtd_ooblayout_ops omap_sw_ooblayout_ops = {
+ static int omap_nand_probe(struct platform_device *pdev)
+ {
+ 	struct omap_nand_info		*info;
+-	struct omap_nand_platform_data	*pdata = NULL;
+ 	struct mtd_info			*mtd;
+ 	struct nand_chip		*nand_chip;
+ 	int				err;
+@@ -1814,6 +1812,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	int				min_oobbytes = BADBLOCK_MARKER_LENGTH;
+ 	int				oobbytes_per_step;
+ 
++	if (!dev->of_node)
++		return -EINVAL;
++
+ 	info = devm_kzalloc(&pdev->dev, sizeof(struct omap_nand_info),
+ 				GFP_KERNEL);
+ 	if (!info)
+@@ -1821,29 +1822,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 
+ 	info->pdev = pdev;
+ 
+-	if (dev->of_node) {
+-		if (omap_get_dt_info(dev, info))
+-			return -EINVAL;
+-	} else {
+-		pdata = dev_get_platdata(&pdev->dev);
+-		if (!pdata) {
+-			dev_err(&pdev->dev, "platform data missing\n");
+-			return -EINVAL;
+-		}
+-
+-		info->gpmc_cs = pdata->cs;
+-		info->reg = pdata->reg;
+-		info->ecc_opt = pdata->ecc_opt;
+-		if (pdata->dev_ready)
+-			dev_info(&pdev->dev, "pdata->dev_ready is deprecated\n");
+-
+-		info->xfer_type = pdata->xfer_type;
+-		info->devsize = pdata->devsize;
+-		info->elm_of_node = pdata->elm_of_node;
+-		info->flash_bbt = pdata->flash_bbt;
+-	}
++	if (omap_get_dt_info(dev, info))
++		return -EINVAL;
+ 
+-	platform_set_drvdata(pdev, info);
+ 	info->ops = gpmc_omap_get_nand_ops(&info->reg, info->gpmc_cs);
+ 	if (!info->ops) {
+ 		dev_err(&pdev->dev, "Failed to get GPMC->NAND interface\n");
+@@ -2002,7 +1983,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 		goto return_error;
+ 	}
+ 
+-	if (!omap2_nand_ecc_check(info, pdata)) {
++	if (!omap2_nand_ecc_check(info)) {
+ 		err = -EINVAL;
+ 		goto return_error;
+ 	}
+@@ -2167,10 +2148,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+ 	if (err)
+ 		goto return_error;
+ 
+-	if (dev->of_node)
+-		mtd_device_register(mtd, NULL, 0);
+-	else
+-		mtd_device_register(mtd, pdata->parts, pdata->nr_parts);
++	err = mtd_device_register(mtd, NULL, 0);
++	if (err)
++		goto return_error;
+ 
+ 	platform_set_drvdata(pdev, mtd);
+ 
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 25e267f1970c..619df2431e75 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -64,21 +64,4 @@ struct gpmc_nand_regs {
+ 	void __iomem	*gpmc_bch_result5[GPMC_BCH_NUM_REMAINDER];
+ 	void __iomem	*gpmc_bch_result6[GPMC_BCH_NUM_REMAINDER];
+ };
+-
+-struct omap_nand_platform_data {
+-	int			cs;
+-	struct mtd_partition	*parts;
+-	int			nr_parts;
+-	bool			flash_bbt;
+-	enum nand_io		xfer_type;
+-	int			devsize;
+-	enum omap_ecc           ecc_opt;
+-
+-	struct device_node	*elm_of_node;
+-
+-	/* deprecated */
+-	struct gpmc_nand_regs	reg;
+-	struct device_node	*of_node;
+-	bool			dev_ready;
+-};
+ #endif
 
-Yes, that's possible. So logging RTS/CTS + gpio transitions along with
-data will be useful.
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlnXMPUACgkQMOfwapXb+vLIdACgklep7BL/prdEupAyERGMYKhM
-9yMAoMAwd3yTIY0saQyNXlayNNV7tHBn
-=kXzC
------END PGP SIGNATURE-----
-
---Nq2Wo0NMKNjxTN9z--
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
