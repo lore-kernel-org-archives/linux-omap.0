@@ -1,55 +1,93 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [RESEND PATCH] gpio: omap: Fix lost edge interrupts
-Date: Sat, 7 Oct 2017 19:34:14 -0700
-Message-ID: <fe58a38c-6fa7-793d-ffd8-427f25c26770@oracle.com>
-References: <20171003161705.23398-1-grygorii.strashko@ti.com>
- <CACRpkdYj1+_J+-EN6QQOJzWzXNB_3N6hPPfa1sqzERZb8gsdLw@mail.gmail.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH 3/5] dmaengine: Support for querying maximum trasnfer
+ length (of an SG element)
+Date: Sun, 8 Oct 2017 10:55:15 +0530
+Message-ID: <20171008052514.GG30097@localhost>
+References: <20170912104424.18495-1-peter.ujfalusi@ti.com>
+ <20170912104424.18495-4-peter.ujfalusi@ti.com>
+ <20170921171451.GG30097@localhost>
+ <02509904-4ae8-c6f8-3514-5f77d665c9a6@ti.com>
+ <20170926165413.GQ30097@localhost>
+ <11471508-b61c-7842-2080-7f5c2f292c2b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdYj1+_J+-EN6QQOJzWzXNB_3N6hPPfa1sqzERZb8gsdLw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ladislav Michl <ladis@linux-mips.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <11471508-b61c-7842-2080-7f5c2f292c2b@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 10/7/17 4:18 AM, Linus Walleij wrote:
-> On Tue, Oct 3, 2017 at 6:17 PM, Grygorii Strashko
-> <grygorii.strashko@ti.com> wrote:
+On Mon, Oct 02, 2017 at 02:24:12PM +0300, Peter Ujfalusi wrote:
 > 
->> Now acking of edge irqs happens the following way:
->> - omap_gpio_irq_handler
->>    - "isr" = read irq status
->>    - omap_clear_gpio_irqbank(bank, isr_saved & ~level_mask);
->>          ^ clear edge status, so irq can be accepted
->>    - loop while "isr"
->>          generic_handle_irq()
->>           - handle_edge_irq()
->>              - desc->irq_data.chip->irq_ack(&desc->irq_data);
->>                  - omap_gpio_ack_irq()
->> it might be that at this moment edge IRQ was triggered again and it will be
->> cleared and IRQ will be lost.
->>
->> Use handle_simple_irq and clear edge interrupts early without disabling them in
->> omap_gpio_irq_handler to avoid loosing interrupts.
->>
->> [1] https://urldefense.proofpoint.com/v2/url?u=https-3A__marc.info_-3Fl-3Dlinux-2Domap-26m-3D149004465313534-26w-3D2&d=DwIBaQ&c=RoP1YumCXCgaWHvlZYR8PQcxBKCX5YTpkKY057SbK10&r=XBn1JQGPwR8CsE7xpP3wPlG6DQU7qw8ym65xieNZ4hY&m=GC9UD4RPcq1Ss-JanXn4japAFhT1w4RZlq9WqDLSw_o&s=smHFYjIN3O5THK4qP413bHMnr8PaWUv4xyUbbTwXHk4&e=
+> 
+> 
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> 
+> On 2017-09-26 19:54, Vinod Koul wrote:
+> >>>
+> >>> not another callback :)
+> >>>
+> >>> on a serious note, why shouldn't this be one more capability in
+> >>> dma_slave_caps. looking at next patch it seems static
+> >>
+> >> It is not really static, the size in bytes depends on the dev_width and
+> >> the maxburst:
+> >> dev_width * burst * (SZ_64K - 1);
+> > 
+> > well DMAengines work on FIFOs, in above you are giving length as SZ_64K - 1
+> > 'items' which IIUC in DMAengine terms for bytes would always refer wrt width
+> > used and burst applied.
+> 
+> I think we can live with this and let the user to figure out what to do
+> with this information.
 
-This link doesn't need to be part of the changelog.
+Right, plus a macro for conversion :) SO that users dont code buggy
+conversions all over the place
 
->> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
->> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> 
-> Patch applied for fixes.
-> 
-> I guess it is the right thing to do?
-> 
-> Other maintainers need to tell me if I should hold it back.
-> 
-Am fine with it after Grygorii's reasoning.
+> But I'm having hard time to figure out a good name for this. It is not
+> the number of SGs we can support, but the number of 'items' within one
+> SG that we have the limit. It could be:
+> u32 max_bursts_per_sg;
 
-Regards,
-Santosh
+this looks fine, another candidate I would use is words_per_sg and while at
+it why tie it to sg? should we make it words_per_txn but then people should not
+confuse with txn represented by a descriptor which can have multiple ....
 
+> 
+> which would also apply to period length (for cyclic) in a similar way.
+> 
+> > Return length in bytes does make sense (from user PoV), but then you need to
+> > "know" the applied  width and burst. How do you decide those?
+> 
+> The number of items works eDMA and sDMA, but we also have the cpp41. It
+> is a packet DMA and it has no understanding of bursts, address widths or
+> any of the 'traditional' things. It only cares about the number of bytes
+> we want to transfer and it has limitation of 4194303 bytes (21bits for
+> length). This is again per SG. How this could report the
+> 'max_bursts_per_sg' ?
+
+hmmm that is intresting case, is this number coming from USB side?
+
+> This was one of the reasons that I have settled with the callback.
+> 
+> What we can also do is to code this within the DMA drivers itself.
+> 
+> When setting up the transfer and we realize that one of the SG will not
+> going to fit, we destroy what we have done so far, pass the sg list
+> along with length/sg limit to create a new sg list where all sg item's
+> length is under the limit. Then using this new sg list we can set up the
+> transfer.
+> 
+> I'm not sure how hard is to do the sg list optimization, I see that
+> sg_split() is not what we want so we might need to code this in
+> dmaengine or in the scatterlist code.
+> 
+> We certainly don't want to verify all slave_sg transfers proactively to
+> avoid adding latency when it is not necessary.
+
+latency would be added at prepare, not when submitting..
+
+-- 
+~Vinod
