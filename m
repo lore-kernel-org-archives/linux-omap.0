@@ -1,49 +1,43 @@
-From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 0/2] USB: musb: PM fixes
-Date: Mon, 9 Oct 2017 10:09:25 +0200
-Message-ID: <20171009080925.GP2618@localhost>
-References: <20170907133748.7400-1-johan@kernel.org>
- <20171005091436.GA2618@localhost>
- <20171005151154.GD3962@atomide.com>
- <20171005151424.GE2618@localhost>
- <20171006162756.GD12182@LTA0271908.dhcp.ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 0/2] phy: ti-pipe3: Update PCIe PHY settings
+Date: Mon, 9 Oct 2017 14:33:36 +0530
+Message-ID: <20171009090338.26033-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171006162756.GD12182-zlS79ln5qqxp6PWD+TyudpdHMjK6IpyN@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
-Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 06, 2017 at 11:27:56AM -0500, Bin Liu wrote:
-> On Thu, Oct 05, 2017 at 05:14:24PM +0200, Johan Hovold wrote:
-> > On Thu, Oct 05, 2017 at 08:11:55AM -0700, Tony Lindgren wrote:
-> > > * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [171005 02:15]:
+This was supposed to only update ti-pipe3 PHY registers. However because
+of the way the ti-pipe3 PHY, OCP2SCP and PCIe controller are connected
+in dra7xx where
 
-> > > > Bin and Tony, any comments to this series?
-> > > 
-> > > Oops sorry I forgot to test these after two recent conferences. I just gave
-> > > these a try and they both behave for me. Nice fixes, for both:
-> > > 
-> > > Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > 
-> > Great, thanks for testing!
-> 
-> Tony, thanks for testing them.
-> 
-> Johan, I recently have been over loaded with a non-usb work, and it
-> probably will last for another month or two. But I will try my best to
-> get these patches and others accumulated recently into upstream in next
-> week.
-> 
-> Sorry for the delay.
+PCIe controller --------------> ti-pipe3 PHY --------------> OCP2SCP
+		  depends on		       depends on
 
-No worries, thanks for letting me know.
+updating ti-pipe3 PHY registers results in an abort.
 
-Johan
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Though the dependency between ti-pipe3 PHY and OCP2SCP is created
+(OCP2SCP is parent of ti-pipe3 PHY), and enabling ti-pipe3 PHY clocks
+should in turn enable OCP2SCP (with the help of pm_runtime framework),
+this doesn't work in no_irq stage since pm_runtime is disabled during
+no_irq stage. Since pci-dra7xx enables/initializes ti-pipe3 phy in
+no_irq stage, OCP2SCP is not enabled resulting in an abort with ti-pipe3
+PHY registers are accessed.
+
+In order to solve this a functional dependency is created between
+PCIe and ti-pipe3 PHY so that PCIe is suspended before PHY/OCP2SCP
+and resumed after PCIe PHY/OCP2SCP
+
+Kishon Vijay Abraham I (2):
+  PCI: dwc: dra7xx: Create functional dependency between PCIe and PHY
+  phy: ti-pipe3: Update pcie phy settings
+
+ drivers/pci/dwc/pci-dra7xx.c  |  16 +++++++
+ drivers/phy/ti/phy-ti-pipe3.c | 101 +++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 116 insertions(+), 1 deletion(-)
+
+-- 
+2.11.0
