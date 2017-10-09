@@ -1,93 +1,28 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 3/5] dmaengine: Support for querying maximum trasnfer
- length (of an SG element)
-Date: Sun, 8 Oct 2017 10:55:15 +0530
-Message-ID: <20171008052514.GG30097@localhost>
-References: <20170912104424.18495-1-peter.ujfalusi@ti.com>
- <20170912104424.18495-4-peter.ujfalusi@ti.com>
- <20170921171451.GG30097@localhost>
- <02509904-4ae8-c6f8-3514-5f77d665c9a6@ti.com>
- <20170926165413.GQ30097@localhost>
- <11471508-b61c-7842-2080-7f5c2f292c2b@ti.com>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: Re: [PATCH ] cpufreq: ti-cpufreq: kfree opp_data when failure
+Date: Mon, 9 Oct 2017 13:51:00 +0800
+Message-ID: <5dbd2161-1cef-01c4-ac3a-19fcd4cc19f7@windriver.com>
+References: <1506496097-30852-1-git-send-email-zumeng.chen@windriver.com>
+ <20170927174026.GB12211@ubuntu>
+ <7b7315f0-c2e4-a09e-8769-2d15a167fa73@windriver.com>
+ <20170928041933.GG12211@ubuntu>
+ <7a2171a3-d594-7fd7-2ccf-75ef7110dd98@windriver.com>
+ <20171004053642.GA8478@vireshk-i7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <11471508-b61c-7842-2080-7f5c2f292c2b@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20171004053642.GA8478@vireshk-i7>
+Sender: linux-pm-owner@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: linux-pm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, rjw@rjwysocki.net, d-gerlach@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 02, 2017 at 02:24:12PM +0300, Peter Ujfalusi wrote:
-> 
-> 
-> 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> 
-> On 2017-09-26 19:54, Vinod Koul wrote:
-> >>>
-> >>> not another callback :)
-> >>>
-> >>> on a serious note, why shouldn't this be one more capability in
-> >>> dma_slave_caps. looking at next patch it seems static
-> >>
-> >> It is not really static, the size in bytes depends on the dev_width and
-> >> the maxburst:
-> >> dev_width * burst * (SZ_64K - 1);
-> > 
-> > well DMAengines work on FIFOs, in above you are giving length as SZ_64K - 1
-> > 'items' which IIUC in DMAengine terms for bytes would always refer wrt width
-> > used and burst applied.
-> 
-> I think we can live with this and let the user to figure out what to do
-> with this information.
-
-Right, plus a macro for conversion :) SO that users dont code buggy
-conversions all over the place
-
-> But I'm having hard time to figure out a good name for this. It is not
-> the number of SGs we can support, but the number of 'items' within one
-> SG that we have the limit. It could be:
-> u32 max_bursts_per_sg;
-
-this looks fine, another candidate I would use is words_per_sg and while at
-it why tie it to sg? should we make it words_per_txn but then people should not
-confuse with txn represented by a descriptor which can have multiple ....
-
-> 
-> which would also apply to period length (for cyclic) in a similar way.
-> 
-> > Return length in bytes does make sense (from user PoV), but then you need to
-> > "know" the applied  width and burst. How do you decide those?
-> 
-> The number of items works eDMA and sDMA, but we also have the cpp41. It
-> is a packet DMA and it has no understanding of bursts, address widths or
-> any of the 'traditional' things. It only cares about the number of bytes
-> we want to transfer and it has limitation of 4194303 bytes (21bits for
-> length). This is again per SG. How this could report the
-> 'max_bursts_per_sg' ?
-
-hmmm that is intresting case, is this number coming from USB side?
-
-> This was one of the reasons that I have settled with the callback.
-> 
-> What we can also do is to code this within the DMA drivers itself.
-> 
-> When setting up the transfer and we realize that one of the SG will not
-> going to fit, we destroy what we have done so far, pass the sg list
-> along with length/sg limit to create a new sg list where all sg item's
-> length is under the limit. Then using this new sg list we can set up the
-> transfer.
-> 
-> I'm not sure how hard is to do the sg list optimization, I see that
-> sg_split() is not what we want so we might need to code this in
-> dmaengine or in the scatterlist code.
-> 
-> We certainly don't want to verify all slave_sg transfers proactively to
-> avoid adding latency when it is not necessary.
-
-latency would be added at prepare, not when submitting..
-
--- 
-~Vinod
+On 10/04/2017 01:36 PM, Viresh Kumar wrote:
+> On 28-09-17, 13:00, Zumeng Chen wrote:
+>> Yes, you are right, it seems of_node_put(np) that you mentioned were
+>> ignored by both paths. If you don't mind I can deliver a separate patch
+>> to fix this based on some testing later.
+> Yeah, that's exactly how I want it.
+>
+OK,  I'll do it when I'm back from vacation, thanks ~
