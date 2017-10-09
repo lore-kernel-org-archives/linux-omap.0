@@ -1,50 +1,49 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 1/2] ARM: dts: dra7: Increase max-voltage of pbias regulator
-Date: Mon, 9 Oct 2017 11:23:11 +0530
-Message-ID: <20171009055312.24165-2-kishon@ti.com>
-References: <20171009055312.24165-1-kishon@ti.com>
+From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 0/2] USB: musb: PM fixes
+Date: Mon, 9 Oct 2017 10:09:25 +0200
+Message-ID: <20171009080925.GP2618@localhost>
+References: <20170907133748.7400-1-johan@kernel.org>
+ <20171005091436.GA2618@localhost>
+ <20171005151154.GD3962@atomide.com>
+ <20171005151424.GE2618@localhost>
+ <20171006162756.GD12182@LTA0271908.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171009055312.24165-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Ravikumar Kattekola <rk@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171006162756.GD12182-zlS79ln5qqxp6PWD+TyudpdHMjK6IpyN@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bin Liu <b-liu-l0cyMroinI0@public.gmane.org>
+Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Ravikumar Kattekola <rk@ti.com>
+On Fri, Oct 06, 2017 at 11:27:56AM -0500, Bin Liu wrote:
+> On Thu, Oct 05, 2017 at 05:14:24PM +0200, Johan Hovold wrote:
+> > On Thu, Oct 05, 2017 at 08:11:55AM -0700, Tony Lindgren wrote:
+> > > * Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [171005 02:15]:
 
-As per recent TRM, PBIAS cell on dra7 devices supports
-3.3v and not 3.0v as documented earlier.
+> > > > Bin and Tony, any comments to this series?
+> > > 
+> > > Oops sorry I forgot to test these after two recent conferences. I just gave
+> > > these a try and they both behave for me. Nice fixes, for both:
+> > > 
+> > > Tested-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> > 
+> > Great, thanks for testing!
+> 
+> Tony, thanks for testing them.
+> 
+> Johan, I recently have been over loaded with a non-usb work, and it
+> probably will last for another month or two. But I will try my best to
+> get these patches and others accumulated recently into upstream in next
+> week.
+> 
+> Sorry for the delay.
 
-Update PBIAS regulator max voltage to match this.
+No worries, thanks for letting me know.
 
-Document reference:
-SPRUI30C – DRA75x, DRA74x Technical reference manual- November 2016
-
-Tested on:
-DRA75x PG 2.0 REV H EVM
-
-Signed-off-by: Ravikumar Kattekola <rk@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/dra7.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 02a136a4661a..14d75c589369 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -170,7 +170,7 @@
- 						pbias_mmc_reg: pbias_mmc_omap5 {
- 							regulator-name = "pbias_mmc_omap5";
- 							regulator-min-microvolt = <1800000>;
--							regulator-max-microvolt = <3000000>;
-+							regulator-max-microvolt = <3300000>;
- 						};
- 					};
- 
--- 
-2.11.0
+Johan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
