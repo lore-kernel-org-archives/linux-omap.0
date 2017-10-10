@@ -1,59 +1,169 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] regulator: lp873x: Update the enable mask for LDOs and
- BUCKs
-Date: Tue, 10 Oct 2017 09:55:21 +0100
-Message-ID: <20171010085521.sax2kpxdzznfzpv2@sirena.co.uk>
-References: <1506515140-26058-1-git-send-email-j-keerthy@ti.com>
- <20171009142053.rogvykzmoatduv6i@sirena.co.uk>
- <72182869-6102-1178-91c4-0be632d4be32@ti.com>
- <20171009155026.63aghfli7bkemiux@sirena.co.uk>
- <0e3aba27-d17a-1c3a-f384-5e393310668b@ti.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: [RESEND PATCH] mtd: nand: omap2: Remove omap_nand_platform_data
+Date: Tue, 10 Oct 2017 11:40:47 +0200
+Message-ID: <20171010114047.202d7d44@bbrezillon>
+References: <20171006103543.gnb2hxq7msallyzl@lenoch>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="gghsmsyfh43xpgik"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <0e3aba27-d17a-1c3a-f384-5e393310668b@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20171006103543.gnb2hxq7msallyzl@lenoch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Richard Weinberger <richard@nod.at>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, 6 Oct 2017 12:35:43 +0200
+Ladislav Michl <ladis@linux-mips.org> wrote:
 
---gghsmsyfh43xpgik
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> As driver is now configured using DT, omap_nand_platform_data structure
+> is no longer needed.
+> 
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> ---
+>  Resend to linux-mtd as other part this patch was depending on
+>  was merged months ago via linux-omap tree...
+> 
+>  drivers/mtd/nand/omap2.c                     | 40 +++++++---------------------
+>  include/linux/platform_data/mtd-nand-omap2.h | 17 ------------
+>  2 files changed, 10 insertions(+), 47 deletions(-)
+> 
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 54540c8fa1a2..b1fc070c8279 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -1588,8 +1588,7 @@ static bool is_elm_present(struct omap_nand_info *info,
+>  	return true;
+>  }
+>  
+> -static bool omap2_nand_ecc_check(struct omap_nand_info *info,
+> -				 struct omap_nand_platform_data	*pdata)
+> +static bool omap2_nand_ecc_check(struct omap_nand_info *info)
+>  {
+>  	bool ecc_needs_bch, ecc_needs_omap_bch, ecc_needs_elm;
+>  
+> @@ -1804,7 +1803,6 @@ static const struct mtd_ooblayout_ops omap_sw_ooblayout_ops = {
+>  static int omap_nand_probe(struct platform_device *pdev)
+>  {
+>  	struct omap_nand_info		*info;
+> -	struct omap_nand_platform_data	*pdata = NULL;
+>  	struct mtd_info			*mtd;
+>  	struct nand_chip		*nand_chip;
+>  	int				err;
+> @@ -1814,6 +1812,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  	int				min_oobbytes = BADBLOCK_MARKER_LENGTH;
+>  	int				oobbytes_per_step;
+>  
+> +	if (!dev->of_node)
+> +		return -EINVAL;
+> +
 
-On Tue, Oct 10, 2017 at 07:34:52AM +0530, Keerthy wrote:
-> On Monday 09 October 2017 09:20 PM, Mark Brown wrote:
-> > On Mon, Oct 09, 2017 at 06:35:14PM +0300, Tero Kristo wrote:
+Is this really needed? I expect omap_get_dt_info() to return an error
+when dev->of_node is NULL.
 
-> >> I wonder if we should tie this somehow to the system-power-controller
-> >> property though.... If the PMIC is not system-power-controller, we should
-> >> disable the EN_PIN_CTRL from all regulators so that they don't go down if
-> >> the EN_PIN itself is floating for example.
+>  	info = devm_kzalloc(&pdev->dev, sizeof(struct omap_nand_info),
+>  				GFP_KERNEL);
+>  	if (!info)
+> @@ -1821,29 +1822,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  
+>  	info->pdev = pdev;
+>  
+> -	if (dev->of_node) {
+> -		if (omap_get_dt_info(dev, info))
+> -			return -EINVAL;
+> -	} else {
+> -		pdata = dev_get_platdata(&pdev->dev);
+> -		if (!pdata) {
+> -			dev_err(&pdev->dev, "platform data missing\n");
+> -			return -EINVAL;
+> -		}
+> -
+> -		info->gpmc_cs = pdata->cs;
+> -		info->reg = pdata->reg;
+> -		info->ecc_opt = pdata->ecc_opt;
+> -		if (pdata->dev_ready)
+> -			dev_info(&pdev->dev, "pdata->dev_ready is deprecated\n");
+> -
+> -		info->xfer_type = pdata->xfer_type;
+> -		info->devsize = pdata->devsize;
+> -		info->elm_of_node = pdata->elm_of_node;
+> -		info->flash_bbt = pdata->flash_bbt;
+> -	}
+> +	if (omap_get_dt_info(dev, info))
+> +		return -EINVAL;
+>  
+> -	platform_set_drvdata(pdev, info);
 
-> > Seems plausible, if someone does decided to use control at runtime the
-> > behaviour can always be changed if the GPIO is present.
+This removal seems unrelated to the change you're describing in the
+commit log. I'm not saying we should keep this platform_set_drvdata()
+if it's useless, but it should be done in a separate patch.
 
-> Okay. So Implement a poweroff function where EN pin magic is done based
-> on system-power-controller property?
+>  	info->ops = gpmc_omap_get_nand_ops(&info->reg, info->gpmc_cs);
+>  	if (!info->ops) {
+>  		dev_err(&pdev->dev, "Failed to get GPMC->NAND interface\n");
+> @@ -2002,7 +1983,7 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  		goto return_error;
+>  	}
+>  
+> -	if (!omap2_nand_ecc_check(info, pdata)) {
+> +	if (!omap2_nand_ecc_check(info)) {
+>  		err = -EINVAL;
+>  		goto return_error;
+>  	}
+> @@ -2167,10 +2148,9 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  	if (err)
+>  		goto return_error;
+>  
+> -	if (dev->of_node)
+> -		mtd_device_register(mtd, NULL, 0);
+> -	else
+> -		mtd_device_register(mtd, pdata->parts, pdata->nr_parts);
+> +	err = mtd_device_register(mtd, NULL, 0);
+> +	if (err)
+> +		goto return_error;
+>  
+>  	platform_set_drvdata(pdev, mtd);
+>  
+> diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+> index 25e267f1970c..619df2431e75 100644
+> --- a/include/linux/platform_data/mtd-nand-omap2.h
+> +++ b/include/linux/platform_data/mtd-nand-omap2.h
+> @@ -64,21 +64,4 @@ struct gpmc_nand_regs {
+>  	void __iomem	*gpmc_bch_result5[GPMC_BCH_NUM_REMAINDER];
+>  	void __iomem	*gpmc_bch_result6[GPMC_BCH_NUM_REMAINDER];
+>  };
+> -
+> -struct omap_nand_platform_data {
+> -	int			cs;
+> -	struct mtd_partition	*parts;
+> -	int			nr_parts;
+> -	bool			flash_bbt;
+> -	enum nand_io		xfer_type;
+> -	int			devsize;
+> -	enum omap_ecc           ecc_opt;
+> -
+> -	struct device_node	*elm_of_node;
+> -
+> -	/* deprecated */
+> -	struct gpmc_nand_regs	reg;
+> -	struct device_node	*of_node;
+> -	bool			dev_ready;
+> -};
+>  #endif
+> 
+> ______________________________________________________
+> Linux MTD discussion mailing list
+> http://lists.infradead.org/mailman/listinfo/linux-mtd/
 
-That's up to you lot.
 
---gghsmsyfh43xpgik
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlncivgACgkQJNaLcl1U
-h9Difwf7B7waMpuLG5mmdOYYOSKBzy8fx3ao5RalgIsyc/PPZy/+55gQRon7EeKN
-SoDzjUF6cG8DCNGz7B8qVOoUDgroaPXvOWiYSVcY8TstwO7zrGYU6Dyn60ELKQUS
-PLkPoYUTHoDax7sfoClnR+rF/N1xKwiyYG9x4x0T0GSYRvwrFrOUNR1eW1nEi7+7
-zkD9q5oNw7fMrmdE5IS/DQjzZoNckc4bBraNTnAg8lYDQdkh3pW7Z8JxoYCii+yR
-RRagDzKcfatrAeMXD07neo+yKJGfnDxgDtHEmtTVp+yJThAfrxmAD20YdJuB4haO
-9tpT7oF60naQtSkAl59hzC8QV9t9jQ==
-=jD/m
------END PGP SIGNATURE-----
-
---gghsmsyfh43xpgik--
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
