@@ -1,45 +1,116 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] regulator: lp873x: Update the enable mask for LDOs and
- BUCKs
-Date: Tue, 10 Oct 2017 07:34:52 +0530
-Message-ID: <0e3aba27-d17a-1c3a-f384-5e393310668b@ti.com>
-References: <1506515140-26058-1-git-send-email-j-keerthy@ti.com>
- <20171009142053.rogvykzmoatduv6i@sirena.co.uk>
- <72182869-6102-1178-91c4-0be632d4be32@ti.com>
- <20171009155026.63aghfli7bkemiux@sirena.co.uk>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/2] PCI: dwc: dra7xx: Create functional dependency
+ between PCIe and PHY
+Date: Tue, 10 Oct 2017 10:19:28 +0300
+Message-ID: <f258c2f0-11a2-60ac-3919-dcc0badfa870@ti.com>
+References: <20171009090338.26033-1-kishon@ti.com>
+ <20171009090338.26033-2-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171009155026.63aghfli7bkemiux@sirena.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20171009090338.26033-2-kishon@ti.com>
+Content-Language: en-GB
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+=EF=BB=BF
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
+siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
+On 09/10/17 12:03, Kishon Vijay Abraham I wrote:
+> PCI core access configuration space registers in resume_noirq callbacks.
+> In the case of dra7xx, PIPE3 PHY connected to PCIe controller has to be
+> enabled before accessing configuration space registers. Since
+> PIPE3 PHY is enabled by only configuring control module registers, no
+> aborts has been observed so far (though during noirq stage, interface
+> clock of PIPE3 PHY is not enabled).
+>=20
+> With new TRM updates, PIPE3 PHY has to be initialized (PIPE3 PHY
+> registers has to be accessed) as well which requires the interface
+> clock of PIPE3 PHY to be enabled. The interface clock of PIPE3 PHY is
+> derived from OCP2SCP and hence PCIe PHY is modeled as a child of
+> OCP2SCP. Since pm_runtime is not enabled during noirq stage,
+> pm_runtime_get_sync done in phy_init doesn't enable
+> OCP2SCP clocks resulting in abort when PIPE3 PHY registers are
+> accessed.
 
-On Monday 09 October 2017 09:20 PM, Mark Brown wrote:
-> On Mon, Oct 09, 2017 at 06:35:14PM +0300, Tero Kristo wrote:
-> 
->> The EN signal coming in to the PMIC is actually used to poweroff the system
->> completely. There is no other mechanism for doing this in lp873x based
->> systems, they removed the bit for controlling dev-power-off from the
->> register space. If the EN bit is down for a specific regulator, it won't go
->> down when attempting to poweroff the system, otherwise the state of a
->> regulator is the result of (EN_PIN | EN_BIT).
-> 
-> This should be clear from the changelog (and probably the code as well).
-> 
->> I wonder if we should tie this somehow to the system-power-controller
->> property though.... If the PMIC is not system-power-controller, we should
->> disable the EN_PIN_CTRL from all regulators so that they don't go down if
->> the EN_PIN itself is floating for example.
-> 
-> Seems plausible, if someone does decided to use control at runtime the
-> behaviour can always be changed if the GPIO is present.
+This could be the case not only with PCIe but even with USB and SATA?
+Maybe today it doesn't complain because USB/SATA is being resumed (by chanc=
+e) after PHY?
 
-Okay. So Implement a poweroff function where EN pin magic is done based
-on system-power-controller property?
+>=20
+> Create a function dependency between PCIe and PHY here to make
+> sure PCIe is suspended before PCIe PHY/OCP2SCP and resumed after
+> PCIe PHY/OCP2SCP.
+>=20
+> Suggested-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+>=20
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 34427a6a15af..362607f727ee 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -11,6 +11,7 @@
+>   */
+> =20
+>  #include <linux/delay.h>
+> +#include <linux/device.h>
+>  #include <linux/err.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/irq.h>
+> @@ -594,6 +595,7 @@ static int __init dra7xx_pcie_probe(struct platform_d=
+evice *pdev)
+>  	int i;
+>  	int phy_count;
+>  	struct phy **phy;
+> +	struct device_link **link;
+>  	void __iomem *base;
+>  	struct resource *res;
+>  	struct dw_pcie *pci;
+> @@ -649,11 +651,21 @@ static int __init dra7xx_pcie_probe(struct platform=
+_device *pdev)
+>  	if (!phy)
+>  		return -ENOMEM;
+> =20
+> +	link =3D devm_kzalloc(dev, sizeof(*link) * phy_count, GFP_KERNEL);
+> +	if (!link)
+> +		return -ENOMEM;
+> +
+>  	for (i =3D 0; i < phy_count; i++) {
+>  		snprintf(name, sizeof(name), "pcie-phy%d", i);
+>  		phy[i] =3D devm_phy_get(dev, name);
+>  		if (IS_ERR(phy[i]))
+>  			return PTR_ERR(phy[i]);
+> +
+> +		link[i] =3D device_link_add(dev, &phy[i]->dev, DL_FLAG_STATELESS);
+> +		if (!link[i]) {
+> +			ret =3D -EINVAL;
+> +			goto err_link;
+> +		}
+>  	}
+> =20
+>  	dra7xx->base =3D base;
+> @@ -732,6 +744,10 @@ static int __init dra7xx_pcie_probe(struct platform_=
+device *pdev)
+>  	pm_runtime_disable(dev);
+>  	dra7xx_pcie_disable_phy(dra7xx);
+> =20
+> +err_link:
+> +	while (--i >=3D 0)
+> +		device_link_del(link[i]);
+> +
+>  	return ret;
+>  }
+> =20
+>=20
 
-> 
+--=20
+cheers,
+-roger
