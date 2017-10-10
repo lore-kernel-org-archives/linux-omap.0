@@ -1,69 +1,59 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/2] PCI: dwc: dra7xx: Create functional dependency
- between PCIe and PHY
-Date: Tue, 10 Oct 2017 10:59:18 +0300
-Message-ID: <9dce2e30-a245-460d-a808-a733eaf7ffec@ti.com>
-References: <20171009090338.26033-1-kishon@ti.com>
- <20171009090338.26033-2-kishon@ti.com>
- <f258c2f0-11a2-60ac-3919-dcc0badfa870@ti.com>
- <ac5b3f42-19a1-3f8d-3bb6-37d63c3574de@ti.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] regulator: lp873x: Update the enable mask for LDOs and
+ BUCKs
+Date: Tue, 10 Oct 2017 09:55:21 +0100
+Message-ID: <20171010085521.sax2kpxdzznfzpv2@sirena.co.uk>
+References: <1506515140-26058-1-git-send-email-j-keerthy@ti.com>
+ <20171009142053.rogvykzmoatduv6i@sirena.co.uk>
+ <72182869-6102-1178-91c4-0be632d4be32@ti.com>
+ <20171009155026.63aghfli7bkemiux@sirena.co.uk>
+ <0e3aba27-d17a-1c3a-f384-5e393310668b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <ac5b3f42-19a1-3f8d-3bb6-37d63c3574de@ti.com>
-Content-Language: en-GB
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="gghsmsyfh43xpgik"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0e3aba27-d17a-1c3a-f384-5e393310668b@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-=EF=BB=BF
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
-siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
-On 10/10/17 10:42, Kishon Vijay Abraham I wrote:
-> Roger,
->=20
-> On Tuesday 10 October 2017 12:49 PM, Roger Quadros wrote:
->> On 09/10/17 12:03, Kishon Vijay Abraham I wrote:
->>> PCI core access configuration space registers in resume_noirq callbacks=
-.
->>> In the case of dra7xx, PIPE3 PHY connected to PCIe controller has to be
->>> enabled before accessing configuration space registers. Since
->>> PIPE3 PHY is enabled by only configuring control module registers, no
->>> aborts has been observed so far (though during noirq stage, interface
->>> clock of PIPE3 PHY is not enabled).
->>>
->>> With new TRM updates, PIPE3 PHY has to be initialized (PIPE3 PHY
->>> registers has to be accessed) as well which requires the interface
->>> clock of PIPE3 PHY to be enabled. The interface clock of PIPE3 PHY is
->>> derived from OCP2SCP and hence PCIe PHY is modeled as a child of
->>> OCP2SCP. Since pm_runtime is not enabled during noirq stage,
->>> pm_runtime_get_sync done in phy_init doesn't enable
->>> OCP2SCP clocks resulting in abort when PIPE3 PHY registers are
->>> accessed.
->>
->> This could be the case not only with PCIe but even with USB and SATA?
->=20
-> right, if USB/SATA driver has no_irq callbacks then the same issue might =
-occur.
+--gghsmsyfh43xpgik
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-OK. Is this something that we should document in Documentation/phy.txt?
+On Tue, Oct 10, 2017 at 07:34:52AM +0530, Keerthy wrote:
+> On Monday 09 October 2017 09:20 PM, Mark Brown wrote:
+> > On Mon, Oct 09, 2017 at 06:35:14PM +0300, Tero Kristo wrote:
 
-> But looks like none of them uses no_irq callbacks.
+> >> I wonder if we should tie this somehow to the system-power-controller
+> >> property though.... If the PMIC is not system-power-controller, we should
+> >> disable the EN_PIN_CTRL from all regulators so that they don't go down if
+> >> the EN_PIN itself is floating for example.
 
->> Maybe today it doesn't complain because USB/SATA is being resumed (by ch=
-ance) after PHY?
->=20
-> But once pm_runtime is enabled, USB/SATA can enable PHY which in turn wil=
-l
-> enable OCP2SCP and PHY can be accessed without any issues.
->=20
-> Thanks
-> Kishon
->=20
+> > Seems plausible, if someone does decided to use control at runtime the
+> > behaviour can always be changed if the GPIO is present.
 
---=20
-cheers,
--roger
+> Okay. So Implement a poweroff function where EN pin magic is done based
+> on system-power-controller property?
+
+That's up to you lot.
+
+--gghsmsyfh43xpgik
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlncivgACgkQJNaLcl1U
+h9Difwf7B7waMpuLG5mmdOYYOSKBzy8fx3ao5RalgIsyc/PPZy/+55gQRon7EeKN
+SoDzjUF6cG8DCNGz7B8qVOoUDgroaPXvOWiYSVcY8TstwO7zrGYU6Dyn60ELKQUS
+PLkPoYUTHoDax7sfoClnR+rF/N1xKwiyYG9x4x0T0GSYRvwrFrOUNR1eW1nEi7+7
+zkD9q5oNw7fMrmdE5IS/DQjzZoNckc4bBraNTnAg8lYDQdkh3pW7Z8JxoYCii+yR
+RRagDzKcfatrAeMXD07neo+yKJGfnDxgDtHEmtTVp+yJThAfrxmAD20YdJuB4haO
+9tpT7oF60naQtSkAl59hzC8QV9t9jQ==
+=jD/m
+-----END PGP SIGNATURE-----
+
+--gghsmsyfh43xpgik--
