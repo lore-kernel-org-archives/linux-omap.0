@@ -1,72 +1,60 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 3/3] misc: pci_endpoint_test: Fix BUG_ON error during pci_disable_msi
-Date: Wed, 11 Oct 2017 14:14:38 +0530
-Message-ID: <20171011084438.8296-4-kishon@ti.com>
-References: <20171011084438.8296-1-kishon@ti.com>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH] of: Devices with pci_epf_bus_type require DMA configuration
+Date: Wed, 11 Oct 2017 08:07:21 -0500
+Message-ID: <CAL_JsqLLgCt+wS5uFmLXB5Z-_vb-akme0hXjemtc_gzQwpwPYA@mail.gmail.com>
+References: <20171011080041.12918-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171011084438.8296-1-kishon@ti.com>
+In-Reply-To: <20171011080041.12918-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Robin Murphy <robin.murphy@arm.com>, Christoph Hellwig <hch@lst.de>, Mark Rutland <mark.rutland@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-pci_disable_msi throws a Kernel BUG if the driver has
-successfully requested an irq and not released it. Fix it here by freeing
-irqs before invoking pci_disable_msi.
+On Wed, Oct 11, 2017 at 3:00 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+> pci-epc-core.c invokes of_dma_configure in order to configure
+> the coherent_dma_mask/dma_mask of endpoint function device. This is
+> required for dma_alloc_coherent to succeed in pci function driver
+> (pci-epf-test.c). However after
+> commit 723288836628bc1c08 ("of: restrict DMA configuration"),
+> of_dma_configure doesn't configure the coherent_dma_mask/dma_mask
+> of endpoint function device (since it doesn't have dma-ranges
+> property), resulting in dma_alloc_coherent in pci endpoint function
+> driver to to fail. Fix it by making sure of_dma_configure configures
+> coherent_dma_mask/dma_mask irrespective of whether the node has
+> dma-ranges property or not.
+>
+> Fixes: 723288836628bc1c08 ("of: restrict DMA configuration")
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/of/device.c                 | 4 +++-
+>  drivers/pci/endpoint/pci-epf-core.c | 3 +--
+>  include/linux/pci-epf.h             | 1 +
+>  3 files changed, 5 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/of/device.c b/drivers/of/device.c
+> index 64b710265d39..881cf80a3d69 100644
+> --- a/drivers/of/device.c
+> +++ b/drivers/of/device.c
+> @@ -10,6 +10,7 @@
+>  #include <linux/mod_devicetable.h>
+>  #include <linux/slab.h>
+>  #include <linux/pci.h>
+> +#include <linux/pci-epf.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/amba/bus.h>
+>
+> @@ -105,7 +106,8 @@ int of_dma_configure(struct device *dev, struct device_node *np)
+>  #ifdef CONFIG_ARM_AMBA
+>                     dev->bus != &amba_bustype &&
+>  #endif
+> -                   dev->bus != &platform_bus_type)
+> +                   dev->bus != &platform_bus_type &&
+> +                   dev->bus != &pci_epf_bus_type)
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/misc/pci_endpoint_test.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+This is going to fail when this PCI is disabled. There's some
+restructuring of this code proposed that will help you that I copied
+you on.
 
-diff --git a/drivers/misc/pci_endpoint_test.c b/drivers/misc/pci_endpoint_test.c
-index 5cb624b6fa0a..086a7f85c2c0 100644
---- a/drivers/misc/pci_endpoint_test.c
-+++ b/drivers/misc/pci_endpoint_test.c
-@@ -92,6 +92,7 @@ struct pci_endpoint_test {
- 	void __iomem	*bar[6];
- 	struct completion irq_raised;
- 	int		last_irq;
-+	int		num_irqs;
- 	/* mutex to protect the ioctls */
- 	struct mutex	mutex;
- 	struct miscdevice miscdev;
-@@ -504,6 +505,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
- 		irq = pci_alloc_irq_vectors(pdev, 1, 32, PCI_IRQ_MSI);
- 		if (irq < 0)
- 			dev_err(dev, "failed to get MSI interrupts\n");
-+		test->num_irqs = irq;
- 	}
- 
- 	err = devm_request_irq(dev, pdev->irq, pci_endpoint_test_irqhandler,
-@@ -578,6 +580,9 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
- 			pci_iounmap(pdev, test->bar[bar]);
- 	}
- 
-+	for (i = 0; i < irq; i++)
-+		devm_free_irq(dev, pdev->irq + i, test);
-+
- err_disable_msi:
- 	pci_disable_msi(pdev);
- 	pci_release_regions(pdev);
-@@ -591,6 +596,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
- static void pci_endpoint_test_remove(struct pci_dev *pdev)
- {
- 	int id;
-+	int i;
- 	enum pci_barno bar;
- 	struct pci_endpoint_test *test = pci_get_drvdata(pdev);
- 	struct miscdevice *misc_device = &test->miscdev;
-@@ -605,6 +611,8 @@ static void pci_endpoint_test_remove(struct pci_dev *pdev)
- 		if (test->bar[bar])
- 			pci_iounmap(pdev, test->bar[bar]);
- 	}
-+	for (i = 0; i < test->num_irqs; i++)
-+		devm_free_irq(&pdev->dev, pdev->irq + i, test);
- 	pci_disable_msi(pdev);
- 	pci_release_regions(pdev);
- 	pci_disable_device(pdev);
--- 
-2.11.0
+Rob
