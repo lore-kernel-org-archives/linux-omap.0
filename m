@@ -1,32 +1,44 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 0/3] pci_endpoint_test: Fix module removal/insertion cycle
-Date: Wed, 11 Oct 2017 14:14:35 +0530
-Message-ID: <20171011084438.8296-1-kishon@ti.com>
+Subject: [PATCH 1/3] misc: pci_endpoint_test: Fix failure path return values in probe
+Date: Wed, 11 Oct 2017 14:14:36 +0530
+Message-ID: <20171011084438.8296-2-kishon@ti.com>
+References: <20171011084438.8296-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171011084438.8296-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kishon Vijay Abraham I <kishon@ti.com>
 Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-This series fixes module removal/insertion cycle of pci_endpoint_test.
+Return value of pci_endpoint_test_probe is not set properly in
+a couple of failure cases. Fix it here.
 
-Without this series, when trying to modprobe pci_endpoint_test after
-rmmod pci_endpoint_test results in the following errors.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/misc/pci_endpoint_test.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-pci-endpoint-test 0000:01:00.0: BAR 0: can't reserve [mem 0x20204600-0x202046ff]
-pci-endpoint-test 0000:01:00.0: Cannot obtain PCI resources
-pci-endpoint-test: probe of 0000:01:00.0 failed with error -16
-
-Kishon Vijay Abraham I (3):
-  misc: pci_endpoint_test: Fix failure path return values in probe
-  misc: pci_endpoint_test: Fix pci_endpoint_test not releasing resources
-    on remove
-  misc: pci_endpoint_test: Fix BUG_ON error during pci_disable_msi
-
- drivers/misc/pci_endpoint_test.c | 22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/misc/pci_endpoint_test.c b/drivers/misc/pci_endpoint_test.c
+index deb203026496..e787a63a321a 100644
+--- a/drivers/misc/pci_endpoint_test.c
++++ b/drivers/misc/pci_endpoint_test.c
+@@ -533,6 +533,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
+ 
+ 	test->base = test->bar[test_reg_bar];
+ 	if (!test->base) {
++		err = -ENOMEM;
+ 		dev_err(dev, "Cannot perform PCI test without BAR%d\n",
+ 			test_reg_bar);
+ 		goto err_iounmap;
+@@ -542,6 +543,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
+ 
+ 	id = ida_simple_get(&pci_endpoint_test_ida, 0, 0, GFP_KERNEL);
+ 	if (id < 0) {
++		err = id;
+ 		dev_err(dev, "unable to get id\n");
+ 		goto err_iounmap;
+ 	}
 -- 
 2.11.0
