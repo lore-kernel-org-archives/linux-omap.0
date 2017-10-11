@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 2/3] misc: pci_endpoint_test: Fix pci_endpoint_test not releasing resources on remove
-Date: Wed, 11 Oct 2017 14:14:37 +0530
-Message-ID: <20171011084438.8296-3-kishon@ti.com>
+Subject: [PATCH 3/3] misc: pci_endpoint_test: Fix BUG_ON error during pci_disable_msi
+Date: Wed, 11 Oct 2017 14:14:38 +0530
+Message-ID: <20171011084438.8296-4-kishon@ti.com>
 References: <20171011084438.8296-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,54 +12,61 @@ To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.or
 Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-sscanf(misc_device->name, DRV_MODULE_NAME ".%d", &id) in
-pci_endpoint_test_remove returns '0' which results in
-pci_endpoint_test_remove returning early without releasing the resources.
-This is as a result of misc_device not having a valid name. Fix it here.
+pci_disable_msi throws a Kernel BUG if the driver has
+successfully requested an irq and not released it. Fix it here by freeing
+irqs before invoking pci_disable_msi.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/misc/pci_endpoint_test.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/misc/pci_endpoint_test.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/drivers/misc/pci_endpoint_test.c b/drivers/misc/pci_endpoint_test.c
-index e787a63a321a..5cb624b6fa0a 100644
+index 5cb624b6fa0a..086a7f85c2c0 100644
 --- a/drivers/misc/pci_endpoint_test.c
 +++ b/drivers/misc/pci_endpoint_test.c
-@@ -551,17 +551,24 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
- 	snprintf(name, sizeof(name), DRV_MODULE_NAME ".%d", id);
- 	misc_device = &test->miscdev;
- 	misc_device->minor = MISC_DYNAMIC_MINOR;
--	misc_device->name = name;
-+	misc_device->name = kstrdup(name, GFP_KERNEL);
-+	if (!misc_device->name) {
-+		err = -ENOMEM;
-+		goto err_ida_remove;
-+	}
- 	misc_device->fops = &pci_endpoint_test_fops,
- 
- 	err = misc_register(misc_device);
- 	if (err) {
- 		dev_err(dev, "failed to register device\n");
--		goto err_ida_remove;
-+		goto err_kfree_name;
+@@ -92,6 +92,7 @@ struct pci_endpoint_test {
+ 	void __iomem	*bar[6];
+ 	struct completion irq_raised;
+ 	int		last_irq;
++	int		num_irqs;
+ 	/* mutex to protect the ioctls */
+ 	struct mutex	mutex;
+ 	struct miscdevice miscdev;
+@@ -504,6 +505,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
+ 		irq = pci_alloc_irq_vectors(pdev, 1, 32, PCI_IRQ_MSI);
+ 		if (irq < 0)
+ 			dev_err(dev, "failed to get MSI interrupts\n");
++		test->num_irqs = irq;
  	}
  
- 	return 0;
+ 	err = devm_request_irq(dev, pdev->irq, pci_endpoint_test_irqhandler,
+@@ -578,6 +580,9 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
+ 			pci_iounmap(pdev, test->bar[bar]);
+ 	}
  
-+err_kfree_name:
-+	kfree(misc_device->name);
++	for (i = 0; i < irq; i++)
++		devm_free_irq(dev, pdev->irq + i, test);
 +
- err_ida_remove:
- 	ida_simple_remove(&pci_endpoint_test_ida, id);
- 
-@@ -592,6 +599,7 @@ static void pci_endpoint_test_remove(struct pci_dev *pdev)
- 		return;
- 
- 	misc_deregister(&test->miscdev);
-+	kfree(misc_device->name);
- 	ida_simple_remove(&pci_endpoint_test_ida, id);
- 	for (bar = BAR_0; bar <= BAR_5; bar++) {
+ err_disable_msi:
+ 	pci_disable_msi(pdev);
+ 	pci_release_regions(pdev);
+@@ -591,6 +596,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
+ static void pci_endpoint_test_remove(struct pci_dev *pdev)
+ {
+ 	int id;
++	int i;
+ 	enum pci_barno bar;
+ 	struct pci_endpoint_test *test = pci_get_drvdata(pdev);
+ 	struct miscdevice *misc_device = &test->miscdev;
+@@ -605,6 +611,8 @@ static void pci_endpoint_test_remove(struct pci_dev *pdev)
  		if (test->bar[bar])
+ 			pci_iounmap(pdev, test->bar[bar]);
+ 	}
++	for (i = 0; i < test->num_irqs; i++)
++		devm_free_irq(&pdev->dev, pdev->irq + i, test);
+ 	pci_disable_msi(pdev);
+ 	pci_release_regions(pdev);
+ 	pci_disable_device(pdev);
 -- 
 2.11.0
