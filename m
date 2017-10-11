@@ -1,60 +1,32 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH] ARM: dts: dra7-evm: Move pcie RC node to common file
-Date: Wed, 11 Oct 2017 13:34:30 +0530
-Message-ID: <20171011080430.13160-1-kishon@ti.com>
+Subject: [PATCH 0/3] pci_endpoint_test: Fix module removal/insertion cycle
+Date: Wed, 11 Oct 2017 14:14:35 +0530
+Message-ID: <20171011084438.8296-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>
-Cc: devicetree@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, nsekhar@ti.com, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Ravikumar Kattekola <rk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Ravikumar Kattekola <rk@ti.com>
+This series fixes module removal/insertion cycle of pci_endpoint_test.
 
-Move the pcie_rc node to common file so that it can be
-used by dra76-evm as well.
+Without this series, when trying to modprobe pci_endpoint_test after
+rmmod pci_endpoint_test results in the following errors.
 
-Signed-off-by: Ravikumar Kattekola <rk@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
----
- arch/arm/boot/dts/dra7-evm-common.dtsi | 4 ++++
- arch/arm/boot/dts/dra7-evm.dts         | 4 ----
- 2 files changed, 4 insertions(+), 4 deletions(-)
+pci-endpoint-test 0000:01:00.0: BAR 0: can't reserve [mem 0x20204600-0x202046ff]
+pci-endpoint-test 0000:01:00.0: Cannot obtain PCI resources
+pci-endpoint-test: probe of 0000:01:00.0 failed with error -16
 
-diff --git a/arch/arm/boot/dts/dra7-evm-common.dtsi b/arch/arm/boot/dts/dra7-evm-common.dtsi
-index 343e95f9a001..e088bb93636a 100644
---- a/arch/arm/boot/dts/dra7-evm-common.dtsi
-+++ b/arch/arm/boot/dts/dra7-evm-common.dtsi
-@@ -256,3 +256,7 @@
- 		status = "okay";
- 	};
- };
-+
-+&pcie1_rc {
-+	status = "okay";
-+};
-diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
-index aa426dabb6c3..ef9c90daa74b 100644
---- a/arch/arm/boot/dts/dra7-evm.dts
-+++ b/arch/arm/boot/dts/dra7-evm.dts
-@@ -497,7 +497,3 @@
- 	pinctrl-1 = <&dcan1_pins_sleep>;
- 	pinctrl-2 = <&dcan1_pins_default>;
- };
--
--&pcie1_rc {
--	status = "okay";
--};
+Kishon Vijay Abraham I (3):
+  misc: pci_endpoint_test: Fix failure path return values in probe
+  misc: pci_endpoint_test: Fix pci_endpoint_test not releasing resources
+    on remove
+  misc: pci_endpoint_test: Fix BUG_ON error during pci_disable_msi
+
+ drivers/misc/pci_endpoint_test.c | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
+
 -- 
 2.11.0
