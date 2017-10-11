@@ -1,60 +1,63 @@
-From: Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH] of: Devices with pci_epf_bus_type require DMA configuration
-Date: Wed, 11 Oct 2017 08:07:21 -0500
-Message-ID: <CAL_JsqLLgCt+wS5uFmLXB5Z-_vb-akme0hXjemtc_gzQwpwPYA@mail.gmail.com>
-References: <20171011080041.12918-1-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: dra7-evm: Move pcie RC node to common file
+Date: Wed, 11 Oct 2017 08:44:48 -0700
+Message-ID: <20171011154447.GY4394@atomide.com>
+References: <20171011080430.13160-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171011080041.12918-1-kishon@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20171011080430.13160-1-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Robin Murphy <robin.murphy@arm.com>, Christoph Hellwig <hch@lst.de>, Mark Rutland <mark.rutland@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, Ravikumar Kattekola <rk@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 11, 2017 at 3:00 AM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> pci-epc-core.c invokes of_dma_configure in order to configure
-> the coherent_dma_mask/dma_mask of endpoint function device. This is
-> required for dma_alloc_coherent to succeed in pci function driver
-> (pci-epf-test.c). However after
-> commit 723288836628bc1c08 ("of: restrict DMA configuration"),
-> of_dma_configure doesn't configure the coherent_dma_mask/dma_mask
-> of endpoint function device (since it doesn't have dma-ranges
-> property), resulting in dma_alloc_coherent in pci endpoint function
-> driver to to fail. Fix it by making sure of_dma_configure configures
-> coherent_dma_mask/dma_mask irrespective of whether the node has
-> dma-ranges property or not.
->
-> Fixes: 723288836628bc1c08 ("of: restrict DMA configuration")
+* Kishon Vijay Abraham I <kishon@ti.com> [171011 01:06]:
+> From: Ravikumar Kattekola <rk@ti.com>
+> 
+> Move the pcie_rc node to common file so that it can be
+> used by dra76-evm as well.
+> 
+> Signed-off-by: Ravikumar Kattekola <rk@ti.com>
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/of/device.c                 | 4 +++-
->  drivers/pci/endpoint/pci-epf-core.c | 3 +--
->  include/linux/pci-epf.h             | 1 +
->  3 files changed, 5 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/of/device.c b/drivers/of/device.c
-> index 64b710265d39..881cf80a3d69 100644
-> --- a/drivers/of/device.c
-> +++ b/drivers/of/device.c
-> @@ -10,6 +10,7 @@
->  #include <linux/mod_devicetable.h>
->  #include <linux/slab.h>
->  #include <linux/pci.h>
-> +#include <linux/pci-epf.h>
->  #include <linux/platform_device.h>
->  #include <linux/amba/bus.h>
->
-> @@ -105,7 +106,8 @@ int of_dma_configure(struct device *dev, struct device_node *np)
->  #ifdef CONFIG_ARM_AMBA
->                     dev->bus != &amba_bustype &&
->  #endif
-> -                   dev->bus != &platform_bus_type)
-> +                   dev->bus != &platform_bus_type &&
-> +                   dev->bus != &pci_epf_bus_type)
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 
-This is going to fail when this PCI is disabled. There's some
-restructuring of this code proposed that will help you that I copied
-you on.
+Can you please resend this with your Signed-off-by also
+since you're the one sending it out?
 
-Rob
+Regards,
+
+Tony
+
+>  arch/arm/boot/dts/dra7-evm-common.dtsi | 4 ++++
+>  arch/arm/boot/dts/dra7-evm.dts         | 4 ----
+>  2 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/dra7-evm-common.dtsi b/arch/arm/boot/dts/dra7-evm-common.dtsi
+> index 343e95f9a001..e088bb93636a 100644
+> --- a/arch/arm/boot/dts/dra7-evm-common.dtsi
+> +++ b/arch/arm/boot/dts/dra7-evm-common.dtsi
+> @@ -256,3 +256,7 @@
+>  		status = "okay";
+>  	};
+>  };
+> +
+> +&pcie1_rc {
+> +	status = "okay";
+> +};
+> diff --git a/arch/arm/boot/dts/dra7-evm.dts b/arch/arm/boot/dts/dra7-evm.dts
+> index aa426dabb6c3..ef9c90daa74b 100644
+> --- a/arch/arm/boot/dts/dra7-evm.dts
+> +++ b/arch/arm/boot/dts/dra7-evm.dts
+> @@ -497,7 +497,3 @@
+>  	pinctrl-1 = <&dcan1_pins_sleep>;
+>  	pinctrl-2 = <&dcan1_pins_default>;
+>  };
+> -
+> -&pcie1_rc {
+> -	status = "okay";
+> -};
+> -- 
+> 2.11.0
+> 
