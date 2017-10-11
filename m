@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 1/3] misc: pci_endpoint_test: Fix failure path return values in probe
-Date: Wed, 11 Oct 2017 14:14:36 +0530
-Message-ID: <20171011084438.8296-2-kishon@ti.com>
+Subject: [PATCH 2/3] misc: pci_endpoint_test: Fix pci_endpoint_test not releasing resources on remove
+Date: Wed, 11 Oct 2017 14:14:37 +0530
+Message-ID: <20171011084438.8296-3-kishon@ti.com>
 References: <20171011084438.8296-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,33 +12,54 @@ To: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.or
 Cc: linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Return value of pci_endpoint_test_probe is not set properly in
-a couple of failure cases. Fix it here.
+sscanf(misc_device->name, DRV_MODULE_NAME ".%d", &id) in
+pci_endpoint_test_remove returns '0' which results in
+pci_endpoint_test_remove returning early without releasing the resources.
+This is as a result of misc_device not having a valid name. Fix it here.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/misc/pci_endpoint_test.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/misc/pci_endpoint_test.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/misc/pci_endpoint_test.c b/drivers/misc/pci_endpoint_test.c
-index deb203026496..e787a63a321a 100644
+index e787a63a321a..5cb624b6fa0a 100644
 --- a/drivers/misc/pci_endpoint_test.c
 +++ b/drivers/misc/pci_endpoint_test.c
-@@ -533,6 +533,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
- 
- 	test->base = test->bar[test_reg_bar];
- 	if (!test->base) {
+@@ -551,17 +551,24 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
+ 	snprintf(name, sizeof(name), DRV_MODULE_NAME ".%d", id);
+ 	misc_device = &test->miscdev;
+ 	misc_device->minor = MISC_DYNAMIC_MINOR;
+-	misc_device->name = name;
++	misc_device->name = kstrdup(name, GFP_KERNEL);
++	if (!misc_device->name) {
 +		err = -ENOMEM;
- 		dev_err(dev, "Cannot perform PCI test without BAR%d\n",
- 			test_reg_bar);
- 		goto err_iounmap;
-@@ -542,6 +543,7 @@ static int pci_endpoint_test_probe(struct pci_dev *pdev,
++		goto err_ida_remove;
++	}
+ 	misc_device->fops = &pci_endpoint_test_fops,
  
- 	id = ida_simple_get(&pci_endpoint_test_ida, 0, 0, GFP_KERNEL);
- 	if (id < 0) {
-+		err = id;
- 		dev_err(dev, "unable to get id\n");
- 		goto err_iounmap;
+ 	err = misc_register(misc_device);
+ 	if (err) {
+ 		dev_err(dev, "failed to register device\n");
+-		goto err_ida_remove;
++		goto err_kfree_name;
  	}
+ 
+ 	return 0;
+ 
++err_kfree_name:
++	kfree(misc_device->name);
++
+ err_ida_remove:
+ 	ida_simple_remove(&pci_endpoint_test_ida, id);
+ 
+@@ -592,6 +599,7 @@ static void pci_endpoint_test_remove(struct pci_dev *pdev)
+ 		return;
+ 
+ 	misc_deregister(&test->miscdev);
++	kfree(misc_device->name);
+ 	ida_simple_remove(&pci_endpoint_test_ida, id);
+ 	for (bar = BAR_0; bar <= BAR_5; bar++) {
+ 		if (test->bar[bar])
 -- 
 2.11.0
