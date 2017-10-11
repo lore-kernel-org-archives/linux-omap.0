@@ -1,38 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: head-common.S: Clear lr before jumping to
- start_kernel()
-Date: Tue, 10 Oct 2017 13:33:25 -0700
-Message-ID: <20171010203324.GX4394@atomide.com>
-References: <1507044184-27152-1-git-send-email-geert+renesas@glider.be>
- <nycvar.YSQ.7.76.1710031134140.5407@knanqh.ubzr>
- <CAMuHMdWJKQb5JY+diH=7dqNuypkPUqBeOEPSLOrfrnbfh2siRQ@mail.gmail.com>
- <CAMuHMdXpPfipmEdW0Dap6Pjwhz3QxLcrcbtU0RhCu721k-sBpA@mail.gmail.com>
- <CAMuHMdWH_pebSYAp04gmVceu3qqPczGaXS36R8CtzAYHo-CNog@mail.gmail.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH 1/1] cpufreq: ti-cpufreq: add missing of_node_put()
+Date: Wed, 11 Oct 2017 09:40:30 +0530
+Message-ID: <20171011041030.GJ4031@vireshk-i7>
+References: <1507642040-13646-1-git-send-email-zumeng.chen@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAMuHMdWH_pebSYAp04gmVceu3qqPczGaXS36R8CtzAYHo-CNog@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Russell King <linux@armlinux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Chris Brandt <Chris.Brandt@renesas.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+In-Reply-To: <1507642040-13646-1-git-send-email-zumeng.chen@gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Zumeng Chen <zumeng.chen@gmail.com>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, d-gerlach@ti.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-* Geert Uytterhoeven <geert@linux-m68k.org> [171003 11:32]:
-> On Tue, Oct 3, 2017 at 8:15 PM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> > On Tue, Oct 3, 2017 at 8:11 PM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> >> On Tue, Oct 3, 2017 at 5:37 PM, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
-> >>> On Tue, 3 Oct 2017, Geert Uytterhoeven wrote:
-> >>> Please send it to RMK's patch system.
-> >>
-> >> Done (I hope so ;-)
-> >
-> > Failed. Retrying.
+On 10-10-17, 21:27, Zumeng Chen wrote:
+> call of_node_put to release the refcount of np.
 > 
-> Yiha ;-)
+> Signed-off-by: Zumeng Chen <zumeng.chen@gmail.com>
+> ---
+>  drivers/cpufreq/ti-cpufreq.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> http://www.armlinux.org.uk/developer/patches/viewpatch.php?id=8702/1
+> diff --git a/drivers/cpufreq/ti-cpufreq.c b/drivers/cpufreq/ti-cpufreq.c
+> index ffcddcd..923317f 100644
+> --- a/drivers/cpufreq/ti-cpufreq.c
+> +++ b/drivers/cpufreq/ti-cpufreq.c
+> @@ -205,6 +205,7 @@ static int ti_cpufreq_init(void)
+>  
+>  	np = of_find_node_by_path("/");
+>  	match = of_match_node(ti_cpufreq_of_match, np);
+> +	of_node_put(np);
+>  	if (!match)
+>  		return -ENODEV;
+>  
 
-This also fixes the spamming I started seeing with next-20171009:
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+-- 
+viresh
