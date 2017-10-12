@@ -1,138 +1,78 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [RESEND PATCH] mtd: nand: omap2: Remove omap_nand_platform_data
-Date: Thu, 12 Oct 2017 13:38:37 +0200
-Message-ID: <20171012133837.13bfe1e4@bbrezillon>
-References: <20171006103543.gnb2hxq7msallyzl@lenoch>
- <20171010114047.202d7d44@bbrezillon>
- <2cd668a5-1c53-ea90-b7d3-47ddad71c23a@ti.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH] ARM: head-common.S: Clear lr before jumping to start_kernel()
+Date: Thu, 12 Oct 2017 14:34:39 +0200
+Message-ID: <CAMuHMdUtOHAb=dfy1ufGyHMERk=frhSH-BTmWgeb9zUyZvHANw@mail.gmail.com>
+References: <1507044184-27152-1-git-send-email-geert+renesas@glider.be>
+ <nycvar.YSQ.7.76.1710031134140.5407@knanqh.ubzr> <CAMuHMdWJKQb5JY+diH=7dqNuypkPUqBeOEPSLOrfrnbfh2siRQ@mail.gmail.com>
+ <CAMuHMdXpPfipmEdW0Dap6Pjwhz3QxLcrcbtU0RhCu721k-sBpA@mail.gmail.com>
+ <CAMuHMdWH_pebSYAp04gmVceu3qqPczGaXS36R8CtzAYHo-CNog@mail.gmail.com>
+ <20171010203324.GX4394@atomide.com> <20171012102341.GF23750@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <2cd668a5-1c53-ea90-b7d3-47ddad71c23a@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Richard Weinberger <richard@nod.at>, linux-omap@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171012102341.GF23750@n2100.armlinux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Geert Uytterhoeven <geert+renesas@glider.be>, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Chris Brandt <Chris.Brandt@renesas.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 12 Oct 2017 14:28:45 +0300
-Roger Quadros <rogerq@ti.com> wrote:
+Hi Russell, Nicolas,
 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> 
-> On 10/10/17 12:40, Boris Brezillon wrote:
-> > On Fri, 6 Oct 2017 12:35:43 +0200
-> > Ladislav Michl <ladis@linux-mips.org> wrote:
-> >  
-> >> As driver is now configured using DT, omap_nand_platform_data structure
-> >> is no longer needed.
-> >>
-> >> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> >> ---
-> >>  Resend to linux-mtd as other part this patch was depending on
-> >>  was merged months ago via linux-omap tree...
-> >>
-> >>  drivers/mtd/nand/omap2.c                     | 40 +++++++---------------------
-> >>  include/linux/platform_data/mtd-nand-omap2.h | 17 ------------
-> >>  2 files changed, 10 insertions(+), 47 deletions(-)
-> >>
-> >> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> >> index 54540c8fa1a2..b1fc070c8279 100644
-> >> --- a/drivers/mtd/nand/omap2.c
-> >> +++ b/drivers/mtd/nand/omap2.c
-> >> @@ -1588,8 +1588,7 @@ static bool is_elm_present(struct omap_nand_info *info,
-> >>      return true;
-> >>  }
-> >>
-> >> -static bool omap2_nand_ecc_check(struct omap_nand_info *info,
-> >> -                             struct omap_nand_platform_data *pdata)
-> >> +static bool omap2_nand_ecc_check(struct omap_nand_info *info)
-> >>  {
-> >>      bool ecc_needs_bch, ecc_needs_omap_bch, ecc_needs_elm;
-> >>
-> >> @@ -1804,7 +1803,6 @@ static const struct mtd_ooblayout_ops omap_sw_ooblayout_ops = {
-> >>  static int omap_nand_probe(struct platform_device *pdev)
-> >>  {
-> >>      struct omap_nand_info           *info;
-> >> -    struct omap_nand_platform_data  *pdata = NULL;
-> >>      struct mtd_info                 *mtd;
-> >>      struct nand_chip                *nand_chip;
-> >>      int                             err;
-> >> @@ -1814,6 +1812,9 @@ static int omap_nand_probe(struct platform_device *pdev)
-> >>      int                             min_oobbytes = BADBLOCK_MARKER_LENGTH;
-> >>      int                             oobbytes_per_step;
-> >>
-> >> +    if (!dev->of_node)
-> >> +            return -EINVAL;
-> >> +  
-> >
-> > Is this really needed? I expect omap_get_dt_info() to return an error
-> > when dev->of_node is NULL.
-> >  
-> >>      info = devm_kzalloc(&pdev->dev, sizeof(struct omap_nand_info),
-> >>                              GFP_KERNEL);
-> >>      if (!info)
-> >> @@ -1821,29 +1822,9 @@ static int omap_nand_probe(struct platform_device *pdev)
-> >>
-> >>      info->pdev = pdev;
-> >>
-> >> -    if (dev->of_node) {
-> >> -            if (omap_get_dt_info(dev, info))
-> >> -                    return -EINVAL;
-> >> -    } else {
-> >> -            pdata = dev_get_platdata(&pdev->dev);
-> >> -            if (!pdata) {
-> >> -                    dev_err(&pdev->dev, "platform data missing\n");
-> >> -                    return -EINVAL;
-> >> -            }
-> >> -
-> >> -            info->gpmc_cs = pdata->cs;
-> >> -            info->reg = pdata->reg;
-> >> -            info->ecc_opt = pdata->ecc_opt;
-> >> -            if (pdata->dev_ready)
-> >> -                    dev_info(&pdev->dev, "pdata->dev_ready is deprecated\n");
-> >> -
-> >> -            info->xfer_type = pdata->xfer_type;
-> >> -            info->devsize = pdata->devsize;
-> >> -            info->elm_of_node = pdata->elm_of_node;
-> >> -            info->flash_bbt = pdata->flash_bbt;
-> >> -    }
-> >> +    if (omap_get_dt_info(dev, info))
-> >> +            return -EINVAL;  
-> 
-> how about
-> 
->         err = omap_get_dt_info(dev, info);
->         if (err)
->                 return err;
+On Thu, Oct 12, 2017 at 12:23 PM, Russell King - ARM Linux
+<linux@armlinux.org.uk> wrote:
+> On Tue, Oct 10, 2017 at 01:33:25PM -0700, Tony Lindgren wrote:
+>> * Geert Uytterhoeven <geert@linux-m68k.org> [171003 11:32]:
+>> > On Tue, Oct 3, 2017 at 8:15 PM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+>> > > On Tue, Oct 3, 2017 at 8:11 PM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+>> > >> On Tue, Oct 3, 2017 at 5:37 PM, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
+>> > >>> On Tue, 3 Oct 2017, Geert Uytterhoeven wrote:
+>> > >>> Please send it to RMK's patch system.
+>> > >>
+>> > >> Done (I hope so ;-)
+>> > >
+>> > > Failed. Retrying.
+>> >
+>> > Yiha ;-)
+>> >
+>> > http://www.armlinux.org.uk/developer/patches/viewpatch.php?id=8702/1
+>>
+>> This also fixes the spamming I started seeing with next-20171009:
+>>
+>> Tested-by: Tony Lindgren <tony@atomide.com>
+>
+> It's all nice and good that people are testing this patch, but I can't
+> apply it to -rc1, nor my "misc" branch.  It appears that this is due
+> to patches going through other trees.
+>
+> Sorry, I can't take this patch.
+>
+> (This is the falicy about any one particular tree having rights to
+> exclusively own a sub-tree in the kernel...)
 
-Already done like that in v2 [1]
+So through which tree did this end up in -next?
 
-> 
-> >>
-> >> -    platform_set_drvdata(pdev, info);  
-> >
-> > This removal seems unrelated to the change you're describing in the
-> > commit log. I'm not saying we should keep this platform_set_drvdata()
-> > if it's useless, but it should be done in a separate patch.  
-> 
-> we do use platform_get_drvdata() in omap_nand_remove() so I suppose
-> we can't get rid of platorm_set_drvdata().
+Apparently Nicolas committed 9520b1a1b5f7a348 ("ARM: head-common.S: speed up
+startup code") himself, and then asked me to send the fix for that commit to
+Russell anyway?
+The commit above is actually in Russell's
+git://git.armlinux.org.uk/~rmk/linux-arm.git#for-next.
 
-There's another platform_set_drvdata() later in the probe function, I
-think this one is indeed useless (see patch [2])
+Russell, you did merge it yourself into for-next in commit 476242482bdee72b
+("Merge branch 'xip_zdata' of http://git.linaro.org/people/nicolas.pitre/linux
+into devel-testing").
 
-[1]http://patchwork.ozlabs.org/patch/823820/
-[2]http://patchwork.ozlabs.org/patch/823839/
+My patch applies fine against your for-next branch. So I fail to see why
+you can't take this patch?
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
