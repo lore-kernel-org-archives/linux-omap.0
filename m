@@ -1,32 +1,39 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v2 0/2] dmaengine: edma/omap-dma: max_burst validity
- checking
-Date: Thu, 12 Oct 2017 22:14:59 +0530
-Message-ID: <20171012164459.GS30097@localhost>
-References: <20171003083538.11044-1-peter.ujfalusi@ti.com>
+From: Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
+Subject: [Patch 0/6] ARM: dts/hwmod: Add CAL and VPE nodes
+Date: Thu, 12 Oct 2017 14:27:13 -0500
+Message-ID: <20171012192719.15193-1-bparrot@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171003083538.11044-1-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 03, 2017 at 11:35:36AM +0300, Peter Ujfalusi wrote:
-> Hi,
-> 
-> Changes since v1:
-> - Fixed typo in commit message
-> - Separated from the 'dmaengine: core/edma/omap-dma: maximum SG len reporting'
->   series
-> 
-> Both eDMA and sDMA have limit on the maximum burst size. The two patch
-> implements protection against too big burst size for both driver.
+This patch series adds the needed HWMOD and DTSI nodes
+for the CAL and VPE modules.
+We also document the VPE DT bindings.
 
-I have applied these, but had to hand fix the patches. I guess you should
-use gmail or someother server to send patches
+Benoit Parrot (6):
+  ARM: dts: DRA72: Add CAL dtsi node
+  ARM: DRA7: hwmod: Add CAL nodes
+  ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
+  dt-bindings: media: ti-vpe: Document VPE driver
+  ARM: DRA7: hwmod: Add VPE nodes
+  ARM: dts: dra7: Add VPE dtsi node
+
+ Documentation/devicetree/bindings/media/ti-vpe.txt | 41 ++++++++++
+ arch/arm/boot/dts/dra7.dtsi                        | 26 +++++++
+ arch/arm/boot/dts/dra72x.dtsi                      | 31 ++++++++
+ arch/arm/mach-omap2/clockdomains7xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          | 87 ++++++++++++++++++++++
+ 5 files changed, 186 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
 
 -- 
-~Vinod
+2.9.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
