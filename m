@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 3/6] ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
-Date: Thu, 12 Oct 2017 14:27:16 -0500
-Message-ID: <20171012192719.15193-4-bparrot@ti.com>
+Subject: [Patch 6/6] ARM: dts: dra7: Add VPE dtsi node
+Date: Thu, 12 Oct 2017 14:27:19 -0500
+Message-ID: <20171012192719.15193-7-bparrot@ti.com>
 References: <20171012192719.15193-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,30 +12,53 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Rob Herring
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-HWSUP on this domain is only working when VIP1 probes.
-If only VIP2 on DRA74x or CAL on DRA72x probes the domain does
-not get enabled. This might indicates an issue in the HW Auto
-state-machine for this domain.
+Add the necessary node and configuration data for the VPE (Video
+Processing Engine) hardware block on DRA7x.
 
-Work around is to set the CAM domain to use SWSUP only.
+The corresponding driver for this entry is in
+drivers/media/platform/ti-vpe/vpe.c.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/dra7.dtsi | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
-index 67ebff829cf2..dd37efa2c652 100644
---- a/arch/arm/mach-omap2/clockdomains7xx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
-@@ -609,7 +609,7 @@ static struct clockdomain cam_7xx_clkdm = {
- 	.dep_bit	  = DRA7XX_CAM_STATDEP_SHIFT,
- 	.wkdep_srcs	  = cam_wkup_sleep_deps,
- 	.sleepdep_srcs	  = cam_wkup_sleep_deps,
--	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
-+	.flags		  = CLKDM_CAN_SWSUP,
- };
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index 02a136a4661a..f302d2e5eede 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -2018,6 +2018,32 @@
+ 			clocks = <&l3_iclk_div>;
+ 			clock-names = "fck";
+ 		};
++
++		vpe {
++			compatible = "ti,vpe";
++			ti,hwmods = "vpe";
++			clocks = <&dpll_core_h23x2_ck>;
++			clock-names = "fck";
++			reg = <0x489d0000 0x120>,
++			      <0x489d0300 0x20>,
++			      <0x489d0400 0x20>,
++			      <0x489d0500 0x20>,
++			      <0x489d0600 0x3c>,
++			      <0x489d0700 0x80>,
++			      <0x489d5700 0x18>,
++			      <0x489dd000 0x400>;
++			reg-names = "vpe_top",
++				    "vpe_chr_us0",
++				    "vpe_chr_us1",
++				    "vpe_chr_us2",
++				    "vpe_dei",
++				    "sc",
++				    "csc",
++				    "vpdma";
++			interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++		};
+ 	};
  
- static struct clockdomain l4per_7xx_clkdm = {
+ 	thermal_zones: thermal-zones {
 -- 
 2.9.0
