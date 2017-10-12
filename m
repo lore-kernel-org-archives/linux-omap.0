@@ -1,141 +1,112 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH 3/5] dmaengine: Support for querying maximum trasnfer
- length (of an SG element)
-Date: Thu, 12 Oct 2017 19:27:17 +0530
-Message-ID: <20171012135717.GN30097@localhost>
-References: <20170912104424.18495-1-peter.ujfalusi@ti.com>
- <20170912104424.18495-4-peter.ujfalusi@ti.com>
- <20170921171451.GG30097@localhost>
- <02509904-4ae8-c6f8-3514-5f77d665c9a6@ti.com>
- <20170926165413.GQ30097@localhost>
- <11471508-b61c-7842-2080-7f5c2f292c2b@ti.com>
- <20171008052514.GG30097@localhost>
- <faec0874-7321-c6ce-8201-f919aaeaf248@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RESEND PATCH] mtd: nand: omap2: Remove omap_nand_platform_data
+Date: Thu, 12 Oct 2017 17:09:26 +0300
+Message-ID: <97596107-9b96-f8eb-bf44-466aff99e943@ti.com>
+References: <20171006103543.gnb2hxq7msallyzl@lenoch>
+ <20171010114047.202d7d44@bbrezillon>
+ <2cd668a5-1c53-ea90-b7d3-47ddad71c23a@ti.com>
+ <20171012133837.13bfe1e4@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <faec0874-7321-c6ce-8201-f919aaeaf248@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: dan.j.williams@intel.com, dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, t-kristo@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20171012133837.13bfe1e4@bbrezillon>
+Content-Language: en-GB
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Richard Weinberger <richard@nod.at>, linux-omap@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 11, 2017 at 06:47:18PM +0300, Peter Ujfalusi wrote:
-> 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> 
-> On 10/08/2017 08:25 AM, Vinod Koul wrote:
-> >>>> It is not really static, the size in bytes depends on the dev_width and
-> >>>> the maxburst:
-> >>>> dev_width * burst * (SZ_64K - 1);
-> >>>
-> >>> well DMAengines work on FIFOs, in above you are giving length as SZ_64K - 1
-> >>> 'items' which IIUC in DMAengine terms for bytes would always refer wrt width
-> >>> used and burst applied.
-> >>
-> >> I think we can live with this and let the user to figure out what to do
-> >> with this information.
-> > 
-> > Right, plus a macro for conversion :) SO that users dont code buggy
-> > conversions all over the place
-> 
-> OK, but still the naming... ;)
-> 
-> >> But I'm having hard time to figure out a good name for this. It is not
-> >> the number of SGs we can support, but the number of 'items' within one
-> >> SG that we have the limit. It could be:
-> >> u32 max_bursts_per_sg;
-> > 
-> > this looks fine, another candidate I would use is words_per_sg and while at
-> > it why tie it to sg? should we make it words_per_txn but then people should not
-> > confuse with txn represented by a descriptor which can have multiple ....
-> 
-> Yes, this limit is not only per SG as the same limit actually applies to
-> cyclic's period_len in a same way.
-> 
-> words_per_txn does not sound right as for me the words would refer to
-> dev_width number of bytes and I'm seeking on limit on the number of (dev_width
-> * bursts) sub-chunks.
-> 
-> bursts_per_chunk? With a long comment?
-> 
-> Which would apply to sg_dma_len in slave_sg(), period_len in cyclic() and len
-> in slave_single().
-
-Sounds much better to me :)
-
-> 
-> >>
-> >> which would also apply to period length (for cyclic) in a similar way.
-> >>
-> >>> Return length in bytes does make sense (from user PoV), but then you need to
-> >>> "know" the applied  width and burst. How do you decide those?
-> >>
-> >> The number of items works eDMA and sDMA, but we also have the cpp41. It
-> >> is a packet DMA and it has no understanding of bursts, address widths or
-> >> any of the 'traditional' things. It only cares about the number of bytes
-> >> we want to transfer and it has limitation of 4194303 bytes (21bits for
-> >> length). This is again per SG. How this could report the
-> >> 'max_bursts_per_sg' ?
-> > 
-> > hmmm that is intresting case, is this number coming from USB side?
-> 
-> No, it is coming from cppi4.1's descriptor. The maximum length of a packet is
-> stored in 21bits.
-> 
-> But this is a bit more complicated ;) The whole packet have 21bits size limit,
-> but at the same time the whole sg_dma_len() also have this as we can link a
-> several host buffer descriptors to one host packet descriptor. Each have
-> 21bits for length, but at the same time the sum of the hpd and the linked hbd
-> length can not be more than what we can store in 21bits...
-> 
-> > 
-> >> This was one of the reasons that I have settled with the callback.
-> >>
-> >> What we can also do is to code this within the DMA drivers itself.
-> >>
-> >> When setting up the transfer and we realize that one of the SG will not
-> >> going to fit, we destroy what we have done so far, pass the sg list
-> >> along with length/sg limit to create a new sg list where all sg item's
-> >> length is under the limit. Then using this new sg list we can set up the
-> >> transfer.
-> >>
-> >> I'm not sure how hard is to do the sg list optimization, I see that
-> >> sg_split() is not what we want so we might need to code this in
-> >> dmaengine or in the scatterlist code.
-> >>
-> >> We certainly don't want to verify all slave_sg transfers proactively to
-> >> avoid adding latency when it is not necessary.
-> > 
-> > latency would be added at prepare, not when submitting..
-> 
-> Yes, but you submit transfers all the time, and added latency would be crucial.
-> 
-> But this could be done with a DMAengine internal helper, I think.
-> If a DMA driver figures out that one of the SG length is over the supported
-> limit, then it could clean up everything and call something like:
-> 
-> struct dma_async_tx_descriptor *dmaengine_fixup_and_prep_slave_sg(
-> 	struct dma_chan *chan, struct scatterlist *sgl,
-> 	unsigned int sg_len, enum dma_transfer_direction dir,
-> 	unsigned long flags, size_t max_sg_dma_len)
-> 
-> and this would split up the original SG list to a temp one meeting the
-> max_sg_dma_len and call chan->device->device_prep_slave_sg()
-> 
-> In this round the setup would succeed and the caller and I would be happy.
-> 
-> But if the caller already aware of the sg_dma_len limit it can prepare the SG
-> list correctly and we save time to recreate the list.
-
-rather than driver figure out, why don't we add the in prep_ call. Since we
-would know the capability of the device we can do that split, that way we
-have common split code in middle in the framework and drivers get sg list
-which is supported by them. It can also split a list to multipe prep_ calls
-based on controller support.
-
-Yes that is a big ask, we can split up and do in stages :)
-
--- 
-~Vinod
+77u/ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgw
+IEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0Rv
+bWljaWxlOiBIZWxzaW5raQoKT24gMTIvMTAvMTcgMTQ6MzgsIEJvcmlzIEJyZXppbGxvbiB3cm90
+ZToKPiBPbiBUaHUsIDEyIE9jdCAyMDE3IDE0OjI4OjQ1ICswMzAwCj4gUm9nZXIgUXVhZHJvcyA8
+cm9nZXJxQHRpLmNvbT4gd3JvdGU6Cj4gCj4+IFRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ks
+IFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDog
+MDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQo+Pgo+PiBPbiAxMC8xMC8x
+NyAxMjo0MCwgQm9yaXMgQnJlemlsbG9uIHdyb3RlOgo+Pj4gT24gRnJpLCA2IE9jdCAyMDE3IDEy
+OjM1OjQzICswMjAwCj4+PiBMYWRpc2xhdiBNaWNobCA8bGFkaXNAbGludXgtbWlwcy5vcmc+IHdy
+b3RlOgo+Pj4gIAo+Pj4+IEFzIGRyaXZlciBpcyBub3cgY29uZmlndXJlZCB1c2luZyBEVCwgb21h
+cF9uYW5kX3BsYXRmb3JtX2RhdGEgc3RydWN0dXJlCj4+Pj4gaXMgbm8gbG9uZ2VyIG5lZWRlZC4K
+Pj4+Pgo+Pj4+IFNpZ25lZC1vZmYtYnk6IExhZGlzbGF2IE1pY2hsIDxsYWRpc0BsaW51eC1taXBz
+Lm9yZz4KPj4+PiAtLS0KPj4+PiAgUmVzZW5kIHRvIGxpbnV4LW10ZCBhcyBvdGhlciBwYXJ0IHRo
+aXMgcGF0Y2ggd2FzIGRlcGVuZGluZyBvbgo+Pj4+ICB3YXMgbWVyZ2VkIG1vbnRocyBhZ28gdmlh
+IGxpbnV4LW9tYXAgdHJlZS4uLgo+Pj4+Cj4+Pj4gIGRyaXZlcnMvbXRkL25hbmQvb21hcDIuYyAg
+ICAgICAgICAgICAgICAgICAgIHwgNDAgKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+Pj4+
+ICBpbmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvbXRkLW5hbmQtb21hcDIuaCB8IDE3IC0tLS0t
+LS0tLS0tLQo+Pj4+ICAyIGZpbGVzIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDQ3IGRlbGV0
+aW9ucygtKQo+Pj4+Cj4+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYyBi
+L2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYwo+Pj4+IGluZGV4IDU0NTQwYzhmYTFhMi4uYjFmYzA3
+MGM4Mjc5IDEwMDY0NAo+Pj4+IC0tLSBhL2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYwo+Pj4+ICsr
+KyBiL2RyaXZlcnMvbXRkL25hbmQvb21hcDIuYwo+Pj4+IEBAIC0xNTg4LDggKzE1ODgsNyBAQCBz
+dGF0aWMgYm9vbCBpc19lbG1fcHJlc2VudChzdHJ1Y3Qgb21hcF9uYW5kX2luZm8gKmluZm8sCj4+
+Pj4gICAgICByZXR1cm4gdHJ1ZTsKPj4+PiAgfQo+Pj4+Cj4+Pj4gLXN0YXRpYyBib29sIG9tYXAy
+X25hbmRfZWNjX2NoZWNrKHN0cnVjdCBvbWFwX25hbmRfaW5mbyAqaW5mbywKPj4+PiAtICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3Qgb21hcF9uYW5kX3BsYXRmb3JtX2RhdGEgKnBk
+YXRhKQo+Pj4+ICtzdGF0aWMgYm9vbCBvbWFwMl9uYW5kX2VjY19jaGVjayhzdHJ1Y3Qgb21hcF9u
+YW5kX2luZm8gKmluZm8pCj4+Pj4gIHsKPj4+PiAgICAgIGJvb2wgZWNjX25lZWRzX2JjaCwgZWNj
+X25lZWRzX29tYXBfYmNoLCBlY2NfbmVlZHNfZWxtOwo+Pj4+Cj4+Pj4gQEAgLTE4MDQsNyArMTgw
+Myw2IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgbXRkX29vYmxheW91dF9vcHMgb21hcF9zd19vb2Js
+YXlvdXRfb3BzID0gewo+Pj4+ICBzdGF0aWMgaW50IG9tYXBfbmFuZF9wcm9iZShzdHJ1Y3QgcGxh
+dGZvcm1fZGV2aWNlICpwZGV2KQo+Pj4+ICB7Cj4+Pj4gICAgICBzdHJ1Y3Qgb21hcF9uYW5kX2lu
+Zm8gICAgICAgICAgICppbmZvOwo+Pj4+IC0gICAgc3RydWN0IG9tYXBfbmFuZF9wbGF0Zm9ybV9k
+YXRhICAqcGRhdGEgPSBOVUxMOwo+Pj4+ICAgICAgc3RydWN0IG10ZF9pbmZvICAgICAgICAgICAg
+ICAgICAqbXRkOwo+Pj4+ICAgICAgc3RydWN0IG5hbmRfY2hpcCAgICAgICAgICAgICAgICAqbmFu
+ZF9jaGlwOwo+Pj4+ICAgICAgaW50ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBlcnI7Cj4+
+Pj4gQEAgLTE4MTQsNiArMTgxMiw5IEBAIHN0YXRpYyBpbnQgb21hcF9uYW5kX3Byb2JlKHN0cnVj
+dCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4+Pj4gICAgICBpbnQgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIG1pbl9vb2JieXRlcyA9IEJBREJMT0NLX01BUktFUl9MRU5HVEg7Cj4+Pj4gICAg
+ICBpbnQgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG9vYmJ5dGVzX3Blcl9zdGVwOwo+Pj4+
+Cj4+Pj4gKyAgICBpZiAoIWRldi0+b2Zfbm9kZSkKPj4+PiArICAgICAgICAgICAgcmV0dXJuIC1F
+SU5WQUw7Cj4+Pj4gKyAgCj4+Pgo+Pj4gSXMgdGhpcyByZWFsbHkgbmVlZGVkPyBJIGV4cGVjdCBv
+bWFwX2dldF9kdF9pbmZvKCkgdG8gcmV0dXJuIGFuIGVycm9yCj4+PiB3aGVuIGRldi0+b2Zfbm9k
+ZSBpcyBOVUxMLgo+Pj4gIAo+Pj4+ICAgICAgaW5mbyA9IGRldm1fa3phbGxvYygmcGRldi0+ZGV2
+LCBzaXplb2Yoc3RydWN0IG9tYXBfbmFuZF9pbmZvKSwKPj4+PiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIEdGUF9LRVJORUwpOwo+Pj4+ICAgICAgaWYgKCFpbmZvKQo+Pj4+IEBAIC0xODIx
+LDI5ICsxODIyLDkgQEAgc3RhdGljIGludCBvbWFwX25hbmRfcHJvYmUoc3RydWN0IHBsYXRmb3Jt
+X2RldmljZSAqcGRldikKPj4+Pgo+Pj4+ICAgICAgaW5mby0+cGRldiA9IHBkZXY7Cj4+Pj4KPj4+
+PiAtICAgIGlmIChkZXYtPm9mX25vZGUpIHsKPj4+PiAtICAgICAgICAgICAgaWYgKG9tYXBfZ2V0
+X2R0X2luZm8oZGV2LCBpbmZvKSkKPj4+PiAtICAgICAgICAgICAgICAgICAgICByZXR1cm4gLUVJ
+TlZBTDsKPj4+PiAtICAgIH0gZWxzZSB7Cj4+Pj4gLSAgICAgICAgICAgIHBkYXRhID0gZGV2X2dl
+dF9wbGF0ZGF0YSgmcGRldi0+ZGV2KTsKPj4+PiAtICAgICAgICAgICAgaWYgKCFwZGF0YSkgewo+
+Pj4+IC0gICAgICAgICAgICAgICAgICAgIGRldl9lcnIoJnBkZXYtPmRldiwgInBsYXRmb3JtIGRh
+dGEgbWlzc2luZ1xuIik7Cj4+Pj4gLSAgICAgICAgICAgICAgICAgICAgcmV0dXJuIC1FSU5WQUw7
+Cj4+Pj4gLSAgICAgICAgICAgIH0KPj4+PiAtCj4+Pj4gLSAgICAgICAgICAgIGluZm8tPmdwbWNf
+Y3MgPSBwZGF0YS0+Y3M7Cj4+Pj4gLSAgICAgICAgICAgIGluZm8tPnJlZyA9IHBkYXRhLT5yZWc7
+Cj4+Pj4gLSAgICAgICAgICAgIGluZm8tPmVjY19vcHQgPSBwZGF0YS0+ZWNjX29wdDsKPj4+PiAt
+ICAgICAgICAgICAgaWYgKHBkYXRhLT5kZXZfcmVhZHkpCj4+Pj4gLSAgICAgICAgICAgICAgICAg
+ICAgZGV2X2luZm8oJnBkZXYtPmRldiwgInBkYXRhLT5kZXZfcmVhZHkgaXMgZGVwcmVjYXRlZFxu
+Iik7Cj4+Pj4gLQo+Pj4+IC0gICAgICAgICAgICBpbmZvLT54ZmVyX3R5cGUgPSBwZGF0YS0+eGZl
+cl90eXBlOwo+Pj4+IC0gICAgICAgICAgICBpbmZvLT5kZXZzaXplID0gcGRhdGEtPmRldnNpemU7
+Cj4+Pj4gLSAgICAgICAgICAgIGluZm8tPmVsbV9vZl9ub2RlID0gcGRhdGEtPmVsbV9vZl9ub2Rl
+Owo+Pj4+IC0gICAgICAgICAgICBpbmZvLT5mbGFzaF9iYnQgPSBwZGF0YS0+Zmxhc2hfYmJ0Owo+
+Pj4+IC0gICAgfQo+Pj4+ICsgICAgaWYgKG9tYXBfZ2V0X2R0X2luZm8oZGV2LCBpbmZvKSkKPj4+
+PiArICAgICAgICAgICAgcmV0dXJuIC1FSU5WQUw7ICAKPj4KPj4gaG93IGFib3V0Cj4+Cj4+ICAg
+ICAgICAgZXJyID0gb21hcF9nZXRfZHRfaW5mbyhkZXYsIGluZm8pOwo+PiAgICAgICAgIGlmIChl
+cnIpCj4+ICAgICAgICAgICAgICAgICByZXR1cm4gZXJyOwo+IAo+IEFscmVhZHkgZG9uZSBsaWtl
+IHRoYXQgaW4gdjIgWzFdCj4gCj4+Cj4+Pj4KPj4+PiAtICAgIHBsYXRmb3JtX3NldF9kcnZkYXRh
+KHBkZXYsIGluZm8pOyAgCj4+Pgo+Pj4gVGhpcyByZW1vdmFsIHNlZW1zIHVucmVsYXRlZCB0byB0
+aGUgY2hhbmdlIHlvdSdyZSBkZXNjcmliaW5nIGluIHRoZQo+Pj4gY29tbWl0IGxvZy4gSSdtIG5v
+dCBzYXlpbmcgd2Ugc2hvdWxkIGtlZXAgdGhpcyBwbGF0Zm9ybV9zZXRfZHJ2ZGF0YSgpCj4+PiBp
+ZiBpdCdzIHVzZWxlc3MsIGJ1dCBpdCBzaG91bGQgYmUgZG9uZSBpbiBhIHNlcGFyYXRlIHBhdGNo
+LiAgCj4+Cj4+IHdlIGRvIHVzZSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YSgpIGluIG9tYXBfbmFuZF9y
+ZW1vdmUoKSBzbyBJIHN1cHBvc2UKPj4gd2UgY2FuJ3QgZ2V0IHJpZCBvZiBwbGF0b3JtX3NldF9k
+cnZkYXRhKCkKPiAKPiBUaGVyZSdzIGFub3RoZXIgcGxhdGZvcm1fc2V0X2RydmRhdGEoKSBsYXRl
+ciBpbiB0aGUgcHJvYmUgZnVuY3Rpb24sIEkKPiB0aGluayB0aGlzIG9uZSBpcyBpbmRlZWQgdXNl
+bGVzcyAoc2VlIHBhdGNoIFsyXSkKCkkgYWdyZWUuCgo+IAo+IFsxXWh0dHA6Ly9wYXRjaHdvcmsu
+b3psYWJzLm9yZy9wYXRjaC84MjM4MjAvCj4gWzJdaHR0cDovL3BhdGNod29yay5vemxhYnMub3Jn
+L3BhdGNoLzgyMzgzOS8KPiAtLQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5k
+IHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1vbWFwIiBpbgo+IHRoZSBib2R5IG9mIGEgbWVz
+c2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBh
+dCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCj4gCgotLSAKY2hl
+ZXJzLAotcm9nZXIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KTGludXggTVREIGRpc2N1c3Npb24gbWFpbGluZyBsaXN0Cmh0dHA6Ly9saXN0
+cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbXRkLwo=
