@@ -1,78 +1,79 @@
-From: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/5] ARM: dts: dra7-evm-common: Enable relevant IPU and
- DSP MMU nodes
-Date: Wed, 11 Oct 2017 16:51:35 -0500
-Message-ID: <11194594-f510-bbcd-831e-a9765b88bb1a@ti.com>
-References: <20170821235158.4968-1-s-anna@ti.com>
- <20170821235158.4968-2-s-anna@ti.com> <20171011182246.GE4394@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 0/8] Add hwmod data for IPU & DSP processors/MMUs
+Date: Thu, 12 Oct 2017 08:50:39 +0300
+Message-ID: <58ebe05c-b2d1-aefd-c15d-5c92fb93ebab@ti.com>
+References: <20170821234818.4755-1-s-anna@ti.com>
+ <d4715d1e-8113-050b-9a0f-77f4a4486081@ti.com>
+ <20170922175110.GC4394@atomide.com>
+ <de9b14a1-250e-c73d-d999-468a50e6b1a3@ti.com>
+ <20170922211919.GD4394@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171011182246.GE4394-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20170922211919.GD4394@atomide.com>
 Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Suman Anna <s-anna@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On 10/11/2017 01:22 PM, Tony Lindgren wrote:
-> * Suman Anna <s-anna-l0cyMroinI0@public.gmane.org> [170821 16:52]:
->> The MMU nodes for the remote processors IPU1, IPU2, DSP1 and
->> DSP2 have all been enabled. All these nodes are relevant and
->> valid for both the DRA7 EVM and DRA76 EVM boards, so are added
->> in the dra7 common evm dtsi file.
->>
->> Signed-off-by: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
->> ---
->>  arch/arm/boot/dts/dra7-evm-common.dtsi | 24 ++++++++++++++++++++++++
->>  1 file changed, 24 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/dra7-evm-common.dtsi b/arch/arm/boot/dts/dra7-evm-common.dtsi
->> index 343e95f9a001..01a5d4e0b044 100644
->> --- a/arch/arm/boot/dts/dra7-evm-common.dtsi
->> +++ b/arch/arm/boot/dts/dra7-evm-common.dtsi
->> @@ -256,3 +256,27 @@
->>  		status = "okay";
->>  	};
->>  };
->> +
->> +&mmu0_dsp1 {
->> +	status = "okay";
->> +};
->> +
->> +&mmu1_dsp1 {
->> +	status = "okay";
->> +};
->> +
->> +&mmu0_dsp2 {
->> +	status = "okay";
->> +};
->> +
->> +&mmu1_dsp2 {
->> +	status = "okay";
->> +};
->> +
->> +&mmu_ipu1 {
->> +	status = "okay";
->> +};
->> +
->> +&mmu_ipu2 {
->> +	status = "okay";
->> +};
-> 
-> This is getting quite silly.. The default is "okay" so just remove the useless
-> "disabled" from the common file and all these patches are no longer needed.
-
-Yeah, agreed. Original intention was that some of the other remoteproc
-related nodes can be customized per board, but there's nothing of that
-sort on iommu nodes. Will post a new series. Thanks for the review.
-
-regards
-Suman
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+77u/ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgw
+IEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0Rv
+bWljaWxlOiBIZWxzaW5raQoKT24gMjMvMDkvMTcgMDA6MTksIFRvbnkgTGluZGdyZW4gd3JvdGU6
+Cj4gKiBTdW1hbiBBbm5hIDxzLWFubmFAdGkuY29tPiBbMTcwOTIyIDE0OjA4XToKPj4gT24gMDkv
+MjIvMjAxNyAxMjo1MSBQTSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPj4+ICogU3VtYW4gQW5uYSA8
+cy1hbm5hQHRpLmNvbT4gWzE3MDkyMiAxMDoxOV06Cj4+Pj4gUGluZyBvbiB0aGlzIHNlcmllcy4g
+VGVybydzIGNsa2N0cmwgc2VyaWVzIGNoYW5nZXMgYXJlIG9ydGhvZ29uYWwgdG8KPj4+PiB0aGVz
+ZSBjaGFuZ2VzLgo+Pj4KPj4+IFdpdGggcGF0Y2ggNS84IHlvdSBzYWlkIGVhcmxpZXIgIkl0IHdp
+bGwgc3RpbGwgYmUgYSBzaGFyZWQgc2V0Cj4+PiBiZXR3ZWVuIHRoZSBNTVUgYW5kIHJlbW90ZXBy
+b2MgZHJpdmVycywgYnV0IGxldCBtZSBsb29rIGludG8KPj4+IGhvdyB0aGVzZSBnZXQgaW50ZWdy
+YXRlZC4iIFNvIHdhcyB0aGVyZSBhbnkgY29uY2x1c2lvbiB0aGVyZT8KPj4+Cj4+PiBBbHNvLCB3
+aGF0J3MgdGhlIGRlYWwgd2l0aCB0aGVzZSBvbWFwNCBjaGFuZ2VzIHRoYXQgSSBjb21tZW50ZWQK
+Pj4+IG9uIGluIDUvOD8KPj4KPj4gVG9ueSwKPj4gU28sIGxvb2tpbmcgYXQgY29kZSwgcmVtb3Zp
+bmcgbW9kdWxlbW9kZSBvbiBod21vZCBkb2VzIGNoYW5nZSB0aGUKPj4gc2VtYW50aWNzIGFzIHRo
+YXQgd2lsbCBub3QgcGx1ZyBpbiB0aGUgY2xrY3RybCBjbGsgKF9vbWFwNF94bGF0ZV9jbGtjdHJs
+Cj4+IHdpbGwgcmV0dXJuIDApIGludG8gdGhlIGh3bW9kIGFuZCB3aWxsIGZhbGwgYmFjay4gU28s
+IHRoaXMgc2hvdWxkIG1ha2UKPj4gaXQgY29tcGF0aWJsZSB0byB0aGUgZXhpc3RpbmcgY29kZSBi
+ZWZvcmUgYWRkaW5nIHRoZSBjbGtjdHJsIGR0IG5vZGVzLAo+PiBhbmQgUGF0Y2ggNSB3aWxsIGJl
+IGdvb2QgdG8gYXZvaWQgdGhlIGNyYXNoIHdoZW4gZGlzYWJsaW5nIHRoZSBwcm9jZXNzb3IKPj4g
+bm9kZXMuIFRoYXQgc2FpZCwgbm93IHRoYXQgdGhlIG1vZHVsZW1vZGUgaXMgY29udHJvbGxlZCBi
+eSB0aGUKPj4gdGktY2xrY3RybCBjb2RlLCBJIHdvdWxkIGV4cGVjdCB0byBnZXQgdGhlIHJlZmNv
+dW50aW5nIGZvciBmcmVlIGR1ZSB0bwo+PiBjbGtfZW5hYmxlKCkgc2VtYW50aWNzIGlmIHRoZSBz
+YW1lIGNsa2N0cmwgY2xrIGlzIHBsdWdnZWQgdW5kZXIgdHdvCj4+IG5vZGVzIChNTVUgYW5kIHBy
+b2Nlc3NvcikgYW5kIEkgbWF5IG5vdCBuZWVkIHRvIHJlbW92ZSB0aGUgbW9kdWxlbW9kZS4KPj4g
+T25lIG9mIHRoZSBtYWluIHJlYXNvbnMgZm9yIHJlbW92aW5nIHRoZSBtb2R1bGVtb2RlIGlzIHRo
+ZSBsYWNrIG9mCj4+IHJlZmNvdW50aW5nIG9uIG1vZHVsZW1vZGUgaW4gdGhlIG9yaWdpbmFsIGNv
+ZGUuCj4gCj4gT0suIFNvdW5kcyBsaWtlIHlvdSBjYW4gZ2V0IHRoZSByZWZjb3VudGluZyBmb3Ig
+ZnJlZSBqdXN0IGJ5IG1vZGlmeWluZwo+IHRoZSBkdHMgYXMgZG9uZSBmb3IgZXhhbXBsZSBmb3Ig
+bXVzYiBvbiBvbWFwNCBpbiAiW1BBVENIIDEwLzEwXSBBUk06Cj4gZHRzOiBVc2UgdGktc3lzYyBt
+b2R1bGUgZHJpdmVyIGZvciBvbWFwNCBtdXNiIiBpbiB0aGF0IHNlcmllcy4gWW91Cj4gd2lsbCBu
+ZWVkIGFsc28gdGhlIHJlc3Qgb2YgdGhlIHBhdGNoZXMgZnJvbSB0aGF0IHNlcmllcyBuYXR1cmFs
+bHkgOikKPiAKPiBUaGF0IGlzIGFzIGxvbmcgYXMgTU1VIGFuZCBwcm9jZXNzb3IgYXJlIGJvdGgg
+Y2hpbGQgZGV2aWNlcyBpbiB0aGUKPiBzYW1lIGludGVyY29ubmVjdCB0YXJnZXQgbW9kdWxlLgo+
+IAo+PiBJbiBhbnljYXNlLCBJIG5lZWQgdG8gcmV0ZXN0IHRoaXMgd2l0aCBhbGwgb2YgcmVxdWly
+ZWQgcGF0Y2hlcyBmcm9tIFRlcm8KPj4gKGN1cnJlbnQgbWFpbmxpbmUgZG9lcyBub3QgeWV0IGhh
+dmUgdGhlIGNsa2N0cmwgZHQgbm9kZXMpLgo+IAo+IE9LCj4gCj4+IFRlcm8sCj4+IERvIHlvdSBo
+YXZlIHRoZXNlIHBhdGNoZXMgcmViYXNlZCBvbnRvIDQuMTQtcmMxIChwcmVmZXJhYmxlIGlmIGl0
+IGlzCj4+IHJlYmFzZWQgb250byBUb255J3Mgb21hcC1mb3ItdjQuMTUvc29jIGJyYW5jaC4gSSB0
+cmllZCBjaGVycnktcGlja2luZwo+PiBmcm9tIHlvdXIgZ2l0aHViIHRlc3QgYnJhbmNoIChiYXNl
+ZCBvbiA0LjEzLXJjMyksIGJ1dCBhbSBydW5uaW5nIGludG8KPj4gc29tZSBMM05vYyBlcnJvcnMg
+b25jZSBJIGFkZCB0aGUgY2xrY3RybCBkdHMgbm9kZSBwYXRjaCBvbiBQYW5kYTQgdXNpbmcgTkZT
+Lgo+IAo+IFllYWggSSBub3RpY2VkIHRoYXQgYW5kIGVtYWlsZWQgVGVybyBhYm91dCBpdC4gSXQg
+c2VlbXMgdG8gdHJpZ2dlcgo+IHdpdGggYnVpbHQtaW4gbXVzYiBhbmQgREVCVUdfS0VSTkVMIGRp
+c2FibGVkLCBub3Qgc3VyZSB3aGF0IHRyaWdnZXJzCj4gaXQuIE9ubHkgaGFwcGVucyBhZnRlciB0
+aGUgY2xrY3RybCBub2RlcyBhcmUgYWRkZWQuCgpJbiBteSB0cmVlLCB5b3UgY2FuIGZpbmQgNC4x
+NC1yYzEtY2xrY3RybC1jbGVhbnVwIGJyYW5jaC4gSXQgY2FuIHN0aWxsIApiZSBjb25zaWRlcmVk
+IFdJUCwgYXMgSSBoYXZlbid0IHBvc3RlZCBpdCBwdWJsaWNseSBhbmQgYW0gd29ya2luZyB3aXRo
+IApzb21lIGxhdGUgcXVpcmtzIG9uIGl0LgoKLVRlcm8KCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
+aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
