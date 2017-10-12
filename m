@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 1/6] ARM: dts: DRA72: Add CAL dtsi node
-Date: Thu, 12 Oct 2017 14:27:14 -0500
-Message-ID: <20171012192719.15193-2-bparrot@ti.com>
+Subject: [Patch 3/6] ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
+Date: Thu, 12 Oct 2017 14:27:16 -0500
+Message-ID: <20171012192719.15193-4-bparrot@ti.com>
 References: <20171012192719.15193-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,57 +12,30 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Rob Herring
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds the required dtsi node to support the Camera
-Adaptation Layer (CAL) for the DRA72 family of devices.
+HWSUP on this domain is only working when VIP1 probes.
+If only VIP2 on DRA74x or CAL on DRA72x probes the domain does
+not get enabled. This might indicates an issue in the HW Auto
+state-machine for this domain.
 
-- Added CAL entry in dra72x.dtsi.
+Work around is to set the CAM domain to use SWSUP only.
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/boot/dts/dra72x.dtsi | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ arch/arm/mach-omap2/clockdomains7xx_data.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/dra72x.dtsi b/arch/arm/boot/dts/dra72x.dtsi
-index 67107605fb4c..d0ba4f238084 100644
---- a/arch/arm/boot/dts/dra72x.dtsi
-+++ b/arch/arm/boot/dts/dra72x.dtsi
-@@ -17,6 +17,37 @@
- 		interrupt-parent = <&wakeupgen>;
- 		interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH>;
- 	};
-+
-+	ocp {
-+		cal: cal@4845b000 {
-+			compatible = "ti,dra72-cal";
-+			ti,hwmods = "cal";
-+			reg = <0x4845B000 0x400>,
-+			      <0x4845B800 0x40>,
-+			      <0x4845B900 0x40>,
-+			      <0x4A002e94 0x4>;
-+			reg-names = "cal_top",
-+				    "cal_rx_core0",
-+				    "cal_rx_core1",
-+				    "camerrx_control";
-+			interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			status = "disabled";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				csi2_0: port@0 {
-+					reg = <0>;
-+				};
-+				csi2_1: port@1 {
-+					reg = <1>;
-+				};
-+			};
-+		};
-+	};
+diff --git a/arch/arm/mach-omap2/clockdomains7xx_data.c b/arch/arm/mach-omap2/clockdomains7xx_data.c
+index 67ebff829cf2..dd37efa2c652 100644
+--- a/arch/arm/mach-omap2/clockdomains7xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains7xx_data.c
+@@ -609,7 +609,7 @@ static struct clockdomain cam_7xx_clkdm = {
+ 	.dep_bit	  = DRA7XX_CAM_STATDEP_SHIFT,
+ 	.wkdep_srcs	  = cam_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = cam_wkup_sleep_deps,
+-	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
++	.flags		  = CLKDM_CAN_SWSUP,
  };
  
- &dss {
+ static struct clockdomain l4per_7xx_clkdm = {
 -- 
 2.9.0
