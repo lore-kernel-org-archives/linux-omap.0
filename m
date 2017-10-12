@@ -1,7 +1,7 @@
 From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 2/6] ARM: DRA7: hwmod: Add CAL nodes
-Date: Thu, 12 Oct 2017 14:27:15 -0500
-Message-ID: <20171012192719.15193-3-bparrot@ti.com>
+Subject: [Patch 5/6] ARM: DRA7: hwmod: Add VPE nodes
+Date: Thu, 12 Oct 2017 14:27:18 -0500
+Message-ID: <20171012192719.15193-6-bparrot@ti.com>
 References: <20171012192719.15193-1-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,91 +12,87 @@ To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Rob Herring
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch adds the required hwmod nodes to support the Camera
-Adaptation Layer (CAL) for the DRA72 family of devices.
+Add hwmod entries for VPE (Video Processing Engine) hardware block
+found in DRA7x family of devices.
 
-- Added CAL hwmod entry in the DRA72x section.
-
-The DRA72x TRM (Literature Number SPRUHP2x) states that CAL only
-support NO_IDLE, FORCE_IDLE and SMART_IDLE.
-Although CAL does not support standby mode per se hwmod would not
-enabled the functional/interface clock if module is not a master.
-Hence the SWSUP mode flags ifor SIDLE ans MSTANDBY are also enabled.
-This ensure that i/f clocks are available when CAL is enabled.
+DRA75x_DRA74x_ES1.1 Version T Technical Reference Manual
+(Literature Number SPRUHI2T) states that VPE only support NO_STANDBY,
+FORCE_STANDBY, NO_IDLE, FORCE_IDLE and SMART_IDLE.
+The hwmod flags were set to reflect this fact and make sure that
+both are software supervised (SWSUSP).
 
 Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 44 +++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c | 43 +++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-index 2f4f7002f38d..fc53b498975c 100644
+index fc53b498975c..c0bbc1099a11 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -240,6 +240,41 @@ static struct omap_hwmod dra7xx_bb2d_hwmod = {
+@@ -240,6 +240,40 @@ static struct omap_hwmod dra7xx_bb2d_hwmod = {
  };
  
  /*
-+ * 'cal' class
++ * 'vpe' class
 + *
 + */
 +
-+static struct omap_hwmod_class_sysconfig dra7xx_cal_sysc = {
++static struct omap_hwmod_class_sysconfig dra7xx_vpe_sysc = {
 +	.sysc_offs	= 0x0010,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_RESET_STATUS |
-+			   SYSC_HAS_SOFTRESET | SYSC_HAS_MIDLEMODE),
++	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
 +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   MSTANDBY_FORCE | MSTANDBY_NO),
++			   MSTANDBY_FORCE | MSTANDBY_NO |
++			   MSTANDBY_SMART),
 +	.sysc_fields	= &omap_hwmod_sysc_type2,
 +};
 +
-+static struct omap_hwmod_class dra7xx_cal_hwmod_class = {
-+	.name	= "cal",
-+	.sysc	= &dra7xx_cal_sysc,
++static struct omap_hwmod_class dra7xx_vpe_hwmod_class = {
++	.name	= "vpe",
++	.sysc	= &dra7xx_vpe_sysc,
 +};
 +
-+/* cal */
-+static struct omap_hwmod dra7xx_cal_hwmod = {
-+	.name		= "cal",
-+	.class		= &dra7xx_cal_hwmod_class,
-+	.clkdm_name	= "cam_clkdm",
-+	.main_clk	= "vip2_gclk_mux",
++/* vpe */
++static struct omap_hwmod dra7xx_vpe_hwmod = {
++	.name		= "vpe",
++	.class		= &dra7xx_vpe_hwmod_class,
++	.clkdm_name	= "vpe_clkdm",
 +	.flags		= (HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY),
 +	.prcm = {
 +		.omap4 = {
-+			.clkctrl_offs = DRA7XX_CM_CAM_VIP2_CLKCTRL_OFFSET,
-+			.context_offs = DRA7XX_RM_CAM_VIP2_CONTEXT_OFFSET,
++			.clkctrl_offs = DRA7XX_CM_VPE_VPE_CLKCTRL_OFFSET,
++			.context_offs = DRA7XX_RM_VPE_VPE_CONTEXT_OFFSET,
 +			.modulemode   = MODULEMODE_HWCTRL,
 +		},
 +	},
 +};
 +
 +/*
-  * 'counter' class
+  * 'cal' class
   *
   */
-@@ -3901,6 +3936,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per2__vcp2 = {
+@@ -3936,6 +3970,14 @@ static struct omap_hwmod_ocp_if dra7xx_l4_per2__vcp2 = {
  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
-+/* l4_per3 -> cal */
-+static struct omap_hwmod_ocp_if dra7xx_l4_per3__cal = {
++/* l4_per3 -> vpe */
++static struct omap_hwmod_ocp_if dra7xx_l4_per3__vpe = {
 +	.master		= &dra7xx_l4_per3_hwmod,
-+	.slave		= &dra7xx_cal_hwmod,
++	.slave		= &dra7xx_vpe_hwmod,
 +	.clk		= "l3_iclk_div",
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
- /* l4_wkup -> wd_timer2 */
- static struct omap_hwmod_ocp_if dra7xx_l4_wkup__wd_timer2 = {
- 	.master		= &dra7xx_l4_wkup_hwmod,
-@@ -4082,6 +4125,7 @@ static struct omap_hwmod_ocp_if *dra74x_hwmod_ocp_ifs[] __initdata = {
- };
- 
- static struct omap_hwmod_ocp_if *dra72x_hwmod_ocp_ifs[] __initdata = {
-+	&dra7xx_l4_per3__cal,
- 	NULL,
- };
- 
+ /* l4_per3 -> cal */
+ static struct omap_hwmod_ocp_if dra7xx_l4_per3__cal = {
+ 	.master		= &dra7xx_l4_per3_hwmod,
+@@ -4099,6 +4141,7 @@ static struct omap_hwmod_ocp_if *dra7xx_hwmod_ocp_ifs[] __initdata = {
+ 	&dra7xx_l4_per2__vcp1,
+ 	&dra7xx_l3_main_1__vcp2,
+ 	&dra7xx_l4_per2__vcp2,
++	&dra7xx_l4_per3__vpe,
+ 	&dra7xx_l4_wkup__wd_timer2,
+ 	&dra7xx_l4_per2__epwmss0,
+ 	&dra7xx_l4_per2__epwmss1,
 -- 
 2.9.0
