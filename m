@@ -1,119 +1,49 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [RESEND PATCH] mtd: nand: omap2: Remove omap_nand_platform_data
-Date: Thu, 12 Oct 2017 16:15:10 +0200
-Message-ID: <20171012161510.5930308b@bbrezillon>
-References: <20171006103543.gnb2hxq7msallyzl@lenoch>
- <20171010114047.202d7d44@bbrezillon>
- <2cd668a5-1c53-ea90-b7d3-47ddad71c23a@ti.com>
- <20171012133837.13bfe1e4@bbrezillon>
- <97596107-9b96-f8eb-bf44-466aff99e943@ti.com>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: [PATCH] ARM: head-common.S: Clear lr before jumping to
+ start_kernel()
+Date: Thu, 12 Oct 2017 11:25:50 -0400 (EDT)
+Message-ID: <nycvar.YSQ.7.76.1710121123530.1718@knanqh.ubzr>
+References: <1507044184-27152-1-git-send-email-geert+renesas@glider.be> <nycvar.YSQ.7.76.1710031134140.5407@knanqh.ubzr> <CAMuHMdWJKQb5JY+diH=7dqNuypkPUqBeOEPSLOrfrnbfh2siRQ@mail.gmail.com> <CAMuHMdXpPfipmEdW0Dap6Pjwhz3QxLcrcbtU0RhCu721k-sBpA@mail.gmail.com>
+ <CAMuHMdWH_pebSYAp04gmVceu3qqPczGaXS36R8CtzAYHo-CNog@mail.gmail.com> <20171010203324.GX4394@atomide.com> <20171012102341.GF23750@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <97596107-9b96-f8eb-bf44-466aff99e943@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Richard Weinberger <richard@nod.at>, linux-omap@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171012102341.GF23750@n2100.armlinux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Chris Brandt <Chris.Brandt@renesas.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gVGh1LCAxMiBPY3QgMjAxNyAxNzowOToyNiArMDMwMApSb2dlciBRdWFkcm9zIDxyb2dlcnFA
-dGkuY29tPiB3cm90ZToKCj4g77u/Cj4gVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9y
-a2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuIFktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1
-NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCj4gCj4gT24gMTIvMTAvMTcgMTQ6
-MzgsIEJvcmlzIEJyZXppbGxvbiB3cm90ZToKPiA+IE9uIFRodSwgMTIgT2N0IDIwMTcgMTQ6Mjg6
-NDUgKzAzMDAKPiA+IFJvZ2VyIFF1YWRyb3MgPHJvZ2VycUB0aS5jb20+IHdyb3RlOgo+ID4gICAK
-PiA+PiBUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4
-MCBIZWxzaW5raS4gWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9E
-b21pY2lsZTogSGVsc2lua2kKPiA+Pgo+ID4+IE9uIDEwLzEwLzE3IDEyOjQwLCBCb3JpcyBCcmV6
-aWxsb24gd3JvdGU6ICAKPiA+Pj4gT24gRnJpLCA2IE9jdCAyMDE3IDEyOjM1OjQzICswMjAwCj4g
-Pj4+IExhZGlzbGF2IE1pY2hsIDxsYWRpc0BsaW51eC1taXBzLm9yZz4gd3JvdGU6Cj4gPj4+ICAg
-IAo+ID4+Pj4gQXMgZHJpdmVyIGlzIG5vdyBjb25maWd1cmVkIHVzaW5nIERULCBvbWFwX25hbmRf
-cGxhdGZvcm1fZGF0YSBzdHJ1Y3R1cmUKPiA+Pj4+IGlzIG5vIGxvbmdlciBuZWVkZWQuCj4gPj4+
-Pgo+ID4+Pj4gU2lnbmVkLW9mZi1ieTogTGFkaXNsYXYgTWljaGwgPGxhZGlzQGxpbnV4LW1pcHMu
-b3JnPgo+ID4+Pj4gLS0tCj4gPj4+PiAgUmVzZW5kIHRvIGxpbnV4LW10ZCBhcyBvdGhlciBwYXJ0
-IHRoaXMgcGF0Y2ggd2FzIGRlcGVuZGluZyBvbgo+ID4+Pj4gIHdhcyBtZXJnZWQgbW9udGhzIGFn
-byB2aWEgbGludXgtb21hcCB0cmVlLi4uCj4gPj4+Pgo+ID4+Pj4gIGRyaXZlcnMvbXRkL25hbmQv
-b21hcDIuYyAgICAgICAgICAgICAgICAgICAgIHwgNDAgKysrKysrKy0tLS0tLS0tLS0tLS0tLS0t
-LS0tLQo+ID4+Pj4gIGluY2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9tdGQtbmFuZC1vbWFwMi5o
-IHwgMTcgLS0tLS0tLS0tLS0tCj4gPj4+PiAgMiBmaWxlcyBjaGFuZ2VkLCAxMCBpbnNlcnRpb25z
-KCspLCA0NyBkZWxldGlvbnMoLSkKPiA+Pj4+Cj4gPj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
-dGQvbmFuZC9vbWFwMi5jIGIvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jCj4gPj4+PiBpbmRleCA1
-NDU0MGM4ZmExYTIuLmIxZmMwNzBjODI3OSAxMDA2NDQKPiA+Pj4+IC0tLSBhL2RyaXZlcnMvbXRk
-L25hbmQvb21hcDIuYwo+ID4+Pj4gKysrIGIvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jCj4gPj4+
-PiBAQCAtMTU4OCw4ICsxNTg4LDcgQEAgc3RhdGljIGJvb2wgaXNfZWxtX3ByZXNlbnQoc3RydWN0
-IG9tYXBfbmFuZF9pbmZvICppbmZvLAo+ID4+Pj4gICAgICByZXR1cm4gdHJ1ZTsKPiA+Pj4+ICB9
-Cj4gPj4+Pgo+ID4+Pj4gLXN0YXRpYyBib29sIG9tYXAyX25hbmRfZWNjX2NoZWNrKHN0cnVjdCBv
-bWFwX25hbmRfaW5mbyAqaW5mbywKPiA+Pj4+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHN0cnVjdCBvbWFwX25hbmRfcGxhdGZvcm1fZGF0YSAqcGRhdGEpCj4gPj4+PiArc3RhdGljIGJv
-b2wgb21hcDJfbmFuZF9lY2NfY2hlY2soc3RydWN0IG9tYXBfbmFuZF9pbmZvICppbmZvKQo+ID4+
-Pj4gIHsKPiA+Pj4+ICAgICAgYm9vbCBlY2NfbmVlZHNfYmNoLCBlY2NfbmVlZHNfb21hcF9iY2gs
-IGVjY19uZWVkc19lbG07Cj4gPj4+Pgo+ID4+Pj4gQEAgLTE4MDQsNyArMTgwMyw2IEBAIHN0YXRp
-YyBjb25zdCBzdHJ1Y3QgbXRkX29vYmxheW91dF9vcHMgb21hcF9zd19vb2JsYXlvdXRfb3BzID0g
-ewo+ID4+Pj4gIHN0YXRpYyBpbnQgb21hcF9uYW5kX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
-Y2UgKnBkZXYpCj4gPj4+PiAgewo+ID4+Pj4gICAgICBzdHJ1Y3Qgb21hcF9uYW5kX2luZm8gICAg
-ICAgICAgICppbmZvOwo+ID4+Pj4gLSAgICBzdHJ1Y3Qgb21hcF9uYW5kX3BsYXRmb3JtX2RhdGEg
-ICpwZGF0YSA9IE5VTEw7Cj4gPj4+PiAgICAgIHN0cnVjdCBtdGRfaW5mbyAgICAgICAgICAgICAg
-ICAgKm10ZDsKPiA+Pj4+ICAgICAgc3RydWN0IG5hbmRfY2hpcCAgICAgICAgICAgICAgICAqbmFu
-ZF9jaGlwOwo+ID4+Pj4gICAgICBpbnQgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVycjsK
-PiA+Pj4+IEBAIC0xODE0LDYgKzE4MTIsOSBAQCBzdGF0aWMgaW50IG9tYXBfbmFuZF9wcm9iZShz
-dHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ID4+Pj4gICAgICBpbnQgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIG1pbl9vb2JieXRlcyA9IEJBREJMT0NLX01BUktFUl9MRU5HVEg7Cj4g
-Pj4+PiAgICAgIGludCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb29iYnl0ZXNfcGVyX3N0
-ZXA7Cj4gPj4+Pgo+ID4+Pj4gKyAgICBpZiAoIWRldi0+b2Zfbm9kZSkKPiA+Pj4+ICsgICAgICAg
-ICAgICByZXR1cm4gLUVJTlZBTDsKPiA+Pj4+ICsgICAgCj4gPj4+Cj4gPj4+IElzIHRoaXMgcmVh
-bGx5IG5lZWRlZD8gSSBleHBlY3Qgb21hcF9nZXRfZHRfaW5mbygpIHRvIHJldHVybiBhbiBlcnJv
-cgo+ID4+PiB3aGVuIGRldi0+b2Zfbm9kZSBpcyBOVUxMLgo+ID4+PiAgICAKPiA+Pj4+ICAgICAg
-aW5mbyA9IGRldm1fa3phbGxvYygmcGRldi0+ZGV2LCBzaXplb2Yoc3RydWN0IG9tYXBfbmFuZF9p
-bmZvKSwKPiA+Pj4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgR0ZQX0tFUk5FTCk7Cj4g
-Pj4+PiAgICAgIGlmICghaW5mbykKPiA+Pj4+IEBAIC0xODIxLDI5ICsxODIyLDkgQEAgc3RhdGlj
-IGludCBvbWFwX25hbmRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiA+Pj4+
-Cj4gPj4+PiAgICAgIGluZm8tPnBkZXYgPSBwZGV2Owo+ID4+Pj4KPiA+Pj4+IC0gICAgaWYgKGRl
-di0+b2Zfbm9kZSkgewo+ID4+Pj4gLSAgICAgICAgICAgIGlmIChvbWFwX2dldF9kdF9pbmZvKGRl
-diwgaW5mbykpCj4gPj4+PiAtICAgICAgICAgICAgICAgICAgICByZXR1cm4gLUVJTlZBTDsKPiA+
-Pj4+IC0gICAgfSBlbHNlIHsKPiA+Pj4+IC0gICAgICAgICAgICBwZGF0YSA9IGRldl9nZXRfcGxh
-dGRhdGEoJnBkZXYtPmRldik7Cj4gPj4+PiAtICAgICAgICAgICAgaWYgKCFwZGF0YSkgewo+ID4+
-Pj4gLSAgICAgICAgICAgICAgICAgICAgZGV2X2VycigmcGRldi0+ZGV2LCAicGxhdGZvcm0gZGF0
-YSBtaXNzaW5nXG4iKTsKPiA+Pj4+IC0gICAgICAgICAgICAgICAgICAgIHJldHVybiAtRUlOVkFM
-Owo+ID4+Pj4gLSAgICAgICAgICAgIH0KPiA+Pj4+IC0KPiA+Pj4+IC0gICAgICAgICAgICBpbmZv
-LT5ncG1jX2NzID0gcGRhdGEtPmNzOwo+ID4+Pj4gLSAgICAgICAgICAgIGluZm8tPnJlZyA9IHBk
-YXRhLT5yZWc7Cj4gPj4+PiAtICAgICAgICAgICAgaW5mby0+ZWNjX29wdCA9IHBkYXRhLT5lY2Nf
-b3B0Owo+ID4+Pj4gLSAgICAgICAgICAgIGlmIChwZGF0YS0+ZGV2X3JlYWR5KQo+ID4+Pj4gLSAg
-ICAgICAgICAgICAgICAgICAgZGV2X2luZm8oJnBkZXYtPmRldiwgInBkYXRhLT5kZXZfcmVhZHkg
-aXMgZGVwcmVjYXRlZFxuIik7Cj4gPj4+PiAtCj4gPj4+PiAtICAgICAgICAgICAgaW5mby0+eGZl
-cl90eXBlID0gcGRhdGEtPnhmZXJfdHlwZTsKPiA+Pj4+IC0gICAgICAgICAgICBpbmZvLT5kZXZz
-aXplID0gcGRhdGEtPmRldnNpemU7Cj4gPj4+PiAtICAgICAgICAgICAgaW5mby0+ZWxtX29mX25v
-ZGUgPSBwZGF0YS0+ZWxtX29mX25vZGU7Cj4gPj4+PiAtICAgICAgICAgICAgaW5mby0+Zmxhc2hf
-YmJ0ID0gcGRhdGEtPmZsYXNoX2JidDsKPiA+Pj4+IC0gICAgfQo+ID4+Pj4gKyAgICBpZiAob21h
-cF9nZXRfZHRfaW5mbyhkZXYsIGluZm8pKQo+ID4+Pj4gKyAgICAgICAgICAgIHJldHVybiAtRUlO
-VkFMOyAgICAKPiA+Pgo+ID4+IGhvdyBhYm91dAo+ID4+Cj4gPj4gICAgICAgICBlcnIgPSBvbWFw
-X2dldF9kdF9pbmZvKGRldiwgaW5mbyk7Cj4gPj4gICAgICAgICBpZiAoZXJyKQo+ID4+ICAgICAg
-ICAgICAgICAgICByZXR1cm4gZXJyOyAgCj4gPiAKPiA+IEFscmVhZHkgZG9uZSBsaWtlIHRoYXQg
-aW4gdjIgWzFdCj4gPiAgIAo+ID4+ICAKPiA+Pj4+Cj4gPj4+PiAtICAgIHBsYXRmb3JtX3NldF9k
-cnZkYXRhKHBkZXYsIGluZm8pOyAgICAKPiA+Pj4KPiA+Pj4gVGhpcyByZW1vdmFsIHNlZW1zIHVu
-cmVsYXRlZCB0byB0aGUgY2hhbmdlIHlvdSdyZSBkZXNjcmliaW5nIGluIHRoZQo+ID4+PiBjb21t
-aXQgbG9nLiBJJ20gbm90IHNheWluZyB3ZSBzaG91bGQga2VlcCB0aGlzIHBsYXRmb3JtX3NldF9k
-cnZkYXRhKCkKPiA+Pj4gaWYgaXQncyB1c2VsZXNzLCBidXQgaXQgc2hvdWxkIGJlIGRvbmUgaW4g
-YSBzZXBhcmF0ZSBwYXRjaC4gICAgCj4gPj4KPiA+PiB3ZSBkbyB1c2UgcGxhdGZvcm1fZ2V0X2Ry
-dmRhdGEoKSBpbiBvbWFwX25hbmRfcmVtb3ZlKCkgc28gSSBzdXBwb3NlCj4gPj4gd2UgY2FuJ3Qg
-Z2V0IHJpZCBvZiBwbGF0b3JtX3NldF9kcnZkYXRhKCkgIAo+ID4gCj4gPiBUaGVyZSdzIGFub3Ro
-ZXIgcGxhdGZvcm1fc2V0X2RydmRhdGEoKSBsYXRlciBpbiB0aGUgcHJvYmUgZnVuY3Rpb24sIEkK
-PiA+IHRoaW5rIHRoaXMgb25lIGlzIGluZGVlZCB1c2VsZXNzIChzZWUgcGF0Y2ggWzJdKSAgCj4g
-Cj4gSSBhZ3JlZS4KPiAKPiA+IAo+ID4gWzFdaHR0cDovL3BhdGNod29yay5vemxhYnMub3JnL3Bh
-dGNoLzgyMzgyMC8KPiA+IFsyXWh0dHA6Ly9wYXRjaHdvcmsub3psYWJzLm9yZy9wYXRjaC84MjM4
-MzkvCgpGZWVsIGZyZWUgdG8gYWRkIHlvdXIgQWNrZWQtYnkvVGVzdGVkLWJ5IG9uIHRoZXNlIHBh
-dGNoZXMuCgo+ID4gLS0KPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
-ZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1vbWFwIiBpbgo+ID4gdGhlIGJvZHkgb2YgYSBtZXNz
-YWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPiA+IE1vcmUgbWFqb3Jkb21vIGluZm8g
-YXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+ID4gICAKPiAK
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-TGludXggTVREIGRpc2N1c3Npb24gbWFpbGluZyBsaXN0Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQu
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbXRkLwo=
+On Thu, 12 Oct 2017, Russell King - ARM Linux wrote:
+
+> On Tue, Oct 10, 2017 at 01:33:25PM -0700, Tony Lindgren wrote:
+> > * Geert Uytterhoeven <geert@linux-m68k.org> [171003 11:32]:
+> > > On Tue, Oct 3, 2017 at 8:15 PM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> > > > On Tue, Oct 3, 2017 at 8:11 PM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> > > >> On Tue, Oct 3, 2017 at 5:37 PM, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
+> > > >>> On Tue, 3 Oct 2017, Geert Uytterhoeven wrote:
+> > > >>> Please send it to RMK's patch system.
+> > > >>
+> > > >> Done (I hope so ;-)
+> > > >
+> > > > Failed. Retrying.
+> > > 
+> > > Yiha ;-)
+> > > 
+> > > http://www.armlinux.org.uk/developer/patches/viewpatch.php?id=8702/1
+> > 
+> > This also fixes the spamming I started seeing with next-20171009:
+> > 
+> > Tested-by: Tony Lindgren <tony@atomide.com>
+> 
+> It's all nice and good that people are testing this patch, but I can't
+> apply it to -rc1, nor my "misc" branch.  It appears that this is due
+> to patches going through other trees.
+> 
+> Sorry, I can't take this patch.
+
+It should go into your devel-testing branch as this must be applied on 
+top of my xip_zdata branch that you merged there.
+
+
+Nicolas
