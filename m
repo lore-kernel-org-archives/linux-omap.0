@@ -1,50 +1,44 @@
-From: Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 5/7] ARM: dts: Add nodes for missing omap4 interconnect
- target modules
-Date: Thu, 12 Oct 2017 10:40:30 +0200
-Message-ID: <20171012084030.lshobr3ewu3t5goc@squirrel.local>
-References: <20170929223411.9691-1-tony@atomide.com>
- <20170929223411.9691-6-tony@atomide.com>
- <f5c57f0b-1423-c362-0fda-4069b77a2e38@ti.com>
- <20171011165850.jnaievrgcszcawh3@earth>
- <da8d1d7f-f16d-8d71-cf49-acff79614610@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv1 00/14] omapdrm: DSI command mode panel support
+Date: Thu, 12 Oct 2017 11:45:19 +0300
+Message-ID: <b66ec006-e998-b8c6-8ef1-5bf19208c100@ti.com>
+References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
+ <20170929132649.63dy7mzjgknaevoa@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <da8d1d7f-f16d-8d71-cf49-acff79614610-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170929132649.63dy7mzjgknaevoa@earth>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 12, 2017 at 09:07:55AM +0300, Peter Ujfalusi wrote:
-> I don't see much benefit of using McASP on OMAP4, only drawbacks... It
-> lacks AFIFO so it is prone to underrun and if it underruns you need to
-> reset McASP. Been there with the Samsung Galaxy Nexus.
-
-AESS/ATC isn't able to consistently respond to a DMA request within 20
-us ?  Strange.. I would have expected it to have no trouble with that.
-(And presumably so did TI, or they would have included AFIFO?)
-
-> I wonder how Motorola is using the McASP as the OMAP4 version
-> (officially) does not support I2S.
-
-Hmm? I checked the omap4430 TRM and I don't see that mentioned. It seems
-to have pins for i2s transmit:
-
-	abe_mcasp_axr              O     Audio transmit data
-	abe_mcasp_aclkx            O     Transmit bit clock
-	abe_mcasp_ahclkx           O     Transmit high-frequency master clock
-	abe_mcasp_afsx             O     Transmit frame synchronization
-	abe_mcasp_amute            O     Mute out to external
-	abe_mcasp_amutein          I     Mute in from external
-
-If it supported s/pdif tx only, then all of these except axr would be
-useless.
-
-Matthijs
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+77u/SGkgU2ViYXN0aWFuLAoKClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxh
+bmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00
+LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQoKT24gMjkvMDkvMTcgMTY6MjYsIFNlYmFz
+dGlhbiBSZWljaGVsIHdyb3RlOgo+IEhpIFRvbWkgJiBMYXVyZW50LAo+IAo+IHBpbmc/CgpJJ3Zl
+IGJlZW4gaGF2aW5nIHF1aWNrIGdsYW5jZXMgYXQgdGhpcyBldmVyeSBub3cgYW5kIHRoZW4sIGJ1
+dCBJJ20gbm90CnN1cmUgd2hhdCB0byBkbyB3aXRoIHRoZSBzZXJpZXMuCgpXZSBoYXZlIG9uZSB3
+b3JrIGl0ZW0gdGhhdCBtb3JlIG9yIGxlc3Mgb3ZlcnJpZGVzIGV2ZXJ5dGhpbmcgYnV0CmNyaXRp
+Y2FsIGZpeGVzOiBtb3ZpbmcgdG8gY29tbW9uIERSTSBlbmNvZGVyL3BhbmVsIGRyaXZlcnMuIEFu
+eXRoaW5nCnRoYXQgbWFrZXMgdGhhdCB3b3JrIG1vcmUgZGlmZmljdWx0IHNob3VsZCBiZSBwb3N0
+cG9uZWQuCgpFc3BlY2lhbGx5IHBhdGNoIDYgaW4gdGhpcyBzZXJpZXMgbW9zdCBsaWtlbHkgZmFs
+bHMgaW50byB0aGF0IGNhdGVnb3J5LAphbmQgbWlnaHQgcmVxdWlyZSBhIHZlcnkgZGlmZmVyZW50
+IGltcGxlbWVudGF0aW9uIHdpdGggY29tbW9uIERSTQpkcml2ZXJzLiBBbHNvIGV2ZXJ5dGhpbmcg
+aW4gcGFuZWwtZHNpLWNtIG5lZWRzIHRvIGJlIHBvcnRlZCB0byBhIGNvbW1vbgpEUk0gcGFuZWwg
+ZHJpdmVyIHdoZW4gY2FuIHVzZSB0aGVtLgoKU28gbXkgZ3V0IGZlZWxpbmcgaXMgdGhhdCBpdCdz
+IGJlc3QgdG8ga2VlcCB0aGlzIG91dCBmb3Igbm93LCBhbmQgcmV3b3JrCml0IGFmdGVyIExhdXJl
+bnQgZ2V0cyB0aGUgY29tbW9uIERSTSBkcml2ZXJzIHdvcmtpbmcgd2l0aCBvbWFwZHJtLgoKIFRv
+bWkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
+ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
+L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
