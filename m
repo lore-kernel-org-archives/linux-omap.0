@@ -1,81 +1,89 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 5/7] ARM: dts: Add nodes for missing omap4 interconnect
- target modules
-Date: Fri, 13 Oct 2017 09:46:41 -0700
-Message-ID: <20171013164640.GI4394@atomide.com>
-References: <20170929223411.9691-1-tony@atomide.com>
- <20170929223411.9691-6-tony@atomide.com>
- <f5c57f0b-1423-c362-0fda-4069b77a2e38@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 2/2] device tree changes for omaps for v4.15 merge window
+Date: Fri, 13 Oct 2017 09:39:01 -0700
+Message-ID: <pull-1507912705-793554@atomide.com-2>
+References: <pull-1507912705-793554@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <f5c57f0b-1423-c362-0fda-4069b77a2e38-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1507912705-793554@atomide.com>
+In-Reply-To: <pull-1507912705-793554@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: "Tony Lindgren" <tony@atomide.com>
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [171011 08:56]:
-> On 09/30/2017 01:34 AM, Tony Lindgren wrote:
-> > +		target-module@40128000 {
-> > +			compatible = "ti,sysc-mcasp";
-> > +			ti,hwmods = "mcasp";
-> > +			reg = <0x40128004 0x4>;
-> > +			reg-names = "sysc";
-> > +			#address-cells = <1>;
-> > +			#size-cells = <1>;
-> > +			ranges = <0x00000000 0x40128000 0x1000>, /* MPU */
-> > +				 <0x49028000 0x49028000 0x1000>; /* L3 */
-> > +
-> > +			/*
-> > +			 * Child device unsupported by davinci-mcasp. At least
-> > +			 * TX path is disabled for omap4, and only DIT mode
-> 
-> s/TX/RX
-> 
-> > +			 * works with no I2S. See also old Android kernel
-> > +			 * omap-mcasp driver for more information.
+The following changes since commit 2bd6bf03f4c1c59381d62c61d03f6cc3fe71f66e:
 
-Below is a fix for the RX comment.
+  Linux 4.14-rc1 (2017-09-16 15:47:51 -0700)
 
-Regards,
+are available in the git repository at:
 
-Tony
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap-for-v4.15/dt
 
-8< ------------------
->From tony Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Date: Fri, 13 Oct 2017 09:43:22 -0700
-Subject: [PATCH] ARM: dts: Fix typo for omap4 mcasp rx path
+for you to fetch changes up to aefe3babab100ce389b4506672e7ee54078c905b:
 
-As reported by Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, the rx path on macsp
-is disabled and only tx is usable if the davinci-mcasp driver is updated for
-it.
+  ARM: dts: omap3: Replace deprecated mcp prefix (2017-10-11 08:47:31 -0700)
 
-Reported-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/boot/dts/omap4.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+----------------------------------------------------------------
+Andrew F. Davis (10):
+      ARM: dts: am43xx: Introduce additional pinmux definitions for DS0
+      ARM: dts: am43xx-epos-evm: Add sleep pinmux for spi0 and spi1
+      ARM: dts: am43xx-epos-evm: Add sleep pinmux for qspi1
+      ARM: dts: am43xx-epos-evm: Add sleep pinmux for ecap0
+      ARM: dts: am43xx-epos-evm: Add sleep pinmux for gpmc
+      ARM: dts: am43xx-epos-evm: Add sleep pinmux for pixcir_ts
+      ARM: dts: am43xx-epos-evm: Add sleep pinmux for mmc1
+      ARM: dts: am43xx-epos-evm: Add default and sleep pinmux for uart0
+      ARM: dts: am43xx-epos-evm: Add default and sleep pinmux for usb2_phy1 and usb2_phy2
+      ARM: dts: am43xx-epos-evm: Add default pinmux for unused pins
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -828,7 +828,7 @@
- 
- 			/*
- 			 * Child device unsupported by davinci-mcasp. At least
--			 * TX path is disabled for omap4, and only DIT mode
-+			 * RX path is disabled for omap4, and only DIT mode
- 			 * works with no I2S. See also old Android kernel
- 			 * omap-mcasp driver for more information.
- 			 */
--- 
-2.14.2
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Derald D. Woods (4):
+      ARM: dts: omap3-evm-37xx: Add common processor module support
+      ARM: dts: omap3-evm: Add OMAP3530 specific device tree processor data
+      ARM: dts: omap3: Add Sharp LS037V7DW01 'envdd' supply
+      ARM: dts: omap3-evm: Add DSS {vdds_dsi,vdda_video}-supply references
+
+Kabir Sahane (1):
+      ARM: dts: am43xx-epos-evm: Add default and sleep pinmux for matrix_keypad0
+
+Lars Poeschel (1):
+      ARM: dts: omap3: Replace deprecated mcp prefix
+
+Ravikumar Kattekola (3):
+      ARM: dts: dra7: Increase max-voltage of pbias regulator
+      ARM: dts: omap5: Increase max-voltage of pbias regulator
+      ARM: dts: dra7-evm: Move pcie RC node to common file
+
+Tony Lindgren (3):
+      ARM: dts: Configure earlycon for n8x0
+      ARM: dts: Configure earlycon for pandaboard
+      ARM: dts: Configure earlycon for omap5-common
+
+ arch/arm/boot/dts/am43x-epos-evm.dts               | 239 +++++++++++++++++++--
+ arch/arm/boot/dts/dra7-evm-common.dtsi             |   4 +
+ arch/arm/boot/dts/dra7-evm.dts                     |   4 -
+ arch/arm/boot/dts/dra7.dtsi                        |   2 +-
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi        |   4 +
+ arch/arm/boot/dts/omap3-evm-37xx.dts               | 209 +-----------------
+ arch/arm/boot/dts/omap3-evm-processor-common.dtsi  | 216 +++++++++++++++++++
+ arch/arm/boot/dts/omap3-evm.dts                    |  76 ++++++-
+ arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |   2 +-
+ .../boot/dts/omap3-panel-sharp-ls037v7dw01.dtsi    |   1 +
+ arch/arm/boot/dts/omap4-panda-common.dtsi          |   4 +
+ arch/arm/boot/dts/omap5-board-common.dtsi          |   4 +
+ arch/arm/boot/dts/omap5.dtsi                       |   2 +-
+ include/dt-bindings/pinctrl/am43xx.h               |  12 ++
+ 14 files changed, 539 insertions(+), 240 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-evm-processor-common.dtsi
