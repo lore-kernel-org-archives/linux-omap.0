@@ -1,265 +1,181 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] ARM: dts: Fix omap l4per idling with wlcore edge sensitive interrupt
-Date: Fri, 13 Oct 2017 12:32:43 -0700
-Message-ID: <20171013193243.11633-1-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: gpmc-nand broken since v4.12
+Date: Fri, 13 Oct 2017 22:24:58 +0200
+Message-ID: <20171013222458.3f4c103e@bbrezillon>
+References: <7eae9266-558f-6578-66d7-7ab0eb659a81@ti.com>
+ <20171013145033.5d1d9647@bbrezillon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20171013145033.5d1d9647@bbrezillon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Cooper Jr.,
+ Franklin" <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The wl1835mod.pdf data sheet says this pretty clearly for WL_IRQ line:
-
-"WLAN SDIO out-of-band interrupt line. Set to rising edge (active high)
-by default."
-
-And it seems this interrupt can be optionally configured to use falling
-edge too since commit bd763482c82e ("wl18xx: wlan_irq: support platform
-dependent interrupt types").
-
-On omaps, if the wlcore interrupt is configured as level instead of edge,
-L4PER will stop doing hardware based idling after ifconfig wlan0 down is
-done and the WL_EN line is pulled down.
-
-The symptoms show up with L4PER status registers no longer showing the
-IDLEST bits as 2 but as 0 for all the active GPIO banks and for
-L4PER_CLKCTRL. Also the l4per_pwrdm RET count stops increasing in
-the /sys/kernel/debug/pm_debug/count.
-
-Fix the issue for all omap boards with wlcore interrupt set as level.
-
-Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Cc: Eyal Reizer <eyalr-l0cyMroinI0@public.gmane.org>
-Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-Cc: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/boot/dts/am335x-baltos.dtsi           | 2 +-
- arch/arm/boot/dts/am335x-evm.dts               | 2 +-
- arch/arm/boot/dts/am335x-evmsk.dts             | 2 +-
- arch/arm/boot/dts/am437x-gp-evm.dts            | 2 +-
- arch/arm/boot/dts/logicpd-som-lv.dtsi          | 2 +-
- arch/arm/boot/dts/logicpd-torpedo-som.dtsi     | 2 +-
- arch/arm/boot/dts/omap3-cm-t3517.dts           | 2 +-
- arch/arm/boot/dts/omap3-cm-t3730.dts           | 2 +-
- arch/arm/boot/dts/omap3-evm-common.dtsi        | 2 +-
- arch/arm/boot/dts/omap3-igep0020-rev-f.dts     | 2 +-
- arch/arm/boot/dts/omap3-igep0030-rev-g.dts     | 2 +-
- arch/arm/boot/dts/omap3-zoom3.dts              | 2 +-
- arch/arm/boot/dts/omap4-droid4-xt894.dts       | 2 +-
- arch/arm/boot/dts/omap4-panda-common.dtsi      | 2 +-
- arch/arm/boot/dts/omap4-sdp.dts                | 2 +-
- arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi | 2 +-
- arch/arm/boot/dts/omap5-board-common.dtsi      | 2 +-
- 17 files changed, 17 insertions(+), 17 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am335x-baltos.dtsi b/arch/arm/boot/dts/am335x-baltos.dtsi
---- a/arch/arm/boot/dts/am335x-baltos.dtsi
-+++ b/arch/arm/boot/dts/am335x-baltos.dtsi
-@@ -396,7 +396,7 @@
- 		compatible = "ti,wl1835";
- 		reg = <2>;
- 		interrupt-parent = <&gpio3>;
--		interrupts = <7 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupts = <7 IRQ_TYPE_EDGE_RISING>;
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -771,7 +771,7 @@
- 		compatible = "ti,wl1835";
- 		reg = <2>;
- 		interrupt-parent = <&gpio3>;
--		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupts = <17 IRQ_TYPE_EDGE_RISING>;
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -682,7 +682,7 @@
- 		compatible = "ti,wl1271";
- 		reg = <2>;
- 		interrupt-parent = <&gpio0>;
--		interrupts = <31 IRQ_TYPE_LEVEL_HIGH>; /* gpio 31 */
-+		interrupts = <31 IRQ_TYPE_EDGE_RISING>; /* gpio 31 */
- 		ref-clock-frequency = <38400000>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/am437x-gp-evm.dts b/arch/arm/boot/dts/am437x-gp-evm.dts
---- a/arch/arm/boot/dts/am437x-gp-evm.dts
-+++ b/arch/arm/boot/dts/am437x-gp-evm.dts
-@@ -788,7 +788,7 @@
- 		compatible = "ti,wl1835";
- 		reg = <2>;
- 		interrupt-parent = <&gpio1>;
--		interrupts = <23 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupts = <23 IRQ_TYPE_EDGE_RISING>;
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/logicpd-som-lv.dtsi b/arch/arm/boot/dts/logicpd-som-lv.dtsi
---- a/arch/arm/boot/dts/logicpd-som-lv.dtsi
-+++ b/arch/arm/boot/dts/logicpd-som-lv.dtsi
-@@ -133,7 +133,7 @@
- 		compatible = "ti,wl1273";
- 		reg = <2>;
- 		interrupt-parent = <&gpio5>;
--		interrupts = <24 IRQ_TYPE_LEVEL_HIGH>; /* gpio 152 */
-+		interrupts = <24 IRQ_TYPE_EDGE_RISING>; /* gpio 152 */
- 		ref-clock-frequency = <26000000>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/logicpd-torpedo-som.dtsi b/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
---- a/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-+++ b/arch/arm/boot/dts/logicpd-torpedo-som.dtsi
-@@ -152,7 +152,7 @@
- 		compatible = "ti,wl1283";
- 		reg = <2>;
- 		interrupt-parent = <&gpio5>;
--		interrupts = <24 IRQ_TYPE_LEVEL_HIGH>; /* gpio 152 */
-+		interrupts = <24 IRQ_TYPE_EDGE_RISING>; /* gpio 152 */
- 		ref-clock-frequency = <26000000>;
- 		tcxo-clock-frequency = <26000000>;
- 	};
-diff --git a/arch/arm/boot/dts/omap3-cm-t3517.dts b/arch/arm/boot/dts/omap3-cm-t3517.dts
---- a/arch/arm/boot/dts/omap3-cm-t3517.dts
-+++ b/arch/arm/boot/dts/omap3-cm-t3517.dts
-@@ -140,7 +140,7 @@
- 		compatible = "ti,wl1271";
- 		reg = <2>;
- 		interrupt-parent = <&gpio5>;
--		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>; /* gpio 145 */
-+		interrupts = <17 IRQ_TYPE_EDGE_RISING>; /* gpio 145 */
- 		ref-clock-frequency = <38400000>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap3-cm-t3730.dts b/arch/arm/boot/dts/omap3-cm-t3730.dts
---- a/arch/arm/boot/dts/omap3-cm-t3730.dts
-+++ b/arch/arm/boot/dts/omap3-cm-t3730.dts
-@@ -80,7 +80,7 @@
- 		compatible = "ti,wl1271";
- 		reg = <2>;
- 		interrupt-parent = <&gpio5>;
--		interrupts = <8 IRQ_TYPE_LEVEL_HIGH>; /* gpio 136 */
-+		interrupts = <8 IRQ_TYPE_EDGE_RISING>; /* gpio 136 */
- 		ref-clock-frequency = <38400000>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap3-evm-common.dtsi b/arch/arm/boot/dts/omap3-evm-common.dtsi
---- a/arch/arm/boot/dts/omap3-evm-common.dtsi
-+++ b/arch/arm/boot/dts/omap3-evm-common.dtsi
-@@ -131,7 +131,7 @@
- 		compatible = "ti,wl1271";
- 		reg = <2>;
- 		interrupt-parent = <&gpio5>;
--		interrupts = <21 IRQ_TYPE_LEVEL_HIGH>; /* gpio 149 */
-+		interrupts = <21 IRQ_TYPE_EDGE_RISING>; /* gpio 149 */
- 		ref-clock-frequency = <38400000>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
---- a/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
-+++ b/arch/arm/boot/dts/omap3-igep0020-rev-f.dts
-@@ -49,6 +49,6 @@
- 		compatible = "ti,wl1835";
- 		reg = <2>;
- 		interrupt-parent = <&gpio6>;
--		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>; /* gpio 177 */
-+		interrupts = <17 IRQ_TYPE_EDGE_RISING>; /* gpio 177 */
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
---- a/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-+++ b/arch/arm/boot/dts/omap3-igep0030-rev-g.dts
-@@ -71,6 +71,6 @@
- 		compatible = "ti,wl1835";
- 		reg = <2>;
- 		interrupt-parent = <&gpio5>;
--		interrupts = <8 IRQ_TYPE_LEVEL_HIGH>; /* gpio 136 */
-+		interrupts = <8 IRQ_TYPE_EDGE_RISING>; /* gpio 136 */
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap3-zoom3.dts b/arch/arm/boot/dts/omap3-zoom3.dts
---- a/arch/arm/boot/dts/omap3-zoom3.dts
-+++ b/arch/arm/boot/dts/omap3-zoom3.dts
-@@ -202,7 +202,7 @@
- 		compatible = "ti,wl1271";
- 		reg = <2>;
- 		interrupt-parent = <&gpio6>;
--		interrupts = <2 IRQ_TYPE_LEVEL_HIGH>; /* gpio 162 */
-+		interrupts = <2 IRQ_TYPE_EDGE_RISING>; /* gpio 162 */
- 		ref-clock-frequency = <26000000>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap4-droid4-xt894.dts b/arch/arm/boot/dts/omap4-droid4-xt894.dts
---- a/arch/arm/boot/dts/omap4-droid4-xt894.dts
-+++ b/arch/arm/boot/dts/omap4-droid4-xt894.dts
-@@ -365,7 +365,7 @@
- 		compatible = "ti,wl1285", "ti,wl1283";
- 		reg = <2>;
- 		interrupt-parent = <&gpio4>;
--		interrupts = <4 IRQ_TYPE_LEVEL_HIGH>; /* gpio100 */
-+		interrupts = <4 IRQ_TYPE_EDGE_RISING>; /* gpio100 */
- 		ref-clock-frequency = <26000000>;
- 		tcxo-clock-frequency = <26000000>;
- 	};
-diff --git a/arch/arm/boot/dts/omap4-panda-common.dtsi b/arch/arm/boot/dts/omap4-panda-common.dtsi
---- a/arch/arm/boot/dts/omap4-panda-common.dtsi
-+++ b/arch/arm/boot/dts/omap4-panda-common.dtsi
-@@ -463,7 +463,7 @@
- 		compatible = "ti,wl1271";
- 		reg = <2>;
- 		interrupt-parent = <&gpio2>;
--		interrupts = <21 IRQ_TYPE_LEVEL_HIGH>; /* gpio 53 */
-+		interrupts = <21 IRQ_TYPE_EDGE_RISING>; /* gpio 53 */
- 		ref-clock-frequency = <38400000>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -493,7 +493,7 @@
- 		compatible = "ti,wl1281";
- 		reg = <2>;
- 		interrupt-parent = <&gpio1>;
--		interrupts = <21 IRQ_TYPE_LEVEL_HIGH>; /* gpio 53 */
-+		interrupts = <21 IRQ_TYPE_EDGE_RISING>; /* gpio 53 */
- 		ref-clock-frequency = <26000000>;
- 		tcxo-clock-frequency = <26000000>;
- 	};
-diff --git a/arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi b/arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi
---- a/arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi
-+++ b/arch/arm/boot/dts/omap4-var-som-om44-wlan.dtsi
-@@ -72,7 +72,7 @@
- 		compatible = "ti,wl1271";
- 		reg = <2>;
- 		interrupt-parent = <&gpio2>;
--		interrupts = <9 IRQ_TYPE_LEVEL_HIGH>; /* gpio 41 */
-+		interrupts = <9 IRQ_TYPE_EDGE_RISING>; /* gpio 41 */
- 		ref-clock-frequency = <38400000>;
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap5-board-common.dtsi b/arch/arm/boot/dts/omap5-board-common.dtsi
---- a/arch/arm/boot/dts/omap5-board-common.dtsi
-+++ b/arch/arm/boot/dts/omap5-board-common.dtsi
-@@ -370,7 +370,7 @@
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&wlcore_irq_pin>;
- 		interrupt-parent = <&gpio1>;
--		interrupts = <14 IRQ_TYPE_LEVEL_HIGH>;	/* gpio 14 */
-+		interrupts = <14 IRQ_TYPE_EDGE_RISING>;	/* gpio 14 */
- 		ref-clock-frequency = <26000000>;
- 	};
- };
--- 
-2.14.2
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gRnJpLCAxMyBPY3QgMjAxNyAxNDo1MDozMyArMDIwMApCb3JpcyBCcmV6aWxsb24gPGJvcmlz
+LmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5jb20+IHdyb3RlOgoKPiBPbiBGcmksIDEzIE9jdCAy
+MDE3IDE0OjU3OjI5ICswMzAwCj4gUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4gd3JvdGU6
+Cj4gCj4gPiDvu79IaSBCb3JpcywKPiA+IAo+ID4gTkFORCBvbiBncG1jLW9tYXAgYnJlYWtzIGZv
+ciBtZSB3aGlsZSBkb2luZyBhIHVubW91bnQgb2YgYSB1Ymkgdm9sdW1lIHNpbmNlIHY0LjEyCj4g
+PiAKPiA+IEJlaGF2aW91ciBmb2xsb3dzIHRocm91Z2ggaW4gdjQuMTMgYW5kIHY0LjE0LXJjIGFz
+IHdlbGwuCj4gPiAKPiA+IERvIHlvdSBoYXZlIGFueSBpZGVhIGFib3V0IHRoaXM/CgpNb3JlIGlu
+Zm8gb24gd2hhdCBoYXMgY2hhbmdlZCBpbiA0LjEyOiB3ZSBubyBsb25nZXIgYWxsb2NhdGUgdGhl
+Cm5hbmRfYnVmZmVyIHN0cnVjdCArIGl0cyBpbnRlcm5hbCBidWZmZXIgdXNpbmcgYSBzaW5nbGUg
+YmlnIGttYWxsb2MKY2FsbCwgd2hpY2ggbWVhbnMgdGhlIG5hbmRfYnVmZmVyIHN0cnVjdCBpcyBu
+b3cgbGlrZWx5IHRvIGJlIGFsbG9jYXRlZAppbiBhIHNtYWxsIG9iamVjdCBzbGFiIChzaXplb2Yo
+bmFuZF9idWZmZXJzKSA9IDEyKS4gSWYgeW91IGhhdmUgYQp1c2UtYWZ0ZXItZnJlZSBidWcgc29t
+ZXdoZXJlIGluIHRoZSBrZXJuZWwsIGl0IG1pZ2h0IGNvcnJ1cHQgdGhlCm5hbmRfYnVmZmVycyBv
+YmplY3QsIHdoaWNoIG1pZ2h0IGV4cGxhaW4gdGhlIGJ1ZyB5b3Ugc2VlIGhlcmUuCgo+IAo+IENh
+biB5b3UgdHJ5IHdpdGggdGhpcyBwYXRjaCBbMV0gYXBwbGllZCBhbmQgcGFzdGUgbWUgdGhlIHZh
+bHVlcyBwcmludGVkCj4ganVzdCBiZWZvcmUgdGhlIGNyYXNoPwo+IAo+IFsxXWh0dHA6Ly9jb2Rl
+LmJ1bGl4Lm9yZy9sYzh4azAtMjA5NzQ2Cj4gCj4gPiAKPiA+ID09IHVubW91bnRpbmcgdm9sdW1l
+Cj4gPiBbICAgMzAuMTI4NTg0XSBVbmFibGUgdG8gaGFuZGxlIGtlcm5lbCBOVUxMIHBvaW50ZXIg
+ZGVyZWZlcmVuY2UgYXQgdmlydHVhbCBhZGRyZXNzIDAwMDAwMDAwCj4gPiBbICAgMzAuMTM3MjM0
+XSBwZ2QgPSBlZDNkMDAwMAo+ID4gWyAgIDMwLjE0MDA3OV0gWzAwMDAwMDAwXSAqcGdkPWZkNjdh
+ODM1Cj4gPiBbICAgMzAuMTQzODQzXSBJbnRlcm5hbCBlcnJvcjogT29wczogMTcgWyMxXSBTTVAg
+QVJNCj4gPiBbICAgMzAuMTQ4NzgxXSBNb2R1bGVzIGxpbmtlZCBpbjogc25kX3NvY19kYXZpbmNp
+X21jYXNwIHhoY2lfcGxhdF9oY2Qgc25kX3NvY19lZG1hIHhoY2lfaGNkIHNuZF9zb2NfdGx2MzIw
+YWljM3ggc25kX3NvY19zaW1wbGVfY2FyZCBzbmRfc29jX29tYXAgc25kX3NvY19zaW1wbGVfY2Fy
+ZF91dGlscyBzbmRfc29jX2NvcmUgdXNiY29lCj4gPiBbICAgMzAuMTkzODgxXSBDUFU6IDEgUElE
+OiAyMTQ5IENvbW06IHVtb3VudCBOb3QgdGFpbnRlZCA0LjEyLjAtMDAwMDEtZzJjMDk1MzEgIzE0
+NDAKPiA+IFsgICAzMC4yMDE3MzRdIEhhcmR3YXJlIG5hbWU6IEdlbmVyaWMgRFJBNzRYIChGbGF0
+dGVuZWQgRGV2aWNlIFRyZWUpCj4gPiBbICAgMzAuMjA4MTMwXSB0YXNrOiBlYzg3MDE0MCB0YXNr
+LnN0YWNrOiBlZDQwNjAwMAo+ID4gWyAgIDMwLjIxMjg4OV0gUEMgaXMgYXQgbWVtY3B5KzB4ZTgv
+MHgzMzAKPiA+IFsgICAzMC4yMTY4MzNdIExSIGlzIGF0IG10ZF9vb2JsYXlvdXRfc2V0X2J5dGVz
+KzB4N2MvMHhhNAo+ID4gWyAgIDMwLjIyMjIzMV0gcGMgOiBbPGMwNGFiZTY4Pl0gICAgbHIgOiBb
+PGMwNWQ3NDkwPl0gICAgcHNyOiA2MDAwMDAxMwo+ID4gWyAgIDMwLjIyMjIzMV0gc3AgOiBlZDQw
+N2I3NCAgaXAgOiAwMDAwMDAwMiAgZnAgOiAwMDAwMDIwMAo+ID4gWyAgIDMwLjIzNDI3Nl0gcjEw
+OiBlZDA4MjgwMCAgcjkgOiAwMDAwMDAwMCAgcjggOiBlZDA3OTAxMAo+ID4gWyAgIDMwLjIzOTc2
+MV0gcjcgOiBjMDVkNzZkOCAgcjYgOiAwMDAwMDAwMCAgcjUgOiAwMDAwMDAzOCAgcjQgOiAwMDAw
+MDAzOAo+ID4gWyAgIDMwLjI0NjYxNF0gcjMgOiAwMDAwMDAzOCAgcjIgOiAwMDAwMDAzNCAgcjEg
+OiAwMDAwMDAwMCAgcjAgOiBlZDA4MjgwMgo+ID4gWyAgIDMwLjI1MzQ2OF0gRmxhZ3M6IG5aQ3Yg
+IElSUXMgb24gIEZJUXMgb24gIE1vZGUgU1ZDXzMyICBJU0EgQVJNICBTZWdtZW50IG5vbmUKPiA+
+IFsgICAzMC4yNjA5NTddIENvbnRyb2w6IDEwYzUzODdkICBUYWJsZTogYWQzZDAwNmEgIERBQzog
+MDAwMDAwNTEKPiA+IFsgICAzMC4yNjY5ODZdIFByb2Nlc3MgdW1vdW50IChwaWQ6IDIxNDksIHN0
+YWNrIGxpbWl0ID0gMHhlZDQwNjIxOCkKPiA+IFsgICAzMC4yNzMyOTZdIFN0YWNrOiAoMHhlZDQw
+N2I3NCB0byAweGVkNDA4MDAwKQo+ID4gWyAgIDMwLjI3Nzg2OF0gN2I2MDogICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZWQwODI4MDIgMDAwMDAwMzggYzA1ZDc0
+OTAKPiA+IFsgICAzMC4yODY0NThdIDdiODA6IGMwNWQ3NmQ4IGVkMDgyNjAwIDAwMDBmZmZmIDAw
+MDAwMDAwIDAwMDAwMDAyIDAwMDAwMDM4IDAwMDAwMDA0IGVkMDgyODAwCj4gPiBbICAgMzAuMjk1
+MDQ3XSA3YmEwOiBlZDA3OTAxMCAwMDAwMDAwMCAwMDAwMDAwMCBlZDA4MjgwMCBlZDA3OTAxMCBj
+MDVkNzRmYyAwMDAwMDAzOCBjMDVkNzZkOAo+ID4gWyAgIDMwLjMwMzYzNV0gN2JjMDogZWQwZThm
+NmEgYzA1ZTgzODggMDAwMDAwMzggMDAwMDAwMDAgYzBkYzYwZjAgMDAwMDAwMDEgMDAwMDAwMTAg
+MDAwMDAwMGUKPiA+IFsgICAzMC4zMTIyMTZdIDdiZTA6IDAwMDAwMDA0IDAwMDAwMDAxIDAwMDAw
+MDAxIDAwMDAwMDAxIGMwNWYyNjY4IGVkMDc5MDEwIDAwMDAwMjAwIDAwMDAwMjAwCj4gPiBbICAg
+MzAuMzIwODA2XSA3YzAwOiAwMDAwOTVjMCAwMDAwMDIwMCBlZDA4MjAwMCBlZDMxMjIwMCAwMDAw
+OTVjMCBjMDVlOTY1OCBlZDA4MjAwMCAwMDAwMDAwMAo+ID4gWyAgIDMwLjMyOTM5Ml0gN2MyMDog
+MDAwMDk1YzAgMDAwMDAwMDIgMDAwMDAyMDAgMDAwMDAwMDAgZWQwODIwMDAgZWQ0MDdjODAgMDAw
+MDAwMDAgMDAwMDAwMDAKPiA+IFsgICAzMC4zMzc5NzVdIDdjNDA6IDAwMDAwMDAwIDAwMDAwMDAx
+IDAwMDAwMDQwIDAwMDAwMDAwIDAwMDAwMDAwIDA0YWUwMjAwIDAwMDAwMDAwIGVkMDc5MDEwCj4g
+PiBbICAgMzAuMzQ2NTYzXSA3YzYwOiBlZDQwN2M4MCBlZDQwN2QzMCAwMDAwMDIwMCBlZDMxMjIw
+MCBlZDMxMjIwMCBjMDVlOTk5NCBlZDQwN2M4MCBjMDE5MWY3MAo+ID4gWyAgIDMwLjM1NTE1MF0g
+N2M4MDogMDAwMDAwMDAgMDAwMDAyMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAw
+MDAgZWQzMTIyMDAgMDAwMDAwMDAKPiA+IFsgICAzMC4zNjM3MzhdIDdjYTA6IDAwYTAwMDAwIDAw
+MDAwMDAwIDAwMDAwMjAwIDAwMDAwMDAwIDBmNjAwMDAwIDAwMDAwMDAwIGVkNDA3ZDMwIGMwNWQ5
+ZmJjCj4gPiBbICAgMzAuMzcyMzI4XSA3Y2MwOiAwMDAwMDIwMCBlZDQwN2QzMCBlZDMxMjIwMCAw
+MDAwMDAwMCA5MTg4ZmVkOCBjMDVkOWY3YyAwMDAwMDAwMCBjMDVkNmM3Ywo+ID4gWyAgIDMwLjM4
+MDkxN10gN2NlMDogMDAwMDAyMDAgZWQ0MDdkMzAgZWQzMTIyMDAgZWQzMTIyMDAgMDQwZTAyMDAg
+MDAwMDAwMDAgZWQ2MjgwMDAgMDAwMDAyMDAKPiA+IFsgICAzMC4zODk1MDldIDdkMDA6IDAwMDAw
+MjAwIDAwMDAwMjA3IDAwMDAwMDAwIGMwNjA0Y2QwIDAwMDAwMjAwIGVkNDA3ZDMwIGVkMzEyMjAw
+IDYwMDAwMDEzCj4gPiBbICAgMzAuMzk4MDk3XSA3ZDIwOiAwMDAwMDIwMCAwMDAwMDAwMCBlZDIw
+ODA0MCBjMDE5MjY5YyAwMDAwMDAwMCAwMDAwMDAwNCBlZDYyOGRkOCBlZDMxMjIwMAo+ID4gWyAg
+IDMwLjQwNjY3Nl0gN2Q0MDogZWQ2MjgwMDAgMDAwMDAyMDcgZWQzMTIyMDAgMDAwMDA4MDAgMDAw
+MDAyMDcgMDAwMDAwMDAgZmZmZmZmZmYgYzA2MDUzNmMKPiA+IFsgICAzMC40MTUyNjddIDdkNjA6
+IDAwMDAwMjAwIGMwNjA3ZmI4IGVkMThjODAwIGVkNjI4MDAwIGVkMmEwODAwIDAwMDAwMDA4IDAw
+MDAwMDAwIGMwNjAxMTc4Cj4gPiBbICAgMzAuNDIzODUxXSA3ZDgwOiBlZDMxMjIwMCBlZDYyODU1
+MCAwMDAwMDAwMCBlZDYyODAwMCBlZDMxMjIwMCBlZDE4YzgwMCBlZDJhMDgwMCBlZDYyODAwMAo+
+ID4gWyAgIDMwLjQzMjQzN10gN2RhMDogZWQzMTIyMDAgMDAwMDAwMDggMDAwMDAwMDQgZWQxOGM4
+MDAgZWQyYTA4MDAgMDAwMDEwMTQgZWQyMDgwNDAgYzA2MDFjZjAKPiA+IFsgICAzMC40NDEwMjBd
+IDdkYzA6IDAwMDAwMDAwIDAwMDAwODAwIDAwMDAwMDAwIGVjODcwMTQwIDAwMDAwMDAzIDYwMDAw
+MDEzIGMxNTY4ZTJjIGMwNjAxNTRjCj4gPiBbICAgMzAuNDQ5NjA1XSA3ZGUwOiBlZDE4YzgwMCBj
+MDE5MjY5YyAwMDAwMDAwMCAwMDAwMDAwMiBlZDYyODAwMCAwMDAwMDgwMCBlZDYyODAwMCAwMDAw
+MDAwMAo+ID4gWyAgIDMwLjQ1ODE5MV0gN2UwMDogMDAwMDAwMDggZWQxOGM4MDAgMDAwMDAwMDAg
+MDAwMDAwODggZWQxOGM4MDAgYzA2MDA1MzggMDAwMDAwMDAgMDAwMDA4MDAKPiA+IFsgICAzMC40
+NjY3NzldIDdlMjA6IGVkMThjODAwIGVkNzcwMDAwIDAwMDAwMDAwIDAwMDAwMDA4IGVkNzcwMDAw
+IGMwNDI2YTkwIDAwMDAwODAwIDAwMDAwMDAwCj4gPiBbICAgMzAuNDc1MzY2XSA3ZTQwOiAwMDAw
+MDA4OCAwMDAwMDAwMCAwMDAwMDgwMCAwMDAwMDBhMCBlZDc3MDAwMCBjMDQzMDkwNCAwMDAwMDgw
+MCBjMDgwMDJlOAo+ID4gWyAgIDMwLjQ4Mzk1Ml0gN2U2MDogMDAwMDAwMDAgMDAwMDAwMDAgMDAw
+MDAwZDggMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAKPiA+IFsg
+ICAzMC40OTI1NDVdIDdlODA6IGVkMThjODAwIGVkNDA3ZWI0IDAwMDAwMDAxIGVkNzcwMDAwIDAw
+MDAwMDAwIDAwMDAwMjg4IDAwMDAwMDAzIGVkNTFiNWQ0Cj4gPiBbICAgMzAuNTAxMTI2XSA3ZWEw
+OiBlZDQwNjAwMCAwMDAwMDAwMCAwMDAwMDAwMCBjMDQzMTg4MCBlZDc3MDE0YyA3NmVjYjMwZSA1
+YzI2NWE1OSBlYzg3MDE0MAo+ID4gWyAgIDMwLjUwOTcwOV0gN2VjMDogMDAwMDAwMDMgNjAwMDAw
+MTMgYzE1NjhlMmMgYzA0MzFmMzggMDAwMDAwMDAgYzAxOTI2OWMgZWQ3NzAxNGMgMDAwMDAwMDIK
+PiA+IFsgICAzMC41MTgzMDFdIDdlZTA6IGVkNTFiNWQ0IGVkNzcwMTRjIGVkNzcwMTRjIGVkNzcw
+MTA0IGVkNTFiNWQ0IGVkNzcwMDAwIGVkNDA2MDAwIDAwMDAwMDAwCj4gPiBbICAgMzAuNTI2ODg2
+XSA3ZjAwOiBlZDc3MDE0YyBjMDgwMzljOCAwMDAwMDAwMCAwMDAwMDI4OCAwMDAwMDAwMyBlZDUx
+YjVkNCBlZDc3MDAwMCBjMDQyMjAxYwo+ID4gWyAgIDMwLjUzNTQ3MV0gN2YyMDogZWQxY2IwMDAg
+MDAwMDAwMDAgYzBkY2JiZTAgMDAwMDA1MzQgZWM4NzAxNDAgYzAyZTYzMjQgZWRmODhhMTAgZWQx
+Y2IwMDAKPiA+IFsgICAzMC41NDQwNTZdIDdmNDA6IGMwOTI2NTI4IGMwMmFmYWY0IGMwNDIxNzE0
+IDAwMDAwMDE1IGMwZDgyM2NjIGMwMmFmYzQwIGVkNzcwMDAwIGMwNDIxNzIwCj4gPiBbICAgMzAu
+NTUyNjQzXSA3ZjYwOiBlZDFjYjAwMCBjMDJiMDI4OCBlYzg3MDE0MCBlZDYxYTYwMCAwMDAwMDAw
+MCBjMDJkMDk1MCBlYzg3MDYzNCBjMDE1OWIzNAo+ID4gWyAgIDMwLjU2MTIyMF0gN2Y4MDogZWQ2
+MWE2MWMgMDAwMDAwMDAgZWQ0MDdmYjAgYzAxMDdhZTQgMDAwMDAwMzQgYzAxMDdhZTQgMDAwMDAw
+MDAgYzAxMGIwOWMKPiA+IFsgICAzMC41Njk4MDNdIDdmYTA6IDAwMDIxY2I4IDAwMDFlMzIwIDAw
+MDIxY2I4IGMwMTA3OTY4IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwCj4gPiBb
+ICAgMzAuNTc4MzkyXSA3ZmMwOiAwMDAyMWNiOCAwMDAxZTMyMCAwMDAyMWNiOCAwMDAwMDAzNCAw
+MDAyMWNhOCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMAo+ID4gWyAgIDMwLjU4Njk3M10gN2Zl
+MDogMDAwMjFjZTggYmVjMDY2MDAgYjZlMTFkYmMgYjZlMTFkZGMgNjAwMDAwMTAgMDAwMjFjYjgg
+YWZmZmQ4NjEgYWZmZmRjNjEKPiA+IFsgICAzMC41OTU1NThdIFs8YzA0YWJlNjg+XSAobWVtY3B5
+KSBmcm9tIFs8YzA1ZDc0OTA+XSAobXRkX29vYmxheW91dF9zZXRfYnl0ZXMrMHg3Yy8weGE0KQo+
+ID4gWyAgIDMwLjYwMzk2OF0gWzxjMDVkNzQ5MD5dIChtdGRfb29ibGF5b3V0X3NldF9ieXRlcykg
+ZnJvbSBbPGMwNWQ3NGZjPl0gKG10ZF9vb2JsYXlvdXRfc2V0X2VjY2J5dGVzKzB4MWMvMHgyOCkK
+PiA+IFsgICAzMC42MTQyMDddIFs8YzA1ZDc0ZmM+XSAobXRkX29vYmxheW91dF9zZXRfZWNjYnl0
+ZXMpIGZyb20gWzxjMDVlODM4OD5dIChuYW5kX3dyaXRlX3N1YnBhZ2VfaHdlY2MrMHgxYTgvMHgx
+ZDApCj4gPiBbICAgMzAuNjI0NzA3XSBbPGMwNWU4Mzg4Pl0gKG5hbmRfd3JpdGVfc3VicGFnZV9o
+d2VjYykgZnJvbSBbPGMwNWU5NjU4Pl0gKG5hbmRfZG9fd3JpdGVfb3BzKzB4MjJjLzB4NTBjKQo+
+ID4gWyAgIDMwLjYzNDM5N10gWzxjMDVlOTY1OD5dIChuYW5kX2RvX3dyaXRlX29wcykgZnJvbSBb
+PGMwNWU5OTk0Pl0gKG5hbmRfd3JpdGUrMHg1Yy8weDdjKQo+ID4gWyAgIDMwLjY0MjYyMV0gWzxj
+MDVlOTk5ND5dIChuYW5kX3dyaXRlKSBmcm9tIFs8YzA1ZDlmYmM+XSAocGFydF93cml0ZSsweDQw
+LzB4NDgpCj4gPiBbICAgMzAuNjUwMjExXSBbPGMwNWQ5ZmJjPl0gKHBhcnRfd3JpdGUpIGZyb20g
+WzxjMDVkNmM3Yz5dIChtdGRfd3JpdGUrMHg5MC8weGE4KQo+ID4gWyAgIDMwLjY1NzcxOF0gWzxj
+MDVkNmM3Yz5dIChtdGRfd3JpdGUpIGZyb20gWzxjMDYwNGNkMD5dICh1YmlfaW9fd3JpdGUrMHgx
+MTQvMHg2YjgpCj4gPiBbICAgMzAuNjY1NTczXSBbPGMwNjA0Y2QwPl0gKHViaV9pb193cml0ZSkg
+ZnJvbSBbPGMwNjA1MzZjPl0gKHViaV9pb193cml0ZV92aWRfaGRyKzB4ZjgvMHgxNDgpCj4gPiBb
+ICAgMzAuNjc0MzQyXSBbPGMwNjA1MzZjPl0gKHViaV9pb193cml0ZV92aWRfaGRyKSBmcm9tIFs8
+YzA2MDExNzg+XSAodHJ5X3dyaXRlX3ZpZF9hbmRfZGF0YSsweDU0LzB4MWE0KQo+ID4gWyAgIDMw
+LjY4NDAzMF0gWzxjMDYwMTE3OD5dICh0cnlfd3JpdGVfdmlkX2FuZF9kYXRhKSBmcm9tIFs8YzA2
+MDFjZjA+XSAodWJpX2ViYV93cml0ZV9sZWIrMHgxZjgvMHg3YmMpCj4gPiBbICAgMzAuNjkzNTI1
+XSBbPGMwNjAxY2YwPl0gKHViaV9lYmFfd3JpdGVfbGViKSBmcm9tIFs8YzA2MDA1Mzg+XSAodWJp
+X2xlYl93cml0ZSsweGJjLzB4ZGMpCj4gPiBbICAgMzAuNzAyMDIxXSBbPGMwNjAwNTM4Pl0gKHVi
+aV9sZWJfd3JpdGUpIGZyb20gWzxjMDQyNmE5MD5dICh1Ymlmc19sZWJfd3JpdGUrMHg5Yy8weDEx
+YykKPiA+IFsgICAzMC43MTA0MjZdIFs8YzA0MjZhOTA+XSAodWJpZnNfbGViX3dyaXRlKSBmcm9t
+IFs8YzA0MzA5MDQ+XSAodWJpZnNfbG9nX3N0YXJ0X2NvbW1pdCsweDI3Yy8weDQ0NCkKPiA+IFsg
+ICAzMC43MTk3NDNdIFs8YzA0MzA5MDQ+XSAodWJpZnNfbG9nX3N0YXJ0X2NvbW1pdCkgZnJvbSBb
+PGMwNDMxODgwPl0gKGRvX2NvbW1pdCsweDFiOC8weDdlOCkKPiA+IFsgICAzMC43Mjg1MjFdIFs8
+YzA0MzE4ODA+XSAoZG9fY29tbWl0KSBmcm9tIFs8YzA0MjIwMWM+XSAodWJpZnNfc3luY19mcysw
+eDhjLzB4YTApCj4gPiBbICAgMzAuNzM2MjkyXSBbPGMwNDIyMDFjPl0gKHViaWZzX3N5bmNfZnMp
+IGZyb20gWzxjMDJlNjMyND5dIChzeW5jX2ZpbGVzeXN0ZW0rMHg4OC8weGFjKQo+ID4gWyAgIDMw
+Ljc0NDYxNl0gWzxjMDJlNjMyND5dIChzeW5jX2ZpbGVzeXN0ZW0pIGZyb20gWzxjMDJhZmFmND5d
+IChnZW5lcmljX3NodXRkb3duX3N1cGVyKzB4MjQvMHhmOCkKPiA+IFsgICAzMC43NTM3NTRdIFs8
+YzAyYWZhZjQ+XSAoZ2VuZXJpY19zaHV0ZG93bl9zdXBlcikgZnJvbSBbPGMwMmFmYzQwPl0gKGtp
+bGxfYW5vbl9zdXBlcisweGMvMHgxOCkKPiA+IFsgICAzMC43NjI4MDddIFs8YzAyYWZjNDA+XSAo
+a2lsbF9hbm9uX3N1cGVyKSBmcm9tIFs8YzA0MjE3MjA+XSAoa2lsbF91Ymlmc19zdXBlcisweGMv
+MHgxOCkKPiA+IFsgICAzMC43NzEzMDhdIFs8YzA0MjE3MjA+XSAoa2lsbF91Ymlmc19zdXBlcikg
+ZnJvbSBbPGMwMmIwMjg4Pl0gKGRlYWN0aXZhdGVfbG9ja2VkX3N1cGVyKzB4NWMvMHg4MCkKPiA+
+IFsgICAzMC43ODA2MjddIFs8YzAyYjAyODg+XSAoZGVhY3RpdmF0ZV9sb2NrZWRfc3VwZXIpIGZy
+b20gWzxjMDJkMDk1MD5dIChjbGVhbnVwX21udCsweDM4LzB4NzgpCj4gPiBbICAgMzAuNzg5NDky
+XSBbPGMwMmQwOTUwPl0gKGNsZWFudXBfbW50KSBmcm9tIFs8YzAxNTliMzQ+XSAodGFza193b3Jr
+X3J1bisweGMwLzB4ZTgpCj4gPiBbICAgMzAuNzk3NDQ0XSBbPGMwMTU5YjM0Pl0gKHRhc2tfd29y
+a19ydW4pIGZyb20gWzxjMDEwYjA5Yz5dIChkb193b3JrX3BlbmRpbmcrMHhkNC8weGQ4KQo+ID4g
+WyAgIDMwLjgwNTc1OV0gWzxjMDEwYjA5Yz5dIChkb193b3JrX3BlbmRpbmcpIGZyb20gWzxjMDEw
+Nzk2OD5dIChzbG93X3dvcmtfcGVuZGluZysweGMvMHgyMCkKPiA+IFsgICAzMC44MTQzNDVdIENv
+ZGU6IGU4YmQ4MDExIGUyNmNjMDA0IGUzNWMwMDAyIGM0ZDEzMDAxIChhNGQxNDAwMSkgCj4gPiBb
+ICAgMzAuODIwODQzXSAtLS1bIGVuZCB0cmFjZSBiYzI0MGE1YTU4M2U2ZTAyIF0tLS0KPiA+ICAg
+Cj4gCj4gCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCj4gTGludXggTVREIGRpc2N1c3Npb24gbWFpbGluZyBsaXN0Cj4gaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvCgoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4IE1URCBkaXNj
+dXNzaW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW10ZC8K
