@@ -1,189 +1,79 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: gpmc-nand broken since v4.12
-Date: Fri, 13 Oct 2017 22:29:07 +0200
-Message-ID: <20171013222907.16adf410@bbrezillon>
-References: <7eae9266-558f-6578-66d7-7ab0eb659a81@ti.com>
- <20171013145033.5d1d9647@bbrezillon>
- <20171013222458.3f4c103e@bbrezillon>
+From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v5 1/2] Documentation: dt: Update ti,emif bindings
+Date: Fri, 13 Oct 2017 15:59:14 -0500
+Message-ID: <20171013205915.9652-2-d-gerlach@ti.com>
+References: <20171013205915.9652-1-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171013222458.3f4c103e@bbrezillon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Cooper Jr.,
- Franklin" <fcooper@ti.com>
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171013205915.9652-1-d-gerlach-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCAxMyBPY3QgMjAxNyAyMjoyNDo1OCArMDIwMApCb3JpcyBCcmV6aWxsb24gPGJvcmlz
-LmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5jb20+IHdyb3RlOgoKPiBPbiBGcmksIDEzIE9jdCAy
-MDE3IDE0OjUwOjMzICswMjAwCj4gQm9yaXMgQnJlemlsbG9uIDxib3Jpcy5icmV6aWxsb25AZnJl
-ZS1lbGVjdHJvbnMuY29tPiB3cm90ZToKPiAKPiA+IE9uIEZyaSwgMTMgT2N0IDIwMTcgMTQ6NTc6
-MjkgKzAzMDAKPiA+IFJvZ2VyIFF1YWRyb3MgPHJvZ2VycUB0aS5jb20+IHdyb3RlOgo+ID4gICAK
-PiA+ID4g77u/SGkgQm9yaXMsCj4gPiA+IAo+ID4gPiBOQU5EIG9uIGdwbWMtb21hcCBicmVha3Mg
-Zm9yIG1lIHdoaWxlIGRvaW5nIGEgdW5tb3VudCBvZiBhIHViaSB2b2x1bWUgc2luY2UgdjQuMTIK
-PiA+ID4gCj4gPiA+IEJlaGF2aW91ciBmb2xsb3dzIHRocm91Z2ggaW4gdjQuMTMgYW5kIHY0LjE0
-LXJjIGFzIHdlbGwuCj4gPiA+IAo+ID4gPiBEbyB5b3UgaGF2ZSBhbnkgaWRlYSBhYm91dCB0aGlz
-PyAgCj4gCj4gTW9yZSBpbmZvIG9uIHdoYXQgaGFzIGNoYW5nZWQgaW4gNC4xMjogd2Ugbm8gbG9u
-Z2VyIGFsbG9jYXRlIHRoZQo+IG5hbmRfYnVmZmVyIHN0cnVjdCArIGl0cyBpbnRlcm5hbCBidWZm
-ZXIgdXNpbmcgYSBzaW5nbGUgYmlnIGttYWxsb2MKPiBjYWxsLCB3aGljaCBtZWFucyB0aGUgbmFu
-ZF9idWZmZXIgc3RydWN0IGlzIG5vdyBsaWtlbHkgdG8gYmUgYWxsb2NhdGVkCj4gaW4gYSBzbWFs
-bCBvYmplY3Qgc2xhYiAoc2l6ZW9mKG5hbmRfYnVmZmVycykgPSAxMikuIElmIHlvdSBoYXZlIGEK
-PiB1c2UtYWZ0ZXItZnJlZSBidWcgc29tZXdoZXJlIGluIHRoZSBrZXJuZWwsIGl0IG1pZ2h0IGNv
-cnJ1cHQgdGhlCgpJIG1lYW50IGJ1ZmZlci1vdmVyZmxvdywgbm90IHVzZS1hZnRlci1mcmVlLgoK
-PiBuYW5kX2J1ZmZlcnMgb2JqZWN0LCB3aGljaCBtaWdodCBleHBsYWluIHRoZSBidWcgeW91IHNl
-ZSBoZXJlLgo+IAo+ID4gCj4gPiBDYW4geW91IHRyeSB3aXRoIHRoaXMgcGF0Y2ggWzFdIGFwcGxp
-ZWQgYW5kIHBhc3RlIG1lIHRoZSB2YWx1ZXMgcHJpbnRlZAo+ID4ganVzdCBiZWZvcmUgdGhlIGNy
-YXNoPwo+ID4gCj4gPiBbMV1odHRwOi8vY29kZS5idWxpeC5vcmcvbGM4eGswLTIwOTc0Ngo+ID4g
-ICAKPiA+ID4gCj4gPiA+ID09IHVubW91bnRpbmcgdm9sdW1lCj4gPiA+IFsgICAzMC4xMjg1ODRd
-IFVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdCB2aXJ0
-dWFsIGFkZHJlc3MgMDAwMDAwMDAKPiA+ID4gWyAgIDMwLjEzNzIzNF0gcGdkID0gZWQzZDAwMDAK
-PiA+ID4gWyAgIDMwLjE0MDA3OV0gWzAwMDAwMDAwXSAqcGdkPWZkNjdhODM1Cj4gPiA+IFsgICAz
-MC4xNDM4NDNdIEludGVybmFsIGVycm9yOiBPb3BzOiAxNyBbIzFdIFNNUCBBUk0KPiA+ID4gWyAg
-IDMwLjE0ODc4MV0gTW9kdWxlcyBsaW5rZWQgaW46IHNuZF9zb2NfZGF2aW5jaV9tY2FzcCB4aGNp
-X3BsYXRfaGNkIHNuZF9zb2NfZWRtYSB4aGNpX2hjZCBzbmRfc29jX3RsdjMyMGFpYzN4IHNuZF9z
-b2Nfc2ltcGxlX2NhcmQgc25kX3NvY19vbWFwIHNuZF9zb2Nfc2ltcGxlX2NhcmRfdXRpbHMgc25k
-X3NvY19jb3JlIHVzYmNvZQo+ID4gPiBbICAgMzAuMTkzODgxXSBDUFU6IDEgUElEOiAyMTQ5IENv
-bW06IHVtb3VudCBOb3QgdGFpbnRlZCA0LjEyLjAtMDAwMDEtZzJjMDk1MzEgIzE0NDAKPiA+ID4g
-WyAgIDMwLjIwMTczNF0gSGFyZHdhcmUgbmFtZTogR2VuZXJpYyBEUkE3NFggKEZsYXR0ZW5lZCBE
-ZXZpY2UgVHJlZSkKPiA+ID4gWyAgIDMwLjIwODEzMF0gdGFzazogZWM4NzAxNDAgdGFzay5zdGFj
-azogZWQ0MDYwMDAKPiA+ID4gWyAgIDMwLjIxMjg4OV0gUEMgaXMgYXQgbWVtY3B5KzB4ZTgvMHgz
-MzAKPiA+ID4gWyAgIDMwLjIxNjgzM10gTFIgaXMgYXQgbXRkX29vYmxheW91dF9zZXRfYnl0ZXMr
-MHg3Yy8weGE0Cj4gPiA+IFsgICAzMC4yMjIyMzFdIHBjIDogWzxjMDRhYmU2OD5dICAgIGxyIDog
-WzxjMDVkNzQ5MD5dICAgIHBzcjogNjAwMDAwMTMKPiA+ID4gWyAgIDMwLjIyMjIzMV0gc3AgOiBl
-ZDQwN2I3NCAgaXAgOiAwMDAwMDAwMiAgZnAgOiAwMDAwMDIwMAo+ID4gPiBbICAgMzAuMjM0Mjc2
-XSByMTA6IGVkMDgyODAwICByOSA6IDAwMDAwMDAwICByOCA6IGVkMDc5MDEwCj4gPiA+IFsgICAz
-MC4yMzk3NjFdIHI3IDogYzA1ZDc2ZDggIHI2IDogMDAwMDAwMDAgIHI1IDogMDAwMDAwMzggIHI0
-IDogMDAwMDAwMzgKPiA+ID4gWyAgIDMwLjI0NjYxNF0gcjMgOiAwMDAwMDAzOCAgcjIgOiAwMDAw
-MDAzNCAgcjEgOiAwMDAwMDAwMCAgcjAgOiBlZDA4MjgwMgo+ID4gPiBbICAgMzAuMjUzNDY4XSBG
-bGFnczogblpDdiAgSVJRcyBvbiAgRklRcyBvbiAgTW9kZSBTVkNfMzIgIElTQSBBUk0gIFNlZ21l
-bnQgbm9uZQo+ID4gPiBbICAgMzAuMjYwOTU3XSBDb250cm9sOiAxMGM1Mzg3ZCAgVGFibGU6IGFk
-M2QwMDZhICBEQUM6IDAwMDAwMDUxCj4gPiA+IFsgICAzMC4yNjY5ODZdIFByb2Nlc3MgdW1vdW50
-IChwaWQ6IDIxNDksIHN0YWNrIGxpbWl0ID0gMHhlZDQwNjIxOCkKPiA+ID4gWyAgIDMwLjI3MzI5
-Nl0gU3RhY2s6ICgweGVkNDA3Yjc0IHRvIDB4ZWQ0MDgwMDApCj4gPiA+IFsgICAzMC4yNzc4Njhd
-IDdiNjA6ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVkMDgy
-ODAyIDAwMDAwMDM4IGMwNWQ3NDkwCj4gPiA+IFsgICAzMC4yODY0NThdIDdiODA6IGMwNWQ3NmQ4
-IGVkMDgyNjAwIDAwMDBmZmZmIDAwMDAwMDAwIDAwMDAwMDAyIDAwMDAwMDM4IDAwMDAwMDA0IGVk
-MDgyODAwCj4gPiA+IFsgICAzMC4yOTUwNDddIDdiYTA6IGVkMDc5MDEwIDAwMDAwMDAwIDAwMDAw
-MDAwIGVkMDgyODAwIGVkMDc5MDEwIGMwNWQ3NGZjIDAwMDAwMDM4IGMwNWQ3NmQ4Cj4gPiA+IFsg
-ICAzMC4zMDM2MzVdIDdiYzA6IGVkMGU4ZjZhIGMwNWU4Mzg4IDAwMDAwMDM4IDAwMDAwMDAwIGMw
-ZGM2MGYwIDAwMDAwMDAxIDAwMDAwMDEwIDAwMDAwMDBlCj4gPiA+IFsgICAzMC4zMTIyMTZdIDdi
-ZTA6IDAwMDAwMDA0IDAwMDAwMDAxIDAwMDAwMDAxIDAwMDAwMDAxIGMwNWYyNjY4IGVkMDc5MDEw
-IDAwMDAwMjAwIDAwMDAwMjAwCj4gPiA+IFsgICAzMC4zMjA4MDZdIDdjMDA6IDAwMDA5NWMwIDAw
-MDAwMjAwIGVkMDgyMDAwIGVkMzEyMjAwIDAwMDA5NWMwIGMwNWU5NjU4IGVkMDgyMDAwIDAwMDAw
-MDAwCj4gPiA+IFsgICAzMC4zMjkzOTJdIDdjMjA6IDAwMDA5NWMwIDAwMDAwMDAyIDAwMDAwMjAw
-IDAwMDAwMDAwIGVkMDgyMDAwIGVkNDA3YzgwIDAwMDAwMDAwIDAwMDAwMDAwCj4gPiA+IFsgICAz
-MC4zMzc5NzVdIDdjNDA6IDAwMDAwMDAwIDAwMDAwMDAxIDAwMDAwMDQwIDAwMDAwMDAwIDAwMDAw
-MDAwIDA0YWUwMjAwIDAwMDAwMDAwIGVkMDc5MDEwCj4gPiA+IFsgICAzMC4zNDY1NjNdIDdjNjA6
-IGVkNDA3YzgwIGVkNDA3ZDMwIDAwMDAwMjAwIGVkMzEyMjAwIGVkMzEyMjAwIGMwNWU5OTk0IGVk
-NDA3YzgwIGMwMTkxZjcwCj4gPiA+IFsgICAzMC4zNTUxNTBdIDdjODA6IDAwMDAwMDAwIDAwMDAw
-MjAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIGVkMzEyMjAwIDAwMDAwMDAw
-Cj4gPiA+IFsgICAzMC4zNjM3MzhdIDdjYTA6IDAwYTAwMDAwIDAwMDAwMDAwIDAwMDAwMjAwIDAw
-MDAwMDAwIDBmNjAwMDAwIDAwMDAwMDAwIGVkNDA3ZDMwIGMwNWQ5ZmJjCj4gPiA+IFsgICAzMC4z
-NzIzMjhdIDdjYzA6IDAwMDAwMjAwIGVkNDA3ZDMwIGVkMzEyMjAwIDAwMDAwMDAwIDkxODhmZWQ4
-IGMwNWQ5ZjdjIDAwMDAwMDAwIGMwNWQ2YzdjCj4gPiA+IFsgICAzMC4zODA5MTddIDdjZTA6IDAw
-MDAwMjAwIGVkNDA3ZDMwIGVkMzEyMjAwIGVkMzEyMjAwIDA0MGUwMjAwIDAwMDAwMDAwIGVkNjI4
-MDAwIDAwMDAwMjAwCj4gPiA+IFsgICAzMC4zODk1MDldIDdkMDA6IDAwMDAwMjAwIDAwMDAwMjA3
-IDAwMDAwMDAwIGMwNjA0Y2QwIDAwMDAwMjAwIGVkNDA3ZDMwIGVkMzEyMjAwIDYwMDAwMDEzCj4g
-PiA+IFsgICAzMC4zOTgwOTddIDdkMjA6IDAwMDAwMjAwIDAwMDAwMDAwIGVkMjA4MDQwIGMwMTky
-NjljIDAwMDAwMDAwIDAwMDAwMDA0IGVkNjI4ZGQ4IGVkMzEyMjAwCj4gPiA+IFsgICAzMC40MDY2
-NzZdIDdkNDA6IGVkNjI4MDAwIDAwMDAwMjA3IGVkMzEyMjAwIDAwMDAwODAwIDAwMDAwMjA3IDAw
-MDAwMDAwIGZmZmZmZmZmIGMwNjA1MzZjCj4gPiA+IFsgICAzMC40MTUyNjddIDdkNjA6IDAwMDAw
-MjAwIGMwNjA3ZmI4IGVkMThjODAwIGVkNjI4MDAwIGVkMmEwODAwIDAwMDAwMDA4IDAwMDAwMDAw
-IGMwNjAxMTc4Cj4gPiA+IFsgICAzMC40MjM4NTFdIDdkODA6IGVkMzEyMjAwIGVkNjI4NTUwIDAw
-MDAwMDAwIGVkNjI4MDAwIGVkMzEyMjAwIGVkMThjODAwIGVkMmEwODAwIGVkNjI4MDAwCj4gPiA+
-IFsgICAzMC40MzI0MzddIDdkYTA6IGVkMzEyMjAwIDAwMDAwMDA4IDAwMDAwMDA0IGVkMThjODAw
-IGVkMmEwODAwIDAwMDAxMDE0IGVkMjA4MDQwIGMwNjAxY2YwCj4gPiA+IFsgICAzMC40NDEwMjBd
-IDdkYzA6IDAwMDAwMDAwIDAwMDAwODAwIDAwMDAwMDAwIGVjODcwMTQwIDAwMDAwMDAzIDYwMDAw
-MDEzIGMxNTY4ZTJjIGMwNjAxNTRjCj4gPiA+IFsgICAzMC40NDk2MDVdIDdkZTA6IGVkMThjODAw
-IGMwMTkyNjljIDAwMDAwMDAwIDAwMDAwMDAyIGVkNjI4MDAwIDAwMDAwODAwIGVkNjI4MDAwIDAw
-MDAwMDAwCj4gPiA+IFsgICAzMC40NTgxOTFdIDdlMDA6IDAwMDAwMDA4IGVkMThjODAwIDAwMDAw
-MDAwIDAwMDAwMDg4IGVkMThjODAwIGMwNjAwNTM4IDAwMDAwMDAwIDAwMDAwODAwCj4gPiA+IFsg
-ICAzMC40NjY3NzldIDdlMjA6IGVkMThjODAwIGVkNzcwMDAwIDAwMDAwMDAwIDAwMDAwMDA4IGVk
-NzcwMDAwIGMwNDI2YTkwIDAwMDAwODAwIDAwMDAwMDAwCj4gPiA+IFsgICAzMC40NzUzNjZdIDdl
-NDA6IDAwMDAwMDg4IDAwMDAwMDAwIDAwMDAwODAwIDAwMDAwMGEwIGVkNzcwMDAwIGMwNDMwOTA0
-IDAwMDAwODAwIGMwODAwMmU4Cj4gPiA+IFsgICAzMC40ODM5NTJdIDdlNjA6IDAwMDAwMDAwIDAw
-MDAwMDAwIDAwMDAwMGQ4IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAw
-MDAwCj4gPiA+IFsgICAzMC40OTI1NDVdIDdlODA6IGVkMThjODAwIGVkNDA3ZWI0IDAwMDAwMDAx
-IGVkNzcwMDAwIDAwMDAwMDAwIDAwMDAwMjg4IDAwMDAwMDAzIGVkNTFiNWQ0Cj4gPiA+IFsgICAz
-MC41MDExMjZdIDdlYTA6IGVkNDA2MDAwIDAwMDAwMDAwIDAwMDAwMDAwIGMwNDMxODgwIGVkNzcw
-MTRjIDc2ZWNiMzBlIDVjMjY1YTU5IGVjODcwMTQwCj4gPiA+IFsgICAzMC41MDk3MDldIDdlYzA6
-IDAwMDAwMDAzIDYwMDAwMDEzIGMxNTY4ZTJjIGMwNDMxZjM4IDAwMDAwMDAwIGMwMTkyNjljIGVk
-NzcwMTRjIDAwMDAwMDAyCj4gPiA+IFsgICAzMC41MTgzMDFdIDdlZTA6IGVkNTFiNWQ0IGVkNzcw
-MTRjIGVkNzcwMTRjIGVkNzcwMTA0IGVkNTFiNWQ0IGVkNzcwMDAwIGVkNDA2MDAwIDAwMDAwMDAw
-Cj4gPiA+IFsgICAzMC41MjY4ODZdIDdmMDA6IGVkNzcwMTRjIGMwODAzOWM4IDAwMDAwMDAwIDAw
-MDAwMjg4IDAwMDAwMDAzIGVkNTFiNWQ0IGVkNzcwMDAwIGMwNDIyMDFjCj4gPiA+IFsgICAzMC41
-MzU0NzFdIDdmMjA6IGVkMWNiMDAwIDAwMDAwMDAwIGMwZGNiYmUwIDAwMDAwNTM0IGVjODcwMTQw
-IGMwMmU2MzI0IGVkZjg4YTEwIGVkMWNiMDAwCj4gPiA+IFsgICAzMC41NDQwNTZdIDdmNDA6IGMw
-OTI2NTI4IGMwMmFmYWY0IGMwNDIxNzE0IDAwMDAwMDE1IGMwZDgyM2NjIGMwMmFmYzQwIGVkNzcw
-MDAwIGMwNDIxNzIwCj4gPiA+IFsgICAzMC41NTI2NDNdIDdmNjA6IGVkMWNiMDAwIGMwMmIwMjg4
-IGVjODcwMTQwIGVkNjFhNjAwIDAwMDAwMDAwIGMwMmQwOTUwIGVjODcwNjM0IGMwMTU5YjM0Cj4g
-PiA+IFsgICAzMC41NjEyMjBdIDdmODA6IGVkNjFhNjFjIDAwMDAwMDAwIGVkNDA3ZmIwIGMwMTA3
-YWU0IDAwMDAwMDM0IGMwMTA3YWU0IDAwMDAwMDAwIGMwMTBiMDljCj4gPiA+IFsgICAzMC41Njk4
-MDNdIDdmYTA6IDAwMDIxY2I4IDAwMDFlMzIwIDAwMDIxY2I4IGMwMTA3OTY4IDAwMDAwMDAwIDAw
-MDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwCj4gPiA+IFsgICAzMC41NzgzOTJdIDdmYzA6IDAwMDIx
-Y2I4IDAwMDFlMzIwIDAwMDIxY2I4IDAwMDAwMDM0IDAwMDIxY2E4IDAwMDAwMDAwIDAwMDAwMDAw
-IDAwMDAwMDAwCj4gPiA+IFsgICAzMC41ODY5NzNdIDdmZTA6IDAwMDIxY2U4IGJlYzA2NjAwIGI2
-ZTExZGJjIGI2ZTExZGRjIDYwMDAwMDEwIDAwMDIxY2I4IGFmZmZkODYxIGFmZmZkYzYxCj4gPiA+
-IFsgICAzMC41OTU1NThdIFs8YzA0YWJlNjg+XSAobWVtY3B5KSBmcm9tIFs8YzA1ZDc0OTA+XSAo
-bXRkX29vYmxheW91dF9zZXRfYnl0ZXMrMHg3Yy8weGE0KQo+ID4gPiBbICAgMzAuNjAzOTY4XSBb
-PGMwNWQ3NDkwPl0gKG10ZF9vb2JsYXlvdXRfc2V0X2J5dGVzKSBmcm9tIFs8YzA1ZDc0ZmM+XSAo
-bXRkX29vYmxheW91dF9zZXRfZWNjYnl0ZXMrMHgxYy8weDI4KQo+ID4gPiBbICAgMzAuNjE0MjA3
-XSBbPGMwNWQ3NGZjPl0gKG10ZF9vb2JsYXlvdXRfc2V0X2VjY2J5dGVzKSBmcm9tIFs8YzA1ZTgz
-ODg+XSAobmFuZF93cml0ZV9zdWJwYWdlX2h3ZWNjKzB4MWE4LzB4MWQwKQo+ID4gPiBbICAgMzAu
-NjI0NzA3XSBbPGMwNWU4Mzg4Pl0gKG5hbmRfd3JpdGVfc3VicGFnZV9od2VjYykgZnJvbSBbPGMw
-NWU5NjU4Pl0gKG5hbmRfZG9fd3JpdGVfb3BzKzB4MjJjLzB4NTBjKQo+ID4gPiBbICAgMzAuNjM0
-Mzk3XSBbPGMwNWU5NjU4Pl0gKG5hbmRfZG9fd3JpdGVfb3BzKSBmcm9tIFs8YzA1ZTk5OTQ+XSAo
-bmFuZF93cml0ZSsweDVjLzB4N2MpCj4gPiA+IFsgICAzMC42NDI2MjFdIFs8YzA1ZTk5OTQ+XSAo
-bmFuZF93cml0ZSkgZnJvbSBbPGMwNWQ5ZmJjPl0gKHBhcnRfd3JpdGUrMHg0MC8weDQ4KQo+ID4g
-PiBbICAgMzAuNjUwMjExXSBbPGMwNWQ5ZmJjPl0gKHBhcnRfd3JpdGUpIGZyb20gWzxjMDVkNmM3
-Yz5dIChtdGRfd3JpdGUrMHg5MC8weGE4KQo+ID4gPiBbICAgMzAuNjU3NzE4XSBbPGMwNWQ2Yzdj
-Pl0gKG10ZF93cml0ZSkgZnJvbSBbPGMwNjA0Y2QwPl0gKHViaV9pb193cml0ZSsweDExNC8weDZi
-OCkKPiA+ID4gWyAgIDMwLjY2NTU3M10gWzxjMDYwNGNkMD5dICh1YmlfaW9fd3JpdGUpIGZyb20g
-WzxjMDYwNTM2Yz5dICh1YmlfaW9fd3JpdGVfdmlkX2hkcisweGY4LzB4MTQ4KQo+ID4gPiBbICAg
-MzAuNjc0MzQyXSBbPGMwNjA1MzZjPl0gKHViaV9pb193cml0ZV92aWRfaGRyKSBmcm9tIFs8YzA2
-MDExNzg+XSAodHJ5X3dyaXRlX3ZpZF9hbmRfZGF0YSsweDU0LzB4MWE0KQo+ID4gPiBbICAgMzAu
-Njg0MDMwXSBbPGMwNjAxMTc4Pl0gKHRyeV93cml0ZV92aWRfYW5kX2RhdGEpIGZyb20gWzxjMDYw
-MWNmMD5dICh1YmlfZWJhX3dyaXRlX2xlYisweDFmOC8weDdiYykKPiA+ID4gWyAgIDMwLjY5MzUy
-NV0gWzxjMDYwMWNmMD5dICh1YmlfZWJhX3dyaXRlX2xlYikgZnJvbSBbPGMwNjAwNTM4Pl0gKHVi
-aV9sZWJfd3JpdGUrMHhiYy8weGRjKQo+ID4gPiBbICAgMzAuNzAyMDIxXSBbPGMwNjAwNTM4Pl0g
-KHViaV9sZWJfd3JpdGUpIGZyb20gWzxjMDQyNmE5MD5dICh1Ymlmc19sZWJfd3JpdGUrMHg5Yy8w
-eDExYykKPiA+ID4gWyAgIDMwLjcxMDQyNl0gWzxjMDQyNmE5MD5dICh1Ymlmc19sZWJfd3JpdGUp
-IGZyb20gWzxjMDQzMDkwND5dICh1Ymlmc19sb2dfc3RhcnRfY29tbWl0KzB4MjdjLzB4NDQ0KQo+
-ID4gPiBbICAgMzAuNzE5NzQzXSBbPGMwNDMwOTA0Pl0gKHViaWZzX2xvZ19zdGFydF9jb21taXQp
-IGZyb20gWzxjMDQzMTg4MD5dIChkb19jb21taXQrMHgxYjgvMHg3ZTgpCj4gPiA+IFsgICAzMC43
-Mjg1MjFdIFs8YzA0MzE4ODA+XSAoZG9fY29tbWl0KSBmcm9tIFs8YzA0MjIwMWM+XSAodWJpZnNf
-c3luY19mcysweDhjLzB4YTApCj4gPiA+IFsgICAzMC43MzYyOTJdIFs8YzA0MjIwMWM+XSAodWJp
-ZnNfc3luY19mcykgZnJvbSBbPGMwMmU2MzI0Pl0gKHN5bmNfZmlsZXN5c3RlbSsweDg4LzB4YWMp
-Cj4gPiA+IFsgICAzMC43NDQ2MTZdIFs8YzAyZTYzMjQ+XSAoc3luY19maWxlc3lzdGVtKSBmcm9t
-IFs8YzAyYWZhZjQ+XSAoZ2VuZXJpY19zaHV0ZG93bl9zdXBlcisweDI0LzB4ZjgpCj4gPiA+IFsg
-ICAzMC43NTM3NTRdIFs8YzAyYWZhZjQ+XSAoZ2VuZXJpY19zaHV0ZG93bl9zdXBlcikgZnJvbSBb
-PGMwMmFmYzQwPl0gKGtpbGxfYW5vbl9zdXBlcisweGMvMHgxOCkKPiA+ID4gWyAgIDMwLjc2Mjgw
-N10gWzxjMDJhZmM0MD5dIChraWxsX2Fub25fc3VwZXIpIGZyb20gWzxjMDQyMTcyMD5dIChraWxs
-X3ViaWZzX3N1cGVyKzB4Yy8weDE4KQo+ID4gPiBbICAgMzAuNzcxMzA4XSBbPGMwNDIxNzIwPl0g
-KGtpbGxfdWJpZnNfc3VwZXIpIGZyb20gWzxjMDJiMDI4OD5dIChkZWFjdGl2YXRlX2xvY2tlZF9z
-dXBlcisweDVjLzB4ODApCj4gPiA+IFsgICAzMC43ODA2MjddIFs8YzAyYjAyODg+XSAoZGVhY3Rp
-dmF0ZV9sb2NrZWRfc3VwZXIpIGZyb20gWzxjMDJkMDk1MD5dIChjbGVhbnVwX21udCsweDM4LzB4
-NzgpCj4gPiA+IFsgICAzMC43ODk0OTJdIFs8YzAyZDA5NTA+XSAoY2xlYW51cF9tbnQpIGZyb20g
-WzxjMDE1OWIzND5dICh0YXNrX3dvcmtfcnVuKzB4YzAvMHhlOCkKPiA+ID4gWyAgIDMwLjc5NzQ0
-NF0gWzxjMDE1OWIzND5dICh0YXNrX3dvcmtfcnVuKSBmcm9tIFs8YzAxMGIwOWM+XSAoZG9fd29y
-a19wZW5kaW5nKzB4ZDQvMHhkOCkKPiA+ID4gWyAgIDMwLjgwNTc1OV0gWzxjMDEwYjA5Yz5dIChk
-b193b3JrX3BlbmRpbmcpIGZyb20gWzxjMDEwNzk2OD5dIChzbG93X3dvcmtfcGVuZGluZysweGMv
-MHgyMCkKPiA+ID4gWyAgIDMwLjgxNDM0NV0gQ29kZTogZThiZDgwMTEgZTI2Y2MwMDQgZTM1YzAw
-MDIgYzRkMTMwMDEgKGE0ZDE0MDAxKSAKPiA+ID4gWyAgIDMwLjgyMDg0M10gLS0tWyBlbmQgdHJh
-Y2UgYmMyNDBhNWE1ODNlNmUwMiBdLS0tCj4gPiA+ICAgICAKPiA+IAo+ID4gCj4gPiBfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiA+IExpbnV4
-IE1URCBkaXNjdXNzaW9uIG1haWxpbmcgbGlzdAo+ID4gaHR0cDovL2xpc3RzLmluZnJhZGVhZC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvICAKPiAKCgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXggTVREIGRpc2N1c3Npb24g
-bWFpbGluZyBsaXN0Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
-bGludXgtbXRkLwo=
+Update the Texas Instruments EMIF binding document to include the device
+tree bindings for ti,emif-am3352 and ti,emif-am4372 which are used by
+the ti-emif-sram driver to provide low-level PM functionality.
+
+Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+---
+ .../devicetree/bindings/memory-controllers/ti/emif.txt | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+index 0db60470ebb6..8c0214b17c2b 100644
+--- a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
++++ b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+@@ -8,6 +8,7 @@ of the EMIF IP and memory parts attached to it.
+ Required properties:
+ - compatible	: Should be of the form "ti,emif-<ip-rev>" where <ip-rev>
+   is the IP revision of the specific EMIF instance.
++		  For am335x should be ti,emif-am3352.
+ 		  For am437x should be ti,emif-am4372.
+ 
+ - phy-type	: <u32> indicating the DDR phy type. Following are the
+@@ -21,6 +22,13 @@ Required properties:
+   the value shall be "emif<n>" where <n> is the number of the EMIF
+   instance with base 1.
+ 
++Required only for "ti,emif-am3352" and "ti,emif-am4372":
++- sram			: Phandles for generic sram driver nodes,
++  first should be type 'protect-exec' for the driver to use to copy
++  and run PM functions, second should be regular pool to be used for
++  data region for code. See Documentation/devicetree/bindings/sram/sram.txt
++  for more details.
++
+ Optional properties:
+ - cs1-used		: Have this property if CS1 of this EMIF
+   instance has a memory part attached to it. If there is a memory
+@@ -42,7 +50,7 @@ Optional properties:
+ - hw-caps-temp-alert	: Have this property if the controller
+   has capability for generating SDRAM temperature alerts
+ 
+-Example:
++-Examples:
+ 
+ emif1: emif@0x4c000000 {
+ 	compatible	= "ti,emif-4d";
+@@ -54,3 +62,11 @@ emif1: emif@0x4c000000 {
+ 	hw-caps-ll-interface;
+ 	hw-caps-temp-alert;
+ };
++
++/* From am33xx.dtsi */
++emif: emif@4c000000 {
++        compatible = "ti,emif-am3352";
++        reg =   <0x4C000000 0x1000>;
++        sram = <&pm_sram_code
++                &pm_sram_data>;
++};
+-- 
+2.13.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
