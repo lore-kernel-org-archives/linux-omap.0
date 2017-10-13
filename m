@@ -1,48 +1,56 @@
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: [PATCH -next] ARM: OMAP2+: omap_device: fix error return code in
- omap_device_copy_resources()
-Date: Fri, 13 Oct 2017 09:29:25 +0000
-Message-ID: <1507886965-156349-1-git-send-email-weiyongjun1@huawei.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: Dramatic lockdep slowdown in 4.14
+Date: Fri, 13 Oct 2017 11:35:16 +0200
+Message-ID: <20171013093516.GB17356@localhost>
+References: <20171013090333.GA17356@localhost>
+ <20171013090744.lvvc66qexmomsd5f@hirez.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>
-Cc: linux-omap@vger.kernel.org, Wei Yongjun <weiyongjun1@huawei.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171013090744.lvvc66qexmomsd5f@hirez.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Johan Hovold <johan@kernel.org>, Byungchul Park <byungchul.park@lge.com>, Ingo Molnar <mingo@kernel.org>, linux-kernel@vger.kernel.org, tglx@linutronix.de, linux-mm@kvack.org, kernel-team@lge.com, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Thorsten Leemhuis <regressions@leemhuis.info>
 List-Id: linux-omap@vger.kernel.org
 
-Fix to return error code -EINVAL from the irq_of_parse_and_map() error
-handling case instead of 0, as done elsewhere in this function.
+On Fri, Oct 13, 2017 at 11:07:44AM +0200, Peter Zijlstra wrote:
+> On Fri, Oct 13, 2017 at 11:03:33AM +0200, Johan Hovold wrote:
+> > Hi,
+> > 
+> > I had noticed that the BeagleBone Black boot time appeared to have
+> > increased significantly with 4.14 and yesterday I finally had time to
+> > investigate it.
+> > 
+> > Boot time (from "Linux version" to login prompt) had in fact doubled
+> > since 4.13 where it took 17 seconds (with my current config) compared to
+> > the 35 seconds I now see with 4.14-rc4.
+> > 
+> > I quick bisect pointed to lockdep and specifically the following commit:
+> > 
+> > 	28a903f63ec0 ("locking/lockdep: Handle non(or multi)-acquisition
+> > 	               of a crosslock")
+> > 
+> > which I've verified is the commit which doubled the boot time (compared
+> > to 28a903f63ec0^) (added by lockdep crossrelease series [1]).
+> > 
+> > I also verified that simply disabling CONFIG_PROVE_LOCKING on 4.14-rc4
+> > brought boot time down to about 14 seconds.
+> > 
+> > Now since it's lockdep I guess this can't really be considered a
+> > regression if these changes did improve lockdep correctness, but still,
+> > this dramatic slow down essentially forces me to disable PROVE_LOCKING
+> > by default on this system.
+> > 
+> > Is this lockdep slowdown expected and desirable?
+> 
+> Expected yes, desirable not so much. Its the save_stack_trace() in
+> add_xhlock() (IIRC).
+> 
+> I've not yet had time to figure out what to do about that.
 
-Fixes: d85a2d61432a ("ARM: OMAP2+: Populate legacy resources for dma
-and smartreflex")
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
----
- arch/arm/mach-omap2/omap_device.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Thanks for confirming. Do you think it makes sense to track this as a
+4.14 regression to avoid having others spend time on tracking this down
+meanwhile? (Adding Thorsten on CC.)
 
-diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
-index 713fc6b..d45cbfd 100644
---- a/arch/arm/mach-omap2/omap_device.c
-+++ b/arch/arm/mach-omap2/omap_device.c
-@@ -433,8 +433,10 @@ void omap_device_delete(struct omap_device *od)
- 		irq = irq_of_parse_and_map(child, 0);
- 	if (!irq)
- 		irq = irq_of_parse_and_map(np, 0);
--	if (!irq)
-+	if (!irq) {
-+		error = -EINVAL;
- 		goto free;
-+	}
- 
- 	/* Legacy DMA code needs interrupt name to be "0" */
- 	res[1].start = irq;
+Johan
