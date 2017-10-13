@@ -1,71 +1,44 @@
-From: Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 4/6] dt-bindings: media: ti-vpe: Document VPE driver
-Date: Thu, 12 Oct 2017 14:27:17 -0500
-Message-ID: <20171012192719.15193-5-bparrot@ti.com>
-References: <20171012192719.15193-1-bparrot@ti.com>
+From: Johan Hovold <johan@kernel.org>
+Subject: Dramatic lockdep slowdown in 4.14
+Date: Fri, 13 Oct 2017 11:03:33 +0200
+Message-ID: <20171013090333.GA17356@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171012192719.15193-1-bparrot@ti.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Benoit Parrot <bparrot@ti.com>
+To: Byungchul Park <byungchul.park@lge.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>
+Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, linux-mm@kvack.org, kernel-team@lge.com, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Device Tree bindings for the Video Processing Engine (VPE) driver.
+Hi,
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- Documentation/devicetree/bindings/media/ti-vpe.txt | 41 ++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
+I had noticed that the BeagleBone Black boot time appeared to have
+increased significantly with 4.14 and yesterday I finally had time to
+investigate it.
 
-diff --git a/Documentation/devicetree/bindings/media/ti-vpe.txt b/Documentation/devicetree/bindings/media/ti-vpe.txt
-new file mode 100644
-index 000000000000..c2ef93d08417
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/ti-vpe.txt
-@@ -0,0 +1,41 @@
-+Texas Instruments DRA7x VIDEO PROCESSING ENGINE (VPE)
-+------------------------------------------------------
-+
-+The Video Processing Engine (VPE) is a key component for image post
-+processing applications. VPE consist of a single memory to memory
-+path which can perform chroma up/down sampling, deinterlacing,
-+scaling and color space conversion.
-+
-+Required properties:
-+- compatible: must be "ti,vpe"
-+- reg:	physical base address and length of the registers set for the 8
-+	memory regions required;
-+- reg-names: name associated with the memory regions described is <reg>;
-+- interrupts: should contain IRQ line for VPE;
-+
-+Example:
-+	vpe {
-+		compatible = "ti,vpe";
-+		ti,hwmods = "vpe";
-+		clocks = <&dpll_core_h23x2_ck>;
-+		clock-names = "fck";
-+		reg =	<0x489d0000 0x120>,
-+			<0x489d0300 0x20>,
-+			<0x489d0400 0x20>,
-+			<0x489d0500 0x20>,
-+			<0x489d0600 0x3c>,
-+			<0x489d0700 0x80>,
-+			<0x489d5700 0x18>,
-+			<0x489dd000 0x400>;
-+		reg-names =	"vpe_top",
-+				"vpe_chr_us0",
-+				"vpe_chr_us1",
-+				"vpe_chr_us2",
-+				"vpe_dei",
-+				"sc",
-+				"csc",
-+				"vpdma";
-+		interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+	};
--- 
-2.9.0
+Boot time (from "Linux version" to login prompt) had in fact doubled
+since 4.13 where it took 17 seconds (with my current config) compared to
+the 35 seconds I now see with 4.14-rc4.
+
+I quick bisect pointed to lockdep and specifically the following commit:
+
+	28a903f63ec0 ("locking/lockdep: Handle non(or multi)-acquisition
+	               of a crosslock")
+
+which I've verified is the commit which doubled the boot time (compared
+to 28a903f63ec0^) (added by lockdep crossrelease series [1]).
+
+I also verified that simply disabling CONFIG_PROVE_LOCKING on 4.14-rc4
+brought boot time down to about 14 seconds.
+
+Now since it's lockdep I guess this can't really be considered a
+regression if these changes did improve lockdep correctness, but still,
+this dramatic slow down essentially forces me to disable PROVE_LOCKING
+by default on this system.
+
+Is this lockdep slowdown expected and desirable?
+
+Johan
+
+[1] https://lkml.kernel.org/r/1502089981-21272-1-git-send-email-byungchul.park@lge.com
