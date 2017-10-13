@@ -1,160 +1,88 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH 09/10] PCI: dwc: make cpu_addr_fixup take struct dw_pcie as argument
-Date: Fri, 13 Oct 2017 18:09:12 +0200
-Message-ID: <20171013160914.3220-10-niklas.cassel@axis.com>
-References: <20171013160914.3220-1-niklas.cassel@axis.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20171013160914.3220-1-niklas.cassel@axis.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklass@axis.com>, Jesper Nilsson <jespern@axis.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/2] soc changes for omaps for v4.15 merge window
+Date: Fri, 13 Oct 2017 09:39:00 -0700
+Message-ID: <pull-1507912705-793554@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-There is no need to hard code the cpu to bus fixup address.
-By calculating the sum of sizes of config, io and mem,
-from device tree, we know how big the PCIe window is.
+From: "Tony Lindgren" <tony@atomide.com>
 
-The bus address has to be inside of this range, so all bits in
-the cpu address that are higher than this range, are the ones
-that we need to clear to get the local bus address.
+The following changes since commit 2bd6bf03f4c1c59381d62c61d03f6cc3fe71f66e:
 
-Also for ARTPEC-7, hard coding the cpu fixup address is
-not possible, since it uses a High Address Bits Look Up Table,
-which means that it can, at runtime, map the PCIe window
-to an arbitrary address in the 32-bit address space.
+  Linux 4.14-rc1 (2017-09-16 15:47:51 -0700)
 
-This also fixes a bug for ARTPEC-6, where the cpu_fixup_address
-previously masked one bit too many. (Another reason why
-it should be calculated from device tree.)
+are available in the git repository at:
 
-Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
----
- drivers/pci/dwc/pci-dra7xx.c      |  2 +-
- drivers/pci/dwc/pcie-artpec6.c    | 42 +++++++++++++++++++++++++++++++++++----
- drivers/pci/dwc/pcie-designware.c |  2 +-
- drivers/pci/dwc/pcie-designware.h |  2 +-
- 4 files changed, 41 insertions(+), 7 deletions(-)
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.15/soc-signed
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 34427a6a15af..a93bafc72fa0 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -109,7 +109,7 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
- 	writel(value, pcie->base + offset);
- }
- 
--static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
-+static u64 dra7xx_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
- {
- 	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
- }
-diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
-index 21ea9ffef784..1e113dbea1da 100644
---- a/drivers/pci/dwc/pcie-artpec6.c
-+++ b/drivers/pci/dwc/pcie-artpec6.c
-@@ -32,6 +32,7 @@ struct artpec6_pcie {
- 	struct regmap		*regmap;	/* DT axis,syscon-pcie */
- 	void __iomem		*phy_base;	/* DT phy */
- 	enum dw_pcie_device_mode mode;
-+	u64 cpu_fixup_mask;
- };
- 
- struct artpec_pcie_of_data {
-@@ -69,8 +70,6 @@ static const struct of_device_id artpec6_pcie_of_match[];
- #define PHY_STATUS			0x118
- #define  PHY_COSPLLLOCK			BIT(0)
- 
--#define ARTPEC6_CPU_TO_BUS_ADDR		GENMASK(27, 0)
--
- static u32 artpec6_pcie_readl(struct artpec6_pcie *artpec6_pcie, u32 offset)
- {
- 	u32 val;
-@@ -84,9 +83,42 @@ static void artpec6_pcie_writel(struct artpec6_pcie *artpec6_pcie, u32 offset, u
- 	regmap_write(artpec6_pcie->regmap, offset, val);
- }
- 
--static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
-+static void artpec6_pcie_calc_cpu_fixup_mask(struct artpec6_pcie *artpec6_pcie)
- {
--	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
-+	struct dw_pcie *pci = artpec6_pcie->pci;
-+	struct pcie_port *pp = &pci->pp;
-+	struct dw_pcie_ep *ep = &pci->ep;
-+	u64 size;
-+	u64 mask;
-+	int msb;
-+
-+	switch (artpec6_pcie->mode) {
-+	case DW_PCIE_RC_TYPE:
-+		size = pp->cfg0_size + pp->cfg1_size + pp->io_size +
-+			pp->mem_size;
-+		break;
-+	case DW_PCIE_EP_TYPE:
-+		size = ep->addr_size;
-+		break;
-+	default:
-+		dev_err(pci->dev, "UNKNOWN device type\n");
-+		return;
-+	}
-+	/* Calculate the mask (which can have potential holes). */
-+	mask = size - 1;
-+	/* Find the mask's msb. */
-+	msb = fls64(mask);
-+	/* Use the msb to generate a new mask without any holes. */
-+	mask = (1ULL << msb) - 1;
-+	artpec6_pcie->cpu_fixup_mask = mask;
-+	dev_dbg(pci->dev, "Using cpu fixup mask: 0x%llx\n", mask);
-+}
-+
-+static u64 artpec6_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
-+{
-+	struct artpec6_pcie *artpec6_pcie = to_artpec6_pcie(pci);
-+
-+	return pci_addr & artpec6_pcie->cpu_fixup_mask;
- }
- 
- static void artpec6_pcie_init_phy(struct artpec6_pcie *artpec6_pcie)
-@@ -190,6 +222,7 @@ static int artpec6_pcie_host_init(struct pcie_port *pp)
- 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
- 	struct artpec6_pcie *artpec6_pcie = to_artpec6_pcie(pci);
- 
-+	artpec6_pcie_calc_cpu_fixup_mask(artpec6_pcie);
- 	artpec6_pcie_assert_core_reset(artpec6_pcie);
- 	artpec6_pcie_init_phy(artpec6_pcie);
- 	artpec6_pcie_deassert_core_reset(artpec6_pcie);
-@@ -231,6 +264,7 @@ static void artpec6_pcie_ep_init(struct dw_pcie_ep *ep)
- 	struct artpec6_pcie *artpec6_pcie = to_artpec6_pcie(pci);
- 	enum pci_barno bar;
- 
-+	artpec6_pcie_calc_cpu_fixup_mask(artpec6_pcie);
- 	artpec6_pcie_assert_core_reset(artpec6_pcie);
- 	artpec6_pcie_init_phy(artpec6_pcie);
- 	artpec6_pcie_deassert_core_reset(artpec6_pcie);
-diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-index 88abdddee2ad..800be7a4f087 100644
---- a/drivers/pci/dwc/pcie-designware.c
-+++ b/drivers/pci/dwc/pcie-designware.c
-@@ -149,7 +149,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
- 	u32 retries, val;
- 
- 	if (pci->ops->cpu_addr_fixup)
--		cpu_addr = pci->ops->cpu_addr_fixup(cpu_addr);
-+		cpu_addr = pci->ops->cpu_addr_fixup(pci, cpu_addr);
- 
- 	if (pci->iatu_unroll_enabled) {
- 		dw_pcie_prog_outbound_atu_unroll(pci, index, type, cpu_addr,
-diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index f56d040afde4..897e190f8e24 100644
---- a/drivers/pci/dwc/pcie-designware.h
-+++ b/drivers/pci/dwc/pcie-designware.h
-@@ -203,7 +203,7 @@ struct dw_pcie_ep {
- };
- 
- struct dw_pcie_ops {
--	u64	(*cpu_addr_fixup)(u64 cpu_addr);
-+	u64	(*cpu_addr_fixup)(struct dw_pcie *pcie, u64 cpu_addr);
- 	u32	(*read_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
- 			    size_t size);
- 	void	(*write_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
--- 
-2.11.0
+for you to fetch changes up to 28fd7e99257c7d8ff41544a6ee23c96cc10799e0:
+
+  ARM: OMAP: Fix typos in two comment lines in _omap_dm_timer_request() (2017-10-11 11:13:20 -0700)
+
+----------------------------------------------------------------
+SoC changes for omaps for v4.15 merge window that are mostly non-urgent
+fixes and clean-up in preparation for dropping more platform data later
+on:
+
+- Fix am33xx/am437x MMC address space offsets
+
+- Fix overwriting clkctrl and modulemode values when dts data is
+  used
+
+- Drop unused platform init code for omap_init_hdq
+
+- Drop unused struct omap_hwmod_mux_info
+
+- Remove duplicate define for dra722 es1.0 silicon revision
+
+- Add support for dra71x es2.1
+
+- Make omap_dma_dev_info __initdata
+
+- A series of fixes for Coccinelle found issues
+
+----------------------------------------------------------------
+Bhumika Goyal (1):
+      ARM: OMAP2+: make omap_dma_dev_info __initdata
+
+Markus Elfring (4):
+      ARM: OMAP: Delete an error message for a failed memory allocation in two functions
+      ARM: OMAP: Improve a size determination in two functions
+      ARM: OMAP: Use kcalloc() in omap_system_dma_probe()
+      ARM: OMAP: Fix typos in two comment lines in _omap_dm_timer_request()
+
+Tony Lindgren (4):
+      ARM: OMAP2+: Fix MMC address space mismatch for am33xx and am43xx
+      ARM: OMAP2+: Fix overwriting of clkctrl and modulemode values
+      ARM: OMAP2+: Drop unused omap_init_hdq
+      ARM: OMAP2+: Drop unused omap_hwmod_mux_info
+
+Vishal Mahaveer (2):
+      ARM: DRA722: remove redundant definition of 1.0 device
+      ARM: DRA722: Add support for DRA71x Silicon Rev 2.1
+
+ arch/arm/mach-omap2/dma.c                          |  2 +-
+ arch/arm/mach-omap2/hdq1w.c                        | 22 ----------
+ arch/arm/mach-omap2/id.c                           |  5 ++-
+ arch/arm/mach-omap2/omap_hwmod.c                   | 49 ++++++++++++++++++----
+ arch/arm/mach-omap2/omap_hwmod.h                   | 21 ++--------
+ .../omap_hwmod_33xx_43xx_interconnect_data.c       | 30 -------------
+ .../mach-omap2/omap_hwmod_33xx_43xx_ipblock_data.c |  6 +--
+ arch/arm/mach-omap2/soc.h                          |  2 +-
+ arch/arm/plat-omap/dma.c                           | 12 +++---
+ arch/arm/plat-omap/dmtimer.c                       | 10 ++---
+ 10 files changed, 62 insertions(+), 97 deletions(-)
