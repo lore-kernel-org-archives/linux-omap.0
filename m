@@ -1,55 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [Patch 3/6] ARM: OMAP: DRA7xx: Make CAM clock domain SWSUP only
-Date: Fri, 13 Oct 2017 11:03:39 -0700
-Message-ID: <20171013180338.GS4394@atomide.com>
+From: Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
+Subject: Re: [Patch 5/6] ARM: DRA7: hwmod: Add VPE nodes
+Date: Fri, 13 Oct 2017 13:05:34 -0500
+Message-ID: <20171013180534.GI25400@ti.com>
 References: <20171012192719.15193-1-bparrot@ti.com>
- <20171012192719.15193-4-bparrot@ti.com>
- <20171013170113.GL4394@atomide.com>
- <20171013175942.GH25400@ti.com>
+ <20171012192719.15193-6-bparrot@ti.com>
+ <20171013170513.GM4394@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171013175942.GH25400@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+In-Reply-To: <20171013170513.GM4394-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Benoit Parrot <bparrot@ti.com> [171013 11:01]:
-> Tony Lindgren <tony@atomide.com> wrote on Fri [2017-Oct-13 10:01:13 -0700]:
-> > * Benoit Parrot <bparrot@ti.com> [171012 12:29]:
-> > > HWSUP on this domain is only working when VIP1 probes.
-> > > If only VIP2 on DRA74x or CAL on DRA72x probes the domain does
-> > > not get enabled. This might indicates an issue in the HW Auto
-> > > state-machine for this domain.
-> > >
-> > > Work around is to set the CAM domain to use SWSUP only.
-> > 
-> > Hmm this you might get fixed automatically by configuring the
-> > parent interconnect target module to use "ti,sysc-omap4" and
-> > adding VIP1 and VIP2 as children to it.
-> > 
-> > The reason why I suspect it will fix the issue is because
-> > with the parent being "ti,sysc-omap4" with "ti,hwmods" being
-> > in that parent node too, you automatically get PM runtime
-> > refcounting keep the parent active for either child.
-> > 
-> > Maybe give it a try against today's Linux next and see for
-> > example how it was done for musb:
-> > 
-> > https://patchwork.kernel.org/patch/9978783/
-> > 
-> > Just use "ti,sysc-omap2" for type1 and "ti,sysc-omap4"
-> > for type2.
+Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote on Fri [2017-Oct-13 10:05:13 -0700]:
+> * Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org> [171012 12:28]:
+> > +static struct omap_hwmod_class_sysconfig dra7xx_vpe_sysc = {
+> > +	.sysc_offs	= 0x0010,
+> > +	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
+> > +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+> > +			   MSTANDBY_FORCE | MSTANDBY_NO |
+> > +			   MSTANDBY_SMART),
+> > +	.sysc_fields	= &omap_hwmod_sysc_type2,
+> > +};
 > 
-> Hmm interesting, I'll give that a try and if it fixes it.
+> I think checkpatch.pl --strict would complain about unnecessary
+> parentheses, might as well check the whole series while at it.
 
-OK great. Note that you need to manually apply "[PATCH] ARM:
-head-common.S: Clear lr before jumping to start_kernel()" on
-today's next and make sure CONFIG_DRM and CONFIG_DRM_KMS_HELPER
-are built-in and not modules if using them.
+I actually ran the whole series through "checkpatch.pl --strict"
+before posting. And other then the usual MAINTAINER file needing
+update warning for the binding patch it no other warning or error.
 
-Regards,
+Based on the rest of the file I believe the parentheses around those
+flags are at least consistent.
 
-Tony
+Now, would the .rev_offs comment also apply here?
+
+Benoit
+
+> 
+> Regards,
+> 
+> Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
