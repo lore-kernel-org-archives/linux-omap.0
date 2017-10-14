@@ -1,42 +1,80 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 2/4] dt-bindings: PCI: dra7xx: Add properties to enable
- x2 lane in dra7
-Date: Fri, 13 Oct 2017 16:45:09 -0500
-Message-ID: <20171013214509.kqjx3gxudaysvnqg@rob-hp-laptop>
-References: <20171010101606.15951-1-kishon@ti.com>
- <20171010101606.15951-3-kishon@ti.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: Dramatic lockdep slowdown in 4.14
+Date: Sat, 14 Oct 2017 09:26:59 +0200
+Message-ID: <20171014072659.f2yr6mhm5ha3eou7@gmail.com>
+References: <20171013090333.GA17356@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20171010101606.15951-3-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+In-Reply-To: <20171013090333.GA17356@localhost>
+Sender: owner-linux-mm@kvack.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Byungchul Park <byungchul.park@lge.com>, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, tglx@linutronix.de, linux-mm@kvack.org, kernel-team@lge.com, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 10, 2017 at 03:46:04PM +0530, Kishon Vijay Abraham I wrote:
-> Add syscon properties required for configuring PCIe in x2 lane mode.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
->  Documentation/devicetree/bindings/pci/ti-pci.txt | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> index 82cb875e4cec..455cb74a475c 100644
-> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> @@ -13,6 +13,10 @@ PCIe DesignWare Controller
->   - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
->  	       where <X> is the instance number of the pcie from the HW spec.
->   - num-lanes as specified in ../designware-pcie.txt
-> + - syscon-lane-conf : phandle/offset pair. Phandle to the system control module and the
-> +   register offset to specify 1 lane or 2 lane.
-> + - syscon-lane-sel : phandle/offset pair. Phandle to the system control module and the
-> +   register offset to specify lane selection.
 
-Needs vendor prefixes.
+* Johan Hovold <johan@kernel.org> wrote:
 
-Rob
+> Hi,
+> 
+> I had noticed that the BeagleBone Black boot time appeared to have
+> increased significantly with 4.14 and yesterday I finally had time to
+> investigate it.
+> 
+> Boot time (from "Linux version" to login prompt) had in fact doubled
+> since 4.13 where it took 17 seconds (with my current config) compared to
+> the 35 seconds I now see with 4.14-rc4.
+> 
+> I quick bisect pointed to lockdep and specifically the following commit:
+> 
+> 	28a903f63ec0 ("locking/lockdep: Handle non(or multi)-acquisition
+> 	               of a crosslock")
+> 
+> which I've verified is the commit which doubled the boot time (compared
+> to 28a903f63ec0^) (added by lockdep crossrelease series [1]).
+> 
+> I also verified that simply disabling CONFIG_PROVE_LOCKING on 4.14-rc4
+> brought boot time down to about 14 seconds.
+> 
+> Now since it's lockdep I guess this can't really be considered a
+> regression if these changes did improve lockdep correctness, but still,
+> this dramatic slow down essentially forces me to disable PROVE_LOCKING
+> by default on this system.
+> 
+> Is this lockdep slowdown expected and desirable?
+
+It's not desirable at all.
+
+Does the patch below fix the regression for you - or does the introduction and 
+handling of ->nr_acquire hurt as well?
+
+Thanks,
+
+	Ingo
+
+====================>
+ lib/Kconfig.debug | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index c6401d325b0e..f5b40c1668ea 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -1138,8 +1138,8 @@ config PROVE_LOCKING
+ 	select DEBUG_MUTEXES
+ 	select DEBUG_RT_MUTEXES if RT_MUTEXES
+ 	select DEBUG_LOCK_ALLOC
+-	select LOCKDEP_CROSSRELEASE
+-	select LOCKDEP_COMPLETIONS
++#	select LOCKDEP_CROSSRELEASE
++#	select LOCKDEP_COMPLETIONS
+ 	select TRACE_IRQFLAGS
+ 	default n
+ 	help
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
