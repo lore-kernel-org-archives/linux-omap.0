@@ -1,64 +1,61 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH] ARM: head-common.S: Clear lr before jumping to
- start_kernel()
-Date: Sat, 14 Oct 2017 15:17:41 +0100
-Message-ID: <20171014141740.GH23750@n2100.armlinux.org.uk>
-References: <1507044184-27152-1-git-send-email-geert+renesas@glider.be>
- <nycvar.YSQ.7.76.1710031134140.5407@knanqh.ubzr>
- <CAMuHMdWJKQb5JY+diH=7dqNuypkPUqBeOEPSLOrfrnbfh2siRQ@mail.gmail.com>
- <CAMuHMdXpPfipmEdW0Dap6Pjwhz3QxLcrcbtU0RhCu721k-sBpA@mail.gmail.com>
- <CAMuHMdWH_pebSYAp04gmVceu3qqPczGaXS36R8CtzAYHo-CNog@mail.gmail.com>
- <20171010203324.GX4394@atomide.com>
- <20171012102341.GF23750@n2100.armlinux.org.uk>
- <nycvar.YSQ.7.76.1710121123530.1718@knanqh.ubzr>
- <20171014141405.GG23750@n2100.armlinux.org.uk>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH] mtd: nand: omap2: Do not assign omap_nand_info to
+ platform drvdata
+Date: Sat, 14 Oct 2017 17:11:23 +0200
+Message-ID: <20171014171123.4095025b@bbrezillon>
+References: <20171010133245.jlwto3gpmin5bmtw@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171014141405.GG23750@n2100.armlinux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Chris Brandt <Chris.Brandt@renesas.com>, Geert Uytterhoeven <geert@linux-m68k.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20171010133245.jlwto3gpmin5bmtw@lenoch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Richard Weinberger <richard@nod.at>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Oct 14, 2017 at 03:14:05PM +0100, Russell King - ARM Linux wrote:
-> On Thu, Oct 12, 2017 at 11:25:50AM -0400, Nicolas Pitre wrote:
-> > It should go into your devel-testing branch as this must be applied on 
-> > top of my xip_zdata branch that you merged there.
-> 
-> Thanks, it would've been good to have known that ahead of time.
-> 
-> It's why the patch system has the KernelVersion: tag:
-> 
->  6. Kernel version.
->     On a separate line, add a tag "KernelVersion: " followed by the kernel
->     version that the patch was generated against. This should be formatted
->     as "KernelVersion: 2.6.0-rmk1"
-> 
-> This is because that information is relevant for knowing where it should
-> be applied, and to which branch.  Having it be something else means I
-> have to guess, and that can result in the patch being discarded in this
-> manner if I don't find where it's supposed to be applied.
-> 
-> Yes, I know it's a pain to have to supply this information, but giving
-> accurate information there makes things a lot easier and quicker when
-> applying patches, rather than playing a game of "guess where it needs
-> to be applied, nope, doesn't apply there, try somewhere else."
-> 
-> Various people in the kernel community have different solutions to this.
-> For example, on netdev, it is preferred to state whether you want your
-> patch to be applied to "net" or "net-next" by adding that into the
-> "[PATCH ...]" tag in the subject line.  It's really about streamlining
-> the patch submission and application process.
+On Tue, 10 Oct 2017 15:32:45 +0200
+Ladislav Michl <ladis@linux-mips.org> wrote:
 
-The tag can take a plain kernel version and a kernel version suffixed
-with a shortened git hash (please avoid the full hash, it doesn't
-display well with the web presentation, and will probably be truncated
-when it's inserted into the database.)
+> commit 67ce04bf2746 ("mtd: nand: add OMAP2/OMAP3 NAND driver") assigned
+> pointer to omap_nand_info to the platform drvdata in probe function
+> just to be reasigned later to the pointer to mtd_info, which is
+> what remove function expects it to be. Remove useless assignment.
+> 
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+Applied.
+
+Thanks,
+
+Boris
+
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> ---
+>  drivers/mtd/nand/omap2.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 01368a8f9e3f..a97c1aeed55e 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -1823,7 +1823,6 @@ static int omap_nand_probe(struct platform_device *pdev)
+>  	if (err)
+>  		return err;
+>  
+> -	platform_set_drvdata(pdev, info);
+>  	info->ops = gpmc_omap_get_nand_ops(&info->reg, info->gpmc_cs);
+>  	if (!info->ops) {
+>  		dev_err(&pdev->dev, "Failed to get GPMC->NAND interface\n");
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
