@@ -1,157 +1,66 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v2] mtd: nand: omap2: Remove omap_nand_platform_data
-Date: Sat, 14 Oct 2017 17:11:44 +0200
-Message-ID: <20171014171144.4bbc6f8c@bbrezillon>
-References: <20171010123807.ha43wsnqw5uncf3n@lenoch>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: [PATCH] ARM: head-common.S: Clear lr before jumping to
+ start_kernel()
+Date: Sat, 14 Oct 2017 11:49:25 -0400 (EDT)
+Message-ID: <nycvar.YSQ.7.76.1710141147550.1750@knanqh.ubzr>
+References: <1507044184-27152-1-git-send-email-geert+renesas@glider.be> <nycvar.YSQ.7.76.1710031134140.5407@knanqh.ubzr> <CAMuHMdWJKQb5JY+diH=7dqNuypkPUqBeOEPSLOrfrnbfh2siRQ@mail.gmail.com> <CAMuHMdXpPfipmEdW0Dap6Pjwhz3QxLcrcbtU0RhCu721k-sBpA@mail.gmail.com>
+ <CAMuHMdWH_pebSYAp04gmVceu3qqPczGaXS36R8CtzAYHo-CNog@mail.gmail.com> <20171010203324.GX4394@atomide.com> <20171012102341.GF23750@n2100.armlinux.org.uk> <nycvar.YSQ.7.76.1710121123530.1718@knanqh.ubzr> <20171014141405.GG23750@n2100.armlinux.org.uk>
+ <20171014141740.GH23750@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171010123807.ha43wsnqw5uncf3n@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Richard Weinberger <richard@nod.at>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+Content-Type: multipart/mixed; boundary="8323328-1049134750-1507996166=:1750"
+Return-path: <linux-renesas-soc-owner@vger.kernel.org>
+In-Reply-To: <20171014141740.GH23750@n2100.armlinux.org.uk>
+Sender: linux-renesas-soc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Chris Brandt <Chris.Brandt@renesas.com>, Geert Uytterhoeven <geert@linux-m68k.org>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 10 Oct 2017 14:38:07 +0200
-Ladislav Michl <ladis@linux-mips.org> wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> As driver is now configured using DT, omap_nand_platform_data structure
-> is no longer needed.
+--8323328-1049134750-1507996166=:1750
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+
+On Sat, 14 Oct 2017, Russell King - ARM Linux wrote:
+
+> On Sat, Oct 14, 2017 at 03:14:05PM +0100, Russell King - ARM Linux wrote:
+> > On Thu, Oct 12, 2017 at 11:25:50AM -0400, Nicolas Pitre wrote:
+> > > It should go into your devel-testing branch as this must be applied on 
+> > > top of my xip_zdata branch that you merged there.
+> > 
+> > Thanks, it would've been good to have known that ahead of time.
+> > 
+> > It's why the patch system has the KernelVersion: tag:
+> > 
+> >  6. Kernel version.
+> >     On a separate line, add a tag "KernelVersion: " followed by the kernel
+> >     version that the patch was generated against. This should be formatted
+> >     as "KernelVersion: 2.6.0-rmk1"
+> > 
+> > This is because that information is relevant for knowing where it should
+> > be applied, and to which branch.  Having it be something else means I
+> > have to guess, and that can result in the patch being discarded in this
+> > manner if I don't find where it's supposed to be applied.
+> > 
+> > Yes, I know it's a pain to have to supply this information, but giving
+> > accurate information there makes things a lot easier and quicker when
+> > applying patches, rather than playing a game of "guess where it needs
+> > to be applied, nope, doesn't apply there, try somewhere else."
+> > 
+> > Various people in the kernel community have different solutions to this.
+> > For example, on netdev, it is preferred to state whether you want your
+> > patch to be applied to "net" or "net-next" by adding that into the
+> > "[PATCH ...]" tag in the subject line.  It's really about streamlining
+> > the patch submission and application process.
 > 
+> The tag can take a plain kernel version and a kernel version suffixed
+> with a shortened git hash (please avoid the full hash, it doesn't
+> display well with the web presentation, and will probably be truncated
+> when it's inserted into the database.)
 
-Applied.
-
-Thanks,
-
-Boris
-
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> ---
->  Changes:
->  -v2: Remove check for dev->of_node, drop platform_set_drvdata removal
->       change from this patch
-> 
->  drivers/mtd/nand/omap2.c                     |   37 +++++----------------------
->  include/linux/platform_data/mtd-nand-omap2.h |   17 ------------
->  2 files changed, 8 insertions(+), 46 deletions(-)
-> 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 54540c8fa1a2..01368a8f9e3f 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1588,8 +1588,7 @@ static bool is_elm_present(struct omap_nand_info *info,
->  	return true;
->  }
->  
-> -static bool omap2_nand_ecc_check(struct omap_nand_info *info,
-> -				 struct omap_nand_platform_data	*pdata)
-> +static bool omap2_nand_ecc_check(struct omap_nand_info *info)
->  {
->  	bool ecc_needs_bch, ecc_needs_omap_bch, ecc_needs_elm;
->  
-> @@ -1804,7 +1803,6 @@ static const struct mtd_ooblayout_ops omap_sw_ooblayout_ops = {
->  static int omap_nand_probe(struct platform_device *pdev)
->  {
->  	struct omap_nand_info		*info;
-> -	struct omap_nand_platform_data	*pdata = NULL;
->  	struct mtd_info			*mtd;
->  	struct nand_chip		*nand_chip;
->  	int				err;
-> @@ -1821,27 +1819,9 @@ static int omap_nand_probe(struct platform_device *pdev)
->  
->  	info->pdev = pdev;
->  
-> -	if (dev->of_node) {
-> -		if (omap_get_dt_info(dev, info))
-> -			return -EINVAL;
-> -	} else {
-> -		pdata = dev_get_platdata(&pdev->dev);
-> -		if (!pdata) {
-> -			dev_err(&pdev->dev, "platform data missing\n");
-> -			return -EINVAL;
-> -		}
-> -
-> -		info->gpmc_cs = pdata->cs;
-> -		info->reg = pdata->reg;
-> -		info->ecc_opt = pdata->ecc_opt;
-> -		if (pdata->dev_ready)
-> -			dev_info(&pdev->dev, "pdata->dev_ready is deprecated\n");
-> -
-> -		info->xfer_type = pdata->xfer_type;
-> -		info->devsize = pdata->devsize;
-> -		info->elm_of_node = pdata->elm_of_node;
-> -		info->flash_bbt = pdata->flash_bbt;
-> -	}
-> +	err = omap_get_dt_info(dev, info);
-> +	if (err)
-> +		return err;
->  
->  	platform_set_drvdata(pdev, info);
->  	info->ops = gpmc_omap_get_nand_ops(&info->reg, info->gpmc_cs);
-> @@ -2002,7 +1982,7 @@ static int omap_nand_probe(struct platform_device *pdev)
->  		goto return_error;
->  	}
->  
-> -	if (!omap2_nand_ecc_check(info, pdata)) {
-> +	if (!omap2_nand_ecc_check(info)) {
->  		err = -EINVAL;
->  		goto return_error;
->  	}
-> @@ -2167,10 +2147,9 @@ static int omap_nand_probe(struct platform_device *pdev)
->  	if (err)
->  		goto return_error;
->  
-> -	if (dev->of_node)
-> -		mtd_device_register(mtd, NULL, 0);
-> -	else
-> -		mtd_device_register(mtd, pdata->parts, pdata->nr_parts);
-> +	err = mtd_device_register(mtd, NULL, 0);
-> +	if (err)
-> +		goto return_error;
->  
->  	platform_set_drvdata(pdev, mtd);
->  
-> diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-> index 25e267f1970c..619df2431e75 100644
-> --- a/include/linux/platform_data/mtd-nand-omap2.h
-> +++ b/include/linux/platform_data/mtd-nand-omap2.h
-> @@ -64,21 +64,4 @@ struct gpmc_nand_regs {
->  	void __iomem	*gpmc_bch_result5[GPMC_BCH_NUM_REMAINDER];
->  	void __iomem	*gpmc_bch_result6[GPMC_BCH_NUM_REMAINDER];
->  };
-> -
-> -struct omap_nand_platform_data {
-> -	int			cs;
-> -	struct mtd_partition	*parts;
-> -	int			nr_parts;
-> -	bool			flash_bbt;
-> -	enum nand_io		xfer_type;
-> -	int			devsize;
-> -	enum omap_ecc           ecc_opt;
-> -
-> -	struct device_node	*elm_of_node;
-> -
-> -	/* deprecated */
-> -	struct gpmc_nand_regs	reg;
-> -	struct device_node	*of_node;
-> -	bool			dev_ready;
-> -};
->  #endif
-> 
-> ______________________________________________________
-> Linux MTD discussion mailing list
-> http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Probably what you want is the output of 'git describe'.
 
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Nicolas
+--8323328-1049134750-1507996166=:1750--
