@@ -1,35 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: drm_kms_helper cycle detected build error in next
-Date: Fri, 13 Oct 2017 08:09:35 -0700
-Message-ID: <20171013150935.GH4394@atomide.com>
-References: <20171013145818.GG4394@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: Fix omap l4per idling with wlcore   edge
+ sensitive interrupt
+Date: Sun, 15 Oct 2017 09:22:31 -0700
+Message-ID: <20171015162230.GU4394@atomide.com>
+References: <8665E2433BC68541A24DFFCA87B70F5B3646AF81@DFRE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171013145818.GG4394@atomide.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+In-Reply-To: <8665E2433BC68541A24DFFCA87B70F5B3646AF81-1tpBd5JUCm6IQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gerlach, Dave" <d-gerlach-l0cyMroinI0@public.gmane.org>, "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "Kristo, Tero" <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-KiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiBbMTcxMDEzIDA3OjU5XToKPiBIaSBU
-b21pLAo+IAo+IExvb2tzIGxpa2UgdG9kYXkncyBuZXh0IGJ1aWxkIGZhaWxzIGlmIG9tYXBkcm0g
-aXMgZW5hYmxlZCBhcyBtb2R1bGVzCj4gd2l0aDoKPiAKPiBkZXBtb2Q6IEVSUk9SOiBDeWNsZSBk
-ZXRlY3RlZDogZHJtX2ttc19oZWxwZXIgLT4gZHJtIC0+IGRybV9rbXNfaGVscGVyCj4gZGVwbW9k
-OiBFUlJPUjogRm91bmQgMiBtb2R1bGVzIGluIGRlcGVuZGVuY3kgY3ljbGVzIQo+IG1ha2U6ICoq
-KiBbTWFrZWZpbGU6MTI2MTogX21vZGluc3RfcG9zdF0gRXJyb3IgMQoKTWFraW5nIENPTkZJR19E
-Uk09eSBhbmQgQ09ORklHX0RSTV9LTVNfSEVMUEVSPXkgaW5zdGVhZCBvZgpsb2RhYmxlIG1vZHVs
-ZXMgbWFrZXMgaXQgYnVpbGQuCgpSZWdhcmRzLAoKVG9ueQpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZl
-bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+* Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [171014 23:55]:
+> > From: Tony Lindgren [mailto:tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org]
+> > 
+> > On omaps, if the wlcore interrupt is configured as level instead of edge,
+> > L4PER will stop doing hardware based idling after ifconfig wlan0 down is
+> > done and the WL_EN line is pulled down.
+> > 
+> Do we understand why omap is doing this? Is it a bug or a normal behavior?
+> 
+> AFAIK way back edge interrupts have been used. On some omaps based boards.
+> They have used level interrupts instead due to occasional interrupts being missed 
+> By the omap interrupts controller when using edge based interrupts which caused 
+> Issues. This was the reason many boards are set to using level based interrupts which 
+> Seemed much more robust.
+
+No idea yet why exactly the gpio modules won't idle after that. But for making
+edge interrupts behave, I suspect that Grygorii's patch "[RESEND PATCH] gpio:
+omap: Fix lost edge interrupts" fixes those issues.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
