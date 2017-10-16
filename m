@@ -1,71 +1,131 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH] ARM: head-common.S: Clear lr before jumping to
- start_kernel()
-Date: Mon, 16 Oct 2017 13:29:09 +0100
-Message-ID: <20171016122908.GJ23750@n2100.armlinux.org.uk>
-References: <1507044184-27152-1-git-send-email-geert+renesas@glider.be>
- <nycvar.YSQ.7.76.1710031134140.5407@knanqh.ubzr>
- <CAMuHMdWJKQb5JY+diH=7dqNuypkPUqBeOEPSLOrfrnbfh2siRQ@mail.gmail.com>
- <CAMuHMdXpPfipmEdW0Dap6Pjwhz3QxLcrcbtU0RhCu721k-sBpA@mail.gmail.com>
- <CAMuHMdWH_pebSYAp04gmVceu3qqPczGaXS36R8CtzAYHo-CNog@mail.gmail.com>
- <20171010203324.GX4394@atomide.com>
- <20171012102341.GF23750@n2100.armlinux.org.uk>
- <nycvar.YSQ.7.76.1710121123530.1718@knanqh.ubzr>
- <20171014141405.GG23750@n2100.armlinux.org.uk>
- <CAMuHMdX7Z0D2unRqC9z04f0MVsxLuVxouvquyYBHKavnycfh=w@mail.gmail.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: gpmc-nand broken since v4.12
+Date: Mon, 16 Oct 2017 14:39:04 +0200
+Message-ID: <20171016143904.098eaa50@bbrezillon>
+References: <7eae9266-558f-6578-66d7-7ab0eb659a81@ti.com>
+ <20171013145033.5d1d9647@bbrezillon>
+ <20171013222458.3f4c103e@bbrezillon>
+ <20171013222907.16adf410@bbrezillon>
+ <fe579fc6-253d-a734-22b0-de24448dfde9@ti.com>
+ <20171016133457.74b2773f@bbrezillon>
+ <b2405429-a720-6fbc-2d5f-2a1cbf52f3a9@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdX7Z0D2unRqC9z04f0MVsxLuVxouvquyYBHKavnycfh=w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>, Chris Brandt <Chris.Brandt@renesas.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <b2405429-a720-6fbc-2d5f-2a1cbf52f3a9@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Cooper Jr.,
+ Franklin" <fcooper@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Oct 15, 2017 at 10:04:16AM +0200, Geert Uytterhoeven wrote:
-> On Sat, Oct 14, 2017 at 4:14 PM, Russell King - ARM Linux
-> <linux@armlinux.org.uk> wrote:
-> > Thanks, it would've been good to have known that ahead of time.
-> >
-> > It's why the patch system has the KernelVersion: tag:
-> >
-> >  6. Kernel version.
-> >     On a separate line, add a tag "KernelVersion: " followed by the kernel
-> >     version that the patch was generated against. This should be formatted
-> >     as "KernelVersion: 2.6.0-rmk1"
-> >
-> > This is because that information is relevant for knowing where it should
-> > be applied, and to which branch.  Having it be something else means I
-> > have to guess, and that can result in the patch being discarded in this
-> > manner if I don't find where it's supposed to be applied.
-> 
-> That's why we have the standard Fixes tag, which was included
-> Fixes: 9520b1a1b5f7a348 ("ARM: head-common.S: speed up startup code")
-
-Wrong.  You're confusing two different things.
-
-The fixes tag identifies the commit to which the FIX applies.  That's
-not what the kernelversion tag described above is for.  That's to
-describe where the patch was GENERATED, so that it's easier to know
-where it should be applied.
-
-> It's trivial for the repo maintainer to know which branch the fix to
-> apply to, given the Fixes tag.
-> It's non-trivial to know the branch for the patch submitter, who is
-> forced to use a non-standard patch submission system.
-
-So what you're telling me is that you're unable to describe what commit
-or the kernel version that the patch was GENERATED against.
-
-I /really/ don't buy such an argument one bit.  If you don't have that
-information, by definition you can't generate a git patch.
-
-If it was trivial, then don't you think the patch would've been applied
-without all this crap?  The proof is here in this thread, it's not as
-trivial as you think it is.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+T24gTW9uLCAxNiBPY3QgMjAxNyAxNToxMjozOCArMDMwMApSb2dlciBRdWFkcm9zIDxyb2dlcnFA
+dGkuY29tPiB3cm90ZToKCj4g77u/SGkgQm9yaXMsCj4gCj4gCj4gVGV4YXMgSW5zdHJ1bWVudHMg
+RmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuIFktdHVubnVzL0J1
+c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCj4gCj4g
+T24gMTYvMTAvMTcgMTQ6MzQsIEJvcmlzIEJyZXppbGxvbiB3cm90ZToKPiA+IEhpIFJvZ2VyLAo+
+ID4gCj4gPiBPbiBNb24sIDE2IE9jdCAyMDE3IDEzOjIyOjA0ICswMzAwCj4gPiBSb2dlciBRdWFk
+cm9zIDxyb2dlcnFAdGkuY29tPiB3cm90ZToKPiA+ICAgCj4gPj4g77u/Cj4gPj4gVGV4YXMgSW5z
+dHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuIFkt
+dHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNp
+bmtpCj4gPj4KPiA+PiBPbiAxMy8xMC8xNyAyMzoyOSwgQm9yaXMgQnJlemlsbG9uIHdyb3RlOiAg
+Cj4gPj4+IE9uIEZyaSwgMTMgT2N0IDIwMTcgMjI6MjQ6NTggKzAyMDAKPiA+Pj4gQm9yaXMgQnJl
+emlsbG9uIDxib3Jpcy5icmV6aWxsb25AZnJlZS1lbGVjdHJvbnMuY29tPiB3cm90ZToKPiA+Pj4g
+ICAgIAo+ID4+Pj4gT24gRnJpLCAxMyBPY3QgMjAxNyAxNDo1MDozMyArMDIwMAo+ID4+Pj4gQm9y
+aXMgQnJlemlsbG9uIDxib3Jpcy5icmV6aWxsb25AZnJlZS1lbGVjdHJvbnMuY29tPiB3cm90ZToK
+PiA+Pj4+ICAgIAo+ID4+Pj4+IE9uIEZyaSwgMTMgT2N0IDIwMTcgMTQ6NTc6MjkgKzAzMDAKPiA+
+Pj4+PiBSb2dlciBRdWFkcm9zIDxyb2dlcnFAdGkuY29tPiB3cm90ZToKPiA+Pj4+PiAgICAgICAK
+PiA+Pj4+Pj4g77u/SGkgQm9yaXMsCj4gPj4+Pj4+Cj4gPj4+Pj4+IE5BTkQgb24gZ3BtYy1vbWFw
+IGJyZWFrcyBmb3IgbWUgd2hpbGUgZG9pbmcgYSB1bm1vdW50IG9mIGEgdWJpIHZvbHVtZSBzaW5j
+ZSB2NC4xMgo+ID4+Pj4+Pgo+ID4+Pj4+PiBCZWhhdmlvdXIgZm9sbG93cyB0aHJvdWdoIGluIHY0
+LjEzIGFuZCB2NC4xNC1yYyBhcyB3ZWxsLgo+ID4+Pj4+Pgo+ID4+Pj4+PiBEbyB5b3UgaGF2ZSBh
+bnkgaWRlYSBhYm91dCB0aGlzPyAgICAgIAo+ID4+Pj4KPiA+Pj4+IE1vcmUgaW5mbyBvbiB3aGF0
+IGhhcyBjaGFuZ2VkIGluIDQuMTI6IHdlIG5vIGxvbmdlciBhbGxvY2F0ZSB0aGUKPiA+Pj4+IG5h
+bmRfYnVmZmVyIHN0cnVjdCArIGl0cyBpbnRlcm5hbCBidWZmZXIgdXNpbmcgYSBzaW5nbGUgYmln
+IGttYWxsb2MKPiA+Pj4+IGNhbGwsIHdoaWNoIG1lYW5zIHRoZSBuYW5kX2J1ZmZlciBzdHJ1Y3Qg
+aXMgbm93IGxpa2VseSB0byBiZSBhbGxvY2F0ZWQKPiA+Pj4+IGluIGEgc21hbGwgb2JqZWN0IHNs
+YWIgKHNpemVvZihuYW5kX2J1ZmZlcnMpID0gMTIpLiBJZiB5b3UgaGF2ZSBhCj4gPj4+PiB1c2Ut
+YWZ0ZXItZnJlZSBidWcgc29tZXdoZXJlIGluIHRoZSBrZXJuZWwsIGl0IG1pZ2h0IGNvcnJ1cHQg
+dGhlICAgIAo+ID4+Cj4gPj4gU3BvdCBvbi4gUHJvYmxlbSBzdGFydHMgZnJvbSBjb21taXQgNGQ1
+ZGVhNTcyNWYzYWE5NWI5YjY0ZTI1MjU0MGU0MzVkZDIxNmRiYwo+ID4+ICJtdGQ6IG5hbmQ6IGFs
+bG9jYXRlIGFsaWduZWQgYnVmZmVycyBpZiBOQU5EX09XTl9CVUZGRVJTIGlzIHVuc2V0Igo+ID4+
+ICAKPiA+Pj4KPiA+Pj4gSSBtZWFudCBidWZmZXItb3ZlcmZsb3csIG5vdCB1c2UtYWZ0ZXItZnJl
+ZS4gICAgCj4gPj4KPiA+PiBZb3VyIGFuYWx5c2lzIHNlZW1zIGNvcnJlY3QuCj4gPj4gIAo+ID4+
+PiAgICAgCj4gPj4+PiBuYW5kX2J1ZmZlcnMgb2JqZWN0LCB3aGljaCBtaWdodCBleHBsYWluIHRo
+ZSBidWcgeW91IHNlZSBoZXJlLgo+ID4+Pj4gICAgCj4gPj4+Pj4KPiA+Pj4+PiBDYW4geW91IHRy
+eSB3aXRoIHRoaXMgcGF0Y2ggWzFdIGFwcGxpZWQgYW5kIHBhc3RlIG1lIHRoZSB2YWx1ZXMgcHJp
+bnRlZAo+ID4+Pj4+IGp1c3QgYmVmb3JlIHRoZSBjcmFzaD8KPiA+Pj4+Pgo+ID4+Pj4+IFsxXWh0
+dHA6Ly9jb2RlLmJ1bGl4Lm9yZy9sYzh4azAtMjA5NzQ2ICAgIAo+ID4+Cj4gPj4gPT0gdW5tb3Vu
+dGluZyB2b2x1bWUKPiA+PiBbICAgMzYuMzA4NzkyXSBuYW5kOiBuYW5kX3dyaXRlX3N1YnBhZ2Vf
+aHdlY2M6MjU3NSBlY2NfY2FsYyA9ICAgKG51bGwpIG9vYl9wb2kgPSBlZDA5NjgwMAo+ID4+IFsg
+ICAzNi4zMTczMTldIG10ZF9vb2JsYXlvdXRfc2V0X2J5dGVzOjEzMzAgZHN0ID0gZWQwOTY4MDIg
+c3JjID0gICAobnVsbCkKPiA+PiBbICAgMzYuMzI0MTYyXSBVbmFibGUgdG8gaGFuZGxlIGtlcm5l
+bCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UgYXQgdmlydHVhbCBhZGRyZXNzIDAwMDAwMDAwCj4g
+Pj4KPiA+Pgo+ID4+IFJ1bm5pbmcgdGhlIGZvbGxvd2luZyBwYXRjaAo+ID4+IGh0dHBzOi8vaGFz
+dGViaW4uY29tL3Vsb2d1cnV0dXoucGhwCj4gPj4gc2hvd3MKPiA+Pgo+ID4+IFsgICAzNy4yNjA2
+ODldIG5hbmQ6IG5hbmRfd3JpdGVfc3VicGFnZV9od2VjYzoyNTQ3OkEgZWNjX2NhbGMgPSBlZDEx
+NmU0MCBvb2JfcG9pID0gZWQxMTc4MDAKPiA+PiBbICAgMzcuMjYwNzcyXSBuYW5kOiBuYW5kX3dy
+aXRlX3N1YnBhZ2VfaHdlY2M6MjU1NjpBMTpzdGVwIDAsIGVjY19jYWxjID0gZWQxMTZlNDAKPiA+
+PiBbICAgMzcuMjYwNzc5XSBuYW5kOiBuYW5kX3dyaXRlX3N1YnBhZ2VfaHdlY2M6MjU2MjpBMjpz
+dGVwIDAsIGVjY19jYWxjID0gZWQxMTZlNDAKPiA+PiBbICAgMzcuMjYwODM0XSBuYW5kOiBuYW5k
+X3dyaXRlX3N1YnBhZ2VfaHdlY2M6MjU1NjpBMTpzdGVwIDEsIGVjY19jYWxjID0gZWQxMTZlNDAK
+PiA+PiBbICAgMzcuMjYwODQwXSBuYW5kOiBuYW5kX3dyaXRlX3N1YnBhZ2VfaHdlY2M6MjU2NzpB
+My1wcmU6c3RlcCAxLCBlY2NfY2FsYyA9IGVkMTE2ZTQwCj4gPj4gWyAgIDM3LjI2MDg0Nl0gb21h
+cF9jYWxjdWxhdGVfZWNjX2JjaAo+ID4+IFsgICAzNy4yNjA4NTZdIG5hbmQ6IG5hbmRfd3JpdGVf
+c3VicGFnZV9od2VjYzoyNTcwOkEzLXBvc3Q6c3RlcCAxLCBlY2NfY2FsYyA9ICAgKG51bGwpCj4g
+Pj4gWyAgIDM3LjI2MDkxMl0gbmFuZDogbmFuZF93cml0ZV9zdWJwYWdlX2h3ZWNjOjI1NTY6QTE6
+c3RlcCAyLCBlY2NfY2FsYyA9ICAgKG51bGwpCj4gPj4gWyAgIDM3LjI2MDkxOF0gbmFuZDogbmFu
+ZF93cml0ZV9zdWJwYWdlX2h3ZWNjOjI1NjI6QTI6c3RlcCAyLCBlY2NfY2FsYyA9ICAgKG51bGwp
+Cj4gPj4gWyAgIDM3LjI2MDk3Ml0gbmFuZDogbmFuZF93cml0ZV9zdWJwYWdlX2h3ZWNjOjI1NTY6
+QTE6c3RlcCAzLCBlY2NfY2FsYyA9ICAgKG51bGwpCj4gPj4gWyAgIDM3LjI2MDk3OF0gbmFuZDog
+bmFuZF93cml0ZV9zdWJwYWdlX2h3ZWNjOjI1NjI6QTI6c3RlcCAzLCBlY2NfY2FsYyA9ICAgKG51
+bGwpCj4gPj4gWyAgIDM3LjI2MDk4NF0gbmFuZDogbmFuZF93cml0ZV9zdWJwYWdlX2h3ZWNjOjI1
+ODc6QiBlY2NfY2FsYyA9ICAgKG51bGwpIG9vYl9wb2kgPSBlZDExNzgwMAo+ID4+IFsgICAzNy4y
+NjA5OTFdIG10ZF9vb2JsYXlvdXRfc2V0X2J5dGVzOjEzMzAgZHN0ID0gZWQxMTc4MDIgc3JjID0g
+ICAobnVsbCkKPiA+Pgo+ID4+IHdoaWNoIG1lYW5zIG9tYXBfY2FsY3VsYXRlX2VjY19iY2goKSBp
+dCB0aGUgY3VscHJpdC4KPiA+Pgo+ID4+IExvb2tzIGxpa2UgdGhlIGZ1bmN0aW9uIGNhbGN1bGF0
+ZXMgYW5kIHN0b3JlcyBFQ0MgZm9yIGFsbCBzZWN0b3JzIGV2ZW4gaWYgd2UganVzdCB3YW50IEVD
+Qwo+ID4+IGZvciBqdXN0IG9uZSBzZWN0b3IgKHN1Yi1wYWdlKS4gIAo+ID4gCj4gPiBZZXMsIGxv
+b2tzIGxpa2UgeW91IGZpbmQgdGhlIHJvb3QgY2F1c2UuCj4gPiAgIAo+ID4+Cj4gPj4gSXMgbXkg
+dW5kZXJzdGFuZGluZyBjb3JyZWN0Cj4gPj4gLSBXZSBzaG91bGQgbm90IGJlIGhvb2tpbmcgdGhl
+IG11bHRpLXNlY3RvciBFQ0MgY2FsY3VsYXRvciBvbWFwX2NhbGN1bGF0ZV9lY2NfYmNoKCkgdG8g
+ZWNjLmNhbGN1bGF0ZQo+ID4+IC0gcHJvdmlkZSBhIG5ldyBvbmUgc2VjdG9yIEVDQyBjYWxjdWxh
+dG9yIGZ1bmN0aW9uIChmb3IgQkNINC84LzE2KSBmb3Igb21hcCBhbmQgaG9vayBpdCB0byBlY2Mu
+Y2FsY3VsYXRlCj4gPj4gT1IKPiA+PiAtIG92ZXJyaWRlIG5hbmRfcmVhZF9zdWJwYWdlKCkgYW5k
+IG5hbmRfd3JpdGVfc3VicGFnZSgpIHVzaW5nIG9tYXAgc3BlY2lmaWMgaW1wbGVtZW50YXRpb24g
+KGZvciBCQ0g0LzgvMTYpLiAgCj4gPiAKPiA+IFNlY29uZCBzb2x1dGlvbiBzb3VuZHMgc2ltcGxl
+ciBiZWNhdXNlIHRoZSBFQ0Mgc2VjdG9yIGluZm9ybWF0aW9uIGlzCj4gPiBub3QgcGFzc2VkIHRv
+IGVjYy0+Y2FsY3VsYXRlKCkgaG9vaywgd2hpY2ggbWVhbnMgeW91J2QgaGF2ZSB0byBleHRyYWN0
+Cj4gPiBpdCBmcm9tIHRoZSBlY2NfY2FsYyBwb2ludGVyOgo+ID4gCj4gPiAJKHVpbnRwdHJfdCko
+ZWNjX2NhbGMgLSBjaGlwLT5idWZmZXJzLT5lY2NjYWxjKSAvIGNoaXAtPmVjYy5zaXplICAKPiAK
+PiBJIGRvbid0IHRoaW5rIHdlIG5lZWQgRUNDIHNlY3RvciBudW1iZXIgYXQgYWxsIGlmIHdlJ3Jl
+IGFsd2F5cyBnb2luZyB0byBkbyBhIHRyYW5zZmVyCj4gb2Ygb25lIHNlY3RvciBvZiBkYXRhIGFm
+dGVyIGNhbGxpbmcgZWNjLmh3Y3RsKE5BTkRfRUNDX1JFQUQvV1JJVEUpIGFuZCBiZWZvcmUgY2Fs
+bGluZyBlY2MuY2FsY3VsYXRlLgo+IAo+IE15IHVuZGVyc3RhbmRpbmcgaXMgdGhhdCB0aGUgRUND
+IGNhbGN1bGF0b3JzIHNlY3RvciAwIHJlZ2lzdGVycyB3aWxsIGFsd2F5cyBjb250YWluCj4gdGhl
+IHJpZ2h0IGNvbnRlbnQgaXJyZXNwZWN0aXZlIG9mIHdoaWNoIHNlY3RvciB3ZSB0cmFuc2ZlciBh
+cyBsb25nIGFzIHdlIGRvLAo+IAllY2MuaHdjdGwobXRkLCBOQU5EX0VDQ19SRUFEL1dSSVRFKTsK
+PiAJdHJhbnNmZXIgb25lIHNlY3RvcjsKPiAJZWNjLmNhbGN1bGF0ZSgpOwoKT2ssIHRoZW4gdGhl
+IGZpcnN0IHNvbHV0aW9uIHNvdW5kcyBnb29kIHRvby4KCj4gCj4gV2h5IGlzbid0IHRoZXJlIGEg
+bmFuZF9yZWFkX3N1YnBhZ2VfaHdlY2MoKT8KClByb2JhYmx5IGJlY2F1c2Ugbm9ib2R5IGV2ZXIg
+bmVlZGVkIGl0LiBGZWVsIGZyZWUgdG8gYWRkIGl0IGlmIHlvdQp0aGluayB0aGlzIGlzIG5lY2Vz
+c2FyeS4KCj4gSW4gdGhlIGN1cnJlbnQgZm9ybSBhIHN1YnBhZ2UgcmVhZCB3b24ndCB3b3JrIGlm
+Cj4gaWYgZWNjLT5tb2RlIGlzIE5BTkRfRUNDX0hXIGFuZCBjb250cm9sbGVycyBleHBlY3QgYSBl
+Y2MuaHdjdGwoTkFORF9FQ0NfUkVBRCkgYmVmb3JlCj4gY2FsbGluZyBlY2MuY2FsY3VsYXRlKCku
+Cj4gCj4gRm9yIHRoZSBPTUFQIGNhc2UgSSBjYW4gb3ZlcnJpZGUgYm90aCBzdWJwYWdlIGZ1bmN0
+aW9ucy4KPiBJcyB0aGVyZSBhIGdvb2Qgd2F5IHRvIHRlc3QgaWYgc3VicGFnZSByZWFkL3dyaXRl
+cyBhcmUgd29ya2luZyBhcyB0aGV5IHNob3VsZD8KClRoZXJlJ3MgYSBuYW5kc3VicGFnZSB0ZXN0
+IFsxXSBpbiBtdGQtdXRpbHMuCgpbMV1odHRwOi8vZ2l0LmluZnJhZGVhZC5vcmcvbXRkLXV0aWxz
+LmdpdC9ibG9iL0hFQUQ6L3Rlc3RzL210ZC10ZXN0cy9uYW5kcGFnZXRlc3QuYwoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4IE1URCBk
+aXNjdXNzaW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LW10ZC8K
