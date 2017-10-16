@@ -1,70 +1,56 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] PCI: dwc: dra7xx: Print link state to console for debug
-Date: Mon, 16 Oct 2017 23:35:28 -0700
-Message-ID: <1508222128.6530.22.camel@perches.com>
-References: <1508219031-25592-1-git-send-email-faiz_abbas@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: drm_kms_helper cycle detected build error in next
+Date: Mon, 16 Oct 2017 07:35:24 -0700
+Message-ID: <20171016143523.GW4394@atomide.com>
+References: <20171013145818.GG4394@atomide.com>
+ <20171013150935.GH4394@atomide.com>
+ <66e0cbe7-5706-4981-e06d-ce85c779e120@ti.com>
+ <CAPM=9tygNrNqmYncO0uyyz=TQy8XcBaGdjWXcEAWW129DNMqyA@mail.gmail.com>
+ <20171016091649.zm5mlsa64qmf6n7k@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1508219031-25592-1-git-send-email-faiz_abbas@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>, kishon@ti.com
-Cc: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20171016091649.zm5mlsa64qmf6n7k@phenom.ffwll.local>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel <dri-devel@lists.freedesktop.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2017-10-17 at 11:13 +0530, Faiz Abbas wrote:
-> Enable support for printing the LTSSM link state for debugging PCI
-> when link is down.
-[]
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 34427a6..7b150b0 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -98,6 +98,18 @@ struct dra7xx_pcie_of_data {
->  
->  #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
->  
-> +static char state[][20] = {
-> +	"DETECT_QUIET", "DETECT_ACT", "POLL_ACTIVE", "POLL_COMPLIANCE",
-> +	"POLL_CONFIG", "PRE_DETECT_QUIET", "DETECT_WAIT", "CFG_LINKWD_START",
-> +	"CFG_LINKWD_ACEPT", "CFG_LANENUM_WAIT", "CFG_LANENUM_ACEPT",
-> +	"CFG_COMPLETE", "CFG_IDLE", "RCVRY_LOCK", "RCVRY_SPEED",
-> +	"RCVRY_RCVRCFG", "RCVRY_IDLE", "L0", "L0S", "L123_SEND_EIDLE",
-> +	"L1_IDLE", "L2_IDLE", "L2_WAKE", "DISABLED_ENTRY", "DISABLED_IDLE",
-> +	"DISABLED", "LPBK_ENTRY", "LPBK_ACTIVE", "LPBK_EXIT",
-> +	"LPBK_EXIT_TIMEOUT", "HOT_RESET_ENTRY", "HOT_RESET", "RCVRY_EQ0",
-> +	"RCVRY_EQ1", "RCVRY_EQ2", "RCVRY_EQ3"
-
-what's wrong with using the far more typical
-
-static const char *link_state[] = {
-	"DETECT_QUIET",
-	...
-};
-
-> +};
-> +
->  static inline u32 dra7xx_pcie_readl(struct dra7xx_pcie *pcie, u32 offset)
->  {
->  	return readl(pcie->base + offset);
-> @@ -118,6 +130,15 @@ static int dra7xx_pcie_link_up(struct dw_pcie *pci)
->  {
->  	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
->  	u32 reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_PHY_CS);
-> +	u32 cmd_reg;
-> +	u32 ltssm_state;
-> +
-> +	if (!(reg & LINK_UP)) {
-> +		cmd_reg = dra7xx_pcie_readl(dra7xx,
-> +					    PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
-> +		ltssm_state = (cmd_reg & GENMASK(7, 2)) >> 2;
-> +		dev_err(pci->dev, "Link state:%s\n", state[ltssm_state]);
-
-and why is this a dev_err and not dev_info?
-and if it's really for debugging, why not dev_dbg?
-
-> +	}
->  
->  	return !!(reg & LINK_UP);
->  }
+KiBEYW5pZWwgVmV0dGVyIDxkYW5pZWxAZmZ3bGwuY2g+IFsxNzEwMTYgMDI6MThdOgo+IE9uIE1v
+biwgT2N0IDE2LCAyMDE3IGF0IDA1OjE1OjUwUE0gKzEwMDAsIERhdmUgQWlybGllIHdyb3RlOgo+
+ID4gT24gMTYgT2N0b2JlciAyMDE3IGF0IDE2OjUzLCBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxr
+ZWluZW5AdGkuY29tPiB3cm90ZToKPiA+ID4KPiA+ID4gVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFu
+ZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuIFktdHVubnVzL0J1c2luZXNz
+IElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCj4gPiA+Cj4gPiA+
+IE9uIDEzLzEwLzE3IDE4OjA5LCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gPgo+ID4gPj4+IExv
+b2tzIGxpa2UgdG9kYXkncyBuZXh0IGJ1aWxkIGZhaWxzIGlmIG9tYXBkcm0gaXMgZW5hYmxlZCBh
+cyBtb2R1bGVzCj4gPiA+Pj4gd2l0aDoKPiA+ID4+Pgo+ID4gPj4+IGRlcG1vZDogRVJST1I6IEN5
+Y2xlIGRldGVjdGVkOiBkcm1fa21zX2hlbHBlciAtPiBkcm0gLT4gZHJtX2ttc19oZWxwZXIKPiA+
+ID4+PiBkZXBtb2Q6IEVSUk9SOiBGb3VuZCAyIG1vZHVsZXMgaW4gZGVwZW5kZW5jeSBjeWNsZXMh
+Cj4gPiA+Pj4gbWFrZTogKioqIFtNYWtlZmlsZToxMjYxOiBfbW9kaW5zdF9wb3N0XSBFcnJvciAx
+Cj4gPiA+Pgo+ID4gPj4gTWFraW5nIENPTkZJR19EUk09eSBhbmQgQ09ORklHX0RSTV9LTVNfSEVM
+UEVSPXkgaW5zdGVhZCBvZgo+ID4gPj4gbG9kYWJsZSBtb2R1bGVzIG1ha2VzIGl0IGJ1aWxkLgo+
+ID4gPgo+ID4gPiBUaGUgc2FtZSBoYXBwZW5zIGV2ZW4gYWZ0ZXIgZGlzYWJsaW5nIG9tYXBkcm0s
+IHNvIGl0J3Mgc29tZXdoZXJlIGluIHRoZQo+ID4gPiBjb21tb24gY29kZS4KPiA+ID4KPiA+ID4g
+SW50ZXJlc3RpbmdseSwgbXkgZGVwbW9kIGNyYXNoZXMgd2hlbiBlbmNvdW50ZXJpbmcgdGhpcy4K
+PiA+IAo+ID4gVGhlcmUgaXMgYSBmaXggZm9yIHRoaXMgaW4gZHJtLW1pc2MsIEkgc2hvdWxkIHBy
+b2JhYmx5IHB1bGwgaXQgb3Zlci4KPiA+IAo+ID4gSWYgSSBoYXZlbid0IGJlZW4gc2VudCBhIHB1
+bGwgdG9tb3Jyb3csIEknbGwgZ3JhYiBpdC4KPiAKPiBZb3UncmUgdG9vIG11Y2ggYWhlYWQgZm9y
+IGEgcHVsbCByZXF1ZXN0IG9uIHlvdXIgTW9uZGF5LCBidXQgeW91J2xsIGdldCBpdAo+IGFzYXAg
+Oi0pCgpNZWFud2hpbGUsIGNhbiB5b3UgZ3V5cyBwcm92aWRlIGZldyBtb3JlIGNsdWVzIHdoaWNo
+IHBhdGNoIHRvIHBpY2sKZm9yIHRoZSByZXN0IG9mIHVzPwoKU29tZXRoaW5nIGxpa2UgcGF0Y2gg
+c3ViamVjdCBsaW5lLCBjb21taXQgaWQgaW4gZHJtLW1pc2Mgb3Igc29tZXRoaW5nCmFsb25nIHRo
+b3NlIGxpbmVzIHdvdWxkIGJlIG5pY2UuLgoKUmVnYXJkcywKClRvbnkKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApk
+cmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Au
+b3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
