@@ -1,145 +1,54 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: gpmc-nand broken since v4.12
-Date: Mon, 16 Oct 2017 15:50:24 +0200
-Message-ID: <20171016155024.211c8235@bbrezillon>
-References: <7eae9266-558f-6578-66d7-7ab0eb659a81@ti.com>
- <20171013145033.5d1d9647@bbrezillon>
- <20171013222458.3f4c103e@bbrezillon>
- <20171013222907.16adf410@bbrezillon>
- <fe579fc6-253d-a734-22b0-de24448dfde9@ti.com>
- <20171016133457.74b2773f@bbrezillon>
- <b2405429-a720-6fbc-2d5f-2a1cbf52f3a9@ti.com>
- <20171016143904.098eaa50@bbrezillon>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: Fix omap l4per idling with wlcore   edge
+ sensitive interrupt
+Date: Mon, 16 Oct 2017 07:01:47 -0700
+Message-ID: <20171016140147.GV4394@atomide.com>
+References: <8665E2433BC68541A24DFFCA87B70F5B3646AF81@DFRE01.ent.ti.com>
+ <20171015162230.GU4394@atomide.com>
+ <20171015221536.ybe7x52tenocel6c@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171016143904.098eaa50@bbrezillon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "Cooper Jr.,
- Franklin" <fcooper@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171015221536.ybe7x52tenocel6c@lenoch>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Cc: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gerlach, Dave" <d-gerlach-l0cyMroinI0@public.gmane.org>, "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "Kristo, Tero" <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCAxNiBPY3QgMjAxNyAxNDozOTowNCArMDIwMApCb3JpcyBCcmV6aWxsb24gPGJvcmlz
-LmJyZXppbGxvbkBmcmVlLWVsZWN0cm9ucy5jb20+IHdyb3RlOgoKPiBPbiBNb24sIDE2IE9jdCAy
-MDE3IDE1OjEyOjM4ICswMzAwCj4gUm9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4gd3JvdGU6
-Cj4gCj4gPiDvu79IaSBCb3JpcywKPiA+IAo+ID4gCj4gPiBUZXhhcyBJbnN0cnVtZW50cyBGaW5s
-YW5kIE95LCBQb3Jra2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4gWS10dW5udXMvQnVzaW5l
-c3MgSUQ6IDA2MTU1MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKPiA+IAo+ID4g
-T24gMTYvMTAvMTcgMTQ6MzQsIEJvcmlzIEJyZXppbGxvbiB3cm90ZTogIAo+ID4gPiBIaSBSb2dl
-ciwKPiA+ID4gCj4gPiA+IE9uIE1vbiwgMTYgT2N0IDIwMTcgMTM6MjI6MDQgKzAzMDAKPiA+ID4g
-Um9nZXIgUXVhZHJvcyA8cm9nZXJxQHRpLmNvbT4gd3JvdGU6Cj4gPiA+ICAgICAKPiA+ID4+IO+7
-vwo+ID4gPj4gVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwg
-MDAxODAgSGVsc2lua2kuIFktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlr
-a2EvRG9taWNpbGU6IEhlbHNpbmtpCj4gPiA+Pgo+ID4gPj4gT24gMTMvMTAvMTcgMjM6MjksIEJv
-cmlzIEJyZXppbGxvbiB3cm90ZTogICAgCj4gPiA+Pj4gT24gRnJpLCAxMyBPY3QgMjAxNyAyMjoy
-NDo1OCArMDIwMAo+ID4gPj4+IEJvcmlzIEJyZXppbGxvbiA8Ym9yaXMuYnJlemlsbG9uQGZyZWUt
-ZWxlY3Ryb25zLmNvbT4gd3JvdGU6Cj4gPiA+Pj4gICAgICAgCj4gPiA+Pj4+IE9uIEZyaSwgMTMg
-T2N0IDIwMTcgMTQ6NTA6MzMgKzAyMDAKPiA+ID4+Pj4gQm9yaXMgQnJlemlsbG9uIDxib3Jpcy5i
-cmV6aWxsb25AZnJlZS1lbGVjdHJvbnMuY29tPiB3cm90ZToKPiA+ID4+Pj4gICAgICAKPiA+ID4+
-Pj4+IE9uIEZyaSwgMTMgT2N0IDIwMTcgMTQ6NTc6MjkgKzAzMDAKPiA+ID4+Pj4+IFJvZ2VyIFF1
-YWRyb3MgPHJvZ2VycUB0aS5jb20+IHdyb3RlOgo+ID4gPj4+Pj4gICAgICAgICAKPiA+ID4+Pj4+
-PiDvu79IaSBCb3JpcywKPiA+ID4+Pj4+Pgo+ID4gPj4+Pj4+IE5BTkQgb24gZ3BtYy1vbWFwIGJy
-ZWFrcyBmb3IgbWUgd2hpbGUgZG9pbmcgYSB1bm1vdW50IG9mIGEgdWJpIHZvbHVtZSBzaW5jZSB2
-NC4xMgo+ID4gPj4+Pj4+Cj4gPiA+Pj4+Pj4gQmVoYXZpb3VyIGZvbGxvd3MgdGhyb3VnaCBpbiB2
-NC4xMyBhbmQgdjQuMTQtcmMgYXMgd2VsbC4KPiA+ID4+Pj4+Pgo+ID4gPj4+Pj4+IERvIHlvdSBo
-YXZlIGFueSBpZGVhIGFib3V0IHRoaXM/ICAgICAgICAKPiA+ID4+Pj4KPiA+ID4+Pj4gTW9yZSBp
-bmZvIG9uIHdoYXQgaGFzIGNoYW5nZWQgaW4gNC4xMjogd2Ugbm8gbG9uZ2VyIGFsbG9jYXRlIHRo
-ZQo+ID4gPj4+PiBuYW5kX2J1ZmZlciBzdHJ1Y3QgKyBpdHMgaW50ZXJuYWwgYnVmZmVyIHVzaW5n
-IGEgc2luZ2xlIGJpZyBrbWFsbG9jCj4gPiA+Pj4+IGNhbGwsIHdoaWNoIG1lYW5zIHRoZSBuYW5k
-X2J1ZmZlciBzdHJ1Y3QgaXMgbm93IGxpa2VseSB0byBiZSBhbGxvY2F0ZWQKPiA+ID4+Pj4gaW4g
-YSBzbWFsbCBvYmplY3Qgc2xhYiAoc2l6ZW9mKG5hbmRfYnVmZmVycykgPSAxMikuIElmIHlvdSBo
-YXZlIGEKPiA+ID4+Pj4gdXNlLWFmdGVyLWZyZWUgYnVnIHNvbWV3aGVyZSBpbiB0aGUga2VybmVs
-LCBpdCBtaWdodCBjb3JydXB0IHRoZSAgICAgIAo+ID4gPj4KPiA+ID4+IFNwb3Qgb24uIFByb2Js
-ZW0gc3RhcnRzIGZyb20gY29tbWl0IDRkNWRlYTU3MjVmM2FhOTViOWI2NGUyNTI1NDBlNDM1ZGQy
-MTZkYmMKPiA+ID4+ICJtdGQ6IG5hbmQ6IGFsbG9jYXRlIGFsaWduZWQgYnVmZmVycyBpZiBOQU5E
-X09XTl9CVUZGRVJTIGlzIHVuc2V0Igo+ID4gPj4gICAgCj4gPiA+Pj4KPiA+ID4+PiBJIG1lYW50
-IGJ1ZmZlci1vdmVyZmxvdywgbm90IHVzZS1hZnRlci1mcmVlLiAgICAgIAo+ID4gPj4KPiA+ID4+
-IFlvdXIgYW5hbHlzaXMgc2VlbXMgY29ycmVjdC4KPiA+ID4+ICAgIAo+ID4gPj4+ICAgICAgIAo+
-ID4gPj4+PiBuYW5kX2J1ZmZlcnMgb2JqZWN0LCB3aGljaCBtaWdodCBleHBsYWluIHRoZSBidWcg
-eW91IHNlZSBoZXJlLgo+ID4gPj4+PiAgICAgIAo+ID4gPj4+Pj4KPiA+ID4+Pj4+IENhbiB5b3Ug
-dHJ5IHdpdGggdGhpcyBwYXRjaCBbMV0gYXBwbGllZCBhbmQgcGFzdGUgbWUgdGhlIHZhbHVlcyBw
-cmludGVkCj4gPiA+Pj4+PiBqdXN0IGJlZm9yZSB0aGUgY3Jhc2g/Cj4gPiA+Pj4+Pgo+ID4gPj4+
-Pj4gWzFdaHR0cDovL2NvZGUuYnVsaXgub3JnL2xjOHhrMC0yMDk3NDYgICAgICAKPiA+ID4+Cj4g
-PiA+PiA9PSB1bm1vdW50aW5nIHZvbHVtZQo+ID4gPj4gWyAgIDM2LjMwODc5Ml0gbmFuZDogbmFu
-ZF93cml0ZV9zdWJwYWdlX2h3ZWNjOjI1NzUgZWNjX2NhbGMgPSAgIChudWxsKSBvb2JfcG9pID0g
-ZWQwOTY4MDAKPiA+ID4+IFsgICAzNi4zMTczMTldIG10ZF9vb2JsYXlvdXRfc2V0X2J5dGVzOjEz
-MzAgZHN0ID0gZWQwOTY4MDIgc3JjID0gICAobnVsbCkKPiA+ID4+IFsgICAzNi4zMjQxNjJdIFVu
-YWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdCB2aXJ0dWFs
-IGFkZHJlc3MgMDAwMDAwMDAKPiA+ID4+Cj4gPiA+Pgo+ID4gPj4gUnVubmluZyB0aGUgZm9sbG93
-aW5nIHBhdGNoCj4gPiA+PiBodHRwczovL2hhc3RlYmluLmNvbS91bG9ndXJ1dHV6LnBocAo+ID4g
-Pj4gc2hvd3MKPiA+ID4+Cj4gPiA+PiBbICAgMzcuMjYwNjg5XSBuYW5kOiBuYW5kX3dyaXRlX3N1
-YnBhZ2VfaHdlY2M6MjU0NzpBIGVjY19jYWxjID0gZWQxMTZlNDAgb29iX3BvaSA9IGVkMTE3ODAw
-Cj4gPiA+PiBbICAgMzcuMjYwNzcyXSBuYW5kOiBuYW5kX3dyaXRlX3N1YnBhZ2VfaHdlY2M6MjU1
-NjpBMTpzdGVwIDAsIGVjY19jYWxjID0gZWQxMTZlNDAKPiA+ID4+IFsgICAzNy4yNjA3NzldIG5h
-bmQ6IG5hbmRfd3JpdGVfc3VicGFnZV9od2VjYzoyNTYyOkEyOnN0ZXAgMCwgZWNjX2NhbGMgPSBl
-ZDExNmU0MAo+ID4gPj4gWyAgIDM3LjI2MDgzNF0gbmFuZDogbmFuZF93cml0ZV9zdWJwYWdlX2h3
-ZWNjOjI1NTY6QTE6c3RlcCAxLCBlY2NfY2FsYyA9IGVkMTE2ZTQwCj4gPiA+PiBbICAgMzcuMjYw
-ODQwXSBuYW5kOiBuYW5kX3dyaXRlX3N1YnBhZ2VfaHdlY2M6MjU2NzpBMy1wcmU6c3RlcCAxLCBl
-Y2NfY2FsYyA9IGVkMTE2ZTQwCj4gPiA+PiBbICAgMzcuMjYwODQ2XSBvbWFwX2NhbGN1bGF0ZV9l
-Y2NfYmNoCj4gPiA+PiBbICAgMzcuMjYwODU2XSBuYW5kOiBuYW5kX3dyaXRlX3N1YnBhZ2VfaHdl
-Y2M6MjU3MDpBMy1wb3N0OnN0ZXAgMSwgZWNjX2NhbGMgPSAgIChudWxsKQo+ID4gPj4gWyAgIDM3
-LjI2MDkxMl0gbmFuZDogbmFuZF93cml0ZV9zdWJwYWdlX2h3ZWNjOjI1NTY6QTE6c3RlcCAyLCBl
-Y2NfY2FsYyA9ICAgKG51bGwpCj4gPiA+PiBbICAgMzcuMjYwOTE4XSBuYW5kOiBuYW5kX3dyaXRl
-X3N1YnBhZ2VfaHdlY2M6MjU2MjpBMjpzdGVwIDIsIGVjY19jYWxjID0gICAobnVsbCkKPiA+ID4+
-IFsgICAzNy4yNjA5NzJdIG5hbmQ6IG5hbmRfd3JpdGVfc3VicGFnZV9od2VjYzoyNTU2OkExOnN0
-ZXAgMywgZWNjX2NhbGMgPSAgIChudWxsKQo+ID4gPj4gWyAgIDM3LjI2MDk3OF0gbmFuZDogbmFu
-ZF93cml0ZV9zdWJwYWdlX2h3ZWNjOjI1NjI6QTI6c3RlcCAzLCBlY2NfY2FsYyA9ICAgKG51bGwp
-Cj4gPiA+PiBbICAgMzcuMjYwOTg0XSBuYW5kOiBuYW5kX3dyaXRlX3N1YnBhZ2VfaHdlY2M6MjU4
-NzpCIGVjY19jYWxjID0gICAobnVsbCkgb29iX3BvaSA9IGVkMTE3ODAwCj4gPiA+PiBbICAgMzcu
-MjYwOTkxXSBtdGRfb29ibGF5b3V0X3NldF9ieXRlczoxMzMwIGRzdCA9IGVkMTE3ODAyIHNyYyA9
-ICAgKG51bGwpCj4gPiA+Pgo+ID4gPj4gd2hpY2ggbWVhbnMgb21hcF9jYWxjdWxhdGVfZWNjX2Jj
-aCgpIGl0IHRoZSBjdWxwcml0Lgo+ID4gPj4KPiA+ID4+IExvb2tzIGxpa2UgdGhlIGZ1bmN0aW9u
-IGNhbGN1bGF0ZXMgYW5kIHN0b3JlcyBFQ0MgZm9yIGFsbCBzZWN0b3JzIGV2ZW4gaWYgd2UganVz
-dCB3YW50IEVDQwo+ID4gPj4gZm9yIGp1c3Qgb25lIHNlY3RvciAoc3ViLXBhZ2UpLiAgICAKPiA+
-ID4gCj4gPiA+IFllcywgbG9va3MgbGlrZSB5b3UgZmluZCB0aGUgcm9vdCBjYXVzZS4KPiA+ID4g
-ICAgIAo+ID4gPj4KPiA+ID4+IElzIG15IHVuZGVyc3RhbmRpbmcgY29ycmVjdAo+ID4gPj4gLSBX
-ZSBzaG91bGQgbm90IGJlIGhvb2tpbmcgdGhlIG11bHRpLXNlY3RvciBFQ0MgY2FsY3VsYXRvciBv
-bWFwX2NhbGN1bGF0ZV9lY2NfYmNoKCkgdG8gZWNjLmNhbGN1bGF0ZQo+ID4gPj4gLSBwcm92aWRl
-IGEgbmV3IG9uZSBzZWN0b3IgRUNDIGNhbGN1bGF0b3IgZnVuY3Rpb24gKGZvciBCQ0g0LzgvMTYp
-IGZvciBvbWFwIGFuZCBob29rIGl0IHRvIGVjYy5jYWxjdWxhdGUKPiA+ID4+IE9SCj4gPiA+PiAt
-IG92ZXJyaWRlIG5hbmRfcmVhZF9zdWJwYWdlKCkgYW5kIG5hbmRfd3JpdGVfc3VicGFnZSgpIHVz
-aW5nIG9tYXAgc3BlY2lmaWMgaW1wbGVtZW50YXRpb24gKGZvciBCQ0g0LzgvMTYpLiAgICAKPiA+
-ID4gCj4gPiA+IFNlY29uZCBzb2x1dGlvbiBzb3VuZHMgc2ltcGxlciBiZWNhdXNlIHRoZSBFQ0Mg
-c2VjdG9yIGluZm9ybWF0aW9uIGlzCj4gPiA+IG5vdCBwYXNzZWQgdG8gZWNjLT5jYWxjdWxhdGUo
-KSBob29rLCB3aGljaCBtZWFucyB5b3UnZCBoYXZlIHRvIGV4dHJhY3QKPiA+ID4gaXQgZnJvbSB0
-aGUgZWNjX2NhbGMgcG9pbnRlcjoKPiA+ID4gCj4gPiA+IAkodWludHB0cl90KShlY2NfY2FsYyAt
-IGNoaXAtPmJ1ZmZlcnMtPmVjY2NhbGMpIC8gY2hpcC0+ZWNjLnNpemUgICAgCj4gPiAKPiA+IEkg
-ZG9uJ3QgdGhpbmsgd2UgbmVlZCBFQ0Mgc2VjdG9yIG51bWJlciBhdCBhbGwgaWYgd2UncmUgYWx3
-YXlzIGdvaW5nIHRvIGRvIGEgdHJhbnNmZXIKPiA+IG9mIG9uZSBzZWN0b3Igb2YgZGF0YSBhZnRl
-ciBjYWxsaW5nIGVjYy5od2N0bChOQU5EX0VDQ19SRUFEL1dSSVRFKSBhbmQgYmVmb3JlIGNhbGxp
-bmcgZWNjLmNhbGN1bGF0ZS4KPiA+IAo+ID4gTXkgdW5kZXJzdGFuZGluZyBpcyB0aGF0IHRoZSBF
-Q0MgY2FsY3VsYXRvcnMgc2VjdG9yIDAgcmVnaXN0ZXJzIHdpbGwgYWx3YXlzIGNvbnRhaW4KPiA+
-IHRoZSByaWdodCBjb250ZW50IGlycmVzcGVjdGl2ZSBvZiB3aGljaCBzZWN0b3Igd2UgdHJhbnNm
-ZXIgYXMgbG9uZyBhcyB3ZSBkbywKPiA+IAllY2MuaHdjdGwobXRkLCBOQU5EX0VDQ19SRUFEL1dS
-SVRFKTsKPiA+IAl0cmFuc2ZlciBvbmUgc2VjdG9yOwo+ID4gCWVjYy5jYWxjdWxhdGUoKTsgIAo+
-IAo+IE9rLCB0aGVuIHRoZSBmaXJzdCBzb2x1dGlvbiBzb3VuZHMgZ29vZCB0b28uCj4gCj4gPiAK
-PiA+IFdoeSBpc24ndCB0aGVyZSBhIG5hbmRfcmVhZF9zdWJwYWdlX2h3ZWNjKCk/ICAKPiAKPiBQ
-cm9iYWJseSBiZWNhdXNlIG5vYm9keSBldmVyIG5lZWRlZCBpdC4gRmVlbCBmcmVlIHRvIGFkZCBp
-dCBpZiB5b3UKPiB0aGluayB0aGlzIGlzIG5lY2Vzc2FyeS4KCkFjdHVhbGx5LCBpZiB5b3Ugd2Fu
-dCB0byBtYWtlIHlvdXIgcGF0Y2ggZWFzaWx5IGJhY2twb3J0LWFibGUgdG8Kc3RhYmxlIHJlbGVh
-c2VzLCB5b3UnZCBiZXR0ZXIgZ28gZm9yIHRoZSBvbWFwX25hbmRfd3JpdGUvcmVhZF9zdWJwYWdl
-KCkKYXBwcm9hY2guIFRoZSBnZW5lcmljIHNvbHV0aW9uIGNhbiBiZSBkb25lIGFmdGVyd2FyZHMu
-Cgo+IAo+ID4gSW4gdGhlIGN1cnJlbnQgZm9ybSBhIHN1YnBhZ2UgcmVhZCB3b24ndCB3b3JrIGlm
-Cj4gPiBpZiBlY2MtPm1vZGUgaXMgTkFORF9FQ0NfSFcgYW5kIGNvbnRyb2xsZXJzIGV4cGVjdCBh
-IGVjYy5od2N0bChOQU5EX0VDQ19SRUFEKSBiZWZvcmUKPiA+IGNhbGxpbmcgZWNjLmNhbGN1bGF0
-ZSgpLgo+ID4gCj4gPiBGb3IgdGhlIE9NQVAgY2FzZSBJIGNhbiBvdmVycmlkZSBib3RoIHN1YnBh
-Z2UgZnVuY3Rpb25zLgo+ID4gSXMgdGhlcmUgYSBnb29kIHdheSB0byB0ZXN0IGlmIHN1YnBhZ2Ug
-cmVhZC93cml0ZXMgYXJlIHdvcmtpbmcgYXMgdGhleSBzaG91bGQ/ICAKPiAKPiBUaGVyZSdzIGEg
-bmFuZHN1YnBhZ2UgdGVzdCBbMV0gaW4gbXRkLXV0aWxzLgo+IAo+IFsxXWh0dHA6Ly9naXQuaW5m
-cmFkZWFkLm9yZy9tdGQtdXRpbHMuZ2l0L2Jsb2IvSEVBRDovdGVzdHMvbXRkLXRlc3RzL25hbmRw
-YWdldGVzdC5jCj4gCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCj4gTGludXggTVREIGRpc2N1c3Npb24gbWFpbGluZyBsaXN0Cj4gaHR0cDov
-L2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvCgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4IE1U
-RCBkaXNjdXNzaW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LW10ZC8K
+* Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [171015 15:16]:
+> On Sun, Oct 15, 2017 at 09:22:31AM -0700, Tony Lindgren wrote:
+> > * Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [171014 23:55]:
+> > > > From: Tony Lindgren [mailto:tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org]
+> > > > 
+> > > > On omaps, if the wlcore interrupt is configured as level instead of edge,
+> > > > L4PER will stop doing hardware based idling after ifconfig wlan0 down is
+> > > > done and the WL_EN line is pulled down.
+> > > > 
+> > > Do we understand why omap is doing this? Is it a bug or a normal behavior?
+> > > 
+> > > AFAIK way back edge interrupts have been used. On some omaps based boards.
+> > > They have used level interrupts instead due to occasional interrupts being missed 
+> > > By the omap interrupts controller when using edge based interrupts which caused 
+> > > Issues. This was the reason many boards are set to using level based interrupts which 
+> > > Seemed much more robust.
+> > 
+> > No idea yet why exactly the gpio modules won't idle after that. But for making
+> > edge interrupts behave, I suspect that Grygorii's patch "[RESEND PATCH] gpio:
+> > omap: Fix lost edge interrupts" fixes those issues.
+> 
+> Please note, that Grygorii's patch fixes occasional edge interrupts misses
+> only after your PM patch is applied. That said, edge interrupts are still
+> being missed in mainline.
+
+I think that's for omap2 and 3 based boards. Sounds like we may have a generic
+test case here on omap3 for that issue. I'll do some ping tests against wl12xx
+on omap3-evm today while it's idling.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
