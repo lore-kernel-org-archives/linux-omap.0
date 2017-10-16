@@ -1,45 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] thermal: ti-soc-thermal: Fix ti_thermal_unregister_cpu_cooling NULL pointer on unload
-Date: Mon, 16 Oct 2017 14:07:14 -0700
-Message-ID: <20171016210714.16080-1-tony@atomide.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>
+From: Kees Cook <keescook@chromium.org>
+Subject: [PATCH] usb: isp1301-omap: Convert timers to use timer_setup()
+Date: Mon, 16 Oct 2017 16:29:23 -0700
+Message-ID: <20171016232923.GA101254@beast>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Felipe Balbi <balbi@kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-While debugging some PM issues and trying to remove all the loaded modules, I ran
-across the following when unloading ti-soc-thermal:
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly.
 
-Unable to handle kernel NULL pointer dereference at virtual address 000000b4
-...
-[<c08db340>] (kobject_put) from [<bf28954c>] (ti_thermal_unregister_cpu_cooling+0x20/0x28 [ti_soc_thermal])
-[<bf28954c>] (ti_thermal_unregister_cpu_cooling [ti_soc_thermal]) from [<bf287c88>] (ti_bandgap_remove+0x3c/0x104 [ti_soc_thermal])
-[<bf287c88>] (ti_bandgap_remove [ti_soc_thermal]) from [<c0610d48>] (platform_drv_remove+0x24/0x3c)
-[<c0610d48>] (platform_drv_remove) from [<c060f114>] (device_release_driver_internal+0x160/0x208)
-[<c060f114>] (device_release_driver_internal) from [<c060f200>] (driver_detach+0x38/0x6c)
-[<c060f200>] (driver_detach) from [<c060e2d4>] (bus_remove_driver+0x4c/0xa0)
-[<c060e2d4>] (bus_remove_driver) from [<c01f2370>] (SyS_delete_module+0x168/0x238)
-[<c01f2370>] (SyS_delete_module) from [<c0108240>] (ret_fast_syscall+0x0/0x28)
-
-Cc: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/usb/phy/phy-isp1301-omap.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
---- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-@@ -278,7 +278,8 @@ int ti_thermal_unregister_cpu_cooling(struct ti_bandgap *bgp, int id)
+diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
+index 8a07ce63b92d..00bcc6c6db17 100644
+--- a/drivers/usb/phy/phy-isp1301-omap.c
++++ b/drivers/usb/phy/phy-isp1301-omap.c
+@@ -1183,9 +1183,11 @@ static irqreturn_t isp1301_irq(int irq, void *isp)
+ 	return IRQ_HANDLED;
+ }
  
- 	if (data) {
- 		cpufreq_cooling_unregister(data->cool_dev);
--		cpufreq_cpu_put(data->policy);
-+		if (data->policy)
-+			cpufreq_cpu_put(data->policy);
+-static void isp1301_timer(unsigned long _isp)
++static void isp1301_timer(struct timer_list *t)
+ {
+-	isp1301_defer_work((void *)_isp, WORK_TIMER);
++	struct isp1301 *isp = from_timer(isp, t, timer);
++
++	isp1301_defer_work(isp, WORK_TIMER);
+ }
+ 
+ /*-------------------------------------------------------------------------*/
+@@ -1506,7 +1508,7 @@ isp1301_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
  	}
  
- 	return 0;
+ 	INIT_WORK(&isp->work, isp1301_work);
+-	setup_timer(&isp->timer, isp1301_timer, (unsigned long)isp);
++	timer_setup(&isp->timer, isp1301_timer, 0);
+ 
+ 	i2c_set_clientdata(i2c, isp);
+ 	isp->client = i2c;
 -- 
-2.14.2
+2.7.4
+
+
+-- 
+Kees Cook
+Pixel Security
