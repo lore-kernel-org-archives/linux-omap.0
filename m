@@ -1,38 +1,74 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH] irqchip: irq-omap-intc: Do not statically initialize
- variables
-Date: Mon, 16 Oct 2017 18:13:03 +0200
-Message-ID: <20171016161303.veumgcd3xom5c54r@lenoch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] i2c: omap: Fix error handlign for clk_get()
+Date: Mon, 16 Oct 2017 14:06:14 -0700
+Message-ID: <20171016210614.15842-1-tony@atomide.com>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Claudio Foellmi <claudio.foellmi@ergon.ch>, Grygorii Strashko <grygorii.strashko@ti.com>, Tero Kristo <t-kristo@ti.com>, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-omap_nr_pending and omap_nr_irqs variables are initialized
-right at the beginning of intc_of_init function, so there's
-no need to statically initialize them.
+Otherwise we can get the following if the fck alias is missing:
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Unable to handle kernel paging request at virtual address fffffffe
+...
+PC is at clk_get_rate+0x8/0x10
+LR is at omap_i2c_probe+0x278/0x6ec
+...
+[<c056eb08>] (clk_get_rate) from [<c06f4f08>] (omap_i2c_probe+0x278/0x6ec)
+[<c06f4f08>] (omap_i2c_probe) from [<c0610944>] (platform_drv_probe+0x50/0xb0)
+[<c0610944>] (platform_drv_probe) from [<c060e900>] (driver_probe_device+0x264/0x2ec)
+[<c060e900>] (driver_probe_device) from [<c060cda0>] (bus_for_each_drv+0x70/0xb8)
+[<c060cda0>] (bus_for_each_drv) from [<c060e5b0>] (__device_attach+0xcc/0x13c)
+[<c060e5b0>] (__device_attach) from [<c060db10>] (bus_probe_device+0x88/0x90)
+[<c060db10>] (bus_probe_device) from [<c060df68>] (deferred_probe_work_func+0x4c/0x14c)
+
+Cc: Claudio Foellmi <claudio.foellmi@ergon.ch>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Vignesh R <vigneshr@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/irqchip/irq-omap-intc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-omap.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
-index 05f7f06dd711..d360a6eddd6d 100644
---- a/drivers/irqchip/irq-omap-intc.c
-+++ b/drivers/irqchip/irq-omap-intc.c
-@@ -66,8 +66,8 @@ static struct omap_intc_regs intc_context;
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -360,6 +360,7 @@ static int omap_i2c_init(struct omap_i2c_dev *omap)
+ 	unsigned long fclk_rate = 12000000;
+ 	unsigned long internal_clk = 0;
+ 	struct clk *fclk;
++	int error;
  
- static struct irq_domain *domain;
- static void __iomem *omap_irq_base;
--static int omap_nr_pending = 3;
--static int omap_nr_irqs = 96;
-+static int omap_nr_pending;
-+static int omap_nr_irqs;
+ 	if (omap->rev >= OMAP_I2C_REV_ON_3430_3530) {
+ 		/*
+@@ -378,6 +379,13 @@ static int omap_i2c_init(struct omap_i2c_dev *omap)
+ 		 * do this bit unconditionally.
+ 		 */
+ 		fclk = clk_get(omap->dev, "fck");
++		if (IS_ERR(fclk)) {
++			error = PTR_ERR(fclk);
++			dev_err(omap->dev, "could not get fck: %i\n", error);
++
++			return error;
++		}
++
+ 		fclk_rate = clk_get_rate(fclk);
+ 		clk_put(fclk);
  
- static void intc_writel(u32 reg, u32 val)
- {
+@@ -410,6 +418,12 @@ static int omap_i2c_init(struct omap_i2c_dev *omap)
+ 		else
+ 			internal_clk = 4000;
+ 		fclk = clk_get(omap->dev, "fck");
++		if (IS_ERR(fclk)) {
++			error = PTR_ERR(fclk);
++			dev_err(omap->dev, "could not get fck: %i\n", error);
++
++			return error;
++		}
+ 		fclk_rate = clk_get_rate(fclk) / 1000;
+ 		clk_put(fclk);
+ 
+-- 
+2.14.2
