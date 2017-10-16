@@ -1,63 +1,70 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 2/2] memory: ti-emif-sram: introduce relocatable
- suspend/resume handlers
-Date: Mon, 16 Oct 2017 08:31:59 -0700
-Message-ID: <19256977-40e1-a972-4de8-838a8da863cc@oracle.com>
-References: <20171013205915.9652-1-d-gerlach@ti.com>
- <20171013205915.9652-3-d-gerlach@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: [RESEND PATCH] irqchip: irq-omap-intc: Remove omap3_init_irq()
+Date: Mon, 16 Oct 2017 18:04:22 +0200
+Message-ID: <20171016160422.uu2i7vvrgy7cc4aw@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171013205915.9652-3-d-gerlach-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <marc.zyngier@arm.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Russell,
+We now boot all of mach-omap2 in device tree only mode and
+this is now dead code.
 
-On 10/13/2017 1:59 PM, Dave Gerlach wrote:
-> Certain SoCs like Texas Instruments AM335x and AM437x require parts
-> of the EMIF PM code to run late in the suspend sequence from SRAM,
-> such as saving and restoring the EMIF context and placing the memory
-> into self-refresh.
-> 
-> One requirement for these SoCs to suspend and enter its lowest power
-> mode, called DeepSleep0, is that the PER power domain must be shut off.
-> Because the EMIF (DDR Controller) resides within this power domain, it
-> will lose context during a suspend operation, so we must save it so we
-> can restore once we resume. However, we cannot execute this code from
-> external memory, as it is not available at this point, so the code must
-> be executed late in the suspend path from SRAM.
-> 
-> This patch introduces a ti-emif-sram driver that includes several
-> functions written in ARM ASM that are relocatable so the PM SRAM
-> code can use them. It also allocates a region of writable SRAM to
-> be used by the code running in the executable region of SRAM to save
-> and restore the EMIF context. It can export a table containing the
-> absolute addresses of the available PM functions so that other SRAM
-> code can branch to them. This code is required for suspend/resume on
-> AM335x and AM437x to work.
-> 
-> In addition to this, to be able to share data structures between C and
-> the ti-emif-sram-pm assembly code, we can automatically generate all of
-> the C struct member offsets and sizes as macros by processing
-> emif-asm-offsets.c into assembly code and then extracting the relevant
-> data as is done for the generated platform asm-offsets.h files.
-> 
-> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-> ---
-> v4->v5:
-> * Simplify Makefile to generate include/generated/ti-emif-asm-offsets.h
-> 
-If you are happy with this version from Dave, can I get your ack please?
-I can add this to the driver-soc then.
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ Note: Resend to 'maintainer:IRQCHIP DRIVERS', ack added
 
-Regards,
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/irqchip/irq-omap-intc.c       | 12 ------------
+ include/linux/irqchip/irq-omap-intc.h |  2 --
+ 2 files changed, 14 deletions(-)
+
+diff --git a/drivers/irqchip/irq-omap-intc.c b/drivers/irqchip/irq-omap-intc.c
+index b04a8ac6e744..05f7f06dd711 100644
+--- a/drivers/irqchip/irq-omap-intc.c
++++ b/drivers/irqchip/irq-omap-intc.c
+@@ -25,10 +25,6 @@
+ 
+ #include <linux/irqchip/irq-omap-intc.h>
+ 
+-/* Define these here for now until we drop all board-files */
+-#define OMAP24XX_IC_BASE	0x480fe000
+-#define OMAP34XX_IC_BASE	0x48200000
+-
+ /* selected INTC register offsets */
+ 
+ #define INTC_REVISION		0x0000
+@@ -364,14 +360,6 @@ omap_intc_handle_irq(struct pt_regs *regs)
+ 	handle_domain_irq(domain, irqnr, regs);
+ }
+ 
+-void __init omap3_init_irq(void)
+-{
+-	omap_nr_irqs = 96;
+-	omap_nr_pending = 3;
+-	omap_init_irq(OMAP34XX_IC_BASE, NULL);
+-	set_handle_irq(omap_intc_handle_irq);
+-}
+-
+ static int __init intc_of_init(struct device_node *node,
+ 			     struct device_node *parent)
+ {
+diff --git a/include/linux/irqchip/irq-omap-intc.h b/include/linux/irqchip/irq-omap-intc.h
+index 2e3d1afeb674..f19ccee7749f 100644
+--- a/include/linux/irqchip/irq-omap-intc.h
++++ b/include/linux/irqchip/irq-omap-intc.h
+@@ -18,8 +18,6 @@
+ #ifndef __INCLUDE_LINUX_IRQCHIP_IRQ_OMAP_INTC_H
+ #define __INCLUDE_LINUX_IRQCHIP_IRQ_OMAP_INTC_H
+ 
+-void omap3_init_irq(void);
+-
+ int omap_irq_pending(void);
+ void omap_intc_save_context(void);
+ void omap_intc_restore_context(void);
+-- 
+2.11.0
