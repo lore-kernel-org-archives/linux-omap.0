@@ -1,53 +1,40 @@
-From: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>
-Subject: RE: Re: [PATCH] ARM: dts: Fix omap l4per idling with   wlcore
-   edge sensitive interrupt
-Date: Mon, 16 Oct 2017 06:22:30 +0000
-Message-ID: <8665E2433BC68541A24DFFCA87B70F5B3646C06C@DFRE01.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: drm_kms_helper cycle detected build error in next
+Date: Mon, 16 Oct 2017 09:53:44 +0300
+Message-ID: <66e0cbe7-5706-4981-e06d-ce85c779e120@ti.com>
+References: <20171013145818.GG4394@atomide.com>
+ <20171013150935.GH4394@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20171013150935.GH4394@atomide.com>
 Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gerlach, Dave" <d-gerlach-l0cyMroinI0@public.gmane.org>, "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "Kristo, Tero" <t-kristo-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>, Dave Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>
+Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-> > >
-> > > On omaps, if the wlcore interrupt is configured as level instead of e=
-dge,
-> > > L4PER will stop doing hardware based idling after ifconfig wlan0 down=
- is
-> > > done and the WL_EN line is pulled down.
-> > >
-> > Do we understand why omap is doing this? Is it a bug or a normal behavi=
-or?
-> >
-> > AFAIK way back edge interrupts have been used. On some omaps based
-> boards.
-> > They have used level interrupts instead due to occasional interrupts be=
-ing
-> missed
-> > By the omap interrupts controller when using edge based interrupts whic=
-h
-> caused
-> > Issues. This was the reason many boards are set to using level based in=
-terrupts
-> which
-> > Seemed much more robust.
->=20
-> No idea yet why exactly the gpio modules won't idle after that. But for m=
-aking
-> edge interrupts behave, I suspect that Grygorii's patch "[RESEND PATCH] g=
-pio:
-> omap: Fix lost edge interrupts" fixes those issues.
->=20
-Glad to see this patch fixing edge interrupts. Makes a lot of sense.
-Then, all looks good to me.
-
-Best Regards,
-Eyal
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+77u/ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgw
+IEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0Rv
+bWljaWxlOiBIZWxzaW5raQoKT24gMTMvMTAvMTcgMTg6MDksIFRvbnkgTGluZGdyZW4gd3JvdGU6
+Cgo+PiBMb29rcyBsaWtlIHRvZGF5J3MgbmV4dCBidWlsZCBmYWlscyBpZiBvbWFwZHJtIGlzIGVu
+YWJsZWQgYXMgbW9kdWxlcwo+PiB3aXRoOgo+Pgo+PiBkZXBtb2Q6IEVSUk9SOiBDeWNsZSBkZXRl
+Y3RlZDogZHJtX2ttc19oZWxwZXIgLT4gZHJtIC0+IGRybV9rbXNfaGVscGVyCj4+IGRlcG1vZDog
+RVJST1I6IEZvdW5kIDIgbW9kdWxlcyBpbiBkZXBlbmRlbmN5IGN5Y2xlcyEKPj4gbWFrZTogKioq
+IFtNYWtlZmlsZToxMjYxOiBfbW9kaW5zdF9wb3N0XSBFcnJvciAxCj4gCj4gTWFraW5nIENPTkZJ
+R19EUk09eSBhbmQgQ09ORklHX0RSTV9LTVNfSEVMUEVSPXkgaW5zdGVhZCBvZgo+IGxvZGFibGUg
+bW9kdWxlcyBtYWtlcyBpdCBidWlsZC4KClRoZSBzYW1lIGhhcHBlbnMgZXZlbiBhZnRlciBkaXNh
+Ymxpbmcgb21hcGRybSwgc28gaXQncyBzb21ld2hlcmUgaW4gdGhlCmNvbW1vbiBjb2RlLgoKSW50
+ZXJlc3RpbmdseSwgbXkgZGVwbW9kIGNyYXNoZXMgd2hlbiBlbmNvdW50ZXJpbmcgdGhpcy4KCiBU
+b21pCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmkt
+ZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6
+Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
