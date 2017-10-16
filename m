@@ -1,54 +1,54 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: Fix omap l4per idling with wlcore   edge
- sensitive interrupt
-Date: Mon, 16 Oct 2017 07:01:47 -0700
-Message-ID: <20171016140147.GV4394@atomide.com>
-References: <8665E2433BC68541A24DFFCA87B70F5B3646AF81@DFRE01.ent.ti.com>
- <20171015162230.GU4394@atomide.com>
- <20171015221536.ybe7x52tenocel6c@lenoch>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 2/2] memory: ti-emif-sram: introduce relocatable
+ suspend/resume handlers
+Date: Mon, 16 Oct 2017 07:54:44 -0700
+Message-ID: <20171016145444.GX4394@atomide.com>
+References: <20171013205915.9652-1-d-gerlach@ti.com>
+ <20171013205915.9652-3-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171015221536.ybe7x52tenocel6c@lenoch>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Cc: "Reizer, Eyal" <eyalr-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gerlach, Dave" <d-gerlach-l0cyMroinI0@public.gmane.org>, "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "Kristo, Tero" <t-kristo-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20171013205915.9652-3-d-gerlach@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [171015 15:16]:
-> On Sun, Oct 15, 2017 at 09:22:31AM -0700, Tony Lindgren wrote:
-> > * Reizer, Eyal <eyalr-l0cyMroinI0@public.gmane.org> [171014 23:55]:
-> > > > From: Tony Lindgren [mailto:tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org]
-> > > > 
-> > > > On omaps, if the wlcore interrupt is configured as level instead of edge,
-> > > > L4PER will stop doing hardware based idling after ifconfig wlan0 down is
-> > > > done and the WL_EN line is pulled down.
-> > > > 
-> > > Do we understand why omap is doing this? Is it a bug or a normal behavior?
-> > > 
-> > > AFAIK way back edge interrupts have been used. On some omaps based boards.
-> > > They have used level interrupts instead due to occasional interrupts being missed 
-> > > By the omap interrupts controller when using edge based interrupts which caused 
-> > > Issues. This was the reason many boards are set to using level based interrupts which 
-> > > Seemed much more robust.
-> > 
-> > No idea yet why exactly the gpio modules won't idle after that. But for making
-> > edge interrupts behave, I suspect that Grygorii's patch "[RESEND PATCH] gpio:
-> > omap: Fix lost edge interrupts" fixes those issues.
+* Dave Gerlach <d-gerlach@ti.com> [171013 14:00]:
+> Certain SoCs like Texas Instruments AM335x and AM437x require parts
+> of the EMIF PM code to run late in the suspend sequence from SRAM,
+> such as saving and restoring the EMIF context and placing the memory
+> into self-refresh.
 > 
-> Please note, that Grygorii's patch fixes occasional edge interrupts misses
-> only after your PM patch is applied. That said, edge interrupts are still
-> being missed in mainline.
+> One requirement for these SoCs to suspend and enter its lowest power
+> mode, called DeepSleep0, is that the PER power domain must be shut off.
+> Because the EMIF (DDR Controller) resides within this power domain, it
+> will lose context during a suspend operation, so we must save it so we
+> can restore once we resume. However, we cannot execute this code from
+> external memory, as it is not available at this point, so the code must
+> be executed late in the suspend path from SRAM.
+> 
+> This patch introduces a ti-emif-sram driver that includes several
+> functions written in ARM ASM that are relocatable so the PM SRAM
+> code can use them. It also allocates a region of writable SRAM to
+> be used by the code running in the executable region of SRAM to save
+> and restore the EMIF context. It can export a table containing the
+> absolute addresses of the available PM functions so that other SRAM
+> code can branch to them. This code is required for suspend/resume on
+> AM335x and AM437x to work.
+> 
+> In addition to this, to be able to share data structures between C and
+> the ti-emif-sram-pm assembly code, we can automatically generate all of
+> the C struct member offsets and sizes as macros by processing
+> emif-asm-offsets.c into assembly code and then extracting the relevant
+> data as is done for the generated platform asm-offsets.h files.
+> 
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> ---
+> v4->v5:
+> * Simplify Makefile to generate include/generated/ti-emif-asm-offsets.h
 
-I think that's for omap2 and 3 based boards. Sounds like we may have a generic
-test case here on omap3 for that issue. I'll do some ping tests against wl12xx
-on omap3-evm today while it's idling.
+Looks good to me:
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
