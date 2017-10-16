@@ -1,21 +1,24 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v5 2/2] memory: ti-emif-sram: introduce relocatable
  suspend/resume handlers
-Date: Mon, 16 Oct 2017 07:54:44 -0700
-Message-ID: <20171016145444.GX4394@atomide.com>
+Date: Mon, 16 Oct 2017 08:31:59 -0700
+Message-ID: <19256977-40e1-a972-4de8-838a8da863cc@oracle.com>
 References: <20171013205915.9652-1-d-gerlach@ti.com>
  <20171013205915.9652-3-d-gerlach@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171013205915.9652-3-d-gerlach@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Gerlach <d-gerlach@ti.com>
-Cc: Santosh Shilimkar <ssantosh@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Keerthy J <j-keerthy@ti.com>, Johan Hovold <johan@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171013205915.9652-3-d-gerlach-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach@ti.com> [171013 14:00]:
+Hi Russell,
+
+On 10/13/2017 1:59 PM, Dave Gerlach wrote:
 > Certain SoCs like Texas Instruments AM335x and AM437x require parts
 > of the EMIF PM code to run late in the suspend sequence from SRAM,
 > such as saving and restoring the EMIF context and placing the memory
@@ -44,11 +47,17 @@ List-Id: linux-omap@vger.kernel.org
 > emif-asm-offsets.c into assembly code and then extracting the relevant
 > data as is done for the generated platform asm-offsets.h files.
 > 
-> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 > ---
 > v4->v5:
 > * Simplify Makefile to generate include/generated/ti-emif-asm-offsets.h
+> 
+If you are happy with this version from Dave, can I get your ack please?
+I can add this to the driver-soc then.
 
-Looks good to me:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
