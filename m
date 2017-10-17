@@ -1,56 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: drm_kms_helper cycle detected build error in next
-Date: Mon, 16 Oct 2017 07:35:24 -0700
-Message-ID: <20171016143523.GW4394@atomide.com>
-References: <20171013145818.GG4394@atomide.com>
- <20171013150935.GH4394@atomide.com>
- <66e0cbe7-5706-4981-e06d-ce85c779e120@ti.com>
- <CAPM=9tygNrNqmYncO0uyyz=TQy8XcBaGdjWXcEAWW129DNMqyA@mail.gmail.com>
- <20171016091649.zm5mlsa64qmf6n7k@phenom.ffwll.local>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: [PATCH] usb: isp1301-omap: Convert timers to use timer_setup()
+Date: Tue, 17 Oct 2017 11:09:56 +0300
+Message-ID: <87376ikxez.fsf@linux.intel.com>
+References: <20171016232923.GA101254@beast>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20171016091649.zm5mlsa64qmf6n7k@phenom.ffwll.local>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel <dri-devel@lists.freedesktop.org>
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha512; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171016232923.GA101254@beast>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBEYW5pZWwgVmV0dGVyIDxkYW5pZWxAZmZ3bGwuY2g+IFsxNzEwMTYgMDI6MThdOgo+IE9uIE1v
-biwgT2N0IDE2LCAyMDE3IGF0IDA1OjE1OjUwUE0gKzEwMDAsIERhdmUgQWlybGllIHdyb3RlOgo+
-ID4gT24gMTYgT2N0b2JlciAyMDE3IGF0IDE2OjUzLCBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxr
-ZWluZW5AdGkuY29tPiB3cm90ZToKPiA+ID4KPiA+ID4gVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFu
-ZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuIFktdHVubnVzL0J1c2luZXNz
-IElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCj4gPiA+Cj4gPiA+
-IE9uIDEzLzEwLzE3IDE4OjA5LCBUb255IExpbmRncmVuIHdyb3RlOgo+ID4gPgo+ID4gPj4+IExv
-b2tzIGxpa2UgdG9kYXkncyBuZXh0IGJ1aWxkIGZhaWxzIGlmIG9tYXBkcm0gaXMgZW5hYmxlZCBh
-cyBtb2R1bGVzCj4gPiA+Pj4gd2l0aDoKPiA+ID4+Pgo+ID4gPj4+IGRlcG1vZDogRVJST1I6IEN5
-Y2xlIGRldGVjdGVkOiBkcm1fa21zX2hlbHBlciAtPiBkcm0gLT4gZHJtX2ttc19oZWxwZXIKPiA+
-ID4+PiBkZXBtb2Q6IEVSUk9SOiBGb3VuZCAyIG1vZHVsZXMgaW4gZGVwZW5kZW5jeSBjeWNsZXMh
-Cj4gPiA+Pj4gbWFrZTogKioqIFtNYWtlZmlsZToxMjYxOiBfbW9kaW5zdF9wb3N0XSBFcnJvciAx
-Cj4gPiA+Pgo+ID4gPj4gTWFraW5nIENPTkZJR19EUk09eSBhbmQgQ09ORklHX0RSTV9LTVNfSEVM
-UEVSPXkgaW5zdGVhZCBvZgo+ID4gPj4gbG9kYWJsZSBtb2R1bGVzIG1ha2VzIGl0IGJ1aWxkLgo+
-ID4gPgo+ID4gPiBUaGUgc2FtZSBoYXBwZW5zIGV2ZW4gYWZ0ZXIgZGlzYWJsaW5nIG9tYXBkcm0s
-IHNvIGl0J3Mgc29tZXdoZXJlIGluIHRoZQo+ID4gPiBjb21tb24gY29kZS4KPiA+ID4KPiA+ID4g
-SW50ZXJlc3RpbmdseSwgbXkgZGVwbW9kIGNyYXNoZXMgd2hlbiBlbmNvdW50ZXJpbmcgdGhpcy4K
-PiA+IAo+ID4gVGhlcmUgaXMgYSBmaXggZm9yIHRoaXMgaW4gZHJtLW1pc2MsIEkgc2hvdWxkIHBy
-b2JhYmx5IHB1bGwgaXQgb3Zlci4KPiA+IAo+ID4gSWYgSSBoYXZlbid0IGJlZW4gc2VudCBhIHB1
-bGwgdG9tb3Jyb3csIEknbGwgZ3JhYiBpdC4KPiAKPiBZb3UncmUgdG9vIG11Y2ggYWhlYWQgZm9y
-IGEgcHVsbCByZXF1ZXN0IG9uIHlvdXIgTW9uZGF5LCBidXQgeW91J2xsIGdldCBpdAo+IGFzYXAg
-Oi0pCgpNZWFud2hpbGUsIGNhbiB5b3UgZ3V5cyBwcm92aWRlIGZldyBtb3JlIGNsdWVzIHdoaWNo
-IHBhdGNoIHRvIHBpY2sKZm9yIHRoZSByZXN0IG9mIHVzPwoKU29tZXRoaW5nIGxpa2UgcGF0Y2gg
-c3ViamVjdCBsaW5lLCBjb21taXQgaWQgaW4gZHJtLW1pc2Mgb3Igc29tZXRoaW5nCmFsb25nIHRo
-b3NlIGxpbmVzIHdvdWxkIGJlIG5pY2UuLgoKUmVnYXJkcywKClRvbnkKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApk
-cmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+
+Hi,
+
+Kees Cook <keescook@chromium.org> writes:
+> In preparation for unconditionally passing the struct timer_list pointer =
+to
+> all timer callbacks, switch to using the new timer_setup() and from_timer=
+()
+> to pass the timer pointer explicitly.
+>
+> Cc: Felipe Balbi <balbi@kernel.org>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: linux-usb@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+
+do you want me to take this through my tree?
+
+If you wanna take through yours, here's my ack:
+
+Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlnlutQACgkQzL64meEa
+mQZMWg//UwODuqBKNNrFO6veExcEii+DiV8QXBf62rQU5MCsTS0fEWLlA61nxck0
+dIOKwxLe/h7Y0/Fp+8a/udsb3f+7iZYj+IG4MZfiTn5/noCDrOHYftT2ZZcliyVd
+Eeba6/M4woHaPJL33nSmWnxH0dn4VweWAr9dNHgC09CNzezB+0q+s3DtHuePBatQ
+vrDWLfMfDdJY0Y1DllLWAUgTPSiSrOq7F4uNoOc83463XRkuZD8De8meC95i/rYc
+EAz0s+51kckLVSU3+tTRsn1pHl6MrPCraFcGyoeQ1kpi7xv2Dym5coscKBjqINrk
+27WsmkN5j2Ef/bKILwnwirUX1KydGPSlQJUI/FOh22BPS/zFnD3ShTl/3vBTVEcq
+SQB5iVmhyqfDsExbNMZhgjXLQThZs4ZvMwkcU9EHL8CvODd4Qp8JDFa81MEoK0D9
+hAmUtlqf4MdPa4VS8kt7ZxawLJHn/1mxuWJtXYmjSvNmyKyyas7DqL1H56CFNcLb
+1Oo+wqRvEJZCp48/FFVZe8VuqUizbAum9LmBXUj589Tg3pB7hURVt4bILEs+NQZW
+oefms6Ob7qU2F4LPsgypIaKZxttaMqhrIW4YzlYameXKE/247cR5lRIYvRjxbQF0
+eCl2ezGxCMqcRIxFZom1eHAubPopi/ITm78915wrJLPCEhG3HTA=
+=hefD
+-----END PGP SIGNATURE-----
+--=-=-=--
