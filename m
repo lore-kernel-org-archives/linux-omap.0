@@ -1,61 +1,61 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH] usb: isp1301-omap: Convert timers to use timer_setup()
-Date: Mon, 16 Oct 2017 16:29:23 -0700
-Message-ID: <20171016232923.GA101254@beast>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH] PCI: dwc: dra7xx: Print link state to console for debug
+Date: Tue, 17 Oct 2017 11:13:51 +0530
+Message-ID: <1508219031-25592-1-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Felipe Balbi <balbi@kernel.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: kishon@ti.com
+Cc: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, faiz_abbas@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-In preparation for unconditionally passing the struct timer_list pointer to
-all timer callbacks, switch to using the new timer_setup() and from_timer()
-to pass the timer pointer explicitly.
+Enable support for printing the LTSSM link state for debugging PCI
+when link is down.
 
-Cc: Felipe Balbi <balbi@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- drivers/usb/phy/phy-isp1301-omap.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/drivers/usb/phy/phy-isp1301-omap.c b/drivers/usb/phy/phy-isp1301-omap.c
-index 8a07ce63b92d..00bcc6c6db17 100644
---- a/drivers/usb/phy/phy-isp1301-omap.c
-+++ b/drivers/usb/phy/phy-isp1301-omap.c
-@@ -1183,9 +1183,11 @@ static irqreturn_t isp1301_irq(int irq, void *isp)
- 	return IRQ_HANDLED;
- }
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 34427a6..7b150b0 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -98,6 +98,18 @@ struct dra7xx_pcie_of_data {
  
--static void isp1301_timer(unsigned long _isp)
-+static void isp1301_timer(struct timer_list *t)
- {
--	isp1301_defer_work((void *)_isp, WORK_TIMER);
-+	struct isp1301 *isp = from_timer(isp, t, timer);
+ #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
+ 
++static char state[][20] = {
++	"DETECT_QUIET", "DETECT_ACT", "POLL_ACTIVE", "POLL_COMPLIANCE",
++	"POLL_CONFIG", "PRE_DETECT_QUIET", "DETECT_WAIT", "CFG_LINKWD_START",
++	"CFG_LINKWD_ACEPT", "CFG_LANENUM_WAIT", "CFG_LANENUM_ACEPT",
++	"CFG_COMPLETE", "CFG_IDLE", "RCVRY_LOCK", "RCVRY_SPEED",
++	"RCVRY_RCVRCFG", "RCVRY_IDLE", "L0", "L0S", "L123_SEND_EIDLE",
++	"L1_IDLE", "L2_IDLE", "L2_WAKE", "DISABLED_ENTRY", "DISABLED_IDLE",
++	"DISABLED", "LPBK_ENTRY", "LPBK_ACTIVE", "LPBK_EXIT",
++	"LPBK_EXIT_TIMEOUT", "HOT_RESET_ENTRY", "HOT_RESET", "RCVRY_EQ0",
++	"RCVRY_EQ1", "RCVRY_EQ2", "RCVRY_EQ3"
++};
 +
-+	isp1301_defer_work(isp, WORK_TIMER);
+ static inline u32 dra7xx_pcie_readl(struct dra7xx_pcie *pcie, u32 offset)
+ {
+ 	return readl(pcie->base + offset);
+@@ -118,6 +130,15 @@ static int dra7xx_pcie_link_up(struct dw_pcie *pci)
+ {
+ 	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
+ 	u32 reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_PHY_CS);
++	u32 cmd_reg;
++	u32 ltssm_state;
++
++	if (!(reg & LINK_UP)) {
++		cmd_reg = dra7xx_pcie_readl(dra7xx,
++					    PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
++		ltssm_state = (cmd_reg & GENMASK(7, 2)) >> 2;
++		dev_err(pci->dev, "Link state:%s\n", state[ltssm_state]);
++	}
+ 
+ 	return !!(reg & LINK_UP);
  }
- 
- /*-------------------------------------------------------------------------*/
-@@ -1506,7 +1508,7 @@ isp1301_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
- 	}
- 
- 	INIT_WORK(&isp->work, isp1301_work);
--	setup_timer(&isp->timer, isp1301_timer, (unsigned long)isp);
-+	timer_setup(&isp->timer, isp1301_timer, 0);
- 
- 	i2c_set_clientdata(i2c, isp);
- 	isp->client = i2c;
 -- 
 2.7.4
-
-
--- 
-Kees Cook
-Pixel Security
