@@ -1,73 +1,177 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 3/4] PCI: dwc: dra7xx: Add support for SoC specific
- compatible strings
-Date: Tue, 17 Oct 2017 14:23:02 -0500
-Message-ID: <20171017192302.GK5641@bhelgaas-glaptop.roam.corp.google.com>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 4/4] PCI: dwc: pci-dra7xx: Enable x2 mode support
+Date: Tue, 17 Oct 2017 14:25:42 -0500
+Message-ID: <20171017192541.GL5641@bhelgaas-glaptop.roam.corp.google.com>
 References: <20171010101606.15951-1-kishon@ti.com>
- <20171010101606.15951-4-kishon@ti.com>
+ <20171010101606.15951-5-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171010101606.15951-4-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+In-Reply-To: <20171010101606.15951-5-kishon-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-s/PCI: dwc: dra7xx: Add support for SoC specific compatible strings/
-  PCI: dra7xx: Add dra726 and dra746 compatible strings/
-  
-I think including "dwc" makes sense for things that involve the DW
-core, but this is really dra7xx-specific.  And I think the *support*
-for SoC-specific strings was already there; it looks like this patch
-simply adds some of those strings.
+s/PCI: dwc: pci-dra7xx: Enable x2 mode support/
+  PCI: dra7xx: Enable x2 mode support for dra74x and dra76x/
 
-On Tue, Oct 10, 2017 at 03:46:05PM +0530, Kishon Vijay Abraham I wrote:
-> dra74x/dra76x and dra72x has separate compatible strings. Add support
-> for these compatible strings in pci-dra7xx driver.
+Looks OK to me otherwise, but Rob had a comment about the DT names, so
+I'll wait for that resolution.
 
-s/has separate/have separate/
-
-> This is a preparatory patch for adding 2-lane mode support and
-> dra74/dra72 should add it's own driver data for 2-lane mode
-> configuration.
-
-s/it's/its/
-
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+On Tue, Oct 10, 2017 at 03:46:06PM +0530, Kishon Vijay Abraham I wrote:
+> Perform syscon configurations to get x2 mode to working in dra74x
+> (and dra76x).
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 > ---
->  drivers/pci/dwc/pci-dra7xx.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
+>  drivers/pci/dwc/pci-dra7xx.c | 68 ++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 66 insertions(+), 2 deletions(-)
 > 
 > diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 362607f727ee..78a87a8f1362 100644
+> index 78a87a8f1362..a43c904310f3 100644
 > --- a/drivers/pci/dwc/pci-dra7xx.c
 > +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -542,6 +542,22 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
->  		.compatible = "ti,dra7-pcie-ep",
->  		.data = &dra7xx_pcie_ep_of_data,
->  	},
-> +	{
-> +		.compatible = "ti,dra746-pcie-rc",
-> +		.data = &dra7xx_pcie_rc_of_data,
-> +	},
-> +	{
-> +		.compatible = "ti,dra746-pcie-ep",
-> +		.data = &dra7xx_pcie_ep_of_data,
-> +	},
-> +	{
-> +		.compatible = "ti,dra726-pcie-rc",
-> +		.data = &dra7xx_pcie_rc_of_data,
-> +	},
-> +	{
-> +		.compatible = "ti,dra726-pcie-ep",
-> +		.data = &dra7xx_pcie_ep_of_data,
-> +	},
->  	{},
+> @@ -21,6 +21,7 @@
+>  #include <linux/of_device.h>
+>  #include <linux/of_gpio.h>
+>  #include <linux/of_pci.h>
+> +#include <linux/of_platform.h>
+>  #include <linux/pci.h>
+>  #include <linux/phy/phy.h>
+>  #include <linux/platform_device.h>
+> @@ -83,6 +84,9 @@
+>  #define MSI_REQ_GRANT					BIT(0)
+>  #define MSI_VECTOR_SHIFT				7
+>  
+> +#define PCIE_1LANE_2LANE_SELECTION			BIT(13)
+> +#define PCIE_B1C0_MODE_SEL				BIT(2)
+> +
+>  struct dra7xx_pcie {
+>  	struct dw_pcie		*pci;
+>  	void __iomem		*base;		/* DT ti_conf */
+> @@ -95,6 +99,10 @@ struct dra7xx_pcie {
+>  
+>  struct dra7xx_pcie_of_data {
+>  	enum dw_pcie_device_mode mode;
+> +	u32 b1co_mode_sel_mask;
+> +};
+> +
+> +struct dra7xx_pcie_data {
 >  };
 >  
+>  #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
+> @@ -533,6 +541,16 @@ static const struct dra7xx_pcie_of_data dra7xx_pcie_ep_of_data = {
+>  	.mode = DW_PCIE_EP_TYPE,
+>  };
+>  
+> +static const struct dra7xx_pcie_of_data dra746_pcie_rc_of_data = {
+> +	.b1co_mode_sel_mask = BIT(2),
+> +	.mode = DW_PCIE_RC_TYPE,
+> +};
+> +
+> +static const struct dra7xx_pcie_of_data dra746_pcie_ep_of_data = {
+> +	.b1co_mode_sel_mask = BIT(2),
+> +	.mode = DW_PCIE_EP_TYPE,
+> +};
+> +
+>  static const struct of_device_id of_dra7xx_pcie_match[] = {
+>  	{
+>  		.compatible = "ti,dra7-pcie",
+> @@ -544,11 +562,11 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+>  	},
+>  	{
+>  		.compatible = "ti,dra746-pcie-rc",
+> -		.data = &dra7xx_pcie_rc_of_data,
+> +		.data = &dra746_pcie_rc_of_data,
+>  	},
+>  	{
+>  		.compatible = "ti,dra746-pcie-ep",
+> -		.data = &dra7xx_pcie_ep_of_data,
+> +		.data = &dra746_pcie_ep_of_data,
+>  	},
+>  	{
+>  		.compatible = "ti,dra726-pcie-rc",
+> @@ -603,6 +621,44 @@ static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
+>  	return ret;
+>  }
+>  
+> +static int dra7xx_pcie_configure_two_lane(struct device *dev,
+> +					  u32 b1co_mode_sel_mask)
+> +{
+> +	struct device_node *np = dev->of_node;
+> +	struct regmap *pcie_syscon;
+> +	unsigned int pcie_reg;
+> +
+> +	pcie_syscon = syscon_regmap_lookup_by_phandle(np, "syscon-lane-conf");
+> +	if (IS_ERR(pcie_syscon)) {
+> +		dev_err(dev, "unable to get syscon-lane-conf\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (of_property_read_u32_index(np, "syscon-lane-conf", 1, &pcie_reg)) {
+> +		dev_err(dev, "couldn't get lane configuration reg offset\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	regmap_update_bits(pcie_syscon, pcie_reg, PCIE_1LANE_2LANE_SELECTION,
+> +			   PCIE_1LANE_2LANE_SELECTION);
+> +
+> +	pcie_syscon = syscon_regmap_lookup_by_phandle(np, "syscon-lane-sel");
+> +	if (IS_ERR(pcie_syscon)) {
+> +		dev_err(dev, "unable to get syscon-lane-sel\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (of_property_read_u32_index(np, "syscon-lane-sel", 1, &pcie_reg)) {
+> +		dev_err(dev, "couldn't get lane selection reg offset\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	regmap_update_bits(pcie_syscon, pcie_reg, b1co_mode_sel_mask,
+> +			   PCIE_B1C0_MODE_SEL);
+> +
+> +	return 0;
+> +}
+> +
+>  static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  {
+>  	u32 reg;
+> @@ -624,6 +680,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  	const struct of_device_id *match;
+>  	const struct dra7xx_pcie_of_data *data;
+>  	enum dw_pcie_device_mode mode;
+> +	u32 b1co_mode_sel_mask;
+>  
+>  	match = of_match_device(of_match_ptr(of_dra7xx_pcie_match), dev);
+>  	if (!match)
+> @@ -631,6 +688,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  
+>  	data = (struct dra7xx_pcie_of_data *)match->data;
+>  	mode = (enum dw_pcie_device_mode)data->mode;
+> +	b1co_mode_sel_mask = data->b1co_mode_sel_mask;
+>  
+>  	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
+>  	if (!dra7xx)
+> @@ -689,6 +747,12 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  	dra7xx->pci = pci;
+>  	dra7xx->phy_count = phy_count;
+>  
+> +	if (phy_count == 2) {
+> +		ret = dra7xx_pcie_configure_two_lane(dev, b1co_mode_sel_mask);
+> +		if (ret < 0)
+> +			goto err_link;
+> +	}
+> +
+>  	ret = dra7xx_pcie_enable_phy(dra7xx);
+>  	if (ret) {
+>  		dev_err(dev, "failed to enable phy\n");
 > -- 
 > 2.11.0
 > 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
