@@ -1,89 +1,74 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [Patch 4/6] dt-bindings: media: ti-vpe: Document VPE driver
-Date: Tue, 17 Oct 2017 16:00:51 -0500
-Message-ID: <20171017210051.6ap3yg7b7viav6cy@rob-hp-laptop>
-References: <20171012192719.15193-1-bparrot@ti.com>
- <20171012192719.15193-5-bparrot@ti.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] i2c: omap: Fix error handlign for clk_get()
+Date: Wed, 18 Oct 2017 00:08:53 +0200
+Message-ID: <20171017220853.jhy6hzgsayi4rszu@ninjato>
+References: <20171016210614.15842-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="huiji65l654xkaec"
+Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171012192719.15193-5-bparrot-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20171016210614.15842-1-tony@atomide.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Claudio Foellmi <claudio.foellmi@ergon.ch>, Grygorii Strashko <grygorii.strashko@ti.com>, Tero Kristo <t-kristo@ti.com>, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 12, 2017 at 02:27:17PM -0500, Benoit Parrot wrote:
-> Device Tree bindings for the Video Processing Engine (VPE) driver.
-> 
-> Signed-off-by: Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/media/ti-vpe.txt | 41 ++++++++++++++++++++++
->  1 file changed, 41 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/ti-vpe.txt b/Documentation/devicetree/bindings/media/ti-vpe.txt
-> new file mode 100644
-> index 000000000000..c2ef93d08417
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/ti-vpe.txt
-> @@ -0,0 +1,41 @@
-> +Texas Instruments DRA7x VIDEO PROCESSING ENGINE (VPE)
-> +------------------------------------------------------
-> +
-> +The Video Processing Engine (VPE) is a key component for image post
-> +processing applications. VPE consist of a single memory to memory
-> +path which can perform chroma up/down sampling, deinterlacing,
-> +scaling and color space conversion.
-> +
-> +Required properties:
-> +- compatible: must be "ti,vpe"
 
-Needs SoC specific compatibles.
+--huiji65l654xkaec
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +- reg:	physical base address and length of the registers set for the 8
-> +	memory regions required;
-> +- reg-names: name associated with the memory regions described is <reg>;
-> +- interrupts: should contain IRQ line for VPE;
-> +
-> +Example:
-> +	vpe {
-> +		compatible = "ti,vpe";
-> +		ti,hwmods = "vpe";
-> +		clocks = <&dpll_core_h23x2_ck>;
-> +		clock-names = "fck";
-> +		reg =	<0x489d0000 0x120>,
-> +			<0x489d0300 0x20>,
-> +			<0x489d0400 0x20>,
-> +			<0x489d0500 0x20>,
-> +			<0x489d0600 0x3c>,
-> +			<0x489d0700 0x80>,
+On Mon, Oct 16, 2017 at 02:06:14PM -0700, Tony Lindgren wrote:
+> Otherwise we can get the following if the fck alias is missing:
+>=20
+> Unable to handle kernel paging request at virtual address fffffffe
+> ...
+> PC is at clk_get_rate+0x8/0x10
+> LR is at omap_i2c_probe+0x278/0x6ec
+> ...
+> [<c056eb08>] (clk_get_rate) from [<c06f4f08>] (omap_i2c_probe+0x278/0x6ec)
+> [<c06f4f08>] (omap_i2c_probe) from [<c0610944>] (platform_drv_probe+0x50/=
+0xb0)
+> [<c0610944>] (platform_drv_probe) from [<c060e900>] (driver_probe_device+=
+0x264/0x2ec)
+> [<c060e900>] (driver_probe_device) from [<c060cda0>] (bus_for_each_drv+0x=
+70/0xb8)
+> [<c060cda0>] (bus_for_each_drv) from [<c060e5b0>] (__device_attach+0xcc/0=
+x13c)
+> [<c060e5b0>] (__device_attach) from [<c060db10>] (bus_probe_device+0x88/0=
+x90)
+> [<c060db10>] (bus_probe_device) from [<c060df68>] (deferred_probe_work_fu=
+nc+0x4c/0x14c)
+>=20
+> Cc: Claudio Foellmi <claudio.foellmi@ergon.ch>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Vignesh R <vigneshr@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Is there other stuff between these regions?
+Applied to for-current, thanks!
 
-> +			<0x489d5700 0x18>,
-> +			<0x489dd000 0x400>;
-> +		reg-names =	"vpe_top",
-> +				"vpe_chr_us0",
-> +				"vpe_chr_us1",
-> +				"vpe_chr_us2",
-> +				"vpe_dei",
-> +				"sc",
-> +				"csc",
-> +				"vpdma";
-> +		interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
 
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
+--huiji65l654xkaec
+Content-Type: application/pgp-signature; name="signature.asc"
 
-These aren't needed.
+-----BEGIN PGP SIGNATURE-----
 
-> +	};
-> -- 
-> 2.9.0
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlnmf3EACgkQFA3kzBSg
+KbaPnBAAlNtYsVccTypoqXfXpONaK8HnVpqV6v1eOXu32dNHokXcMSTSFKS+jVg1
+fs8fstQfmRuzuEkvpKPIz7Az28DhzhXnyByxUTCvNVZ/T0GTWh806maJV7Di0DwO
+8PMOilo34bPQgrDSElQ/9fMfcuuMlsCqt0THNlBlLYXAGfMabTdNbPw4w+xRGrrk
+5J/q4hCFIXnp11DLACBtgKYt88UqjA9Eus1shkwgimrjSLIa1qefaPRVP3yK41qk
+Y6ZEmXhCMRRSHZ6p/1+hOk56EL2PeJPi3QanDH7WFiMTyKvmUE0HqY50/iAv7rFC
+grQeDLTECyR3xhOtmn+Rm5xd0etR/ErnGYxe1Drkry8HgMgn3G9IRoJ3bYijoAwu
+3vSxYRS2HvJURfdphqsy1q+WyBGx1waQik63Q1GbkIQzbmjDgg2WXUo692jaTqNM
+J8b/BALksdZhZ3Y4rsRqi3XVSp86FPYhgL+EcChY1FNk43QQxEcHfXOCcnr5jTtG
+OYNamMGauynzrRMS4G09MHD7IL7Rn5ys0jDqQsq1AxDmbvD+x/lKZrJi7HHKpSDK
+2v++oI3OGBAZ//UAQQr73FzRDyKwKL2qlDKHHKrrefxDKxlBL8SEAwLwlcvjWdsY
+zLLRDELeL8iBNeSDTiyvKY1WAQLWPU1lofMQ+OBhu53y3jaq+tA=
+=XNDl
+-----END PGP SIGNATURE-----
+
+--huiji65l654xkaec--
