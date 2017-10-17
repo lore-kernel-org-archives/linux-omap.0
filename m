@@ -1,177 +1,59 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 4/4] PCI: dwc: pci-dra7xx: Enable x2 mode support
-Date: Tue, 17 Oct 2017 14:25:42 -0500
-Message-ID: <20171017192541.GL5641@bhelgaas-glaptop.roam.corp.google.com>
-References: <20171010101606.15951-1-kishon@ti.com>
- <20171010101606.15951-5-kishon@ti.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 0/2] phy: ti-pipe3: Update PCIe PHY settings
+Date: Tue, 17 Oct 2017 14:31:29 -0500
+Message-ID: <20171017193129.GM5641@bhelgaas-glaptop.roam.corp.google.com>
+References: <20171009090338.26033-1-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171010101606.15951-5-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+In-Reply-To: <20171009090338.26033-1-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-s/PCI: dwc: pci-dra7xx: Enable x2 mode support/
-  PCI: dra7xx: Enable x2 mode support for dra74x and dra76x/
-
-Looks OK to me otherwise, but Rob had a comment about the DT names, so
-I'll wait for that resolution.
-
-On Tue, Oct 10, 2017 at 03:46:06PM +0530, Kishon Vijay Abraham I wrote:
-> Perform syscon configurations to get x2 mode to working in dra74x
-> (and dra76x).
+On Mon, Oct 09, 2017 at 02:33:36PM +0530, Kishon Vijay Abraham I wrote:
+> This was supposed to only update ti-pipe3 PHY registers. However because
+> of the way the ti-pipe3 PHY, OCP2SCP and PCIe controller are connected
+> in dra7xx where
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/pci/dwc/pci-dra7xx.c | 68 ++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 66 insertions(+), 2 deletions(-)
+> PCIe controller --------------> ti-pipe3 PHY --------------> OCP2SCP
+> 		  depends on		       depends on
 > 
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 78a87a8f1362..a43c904310f3 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -21,6 +21,7 @@
->  #include <linux/of_device.h>
->  #include <linux/of_gpio.h>
->  #include <linux/of_pci.h>
-> +#include <linux/of_platform.h>
->  #include <linux/pci.h>
->  #include <linux/phy/phy.h>
->  #include <linux/platform_device.h>
-> @@ -83,6 +84,9 @@
->  #define MSI_REQ_GRANT					BIT(0)
->  #define MSI_VECTOR_SHIFT				7
->  
-> +#define PCIE_1LANE_2LANE_SELECTION			BIT(13)
-> +#define PCIE_B1C0_MODE_SEL				BIT(2)
-> +
->  struct dra7xx_pcie {
->  	struct dw_pcie		*pci;
->  	void __iomem		*base;		/* DT ti_conf */
-> @@ -95,6 +99,10 @@ struct dra7xx_pcie {
->  
->  struct dra7xx_pcie_of_data {
->  	enum dw_pcie_device_mode mode;
-> +	u32 b1co_mode_sel_mask;
-> +};
-> +
-> +struct dra7xx_pcie_data {
->  };
->  
->  #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
-> @@ -533,6 +541,16 @@ static const struct dra7xx_pcie_of_data dra7xx_pcie_ep_of_data = {
->  	.mode = DW_PCIE_EP_TYPE,
->  };
->  
-> +static const struct dra7xx_pcie_of_data dra746_pcie_rc_of_data = {
-> +	.b1co_mode_sel_mask = BIT(2),
-> +	.mode = DW_PCIE_RC_TYPE,
-> +};
-> +
-> +static const struct dra7xx_pcie_of_data dra746_pcie_ep_of_data = {
-> +	.b1co_mode_sel_mask = BIT(2),
-> +	.mode = DW_PCIE_EP_TYPE,
-> +};
-> +
->  static const struct of_device_id of_dra7xx_pcie_match[] = {
->  	{
->  		.compatible = "ti,dra7-pcie",
-> @@ -544,11 +562,11 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
->  	},
->  	{
->  		.compatible = "ti,dra746-pcie-rc",
-> -		.data = &dra7xx_pcie_rc_of_data,
-> +		.data = &dra746_pcie_rc_of_data,
->  	},
->  	{
->  		.compatible = "ti,dra746-pcie-ep",
-> -		.data = &dra7xx_pcie_ep_of_data,
-> +		.data = &dra746_pcie_ep_of_data,
->  	},
->  	{
->  		.compatible = "ti,dra726-pcie-rc",
-> @@ -603,6 +621,44 @@ static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
->  	return ret;
->  }
->  
-> +static int dra7xx_pcie_configure_two_lane(struct device *dev,
-> +					  u32 b1co_mode_sel_mask)
-> +{
-> +	struct device_node *np = dev->of_node;
-> +	struct regmap *pcie_syscon;
-> +	unsigned int pcie_reg;
-> +
-> +	pcie_syscon = syscon_regmap_lookup_by_phandle(np, "syscon-lane-conf");
-> +	if (IS_ERR(pcie_syscon)) {
-> +		dev_err(dev, "unable to get syscon-lane-conf\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (of_property_read_u32_index(np, "syscon-lane-conf", 1, &pcie_reg)) {
-> +		dev_err(dev, "couldn't get lane configuration reg offset\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	regmap_update_bits(pcie_syscon, pcie_reg, PCIE_1LANE_2LANE_SELECTION,
-> +			   PCIE_1LANE_2LANE_SELECTION);
-> +
-> +	pcie_syscon = syscon_regmap_lookup_by_phandle(np, "syscon-lane-sel");
-> +	if (IS_ERR(pcie_syscon)) {
-> +		dev_err(dev, "unable to get syscon-lane-sel\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (of_property_read_u32_index(np, "syscon-lane-sel", 1, &pcie_reg)) {
-> +		dev_err(dev, "couldn't get lane selection reg offset\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	regmap_update_bits(pcie_syscon, pcie_reg, b1co_mode_sel_mask,
-> +			   PCIE_B1C0_MODE_SEL);
-> +
-> +	return 0;
-> +}
-> +
->  static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  {
->  	u32 reg;
-> @@ -624,6 +680,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	const struct of_device_id *match;
->  	const struct dra7xx_pcie_of_data *data;
->  	enum dw_pcie_device_mode mode;
-> +	u32 b1co_mode_sel_mask;
->  
->  	match = of_match_device(of_match_ptr(of_dra7xx_pcie_match), dev);
->  	if (!match)
-> @@ -631,6 +688,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  
->  	data = (struct dra7xx_pcie_of_data *)match->data;
->  	mode = (enum dw_pcie_device_mode)data->mode;
-> +	b1co_mode_sel_mask = data->b1co_mode_sel_mask;
->  
->  	dra7xx = devm_kzalloc(dev, sizeof(*dra7xx), GFP_KERNEL);
->  	if (!dra7xx)
-> @@ -689,6 +747,12 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	dra7xx->pci = pci;
->  	dra7xx->phy_count = phy_count;
->  
-> +	if (phy_count == 2) {
-> +		ret = dra7xx_pcie_configure_two_lane(dev, b1co_mode_sel_mask);
-> +		if (ret < 0)
-> +			goto err_link;
-> +	}
-> +
->  	ret = dra7xx_pcie_enable_phy(dra7xx);
->  	if (ret) {
->  		dev_err(dev, "failed to enable phy\n");
+> updating ti-pipe3 PHY registers results in an abort.
+> 
+> Though the dependency between ti-pipe3 PHY and OCP2SCP is created
+> (OCP2SCP is parent of ti-pipe3 PHY), and enabling ti-pipe3 PHY clocks
+> should in turn enable OCP2SCP (with the help of pm_runtime framework),
+> this doesn't work in no_irq stage since pm_runtime is disabled during
+> no_irq stage. Since pci-dra7xx enables/initializes ti-pipe3 phy in
+> no_irq stage, OCP2SCP is not enabled resulting in an abort with ti-pipe3
+> PHY registers are accessed.
+> 
+> In order to solve this a functional dependency is created between
+> PCIe and ti-pipe3 PHY so that PCIe is suspended before PHY/OCP2SCP
+> and resumed after PCIe PHY/OCP2SCP
+> 
+> Kishon Vijay Abraham I (2):
+>   PCI: dwc: dra7xx: Create functional dependency between PCIe and PHY
+
+s/PCI: dwc: dra7xx: Create functional dependency between PCIe and PHY/
+  PCI: dra7xx: Create functional dependency between PCIe and PHY/
+
+Should these be merged together?  If it makes sense for you to merge them
+together, here's my ack for the PCI piece:
+
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+Let me know if you'd like me to take one or both of them.
+
+>   phy: ti-pipe3: Update pcie phy settings
+> 
+>  drivers/pci/dwc/pci-dra7xx.c  |  16 +++++++
+>  drivers/phy/ti/phy-ti-pipe3.c | 101 +++++++++++++++++++++++++++++++++++++++++-
+>  2 files changed, 116 insertions(+), 1 deletion(-)
+> 
 > -- 
 > 2.11.0
 > 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
