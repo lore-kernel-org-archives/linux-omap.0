@@ -1,83 +1,49 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH] PCI: dwc: dra7xx: Print link state to console for debug
-Date: Wed, 18 Oct 2017 11:46:55 +0530
-Message-ID: <7ffa762b-292a-be10-b959-4ebb2312bed6@ti.com>
-References: <1508219031-25592-1-git-send-email-faiz_abbas@ti.com>
- <1508222128.6530.22.camel@perches.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: drm_kms_helper cycle detected build error in next
+Date: Tue, 17 Oct 2017 07:22:03 -0700
+Message-ID: <20171017142203.GZ4394@atomide.com>
+References: <20171013145818.GG4394@atomide.com>
+ <20171013150935.GH4394@atomide.com>
+ <66e0cbe7-5706-4981-e06d-ce85c779e120@ti.com>
+ <CAPM=9tygNrNqmYncO0uyyz=TQy8XcBaGdjWXcEAWW129DNMqyA@mail.gmail.com>
+ <20171016091649.zm5mlsa64qmf6n7k@phenom.ffwll.local>
+ <20171016143523.GW4394@atomide.com>
+ <20171017120753.is5attwq3p7mfsst@phenom.ffwll.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1508222128.6530.22.camel@perches.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>, kishon@ti.com
-Cc: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20171017120753.is5attwq3p7mfsst@phenom.ffwll.local>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel <dri-devel@lists.freedesktop.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Tuesday 17 October 2017 12:05 PM, Joe Perches wrote:
-> On Tue, 2017-10-17 at 11:13 +0530, Faiz Abbas wrote:
->> Enable support for printing the LTSSM link state for debugging PCI
->> when link is down.
-> []
->> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
->> index 34427a6..7b150b0 100644
->> --- a/drivers/pci/dwc/pci-dra7xx.c
->> +++ b/drivers/pci/dwc/pci-dra7xx.c
->> @@ -98,6 +98,18 @@ struct dra7xx_pcie_of_data {
->>  
->>  #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
->>  
->> +static char state[][20] = {
->> +	"DETECT_QUIET", "DETECT_ACT", "POLL_ACTIVE", "POLL_COMPLIANCE",
->> +	"POLL_CONFIG", "PRE_DETECT_QUIET", "DETECT_WAIT", "CFG_LINKWD_START",
->> +	"CFG_LINKWD_ACEPT", "CFG_LANENUM_WAIT", "CFG_LANENUM_ACEPT",
->> +	"CFG_COMPLETE", "CFG_IDLE", "RCVRY_LOCK", "RCVRY_SPEED",
->> +	"RCVRY_RCVRCFG", "RCVRY_IDLE", "L0", "L0S", "L123_SEND_EIDLE",
->> +	"L1_IDLE", "L2_IDLE", "L2_WAKE", "DISABLED_ENTRY", "DISABLED_IDLE",
->> +	"DISABLED", "LPBK_ENTRY", "LPBK_ACTIVE", "LPBK_EXIT",
->> +	"LPBK_EXIT_TIMEOUT", "HOT_RESET_ENTRY", "HOT_RESET", "RCVRY_EQ0",
->> +	"RCVRY_EQ1", "RCVRY_EQ2", "RCVRY_EQ3"
-> 
-> what's wrong with using the far more typical
-> 
-> static const char *link_state[] = {
-> 	"DETECT_QUIET",
-> 	...
-> };
-
-Too many lines?
-
-> 
->> +};
->> +
->>  static inline u32 dra7xx_pcie_readl(struct dra7xx_pcie *pcie, u32 offset)
->>  {
->>  	return readl(pcie->base + offset);
->> @@ -118,6 +130,15 @@ static int dra7xx_pcie_link_up(struct dw_pcie *pci)
->>  {
->>  	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
->>  	u32 reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_PHY_CS);
->> +	u32 cmd_reg;
->> +	u32 ltssm_state;
->> +
->> +	if (!(reg & LINK_UP)) {
->> +		cmd_reg = dra7xx_pcie_readl(dra7xx,
->> +					    PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
->> +		ltssm_state = (cmd_reg & GENMASK(7, 2)) >> 2;
->> +		dev_err(pci->dev, "Link state:%s\n", state[ltssm_state]);
-> 
-> and why is this a dev_err and not dev_info?
-> and if it's really for debugging, why not dev_dbg?
-> 
->> +	}
->>  
->>  	return !!(reg & LINK_UP);
->>  }
-
-Will change to dev_dbg.
-
-Thanks,
-Faiz
+KiBEYW5pZWwgVmV0dGVyIDxkYW5pZWxAZmZ3bGwuY2g+IFsxNzEwMTcgMDU6MDldOgo+IE9uIE1v
+biwgT2N0IDE2LCAyMDE3IGF0IDA3OjM1OjI0QU0gLTA3MDAsIFRvbnkgTGluZGdyZW4gd3JvdGU6
+Cj4gPiAKPiA+IE1lYW53aGlsZSwgY2FuIHlvdSBndXlzIHByb3ZpZGUgZmV3IG1vcmUgY2x1ZXMg
+d2hpY2ggcGF0Y2ggdG8gcGljawo+ID4gZm9yIHRoZSByZXN0IG9mIHVzPwo+ID4gCj4gPiBTb21l
+dGhpbmcgbGlrZSBwYXRjaCBzdWJqZWN0IGxpbmUsIGNvbW1pdCBpZCBpbiBkcm0tbWlzYyBvciBz
+b21ldGhpbmcKPiA+IGFsb25nIHRob3NlIGxpbmVzIHdvdWxkIGJlIG5pY2UuLgo+IAo+IEkgZ3Vl
+c3MgbGludXgtbmV4dCBzdGlsbCBub3QgeWV0IGJhY2sgdG8gdGhlIGRhaWx5IHVwZGF0ZSBzY2hl
+ZHVsZSwgdGhhdCdzCj4gd2h5IHlvdSBuZWVkIHRoaXM/IEl0J3MgYmVlbiBpbiB0cmVlcyBzaW5j
+ZSBsYXN0IHdlZWssIGFuZCBub3cgYWxzbyBpbgo+IGRybS1uZXh0IC4uLiBVc3VhbGx5IG5vIG9u
+ZSBldmVyIGNhcmVzIGFib3V0IHRoZSBjb21taXQgaWYgd2UgZml4IGl0IHJpZ2h0Cj4gYXdheS4K
+PiAKPiBBbnl3YXkKPiAKPiBjb21taXQgNTEyNzIxYTE0YTJhOTRiNDhjYTA4NjNkNDhmOTgyOTky
+MmE4MTZiOAo+IEF1dGhvcjogTWFhcnRlbiBMYW5raG9yc3QgPG1hYXJ0ZW4ubGFua2hvcnN0QGxp
+bnV4LmludGVsLmNvbT4KPiBEYXRlOiAgIEZyaSBPY3QgMTMgMTY6MDg6NTMgMjAxNyArMDIwMAo+
+IAo+ICAgICBkcm0vZHJtX29mOiBNb3ZlIGRybV9vZl9wYW5lbF9icmlkZ2VfcmVtb3ZlX2Z1bmN0
+aW9uIGludG8gaGVhZGVyLgoKT0sgdGhhbmtzIGxvb2tzIGxpa2UgTGludXggbmV4dCBpcyBidWls
+ZGluZyBmb3IgbWUgYWdhaW4gbm93LgoKUmVnYXJkcywKClRvbnkKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
+ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
