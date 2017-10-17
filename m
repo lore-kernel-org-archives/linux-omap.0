@@ -1,59 +1,89 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 0/2] phy: ti-pipe3: Update PCIe PHY settings
-Date: Tue, 17 Oct 2017 14:31:29 -0500
-Message-ID: <20171017193129.GM5641@bhelgaas-glaptop.roam.corp.google.com>
-References: <20171009090338.26033-1-kishon@ti.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [Patch 4/6] dt-bindings: media: ti-vpe: Document VPE driver
+Date: Tue, 17 Oct 2017 16:00:51 -0500
+Message-ID: <20171017210051.6ap3yg7b7viav6cy@rob-hp-laptop>
+References: <20171012192719.15193-1-bparrot@ti.com>
+ <20171012192719.15193-5-bparrot@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171009090338.26033-1-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+In-Reply-To: <20171012192719.15193-5-bparrot-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 09, 2017 at 02:33:36PM +0530, Kishon Vijay Abraham I wrote:
-> This was supposed to only update ti-pipe3 PHY registers. However because
-> of the way the ti-pipe3 PHY, OCP2SCP and PCIe controller are connected
-> in dra7xx where
+On Thu, Oct 12, 2017 at 02:27:17PM -0500, Benoit Parrot wrote:
+> Device Tree bindings for the Video Processing Engine (VPE) driver.
 > 
-> PCIe controller --------------> ti-pipe3 PHY --------------> OCP2SCP
-> 		  depends on		       depends on
+> Signed-off-by: Benoit Parrot <bparrot-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/media/ti-vpe.txt | 41 ++++++++++++++++++++++
+>  1 file changed, 41 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
 > 
-> updating ti-pipe3 PHY registers results in an abort.
-> 
-> Though the dependency between ti-pipe3 PHY and OCP2SCP is created
-> (OCP2SCP is parent of ti-pipe3 PHY), and enabling ti-pipe3 PHY clocks
-> should in turn enable OCP2SCP (with the help of pm_runtime framework),
-> this doesn't work in no_irq stage since pm_runtime is disabled during
-> no_irq stage. Since pci-dra7xx enables/initializes ti-pipe3 phy in
-> no_irq stage, OCP2SCP is not enabled resulting in an abort with ti-pipe3
-> PHY registers are accessed.
-> 
-> In order to solve this a functional dependency is created between
-> PCIe and ti-pipe3 PHY so that PCIe is suspended before PHY/OCP2SCP
-> and resumed after PCIe PHY/OCP2SCP
-> 
-> Kishon Vijay Abraham I (2):
->   PCI: dwc: dra7xx: Create functional dependency between PCIe and PHY
+> diff --git a/Documentation/devicetree/bindings/media/ti-vpe.txt b/Documentation/devicetree/bindings/media/ti-vpe.txt
+> new file mode 100644
+> index 000000000000..c2ef93d08417
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/ti-vpe.txt
+> @@ -0,0 +1,41 @@
+> +Texas Instruments DRA7x VIDEO PROCESSING ENGINE (VPE)
+> +------------------------------------------------------
+> +
+> +The Video Processing Engine (VPE) is a key component for image post
+> +processing applications. VPE consist of a single memory to memory
+> +path which can perform chroma up/down sampling, deinterlacing,
+> +scaling and color space conversion.
+> +
+> +Required properties:
+> +- compatible: must be "ti,vpe"
 
-s/PCI: dwc: dra7xx: Create functional dependency between PCIe and PHY/
-  PCI: dra7xx: Create functional dependency between PCIe and PHY/
+Needs SoC specific compatibles.
 
-Should these be merged together?  If it makes sense for you to merge them
-together, here's my ack for the PCI piece:
+> +- reg:	physical base address and length of the registers set for the 8
+> +	memory regions required;
+> +- reg-names: name associated with the memory regions described is <reg>;
+> +- interrupts: should contain IRQ line for VPE;
+> +
+> +Example:
+> +	vpe {
+> +		compatible = "ti,vpe";
+> +		ti,hwmods = "vpe";
+> +		clocks = <&dpll_core_h23x2_ck>;
+> +		clock-names = "fck";
+> +		reg =	<0x489d0000 0x120>,
+> +			<0x489d0300 0x20>,
+> +			<0x489d0400 0x20>,
+> +			<0x489d0500 0x20>,
+> +			<0x489d0600 0x3c>,
+> +			<0x489d0700 0x80>,
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Is there other stuff between these regions?
 
-Let me know if you'd like me to take one or both of them.
+> +			<0x489d5700 0x18>,
+> +			<0x489dd000 0x400>;
+> +		reg-names =	"vpe_top",
+> +				"vpe_chr_us0",
+> +				"vpe_chr_us1",
+> +				"vpe_chr_us2",
+> +				"vpe_dei",
+> +				"sc",
+> +				"csc",
+> +				"vpdma";
+> +		interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
 
->   phy: ti-pipe3: Update pcie phy settings
-> 
->  drivers/pci/dwc/pci-dra7xx.c  |  16 +++++++
->  drivers/phy/ti/phy-ti-pipe3.c | 101 +++++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 116 insertions(+), 1 deletion(-)
-> 
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+
+These aren't needed.
+
+> +	};
 > -- 
-> 2.11.0
+> 2.9.0
 > 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
