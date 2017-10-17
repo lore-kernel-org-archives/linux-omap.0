@@ -1,35 +1,73 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 0/3] pci_endpoint_test: Fix module removal/insertion cycle
-Date: Tue, 17 Oct 2017 14:16:43 -0500
-Message-ID: <20171017191643.GJ5641@bhelgaas-glaptop.roam.corp.google.com>
-References: <20171011084438.8296-1-kishon@ti.com>
+Subject: Re: [PATCH 3/4] PCI: dwc: dra7xx: Add support for SoC specific
+ compatible strings
+Date: Tue, 17 Oct 2017 14:23:02 -0500
+Message-ID: <20171017192302.GK5641@bhelgaas-glaptop.roam.corp.google.com>
+References: <20171010101606.15951-1-kishon@ti.com>
+ <20171010101606.15951-4-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171011084438.8296-1-kishon@ti.com>
+In-Reply-To: <20171010101606.15951-4-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 11, 2017 at 02:14:35PM +0530, Kishon Vijay Abraham I wrote:
-> This series fixes module removal/insertion cycle of pci_endpoint_test.
-> 
-> Without this series, when trying to modprobe pci_endpoint_test after
-> rmmod pci_endpoint_test results in the following errors.
-> 
-> pci-endpoint-test 0000:01:00.0: BAR 0: can't reserve [mem 0x20204600-0x202046ff]
-> pci-endpoint-test 0000:01:00.0: Cannot obtain PCI resources
-> pci-endpoint-test: probe of 0000:01:00.0 failed with error -16
-> 
-> Kishon Vijay Abraham I (3):
->   misc: pci_endpoint_test: Fix failure path return values in probe
->   misc: pci_endpoint_test: Fix pci_endpoint_test not releasing resources
->     on remove
->   misc: pci_endpoint_test: Fix BUG_ON error during pci_disable_msi
-> 
->  drivers/misc/pci_endpoint_test.c | 22 ++++++++++++++++++++--
->  1 file changed, 20 insertions(+), 2 deletions(-)
+s/PCI: dwc: dra7xx: Add support for SoC specific compatible strings/
+  PCI: dra7xx: Add dra726 and dra746 compatible strings/
+  
+I think including "dwc" makes sense for things that involve the DW
+core, but this is really dra7xx-specific.  And I think the *support*
+for SoC-specific strings was already there; it looks like this patch
+simply adds some of those strings.
 
-Applied to pci/endpoint for v4.15, thanks!
+On Tue, Oct 10, 2017 at 03:46:05PM +0530, Kishon Vijay Abraham I wrote:
+> dra74x/dra76x and dra72x has separate compatible strings. Add support
+> for these compatible strings in pci-dra7xx driver.
+
+s/has separate/have separate/
+
+> This is a preparatory patch for adding 2-lane mode support and
+> dra74/dra72 should add it's own driver data for 2-lane mode
+> configuration.
+
+s/it's/its/
+
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 362607f727ee..78a87a8f1362 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -542,6 +542,22 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+>  		.compatible = "ti,dra7-pcie-ep",
+>  		.data = &dra7xx_pcie_ep_of_data,
+>  	},
+> +	{
+> +		.compatible = "ti,dra746-pcie-rc",
+> +		.data = &dra7xx_pcie_rc_of_data,
+> +	},
+> +	{
+> +		.compatible = "ti,dra746-pcie-ep",
+> +		.data = &dra7xx_pcie_ep_of_data,
+> +	},
+> +	{
+> +		.compatible = "ti,dra726-pcie-rc",
+> +		.data = &dra7xx_pcie_rc_of_data,
+> +	},
+> +	{
+> +		.compatible = "ti,dra726-pcie-ep",
+> +		.data = &dra7xx_pcie_ep_of_data,
+> +	},
+>  	{},
+>  };
+>  
+> -- 
+> 2.11.0
+> 
