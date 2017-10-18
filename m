@@ -1,181 +1,57 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v0] clk: ti: omap3+: dpll: remove extra checks for NULL
-Date: Wed, 18 Oct 2017 12:20:54 +0200
-Message-ID: <20171018102054.ntuo4nyosdtlydi2@lenoch>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH 0/2] phy: ti-pipe3: Update PCIe PHY settings
+Date: Wed, 18 Oct 2017 17:38:15 +0530
+Message-ID: <1f583d30-fdf4-e104-271c-8a36704cbaf2@ti.com>
+References: <20171009090338.26033-1-kishon@ti.com>
+ <20171017193129.GM5641@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-clk-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171017193129.GM5641@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-As clk and clk->dpll_data are never NULL, there is no point
-to check them before dereferencing.
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
----
- Note: This is v0 patch as it could be probably extended/improved.
-       It was done after Tero's remark here:
-       http://www.spinics.net/lists/linux-omap/msg126812.html
-       and I have it in my tree since then. Perhaps it's time to
-       mainline it.
 
- drivers/clk/ti/dpll3xxx.c | 42 ++++++++++--------------------------------
- drivers/clk/ti/dpll44xx.c |  8 --------
- 2 files changed, 10 insertions(+), 40 deletions(-)
+On Wednesday 18 October 2017 01:01 AM, Bjorn Helgaas wrote:
+> On Mon, Oct 09, 2017 at 02:33:36PM +0530, Kishon Vijay Abraham I wrote:
+>> This was supposed to only update ti-pipe3 PHY registers. However because
+>> of the way the ti-pipe3 PHY, OCP2SCP and PCIe controller are connected
+>> in dra7xx where
+>>
+>> PCIe controller --------------> ti-pipe3 PHY --------------> OCP2SCP
+>> 		  depends on		       depends on
+>>
+>> updating ti-pipe3 PHY registers results in an abort.
+>>
+>> Though the dependency between ti-pipe3 PHY and OCP2SCP is created
+>> (OCP2SCP is parent of ti-pipe3 PHY), and enabling ti-pipe3 PHY clocks
+>> should in turn enable OCP2SCP (with the help of pm_runtime framework),
+>> this doesn't work in no_irq stage since pm_runtime is disabled during
+>> no_irq stage. Since pci-dra7xx enables/initializes ti-pipe3 phy in
+>> no_irq stage, OCP2SCP is not enabled resulting in an abort with ti-pipe3
+>> PHY registers are accessed.
+>>
+>> In order to solve this a functional dependency is created between
+>> PCIe and ti-pipe3 PHY so that PCIe is suspended before PHY/OCP2SCP
+>> and resumed after PCIe PHY/OCP2SCP
+>>
+>> Kishon Vijay Abraham I (2):
+>>   PCI: dwc: dra7xx: Create functional dependency between PCIe and PHY
+> 
+> s/PCI: dwc: dra7xx: Create functional dependency between PCIe and PHY/
+>   PCI: dra7xx: Create functional dependency between PCIe and PHY/
+> 
+> Should these be merged together?  If it makes sense for you to merge them
+> together, here's my ack for the PCI piece:
+> 
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
-index 63f70e829f2b..e09cd2786b51 100644
---- a/drivers/clk/ti/dpll3xxx.c
-+++ b/drivers/clk/ti/dpll3xxx.c
-@@ -438,14 +438,10 @@ unsigned long omap3_dpll_recalc(struct clk_hw *hw, unsigned long parent_rate)
-  */
- int omap3_noncore_dpll_enable(struct clk_hw *hw)
- {
--	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
- 	int r;
--	struct dpll_data *dd;
- 	struct clk_hw *parent;
--
--	dd = clk->dpll_data;
--	if (!dd)
--		return -EINVAL;
-+	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+	struct dpll_data *dd = clk->dpll_data;
- 
- 	if (clk->clkdm) {
- 		r = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
-@@ -509,9 +505,6 @@ int omap3_noncore_dpll_determine_rate(struct clk_hw *hw,
- 		return -EINVAL;
- 
- 	dd = clk->dpll_data;
--	if (!dd)
--		return -EINVAL;
--
- 	if (clk_hw_get_rate(dd->clk_bypass) == req->rate &&
- 	    (dd->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
- 		req->best_parent_hw = dd->clk_bypass;
-@@ -537,17 +530,11 @@ int omap3_noncore_dpll_determine_rate(struct clk_hw *hw,
- int omap3_noncore_dpll_set_parent(struct clk_hw *hw, u8 index)
- {
- 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
--	int ret;
--
--	if (!hw)
--		return -EINVAL;
- 
- 	if (index)
--		ret = _omap3_noncore_dpll_bypass(clk);
--	else
--		ret = _omap3_noncore_dpll_lock(clk);
-+		return _omap3_noncore_dpll_bypass(clk);
- 
--	return ret;
-+	return _omap3_noncore_dpll_lock(clk);
- }
- 
- /**
-@@ -569,12 +556,10 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
- 	u16 freqsel = 0;
- 	int ret;
- 
--	if (!hw || !rate)
-+	if (!rate)
- 		return -EINVAL;
- 
- 	dd = clk->dpll_data;
--	if (!dd)
--		return -EINVAL;
- 
- 	if (clk_hw_get_parent(hw) != dd->clk_ref)
- 		return -EINVAL;
-@@ -614,22 +599,15 @@ int omap3_noncore_dpll_set_rate_and_parent(struct clk_hw *hw,
- 					   unsigned long parent_rate,
- 					   u8 index)
- {
--	int ret;
--
--	if (!hw || !rate)
--		return -EINVAL;
--
- 	/*
- 	 * clk-ref at index[0], in which case we only need to set rate,
- 	 * the parent will be changed automatically with the lock sequence.
- 	 * With clk-bypass case we only need to change parent.
- 	 */
- 	if (index)
--		ret = omap3_noncore_dpll_set_parent(hw, index);
--	else
--		ret = omap3_noncore_dpll_set_rate(hw, rate, parent_rate);
-+		return omap3_noncore_dpll_set_parent(hw, index);
- 
--	return ret;
-+	return omap3_noncore_dpll_set_rate(hw, rate, parent_rate);
- }
- 
- /* DPLL autoidle read/set code */
-@@ -647,7 +625,7 @@ static u32 omap3_dpll_autoidle_read(struct clk_hw_omap *clk)
- 	const struct dpll_data *dd;
- 	u32 v;
- 
--	if (!clk || !clk->dpll_data)
-+	if (!clk)
- 		return -EINVAL;
- 
- 	dd = clk->dpll_data;
-@@ -676,7 +654,7 @@ static void omap3_dpll_allow_idle(struct clk_hw_omap *clk)
- 	const struct dpll_data *dd;
- 	u32 v;
- 
--	if (!clk || !clk->dpll_data)
-+	if (!clk)
- 		return;
- 
- 	dd = clk->dpll_data;
-@@ -706,7 +684,7 @@ static void omap3_dpll_deny_idle(struct clk_hw_omap *clk)
- 	const struct dpll_data *dd;
- 	u32 v;
- 
--	if (!clk || !clk->dpll_data)
-+	if (!clk)
- 		return;
- 
- 	dd = clk->dpll_data;
-diff --git a/drivers/clk/ti/dpll44xx.c b/drivers/clk/ti/dpll44xx.c
-index d7a3f7ec8d77..5d048fd90036 100644
---- a/drivers/clk/ti/dpll44xx.c
-+++ b/drivers/clk/ti/dpll44xx.c
-@@ -120,9 +120,6 @@ unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
- 	unsigned long rate;
- 	struct dpll_data *dd;
- 
--	if (!clk || !clk->dpll_data)
--		return 0;
--
- 	dd = clk->dpll_data;
- 
- 	rate = omap2_get_dpll_rate(clk);
-@@ -155,9 +152,6 @@ long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
- 	struct dpll_data *dd;
- 	long r;
- 
--	if (!clk || !clk->dpll_data)
--		return -EINVAL;
--
- 	dd = clk->dpll_data;
- 
- 	dd->last_rounded_m4xen = 0;
-@@ -209,8 +203,6 @@ int omap4_dpll_regm4xen_determine_rate(struct clk_hw *hw,
- 		return -EINVAL;
- 
- 	dd = clk->dpll_data;
--	if (!dd)
--		return -EINVAL;
- 
- 	if (clk_hw_get_rate(dd->clk_bypass) == req->rate &&
- 	    (dd->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
--- 
-2.11.0
+Yeah both should be merged together. I'll make the change you suggested, add
+your Ack and merge myself.
 
+Thanks
+Kishon
