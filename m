@@ -1,49 +1,66 @@
-From: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Subject: Re: linux-next: manual merge of the usb-gadget tree with the usb tree
-Date: Wed, 18 Oct 2017 08:40:04 -0700
-Message-ID: <CAGXu5jJFTczR39wPX=B+6nWHfHUW12HxA_f6iRg41uNre6msww@mail.gmail.com>
-References: <20171018144912.qlc7vlnhdqmr5tdd@sirena.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171018144912.qlc7vlnhdqmr5tdd-7j8lgAiuQgnQXOPxS62xeg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Allen Pais <allen.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux-Next Mailing List <linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: libbattery was Re: [RFC PATCH 5/5] power: generic-adc-battery:
+ Add capacity handling
+Date: Wed, 18 Oct 2017 17:47:18 +0200
+Message-ID: <0C0901E1-23E8-4D04-B3A9-8314809A7A6B@goldelico.com>
+References: <1501620926-22669-1-git-send-email-marek.belisko@open-nandra.com>
+ <1501620926-22669-6-git-send-email-marek.belisko@open-nandra.com>
+ <20170829101147.debhadzyfrxhkrvt@earth> <20170908113231.GJ18365@amd>
+ <20171018122804.GA14376@amd>
+ <61BFA8AF-657A-4AD7-A7AC-3E5DC3B7E83D@goldelico.com>
+ <20171018132204.GD4394@atomide.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171018132204.GD4394@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: ivo.g.dimitrov.75@gmail.com, sakari.ailus@linux.intel.com, Marek Belisko <marek.belisko@open-nandra.com>, khilman@kernel.org, Marek Belisko <marek.belisko@gmail.com>, linux-pm@vger.kernel.org, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, martijn@brixit.nl, robh+dt@kernel.org, abcloriens@gmail.com, Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, clayton@craftyguy.net, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 18, 2017 at 7:49 AM, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> Hi Felipe,
->
-> Today's linux-next merge of the usb-gadget tree got a conflict in:
->
->   drivers/usb/phy/phy-isp1301-omap.c
->
-> between commit:
->
->   4c13fec1ba55595 ("usb: isp1301-omap: Convert timers to use timer_setup()")
->
-> from the usb tree and commit:
->
->   687f272c6b0e89d ("usb: phy: omap: use setup_timer() helper.")
->
-> from the usb-gadget tree.
->
-> I fixed it up with the USB version and can carry the fix as necessary. This
-> is now fixed as far as linux-next is concerned, but any non trivial
-> conflicts should be mentioned to your upstream maintainer when your tree
-> is submitted for merging.  You may also want to consider cooperating
-> with the maintainer of the conflicting tree to minimise any particularly
-> complex conflicts.
 
-FWIW, timer_setup() should be preferred over setup_timer().
+> Am 18.10.2017 um 15:22 schrieb Tony Lindgren <tony@atomide.com>:
+> 
+> * H. Nikolaus Schaller <hns@goldelico.com> [171018 05:49]:
+>>> Am 18.10.2017 um 14:28 schrieb Pavel Machek <pavel@ucw.cz>:
+>>> 
+>>> So I started something, it is at.
+>>> 
+>>> https://github.com/pavelmachek/libbattery
+>>> 
+>>> My battery on n900 is currently uncalibrated (and charging), still it
+>>> gets some kind of estimation:
+>>> 
+>>> Battery -1 %
+>>> Seconds -1
+>>> State 1
+>>> Voltage 3.88 V
+>>> Battery 63 %
+>>> 
+>>> Of course, there's a lot more work to be done.
+>> 
+>> Nice start but not a solution to our problem.
+>> 
+>> Our problem is that people simply expect that for example https://packages.debian.org/wheezy/xfce/xfce4-battery-plugin
+>> displays the battery percentage.
+> 
+> I think we could make things compatible with various battery apps by
+> having libbattery write back the capacity percentage and time remaining
+> to the kernel driver via sysfs or a dev entry. Then the kernel interface
+> can just display the data to whatever apps.
 
--Kees
+Hm. That would be quite difficult to understand and maintain code.
+Why not have the kernel driver do the simple calculations (they do
+not need float) and provide the standard /sys/class/power attribute?
 
--- 
-Kees Cook
-Pixel Security
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+BR,
+Nikolaus
