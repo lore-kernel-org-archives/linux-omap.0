@@ -1,49 +1,117 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: drm_kms_helper cycle detected build error in next
-Date: Tue, 17 Oct 2017 07:22:03 -0700
-Message-ID: <20171017142203.GZ4394@atomide.com>
-References: <20171013145818.GG4394@atomide.com>
- <20171013150935.GH4394@atomide.com>
- <66e0cbe7-5706-4981-e06d-ce85c779e120@ti.com>
- <CAPM=9tygNrNqmYncO0uyyz=TQy8XcBaGdjWXcEAWW129DNMqyA@mail.gmail.com>
- <20171016091649.zm5mlsa64qmf6n7k@phenom.ffwll.local>
- <20171016143523.GW4394@atomide.com>
- <20171017120753.is5attwq3p7mfsst@phenom.ffwll.local>
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: Re: n900 in next-20170901
+Date: Wed, 18 Oct 2017 17:29:28 +0900
+Message-ID: <20171018082927.GB27595@js1304-P5Q-DELUXE>
+References: <20170905233241.GA19231@js1304-P5Q-DELUXE>
+ <20170906133057.GH5024@atomide.com>
+ <20170907073038.GA2111@js1304-P5Q-DELUXE>
+ <20170907161650.GP5024@atomide.com>
+ <20170913075516.GA25036@js1304-P5Q-DELUXE>
+ <20170913163126.GS5024@atomide.com>
+ <20170915065608.GA8567@js1304-P5Q-DELUXE>
+ <20170921172811.GB4394@atomide.com>
+ <20170925080806.GA9837@js1304-P5Q-DELUXE>
+ <20170925145437.GG4394@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171017120753.is5attwq3p7mfsst@phenom.ffwll.local>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel <dri-devel@lists.freedesktop.org>
+In-Reply-To: <20170925145437.GG4394@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-KiBEYW5pZWwgVmV0dGVyIDxkYW5pZWxAZmZ3bGwuY2g+IFsxNzEwMTcgMDU6MDldOgo+IE9uIE1v
-biwgT2N0IDE2LCAyMDE3IGF0IDA3OjM1OjI0QU0gLTA3MDAsIFRvbnkgTGluZGdyZW4gd3JvdGU6
-Cj4gPiAKPiA+IE1lYW53aGlsZSwgY2FuIHlvdSBndXlzIHByb3ZpZGUgZmV3IG1vcmUgY2x1ZXMg
-d2hpY2ggcGF0Y2ggdG8gcGljawo+ID4gZm9yIHRoZSByZXN0IG9mIHVzPwo+ID4gCj4gPiBTb21l
-dGhpbmcgbGlrZSBwYXRjaCBzdWJqZWN0IGxpbmUsIGNvbW1pdCBpZCBpbiBkcm0tbWlzYyBvciBz
-b21ldGhpbmcKPiA+IGFsb25nIHRob3NlIGxpbmVzIHdvdWxkIGJlIG5pY2UuLgo+IAo+IEkgZ3Vl
-c3MgbGludXgtbmV4dCBzdGlsbCBub3QgeWV0IGJhY2sgdG8gdGhlIGRhaWx5IHVwZGF0ZSBzY2hl
-ZHVsZSwgdGhhdCdzCj4gd2h5IHlvdSBuZWVkIHRoaXM/IEl0J3MgYmVlbiBpbiB0cmVlcyBzaW5j
-ZSBsYXN0IHdlZWssIGFuZCBub3cgYWxzbyBpbgo+IGRybS1uZXh0IC4uLiBVc3VhbGx5IG5vIG9u
-ZSBldmVyIGNhcmVzIGFib3V0IHRoZSBjb21taXQgaWYgd2UgZml4IGl0IHJpZ2h0Cj4gYXdheS4K
-PiAKPiBBbnl3YXkKPiAKPiBjb21taXQgNTEyNzIxYTE0YTJhOTRiNDhjYTA4NjNkNDhmOTgyOTky
-MmE4MTZiOAo+IEF1dGhvcjogTWFhcnRlbiBMYW5raG9yc3QgPG1hYXJ0ZW4ubGFua2hvcnN0QGxp
-bnV4LmludGVsLmNvbT4KPiBEYXRlOiAgIEZyaSBPY3QgMTMgMTY6MDg6NTMgMjAxNyArMDIwMAo+
-IAo+ICAgICBkcm0vZHJtX29mOiBNb3ZlIGRybV9vZl9wYW5lbF9icmlkZ2VfcmVtb3ZlX2Z1bmN0
-aW9uIGludG8gaGVhZGVyLgoKT0sgdGhhbmtzIGxvb2tzIGxpa2UgTGludXggbmV4dCBpcyBidWls
-ZGluZyBmb3IgbWUgYWdhaW4gbm93LgoKUmVnYXJkcywKClRvbnkKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
-ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Mon, Sep 25, 2017 at 07:54:37AM -0700, Tony Lindgren wrote:
+> * Joonsoo Kim <iamjoonsoo.kim@lge.com> [170925 01:06]:
+> > On Thu, Sep 21, 2017 at 10:28:11AM -0700, Tony Lindgren wrote:
+> > > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [170914 23:55]:
+> > > > On Wed, Sep 13, 2017 at 09:31:27AM -0700, Tony Lindgren wrote:
+> > > > > Yes I disabled CONFIG_HIGHMEM and n900 boots. To disable it,
+> > > > > you need to remove it from arch/arm/mach-omap2/Kconfig that
+> > > > > selects it if ARCH_OMAP2PLUS_TYPICAL is selected.
+> > > > 
+> > > > Okay. Problem would be related to address traslation. I'd like to
+> > > > check address traslation more. Could you apply following patch and
+> > > > test it? And, please send me the dmesg log and your kernel config.
+> > > > Please test this with CONFIG_DEBUG_VIRTUAL = n and CONFIG_CMA_DEBUG=y and
+> > > > CONFIG_HIGHMEM=y and with kernel bootparam 'ignore_loglevel'.
+> > > > 
+> > > > It would be really appreciate if you send me two logs for before/after
+> > > > commit 9caf25f996e8.
+> > > 
+> > > Sorry for the delays, I finally got around testing this for you.
+> > 
+> > No problem! I really appreciate your help!
+> > 
+> > > Compile with your patch failed for modules with __virt_to_phys_debug
+> > > being undefined so I added EXPORT_SYMBOL there. I also enabled DEBUG_LL
+> > > and EARLYPRINTK to get output.
+> > > 
+> > > Below is dmesg output for 9caf25f996e8 + your patch. I'll send you
+> > > the full logs separately.
+> > 
+> > Hmm...there is only one caller for the CMA memory, that is, atomic_pool_init().
+> > Could you test one more time with 9caf25f996e8 + following patch?  I'd like to
+> > know the actual user for the CMA memory.
+> 
+> Hmm not getting any stack with that patch after manually applying
+> it because of tabs to spaces mangling.
+
+Sorry for long delay.
+
+Seems like your system doesn't use any CMA memory by CMA API.
+
+Could you test one more thing?
+This one is to disable CMA memory allocation from the page allocator.
+With this, we can be sure that CMA memory isn't used at all.
+
+If there is no difference with this patch, that is, the system down,
+I think that some initialization step is broken. In this case, please
+test following patch.
+
+I make a branch in github that all these patch is applied.
+Feel free to use it.
+
+https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
+
+Thanks.
+
+--------------->8----------------------
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 6dbc49e..1e48e67 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1861,7 +1861,7 @@ static int fallbacks[MIGRATE_TYPES][4] = {
+ static struct page *__rmqueue_cma_fallback(struct zone *zone,
+                                        unsigned int order)
+ {
+-       return __rmqueue_smallest(zone, order, MIGRATE_CMA);
++       return NULL;
+ }
+ #else
+ static inline struct page *__rmqueue_cma_fallback(struct zone *zone,
+
+----------------->8----------------------
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index c68f34a..c72b4c3 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -497,6 +497,9 @@ void __init dma_contiguous_remap(void)
+                map.length = end - start;
+                map.type = MT_MEMORY_DMA_READY;
+ 
++               dmac_flush_range(map.virtual, map.virtual + map.length);
++               outer_flush_range(start, end);
++
+                /*
+                 * Clear previous low-memory mapping to ensure that the
+                 * TLB does not see any conflicting entries, then flush
+@@ -510,6 +513,7 @@ void __init dma_contiguous_remap(void)
+                     addr += PMD_SIZE)
+                        pmd_clear(pmd_off_k(addr));
+ 
++               flush_cache_all();
+                flush_tlb_kernel_range(__phys_to_virt(start),
+                                       __phys_to_virt(end));
+ 
