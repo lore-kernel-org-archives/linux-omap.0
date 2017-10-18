@@ -1,57 +1,71 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 1/2] PCI: dwc: dra7xx: Create functional dependency
- between PCIe and PHY
-Date: Wed, 18 Oct 2017 17:42:05 +0530
-Message-ID: <2375dfac-b68c-4a94-89ed-fb850ba5579f@ti.com>
-References: <20171009090338.26033-1-kishon@ti.com>
- <20171009090338.26033-2-kishon@ti.com>
- <f258c2f0-11a2-60ac-3919-dcc0badfa870@ti.com>
- <ac5b3f42-19a1-3f8d-3bb6-37d63c3574de@ti.com>
- <9dce2e30-a245-460d-a808-a733eaf7ffec@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: libbattery was Re: [RFC PATCH 5/5] power: generic-adc-battery:
+ Add capacity handling
+Date: Wed, 18 Oct 2017 14:28:04 +0200
+Message-ID: <20171018122804.GA14376@amd>
+References: <1501620926-22669-1-git-send-email-marek.belisko@open-nandra.com>
+ <1501620926-22669-6-git-send-email-marek.belisko@open-nandra.com>
+ <20170829101147.debhadzyfrxhkrvt@earth>
+ <20170908113231.GJ18365@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="BOKacYhQ+x31HxR3"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9dce2e30-a245-460d-a808-a733eaf7ffec@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20170908113231.GJ18365@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
+Cc: Marek Belisko <marek.belisko@open-nandra.com>, robh+dt@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, hns@goldelico.com, Marek Belisko <marek.belisko@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-On Tuesday 10 October 2017 01:29 PM, Roger Quadros wrote:
-> On 10/10/17 10:42, Kishon Vijay Abraham I wrote:
->> Roger,
->>
->> On Tuesday 10 October 2017 12:49 PM, Roger Quadros wrote:
->>> On 09/10/17 12:03, Kishon Vijay Abraham I wrote:
->>>> PCI core access configuration space registers in resume_noirq callbacks.
->>>> In the case of dra7xx, PIPE3 PHY connected to PCIe controller has to be
->>>> enabled before accessing configuration space registers. Since
->>>> PIPE3 PHY is enabled by only configuring control module registers, no
->>>> aborts has been observed so far (though during noirq stage, interface
->>>> clock of PIPE3 PHY is not enabled).
->>>>
->>>> With new TRM updates, PIPE3 PHY has to be initialized (PIPE3 PHY
->>>> registers has to be accessed) as well which requires the interface
->>>> clock of PIPE3 PHY to be enabled. The interface clock of PIPE3 PHY is
->>>> derived from OCP2SCP and hence PCIe PHY is modeled as a child of
->>>> OCP2SCP. Since pm_runtime is not enabled during noirq stage,
->>>> pm_runtime_get_sync done in phy_init doesn't enable
->>>> OCP2SCP clocks resulting in abort when PIPE3 PHY registers are
->>>> accessed.
->>>
->>> This could be the case not only with PCIe but even with USB and SATA?
->>
->> right, if USB/SATA driver has no_irq callbacks then the same issue might occur.
-> 
-> OK. Is this something that we should document in Documentation/phy.txt?
+--BOKacYhQ+x31HxR3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yeah it could be but the dependency is not required for a lot of phy consumer
-drivers.
-Do you think it makes sense to create functional dependency between phy and
-it's consumers in phy_get?
+Hi!
 
-Thanks
-Kishon
+> > Without patch description: See Last Question in
+> >=20
+> > Documentation/power/power_supply_class.txt
+>=20
+> ...should be done in libbattery, yet to be written. :-).
+>=20
+> Do you have specific guidance what you'd like to see in libbattery?
+
+So I started something, it is at.
+
+https://github.com/pavelmachek/libbattery
+
+My battery on n900 is currently uncalibrated (and charging), still it
+gets some kind of estimation:
+
+Battery -1 %
+Seconds -1
+State 1
+Voltage 3.88 V
+Battery 63 %
+
+Of course, there's a lot more work to be done.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--BOKacYhQ+x31HxR3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlnnSNQACgkQMOfwapXb+vIvsQCfdBsdDQfqmnJUL4FhqOfZYDNe
+hiEAmQHrDB2kCeGo4a2VyguJDLSK+vDM
+=4bLx
+-----END PGP SIGNATURE-----
+
+--BOKacYhQ+x31HxR3--
