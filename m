@@ -1,82 +1,59 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: libbattery was Re: [RFC PATCH 5/5] power: generic-adc-battery:
- Add capacity handling
-Date: Wed, 18 Oct 2017 15:56:56 +0200
-Message-ID: <20171018135656.GA26432@amd>
-References: <1501620926-22669-1-git-send-email-marek.belisko@open-nandra.com>
- <1501620926-22669-6-git-send-email-marek.belisko@open-nandra.com>
- <20170829101147.debhadzyfrxhkrvt@earth>
- <20170908113231.GJ18365@amd>
- <20171018122804.GA14376@amd>
- <61BFA8AF-657A-4AD7-A7AC-3E5DC3B7E83D@goldelico.com>
- <20171018132204.GD4394@atomide.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: linux-next: manual merge of the usb-gadget tree with the usb tree
+Date: Wed, 18 Oct 2017 15:49:12 +0100
+Message-ID: <20171018144912.qlc7vlnhdqmr5tdd@sirena.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="o5d7v5p6ug5xmult"
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171018132204.GD4394@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "H. Nikolaus Schaller" <hns@goldelico.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Marek Belisko <marek.belisko@open-nandra.com>, robh+dt@kernel.org, linux-pm@vger.kernel.org, Marek Belisko <marek.belisko@gmail.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Felipe Balbi <balbi@kernel.org>, Kees Cook <keescook@chromium.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Allen Pais <allen.lkml@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---lrZ03NoBR/3+SXJZ
+--o5d7v5p6ug5xmult
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed 2017-10-18 06:22:04, Tony Lindgren wrote:
-> * H. Nikolaus Schaller <hns@goldelico.com> [171018 05:49]:
-> > > Am 18.10.2017 um 14:28 schrieb Pavel Machek <pavel@ucw.cz>:
-> > >=20
-> > > So I started something, it is at.
-> > >=20
-> > > https://github.com/pavelmachek/libbattery
-> > >=20
-> > > My battery on n900 is currently uncalibrated (and charging), still it
-> > > gets some kind of estimation:
-> > >=20
-> > > Battery -1 %
-> > > Seconds -1
-> > > State 1
-> > > Voltage 3.88 V
-> > > Battery 63 %
-> > >=20
-> > > Of course, there's a lot more work to be done.
-> >=20
-> > Nice start but not a solution to our problem.
-> >=20
-> > Our problem is that people simply expect that for example https://packa=
-ges.debian.org/wheezy/xfce/xfce4-battery-plugin
-> > displays the battery percentage.
->=20
-> I think we could make things compatible with various battery apps by
-> having libbattery write back the capacity percentage and time remaining
-> to the kernel driver via sysfs or a dev entry. Then the kernel interface
-> can just display the data to whatever apps.
+Hi Felipe,
 
-Hmm. This could be as simple as providing symlink from
-/sys/class/power/userland-battery to some place writable by
-userspace...
+Today's linux-next merge of the usb-gadget tree got a conflict in:
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+  drivers/usb/phy/phy-isp1301-omap.c
 
---lrZ03NoBR/3+SXJZ
+between commit:
+
+  4c13fec1ba55595 ("usb: isp1301-omap: Convert timers to use timer_setup()")
+
+=66rom the usb tree and commit:
+
+  687f272c6b0e89d ("usb: phy: omap: use setup_timer() helper.")
+
+=66rom the usb-gadget tree.
+
+I fixed it up with the USB version and can carry the fix as necessary. This
+is now fixed as far as linux-next is concerned, but any non trivial
+conflicts should be mentioned to your upstream maintainer when your tree
+is submitted for merging.  You may also want to consider cooperating
+with the maintainer of the conflicting tree to minimise any particularly
+complex conflicts.
+
+--o5d7v5p6ug5xmult
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iEYEARECAAYFAlnnXagACgkQMOfwapXb+vK3AACeOhQsqDTlycUnAeskZZ97rsPp
-390AoLKgJoZzWG7sYl6c+fJuC3pldRuD
-=Ks5W
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlnnaecACgkQJNaLcl1U
+h9BCcQf/WCV3dUsTxQDAv08RrOAkfGjHKDPDaj2qBwuurvZkG1AlNWTGq0DArw3a
+g5rKFGxOSp4gTUvTmU2Sj5QY8QoPYV5XyERrxTmJlHVp0d4gZytB7rsrs2POmBfs
+ooiPKncoYgScbs3GvoVlTTAaVBlxwDWeXcOUH07Xph4UplNoL3Or/k8LytFpJ26M
+0b0Zy1bT58GiHka+ZpN/xH4SosLT75UF3l+L4H1O8Ro3IawORkadCH70MLmy45zN
+DB3iiL540MsIGN3xiwKuOJWsODO64u+piwesTa01PhOwDl6HEnjSuRNpkqDMojyh
+5bnh76l61e9+DiYlSOKkem6l0idalQ==
+=4yl8
 -----END PGP SIGNATURE-----
 
---lrZ03NoBR/3+SXJZ--
+--o5d7v5p6ug5xmult--
