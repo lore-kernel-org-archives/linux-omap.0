@@ -1,57 +1,67 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] thermal: ti-soc-thermal: Fix
- ti_thermal_unregister_cpu_cooling NULL pointer on unload
-Date: Wed, 18 Oct 2017 09:19:49 +0530
-Message-ID: <63050967-7665-b655-8c9e-5e72b19c2cbe@ti.com>
-References: <20171016210714.16080-1-tony@atomide.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH] input: touchscreen: ti_am335x_tsc: Fix incorrect step
+ config for 5 wire touchscreen
+Date: Wed, 18 Oct 2017 09:28:01 +0530
+Message-ID: <b810fe2a-8cbd-b440-68c8-1d0dadd97725@ti.com>
+References: <20170919062906.501-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20171016210714.16080-1-tony@atomide.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170919062906.501-1-vigneshr@ti.com>
 Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Eduardo Valentin <edubezval@gmail.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Tuesday 17 October 2017 02:37 AM, Tony Lindgren wrote:
-> While debugging some PM issues and trying to remove all the loaded modules, I ran
-> across the following when unloading ti-soc-thermal:
+On Tuesday 19 September 2017 11:59 AM, Vignesh R wrote:
+> From: Jeff Lance <j-lance1@ti.com>
 > 
-> Unable to handle kernel NULL pointer dereference at virtual address 000000b4
-> ...
-> [<c08db340>] (kobject_put) from [<bf28954c>] (ti_thermal_unregister_cpu_cooling+0x20/0x28 [ti_soc_thermal])
-> [<bf28954c>] (ti_thermal_unregister_cpu_cooling [ti_soc_thermal]) from [<bf287c88>] (ti_bandgap_remove+0x3c/0x104 [ti_soc_thermal])
-> [<bf287c88>] (ti_bandgap_remove [ti_soc_thermal]) from [<c0610d48>] (platform_drv_remove+0x24/0x3c)
-> [<c0610d48>] (platform_drv_remove) from [<c060f114>] (device_release_driver_internal+0x160/0x208)
-> [<c060f114>] (device_release_driver_internal) from [<c060f200>] (driver_detach+0x38/0x6c)
-> [<c060f200>] (driver_detach) from [<c060e2d4>] (bus_remove_driver+0x4c/0xa0)
-> [<c060e2d4>] (bus_remove_driver) from [<c01f2370>] (SyS_delete_module+0x168/0x238)
-> [<c01f2370>] (SyS_delete_module) from [<c0108240>] (ret_fast_syscall+0x0/0x28)
-
-Acked-by: Keerthy <j-keerthy@ti.com>
-
+> Step config setting for 5 wire touchscreen is incorrect for Y coordinates.
+> It was broken while we moved to DT. If you look close at the offending
+> commit bb76dc09ddfc ("input: ti_am33x_tsc: Order of TSC wires, made
+> configurable"), the change was:
 > 
-> Cc: Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> - STEPCONFIG_XNP | STEPCONFIG_YPN;
+> + ts_dev->bit_xn | ts_dev->bit_yp;
+> 
+> while bit_xn = STEPCONFIG_XNN and bit_yp = STEPCONFIG_YNN. Not quite the
+> same.
+> 
+> Fixes: bb76dc09ddfc ("input: ti_am33x_tsc: Order of TSC wires, made configurable")
+> Signed-off-by: Jeff Lance <j-lance1@ti.com>
+> [vigneshr@ti.com: Rebase to v4.14-rc1]
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
 > ---
->  drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> --- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> +++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> @@ -278,7 +278,8 @@ int ti_thermal_unregister_cpu_cooling(struct ti_bandgap *bgp, int id)
->  
->  	if (data) {
->  		cpufreq_cooling_unregister(data->cool_dev);
-> -		cpufreq_cpu_put(data->policy);
-> +		if (data->policy)
-> +			cpufreq_cpu_put(data->policy);
->  	}
->  
->  	return 0;
+
+Gentle ping...
+
+
+> Tested on AM335x EVM with 5 wire tsc module. Also sanity tested
+> on a 4 wire tsc as well.
 > 
+>  drivers/input/touchscreen/ti_am335x_tsc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+> index 7953381d939a..f1043ae71dcc 100644
+> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> @@ -161,7 +161,7 @@ static void titsc_step_config(struct titsc *ts_dev)
+>  		break;
+>  	case 5:
+>  		config |= ts_dev->bit_xp | STEPCONFIG_INP_AN4 |
+> -				ts_dev->bit_xn | ts_dev->bit_yp;
+> +				STEPCONFIG_XNP | STEPCONFIG_YPN;
+>  		break;
+>  	case 8:
+>  		config |= ts_dev->bit_yp | STEPCONFIG_INP(ts_dev->inp_xp);
+> 
+
+-- 
+Regards
+Vignesh
