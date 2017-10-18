@@ -1,57 +1,57 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 0/2] phy: ti-pipe3: Update PCIe PHY settings
-Date: Wed, 18 Oct 2017 17:38:15 +0530
-Message-ID: <1f583d30-fdf4-e104-271c-8a36704cbaf2@ti.com>
+Subject: Re: [PATCH 1/2] PCI: dwc: dra7xx: Create functional dependency
+ between PCIe and PHY
+Date: Wed, 18 Oct 2017 17:42:05 +0530
+Message-ID: <2375dfac-b68c-4a94-89ed-fb850ba5579f@ti.com>
 References: <20171009090338.26033-1-kishon@ti.com>
- <20171017193129.GM5641@bhelgaas-glaptop.roam.corp.google.com>
+ <20171009090338.26033-2-kishon@ti.com>
+ <f258c2f0-11a2-60ac-3919-dcc0badfa870@ti.com>
+ <ac5b3f42-19a1-3f8d-3bb6-37d63c3574de@ti.com>
+ <9dce2e30-a245-460d-a808-a733eaf7ffec@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171017193129.GM5641@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <9dce2e30-a245-460d-a808-a733eaf7ffec@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+To: Roger Quadros <rogerq@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+On Tuesday 10 October 2017 01:29 PM, Roger Quadros wrote:
+> On 10/10/17 10:42, Kishon Vijay Abraham I wrote:
+>> Roger,
+>>
+>> On Tuesday 10 October 2017 12:49 PM, Roger Quadros wrote:
+>>> On 09/10/17 12:03, Kishon Vijay Abraham I wrote:
+>>>> PCI core access configuration space registers in resume_noirq callbacks.
+>>>> In the case of dra7xx, PIPE3 PHY connected to PCIe controller has to be
+>>>> enabled before accessing configuration space registers. Since
+>>>> PIPE3 PHY is enabled by only configuring control module registers, no
+>>>> aborts has been observed so far (though during noirq stage, interface
+>>>> clock of PIPE3 PHY is not enabled).
+>>>>
+>>>> With new TRM updates, PIPE3 PHY has to be initialized (PIPE3 PHY
+>>>> registers has to be accessed) as well which requires the interface
+>>>> clock of PIPE3 PHY to be enabled. The interface clock of PIPE3 PHY is
+>>>> derived from OCP2SCP and hence PCIe PHY is modeled as a child of
+>>>> OCP2SCP. Since pm_runtime is not enabled during noirq stage,
+>>>> pm_runtime_get_sync done in phy_init doesn't enable
+>>>> OCP2SCP clocks resulting in abort when PIPE3 PHY registers are
+>>>> accessed.
+>>>
+>>> This could be the case not only with PCIe but even with USB and SATA?
+>>
+>> right, if USB/SATA driver has no_irq callbacks then the same issue might occur.
+> 
+> OK. Is this something that we should document in Documentation/phy.txt?
 
-On Wednesday 18 October 2017 01:01 AM, Bjorn Helgaas wrote:
-> On Mon, Oct 09, 2017 at 02:33:36PM +0530, Kishon Vijay Abraham I wrote:
->> This was supposed to only update ti-pipe3 PHY registers. However because
->> of the way the ti-pipe3 PHY, OCP2SCP and PCIe controller are connected
->> in dra7xx where
->>
->> PCIe controller --------------> ti-pipe3 PHY --------------> OCP2SCP
->> 		  depends on		       depends on
->>
->> updating ti-pipe3 PHY registers results in an abort.
->>
->> Though the dependency between ti-pipe3 PHY and OCP2SCP is created
->> (OCP2SCP is parent of ti-pipe3 PHY), and enabling ti-pipe3 PHY clocks
->> should in turn enable OCP2SCP (with the help of pm_runtime framework),
->> this doesn't work in no_irq stage since pm_runtime is disabled during
->> no_irq stage. Since pci-dra7xx enables/initializes ti-pipe3 phy in
->> no_irq stage, OCP2SCP is not enabled resulting in an abort with ti-pipe3
->> PHY registers are accessed.
->>
->> In order to solve this a functional dependency is created between
->> PCIe and ti-pipe3 PHY so that PCIe is suspended before PHY/OCP2SCP
->> and resumed after PCIe PHY/OCP2SCP
->>
->> Kishon Vijay Abraham I (2):
->>   PCI: dwc: dra7xx: Create functional dependency between PCIe and PHY
-> 
-> s/PCI: dwc: dra7xx: Create functional dependency between PCIe and PHY/
->   PCI: dra7xx: Create functional dependency between PCIe and PHY/
-> 
-> Should these be merged together?  If it makes sense for you to merge them
-> together, here's my ack for the PCI piece:
-> 
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-
-Yeah both should be merged together. I'll make the change you suggested, add
-your Ack and merge myself.
+Yeah it could be but the dependency is not required for a lot of phy consumer
+drivers.
+Do you think it makes sense to create functional dependency between phy and
+it's consumers in phy_get?
 
 Thanks
 Kishon
