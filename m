@@ -1,79 +1,52 @@
-From: Rob Herring <robh@kernel.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [Patch 4/6] dt-bindings: media: ti-vpe: Document VPE driver
-Date: Thu, 19 Oct 2017 16:06:10 -0500
-Message-ID: <CAL_Jsq+jy-JN=ppfkyexFqJsbQVw3UGdNrNBVUvmGPHBdoLGkg@mail.gmail.com>
-References: <20171012192719.15193-1-bparrot@ti.com> <20171012192719.15193-5-bparrot@ti.com>
- <20171017210051.6ap3yg7b7viav6cy@rob-hp-laptop> <20171018130227.GO25400@ti.com>
+Date: Thu, 19 Oct 2017 14:20:32 -0700
+Message-ID: <20171019212031.GI4394@atomide.com>
+References: <20171012192719.15193-1-bparrot@ti.com>
+ <20171012192719.15193-5-bparrot@ti.com>
+ <20171017210051.6ap3yg7b7viav6cy@rob-hp-laptop>
+ <20171018130227.GO25400@ti.com>
+ <CAL_Jsq+jy-JN=ppfkyexFqJsbQVw3UGdNrNBVUvmGPHBdoLGkg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171018130227.GO25400@ti.com>
+Content-Disposition: inline
+In-Reply-To: <CAL_Jsq+jy-JN=ppfkyexFqJsbQVw3UGdNrNBVUvmGPHBdoLGkg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: Rob Herring <robh@kernel.org>
+Cc: Benoit Parrot <bparrot@ti.com>, Tero Kristo <t-kristo@ti.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 18, 2017 at 8:02 AM, Benoit Parrot <bparrot@ti.com> wrote:
-> Rob Herring <robh@kernel.org> wrote on Tue [2017-Oct-17 16:00:51 -0500]:
->> On Thu, Oct 12, 2017 at 02:27:17PM -0500, Benoit Parrot wrote:
->> > Device Tree bindings for the Video Processing Engine (VPE) driver.
->> >
->> > Signed-off-by: Benoit Parrot <bparrot@ti.com>
->> > ---
->> >  Documentation/devicetree/bindings/media/ti-vpe.txt | 41 ++++++++++++++++++++++
->> >  1 file changed, 41 insertions(+)
->> >  create mode 100644 Documentation/devicetree/bindings/media/ti-vpe.txt
->> >
->> > diff --git a/Documentation/devicetree/bindings/media/ti-vpe.txt b/Documentation/devicetree/bindings/media/ti-vpe.txt
->> > new file mode 100644
->> > index 000000000000..c2ef93d08417
->> > --- /dev/null
->> > +++ b/Documentation/devicetree/bindings/media/ti-vpe.txt
->> > @@ -0,0 +1,41 @@
->> > +Texas Instruments DRA7x VIDEO PROCESSING ENGINE (VPE)
->> > +------------------------------------------------------
->> > +
->> > +The Video Processing Engine (VPE) is a key component for image post
->> > +processing applications. VPE consist of a single memory to memory
->> > +path which can perform chroma up/down sampling, deinterlacing,
->> > +scaling and color space conversion.
->> > +
->> > +Required properties:
->> > +- compatible: must be "ti,vpe"
->>
->> Needs SoC specific compatibles.
->
-> This particular I/P is present on all DRA7x family of devices
-> so would "ti,dra7-vpe" be acceptable?
+* Rob Herring <robh@kernel.org> [171019 14:07]:
+> On Wed, Oct 18, 2017 at 8:02 AM, Benoit Parrot <bparrot@ti.com> wrote:
+> >> > +Example:
+> >> > +   vpe {
+> >> > +           compatible = "ti,vpe";
+> >> > +           ti,hwmods = "vpe";
+> >> > +           clocks = <&dpll_core_h23x2_ck>;
+> >> > +           clock-names = "fck";
+> >> > +           reg =   <0x489d0000 0x120>,
+> >> > +                   <0x489d0300 0x20>,
+> >> > +                   <0x489d0400 0x20>,
+> >> > +                   <0x489d0500 0x20>,
+> >> > +                   <0x489d0600 0x3c>,
+> >> > +                   <0x489d0700 0x80>,
+> >>
+> >> Is there other stuff between these regions?
+> >
+> > No, they listed separately because each sub-region/module is
+> > individually mapped and accessed using a starting 0 offset.
+> 
+> So you are going to use 48KB of virtual memory to map 2KB of
+> registers? Because each ioremap uses 8KB (1 page plus 1 guard page)
+> last time i looked (which has been a while).
+> 
+> But it's your platform.
 
-Better, but it's proven not to be in other cases IIRC. I'll leave it
-to TI maintainers to decide.
+We should have cached regions for all interconnects so this should
+not be a problem. Worth checking that the areas are listed in
+dra7xx_io_desc[] and for other SoCs too to avoid this issue.
 
->> > +- reg:     physical base address and length of the registers set for the 8
->> > +   memory regions required;
->> > +- reg-names: name associated with the memory regions described is <reg>;
->> > +- interrupts: should contain IRQ line for VPE;
->> > +
->> > +Example:
->> > +   vpe {
->> > +           compatible = "ti,vpe";
->> > +           ti,hwmods = "vpe";
->> > +           clocks = <&dpll_core_h23x2_ck>;
->> > +           clock-names = "fck";
->> > +           reg =   <0x489d0000 0x120>,
->> > +                   <0x489d0300 0x20>,
->> > +                   <0x489d0400 0x20>,
->> > +                   <0x489d0500 0x20>,
->> > +                   <0x489d0600 0x3c>,
->> > +                   <0x489d0700 0x80>,
->>
->> Is there other stuff between these regions?
->
-> No, they listed separately because each sub-region/module is
-> individually mapped and accessed using a starting 0 offset.
+Regards,
 
-So you are going to use 48KB of virtual memory to map 2KB of
-registers? Because each ioremap uses 8KB (1 page plus 1 guard page)
-last time i looked (which has been a while).
-
-But it's your platform.
+Tony
