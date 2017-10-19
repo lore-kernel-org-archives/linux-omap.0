@@ -1,14 +1,12 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/2] more soc changes for omaps for v4.15 merge window
-Date: Thu, 19 Oct 2017 14:59:31 -0700
-Message-ID: <pull-1508450284-272943@atomide.com-2>
-References: <pull-1508450284-272943@atomide.com>
+Subject: [GIT PULL 1/2] non-urgent device tree fixes for omaps for v4.15 merge
+ window
+Date: Thu, 19 Oct 2017 14:59:30 -0700
+Message-ID: <pull-1508450284-272943@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1508450284-272943@atomide.com>
-In-Reply-To: <pull-1508450284-272943@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,80 +22,63 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit f09de60e0ae3440a139b516d579d866890ff3101:
+The following changes since commit 2bd6bf03f4c1c59381d62c61d03f6cc3fe71f66e:
 
-  Merge branch 'omap-for-v4.15/fixes-dt' into omap-for-v4.15/ti-sysc (2017-10-10 14:19:47 -0700)
+  Linux 4.14-rc1 (2017-09-16 15:47:51 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.15/ti-sysc-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.15/fixes-dt-signed
 
-for you to fetch changes up to 684be5a48f4950cb8823b4c4b935515a75615498:
+for you to fetch changes up to 1ff516a4bacf146a261b66d89892046078dba86c:
 
-  bus: ti-sysc: Fix unbalanced pm_runtime_enable by adding remove (2017-10-13 10:48:40 -0700)
-
-----------------------------------------------------------------
-Drop omap legacy platform data for IRQ, DMA and IO resources. With the
-dts files fixed up to contain the necessary data for basic resources, we
-can drop the related platform data.
-
-Note that this branch depends on the "omap-for-v4.15/fixes-dt-signed"
-branch and the patches with dependencies are based on a merge with that
-branch.
-
-These patches first ensure things keep working for the legacy "ti,hwmods"
-property when we start making it optional, then adds a minimal TI sysc
-interconnect target device driver to handle the new generic "ti,sysc"
-compatible property. And then we can finally drop the legacy platform
-data for IRQ, DMA and IO resources as seen in the diffstats.
+  ARM: dts: Fix typo for omap4 mcasp rx path (2017-10-13 09:43:22 -0700)
 
 ----------------------------------------------------------------
-Arnd Bergmann (1):
-      bus: ti-sysc: mark PM functions as __maybe_unused
+Non-urgent device tree fixes for omaps that can all wait for v4.15
+merge window.
 
-Tony Lindgren (9):
-      ARM: OMAP2+: Parse module IO range from dts for legacy "ti,hwmods" support
-      ARM: OMAP2+: Populate legacy resources for dma and smartreflex
-      bus: ti-sysc: Add minimal TI sysc interconnect target driver
-      ARM: OMAP3: Remove legacy IRQ for PRM
-      ARM: OMAP4: Remove legacy IRQ for PRM
-      ARM: OMAP2+: Drop omap_hwmod_irq_info
-      ARM: OMAP2+: Drop omap_hwmod_dma_info
-      ARM: OMAP2+: Drop legacy struct omap_hwmod_addr_space
-      bus: ti-sysc: Fix unbalanced pm_runtime_enable by adding remove
+Turns out that we have many devices working just because we have
+the legacy platform data still around. This is mostly an issue
+for omap4, other SoCs just have minimal fixes needed.
 
-Wei Yongjun (1):
-      ARM: OMAP2+: omap_device: fix error return code in omap_device_copy_resources()
+As many of the missing device tree nodes and properties are for
+devices that have no drivers in the mainline kernel, such as
+slimbus, iss, mcasp, aess, fdif and gpu, we might as well start
+using the new "ti,sysc" interconnect target module binding for
+them so we can get the devices with no child device drivers idled.
 
- arch/arm/mach-omap2/Kconfig                        |   1 +
- arch/arm/mach-omap2/Makefile                       |   3 -
- arch/arm/mach-omap2/common.h                       |   1 -
- arch/arm/mach-omap2/omap4-common.c                 |  24 -
- arch/arm/mach-omap2/omap_device.c                  | 294 ++++-------
- arch/arm/mach-omap2/omap_device.h                  |   4 -
- arch/arm/mach-omap2/omap_hwmod.c                   | 520 +++---------------
- arch/arm/mach-omap2/omap_hwmod.h                   |  67 +--
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   2 -
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   2 -
- .../omap_hwmod_2xxx_3xxx_interconnect_data.c       |  27 -
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |  15 -
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   6 -
- .../omap_hwmod_33xx_43xx_interconnect_data.c       | 100 ----
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  39 --
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  43 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         | 548 -------------------
- arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  20 -
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  57 --
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  44 --
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |  41 --
- arch/arm/mach-omap2/prcm-common.h                  |   1 -
- arch/arm/mach-omap2/prm.h                          |   2 -
- arch/arm/mach-omap2/prm3xxx.c                      |  14 +-
- arch/arm/mach-omap2/prm44xx.c                      |  21 +-
- arch/arm/mach-omap2/prm_common.c                   |  12 +-
- drivers/bus/Kconfig                                |   7 +
- drivers/bus/Makefile                               |   1 +
- drivers/bus/ti-sysc.c                              | 583 +++++++++++++++++++++
- 29 files changed, 806 insertions(+), 1693 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c
- create mode 100644 drivers/bus/ti-sysc.c
+This also makes it possible to drop unnecessary platform data
+in later patches.
+
+----------------------------------------------------------------
+Tony Lindgren (15):
+      ARM: dts: Add missing dma hwmods property for omap3
+      ARM: dts: Configure pmu without interrupt for omap4430
+      ARM: dts: Add missing properties for omap4 control modules
+      ARM: dts: Add missing hwmods property for omap4 dma
+      ARM: dts: Add missing smartreflex node and binding for omap4
+      ARM: dts: Add missing onewire node for omap4
+      ARM: dts: Add missing hsi node for omap4
+      ARM: dts: Add missing wdt3 node for omap4
+      ARM: dts: Add missing dma hwmod property for omap5
+      ARM: dts: Add missing hwmod related nodes for am33xx
+      ARM: dts: Add missing hwmod related properties for dra7
+      dt-bindings: bus: Minimal TI sysc interconnect target module binding
+      ARM: dts: Add nodes for missing omap4 interconnect target modules
+      ARM: dts: Configure SmartReflex only to idle the interconnect target module
+      ARM: dts: Fix typo for omap4 mcasp rx path
+
+ .../devicetree/bindings/arm/omap/ctrl.txt          |   2 +
+ Documentation/devicetree/bindings/bus/ti-sysc.txt  |  93 ++++++++
+ Documentation/devicetree/bindings/hsi/omap-ssi.txt |  13 +-
+ .../bindings/memory-controllers/ti/emif.txt        |   6 +-
+ .../devicetree/bindings/power/ti-smartreflex.txt   |  47 ++++
+ arch/arm/boot/dts/am33xx.dtsi                      |  10 +-
+ arch/arm/boot/dts/dra7.dtsi                        |  34 +++
+ arch/arm/boot/dts/omap3.dtsi                       |   1 +
+ arch/arm/boot/dts/omap4.dtsi                       | 256 ++++++++++++++++++++-
+ arch/arm/boot/dts/omap5.dtsi                       |   1 +
+ 10 files changed, 447 insertions(+), 16 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/bus/ti-sysc.txt
+ create mode 100644 Documentation/devicetree/bindings/power/ti-smartreflex.txt
