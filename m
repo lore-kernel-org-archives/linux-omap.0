@@ -1,14 +1,12 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: No /dev/fb0 created for omapdrm in current Linux next
-Date: Fri, 20 Oct 2017 09:12:00 +0300
-Message-ID: <1172fdd9-3cbf-60aa-3f26-87eb26190a08@ti.com>
-References: <20171019163035.GF4394@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: No /dev/fb0 created for omapdrm in current Linux next
+Date: Thu, 19 Oct 2017 09:30:36 -0700
+Message-ID: <20171019163035.GF4394@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20171019163035.GF4394@atomide.com>
-Content-Language: en-US
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -18,28 +16,18 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTkvMTAvMTcgMTk6MzAsIFRvbnkgTGluZGdyZW4gd3JvdGU6Cj4gSGkgVG9taSwKPiAKPiBM
-b29rcyBsaWtlIG9tYXBkcm0gd29uJ3Qgc2hvdyBhbnl0aGluZyB3aXRoIGN1cnJlbnQgTGludXgg
-bmV4dCBiYXNlZAo+IG9uIG15IHRlc3Qgd2l0aCA5MDA6Cj4gCj4gbW9kcHJvYmUgdHdsNDAzMF9r
-ZXlwYWQKPiBtb2Rwcm9iZSB0c2MyMDA1Cj4gbW9kcHJvYmUgb21hcGRzcwo+IG1vZHByb2JlIHBh
-bmVsX3NvbnlfYWN4NTY1YWttCj4gbW9kcHJvYmUgb21hcGRybQo+IAo+IGVjaG8gMjU1ID4gL3N5
-cy9jbGFzcy9iYWNrbGlnaHQvYWN4NTY1YWttL2JyaWdodG5lc3MKPiBlY2hvIDAgPiAvc3lzL2Ns
-YXNzL2dyYXBoaWNzL2ZiMC9ibGFuawo+IGVjaG8gMSA+IC9zeXMvY2xhc3MvZ3JhcGhpY3MvZmIw
-L2JsYW5rCj4gZWNobyAwID4gL3N5cy9jbGFzcy9ncmFwaGljcy9mYjAvYmxhbmsKPiAKPiAjIGxz
-IC1sIC9kZXYvZmIqCj4gbHM6IGNhbm5vdCBhY2Nlc3MgJy9kZXYvZmIqJzogTm8gc3VjaCBmaWxl
-IG9yIGRpcmVjdG9yeQoKV2hhdCBkb2VzIHRoZSBib290bG9nIHNheT8KCkkgdHJpZWQgeDE1IG9u
-IG5leHQuIEkgc2VlCgpCVUc6IHVzaW5nIHNtcF9wcm9jZXNzb3JfaWQoKSBpbiBwcmVlbXB0aWJs
-ZSBbMDAwMDAwMDBdIGNvZGU6IHN3YXBwZXIvMC8xCgphbmQKCldBUk5JTkc6IHBvc3NpYmxlIGNp
-cmN1bGFyIGxvY2tpbmcgZGVwZW5kZW5jeSBkZXRlY3RlZAoKQnV0IEkgZG9uJ3QgdGhpbmsgdGhv
-c2UgYWZmZWN0IERTUy4KCkkgc2VlIGNtYSBhbGxvY3MgZmFpbGluZyBmb3IgbWFueSBkcml2ZXJz
-OgoKY21hOiBjbWFfYWxsb2M6IGFsbG9jIGZhaWxlZCwgcmVxLXNpemU6IDEgcGFnZXMsIHJldDog
-LTE2CgpXaGljaCBvYnZpb3VzbHkgYnJlYWtzIGRzcy4uLgoKLS0gClRleGFzIEluc3RydW1lbnRz
-IEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9C
-dXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFp
-bGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+SGkgVG9taSwKCkxvb2tzIGxpa2Ugb21hcGRybSB3b24ndCBzaG93IGFueXRoaW5nIHdpdGggY3Vy
+cmVudCBMaW51eCBuZXh0IGJhc2VkCm9uIG15IHRlc3Qgd2l0aCA5MDA6Cgptb2Rwcm9iZSB0d2w0
+MDMwX2tleXBhZAptb2Rwcm9iZSB0c2MyMDA1Cm1vZHByb2JlIG9tYXBkc3MKbW9kcHJvYmUgcGFu
+ZWxfc29ueV9hY3g1NjVha20KbW9kcHJvYmUgb21hcGRybQoKZWNobyAyNTUgPiAvc3lzL2NsYXNz
+L2JhY2tsaWdodC9hY3g1NjVha20vYnJpZ2h0bmVzcwplY2hvIDAgPiAvc3lzL2NsYXNzL2dyYXBo
+aWNzL2ZiMC9ibGFuawplY2hvIDEgPiAvc3lzL2NsYXNzL2dyYXBoaWNzL2ZiMC9ibGFuawplY2hv
+IDAgPiAvc3lzL2NsYXNzL2dyYXBoaWNzL2ZiMC9ibGFuawoKIyBscyAtbCAvZGV2L2ZiKgpsczog
+Y2Fubm90IGFjY2VzcyAnL2Rldi9mYionOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5CgpSZWdh
+cmRzLAoKVG9ueQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
+aHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
