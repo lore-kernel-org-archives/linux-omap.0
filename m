@@ -1,39 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 2/2] device tree changes for omaps for v4.15 merge
- window
-Date: Thu, 19 Oct 2017 16:04:59 -0700
-Message-ID: <20171019230459.GL4394@atomide.com>
-References: <pull-1507912705-793554@atomide.com>
- <pull-1507912705-793554@atomide.com-2>
- <CAK8P3a3do=X3E5eO0rbo2CtG5xqoALgcVnCZbT_iFP_rnrHmDw@mail.gmail.com>
- <20171019223601.GK4394@atomide.com>
- <CAK8P3a15xUuFwZ16EZcefyBanXfjL8dsRUpA41a2WP=3EenFUw@mail.gmail.com>
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: Re: n900 in next-20170901
+Date: Fri, 20 Oct 2017 10:55:42 +0900
+Message-ID: <20171020015542.GA10438@js1304-P5Q-DELUXE>
+References: <20170907073038.GA2111@js1304-P5Q-DELUXE>
+ <20170907161650.GP5024@atomide.com>
+ <20170913075516.GA25036@js1304-P5Q-DELUXE>
+ <20170913163126.GS5024@atomide.com>
+ <20170915065608.GA8567@js1304-P5Q-DELUXE>
+ <20170921172811.GB4394@atomide.com>
+ <20170925080806.GA9837@js1304-P5Q-DELUXE>
+ <20170925145437.GG4394@atomide.com>
+ <20171018082927.GB27595@js1304-P5Q-DELUXE>
+ <20171019183033.GH4394@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAK8P3a15xUuFwZ16EZcefyBanXfjL8dsRUpA41a2WP=3EenFUw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20171019183033.GH4394@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [171019 15:56]:
-> On Fri, Oct 20, 2017 at 12:36 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.15/dt-signed
+On Thu, Oct 19, 2017 at 11:30:34AM -0700, Tony Lindgren wrote:
+> * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171018 01:27]:
+> > On Mon, Sep 25, 2017 at 07:54:37AM -0700, Tony Lindgren wrote:
+> > > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [170925 01:06]:
+> > > > On Thu, Sep 21, 2017 at 10:28:11AM -0700, Tony Lindgren wrote:
+> > > > > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [170914 23:55]:
+> > > > > > On Wed, Sep 13, 2017 at 09:31:27AM -0700, Tony Lindgren wrote:
+> > > > > > > Yes I disabled CONFIG_HIGHMEM and n900 boots. To disable it,
+> > > > > > > you need to remove it from arch/arm/mach-omap2/Kconfig that
+> > > > > > > selects it if ARCH_OMAP2PLUS_TYPICAL is selected.
+> > > > > > 
+> > > > > > Okay. Problem would be related to address traslation. I'd like to
+> > > > > > check address traslation more. Could you apply following patch and
+> > > > > > test it? And, please send me the dmesg log and your kernel config.
+> > > > > > Please test this with CONFIG_DEBUG_VIRTUAL = n and CONFIG_CMA_DEBUG=y and
+> > > > > > CONFIG_HIGHMEM=y and with kernel bootparam 'ignore_loglevel'.
+> > > > > > 
+> > > > > > It would be really appreciate if you send me two logs for before/after
+> > > > > > commit 9caf25f996e8.
+> > > > > 
+> > > > > Sorry for the delays, I finally got around testing this for you.
+> > > > 
+> > > > No problem! I really appreciate your help!
+> > > > 
+> > > > > Compile with your patch failed for modules with __virt_to_phys_debug
+> > > > > being undefined so I added EXPORT_SYMBOL there. I also enabled DEBUG_LL
+> > > > > and EARLYPRINTK to get output.
+> > > > > 
+> > > > > Below is dmesg output for 9caf25f996e8 + your patch. I'll send you
+> > > > > the full logs separately.
+> > > > 
+> > > > Hmm...there is only one caller for the CMA memory, that is, atomic_pool_init().
+> > > > Could you test one more time with 9caf25f996e8 + following patch?  I'd like to
+> > > > know the actual user for the CMA memory.
+> > > 
+> > > Hmm not getting any stack with that patch after manually applying
+> > > it because of tabs to spaces mangling.
+> > 
+> > Sorry for long delay.
+> > 
+> > Seems like your system doesn't use any CMA memory by CMA API.
+> > 
+> > Could you test one more thing?
+> > This one is to disable CMA memory allocation from the page allocator.
+> > With this, we can be sure that CMA memory isn't used at all.
+> > 
+> > If there is no difference with this patch, that is, the system down,
+> > I think that some initialization step is broken. In this case, please
+> > test following patch.
+> > 
+> > I make a branch in github that all these patch is applied.
+> > Feel free to use it.
+> > 
+> > https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
 > 
-> I had just figured it out myself and pulled. Thanks for the quick reply!
+> Still not booting, dmesg output of your test branch below.
 
-OK thanks!
+Oops... I made a mistak. Could you test with reverting commit
+c977ee2803787363187d6aca9cebdabc793c6531 ("omap: forcibly call
+save_secure_ram_context() for test") in that branch?
+Without reverting it, it doesn't call 'smc' so it always cause a
+hang.
 
-Tony
+Thanks.
