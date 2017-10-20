@@ -1,84 +1,89 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Camera support, Prague next week, sdlcam
-Date: Sun, 22 Oct 2017 10:31:57 +0200
-Message-ID: <20171022083157.GA27581@amd>
-References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan>
- <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan>
- <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426082608.7dd52fbf@vento.lan>
- <20171021220026.GA26881@amd>
- <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: No /dev/fb0 created for omapdrm in current Linux next
+Date: Fri, 20 Oct 2017 10:09:15 -0700
+Message-ID: <20171020170914.GM4394@atomide.com>
+References: <20171019163035.GF4394@atomide.com>
+ <1172fdd9-3cbf-60aa-3f26-87eb26190a08@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
-Return-path: <linux-media-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
+In-Reply-To: <1172fdd9-3cbf-60aa-3f26-87eb26190a08@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-> > I'd still like to get some reasonable support for cellphone camera in
-> > Linux.
-> >=20
-> > IMO first reasonable step is to merge sdlcam, then we can implement
-> > autofocus, improve autogain... and rest of the boring stuff. Ouch and
-> > media graph support would be nice. Currently, _nothing_ works with
-> > media graph device, such as N900.
->=20
-> Can you post your latest rebased patch for sdlcam for v4l-utils?
->=20
-> I'll do a review and will likely merge it for you. Yes, I've changed my
-> mind on that.
-
-Ok, will do, thanks!
-
-> > I'll talk about the issues at ELCE in few days:
-> >=20
-> > https://osseu17.sched.com/event/ByYH/cheap-complex-cameras-pavel-machek=
--denx-software-engineering-gmbh
-> >=20
-> > Will someone else be there? Is there some place where v4l people meet?
->=20
-> Why don't we discuss this Tuesday morning at 9am? I have no interest in t=
-he
-> keynotes on that day, so those who are interested can get together.
->=20
-> I'll be at your presentation tomorrow and we can discuss a bit during
-> the following coffee break if time permits.
-
-Ok, sounds like a plan. Lets confirm Tuesday morning tommorow.
-
-Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlnsV30ACgkQMOfwapXb+vLcLQCfUXx5HVuWUKwV6svMxfLw2XaG
-KssAoIhoEc2H3xhMWiG1AdCTJazMeOKJ
-=CzlX
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
+KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTcxMDE5IDIzOjEzXToK
+PiBPbiAxOS8xMC8xNyAxOTozMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+IEhpIFRvbWksCj4g
+PiAKPiA+IExvb2tzIGxpa2Ugb21hcGRybSB3b24ndCBzaG93IGFueXRoaW5nIHdpdGggY3VycmVu
+dCBMaW51eCBuZXh0IGJhc2VkCj4gPiBvbiBteSB0ZXN0IHdpdGggOTAwOgo+ID4gCj4gPiBtb2Rw
+cm9iZSB0d2w0MDMwX2tleXBhZAo+ID4gbW9kcHJvYmUgdHNjMjAwNQo+ID4gbW9kcHJvYmUgb21h
+cGRzcwo+ID4gbW9kcHJvYmUgcGFuZWxfc29ueV9hY3g1NjVha20KPiA+IG1vZHByb2JlIG9tYXBk
+cm0KPiA+IAo+ID4gZWNobyAyNTUgPiAvc3lzL2NsYXNzL2JhY2tsaWdodC9hY3g1NjVha20vYnJp
+Z2h0bmVzcwo+ID4gZWNobyAwID4gL3N5cy9jbGFzcy9ncmFwaGljcy9mYjAvYmxhbmsKPiA+IGVj
+aG8gMSA+IC9zeXMvY2xhc3MvZ3JhcGhpY3MvZmIwL2JsYW5rCj4gPiBlY2hvIDAgPiAvc3lzL2Ns
+YXNzL2dyYXBoaWNzL2ZiMC9ibGFuawo+ID4gCj4gPiAjIGxzIC1sIC9kZXYvZmIqCj4gPiBsczog
+Y2Fubm90IGFjY2VzcyAnL2Rldi9mYionOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5CgpJdCBz
+ZWVtcyB0byBiZSBhbHNvIGhhcHBlbmluZyB3aXRoIGN1cnJlbnQgLXJjIGtlcm5lbHMsIGFkZGlu
+ZyBBYXJvCnRvIENjLgoKPiBXaGF0IGRvZXMgdGhlIGJvb3Rsb2cgc2F5PwoKTm90IG11Y2ggYW55
+dGhpbmcgaW50ZXJlc3Rpbmc6Cgp0d2xfcnRjIDQ4MDcwMDAwLmkyYzp0d2xANDg6cnRjOiBQb3dl
+ciB1cCByZXNldCBkZXRlY3RlZC4KdHdsX3J0YyA0ODA3MDAwMC5pMmM6dHdsQDQ4OnJ0YzogRW5h
+YmxpbmcgVFdMLVJUQwp0d2xfcnRjIDQ4MDcwMDAwLmkyYzp0d2xANDg6cnRjOiBydGMgY29yZTog
+cmVnaXN0ZXJlZCA0ODA3MDAwMC5pMmM6dHdsQDQ4OnJ0YyBhcyBydGMwCmlucHV0OiBUV0w0MDMw
+IEtleXBhZCBhcyAvZGV2aWNlcy9wbGF0Zm9ybS82ODAwMDAwMC5vY3AvNDgwNzAwMDAuaTJjL2ky
+Yy0xLzEtMDA0OC80ODA3MDAwMC5pMmM6dHdsQDQ4OmtleXBhZC9pbnB1dC9pbnB1dDAKdHNjMjAw
+NSBzcGkwLjA6IEdQSU8gbG9va3VwIGZvciBjb25zdW1lciByZXNldAp0c2MyMDA1IHNwaTAuMDog
+dXNpbmcgZGV2aWNlIHRyZWUgZm9yIEdQSU8gbG9va3VwCm9mX2dldF9uYW1lZF9ncGlvZF9mbGFn
+czogcGFyc2VkICdyZXNldC1ncGlvcycgcHJvcGVydHkgb2Ygbm9kZSAnL29jcEA2ODAwMDAwMC9z
+cGlANDgwOTgwMDAvdHNjMjAwNUAwWzBdJyAtIHN0YXR1cyAoMCkKaW5wdXQ6IFRTQzIwMDUgdG91
+Y2hzY3JlZW4gYXMgL2RldmljZXMvcGxhdGZvcm0vNjgwMDAwMDAub2NwLzQ4MDk4MDAwLnNwaS9z
+cGlfbWFzdGVyL3NwaTAvc3BpMC4wL2lucHV0L2lucHV0MQpvbWFwZHNzX2RzcyA0ODA1MDAwMC5k
+c3M6IDQ4MDUwMDAwLmRzcyBzdXBwbHkgdmRkYV92aWRlbyBub3QgZm91bmQsIHVzaW5nIGR1bW15
+IHJlZ3VsYXRvcgpEU1M6IE9NQVAgRFNTIHJldiAyLjAKb21hcGRzc19kc3MgNDgwNTAwMDAuZHNz
+OiBib3VuZCA0ODA1MDQwMC5kaXNwYyAob3BzIGRpc3BjX2NvbXBvbmVudF9vcHMgW29tYXBkc3Nd
+KQpvbWFwZHNzX2RzcyA0ODA1MDAwMC5kc3M6IGJvdW5kIDQ4MDUwYzAwLmVuY29kZXIgKG9wcyB2
+ZW5jX2NvbXBvbmVudF9vcHMgW29tYXBkc3NdKQpvZl9nZXRfbmFtZWRfZ3Bpb2RfZmxhZ3M6IHBh
+cnNlZCAncmVzZXQtZ3Bpb3MnIHByb3BlcnR5IG9mIG5vZGUgJy9vY3BANjgwMDAwMDAvc3BpQDQ4
+MDk4MDAwL2FjeDU2NWFrbUAyWzBdJyAtIHN0YXR1cyAoMCkKYWN4NTY1YWttIHNwaTAuMjogb21h
+cGZiOiBhY3g1NjVha20gcmV2IDhiIExDRCBkZXRlY3RlZAoKTm8gb3V0cHV0IGZyb20gZHJtIHRo
+b3VnaCB3aXRoIHRoZSBtb2R1bGVzIGxvYWRlZDoKCiMgbHNtb2QKTW9kdWxlICAgICAgICAgICAg
+ICAgICAgU2l6ZSAgVXNlZCBieQpvbWFwZHJtICAgICAgICAgICAgICAgIDY5NjMyICAwCmRybV9r
+bXNfaGVscGVyICAgICAgICAxNjM4NDAgIDEgb21hcGRybQpjZmJmaWxscmVjdCAgICAgICAgICAg
+IDE2Mzg0ICAxIGRybV9rbXNfaGVscGVyCnN5c2NvcHlhcmVhICAgICAgICAgICAgMTYzODQgIDEg
+ZHJtX2ttc19oZWxwZXIKY2ZiaW1nYmx0ICAgICAgICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hl
+bHBlcgpzeXNmaWxscmVjdCAgICAgICAgICAgIDE2Mzg0ICAxIGRybV9rbXNfaGVscGVyCnN5c2lt
+Z2JsdCAgICAgICAgICAgICAgMTYzODQgIDEgZHJtX2ttc19oZWxwZXIKZmJfc3lzX2ZvcHMgICAg
+ICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hlbHBlcgpjZmJjb3B5YXJlYSAgICAgICAgICAgIDE2
+Mzg0ICAxIGRybV9rbXNfaGVscGVyCmRybSAgICAgICAgICAgICAgICAgICAzNjQ1NDQgIDIgb21h
+cGRybSxkcm1fa21zX2hlbHBlcgpwYW5lbF9zb255X2FjeDU2NWFrbSAgICAxNjM4NCAgMApvbWFw
+ZHNzICAgICAgICAgICAgICAgMTkyNTEyICAxCm9tYXBkc3NfYmFzZSAgICAgICAgICAgMjQ1NzYg
+IDMgcGFuZWxfc29ueV9hY3g1NjVha20sb21hcGRybSxvbWFwZHNzCnRzYzIwMDUgICAgICAgICAg
+ICAgICAgMTYzODQgIDAKdHNjMjAweF9jb3JlICAgICAgICAgICAxNjM4NCAgMSB0c2MyMDA1CnR3
+bDQwMzBfa2V5cGFkICAgICAgICAgMTYzODQgIDAKbWF0cml4X2tleW1hcCAgICAgICAgICAxNjM4
+NCAgMSB0d2w0MDMwX2tleXBhZApydGNfdHdsICAgICAgICAgICAgICAgIDE2Mzg0ICAxCnR3bDQw
+MzBfd2R0ICAgICAgICAgICAgMTYzODQgIDAKCkFtIEkgbWlzc2luZyBzb21lIG1vZHVsZSBub3c/
+Cgo+IEkgdHJpZWQgeDE1IG9uIG5leHQuIEkgc2VlCj4gCj4gQlVHOiB1c2luZyBzbXBfcHJvY2Vz
+c29yX2lkKCkgaW4gcHJlZW1wdGlibGUgWzAwMDAwMDAwXSBjb2RlOiBzd2FwcGVyLzAvMQo+IAo+
+IGFuZAo+IAo+IFdBUk5JTkc6IHBvc3NpYmxlIGNpcmN1bGFyIGxvY2tpbmcgZGVwZW5kZW5jeSBk
+ZXRlY3RlZAo+IAo+IEJ1dCBJIGRvbid0IHRoaW5rIHRob3NlIGFmZmVjdCBEU1MuCj4gCj4gSSBz
+ZWUgY21hIGFsbG9jcyBmYWlsaW5nIGZvciBtYW55IGRyaXZlcnM6Cj4gCj4gY21hOiBjbWFfYWxs
+b2M6IGFsbG9jIGZhaWxlZCwgcmVxLXNpemU6IDEgcGFnZXMsIHJldDogLTE2Cj4gCj4gV2hpY2gg
+b2J2aW91c2x5IGJyZWFrcyBkc3MuLi4KClllYWggdGhpbmdzIHNlZW0gcXVpdGUgYnJva2VuIGlu
+IG5leHQgYWdhaW4gOiggVGhhdCBjbWFfYWxsb2MgaXNzdWUgaXMKY2F1c2VkIGJ5IGNvbW1pdCBj
+MTFhMzk3NzJiNTEgKCJtbTogZHJvcCBtaWdyYXRlIHR5cGUgY2hlY2tzIGZyb20KaGFzX3VubW92
+YWJsZV9wYWdlcyIpIGFuZCBoYXMgYSBmaXggYmVpbmcgZGlzY3Vzc2VkIGF0OgoKaHR0cHM6Ly9w
+YXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8xMDAxNjU5NS8KCkJ1dCB0aGlzIG45MDAgaXNzdWUg
+c2VlbXMgdG8gYmUgc29tZXRoaW5nIGRpZmZlcmVudC4KClJlZ2FyZHMsCgpUb255Cl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
+IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
+ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
