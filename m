@@ -1,89 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: No /dev/fb0 created for omapdrm in current Linux next
-Date: Fri, 20 Oct 2017 10:09:15 -0700
-Message-ID: <20171020170914.GM4394@atomide.com>
-References: <20171019163035.GF4394@atomide.com>
- <1172fdd9-3cbf-60aa-3f26-87eb26190a08@ti.com>
+Subject: [PATCH] ARM: omap2plus_defconfig: Enable droid 4 USB PHY
+Date: Sun, 22 Oct 2017 14:21:10 -0700
+Message-ID: <20171022212110.9674-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <1172fdd9-3cbf-60aa-3f26-87eb26190a08@ti.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTcxMDE5IDIzOjEzXToK
-PiBPbiAxOS8xMC8xNyAxOTozMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiA+IEhpIFRvbWksCj4g
-PiAKPiA+IExvb2tzIGxpa2Ugb21hcGRybSB3b24ndCBzaG93IGFueXRoaW5nIHdpdGggY3VycmVu
-dCBMaW51eCBuZXh0IGJhc2VkCj4gPiBvbiBteSB0ZXN0IHdpdGggOTAwOgo+ID4gCj4gPiBtb2Rw
-cm9iZSB0d2w0MDMwX2tleXBhZAo+ID4gbW9kcHJvYmUgdHNjMjAwNQo+ID4gbW9kcHJvYmUgb21h
-cGRzcwo+ID4gbW9kcHJvYmUgcGFuZWxfc29ueV9hY3g1NjVha20KPiA+IG1vZHByb2JlIG9tYXBk
-cm0KPiA+IAo+ID4gZWNobyAyNTUgPiAvc3lzL2NsYXNzL2JhY2tsaWdodC9hY3g1NjVha20vYnJp
-Z2h0bmVzcwo+ID4gZWNobyAwID4gL3N5cy9jbGFzcy9ncmFwaGljcy9mYjAvYmxhbmsKPiA+IGVj
-aG8gMSA+IC9zeXMvY2xhc3MvZ3JhcGhpY3MvZmIwL2JsYW5rCj4gPiBlY2hvIDAgPiAvc3lzL2Ns
-YXNzL2dyYXBoaWNzL2ZiMC9ibGFuawo+ID4gCj4gPiAjIGxzIC1sIC9kZXYvZmIqCj4gPiBsczog
-Y2Fubm90IGFjY2VzcyAnL2Rldi9mYionOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5CgpJdCBz
-ZWVtcyB0byBiZSBhbHNvIGhhcHBlbmluZyB3aXRoIGN1cnJlbnQgLXJjIGtlcm5lbHMsIGFkZGlu
-ZyBBYXJvCnRvIENjLgoKPiBXaGF0IGRvZXMgdGhlIGJvb3Rsb2cgc2F5PwoKTm90IG11Y2ggYW55
-dGhpbmcgaW50ZXJlc3Rpbmc6Cgp0d2xfcnRjIDQ4MDcwMDAwLmkyYzp0d2xANDg6cnRjOiBQb3dl
-ciB1cCByZXNldCBkZXRlY3RlZC4KdHdsX3J0YyA0ODA3MDAwMC5pMmM6dHdsQDQ4OnJ0YzogRW5h
-YmxpbmcgVFdMLVJUQwp0d2xfcnRjIDQ4MDcwMDAwLmkyYzp0d2xANDg6cnRjOiBydGMgY29yZTog
-cmVnaXN0ZXJlZCA0ODA3MDAwMC5pMmM6dHdsQDQ4OnJ0YyBhcyBydGMwCmlucHV0OiBUV0w0MDMw
-IEtleXBhZCBhcyAvZGV2aWNlcy9wbGF0Zm9ybS82ODAwMDAwMC5vY3AvNDgwNzAwMDAuaTJjL2ky
-Yy0xLzEtMDA0OC80ODA3MDAwMC5pMmM6dHdsQDQ4OmtleXBhZC9pbnB1dC9pbnB1dDAKdHNjMjAw
-NSBzcGkwLjA6IEdQSU8gbG9va3VwIGZvciBjb25zdW1lciByZXNldAp0c2MyMDA1IHNwaTAuMDog
-dXNpbmcgZGV2aWNlIHRyZWUgZm9yIEdQSU8gbG9va3VwCm9mX2dldF9uYW1lZF9ncGlvZF9mbGFn
-czogcGFyc2VkICdyZXNldC1ncGlvcycgcHJvcGVydHkgb2Ygbm9kZSAnL29jcEA2ODAwMDAwMC9z
-cGlANDgwOTgwMDAvdHNjMjAwNUAwWzBdJyAtIHN0YXR1cyAoMCkKaW5wdXQ6IFRTQzIwMDUgdG91
-Y2hzY3JlZW4gYXMgL2RldmljZXMvcGxhdGZvcm0vNjgwMDAwMDAub2NwLzQ4MDk4MDAwLnNwaS9z
-cGlfbWFzdGVyL3NwaTAvc3BpMC4wL2lucHV0L2lucHV0MQpvbWFwZHNzX2RzcyA0ODA1MDAwMC5k
-c3M6IDQ4MDUwMDAwLmRzcyBzdXBwbHkgdmRkYV92aWRlbyBub3QgZm91bmQsIHVzaW5nIGR1bW15
-IHJlZ3VsYXRvcgpEU1M6IE9NQVAgRFNTIHJldiAyLjAKb21hcGRzc19kc3MgNDgwNTAwMDAuZHNz
-OiBib3VuZCA0ODA1MDQwMC5kaXNwYyAob3BzIGRpc3BjX2NvbXBvbmVudF9vcHMgW29tYXBkc3Nd
-KQpvbWFwZHNzX2RzcyA0ODA1MDAwMC5kc3M6IGJvdW5kIDQ4MDUwYzAwLmVuY29kZXIgKG9wcyB2
-ZW5jX2NvbXBvbmVudF9vcHMgW29tYXBkc3NdKQpvZl9nZXRfbmFtZWRfZ3Bpb2RfZmxhZ3M6IHBh
-cnNlZCAncmVzZXQtZ3Bpb3MnIHByb3BlcnR5IG9mIG5vZGUgJy9vY3BANjgwMDAwMDAvc3BpQDQ4
-MDk4MDAwL2FjeDU2NWFrbUAyWzBdJyAtIHN0YXR1cyAoMCkKYWN4NTY1YWttIHNwaTAuMjogb21h
-cGZiOiBhY3g1NjVha20gcmV2IDhiIExDRCBkZXRlY3RlZAoKTm8gb3V0cHV0IGZyb20gZHJtIHRo
-b3VnaCB3aXRoIHRoZSBtb2R1bGVzIGxvYWRlZDoKCiMgbHNtb2QKTW9kdWxlICAgICAgICAgICAg
-ICAgICAgU2l6ZSAgVXNlZCBieQpvbWFwZHJtICAgICAgICAgICAgICAgIDY5NjMyICAwCmRybV9r
-bXNfaGVscGVyICAgICAgICAxNjM4NDAgIDEgb21hcGRybQpjZmJmaWxscmVjdCAgICAgICAgICAg
-IDE2Mzg0ICAxIGRybV9rbXNfaGVscGVyCnN5c2NvcHlhcmVhICAgICAgICAgICAgMTYzODQgIDEg
-ZHJtX2ttc19oZWxwZXIKY2ZiaW1nYmx0ICAgICAgICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hl
-bHBlcgpzeXNmaWxscmVjdCAgICAgICAgICAgIDE2Mzg0ICAxIGRybV9rbXNfaGVscGVyCnN5c2lt
-Z2JsdCAgICAgICAgICAgICAgMTYzODQgIDEgZHJtX2ttc19oZWxwZXIKZmJfc3lzX2ZvcHMgICAg
-ICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hlbHBlcgpjZmJjb3B5YXJlYSAgICAgICAgICAgIDE2
-Mzg0ICAxIGRybV9rbXNfaGVscGVyCmRybSAgICAgICAgICAgICAgICAgICAzNjQ1NDQgIDIgb21h
-cGRybSxkcm1fa21zX2hlbHBlcgpwYW5lbF9zb255X2FjeDU2NWFrbSAgICAxNjM4NCAgMApvbWFw
-ZHNzICAgICAgICAgICAgICAgMTkyNTEyICAxCm9tYXBkc3NfYmFzZSAgICAgICAgICAgMjQ1NzYg
-IDMgcGFuZWxfc29ueV9hY3g1NjVha20sb21hcGRybSxvbWFwZHNzCnRzYzIwMDUgICAgICAgICAg
-ICAgICAgMTYzODQgIDAKdHNjMjAweF9jb3JlICAgICAgICAgICAxNjM4NCAgMSB0c2MyMDA1CnR3
-bDQwMzBfa2V5cGFkICAgICAgICAgMTYzODQgIDAKbWF0cml4X2tleW1hcCAgICAgICAgICAxNjM4
-NCAgMSB0d2w0MDMwX2tleXBhZApydGNfdHdsICAgICAgICAgICAgICAgIDE2Mzg0ICAxCnR3bDQw
-MzBfd2R0ICAgICAgICAgICAgMTYzODQgIDAKCkFtIEkgbWlzc2luZyBzb21lIG1vZHVsZSBub3c/
-Cgo+IEkgdHJpZWQgeDE1IG9uIG5leHQuIEkgc2VlCj4gCj4gQlVHOiB1c2luZyBzbXBfcHJvY2Vz
-c29yX2lkKCkgaW4gcHJlZW1wdGlibGUgWzAwMDAwMDAwXSBjb2RlOiBzd2FwcGVyLzAvMQo+IAo+
-IGFuZAo+IAo+IFdBUk5JTkc6IHBvc3NpYmxlIGNpcmN1bGFyIGxvY2tpbmcgZGVwZW5kZW5jeSBk
-ZXRlY3RlZAo+IAo+IEJ1dCBJIGRvbid0IHRoaW5rIHRob3NlIGFmZmVjdCBEU1MuCj4gCj4gSSBz
-ZWUgY21hIGFsbG9jcyBmYWlsaW5nIGZvciBtYW55IGRyaXZlcnM6Cj4gCj4gY21hOiBjbWFfYWxs
-b2M6IGFsbG9jIGZhaWxlZCwgcmVxLXNpemU6IDEgcGFnZXMsIHJldDogLTE2Cj4gCj4gV2hpY2gg
-b2J2aW91c2x5IGJyZWFrcyBkc3MuLi4KClllYWggdGhpbmdzIHNlZW0gcXVpdGUgYnJva2VuIGlu
-IG5leHQgYWdhaW4gOiggVGhhdCBjbWFfYWxsb2MgaXNzdWUgaXMKY2F1c2VkIGJ5IGNvbW1pdCBj
-MTFhMzk3NzJiNTEgKCJtbTogZHJvcCBtaWdyYXRlIHR5cGUgY2hlY2tzIGZyb20KaGFzX3VubW92
-YWJsZV9wYWdlcyIpIGFuZCBoYXMgYSBmaXggYmVpbmcgZGlzY3Vzc2VkIGF0OgoKaHR0cHM6Ly9w
-YXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8xMDAxNjU5NS8KCkJ1dCB0aGlzIG45MDAgaXNzdWUg
-c2VlbXMgdG8gYmUgc29tZXRoaW5nIGRpZmZlcmVudC4KClJlZ2FyZHMsCgpUb255Cl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5n
-IGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
-ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Let's enable this as loadable module for droid 4.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/configs/omap2plus_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -475,6 +475,7 @@ CONFIG_PWM_TIECAP=m
+ CONFIG_PWM_TIEHRPWM=m
+ CONFIG_PWM_TWL=m
+ CONFIG_PWM_TWL_LED=m
++CONFIG_PHY_CPCAP_USB=m
+ CONFIG_PHY_DM816X_USB=m
+ CONFIG_OMAP_USB2=m
+ CONFIG_TI_PIPE3=y
+-- 
+2.14.2
