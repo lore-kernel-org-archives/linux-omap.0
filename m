@@ -1,53 +1,84 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: Camera support, Prague next week, sdlcam
-Date: Sun, 22 Oct 2017 09:36:32 +0200
-Message-ID: <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
-References: <1487074823-28274-2-git-send-email-sakari.ailus@linux.intel.com>
- <20170414232332.63850d7b@vento.lan>
- <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
- <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd>
- <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan> <20170426105300.GA857@amd>
- <20170426082608.7dd52fbf@vento.lan> <20171021220026.GA26881@amd>
+Date: Sun, 22 Oct 2017 10:31:57 +0200
+Message-ID: <20171022083157.GA27581@amd>
+References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk>
+ <20170419105118.72b8e284@vento.lan>
+ <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426082608.7dd52fbf@vento.lan>
+ <20171021220026.GA26881@amd>
+ <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171021220026.GA26881@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 22/10/17 00:00, Pavel Machek wrote:
-> Hi!
-> 
-> I'd still like to get some reasonable support for cellphone camera in
-> Linux.
-> 
-> IMO first reasonable step is to merge sdlcam, then we can implement
-> autofocus, improve autogain... and rest of the boring stuff. Ouch and
-> media graph support would be nice. Currently, _nothing_ works with
-> media graph device, such as N900.
 
-Can you post your latest rebased patch for sdlcam for v4l-utils?
+--PNTmBPCT7hxwcZjr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'll do a review and will likely merge it for you. Yes, I've changed my
-mind on that.
+Hi!
 
-> 
-> I'll talk about the issues at ELCE in few days:
-> 
-> https://osseu17.sched.com/event/ByYH/cheap-complex-cameras-pavel-machek-denx-software-engineering-gmbh
-> 
-> Will someone else be there? Is there some place where v4l people meet?
+> > I'd still like to get some reasonable support for cellphone camera in
+> > Linux.
+> >=20
+> > IMO first reasonable step is to merge sdlcam, then we can implement
+> > autofocus, improve autogain... and rest of the boring stuff. Ouch and
+> > media graph support would be nice. Currently, _nothing_ works with
+> > media graph device, such as N900.
+>=20
+> Can you post your latest rebased patch for sdlcam for v4l-utils?
+>=20
+> I'll do a review and will likely merge it for you. Yes, I've changed my
+> mind on that.
 
-Why don't we discuss this Tuesday morning at 9am? I have no interest in the
-keynotes on that day, so those who are interested can get together.
+Ok, will do, thanks!
 
-I'll be at your presentation tomorrow and we can discuss a bit during
-the following coffee break if time permits.
+> > I'll talk about the issues at ELCE in few days:
+> >=20
+> > https://osseu17.sched.com/event/ByYH/cheap-complex-cameras-pavel-machek=
+-denx-software-engineering-gmbh
+> >=20
+> > Will someone else be there? Is there some place where v4l people meet?
+>=20
+> Why don't we discuss this Tuesday morning at 9am? I have no interest in t=
+he
+> keynotes on that day, so those who are interested can get together.
+>=20
+> I'll be at your presentation tomorrow and we can discuss a bit during
+> the following coffee break if time permits.
 
-Regards,
+Ok, sounds like a plan. Lets confirm Tuesday morning tommorow.
 
-	Hans
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--PNTmBPCT7hxwcZjr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlnsV30ACgkQMOfwapXb+vLcLQCfUXx5HVuWUKwV6svMxfLw2XaG
+KssAoIhoEc2H3xhMWiG1AdCTJazMeOKJ
+=CzlX
+-----END PGP SIGNATURE-----
+
+--PNTmBPCT7hxwcZjr--
