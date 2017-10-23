@@ -1,54 +1,44 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: No /dev/fb0 created for omapdrm in current Linux next
-Date: Mon, 23 Oct 2017 10:33:14 +0300
-Message-ID: <5da5e7f2-a030-96b4-4277-9b9434df8543@ti.com>
-References: <20171019163035.GF4394@atomide.com>
- <1172fdd9-3cbf-60aa-3f26-87eb26190a08@ti.com>
- <20171020170914.GM4394@atomide.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v2] dwc: dra7xx: Print link state to console for debug
+Date: Mon, 23 Oct 2017 15:59:49 +0530
+Message-ID: <3692fbeb-bf8a-6de6-898b-551d899e9e55@ti.com>
+References: <1508417009-30869-1-git-send-email-faiz_abbas@ti.com>
+ <20171020230952.GZ6332@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20171020170914.GM4394@atomide.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171020230952.GZ6332@bhelgaas-glaptop.roam.corp.google.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: kishon@ti.com, bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMjAvMTAvMTcgMjA6MDksIFRvbnkgTGluZGdyZW4gd3JvdGU6Cgo+ICMgbHNtb2QKPiBNb2R1
-bGUgICAgICAgICAgICAgICAgICBTaXplICBVc2VkIGJ5Cj4gb21hcGRybSAgICAgICAgICAgICAg
-ICA2OTYzMiAgMAo+IGRybV9rbXNfaGVscGVyICAgICAgICAxNjM4NDAgIDEgb21hcGRybQo+IGNm
-YmZpbGxyZWN0ICAgICAgICAgICAgMTYzODQgIDEgZHJtX2ttc19oZWxwZXIKPiBzeXNjb3B5YXJl
-YSAgICAgICAgICAgIDE2Mzg0ICAxIGRybV9rbXNfaGVscGVyCj4gY2ZiaW1nYmx0ICAgICAgICAg
-ICAgICAxNjM4NCAgMSBkcm1fa21zX2hlbHBlcgo+IHN5c2ZpbGxyZWN0ICAgICAgICAgICAgMTYz
-ODQgIDEgZHJtX2ttc19oZWxwZXIKPiBzeXNpbWdibHQgICAgICAgICAgICAgIDE2Mzg0ICAxIGRy
-bV9rbXNfaGVscGVyCj4gZmJfc3lzX2ZvcHMgICAgICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hl
-bHBlcgo+IGNmYmNvcHlhcmVhICAgICAgICAgICAgMTYzODQgIDEgZHJtX2ttc19oZWxwZXIKPiBk
-cm0gICAgICAgICAgICAgICAgICAgMzY0NTQ0ICAyIG9tYXBkcm0sZHJtX2ttc19oZWxwZXIKPiBw
-YW5lbF9zb255X2FjeDU2NWFrbSAgICAxNjM4NCAgMAo+IG9tYXBkc3MgICAgICAgICAgICAgICAx
-OTI1MTIgIDEKPiBvbWFwZHNzX2Jhc2UgICAgICAgICAgIDI0NTc2ICAzIHBhbmVsX3NvbnlfYWN4
-NTY1YWttLG9tYXBkcm0sb21hcGRzcwo+IHRzYzIwMDUgICAgICAgICAgICAgICAgMTYzODQgIDAK
-PiB0c2MyMDB4X2NvcmUgICAgICAgICAgIDE2Mzg0ICAxIHRzYzIwMDUKPiB0d2w0MDMwX2tleXBh
-ZCAgICAgICAgIDE2Mzg0ICAwCj4gbWF0cml4X2tleW1hcCAgICAgICAgICAxNjM4NCAgMSB0d2w0
-MDMwX2tleXBhZAo+IHJ0Y190d2wgICAgICAgICAgICAgICAgMTYzODQgIDEKPiB0d2w0MDMwX3dk
-dCAgICAgICAgICAgIDE2Mzg0ICAwCj4gCj4gQW0gSSBtaXNzaW5nIHNvbWUgbW9kdWxlIG5vdz8K
-Cm9tYXBkcm0gdGFrZXMgYSByZWYgdG8gdGhlIHBhbmVsIG1vZHVsZSB3aGVuIGl0J3MgaW4gdXNl
-LCBhbmQKcGFuZWxfc29ueV9hY3g1NjVha20gaGFzIHJlZmNvdW50IG9mIDAuIFNvIGZvciBzb21l
-IHJlYXNvbiB0aGUgZGlzcGxheQpzZXR1cCBoYXMgbm90IGJlZW4gZG9uZSwgb3IgaXQncyBiZWVu
-IGRlZmVycmVkLgoKSSB0aGluayB5b3UncmUgbWlzc2luZyBjb25uZWN0b3JfYW5hbG9nX3R2CihD
-T05GSUdfRFJNX09NQVBfQ09OTkVDVE9SX0FOQUxPR19UVikuCgpJIGp1c3QgdHJpZWQgYmVhZ2xl
-Ym9hcmQsIGl0IHNlZW1zIHRvIHdvcmsgb2sgb24gbmV4dC4KCiBUb21pCgotLSAKVGV4YXMgSW5z
-dHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2kuClkt
-dHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhlbHNp
-bmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
-ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
-L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Hi Bjorn,
+
+On Saturday 21 October 2017 04:39 AM, Bjorn Helgaas wrote:
+> On Thu, Oct 19, 2017 at 06:13:29PM +0530, Faiz Abbas wrote:
+>> Enable support for printing the LTSSM link state for debugging PCI
+>> when link is down.
+>>
+>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+>> ---
+>> v2:
+>>  1. Changed dev_err() to dev_dbg()
+>>  2. Changed static char array to static const char * const
+>>  3. format changes
+> 
+> I'm not really sure how much debug help we want to carry around in the
+> mainline kernel.  End users aren't going to use this; it seems like
+> more of a lab tool, and in situations like that you usually end up
+> carrying around some out-of-tree patches for a while anyway.  But I
+> can probably be convinced either way.
+> 
+
+It'll be easier to support customers if they can tell us what the state
+of the link is by just changing the log level. We won't have to send a
+debug patch to the customer to find that out.
+
+Thanks,
+Faiz
