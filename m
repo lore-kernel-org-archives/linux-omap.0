@@ -1,47 +1,71 @@
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: Re: n900 in next-20170901
-Date: Mon, 23 Oct 2017 13:53:42 +0900
-Message-ID: <20171023045342.GA23082@js1304-P5Q-DELUXE>
-References: <20170913075516.GA25036@js1304-P5Q-DELUXE>
- <20170913163126.GS5024@atomide.com>
- <20170915065608.GA8567@js1304-P5Q-DELUXE>
- <20170921172811.GB4394@atomide.com>
- <20170925080806.GA9837@js1304-P5Q-DELUXE>
- <20170925145437.GG4394@atomide.com>
- <20171018082927.GB27595@js1304-P5Q-DELUXE>
- <20171019183033.GH4394@atomide.com>
- <20171020015542.GA10438@js1304-P5Q-DELUXE>
- <20171020173146.GN4394@atomide.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] of: Devices with pci_epf_bus_type require DMA
+ configuration
+Date: Mon, 23 Oct 2017 11:13:23 +0530
+Message-ID: <3599d3e2-d496-eac3-7179-2d1795fc059d@ti.com>
+References: <20171011080041.12918-1-kishon@ti.com>
+ <cae4b8e9-9944-6482-c12c-8ce87aea1487@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171020173146.GN4394@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cae4b8e9-9944-6482-c12c-8ce87aea1487-5wv7dgnIgG8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 20, 2017 at 10:31:47AM -0700, Tony Lindgren wrote:
-> * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171019 18:53]:
-> > Oops... I made a mistak. Could you test with reverting commit
-> > c977ee2803787363187d6aca9cebdabc793c6531 ("omap: forcibly call
-> > save_secure_ram_context() for test") in that branch?
-> > Without reverting it, it doesn't call 'smc' so it always cause a
-> > hang.
+Hi,
+
+On Wednesday 11 October 2017 10:15 PM, Robin Murphy wrote:
+> On 11/10/17 09:00, Kishon Vijay Abraham I wrote:
+>> pci-epc-core.c invokes of_dma_configure in order to configure
+>> the coherent_dma_mask/dma_mask of endpoint function device. This is
+>> required for dma_alloc_coherent to succeed in pci function driver
+>> (pci-epf-test.c). However after
+>> commit 723288836628bc1c08 ("of: restrict DMA configuration"),
+>> of_dma_configure doesn't configure the coherent_dma_mask/dma_mask
+>> of endpoint function device (since it doesn't have dma-ranges
+>> property), resulting in dma_alloc_coherent in pci endpoint function
+>> driver to to fail. Fix it by making sure of_dma_configure configures
+>> coherent_dma_mask/dma_mask irrespective of whether the node has
+>> dma-ranges property or not.
 > 
-> Oops I should have noticed that one. Here you go with commit
-> c977ee280378 reverted. Still not booting.
+> Frankly, what the endpoint stuff is doing looks wrong anyway. As I
+> understand it, the endpoint functions aren't real devices, just a
+> partitioning of resources - the only piece of hardware actually doing
+> DMA is the EPC itself, which should already have been configured
+> appropriately as a platform device.
 
-Still very thanks to you. :)
+EPF devices use EPC devices which in turn use the actual platform device for
+configuring the hardware. IMO the devices in one layer shouldn't have to
+explicitly use devices in another layer other than using clearly defined API's.
+Here platform_device is the bottom later, above which is epc_device and on top
+is epf_device.
 
-Okay. Could you test my updated branch? In there, I also disable
-atomic_pool initialization and disable to remap the CMA area in order
-to completely make any operation on CMA area as no-op.
+The idea is just by doing the initial setup in the framework, the epf driver be
+able to use APIs like dma_alloc_coherent using it's own *device* rather than
+the EPC's "device".
+> 
+> It seems to me that the EPF BAR allocations should just be using the EPC
+> device directly, rather than trying to pretend the EPFs are distinct DMA
+> masters.
+> 
+> Furthermore, now that I've looked:
+> 
+>> 	dma_addr_t phys_addr;
+> 
+> please no :(
+> 
+> (I can easily think of more than one system with an EP-capable DWC PCIe
+> block integrated behind an IOMMU)
 
-And, it enables memblock_debug to check how memblock region is
-allocated.
+hmm.. haven't used IOMMU but won't setting up parent-child relationship between
+EPC and EPF help in the case of IOMMU?
 
-https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
-
-Thanks.
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
