@@ -1,45 +1,32 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
+From: Sakari Ailus <sakari.ailus@iki.fi>
 Subject: Re: Camera support, Prague next week, sdlcam
-Date: Mon, 23 Oct 2017 21:24:24 +0200
-Message-ID: <40C85971-7DDE-4FB0-AB90-C52CA864C0D4@xs4all.nl>
-References: <20170416091209.GB7456@valkosipuli.retiisi.org.uk> <20170419105118.72b8e284@vento.lan> <20170424093059.GA20427@amd> <20170424103802.00d3b554@vento.lan> <20170424212914.GA20780@amd> <20170424224724.5bb52382@vento.lan> <20170426105300.GA857@amd> <20170426082608.7dd52fbf@vento.lan> <20171021220026.GA26881@amd> <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl> <20171023185414.GA2258@amd>
+Date: Mon, 23 Oct 2017 23:15:57 +0300
+Message-ID: <20171023201557.hecu4e6o3ynp5hmv@valkosipuli.retiisi.org.uk>
+References: <20170424093059.GA20427@amd>
+ <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426082608.7dd52fbf@vento.lan>
+ <20171021220026.GA26881@amd>
+ <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
+ <20171023185414.GA2258@amd>
+ <40C85971-7DDE-4FB0-AB90-C52CA864C0D4@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171023185414.GA2258@amd>
+Content-Disposition: inline
+In-Reply-To: <40C85971-7DDE-4FB0-AB90-C52CA864C0D4@xs4all.nl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sakari Ailus <sakari.ailus@iki.fi>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Pavel Machek <pavel@ucw.cz>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Sounds good. That's the elevators on level LL by the way.
+On Mon, Oct 23, 2017 at 09:24:24PM +0200, Hans Verkuil wrote:
+> Sounds good. That's the elevators on level LL by the way.
 
-Regards,
-
-Hans
-
-On October 23, 2017 8:54:49 PM GMT+02:00, Pavel Machek <pavel@ucw.cz> wrote:
->Hi!
->
->> > I'll talk about the issues at ELCE in few days:
->> > 
->> >
->https://osseu17.sched.com/event/ByYH/cheap-complex-cameras-pavel-machek-denx-software-engineering-gmbh
->> > 
->> > Will someone else be there? Is there some place where v4l people
->meet?
->> 
->> Why don't we discuss this Tuesday morning at 9am? I have no interest
->in the
->> keynotes on that day, so those who are interested can get together.
->
->Ok, what about 9:30am? The place near the elevators where we were
->talking last time?
->
->And.... sorry for late reply.
->									Pavel
+I'll be there, too!
 
 -- 
-Sent from my Android device with K-9 Mail. Please excuse my brevity.
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
