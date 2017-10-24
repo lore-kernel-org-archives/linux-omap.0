@@ -1,66 +1,67 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2] dwc: dra7xx: Print link state to console for debug
-Date: Tue, 24 Oct 2017 11:48:13 +0530
-Message-ID: <6a82ce2d-3feb-a6eb-d33d-b4b1e3f6b33b@ti.com>
-References: <1508417009-30869-1-git-send-email-faiz_abbas@ti.com>
- <20171020230952.GZ6332@bhelgaas-glaptop.roam.corp.google.com>
- <3692fbeb-bf8a-6de6-898b-551d899e9e55@ti.com>
- <20171023140411.GB9092@bhelgaas-glaptop.roam.corp.google.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH] mfd: palmas: Assign the right powerhold mask for tps65917
+Date: Tue, 24 Oct 2017 13:51:36 +0530
+Message-ID: <1508833296-20702-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171023140411.GB9092@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Faiz Abbas <faiz_abbas@ti.com>
-Cc: bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lee.jones@linaro.org
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Bjorn,
+The powerhold mask for TPS65917 is different when comapred to
+the other palmas versions. Hence assign the right mask that enables
+power off of tps65917 pmic correctly.
 
-On Monday 23 October 2017 07:34 PM, Bjorn Helgaas wrote:
-> On Mon, Oct 23, 2017 at 03:59:49PM +0530, Faiz Abbas wrote:
->> On Saturday 21 October 2017 04:39 AM, Bjorn Helgaas wrote:
->>> On Thu, Oct 19, 2017 at 06:13:29PM +0530, Faiz Abbas wrote:
->>>> Enable support for printing the LTSSM link state for debugging PCI
->>>> when link is down.
->>>>
->>>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->>>> ---
->>>> v2:
->>>>  1. Changed dev_err() to dev_dbg()
->>>>  2. Changed static char array to static const char * const
->>>>  3. format changes
->>>
->>> I'm not really sure how much debug help we want to carry around in the
->>> mainline kernel.  End users aren't going to use this; it seems like
->>> more of a lab tool, and in situations like that you usually end up
->>> carrying around some out-of-tree patches for a while anyway.  But I
->>> can probably be convinced either way.
->>
->> It'll be easier to support customers if they can tell us what the state
->> of the link is by just changing the log level. We won't have to send a
->> debug patch to the customer to find that out.
-> 
-> That still sounds like a lab debug situation to me.  Regular customers
-> do not debug things at the level of the link state.  I'm not aware of
-> any other drivers that do this, so including this hints that this
-> driver/hardware is not very mature.
-> 
-> Printing text certainly *looks* nice, but it adds a lot of code and
-> I'm not sure how much actual value they add.  Just printing a hex
-> value might be more reliable in terms of communicating it accurately
-> back to you.  E.g., it might be easier to lose the distinction between
-> DISABLED_ENTRY and DISABLED_IDLE than between 0x745f and 0x7463,
-> especially in a phone situation.
-> 
-> Anyway, if Kishon acks this, I'll apply it.  One nit: please do the
-> "link up" test once, e.g.,
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+ drivers/mfd/palmas.c       | 10 +++++++++-
+ include/linux/mfd/palmas.h |  3 +++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-IMHO both print text and the debug print itself helps to save developer effort.
-
-FWIW:
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
-
-Thanks
-Kishon
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index 3922a93..663a239 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -430,6 +430,7 @@ static void palmas_power_off(void)
+ {
+ 	unsigned int addr;
+ 	int ret, slave;
++	u8 powerhold_mask;
+ 	struct device_node *np = palmas_dev->dev->of_node;
+ 
+ 	if (of_property_read_bool(np, "ti,palmas-override-powerhold")) {
+@@ -437,8 +438,15 @@ static void palmas_power_off(void)
+ 					  PALMAS_PRIMARY_SECONDARY_PAD2);
+ 		slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+ 
++		if (of_device_is_compatible(np, "ti,tps65917"))
++			powerhold_mask =
++				TPS65917_PRIMARY_SECONDARY_PAD2_GPIO_5_MASK;
++		else
++			powerhold_mask =
++				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK;
++
+ 		ret = regmap_update_bits(palmas_dev->regmap[slave], addr,
+-				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK, 0);
++					 powerhold_mask, 0);
+ 		if (ret)
+ 			dev_err(palmas_dev->dev,
+ 				"Unable to write PRIMARY_SECONDARY_PAD2 %d\n",
+diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+index 6dec438..cffb23b 100644
+--- a/include/linux/mfd/palmas.h
++++ b/include/linux/mfd/palmas.h
+@@ -3733,6 +3733,9 @@ enum usb_irq_events {
+ #define TPS65917_REGEN3_CTRL_MODE_ACTIVE			0x01
+ #define TPS65917_REGEN3_CTRL_MODE_ACTIVE_SHIFT			0x00
+ 
++/* POWERHOLD Mask field for PRIMARY_SECONDARY_PAD2 register */
++#define TPS65917_PRIMARY_SECONDARY_PAD2_GPIO_5_MASK		0xC
++
+ /* Registers for function RESOURCE */
+ #define TPS65917_REGEN1_CTRL					0x2
+ #define TPS65917_PLLEN_CTRL					0x3
+-- 
+1.9.1
