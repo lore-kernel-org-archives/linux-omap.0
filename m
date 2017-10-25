@@ -1,58 +1,49 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2] dwc: dra7xx: Print link state to console for debug
-Date: Wed, 25 Oct 2017 08:23:28 -0500
-Message-ID: <20171025132328.GK21840@bhelgaas-glaptop.roam.corp.google.com>
-References: <1508417009-30869-1-git-send-email-faiz_abbas@ti.com>
- <20171024195950.GD21840@bhelgaas-glaptop.roam.corp.google.com>
- <c99814db-e349-e4b1-c652-561a3ca1abec@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: DRA76-EVM: Set powerhold property for tps65917
+Date: Wed, 25 Oct 2017 09:52:19 -0700
+Message-ID: <20171025165219.GO4394@atomide.com>
+References: <1508834648-28715-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <c99814db-e349-e4b1-c652-561a3ca1abec@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>
-Cc: kishon@ti.com, bhelgaas@google.com, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1508834648-28715-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 25, 2017 at 01:51:53PM +0530, Faiz Abbas wrote:
-> Bjorn,
+* Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [171024 01:46]:
+> Set powerhold property for tps65917
 > 
-> On Wednesday 25 October 2017 01:29 AM, Bjorn Helgaas wrote:
-> > On Thu, Oct 19, 2017 at 06:13:29PM +0530, Faiz Abbas wrote:
-> >> Enable support for printing the LTSSM link state for debugging PCI
-> >> when link is down.
-> >>
-> >> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
-> > 
-> > Applied with Kishon's ack to pci/host-dra7xx for v4.15, thanks!
-> > 
-> > I tweaked the "link up" testing as follows (what I suggested before):
-> > 
-> > 
-> > @@ -118,8 +157,18 @@ static int dra7xx_pcie_link_up(struct dw_pcie *pci)
-> >  {
-> >  	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
-> >  	u32 reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_PHY_CS);
-> > +	int link_up = !!(reg & LINK_UP);
-> > +	u32 cmd_reg;
-> > +	u32 ltssm_state;
-> > +
-> > +	if (!link_up) {
-> > +		cmd_reg = dra7xx_pcie_readl(dra7xx,
-> > +					    PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
-> > +		ltssm_state = (cmd_reg & GENMASK(7, 2)) >> 2;
-> > +		dev_dbg(pci->dev, "Link state: %s\n", state[ltssm_state]);
-> > +	}
-> >  
-> > -	return !!(reg & LINK_UP);
-> > +	return link_up;
-> >  }
-> >  
-> >  static void dra7xx_pcie_stop_link(struct dw_pcie *pci)
-> > 
-> 
-> I wanted to send another version with David's suggestions included.
-> Please don't merge.
+> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
 
-Dropped.
+Is this safe to merge separately before the driver changes?
+
+Regards,
+
+Tony
+
+> ---
+>  arch/arm/boot/dts/dra76-evm.dts | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
+> index b024a65..f64aab4 100644
+> --- a/arch/arm/boot/dts/dra76-evm.dts
+> +++ b/arch/arm/boot/dts/dra76-evm.dts
+> @@ -148,6 +148,7 @@
+>  		compatible = "ti,tps65917";
+>  		reg = <0x58>;
+>  		ti,system-power-controller;
+> +		ti,palmas-override-powerhold;
+>  		interrupt-controller;
+>  		#interrupt-cells = <2>;
+>  
+> -- 
+> 1.9.1
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
