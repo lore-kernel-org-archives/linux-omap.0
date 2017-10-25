@@ -1,83 +1,65 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 4.13 (and probably all recent) kernels refuse to boot on one
- Nokia N950, work or another
-Date: Thu, 26 Oct 2017 09:27:59 +0200
-Message-ID: <20171026072759.GC20634@amd>
-References: <20171025203459.GA22035@amd>
- <3dbb966f-c279-2c57-d3c2-98ca7c04accd@gmail.com>
- <20171026070815.GA20634@amd>
- <20171026072113.z5bqer7os62ckf3z@pali>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: No /dev/fb0 created for omapdrm in current Linux next
+Date: Wed, 25 Oct 2017 10:40:30 -0700
+Message-ID: <20171025174029.GR4394@atomide.com>
+References: <20171019163035.GF4394@atomide.com>
+ <1172fdd9-3cbf-60aa-3f26-87eb26190a08@ti.com>
+ <20171020170914.GM4394@atomide.com>
+ <5da5e7f2-a030-96b4-4277-9b9434df8543@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="B4IIlcmfBL/1gGOG"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20171026072113.z5bqer7os62ckf3z@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
+In-Reply-To: <5da5e7f2-a030-96b4-4277-9b9434df8543@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-
---B4IIlcmfBL/1gGOG
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-On Thu 2017-10-26 09:21:13, Pali Roh=C3=A1r wrote:
-> On Thursday 26 October 2017 09:08:15 Pavel Machek wrote:
-> > On Thu 2017-10-26 08:25:02, Filip Matijevi=C4=87 wrote:
-> > > Last time I couldn't get output on serial I used CONFIG_DEBUG_LL,
-> > > CONFIG_DEBUG_OMAP3UART3, CONFIG_EARLY_PRINTK... and ignore_loglevel
-> > > earlyprintk kernel params to get output early enough - I guess you
-> > > already tried that.
-> >=20
-> > I realized I'm not getting output from the decompessor (even on "S"
-> > machine), and enabled that.
->=20
-> That is because you have not enabled those EARLY PRINK or DEBUG LL.
-> Similar thing is needed for N900 and IIRC in some of my linux-n900
-> branches I have config for it. Plus it needs patching some arch/arm
-> source files to make it working.
-
-Do you have a patch? That would be very useful.
-
-Seems like debugging in uncompressor was broken some time ago:
-
-config DEBUG_UNCOMPRESS
-        bool
-		depends on ARCH_MULTIPLATFORM || PLAT_SAMSUNG ||         ARM_SINGLE_ARMV7M
-	        default y if DEBUG_LL && !DEBUG_OMAP2PLUS_UART &&=20
-		                     (!DEBUG_TEGRA_UART || !ZBOOT_ROM)
-        && \!DEBUG_BRCMSTB_UART
-			    =20
-
-> > But I'm _still_ not getting any output on decompressor... early
-> > printing works ok on "S" but not on "P".
->=20
-> I guess there can be either problem with memory mapping and RAM size or
-> with OMAP HS mode?
-
-RAM size should be ok... how do I check for OMAP HS problems?
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---B4IIlcmfBL/1gGOG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlnxjn8ACgkQMOfwapXb+vLatgCgw143c/ws3OiGJ4Hqefg7QAYg
-WEIAnjTuZ0E+u6Dx7cl/bp7pOTVarQlk
-=cFxH
------END PGP SIGNATURE-----
-
---B4IIlcmfBL/1gGOG--
+KiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWluZW5AdGkuY29tPiBbMTcxMDIzIDAwOjM0XToK
+PiBPbiAyMC8xMC8xNyAyMDowOSwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPiAKPiA+ICMgbHNtb2QK
+PiA+IE1vZHVsZSAgICAgICAgICAgICAgICAgIFNpemUgIFVzZWQgYnkKPiA+IG9tYXBkcm0gICAg
+ICAgICAgICAgICAgNjk2MzIgIDAKPiA+IGRybV9rbXNfaGVscGVyICAgICAgICAxNjM4NDAgIDEg
+b21hcGRybQo+ID4gY2ZiZmlsbHJlY3QgICAgICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hlbHBl
+cgo+ID4gc3lzY29weWFyZWEgICAgICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hlbHBlcgo+ID4g
+Y2ZiaW1nYmx0ICAgICAgICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hlbHBlcgo+ID4gc3lzZmls
+bHJlY3QgICAgICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hlbHBlcgo+ID4gc3lzaW1nYmx0ICAg
+ICAgICAgICAgICAxNjM4NCAgMSBkcm1fa21zX2hlbHBlcgo+ID4gZmJfc3lzX2ZvcHMgICAgICAg
+ICAgICAxNjM4NCAgMSBkcm1fa21zX2hlbHBlcgo+ID4gY2ZiY29weWFyZWEgICAgICAgICAgICAx
+NjM4NCAgMSBkcm1fa21zX2hlbHBlcgo+ID4gZHJtICAgICAgICAgICAgICAgICAgIDM2NDU0NCAg
+MiBvbWFwZHJtLGRybV9rbXNfaGVscGVyCj4gPiBwYW5lbF9zb255X2FjeDU2NWFrbSAgICAxNjM4
+NCAgMAo+ID4gb21hcGRzcyAgICAgICAgICAgICAgIDE5MjUxMiAgMQo+ID4gb21hcGRzc19iYXNl
+ICAgICAgICAgICAyNDU3NiAgMyBwYW5lbF9zb255X2FjeDU2NWFrbSxvbWFwZHJtLG9tYXBkc3MK
+PiA+IHRzYzIwMDUgICAgICAgICAgICAgICAgMTYzODQgIDAKPiA+IHRzYzIwMHhfY29yZSAgICAg
+ICAgICAgMTYzODQgIDEgdHNjMjAwNQo+ID4gdHdsNDAzMF9rZXlwYWQgICAgICAgICAxNjM4NCAg
+MAo+ID4gbWF0cml4X2tleW1hcCAgICAgICAgICAxNjM4NCAgMSB0d2w0MDMwX2tleXBhZAo+ID4g
+cnRjX3R3bCAgICAgICAgICAgICAgICAxNjM4NCAgMQo+ID4gdHdsNDAzMF93ZHQgICAgICAgICAg
+ICAxNjM4NCAgMAo+ID4gCj4gPiBBbSBJIG1pc3Npbmcgc29tZSBtb2R1bGUgbm93Pwo+IAo+IG9t
+YXBkcm0gdGFrZXMgYSByZWYgdG8gdGhlIHBhbmVsIG1vZHVsZSB3aGVuIGl0J3MgaW4gdXNlLCBh
+bmQKPiBwYW5lbF9zb255X2FjeDU2NWFrbSBoYXMgcmVmY291bnQgb2YgMC4gU28gZm9yIHNvbWUg
+cmVhc29uIHRoZSBkaXNwbGF5Cj4gc2V0dXAgaGFzIG5vdCBiZWVuIGRvbmUsIG9yIGl0J3MgYmVl
+biBkZWZlcnJlZC4KPiAKPiBJIHRoaW5rIHlvdSdyZSBtaXNzaW5nIGNvbm5lY3Rvcl9hbmFsb2df
+dHYKPiAoQ09ORklHX0RSTV9PTUFQX0NPTk5FQ1RPUl9BTkFMT0dfVFYpLgo+IAo+IEkganVzdCB0
+cmllZCBiZWFnbGVib2FyZCwgaXQgc2VlbXMgdG8gd29yayBvayBvbiBuZXh0LgoKU29ycnkgZm9y
+IHRoZSBkZWxheSBpbiByZXBseWluZywgZmluYWxseSBnb3QgYXJvdW5kIHRvIHRyeWluZyB0aGlz
+CmFnYWluLgoKWW91ciBhcmUgdG90YWxseSByaWdodCwgY29ubmVjdG9yX2FuYWxvZ190diBuZWVk
+cyB0byBiZSBsb2FkZWQuCgpNeSB1cGRhdGVkIHRlc3Qgc2NyaXB0IGJlbG93IGZvciByZWZlcmVu
+Y2UuCgpSZWdhcmRzLAoKVG9ueQoKODwgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMhL2Jpbi9z
+aAoKbW9kcHJvYmUgdHdsNDAzMF9rZXlwYWQKbW9kcHJvYmUgdHNjMjAwNQptb2Rwcm9iZSBvbWFw
+ZHNzCm1vZHByb2JlIHBhbmVsX3NvbnlfYWN4NTY1YWttCm1vZHByb2JlIGNvbm5lY3Rvcl9hbmFs
+b2dfdHYKbW9kcHJvYmUgb21hcGRybQoKZWNobyAyNTUgPiAvc3lzL2NsYXNzL2JhY2tsaWdodC9h
+Y3g1NjVha20vYnJpZ2h0bmVzcwplY2hvIDAgPiAvc3lzL2NsYXNzL2dyYXBoaWNzL2ZiMC9ibGFu
+awplY2hvIDEgPiAvc3lzL2NsYXNzL2dyYXBoaWNzL2ZiMC9ibGFuawplY2hvIDAgPiAvc3lzL2Ns
+YXNzL2dyYXBoaWNzL2ZiMC9ibGFuawoKL3NiaW4vYWdldHR5IC0tbm9jbGVhciB0dHkxIGxpbnV4
+ICYKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
+dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
