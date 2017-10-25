@@ -1,49 +1,27 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: DRA76-EVM: Set powerhold property for tps65917
-Date: Wed, 25 Oct 2017 09:52:19 -0700
-Message-ID: <20171025165219.GO4394@atomide.com>
-References: <1508834648-28715-1-git-send-email-j-keerthy@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] ARM-OMAP3: Fine-tuning for omap3xxx_hwmod_init()
+Date: Wed, 25 Oct 2017 09:54:51 -0700
+Message-ID: <20171025165450.GP4394@atomide.com>
+References: <ad74497a-9516-8a98-8deb-e6d5b752a898@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1508834648-28715-1-git-send-email-j-keerthy-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+In-Reply-To: <ad74497a-9516-8a98-8deb-e6d5b752a898@users.sourceforge.net>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Russell King <linux@armlinux.org.uk>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [171024 01:46]:
-> Set powerhold property for tps65917
+* SF Markus Elfring <elfring@users.sourceforge.net> [171020 08:17]:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Fri, 20 Oct 2017 17:08:09 +0200
 > 
-> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+> Two update suggestions were taken into account
+> from static source code analysis.
 
-Is this safe to merge separately before the driver changes?
+Thanks applying into omap-for-v4.15/coccinelle.
 
 Regards,
 
 Tony
-
-> ---
->  arch/arm/boot/dts/dra76-evm.dts | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
-> index b024a65..f64aab4 100644
-> --- a/arch/arm/boot/dts/dra76-evm.dts
-> +++ b/arch/arm/boot/dts/dra76-evm.dts
-> @@ -148,6 +148,7 @@
->  		compatible = "ti,tps65917";
->  		reg = <0x58>;
->  		ti,system-power-controller;
-> +		ti,palmas-override-powerhold;
->  		interrupt-controller;
->  		#interrupt-cells = <2>;
->  
-> -- 
-> 1.9.1
-> 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
