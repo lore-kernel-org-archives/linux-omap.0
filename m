@@ -1,106 +1,82 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 4.13 (and probably all recent) kernels refuse to boot on one
- Nokia N950, work or another
-Date: Thu, 26 Oct 2017 11:57:34 +0200
-Message-ID: <20171026095734.GA10141@amd>
-References: <20171025203459.GA22035@amd>
- <20171025212806.GA21504@atomide.com>
- <20171026091325.GA26929@amd>
- <20171026093115.4bc6ctxjx72ng7ld@earth>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv1 00/14] omapdrm: DSI command mode panel support
+Date: Thu, 26 Oct 2017 14:59:10 +0300
+Message-ID: <d96752eb-45a0-9766-0022-7eb1594761af@ti.com>
+References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
+ <20170929132649.63dy7mzjgknaevoa@earth>
+ <b66ec006-e998-b8c6-8ef1-5bf19208c100@ti.com>
+ <20171013171207.GO4394@atomide.com> <20171023220100.cso5sbxcx7itcj5r@earth>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="TB36FDmn/VVEgNH/"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171026093115.4bc6ctxjx72ng7ld@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, filip.matijevic.pz@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20171023220100.cso5sbxcx7itcj5r@earth>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---TB36FDmn/VVEgNH/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu 2017-10-26 11:31:15, Sebastian Reichel wrote:
-> Hi,
->=20
-> On Thu, Oct 26, 2017 at 11:13:26AM +0200, Pavel Machek wrote:
-> > On Wed 2017-10-25 14:28:07, Tony Lindgren wrote:
-> > > * Pavel Machek <pavel@ucw.cz> [171025 13:36]:
-> > > > Hi!
-> > > >=20
-> > > > ...hardware should be identical. 3.5.3-nemo kernel seems to work on
-> > > > both. 4.13-rc2 with display and clock patches boots on phone "S", b=
-ut
-> > > > does not on phone "P"; nothing nothing is received on serial port.
-> > > >=20
-> > > > There is some difference in the bootloaders: S's bootloader provides
-> > > > lots of debug info, P's is silent. R&D settings do _not_ have
-> > > > influence on bootloader. We know P's serial works, as 3.5.3 kernel
-> > > > prints "Uncompressing linux...booting" there.
-> > > >=20
-> > > > I'll need to return "S" phone and serial cable tommorow. If you have
-> > > > any ideas, let me know.
-> > >=20
-> > > If you get nothing out of the uart, chances are the pins are
-> > > not muxed for the uart in nolo and maybe kernel dts is missing the
-> > > pinctrl entries for uart?
-> > >=20
-> > > Also try booting with mem=3D512M@0x80000000 or 256M or 768M. Maybe the
-> > > memory is different size or partially broken?
-> >=20
-> > Uhuh. It looks like "P" nokia really wants initrd, otherwise it will
-> > not boot.
-> >=20
-> > I got "uncompressing Linux 4.13" on serial console now, debug LEDs
-> > blinking, and if I use a flashlight, I see output on the screen, too.
-> >=20
-> > (What do I need to do to get the backlight working?)
->=20
-> Glad you got it working :) For backlight you can add this
-> in drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c:
->=20
-> add the following code at the end of dsicm_probe:
-
-You did not actually include code to paste into panel-dsi-cm, can you
-try a again?
-
-Thanks a lot,
-								Pavel
-
-> -----------------------------------------------------------
-> mutex_unlock(&ddata->lock);
-> mutex_lock(&ddata->lock);
-> ddata->in->ops.dsi->bus_lock(ddata->in);
-> r =3D dsicm_wake_up(ddata);
-> if (!r)
->     r =3D dsicm_dcs_write_1(ddata, DCS_BRIGHTNESS, 100);
-> ddata->in->ops.dsi->bus_unlock(ddata->in);
-> mutex_unlock(&ddata->lock);
-> -----------------------------------------------------------
->=20
-> -- Sebastian
-
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---TB36FDmn/VVEgNH/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlnxsY4ACgkQMOfwapXb+vIbFACgkv+g4NPkbyK7n8Eu5FfDKkvY
-ExgAn01KG3KwwwSbY1f3JUL5ukOHbxo7
-=EU8O
------END PGP SIGNATURE-----
-
---TB36FDmn/VVEgNH/--
+T24gMjQvMTAvMTcgMDE6MDEsIFNlYmFzdGlhbiBSZWljaGVsIHdyb3RlOgo+IEhpLAo+IAo+IE9u
+IEZyaSwgT2N0IDEzLCAyMDE3IGF0IDEwOjEyOjA4QU0gLTA3MDAsIFRvbnkgTGluZGdyZW4gd3Jv
+dGU6Cj4+ICogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4gWzE3MTAxMiAw
+MTo0Nl06Cj4+PiBPbiAyOS8wOS8xNyAxNjoyNiwgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cj4+
+Pj4gSGkgVG9taSAmIExhdXJlbnQsCj4+Pj4KPj4+PiBwaW5nPwo+Pj4KPj4+IEkndmUgYmVlbiBo
+YXZpbmcgcXVpY2sgZ2xhbmNlcyBhdCB0aGlzIGV2ZXJ5IG5vdyBhbmQgdGhlbiwgYnV0IEknbSBu
+b3QKPj4+IHN1cmUgd2hhdCB0byBkbyB3aXRoIHRoZSBzZXJpZXMuCj4+Pgo+Pj4gV2UgaGF2ZSBv
+bmUgd29yayBpdGVtIHRoYXQgbW9yZSBvciBsZXNzIG92ZXJyaWRlcyBldmVyeXRoaW5nIGJ1dAo+
+Pj4gY3JpdGljYWwgZml4ZXM6IG1vdmluZyB0byBjb21tb24gRFJNIGVuY29kZXIvcGFuZWwgZHJp
+dmVycy4gQW55dGhpbmcKPj4+IHRoYXQgbWFrZXMgdGhhdCB3b3JrIG1vcmUgZGlmZmljdWx0IHNo
+b3VsZCBiZSBwb3N0cG9uZWQuCj4+Pgo+Pj4gRXNwZWNpYWxseSBwYXRjaCA2IGluIHRoaXMgc2Vy
+aWVzIG1vc3QgbGlrZWx5IGZhbGxzIGludG8gdGhhdCBjYXRlZ29yeSwKPj4+IGFuZCBtaWdodCBy
+ZXF1aXJlIGEgdmVyeSBkaWZmZXJlbnQgaW1wbGVtZW50YXRpb24gd2l0aCBjb21tb24gRFJNCj4+
+PiBkcml2ZXJzLiBBbHNvIGV2ZXJ5dGhpbmcgaW4gcGFuZWwtZHNpLWNtIG5lZWRzIHRvIGJlIHBv
+cnRlZCB0byBhIGNvbW1vbgo+Pj4gRFJNIHBhbmVsIGRyaXZlciB3aGVuIGNhbiB1c2UgdGhlbS4K
+Pj4+Cj4+PiBTbyBteSBndXQgZmVlbGluZyBpcyB0aGF0IGl0J3MgYmVzdCB0byBrZWVwIHRoaXMg
+b3V0IGZvciBub3csIGFuZCByZXdvcmsKPj4+IGl0IGFmdGVyIExhdXJlbnQgZ2V0cyB0aGUgY29t
+bW9uIERSTSBkcml2ZXJzIHdvcmtpbmcgd2l0aCBvbWFwZHJtLgo+Pgo+PiBMYXVyZW50LCBnb3Qg
+YW55IG90aGVyIGNvbW1lbnRzPwo+Pgo+PiBNYXliZSBzb21lIG9mIHBhdGNoZXMgY2FuIGJlIGFs
+cmVhZHkgYXBwbGllZCB0byBzaHJpbmsgZG93biB0aGlzCj4+IHNldCBhIGJpdD8KPiAKPiBJIHRh
+bGtlZCB3aXRoIExhdXJlbnQgYXQgRUxDRSBhYm91dCB0aGlzIHBhdGNoc2V0IGFuZCBoZSBpcyBm
+aW5lCj4gd2l0aCB0aGlzIHNlcmllcyBnb2luZyBpbiBiZWZvcmUgaGlzIHdvcmsgYXNzdW1pbmcg
+aXRzIGZpbmUKPiBvdGhlcndpc2UuIEhlIGhhcyBub3QgeWV0IHJldmlld2VkIGl0LCB0aG91Z2gg
+YW5kIGlzIGJ1c3kgdGhlCj4gbmV4dCB0d28gd2Vla3MuCj4gCj4gUmVnYXJkaW5nIHRoZSBwYW5l
+bC1kc2ktY20gcG9ydGluZyB3b3JrOiBJIHdpbGwgdGFrZSBjYXJlIG9mIHRoaXMKPiBvbmNlIHRo
+ZSBkcml2ZXIgdXNlcyBjb21tb24gRFJNIGRyaXZlcnMuIEkgZG9uJ3QgZXhwZWN0IG1ham9yCj4g
+cHJvYmxlbXMgb25jZSBvbWFwZHJtIGltcGxlbWVudHMgY29tbW9uIGRybSdzIG1pcGlfZHNpX2hv
+c3QuIEkKPiBkbyB1c2UgdGhlIHN0YW5kYXJkIERUIHByb3BlcnRpZXMgYWxyZWFkeS4KPiAKPiBJ
+IGRvIGFncmVlLCB0aGF0IG5vdCBhcHBseWluZyB0aGlzIHNlcmllcyBtYWtlcyBMYXVyZW50J3Mg
+cG9ydGluZwo+IHdvcmsgZWFzaWVyLCBzaW5jZSBoZSBjYW4gcmlwIG91dCBhbGwgb2YgRFNJLiBJ
+dCdzIG5vdCB1c2VkIGJ5Cj4gYW55dGhpbmcgZXhjZXB0IHBhbmVsLWRzaS1jbSwgd2hpY2ggaXMg
+YnJva2VuIHdpdGhvdXQgdGhpcyBwYXRjaHNldC4KPiBJIGRvbid0IHRoaW5rIHRoYXQncyBhIGZh
+aXIgdGhpbmcgdG8gZG8sIHRob3VnaC4KPiAKPiBQLlMuOiBJIGdvdCBhc2tlZCBieSBkaWZmZXJl
+bnQgcGVvcGxlIGFib3V0IHRoZSBzdGF0dXMgb2YgdGhpcwo+IHBhdGNoc2V0LCB3aGljaCBpcyBy
+ZXF1aXJlZCBmb3IgZGlzcGxheSBzdXBwb3J0IG9uIE45LCBOOTUwIGFuZAo+IERyb2lkIDQuIEl0
+J3Mgbm90IGp1c3QgbWUgYW5kIFRvbnksIHRoYXQgYXJlIGludGVyZXN0ZWQgaW4gdGhpcyA6KQoK
+T2suIElmIHlvdSBhZ3JlZSB0byBoZWxwIHdpdGggdGhlIERTSSBwYXJ0IGluIHRoZSBmdXR1cmUs
+IEkgaGF2ZSBubwpwcm9ibGVtcyBhcHBseWluZyB0aGVzZSAoYWZ0ZXIgcmV2aWV3IGFuZCB0ZXN0
+aW5nLCBvZiBjb3Vyc2UpLgoKTXkgd29ycnkgaXMgbm90IG9ubHkgd2l0aCBjb21wbGljYXRpbmcg
+TGF1cmVudCdzIHdvcmsgdG93YXJkcyBjb21tb24gRFJNCmRyaXZlcnMsIGJ1dCBhbHNvIHdpdGgg
+dGhlIG1haW50ZW5hbmNlIGJ1cmRlbiB0aGlzIGJyaW5ncy4gS2VlcGluZyBEU0kKd29ya2luZyBp
+biB0aGUgZnV0dXJlIG1heSBiZSBjaGFsbGVuZ2luZyBkdWUgdG8gdGhlIGxhY2sgb2YgdXNlcnMg
+YW5kCihlYXN5IHRvIHVzZSkgYm9hcmRzLiBJIGRvIGhhdmUgYSBOOTUwIGFuZCBPTUFQNCBCbGF6
+ZSBUYWJsZXQsIHRob3VnaCwKc28gSSdtIGFibGUgdG8gdGVzdCBib3RoIGNvbW1hbmQgYW5kIHZp
+ZGVvIG1vZGVzLiBCdXQgZ2V0dGluZyB0aG9zZSBib290CnVwIGlzIG5vdCBhbHdheXMgdHJpdmlh
+bCwgZXNwZWNpYWxseSBmb3IgdGhlIGJsYXplIHRhYmxldC4KCkkndmUgYWxzbyBzcGVudCBtYW55
+IGhvdXJzIHRoaXMgeWVhciBkZWJ1Z2dpbmcgb2JzY3VyZSBPTUFQMyBEU1MgSFcKaXNzdWVzLCBz
+byBteSBvcGluaW9uIGFib3V0IGFkZGluZyBtb3JlIE9NQVAzIERTUyBmZWF0dXJlcyBtYXkgYmUg
+YSBiaXQKYmlhc2VkID0pLgoKSSdsbCBoYXZlIGEgbG9vayBhdCB0aGlzIHNlcmllcyB3aGVuIEkg
+ZmluZCBhIGJpdCBvZiBzcGFyZSB0aW1lLgoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQg
+T3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJ
+RDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0
+CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3Rv
+cC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
