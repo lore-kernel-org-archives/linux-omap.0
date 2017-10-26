@@ -1,115 +1,82 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v2] dwc: dra7xx: Print link state to console for debug
-Date: Thu, 26 Oct 2017 13:29:27 +0530
-Message-ID: <53ed97ab-ed02-23be-0ce9-e79f2aaac979@ti.com>
-References: <1508417009-30869-1-git-send-email-faiz_abbas@ti.com>
- <9378c5c9-381d-4c40-3290-f7e3720792ba@ti.com>
- <063D6719AE5E284EB5DD2968C1650D6DD009C62B@AcuExch.aculab.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: 4.13 (and probably all recent) kernels refuse to boot on one
+ Nokia N950, work or another
+Date: Thu, 26 Oct 2017 10:24:19 +0200
+Message-ID: <20171026082419.GA5386@amd>
+References: <20171025203459.GA22035@amd>
+ <3dbb966f-c279-2c57-d3c2-98ca7c04accd@gmail.com>
+ <20171026070815.GA20634@amd>
+ <20171026072113.z5bqer7os62ckf3z@pali>
+ <20171026072759.GC20634@amd>
+ <20171026073236.25jwrnxjyej32pwg@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ZGiS0Q5IWpPtfppv"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DD009C62B@AcuExch.aculab.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171026073236.25jwrnxjyej32pwg@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Laight <David.Laight@ACULAB.COM>, "kishon@ti.com" <kishon@ti.com>
-Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-David,
 
-On Thursday 19 October 2017 06:56 PM, David Laight wrote:
-> From: Faiz Abbas
->> Sent: 19 October 2017 14:09
->> On Thursday 19 October 2017 06:13 PM, Faiz Abbas wrote:
->>> Enable support for printing the LTSSM link state for debugging PCI
->>> when link is down.
->>>
->>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->>> ---
->>> v2:
->>>  1. Changed dev_err() to dev_dbg()
->>>  2. Changed static char array to static const char * const
->>>  3. format changes
->>>
->>>  drivers/pci/dwc/pci-dra7xx.c | 48 ++++++++++++++++++++++++++++++++++++++++++++
->>>  1 file changed, 48 insertions(+)
->>>
->>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
->>> index 34427a6..0e70e77 100644
->>> --- a/drivers/pci/dwc/pci-dra7xx.c
->>> +++ b/drivers/pci/dwc/pci-dra7xx.c
->>> @@ -98,6 +98,45 @@ struct dra7xx_pcie_of_data {
->>>
->>>  #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
->>>
->>> +static const char * const state[] = {
->>> +	"DETECT_QUIET",
-> ...
->>> +	"RCVRY_EQ3"
->>> +};
->>> +
->>>  static inline u32 dra7xx_pcie_readl(struct dra7xx_pcie *pcie, u32 offset)
->>>  {
->>>  	return readl(pcie->base + offset);
->>> @@ -118,6 +157,15 @@ static int dra7xx_pcie_link_up(struct dw_pcie *pci)
->>>  {
->>>  	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
->>>  	u32 reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_PHY_CS);
->>> +	u32 cmd_reg;
->>> +	u32 ltssm_state;
->>> +
->>> +	if (!(reg & LINK_UP)) {
->>> +		cmd_reg = dra7xx_pcie_readl(dra7xx,
->>> +					    PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
->>> +		ltssm_state = (cmd_reg & GENMASK(7, 2)) >> 2;
->>> +		dev_dbg(pci->dev, "Link state:%s\n", state[ltssm_state]);
-> 
-> Hmmm... GENMASK leaves by hunting header files...> Why not (cmd_reg >> 2) & 63 and explicitly define state[64]
-> to guarantee that you never print anything worse than a NULL
-> pointer.
+--ZGiS0Q5IWpPtfppv
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm not sure what you mean. Are you worried we might print something
-outside the array bounds? How is this easier to decipher than GENMASK?
+Hi!
+On Thu 2017-10-26 09:32:36, Pali Roh=C3=A1r wrote:
+> On Thursday 26 October 2017 09:27:59 Pavel Machek wrote:
+> > Hi!
+> >=20
+> > On Thu 2017-10-26 09:21:13, Pali Roh=C3=A1r wrote:
+> > > On Thursday 26 October 2017 09:08:15 Pavel Machek wrote:
+> > > > On Thu 2017-10-26 08:25:02, Filip Matijevi=C4=87 wrote:
+> > > > > Last time I couldn't get output on serial I used CONFIG_DEBUG_LL,
+> > > > > CONFIG_DEBUG_OMAP3UART3, CONFIG_EARLY_PRINTK... and ignore_loglev=
+el
+> > > > > earlyprintk kernel params to get output early enough - I guess you
+> > > > > already tried that.
+> > > >=20
+> > > > I realized I'm not getting output from the decompessor (even on "S"
+> > > > machine), and enabled that.
+> > >=20
+> > > That is because you have not enabled those EARLY PRINK or DEBUG LL.
+> > > Similar thing is needed for N900 and IIRC in some of my linux-n900
+> > > branches I have config for it. Plus it needs patching some arch/arm
+> > > source files to make it working.
+> >=20
+> > Do you have a patch? That would be very useful.
+>=20
+> Yes, in v4.9-n900 branch, see:
+> https://github.com/pali/linux-n900/commit/66b22ba4132ca90f7efc3f9e8ece8d4=
+b9adddcdc
 
-> 
->>> +	}
->>>
->>>  	return !!(reg & LINK_UP);
->>>  }
->>>
->>
->> I missed David's comment in v1. Will submit a new version. Please ignore.
-> 
-> I've a 'neat' trick for generating strings that match constants.
-> You can get the compiler to do all the work for you:
-> (Assuming I've typed it correctly)
-> 
-> #define LTSSM_DEFS(x) \
->   x(DETECT_QUIET) \
->   x(DETECT_ACT) \
-> (continue for all the names)
-> 
-> Define an enum with the named constants:
-> #define X(name) LTSSM_STATE_##name,
-> enum (LTSSM_DEFS(X) LTSSM_STATE_SIZE=64);
-> #undef X
-> 
-> Array of strings:
-> #define X(name) [LTSSM_STATE_##name] = #name
-> static const char * const state_names[LTSSM_STATE_SIZE] = { LTSSM_DEFS(X) };
-> #undef X
-> 
-> 	David
-> 
+Thanks for a pointer; but I still don't see how this is supposed to
+work:
 
-So I implemented your idea and it looks like this:
-http://pastebin.ubuntu.com/25821834/
+arch/arm/include/debug/uncompress.h provides empty static inline void
+arch_decomp_setup(void) {}
 
-I don't know how much we gained by adding the trick. I still had to be
-careful not to be off by 1 when writing the list. Plus we are never
-saying anything like printk("%s", state[LTSSM_STATE_DETECT_QUIET]. Its a
-register read which is used to index the list array.
+=2E..?
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Thanks,
-Faiz
+--ZGiS0Q5IWpPtfppv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlnxm7MACgkQMOfwapXb+vKmBgCgqSUyYMGUkeNqDXQcxzwLFBIW
+VwsAn2FVvUA2asvkYvLFrp1dcW8a0wRp
+=naXN
+-----END PGP SIGNATURE-----
+
+--ZGiS0Q5IWpPtfppv--
