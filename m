@@ -1,117 +1,255 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: 4.13 (and probably all recent) kernels refuse to boot on one
- Nokia N950, work or another
-Date: Thu, 26 Oct 2017 14:01:30 +0200
-Message-ID: <20171026120130.dicanunwcdmjntnb@earth>
-References: <20171025203459.GA22035@amd>
- <20171025212806.GA21504@atomide.com>
- <20171026091325.GA26929@amd>
- <20171026093115.4bc6ctxjx72ng7ld@earth>
- <20171026095734.GA10141@amd>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: n900 in next-20170901
+Date: Thu, 26 Oct 2017 07:16:27 -0700
+Message-ID: <20171026141627.GD21504@atomide.com>
+References: <20170921172811.GB4394@atomide.com>
+ <20170925080806.GA9837@js1304-P5Q-DELUXE>
+ <20170925145437.GG4394@atomide.com>
+ <20171018082927.GB27595@js1304-P5Q-DELUXE>
+ <20171019183033.GH4394@atomide.com>
+ <20171020015542.GA10438@js1304-P5Q-DELUXE>
+ <20171020173146.GN4394@atomide.com>
+ <20171023045342.GA23082@js1304-P5Q-DELUXE>
+ <20171025173137.GQ4394@atomide.com>
+ <20171026044829.GB11791@js1304-P5Q-DELUXE>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="z5yc34qd3zy7l3z6"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171026095734.GA10141@amd>
+In-Reply-To: <20171026044829.GB11791@js1304-P5Q-DELUXE>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, filip.matijevic.pz@gmail.com
+To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
+* Joonsoo Kim <iamjoonsoo.kim@lge.com> [171025 21:45]:
+> On Wed, Oct 25, 2017 at 10:31:38AM -0700, Tony Lindgren wrote:
+> > Great, this branch boots on n900! Early parts of the dmesg attached
+> > below.
+> 
+> Sound good. Perhaps, problem is due to the cache management. With my
+> patchset, direct mapping for CMA area is cleared in
+> dma_contiguous_remap() if CONFIG_HIGHMEM. I guess that proper cache
+> operation is required there.
+> 
+> Could you test my newly updated branch again? I re-enable
+> dma_contiguous_remap() to clear direct mapping for CMA area and add
+> proper(?) cache operation although I'm not the expert on that area.
+> 
+> https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
 
---z5yc34qd3zy7l3z6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yeah that one boots too, dmesg below. I wonder why flushing the range
+with dmac_flush_range() and outer_flush_range() no longer seems enough
+though?
 
-Hi,
+Reverting the arch/arm/mm/dma-mapping.c changes in your patch
+"arm/dma: re-enable to remap the CMA area and flush cache before
+remapping" also boots, but produces the following build warnings:
 
-On Thu, Oct 26, 2017 at 11:57:34AM +0200, Pavel Machek wrote:
-> On Thu 2017-10-26 11:31:15, Sebastian Reichel wrote:
-> > Hi,
-> >=20
-> > On Thu, Oct 26, 2017 at 11:13:26AM +0200, Pavel Machek wrote:
-> > > On Wed 2017-10-25 14:28:07, Tony Lindgren wrote:
-> > > > * Pavel Machek <pavel@ucw.cz> [171025 13:36]:
-> > > > > Hi!
-> > > > >=20
-> > > > > ...hardware should be identical. 3.5.3-nemo kernel seems to work =
-on
-> > > > > both. 4.13-rc2 with display and clock patches boots on phone "S",=
- but
-> > > > > does not on phone "P"; nothing nothing is received on serial port.
-> > > > >=20
-> > > > > There is some difference in the bootloaders: S's bootloader provi=
-des
-> > > > > lots of debug info, P's is silent. R&D settings do _not_ have
-> > > > > influence on bootloader. We know P's serial works, as 3.5.3 kernel
-> > > > > prints "Uncompressing linux...booting" there.
-> > > > >=20
-> > > > > I'll need to return "S" phone and serial cable tommorow. If you h=
-ave
-> > > > > any ideas, let me know.
-> > > >=20
-> > > > If you get nothing out of the uart, chances are the pins are
-> > > > not muxed for the uart in nolo and maybe kernel dts is missing the
-> > > > pinctrl entries for uart?
-> > > >=20
-> > > > Also try booting with mem=3D512M@0x80000000 or 256M or 768M. Maybe =
-the
-> > > > memory is different size or partially broken?
-> > >=20
-> > > Uhuh. It looks like "P" nokia really wants initrd, otherwise it will
-> > > not boot.
-> > >=20
-> > > I got "uncompressing Linux 4.13" on serial console now, debug LEDs
-> > > blinking, and if I use a flashlight, I see output on the screen, too.
-> > >=20
-> > > (What do I need to do to get the backlight working?)
-> >=20
-> > Glad you got it working :) For backlight you can add this
-> > in drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c:
-> >=20
-> > add the following code at the end of dsicm_probe:
->=20
-> You did not actually include code to paste into panel-dsi-cm, can you
-> try a again?
+arch/arm/mm/dma-mapping.c: In function 'dma_contiguous_remap':
+arch/arm/mm/dma-mapping.c:503:20: warning: passing argument 1 of
+'cpu_cache.dma_flush_range' makes pointer from integer without a
+cast [-Wint-conversion]
+dmac_flush_range(map.virtual, map.virtual + map.length);
+                    ^~~
+arch/arm/mm/dma-mapping.c:503:20: note: expected 'const void *' but
+argument is of type 'long unsigned int'
+arch/arm/mm/dma-mapping.c:503:33: warning: passing argument 2 of
+'cpu_cache.dma_flush_range' makes pointer from integer without a
+cast [-Wint-conversion]
+dmac_flush_range(map.virtual, map.virtual + map.length);
 
-I added it directly below and you quoted it. I guess you mistook it
-for a signature or something :)
+Regards,
 
--- Sebastian
+Tony
 
-> > -----------------------------------------------------------
-> > mutex_unlock(&ddata->lock);
-> > mutex_lock(&ddata->lock);
-> > ddata->in->ops.dsi->bus_lock(ddata->in);
-> > r =3D dsicm_wake_up(ddata);
-> > if (!r)
-> >     r =3D dsicm_dcs_write_1(ddata, DCS_BRIGHTNESS, 100);
-> > ddata->in->ops.dsi->bus_unlock(ddata->in);
-> > mutex_unlock(&ddata->lock);
-> > -----------------------------------------------------------
-> >=20
-> > -- Sebastian
-
---z5yc34qd3zy7l3z6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnxzpcACgkQ2O7X88g7
-+pqF4Q/+IgJXxFFK5xJwq9RRJX3bN4qe8mDg1Nvyah8TZl345NJh427YUW2Pzzhn
-7+tGM/YuwvKLKnKHuiKa2sZq0DDSeJuJvBSuTMv7Q1UbYoc4tbbXKbJSUClGsRY7
-oBWFTG/pUPnX2TuVb5LioMMUWMZ2zoA/w1Um2zEzeRMGZ+Aenzl84XCkm4QUi66G
-F9jow4gNRESXxmisTwMpo/rQ9SNFvxSr1kJMDieZ5cRSqeba0xKGf4yeK7s6DRm1
-mZTiSwR94Ys7uY5jpj+hmPOy/5kJmNIIDhqrU12asPs68LDI2whIStjAFLcWsoFR
-JJjHC3CAdtvlKx8JQMH9nkSK74H/vrf6ViYDMDyT4jZEdHGS+ilIDzq9ExbX6Rzh
-zbrcjbNZLagYMIG4X8ta8lhviC5n17gbLKX4UX3DUphDFFOF446UuVNdiy9Yvjdu
-IwQBUekcwJoJmB6vxTEo+aewDTzEGjACLPAYorGrQoEJutmcatR5+mtpRXOf0PcZ
-HWjtSVIWZZGO944iEou/54wOuVPth2sgWFzN4rS7O8FWZoruowVI08uCIyowthYf
-t4y3XDtgBbXdOW0MBDYiEnxh7ouOykrXgx5qBsKMZqMTR5B0AbzbwTP1q6EQ8lyi
-/qm4UEVcvSSCa56ortuFXzq9T+ddjgwKJhCDWvIkRez8gFjSSRA=
-=mG/4
------END PGP SIGNATURE-----
-
---z5yc34qd3zy7l3z6--
+8< -----------------------
+Linux version 4.13.0-rc7-next-20170901-00016-g69a5a607f945 (tmlind@sampyla) (gcc version 6.3.1 20170109 (crosstool-NG crosstool-ng-1.23.0)) #546 SMP Thu Oct 26 07:03:19 PDT 2017
+CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7), cr=10c5387d
+CPU: PIPT / VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+OF: fdt: Machine model: Nokia N900
+memblock_add: [0x80000000-0x8fffffff] early_init_dt_scan_memory+0xec/0x158
+Memory policy: Data cache writeback
+memblock_reserve: [0x80100000-0x8152f643] arm_memblock_init+0x30/0x1b0
+memblock_reserve: [0x80004000-0x80007fff] arm_memblock_init+0x13c/0x1b0
+memblock_reserve: [0x8ff00000-0x8fffffff] memblock_alloc_range_nid+0x38/0x50
+   memblock_free: [0x8ff00000-0x8fffffff] arm_memblock_steal+0x30/0x48
+memblock_reserve: [0x8fe00000-0x8fefffff] memblock_alloc_range_nid+0x38/0x50
+   memblock_free: [0x8fe00000-0x8fefffff] arm_memblock_steal+0x30/0x48
+memblock_reserve: [0x8fccb000-0x8fcddfff] arm_memblock_init+0x150/0x1b0
+memblock_reserve: [0x8fccb000-0x8fcddfff] early_init_fdt_scan_reserved_mem+0x58/0x7c
+memblock_reserve: [0x8e800000-0x8f7fffff] memblock_alloc_range_nid+0x38/0x50
+cma: Reserved 16 MiB at 0x8e800000
+MEMBLOCK configuration:
+ memory size = 0x0fe00000 reserved size = 0x02446644
+ memory.cnt  = 0x1
+ memory[0x0]	[0x80000000-0x8fdfffff], 0x0fe00000 bytes flags: 0x0
+ reserved.cnt  = 0x4
+ reserved[0x0]	[0x80004000-0x80007fff], 0x00004000 bytes flags: 0x0
+ reserved[0x1]	[0x80100000-0x8152f643], 0x0142f644 bytes flags: 0x0
+ reserved[0x2]	[0x8e800000-0x8f7fffff], 0x01000000 bytes flags: 0x0
+ reserved[0x3]	[0x8fccb000-0x8fcddfff], 0x00013000 bytes flags: 0x0
+CMA_ADDR: __phys_to_virt_debug: 0x8e800000 to 0xce800000
+CPU: 0 PID: 0 Comm: swapper Not tainted 4.13.0-rc7-next-20170901-00016-g69a5a607f945 #546
+Hardware name: Nokia RX-51 board
+[<c0110b38>] (unwind_backtrace) from [<c010caec>] (show_stack+0x10/0x14)
+[<c010caec>] (show_stack) from [<c082e9e4>] (dump_stack+0xac/0xe0)
+[<c082e9e4>] (dump_stack) from [<c0c06d9c>] (dma_contiguous_remap+0x60/0x140)
+[<c0c06d9c>] (dma_contiguous_remap) from [<c0c07f7c>] (paging_init+0x324/0x700)
+[<c0c07f7c>] (paging_init) from [<c0c042ac>] (setup_arch+0x5b4/0xc94)
+[<c0c042ac>] (setup_arch) from [<c0c00940>] (start_kernel+0x54/0x3fc)
+[<c0c00940>] (start_kernel) from [<8000807c>] (0x8000807c)
+CMA_ADDR: __phys_to_virt_debug: 0x8e800000 to 0xce800000
+CPU: 0 PID: 0 Comm: swapper Not tainted 4.13.0-rc7-next-20170901-00016-g69a5a607f945 #546
+Hardware name: Nokia RX-51 board
+[<c0110b38>] (unwind_backtrace) from [<c010caec>] (show_stack+0x10/0x14)
+[<c010caec>] (show_stack) from [<c082e9e4>] (dump_stack+0xac/0xe0)
+[<c082e9e4>] (dump_stack) from [<c0c06dcc>] (dma_contiguous_remap+0x90/0x140)
+[<c0c06dcc>] (dma_contiguous_remap) from [<c0c07f7c>] (paging_init+0x324/0x700)
+[<c0c07f7c>] (paging_init) from [<c0c042ac>] (setup_arch+0x5b4/0xc94)
+[<c0c042ac>] (setup_arch) from [<c0c00940>] (start_kernel+0x54/0x3fc)
+[<c0c00940>] (start_kernel) from [<8000807c>] (0x8000807c)
+CMA_ADDR: __phys_to_virt_debug: 0x8e800000 to 0xce800000
+CPU: 0 PID: 0 Comm: swapper Not tainted 4.13.0-rc7-next-20170901-00016-g69a5a607f945 #546
+Hardware name: Nokia RX-51 board
+[<c0110b38>] (unwind_backtrace) from [<c010caec>] (show_stack+0x10/0x14)
+[<c010caec>] (show_stack) from [<c082e9e4>] (dump_stack+0xac/0xe0)
+[<c082e9e4>] (dump_stack) from [<c0c06e34>] (dma_contiguous_remap+0xf8/0x140)
+[<c0c06e34>] (dma_contiguous_remap) from [<c0c07f7c>] (paging_init+0x324/0x700)
+[<c0c07f7c>] (paging_init) from [<c0c042ac>] (setup_arch+0x5b4/0xc94)
+[<c0c042ac>] (setup_arch) from [<c0c00940>] (start_kernel+0x54/0x3fc)
+[<c0c00940>] (start_kernel) from [<8000807c>] (0x8000807c)
+memblock_reserve: [0x8fdfe000-0x8fdfffff] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfd000-0x8fdfdfff] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfcee8-0x8fdfcfff] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfcec0-0x8fdfcee7] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfce98-0x8fdfcebf] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfce70-0x8fdfce97] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfce48-0x8fdfce6f] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfce20-0x8fdfce47] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfb000-0x8fdfbfff] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfa000-0x8fdfafff] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdf9000-0x8fdf9fff] memblock_alloc_range_nid+0x38/0x50
+On node 0 totalpages: 65024
+memblock_virt_alloc_try_nid_nopanic: 2359296 bytes align=0x0 nid=0 from=0x0 max_addr=0x0 alloc_node_mem_map.constprop.10+0x68/0xb4
+memblock_reserve: [0x8fa8b000-0x8fccafff] memblock_virt_alloc_internal+0xfc/0x1c0
+free_area_init_node: node 0, pgdat c0dc5040, node_mem_map cfa8b000
+  Normal zone: 572 pages used for memmap
+  Normal zone: 0 pages reserved
+  Normal zone: 65024 pages, LIFO batch:15
+memblock_virt_alloc_try_nid_nopanic: 16 bytes align=0x0 nid=0 from=0x0 max_addr=0x0 setup_usemap.constprop.12+0x5c/0x6c
+memblock_reserve: [0x8fdfce00-0x8fdfce0f] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid_nopanic: 16 bytes align=0x0 nid=0 from=0x0 max_addr=0x0 setup_usemap.constprop.12+0x5c/0x6c
+memblock_reserve: [0x8fdfcdc0-0x8fdfcdcf] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 32 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 setup_arch+0x6e8/0xc94
+memblock_reserve: [0x8fdfcd80-0x8fdfcd9f] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_reserve: [0x8fdb0548-0x8fdf8fff] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfcde8-0x8fdfcdff] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfcdd0-0x8fdfcde7] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfcda4-0x8fdfcdbe] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfcd64-0x8fdfcd7e] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfcd48-0x8fdfcd62] memblock_alloc_range_nid+0x38/0x50
+memblock_reserve: [0x8fdfcd30-0x8fdfcd47] memblock_alloc_range_nid+0x38/0x50
+CPU: All CPU(s) started in SVC mode.
+OMAP3430/3530 ES3.1 (l2cache iva sgx neon isp)
+memblock_virt_alloc_try_nid: 8 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 omap2_clk_legacy_provider_init+0x2c/0x44
+memblock_reserve: [0x8fdfcd00-0x8fdfcd07] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 8 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 omap2_clk_legacy_provider_init+0x2c/0x44
+memblock_reserve: [0x8fdfccc0-0x8fdfccc7] memblock_virt_alloc_internal+0xfc/0x1c0
+random: fast init done
+memblock_virt_alloc_try_nid: 183 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 start_kernel+0x9c/0x3fc
+memblock_reserve: [0x8fdfcc00-0x8fdfccb6] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 183 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 start_kernel+0xc0/0x3fc
+memblock_reserve: [0x8fdfcb40-0x8fdfcbf6] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 183 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 start_kernel+0xe4/0x3fc
+memblock_reserve: [0x8fdfca80-0x8fdfcb36] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid_nopanic: 4096 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_alloc_alloc_info+0x4c/0x88
+memblock_reserve: [0x8fdaf540-0x8fdb053f] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid_nopanic: 4096 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_embed_first_chunk+0x464/0x714
+memblock_reserve: [0x8fdae540-0x8fdaf53f] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid_nopanic: 73728 bytes align=0x1000 nid=-1 from=0xbfffffff max_addr=0x0 pcpu_dfl_fc_alloc+0x3c/0x44
+memblock_reserve: [0x8fd9c000-0x8fdadfff] memblock_virt_alloc_internal+0xfc/0x1c0
+__memblock_free_early: [0x0000008fdae000-0x0000008fdadfff] pcpu_embed_first_chunk+0x5d8/0x714
+percpu: Embedded 18 pages/cpu @cfd9c000 s41644 r8192 d23892 u73728
+memblock_virt_alloc_try_nid: 4 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_setup_first_chunk+0xf0/0x678
+memblock_reserve: [0x8fdfca40-0x8fdfca43] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 4 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_setup_first_chunk+0x110/0x678
+memblock_reserve: [0x8fdfca00-0x8fdfca03] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 4 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_setup_first_chunk+0x130/0x678
+memblock_reserve: [0x8fdfc9c0-0x8fdfc9c3] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 4 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_setup_first_chunk+0x150/0x678
+memblock_reserve: [0x8fdfc980-0x8fdfc983] memblock_virt_alloc_internal+0xfc/0x1c0
+pcpu-alloc: s41644 r8192 d23892 u73728 alloc=18*4096
+pcpu-alloc: [0] 0
+memblock_virt_alloc_try_nid: 128 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_setup_first_chunk+0x41c/0x678
+memblock_reserve: [0x8fdfc900-0x8fdfc97f] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 69 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_alloc_first_chunk+0x64/0x2b4
+memblock_reserve: [0x8fdfc880-0x8fdfc8c4] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 384 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_alloc_first_chunk+0xa8/0x2b4
+memblock_reserve: [0x8fdfc700-0x8fdfc87f] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 388 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_alloc_first_chunk+0xc8/0x2b4
+memblock_reserve: [0x8fdfc540-0x8fdfc6c3] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 60 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_alloc_first_chunk+0xf4/0x2b4
+memblock_reserve: [0x8fdfc500-0x8fdfc53b] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 69 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_alloc_first_chunk+0x64/0x2b4
+memblock_reserve: [0x8fdfc480-0x8fdfc4c4] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 768 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_alloc_first_chunk+0xa8/0x2b4
+memblock_reserve: [0x8fdfc180-0x8fdfc47f] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 772 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_alloc_first_chunk+0xc8/0x2b4
+memblock_reserve: [0x8fdae200-0x8fdae503] memblock_virt_alloc_internal+0xfc/0x1c0
+memblock_virt_alloc_try_nid: 120 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 pcpu_alloc_first_chunk+0xf4/0x2b4
+memblock_reserve: [0x8fdfc100-0x8fdfc177] memblock_virt_alloc_internal+0xfc/0x1c0
+__memblock_free_early: [0x0000008fdaf540-0x0000008fdb053f] pcpu_embed_first_chunk+0x664/0x714
+__memblock_free_early: [0x0000008fdae540-0x0000008fdaf53f] pcpu_embed_first_chunk+0x6c4/0x714
+Built 1 zonelists, mobility grouping on.  Total pages: 64452
+Kernel command line: root=/dev/nfs ip=dhcp console=ttyO2,115200 memmap=2M$0x88000000 ramoops.mem_address=0x88000000 ramoops.mem_size=0x200000 ramoops.record_size=0x40000 debug earlyprintk init=/root/init
+memblock_virt_alloc_try_nid_nopanic: 4096 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 alloc_large_system_hash+0x180/0x268
+memblock_reserve: [0x8fdaf540-0x8fdb053f] memblock_virt_alloc_internal+0xfc/0x1c0
+PID hash table entries: 1024 (order: 0, 4096 bytes)
+memblock_virt_alloc_try_nid_nopanic: 131072 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 alloc_large_system_hash+0x180/0x268
+memblock_reserve: [0x8fd7c000-0x8fd9bfff] memblock_virt_alloc_internal+0xfc/0x1c0
+Dentry cache hash table entries: 32768 (order: 5, 131072 bytes)
+memblock_virt_alloc_try_nid_nopanic: 65536 bytes align=0x0 nid=-1 from=0x0 max_addr=0x0 alloc_large_system_hash+0x180/0x268
+memblock_reserve: [0x8fd6c000-0x8fd7bfff] memblock_virt_alloc_internal+0xfc/0x1c0
+Inode-cache hash table entries: 16384 (order: 4, 65536 bytes)
+Memory: 220052K/260096K available (8192K kernel code, 816K rwdata, 2420K rodata, 1024K init, 7557K bss, 23660K reserved, 16384K cma-reserved, 0K highmem)
+Virtual kernel memory layout:
+    vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+    fixmap  : 0xffc00000 - 0xfff00000   (3072 kB)
+    vmalloc : 0xd0000000 - 0xff800000   ( 760 MB)
+    lowmem  : 0xc0000000 - 0xcfe00000   ( 254 MB)
+    pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
+    modules : 0xbf000000 - 0xbfe00000   (  14 MB)
+      .text : 0xc0008000 - 0xc0900000   (9184 kB)
+      .init : 0xc0c00000 - 0xc0d00000   (1024 kB)
+      .data : 0xc0d00000 - 0xc0dcc280   ( 817 kB)
+       .bss : 0xc0dce000 - 0xc152f644   (7558 kB)
+Running RCU self tests
+Hierarchical RCU implementation.
+	RCU event tracing is enabled.
+	RCU lockdep checking is enabled.
+	RCU restricting CPUs from NR_CPUS=2 to nr_cpu_ids=1.
+RCU: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
+NR_IRQS: 16, nr_irqs: 16, preallocated irqs: 16
+IRQ: Found an INTC at 0xfa200000 (revision 4.0) with 96 interrupts
+Clocking rate (Crystal/Core/MPU): 19.2/332/500 MHz
+OMAP clockevent source: timer1 at 32768 Hz
+clocksource: 32k_counter: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 58327039986419 ns
+sched_clock: 32 bits at 32kHz, resolution 30517ns, wraps every 65535999984741ns
+OMAP clocksource: 32k_counter at 32768 Hz
+Console: colour dummy device 80x30
+WARNING: Your 'console=ttyO2' has been replaced by 'ttyS2'
+This ensures that you still see kernel messages. Please
+update your kernel commandline.
+Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
+... MAX_LOCKDEP_SUBCLASSES:  8
+... MAX_LOCK_DEPTH:          48
+... MAX_LOCKDEP_KEYS:        8191
+... CLASSHASH_SIZE:          4096
+... MAX_LOCKDEP_ENTRIES:     32768
+... MAX_LOCKDEP_CHAINS:      65536
+... CHAINHASH_SIZE:          32768
+ memory used by lock dependency info: 4655 kB
+ per task-struct memory footprint: 1536 bytes
+Calibrating delay loop... 493.97 BogoMIPS (lpj=2469888)
+...
