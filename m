@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 15/27] dt-bindings: clk: add omap5 clkctrl definitions
-Date: Mon, 30 Oct 2017 15:04:33 +0200
-Message-ID: <1509368685-29112-16-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 16/27] clk: ti: omap5: add clkctrl clock data
+Date: Mon, 30 Oct 2017 15:04:34 +0200
+Message-ID: <1509368685-29112-17-git-send-email-t-kristo@ti.com>
 References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,138 +12,567 @@ To: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Contains offsets for all omap5 clkctrl main and optional clocks.
+Add data for omap5 clkctrl clocks, and register it within the clkctrl
+driver.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- include/dt-bindings/clock/omap5.h | 118 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 118 insertions(+)
- create mode 100644 include/dt-bindings/clock/omap5.h
+ drivers/clk/ti/clk-54xx.c | 503 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/clk/ti/clkctrl.c  |   4 +
+ drivers/clk/ti/clock.h    |   1 +
+ 3 files changed, 508 insertions(+)
 
-diff --git a/include/dt-bindings/clock/omap5.h b/include/dt-bindings/clock/omap5.h
-new file mode 100644
-index 0000000..f51821a
---- /dev/null
-+++ b/include/dt-bindings/clock/omap5.h
-@@ -0,0 +1,118 @@
-+/*
-+ * Copyright 2017 Texas Instruments, Inc.
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+#ifndef __DT_BINDINGS_CLK_OMAP5_H
-+#define __DT_BINDINGS_CLK_OMAP5_H
+diff --git a/drivers/clk/ti/clk-54xx.c b/drivers/clk/ti/clk-54xx.c
+index 16aefef..a17b0c4 100644
+--- a/drivers/clk/ti/clk-54xx.c
++++ b/drivers/clk/ti/clk-54xx.c
+@@ -16,6 +16,7 @@
+ #include <linux/clkdev.h>
+ #include <linux/io.h>
+ #include <linux/clk/ti.h>
++#include <dt-bindings/clock/omap5.h>
+ 
+ #include "clock.h"
+ 
+@@ -27,9 +28,511 @@
+  */
+ #define OMAP5_DPLL_USB_DEFFREQ				960000000
+ 
++static const struct omap_clkctrl_reg_data omap5_mpu_clkctrl_regs[] __initconst = {
++	{ OMAP5_MPU_CLKCTRL, NULL, 0, "dpll_mpu_m2_ck" },
++	{ 0 },
++};
 +
-+#define OMAP5_CLKCTRL_OFFSET	0x20
-+#define OMAP5_CLKCTRL_INDEX(offset)	((offset) - OMAP5_CLKCTRL_OFFSET)
++static const struct omap_clkctrl_reg_data omap5_dsp_clkctrl_regs[] __initconst = {
++	{ OMAP5_MMU_DSP_CLKCTRL, NULL, CLKF_HW_SUP, "dpll_iva_h11x2_ck" },
++	{ 0 },
++};
 +
-+/* mpu clocks */
-+#define OMAP5_MPU_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++static const char * const omap5_dmic_gfclk_parents[] __initconst = {
++	"abe_cm:clk:0018:26",
++	"pad_clks_ck",
++	"slimbus_clk",
++	NULL,
++};
 +
-+/* dsp clocks */
-+#define OMAP5_MMU_DSP_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++static const char * const omap5_dmic_sync_mux_ck_parents[] __initconst = {
++	"abe_24m_fclk",
++	"dss_syc_gfclk_div",
++	"func_24m_clk",
++	NULL,
++};
 +
-+/* abe clocks */
-+#define OMAP5_L4_ABE_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
-+#define OMAP5_MCPDM_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
-+#define OMAP5_DMIC_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
-+#define OMAP5_MCBSP1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x48)
-+#define OMAP5_MCBSP2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x50)
-+#define OMAP5_MCBSP3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x58)
-+#define OMAP5_TIMER5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x68)
-+#define OMAP5_TIMER6_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x70)
-+#define OMAP5_TIMER7_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x78)
-+#define OMAP5_TIMER8_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x80)
++static const struct omap_clkctrl_bit_data omap5_dmic_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_dmic_gfclk_parents, NULL },
++	{ 26, TI_CLK_MUX, omap5_dmic_sync_mux_ck_parents, NULL },
++	{ 0 },
++};
 +
-+/* l3main1 clocks */
-+#define OMAP5_L3_MAIN_1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++static const char * const omap5_mcbsp1_gfclk_parents[] __initconst = {
++	"abe_cm:clk:0028:26",
++	"pad_clks_ck",
++	"slimbus_clk",
++	NULL,
++};
 +
-+/* l3main2 clocks */
-+#define OMAP5_L3_MAIN_2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++static const struct omap_clkctrl_bit_data omap5_mcbsp1_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_mcbsp1_gfclk_parents, NULL },
++	{ 26, TI_CLK_MUX, omap5_dmic_sync_mux_ck_parents, NULL },
++	{ 0 },
++};
 +
-+/* ipu clocks */
-+#define OMAP5_MMU_IPU_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++static const char * const omap5_mcbsp2_gfclk_parents[] __initconst = {
++	"abe_cm:clk:0030:26",
++	"pad_clks_ck",
++	"slimbus_clk",
++	NULL,
++};
 +
-+/* dma clocks */
-+#define OMAP5_DMA_SYSTEM_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++static const struct omap_clkctrl_bit_data omap5_mcbsp2_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_mcbsp2_gfclk_parents, NULL },
++	{ 26, TI_CLK_MUX, omap5_dmic_sync_mux_ck_parents, NULL },
++	{ 0 },
++};
 +
-+/* emif clocks */
-+#define OMAP5_DMM_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
-+#define OMAP5_EMIF1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
-+#define OMAP5_EMIF2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
++static const char * const omap5_mcbsp3_gfclk_parents[] __initconst = {
++	"abe_cm:clk:0038:26",
++	"pad_clks_ck",
++	"slimbus_clk",
++	NULL,
++};
 +
-+/* l4cfg clocks */
-+#define OMAP5_L4_CFG_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
-+#define OMAP5_SPINLOCK_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
-+#define OMAP5_MAILBOX_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
++static const struct omap_clkctrl_bit_data omap5_mcbsp3_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_mcbsp3_gfclk_parents, NULL },
++	{ 26, TI_CLK_MUX, omap5_dmic_sync_mux_ck_parents, NULL },
++	{ 0 },
++};
 +
-+/* l3instr clocks */
-+#define OMAP5_L3_MAIN_3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
-+#define OMAP5_L3_INSTR_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
++static const char * const omap5_timer5_gfclk_mux_parents[] __initconst = {
++	"dss_syc_gfclk_div",
++	"sys_32k_ck",
++	NULL,
++};
 +
-+/* l4per clocks */
-+#define OMAP5_TIMER10_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
-+#define OMAP5_TIMER11_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
-+#define OMAP5_TIMER2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
-+#define OMAP5_TIMER3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x40)
-+#define OMAP5_TIMER4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x48)
-+#define OMAP5_TIMER9_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x50)
-+#define OMAP5_GPIO2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x60)
-+#define OMAP5_GPIO3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x68)
-+#define OMAP5_GPIO4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x70)
-+#define OMAP5_GPIO5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x78)
-+#define OMAP5_GPIO6_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x80)
-+#define OMAP5_I2C1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xa0)
-+#define OMAP5_I2C2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xa8)
-+#define OMAP5_I2C3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xb0)
-+#define OMAP5_I2C4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xb8)
-+#define OMAP5_L4_PER_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xc0)
-+#define OMAP5_MCSPI1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xf0)
-+#define OMAP5_MCSPI2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xf8)
-+#define OMAP5_MCSPI3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x100)
-+#define OMAP5_MCSPI4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x108)
-+#define OMAP5_GPIO7_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x110)
-+#define OMAP5_GPIO8_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x118)
-+#define OMAP5_MMC3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x120)
-+#define OMAP5_MMC4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x128)
-+#define OMAP5_UART1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x140)
-+#define OMAP5_UART2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x148)
-+#define OMAP5_UART3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x150)
-+#define OMAP5_UART4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x158)
-+#define OMAP5_MMC5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x160)
-+#define OMAP5_I2C5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x168)
-+#define OMAP5_UART5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x170)
-+#define OMAP5_UART6_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x178)
++static const struct omap_clkctrl_bit_data omap5_timer5_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer5_gfclk_mux_parents, NULL },
++	{ 0 },
++};
 +
-+/* dss clocks */
-+#define OMAP5_DSS_CORE_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++static const struct omap_clkctrl_bit_data omap5_timer6_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer5_gfclk_mux_parents, NULL },
++	{ 0 },
++};
 +
-+/* l3init clocks */
-+#define OMAP5_MMC1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
-+#define OMAP5_MMC2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
-+#define OMAP5_USB_HOST_HS_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x58)
-+#define OMAP5_USB_TLL_HS_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x68)
-+#define OMAP5_SATA_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x88)
-+#define OMAP5_OCP2SCP1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xe0)
-+#define OMAP5_OCP2SCP3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xe8)
-+#define OMAP5_USB_OTG_SS_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xf0)
++static const struct omap_clkctrl_bit_data omap5_timer7_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer5_gfclk_mux_parents, NULL },
++	{ 0 },
++};
 +
-+/* wkupaon clocks */
-+#define OMAP5_L4_WKUP_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
-+#define OMAP5_WD_TIMER2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
-+#define OMAP5_GPIO1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
-+#define OMAP5_TIMER1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x40)
-+#define OMAP5_COUNTER_32K_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x50)
-+#define OMAP5_KBD_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x78)
++static const struct omap_clkctrl_bit_data omap5_timer8_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer5_gfclk_mux_parents, NULL },
++	{ 0 },
++};
 +
++static const struct omap_clkctrl_reg_data omap5_abe_clkctrl_regs[] __initconst = {
++	{ OMAP5_L4_ABE_CLKCTRL, NULL, 0, "abe_iclk" },
++	{ OMAP5_MCPDM_CLKCTRL, NULL, CLKF_SW_SUP, "pad_clks_ck" },
++	{ OMAP5_DMIC_CLKCTRL, omap5_dmic_bit_data, CLKF_SW_SUP, "abe_cm:clk:0018:24" },
++	{ OMAP5_MCBSP1_CLKCTRL, omap5_mcbsp1_bit_data, CLKF_SW_SUP, "abe_cm:clk:0028:24" },
++	{ OMAP5_MCBSP2_CLKCTRL, omap5_mcbsp2_bit_data, CLKF_SW_SUP, "abe_cm:clk:0030:24" },
++	{ OMAP5_MCBSP3_CLKCTRL, omap5_mcbsp3_bit_data, CLKF_SW_SUP, "abe_cm:clk:0038:24" },
++	{ OMAP5_TIMER5_CLKCTRL, omap5_timer5_bit_data, CLKF_SW_SUP, "abe_cm:clk:0048:24" },
++	{ OMAP5_TIMER6_CLKCTRL, omap5_timer6_bit_data, CLKF_SW_SUP, "abe_cm:clk:0050:24" },
++	{ OMAP5_TIMER7_CLKCTRL, omap5_timer7_bit_data, CLKF_SW_SUP, "abe_cm:clk:0058:24" },
++	{ OMAP5_TIMER8_CLKCTRL, omap5_timer8_bit_data, CLKF_SW_SUP, "abe_cm:clk:0060:24" },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_l3main1_clkctrl_regs[] __initconst = {
++	{ OMAP5_L3_MAIN_1_CLKCTRL, NULL, 0, "l3_iclk_div" },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_l3main2_clkctrl_regs[] __initconst = {
++	{ OMAP5_L3_MAIN_2_CLKCTRL, NULL, 0, "l3_iclk_div" },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_ipu_clkctrl_regs[] __initconst = {
++	{ OMAP5_MMU_IPU_CLKCTRL, NULL, CLKF_HW_SUP, "dpll_core_h22x2_ck" },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_dma_clkctrl_regs[] __initconst = {
++	{ OMAP5_DMA_SYSTEM_CLKCTRL, NULL, 0, "l3_iclk_div" },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_emif_clkctrl_regs[] __initconst = {
++	{ OMAP5_DMM_CLKCTRL, NULL, 0, "l3_iclk_div" },
++	{ OMAP5_EMIF1_CLKCTRL, NULL, CLKF_HW_SUP, "dpll_core_h11x2_ck" },
++	{ OMAP5_EMIF2_CLKCTRL, NULL, CLKF_HW_SUP, "dpll_core_h11x2_ck" },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_l4cfg_clkctrl_regs[] __initconst = {
++	{ OMAP5_L4_CFG_CLKCTRL, NULL, 0, "l4_root_clk_div" },
++	{ OMAP5_SPINLOCK_CLKCTRL, NULL, 0, "l4_root_clk_div" },
++	{ OMAP5_MAILBOX_CLKCTRL, NULL, 0, "l4_root_clk_div" },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_l3instr_clkctrl_regs[] __initconst = {
++	{ OMAP5_L3_MAIN_3_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
++	{ OMAP5_L3_INSTR_CLKCTRL, NULL, CLKF_HW_SUP, "l3_iclk_div" },
++	{ 0 },
++};
++
++static const char * const omap5_timer10_gfclk_mux_parents[] __initconst = {
++	"sys_clkin",
++	"sys_32k_ck",
++	NULL,
++};
++
++static const struct omap_clkctrl_bit_data omap5_timer10_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer10_gfclk_mux_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_timer11_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer10_gfclk_mux_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_timer2_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer10_gfclk_mux_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_timer3_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer10_gfclk_mux_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_timer4_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer10_gfclk_mux_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_timer9_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer10_gfclk_mux_parents, NULL },
++	{ 0 },
++};
++
++static const char * const omap5_gpio2_dbclk_parents[] __initconst = {
++	"sys_32k_ck",
++	NULL,
++};
++
++static const struct omap_clkctrl_bit_data omap5_gpio2_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_gpio3_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_gpio4_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_gpio5_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_gpio6_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_gpio7_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_gpio8_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_l4per_clkctrl_regs[] __initconst = {
++	{ OMAP5_TIMER10_CLKCTRL, omap5_timer10_bit_data, CLKF_SW_SUP, "l4per_cm:clk:0008:24" },
++	{ OMAP5_TIMER11_CLKCTRL, omap5_timer11_bit_data, CLKF_SW_SUP, "l4per_cm:clk:0010:24" },
++	{ OMAP5_TIMER2_CLKCTRL, omap5_timer2_bit_data, CLKF_SW_SUP, "l4per_cm:clk:0018:24" },
++	{ OMAP5_TIMER3_CLKCTRL, omap5_timer3_bit_data, CLKF_SW_SUP, "l4per_cm:clk:0020:24" },
++	{ OMAP5_TIMER4_CLKCTRL, omap5_timer4_bit_data, CLKF_SW_SUP, "l4per_cm:clk:0028:24" },
++	{ OMAP5_TIMER9_CLKCTRL, omap5_timer9_bit_data, CLKF_SW_SUP, "l4per_cm:clk:0030:24" },
++	{ OMAP5_GPIO2_CLKCTRL, omap5_gpio2_bit_data, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_GPIO3_CLKCTRL, omap5_gpio3_bit_data, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_GPIO4_CLKCTRL, omap5_gpio4_bit_data, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_GPIO5_CLKCTRL, omap5_gpio5_bit_data, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_GPIO6_CLKCTRL, omap5_gpio6_bit_data, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_I2C1_CLKCTRL, NULL, CLKF_SW_SUP, "func_96m_fclk" },
++	{ OMAP5_I2C2_CLKCTRL, NULL, CLKF_SW_SUP, "func_96m_fclk" },
++	{ OMAP5_I2C3_CLKCTRL, NULL, CLKF_SW_SUP, "func_96m_fclk" },
++	{ OMAP5_I2C4_CLKCTRL, NULL, CLKF_SW_SUP, "func_96m_fclk" },
++	{ OMAP5_L4_PER_CLKCTRL, NULL, 0, "l4_root_clk_div" },
++	{ OMAP5_MCSPI1_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_MCSPI2_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_MCSPI3_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_MCSPI4_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_GPIO7_CLKCTRL, omap5_gpio7_bit_data, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_GPIO8_CLKCTRL, omap5_gpio8_bit_data, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_MMC3_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_MMC4_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_UART1_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_UART2_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_UART3_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_UART4_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_MMC5_CLKCTRL, NULL, CLKF_SW_SUP, "func_96m_fclk" },
++	{ OMAP5_I2C5_CLKCTRL, NULL, CLKF_SW_SUP, "func_96m_fclk" },
++	{ OMAP5_UART5_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_UART6_CLKCTRL, NULL, CLKF_SW_SUP, "func_48m_fclk" },
++	{ 0 },
++};
++
++static const char * const omap5_dss_dss_clk_parents[] __initconst = {
++	"dpll_per_h12x2_ck",
++	NULL,
++};
++
++static const char * const omap5_dss_48mhz_clk_parents[] __initconst = {
++	"func_48m_fclk",
++	NULL,
++};
++
++static const char * const omap5_dss_sys_clk_parents[] __initconst = {
++	"dss_syc_gfclk_div",
++	NULL,
++};
++
++static const struct omap_clkctrl_bit_data omap5_dss_core_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_dss_dss_clk_parents, NULL },
++	{ 9, TI_CLK_GATE, omap5_dss_48mhz_clk_parents, NULL },
++	{ 10, TI_CLK_GATE, omap5_dss_sys_clk_parents, NULL },
++	{ 11, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_dss_clkctrl_regs[] __initconst = {
++	{ OMAP5_DSS_CORE_CLKCTRL, omap5_dss_core_bit_data, CLKF_SW_SUP, "dss_cm:clk:0000:8" },
++	{ 0 },
++};
++
++static const char * const omap5_mmc1_fclk_mux_parents[] __initconst = {
++	"func_128m_clk",
++	"dpll_per_m2x2_ck",
++	NULL,
++};
++
++static const char * const omap5_mmc1_fclk_parents[] __initconst = {
++	"l3init_cm:clk:0008:24",
++	NULL,
++};
++
++static const struct omap_clkctrl_div_data omap5_mmc1_fclk_data __initconst = {
++	.max_div = 2,
++};
++
++static const struct omap_clkctrl_bit_data omap5_mmc1_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 24, TI_CLK_MUX, omap5_mmc1_fclk_mux_parents, NULL },
++	{ 25, TI_CLK_DIVIDER, omap5_mmc1_fclk_parents, &omap5_mmc1_fclk_data },
++	{ 0 },
++};
++
++static const char * const omap5_mmc2_fclk_parents[] __initconst = {
++	"l3init_cm:clk:0010:24",
++	NULL,
++};
++
++static const struct omap_clkctrl_div_data omap5_mmc2_fclk_data __initconst = {
++	.max_div = 2,
++};
++
++static const struct omap_clkctrl_bit_data omap5_mmc2_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_mmc1_fclk_mux_parents, NULL },
++	{ 25, TI_CLK_DIVIDER, omap5_mmc2_fclk_parents, &omap5_mmc2_fclk_data },
++	{ 0 },
++};
++
++static const char * const omap5_usb_host_hs_hsic60m_p3_clk_parents[] __initconst = {
++	"l3init_60m_fclk",
++	NULL,
++};
++
++static const char * const omap5_usb_host_hs_hsic480m_p3_clk_parents[] __initconst = {
++	"dpll_usb_m2_ck",
++	NULL,
++};
++
++static const char * const omap5_usb_host_hs_utmi_p1_clk_parents[] __initconst = {
++	"l3init_cm:clk:0038:24",
++	NULL,
++};
++
++static const char * const omap5_usb_host_hs_utmi_p2_clk_parents[] __initconst = {
++	"l3init_cm:clk:0038:25",
++	NULL,
++};
++
++static const char * const omap5_utmi_p1_gfclk_parents[] __initconst = {
++	"l3init_60m_fclk",
++	"xclk60mhsp1_ck",
++	NULL,
++};
++
++static const char * const omap5_utmi_p2_gfclk_parents[] __initconst = {
++	"l3init_60m_fclk",
++	"xclk60mhsp2_ck",
++	NULL,
++};
++
++static const struct omap_clkctrl_bit_data omap5_usb_host_hs_bit_data[] __initconst = {
++	{ 6, TI_CLK_GATE, omap5_usb_host_hs_hsic60m_p3_clk_parents, NULL },
++	{ 7, TI_CLK_GATE, omap5_usb_host_hs_hsic480m_p3_clk_parents, NULL },
++	{ 8, TI_CLK_GATE, omap5_usb_host_hs_utmi_p1_clk_parents, NULL },
++	{ 9, TI_CLK_GATE, omap5_usb_host_hs_utmi_p2_clk_parents, NULL },
++	{ 10, TI_CLK_GATE, omap5_usb_host_hs_hsic60m_p3_clk_parents, NULL },
++	{ 11, TI_CLK_GATE, omap5_usb_host_hs_hsic60m_p3_clk_parents, NULL },
++	{ 12, TI_CLK_GATE, omap5_usb_host_hs_hsic60m_p3_clk_parents, NULL },
++	{ 13, TI_CLK_GATE, omap5_usb_host_hs_hsic480m_p3_clk_parents, NULL },
++	{ 14, TI_CLK_GATE, omap5_usb_host_hs_hsic480m_p3_clk_parents, NULL },
++	{ 24, TI_CLK_MUX, omap5_utmi_p1_gfclk_parents, NULL },
++	{ 25, TI_CLK_MUX, omap5_utmi_p2_gfclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_usb_tll_hs_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_usb_host_hs_hsic60m_p3_clk_parents, NULL },
++	{ 9, TI_CLK_GATE, omap5_usb_host_hs_hsic60m_p3_clk_parents, NULL },
++	{ 10, TI_CLK_GATE, omap5_usb_host_hs_hsic60m_p3_clk_parents, NULL },
++	{ 0 },
++};
++
++static const char * const omap5_sata_ref_clk_parents[] __initconst = {
++	"sys_clkin",
++	NULL,
++};
++
++static const struct omap_clkctrl_bit_data omap5_sata_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_sata_ref_clk_parents, NULL },
++	{ 0 },
++};
++
++static const char * const omap5_usb_otg_ss_refclk960m_parents[] __initconst = {
++	"dpll_usb_clkdcoldo",
++	NULL,
++};
++
++static const struct omap_clkctrl_bit_data omap5_usb_otg_ss_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_usb_otg_ss_refclk960m_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_l3init_clkctrl_regs[] __initconst = {
++	{ OMAP5_MMC1_CLKCTRL, omap5_mmc1_bit_data, CLKF_SW_SUP, "l3init_cm:clk:0008:25" },
++	{ OMAP5_MMC2_CLKCTRL, omap5_mmc2_bit_data, CLKF_SW_SUP, "l3init_cm:clk:0010:25" },
++	{ OMAP5_USB_HOST_HS_CLKCTRL, omap5_usb_host_hs_bit_data, CLKF_SW_SUP, "l3init_60m_fclk" },
++	{ OMAP5_USB_TLL_HS_CLKCTRL, omap5_usb_tll_hs_bit_data, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_SATA_CLKCTRL, omap5_sata_bit_data, CLKF_SW_SUP, "func_48m_fclk" },
++	{ OMAP5_OCP2SCP1_CLKCTRL, NULL, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_OCP2SCP3_CLKCTRL, NULL, CLKF_HW_SUP, "l4_root_clk_div" },
++	{ OMAP5_USB_OTG_SS_CLKCTRL, omap5_usb_otg_ss_bit_data, CLKF_HW_SUP, "dpll_core_h13x2_ck" },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_gpio1_bit_data[] __initconst = {
++	{ 8, TI_CLK_GATE, omap5_gpio2_dbclk_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_bit_data omap5_timer1_bit_data[] __initconst = {
++	{ 24, TI_CLK_MUX, omap5_timer10_gfclk_mux_parents, NULL },
++	{ 0 },
++};
++
++static const struct omap_clkctrl_reg_data omap5_wkupaon_clkctrl_regs[] __initconst = {
++	{ OMAP5_L4_WKUP_CLKCTRL, NULL, 0, "wkupaon_iclk_mux" },
++	{ OMAP5_WD_TIMER2_CLKCTRL, NULL, CLKF_SW_SUP, "sys_32k_ck" },
++	{ OMAP5_GPIO1_CLKCTRL, omap5_gpio1_bit_data, CLKF_HW_SUP, "wkupaon_iclk_mux" },
++	{ OMAP5_TIMER1_CLKCTRL, omap5_timer1_bit_data, CLKF_SW_SUP, "wkupaon_cm:clk:0020:24" },
++	{ OMAP5_COUNTER_32K_CLKCTRL, NULL, 0, "wkupaon_iclk_mux" },
++	{ OMAP5_KBD_CLKCTRL, NULL, CLKF_SW_SUP, "sys_32k_ck" },
++	{ 0 },
++};
++
++const struct omap_clkctrl_data omap5_clkctrl_data[] __initconst = {
++	{ 0x4a004320, omap5_mpu_clkctrl_regs },
++	{ 0x4a004420, omap5_dsp_clkctrl_regs },
++	{ 0x4a004520, omap5_abe_clkctrl_regs },
++	{ 0x4a008720, omap5_l3main1_clkctrl_regs },
++	{ 0x4a008820, omap5_l3main2_clkctrl_regs },
++	{ 0x4a008920, omap5_ipu_clkctrl_regs },
++	{ 0x4a008a20, omap5_dma_clkctrl_regs },
++	{ 0x4a008b20, omap5_emif_clkctrl_regs },
++	{ 0x4a008d20, omap5_l4cfg_clkctrl_regs },
++	{ 0x4a008e20, omap5_l3instr_clkctrl_regs },
++	{ 0x4a009020, omap5_l4per_clkctrl_regs },
++	{ 0x4a009420, omap5_dss_clkctrl_regs },
++	{ 0x4a009620, omap5_l3init_clkctrl_regs },
++	{ 0x4ae07920, omap5_wkupaon_clkctrl_regs },
++	{ 0 },
++};
++
+ static struct ti_dt_clk omap54xx_clks[] = {
+ 	DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
+ 	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin"),
++	DT_CLK(NULL, "dmic_gfclk", "abe_cm:0018:24"),
++	DT_CLK(NULL, "dmic_sync_mux_ck", "abe_cm:0018:26"),
++	DT_CLK(NULL, "dss_32khz_clk", "dss_cm:0000:11"),
++	DT_CLK(NULL, "dss_48mhz_clk", "dss_cm:0000:9"),
++	DT_CLK(NULL, "dss_dss_clk", "dss_cm:0000:8"),
++	DT_CLK(NULL, "dss_sys_clk", "dss_cm:0000:10"),
++	DT_CLK(NULL, "gpio1_dbclk", "wkupaon_cm:0018:8"),
++	DT_CLK(NULL, "gpio2_dbclk", "l4per_cm:0040:8"),
++	DT_CLK(NULL, "gpio3_dbclk", "l4per_cm:0048:8"),
++	DT_CLK(NULL, "gpio4_dbclk", "l4per_cm:0050:8"),
++	DT_CLK(NULL, "gpio5_dbclk", "l4per_cm:0058:8"),
++	DT_CLK(NULL, "gpio6_dbclk", "l4per_cm:0060:8"),
++	DT_CLK(NULL, "gpio7_dbclk", "l4per_cm:00f0:8"),
++	DT_CLK(NULL, "gpio8_dbclk", "l4per_cm:00f8:8"),
++	DT_CLK(NULL, "mcbsp1_gfclk", "abe_cm:0028:24"),
++	DT_CLK(NULL, "mcbsp1_sync_mux_ck", "abe_cm:0028:26"),
++	DT_CLK(NULL, "mcbsp2_gfclk", "abe_cm:0030:24"),
++	DT_CLK(NULL, "mcbsp2_sync_mux_ck", "abe_cm:0030:26"),
++	DT_CLK(NULL, "mcbsp3_gfclk", "abe_cm:0038:24"),
++	DT_CLK(NULL, "mcbsp3_sync_mux_ck", "abe_cm:0038:26"),
++	DT_CLK(NULL, "mmc1_32khz_clk", "l3init_cm:0008:8"),
++	DT_CLK(NULL, "mmc1_fclk", "l3init_cm:0008:25"),
++	DT_CLK(NULL, "mmc1_fclk_mux", "l3init_cm:0008:24"),
++	DT_CLK(NULL, "mmc2_fclk", "l3init_cm:0010:25"),
++	DT_CLK(NULL, "mmc2_fclk_mux", "l3init_cm:0010:24"),
++	DT_CLK(NULL, "sata_ref_clk", "l3init_cm:0068:8"),
++	DT_CLK(NULL, "timer10_gfclk_mux", "l4per_cm:0008:24"),
++	DT_CLK(NULL, "timer11_gfclk_mux", "l4per_cm:0010:24"),
++	DT_CLK(NULL, "timer1_gfclk_mux", "wkupaon_cm:0020:24"),
++	DT_CLK(NULL, "timer2_gfclk_mux", "l4per_cm:0018:24"),
++	DT_CLK(NULL, "timer3_gfclk_mux", "l4per_cm:0020:24"),
++	DT_CLK(NULL, "timer4_gfclk_mux", "l4per_cm:0028:24"),
++	DT_CLK(NULL, "timer5_gfclk_mux", "abe_cm:0048:24"),
++	DT_CLK(NULL, "timer6_gfclk_mux", "abe_cm:0050:24"),
++	DT_CLK(NULL, "timer7_gfclk_mux", "abe_cm:0058:24"),
++	DT_CLK(NULL, "timer8_gfclk_mux", "abe_cm:0060:24"),
++	DT_CLK(NULL, "timer9_gfclk_mux", "l4per_cm:0030:24"),
++	DT_CLK(NULL, "usb_host_hs_hsic480m_p1_clk", "l3init_cm:0038:13"),
++	DT_CLK(NULL, "usb_host_hs_hsic480m_p2_clk", "l3init_cm:0038:14"),
++	DT_CLK(NULL, "usb_host_hs_hsic480m_p3_clk", "l3init_cm:0038:7"),
++	DT_CLK(NULL, "usb_host_hs_hsic60m_p1_clk", "l3init_cm:0038:11"),
++	DT_CLK(NULL, "usb_host_hs_hsic60m_p2_clk", "l3init_cm:0038:12"),
++	DT_CLK(NULL, "usb_host_hs_hsic60m_p3_clk", "l3init_cm:0038:6"),
++	DT_CLK(NULL, "usb_host_hs_utmi_p1_clk", "l3init_cm:0038:8"),
++	DT_CLK(NULL, "usb_host_hs_utmi_p2_clk", "l3init_cm:0038:9"),
++	DT_CLK(NULL, "usb_host_hs_utmi_p3_clk", "l3init_cm:0038:10"),
++	DT_CLK(NULL, "usb_otg_ss_refclk960m", "l3init_cm:00d0:8"),
++	DT_CLK(NULL, "usb_tll_hs_usb_ch0_clk", "l3init_cm:0048:8"),
++	DT_CLK(NULL, "usb_tll_hs_usb_ch1_clk", "l3init_cm:0048:9"),
++	DT_CLK(NULL, "usb_tll_hs_usb_ch2_clk", "l3init_cm:0048:10"),
++	DT_CLK(NULL, "utmi_p1_gfclk", "l3init_cm:0038:24"),
++	DT_CLK(NULL, "utmi_p2_gfclk", "l3init_cm:0038:25"),
+ 	{ .node_name = NULL },
+ };
+ 
+diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
+index fe44fbe..d9912c9 100644
+--- a/drivers/clk/ti/clkctrl.c
++++ b/drivers/clk/ti/clkctrl.c
+@@ -437,6 +437,10 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
+ 	if (of_machine_is_compatible("ti,omap4"))
+ 		data = omap4_clkctrl_data;
+ #endif
++#ifdef CONFIG_SOC_OMAP5
++	if (of_machine_is_compatible("ti,omap5"))
++		data = omap5_clkctrl_data;
 +#endif
+ 
+ 	while (data->addr) {
+ 		if (addr == data->addr)
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index fc754e2..1ce9b3e 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -231,6 +231,7 @@ struct omap_clkctrl_data {
+ };
+ 
+ extern const struct omap_clkctrl_data omap4_clkctrl_data[];
++extern const struct omap_clkctrl_data omap5_clkctrl_data[];
+ 
+ #define CLKF_SW_SUP	BIT(0)
+ #define CLKF_HW_SUP	BIT(1)
 -- 
 1.9.1
 
