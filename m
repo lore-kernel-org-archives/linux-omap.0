@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 12/27] clk: ti: am33xx: cleanup unnecessary clock aliases
-Date: Mon, 30 Oct 2017 15:04:30 +0200
-Message-ID: <1509368685-29112-13-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 17/27] dt-bindings: clk: add dra7 clkctrl definitions
+Date: Mon, 30 Oct 2017 15:04:35 +0200
+Message-ID: <1509368685-29112-18-git-send-email-t-kristo@ti.com>
 References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,122 +12,192 @@ To: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Most of the clock aliases are no longer needed, only leave the ones
-required by OMAP timer code in place.
+Contains offsets for all dra7 clkctrl main and optional clocks.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk-33xx.c | 88 ++---------------------------------------------
- 1 file changed, 2 insertions(+), 86 deletions(-)
+ include/dt-bindings/clock/dra7.h | 172 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 172 insertions(+)
+ create mode 100644 include/dt-bindings/clock/dra7.h
 
-diff --git a/drivers/clk/ti/clk-33xx.c b/drivers/clk/ti/clk-33xx.c
-index 0e47d95..53a6726 100644
---- a/drivers/clk/ti/clk-33xx.c
-+++ b/drivers/clk/ti/clk-33xx.c
-@@ -23,94 +23,8 @@
- #include "clock.h"
- 
- static struct ti_dt_clk am33xx_clks[] = {
--	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
--	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
--	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
--	DT_CLK(NULL, "virt_24000000_ck", "virt_24000000_ck"),
--	DT_CLK(NULL, "virt_25000000_ck", "virt_25000000_ck"),
--	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
--	DT_CLK(NULL, "sys_clkin_ck", "sys_clkin_ck"),
--	DT_CLK(NULL, "tclkin_ck", "tclkin_ck"),
--	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
--	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
--	DT_CLK(NULL, "dpll_core_m4_ck", "dpll_core_m4_ck"),
--	DT_CLK(NULL, "dpll_core_m5_ck", "dpll_core_m5_ck"),
--	DT_CLK(NULL, "dpll_core_m6_ck", "dpll_core_m6_ck"),
--	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
--	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
--	DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
--	DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
--	DT_CLK(NULL, "dpll_ddr_m2_div2_ck", "dpll_ddr_m2_div2_ck"),
--	DT_CLK(NULL, "dpll_disp_ck", "dpll_disp_ck"),
--	DT_CLK(NULL, "dpll_disp_m2_ck", "dpll_disp_m2_ck"),
--	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
--	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
--	DT_CLK(NULL, "dpll_per_m2_div4_wkupdm_ck", "dpll_per_m2_div4_wkupdm_ck"),
--	DT_CLK(NULL, "dpll_per_m2_div4_ck", "dpll_per_m2_div4_ck"),
--	DT_CLK(NULL, "adc_tsc_fck", "adc_tsc_fck"),
--	DT_CLK(NULL, "cefuse_fck", "cefuse_fck"),
--	DT_CLK(NULL, "clkdiv32k_ck", "clkdiv32k_ck"),
--	DT_CLK(NULL, "clkdiv32k_ick", "clkdiv32k_ick"),
--	DT_CLK(NULL, "dcan0_fck", "dcan0_fck"),
--	DT_CLK("481cc000.d_can", NULL, "dcan0_fck"),
--	DT_CLK(NULL, "dcan1_fck", "dcan1_fck"),
--	DT_CLK("481d0000.d_can", NULL, "dcan1_fck"),
--	DT_CLK(NULL, "pruss_ocp_gclk", "pruss_ocp_gclk"),
--	DT_CLK(NULL, "mcasp0_fck", "mcasp0_fck"),
--	DT_CLK(NULL, "mcasp1_fck", "mcasp1_fck"),
--	DT_CLK(NULL, "mmu_fck", "mmu_fck"),
--	DT_CLK(NULL, "smartreflex0_fck", "smartreflex0_fck"),
--	DT_CLK(NULL, "smartreflex1_fck", "smartreflex1_fck"),
--	DT_CLK(NULL, "sha0_fck", "sha0_fck"),
--	DT_CLK(NULL, "aes0_fck", "aes0_fck"),
--	DT_CLK(NULL, "rng_fck", "rng_fck"),
--	DT_CLK(NULL, "timer1_fck", "timer1_fck"),
--	DT_CLK(NULL, "timer2_fck", "timer2_fck"),
--	DT_CLK(NULL, "timer3_fck", "timer3_fck"),
--	DT_CLK(NULL, "timer4_fck", "timer4_fck"),
--	DT_CLK(NULL, "timer5_fck", "timer5_fck"),
--	DT_CLK(NULL, "timer6_fck", "timer6_fck"),
--	DT_CLK(NULL, "timer7_fck", "timer7_fck"),
--	DT_CLK(NULL, "usbotg_fck", "usbotg_fck"),
--	DT_CLK(NULL, "ieee5000_fck", "ieee5000_fck"),
--	DT_CLK(NULL, "wdt1_fck", "wdt1_fck"),
--	DT_CLK(NULL, "l4_rtc_gclk", "l4_rtc_gclk"),
--	DT_CLK(NULL, "l3_gclk", "l3_gclk"),
--	DT_CLK(NULL, "dpll_core_m4_div2_ck", "dpll_core_m4_div2_ck"),
--	DT_CLK(NULL, "l4hs_gclk", "l4hs_gclk"),
--	DT_CLK(NULL, "l3s_gclk", "l3s_gclk"),
--	DT_CLK(NULL, "l4fw_gclk", "l4fw_gclk"),
--	DT_CLK(NULL, "l4ls_gclk", "l4ls_gclk"),
--	DT_CLK(NULL, "clk_24mhz", "clk_24mhz"),
--	DT_CLK(NULL, "sysclk_div_ck", "sysclk_div_ck"),
--	DT_CLK(NULL, "cpsw_125mhz_gclk", "cpsw_125mhz_gclk"),
--	DT_CLK(NULL, "cpsw_cpts_rft_clk", "cpsw_cpts_rft_clk"),
--	DT_CLK(NULL, "gpio0_dbclk_mux_ck", "gpio0_dbclk_mux_ck"),
--	DT_CLK(NULL, "gpio0_dbclk", "gpio0_dbclk"),
--	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
--	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
--	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
--	DT_CLK(NULL, "lcd_gclk", "lcd_gclk"),
--	DT_CLK(NULL, "mmc_clk", "mmc_clk"),
--	DT_CLK(NULL, "gfx_fclk_clksel_ck", "gfx_fclk_clksel_ck"),
--	DT_CLK(NULL, "gfx_fck_div_ck", "gfx_fck_div_ck"),
--	DT_CLK(NULL, "sysclkout_pre_ck", "sysclkout_pre_ck"),
--	DT_CLK(NULL, "clkout2_div_ck", "clkout2_div_ck"),
- 	DT_CLK(NULL, "timer_32k_ck", "clkdiv32k_ick"),
- 	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
--	DT_CLK(NULL, "dbg_sysclk_ck", "dbg_sysclk_ck"),
--	DT_CLK(NULL, "dbg_clka_ck", "dbg_clka_ck"),
--	DT_CLK(NULL, "stm_pmd_clock_mux_ck", "stm_pmd_clock_mux_ck"),
--	DT_CLK(NULL, "trace_pmd_clk_mux_ck", "trace_pmd_clk_mux_ck"),
--	DT_CLK(NULL, "stm_clk_div_ck", "stm_clk_div_ck"),
--	DT_CLK(NULL, "trace_clk_div_ck", "trace_clk_div_ck"),
--	DT_CLK(NULL, "clkout2_ck", "clkout2_ck"),
--	DT_CLK("48300200.ehrpwm", "tbclk", "ehrpwm0_tbclk"),
--	DT_CLK("48302200.ehrpwm", "tbclk", "ehrpwm1_tbclk"),
--	DT_CLK("48304200.ehrpwm", "tbclk", "ehrpwm2_tbclk"),
--	DT_CLK("48300200.pwm", "tbclk", "ehrpwm0_tbclk"),
--	DT_CLK("48302200.pwm", "tbclk", "ehrpwm1_tbclk"),
--	DT_CLK("48304200.pwm", "tbclk", "ehrpwm2_tbclk"),
- 	{ .node_name = NULL },
- };
- 
-@@ -133,6 +47,8 @@ int __init am33xx_dt_clk_init(void)
- 
- 	omap2_clk_disable_autoidle_all();
- 
-+	ti_clk_add_aliases();
+diff --git a/include/dt-bindings/clock/dra7.h b/include/dt-bindings/clock/dra7.h
+new file mode 100644
+index 0000000..5e1061b
+--- /dev/null
++++ b/include/dt-bindings/clock/dra7.h
+@@ -0,0 +1,172 @@
++/*
++ * Copyright 2017 Texas Instruments, Inc.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef __DT_BINDINGS_CLK_DRA7_H
++#define __DT_BINDINGS_CLK_DRA7_H
 +
- 	omap2_clk_enable_init_clocks(enable_init_clks,
- 				     ARRAY_SIZE(enable_init_clks));
- 
++#define DRA7_CLKCTRL_OFFSET	0x20
++#define DRA7_CLKCTRL_INDEX(offset)	((offset) - DRA7_CLKCTRL_OFFSET)
++
++/* mpu clocks */
++#define DRA7_MPU_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++
++/* ipu clocks */
++#define DRA7_IPU_CLKCTRL_OFFSET	0x40
++#define DRA7_IPU_CLKCTRL_INDEX(offset)	((offset) - DRA7_IPU_CLKCTRL_OFFSET)
++#define DRA7_MCASP1_CLKCTRL	DRA7_IPU_CLKCTRL_INDEX(0x50)
++#define DRA7_TIMER5_CLKCTRL	DRA7_IPU_CLKCTRL_INDEX(0x58)
++#define DRA7_TIMER6_CLKCTRL	DRA7_IPU_CLKCTRL_INDEX(0x60)
++#define DRA7_TIMER7_CLKCTRL	DRA7_IPU_CLKCTRL_INDEX(0x68)
++#define DRA7_TIMER8_CLKCTRL	DRA7_IPU_CLKCTRL_INDEX(0x70)
++#define DRA7_I2C5_CLKCTRL	DRA7_IPU_CLKCTRL_INDEX(0x78)
++#define DRA7_UART6_CLKCTRL	DRA7_IPU_CLKCTRL_INDEX(0x80)
++
++/* rtc clocks */
++#define DRA7_RTC_CLKCTRL_OFFSET	0x40
++#define DRA7_RTC_CLKCTRL_INDEX(offset)	((offset) - DRA7_RTC_CLKCTRL_OFFSET)
++#define DRA7_RTCSS_CLKCTRL	DRA7_RTC_CLKCTRL_INDEX(0x44)
++
++/* coreaon clocks */
++#define DRA7_SMARTREFLEX_MPU_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
++#define DRA7_SMARTREFLEX_CORE_CLKCTRL	DRA7_CLKCTRL_INDEX(0x38)
++
++/* l3main1 clocks */
++#define DRA7_L3_MAIN_1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++#define DRA7_GPMC_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
++#define DRA7_TPCC_CLKCTRL	DRA7_CLKCTRL_INDEX(0x70)
++#define DRA7_TPTC0_CLKCTRL	DRA7_CLKCTRL_INDEX(0x78)
++#define DRA7_TPTC1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x80)
++#define DRA7_VCP1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x88)
++#define DRA7_VCP2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x90)
++
++/* dma clocks */
++#define DRA7_DMA_SYSTEM_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++
++/* emif clocks */
++#define DRA7_DMM_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++
++/* atl clocks */
++#define DRA7_ATL_CLKCTRL_OFFSET	0x0
++#define DRA7_ATL_CLKCTRL_INDEX(offset)	((offset) - DRA7_ATL_CLKCTRL_OFFSET)
++#define DRA7_ATL_CLKCTRL	DRA7_ATL_CLKCTRL_INDEX(0x0)
++
++/* l4cfg clocks */
++#define DRA7_L4_CFG_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++#define DRA7_SPINLOCK_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
++#define DRA7_MAILBOX1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x30)
++#define DRA7_MAILBOX2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x48)
++#define DRA7_MAILBOX3_CLKCTRL	DRA7_CLKCTRL_INDEX(0x50)
++#define DRA7_MAILBOX4_CLKCTRL	DRA7_CLKCTRL_INDEX(0x58)
++#define DRA7_MAILBOX5_CLKCTRL	DRA7_CLKCTRL_INDEX(0x60)
++#define DRA7_MAILBOX6_CLKCTRL	DRA7_CLKCTRL_INDEX(0x68)
++#define DRA7_MAILBOX7_CLKCTRL	DRA7_CLKCTRL_INDEX(0x70)
++#define DRA7_MAILBOX8_CLKCTRL	DRA7_CLKCTRL_INDEX(0x78)
++#define DRA7_MAILBOX9_CLKCTRL	DRA7_CLKCTRL_INDEX(0x80)
++#define DRA7_MAILBOX10_CLKCTRL	DRA7_CLKCTRL_INDEX(0x88)
++#define DRA7_MAILBOX11_CLKCTRL	DRA7_CLKCTRL_INDEX(0x90)
++#define DRA7_MAILBOX12_CLKCTRL	DRA7_CLKCTRL_INDEX(0x98)
++#define DRA7_MAILBOX13_CLKCTRL	DRA7_CLKCTRL_INDEX(0xa0)
++
++/* l3instr clocks */
++#define DRA7_L3_MAIN_2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++#define DRA7_L3_INSTR_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
++
++/* dss clocks */
++#define DRA7_DSS_CORE_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++#define DRA7_BB2D_CLKCTRL	DRA7_CLKCTRL_INDEX(0x30)
++
++/* l3init clocks */
++#define DRA7_MMC1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x28)
++#define DRA7_MMC2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x30)
++#define DRA7_USB_OTG_SS2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x40)
++#define DRA7_USB_OTG_SS3_CLKCTRL	DRA7_CLKCTRL_INDEX(0x48)
++#define DRA7_USB_OTG_SS4_CLKCTRL	DRA7_CLKCTRL_INDEX(0x50)
++#define DRA7_SATA_CLKCTRL	DRA7_CLKCTRL_INDEX(0x88)
++#define DRA7_PCIE1_CLKCTRL	DRA7_CLKCTRL_INDEX(0xb0)
++#define DRA7_PCIE2_CLKCTRL	DRA7_CLKCTRL_INDEX(0xb8)
++#define DRA7_GMAC_CLKCTRL	DRA7_CLKCTRL_INDEX(0xd0)
++#define DRA7_OCP2SCP1_CLKCTRL	DRA7_CLKCTRL_INDEX(0xe0)
++#define DRA7_OCP2SCP3_CLKCTRL	DRA7_CLKCTRL_INDEX(0xe8)
++#define DRA7_USB_OTG_SS1_CLKCTRL	DRA7_CLKCTRL_INDEX(0xf0)
++
++/* l4per clocks */
++#define DRA7_L4PER_CLKCTRL_OFFSET	0x0
++#define DRA7_L4PER_CLKCTRL_INDEX(offset)	((offset) - DRA7_L4PER_CLKCTRL_OFFSET)
++#define DRA7_L4_PER2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xc)
++#define DRA7_L4_PER3_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x14)
++#define DRA7_TIMER10_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x28)
++#define DRA7_TIMER11_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x30)
++#define DRA7_TIMER2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x38)
++#define DRA7_TIMER3_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x40)
++#define DRA7_TIMER4_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x48)
++#define DRA7_TIMER9_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x50)
++#define DRA7_ELM_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x58)
++#define DRA7_GPIO2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x60)
++#define DRA7_GPIO3_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x68)
++#define DRA7_GPIO4_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x70)
++#define DRA7_GPIO5_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x78)
++#define DRA7_GPIO6_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x80)
++#define DRA7_HDQ1W_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x88)
++#define DRA7_EPWMSS1_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x90)
++#define DRA7_EPWMSS2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x98)
++#define DRA7_I2C1_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xa0)
++#define DRA7_I2C2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xa8)
++#define DRA7_I2C3_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xb0)
++#define DRA7_I2C4_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xb8)
++#define DRA7_L4_PER1_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xc0)
++#define DRA7_EPWMSS0_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xc4)
++#define DRA7_TIMER13_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xc8)
++#define DRA7_TIMER14_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xd0)
++#define DRA7_TIMER15_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xd8)
++#define DRA7_MCSPI1_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xf0)
++#define DRA7_MCSPI2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0xf8)
++#define DRA7_MCSPI3_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x100)
++#define DRA7_MCSPI4_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x108)
++#define DRA7_GPIO7_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x110)
++#define DRA7_GPIO8_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x118)
++#define DRA7_MMC3_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x120)
++#define DRA7_MMC4_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x128)
++#define DRA7_TIMER16_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x130)
++#define DRA7_QSPI_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x138)
++#define DRA7_UART1_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x140)
++#define DRA7_UART2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x148)
++#define DRA7_UART3_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x150)
++#define DRA7_UART4_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x158)
++#define DRA7_MCASP2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x160)
++#define DRA7_MCASP3_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x168)
++#define DRA7_UART5_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x170)
++#define DRA7_MCASP5_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x178)
++#define DRA7_MCASP8_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x190)
++#define DRA7_MCASP4_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x198)
++#define DRA7_AES1_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x1a0)
++#define DRA7_AES2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x1a8)
++#define DRA7_DES_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x1b0)
++#define DRA7_RNG_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x1c0)
++#define DRA7_SHAM_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x1c8)
++#define DRA7_UART7_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x1d0)
++#define DRA7_UART8_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x1e0)
++#define DRA7_UART9_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x1e8)
++#define DRA7_DCAN2_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x1f0)
++#define DRA7_MCASP6_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x204)
++#define DRA7_MCASP7_CLKCTRL	DRA7_L4PER_CLKCTRL_INDEX(0x208)
++
++/* wkupaon clocks */
++#define DRA7_L4_WKUP_CLKCTRL	DRA7_CLKCTRL_INDEX(0x20)
++#define DRA7_WD_TIMER2_CLKCTRL	DRA7_CLKCTRL_INDEX(0x30)
++#define DRA7_GPIO1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x38)
++#define DRA7_TIMER1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x40)
++#define DRA7_TIMER12_CLKCTRL	DRA7_CLKCTRL_INDEX(0x48)
++#define DRA7_COUNTER_32K_CLKCTRL	DRA7_CLKCTRL_INDEX(0x50)
++#define DRA7_UART10_CLKCTRL	DRA7_CLKCTRL_INDEX(0x80)
++#define DRA7_DCAN1_CLKCTRL	DRA7_CLKCTRL_INDEX(0x88)
++
++#endif
 -- 
 1.9.1
 
