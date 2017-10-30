@@ -1,84 +1,48 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: n950: mmc fails to work, omap_hsmmc 480b4000.mmc: RX DMA channel
- request failed ? was Re: 4.13 (and probably all recent) kernels refuse to
- boot on one Nokia N950, work or another
-Date: Mon, 30 Oct 2017 20:43:40 +0100
-Message-ID: <20171030194340.GA9133@amd>
-References: <20171025203459.GA22035@amd>
- <20171025212806.GA21504@atomide.com>
- <20171026091325.GA26929@amd>
- <20171026093115.4bc6ctxjx72ng7ld@earth>
- <20171026095734.GA10141@amd>
- <20171026120130.dicanunwcdmjntnb@earth>
- <20171027101905.GA4287@amd>
- <65ad0b63-cfae-f7ac-f916-32fd0c7c540a@gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 0/2] ARM: OMAP3: fix boot regression for N9
+Date: Mon, 30 Oct 2017 21:44:38 +0200
+Message-ID: <6baaa6fd-d059-d2f7-fdcc-f42d2160da45@ti.com>
+References: <1509354664-27694-1-git-send-email-t-kristo@ti.com>
+ <20171030161950.GA7339@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <65ad0b63-cfae-f7ac-f916-32fd0c7c540a@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171030161950.GA7339@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On 30/10/17 18:19, Tony Lindgren wrote:
+> * Tero Kristo <t-kristo@ti.com> [171030 02:13]:
+>> Hi,
+>>
+>> N9 boot is apparently broken with mainline, caused by some recent
+>> changes to TI clock drivers. The reason for failing boot is effectively
+>> missing hwmod data piece for MMC3, so add this in place. The CM
+>> related fix is also needed to properly handle idlest functionality
+>> on OMAP3; currently this is mostly masked but will cause issues in
+>> some places.
+> 
+> Thanks applying both into omap-for-v4.14/fixes. If these don't make
+> it to v4.14, these can always be requested for stable releases as
+> needed as specified in Documentation/process/stable-kernel-rules.rst.
 
---FL5UXtIhxfXey3p5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yeah, really sorry about the delay but was kind of out of my hands this 
+time. Hopefully my email issues have been solved for now and this won't 
+happen again.
 
-Hi!
+-Tero
 
-I was able to setup nfsroot, and boot postmarketos (with root
-read/only, but that's good enough for debugging).
-
-Then I was (finally!) able to run dmesg, and that tells me:
-
-[    0.816040] mousedev: PS/2 mouse device common for all mice
-[    0.817657] input: TWL4030 Keypad as
-/devices/platform/68000000.ocp/48070000.i2c/i2c-0/0-0048/48070000.i2c:twl@4=
-8:keypad/input/input0
-[    0.820800] i2c /dev entries driver
-[    0.830261] omap_wdt: OMAP Watchdog Timer Rev 0x31: initial timeout
-60 sec
-[    0.836212] omap_hsmmc 480b4000.mmc: RX DMA channel request failed
-[    0.840026] ledtrig-cpu: registered to indicate activity on CPUs
-[    0.840789] omap-aes 480c5000.aes: OMAP AES hw accel rev: 2.6
-[    0.840942] omap-aes 480c5000.aes: Unable to request in DMA channel
-[    0.841644] omap-aes 480c5000.aes: will run requests pump with
-realtime priority
-
-Kernel 4.13-rc2.
-
-I'm now trying:
-
-+++ b/.config
--CONFIG_MMC_OMAP_HS=3Dy
-+# CONFIG_MMC_OMAP_HS is not set
-
-With that, error is gone, but so is MMC driver, so... not good.
-
-Any ideas?
-
-Best regards,
-									Pavel  =20
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---FL5UXtIhxfXey3p5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAln3gOwACgkQMOfwapXb+vJEMQCfZ6vsfswVrA6hDvpJZs4m6Cbe
-rHsAn1O7WjtazgdB30BwgsUaUtsQdr6O
-=TUDa
------END PGP SIGNATURE-----
-
---FL5UXtIhxfXey3p5--
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
