@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP3: fix boot regression for N9
-Date: Mon, 30 Oct 2017 09:19:50 -0700
-Message-ID: <20171030161950.GA7339@atomide.com>
-References: <1509354664-27694-1-git-send-email-t-kristo@ti.com>
+Subject: [GIT PULL 2/2] omap coccinelle warning fixes for v4.15 merge window
+Date: Mon, 30 Oct 2017 09:41:14 -0700
+Message-ID: <pull-1509381562-551838@atomide.com-2>
+References: <pull-1509381562-551838@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1509354664-27694-1-git-send-email-t-kristo@ti.com>
+In-Reply-To: <pull-1509381562-551838@atomide.com>
+In-Reply-To: <pull-1509381562-551838@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -18,24 +18,48 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo@ti.com> [171030 02:13]:
-> Hi,
-> 
-> N9 boot is apparently broken with mainline, caused by some recent
-> changes to TI clock drivers. The reason for failing boot is effectively
-> missing hwmod data piece for MMC3, so add this in place. The CM
-> related fix is also needed to properly handle idlest functionality
-> on OMAP3; currently this is mostly masked but will cause issues in
-> some places.
+From: "Tony Lindgren" <tony@atomide.com>
 
-Thanks applying both into omap-for-v4.14/fixes. If these don't make
-it to v4.14, these can always be requested for stable releases as
-needed as specified in Documentation/process/stable-kernel-rules.rst.
+The following changes since commit 2bd6bf03f4c1c59381d62c61d03f6cc3fe71f66e:
 
-Regards,
+  Linux 4.14-rc1 (2017-09-16 15:47:51 -0700)
 
-Tony
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.15/coccinelle-signed
+
+for you to fetch changes up to d9ecbef39438391dcee511e17b6f65a970b28639:
+
+  ARM: OMAP3: Delete an unnecessary variable initialisation in omap3xxx_hwmod_init() (2017-10-25 09:54:08 -0700)
+
+----------------------------------------------------------------
+Few coccinelle robot clean-up patches for careless human coding
+issues for v4.15 merge window sent by their human operatorrrrrs.
+
+----------------------------------------------------------------
+Bhumika Goyal (1):
+      ARM: omap1: add const and initconst to omap_lcd_config
+
+Markus Elfring (2):
+      ARM: OMAP3: Use common error handling code in omap3xxx_hwmod_init()
+      ARM: OMAP3: Delete an unnecessary variable initialisation in omap3xxx_hwmod_init()
+
+ arch/arm/mach-omap1/board-ams-delta.c      |  2 +-
+ arch/arm/mach-omap1/board-fsample.c        |  2 +-
+ arch/arm/mach-omap1/board-h2.c             |  2 +-
+ arch/arm/mach-omap1/board-h3.c             |  2 +-
+ arch/arm/mach-omap1/board-htcherald.c      |  2 +-
+ arch/arm/mach-omap1/board-innovator.c      |  4 ++--
+ arch/arm/mach-omap1/board-nokia770.c       |  2 +-
+ arch/arm/mach-omap1/board-osk.c            |  2 +-
+ arch/arm/mach-omap1/board-palmte.c         |  2 +-
+ arch/arm/mach-omap1/board-palmtt.c         |  2 +-
+ arch/arm/mach-omap1/board-palmz71.c        |  2 +-
+ arch/arm/mach-omap1/board-perseus2.c       |  2 +-
+ arch/arm/mach-omap1/board-sx1.c            |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 18 +++++++++---------
+ 14 files changed, 23 insertions(+), 23 deletions(-)
