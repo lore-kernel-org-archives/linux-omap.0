@@ -1,62 +1,94 @@
-From: Niklas Cassel <niklas.cassel-VrBV9hrLPhE@public.gmane.org>
-Subject: [PATCH v2 00/17] dwc MSI fixes, ARTPEC-6 EP mode support, ARTPEC-7 SoC support
-Date: Mon, 30 Oct 2017 13:42:03 +0100
-Message-ID: <20171030124221.20690-1-niklas.cassel@axis.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-VrBV9hrLPhE@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Niklas Cassel <niklass-VrBV9hrLPhE@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 02/27] clk: ti: clkctrl: add support for clkdm init for clkctrl clocks
+Date: Mon, 30 Oct 2017 15:04:20 +0200
+Message-ID: <1509368685-29112-3-git-send-email-t-kristo@ti.com>
+References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-This is a series that adds:
-- PCI endpoint mode support in the ARTPEC-6 driver.
-- ARTPEC-7 SoC support in the ARTPEC-6 driver (the SoCs are very similar).
-- Small fixes for MSI in designware-ep and designware-host,
-  needed to get endpoint mode support working for ARTPEC-6.
+Clkctrl clocks now support clockdomain init also. This will be needed
+so that hwmod core can drop the support for clockdomain handling.
 
-New in V2:
-Capitalized first letter in summary for all patches.
-Moved DT binding changes to self contained patches.
-Fixed all review comments, for detailed changes, see the note for in patch.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ drivers/clk/ti/clkctrl.c | 22 ++++++++++++++++++++++
+ drivers/clk/ti/clock.h   |  1 +
+ 2 files changed, 23 insertions(+)
 
-Niklas Cassel (17):
-  PCI: dwc: Use DMA-API for allocating MSI data
-  PCI: designware-ep: dw_pcie_ep_set_msi() should only set MMC bits
-  PCI: designware-ep: Read-only registers need DBI_RO_WR_EN to be
-    writable
-  PCI: designware-ep: Pre-allocate memory for MSI in dw_pcie_ep_init
-  PCI: designware-ep: Remove static keyword from dw_pcie_ep_reset_bar()
-  PCI: designware-ep: Add generic function for raising MSI irq
-  PCI: dwc: dra7xx: Refactor Kconfig and Makefile handling for host/ep
-    mode
-  PCI: dwc: dra7xx: Assign pp->ops in dra7xx_add_pcie_port() rather than
-    in probe
-  PCI: dwc: dra7xx: Add ifdefs for host/ep specific code
-  PCI: dwc: artpec6: Remove unused defines
-  PCI: dwc: artpec6: Use BIT and GENMASK macros
-  PCI: dwc: artpec6: Split artpec6_pcie_establish_link to smaller
-    functions
-  bindings: PCI: artpec: Add support for endpoint mode
-  PCI: dwc: artpec6: Add support for endpoint mode
-  PCI: dwc: Make cpu_addr_fixup take struct dw_pcie as argument
-  bindings: PCI: artpec: Add support for the ARTPEC-7 SoC
-  PCI: dwc: artpec6: Add support for the ARTPEC-7 SoC
-
- .../devicetree/bindings/pci/axis,artpec6-pcie.txt  |   5 +-
- drivers/pci/dwc/Kconfig                            |  68 ++--
- drivers/pci/dwc/Makefile                           |   4 +-
- drivers/pci/dwc/pci-dra7xx.c                       |  53 +--
- drivers/pci/dwc/pcie-artpec6.c                     | 416 ++++++++++++++++++---
- drivers/pci/dwc/pcie-designware-ep.c               |  56 ++-
- drivers/pci/dwc/pcie-designware-host.c             |  15 +-
- drivers/pci/dwc/pcie-designware.c                  |   2 +-
- drivers/pci/dwc/pcie-designware.h                  |  22 +-
- 9 files changed, 530 insertions(+), 111 deletions(-)
-
+diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
+index 2db7d40..284ba449 100644
+--- a/drivers/clk/ti/clkctrl.c
++++ b/drivers/clk/ti/clkctrl.c
+@@ -46,6 +46,7 @@
+ struct omap_clkctrl_provider {
+ 	void __iomem *base;
+ 	struct list_head clocks;
++	char *clkdm_name;
+ };
+ 
+ struct omap_clkctrl_clk {
+@@ -208,6 +209,7 @@ static int _omap4_clkctrl_clk_is_enabled(struct clk_hw *hw)
+ 	.enable		= _omap4_clkctrl_clk_enable,
+ 	.disable	= _omap4_clkctrl_clk_disable,
+ 	.is_enabled	= _omap4_clkctrl_clk_is_enabled,
++	.init		= omap2_init_clk_clkdm,
+ };
+ 
+ static struct clk_hw *_ti_omap4_clkctrl_xlate(struct of_phandle_args *clkspec,
+@@ -438,6 +440,21 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
+ 
+ 	provider->base = of_iomap(node, 0);
+ 
++	provider->clkdm_name = kmalloc(strlen(node->parent->name) + 3,
++				       GFP_KERNEL);
++	if (!provider->clkdm_name) {
++		kfree(provider);
++		return;
++	}
++
++	/*
++	 * Create default clkdm name, replace _cm from end of parent node
++	 * name with _clkdm
++	 */
++	strcpy(provider->clkdm_name, node->parent->name);
++	provider->clkdm_name[strlen(provider->clkdm_name) - 2] = 0;
++	strcat(provider->clkdm_name, "clkdm");
++
+ 	INIT_LIST_HEAD(&provider->clocks);
+ 
+ 	/* Generate clocks */
+@@ -460,6 +477,11 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
+ 		if (reg_data->flags & CLKF_NO_IDLEST)
+ 			hw->flags |= NO_IDLEST;
+ 
++		if (reg_data->clkdm_name)
++			hw->clkdm_name = reg_data->clkdm_name;
++		else
++			hw->clkdm_name = provider->clkdm_name;
++
+ 		init.parent_names = &reg_data->parent;
+ 		init.num_parents = 1;
+ 		init.flags = 0;
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 561dbe9..169241f 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -221,6 +221,7 @@ struct omap_clkctrl_reg_data {
+ 	const struct omap_clkctrl_bit_data *bit_data;
+ 	u16 flags;
+ 	const char *parent;
++	const char *clkdm_name;
+ };
+ 
+ struct omap_clkctrl_data {
 -- 
-2.14.2
+1.9.1
 
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
