@@ -1,66 +1,40 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 05/27] clk: ti: clkctrl: add support for retrying failed init
-Date: Mon, 30 Oct 2017 15:04:23 +0200
-Message-ID: <1509368685-29112-6-git-send-email-t-kristo@ti.com>
-References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 00/27] clk: ti: clkctrl fixes and support for additional SoCs
+Date: Mon, 30 Oct 2017 15:04:18 +0200
+Message-ID: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
 Sender: linux-clk-owner@vger.kernel.org
 To: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-In case the clkctrl node contains assigned-clock-* entries, registering
-the provider can fail with -EPROBE_DEFER. In this case, add the
-provider to the retry_init clock list so it will be cleaned up later.
+Hi,
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/clk/ti/clkctrl.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+This series contains a few cleanups/fixes and clkctrl support for
+am33xx, am43xx, dra7, dm81x and omap5 SoCs. This series can be
+applied independently of any other upcoming clkctrl related
+changes (mach-omap2 and dts.)
 
-diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-index 91ddc92..0f78219 100644
---- a/drivers/clk/ti/clkctrl.c
-+++ b/drivers/clk/ti/clkctrl.c
-@@ -403,6 +403,12 @@ static struct clk_hw *_ti_omap4_clkctrl_xlate(struct of_phandle_args *clkspec,
- 	}
- }
- 
-+static void __init _clkctrl_add_provider(void *data,
-+					 struct device_node *np)
-+{
-+	of_clk_add_hw_provider(np, _ti_omap4_clkctrl_xlate, data);
-+}
-+
- static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
- {
- 	struct omap_clkctrl_provider *provider;
-@@ -414,6 +420,7 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
- 	struct omap_clkctrl_clk *clkctrl_clk;
- 	const __be32 *addrp;
- 	u32 addr;
-+	int ret;
- 
- 	addrp = of_get_address(node, 0, NULL, NULL);
- 	addr = (u32)of_translate_address(node, addrp);
-@@ -508,7 +515,11 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
- 		reg_data++;
- 	}
- 
--	of_clk_add_hw_provider(node, _ti_omap4_clkctrl_xlate, provider);
-+	ret = of_clk_add_hw_provider(node, _ti_omap4_clkctrl_xlate, provider);
-+	if (ret == -EPROBE_DEFER)
-+		ti_clk_retry_init(node, (void *)provider,
-+				  (ti_of_clk_init_cb_t)_clkctrl_add_provider);
-+
- 	return;
- 
- cleanup:
--- 
-1.9.1
+The way forward with hwmod cleanup will look something like following:
+- this series + related mach-omap2 changes merged
+- dts changes merged
+- introduction of the interconnect driver
+- removal of clkctrl related data from hwmod data
+- removal of the temporary clkctrl clock aliases from TI clock driver
+  (these are only needed as long as hwmod is still in charge of business)
+
+Boot testing done on all boards I have access to, and Tony has done
+some extra testing on dm81x boards which I don't have. Applied on top
+of 4.14-rc1, but I would say this is 4.16 material. The posting of
+this series has been delayed due to some nasty email issues I've been
+having, sorry about that.
+
+Tree: https://github.com/t-kristo/linux-pm.git
+Branch: 4.14-rc1-clkctrl-driver
+
+-Tero
 
 --
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
