@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 24/27] clk: ti: dm814: add clkctrl clock data
-Date: Mon, 30 Oct 2017 15:04:42 +0200
-Message-ID: <1509368685-29112-25-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 15/27] dt-bindings: clk: add omap5 clkctrl definitions
+Date: Mon, 30 Oct 2017 15:04:33 +0200
+Message-ID: <1509368685-29112-16-git-send-email-t-kristo@ti.com>
 References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,94 +12,138 @@ To: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Add data for dm814 clkctrl clocks, and register it within the clkctrl
-driver.
+Contains offsets for all omap5 clkctrl main and optional clocks.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk-814x.c | 37 +++++++++++++++++++++++++++++++++++++
- drivers/clk/ti/clkctrl.c  |  4 ++++
- drivers/clk/ti/clock.h    |  1 +
- 3 files changed, 42 insertions(+)
+ include/dt-bindings/clock/omap5.h | 118 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 118 insertions(+)
+ create mode 100644 include/dt-bindings/clock/omap5.h
 
-diff --git a/drivers/clk/ti/clk-814x.c b/drivers/clk/ti/clk-814x.c
-index 7dab941..f688fdd 100644
---- a/drivers/clk/ti/clk-814x.c
-+++ b/drivers/clk/ti/clk-814x.c
-@@ -9,9 +9,46 @@
- #include <linux/clk-provider.h>
- #include <linux/clk/ti.h>
- #include <linux/of_platform.h>
-+#include <dt-bindings/clock/dm814.h>
- 
- #include "clock.h"
- 
-+static const struct omap_clkctrl_reg_data dm814_default_clkctrl_regs[] __initconst = {
-+	{ DM814_USB_OTG_HS_CLKCTRL, NULL, CLKF_SW_SUP, "pll260dcoclkldo" },
-+	{ 0 },
-+};
+diff --git a/include/dt-bindings/clock/omap5.h b/include/dt-bindings/clock/omap5.h
+new file mode 100644
+index 0000000..f51821a
+--- /dev/null
++++ b/include/dt-bindings/clock/omap5.h
+@@ -0,0 +1,118 @@
++/*
++ * Copyright 2017 Texas Instruments, Inc.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef __DT_BINDINGS_CLK_OMAP5_H
++#define __DT_BINDINGS_CLK_OMAP5_H
 +
-+static const struct omap_clkctrl_reg_data dm814_alwon_clkctrl_regs[] __initconst = {
-+	{ DM814_UART1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM814_UART2_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM814_UART3_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM814_GPIO1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk6_ck" },
-+	{ DM814_GPIO2_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk6_ck" },
-+	{ DM814_I2C1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM814_I2C2_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM814_WD_TIMER_CLKCTRL, NULL, CLKF_SW_SUP | CLKF_NO_IDLEST, "sysclk18_ck" },
-+	{ DM814_MCSPI1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM814_GPMC_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk6_ck" },
-+	{ DM814_CPGMAC0_CLKCTRL, NULL, CLKF_SW_SUP, "cpsw_125mhz_gclk" },
-+	{ DM814_MPU_CLKCTRL, NULL, CLKF_SW_SUP, "mpu_ck" },
-+	{ DM814_RTC_CLKCTRL, NULL, CLKF_SW_SUP | CLKF_NO_IDLEST, "sysclk18_ck" },
-+	{ DM814_TPCC_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ DM814_TPTC0_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ DM814_TPTC1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ DM814_TPTC2_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ DM814_TPTC3_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ DM814_MMC1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk8_ck" },
-+	{ DM814_MMC2_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk8_ck" },
-+	{ DM814_MMC3_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk8_ck" },
-+	{ 0 },
-+};
++#define OMAP5_CLKCTRL_OFFSET	0x20
++#define OMAP5_CLKCTRL_INDEX(offset)	((offset) - OMAP5_CLKCTRL_OFFSET)
 +
-+const struct omap_clkctrl_data dm814_clkctrl_data[] __initconst = {
-+	{ 0x48180500, dm814_default_clkctrl_regs },
-+	{ 0x48181400, dm814_alwon_clkctrl_regs },
-+	{ 0 },
-+};
++/* mpu clocks */
++#define OMAP5_MPU_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
 +
- static struct ti_dt_clk dm814_clks[] = {
- 	DT_CLK(NULL, "timer_sys_ck", "devosc_ck"),
- 	{ .node_name = NULL },
-diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-index 74d1320..a531a89 100644
---- a/drivers/clk/ti/clkctrl.c
-+++ b/drivers/clk/ti/clkctrl.c
-@@ -453,6 +453,10 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
- 	if (of_machine_is_compatible("ti,am4372"))
- 		data = am4_clkctrl_data;
- #endif
-+#ifdef CONFIG_SOC_TI81XX
-+	if (of_machine_is_compatible("ti,dm814"))
-+		data = dm814_clkctrl_data;
++/* dsp clocks */
++#define OMAP5_MMU_DSP_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++
++/* abe clocks */
++#define OMAP5_L4_ABE_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++#define OMAP5_MCPDM_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
++#define OMAP5_DMIC_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
++#define OMAP5_MCBSP1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x48)
++#define OMAP5_MCBSP2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x50)
++#define OMAP5_MCBSP3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x58)
++#define OMAP5_TIMER5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x68)
++#define OMAP5_TIMER6_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x70)
++#define OMAP5_TIMER7_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x78)
++#define OMAP5_TIMER8_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x80)
++
++/* l3main1 clocks */
++#define OMAP5_L3_MAIN_1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++
++/* l3main2 clocks */
++#define OMAP5_L3_MAIN_2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++
++/* ipu clocks */
++#define OMAP5_MMU_IPU_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++
++/* dma clocks */
++#define OMAP5_DMA_SYSTEM_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++
++/* emif clocks */
++#define OMAP5_DMM_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++#define OMAP5_EMIF1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
++#define OMAP5_EMIF2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
++
++/* l4cfg clocks */
++#define OMAP5_L4_CFG_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++#define OMAP5_SPINLOCK_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
++#define OMAP5_MAILBOX_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
++
++/* l3instr clocks */
++#define OMAP5_L3_MAIN_3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++#define OMAP5_L3_INSTR_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
++
++/* l4per clocks */
++#define OMAP5_TIMER10_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
++#define OMAP5_TIMER11_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
++#define OMAP5_TIMER2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
++#define OMAP5_TIMER3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x40)
++#define OMAP5_TIMER4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x48)
++#define OMAP5_TIMER9_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x50)
++#define OMAP5_GPIO2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x60)
++#define OMAP5_GPIO3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x68)
++#define OMAP5_GPIO4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x70)
++#define OMAP5_GPIO5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x78)
++#define OMAP5_GPIO6_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x80)
++#define OMAP5_I2C1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xa0)
++#define OMAP5_I2C2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xa8)
++#define OMAP5_I2C3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xb0)
++#define OMAP5_I2C4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xb8)
++#define OMAP5_L4_PER_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xc0)
++#define OMAP5_MCSPI1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xf0)
++#define OMAP5_MCSPI2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xf8)
++#define OMAP5_MCSPI3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x100)
++#define OMAP5_MCSPI4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x108)
++#define OMAP5_GPIO7_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x110)
++#define OMAP5_GPIO8_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x118)
++#define OMAP5_MMC3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x120)
++#define OMAP5_MMC4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x128)
++#define OMAP5_UART1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x140)
++#define OMAP5_UART2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x148)
++#define OMAP5_UART3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x150)
++#define OMAP5_UART4_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x158)
++#define OMAP5_MMC5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x160)
++#define OMAP5_I2C5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x168)
++#define OMAP5_UART5_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x170)
++#define OMAP5_UART6_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x178)
++
++/* dss clocks */
++#define OMAP5_DSS_CORE_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++
++/* l3init clocks */
++#define OMAP5_MMC1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x28)
++#define OMAP5_MMC2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
++#define OMAP5_USB_HOST_HS_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x58)
++#define OMAP5_USB_TLL_HS_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x68)
++#define OMAP5_SATA_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x88)
++#define OMAP5_OCP2SCP1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xe0)
++#define OMAP5_OCP2SCP3_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xe8)
++#define OMAP5_USB_OTG_SS_CLKCTRL	OMAP5_CLKCTRL_INDEX(0xf0)
++
++/* wkupaon clocks */
++#define OMAP5_L4_WKUP_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x20)
++#define OMAP5_WD_TIMER2_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x30)
++#define OMAP5_GPIO1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x38)
++#define OMAP5_TIMER1_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x40)
++#define OMAP5_COUNTER_32K_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x50)
++#define OMAP5_KBD_CLKCTRL	OMAP5_CLKCTRL_INDEX(0x78)
++
 +#endif
- 
- 	while (data->addr) {
- 		if (addr == data->addr)
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index a42bbb8..60e6794 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -235,6 +235,7 @@ struct omap_clkctrl_data {
- extern const struct omap_clkctrl_data dra7_clkctrl_data[];
- extern const struct omap_clkctrl_data am3_clkctrl_data[];
- extern const struct omap_clkctrl_data am4_clkctrl_data[];
-+extern const struct omap_clkctrl_data dm814_clkctrl_data[];
- 
- #define CLKF_SW_SUP	BIT(0)
- #define CLKF_HW_SUP	BIT(1)
 -- 
 1.9.1
 
