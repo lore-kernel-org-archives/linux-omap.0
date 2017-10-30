@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 08/27] clk: ti: dra7: drop unnecessary clock aliases
-Date: Mon, 30 Oct 2017 15:04:26 +0200
-Message-ID: <1509368685-29112-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 19/27] dt-bindings: clk: add am33xx clkctrl definitions
+Date: Mon, 30 Oct 2017 15:04:37 +0200
+Message-ID: <1509368685-29112-20-git-send-email-t-kristo@ti.com>
 References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,318 +12,128 @@ To: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Most of the clock aliases are no longer needed, only leave the ones
-required by OMAP timer handling in place.
+Contains offsets for all am33xx clkctrl main and optional clocks.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk-7xx.c | 283 +----------------------------------------------
- 1 file changed, 2 insertions(+), 281 deletions(-)
+ include/dt-bindings/clock/am3.h | 108 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 108 insertions(+)
+ create mode 100644 include/dt-bindings/clock/am3.h
 
-diff --git a/drivers/clk/ti/clk-7xx.c b/drivers/clk/ti/clk-7xx.c
-index 9fd6043..5cf50e4 100644
---- a/drivers/clk/ti/clk-7xx.c
-+++ b/drivers/clk/ti/clk-7xx.c
-@@ -22,290 +22,9 @@
- #define DRA7_DPLL_USB_DEFFREQ				960000000
- 
- static struct ti_dt_clk dra7xx_clks[] = {
--	DT_CLK(NULL, "atl_clkin0_ck", "atl_clkin0_ck"),
--	DT_CLK(NULL, "atl_clkin1_ck", "atl_clkin1_ck"),
--	DT_CLK(NULL, "atl_clkin2_ck", "atl_clkin2_ck"),
--	DT_CLK(NULL, "atl_clkin3_ck", "atl_clkin3_ck"),
--	DT_CLK(NULL, "hdmi_clkin_ck", "hdmi_clkin_ck"),
--	DT_CLK(NULL, "mlb_clkin_ck", "mlb_clkin_ck"),
--	DT_CLK(NULL, "mlbp_clkin_ck", "mlbp_clkin_ck"),
--	DT_CLK(NULL, "pciesref_acs_clk_ck", "pciesref_acs_clk_ck"),
--	DT_CLK(NULL, "ref_clkin0_ck", "ref_clkin0_ck"),
--	DT_CLK(NULL, "ref_clkin1_ck", "ref_clkin1_ck"),
--	DT_CLK(NULL, "ref_clkin2_ck", "ref_clkin2_ck"),
--	DT_CLK(NULL, "ref_clkin3_ck", "ref_clkin3_ck"),
--	DT_CLK(NULL, "rmii_clk_ck", "rmii_clk_ck"),
--	DT_CLK(NULL, "sdvenc_clkin_ck", "sdvenc_clkin_ck"),
--	DT_CLK(NULL, "secure_32k_clk_src_ck", "secure_32k_clk_src_ck"),
--	DT_CLK(NULL, "sys_32k_ck", "sys_32k_ck"),
--	DT_CLK(NULL, "virt_12000000_ck", "virt_12000000_ck"),
--	DT_CLK(NULL, "virt_13000000_ck", "virt_13000000_ck"),
--	DT_CLK(NULL, "virt_16800000_ck", "virt_16800000_ck"),
--	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),
--	DT_CLK(NULL, "virt_20000000_ck", "virt_20000000_ck"),
--	DT_CLK(NULL, "virt_26000000_ck", "virt_26000000_ck"),
--	DT_CLK(NULL, "virt_27000000_ck", "virt_27000000_ck"),
--	DT_CLK(NULL, "virt_38400000_ck", "virt_38400000_ck"),
--	DT_CLK(NULL, "sys_clkin1", "sys_clkin1"),
--	DT_CLK(NULL, "sys_clkin2", "sys_clkin2"),
--	DT_CLK(NULL, "usb_otg_clkin_ck", "usb_otg_clkin_ck"),
--	DT_CLK(NULL, "video1_clkin_ck", "video1_clkin_ck"),
--	DT_CLK(NULL, "video1_m2_clkin_ck", "video1_m2_clkin_ck"),
--	DT_CLK(NULL, "video2_clkin_ck", "video2_clkin_ck"),
--	DT_CLK(NULL, "video2_m2_clkin_ck", "video2_m2_clkin_ck"),
--	DT_CLK(NULL, "abe_dpll_sys_clk_mux", "abe_dpll_sys_clk_mux"),
--	DT_CLK(NULL, "abe_dpll_bypass_clk_mux", "abe_dpll_bypass_clk_mux"),
--	DT_CLK(NULL, "abe_dpll_clk_mux", "abe_dpll_clk_mux"),
--	DT_CLK(NULL, "dpll_abe_ck", "dpll_abe_ck"),
--	DT_CLK(NULL, "dpll_abe_x2_ck", "dpll_abe_x2_ck"),
--	DT_CLK(NULL, "dpll_abe_m2x2_ck", "dpll_abe_m2x2_ck"),
--	DT_CLK(NULL, "abe_24m_fclk", "abe_24m_fclk"),
--	DT_CLK(NULL, "abe_clk", "abe_clk"),
--	DT_CLK(NULL, "aess_fclk", "aess_fclk"),
--	DT_CLK(NULL, "abe_giclk_div", "abe_giclk_div"),
--	DT_CLK(NULL, "abe_lp_clk_div", "abe_lp_clk_div"),
--	DT_CLK(NULL, "abe_sys_clk_div", "abe_sys_clk_div"),
--	DT_CLK(NULL, "adc_gfclk_mux", "adc_gfclk_mux"),
--	DT_CLK(NULL, "dpll_pcie_ref_ck", "dpll_pcie_ref_ck"),
--	DT_CLK(NULL, "dpll_pcie_ref_m2ldo_ck", "dpll_pcie_ref_m2ldo_ck"),
--	DT_CLK(NULL, "apll_pcie_ck", "apll_pcie_ck"),
--	DT_CLK(NULL, "apll_pcie_clkvcoldo", "apll_pcie_clkvcoldo"),
--	DT_CLK(NULL, "apll_pcie_clkvcoldo_div", "apll_pcie_clkvcoldo_div"),
--	DT_CLK(NULL, "apll_pcie_m2_ck", "apll_pcie_m2_ck"),
--	DT_CLK(NULL, "sys_clk1_dclk_div", "sys_clk1_dclk_div"),
--	DT_CLK(NULL, "sys_clk2_dclk_div", "sys_clk2_dclk_div"),
--	DT_CLK(NULL, "dpll_abe_m2_ck", "dpll_abe_m2_ck"),
--	DT_CLK(NULL, "per_abe_x1_dclk_div", "per_abe_x1_dclk_div"),
--	DT_CLK(NULL, "dpll_abe_m3x2_ck", "dpll_abe_m3x2_ck"),
--	DT_CLK(NULL, "dpll_core_ck", "dpll_core_ck"),
--	DT_CLK(NULL, "dpll_core_x2_ck", "dpll_core_x2_ck"),
--	DT_CLK(NULL, "dpll_core_h12x2_ck", "dpll_core_h12x2_ck"),
--	DT_CLK(NULL, "mpu_dpll_hs_clk_div", "mpu_dpll_hs_clk_div"),
--	DT_CLK(NULL, "dpll_mpu_ck", "dpll_mpu_ck"),
--	DT_CLK(NULL, "dpll_mpu_m2_ck", "dpll_mpu_m2_ck"),
--	DT_CLK(NULL, "mpu_dclk_div", "mpu_dclk_div"),
--	DT_CLK(NULL, "dsp_dpll_hs_clk_div", "dsp_dpll_hs_clk_div"),
--	DT_CLK(NULL, "dpll_dsp_ck", "dpll_dsp_ck"),
--	DT_CLK(NULL, "dpll_dsp_m2_ck", "dpll_dsp_m2_ck"),
--	DT_CLK(NULL, "dsp_gclk_div", "dsp_gclk_div"),
--	DT_CLK(NULL, "iva_dpll_hs_clk_div", "iva_dpll_hs_clk_div"),
--	DT_CLK(NULL, "dpll_iva_ck", "dpll_iva_ck"),
--	DT_CLK(NULL, "dpll_iva_m2_ck", "dpll_iva_m2_ck"),
--	DT_CLK(NULL, "iva_dclk", "iva_dclk"),
--	DT_CLK(NULL, "dpll_gpu_ck", "dpll_gpu_ck"),
--	DT_CLK(NULL, "dpll_gpu_m2_ck", "dpll_gpu_m2_ck"),
--	DT_CLK(NULL, "gpu_dclk", "gpu_dclk"),
--	DT_CLK(NULL, "dpll_core_m2_ck", "dpll_core_m2_ck"),
--	DT_CLK(NULL, "core_dpll_out_dclk_div", "core_dpll_out_dclk_div"),
--	DT_CLK(NULL, "dpll_ddr_ck", "dpll_ddr_ck"),
--	DT_CLK(NULL, "dpll_ddr_m2_ck", "dpll_ddr_m2_ck"),
--	DT_CLK(NULL, "emif_phy_dclk_div", "emif_phy_dclk_div"),
--	DT_CLK(NULL, "dpll_gmac_ck", "dpll_gmac_ck"),
--	DT_CLK(NULL, "dpll_gmac_m2_ck", "dpll_gmac_m2_ck"),
--	DT_CLK(NULL, "gmac_250m_dclk_div", "gmac_250m_dclk_div"),
--	DT_CLK(NULL, "video2_dclk_div", "video2_dclk_div"),
--	DT_CLK(NULL, "video1_dclk_div", "video1_dclk_div"),
--	DT_CLK(NULL, "hdmi_dclk_div", "hdmi_dclk_div"),
--	DT_CLK(NULL, "per_dpll_hs_clk_div", "per_dpll_hs_clk_div"),
--	DT_CLK(NULL, "dpll_per_ck", "dpll_per_ck"),
--	DT_CLK(NULL, "dpll_per_m2_ck", "dpll_per_m2_ck"),
--	DT_CLK(NULL, "func_96m_aon_dclk_div", "func_96m_aon_dclk_div"),
--	DT_CLK(NULL, "usb_dpll_hs_clk_div", "usb_dpll_hs_clk_div"),
--	DT_CLK(NULL, "dpll_usb_ck", "dpll_usb_ck"),
--	DT_CLK(NULL, "dpll_usb_m2_ck", "dpll_usb_m2_ck"),
--	DT_CLK(NULL, "l3init_480m_dclk_div", "l3init_480m_dclk_div"),
--	DT_CLK(NULL, "usb_otg_dclk_div", "usb_otg_dclk_div"),
--	DT_CLK(NULL, "sata_dclk_div", "sata_dclk_div"),
--	DT_CLK(NULL, "dpll_pcie_ref_m2_ck", "dpll_pcie_ref_m2_ck"),
--	DT_CLK(NULL, "pcie2_dclk_div", "pcie2_dclk_div"),
--	DT_CLK(NULL, "pcie_dclk_div", "pcie_dclk_div"),
--	DT_CLK(NULL, "emu_dclk_div", "emu_dclk_div"),
--	DT_CLK(NULL, "secure_32k_dclk_div", "secure_32k_dclk_div"),
--	DT_CLK(NULL, "eve_dpll_hs_clk_div", "eve_dpll_hs_clk_div"),
--	DT_CLK(NULL, "dpll_eve_ck", "dpll_eve_ck"),
--	DT_CLK(NULL, "dpll_eve_m2_ck", "dpll_eve_m2_ck"),
--	DT_CLK(NULL, "eve_dclk_div", "eve_dclk_div"),
--	DT_CLK(NULL, "clkoutmux0_clk_mux", "clkoutmux0_clk_mux"),
--	DT_CLK(NULL, "clkoutmux1_clk_mux", "clkoutmux1_clk_mux"),
--	DT_CLK(NULL, "clkoutmux2_clk_mux", "clkoutmux2_clk_mux"),
--	DT_CLK(NULL, "custefuse_sys_gfclk_div", "custefuse_sys_gfclk_div"),
--	DT_CLK(NULL, "dpll_core_h13x2_ck", "dpll_core_h13x2_ck"),
--	DT_CLK(NULL, "dpll_core_h14x2_ck", "dpll_core_h14x2_ck"),
--	DT_CLK(NULL, "dpll_core_h22x2_ck", "dpll_core_h22x2_ck"),
--	DT_CLK(NULL, "dpll_core_h23x2_ck", "dpll_core_h23x2_ck"),
--	DT_CLK(NULL, "dpll_core_h24x2_ck", "dpll_core_h24x2_ck"),
--	DT_CLK(NULL, "dpll_ddr_x2_ck", "dpll_ddr_x2_ck"),
--	DT_CLK(NULL, "dpll_ddr_h11x2_ck", "dpll_ddr_h11x2_ck"),
--	DT_CLK(NULL, "dpll_dsp_x2_ck", "dpll_dsp_x2_ck"),
--	DT_CLK(NULL, "dpll_dsp_m3x2_ck", "dpll_dsp_m3x2_ck"),
--	DT_CLK(NULL, "dpll_gmac_x2_ck", "dpll_gmac_x2_ck"),
--	DT_CLK(NULL, "dpll_gmac_h11x2_ck", "dpll_gmac_h11x2_ck"),
--	DT_CLK(NULL, "dpll_gmac_h12x2_ck", "dpll_gmac_h12x2_ck"),
--	DT_CLK(NULL, "dpll_gmac_h13x2_ck", "dpll_gmac_h13x2_ck"),
--	DT_CLK(NULL, "dpll_gmac_m3x2_ck", "dpll_gmac_m3x2_ck"),
--	DT_CLK(NULL, "dpll_per_x2_ck", "dpll_per_x2_ck"),
--	DT_CLK(NULL, "dpll_per_h11x2_ck", "dpll_per_h11x2_ck"),
--	DT_CLK(NULL, "dpll_per_h12x2_ck", "dpll_per_h12x2_ck"),
--	DT_CLK(NULL, "dpll_per_h13x2_ck", "dpll_per_h13x2_ck"),
--	DT_CLK(NULL, "dpll_per_h14x2_ck", "dpll_per_h14x2_ck"),
--	DT_CLK(NULL, "dpll_per_m2x2_ck", "dpll_per_m2x2_ck"),
--	DT_CLK(NULL, "dpll_usb_clkdcoldo", "dpll_usb_clkdcoldo"),
--	DT_CLK(NULL, "eve_clk", "eve_clk"),
--	DT_CLK(NULL, "func_128m_clk", "func_128m_clk"),
--	DT_CLK(NULL, "func_12m_fclk", "func_12m_fclk"),
--	DT_CLK(NULL, "func_24m_clk", "func_24m_clk"),
--	DT_CLK(NULL, "func_48m_fclk", "func_48m_fclk"),
--	DT_CLK(NULL, "func_96m_fclk", "func_96m_fclk"),
--	DT_CLK(NULL, "gmii_m_clk_div", "gmii_m_clk_div"),
--	DT_CLK(NULL, "hdmi_clk2_div", "hdmi_clk2_div"),
--	DT_CLK(NULL, "hdmi_div_clk", "hdmi_div_clk"),
--	DT_CLK(NULL, "hdmi_dpll_clk_mux", "hdmi_dpll_clk_mux"),
--	DT_CLK(NULL, "l3_iclk_div", "l3_iclk_div"),
--	DT_CLK(NULL, "l3init_60m_fclk", "l3init_60m_fclk"),
--	DT_CLK(NULL, "l4_root_clk_div", "l4_root_clk_div"),
--	DT_CLK(NULL, "mlb_clk", "mlb_clk"),
--	DT_CLK(NULL, "mlbp_clk", "mlbp_clk"),
--	DT_CLK(NULL, "per_abe_x1_gfclk2_div", "per_abe_x1_gfclk2_div"),
--	DT_CLK(NULL, "timer_sys_clk_div", "timer_sys_clk_div"),
--	DT_CLK(NULL, "video1_clk2_div", "video1_clk2_div"),
--	DT_CLK(NULL, "video1_div_clk", "video1_div_clk"),
--	DT_CLK(NULL, "video1_dpll_clk_mux", "video1_dpll_clk_mux"),
--	DT_CLK(NULL, "video2_clk2_div", "video2_clk2_div"),
--	DT_CLK(NULL, "video2_div_clk", "video2_div_clk"),
--	DT_CLK(NULL, "video2_dpll_clk_mux", "video2_dpll_clk_mux"),
--	DT_CLK(NULL, "wkupaon_iclk_mux", "wkupaon_iclk_mux"),
--	DT_CLK(NULL, "dss_32khz_clk", "dss_32khz_clk"),
--	DT_CLK(NULL, "dss_48mhz_clk", "dss_48mhz_clk"),
--	DT_CLK(NULL, "dss_dss_clk", "dss_dss_clk"),
--	DT_CLK(NULL, "dss_hdmi_clk", "dss_hdmi_clk"),
--	DT_CLK(NULL, "dss_video1_clk", "dss_video1_clk"),
--	DT_CLK(NULL, "dss_video2_clk", "dss_video2_clk"),
--	DT_CLK(NULL, "gpio1_dbclk", "gpio1_dbclk"),
--	DT_CLK(NULL, "gpio2_dbclk", "gpio2_dbclk"),
--	DT_CLK(NULL, "gpio3_dbclk", "gpio3_dbclk"),
--	DT_CLK(NULL, "gpio4_dbclk", "gpio4_dbclk"),
--	DT_CLK(NULL, "gpio5_dbclk", "gpio5_dbclk"),
--	DT_CLK(NULL, "gpio6_dbclk", "gpio6_dbclk"),
--	DT_CLK(NULL, "gpio7_dbclk", "gpio7_dbclk"),
--	DT_CLK(NULL, "gpio8_dbclk", "gpio8_dbclk"),
--	DT_CLK(NULL, "mmc1_clk32k", "mmc1_clk32k"),
--	DT_CLK(NULL, "mmc2_clk32k", "mmc2_clk32k"),
--	DT_CLK(NULL, "mmc3_clk32k", "mmc3_clk32k"),
--	DT_CLK(NULL, "mmc4_clk32k", "mmc4_clk32k"),
--	DT_CLK(NULL, "sata_ref_clk", "sata_ref_clk"),
--	DT_CLK(NULL, "usb_otg_ss1_refclk960m", "usb_otg_ss1_refclk960m"),
--	DT_CLK(NULL, "usb_otg_ss2_refclk960m", "usb_otg_ss2_refclk960m"),
--	DT_CLK(NULL, "usb_phy1_always_on_clk32k", "usb_phy1_always_on_clk32k"),
--	DT_CLK(NULL, "usb_phy2_always_on_clk32k", "usb_phy2_always_on_clk32k"),
--	DT_CLK(NULL, "usb_phy3_always_on_clk32k", "usb_phy3_always_on_clk32k"),
--	DT_CLK(NULL, "atl_dpll_clk_mux", "atl_dpll_clk_mux"),
--	DT_CLK(NULL, "atl_gfclk_mux", "atl_gfclk_mux"),
--	DT_CLK(NULL, "dcan1_sys_clk_mux", "dcan1_sys_clk_mux"),
--	DT_CLK(NULL, "gmac_rft_clk_mux", "gmac_rft_clk_mux"),
--	DT_CLK(NULL, "gpu_core_gclk_mux", "gpu_core_gclk_mux"),
--	DT_CLK(NULL, "gpu_hyd_gclk_mux", "gpu_hyd_gclk_mux"),
--	DT_CLK(NULL, "ipu1_gfclk_mux", "ipu1_gfclk_mux"),
--	DT_CLK(NULL, "l3instr_ts_gclk_div", "l3instr_ts_gclk_div"),
--	DT_CLK(NULL, "mcasp1_ahclkr_mux", "mcasp1_ahclkr_mux"),
--	DT_CLK(NULL, "mcasp1_ahclkx_mux", "mcasp1_ahclkx_mux"),
--	DT_CLK(NULL, "mcasp1_aux_gfclk_mux", "mcasp1_aux_gfclk_mux"),
--	DT_CLK(NULL, "mcasp2_ahclkr_mux", "mcasp2_ahclkr_mux"),
--	DT_CLK(NULL, "mcasp2_ahclkx_mux", "mcasp2_ahclkx_mux"),
--	DT_CLK(NULL, "mcasp2_aux_gfclk_mux", "mcasp2_aux_gfclk_mux"),
--	DT_CLK(NULL, "mcasp3_ahclkx_mux", "mcasp3_ahclkx_mux"),
--	DT_CLK(NULL, "mcasp3_aux_gfclk_mux", "mcasp3_aux_gfclk_mux"),
--	DT_CLK(NULL, "mcasp4_ahclkx_mux", "mcasp4_ahclkx_mux"),
--	DT_CLK(NULL, "mcasp4_aux_gfclk_mux", "mcasp4_aux_gfclk_mux"),
--	DT_CLK(NULL, "mcasp5_ahclkx_mux", "mcasp5_ahclkx_mux"),
--	DT_CLK(NULL, "mcasp5_aux_gfclk_mux", "mcasp5_aux_gfclk_mux"),
--	DT_CLK(NULL, "mcasp6_ahclkx_mux", "mcasp6_ahclkx_mux"),
--	DT_CLK(NULL, "mcasp6_aux_gfclk_mux", "mcasp6_aux_gfclk_mux"),
--	DT_CLK(NULL, "mcasp7_ahclkx_mux", "mcasp7_ahclkx_mux"),
--	DT_CLK(NULL, "mcasp7_aux_gfclk_mux", "mcasp7_aux_gfclk_mux"),
--	DT_CLK(NULL, "mcasp8_ahclkx_mux", "mcasp8_ahclkx_mux"),
--	DT_CLK(NULL, "mcasp8_aux_gfclk_mux", "mcasp8_aux_gfclk_mux"),
--	DT_CLK(NULL, "mmc1_fclk_mux", "mmc1_fclk_mux"),
--	DT_CLK(NULL, "mmc1_fclk_div", "mmc1_fclk_div"),
--	DT_CLK(NULL, "mmc2_fclk_mux", "mmc2_fclk_mux"),
--	DT_CLK(NULL, "mmc2_fclk_div", "mmc2_fclk_div"),
--	DT_CLK(NULL, "mmc3_gfclk_mux", "mmc3_gfclk_mux"),
--	DT_CLK(NULL, "mmc3_gfclk_div", "mmc3_gfclk_div"),
--	DT_CLK(NULL, "mmc4_gfclk_mux", "mmc4_gfclk_mux"),
--	DT_CLK(NULL, "mmc4_gfclk_div", "mmc4_gfclk_div"),
--	DT_CLK(NULL, "qspi_gfclk_mux", "qspi_gfclk_mux"),
--	DT_CLK(NULL, "qspi_gfclk_div", "qspi_gfclk_div"),
--	DT_CLK(NULL, "timer10_gfclk_mux", "timer10_gfclk_mux"),
--	DT_CLK(NULL, "timer11_gfclk_mux", "timer11_gfclk_mux"),
--	DT_CLK(NULL, "timer13_gfclk_mux", "timer13_gfclk_mux"),
--	DT_CLK(NULL, "timer14_gfclk_mux", "timer14_gfclk_mux"),
--	DT_CLK(NULL, "timer15_gfclk_mux", "timer15_gfclk_mux"),
--	DT_CLK(NULL, "timer16_gfclk_mux", "timer16_gfclk_mux"),
--	DT_CLK(NULL, "timer1_gfclk_mux", "timer1_gfclk_mux"),
--	DT_CLK(NULL, "timer2_gfclk_mux", "timer2_gfclk_mux"),
--	DT_CLK(NULL, "timer3_gfclk_mux", "timer3_gfclk_mux"),
--	DT_CLK(NULL, "timer4_gfclk_mux", "timer4_gfclk_mux"),
--	DT_CLK(NULL, "timer5_gfclk_mux", "timer5_gfclk_mux"),
--	DT_CLK(NULL, "timer6_gfclk_mux", "timer6_gfclk_mux"),
--	DT_CLK(NULL, "timer7_gfclk_mux", "timer7_gfclk_mux"),
--	DT_CLK(NULL, "timer8_gfclk_mux", "timer8_gfclk_mux"),
--	DT_CLK(NULL, "timer9_gfclk_mux", "timer9_gfclk_mux"),
--	DT_CLK(NULL, "uart10_gfclk_mux", "uart10_gfclk_mux"),
--	DT_CLK(NULL, "uart1_gfclk_mux", "uart1_gfclk_mux"),
--	DT_CLK(NULL, "uart2_gfclk_mux", "uart2_gfclk_mux"),
--	DT_CLK(NULL, "uart3_gfclk_mux", "uart3_gfclk_mux"),
--	DT_CLK(NULL, "uart4_gfclk_mux", "uart4_gfclk_mux"),
--	DT_CLK(NULL, "uart5_gfclk_mux", "uart5_gfclk_mux"),
--	DT_CLK(NULL, "uart6_gfclk_mux", "uart6_gfclk_mux"),
--	DT_CLK(NULL, "uart7_gfclk_mux", "uart7_gfclk_mux"),
--	DT_CLK(NULL, "uart8_gfclk_mux", "uart8_gfclk_mux"),
--	DT_CLK(NULL, "uart9_gfclk_mux", "uart9_gfclk_mux"),
--	DT_CLK(NULL, "vip1_gclk_mux", "vip1_gclk_mux"),
--	DT_CLK(NULL, "vip2_gclk_mux", "vip2_gclk_mux"),
--	DT_CLK(NULL, "vip3_gclk_mux", "vip3_gclk_mux"),
--	DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
--	DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
--	DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
--	DT_CLK("omap_i2c.4", "ick", "dummy_ck"),
--	DT_CLK(NULL, "mailboxes_ick", "dummy_ck"),
--	DT_CLK("omap_hsmmc.0", "ick", "dummy_ck"),
--	DT_CLK("omap_hsmmc.1", "ick", "dummy_ck"),
--	DT_CLK("omap_hsmmc.2", "ick", "dummy_ck"),
--	DT_CLK("omap_hsmmc.3", "ick", "dummy_ck"),
--	DT_CLK("omap_hsmmc.4", "ick", "dummy_ck"),
--	DT_CLK("omap-mcbsp.1", "ick", "dummy_ck"),
--	DT_CLK("omap-mcbsp.2", "ick", "dummy_ck"),
--	DT_CLK("omap-mcbsp.3", "ick", "dummy_ck"),
--	DT_CLK("omap-mcbsp.4", "ick", "dummy_ck"),
--	DT_CLK("omap2_mcspi.1", "ick", "dummy_ck"),
--	DT_CLK("omap2_mcspi.2", "ick", "dummy_ck"),
--	DT_CLK("omap2_mcspi.3", "ick", "dummy_ck"),
--	DT_CLK("omap2_mcspi.4", "ick", "dummy_ck"),
--	DT_CLK(NULL, "uart1_ick", "dummy_ck"),
--	DT_CLK(NULL, "uart2_ick", "dummy_ck"),
--	DT_CLK(NULL, "uart3_ick", "dummy_ck"),
--	DT_CLK(NULL, "uart4_ick", "dummy_ck"),
--	DT_CLK("usbhs_omap", "usbhost_ick", "dummy_ck"),
--	DT_CLK("usbhs_omap", "usbtll_fck", "dummy_ck"),
--	DT_CLK("omap_wdt", "ick", "dummy_ck"),
- 	DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
- 	DT_CLK(NULL, "sys_clkin_ck", "timer_sys_clk_div"),
--	DT_CLK("4ae18000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48032000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48034000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48036000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("4803e000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48086000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48088000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48820000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48822000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48824000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48826000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("48828000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("4882a000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("4882c000.timer", "timer_sys_ck", "timer_sys_clk_div"),
--	DT_CLK("4882e000.timer", "timer_sys_ck", "timer_sys_clk_div"),
- 	DT_CLK(NULL, "sys_clkin", "sys_clkin1"),
--	DT_CLK(NULL, "dss_deshdcp_clk", "dss_deshdcp_clk"),
- 	{ .node_name = NULL },
- };
- 
-@@ -318,6 +37,8 @@ int __init dra7xx_dt_clk_init(void)
- 
- 	omap2_clk_disable_autoidle_all();
- 
-+	ti_clk_add_aliases();
+diff --git a/include/dt-bindings/clock/am3.h b/include/dt-bindings/clock/am3.h
+new file mode 100644
+index 0000000..b396f00
+--- /dev/null
++++ b/include/dt-bindings/clock/am3.h
+@@ -0,0 +1,108 @@
++/*
++ * Copyright 2017 Texas Instruments, Inc.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef __DT_BINDINGS_CLK_AM3_H
++#define __DT_BINDINGS_CLK_AM3_H
 +
- 	dpll_ck = clk_get_sys(NULL, "dpll_gmac_ck");
- 	rc = clk_set_rate(dpll_ck, DRA7_DPLL_GMAC_DEFFREQ);
- 	if (rc)
++#define AM3_CLKCTRL_OFFSET	0x0
++#define AM3_CLKCTRL_INDEX(offset)	((offset) - AM3_CLKCTRL_OFFSET)
++
++/* l4_per clocks */
++#define AM3_L4_PER_CLKCTRL_OFFSET	0x14
++#define AM3_L4_PER_CLKCTRL_INDEX(offset)	((offset) - AM3_L4_PER_CLKCTRL_OFFSET)
++#define AM3_CPGMAC0_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x14)
++#define AM3_LCDC_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x18)
++#define AM3_USB_OTG_HS_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x1c)
++#define AM3_TPTC0_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x24)
++#define AM3_EMIF_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x28)
++#define AM3_OCMCRAM_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x2c)
++#define AM3_GPMC_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x30)
++#define AM3_MCASP0_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x34)
++#define AM3_UART6_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x38)
++#define AM3_MMC1_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x3c)
++#define AM3_ELM_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x40)
++#define AM3_I2C3_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x44)
++#define AM3_I2C2_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x48)
++#define AM3_SPI0_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x4c)
++#define AM3_SPI1_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x50)
++#define AM3_L4_LS_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x60)
++#define AM3_MCASP1_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x68)
++#define AM3_UART2_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x6c)
++#define AM3_UART3_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x70)
++#define AM3_UART4_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x74)
++#define AM3_UART5_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x78)
++#define AM3_TIMER7_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x7c)
++#define AM3_TIMER2_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x80)
++#define AM3_TIMER3_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x84)
++#define AM3_TIMER4_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x88)
++#define AM3_RNG_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x90)
++#define AM3_AES_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x94)
++#define AM3_SHAM_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xa0)
++#define AM3_GPIO2_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xac)
++#define AM3_GPIO3_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xb0)
++#define AM3_GPIO4_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xb4)
++#define AM3_TPCC_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xbc)
++#define AM3_D_CAN0_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xc0)
++#define AM3_D_CAN1_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xc4)
++#define AM3_EPWMSS1_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xcc)
++#define AM3_EPWMSS0_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xd4)
++#define AM3_EPWMSS2_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xd8)
++#define AM3_L3_INSTR_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xdc)
++#define AM3_L3_MAIN_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xe0)
++#define AM3_PRUSS_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xe8)
++#define AM3_TIMER5_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xec)
++#define AM3_TIMER6_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xf0)
++#define AM3_MMC2_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xf4)
++#define AM3_MMC3_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xf8)
++#define AM3_TPTC1_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0xfc)
++#define AM3_TPTC2_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x100)
++#define AM3_SPINLOCK_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x10c)
++#define AM3_MAILBOX_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x110)
++#define AM3_L4_HS_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x120)
++#define AM3_OCPWP_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x130)
++#define AM3_CLKDIV32K_CLKCTRL	AM3_L4_PER_CLKCTRL_INDEX(0x14c)
++
++/* l4_wkup clocks */
++#define AM3_L4_WKUP_CLKCTRL_OFFSET	0x4
++#define AM3_L4_WKUP_CLKCTRL_INDEX(offset)	((offset) - AM3_L4_WKUP_CLKCTRL_OFFSET)
++#define AM3_CONTROL_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0x4)
++#define AM3_GPIO1_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0x8)
++#define AM3_L4_WKUP_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0xc)
++#define AM3_DEBUGSS_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0x14)
++#define AM3_WKUP_M3_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0xb0)
++#define AM3_UART1_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0xb4)
++#define AM3_I2C1_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0xb8)
++#define AM3_ADC_TSC_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0xbc)
++#define AM3_SMARTREFLEX0_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0xc0)
++#define AM3_TIMER1_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0xc4)
++#define AM3_SMARTREFLEX1_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0xc8)
++#define AM3_WD_TIMER2_CLKCTRL	AM3_L4_WKUP_CLKCTRL_INDEX(0xd4)
++
++/* mpu clocks */
++#define AM3_MPU_CLKCTRL_OFFSET	0x4
++#define AM3_MPU_CLKCTRL_INDEX(offset)	((offset) - AM3_MPU_CLKCTRL_OFFSET)
++#define AM3_MPU_CLKCTRL	AM3_MPU_CLKCTRL_INDEX(0x4)
++
++/* l4_rtc clocks */
++#define AM3_RTC_CLKCTRL	AM3_CLKCTRL_INDEX(0x0)
++
++/* gfx_l3 clocks */
++#define AM3_GFX_L3_CLKCTRL_OFFSET	0x4
++#define AM3_GFX_L3_CLKCTRL_INDEX(offset)	((offset) - AM3_GFX_L3_CLKCTRL_OFFSET)
++#define AM3_GFX_CLKCTRL	AM3_GFX_L3_CLKCTRL_INDEX(0x4)
++
++/* l4_cefuse clocks */
++#define AM3_L4_CEFUSE_CLKCTRL_OFFSET	0x20
++#define AM3_L4_CEFUSE_CLKCTRL_INDEX(offset)	((offset) - AM3_L4_CEFUSE_CLKCTRL_OFFSET)
++#define AM3_CEFUSE_CLKCTRL	AM3_L4_CEFUSE_CLKCTRL_INDEX(0x20)
++
++#endif
 -- 
 1.9.1
 
