@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 26/27] clk: ti: dm816: add clkctrl clock data
-Date: Mon, 30 Oct 2017 15:04:44 +0200
-Message-ID: <1509368685-29112-27-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 23/27] dt-bindings: clk: add dm814 clkctrl definitions
+Date: Mon, 30 Oct 2017 15:04:41 +0200
+Message-ID: <1509368685-29112-24-git-send-email-t-kristo@ti.com>
 References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,101 +12,65 @@ To: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Add data for dm816 clkctrl clocks, and register it within the clkctrl
-driver.
+Contains offsets for all dm814 clkctrl main and optional clocks.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk-816x.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/clk/ti/clkctrl.c  |  3 +++
- drivers/clk/ti/clock.h    |  1 +
- 3 files changed, 49 insertions(+)
+ include/dt-bindings/clock/dm814.h | 45 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+ create mode 100644 include/dt-bindings/clock/dm814.h
 
-diff --git a/drivers/clk/ti/clk-816x.c b/drivers/clk/ti/clk-816x.c
-index ac9c94a..7d215cd 100644
---- a/drivers/clk/ti/clk-816x.c
-+++ b/drivers/clk/ti/clk-816x.c
-@@ -13,9 +13,54 @@
- #include <linux/list.h>
- #include <linux/clk-provider.h>
- #include <linux/clk/ti.h>
-+#include <dt-bindings/clock/dm816.h>
- 
- #include "clock.h"
- 
-+static const struct omap_clkctrl_reg_data dm816_default_clkctrl_regs[] __initconst = {
-+	{ DM816_USB_OTG_HS_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk6_ck" },
-+	{ 0 },
-+};
+diff --git a/include/dt-bindings/clock/dm814.h b/include/dt-bindings/clock/dm814.h
+new file mode 100644
+index 0000000..0e7099a
+--- /dev/null
++++ b/include/dt-bindings/clock/dm814.h
+@@ -0,0 +1,45 @@
++/*
++ * Copyright 2017 Texas Instruments, Inc.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++#ifndef __DT_BINDINGS_CLK_DM814_H
++#define __DT_BINDINGS_CLK_DM814_H
 +
-+static const struct omap_clkctrl_reg_data dm816_alwon_clkctrl_regs[] __initconst = {
-+	{ DM816_UART1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM816_UART2_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM816_UART3_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM816_GPIO1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk6_ck" },
-+	{ DM816_GPIO2_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk6_ck" },
-+	{ DM816_I2C1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM816_I2C2_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM816_TIMER1_CLKCTRL, NULL, CLKF_SW_SUP, "timer1_fck" },
-+	{ DM816_TIMER2_CLKCTRL, NULL, CLKF_SW_SUP, "timer2_fck" },
-+	{ DM816_TIMER3_CLKCTRL, NULL, CLKF_SW_SUP, "timer3_fck" },
-+	{ DM816_TIMER4_CLKCTRL, NULL, CLKF_SW_SUP, "timer4_fck" },
-+	{ DM816_TIMER5_CLKCTRL, NULL, CLKF_SW_SUP, "timer5_fck" },
-+	{ DM816_TIMER6_CLKCTRL, NULL, CLKF_SW_SUP, "timer6_fck" },
-+	{ DM816_TIMER7_CLKCTRL, NULL, CLKF_SW_SUP, "timer7_fck" },
-+	{ DM816_WD_TIMER_CLKCTRL, NULL, CLKF_SW_SUP | CLKF_NO_IDLEST, "sysclk18_ck" },
-+	{ DM816_MCSPI1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM816_MAILBOX_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk6_ck" },
-+	{ DM816_SPINBOX_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk6_ck" },
-+	{ DM816_MMC1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk10_ck" },
-+	{ DM816_GPMC_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk6_ck" },
-+	{ DM816_DAVINCI_MDIO_CLKCTRL, NULL, CLKF_SW_SUP | CLKF_NO_IDLEST, "sysclk24_ck" },
-+	{ DM816_EMAC1_CLKCTRL, NULL, CLKF_SW_SUP | CLKF_NO_IDLEST, "sysclk24_ck" },
-+	{ DM816_MPU_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk2_ck" },
-+	{ DM816_RTC_CLKCTRL, NULL, CLKF_SW_SUP | CLKF_NO_IDLEST, "sysclk18_ck" },
-+	{ DM816_TPCC_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ DM816_TPTC0_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ DM816_TPTC1_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ DM816_TPTC2_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ DM816_TPTC3_CLKCTRL, NULL, CLKF_SW_SUP, "sysclk4_ck" },
-+	{ 0 },
-+};
++#define DM814_CLKCTRL_OFFSET	0x0
++#define DM814_CLKCTRL_INDEX(offset)	((offset) - DM814_CLKCTRL_OFFSET)
 +
-+const struct omap_clkctrl_data dm816_clkctrl_data[] __initconst = {
-+	{ 0x48180500, dm816_default_clkctrl_regs },
-+	{ 0x48181400, dm816_alwon_clkctrl_regs },
-+	{ 0 },
-+};
++/* default clocks */
++#define DM814_USB_OTG_HS_CLKCTRL	DM814_CLKCTRL_INDEX(0x58)
 +
- static struct ti_dt_clk dm816x_clks[] = {
- 	DT_CLK(NULL, "sys_clkin", "sys_clkin_ck"),
- 	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
-diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-index a531a89..75aa4de 100644
---- a/drivers/clk/ti/clkctrl.c
-+++ b/drivers/clk/ti/clkctrl.c
-@@ -456,6 +456,9 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
- #ifdef CONFIG_SOC_TI81XX
- 	if (of_machine_is_compatible("ti,dm814"))
- 		data = dm814_clkctrl_data;
++/* alwon clocks */
++#define DM814_UART1_CLKCTRL	DM814_CLKCTRL_INDEX(0x150)
++#define DM814_UART2_CLKCTRL	DM814_CLKCTRL_INDEX(0x154)
++#define DM814_UART3_CLKCTRL	DM814_CLKCTRL_INDEX(0x158)
++#define DM814_GPIO1_CLKCTRL	DM814_CLKCTRL_INDEX(0x15c)
++#define DM814_GPIO2_CLKCTRL	DM814_CLKCTRL_INDEX(0x160)
++#define DM814_I2C1_CLKCTRL	DM814_CLKCTRL_INDEX(0x164)
++#define DM814_I2C2_CLKCTRL	DM814_CLKCTRL_INDEX(0x168)
++#define DM814_WD_TIMER_CLKCTRL	DM814_CLKCTRL_INDEX(0x18c)
++#define DM814_MCSPI1_CLKCTRL	DM814_CLKCTRL_INDEX(0x190)
++#define DM814_GPMC_CLKCTRL	DM814_CLKCTRL_INDEX(0x1d0)
++#define DM814_CPGMAC0_CLKCTRL	DM814_CLKCTRL_INDEX(0x1d4)
++#define DM814_MPU_CLKCTRL	DM814_CLKCTRL_INDEX(0x1dc)
++#define DM814_RTC_CLKCTRL	DM814_CLKCTRL_INDEX(0x1f0)
++#define DM814_TPCC_CLKCTRL	DM814_CLKCTRL_INDEX(0x1f4)
++#define DM814_TPTC0_CLKCTRL	DM814_CLKCTRL_INDEX(0x1f8)
++#define DM814_TPTC1_CLKCTRL	DM814_CLKCTRL_INDEX(0x1fc)
++#define DM814_TPTC2_CLKCTRL	DM814_CLKCTRL_INDEX(0x200)
++#define DM814_TPTC3_CLKCTRL	DM814_CLKCTRL_INDEX(0x204)
++#define DM814_MMC1_CLKCTRL	DM814_CLKCTRL_INDEX(0x21c)
++#define DM814_MMC2_CLKCTRL	DM814_CLKCTRL_INDEX(0x220)
++#define DM814_MMC3_CLKCTRL	DM814_CLKCTRL_INDEX(0x224)
 +
-+	if (of_machine_is_compatible("ti,dm816"))
-+		data = dm816_clkctrl_data;
- #endif
- 
- 	while (data->addr) {
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index 60e6794..c560254 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -236,6 +236,7 @@ struct omap_clkctrl_data {
- extern const struct omap_clkctrl_data am3_clkctrl_data[];
- extern const struct omap_clkctrl_data am4_clkctrl_data[];
- extern const struct omap_clkctrl_data dm814_clkctrl_data[];
-+extern const struct omap_clkctrl_data dm816_clkctrl_data[];
- 
- #define CLKF_SW_SUP	BIT(0)
- #define CLKF_HW_SUP	BIT(1)
++#endif
 -- 
 1.9.1
 
