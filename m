@@ -1,89 +1,122 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: 4.13 (and probably all recent) kernels refuse to boot on one
- Nokia N950, work or another
-Date: Mon, 30 Oct 2017 08:51:35 +0100
-Message-ID: <20171030075135.GB32041@amd>
-References: <20171025203459.GA22035@amd>
- <20171025212806.GA21504@atomide.com>
- <20171026091325.GA26929@amd>
- <20171026093115.4bc6ctxjx72ng7ld@earth>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v2] dwc: dra7xx: Print link state to console for debug
+Date: Mon, 30 Oct 2017 14:18:32 +0530
+Message-ID: <a4832f67-8511-e903-044c-609e0f4a0352@ti.com>
+References: <1508417009-30869-1-git-send-email-faiz_abbas@ti.com>
+ <9378c5c9-381d-4c40-3290-f7e3720792ba@ti.com>
+ <063D6719AE5E284EB5DD2968C1650D6DD009C62B@AcuExch.aculab.com>
+ <53ed97ab-ed02-23be-0ce9-e79f2aaac979@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="neYutvxvOLaeuPCA"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171026093115.4bc6ctxjx72ng7ld@earth>
+In-Reply-To: <53ed97ab-ed02-23be-0ce9-e79f2aaac979@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, filip.matijevic.pz@gmail.com
+To: David Laight <David.Laight@ACULAB.COM>, "kishon@ti.com" <kishon@ti.com>
+Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---neYutvxvOLaeuPCA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Thursday 26 October 2017 01:29 PM, Faiz Abbas wrote:
+> David,
+> 
+> On Thursday 19 October 2017 06:56 PM, David Laight wrote:
+>> From: Faiz Abbas
+>>> Sent: 19 October 2017 14:09
+>>> On Thursday 19 October 2017 06:13 PM, Faiz Abbas wrote:
+>>>> Enable support for printing the LTSSM link state for debugging PCI
+>>>> when link is down.
+>>>>
+>>>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+>>>> ---
+>>>> v2:
+>>>>  1. Changed dev_err() to dev_dbg()
+>>>>  2. Changed static char array to static const char * const
+>>>>  3. format changes
+>>>>
+>>>>  drivers/pci/dwc/pci-dra7xx.c | 48 ++++++++++++++++++++++++++++++++++++++++++++
+>>>>  1 file changed, 48 insertions(+)
+>>>>
+>>>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+>>>> index 34427a6..0e70e77 100644
+>>>> --- a/drivers/pci/dwc/pci-dra7xx.c
+>>>> +++ b/drivers/pci/dwc/pci-dra7xx.c
+>>>> @@ -98,6 +98,45 @@ struct dra7xx_pcie_of_data {
+>>>>
+>>>>  #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
+>>>>
+>>>> +static const char * const state[] = {
+>>>> +	"DETECT_QUIET",
+>> ...
+>>>> +	"RCVRY_EQ3"
+>>>> +};
+>>>> +
+>>>>  static inline u32 dra7xx_pcie_readl(struct dra7xx_pcie *pcie, u32 offset)
+>>>>  {
+>>>>  	return readl(pcie->base + offset);
+>>>> @@ -118,6 +157,15 @@ static int dra7xx_pcie_link_up(struct dw_pcie *pci)
+>>>>  {
+>>>>  	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
+>>>>  	u32 reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_PHY_CS);
+>>>> +	u32 cmd_reg;
+>>>> +	u32 ltssm_state;
+>>>> +
+>>>> +	if (!(reg & LINK_UP)) {
+>>>> +		cmd_reg = dra7xx_pcie_readl(dra7xx,
+>>>> +					    PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
+>>>> +		ltssm_state = (cmd_reg & GENMASK(7, 2)) >> 2;
+>>>> +		dev_dbg(pci->dev, "Link state:%s\n", state[ltssm_state]);
+>>
+>> Hmmm... GENMASK leaves by hunting header files...> Why not (cmd_reg >> 2) & 63 and explicitly define state[64]
+>> to guarantee that you never print anything worse than a NULL
+>> pointer.
+> 
+> I'm not sure what you mean. Are you worried we might print something
+> outside the array bounds? How is this easier to decipher than GENMASK?
+> 
+>>
+>>>> +	}
+>>>>
+>>>>  	return !!(reg & LINK_UP);
+>>>>  }
+>>>>
+>>>
+>>> I missed David's comment in v1. Will submit a new version. Please ignore.
+>>
+>> I've a 'neat' trick for generating strings that match constants.
+>> You can get the compiler to do all the work for you:
+>> (Assuming I've typed it correctly)
+>>
+>> #define LTSSM_DEFS(x) \
+>>   x(DETECT_QUIET) \
+>>   x(DETECT_ACT) \
+>> (continue for all the names)
+>>
+>> Define an enum with the named constants:
+>> #define X(name) LTSSM_STATE_##name,
+>> enum (LTSSM_DEFS(X) LTSSM_STATE_SIZE=64);
+>> #undef X
+>>
+>> Array of strings:
+>> #define X(name) [LTSSM_STATE_##name] = #name
+>> static const char * const state_names[LTSSM_STATE_SIZE] = { LTSSM_DEFS(X) };
+>> #undef X
+>>
+>> 	David
+>>
+> 
+> So I implemented your idea and it looks like this:
+> http://pastebin.ubuntu.com/25821834/
+> 
+> I don't know how much we gained by adding the trick. I still had to be
+> careful not to be off by 1 when writing the list. Plus we are never
+> saying anything like printk("%s", state[LTSSM_STATE_DETECT_QUIET]. Its a
+> register read which is used to index the list array.
+> 
+> Thanks,
+> Faiz
+> 
 
-> > I got "uncompressing Linux 4.13" on serial console now, debug LEDs
-> > blinking, and if I use a flashlight, I see output on the screen, too.
-> >=20
-> > (What do I need to do to get the backlight working?)
->=20
-> Glad you got it working :) For backlight you can add this
-> in drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c:
->=20
-> add the following code at the end of dsicm_probe:
->=20
-> -----------------------------------------------------------
-> mutex_unlock(&ddata->lock);
-> mutex_lock(&ddata->lock);
-> ddata->in->ops.dsi->bus_lock(ddata->in);
-> r =3D dsicm_wake_up(ddata);
-> if (!r)
->     r =3D dsicm_dcs_write_1(ddata, DCS_BRIGHTNESS, 100);
-> ddata->in->ops.dsi->bus_unlock(ddata->in);
-> mutex_unlock(&ddata->lock);
-> -----------------------------------------------------------
-
-That one did not work; but after some help from Filip, this did:
-
-Best regards,
-									Pavel
-
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c b/drivers/gpu/=
-drm/omapdrm/displays/panel-dsi-cm.c
-index b5ea8e5..2cb74cc 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
-@@ -385,7 +385,7 @@ static int dsicm_bl_update_status(struct backlight_devi=
-ce *dev)
-=20
- 		r =3D dsicm_wake_up(ddata);
- 		if (!r)
--			r =3D dsicm_dcs_write_1(ddata, DCS_BRIGHTNESS, level);
-+			r =3D dsicm_dcs_write_1(ddata, DCS_BRIGHTNESS, 0xff /* level */);
-=20
- 		in->ops.dsi->bus_unlock(in);
- 	}
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---neYutvxvOLaeuPCA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAln22gcACgkQMOfwapXb+vIbawCdHlFvo8EXC1EDhB3z0vkwNJ5I
-2vYAoLcQJc7lYgPWbKrCKYp1SpKRVLlW
-=hT4V
------END PGP SIGNATURE-----
-
---neYutvxvOLaeuPCA--
+Gentle Ping.
