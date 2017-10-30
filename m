@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 03/27] clk: ti: add support for clkctrl aliases
-Date: Mon, 30 Oct 2017 15:04:21 +0200
-Message-ID: <1509368685-29112-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 07/27] clk: ti: omap4: cleanup unnecessary clock aliases
+Date: Mon, 30 Oct 2017 15:04:25 +0200
+Message-ID: <1509368685-29112-8-git-send-email-t-kristo@ti.com>
 References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,93 +12,71 @@ To: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-hwmod core still depends on certain clocks being found by name, so we
-need to add support for adding clkctrl clock aliases. This patch can
-be reverted when no longer needed by hwmod core code.
+Most of the clock aliases are no longer needed, only leave the
+timer_32k_ck one in place which is required by OMAP timer code.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clk.c | 58 +++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 55 insertions(+), 3 deletions(-)
+ drivers/clk/ti/clk-44xx.c | 45 ---------------------------------------------
+ 1 file changed, 45 deletions(-)
 
-diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
-index e5a1c82..10a7045 100644
---- a/drivers/clk/ti/clk.c
-+++ b/drivers/clk/ti/clk.c
-@@ -108,18 +108,70 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
- 	struct device_node *node;
- 	struct clk *clk;
- 	struct of_phandle_args clkspec;
-+	char buf[64];
-+	char *ptr;
-+	char *tags[2];
-+	int i;
-+	int num_args;
-+	int ret;
-+	static bool clkctrl_nodes_missing;
-+	static bool has_clkctrl_data;
+diff --git a/drivers/clk/ti/clk-44xx.c b/drivers/clk/ti/clk-44xx.c
+index 2005f03..9470e09 100644
+--- a/drivers/clk/ti/clk-44xx.c
++++ b/drivers/clk/ti/clk-44xx.c
+@@ -697,52 +697,7 @@
+ };
  
- 	for (c = oclks; c->node_name != NULL; c++) {
--		node = of_find_node_by_name(NULL, c->node_name);
-+		strcpy(buf, c->node_name);
-+		ptr = buf;
-+		for (i = 0; i < 2; i++)
-+			tags[i] = NULL;
-+		num_args = 0;
-+		while (*ptr) {
-+			if (*ptr == ':') {
-+				if (num_args >= 2) {
-+					pr_warn("Bad number of tags on %s\n",
-+						c->node_name);
-+					return;
-+				}
-+				tags[num_args++] = ptr + 1;
-+				*ptr = 0;
-+			}
-+			ptr++;
-+		}
-+
-+		if (num_args && clkctrl_nodes_missing)
-+			continue;
-+
-+		node = of_find_node_by_name(NULL, buf);
-+		if (num_args)
-+			node = of_find_node_by_name(node, "clk");
- 		clkspec.np = node;
-+		clkspec.args_count = num_args;
-+		for (i = 0; i < num_args; i++) {
-+			ret = kstrtoint(tags[i], i ? 10 : 16, clkspec.args + i);
-+			if (ret) {
-+				pr_warn("Bad tag in %s at %d: %s\n",
-+					c->node_name, i, tags[i]);
-+				return;
-+			}
-+		}
- 		clk = of_clk_get_from_provider(&clkspec);
+ static struct ti_dt_clk omap44xx_clks[] = {
+-	DT_CLK("smp_twd", NULL, "mpu_periphclk"),
+-	DT_CLK("omapdss_dss", "ick", "dss_fck"),
+-	DT_CLK("usbhs_omap", "fs_fck", "usb_host_fs_fck"),
+-	DT_CLK("usbhs_omap", "hs_fck", "usb_host_hs_fck"),
+-	DT_CLK("musb-omap2430", "ick", "usb_otg_hs_ick"),
+-	DT_CLK("usbhs_omap", "usbtll_ick", "usb_tll_hs_ick"),
+-	DT_CLK("usbhs_tll", "usbtll_ick", "usb_tll_hs_ick"),
+-	DT_CLK("omap_i2c.1", "ick", "dummy_ck"),
+-	DT_CLK("omap_i2c.2", "ick", "dummy_ck"),
+-	DT_CLK("omap_i2c.3", "ick", "dummy_ck"),
+-	DT_CLK("omap_i2c.4", "ick", "dummy_ck"),
+-	DT_CLK(NULL, "mailboxes_ick", "dummy_ck"),
+-	DT_CLK("omap_hsmmc.0", "ick", "dummy_ck"),
+-	DT_CLK("omap_hsmmc.1", "ick", "dummy_ck"),
+-	DT_CLK("omap_hsmmc.2", "ick", "dummy_ck"),
+-	DT_CLK("omap_hsmmc.3", "ick", "dummy_ck"),
+-	DT_CLK("omap_hsmmc.4", "ick", "dummy_ck"),
+-	DT_CLK("omap-mcbsp.1", "ick", "dummy_ck"),
+-	DT_CLK("omap-mcbsp.2", "ick", "dummy_ck"),
+-	DT_CLK("omap-mcbsp.3", "ick", "dummy_ck"),
+-	DT_CLK("omap-mcbsp.4", "ick", "dummy_ck"),
+-	DT_CLK("omap2_mcspi.1", "ick", "dummy_ck"),
+-	DT_CLK("omap2_mcspi.2", "ick", "dummy_ck"),
+-	DT_CLK("omap2_mcspi.3", "ick", "dummy_ck"),
+-	DT_CLK("omap2_mcspi.4", "ick", "dummy_ck"),
+-	DT_CLK(NULL, "uart1_ick", "dummy_ck"),
+-	DT_CLK(NULL, "uart2_ick", "dummy_ck"),
+-	DT_CLK(NULL, "uart3_ick", "dummy_ck"),
+-	DT_CLK(NULL, "uart4_ick", "dummy_ck"),
+-	DT_CLK("usbhs_omap", "usbhost_ick", "dummy_ck"),
+-	DT_CLK("usbhs_omap", "usbtll_fck", "dummy_ck"),
+-	DT_CLK("usbhs_tll", "usbtll_fck", "dummy_ck"),
+-	DT_CLK("omap_wdt", "ick", "dummy_ck"),
+ 	DT_CLK(NULL, "timer_32k_ck", "sys_32k_ck"),
+-	DT_CLK("4a318000.timer", "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK("48032000.timer", "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK("48034000.timer", "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK("48036000.timer", "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK("4803e000.timer", "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK("48086000.timer", "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK("48088000.timer", "timer_sys_ck", "sys_clkin_ck"),
+-	DT_CLK("40138000.timer", "timer_sys_ck", "syc_clk_div_ck"),
+-	DT_CLK("4013a000.timer", "timer_sys_ck", "syc_clk_div_ck"),
+-	DT_CLK("4013c000.timer", "timer_sys_ck", "syc_clk_div_ck"),
+-	DT_CLK("4013e000.timer", "timer_sys_ck", "syc_clk_div_ck"),
+-	DT_CLK(NULL, "cpufreq_ck", "dpll_mpu_ck"),
+ 	{ .node_name = NULL },
+ };
  
- 		if (!IS_ERR(clk)) {
- 			c->lk.clk = clk;
- 			clkdev_add(&c->lk);
- 		} else {
--			pr_warn("failed to lookup clock node %s\n",
--				c->node_name);
-+			if (num_args && !has_clkctrl_data) {
-+				if (of_find_compatible_node(NULL, NULL,
-+							    "ti,clkctrl")) {
-+					has_clkctrl_data = true;
-+				} else {
-+					clkctrl_nodes_missing = true;
-+
-+					pr_warn("missing clkctrl nodes, please update your dts.\n");
-+					continue;
-+				}
-+			}
-+
-+			pr_warn("failed to lookup clock node %s, ret=%ld\n",
-+				c->node_name, PTR_ERR(clk));
- 		}
- 	}
- }
 -- 
 1.9.1
 
