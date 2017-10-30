@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 01/27] clk: ti: clkctrl: fix error messages to print out node name properly
-Date: Mon, 30 Oct 2017 15:04:19 +0200
-Message-ID: <1509368685-29112-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 04/27] clk: ti: clkctrl: use fallback udelay approach if timekeeping is suspended
+Date: Mon, 30 Oct 2017 15:04:22 +0200
+Message-ID: <1509368685-29112-5-git-send-email-t-kristo@ti.com>
 References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,39 +12,38 @@ To: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-Current node name does not convey any information, as it is always "clk".
-Instead, print out the full node path, which will tell us better where
-something went wrong.
+This will happen on certain platforms when entering / leaving suspend
+and the system attempts to disable certain clocks at very early/late
+phase, burping out a warning from timekeeping core. Avoid the issue
+by checking if the timekeeping is suspended and using the fallback
+udelay approach for checking timeouts.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clkctrl.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/clk/ti/clkctrl.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-index 53e71d0..2db7d40 100644
+index 284ba449..91ddc92 100644
 --- a/drivers/clk/ti/clkctrl.c
 +++ b/drivers/clk/ti/clkctrl.c
-@@ -351,8 +351,8 @@ static struct clk_hw *_ti_omap4_clkctrl_xlate(struct of_phandle_args *clkspec,
- 	if (ti_clk_parse_divider_data((int *)div_data->dividers,
- 				      div_data->max_div, 0, 0,
- 				      &div->width, &div->table)) {
--		pr_err("%s: Data parsing for %s:%04x:%d failed\n", __func__,
--		       node->name, offset, data->bit);
-+		pr_err("%s: Data parsing for %pOF:%04x:%d failed\n", __func__,
-+		       node, offset, data->bit);
- 		kfree(div);
- 		return;
- 	}
-@@ -428,7 +428,7 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
- 	}
+@@ -21,6 +21,7 @@
+ #include <linux/of_address.h>
+ #include <linux/clk/ti.h>
+ #include <linux/delay.h>
++#include <linux/timekeeping.h>
+ #include "clock.h"
  
- 	if (!data->addr) {
--		pr_err("%s not found from clkctrl data.\n", node->name);
-+		pr_err("%pOF not found from clkctrl data.\n", node);
- 		return;
- 	}
+ #define NO_IDLEST			0x1
+@@ -90,7 +91,7 @@ static bool _omap4_is_ready(u32 val)
  
+ static bool _omap4_is_timeout(union omap4_timeout *time, u32 timeout)
+ {
+-	if (unlikely(_early_timeout)) {
++	if (unlikely(_early_timeout || timekeeping_suspended)) {
+ 		if (time->cycles++ < timeout) {
+ 			udelay(1);
+ 			return false;
 -- 
 1.9.1
 
