@@ -1,72 +1,185 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 08/17] PCI: dwc: dra7xx: Assign pp->ops in
- dra7xx_add_pcie_port() rather than in probe
-Date: Tue, 31 Oct 2017 13:44:01 +0530
-Message-ID: <e25be469-c21c-bcfd-73f2-31c1b090645d@ti.com>
+Subject: Re: [PATCH v2 09/17] PCI: dwc: dra7xx: Add ifdefs for host/ep
+ specific code
+Date: Tue, 31 Oct 2017 13:59:55 +0530
+Message-ID: <32dd0d05-4ed0-1c8b-6ea4-ea4d560c5570@ti.com>
 References: <20171030124221.20690-1-niklas.cassel@axis.com>
- <20171030124221.20690-9-niklas.cassel@axis.com>
+ <20171030124221.20690-10-niklas.cassel@axis.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20171030124221.20690-9-niklas.cassel@axis.com>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171030124221.20690-10-niklas.cassel@axis.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Niklas Cassel <niklas.cassel@axis.com>, Bjorn Helgaas <bhelgaas@google.com>
 Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
+Hi,
 
 On Monday 30 October 2017 06:12 PM, Niklas Cassel wrote:
-> This matches how other drivers like exynos, imx7, keystone, armada8k,
-> artpec6, designware-plat, hisi, kirin and spear13xx does it.
+> This way you will not build and include unused code
+> when only building for only one mode.
 > 
-> This is probably a remainder since when dev and ops were assigned as
-> members to pp. Since we now assign them as members to struct dw_pcie,
-> the pp->ops assignment should definitely be in dra7xx_add_pcie_port().
-> 
-> This is also needed to be able to compile host/ep mode specific code
-> independently.
+> Moved dra7xx_pcie_enable_wrapper_interrupts() in order
+> to avoid adding an extra ifdef block.
 > 
 > Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
-
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
 > V2:
 > * New patch in this series.
 > 
->  drivers/pci/dwc/pci-dra7xx.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
+>  drivers/pci/dwc/pci-dra7xx.c | 36 ++++++++++++++++++++++++++++--------
+>  1 file changed, 28 insertions(+), 8 deletions(-)
 > 
 > diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index a743545da4d4..009f6aeeee1c 100644
+> index 009f6aeeee1c..175544d6c3ab 100644
 > --- a/drivers/pci/dwc/pci-dra7xx.c
 > +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -460,6 +460,8 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->  	if (!pci->dbi_base)
->  		return -ENOMEM;
+> @@ -171,6 +171,15 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
+>  	return 0;
+>  }
 >  
-> +	pp->ops = &dra7xx_pcie_host_ops;
+> +static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
+> +{
+> +	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
+> +			   INTERRUPTS);
+> +	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
+> +			   INTERRUPTS);
+> +}
 > +
->  	ret = dw_pcie_host_init(pp);
->  	if (ret) {
->  		dev_err(dev, "failed to initialize host\n");
-> @@ -588,7 +590,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	void __iomem *base;
->  	struct resource *res;
->  	struct dw_pcie *pci;
-> -	struct pcie_port *pp;
->  	struct dra7xx_pcie *dra7xx;
->  	struct device *dev = &pdev->dev;
->  	struct device_node *np = dev->of_node;
-> @@ -616,9 +617,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  	pci->dev = dev;
->  	pci->ops = &dw_pcie_ops;
+> +#ifdef CONFIG_PCI_DRA7XX_HOST
+>  static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
+>  {
+>  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
+> @@ -181,14 +190,6 @@ static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
+>  			   MSI | LEG_EP_INTERRUPTS);
+>  }
 >  
-> -	pp = &pci->pp;
-> -	pp->ops = &dra7xx_pcie_host_ops;
+> -static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
+> -{
+> -	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
+> -			   INTERRUPTS);
+> -	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
+> -			   INTERRUPTS);
+> -}
 > -
->  	irq = platform_get_irq(pdev, 0);
->  	if (irq < 0) {
->  		dev_err(dev, "missing IRQ resource: %d\n", irq);
+>  static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
+>  {
+>  	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
+> @@ -276,6 +277,7 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>  
+>  	return IRQ_HANDLED;
+>  }
+> +#endif
+>  
+>  static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
+>  {
+> @@ -336,6 +338,7 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +#ifdef CONFIG_PCI_DRA7XX_EP
+>  static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
+>  {
+>  	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+> @@ -427,7 +430,9 @@ static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
+>  
+>  	return 0;
+>  }
+> +#endif
+>  
+> +#ifdef CONFIG_PCI_DRA7XX_HOST
+
+This block can also be moved around the file so that there is a single +#ifdef
+CONFIG_PCI_DRA7XX_HOST in this file.
+>  static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+>  				       struct platform_device *pdev)
+>  {
+> @@ -470,6 +475,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+>  
+>  	return 0;
+>  }
+> +#endif
+>  
+>  static const struct dw_pcie_ops dw_pcie_ops = {
+>  	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
+> @@ -517,23 +523,31 @@ static int dra7xx_pcie_enable_phy(struct dra7xx_pcie *dra7xx)
+>  	return ret;
+>  }
+
+IMO all the #ifdef's after this point can be removed.
+>  
+> +#ifdef CONFIG_PCI_DRA7XX_HOST
+>  static const struct dra7xx_pcie_of_data dra7xx_pcie_rc_of_data = {
+>  	.mode = DW_PCIE_RC_TYPE,
+>  };
+> +#endif
+>  
+> +#ifdef CONFIG_PCI_DRA7XX_EP
+>  static const struct dra7xx_pcie_of_data dra7xx_pcie_ep_of_data = {
+>  	.mode = DW_PCIE_EP_TYPE,
+>  };
+> +#endif
+>  
+>  static const struct of_device_id of_dra7xx_pcie_match[] = {
+> +#ifdef CONFIG_PCI_DRA7XX_HOST
+>  	{
+>  		.compatible = "ti,dra7-pcie",
+>  		.data = &dra7xx_pcie_rc_of_data,
+>  	},
+> +#endif
+> +#ifdef CONFIG_PCI_DRA7XX_EP
+>  	{
+>  		.compatible = "ti,dra7-pcie-ep",
+>  		.data = &dra7xx_pcie_ep_of_data,
+>  	},
+> +#endif
+>  	{},
+>  };
+>  
+> @@ -548,6 +562,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+>   *
+>   * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
+>   */
+> +#ifdef CONFIG_PCI_DRA7XX_EP
+>  static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
+>  {
+>  	int ret;
+> @@ -578,6 +593,7 @@ static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
+>  
+>  	return ret;
+>  }
+> +#endif
+>  
+>  static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  {
+> @@ -681,6 +697,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  		dra7xx->link_gen = 2;
+>  
+>  	switch (mode) {
+> +#ifdef CONFIG_PCI_DRA7XX_HOST
+>  	case DW_PCIE_RC_TYPE:
+>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+>  				   DEVICE_TYPE_RC);
+> @@ -688,6 +705,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  		if (ret < 0)
+>  			goto err_gpio;
+>  		break;
+> +#endif
+> +#ifdef CONFIG_PCI_DRA7XX_EP
+>  	case DW_PCIE_EP_TYPE:
+>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+>  				   DEVICE_TYPE_EP);
+> @@ -700,6 +719,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>  		if (ret < 0)
+>  			goto err_gpio;
+>  		break;
+> +#endif
+>  	default:
+>  		dev_err(dev, "INVALID device type %d\n", mode);
+>  	}
 > 
+
+Thanks
+Kishon
