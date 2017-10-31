@@ -1,118 +1,75 @@
 From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH v3 15/17] PCI: dwc: Make cpu_addr_fixup take struct dw_pcie as argument
-Date: Tue, 31 Oct 2017 23:39:33 +0100
-Message-ID: <20171031223936.27549-16-niklas.cassel@axis.com>
-References: <20171031223936.27549-1-niklas.cassel@axis.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171031223936.27549-1-niklas.cassel@axis.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklass@axis.com>, Jesper Nilsson <jespern@axis.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com
+Subject: Re: [PATCH v2 09/17] PCI: dwc: dra7xx: Add ifdefs for host/ep
+ specific code
+Date: Tue, 31 Oct 2017 23:51:21 +0100
+Message-ID: <4bd547f0-8da7-cc90-6fa1-56a12b9fd72d@axis.com>
+References: <20171030124221.20690-1-niklas.cassel@axis.com>
+ <20171030124221.20690-10-niklas.cassel@axis.com>
+ <32dd0d05-4ed0-1c8b-6ea4-ea4d560c5570@ti.com>
+ <669377ab-b859-24ed-5a2b-36bf826d426b@axis.com>
+ <f99d17a1-19c3-a63d-3758-7def12d634e5@axis.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <f99d17a1-19c3-a63d-3758-7def12d634e5@axis.com>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-There is no need to hard code the cpu to bus address fixup mask.
-The PCIe controller has a global address on the AXI bus, however,
-from the perspective of the PCIe controller, its base starts at 0x0,
-so the local address is 0x0. To get the bus address, simply subtract
-the global address from the cpu address. The global address is taken
-from device tree.
 
-Also for ARTPEC-7, hard coding the cpu to bus address fixup mask is
-not possible, since it uses a High Address Bits Look Up Table, which
-means that it can, at runtime, map the PCIe window to an arbitrary
-address in the 32-bit address space.
 
-This also fixes a bug for ARTPEC-6, where the cpu to bus address
-fixup mask previously was off by one (GENMASK(27, 0), rather than
-GENMASK(28, 0)), which is another reason why the it is a good idea
-to calculate the mask by using values from device tree.
+On 10/31/2017 10:38 PM, Niklas Cassel wrote:
+>>>>  
+>>>>  static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>>>>  {
+>>>> @@ -681,6 +697,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>>>>  		dra7xx->link_gen = 2;
+>>>>  
+>>>>  	switch (mode) {
+>>>> +#ifdef CONFIG_PCI_DRA7XX_HOST
+>>>>  	case DW_PCIE_RC_TYPE:
+>>>>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+>>>>  				   DEVICE_TYPE_RC);
+>>>> @@ -688,6 +705,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>>>>  		if (ret < 0)
+>>>>  			goto err_gpio;
+>>>>  		break;
+>>>> +#endif
+>>>> +#ifdef CONFIG_PCI_DRA7XX_EP
+>>>>  	case DW_PCIE_EP_TYPE:
+>>>>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+>>>>  				   DEVICE_TYPE_EP);
+>>>> @@ -700,6 +719,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+>>>>  		if (ret < 0)
+>>>>  			goto err_gpio;
+>>>>  		break;
+>>>> +#endif
+>>
+>> Actually, these ifdefs has to stay, otherwise we get build warnings, since we
+>> are calling functions that aren't defined (dra7xx_pcie_ep_unaligned_memaccess,
+>> dra7xx_add_pcie_ep, dra7xx_add_pcie_port).
+>> We could add dummy implementations for these inside an #else block following
+>> the ifdef blocks. However, I think that adding dummy implementations in the
+>> #else block is uglier and more verbose than keeping the ifdefs around the
+>> two cases.
+>>
+> 
+> ..however, if you prefer dummy implementations inside the #else blocks,
+> I will of course do that.
+> 
 
-Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
----
-V3:
-* No change.
 
- drivers/pci/dwc/pci-dra7xx.c      |  2 +-
- drivers/pci/dwc/pcie-artpec6.c    | 18 ++++++++++++++----
- drivers/pci/dwc/pcie-designware.c |  2 +-
- drivers/pci/dwc/pcie-designware.h |  2 +-
- 4 files changed, 17 insertions(+), 7 deletions(-)
+And after thinking about it for a while a decided to go with dummy
+implementations in the #else blocks anyway :)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index b4c204aa932a..4d5cff76e64a 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -109,7 +109,7 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
- 	writel(value, pcie->base + offset);
- }
- 
--static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
-+static u64 dra7xx_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
- {
- 	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
- }
-diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
-index 413683d7bd9d..e5b5665786ab 100644
---- a/drivers/pci/dwc/pcie-artpec6.c
-+++ b/drivers/pci/dwc/pcie-artpec6.c
-@@ -69,8 +69,6 @@ static const struct of_device_id artpec6_pcie_of_match[];
- #define PHY_STATUS			0x118
- #define  PHY_COSPLLLOCK			BIT(0)
- 
--#define ARTPEC6_CPU_TO_BUS_ADDR		GENMASK(27, 0)
--
- static u32 artpec6_pcie_readl(struct artpec6_pcie *artpec6_pcie, u32 offset)
- {
- 	u32 val;
-@@ -84,9 +82,21 @@ static void artpec6_pcie_writel(struct artpec6_pcie *artpec6_pcie, u32 offset, u
- 	regmap_write(artpec6_pcie->regmap, offset, val);
- }
- 
--static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
-+static u64 artpec6_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
- {
--	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
-+	struct artpec6_pcie *artpec6_pcie = to_artpec6_pcie(pci);
-+	struct pcie_port *pp = &pci->pp;
-+	struct dw_pcie_ep *ep = &pci->ep;
-+
-+	switch (artpec6_pcie->mode) {
-+	case DW_PCIE_RC_TYPE:
-+		return pci_addr - pp->cfg0_base;
-+	case DW_PCIE_EP_TYPE:
-+		return pci_addr - ep->phys_base;
-+	default:
-+		dev_err(pci->dev, "UNKNOWN device type\n");
-+	}
-+	return pci_addr;
- }
- 
- static int artpec6_pcie_establish_link(struct dw_pcie *pci)
-diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-index 88abdddee2ad..800be7a4f087 100644
---- a/drivers/pci/dwc/pcie-designware.c
-+++ b/drivers/pci/dwc/pcie-designware.c
-@@ -149,7 +149,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
- 	u32 retries, val;
- 
- 	if (pci->ops->cpu_addr_fixup)
--		cpu_addr = pci->ops->cpu_addr_fixup(cpu_addr);
-+		cpu_addr = pci->ops->cpu_addr_fixup(pci, cpu_addr);
- 
- 	if (pci->iatu_unroll_enabled) {
- 		dw_pcie_prog_outbound_atu_unroll(pci, index, type, cpu_addr,
-diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index 24edac035160..cca5a81c1c74 100644
---- a/drivers/pci/dwc/pcie-designware.h
-+++ b/drivers/pci/dwc/pcie-designware.h
-@@ -205,7 +205,7 @@ struct dw_pcie_ep {
- };
- 
- struct dw_pcie_ops {
--	u64	(*cpu_addr_fixup)(u64 cpu_addr);
-+	u64	(*cpu_addr_fixup)(struct dw_pcie *pcie, u64 cpu_addr);
- 	u32	(*read_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
- 			    size_t size);
- 	void	(*write_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
--- 
-2.14.2
+This is how we usually do it in kernel code, we have one implementation
+if a certain Kconfig is set, and a dummy one if the Kconfig is not set.
+This way we avoid seeing ifdefs sprinkled all over the code, which makes
+it easier when trying to follow the flow of the code.
+
+
+Regards,
+Niklas
