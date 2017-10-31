@@ -1,185 +1,61 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 09/17] PCI: dwc: dra7xx: Add ifdefs for host/ep
- specific code
-Date: Tue, 31 Oct 2017 13:59:55 +0530
-Message-ID: <32dd0d05-4ed0-1c8b-6ea4-ea4d560c5570@ti.com>
-References: <20171030124221.20690-1-niklas.cassel@axis.com>
- <20171030124221.20690-10-niklas.cassel@axis.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 0/7] omap: dmtimer: Move driver out of plat-omap
+Date: Tue, 31 Oct 2017 15:58:39 +0530
+Message-ID: <1509445726-21040-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171030124221.20690-10-niklas.cassel@axis.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Niklas Cassel <niklas.cassel@axis.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, thierry.reding@gmail.com
+Cc: daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The series moves dmtimer out of plat-omap to drivers/clocksource.
+The series also does a bunch of changes to pwm-omap-dmtimer code
+to adapt to the driver migration and clean up plat specific
+pdata-quirks and use the dmtimer platform data.
+ 
+Boot tested on DRA7-EVM and AM437X-GP-EVM.
 
-On Monday 30 October 2017 06:12 PM, Niklas Cassel wrote:
-> This way you will not build and include unused code
-> when only building for only one mode.
-> 
-> Moved dra7xx_pcie_enable_wrapper_interrupts() in order
-> to avoid adding an extra ifdef block.
-> 
-> Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
-> ---
-> V2:
-> * New patch in this series.
-> 
->  drivers/pci/dwc/pci-dra7xx.c | 36 ++++++++++++++++++++++++++++--------
->  1 file changed, 28 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 009f6aeeee1c..175544d6c3ab 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -171,6 +171,15 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
->  	return 0;
->  }
->  
-> +static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
-> +{
-> +	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
-> +			   INTERRUPTS);
-> +	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
-> +			   INTERRUPTS);
-> +}
-> +
-> +#ifdef CONFIG_PCI_DRA7XX_HOST
->  static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
->  {
->  	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
-> @@ -181,14 +190,6 @@ static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
->  			   MSI | LEG_EP_INTERRUPTS);
->  }
->  
-> -static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
-> -{
-> -	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
-> -			   INTERRUPTS);
-> -	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
-> -			   INTERRUPTS);
-> -}
-> -
->  static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
->  {
->  	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
-> @@ -276,6 +277,7 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
->  
->  	return IRQ_HANDLED;
->  }
-> +#endif
->  
->  static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
->  {
-> @@ -336,6 +338,7 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
->  	return IRQ_HANDLED;
->  }
->  
-> +#ifdef CONFIG_PCI_DRA7XX_EP
->  static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
->  {
->  	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
-> @@ -427,7 +430,9 @@ static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
->  
->  	return 0;
->  }
-> +#endif
->  
-> +#ifdef CONFIG_PCI_DRA7XX_HOST
+More testing would be of great help.
 
-This block can also be moved around the file so that there is a single +#ifdef
-CONFIG_PCI_DRA7XX_HOST in this file.
->  static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->  				       struct platform_device *pdev)
->  {
-> @@ -470,6 +475,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->  
->  	return 0;
->  }
-> +#endif
->  
->  static const struct dw_pcie_ops dw_pcie_ops = {
->  	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
-> @@ -517,23 +523,31 @@ static int dra7xx_pcie_enable_phy(struct dra7xx_pcie *dra7xx)
->  	return ret;
->  }
+Keerthy (7):
+  clocksource: dmtimer: Remove all the exports
+  arm: omap: Move dmtimer.h out of plat-omap
+  arm: OMAP: Move dmtimer driver out of plat-omap to drivers under
+    clocksource
+  dmtimer: Add timer ops to the platform data structure
+  clocksource: dmtimer: Populate the timer ops to the pdata
+  pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
+  arm: omap: pdata-quirks: Remove unused timer pdata
 
-IMO all the #ifdef's after this point can be removed.
->  
-> +#ifdef CONFIG_PCI_DRA7XX_HOST
->  static const struct dra7xx_pcie_of_data dra7xx_pcie_rc_of_data = {
->  	.mode = DW_PCIE_RC_TYPE,
->  };
-> +#endif
->  
-> +#ifdef CONFIG_PCI_DRA7XX_EP
->  static const struct dra7xx_pcie_of_data dra7xx_pcie_ep_of_data = {
->  	.mode = DW_PCIE_EP_TYPE,
->  };
-> +#endif
->  
->  static const struct of_device_id of_dra7xx_pcie_match[] = {
-> +#ifdef CONFIG_PCI_DRA7XX_HOST
->  	{
->  		.compatible = "ti,dra7-pcie",
->  		.data = &dra7xx_pcie_rc_of_data,
->  	},
-> +#endif
-> +#ifdef CONFIG_PCI_DRA7XX_EP
->  	{
->  		.compatible = "ti,dra7-pcie-ep",
->  		.data = &dra7xx_pcie_ep_of_data,
->  	},
-> +#endif
->  	{},
->  };
->  
-> @@ -548,6 +562,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
->   *
->   * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
->   */
-> +#ifdef CONFIG_PCI_DRA7XX_EP
->  static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
->  {
->  	int ret;
-> @@ -578,6 +593,7 @@ static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
->  
->  	return ret;
->  }
-> +#endif
->  
->  static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  {
-> @@ -681,6 +697,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  		dra7xx->link_gen = 2;
->  
->  	switch (mode) {
-> +#ifdef CONFIG_PCI_DRA7XX_HOST
->  	case DW_PCIE_RC_TYPE:
->  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
->  				   DEVICE_TYPE_RC);
-> @@ -688,6 +705,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  		if (ret < 0)
->  			goto err_gpio;
->  		break;
-> +#endif
-> +#ifdef CONFIG_PCI_DRA7XX_EP
->  	case DW_PCIE_EP_TYPE:
->  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
->  				   DEVICE_TYPE_EP);
-> @@ -700,6 +719,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->  		if (ret < 0)
->  			goto err_gpio;
->  		break;
-> +#endif
->  	default:
->  		dev_err(dev, "INVALID device type %d\n", mode);
->  	}
-> 
+ arch/arm/mach-omap1/pm.c                           |    2 +-
+ arch/arm/mach-omap1/timer.c                        |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |    2 +-
+ arch/arm/mach-omap2/pdata-quirks.c                 |   32 -
+ arch/arm/mach-omap2/timer.c                        |    2 +-
+ arch/arm/plat-omap/Kconfig                         |    6 -
+ arch/arm/plat-omap/Makefile                        |    1 -
+ arch/arm/plat-omap/dmtimer.c                       | 1003 --------------------
+ arch/arm/plat-omap/include/plat/dmtimer.h          |  418 --------
+ drivers/clocksource/Kconfig                        |    6 +
+ drivers/clocksource/Makefile                       |    1 +
+ drivers/clocksource/dmtimer.c                      | 1001 +++++++++++++++++++
+ drivers/pwm/pwm-omap-dmtimer.c                     |   39 +-
+ include/clocksource/dmtimer.h                      |  418 ++++++++
+ include/linux/platform_data/dmtimer-omap.h         |   38 +
+ 22 files changed, 1497 insertions(+), 1488 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/dmtimer.c
+ delete mode 100644 arch/arm/plat-omap/include/plat/dmtimer.h
+ create mode 100644 drivers/clocksource/dmtimer.c
+ create mode 100644 include/clocksource/dmtimer.h
 
-Thanks
-Kishon
+-- 
+1.9.1
