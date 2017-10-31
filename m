@@ -1,136 +1,117 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: Re: [PATCH v2 09/17] PCI: dwc: dra7xx: Add ifdefs for host/ep
- specific code
-Date: Tue, 31 Oct 2017 22:27:49 +0100
-Message-ID: <669377ab-b859-24ed-5a2b-36bf826d426b@axis.com>
-References: <20171030124221.20690-1-niklas.cassel@axis.com>
- <20171030124221.20690-10-niklas.cassel@axis.com>
- <32dd0d05-4ed0-1c8b-6ea4-ea4d560c5570@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Nokia N9: fun with camera
+Date: Tue, 31 Oct 2017 22:28:12 +0100
+Message-ID: <20171031212812.GA11148@amd>
+References: <20170424103802.00d3b554@vento.lan>
+ <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426082608.7dd52fbf@vento.lan>
+ <20171021220026.GA26881@amd>
+ <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
+ <20171023185414.GA2258@amd>
+ <40C85971-7DDE-4FB0-AB90-C52CA864C0D4@xs4all.nl>
+ <20171023201557.hecu4e6o3ynp5hmv@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <32dd0d05-4ed0-1c8b-6ea4-ea4d560c5570@ti.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="KsGdsel6WgEHnImy"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171023201557.hecu4e6o3ynp5hmv@valkosipuli.retiisi.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/31/2017 09:29 AM, Kishon Vijay Abraham I wrote:
 
-(snip)
+--KsGdsel6WgEHnImy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->>  
->> +#ifdef CONFIG_PCI_DRA7XX_HOST
-> 
-> This block can also be moved around the file so that there is a single +#ifdef
-> CONFIG_PCI_DRA7XX_HOST in this file.
+Hi!
 
-Hello Kishon,
+Sakari, I am actually playing with N9 camera, not N950. That comes
+next.
 
-Sure, will fix in V3.
+And the clock error I mentioned ... seems to be
+-EPROBE_DEFER. So... not an issue.
 
->>  static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->>  				       struct platform_device *pdev)
->>  {
->> @@ -470,6 +475,7 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
->>  
->>  	return 0;
->>  }
->> +#endif
->>  
->>  static const struct dw_pcie_ops dw_pcie_ops = {
->>  	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
->> @@ -517,23 +523,31 @@ static int dra7xx_pcie_enable_phy(struct dra7xx_pcie *dra7xx)
->>  	return ret;
->>  }
-> 
-> IMO all the #ifdef's after this point can be removed.
+Strange thing is, that my sensors seems to have different resolution
+=66rom yours:
 
-I will remove the ifdefs in the match table and the ifdefs surrounding
-the of match table data.
+- entity 89: smiapp pixel_array 1-0010 (1 pad, 1 link)
+             type V4L2 subdev subtype Sensor flags 0
+	                  device node name /dev/v4l-subdev9
+		          pad0: Source [fmt:SRGGB10_1X10/3572x2464 field:none
+	                      crop.bounds:(0,0)/3572x2464 crop:(0,0)/3572x2464]
+ ->
+             "smiapp binner 1-0010":0 [ENABLED,IMMUTABLE]
 
->>  
->> +#ifdef CONFIG_PCI_DRA7XX_HOST
->>  static const struct dra7xx_pcie_of_data dra7xx_pcie_rc_of_data = {
->>  	.mode = DW_PCIE_RC_TYPE,
->>  };
->> +#endif
->>  
->> +#ifdef CONFIG_PCI_DRA7XX_EP
->>  static const struct dra7xx_pcie_of_data dra7xx_pcie_ep_of_data = {
->>  	.mode = DW_PCIE_EP_TYPE,
->>  };
->> +#endif
->>  
->>  static const struct of_device_id of_dra7xx_pcie_match[] = {
->> +#ifdef CONFIG_PCI_DRA7XX_HOST
->>  	{
->>  		.compatible = "ti,dra7-pcie",
->>  		.data = &dra7xx_pcie_rc_of_data,
->>  	},
->> +#endif
->> +#ifdef CONFIG_PCI_DRA7XX_EP
->>  	{
->>  		.compatible = "ti,dra7-pcie-ep",
->>  		.data = &dra7xx_pcie_ep_of_data,
->>  	},
->> +#endif
->>  	{},
->>  };
->>  
->> @@ -548,6 +562,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
->>   *
->>   * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
->>   */
->> +#ifdef CONFIG_PCI_DRA7XX_EP
->>  static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
->>  {
->>  	int ret;
->> @@ -578,6 +593,7 @@ static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
->>  
->>  	return ret;
->>  }
->> +#endif
+(And you mentioned width 3600, and SGRBG10).
 
-I will move this to the CONFIG_PCI_DRA7XX_EP block, so that there will only
-be a single CONFIG_PCI_DRA7XX_EP ifdef surrounding EP specific functions.
+I updated my scripts accordingly. Now I get
 
->>  
->>  static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>  {
->> @@ -681,6 +697,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>  		dra7xx->link_gen = 2;
->>  
->>  	switch (mode) {
->> +#ifdef CONFIG_PCI_DRA7XX_HOST
->>  	case DW_PCIE_RC_TYPE:
->>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
->>  				   DEVICE_TYPE_RC);
->> @@ -688,6 +705,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>  		if (ret < 0)
->>  			goto err_gpio;
->>  		break;
->> +#endif
->> +#ifdef CONFIG_PCI_DRA7XX_EP
->>  	case DW_PCIE_EP_TYPE:
->>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
->>  				   DEVICE_TYPE_EP);
->> @@ -700,6 +719,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>  		if (ret < 0)
->>  			goto err_gpio;
->>  		break;
->> +#endif
+pavel@n900:~/g/tui/camera$ /my/tui/yavta/yavta -c5 -f SRGGB10
+-F/tmp/foo -s 3572x2464 /dev/video1
+Device /dev/video1 opened.
+Device `OMAP3 ISP CSI2a output' on `media' is a video capture (without
+mplanes) device.
+Video format set: SRGGB10 (30314752) 3572x2464 (stride 7144) field
+none buffer size 17602816
+Video format: SRGGB10 (30314752) 3572x2464 (stride 7144) field none
+buffer size 17602816
+2 buffers requested.
+length: 17602816 offset: 0 timestamp type/source: mono/EoF
+Buffer 0/0 mapped at address 0xb5cb1000.
+length: 17602816 offset: 17604608 timestamp type/source: mono/EoF
+Buffer 1/0 mapped at address 0xb4be7000.
 
-Actually, these ifdefs has to stay, otherwise we get build warnings, since we
-are calling functions that aren't defined (dra7xx_pcie_ep_unaligned_memaccess,
-dra7xx_add_pcie_ep, dra7xx_add_pcie_port).
-We could add dummy implementations for these inside an #else block following
-the ifdef blocks. However, I think that adding dummy implementations in the
-#else block is uglier and more verbose than keeping the ifdefs around the
-two cases.
+=2E..but here it hangs. (Kernel v4.13).
+
+dmesg says:
+
+[ 2862.229736] smiapp 1-0010: flip 0
+[ 2862.229766] smiapp 1-0010: new pixel order RGGB
+[ 2862.233764] smiapp 1-0010: 0x00021700 "min_frame_length_lines_bin"
+=3D 166, 0xa6
+[ 2862.234558] smiapp 1-0010: 0x00021702 "max_frame_length_lines_bin"
+=3D 65535, 0xffff
+[ 2862.235351] smiapp 1-0010: 0x00021704 "min_line_length_pck_bin" =3D
+3812, 0xee4
+[ 2862.236114] smiapp 1-0010: 0x00021706 "max_line_length_pck_bin" =3D
+32752, 0x7ff0
+[ 2862.238067] smiapp 1-0010: 0x00021708 "min_line_blanking_pck_bin" =3D
+240, 0xf0
+[ 2862.240844] smiapp 1-0010: 0x0002170a
+"fine_integration_time_min_bin" =3D 0, 0x0
+[ 2862.242553] smiapp 1-0010: 0x0002170c
+"fine_integration_time_max_margin_bin" =3D 0, 0x0
+[ 2862.242614] smiapp 1-0010: vblank   	 26
+[ 2862.242645] smiapp 1-0010: hblank		240
+[ 2862.242675] smiapp 1-0010: real timeperframe	100/839
+
+I did some more experiments, but could not grab a frame.
+
+Best regards,
+									Pavel
 
 
-Regards,
-Niklas
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--KsGdsel6WgEHnImy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAln46uwACgkQMOfwapXb+vI4wQCcDnSoPXKD9u552laIAG9RpKBx
+YfEAmgM7yKPCzclVB+2YDWtepocg/WZ/
+=+qTq
+-----END PGP SIGNATURE-----
+
+--KsGdsel6WgEHnImy--
