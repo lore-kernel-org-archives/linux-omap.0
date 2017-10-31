@@ -1,99 +1,90 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH 01/27] clk: ti: clkctrl: fix error messages to print out
- node name properly
-Date: Mon, 30 Oct 2017 21:45:03 +0100
-Message-ID: <20171030204503.767jcweqm2mn237w@earth>
-References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
- <1509368685-29112-2-git-send-email-t-kristo@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 05/17] PCI: designware-ep: Remove static keyword from
+ dw_pcie_ep_reset_bar()
+Date: Tue, 31 Oct 2017 10:39:30 +0530
+Message-ID: <7ad6dbed-f799-11b3-8d7d-b7d0cad35f4d@ti.com>
+References: <20171030124221.20690-1-niklas.cassel@axis.com>
+ <20171030124221.20690-6-niklas.cassel@axis.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="m2rj2gqqvm6ztmw4"
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1509368685-29112-2-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-clk@vger.kernel.org, sboyd@codeaurora.org, mturquette@baylibre.com, linux-omap@vger.kernel.org, tony@atomide.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20171030124221.20690-6-niklas.cassel@axis.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Niklas Cassel <niklas.cassel@axis.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
+Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---m2rj2gqqvm6ztmw4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Monday 30 October 2017 06:12 PM, Niklas Cassel wrote:
+> This way pci-dra7xx.c does not need its own copy of dw_pcie_ep_reset_bar().
+> 
+> Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
 
-On Mon, Oct 30, 2017 at 03:04:19PM +0200, Tero Kristo wrote:
-> Current node name does not convey any information, as it is always "clk".
-> Instead, print out the full node path, which will tell us better where
-> something went wrong.
->=20
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
-
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
->  drivers/clk/ti/clkctrl.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-> index 53e71d0..2db7d40 100644
-> --- a/drivers/clk/ti/clkctrl.c
-> +++ b/drivers/clk/ti/clkctrl.c
-> @@ -351,8 +351,8 @@ static struct clk_hw *_ti_omap4_clkctrl_xlate(struct =
-of_phandle_args *clkspec,
->  	if (ti_clk_parse_divider_data((int *)div_data->dividers,
->  				      div_data->max_div, 0, 0,
->  				      &div->width, &div->table)) {
-> -		pr_err("%s: Data parsing for %s:%04x:%d failed\n", __func__,
-> -		       node->name, offset, data->bit);
-> +		pr_err("%s: Data parsing for %pOF:%04x:%d failed\n", __func__,
-> +		       node, offset, data->bit);
->  		kfree(div);
->  		return;
->  	}
-> @@ -428,7 +428,7 @@ static void __init _ti_omap4_clkctrl_setup(struct dev=
-ice_node *node)
->  	}
-> =20
->  	if (!data->addr) {
-> -		pr_err("%s not found from clkctrl data.\n", node->name);
-> +		pr_err("%pOF not found from clkctrl data.\n", node);
->  		return;
->  	}
-> =20
-> --=20
-> 1.9.1
->=20
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/=
-Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---m2rj2gqqvm6ztmw4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln3j0sACgkQ2O7X88g7
-+pqQzg//fce/diZEsEfq7hI76IpG6g1Y3mybbH1+p1R1rito8uAbuWyBxcZzXIav
-xVDe8gTh1GD1X7JunzQvgwMoaTKe0PtkCpJMe63xBGzeVpzbRojuSOGKTHskIhQb
-DoKePsDRIE+SoGLAbWKfjMIOqiY8hb3sGDi4OMmTOq6YbOx06KmcY65mF4HJDFvk
-Sw1Tc4M4qC4Od+fXIU3BgsdMrZzyEvDyZPMmuNuZuumyjmCd6itPg++PGpnC/qQe
-YwynG+UjEw3yTxRFTPUB2ZJ8G1+3m0CkpHitUbG5Ue/2SR8t5Ro+Njomt8cuN8fa
-TUz965FhWFG6344d6v65W2/eEHfdBhLeBWoOQAd701CbVwjms/Q+FnFOYcMd8Z5D
-2uHF72tFq0noyz3a/QmATzEpFhauy5893Cszvsw5rPPVFKIDbjAybB9CMwH3dIsy
-/3zHYfi56TIWTHe9b8VAhao1ESjS1rDg2upcXnjuVTZQrezQM2J0K6vLfFK+mnrn
-2ONEf/zzm3tSTevisxmT4jRGgxdk+SbvqO5pySEh0sN8t4CnVHDHaUCTvi3r7haV
-45xrRIwPqkL2pROSkutGO89jqlRhdEY3rja5lvZfOs1Ctanfp7zACGzzI80P68oY
-WJU/Acwonv9B92232Sd1BDzD28a8LcxZ+dBiIEkuCvgjMPvGpzs=
-=+9A8
------END PGP SIGNATURE-----
-
---m2rj2gqqvm6ztmw4--
+> V2:
+> * New patch in this series.
+> 
+>  drivers/pci/dwc/pci-dra7xx.c         | 9 ---------
+>  drivers/pci/dwc/pcie-designware-ep.c | 2 +-
+>  drivers/pci/dwc/pcie-designware.h    | 5 +++++
+>  3 files changed, 6 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index d0848006945a..a743545da4d4 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -336,15 +336,6 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
+> -{
+> -	u32 reg;
+> -
+> -	reg = PCI_BASE_ADDRESS_0 + (4 * bar);
+> -	dw_pcie_writel_dbi2(pci, reg, 0x0);
+> -	dw_pcie_writel_dbi(pci, reg, 0x0);
+> -}
+> -
+>  static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
+>  {
+>  	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+> diff --git a/drivers/pci/dwc/pcie-designware-ep.c b/drivers/pci/dwc/pcie-designware-ep.c
+> index c291da2a10ba..47134a85a342 100644
+> --- a/drivers/pci/dwc/pcie-designware-ep.c
+> +++ b/drivers/pci/dwc/pcie-designware-ep.c
+> @@ -30,7 +30,7 @@ void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
+>  	pci_epc_linkup(epc);
+>  }
+>  
+> -static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
+> +void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
+>  {
+>  	u32 reg;
+>  
+> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+> index 5a1da459eda5..37dfad8d003f 100644
+> --- a/drivers/pci/dwc/pcie-designware.h
+> +++ b/drivers/pci/dwc/pcie-designware.h
+> @@ -338,6 +338,7 @@ static inline int dw_pcie_host_init(struct pcie_port *pp)
+>  void dw_pcie_ep_linkup(struct dw_pcie_ep *ep);
+>  int dw_pcie_ep_init(struct dw_pcie_ep *ep);
+>  void dw_pcie_ep_exit(struct dw_pcie_ep *ep);
+> +void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar);
+>  #else
+>  static inline void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
+>  {
+> @@ -351,5 +352,9 @@ static inline int dw_pcie_ep_init(struct dw_pcie_ep *ep)
+>  static inline void dw_pcie_ep_exit(struct dw_pcie_ep *ep)
+>  {
+>  }
+> +
+> +static inline void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
+> +{
+> +}
+>  #endif
+>  #endif /* _PCIE_DESIGNWARE_H */
+> 
