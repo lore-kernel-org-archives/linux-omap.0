@@ -1,292 +1,118 @@
 From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH v3 09/17] PCI: dwc: dra7xx: Add ifdefs for host/ep specific code
-Date: Tue, 31 Oct 2017 23:39:27 +0100
-Message-ID: <20171031223936.27549-10-niklas.cassel@axis.com>
+Subject: [PATCH v3 15/17] PCI: dwc: Make cpu_addr_fixup take struct dw_pcie as argument
+Date: Tue, 31 Oct 2017 23:39:33 +0100
+Message-ID: <20171031223936.27549-16-niklas.cassel@axis.com>
 References: <20171031223936.27549-1-niklas.cassel@axis.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20171031223936.27549-1-niklas.cassel@axis.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklass@axis.com>, Jesper Nilsson <jespern@axis.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
+Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-This way you will not build and include unused code when only building
-for one mode.
+There is no need to hard code the cpu to bus address fixup mask.
+The PCIe controller has a global address on the AXI bus, however,
+from the perspective of the PCIe controller, its base starts at 0x0,
+so the local address is 0x0. To get the bus address, simply subtract
+the global address from the cpu address. The global address is taken
+from device tree.
 
-Moved dra7xx_pcie_enable_wrapper_interrupts() and dra7xx_add_pcie_port()
-in order to keep all host specific code inside a single ifdef block.
+Also for ARTPEC-7, hard coding the cpu to bus address fixup mask is
+not possible, since it uses a High Address Bits Look Up Table, which
+means that it can, at runtime, map the PCIe window to an arbitrary
+address in the 32-bit address space.
 
-Moved dra7xx_pcie_ep_unaligned_memaccess() in order to keep all ep
-specific code inside a single ifdef block.
+This also fixes a bug for ARTPEC-6, where the cpu to bus address
+fixup mask previously was off by one (GENMASK(27, 0), rather than
+GENMASK(28, 0)), which is another reason why the it is a good idea
+to calculate the mask by using values from device tree.
 
 Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
 ---
 V3:
-* Fixed commit message.
-* Moved functions in order to have just a single ifdef for host,
-  and a single ifdef for ep.
-* Removed ifdefs around match table and match table data.
-* Removed ifdefs in probe, use dummy implementations instead.
+* No change.
 
- drivers/pci/dwc/pci-dra7xx.c | 201 ++++++++++++++++++++++++-------------------
- 1 file changed, 111 insertions(+), 90 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c      |  2 +-
+ drivers/pci/dwc/pcie-artpec6.c    | 18 ++++++++++++++----
+ drivers/pci/dwc/pcie-designware.c |  2 +-
+ drivers/pci/dwc/pcie-designware.h |  2 +-
+ 4 files changed, 17 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 009f6aeeee1c..b4c204aa932a 100644
+index b4c204aa932a..4d5cff76e64a 100644
 --- a/drivers/pci/dwc/pci-dra7xx.c
 +++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -171,6 +171,15 @@ static int dra7xx_pcie_establish_link(struct dw_pcie *pci)
- 	return 0;
+@@ -109,7 +109,7 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
+ 	writel(value, pcie->base + offset);
  }
  
-+static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
-+{
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
-+			   INTERRUPTS);
-+	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
-+			   INTERRUPTS);
-+}
-+
-+#ifdef CONFIG_PCI_DRA7XX_HOST
- static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
+-static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
++static u64 dra7xx_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
  {
- 	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI,
-@@ -181,14 +190,6 @@ static void dra7xx_pcie_enable_msi_interrupts(struct dra7xx_pcie *dra7xx)
- 			   MSI | LEG_EP_INTERRUPTS);
+ 	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
  }
+diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
+index 413683d7bd9d..e5b5665786ab 100644
+--- a/drivers/pci/dwc/pcie-artpec6.c
++++ b/drivers/pci/dwc/pcie-artpec6.c
+@@ -69,8 +69,6 @@ static const struct of_device_id artpec6_pcie_of_match[];
+ #define PHY_STATUS			0x118
+ #define  PHY_COSPLLLOCK			BIT(0)
  
--static void dra7xx_pcie_enable_wrapper_interrupts(struct dra7xx_pcie *dra7xx)
--{
--	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MAIN,
--			   INTERRUPTS);
--	dra7xx_pcie_writel(dra7xx, PCIECTRL_DRA7XX_CONF_IRQENABLE_SET_MAIN,
--			   INTERRUPTS);
--}
+-#define ARTPEC6_CPU_TO_BUS_ADDR		GENMASK(27, 0)
 -
- static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
+ static u32 artpec6_pcie_readl(struct artpec6_pcie *artpec6_pcie, u32 offset)
  {
- 	dra7xx_pcie_enable_wrapper_interrupts(dra7xx);
-@@ -277,6 +278,56 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
- 	return IRQ_HANDLED;
+ 	u32 val;
+@@ -84,9 +82,21 @@ static void artpec6_pcie_writel(struct artpec6_pcie *artpec6_pcie, u32 offset, u
+ 	regmap_write(artpec6_pcie->regmap, offset, val);
  }
  
-+static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
-+				       struct platform_device *pdev)
-+{
-+	int ret;
-+	struct dw_pcie *pci = dra7xx->pci;
+-static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
++static u64 artpec6_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
+ {
+-	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
++	struct artpec6_pcie *artpec6_pcie = to_artpec6_pcie(pci);
 +	struct pcie_port *pp = &pci->pp;
-+	struct device *dev = pci->dev;
-+	struct resource *res;
++	struct dw_pcie_ep *ep = &pci->ep;
 +
-+	pp->irq = platform_get_irq(pdev, 1);
-+	if (pp->irq < 0) {
-+		dev_err(dev, "missing IRQ resource\n");
-+		return pp->irq;
++	switch (artpec6_pcie->mode) {
++	case DW_PCIE_RC_TYPE:
++		return pci_addr - pp->cfg0_base;
++	case DW_PCIE_EP_TYPE:
++		return pci_addr - ep->phys_base;
++	default:
++		dev_err(pci->dev, "UNKNOWN device type\n");
 +	}
-+
-+	ret = devm_request_irq(dev, pp->irq, dra7xx_pcie_msi_irq_handler,
-+			       IRQF_SHARED | IRQF_NO_THREAD,
-+			       "dra7-pcie-msi",	dra7xx);
-+	if (ret) {
-+		dev_err(dev, "failed to request irq\n");
-+		return ret;
-+	}
-+
-+	ret = dra7xx_pcie_init_irq_domain(pp);
-+	if (ret < 0)
-+		return ret;
-+
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "rc_dbics");
-+	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
-+	if (!pci->dbi_base)
-+		return -ENOMEM;
-+
-+	pp->ops = &dra7xx_pcie_host_ops;
-+
-+	ret = dw_pcie_host_init(pp);
-+	if (ret) {
-+		dev_err(dev, "failed to initialize host\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+#else
-+static inline int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
-+					      struct platform_device *pdev)
-+{
-+	return -ENODEV;
-+}
-+#endif
-+
- static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- {
- 	struct dra7xx_pcie *dra7xx = arg;
-@@ -336,6 +387,7 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	return IRQ_HANDLED;
++	return pci_addr;
  }
  
-+#ifdef CONFIG_PCI_DRA7XX_EP
- static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
- {
- 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
-@@ -390,6 +442,48 @@ static struct dw_pcie_ep_ops pcie_ep_ops = {
- 	.raise_irq = dra7xx_pcie_raise_irq,
+ static int artpec6_pcie_establish_link(struct dw_pcie *pci)
+diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
+index 88abdddee2ad..800be7a4f087 100644
+--- a/drivers/pci/dwc/pcie-designware.c
++++ b/drivers/pci/dwc/pcie-designware.c
+@@ -149,7 +149,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
+ 	u32 retries, val;
+ 
+ 	if (pci->ops->cpu_addr_fixup)
+-		cpu_addr = pci->ops->cpu_addr_fixup(cpu_addr);
++		cpu_addr = pci->ops->cpu_addr_fixup(pci, cpu_addr);
+ 
+ 	if (pci->iatu_unroll_enabled) {
+ 		dw_pcie_prog_outbound_atu_unroll(pci, index, type, cpu_addr,
+diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+index 24edac035160..cca5a81c1c74 100644
+--- a/drivers/pci/dwc/pcie-designware.h
++++ b/drivers/pci/dwc/pcie-designware.h
+@@ -205,7 +205,7 @@ struct dw_pcie_ep {
  };
  
-+/*
-+ * dra7xx_pcie_ep_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
-+ * @dra7xx: the dra7xx device where the workaround should be applied
-+ *
-+ * Access to the PCIe slave port that are not 32-bit aligned will result
-+ * in incorrect mapping to TLP Address and Byte enable fields. Therefore,
-+ * byte and half-word accesses are not possible to byte offset 0x1, 0x2, or
-+ * 0x3.
-+ *
-+ * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
-+ */
-+static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
-+{
-+	int ret;
-+	struct device_node *np = dev->of_node;
-+	struct of_phandle_args args;
-+	struct regmap *regmap;
-+
-+	regmap = syscon_regmap_lookup_by_phandle(np,
-+						 "ti,syscon-unaligned-access");
-+	if (IS_ERR(regmap)) {
-+		dev_dbg(dev, "can't get ti,syscon-unaligned-access\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = of_parse_phandle_with_fixed_args(np, "ti,syscon-unaligned-access",
-+					       2, 0, &args);
-+	if (ret) {
-+		dev_err(dev, "failed to parse ti,syscon-unaligned-access\n");
-+		return ret;
-+	}
-+
-+	ret = regmap_update_bits(regmap, args.args[0], args.args[1],
-+				 args.args[1]);
-+	if (ret)
-+		dev_err(dev, "failed to enable unaligned access\n");
-+
-+	of_node_put(args.np);
-+
-+	return ret;
-+}
-+
- static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
- 				     struct platform_device *pdev)
- {
-@@ -427,49 +521,18 @@ static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
- 
- 	return 0;
- }
--
--static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
--				       struct platform_device *pdev)
-+#else
-+static inline int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
- {
--	int ret;
--	struct dw_pcie *pci = dra7xx->pci;
--	struct pcie_port *pp = &pci->pp;
--	struct device *dev = pci->dev;
--	struct resource *res;
--
--	pp->irq = platform_get_irq(pdev, 1);
--	if (pp->irq < 0) {
--		dev_err(dev, "missing IRQ resource\n");
--		return pp->irq;
--	}
--
--	ret = devm_request_irq(dev, pp->irq, dra7xx_pcie_msi_irq_handler,
--			       IRQF_SHARED | IRQF_NO_THREAD,
--			       "dra7-pcie-msi",	dra7xx);
--	if (ret) {
--		dev_err(dev, "failed to request irq\n");
--		return ret;
--	}
--
--	ret = dra7xx_pcie_init_irq_domain(pp);
--	if (ret < 0)
--		return ret;
--
--	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "rc_dbics");
--	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
--	if (!pci->dbi_base)
--		return -ENOMEM;
--
--	pp->ops = &dra7xx_pcie_host_ops;
--
--	ret = dw_pcie_host_init(pp);
--	if (ret) {
--		dev_err(dev, "failed to initialize host\n");
--		return ret;
--	}
-+	return -ENODEV;
-+}
- 
--	return 0;
-+static inline int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
-+					    struct platform_device *pdev)
-+{
-+	return -ENODEV;
- }
-+#endif
- 
- static const struct dw_pcie_ops dw_pcie_ops = {
- 	.cpu_addr_fixup = dra7xx_pcie_cpu_addr_fixup,
-@@ -537,48 +600,6 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
- 	{},
- };
- 
--/*
-- * dra7xx_pcie_ep_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
-- * @dra7xx: the dra7xx device where the workaround should be applied
-- *
-- * Access to the PCIe slave port that are not 32-bit aligned will result
-- * in incorrect mapping to TLP Address and Byte enable fields. Therefore,
-- * byte and half-word accesses are not possible to byte offset 0x1, 0x2, or
-- * 0x3.
-- *
-- * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
-- */
--static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
--{
--	int ret;
--	struct device_node *np = dev->of_node;
--	struct of_phandle_args args;
--	struct regmap *regmap;
--
--	regmap = syscon_regmap_lookup_by_phandle(np,
--						 "ti,syscon-unaligned-access");
--	if (IS_ERR(regmap)) {
--		dev_dbg(dev, "can't get ti,syscon-unaligned-access\n");
--		return -EINVAL;
--	}
--
--	ret = of_parse_phandle_with_fixed_args(np, "ti,syscon-unaligned-access",
--					       2, 0, &args);
--	if (ret) {
--		dev_err(dev, "failed to parse ti,syscon-unaligned-access\n");
--		return ret;
--	}
--
--	ret = regmap_update_bits(regmap, args.args[0], args.args[1],
--				 args.args[1]);
--	if (ret)
--		dev_err(dev, "failed to enable unaligned access\n");
--
--	of_node_put(args.np);
--
--	return ret;
--}
--
- static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- {
- 	u32 reg;
+ struct dw_pcie_ops {
+-	u64	(*cpu_addr_fixup)(u64 cpu_addr);
++	u64	(*cpu_addr_fixup)(struct dw_pcie *pcie, u64 cpu_addr);
+ 	u32	(*read_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
+ 			    size_t size);
+ 	void	(*write_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
 -- 
 2.14.2
