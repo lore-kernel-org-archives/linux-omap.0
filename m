@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 5/7] clocksource: dmtimer: Populate the timer ops to the pdata
-Date: Tue, 31 Oct 2017 15:58:44 +0530
-Message-ID: <1509445726-21040-6-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH 4/7] dmtimer: Add timer ops to the platform data structure
+Date: Tue, 31 Oct 2017 15:58:43 +0530
+Message-ID: <1509445726-21040-5-git-send-email-j-keerthy@ti.com>
 References: <1509445726-21040-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,50 +12,67 @@ To: tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, thierry.reding@g
 Cc: daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Add the timer ops to the platform data
+Add timer ops to the platform data structure
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
- drivers/clocksource/dmtimer.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ include/linux/platform_data/dmtimer-omap.h | 38 ++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff --git a/drivers/clocksource/dmtimer.c b/drivers/clocksource/dmtimer.c
-index afe1dc9..1cbd954 100644
---- a/drivers/clocksource/dmtimer.c
-+++ b/drivers/clocksource/dmtimer.c
-@@ -922,8 +922,33 @@ static int omap_dm_timer_remove(struct platform_device *pdev)
- 	return ret;
- }
+diff --git a/include/linux/platform_data/dmtimer-omap.h b/include/linux/platform_data/dmtimer-omap.h
+index a19b78d..a3e1794 100644
+--- a/include/linux/platform_data/dmtimer-omap.h
++++ b/include/linux/platform_data/dmtimer-omap.h
+@@ -20,12 +20,50 @@
+ #ifndef __PLATFORM_DATA_DMTIMER_OMAP_H__
+ #define __PLATFORM_DATA_DMTIMER_OMAP_H__
  
-+static struct omap_dm_timer_ops dmtimer_ops = {
-+	.request_by_node = omap_dm_timer_request_by_node,
-+	.request_specific = omap_dm_timer_request_specific,
-+	.request = omap_dm_timer_request,
-+	.set_source = omap_dm_timer_set_source,
-+	.get_irq = omap_dm_timer_get_irq,
-+	.set_int_enable = omap_dm_timer_set_int_enable,
-+	.set_int_disable = omap_dm_timer_set_int_disable,
-+	.free = omap_dm_timer_free,
-+	.enable = omap_dm_timer_enable,
-+	.disable = omap_dm_timer_disable,
-+	.get_fclk = omap_dm_timer_get_fclk,
-+	.start = omap_dm_timer_start,
-+	.stop = omap_dm_timer_stop,
-+	.set_load = omap_dm_timer_set_load,
-+	.set_match = omap_dm_timer_set_match,
-+	.set_pwm = omap_dm_timer_set_pwm,
-+	.set_prescaler = omap_dm_timer_set_prescaler,
-+	.read_counter = omap_dm_timer_read_counter,
-+	.write_counter = omap_dm_timer_write_counter,
-+	.read_status = omap_dm_timer_read_status,
-+	.write_status = omap_dm_timer_write_status,
++struct omap_dm_timer_ops {
++	struct omap_dm_timer *(*request_by_node)(struct device_node *np);
++	struct omap_dm_timer *(*request_specific)(int timer_id);
++	struct omap_dm_timer *(*request)(void);
++
++	int	(*free)(struct omap_dm_timer *timer);
++
++	void	(*enable)(struct omap_dm_timer *timer);
++	void	(*disable)(struct omap_dm_timer *timer);
++
++	int	(*get_irq)(struct omap_dm_timer *timer);
++	int	(*set_int_enable)(struct omap_dm_timer *timer,
++				  unsigned int value);
++	int	(*set_int_disable)(struct omap_dm_timer *timer, u32 mask);
++
++	struct clk *(*get_fclk)(struct omap_dm_timer *timer);
++
++	int	(*start)(struct omap_dm_timer *timer);
++	int	(*stop)(struct omap_dm_timer *timer);
++	int	(*set_source)(struct omap_dm_timer *timer, int source);
++
++	int	(*set_load)(struct omap_dm_timer *timer, int autoreload,
++			    unsigned int value);
++	int	(*set_match)(struct omap_dm_timer *timer, int enable,
++			     unsigned int match);
++	int	(*set_pwm)(struct omap_dm_timer *timer, int def_on,
++			   int toggle, int trigger);
++	int	(*set_prescaler)(struct omap_dm_timer *timer, int prescaler);
++
++	unsigned int (*read_counter)(struct omap_dm_timer *timer);
++	int	(*write_counter)(struct omap_dm_timer *timer,
++				 unsigned int value);
++	unsigned int (*read_status)(struct omap_dm_timer *timer);
++	int	(*write_status)(struct omap_dm_timer *timer,
++				unsigned int value);
 +};
 +
- static const struct dmtimer_platform_data omap3plus_pdata = {
- 	.timer_errata = OMAP_TIMER_ERRATA_I103_I767,
-+	.timer_ops = &dmtimer_ops,
+ struct dmtimer_platform_data {
+ 	/* set_timer_src - Only used for OMAP1 devices */
+ 	int (*set_timer_src)(struct platform_device *pdev, int source);
+ 	u32 timer_capability;
+ 	u32 timer_errata;
+ 	int (*get_context_loss_count)(struct device *);
++	struct omap_dm_timer_ops *timer_ops;
  };
  
- static const struct of_device_id omap_timer_match[] = {
+ #endif /* __PLATFORM_DATA_DMTIMER_OMAP_H__ */
 -- 
 1.9.1
