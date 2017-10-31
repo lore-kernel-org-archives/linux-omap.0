@@ -1,109 +1,80 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 6/7] pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
-Date: Tue, 31 Oct 2017 15:58:45 +0530
-Message-ID: <1509445726-21040-7-git-send-email-j-keerthy@ti.com>
-References: <1509445726-21040-1-git-send-email-j-keerthy@ti.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH] mfd: palmas: Assign the right powerhold mask for tps65917
+Date: Tue, 31 Oct 2017 10:48:00 +0000
+Message-ID: <20171031104800.sedywmkgf4kp6ych@dell>
+References: <1508833296-20702-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1509445726-21040-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, thierry.reding@gmail.com
-Cc: daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, j-keerthy@ti.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1508833296-20702-1-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
+On Tue, 24 Oct 2017, Keerthy wrote:
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- drivers/pwm/pwm-omap-dmtimer.c | 39 ++++++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+> The powerhold mask for TPS65917 is different when comapred to
+> the other palmas versions. Hence assign the right mask that enables
+> power off of tps65917 pmic correctly.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  drivers/mfd/palmas.c       | 10 +++++++++-
+>  include/linux/mfd/palmas.h |  3 +++
+>  2 files changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+> index 3922a93..663a239 100644
+> --- a/drivers/mfd/palmas.c
+> +++ b/drivers/mfd/palmas.c
+> @@ -430,6 +430,7 @@ static void palmas_power_off(void)
+>  {
+>  	unsigned int addr;
+>  	int ret, slave;
+> +	u8 powerhold_mask;
+>  	struct device_node *np = palmas_dev->dev->of_node;
+>  
+>  	if (of_property_read_bool(np, "ti,palmas-override-powerhold")) {
+> @@ -437,8 +438,15 @@ static void palmas_power_off(void)
+>  					  PALMAS_PRIMARY_SECONDARY_PAD2);
+>  		slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+>  
+> +		if (of_device_is_compatible(np, "ti,tps65917"))
 
-diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-index 5ad42f3..3b27aff 100644
---- a/drivers/pwm/pwm-omap-dmtimer.c
-+++ b/drivers/pwm/pwm-omap-dmtimer.c
-@@ -23,6 +23,7 @@
- #include <linux/mutex.h>
- #include <linux/of.h>
- #include <linux/of_platform.h>
-+#include <linux/platform_data/dmtimer-omap.h>
- #include <linux/platform_data/pwm_omap_dmtimer.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-@@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
- 	struct pwm_chip chip;
- 	struct mutex mutex;
- 	pwm_omap_dmtimer *dm_timer;
--	struct pwm_omap_dmtimer_pdata *pdata;
-+	struct omap_dm_timer_ops *pdata;
- 	struct platform_device *dm_timer_pdev;
- };
- 
-@@ -242,19 +243,33 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
- 	struct device_node *timer;
-+	struct platform_device *timer_pdev;
- 	struct pwm_omap_dmtimer_chip *omap;
--	struct pwm_omap_dmtimer_pdata *pdata;
-+	struct dmtimer_platform_data *timer_pdata;
-+	struct omap_dm_timer_ops *pdata;
- 	pwm_omap_dmtimer *dm_timer;
- 	u32 v;
- 	int status;
- 
--	pdata = dev_get_platdata(&pdev->dev);
--	if (!pdata) {
--		dev_err(&pdev->dev, "Missing dmtimer platform data\n");
-+	timer = of_parse_phandle(np, "ti,timers", 0);
-+	if (!timer)
-+		return -ENODEV;
-+
-+	timer_pdev = of_find_device_by_node(timer);
-+	if (!timer_pdev) {
-+		dev_err(&pdev->dev, "Unable to find Timer pdev\n");
-+		return -ENODEV;
-+	}
-+
-+	timer_pdata = dev_get_platdata(&timer_pdev->dev);
-+	if (!timer_pdata) {
-+		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
- 		return -EINVAL;
- 	}
- 
--	if (!pdata->request_by_node ||
-+	pdata = timer_pdata->timer_ops;
-+
-+	if (!pdata || !pdata->request_by_node ||
- 	    !pdata->free ||
- 	    !pdata->enable ||
- 	    !pdata->disable ||
-@@ -270,10 +285,6 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	timer = of_parse_phandle(np, "ti,timers", 0);
--	if (!timer)
--		return -ENODEV;
--
- 	if (!of_get_property(timer, "ti,timer-pwm", NULL)) {
- 		dev_err(&pdev->dev, "Missing ti,timer-pwm capability\n");
- 		return -ENODEV;
-@@ -291,13 +302,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- 
- 	omap->pdata = pdata;
- 	omap->dm_timer = dm_timer;
--
--	omap->dm_timer_pdev = of_find_device_by_node(timer);
--	if (!omap->dm_timer_pdev) {
--		dev_err(&pdev->dev, "Unable to find timer pdev\n");
--		omap->pdata->free(dm_timer);
--		return -EINVAL;
--	}
-+	omap->dm_timer_pdev = timer_pdev;
- 
- 	/*
- 	 * Ensure that the timer is stopped before we allow PWM core to call
+Is it possible to interrogate the device itself, rather than DT?
+
+> +			powerhold_mask =
+> +				TPS65917_PRIMARY_SECONDARY_PAD2_GPIO_5_MASK;
+> +		else
+> +			powerhold_mask =
+> +				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK;
+> +
+>  		ret = regmap_update_bits(palmas_dev->regmap[slave], addr,
+> -				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK, 0);
+> +					 powerhold_mask, 0);
+>  		if (ret)
+>  			dev_err(palmas_dev->dev,
+>  				"Unable to write PRIMARY_SECONDARY_PAD2 %d\n",
+> diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+> index 6dec438..cffb23b 100644
+> --- a/include/linux/mfd/palmas.h
+> +++ b/include/linux/mfd/palmas.h
+> @@ -3733,6 +3733,9 @@ enum usb_irq_events {
+>  #define TPS65917_REGEN3_CTRL_MODE_ACTIVE			0x01
+>  #define TPS65917_REGEN3_CTRL_MODE_ACTIVE_SHIFT			0x00
+>  
+> +/* POWERHOLD Mask field for PRIMARY_SECONDARY_PAD2 register */
+> +#define TPS65917_PRIMARY_SECONDARY_PAD2_GPIO_5_MASK		0xC
+> +
+>  /* Registers for function RESOURCE */
+>  #define TPS65917_REGEN1_CTRL					0x2
+>  #define TPS65917_PLLEN_CTRL					0x3
+
 -- 
-1.9.1
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
