@@ -1,79 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Nokia N9: fun with camera
-Date: Wed, 1 Nov 2017 07:36:55 +0100
-Message-ID: <20171101063655.GA16895@amd>
-References: <20170424212914.GA20780@amd>
- <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426082608.7dd52fbf@vento.lan>
- <20171021220026.GA26881@amd>
- <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
- <20171023185414.GA2258@amd>
- <40C85971-7DDE-4FB0-AB90-C52CA864C0D4@xs4all.nl>
- <20171023201557.hecu4e6o3ynp5hmv@valkosipuli.retiisi.org.uk>
- <20171031212812.GA11148@amd>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: dts: am4372: Correct the interrupts_properties of McASP
+Date: Wed, 1 Nov 2017 11:03:31 +0200
+Message-ID: <20171101090331.15435-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171031212812.GA11148@amd>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+Fixes the following wanring:
+arch/arm/boot/dts/am437x-cm-t43.dtb: Warning (interrupts_property): interrupts size is (8), expected multiple of 12 in /ocp@44000000/mcasp@48038000
+arch/arm/boot/dts/am437x-cm-t43.dtb: Warning (interrupts_property): interrupts size is (8), expected multiple of 12 in /ocp@44000000/mcasp@4803C000
 
---ZPt4rx8FFjLCG7dd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am4372.dtsi | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Hi!
+diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
+index e5b061469bf8..4714a59fd86d 100644
+--- a/arch/arm/boot/dts/am4372.dtsi
++++ b/arch/arm/boot/dts/am4372.dtsi
+@@ -927,7 +927,8 @@
+ 			reg = <0x48038000 0x2000>,
+ 			      <0x46000000 0x400000>;
+ 			reg-names = "mpu", "dat";
+-			interrupts = <80>, <81>;
++			interrupts = <GIC_SPI 80 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 81 IRQ_TYPE_LEVEL_HIGH>;
+ 			interrupt-names = "tx", "rx";
+ 			status = "disabled";
+ 			dmas = <&edma 8 2>,
+@@ -941,7 +942,8 @@
+ 			reg = <0x4803C000 0x2000>,
+ 			      <0x46400000 0x400000>;
+ 			reg-names = "mpu", "dat";
+-			interrupts = <82>, <83>;
++			interrupts = <GIC_SPI 82 IRQ_TYPE_LEVEL_HIGH>,
++				     <GIC_SPI 83 IRQ_TYPE_LEVEL_HIGH>;
+ 			interrupt-names = "tx", "rx";
+ 			status = "disabled";
+ 			dmas = <&edma 10 2>,
+-- 
+Peter
 
-> Sakari, I am actually playing with N9 camera, not N950. That comes
-> next.
->=20
-> And the clock error I mentioned ... seems to be
-> -EPROBE_DEFER. So... not an issue.
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
-Hmm, and with similar config, I got N950 to work. ... which should
-give me enough clues to get N9 to work. I guess I forgot to reset the
-pipeline between the tries, or something.
-
-For the record, this got me some data on n950:
-
- m.media_ctl( [ '-f', '"OMAP3 ISP CSI2a":0 [fmt:%s/%dx%d]' % (m.fmt, m.cap_=
-x, m.cap_y) ] )
- m.media_ctl( [ '-l', '"OMAP3 ISP CSI2a":1 -> "OMAP3 ISP CSI2a output":0[1]=
-' ] )
-
- # WORKS!!!!
- # pavel@n900:~/g/tui/camera$ sudo /my/tui/yavta/yavta
- # --capture=3D8 --skip 0 --format SGRBG10 --size 4272x3016 /dev/video1 --f=
-ile=3D/tmp/delme#
-
-=2E..ouch. It only worked twice :-(. Either driver gets confused by my
-attempts, or it relied on some other initialization code. Strange.
-
-Best regards,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---ZPt4rx8FFjLCG7dd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAln5a4cACgkQMOfwapXb+vKgFgCeIC51RHGxuOfU3rWVF/Xx54CS
-1OAAoKXYL8Hg3g6SHcC8MqbTSFRldb22
-=s7t5
------END PGP SIGNATURE-----
-
---ZPt4rx8FFjLCG7dd--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
