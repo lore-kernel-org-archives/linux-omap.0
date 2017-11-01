@@ -1,75 +1,79 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: Re: [PATCH v2 09/17] PCI: dwc: dra7xx: Add ifdefs for host/ep
- specific code
-Date: Tue, 31 Oct 2017 23:51:21 +0100
-Message-ID: <4bd547f0-8da7-cc90-6fa1-56a12b9fd72d@axis.com>
-References: <20171030124221.20690-1-niklas.cassel@axis.com>
- <20171030124221.20690-10-niklas.cassel@axis.com>
- <32dd0d05-4ed0-1c8b-6ea4-ea4d560c5570@ti.com>
- <669377ab-b859-24ed-5a2b-36bf826d426b@axis.com>
- <f99d17a1-19c3-a63d-3758-7def12d634e5@axis.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Nokia N9: fun with camera
+Date: Wed, 1 Nov 2017 07:36:55 +0100
+Message-ID: <20171101063655.GA16895@amd>
+References: <20170424212914.GA20780@amd>
+ <20170424224724.5bb52382@vento.lan>
+ <20170426105300.GA857@amd>
+ <20170426082608.7dd52fbf@vento.lan>
+ <20171021220026.GA26881@amd>
+ <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
+ <20171023185414.GA2258@amd>
+ <40C85971-7DDE-4FB0-AB90-C52CA864C0D4@xs4all.nl>
+ <20171023201557.hecu4e6o3ynp5hmv@valkosipuli.retiisi.org.uk>
+ <20171031212812.GA11148@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <f99d17a1-19c3-a63d-3758-7def12d634e5@axis.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171031212812.GA11148@amd>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 10/31/2017 10:38 PM, Niklas Cassel wrote:
->>>>  
->>>>  static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>>>  {
->>>> @@ -681,6 +697,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>>>  		dra7xx->link_gen = 2;
->>>>  
->>>>  	switch (mode) {
->>>> +#ifdef CONFIG_PCI_DRA7XX_HOST
->>>>  	case DW_PCIE_RC_TYPE:
->>>>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
->>>>  				   DEVICE_TYPE_RC);
->>>> @@ -688,6 +705,8 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>>>  		if (ret < 0)
->>>>  			goto err_gpio;
->>>>  		break;
->>>> +#endif
->>>> +#ifdef CONFIG_PCI_DRA7XX_EP
->>>>  	case DW_PCIE_EP_TYPE:
->>>>  		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
->>>>  				   DEVICE_TYPE_EP);
->>>> @@ -700,6 +719,7 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
->>>>  		if (ret < 0)
->>>>  			goto err_gpio;
->>>>  		break;
->>>> +#endif
->>
->> Actually, these ifdefs has to stay, otherwise we get build warnings, since we
->> are calling functions that aren't defined (dra7xx_pcie_ep_unaligned_memaccess,
->> dra7xx_add_pcie_ep, dra7xx_add_pcie_port).
->> We could add dummy implementations for these inside an #else block following
->> the ifdef blocks. However, I think that adding dummy implementations in the
->> #else block is uglier and more verbose than keeping the ifdefs around the
->> two cases.
->>
-> 
-> ..however, if you prefer dummy implementations inside the #else blocks,
-> I will of course do that.
-> 
+Hi!
 
+> Sakari, I am actually playing with N9 camera, not N950. That comes
+> next.
+>=20
+> And the clock error I mentioned ... seems to be
+> -EPROBE_DEFER. So... not an issue.
 
-And after thinking about it for a while a decided to go with dummy
-implementations in the #else blocks anyway :)
+Hmm, and with similar config, I got N950 to work. ... which should
+give me enough clues to get N9 to work. I guess I forgot to reset the
+pipeline between the tries, or something.
 
-This is how we usually do it in kernel code, we have one implementation
-if a certain Kconfig is set, and a dummy one if the Kconfig is not set.
-This way we avoid seeing ifdefs sprinkled all over the code, which makes
-it easier when trying to follow the flow of the code.
+For the record, this got me some data on n950:
 
+ m.media_ctl( [ '-f', '"OMAP3 ISP CSI2a":0 [fmt:%s/%dx%d]' % (m.fmt, m.cap_=
+x, m.cap_y) ] )
+ m.media_ctl( [ '-l', '"OMAP3 ISP CSI2a":1 -> "OMAP3 ISP CSI2a output":0[1]=
+' ] )
 
-Regards,
-Niklas
+ # WORKS!!!!
+ # pavel@n900:~/g/tui/camera$ sudo /my/tui/yavta/yavta
+ # --capture=3D8 --skip 0 --format SGRBG10 --size 4272x3016 /dev/video1 --f=
+ile=3D/tmp/delme#
+
+=2E..ouch. It only worked twice :-(. Either driver gets confused by my
+attempts, or it relied on some other initialization code. Strange.
+
+Best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAln5a4cACgkQMOfwapXb+vKgFgCeIC51RHGxuOfU3rWVF/Xx54CS
+1OAAoKXYL8Hg3g6SHcC8MqbTSFRldb22
+=s7t5
+-----END PGP SIGNATURE-----
+
+--ZPt4rx8FFjLCG7dd--
