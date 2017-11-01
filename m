@@ -1,121 +1,72 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: Nokia N9: fun with camera
-Date: Wed, 1 Nov 2017 16:32:07 +0100
-Message-ID: <20171101153207.GA28559@amd>
-References: <20170424224724.5bb52382@vento.lan>
- <20170426105300.GA857@amd>
- <20170426082608.7dd52fbf@vento.lan>
- <20171021220026.GA26881@amd>
- <f85cab54-30cf-0774-7376-abced86842af@xs4all.nl>
- <20171023185414.GA2258@amd>
- <40C85971-7DDE-4FB0-AB90-C52CA864C0D4@xs4all.nl>
- <20171023201557.hecu4e6o3ynp5hmv@valkosipuli.retiisi.org.uk>
- <20171031212812.GA11148@amd>
- <20171101063655.GA16895@amd>
+Subject: Display on Nokia N950 was Re: Serial cable N9
+Date: Wed, 1 Nov 2017 22:46:18 +0100
+Message-ID: <20171101214618.GB1636@amd>
+References: <20171029082331.GA4358@amd>
+ <b05ead6d-3996-3bfc-8f09-09d0229a79b3@gmail.com>
+ <20171030074816.GA31977@amd>
+ <1cbe2c73-754d-f0c5-1732-b306c7f86f85@gmail.com>
+ <20171030205232.GA28601@amd>
+ <0f4b8908-7421-6481-8415-3563f347b9de@gmail.com>
+ <d3682a85-7910-78fc-407d-fdd333a1d60f@gmail.com>
+ <50c15c96-36f5-1e1b-0538-9c758919141c@gmail.com>
+ <20171101193220.GA14009@amd>
+ <2851c57a-7aba-ddab-3201-03d91fdfa040@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="lrZ03NoBR/3+SXJZ"
-Return-path: <linux-media-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="qlTNgmc+xy1dBmNv"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171101063655.GA16895@amd>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Mauro Carvalho Chehab <mchehab@s-opensource.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, linux-media@vger.kernel.org
+In-Reply-To: <2851c57a-7aba-ddab-3201-03d91fdfa040@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, airlied@redhat.com, tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
 
---lrZ03NoBR/3+SXJZ
+--qlTNgmc+xy1dBmNv
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi!
 
-> > Sakari, I am actually playing with N9 camera, not N950. That comes
-> > next.
-> >=20
-> > And the clock error I mentioned ... seems to be
-> > -EPROBE_DEFER. So... not an issue.
+> > For the record, display does not work for me in 4.14 on either n9 or
+> > n950. I did not investigate that, yet.
 >=20
-> Hmm, and with similar config, I got N950 to work. ... which should
-> give me enough clues to get N9 to work. I guess I forgot to reset the
-> pipeline between the tries, or something.
->=20
-> For the record, this got me some data on n950:
->=20
->  m.media_ctl( [ '-f', '"OMAP3 ISP CSI2a":0 [fmt:%s/%dx%d]' % (m.fmt, m.ca=
-p_x, m.cap_y) ] )
->  m.media_ctl( [ '-l', '"OMAP3 ISP CSI2a":1 -> "OMAP3 ISP CSI2a output":0[=
-1]' ] )
->=20
->  # WORKS!!!!
->  # pavel@n900:~/g/tui/camera$ sudo /my/tui/yavta/yavta
->  # --capture=3D8 --skip 0 --format SGRBG10 --size 4272x3016 /dev/video1 -=
--file=3D/tmp/delme#
->=20
-> ...ouch. It only worked twice :-(. Either driver gets confused by my
-> attempts, or it relied on some other initialization code. Strange.
+> On v4.13 framebuffer console works OK (I haven't tested anything more in
+> fact), but somewhere between v4.13 and v4.14-rc1 there is a commit that
+> breaks things - my best guess at this time after a partial git bisect is
+> that 906dde0f355bd97c080c215811ae7db1137c4af8 is the one to look at.
 
-Hmm, so it works "reliably" after boot. But it also locks up machine
-with high probability. If you have N950, it might still be handy...
+Confirmed. Reverting the merge (as far as it can be reverted) gets me
+booting N950 with working display. (With 906dde applied, backlight
+goes turns on, so it looks like display driver is initialized, but
+then machine is killed, probably by watchdog).
 
-Messages are:
+AFAICT N950 display never worked on mainline; I'm using Sebastian's
+patches to get it to work.
 
-['-r']
-['-f', '"OMAP3 ISP CSI2a":0 [fmt:SGRBG10/4272x3016]']
-Warning: the -f option is deprecated and has been replaced by -V.
-['-l', '"OMAP3 ISP CSI2a":1 -> "OMAP3 ISP CSI2a output":0[1]']
-Testing: is raw
-Testing:  /my/tui/yavta/yavta --capture=3D8 --skip 0 --format SGRBG10
---size 4272x3016 /dev/video_sensor --file=3D/tmp/delme#
-Error opening device /dev/video_sensor: Permission denied (13).
-Raw mode is  1
-Raw mode is  1
-Testing: is raw
-Testing:  /my/tui/yavta/yavta --capture=3D8 --skip 0 --format SGRBG10
---size 4272x3016 /dev/video_sensor --file=3D/tmp/delme#
-Device /dev/video_sensor opened.
-Device `OMAP3 ISP CSI2a output' on `media' is a video capture (without
-mplanes) device.
-Video format set: SGRBG10 (30314142) 4272x3016 (stride 8544) field
-none buffer size 25768704
-Video format: SGRBG10 (30314142) 4272x3016 (stride 8544) field none
-buffer size 25768704
-1 buffers requested.
-length: 25768704 offset: 0 timestamp type/source: mono/EoF
-Buffer 0/0 mapped at address 0xb54e9000.
-0 (0) [-] none 0 25768704 B 691.756907 691.758403 6.212 fps ts
-mono/EoF
-1 (0) [-] none 1 25768704 B 694.821025 694.821422 0.326 fps ts
-mono/EoF
-2 (0) [E] none 2 25768704 B 698.530833 698.534739 0.270 fps ts
-mono/EoF
-3 (0) [-] none 3 25768704 B 700.788127 700.790996 0.443 fps ts
-mono/EoF
-(and here it locked up :-(. Sometimes it captures more.)
+Linux n900 4.14.0-rc7-28884-gdf7c8f0-dirty #283 Wed Nov 1 22:31:35 CET
+2017 armv7l GNU/Linux
 
-Thanks,
-
-								Pavel
-
-
-
-
+Filip did all the work here, thanks!
+									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---lrZ03NoBR/3+SXJZ
+--qlTNgmc+xy1dBmNv
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAln56PcACgkQMOfwapXb+vJl5ACfZsaVTvp6jJDxEs6OsbZPX4n2
-BOMAnjh6w2YJHw/iNeGQARLtyCOjM7zB
-=IXXy
+iEYEARECAAYFAln6QKkACgkQMOfwapXb+vJyMQCeLOF7cNCDkGPflAkHulekkKZL
+JgYAn2q+0IHcSUU41RgmajoSGaX8KvLD
+=09Ap
 -----END PGP SIGNATURE-----
 
---lrZ03NoBR/3+SXJZ--
+--qlTNgmc+xy1dBmNv--
