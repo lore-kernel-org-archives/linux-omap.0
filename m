@@ -1,80 +1,57 @@
 From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH v4 05/17] PCI: designware-ep: Remove static keyword from dw_pcie_ep_reset_bar()
-Date: Fri,  3 Nov 2017 14:47:09 +0100
-Message-ID: <20171103134722.5532-6-niklas.cassel@axis.com>
+Subject: [PATCH v4 09/17] PCI: dwc: dra7xx: Help compiler to remove unused code
+Date: Fri,  3 Nov 2017 14:47:13 +0100
+Message-ID: <20171103134722.5532-10-niklas.cassel@axis.com>
 References: <20171103134722.5532-1-niklas.cassel@axis.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20171103134722.5532-1-niklas.cassel@axis.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
 Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove the static keyword from dw_pcie_ep_reset_bar() so that
-pci-dra7xx.c does not need its own copy of dw_pcie_ep_reset_bar().
+The dra7xx driver supports both host and ep mode.
+When enabling support for only one of the modes, help the compiler
+to remove code for the mode that we have not enabled in the driver.
 
+By adding if (!IS_ENABLED(CONFIG_PCI_DRA7XX_HOST)) return -ENODEV;
+anything after that statement will get silently dropped by the compiler,
+including static functions and structures that are referenced indirectly
+from there.
+
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c         | 9 ---------
- drivers/pci/dwc/pcie-designware-ep.c | 2 +-
- drivers/pci/dwc/pcie-designware.h    | 5 +++++
- 3 files changed, 6 insertions(+), 10 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index d0848006945a..a743545da4d4 100644
+index 009f6aeeee1c..4b02b2040eda 100644
 --- a/drivers/pci/dwc/pci-dra7xx.c
 +++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -336,15 +336,6 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	return IRQ_HANDLED;
- }
+@@ -682,6 +682,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
  
--static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
--{
--	u32 reg;
--
--	reg = PCI_BASE_ADDRESS_0 + (4 * bar);
--	dw_pcie_writel_dbi2(pci, reg, 0x0);
--	dw_pcie_writel_dbi(pci, reg, 0x0);
--}
--
- static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
- {
- 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
-diff --git a/drivers/pci/dwc/pcie-designware-ep.c b/drivers/pci/dwc/pcie-designware-ep.c
-index 2684090b782b..9c3820ca6358 100644
---- a/drivers/pci/dwc/pcie-designware-ep.c
-+++ b/drivers/pci/dwc/pcie-designware-ep.c
-@@ -30,7 +30,7 @@ void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
- 	pci_epc_linkup(epc);
- }
- 
--static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
-+void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
- {
- 	u32 reg;
- 
-diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index 5a1da459eda5..37dfad8d003f 100644
---- a/drivers/pci/dwc/pcie-designware.h
-+++ b/drivers/pci/dwc/pcie-designware.h
-@@ -338,6 +338,7 @@ static inline int dw_pcie_host_init(struct pcie_port *pp)
- void dw_pcie_ep_linkup(struct dw_pcie_ep *ep);
- int dw_pcie_ep_init(struct dw_pcie_ep *ep);
- void dw_pcie_ep_exit(struct dw_pcie_ep *ep);
-+void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar);
- #else
- static inline void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
- {
-@@ -351,5 +352,9 @@ static inline int dw_pcie_ep_init(struct dw_pcie_ep *ep)
- static inline void dw_pcie_ep_exit(struct dw_pcie_ep *ep)
- {
- }
+ 	switch (mode) {
+ 	case DW_PCIE_RC_TYPE:
++		if (!IS_ENABLED(CONFIG_PCI_DRA7XX_HOST)) {
++			ret = -ENODEV;
++			goto err_gpio;
++		}
 +
-+static inline void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
-+{
-+}
- #endif
- #endif /* _PCIE_DESIGNWARE_H */
+ 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+ 				   DEVICE_TYPE_RC);
+ 		ret = dra7xx_add_pcie_port(dra7xx, pdev);
+@@ -689,6 +694,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 			goto err_gpio;
+ 		break;
+ 	case DW_PCIE_EP_TYPE:
++		if (!IS_ENABLED(CONFIG_PCI_DRA7XX_EP)) {
++			ret = -ENODEV;
++			goto err_gpio;
++		}
++
+ 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+ 				   DEVICE_TYPE_EP);
+ 
 -- 
 2.14.2
