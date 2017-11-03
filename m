@@ -1,19 +1,15 @@
 From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: Build failure with verify size in next-20171102
-Date: Fri, 3 Nov 2017 09:12:14 +0000
-Message-ID: <20171103091213.GD28231@n2100.armlinux.org.uk>
-References: <20171102193027.GB28152@atomide.com>
- <20171102232038.GA28231@n2100.armlinux.org.uk>
- <20171102234309.GE28152@atomide.com>
- <20171103000437.GB28231@n2100.armlinux.org.uk>
- <20171103001437.GC28231@n2100.armlinux.org.uk>
- <CAKv+Gu_E66aC7iLcqtszpx2yYSC1eskQ3JAm4QXAPhTPBw7nhQ@mail.gmail.com>
+Subject: SDP4430 nightly regression (was: Re: [GIT PULL] two omap regression
+ fixes)
+Date: Fri, 3 Nov 2017 10:43:16 +0000
+Message-ID: <20171103104316.GE28231@n2100.armlinux.org.uk>
+References: <pull-1509652473-291160@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAKv+Gu_E66aC7iLcqtszpx2yYSC1eskQ3JAm4QXAPhTPBw7nhQ@mail.gmail.com>
+In-Reply-To: <pull-1509652473-291160@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,122 +19,122 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 03, 2017 at 08:22:51AM +0000, Ard Biesheuvel wrote:
-> On 3 November 2017 at 00:14, Russell King - ARM Linux
-> <linux@armlinux.org.uk> wrote:
-> > On Fri, Nov 03, 2017 at 12:04:37AM +0000, Russell King - ARM Linux wrote:
-> >> On Thu, Nov 02, 2017 at 04:43:09PM -0700, Tony Lindgren wrote:
-> >> > * Russell King - ARM Linux <linux@armlinux.org.uk> [171102 23:22]:
-> >> > > On Thu, Nov 02, 2017 at 12:30:27PM -0700, Tony Lindgren wrote:
-> >> > > > Hi Russeell,
-> >> > > >
-> >> > > > I think you're already aware of the build failure caused by commit
-> >> > > > 078c0927485e ("ARM: verify size of zImage"), but here's info just
-> >> > > > in case.
-> >> > > >
-> >> > > > arm-unknown-linux-musleabi-ld.bfd: error: zImage file size is incorrect
-> >> > > > make[2]: *** [arch/arm/boot/compressed/Makefile:185: arch/arm/boot/compressed/vmlinux] Error 1
-> >> > > > make[1]: *** [arch/arm/boot/Makefile:64: arch/arm/boot/compressed/vmlinux] Error 2
-> >> > > > make: *** [arch/arm/Makefile:335: zImage] Error 2
-> >> > > >
-> >> > > > Other than that I was surprised that next actually booted for me
-> >> > > > after a few week break with Linux next! :)
-> >> > >
-> >> > > It would be nice if people can investigate why that happens - I'm
-> >> > > completely unable to reproduce it locally, even if I link using
-> >> > > the same vmlinux.lds file and the objects from someone who sees the
-> >> > > failure.
-> >> > >
-> >> > > There's some binutils version specific stuff that's going on here.
-> >> > >
-> >> > > What I have in my current for-next, which I'm intending to push,
-> >> > > is all the same patches except the patch that introduces the above
-> >> > > check is subsituted by a patch that produces an extra _edata_real
-> >> > > symbol.  This _should_ match _edata.  So, if you hit this failure,
-> >> > > try either my current for-next branch or tomorrow's linux-next, and
-> >> > > run arm-linux-nm on arch/arm/boot/compressed/vmlinux and check the
-> >> > > addresses given for _edata and _edata_real.
-> >> >
-> >> > OK thanks reverting 078c0927485e and applying dad4675388fc ("ARM:
-> >> > add debug ".edata_real" symbol") from your for-next branch builds
-> >> > and boots for me.
-> >> >
-> >> > > Theory says they should be identical, but the failure of that assert
-> >> > > could only happen if "." inside the output section was different from
-> >> > > _edata assigned outside.  _edata_real is now the address of "." inside
-> >> > > the output section.
-> >> >
-> >> > With 078c0927485e reverted and dad4675388fc applied they are
-> >> > identical for me:
-> >> >
-> >> > $ ${armcompiler}nm arch/arm/boot/compressed/vmlinux | grep _edata
-> >> > 00421960 D _edata
-> >> > 00421960 D _edata_real
-> >> >
-> >> > Let me know if you want me to run some test with the failing
-> >> > commit also.
-> >>
-> >> So:
-> >>
-> >>   .image_end (NOLOAD) : {
-> >>      ASSERT(. == _edata, "...");
-> >>   }
-> >>
-> >> fails, because . != _edata, but:
-> >>
-> >>   .image_end (NOLOAD) : {
-> >>      _edata_real = .;
-> >>   }
-> >>
-> >> produces an image where _edata_real == _edata.
-> >>
-> >> That's completely insane and illogical.  *Shrug*.  God knows what's
-> >> going on there.
-> >
-> > Reading through the "ld" documentation for ".":
-> >
-> >      Note: '.' actually refers to the byte offset from the start of the
-> >   current containing object.  Normally this is the 'SECTIONS' statement,
-> >   whose start address is 0, hence '.' can be used as an absolute address.
-> >   If '.' is used inside a section description however, it refers to the
-> >   byte offset from the start of that section, not an absolute address.
-> >
-> > If that _were_ true, then _edata_real should be zero, because it's
-> > used inside a section description and it should be the "byte offset
-> > from the start of that section, not an absolute address".  It isn't.
-> > So, this documentation is blatently wrong and misleading.  In fact,
-> > we use this fact that "." refers to the virtual address in the generic
-> > parts of the linker script.
-> >
-> > I don't think we can trust anything the ld documentation says about "."
-> > and by extension, I don't think we can trust ld's behaviour in how "."
-> > behaves.
-> >
-> > Quite where we go from here, I've no idea, because I don't see how we
-> > can trust the linker's behaviour with linker scripts.
-> >
+On Thu, Nov 02, 2017 at 12:55:33PM -0700, Tony Lindgren wrote:
+> From: "Tony Lindgren" <tony@atomide.com>
 > 
-> Could we try moving the ASSERT after the section, and using
+> The following changes since commit 4afa616ce937f88d9a69a71b8c561551596a81e3:
 > 
-> ASSERT(ADDR(.image_end) == _edata, "...");
+>   ARM: dts: am43xx-epos-evm: Remove extra CPSW EMAC entry (2017-09-19 10:59:26 -0700)
 > 
-> instead?
+> are available in the Git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.14/fixes-rc7-signed
+> 
+> for you to fetch changes up to 6301d58477bc11116c78c9542871f27ae374278d:
+> 
+>   ARM: OMAP2/3: CM: fix cm_split_idlest functionality (2017-10-30 09:14:55 -0700)
+> 
+> ----------------------------------------------------------------
+> Two regression fixes for omap3 to fix mmc3 issues noticed on nokia n9.
+> 
+> These have been broken for a few months and we don't have the LCD yet
+> functional on n9. So these can wait for the merge window if considered
+> too late for the -rc cycle at this point.
+> 
+> ----------------------------------------------------------------
+> Tero Kristo (2):
+>       ARM: OMAP3: hwmod_data: add missing module_offs for MMC3
+>       ARM: OMAP2/3: CM: fix cm_split_idlest functionality
+> 
+>  arch/arm/mach-omap2/cm_common.c            | 6 +++++-
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 1 +
+>  arch/arm/mach-omap2/prcm-common.h          | 1 +
+>  3 files changed, 7 insertions(+), 1 deletion(-)
 
-You want to trust what value ADDR(.image_end) comes out with when we
-know that the linker already elides empty output sections?
+I don't know if this is covered in your pull request, but since 31st
+October, the SDP4430 no longer recovers from a hibernation attempt.
+(as found by my nightly tests).
 
-Only if someone reads the linker's code and confirm that it will work,
-and gets assurances from the binutils people that they will maintain
-the behaviour into the future.
+4.14-rc6+ plus my tree plus arm-soc/for-next branch worked fine:
 
-I'm not inclined to trust anything that the linker appears to do,
-whether or not the documentation says anything about it.  As I've
-said above, the entire thing is a complete mess of untrustworthy
-documentation and behaviour.
+root@omap-4430sdp:~# if [ -f /sys/power/disk ]; then echo reboot > /sys/power/disk; echo disk > /sys/power/state; fi
+PM: hibernation entry
+PM: Syncing filesystems ...
+PM: done.
+Freezing user space processes ... (elapsed 0.022 seconds) done.
+OOM killer disabled.
+PM: Basic memory bitmaps created
+PM: Preallocating image memory... done (allocated 13293 pages)
+PM: Allocated 53172 kbytes in 0.17 seconds (312.77 MB/s)
+Freezing remaining freezable tasks ... (elapsed 0.016 seconds) done.
+Suspending console(s) (use no_console_suspend to debug)
+omap_hwmod: gpio2: _wait_target_disable failed
+Disabling non-boot CPUs ...
+PM: Creating hibernation image:
+PM: Need to copy 13028 pages
+PM: Normal pages needed: 9836 + 1024, available pages: 53639
+PM: Hibernation image created (13028 pages copied)
+Enabling non-boot CPUs ...
+CPU1 is up
+PM: Cannot find swap device, try swapon -a.
+PM: Cannot get swap writer
+PM: Basic memory bitmaps freed
+OOM killer enabled.
+Restarting tasks ... done.
+PM: hibernation exit
+root@omap-4430sdp:~#
+
+The above is an example of success - it's intentional that there's no
+swap, which prevents the system entering hibernation.  The purpose of
+this test is to exercise the PM and CPU hotplug paths.
+
+4.14-rc7+ plus my tree plus arm-soc/for-next now fails:
+
+root@omap-4430sdp:~# if [ -f /sys/power/disk ]; then echo reboot > /sys/power/disk; echo disk > /sys/power/state; fi
+PM: hibernation entry
+PM: Syncing filesystems ...
+PM: done.
+Freezing user space processes ... (elapsed 0.022 seconds) done.
+OOM killer disabled.
+PM: Basic memory bitmaps created
+PM: Preallocating image memory... done (allocated 13200 pages)
+PM: Allocated 52800 kbytes in 0.17 seconds (310.58 MB/s)
+Freezing remaining freezable tasks ... (elapsed 0.015 seconds) done.
+Suspending console(s) (use no_console_suspend to debug)
+
+>From what I can see, there's no change in arm-soc/for-next across that
+period - the same SHA1 hash was merged for the build tree update
+on the 27th October as was used on the 30th October.
+
+There's no change (apart from the SHA hashes, the diff between them is
+empty) in the branch I merged between those two dates either for my
+tree.  The SHA hash change was due to squashing some MPS3 changes to
+fix a build error for the recently added mps3 build target in the
+builder.
+
+The material difference is Linus' tip, which changed from f34157878d3b
+("Merge tag 'nfs-for-4.14-4' of git://git.linux-nfs.org/projects/trondmy/linux-nfs")
+to 0b07194bb55e ("Linux 4.14-rc7").
+
+In the diffstat between the two build trees (post merge), I don't see
+anything in arch/arm that could account for it.  I do see some power
+changes:
+
+ drivers/base/power/domain_governor.c               |  53 +--
+ drivers/base/power/qos.c                           |   2 +-
+ drivers/base/power/runtime.c                       |   2 +-
+ drivers/base/power/sysfs.c                         |  25 +-
+
+but nothing in tty or serial.  These power changes look like QoS
+changes, which probably aren't related.
+
+Just to make sure, I've diffed the build tree SHAs and the change in
+Linus' tip, and the two diffs match apart from a couple of SHA blob
+hashes on a couple of files (EFI stub and MAINTAINERS).
 
 -- 
 RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
