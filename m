@@ -1,8 +1,8 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 5/7] ARM: AM33xx: CM: add support for getting physical address
- for a register
-Date: Fri, 3 Nov 2017 16:26:39 +0200
-Message-ID: <1509719201-32700-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 1/7] ARM: OMAP2+: CM: add support for getting phys address for
+ a clkctrl register
+Date: Fri, 3 Nov 2017 16:26:35 +0200
+Message-ID: <1509719201-32700-2-git-send-email-t-kristo@ti.com>
 References: <1509719201-32700-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,38 +22,67 @@ To: tony@atomide.com, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Needed for mapping the hwmods towards their corresponding clkctrl
-providers and clocks.
+Add a new CM API for fetching the physical address of a hwmod clkctrl
+register. This is needed to map omap hwmods against clkctrl clocks, the
+existing support for clkdm address translation was not sufficient to
+handle the mutant cases where the clockdomain offset is completely
+off from the clkctrl ones.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/cm33xx.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/arm/mach-omap2/cm.h        |  3 +++
+ arch/arm/mach-omap2/cm_common.c | 10 ++++++++++
+ 2 files changed, 13 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-index a9e08d8..cf75bbe 100644
---- a/arch/arm/mach-omap2/cm33xx.c
-+++ b/arch/arm/mach-omap2/cm33xx.c
-@@ -333,6 +333,11 @@ static int am33xx_clkdm_clk_disable(struct clockdomain *clkdm)
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+index e833984..39c9c10 100644
+--- a/arch/arm/mach-omap2/cm.h
++++ b/arch/arm/mach-omap2/cm.h
+@@ -52,6 +52,7 @@
+  * @wait_module_idle: ptr to the SoC CM-specific wait_module_idle impl
+  * @module_enable: ptr to the SoC CM-specific module_enable impl
+  * @module_disable: ptr to the SoC CM-specific module_disable impl
++ * @xlate_clkctrl: ptr to the SoC CM-specific clkctrl xlate addr impl
+  */
+ struct cm_ll_data {
+ 	int (*split_idlest_reg)(struct clk_omap_reg *idlest_reg, s16 *prcm_inst,
+@@ -62,6 +63,7 @@ struct cm_ll_data {
+ 				u8 idlest_shift);
+ 	void (*module_enable)(u8 mode, u8 part, u16 inst, u16 clkctrl_offs);
+ 	void (*module_disable)(u8 part, u16 inst, u16 clkctrl_offs);
++	u32 (*xlate_clkctrl)(u8 part, u16 inst, u16 clkctrl_offs);
+ };
+ 
+ extern int cm_split_idlest_reg(struct clk_omap_reg *idlest_reg, s16 *prcm_inst,
+@@ -72,6 +74,7 @@ int omap_cm_wait_module_idle(u8 part, s16 prcm_mod, u16 idlest_reg,
+ 			     u8 idlest_shift);
+ int omap_cm_module_enable(u8 mode, u8 part, u16 inst, u16 clkctrl_offs);
+ int omap_cm_module_disable(u8 part, u16 inst, u16 clkctrl_offs);
++u32 omap_cm_xlate_clkctrl(u8 part, u16 inst, u16 clkctrl_offs);
+ extern int cm_register(struct cm_ll_data *cld);
+ extern int cm_unregister(struct cm_ll_data *cld);
+ int omap_cm_init(void);
+diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
+index d555791..1752e92 100644
+--- a/arch/arm/mach-omap2/cm_common.c
++++ b/arch/arm/mach-omap2/cm_common.c
+@@ -175,6 +175,16 @@ int omap_cm_module_disable(u8 part, u16 inst, u16 clkctrl_offs)
  	return 0;
  }
  
-+static u32 am33xx_cm_xlate_clkctrl(u8 part, u16 inst, u16 offset)
++u32 omap_cm_xlate_clkctrl(u8 part, u16 inst, u16 clkctrl_offs)
 +{
-+	return cm_base.pa + inst + offset;
++	if (!cm_ll_data->xlate_clkctrl) {
++		WARN_ONCE(1, "cm: %s: no low-level function defined\n",
++			  __func__);
++		return 0;
++	}
++	return cm_ll_data->xlate_clkctrl(part, inst, clkctrl_offs);
 +}
 +
- struct clkdm_ops am33xx_clkdm_operations = {
- 	.clkdm_sleep		= am33xx_clkdm_sleep,
- 	.clkdm_wakeup		= am33xx_clkdm_wakeup,
-@@ -347,6 +352,7 @@ struct clkdm_ops am33xx_clkdm_operations = {
- 	.wait_module_idle	= &am33xx_cm_wait_module_idle,
- 	.module_enable		= &am33xx_cm_module_enable,
- 	.module_disable		= &am33xx_cm_module_disable,
-+	.xlate_clkctrl		= &am33xx_cm_xlate_clkctrl,
- };
- 
- int __init am33xx_cm_init(const struct omap_prcm_init_data *data)
+ /**
+  * cm_register - register per-SoC low-level data with the CM
+  * @cld: low-level per-SoC OMAP CM data & function pointers to register
 -- 
 1.9.1
 
