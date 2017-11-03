@@ -1,59 +1,80 @@
 From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH v4 00/17] dwc MSI fixes, ARTPEC-6 EP mode support, ARTPEC-7 SoC support
-Date: Fri,  3 Nov 2017 14:47:04 +0100
-Message-ID: <20171103134722.5532-1-niklas.cassel@axis.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-arm-kernel@axis.com, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Niklas Cassel <niklass@axis.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v4 05/17] PCI: designware-ep: Remove static keyword from dw_pcie_ep_reset_bar()
+Date: Fri,  3 Nov 2017 14:47:09 +0100
+Message-ID: <20171103134722.5532-6-niklas.cassel@axis.com>
+References: <20171103134722.5532-1-niklas.cassel@axis.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171103134722.5532-1-niklas.cassel@axis.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
+Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is a series that adds:
-- PCI endpoint mode support in the ARTPEC-6 driver.
-- ARTPEC-7 SoC support in the ARTPEC-6 driver (the SoCs are very similar).
-- Small fixes for MSI in designware-ep and designware-host,
-  needed to get endpoint mode support working for ARTPEC-6.
-- Cleanups in pci-dra7xx to better prepare for endpoint mode in other
-  DWC based PCIe drivers.
+Remove the static keyword from dw_pcie_ep_reset_bar() so that
+pci-dra7xx.c does not need its own copy of dw_pcie_ep_reset_bar().
 
-New in V4:
-Fixed all commit messages so that they are readable without the title.
-Replaced ifdefs in pci-dra7xx and pcie-artpec6 by using the
-IS_ENABLED macro. (Thanks Arnd!)
+Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/pci/dwc/pci-dra7xx.c         | 9 ---------
+ drivers/pci/dwc/pcie-designware-ep.c | 2 +-
+ drivers/pci/dwc/pcie-designware.h    | 5 +++++
+ 3 files changed, 6 insertions(+), 10 deletions(-)
 
-Niklas Cassel (17):
-  PCI: dwc: Use the DMA-API to get the MSI address
-  PCI: designware-ep: dw_pcie_ep_set_msi() should only set MMC bits
-  PCI: designware-ep: Read-only registers need DBI_RO_WR_EN to be
-    writable
-  PCI: designware-ep: Pre-allocate memory for MSI in dw_pcie_ep_init
-  PCI: designware-ep: Remove static keyword from dw_pcie_ep_reset_bar()
-  PCI: designware-ep: Add generic function for raising MSI irq
-  PCI: dwc: dra7xx: Refactor Kconfig and Makefile handling for host/ep
-    mode
-  PCI: dwc: dra7xx: Assign pp->ops in dra7xx_add_pcie_port() rather than
-    in probe
-  PCI: dwc: dra7xx: Help compiler to remove unused code
-  PCI: dwc: artpec6: Remove unused defines
-  PCI: dwc: artpec6: Use BIT and GENMASK macros
-  PCI: dwc: artpec6: Split artpec6_pcie_establish_link() into smaller
-    functions
-  bindings: PCI: artpec: Add support for endpoint mode
-  PCI: dwc: artpec6: Add support for endpoint mode
-  PCI: dwc: Make cpu_addr_fixup take struct dw_pcie as argument
-  bindings: PCI: artpec: Add support for the ARTPEC-7 SoC
-  PCI: dwc: artpec6: Add support for the ARTPEC-7 SoC
-
- .../devicetree/bindings/pci/axis,artpec6-pcie.txt  |   5 +-
- drivers/pci/dwc/Kconfig                            |  68 ++--
- drivers/pci/dwc/Makefile                           |   4 +-
- drivers/pci/dwc/pci-dra7xx.c                       |  27 +-
- drivers/pci/dwc/pcie-artpec6.c                     | 406 ++++++++++++++++++---
- drivers/pci/dwc/pcie-designware-ep.c               |  58 ++-
- drivers/pci/dwc/pcie-designware-host.c             |  15 +-
- drivers/pci/dwc/pcie-designware.c                  |   2 +-
- drivers/pci/dwc/pcie-designware.h                  |  22 +-
- 9 files changed, 504 insertions(+), 103 deletions(-)
-
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index d0848006945a..a743545da4d4 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -336,15 +336,6 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
+-{
+-	u32 reg;
+-
+-	reg = PCI_BASE_ADDRESS_0 + (4 * bar);
+-	dw_pcie_writel_dbi2(pci, reg, 0x0);
+-	dw_pcie_writel_dbi(pci, reg, 0x0);
+-}
+-
+ static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
+ {
+ 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+diff --git a/drivers/pci/dwc/pcie-designware-ep.c b/drivers/pci/dwc/pcie-designware-ep.c
+index 2684090b782b..9c3820ca6358 100644
+--- a/drivers/pci/dwc/pcie-designware-ep.c
++++ b/drivers/pci/dwc/pcie-designware-ep.c
+@@ -30,7 +30,7 @@ void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
+ 	pci_epc_linkup(epc);
+ }
+ 
+-static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
++void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
+ {
+ 	u32 reg;
+ 
+diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+index 5a1da459eda5..37dfad8d003f 100644
+--- a/drivers/pci/dwc/pcie-designware.h
++++ b/drivers/pci/dwc/pcie-designware.h
+@@ -338,6 +338,7 @@ static inline int dw_pcie_host_init(struct pcie_port *pp)
+ void dw_pcie_ep_linkup(struct dw_pcie_ep *ep);
+ int dw_pcie_ep_init(struct dw_pcie_ep *ep);
+ void dw_pcie_ep_exit(struct dw_pcie_ep *ep);
++void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar);
+ #else
+ static inline void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
+ {
+@@ -351,5 +352,9 @@ static inline int dw_pcie_ep_init(struct dw_pcie_ep *ep)
+ static inline void dw_pcie_ep_exit(struct dw_pcie_ep *ep)
+ {
+ }
++
++static inline void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
++{
++}
+ #endif
+ #endif /* _PCIE_DESIGNWARE_H */
 -- 
 2.14.2
