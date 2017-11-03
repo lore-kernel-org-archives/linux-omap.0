@@ -1,85 +1,76 @@
-From: Niklas Cassel <nks.gnu@gmail.com>
-Subject: Re: [PATCH v4] pci: dwc: dra7xx: Add shutdown handler to cleanly turn
- off clocks
-Date: Fri, 3 Nov 2017 15:30:42 +0100
-Message-ID: <CAD5ja62_fT+xg6G_ygN+8GScMYa62M7jNEoDxD89n7AUBjwPDw@mail.gmail.com>
-References: <1505885055-30657-1-git-send-email-j-keerthy@ti.com> <20171011193207.GO25517@bhelgaas-glaptop.roam.corp.google.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 4/7] ARM: OMAP2+: clockdomain: remove the obsolete
+ clkdm_xlate_address API
+Date: Fri, 3 Nov 2017 16:26:38 +0200
+Message-ID: <1509719201-32700-5-git-send-email-t-kristo@ti.com>
+References: <1509719201-32700-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171011193207.GO25517@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Keerthy <j-keerthy@ti.com>, kishon@ti.com, bhelgaas@google.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1509719201-32700-1-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-dra7xx_pcie_shutdown should be static.
+This is no longer used for anything so it can be dropped.
 
-This patch introduces a new sparse warning.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/clockdomain.c | 8 --------
+ arch/arm/mach-omap2/clockdomain.h | 2 --
+ 2 files changed, 10 deletions(-)
 
-On Wed, Oct 11, 2017 at 9:32 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Wed, Sep 20, 2017 at 10:54:15AM +0530, Keerthy wrote:
->> Add shutdown handler to cleanly turn off clocks. This will help
->> in cases of kexec where in a new kernel can boot abruptly.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
->
-> Applied to pci/host-dra7xx for v4.15, thanks!
->
->> ---
->>
->> Changes in v4:
->>
->>   * Added the missing changes from v2!
->>
->> Changes in v3:
->>
->>   * Pushed the function outside #ifdef CONFIG_PM_SLEEP.
->>   * Added more details to commit log.
->>
->> Changes in v2:
->>
->>   * used a local dev pointer instead of dereferencing dev at multiple places.
->>   * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
->>
->>  drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
->>  1 file changed, 17 insertions(+)
->>
->> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
->> index 34427a6..d084800 100644
->> --- a/drivers/pci/dwc/pci-dra7xx.c
->> +++ b/drivers/pci/dwc/pci-dra7xx.c
->> @@ -794,6 +794,22 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
->>  }
->>  #endif
->>
->> +void dra7xx_pcie_shutdown(struct platform_device *pdev)
->> +{
->> +     struct device *dev = &pdev->dev;
->> +     struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
->> +     int ret;
->> +
->> +     dra7xx_pcie_stop_link(dra7xx->pci);
->> +
->> +     ret = pm_runtime_put_sync(dev);
->> +     if (ret < 0)
->> +             dev_dbg(dev, "pm_runtime_put_sync failed\n");
->> +
->> +     pm_runtime_disable(dev);
->> +     dra7xx_pcie_disable_phy(dra7xx);
->> +}
->> +
->>  static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
->>       SET_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend, dra7xx_pcie_resume)
->>       SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend_noirq,
->> @@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
->>               .suppress_bind_attrs = true,
->>               .pm     = &dra7xx_pcie_pm_ops,
->>       },
->> +     .shutdown = dra7xx_pcie_shutdown,
->>  };
->>  builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
->> --
->> 1.9.1
->>
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 5189264..b79b1ca 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -1224,14 +1224,6 @@ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	return 0;
+ }
+ 
+-u32 clkdm_xlate_address(struct clockdomain *clkdm)
+-{
+-	if (arch_clkdm->clkdm_xlate_address)
+-		return arch_clkdm->clkdm_xlate_address(clkdm);
+-
+-	return 0;
+-}
+-
+ /**
+  * clkdm_hwmod_enable - add an enabled downstream hwmod to this clkdm
+  * @clkdm: struct clockdomain *
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 827f01e..24667a5 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -175,7 +175,6 @@ struct clkdm_ops {
+ 	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
+ 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
+ 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
+-	u32	(*clkdm_xlate_address)(struct clockdomain *clkdm);
+ };
+ 
+ int clkdm_register_platform_funcs(struct clkdm_ops *co);
+@@ -214,7 +213,6 @@ int clkdm_for_each(int (*fn)(struct clockdomain *clkdm, void *user),
+ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
+ int clkdm_hwmod_enable(struct clockdomain *clkdm, struct omap_hwmod *oh);
+ int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh);
+-u32 clkdm_xlate_address(struct clockdomain *clkdm);
+ 
+ extern void __init omap242x_clockdomains_init(void);
+ extern void __init omap243x_clockdomains_init(void);
+-- 
+1.9.1
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
