@@ -1,12 +1,12 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 7/7] ARM: DM816x: hwmod_data: fix clockdomain name for sata
- hwmod
-Date: Fri, 3 Nov 2017 16:26:41 +0200
-Message-ID: <1509719201-32700-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 2/7] ARM: OMAP4: CMINST: add support for translating clkctrl
+ addresses
+Date: Fri, 3 Nov 2017 16:26:36 +0200
+Message-ID: <1509719201-32700-3-git-send-email-t-kristo@ti.com>
 References: <1509719201-32700-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1509719201-32700-1-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
@@ -22,29 +22,45 @@ To: tony@atomide.com, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-"default_sata_clkdm" does not exist, instead replace this with the
-correct clockdomain name which is just "default_clkdm".
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-index 310afe4..95f1222 100644
---- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-@@ -988,7 +988,7 @@
- 
- static struct omap_hwmod dm81xx_sata_hwmod = {
- 	.name		= "sata",
--	.clkdm_name	= "default_sata_clkdm",
-+	.clkdm_name	= "default_clkdm",
- 	.flags		= HWMOD_NO_IDLEST,
- 	.prcm = {
- 		.omap4 = {
--- 
-1.9.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+77u/TmVlZGVkIHRvIG1hcCBjbGtjdHJsIGNsb2NrcyBhZ2FpbnN0IGh3bW9kcy4gVGhpcyBwYXRj
+aCBhbHNvIHJlbW92ZXMKdGhlIG9ic29sZXRlIGNsa2RtX3hsYXRlX2FkZHJlc3MgZnVuY3Rpb24g
+d2hpY2ggaXMgbm8gbG9uZ2VyIG5lZWRlZApmb3IgYW55dGhpbmcuCgpTaWduZWQtb2ZmLWJ5OiBU
+ZXJvIEtyaXN0byA8dC1rcmlzdG9AdGkuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvY21p
+bnN0NDR4eC5jIHwgMTAgKysrLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygr
+KSwgNyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2NtaW5z
+dDQ0eHguYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvY21pbnN0NDR4eC5jCmluZGV4IDg3NzRlOTgu
+LjBlYTRjOTAgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvY21pbnN0NDR4eC5jCisr
+KyBiL2FyY2gvYXJtL21hY2gtb21hcDIvY21pbnN0NDR4eC5jCkBAIC00NzYsMTIgKzQ3Niw5IEBA
+IHN0YXRpYyBpbnQgb21hcDRfY2xrZG1fY2xrX2Rpc2FibGUoc3RydWN0IGNsb2NrZG9tYWluICpj
+bGtkbSkKIAlyZXR1cm4gMDsKIH0KIAotc3RhdGljIHUzMiBvbWFwNF9jbGtkbV94bGF0ZV9hZGRy
+ZXNzKHN0cnVjdCBjbG9ja2RvbWFpbiAqY2xrZG0pCitzdGF0aWMgdTMyIG9tYXA0X2NtaW5zdF94
+bGF0ZV9jbGtjdHJsKHU4IHBhcnQsIHUxNiBpbnN0LCB1MTYgb2Zmc2V0KQogewotCXUzMiBhZGRy
+ID0gX2NtX2Jhc2VzW2Nsa2RtLT5wcmNtX3BhcnRpdGlvbl0ucGEgKyBjbGtkbS0+Y21faW5zdCAr
+Ci0JCWNsa2RtLT5jbGtkbV9vZmZzOwotCi0JcmV0dXJuIGFkZHI7CisJcmV0dXJuIF9jbV9iYXNl
+c1twYXJ0XS5wYSArIGluc3QgKyBvZmZzZXQ7CiB9CiAKIHN0cnVjdCBjbGtkbV9vcHMgb21hcDRf
+Y2xrZG1fb3BlcmF0aW9ucyA9IHsKQEAgLTQ5OSw3ICs0OTYsNiBAQCBzdHJ1Y3QgY2xrZG1fb3Bz
+IG9tYXA0X2Nsa2RtX29wZXJhdGlvbnMgPSB7CiAJLmNsa2RtX2RlbnlfaWRsZQk9IG9tYXA0X2Ns
+a2RtX2RlbnlfaWRsZSwKIAkuY2xrZG1fY2xrX2VuYWJsZQk9IG9tYXA0X2Nsa2RtX2Nsa19lbmFi
+bGUsCiAJLmNsa2RtX2Nsa19kaXNhYmxlCT0gb21hcDRfY2xrZG1fY2xrX2Rpc2FibGUsCi0JLmNs
+a2RtX3hsYXRlX2FkZHJlc3MJPSBvbWFwNF9jbGtkbV94bGF0ZV9hZGRyZXNzLAogfTsKIAogc3Ry
+dWN0IGNsa2RtX29wcyBhbTQzeHhfY2xrZG1fb3BlcmF0aW9ucyA9IHsKQEAgLTUwOSw3ICs1MDUs
+NiBAQCBzdHJ1Y3QgY2xrZG1fb3BzIGFtNDN4eF9jbGtkbV9vcGVyYXRpb25zID0gewogCS5jbGtk
+bV9kZW55X2lkbGUJPSBvbWFwNF9jbGtkbV9kZW55X2lkbGUsCiAJLmNsa2RtX2Nsa19lbmFibGUJ
+PSBvbWFwNF9jbGtkbV9jbGtfZW5hYmxlLAogCS5jbGtkbV9jbGtfZGlzYWJsZQk9IG9tYXA0X2Ns
+a2RtX2Nsa19kaXNhYmxlLAotCS5jbGtkbV94bGF0ZV9hZGRyZXNzCT0gb21hcDRfY2xrZG1feGxh
+dGVfYWRkcmVzcywKIH07CiAKIHN0YXRpYyBzdHJ1Y3QgY21fbGxfZGF0YSBvbWFwNHh4eF9jbV9s
+bF9kYXRhID0gewpAQCAtNTE3LDYgKzUxMiw3IEBAIHN0cnVjdCBjbGtkbV9vcHMgYW00M3h4X2Ns
+a2RtX29wZXJhdGlvbnMgPSB7CiAJLndhaXRfbW9kdWxlX2lkbGUJPSAmb21hcDRfY21pbnN0X3dh
+aXRfbW9kdWxlX2lkbGUsCiAJLm1vZHVsZV9lbmFibGUJCT0gJm9tYXA0X2NtaW5zdF9tb2R1bGVf
+ZW5hYmxlLAogCS5tb2R1bGVfZGlzYWJsZQkJPSAmb21hcDRfY21pbnN0X21vZHVsZV9kaXNhYmxl
+LAorCS54bGF0ZV9jbGtjdHJsCQk9ICZvbWFwNF9jbWluc3RfeGxhdGVfY2xrY3RybCwKIH07CiAK
+IGludCBfX2luaXQgb21hcDRfY21faW5pdChjb25zdCBzdHJ1Y3Qgb21hcF9wcmNtX2luaXRfZGF0
+YSAqZGF0YSkKLS0gCjEuOS4xCgotLQpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jr
+a2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4gWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1
+MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKClRleGFzIEluc3RydW1lbnRzIEZp
+bmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLiBZLXR1bm51cy9CdXNp
+bmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQoKCgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2Vy
+bmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0
+cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVs
+Cg==
