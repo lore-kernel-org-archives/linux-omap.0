@@ -1,16 +1,17 @@
 From: Russell King - ARM Linux <linux@armlinux.org.uk>
 Subject: Re: Build failure with verify size in next-20171102
-Date: Fri, 3 Nov 2017 00:04:37 +0000
-Message-ID: <20171103000437.GB28231@n2100.armlinux.org.uk>
+Date: Fri, 3 Nov 2017 00:14:37 +0000
+Message-ID: <20171103001437.GC28231@n2100.armlinux.org.uk>
 References: <20171102193027.GB28152@atomide.com>
  <20171102232038.GA28231@n2100.armlinux.org.uk>
  <20171102234309.GE28152@atomide.com>
+ <20171103000437.GB28231@n2100.armlinux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20171102234309.GE28152@atomide.com>
+In-Reply-To: <20171103000437.GB28231@n2100.armlinux.org.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,73 +25,96 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 02, 2017 at 04:43:09PM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@armlinux.org.uk> [171102 23:22]:
-> > On Thu, Nov 02, 2017 at 12:30:27PM -0700, Tony Lindgren wrote:
-> > > Hi Russeell,
+On Fri, Nov 03, 2017 at 12:04:37AM +0000, Russell King - ARM Linux wrote:
+> On Thu, Nov 02, 2017 at 04:43:09PM -0700, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@armlinux.org.uk> [171102 23:22]:
+> > > On Thu, Nov 02, 2017 at 12:30:27PM -0700, Tony Lindgren wrote:
+> > > > Hi Russeell,
+> > > > 
+> > > > I think you're already aware of the build failure caused by commit
+> > > > 078c0927485e ("ARM: verify size of zImage"), but here's info just
+> > > > in case.
+> > > > 
+> > > > arm-unknown-linux-musleabi-ld.bfd: error: zImage file size is incorrect
+> > > > make[2]: *** [arch/arm/boot/compressed/Makefile:185: arch/arm/boot/compressed/vmlinux] Error 1
+> > > > make[1]: *** [arch/arm/boot/Makefile:64: arch/arm/boot/compressed/vmlinux] Error 2
+> > > > make: *** [arch/arm/Makefile:335: zImage] Error 2
+> > > > 
+> > > > Other than that I was surprised that next actually booted for me
+> > > > after a few week break with Linux next! :)
 > > > 
-> > > I think you're already aware of the build failure caused by commit
-> > > 078c0927485e ("ARM: verify size of zImage"), but here's info just
-> > > in case.
+> > > It would be nice if people can investigate why that happens - I'm
+> > > completely unable to reproduce it locally, even if I link using 
+> > > the same vmlinux.lds file and the objects from someone who sees the
+> > > failure.
 > > > 
-> > > arm-unknown-linux-musleabi-ld.bfd: error: zImage file size is incorrect
-> > > make[2]: *** [arch/arm/boot/compressed/Makefile:185: arch/arm/boot/compressed/vmlinux] Error 1
-> > > make[1]: *** [arch/arm/boot/Makefile:64: arch/arm/boot/compressed/vmlinux] Error 2
-> > > make: *** [arch/arm/Makefile:335: zImage] Error 2
+> > > There's some binutils version specific stuff that's going on here.
 > > > 
-> > > Other than that I was surprised that next actually booted for me
-> > > after a few week break with Linux next! :)
+> > > What I have in my current for-next, which I'm intending to push,
+> > > is all the same patches except the patch that introduces the above
+> > > check is subsituted by a patch that produces an extra _edata_real
+> > > symbol.  This _should_ match _edata.  So, if you hit this failure,
+> > > try either my current for-next branch or tomorrow's linux-next, and
+> > > run arm-linux-nm on arch/arm/boot/compressed/vmlinux and check the
+> > > addresses given for _edata and _edata_real.
 > > 
-> > It would be nice if people can investigate why that happens - I'm
-> > completely unable to reproduce it locally, even if I link using 
-> > the same vmlinux.lds file and the objects from someone who sees the
-> > failure.
+> > OK thanks reverting 078c0927485e and applying dad4675388fc ("ARM:
+> > add debug ".edata_real" symbol") from your for-next branch builds
+> > and boots for me.
 > > 
-> > There's some binutils version specific stuff that's going on here.
+> > > Theory says they should be identical, but the failure of that assert
+> > > could only happen if "." inside the output section was different from
+> > > _edata assigned outside.  _edata_real is now the address of "." inside
+> > > the output section.
 > > 
-> > What I have in my current for-next, which I'm intending to push,
-> > is all the same patches except the patch that introduces the above
-> > check is subsituted by a patch that produces an extra _edata_real
-> > symbol.  This _should_ match _edata.  So, if you hit this failure,
-> > try either my current for-next branch or tomorrow's linux-next, and
-> > run arm-linux-nm on arch/arm/boot/compressed/vmlinux and check the
-> > addresses given for _edata and _edata_real.
+> > With 078c0927485e reverted and dad4675388fc applied they are
+> > identical for me:
+> > 
+> > $ ${armcompiler}nm arch/arm/boot/compressed/vmlinux | grep _edata
+> > 00421960 D _edata
+> > 00421960 D _edata_real
+> > 
+> > Let me know if you want me to run some test with the failing
+> > commit also.
 > 
-> OK thanks reverting 078c0927485e and applying dad4675388fc ("ARM:
-> add debug ".edata_real" symbol") from your for-next branch builds
-> and boots for me.
+> So:
 > 
-> > Theory says they should be identical, but the failure of that assert
-> > could only happen if "." inside the output section was different from
-> > _edata assigned outside.  _edata_real is now the address of "." inside
-> > the output section.
+>   .image_end (NOLOAD) : {
+>      ASSERT(. == _edata, "...");
+>   }
 > 
-> With 078c0927485e reverted and dad4675388fc applied they are
-> identical for me:
+> fails, because . != _edata, but:
 > 
-> $ ${armcompiler}nm arch/arm/boot/compressed/vmlinux | grep _edata
-> 00421960 D _edata
-> 00421960 D _edata_real
+>   .image_end (NOLOAD) : {
+>      _edata_real = .;
+>   }
 > 
-> Let me know if you want me to run some test with the failing
-> commit also.
+> produces an image where _edata_real == _edata.
+> 
+> That's completely insane and illogical.  *Shrug*.  God knows what's
+> going on there.
 
-So:
+Reading through the "ld" documentation for ".":
 
-  .image_end (NOLOAD) : {
-     ASSERT(. == _edata, "...");
-  }
+     Note: '.' actually refers to the byte offset from the start of the
+  current containing object.  Normally this is the 'SECTIONS' statement,
+  whose start address is 0, hence '.' can be used as an absolute address.
+  If '.' is used inside a section description however, it refers to the
+  byte offset from the start of that section, not an absolute address.
 
-fails, because . != _edata, but:
+If that _were_ true, then _edata_real should be zero, because it's
+used inside a section description and it should be the "byte offset
+from the start of that section, not an absolute address".  It isn't.
+So, this documentation is blatently wrong and misleading.  In fact,
+we use this fact that "." refers to the virtual address in the generic
+parts of the linker script.
 
-  .image_end (NOLOAD) : {
-     _edata_real = .;
-  }
+I don't think we can trust anything the ld documentation says about "."
+and by extension, I don't think we can trust ld's behaviour in how "."
+behaves.
 
-produces an image where _edata_real == _edata.
-
-That's completely insane and illogical.  *Shrug*.  God knows what's
-going on there.
+Quite where we go from here, I've no idea, because I don't see how we
+can trust the linker's behaviour with linker scripts.
 
 -- 
 RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
