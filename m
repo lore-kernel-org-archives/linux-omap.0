@@ -1,66 +1,85 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 2/7] ARM: OMAP4: CMINST: add support for translating clkctrl
- addresses
-Date: Fri, 3 Nov 2017 16:26:36 +0200
-Message-ID: <1509719201-32700-3-git-send-email-t-kristo@ti.com>
-References: <1509719201-32700-1-git-send-email-t-kristo@ti.com>
+From: Niklas Cassel <nks.gnu@gmail.com>
+Subject: Re: [PATCH v4] pci: dwc: dra7xx: Add shutdown handler to cleanly turn
+ off clocks
+Date: Fri, 3 Nov 2017 15:30:42 +0100
+Message-ID: <CAD5ja62_fT+xg6G_ygN+8GScMYa62M7jNEoDxD89n7AUBjwPDw@mail.gmail.com>
+References: <1505885055-30657-1-git-send-email-j-keerthy@ti.com> <20171011193207.GO25517@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1509719201-32700-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171011193207.GO25517@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Keerthy <j-keerthy@ti.com>, kishon@ti.com, bhelgaas@google.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-77u/TmVlZGVkIHRvIG1hcCBjbGtjdHJsIGNsb2NrcyBhZ2FpbnN0IGh3bW9kcy4gVGhpcyBwYXRj
-aCBhbHNvIHJlbW92ZXMKdGhlIG9ic29sZXRlIGNsa2RtX3hsYXRlX2FkZHJlc3MgZnVuY3Rpb24g
-d2hpY2ggaXMgbm8gbG9uZ2VyIG5lZWRlZApmb3IgYW55dGhpbmcuCgpTaWduZWQtb2ZmLWJ5OiBU
-ZXJvIEtyaXN0byA8dC1rcmlzdG9AdGkuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvY21p
-bnN0NDR4eC5jIHwgMTAgKysrLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygr
-KSwgNyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2NtaW5z
-dDQ0eHguYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvY21pbnN0NDR4eC5jCmluZGV4IDg3NzRlOTgu
-LjBlYTRjOTAgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvY21pbnN0NDR4eC5jCisr
-KyBiL2FyY2gvYXJtL21hY2gtb21hcDIvY21pbnN0NDR4eC5jCkBAIC00NzYsMTIgKzQ3Niw5IEBA
-IHN0YXRpYyBpbnQgb21hcDRfY2xrZG1fY2xrX2Rpc2FibGUoc3RydWN0IGNsb2NrZG9tYWluICpj
-bGtkbSkKIAlyZXR1cm4gMDsKIH0KIAotc3RhdGljIHUzMiBvbWFwNF9jbGtkbV94bGF0ZV9hZGRy
-ZXNzKHN0cnVjdCBjbG9ja2RvbWFpbiAqY2xrZG0pCitzdGF0aWMgdTMyIG9tYXA0X2NtaW5zdF94
-bGF0ZV9jbGtjdHJsKHU4IHBhcnQsIHUxNiBpbnN0LCB1MTYgb2Zmc2V0KQogewotCXUzMiBhZGRy
-ID0gX2NtX2Jhc2VzW2Nsa2RtLT5wcmNtX3BhcnRpdGlvbl0ucGEgKyBjbGtkbS0+Y21faW5zdCAr
-Ci0JCWNsa2RtLT5jbGtkbV9vZmZzOwotCi0JcmV0dXJuIGFkZHI7CisJcmV0dXJuIF9jbV9iYXNl
-c1twYXJ0XS5wYSArIGluc3QgKyBvZmZzZXQ7CiB9CiAKIHN0cnVjdCBjbGtkbV9vcHMgb21hcDRf
-Y2xrZG1fb3BlcmF0aW9ucyA9IHsKQEAgLTQ5OSw3ICs0OTYsNiBAQCBzdHJ1Y3QgY2xrZG1fb3Bz
-IG9tYXA0X2Nsa2RtX29wZXJhdGlvbnMgPSB7CiAJLmNsa2RtX2RlbnlfaWRsZQk9IG9tYXA0X2Ns
-a2RtX2RlbnlfaWRsZSwKIAkuY2xrZG1fY2xrX2VuYWJsZQk9IG9tYXA0X2Nsa2RtX2Nsa19lbmFi
-bGUsCiAJLmNsa2RtX2Nsa19kaXNhYmxlCT0gb21hcDRfY2xrZG1fY2xrX2Rpc2FibGUsCi0JLmNs
-a2RtX3hsYXRlX2FkZHJlc3MJPSBvbWFwNF9jbGtkbV94bGF0ZV9hZGRyZXNzLAogfTsKIAogc3Ry
-dWN0IGNsa2RtX29wcyBhbTQzeHhfY2xrZG1fb3BlcmF0aW9ucyA9IHsKQEAgLTUwOSw3ICs1MDUs
-NiBAQCBzdHJ1Y3QgY2xrZG1fb3BzIGFtNDN4eF9jbGtkbV9vcGVyYXRpb25zID0gewogCS5jbGtk
-bV9kZW55X2lkbGUJPSBvbWFwNF9jbGtkbV9kZW55X2lkbGUsCiAJLmNsa2RtX2Nsa19lbmFibGUJ
-PSBvbWFwNF9jbGtkbV9jbGtfZW5hYmxlLAogCS5jbGtkbV9jbGtfZGlzYWJsZQk9IG9tYXA0X2Ns
-a2RtX2Nsa19kaXNhYmxlLAotCS5jbGtkbV94bGF0ZV9hZGRyZXNzCT0gb21hcDRfY2xrZG1feGxh
-dGVfYWRkcmVzcywKIH07CiAKIHN0YXRpYyBzdHJ1Y3QgY21fbGxfZGF0YSBvbWFwNHh4eF9jbV9s
-bF9kYXRhID0gewpAQCAtNTE3LDYgKzUxMiw3IEBAIHN0cnVjdCBjbGtkbV9vcHMgYW00M3h4X2Ns
-a2RtX29wZXJhdGlvbnMgPSB7CiAJLndhaXRfbW9kdWxlX2lkbGUJPSAmb21hcDRfY21pbnN0X3dh
-aXRfbW9kdWxlX2lkbGUsCiAJLm1vZHVsZV9lbmFibGUJCT0gJm9tYXA0X2NtaW5zdF9tb2R1bGVf
-ZW5hYmxlLAogCS5tb2R1bGVfZGlzYWJsZQkJPSAmb21hcDRfY21pbnN0X21vZHVsZV9kaXNhYmxl
-LAorCS54bGF0ZV9jbGtjdHJsCQk9ICZvbWFwNF9jbWluc3RfeGxhdGVfY2xrY3RybCwKIH07CiAK
-IGludCBfX2luaXQgb21hcDRfY21faW5pdChjb25zdCBzdHJ1Y3Qgb21hcF9wcmNtX2luaXRfZGF0
-YSAqZGF0YSkKLS0gCjEuOS4xCgotLQpUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jr
-a2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4gWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1
-MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKClRleGFzIEluc3RydW1lbnRzIEZp
-bmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLiBZLXR1bm51cy9CdXNp
-bmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQoKCgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2Vy
-bmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0
-cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVs
-Cg==
+dra7xx_pcie_shutdown should be static.
+
+This patch introduces a new sparse warning.
+
+On Wed, Oct 11, 2017 at 9:32 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> On Wed, Sep 20, 2017 at 10:54:15AM +0530, Keerthy wrote:
+>> Add shutdown handler to cleanly turn off clocks. This will help
+>> in cases of kexec where in a new kernel can boot abruptly.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+>
+> Applied to pci/host-dra7xx for v4.15, thanks!
+>
+>> ---
+>>
+>> Changes in v4:
+>>
+>>   * Added the missing changes from v2!
+>>
+>> Changes in v3:
+>>
+>>   * Pushed the function outside #ifdef CONFIG_PM_SLEEP.
+>>   * Added more details to commit log.
+>>
+>> Changes in v2:
+>>
+>>   * used a local dev pointer instead of dereferencing dev at multiple places.
+>>   * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
+>>
+>>  drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
+>>  1 file changed, 17 insertions(+)
+>>
+>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+>> index 34427a6..d084800 100644
+>> --- a/drivers/pci/dwc/pci-dra7xx.c
+>> +++ b/drivers/pci/dwc/pci-dra7xx.c
+>> @@ -794,6 +794,22 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+>>  }
+>>  #endif
+>>
+>> +void dra7xx_pcie_shutdown(struct platform_device *pdev)
+>> +{
+>> +     struct device *dev = &pdev->dev;
+>> +     struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+>> +     int ret;
+>> +
+>> +     dra7xx_pcie_stop_link(dra7xx->pci);
+>> +
+>> +     ret = pm_runtime_put_sync(dev);
+>> +     if (ret < 0)
+>> +             dev_dbg(dev, "pm_runtime_put_sync failed\n");
+>> +
+>> +     pm_runtime_disable(dev);
+>> +     dra7xx_pcie_disable_phy(dra7xx);
+>> +}
+>> +
+>>  static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
+>>       SET_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend, dra7xx_pcie_resume)
+>>       SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend_noirq,
+>> @@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+>>               .suppress_bind_attrs = true,
+>>               .pm     = &dra7xx_pcie_pm_ops,
+>>       },
+>> +     .shutdown = dra7xx_pcie_shutdown,
+>>  };
+>>  builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
+>> --
+>> 1.9.1
+>>
