@@ -1,63 +1,40 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH v4 08/17] PCI: dwc: dra7xx: Assign pp->ops in dra7xx_add_pcie_port() rather than in probe
-Date: Fri,  3 Nov 2017 14:47:12 +0100
-Message-ID: <20171103134722.5532-9-niklas.cassel@axis.com>
-References: <20171103134722.5532-1-niklas.cassel@axis.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171103134722.5532-1-niklas.cassel@axis.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 0/7] ARM: OMAP2+: clkctrl fixes/enhancements for omaps
+Date: Fri, 3 Nov 2017 16:26:34 +0200
+Message-ID: <1509719201-32700-1-git-send-email-t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Assign pp->ops in *_add_pcie_port() to match how it is done in other
-drivers like exynos, imx7, keystone, armada8k, artpec6, designware-plat,
-hisi, kirin and spear13xx.
+Hi,
 
-This is probably a remainder since when dev and ops were assigned as
-members to pp. Since we now assign them as members to struct dw_pcie,
-the pp->ops assignment should definitely be in dra7xx_add_pcie_port().
+This series adds some fixes/enhancements for the clkctrl support on
+omap family SoCs. Required to properly support clkctrl clocks on
+am3,am4,am5,omap4,omap5,dra7. Targeted for 4.16 seeing we are pretty
+late on 4.14-rc cycle.
 
-This is done so that the compiler (in a later commit) can remove more
-code when enabling only one of the two supported modes (host/ep) in
-the dra7xx driver.
+This series can be merged independently from the other serieses
+(driver part support code, DTS data.) Boot tested against 4.14-rc1
+on the boards I have access to.
 
-Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/dwc/pci-dra7xx.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+Series has been pushed here:
+Tree: https://github.com/t-kristo/linux-pm.git
+Branch: 4.14-rc1-clkctrl-mach-omap2
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index a743545da4d4..009f6aeeee1c 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -460,6 +460,8 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 	if (!pci->dbi_base)
- 		return -ENOMEM;
- 
-+	pp->ops = &dra7xx_pcie_host_ops;
-+
- 	ret = dw_pcie_host_init(pp);
- 	if (ret) {
- 		dev_err(dev, "failed to initialize host\n");
-@@ -588,7 +590,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	void __iomem *base;
- 	struct resource *res;
- 	struct dw_pcie *pci;
--	struct pcie_port *pp;
- 	struct dra7xx_pcie *dra7xx;
- 	struct device *dev = &pdev->dev;
- 	struct device_node *np = dev->of_node;
-@@ -616,9 +617,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 	pci->dev = dev;
- 	pci->ops = &dw_pcie_ops;
- 
--	pp = &pci->pp;
--	pp->ops = &dra7xx_pcie_host_ops;
--
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		dev_err(dev, "missing IRQ resource: %d\n", irq);
--- 
-2.14.2
+-Tero
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
