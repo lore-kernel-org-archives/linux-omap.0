@@ -1,101 +1,52 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v4] pci: dwc: dra7xx: Add shutdown handler to cleanly
- turn off clocks
-Date: Mon, 6 Nov 2017 11:22:47 -0600
-Message-ID: <20171106172247.GA31930@bhelgaas-glaptop.roam.corp.google.com>
-References: <1505885055-30657-1-git-send-email-j-keerthy@ti.com>
- <20171011193207.GO25517@bhelgaas-glaptop.roam.corp.google.com>
- <CAD5ja62_fT+xg6G_ygN+8GScMYa62M7jNEoDxD89n7AUBjwPDw@mail.gmail.com>
- <4ab0e697-b23b-0cc6-6ffa-8479e07c5aed@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH 03/27] clk: ti: add support for clkctrl aliases
+Date: Mon, 6 Nov 2017 14:07:15 -0800
+Message-ID: <20171106220715.GA22441@codeaurora.org>
+References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
+ <1509368685-29112-4-git-send-email-t-kristo@ti.com>
+ <20171103152703.GU11011@codeaurora.org>
+ <b8090db5-48e7-07a2-223c-ead8662d36cb@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4ab0e697-b23b-0cc6-6ffa-8479e07c5aed@ti.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Niklas Cassel <nks.gnu@gmail.com>, kishon@ti.com, bhelgaas@google.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+In-Reply-To: <b8090db5-48e7-07a2-223c-ead8662d36cb@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-clk@vger.kernel.org, mturquette@baylibre.com, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 06, 2017 at 10:34:28AM +0530, Keerthy wrote:
+On 11/06, Tero Kristo wrote:
+> On 03/11/17 17:27, Stephen Boyd wrote:
+> >On 10/30, Tero Kristo wrote:
+> >>+		}
+> >>+
+> >>+		if (num_args && clkctrl_nodes_missing)
+> >>+			continue;
+> >>+
+> >>+		node = of_find_node_by_name(NULL, buf);
+> >>+		if (num_args)
+> >>+			node = of_find_node_by_name(node, "clk");
+> >>  		clkspec.np = node;
+> >>+		clkspec.args_count = num_args;
+> >>+		for (i = 0; i < num_args; i++) {
+> >>+			ret = kstrtoint(tags[i], i ? 10 : 16, clkspec.args + i);
+> >
+> >Is this some sort of DT checker?
 > 
+> Not really, it just parses a string of format:
 > 
-> On Friday 03 November 2017 08:00 PM, Niklas Cassel wrote:
-> > dra7xx_pcie_shutdown should be static.
-> > 
-> > This patch introduces a new sparse warning.
+> <clkctrl_provider>:<hex-offset>:<bit-offset>.
 > 
-> Thanks Niklas for reporting.
+> ... so that it can find a matching clock. Needed temporarily for
+> omap_hwmod backwards compatibility. This piece can be removed once
+> hwmod is gone.
 > 
-> Bjorn,
+> I can add some comment along these lines to the code if you want.
 > 
-> Should i send a next version or just a fix patch on top of this?
 
-Either way is fine.  I'll just fold it in or replace the existing patch.
+No need. Thanks.
 
-> > On Wed, Oct 11, 2017 at 9:32 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> >> On Wed, Sep 20, 2017 at 10:54:15AM +0530, Keerthy wrote:
-> >>> Add shutdown handler to cleanly turn off clocks. This will help
-> >>> in cases of kexec where in a new kernel can boot abruptly.
-> >>>
-> >>> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> >>> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >>
-> >> Applied to pci/host-dra7xx for v4.15, thanks!
-> >>
-> >>> ---
-> >>>
-> >>> Changes in v4:
-> >>>
-> >>>   * Added the missing changes from v2!
-> >>>
-> >>> Changes in v3:
-> >>>
-> >>>   * Pushed the function outside #ifdef CONFIG_PM_SLEEP.
-> >>>   * Added more details to commit log.
-> >>>
-> >>> Changes in v2:
-> >>>
-> >>>   * used a local dev pointer instead of dereferencing dev at multiple places.
-> >>>   * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
-> >>>
-> >>>  drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
-> >>>  1 file changed, 17 insertions(+)
-> >>>
-> >>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> >>> index 34427a6..d084800 100644
-> >>> --- a/drivers/pci/dwc/pci-dra7xx.c
-> >>> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> >>> @@ -794,6 +794,22 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
-> >>>  }
-> >>>  #endif
-> >>>
-> >>> +void dra7xx_pcie_shutdown(struct platform_device *pdev)
-> >>> +{
-> >>> +     struct device *dev = &pdev->dev;
-> >>> +     struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-> >>> +     int ret;
-> >>> +
-> >>> +     dra7xx_pcie_stop_link(dra7xx->pci);
-> >>> +
-> >>> +     ret = pm_runtime_put_sync(dev);
-> >>> +     if (ret < 0)
-> >>> +             dev_dbg(dev, "pm_runtime_put_sync failed\n");
-> >>> +
-> >>> +     pm_runtime_disable(dev);
-> >>> +     dra7xx_pcie_disable_phy(dra7xx);
-> >>> +}
-> >>> +
-> >>>  static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
-> >>>       SET_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend, dra7xx_pcie_resume)
-> >>>       SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend_noirq,
-> >>> @@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
-> >>>               .suppress_bind_attrs = true,
-> >>>               .pm     = &dra7xx_pcie_pm_ops,
-> >>>       },
-> >>> +     .shutdown = dra7xx_pcie_shutdown,
-> >>>  };
-> >>>  builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
-> >>> --
-> >>> 1.9.1
-> >>>
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
