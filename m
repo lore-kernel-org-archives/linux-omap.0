@@ -1,7 +1,7 @@
 From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: CM: make some pointers and function arguments as const
-Date: Mon,  6 Nov 2017 14:15:39 +0100
-Message-ID: <1509974140-10860-2-git-send-email-bhumirks@gmail.com>
+Subject: [PATCH 2/2] ARM: OMAP2+: CM: make cm_ll_data structures as const
+Date: Mon,  6 Nov 2017 14:15:40 +0100
+Message-ID: <1509974140-10860-3-git-send-email-bhumirks@gmail.com>
 References: <1509974140-10860-1-git-send-email-bhumirks@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1509974140-10860-1-git-send-email-bhumirks@gmail.com>
@@ -10,65 +10,68 @@ To: julia.lawall@lip6.fr, tony@atomide.com, linux@armlinux.org.uk, linux-arm-ker
 Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Make the pointer cm_ll_data of type cm_ll_data as const as it does not
-modify the fields of the structure it points too.
-After this change, make the argument of cm_register function as const as
-it is used to initialise cm_ll_data or used inside an if condition.
-Make the pointer argument of cm_unregister function as const as it is only
-used inside an if condition.
-Add const to the function prototypes too.
+Make these const as they are only getting passed to the functions
+cm_register and cm_unregister having the arguments as const.
 
 Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- arch/arm/mach-omap2/cm.h        | 4 ++--
- arch/arm/mach-omap2/cm_common.c | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/cm2xxx.c     | 2 +-
+ arch/arm/mach-omap2/cm33xx.c     | 2 +-
+ arch/arm/mach-omap2/cm3xxx.c     | 2 +-
+ arch/arm/mach-omap2/cminst44xx.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-index e833984..7b66e17 100644
---- a/arch/arm/mach-omap2/cm.h
-+++ b/arch/arm/mach-omap2/cm.h
-@@ -72,8 +72,8 @@ int omap_cm_wait_module_idle(u8 part, s16 prcm_mod, u16 idlest_reg,
- 			     u8 idlest_shift);
- int omap_cm_module_enable(u8 mode, u8 part, u16 inst, u16 clkctrl_offs);
- int omap_cm_module_disable(u8 part, u16 inst, u16 clkctrl_offs);
--extern int cm_register(struct cm_ll_data *cld);
--extern int cm_unregister(struct cm_ll_data *cld);
-+extern int cm_register(const struct cm_ll_data *cld);
-+extern int cm_unregister(const struct cm_ll_data *cld);
- int omap_cm_init(void);
- int omap2_cm_base_init(void);
+diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
+index cd90b4c..d5b87f4 100644
+--- a/arch/arm/mach-omap2/cm2xxx.c
++++ b/arch/arm/mach-omap2/cm2xxx.c
+@@ -385,7 +385,7 @@ void omap2xxx_cm_set_mod_dividers(u32 mpu, u32 dsp, u32 gfx, u32 core, u32 mdm)
+  *
+  */
  
-diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
-index 83c6fa7..adf8858 100644
---- a/arch/arm/mach-omap2/cm_common.c
-+++ b/arch/arm/mach-omap2/cm_common.c
-@@ -29,7 +29,7 @@
-  * common CM functions
-  */
- static struct cm_ll_data null_cm_ll_data;
--static struct cm_ll_data *cm_ll_data = &null_cm_ll_data;
-+static const struct cm_ll_data *cm_ll_data = &null_cm_ll_data;
+-static struct cm_ll_data omap2xxx_cm_ll_data = {
++static const struct cm_ll_data omap2xxx_cm_ll_data = {
+ 	.split_idlest_reg	= &omap2xxx_cm_split_idlest_reg,
+ 	.wait_module_ready	= &omap2xxx_cm_wait_module_ready,
+ };
+diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+index a9e08d8..0c9750f 100644
+--- a/arch/arm/mach-omap2/cm33xx.c
++++ b/arch/arm/mach-omap2/cm33xx.c
+@@ -342,7 +342,7 @@ struct clkdm_ops am33xx_clkdm_operations = {
+ 	.clkdm_clk_disable	= am33xx_clkdm_clk_disable,
+ };
  
- /* cm_base: base virtual address of the CM IP block */
- struct omap_domain_base cm_base;
-@@ -189,7 +189,7 @@ int omap_cm_module_disable(u8 part, u16 inst, u16 clkctrl_offs)
-  * is NULL, or -EEXIST if cm_register() has already been called
-  * without an intervening cm_unregister().
+-static struct cm_ll_data am33xx_cm_ll_data = {
++static const struct cm_ll_data am33xx_cm_ll_data = {
+ 	.wait_module_ready	= &am33xx_cm_wait_module_ready,
+ 	.wait_module_idle	= &am33xx_cm_wait_module_idle,
+ 	.module_enable		= &am33xx_cm_module_enable,
+diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
+index 961bc47..ec580fd 100644
+--- a/arch/arm/mach-omap2/cm3xxx.c
++++ b/arch/arm/mach-omap2/cm3xxx.c
+@@ -662,7 +662,7 @@ void omap3_cm_save_scratchpad_contents(u32 *ptr)
+  *
   */
--int cm_register(struct cm_ll_data *cld)
-+int cm_register(const struct cm_ll_data *cld)
- {
- 	if (!cld)
- 		return -EINVAL;
-@@ -213,7 +213,7 @@ int cm_register(struct cm_ll_data *cld)
-  * -EINVAL if @cld is NULL or if @cld does not match the struct
-  * cm_ll_data * previously registered by cm_register().
-  */
--int cm_unregister(struct cm_ll_data *cld)
-+int cm_unregister(const struct cm_ll_data *cld)
- {
- 	if (!cld || cm_ll_data != cld)
- 		return -EINVAL;
+ 
+-static struct cm_ll_data omap3xxx_cm_ll_data = {
++static const struct cm_ll_data omap3xxx_cm_ll_data = {
+ 	.split_idlest_reg	= &omap3xxx_cm_split_idlest_reg,
+ 	.wait_module_ready	= &omap3xxx_cm_wait_module_ready,
+ };
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index 8774e98..2e2274f 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -512,7 +512,7 @@ struct clkdm_ops am43xx_clkdm_operations = {
+ 	.clkdm_xlate_address	= omap4_clkdm_xlate_address,
+ };
+ 
+-static struct cm_ll_data omap4xxx_cm_ll_data = {
++static const struct cm_ll_data omap4xxx_cm_ll_data = {
+ 	.wait_module_ready	= &omap4_cminst_wait_module_ready,
+ 	.wait_module_idle	= &omap4_cminst_wait_module_idle,
+ 	.module_enable		= &omap4_cminst_module_enable,
 -- 
 1.9.1
