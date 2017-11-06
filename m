@@ -1,60 +1,82 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 03/27] clk: ti: add support for clkctrl aliases
-Date: Mon, 6 Nov 2017 09:46:41 +0200
-Message-ID: <b8090db5-48e7-07a2-223c-ead8662d36cb@ti.com>
-References: <1509368685-29112-1-git-send-email-t-kristo@ti.com>
- <1509368685-29112-4-git-send-email-t-kristo@ti.com>
- <20171103152703.GU11011@codeaurora.org>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH] mfd: palmas: Assign the right powerhold mask for tps65917
+Date: Mon, 6 Nov 2017 15:22:29 +0530
+Message-ID: <b7915318-5edb-a821-4a33-9176b037d51a@ti.com>
+References: <1508833296-20702-1-git-send-email-j-keerthy@ti.com>
+ <20171031104800.sedywmkgf4kp6ych@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20171103152703.GU11011@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171031104800.sedywmkgf4kp6ych@dell>
 Content-Language: en-US
-Sender: linux-clk-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-clk@vger.kernel.org, mturquette@baylibre.com, linux-omap@vger.kernel.org, tony@atomide.com
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 03/11/17 17:27, Stephen Boyd wrote:
-> On 10/30, Tero Kristo wrote:
->> +		}
+
+
+On Tuesday 31 October 2017 04:18 PM, Lee Jones wrote:
+> On Tue, 24 Oct 2017, Keerthy wrote:
+> 
+>> The powerhold mask for TPS65917 is different when comapred to
+>> the other palmas versions. Hence assign the right mask that enables
+>> power off of tps65917 pmic correctly.
+>>
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
+>>  drivers/mfd/palmas.c       | 10 +++++++++-
+>>  include/linux/mfd/palmas.h |  3 +++
+>>  2 files changed, 12 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+>> index 3922a93..663a239 100644
+>> --- a/drivers/mfd/palmas.c
+>> +++ b/drivers/mfd/palmas.c
+>> @@ -430,6 +430,7 @@ static void palmas_power_off(void)
+>>  {
+>>  	unsigned int addr;
+>>  	int ret, slave;
+>> +	u8 powerhold_mask;
+>>  	struct device_node *np = palmas_dev->dev->of_node;
+>>  
+>>  	if (of_property_read_bool(np, "ti,palmas-override-powerhold")) {
+>> @@ -437,8 +438,15 @@ static void palmas_power_off(void)
+>>  					  PALMAS_PRIMARY_SECONDARY_PAD2);
+>>  		slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+>>  
+>> +		if (of_device_is_compatible(np, "ti,tps65917"))
+> 
+> Is it possible to interrogate the device itself, rather than DT?
+
+You mean using driver data tagged with compatibles?
+
+> 
+>> +			powerhold_mask =
+>> +				TPS65917_PRIMARY_SECONDARY_PAD2_GPIO_5_MASK;
+>> +		else
+>> +			powerhold_mask =
+>> +				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK;
 >> +
->> +		if (num_args && clkctrl_nodes_missing)
->> +			continue;
+>>  		ret = regmap_update_bits(palmas_dev->regmap[slave], addr,
+>> -				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK, 0);
+>> +					 powerhold_mask, 0);
+>>  		if (ret)
+>>  			dev_err(palmas_dev->dev,
+>>  				"Unable to write PRIMARY_SECONDARY_PAD2 %d\n",
+>> diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+>> index 6dec438..cffb23b 100644
+>> --- a/include/linux/mfd/palmas.h
+>> +++ b/include/linux/mfd/palmas.h
+>> @@ -3733,6 +3733,9 @@ enum usb_irq_events {
+>>  #define TPS65917_REGEN3_CTRL_MODE_ACTIVE			0x01
+>>  #define TPS65917_REGEN3_CTRL_MODE_ACTIVE_SHIFT			0x00
+>>  
+>> +/* POWERHOLD Mask field for PRIMARY_SECONDARY_PAD2 register */
+>> +#define TPS65917_PRIMARY_SECONDARY_PAD2_GPIO_5_MASK		0xC
 >> +
->> +		node = of_find_node_by_name(NULL, buf);
->> +		if (num_args)
->> +			node = of_find_node_by_name(node, "clk");
->>   		clkspec.np = node;
->> +		clkspec.args_count = num_args;
->> +		for (i = 0; i < num_args; i++) {
->> +			ret = kstrtoint(tags[i], i ? 10 : 16, clkspec.args + i);
+>>  /* Registers for function RESOURCE */
+>>  #define TPS65917_REGEN1_CTRL					0x2
+>>  #define TPS65917_PLLEN_CTRL					0x3
 > 
-> Is this some sort of DT checker?
-
-Not really, it just parses a string of format:
-
-<clkctrl_provider>:<hex-offset>:<bit-offset>.
-
-... so that it can find a matching clock. Needed temporarily for 
-omap_hwmod backwards compatibility. This piece can be removed once hwmod 
-is gone.
-
-I can add some comment along these lines to the code if you want.
-
--Tero
-
-> 
->> +			if (ret) {
->> +				pr_warn("Bad tag in %s at %d: %s\n",
->> +					c->node_name, i, tags[i]);
->> +				return;
->> +			}
->> +		}
->>   		clk = of_clk_get_from_provider(&clkspec);
->>   
-> 
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
