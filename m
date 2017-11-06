@@ -1,128 +1,102 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v2] dwc: dra7xx: Print link state to console for debug
-Date: Mon, 6 Nov 2017 08:26:29 +0530
-Message-ID: <b4652eae-0d08-1993-9640-71cebc0077d8@ti.com>
-References: <1508417009-30869-1-git-send-email-faiz_abbas@ti.com>
- <9378c5c9-381d-4c40-3290-f7e3720792ba@ti.com>
- <063D6719AE5E284EB5DD2968C1650D6DD009C62B@AcuExch.aculab.com>
- <53ed97ab-ed02-23be-0ce9-e79f2aaac979@ti.com>
- <a4832f67-8511-e903-044c-609e0f4a0352@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v4] pci: dwc: dra7xx: Add shutdown handler to cleanly turn
+ off clocks
+Date: Mon, 6 Nov 2017 10:34:28 +0530
+Message-ID: <4ab0e697-b23b-0cc6-6ffa-8479e07c5aed@ti.com>
+References: <1505885055-30657-1-git-send-email-j-keerthy@ti.com>
+ <20171011193207.GO25517@bhelgaas-glaptop.roam.corp.google.com>
+ <CAD5ja62_fT+xg6G_ygN+8GScMYa62M7jNEoDxD89n7AUBjwPDw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <a4832f67-8511-e903-044c-609e0f4a0352@ti.com>
+In-Reply-To: <CAD5ja62_fT+xg6G_ygN+8GScMYa62M7jNEoDxD89n7AUBjwPDw@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-pci-owner@vger.kernel.org
-To: David Laight <David.Laight@ACULAB.COM>, "kishon@ti.com" <kishon@ti.com>
-Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Niklas Cassel <nks.gnu@gmail.com>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: kishon@ti.com, bhelgaas@google.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Monday 30 October 2017 02:18 PM, Faiz Abbas wrote:
+On Friday 03 November 2017 08:00 PM, Niklas Cassel wrote:
+> dra7xx_pcie_shutdown should be static.
 > 
+> This patch introduces a new sparse warning.
+
+Thanks Niklas for reporting.
+
+Bjorn,
+
+Should i send a next version or just a fix patch on top of this?
+
+Regards,
+Keerthy
+
 > 
-> On Thursday 26 October 2017 01:29 PM, Faiz Abbas wrote:
->> David,
+> On Wed, Oct 11, 2017 at 9:32 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> On Wed, Sep 20, 2017 at 10:54:15AM +0530, Keerthy wrote:
+>>> Add shutdown handler to cleanly turn off clocks. This will help
+>>> in cases of kexec where in a new kernel can boot abruptly.
+>>>
+>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>>> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 >>
->> On Thursday 19 October 2017 06:56 PM, David Laight wrote:
->>> From: Faiz Abbas
->>>> Sent: 19 October 2017 14:09
->>>> On Thursday 19 October 2017 06:13 PM, Faiz Abbas wrote:
->>>>> Enable support for printing the LTSSM link state for debugging PCI
->>>>> when link is down.
->>>>>
->>>>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->>>>> ---
->>>>> v2:
->>>>>  1. Changed dev_err() to dev_dbg()
->>>>>  2. Changed static char array to static const char * const
->>>>>  3. format changes
->>>>>
->>>>>  drivers/pci/dwc/pci-dra7xx.c | 48 ++++++++++++++++++++++++++++++++++++++++++++
->>>>>  1 file changed, 48 insertions(+)
->>>>>
->>>>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
->>>>> index 34427a6..0e70e77 100644
->>>>> --- a/drivers/pci/dwc/pci-dra7xx.c
->>>>> +++ b/drivers/pci/dwc/pci-dra7xx.c
->>>>> @@ -98,6 +98,45 @@ struct dra7xx_pcie_of_data {
->>>>>
->>>>>  #define to_dra7xx_pcie(x)	dev_get_drvdata((x)->dev)
->>>>>
->>>>> +static const char * const state[] = {
->>>>> +	"DETECT_QUIET",
->>> ...
->>>>> +	"RCVRY_EQ3"
->>>>> +};
->>>>> +
->>>>>  static inline u32 dra7xx_pcie_readl(struct dra7xx_pcie *pcie, u32 offset)
->>>>>  {
->>>>>  	return readl(pcie->base + offset);
->>>>> @@ -118,6 +157,15 @@ static int dra7xx_pcie_link_up(struct dw_pcie *pci)
->>>>>  {
->>>>>  	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
->>>>>  	u32 reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_PHY_CS);
->>>>> +	u32 cmd_reg;
->>>>> +	u32 ltssm_state;
->>>>> +
->>>>> +	if (!(reg & LINK_UP)) {
->>>>> +		cmd_reg = dra7xx_pcie_readl(dra7xx,
->>>>> +					    PCIECTRL_DRA7XX_CONF_DEVICE_CMD);
->>>>> +		ltssm_state = (cmd_reg & GENMASK(7, 2)) >> 2;
->>>>> +		dev_dbg(pci->dev, "Link state:%s\n", state[ltssm_state]);
->>>
->>> Hmmm... GENMASK leaves by hunting header files...> Why not (cmd_reg >> 2) & 63 and explicitly define state[64]
->>> to guarantee that you never print anything worse than a NULL
->>> pointer.
+>> Applied to pci/host-dra7xx for v4.15, thanks!
 >>
->> I'm not sure what you mean. Are you worried we might print something
->> outside the array bounds? How is this easier to decipher than GENMASK?
->>
+>>> ---
 >>>
->>>>> +	}
->>>>>
->>>>>  	return !!(reg & LINK_UP);
->>>>>  }
->>>>>
->>>>
->>>> I missed David's comment in v1. Will submit a new version. Please ignore.
+>>> Changes in v4:
 >>>
->>> I've a 'neat' trick for generating strings that match constants.
->>> You can get the compiler to do all the work for you:
->>> (Assuming I've typed it correctly)
+>>>   * Added the missing changes from v2!
 >>>
->>> #define LTSSM_DEFS(x) \
->>>   x(DETECT_QUIET) \
->>>   x(DETECT_ACT) \
->>> (continue for all the names)
+>>> Changes in v3:
 >>>
->>> Define an enum with the named constants:
->>> #define X(name) LTSSM_STATE_##name,
->>> enum (LTSSM_DEFS(X) LTSSM_STATE_SIZE=64);
->>> #undef X
+>>>   * Pushed the function outside #ifdef CONFIG_PM_SLEEP.
+>>>   * Added more details to commit log.
 >>>
->>> Array of strings:
->>> #define X(name) [LTSSM_STATE_##name] = #name
->>> static const char * const state_names[LTSSM_STATE_SIZE] = { LTSSM_DEFS(X) };
->>> #undef X
+>>> Changes in v2:
 >>>
->>> 	David
+>>>   * used a local dev pointer instead of dereferencing dev at multiple places.
+>>>   * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
 >>>
->>
->> So I implemented your idea and it looks like this:
->> http://pastebin.ubuntu.com/25821834/
->>
->> I don't know how much we gained by adding the trick. I still had to be
->> careful not to be off by 1 when writing the list. Plus we are never
->> saying anything like printk("%s", state[LTSSM_STATE_DETECT_QUIET]. Its a
->> register read which is used to index the list array.
->>
->> Thanks,
->> Faiz
->>
-> 
-> Gentle Ping.
-> 
-Ping Again.
+>>>  drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
+>>>  1 file changed, 17 insertions(+)
+>>>
+>>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+>>> index 34427a6..d084800 100644
+>>> --- a/drivers/pci/dwc/pci-dra7xx.c
+>>> +++ b/drivers/pci/dwc/pci-dra7xx.c
+>>> @@ -794,6 +794,22 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+>>>  }
+>>>  #endif
+>>>
+>>> +void dra7xx_pcie_shutdown(struct platform_device *pdev)
+>>> +{
+>>> +     struct device *dev = &pdev->dev;
+>>> +     struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+>>> +     int ret;
+>>> +
+>>> +     dra7xx_pcie_stop_link(dra7xx->pci);
+>>> +
+>>> +     ret = pm_runtime_put_sync(dev);
+>>> +     if (ret < 0)
+>>> +             dev_dbg(dev, "pm_runtime_put_sync failed\n");
+>>> +
+>>> +     pm_runtime_disable(dev);
+>>> +     dra7xx_pcie_disable_phy(dra7xx);
+>>> +}
+>>> +
+>>>  static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
+>>>       SET_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend, dra7xx_pcie_resume)
+>>>       SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend_noirq,
+>>> @@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+>>>               .suppress_bind_attrs = true,
+>>>               .pm     = &dra7xx_pcie_pm_ops,
+>>>       },
+>>> +     .shutdown = dra7xx_pcie_shutdown,
+>>>  };
+>>>  builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
+>>> --
+>>> 1.9.1
+>>>
