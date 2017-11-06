@@ -1,71 +1,98 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCHv1 00/14] omapdrm: DSI command mode panel support
-Date: Mon, 6 Nov 2017 11:29:53 +0100
-Message-ID: <20171106102953.GA8056@amd>
-References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
- <20170929132649.63dy7mzjgknaevoa@earth>
- <b66ec006-e998-b8c6-8ef1-5bf19208c100@ti.com>
- <20171013171207.GO4394@atomide.com>
- <20171023220100.cso5sbxcx7itcj5r@earth>
- <d96752eb-45a0-9766-0022-7eb1594761af@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH] mfd: palmas: Assign the right powerhold mask for tps65917
+Date: Mon, 6 Nov 2017 17:58:01 +0530
+Message-ID: <a24fd003-a468-2f08-fccd-435f1f78bd1c@ti.com>
+References: <1508833296-20702-1-git-send-email-j-keerthy@ti.com>
+ <20171031104800.sedywmkgf4kp6ych@dell>
+ <b7915318-5edb-a821-4a33-9176b037d51a@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d96752eb-45a0-9766-0022-7eb1594761af@ti.com>
+In-Reply-To: <b7915318-5edb-a821-4a33-9176b037d51a@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, t-kristo@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---LQksG6bCIzRHxTLp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Monday 06 November 2017 03:22 PM, Keerthy wrote:
+> 
+> 
+> On Tuesday 31 October 2017 04:18 PM, Lee Jones wrote:
+>> On Tue, 24 Oct 2017, Keerthy wrote:
+>>
+>>> The powerhold mask for TPS65917 is different when comapred to
+>>> the other palmas versions. Hence assign the right mask that enables
+>>> power off of tps65917 pmic correctly.
+>>>
+>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>>> ---
+>>>  drivers/mfd/palmas.c       | 10 +++++++++-
+>>>  include/linux/mfd/palmas.h |  3 +++
+>>>  2 files changed, 12 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+>>> index 3922a93..663a239 100644
+>>> --- a/drivers/mfd/palmas.c
+>>> +++ b/drivers/mfd/palmas.c
+>>> @@ -430,6 +430,7 @@ static void palmas_power_off(void)
+>>>  {
+>>>  	unsigned int addr;
+>>>  	int ret, slave;
+>>> +	u8 powerhold_mask;
+>>>  	struct device_node *np = palmas_dev->dev->of_node;
+>>>  
+>>>  	if (of_property_read_bool(np, "ti,palmas-override-powerhold")) {
+>>> @@ -437,8 +438,15 @@ static void palmas_power_off(void)
+>>>  					  PALMAS_PRIMARY_SECONDARY_PAD2);
+>>>  		slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+>>>  
+>>> +		if (of_device_is_compatible(np, "ti,tps65917"))
+>>
+>> Is it possible to interrogate the device itself, rather than DT?
+> 
+> You mean using driver data tagged with compatibles?
 
-> > P.S.: I got asked by different people about the status of this
-> > patchset, which is required for display support on N9, N950 and
-> > Droid 4. It's not just me and Tony, that are interested in this :)
->=20
-> Ok. If you agree to help with the DSI part in the future, I have no
-> problems applying these (after review and testing, of course).
->=20
-> My worry is not only with complicating Laurent's work towards common DRM
-> drivers, but also with the maintenance burden this brings. Keeping DSI
-> working in the future may be challenging due to the lack of users and
-> (easy to use) boards. I do have a N950 and OMAP4 Blaze Tablet, though,
-> so I'm able to test both command and video modes. But getting those boot
-> up is not always trivial, especially for the blaze tablet.
+I guess you meant interrogating by i2c register red like revision
+register, i am afraid no such register to distinguish hence went by the
+compatible.
 
-Well... Yes, they are challenging to boot, because without working
-display, debugging them is hard/impossible. Very few people have
-serial cables for those, but at least the N9 is pretty common.
-
-PostmarketOS is interested in using it as a target. I'm interested in
-keeping it going. With working display, I'm pretty sure I can prevent
-regressions... and there could be even some improvements :-).
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---LQksG6bCIzRHxTLp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAloAOaAACgkQMOfwapXb+vLjiQCghDPjhplSDZZ7aOGUiqIIRqEw
-uqsAn2y6kNk4hx2yV1DNPXdbn3BHO/xy
-=gLuT
------END PGP SIGNATURE-----
-
---LQksG6bCIzRHxTLp--
+Regards,
+Keerthy
+> 
+>>
+>>> +			powerhold_mask =
+>>> +				TPS65917_PRIMARY_SECONDARY_PAD2_GPIO_5_MASK;
+>>> +		else
+>>> +			powerhold_mask =
+>>> +				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK;
+>>> +
+>>>  		ret = regmap_update_bits(palmas_dev->regmap[slave], addr,
+>>> -				PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_7_MASK, 0);
+>>> +					 powerhold_mask, 0);
+>>>  		if (ret)
+>>>  			dev_err(palmas_dev->dev,
+>>>  				"Unable to write PRIMARY_SECONDARY_PAD2 %d\n",
+>>> diff --git a/include/linux/mfd/palmas.h b/include/linux/mfd/palmas.h
+>>> index 6dec438..cffb23b 100644
+>>> --- a/include/linux/mfd/palmas.h
+>>> +++ b/include/linux/mfd/palmas.h
+>>> @@ -3733,6 +3733,9 @@ enum usb_irq_events {
+>>>  #define TPS65917_REGEN3_CTRL_MODE_ACTIVE			0x01
+>>>  #define TPS65917_REGEN3_CTRL_MODE_ACTIVE_SHIFT			0x00
+>>>  
+>>> +/* POWERHOLD Mask field for PRIMARY_SECONDARY_PAD2 register */
+>>> +#define TPS65917_PRIMARY_SECONDARY_PAD2_GPIO_5_MASK		0xC
+>>> +
+>>>  /* Registers for function RESOURCE */
+>>>  #define TPS65917_REGEN1_CTRL					0x2
+>>>  #define TPS65917_PLLEN_CTRL					0x3
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
