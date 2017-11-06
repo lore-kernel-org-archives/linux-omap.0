@@ -1,102 +1,110 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v4] pci: dwc: dra7xx: Add shutdown handler to cleanly turn
- off clocks
-Date: Mon, 6 Nov 2017 10:34:28 +0530
-Message-ID: <4ab0e697-b23b-0cc6-6ffa-8479e07c5aed@ti.com>
-References: <1505885055-30657-1-git-send-email-j-keerthy@ti.com>
- <20171011193207.GO25517@bhelgaas-glaptop.roam.corp.google.com>
- <CAD5ja62_fT+xg6G_ygN+8GScMYa62M7jNEoDxD89n7AUBjwPDw@mail.gmail.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH] rtc: omap: Support scratch registers
+Date: Mon, 6 Nov 2017 12:25:06 +0530
+Message-ID: <600fd106-9f79-0f5a-a2fd-e6b067785c17@ti.com>
+References: <20171031162731.27019-1-alexandre.belloni@free-electrons.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAD5ja62_fT+xg6G_ygN+8GScMYa62M7jNEoDxD89n7AUBjwPDw@mail.gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171031162731.27019-1-alexandre.belloni@free-electrons.com>
 Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Niklas Cassel <nks.gnu@gmail.com>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: kishon@ti.com, bhelgaas@google.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-rtc@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
++ linux omap list
 
-
-On Friday 03 November 2017 08:00 PM, Niklas Cassel wrote:
-> dra7xx_pcie_shutdown should be static.
+On Tuesday 31 October 2017 09:57 PM, Alexandre Belloni wrote:
+> Register an nvmem device to expose the 3 scratch registers (total of 12
+> bytes) to both userspace and kernel space.
 > 
-> This patch introduces a new sparse warning.
+> Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 
-Thanks Niklas for reporting.
+Looks good to me.
 
-Bjorn,
+Reviewed-by: Sekhar Nori <nsekhar@ti.com>
 
-Should i send a next version or just a fix patch on top of this?
+Curious on what you are using these registers for.
 
-Regards,
-Keerthy
+Thanks,
+Sekhar
 
+> ---
+>  drivers/rtc/rtc-omap.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 45 insertions(+)
 > 
-> On Wed, Oct 11, 2017 at 9:32 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> On Wed, Sep 20, 2017 at 10:54:15AM +0530, Keerthy wrote:
->>> Add shutdown handler to cleanly turn off clocks. This will help
->>> in cases of kexec where in a new kernel can boot abruptly.
->>>
->>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
->>
->> Applied to pci/host-dra7xx for v4.15, thanks!
->>
->>> ---
->>>
->>> Changes in v4:
->>>
->>>   * Added the missing changes from v2!
->>>
->>> Changes in v3:
->>>
->>>   * Pushed the function outside #ifdef CONFIG_PM_SLEEP.
->>>   * Added more details to commit log.
->>>
->>> Changes in v2:
->>>
->>>   * used a local dev pointer instead of dereferencing dev at multiple places.
->>>   * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
->>>
->>>  drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
->>>  1 file changed, 17 insertions(+)
->>>
->>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
->>> index 34427a6..d084800 100644
->>> --- a/drivers/pci/dwc/pci-dra7xx.c
->>> +++ b/drivers/pci/dwc/pci-dra7xx.c
->>> @@ -794,6 +794,22 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
->>>  }
->>>  #endif
->>>
->>> +void dra7xx_pcie_shutdown(struct platform_device *pdev)
->>> +{
->>> +     struct device *dev = &pdev->dev;
->>> +     struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
->>> +     int ret;
->>> +
->>> +     dra7xx_pcie_stop_link(dra7xx->pci);
->>> +
->>> +     ret = pm_runtime_put_sync(dev);
->>> +     if (ret < 0)
->>> +             dev_dbg(dev, "pm_runtime_put_sync failed\n");
->>> +
->>> +     pm_runtime_disable(dev);
->>> +     dra7xx_pcie_disable_phy(dra7xx);
->>> +}
->>> +
->>>  static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
->>>       SET_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend, dra7xx_pcie_resume)
->>>       SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend_noirq,
->>> @@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
->>>               .suppress_bind_attrs = true,
->>>               .pm     = &dra7xx_pcie_pm_ops,
->>>       },
->>> +     .shutdown = dra7xx_pcie_shutdown,
->>>  };
->>>  builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
->>> --
->>> 1.9.1
->>>
+> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+> index d56d937966dc..1d666ac9ef70 100644
+> --- a/drivers/rtc/rtc-omap.c
+> +++ b/drivers/rtc/rtc-omap.c
+> @@ -70,6 +70,10 @@
+>  #define OMAP_RTC_COMP_MSB_REG		0x50
+>  #define OMAP_RTC_OSC_REG		0x54
+>  
+> +#define OMAP_RTC_SCRATCH0_REG		0x60
+> +#define OMAP_RTC_SCRATCH1_REG		0x64
+> +#define OMAP_RTC_SCRATCH2_REG		0x68
+> +
+>  #define OMAP_RTC_KICK0_REG		0x6c
+>  #define OMAP_RTC_KICK1_REG		0x70
+>  
+> @@ -667,6 +671,45 @@ static struct pinctrl_desc rtc_pinctrl_desc = {
+>  	.owner = THIS_MODULE,
+>  };
+>  
+> +static int omap_rtc_scratch_read(void *priv, unsigned int offset, void *_val,
+> +				 size_t bytes)
+> +{
+> +	struct omap_rtc	*rtc = priv;
+> +	u32 *val = _val;
+> +	int i;
+> +
+> +	for (i = 0; i < bytes / 4; i++)
+> +		val[i] = rtc_readl(rtc,
+> +				   OMAP_RTC_SCRATCH0_REG + offset + (i * 4));
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap_rtc_scratch_write(void *priv, unsigned int offset, void *_val,
+> +				  size_t bytes)
+> +{
+> +	struct omap_rtc	*rtc = priv;
+> +	u32 *val = _val;
+> +	int i;
+> +
+> +	rtc->type->unlock(rtc);
+> +	for (i = 0; i < bytes / 4; i++)
+> +		rtc_writel(rtc,
+> +			   OMAP_RTC_SCRATCH0_REG + offset + (i * 4), val[i]);
+> +	rtc->type->lock(rtc);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct nvmem_config omap_rtc_nvmem_config = {
+> +	.name = "omap_rtc_scratch",
+> +	.word_size = 4,
+> +	.stride = 4,
+> +	.size = OMAP_RTC_KICK0_REG - OMAP_RTC_SCRATCH0_REG,
+> +	.reg_read = omap_rtc_scratch_read,
+> +	.reg_write = omap_rtc_scratch_write,
+> +};
+> +
+>  static int omap_rtc_probe(struct platform_device *pdev)
+>  {
+>  	struct omap_rtc	*rtc;
+> @@ -804,6 +847,8 @@ static int omap_rtc_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	rtc->rtc->ops = &omap_rtc_ops;
+> +	omap_rtc_nvmem_config.priv = rtc;
+> +	rtc->rtc->nvmem_config = &omap_rtc_nvmem_config;
+>  
+>  	/* handle periodic and alarm irqs */
+>  	ret = devm_request_irq(&pdev->dev, rtc->irq_timer, rtc_irq, 0,
+> -- 
+> 2.15.0.rc2
+> 
