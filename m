@@ -1,45 +1,63 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap-gpmc updates for v4.15, part 2
-Date: Tue, 7 Nov 2017 16:31:27 +0100
-Message-ID: <CAK8P3a363m2FR2Dh871sg7PtpAuZAN0ttFa71yj9m08DdJT-6g@mail.gmail.com>
-References: <80844929-ce3d-5c4a-91e4-e589f693ecd7@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: n900 in next-20170901
+Date: Tue, 7 Nov 2017 07:48:42 -0800
+Message-ID: <20171107154842.GP28152@atomide.com>
+References: <20170925145437.GG4394@atomide.com>
+ <20171018082927.GB27595@js1304-P5Q-DELUXE>
+ <20171019183033.GH4394@atomide.com>
+ <20171020015542.GA10438@js1304-P5Q-DELUXE>
+ <20171020173146.GN4394@atomide.com>
+ <20171023045342.GA23082@js1304-P5Q-DELUXE>
+ <20171025173137.GQ4394@atomide.com>
+ <20171026044829.GB11791@js1304-P5Q-DELUXE>
+ <20171026141627.GD21504@atomide.com>
+ <20171107053313.GA12447@js1304-P5Q-DELUXE>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <80844929-ce3d-5c4a-91e4-e589f693ecd7@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Ladislav Michl <ladis@linux-mips.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171107053313.GA12447@js1304-P5Q-DELUXE>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 3, 2017 at 2:24 PM, Roger Quadros <rogerq@ti.com> wrote:
-> Hi Arnd/Olof,
->
-> The following changes since commit 2bd6bf03f4c1c59381d62c61d03f6cc3fe71f66e:
->
->   Linux 4.14-rc1 (2017-09-16 15:47:51 -0700)
->
-> are available in the git repository at:
->
->   https://github.com/rogerq/linux.git tags/gpmc-omap-for-v4.15-pt2
->
-> for you to fetch changes up to a622c641665c32a879348efb2abc389527479ee4:
->
->   memory: omap-gpmc: Remove deprecated gpmc_update_nand_reg() (2017-11-03 15:06:11 +0200)
->
-> ----------------------------------------------------------------
-> OMAP-GPMC: driver updates for v4.15, part 2
-> * get rid of unused function gpmc_update_nand_reg().
+Hi,
 
-Pulled into next/drivers, thanks!
+* Joonsoo Kim <iamjoonsoo.kim@lge.com> [171107 05:30]:
+> Could you test follwing updated branch?
+> 
+> https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
+> 
+> It has three relevant commits on top and enables CMA memory use.
 
-        Arnd
+Okie dokie.
+
+> "arm/dma: remove i-cache flush"
+
+Your branch at the above commit is not booting on n900.
+
+> "arm/dma: flush i-cache and d-cache separately"
+
+Not booting at this commit either.
+
+> "arm/dma: call flush_cache_all() and don't do outer cache operation"
+
+Not booting at this commit either.
+
+Earlier commit f14f3479c0d7 ("arm/dma: re-enable to remap the CMA
+area and flush cache before remapping") in you branch boots.
+
+Then the following commit d6512d6d0171 ("Revert "arm/mm: disable
+atomic_pool"") won't boot.
+
+Also your tree at commit 6d0525cef962 ("arm/dma: remove i-cache
+flush") with only commit d6512d6d0171 ("Revert "arm/mm: disable
+atomic_pool"") reverted boots on n900.
+
+So it seems the issue is currently at the atomic_pool_init()
+related code?
+
+Regards,
+
+Tony
