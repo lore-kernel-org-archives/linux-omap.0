@@ -1,11 +1,14 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 0/3] EDAC: TI: add support for DRA7 and keystone EDAC
-Date: Tue, 7 Nov 2017 22:38:56 +0200
-Message-ID: <1510087139-21885-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 1/3] Documentation: dt: memory: ti-emif: add edac support
+ under emif
+Date: Tue, 7 Nov 2017 22:38:57 +0200
+Message-ID: <1510087139-21885-2-git-send-email-t-kristo@ti.com>
+References: <1510087139-21885-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1510087139-21885-1-git-send-email-t-kristo@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,33 +19,65 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-edac@vger.kernel.org, bp@alien8.de, mchehab@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Certain revisions of the TI EMIF IP contain ECC support in them. Reflect
+this in the DT binding.
 
-The EMIF controller on certain TI SoCs has ECC support capability.
-This series adds support for this on dra7xx and keystone2 variants
-of the SoCs. DTS nodes are only added for keystone2 devices, as these
-can be tested with upstream right now. DRA7xx support will be added
-once the specific boards that actually support ECC are posted upstream.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+---
+ .../devicetree/bindings/memory-controllers/ti/emif.txt   | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-Tested the ECC support on keystone-k2g-evm against 4.14-rc1, injecting
-1 and 2 bit errors from u-boot. Below log with 2 bit error injected at
-the beginning of the SDRAM.
-
-<snip>
-root@k2g-evm:~# insmod /lib/modules/4.14.0-rc1-00003-gf5201bf/kernel/drivers/eda
-c/ti_edac.ko
-[   32.559025] EDAC MC0: Giving out device to module ti_edac controller ti,emif-
-keystone: DEV 21010000.emif (INTERRUPT)
-[   32.599088] EDAC MC0: 1 UE ti,emif-keystone on mc#0memory#0 (memory:0 page:0x
-0 offset:0x0 grain:4 - 2B)
-<snip>
-
-Boot tested on keystone-k2e/l/hk also just to make sure there are no
-issues (the driver is not enabled in keystone config by default either.)
-
--Tero
+diff --git a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+index 0db6047..f56a347 100644
+--- a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
++++ b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+@@ -3,12 +3,16 @@
+ EMIF - External Memory Interface - is an SDRAM controller used in
+ TI SoCs. EMIF supports, based on the IP revision, one or more of
+ DDR2/DDR3/LPDDR2 protocols. This binding describes a given instance
+-of the EMIF IP and memory parts attached to it.
++of the EMIF IP and memory parts attached to it. Certain revisions
++of the EMIF IP controller also contain optional ECC support, which
++corrects one bit errors and detects two bit errors.
+ 
+ Required properties:
+ - compatible	: Should be of the form "ti,emif-<ip-rev>" where <ip-rev>
+   is the IP revision of the specific EMIF instance.
+ 		  For am437x should be ti,emif-am4372.
++		  For dra7xx should be ti,emif-dra7xx.
++		  For k2x family, should be ti,emif-keystone.
+ 
+ - phy-type	: <u32> indicating the DDR phy type. Following are the
+   allowed values
+@@ -42,6 +46,10 @@ Optional properties:
+ - hw-caps-temp-alert	: Have this property if the controller
+   has capability for generating SDRAM temperature alerts
+ 
++- interrupts		: A list of interrupt specifiers for memory
++  controller interrupts, if available. Required for EMIF instances
++  that support ECC.
++
+ Example:
+ 
+ emif1: emif@0x4c000000 {
+@@ -54,3 +62,9 @@ emif1: emif@0x4c000000 {
+ 	hw-caps-ll-interface;
+ 	hw-caps-temp-alert;
+ };
++
++emif1: emif@4c000000 {
++	compatible = "ti,emif-dra7";
++	reg = <0x4c000000 0x200>;
++	interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
++};
+-- 
+1.9.1
 
 --
 Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
