@@ -1,8 +1,8 @@
 From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v2 4/6] mtd: onenand: omap2: remove skip initial unlocking
- support
-Date: Wed, 8 Nov 2017 08:44:17 +0100
-Message-ID: <20171108074417.hcydkazii5wk3gvh@lenoch>
+Subject: [PATCH v2 5/6] mtd: onenand: omap2: remove partitioning support from
+ platform data
+Date: Wed, 8 Nov 2017 08:44:46 +0100
+Message-ID: <20171108074446.hk3isjzr56uzfvgg@lenoch>
 References: <20171108074024.vwcfnqizvd7jajnh@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,30 +23,29 @@ To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-No platform data user sets skip_initial_unlocking, so remove test
-for this field.
+No platform data user setups partitioning informations, so remove.
 
 Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 ---
  Changes:
  -v2: new patch
 
- drivers/mtd/onenand/omap2.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/mtd/onenand/omap2.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index a03e1fe4aa48..93bd94337b35 100644
+index 93bd94337b35..883993bbe40b 100644
 --- a/drivers/mtd/onenand/omap2.c
 +++ b/drivers/mtd/onenand/omap2.c
-@@ -700,9 +700,6 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	if (pdata->skip_initial_unlocking)
--		this->options |= ONENAND_SKIP_INITIAL_UNLOCKING;
--
+@@ -703,8 +703,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
  	if ((r = onenand_scan(&c->mtd, 1)) < 0)
  		goto err_release_dma;
+ 
+-	r = mtd_device_register(&c->mtd, pdata ? pdata->parts : NULL,
+-				pdata ? pdata->nr_parts : 0);
++	r = mtd_device_register(&c->mtd, NULL, 0);
+ 	if (r)
+ 		goto err_release_onenand;
  
 -- 
 2.11.0
