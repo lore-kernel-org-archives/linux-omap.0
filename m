@@ -1,83 +1,149 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 1/3] Documentation: dt: memory: ti-emif: add edac support
- under emif
-Date: Tue, 7 Nov 2017 22:38:57 +0200
-Message-ID: <1510087139-21885-2-git-send-email-t-kristo@ti.com>
-References: <1510087139-21885-1-git-send-email-t-kristo@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH] rtc: omap: Support scratch registers
+Date: Wed, 8 Nov 2017 11:30:45 +0530
+Message-ID: <9a383f74-e049-885b-4705-93968f4c75d4@ti.com>
+References: <20171031162731.27019-1-alexandre.belloni@free-electrons.com>
+ <600fd106-9f79-0f5a-a2fd-e6b067785c17@ti.com>
+ <4741d4c7-d6f7-ecdb-1eed-1293175f38d9@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1510087139-21885-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-edac@vger.kernel.org, bp@alien8.de, mchehab@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4741d4c7-d6f7-ecdb-1eed-1293175f38d9@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-rtc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Certain revisions of the TI EMIF IP contain ECC support in them. Reflect
-this in the DT binding.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <ssantosh@kernel.org>
-Cc: Rob Herring <robh+dt@kernel.org>
----
- .../devicetree/bindings/memory-controllers/ti/emif.txt   | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
-index 0db6047..f56a347 100644
---- a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
-+++ b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
-@@ -3,12 +3,16 @@
- EMIF - External Memory Interface - is an SDRAM controller used in
- TI SoCs. EMIF supports, based on the IP revision, one or more of
- DDR2/DDR3/LPDDR2 protocols. This binding describes a given instance
--of the EMIF IP and memory parts attached to it.
-+of the EMIF IP and memory parts attached to it. Certain revisions
-+of the EMIF IP controller also contain optional ECC support, which
-+corrects one bit errors and detects two bit errors.
- 
- Required properties:
- - compatible	: Should be of the form "ti,emif-<ip-rev>" where <ip-rev>
-   is the IP revision of the specific EMIF instance.
- 		  For am437x should be ti,emif-am4372.
-+		  For dra7xx should be ti,emif-dra7xx.
-+		  For k2x family, should be ti,emif-keystone.
- 
- - phy-type	: <u32> indicating the DDR phy type. Following are the
-   allowed values
-@@ -42,6 +46,10 @@ Optional properties:
- - hw-caps-temp-alert	: Have this property if the controller
-   has capability for generating SDRAM temperature alerts
- 
-+- interrupts		: A list of interrupt specifiers for memory
-+  controller interrupts, if available. Required for EMIF instances
-+  that support ECC.
-+
- Example:
- 
- emif1: emif@0x4c000000 {
-@@ -54,3 +62,9 @@ emif1: emif@0x4c000000 {
- 	hw-caps-ll-interface;
- 	hw-caps-temp-alert;
- };
-+
-+emif1: emif@4c000000 {
-+	compatible = "ti,emif-dra7";
-+	reg = <0x4c000000 0x200>;
-+	interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
-+};
--- 
-1.9.1
+On Monday 06 November 2017 12:29 PM, Keerthy wrote:
+> 
+> 
+> On Monday 06 November 2017 12:25 PM, Sekhar Nori wrote:
+>> + linux omap list
+>>
+>> On Tuesday 31 October 2017 09:57 PM, Alexandre Belloni wrote:
+>>> Register an nvmem device to expose the 3 scratch registers (total of 12
+>>> bytes) to both userspace and kernel space.
+>>>
+>>> Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+>>
+>> Looks good to me.
+>>
+>> Reviewed-by: Sekhar Nori <nsekhar@ti.com>
+>>
+>> Curious on what you are using these registers for.
+> 
+> This is in response to this:
+> https://patchwork.kernel.org/patch/9684955/
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Couple of minor comments below. Apart from that:
+
+Tested-by: Keerthy <j-keerthy@ti.com>
+Reviewed-by: Keerthy <j-keerthy@ti.com>
+
+> 
+> 
+>>
+>> Thanks,
+>> Sekhar
+>>
+>>> ---
+>>>  drivers/rtc/rtc-omap.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
+>>>  1 file changed, 45 insertions(+)
+>>>
+>>> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
+>>> index d56d937966dc..1d666ac9ef70 100644
+>>> --- a/drivers/rtc/rtc-omap.c
+>>> +++ b/drivers/rtc/rtc-omap.c
+>>> @@ -70,6 +70,10 @@
+>>>  #define OMAP_RTC_COMP_MSB_REG		0x50
+>>>  #define OMAP_RTC_OSC_REG		0x54
+>>>  
+>>> +#define OMAP_RTC_SCRATCH0_REG		0x60
+>>> +#define OMAP_RTC_SCRATCH1_REG		0x64
+>>> +#define OMAP_RTC_SCRATCH2_REG		0x68
+>>> +
+>>>  #define OMAP_RTC_KICK0_REG		0x6c
+>>>  #define OMAP_RTC_KICK1_REG		0x70
+>>>  
+>>> @@ -667,6 +671,45 @@ static struct pinctrl_desc rtc_pinctrl_desc = {
+>>>  	.owner = THIS_MODULE,
+>>>  };
+>>>  
+>>> +static int omap_rtc_scratch_read(void *priv, unsigned int offset, void *_val,
+>>> +				 size_t bytes)
+>>> +{
+>>> +	struct omap_rtc	*rtc = priv;
+>>> +	u32 *val = _val;
+>>> +	int i;
+>>> +
+>>> +	for (i = 0; i < bytes / 4; i++)
+>>> +		val[i] = rtc_readl(rtc,
+>>> +				   OMAP_RTC_SCRATCH0_REG + offset + (i * 4));
+
+Can the offset be the Scratch register number instead of bytes offset?
+More intuitive to me.
+
+So that one can request using offset as 0, 1, 2 instead of 0, 4, 8?
+
+The above can be:
+rtc_readl(rtc, OMAP_RTC_SCRATCH0_REG + (offset + i) * 4), val[i]);
+
+
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static int omap_rtc_scratch_write(void *priv, unsigned int offset, void *_val,
+>>> +				  size_t bytes)
+>>> +{
+>>> +	struct omap_rtc	*rtc = priv;
+>>> +	u32 *val = _val;
+>>> +	int i;
+>>> +
+>>> +	rtc->type->unlock(rtc);
+>>> +	for (i = 0; i < bytes / 4; i++)
+>>> +		rtc_writel(rtc,
+>>> +			   OMAP_RTC_SCRATCH0_REG + offset + (i * 4), val[i]);
+
+The above can be:
+rtc_writel(rtc, OMAP_RTC_SCRATCH0_REG + (offset + i) * 4), val[i]);
+
+>>> +	rtc->type->lock(rtc);
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static struct nvmem_config omap_rtc_nvmem_config = {
+>>> +	.name = "omap_rtc_scratch",
+>>> +	.word_size = 4,
+>>> +	.stride = 4,
+>>> +	.size = OMAP_RTC_KICK0_REG - OMAP_RTC_SCRATCH0_REG,
+>>> +	.reg_read = omap_rtc_scratch_read,
+>>> +	.reg_write = omap_rtc_scratch_write,
+>>> +};
+>>> +
+>>>  static int omap_rtc_probe(struct platform_device *pdev)
+>>>  {
+>>>  	struct omap_rtc	*rtc;
+>>> @@ -804,6 +847,8 @@ static int omap_rtc_probe(struct platform_device *pdev)
+>>>  	}
+>>>  
+>>>  	rtc->rtc->ops = &omap_rtc_ops;
+>>> +	omap_rtc_nvmem_config.priv = rtc;
+>>> +	rtc->rtc->nvmem_config = &omap_rtc_nvmem_config;
+>>>  
+>>>  	/* handle periodic and alarm irqs */
+>>>  	ret = devm_request_irq(&pdev->dev, rtc->irq_timer, rtc_irq, 0,
+>>> -- 
+>>> 2.15.0.rc2
+>>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
