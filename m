@@ -1,43 +1,52 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH 0/4] Fixes for omapdrm on OpenPandora and GTA04
-Date: Wed,  8 Nov 2017 22:09:28 +0100
-Message-ID: <cover.1510175371.git.hns@goldelico.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Subject: [PATCH 4/4] omapdss: fix problem enabling VDDS_DSI on OMAP3530 (OpenPandora)
+Date: Wed,  8 Nov 2017 22:09:32 +0100
+Message-ID: <b94c5e773994ee55df9225fc84825bacb3fcb256.1510175371.git.hns@goldelico.com>
+References: <cover.1510175371.git.hns@goldelico.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1510175371.git.hns@goldelico.com>
+In-Reply-To: <cover.1510175371.git.hns@goldelico.com>
+References: <cover.1510175371.git.hns@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>
-Cc: devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-This patch set fixes vendor names of the panels
-and fixes a problem on omapdrm with enabling
-VDD_DSI for OMAP3 which is needed for displaying
-the Red and Green channel on OMAP3530 (Pandora).
+commit d178e034d565 ("drm: omapdrm: Move FEAT_DPI_USES_VDDS_DSI feature to dpi code")
 
-H. Nikolaus Schaller (4):
-  omapdrm: fix compatible string for td028ttec1
-  DTS: GTA04: fix panel compatibility string
-  DTS: Pandora: fix panel compatibility string
-  omapdss: fix problem enabling VDDS_DSI on OMAP3530 (OpenPandora)
+introduced a new match table which turned out to be wrong, at least
+for the 600 MHz OpenPandora using the OMAP3530.
 
- .../display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt}      | 4 ++--
- arch/arm/boot/dts/omap3-gta04.dtsi                                    | 2 +-
- arch/arm/boot/dts/omap3-pandora-common.dtsi                           | 2 +-
- drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c               | 4 ++--
- drivers/gpu/drm/omapdrm/dss/dpi.c                                     | 3 +--
- drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c      | 4 ++--
- 6 files changed, 9 insertions(+), 10 deletions(-)
- rename Documentation/devicetree/bindings/display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt} (84%)
+The effect was strange: only the Blue channel of the RGB panel was
+driven while Red and Green stayed black. So a coloured picture turned
+into blue/black.
 
+The GTA04 with DM3730 didn't show the effect.
+
+It turned out that VDDS_DSI was not properly initialized on OMAP3530,
+because the .family string is just "OMAP3" for these processors and
+not "OMAP3xxx".
+
+Therefore we match the .machine attribute.
+
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ drivers/gpu/drm/omapdrm/dss/dpi.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/omapdrm/dss/dpi.c b/drivers/gpu/drm/omapdrm/dss/dpi.c
+index 4ed5fde11313..aae3626910bb 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dpi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dpi.c
+@@ -566,8 +566,7 @@ static int dpi_verify_pll(struct dss_pll *pll)
+ }
+ 
+ static const struct soc_device_attribute dpi_soc_devices[] = {
+-	{ .family = "OMAP3[456]*" },
+-	{ .family = "[AD]M37*" },
++	{ .machine = "OMAP3[456]*" },
+ 	{ /* sentinel */ }
+ };
+ 
 -- 
 2.12.2
