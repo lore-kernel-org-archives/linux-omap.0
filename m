@@ -1,149 +1,52 @@
-From: Keerthy <j-keerthy@ti.com>
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 Subject: Re: [PATCH] rtc: omap: Support scratch registers
-Date: Wed, 8 Nov 2017 11:30:45 +0530
-Message-ID: <9a383f74-e049-885b-4705-93968f4c75d4@ti.com>
+Date: Wed, 8 Nov 2017 07:27:38 +0100
+Message-ID: <20171108062738.cml7qaek324rvc4e@piout.net>
 References: <20171031162731.27019-1-alexandre.belloni@free-electrons.com>
  <600fd106-9f79-0f5a-a2fd-e6b067785c17@ti.com>
  <4741d4c7-d6f7-ecdb-1eed-1293175f38d9@ti.com>
+ <9a383f74-e049-885b-4705-93968f4c75d4@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4741d4c7-d6f7-ecdb-1eed-1293175f38d9@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <9a383f74-e049-885b-4705-93968f4c75d4@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-rtc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Linux OMAP List <linux-omap@vger.kernel.org>
+To: Keerthy <j-keerthy@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, linux-rtc@vger.kernel.org, linux-kernel@vger.kernel.org, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
+On 08/11/2017 at 11:30:45 +0530, Keerthy wrote:
+> >>> +static int omap_rtc_scratch_read(void *priv, unsigned int offset, void *_val,
+> >>> +				 size_t bytes)
+> >>> +{
+> >>> +	struct omap_rtc	*rtc = priv;
+> >>> +	u32 *val = _val;
+> >>> +	int i;
+> >>> +
+> >>> +	for (i = 0; i < bytes / 4; i++)
+> >>> +		val[i] = rtc_readl(rtc,
+> >>> +				   OMAP_RTC_SCRATCH0_REG + offset + (i * 4));
+> 
+> Can the offset be the Scratch register number instead of bytes offset?
+> More intuitive to me.
+> 
+> So that one can request using offset as 0, 1, 2 instead of 0, 4, 8?
+> 
 
-On Monday 06 November 2017 12:29 PM, Keerthy wrote:
+Well, the offset is coming from the nvmem core, itself getting it from
+the Linux file API (and it is in bytes). However, you have the guarantee
+that it will be aligned on a word, see:
+http://elixir.free-electrons.com/linux/latest/source/drivers/nvmem/core.c#L88
+
+> The above can be:
+> rtc_readl(rtc, OMAP_RTC_SCRATCH0_REG + (offset + i) * 4), val[i]);
 > 
 > 
-> On Monday 06 November 2017 12:25 PM, Sekhar Nori wrote:
->> + linux omap list
->>
->> On Tuesday 31 October 2017 09:57 PM, Alexandre Belloni wrote:
->>> Register an nvmem device to expose the 3 scratch registers (total of 12
->>> bytes) to both userspace and kernel space.
->>>
->>> Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
->>
->> Looks good to me.
->>
->> Reviewed-by: Sekhar Nori <nsekhar@ti.com>
->>
->> Curious on what you are using these registers for.
-> 
-> This is in response to this:
-> https://patchwork.kernel.org/patch/9684955/
 
-Couple of minor comments below. Apart from that:
-
-Tested-by: Keerthy <j-keerthy@ti.com>
-Reviewed-by: Keerthy <j-keerthy@ti.com>
-
-> 
-> 
->>
->> Thanks,
->> Sekhar
->>
->>> ---
->>>  drivers/rtc/rtc-omap.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
->>>  1 file changed, 45 insertions(+)
->>>
->>> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
->>> index d56d937966dc..1d666ac9ef70 100644
->>> --- a/drivers/rtc/rtc-omap.c
->>> +++ b/drivers/rtc/rtc-omap.c
->>> @@ -70,6 +70,10 @@
->>>  #define OMAP_RTC_COMP_MSB_REG		0x50
->>>  #define OMAP_RTC_OSC_REG		0x54
->>>  
->>> +#define OMAP_RTC_SCRATCH0_REG		0x60
->>> +#define OMAP_RTC_SCRATCH1_REG		0x64
->>> +#define OMAP_RTC_SCRATCH2_REG		0x68
->>> +
->>>  #define OMAP_RTC_KICK0_REG		0x6c
->>>  #define OMAP_RTC_KICK1_REG		0x70
->>>  
->>> @@ -667,6 +671,45 @@ static struct pinctrl_desc rtc_pinctrl_desc = {
->>>  	.owner = THIS_MODULE,
->>>  };
->>>  
->>> +static int omap_rtc_scratch_read(void *priv, unsigned int offset, void *_val,
->>> +				 size_t bytes)
->>> +{
->>> +	struct omap_rtc	*rtc = priv;
->>> +	u32 *val = _val;
->>> +	int i;
->>> +
->>> +	for (i = 0; i < bytes / 4; i++)
->>> +		val[i] = rtc_readl(rtc,
->>> +				   OMAP_RTC_SCRATCH0_REG + offset + (i * 4));
-
-Can the offset be the Scratch register number instead of bytes offset?
-More intuitive to me.
-
-So that one can request using offset as 0, 1, 2 instead of 0, 4, 8?
-
-The above can be:
-rtc_readl(rtc, OMAP_RTC_SCRATCH0_REG + (offset + i) * 4), val[i]);
-
-
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static int omap_rtc_scratch_write(void *priv, unsigned int offset, void *_val,
->>> +				  size_t bytes)
->>> +{
->>> +	struct omap_rtc	*rtc = priv;
->>> +	u32 *val = _val;
->>> +	int i;
->>> +
->>> +	rtc->type->unlock(rtc);
->>> +	for (i = 0; i < bytes / 4; i++)
->>> +		rtc_writel(rtc,
->>> +			   OMAP_RTC_SCRATCH0_REG + offset + (i * 4), val[i]);
-
-The above can be:
-rtc_writel(rtc, OMAP_RTC_SCRATCH0_REG + (offset + i) * 4), val[i]);
-
->>> +	rtc->type->lock(rtc);
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static struct nvmem_config omap_rtc_nvmem_config = {
->>> +	.name = "omap_rtc_scratch",
->>> +	.word_size = 4,
->>> +	.stride = 4,
->>> +	.size = OMAP_RTC_KICK0_REG - OMAP_RTC_SCRATCH0_REG,
->>> +	.reg_read = omap_rtc_scratch_read,
->>> +	.reg_write = omap_rtc_scratch_write,
->>> +};
->>> +
->>>  static int omap_rtc_probe(struct platform_device *pdev)
->>>  {
->>>  	struct omap_rtc	*rtc;
->>> @@ -804,6 +847,8 @@ static int omap_rtc_probe(struct platform_device *pdev)
->>>  	}
->>>  
->>>  	rtc->rtc->ops = &omap_rtc_ops;
->>> +	omap_rtc_nvmem_config.priv = rtc;
->>> +	rtc->rtc->nvmem_config = &omap_rtc_nvmem_config;
->>>  
->>>  	/* handle periodic and alarm irqs */
->>>  	ret = devm_request_irq(&pdev->dev, rtc->irq_timer, rtc_irq, 0,
->>> -- 
->>> 2.15.0.rc2
->>>
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-- 
+Alexandre Belloni, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
