@@ -1,62 +1,49 @@
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Re: [PATCH] rtc: omap: Support scratch registers
-Date: Wed, 8 Nov 2017 08:16:12 +0100
-Message-ID: <20171108071612.65wrw7mhoip55lia@piout.net>
-References: <20171031162731.27019-1-alexandre.belloni@free-electrons.com>
- <600fd106-9f79-0f5a-a2fd-e6b067785c17@ti.com>
- <4741d4c7-d6f7-ecdb-1eed-1293175f38d9@ti.com>
- <9a383f74-e049-885b-4705-93968f4c75d4@ti.com>
- <20171108062738.cml7qaek324rvc4e@piout.net>
- <775d3cfc-95ca-1dff-d146-64efbdd71e1f@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: [PATCH v2 0/6] OMAP2+ OneNAND driver update
+Date: Wed, 8 Nov 2017 08:40:24 +0100
+Message-ID: <20171108074024.vwcfnqizvd7jajnh@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <775d3cfc-95ca-1dff-d146-64efbdd71e1f@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-rtc@vger.kernel.org, linux-kernel@vger.kernel.org, Linux OMAP List <linux-omap@vger.kernel.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/11/2017 at 12:38:05 +0530, Keerthy wrote:
-> 
-> 
-> On Wednesday 08 November 2017 11:57 AM, Alexandre Belloni wrote:
-> > Hi,
-> > 
-> > On 08/11/2017 at 11:30:45 +0530, Keerthy wrote:
-> >>>>> +static int omap_rtc_scratch_read(void *priv, unsigned int offset, void *_val,
-> >>>>> +				 size_t bytes)
-> >>>>> +{
-> >>>>> +	struct omap_rtc	*rtc = priv;
-> >>>>> +	u32 *val = _val;
-> >>>>> +	int i;
-> >>>>> +
-> >>>>> +	for (i = 0; i < bytes / 4; i++)
-> >>>>> +		val[i] = rtc_readl(rtc,
-> >>>>> +				   OMAP_RTC_SCRATCH0_REG + offset + (i * 4));
-> >>
-> >> Can the offset be the Scratch register number instead of bytes offset?
-> >> More intuitive to me.
-> >>
-> >> So that one can request using offset as 0, 1, 2 instead of 0, 4, 8?
-> >>
-> > 
-> > Well, the offset is coming from the nvmem core, itself getting it from
-> > the Linux file API (and it is in bytes). However, you have the guarantee
-> > that it will be aligned on a word, see:
-> > http://elixir.free-electrons.com/linux/latest/source/drivers/nvmem/core.c#L88
-> 
-> Okay Alexandre. Thanks for clarifying. Looks good to me.
-> I have tested on AM437X-GP-EVM.
-> 
+Hi there,
 
-If needed, you can define nvmem cells (and I guess that is what you
-want):
-http://elixir.free-electrons.com/linux/latest/source/Documentation/devicetree/bindings/nvmem/nvmem.txt
+this patch serie updates OMAP2+ OneNAND driver to the present times, making
+it fully DT configurable.
 
+Patch 1 can be applied any time, it shows onenand node example and support
+for onenand is currently broken on igeps - hence this patches.
 
--- 
-Alexandre Belloni, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Patches 3, 4 and 5 and intended for 4.15 merge window via mtd-tree as they
+are cleanups only.
+
+Patches 2 and 6 are targetted for 4.16 merge window via mtd tree as it seems
+nobody tested these changes (on Nokias most importantly) so far.
+
+Please note that unlike previous driver version, which basically ignored
+DT specified timings, this one relies on it, so it is important to get
+it right in your DT (dumping it from previous kernel version).
+
+In case synchronous timings is requested, it is okay to specify timings
+for the slowest chip ever used for you board as it is evetually optimized
+after chip probe.
+
+        ladis
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
