@@ -1,116 +1,77 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] rtc: omap: Support scratch registers
-Date: Wed, 8 Nov 2017 14:18:35 +0530
-Message-ID: <6e511121-d713-2056-f8f9-6cdd668a7598@ti.com>
-References: <600fd106-9f79-0f5a-a2fd-e6b067785c17@ti.com>
- <4741d4c7-d6f7-ecdb-1eed-1293175f38d9@ti.com>
- <9a383f74-e049-885b-4705-93968f4c75d4@ti.com>
- <20171108062738.cml7qaek324rvc4e@piout.net>
- <775d3cfc-95ca-1dff-d146-64efbdd71e1f@ti.com>
- <20171108071612.65wrw7mhoip55lia@piout.net>
- <898f67e7-5d65-9067-f40d-0d80462324d5@ti.com>
- <20171108082145.kpd3c45x5skce5wd@piout.net>
- <79f52c27-1c6a-c4ec-9635-d05eec635661@ti.com>
- <c24e76cc-ba52-3d26-7dce-5c9ed7e68db1@ti.com>
- <20171108083533.5ibx43biwk7exlnc@piout.net>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH RESEND] dmaengine: ti-dma-crossbar: Correct am335x/am43xx mux value type
+Date: Wed, 8 Nov 2017 12:02:25 +0200
+Message-ID: <20171108100225.25024-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171108083533.5ibx43biwk7exlnc@piout.net>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-rtc@vger.kernel.org, linux-kernel@vger.kernel.org, Linux OMAP List <linux-omap@vger.kernel.org>
+To: vinod.koul@intel.com, dan.j.williams@intel.com
+Cc: dmaengine@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+=EF=BB=BFThe used 0x1f mask is only valid for am335x family of SoC, differe=
+nt family
+using this type of crossbar might have different number of electable
+events. In case of am43xx family 0x3f mask should have been used for
+example.
+Instead of trying to handle each family's mask, just use u8 type to store
+the mux value since the event offsets are aligned to byte offset.
+
+Fixes: 42dbdcc6bf965 ("dmaengine: ti-dma-crossbar: Add support for crossbar=
+ on AM33xx/AM43xx")
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+Vinod,
+
+this patch somehow got missed, I have sent it in May:
+https://patchwork.kernel.org/patch/9736747/
+
+Regards,
+Peter
+
+ drivers/dma/ti-dma-crossbar.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/dma/ti-dma-crossbar.c b/drivers/dma/ti-dma-crossbar.c
+index f1d04b70ee67..7df910e7c348 100644
+--- a/drivers/dma/ti-dma-crossbar.c
++++ b/drivers/dma/ti-dma-crossbar.c
+@@ -49,12 +49,12 @@ struct ti_am335x_xbar_data {
+=20
+ struct ti_am335x_xbar_map {
+ 	u16 dma_line;
+-	u16 mux_val;
++	u8 mux_val;
+ };
+=20
+-static inline void ti_am335x_xbar_write(void __iomem *iomem, int event, u1=
+6 val)
++static inline void ti_am335x_xbar_write(void __iomem *iomem, int event, u8=
+ val)
+ {
+-	writeb_relaxed(val & 0x1f, iomem + event);
++	writeb_relaxed(val, iomem + event);
+ }
+=20
+ static void ti_am335x_xbar_free(struct device *dev, void *route_data)
+@@ -105,7 +105,7 @@ static void *ti_am335x_xbar_route_allocate(struct of_ph=
+andle_args *dma_spec,
+ 	}
+=20
+ 	map->dma_line =3D (u16)dma_spec->args[0];
+-	map->mux_val =3D (u16)dma_spec->args[2];
++	map->mux_val =3D (u8)dma_spec->args[2];
+=20
+ 	dma_spec->args[2] =3D 0;
+ 	dma_spec->args_count =3D 2;
+--=20
+Peter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
 
-On Wednesday 08 November 2017 02:05 PM, Alexandre Belloni wrote:
-> On 08/11/2017 at 14:02:31 +0530, Keerthy wrote:
->>
->>
->> On Wednesday 08 November 2017 02:01 PM, Keerthy wrote:
->>>
->>>
->>> On Wednesday 08 November 2017 01:51 PM, Alexandre Belloni wrote:
->>>> On 08/11/2017 at 13:36:15 +0530, Keerthy wrote:
->>>>>
->>>>>
->>>>> On Wednesday 08 November 2017 12:46 PM, Alexandre Belloni wrote:
->>>>>> On 08/11/2017 at 12:38:05 +0530, Keerthy wrote:
->>>>>>>
->>>>>>>
->>>>>>> On Wednesday 08 November 2017 11:57 AM, Alexandre Belloni wrote:
->>>>>>>> Hi,
->>>>>>>>
->>>>>>>> On 08/11/2017 at 11:30:45 +0530, Keerthy wrote:
->>>>>>>>>>>> +static int omap_rtc_scratch_read(void *priv, unsigned int offset, void *_val,
->>>>>>>>>>>> +				 size_t bytes)
->>>>>>>>>>>> +{
->>>>>>>>>>>> +	struct omap_rtc	*rtc = priv;
->>>>>>>>>>>> +	u32 *val = _val;
->>>>>>>>>>>> +	int i;
->>>>>>>>>>>> +
->>>>>>>>>>>> +	for (i = 0; i < bytes / 4; i++)
->>>>>>>>>>>> +		val[i] = rtc_readl(rtc,
->>>>>>>>>>>> +				   OMAP_RTC_SCRATCH0_REG + offset + (i * 4));
->>>>>>>>>
->>>>>>>>> Can the offset be the Scratch register number instead of bytes offset?
->>>>>>>>> More intuitive to me.
->>>>>>>>>
->>>>>>>>> So that one can request using offset as 0, 1, 2 instead of 0, 4, 8?
->>>>>>>>>
->>>>>>>>
->>>>>>>> Well, the offset is coming from the nvmem core, itself getting it from
->>>>>>>> the Linux file API (and it is in bytes). However, you have the guarantee
->>>>>>>> that it will be aligned on a word, see:
->>>>>>>> http://elixir.free-electrons.com/linux/latest/source/drivers/nvmem/core.c#L88
->>>>>>>
->>>>>>> Okay Alexandre. Thanks for clarifying. Looks good to me.
->>>>>>> I have tested on AM437X-GP-EVM.
->>>>>>>
->>>>>>
->>>>>> If needed, you can define nvmem cells (and I guess that is what you
->>>>>> want):
->>>>>> http://elixir.free-electrons.com/linux/latest/source/Documentation/devicetree/bindings/nvmem/nvmem.txt
->>>>>
->>>>> With this patch we cannot still use nvmem_device_write and
->>>>> nvmem_device_read as the nvmem_device is still not registered.
->>>>>
->>>>> How can a driver write to scratch pad registers? Should we be calling
->>>>> nvmem_register in the probe?
->>>>
->>>> It is not needed, it is registered by rtc_nvmem_register().
->>>
->>> Let me go through the chain:
->>>
->>> rtc_register_device -> __rtc_register_device --> rtc_nvmem_register ->
->>> rtc_nvram_register
->>>
->>> I am seeing that for rtc-omap driver there is rtc_register_device call
->>
->> I mean there NO rtc_register_device call.
->>
->>> and i see that rtc_nvmem_register is not getting called.
->>>
->>> Should we add rtc_register_device in probe of rtc-omap?
->>>
-> 
-> Do you also have that patch:
-> https://git.kernel.org/pub/scm/linux/kernel/git/abelloni/linux.git/commit/?h=rtc-next&id=57072758623fa4f3019bce65e2b00f24af8dfdd7
-> 
-> ?
-
-Ah! Now everything falls in place :-). I did not receive this patch. I
-believe i need to add a patch so linux-omap list gets Cc'd whenever
-rtc-omap driver is touched.
-
-Thanks a bunch!
-
-> 
->>>>
->>>> nvmem_device_read/write are working because that is what I'm using to
->>>> implement the old sysfs ABI with rtc_nvram_read/write.
->>>>
-> 
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Bu=
+siness ID: 0615521-4. Kotipaikka/Domicile: Helsinki
