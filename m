@@ -1,49 +1,80 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v2 0/6] OMAP2+ OneNAND driver update
-Date: Wed, 8 Nov 2017 08:40:24 +0100
-Message-ID: <20171108074024.vwcfnqizvd7jajnh@lenoch>
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: Re: n900 in next-20170901
+Date: Wed, 8 Nov 2017 16:46:45 +0900
+Message-ID: <20171108074645.GA18747@js1304-P5Q-DELUXE>
+References: <20171018082927.GB27595@js1304-P5Q-DELUXE>
+ <20171019183033.GH4394@atomide.com>
+ <20171020015542.GA10438@js1304-P5Q-DELUXE>
+ <20171020173146.GN4394@atomide.com>
+ <20171023045342.GA23082@js1304-P5Q-DELUXE>
+ <20171025173137.GQ4394@atomide.com>
+ <20171026044829.GB11791@js1304-P5Q-DELUXE>
+ <20171026141627.GD21504@atomide.com>
+ <20171107053313.GA12447@js1304-P5Q-DELUXE>
+ <20171107154842.GP28152@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <20171107154842.GP28152@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Hi there,
+On Tue, Nov 07, 2017 at 07:48:42AM -0800, Tony Lindgren wrote:
+> Hi,
+> 
+> * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171107 05:30]:
+> > Could you test follwing updated branch?
+> > 
+> > https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
+> > 
+> > It has three relevant commits on top and enables CMA memory use.
+> 
+> Okie dokie.
+> 
+> > "arm/dma: remove i-cache flush"
+> 
+> Your branch at the above commit is not booting on n900.
+> 
+> > "arm/dma: flush i-cache and d-cache separately"
+> 
+> Not booting at this commit either.
+> 
+> > "arm/dma: call flush_cache_all() and don't do outer cache operation"
+> 
+> Not booting at this commit either.
+> 
+> Earlier commit f14f3479c0d7 ("arm/dma: re-enable to remap the CMA
+> area and flush cache before remapping") in you branch boots.
+> 
+> Then the following commit d6512d6d0171 ("Revert "arm/mm: disable
+> atomic_pool"") won't boot.
+> 
+> Also your tree at commit 6d0525cef962 ("arm/dma: remove i-cache
+> flush") with only commit d6512d6d0171 ("Revert "arm/mm: disable
+> atomic_pool"") reverted boots on n900.
 
-this patch serie updates OMAP2+ OneNAND driver to the present times, making
-it fully DT configurable.
+Thanks a lot!
 
-Patch 1 can be applied any time, it shows onenand node example and support
-for onenand is currently broken on igeps - hence this patches.
+> So it seems the issue is currently at the atomic_pool_init()
+> related code?
 
-Patches 3, 4 and 5 and intended for 4.15 merge window via mtd-tree as they
-are cleanups only.
+Yes, your test showed it although I can't find any clue in
+atomic_pool_init().
 
-Patches 2 and 6 are targetted for 4.16 merge window via mtd tree as it seems
-nobody tested these changes (on Nokias most importantly) so far.
+Could you test updated branch?
 
-Please note that unlike previous driver version, which basically ignored
-DT specified timings, this one relies on it, so it is important to get
-it right in your DT (dumping it from previous kernel version).
+https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
 
-In case synchronous timings is requested, it is okay to specify timings
-for the slowest chip ever used for you board as it is evetually optimized
-after chip probe.
+There are two relevant commits.
 
-        ladis
+arm/dma: stop dma allocation before __dma_alloc_remap()
+arm/dma: disable atomic pool after dma allocation
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+atomic pool initialization will be done partially to check
+exact point of failure. These are brain-dead commits however I have no
+idea what's going on here until now. :/
+
+Thanks.
