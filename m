@@ -1,272 +1,284 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 23/28] clk: ti: am43xx: add clkctrl clock data
-Date: Thu, 9 Nov 2017 11:15:17 +0200
-Message-ID: <1510218917-1725-5-git-send-email-t-kristo@ti.com>
-References: <1510218917-1725-1-git-send-email-t-kristo@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
+ implementation
+Date: Thu, 9 Nov 2017 10:15:29 +0100
+Message-ID: <20171109091529.x3pqqvbiywj5aulo@lenoch>
+References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <1510218917-1725-1-git-send-email-t-kristo@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: sboyd@codeaurora.org, mturquette@baylibre.com
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20171109091155.6a6azfvjarwvlfh2@lenoch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add data for am43xx clkctrl clocks, and register it within the clkctrl
-driver.
+Since the very first commit (36cd4fb5d277: "[MTD] [OneNAND] Add OMAP2 / OMAP3
+OneNAND driver") DMA is disabled for OMAP2. Later fixes thus went only into
+OMAP3 specific DMA functions which turned out not to be so OMAP3 specific.
+Therefore replace open coded timeout waiting for completion in OMAP3
+functions with API call and merge those two implementations.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Note that currently the is no single DMA user, so this change is basically
+no-op. Those interested will have to find DMA configuration in the
+linux-omap.git history.
+
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 ---
- drivers/clk/ti/clk-43xx.c | 196 ++++++++++++++++++++++++++++++++++++++++++++++
- drivers/clk/ti/clkctrl.c  |   6 ++
- drivers/clk/ti/clock.h    |   2 +
- 3 files changed, 204 insertions(+)
+ Changes:
+ -v3: new patch
 
-diff --git a/drivers/clk/ti/clk-43xx.c b/drivers/clk/ti/clk-43xx.c
-index f67fd5a..2b7c2e0 100644
---- a/drivers/clk/ti/clk-43xx.c
-+++ b/drivers/clk/ti/clk-43xx.c
-@@ -19,12 +19,208 @@
- #include <linux/clk.h>
- #include <linux/clk-provider.h>
- #include <linux/clk/ti.h>
-+#include <dt-bindings/clock/am4.h>
+ drivers/mtd/onenand/omap2.c | 165 +++-----------------------------------------
+ 1 file changed, 10 insertions(+), 155 deletions(-)
+
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index 883993bbe40b..5760e40be008 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -289,9 +289,7 @@ static inline int omap2_onenand_bufferram_offset(struct mtd_info *mtd, int area)
+ 	return 0;
+ }
  
- #include "clock.h"
+-#if defined(CONFIG_ARCH_OMAP3) || defined(MULTI_OMAP2)
+-
+-static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
++static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+ 					unsigned char *buffer, int offset,
+ 					size_t count)
+ {
+@@ -299,10 +297,9 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+ 	struct onenand_chip *this = mtd->priv;
+ 	dma_addr_t dma_src, dma_dst;
+ 	int bram_offset;
+-	unsigned long timeout;
++	unsigned long t;
+ 	void *buf = (void *)buffer;
+ 	size_t xtra;
+-	volatile unsigned *done;
  
-+static const char * const am4_synctimer_32kclk_parents[] __initconst = {
-+	"mux_synctimer32k_ck",
-+	NULL,
-+};
-+
-+static const struct omap_clkctrl_bit_data am4_counter_32k_bit_data[] __initconst = {
-+	{ 8, TI_CLK_GATE, am4_synctimer_32kclk_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const char * const am4_gpio0_dbclk_parents[] __initconst = {
-+	"gpio0_dbclk_mux_ck",
-+	NULL,
-+};
-+
-+static const struct omap_clkctrl_bit_data am4_gpio1_bit_data[] __initconst = {
-+	{ 8, TI_CLK_GATE, am4_gpio0_dbclk_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_reg_data am4_l4_wkup_clkctrl_regs[] __initconst = {
-+	{ AM4_ADC_TSC_CLKCTRL, NULL, CLKF_SW_SUP, "adc_tsc_fck", "l3s_tsc_clkdm" },
-+	{ AM4_L4_WKUP_CLKCTRL, NULL, CLKF_SW_SUP, "sys_clkin_ck", "l4_wkup_clkdm" },
-+	{ AM4_WKUP_M3_CLKCTRL, NULL, CLKF_NO_IDLEST, "sys_clkin_ck" },
-+	{ AM4_COUNTER_32K_CLKCTRL, am4_counter_32k_bit_data, CLKF_SW_SUP, "l4_wkup_cm:clk:0210:8" },
-+	{ AM4_TIMER1_CLKCTRL, NULL, CLKF_SW_SUP, "timer1_fck", "l4_wkup_clkdm" },
-+	{ AM4_WD_TIMER2_CLKCTRL, NULL, CLKF_SW_SUP, "wdt1_fck", "l4_wkup_clkdm" },
-+	{ AM4_I2C1_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_wkupdm_ck", "l4_wkup_clkdm" },
-+	{ AM4_UART1_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_wkupdm_ck", "l4_wkup_clkdm" },
-+	{ AM4_SMARTREFLEX0_CLKCTRL, NULL, CLKF_SW_SUP, "smartreflex0_fck", "l4_wkup_clkdm" },
-+	{ AM4_SMARTREFLEX1_CLKCTRL, NULL, CLKF_SW_SUP, "smartreflex1_fck", "l4_wkup_clkdm" },
-+	{ AM4_CONTROL_CLKCTRL, NULL, CLKF_SW_SUP, "sys_clkin_ck", "l4_wkup_clkdm" },
-+	{ AM4_GPIO1_CLKCTRL, am4_gpio1_bit_data, CLKF_SW_SUP, "sys_clkin_ck", "l4_wkup_clkdm" },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_reg_data am4_mpu_clkctrl_regs[] __initconst = {
-+	{ AM4_MPU_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_mpu_m2_ck" },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_reg_data am4_gfx_l3_clkctrl_regs[] __initconst = {
-+	{ AM4_GFX_CLKCTRL, NULL, CLKF_SW_SUP, "gfx_fck_div_ck" },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_reg_data am4_l4_rtc_clkctrl_regs[] __initconst = {
-+	{ AM4_RTC_CLKCTRL, NULL, CLKF_SW_SUP, "clk_32768_ck" },
-+	{ 0 },
-+};
-+
-+static const char * const am4_usb_otg_ss0_refclk960m_parents[] __initconst = {
-+	"dpll_per_clkdcoldo",
-+	NULL,
-+};
-+
-+static const struct omap_clkctrl_bit_data am4_usb_otg_ss0_bit_data[] __initconst = {
-+	{ 8, TI_CLK_GATE, am4_usb_otg_ss0_refclk960m_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_bit_data am4_usb_otg_ss1_bit_data[] __initconst = {
-+	{ 8, TI_CLK_GATE, am4_usb_otg_ss0_refclk960m_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const char * const am4_gpio1_dbclk_parents[] __initconst = {
-+	"clkdiv32k_ick",
-+	NULL,
-+};
-+
-+static const struct omap_clkctrl_bit_data am4_gpio2_bit_data[] __initconst = {
-+	{ 8, TI_CLK_GATE, am4_gpio1_dbclk_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_bit_data am4_gpio3_bit_data[] __initconst = {
-+	{ 8, TI_CLK_GATE, am4_gpio1_dbclk_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_bit_data am4_gpio4_bit_data[] __initconst = {
-+	{ 8, TI_CLK_GATE, am4_gpio1_dbclk_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_bit_data am4_gpio5_bit_data[] __initconst = {
-+	{ 8, TI_CLK_GATE, am4_gpio1_dbclk_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_bit_data am4_gpio6_bit_data[] __initconst = {
-+	{ 8, TI_CLK_GATE, am4_gpio1_dbclk_parents, NULL },
-+	{ 0 },
-+};
-+
-+static const struct omap_clkctrl_reg_data am4_l4_per_clkctrl_regs[] __initconst = {
-+	{ AM4_L3_MAIN_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3_clkdm" },
-+	{ AM4_AES_CLKCTRL, NULL, CLKF_SW_SUP, "aes0_fck", "l3_clkdm" },
-+	{ AM4_DES_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3_clkdm" },
-+	{ AM4_L3_INSTR_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3_clkdm" },
-+	{ AM4_OCMCRAM_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3_clkdm" },
-+	{ AM4_SHAM_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3_clkdm" },
-+	{ AM4_VPFE0_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3s_clkdm" },
-+	{ AM4_VPFE1_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3s_clkdm" },
-+	{ AM4_TPCC_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3_clkdm" },
-+	{ AM4_TPTC0_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3_clkdm" },
-+	{ AM4_TPTC1_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3_clkdm" },
-+	{ AM4_TPTC2_CLKCTRL, NULL, CLKF_SW_SUP, "l3_gclk", "l3_clkdm" },
-+	{ AM4_L4_HS_CLKCTRL, NULL, CLKF_SW_SUP, "l4hs_gclk", "l3_clkdm" },
-+	{ AM4_GPMC_CLKCTRL, NULL, CLKF_SW_SUP, "l3s_gclk", "l3s_clkdm" },
-+	{ AM4_MCASP0_CLKCTRL, NULL, CLKF_SW_SUP, "mcasp0_fck", "l3s_clkdm" },
-+	{ AM4_MCASP1_CLKCTRL, NULL, CLKF_SW_SUP, "mcasp1_fck", "l3s_clkdm" },
-+	{ AM4_MMC3_CLKCTRL, NULL, CLKF_SW_SUP, "mmc_clk", "l3s_clkdm" },
-+	{ AM4_QSPI_CLKCTRL, NULL, CLKF_SW_SUP, "l3s_gclk", "l3s_clkdm" },
-+	{ AM4_USB_OTG_SS0_CLKCTRL, am4_usb_otg_ss0_bit_data, CLKF_SW_SUP, "l3s_gclk", "l3s_clkdm" },
-+	{ AM4_USB_OTG_SS1_CLKCTRL, am4_usb_otg_ss1_bit_data, CLKF_SW_SUP, "l3s_gclk", "l3s_clkdm" },
-+	{ AM4_PRUSS_CLKCTRL, NULL, CLKF_SW_SUP, "pruss_ocp_gclk", "pruss_ocp_clkdm" },
-+	{ AM4_L4_LS_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_D_CAN0_CLKCTRL, NULL, CLKF_SW_SUP, "dcan0_fck" },
-+	{ AM4_D_CAN1_CLKCTRL, NULL, CLKF_SW_SUP, "dcan1_fck" },
-+	{ AM4_EPWMSS0_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_EPWMSS1_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_EPWMSS2_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_EPWMSS3_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_EPWMSS4_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_EPWMSS5_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_ELM_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_GPIO2_CLKCTRL, am4_gpio2_bit_data, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_GPIO3_CLKCTRL, am4_gpio3_bit_data, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_GPIO4_CLKCTRL, am4_gpio4_bit_data, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_GPIO5_CLKCTRL, am4_gpio5_bit_data, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_GPIO6_CLKCTRL, am4_gpio6_bit_data, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_HDQ1W_CLKCTRL, NULL, CLKF_SW_SUP, "func_12m_clk" },
-+	{ AM4_I2C2_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_I2C3_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_MAILBOX_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_MMC1_CLKCTRL, NULL, CLKF_SW_SUP, "mmc_clk" },
-+	{ AM4_MMC2_CLKCTRL, NULL, CLKF_SW_SUP, "mmc_clk" },
-+	{ AM4_RNG_CLKCTRL, NULL, CLKF_SW_SUP, "rng_fck" },
-+	{ AM4_SPI0_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_SPI1_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_SPI2_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_SPI3_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_SPI4_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_SPINLOCK_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_TIMER2_CLKCTRL, NULL, CLKF_SW_SUP, "timer2_fck" },
-+	{ AM4_TIMER3_CLKCTRL, NULL, CLKF_SW_SUP, "timer3_fck" },
-+	{ AM4_TIMER4_CLKCTRL, NULL, CLKF_SW_SUP, "timer4_fck" },
-+	{ AM4_TIMER5_CLKCTRL, NULL, CLKF_SW_SUP, "timer5_fck" },
-+	{ AM4_TIMER6_CLKCTRL, NULL, CLKF_SW_SUP, "timer6_fck" },
-+	{ AM4_TIMER7_CLKCTRL, NULL, CLKF_SW_SUP, "timer7_fck" },
-+	{ AM4_TIMER8_CLKCTRL, NULL, CLKF_SW_SUP, "timer8_fck" },
-+	{ AM4_TIMER9_CLKCTRL, NULL, CLKF_SW_SUP, "timer9_fck" },
-+	{ AM4_TIMER10_CLKCTRL, NULL, CLKF_SW_SUP, "timer10_fck" },
-+	{ AM4_TIMER11_CLKCTRL, NULL, CLKF_SW_SUP, "timer11_fck" },
-+	{ AM4_UART2_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_UART3_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_UART4_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_UART5_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_UART6_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_per_m2_div4_ck" },
-+	{ AM4_OCP2SCP0_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_OCP2SCP1_CLKCTRL, NULL, CLKF_SW_SUP, "l4ls_gclk" },
-+	{ AM4_EMIF_CLKCTRL, NULL, CLKF_SW_SUP, "dpll_ddr_m2_ck", "emif_clkdm" },
-+	{ AM4_DSS_CORE_CLKCTRL, NULL, CLKF_SW_SUP, "disp_clk", "dss_clkdm" },
-+	{ AM4_CPGMAC0_CLKCTRL, NULL, CLKF_SW_SUP, "cpsw_125mhz_gclk", "cpsw_125mhz_clkdm" },
-+	{ 0 },
-+};
-+
-+const struct omap_clkctrl_data am4_clkctrl_data[] __initconst = {
-+	{ 0x44df2820, am4_l4_wkup_clkctrl_regs },
-+	{ 0x44df8320, am4_mpu_clkctrl_regs },
-+	{ 0x44df8420, am4_gfx_l3_clkctrl_regs },
-+	{ 0x44df8520, am4_l4_rtc_clkctrl_regs },
-+	{ 0x44df8820, am4_l4_per_clkctrl_regs },
-+	{ 0 },
-+};
-+
-+const struct omap_clkctrl_data am438x_clkctrl_data[] __initconst = {
-+	{ 0x44df2820, am4_l4_wkup_clkctrl_regs },
-+	{ 0x44df8320, am4_mpu_clkctrl_regs },
-+	{ 0x44df8420, am4_gfx_l3_clkctrl_regs },
-+	{ 0x44df8820, am4_l4_per_clkctrl_regs },
-+	{ 0 },
-+};
-+
- static struct ti_dt_clk am43xx_clks[] = {
- 	DT_CLK(NULL, "timer_32k_ck", "clkdiv32k_ick"),
- 	DT_CLK(NULL, "timer_sys_ck", "sys_clkin_ck"),
-+	DT_CLK(NULL, "gpio0_dbclk", "l4_wkup_cm:0348:8"),
-+	DT_CLK(NULL, "gpio1_dbclk", "l4_per_cm:0458:8"),
-+	DT_CLK(NULL, "gpio2_dbclk", "l4_per_cm:0460:8"),
-+	DT_CLK(NULL, "gpio3_dbclk", "l4_per_cm:0468:8"),
-+	DT_CLK(NULL, "gpio4_dbclk", "l4_per_cm:0470:8"),
-+	DT_CLK(NULL, "gpio5_dbclk", "l4_per_cm:0478:8"),
-+	DT_CLK(NULL, "synctimer_32kclk", "l4_wkup_cm:0210:8"),
-+	DT_CLK(NULL, "usb_otg_ss0_refclk960m", "l4_per_cm:0240:8"),
-+	DT_CLK(NULL, "usb_otg_ss1_refclk960m", "l4_per_cm:0248:8"),
- 	{ .node_name = NULL },
- };
+ 	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+ 	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
+@@ -349,15 +346,11 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+ 	reinit_completion(&c->dma_done);
+ 	omap_start_dma(c->dma_channel);
  
-diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-index 66548eb..b524bc9 100644
---- a/drivers/clk/ti/clkctrl.c
-+++ b/drivers/clk/ti/clkctrl.c
-@@ -460,6 +460,12 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
- 	if (of_machine_is_compatible("ti,am33xx"))
- 		data = am3_clkctrl_data;
- #endif
-+#ifdef CONFIG_SOC_AM43XX
-+	if (of_machine_is_compatible("ti,am4372"))
-+		data = am4_clkctrl_data;
-+	if (of_machine_is_compatible("ti,am438x"))
-+		data = am438x_clkctrl_data;
-+#endif
+-	timeout = jiffies + msecs_to_jiffies(20);
+-	done = &c->dma_done.done;
+-	while (time_before(jiffies, timeout))
+-		if (*done)
+-			break;
++	t = wait_for_completion_io_timeout(&c->dma_done, msecs_to_jiffies(20));
  
- 	while (data->addr) {
- 		if (addr == data->addr)
-diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
-index d9bf890..53c7b9d 100644
---- a/drivers/clk/ti/clock.h
-+++ b/drivers/clk/ti/clock.h
-@@ -234,6 +234,8 @@ struct omap_clkctrl_data {
- extern const struct omap_clkctrl_data omap5_clkctrl_data[];
- extern const struct omap_clkctrl_data dra7_clkctrl_data[];
- extern const struct omap_clkctrl_data am3_clkctrl_data[];
-+extern const struct omap_clkctrl_data am4_clkctrl_data[];
-+extern const struct omap_clkctrl_data am438x_clkctrl_data[];
+ 	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
  
- #define CLKF_SW_SUP	BIT(0)
- #define CLKF_HW_SUP	BIT(1)
+-	if (!*done) {
++	if (!t) {
+ 		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+ 		goto out_copy;
+ 	}
+@@ -369,7 +362,7 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+ 	return 0;
+ }
+ 
+-static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
++static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+ 					 const unsigned char *buffer,
+ 					 int offset, size_t count)
+ {
+@@ -377,9 +370,8 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+ 	struct onenand_chip *this = mtd->priv;
+ 	dma_addr_t dma_src, dma_dst;
+ 	int bram_offset;
+-	unsigned long timeout;
++	unsigned long t;
+ 	void *buf = (void *)buffer;
+-	volatile unsigned *done;
+ 
+ 	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+ 	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
+@@ -420,15 +412,11 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+ 	reinit_completion(&c->dma_done);
+ 	omap_start_dma(c->dma_channel);
+ 
+-	timeout = jiffies + msecs_to_jiffies(20);
+-	done = &c->dma_done.done;
+-	while (time_before(jiffies, timeout))
+-		if (*done)
+-			break;
++	t = wait_for_completion_io_timeout(&c->dma_done, msecs_to_jiffies(20));
+ 
+ 	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
+ 
+-	if (!*done) {
++	if (!t) {
+ 		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+ 		goto out_copy;
+ 	}
+@@ -440,134 +428,6 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+ 	return 0;
+ }
+ 
+-#else
+-
+-static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+-					unsigned char *buffer, int offset,
+-					size_t count)
+-{
+-	return -ENOSYS;
+-}
+-
+-static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+-					 const unsigned char *buffer,
+-					 int offset, size_t count)
+-{
+-	return -ENOSYS;
+-}
+-
+-#endif
+-
+-#if defined(CONFIG_ARCH_OMAP2) || defined(MULTI_OMAP2)
+-
+-static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+-					unsigned char *buffer, int offset,
+-					size_t count)
+-{
+-	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+-	struct onenand_chip *this = mtd->priv;
+-	dma_addr_t dma_src, dma_dst;
+-	int bram_offset;
+-
+-	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+-	/* DMA is not used.  Revisit PM requirements before enabling it. */
+-	if (1 || (c->dma_channel < 0) ||
+-	    ((void *) buffer >= (void *) high_memory) || (bram_offset & 3) ||
+-	    (((unsigned int) buffer) & 3) || (count < 1024) || (count & 3)) {
+-		memcpy(buffer, (__force void *)(this->base + bram_offset),
+-		       count);
+-		return 0;
+-	}
+-
+-	dma_src = c->phys_base + bram_offset;
+-	dma_dst = dma_map_single(&c->pdev->dev, buffer, count,
+-				 DMA_FROM_DEVICE);
+-	if (dma_mapping_error(&c->pdev->dev, dma_dst)) {
+-		dev_err(&c->pdev->dev,
+-			"Couldn't DMA map a %d byte buffer\n",
+-			count);
+-		return -1;
+-	}
+-
+-	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
+-				     count / 4, 1, 0, 0, 0);
+-	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+-				dma_src, 0, 0);
+-	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+-				 dma_dst, 0, 0);
+-
+-	reinit_completion(&c->dma_done);
+-	omap_start_dma(c->dma_channel);
+-	wait_for_completion(&c->dma_done);
+-
+-	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
+-
+-	return 0;
+-}
+-
+-static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+-					 const unsigned char *buffer,
+-					 int offset, size_t count)
+-{
+-	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+-	struct onenand_chip *this = mtd->priv;
+-	dma_addr_t dma_src, dma_dst;
+-	int bram_offset;
+-
+-	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+-	/* DMA is not used.  Revisit PM requirements before enabling it. */
+-	if (1 || (c->dma_channel < 0) ||
+-	    ((void *) buffer >= (void *) high_memory) || (bram_offset & 3) ||
+-	    (((unsigned int) buffer) & 3) || (count < 1024) || (count & 3)) {
+-		memcpy((__force void *)(this->base + bram_offset), buffer,
+-		       count);
+-		return 0;
+-	}
+-
+-	dma_src = dma_map_single(&c->pdev->dev, (void *) buffer, count,
+-				 DMA_TO_DEVICE);
+-	dma_dst = c->phys_base + bram_offset;
+-	if (dma_mapping_error(&c->pdev->dev, dma_src)) {
+-		dev_err(&c->pdev->dev,
+-			"Couldn't DMA map a %d byte buffer\n",
+-			count);
+-		return -1;
+-	}
+-
+-	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S16,
+-				     count / 2, 1, 0, 0, 0);
+-	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+-				dma_src, 0, 0);
+-	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+-				 dma_dst, 0, 0);
+-
+-	reinit_completion(&c->dma_done);
+-	omap_start_dma(c->dma_channel);
+-	wait_for_completion(&c->dma_done);
+-
+-	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
+-
+-	return 0;
+-}
+-
+-#else
+-
+-static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+-					unsigned char *buffer, int offset,
+-					size_t count)
+-{
+-	return -ENOSYS;
+-}
+-
+-static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+-					 const unsigned char *buffer,
+-					 int offset, size_t count)
+-{
+-	return -ENOSYS;
+-}
+-
+-#endif
+-
+ static struct platform_driver omap2_onenand_driver;
+ 
+ static void omap2_onenand_shutdown(struct platform_device *pdev)
+@@ -691,13 +551,8 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+ 	this = &c->onenand;
+ 	if (c->dma_channel >= 0) {
+ 		this->wait = omap2_onenand_wait;
+-		if (c->flags & ONENAND_IN_OMAP34XX) {
+-			this->read_bufferram = omap3_onenand_read_bufferram;
+-			this->write_bufferram = omap3_onenand_write_bufferram;
+-		} else {
+-			this->read_bufferram = omap2_onenand_read_bufferram;
+-			this->write_bufferram = omap2_onenand_write_bufferram;
+-		}
++		this->read_bufferram = omap2_onenand_read_bufferram;
++		this->write_bufferram = omap2_onenand_write_bufferram;
+ 	}
+ 
+ 	if ((r = onenand_scan(&c->mtd, 1)) < 0)
 -- 
-1.9.1
+2.11.0
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
