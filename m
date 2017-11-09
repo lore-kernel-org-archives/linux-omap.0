@@ -1,49 +1,72 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 3/4] DTS: Pandora: fix panel compatibility string
-Date: Thu, 09 Nov 2017 05:36:23 +0200
-Message-ID: <1634573.IyLVzmLhWc@avalon>
-References: <cover.1510175371.git.hns@goldelico.com> <444424119f30b6e1b1e56456b870e8492b9acad6.1510175371.git.hns@goldelico.com>
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: Re: n900 in next-20170901
+Date: Thu, 9 Nov 2017 12:50:31 +0900
+Message-ID: <20171109035031.GA24383@js1304-P5Q-DELUXE>
+References: <20171025173137.GQ4394@atomide.com>
+ <20171026044829.GB11791@js1304-P5Q-DELUXE>
+ <20171026141627.GD21504@atomide.com>
+ <20171107053313.GA12447@js1304-P5Q-DELUXE>
+ <20171107154842.GP28152@atomide.com>
+ <20171108074645.GA18747@js1304-P5Q-DELUXE>
+ <20171108163413.GU28152@atomide.com>
+ <20171109000801.GA23982@js1304-P5Q-DELUXE>
+ <20171109001113.GZ28152@atomide.com>
+ <20171109003639.GB23982@js1304-P5Q-DELUXE>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <444424119f30b6e1b1e56456b870e8492b9acad6.1510175371.git.hns@goldelico.com>
+Content-Disposition: inline
+In-Reply-To: <20171109003639.GB23982@js1304-P5Q-DELUXE>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Nikolaus,
-
-Thank you for the patch.
-
-On Wednesday, 8 November 2017 23:09:31 EET H. Nikolaus Schaller wrote:
-> We can remove the "omapdss," prefix.
-
-I agree but you should explain why.
-
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
->  arch/arm/boot/dts/omap3-pandora-common.dtsi | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+On Thu, Nov 09, 2017 at 09:36:39AM +0900, Joonsoo Kim wrote:
+> On Wed, Nov 08, 2017 at 04:11:13PM -0800, Tony Lindgren wrote:
+> > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171109 00:05]:
+> > > On Wed, Nov 08, 2017 at 08:34:13AM -0800, Tony Lindgren wrote:
+> > > > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171108 07:43]:
+> > > > > On Tue, Nov 07, 2017 at 07:48:42AM -0800, Tony Lindgren wrote:
+> > > > > > So it seems the issue is currently at the atomic_pool_init()
+> > > > > > related code?
+> > > > > 
+> > > > > Yes, your test showed it although I can't find any clue in
+> > > > > atomic_pool_init().
+> > > > > 
+> > > > > Could you test updated branch?
+> > > > > 
+> > > > > https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
+> > > > > 
+> > > > > There are two relevant commits.
+> > > > > 
+> > > > > arm/dma: stop dma allocation before __dma_alloc_remap()
+> > > > > arm/dma: disable atomic pool after dma allocation
+> > > > > 
+> > > > > atomic pool initialization will be done partially to check
+> > > > > exact point of failure. These are brain-dead commits however I have no
+> > > > > idea what's going on here until now. :/
+> > > > 
+> > > > OK that booted, dmesg output below. Hopefully that provides
+> > > > you with some more clues.
+> > > 
+> > > Thanks!
+> > > 
+> > > Could you let me know which one is booted? Both of them? or just top
+> > > commit ("arm/dma: stop dma allocation before __dma_alloc_remap()")?
+> > 
+> > Oh OK. Only the top commit boots.
 > 
-> diff --git a/arch/arm/boot/dts/omap3-pandora-common.dtsi
-> b/arch/arm/boot/dts/omap3-pandora-common.dtsi index
-> 53e007abdc71..64d967ec8c58 100644
-> --- a/arch/arm/boot/dts/omap3-pandora-common.dtsi
-> +++ b/arch/arm/boot/dts/omap3-pandora-common.dtsi
-> @@ -626,7 +626,7 @@
+> Okay! I will try to analyze!
 > 
->  	lcd: lcd@1 {
->  		reg = <1>;	/* CS1 */
-> -		compatible =	"omapdss,tpo,td043mtea1";
-> +		compatible =	"tpo,td043mtea1";
->  		spi-max-frequency = <100000>;
->  		spi-cpol;
->  		spi-cpha;
 
+Could you test following two commits on my updated branch?
 
--- 
-Regards,
+"arm/dma: vmalloc area allocation"
+"arm/dma: defer atomic pool initialization"
 
-Laurent Pinchart
+I suspect that changed virtual address of the sram due to early
+__dma_alloc_remap() call causes the problem and above two commits test
+this theory.
+
+Thanks.
