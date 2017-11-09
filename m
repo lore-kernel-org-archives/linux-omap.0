@@ -1,107 +1,106 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH 4/4] omapdss: fix problem enabling VDDS_DSI on OMAP3530
- (OpenPandora)
-Date: Thu, 9 Nov 2017 07:12:29 +0100
-Message-ID: <0E72D0DA-6868-48DB-8F6B-B5C8E6172BFC@goldelico.com>
-References: <cover.1510175371.git.hns@goldelico.com>
- <b94c5e773994ee55df9225fc84825bacb3fcb256.1510175371.git.hns@goldelico.com>
- <3397395.9drm9Essi0@avalon>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [PATCH 1/4] omapdrm: fix compatible string for td028ttec1
+Date: Thu, 09 Nov 2017 08:35:10 +0200
+Message-ID: <2337862.ufPI2HCsv4@avalon>
+References: <cover.1510175371.git.hns@goldelico.com> <2790033.EQlQQc1BPI@avalon> <C999B55A-771D-44AF-8072-2F30FE6B54B7@goldelico.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <3397395.9drm9Essi0@avalon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Julia Lawall <Julia.Lawall@lip6.fr>, letux-kernel@openphoenux.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Russell King <linux@armlinux.org.uk>, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-fbdev@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <C999B55A-771D-44AF-8072-2F30FE6B54B7-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Sean Paul <seanpaul-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Laurent,
+Hi Nikolaus,
 
-> Am 09.11.2017 um 04:45 schrieb Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+On Thursday, 9 November 2017 08:05:15 EET H. Nikolaus Schaller wrote:
+> > Am 09.11.2017 um 04:33 schrieb Laurent Pinchart:
+> > On Wednesday, 8 November 2017 23:09:29 EET H. Nikolaus Schaller wrote:
+> >> The vendor name was "toppoly" but other panels and the vendor list
+> >> have defined it as "tpo". So let's fix it in driver and bindings.
+> >> 
+> >> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> >> ---
+> >> .../display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt} | 4 ++--
+> >> drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c           | 4
+> >> ++--
+> >> drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c  | 4
+> >> ++--
+> >> 3 files changed, 6 insertions(+), 6 deletions(-)
+> >> rename
+> >> Documentation/devicetree/bindings/display/panel/{toppoly,td028ttec1.txt
+> >> =>
+> >> tpo,td028ttec1.txt} (84%)
+> >> 
+> >> diff --git
+> >> a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
+> >> b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
+> >> similarity index 84%
+> >> rename from
+> >> Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
+> >> rename to
+> >> Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt index
+> >> 7175dc3740ac..ed34253d9fb1 100644
+> >> ---
+> >> a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
+> >> +++ b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
+> >> @@ -2,7 +2,7 @@ Toppoly TD028TTEC1 Panel
+> >> ========================
+> >> 
+> >> Required properties:
+> >> -- compatible: "toppoly,td028ttec1"
+> >> +- compatible: "tpo,td028ttec1"
+> >> 
+> >> Optional properties:
+> >> - label: a symbolic name for the panel
+> >> @@ -14,7 +14,7 @@ Example
+> >> -------
+> >> 
+> >> lcd-panel: td028ttec1@0 {
+> >> -	compatible = "toppoly,td028ttec1";
+> >> +	compatible = "tpo,td028ttec1";
+> >> 
+> >> 	reg = <0>;
+> >> 	spi-max-frequency = <100000>;
+> >> 	spi-cpol;
+> >> 
+> >> diff --git a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+> >> b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c index
+> >> 0a38a0e8c925..2dab491478c2 100644
+> >> --- a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+> >> +++ b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+> >> @@ -452,7 +452,7 @@ static int td028ttec1_panel_remove(struct spi_device
+> >> *spi)
+> >> }
+> >> 
+> >> static const struct of_device_id td028ttec1_of_match[] = {
+> >> -	{ .compatible = "omapdss,toppoly,td028ttec1", },
+> >> +	{ .compatible = "omapdss,tpo,td028ttec1", },
+> > 
+> > Doesn't this break backward compatibility with existing DT ?
 > 
-> Hi Nikolaus,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday, 8 November 2017 23:09:32 EET H. Nikolaus Schaller wrote:
->> commit d178e034d565 ("drm: omapdrm: Move FEAT_DPI_USES_VDDS_DSI feature to
->> dpi code")
->> 
->> introduced a new match table which turned out to be wrong, at least
->> for the 600 MHz OpenPandora using the OMAP3530.
->> 
->> The effect was strange: only the Blue channel of the RGB panel was
->> driven while Red and Green stayed black. So a coloured picture turned
->> into blue/black.
->> 
->> The GTA04 with DM3730 didn't show the effect.
->> 
->> It turned out that VDDS_DSI was not properly initialized on OMAP3530,
->> because the .family string is just "OMAP3" for these processors and
->> not "OMAP3xxx".
->> 
->> Therefore we match the .machine attribute.
->> 
->> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> 
-> I've already submitted a similar patch (but without the problem pointed out 
-> below) in the mail thread where we discussed the issue. It is customary to use 
-> the first patch posted (unless it is utterly broken of course).
+> Yes, it does. But I am only aware of the GTA04 which uses it and
+> there is a separate fix).
 
-Ah sorry. My workflow isn't well prepared for that and I already had committed
-something to my private branch...
+DT is supposed to be an ABI. In theory at least, one could boot a GTA04 with 
+an existing DT and a new kernel, and no regression should be noticed. There 
+could also be other devices using this panel that you are not aware of.
 
-> Could you thus 
-> please include it in this series in replacement of this patch ?
+For how to apply the theory to real life, I'll defer to Tomi :-)
 
-Well, you can as well reject my patch (it is just a proposal) and take yours
-as a replacement. Especially as you better understand all the potential values
-for .family and .machine than me.
+> >> 	{},
+> >> };
 
-Should be less work for both of us.
+[snip]
 
-> 
->> ---
->> drivers/gpu/drm/omapdrm/dss/dpi.c | 3 +--
->> 1 file changed, 1 insertion(+), 2 deletions(-)
->> 
->> diff --git a/drivers/gpu/drm/omapdrm/dss/dpi.c
->> b/drivers/gpu/drm/omapdrm/dss/dpi.c index 4ed5fde11313..aae3626910bb 100644
->> --- a/drivers/gpu/drm/omapdrm/dss/dpi.c
->> +++ b/drivers/gpu/drm/omapdrm/dss/dpi.c
->> @@ -566,8 +566,7 @@ static int dpi_verify_pll(struct dss_pll *pll)
->> }
->> 
->> static const struct soc_device_attribute dpi_soc_devices[] = {
->> -	{ .family = "OMAP3[456]*" },
->> -	{ .family = "[AD]M37*" },
->> +	{ .machine = "OMAP3[456]*" },
-> 
-> You also need 
-> 
-> 	{ .machine = "[AD]M37*" },
-> 
-> otherwise there will be no match for the OMAP3-like AM37xx and DM37xx SoCs.
+-- 
+Regards,
 
-Ah, ok. I wasn't aware that there are some AM37 and DM37 chips with and
-some without OMAP3 prefix.
+Laurent Pinchart
 
-> 
-> Another option would be to match on { .family = "OMAP3*" } but there could be 
-> spurious matches, even though I haven't identified any.
-> 
->> 	{ /* sentinel */ }
->> };
-> 
-
-BR and thanks,
-Nikolaus Schaller
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
