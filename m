@@ -1,123 +1,78 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v2 0/7] omap: dmtimer: Move driver out of plat-omap
-Date: Thu, 9 Nov 2017 10:11:02 +0530
-Message-ID: <9229c618-4e4f-3362-a6f9-ed614cdc1132@ti.com>
-References: <1510144108-29563-1-git-send-email-j-keerthy@ti.com>
- <20171108125151.li2mgxuxisan5f6c@lenoch>
- <9a37c5ad-728f-4a3e-c585-77182cdb41c6@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH] Kernel debugging: omap: print warning if CONFIG_DEBUG_LL
+ is enabled
+Date: Thu, 9 Nov 2017 06:44:49 +0100
+Message-ID: <E542DC13-D6C4-4C84-8521-8CE468BD0AFE@goldelico.com>
+References: <b80b85cd6f26d02d698463b3dd5e9783081aa780.1510176592.git.hns@goldelico.com>
+ <20171108222755.GW28152@atomide.com>
+ <20171108223604.GG28231@n2100.armlinux.org.uk>
+ <20171108223810.GH28231@n2100.armlinux.org.uk>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <9a37c5ad-728f-4a3e-c585-77182cdb41c6@ti.com>
-Content-Language: en-US
-Sender: linux-pwm-owner@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com, khilman@kernel.org, daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171108223810.GH28231@n2100.armlinux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: letux-kernel@openphoenux.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Russel,
 
+> Am 08.11.2017 um 23:38 schrieb Russell King - ARM Linux <linux@armlinux.org.uk>:
+> 
+> On Wed, Nov 08, 2017 at 10:36:04PM +0000, Russell King - ARM Linux wrote:
+>> We don't need a compiler warning there, we probably need better help
+>> text against DEBUG_LL and against EARLY_PRINTK.
+> 
+> Actually, this is already clearly stated against DEBUG_LL:
+> 
+>          Note that selecting this option will limit the kernel to a single
+>          UART definition, as specified below. Attempting to boot the kernel
+>          image on a different platform *will not work*, so this option should
+>          not be enabled for kernels that are intended to be portable.
+> 
+> and since EARLY_PRINTK depends on DEBUG_LL... I guess people don't
+> read help texts anymore.
 
-On Thursday 09 November 2017 10:01 AM, Keerthy wrote:
-> 
-> 
-> On Wednesday 08 November 2017 06:21 PM, Ladislav Michl wrote:
->> On Wed, Nov 08, 2017 at 05:58:21PM +0530, Keerthy wrote:
->>> The series moves dmtimer out of plat-omap to drivers/clocksource.
->>> The series also does a bunch of changes to pwm-omap-dmtimer code
->>> to adapt to the driver migration and clean up plat specific
->>> pdata-quirks and use the dmtimer platform data.
->>>
->>> Boot tested on DRA7-EVM and AM437X-GP-EVM.
->>
->> Boot tested on IGEPv2 with DM3730 and OMAP3530
->> Tested-by: Ladislav Michl <ladis@linux-mips.org>
-> 
-> Thanks for Testing :-).
-> 
->>
->>> More testing would be of great help. 
->>>
->>> No code changes in this v2 version. Only enhanced patch
->>> statistics for renames.
->>
->> Btw, what are these pathes against. Here's how it ends against 4.14-rc8:
->> Applying: clocksource: dmtimer: Remove all the exports
->> Applying: arm: omap: Move dmtimer.h out of plat-omap
->> Applying: arm: OMAP: Move dmtimer driver out of plat-omap to drivers under clocksource
->> error: patch failed: drivers/clocksource/Kconfig:46
->> error: drivers/clocksource/Kconfig: patch does not apply
->> Patch failed at 0003 arm: OMAP: Move dmtimer driver out of plat-omap to drivers under clocksource
->>
->> Test above was using your first serie which I manually fixed to apply.
->> Given the fact there is no code change, I will not do this again :-)
->> (and I'm happy someone is cleaning dm timer code, thank you)
-> 
-> I had rebased to latest next branch. Not sure what went wrong there. Let
-> me check myself.
+Yes, we read, but we face a situation where it doesn't help that it is a
+well known problem *for you* or anyone else and that it is described in the help.
 
-Ladis,
+We simply had a private defconfig for years and someone enabled DEBUG_LL some
+years ago and it worked.
 
-I got the same error as you have got against 4.14-rc8.
-I should have mentioned in the series these patches are against the
-latest next branch.
+Then we upgrade the kernel for every -rc and it continued to work well. Then,
+recently when doing just one update the compiled kernel failed to boot. Nobody
+did change and look at the defconfig and its help. We just merged the latest
+patches from linus/master.
 
-They apply cleanly against Latest next branch.
+Do you expect anybody to remember after 3 years of *not* changing DEBUG_LL what
+was written in a help message? Or to understand that DEBUG_LL has anything to
+do with the mysteriously appearing boot problem? Which can't easily be debugged
+since there are no messages despite playing with EARLY_PRINTK/EARLYCON?
 
-Thanks,
-Keerthy
+It took me several hours of git bisect to find out the problematic commits
+and needed help by the author to relate it to DEBUG_LL in the defconfig.
 
-> 
-> I will rebase with all other comments fixed to the next branch and post v3.
-> 
-> Thanks Ladis.
-> 
->>
->> 	ladis
->>
->>> Keerthy (7):
->>>   clocksource: dmtimer: Remove all the exports
->>>   arm: omap: Move dmtimer.h out of plat-omap
->>>   arm: OMAP: Move dmtimer driver out of plat-omap to drivers under
->>>     clocksource
->>>   dmtimer: Add timer ops to the platform data structure
->>>   clocksource: dmtimer: Populate the timer ops to the pdata
->>>   pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
->>>   arm: omap: pdata-quirks: Remove unused timer pdata
->>>
->>>  arch/arm/mach-omap1/pm.c                           |  2 +-
->>>  arch/arm/mach-omap1/timer.c                        |  2 +-
->>>  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  2 +-
->>>  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  2 +-
->>>  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  2 +-
->>>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  2 +-
->>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  2 +-
->>>  arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  2 +-
->>>  arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +-
->>>  arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  2 +-
->>>  arch/arm/mach-omap2/pdata-quirks.c                 | 32 -------------
->>>  arch/arm/mach-omap2/timer.c                        |  2 +-
->>>  arch/arm/plat-omap/Kconfig                         |  6 ---
->>>  arch/arm/plat-omap/Makefile                        |  1 -
->>>  drivers/clocksource/Kconfig                        |  6 +++
->>>  drivers/clocksource/Makefile                       |  1 +
->>>  .../plat-omap => drivers/clocksource}/dmtimer.c    | 54 +++++++++++-----------
->>>  drivers/pwm/pwm-omap-dmtimer.c                     | 39 +++++++++-------
->>>  .../include/plat => include/clocksource}/dmtimer.h |  0
->>>  include/linux/platform_data/dmtimer-omap.h         | 38 +++++++++++++++
->>>  20 files changed, 104 insertions(+), 95 deletions(-)
->>>  rename {arch/arm/plat-omap => drivers/clocksource}/dmtimer.c (95%)
->>>  rename {arch/arm/plat-omap/include/plat => include/clocksource}/dmtimer.h (100%)
->>>
->>> -- 
->>> 1.9.1
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+So we are coming from the other end with much less knowledge than you have.
+Linux has grown to be a beast that only a handful of people fully understand.
+And this patch is to help those poor production kernel maintainers like me
+who don't...
+
+A technically different solution would be to automatically disable DEBUG_LL
+if it is not compatible with some other setting.
+
+BTW it appears that there was similar code elsewhere long time ago:
+
+http://elixir.free-electrons.com/linux/v3.1.10/source/arch/arm/plat-mxc/include/mach/debug-macro.S
+
+BR and thanks,
+Nikolaus Schaller
