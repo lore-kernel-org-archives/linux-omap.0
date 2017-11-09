@@ -1,72 +1,77 @@
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: Re: n900 in next-20170901
-Date: Thu, 9 Nov 2017 12:50:31 +0900
-Message-ID: <20171109035031.GA24383@js1304-P5Q-DELUXE>
-References: <20171025173137.GQ4394@atomide.com>
- <20171026044829.GB11791@js1304-P5Q-DELUXE>
- <20171026141627.GD21504@atomide.com>
- <20171107053313.GA12447@js1304-P5Q-DELUXE>
- <20171107154842.GP28152@atomide.com>
- <20171108074645.GA18747@js1304-P5Q-DELUXE>
- <20171108163413.GU28152@atomide.com>
- <20171109000801.GA23982@js1304-P5Q-DELUXE>
- <20171109001113.GZ28152@atomide.com>
- <20171109003639.GB23982@js1304-P5Q-DELUXE>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 4/4] omapdss: fix problem enabling VDDS_DSI on OMAP3530 (OpenPandora)
+Date: Thu, 09 Nov 2017 05:45:36 +0200
+Message-ID: <3397395.9drm9Essi0@avalon>
+References: <cover.1510175371.git.hns@goldelico.com> <b94c5e773994ee55df9225fc84825bacb3fcb256.1510175371.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171109003639.GB23982@js1304-P5Q-DELUXE>
+In-Reply-To: <b94c5e773994ee55df9225fc84825bacb3fcb256.1510175371.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 09, 2017 at 09:36:39AM +0900, Joonsoo Kim wrote:
-> On Wed, Nov 08, 2017 at 04:11:13PM -0800, Tony Lindgren wrote:
-> > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171109 00:05]:
-> > > On Wed, Nov 08, 2017 at 08:34:13AM -0800, Tony Lindgren wrote:
-> > > > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171108 07:43]:
-> > > > > On Tue, Nov 07, 2017 at 07:48:42AM -0800, Tony Lindgren wrote:
-> > > > > > So it seems the issue is currently at the atomic_pool_init()
-> > > > > > related code?
-> > > > > 
-> > > > > Yes, your test showed it although I can't find any clue in
-> > > > > atomic_pool_init().
-> > > > > 
-> > > > > Could you test updated branch?
-> > > > > 
-> > > > > https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
-> > > > > 
-> > > > > There are two relevant commits.
-> > > > > 
-> > > > > arm/dma: stop dma allocation before __dma_alloc_remap()
-> > > > > arm/dma: disable atomic pool after dma allocation
-> > > > > 
-> > > > > atomic pool initialization will be done partially to check
-> > > > > exact point of failure. These are brain-dead commits however I have no
-> > > > > idea what's going on here until now. :/
-> > > > 
-> > > > OK that booted, dmesg output below. Hopefully that provides
-> > > > you with some more clues.
-> > > 
-> > > Thanks!
-> > > 
-> > > Could you let me know which one is booted? Both of them? or just top
-> > > commit ("arm/dma: stop dma allocation before __dma_alloc_remap()")?
-> > 
-> > Oh OK. Only the top commit boots.
+Hi Nikolaus,
+
+Thank you for the patch.
+
+On Wednesday, 8 November 2017 23:09:32 EET H. Nikolaus Schaller wrote:
+> commit d178e034d565 ("drm: omapdrm: Move FEAT_DPI_USES_VDDS_DSI feature to
+> dpi code")
 > 
-> Okay! I will try to analyze!
+> introduced a new match table which turned out to be wrong, at least
+> for the 600 MHz OpenPandora using the OMAP3530.
 > 
+> The effect was strange: only the Blue channel of the RGB panel was
+> driven while Red and Green stayed black. So a coloured picture turned
+> into blue/black.
+> 
+> The GTA04 with DM3730 didn't show the effect.
+> 
+> It turned out that VDDS_DSI was not properly initialized on OMAP3530,
+> because the .family string is just "OMAP3" for these processors and
+> not "OMAP3xxx".
+> 
+> Therefore we match the .machine attribute.
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 
-Could you test following two commits on my updated branch?
+I've already submitted a similar patch (but without the problem pointed out 
+below) in the mail thread where we discussed the issue. It is customary to use 
+the first patch posted (unless it is utterly broken of course). Could you thus 
+please include it in this series in replacement of this patch ?
 
-"arm/dma: vmalloc area allocation"
-"arm/dma: defer atomic pool initialization"
+> ---
+>  drivers/gpu/drm/omapdrm/dss/dpi.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/omapdrm/dss/dpi.c
+> b/drivers/gpu/drm/omapdrm/dss/dpi.c index 4ed5fde11313..aae3626910bb 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/dpi.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/dpi.c
+> @@ -566,8 +566,7 @@ static int dpi_verify_pll(struct dss_pll *pll)
+>  }
+> 
+>  static const struct soc_device_attribute dpi_soc_devices[] = {
+> -	{ .family = "OMAP3[456]*" },
+> -	{ .family = "[AD]M37*" },
+> +	{ .machine = "OMAP3[456]*" },
 
-I suspect that changed virtual address of the sram due to early
-__dma_alloc_remap() call causes the problem and above two commits test
-this theory.
+You also need 
 
-Thanks.
+	{ .machine = "[AD]M37*" },
+
+otherwise there will be no match for the OMAP3-like AM37xx and DM37xx SoCs.
+
+Another option would be to match on { .family = "OMAP3*" } but there could be 
+spurious matches, even though I haven't identified any.
+
+>  	{ /* sentinel */ }
+>  };
+
+-- 
+Regards,
+
+Laurent Pinchart
