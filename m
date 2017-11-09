@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 06/28] clk: ti: clkctrl: add support for retrying failed init
-Date: Thu, 9 Nov 2017 11:15:16 +0200
-Message-ID: <1510218917-1725-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 04/28] clk: ti: clkctrl: use fallback udelay approach if timekeeping is suspended
+Date: Thu, 9 Nov 2017 11:15:14 +0200
+Message-ID: <1510218917-1725-2-git-send-email-t-kristo@ti.com>
 References: <1510218917-1725-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,52 +12,59 @@ To: sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-In case the clkctrl node contains assigned-clock-* entries, registering
-the provider can fail with -EPROBE_DEFER. In this case, add the
-provider to the retry_init clock list so it will be cleaned up later.
+In certain cases it is possible that the timekeeping has been suspended
+already when attempting to disable/enable a clkctrl clock. This will
+happen at least on am43xx platform when attempting to enable / disable
+the clockevent source itself, burping out a warning from timekeeping core.
+
+The sequence of events leading to this:
+-> timekeeping_suspend()
+ -> clockevents_suspend()
+  -> omap_clkevt_idle()
+   -> omap_hwmod_idle()
+    -> _omap4_clkctrl_clk_disable()
+     -> _omap4_is_timeout()
+
+Avoid the issue by checking if the timekeeping is suspended and using
+the fallback udelay approach for checking timeouts.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clkctrl.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/clk/ti/clkctrl.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-index 38dbcc1..7d82fff 100644
+index 284ba449..38dbcc1 100644
 --- a/drivers/clk/ti/clkctrl.c
 +++ b/drivers/clk/ti/clkctrl.c
-@@ -414,6 +414,12 @@ static struct clk_hw *_ti_omap4_clkctrl_xlate(struct of_phandle_args *clkspec,
- 	}
- }
+@@ -21,6 +21,7 @@
+ #include <linux/of_address.h>
+ #include <linux/clk/ti.h>
+ #include <linux/delay.h>
++#include <linux/timekeeping.h>
+ #include "clock.h"
  
-+static void __init _clkctrl_add_provider(void *data,
-+					 struct device_node *np)
-+{
-+	of_clk_add_hw_provider(np, _ti_omap4_clkctrl_xlate, data);
-+}
-+
- static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
+ #define NO_IDLEST			0x1
+@@ -90,7 +91,18 @@ static bool _omap4_is_ready(u32 val)
+ 
+ static bool _omap4_is_timeout(union omap4_timeout *time, u32 timeout)
  {
- 	struct omap_clkctrl_provider *provider;
-@@ -425,6 +431,7 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
- 	struct omap_clkctrl_clk *clkctrl_clk;
- 	const __be32 *addrp;
- 	u32 addr;
-+	int ret;
- 
- 	addrp = of_get_address(node, 0, NULL, NULL);
- 	addr = (u32)of_translate_address(node, addrp);
-@@ -519,7 +526,10 @@ static void __init _ti_omap4_clkctrl_setup(struct device_node *node)
- 		reg_data++;
- 	}
- 
--	of_clk_add_hw_provider(node, _ti_omap4_clkctrl_xlate, provider);
-+	ret = of_clk_add_hw_provider(node, _ti_omap4_clkctrl_xlate, provider);
-+	if (ret == -EPROBE_DEFER)
-+		ti_clk_retry_init(node, provider, _clkctrl_add_provider);
-+
- 	return;
- 
- cleanup:
+-	if (unlikely(_early_timeout)) {
++	/*
++	 * There are two special cases where ktime_to_ns() can't be
++	 * used to track the timeouts. First one is during early boot
++	 * when the timers haven't been initialized yet. The second
++	 * one is during suspend-resume cycle while timekeeping is
++	 * being suspended / resumed. Clocksource for the system
++	 * can be from a timer that requires pm_runtime access, which
++	 * will eventually bring us here with timekeeping_suspended,
++	 * during both suspend entry and resume paths. This happens
++	 * at least on am43xx platform.
++	 */
++	if (unlikely(_early_timeout || timekeeping_suspended)) {
+ 		if (time->cycles++ < timeout) {
+ 			udelay(1);
+ 			return false;
 -- 
 1.9.1
 
