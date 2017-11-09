@@ -1,75 +1,62 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v2 2/7] arm: omap: Move dmtimer.h out of plat-omap
-Date: Thu, 9 Nov 2017 13:36:48 +0530
-Message-ID: <008c2d8b-6f76-882d-fc70-8fd4204c49d5@ti.com>
-References: <1510144108-29563-1-git-send-email-j-keerthy@ti.com>
- <1510144108-29563-3-git-send-email-j-keerthy@ti.com>
- <20171108164221.GV28152@atomide.com>
- <6ca9c73a-95a1-2466-151e-cdba64c3c478@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: [PATCH v3 0/7] OMAP2+ OneNAND driver update
+Date: Thu, 9 Nov 2017 10:11:55 +0100
+Message-ID: <20171109091155.6a6azfvjarwvlfh2@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <6ca9c73a-95a1-2466-151e-cdba64c3c478@ti.com>
-Content-Language: en-US
-Sender: linux-pwm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: aaro.koskinen@iki.fi, thierry.reding@gmail.com, khilman@kernel.org, daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi there,
+
+this patch serie updates OMAP2+ OneNAND driver to the present times, making
+it fully DT configurable.
+
+Patches 2-6 are intended for 4.15 merge window via mtd-tree as they are
+cleanups only.
+
+Patches 1 and 7 are targetted for 4.16 merge window via mtd tree as it seems
+nobody tested these changes (on Nokias most importantly) so far.
+
+Please note that unlike previous driver version, which basically ignored
+DT specified timings, this one relies on it, so it is important to get
+it right in your DT (dumping it from previous kernel version).
+
+In case synchronous timings is requested, it is okay to specify timings
+for the slowest chip ever used for you board as it is evetually optimized
+after chip probe.
+
+Ladislav Michl (7):
+  memory: omap-gpmc: Refactor OneNAND support
+  mtd: onenand: omap2: Remove regulator support
+  mtd: onenand: omap2: Remove skip initial unlocking support
+  mtd: onenand: omap2: Remove partitioning support from platform data
+  mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA implementation
+  mtd: onenand: omap2: Do not make delay for GPIO OMAP3 specific
+  mtd: onenand: omap2: Configure driver from DT
+
+ drivers/memory/omap-gpmc.c  | 158 ++++++++++----
+ drivers/mtd/onenand/omap2.c | 512 ++++++++++++++++----------------------------
+ include/linux/omap-gpmc.h   |  25 +++
+ 3 files changed, 330 insertions(+), 365 deletions(-)
+
+-- 
+2.11.0
 
 
-On Thursday 09 November 2017 09:55 AM, Keerthy wrote:
-> 
-> 
-> On Wednesday 08 November 2017 10:12 PM, Tony Lindgren wrote:
->> * Keerthy <j-keerthy@ti.com> [171108 12:31]:
->>> The header file is currently under plat-omap directory
->>> under arch/omap. Move this out to an accessible place.
->>>
->>> No Code changes done to the header file.
->>
->> Some of the dmtimer functions are in this header to optimize the
->> size of the system timer code. Can you please check if some of them
->> can be left out of dmtimer.h and be made private to mach-omap1/timer.c
->> and mach-omap2/timer.c?
-> 
-> Okay. I will try to clean that as well.
-
-Tony,
-
-Only function that i could push out of dmtimer.h was
-__omap_dm_timer_override_errata
-
-which is being currently called by mach-omap2/timer.c alone.
-
-Rest all are used both my dmtimer.c as well as mach-omap2/timer.c.
-Here is the list:
-
-__omap_dm_timer_read
-__omap_dm_timer_write
-__omap_dm_timer_init_regs
-__omap_dm_timer_enable_posted
-__omap_dm_timer_stop
-__omap_dm_timer_load_start
-__omap_dm_timer_int_enable
-__omap_dm_timer_read_counter
-__omap_dm_timer_write_status
-
-Any preferences on moving them to dmtimer.c or leaving them in header file?
-
-Regards,
-Keerthy
-
-> 
->>
->> Again, we don't want driver code to start mis-using these as that's
->> immediately going to be big mess out of control.
-> 
-> Sure.
-> 
->>
->> Regards,
->>
->> Tony
->>
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
