@@ -1,8 +1,8 @@
 From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v3 3/7] mtd: onenand: omap2: Remove skip initial unlocking
- support
-Date: Thu, 9 Nov 2017 10:14:07 +0100
-Message-ID: <20171109091407.z4jr2kgdubhd4dpw@lenoch>
+Subject: [PATCH v3 4/7] mtd: onenand: omap2: Remove partitioning support from
+ platform data
+Date: Thu, 9 Nov 2017 10:14:44 +0100
+Message-ID: <20171109091444.dxvoaaafjgkf43a2@lenoch>
 References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,8 +23,7 @@ To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-No platform data user sets skip_initial_unlocking, so remove test
-for this field.
+No platform data user setups partitioning informations, so remove.
 
 Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 ---
@@ -32,22 +31,22 @@ Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
  -v2: new patch
  -v3: none
 
- drivers/mtd/onenand/omap2.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/mtd/onenand/omap2.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index a03e1fe4aa48..93bd94337b35 100644
+index 93bd94337b35..883993bbe40b 100644
 --- a/drivers/mtd/onenand/omap2.c
 +++ b/drivers/mtd/onenand/omap2.c
-@@ -700,9 +700,6 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	if (pdata->skip_initial_unlocking)
--		this->options |= ONENAND_SKIP_INITIAL_UNLOCKING;
--
+@@ -703,8 +703,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
  	if ((r = onenand_scan(&c->mtd, 1)) < 0)
  		goto err_release_dma;
+ 
+-	r = mtd_device_register(&c->mtd, pdata ? pdata->parts : NULL,
+-				pdata ? pdata->nr_parts : 0);
++	r = mtd_device_register(&c->mtd, NULL, 0);
+ 	if (r)
+ 		goto err_release_onenand;
  
 -- 
 2.11.0
