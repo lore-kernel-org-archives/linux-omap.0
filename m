@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 04/28] clk: ti: clkctrl: use fallback udelay approach if timekeeping is suspended
-Date: Thu, 9 Nov 2017 11:15:14 +0200
-Message-ID: <1510218917-1725-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 05/28] clk: ti: convert retry_init param to use void data type
+Date: Thu, 9 Nov 2017 11:15:15 +0200
+Message-ID: <1510218917-1725-3-git-send-email-t-kristo@ti.com>
 References: <1510218917-1725-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,59 +12,137 @@ To: sboyd@codeaurora.org, mturquette@baylibre.com
 Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-In certain cases it is possible that the timekeeping has been suspended
-already when attempting to disable/enable a clkctrl clock. This will
-happen at least on am43xx platform when attempting to enable / disable
-the clockevent source itself, burping out a warning from timekeeping core.
-
-The sequence of events leading to this:
--> timekeeping_suspend()
- -> clockevents_suspend()
-  -> omap_clkevt_idle()
-   -> omap_hwmod_idle()
-    -> _omap4_clkctrl_clk_disable()
-     -> _omap4_is_timeout()
-
-Avoid the issue by checking if the timekeeping is suspended and using
-the fallback udelay approach for checking timeouts.
+User data should be void type, as the core framework doesn't need to
+know what is passed through.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- drivers/clk/ti/clkctrl.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/clk/ti/apll.c      |  3 ++-
+ drivers/clk/ti/clk.c       | 12 ++++++------
+ drivers/clk/ti/clock.h     |  4 ++--
+ drivers/clk/ti/composite.c |  3 ++-
+ drivers/clk/ti/dpll.c      |  3 ++-
+ 5 files changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/clk/ti/clkctrl.c b/drivers/clk/ti/clkctrl.c
-index 284ba449..38dbcc1 100644
---- a/drivers/clk/ti/clkctrl.c
-+++ b/drivers/clk/ti/clkctrl.c
-@@ -21,6 +21,7 @@
- #include <linux/of_address.h>
- #include <linux/clk/ti.h>
- #include <linux/delay.h>
-+#include <linux/timekeeping.h>
- #include "clock.h"
+diff --git a/drivers/clk/ti/apll.c b/drivers/clk/ti/apll.c
+index 83b148f..9498e93 100644
+--- a/drivers/clk/ti/apll.c
++++ b/drivers/clk/ti/apll.c
+@@ -133,9 +133,10 @@ static u8 dra7_init_apll_parent(struct clk_hw *hw)
+ 	.get_parent	= &dra7_init_apll_parent,
+ };
  
- #define NO_IDLEST			0x1
-@@ -90,7 +91,18 @@ static bool _omap4_is_ready(u32 val)
- 
- static bool _omap4_is_timeout(union omap4_timeout *time, u32 timeout)
+-static void __init omap_clk_register_apll(struct clk_hw *hw,
++static void __init omap_clk_register_apll(void *user,
+ 					  struct device_node *node)
  {
--	if (unlikely(_early_timeout)) {
-+	/*
-+	 * There are two special cases where ktime_to_ns() can't be
-+	 * used to track the timeouts. First one is during early boot
-+	 * when the timers haven't been initialized yet. The second
-+	 * one is during suspend-resume cycle while timekeeping is
-+	 * being suspended / resumed. Clocksource for the system
-+	 * can be from a timer that requires pm_runtime access, which
-+	 * will eventually bring us here with timekeeping_suspended,
-+	 * during both suspend entry and resume paths. This happens
-+	 * at least on am43xx platform.
-+	 */
-+	if (unlikely(_early_timeout || timekeeping_suspended)) {
- 		if (time->cycles++ < timeout) {
- 			udelay(1);
- 			return false;
++	struct clk_hw *hw = user;
+ 	struct clk_hw_omap *clk_hw = to_clk_hw_omap(hw);
+ 	struct dpll_data *ad = clk_hw->dpll_data;
+ 	struct clk *clk;
+diff --git a/drivers/clk/ti/clk.c b/drivers/clk/ti/clk.c
+index 10a7045..302c9e6 100644
+--- a/drivers/clk/ti/clk.c
++++ b/drivers/clk/ti/clk.c
+@@ -178,7 +178,7 @@ void __init ti_dt_clocks_register(struct ti_dt_clk oclks[])
+ 
+ struct clk_init_item {
+ 	struct device_node *node;
+-	struct clk_hw *hw;
++	void *user;
+ 	ti_of_clk_init_cb_t func;
+ 	struct list_head link;
+ };
+@@ -188,14 +188,14 @@ struct clk_init_item {
+ /**
+  * ti_clk_retry_init - retries a failed clock init at later phase
+  * @node: device not for the clock
+- * @hw: partially initialized clk_hw struct for the clock
++ * @user: user data pointer
+  * @func: init function to be called for the clock
+  *
+  * Adds a failed clock init to the retry list. The retry list is parsed
+  * once all the other clocks have been initialized.
+  */
+-int __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
+-			      ti_of_clk_init_cb_t func)
++int __init ti_clk_retry_init(struct device_node *node, void *user,
++			     ti_of_clk_init_cb_t func)
+ {
+ 	struct clk_init_item *retry;
+ 
+@@ -206,7 +206,7 @@ int __init ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
+ 
+ 	retry->node = node;
+ 	retry->func = func;
+-	retry->hw = hw;
++	retry->user = user;
+ 	list_add(&retry->link, &retry_list);
+ 
+ 	return 0;
+@@ -328,7 +328,7 @@ void ti_dt_clk_init_retry_clks(void)
+ 	while (!list_empty(&retry_list) && retries) {
+ 		list_for_each_entry_safe(retry, tmp, &retry_list, link) {
+ 			pr_debug("retry-init: %s\n", retry->node->name);
+-			retry->func(retry->hw, retry->node);
++			retry->func(retry->user, retry->node);
+ 			list_del(&retry->link);
+ 			kfree(retry);
+ 		}
+diff --git a/drivers/clk/ti/clock.h b/drivers/clk/ti/clock.h
+index 169241f..999fe72 100644
+--- a/drivers/clk/ti/clock.h
++++ b/drivers/clk/ti/clock.h
+@@ -235,7 +235,7 @@ struct omap_clkctrl_data {
+ #define CLKF_HW_SUP	BIT(1)
+ #define CLKF_NO_IDLEST	BIT(2)
+ 
+-typedef void (*ti_of_clk_init_cb_t)(struct clk_hw *, struct device_node *);
++typedef void (*ti_of_clk_init_cb_t)(void *, struct device_node *);
+ 
+ struct clk *ti_clk_register_gate(struct ti_clk *setup);
+ struct clk *ti_clk_register_interface(struct ti_clk *setup);
+@@ -263,7 +263,7 @@ int ti_clk_parse_divider_data(int *div_table, int num_dividers, int max_div,
+ int ti_clk_get_reg_addr(struct device_node *node, int index,
+ 			struct clk_omap_reg *reg);
+ void ti_dt_clocks_register(struct ti_dt_clk *oclks);
+-int ti_clk_retry_init(struct device_node *node, struct clk_hw *hw,
++int ti_clk_retry_init(struct device_node *node, void *user,
+ 		      ti_of_clk_init_cb_t func);
+ int ti_clk_add_component(struct device_node *node, struct clk_hw *hw, int type);
+ 
+diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
+index beea894..3eaba2d 100644
+--- a/drivers/clk/ti/composite.c
++++ b/drivers/clk/ti/composite.c
+@@ -161,9 +161,10 @@ struct clk *ti_clk_register_composite(struct ti_clk *setup)
+ }
+ #endif
+ 
+-static void __init _register_composite(struct clk_hw *hw,
++static void __init _register_composite(void *user,
+ 				       struct device_node *node)
+ {
++	struct clk_hw *hw = user;
+ 	struct clk *clk;
+ 	struct clk_hw_omap_comp *cclk = to_clk_hw_comp(hw);
+ 	struct component_clk *comp;
+diff --git a/drivers/clk/ti/dpll.c b/drivers/clk/ti/dpll.c
+index d4e4444..d246598 100644
+--- a/drivers/clk/ti/dpll.c
++++ b/drivers/clk/ti/dpll.c
+@@ -152,9 +152,10 @@
+  * clk-bypass is missing), the clock is added to retry list and
+  * the initialization is retried on later stage.
+  */
+-static void __init _register_dpll(struct clk_hw *hw,
++static void __init _register_dpll(void *user,
+ 				  struct device_node *node)
+ {
++	struct clk_hw *hw = user;
+ 	struct clk_hw_omap *clk_hw = to_clk_hw_omap(hw);
+ 	struct dpll_data *dd = clk_hw->dpll_data;
+ 	struct clk *clk;
 -- 
 1.9.1
 
