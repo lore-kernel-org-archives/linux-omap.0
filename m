@@ -1,61 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 1/7] memory: omap-gpmc: Refactor OneNAND support
-Date: Thu, 9 Nov 2017 13:59:53 -0800
-Message-ID: <20171109215953.GH28152@atomide.com>
-References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
- <20171109091253.lvrzi5kbaykkxlcb@lenoch>
- <20171109175626.GD28152@atomide.com>
- <20171109181004.g55vx4iveo5sulpt@lenoch>
- <20171109182645.GE28152@atomide.com>
- <20171109183408.xbc4bacawv7li54l@lenoch>
- <20171109184828.GF28152@atomide.com>
- <20171109191028.6r5bmg65gcz7ovv2@lenoch>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 6/6] arm: dts: am33xx: Add missing #phy-cells to ti,am335x-usb-phy
+Date: Thu,  9 Nov 2017 16:26:14 -0600
+Message-ID: <20171109222614.5719-6-robh@kernel.org>
+References: <20171109222614.5719-1-robh@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20171109191028.6r5bmg65gcz7ovv2@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171109222614.5719-1-robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ladislav Michl <ladis@linux-mips.org> [171109 19:12]:
-> On Thu, Nov 09, 2017 at 10:48:28AM -0800, Tony Lindgren wrote:
-> > Well don't we still need the related dts changes posted
-> > and merged first?
-> 
-> Well, except Roger's feedback, there were complete silence so far.
-> Note that simple fix was posted in February, this was rejected as
-> we should aim towards clean DT only driver. And here we are with
-> some doubts.
-> 
-> As I have no hardware nor any special knowledge going prior
-> initial driver commit it is rather hard to send "related dts changes"
-> given simple fact, that I'm unsure whenever we need to distinguish
-> between OMAP2 and OMAP3. Based on that we need either one or
-> two compatible strings.
-> 
-> Having two is safe, but u-boot will be unable to bring onenand equipped
-> igep up.
+"ti,am335x-usb-phy" is using the phy binding, but is missing #phy-cells
+property. Fixes the following warning in TI dts files:
 
-Well if you have a complete series with proposed dts changes for
-n8x0 and n900, I can try to test those. My n800 seems to have stopped
-booting today.. Maybe I need to reflash it after playing with onenand.
+Warning (phys_property): Missing property '#phy-cells' in node ...
 
-Regards,
+Signed-off-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Benoît Cousson" <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
+Please apply to TI tree.
 
-Tony
+ Documentation/devicetree/bindings/usb/am33xx-usb.txt | 2 ++
+ arch/arm/boot/dts/am33xx.dtsi                        | 2 ++
+ arch/arm/boot/dts/dm814x.dtsi                        | 1 +
+ 3 files changed, 5 insertions(+)
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+index 7a33f22c815a..7a198a30408a 100644
+--- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
++++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+@@ -95,6 +95,7 @@ usb: usb@47400000 {
+ 		reg = <0x47401300 0x100>;
+ 		reg-names = "phy";
+ 		ti,ctrl_mod = <&ctrl_mod>;
++		#phy-cells = <0>;
+ 	};
+ 
+ 	usb0: usb@47401000 {
+@@ -141,6 +142,7 @@ usb: usb@47400000 {
+ 		reg = <0x47401b00 0x100>;
+ 		reg-names = "phy";
+ 		ti,ctrl_mod = <&ctrl_mod>;
++		#phy-cells = <0>;
+ 	};
+ 
+ 	usb1: usb@47401800 {
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 7d7ca054c557..a39465a67ca2 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -626,6 +626,7 @@
+ 				reg-names = "phy";
+ 				status = "disabled";
+ 				ti,ctrl_mod = <&usb_ctrl_mod>;
++				#phy-cells = <0>;
+ 			};
+ 
+ 			usb0: usb@47401000 {
+@@ -674,6 +675,7 @@
+ 				reg-names = "phy";
+ 				status = "disabled";
+ 				ti,ctrl_mod = <&usb_ctrl_mod>;
++				#phy-cells = <0>;
+ 			};
+ 
+ 			usb1: usb@47401800 {
+diff --git a/arch/arm/boot/dts/dm814x.dtsi b/arch/arm/boot/dts/dm814x.dtsi
+index 9708157f5daf..b7a11c1168d1 100644
+--- a/arch/arm/boot/dts/dm814x.dtsi
++++ b/arch/arm/boot/dts/dm814x.dtsi
+@@ -75,6 +75,7 @@
+ 				reg = <0x47401300 0x100>;
+ 				reg-names = "phy";
+ 				ti,ctrl_mod = <&usb_ctrl_mod>;
++				#phy-cells = <0>;
+ 			};
+ 
+ 			usb0: usb@47401000 {
+-- 
+2.14.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
