@@ -1,69 +1,316 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: USB regression in next-20171108 with hub spamming
-Date: Thu, 09 Nov 2017 12:25:13 +0200
-Message-ID: <871sl7sq9i.fsf@linux.intel.com>
-References: <20171108230511.GY28152@atomide.com> <20171109080007.GA17098@kroah.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 2/3] EDAC: ti: add support for TI keystone and DRA7xx EDAC
+Date: Thu, 9 Nov 2017 11:14:17 +0100
+Message-ID: <20171109101417.rtz6ojhfcml3f6l7@pd.tnic>
+References: <1510087139-21885-1-git-send-email-t-kristo@ti.com>
+ <1510087139-21885-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171109080007.GA17098-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1510087139-21885-3-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <ssantosh@kernel.org>, mchehab@kernel.org, linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Tue, Nov 07, 2017 at 10:38:58PM +0200, Tero Kristo wrote:
+> TI Keystone and DRA7xx SoCs have support for EDAC on DDR3 memory that can
+> correct one bit errors and detect two bit errors. Add EDAC driver for this
+> feature which plugs into the generic kernel EDAC framework.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+
+Please add yourself and whoever else wants to get CCed on bug reports
+for this driver, to MAINTAINERS.
+
+Also,
+
+please integrate scripts/checkpatch.pl into your patch creation
+workflow. Some of the warnings/errors *actually* make sense.
+
+> ---
+>  drivers/edac/Kconfig   |   7 ++
+>  drivers/edac/Makefile  |   1 +
+>  drivers/edac/ti_edac.c | 306 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 314 insertions(+)
+>  create mode 100644 drivers/edac/ti_edac.c
+> 
+> diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
+> index 96afb2a..54f0184 100644
+> --- a/drivers/edac/Kconfig
+> +++ b/drivers/edac/Kconfig
+> @@ -457,4 +457,11 @@ config EDAC_XGENE
+>  	  Support for error detection and correction on the
+>  	  APM X-Gene family of SOCs.
+>  
+> +config EDAC_TI
+> +	tristate "Texas Instruments DDR3 ECC handler"
+
+s/handler/Controller/
+
+> +	depends on ARCH_KEYSTONE || SOC_DRA7XX
+> +	help
+> +	  Support for error detection and correction on the
+> +          TI SoCs.
+> +
+>  endif # EDAC
+> diff --git a/drivers/edac/Makefile b/drivers/edac/Makefile
+> index 0fd9ffa..b54912e 100644
+> --- a/drivers/edac/Makefile
+> +++ b/drivers/edac/Makefile
+> @@ -78,3 +78,4 @@ obj-$(CONFIG_EDAC_THUNDERX)		+= thunderx_edac.o
+>  obj-$(CONFIG_EDAC_ALTERA)		+= altera_edac.o
+>  obj-$(CONFIG_EDAC_SYNOPSYS)		+= synopsys_edac.o
+>  obj-$(CONFIG_EDAC_XGENE)		+= xgene_edac.o
+> +obj-$(CONFIG_EDAC_TI)			+= ti_edac.o
+> diff --git a/drivers/edac/ti_edac.c b/drivers/edac/ti_edac.c
+> new file mode 100644
+> index 0000000..54bacf3
+> --- /dev/null
+> +++ b/drivers/edac/ti_edac.c
+> @@ -0,0 +1,306 @@
+> +/*
+> + * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * Texas Instruments DDR3 ECC error correction and detection driver
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU General Public License,
+> + * version 2, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/edac.h>
+> +#include <linux/io.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/of_address.h>
+> +#include <linux/of_device.h>
+> +#include <linux/module.h>
+> +
+> +#include "edac_module.h"
+> +
+> +/* EMIF controller registers */
+> +#define EMIF_SDRAM_CONFIG		0x008
+> +#define EMIF_IRQ_STATUS			0x0ac
+> +#define EMIF_IRQ_ENABLE_SET		0x0b4
+> +#define EMIF_ECC_CTRL			0x110
+> +#define EMIF_1B_ECC_ERR_CNT		0x130
+> +#define EMIF_1B_ECC_ERR_THRSH		0x134
+> +#define EMIF_1B_ECC_ERR_ADDR_LOG	0x13c
+> +#define EMIF_2B_ECC_ERR_ADDR_LOG	0x140
+> +
+> +/* Bit definitions for EMIF_SDRAM_CONFIG */
+> +#define SDRAM_TYPE_SHIFT		29
+> +#define SDRAM_TYPE_MASK			GENMASK(31,29)
 
 
-Hi,
+ERROR: space required after that ',' (ctx:VxV)
+#100: FILE: drivers/edac/ti_edac.c:41:
++#define SDRAM_TYPE_MASK                        GENMASK(31,29)
+                                                          ^
 
-Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org> writes:
-> On Wed, Nov 08, 2017 at 03:05:11PM -0800, Tony Lindgren wrote:
->> Hi Felipe & Greg,
->>=20
->> Looks like in next-20171108 USB hub is spamming console about once a
->> second after commit 7dfd74fd128 ("Merge remote-tracking branch
->> 'usb/usb-next'").
->>=20
->> Any ideas? See the log below.
->
-> Any chance you can run 'git bisect'?
+ditto for the rest
 
-I wonder if it was caused by the usb_get_std_status() changes. We didn't
-catch this in our testing, though. I left the patches in intel's
-validation for a few days before sending out.
+> +#define SDRAM_TYPE_DDR3			(3 << SDRAM_TYPE_SHIFT)
+> +#define SDRAM_TYPE_DDR2			(2 << SDRAM_TYPE_SHIFT)
+> +#define SDRAM_NARROW_MODE_MASK		GENMASK(15,14)
+> +#define SDRAM_K2_NARROW_MODE_SHIFT	12
+> +#define SDRAM_K2_NARROW_MODE_MASK	GENMASK(13,12)
+> +#define SDRAM_ROWSIZE_SHIFT		7
+> +#define SDRAM_ROWSIZE_MASK		GENMASK(9,7)
+> +#define SDRAM_IBANK_SHIFT		4
+> +#define SDRAM_IBANK_MASK		GENMASK(6,4)
+> +#define SDRAM_K2_IBANK_SHIFT		5
+> +#define SDRAM_K2_IBANK_MASK		GENMASK(6,5)
+> +#define SDRAM_K2_EBANK_SHIFT		3
+> +#define SDRAM_K2_EBANK_MASK		BIT(SDRAM_K2_EBANK_SHIFT)
+> +#define SDRAM_PAGESIZE_SHIFT		0
+> +#define SDRAM_PAGESIZE_MASK		GENMASK(2,0)
+> +#define SDRAM_K2_PAGESIZE_SHIFT		0
+> +#define SDRAM_K2_PAGESIZE_MASK		GENMASK(1,0)
+> +
+> +#define EMIF_1B_ECC_ERR_THRSH_SHIFT	24
+> +
+> +/* IRQ bit definitions */
+> +#define EMIF_1B_ECC_ERR			BIT(5)
+> +#define EMIF_2B_ECC_ERR			BIT(4)
+> +#define EMIF_WR_ECC_ERR			BIT(3)
+> +#define EMIF_SYS_ERR			BIT(0)
+> +/* Bit 31 enables ECC and 28 enables RMW */
+> +#define ECC_ENABLED			(BIT(31) | BIT(28))
 
-Let me compile that very tag and try it with one of our machines.
+...
 
-Tony, a bisection would be useful, indeed.
+> +static void ti_edac_setup_dimm(struct mem_ctl_info *mci, u32 type)
+> +{
+> +	struct dimm_info *dimm;
+> +	struct ti_edac *edac = mci->pvt_info;
+> +	int bits;
+> +	u32 val;
+> +	u32 memsize;
+> +
+> +	dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms, mci->n_layers, 0, 0, 0);
+> +
+> +	val = ti_edac_readl(edac, EMIF_SDRAM_CONFIG);
+> +
+> +	if (type == EMIF_TYPE_DRA7) {
+> +		bits = ((val & SDRAM_PAGESIZE_MASK) >>
+> +			SDRAM_PAGESIZE_SHIFT) + 8;
+> +		bits += ((val & SDRAM_ROWSIZE_MASK) >>
+> +			SDRAM_ROWSIZE_SHIFT) + 9;
 
-=2D-=20
-balbi
+Bah, let those stick out - it is more readable this way:
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+                bits = ((val & SDRAM_PAGESIZE_MASK) >> SDRAM_PAGESIZE_SHIFT) + 8;
+                bits += ((val & SDRAM_ROWSIZE_MASK) >> SDRAM_ROWSIZE_SHIFT) + 9;
+                bits += (val & SDRAM_IBANK_MASK)    >> SDRAM_IBANK_SHIFT;
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAloELQkACgkQzL64meEa
-mQYG6BAA4BUV95tdYPBxbI7HlKyHrp0UghWbWdR13YhAV0sPkN/cSOkz0o+b4t4q
-xtJkroES6PWUeb9+9H5pSQ8o912Cj7X4sYr/jWbEhqO1LqWmJRkPw4fFxIDHTfMW
-a/Ky+Xc/blqH9PLD1TTVT+PiSStLMDi8CYGkWU9uDbmkdGuziBWMHT+lkl1eZIGQ
-c4jCzKeITQbsbS9+U9nBAWJXUVCtF6lolxbrknSLBW9pfg0xGF0Bt6KPeJSoGHO1
-CRrQqnHy+hrFh6XgTLfQV7lwoQV/pfLd4L+JDKw1SVa7FijrfAMvdLULt7A7bl83
-prztAKNMkEBvlpTvGVTxvOUTrEoUWlOUkwFAP2VgTrHb97X03EaI8j4kGVd7seFA
-N0Kqlwvp2yQtUN/QF533gCaAe2GwFItzawOPvdYQ81ZwmiGPV1thg+PySSd9e937
-DnMfFJJK1JuRVokZaDZdKdGOg6goWX8I13UF3+IT7PJYiCAcsW9ZtrctPNuELFyU
-L58TeepKWBu+v9b04c7I4LM83uokCuyH1xBdOJsaKL4oelKAkrwx9RPKaWQiE2KW
-kyC5491u/JqLmgK76t45bNySoPOnzFpfdwEjK4WnpOgSlqVIL9+O1hFKHeXwqJX3
-yQU0yly5CoOofYn9F3xVVeI8iNICF4LQECf/JHbqH+d7YtcaJ3k=
-=G6yg
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> +		bits += (val & SDRAM_IBANK_MASK) >> SDRAM_IBANK_SHIFT;
+> +
+> +		if (val & SDRAM_NARROW_MODE_MASK) {
+> +			bits++;
+> +			dimm->dtype = DEV_X16;
+> +		} else {
+> +			bits += 2;
+> +			dimm->dtype = DEV_X32;
+> +		}
+> +	} else {
+> +		bits = 16;
+> +		bits += ((val & SDRAM_K2_PAGESIZE_MASK) >>
+> +			SDRAM_K2_PAGESIZE_SHIFT) + 8;
+> +		bits += (val & SDRAM_K2_IBANK_MASK) >> SDRAM_K2_IBANK_SHIFT;
+> +		bits += (val & SDRAM_K2_EBANK_MASK) >> SDRAM_K2_EBANK_SHIFT;
+> +
+> +		val = (val & SDRAM_K2_NARROW_MODE_MASK) >>
+> +			SDRAM_K2_NARROW_MODE_SHIFT;
+> +		switch (val) {
+> +		case 0:
+> +			bits += 3;
+> +			dimm->dtype = DEV_X64;
+> +			break;
+> +		case 1:
+> +			bits += 2;
+> +			dimm->dtype = DEV_X32;
+> +			break;
+> +		case 2:
+> +			bits ++;
+
+ERROR: space prohibited before that '++' (ctx:WxO)
+#233: FILE: drivers/edac/ti_edac.c:174:
++                       bits ++;
+                             ^
+
+
+> +			dimm->dtype = DEV_X16;
+> +			break;
+> +		}
+> +	}
+> +
+> +	memsize = 1 << bits;
+> +
+> +	dimm->nr_pages = memsize >> PAGE_SHIFT;
+> +	dimm->grain = 4;
+> +	if ((val & SDRAM_TYPE_MASK) == SDRAM_TYPE_DDR2)
+> +		dimm->mtype = MEM_DDR2;
+> +	else
+> +		dimm->mtype = MEM_DDR3;
+> +
+> +	val = ti_edac_readl(edac, EMIF_ECC_CTRL);
+> +	if (val & ECC_ENABLED)
+> +		dimm->edac_mode = EDAC_SECDED;
+> +	else
+> +		dimm->edac_mode = EDAC_NONE;
+
+So if ECC is not enabled, why do you even need to continue loading the
+driver here and not return a retval which ti_edac_probe() propagates?
+
+Also, you want to call that function much earlier in ti_edac_probe() so
+that you can save yourself all the setup.
+
+Or can you have instances which have ECC disabled and others which have
+ECC enabled, on the same platform?
+
+> +}
+> +
+> +static const struct of_device_id ti_edac_of_match[] = {
+> +	{ .compatible = "ti,emif-keystone", .data = (void *)EMIF_TYPE_K2 },
+> +	{ .compatible = "ti,emif-dra7xx", .data = (void *)EMIF_TYPE_DRA7 },
+> +	{},
+> +};
+> +
+> +static int ti_edac_probe(struct platform_device *pdev)
+> +{
+> +	int error_irq = 0, ret = -ENODEV;
+> +	struct device *dev = &pdev->dev;
+> +	struct resource *res;
+> +	void __iomem *reg;
+> +	struct mem_ctl_info *mci;
+> +	struct edac_mc_layer layers[1];
+> +	const struct of_device_id *id;
+> +	struct ti_edac *edac;
+> +	static int edac_id;
+> +	int my_id;
+> +
+> +	id = of_match_device(ti_edac_of_match, &pdev->dev);
+> +	if (!id)
+> +		return -ENODEV;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	reg = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(reg)) {
+> +		dev_err(dev, "DDR3 controller regs not defined\n");
+
+We have edac_printk() et al macros for printing. Ditto for the remaining
+calls.
+
+> +		return PTR_ERR(reg);
+> +	}
+> +
+> +	layers[0].type = EDAC_MC_LAYER_ALL_MEM;
+> +	layers[0].size = 1;
+> +
+> +	/* Allocate ID number for our EMIF controller */
+> +	mutex_lock(&ti_edac_lock);
+> +	my_id = edac_id++;
+> +	mutex_unlock(&ti_edac_lock);
+
+That looks silly. Why not atomic_inc_return()?
+
+> +	mci = edac_mc_alloc(my_id, 1, layers, sizeof(*edac));
+> +	if (!mci)
+> +		return -ENOMEM;
+> +
+> +	mci->pdev = &pdev->dev;
+> +	edac = mci->pvt_info;
+> +	edac->reg = reg;
+> +	platform_set_drvdata(pdev, mci);
+
+...
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
