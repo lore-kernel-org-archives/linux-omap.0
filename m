@@ -1,34 +1,31 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH v2 3/7] arm: OMAP: Move dmtimer driver out of plat-omap
- to drivers under clocksource
-Date: Thu, 9 Nov 2017 17:17:12 +0100
-Message-ID: <20171109161712.4upyx7sypfdctuop@earth>
+Subject: Re: [PATCH v2 4/7] dmtimer: Add timer ops to the platform data
+ structure
+Date: Thu, 9 Nov 2017 17:27:42 +0100
+Message-ID: <20171109162742.mrdvh5cvom577whh@earth>
 References: <1510144108-29563-1-git-send-email-j-keerthy@ti.com>
- <1510144108-29563-4-git-send-email-j-keerthy@ti.com>
+ <1510144108-29563-5-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="zodj7mqd3ivtelnj"
+        protocol="application/pgp-signature"; boundary="uel3l4gi7hvmsh4i"
 Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1510144108-29563-4-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1510144108-29563-5-git-send-email-j-keerthy@ti.com>
 Sender: linux-pwm-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
 Cc: tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com, khilman@kernel.org, daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---zodj7mqd3ivtelnj
+--uel3l4gi7hvmsh4i
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Nov 08, 2017 at 05:58:24PM +0530, Keerthy wrote:
-> Move the dmtimer driver out of plat-omap to clocksource.
-> So that non-omap devices also could use this.
->=20
-> No Code changes done to the driver file.
+On Wed, Nov 08, 2017 at 05:58:25PM +0530, Keerthy wrote:
+> Add timer ops to the platform data structure
 >=20
 > Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
@@ -36,78 +33,74 @@ On Wed, Nov 08, 2017 at 05:58:24PM +0530, Keerthy wrote:
 > No code changes in this v2 version. Only enhanced patch
 > statistics for renames.
 
+I think the solution to provide private functions is not very nice,
+but it improves the current situation and does not touch any ABI (so
+can easily be changed later on), so:
+
 Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
 -- Sebastian
 
->  arch/arm/plat-omap/Kconfig                            | 6 ------
->  arch/arm/plat-omap/Makefile                           | 1 -
->  drivers/clocksource/Kconfig                           | 6 ++++++
->  drivers/clocksource/Makefile                          | 1 +
->  {arch/arm/plat-omap =3D> drivers/clocksource}/dmtimer.c | 0
->  5 files changed, 7 insertions(+), 7 deletions(-)
->  rename {arch/arm/plat-omap =3D> drivers/clocksource}/dmtimer.c (100%)
+>  include/linux/platform_data/dmtimer-omap.h | 38 ++++++++++++++++++++++++=
+++++++
+>  1 file changed, 38 insertions(+)
 >=20
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index 3e27bff..4b92ac5 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -105,12 +105,6 @@ config OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
->  	help
->  	  PPA routine service ID for setting L2 auxiliary control register.
+> diff --git a/include/linux/platform_data/dmtimer-omap.h b/include/linux/p=
+latform_data/dmtimer-omap.h
+> index a19b78d..a3e1794 100644
+> --- a/include/linux/platform_data/dmtimer-omap.h
+> +++ b/include/linux/platform_data/dmtimer-omap.h
+> @@ -20,12 +20,50 @@
+>  #ifndef __PLATFORM_DATA_DMTIMER_OMAP_H__
+>  #define __PLATFORM_DATA_DMTIMER_OMAP_H__
 > =20
-> -config OMAP_DM_TIMER
-> -	bool "Use dual-mode timer"
-> -	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
-> -	help
-> -	 Select this option if you want to use OMAP Dual-Mode timers.
-> -
->  config OMAP_SERIAL_WAKE
->  	bool "Enable wake-up events for serial ports"
->  	depends on ARCH_OMAP1 && OMAP_MUX
-> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> index 47e1867..7215ada 100644
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -9,5 +9,4 @@ obj-y :=3D sram.o dma.o counter_32k.o
-> =20
->  # omap_device support (OMAP2+ only at the moment)
-> =20
-> -obj-$(CONFIG_OMAP_DM_TIMER) +=3D dmtimer.o
->  obj-$(CONFIG_OMAP_DEBUG_LEDS) +=3D debug-leds.o
-> diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-> index c729a88..4da66cf 100644
-> --- a/drivers/clocksource/Kconfig
-> +++ b/drivers/clocksource/Kconfig
-> @@ -46,6 +46,12 @@ config DIGICOLOR_TIMER
->  	help
->  	  Enables the support for the digicolor timer driver.
-> =20
-> +config OMAP_DM_TIMER
-> +	bool "Use dual-mode timer"
-> +	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
-> +	help
-> +	 Select this option if you want to use Dual-Mode timers.
+> +struct omap_dm_timer_ops {
+> +	struct omap_dm_timer *(*request_by_node)(struct device_node *np);
+> +	struct omap_dm_timer *(*request_specific)(int timer_id);
+> +	struct omap_dm_timer *(*request)(void);
 > +
->  config DW_APB_TIMER
->  	bool "DW APB timer driver" if COMPILE_TEST
->  	help
-> diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
-> index dbc1ad1..a8e51e6 100644
-> --- a/drivers/clocksource/Makefile
-> +++ b/drivers/clocksource/Makefile
-> @@ -15,6 +15,7 @@ obj-$(CONFIG_EM_TIMER_STI)	+=3D em_sti.o
->  obj-$(CONFIG_CLKBLD_I8253)	+=3D i8253.o
->  obj-$(CONFIG_CLKSRC_MMIO)	+=3D mmio.o
->  obj-$(CONFIG_DIGICOLOR_TIMER)	+=3D timer-digicolor.o
-> +obj-$(CONFIG_OMAP_DM_TIMER)	+=3D dmtimer.o
->  obj-$(CONFIG_DW_APB_TIMER)	+=3D dw_apb_timer.o
->  obj-$(CONFIG_DW_APB_TIMER_OF)	+=3D dw_apb_timer_of.o
->  obj-$(CONFIG_FTTMR010_TIMER)	+=3D timer-fttmr010.o
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/drivers/clocksource/dmtimer.c
-> similarity index 100%
-> rename from arch/arm/plat-omap/dmtimer.c
-> rename to drivers/clocksource/dmtimer.c
+> +	int	(*free)(struct omap_dm_timer *timer);
+> +
+> +	void	(*enable)(struct omap_dm_timer *timer);
+> +	void	(*disable)(struct omap_dm_timer *timer);
+> +
+> +	int	(*get_irq)(struct omap_dm_timer *timer);
+> +	int	(*set_int_enable)(struct omap_dm_timer *timer,
+> +				  unsigned int value);
+> +	int	(*set_int_disable)(struct omap_dm_timer *timer, u32 mask);
+> +
+> +	struct clk *(*get_fclk)(struct omap_dm_timer *timer);
+> +
+> +	int	(*start)(struct omap_dm_timer *timer);
+> +	int	(*stop)(struct omap_dm_timer *timer);
+> +	int	(*set_source)(struct omap_dm_timer *timer, int source);
+> +
+> +	int	(*set_load)(struct omap_dm_timer *timer, int autoreload,
+> +			    unsigned int value);
+> +	int	(*set_match)(struct omap_dm_timer *timer, int enable,
+> +			     unsigned int match);
+> +	int	(*set_pwm)(struct omap_dm_timer *timer, int def_on,
+> +			   int toggle, int trigger);
+> +	int	(*set_prescaler)(struct omap_dm_timer *timer, int prescaler);
+> +
+> +	unsigned int (*read_counter)(struct omap_dm_timer *timer);
+> +	int	(*write_counter)(struct omap_dm_timer *timer,
+> +				 unsigned int value);
+> +	unsigned int (*read_status)(struct omap_dm_timer *timer);
+> +	int	(*write_status)(struct omap_dm_timer *timer,
+> +				unsigned int value);
+> +};
+> +
+>  struct dmtimer_platform_data {
+>  	/* set_timer_src - Only used for OMAP1 devices */
+>  	int (*set_timer_src)(struct platform_device *pdev, int source);
+>  	u32 timer_capability;
+>  	u32 timer_errata;
+>  	int (*get_context_loss_count)(struct device *);
+> +	struct omap_dm_timer_ops *timer_ops;
+>  };
+> =20
+>  #endif /* __PLATFORM_DATA_DMTIMER_OMAP_H__ */
 > --=20
 > 1.9.1
 >=20
@@ -116,24 +109,24 @@ Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---zodj7mqd3ivtelnj
+--uel3l4gi7hvmsh4i
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloEf4gACgkQ2O7X88g7
-+po3ThAAkZ9wanvbtsXDeq/va2q2j9hvqZI3gZVakx23FskzmCC/CiN0jbvKE+Sx
-CeMtFHG9VIYSqTGjh/0wu+aI7aHFF8LHiH4sZjT5+2awOTIh1StTVQpxKYM1LfdA
-suceI4TqlJSBtftzPDKTUPyT5wM7aLMO2AgByOzxPdmmLkWsxigKu+HD8FcwTmM3
-RilxUYx1YCiYLK8AvPWBGx6ftvd0LTZHS+AiuRkOSELCqKNmFsoHB7Mb+Ou9/P4P
-F7LrMt5TSYkjwM9iABZLsDl2TPIcjCDbIcY9TCQ9kDYYvQ79W2S1qjGBMlW1u/14
-zKGQvy6VzBjmC2YBLxisPOhdePh2aEQ6qiTox9fvkxETKPD3JL4BDqzwfVNf4dXf
-bb1xjT8PC8ofBJ73RmujofznfpyrtKNLyS1FWM0v2BgorgB38ZyNEG329mVjF+m9
-NqtxRGErF2qoGjBhZ56lND+IBSO/AsHbQIujHqP4D9y5G0ggjn6yrEp10sSRmqDr
-Ayqt1QRqs3ToXVBbn0npr1sEp5OrB9OUexfkI6NUUU+wUVOItiFfC8ubW4yGf4c7
-JvIOgtyHoaN8Qn5dgkz+c1rmDUv/nSf6he9uxt7TFmV0WC9urS3ohW43f1PSbVgf
-2GHTwp4Q2QgtJehlsGrvqK9FyKQX01UyEDIY4vzwTSAJp0R4yzA=
-=jbzy
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloEgfsACgkQ2O7X88g7
++poxzw//XV1DB5qsqTHU0wpODUPyYBjevzYIMcpB5pEp74OfyS6djDvr7kwUP2AU
+uN6+kJ+6x0u1nfQIZ4jLkkV1bcakSs3M6hd82DMraQ2+bEw0ZS5CYuUMx4thkIRw
+6W9yCqK2OyfDWLOUAJh1sFah2OxwUVbLidxcc9izYqjlqAxVI5B5UntQFcGk8cKK
+8SDPffkL9SAw2sFTXXHGRVXhcMmwdbWPrjevWd2eBaVAK1crHLeAWZ9mJ/QtaVy+
+oN5rnjMk8NHyN1XCACKYP0BpHTdsib87fAqr4zQtwaWDaVMPdkFR0gYm9xQ612vF
+kV2i9VY8rqkt2aMudbkpEYiUv9ne9Zo7WncI92RvP1hw5c6Y/1U9436cjZdtZZMA
+CPwYoSpBW5Zi4olDtaYhx/7ppHi+F3QbrNWyIVUMCUWYb/rQxLM/Uf/pSuXEU6IY
+XbxGz9ignPXmh2N6KlhmcWQrYiZaU9WfbwC4snx82Pl4TG3t9Lns5RBccwMe1/JE
+x5NZT0sjuoiDRLj/5G10g2OsDVNUCc0s+kZqB7lZgOdDr4BwLBRNmP2WTF8im4Ff
+sLmMOhdo7RjxvQGZRlhl7fMDrwkT+i/XAWzIVhQSRSWFAB6mxdwbJW4ObbIT7748
+jQ0kjuPGhLIQRCUKdV3QEigkr76JYlpE4KjYj0kLwUEr/MnfhVs=
+=kc/W
 -----END PGP SIGNATURE-----
 
---zodj7mqd3ivtelnj--
+--uel3l4gi7hvmsh4i--
