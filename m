@@ -1,61 +1,118 @@
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: Re: n900 in next-20170901
-Date: Thu, 9 Nov 2017 09:36:39 +0900
-Message-ID: <20171109003639.GB23982@js1304-P5Q-DELUXE>
-References: <20171023045342.GA23082@js1304-P5Q-DELUXE>
- <20171025173137.GQ4394@atomide.com>
- <20171026044829.GB11791@js1304-P5Q-DELUXE>
- <20171026141627.GD21504@atomide.com>
- <20171107053313.GA12447@js1304-P5Q-DELUXE>
- <20171107154842.GP28152@atomide.com>
- <20171108074645.GA18747@js1304-P5Q-DELUXE>
- <20171108163413.GU28152@atomide.com>
- <20171109000801.GA23982@js1304-P5Q-DELUXE>
- <20171109001113.GZ28152@atomide.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/4] omapdrm: fix compatible string for td028ttec1
+Date: Thu, 09 Nov 2017 05:33:40 +0200
+Message-ID: <2790033.EQlQQc1BPI@avalon>
+References: <cover.1510175371.git.hns@goldelico.com> <8678120467a1d0e67d4d882b3f01d58867586653.1510175371.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171109001113.GZ28152@atomide.com>
+In-Reply-To: <8678120467a1d0e67d4d882b3f01d58867586653.1510175371.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 08, 2017 at 04:11:13PM -0800, Tony Lindgren wrote:
-> * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171109 00:05]:
-> > On Wed, Nov 08, 2017 at 08:34:13AM -0800, Tony Lindgren wrote:
-> > > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171108 07:43]:
-> > > > On Tue, Nov 07, 2017 at 07:48:42AM -0800, Tony Lindgren wrote:
-> > > > > So it seems the issue is currently at the atomic_pool_init()
-> > > > > related code?
-> > > > 
-> > > > Yes, your test showed it although I can't find any clue in
-> > > > atomic_pool_init().
-> > > > 
-> > > > Could you test updated branch?
-> > > > 
-> > > > https://github.com/JoonsooKim/linux/tree/cma-debug4-next-20180901
-> > > > 
-> > > > There are two relevant commits.
-> > > > 
-> > > > arm/dma: stop dma allocation before __dma_alloc_remap()
-> > > > arm/dma: disable atomic pool after dma allocation
-> > > > 
-> > > > atomic pool initialization will be done partially to check
-> > > > exact point of failure. These are brain-dead commits however I have no
-> > > > idea what's going on here until now. :/
-> > > 
-> > > OK that booted, dmesg output below. Hopefully that provides
-> > > you with some more clues.
-> > 
-> > Thanks!
-> > 
-> > Could you let me know which one is booted? Both of them? or just top
-> > commit ("arm/dma: stop dma allocation before __dma_alloc_remap()")?
+Hi Nikolaus,
+
+Thank you for the patch.
+
+On Wednesday, 8 November 2017 23:09:29 EET H. Nikolaus Schaller wrote:
+> The vendor name was "toppoly" but other panels and the vendor list
+> have defined it as "tpo". So let's fix it in driver and bindings.
 > 
-> Oh OK. Only the top commit boots.
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  .../display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt} | 4 ++--
+> drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c           | 4 ++--
+> drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c  | 4 ++--
+> 3 files changed, 6 insertions(+), 6 deletions(-)
+>  rename
+> Documentation/devicetree/bindings/display/panel/{toppoly,td028ttec1.txt =>
+> tpo,td028ttec1.txt} (84%)
+> 
+> diff --git
+> a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
+> b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
+> similarity index 84%
+> rename from
+> Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
+> rename to
+> Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt index
+> 7175dc3740ac..ed34253d9fb1 100644
+> --- a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
+> +++ b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt @@
+> -2,7 +2,7 @@ Toppoly TD028TTEC1 Panel
+>  ========================
+> 
+>  Required properties:
+> -- compatible: "toppoly,td028ttec1"
+> +- compatible: "tpo,td028ttec1"
+> 
+>  Optional properties:
+>  - label: a symbolic name for the panel
+> @@ -14,7 +14,7 @@ Example
+>  -------
+> 
+>  lcd-panel: td028ttec1@0 {
+> -	compatible = "toppoly,td028ttec1";
+> +	compatible = "tpo,td028ttec1";
+>  	reg = <0>;
+>  	spi-max-frequency = <100000>;
+>  	spi-cpol;
+> diff --git a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+> b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c index
+> 0a38a0e8c925..2dab491478c2 100644
+> --- a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+> +++ b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+> @@ -452,7 +452,7 @@ static int td028ttec1_panel_remove(struct spi_device
+> *spi) }
+> 
+>  static const struct of_device_id td028ttec1_of_match[] = {
+> -	{ .compatible = "omapdss,toppoly,td028ttec1", },
+> +	{ .compatible = "omapdss,tpo,td028ttec1", },
 
-Okay! I will try to analyze!
+Doesn't this break backward compatibility with existing DT ?
 
-Thanks.
+>  	{},
+>  };
+> 
+> @@ -471,7 +471,7 @@ static struct spi_driver td028ttec1_spi_driver = {
+> 
+>  module_spi_driver(td028ttec1_spi_driver);
+> 
+> -MODULE_ALIAS("spi:toppoly,td028ttec1");
+> +MODULE_ALIAS("spi:tpo,td028ttec1");
+>  MODULE_AUTHOR("H. Nikolaus Schaller <hns@goldelico.com>");
+>  MODULE_DESCRIPTION("Toppoly TD028TTEC1 panel driver");
+>  MODULE_LICENSE("GPL");
+> diff --git
+> a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
+> b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c index
+> 57e9e146ff74..39e1754746d2 100644
+> --- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
+> +++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
+> @@ -455,7 +455,7 @@ static int td028ttec1_panel_remove(struct spi_device
+> *spi) }
+> 
+>  static const struct of_device_id td028ttec1_of_match[] = {
+> -	{ .compatible = "omapdss,toppoly,td028ttec1", },
+> +	{ .compatible = "omapdss,tpo,td028ttec1", },
+>  	{},
+>  };
+> 
+> @@ -474,7 +474,7 @@ static struct spi_driver td028ttec1_spi_driver = {
+> 
+>  module_spi_driver(td028ttec1_spi_driver);
+> 
+> -MODULE_ALIAS("spi:toppoly,td028ttec1");
+> +MODULE_ALIAS("spi:tpo,td028ttec1");
+>  MODULE_AUTHOR("H. Nikolaus Schaller <hns@goldelico.com>");
+>  MODULE_DESCRIPTION("Toppoly TD028TTEC1 panel driver");
+>  MODULE_LICENSE("GPL");
+
+
+-- 
+Regards,
+
+Laurent Pinchart
