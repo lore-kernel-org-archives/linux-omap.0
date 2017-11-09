@@ -1,73 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/7] arm: omap: Move dmtimer.h out of plat-omap
-Date: Thu, 9 Nov 2017 06:52:23 -0800
-Message-ID: <20171109145223.GB28152@atomide.com>
-References: <1510144108-29563-1-git-send-email-j-keerthy@ti.com>
- <1510144108-29563-3-git-send-email-j-keerthy@ti.com>
- <20171108164221.GV28152@atomide.com>
- <6ca9c73a-95a1-2466-151e-cdba64c3c478@ti.com>
- <008c2d8b-6f76-882d-fc70-8fd4204c49d5@ti.com>
+Subject: Re: n900 in next-20170901
+Date: Thu, 9 Nov 2017 07:08:54 -0800
+Message-ID: <20171109150854.GC28152@atomide.com>
+References: <20171026044829.GB11791@js1304-P5Q-DELUXE>
+ <20171026141627.GD21504@atomide.com>
+ <20171107053313.GA12447@js1304-P5Q-DELUXE>
+ <20171107154842.GP28152@atomide.com>
+ <20171108074645.GA18747@js1304-P5Q-DELUXE>
+ <20171108163413.GU28152@atomide.com>
+ <20171109000801.GA23982@js1304-P5Q-DELUXE>
+ <20171109001113.GZ28152@atomide.com>
+ <20171109003639.GB23982@js1304-P5Q-DELUXE>
+ <20171109035031.GA24383@js1304-P5Q-DELUXE>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pwm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <008c2d8b-6f76-882d-fc70-8fd4204c49d5@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: aaro.koskinen@iki.fi, thierry.reding@gmail.com, khilman@kernel.org, daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk
+In-Reply-To: <20171109035031.GA24383@js1304-P5Q-DELUXE>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Keerthy <j-keerthy@ti.com> [171109 08:09]:
+* Joonsoo Kim <iamjoonsoo.kim@lge.com> [171109 03:47]:
+> Could you test following two commits on my updated branch?
 > 
-> 
-> On Thursday 09 November 2017 09:55 AM, Keerthy wrote:
-> > 
-> > 
-> > On Wednesday 08 November 2017 10:12 PM, Tony Lindgren wrote:
-> >> * Keerthy <j-keerthy@ti.com> [171108 12:31]:
-> >>> The header file is currently under plat-omap directory
-> >>> under arch/omap. Move this out to an accessible place.
-> >>>
-> >>> No Code changes done to the header file.
-> >>
-> >> Some of the dmtimer functions are in this header to optimize the
-> >> size of the system timer code. Can you please check if some of them
-> >> can be left out of dmtimer.h and be made private to mach-omap1/timer.c
-> >> and mach-omap2/timer.c?
-> > 
-> > Okay. I will try to clean that as well.
-> 
-> Tony,
-> 
-> Only function that i could push out of dmtimer.h was
-> __omap_dm_timer_override_errata
-> 
-> which is being currently called by mach-omap2/timer.c alone.
+> "arm/dma: vmalloc area allocation"
 
-Hmm OK thanks for checking.
+Won't boot at this commit:
 
-> Rest all are used both my dmtimer.c as well as mach-omap2/timer.c.
-> Here is the list:
-> 
-> __omap_dm_timer_read
-> __omap_dm_timer_write
-> __omap_dm_timer_init_regs
-> __omap_dm_timer_enable_posted
-> __omap_dm_timer_stop
-> __omap_dm_timer_load_start
-> __omap_dm_timer_int_enable
-> __omap_dm_timer_read_counter
-> __omap_dm_timer_write_status
-> 
-> Any preferences on moving them to dmtimer.c or leaving them in header file?
+[    6.747283] save_secure_sram() returns 0000ff02
+[    6.751983] save_secure_sram()'s param: 0: 0x4
+[    6.756561] save_secure_sram()'s param: 1: 0x8e700000
+[    6.761749] save_secure_sram()'s param: 2: 0x0
+[    6.766326] save_secure_sram()'s param: 3: 0x1
+[    6.770904] save_secure_sram()'s param: 4: 0x1
 
-How about we make the system timer functions and these header
-functions private to the dmtimer.c. Then we can have the SoC specific
-system timer functions be selected based on comaptible value like
-drivers typically do :)
+> "arm/dma: defer atomic pool initialization"
 
-I think only the SoC specific init code should be left in
-arch/arm/mach-omap[12]/timer.c.
+Boots at this commit.
+
+> I suspect that changed virtual address of the sram due to early
+> __dma_alloc_remap() call causes the problem and above two commits test
+> this theory.
+
+Hmm OK. Does your first patch above now have the initcall issue too?
+It boots if I make that also subsys_initcall and then I get:
+
+[    2.078094] vmalloc_pool_init: DMA: get vmalloc area: d0010000
 
 Regards,
 
