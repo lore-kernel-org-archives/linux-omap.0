@@ -1,66 +1,74 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: USB regression in next-20171108 with hub spamming
-Date: Thu, 9 Nov 2017 06:39:33 -0800
-Message-ID: <20171109143933.GA28152@atomide.com>
-References: <20171108230511.GY28152@atomide.com>
- <20171109080007.GA17098@kroah.com>
- <871sl7sq9i.fsf@linux.intel.com>
- <87wp2zrasg.fsf@linux.intel.com>
- <87shdnrak7.fsf@linux.intel.com>
- <87po8rra42.fsf@linux.intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 2/7] arm: omap: Move dmtimer.h out of plat-omap
+Date: Thu, 9 Nov 2017 06:52:23 -0800
+Message-ID: <20171109145223.GB28152@atomide.com>
+References: <1510144108-29563-1-git-send-email-j-keerthy@ti.com>
+ <1510144108-29563-3-git-send-email-j-keerthy@ti.com>
+ <20171108164221.GV28152@atomide.com>
+ <6ca9c73a-95a1-2466-151e-cdba64c3c478@ti.com>
+ <008c2d8b-6f76-882d-fc70-8fd4204c49d5@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87po8rra42.fsf-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <008c2d8b-6f76-882d-fc70-8fd4204c49d5@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: aaro.koskinen@iki.fi, thierry.reding@gmail.com, khilman@kernel.org, daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> [171109 11:01]:
-> Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> writes:
-> > Okay, found it. Testing a patch.
+* Keerthy <j-keerthy@ti.com> [171109 08:09]:
 > 
-> Here's the patch, I'll send it formally shortly.
+> 
+> On Thursday 09 November 2017 09:55 AM, Keerthy wrote:
+> > 
+> > 
+> > On Wednesday 08 November 2017 10:12 PM, Tony Lindgren wrote:
+> >> * Keerthy <j-keerthy@ti.com> [171108 12:31]:
+> >>> The header file is currently under plat-omap directory
+> >>> under arch/omap. Move this out to an accessible place.
+> >>>
+> >>> No Code changes done to the header file.
+> >>
+> >> Some of the dmtimer functions are in this header to optimize the
+> >> size of the system timer code. Can you please check if some of them
+> >> can be left out of dmtimer.h and be made private to mach-omap1/timer.c
+> >> and mach-omap2/timer.c?
+> > 
+> > Okay. I will try to clean that as well.
+> 
+> Tony,
+> 
+> Only function that i could push out of dmtimer.h was
+> __omap_dm_timer_override_errata
+> 
+> which is being currently called by mach-omap2/timer.c alone.
 
-Thanks yeah that fixes the issue for me, replied to your formal
-patch with a tested by.
+Hmm OK thanks for checking.
+
+> Rest all are used both my dmtimer.c as well as mach-omap2/timer.c.
+> Here is the list:
+> 
+> __omap_dm_timer_read
+> __omap_dm_timer_write
+> __omap_dm_timer_init_regs
+> __omap_dm_timer_enable_posted
+> __omap_dm_timer_stop
+> __omap_dm_timer_load_start
+> __omap_dm_timer_int_enable
+> __omap_dm_timer_read_counter
+> __omap_dm_timer_write_status
+> 
+> Any preferences on moving them to dmtimer.c or leaving them in header file?
+
+How about we make the system timer functions and these header
+functions private to the dmtimer.c. Then we can have the SoC specific
+system timer functions be selected based on comaptible value like
+drivers typically do :)
+
+I think only the SoC specific init code should be left in
+arch/arm/mach-omap[12]/timer.c.
 
 Regards,
 
 Tony
-
-> diff --git a/drivers/usb/core/message.c b/drivers/usb/core/message.c
-> index 0cdc463c9509..c15fbf76f8f7 100644
-> --- a/drivers/usb/core/message.c
-> +++ b/drivers/usb/core/message.c
-> @@ -975,6 +975,7 @@ int usb_get_status(struct usb_device *dev, int recip, int type, int target,
->  		}
->  
->  		*(u32 *) data = le32_to_cpu(*(__le32 *) status);
-> +		ret = 0;
->  		break;
->  	case 2:
->  		if (type != USB_STATUS_TYPE_STANDARD) {
-> @@ -983,6 +984,7 @@ int usb_get_status(struct usb_device *dev, int recip, int type, int target,
->  		}
->  
->  		*(u16 *) data = le16_to_cpu(*(__le16 *) status);
-> +		ret = 0;
->  		break;
->  	default:
->  		ret = -EIO;
-> -- 
-> 2.14.2.642.g20fed7cad4
-> 
-> 
-> -- 
-> balbi
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
