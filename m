@@ -1,127 +1,64 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 6/7] pwm: pwm-omap-dmtimer: Adapt driver to utilize
- dmtimer pdata ops
-Date: Thu, 9 Nov 2017 15:15:18 -0600
-Message-ID: <c2e14609-fefa-0524-3d62-8038ced2ab31@ti.com>
-References: <1510144108-29563-1-git-send-email-j-keerthy@ti.com>
- <1510144108-29563-7-git-send-email-j-keerthy@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] Add support for bq27521 battery monitor
+Date: Thu, 9 Nov 2017 22:29:45 +0100
+Message-ID: <20171109212945.2sgu56zkse7nbzo3@pali>
+References: <20171109210615.GA27638@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1510144108-29563-7-git-send-email-j-keerthy@ti.com>
-Content-Language: en-US
-Sender: linux-pwm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
-Cc: khilman@kernel.org, daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171109210615.GA27638@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, clayton-fehKsxFhGzZIf6P1QZMOBw@public.gmane.org, martijn-28JJ9oSIdodmR6Xm/wNWPw@public.gmane.org, sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, afd-l0cyMroinI0@public.gmane.org, kernel-RYWXG+zxWwBdeoIcmNTgJF6hYfS7NtTn@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Thursday 09 November 2017 22:06:15 Pavel Machek wrote:
+> diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/bq27xxx_battery.c
+> index ed44439..ee2851a 100644
+> --- a/drivers/power/supply/bq27xxx_battery.c
+> +++ b/drivers/power/supply/bq27xxx_battery.c
+> @@ -381,6 +381,30 @@ static u8 bq27xxx_regs[][BQ27XXX_REG_MAX] = {
+>  		[BQ27XXX_REG_AP] = INVALID_REG_ADDR,
+>  		BQ27XXX_DM_REG_ROWS,
+>  	},
+> +	[BQ27521] = {				/* FIXME */
+> +		[BQ27XXX_REG_CTRL] = 0x02,
+> +		[BQ27XXX_REG_TEMP] = 0x0a,
+> +		[BQ27XXX_REG_INT_TEMP] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_VOLT] = 0x0c,
+> +		[BQ27XXX_REG_AI] = 0x0e,
+> +		[BQ27XXX_REG_FLAGS] = 0x08,
+> +		[BQ27XXX_REG_TTE] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_TTF] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_TTES] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_TTECP] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_NAC] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_FCC] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_CYCT] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_AE] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_SOC] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_DCAP] = INVALID_REG_ADDR,
+> +		[BQ27XXX_REG_AP] = INVALID_REG_ADDR,
+> +		[BQ27XXX_DM_CTRL] = INVALID_REG_ADDR,
+> +		[BQ27XXX_DM_CLASS] = INVALID_REG_ADDR,
+> +		[BQ27XXX_DM_BLOCK] = INVALID_REG_ADDR,
+> +		[BQ27XXX_DM_DATA] = INVALID_REG_ADDR,
+> +		[BQ27XXX_DM_CKSUM] = INVALID_REG_ADDR,
+> +	},
+>  	[BQ27530] = {
+>  		[BQ27XXX_REG_CTRL] = 0x00,
+>  		[BQ27XXX_REG_TEMP] = 0x06,
 
-
-On 11/08/2017 06:28 AM, Keerthy wrote:
-> Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
-> 
-> No code changes in this v2 version. Only enhanced patch
-> statistics for renames.
-> 
->   drivers/pwm/pwm-omap-dmtimer.c | 39 ++++++++++++++++++++++-----------------
->   1 file changed, 22 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-> index 5ad42f3..3b27aff 100644
-> --- a/drivers/pwm/pwm-omap-dmtimer.c
-> +++ b/drivers/pwm/pwm-omap-dmtimer.c
-> @@ -23,6 +23,7 @@
->   #include <linux/mutex.h>
->   #include <linux/of.h>
->   #include <linux/of_platform.h>
-> +#include <linux/platform_data/dmtimer-omap.h>
->   #include <linux/platform_data/pwm_omap_dmtimer.h>
->   #include <linux/platform_device.h>
->   #include <linux/pm_runtime.h>
-> @@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
->   	struct pwm_chip chip;
->   	struct mutex mutex;
->   	pwm_omap_dmtimer *dm_timer;
-> -	struct pwm_omap_dmtimer_pdata *pdata;
-> +	struct omap_dm_timer_ops *pdata;
->   	struct platform_device *dm_timer_pdev;
->   };
->   
-> @@ -242,19 +243,33 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->   {
->   	struct device_node *np = pdev->dev.of_node;
->   	struct device_node *timer;
-> +	struct platform_device *timer_pdev;
->   	struct pwm_omap_dmtimer_chip *omap;
-> -	struct pwm_omap_dmtimer_pdata *pdata;
-> +	struct dmtimer_platform_data *timer_pdata;
-> +	struct omap_dm_timer_ops *pdata;
->   	pwm_omap_dmtimer *dm_timer;
->   	u32 v;
->   	int status;
->   
-> -	pdata = dev_get_platdata(&pdev->dev);
-> -	if (!pdata) {
-> -		dev_err(&pdev->dev, "Missing dmtimer platform data\n");
-> +	timer = of_parse_phandle(np, "ti,timers", 0);
-> +	if (!timer)
-> +		return -ENODEV;
-> +
-> +	timer_pdev = of_find_device_by_node(timer);
-> +	if (!timer_pdev) {
-> +		dev_err(&pdev->dev, "Unable to find Timer pdev\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	timer_pdata = dev_get_platdata(&timer_pdev->dev);
-> +	if (!timer_pdata) {
-> +		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
->   		return -EINVAL;
->   	}
-
-I really do not like above code :( It seems need to be hidden
-inside some OF helper.
-
->   
-> -	if (!pdata->request_by_node ||
-> +	pdata = timer_pdata->timer_ops;
-> +
-> +	if (!pdata || !pdata->request_by_node ||
->   	    !pdata->free ||
->   	    !pdata->enable ||
->   	    !pdata->disable ||
-> @@ -270,10 +285,6 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->   		return -EINVAL;
->   	}
->   
-> -	timer = of_parse_phandle(np, "ti,timers", 0);
-> -	if (!timer)
-> -		return -ENODEV;
-> -
->   	if (!of_get_property(timer, "ti,timer-pwm", NULL)) {
->   		dev_err(&pdev->dev, "Missing ti,timer-pwm capability\n");
->   		return -ENODEV;
-> @@ -291,13 +302,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->   
->   	omap->pdata = pdata;
->   	omap->dm_timer = dm_timer;
-> -
-> -	omap->dm_timer_pdev = of_find_device_by_node(timer);
-> -	if (!omap->dm_timer_pdev) {
-> -		dev_err(&pdev->dev, "Unable to find timer pdev\n");
-> -		omap->pdata->free(dm_timer);
-> -		return -EINVAL;
-> -	}
-> +	omap->dm_timer_pdev = timer_pdev;
->   
->   	/*
->   	 * Ensure that the timer is stopped before we allow PWM core to call
-> 
+Hi! IIRC those registers are valid only for sn27521 chip in revision 14
+(or new). For older revision is used different register map. And
+detection of chip revision is somehow possible via some registers.
 
 -- 
-regards,
--grygorii
+Pali Rohár
+pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
