@@ -1,31 +1,31 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH v2 4/7] dmtimer: Add timer ops to the platform data
- structure
-Date: Thu, 9 Nov 2017 17:27:42 +0100
-Message-ID: <20171109162742.mrdvh5cvom577whh@earth>
+Subject: Re: [PATCH v2 5/7] clocksource: dmtimer: Populate the timer ops to
+ the pdata
+Date: Thu, 9 Nov 2017 17:28:06 +0100
+Message-ID: <20171109162806.xyzrqxnldailqzai@earth>
 References: <1510144108-29563-1-git-send-email-j-keerthy@ti.com>
- <1510144108-29563-5-git-send-email-j-keerthy@ti.com>
+ <1510144108-29563-6-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="uel3l4gi7hvmsh4i"
+        protocol="application/pgp-signature"; boundary="eyd3wge5g46sggxo"
 Return-path: <linux-pwm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1510144108-29563-5-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1510144108-29563-6-git-send-email-j-keerthy@ti.com>
 Sender: linux-pwm-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
 Cc: tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com, khilman@kernel.org, daniel.lezcano@linaro.org, linux@armlinux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---uel3l4gi7hvmsh4i
+--eyd3wge5g46sggxo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Nov 08, 2017 at 05:58:25PM +0530, Keerthy wrote:
-> Add timer ops to the platform data structure
+On Wed, Nov 08, 2017 at 05:58:26PM +0530, Keerthy wrote:
+> Add the timer ops to the platform data
 >=20
 > Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
@@ -33,74 +33,52 @@ On Wed, Nov 08, 2017 at 05:58:25PM +0530, Keerthy wrote:
 > No code changes in this v2 version. Only enhanced patch
 > statistics for renames.
 
-I think the solution to provide private functions is not very nice,
-but it improves the current situation and does not touch any ABI (so
-can easily be changed later on), so:
-
 Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
 -- Sebastian
 
->  include/linux/platform_data/dmtimer-omap.h | 38 ++++++++++++++++++++++++=
-++++++
->  1 file changed, 38 insertions(+)
+>  drivers/clocksource/dmtimer.c | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
 >=20
-> diff --git a/include/linux/platform_data/dmtimer-omap.h b/include/linux/p=
-latform_data/dmtimer-omap.h
-> index a19b78d..a3e1794 100644
-> --- a/include/linux/platform_data/dmtimer-omap.h
-> +++ b/include/linux/platform_data/dmtimer-omap.h
-> @@ -20,12 +20,50 @@
->  #ifndef __PLATFORM_DATA_DMTIMER_OMAP_H__
->  #define __PLATFORM_DATA_DMTIMER_OMAP_H__
+> diff --git a/drivers/clocksource/dmtimer.c b/drivers/clocksource/dmtimer.c
+> index afe1dc9..1cbd954 100644
+> --- a/drivers/clocksource/dmtimer.c
+> +++ b/drivers/clocksource/dmtimer.c
+> @@ -922,8 +922,33 @@ static int omap_dm_timer_remove(struct platform_devi=
+ce *pdev)
+>  	return ret;
+>  }
 > =20
-> +struct omap_dm_timer_ops {
-> +	struct omap_dm_timer *(*request_by_node)(struct device_node *np);
-> +	struct omap_dm_timer *(*request_specific)(int timer_id);
-> +	struct omap_dm_timer *(*request)(void);
-> +
-> +	int	(*free)(struct omap_dm_timer *timer);
-> +
-> +	void	(*enable)(struct omap_dm_timer *timer);
-> +	void	(*disable)(struct omap_dm_timer *timer);
-> +
-> +	int	(*get_irq)(struct omap_dm_timer *timer);
-> +	int	(*set_int_enable)(struct omap_dm_timer *timer,
-> +				  unsigned int value);
-> +	int	(*set_int_disable)(struct omap_dm_timer *timer, u32 mask);
-> +
-> +	struct clk *(*get_fclk)(struct omap_dm_timer *timer);
-> +
-> +	int	(*start)(struct omap_dm_timer *timer);
-> +	int	(*stop)(struct omap_dm_timer *timer);
-> +	int	(*set_source)(struct omap_dm_timer *timer, int source);
-> +
-> +	int	(*set_load)(struct omap_dm_timer *timer, int autoreload,
-> +			    unsigned int value);
-> +	int	(*set_match)(struct omap_dm_timer *timer, int enable,
-> +			     unsigned int match);
-> +	int	(*set_pwm)(struct omap_dm_timer *timer, int def_on,
-> +			   int toggle, int trigger);
-> +	int	(*set_prescaler)(struct omap_dm_timer *timer, int prescaler);
-> +
-> +	unsigned int (*read_counter)(struct omap_dm_timer *timer);
-> +	int	(*write_counter)(struct omap_dm_timer *timer,
-> +				 unsigned int value);
-> +	unsigned int (*read_status)(struct omap_dm_timer *timer);
-> +	int	(*write_status)(struct omap_dm_timer *timer,
-> +				unsigned int value);
+> +static struct omap_dm_timer_ops dmtimer_ops =3D {
+> +	.request_by_node =3D omap_dm_timer_request_by_node,
+> +	.request_specific =3D omap_dm_timer_request_specific,
+> +	.request =3D omap_dm_timer_request,
+> +	.set_source =3D omap_dm_timer_set_source,
+> +	.get_irq =3D omap_dm_timer_get_irq,
+> +	.set_int_enable =3D omap_dm_timer_set_int_enable,
+> +	.set_int_disable =3D omap_dm_timer_set_int_disable,
+> +	.free =3D omap_dm_timer_free,
+> +	.enable =3D omap_dm_timer_enable,
+> +	.disable =3D omap_dm_timer_disable,
+> +	.get_fclk =3D omap_dm_timer_get_fclk,
+> +	.start =3D omap_dm_timer_start,
+> +	.stop =3D omap_dm_timer_stop,
+> +	.set_load =3D omap_dm_timer_set_load,
+> +	.set_match =3D omap_dm_timer_set_match,
+> +	.set_pwm =3D omap_dm_timer_set_pwm,
+> +	.set_prescaler =3D omap_dm_timer_set_prescaler,
+> +	.read_counter =3D omap_dm_timer_read_counter,
+> +	.write_counter =3D omap_dm_timer_write_counter,
+> +	.read_status =3D omap_dm_timer_read_status,
+> +	.write_status =3D omap_dm_timer_write_status,
 > +};
 > +
->  struct dmtimer_platform_data {
->  	/* set_timer_src - Only used for OMAP1 devices */
->  	int (*set_timer_src)(struct platform_device *pdev, int source);
->  	u32 timer_capability;
->  	u32 timer_errata;
->  	int (*get_context_loss_count)(struct device *);
-> +	struct omap_dm_timer_ops *timer_ops;
+>  static const struct dmtimer_platform_data omap3plus_pdata =3D {
+>  	.timer_errata =3D OMAP_TIMER_ERRATA_I103_I767,
+> +	.timer_ops =3D &dmtimer_ops,
 >  };
 > =20
->  #endif /* __PLATFORM_DATA_DMTIMER_OMAP_H__ */
+>  static const struct of_device_id omap_timer_match[] =3D {
 > --=20
 > 1.9.1
 >=20
@@ -109,24 +87,24 @@ latform_data/dmtimer-omap.h
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---uel3l4gi7hvmsh4i
+--eyd3wge5g46sggxo
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloEgfsACgkQ2O7X88g7
-+poxzw//XV1DB5qsqTHU0wpODUPyYBjevzYIMcpB5pEp74OfyS6djDvr7kwUP2AU
-uN6+kJ+6x0u1nfQIZ4jLkkV1bcakSs3M6hd82DMraQ2+bEw0ZS5CYuUMx4thkIRw
-6W9yCqK2OyfDWLOUAJh1sFah2OxwUVbLidxcc9izYqjlqAxVI5B5UntQFcGk8cKK
-8SDPffkL9SAw2sFTXXHGRVXhcMmwdbWPrjevWd2eBaVAK1crHLeAWZ9mJ/QtaVy+
-oN5rnjMk8NHyN1XCACKYP0BpHTdsib87fAqr4zQtwaWDaVMPdkFR0gYm9xQ612vF
-kV2i9VY8rqkt2aMudbkpEYiUv9ne9Zo7WncI92RvP1hw5c6Y/1U9436cjZdtZZMA
-CPwYoSpBW5Zi4olDtaYhx/7ppHi+F3QbrNWyIVUMCUWYb/rQxLM/Uf/pSuXEU6IY
-XbxGz9ignPXmh2N6KlhmcWQrYiZaU9WfbwC4snx82Pl4TG3t9Lns5RBccwMe1/JE
-x5NZT0sjuoiDRLj/5G10g2OsDVNUCc0s+kZqB7lZgOdDr4BwLBRNmP2WTF8im4Ff
-sLmMOhdo7RjxvQGZRlhl7fMDrwkT+i/XAWzIVhQSRSWFAB6mxdwbJW4ObbIT7748
-jQ0kjuPGhLIQRCUKdV3QEigkr76JYlpE4KjYj0kLwUEr/MnfhVs=
-=kc/W
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloEghYACgkQ2O7X88g7
++pqeyhAAoi4UGYDitlSLWQTJ024jeHlVCCaqN+2D4/EYbzP0RGePXu5TH3oVnYum
+QNFhTCeVtA6L6UcQPgCu2zjpOfM9bB/2LzHn7J0OOzuiG2XUxCV5NYA0cFIcDLy/
+5vMJWid0CyJddCkwfZf+96KpVem6vIoLP11BQzz+CUR+vaWvqf9VJ0JpXzX65GZl
+lkPeats4qohRTBJxDUBRJyMV0TZKiijGOA5NB4jGRzcaccSlkU3uooYOBryQxKoA
+IDA1WUvdzVQNL2sYzRzDC9su67NKbuAQeMohVSUUoK4kt7f34bKndqJAwTtqIPBk
+LzB6K4M9ewRe1zSoSwE5ahr5XOzQFpt9/XXU/N67Xg+5KORhENOTDtOzd8aMguAb
+LMDDkwFsBmJM4+1xMWN+7VAP/DgZXLdICx4/ndU9ljnYAOHZoPssb3knVvyZLjnS
+1oNJY0t9iLwmy2313XFFv2rJFTou+GnBRQLmiG6vTaDGTmP58dUZNIF3Ap+vDv20
+HmuUWmiQptkskJJI05lqw6LTUQjVHFJJ3X5aNbe7nE3p7fML7kAncsLVGDbnHr2u
+UORiBjw8YrkU8/faQ88u5dVywvkxH5w8KKoniIgpCg+p6WuLqpJAGfFZLhyfEAAQ
+R5eJgpfpkHO2logPc8aSeEHOYOBNeZf9439SknyS0G8pq+qeiBY=
+=8yfL
 -----END PGP SIGNATURE-----
 
---uel3l4gi7hvmsh4i--
+--eyd3wge5g46sggxo--
