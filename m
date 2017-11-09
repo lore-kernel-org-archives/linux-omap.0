@@ -1,80 +1,69 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v3 6/7] mtd: onenand: omap2: Do not make delay for GPIO OMAP3
- specific
-Date: Thu, 9 Nov 2017 10:16:12 +0100
-Message-ID: <20171109091612.qfkfjvu2ajwymcjr@lenoch>
-References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
+From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: USB regression in next-20171108 with hub spamming
+Date: Thu, 09 Nov 2017 12:25:13 +0200
+Message-ID: <871sl7sq9i.fsf@linux.intel.com>
+References: <20171108230511.GY28152@atomide.com> <20171109080007.GA17098@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20171109091155.6a6azfvjarwvlfh2@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha512; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171109080007.GA17098-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Second commit in driver history (782b7a367d81: "[MTD] [OneNAND] OMAP3:
-add delay for GPIO") added quirk for waiting until GPIO line settle.
-As DMA was disabled for OMAP2 boards, chances are this problem was
-not OMAP3 specific and as it is just one register read, previous
-test for SoC type is approximately as expensive as read itself.
-Make delay unconditional, which allows removing SoC specific code
-alltogether.
-
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
----
- Changes:
- -v3: new patch
-
- drivers/mtd/onenand/omap2.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 5760e40be008..13da0b8c418b 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -58,7 +58,6 @@ struct omap2_onenand {
- 	int dma_channel;
- 	int freq;
- 	int (*setup)(void __iomem *base, int *freq_ptr);
--	u8 flags;
- };
- 
- static void omap2_onenand_dma_cb(int lch, u16 ch_status, void *data)
-@@ -151,9 +150,8 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
- 		if (!(syscfg & ONENAND_SYS_CFG1_IOBE)) {
- 			syscfg |= ONENAND_SYS_CFG1_IOBE;
- 			write_reg(c, syscfg, ONENAND_REG_SYS_CFG1);
--			if (c->flags & ONENAND_IN_OMAP34XX)
--				/* Add a delay to let GPIO settle */
--				syscfg = read_reg(c, ONENAND_REG_SYS_CFG1);
-+			/* Add a delay to let GPIO settle */
-+			syscfg = read_reg(c, ONENAND_REG_SYS_CFG1);
- 		}
- 
- 		reinit_completion(&c->irq_done);
-@@ -461,7 +459,6 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 
- 	init_completion(&c->irq_done);
- 	init_completion(&c->dma_done);
--	c->flags = pdata->flags;
- 	c->gpmc_cs = pdata->cs;
- 	c->gpio_irq = pdata->gpio_irq;
- 	c->dma_channel = pdata->dma_channel;
--- 
-2.11.0
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Hi,
+
+Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org> writes:
+> On Wed, Nov 08, 2017 at 03:05:11PM -0800, Tony Lindgren wrote:
+>> Hi Felipe & Greg,
+>>=20
+>> Looks like in next-20171108 USB hub is spamming console about once a
+>> second after commit 7dfd74fd128 ("Merge remote-tracking branch
+>> 'usb/usb-next'").
+>>=20
+>> Any ideas? See the log below.
+>
+> Any chance you can run 'git bisect'?
+
+I wonder if it was caused by the usb_get_std_status() changes. We didn't
+catch this in our testing, though. I left the patches in intel's
+validation for a few days before sending out.
+
+Let me compile that very tag and try it with one of our machines.
+
+Tony, a bisection would be useful, indeed.
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAloELQkACgkQzL64meEa
+mQYG6BAA4BUV95tdYPBxbI7HlKyHrp0UghWbWdR13YhAV0sPkN/cSOkz0o+b4t4q
+xtJkroES6PWUeb9+9H5pSQ8o912Cj7X4sYr/jWbEhqO1LqWmJRkPw4fFxIDHTfMW
+a/Ky+Xc/blqH9PLD1TTVT+PiSStLMDi8CYGkWU9uDbmkdGuziBWMHT+lkl1eZIGQ
+c4jCzKeITQbsbS9+U9nBAWJXUVCtF6lolxbrknSLBW9pfg0xGF0Bt6KPeJSoGHO1
+CRrQqnHy+hrFh6XgTLfQV7lwoQV/pfLd4L+JDKw1SVa7FijrfAMvdLULt7A7bl83
+prztAKNMkEBvlpTvGVTxvOUTrEoUWlOUkwFAP2VgTrHb97X03EaI8j4kGVd7seFA
+N0Kqlwvp2yQtUN/QF533gCaAe2GwFItzawOPvdYQ81ZwmiGPV1thg+PySSd9e937
+DnMfFJJK1JuRVokZaDZdKdGOg6goWX8I13UF3+IT7PJYiCAcsW9ZtrctPNuELFyU
+L58TeepKWBu+v9b04c7I4LM83uokCuyH1xBdOJsaKL4oelKAkrwx9RPKaWQiE2KW
+kyC5491u/JqLmgK76t45bNySoPOnzFpfdwEjK4WnpOgSlqVIL9+O1hFKHeXwqJX3
+yQU0yly5CoOofYn9F3xVVeI8iNICF4LQECf/JHbqH+d7YtcaJ3k=
+=G6yg
+-----END PGP SIGNATURE-----
+--=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
