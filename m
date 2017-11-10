@@ -1,15 +1,15 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 4/7] mtd: onenand: omap2: Remove partitioning support
- from platform data
-Date: Fri, 10 Nov 2017 10:19:11 +0200
-Message-ID: <de8a8a40-af31-01af-f523-6fa6dbca2a70@ti.com>
+Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
+ implementation
+Date: Fri, 10 Nov 2017 10:21:51 +0200
+Message-ID: <4a58dfac-8cc9-101f-b079-da8925d7ab4c@ti.com>
 References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
- <20171109091444.dxvoaaafjgkf43a2@lenoch>
+ <20171109091529.x3pqqvbiywj5aulo@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171109091444.dxvoaaafjgkf43a2@lenoch>
+In-Reply-To: <20171109091529.x3pqqvbiywj5aulo@lenoch>
 Content-Language: en-GB
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
@@ -24,35 +24,267 @@ To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-
 Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/11/17 11:14, Ladislav Michl wrote:
-> No platform data user setups partitioning informations, so remove.
+On 09/11/17 11:15, Ladislav Michl wrote:
+> Since the very first commit (36cd4fb5d277: "[MTD] [OneNAND] Add OMAP2 / OMAP3
+> OneNAND driver") DMA is disabled for OMAP2. Later fixes thus went only into
+> OMAP3 specific DMA functions which turned out not to be so OMAP3 specific.
+> Therefore replace open coded timeout waiting for completion in OMAP3
+> functions with API call and merge those two implementations.
+> 
+> Note that currently the is no single DMA user, so this change is basically
+> no-op. Those interested will have to find DMA configuration in the
+> linux-omap.git history.
 > 
 > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+
+I'll be happy if there are no OMAP2 vs OMAP3 differences in code but we need to
+be absolutely sure that we don't break DMA functionality if it ever worked.
+
+Can we somehow test OneNAND DMA on OMAP2 and OMAP3?
+Tony?
+
 > ---
 >  Changes:
->  -v2: new patch
->  -v3: none
+>  -v3: new patch
 > 
->  drivers/mtd/onenand/omap2.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+>  drivers/mtd/onenand/omap2.c | 165 +++-----------------------------------------
+>  1 file changed, 10 insertions(+), 155 deletions(-)
 > 
 > diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> index 93bd94337b35..883993bbe40b 100644
+> index 883993bbe40b..5760e40be008 100644
 > --- a/drivers/mtd/onenand/omap2.c
 > +++ b/drivers/mtd/onenand/omap2.c
-> @@ -703,8 +703,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+> @@ -289,9 +289,7 @@ static inline int omap2_onenand_bufferram_offset(struct mtd_info *mtd, int area)
+>  	return 0;
+>  }
+>  
+> -#if defined(CONFIG_ARCH_OMAP3) || defined(MULTI_OMAP2)
+> -
+> -static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+> +static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  					unsigned char *buffer, int offset,
+>  					size_t count)
+>  {
+> @@ -299,10 +297,9 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+>  	int bram_offset;
+> -	unsigned long timeout;
+> +	unsigned long t;
+>  	void *buf = (void *)buffer;
+>  	size_t xtra;
+> -	volatile unsigned *done;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
+> @@ -349,15 +346,11 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  	reinit_completion(&c->dma_done);
+>  	omap_start_dma(c->dma_channel);
+>  
+> -	timeout = jiffies + msecs_to_jiffies(20);
+> -	done = &c->dma_done.done;
+> -	while (time_before(jiffies, timeout))
+> -		if (*done)
+> -			break;
+> +	t = wait_for_completion_io_timeout(&c->dma_done, msecs_to_jiffies(20));
+>  
+>  	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
+>  
+> -	if (!*done) {
+> +	if (!t) {
+>  		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+>  		goto out_copy;
+>  	}
+> @@ -369,7 +362,7 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  	return 0;
+>  }
+>  
+> -static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+> +static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  					 const unsigned char *buffer,
+>  					 int offset, size_t count)
+>  {
+> @@ -377,9 +370,8 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+>  	int bram_offset;
+> -	unsigned long timeout;
+> +	unsigned long t;
+>  	void *buf = (void *)buffer;
+> -	volatile unsigned *done;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
+> @@ -420,15 +412,11 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  	reinit_completion(&c->dma_done);
+>  	omap_start_dma(c->dma_channel);
+>  
+> -	timeout = jiffies + msecs_to_jiffies(20);
+> -	done = &c->dma_done.done;
+> -	while (time_before(jiffies, timeout))
+> -		if (*done)
+> -			break;
+> +	t = wait_for_completion_io_timeout(&c->dma_done, msecs_to_jiffies(20));
+>  
+>  	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
+>  
+> -	if (!*done) {
+> +	if (!t) {
+>  		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+>  		goto out_copy;
+>  	}
+> @@ -440,134 +428,6 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  	return 0;
+>  }
+>  
+> -#else
+> -
+> -static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+> -					unsigned char *buffer, int offset,
+> -					size_t count)
+> -{
+> -	return -ENOSYS;
+> -}
+> -
+> -static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+> -					 const unsigned char *buffer,
+> -					 int offset, size_t count)
+> -{
+> -	return -ENOSYS;
+> -}
+> -
+> -#endif
+> -
+> -#if defined(CONFIG_ARCH_OMAP2) || defined(MULTI_OMAP2)
+> -
+> -static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+> -					unsigned char *buffer, int offset,
+> -					size_t count)
+> -{
+> -	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+> -	struct onenand_chip *this = mtd->priv;
+> -	dma_addr_t dma_src, dma_dst;
+> -	int bram_offset;
+> -
+> -	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+> -	/* DMA is not used.  Revisit PM requirements before enabling it. */
+> -	if (1 || (c->dma_channel < 0) ||
+> -	    ((void *) buffer >= (void *) high_memory) || (bram_offset & 3) ||
+> -	    (((unsigned int) buffer) & 3) || (count < 1024) || (count & 3)) {
+> -		memcpy(buffer, (__force void *)(this->base + bram_offset),
+> -		       count);
+> -		return 0;
+> -	}
+> -
+> -	dma_src = c->phys_base + bram_offset;
+> -	dma_dst = dma_map_single(&c->pdev->dev, buffer, count,
+> -				 DMA_FROM_DEVICE);
+> -	if (dma_mapping_error(&c->pdev->dev, dma_dst)) {
+> -		dev_err(&c->pdev->dev,
+> -			"Couldn't DMA map a %d byte buffer\n",
+> -			count);
+> -		return -1;
+> -	}
+> -
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
+> -				     count / 4, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -	wait_for_completion(&c->dma_done);
+> -
+> -	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
+> -
+> -	return 0;
+> -}
+> -
+> -static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+> -					 const unsigned char *buffer,
+> -					 int offset, size_t count)
+> -{
+> -	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+> -	struct onenand_chip *this = mtd->priv;
+> -	dma_addr_t dma_src, dma_dst;
+> -	int bram_offset;
+> -
+> -	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+> -	/* DMA is not used.  Revisit PM requirements before enabling it. */
+> -	if (1 || (c->dma_channel < 0) ||
+> -	    ((void *) buffer >= (void *) high_memory) || (bram_offset & 3) ||
+> -	    (((unsigned int) buffer) & 3) || (count < 1024) || (count & 3)) {
+> -		memcpy((__force void *)(this->base + bram_offset), buffer,
+> -		       count);
+> -		return 0;
+> -	}
+> -
+> -	dma_src = dma_map_single(&c->pdev->dev, (void *) buffer, count,
+> -				 DMA_TO_DEVICE);
+> -	dma_dst = c->phys_base + bram_offset;
+> -	if (dma_mapping_error(&c->pdev->dev, dma_src)) {
+> -		dev_err(&c->pdev->dev,
+> -			"Couldn't DMA map a %d byte buffer\n",
+> -			count);
+> -		return -1;
+> -	}
+> -
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S16,
+> -				     count / 2, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -	wait_for_completion(&c->dma_done);
+> -
+> -	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
+> -
+> -	return 0;
+> -}
+> -
+> -#else
+> -
+> -static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+> -					unsigned char *buffer, int offset,
+> -					size_t count)
+> -{
+> -	return -ENOSYS;
+> -}
+> -
+> -static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+> -					 const unsigned char *buffer,
+> -					 int offset, size_t count)
+> -{
+> -	return -ENOSYS;
+> -}
+> -
+> -#endif
+> -
+>  static struct platform_driver omap2_onenand_driver;
+>  
+>  static void omap2_onenand_shutdown(struct platform_device *pdev)
+> @@ -691,13 +551,8 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+>  	this = &c->onenand;
+>  	if (c->dma_channel >= 0) {
+>  		this->wait = omap2_onenand_wait;
+> -		if (c->flags & ONENAND_IN_OMAP34XX) {
+> -			this->read_bufferram = omap3_onenand_read_bufferram;
+> -			this->write_bufferram = omap3_onenand_write_bufferram;
+> -		} else {
+> -			this->read_bufferram = omap2_onenand_read_bufferram;
+> -			this->write_bufferram = omap2_onenand_write_bufferram;
+> -		}
+> +		this->read_bufferram = omap2_onenand_read_bufferram;
+> +		this->write_bufferram = omap2_onenand_write_bufferram;
+>  	}
+>  
 >  	if ((r = onenand_scan(&c->mtd, 1)) < 0)
->  		goto err_release_dma;
->  
-> -	r = mtd_device_register(&c->mtd, pdata ? pdata->parts : NULL,
-> -				pdata ? pdata->nr_parts : 0);
-> +	r = mtd_device_register(&c->mtd, NULL, 0);
->  	if (r)
->  		goto err_release_onenand;
->  
 > 
-
-Same here. Need to update platform data structure.
 
 -- 
 cheers,
