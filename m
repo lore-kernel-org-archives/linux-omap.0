@@ -1,50 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: n900 in next-20170901
-Date: Fri, 10 Nov 2017 07:37:34 -0800
-Message-ID: <20171110153734.GP28152@atomide.com>
-References: <20171109000801.GA23982@js1304-P5Q-DELUXE>
- <20171109001113.GZ28152@atomide.com>
- <20171109003639.GB23982@js1304-P5Q-DELUXE>
- <20171109035031.GA24383@js1304-P5Q-DELUXE>
- <20171109150854.GC28152@atomide.com>
- <20171110001315.GA29669@js1304-P5Q-DELUXE>
- <20171110032610.GJ28152@atomide.com>
- <20171110061917.GK28152@atomide.com>
- <20171110062340.GL28152@atomide.com>
- <20171110064623.GA32442@js1304-P5Q-DELUXE>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: N900 kernel support
+Date: Fri, 10 Nov 2017 17:53:24 +0200
+Message-ID: <20171110155324.cydwiqnjfmyravac@valkosipuli.retiisi.org.uk>
+References: <20171110144519.o2dccswmzdjkfrnt@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171110064623.GA32442@js1304-P5Q-DELUXE>
+In-Reply-To: <20171110144519.o2dccswmzdjkfrnt@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Joonsoo Kim <iamjoonsoo.kim@lge.com> [171110 06:43]:
-> On Thu, Nov 09, 2017 at 10:23:40PM -0800, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [171109 22:19]:
-> > > * Tony Lindgren <tony@atomide.com> [171110 03:28]:
-> > > > Then I'll follow up on cleaning up save_secure_ram_context later.
-> > > 
-> > > Here's a better version, the static mapping did not get used.. It
-> > > just moved the area so it happened to work. It needs to be set
-> > > up as MT_MEMORY_RWX_NONCACHED instead.
-> > 
-> 
-> I see a better version now. Hmm... I guess that it also has the
-> problem that I mentioned on first version.
-> 
-> > And FYI, here's what I currently have for the follow-up patch,
-> > but that can wait a bit.
-> 
-> Okay. So, this patch should be applied on the top of above better version?
+On Fri, Nov 10, 2017 at 03:45:19PM +0100, Pali Rohár wrote:
+> And what happened with ramp mode for camera autofocus?
 
-Yeah, but we may actually want to combine both patches into a
-single patch to avoid the save_secure_ram_context 0xffff translation
-limit, see my comments in the first version.
+It's not currently in mainline. That mode is more or less useless for any
+decent AF algorithm as it does not implement functionality typically needed
+from lens drivers.
 
-Regards,
+I guess you could implement support for it by using custom controls but I
+don't think it's really good for anything.
 
-Tony
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
