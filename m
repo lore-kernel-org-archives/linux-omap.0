@@ -1,366 +1,180 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
- implementation
-Date: Fri, 10 Nov 2017 11:04:44 +0100
-Message-ID: <20171110100443.zqk7uzxoaq4eyntk@lenoch>
-References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
- <20171109091529.x3pqqvbiywj5aulo@lenoch>
- <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: [PATCH v4.14] Add support for bq27521 battery monitor
+Date: Fri, 10 Nov 2017 11:39:37 +0100
+Message-ID: <20171110103937.GA29900@amd>
+References: <20171109210615.GA27638@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <20171109210615.GA27638@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, clayton-fehKsxFhGzZIf6P1QZMOBw@public.gmane.org, martijn-28JJ9oSIdodmR6Xm/wNWPw@public.gmane.org, sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, afd-l0cyMroinI0@public.gmane.org, kernel-RYWXG+zxWwBdeoIcmNTgJF6hYfS7NtTn@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 10, 2017 at 10:25:24AM +0200, Peter Ujfalusi wrote:
-> Hi,
-> =
 
-> On 2017-11-09 11:15, Ladislav Michl wrote:
-> > Since the very first commit (36cd4fb5d277: "[MTD] [OneNAND] Add OMAP2 /=
- OMAP3
-> > OneNAND driver") DMA is disabled for OMAP2. Later fixes thus went only =
-into
-> > OMAP3 specific DMA functions which turned out not to be so OMAP3 specif=
-ic.
-> > Therefore replace open coded timeout waiting for completion in OMAP3
-> > functions with API call and merge those two implementations.
-> > =
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > Note that currently the is no single DMA user, so this change is basica=
-lly
-> > no-op. Those interested will have to find DMA configuration in the
-> > linux-omap.git history.
-> =
+=20
+This adds basic support for BQ27521 battery monitor, used in Nokia N9
+and N950. In particular, battery voltage is important to be able to
+tell when the battery is almost empty. Emptying battery on N950 is
+pretty painful, as flasher needs to be used to recover phone in such case.
 
-> fwiw I have two patches for some time to convert the omap2 onenand
-> driver to DMAengine:
-> https://github.com/omap-audio/linux-audio/commits/peter/linux-next-wip/dr=
-ivers/mtd/onenand/omap2.c
+Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 
-That is incredible! I was thinking about it as a next step and you already
-did all the work.
+diff --git a/drivers/power/supply/bq27xxx_battery.c b/drivers/power/supply/=
+bq27xxx_battery.c
+index 51f0961..f684288 100644
+--- a/drivers/power/supply/bq27xxx_battery.c
++++ b/drivers/power/supply/bq27xxx_battery.c
+@@ -323,6 +323,30 @@ static u8
+ 		[BQ27XXX_REG_AP] =3D INVALID_REG_ADDR,
+ 		BQ27XXX_DM_REG_ROWS,
+ 	},
++	bq27521_regs[BQ27XXX_REG_MAX] =3D {
++		[BQ27XXX_REG_CTRL] =3D 0x02,
++		[BQ27XXX_REG_TEMP] =3D 0x0a,
++		[BQ27XXX_REG_INT_TEMP] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_VOLT] =3D 0x0c,
++		[BQ27XXX_REG_AI] =3D 0x0e,
++		[BQ27XXX_REG_FLAGS] =3D 0x08,
++		[BQ27XXX_REG_TTE] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_TTF] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_TTES] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_TTECP] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_NAC] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_FCC] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_CYCT] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_AE] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_SOC] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_DCAP] =3D INVALID_REG_ADDR,
++		[BQ27XXX_REG_AP] =3D INVALID_REG_ADDR,
++		[BQ27XXX_DM_CTRL] =3D INVALID_REG_ADDR,
++		[BQ27XXX_DM_CLASS] =3D INVALID_REG_ADDR,
++		[BQ27XXX_DM_BLOCK] =3D INVALID_REG_ADDR,
++		[BQ27XXX_DM_DATA] =3D INVALID_REG_ADDR,
++		[BQ27XXX_DM_CKSUM] =3D INVALID_REG_ADDR,
++	},
+ 	bq27530_regs[BQ27XXX_REG_MAX] =3D {
+ 		[BQ27XXX_REG_CTRL] =3D 0x00,
+ 		[BQ27XXX_REG_TEMP] =3D 0x06,
+@@ -557,6 +581,15 @@ static enum power_supply_property bq27520g4_props[] =
+=3D {
+ 	POWER_SUPPLY_PROP_MANUFACTURER,
+ };
+=20
++static enum power_supply_property bq27521_props[] =3D {
++	POWER_SUPPLY_PROP_STATUS,
++	POWER_SUPPLY_PROP_PRESENT,
++	POWER_SUPPLY_PROP_VOLTAGE_NOW,
++	POWER_SUPPLY_PROP_CURRENT_NOW,
++	POWER_SUPPLY_PROP_TEMP,
++	POWER_SUPPLY_PROP_TECHNOLOGY,
++};
++
+ static enum power_supply_property bq27530_props[] =3D {
+ 	POWER_SUPPLY_PROP_STATUS,
+ 	POWER_SUPPLY_PROP_PRESENT,
+@@ -671,6 +704,7 @@ static struct bq27xxx_dm_reg bq27500_dm_regs[] =3D {
+ #define bq27520g2_dm_regs 0
+ #define bq27520g3_dm_regs 0
+ #define bq27520g4_dm_regs 0
++#define bq27521_dm_regs 0
+ #define bq27530_dm_regs 0
+ #define bq27531_dm_regs 0
+ #define bq27541_dm_regs 0
+@@ -717,8 +751,8 @@ static struct bq27xxx_dm_reg bq27621_dm_regs[] =3D {
+ #endif
+=20
+ #define BQ27XXX_O_ZERO	0x00000001
+-#define BQ27XXX_O_OTDC	0x00000002
+-#define BQ27XXX_O_UTOT  0x00000004
++#define BQ27XXX_O_OTDC	0x00000002 /* has OTC/OTD overtemperature flags */
++#define BQ27XXX_O_UTOT  0x00000004 /* has OT overtemperature flag */
+ #define BQ27XXX_O_CFGUP	0x00000008
+ #define BQ27XXX_O_RAM	0x00000010
+=20
+@@ -751,6 +785,7 @@ static struct {
+ 	[BQ27520G2] =3D BQ27XXX_DATA(bq27520g2, 0         , BQ27XXX_O_OTDC),
+ 	[BQ27520G3] =3D BQ27XXX_DATA(bq27520g3, 0         , BQ27XXX_O_OTDC),
+ 	[BQ27520G4] =3D BQ27XXX_DATA(bq27520g4, 0         , BQ27XXX_O_OTDC),
++	[BQ27521]   =3D BQ27XXX_DATA(bq27521,   0         , 0),
+ 	[BQ27530]   =3D BQ27XXX_DATA(bq27530,   0         , BQ27XXX_O_UTOT),
+ 	[BQ27531]   =3D BQ27XXX_DATA(bq27531,   0         , BQ27XXX_O_UTOT),
+ 	[BQ27541]   =3D BQ27XXX_DATA(bq27541,   0         , BQ27XXX_O_OTDC),
+diff --git a/drivers/power/supply/bq27xxx_battery_i2c.c b/drivers/power/sup=
+ply/bq27xxx_battery_i2c.c
+index 0b11ed4..6b25e5f 100644
+--- a/drivers/power/supply/bq27xxx_battery_i2c.c
++++ b/drivers/power/supply/bq27xxx_battery_i2c.c
+@@ -239,6 +239,7 @@ static const struct i2c_device_id bq27xxx_i2c_id_table[=
+] =3D {
+ 	{ "bq27520g2", BQ27520G2 },
+ 	{ "bq27520g3", BQ27520G3 },
+ 	{ "bq27520g4", BQ27520G4 },
++	{ "bq27521", BQ27521 },
+ 	{ "bq27530", BQ27530 },
+ 	{ "bq27531", BQ27531 },
+ 	{ "bq27541", BQ27541 },
+@@ -269,6 +270,7 @@ static const struct of_device_id bq27xxx_battery_i2c_of=
+_match_table[] =3D {
+ 	{ .compatible =3D "ti,bq27520g2" },
+ 	{ .compatible =3D "ti,bq27520g3" },
+ 	{ .compatible =3D "ti,bq27520g4" },
++	{ .compatible =3D "ti,bq27521" },
+ 	{ .compatible =3D "ti,bq27530" },
+ 	{ .compatible =3D "ti,bq27531" },
+ 	{ .compatible =3D "ti,bq27541" },
+diff --git a/include/linux/mfd/twl.h b/include/linux/mfd/twl.h
+index 9ad7828..6547d30 100644
+--- a/include/linux/mfd/twl.h
++++ b/include/linux/mfd/twl.h
+@@ -70,6 +70,7 @@ enum twl4030_module_ids {
+ 	TWL4030_MODULE_INT,
+=20
+ 	TWL5031_MODULE_ACCESSORY,
++	TWL5031_MODULE_BCC,
+ 	TWL5031_MODULE_INTERRUPTS,
+=20
+ 	TWL4030_MODULE_LAST,
+diff --git a/include/linux/power/bq27xxx_battery.h b/include/linux/power/bq=
+27xxx_battery.h
+index 43194e0..d8d127a 100644
+--- a/include/linux/power/bq27xxx_battery.h
++++ b/include/linux/power/bq27xxx_battery.h
+@@ -15,6 +15,7 @@ enum bq27xxx_chip {
+ 	BQ27520G2, /* bq27520G2 */
+ 	BQ27520G3, /* bq27520G3 */
+ 	BQ27520G4, /* bq27520G4 */
++	BQ27521, /* bq27521 */=09
+ 	BQ27530, /* bq27530, bq27531 */
+ 	BQ27531,
+ 	BQ27541, /* bq27541, bq27542, bq27546, bq27742 */
 
-> I can wait for your series and rebase mine or if you have time can test
-> them and see if they can be included in your update series.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-I run out of time few days ago already, but this looks so good that it is
-worth to delay other work. I'll include it in next version of patch serie.
+--a8Wt8u1KmwUX3Y2C
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Also it will allow us to dump 'dma-channel' and use DMA if gpio pin
-is configured which was intended logic of original driver. 'dma-channel'
-was introduced during mechanical conversion to DT and fortunately it is
-not used yet, so we can safely remove it again.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Thanks,
-	ladis
+iEYEARECAAYFAloFgekACgkQMOfwapXb+vIRtQCgg0G9hMgfRhu8b40A09LMOdOE
+Z50An1rLvh7VgCKuXuq+Rij1NEyF6UWL
+=kgq5
+-----END PGP SIGNATURE-----
 
-> - P=E9ter
-> =
-
-> > =
-
-> > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> > ---
-> >  Changes:
-> >  -v3: new patch
-> > =
-
-> >  drivers/mtd/onenand/omap2.c | 165 +++---------------------------------=
---------
-> >  1 file changed, 10 insertions(+), 155 deletions(-)
-> > =
-
-> > diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> > index 883993bbe40b..5760e40be008 100644
-> > --- a/drivers/mtd/onenand/omap2.c
-> > +++ b/drivers/mtd/onenand/omap2.c
-> > @@ -289,9 +289,7 @@ static inline int omap2_onenand_bufferram_offset(st=
-ruct mtd_info *mtd, int area)
-> >  	return 0;
-> >  }
-> >  =
-
-> > -#if defined(CONFIG_ARCH_OMAP3) || defined(MULTI_OMAP2)
-> > -
-> > -static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
-> > +static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
-> >  					unsigned char *buffer, int offset,
-> >  					size_t count)
-> >  {
-> > @@ -299,10 +297,9 @@ static int omap3_onenand_read_bufferram(struct mtd=
-_info *mtd, int area,
-> >  	struct onenand_chip *this =3D mtd->priv;
-> >  	dma_addr_t dma_src, dma_dst;
-> >  	int bram_offset;
-> > -	unsigned long timeout;
-> > +	unsigned long t;
-> >  	void *buf =3D (void *)buffer;
-> >  	size_t xtra;
-> > -	volatile unsigned *done;
-> >  =
-
-> >  	bram_offset =3D omap2_onenand_bufferram_offset(mtd, area) + area + of=
-fset;
-> >  	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
-> > @@ -349,15 +346,11 @@ static int omap3_onenand_read_bufferram(struct mt=
-d_info *mtd, int area,
-> >  	reinit_completion(&c->dma_done);
-> >  	omap_start_dma(c->dma_channel);
-> >  =
-
-> > -	timeout =3D jiffies + msecs_to_jiffies(20);
-> > -	done =3D &c->dma_done.done;
-> > -	while (time_before(jiffies, timeout))
-> > -		if (*done)
-> > -			break;
-> > +	t =3D wait_for_completion_io_timeout(&c->dma_done, msecs_to_jiffies(2=
-0));
-> >  =
-
-> >  	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
-> >  =
-
-> > -	if (!*done) {
-> > +	if (!t) {
-> >  		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
-> >  		goto out_copy;
-> >  	}
-> > @@ -369,7 +362,7 @@ static int omap3_onenand_read_bufferram(struct mtd_=
-info *mtd, int area,
-> >  	return 0;
-> >  }
-> >  =
-
-> > -static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int are=
-a,
-> > +static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int are=
-a,
-> >  					 const unsigned char *buffer,
-> >  					 int offset, size_t count)
-> >  {
-> > @@ -377,9 +370,8 @@ static int omap3_onenand_write_bufferram(struct mtd=
-_info *mtd, int area,
-> >  	struct onenand_chip *this =3D mtd->priv;
-> >  	dma_addr_t dma_src, dma_dst;
-> >  	int bram_offset;
-> > -	unsigned long timeout;
-> > +	unsigned long t;
-> >  	void *buf =3D (void *)buffer;
-> > -	volatile unsigned *done;
-> >  =
-
-> >  	bram_offset =3D omap2_onenand_bufferram_offset(mtd, area) + area + of=
-fset;
-> >  	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
-> > @@ -420,15 +412,11 @@ static int omap3_onenand_write_bufferram(struct m=
-td_info *mtd, int area,
-> >  	reinit_completion(&c->dma_done);
-> >  	omap_start_dma(c->dma_channel);
-> >  =
-
-> > -	timeout =3D jiffies + msecs_to_jiffies(20);
-> > -	done =3D &c->dma_done.done;
-> > -	while (time_before(jiffies, timeout))
-> > -		if (*done)
-> > -			break;
-> > +	t =3D wait_for_completion_io_timeout(&c->dma_done, msecs_to_jiffies(2=
-0));
-> >  =
-
-> >  	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
-> >  =
-
-> > -	if (!*done) {
-> > +	if (!t) {
-> >  		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
-> >  		goto out_copy;
-> >  	}
-> > @@ -440,134 +428,6 @@ static int omap3_onenand_write_bufferram(struct m=
-td_info *mtd, int area,
-> >  	return 0;
-> >  }
-> >  =
-
-> > -#else
-> > -
-> > -static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
-> > -					unsigned char *buffer, int offset,
-> > -					size_t count)
-> > -{
-> > -	return -ENOSYS;
-> > -}
-> > -
-> > -static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int are=
-a,
-> > -					 const unsigned char *buffer,
-> > -					 int offset, size_t count)
-> > -{
-> > -	return -ENOSYS;
-> > -}
-> > -
-> > -#endif
-> > -
-> > -#if defined(CONFIG_ARCH_OMAP2) || defined(MULTI_OMAP2)
-> > -
-> > -static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
-> > -					unsigned char *buffer, int offset,
-> > -					size_t count)
-> > -{
-> > -	struct omap2_onenand *c =3D container_of(mtd, struct omap2_onenand, m=
-td);
-> > -	struct onenand_chip *this =3D mtd->priv;
-> > -	dma_addr_t dma_src, dma_dst;
-> > -	int bram_offset;
-> > -
-> > -	bram_offset =3D omap2_onenand_bufferram_offset(mtd, area) + area + of=
-fset;
-> > -	/* DMA is not used.  Revisit PM requirements before enabling it. */
-> > -	if (1 || (c->dma_channel < 0) ||
-> > -	    ((void *) buffer >=3D (void *) high_memory) || (bram_offset & 3) =
-||
-> > -	    (((unsigned int) buffer) & 3) || (count < 1024) || (count & 3)) {
-> > -		memcpy(buffer, (__force void *)(this->base + bram_offset),
-> > -		       count);
-> > -		return 0;
-> > -	}
-> > -
-> > -	dma_src =3D c->phys_base + bram_offset;
-> > -	dma_dst =3D dma_map_single(&c->pdev->dev, buffer, count,
-> > -				 DMA_FROM_DEVICE);
-> > -	if (dma_mapping_error(&c->pdev->dev, dma_dst)) {
-> > -		dev_err(&c->pdev->dev,
-> > -			"Couldn't DMA map a %d byte buffer\n",
-> > -			count);
-> > -		return -1;
-> > -	}
-> > -
-> > -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
-> > -				     count / 4, 1, 0, 0, 0);
-> > -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
-> > -				dma_src, 0, 0);
-> > -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
-> > -				 dma_dst, 0, 0);
-> > -
-> > -	reinit_completion(&c->dma_done);
-> > -	omap_start_dma(c->dma_channel);
-> > -	wait_for_completion(&c->dma_done);
-> > -
-> > -	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
-> > -
-> > -	return 0;
-> > -}
-> > -
-> > -static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int are=
-a,
-> > -					 const unsigned char *buffer,
-> > -					 int offset, size_t count)
-> > -{
-> > -	struct omap2_onenand *c =3D container_of(mtd, struct omap2_onenand, m=
-td);
-> > -	struct onenand_chip *this =3D mtd->priv;
-> > -	dma_addr_t dma_src, dma_dst;
-> > -	int bram_offset;
-> > -
-> > -	bram_offset =3D omap2_onenand_bufferram_offset(mtd, area) + area + of=
-fset;
-> > -	/* DMA is not used.  Revisit PM requirements before enabling it. */
-> > -	if (1 || (c->dma_channel < 0) ||
-> > -	    ((void *) buffer >=3D (void *) high_memory) || (bram_offset & 3) =
-||
-> > -	    (((unsigned int) buffer) & 3) || (count < 1024) || (count & 3)) {
-> > -		memcpy((__force void *)(this->base + bram_offset), buffer,
-> > -		       count);
-> > -		return 0;
-> > -	}
-> > -
-> > -	dma_src =3D dma_map_single(&c->pdev->dev, (void *) buffer, count,
-> > -				 DMA_TO_DEVICE);
-> > -	dma_dst =3D c->phys_base + bram_offset;
-> > -	if (dma_mapping_error(&c->pdev->dev, dma_src)) {
-> > -		dev_err(&c->pdev->dev,
-> > -			"Couldn't DMA map a %d byte buffer\n",
-> > -			count);
-> > -		return -1;
-> > -	}
-> > -
-> > -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S16,
-> > -				     count / 2, 1, 0, 0, 0);
-> > -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
-> > -				dma_src, 0, 0);
-> > -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
-> > -				 dma_dst, 0, 0);
-> > -
-> > -	reinit_completion(&c->dma_done);
-> > -	omap_start_dma(c->dma_channel);
-> > -	wait_for_completion(&c->dma_done);
-> > -
-> > -	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
-> > -
-> > -	return 0;
-> > -}
-> > -
-> > -#else
-> > -
-> > -static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
-> > -					unsigned char *buffer, int offset,
-> > -					size_t count)
-> > -{
-> > -	return -ENOSYS;
-> > -}
-> > -
-> > -static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int are=
-a,
-> > -					 const unsigned char *buffer,
-> > -					 int offset, size_t count)
-> > -{
-> > -	return -ENOSYS;
-> > -}
-> > -
-> > -#endif
-> > -
-> >  static struct platform_driver omap2_onenand_driver;
-> >  =
-
-> >  static void omap2_onenand_shutdown(struct platform_device *pdev)
-> > @@ -691,13 +551,8 @@ static int omap2_onenand_probe(struct platform_dev=
-ice *pdev)
-> >  	this =3D &c->onenand;
-> >  	if (c->dma_channel >=3D 0) {
-> >  		this->wait =3D omap2_onenand_wait;
-> > -		if (c->flags & ONENAND_IN_OMAP34XX) {
-> > -			this->read_bufferram =3D omap3_onenand_read_bufferram;
-> > -			this->write_bufferram =3D omap3_onenand_write_bufferram;
-> > -		} else {
-> > -			this->read_bufferram =3D omap2_onenand_read_bufferram;
-> > -			this->write_bufferram =3D omap2_onenand_write_bufferram;
-> > -		}
-> > +		this->read_bufferram =3D omap2_onenand_read_bufferram;
-> > +		this->write_bufferram =3D omap2_onenand_write_bufferram;
-> >  	}
-> >  =
-
-> >  	if ((r =3D onenand_scan(&c->mtd, 1)) < 0)
-> > =
-
-> =
-
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+--a8Wt8u1KmwUX3Y2C--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
