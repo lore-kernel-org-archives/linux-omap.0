@@ -1,76 +1,70 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v5] pci: dwc: dra7xx: Add shutdown handler to cleanly turn off clocks
-Date: Fri, 10 Nov 2017 13:57:12 +0530
-Message-ID: <1510302432-1556-1-git-send-email-j-keerthy@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v3 4/7] mtd: onenand: omap2: Remove partitioning support
+ from platform data
+Date: Fri, 10 Nov 2017 10:48:06 +0100
+Message-ID: <20171110094806.22i4q7jekigeozmo@lenoch>
+References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
+ <20171109091444.dxvoaaafjgkf43a2@lenoch>
+ <de8a8a40-af31-01af-f523-6fa6dbca2a70@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: helgaas@kernel.org
-Cc: j-keerthy@ti.com, nks.gnu@gmail.com, kishon@ti.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <de8a8a40-af31-01af-f523-6fa6dbca2a70@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add shutdown handler to cleanly turn off clocks. This will help
-in cases of kexec where in a new kernel can boot abruptly.
+On Fri, Nov 10, 2017 at 10:19:11AM +0200, Roger Quadros wrote:
+> On 09/11/17 11:14, Ladislav Michl wrote:
+> > No platform data user setups partitioning informations, so remove.
+> > 
+> > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> > ---
+> >  Changes:
+> >  -v2: new patch
+> >  -v3: none
+> > 
+> >  drivers/mtd/onenand/omap2.c | 3 +--
+> >  1 file changed, 1 insertion(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+> > index 93bd94337b35..883993bbe40b 100644
+> > --- a/drivers/mtd/onenand/omap2.c
+> > +++ b/drivers/mtd/onenand/omap2.c
+> > @@ -703,8 +703,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+> >  	if ((r = onenand_scan(&c->mtd, 1)) < 0)
+> >  		goto err_release_dma;
+> >  
+> > -	r = mtd_device_register(&c->mtd, pdata ? pdata->parts : NULL,
+> > -				pdata ? pdata->nr_parts : 0);
+> > +	r = mtd_device_register(&c->mtd, NULL, 0);
+> >  	if (r)
+> >  		goto err_release_onenand;
+> >  
+> > 
+> 
+> Same here. Need to update platform data structure.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
----
+I do not want to unnecessarily extend patch as I hope no sane maintainer
+would ever allow anyone to add any new platform data dependency while
+we are moving towards DT only configured kernel.
 
-Changes in v5:
+Platform data structure will be deleted entirely together with
+arch/arm/mach-omap2/gpmc-onenand.c once driver update gets accepted.
 
-  * Declared the dra7xx_pcie_shutdown function static
+	ladis
 
-Changes in v4:
-
-  * Added the missing changes from v2!
-
-Changes in v3:
-
-  * Pushed the function outside #ifdef CONFIG_PM_SLEEP.
-  * Added more details to commit log.
-
-Changes in v2:
-
-  * used a local dev pointer instead of dereferencing dev at multiple places.
-  * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
-
- drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
-
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 34427a6..d084800 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -794,6 +794,22 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
- }
- #endif
- 
-+static void dra7xx_pcie_shutdown(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-+	int ret;
-+
-+	dra7xx_pcie_stop_link(dra7xx->pci);
-+
-+	ret = pm_runtime_put_sync(dev);
-+	if (ret < 0)
-+		dev_dbg(dev, "pm_runtime_put_sync failed\n");
-+
-+	pm_runtime_disable(dev);
-+	dra7xx_pcie_disable_phy(dra7xx);
-+}
-+
- static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend, dra7xx_pcie_resume)
- 	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend_noirq,
-@@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
- 		.suppress_bind_attrs = true,
- 		.pm	= &dra7xx_pcie_pm_ops,
- 	},
-+	.shutdown = dra7xx_pcie_shutdown,
- };
- builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
--- 
-1.9.1
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
