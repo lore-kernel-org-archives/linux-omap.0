@@ -1,19 +1,20 @@
-From: Ladislav Michl <ladis@linux-mips.org>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
  implementation
-Date: Fri, 10 Nov 2017 19:26:21 +0100
-Message-ID: <20171110182621.ntiptm3h2u437nv7@lenoch>
+Date: Fri, 10 Nov 2017 10:29:38 -0800
+Message-ID: <20171110182938.GS28152@atomide.com>
 References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
  <20171109091529.x3pqqvbiywj5aulo@lenoch>
- <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
- <20171110100443.zqk7uzxoaq4eyntk@lenoch>
- <20171110152423.GM28152@atomide.com>
+ <4a58dfac-8cc9-101f-b079-da8925d7ab4c@ti.com>
+ <20171110095154.kf34cd7h2eyfvwf3@lenoch>
+ <20171110152610.GN28152@atomide.com>
+ <20171110181951.siddrdubjkwwspqt@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20171110152423.GM28152@atomide.com>
+In-Reply-To: <20171110181951.siddrdubjkwwspqt@lenoch>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -23,27 +24,52 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 10, 2017 at 07:24:23AM -0800, Tony Lindgren wrote:
-> FYI, the gpio pin for onenand should not be in gpio mode. It should
-> be used as external dma request line to automatically trigger new
-> transfers like we do for tusb6010 dma. But of course it's possible
-> that onenand has other issues too preventing the dma usage.
+* Ladislav Michl <ladis@linux-mips.org> [171110 18:21]:
+> On Fri, Nov 10, 2017 at 07:26:10AM -0800, Tony Lindgren wrote:
+> > * Ladislav Michl <ladis@linux-mips.org> [171110 09:53]:
+> > > On Fri, Nov 10, 2017 at 10:21:51AM +0200, Roger Quadros wrote:
+> > > > On 09/11/17 11:15, Ladislav Michl wrote:
+> > > > > Since the very first commit (36cd4fb5d277: "[MTD] [OneNAND] Add OMAP2 / OMAP3
+> > > > > OneNAND driver") DMA is disabled for OMAP2. Later fixes thus went only into
+> > > > > OMAP3 specific DMA functions which turned out not to be so OMAP3 specific.
+> > > > > Therefore replace open coded timeout waiting for completion in OMAP3
+> > > > > functions with API call and merge those two implementations.
+> > > > > 
+> > > > > Note that currently the is no single DMA user, so this change is basically
+> > > > > no-op. Those interested will have to find DMA configuration in the
+> > > > > linux-omap.git history.
+> > > > > 
+> > > > > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> > > > 
+> > > > I'll be happy if there are no OMAP2 vs OMAP3 differences in code but we need to
+> > > > be absolutely sure that we don't break DMA functionality if it ever worked.
+> > > 
+> > > It probably worked at least for OMAP3 as it was enabled in legacy kernels.
+> > > 
+> > > > Can we somehow test OneNAND DMA on OMAP2 and OMAP3?
+> > > > Tony?
+> > > 
+> > > I'll prepare next version patch serie for easier testing. Of course I would
+> > > prefer to be able to test changes myself, but I do not have any Nokias :-)
+> > 
+> > I tested Peter's dma changes yesterday and they worked. Yeah if you want
+> > me to test something a complete series or a git branch makes it easier
+> > for me to follow what all is needed.
+> 
+> How did you configure DMA? Is there any additional patch?
+> So far I prepared complete patchset including Peter's changes, but I might
+> be good idea to start with something what's working for you.
 
-Hmm, that's probably what comment in omap3-n900.dts is saying:
-"sys_ndmareq1 could be used by the driver, not as gpio65 though"
-However board-rx51 (is that n900?) is using it as gpio pin.
-Also omap2420-n8x0-common.dtsi comment says: "gpio-irq for dma: 26"
-and it matches board-n8x0.c platform data configuration.
-But I still missing pinmux configuration as we need to add it into
-DT as well. I guess this was originally done in bootloader. Any hint
-where can I get this info from?
+I just made sure things keep working with Peter's changes, no additional
+patches. So the dma is barely used at all.
 
-Thanks,
-	ladis
+Regards,
+
+Tony
 
 ______________________________________________________
 Linux MTD discussion mailing list
