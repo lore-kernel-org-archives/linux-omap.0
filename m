@@ -1,69 +1,70 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: N900 kernel support
-Date: Fri, 10 Nov 2017 18:16:39 +0100
-Message-ID: <20171110171639.GB31871@amd>
-References: <20171110144519.o2dccswmzdjkfrnt@pali>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
+ implementation
+Date: Fri, 10 Nov 2017 19:19:51 +0100
+Message-ID: <20171110181951.siddrdubjkwwspqt@lenoch>
+References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
+ <20171109091529.x3pqqvbiywj5aulo@lenoch>
+ <4a58dfac-8cc9-101f-b079-da8925d7ab4c@ti.com>
+ <20171110095154.kf34cd7h2eyfvwf3@lenoch>
+ <20171110152610.GN28152@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="IrhDeMKUP4DT/M7F"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20171110144519.o2dccswmzdjkfrnt@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: sre@kernel.org, ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, patrikbachan@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <20171110152610.GN28152@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Nov 10, 2017 at 07:26:10AM -0800, Tony Lindgren wrote:
+> * Ladislav Michl <ladis@linux-mips.org> [171110 09:53]:
+> > On Fri, Nov 10, 2017 at 10:21:51AM +0200, Roger Quadros wrote:
+> > > On 09/11/17 11:15, Ladislav Michl wrote:
+> > > > Since the very first commit (36cd4fb5d277: "[MTD] [OneNAND] Add OMAP2 / OMAP3
+> > > > OneNAND driver") DMA is disabled for OMAP2. Later fixes thus went only into
+> > > > OMAP3 specific DMA functions which turned out not to be so OMAP3 specific.
+> > > > Therefore replace open coded timeout waiting for completion in OMAP3
+> > > > functions with API call and merge those two implementations.
+> > > > 
+> > > > Note that currently the is no single DMA user, so this change is basically
+> > > > no-op. Those interested will have to find DMA configuration in the
+> > > > linux-omap.git history.
+> > > > 
+> > > > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> > > 
+> > > I'll be happy if there are no OMAP2 vs OMAP3 differences in code but we need to
+> > > be absolutely sure that we don't break DMA functionality if it ever worked.
+> > 
+> > It probably worked at least for OMAP3 as it was enabled in legacy kernels.
+> > 
+> > > Can we somehow test OneNAND DMA on OMAP2 and OMAP3?
+> > > Tony?
+> > 
+> > I'll prepare next version patch serie for easier testing. Of course I would
+> > prefer to be able to test changes myself, but I do not have any Nokias :-)
+> 
+> I tested Peter's dma changes yesterday and they worked. Yeah if you want
+> me to test something a complete series or a git branch makes it easier
+> for me to follow what all is needed.
 
---IrhDeMKUP4DT/M7F
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+How did you configure DMA? Is there any additional patch?
+So far I prepared complete patchset including Peter's changes, but I might
+be good idea to start with something what's working for you.
 
-Hi!
+Thanks,
+	ladis
 
-> Hi! Yesterday I updated https://elinux.org/N900 page based on data which
-> I found in linux git repository. So driver status should be up-to-date.
->=20
-> I would like to ask, what is current status of the bluetooth driver? It
-> is working on N900, or it has a problems?
-
-See other email.
-
-> Also are the any plans for bringing front webcam to work? IIRC there was
-> problem that it was not possible to describe in DT that back and front
-> cameras.
-
-Front webcam... Few lines of code (or maybe only few lines of dts) and
-perhaps quite a lot of debugging would be required there. OTOH... its
-quality is not great, so...
-
-BTW main camera only works in 1.3MPix mode. Getting 5MPix there would
-be nice...=20
-
-> And what happened with ramp mode for camera autofocus?
-
-We don't have userland application using those, so it was easier not
-to merge them. It is few lines of code if you have application needing
-these.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---IrhDeMKUP4DT/M7F
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAloF3vcACgkQMOfwapXb+vJzwACgrjMQ/9VjGAb96Eg2yxOm8CdE
-ZO0AoJf2vev3Aka2BzVwHT9I7BUijOZ7
-=ZGjx
------END PGP SIGNATURE-----
-
---IrhDeMKUP4DT/M7F--
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
