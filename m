@@ -1,68 +1,46 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Applied "regulator: tps65218: Fix strobe assignment" to the regulator tree
-Date: Fri, 10 Nov 2017 21:29:54 +0000
-Message-ID: <E1eDGs6-0004cI-2Q@debutante>
-References: <1510314764-1940-1-git-send-email-j-keerthy@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1510314764-1940-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: Mark Brown <broonie@kernel.org>broonie@kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com, t-kristo@ti.comlinux-kernel@vger.kernel.org
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
+ implementation
+Date: Fri, 10 Nov 2017 22:39:18 +0100
+Message-ID: <20171110213918.pqq3ghblqhp2jwf2@lenoch>
+References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
+ <20171109091529.x3pqqvbiywj5aulo@lenoch>
+ <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
+ <20171110100443.zqk7uzxoaq4eyntk@lenoch>
+ <20171110152423.GM28152@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20171110152423.GM28152@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The patch
+On Fri, Nov 10, 2017 at 07:24:23AM -0800, Tony Lindgren wrote:
+> FYI, the gpio pin for onenand should not be in gpio mode. It should
+> be used as external dma request line to automatically trigger new
+> transfers like we do for tusb6010 dma. But of course it's possible
+> that onenand has other issues too preventing the dma usage.
 
-   regulator: tps65218: Fix strobe assignment
+Now, after reading dma and interrupt related code again, I still do
+not see how the driver could be using hardware synchronized transfer.
+DMA seems to be used as a memcpy and gpio pin a ready/busy.
+Care to elaborate a bit more?
 
-has been applied to the regulator tree at
+Thank you,
+	ladis
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
-
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.  
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
->From efeb88c68bd0dbd317c4d24a1b5b58c5e5bd68aa Mon Sep 17 00:00:00 2001
-From: Keerthy <j-keerthy@ti.com>
-Date: Fri, 10 Nov 2017 17:22:43 +0530
-Subject: [PATCH] regulator: tps65218: Fix strobe assignment
-
-Currentlly tps_info structure is no longer used. So use the
-strobes parameter in tps65218 structure to capture the info.
-
-Fixes: 2dc4940360d4c0c (regulator: tps65218: Remove all the compatibles)
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Signed-off-by: Mark Brown <broonie@kernel.org>
----
- drivers/regulator/tps65218-regulator.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
-index 9aafbb03482d..bc489958fed7 100644
---- a/drivers/regulator/tps65218-regulator.c
-+++ b/drivers/regulator/tps65218-regulator.c
-@@ -154,7 +154,7 @@ static int tps65218_pmic_set_suspend_disable(struct regulator_dev *dev)
- 
- 	if (!tps->strobes[rid]) {
- 		if (rid == TPS65218_DCDC_3)
--			tps->info[rid]->strobe = 3;
-+			tps->strobes[rid] = 3;
- 		else
- 			return -EINVAL;
- 	}
--- 
-2.15.0
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
