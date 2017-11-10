@@ -1,60 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
- implementation
-Date: Fri, 10 Nov 2017 10:48:50 -0800
-Message-ID: <20171110184850.GT28152@atomide.com>
-References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
- <20171109091529.x3pqqvbiywj5aulo@lenoch>
- <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
- <20171110100443.zqk7uzxoaq4eyntk@lenoch>
- <20171110152423.GM28152@atomide.com>
- <20171110182621.ntiptm3h2u437nv7@lenoch>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: N900 kernel support
+Date: Fri, 10 Nov 2017 21:54:08 +0100
+Message-ID: <20171110205408.GA3842@amd>
+References: <20171110144519.o2dccswmzdjkfrnt@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171110182621.ntiptm3h2u437nv7@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <20171110144519.o2dccswmzdjkfrnt@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: sre@kernel.org, ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, patrikbachan@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Ladislav Michl <ladis@linux-mips.org> [171110 18:28]:
-> On Fri, Nov 10, 2017 at 07:24:23AM -0800, Tony Lindgren wrote:
-> > FYI, the gpio pin for onenand should not be in gpio mode. It should
-> > be used as external dma request line to automatically trigger new
-> > transfers like we do for tusb6010 dma. But of course it's possible
-> > that onenand has other issues too preventing the dma usage.
-> 
-> Hmm, that's probably what comment in omap3-n900.dts is saying:
-> "sys_ndmareq1 could be used by the driver, not as gpio65 though"
-> However board-rx51 (is that n900?) is using it as gpio pin.
-> Also omap2420-n8x0-common.dtsi comment says: "gpio-irq for dma: 26"
-> and it matches board-n8x0.c platform data configuration.
-> But I still missing pinmux configuration as we need to add it into
-> DT as well. I guess this was originally done in bootloader. Any hint
-> where can I get this info from?
 
-Well I have a utility called padconftodts that uses the old kernel
-pinmux data :) I'll try to update a bit and push out over next few days.
-It can read the /sys/kernel/debug/pinctrl data and convert it to a
-dts file with some nice comments.
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So I should be able to also dump out the pins for n8x0 and n900.
+Hi!
 
-Regards,
+> Hi! Yesterday I updated https://elinux.org/N900 page based on data which
+> I found in linux git repository. So driver status should be
+> up-to-date.
 
-Tony
+BTW... do you have any reasonable userland to run on n900?
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+I'm currently playing with postmarketos --
+https://wiki.postmarketos.org/wiki/Nokia_N900_(nokia-rx51)  -- lots of
+fun, but still a lot of work to do....
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--EVF5PPMfhYS0aIcm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAloGEe8ACgkQMOfwapXb+vLqOwCfagUAGZPPrv/61jr85jw/SqgL
+QjIAn1N3aazyeVRifX7J0YYPl0YyLJbi
+=K5Ry
+-----END PGP SIGNATURE-----
+
+--EVF5PPMfhYS0aIcm--
