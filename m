@@ -1,411 +1,76 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 2/3] EDAC: ti: add support for TI keystone and DRA7xx EDAC
-Date: Fri, 10 Nov 2017 10:25:37 +0200
-Message-ID: <1510302337-31663-1-git-send-email-t-kristo@ti.com>
-References: <1510087139-21885-2-git-send-email-t-kristo@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v5] pci: dwc: dra7xx: Add shutdown handler to cleanly turn off clocks
+Date: Fri, 10 Nov 2017 13:57:12 +0530
+Message-ID: <1510302432-1556-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1510087139-21885-2-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-edac@vger.kernel.org, bp@alien8.de, mchehab@kernel.org
-Cc: tony@atomide.com, ssantosh@kernel.org
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: helgaas@kernel.org
+Cc: j-keerthy@ti.com, nks.gnu@gmail.com, kishon@ti.com, t-kristo@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-TI Keystone and DRA7xx SoCs have support for EDAC on DDR3 memory that can
-correct one bit errors and detect two bit errors. Add EDAC driver for this
-feature which plugs into the generic kernel EDAC framework.
+Add shutdown handler to cleanly turn off clocks. This will help
+in cases of kexec where in a new kernel can boot abruptly.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
-v2:
- * fixed checkpatch errors
- * improved error cleanup for failed probe
- * converted to use edac_printk
- * added MAINTAINERS entry
- * dropped mutex and used atomic counter for ID
- * ... and some minor cosmetic changes
 
- MAINTAINERS            |   6 +
- drivers/edac/Kconfig   |   7 ++
- drivers/edac/Makefile  |   1 +
- drivers/edac/ti_edac.c | 314 +++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 328 insertions(+)
- create mode 100644 drivers/edac/ti_edac.c
+Changes in v5:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 2281af4..c46ed26 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5028,6 +5028,12 @@ L:	linux-edac@vger.kernel.org
- S:	Maintained
- F:	drivers/edac/skx_edac.c
+  * Declared the dra7xx_pcie_shutdown function static
+
+Changes in v4:
+
+  * Added the missing changes from v2!
+
+Changes in v3:
+
+  * Pushed the function outside #ifdef CONFIG_PM_SLEEP.
+  * Added more details to commit log.
+
+Changes in v2:
+
+  * used a local dev pointer instead of dereferencing dev at multiple places.
+  * dra7xx_pcie_stop_link before disabling clks in the shutdown path.
+
+ drivers/pci/dwc/pci-dra7xx.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 34427a6..d084800 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -794,6 +794,22 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+ }
+ #endif
  
-+EDAC-TI
-+M:	Tero Kristo <t-kristo@ti.com>
-+L:	linux-edac@vger.kernel.org
-+S:	Maintained
-+F:	drivers/edac/ti_edac.c
-+
- EDIROL UA-101/UA-1000 DRIVER
- M:	Clemens Ladisch <clemens@ladisch.de>
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
-diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
-index 96afb2a..3c40170 100644
---- a/drivers/edac/Kconfig
-+++ b/drivers/edac/Kconfig
-@@ -457,4 +457,11 @@ config EDAC_XGENE
- 	  Support for error detection and correction on the
- 	  APM X-Gene family of SOCs.
- 
-+config EDAC_TI
-+	tristate "Texas Instruments DDR3 ECC Controller"
-+	depends on ARCH_KEYSTONE || SOC_DRA7XX
-+	help
-+	  Support for error detection and correction on the
-+          TI SoCs.
-+
- endif # EDAC
-diff --git a/drivers/edac/Makefile b/drivers/edac/Makefile
-index 0fd9ffa..b54912e 100644
---- a/drivers/edac/Makefile
-+++ b/drivers/edac/Makefile
-@@ -78,3 +78,4 @@ obj-$(CONFIG_EDAC_THUNDERX)		+= thunderx_edac.o
- obj-$(CONFIG_EDAC_ALTERA)		+= altera_edac.o
- obj-$(CONFIG_EDAC_SYNOPSYS)		+= synopsys_edac.o
- obj-$(CONFIG_EDAC_XGENE)		+= xgene_edac.o
-+obj-$(CONFIG_EDAC_TI)			+= ti_edac.o
-diff --git a/drivers/edac/ti_edac.c b/drivers/edac/ti_edac.c
-new file mode 100644
-index 0000000..c147853
---- /dev/null
-+++ b/drivers/edac/ti_edac.c
-@@ -0,0 +1,314 @@
-+/*
-+ * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * Texas Instruments DDR3 ECC error correction and detection driver
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/edac.h>
-+#include <linux/io.h>
-+#include <linux/interrupt.h>
-+#include <linux/of_address.h>
-+#include <linux/of_device.h>
-+#include <linux/module.h>
-+
-+#include "edac_module.h"
-+
-+/* EMIF controller registers */
-+#define EMIF_SDRAM_CONFIG		0x008
-+#define EMIF_IRQ_STATUS			0x0ac
-+#define EMIF_IRQ_ENABLE_SET		0x0b4
-+#define EMIF_ECC_CTRL			0x110
-+#define EMIF_1B_ECC_ERR_CNT		0x130
-+#define EMIF_1B_ECC_ERR_THRSH		0x134
-+#define EMIF_1B_ECC_ERR_ADDR_LOG	0x13c
-+#define EMIF_2B_ECC_ERR_ADDR_LOG	0x140
-+
-+/* Bit definitions for EMIF_SDRAM_CONFIG */
-+#define SDRAM_TYPE_SHIFT		29
-+#define SDRAM_TYPE_MASK			GENMASK(31, 29)
-+#define SDRAM_TYPE_DDR3			(3 << SDRAM_TYPE_SHIFT)
-+#define SDRAM_TYPE_DDR2			(2 << SDRAM_TYPE_SHIFT)
-+#define SDRAM_NARROW_MODE_MASK		GENMASK(15, 14)
-+#define SDRAM_K2_NARROW_MODE_SHIFT	12
-+#define SDRAM_K2_NARROW_MODE_MASK	GENMASK(13, 12)
-+#define SDRAM_ROWSIZE_SHIFT		7
-+#define SDRAM_ROWSIZE_MASK		GENMASK(9, 7)
-+#define SDRAM_IBANK_SHIFT		4
-+#define SDRAM_IBANK_MASK		GENMASK(6, 4)
-+#define SDRAM_K2_IBANK_SHIFT		5
-+#define SDRAM_K2_IBANK_MASK		GENMASK(6, 5)
-+#define SDRAM_K2_EBANK_SHIFT		3
-+#define SDRAM_K2_EBANK_MASK		BIT(SDRAM_K2_EBANK_SHIFT)
-+#define SDRAM_PAGESIZE_SHIFT		0
-+#define SDRAM_PAGESIZE_MASK		GENMASK(2, 0)
-+#define SDRAM_K2_PAGESIZE_SHIFT		0
-+#define SDRAM_K2_PAGESIZE_MASK		GENMASK(1, 0)
-+
-+#define EMIF_1B_ECC_ERR_THRSH_SHIFT	24
-+
-+/* IRQ bit definitions */
-+#define EMIF_1B_ECC_ERR			BIT(5)
-+#define EMIF_2B_ECC_ERR			BIT(4)
-+#define EMIF_WR_ECC_ERR			BIT(3)
-+#define EMIF_SYS_ERR			BIT(0)
-+/* Bit 31 enables ECC and 28 enables RMW */
-+#define ECC_ENABLED			(BIT(31) | BIT(28))
-+
-+#define EDAC_MOD_NAME			"ti-emif-edac"
-+
-+enum {
-+	EMIF_TYPE_DRA7,
-+	EMIF_TYPE_K2
-+};
-+
-+struct ti_edac {
-+	void __iomem *reg;
-+};
-+
-+static atomic_t edac_id = ATOMIC_INIT(0);
-+
-+static u32 ti_edac_readl(struct ti_edac *edac, u16 offset)
++static void dra7xx_pcie_shutdown(struct platform_device *pdev)
 +{
-+	return readl_relaxed(edac->reg + offset);
-+}
-+
-+static void ti_edac_writel(struct ti_edac *edac, u32 val, u16 offset)
-+{
-+	writel_relaxed(val, edac->reg + offset);
-+}
-+
-+static irqreturn_t ti_edac_isr(int irq, void *data)
-+{
-+	struct mem_ctl_info *mci = data;
-+	struct ti_edac *edac = mci->pvt_info;
-+	u32 irq_status;
-+	u32 err_addr;
-+	int err_count;
-+
-+	irq_status = ti_edac_readl(edac, EMIF_IRQ_STATUS);
-+
-+	if (irq_status & EMIF_1B_ECC_ERR) {
-+		err_addr = ti_edac_readl(edac, EMIF_1B_ECC_ERR_ADDR_LOG);
-+		err_count = ti_edac_readl(edac, EMIF_1B_ECC_ERR_CNT);
-+		ti_edac_writel(edac, err_count, EMIF_1B_ECC_ERR_CNT);
-+		edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, err_count,
-+				     err_addr >> PAGE_SHIFT,
-+				     err_addr & ~PAGE_MASK, -1, 0, 0, 0,
-+				     mci->ctl_name, "1B");
-+	}
-+
-+	if (irq_status & EMIF_2B_ECC_ERR) {
-+		err_addr = ti_edac_readl(edac, EMIF_2B_ECC_ERR_ADDR_LOG);
-+		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-+				     err_addr >> PAGE_SHIFT,
-+				     err_addr & ~PAGE_MASK, -1, 0, 0, 0,
-+				     mci->ctl_name, "2B");
-+	}
-+
-+	if (irq_status & EMIF_WR_ECC_ERR)
-+		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-+				     0, 0, -1, 0, 0, 0,
-+				     mci->ctl_name, "WR");
-+
-+	ti_edac_writel(edac, irq_status, EMIF_IRQ_STATUS);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static void ti_edac_setup_dimm(struct mem_ctl_info *mci, u32 type)
-+{
-+	struct dimm_info *dimm;
-+	struct ti_edac *edac = mci->pvt_info;
-+	int bits;
-+	u32 val;
-+	u32 memsize;
-+
-+	dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms, mci->n_layers, 0, 0, 0);
-+
-+	val = ti_edac_readl(edac, EMIF_SDRAM_CONFIG);
-+
-+	if (type == EMIF_TYPE_DRA7) {
-+		bits = ((val & SDRAM_PAGESIZE_MASK) >> SDRAM_PAGESIZE_SHIFT) + 8;
-+		bits += ((val & SDRAM_ROWSIZE_MASK) >> SDRAM_ROWSIZE_SHIFT) + 9;
-+		bits += (val & SDRAM_IBANK_MASK) >> SDRAM_IBANK_SHIFT;
-+
-+		if (val & SDRAM_NARROW_MODE_MASK) {
-+			bits++;
-+			dimm->dtype = DEV_X16;
-+		} else {
-+			bits += 2;
-+			dimm->dtype = DEV_X32;
-+		}
-+	} else {
-+		bits = 16;
-+		bits += ((val & SDRAM_K2_PAGESIZE_MASK) >>
-+			SDRAM_K2_PAGESIZE_SHIFT) + 8;
-+		bits += (val & SDRAM_K2_IBANK_MASK) >> SDRAM_K2_IBANK_SHIFT;
-+		bits += (val & SDRAM_K2_EBANK_MASK) >> SDRAM_K2_EBANK_SHIFT;
-+
-+		val = (val & SDRAM_K2_NARROW_MODE_MASK) >>
-+			SDRAM_K2_NARROW_MODE_SHIFT;
-+		switch (val) {
-+		case 0:
-+			bits += 3;
-+			dimm->dtype = DEV_X64;
-+			break;
-+		case 1:
-+			bits += 2;
-+			dimm->dtype = DEV_X32;
-+			break;
-+		case 2:
-+			bits++;
-+			dimm->dtype = DEV_X16;
-+			break;
-+		}
-+	}
-+
-+	memsize = 1 << bits;
-+
-+	dimm->nr_pages = memsize >> PAGE_SHIFT;
-+	dimm->grain = 4;
-+	if ((val & SDRAM_TYPE_MASK) == SDRAM_TYPE_DDR2)
-+		dimm->mtype = MEM_DDR2;
-+	else
-+		dimm->mtype = MEM_DDR3;
-+
-+	val = ti_edac_readl(edac, EMIF_ECC_CTRL);
-+	if (val & ECC_ENABLED)
-+		dimm->edac_mode = EDAC_SECDED;
-+	else
-+		dimm->edac_mode = EDAC_NONE;
-+}
-+
-+static const struct of_device_id ti_edac_of_match[] = {
-+	{ .compatible = "ti,emif-keystone", .data = (void *)EMIF_TYPE_K2 },
-+	{ .compatible = "ti,emif-dra7xx", .data = (void *)EMIF_TYPE_DRA7 },
-+	{},
-+};
-+
-+static int ti_edac_probe(struct platform_device *pdev)
-+{
-+	int error_irq = 0, ret = -ENODEV;
 +	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	void __iomem *reg;
-+	struct mem_ctl_info *mci;
-+	struct edac_mc_layer layers[1];
-+	const struct of_device_id *id;
-+	struct ti_edac *edac;
-+	int my_id;
++	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
++	int ret;
 +
-+	id = of_match_device(ti_edac_of_match, &pdev->dev);
-+	if (!id)
-+		return -ENODEV;
++	dra7xx_pcie_stop_link(dra7xx->pci);
 +
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	reg = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(reg)) {
-+		edac_printk(KERN_ERR, EDAC_MOD_NAME,
-+			    "EMIF controller regs not defined\n");
-+		return PTR_ERR(reg);
-+	}
++	ret = pm_runtime_put_sync(dev);
++	if (ret < 0)
++		dev_dbg(dev, "pm_runtime_put_sync failed\n");
 +
-+	layers[0].type = EDAC_MC_LAYER_ALL_MEM;
-+	layers[0].size = 1;
-+
-+	/* Allocate ID number for our EMIF controller */
-+	my_id = atomic_inc_return(&edac_id) - 1;
-+
-+	mci = edac_mc_alloc(my_id, 1, layers, sizeof(*edac));
-+	if (!mci)
-+		return -ENOMEM;
-+
-+	mci->pdev = &pdev->dev;
-+	edac = mci->pvt_info;
-+	edac->reg = reg;
-+	platform_set_drvdata(pdev, mci);
-+
-+	mci->mtype_cap = MEM_FLAG_DDR3 | MEM_FLAG_DDR2;
-+	mci->edac_ctl_cap = EDAC_FLAG_SECDED | EDAC_FLAG_NONE;
-+	mci->mod_name = EDAC_MOD_NAME;
-+	mci->ctl_name = id->compatible;
-+	mci->dev_name = dev_name(&pdev->dev);
-+
-+	/* Setup memory layout */
-+	ti_edac_setup_dimm(mci, (u32)(id->data));
-+
-+	ret = edac_mc_add_mc(mci);
-+	if (ret) {
-+		edac_printk(KERN_ERR, EDAC_MOD_NAME,
-+			    "Failed to register mci: %d.\n", ret);
-+		goto err;
-+	}
-+
-+	/* add EMIF ECC error handler */
-+	error_irq = platform_get_irq(pdev, 0);
-+	if (!error_irq) {
-+		edac_printk(KERN_ERR, EDAC_MOD_NAME,
-+			    "EMIF irq number not defined.\n");
-+		goto err2;
-+	}
-+
-+	ret = devm_request_irq(dev, error_irq, ti_edac_isr, 0,
-+			       "emif-edac-irq", mci);
-+	if (ret) {
-+		edac_printk(KERN_ERR, EDAC_MOD_NAME,
-+			    "request_irq fail for EMIF EDAC irq\n");
-+		goto err2;
-+	}
-+
-+	/* Generate an interrupt with each 1b error */
-+	ti_edac_writel(edac, 1 << EMIF_1B_ECC_ERR_THRSH_SHIFT,
-+		       EMIF_1B_ECC_ERR_THRSH);
-+
-+	/* Enable interrupts */
-+	ti_edac_writel(edac,
-+		       EMIF_1B_ECC_ERR | EMIF_2B_ECC_ERR | EMIF_WR_ECC_ERR,
-+		       EMIF_IRQ_ENABLE_SET);
-+
-+	return 0;
-+
-+err2:
-+	edac_mc_del_mc(&pdev->dev);
-+err:
-+	edac_mc_free(mci);
-+	return ret;
++	pm_runtime_disable(dev);
++	dra7xx_pcie_disable_phy(dra7xx);
 +}
 +
-+static int ti_edac_remove(struct platform_device *pdev)
-+{
-+	struct mem_ctl_info *mci = platform_get_drvdata(pdev);
-+
-+	edac_mc_del_mc(&pdev->dev);
-+	edac_mc_free(mci);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver ti_edac_driver = {
-+	.probe = ti_edac_probe,
-+	.remove = ti_edac_remove,
-+	.driver = {
-+		   .name = EDAC_MOD_NAME,
-+		   .of_match_table = ti_edac_of_match,
-+	},
-+};
-+
-+module_platform_driver(ti_edac_driver);
-+
-+MODULE_AUTHOR("Texas Instruments Inc.");
-+MODULE_DESCRIPTION("EDAC Driver for Texas Instruments DDR3 MC");
-+MODULE_LICENSE("GPL v2");
+ static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend, dra7xx_pcie_resume)
+ 	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(dra7xx_pcie_suspend_noirq,
+@@ -807,5 +823,6 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+ 		.suppress_bind_attrs = true,
+ 		.pm	= &dra7xx_pcie_pm_ops,
+ 	},
++	.shutdown = dra7xx_pcie_shutdown,
+ };
+ builtin_platform_driver_probe(dra7xx_pcie_driver, dra7xx_pcie_probe);
 -- 
 1.9.1
-
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
