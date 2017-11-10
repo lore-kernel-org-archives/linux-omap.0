@@ -1,9 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: n900 in next-20170901
-Date: Thu, 9 Nov 2017 19:26:10 -0800
-Message-ID: <20171110032610.GJ28152@atomide.com>
-References: <20171107053313.GA12447@js1304-P5Q-DELUXE>
- <20171107154842.GP28152@atomide.com>
+Date: Thu, 9 Nov 2017 22:19:17 -0800
+Message-ID: <20171110061917.GK28152@atomide.com>
+References: <20171107154842.GP28152@atomide.com>
  <20171108074645.GA18747@js1304-P5Q-DELUXE>
  <20171108163413.GU28152@atomide.com>
  <20171109000801.GA23982@js1304-P5Q-DELUXE>
@@ -12,59 +11,65 @@ References: <20171107053313.GA12447@js1304-P5Q-DELUXE>
  <20171109035031.GA24383@js1304-P5Q-DELUXE>
  <20171109150854.GC28152@atomide.com>
  <20171110001315.GA29669@js1304-P5Q-DELUXE>
+ <20171110032610.GJ28152@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171110001315.GA29669@js1304-P5Q-DELUXE>
+In-Reply-To: <20171110032610.GJ28152@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Russell King <linux@armlinux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-* Joonsoo Kim <iamjoonsoo.kim@lge.com> [171110 00:10]:
-> On Thu, Nov 09, 2017 at 07:08:54AM -0800, Tony Lindgren wrote:
-> > Hmm OK. Does your first patch above now have the initcall issue too?
-> > It boots if I make that also subsys_initcall and then I get:
+* Tony Lindgren <tony@atomide.com> [171110 03:28]:
+> * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171110 00:10]:
+> > On Thu, Nov 09, 2017 at 07:08:54AM -0800, Tony Lindgren wrote:
+> > > Hmm OK. Does your first patch above now have the initcall issue too?
+> > > It boots if I make that also subsys_initcall and then I get:
+> > 
+> > > [    2.078094] vmalloc_pool_init: DMA: get vmalloc area: d0010000
+> > 
+> > Yes, first patch has the initcall issue and it's intentional in order
+> > to check the theory. I checked following log for this.
+> > 
+> > - Boot failure
+> > SRAM_ADDR: omap_map_sram: P: 0x40208000 - 0x4020f000
+> > SRAM_ADDR: omap_map_sram: V: 0xd0050000 - 0xd0057000
+> > 
+> > - Boot success
+> > SRAM_ADDR: omap_map_sram: P: 0x40208000 - 0x4020f000
+> > SRAM_ADDR: omap_map_sram: V: 0xd0008000 - 0xd000f000
+> > 
+> > When failure, virtual address for sram is higher than normal one due
+> > to vmalloc area allocation in __dma_alloc_remap(). If it is deferred,
+> > virtual address is the same with success case and then the system work.
+> > 
+> > So, my next theory is that there is n900 specific assumption that sram
+> > should have that address. Could you check if any working tree for n900
+> > which doesn't have my CMA series work or not with adding
+> > "arm/dma: vmalloc area allocation"?
 > 
-> > [    2.078094] vmalloc_pool_init: DMA: get vmalloc area: d0010000
+> Oh I see, sorry I was not following you earlier. So you mean that
+> by adding the vmalloc_pool_init() initcall the va mapping for SRAM
+> changes.
 > 
-> Yes, first patch has the initcall issue and it's intentional in order
-> to check the theory. I checked following log for this.
+> And yes, save_secure_ram_context seems to be doing some sketchy
+> virt to phys calculation with sram_phy_addr_mask. Here's a small
+> patch to fix that for your CMA series, maybe you can merge it
+> with your series to avoid breaking booting for git bisect.
 > 
-> - Boot failure
-> SRAM_ADDR: omap_map_sram: P: 0x40208000 - 0x4020f000
-> SRAM_ADDR: omap_map_sram: V: 0xd0050000 - 0xd0057000
-> 
-> - Boot success
-> SRAM_ADDR: omap_map_sram: P: 0x40208000 - 0x4020f000
-> SRAM_ADDR: omap_map_sram: V: 0xd0008000 - 0xd000f000
-> 
-> When failure, virtual address for sram is higher than normal one due
-> to vmalloc area allocation in __dma_alloc_remap(). If it is deferred,
-> virtual address is the same with success case and then the system work.
-> 
-> So, my next theory is that there is n900 specific assumption that sram
-> should have that address. Could you check if any working tree for n900
-> which doesn't have my CMA series work or not with adding
-> "arm/dma: vmalloc area allocation"?
+> Then I'll follow up on cleaning up save_secure_ram_context later.
 
-Oh I see, sorry I was not following you earlier. So you mean that
-by adding the vmalloc_pool_init() initcall the va mapping for SRAM
-changes.
-
-And yes, save_secure_ram_context seems to be doing some sketchy
-virt to phys calculation with sram_phy_addr_mask. Here's a small
-patch to fix that for your CMA series, maybe you can merge it
-with your series to avoid breaking booting for git bisect.
-
-Then I'll follow up on cleaning up save_secure_ram_context later.
+Here's a better version, the static mapping did not get used.. It
+just moved the area so it happened to work. It needs to be set
+up as MT_MEMORY_RWX_NONCACHED instead.
 
 Regards,
 
 Tony
 
-8< -------------------------
+8< -------------------
 >From tony Mon Sep 17 00:00:00 2001
 From: Tony Lindgren <tony@atomide.com>
 Date: Thu, 9 Nov 2017 17:05:34 -0800
@@ -98,7 +103,7 @@ diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
 +		.virtual	= OMAP34XX_SRAM_VIRT,
 +		.pfn		= __phys_to_pfn(OMAP34XX_SRAM_PHYS),
 +		.length		= OMAP34XX_SRAM_SIZE,
-+		.type		= MT_DEVICE
++		.type		= MT_MEMORY_RWX_NONCACHED
 +	},
  	{
  		.virtual	= L3_34XX_VIRT,
