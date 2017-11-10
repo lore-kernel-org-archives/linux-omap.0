@@ -1,60 +1,28 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/2] regulator: tps65218: remove unused tps_info structure
-Date: Fri, 10 Nov 2017 17:22:44 +0530
-Message-ID: <1510314764-1940-2-git-send-email-j-keerthy@ti.com>
-References: <1510314764-1940-1-git-send-email-j-keerthy@ti.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: N900 kernel support
+Date: Fri, 10 Nov 2017 15:45:19 +0100
+Message-ID: <20171110144519.o2dccswmzdjkfrnt@pali>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1510314764-1940-1-git-send-email-j-keerthy@ti.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: broonie@kernel.org, lee.jones@linaro.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com, t-kristo@ti.com
+To: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, patrikbachan@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-remove unused tps_info structure.
+Hi! Yesterday I updated https://elinux.org/N900 page based on data which
+I found in linux git repository. So driver status should be up-to-date.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- include/linux/mfd/tps65218.h | 19 -------------------
- 1 file changed, 19 deletions(-)
+I would like to ask, what is current status of the bluetooth driver? It
+is working on N900, or it has a problems?
 
-diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
-index bccd2d6..f069c51 100644
---- a/include/linux/mfd/tps65218.h
-+++ b/include/linux/mfd/tps65218.h
-@@ -246,24 +246,6 @@ enum tps65218_irqs {
- };
- 
- /**
-- * struct tps_info - packages regulator constraints
-- * @id:			Id of the regulator
-- * @name:		Voltage regulator name
-- * @min_uV:		minimum micro volts
-- * @max_uV:		minimum micro volts
-- * @strobe:		sequencing strobe value for the regulator
-- *
-- * This data is used to check the regualtor voltage limits while setting.
-- */
--struct tps_info {
--	int id;
--	const char *name;
--	int min_uV;
--	int max_uV;
--	int strobe;
--};
--
--/**
-  * struct tps65218 - tps65218 sub-driver chip access routines
-  *
-  * Device data may be used to access the TPS65218 chip
-@@ -280,7 +262,6 @@ struct tps65218 {
- 	u32 irq_mask;
- 	struct regmap_irq_chip_data *irq_data;
- 	struct regulator_desc desc[TPS65218_NUM_REGULATOR];
--	struct tps_info *info[TPS65218_NUM_REGULATOR];
- 	struct regmap *regmap;
- 	u8 *strobes;
- };
+Also are the any plans for bringing front webcam to work? IIRC there was
+problem that it was not possible to describe in DT that back and front
+cameras.
+
+And what happened with ramp mode for camera autofocus?
+
 -- 
-1.9.1
+Pali Rohár
+pali.rohar@gmail.com
