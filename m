@@ -1,54 +1,68 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: N900 kernel support
-Date: Fri, 10 Nov 2017 21:54:08 +0100
-Message-ID: <20171110205408.GA3842@amd>
-References: <20171110144519.o2dccswmzdjkfrnt@pali>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
+From: Mark Brown <broonie@kernel.org>
+Subject: Applied "regulator: tps65218: Fix strobe assignment" to the regulator tree
+Date: Fri, 10 Nov 2017 21:29:54 +0000
+Message-ID: <E1eDGs6-0004cI-2Q@debutante>
+References: <1510314764-1940-1-git-send-email-j-keerthy@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171110144519.o2dccswmzdjkfrnt@pali>
+In-Reply-To: <1510314764-1940-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: sre@kernel.org, ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, patrikbachan@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Mark Brown <broonie@kernel.org>broonie@kernel.org, lee.jones@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com, t-kristo@ti.comlinux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+The patch
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+   regulator: tps65218: Fix strobe assignment
 
-Hi!
+has been applied to the regulator tree at
 
-> Hi! Yesterday I updated https://elinux.org/N900 page based on data which
-> I found in linux git repository. So driver status should be
-> up-to-date.
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git 
 
-BTW... do you have any reasonable userland to run on n900?
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.  
 
-I'm currently playing with postmarketos --
-https://wiki.postmarketos.org/wiki/Nokia_N900_(nokia-rx51)  -- lots of
-fun, but still a lot of work to do....
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
 
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
 
---EVF5PPMfhYS0aIcm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Thanks,
+Mark
 
-iEYEARECAAYFAloGEe8ACgkQMOfwapXb+vLqOwCfagUAGZPPrv/61jr85jw/SqgL
-QjIAn1N3aazyeVRifX7J0YYPl0YyLJbi
-=K5Ry
------END PGP SIGNATURE-----
+>From efeb88c68bd0dbd317c4d24a1b5b58c5e5bd68aa Mon Sep 17 00:00:00 2001
+From: Keerthy <j-keerthy@ti.com>
+Date: Fri, 10 Nov 2017 17:22:43 +0530
+Subject: [PATCH] regulator: tps65218: Fix strobe assignment
 
---EVF5PPMfhYS0aIcm--
+Currentlly tps_info structure is no longer used. So use the
+strobes parameter in tps65218 structure to capture the info.
+
+Fixes: 2dc4940360d4c0c (regulator: tps65218: Remove all the compatibles)
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/regulator/tps65218-regulator.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
+index 9aafbb03482d..bc489958fed7 100644
+--- a/drivers/regulator/tps65218-regulator.c
++++ b/drivers/regulator/tps65218-regulator.c
+@@ -154,7 +154,7 @@ static int tps65218_pmic_set_suspend_disable(struct regulator_dev *dev)
+ 
+ 	if (!tps->strobes[rid]) {
+ 		if (rid == TPS65218_DCDC_3)
+-			tps->info[rid]->strobe = 3;
++			tps->strobes[rid] = 3;
+ 		else
+ 			return -EINVAL;
+ 	}
+-- 
+2.15.0
