@@ -1,8 +1,8 @@
 From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v4 05/16] mtd: onenand: omap2: Remove skip initial unlocking
- support
-Date: Sat, 11 Nov 2017 22:19:42 +0100
-Message-ID: <20171111211942.643qupch2dnopz7i@lenoch>
+Subject: [PATCH v4 06/16] mtd: onenand: omap2: Remove partitioning support
+ from platform data
+Date: Sat, 11 Nov 2017 22:20:20 +0100
+Message-ID: <20171111212020.mmz5wjogbctsgxas@lenoch>
 References: <20171111211206.465pgorrjp3eyix6@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,8 +23,7 @@ To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-No platform data user sets skip_initial_unlocking, so remove test
-for this field.
+No platform data user setups partitioning informations, so remove.
 
 Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 ---
@@ -33,22 +32,22 @@ Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
  -v3: none
  -v4: none
 
- drivers/mtd/onenand/omap2.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/mtd/onenand/omap2.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index a03e1fe4aa48..93bd94337b35 100644
+index 93bd94337b35..883993bbe40b 100644
 --- a/drivers/mtd/onenand/omap2.c
 +++ b/drivers/mtd/onenand/omap2.c
-@@ -700,9 +700,6 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	if (pdata->skip_initial_unlocking)
--		this->options |= ONENAND_SKIP_INITIAL_UNLOCKING;
--
+@@ -703,8 +703,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
  	if ((r = onenand_scan(&c->mtd, 1)) < 0)
  		goto err_release_dma;
+ 
+-	r = mtd_device_register(&c->mtd, pdata ? pdata->parts : NULL,
+-				pdata ? pdata->nr_parts : 0);
++	r = mtd_device_register(&c->mtd, NULL, 0);
+ 	if (r)
+ 		goto err_release_onenand;
  
 -- 
 2.11.0
