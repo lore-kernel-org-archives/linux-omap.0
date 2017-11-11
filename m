@@ -1,8 +1,8 @@
 From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v4 06/16] mtd: onenand: omap2: Remove partitioning support
- from platform data
-Date: Sat, 11 Nov 2017 22:20:20 +0100
-Message-ID: <20171111212020.mmz5wjogbctsgxas@lenoch>
+Subject: [PATCH v4 07/16] mtd: onenand: omap2: Account waiting time as
+ waiting on IO
+Date: Sat, 11 Nov 2017 22:20:58 +0100
+Message-ID: <20171111212058.3xkqfw42ik6pre47@lenoch>
 References: <20171111211206.465pgorrjp3eyix6@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,32 +23,33 @@ To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-No platform data user setups partitioning informations, so remove.
+Use wait_for_completion_io_timeout, which has an impact on how the
+task is accounted in scheduling stats.
 
 Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 ---
  Changes:
- -v2: new patch
- -v3: none
- -v4: none
+ -v4: new patch
 
- drivers/mtd/onenand/omap2.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/mtd/onenand/omap2.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 93bd94337b35..883993bbe40b 100644
+index 883993bbe40b..0e7772e16d75 100644
 --- a/drivers/mtd/onenand/omap2.c
 +++ b/drivers/mtd/onenand/omap2.c
-@@ -703,8 +703,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 	if ((r = onenand_scan(&c->mtd, 1)) < 0)
- 		goto err_release_dma;
- 
--	r = mtd_device_register(&c->mtd, pdata ? pdata->parts : NULL,
--				pdata ? pdata->nr_parts : 0);
-+	r = mtd_device_register(&c->mtd, NULL, 0);
- 	if (r)
- 		goto err_release_onenand;
- 
+@@ -170,9 +170,8 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
+ 		if (result == 0) {
+ 			int retry_cnt = 0;
+ retry:
+-			result = wait_for_completion_timeout(&c->irq_done,
+-						    msecs_to_jiffies(20));
+-			if (result == 0) {
++			if (!wait_for_completion_io_timeout(&c->irq_done,
++						msecs_to_jiffies(20))) {
+ 				/* Timeout after 20ms */
+ 				ctrl = read_reg(c, ONENAND_REG_CTRL_STATUS);
+ 				if (ctrl & ONENAND_CTRL_ONGO &&
 -- 
 2.11.0
 
