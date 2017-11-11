@@ -1,13 +1,15 @@
 From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v4 01/16] dt-bindings: mtd: gpmc-onenand: Update properties
- description
-Date: Sat, 11 Nov 2017 22:16:56 +0100
-Message-ID: <20171111211656.neoypp7gdyfasteg@lenoch>
+Subject: [PATCH v4 02/16] ARM: dts: OMAP2+: Add compatible property to
+ onenand node
+Date: Sat, 11 Nov 2017 22:17:35 +0100
+Message-ID: <20171111211735.2a3q5lw4itsltjrw@lenoch>
+References: <20171111211206.465pgorrjp3eyix6@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
+In-Reply-To: <20171111211206.465pgorrjp3eyix6@lenoch>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -18,50 +20,70 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
 To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Compatible property is required for OMAP2+ mtd driver. Also
-add R/B pin gpio description and delete unused dma-channel
-property.
+OMAP onenand nodes are missing compatible property, add it.
 
 Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 ---
  Changes:
  -v4: new patch
 
- Documentation/devicetree/bindings/mtd/gpmc-onenand.txt | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/omap2420-n8x0-common.dtsi | 1 +
+ arch/arm/boot/dts/omap3-n900.dts            | 1 +
+ arch/arm/boot/dts/omap3-n950-n9.dtsi        | 1 +
+ arch/arm/boot/dts/omap3430-sdp.dts          | 1 +
+ 4 files changed, 4 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-index b6e8bfd024f4..9d7b1409deab 100644
---- a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-+++ b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-@@ -9,13 +9,14 @@ Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
- 
- Required properties:
- 
-+ - compatible:		"ti,omap2-onenand"
-  - reg:			The CS line the peripheral is connected to
-- - gpmc,device-width	Width of the ONENAND device connected to the GPMC
-+ - gpmc,device-width:	Width of the ONENAND device connected to the GPMC
- 			in bytes. Must be 1 or 2.
- 
- Optional properties:
- 
-- - dma-channel:		DMA Channel index
-+ - rb-gpios:		GPIO specifier for the ready/busy# pin.
- 
- For inline partition table parsing (optional):
- 
-@@ -35,6 +36,7 @@ Example for an OMAP3430 board:
+diff --git a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
+index 1de80c7886ab..843f6a2f5e29 100644
+--- a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
++++ b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
+@@ -48,6 +48,7 @@
+ 	onenand@0,0 {
+ 		#address-cells = <1>;
  		#size-cells = <1>;
++		compatible = "ti,omap2-onenand";
+ 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
  
- 		onenand@0 {
-+			compatible = "ti,omap2-onenand";
- 			reg = <0 0 0>; /* CS0, offset 0 */
- 			gpmc,device-width = <2>;
+ 		gpmc,sync-read;
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 4acd32a1c4ef..aa5b1a439564 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -838,6 +838,7 @@
+ 	onenand@0,0 {
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
++		compatible = "ti,omap2-onenand";
+ 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
  
+ 		gpmc,sync-read;
+diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+index 1b0bd72945f2..cb3c7b2fce52 100644
+--- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
++++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+@@ -367,6 +367,7 @@
+ 	onenand@0,0 {
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
++		compatible = "ti,omap2-onenand";
+ 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
+ 
+ 		gpmc,sync-read;
+diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
+index d50a105c9dc6..ed65795ccc62 100644
+--- a/arch/arm/boot/dts/omap3430-sdp.dts
++++ b/arch/arm/boot/dts/omap3430-sdp.dts
+@@ -155,6 +155,7 @@
+ 		linux,mtd-name= "samsung,kfm2g16q2m-deb8";
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
++		compatible = "ti,omap2-onenand";
+ 		reg = <2 0 0x20000>;	/* CS2, offset 0, IO size 4 */
+ 
+ 		gpmc,device-width = <2>;
 -- 
 2.11.0
 
