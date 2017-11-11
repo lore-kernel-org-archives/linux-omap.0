@@ -1,59 +1,41 @@
 From: Johan Hovold <johan@kernel.org>
-Subject: [PATCH 2/2] mfd: twl6040: fix child-node lookup
-Date: Sat, 11 Nov 2017 16:38:44 +0100
-Message-ID: <20171111153844.16741-2-johan@kernel.org>
-References: <20171111153844.16741-1-johan@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171111153844.16741-1-johan@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, stable <stable@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+Subject: [PATCH 1/2] clk: qcom: common: fix legacy board-clock registration
+Date: Sat, 11 Nov 2017 17:29:28 +0100
+Message-ID: <20171111162929.11722-1-johan@kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
+Sender: linux-clk-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Andy Gross <andy.gross@linaro.org>, David Brown <david.brown@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-msm@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Fix child-node lookup during probe, which ended up searching the whole
-device tree depth-first starting at the parent rather than just matching
-on its children.
+Make sure to search only the child nodes of "/clocks", rather than the
+whole device-tree depth-first starting at "/clocks" when determining
+whether to register a fixed clock in the legacy board-clock registration
+helper.
 
-To make things worse, the parent node was prematurely freed, while the
-child node was leaked.
-
-Note that the CONFIG_OF compile guard can be removed as
-of_get_child_by_name() provides a !CONFIG_OF implementation which always
-fails.
-
-Fixes: 37e13cecaa14 ("mfd: Add support for Device Tree to twl6040")
-Fixes: ca2cad6ae38e ("mfd: Fix twl6040 build failure")
-Cc: stable <stable@vger.kernel.org>     # 3.5
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Fixes: ee15faffef11 ("clk: qcom: common: Add API to register board clocks backwards compatibly")
+Signed-off-by: Johan Hovold <johan@kernel.org>
 ---
- drivers/mfd/twl6040.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/clk/qcom/common.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-index d66502d36ba0..dd19f17a1b63 100644
---- a/drivers/mfd/twl6040.c
-+++ b/drivers/mfd/twl6040.c
-@@ -97,12 +97,16 @@ static struct reg_sequence twl6040_patch[] = {
- };
+diff --git a/drivers/clk/qcom/common.c b/drivers/clk/qcom/common.c
+index b35564c0493f..b8064a336d46 100644
+--- a/drivers/clk/qcom/common.c
++++ b/drivers/clk/qcom/common.c
+@@ -133,8 +133,10 @@ static int _qcom_cc_register_board_clk(struct device *dev, const char *path,
+ 	int ret;
  
- 
--static bool twl6040_has_vibra(struct device_node *node)
-+static bool twl6040_has_vibra(struct device_node *parent)
- {
--#ifdef CONFIG_OF
--	if (of_find_node_by_name(node, "vibra"))
-+	struct device_node *node;
-+
-+	node = of_get_child_by_name(parent, "vibra");
-+	if (node) {
-+		of_node_put(node);
- 		return true;
--#endif
+ 	clocks_node = of_find_node_by_path("/clocks");
+-	if (clocks_node)
+-		node = of_find_node_by_name(clocks_node, path);
++	if (clocks_node) {
++		node = of_get_child_by_name(clocks_node, path);
++		of_node_put(clocks_node);
 +	}
-+
- 	return false;
- }
  
+ 	if (!node) {
+ 		fixed = devm_kzalloc(dev, sizeof(*fixed), GFP_KERNEL);
 -- 
 2.15.0
+
