@@ -1,46 +1,41 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: [PATCH 2/2] clk: ti: dra7-atl-clock: fix child-node lookups
-Date: Sat, 11 Nov 2017 17:29:29 +0100
-Message-ID: <20171111162929.11722-2-johan@kernel.org>
-References: <20171111162929.11722-1-johan@kernel.org>
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <20171111162929.11722-1-johan@kernel.org>
-Sender: linux-clk-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Andy Gross <andy.gross@linaro.org>, David Brown <david.brown@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-msm@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, stable <stable@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: Re: N900 kernel support
+Date: Sat, 11 Nov 2017 19:54:01 +0200
+Message-ID: <ddb034a2-97e2-7ca4-2fba-d8fa1f58be0c@gmail.com>
+References: <20171110144519.o2dccswmzdjkfrnt@pali> <20171110205408.GA3842@amd>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171110205408.GA3842@amd>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+Cc: sre@kernel.org, sakari.ailus@iki.fi, patrikbachan@gmail.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Fix child node-lookup during probe, which ended up searching the whole
-device tree depth-first starting at parent rather than just matching on
-its children.
+Hi,
 
-Note that the original premature free of the parent node has already
-been fixed separately, but that fix was apparently never backported to
-stable.
+On 10.11.2017 22:54, Pavel Machek wrote:
+> Hi!
+> 
+>> Hi! Yesterday I updated https://elinux.org/N900 page based on data which
+>> I found in linux git repository. So driver status should be
+>> up-to-date.
+> 
+> BTW... do you have any reasonable userland to run on n900?
+> 
 
-Fixes: 9ac33b0ce81f ("CLK: TI: Driver for DRA7 ATL (Audio Tracking Logic)")
-Fixes: 660e15519399 ("clk: ti: dra7-atl-clock: Fix of_node reference counting")
-Cc: stable <stable@vger.kernel.org>     # 3.16: 660e15519399
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Johan Hovold <johan@kernel.org>
----
- drivers/clk/ti/clk-dra7-atl.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+There is devuan jessie N900 image, I guess it is reasonable enough. Just 
+google for it.
 
-diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
-index 13eb04f72389..148815470431 100644
---- a/drivers/clk/ti/clk-dra7-atl.c
-+++ b/drivers/clk/ti/clk-dra7-atl.c
-@@ -274,8 +274,7 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
- 
- 		/* Get configuration for the ATL instances */
- 		snprintf(prop, sizeof(prop), "atl%u", i);
--		of_node_get(node);
--		cfg_node = of_find_node_by_name(node, prop);
-+		cfg_node = of_get_child_by_name(node, prop);
- 		if (cfg_node) {
- 			ret = of_property_read_u32(cfg_node, "bws",
- 						   &cdesc->bws);
--- 
-2.15.0
+> I'm currently playing with postmarketos --
+> https://wiki.postmarketos.org/wiki/Nokia_N900_(nokia-rx51)  -- lots of
+> fun, but still a lot of work to do....
+> 
+> Best regards,
+> 									Pavel
+> 
 
+Regards,
+Ivo
