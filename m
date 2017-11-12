@@ -1,75 +1,58 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v4 16/16] ARM: dts: Nokia: Use R/B pin
-Date: Sat, 11 Nov 2017 22:29:39 +0100
-Message-ID: <20171111212939.jcf26v3w26bd7sn7@lenoch>
-References: <20171111211206.465pgorrjp3eyix6@lenoch>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCH] omap3-n900: enable autofocus
+Date: Sun, 12 Nov 2017 12:25:29 +0100
+Message-ID: <20171112112528.GA21009@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="k1lZvvs/B4yU6o8G"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171111211206.465pgorrjp3eyix6@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Roger Quadros <rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Enable use of R/B pin. This is just experimental placeholder patch
-as it lacks pinmux settings.
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
----
- Changes:
- -v4: new patch
+--k1lZvvs/B4yU6o8G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- arch/arm/boot/dts/omap2420-n8x0-common.dtsi | 4 +---
- arch/arm/boot/dts/omap3-n900.dts            | 1 +
- 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-index 843f6a2f5e29..cfe5d02ea0ed 100644
---- a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-+++ b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-@@ -42,14 +42,12 @@
- 
- &gpmc {
- 	ranges = <0 0 0x04000000 0x1000000>;	/* CS0: 16MB for OneNAND */
--
--	/* gpio-irq for dma: 26 */
--
- 	onenand@0,0 {
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		compatible = "ti,omap2-onenand";
- 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
-+		rb-gpios = <&gpio0 26 GPIO_ACTIVE_HIGH>;
- 
- 		gpmc,sync-read;
- 		gpmc,burst-length = <16>;
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index aa5b1a439564..718116d9f4ac 100644
+Connect auto-focus coil to the camera sensor, so that it can be used
+by camera applications.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n90=
+0.dts
+index 669c51c..59cc743 100644
 --- a/arch/arm/boot/dts/omap3-n900.dts
 +++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -840,6 +840,7 @@
- 		#size-cells = <1>;
- 		compatible = "ti,omap2-onenand";
- 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
-+		rb-gpios = <&gpio3 1 GPIO_ACTIVE_HIGH>;
- 
- 		gpmc,sync-read;
- 		gpmc,sync-write;
--- 
-2.11.0
+@@ -778,6 +778,8 @@
+=20
+ 		reset-gpio =3D <&gpio4 6 GPIO_ACTIVE_HIGH>; /* 102 */
+=20
++		lens-focus =3D <&ad5820>;
++
+ 		port {
+ 			csi_cam1: endpoint {
+ 				bus-type =3D <3>; /* CCP2 */
 
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+--k1lZvvs/B4yU6o8G
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAloIL6gACgkQMOfwapXb+vLCwQCfZGOz4jvnTFx2XB8aK4GZBT0v
+WEoAn2sZmB8Ll7bj+dCs3h0U1qslvkDs
+=+It0
+-----END PGP SIGNATURE-----
+
+--k1lZvvs/B4yU6o8G--
