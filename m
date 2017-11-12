@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 1/5] DT: vendor prefix for Wi2Wi, Inc.
-Date: Sun, 12 Nov 2017 21:59:54 +0100
-Message-ID: <8fb996b8bd96e4a9205193ce712da9deff090771.1510520397.git.hns@goldelico.com>
+Subject: [PATCH v2 4/5] DTS: gta04: add serdev node for w2sg00x4
+Date: Sun, 12 Nov 2017 21:59:57 +0100
+Message-ID: <55121e359ace8568711411de7da68205fc039d56.1510520397.git.hns@goldelico.com>
 References: <cover.1510520397.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1510520397.git.hns@goldelico.com>
@@ -12,25 +12,34 @@ To: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-Introduce vendor prefix for Wi2Wi, Inc. for W2SG00x4 GPS modules
-and W2CBW003 Bluetooth/WiFi combo (CSR/Marvell).
+GTA04 has a W2SG0004/84 connected to UART2 of the OMAP3
+processor. A GPIO can pulse the on/off toggle switch.
+
+The VSIM regulator is used to power on/off the LNA of an external
+active GPS antenna so that a driver can turn the LNA off if GPS is
+not needed to save battery energy.
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
- Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/boot/dts/omap3-gta04.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
-index 1afd298eddd7..ad4381738954 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.txt
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
-@@ -366,6 +366,7 @@ voipac	Voipac Technologies s.r.o.
- wd	Western Digital Corp.
- wetek	WeTek Electronics, limited.
- wexler	Wexler
-+wi2wi	Wi2Wi, Inc.
- winbond Winbond Electronics corp.
- winstar	Winstar Display Corp.
- wlf	Wolfson Microelectronics
+diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+index 4504908c23fe..e967d738aaaf 100644
+--- a/arch/arm/boot/dts/omap3-gta04.dtsi
++++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+@@ -477,6 +477,12 @@
+ &uart2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart2_pins>;
++
++	gps: gps {
++		compatible = "wi2wi,w2sg0004";
++		lna-supply = <&vsim>;   /* LNA regulator */
++		enable-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;    /* GPIO_145: trigger for turning on/off w2sg0004 */
++	};
+ };
+ 
+ &uart3 {
 -- 
 2.12.2
