@@ -1,68 +1,151 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
- implementation
-Date: Mon, 13 Nov 2017 10:22:12 +0200
-Message-ID: <d498102d-11ff-cdd0-430e-0ea650c2a12b@ti.com>
-References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
- <20171109091529.x3pqqvbiywj5aulo@lenoch>
- <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
- <20171110100443.zqk7uzxoaq4eyntk@lenoch> <20171110152423.GM28152@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 2/3] EDAC: ti: add support for TI keystone and DRA7xx
+ EDAC
+Date: Mon, 13 Nov 2017 11:03:04 +0200
+Message-ID: <d944de66-9d18-6b3a-fe6f-8222c5f7992d@ti.com>
+References: <1510087139-21885-2-git-send-email-t-kristo@ti.com>
+ <1510302337-31663-1-git-send-email-t-kristo@ti.com>
+ <20171111104650.ypcfvo4lzfvn5jzv@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171110152423.GM28152@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Ladislav Michl <ladis@linux-mips.org>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171111104650.ypcfvo4lzfvn5jzv@pd.tnic>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, ssantosh@kernel.org, mchehab@kernel.org, linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On 11/11/17 12:46, Borislav Petkov wrote:
+> On Fri, Nov 10, 2017 at 10:25:37AM +0200, Tero Kristo wrote:
+>> TI Keystone and DRA7xx SoCs have support for EDAC on DDR3 memory that can
+>> correct one bit errors and detect two bit errors. Add EDAC driver for this
+>> feature which plugs into the generic kernel EDAC framework.
+> 
+> ...
+> 
+>> +static int ti_edac_probe(struct platform_device *pdev)
+>> +{
+>> +	int error_irq = 0, ret = -ENODEV;
+>> +	struct device *dev = &pdev->dev;
+>> +	struct resource *res;
+>> +	void __iomem *reg;
+>> +	struct mem_ctl_info *mci;
+>> +	struct edac_mc_layer layers[1];
+>> +	const struct of_device_id *id;
+>> +	struct ti_edac *edac;
+>> +	int my_id;
+>> +
+>> +	id = of_match_device(ti_edac_of_match, &pdev->dev);
+>> +	if (!id)
+>> +		return -ENODEV;
+>> +
+>> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> +	reg = devm_ioremap_resource(dev, res);
+>> +	if (IS_ERR(reg)) {
+>> +		edac_printk(KERN_ERR, EDAC_MOD_NAME,
+>> +			    "EMIF controller regs not defined\n");
+>> +		return PTR_ERR(reg);
+>> +	}
+>> +
+>> +	layers[0].type = EDAC_MC_LAYER_ALL_MEM;
+>> +	layers[0].size = 1;
+>> +
+>> +	/* Allocate ID number for our EMIF controller */
+>> +	my_id = atomic_inc_return(&edac_id) - 1;
+> 
+> You can do ATOMIC_INIT(-1) and then you don't need that silly - 1.
+> 
+> But there's something else wrong with this ID generation:
+> 
+>> +
+>> +	mci = edac_mc_alloc(my_id, 1, layers, sizeof(*edac));
+>> +	if (!mci)
+>> +		return -ENOMEM;
+> 
+> <--- if you return here due to error, the next one which succeeds will
+> get the next number and you'd have a hole in the numbering and wonder
+> where did instance 0 go.
 
-On 2017-11-10 17:24, Tony Lindgren wrote:
->> I run out of time few days ago already, but this looks so good that it is
->> worth to delay other work. I'll include it in next version of patch seri=
-e.
->>
->> Also it will allow us to dump 'dma-channel' and use DMA if gpio pin
->> is configured which was intended logic of original driver. 'dma-channel'
->> was introduced during mechanical conversion to DT and fortunately it is
->> not used yet, so we can safely remove it again.
-> =
+Yeah, that definitely can happen.
 
-> FYI, the gpio pin for onenand should not be in gpio mode. It should
-> be used as external dma request line to automatically trigger new
-> transfers like we do for tusb6010 dma. But of course it's possible
-> that onenand has other issues too preventing the dma usage.
+> 
+> So I'm wondering if instead you could derive the ID from some controller
+> registers which are specific to the instance. Or some hardware detail
+> which is instance-specific.
+> 
+> In my driver, for example, the 0th instance has PCI device functions
+> 00:18.x which is node 0, then node 1 has 00:19.x and so on, and this is
+> a stable numbering. If you could do that for your hw you'll be able to
+> pinpoint which instance and which DIMMs we're talking about reliably.
 
-My conversion to DMAengine is drop in replacement of the existing
-implementation: memcpy w/o hardware synchronization event.
+The only reliable way to determine the instance is to sort them by 
+physical address space they occupy. This will require me to lookup all 
+nodes that have same compatible string, and check their regs. This 
+should probably be okay seeing we have only two EMIF instances at most.
 
-But I think it should be possible to use HW sync (slave DMA) with the
-src/dst_port_window in a similar way we do with the tusb6010.
+I'll check how to do this most reliably.
 
-But that can be done in a followup series, but what to do in case of old
-DT where the dmas/dma-names properties are no there?
 
-Hmm, extending the dma_slave_map in mach-omap1/2/dma.c might work just fine.
+> 
+>> +
+>> +	mci->pdev = &pdev->dev;
+>> +	edac = mci->pvt_info;
+>> +	edac->reg = reg;
+>> +	platform_set_drvdata(pdev, mci);
+>> +
+>> +	mci->mtype_cap = MEM_FLAG_DDR3 | MEM_FLAG_DDR2;
+>> +	mci->edac_ctl_cap = EDAC_FLAG_SECDED | EDAC_FLAG_NONE;
+>> +	mci->mod_name = EDAC_MOD_NAME;
+>> +	mci->ctl_name = id->compatible;
+>> +	mci->dev_name = dev_name(&pdev->dev);
+>> +
+>> +	/* Setup memory layout */
+>> +	ti_edac_setup_dimm(mci, (u32)(id->data));
+>> +
+>> +	ret = edac_mc_add_mc(mci);
+> 
+> Do that...
+> 
+>> +	if (ret) {
+>> +		edac_printk(KERN_ERR, EDAC_MOD_NAME,
+>> +			    "Failed to register mci: %d.\n", ret);
+>> +		goto err;
+>> +	}
+>> +
+>> +	/* add EMIF ECC error handler */
+>> +	error_irq = platform_get_irq(pdev, 0);
+>> +	if (!error_irq) {
+>> +		edac_printk(KERN_ERR, EDAC_MOD_NAME,
+>> +			    "EMIF irq number not defined.\n");
+>> +		goto err2;
+>> +	}
+>> +
+>> +	ret = devm_request_irq(dev, error_irq, ti_edac_isr, 0,
+>> +			       "emif-edac-irq", mci);
+>> +	if (ret) {
+>> +		edac_printk(KERN_ERR, EDAC_MOD_NAME,
+>> +			    "request_irq fail for EMIF EDAC irq\n");
+>> +		goto err2;
+>> +	}
+> 
+> ... here, after you've requested IRQs successfully and you can save
+> yourself the err2 error path.
 
-Having said that, there might have been a reason why the original
-implementation was not using DMA request to trigger the memcpy... The
-legacy omap-dma API would have allowed that as you kind of open code
-things with much flexibility.
+Ok.
 
-- P=E9ter
+> 
+> Thx.
+> 
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
