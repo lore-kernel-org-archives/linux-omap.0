@@ -1,49 +1,83 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCHv3 2/3] EDAC: ti: add support for TI keystone and DRA7xx
- EDAC
-Date: Mon, 13 Nov 2017 11:17:52 -0800
-Message-ID: <05ed5e76-8c41-37b9-5248-612bf08e70e3@oracle.com>
-References: <1510087139-21885-3-git-send-email-t-kristo@ti.com>
- <1510578490-14510-1-git-send-email-t-kristo@ti.com>
- <47e1810b-a10b-28fb-ba0e-fe28ae337c61@oracle.com>
- <20171113175816.qmvbug4kf3qu5meq@pd.tnic>
- <f9d1b261-7942-6ff6-bfc3-4b3ff22f0e27@oracle.com>
- <20171113180843.hif7mfx5crvndito@pd.tnic>
- <cdaf8a76-c249-cd79-f03b-bfd78a5f7fbf@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
+ implementation
+Date: Mon, 13 Nov 2017 22:10:49 +0200
+Message-ID: <e9f73904-78c6-1a52-662f-4a6ff3171ef5@ti.com>
+References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
+ <20171109091529.x3pqqvbiywj5aulo@lenoch>
+ <4a58dfac-8cc9-101f-b079-da8925d7ab4c@ti.com>
+ <20171110095154.kf34cd7h2eyfvwf3@lenoch> <20171110152610.GN28152@atomide.com>
+ <20171110181951.siddrdubjkwwspqt@lenoch> <20171110182938.GS28152@atomide.com>
+ <20171111125054.4gkttjltqrgjqtwt@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cdaf8a76-c249-cd79-f03b-bfd78a5f7fbf@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>, Borislav Petkov <bp@alien8.de>
-Cc: mchehab@kernel.org, tony@atomide.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20171111125054.4gkttjltqrgjqtwt@lenoch>
+Content-Language: en-GB
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>, Tony Lindgren <tony@atomide.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/13/2017 10:49 AM, Tero Kristo wrote:
-> On 13/11/17 20:08, Borislav Petkov wrote:
->> On Mon, Nov 13, 2017 at 10:04:09AM -0800, Santosh Shilimkar wrote:
->>> DTS patches can be merged anytime once its respective driver are in
->>> tree.
->>
->> Works for me too.
->>
-> 
-> I guess you can just merge the dts patch also whenever you like, as 
-> there is currently no support around for ti,emif-keystone. It just won't 
-> do anything.
-> 
-Its not followed practice Tero and I don't want to get flamed for
-it. ;-) I will apply the patches once the driver is in.
-
-Regards,
-Santosh
+77u/ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgw
+IEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0Rv
+bWljaWxlOiBIZWxzaW5raQoKT24gMTEvMTEvMjAxNyAwMjo1MCBQTSwgTGFkaXNsYXYgTWljaGwg
+d3JvdGU6Cj4gT24gRnJpLCBOb3YgMTAsIDIwMTcgYXQgMTA6Mjk6MzhBTSAtMDgwMCwgVG9ueSBM
+aW5kZ3JlbiB3cm90ZToKPj4gSSBqdXN0IG1hZGUgc3VyZSB0aGluZ3Mga2VlcCB3b3JraW5nIHdp
+dGggUGV0ZXIncyBjaGFuZ2VzLCBubyBhZGRpdGlvbmFsCj4+IHBhdGNoZXMuIFNvIHRoZSBkbWEg
+aXMgYmFyZWx5IHVzZWQgYXQgYWxsLgo+IAo+IEl0IHNlZW1lZCBzdXNwaWNpb3VzIHRvIG1lIGxv
+b2tpbmcgaGVyZToKPiBodHRwczovL2dpdGh1Yi5jb20vb21hcC1hdWRpby9saW51eC1hdWRpby9j
+b21taXQvNTJlOTE0Mzk1YWZlMzFhNzQwMWIzNTgxNGI2ZGFiZjNlZjQ2YTA1MiNkaWZmLTE2NjJh
+NGNjNTQ0ZDMyMmI2OGM1NDdjZmRjOTk0NDhjUjMxMgo+IGFzIHdhaXRfZm9yX2NvbXBsZXRpb25f
+dGltZW91dCBpcyByZXR1cm5pbmcgdGltZSByZW1haW5pbmcgYW5kIHplcm8gb24KPiB0aW1lb3V0
+IDotKQoKYWFyZ2gsIHllcywgeW91IGFyZSByaWdodC4uLgoKPiBGaXhlZCBpbiBuZXh0IHZlcnNp
+b24gYW5kIGFsc28gY2hhbmdlZCB0byB3YWl0X2Zvcl9jb21wbGV0aW9uX2lvX3RpbWVvdXQKPiB0
+byBnZXQgcHJvcGVyIHNjaGVkIHN0YXRzLgo+IEJ0dywgSSB0aGluayB3ZSBzaG91bGQgc3RvcCBE
+TUEgb24gdGltZW91dCBhcyB3ZSBhcmUgdW5tYXBwaW5nIERNQSByZWdpb24KPiBsYXRlciBhbmQg
+aXQgbWlnaHQgbm90IGJlaGF2ZSBuaWNlbHkgaWYgd2UgZG8gc28gd2hpbGUgRE1BIGlzIGV2ZW50
+dWFsbHkKPiBydW5uaW5nICh0aGF0J3MgZml4ZWQgdG9vKS4KPiAKPiBJIG1hZGUgUGV0ZXIncyBw
+YXRjaGVzIHBhcnQgb2YgbmV4dCB2ZXJzaW9uIGFuZCBlbmFibGVkIERNQSB1bmNvbmRpdGlvbmFs
+bHkuCj4gSXQgd29ya3MgbmljZWx5IG9uOgoKUHJldHR5IGNvb2whIFRoYW5rcyBmb3IgZG9pbmcg
+aXQhCgo+IE9GOiBmZHQ6IE1hY2hpbmUgbW9kZWw6IElHRVB2MiBSZXYuIEMgKFRJIE9NQVAgQU0v
+RE0zN3gpCj4gT01BUDM2MzAvRE0zNzMwIEVTMS4yIChsMmNhY2hlIGl2YSBzZ3ggbmVvbiBpc3Ag
+MTkybWh6X2NsaykKPiAuLi4KPiBvbWFwLWdwbWMgNmUwMDAwMDAuZ3BtYzogR1BNQyByZXZpc2lv
+biA1LjAKPiBncG1jX21lbV9pbml0OiBkaXNhYmxpbmcgY3MgMCBtYXBwZWQgYXQgMHgwLTB4MTAw
+MDAwMAo+IG9tYXAyLW9uZW5hbmQgMzAwMDAwMDAub25lbmFuZDogaW5pdGlhbGl6aW5nIG9uIENT
+MCAoMHgzMDAwMDAwMCksIHZhIGUwMDgwMDAwLCBETUEgbW9kZQo+IE11eGVkIE9uZU5BTkQoRERQ
+KSA1MTJNQiAxLjhWIDE2LWJpdCAoMHg1OCkKPiBPbmVOQU5EIHZlcnNpb24gPSAweDAwMzEKPiBT
+Y2FubmluZyBkZXZpY2UgZm9yIGJhZCBibG9ja3MKPiBPbmVOQU5EIGVyYXNlYmxvY2sgNTk3IGlz
+IGFuIGluaXRpYWwgYmFkIGJsb2NrCj4gT25lTkFORCBlcmFzZWJsb2NrIDExNTkgaXMgYW4gaW5p
+dGlhbCBiYWQgYmxvY2sKPiBPbmVOQU5EIGVyYXNlYmxvY2sgMjgxMiBpcyBhbiBpbml0aWFsIGJh
+ZCBibG9jawo+IG9tYXAyLW9uZW5hbmQgMzAwMDAwMDAub25lbmFuZDogb3B0aW1pemVkIHRpbWlu
+Z3MgZm9yIDgzIE1Iego+IDIgb2ZwYXJ0IHBhcnRpdGlvbnMgZm91bmQgb24gTVREIGRldmljZSAz
+MDAwMDAwMC5vbmVuYW5kCj4gQ3JlYXRpbmcgMiBNVEQgcGFydGl0aW9ucyBvbiAiMzAwMDAwMDAu
+b25lbmFuZCI6Cj4gMHgwMDAwMDAwMDAwMDAtMHgwMDAwMDAwODAwMDAgOiAiU1BMIgo+IDB4MDAw
+MDAwMDgwMDAwLTB4MDAwMDIwMDAwMDAwIDogIlVCSSIKPiAuLi4KPiAKPiBCYXNlZCBvbiB0aGlz
+IGV4cGVyaW1lbnQsIEknbGwgZGVsYXkgdjQgYSBiaXQgYW5kIGxlYXZlIERNQSBlbmFibGVkIGJ5
+Cj4gZGVmYXVsdC4gV2UgYXJlIGJyYXZlIGVub3VnaCBhbmQgd2FudCBzb21lIHRlc3RpbmcsIHJp
+Z2h0Pwo+IEl0IHdvdWxkIGJlIG5pY2UgaWYgc29tZW9uZSBjb3VsZCBwcm92aWRlIHNvbWUgYmVu
+Y2htYXJrcyB1c2luZyBQSU8KPiBhbmQgRE1BIG1vZGUuIEkgZG8gbm90IGV4cGVjdCBhbnkgZHJh
+bWF0aWMgY2hhbmdlLCBidXQga2VybmVsIGxhdGVuY2llcwo+IHNob3VsZCBkZWNyZWFzZSB3aGVu
+IGRvaW5nIGZsYXNoIEkvTy4KPiAKPiBCYXNlZCBvbiBhYm92ZSBJIGFsc28gdGhpbmsgUi9CIHBp
+biBzaG91bGQgYmUgaW4gb3JkaW5hcnkgR1BJTyBtb2RlLgo+IFBlcmhhcHMgdXNpbmcgZXh0ZXJu
+YWwgRE1BIHJlcXVlc3QgaXMgc29tZWhvdyBwb3NpYmxlLCBidXQgaXQgaXMgbm90IGNsZWFyCj4g
+dG8gbWUgaG93IGFmdGVyIHlldCBhbm90aGVyIHJlYWRpbmcgb2YgU0RNQSwgR1BNQyBhbmQgT25l
+TkFORCBkb2N1bWVudGF0aW9uLAo+IHNvIEknbGwgaGFwcGlseSBsZWF2ZSBpdCBmb3Igb3RoZXJz
+Lgo+IAo+IEJ0dywgdXNpbmcgUi9CIHBpbiB3b3VsZCBlbGltaXRhdGUgbGF0ZW5jaWVzIGNhdXNl
+ZCBieSBidXN5IGxvb3Bpbmcgd2hpbGUKPiB3YWl0aW5nIGZvciBvbmVuYW5kIGNvbW1hbmQgdG8g
+Y29tcGxldGUuIE5pY2UgdG9kbyBmb3Igc29tZW9uZSB3aXRoIGEgbG90Cj4gb2Ygc3BhcmUgdGlt
+ZSA6LSkKPiAKPiBCZXN0IHJlZ2FyZHMsCj4gCWxhZGlzCj4gCgoKLS0gClDDqXRlcgoKVGV4YXMg
+SW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2ku
+ClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhl
+bHNpbmtpCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkxpbnV4IE1URCBkaXNjdXNzaW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5m
+cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW10ZC8K
