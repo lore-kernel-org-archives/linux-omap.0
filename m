@@ -1,68 +1,69 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/2] mfd: twl4030-audio: fix sibling-node lookup
-Date: Mon, 13 Nov 2017 22:13:42 +0200
-Message-ID: <189caf41-7298-ab1e-6a67-f6ff86fea47f@ti.com>
+Subject: Re: [PATCH 2/2] mfd: twl6040: fix child-node lookup
+Date: Mon, 13 Nov 2017 22:14:02 +0200
+Message-ID: <ab79459b-7a61-5857-b553-53e43ad5a776@ti.com>
 References: <20171111153844.16741-1-johan@kernel.org>
+ <20171111153844.16741-2-johan@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171111153844.16741-1-johan@kernel.org>
+In-Reply-To: <20171111153844.16741-2-johan@kernel.org>
 Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
 To: Johan Hovold <johan@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, stable <stable@vger.kernel.org>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, stable <stable@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
 On 11/11/2017 05:38 PM, Johan Hovold wrote:
-> A helper purported to look up a child node based on its name was using
-> the wrong of-helper and ended up prematurely freeing the parent of-node
-> while leaking any matching node.
+> Fix child-node lookup during probe, which ended up searching the whole
+> device tree depth-first starting at the parent rather than just matching
+> on its children.
 > 
-> To make things worse, any matching node would not even necessarily be a
-> child node as the whole device tree was searched depth-first starting at
-> the parent.
-
-I think it is the same case as with the twl6040, there were no
-of_get_child_by_name() when this was done...
-
-Thanks for fixing it!
+> To make things worse, the parent node was prematurely freed, while the
+> child node was leaked.
+> 
+> Note that the CONFIG_OF compile guard can be removed as
+> of_get_child_by_name() provides a !CONFIG_OF implementation which always
+> fails.
 
 Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
 > 
-> Fixes: 019a7e6b7b31 ("mfd: twl4030-audio: Add DT support")
-> Cc: stable <stable@vger.kernel.org>     # 3.7
+> Fixes: 37e13cecaa14 ("mfd: Add support for Device Tree to twl6040")
+> Fixes: ca2cad6ae38e ("mfd: Fix twl6040 build failure")
+> Cc: stable <stable@vger.kernel.org>     # 3.5
 > Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
 > ---
->  drivers/mfd/twl4030-audio.c | 9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
+>  drivers/mfd/twl6040.c | 12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-> index da16bf45fab4..dc94ffc6321a 100644
-> --- a/drivers/mfd/twl4030-audio.c
-> +++ b/drivers/mfd/twl4030-audio.c
-> @@ -159,13 +159,18 @@ unsigned int twl4030_audio_get_mclk(void)
->  EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
+> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+> index d66502d36ba0..dd19f17a1b63 100644
+> --- a/drivers/mfd/twl6040.c
+> +++ b/drivers/mfd/twl6040.c
+> @@ -97,12 +97,16 @@ static struct reg_sequence twl6040_patch[] = {
+>  };
 >  
->  static bool twl4030_audio_has_codec(struct twl4030_audio_data *pdata,
-> -			      struct device_node *node)
-> +			      struct device_node *parent)
+>  
+> -static bool twl6040_has_vibra(struct device_node *node)
+> +static bool twl6040_has_vibra(struct device_node *parent)
 >  {
+> -#ifdef CONFIG_OF
+> -	if (of_find_node_by_name(node, "vibra"))
 > +	struct device_node *node;
 > +
->  	if (pdata && pdata->codec)
->  		return true;
->  
-> -	if (of_find_node_by_name(node, "codec"))
-> +	node = of_get_child_by_name(parent, "codec");
+> +	node = of_get_child_by_name(parent, "vibra");
 > +	if (node) {
 > +		of_node_put(node);
 >  		return true;
+> -#endif
 > +	}
->  
+> +
 >  	return false;
 >  }
+>  
 > 
 
 
