@@ -1,60 +1,70 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] omap3-n900: enable autofocus
-Date: Mon, 13 Nov 2017 11:29:40 +0100
-Message-ID: <20171113102940.GC31566@amd>
-References: <20171112112528.GA21009@amd>
- <20171112142918.rqxd2uk7ljyhpctt@earth>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
+ implementation
+Date: Mon, 13 Nov 2017 13:15:41 +0100
+Message-ID: <20171113121541.2tlezfjwk5bptakp@lenoch>
+References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
+ <20171109091529.x3pqqvbiywj5aulo@lenoch>
+ <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
+ <20171110100443.zqk7uzxoaq4eyntk@lenoch>
+ <20171110152423.GM28152@atomide.com>
+ <d498102d-11ff-cdd0-430e-0ea650c2a12b@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Pk6IbRAofICFmK5e"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20171112142918.rqxd2uk7ljyhpctt@earth>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
+In-Reply-To: <d498102d-11ff-cdd0-430e-0ea650c2a12b@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Nov 13, 2017 at 10:22:12AM +0200, Peter Ujfalusi wrote:
+> 
+> On 2017-11-10 17:24, Tony Lindgren wrote:
+> > FYI, the gpio pin for onenand should not be in gpio mode. It should
+> > be used as external dma request line to automatically trigger new
+> > transfers like we do for tusb6010 dma. But of course it's possible
+> > that onenand has other issues too preventing the dma usage.
+> 
+> My conversion to DMAengine is drop in replacement of the existing
+> implementation: memcpy w/o hardware synchronization event.
+> 
+> But I think it should be possible to use HW sync (slave DMA) with the
+> src/dst_port_window in a similar way we do with the tusb6010.
 
---Pk6IbRAofICFmK5e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+How do you want to synchronize it from OneNAND side?
 
-On Sun 2017-11-12 15:29:18, Sebastian Reichel wrote:
-> Hi,
->=20
-> On Sun, Nov 12, 2017 at 12:25:29PM +0100, Pavel Machek wrote:
-> >=20
-> > Connect auto-focus coil to the camera sensor, so that it can be used
-> > by camera applications.
-> >=20
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
->=20
-> I think you should replace auto-focus with lens-focus. This is not
-> automatic. Otherwise:
+> But that can be done in a followup series, but what to do in case of old
+> DT where the dmas/dma-names properties are no there?
 
-You are right... althrough the lens is really meant for auto-focus.
+These will not work anyway as they do not have compatible property.
+Also note, that DMA is currently not used, yet nobody complained.
 
-Anyway, I can send the updated patch if neccessary.
+> Hmm, extending the dma_slave_map in mach-omap1/2/dma.c might work just fine.
+> 
+> Having said that, there might have been a reason why the original
+> implementation was not using DMA request to trigger the memcpy... The
+> legacy omap-dma API would have allowed that as you kind of open code
+> things with much flexibility.
 
-Best regards,
-								Pavel=20
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+That's mainly problem of OneNAND driver itself, not oma-dma. But do we
+really want to invest more time to this obsolete technology?
 
---Pk6IbRAofICFmK5e
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Of course, I would love to see my 10+ years old boards running faster,
+but it seems unrealistic to me to get enough manpower to finish this task.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+	ladis
 
-iEYEARECAAYFAloJdBQACgkQMOfwapXb+vIAYgCgtcOHbVBj6y6ZVlM13ZpX2b4r
-hCEAoMFW11Vo7sAAwqjEZXNfRd5OunlR
-=samv
------END PGP SIGNATURE-----
-
---Pk6IbRAofICFmK5e--
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
