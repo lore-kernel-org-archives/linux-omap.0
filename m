@@ -1,69 +1,55 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/2] mfd: twl6040: fix child-node lookup
-Date: Mon, 13 Nov 2017 22:14:02 +0200
-Message-ID: <ab79459b-7a61-5857-b553-53e43ad5a776@ti.com>
-References: <20171111153844.16741-1-johan@kernel.org>
- <20171111153844.16741-2-johan@kernel.org>
+Subject: Re: [PATCH 2/2] clk: ti: dra7-atl-clock: fix child-node lookups
+Date: Mon, 13 Nov 2017 22:15:13 +0200
+Message-ID: <a35e8131-a726-0897-5f85-84ddd10d0b7e@ti.com>
+References: <20171111162929.11722-1-johan@kernel.org>
+ <20171111162929.11722-2-johan@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171111153844.16741-2-johan@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20171111162929.11722-2-johan@kernel.org>
 Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Johan Hovold <johan@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, stable <stable@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: Andy Gross <andy.gross@linaro.org>, David Brown <david.brown@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, linux-arm-msm@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, stable <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/11/2017 05:38 PM, Johan Hovold wrote:
-> Fix child-node lookup during probe, which ended up searching the whole
-> device tree depth-first starting at the parent rather than just matching
-> on its children.
+On 11/11/2017 06:29 PM, Johan Hovold wrote:
+> Fix child node-lookup during probe, which ended up searching the whole
+> device tree depth-first starting at parent rather than just matching on
+> its children.
 > 
-> To make things worse, the parent node was prematurely freed, while the
-> child node was leaked.
-> 
-> Note that the CONFIG_OF compile guard can be removed as
-> of_get_child_by_name() provides a !CONFIG_OF implementation which always
-> fails.
+> Note that the original premature free of the parent node has already
+> been fixed separately, but that fix was apparently never backported to
+> stable.
 
 Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
 > 
-> Fixes: 37e13cecaa14 ("mfd: Add support for Device Tree to twl6040")
-> Fixes: ca2cad6ae38e ("mfd: Fix twl6040 build failure")
-> Cc: stable <stable@vger.kernel.org>     # 3.5
+> Fixes: 9ac33b0ce81f ("CLK: TI: Driver for DRA7 ATL (Audio Tracking Logic)")
+> Fixes: 660e15519399 ("clk: ti: dra7-atl-clock: Fix of_node reference counting")
+> Cc: stable <stable@vger.kernel.org>     # 3.16: 660e15519399
 > Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Signed-off-by: Johan Hovold <johan@kernel.org>
 > ---
->  drivers/mfd/twl6040.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
+>  drivers/clk/ti/clk-dra7-atl.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 > 
-> diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-> index d66502d36ba0..dd19f17a1b63 100644
-> --- a/drivers/mfd/twl6040.c
-> +++ b/drivers/mfd/twl6040.c
-> @@ -97,12 +97,16 @@ static struct reg_sequence twl6040_patch[] = {
->  };
+> diff --git a/drivers/clk/ti/clk-dra7-atl.c b/drivers/clk/ti/clk-dra7-atl.c
+> index 13eb04f72389..148815470431 100644
+> --- a/drivers/clk/ti/clk-dra7-atl.c
+> +++ b/drivers/clk/ti/clk-dra7-atl.c
+> @@ -274,8 +274,7 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
 >  
->  
-> -static bool twl6040_has_vibra(struct device_node *node)
-> +static bool twl6040_has_vibra(struct device_node *parent)
->  {
-> -#ifdef CONFIG_OF
-> -	if (of_find_node_by_name(node, "vibra"))
-> +	struct device_node *node;
-> +
-> +	node = of_get_child_by_name(parent, "vibra");
-> +	if (node) {
-> +		of_node_put(node);
->  		return true;
-> -#endif
-> +	}
-> +
->  	return false;
->  }
->  
+>  		/* Get configuration for the ATL instances */
+>  		snprintf(prop, sizeof(prop), "atl%u", i);
+> -		of_node_get(node);
+> -		cfg_node = of_find_node_by_name(node, prop);
+> +		cfg_node = of_get_child_by_name(node, prop);
+>  		if (cfg_node) {
+>  			ret = of_property_read_u32(cfg_node, "bws",
+>  						   &cdesc->bws);
 > 
 
 
