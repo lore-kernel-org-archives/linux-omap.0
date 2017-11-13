@@ -1,83 +1,73 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
- implementation
-Date: Mon, 13 Nov 2017 22:10:49 +0200
-Message-ID: <e9f73904-78c6-1a52-662f-4a6ff3171ef5@ti.com>
-References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
- <20171109091529.x3pqqvbiywj5aulo@lenoch>
- <4a58dfac-8cc9-101f-b079-da8925d7ab4c@ti.com>
- <20171110095154.kf34cd7h2eyfvwf3@lenoch> <20171110152610.GN28152@atomide.com>
- <20171110181951.siddrdubjkwwspqt@lenoch> <20171110182938.GS28152@atomide.com>
- <20171111125054.4gkttjltqrgjqtwt@lenoch>
+Subject: Re: [PATCH 1/2] mfd: twl4030-audio: fix sibling-node lookup
+Date: Mon, 13 Nov 2017 22:13:42 +0200
+Message-ID: <189caf41-7298-ab1e-6a67-f6ff86fea47f@ti.com>
+References: <20171111153844.16741-1-johan@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171111125054.4gkttjltqrgjqtwt@lenoch>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171111153844.16741-1-johan@kernel.org>
 Content-Language: en-GB
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>, Tony Lindgren <tony@atomide.com>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, stable <stable@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-77u/ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgw
-IEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0Rv
-bWljaWxlOiBIZWxzaW5raQoKT24gMTEvMTEvMjAxNyAwMjo1MCBQTSwgTGFkaXNsYXYgTWljaGwg
-d3JvdGU6Cj4gT24gRnJpLCBOb3YgMTAsIDIwMTcgYXQgMTA6Mjk6MzhBTSAtMDgwMCwgVG9ueSBM
-aW5kZ3JlbiB3cm90ZToKPj4gSSBqdXN0IG1hZGUgc3VyZSB0aGluZ3Mga2VlcCB3b3JraW5nIHdp
-dGggUGV0ZXIncyBjaGFuZ2VzLCBubyBhZGRpdGlvbmFsCj4+IHBhdGNoZXMuIFNvIHRoZSBkbWEg
-aXMgYmFyZWx5IHVzZWQgYXQgYWxsLgo+IAo+IEl0IHNlZW1lZCBzdXNwaWNpb3VzIHRvIG1lIGxv
-b2tpbmcgaGVyZToKPiBodHRwczovL2dpdGh1Yi5jb20vb21hcC1hdWRpby9saW51eC1hdWRpby9j
-b21taXQvNTJlOTE0Mzk1YWZlMzFhNzQwMWIzNTgxNGI2ZGFiZjNlZjQ2YTA1MiNkaWZmLTE2NjJh
-NGNjNTQ0ZDMyMmI2OGM1NDdjZmRjOTk0NDhjUjMxMgo+IGFzIHdhaXRfZm9yX2NvbXBsZXRpb25f
-dGltZW91dCBpcyByZXR1cm5pbmcgdGltZSByZW1haW5pbmcgYW5kIHplcm8gb24KPiB0aW1lb3V0
-IDotKQoKYWFyZ2gsIHllcywgeW91IGFyZSByaWdodC4uLgoKPiBGaXhlZCBpbiBuZXh0IHZlcnNp
-b24gYW5kIGFsc28gY2hhbmdlZCB0byB3YWl0X2Zvcl9jb21wbGV0aW9uX2lvX3RpbWVvdXQKPiB0
-byBnZXQgcHJvcGVyIHNjaGVkIHN0YXRzLgo+IEJ0dywgSSB0aGluayB3ZSBzaG91bGQgc3RvcCBE
-TUEgb24gdGltZW91dCBhcyB3ZSBhcmUgdW5tYXBwaW5nIERNQSByZWdpb24KPiBsYXRlciBhbmQg
-aXQgbWlnaHQgbm90IGJlaGF2ZSBuaWNlbHkgaWYgd2UgZG8gc28gd2hpbGUgRE1BIGlzIGV2ZW50
-dWFsbHkKPiBydW5uaW5nICh0aGF0J3MgZml4ZWQgdG9vKS4KPiAKPiBJIG1hZGUgUGV0ZXIncyBw
-YXRjaGVzIHBhcnQgb2YgbmV4dCB2ZXJzaW9uIGFuZCBlbmFibGVkIERNQSB1bmNvbmRpdGlvbmFs
-bHkuCj4gSXQgd29ya3MgbmljZWx5IG9uOgoKUHJldHR5IGNvb2whIFRoYW5rcyBmb3IgZG9pbmcg
-aXQhCgo+IE9GOiBmZHQ6IE1hY2hpbmUgbW9kZWw6IElHRVB2MiBSZXYuIEMgKFRJIE9NQVAgQU0v
-RE0zN3gpCj4gT01BUDM2MzAvRE0zNzMwIEVTMS4yIChsMmNhY2hlIGl2YSBzZ3ggbmVvbiBpc3Ag
-MTkybWh6X2NsaykKPiAuLi4KPiBvbWFwLWdwbWMgNmUwMDAwMDAuZ3BtYzogR1BNQyByZXZpc2lv
-biA1LjAKPiBncG1jX21lbV9pbml0OiBkaXNhYmxpbmcgY3MgMCBtYXBwZWQgYXQgMHgwLTB4MTAw
-MDAwMAo+IG9tYXAyLW9uZW5hbmQgMzAwMDAwMDAub25lbmFuZDogaW5pdGlhbGl6aW5nIG9uIENT
-MCAoMHgzMDAwMDAwMCksIHZhIGUwMDgwMDAwLCBETUEgbW9kZQo+IE11eGVkIE9uZU5BTkQoRERQ
-KSA1MTJNQiAxLjhWIDE2LWJpdCAoMHg1OCkKPiBPbmVOQU5EIHZlcnNpb24gPSAweDAwMzEKPiBT
-Y2FubmluZyBkZXZpY2UgZm9yIGJhZCBibG9ja3MKPiBPbmVOQU5EIGVyYXNlYmxvY2sgNTk3IGlz
-IGFuIGluaXRpYWwgYmFkIGJsb2NrCj4gT25lTkFORCBlcmFzZWJsb2NrIDExNTkgaXMgYW4gaW5p
-dGlhbCBiYWQgYmxvY2sKPiBPbmVOQU5EIGVyYXNlYmxvY2sgMjgxMiBpcyBhbiBpbml0aWFsIGJh
-ZCBibG9jawo+IG9tYXAyLW9uZW5hbmQgMzAwMDAwMDAub25lbmFuZDogb3B0aW1pemVkIHRpbWlu
-Z3MgZm9yIDgzIE1Iego+IDIgb2ZwYXJ0IHBhcnRpdGlvbnMgZm91bmQgb24gTVREIGRldmljZSAz
-MDAwMDAwMC5vbmVuYW5kCj4gQ3JlYXRpbmcgMiBNVEQgcGFydGl0aW9ucyBvbiAiMzAwMDAwMDAu
-b25lbmFuZCI6Cj4gMHgwMDAwMDAwMDAwMDAtMHgwMDAwMDAwODAwMDAgOiAiU1BMIgo+IDB4MDAw
-MDAwMDgwMDAwLTB4MDAwMDIwMDAwMDAwIDogIlVCSSIKPiAuLi4KPiAKPiBCYXNlZCBvbiB0aGlz
-IGV4cGVyaW1lbnQsIEknbGwgZGVsYXkgdjQgYSBiaXQgYW5kIGxlYXZlIERNQSBlbmFibGVkIGJ5
-Cj4gZGVmYXVsdC4gV2UgYXJlIGJyYXZlIGVub3VnaCBhbmQgd2FudCBzb21lIHRlc3RpbmcsIHJp
-Z2h0Pwo+IEl0IHdvdWxkIGJlIG5pY2UgaWYgc29tZW9uZSBjb3VsZCBwcm92aWRlIHNvbWUgYmVu
-Y2htYXJrcyB1c2luZyBQSU8KPiBhbmQgRE1BIG1vZGUuIEkgZG8gbm90IGV4cGVjdCBhbnkgZHJh
-bWF0aWMgY2hhbmdlLCBidXQga2VybmVsIGxhdGVuY2llcwo+IHNob3VsZCBkZWNyZWFzZSB3aGVu
-IGRvaW5nIGZsYXNoIEkvTy4KPiAKPiBCYXNlZCBvbiBhYm92ZSBJIGFsc28gdGhpbmsgUi9CIHBp
-biBzaG91bGQgYmUgaW4gb3JkaW5hcnkgR1BJTyBtb2RlLgo+IFBlcmhhcHMgdXNpbmcgZXh0ZXJu
-YWwgRE1BIHJlcXVlc3QgaXMgc29tZWhvdyBwb3NpYmxlLCBidXQgaXQgaXMgbm90IGNsZWFyCj4g
-dG8gbWUgaG93IGFmdGVyIHlldCBhbm90aGVyIHJlYWRpbmcgb2YgU0RNQSwgR1BNQyBhbmQgT25l
-TkFORCBkb2N1bWVudGF0aW9uLAo+IHNvIEknbGwgaGFwcGlseSBsZWF2ZSBpdCBmb3Igb3RoZXJz
-Lgo+IAo+IEJ0dywgdXNpbmcgUi9CIHBpbiB3b3VsZCBlbGltaXRhdGUgbGF0ZW5jaWVzIGNhdXNl
-ZCBieSBidXN5IGxvb3Bpbmcgd2hpbGUKPiB3YWl0aW5nIGZvciBvbmVuYW5kIGNvbW1hbmQgdG8g
-Y29tcGxldGUuIE5pY2UgdG9kbyBmb3Igc29tZW9uZSB3aXRoIGEgbG90Cj4gb2Ygc3BhcmUgdGlt
-ZSA6LSkKPiAKPiBCZXN0IHJlZ2FyZHMsCj4gCWxhZGlzCj4gCgoKLS0gClDDqXRlcgoKVGV4YXMg
-SW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAyMiwgMDAxODAgSGVsc2lua2ku
-ClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlwYWlra2EvRG9taWNpbGU6IEhl
-bHNpbmtpCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4IE1URCBkaXNjdXNzaW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5m
-cmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW10ZC8K
+On 11/11/2017 05:38 PM, Johan Hovold wrote:
+> A helper purported to look up a child node based on its name was using
+> the wrong of-helper and ended up prematurely freeing the parent of-node
+> while leaking any matching node.
+> 
+> To make things worse, any matching node would not even necessarily be a
+> child node as the whole device tree was searched depth-first starting at
+> the parent.
+
+I think it is the same case as with the twl6040, there were no
+of_get_child_by_name() when this was done...
+
+Thanks for fixing it!
+
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> 
+> Fixes: 019a7e6b7b31 ("mfd: twl4030-audio: Add DT support")
+> Cc: stable <stable@vger.kernel.org>     # 3.7
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  drivers/mfd/twl4030-audio.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
+> index da16bf45fab4..dc94ffc6321a 100644
+> --- a/drivers/mfd/twl4030-audio.c
+> +++ b/drivers/mfd/twl4030-audio.c
+> @@ -159,13 +159,18 @@ unsigned int twl4030_audio_get_mclk(void)
+>  EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
+>  
+>  static bool twl4030_audio_has_codec(struct twl4030_audio_data *pdata,
+> -			      struct device_node *node)
+> +			      struct device_node *parent)
+>  {
+> +	struct device_node *node;
+> +
+>  	if (pdata && pdata->codec)
+>  		return true;
+>  
+> -	if (of_find_node_by_name(node, "codec"))
+> +	node = of_get_child_by_name(parent, "codec");
+> +	if (node) {
+> +		of_node_put(node);
+>  		return true;
+> +	}
+>  
+>  	return false;
+>  }
+> 
+
+
+-- 
+Péter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
