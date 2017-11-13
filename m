@@ -1,105 +1,76 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
- implementation
-Date: Mon, 13 Nov 2017 16:27:17 +0100
-Message-ID: <20171113152717.fj2vgga4gzfr3q2b@lenoch>
-References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
- <20171109091529.x3pqqvbiywj5aulo@lenoch>
- <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
- <20171110100443.zqk7uzxoaq4eyntk@lenoch>
- <20171110152423.GM28152@atomide.com>
- <d498102d-11ff-cdd0-430e-0ea650c2a12b@ti.com>
- <20171113121541.2tlezfjwk5bptakp@lenoch>
- <c13c503c-9435-7e88-7700-40bfcf806231@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH v5 2/2] memory: ti-emif-sram: introduce relocatable
+ suspend/resume handlers
+Date: Mon, 13 Nov 2017 09:07:33 -0800
+Message-ID: <2814bd15-d783-6e54-da0c-4b4ea0a31705@oracle.com>
+References: <20171013205915.9652-1-d-gerlach@ti.com>
+ <20171013205915.9652-3-d-gerlach@ti.com>
+ <19256977-40e1-a972-4de8-838a8da863cc@oracle.com>
+ <20171110163922.GK28231@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <c13c503c-9435-7e88-7700-40bfcf806231@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171110163922.GK28231@n2100.armlinux.org.uk>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: devicetree@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Tony Lindgren <tony@atomide.com>, Keerthy J <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>, Rob Herring <robh+dt@kernel.org>, Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 13, 2017 at 04:36:41PM +0200, Peter Ujfalusi wrote:
+On 11/10/2017 8:39 AM, Russell King - ARM Linux wrote:
+> On Mon, Oct 16, 2017 at 08:31:59AM -0700, Santosh Shilimkar wrote:
+>> Hi Russell,
+>>
+>> On 10/13/2017 1:59 PM, Dave Gerlach wrote:
+>>> Certain SoCs like Texas Instruments AM335x and AM437x require parts
+>>> of the EMIF PM code to run late in the suspend sequence from SRAM,
+>>> such as saving and restoring the EMIF context and placing the memory
+>>> into self-refresh.
+>>>
+>>> One requirement for these SoCs to suspend and enter its lowest power
+>>> mode, called DeepSleep0, is that the PER power domain must be shut off.
+>>> Because the EMIF (DDR Controller) resides within this power domain, it
+>>> will lose context during a suspend operation, so we must save it so we
+>>> can restore once we resume. However, we cannot execute this code from
+>>> external memory, as it is not available at this point, so the code must
+>>> be executed late in the suspend path from SRAM.
+>>>
+>>> This patch introduces a ti-emif-sram driver that includes several
+>>> functions written in ARM ASM that are relocatable so the PM SRAM
+>>> code can use them. It also allocates a region of writable SRAM to
+>>> be used by the code running in the executable region of SRAM to save
+>>> and restore the EMIF context. It can export a table containing the
+>>> absolute addresses of the available PM functions so that other SRAM
+>>> code can branch to them. This code is required for suspend/resume on
+>>> AM335x and AM437x to work.
+>>>
+>>> In addition to this, to be able to share data structures between C and
+>>> the ti-emif-sram-pm assembly code, we can automatically generate all of
+>>> the C struct member offsets and sizes as macros by processing
+>>> emif-asm-offsets.c into assembly code and then extracting the relevant
+>>> data as is done for the generated platform asm-offsets.h files.
+>>>
+>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>> ---
+>>> v4->v5:
+>>> * Simplify Makefile to generate include/generated/ti-emif-asm-offsets.h
+>>>
+>> If you are happy with this version from Dave, can I get your ack please?
+>> I can add this to the driver-soc then.
 > 
+> Does it need my ack anymore?  It doesn't touch anything in arch/arm.
+> If you still want it, then... notwithstanding the loss of type checking
+> that fncpy() gave and the new sram stuff messes up...
 > 
-> On 2017-11-13 14:15, Ladislav Michl wrote:
-> > On Mon, Nov 13, 2017 at 10:22:12AM +0200, Peter Ujfalusi wrote:
-> >>
-> >> On 2017-11-10 17:24, Tony Lindgren wrote:
-> >>> FYI, the gpio pin for onenand should not be in gpio mode. It should
-> >>> be used as external dma request line to automatically trigger new
-> >>> transfers like we do for tusb6010 dma. But of course it's possible
-> >>> that onenand has other issues too preventing the dma usage.
-> >>
-> >> My conversion to DMAengine is drop in replacement of the existing
-> >> implementation: memcpy w/o hardware synchronization event.
-> >>
-> >> But I think it should be possible to use HW sync (slave DMA) with the
-> >> src/dst_port_window in a similar way we do with the tusb6010.
-> > 
-> > How do you want to synchronize it from OneNAND side?
+> Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
 > 
-> _if_ the pin used as GPIO interrupt has ext DMA request mode then we can
-> switch it, in the DT bindings we give the extDMA request as sync event
-> and convert the driver: remove GPIO irq handling and have slave DMA
-> setup with port_window to do kind of memcpy with HW synchronization.
-
-Well, the pin used as GPIO interrupt has this purpose, according to specs:
-"The OneNAND INT pin is an output pin function used to notify the Host when
-a command has been completed. This provides a hardware method of signaling
-the completion of a program, erase, or load operation".
-
-See for example section 3.9 (and later) of specs:
-https://www.abcelectronique.com/composants/telechargement_datasheet.php?id=1089396&part-number=KFH2G16Q2A-DEBx
-
-> It might be possible... It was possible with tusb6010, but that one was
-> already using hw sync with the legacy omap-dma API.
-
-Based on above, it seems there's long and hard way :)
-
-> >> But that can be done in a followup series, but what to do in case of old
-> >> DT where the dmas/dma-names properties are no there?
-> > 
-> > These will not work anyway as they do not have compatible property.
-> > Also note, that DMA is currently not used, yet nobody complained.
-> 
-> ;)
-> 
-> >> Hmm, extending the dma_slave_map in mach-omap1/2/dma.c might work just fine.
-> >>
-> >> Having said that, there might have been a reason why the original
-> >> implementation was not using DMA request to trigger the memcpy... The
-> >> legacy omap-dma API would have allowed that as you kind of open code
-> >> things with much flexibility.
-> > 
-> > That's mainly problem of OneNAND driver itself, not oma-dma. But do we
-> > really want to invest more time to this obsolete technology?
-> > 
-> > Of course, I would love to see my 10+ years old boards running faster,
-> > but it seems unrealistic to me to get enough manpower to finish this task.
-> 
-> Valid point. I would - for now - only do the DMAengine memcpy conversion
-> with the GPIO irq and investigate the slave DMA support after that.
-
-Here it would be nice to have the same documentation Nokia had at the time
-writing support for n8x0 as they clearly used few undocumented features.
-Please see section 3.9.5 of above mentioned specs. Seems DMA slave should
-be triggered by RDY not INT pin.
-
-Best regards,
-	ladis
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Thanks Russell !!
