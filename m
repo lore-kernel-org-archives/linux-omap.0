@@ -1,70 +1,443 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
- implementation
-Date: Mon, 13 Nov 2017 13:15:41 +0100
-Message-ID: <20171113121541.2tlezfjwk5bptakp@lenoch>
-References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
- <20171109091529.x3pqqvbiywj5aulo@lenoch>
- <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
- <20171110100443.zqk7uzxoaq4eyntk@lenoch>
- <20171110152423.GM28152@atomide.com>
- <d498102d-11ff-cdd0-430e-0ea650c2a12b@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv3 2/3] EDAC: ti: add support for TI keystone and DRA7xx EDAC
+Date: Mon, 13 Nov 2017 15:08:10 +0200
+Message-ID: <1510578490-14510-1-git-send-email-t-kristo@ti.com>
+References: <1510087139-21885-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <d498102d-11ff-cdd0-430e-0ea650c2a12b@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1510087139-21885-3-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: bp@alien8.de, mchehab@kernel.org, linux-edac@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: tony@atomide.com, ssantosh@kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 13, 2017 at 10:22:12AM +0200, Peter Ujfalusi wrote:
-> 
-> On 2017-11-10 17:24, Tony Lindgren wrote:
-> > FYI, the gpio pin for onenand should not be in gpio mode. It should
-> > be used as external dma request line to automatically trigger new
-> > transfers like we do for tusb6010 dma. But of course it's possible
-> > that onenand has other issues too preventing the dma usage.
-> 
-> My conversion to DMAengine is drop in replacement of the existing
-> implementation: memcpy w/o hardware synchronization event.
-> 
-> But I think it should be possible to use HW sync (slave DMA) with the
-> src/dst_port_window in a similar way we do with the tusb6010.
+TI Keystone and DRA7xx SoCs have support for EDAC on DDR3 memory that can
+correct one bit errors and detect two bit errors. Add EDAC driver for this
+feature which plugs into the generic kernel EDAC framework.
 
-How do you want to synchronize it from OneNAND side?
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+v3:
+ * dropped the atomic edac_id counter
+ * added _emif_get_id which calculates the emif ID based on the sorted
+   address order of all emif instances
+ * changed the order of irq allocation and edac_mc_add_mc() within probe
 
-> But that can be done in a followup series, but what to do in case of old
-> DT where the dmas/dma-names properties are no there?
+v2:
+ * fixed checkpatch errors
+ * improved error cleanup for failed probe
+ * converted to use edac_printk
+ * added MAINTAINERS entry
+ * dropped mutex and used atomic counter for ID
+ * ... and some minor cosmetic changes
+ 
+ MAINTAINERS            |   6 +
+ drivers/edac/Kconfig   |   7 +
+ drivers/edac/Makefile  |   1 +
+ drivers/edac/ti_edac.c | 340 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 354 insertions(+)
+ create mode 100644 drivers/edac/ti_edac.c
 
-These will not work anyway as they do not have compatible property.
-Also note, that DMA is currently not used, yet nobody complained.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 2281af4..c46ed26 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5028,6 +5028,12 @@ L:	linux-edac@vger.kernel.org
+ S:	Maintained
+ F:	drivers/edac/skx_edac.c
+ 
++EDAC-TI
++M:	Tero Kristo <t-kristo@ti.com>
++L:	linux-edac@vger.kernel.org
++S:	Maintained
++F:	drivers/edac/ti_edac.c
++
+ EDIROL UA-101/UA-1000 DRIVER
+ M:	Clemens Ladisch <clemens@ladisch.de>
+ L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
+diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
+index 96afb2a..3c40170 100644
+--- a/drivers/edac/Kconfig
++++ b/drivers/edac/Kconfig
+@@ -457,4 +457,11 @@ config EDAC_XGENE
+ 	  Support for error detection and correction on the
+ 	  APM X-Gene family of SOCs.
+ 
++config EDAC_TI
++	tristate "Texas Instruments DDR3 ECC Controller"
++	depends on ARCH_KEYSTONE || SOC_DRA7XX
++	help
++	  Support for error detection and correction on the
++          TI SoCs.
++
+ endif # EDAC
+diff --git a/drivers/edac/Makefile b/drivers/edac/Makefile
+index 0fd9ffa..b54912e 100644
+--- a/drivers/edac/Makefile
++++ b/drivers/edac/Makefile
+@@ -78,3 +78,4 @@ obj-$(CONFIG_EDAC_THUNDERX)		+= thunderx_edac.o
+ obj-$(CONFIG_EDAC_ALTERA)		+= altera_edac.o
+ obj-$(CONFIG_EDAC_SYNOPSYS)		+= synopsys_edac.o
+ obj-$(CONFIG_EDAC_XGENE)		+= xgene_edac.o
++obj-$(CONFIG_EDAC_TI)			+= ti_edac.o
+diff --git a/drivers/edac/ti_edac.c b/drivers/edac/ti_edac.c
+new file mode 100644
+index 0000000..bd32b12
+--- /dev/null
++++ b/drivers/edac/ti_edac.c
+@@ -0,0 +1,340 @@
++/*
++ * Copyright (C) 2017 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * Texas Instruments DDR3 ECC error correction and detection driver
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/init.h>
++#include <linux/edac.h>
++#include <linux/io.h>
++#include <linux/interrupt.h>
++#include <linux/of_address.h>
++#include <linux/of_device.h>
++#include <linux/module.h>
++
++#include "edac_module.h"
++
++/* EMIF controller registers */
++#define EMIF_SDRAM_CONFIG		0x008
++#define EMIF_IRQ_STATUS			0x0ac
++#define EMIF_IRQ_ENABLE_SET		0x0b4
++#define EMIF_ECC_CTRL			0x110
++#define EMIF_1B_ECC_ERR_CNT		0x130
++#define EMIF_1B_ECC_ERR_THRSH		0x134
++#define EMIF_1B_ECC_ERR_ADDR_LOG	0x13c
++#define EMIF_2B_ECC_ERR_ADDR_LOG	0x140
++
++/* Bit definitions for EMIF_SDRAM_CONFIG */
++#define SDRAM_TYPE_SHIFT		29
++#define SDRAM_TYPE_MASK			GENMASK(31, 29)
++#define SDRAM_TYPE_DDR3			(3 << SDRAM_TYPE_SHIFT)
++#define SDRAM_TYPE_DDR2			(2 << SDRAM_TYPE_SHIFT)
++#define SDRAM_NARROW_MODE_MASK		GENMASK(15, 14)
++#define SDRAM_K2_NARROW_MODE_SHIFT	12
++#define SDRAM_K2_NARROW_MODE_MASK	GENMASK(13, 12)
++#define SDRAM_ROWSIZE_SHIFT		7
++#define SDRAM_ROWSIZE_MASK		GENMASK(9, 7)
++#define SDRAM_IBANK_SHIFT		4
++#define SDRAM_IBANK_MASK		GENMASK(6, 4)
++#define SDRAM_K2_IBANK_SHIFT		5
++#define SDRAM_K2_IBANK_MASK		GENMASK(6, 5)
++#define SDRAM_K2_EBANK_SHIFT		3
++#define SDRAM_K2_EBANK_MASK		BIT(SDRAM_K2_EBANK_SHIFT)
++#define SDRAM_PAGESIZE_SHIFT		0
++#define SDRAM_PAGESIZE_MASK		GENMASK(2, 0)
++#define SDRAM_K2_PAGESIZE_SHIFT		0
++#define SDRAM_K2_PAGESIZE_MASK		GENMASK(1, 0)
++
++#define EMIF_1B_ECC_ERR_THRSH_SHIFT	24
++
++/* IRQ bit definitions */
++#define EMIF_1B_ECC_ERR			BIT(5)
++#define EMIF_2B_ECC_ERR			BIT(4)
++#define EMIF_WR_ECC_ERR			BIT(3)
++#define EMIF_SYS_ERR			BIT(0)
++/* Bit 31 enables ECC and 28 enables RMW */
++#define ECC_ENABLED			(BIT(31) | BIT(28))
++
++#define EDAC_MOD_NAME			"ti-emif-edac"
++
++enum {
++	EMIF_TYPE_DRA7,
++	EMIF_TYPE_K2
++};
++
++struct ti_edac {
++	void __iomem *reg;
++};
++
++static u32 ti_edac_readl(struct ti_edac *edac, u16 offset)
++{
++	return readl_relaxed(edac->reg + offset);
++}
++
++static void ti_edac_writel(struct ti_edac *edac, u32 val, u16 offset)
++{
++	writel_relaxed(val, edac->reg + offset);
++}
++
++static irqreturn_t ti_edac_isr(int irq, void *data)
++{
++	struct mem_ctl_info *mci = data;
++	struct ti_edac *edac = mci->pvt_info;
++	u32 irq_status;
++	u32 err_addr;
++	int err_count;
++
++	irq_status = ti_edac_readl(edac, EMIF_IRQ_STATUS);
++
++	if (irq_status & EMIF_1B_ECC_ERR) {
++		err_addr = ti_edac_readl(edac, EMIF_1B_ECC_ERR_ADDR_LOG);
++		err_count = ti_edac_readl(edac, EMIF_1B_ECC_ERR_CNT);
++		ti_edac_writel(edac, err_count, EMIF_1B_ECC_ERR_CNT);
++		edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, err_count,
++				     err_addr >> PAGE_SHIFT,
++				     err_addr & ~PAGE_MASK, -1, 0, 0, 0,
++				     mci->ctl_name, "1B");
++	}
++
++	if (irq_status & EMIF_2B_ECC_ERR) {
++		err_addr = ti_edac_readl(edac, EMIF_2B_ECC_ERR_ADDR_LOG);
++		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
++				     err_addr >> PAGE_SHIFT,
++				     err_addr & ~PAGE_MASK, -1, 0, 0, 0,
++				     mci->ctl_name, "2B");
++	}
++
++	if (irq_status & EMIF_WR_ECC_ERR)
++		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
++				     0, 0, -1, 0, 0, 0,
++				     mci->ctl_name, "WR");
++
++	ti_edac_writel(edac, irq_status, EMIF_IRQ_STATUS);
++
++	return IRQ_HANDLED;
++}
++
++static void ti_edac_setup_dimm(struct mem_ctl_info *mci, u32 type)
++{
++	struct dimm_info *dimm;
++	struct ti_edac *edac = mci->pvt_info;
++	int bits;
++	u32 val;
++	u32 memsize;
++
++	dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms, mci->n_layers, 0, 0, 0);
++
++	val = ti_edac_readl(edac, EMIF_SDRAM_CONFIG);
++
++	if (type == EMIF_TYPE_DRA7) {
++		bits = ((val & SDRAM_PAGESIZE_MASK) >> SDRAM_PAGESIZE_SHIFT) + 8;
++		bits += ((val & SDRAM_ROWSIZE_MASK) >> SDRAM_ROWSIZE_SHIFT) + 9;
++		bits += (val & SDRAM_IBANK_MASK) >> SDRAM_IBANK_SHIFT;
++
++		if (val & SDRAM_NARROW_MODE_MASK) {
++			bits++;
++			dimm->dtype = DEV_X16;
++		} else {
++			bits += 2;
++			dimm->dtype = DEV_X32;
++		}
++	} else {
++		bits = 16;
++		bits += ((val & SDRAM_K2_PAGESIZE_MASK) >>
++			SDRAM_K2_PAGESIZE_SHIFT) + 8;
++		bits += (val & SDRAM_K2_IBANK_MASK) >> SDRAM_K2_IBANK_SHIFT;
++		bits += (val & SDRAM_K2_EBANK_MASK) >> SDRAM_K2_EBANK_SHIFT;
++
++		val = (val & SDRAM_K2_NARROW_MODE_MASK) >>
++			SDRAM_K2_NARROW_MODE_SHIFT;
++		switch (val) {
++		case 0:
++			bits += 3;
++			dimm->dtype = DEV_X64;
++			break;
++		case 1:
++			bits += 2;
++			dimm->dtype = DEV_X32;
++			break;
++		case 2:
++			bits++;
++			dimm->dtype = DEV_X16;
++			break;
++		}
++	}
++
++	memsize = 1 << bits;
++
++	dimm->nr_pages = memsize >> PAGE_SHIFT;
++	dimm->grain = 4;
++	if ((val & SDRAM_TYPE_MASK) == SDRAM_TYPE_DDR2)
++		dimm->mtype = MEM_DDR2;
++	else
++		dimm->mtype = MEM_DDR3;
++
++	val = ti_edac_readl(edac, EMIF_ECC_CTRL);
++	if (val & ECC_ENABLED)
++		dimm->edac_mode = EDAC_SECDED;
++	else
++		dimm->edac_mode = EDAC_NONE;
++}
++
++static const struct of_device_id ti_edac_of_match[] = {
++	{ .compatible = "ti,emif-keystone", .data = (void *)EMIF_TYPE_K2 },
++	{ .compatible = "ti,emif-dra7xx", .data = (void *)EMIF_TYPE_DRA7 },
++	{},
++};
++
++static int _emif_get_id(struct device_node *node)
++{
++	const __be32 *addrp;
++	u32 addr;
++	u32 my_addr;
++	int my_id = 0;
++	struct device_node *np;
++
++	addrp = of_get_address(node, 0, NULL, NULL);
++	my_addr = (u32)of_translate_address(node, addrp);
++
++	for_each_matching_node(np, ti_edac_of_match) {
++		if (np == node)
++			continue;
++
++		addrp = of_get_address(np, 0, NULL, NULL);
++		addr = (u32)of_translate_address(np, addrp);
++
++		pr_info("%s: addr=%x, my_addr=%x\n", __func__,
++			addr, my_addr);
++
++		if (addr < my_addr)
++			my_id++;
++	}
++
++	return my_id;
++}
++
++static int ti_edac_probe(struct platform_device *pdev)
++{
++	int error_irq = 0, ret = -ENODEV;
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	void __iomem *reg;
++	struct mem_ctl_info *mci;
++	struct edac_mc_layer layers[1];
++	const struct of_device_id *id;
++	struct ti_edac *edac;
++	int emif_id;
++
++	id = of_match_device(ti_edac_of_match, &pdev->dev);
++	if (!id)
++		return -ENODEV;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	reg = devm_ioremap_resource(dev, res);
++	if (IS_ERR(reg)) {
++		edac_printk(KERN_ERR, EDAC_MOD_NAME,
++			    "EMIF controller regs not defined\n");
++		return PTR_ERR(reg);
++	}
++
++	layers[0].type = EDAC_MC_LAYER_ALL_MEM;
++	layers[0].size = 1;
++
++	/* Allocate ID number for our EMIF controller */
++	emif_id = _emif_get_id(pdev->dev.of_node);
++	if (emif_id < 0)
++		return -EINVAL;
++
++	mci = edac_mc_alloc(emif_id, 1, layers, sizeof(*edac));
++	if (!mci)
++		return -ENOMEM;
++
++	mci->pdev = &pdev->dev;
++	edac = mci->pvt_info;
++	edac->reg = reg;
++	platform_set_drvdata(pdev, mci);
++
++	mci->mtype_cap = MEM_FLAG_DDR3 | MEM_FLAG_DDR2;
++	mci->edac_ctl_cap = EDAC_FLAG_SECDED | EDAC_FLAG_NONE;
++	mci->mod_name = EDAC_MOD_NAME;
++	mci->ctl_name = id->compatible;
++	mci->dev_name = dev_name(&pdev->dev);
++
++	/* Setup memory layout */
++	ti_edac_setup_dimm(mci, (u32)(id->data));
++
++	/* add EMIF ECC error handler */
++	error_irq = platform_get_irq(pdev, 0);
++	if (!error_irq) {
++		edac_printk(KERN_ERR, EDAC_MOD_NAME,
++			    "EMIF irq number not defined.\n");
++		goto err;
++	}
++
++	ret = devm_request_irq(dev, error_irq, ti_edac_isr, 0,
++			       "emif-edac-irq", mci);
++	if (ret) {
++		edac_printk(KERN_ERR, EDAC_MOD_NAME,
++			    "request_irq fail for EMIF EDAC irq\n");
++		goto err;
++	}
++
++	ret = edac_mc_add_mc(mci);
++	if (ret) {
++		edac_printk(KERN_ERR, EDAC_MOD_NAME,
++			    "Failed to register mci: %d.\n", ret);
++		goto err;
++	}
++
++	/* Generate an interrupt with each 1b error */
++	ti_edac_writel(edac, 1 << EMIF_1B_ECC_ERR_THRSH_SHIFT,
++		       EMIF_1B_ECC_ERR_THRSH);
++
++	/* Enable interrupts */
++	ti_edac_writel(edac,
++		       EMIF_1B_ECC_ERR | EMIF_2B_ECC_ERR | EMIF_WR_ECC_ERR,
++		       EMIF_IRQ_ENABLE_SET);
++
++	return 0;
++
++err:
++	edac_mc_free(mci);
++	return ret;
++}
++
++static int ti_edac_remove(struct platform_device *pdev)
++{
++	struct mem_ctl_info *mci = platform_get_drvdata(pdev);
++
++	edac_mc_del_mc(&pdev->dev);
++	edac_mc_free(mci);
++
++	return 0;
++}
++
++static struct platform_driver ti_edac_driver = {
++	.probe = ti_edac_probe,
++	.remove = ti_edac_remove,
++	.driver = {
++		   .name = EDAC_MOD_NAME,
++		   .of_match_table = ti_edac_of_match,
++	},
++};
++
++module_platform_driver(ti_edac_driver);
++
++MODULE_AUTHOR("Texas Instruments Inc.");
++MODULE_DESCRIPTION("EDAC Driver for Texas Instruments DDR3 MC");
++MODULE_LICENSE("GPL v2");
+-- 
+1.9.1
 
-> Hmm, extending the dma_slave_map in mach-omap1/2/dma.c might work just fine.
-> 
-> Having said that, there might have been a reason why the original
-> implementation was not using DMA request to trigger the memcpy... The
-> legacy omap-dma API would have allowed that as you kind of open code
-> things with much flexibility.
-
-That's mainly problem of OneNAND driver itself, not oma-dma. But do we
-really want to invest more time to this obsolete technology?
-
-Of course, I would love to see my 10+ years old boards running faster,
-but it seems unrealistic to me to get enough manpower to finish this task.
-
-	ladis
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
