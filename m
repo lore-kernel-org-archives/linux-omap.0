@@ -1,14 +1,14 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 04/16] mtd: onenand: omap2: Remove regulator support
-Date: Tue, 14 Nov 2017 17:13:46 +0200
-Message-ID: <72e82d4e-acd1-b91c-0379-783fd8509ebc@ti.com>
+Subject: Re: [PATCH v4 03/16] ARM: dts: omap3-igep: Update onenand node timings
+Date: Tue, 14 Nov 2017 17:12:28 +0200
+Message-ID: <60c45fea-0eaf-8860-a31e-ff962da581a8@ti.com>
 References: <20171111211206.465pgorrjp3eyix6@lenoch>
- <20171111211908.66xd2bw4xoeudz7g@lenoch>
+ <20171111211831.hj7rynxwo6hx6hox@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171111211908.66xd2bw4xoeudz7g@lenoch>
+In-Reply-To: <20171111211831.hj7rynxwo6hx6hox@lenoch>
 Content-Language: en-GB
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
@@ -23,9 +23,9 @@ To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-
 Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/11/17 23:19, Ladislav Michl wrote:
-> As no platform data user sets regulator_can_sleep, regulator code is
-> no-op and can be deleted.
+On 11/11/17 23:18, Ladislav Michl wrote:
+> Update node timings to be compatible with actual chip used -
+> gpmc_cs_show_timings utilized to dump values.
 > 
 > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 
@@ -33,105 +33,63 @@ Acked-by: Roger Quadros <rogerq@ti.com>
 
 > ---
 >  Changes:
->  -v2: new patch
->  -v3: none
->  -v4: none
+>  -v4: new patch
 > 
->  drivers/mtd/onenand/omap2.c | 42 +-----------------------------------------
->  1 file changed, 1 insertion(+), 41 deletions(-)
+>  arch/arm/boot/dts/omap3-igep.dtsi | 30 +++++++++++++++---------------
+>  1 file changed, 15 insertions(+), 15 deletions(-)
 > 
-> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> index 24a1388d3031..a03e1fe4aa48 100644
-> --- a/drivers/mtd/onenand/omap2.c
-> +++ b/drivers/mtd/onenand/omap2.c
-> @@ -34,7 +34,6 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> -#include <linux/regulator/consumer.h>
->  #include <linux/gpio.h>
+> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+> index 4929ba1cb9d3..1e4b8d5c7572 100644
+> --- a/arch/arm/boot/dts/omap3-igep.dtsi
+> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+> @@ -144,32 +144,32 @@
+>  		gpmc,sync-read;
+>  		gpmc,sync-write;
+>  		gpmc,burst-length = <16>;
+> -		gpmc,burst-read;
+>  		gpmc,burst-wrap;
+> +		gpmc,burst-read;
+>  		gpmc,burst-write;
+>  		gpmc,device-width = <2>; /* GPMC_DEVWIDTH_16BIT */
+>  		gpmc,mux-add-data = <2>; /* GPMC_MUX_AD */
+>  		gpmc,cs-on-ns = <0>;
+> -		gpmc,cs-rd-off-ns = <87>;
+> -		gpmc,cs-wr-off-ns = <87>;
+> +		gpmc,cs-rd-off-ns = <96>;
+> +		gpmc,cs-wr-off-ns = <96>;
+>  		gpmc,adv-on-ns = <0>;
+> -		gpmc,adv-rd-off-ns = <10>;
+> -		gpmc,adv-wr-off-ns = <10>;
+> -		gpmc,oe-on-ns = <15>;
+> -		gpmc,oe-off-ns = <87>;
+> +		gpmc,adv-rd-off-ns = <12>;
+> +		gpmc,adv-wr-off-ns = <12>;
+> +		gpmc,oe-on-ns = <18>;
+> +		gpmc,oe-off-ns = <96>;
+>  		gpmc,we-on-ns = <0>;
+> -		gpmc,we-off-ns = <87>;
+> -		gpmc,rd-cycle-ns = <112>;
+> -		gpmc,wr-cycle-ns = <112>;
+> -		gpmc,access-ns = <81>;
+> -		gpmc,page-burst-access-ns = <15>;
+> +		gpmc,we-off-ns = <96>;
+> +		gpmc,rd-cycle-ns = <114>;
+> +		gpmc,wr-cycle-ns = <114>;
+> +		gpmc,access-ns = <90>;
+> +		gpmc,page-burst-access-ns = <12>;
+>  		gpmc,bus-turnaround-ns = <0>;
+>  		gpmc,cycle2cycle-delay-ns = <0>;
+>  		gpmc,wait-monitoring-ns = <0>;
+> -		gpmc,clk-activation-ns = <5>;
+> +		gpmc,clk-activation-ns = <6>;
+>  		gpmc,wr-data-mux-bus-ns = <30>;
+> -		gpmc,wr-access-ns = <81>;
+> -		gpmc,sync-clk-ps = <15000>;
+> +		gpmc,wr-access-ns = <90>;
+> +		gpmc,sync-clk-ps = <12000>;
 >  
->  #include <asm/mach/flash.h>
-> @@ -59,7 +58,6 @@ struct omap2_onenand {
->  	int dma_channel;
->  	int freq;
->  	int (*setup)(void __iomem *base, int *freq_ptr);
-> -	struct regulator *regulator;
->  	u8 flags;
->  };
->  
-> @@ -583,30 +581,6 @@ static void omap2_onenand_shutdown(struct platform_device *pdev)
->  	memset((__force void *)c->onenand.base, 0, ONENAND_BUFRAM_SIZE);
->  }
->  
-> -static int omap2_onenand_enable(struct mtd_info *mtd)
-> -{
-> -	int ret;
-> -	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
-> -
-> -	ret = regulator_enable(c->regulator);
-> -	if (ret != 0)
-> -		dev_err(&c->pdev->dev, "can't enable regulator\n");
-> -
-> -	return ret;
-> -}
-> -
-> -static int omap2_onenand_disable(struct mtd_info *mtd)
-> -{
-> -	int ret;
-> -	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
-> -
-> -	ret = regulator_disable(c->regulator);
-> -	if (ret != 0)
-> -		dev_err(&c->pdev->dev, "can't disable regulator\n");
-> -
-> -	return ret;
-> -}
-> -
->  static int omap2_onenand_probe(struct platform_device *pdev)
->  {
->  	struct omap_onenand_platform_data *pdata;
-> @@ -726,22 +700,11 @@ static int omap2_onenand_probe(struct platform_device *pdev)
->  		}
->  	}
->  
-> -	if (pdata->regulator_can_sleep) {
-> -		c->regulator = regulator_get(&pdev->dev, "vonenand");
-> -		if (IS_ERR(c->regulator)) {
-> -			dev_err(&pdev->dev,  "Failed to get regulator\n");
-> -			r = PTR_ERR(c->regulator);
-> -			goto err_release_dma;
-> -		}
-> -		c->onenand.enable = omap2_onenand_enable;
-> -		c->onenand.disable = omap2_onenand_disable;
-> -	}
-> -
->  	if (pdata->skip_initial_unlocking)
->  		this->options |= ONENAND_SKIP_INITIAL_UNLOCKING;
->  
->  	if ((r = onenand_scan(&c->mtd, 1)) < 0)
-> -		goto err_release_regulator;
-> +		goto err_release_dma;
->  
->  	r = mtd_device_register(&c->mtd, pdata ? pdata->parts : NULL,
->  				pdata ? pdata->nr_parts : 0);
-> @@ -754,8 +717,6 @@ static int omap2_onenand_probe(struct platform_device *pdev)
->  
->  err_release_onenand:
->  	onenand_release(&c->mtd);
-> -err_release_regulator:
-> -	regulator_put(c->regulator);
->  err_release_dma:
->  	if (c->dma_channel != -1)
->  		omap_free_dma(c->dma_channel);
-> @@ -779,7 +740,6 @@ static int omap2_onenand_remove(struct platform_device *pdev)
->  	struct omap2_onenand *c = dev_get_drvdata(&pdev->dev);
->  
->  	onenand_release(&c->mtd);
-> -	regulator_put(c->regulator);
->  	if (c->dma_channel != -1)
->  		omap_free_dma(c->dma_channel);
->  	omap2_onenand_shutdown(pdev);
+>  		#address-cells = <1>;
+>  		#size-cells = <1>;
 > 
 
 -- 
