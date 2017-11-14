@@ -1,31 +1,42 @@
 From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] clk/ti: Delete an error message for a failed memory
- allocation in two functions
-Date: Mon, 13 Nov 2017 17:59:16 -0800
-Message-ID: <20171114015916.GO11955@codeaurora.org>
-References: <120d01e4-5e58-e740-f6c7-c6835752aed3@users.sourceforge.net>
+Subject: Re: [PATCHv2 04/28] clk: ti: clkctrl: use fallback udelay approach
+ if timekeeping is suspended
+Date: Mon, 13 Nov 2017 18:06:43 -0800
+Message-ID: <20171114020643.GU11955@codeaurora.org>
+References: <1510218917-1725-1-git-send-email-t-kristo@ti.com>
+ <1510218917-1725-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <120d01e4-5e58-e740-f6c7-c6835752aed3@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, Michael Turquette <mturquette@baylibre.com>, Tero Kristo <t-kristo@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+In-Reply-To: <1510218917-1725-2-git-send-email-t-kristo@ti.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: mturquette@baylibre.com, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On 09/27, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Wed, 27 Sep 2017 19:14:01 +0200
+On 11/09, Tero Kristo wrote:
+> In certain cases it is possible that the timekeeping has been suspended
+> already when attempting to disable/enable a clkctrl clock. This will
+> happen at least on am43xx platform when attempting to enable / disable
+> the clockevent source itself, burping out a warning from timekeeping core.
 > 
-> Omit extra messages for a memory allocation failure in these functions.
+> The sequence of events leading to this:
+> -> timekeeping_suspend()
+>  -> clockevents_suspend()
+>   -> omap_clkevt_idle()
+>    -> omap_hwmod_idle()
+>     -> _omap4_clkctrl_clk_disable()
+>      -> _omap4_is_timeout()
 > 
-> This issue was detected by using the Coccinelle software.
+> Avoid the issue by checking if the timekeeping is suspended and using
+> the fallback udelay approach for checking timeouts.
 > 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-Applied to clk-next
+No Cc on timekeeping maintainers, but OK.
+
+Acked-by: Stephen Boyd <sboyd@codeaurora.org>
 
 -- 
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
