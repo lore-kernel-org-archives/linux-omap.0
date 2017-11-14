@@ -1,21 +1,15 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
- implementation
-Date: Tue, 14 Nov 2017 17:05:20 +0200
-Message-ID: <89008152-92e4-7e4a-0953-310a5240d50c@ti.com>
-References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
- <20171109091529.x3pqqvbiywj5aulo@lenoch>
- <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
- <20171110100443.zqk7uzxoaq4eyntk@lenoch> <20171110152423.GM28152@atomide.com>
- <d498102d-11ff-cdd0-430e-0ea650c2a12b@ti.com>
- <20171113121541.2tlezfjwk5bptakp@lenoch>
- <c13c503c-9435-7e88-7700-40bfcf806231@ti.com>
- <20171113152717.fj2vgga4gzfr3q2b@lenoch>
+Subject: Re: [PATCH v4 02/16] ARM: dts: OMAP2+: Add compatible property to
+ onenand node
+Date: Tue, 14 Nov 2017 17:11:47 +0200
+Message-ID: <ac576e3c-5df6-850f-c8d7-58aee395b3e9@ti.com>
+References: <20171111211206.465pgorrjp3eyix6@lenoch>
+ <20171111211735.2a3q5lw4itsltjrw@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171113152717.fj2vgga4gzfr3q2b@lenoch>
+In-Reply-To: <20171111211735.2a3q5lw4itsltjrw@lenoch>
 Content-Language: en-GB
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
@@ -26,100 +20,56 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 13/11/17 17:27, Ladislav Michl wrote:
-> On Mon, Nov 13, 2017 at 04:36:41PM +0200, Peter Ujfalusi wrote:
->>
->>
->> On 2017-11-13 14:15, Ladislav Michl wrote:
->>> On Mon, Nov 13, 2017 at 10:22:12AM +0200, Peter Ujfalusi wrote:
->>>>
->>>> On 2017-11-10 17:24, Tony Lindgren wrote:
->>>>> FYI, the gpio pin for onenand should not be in gpio mode. It should
->>>>> be used as external dma request line to automatically trigger new
->>>>> transfers like we do for tusb6010 dma. But of course it's possible
->>>>> that onenand has other issues too preventing the dma usage.
->>>>
->>>> My conversion to DMAengine is drop in replacement of the existing
->>>> implementation: memcpy w/o hardware synchronization event.
->>>>
->>>> But I think it should be possible to use HW sync (slave DMA) with the
->>>> src/dst_port_window in a similar way we do with the tusb6010.
->>>
->>> How do you want to synchronize it from OneNAND side?
->>
->> _if_ the pin used as GPIO interrupt has ext DMA request mode then we can
->> switch it, in the DT bindings we give the extDMA request as sync event
->> and convert the driver: remove GPIO irq handling and have slave DMA
->> setup with port_window to do kind of memcpy with HW synchronization.
-> 
-> Well, the pin used as GPIO interrupt has this purpose, according to specs:
-> "The OneNAND INT pin is an output pin function used to notify the Host when
-> a command has been completed. This provides a hardware method of signaling
-> the completion of a program, erase, or load operation".
-> 
-> See for example section 3.9 (and later) of specs:
-> https://www.abcelectronique.com/composants/telechargement_datasheet.php?id=1089396&part-number=KFH2G16Q2A-DEBx
-
-Also see section 7.1 Methods of Determining Interrupt Status.
-
-Based on that INT pin is analogous to NAND Read/Busy pin and has nothing to do
-with DMA.
-
-> 
->> It might be possible... It was possible with tusb6010, but that one was
->> already using hw sync with the legacy omap-dma API.
-> 
-> Based on above, it seems there's long and hard way :)
-> 
->>>> But that can be done in a followup series, but what to do in case of old
->>>> DT where the dmas/dma-names properties are no there?
->>>
->>> These will not work anyway as they do not have compatible property.
->>> Also note, that DMA is currently not used, yet nobody complained.
->>
->> ;)
->>
->>>> Hmm, extending the dma_slave_map in mach-omap1/2/dma.c might work just fine.
->>>>
->>>> Having said that, there might have been a reason why the original
->>>> implementation was not using DMA request to trigger the memcpy... The
->>>> legacy omap-dma API would have allowed that as you kind of open code
->>>> things with much flexibility.
->>>
->>> That's mainly problem of OneNAND driver itself, not oma-dma. But do we
->>> really want to invest more time to this obsolete technology?
->>>
->>> Of course, I would love to see my 10+ years old boards running faster,
->>> but it seems unrealistic to me to get enough manpower to finish this task.
->>
->> Valid point. I would - for now - only do the DMAengine memcpy conversion
->> with the GPIO irq and investigate the slave DMA support after that.
-> 
-> Here it would be nice to have the same documentation Nokia had at the time
-> writing support for n8x0 as they clearly used few undocumented features.
-> Please see section 3.9.5 of above mentioned specs. Seems DMA slave should
-> be triggered by RDY not INT pin.
-
-Correct. For RDY pin usage See 3.7.3 Handshaking Operation
-
-"The handshaking feature allows the host system to simply monitor the RDY signal from the device to determine
-when the initial word of burst data is ready to be read."
-
-> 
-> Best regards,
-> 	ladis
-> 
-
--- 
-cheers,
--roger
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+77u/ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgw
+IEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0Rv
+bWljaWxlOiBIZWxzaW5raQoKT24gMTEvMTEvMTcgMjM6MTcsIExhZGlzbGF2IE1pY2hsIHdyb3Rl
+Ogo+IE9NQVAgb25lbmFuZCBub2RlcyBhcmUgbWlzc2luZyBjb21wYXRpYmxlIHByb3BlcnR5LCBh
+ZGQgaXQuCj4gCj4gU2lnbmVkLW9mZi1ieTogTGFkaXNsYXYgTWljaGwgPGxhZGlzQGxpbnV4LW1p
+cHMub3JnPgoKQWNrZWQtYnk6IFJvZ2VyIFF1YWRyb3MgPHJvZ2VycUB0aS5jb20+CgpIb3cgYWJv
+dXQgdXBkYXRpbmcgYmluZGluZ3MvbXRkL2dwbWMtb25lbmFuZC50eHQgaW4gYSBzZXBhcmF0ZSBw
+YXRjaD8KCj4gLS0tCj4gIENoYW5nZXM6Cj4gIC12NDogbmV3IHBhdGNoCj4gCj4gIGFyY2gvYXJt
+L2Jvb3QvZHRzL29tYXAyNDIwLW44eDAtY29tbW9uLmR0c2kgfCAxICsKPiAgYXJjaC9hcm0vYm9v
+dC9kdHMvb21hcDMtbjkwMC5kdHMgICAgICAgICAgICB8IDEgKwo+ICBhcmNoL2FybS9ib290L2R0
+cy9vbWFwMy1uOTUwLW45LmR0c2kgICAgICAgIHwgMSArCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29t
+YXAzNDMwLXNkcC5kdHMgICAgICAgICAgfCAxICsKPiAgNCBmaWxlcyBjaGFuZ2VkLCA0IGluc2Vy
+dGlvbnMoKykKPiAKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDI0MjAtbjh4
+MC1jb21tb24uZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAyNDIwLW44eDAtY29tbW9uLmR0
+c2kKPiBpbmRleCAxZGU4MGM3ODg2YWIuLjg0M2Y2YTJmNWUyOSAxMDA2NDQKPiAtLS0gYS9hcmNo
+L2FybS9ib290L2R0cy9vbWFwMjQyMC1uOHgwLWNvbW1vbi5kdHNpCj4gKysrIGIvYXJjaC9hcm0v
+Ym9vdC9kdHMvb21hcDI0MjAtbjh4MC1jb21tb24uZHRzaQo+IEBAIC00OCw2ICs0OCw3IEBACj4g
+IAlvbmVuYW5kQDAsMCB7Cj4gIAkJI2FkZHJlc3MtY2VsbHMgPSA8MT47Cj4gIAkJI3NpemUtY2Vs
+bHMgPSA8MT47Cj4gKwkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwMi1vbmVuYW5kIjsKPiAgCQlyZWcg
+PSA8MCAwIDB4MjAwMDA+OwkvKiBDUzAsIG9mZnNldCAwLCBJTyBzaXplIDEyOEsgKi8KPiAgCj4g
+IAkJZ3BtYyxzeW5jLXJlYWQ7Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAz
+LW45MDAuZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtbjkwMC5kdHMKPiBpbmRleCA0YWNk
+MzJhMWM0ZWYuLmFhNWIxYTQzOTU2NCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9v
+bWFwMy1uOTAwLmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLW45MDAuZHRzCj4g
+QEAgLTgzOCw2ICs4MzgsNyBAQAo+ICAJb25lbmFuZEAwLDAgewo+ICAJCSNhZGRyZXNzLWNlbGxz
+ID0gPDE+Owo+ICAJCSNzaXplLWNlbGxzID0gPDE+Owo+ICsJCWNvbXBhdGlibGUgPSAidGksb21h
+cDItb25lbmFuZCI7Cj4gIAkJcmVnID0gPDAgMCAweDIwMDAwPjsJLyogQ1MwLCBvZmZzZXQgMCwg
+SU8gc2l6ZSAxMjhLICovCj4gIAo+ICAJCWdwbWMsc3luYy1yZWFkOwo+IGRpZmYgLS1naXQgYS9h
+cmNoL2FybS9ib290L2R0cy9vbWFwMy1uOTUwLW45LmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9v
+bWFwMy1uOTUwLW45LmR0c2kKPiBpbmRleCAxYjBiZDcyOTQ1ZjIuLmNiM2M3YjJmY2U1MiAxMDA2
+NDQKPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwMy1uOTUwLW45LmR0c2kKPiArKysgYi9h
+cmNoL2FybS9ib290L2R0cy9vbWFwMy1uOTUwLW45LmR0c2kKPiBAQCAtMzY3LDYgKzM2Nyw3IEBA
+Cj4gIAlvbmVuYW5kQDAsMCB7Cj4gIAkJI2FkZHJlc3MtY2VsbHMgPSA8MT47Cj4gIAkJI3NpemUt
+Y2VsbHMgPSA8MT47Cj4gKwkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwMi1vbmVuYW5kIjsKPiAgCQly
+ZWcgPSA8MCAwIDB4MjAwMDA+OwkvKiBDUzAsIG9mZnNldCAwLCBJTyBzaXplIDEyOEsgKi8KPiAg
+Cj4gIAkJZ3BtYyxzeW5jLXJlYWQ7Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29t
+YXAzNDMwLXNkcC5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwMzQzMC1zZHAuZHRzCj4gaW5k
+ZXggZDUwYTEwNWM5ZGM2Li5lZDY1Nzk1Y2NjNjIgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9v
+dC9kdHMvb21hcDM0MzAtc2RwLmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzNDMw
+LXNkcC5kdHMKPiBAQCAtMTU1LDYgKzE1NSw3IEBACj4gIAkJbGludXgsbXRkLW5hbWU9ICJzYW1z
+dW5nLGtmbTJnMTZxMm0tZGViOCI7Cj4gIAkJI2FkZHJlc3MtY2VsbHMgPSA8MT47Cj4gIAkJI3Np
+emUtY2VsbHMgPSA8MT47Cj4gKwkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwMi1vbmVuYW5kIjsKPiAg
+CQlyZWcgPSA8MiAwIDB4MjAwMDA+OwkvKiBDUzIsIG9mZnNldCAwLCBJTyBzaXplIDQgKi8KPiAg
+Cj4gIAkJZ3BtYyxkZXZpY2Utd2lkdGggPSA8Mj47Cj4gCgotLSAKY2hlZXJzLAotcm9nZXIKClRl
+eGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNp
+bmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxl
+OiBIZWxzaW5raQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpMaW51eCBNVEQgZGlzY3Vzc2lvbiBtYWlsaW5nIGxpc3QKaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvCg==
