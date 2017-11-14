@@ -1,15 +1,14 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 02/16] ARM: dts: OMAP2+: Add compatible property to
- onenand node
-Date: Tue, 14 Nov 2017 17:11:47 +0200
-Message-ID: <ac576e3c-5df6-850f-c8d7-58aee395b3e9@ti.com>
+Subject: Re: [PATCH v4 04/16] mtd: onenand: omap2: Remove regulator support
+Date: Tue, 14 Nov 2017 17:13:46 +0200
+Message-ID: <72e82d4e-acd1-b91c-0379-783fd8509ebc@ti.com>
 References: <20171111211206.465pgorrjp3eyix6@lenoch>
- <20171111211735.2a3q5lw4itsltjrw@lenoch>
+ <20171111211908.66xd2bw4xoeudz7g@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171111211735.2a3q5lw4itsltjrw@lenoch>
+In-Reply-To: <20171111211908.66xd2bw4xoeudz7g@lenoch>
 Content-Language: en-GB
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
@@ -24,52 +23,123 @@ To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-
 Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-77u/ClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgw
-IEhlbHNpbmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0Rv
-bWljaWxlOiBIZWxzaW5raQoKT24gMTEvMTEvMTcgMjM6MTcsIExhZGlzbGF2IE1pY2hsIHdyb3Rl
-Ogo+IE9NQVAgb25lbmFuZCBub2RlcyBhcmUgbWlzc2luZyBjb21wYXRpYmxlIHByb3BlcnR5LCBh
-ZGQgaXQuCj4gCj4gU2lnbmVkLW9mZi1ieTogTGFkaXNsYXYgTWljaGwgPGxhZGlzQGxpbnV4LW1p
-cHMub3JnPgoKQWNrZWQtYnk6IFJvZ2VyIFF1YWRyb3MgPHJvZ2VycUB0aS5jb20+CgpIb3cgYWJv
-dXQgdXBkYXRpbmcgYmluZGluZ3MvbXRkL2dwbWMtb25lbmFuZC50eHQgaW4gYSBzZXBhcmF0ZSBw
-YXRjaD8KCj4gLS0tCj4gIENoYW5nZXM6Cj4gIC12NDogbmV3IHBhdGNoCj4gCj4gIGFyY2gvYXJt
-L2Jvb3QvZHRzL29tYXAyNDIwLW44eDAtY29tbW9uLmR0c2kgfCAxICsKPiAgYXJjaC9hcm0vYm9v
-dC9kdHMvb21hcDMtbjkwMC5kdHMgICAgICAgICAgICB8IDEgKwo+ICBhcmNoL2FybS9ib290L2R0
-cy9vbWFwMy1uOTUwLW45LmR0c2kgICAgICAgIHwgMSArCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29t
-YXAzNDMwLXNkcC5kdHMgICAgICAgICAgfCAxICsKPiAgNCBmaWxlcyBjaGFuZ2VkLCA0IGluc2Vy
-dGlvbnMoKykKPiAKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDI0MjAtbjh4
-MC1jb21tb24uZHRzaSBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAyNDIwLW44eDAtY29tbW9uLmR0
-c2kKPiBpbmRleCAxZGU4MGM3ODg2YWIuLjg0M2Y2YTJmNWUyOSAxMDA2NDQKPiAtLS0gYS9hcmNo
-L2FybS9ib290L2R0cy9vbWFwMjQyMC1uOHgwLWNvbW1vbi5kdHNpCj4gKysrIGIvYXJjaC9hcm0v
-Ym9vdC9kdHMvb21hcDI0MjAtbjh4MC1jb21tb24uZHRzaQo+IEBAIC00OCw2ICs0OCw3IEBACj4g
-IAlvbmVuYW5kQDAsMCB7Cj4gIAkJI2FkZHJlc3MtY2VsbHMgPSA8MT47Cj4gIAkJI3NpemUtY2Vs
-bHMgPSA8MT47Cj4gKwkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwMi1vbmVuYW5kIjsKPiAgCQlyZWcg
-PSA8MCAwIDB4MjAwMDA+OwkvKiBDUzAsIG9mZnNldCAwLCBJTyBzaXplIDEyOEsgKi8KPiAgCj4g
-IAkJZ3BtYyxzeW5jLXJlYWQ7Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAz
-LW45MDAuZHRzIGIvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtbjkwMC5kdHMKPiBpbmRleCA0YWNk
-MzJhMWM0ZWYuLmFhNWIxYTQzOTU2NCAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9v
-bWFwMy1uOTAwLmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLW45MDAuZHRzCj4g
-QEAgLTgzOCw2ICs4MzgsNyBAQAo+ICAJb25lbmFuZEAwLDAgewo+ICAJCSNhZGRyZXNzLWNlbGxz
-ID0gPDE+Owo+ICAJCSNzaXplLWNlbGxzID0gPDE+Owo+ICsJCWNvbXBhdGlibGUgPSAidGksb21h
-cDItb25lbmFuZCI7Cj4gIAkJcmVnID0gPDAgMCAweDIwMDAwPjsJLyogQ1MwLCBvZmZzZXQgMCwg
-SU8gc2l6ZSAxMjhLICovCj4gIAo+ICAJCWdwbWMsc3luYy1yZWFkOwo+IGRpZmYgLS1naXQgYS9h
-cmNoL2FybS9ib290L2R0cy9vbWFwMy1uOTUwLW45LmR0c2kgYi9hcmNoL2FybS9ib290L2R0cy9v
-bWFwMy1uOTUwLW45LmR0c2kKPiBpbmRleCAxYjBiZDcyOTQ1ZjIuLmNiM2M3YjJmY2U1MiAxMDA2
-NDQKPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9vbWFwMy1uOTUwLW45LmR0c2kKPiArKysgYi9h
-cmNoL2FybS9ib290L2R0cy9vbWFwMy1uOTUwLW45LmR0c2kKPiBAQCAtMzY3LDYgKzM2Nyw3IEBA
-Cj4gIAlvbmVuYW5kQDAsMCB7Cj4gIAkJI2FkZHJlc3MtY2VsbHMgPSA8MT47Cj4gIAkJI3NpemUt
-Y2VsbHMgPSA8MT47Cj4gKwkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwMi1vbmVuYW5kIjsKPiAgCQly
-ZWcgPSA8MCAwIDB4MjAwMDA+OwkvKiBDUzAsIG9mZnNldCAwLCBJTyBzaXplIDEyOEsgKi8KPiAg
-Cj4gIAkJZ3BtYyxzeW5jLXJlYWQ7Cj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2Jvb3QvZHRzL29t
-YXAzNDMwLXNkcC5kdHMgYi9hcmNoL2FybS9ib290L2R0cy9vbWFwMzQzMC1zZHAuZHRzCj4gaW5k
-ZXggZDUwYTEwNWM5ZGM2Li5lZDY1Nzk1Y2NjNjIgMTAwNjQ0Cj4gLS0tIGEvYXJjaC9hcm0vYm9v
-dC9kdHMvb21hcDM0MzAtc2RwLmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXAzNDMw
-LXNkcC5kdHMKPiBAQCAtMTU1LDYgKzE1NSw3IEBACj4gIAkJbGludXgsbXRkLW5hbWU9ICJzYW1z
-dW5nLGtmbTJnMTZxMm0tZGViOCI7Cj4gIAkJI2FkZHJlc3MtY2VsbHMgPSA8MT47Cj4gIAkJI3Np
-emUtY2VsbHMgPSA8MT47Cj4gKwkJY29tcGF0aWJsZSA9ICJ0aSxvbWFwMi1vbmVuYW5kIjsKPiAg
-CQlyZWcgPSA8MiAwIDB4MjAwMDA+OwkvKiBDUzIsIG9mZnNldCAwLCBJTyBzaXplIDQgKi8KPiAg
-Cj4gIAkJZ3BtYyxkZXZpY2Utd2lkdGggPSA8Mj47Cj4gCgotLSAKY2hlZXJzLAotcm9nZXIKClRl
-eGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgwIEhlbHNp
-bmtpLiBZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0RvbWljaWxl
-OiBIZWxzaW5raQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpMaW51eCBNVEQgZGlzY3Vzc2lvbiBtYWlsaW5nIGxpc3QKaHR0cDovL2xpc3Rz
-LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvCg==
+On 11/11/17 23:19, Ladislav Michl wrote:
+> As no platform data user sets regulator_can_sleep, regulator code is
+> no-op and can be deleted.
+> 
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+
+Acked-by: Roger Quadros <rogerq@ti.com>
+
+> ---
+>  Changes:
+>  -v2: new patch
+>  -v3: none
+>  -v4: none
+> 
+>  drivers/mtd/onenand/omap2.c | 42 +-----------------------------------------
+>  1 file changed, 1 insertion(+), 41 deletions(-)
+> 
+> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+> index 24a1388d3031..a03e1fe4aa48 100644
+> --- a/drivers/mtd/onenand/omap2.c
+> +++ b/drivers/mtd/onenand/omap2.c
+> @@ -34,7 +34,6 @@
+>  #include <linux/dma-mapping.h>
+>  #include <linux/io.h>
+>  #include <linux/slab.h>
+> -#include <linux/regulator/consumer.h>
+>  #include <linux/gpio.h>
+>  
+>  #include <asm/mach/flash.h>
+> @@ -59,7 +58,6 @@ struct omap2_onenand {
+>  	int dma_channel;
+>  	int freq;
+>  	int (*setup)(void __iomem *base, int *freq_ptr);
+> -	struct regulator *regulator;
+>  	u8 flags;
+>  };
+>  
+> @@ -583,30 +581,6 @@ static void omap2_onenand_shutdown(struct platform_device *pdev)
+>  	memset((__force void *)c->onenand.base, 0, ONENAND_BUFRAM_SIZE);
+>  }
+>  
+> -static int omap2_onenand_enable(struct mtd_info *mtd)
+> -{
+> -	int ret;
+> -	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+> -
+> -	ret = regulator_enable(c->regulator);
+> -	if (ret != 0)
+> -		dev_err(&c->pdev->dev, "can't enable regulator\n");
+> -
+> -	return ret;
+> -}
+> -
+> -static int omap2_onenand_disable(struct mtd_info *mtd)
+> -{
+> -	int ret;
+> -	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+> -
+> -	ret = regulator_disable(c->regulator);
+> -	if (ret != 0)
+> -		dev_err(&c->pdev->dev, "can't disable regulator\n");
+> -
+> -	return ret;
+> -}
+> -
+>  static int omap2_onenand_probe(struct platform_device *pdev)
+>  {
+>  	struct omap_onenand_platform_data *pdata;
+> @@ -726,22 +700,11 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+>  		}
+>  	}
+>  
+> -	if (pdata->regulator_can_sleep) {
+> -		c->regulator = regulator_get(&pdev->dev, "vonenand");
+> -		if (IS_ERR(c->regulator)) {
+> -			dev_err(&pdev->dev,  "Failed to get regulator\n");
+> -			r = PTR_ERR(c->regulator);
+> -			goto err_release_dma;
+> -		}
+> -		c->onenand.enable = omap2_onenand_enable;
+> -		c->onenand.disable = omap2_onenand_disable;
+> -	}
+> -
+>  	if (pdata->skip_initial_unlocking)
+>  		this->options |= ONENAND_SKIP_INITIAL_UNLOCKING;
+>  
+>  	if ((r = onenand_scan(&c->mtd, 1)) < 0)
+> -		goto err_release_regulator;
+> +		goto err_release_dma;
+>  
+>  	r = mtd_device_register(&c->mtd, pdata ? pdata->parts : NULL,
+>  				pdata ? pdata->nr_parts : 0);
+> @@ -754,8 +717,6 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+>  
+>  err_release_onenand:
+>  	onenand_release(&c->mtd);
+> -err_release_regulator:
+> -	regulator_put(c->regulator);
+>  err_release_dma:
+>  	if (c->dma_channel != -1)
+>  		omap_free_dma(c->dma_channel);
+> @@ -779,7 +740,6 @@ static int omap2_onenand_remove(struct platform_device *pdev)
+>  	struct omap2_onenand *c = dev_get_drvdata(&pdev->dev);
+>  
+>  	onenand_release(&c->mtd);
+> -	regulator_put(c->regulator);
+>  	if (c->dma_channel != -1)
+>  		omap_free_dma(c->dma_channel);
+>  	omap2_onenand_shutdown(pdev);
+> 
+
+-- 
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
