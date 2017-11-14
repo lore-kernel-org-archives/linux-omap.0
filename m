@@ -1,16 +1,15 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 02/16] ARM: dts: OMAP2+: Add compatible property to
- onenand node
-Date: Tue, 14 Nov 2017 13:39:02 -0800
-Message-ID: <20171114213902.GD28152@atomide.com>
+Subject: Re: [PATCH v4 03/16] ARM: dts: omap3-igep: Update onenand node timings
+Date: Tue, 14 Nov 2017 13:39:40 -0800
+Message-ID: <20171114213940.GE28152@atomide.com>
 References: <20171111211206.465pgorrjp3eyix6@lenoch>
- <20171111211735.2a3q5lw4itsltjrw@lenoch>
+ <20171111211831.hj7rynxwo6hx6hox@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20171111211735.2a3q5lw4itsltjrw@lenoch>
+In-Reply-To: <20171111211831.hj7rynxwo6hx6hox@lenoch>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -24,13 +23,13 @@ To: Ladislav Michl <ladis@linux-mips.org>
 Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Ladislav Michl <ladis@linux-mips.org> [171111 21:19]:
-> OMAP onenand nodes are missing compatible property, add it.
+* Ladislav Michl <ladis@linux-mips.org> [171111 21:20]:
+> Update node timings to be compatible with actual chip used -
+> gpmc_cs_show_timings utilized to dump values.
 > 
 > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 
-Best to merge this one with the MTD patches, otherwise it will be a
-layered mess of merges:
+This too:
 
 Acked-by: Tony Lindgren <tony@atomide.com>
 
