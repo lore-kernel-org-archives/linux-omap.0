@@ -1,23 +1,22 @@
-From: Ladislav Michl <ladis@linux-mips.org>
+From: Roger Quadros <rogerq@ti.com>
 Subject: Re: [PATCH v3 5/7] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
  implementation
-Date: Tue, 14 Nov 2017 16:03:46 +0100
-Message-ID: <20171114150346.ydf5vzrlkjj4gmyv@lenoch>
+Date: Tue, 14 Nov 2017 17:05:20 +0200
+Message-ID: <89008152-92e4-7e4a-0953-310a5240d50c@ti.com>
 References: <20171109091155.6a6azfvjarwvlfh2@lenoch>
  <20171109091529.x3pqqvbiywj5aulo@lenoch>
- <4a58dfac-8cc9-101f-b079-da8925d7ab4c@ti.com>
- <20171110095154.kf34cd7h2eyfvwf3@lenoch>
- <20171110152610.GN28152@atomide.com>
- <20171110181951.siddrdubjkwwspqt@lenoch>
- <20171110182938.GS28152@atomide.com>
- <20171111125054.4gkttjltqrgjqtwt@lenoch>
- <f44d5df7-fd46-4873-3deb-e6b9ad916ab0@ti.com>
+ <3d33265a-2520-2298-6068-f76a7257bfd0@ti.com>
+ <20171110100443.zqk7uzxoaq4eyntk@lenoch> <20171110152423.GM28152@atomide.com>
+ <d498102d-11ff-cdd0-430e-0ea650c2a12b@ti.com>
+ <20171113121541.2tlezfjwk5bptakp@lenoch>
+ <c13c503c-9435-7e88-7700-40bfcf806231@ti.com>
+ <20171113152717.fj2vgga4gzfr3q2b@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <f44d5df7-fd46-4873-3deb-e6b9ad916ab0@ti.com>
+In-Reply-To: <20171113152717.fj2vgga4gzfr3q2b@lenoch>
+Content-Language: en-GB
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -27,101 +26,99 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 14, 2017 at 04:47:46PM +0200, Roger Quadros wrote:
-> On 11/11/17 14:50, Ladislav Michl wrote:
-> > On Fri, Nov 10, 2017 at 10:29:38AM -0800, Tony Lindgren wrote:
-> >> I just made sure things keep working with Peter's changes, no additional
-> >> patches. So the dma is barely used at all.
-> > 
-> > It seemed suspicious to me looking here:
-> > https://github.com/omap-audio/linux-audio/commit/52e914395afe31a7401b35814b6dabf3ef46a052#diff-1662a4cc544d322b68c547cfdc99448cR312
-> > as wait_for_completion_timeout is returning time remaining and zero on
-> > timeout :-)
-> > Fixed in next version and also changed to wait_for_completion_io_timeout
-> > to get proper sched stats.
-> > Btw, I think we should stop DMA on timeout as we are unmapping DMA region
-> > later and it might not behave nicely if we do so while DMA is eventually
-> > running (that's fixed too).
-> > 
-> > I made Peter's patches part of next version and enabled DMA unconditionally.
+On 13/11/17 17:27, Ladislav Michl wrote:
+> On Mon, Nov 13, 2017 at 04:36:41PM +0200, Peter Ujfalusi wrote:
+>>
+>>
+>> On 2017-11-13 14:15, Ladislav Michl wrote:
+>>> On Mon, Nov 13, 2017 at 10:22:12AM +0200, Peter Ujfalusi wrote:
+>>>>
+>>>> On 2017-11-10 17:24, Tony Lindgren wrote:
+>>>>> FYI, the gpio pin for onenand should not be in gpio mode. It should
+>>>>> be used as external dma request line to automatically trigger new
+>>>>> transfers like we do for tusb6010 dma. But of course it's possible
+>>>>> that onenand has other issues too preventing the dma usage.
+>>>>
+>>>> My conversion to DMAengine is drop in replacement of the existing
+>>>> implementation: memcpy w/o hardware synchronization event.
+>>>>
+>>>> But I think it should be possible to use HW sync (slave DMA) with the
+>>>> src/dst_port_window in a similar way we do with the tusb6010.
+>>>
+>>> How do you want to synchronize it from OneNAND side?
+>>
+>> _if_ the pin used as GPIO interrupt has ext DMA request mode then we can
+>> switch it, in the DT bindings we give the extDMA request as sync event
+>> and convert the driver: remove GPIO irq handling and have slave DMA
+>> setup with port_window to do kind of memcpy with HW synchronization.
 > 
-> That's cool, but I'd still hold from making it default in first go.
-> It could have more testing and benchmarking.
-
-I do not expect v4 to be the last version of patchset and I enabled it to
-get as much testing as possible.
-
-> > It works nicely on:
-> > OF: fdt: Machine model: IGEPv2 Rev. C (TI OMAP AM/DM37x)
-> > OMAP3630/DM3730 ES1.2 (l2cache iva sgx neon isp 192mhz_clk)
-> > ...
-> > omap-gpmc 6e000000.gpmc: GPMC revision 5.0
-> > gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
-> > omap2-onenand 30000000.onenand: initializing on CS0 (0x30000000), va e0080000, DMA mode
-> > Muxed OneNAND(DDP) 512MB 1.8V 16-bit (0x58)
-> > OneNAND version = 0x0031
-> > Scanning device for bad blocks
-> > OneNAND eraseblock 597 is an initial bad block
-> > OneNAND eraseblock 1159 is an initial bad block
-> > OneNAND eraseblock 2812 is an initial bad block
-> > omap2-onenand 30000000.onenand: optimized timings for 83 MHz
-> > 2 ofpart partitions found on MTD device 30000000.onenand
-> > Creating 2 MTD partitions on "30000000.onenand":
-> > 0x000000000000-0x000000080000 : "SPL"
-> > 0x000000080000-0x000020000000 : "UBI"
-> > ...
-> > 
-> > Based on this experiment, I'll delay v4 a bit and leave DMA enabled by
-> > default. We are brave enough and want some testing, right?
-> > It would be nice if someone could provide some benchmarks using PIO
-> > and DMA mode. I do not expect any dramatic change, but kernel latencies
-> > should decrease when doing flash I/O.
+> Well, the pin used as GPIO interrupt has this purpose, according to specs:
+> "The OneNAND INT pin is an output pin function used to notify the Host when
+> a command has been completed. This provides a hardware method of signaling
+> the completion of a program, erase, or load operation".
 > 
-> There should be noticeable difference between both when the CPU is loaded.
+> See for example section 3.9 (and later) of specs:
+> https://www.abcelectronique.com/composants/telechargement_datasheet.php?id=1089396&part-number=KFH2G16Q2A-DEBx
+
+Also see section 7.1 Methods of Determining Interrupt Status.
+
+Based on that INT pin is analogous to NAND Read/Busy pin and has nothing to do
+with DMA.
+
 > 
-> > 
-> > Based on above I also think R/B pin should be in ordinary GPIO mode.
-> > Perhaps using external DMA request is somehow posible, but it is not clear
-> > to me how after yet another reading of SDMA, GPMC and OneNAND documentation,
-> > so I'll happily leave it for others.
+>> It might be possible... It was possible with tusb6010, but that one was
+>> already using hw sync with the legacy omap-dma API.
 > 
-> At least on NAND we use R/B as a plain GPIO that is polled till it shows
-> ready during NAND erase/program cycles.
-> e.g. see nand_wait() in nand/nand_base.c
-> and omap_dev_ready() in nand/omap2.c
-
-As answered previously, OneNAND R/B pin is indeed used the same (*) way, it is
-just done at OMAP2+ driver level rather than in OneNAND base driver.
-
-(*) it is actually a bit better as R/B is configured as interrupt source and
-we are just waiting for completion.
-
-> So ready checking could be done similarly in onenand core?
-
-Yes, but that could wait for another round of driver updates. I'd like to
-sort GPMC interface first.
-
-There's more to be moved to OneNAND base driver (chip frequency probing,
-latency settings, etc).
-
-> > 
-> > Btw, using R/B pin would elimitate latencies caused by busy looping while
-> > waiting for onenand command to complete. Nice todo for someone with a lot
-> > of spare time :-)
-> > 
-> > Best regards,
-> > 	ladis
-> > 
+> Based on above, it seems there's long and hard way :)
 > 
-> -- 
-> cheers,
-> -roger
+>>>> But that can be done in a followup series, but what to do in case of old
+>>>> DT where the dmas/dma-names properties are no there?
+>>>
+>>> These will not work anyway as they do not have compatible property.
+>>> Also note, that DMA is currently not used, yet nobody complained.
+>>
+>> ;)
+>>
+>>>> Hmm, extending the dma_slave_map in mach-omap1/2/dma.c might work just fine.
+>>>>
+>>>> Having said that, there might have been a reason why the original
+>>>> implementation was not using DMA request to trigger the memcpy... The
+>>>> legacy omap-dma API would have allowed that as you kind of open code
+>>>> things with much flexibility.
+>>>
+>>> That's mainly problem of OneNAND driver itself, not oma-dma. But do we
+>>> really want to invest more time to this obsolete technology?
+>>>
+>>> Of course, I would love to see my 10+ years old boards running faster,
+>>> but it seems unrealistic to me to get enough manpower to finish this task.
+>>
+>> Valid point. I would - for now - only do the DMAengine memcpy conversion
+>> with the GPIO irq and investigate the slave DMA support after that.
 > 
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> Here it would be nice to have the same documentation Nokia had at the time
+> writing support for n8x0 as they clearly used few undocumented features.
+> Please see section 3.9.5 of above mentioned specs. Seems DMA slave should
+> be triggered by RDY not INT pin.
+
+Correct. For RDY pin usage See 3.7.3 Handshaking Operation
+
+"The handshaking feature allows the host system to simply monitor the RDY signal from the device to determine
+when the initial word of burst data is ready to be read."
+
+> 
+> Best regards,
+> 	ladis
+> 
+
+-- 
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
 ______________________________________________________
 Linux MTD discussion mailing list
