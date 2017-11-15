@@ -1,13 +1,16 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 00/16] OMAP2+ OneNAND driver update
-Date: Wed, 15 Nov 2017 10:10:03 +0200
-Message-ID: <fd92bdae-faf4-d3b5-9771-37eb8a5ae412@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 08/16] mtd: onenand: omap2: Simplify the DMA setup for
+ various paths
+Date: Wed, 15 Nov 2017 10:35:49 +0200
+Message-ID: <a3fcb7a1-c1d6-3dff-2350-5ac3aa567fef@ti.com>
 References: <20171111211206.465pgorrjp3eyix6@lenoch>
+ <20171111212153.ldift2s3ycchsc2e@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171111211206.465pgorrjp3eyix6@lenoch>
+In-Reply-To: <20171111212153.ldift2s3ycchsc2e@lenoch>
+Content-Language: en-GB
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -18,111 +21,225 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
 To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
+On 11/11/17 23:21, Ladislav Michl wrote:
+> From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> 
+> We have 4 functions containing almost identical DMA setup code. Create one
+> function which can set up the DMA for both read and write and use this in
+> place for the setup code in the driver.
+> The new function will use wait_for_completion_io_timeout() and it will
+> figure out the best data_type to be used for the transfer instead of
+> hardwiring 32 or 16 bit data.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 
+Acked-by: Roger Quadros <rogerq@ti.com>
 
-On 2017-11-11 23:12, Ladislav Michl wrote:
-> Hi there,
-> =
+> ---
+>  Changes:
+>  -v4: new patch
+> 
+>  drivers/mtd/onenand/omap2.c | 109 ++++++++++++++++++--------------------------
+>  1 file changed, 45 insertions(+), 64 deletions(-)
+> 
+> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+> index 0e7772e16d75..d22163271dc9 100644
+> --- a/drivers/mtd/onenand/omap2.c
+> +++ b/drivers/mtd/onenand/omap2.c
+> @@ -288,6 +288,33 @@ static inline int omap2_onenand_bufferram_offset(struct mtd_info *mtd, int area)
+>  	return 0;
+>  }
+>  
+> +static inline int omap2_onenand_dma_transfer(struct omap2_onenand *c,
+> +					     dma_addr_t src, dma_addr_t dst,
+> +					     size_t count)
+> +{
+> +	int data_type = __ffs((src | dst | count));
+> +
+> +	if (data_type > OMAP_DMA_DATA_TYPE_S32)
+> +		data_type = OMAP_DMA_DATA_TYPE_S32;
+> +
+> +	omap_set_dma_transfer_params(c->dma_channel, data_type,
+> +				     count / BIT(data_type), 1, 0, 0, 0);
+> +	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> +				src, 0, 0);
+> +	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> +				 dst, 0, 0);
+> +
+> +	reinit_completion(&c->dma_done);
+> +	omap_start_dma(c->dma_channel);
+> +	if (!wait_for_completion_io_timeout(&c->dma_done,
+> +					    msecs_to_jiffies(20))) {
+> +		omap_stop_dma(c->dma_channel);
+> +		return -ETIMEDOUT;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  #if defined(CONFIG_ARCH_OMAP3) || defined(MULTI_OMAP2)
+>  
+>  static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+> @@ -298,10 +325,9 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+>  	int bram_offset;
+> -	unsigned long timeout;
+>  	void *buf = (void *)buffer;
+>  	size_t xtra;
+> -	volatile unsigned *done;
+> +	int ret;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
+> @@ -338,25 +364,10 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  		goto out_copy;
+>  	}
+>  
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
+> -				     count >> 2, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -
+> -	timeout = jiffies + msecs_to_jiffies(20);
+> -	done = &c->dma_done.done;
+> -	while (time_before(jiffies, timeout))
+> -		if (*done)
+> -			break;
+> -
+> +	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
+>  	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
+>  
+> -	if (!*done) {
+> +	if (ret) {
+>  		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+>  		goto out_copy;
+>  	}
+> @@ -376,9 +387,8 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+>  	int bram_offset;
+> -	unsigned long timeout;
+>  	void *buf = (void *)buffer;
+> -	volatile unsigned *done;
+> +	int ret;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
+> @@ -409,25 +419,10 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  		return -1;
+>  	}
+>  
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
+> -				     count >> 2, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -
+> -	timeout = jiffies + msecs_to_jiffies(20);
+> -	done = &c->dma_done.done;
+> -	while (time_before(jiffies, timeout))
+> -		if (*done)
+> -			break;
+> -
+> +	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
+>  	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
+>  
+> -	if (!*done) {
+> +	if (ret) {
+>  		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+>  		goto out_copy;
+>  	}
+> @@ -466,7 +461,7 @@ static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+> -	int bram_offset;
+> +	int bram_offset, ret;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	/* DMA is not used.  Revisit PM requirements before enabling it. */
+> @@ -488,20 +483,13 @@ static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+>  		return -1;
+>  	}
+>  
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
+> -				     count / 4, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -	wait_for_completion(&c->dma_done);
+> -
+> +	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
+>  	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
+>  
+> -	return 0;
+> +	if (ret)
+> +		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+> +
+> +	return ret;
+>  }
+>  
+>  static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+> @@ -511,7 +499,7 @@ static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
+>  	struct onenand_chip *this = mtd->priv;
+>  	dma_addr_t dma_src, dma_dst;
+> -	int bram_offset;
+> +	int bram_offset, ret;
+>  
+>  	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
+>  	/* DMA is not used.  Revisit PM requirements before enabling it. */
+> @@ -533,20 +521,13 @@ static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+>  		return -1;
+>  	}
+>  
+> -	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S16,
+> -				     count / 2, 1, 0, 0, 0);
+> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				dma_src, 0, 0);
+> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> -				 dma_dst, 0, 0);
+> -
+> -	reinit_completion(&c->dma_done);
+> -	omap_start_dma(c->dma_channel);
+> -	wait_for_completion(&c->dma_done);
+> -
+> +	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
+>  	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
+>  
+> -	return 0;
+> +	if (ret)
+> +		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+> +
+> +	return ret;
+>  }
+>  
+>  #else
+> 
 
-> this patch serie updates OMAP2+ OneNAND driver to the present times, maki=
-ng
-> it fully DT configurable, using libgpio and dmaengine apis.
-> =
+-- 
+cheers,
+-roger
 
-> Please note that unlike previous driver version, which basically ignored
-> DT specified timings, this one relies on it, so it is important to get
-> it right in your DT (dumping it from previous kernel version).
-> =
-
-> In case synchronous timings is requested, it is okay to specify timings
-> for the slowest chip ever used for you board as it is evetually optimized
-> after chip probe.
-> =
-
-> Original driver used DMA only if user specified r/b gpio in platform
-> data, now DMA is used unconditionally and PIO mode is used as fallback.
-> =
-
-> In case anyone wants to give it a try, few DT related changes are needed:
-> - onenand node needs 'ti,omap2-onenand' compatible (for mailine boards th=
-is is
->   done in patch 2)
-> - to use R/B pin, rb-gpios needs to be specified (for n900 and n8x0 this =
-is
->   done in patch 16, however patch lacks pinmux configuration.
-> =
-
-> Most notable changes from previous version:
-> - added dmaengine patches by Peter Ujfalusi
-> - added dt bindings documentation
-> - added cleanup patches
-> - DMA enabled by default
-> =
-
-> Also note that driver will fail probe OneNAND chip after patch 13 and sta=
-rt
-> working again after patch 14.
-
-Thanks for the hard work!
-to all:
-Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-> =
-
-> Testing and benchmarking very welcome.
-> =
-
-> Depends on "memory: omap-gpmc: Make 'bank-width' property optional"
-> https://patchwork.kernel.org/patch/10043259/
-> =
-
-> Ladislav Michl (13):
->   dt-bindings: mtd: gpmc-onenand: Update properties description
->   ARM: dts: OMAP2+: Add compatible property to onenand node
->   ARM: dts: omap3-igep: Update onenand node timings
->   mtd: onenand: omap2: Remove regulator support
->   mtd: onenand: omap2: Remove skip initial unlocking support
->   mtd: onenand: omap2: Remove partitioning support from platform data
->   mtd: onenand: omap2: Account waiting time as waiting on IO
->   mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA implementation
->   mtd: onenand: omap2: Do not make delay for GPIO OMAP3 specific
->   memory: omap-gpmc: Refactor OneNAND support
->   mtd: onenand: omap2: Configure driver from DT
->   ARM: OMAP2+: Remove gpmc-onenand
->   ARM: dts: Nokia: Use R/B pin
-> =
-
-> Peter Ujfalusi (2):
->   mtd: onenand: omap2: Simplify the DMA setup for various paths
->   mtd: onenand: omap2: Convert to use dmaengine for memcpy
-> =
-
->  .../devicetree/bindings/mtd/gpmc-onenand.txt       |   6 +-
->  arch/arm/boot/dts/omap2420-n8x0-common.dtsi        |   5 +-
->  arch/arm/boot/dts/omap3-igep.dtsi                  |  30 +-
->  arch/arm/boot/dts/omap3-n900.dts                   |   2 +
->  arch/arm/boot/dts/omap3-n950-n9.dtsi               |   1 +
->  arch/arm/boot/dts/omap3430-sdp.dts                 |   1 +
->  arch/arm/mach-omap2/Makefile                       |   3 -
->  arch/arm/mach-omap2/gpmc-onenand.c                 | 409 ---------------
->  drivers/memory/omap-gpmc.c                         | 158 ++++--
->  drivers/mtd/onenand/omap2.c                        | 580 ++++++++-------=
-------
->  include/linux/omap-gpmc.h                          |  25 +
->  include/linux/platform_data/mtd-onenand-omap2.h    |  34 --
->  12 files changed, 389 insertions(+), 865 deletions(-)
->  delete mode 100644 arch/arm/mach-omap2/gpmc-onenand.c
->  delete mode 100644 include/linux/platform_data/mtd-onenand-omap2.h
-> =
-
-
-- P=E9ter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
 ______________________________________________________
 Linux MTD discussion mailing list
