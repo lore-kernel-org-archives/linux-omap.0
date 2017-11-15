@@ -1,8 +1,7 @@
 From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v5 09/16] mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA
- implementation
-Date: Wed, 15 Nov 2017 17:32:35 +0100
-Message-ID: <20171115163235.zoyczxycxanhlbux@lenoch>
+Subject: [PATCH v5 04/16] mtd: onenand: omap2: Remove regulator support
+Date: Wed, 15 Nov 2017 17:27:41 +0100
+Message-ID: <20171115162741.xcq2a4fjdevapl3u@lenoch>
 References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,11 +22,8 @@ To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Since the very first commit (36cd4fb5d277: "[MTD] [OneNAND] Add
-OMAP2 / OMAP3 OneNAND driver") DMA is disabled for OMAP2. Later
-fixes thus went only into OMAP3 specific DMA functions which
-turned out not to be so OMAP3 specific, so merge those two
-implementations.
+As no platform data user sets regulator_can_sleep, regulator code is
+no-op and can be deleted.
 
 Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
@@ -37,178 +33,106 @@ Tested-by: Tony Lindgren <tony@atomide.com>
 ---
 
 Changes in v5: None
-Changes in v4:
-- rebase on top of Peter's patch
-
-Changes in v3:
+Changes in v4: None
+Changes in v3: None
+Changes in v2:
 - new patch
 
-Changes in v2: None
-
- drivers/mtd/onenand/omap2.c | 129 ++------------------------------------------
- 1 file changed, 4 insertions(+), 125 deletions(-)
+ drivers/mtd/onenand/omap2.c | 42 +-----------------------------------------
+ 1 file changed, 1 insertion(+), 41 deletions(-)
 
 diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index d22163271dc9..36314124488d 100644
+index 24a1388d3031..a03e1fe4aa48 100644
 --- a/drivers/mtd/onenand/omap2.c
 +++ b/drivers/mtd/onenand/omap2.c
-@@ -315,9 +315,7 @@ static inline int omap2_onenand_dma_transfer(struct omap2_onenand *c,
- 	return 0;
+@@ -34,7 +34,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
+-#include <linux/regulator/consumer.h>
+ #include <linux/gpio.h>
+ 
+ #include <asm/mach/flash.h>
+@@ -59,7 +58,6 @@ struct omap2_onenand {
+ 	int dma_channel;
+ 	int freq;
+ 	int (*setup)(void __iomem *base, int *freq_ptr);
+-	struct regulator *regulator;
+ 	u8 flags;
+ };
+ 
+@@ -583,30 +581,6 @@ static void omap2_onenand_shutdown(struct platform_device *pdev)
+ 	memset((__force void *)c->onenand.base, 0, ONENAND_BUFRAM_SIZE);
  }
  
--#if defined(CONFIG_ARCH_OMAP3) || defined(MULTI_OMAP2)
--
--static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
-+static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
- 					unsigned char *buffer, int offset,
- 					size_t count)
- {
-@@ -379,7 +377,7 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
- 	return 0;
- }
- 
--static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
-+static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
- 					 const unsigned char *buffer,
- 					 int offset, size_t count)
- {
-@@ -434,120 +432,6 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
- 	return 0;
- }
- 
--#else
--
--static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
--					unsigned char *buffer, int offset,
--					size_t count)
+-static int omap2_onenand_enable(struct mtd_info *mtd)
 -{
--	return -ENOSYS;
--}
--
--static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
--					 const unsigned char *buffer,
--					 int offset, size_t count)
--{
--	return -ENOSYS;
--}
--
--#endif
--
--#if defined(CONFIG_ARCH_OMAP2) || defined(MULTI_OMAP2)
--
--static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
--					unsigned char *buffer, int offset,
--					size_t count)
--{
+-	int ret;
 -	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
--	struct onenand_chip *this = mtd->priv;
--	dma_addr_t dma_src, dma_dst;
--	int bram_offset, ret;
 -
--	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
--	/* DMA is not used.  Revisit PM requirements before enabling it. */
--	if (1 || (c->dma_channel < 0) ||
--	    ((void *) buffer >= (void *) high_memory) || (bram_offset & 3) ||
--	    (((unsigned int) buffer) & 3) || (count < 1024) || (count & 3)) {
--		memcpy(buffer, (__force void *)(this->base + bram_offset),
--		       count);
--		return 0;
--	}
--
--	dma_src = c->phys_base + bram_offset;
--	dma_dst = dma_map_single(&c->pdev->dev, buffer, count,
--				 DMA_FROM_DEVICE);
--	if (dma_mapping_error(&c->pdev->dev, dma_dst)) {
--		dev_err(&c->pdev->dev,
--			"Couldn't DMA map a %d byte buffer\n",
--			count);
--		return -1;
--	}
--
--	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
--	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
--
--	if (ret)
--		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+-	ret = regulator_enable(c->regulator);
+-	if (ret != 0)
+-		dev_err(&c->pdev->dev, "can't enable regulator\n");
 -
 -	return ret;
 -}
 -
--static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
--					 const unsigned char *buffer,
--					 int offset, size_t count)
+-static int omap2_onenand_disable(struct mtd_info *mtd)
 -{
+-	int ret;
 -	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
--	struct onenand_chip *this = mtd->priv;
--	dma_addr_t dma_src, dma_dst;
--	int bram_offset, ret;
 -
--	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
--	/* DMA is not used.  Revisit PM requirements before enabling it. */
--	if (1 || (c->dma_channel < 0) ||
--	    ((void *) buffer >= (void *) high_memory) || (bram_offset & 3) ||
--	    (((unsigned int) buffer) & 3) || (count < 1024) || (count & 3)) {
--		memcpy((__force void *)(this->base + bram_offset), buffer,
--		       count);
--		return 0;
--	}
--
--	dma_src = dma_map_single(&c->pdev->dev, (void *) buffer, count,
--				 DMA_TO_DEVICE);
--	dma_dst = c->phys_base + bram_offset;
--	if (dma_mapping_error(&c->pdev->dev, dma_src)) {
--		dev_err(&c->pdev->dev,
--			"Couldn't DMA map a %d byte buffer\n",
--			count);
--		return -1;
--	}
--
--	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
--	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
--
--	if (ret)
--		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
+-	ret = regulator_disable(c->regulator);
+-	if (ret != 0)
+-		dev_err(&c->pdev->dev, "can't disable regulator\n");
 -
 -	return ret;
 -}
 -
--#else
--
--static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
--					unsigned char *buffer, int offset,
--					size_t count)
--{
--	return -ENOSYS;
--}
--
--static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
--					 const unsigned char *buffer,
--					 int offset, size_t count)
--{
--	return -ENOSYS;
--}
--
--#endif
--
- static struct platform_driver omap2_onenand_driver;
- 
- static void omap2_onenand_shutdown(struct platform_device *pdev)
-@@ -671,13 +555,8 @@ static int omap2_onenand_probe(struct platform_device *pdev)
- 	this = &c->onenand;
- 	if (c->dma_channel >= 0) {
- 		this->wait = omap2_onenand_wait;
--		if (c->flags & ONENAND_IN_OMAP34XX) {
--			this->read_bufferram = omap3_onenand_read_bufferram;
--			this->write_bufferram = omap3_onenand_write_bufferram;
--		} else {
--			this->read_bufferram = omap2_onenand_read_bufferram;
--			this->write_bufferram = omap2_onenand_write_bufferram;
--		}
-+		this->read_bufferram = omap2_onenand_read_bufferram;
-+		this->write_bufferram = omap2_onenand_write_bufferram;
+ static int omap2_onenand_probe(struct platform_device *pdev)
+ {
+ 	struct omap_onenand_platform_data *pdata;
+@@ -726,22 +700,11 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+ 		}
  	}
  
+-	if (pdata->regulator_can_sleep) {
+-		c->regulator = regulator_get(&pdev->dev, "vonenand");
+-		if (IS_ERR(c->regulator)) {
+-			dev_err(&pdev->dev,  "Failed to get regulator\n");
+-			r = PTR_ERR(c->regulator);
+-			goto err_release_dma;
+-		}
+-		c->onenand.enable = omap2_onenand_enable;
+-		c->onenand.disable = omap2_onenand_disable;
+-	}
+-
+ 	if (pdata->skip_initial_unlocking)
+ 		this->options |= ONENAND_SKIP_INITIAL_UNLOCKING;
+ 
  	if ((r = onenand_scan(&c->mtd, 1)) < 0)
+-		goto err_release_regulator;
++		goto err_release_dma;
+ 
+ 	r = mtd_device_register(&c->mtd, pdata ? pdata->parts : NULL,
+ 				pdata ? pdata->nr_parts : 0);
+@@ -754,8 +717,6 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+ 
+ err_release_onenand:
+ 	onenand_release(&c->mtd);
+-err_release_regulator:
+-	regulator_put(c->regulator);
+ err_release_dma:
+ 	if (c->dma_channel != -1)
+ 		omap_free_dma(c->dma_channel);
+@@ -779,7 +740,6 @@ static int omap2_onenand_remove(struct platform_device *pdev)
+ 	struct omap2_onenand *c = dev_get_drvdata(&pdev->dev);
+ 
+ 	onenand_release(&c->mtd);
+-	regulator_put(c->regulator);
+ 	if (c->dma_channel != -1)
+ 		omap_free_dma(c->dma_channel);
+ 	omap2_onenand_shutdown(pdev);
 -- 
 2.11.0
 
