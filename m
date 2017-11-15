@@ -1,16 +1,17 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 11/16] mtd: onenand: omap2: Do not make delay for GPIO
- OMAP3 specific
-Date: Wed, 15 Nov 2017 11:31:54 +0200
-Message-ID: <ddbdbb7b-3238-b2a8-ecdd-45539aa4a22f@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v4 10/16] mtd: onenand: omap2: Convert to use dmaengine
+ for memcpy
+Date: Wed, 15 Nov 2017 10:32:30 +0100
+Message-ID: <20171115093230.p7pyskaqtg5fu74y@lenoch>
 References: <20171111211206.465pgorrjp3eyix6@lenoch>
- <20171111212406.lgqpj57o4ckxbx4i@lenoch>
+ <20171111212331.46aisno37ckjc4up@lenoch>
+ <758b3751-cd22-a53b-f323-90067108bd53@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171111212406.lgqpj57o4ckxbx4i@lenoch>
-Content-Language: en-GB
+Content-Disposition: inline
+In-Reply-To: <758b3751-cd22-a53b-f323-90067108bd53@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
@@ -20,70 +21,213 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
 Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/11/17 23:24, Ladislav Michl wrote:
-> Second commit in driver history (782b7a367d81: "[MTD] [OneNAND] OMAP3:
-> add delay for GPIO") added quirk for waiting until GPIO line settle.
-> As DMA was disabled for OMAP2 boards, chances are this problem was
-> not OMAP3 specific and as it is just one register read, previous
-> test for SoC type is approximately as expensive as read itself.
-> Make delay unconditional, which allows removing SoC specific code
-> alltogether.
+On Wed, Nov 15, 2017 at 10:57:20AM +0200, Roger Quadros wrote:
+> On 11/11/17 23:23, Ladislav Michl wrote:
+> > From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > 
+> > Do not use the legacy and deprecated omap-dma interface for setting up the
+> > memcpy.
+> > 
+> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 > 
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-
-Acked-by: Roger Quadros <rogerq@ti.com>
-
-> ---
->  Changes:
->  -v3: new patch
->  -v4: none
+> Acked-by: Roger Quadros <rogerq@ti.com>
 > 
->  drivers/mtd/onenand/omap2.c | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
+> Please see one comment below.
 > 
-> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> index c9ff67100ef4..e4857a41760d 100644
-> --- a/drivers/mtd/onenand/omap2.c
-> +++ b/drivers/mtd/onenand/omap2.c
-> @@ -57,7 +57,6 @@ struct omap2_onenand {
->  	struct dma_chan *dma_chan;
->  	int freq;
->  	int (*setup)(void __iomem *base, int *freq_ptr);
-> -	u8 flags;
->  };
->  
->  static void omap2_onenand_dma_complete_func(void *completion)
-> @@ -148,9 +147,8 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
->  		if (!(syscfg & ONENAND_SYS_CFG1_IOBE)) {
->  			syscfg |= ONENAND_SYS_CFG1_IOBE;
->  			write_reg(c, syscfg, ONENAND_REG_SYS_CFG1);
-> -			if (c->flags & ONENAND_IN_OMAP34XX)
-> -				/* Add a delay to let GPIO settle */
-> -				syscfg = read_reg(c, ONENAND_REG_SYS_CFG1);
-> +			/* Add a delay to let GPIO settle */
-> +			syscfg = read_reg(c, ONENAND_REG_SYS_CFG1);
->  		}
->  
->  		reinit_completion(&c->irq_done);
-> @@ -470,7 +468,6 @@ static int omap2_onenand_probe(struct platform_device *pdev)
->  
->  	init_completion(&c->irq_done);
->  	init_completion(&c->dma_done);
-> -	c->flags = pdata->flags;
->  	c->gpmc_cs = pdata->cs;
->  	c->gpio_irq = pdata->gpio_irq;
->  	if (pdata->dma_channel < 0) {
+> > ---
+> >  Changes:
+> >  -v4: new patch
+> > 
+> >  drivers/mtd/onenand/omap2.c | 80 +++++++++++++++++++++------------------------
+> >  1 file changed, 38 insertions(+), 42 deletions(-)
+> > 
+> > diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+> > index 36314124488d..c9ff67100ef4 100644
+> > --- a/drivers/mtd/onenand/omap2.c
+> > +++ b/drivers/mtd/onenand/omap2.c
+> > @@ -32,6 +32,7 @@
+> >  #include <linux/interrupt.h>
+> >  #include <linux/delay.h>
+> >  #include <linux/dma-mapping.h>
+> > +#include <linux/dmaengine.h>
+> >  #include <linux/io.h>
+> >  #include <linux/slab.h>
+> >  #include <linux/gpio.h>
+> > @@ -39,8 +40,6 @@
+> >  #include <asm/mach/flash.h>
+> >  #include <linux/platform_data/mtd-onenand-omap2.h>
+> >  
+> > -#include <linux/omap-dma.h>
+> > -
+> >  #define DRIVER_NAME "omap2-onenand"
+> >  
+> >  #define ONENAND_BUFRAM_SIZE	(1024 * 5)
+> > @@ -55,17 +54,15 @@ struct omap2_onenand {
+> >  	struct onenand_chip onenand;
+> >  	struct completion irq_done;
+> >  	struct completion dma_done;
+> > -	int dma_channel;
+> > +	struct dma_chan *dma_chan;
+> >  	int freq;
+> >  	int (*setup)(void __iomem *base, int *freq_ptr);
+> >  	u8 flags;
+> >  };
+> >  
+> > -static void omap2_onenand_dma_cb(int lch, u16 ch_status, void *data)
+> > +static void omap2_onenand_dma_complete_func(void *completion)
+> >  {
+> > -	struct omap2_onenand *c = data;
+> > -
+> > -	complete(&c->dma_done);
+> > +	complete(completion);
+> >  }
+> >  
+> >  static irqreturn_t omap2_onenand_interrupt(int irq, void *dev_id)
+> > @@ -292,23 +289,31 @@ static inline int omap2_onenand_dma_transfer(struct omap2_onenand *c,
+> >  					     dma_addr_t src, dma_addr_t dst,
+> >  					     size_t count)
+> >  {
+> > -	int data_type = __ffs((src | dst | count));
+> > +	struct dma_async_tx_descriptor *tx;
+> > +	dma_cookie_t cookie;
+> >  
+> > -	if (data_type > OMAP_DMA_DATA_TYPE_S32)
+> > -		data_type = OMAP_DMA_DATA_TYPE_S32;
+> > -
+> > -	omap_set_dma_transfer_params(c->dma_channel, data_type,
+> > -				     count / BIT(data_type), 1, 0, 0, 0);
+> > -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> > -				src, 0, 0);
+> > -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
+> > -				 dst, 0, 0);
+> > +	tx = dmaengine_prep_dma_memcpy(c->dma_chan, dst, src, count, 0);
+> > +	if (!tx) {
+> > +		dev_err(&c->pdev->dev, "Failed to prepare DMA memcpy\n");
+> > +		return -EIO;
+> > +	}
+> >  
+> >  	reinit_completion(&c->dma_done);
+> > -	omap_start_dma(c->dma_channel);
+> > +
+> > +	tx->callback = omap2_onenand_dma_complete_func;
+> > +	tx->callback_param = &c->dma_done;
+> > +
+> > +	cookie = tx->tx_submit(tx);
+> > +	if (dma_submit_error(cookie)) {
+> > +		dev_err(&c->pdev->dev, "Failed to do DMA tx_submit\n");
+> > +		return -EIO;
+> > +	}
+> > +
+> > +	dma_async_issue_pending(c->dma_chan);
+> > +
+> >  	if (!wait_for_completion_io_timeout(&c->dma_done,
+> >  					    msecs_to_jiffies(20))) {
+> > -		omap_stop_dma(c->dma_channel);
+> > +		dmaengine_terminate_sync(c->dma_chan);
+> >  		return -ETIMEDOUT;
+> >  	}
+> >  
+> > @@ -468,8 +473,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+> >  	c->flags = pdata->flags;
+> >  	c->gpmc_cs = pdata->cs;
+> >  	c->gpio_irq = pdata->gpio_irq;
+> > -	c->dma_channel = pdata->dma_channel;
+> > -	if (c->dma_channel < 0) {
+> > +	if (pdata->dma_channel < 0) {
+> >  		/* if -1, don't use DMA */
+> >  		c->gpio_irq = 0;
 > 
+> Why are we ignoring gpio_irq if DMA channel is not available?
+> The wait mechanism could still benefit from the Interrupt even with no DMA right?
 
--- 
-cheers,
--roger
+That's what original driver does and logic is preserved here.
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+> We could fix this in a separate patch of course.
+
+And indeed we did. See "mtd: onenand: omap2: Enable DMA by default" (*) and
+"mtd: onenand: omap2: Configure driver from DT".
+
+(*) Now looking at that patch is should be renamed, as enabling DMA still depends
+on pdata->dma_chan. It is enabled unconditionally in later patch. Will fix.
+
+> >  	}
+> > @@ -521,25 +525,17 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+> >  		goto err_release_gpio;
+> >  	}
+> >  
+> > -	if (c->dma_channel >= 0) {
+> > -		r = omap_request_dma(0, pdev->dev.driver->name,
+> > -				     omap2_onenand_dma_cb, (void *) c,
+> > -				     &c->dma_channel);
+> > -		if (r == 0) {
+> > -			omap_set_dma_write_mode(c->dma_channel,
+> > -						OMAP_DMA_WRITE_NON_POSTED);
+> > -			omap_set_dma_src_data_pack(c->dma_channel, 1);
+> > -			omap_set_dma_src_burst_mode(c->dma_channel,
+> > -						    OMAP_DMA_DATA_BURST_8);
+> > -			omap_set_dma_dest_data_pack(c->dma_channel, 1);
+> > -			omap_set_dma_dest_burst_mode(c->dma_channel,
+> > -						     OMAP_DMA_DATA_BURST_8);
+> > -		} else {
+> > +	if (pdata->dma_channel >= 0) {
+> > +		dma_cap_mask_t mask;
+> > +
+> > +		dma_cap_zero(mask);
+> > +		dma_cap_set(DMA_MEMCPY, mask);
+> > +
+> > +		c->dma_chan = dma_request_channel(mask, NULL, NULL);
+> > +		if (!c->dma_chan)
+> >  			dev_info(&pdev->dev,
+> >  				 "failed to allocate DMA for OneNAND, "
+> >  				 "using PIO instead\n");
+> > -			c->dma_channel = -1;
+> > -		}
+> >  	}
+> >  
+> >  	dev_info(&pdev->dev, "initializing on CS%d, phys base 0x%08lx, virtual "
+> > @@ -553,7 +549,7 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+> >  	mtd_set_of_node(&c->mtd, pdata->of_node);
+> >  
+> >  	this = &c->onenand;
+> > -	if (c->dma_channel >= 0) {
+> > +	if (c->dma_chan) {
+> >  		this->wait = omap2_onenand_wait;
+> >  		this->read_bufferram = omap2_onenand_read_bufferram;
+> >  		this->write_bufferram = omap2_onenand_write_bufferram;
+> > @@ -573,8 +569,8 @@ static int omap2_onenand_probe(struct platform_device *pdev)
+> >  err_release_onenand:
+> >  	onenand_release(&c->mtd);
+> >  err_release_dma:
+> > -	if (c->dma_channel != -1)
+> > -		omap_free_dma(c->dma_channel);
+> > +	if (c->dma_chan)
+> > +		dma_release_channel(c->dma_chan);
+> >  	if (c->gpio_irq)
+> >  		free_irq(gpio_to_irq(c->gpio_irq), c);
+> >  err_release_gpio:
+> > @@ -595,8 +591,8 @@ static int omap2_onenand_remove(struct platform_device *pdev)
+> >  	struct omap2_onenand *c = dev_get_drvdata(&pdev->dev);
+> >  
+> >  	onenand_release(&c->mtd);
+> > -	if (c->dma_channel != -1)
+> > -		omap_free_dma(c->dma_channel);
+> > +	if (c->dma_chan)
+> > +		dma_release_channel(c->dma_chan);
+> >  	omap2_onenand_shutdown(pdev);
+> >  	if (c->gpio_irq) {
+> >  		free_irq(gpio_to_irq(c->gpio_irq), c);
+> > 
+> 
+> -- 
+> cheers,
+> -roger
+> 
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 
 ______________________________________________________
 Linux MTD discussion mailing list
