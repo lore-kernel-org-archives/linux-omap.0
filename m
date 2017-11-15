@@ -1,268 +1,685 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v4 10/16] mtd: onenand: omap2: Convert to use dmaengine
- for memcpy
-Date: Wed, 15 Nov 2017 16:19:34 +0100
-Message-ID: <20171115151933.6mfwmnwm2fxm7aes@earth>
-References: <20171111211206.465pgorrjp3eyix6@lenoch>
- <20171111212331.46aisno37ckjc4up@lenoch>
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v3 3/5] misc serdev: Add w2sg0004 (gps receiver) power control
+ driver
+Date: Wed, 15 Nov 2017 16:19:11 +0100
+Message-ID: <9e1525e72afe890ea390fd153c1f3a1b0866c986.1510759152.git.hns@goldelico.com>
+References: <cover.1510759152.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0271684143034959460=="
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171111212331.46aisno37ckjc4up@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <cover.1510759152.git.hns@goldelico.com>
+In-Reply-To: <cover.1510759152.git.hns@goldelico.com>
+References: <cover.1510759152.git.hns@goldelico.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Nikolaus Schaller" <hns@goldelico.com>, Kevin Hilman <khilman@baylibre.com>, =?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>
+Cc: devicetree@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@pyra-handheld.com, letux-kernel@openphoenux.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Add driver for Wi2Wi W2SG0004/84 GPS module connected through uart.
 
---===============0271684143034959460==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ft3dhqnuot65zpac"
-Content-Disposition: inline
+Use serdev API hooks to monitor and forward the UART traffic to /dev/GPSn
+and turn on/off the module. It also detects if the module is turned on (sends data)
+but should be off, e.g. if it was already turned on during boot or power-on-reset.
 
+Additionally, rfkill block/unblock can be used to control an external LNA
+(and power down the module if not needed).
 
---ft3dhqnuot65zpac
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The driver concept is based on code developed by NeilBrown <neilb@suse.de>
+but simplified and adapted to use the new serdev API introduced in 4.11.
 
-Hi,
+Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+---
+ drivers/misc/Kconfig     |  10 +
+ drivers/misc/Makefile    |   1 +
+ drivers/misc/w2sg0004.c  | 565 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/w2sg0004.h |  27 +++
+ 4 files changed, 603 insertions(+)
+ create mode 100644 drivers/misc/w2sg0004.c
+ create mode 100644 include/linux/w2sg0004.h
 
-On Sat, Nov 11, 2017 at 10:23:31PM +0100, Ladislav Michl wrote:
-> From: Peter Ujfalusi <peter.ujfalusi@ti.com>
->=20
-> Do not use the legacy and deprecated omap-dma interface for setting up the
-> memcpy.
->=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> ---
-
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
->  Changes:
->  -v4: new patch
->=20
->  drivers/mtd/onenand/omap2.c | 80 +++++++++++++++++++++------------------=
-------
->  1 file changed, 38 insertions(+), 42 deletions(-)
->=20
-> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> index 36314124488d..c9ff67100ef4 100644
-> --- a/drivers/mtd/onenand/omap2.c
-> +++ b/drivers/mtd/onenand/omap2.c
-> @@ -32,6 +32,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/delay.h>
->  #include <linux/dma-mapping.h>
-> +#include <linux/dmaengine.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/gpio.h>
-> @@ -39,8 +40,6 @@
->  #include <asm/mach/flash.h>
->  #include <linux/platform_data/mtd-onenand-omap2.h>
-> =20
-> -#include <linux/omap-dma.h>
-> -
->  #define DRIVER_NAME "omap2-onenand"
-> =20
->  #define ONENAND_BUFRAM_SIZE	(1024 * 5)
-> @@ -55,17 +54,15 @@ struct omap2_onenand {
->  	struct onenand_chip onenand;
->  	struct completion irq_done;
->  	struct completion dma_done;
-> -	int dma_channel;
-> +	struct dma_chan *dma_chan;
->  	int freq;
->  	int (*setup)(void __iomem *base, int *freq_ptr);
->  	u8 flags;
->  };
-> =20
-> -static void omap2_onenand_dma_cb(int lch, u16 ch_status, void *data)
-> +static void omap2_onenand_dma_complete_func(void *completion)
->  {
-> -	struct omap2_onenand *c =3D data;
-> -
-> -	complete(&c->dma_done);
-> +	complete(completion);
->  }
-> =20
->  static irqreturn_t omap2_onenand_interrupt(int irq, void *dev_id)
-> @@ -292,23 +289,31 @@ static inline int omap2_onenand_dma_transfer(struct=
- omap2_onenand *c,
->  					     dma_addr_t src, dma_addr_t dst,
->  					     size_t count)
->  {
-> -	int data_type =3D __ffs((src | dst | count));
-> +	struct dma_async_tx_descriptor *tx;
-> +	dma_cookie_t cookie;
-> =20
-> -	if (data_type > OMAP_DMA_DATA_TYPE_S32)
-> -		data_type =3D OMAP_DMA_DATA_TYPE_S32;
-> -
-> -	omap_set_dma_transfer_params(c->dma_channel, data_type,
-> -				     count / BIT(data_type), 1, 0, 0, 0);
-> -	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
-> -				src, 0, 0);
-> -	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
-> -				 dst, 0, 0);
-> +	tx =3D dmaengine_prep_dma_memcpy(c->dma_chan, dst, src, count, 0);
-> +	if (!tx) {
-> +		dev_err(&c->pdev->dev, "Failed to prepare DMA memcpy\n");
-> +		return -EIO;
-> +	}
-> =20
->  	reinit_completion(&c->dma_done);
-> -	omap_start_dma(c->dma_channel);
-> +
-> +	tx->callback =3D omap2_onenand_dma_complete_func;
-> +	tx->callback_param =3D &c->dma_done;
-> +
-> +	cookie =3D tx->tx_submit(tx);
-> +	if (dma_submit_error(cookie)) {
-> +		dev_err(&c->pdev->dev, "Failed to do DMA tx_submit\n");
-> +		return -EIO;
-> +	}
-> +
-> +	dma_async_issue_pending(c->dma_chan);
-> +
->  	if (!wait_for_completion_io_timeout(&c->dma_done,
->  					    msecs_to_jiffies(20))) {
-> -		omap_stop_dma(c->dma_channel);
-> +		dmaengine_terminate_sync(c->dma_chan);
->  		return -ETIMEDOUT;
->  	}
-> =20
-> @@ -468,8 +473,7 @@ static int omap2_onenand_probe(struct platform_device=
- *pdev)
->  	c->flags =3D pdata->flags;
->  	c->gpmc_cs =3D pdata->cs;
->  	c->gpio_irq =3D pdata->gpio_irq;
-> -	c->dma_channel =3D pdata->dma_channel;
-> -	if (c->dma_channel < 0) {
-> +	if (pdata->dma_channel < 0) {
->  		/* if -1, don't use DMA */
->  		c->gpio_irq =3D 0;
->  	}
-> @@ -521,25 +525,17 @@ static int omap2_onenand_probe(struct platform_devi=
-ce *pdev)
->  		goto err_release_gpio;
->  	}
-> =20
-> -	if (c->dma_channel >=3D 0) {
-> -		r =3D omap_request_dma(0, pdev->dev.driver->name,
-> -				     omap2_onenand_dma_cb, (void *) c,
-> -				     &c->dma_channel);
-> -		if (r =3D=3D 0) {
-> -			omap_set_dma_write_mode(c->dma_channel,
-> -						OMAP_DMA_WRITE_NON_POSTED);
-> -			omap_set_dma_src_data_pack(c->dma_channel, 1);
-> -			omap_set_dma_src_burst_mode(c->dma_channel,
-> -						    OMAP_DMA_DATA_BURST_8);
-> -			omap_set_dma_dest_data_pack(c->dma_channel, 1);
-> -			omap_set_dma_dest_burst_mode(c->dma_channel,
-> -						     OMAP_DMA_DATA_BURST_8);
-> -		} else {
-> +	if (pdata->dma_channel >=3D 0) {
-> +		dma_cap_mask_t mask;
-> +
-> +		dma_cap_zero(mask);
-> +		dma_cap_set(DMA_MEMCPY, mask);
-> +
-> +		c->dma_chan =3D dma_request_channel(mask, NULL, NULL);
-> +		if (!c->dma_chan)
->  			dev_info(&pdev->dev,
->  				 "failed to allocate DMA for OneNAND, "
->  				 "using PIO instead\n");
-> -			c->dma_channel =3D -1;
-> -		}
->  	}
-> =20
->  	dev_info(&pdev->dev, "initializing on CS%d, phys base 0x%08lx, virtual "
-> @@ -553,7 +549,7 @@ static int omap2_onenand_probe(struct platform_device=
- *pdev)
->  	mtd_set_of_node(&c->mtd, pdata->of_node);
-> =20
->  	this =3D &c->onenand;
-> -	if (c->dma_channel >=3D 0) {
-> +	if (c->dma_chan) {
->  		this->wait =3D omap2_onenand_wait;
->  		this->read_bufferram =3D omap2_onenand_read_bufferram;
->  		this->write_bufferram =3D omap2_onenand_write_bufferram;
-> @@ -573,8 +569,8 @@ static int omap2_onenand_probe(struct platform_device=
- *pdev)
->  err_release_onenand:
->  	onenand_release(&c->mtd);
->  err_release_dma:
-> -	if (c->dma_channel !=3D -1)
-> -		omap_free_dma(c->dma_channel);
-> +	if (c->dma_chan)
-> +		dma_release_channel(c->dma_chan);
->  	if (c->gpio_irq)
->  		free_irq(gpio_to_irq(c->gpio_irq), c);
->  err_release_gpio:
-> @@ -595,8 +591,8 @@ static int omap2_onenand_remove(struct platform_devic=
-e *pdev)
->  	struct omap2_onenand *c =3D dev_get_drvdata(&pdev->dev);
-> =20
->  	onenand_release(&c->mtd);
-> -	if (c->dma_channel !=3D -1)
-> -		omap_free_dma(c->dma_channel);
-> +	if (c->dma_chan)
-> +		dma_release_channel(c->dma_chan);
->  	omap2_onenand_shutdown(pdev);
->  	if (c->gpio_irq) {
->  		free_irq(gpio_to_irq(c->gpio_irq), c);
-> --=20
-> 2.11.0
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---ft3dhqnuot65zpac
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloMWwIACgkQ2O7X88g7
-+po3Vg//Qt06km+eZkvbhdf2SKoV3PUZzCZnZTqIEvVZwhnspvEjRghHVIj0VcUe
-X31/CdZmY69LUWd/wAYsA3/DAGk0xfbKLJ5ebnFEr9hgUfl3ko7dfOrV5Aia4PSY
-HNyIX+fL/TBbPdYU/TpMK8vVi/zLGpA3atgBXN3qsL8uAVGWGHxKH/oXwNoVACK4
-/YsuJTQsncPsBbp4TgmfZNqCjh3de/Cbun9fGOysXkYvLWlJ/HAqfcBZCuMQFE81
-40Uf9bJKKqX4VkCPxHOKA71OS2+aqCL+qxAnJax1ddB/z8WASACnU/8XcpiyEM7r
-DcrN0cqIHWeWWZ3vZngOMf+oTqstRJ7iJw1OFU9dfVrXDZEYra9w40jRYDjjqswW
-1b5gFcCHkKDECbwAPKvACZLGxp+zY98z+FhkPogPMQTWt4uLEIgrRnnOGTzZKcOW
-PkPOPGMFgJ9Fwdy692vl0zD7qEruOCKRiXxp+cADe4RW0vGrQJSt4J0fzOCxkwPl
-ZKOg6/DKmHm06DVMx8CTdtCyq7M90416myZZzRlfIAu5GKHAfssq7UWKl/2/sSGR
-IZTj2GjJSU5z0hamrtshEUCgGQmqexwf6BtpCaSzsKhJwYh7q0QyTi4fdw9RTL2N
-oFJjCy+7CT5F3yX4tPD0APYmHV9jWBLuITn1qcewi45tVC1+NP4=
-=h9xk
------END PGP SIGNATURE-----
-
---ft3dhqnuot65zpac--
-
-
---===============0271684143034959460==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
-
---===============0271684143034959460==--
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 8136dc7e863d..09d171d68408 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -518,4 +518,14 @@ source "drivers/misc/mic/Kconfig"
+ source "drivers/misc/genwqe/Kconfig"
+ source "drivers/misc/echo/Kconfig"
+ source "drivers/misc/cxl/Kconfig"
++
++config W2SG0004
++	tristate "W2SG00x4 on/off control"
++	depends on GPIOLIB && SERIAL_DEV_BUS
++	help
++          Enable on/off control of W2SG00x4 GPS moduled connected
++	  to some SoC UART to allow powering up/down if the /dev/ttyGPSn
++	  is opened/closed.
++	  It also provides a rfkill gps name to control the LNA power.
++
+ endmenu
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index ad0e64fdba34..abcb667e0ff0 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -51,6 +51,7 @@ obj-$(CONFIG_SRAM_EXEC)		+= sram-exec.o
+ obj-y				+= mic/
+ obj-$(CONFIG_GENWQE)		+= genwqe/
+ obj-$(CONFIG_ECHO)		+= echo/
++obj-$(CONFIG_W2SG0004)		+= w2sg0004.o
+ obj-$(CONFIG_VEXPRESS_SYSCFG)	+= vexpress-syscfg.o
+ obj-$(CONFIG_CXL_BASE)		+= cxl/
+ obj-$(CONFIG_ASPEED_LPC_CTRL)	+= aspeed-lpc-ctrl.o
+diff --git a/drivers/misc/w2sg0004.c b/drivers/misc/w2sg0004.c
+new file mode 100644
+index 000000000000..385d35c99791
+--- /dev/null
++++ b/drivers/misc/w2sg0004.c
+@@ -0,0 +1,565 @@
++/*
++ * w2sg0004.c
++ * Driver for power controlling the w2sg0004/w2sg0084 GPS receiver.
++ *
++ * This receiver has an ON/OFF pin which must be toggled to
++ * turn the device 'on' of 'off'.  A high->low->high toggle
++ * will switch the device on if it is off, and off if it is on.
++ *
++ * To enable receiving on/off requests we register with the
++ * UART power management notifications.
++ *
++ * It is not possible to directly detect the state of the device.
++ * However when it is on it will send characters on a UART line
++ * regularly.
++ *
++ * To detect that the power state is out of sync (e.g. if GPS
++ * was enabled before a reboot), we register for UART data received
++ * notifications.
++ *
++ * In addition we register as a rfkill client so that we can
++ * control the LNA power.
++ *
++ */
++
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_irq.h>
++#include <linux/of_gpio.h>
++#include <linux/platform_device.h>
++#include <linux/rfkill.h>
++#include <linux/serdev.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/tty.h>
++#include <linux/tty_flip.h>
++#include <linux/w2sg0004.h>
++#include <linux/workqueue.h>
++
++/*
++ * There seems to be restrictions on how quickly we can toggle the
++ * on/off line.  data sheets says "two rtc ticks", whatever that means.
++ * If we do it too soon it doesn't work.
++ * So we have a state machine which uses the common work queue to ensure
++ * clean transitions.
++ * When a change is requested we record that request and only act on it
++ * once the previous change has completed.
++ * A change involves a 10ms low pulse, and a 990ms raised level, so only
++ * one change per second.
++ */
++
++enum w2sg_state {
++	W2SG_IDLE,	/* is not changing state */
++	W2SG_PULSE,	/* activate on/off impulse */
++	W2SG_NOPULSE	/* deactivate on/off impulse */
++};
++
++struct w2sg_data {
++	struct		rfkill *rf_kill;
++	struct		regulator *lna_regulator;
++	int		lna_blocked;	/* rfkill block gps active */
++	int		lna_is_off;	/* LNA is currently off */
++	int		is_on;		/* current state (0/1) */
++	unsigned long	last_toggle;
++	unsigned long	backoff;	/* time to wait since last_toggle */
++	int		on_off_gpio;	/* the on-off gpio number */
++	struct		serdev_device *uart;	/* uart connected to the chip */
++	struct		tty_driver *tty_drv;	/* this is the user space tty */
++	struct		device *dev;	/* from tty_port_register_device() */
++	struct		tty_port port;
++	int		open_count;	/* how often we were opened */
++	enum		w2sg_state state;
++	int		requested;	/* requested state (0/1) */
++	int		suspended;
++	struct delayed_work work;
++	int		discard_count;
++};
++
++static struct w2sg_data *w2sg_by_minor[1];
++
++static int w2sg_set_lna_power(struct w2sg_data *data)
++{
++	int ret = 0;
++	int off = data->suspended || !data->requested || data->lna_blocked;
++
++	pr_debug("%s: %s\n", __func__, off ? "off" : "on");
++
++	if (off != data->lna_is_off) {
++		data->lna_is_off = off;
++		if (!IS_ERR_OR_NULL(data->lna_regulator)) {
++			if (off)
++				regulator_disable(data->lna_regulator);
++			else
++				ret = regulator_enable(data->lna_regulator);
++		}
++	}
++
++	return ret;
++}
++
++static void w2sg_set_power(void *pdata, int val)
++{
++	struct w2sg_data *data = (struct w2sg_data *) pdata;
++
++	pr_debug("%s to state=%d (requested=%d)\n", __func__, val, data->requested);
++
++	if (val && !data->requested) {
++		data->requested = true;
++	} else if (!val && data->requested) {
++		data->backoff = HZ;
++		data->requested = false;
++	} else
++		return;
++
++	pr_debug("w2sg00x4 scheduled for %d\n", data->requested);
++
++	if (!data->suspended)
++		schedule_delayed_work(&data->work, 0);
++}
++
++/* called each time data is received by the UART (i.e. sent by the w2sg0004) */
++
++static int w2sg_uart_receive_buf(struct serdev_device *serdev,
++				const unsigned char *rxdata,
++				size_t count)
++{
++	struct w2sg_data *data =
++		(struct w2sg_data *) serdev_device_get_drvdata(serdev);
++
++	if (!data->requested && !data->is_on) {
++		/*
++		 * we have received characters while the w2sg
++		 * should have been be turned off
++		 */
++		data->discard_count += count;
++		if ((data->state == W2SG_IDLE) &&
++		    time_after(jiffies,
++		    data->last_toggle + data->backoff)) {
++			/* Should be off by now, time to toggle again */
++			pr_debug("w2sg00x4 has sent %d characters data although it should be off!\n",
++				data->discard_count);
++
++			data->discard_count = 0;
++
++			data->is_on = true;
++			data->backoff *= 2;
++			if (!data->suspended)
++				schedule_delayed_work(&data->work, 0);
++		}
++	} else if (data->open_count > 0) {
++		int n;
++
++		pr_debug("w2sg00x4: push %lu chars to tty port\n", count);
++
++		/* pass to user-space */
++		n = tty_insert_flip_string(&data->port, rxdata, count);
++		if (n != count)
++			pr_err("w2sg00x4: did loose %lu characters\n", count - n);
++		tty_flip_buffer_push(&data->port);
++		return n;
++	}
++
++	/* assume we have processed everything */
++	return count;
++}
++
++/* try to toggle the power state by sending a pulse to the on-off GPIO */
++
++static void toggle_work(struct work_struct *work)
++{
++	struct w2sg_data *data = container_of(work, struct w2sg_data,
++					      work.work);
++
++	switch (data->state) {
++	case W2SG_IDLE:
++		if (data->requested == data->is_on)
++			return;
++
++		w2sg_set_lna_power(data);	/* update LNA power state */
++		gpio_set_value_cansleep(data->on_off_gpio, 0);
++		data->state = W2SG_PULSE;
++
++		pr_debug("w2sg: power gpio ON\n");
++
++		schedule_delayed_work(&data->work,
++				      msecs_to_jiffies(10));
++		break;
++
++	case W2SG_PULSE:
++		gpio_set_value_cansleep(data->on_off_gpio, 1);
++		data->last_toggle = jiffies;
++		data->state = W2SG_NOPULSE;
++		data->is_on = !data->is_on;
++
++		pr_debug("w2sg: power gpio OFF\n");
++
++		schedule_delayed_work(&data->work,
++				      msecs_to_jiffies(10));
++		break;
++
++	case W2SG_NOPULSE:
++		data->state = W2SG_IDLE;
++
++		pr_debug("w2sg: idle\n");
++
++		break;
++
++	}
++}
++
++static int w2sg_rfkill_set_block(void *pdata, bool blocked)
++{
++	struct w2sg_data *data = pdata;
++
++	pr_debug("%s: blocked: %d\n", __func__, blocked);
++
++	data->lna_blocked = blocked;
++
++	return w2sg_set_lna_power(data);
++}
++
++static struct rfkill_ops w2sg0004_rfkill_ops = {
++	.set_block = w2sg_rfkill_set_block,
++};
++
++static struct serdev_device_ops serdev_ops = {
++	.receive_buf = w2sg_uart_receive_buf,
++};
++
++/*
++ * we are a man-in the middle between the user-space visible tty port
++ * and the serdev tty where the chip is connected.
++ * This allows us to recognise when the device should be powered on
++ * or off and handle the "false" state that data arrives while no
++ * users-space tty client exists.
++ */
++
++static struct w2sg_data *w2sg_get_by_minor(unsigned int minor)
++{
++	return w2sg_by_minor[minor];
++}
++
++static int w2sg_tty_install(struct tty_driver *driver, struct tty_struct *tty)
++{
++	struct w2sg_data *data;
++	int retval;
++
++	pr_debug("%s() tty = %p\n", __func__, tty);
++
++	data = w2sg_get_by_minor(tty->index);
++
++	if (!data)
++		return -ENODEV;
++
++	retval = tty_standard_install(driver, tty);
++	if (retval)
++		goto error_init_termios;
++
++	tty->driver_data = data;
++
++	return 0;
++
++error_init_termios:
++	tty_port_put(&data->port);
++	return retval;
++}
++
++static int w2sg_tty_open(struct tty_struct *tty, struct file *file)
++{
++	struct w2sg_data *data = tty->driver_data;
++
++	pr_debug("%s() data = %p open_count = ++%d\n", __func__, data, data->open_count);
++
++	w2sg_set_power(data, ++data->open_count > 0);
++
++	return tty_port_open(&data->port, tty, file);
++}
++
++static void w2sg_tty_close(struct tty_struct *tty, struct file *file)
++{
++	struct w2sg_data *data = tty->driver_data;
++
++	pr_debug("%s()\n", __func__);
++
++	w2sg_set_power(data, --data->open_count > 0);
++
++	tty_port_close(&data->port, tty, file);
++}
++
++static int w2sg_tty_write(struct tty_struct *tty,
++		const unsigned char *buffer, int count)
++{
++	struct w2sg_data *data = tty->driver_data;
++
++	/* simply pass down to UART */
++	return serdev_device_write_buf(data->uart, buffer, count);
++}
++
++
++static const struct tty_operations w2sg_serial_ops = {
++	.install = w2sg_tty_install,
++	.open = w2sg_tty_open,
++	.close = w2sg_tty_close,
++	.write = w2sg_tty_write,
++};
++
++static const struct tty_port_operations w2sg_port_ops = {
++};
++
++static int w2sg_probe(struct serdev_device *serdev)
++{
++	struct w2sg_pdata *pdata = NULL;
++	struct w2sg_data *data;
++	struct rfkill *rf_kill;
++	int err;
++	int minor;
++
++	pr_debug("%s()\n", __func__);
++
++	minor = 0;
++	if (w2sg_by_minor[minor]) {
++		pr_err("w2sg minor is already in use!\n");
++		return -ENODEV;
++	}
++
++	if (serdev->dev.of_node) {
++		struct device *dev = &serdev->dev;
++		enum of_gpio_flags flags;
++
++		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata)
++			return -ENOMEM;
++
++		pdata->on_off_gpio = of_get_named_gpio_flags(dev->of_node,
++							     "enable-gpios", 0,
++							     &flags);
++
++		/* defer until we have all gpios */
++		if (pdata->on_off_gpio == -EPROBE_DEFER)
++			return -EPROBE_DEFER;
++
++		pdata->lna_regulator = devm_regulator_get_optional(dev, "lna");
++		if (IS_ERR(pdata->lna_regulator)) {
++			/* defer until we can get the regulator */
++			if (PTR_ERR(pdata->lna_regulator) == -EPROBE_DEFER)
++				return -EPROBE_DEFER;
++
++			pdata->lna_regulator = NULL;
++		}
++
++		pr_debug("%s() lna_regulator = %p\n", __func__,
++			pdata->lna_regulator);
++
++		serdev->dev.platform_data = pdata;
++	}
++
++	data = devm_kzalloc(&serdev->dev, sizeof(*data), GFP_KERNEL);
++	if (data == NULL)
++		return -ENOMEM;
++
++	w2sg_by_minor[minor] = data;
++
++	serdev_device_set_drvdata(serdev, data);
++
++	data->lna_regulator = pdata->lna_regulator;
++	data->lna_blocked = true;
++	data->lna_is_off = true;
++
++	data->on_off_gpio = pdata->on_off_gpio;
++
++	data->is_on = false;
++	data->requested = false;
++	data->state = W2SG_IDLE;
++	data->last_toggle = jiffies;
++	data->backoff = HZ;
++
++	data->uart = serdev;
++
++	INIT_DELAYED_WORK(&data->work, toggle_work);
++
++	err = devm_gpio_request(&serdev->dev, data->on_off_gpio,
++				"w2sg0004-on-off");
++	if (err < 0)
++		goto out;
++
++	gpio_direction_output(data->on_off_gpio, false);
++
++	serdev_device_set_client_ops(data->uart, &serdev_ops);
++	serdev_device_open(data->uart);
++
++	serdev_device_set_baudrate(data->uart, 9600);
++	serdev_device_set_flow_control(data->uart, false);
++
++	rf_kill = rfkill_alloc("GPS", &serdev->dev, RFKILL_TYPE_GPS,
++				&w2sg0004_rfkill_ops, data);
++	if (rf_kill == NULL) {
++		err = -ENOMEM;
++		goto err_rfkill;
++	}
++
++	err = rfkill_register(rf_kill);
++	if (err) {
++		dev_err(&serdev->dev, "Cannot register rfkill device\n");
++		goto err_rfkill;
++	}
++
++	data->rf_kill = rf_kill;
++
++	/* allocate the tty driver */
++	data->tty_drv = alloc_tty_driver(1);
++	if (!data->tty_drv)
++		return -ENOMEM;
++
++	/* initialize the tty driver */
++	data->tty_drv->owner = THIS_MODULE;
++	data->tty_drv->driver_name = "w2sg0004";
++	data->tty_drv->name = "ttyGPS";
++	data->tty_drv->major = 0;
++	data->tty_drv->minor_start = 0;
++	data->tty_drv->type = TTY_DRIVER_TYPE_SERIAL;
++	data->tty_drv->subtype = SERIAL_TYPE_NORMAL;
++	data->tty_drv->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
++	data->tty_drv->init_termios = tty_std_termios;
++	data->tty_drv->init_termios.c_cflag = B9600 | CS8 | CREAD |
++					      HUPCL | CLOCAL;
++	/*
++	 * optional:
++	 * tty_termios_encode_baud_rate(&data->tty_drv->init_termios,
++					115200, 115200);
++	 * w2sg_tty_termios(&data->tty_drv->init_termios);
++	 */
++	tty_set_operations(data->tty_drv, &w2sg_serial_ops);
++
++	/* register the tty driver */
++	err = tty_register_driver(data->tty_drv);
++	if (err) {
++		pr_err("%s - tty_register_driver failed(%d)\n",
++			__func__, err);
++		put_tty_driver(data->tty_drv);
++		goto err_rfkill;
++	}
++
++	tty_port_init(&data->port);
++	data->port.ops = &w2sg_port_ops;
++
++/*
++ * FIXME: this appears to reenter this probe() function a second time
++ * which only fails because the gpio is already assigned
++ */
++
++	data->dev = tty_port_register_device(&data->port,
++			data->tty_drv, minor, &serdev->dev);
++
++	pr_debug("w2sg probed\n");
++
++	/* keep off until user space requests the device */
++	w2sg_set_power(data, false);
++
++	return 0;
++
++err_rfkill:
++	rfkill_destroy(rf_kill);
++	serdev_device_close(data->uart);
++out:
++	return err;
++}
++
++static void w2sg_remove(struct serdev_device *serdev)
++{
++	struct w2sg_data *data = serdev_device_get_drvdata(serdev);
++	int minor;
++
++	cancel_delayed_work_sync(&data->work);
++
++	/* what is the right sequence to avoid problems? */
++	serdev_device_close(data->uart);
++
++	minor = 0;
++	tty_unregister_device(data->tty_drv, minor);
++
++	tty_unregister_driver(data->tty_drv);
++}
++
++static int w2sg_suspend(struct device *dev)
++{
++	struct w2sg_data *data = dev_get_drvdata(dev);
++
++	data->suspended = true;
++
++	cancel_delayed_work_sync(&data->work);
++
++	w2sg_set_lna_power(data);	/* shuts down if needed */
++
++	if (data->state == W2SG_PULSE) {
++		msleep(10);
++		gpio_set_value_cansleep(data->on_off_gpio, 1);
++		data->last_toggle = jiffies;
++		data->is_on = !data->is_on;
++		data->state = W2SG_NOPULSE;
++	}
++
++	if (data->state == W2SG_NOPULSE) {
++		msleep(10);
++		data->state = W2SG_IDLE;
++	}
++
++	if (data->is_on) {
++		pr_info("GPS off for suspend %d %d %d\n", data->requested,
++			data->is_on, data->lna_is_off);
++
++		gpio_set_value_cansleep(data->on_off_gpio, 0);
++		msleep(10);
++		gpio_set_value_cansleep(data->on_off_gpio, 1);
++		data->is_on = 0;
++	}
++
++	return 0;
++}
++
++static int w2sg_resume(struct device *dev)
++{
++	struct w2sg_data *data = dev_get_drvdata(dev);
++
++	data->suspended = false;
++
++	pr_info("GPS resuming %d %d %d\n", data->requested,
++		data->is_on, data->lna_is_off);
++
++	schedule_delayed_work(&data->work, 0);	/* enables LNA if needed */
++
++	return 0;
++}
++
++#if defined(CONFIG_OF)
++static const struct of_device_id w2sg0004_of_match[] = {
++	{ .compatible = "wi2wi,w2sg0004" },
++	{ .compatible = "wi2wi,w2sg0084" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, w2sg0004_of_match);
++#endif
++
++SIMPLE_DEV_PM_OPS(w2sg_pm_ops, w2sg_suspend, w2sg_resume);
++
++static struct serdev_device_driver w2sg_driver = {
++	.probe		= w2sg_probe,
++	.remove		= w2sg_remove,
++	.driver = {
++		.name	= "w2sg0004",
++		.owner	= THIS_MODULE,
++		.pm	= &w2sg_pm_ops,
++		.of_match_table = of_match_ptr(w2sg0004_of_match)
++	},
++};
++
++module_serdev_device_driver(w2sg_driver);
++
++MODULE_ALIAS("w2sg0004");
++
++MODULE_AUTHOR("NeilBrown <neilb@suse.de>");
++MODULE_DESCRIPTION("w2sg0004 GPS power management driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/w2sg0004.h b/include/linux/w2sg0004.h
+new file mode 100644
+index 000000000000..ad0c4a18e01d
+--- /dev/null
++++ b/include/linux/w2sg0004.h
+@@ -0,0 +1,27 @@
++/*
++ * UART slave to allow ON/OFF control of w2sg0004 GPS receiver.
++ *
++ * Copyright (C) 2011 Neil Brown <neil@brown.name>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++
++
++
++#ifndef __LINUX_W2SG0004_H
++#define __LINUX_W2SG0004_H
++
++#include <linux/regulator/consumer.h>
++
++struct w2sg_pdata {
++	struct regulator *lna_regulator;	/* enable LNA power */
++	int	on_off_gpio;	/*  on-off input of the GPS module */
++};
++#endif /* __LINUX_W2SG0004_H */
+-- 
+2.12.2
