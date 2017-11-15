@@ -1,97 +1,129 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: n900 in next-20170901
-Date: Tue, 14 Nov 2017 18:53:12 -0800
-Message-ID: <20171115025312.GL28152@atomide.com>
-References: <20171109150854.GC28152@atomide.com>
- <20171110001315.GA29669@js1304-P5Q-DELUXE>
- <20171110032610.GJ28152@atomide.com>
- <20171110063727.GA32073@js1304-P5Q-DELUXE>
- <20171110153620.GO28152@atomide.com>
- <20171114063724.GA16969@js1304-P5Q-DELUXE>
- <20171114173719.GA28152@atomide.com>
- <20171115005118.GA21113@js1304-P5Q-DELUXE>
- <20171115020400.GJ28152@atomide.com>
- <20171115024801.GA21621@js1304-P5Q-DELUXE>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 00/16] OMAP2+ OneNAND driver update
+Date: Wed, 15 Nov 2017 10:10:03 +0200
+Message-ID: <fd92bdae-faf4-d3b5-9771-37eb8a5ae412@ti.com>
+References: <20171111211206.465pgorrjp3eyix6@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20171115024801.GA21621@js1304-P5Q-DELUXE>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, ivo.g.dimitrov.75@gmail.com, khilman@kernel.org, Vlastimil Babka <vbabka@suse.cz>, aaro.koskinen@iki.fi, kernel list <linux-kernel@vger.kernel.org>, sre@kernel.org, Tero Kristo <t-kristo@ti.com>, abcloriens@gmail.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Pavel Machek <pavel@ucw.cz>, pali.rohar@gmail.com, Russell King <linux@armlinux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, patrikbachan@gmail.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, serge@hallyn.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20171111211206.465pgorrjp3eyix6@lenoch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Joonsoo Kim <iamjoonsoo.kim@lge.com> [171115 02:44]:
-> On Tue, Nov 14, 2017 at 06:04:00PM -0800, Tony Lindgren wrote:
-> > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171115 00:48]:
-> > > On Tue, Nov 14, 2017 at 09:37:19AM -0800, Tony Lindgren wrote:
-> > > > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171114 06:34]:
-> > > > > On Fri, Nov 10, 2017 at 07:36:20AM -0800, Tony Lindgren wrote:
-> > > > > > * Joonsoo Kim <iamjoonsoo.kim@lge.com> [171110 06:34]:
-> > > > > > > On Thu, Nov 09, 2017 at 07:26:10PM -0800, Tony Lindgren wrote:
-> > > > > > > > +#define OMAP34XX_SRAM_PHYS	0x40200000
-> > > > > > > > +#define OMAP34XX_SRAM_VIRT	0xd0010000
-> > > > > > > > +#define OMAP34XX_SRAM_SIZE	0x10000
-> > > > > > > 
-> > > > > > > For my testing environment, vmalloc address space is started at
-> > > > > > > roughly 0xe0000000 so 0xd0010000 would not be valid.
-> > > > > > 
-> > > > > > Well we can map it anywhere we want, got any preferences?
-> > > > > 
-> > > > > My testing environment is a beagle-(xm?) for QEMU. It is configured by
-> > > > > CONFIG_VMSPLIT_3G=y so kernel address space is started at 0xc0000000.
-> > > > > And, it has 512 MB memory so 0xc0000000 ~ 0xdff00000 is used for
-> > > > > direct mapping. See below.
-> > > > > 
-> > > > > [    0.000000] Memory: 429504K/522240K available (11264K kernel code,
-> > > > > 1562K rwdata, 4288K rodata, 2048K init, 405K bss, 27200K reserved,
-> > > > > 65536K cma-reserved, 0K highmem)
-> > > > > [    0.000000] Virtual kernel memory layout:
-> > > > > [    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
-> > > > > [    0.000000]     fixmap  : 0xffc00000 - 0xfff00000   (3072 kB)
-> > > > > [    0.000000]     vmalloc : 0xe0000000 - 0xff800000   ( 504 MB)
-> > > > > [    0.000000]     lowmem  : 0xc0000000 - 0xdff00000   ( 511 MB)
-> > > > > [    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
-> > > > > [    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
-> > > > > [    0.000000]       .text : 0xc0208000 - 0xc0e00000   (12256 kB)
-> > > > > [    0.000000]       .init : 0xc1300000 - 0xc1500000   (2048 kB)
-> > > > > [    0.000000]       .data : 0xc1500000 - 0xc1686810   (1563 kB)
-> > > > > [    0.000000]        .bss : 0xc168fc68 - 0xc16f512c   ( 406 kB)
-> > > > > 
-> > > > > Therefore, if OMAP34XX_SRAM_VIRT is 0xd0010000, direct mapping is
-> > > > > broken and the system doesn't work. I guess that we should use more
-> > > > > stable address like as 0xf0000000.
-> > > > 
-> > > > OK. Let's forget about adding static mappings and my earlier
-> > > > patches to attempt to fix this. Below is what I now think we should
-> > > > merge as a fix before merging Joonsoo's patches. Please all review
-> > > > and test, adding Tero to Cc also.
-> > > 
-> > > Okay. Then, this patch will be merged by yourself as a fix? I'm okay
-> > > with either way. Just let me know. :)
-> > 
-> > Well what's the plan with your patches? I'd not have mainline
-> > kernel broken so if this was the only blocker for the v4.15,
-> > then you should pick it.
-> > 
-> > However, if your patches are now planned for v4.16, then I'll
-> > queue it for early v4.15-rc.
-> 
-> It was the only blocker but I think that it's too late for v4.15. I
-> will try again for v4.16. Please queue your fix for early v4.15-rc.
 
-OK let's do that. I'll wait few days for comments.
 
-Regards,
+On 2017-11-11 23:12, Ladislav Michl wrote:
+> Hi there,
+> =
 
-Tony
+> this patch serie updates OMAP2+ OneNAND driver to the present times, maki=
+ng
+> it fully DT configurable, using libgpio and dmaengine apis.
+> =
+
+> Please note that unlike previous driver version, which basically ignored
+> DT specified timings, this one relies on it, so it is important to get
+> it right in your DT (dumping it from previous kernel version).
+> =
+
+> In case synchronous timings is requested, it is okay to specify timings
+> for the slowest chip ever used for you board as it is evetually optimized
+> after chip probe.
+> =
+
+> Original driver used DMA only if user specified r/b gpio in platform
+> data, now DMA is used unconditionally and PIO mode is used as fallback.
+> =
+
+> In case anyone wants to give it a try, few DT related changes are needed:
+> - onenand node needs 'ti,omap2-onenand' compatible (for mailine boards th=
+is is
+>   done in patch 2)
+> - to use R/B pin, rb-gpios needs to be specified (for n900 and n8x0 this =
+is
+>   done in patch 16, however patch lacks pinmux configuration.
+> =
+
+> Most notable changes from previous version:
+> - added dmaengine patches by Peter Ujfalusi
+> - added dt bindings documentation
+> - added cleanup patches
+> - DMA enabled by default
+> =
+
+> Also note that driver will fail probe OneNAND chip after patch 13 and sta=
+rt
+> working again after patch 14.
+
+Thanks for the hard work!
+to all:
+Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+> =
+
+> Testing and benchmarking very welcome.
+> =
+
+> Depends on "memory: omap-gpmc: Make 'bank-width' property optional"
+> https://patchwork.kernel.org/patch/10043259/
+> =
+
+> Ladislav Michl (13):
+>   dt-bindings: mtd: gpmc-onenand: Update properties description
+>   ARM: dts: OMAP2+: Add compatible property to onenand node
+>   ARM: dts: omap3-igep: Update onenand node timings
+>   mtd: onenand: omap2: Remove regulator support
+>   mtd: onenand: omap2: Remove skip initial unlocking support
+>   mtd: onenand: omap2: Remove partitioning support from platform data
+>   mtd: onenand: omap2: Account waiting time as waiting on IO
+>   mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA implementation
+>   mtd: onenand: omap2: Do not make delay for GPIO OMAP3 specific
+>   memory: omap-gpmc: Refactor OneNAND support
+>   mtd: onenand: omap2: Configure driver from DT
+>   ARM: OMAP2+: Remove gpmc-onenand
+>   ARM: dts: Nokia: Use R/B pin
+> =
+
+> Peter Ujfalusi (2):
+>   mtd: onenand: omap2: Simplify the DMA setup for various paths
+>   mtd: onenand: omap2: Convert to use dmaengine for memcpy
+> =
+
+>  .../devicetree/bindings/mtd/gpmc-onenand.txt       |   6 +-
+>  arch/arm/boot/dts/omap2420-n8x0-common.dtsi        |   5 +-
+>  arch/arm/boot/dts/omap3-igep.dtsi                  |  30 +-
+>  arch/arm/boot/dts/omap3-n900.dts                   |   2 +
+>  arch/arm/boot/dts/omap3-n950-n9.dtsi               |   1 +
+>  arch/arm/boot/dts/omap3430-sdp.dts                 |   1 +
+>  arch/arm/mach-omap2/Makefile                       |   3 -
+>  arch/arm/mach-omap2/gpmc-onenand.c                 | 409 ---------------
+>  drivers/memory/omap-gpmc.c                         | 158 ++++--
+>  drivers/mtd/onenand/omap2.c                        | 580 ++++++++-------=
+------
+>  include/linux/omap-gpmc.h                          |  25 +
+>  include/linux/platform_data/mtd-onenand-omap2.h    |  34 --
+>  12 files changed, 389 insertions(+), 865 deletions(-)
+>  delete mode 100644 arch/arm/mach-omap2/gpmc-onenand.c
+>  delete mode 100644 include/linux/platform_data/mtd-onenand-omap2.h
+> =
+
+
+- P=E9ter
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
