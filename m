@@ -1,164 +1,698 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v3 3/5] misc serdev: Add w2sg0004 (gps receiver) power
- control driver
-Date: Wed, 15 Nov 2017 21:12:26 +0100
-Message-ID: <CAK8P3a2DT+uOUWYFiYoc_=qFx1oS5xMgWmHde+8tm+BmAENaeg@mail.gmail.com>
-References: <cover.1510759152.git.hns@goldelico.com> <9e1525e72afe890ea390fd153c1f3a1b0866c986.1510759152.git.hns@goldelico.com>
- <CAK8P3a3ZtqXVobx5hdxUZyAQRYs2Y6Aw2Qpo2puSBb_AVa_aVA@mail.gmail.com>
- <AFD95D2E-2EBB-4EBF-9B3B-E68ED98E5437@goldelico.com> <CAK8P3a1Ah35mmbw0qN=zp8TMN9HVgdtTSkkSCCayC-5b6Q960A@mail.gmail.com>
- <AFF4418B-740D-4FFE-A3A6-A92E73F0B901@goldelico.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 3/5] misc: Add w2sg0004 (gps receiver) power control
+ driver
+Date: Wed, 15 Nov 2017 14:17:56 -0600
+Message-ID: <20171115201756.qjmo26wttg55d57m@rob-hp-laptop>
+References: <cover.1510520397.git.hns@goldelico.com>
+ <1dd7e2ccf3d0361c0bb947bacbc2c00066e528c4.1510520397.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AFF4418B-740D-4FFE-A3A6-A92E73F0B901-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1dd7e2ccf3d0361c0bb947bacbc2c00066e528c4.1510520397.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, DTML <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux ARM <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, =?UTF-8?Q?Beno=C3=AEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, =?UTF-8?Q?Andreas_F=C3=A4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 15, 2017 at 8:55 PM, H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
->> Am 15.11.2017 um 18:03 schrieb Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>:
->> On Wed, Nov 15, 2017 at 5:27 PM, H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
->>>> Am 15.11.2017 um 16:54 schrieb Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>:
->>>> On Wed, Nov 15, 2017 at 4:19 PM, H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> wrote:
->>>>> Add driver for Wi2Wi W2SG0004/84 GPS module connected through uart.
->>>
->>> There is one more goal. Some people are dreaming about a generic GPS interface.
->>> Then, the driver wouldn't have to register a /dev/GPS tty any more but a
->>> gps_interface and mangle serial data as requested by that API. This will become
->>> a simple upgrade.
->>>
->>> So you can consider creating a new tty as sort of temporary solution. Like we
->>> had for years for UART HCI based bluetooth devices using a user-space daemon.
->>
->> It shouldn't be hard to split out the tty_driver portion of your file from the
->> part that registers the port, basically getting two files that each handle
->> half of the work, and the second one would be generic from the start.
->
-> Hm. Sounds like a big hack to me instead of using existing API (serdev and tty_port)
-> and making the best out of it.
->
-> But I may have misunderstood what you mean by splitting out parts of
-> a tty (which one?) and why I need two files?
->
-> The structure of the driver is:
->
-> UART --> serdev magic ---> this device driver ---> register something to present data to user space ---> user space read()
->
-> Data should flow following this arrows.
-> And power control happens this way:
->
-> UART --> serdev magic ---> this device driver <--- register something to present data to user space <--- user space open()
-> GPIO <----------------------------+
->
-> So we need one serdev port to communicate with the device and something to present serial data to user-space (where gpsd runs).
+On Sun, Nov 12, 2017 at 09:59:56PM +0100, H. Nikolaus Schaller wrote:
+> Add driver for Wi2Wi W2SG0004/84 GPS module connected through uart.
+> 
+> Use serdev API hooks to monitor and forward the UART traffic to /dev/GPSn
+> and turn on/off the module. It also detects if the module is turned on (sends data)
+> but should be off, e.g. if it was already turned on during boot or power-on-reset.
+> 
+> Additionally, rfkill block/unblock can be used to control an external LNA
+> (and power down the module if not needed).
+> 
+> The driver concept is based on code developed by NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+> but simplified and adapted to use the new serdev API introduced in 4.11.
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+> ---
+>  drivers/misc/Kconfig     |  10 +
+>  drivers/misc/Makefile    |   1 +
+>  drivers/misc/w2sg0004.c  | 565 +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/w2sg0004.h |  27 +++
+>  4 files changed, 603 insertions(+)
+>  create mode 100644 drivers/misc/w2sg0004.c
+>  create mode 100644 include/linux/w2sg0004.h
+> 
+> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+> index 8136dc7e863d..09d171d68408 100644
+> --- a/drivers/misc/Kconfig
+> +++ b/drivers/misc/Kconfig
+> @@ -518,4 +518,14 @@ source "drivers/misc/mic/Kconfig"
+>  source "drivers/misc/genwqe/Kconfig"
+>  source "drivers/misc/echo/Kconfig"
+>  source "drivers/misc/cxl/Kconfig"
+> +
+> +config W2SG0004
+> +	tristate "W2SG00x4 on/off control"
+> +	depends on GPIOLIB && SERIAL_DEV_BUS
+> +	help
+> +          Enable on/off control of W2SG00x4 GPS moduled connected
+> +	  to some SoC UART to allow powering up/down if the /dev/ttyGPSn
+> +	  is opened/closed.
+> +	  It also provides a rfkill gps name to control the LNA power.
+> +
+>  endmenu
+> diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+> index ad0e64fdba34..abcb667e0ff0 100644
+> --- a/drivers/misc/Makefile
+> +++ b/drivers/misc/Makefile
+> @@ -51,6 +51,7 @@ obj-$(CONFIG_SRAM_EXEC)		+= sram-exec.o
+>  obj-y				+= mic/
+>  obj-$(CONFIG_GENWQE)		+= genwqe/
+>  obj-$(CONFIG_ECHO)		+= echo/
+> +obj-$(CONFIG_W2SG0004)		+= w2sg0004.o
+>  obj-$(CONFIG_VEXPRESS_SYSCFG)	+= vexpress-syscfg.o
+>  obj-$(CONFIG_CXL_BASE)		+= cxl/
+>  obj-$(CONFIG_ASPEED_LPC_CTRL)	+= aspeed-lpc-ctrl.o
+> diff --git a/drivers/misc/w2sg0004.c b/drivers/misc/w2sg0004.c
+> new file mode 100644
+> index 000000000000..55101aa6beeb
+> --- /dev/null
+> +++ b/drivers/misc/w2sg0004.c
+> @@ -0,0 +1,565 @@
+> +/*
+> + * w2sg0004.c
 
-My suggestion was directed at replacing the big hack (adding one
-driver per port, and a different driver for each type of GPS hardware)
-with a smaller hack, using one driver to manage the ttyGPS name
-space for any implementation. That same driver could later even be
-expanded to offer additional ioctl interfaces, e.g. for reading the
-current position or time.
+Listing the filename is pointless IMO. You need a license too. Use SPDX 
+tag (on first line with C++ style comment).
 
-Let's ignore that point for the moment though and finish the
-discussion below, I think it will become clearer what I meant here
-when the split between init() and probe() function is resolved.
+> + * Driver for power controlling the w2sg0004/w2sg0084 GPS receiver.
+> + *
+> + * This receiver has an ON/OFF pin which must be toggled to
+> + * turn the device 'on' of 'off'.  A high->low->high toggle
+> + * will switch the device on if it is off, and off if it is on.
+> + *
+> + * To enable receiving on/off requests we register with the
+> + * UART power management notifications.
+> + *
+> + * It is not possible to directly detect the state of the device.
+> + * However when it is on it will send characters on a UART line
+> + * regularly.
+> + *
+> + * To detect that the power state is out of sync (e.g. if GPS
+> + * was enabled before a reboot), we register for UART data received
+> + * notifications.
+> + *
+> + * In addition we register as a rfkill client so that we can
+> + * control the LNA power.
+> + *
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/err.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/irq.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/of_irq.h>
+> +#include <linux/of_gpio.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/rfkill.h>
+> +#include <linux/serdev.h>
+> +#include <linux/sched.h>
+> +#include <linux/slab.h>
+> +#include <linux/tty.h>
+> +#include <linux/tty_flip.h>
+> +#include <linux/w2sg0004.h>
+> +#include <linux/workqueue.h>
+> +
+> +/*
+> + * There seems to be restrictions on how quickly we can toggle the
+> + * on/off line.  data sheets says "two rtc ticks", whatever that means.
+> + * If we do it too soon it doesn't work.
+> + * So we have a state machine which uses the common work queue to ensure
+> + * clean transitions.
+> + * When a change is requested we record that request and only act on it
+> + * once the previous change has completed.
+> + * A change involves a 10ms low pulse, and a 990ms raised level, so only
+> + * one change per second.
+> + */
+> +
+> +enum w2sg_state {
+> +	W2SG_IDLE,	/* is not changing state */
+> +	W2SG_PULSE,	/* activate on/off impulse */
+> +	W2SG_NOPULSE	/* deactivate on/off impulse */
+> +};
+> +
+> +struct w2sg_data {
+> +	struct		rfkill *rf_kill;
+> +	struct		regulator *lna_regulator;
+> +	int		lna_blocked;	/* rfkill block gps active */
+> +	int		lna_is_off;	/* LNA is currently off */
+> +	int		is_on;		/* current state (0/1) */
+> +	unsigned long	last_toggle;
+> +	unsigned long	backoff;	/* time to wait since last_toggle */
+> +	int		on_off_gpio;	/* the on-off gpio number */
+> +	struct		serdev_device *uart;	/* uart connected to the chip */
+> +	struct		tty_driver *tty_drv;	/* this is the user space tty */
+> +	struct		device *dev;	/* from tty_port_register_device() */
+> +	struct		tty_port port;
+> +	int		open_count;	/* how often we were opened */
+> +	enum		w2sg_state state;
+> +	int		requested;	/* requested state (0/1) */
+> +	int		suspended;
+> +	struct delayed_work work;
+> +	int		discard_count;
+> +};
+> +
+> +static struct w2sg_data *w2sg_by_minor[1];
+> +
+> +static int w2sg_set_lna_power(struct w2sg_data *data)
+> +{
+> +	int ret = 0;
+> +	int off = data->suspended || !data->requested || data->lna_blocked;
+> +
+> +	pr_debug("%s: %s\n", __func__, off ? "off" : "on");
+> +
+> +	if (off != data->lna_is_off) {
+> +		data->lna_is_off = off;
+> +		if (!IS_ERR_OR_NULL(data->lna_regulator)) {
+> +			if (off)
+> +				regulator_disable(data->lna_regulator);
+> +			else
+> +				ret = regulator_enable(data->lna_regulator);
+> +		}
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static void w2sg_set_power(void *pdata, int val)
+> +{
+> +	struct w2sg_data *data = (struct w2sg_data *) pdata;
+> +
+> +	pr_debug("%s to state=%d (requested=%d)\n", __func__, val, data->requested);
+> +
+> +	if (val && !data->requested) {
+> +		data->requested = true;
+> +	} else if (!val && data->requested) {
+> +		data->backoff = HZ;
+> +		data->requested = false;
+> +	} else
+> +		return;
+> +
+> +	pr_debug("w2sg00x4 scheduled for %d\n", data->requested);
+> +
+> +	if (!data->suspended)
+> +		schedule_delayed_work(&data->work, 0);
+> +}
+> +
+> +/* called each time data is received by the UART (i.e. sent by the w2sg0004) */
+> +
+> +static int w2sg_uart_receive_buf(struct serdev_device *serdev,
+> +				const unsigned char *rxdata,
+> +				size_t count)
+> +{
+> +	struct w2sg_data *data =
+> +		(struct w2sg_data *) serdev_device_get_drvdata(serdev);
+> +
+> +	if (!data->requested && !data->is_on) {
+> +		/*
+> +		 * we have received characters while the w2sg
+> +		 * should have been be turned off
+> +		 */
+> +		data->discard_count += count;
+> +		if ((data->state == W2SG_IDLE) &&
+> +		    time_after(jiffies,
+> +		    data->last_toggle + data->backoff)) {
+> +			/* Should be off by now, time to toggle again */
+> +			pr_debug("w2sg00x4 has sent %d characters data although it should be off!\n",
+> +				data->discard_count);
+> +
+> +			data->discard_count = 0;
+> +
+> +			data->is_on = true;
+> +			data->backoff *= 2;
+> +			if (!data->suspended)
+> +				schedule_delayed_work(&data->work, 0);
+> +		}
+> +	} else if (data->open_count > 0) {
+> +		int n;
+> +
+> +		pr_debug("w2sg00x4: push %d chars to tty port\n", count);
+> +
+> +		/* pass to user-space */
+> +		n = tty_insert_flip_string(&data->port, rxdata, count);
+> +		if (n != count)
+> +			pr_err("w2sg00x4: did loose %d characters\n", count - n);
+> +		tty_flip_buffer_push(&data->port);
+> +		return n;
+> +	}
+> +
+> +	/* assume we have processed everything */
+> +	return count;
+> +}
+> +
+> +/* try to toggle the power state by sending a pulse to the on-off GPIO */
+> +
+> +static void toggle_work(struct work_struct *work)
+> +{
+> +	struct w2sg_data *data = container_of(work, struct w2sg_data,
+> +					      work.work);
+> +
+> +	switch (data->state) {
+> +	case W2SG_IDLE:
+> +		if (data->requested == data->is_on)
+> +			return;
+> +
+> +		w2sg_set_lna_power(data);	/* update LNA power state */
+> +		gpio_set_value_cansleep(data->on_off_gpio, 0);
+> +		data->state = W2SG_PULSE;
+> +
+> +		pr_debug("w2sg: power gpio ON\n");
+> +
+> +		schedule_delayed_work(&data->work,
+> +				      msecs_to_jiffies(10));
+> +		break;
+> +
+> +	case W2SG_PULSE:
+> +		gpio_set_value_cansleep(data->on_off_gpio, 1);
+> +		data->last_toggle = jiffies;
+> +		data->state = W2SG_NOPULSE;
+> +		data->is_on = !data->is_on;
+> +
+> +		pr_debug("w2sg: power gpio OFF\n");
+> +
+> +		schedule_delayed_work(&data->work,
+> +				      msecs_to_jiffies(10));
+> +		break;
+> +
+> +	case W2SG_NOPULSE:
+> +		data->state = W2SG_IDLE;
+> +
+> +		pr_debug("w2sg: idle\n");
+> +
+> +		break;
+> +
+> +	}
+> +}
+> +
+> +static int w2sg_rfkill_set_block(void *pdata, bool blocked)
+> +{
+> +	struct w2sg_data *data = pdata;
+> +
+> +	pr_debug("%s: blocked: %d\n", __func__, blocked);
+> +
+> +	data->lna_blocked = blocked;
+> +
+> +	return w2sg_set_lna_power(data);
+> +}
+> +
+> +static struct rfkill_ops w2sg0004_rfkill_ops = {
+> +	.set_block = w2sg_rfkill_set_block,
+> +};
+> +
+> +static struct serdev_device_ops serdev_ops = {
+> +	.receive_buf = w2sg_uart_receive_buf,
+> +};
+> +
+> +/*
+> + * we are a man-in the middle between the user-space visible tty port
+> + * and the serdev tty where the chip is connected.
+> + * This allows us to recognise when the device should be powered on
+> + * or off and handle the "false" state that data arrives while no
+> + * users-space tty client exists.
+> + */
+> +
+> +static struct w2sg_data *w2sg_get_by_minor(unsigned int minor)
+> +{
+> +	return w2sg_by_minor[minor];
+> +}
+> +
+> +static int w2sg_tty_install(struct tty_driver *driver, struct tty_struct *tty)
+> +{
+> +	struct w2sg_data *data;
+> +	int retval;
+> +
+> +	pr_debug("%s() tty = %p\n", __func__, tty);
+> +
+> +	data = w2sg_get_by_minor(tty->index);
+> +
+> +	if (!data)
+> +		return -ENODEV;
+> +
+> +	retval = tty_standard_install(driver, tty);
+> +	if (retval)
+> +		goto error_init_termios;
+> +
+> +	tty->driver_data = data;
+> +
+> +	return 0;
+> +
+> +error_init_termios:
+> +	tty_port_put(&data->port);
+> +	return retval;
+> +}
+> +
+> +static int w2sg_tty_open(struct tty_struct *tty, struct file *file)
+> +{
+> +	struct w2sg_data *data = tty->driver_data;
+> +
+> +	pr_debug("%s() data = %p open_count = ++%d\n", __func__, data, data->open_count);
+> +
+> +	w2sg_set_power(data, ++data->open_count > 0);
+> +
+> +	return tty_port_open(&data->port, tty, file);
+> +}
+> +
+> +static void w2sg_tty_close(struct tty_struct *tty, struct file *file)
+> +{
+> +	struct w2sg_data *data = tty->driver_data;
+> +
+> +	pr_debug("%s()\n", __func__);
+> +
+> +	w2sg_set_power(data, --data->open_count > 0);
+> +
+> +	tty_port_close(&data->port, tty, file);
+> +}
+> +
+> +static int w2sg_tty_write(struct tty_struct *tty,
+> +		const unsigned char *buffer, int count)
+> +{
+> +	struct w2sg_data *data = tty->driver_data;
+> +
+> +	/* simply pass down to UART */
+> +	return serdev_device_write_buf(data->uart, buffer, count);
+> +}
+> +
+> +
+> +static const struct tty_operations w2sg_serial_ops = {
+> +	.install = w2sg_tty_install,
+> +	.open = w2sg_tty_open,
+> +	.close = w2sg_tty_close,
+> +	.write = w2sg_tty_write,
+> +};
+> +
+> +static const struct tty_port_operations w2sg_port_ops = {
+> +};
+> +
+> +static int w2sg_probe(struct serdev_device *serdev)
+> +{
+> +	struct w2sg_pdata *pdata = NULL;
+> +	struct w2sg_data *data;
+> +	struct rfkill *rf_kill;
+> +	int err;
+> +	int minor;
+> +
+> +	pr_debug("%s()\n", __func__);
+> +
+> +	minor = 0;
+> +	if (w2sg_by_minor[minor]) {
+> +		pr_err("w2sg minor is already in use!\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	if (serdev->dev.of_node) {
+> +		struct device *dev = &serdev->dev;
+> +		enum of_gpio_flags flags;
+> +
+> +		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> +		if (!pdata)
+> +			return -ENOMEM;
+> +
+> +		pdata->on_off_gpio = of_get_named_gpio_flags(dev->of_node,
+> +							     "enable-gpios", 0,
+> +							     &flags);
+> +
+> +		/* defer until we have all gpios */
+> +		if (pdata->on_off_gpio == -EPROBE_DEFER)
+> +			return -EPROBE_DEFER;
+> +
+> +		pdata->lna_regulator = devm_regulator_get_optional(dev, "lna");
+> +		if (IS_ERR(pdata->lna_regulator)) {
+> +			/* defer until we can get the regulator */
+> +			if (PTR_ERR(pdata->lna_regulator) == -EPROBE_DEFER)
+> +				return -EPROBE_DEFER;
+> +
+> +			pdata->lna_regulator = NULL;
+> +		}
+> +
+> +		pr_debug("%s() lna_regulator = %p\n", __func__,
+> +			pdata->lna_regulator);
+> +
+> +		serdev->dev.platform_data = pdata;
+> +	}
+> +
+> +	data = devm_kzalloc(&serdev->dev, sizeof(*data), GFP_KERNEL);
+> +	if (data == NULL)
+> +		return -ENOMEM;
+> +
+> +	w2sg_by_minor[minor] = data;
+> +
+> +	serdev_device_set_drvdata(serdev, data);
+> +
+> +	data->lna_regulator = pdata->lna_regulator;
 
->>>>> +       /* initialize the tty driver */
->>>>> +       data->tty_drv->owner = THIS_MODULE;
->>>>> +       data->tty_drv->driver_name = "w2sg0004";
->>>>> +       data->tty_drv->name = "ttyGPS";
->>>>> +       data->tty_drv->major = 0;
->>>>> +       data->tty_drv->minor_start = 0;
->>>>> +       data->tty_drv->type = TTY_DRIVER_TYPE_SERIAL;
->>>>> +       data->tty_drv->subtype = SERIAL_TYPE_NORMAL;
->>>>> +       data->tty_drv->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
->>>>> +       data->tty_drv->init_termios = tty_std_termios;
->>>>> +       data->tty_drv->init_termios.c_cflag = B9600 | CS8 | CREAD |
->>>>> +                                             HUPCL | CLOCAL;
->>>>> +       /*
->>>>> +        * optional:
->>>>> +        * tty_termios_encode_baud_rate(&data->tty_drv->init_termios,
->>>>> +                                       115200, 115200);
->>>>> +        * w2sg_tty_termios(&data->tty_drv->init_termios);
->>>>> +        */
->>>>> +       tty_set_operations(data->tty_drv, &w2sg_serial_ops);
->>>>
->>>> While I'm still not sure about why we want nested tty port, it
->>>> seems that we should have only one tty_driver that gets initialized
->>>> at module load time, rather than one driver structure per port.
->>>
->>> If we have several such chips connected to different serdev UARTs
->>> we need different /dev/GPS to separate them in user-space.
->>
->> I understand that you need multiple devices, but I don't see
->> what having multiple drivers that all share the same name
->> "w2sg0004" helps. I would have expected that to fail in
->> tty_register_driver() when you get to the second driver,
->> but looking at the code, it doesn't actually try to make the name
->> unique
->
-> Yes, that is missing because I copied that from other drivers
-> and have no full understanding what is needed to make it really
-> work with multiple /dev/ttyGPS0 tty ports.
->
-> Therefore each probe (for each device connected to a different uart
-> of the SoC) should create a different /dev/ttyGPSn. Like you can have
-> multiple and independent i2c clients of the same type and driver.
+NULL ptr dereference if you have no of_node.
 
-Right, that's what I mean. But each of those devices should
-use the same driver, just like each omap tty port uses the same
-'serial_omap_reg' (which includes a tty driver).
+> +	data->lna_blocked = true;
+> +	data->lna_is_off = true;
+> +
+> +	data->on_off_gpio = pdata->on_off_gpio;
+> +
+> +	data->is_on = false;
+> +	data->requested = false;
+> +	data->state = W2SG_IDLE;
+> +	data->last_toggle = jiffies;
+> +	data->backoff = HZ;
+> +
+> +	data->uart = serdev;
+> +
+> +	INIT_DELAYED_WORK(&data->work, toggle_work);
+> +
+> +	err = devm_gpio_request(&serdev->dev, data->on_off_gpio,
+> +				"w2sg0004-on-off");
+> +	if (err < 0)
+> +		goto out;
+> +
+> +	gpio_direction_output(data->on_off_gpio, false);
+> +
+> +	serdev_device_set_client_ops(data->uart, &serdev_ops);
+> +	serdev_device_open(data->uart);
+> +
+> +	serdev_device_set_baudrate(data->uart, 9600);
+> +	serdev_device_set_flow_control(data->uart, false);
+> +
+> +	rf_kill = rfkill_alloc("GPS", &serdev->dev, RFKILL_TYPE_GPS,
+> +				&w2sg0004_rfkill_ops, data);
+> +	if (rf_kill == NULL) {
+> +		err = -ENOMEM;
+> +		goto err_rfkill;
+> +	}
+> +
+> +	err = rfkill_register(rf_kill);
+> +	if (err) {
+> +		dev_err(&serdev->dev, "Cannot register rfkill device\n");
+> +		goto err_rfkill;
+> +	}
+> +
+> +	data->rf_kill = rf_kill;
+> +
+> +	/* allocate the tty driver */
+> +	data->tty_drv = alloc_tty_driver(1);
 
->> proc_tty_register_driver() will fail to create the second
->> procfs file, but we ignore that failure.
->>
->> Why not call tty_register_driver() in the init function rather than probe()?
->
-> We have no dedicated init function. Should we have one?
->
-> And if I understand correctly it would prohibit to fix the driver for the
-> multiple gps-devices situation. Or makes more work if the device is to be
-> registered as a future GPS interface.
->
-> So if the ->driver_name or ->name should have a dynamic sequence number,
-> please help me to get it correct.
+Is there an advantage or reason to make this a tty driver rather than 
+just a char driver?
 
-There should only be one driver structure, as in any other tty driver
-implementation. You have an init function inside of the
-module_serdev_device_driver() macro. When you open-code that,
-you can register the tty driver there before registering the serdev driver,
-see serial_omap_init() for a similar example using uart_driver and
-platform_driver.
+Perhaps this should be under drivers/tty if it is a tty driver.
 
->>> The UART tty would be e.g. /dev/ttyO2 (on OMAP3) if no driver is
->>> installed. And the new one that is registered is /dev/GPS0. So the
->>> tty subsystem doesn't (or shouldn't) know they are related. They
->>> are only related/connected inside this driver. So I assume that
->>> some locking or reentrancy happens in tty_port_register_device().
->>
->> I meant the serdev->dev pointer that you pass into
->> tty_port_register_device() seems to be the same one that
->> got passed into the first tty_port_register_device() in the
->> parent uart_port.
->
-> Ah, interesting!
->
-> Well, I copied that from other drivers registering a tty without
-> understanding all side-effects of everything.
->
-> Documentations of tty_port_register_device() says:
-> @device: parent if exists, otherwise NULL
->
-> Do we really need a "parent" here? Could we safely pass NULL?
+> +	if (!data->tty_drv)
+> +		return -ENOMEM;
+> +
+> +	/* initialize the tty driver */
+> +	data->tty_drv->owner = THIS_MODULE;
+> +	data->tty_drv->driver_name = "w2sg0004";
+> +	data->tty_drv->name = "ttyGPS";
+> +	data->tty_drv->major = 0;
+> +	data->tty_drv->minor_start = 0;
+> +	data->tty_drv->type = TTY_DRIVER_TYPE_SERIAL;
+> +	data->tty_drv->subtype = SERIAL_TYPE_NORMAL;
+> +	data->tty_drv->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
+> +	data->tty_drv->init_termios = tty_std_termios;
+> +	data->tty_drv->init_termios.c_cflag = B9600 | CS8 | CREAD |
+> +					      HUPCL | CLOCAL;
+> +	/*
+> +	 * optional:
+> +	 * tty_termios_encode_baud_rate(&data->tty_drv->init_termios,
+> +					115200, 115200);
+> +	 * w2sg_tty_termios(&data->tty_drv->init_termios);
+> +	 */
+> +	tty_set_operations(data->tty_drv, &w2sg_serial_ops);
+> +
+> +	/* register the tty driver */
+> +	err = tty_register_driver(data->tty_drv);
+> +	if (err) {
+> +		pr_err("%s - tty_register_driver failed(%d)\n",
+> +			__func__, err);
+> +		put_tty_driver(data->tty_drv);
+> +		goto err_rfkill;
+> +	}
+> +
+> +	tty_port_init(&data->port);
+> +	data->port.ops = &w2sg_port_ops;
+> +
+> +/*
+> + * FIXME: this appears to reenter this probe() function a second time
+> + * which only fails because the gpio is already assigned
+> + */
+> +
+> +	data->dev = tty_port_register_device(&data->port,
+> +			data->tty_drv, minor, &serdev->dev);
+> +
+> +	pr_debug("w2sg probed\n");
+> +
+> +	/* keep off until user space requests the device */
+> +	w2sg_set_power(data, false);
+> +
+> +	return 0;
+> +
+> +err_rfkill:
+> +	rfkill_destroy(rf_kill);
+> +	serdev_device_close(data->uart);
+> +out:
+> +	return err;
+> +}
+> +
+> +static void w2sg_remove(struct serdev_device *serdev)
+> +{
+> +	struct w2sg_data *data = serdev_device_get_drvdata(serdev);
+> +	int minor;
+> +
+> +	cancel_delayed_work_sync(&data->work);
+> +
+> +	/* what is the right sequence to avoid problems? */
+> +	serdev_device_close(data->uart);
+> +
+> +	minor = 0;
+> +	tty_unregister_device(data->tty_drv, minor);
+> +
+> +	tty_unregister_driver(data->tty_drv);
+> +}
+> +
+> +static int w2sg_suspend(struct device *dev)
+> +{
+> +	struct w2sg_data *data = dev_get_drvdata(dev);
+> +
+> +	data->suspended = true;
+> +
+> +	cancel_delayed_work_sync(&data->work);
+> +
+> +	w2sg_set_lna_power(data);	/* shuts down if needed */
+> +
+> +	if (data->state == W2SG_PULSE) {
+> +		msleep(10);
+> +		gpio_set_value_cansleep(data->on_off_gpio, 1);
+> +		data->last_toggle = jiffies;
+> +		data->is_on = !data->is_on;
+> +		data->state = W2SG_NOPULSE;
+> +	}
+> +
+> +	if (data->state == W2SG_NOPULSE) {
+> +		msleep(10);
+> +		data->state = W2SG_IDLE;
+> +	}
+> +
+> +	if (data->is_on) {
+> +		pr_info("GPS off for suspend %d %d %d\n", data->requested,
+> +			data->is_on, data->lna_is_off);
+> +
+> +		gpio_set_value_cansleep(data->on_off_gpio, 0);
+> +		msleep(10);
+> +		gpio_set_value_cansleep(data->on_off_gpio, 1);
+> +		data->is_on = 0;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int w2sg_resume(struct device *dev)
+> +{
+> +	struct w2sg_data *data = dev_get_drvdata(dev);
+> +
+> +	data->suspended = false;
+> +
+> +	pr_info("GPS resuming %d %d %d\n", data->requested,
+> +		data->is_on, data->lna_is_off);
+> +
+> +	schedule_delayed_work(&data->work, 0);	/* enables LNA if needed */
+> +
+> +	return 0;
+> +}
+> +
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id w2sg0004_of_match[] = {
+> +	{ .compatible = "wi2wi,w2sg0004" },
+> +	{ .compatible = "wi2wi,w2sg0084" },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, w2sg0004_of_match);
+> +#endif
+> +
+> +SIMPLE_DEV_PM_OPS(w2sg_pm_ops, w2sg_suspend, w2sg_resume);
+> +
+> +static struct serdev_device_driver w2sg_driver = {
+> +	.probe		= w2sg_probe,
+> +	.remove		= w2sg_remove,
+> +	.driver = {
+> +		.name	= "w2sg0004",
+> +		.owner	= THIS_MODULE,
+> +		.pm	= &w2sg_pm_ops,
+> +		.of_match_table = of_match_ptr(w2sg0004_of_match)
+> +	},
+> +};
+> +
+> +module_serdev_device_driver(w2sg_driver);
+> +
+> +MODULE_ALIAS("w2sg0004");
+> +
+> +MODULE_AUTHOR("NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>");
+> +MODULE_DESCRIPTION("w2sg0004 GPS power management driver");
+> +MODULE_LICENSE("GPL v2");
+> diff --git a/include/linux/w2sg0004.h b/include/linux/w2sg0004.h
+> new file mode 100644
+> index 000000000000..ad0c4a18e01d
+> --- /dev/null
+> +++ b/include/linux/w2sg0004.h
+> @@ -0,0 +1,27 @@
+> +/*
+> + * UART slave to allow ON/OFF control of w2sg0004 GPS receiver.
+> + *
+> + * Copyright (C) 2011 Neil Brown <neil-+NVA1uvv1dVBDLzU/O5InQ@public.gmane.org>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +
+> +
+> +#ifndef __LINUX_W2SG0004_H
+> +#define __LINUX_W2SG0004_H
+> +
+> +#include <linux/regulator/consumer.h>
+> +
+> +struct w2sg_pdata {
 
-There should be a parent, to make it show up in the right place in sysfs.
+You don't really support platform_data, so you can move this into the 
+driver.
 
-Ideally the parent should point to a device representing the original
-uart port. It probably is that right now, so I'd leave it like that if it
-works without getting you into a double probe.
-
-       Arnd
+> +	struct regulator *lna_regulator;	/* enable LNA power */
+> +	int	on_off_gpio;	/*  on-off input of the GPS module */
+> +};
+> +#endif /* __LINUX_W2SG0004_H */
+> -- 
+> 2.12.2
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
