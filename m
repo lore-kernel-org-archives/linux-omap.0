@@ -1,46 +1,100 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v3 5/5] misc serdev: w2sg0004: add debugging code and
- Kconfig
-Date: Wed, 15 Nov 2017 19:08:20 +0100
-Message-ID: <99572C7F-9242-4D86-896A-9824DEE9EE8A@goldelico.com>
-References: <cover.1510759152.git.hns@goldelico.com>
- <9b4969c858d4c3801bb796f92dad5c580799b768.1510759152.git.hns@goldelico.com>
- <28e16c7a-2688-a302-1548-1cdc2552f0ad@suse.de>
- <DC57A290-669C-4B3C-A4EE-2ABEA37F47CE@goldelico.com>
- <20171115164257.2mbbk7yqhq3puc5a@lenoch>
- <2CFA9F17-0E65-4804-9971-922500F5E919@goldelico.com>
- <1510768342.2006.54.camel@perches.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1510768342.2006.54.camel@perches.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joe Perches <joe@perches.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel@pyra-handheld.com, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, linux-arm-kernel@lists.infradead.org, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, letux-kernel@openphoenux.org, Thierry Reding <treding@nvidia.com>, =?iso-8859-1?Q?Andreas_F=E4rber?= <afaerber@suse.de>, Jonathan Cameron <jic23@kernel.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: [PATCH] gpio: omap: initialize gpioirq chip as part of gpiochip_add_data
+Date: Wed, 15 Nov 2017 12:36:33 -0600
+Message-ID: <20171115183633.12382-1-grygorii.strashko@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>, linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hence, series from Thierry Reding [1] merged - the OMAP GPIO driver can be
+switched to reuse new feature and just fill new struct gpio_irq_chip before
+calling gpiochip_add_data() instead of using few separate gpioirq chip
+APIs. gpiochip_add_data() will do the job and create and initialize gpioirq
+chip
 
-> Am 15.11.2017 um 18:52 schrieb Joe Perches <joe@perches.com>:
-> 
-> On Wed, 2017-11-15 at 18:13 +0100, H. Nikolaus Schaller wrote:
->> We have automated things by calling checkpatch but it somwhow failed here.
-> 
-> what failed?
+[1] https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1531592.html
 
-I don't know. It didn't tell us that the signature was missing. Maybe
-a glitch in our post-processing script. I tried again and checkpatch.pl
-did clearly report the ERROR this time.
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+Linus,
 
-So nothing you can fix.
+This for next, I assume.
 
-BR and thanks,
-Nikolaus Schaller
+ drivers/gpio/gpio-omap.c | 32 ++++++++++++++------------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index ce27d6a..a6fe851 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1054,6 +1054,7 @@ static void omap_gpio_mod_init(struct gpio_bank *bank)
+ 
+ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ {
++	struct gpio_irq_chip *irq;
+ 	static int gpio;
+ 	int irq_base = 0;
+ 	int ret;
+@@ -1081,16 +1082,6 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ 	}
+ 	bank->chip.ngpio = bank->width;
+ 
+-	ret = gpiochip_add_data(&bank->chip, bank);
+-	if (ret) {
+-		dev_err(bank->chip.parent,
+-			"Could not register gpio chip %d\n", ret);
+-		return ret;
+-	}
+-
+-	if (!bank->is_mpuio)
+-		gpio += bank->width;
+-
+ #ifdef CONFIG_ARCH_OMAP1
+ 	/*
+ 	 * REVISIT: Once we have OMAP1 supporting SPARSE_IRQ, we can drop
+@@ -1111,25 +1102,30 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ 			irqc->irq_set_wake = NULL;
+ 	}
+ 
+-	ret = gpiochip_irqchip_add(&bank->chip, irqc,
+-				   irq_base, handle_bad_irq,
+-				   IRQ_TYPE_NONE);
++	irq = &bank->chip.irq;
++	irq->chip = irqc;
++	irq->handler = handle_bad_irq;
++	irq->default_type = IRQ_TYPE_NONE;
++	irq->num_parents = 1;
++	irq->parents = &bank->irq;
++	irq->first = irq_base;
+ 
++	ret = gpiochip_add_data(&bank->chip, bank);
+ 	if (ret) {
+ 		dev_err(bank->chip.parent,
+-			"Couldn't add irqchip to gpiochip %d\n", ret);
+-		gpiochip_remove(&bank->chip);
+-		return -ENODEV;
++			"Could not register gpio chip %d\n", ret);
++		return ret;
+ 	}
+ 
+-	gpiochip_set_chained_irqchip(&bank->chip, irqc, bank->irq, NULL);
+-
+ 	ret = devm_request_irq(bank->chip.parent, bank->irq,
+ 			       omap_gpio_irq_handler,
+ 			       0, dev_name(bank->chip.parent), bank);
+ 	if (ret)
+ 		gpiochip_remove(&bank->chip);
+ 
++	if (!bank->is_mpuio)
++		gpio += bank->width;
++
+ 	return ret;
+ }
+ 
+-- 
+2.10.5
+
