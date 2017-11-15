@@ -1,14 +1,14 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 12/16] mtd: onenand: omap2: Enable DMA by default
-Date: Wed, 15 Nov 2017 12:08:05 +0200
-Message-ID: <d2cd7de6-744c-6944-70d6-276a8530b6f5@ti.com>
+Subject: Re: [PATCH v4 13/16] memory: omap-gpmc: Refactor OneNAND support
+Date: Wed, 15 Nov 2017 12:13:56 +0200
+Message-ID: <76daab23-b20f-1613-4cb3-34cdd02acf84@ti.com>
 References: <20171111211206.465pgorrjp3eyix6@lenoch>
- <20171111212442.ucbatglvqeoiqb72@lenoch>
+ <20171111212612.ynj6ckbu4u2n5i7d@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171111212442.ucbatglvqeoiqb72@lenoch>
+In-Reply-To: <20171111212612.ynj6ckbu4u2n5i7d@lenoch>
 Content-Language: en-GB
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
  <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
@@ -23,122 +23,272 @@ To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-
 Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Boris Brezillon <boris.brezillon@free-electrons.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On 11/11/17 23:24, Ladislav Michl wrote:
-> DMA and R/B pin are independent on each other. Use DMA by default.
-
-Is there a R/B pin on Onenand? It looks more like it has a RDY pin and
-an INT pin (which is used for command completion interrupt).
-
-I think the subject and message are a bit misleading.
-
-It should be something like
-
-mtd: onenand: omap2: decouple DMA enabling from INT pin availability
-
-INT pin (gpio_irq) is not really needed for DMA but only for notification
-when a command that needs wait has completed. We can still have DMA
-even without gpio_irq available.
-
+On 11/11/17 23:26, Ladislav Michl wrote:
+> Use generic probe function to deal with OneNAND node and remove now useless
+> gpmc_probe_onenand_child function.
+> Import sync mode timing calculation function from mach-omap2/gpmc-onenand.c
+> and prepare for MTD driver DTfication.
 > 
 > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 > ---
 >  Changes:
->  -v4: new patch
+>  -v2: add gpmc_omap_onenand_set_timings description
+>  -v3: none
+>  -v4: none
 > 
->  drivers/mtd/onenand/omap2.c | 41 +++++++++++++++++------------------------
->  1 file changed, 17 insertions(+), 24 deletions(-)
+>  drivers/memory/omap-gpmc.c | 158 +++++++++++++++++++++++++++++++++------------
+>  include/linux/omap-gpmc.h  |  25 +++++++
+>  2 files changed, 142 insertions(+), 41 deletions(-)
 > 
-> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> index e4857a41760d..62e4ede918c4 100644
-> --- a/drivers/mtd/onenand/omap2.c
-> +++ b/drivers/mtd/onenand/omap2.c
-> @@ -152,17 +152,13 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
->  		}
+> diff --git a/drivers/memory/omap-gpmc.c b/drivers/memory/omap-gpmc.c
+> index 0e30ee1c8677..90a66b3f7ae1 100644
+> --- a/drivers/memory/omap-gpmc.c
+> +++ b/drivers/memory/omap-gpmc.c
+> @@ -32,7 +32,6 @@
+>  #include <linux/pm_runtime.h>
 >  
->  		reinit_completion(&c->irq_done);
-> -		if (c->gpio_irq) {
-> -			result = gpio_get_value(c->gpio_irq);
-> -			if (result == -1) {
-> -				ctrl = read_reg(c, ONENAND_REG_CTRL_STATUS);
-> -				intr = read_reg(c, ONENAND_REG_INTERRUPT);
-> -				wait_err("gpio error", state, ctrl, intr);
-> -				return -EIO;
-> -			}
-> -		} else
-> -			result = 0;
-> -		if (result == 0) {
-> +		result = gpio_get_value(c->gpio_irq);
-> +		if (result < 0) {
-> +			ctrl = read_reg(c, ONENAND_REG_CTRL_STATUS);
-> +			intr = read_reg(c, ONENAND_REG_INTERRUPT);
-> +			wait_err("gpio error", state, ctrl, intr);
-> +			return -EIO;
-> +		} else if (result == 0) {
->  			int retry_cnt = 0;
->  retry:
->  			if (!wait_for_completion_io_timeout(&c->irq_done,
-> @@ -513,13 +509,15 @@ static int omap2_onenand_probe(struct platform_device *pdev)
-
-We need to get rid if this code from probe.
-
-        if (pdata->dma_channel < 0) {
-                /* if -1, don't use DMA */
-                c->gpio_irq = 0;
-        }
-
->  			dev_err(&pdev->dev,  "Failed to request GPIO%d for "
->  				"OneNAND\n", c->gpio_irq);
->  			goto err_iounmap;
-> -	}
-> -	gpio_direction_input(c->gpio_irq);
-> +		}
-> +		gpio_direction_input(c->gpio_irq);
+>  #include <linux/platform_data/mtd-nand-omap2.h>
+> -#include <linux/platform_data/mtd-onenand-omap2.h>
+>  
+>  #include <asm/mach-types.h>
+>  
+> @@ -1138,6 +1137,112 @@ struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *reg, int cs)
+>  }
+>  EXPORT_SYMBOL_GPL(gpmc_omap_get_nand_ops);
+>  
+> +static void gpmc_omap_onenand_calc_sync_timings(struct gpmc_timings *t,
+> +						struct gpmc_settings *s,
+> +						int freq, int latency)
+> +{
+> +	struct gpmc_device_timings dev_t;
+> +	const int t_cer  = 15;
+> +	const int t_avdp = 12;
+> +	const int t_cez  = 20; /* max of t_cez, t_oez */
+> +	const int t_wpl  = 40;
+> +	const int t_wph  = 30;
+> +	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
 > +
-> +		if ((r = request_irq(gpio_to_irq(c->gpio_irq),
-> +				     omap2_onenand_interrupt, IRQF_TRIGGER_RISING,
-> +				     pdev->dev.driver->name, c)) < 0)
-> +			goto err_release_gpio;
+> +	switch (freq) {
+> +	case 104:
+> +		min_gpmc_clk_period = 9600; /* 104 MHz */
+> +		t_ces   = 3;
+> +		t_avds  = 4;
+> +		t_avdh  = 2;
+> +		t_ach   = 3;
+> +		t_aavdh = 6;
+> +		t_rdyo  = 6;
+> +		break;
+> +	case 83:
+> +		min_gpmc_clk_period = 12000; /* 83 MHz */
+> +		t_ces   = 5;
+> +		t_avds  = 4;
+> +		t_avdh  = 2;
+> +		t_ach   = 6;
+> +		t_aavdh = 6;
+> +		t_rdyo  = 9;
+> +		break;
+> +	case 66:
+> +		min_gpmc_clk_period = 15000; /* 66 MHz */
+> +		t_ces   = 6;
+> +		t_avds  = 5;
+> +		t_avdh  = 2;
+> +		t_ach   = 6;
+> +		t_aavdh = 6;
+> +		t_rdyo  = 11;
+> +		break;
+> +	default:
+> +		min_gpmc_clk_period = 18500; /* 54 MHz */
+> +		t_ces   = 7;
+> +		t_avds  = 7;
+> +		t_avdh  = 7;
+> +		t_ach   = 9;
+> +		t_aavdh = 7;
+> +		t_rdyo  = 15;
+> +		break;
+> +	}
+> +
+> +	/* Set synchronous read timings */
+> +	memset(&dev_t, 0, sizeof(dev_t));
+> +
+> +	if (!s->sync_write) {
+> +		dev_t.t_avdp_w = max(t_avdp, t_cer) * 1000;
+> +		dev_t.t_wpl = t_wpl * 1000;
+> +		dev_t.t_wph = t_wph * 1000;
+> +		dev_t.t_aavdh = t_aavdh * 1000;
+> +	}
+> +	dev_t.ce_xdelay = true;
+> +	dev_t.avd_xdelay = true;
+> +	dev_t.oe_xdelay = true;
+> +	dev_t.we_xdelay = true;
+> +	dev_t.clk = min_gpmc_clk_period;
+> +	dev_t.t_bacc = dev_t.clk;
+> +	dev_t.t_ces = t_ces * 1000;
+> +	dev_t.t_avds = t_avds * 1000;
+> +	dev_t.t_avdh = t_avdh * 1000;
+> +	dev_t.t_ach = t_ach * 1000;
+> +	dev_t.cyc_iaa = (latency + 1);
+> +	dev_t.t_cez_r = t_cez * 1000;
+> +	dev_t.t_cez_w = dev_t.t_cez_r;
+> +	dev_t.cyc_aavdh_oe = 1;
+> +	dev_t.t_rdyo = t_rdyo * 1000 + min_gpmc_clk_period;
+> +
+> +	gpmc_calc_timings(t, s, &dev_t);
+> +}
+> +
+> +int gpmc_omap_onenand_set_timings(struct device *dev, int cs, int freq,
+> +				  int latency,
+> +				  struct gpmc_onenand_info *info)
+> +{
+> +	int ret;
+> +	struct gpmc_timings gpmc_t;
+> +	struct gpmc_settings gpmc_s;
+> +
+> +	gpmc_read_settings_dt(dev->of_node, &gpmc_s);
+> +
+> +	info->sync_read = gpmc_s.sync_read;
+> +	info->sync_write = gpmc_s.sync_write;
+> +	info->burst_len = gpmc_s.burst_len;
+> +
+> +	if (!gpmc_s.sync_read && !gpmc_s.sync_write)
+> +		return 0;
+> +
+> +	gpmc_omap_onenand_calc_sync_timings(&gpmc_t, &gpmc_s, freq, latency);
+> +
+> +	ret = gpmc_cs_program_settings(cs, &gpmc_s);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return gpmc_cs_set_timings(cs, &gpmc_t, &gpmc_s);
+> +}
+> +EXPORT_SYMBOL_GPL(gpmc_omap_onenand_set_timings);
+> +
+>  int gpmc_get_client_irq(unsigned irq_config)
+>  {
+>  	if (!gpmc_irq_domain) {
+> @@ -1916,41 +2021,6 @@ static void __maybe_unused gpmc_read_timings_dt(struct device_node *np,
+>  		of_property_read_bool(np, "gpmc,time-para-granularity");
+>  }
 >  
-> -	if ((r = request_irq(gpio_to_irq(c->gpio_irq),
-> -			     omap2_onenand_interrupt, IRQF_TRIGGER_RISING,
-> -			     pdev->dev.driver->name, c)) < 0)
-> -		goto err_release_gpio;
-> +		this->wait = omap2_onenand_wait;
+> -#if IS_ENABLED(CONFIG_MTD_ONENAND)
+> -static int gpmc_probe_onenand_child(struct platform_device *pdev,
+> -				 struct device_node *child)
+> -{
+> -	u32 val;
+> -	struct omap_onenand_platform_data *gpmc_onenand_data;
+> -
+> -	if (of_property_read_u32(child, "reg", &val) < 0) {
+> -		dev_err(&pdev->dev, "%pOF has no 'reg' property\n",
+> -			child);
+> -		return -ENODEV;
+> -	}
+> -
+> -	gpmc_onenand_data = devm_kzalloc(&pdev->dev, sizeof(*gpmc_onenand_data),
+> -					 GFP_KERNEL);
+> -	if (!gpmc_onenand_data)
+> -		return -ENOMEM;
+> -
+> -	gpmc_onenand_data->cs = val;
+> -	gpmc_onenand_data->of_node = child;
+> -	gpmc_onenand_data->dma_channel = -1;
+> -
+> -	if (!of_property_read_u32(child, "dma-channel", &val))
+> -		gpmc_onenand_data->dma_channel = val;
+> -
+> -	return gpmc_onenand_init(gpmc_onenand_data);
+> -}
+> -#else
+> -static int gpmc_probe_onenand_child(struct platform_device *pdev,
+> -				    struct device_node *child)
+> -{
+> -	return 0;
+> -}
+> -#endif
+> -
+>  /**
+>   * gpmc_probe_generic_child - configures the gpmc for a child device
+>   * @pdev:	pointer to gpmc platform device
+> @@ -2053,6 +2123,16 @@ static int gpmc_probe_generic_child(struct platform_device *pdev,
+>  		}
 >  	}
 >  
->  	if (pdata->dma_channel >= 0) {
-> @@ -529,15 +527,11 @@ static int omap2_onenand_probe(struct platform_device *pdev)
->  		dma_cap_set(DMA_MEMCPY, mask);
+> +	if (of_node_cmp(child->name, "onenand") == 0) {
+> +		/* Warn about older DT blobs with no compatible property */
+> +		if (!of_property_read_bool(child, "compatible")) {
+> +			dev_warn(&pdev->dev,
+> +				 "Incompatible OneNAND node: missing compatible");
+> +			ret = -EINVAL;
+> +			goto err;
+> +		}
+> +	}
+> +
+>  	if (of_device_is_compatible(child, "ti,omap2-nand")) {
+>  		/* NAND specific setup */
+>  		val = 8;
+> @@ -2189,11 +2269,7 @@ static void gpmc_probe_dt_children(struct platform_device *pdev)
+>  		if (!child->name)
+>  			continue;
 >  
->  		c->dma_chan = dma_request_channel(mask, NULL, NULL);
-> -		if (!c->dma_chan)
-> -			dev_info(&pdev->dev,
-> -				 "failed to allocate DMA for OneNAND, "
-> -				 "using PIO instead\n");
+> -		if (of_node_cmp(child->name, "onenand") == 0)
+> -			ret = gpmc_probe_onenand_child(pdev, child);
+> -		else
+> -			ret = gpmc_probe_generic_child(pdev, child);
+> -
+> +		ret = gpmc_probe_generic_child(pdev, child);
+>  		if (ret) {
+>  			dev_err(&pdev->dev, "failed to probe DT child '%s': %d\n",
+>  				child->name, ret);
+> diff --git a/include/linux/omap-gpmc.h b/include/linux/omap-gpmc.h
+> index edfa280c3d56..067bea5e98c4 100644
+> --- a/include/linux/omap-gpmc.h
+> +++ b/include/linux/omap-gpmc.h
+> @@ -25,15 +25,40 @@ struct gpmc_nand_ops {
+>  
+>  struct gpmc_nand_regs;
+>  
+> +struct gpmc_onenand_info {
+> +	bool sync_read;
+> +	bool sync_write;
+> +	int burst_len;
+> +};
+> +
+>  #if IS_ENABLED(CONFIG_OMAP_GPMC)
+>  struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
+>  					     int cs);
+> +/**
+> + * gpmc_omap_onenand_set_timings - set optimized sync timings.
+> + * @cs:      Chip Select Region
+> + * @freq:    Chip frequency
+> + * @latency: Burst latency cycle count
+> + * @info:    Structure describing parameters used
 
-Why get rid of the print message? Instead we could choose to error out completely
-if a DMA channel was provided and we couldn't get it.
+How about adding some description? e.g.
 
->  	}
+sets optimized timings for the provided @cs region based on
+provided @freq and @latency. Updates the @info structure based on
+the GPMC settings.
+
+> + */
+> +int gpmc_omap_onenand_set_timings(struct device *dev, int cs, int freq,
+> +				  int latency,
+> +				  struct gpmc_onenand_info *info);
+> +
+>  #else
+>  static inline struct gpmc_nand_ops *gpmc_omap_get_nand_ops(struct gpmc_nand_regs *regs,
+>  							   int cs)
+>  {
+>  	return NULL;
+>  }
+> +
+> +static inline
+> +int gpmc_omap_onenand_set_timings(struct device *dev, int cs, int freq,
+> +				  int latency,
+> +				  struct gpmc_onenand_info *info)
+> +{
+> +	return -EINVAL;
+> +}
+>  #endif /* CONFIG_OMAP_GPMC */
 >  
->  	dev_info(&pdev->dev, "initializing on CS%d, phys base 0x%08lx, virtual "
-> -		 "base %p, freq %d MHz\n", c->gpmc_cs, c->phys_base,
-> -		 c->onenand.base, c->freq);
-> +		 "base %p, freq %d MHz, %s mode\n", c->gpmc_cs, c->phys_base,
-> +		 c->onenand.base, c->freq, c->dma_chan ? "DMA" : "PIO");
->  
->  	c->pdev = pdev;
->  	c->mtd.priv = &c->onenand;
-> @@ -547,7 +541,6 @@ static int omap2_onenand_probe(struct platform_device *pdev)
->  
->  	this = &c->onenand;
->  	if (c->dma_chan) {
-> -		this->wait = omap2_onenand_wait;
->  		this->read_bufferram = omap2_onenand_read_bufferram;
->  		this->write_bufferram = omap2_onenand_write_bufferram;
->  	}
+>  extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
 > 
 
 -- 
