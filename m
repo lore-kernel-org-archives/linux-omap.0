@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v3 7/9] of: platform: Add a function to get platfrom data from device node
-Date: Thu, 16 Nov 2017 09:53:40 +0530
-Message-ID: <1510806222-22096-8-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v3 6/9] clocksource: dmtimer: Populate the timer ops to the pdata
+Date: Thu, 16 Nov 2017 09:53:39 +0530
+Message-ID: <1510806222-22096-7-git-send-email-j-keerthy@ti.com>
 References: <1510806222-22096-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,69 +12,61 @@ To: tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
 Cc: j-keerthy@ti.com, linux@armlinux.org.uk, daniel.lezcano@linaro.org, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, grygorii.strashko@ti.com, sebastian.reichel@collabora.co.uk, ladis@linux-mips.org
 List-Id: linux-omap@vger.kernel.org
 
-Add a function to get platfrom data from device node.
+Add the timer ops to the platform data
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/of/platform.c       | 23 +++++++++++++++++++++++
- include/linux/of_platform.h |  6 ++++++
- 2 files changed, 29 insertions(+)
 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index b7cf84b..b9edfcf 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -60,6 +60,29 @@ struct platform_device *of_find_device_by_node(struct device_node *np)
+Changes in v3:
+
+  * Added Sebastian's Reviewed-by.
+
+Changes in v2:
+
+  * No code changes in this v2 version. Only enhanced patch
+    statistics for renames.
+
+ drivers/clocksource/dmtimer.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/drivers/clocksource/dmtimer.c b/drivers/clocksource/dmtimer.c
+index afe1dc9..1cbd954 100644
+--- a/drivers/clocksource/dmtimer.c
++++ b/drivers/clocksource/dmtimer.c
+@@ -922,8 +922,33 @@ static int omap_dm_timer_remove(struct platform_device *pdev)
+ 	return ret;
  }
- EXPORT_SYMBOL(of_find_device_by_node);
  
-+/**
-+ * of_find_platdata_by_node - Find the platform_data associated with a node
-+ * @np: Pointer to device tree node
-+ *
-+ * Fetches the platform device pointer of device tree node and in turn gets the
-+ * associated platform data. 
-+ *
-+ * Returns platform_data pointer, or NULL if not found
-+ */
-+void *of_find_platdata_by_node(struct device_node *np)
-+{
-+	struct platform_device *pdev;
++static struct omap_dm_timer_ops dmtimer_ops = {
++	.request_by_node = omap_dm_timer_request_by_node,
++	.request_specific = omap_dm_timer_request_specific,
++	.request = omap_dm_timer_request,
++	.set_source = omap_dm_timer_set_source,
++	.get_irq = omap_dm_timer_get_irq,
++	.set_int_enable = omap_dm_timer_set_int_enable,
++	.set_int_disable = omap_dm_timer_set_int_disable,
++	.free = omap_dm_timer_free,
++	.enable = omap_dm_timer_enable,
++	.disable = omap_dm_timer_disable,
++	.get_fclk = omap_dm_timer_get_fclk,
++	.start = omap_dm_timer_start,
++	.stop = omap_dm_timer_stop,
++	.set_load = omap_dm_timer_set_load,
++	.set_match = omap_dm_timer_set_match,
++	.set_pwm = omap_dm_timer_set_pwm,
++	.set_prescaler = omap_dm_timer_set_prescaler,
++	.read_counter = omap_dm_timer_read_counter,
++	.write_counter = omap_dm_timer_write_counter,
++	.read_status = omap_dm_timer_read_status,
++	.write_status = omap_dm_timer_write_status,
++};
 +
-+	pdev = of_find_device_by_node(np);
-+	if (!pdev) {
-+		pr_err("Unable to find pdev\n");
-+		return pdev;
-+	}
-+
-+	return dev_get_platdata(&pdev->dev);
-+}
-+EXPORT_SYMBOL(of_find_platdata_by_node);
-+
- #ifdef CONFIG_OF_ADDRESS
- /*
-  * The following routines scan a subtree and registers a device for
-diff --git a/include/linux/of_platform.h b/include/linux/of_platform.h
-index fb908e5..77b770f 100644
---- a/include/linux/of_platform.h
-+++ b/include/linux/of_platform.h
-@@ -59,11 +59,17 @@ extern struct platform_device *of_device_alloc(struct device_node *np,
- 					 struct device *parent);
- #ifdef CONFIG_OF
- extern struct platform_device *of_find_device_by_node(struct device_node *np);
-+extern void *of_find_platdata_by_node(struct device_node *np);
- #else
- static inline struct platform_device *of_find_device_by_node(struct device_node *np)
- {
- 	return NULL;
- }
-+
-+static void *of_find_platdata_by_node(struct device_node *np)
-+{
-+	return NULL;
-+}
- #endif
+ static const struct dmtimer_platform_data omap3plus_pdata = {
+ 	.timer_errata = OMAP_TIMER_ERRATA_I103_I767,
++	.timer_ops = &dmtimer_ops,
+ };
  
- /* Platform devices and busses creation */
+ static const struct of_device_id omap_timer_match[] = {
 -- 
 1.9.1
