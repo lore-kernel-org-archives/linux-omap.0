@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v2 2/4] DTS: GTA04: fix panel compatibility string
-Date: Thu, 16 Nov 2017 09:50:17 +0100
-Message-ID: <09d975dd62afa1dfa43d94079cc9a44731af4b3b.1510822218.git.hns@goldelico.com>
+Subject: [PATCH v2 4/4] drm: omapdrm: Fix DPI on platforms using the DSI VDDS
+Date: Thu, 16 Nov 2017 09:50:19 +0100
+Message-ID: <dd2427920427440e051951071377265fc0a830d4.1510822218.git.hns@goldelico.com>
 References: <cover.1510822218.git.hns@goldelico.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1510822218.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
@@ -12,26 +12,40 @@ To: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dav
 Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Vendor string is "tpo" and not "toppoly".
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
-Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Commit d178e034d565 ("drm: omapdrm: Move FEAT_DPI_USES_VDDS_DSI feature
+to dpi code") replaced usage of platform data version with SoC matching
+to configure DPI VDDS. The SoC match entries were incorrect, they should
+have matched on the machine name instead of the SoC family. Fix it.
+
+The result was observed on OpenPandora with OMAP3530 where the panel only
+had the Blue channel and Red&Green were missing. It was not observed on
+GTA04 with DM3730.
+
+Fixes: d178e034d565 ("drm: omapdrm: Move FEAT_DPI_USES_VDDS_DSI feature to dpi code")
+Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Reported-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Tested-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/omapdrm/dss/dpi.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 4504908c23fe..ec27ed67a22a 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -86,7 +86,7 @@
+diff --git a/drivers/gpu/drm/omapdrm/dss/dpi.c b/drivers/gpu/drm/omapdrm/dss/dpi.c
+index 4ed5fde11313..a91e5f1a0490 100644
+--- a/drivers/gpu/drm/omapdrm/dss/dpi.c
++++ b/drivers/gpu/drm/omapdrm/dss/dpi.c
+@@ -566,8 +566,8 @@ static int dpi_verify_pll(struct dss_pll *pll)
+ }
  
- 		/* lcd panel */
- 		lcd: td028ttec1@0 {
--			compatible = "toppoly,td028ttec1";
-+			compatible = "tpo,td028ttec1";
- 			reg = <0>;
- 			spi-max-frequency = <100000>;
- 			spi-cpol;
+ static const struct soc_device_attribute dpi_soc_devices[] = {
+-	{ .family = "OMAP3[456]*" },
+-	{ .family = "[AD]M37*" },
++	{ .machine = "OMAP3[456]*" },
++	{ .machine = "[AD]M37*" },
+ 	{ /* sentinel */ }
+ };
+ 
 -- 
 2.12.2
 
