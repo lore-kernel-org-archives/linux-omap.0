@@ -1,55 +1,219 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v2 4/4] drm: omapdrm: Fix DPI on platforms using the DSI VDDS
-Date: Thu, 16 Nov 2017 09:50:19 +0100
-Message-ID: <dd2427920427440e051951071377265fc0a830d4.1510822218.git.hns@goldelico.com>
-References: <cover.1510822218.git.hns@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1510822218.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-In-Reply-To: <cover.1510822218.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-References: <cover.1510822218.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Sean Paul <seanpaul-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: bh1770 hacks: get it to work on n950
+Date: Thu, 16 Nov 2017 12:57:03 +0100
+Message-ID: <20171116115703.GA26735@amd>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, arnd@arndb.de, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 
-Commit d178e034d565 ("drm: omapdrm: Move FEAT_DPI_USES_VDDS_DSI feature
-to dpi code") replaced usage of platform data version with SoC matching
-to configure DPI VDDS. The SoC match entries were incorrect, they should
-have matched on the machine name instead of the SoC family. Fix it.
+--9amGYk9869ThD9tj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The result was observed on OpenPandora with OMAP3530 where the panel only
-had the Blue channel and Red&Green were missing. It was not observed on
-GTA04 with DM3730.
+Hi!
 
-Fixes: d178e034d565 ("drm: omapdrm: Move FEAT_DPI_USES_VDDS_DSI feature to dpi code")
-Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Reported-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Tested-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
----
- drivers/gpu/drm/omapdrm/dss/dpi.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Ok, not for application, but I can get light sensor to work.
 
-diff --git a/drivers/gpu/drm/omapdrm/dss/dpi.c b/drivers/gpu/drm/omapdrm/dss/dpi.c
-index 4ed5fde11313..a91e5f1a0490 100644
---- a/drivers/gpu/drm/omapdrm/dss/dpi.c
-+++ b/drivers/gpu/drm/omapdrm/dss/dpi.c
-@@ -566,8 +566,8 @@ static int dpi_verify_pll(struct dss_pll *pll)
- }
- 
- static const struct soc_device_attribute dpi_soc_devices[] = {
--	{ .family = "OMAP3[456]*" },
--	{ .family = "[AD]M37*" },
-+	{ .machine = "OMAP3[456]*" },
-+	{ .machine = "[AD]M37*" },
- 	{ /* sentinel */ }
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+
+
+diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n95=
+0.dts
+index 50c4fc6..15841f7 100644
+--- a/arch/arm/boot/dts/omap3-n950.dts
++++ b/arch/arm/boot/dts/omap3-n950.dts
+@@ -150,6 +150,23 @@
+                };
+        };
+=20
++       bh1770@38 {
++       		 compatible =3D "bh1770glc";
++		 reg =3D <0x38>;
++
++		 vdd-supply =3D <&vaux1>;
++		 leds-supply =3D <&vaux1>; /* FIXME: really on vbat */
++
++		 /* GPIO 83 on n950.
++ 		 .leds              =3D BHSFH_LED1,
++ 		 .led_max_curr      =3D BHSFH_LED_100mA,
++ 		 .led_def_curr      =3D BHSFH_LED_50mA,
++ 		 .glass_attenuation =3D (16384 * 385) / 100, ... about 3.85x filtering
++ 		 */
++       };
++
++       /* Also TLV320DAC33 and TPA6130A2 */
++
+ 	touch@4b {
+ 		compatible =3D "atmel,maxtouch";
+ 		reg =3D <0x4b>;
+diff --git a/drivers/misc/bh1770glc.c b/drivers/misc/bh1770glc.c
+index 9c62bf0..f08df29 100644
+--- a/drivers/misc/bh1770glc.c
++++ b/drivers/misc/bh1770glc.c
+@@ -22,6 +22,7 @@
+  *
+  */
+=20
++#define DEBUG
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+@@ -525,16 +526,22 @@ static int bh1770_detect(struct bh1770_chip *chip)
+ 	s32 ret;
+ 	u8 manu, part;
+=20
++	printk("Detect...\n");
++
+ 	ret =3D i2c_smbus_read_byte_data(client, BH1770_MANUFACT_ID);
+ 	if (ret < 0)
+ 		goto error;
+ 	manu =3D (u8)ret;
+=20
++	printk("Detect... manufact\n");
++
+ 	ret =3D i2c_smbus_read_byte_data(client, BH1770_PART_ID);
+ 	if (ret < 0)
+ 		goto error;
+ 	part =3D (u8)ret;
+=20
++	printk("Detect... part ... got %x %x\n", manu, part);
++
+ 	chip->revision =3D (part & BH1770_REV_MASK) >> BH1770_REV_SHIFT;
+ 	chip->prox_coef =3D BH1770_COEF_SCALER;
+ 	chip->prox_const =3D 0;
+@@ -1179,6 +1186,8 @@ static const struct attribute_group bh1770_attribute_=
+group =3D {
+ 	.attrs =3D sysfs_attrs
  };
- 
--- 
-2.12.2
+=20
++struct bh1770_platform_data def =3D {};
++
+ static int bh1770_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *id)
+ {
+@@ -1189,6 +1198,8 @@ static int bh1770_probe(struct i2c_client *client,
+ 	if (!chip)
+ 		return -ENOMEM;
+=20
++	printk("bh1770: probe\n");
++
+ 	i2c_set_clientdata(client, chip);
+ 	chip->client  =3D client;
+=20
+@@ -1198,10 +1209,12 @@ static int bh1770_probe(struct i2c_client *client,
+=20
+ 	if (client->dev.platform_data =3D=3D NULL) {
+ 		dev_err(&client->dev, "platform data is mandatory\n");
+-		return -EINVAL;
++		//return -EINVAL;
+ 	}
+=20
+ 	chip->pdata		=3D client->dev.platform_data;
++	if (!chip->pdata)
++		chip->pdata =3D &def;
+ 	chip->lux_calib		=3D BH1770_LUX_NEUTRAL_CALIB_VALUE;
+ 	chip->lux_rate_index	=3D BH1770_LUX_DEFAULT_RATE;
+ 	chip->lux_threshold_lo	=3D BH1770_LUX_DEF_THRES;
+@@ -1220,6 +1233,8 @@ static int bh1770_probe(struct i2c_client *client,
+ 	chip->prox_rate		=3D BH1770_PROX_DEFAULT_RATE;
+ 	chip->prox_data		=3D 0;
+=20
++	printk("bh1770: regulators\n");
++=09
+ 	chip->regs[0].supply =3D reg_vcc;
+ 	chip->regs[1].supply =3D reg_vleds;
+=20
+@@ -1227,14 +1242,12 @@ static int bh1770_probe(struct i2c_client *client,
+ 				      ARRAY_SIZE(chip->regs), chip->regs);
+ 	if (err < 0) {
+ 		dev_err(&client->dev, "Cannot get regulators\n");
+-		return err;
+ 	}
+=20
+ 	err =3D regulator_bulk_enable(ARRAY_SIZE(chip->regs),
+ 				chip->regs);
+ 	if (err < 0) {
+ 		dev_err(&client->dev, "Cannot enable regulators\n");
+-		return err;
+ 	}
+=20
+ 	usleep_range(BH1770_STARTUP_DELAY, BH1770_STARTUP_DELAY * 2);
+@@ -1242,6 +1255,8 @@ static int bh1770_probe(struct i2c_client *client,
+ 	if (err < 0)
+ 		goto fail0;
+=20
++	printk("bh1770: detected\n");
++
+ 	/* Start chip */
+ 	bh1770_chip_on(chip);
+ 	pm_runtime_set_active(&client->dev);
+@@ -1269,6 +1284,8 @@ static int bh1770_probe(struct i2c_client *client,
+ 		goto fail1;
+ 	}
+=20
++	printk("bh1770: sysfs ok\n");
++=09
+ 	/*
+ 	 * Chip needs level triggered interrupt to work. However,
+ 	 * level triggering doesn't work always correctly with power
+@@ -1282,8 +1299,12 @@ static int bh1770_probe(struct i2c_client *client,
+ 	if (err) {
+ 		dev_err(&client->dev, "could not get IRQ %d\n",
+ 			client->irq);
+-		goto fail2;
++		//goto fail2;
+ 	}
++
++	printk("bh1770: irq ok, all done\n");
++	err =3D 0;
++=09
+ 	regulator_bulk_disable(ARRAY_SIZE(chip->regs), chip->regs);
+ 	return err;
+ fail2:
+@@ -1393,10 +1414,18 @@ static const struct dev_pm_ops bh1770_pm_ops =3D {
+ 	SET_RUNTIME_PM_OPS(bh1770_runtime_suspend, bh1770_runtime_resume, NULL)
+ };
+=20
++#ifdef CONFIG_OF
++static const struct of_device_id bh1770_of_match_table[] =3D {
++	{ .compatible =3D "bq27200" },
++};
++MODULE_DEVICE_TABLE(of, bh1770_of_match_table);
++#endif=09
++
+ static struct i2c_driver bh1770_driver =3D {
+ 	.driver	 =3D {
+ 		.name	=3D "bh1770glc",
+ 		.pm	=3D &bh1770_pm_ops,
++		.of_match_table =3D of_match_ptr(bh1770_of_match_table),
+ 	},
+ 	.probe	  =3D bh1770_probe,
+ 	.remove	  =3D bh1770_remove,
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--9amGYk9869ThD9tj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAloNfQ8ACgkQMOfwapXb+vImcACgpo/aF/sT5nGJ/b4/v5iXvi2d
++wIAniDcxCPdjeUvNgBwJc7BsUs3gjJh
+=GmJG
+-----END PGP SIGNATURE-----
+
+--9amGYk9869ThD9tj--
