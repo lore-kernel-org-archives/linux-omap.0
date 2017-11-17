@@ -1,196 +1,239 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v2 1/4] omapdrm: fix compatible string for td028ttec1
-Date: Thu, 16 Nov 2017 19:56:54 +0100
-Message-ID: <D565D101-4EAF-4B3C-907F-A826EF53B5AF@goldelico.com>
-References: <cover.1510822218.git.hns@goldelico.com>
- <474bfc72b67e1d0e2a223084a69f04d2baa1dda8.1510822218.git.hns@goldelico.com>
- <4753a425-d050-7f2d-35ae-b387accfd99e@ti.com>
- <130D3B71-C0CE-4755-BF06-971681F630BC@goldelico.com>
- <d90ee1ee-8a33-de04-bb8b-2f10e0a80a61@ti.com>
- <908C52B9-83E2-49B3-B5B4-D8F27A96ECD6@goldelico.com>
- <a6b4c02d-a5ff-b0e6-ca59-afaf1148fe2a@ti.com>
- <689D4636-A169-4C4A-89C2-7039C78E853F@goldelico.com>
- <2e67402b-4a32-9da9-3b06-e271c23d2422@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <2e67402b-4a32-9da9-3b06-e271c23d2422@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Julia Lawall <Julia.Lawall@lip6.fr>, letux-kernel@openphoenux.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org, Russell King <linux@armlinux.org.uk>, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, Sean Paul <seanpaul@chromium.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: bh1770 hacks: get it to work on n950
+Date: Fri, 17 Nov 2017 12:35:40 +0100
+Message-ID: <20171117113540.3bapqvq6mfuovxuw@earth>
+References: <20171116115703.GA26735@amd>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="egdkituyjl4jzuhi"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171116115703.GA26735@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, arnd@arndb.de, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andrew,
 
-> Am 16.11.2017 um 19:32 schrieb Andrew F. Davis <afd@ti.com>:
-> 
-> On 11/16/2017 12:18 PM, H. Nikolaus Schaller wrote:
->> 
->>> Am 16.11.2017 um 18:08 schrieb Andrew F. Davis <afd@ti.com>:
->>> 
->>> On 11/16/2017 10:10 AM, H. Nikolaus Schaller wrote:
->>>> Hi Andrew,
->>>> 
->>>>> Am 16.11.2017 um 16:53 schrieb Andrew F. Davis <afd@ti.com>:
->>>>> 
->>>>> On 11/16/2017 07:43 AM, H. Nikolaus Schaller wrote:
->>>>>> 
->>>>>>> Am 16.11.2017 um 13:32 schrieb Tomi Valkeinen <tomi.valkeinen@ti.com>:
->>>>>>> 
->>>>>>> On 16/11/17 10:50, H. Nikolaus Schaller wrote:
->>>>>>>> The vendor name was "toppoly" but other panels and the vendor list
->>>>>>>> have defined it as "tpo". So let's fix it in driver and bindings.
->>>>>>>> 
->>>>>>>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->>>>>>>> ---
->>>>>>> 
->>>>>>> 
->>>>>>>> -MODULE_ALIAS("spi:toppoly,td028ttec1");
->>>>>>>> +MODULE_ALIAS("spi:tpo,td028ttec1");
->>>>>>> 
->>>>>>> Doesn't this mean that the module won't load if you have old bindings?
->>>>>> 
->>>>>> Hm.
->>>>>> 
->>>>>> Well, I think it can load but doesn't automatically from DT strings which might
->>>>>> be unexpected.
->>>>>> 
->>>>>>> Can't we have two module aliases?
->>>>>> 
->>>>>> I think we can. Just a random example:
->>>>>> https://elixir.free-electrons.com/linux/latest/source/drivers/w1/slaves/w1_therm.c#L754
->>>>>> 
->>>>>> So we should keep both.
->>>>> 
->>>>> Even better would be to drop both MODULE_ALIAS and let the
->>>>> MODULE_DEVICE_TABLE macro define them for your from the SPI id table.
->>>> 
->>>> Why would that be better?
->>>> 
->>> 
->>> MODULE_ALIAS is ugly, you already have a table (usually) of device names
->>> that are supported by the driver, the module aliases should be generated
->>> from that table. This also keeps supported device list in one place.
->>> 
->>>> As far as I see it will need more code and changes than adding one line of
->>>> MODULE_ALIAS.
->>>> 
->>>>> Although it doesn't look like this driver has an SPI id table, you
->>>>> should probably add one, I be interested to see if this module is always
->>>>> being matched through the "spi" or the "of" alias..
->>>> 
->>>> Could you please propose how that code should look like, so that I can test?
->>>> 
->>> 
->>> Sure,
->>> 
->>> start with
->>> $ udevadm monitor
->>> and see what string the kernel is looking for when trying to find a
->>> module for this device.
->> 
->> Well, the module is loaded automatically from DT at boot time well before
->> I can start udevadm. So that is the most tricky part to setup the system
->> to suppress this...
->> 
->>> 
->>> If it is only ever looking for "of:toppoly,td028ttec1", then you can
->>> drop the MODULE_ALIAS and be done as it was never getting used anyway.
->> 
->> Since it is an SPI client, I am sure it looks for "spi:something.
->> 
->>> 
->>> What I expect though is "spi:toppoly,td028ttec1", in which case you
->>> should add
->>> 
->>> static const struct spi_device_id td028ttec1_ids[] = {
->>> 	{ "toppoly,td028ttec1", 0 },
->>> 	{ "tpo,td028ttec1", 0},
->>> 	{ /* sentinel */ }
->>> };
->>> MODULE_DEVICE_TABLE(spi, td028ttec1_ids);
->> 
->> We already have a static const struct of_device_id td028ttec1_of_match[]
->> table with the same information.
->> 
->> So we still have two places to keep in sync.
->> 
->> Or can we remove the td028ttec1_of_match[]? AFAIK not.
->> 
->>> 
->>> link to it in the td028ttec1_spi_driver struct:
->>> .id_table = td028ttec1_ids,
->>> 
->>> Then test again to see that the module still loads with the new and old
->>> DT string.
->> 
->> In total I am not really convinced that adding 7 lines of code is better
->> than one (the "tpo," alias) that is tested and works...
->> 
->> And it looks like a lot of unplanned code testing for me which takes more
->> than 5 minutes :)
->> 
->> So I'd prefer to leave that exercise of fixing the MODULE_ALIAS/DEVICE_TABLE
->> to someone else...
->> 
-> 
-> That's fine, someday I'll probably get some script to do this for all
-> the drivers that still have MODULE_ALIAS and an existing table.
+--egdkituyjl4jzuhi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-That would be cool!
+Hi,
 
-On a second thought, I think there is a quick experiment for this driver
-not needing to monitor events.
+On Thu, Nov 16, 2017 at 12:57:03PM +0100, Pavel Machek wrote:
+> Hi!
+>=20
+> Ok, not for application, but I can get light sensor to work.
+>=20
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 
-1st attempt: remove ALIASES => if it still loads it would be fine
-2nd attempt: add your id table => if it loads again, it is fine
-if not, let's keep ALIASES.
+There is no mainline user of this driver and it has a custom API, so
+I think the driver should be dropped and an IIO based one should be
+created instead.
 
-Maybe I can try tomorrow.
+-- Sebastian
 
-BR and thanks,
-Nikolaus
+> diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n=
+950.dts
+> index 50c4fc6..15841f7 100644
+> --- a/arch/arm/boot/dts/omap3-n950.dts
+> +++ b/arch/arm/boot/dts/omap3-n950.dts
+> @@ -150,6 +150,23 @@
+>                 };
+>         };
+> =20
+> +       bh1770@38 {
+> +       		 compatible =3D "bh1770glc";
+> +		 reg =3D <0x38>;
+> +
+> +		 vdd-supply =3D <&vaux1>;
+> +		 leds-supply =3D <&vaux1>; /* FIXME: really on vbat */
+> +
+> +		 /* GPIO 83 on n950.
+> + 		 .leds              =3D BHSFH_LED1,
+> + 		 .led_max_curr      =3D BHSFH_LED_100mA,
+> + 		 .led_def_curr      =3D BHSFH_LED_50mA,
+> + 		 .glass_attenuation =3D (16384 * 385) / 100, ... about 3.85x filtering
+> + 		 */
+> +       };
+> +
+> +       /* Also TLV320DAC33 and TPA6130A2 */
+> +
+>  	touch@4b {
+>  		compatible =3D "atmel,maxtouch";
+>  		reg =3D <0x4b>;
+> diff --git a/drivers/misc/bh1770glc.c b/drivers/misc/bh1770glc.c
+> index 9c62bf0..f08df29 100644
+> --- a/drivers/misc/bh1770glc.c
+> +++ b/drivers/misc/bh1770glc.c
+> @@ -22,6 +22,7 @@
+>   *
+>   */
+> =20
+> +#define DEBUG
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/i2c.h>
+> @@ -525,16 +526,22 @@ static int bh1770_detect(struct bh1770_chip *chip)
+>  	s32 ret;
+>  	u8 manu, part;
+> =20
+> +	printk("Detect...\n");
+> +
+>  	ret =3D i2c_smbus_read_byte_data(client, BH1770_MANUFACT_ID);
+>  	if (ret < 0)
+>  		goto error;
+>  	manu =3D (u8)ret;
+> =20
+> +	printk("Detect... manufact\n");
+> +
+>  	ret =3D i2c_smbus_read_byte_data(client, BH1770_PART_ID);
+>  	if (ret < 0)
+>  		goto error;
+>  	part =3D (u8)ret;
+> =20
+> +	printk("Detect... part ... got %x %x\n", manu, part);
+> +
+>  	chip->revision =3D (part & BH1770_REV_MASK) >> BH1770_REV_SHIFT;
+>  	chip->prox_coef =3D BH1770_COEF_SCALER;
+>  	chip->prox_const =3D 0;
+> @@ -1179,6 +1186,8 @@ static const struct attribute_group bh1770_attribut=
+e_group =3D {
+>  	.attrs =3D sysfs_attrs
+>  };
+> =20
+> +struct bh1770_platform_data def =3D {};
+> +
+>  static int bh1770_probe(struct i2c_client *client,
+>  				const struct i2c_device_id *id)
+>  {
+> @@ -1189,6 +1198,8 @@ static int bh1770_probe(struct i2c_client *client,
+>  	if (!chip)
+>  		return -ENOMEM;
+> =20
+> +	printk("bh1770: probe\n");
+> +
+>  	i2c_set_clientdata(client, chip);
+>  	chip->client  =3D client;
+> =20
+> @@ -1198,10 +1209,12 @@ static int bh1770_probe(struct i2c_client *client,
+> =20
+>  	if (client->dev.platform_data =3D=3D NULL) {
+>  		dev_err(&client->dev, "platform data is mandatory\n");
+> -		return -EINVAL;
+> +		//return -EINVAL;
+>  	}
+> =20
+>  	chip->pdata		=3D client->dev.platform_data;
+> +	if (!chip->pdata)
+> +		chip->pdata =3D &def;
+>  	chip->lux_calib		=3D BH1770_LUX_NEUTRAL_CALIB_VALUE;
+>  	chip->lux_rate_index	=3D BH1770_LUX_DEFAULT_RATE;
+>  	chip->lux_threshold_lo	=3D BH1770_LUX_DEF_THRES;
+> @@ -1220,6 +1233,8 @@ static int bh1770_probe(struct i2c_client *client,
+>  	chip->prox_rate		=3D BH1770_PROX_DEFAULT_RATE;
+>  	chip->prox_data		=3D 0;
+> =20
+> +	printk("bh1770: regulators\n");
+> +=09
+>  	chip->regs[0].supply =3D reg_vcc;
+>  	chip->regs[1].supply =3D reg_vleds;
+> =20
+> @@ -1227,14 +1242,12 @@ static int bh1770_probe(struct i2c_client *client,
+>  				      ARRAY_SIZE(chip->regs), chip->regs);
+>  	if (err < 0) {
+>  		dev_err(&client->dev, "Cannot get regulators\n");
+> -		return err;
+>  	}
+> =20
+>  	err =3D regulator_bulk_enable(ARRAY_SIZE(chip->regs),
+>  				chip->regs);
+>  	if (err < 0) {
+>  		dev_err(&client->dev, "Cannot enable regulators\n");
+> -		return err;
+>  	}
+> =20
+>  	usleep_range(BH1770_STARTUP_DELAY, BH1770_STARTUP_DELAY * 2);
+> @@ -1242,6 +1255,8 @@ static int bh1770_probe(struct i2c_client *client,
+>  	if (err < 0)
+>  		goto fail0;
+> =20
+> +	printk("bh1770: detected\n");
+> +
+>  	/* Start chip */
+>  	bh1770_chip_on(chip);
+>  	pm_runtime_set_active(&client->dev);
+> @@ -1269,6 +1284,8 @@ static int bh1770_probe(struct i2c_client *client,
+>  		goto fail1;
+>  	}
+> =20
+> +	printk("bh1770: sysfs ok\n");
+> +=09
+>  	/*
+>  	 * Chip needs level triggered interrupt to work. However,
+>  	 * level triggering doesn't work always correctly with power
+> @@ -1282,8 +1299,12 @@ static int bh1770_probe(struct i2c_client *client,
+>  	if (err) {
+>  		dev_err(&client->dev, "could not get IRQ %d\n",
+>  			client->irq);
+> -		goto fail2;
+> +		//goto fail2;
+>  	}
+> +
+> +	printk("bh1770: irq ok, all done\n");
+> +	err =3D 0;
+> +=09
+>  	regulator_bulk_disable(ARRAY_SIZE(chip->regs), chip->regs);
+>  	return err;
+>  fail2:
+> @@ -1393,10 +1414,18 @@ static const struct dev_pm_ops bh1770_pm_ops =3D {
+>  	SET_RUNTIME_PM_OPS(bh1770_runtime_suspend, bh1770_runtime_resume, NULL)
+>  };
+> =20
+> +#ifdef CONFIG_OF
+> +static const struct of_device_id bh1770_of_match_table[] =3D {
+> +	{ .compatible =3D "bq27200" },
+> +};
+> +MODULE_DEVICE_TABLE(of, bh1770_of_match_table);
+> +#endif=09
+> +
+>  static struct i2c_driver bh1770_driver =3D {
+>  	.driver	 =3D {
+>  		.name	=3D "bh1770glc",
+>  		.pm	=3D &bh1770_pm_ops,
+> +		.of_match_table =3D of_match_ptr(bh1770_of_match_table),
+>  	},
+>  	.probe	  =3D bh1770_probe,
+>  	.remove	  =3D bh1770_remove,
+>=20
+>=20
+> --=20
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
+log.html
 
-> 
->> BR and thanks,
->> Nikolaus
->> 
->>> 
->>> Andrew
->>> 
->>>> BR and thanks,
->>>> Nikolaus Schaller
->>>> 
->>>>> 
->>>>>> 
->>>>>> Should I submit a new version?
->>>>>> 
->>>>>> BR,
->>>>>> Nikolaus
->>>>>> 
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe devicetree" in
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>> 
->>>> 
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe devicetree" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>> 
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
+
+
+--egdkituyjl4jzuhi
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloOyYkACgkQ2O7X88g7
++po7Hg//Um8xFMxTaWkoRsS8eGhEsSbMnLsgBUuwCvp9ReI8G6pM8wB9aTVcjFyC
+H+FoECanDIe3kOjWV87giLS8zoyxKOhogJpkaC1Cz69ql+Tc0+0B3HRS8WMMyKAC
+ovDNITviuVKkEQkkxdIrBXDlBWbg3RSVd292NCj51WXVPYEynav+bSaUFKAFqWEk
+Z60ARCz0tDdFFd6VINFD/lxI1CdIv7qJlQHUG72ggfDsIYJ/jTfJO1HJGDfGUuYH
+2BFSobGos8gw0777fQLV2NnZtxJu2c6TiYvTcCxtwFHP8sa6SE7hmcf38NwAsQLS
+rGz6biIk5FgBp1yRGtI05M4uNhKv/iv7FJQVVKAD2a+DvLjFmmNHgKZ5pr5F9Mk5
+w+AyovfRZEPS1fYhlbrTUHVwIOvAVsNn+Pwt5bJ0FY/15RfpYdx+I/Xm4gF1Qvl7
+3P6H4CIKWd8fd8OyIEJqCZY5GVvzOcjRcKPIMdEc/jWFDwRstlb+WPXn6wlxDbZW
+Vxo1C5wdNPGCcjZX0b4JZkP9ebuMF/FVFocphCypav49nvwHuHoJ4tNr/nGw+JhX
+b+N9fJuN3NRJ0igJZuWweyHsVPA9eqja/JC4ulN3TYx8zgt3rv7RCDKLhRiUsLeQ
+pctfxQ8oElJbHOOEwvUxCMHb3xCen+ph6IFugt2anOL3YZyhTFs=
+=n3yB
+-----END PGP SIGNATURE-----
+
+--egdkituyjl4jzuhi--
