@@ -1,80 +1,63 @@
 From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH v5 05/18] PCI: designware-ep: Remove static keyword from dw_pcie_ep_reset_bar()
-Date: Mon, 20 Nov 2017 14:32:08 +0100
-Message-ID: <20171120133222.27771-6-niklas.cassel@axis.com>
+Subject: [PATCH v5 08/18] PCI: dwc: dra7xx: Assign pp->ops in dra7xx_add_pcie_port() rather than in probe
+Date: Mon, 20 Nov 2017 14:32:11 +0100
+Message-ID: <20171120133222.27771-9-niklas.cassel@axis.com>
 References: <20171120133222.27771-1-niklas.cassel@axis.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20171120133222.27771-1-niklas.cassel@axis.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>
 Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove the static keyword from dw_pcie_ep_reset_bar() so that
-pci-dra7xx.c does not need its own copy of dw_pcie_ep_reset_bar().
+Assign pp->ops in *_add_pcie_port() to match how it is done in other
+drivers like exynos, imx7, keystone, armada8k, artpec6, designware-plat,
+hisi, kirin and spear13xx.
+
+This is probably a remainder since when dev and ops were assigned as
+members to pp. Since we now assign them as members to struct dw_pcie,
+the pp->ops assignment should definitely be in dra7xx_add_pcie_port().
+
+This is done so that the compiler (in a later commit) can remove more
+code when enabling only one of the two supported modes (host/ep) in
+the dra7xx driver.
 
 Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
 Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c         | 9 ---------
- drivers/pci/dwc/pcie-designware-ep.c | 2 +-
- drivers/pci/dwc/pcie-designware.h    | 5 +++++
- 3 files changed, 6 insertions(+), 10 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index e77a4ceed74c..d330b7d86ce3 100644
+index d330b7d86ce3..07c74ae3614e 100644
 --- a/drivers/pci/dwc/pci-dra7xx.c
 +++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -337,15 +337,6 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	return IRQ_HANDLED;
- }
+@@ -461,6 +461,8 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+ 	if (!pci->dbi_base)
+ 		return -ENOMEM;
  
--static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
--{
--	u32 reg;
--
--	reg = PCI_BASE_ADDRESS_0 + (4 * bar);
--	dw_pcie_writel_dbi2(pci, reg, 0x0);
--	dw_pcie_writel_dbi(pci, reg, 0x0);
--}
--
- static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
- {
- 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
-diff --git a/drivers/pci/dwc/pcie-designware-ep.c b/drivers/pci/dwc/pcie-designware-ep.c
-index 8d8019cdff2a..700ed2f4becf 100644
---- a/drivers/pci/dwc/pcie-designware-ep.c
-+++ b/drivers/pci/dwc/pcie-designware-ep.c
-@@ -30,7 +30,7 @@ void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
- 	pci_epc_linkup(epc);
- }
- 
--static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
-+void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
- {
- 	u32 reg;
- 
-diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index 5a1da459eda5..37dfad8d003f 100644
---- a/drivers/pci/dwc/pcie-designware.h
-+++ b/drivers/pci/dwc/pcie-designware.h
-@@ -338,6 +338,7 @@ static inline int dw_pcie_host_init(struct pcie_port *pp)
- void dw_pcie_ep_linkup(struct dw_pcie_ep *ep);
- int dw_pcie_ep_init(struct dw_pcie_ep *ep);
- void dw_pcie_ep_exit(struct dw_pcie_ep *ep);
-+void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar);
- #else
- static inline void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
- {
-@@ -351,5 +352,9 @@ static inline int dw_pcie_ep_init(struct dw_pcie_ep *ep)
- static inline void dw_pcie_ep_exit(struct dw_pcie_ep *ep)
- {
- }
++	pp->ops = &dra7xx_pcie_host_ops;
 +
-+static inline void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
-+{
-+}
- #endif
- #endif /* _PCIE_DESIGNWARE_H */
+ 	ret = dw_pcie_host_init(pp);
+ 	if (ret) {
+ 		dev_err(dev, "failed to initialize host\n");
+@@ -590,7 +592,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	void __iomem *base;
+ 	struct resource *res;
+ 	struct dw_pcie *pci;
+-	struct pcie_port *pp;
+ 	struct dra7xx_pcie *dra7xx;
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *np = dev->of_node;
+@@ -618,9 +619,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	pci->dev = dev;
+ 	pci->ops = &dw_pcie_ops;
+ 
+-	pp = &pci->pp;
+-	pp->ops = &dra7xx_pcie_host_ops;
+-
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+ 		dev_err(dev, "missing IRQ resource: %d\n", irq);
 -- 
 2.14.2
