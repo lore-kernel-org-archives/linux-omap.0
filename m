@@ -1,222 +1,83 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v2 1/4] omapdrm: fix compatible string for td028ttec1
-Date: Mon, 20 Nov 2017 06:36:48 +0100
-Message-ID: <01FF562E-B2A7-465C-B763-A63872C7DD53@goldelico.com>
-References: <cover.1510822218.git.hns@goldelico.com>
- <474bfc72b67e1d0e2a223084a69f04d2baa1dda8.1510822218.git.hns@goldelico.com>
- <4753a425-d050-7f2d-35ae-b387accfd99e@ti.com>
- <130D3B71-C0CE-4755-BF06-971681F630BC@goldelico.com>
- <d90ee1ee-8a33-de04-bb8b-2f10e0a80a61@ti.com>
- <908C52B9-83E2-49B3-B5B4-D8F27A96ECD6@goldelico.com>
- <a6b4c02d-a5ff-b0e6-ca59-afaf1148fe2a@ti.com>
- <689D4636-A169-4C4A-89C2-7039C78E853F@goldelico.com>
- <2e67402b-4a32-9da9-3b06-e271c23d2422@ti.com>
- <D565D101-4EAF-4B3C-907F-A826EF53B5AF@goldelico.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="us-ascii"
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: Fix omap4 hang with GPS connected to USB by
+ using wakeupgen
+Date: Mon, 20 Nov 2017 10:44:56 +0200
+Message-ID: <72bb574b-146c-ce2d-b63d-7a5662973879@ti.com>
+References: <20171117165658.21003-1-tony@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <D565D101-4EAF-4B3C-907F-A826EF53B5AF@goldelico.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Russell King <linux@armlinux.org.uk>, dri-devel@lists.freedesktop.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Julia Lawall <Julia.Lawall@lip6.fr>, Tony Lindgren <tony@atomide.com>, Rob Herring <robh+dt@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, Sean Paul <seanpaul@chromium.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171117165658.21003-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-GB
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Andrew,
 
-> Am 16.11.2017 um 19:56 schrieb H. Nikolaus Schaller <hns@goldelico.com>:
+On 17/11/17 18:56, Tony Lindgren wrote:
+> There's been a reproducable USB OHCI/EHCI cpuidle related hang on omap4
+> for a while that happens after about 20 - 40 minutes on an idle system
+> with some data feeding device being connected, like a USB GPS device or
+> a cellular modem.
 > 
-> Hi Andrew,
+> This issue happens in cpuidle states C2 and C3 and does not happen if
+> cpuidle is limited to C1 state only. The symptoms are that the whole
+> system hangs and never wakes up from idle, and if a watchdog is
+> configured the system reboots after a while.
 > 
->> Am 16.11.2017 um 19:32 schrieb Andrew F. Davis <afd@ti.com>:
->> 
->> On 11/16/2017 12:18 PM, H. Nikolaus Schaller wrote:
->>> 
->>>> Am 16.11.2017 um 18:08 schrieb Andrew F. Davis <afd@ti.com>:
->>>> 
->>>> On 11/16/2017 10:10 AM, H. Nikolaus Schaller wrote:
->>>>> Hi Andrew,
->>>>> 
->>>>>> Am 16.11.2017 um 16:53 schrieb Andrew F. Davis <afd@ti.com>:
->>>>>> 
->>>>>> On 11/16/2017 07:43 AM, H. Nikolaus Schaller wrote:
->>>>>>> 
->>>>>>>> Am 16.11.2017 um 13:32 schrieb Tomi Valkeinen <tomi.valkeinen@ti.com>:
->>>>>>>> 
->>>>>>>> On 16/11/17 10:50, H. Nikolaus Schaller wrote:
->>>>>>>>> The vendor name was "toppoly" but other panels and the vendor list
->>>>>>>>> have defined it as "tpo". So let's fix it in driver and bindings.
->>>>>>>>> 
->>>>>>>>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->>>>>>>>> ---
->>>>>>>> 
->>>>>>>> 
->>>>>>>>> -MODULE_ALIAS("spi:toppoly,td028ttec1");
->>>>>>>>> +MODULE_ALIAS("spi:tpo,td028ttec1");
->>>>>>>> 
->>>>>>>> Doesn't this mean that the module won't load if you have old bindings?
->>>>>>> 
->>>>>>> Hm.
->>>>>>> 
->>>>>>> Well, I think it can load but doesn't automatically from DT strings which might
->>>>>>> be unexpected.
->>>>>>> 
->>>>>>>> Can't we have two module aliases?
->>>>>>> 
->>>>>>> I think we can. Just a random example:
->>>>>>> https://elixir.free-electrons.com/linux/latest/source/drivers/w1/slaves/w1_therm.c#L754
->>>>>>> 
->>>>>>> So we should keep both.
->>>>>> 
->>>>>> Even better would be to drop both MODULE_ALIAS and let the
->>>>>> MODULE_DEVICE_TABLE macro define them for your from the SPI id table.
->>>>> 
->>>>> Why would that be better?
->>>>> 
->>>> 
->>>> MODULE_ALIAS is ugly, you already have a table (usually) of device names
->>>> that are supported by the driver, the module aliases should be generated
->>>> from that table. This also keeps supported device list in one place.
->>>> 
->>>>> As far as I see it will need more code and changes than adding one line of
->>>>> MODULE_ALIAS.
->>>>> 
->>>>>> Although it doesn't look like this driver has an SPI id table, you
->>>>>> should probably add one, I be interested to see if this module is always
->>>>>> being matched through the "spi" or the "of" alias..
->>>>> 
->>>>> Could you please propose how that code should look like, so that I can test?
->>>>> 
->>>> 
->>>> Sure,
->>>> 
->>>> start with
->>>> $ udevadm monitor
->>>> and see what string the kernel is looking for when trying to find a
->>>> module for this device.
->>> 
->>> Well, the module is loaded automatically from DT at boot time well before
->>> I can start udevadm. So that is the most tricky part to setup the system
->>> to suppress this...
->>> 
->>>> 
->>>> If it is only ever looking for "of:toppoly,td028ttec1", then you can
->>>> drop the MODULE_ALIAS and be done as it was never getting used anyway.
->>> 
->>> Since it is an SPI client, I am sure it looks for "spi:something.
->>> 
->>>> 
->>>> What I expect though is "spi:toppoly,td028ttec1", in which case you
->>>> should add
->>>> 
->>>> static const struct spi_device_id td028ttec1_ids[] = {
->>>> 	{ "toppoly,td028ttec1", 0 },
->>>> 	{ "tpo,td028ttec1", 0},
->>>> 	{ /* sentinel */ }
->>>> };
->>>> MODULE_DEVICE_TABLE(spi, td028ttec1_ids);
->>> 
->>> We already have a static const struct of_device_id td028ttec1_of_match[]
->>> table with the same information.
->>> 
->>> So we still have two places to keep in sync.
->>> 
->>> Or can we remove the td028ttec1_of_match[]? AFAIK not.
->>> 
->>>> 
->>>> link to it in the td028ttec1_spi_driver struct:
->>>> .id_table = td028ttec1_ids,
->>>> 
->>>> Then test again to see that the module still loads with the new and old
->>>> DT string.
->>> 
->>> In total I am not really convinced that adding 7 lines of code is better
->>> than one (the "tpo," alias) that is tested and works...
->>> 
->>> And it looks like a lot of unplanned code testing for me which takes more
->>> than 5 minutes :)
->>> 
->>> So I'd prefer to leave that exercise of fixing the MODULE_ALIAS/DEVICE_TABLE
->>> to someone else...
->>> 
->> 
->> That's fine, someday I'll probably get some script to do this for all
->> the drivers that still have MODULE_ALIAS and an existing table.
+> Turns out that OHCI/EHCI devices on omap4 are trying to use the GIC
+> interrupt controller directly as a parent instead of the WUGEN. We
+> need to pass the interrupts through WUGEN to GIC to provide the wakeup
+> events for the processor.
 > 
-> That would be cool!
+> Let's fix the issue by removing the gic interrupt-parent and use the
+> default interrupt-parent wakeupgen instead. Note that omap5.dtsi had
+> this already fixes earlier by commit 7136d457f365 ("ARM: omap: convert
+> wakeupgen to stacked domains") but we somehow missed omap4 at that
+> point.
 > 
-> On a second thought, I think there is a quick experiment for this driver
-> not needing to monitor events.
+> Fixes: 7136d457f365 ("ARM: omap: convert wakeupgen to stacked domains")
+> Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+> Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> Cc: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> Cc: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+Reviewed-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+
+> ---
+>  arch/arm/boot/dts/omap4.dtsi | 2 --
+>  1 file changed, 2 deletions(-)
 > 
-> 1st attempt: remove ALIASES => if it still loads it would be fine
-> 2nd attempt: add your id table => if it loads again, it is fine
-> if not, let's keep ALIASES.
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -1081,14 +1081,12 @@
+>  			usbhsohci: ohci@4a064800 {
+>  				compatible = "ti,ohci-omap3";
+>  				reg = <0x4a064800 0x400>;
+> -				interrupt-parent = <&gic>;
+>  				interrupts = <GIC_SPI 76 IRQ_TYPE_LEVEL_HIGH>;
+>  			};
+>  
+>  			usbhsehci: ehci@4a064c00 {
+>  				compatible = "ti,ehci-omap";
+>  				reg = <0x4a064c00 0x400>;
+> -				interrupt-parent = <&gic>;
+>  				interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
+>  			};
+>  		};
 > 
-> Maybe I can try tomorrow.
 
-I found time to give it a try and indeed:
+-- 
+cheers,
+-roger
 
-1. with module_aliases
-
-root@letux:~# lsmod | fgrep td028
-panel_tpo_td028ttec1    16384  1 
-omapdss_base           16384  5 connector_analog_tv,encoder_opa362,panel_tpo_td028ttec1,omapdrm,omapdss
-root@letux:~# modprobe -c | fgrep td028
-alias of:N*T*Comapdss,toppoly,td028ttec1 panel_tpo_td028ttec1
-alias of:N*T*Comapdss,toppoly,td028ttec1C* panel_tpo_td028ttec1
-alias of:N*T*Comapdss,tpo,td028ttec1 panel_tpo_td028ttec1
-alias of:N*T*Comapdss,tpo,td028ttec1C* panel_tpo_td028ttec1
-alias spi:toppoly,td028ttec1 panel_tpo_td028ttec1
-alias spi:tpo,td028ttec1 panel_tpo_td028ttec1
-root@letux:~# 
-
-=> two MODULE_ALIASEs are possible.
-
-2. without module_aliases
-
-No display and:
-
-root@letux:~# lsmod | fgrep td028
-root@letux:~# modprobe -c | fgrep td028
-alias of:N*T*Comapdss,toppoly,td028ttec1 panel_tpo_td028ttec1
-alias of:N*T*Comapdss,toppoly,td028ttec1C* panel_tpo_td028ttec1
-alias of:N*T*Comapdss,tpo,td028ttec1 panel_tpo_td028ttec1
-alias of:N*T*Comapdss,tpo,td028ttec1C* panel_tpo_td028ttec1
-root@letux:~# 
-
-=> spi: entries are needed.
-
-3. with MODULE_DEVICE_TABLE
-
-Display is back and:
-
-root@letux:~# lsmod | fgrep td028
-panel_tpo_td028ttec1    16384  1 
-omapdss_base           16384  5 connector_analog_tv,encoder_opa362,panel_tpo_td028ttec1,omapdrm,omapdss
-root@letux:~# modprobe -c | fgrep td028
-alias of:N*T*Comapdss,toppoly,td028ttec1 panel_tpo_td028ttec1
-alias of:N*T*Comapdss,toppoly,td028ttec1C* panel_tpo_td028ttec1
-alias of:N*T*Comapdss,tpo,td028ttec1 panel_tpo_td028ttec1
-alias of:N*T*Comapdss,tpo,td028ttec1C* panel_tpo_td028ttec1
-alias spi:toppoly,td028ttec1 panel_tpo_td028ttec1
-alias spi:tpo,td028ttec1 panel_tpo_td028ttec1
-root@letux:~#
-
-=> MODULE_DEVICE_TABLE works equally well.
-
-I have prepared a separate patch so that a first one adds
-another MODULE_ALIAS and the new one replaces both MODULE_ALIASes
-with MODULE_DEVICE_TABLE.
-
-I will submit a [PATCH v3] asap.
-
-BR and thanks,
-Nikolaus
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
