@@ -1,57 +1,56 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH v5 09/18] PCI: dwc: dra7xx: Help compiler to remove unused code
-Date: Mon, 20 Nov 2017 14:32:12 +0100
-Message-ID: <20171120133222.27771-10-niklas.cassel@axis.com>
-References: <20171120133222.27771-1-niklas.cassel@axis.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Nokia N900: Funny screen effects, v4.14 with certain configs
+Date: Mon, 20 Nov 2017 23:15:51 +0100
+Message-ID: <20171120221550.GA13322@amd>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="ibTvN161/egqYuK8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171120133222.27771-1-niklas.cassel@axis.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-The dra7xx driver supports both host and ep mode.
-When enabling support for only one of the modes, help the compiler
-to remove code for the mode that we have not enabled in the driver.
 
-By adding if (!IS_ENABLED(CONFIG_PCI_DRA7XX_HOST)) return -ENODEV;
-anything after that statement will get silently dropped by the compiler,
-including static functions and structures that are referenced indirectly
-from there.
+--ibTvN161/egqYuK8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
----
- drivers/pci/dwc/pci-dra7xx.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Hi!
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 07c74ae3614e..224ff8affdce 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -694,6 +694,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 
- 	switch (mode) {
- 	case DW_PCIE_RC_TYPE:
-+		if (!IS_ENABLED(CONFIG_PCI_DRA7XX_HOST)) {
-+			ret = -ENODEV;
-+			goto err_gpio;
-+		}
-+
- 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
- 				   DEVICE_TYPE_RC);
- 		ret = dra7xx_add_pcie_port(dra7xx, pdev);
-@@ -701,6 +706,11 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
- 			goto err_gpio;
- 		break;
- 	case DW_PCIE_EP_TYPE:
-+		if (!IS_ENABLED(CONFIG_PCI_DRA7XX_EP)) {
-+			ret = -ENODEV;
-+			goto err_gpio;
-+		}
-+
- 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
- 				   DEVICE_TYPE_EP);
- 
--- 
-2.14.2
+I'm trying to find common configuration for N900, N9 and N950.
+
+=2E..and I found that N900, at least with DRM configuration, is
+flakey. Depending on exact .config, and exact way I boot it (timing of
+0xffff) display either works or just shows moving horizontal stripes.
+
+In particular, ondemand cpufreq seems to be required for display to
+work. Ouch. Yes.
+
+If someone knows what is going on there, or has some better
+understanding, let me know.
+
+I do have other configuration that seems to work 100% of
+time... unfortuantely that one is useless on N9/N950.
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--ibTvN161/egqYuK8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAloTVBYACgkQMOfwapXb+vL+jgCgtMJHFol5oZjRkrfWZuCgA2aA
+Zv0AnjgQor7k/m5nfEQKYUbezfofRIov
+=Pyjd
+-----END PGP SIGNATURE-----
+
+--ibTvN161/egqYuK8--
