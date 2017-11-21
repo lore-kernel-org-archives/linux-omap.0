@@ -1,60 +1,82 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 4/4] drm: omapdrm: Fix DPI on platforms using the DSI
- VDDS
-Date: Tue, 21 Nov 2017 12:25:30 +0200
-Message-ID: <7f34033e-4af7-f5f5-47ef-759249ddfe39@ti.com>
-References: <cover.1510822218.git.hns@goldelico.com>
- <dd2427920427440e051951071377265fc0a830d4.1510822218.git.hns@goldelico.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <dd2427920427440e051951071377265fc0a830d4.1510822218.git.hns@goldelico.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>, Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>
-Cc: devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v2 4/4] drm: omapdrm: Fix DPI on platforms using the DSI VDDS
+Date: Tue, 21 Nov 2017 11:38:13 +0100
+Message-ID: <040DF543-B168-4537-A3B1-B0D4A2BD1E7D@goldelico.com>
+References: <cover.1510822218.git.hns@goldelico.com> <dd2427920427440e051951071377265fc0a830d4.1510822218.git.hns@goldelico.com> <7f34033e-4af7-f5f5-47ef-759249ddfe39@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7f34033e-4af7-f5f5-47ef-759249ddfe39@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTYvMTEvMTcgMTA6NTAsIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOgo+IEZyb206IExh
-dXJlbnQgUGluY2hhcnQgPGxhdXJlbnQucGluY2hhcnRAaWRlYXNvbmJvYXJkLmNvbT4KPiAKPiBD
-b21taXQgZDE3OGUwMzRkNTY1ICgiZHJtOiBvbWFwZHJtOiBNb3ZlIEZFQVRfRFBJX1VTRVNfVkRE
-U19EU0kgZmVhdHVyZQo+IHRvIGRwaSBjb2RlIikgcmVwbGFjZWQgdXNhZ2Ugb2YgcGxhdGZvcm0g
-ZGF0YSB2ZXJzaW9uIHdpdGggU29DIG1hdGNoaW5nCj4gdG8gY29uZmlndXJlIERQSSBWRERTLiBU
-aGUgU29DIG1hdGNoIGVudHJpZXMgd2VyZSBpbmNvcnJlY3QsIHRoZXkgc2hvdWxkCj4gaGF2ZSBt
-YXRjaGVkIG9uIHRoZSBtYWNoaW5lIG5hbWUgaW5zdGVhZCBvZiB0aGUgU29DIGZhbWlseS4gRml4
-IGl0Lgo+IAo+IFRoZSByZXN1bHQgd2FzIG9ic2VydmVkIG9uIE9wZW5QYW5kb3JhIHdpdGggT01B
-UDM1MzAgd2hlcmUgdGhlIHBhbmVsIG9ubHkKPiBoYWQgdGhlIEJsdWUgY2hhbm5lbCBhbmQgUmVk
-JkdyZWVuIHdlcmUgbWlzc2luZy4gSXQgd2FzIG5vdCBvYnNlcnZlZCBvbgo+IEdUQTA0IHdpdGgg
-RE0zNzMwLgo+IAo+IEZpeGVzOiBkMTc4ZTAzNGQ1NjUgKCJkcm06IG9tYXBkcm06IE1vdmUgRkVB
-VF9EUElfVVNFU19WRERTX0RTSSBmZWF0dXJlIHRvIGRwaSBjb2RlIikKPiBTaWduZWQtb2ZmLWJ5
-OiBMYXVyZW50IFBpbmNoYXJ0IDxsYXVyZW50LnBpbmNoYXJ0QGlkZWFzb25ib2FyZC5jb20+Cj4g
-UmVwb3J0ZWQtYnk6IEguIE5pa29sYXVzIFNjaGFsbGVyIDxobnNAZ29sZGVsaWNvLmNvbT4KPiBU
-ZXN0ZWQtYnk6IEguIE5pa29sYXVzIFNjaGFsbGVyIDxobnNAZ29sZGVsaWNvLmNvbT4KPiAtLS0K
-PiAgZHJpdmVycy9ncHUvZHJtL29tYXBkcm0vZHNzL2RwaS5jIHwgNCArKy0tCj4gIDEgZmlsZSBj
-aGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kcGkuYyBiL2RyaXZlcnMvZ3B1L2RybS9vbWFw
-ZHJtL2Rzcy9kcGkuYwo+IGluZGV4IDRlZDVmZGUxMTMxMy4uYTkxZTVmMWEwNDkwIDEwMDY0NAo+
-IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9vbWFwZHJtL2Rzcy9kcGkuYwo+ICsrKyBiL2RyaXZlcnMv
-Z3B1L2RybS9vbWFwZHJtL2Rzcy9kcGkuYwo+IEBAIC01NjYsOCArNTY2LDggQEAgc3RhdGljIGlu
-dCBkcGlfdmVyaWZ5X3BsbChzdHJ1Y3QgZHNzX3BsbCAqcGxsKQo+ICB9Cj4gIAo+ICBzdGF0aWMg
-Y29uc3Qgc3RydWN0IHNvY19kZXZpY2VfYXR0cmlidXRlIGRwaV9zb2NfZGV2aWNlc1tdID0gewo+
-IC0JeyAuZmFtaWx5ID0gIk9NQVAzWzQ1Nl0qIiB9LAo+IC0JeyAuZmFtaWx5ID0gIltBRF1NMzcq
-IiB9LAo+ICsJeyAubWFjaGluZSA9ICJPTUFQM1s0NTZdKiIgfSwKPiArCXsgLm1hY2hpbmUgPSAi
-W0FEXU0zNyoiIH0sCj4gIAl7IC8qIHNlbnRpbmVsICovIH0KPiAgfTsKPiAgCj4gCgpJIGhhdmUg
-cGlja2VkIHRoaXMgb25lLiBJIHRoaW5rIHRoZSByZXN0IG9mIHRoZSBwYXRjaGVzIGFyZSBtb3Jl
-IG9mIGEKY2xlYW51cCwgcmlnaHQ/IEFuZCB5b3UnbGwgYmUgc2VuZGluZyB2MyBhdCBzb21lIHBv
-aW50LgoKIFRvbWkKCi0tIApUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jra2FsYW5r
-YXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1MjEtNC4g
-S290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
-bGlzdGluZm8vZHJpLWRldmVsCg==
+Hi,
+
+> Am 21.11.2017 um 11:25 schrieb Tomi Valkeinen <tomi.valkeinen@ti.com>:
+>=20
+> On 16/11/17 10:50, H. Nikolaus Schaller wrote:
+>> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>=20
+>> Commit d178e034d565 ("drm: omapdrm: Move FEAT_DPI_USES_VDDS_DSI =
+feature
+>> to dpi code") replaced usage of platform data version with SoC =
+matching
+>> to configure DPI VDDS. The SoC match entries were incorrect, they =
+should
+>> have matched on the machine name instead of the SoC family. Fix it.
+>>=20
+>> The result was observed on OpenPandora with OMAP3530 where the panel =
+only
+>> had the Blue channel and Red&Green were missing. It was not observed =
+on
+>> GTA04 with DM3730.
+>>=20
+>> Fixes: d178e034d565 ("drm: omapdrm: Move FEAT_DPI_USES_VDDS_DSI =
+feature to dpi code")
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
+>> Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
+>> ---
+>> drivers/gpu/drm/omapdrm/dss/dpi.c | 4 ++--
+>> 1 file changed, 2 insertions(+), 2 deletions(-)
+>>=20
+>> diff --git a/drivers/gpu/drm/omapdrm/dss/dpi.c =
+b/drivers/gpu/drm/omapdrm/dss/dpi.c
+>> index 4ed5fde11313..a91e5f1a0490 100644
+>> --- a/drivers/gpu/drm/omapdrm/dss/dpi.c
+>> +++ b/drivers/gpu/drm/omapdrm/dss/dpi.c
+>> @@ -566,8 +566,8 @@ static int dpi_verify_pll(struct dss_pll *pll)
+>> }
+>>=20
+>> static const struct soc_device_attribute dpi_soc_devices[] =3D {
+>> -	{ .family =3D "OMAP3[456]*" },
+>> -	{ .family =3D "[AD]M37*" },
+>> +	{ .machine =3D "OMAP3[456]*" },
+>> +	{ .machine =3D "[AD]M37*" },
+>> 	{ /* sentinel */ }
+>> };
+>>=20
+>>=20
+>=20
+> I have picked this one.
+
+Fine.
+
+> I think the rest of the patches are more of a
+> cleanup, right? And you'll be sending v3 at some point.
+
+Yes. Should we wait for more comments or should I send now?
+
+BR and thanks,
+Nikolaus Schaller
+
+
+>=20
+> Tomi
+>=20
+> --=20
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
+> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
