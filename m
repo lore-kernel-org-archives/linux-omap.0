@@ -1,61 +1,43 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH] omapfb/dss: Delete an error message for a failed memory
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: Re: omapfb/dss: Delete an error message for a failed memory
  allocation in three functions
-Date: Mon, 27 Nov 2017 22:45:08 +0100
-Message-ID: <20171127214508.GA9448@lenoch>
+Date: Mon, 27 Nov 2017 22:48:26 +0100
+Message-ID: <d82fbab2-865f-3051-f487-d310ee819cf3@users.sourceforge.net>
 References: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
  <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
  <1511809633.32426.70.camel@perches.com>
- <15209a13-c53b-068b-c0b2-f073117d39e2@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <15209a13-c53b-068b-c0b2-f073117d39e2@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>
-Cc: Joe Perches <joe@perches.com>, SF Markus Elfring <elfring@users.sourceforge.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Arvind Yadav <arvind.yadav.cs@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1511809633.32426.70.camel@perches.com>
+Content-Language: en-GB
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Joe Perches <joe@perches.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 27, 2017 at 03:33:13PM -0600, Andrew F. Davis wrote:
-> On 11/27/2017 01:07 PM, Joe Perches wrote:
-> > On Mon, 2017-11-27 at 10:43 -0600, Andrew F. Davis wrote:
-> >> On 11/26/2017 12:55 PM, SF Markus Elfring wrote:
-> >>> From: Markus Elfring <elfring@users.sourceforge.net>
-> >>> Date: Sun, 26 Nov 2017 19:46:09 +0100
-> >>>
-> >>> Omit an extra message for a memory allocation failure in these functions.
-> >>>
-> >>> This issue was detected by using the Coccinelle software.
-> >>>
-> >>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> >>> ---
-> >>
-> >> nak, unlike many others, these message give extra info on which
-> >> allocation failed, that can be useful.
-> > 
-> > <shrug>  Not really.  There are tradeoffs.
-> > 
-> > There is the generic stack dump on OOM so the module/line
-> > is already known.
-> > 
-> 
-> If that is the case then I have no strong feelings either way.
-> 
-> > The existence of these messages increases code size which
-> > also make the OOM condition slightly more likely.
-> > 
-> > These are generally used only at initialization and those
-> > if you are OOM at initialization, bad things happen anyway
-> > so where the specific OOM occurred doesn't really matter.
-> > 
-> 
-> True, these messages will probably only ever get displayed if someone is
-> messing with the allocated structs and accidentally balloons their size,
-> so these are more debug statements than anything.
-
-All those messages are result of allocation failure. The memory allocated
-is later used to hold duplicate of static const data. Do we need that
-copy (and thus allocation) at all?
-
-	ladis
+PiBUaGVyZSBpcyB0aGUgZ2VuZXJpYyBzdGFjayBkdW1wIG9uIE9PTSBzbyB0aGUgbW9kdWxlL2xp
+bmUKPiBpcyBhbHJlYWR5IGtub3duLgoKQ2FuIHN1Y2ggYW4gaW1wbGVtZW50YXRpb24gZGV0YWls
+IGJlY29tZSBiZXR0ZXIgZG9jdW1lbnRlZAp0aGFuIGluIEMgc291cmNlIGNvZGU/CgoKPiBUaGUg
+ZXhpc3RlbmNlIG9mIHRoZXNlIG1lc3NhZ2VzIGluY3JlYXNlcyBjb2RlIHNpemUgd2hpY2gKPiBh
+bHNvIG1ha2UgdGhlIE9PTSBjb25kaXRpb24gc2xpZ2h0bHkgbW9yZSBsaWtlbHkuCgpJbnRlcmVz
+dGluZyB2aWV3IOKApgoKCj4gTWFya3VzJyBjb21taXQgbWVzc2FnZXMgYXJlIGFsd2F5cyByZWFs
+bHkgcG9vciBkZXNjcmlwdGlvbnMKPiBvZiB3aHkgdGhlc2UgcmVtb3ZhbHMgYXJlIHNvbWV3aGF0
+IHVzZWZ1bCBhbmQgdGhlIGNvbW1pdAo+IGNvdWxkL3Nob3VsZC9taWdodCBiZSBhcHBsaWVkLgoK
+SSBhZ3JlZSB0aGF0IHRoZXkgY291bGQgYmUgaW1wcm92ZWQgZm9yIHRoaXMgdHJhbnNmb3JtYXRp
+b24KcGF0dGVybiBpZiBvdGhlciBpbmZvcm1hdGlvbiBzb3VyY2VzIHdvdWxkIGJlY29tZSBjbGVh
+cmVyCmZvciBjb3JyZXNwb25kaW5nIHJlZmVyZW5jZXMuCkl0IHNlZW1zIHRoYXQgSSBnb3Qgbm8g
+cmVzcG9uc2VzIHNvIGZhciBmb3IgY2xhcmlmaWNhdGlvbiByZXF1ZXN0cwphY2NvcmRpbmcgdG8g
+dGhlIGRvY3VtZW50YXRpb24gaW4gYSBkaXJlY3Rpb24gSSBob3BlZCBmb3IuCgpSZWdhcmRzLApN
+YXJrdXMKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
