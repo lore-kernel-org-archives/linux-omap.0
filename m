@@ -1,68 +1,61 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] omapfb/dss: Delete an error message for a failed memory
- allocation in three functions
-Date: Sun, 26 Nov 2017 19:55:30 +0100
-Message-ID: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCHv3 2/3] EDAC: ti: add support for TI keystone and DRA7xx
+ EDAC
+Date: Mon, 27 Nov 2017 14:12:22 +0100
+Message-ID: <20171127131222.gr6pofces6fts3iv@pd.tnic>
+References: <1510087139-21885-3-git-send-email-t-kristo@ti.com>
+ <1510578490-14510-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Arvind Yadav <arvind.yadav.cs@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1510578490-14510-1-git-send-email-t-kristo@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: mchehab@kernel.org, tony@atomide.com, ssantosh@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogTWFya3VzIEVsZnJpbmcgPGVsZnJpbmdAdXNlcnMuc291cmNlZm9yZ2UubmV0PgpEYXRl
-OiBTdW4sIDI2IE5vdiAyMDE3IDE5OjQ2OjA5ICswMTAwCgpPbWl0IGFuIGV4dHJhIG1lc3NhZ2Ug
-Zm9yIGEgbWVtb3J5IGFsbG9jYXRpb24gZmFpbHVyZSBpbiB0aGVzZSBmdW5jdGlvbnMuCgpUaGlz
-IGlzc3VlIHdhcyBkZXRlY3RlZCBieSB1c2luZyB0aGUgQ29jY2luZWxsZSBzb2Z0d2FyZS4KClNp
-Z25lZC1vZmYtYnk6IE1hcmt1cyBFbGZyaW5nIDxlbGZyaW5nQHVzZXJzLnNvdXJjZWZvcmdlLm5l
-dD4KLS0tCiBkcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvZGlzcGMuYyAgICB8
-IDQgKy0tLQogZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2Rzcy5jICAgICAg
-fCA0ICstLS0KIGRyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1pX3BoeS5j
-IHwgNCArLS0tCiAzIGZpbGVzIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMo
-LSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvZGlz
-cGMuYyBiL2RyaXZlcnMvdmlkZW8vZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9kaXNwYy5jCmluZGV4
-IDdhNzVkZmRhOTg0NS4uMTAxNjRhM2JhZTRhIDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2Zi
-ZGV2L29tYXAyL29tYXBmYi9kc3MvZGlzcGMuYworKysgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29t
-YXAyL29tYXBmYi9kc3MvZGlzcGMuYwpAQCAtMzk4MiwxMCArMzk4Miw4IEBAIHN0YXRpYyBpbnQg
-ZGlzcGNfaW5pdF9mZWF0dXJlcyhzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCXN0cnVj
-dCBkaXNwY19mZWF0dXJlcyAqZHN0OwogCiAJZHN0ID0gZGV2bV9remFsbG9jKCZwZGV2LT5kZXYs
-IHNpemVvZigqZHN0KSwgR0ZQX0tFUk5FTCk7Ci0JaWYgKCFkc3QpIHsKLQkJZGV2X2VycigmcGRl
-di0+ZGV2LCAiRmFpbGVkIHRvIGFsbG9jYXRlIERJU1BDIEZlYXR1cmVzXG4iKTsKKwlpZiAoIWRz
-dCkKIAkJcmV0dXJuIC1FTk9NRU07Ci0JfQogCiAJc3dpdGNoIChvbWFwZHNzX2dldF92ZXJzaW9u
-KCkpIHsKIAljYXNlIE9NQVBEU1NfVkVSX09NQVAyNHh4OgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92
-aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2Rzcy5jIGIvZHJpdmVycy92aWRlby9mYmRldi9v
-bWFwMi9vbWFwZmIvZHNzL2Rzcy5jCmluZGV4IDQ4YzY1MDBjMjRlMS4uYTVkZTEzNzc3ZTJiIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvZHNzLmMKKysr
-IGIvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2Rzcy5jCkBAIC04OTMsMTAg
-Kzg5Myw4IEBAIHN0YXRpYyBpbnQgZHNzX2luaXRfZmVhdHVyZXMoc3RydWN0IHBsYXRmb3JtX2Rl
-dmljZSAqcGRldikKIAlzdHJ1Y3QgZHNzX2ZlYXR1cmVzICpkc3Q7CiAKIAlkc3QgPSBkZXZtX2t6
-YWxsb2MoJnBkZXYtPmRldiwgc2l6ZW9mKCpkc3QpLCBHRlBfS0VSTkVMKTsKLQlpZiAoIWRzdCkg
-ewotCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJGYWlsZWQgdG8gYWxsb2NhdGUgbG9jYWwgRFNTIEZl
-YXR1cmVzXG4iKTsKKwlpZiAoIWRzdCkKIAkJcmV0dXJuIC1FTk9NRU07Ci0JfQogCiAJc3dpdGNo
-IChvbWFwZHNzX2dldF92ZXJzaW9uKCkpIHsKIAljYXNlIE9NQVBEU1NfVkVSX09NQVAyNHh4Ogpk
-aWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9mYmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlfcGh5
-LmMgYi9kcml2ZXJzL3ZpZGVvL2ZiZGV2L29tYXAyL29tYXBmYi9kc3MvaGRtaV9waHkuYwppbmRl
-eCA5YTEzYzM1ZmQ2ZDguLmQyNWVlYTEwYzY2NSAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9m
-YmRldi9vbWFwMi9vbWFwZmIvZHNzL2hkbWlfcGh5LmMKKysrIGIvZHJpdmVycy92aWRlby9mYmRl
-di9vbWFwMi9vbWFwZmIvZHNzL2hkbWlfcGh5LmMKQEAgLTE5NSwxMCArMTk1LDggQEAgc3RhdGlj
-IGludCBoZG1pX3BoeV9pbml0X2ZlYXR1cmVzKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYp
-CiAJY29uc3Qgc3RydWN0IGhkbWlfcGh5X2ZlYXR1cmVzICpzcmM7CiAKIAlkc3QgPSBkZXZtX2t6
-YWxsb2MoJnBkZXYtPmRldiwgc2l6ZW9mKCpkc3QpLCBHRlBfS0VSTkVMKTsKLQlpZiAoIWRzdCkg
-ewotCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJGYWlsZWQgdG8gYWxsb2NhdGUgSERNSSBQSFkgRmVh
-dHVyZXNcbiIpOworCWlmICghZHN0KQogCQlyZXR1cm4gLUVOT01FTTsKLQl9CiAKIAlzd2l0Y2gg
-KG9tYXBkc3NfZ2V0X3ZlcnNpb24oKSkgewogCWNhc2UgT01BUERTU19WRVJfT01BUDQ0MzBfRVMx
-OgotLSAKMi4xNS4wCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
-cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
-ZWwK
+On Mon, Nov 13, 2017 at 03:08:10PM +0200, Tero Kristo wrote:
+> TI Keystone and DRA7xx SoCs have support for EDAC on DDR3 memory that can
+> correct one bit errors and detect two bit errors. Add EDAC driver for this
+> feature which plugs into the generic kernel EDAC framework.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+> v3:
+>  * dropped the atomic edac_id counter
+>  * added _emif_get_id which calculates the emif ID based on the sorted
+>    address order of all emif instances
+>  * changed the order of irq allocation and edac_mc_add_mc() within probe
+> 
+> v2:
+>  * fixed checkpatch errors
+>  * improved error cleanup for failed probe
+>  * converted to use edac_printk
+>  * added MAINTAINERS entry
+>  * dropped mutex and used atomic counter for ID
+>  * ... and some minor cosmetic changes
+>  
+>  MAINTAINERS            |   6 +
+>  drivers/edac/Kconfig   |   7 +
+>  drivers/edac/Makefile  |   1 +
+>  drivers/edac/ti_edac.c | 340 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 354 insertions(+)
+>  create mode 100644 drivers/edac/ti_edac.c
+
+Applied, thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
