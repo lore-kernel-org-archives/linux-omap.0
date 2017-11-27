@@ -1,104 +1,221 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] omapfb/dss: Delete an error message for a failed memory
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: omapfb/dss: Delete an error message for a failed memory
  allocation in three functions
-Date: Mon, 27 Nov 2017 11:07:13 -0800
-Message-ID: <1511809633.32426.70.camel@perches.com>
+Date: Mon, 27 Nov 2017 20:22:51 +0100
+Message-ID: <20171127192251.GA23081@lenoch>
 References: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
-         <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
+ <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
+ <502de06b-ca86-d0ff-bd50-d260fbe46fe5@users.sourceforge.net>
+ <20171127174454.GA18851@lenoch>
+ <5e90409f-fcb0-cdb6-9bc3-26ad30a1f7c9@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
+Content-Disposition: inline
+In-Reply-To: <5e90409f-fcb0-cdb6-9bc3-26ad30a1f7c9@users.sourceforge.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Andrew F. Davis" <afd@ti.com>, SF Markus Elfring <elfring@users.sourceforge.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Arvind Yadav <arvind.yadav.cs@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, "Andrew F. Davis" <afd@ti.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 2017-11-27 at 10:43 -0600, Andrew F. Davis wrote:
-> On 11/26/2017 12:55 PM, SF Markus Elfring wrote:
-> > From: Markus Elfring <elfring@users.sourceforge.net>
-> > Date: Sun, 26 Nov 2017 19:46:09 +0100
+On Mon, Nov 27, 2017 at 07:12:50PM +0100, SF Markus Elfring wrote:
+> >> Can a default allocation failure report provide the information
+> >> which you might expect so far?
 > > 
-> > Omit an extra message for a memory allocation failure in these functions.
-> > 
-> > This issue was detected by using the Coccinelle software.
-> > 
-> > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> > ---
+> > You should be able to answer that question yourself.
 > 
-> nak, unlike many others, these message give extra info on which
-> allocation failed, that can be useful.
+> I can not answer this detail completely myself because my knowledge
+> is incomplete about your concrete expectations for the exception handling
+> which can lead to different views for the need of additional error messages.
 
-<shrug>  Not really.  There are tradeoffs.
+The rule is to be able to get idea what failed without recompiling kernel.
+If you think you can point to failed allocation with your changes, then
+you might be able to convice Andrew your change is an improvement.
 
-There is the generic stack dump on OOM so the module/line
-is already known.
+> > And if you are unable to do so, just do not sent changes pointed
+> > by any code analysis tools.
+> 
+> They can point aspects out for further software development considerations,
+> can't they?
 
-The existence of these messages increases code size which
-also make the OOM condition slightly more likely.
+So?
 
-These are generally used only at initialization and those
-if you are OOM at initialization, bad things happen anyway
-so where the specific OOM occurred doesn't really matter.
+> > As a side note, if you look at whole call chain, you'll find quite some
+> > room for optimizations - look how dev and pdev are used. That also applies
+> > to other patches.
+> 
+> Would you prefer to improve the source code in other ways?
 
-Markus' commit messages are always really poor descriptions
-of why these removals are somewhat useful and the commit
-could/should/might be applied.
+I would prefer you to look at code as a whole, not as an isolated set
+of lines which can be changes to shut up some random warning obtained
+from code analysis tool.
 
-Your choice.
+Behold, here we saved over 100 bytes just by minor clean up. Patch
+is a mess, should be probably polished and splitted, but you'll get
+an idea. That said, we saved more than by deleting one error message
+and if you can prove we will not loose information _what_ failed
+with your patch, we can save even more.
 
-> >  drivers/video/fbdev/omap2/omapfb/dss/dispc.c    | 4 +---
-> >  drivers/video/fbdev/omap2/omapfb/dss/dss.c      | 4 +---
-> >  drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c | 4 +---
-> >  3 files changed, 3 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
-> > index 7a75dfda9845..10164a3bae4a 100644
-> > --- a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
-> > +++ b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
-> > @@ -3982,10 +3982,8 @@ static int dispc_init_features(struct platform_device *pdev)
-> >  	struct dispc_features *dst;
-> >  
-> >  	dst = devm_kzalloc(&pdev->dev, sizeof(*dst), GFP_KERNEL);
-> > -	if (!dst) {
-> > -		dev_err(&pdev->dev, "Failed to allocate DISPC Features\n");
-> > +	if (!dst)
-> >  		return -ENOMEM;
-> > -	}
-> >  
-> >  	switch (omapdss_get_version()) {
-> >  	case OMAPDSS_VER_OMAP24xx:
-> > diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dss.c b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> > index 48c6500c24e1..a5de13777e2b 100644
-> > --- a/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> > +++ b/drivers/video/fbdev/omap2/omapfb/dss/dss.c
-> > @@ -893,10 +893,8 @@ static int dss_init_features(struct platform_device *pdev)
-> >  	struct dss_features *dst;
-> >  
-> >  	dst = devm_kzalloc(&pdev->dev, sizeof(*dst), GFP_KERNEL);
-> > -	if (!dst) {
-> > -		dev_err(&pdev->dev, "Failed to allocate local DSS Features\n");
-> > +	if (!dst)
-> >  		return -ENOMEM;
-> > -	}
-> >  
-> >  	switch (omapdss_get_version()) {
-> >  	case OMAPDSS_VER_OMAP24xx:
-> > diff --git a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-> > index 9a13c35fd6d8..d25eea10c665 100644
-> > --- a/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-> > +++ b/drivers/video/fbdev/omap2/omapfb/dss/hdmi_phy.c
-> > @@ -195,10 +195,8 @@ static int hdmi_phy_init_features(struct platform_device *pdev)
-> >  	const struct hdmi_phy_features *src;
-> >  
-> >  	dst = devm_kzalloc(&pdev->dev, sizeof(*dst), GFP_KERNEL);
-> > -	if (!dst) {
-> > -		dev_err(&pdev->dev, "Failed to allocate HDMI PHY Features\n");
-> > +	if (!dst)
-> >  		return -ENOMEM;
-> > -	}
-> >  
-> >  	switch (omapdss_get_version()) {
-> >  	case OMAPDSS_VER_OMAP4430_ES1:
-> > 
+   text	   data	    bss	    dec	    hex	filename
+  59319	   2372	   4184	  65875	  10153	dispc.o.orig
+  59178	   2372	   4184	  65734	  100c6	dispc.o
+
+There is intentionally no signoff...
+
+diff --git a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
+index 7a75dfda9845..4c8463957634 100644
+--- a/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
++++ b/drivers/video/fbdev/omap2/omapfb/dss/dispc.c
+@@ -3976,52 +3976,33 @@ static const struct dispc_features omap54xx_dispc_feats = {
+ 	.has_writeback		=	true,
+ };
+ 
+-static int dispc_init_features(struct platform_device *pdev)
++static const struct dispc_features* dispc_get_features(void)
+ {
+-	const struct dispc_features *src;
+-	struct dispc_features *dst;
+-
+-	dst = devm_kzalloc(&pdev->dev, sizeof(*dst), GFP_KERNEL);
+-	if (!dst) {
+-		dev_err(&pdev->dev, "Failed to allocate DISPC Features\n");
+-		return -ENOMEM;
+-	}
+-
+ 	switch (omapdss_get_version()) {
+ 	case OMAPDSS_VER_OMAP24xx:
+-		src = &omap24xx_dispc_feats;
+-		break;
++		return &omap24xx_dispc_feats;
+ 
+ 	case OMAPDSS_VER_OMAP34xx_ES1:
+-		src = &omap34xx_rev1_0_dispc_feats;
+-		break;
++		return &omap34xx_rev1_0_dispc_feats;
+ 
+ 	case OMAPDSS_VER_OMAP34xx_ES3:
+ 	case OMAPDSS_VER_OMAP3630:
+ 	case OMAPDSS_VER_AM35xx:
+ 	case OMAPDSS_VER_AM43xx:
+-		src = &omap34xx_rev3_0_dispc_feats;
+-		break;
++		return &omap34xx_rev3_0_dispc_feats;
+ 
+ 	case OMAPDSS_VER_OMAP4430_ES1:
+ 	case OMAPDSS_VER_OMAP4430_ES2:
+ 	case OMAPDSS_VER_OMAP4:
+-		src = &omap44xx_dispc_feats;
+-		break;
++		return &omap44xx_dispc_feats;
+ 
+ 	case OMAPDSS_VER_OMAP5:
+ 	case OMAPDSS_VER_DRA7xx:
+-		src = &omap54xx_dispc_feats;
+-		break;
++		return &omap54xx_dispc_feats;
+ 
+ 	default:
+-		return -ENODEV;
++		return NULL;
+ 	}
+-
+-	memcpy(dst, src, sizeof(*dst));
+-	dispc.feat = dst;
+-
+-	return 0;
+ }
+ 
+ static irqreturn_t dispc_irq_handler(int irq, void *arg)
+@@ -4068,54 +4049,61 @@ EXPORT_SYMBOL(dispc_free_irq);
+ /* DISPC HW IP initialisation */
+ static int dispc_bind(struct device *dev, struct device *master, void *data)
+ {
+-	struct platform_device *pdev = to_platform_device(dev);
+ 	u32 rev;
+ 	int r = 0;
++	const struct dispc_features *features;
+ 	struct resource *dispc_mem;
+-	struct device_node *np = pdev->dev.of_node;
++	struct device_node *np = dev->of_node;
+ 
+-	dispc.pdev = pdev;
++	dispc.pdev = to_platform_device(dev);
+ 
+ 	spin_lock_init(&dispc.control_lock);
+ 
+-	r = dispc_init_features(dispc.pdev);
+-	if (r)
+-		return r;
++	features = dispc_get_features();
++	if (!features)
++		return -ENODEV;
++
++	dispc.feat = devm_kzalloc(dev, sizeof(*features), GFP_KERNEL);
++	if (dispc.feat) {
++		dev_err(dev, "Failed to allocate DISPC Features\n");
++		return -ENOMEM;
++	}
++	memcpy(dispc.feat, features, sizeof(*features));
+ 
+ 	dispc_mem = platform_get_resource(dispc.pdev, IORESOURCE_MEM, 0);
+ 	if (!dispc_mem) {
+-		DSSERR("can't get IORESOURCE_MEM DISPC\n");
++		dev_err(dev, "can't get IORESOURCE_MEM DISPC\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	dispc.base = devm_ioremap(&pdev->dev, dispc_mem->start,
++	dispc.base = devm_ioremap(dev, dispc_mem->start,
+ 				  resource_size(dispc_mem));
+ 	if (!dispc.base) {
+-		DSSERR("can't ioremap DISPC\n");
++		dev_err(dev, "can't ioremap DISPC\n");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	dispc.irq = platform_get_irq(dispc.pdev, 0);
+ 	if (dispc.irq < 0) {
+-		DSSERR("platform_get_irq failed\n");
++		dev_err(dev, "platform_get_irq failed\n");
+ 		return -ENODEV;
+ 	}
+ 
+ 	if (np && of_property_read_bool(np, "syscon-pol")) {
+ 		dispc.syscon_pol = syscon_regmap_lookup_by_phandle(np, "syscon-pol");
+ 		if (IS_ERR(dispc.syscon_pol)) {
+-			dev_err(&pdev->dev, "failed to get syscon-pol regmap\n");
++			dev_err(dev, "failed to get syscon-pol regmap\n");
+ 			return PTR_ERR(dispc.syscon_pol);
+ 		}
+ 
+ 		if (of_property_read_u32_index(np, "syscon-pol", 1,
+ 				&dispc.syscon_pol_offset)) {
+-			dev_err(&pdev->dev, "failed to get syscon-pol offset\n");
++			dev_err(dev, "failed to get syscon-pol offset\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+ 
+-	pm_runtime_enable(&pdev->dev);
++	pm_runtime_enable(dev);
+ 
+ 	r = dispc_runtime_get();
+ 	if (r)
+@@ -4124,7 +4112,7 @@ static int dispc_bind(struct device *dev, struct device *master, void *data)
+ 	_omap_dispc_initial_config();
+ 
+ 	rev = dispc_read_reg(DISPC_REVISION);
+-	dev_dbg(&pdev->dev, "OMAP DISPC rev %d.%d\n",
++	dev_dbg(dev, "OMAP DISPC rev %d.%d\n",
+ 	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
+ 
+ 	dispc_runtime_put();
+@@ -4136,7 +4124,7 @@ static int dispc_bind(struct device *dev, struct device *master, void *data)
+ 	return 0;
+ 
+ err_runtime_get:
+-	pm_runtime_disable(&pdev->dev);
++	pm_runtime_disable(dev);
+ 	return r;
+ }
+ 
