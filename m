@@ -1,92 +1,94 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v2 2/4] DTS: GTA04: fix panel compatibility string
-Date: Tue, 28 Nov 2017 16:48:26 +0100
-Message-ID: <F14B3797-8154-4958-82AB-8E39C75BB97B@goldelico.com>
-References: <cover.1510822218.git.hns@goldelico.com>
- <09d975dd62afa1dfa43d94079cc9a44731af4b3b.1510822218.git.hns@goldelico.com>
- <20171128145727.GY28152@atomide.com>
- <C108B0B6-FED7-44DB-9A18-39E3BE93E586@goldelico.com>
- <20171128151039.GZ28152@atomide.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20171128151039.GZ28152@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, Tomi Valkeinen <tomi.valkeinen@ti.com>, dri-devel@lists.freedesktop.org, Russell King <linux@armlinux.org.uk>, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, Julia Lawall <Julia.Lawall@lip6.fr>, Thierry Reding <thierry.reding@gmail.com>, Sean Paul <seanpaul@chromium.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH v3 2/4] omapdrm: panel: td028ttec1: replace MODULE_ALIAS by MODULE_DEVICE_TABLE
+Date: Tue, 28 Nov 2017 16:48:55 +0100
+Message-ID: <655c9a39d590a5fa7187350269c2914b781d84cc.1511884135.git.hns@goldelico.com>
+References: <cover.1511884135.git.hns@goldelico.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1511884135.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+In-Reply-To: <cover.1511884135.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+References: <cover.1511884135.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Sean Paul <seanpaul-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+to make it easier to keep in sync with the OF device table.
 
-> Am 28.11.2017 um 16:10 schrieb Tony Lindgren <tony@atomide.com>:
-> 
-> * H. Nikolaus Schaller <hns@goldelico.com> [171128 15:04]:
->> Hi Tony,
->> 
->>> Am 28.11.2017 um 15:57 schrieb Tony Lindgren <tony@atomide.com>:
->>> 
->>> * H. Nikolaus Schaller <hns@goldelico.com> [171116 08:53]:
->>>> Vendor string is "tpo" and not "toppoly".
->>>> 
->>>> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->>>> ---
->>>> arch/arm/boot/dts/omap3-gta04.dtsi | 2 +-
->>>> 1 file changed, 1 insertion(+), 1 deletion(-)
->>>> 
->>>> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
->>>> index 4504908c23fe..ec27ed67a22a 100644
->>>> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
->>>> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
->>>> @@ -86,7 +86,7 @@
->>>> 
->>>> 		/* lcd panel */
->>>> 		lcd: td028ttec1@0 {
->>>> -			compatible = "toppoly,td028ttec1";
->>>> +			compatible = "tpo,td028ttec1";
->>>> 			reg = <0>;
->>>> 			spi-max-frequency = <100000>;
->>>> 			spi-cpol;
->>> 
->>> Applying into omap-for-v4.15/fixes thanks. The other dts patch seems
->>> like it can wait for v4.16 merge window.
->> 
->> Hm. Not really. It needs the panel driver to match. So either both or
->> none should be applied or it will break the panel from working.
->> 
->> I am just 1-2 hours away from submitting a -v3 (rebased and tested
->> on top of 4.15-rc1).
-> 
-> OK fine dropping both. Please update the description in both dts
-> patches to make it clear they are needed as a fix. Preferrably
-> with a proper fixes tag.
+Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+---
+ drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c      | 12 ++++++++++--
+ .../video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c | 11 +++++++++--
+ 2 files changed, 19 insertions(+), 4 deletions(-)
 
-Well, it is not "needed" in a strong sense since current mainline&stable
-works. It is more a style and consistency fix to use "tpo," everywhere.
+diff --git a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+index a0dfa14f4fab..2721a86ac5e7 100644
+--- a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
++++ b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+@@ -460,9 +460,19 @@ static const struct of_device_id td028ttec1_of_match[] = {
+ 
+ MODULE_DEVICE_TABLE(of, td028ttec1_of_match);
+ 
++static const struct spi_device_id td028ttec1_ids[] = {
++	{ "toppoly,td028ttec1", 0 },
++	{ "tpo,td028ttec1", 0},
++	{ /* sentinel */ }
++};
++
++MODULE_DEVICE_TABLE(spi, td028ttec1_ids);
++
++
+ static struct spi_driver td028ttec1_spi_driver = {
+ 	.probe		= td028ttec1_panel_probe,
+ 	.remove		= td028ttec1_panel_remove,
++	.id_table	= td028ttec1_ids,
+ 
+ 	.driver         = {
+ 		.name   = "panel-tpo-td028ttec1",
+@@ -473,8 +483,6 @@ static struct spi_driver td028ttec1_spi_driver = {
+ 
+ module_spi_driver(td028ttec1_spi_driver);
+ 
+-MODULE_ALIAS("spi:tpo,td028ttec1");
+-MODULE_ALIAS("spi:toppoly,td028ttec1");
+ MODULE_AUTHOR("H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>");
+ MODULE_DESCRIPTION("Toppoly TD028TTEC1 panel driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
+index 4aeb908f2d1e..f6da8755b859 100644
+--- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
++++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
+@@ -463,9 +463,18 @@ static const struct of_device_id td028ttec1_of_match[] = {
+ 
+ MODULE_DEVICE_TABLE(of, td028ttec1_of_match);
+ 
++static const struct spi_device_id td028ttec1_ids[] = {
++	{ "toppoly,td028ttec1", 0 },
++	{ "tpo,td028ttec1", 0},
++	{ /* sentinel */ }
++};
++
++MODULE_DEVICE_TABLE(spi, td028ttec1_ids);
++
+ static struct spi_driver td028ttec1_spi_driver = {
+ 	.probe		= td028ttec1_panel_probe,
+ 	.remove		= td028ttec1_panel_remove,
++	.id_table	= td028ttec1_ids,
+ 
+ 	.driver         = {
+ 		.name   = "panel-tpo-td028ttec1",
+@@ -476,8 +485,6 @@ static struct spi_driver td028ttec1_spi_driver = {
+ 
+ module_spi_driver(td028ttec1_spi_driver);
+ 
+-MODULE_ALIAS("spi:tpo,td028ttec1");
+-MODULE_ALIAS("spi:toppoly,td028ttec1");
+ MODULE_AUTHOR("H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>");
+ MODULE_DESCRIPTION("Toppoly TD028TTEC1 panel driver");
+ MODULE_LICENSE("GPL");
+-- 
+2.12.2
 
-> 
-> Having "We can remove the "omapdss," prefix" in the description sure
-> does not sounds like it's needed as a fix :)
-
-The description has been improved on -v3.
-
-> 
-> Sounds like maybe these two should be just a single patch for
-> a proper fix?
-
-Hm. I usually get the feedback to separate DT and driver fixes into
-separate commits... Therefore I submit patch sets in the hope they
-are not picked apart :)
-
-As promised -v3 is following now.
-
-BR,
-Nikolaus
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
