@@ -1,109 +1,55 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v3 1/4] omapdrm: panel: fix compatible vendor string for
- td028ttec1
-Date: Tue, 28 Nov 2017 16:48:54 +0100
-Message-ID: <6ae8f4b7d794c536650cc99025e5b026089cea30.1511884135.git.hns@goldelico.com>
-References: <cover.1511884135.git.hns@goldelico.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 2/4] DTS: GTA04: fix panel compatibility string
+Date: Tue, 28 Nov 2017 08:00:57 -0800
+Message-ID: <20171128160057.GB28152@atomide.com>
+References: <cover.1510822218.git.hns@goldelico.com>
+ <09d975dd62afa1dfa43d94079cc9a44731af4b3b.1510822218.git.hns@goldelico.com>
+ <20171128145727.GY28152@atomide.com>
+ <C108B0B6-FED7-44DB-9A18-39E3BE93E586@goldelico.com>
+ <20171128151039.GZ28152@atomide.com>
+ <F14B3797-8154-4958-82AB-8E39C75BB97B@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cover.1511884135.git.hns@goldelico.com>
-In-Reply-To: <cover.1511884135.git.hns@goldelico.com>
-References: <cover.1511884135.git.hns@goldelico.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>
-Cc: devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F14B3797-8154-4958-82AB-8E39C75BB97B-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Sean Paul <seanpaul-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The vendor name was "toppoly" but other panels and the vendor list
-have defined it as "tpo". So let's fix it in driver and bindings.
+* H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [171128 15:51]:
+> > Am 28.11.2017 um 16:10 schrieb Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>:
+> > OK fine dropping both. Please update the description in both dts
+> > patches to make it clear they are needed as a fix. Preferrably
+> > with a proper fixes tag.
+> 
+> Well, it is not "needed" in a strong sense since current mainline&stable
+> works. It is more a style and consistency fix to use "tpo," everywhere.
+> 
+> > 
+> > Having "We can remove the "omapdss," prefix" in the description sure
+> > does not sounds like it's needed as a fix :)
+> 
+> The description has been improved on -v3.
 
-We keep the old definition in parallel to stay compatible with
-potential older DTB setup.
+Thanks.
 
-Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
----
- .../display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt}      | 4 ++--
- drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c               | 3 +++
- drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c      | 3 +++
- 3 files changed, 8 insertions(+), 2 deletions(-)
- rename Documentation/devicetree/bindings/display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt} (84%)
+> > Sounds like maybe these two should be just a single patch for
+> > a proper fix?
+> 
+> Hm. I usually get the feedback to separate DT and driver fixes into
+> separate commits... Therefore I submit patch sets in the hope they
+> are not picked apart :)
 
-diff --git a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
-similarity index 84%
-rename from Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
-rename to Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
-index 7175dc3740ac..ed34253d9fb1 100644
---- a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
-+++ b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
-@@ -2,7 +2,7 @@ Toppoly TD028TTEC1 Panel
- ========================
- 
- Required properties:
--- compatible: "toppoly,td028ttec1"
-+- compatible: "tpo,td028ttec1"
- 
- Optional properties:
- - label: a symbolic name for the panel
-@@ -14,7 +14,7 @@ Example
- -------
- 
- lcd-panel: td028ttec1@0 {
--	compatible = "toppoly,td028ttec1";
-+	compatible = "tpo,td028ttec1";
- 	reg = <0>;
- 	spi-max-frequency = <100000>;
- 	spi-cpol;
-diff --git a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
-index 0a38a0e8c925..a0dfa14f4fab 100644
---- a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
-+++ b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
-@@ -452,6 +452,8 @@ static int td028ttec1_panel_remove(struct spi_device *spi)
- }
- 
- static const struct of_device_id td028ttec1_of_match[] = {
-+	{ .compatible = "omapdss,tpo,td028ttec1", },
-+	/* keep to not break older DTB */
- 	{ .compatible = "omapdss,toppoly,td028ttec1", },
- 	{},
- };
-@@ -471,6 +473,7 @@ static struct spi_driver td028ttec1_spi_driver = {
- 
- module_spi_driver(td028ttec1_spi_driver);
- 
-+MODULE_ALIAS("spi:tpo,td028ttec1");
- MODULE_ALIAS("spi:toppoly,td028ttec1");
- MODULE_AUTHOR("H. Nikolaus Schaller <hns@goldelico.com>");
- MODULE_DESCRIPTION("Toppoly TD028TTEC1 panel driver");
-diff --git a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
-index 57e9e146ff74..4aeb908f2d1e 100644
---- a/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
-+++ b/drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c
-@@ -455,6 +455,8 @@ static int td028ttec1_panel_remove(struct spi_device *spi)
- }
- 
- static const struct of_device_id td028ttec1_of_match[] = {
-+	{ .compatible = "omapdss,tpo,td028ttec1", },
-+	/* keep to not break older DTB */
- 	{ .compatible = "omapdss,toppoly,td028ttec1", },
- 	{},
- };
-@@ -474,6 +476,7 @@ static struct spi_driver td028ttec1_spi_driver = {
- 
- module_spi_driver(td028ttec1_spi_driver);
- 
-+MODULE_ALIAS("spi:tpo,td028ttec1");
- MODULE_ALIAS("spi:toppoly,td028ttec1");
- MODULE_AUTHOR("H. Nikolaus Schaller <hns@goldelico.com>");
- MODULE_DESCRIPTION("Toppoly TD028TTEC1 panel driver");
--- 
-2.12.2
+See "both dts patches" part above. Yes the dts patches can and should
+be sent separately. In almost every case if the dts patches cannot be
+applied separately it means your driver changes are breaking things.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
