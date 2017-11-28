@@ -1,21 +1,21 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: omapfb/dss: Delete an error message for a failed memory
- allocation in three functions
-Date: Tue, 28 Nov 2017 10:11:48 +0100
-Message-ID: <0ecf4b17-7757-adb4-b978-a80ebb15cfe6@users.sourceforge.net>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: omapfb/dss: Delete an error message for a failed memory allocation
+ in three functions
+Date: Tue, 28 Nov 2017 10:26:00 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1711281025210.3443@hadrien>
 References: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
  <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
  <1511809633.32426.70.camel@perches.com>
  <d82fbab2-865f-3051-f487-d310ee819cf3@users.sourceforge.net>
  <1511833514.32426.86.camel@perches.com>
  <7e7e64cf-dbe5-614a-f1e5-29d7b6cf9297@users.sourceforge.net>
- <1511856244.19952.14.camel@perches.com>
+ <alpine.DEB.2.20.1711280844180.2450@hadrien>
+ <c504db1d-415a-9bd4-172c-b1c17dd3740f@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1511856244.19952.14.camel@perches.com>
-Content-Language: en-GB
+In-Reply-To: <c504db1d-415a-9bd4-172c-b1c17dd3740f@users.sourceforge.net>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -25,30 +25,45 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Joe Perches <joe@perches.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Joe Perches <joe@perches.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-PiBIb3cgbWFueSB0aW1lcyBoYXZlIEkgdG9sZCB5b3UgdG8gaW5jbHVkZSB0aGUgcmVhc29uIGZv
-cgo+IHlvdXIgcGF0Y2hlcyBpbiB5b3VyIHByb3Bvc2VkIGNvbW1pdCBtZXNzYWdlPwoKSXQgbWln
-aHQgYmUgdXNlZnVsIHRvIGxvb2sgYWdhaW4uCgoKPiBUb28gb2Z0ZW4uCgpJIGFuc3dlcmVkIHRo
-aXMgZmVlZGJhY2sgdG8gc29tZSBkZWdyZWUuCgoKPiBNYW55IHBlb3BsZSBkbyBub3Qga25vdyB0
-aGF0IGEgZ2VuZXJpYyBrbWFsbG9jIGRvZXMgYQo+IGR1bXBfc3RhY2soKSBvbiBPT00uCgpUaGlz
-IGlzIGFub3RoZXIgaW50ZXJlc3RpbmcgaW5mb3JtYXRpb24sIGlzbid0IGl0PwoKSXQgaXMgZXhw
-ZWN0ZWQgdGhhdCB0aGUgZnVuY3Rpb24g4oCcZGV2bV9remFsbG9j4oCdIGhhcyBnb3QgYSBzaW1p
-bGFyIHByb3BlcnR5LgoKCj4gVGhhdCBpbmZvcm1hdGlvbiBzaG91bGQgYmUgcGFydCBvZiB0aGUg
-Y29tbWl0IG1lc3NhZ2UuCgpIb3cgZG8geW91IHRoaW5rIGFib3V0IHRvIHByb3ZpZGUgaXQgYWxz
-byBpbiBhbnkgcmVmZXJlbmNlIGRvY3VtZW50YXRpb24KaW4gYSBjbGVhcmVyIHdheT8KCkkgd291
-bGQgYmUgbW9yZSBjb25maWRlbnQgdGhlbiB0byBjb3B5IGl0IGludG8gbXkgbWVzc2FnZXMuCkRv
-IHlvdSB3YW50IHRoYXQgSSB0YWtlIHlvdXIgY3VycmVudCBhbnN3ZXIgYXMgYW4gb2ZmaWNpYWwg
-bm90ZQpmb3IgbXkgd29yayAoaW5zdGVhZCBvZiB3YWl0aW5nIGZvciBhZGp1c3RtZW50cyBvZiBv
-dGhlciBhcmVhcyk/CgoKPiBBbHNvIHJlbW92aW5nIHRoZSBwcmludGsgY29kZSByZWR1Y2VzIG92
-ZXJhbGwgY29kZSBzaXplLgoKU3VjaCBhbiBlZmZlY3QgY2FuIGJlIG5pY2UgaWYgdGhlIGludm9s
-dmVkIGNvbnRyaWJ1dG9ycyBjYW4gYWdyZWUgb24KdGhlIGRlbGV0aW9uIG9mIHF1ZXN0aW9uYWJs
-ZSBlcnJvciBtZXNzYWdlcyBhdCBhbGwuCgoKPiBUaGUgYWN0dWFsIHNpemUgcmVkdWN0aW9uIHNo
-b3VsZCBiZSBkZXNjcmliZWQgaW4gdGhlCj4gY29tbWl0IG1lc3NhZ2UgdG9vLgoKRm9yIHdoaWNo
-IGhhcmR3YXJlIGFuZCBzb2Z0d2FyZSBjb21iaW5hdGlvbnMgd291bGQgeW91IGxpa2UgdG8gc2Vl
-CmZhY3RzIHRoZXJlPwoKUmVnYXJkcywKTWFya3VzCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+CgpPbiBUdWUsIDI4IE5vdiAyMDE3LCBTRiBNYXJrdXMgRWxmcmluZyB3cm90ZToKCj4gPj4+PiBJ
+dCBzZWVtcyB0aGF0IEkgZ290IG5vIHJlc3BvbnNlcyBzbyBmYXIgZm9yIGNsYXJpZmljYXRpb24g
+cmVxdWVzdHMKPiA+Pj4+IGFjY29yZGluZyB0byB0aGUgZG9jdW1lbnRhdGlvbiBpbiBhIGRpcmVj
+dGlvbiBJIGhvcGVkIGZvci4KPiA+Pj4KPiA+Pj4gVGhhdCdzIGJlY2F1c2UgeW91IGFyZSBwcmV0
+dHkgdW5yZXNwb25zaXZlIHRvIGRpcmVjdGlvbi4KPiA+Pgo+ID4+IEZyb20gd2hpY2ggcGxhY2Vz
+IGRpZCB5b3UgZ2V0IHRoaXMgaW1wcmVzc2lvbj8KPiA+Cj4gPiBQZXJoYXBzIGZyb20gdGhlIHRl
+eHQgdGhhdCB5b3UgaGF2ZSB3cml0dGVuIG9ubHkgZm91ciBsaW5lcyBiZWxvdy4KPiA+IEFsbCBj
+b21tZW50cyBhcmUgZGlzbWlzc2VkIGFzICJ0aGUgdXN1YWwgbWl4dHVyZSBvZiBkaXNhZ3JlZW1l
+bnRzIGFuZCBhY2NlcHRhbmNlIi4KPgo+IEEgbWl4dHVyZSB3aWxsIGFsd2F5cyBldm9sdmUuCj4K
+PiAqIFNvbWUgYWNjZXB0YW5jZSBtaWdodCBub3QgbmVlZCBmdXJ0aGVyIGNvbnNpZGVyYXRpb25z
+Lgo+Cj4gKiBCdXQgdGhlIGRpc2FncmVlbWVudHMgYXJlIHJlbWVtYmVyZWQgZGlmZmVyZW50bHku
+Cj4gICBUaGV5IGhhdmUgZ290IGEgcG90ZW50aWFsIGZvciBmdXJ0aGVyIGltcHJvdmVtZW50cyBp
+biBzb21lIGFyZWFzLgo+Cj4KPiA+IElmIHlvdSBsb29rIGF0IHRoZSBwYXRjaGVzIHNlbnQgYnkg
+b3RoZXJzLCB3aG8gbGVhcm4gZnJvbQo+ID4gdGhlIGZlZWRiYWNrIHByb3ZpZGVkIHRvIHRoZW0s
+Cj4KPiBJIGFtIGFsc28gbGVhcm5pbmcgdG8gc29tZSBkZWdyZWUgY29udGludW91c2x5Lgo+Cj4K
+PiA+IHRoZXJlIGFyZSBub3Qgc28gbWFueSByZXNwb25zZXMgb24gdGhlIGRpc2FncmVlbWVudHMg
+c2lkZS4KPgo+IEhvdyBkbyB5b3UgdGhpbmsgYWJvdXQgdG8gbG9vayBhdCB0aGUgZGV0YWlscyBm
+b3Igc3VjaCBhbiBvYnNlcnZhdGlvbj8KPgo+Cj4gPiBTbyB0aGUgbWl4dHVyZSBpcyBub3QgdXN1
+YWwuCj4KPiBJIGZpbmQgdGhhdCBpdCBjYW4gYmUgYWxzbyBhIG1hdHRlciBvZiBzdGF0aXN0aWNz
+Lgo+Cj4KPiA+IFNpbmNlIHlvdSBzZW5kIGxvdHMgb2YgcGF0Y2hlcyBvbiB0aGUgc2FtZSBpc3N1
+ZXMsCj4KPiBZZXMuIC0gSSBhbSB0cnlpbmcgdG8gZml4IHNvbWUgaW1wbGVtZW50YXRpb24gZGV0
+YWlscyBieSB0aGUgbWVhbnMKPiBvZiBzb3VyY2UgY29kZSBhbmFseXNpcyBhbmQgY29ycmVzcG9u
+ZGluZyB0cmFuc2Zvcm1hdGlvbi4KPiBUaGUgcGF0Y2ggY291bnQgaXMgc3RpbGwgZ3Jvd2luZy4K
+Pgo+Cj4gPiB0aGVyZSBzaG91bGQgYmUgbm8gZGlzYWdyZWVtZW50cyBhdCBhbGwgYXQgdGhpcyBw
+b2ludC4KPgo+IEkgZ290IGFuIG90aGVyIGltcHJlc3Npb24uIFRoZSBwcm9iYWJpbGl0eSBmb3Ig
+ZGlzYWdyZWVtZW50cyBpcyBpbmNyZWFzaW5nCj4gaW4gcmVsYXRpb24gdG8gdGhlIG51bWJlciBv
+ZiBjb250cmlidXRvcnMgdG8gd2hpY2ggSSBzaG93IGNoYW5nZSBwb3NzaWJpbGl0aWVzLgoKTm8u
+ICBZb3Ugc2hvdWxkIGxlYXJuIGZyb20gdGhlIHByZXZpb3VzIHN1Ym1pc3Npb25zIHdoYXQgY29u
+Y2VybnMgcGVvcGxlCmhhdmUgYW5kIGFkZHJlc3MgdGhlbSB1cCBmcm9udC4KCmp1bGlhCgo+Cj4g
+VGhlcmUgYXJlIGFsc28gb3RoZXIgb3BlbiBpc3N1ZXMgcmVtYWluaW5nIHdoaWNoIGNhbiBnZXQg
+YW5vdGhlcgo+IHNvbHV0aW9uIHNvbWVob3cuCj4KPiBSZWdhcmRzLAo+IE1hcmt1cwo+IC0tCj4g
+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJl
+IGtlcm5lbC1qYW5pdG9ycyIgaW4KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21v
+QHZnZXIua2VybmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtl
+cm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+Cl9fX19fX19fX19fX19fX19fX19fX19fX19f
 X19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxp
 c3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
 L2xpc3RpbmZvL2RyaS1kZXZlbAo=
