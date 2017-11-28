@@ -1,73 +1,47 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: omapfb/dss: Delete an error message for a failed memory
- allocation in three functions
-Date: Tue, 28 Nov 2017 13:13:51 +0100
-Message-ID: <bdf052ef-4f32-af1e-4b1b-6fb75e5e0af9@users.sourceforge.net>
-References: <1511809633.32426.70.camel@perches.com>
- <d82fbab2-865f-3051-f487-d310ee819cf3@users.sourceforge.net>
- <1511833514.32426.86.camel@perches.com>
- <7e7e64cf-dbe5-614a-f1e5-29d7b6cf9297@users.sourceforge.net>
- <1511856244.19952.14.camel@perches.com>
- <0ecf4b17-7757-adb4-b978-a80ebb15cfe6@users.sourceforge.net>
- <alpine.DEB.2.20.1711281026410.3443@hadrien>
- <28816ce9-9d62-7d61-1889-64407eececca@users.sourceforge.net>
- <20171128102327.GA30267@lenoch>
- <796a5c89-7c72-776d-e769-e52f5e5bf43f@users.sourceforge.net>
- <20171128114130.GA1615@lenoch>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: EHCI and MUSB do not discover devices without CONFIG_PM
+Date: Tue, 28 Nov 2017 06:11:31 -0800
+Message-ID: <20171128141131.GR28152@atomide.com>
+References: <20171127220833.GA10070@lenoch>
+ <20171128073328.GF10757@kroah.com>
+ <20171128085751.GA28256@lenoch>
+ <20171128093054.GA20720@kroah.com>
+ <20171128093948.GA21766@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20171128114130.GA1615@lenoch>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "Andrew F. Davis" <afd@ti.com>, Julia Lawall <julia.lawall@lip6.fr>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Joe Perches <joe@perches.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171128093948.GA21766@lenoch>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Pj4gSSBhbSBub3QgZ29pbmcgdG8g4oCcdmVyaWZ54oCdIHlvdXIgdXBkYXRlIHN1Z2dlc3Rpb24g
-YnkgbXkgZXZvbHZpbmcgYXBwcm9hY2hlcwo+PiBhcm91bmQgdGhlIHNlbWFudGljIHBhdGNoIGxh
-bmd1YWdlIChDb2NjaW5lbGxlIHNvZnR3YXJlKSBhdCB0aGUgbW9tZW50Lgo+IAo+IEFzIHlvdSBh
-cmUgc2VuZGluZyBwYXRjaGVzIGFzIE1hcmt1cyBFbGZyaW5nCgpJIGFtIGNvbnRyaWJ1dGluZyBh
-bHNvIHNvbWUgdXBkYXRlIHN1Z2dlc3Rpb25zLgoKCj4gSSB3b3VsZCBleHBlY3QgeW91IHRha2Ug
-Q29jY2luZWxsZSdzIHN1Z2dlc3Rpb24gaW50byBhY2NvdW50CgpUaGUgcHJvcG9zZWQgY2hhbmdl
-IGlzIGJhc2VkIG9uIGEgc2VtYW50aWMgcGF0Y2ggc2NyaXB0IHdoaWNoIEkgZGV2ZWxvcGVkCndp
-dGggdGhlIHN1cHBvcnQgb2Ygb3RoZXIgd2VsbC1rbm93biBMaW51eCBjb250cmlidXRvcnMuCgoK
-PiBhbmQgYWN0dWFsbHkgdHJ5IHRvIHVuZGVyc3RhbmQgY29kZSBiZWZvcmUgc2VuZGluZyBwYXRj
-aC4KCkkgY29uY2VudHJhdGVkIG15IHVuZGVyc3RhbmRpbmcgb24gdGhlIGNvbmNyZXRlIHRyYW5z
-Zm9ybWF0aW9uIHBhdHRlcm4KaW4gdGhpcyB1c2UgY2FzZS4KCgo+IFRoYXQgc3VnZ2VzdGlvbiBt
-YXkgbGVhZCB0byBhY3R1YWwgYnVnIGluIGNvZGUgd2hpY2ggeW91ciBwYXRjaCBqdXN0IGxlYXZl
-cwo+IHVubm90aWNlZCBhcyBpdCBpcyBub3QgYXBwYXJlbnQgZnJvbSB0aGUgcGF0Y2ggaXRzZWxm
-CgpUaGVyZSBjYW4gYmUgb3RoZXIgY2hhbmdlIHBvc3NpYmlsaXRpZXMgbGVmdCBvdmVyIGFzIHVz
-dWFsLgoKCj4gKG5vLCBub3QgdGFsa2luZyBhYm91dCB0aGlzIHZlcnkgcGF0Y2ggaXQgYWxsIHN0
-YXJ0ZWQgd2l0aCkKClRoYW5rcyBmb3IgeW91ciBkaXN0aW5jdGlvbi4KCgo+IFRoYXQgc2FpZCwg
-SSdtIGNvbnNpZGVyaW5nIE1hcmt1cyBFbGZyaW5nIGJlaW5nIGEgaHVtYW4uCgpUaGFua3MgZm9y
-IHRoaXMgdmlldy4KCgo+IElmIHlvdSBkbyBub3QgbGlrZSByZWFjdGlvbnMgdG8geW91ciBwYXRj
-aGVzCgpJIGFtIGxvb2tpbmcgZm9yIGNvbnN0cnVjdGl2ZSByZXNwb25zZXMuIC0gRGlzYWdyZWVt
-ZW50cyBjYW4gdHJpZ2dlcgpzcGVjaWFsIGNvbW11bmljYXRpb24gY2hhbGxlbmdlcy4KCgo+IG9y
-IGFyZSBpbnRlcmVzdGVkIG9ubHkgaW4gaW1wcm92aW5nIHRvb2wgdGhhdCBnZW5lcmF0ZXMgdGhl
-bSwKCkhvdyBkbyB5b3UgdGhpbmsgYWJvdXQgdG8gbG9vayBhdCBhbnkgbW9yZSBiYWNrZ3JvdW5k
-IGluZm9ybWF0aW9uPwoKaHR0cHM6Ly9naXRodWIuY29tL2NvY2NpbmVsbGUvY29jY2luZWxsZS9p
-c3N1ZXMKaHR0cHM6Ly9zeXN0ZW1lLmxpcDYuZnIvcGlwZXJtYWlsL2NvY2NpLwoKCj4gaXQgd291
-bGQgYmUgYmV0dGVyIHRvIGp1c3Qgc2V0dXAgYSAidGlwIGJvdCBmb3IgTWFya3VzCj4gRWxmcmlu
-ZyIgYW5kIGxldCBpdCBzZW5kIHBhdGNoZXMgYXV0b21hdGljYWxseS4KClRoZXJlIGlzIGFscmVh
-ZHkgYW4gb3RoZXIgYXV0b21hdGljIHNvdXJjZSBjb2RlIGFuYWx5c2lzIHN5c3RlbSBhY3RpdmUu
-Cmh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L25leHQvbGlu
-dXgtbmV4dC5naXQvdHJlZS9zY3JpcHRzL2NvY2NpbmVsbGUKCgo+IFRoZSB3YXkgeW91IGFyZSBz
-ZW5kaW5nIHBhdGNoZXMgbWFrZXMgaW1wcmVzc2lvbiAoYXQgbGVhc3QgdG8gbWUpLAo+IHRoYXQg
-eW91IHNwZW50IHNvbWUgdGltZSBvbiBmaXhpbmcgaXNzdWUgQ29jY2luZWxsZSBmb3VuZAoKWWVz
-LiAtIFRoaXMgdmlldyBpcyBhcHByb3ByaWF0ZS4KCgo+IGFuZCBub3QganVzdCBzaHV0IHRoZSB3
-YXJuaW5nIHVwLgoKQWRkaXRpb25hbCBpbXByb3ZlbWVudCBwb3NzaWJpbGl0aWVzIGNhbiBiZSB0
-YWtlbiBpbnRvIGFjY291bnQKYWZ0ZXIgY29ycmVzcG9uZGluZyBzb2Z0d2FyZSBkZXZlbG9wbWVu
-dCBkaXNjdXNzaW9ucywgY2FuJ3QgdGhleT8KClJlZ2FyZHMsCk1hcmt1cwpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0
-CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3Rv
-cC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+* Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [171128 09:42]:
+> On Tue, Nov 28, 2017 at 10:30:54AM +0100, Greg KH wrote:
+> > bit-banging an ir decoder, ugh, you are in for a world of hurt.  Can't
+> > you put a chip on the device that does this for you in hardware?
+> 
+> OMAP has DM timer which can be externally trigered on edge. Perfect for
+> that purpose. But I cannot pinmux its input as hw designers did poor job.
+> And there are thousands of devices deployed.
+> 
+> So it is about a lot of soldering or providing software solution.
+> 
+> > Anyway, good luck!
+> 
+> A little pointer would increase "luck" by several order of magnitudes.
+
+Hmm did you already try limiting cpuidle to C1 only in /sys?
+
+>From what I recall you just set the latency to less than C2
+has. The cpuidle latencies are in struct omap3_idle_statedata
+omap3_idle_data[].
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
