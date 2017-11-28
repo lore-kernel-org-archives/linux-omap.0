@@ -1,80 +1,64 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: omapfb/dss: Delete an error message for a failed memory allocation
- in three functions
-Date: Tue, 28 Nov 2017 10:28:47 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1711281026410.3443@hadrien>
-References: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
- <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
- <1511809633.32426.70.camel@perches.com>
- <d82fbab2-865f-3051-f487-d310ee819cf3@users.sourceforge.net>
- <1511833514.32426.86.camel@perches.com>
- <7e7e64cf-dbe5-614a-f1e5-29d7b6cf9297@users.sourceforge.net>
- <1511856244.19952.14.camel@perches.com>
- <0ecf4b17-7757-adb4-b978-a80ebb15cfe6@users.sourceforge.net>
+From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: EHCI and MUSB do not discover devices without CONFIG_PM
+Date: Tue, 28 Nov 2017 10:30:54 +0100
+Message-ID: <20171128093054.GA20720@kroah.com>
+References: <20171127220833.GA10070@lenoch>
+ <20171128073328.GF10757@kroah.com>
+ <20171128085751.GA28256@lenoch>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="8323329-798230509-1511861328=:3443"
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <0ecf4b17-7757-adb4-b978-a80ebb15cfe6@users.sourceforge.net>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Joe Perches <joe@perches.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171128085751.GA28256@lenoch>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
---8323329-798230509-1511861328=:3443
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+On Tue, Nov 28, 2017 at 09:57:51AM +0100, Ladislav Michl wrote:
+> Hi Greg,
+> 
+> On Tue, Nov 28, 2017 at 08:33:28AM +0100, Greg KH wrote:
+> > On Mon, Nov 27, 2017 at 11:08:33PM +0100, Ladislav Michl wrote:
+> > > Hi there,
+> > > 
+> > > USB hosts do not discover any connected device on OMAP3 based board
+> > > with CONFIG_PM=n. Just enabling this option is enough to restore working
+> > > behaviour. Nothing unusual in log. Tested 4.14.2 and 4.15-rc1. I know
+> > > a lot of stuff depends on CONFIG_PM, but is this expected behaviour?
+> > > Neither EHCI nor MUSB is working without CONFIG_PM.
+> > 
+> > What bus type is your controllers on?  PCI?  platform?  Something else?
+> 
+> Platform controllers inside OMAP3630 Soc.
+> 
+> > And yes, perhaps this is to be expected, why would you not want
+> > CONFIG_PM to be enabled?  :)
+> 
+> For a start, I know Linux is general purpose OS and I know I cannot expect
+> low latency or low jitter when dealing with interrupts.
 
+Well, it's the best latency of any other OS out there :)
 
+Anyway, if you want guaranteed response time, you are going to have to
+use the RT patchset, no matter what.  Otherwise you have the potential
+to have bad jitter at times.
 
-On Tue, 28 Nov 2017, SF Markus Elfring wrote:
+> Original problem is described here:
+> https://www.spinics.net/lists/linux-omap/msg140081.html
+> 
+> Shortly, with CONFIG_PM jitter of GPIO interrupt is about 350us which
+> renders IR receiver unuseable - is cannot reliably decode IR protocol
+> (gpio-ir-recv is used). With CONFIG_PM disabled, jitter is around 30us
+> and that's enough to make IR decoders work.
 
-> > How many times have I told you to include the reason for
-> > your patches in your proposed commit message?
->
-> It might be useful to look again.
->
->
-> > Too often.
->
-> I answered this feedback to some degree.
->
->
-> > Many people do not know that a generic kmalloc does a
-> > dump_stack() on OOM.
->
-> This is another interesting information, isn't it?
->
-> It is expected that the function “devm_kzalloc” has got a similar property.
+bit-banging an ir decoder, ugh, you are in for a world of hurt.  Can't
+you put a chip on the device that does this for you in hardware?
 
+Anyway, good luck!
 
-You don't have to expect this.  Go look at the definition of devm_kzalloc
-and see whether it has the property or not.
-
-> For which hardware and software combinations would you like to see
-> facts there?
-
-This is not for Joe to decide, it's for the person who receives the patch
-to decide.  You could start with the ones for which the code actually
-compiles, using the standard make file and no special options, and a
-recent version of gcc.
-
-julia
---8323329-798230509-1511861328=:3443
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---8323329-798230509-1511861328=:3443--
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
