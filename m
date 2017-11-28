@@ -1,21 +1,20 @@
 From: Julia Lawall <julia.lawall@lip6.fr>
 Subject: Re: omapfb/dss: Delete an error message for a failed memory allocation
  in three functions
-Date: Tue, 28 Nov 2017 10:26:00 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1711281025210.3443@hadrien>
+Date: Tue, 28 Nov 2017 10:28:47 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1711281026410.3443@hadrien>
 References: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
  <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
  <1511809633.32426.70.camel@perches.com>
  <d82fbab2-865f-3051-f487-d310ee819cf3@users.sourceforge.net>
  <1511833514.32426.86.camel@perches.com>
  <7e7e64cf-dbe5-614a-f1e5-29d7b6cf9297@users.sourceforge.net>
- <alpine.DEB.2.20.1711280844180.2450@hadrien>
- <c504db1d-415a-9bd4-172c-b1c17dd3740f@users.sourceforge.net>
+ <1511856244.19952.14.camel@perches.com>
+ <0ecf4b17-7757-adb4-b978-a80ebb15cfe6@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; BOUNDARY="8323329-798230509-1511861328=:3443"
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <c504db1d-415a-9bd4-172c-b1c17dd3740f@users.sourceforge.net>
+In-Reply-To: <0ecf4b17-7757-adb4-b978-a80ebb15cfe6@users.sourceforge.net>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -29,41 +28,53 @@ To: SF Markus Elfring <elfring@users.sourceforge.net>
 Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, "Andrew F. Davis" <afd@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Joe Perches <joe@perches.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiBUdWUsIDI4IE5vdiAyMDE3LCBTRiBNYXJrdXMgRWxmcmluZyB3cm90ZToKCj4gPj4+PiBJ
-dCBzZWVtcyB0aGF0IEkgZ290IG5vIHJlc3BvbnNlcyBzbyBmYXIgZm9yIGNsYXJpZmljYXRpb24g
-cmVxdWVzdHMKPiA+Pj4+IGFjY29yZGluZyB0byB0aGUgZG9jdW1lbnRhdGlvbiBpbiBhIGRpcmVj
-dGlvbiBJIGhvcGVkIGZvci4KPiA+Pj4KPiA+Pj4gVGhhdCdzIGJlY2F1c2UgeW91IGFyZSBwcmV0
-dHkgdW5yZXNwb25zaXZlIHRvIGRpcmVjdGlvbi4KPiA+Pgo+ID4+IEZyb20gd2hpY2ggcGxhY2Vz
-IGRpZCB5b3UgZ2V0IHRoaXMgaW1wcmVzc2lvbj8KPiA+Cj4gPiBQZXJoYXBzIGZyb20gdGhlIHRl
-eHQgdGhhdCB5b3UgaGF2ZSB3cml0dGVuIG9ubHkgZm91ciBsaW5lcyBiZWxvdy4KPiA+IEFsbCBj
-b21tZW50cyBhcmUgZGlzbWlzc2VkIGFzICJ0aGUgdXN1YWwgbWl4dHVyZSBvZiBkaXNhZ3JlZW1l
-bnRzIGFuZCBhY2NlcHRhbmNlIi4KPgo+IEEgbWl4dHVyZSB3aWxsIGFsd2F5cyBldm9sdmUuCj4K
-PiAqIFNvbWUgYWNjZXB0YW5jZSBtaWdodCBub3QgbmVlZCBmdXJ0aGVyIGNvbnNpZGVyYXRpb25z
-Lgo+Cj4gKiBCdXQgdGhlIGRpc2FncmVlbWVudHMgYXJlIHJlbWVtYmVyZWQgZGlmZmVyZW50bHku
-Cj4gICBUaGV5IGhhdmUgZ290IGEgcG90ZW50aWFsIGZvciBmdXJ0aGVyIGltcHJvdmVtZW50cyBp
-biBzb21lIGFyZWFzLgo+Cj4KPiA+IElmIHlvdSBsb29rIGF0IHRoZSBwYXRjaGVzIHNlbnQgYnkg
-b3RoZXJzLCB3aG8gbGVhcm4gZnJvbQo+ID4gdGhlIGZlZWRiYWNrIHByb3ZpZGVkIHRvIHRoZW0s
-Cj4KPiBJIGFtIGFsc28gbGVhcm5pbmcgdG8gc29tZSBkZWdyZWUgY29udGludW91c2x5Lgo+Cj4K
-PiA+IHRoZXJlIGFyZSBub3Qgc28gbWFueSByZXNwb25zZXMgb24gdGhlIGRpc2FncmVlbWVudHMg
-c2lkZS4KPgo+IEhvdyBkbyB5b3UgdGhpbmsgYWJvdXQgdG8gbG9vayBhdCB0aGUgZGV0YWlscyBm
-b3Igc3VjaCBhbiBvYnNlcnZhdGlvbj8KPgo+Cj4gPiBTbyB0aGUgbWl4dHVyZSBpcyBub3QgdXN1
-YWwuCj4KPiBJIGZpbmQgdGhhdCBpdCBjYW4gYmUgYWxzbyBhIG1hdHRlciBvZiBzdGF0aXN0aWNz
-Lgo+Cj4KPiA+IFNpbmNlIHlvdSBzZW5kIGxvdHMgb2YgcGF0Y2hlcyBvbiB0aGUgc2FtZSBpc3N1
-ZXMsCj4KPiBZZXMuIC0gSSBhbSB0cnlpbmcgdG8gZml4IHNvbWUgaW1wbGVtZW50YXRpb24gZGV0
-YWlscyBieSB0aGUgbWVhbnMKPiBvZiBzb3VyY2UgY29kZSBhbmFseXNpcyBhbmQgY29ycmVzcG9u
-ZGluZyB0cmFuc2Zvcm1hdGlvbi4KPiBUaGUgcGF0Y2ggY291bnQgaXMgc3RpbGwgZ3Jvd2luZy4K
-Pgo+Cj4gPiB0aGVyZSBzaG91bGQgYmUgbm8gZGlzYWdyZWVtZW50cyBhdCBhbGwgYXQgdGhpcyBw
-b2ludC4KPgo+IEkgZ290IGFuIG90aGVyIGltcHJlc3Npb24uIFRoZSBwcm9iYWJpbGl0eSBmb3Ig
-ZGlzYWdyZWVtZW50cyBpcyBpbmNyZWFzaW5nCj4gaW4gcmVsYXRpb24gdG8gdGhlIG51bWJlciBv
-ZiBjb250cmlidXRvcnMgdG8gd2hpY2ggSSBzaG93IGNoYW5nZSBwb3NzaWJpbGl0aWVzLgoKTm8u
-ICBZb3Ugc2hvdWxkIGxlYXJuIGZyb20gdGhlIHByZXZpb3VzIHN1Ym1pc3Npb25zIHdoYXQgY29u
-Y2VybnMgcGVvcGxlCmhhdmUgYW5kIGFkZHJlc3MgdGhlbSB1cCBmcm9udC4KCmp1bGlhCgo+Cj4g
-VGhlcmUgYXJlIGFsc28gb3RoZXIgb3BlbiBpc3N1ZXMgcmVtYWluaW5nIHdoaWNoIGNhbiBnZXQg
-YW5vdGhlcgo+IHNvbHV0aW9uIHNvbWVob3cuCj4KPiBSZWdhcmRzLAo+IE1hcmt1cwo+IC0tCj4g
-VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJl
-IGtlcm5lbC1qYW5pdG9ycyIgaW4KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21v
-QHZnZXIua2VybmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtl
-cm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+Cl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxp
-c3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2RyaS1kZXZlbAo=
+--8323329-798230509-1511861328=:3443
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+
+
+
+On Tue, 28 Nov 2017, SF Markus Elfring wrote:
+
+> > How many times have I told you to include the reason for
+> > your patches in your proposed commit message?
+>
+> It might be useful to look again.
+>
+>
+> > Too often.
+>
+> I answered this feedback to some degree.
+>
+>
+> > Many people do not know that a generic kmalloc does a
+> > dump_stack() on OOM.
+>
+> This is another interesting information, isn't it?
+>
+> It is expected that the function “devm_kzalloc” has got a similar property.
+
+
+You don't have to expect this.  Go look at the definition of devm_kzalloc
+and see whether it has the property or not.
+
+> For which hardware and software combinations would you like to see
+> facts there?
+
+This is not for Joe to decide, it's for the person who receives the patch
+to decide.  You could start with the ones for which the code actually
+compiles, using the standard make file and no special options, and a
+recent version of gcc.
+
+julia
+--8323329-798230509-1511861328=:3443
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--8323329-798230509-1511861328=:3443--
