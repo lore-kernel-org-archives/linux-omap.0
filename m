@@ -1,74 +1,55 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: omapfb/dss: Delete an error message for a failed memory
- allocation in three functions
-Date: Tue, 28 Nov 2017 09:49:24 +0100
-Message-ID: <c504db1d-415a-9bd4-172c-b1c17dd3740f@users.sourceforge.net>
-References: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
- <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
- <1511809633.32426.70.camel@perches.com>
- <d82fbab2-865f-3051-f487-d310ee819cf3@users.sourceforge.net>
- <1511833514.32426.86.camel@perches.com>
- <7e7e64cf-dbe5-614a-f1e5-29d7b6cf9297@users.sourceforge.net>
- <alpine.DEB.2.20.1711280844180.2450@hadrien>
+From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Subject: Re: EHCI and MUSB do not discover devices without CONFIG_PM
+Date: Tue, 28 Nov 2017 09:57:51 +0100
+Message-ID: <20171128085751.GA28256@lenoch>
+References: <20171127220833.GA10070@lenoch>
+ <20171128073328.GF10757@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.20.1711280844180.2450@hadrien>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <julia.lawall@lip6.fr>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: Joe Perches <joe@perches.com>, "Andrew F. Davis" <afd@ti.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171128073328.GF10757-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
->>>> It seems that I got no responses so far for clarification requests
->>>> according to the documentation in a direction I hoped for.
->>>
->>> That's because you are pretty unresponsive to direction.
->>
->> From which places did you get this impression?
+Hi Greg,
+
+On Tue, Nov 28, 2017 at 08:33:28AM +0100, Greg KH wrote:
+> On Mon, Nov 27, 2017 at 11:08:33PM +0100, Ladislav Michl wrote:
+> > Hi there,
+> > 
+> > USB hosts do not discover any connected device on OMAP3 based board
+> > with CONFIG_PM=n. Just enabling this option is enough to restore working
+> > behaviour. Nothing unusual in log. Tested 4.14.2 and 4.15-rc1. I know
+> > a lot of stuff depends on CONFIG_PM, but is this expected behaviour?
+> > Neither EHCI nor MUSB is working without CONFIG_PM.
 > 
-> Perhaps from the text that you have written only four lines below.
-> All comments are dismissed as "the usual mixture of disagreements and acceptance".
+> What bus type is your controllers on?  PCI?  platform?  Something else?
 
-A mixture will always evolve.
+Platform controllers inside OMAP3630 Soc.
 
-* Some acceptance might not need further considerations.
+> And yes, perhaps this is to be expected, why would you not want
+> CONFIG_PM to be enabled?  :)
 
-* But the disagreements are remembered differently.
-  They have got a potential for further improvements in some areas.
+For a start, I know Linux is general purpose OS and I know I cannot expect
+low latency or low jitter when dealing with interrupts.
 
+Original problem is described here:
+https://www.spinics.net/lists/linux-omap/msg140081.html
 
-> If you look at the patches sent by others, who learn from
-> the feedback provided to them,
+Shortly, with CONFIG_PM jitter of GPIO interrupt is about 350us which
+renders IR receiver unuseable - is cannot reliably decode IR protocol
+(gpio-ir-recv is used). With CONFIG_PM disabled, jitter is around 30us
+and that's enough to make IR decoders work.
 
-I am also learning to some degree continuously.
+And as I was unable to fix it, nor anyone provided useful hint, I though
+I could work around problem from another side. And here we are...
 
-
-> there are not so many responses on the disagreements side.
-
-How do you think about to look at the details for such an observation?
-
-
-> So the mixture is not usual.
-
-I find that it can be also a matter of statistics.
-
-
-> Since you send lots of patches on the same issues,
-
-Yes. - I am trying to fix some implementation details by the means
-of source code analysis and corresponding transformation.
-The patch count is still growing.
-
-
-> there should be no disagreements at all at this point.
-
-I got an other impression. The probability for disagreements is increasing
-in relation to the number of contributors to which I show change possibilities.
-
-There are also other open issues remaining which can get another
-solution somehow.
-
-Regards,
-Markus
+Thank you,
+	ladis
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
