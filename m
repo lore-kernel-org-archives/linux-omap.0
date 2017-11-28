@@ -1,38 +1,70 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: omapfb/dss: Delete an error message for a failed memory
- allocation in three functions
-Date: Tue, 28 Nov 2017 06:36:50 -0800
-Message-ID: <1511879810.19952.16.camel@perches.com>
-References: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
-         <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
-         <1511809633.32426.70.camel@perches.com>
-         <d82fbab2-865f-3051-f487-d310ee819cf3@users.sourceforge.net>
-         <1511833514.32426.86.camel@perches.com>
-         <7e7e64cf-dbe5-614a-f1e5-29d7b6cf9297@users.sourceforge.net>
-         <1511856244.19952.14.camel@perches.com>
-         <0ecf4b17-7757-adb4-b978-a80ebb15cfe6@users.sourceforge.net>
-         <alpine.DEB.2.20.1711281026410.3443@hadrien>
-         <28816ce9-9d62-7d61-1889-64407eececca@users.sourceforge.net>
-         <20171128102327.GA30267@lenoch>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: EHCI and MUSB do not discover devices without CONFIG_PM
+Date: Tue, 28 Nov 2017 06:39:13 -0800
+Message-ID: <20171128143913.GS28152@atomide.com>
+References: <20171127220833.GA10070@lenoch>
+ <20171128073328.GF10757@kroah.com>
+ <20171128085751.GA28256@lenoch>
+ <20171128093054.GA20720@kroah.com>
+ <20171128093948.GA21766@lenoch>
+ <20171128141131.GR28152@atomide.com>
+ <20171128142851.GA12849@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20171128102327.GA30267@lenoch>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>, SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, "Andrew F. Davis" <afd@ti.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171128142851.GA12849@lenoch>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 2017-11-28 at 11:23 +0100, Ladislav Michl wrote:
-> I do not follow. This is OMAP framebuffer driver, so in this case, there
-> is zero variation. Could you, please, review following patch and verify
-> is it satisfies your automated static code analysis test?
+* Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [171128 14:31]:
+> On Tue, Nov 28, 2017 at 06:11:31AM -0800, Tony Lindgren wrote:
+> > * Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> [171128 09:42]:
+> > > On Tue, Nov 28, 2017 at 10:30:54AM +0100, Greg KH wrote:
+> > > > bit-banging an ir decoder, ugh, you are in for a world of hurt.  Can't
+> > > > you put a chip on the device that does this for you in hardware?
+> > > 
+> > > OMAP has DM timer which can be externally trigered on edge. Perfect for
+> > > that purpose. But I cannot pinmux its input as hw designers did poor job.
+> > > And there are thousands of devices deployed.
+> > > 
+> > > So it is about a lot of soldering or providing software solution.
+> > > 
+> > > > Anyway, good luck!
+> > > 
+> > > A little pointer would increase "luck" by several order of magnitudes.
+> > 
+> > Hmm did you already try limiting cpuidle to C1 only in /sys?
+> 
+> I have CONFIG_CPU_IDLE=n, which should be the same. Is that right?
 
-Obviously a better patch.
+You will then use the omap3_pm_idle() that does not know much
+anything about latencies.
 
-I suggest submitting it properly and letting the 0-day
-build bot have a go at it.
+> > From what I recall you just set the latency to less than C2
+> > has. The cpuidle latencies are in struct omap3_idle_statedata
+> > omap3_idle_data[].
+> 
+> I disabled cpuidle and frequency scaling completely. The only thing that
+> make jitter difference is CONFIG_PM (see original thread).
 
-cheers, Joe
+Right as then omap3_pm_idle() is disabled and only WFI is done :)
 
+Limiting things to C1 with cpuidle is probably what you need
+for having USB also working.
+
+> There's lot of pm_wkup interrupts with CONFIG_PM - order of magnitude
+> more than gp_timer.
+
+Hmm yeah that is true. And idling and waking up devices also takes
+some time.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
