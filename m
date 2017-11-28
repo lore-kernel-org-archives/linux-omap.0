@@ -1,27 +1,40 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am437x-cm-t43: Correct the dmas property of
- spi0
-Date: Tue, 28 Nov 2017 06:53:19 -0800
-Message-ID: <20171128145319.GW28152@atomide.com>
-References: <20171101090340.15708-1-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Missing error code in omap_device_build()
+Date: Tue, 28 Nov 2017 06:55:21 -0800
+Message-ID: <20171128145521.GX28152@atomide.com>
+References: <20171114060648.frwveus2pjpx5idw@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171101090340.15708-1-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+In-Reply-To: <20171114060648.frwveus2pjpx5idw@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Russell King <linux@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org> [171101 02:05]:
-> The DMA binding for eDMA needs 2 parameters, not 1.
-> The second, missing parameter is the tptc to be used for the channel.
+* Dan Carpenter <dan.carpenter@oracle.com> [171113 22:10]:
+> We need to set the error code if omap_device_alloc() fails.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/arch/arm/mach-omap2/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+> index 184acd95c216..f0388058b7da 100644
+> --- a/arch/arm/mach-omap2/omap_device.c
+> +++ b/arch/arm/mach-omap2/omap_device.c
+> @@ -514,8 +514,10 @@ struct platform_device __init *omap_device_build(const char *pdev_name,
+>  		goto odbs_exit1;
+>  
+>  	od = omap_device_alloc(pdev, &oh, 1);
+> -	if (IS_ERR(od))
+> +	if (IS_ERR(od)) {
+> +		ret = PTR_ERR(od);
+>  		goto odbs_exit1;
+> +	}
+>  
+>  	ret = platform_device_add_data(pdev, pdata, pdata_len);
+>  	if (ret)
 
 Applying into omap-for-v4.15/fixes thanks.
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
