@@ -1,150 +1,122 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] fixes for omaps for v4.15-rc cycle
-Date: Thu, 30 Nov 2017 08:19:27 -0800
-Message-ID: <pull-1512056553-465925@atomide.com>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v3 4/4] DTS: Pandora: fix panel compatibility string
+Date: Thu, 30 Nov 2017 23:06:33 +0100
+Message-ID: <20171130220633.imkfyeiqtftnw4j4@earth>
+References: <cover.1511884135.git.hns@goldelico.com>
+ <b6001c7b7fb98e7a3ad4c712084fea9dae9e6b27.1511884135.git.hns@goldelico.com>
+ <20171128160437.GD28152@atomide.com>
+ <ADAFBBA4-6AC4-4EC4-AB0E-98B59718E12E@goldelico.com>
+ <20171128161834.GE28152@atomide.com>
+ <4EE1E298-6461-48FF-977C-958DD16AD83A@goldelico.com>
+ <20171130152430.GM28152@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/mixed; boundary="===============1525431231=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20171130152430.GM28152@atomide.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, Russell King <linux@armlinux.org.uk>, Rob Herring <robh+dt@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Julia Lawall <Julia.Lawall@lip6.fr>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, kernel@pyra-handheld.com, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
+--===============1525431231==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="nt4vnptky4atvscp"
+Content-Disposition: inline
 
-  Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
 
-are available in the Git repository at:
+--nt4vnptky4atvscp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.15/fixes-v2-signed
+Hi,
 
-for you to fetch changes up to 7cd4a5eb64b638a71564f62175f6c7ad3f27044e:
+On Thu, Nov 30, 2017 at 07:24:30AM -0800, Tony Lindgren wrote:
+> * H. Nikolaus Schaller <hns@goldelico.com> [171128 18:35]:
+> > Hi,
+> >=20
+> > > Am 28.11.2017 um 17:18 schrieb Tony Lindgren <tony@atomide.com>:
+> > >=20
+> > > * H. Nikolaus Schaller <hns@goldelico.com> [171128 16:17]:
+> > >> Hi Tony,
+> > >>=20
+> > >>> Am 28.11.2017 um 17:04 schrieb Tony Lindgren <tony@atomide.com>:
+> > >>>=20
+> > >>> * H. Nikolaus Schaller <hns@goldelico.com> [171128 15:52]:
+> > >>>> We can remove the unnecessary "omapdss," prefix because
+> > >>>> the omapdrm driver takes care of it when matching with
+> > >>>> the driver table.
+> > >>>=20
+> > >>> So is this needed as a fix or is this another clean-up?
+> > >>>=20
+> > >>> So is this is really needed as a fix?
+> > >>=20
+> > >> Hm. How do you differentiate between "fix" and "cleanup"?
+> > >> Maybe it is more a wording than a content issue...
+> > >>=20
+> > >> For me it is a "fix" because it is semantically wrong to have
+> > >> a prefix where it is not needed. And "fixing" it changes the
+> > >> compiler output by 8 bytes.
+> > >=20
+> > > How about let's call it a "typo fix" then? :)
+> >=20
+> > Well, it is not really a typo.
+>=20
+> Well what if the stable people pick it into earlier stable series
+> based on the word fix in the subject? That has happened before.
+>=20
+> I suggest you update the dts patches to use wording like
+> "update compatible to use new naming" or something similar.
 
-  Merge branch 'omap-for-v4.15/fixes-dt' into omap-for-v4.15/fixes-v2 (2017-11-28 08:23:05 -0800)
+Patch 4/4 is a Fix and should be applied to stable trees. "omapdss,"
+prefix was never supposed to be in the DTS files, is not supposed to
+be in there now and will break some time in the future.
 
-----------------------------------------------------------------
-Fixes for omaps for v4.15-rc cycle with two fixes for hangs with the
-rest being compiler warning fixes and fixes for power states and devices
-on various boards:
+Explanation: The early init of omapdss adds the prefix at runtime,
+so that the binding can use generic properties and the kernel can
+use omapdss specific drivers until the generic ones can be used.
 
-- Fix smatch issue introduced by recent omap device changes for legacy
-  resources
+-- Sebastian
 
-- Fix SRAM virt to phys related boot hang affecting n900 and other omap3 hs
-  devices found by pending CMA changes. While it seems that we have not hit
-  this in other use cases, let's fix it to avoid a nasty and hard to find
-  suprise as right now there is just luck keeping the SRAM virtual address
-  to physical address translation working with the 0xffff high_mask.
+--nt4vnptky4atvscp
+Content-Type: application/pgp-signature; name="signature.asc"
 
-- Fix am335x reading of domain state registers that only exist for the
-  PM_CEFUSE domain and produce wrong results for other domains
+-----BEGIN PGP SIGNATURE-----
 
-- Fix missing setting for error code for omap device if allocation fails
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloggOYACgkQ2O7X88g7
++poY8w/+LukAeMDv10ezogc+xAbg7rWzErh43W2ZI/pibY0rEKuuq0yNmYsyjzov
+tfDTL91fM8soDgX2+rG1E4NOdZgolNqsqbvAB4TXWrzW0ORyjdbG+D2/1rgKBfY+
+h8Dn/66QNuUd6+eTx+6AANgMzjNzHLRJwoM0eISYFCU3L6EXB8YFqoXApUqY5LBg
+do3v5DFqO+6obHUGJ8oJTjapCIEiIMsQ4DLFbLPIiAAJY48yNt8oWzRldcIDEzBp
+s1Cs7M+Zi5PbZDl8Q2YC19Q4YcMONR03VK3W+98T6P9dl0+Al0UW1YQhw3ZaqVih
+juCgcINTbVIgxI0ISzfJfiNOmOea5lLp8o++upAhhsnP2tEZHjyGe97OAc8S+ETx
+a8mjNYtKsFvBVHsh/d52PIa+H7NoW3UBkQWZsxyfpzqhibJAAN5O4DJHQXpdq7uM
+ce4IOR/LK7RDIGhTneW2vR//fwBMYWrQspfYTvx24N6mqe/gyw3PnYQjAsJNSXjC
+YBA4T99apk6BuXiRNzM7mpbUjOKrgGNUtBQKAKD9YUcAm+HfxMPdBiAwQFHlLpVX
++BMBxARqPy3gHGoQtUyg/TlTVHRPbaF0uhQLoXuBG7Awe5CqK0BE4+Dht8ogLIQ4
+4FAn98DRUhlOEs724cOGwA4DlTdBziaGuSaE9Q4r/1IuhLGaUXw=
+=LhAU
+-----END PGP SIGNATURE-----
 
-- Fix missing modules_offs for omap3 MMC3 affecting n9/n950
+--nt4vnptky4atvscp--
 
-- Fix cm_split_idlest() reading reserved registers showing wrong
-  idlestatus
+--===============1525431231==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-- Fixes to correct #phy-cells property for compiler warnings that
-  recently started happening
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
 
-- Add a missing OHCI remote-wakeup-connected property that I was supposed
-  to merge after the ohci-omap3 to ohci-platform changes but somehow managed
-  to drop. I only noticed this was missing while debugging the OHCI/EHCI GPS
-  and modem hang
-
-- Fix a system hang with GPS or modem connected to the OHCI/EHCI bus that
-  typically happened within 20 - 40 minutes on an idle system. This turned
-  out to be an issue caused by using the parent interrupt controller directly
-  with the WUGEN + GIC stacked interrupt controller domains
-
-- Fixes for logicpd-somlv GPMC for Ethernet and NAND that clearly
-  have been broken since we changed GPMC to use the interrupt controller
-  binding for some pins. And fix the wrong pin muxing for WLAN while at it
-
-- Fixes for am437x interrupt and dma properties to fix compiler warnings
-  that recently started happening
-
-----------------------------------------------------------------
-Adam Ford (2):
-      ARM: dts: logicpd-som-lv: Fix gpmc addresses for NAND and enet
-      ARM: dts: logicpd-somlv: Fix wl127x pinmux
-
-Dan Carpenter (1):
-      ARM: OMAP2+: Missing error code in omap_device_build()
-
-Keerthy (1):
-      ARM: AM33xx: PRM: Remove am33xx_pwrdm_read_prev_pwrst function
-
-Peter Ujfalusi (2):
-      ARM: dts: am4372: Correct the interrupts_properties of McASP
-      ARM: dts: am437x-cm-t43: Correct the dmas property of spi0
-
-Rob Herring (2):
-      ARM: dts: omap: Add missing #phy-cells to usb-nop-xceiv
-      ARM: dts: am33xx: Add missing #phy-cells to ti,am335x-usb-phy
-
-Tero Kristo (2):
-      ARM: OMAP3: hwmod_data: add missing module_offs for MMC3
-      ARM: OMAP2/3: CM: fix cm_split_idlest functionality
-
-Tony Lindgren (8):
-      ARM: OMAP2+: Fix smatch found issue for omap_device
-      ARM: dts: Add remote-wakeup-connected for omap OHCI
-      ARM: OMAP2+: Fix SRAM virt to phys translation for save_secure_ram_context
-      ARM: dts: Fix omap4 hang with GPS connected to USB by using wakeupgen
-      Merge branch 'soc-fixes' into omap-for-v4.15/fixes
-      Merge branch 'dts-fixes' into omap-for-v4.15/fixes-dt
-      Merge branch 'omap-for-v4.14/fixes' into omap-for-v4.15/fixes-v2
-      Merge branch 'omap-for-v4.15/fixes-dt' into omap-for-v4.15/fixes-v2
-
- .../devicetree/bindings/usb/am33xx-usb.txt         |  2 ++
- arch/arm/boot/dts/am33xx.dtsi                      |  2 ++
- arch/arm/boot/dts/am4372.dtsi                      |  6 +++--
- arch/arm/boot/dts/am437x-cm-t43.dts                |  4 ++--
- arch/arm/boot/dts/dm814x.dtsi                      |  1 +
- arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts   |  3 ++-
- arch/arm/boot/dts/logicpd-som-lv.dtsi              | 17 +++++++++-----
- arch/arm/boot/dts/omap3-beagle-xm.dts              |  1 +
- arch/arm/boot/dts/omap3-beagle.dts                 |  1 +
- arch/arm/boot/dts/omap3-cm-t3x.dtsi                |  2 ++
- arch/arm/boot/dts/omap3-evm-common.dtsi            |  1 +
- arch/arm/boot/dts/omap3-gta04.dtsi                 |  1 +
- arch/arm/boot/dts/omap3-igep0020-common.dtsi       |  1 +
- arch/arm/boot/dts/omap3-igep0030-common.dtsi       |  1 +
- arch/arm/boot/dts/omap3-lilly-a83x.dtsi            |  1 +
- arch/arm/boot/dts/omap3-overo-base.dtsi            |  1 +
- arch/arm/boot/dts/omap3-pandora-common.dtsi        |  1 +
- arch/arm/boot/dts/omap3-tao3530.dtsi               |  1 +
- arch/arm/boot/dts/omap3.dtsi                       |  1 +
- arch/arm/boot/dts/omap4-droid4-xt894.dts           |  1 +
- arch/arm/boot/dts/omap4-duovero.dtsi               |  1 +
- arch/arm/boot/dts/omap4-panda-common.dtsi          |  1 +
- arch/arm/boot/dts/omap4-var-som-om44.dtsi          |  1 +
- arch/arm/boot/dts/omap4.dtsi                       |  3 +--
- arch/arm/boot/dts/omap5-board-common.dtsi          |  2 ++
- arch/arm/boot/dts/omap5-cm-t54.dts                 |  2 ++
- arch/arm/boot/dts/omap5.dtsi                       |  1 +
- arch/arm/mach-omap2/cm_common.c                    |  6 ++++-
- arch/arm/mach-omap2/omap-secure.c                  | 19 ++++++++++++++++
- arch/arm/mach-omap2/omap-secure.h                  |  4 ++++
- arch/arm/mach-omap2/omap_device.c                  | 10 ++++-----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  1 +
- arch/arm/mach-omap2/pm.h                           |  4 ----
- arch/arm/mach-omap2/pm34xx.c                       | 13 ++++-------
- arch/arm/mach-omap2/prcm-common.h                  |  1 +
- arch/arm/mach-omap2/prm33xx.c                      | 12 ----------
- arch/arm/mach-omap2/sleep34xx.S                    | 26 ++++------------------
- 37 files changed, 90 insertions(+), 66 deletions(-)
+--===============1525431231==--
