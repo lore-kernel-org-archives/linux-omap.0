@@ -1,160 +1,122 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v3 8/9] pwm: pwm-omap-dmtimer: Adapt driver to utilize
- dmtimer pdata ops
-Date: Thu, 30 Nov 2017 15:06:27 +0530
-Message-ID: <e632a727-1067-7767-1646-f49ec0f8c2ec@ti.com>
-References: <1510806222-22096-1-git-send-email-j-keerthy@ti.com>
- <1510806222-22096-9-git-send-email-j-keerthy@ti.com>
- <2c5e3e04-9940-43c3-62b1-8cef7d22c5e1@ti.com>
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
+Date: Thu, 30 Nov 2017 11:18:40 +0100
+Message-ID: <20171130111840.41c92d34@bbrezillon>
+References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <2c5e3e04-9940-43c3-62b1-8cef7d22c5e1@ti.com>
-Content-Language: en-US
-Sender: linux-pwm-owner@vger.kernel.org
-To: "Strashko, Grygorii" <grygorii.strashko@ti.com>, "tony@atomide.com" <tony@atomide.com>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>
-Cc: "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pwm@vger.kernel.org" <linux-pwm@vger.kernel.org>, "sebastian.reichel@collabora.co.uk" <sebastian.reichel@collabora.co.uk>, "ladis@linux-mips.org" <ladis@linux-mips.org>
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20171115162306.2o2w2yrf7wucroxd@lenoch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hello Ladislav,
 
+On Wed, 15 Nov 2017 17:23:06 +0100
+Ladislav Michl <ladis@linux-mips.org> wrote:
 
-On Tuesday 28 November 2017 11:57 PM, Strashko, Grygorii wrote:
+> this patch serie updates OMAP2+ OneNAND driver to the present times, making
+> it fully DT configurable, using libgpio and dmaengine apis - those are
+> optional, driver will work without them.
 > 
+> Please note that unlike previous driver version, which basically ignored
+> DT specified timings, this one relies on it, so it is important to get
+> it right in your DT (dumping it from previous kernel version).
 > 
-> On 11/15/2017 10:23 PM, Keerthy wrote:
->> Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> ---
->>
->> Changes in v3:
->>
->>    * Used of_find_platdata_by_node function to fetch platform
->>      data for timer node.
->>
->>   drivers/pwm/pwm-omap-dmtimer.c | 39 ++++++++++++++++++++++-----------------
->>   1 file changed, 22 insertions(+), 17 deletions(-)
->>
->> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
->> index 5ad42f3..2caf46b 100644
->> --- a/drivers/pwm/pwm-omap-dmtimer.c
->> +++ b/drivers/pwm/pwm-omap-dmtimer.c
->> @@ -23,6 +23,7 @@
->>   #include <linux/mutex.h>
->>   #include <linux/of.h>
->>   #include <linux/of_platform.h>
->> +#include <linux/platform_data/dmtimer-omap.h>
->>   #include <linux/platform_data/pwm_omap_dmtimer.h>
->>   #include <linux/platform_device.h>
->>   #include <linux/pm_runtime.h>
->> @@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
->>   	struct pwm_chip chip;
->>   	struct mutex mutex;
->>   	pwm_omap_dmtimer *dm_timer;
->> -	struct pwm_omap_dmtimer_pdata *pdata;
->> +	struct omap_dm_timer_ops *pdata;
->>   	struct platform_device *dm_timer_pdev;
->>   };
->>   
->> @@ -242,19 +243,33 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->>   {
->>   	struct device_node *np = pdev->dev.of_node;
->>   	struct device_node *timer;
->> +	struct platform_device *timer_pdev;
->>   	struct pwm_omap_dmtimer_chip *omap;
->> -	struct pwm_omap_dmtimer_pdata *pdata;
->> +	struct dmtimer_platform_data *timer_pdata;
->> +	struct omap_dm_timer_ops *pdata;
->>   	pwm_omap_dmtimer *dm_timer;
->>   	u32 v;
->>   	int status;
->>   
->> -	pdata = dev_get_platdata(&pdev->dev);
->> -	if (!pdata) {
->> -		dev_err(&pdev->dev, "Missing dmtimer platform data\n");
->> +	timer = of_parse_phandle(np, "ti,timers", 0);
->> +	if (!timer)
->> +		return -ENODEV;
->> +
->> +	timer_pdev = of_find_device_by_node(timer);
->> +	if (!timer_pdev) {
->> +		dev_err(&pdev->dev, "Unable to find Timer pdev\n");
->> +		return -ENODEV;
->> +	}
->> +
->> +	timer_pdata = of_find_platdata_by_node(timer);
->> +	if (!timer_pdata) {
->> +		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
->>   		return -EINVAL;
->>   	}
+> In case synchronous timings is requested, it is okay to specify timings
+> for the slowest chip ever used for you board as it is evetually optimized
+> after chip probe.
 > 
-> Huh. I think It might be better if you add smth. like
+> Original driver used DMA only if user specified INT gpio in platform
+> data, now DMA is used unconditionally and PIO mode is used as fallback.
 > 
-> struct omap_dm_timer *dm_timer = of_omap_dm_timer_get(parent_np, "ti,timers", idx);
+> In case anyone wants to give it a try, few DT related changes are needed:
+> - onenand node needs 'ti,omap2-onenand' compatible (for mailine boards this is
+>   done in patch 2)
+> - to use INT pin, int-gpios needs to be specified (for n900 and n8x0 this is
+>   done in patch 16, however patch lacks pinmux configuration.
 > 
-> struct omap_dm_timer_ops *pdata = omap_dm_timer_get_ops(dm_timer);
+> Most notable changes from v3:
+> - added dmaengine patches by Peter Ujfalusi
+> - added dt bindings documentation
+> - added cleanup patches
+> - DMA enabled by default
 > 
-> so all DT and platdata implementation details will be hidden.
+> Most notable changes from v4:
+> - collected tags
+> - used INT pin name properly
+> - hopefully all comments taken into account
+> 
+> Also note that driver will fail probe OneNAND chip after patch 13 and start
+> working again after patch 14.
 
-Grygorii,
-
-This driver is already fetching:
-
-omap->dm_timer_pdev = of_find_device_by_node(timer);
-
-It stores dm_timer_pdev in struct pwm_omap_dmtimer_chip.
-So we already need:
-timer = of_parse_phandle(np, "ti,timers", 0);
-and
-omap->dm_timer_pdev = of_find_device_by_node(timer);
-
-So why not just do:
-
-struct omap_dm_timer_ops *pdata =
-omap_dm_timer_get_ops(omap->dm_timer_pdev);
-
-Regards,
-Keerthy
+Well, breaking bisectability is never a good thing, this being said, I
+won't complain if TI maintainers are okay with that.
 
 > 
-> 
->>   
->> -	if (!pdata->request_by_node ||
->> +	pdata = timer_pdata->timer_ops;
->> +
->> +	if (!pdata || !pdata->request_by_node ||
->>   	    !pdata->free ||
->>   	    !pdata->enable ||
->>   	    !pdata->disable ||
->> @@ -270,10 +285,6 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->>   		return -EINVAL;
->>   	}
->>   
->> -	timer = of_parse_phandle(np, "ti,timers", 0);
->> -	if (!timer)
->> -		return -ENODEV;
->> -
->>   	if (!of_get_property(timer, "ti,timer-pwm", NULL)) {
->>   		dev_err(&pdev->dev, "Missing ti,timer-pwm capability\n");
->>   		return -ENODEV;
->> @@ -291,13 +302,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->>   
->>   	omap->pdata = pdata;
->>   	omap->dm_timer = dm_timer;
->> -
->> -	omap->dm_timer_pdev = of_find_device_by_node(timer);
->> -	if (!omap->dm_timer_pdev) {
->> -		dev_err(&pdev->dev, "Unable to find timer pdev\n");
->> -		omap->pdata->free(dm_timer);
->> -		return -EINVAL;
->> -	}
->> +	omap->dm_timer_pdev = timer_pdev;
+> Testing and benchmarking very welcome.
 
-Here we need timer_pdev anyways.
+Let me know when you think this series is ready to be merged.
 
->>   
->>   	/*
->>   	 * Ensure that the timer is stopped before we allow PWM core to call
->>
 > 
+> Depends on "memory: omap-gpmc: Make 'bank-width' property optional"
+> https://patchwork.kernel.org/patch/10043259/
+
+Hm, I see this patch has been applied to the omap tree, so maybe it's
+simpler if everything goes through this tree. I don't plan to modify
+onenand related stuff in this release anyway.
+
+> 
+> Ladislav Michl (14):
+>   dt-bindings: mtd: gpmc-onenand: Update properties description
+>   ARM: dts: OMAP2+: Add compatible property to onenand node
+>   ARM: dts: omap3-igep: Update onenand node timings
+>   mtd: onenand: omap2: Remove regulator support
+>   mtd: onenand: omap2: Remove skip initial unlocking support
+>   mtd: onenand: omap2: Remove partitioning support from platform data
+>   mtd: onenand: omap2: Account waiting time as waiting on IO
+>   mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA implementation
+>   mtd: onenand: omap2: Do not make delay for GPIO OMAP3 specific
+>   mtd: onenand: omap2: Decouple DMA enabling from INT pin availability
+>   memory: omap-gpmc: Refactor OneNAND support
+>   mtd: onenand: omap2: Configure driver from DT
+>   ARM: OMAP2+: Remove gpmc-onenand
+>   ARM: dts: Nokia: Use OneNAND INT pin
+> 
+> Peter Ujfalusi (2):
+>   mtd: onenand: omap2: Simplify the DMA setup for various paths
+>   mtd: onenand: omap2: Convert to use dmaengine for memcpy
+> 
+>  .../devicetree/bindings/mtd/gpmc-onenand.txt       |   6 +-
+>  arch/arm/boot/dts/omap2420-n8x0-common.dtsi        |   5 +-
+>  arch/arm/boot/dts/omap3-igep.dtsi                  |  30 +-
+>  arch/arm/boot/dts/omap3-n900.dts                   |   3 +-
+>  arch/arm/boot/dts/omap3-n950-n9.dtsi               |   1 +
+>  arch/arm/boot/dts/omap3430-sdp.dts                 |   1 +
+>  arch/arm/mach-omap2/Makefile                       |   3 -
+>  arch/arm/mach-omap2/gpmc-onenand.c                 | 409 ---------------
+>  drivers/memory/omap-gpmc.c                         | 158 ++++--
+>  drivers/mtd/onenand/Kconfig                        |   3 +-
+>  drivers/mtd/onenand/omap2.c                        | 576 ++++++++-------------
+>  include/linux/omap-gpmc.h                          |  28 +
+>  include/linux/platform_data/mtd-onenand-omap2.h    |  34 --
+>  13 files changed, 387 insertions(+), 870 deletions(-)
+>  delete mode 100644 arch/arm/mach-omap2/gpmc-onenand.c
+>  delete mode 100644 include/linux/platform_data/mtd-onenand-omap2.h
+> 
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
