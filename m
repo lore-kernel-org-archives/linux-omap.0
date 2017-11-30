@@ -1,76 +1,94 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 0/4] Fixes for omapdrm on OpenPandora and GTA04
-Date: Thu, 30 Nov 2017 07:27:18 -0800
-Message-ID: <20171130152718.GN28152@atomide.com>
-References: <cover.1511884135.git.hns@goldelico.com>
- <27b12bc8-2c3a-6caa-c800-158b75f80d3f@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
+Date: Thu, 30 Nov 2017 08:09:36 -0800
+Message-ID: <20171130160936.GO28152@atomide.com>
+References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
+ <20171130111840.41c92d34@bbrezillon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <27b12bc8-2c3a-6caa-c800-158b75f80d3f-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
-Cc: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Sean Paul <seanpaul-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org
+In-Reply-To: <20171130111840.41c92d34@bbrezillon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: Ladislav Michl <ladis@linux-mips.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [171130 10:56]:
-> On 28/11/17 17:48, H. Nikolaus Schaller wrote:
-> > Changes V3:
-> > * stay compatible with old DTB files which still use "toppoly" (suggested by Tomi Valkeinen)
-> > * replaced MODULE_ALIAS entries by MODULE_DEVICE_TABLE (suggested by Andrew F. Davis)
-> > * removed DSI VDDS patch as it has already been accepted
-> > 
-> > 2017-11-16 09:50:22: Changes V2:
-> > * replaced patch to fix DSI VDDS for OMAP3 by equivalent patch from Laurent Pinchart
-> > * keep previous compatibility option in panel driver to handle older device tree binaries
-> > 
-> > 2017-11-08 22:09:36:
-> > This patch set fixes vendor names of the panels
-> > and fixes a problem on omapdrm with enabling
-> > VDD_DSI for OMAP3 which is needed for displaying
-> > the Red and Green channel on OMAP3530 (Pandora).
-> > 
-> > H. Nikolaus Schaller (4):
-> >   omapdrm: panel: fix compatible vendor string for td028ttec1
-> >   omapdrm: panel: td028ttec1: replace MODULE_ALIAS by
-> >     MODULE_DEVICE_TABLE
-> >   DTS: GTA04: fix panel compatibility string
-> >   DTS: Pandora: fix panel compatibility string
-> > 
-> >  .../panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt}    |  4 ++--
-> >  arch/arm/boot/dts/omap3-gta04.dtsi                          |  2 +-
-> >  arch/arm/boot/dts/omap3-pandora-common.dtsi                 |  2 +-
-> >  drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c     | 13 ++++++++++++-
-> >  .../fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c      | 12 +++++++++++-
-> >  5 files changed, 27 insertions(+), 6 deletions(-)
-> >  rename Documentation/devicetree/bindings/display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt} (84%)
-> > 
+* Boris Brezillon <boris.brezillon@free-electrons.com> [171130 10:21]:
+> On Wed, 15 Nov 2017 17:23:06 +0100
+> Ladislav Michl <ladis@linux-mips.org> wrote:
 > 
-> Thanks. I have picked up patches 1 and 2.
+> > this patch serie updates OMAP2+ OneNAND driver to the present times, making
+> > it fully DT configurable, using libgpio and dmaengine apis - those are
+> > optional, driver will work without them.
+> > 
+> > Please note that unlike previous driver version, which basically ignored
+> > DT specified timings, this one relies on it, so it is important to get
+> > it right in your DT (dumping it from previous kernel version).
+> > 
+> > In case synchronous timings is requested, it is okay to specify timings
+> > for the slowest chip ever used for you board as it is evetually optimized
+> > after chip probe.
+> > 
+> > Original driver used DMA only if user specified INT gpio in platform
+> > data, now DMA is used unconditionally and PIO mode is used as fallback.
+> > 
+> > In case anyone wants to give it a try, few DT related changes are needed:
+> > - onenand node needs 'ti,omap2-onenand' compatible (for mailine boards this is
+> >   done in patch 2)
+> > - to use INT pin, int-gpios needs to be specified (for n900 and n8x0 this is
+> >   done in patch 16, however patch lacks pinmux configuration.
+> > 
+> > Most notable changes from v3:
+> > - added dmaengine patches by Peter Ujfalusi
+> > - added dt bindings documentation
+> > - added cleanup patches
+> > - DMA enabled by default
+> > 
+> > Most notable changes from v4:
+> > - collected tags
+> > - used INT pin name properly
+> > - hopefully all comments taken into account
+> > 
+> > Also note that driver will fail probe OneNAND chip after patch 13 and start
+> > working again after patch 14.
 > 
-> 3 can be applied when 1 & 2 are in. The change in 4 could be applied
-> independently, but it conflicts with 3.
+> Well, breaking bisectability is never a good thing, this being said, I
+> won't complain if TI maintainers are okay with that.
+
+There should not be any reason to break git bisect for booting at all,
+what exactly is the issue here?
+
+> > Testing and benchmarking very welcome.
 > 
-> Tony, how do you want to handle 3 and 4? I will push 1 and 2 to v4.16. I
-> don't think they are real issues, so I don't see a reason to push them
-> as fixes to v4.15. I think they are mostly just cleanups, and we might
-> as well wait until v4.17, but that's quite far away...
+> Let me know when you think this series is ready to be merged.
 
-In general to avoid the huge hassle of cross tree dependencies and
-confusion if the dts changes are fixes, I suggest the following:
+Well we need Aaro to test this on n8x0 as my n800 is currently not
+booting at all.
 
-1. Nikolaus reposts the dts changes to not say word "fix" in them
-   and use "update to use new binding" or something similar to avoid
-   patches wrongly getting picked into earlier stable trees
+> > Depends on "memory: omap-gpmc: Make 'bank-width' property optional"
+> > https://patchwork.kernel.org/patch/10043259/
+> 
+> Hm, I see this patch has been applied to the omap tree, so maybe it's
+> simpler if everything goes through this tree. I don't plan to modify
+> onenand related stuff in this release anyway.
 
-2. Then I can ack the patches as they are just oneliners and
-   unlikely to conflict with anything else
+Maybe Roger can provide you with an immutable commit with just that
+patch?
 
 Regards,
 
 Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
