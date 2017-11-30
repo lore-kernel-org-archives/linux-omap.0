@@ -1,122 +1,80 @@
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
-Date: Thu, 30 Nov 2017 11:18:40 +0100
-Message-ID: <20171130111840.41c92d34@bbrezillon>
+From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v5 01/16] dt-bindings: mtd: gpmc-onenand: Update
+ properties description
+Date: Thu, 30 Nov 2017 11:25:44 +0100
+Message-ID: <20171130112544.5509ca1b@bbrezillon>
 References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
+        <20171115162458.rtompijrsaobdemk@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20171115162306.2o2w2yrf7wucroxd@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171115162458.rtompijrsaobdemk@lenoch>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Cc: linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Ladislav,
++Rob and the DT ML
 
-On Wed, 15 Nov 2017 17:23:06 +0100
-Ladislav Michl <ladis@linux-mips.org> wrote:
+On Wed, 15 Nov 2017 17:24:58 +0100
+Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> wrote:
 
-> this patch serie updates OMAP2+ OneNAND driver to the present times, making
-> it fully DT configurable, using libgpio and dmaengine apis - those are
-> optional, driver will work without them.
+> Compatible property is required for OMAP2+ mtd driver. Also
+> add INT pin gpio description and delete unused dma-channel
+> property.
 > 
-> Please note that unlike previous driver version, which basically ignored
-> DT specified timings, this one relies on it, so it is important to get
-> it right in your DT (dumping it from previous kernel version).
+> Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+> Reviewed-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+> Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> ---
 > 
-> In case synchronous timings is requested, it is okay to specify timings
-> for the slowest chip ever used for you board as it is evetually optimized
-> after chip probe.
+> Changes in v5:
+> - renamed R/B pin to INT pin
 > 
-> Original driver used DMA only if user specified INT gpio in platform
-> data, now DMA is used unconditionally and PIO mode is used as fallback.
+> Changes in v4:
+> - new patch
 > 
-> In case anyone wants to give it a try, few DT related changes are needed:
-> - onenand node needs 'ti,omap2-onenand' compatible (for mailine boards this is
->   done in patch 2)
-> - to use INT pin, int-gpios needs to be specified (for n900 and n8x0 this is
->   done in patch 16, however patch lacks pinmux configuration.
+> Changes in v3: None
+> Changes in v2: None
 > 
-> Most notable changes from v3:
-> - added dmaengine patches by Peter Ujfalusi
-> - added dt bindings documentation
-> - added cleanup patches
-> - DMA enabled by default
+>  Documentation/devicetree/bindings/mtd/gpmc-onenand.txt | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
 > 
-> Most notable changes from v4:
-> - collected tags
-> - used INT pin name properly
-> - hopefully all comments taken into account
-> 
-> Also note that driver will fail probe OneNAND chip after patch 13 and start
-> working again after patch 14.
+> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+> index b6e8bfd024f4..e9f01a963a0a 100644
+> --- a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+> +++ b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
+> @@ -9,13 +9,14 @@ Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
+>  
+>  Required properties:
+>  
+> + - compatible:		"ti,omap2-onenand"
 
-Well, breaking bisectability is never a good thing, this being said, I
-won't complain if TI maintainers are okay with that.
+Don't you break backward compat by adding this new requirement?
 
-> 
-> Testing and benchmarking very welcome.
+>   - reg:			The CS line the peripheral is connected to
+> - - gpmc,device-width	Width of the ONENAND device connected to the GPMC
+> + - gpmc,device-width:	Width of the ONENAND device connected to the GPMC
+>  			in bytes. Must be 1 or 2.
+>  
+>  Optional properties:
+>  
+> - - dma-channel:		DMA Channel index
+> + - int-gpios:		GPIO specifier for the INT pin.
+>  
+>  For inline partition table parsing (optional):
+>  
+> @@ -35,6 +36,7 @@ Example for an OMAP3430 board:
+>  		#size-cells = <1>;
+>  
+>  		onenand@0 {
+> +			compatible = "ti,omap2-onenand";
+>  			reg = <0 0 0>; /* CS0, offset 0 */
+>  			gpmc,device-width = <2>;
+>  
 
-Let me know when you think this series is ready to be merged.
-
-> 
-> Depends on "memory: omap-gpmc: Make 'bank-width' property optional"
-> https://patchwork.kernel.org/patch/10043259/
-
-Hm, I see this patch has been applied to the omap tree, so maybe it's
-simpler if everything goes through this tree. I don't plan to modify
-onenand related stuff in this release anyway.
-
-> 
-> Ladislav Michl (14):
->   dt-bindings: mtd: gpmc-onenand: Update properties description
->   ARM: dts: OMAP2+: Add compatible property to onenand node
->   ARM: dts: omap3-igep: Update onenand node timings
->   mtd: onenand: omap2: Remove regulator support
->   mtd: onenand: omap2: Remove skip initial unlocking support
->   mtd: onenand: omap2: Remove partitioning support from platform data
->   mtd: onenand: omap2: Account waiting time as waiting on IO
->   mtd: onenand: omap2: Unify OMAP2 and OMAP3 DMA implementation
->   mtd: onenand: omap2: Do not make delay for GPIO OMAP3 specific
->   mtd: onenand: omap2: Decouple DMA enabling from INT pin availability
->   memory: omap-gpmc: Refactor OneNAND support
->   mtd: onenand: omap2: Configure driver from DT
->   ARM: OMAP2+: Remove gpmc-onenand
->   ARM: dts: Nokia: Use OneNAND INT pin
-> 
-> Peter Ujfalusi (2):
->   mtd: onenand: omap2: Simplify the DMA setup for various paths
->   mtd: onenand: omap2: Convert to use dmaengine for memcpy
-> 
->  .../devicetree/bindings/mtd/gpmc-onenand.txt       |   6 +-
->  arch/arm/boot/dts/omap2420-n8x0-common.dtsi        |   5 +-
->  arch/arm/boot/dts/omap3-igep.dtsi                  |  30 +-
->  arch/arm/boot/dts/omap3-n900.dts                   |   3 +-
->  arch/arm/boot/dts/omap3-n950-n9.dtsi               |   1 +
->  arch/arm/boot/dts/omap3430-sdp.dts                 |   1 +
->  arch/arm/mach-omap2/Makefile                       |   3 -
->  arch/arm/mach-omap2/gpmc-onenand.c                 | 409 ---------------
->  drivers/memory/omap-gpmc.c                         | 158 ++++--
->  drivers/mtd/onenand/Kconfig                        |   3 +-
->  drivers/mtd/onenand/omap2.c                        | 576 ++++++++-------------
->  include/linux/omap-gpmc.h                          |  28 +
->  include/linux/platform_data/mtd-onenand-omap2.h    |  34 --
->  13 files changed, 387 insertions(+), 870 deletions(-)
->  delete mode 100644 arch/arm/mach-omap2/gpmc-onenand.c
->  delete mode 100644 include/linux/platform_data/mtd-onenand-omap2.h
-> 
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
