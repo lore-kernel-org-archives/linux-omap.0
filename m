@@ -1,80 +1,65 @@
-From: Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v5 01/16] dt-bindings: mtd: gpmc-onenand: Update
- properties description
-Date: Thu, 30 Nov 2017 11:25:44 +0100
-Message-ID: <20171130112544.5509ca1b@bbrezillon>
-References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
-        <20171115162458.rtompijrsaobdemk@lenoch>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 0/4] Fixes for omapdrm on OpenPandora and GTA04
+Date: Thu, 30 Nov 2017 12:54:07 +0200
+Message-ID: <27b12bc8-2c3a-6caa-c800-158b75f80d3f@ti.com>
+References: <cover.1511884135.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171115162458.rtompijrsaobdemk@lenoch>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Cc: linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1511884135.git.hns@goldelico.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>
+Cc: devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-+Rob and the DT ML
-
-On Wed, 15 Nov 2017 17:24:58 +0100
-Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org> wrote:
-
-> Compatible property is required for OMAP2+ mtd driver. Also
-> add INT pin gpio description and delete unused dma-channel
-> property.
-> 
-> Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-> Reviewed-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-> Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> ---
-> 
-> Changes in v5:
-> - renamed R/B pin to INT pin
-> 
-> Changes in v4:
-> - new patch
-> 
-> Changes in v3: None
-> Changes in v2: None
-> 
->  Documentation/devicetree/bindings/mtd/gpmc-onenand.txt | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-> index b6e8bfd024f4..e9f01a963a0a 100644
-> --- a/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-> +++ b/Documentation/devicetree/bindings/mtd/gpmc-onenand.txt
-> @@ -9,13 +9,14 @@ Documentation/devicetree/bindings/memory-controllers/omap-gpmc.txt
->  
->  Required properties:
->  
-> + - compatible:		"ti,omap2-onenand"
-
-Don't you break backward compat by adding this new requirement?
-
->   - reg:			The CS line the peripheral is connected to
-> - - gpmc,device-width	Width of the ONENAND device connected to the GPMC
-> + - gpmc,device-width:	Width of the ONENAND device connected to the GPMC
->  			in bytes. Must be 1 or 2.
->  
->  Optional properties:
->  
-> - - dma-channel:		DMA Channel index
-> + - int-gpios:		GPIO specifier for the INT pin.
->  
->  For inline partition table parsing (optional):
->  
-> @@ -35,6 +36,7 @@ Example for an OMAP3430 board:
->  		#size-cells = <1>;
->  
->  		onenand@0 {
-> +			compatible = "ti,omap2-onenand";
->  			reg = <0 0 0>; /* CS0, offset 0 */
->  			gpmc,device-width = <2>;
->  
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMjgvMTEvMTcgMTc6NDgsIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOgo+IENoYW5nZXMg
+VjM6Cj4gKiBzdGF5IGNvbXBhdGlibGUgd2l0aCBvbGQgRFRCIGZpbGVzIHdoaWNoIHN0aWxsIHVz
+ZSAidG9wcG9seSIgKHN1Z2dlc3RlZCBieSBUb21pIFZhbGtlaW5lbikKPiAqIHJlcGxhY2VkIE1P
+RFVMRV9BTElBUyBlbnRyaWVzIGJ5IE1PRFVMRV9ERVZJQ0VfVEFCTEUgKHN1Z2dlc3RlZCBieSBB
+bmRyZXcgRi4gRGF2aXMpCj4gKiByZW1vdmVkIERTSSBWRERTIHBhdGNoIGFzIGl0IGhhcyBhbHJl
+YWR5IGJlZW4gYWNjZXB0ZWQKPiAKPiAyMDE3LTExLTE2IDA5OjUwOjIyOiBDaGFuZ2VzIFYyOgo+
+ICogcmVwbGFjZWQgcGF0Y2ggdG8gZml4IERTSSBWRERTIGZvciBPTUFQMyBieSBlcXVpdmFsZW50
+IHBhdGNoIGZyb20gTGF1cmVudCBQaW5jaGFydAo+ICoga2VlcCBwcmV2aW91cyBjb21wYXRpYmls
+aXR5IG9wdGlvbiBpbiBwYW5lbCBkcml2ZXIgdG8gaGFuZGxlIG9sZGVyIGRldmljZSB0cmVlIGJp
+bmFyaWVzCj4gCj4gMjAxNy0xMS0wOCAyMjowOTozNjoKPiBUaGlzIHBhdGNoIHNldCBmaXhlcyB2
+ZW5kb3IgbmFtZXMgb2YgdGhlIHBhbmVscwo+IGFuZCBmaXhlcyBhIHByb2JsZW0gb24gb21hcGRy
+bSB3aXRoIGVuYWJsaW5nCj4gVkREX0RTSSBmb3IgT01BUDMgd2hpY2ggaXMgbmVlZGVkIGZvciBk
+aXNwbGF5aW5nCj4gdGhlIFJlZCBhbmQgR3JlZW4gY2hhbm5lbCBvbiBPTUFQMzUzMCAoUGFuZG9y
+YSkuCj4gCj4gSC4gTmlrb2xhdXMgU2NoYWxsZXIgKDQpOgo+ICAgb21hcGRybTogcGFuZWw6IGZp
+eCBjb21wYXRpYmxlIHZlbmRvciBzdHJpbmcgZm9yIHRkMDI4dHRlYzEKPiAgIG9tYXBkcm06IHBh
+bmVsOiB0ZDAyOHR0ZWMxOiByZXBsYWNlIE1PRFVMRV9BTElBUyBieQo+ICAgICBNT0RVTEVfREVW
+SUNFX1RBQkxFCj4gICBEVFM6IEdUQTA0OiBmaXggcGFuZWwgY29tcGF0aWJpbGl0eSBzdHJpbmcK
+PiAgIERUUzogUGFuZG9yYTogZml4IHBhbmVsIGNvbXBhdGliaWxpdHkgc3RyaW5nCj4gCj4gIC4u
+Li9wYW5lbC97dG9wcG9seSx0ZDAyOHR0ZWMxLnR4dCA9PiB0cG8sdGQwMjh0dGVjMS50eHR9ICAg
+IHwgIDQgKystLQo+ICBhcmNoL2FybS9ib290L2R0cy9vbWFwMy1ndGEwNC5kdHNpICAgICAgICAg
+ICAgICAgICAgICAgICAgICB8ICAyICstCj4gIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLXBhbmRv
+cmEtY29tbW9uLmR0c2kgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy9ncHUvZHJt
+L29tYXBkcm0vZGlzcGxheXMvcGFuZWwtdHBvLXRkMDI4dHRlYzEuYyAgICAgfCAxMyArKysrKysr
+KysrKystCj4gIC4uLi9mYmRldi9vbWFwMi9vbWFwZmIvZGlzcGxheXMvcGFuZWwtdHBvLXRkMDI4
+dHRlYzEuYyAgICAgIHwgMTIgKysrKysrKysrKystCj4gIDUgZmlsZXMgY2hhbmdlZCwgMjcgaW5z
+ZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKPiAgcmVuYW1lIERvY3VtZW50YXRpb24vZGV2aWNl
+dHJlZS9iaW5kaW5ncy9kaXNwbGF5L3BhbmVsL3t0b3Bwb2x5LHRkMDI4dHRlYzEudHh0ID0+IHRw
+byx0ZDAyOHR0ZWMxLnR4dH0gKDg0JSkKPiAKClRoYW5rcy4gSSBoYXZlIHBpY2tlZCB1cCBwYXRj
+aGVzIDEgYW5kIDIuCgozIGNhbiBiZSBhcHBsaWVkIHdoZW4gMSAmIDIgYXJlIGluLiBUaGUgY2hh
+bmdlIGluIDQgY291bGQgYmUgYXBwbGllZAppbmRlcGVuZGVudGx5LCBidXQgaXQgY29uZmxpY3Rz
+IHdpdGggMy4KClRvbnksIGhvdyBkbyB5b3Ugd2FudCB0byBoYW5kbGUgMyBhbmQgND8gSSB3aWxs
+IHB1c2ggMSBhbmQgMiB0byB2NC4xNi4gSQpkb24ndCB0aGluayB0aGV5IGFyZSByZWFsIGlzc3Vl
+cywgc28gSSBkb24ndCBzZWUgYSByZWFzb24gdG8gcHVzaCB0aGVtCmFzIGZpeGVzIHRvIHY0LjE1
+LiBJIHRoaW5rIHRoZXkgYXJlIG1vc3RseSBqdXN0IGNsZWFudXBzLCBhbmQgd2UgbWlnaHQKYXMg
+d2VsbCB3YWl0IHVudGlsIHY0LjE3LCBidXQgdGhhdCdzIHF1aXRlIGZhciBhd2F5Li4uCgogVG9t
+aQoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAw
+MTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2th
+L0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVz
+a3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
+cmktZGV2ZWwK
