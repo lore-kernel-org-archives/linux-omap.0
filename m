@@ -1,86 +1,160 @@
-From: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: DRA76-EVM: Set powerhold property for tps65917
-Date: Thu, 30 Nov 2017 09:44:22 +0530
-Message-ID: <84542ce8-6e36-59a6-224c-b51c05d9866e@ti.com>
-References: <1508834648-28715-1-git-send-email-j-keerthy@ti.com>
- <20171025165219.GO4394@atomide.com>
- <30907da7-a80c-4718-dd9a-17cb22669eb5@ti.com>
- <20171026141707.GE21504@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v3 8/9] pwm: pwm-omap-dmtimer: Adapt driver to utilize
+ dmtimer pdata ops
+Date: Thu, 30 Nov 2017 15:06:27 +0530
+Message-ID: <e632a727-1067-7767-1646-f49ec0f8c2ec@ti.com>
+References: <1510806222-22096-1-git-send-email-j-keerthy@ti.com>
+ <1510806222-22096-9-git-send-email-j-keerthy@ti.com>
+ <2c5e3e04-9940-43c3-62b1-8cef7d22c5e1@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171026141707.GE21504-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <2c5e3e04-9940-43c3-62b1-8cef7d22c5e1@ti.com>
 Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, t-kristo-l0cyMroinI0@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Sender: linux-pwm-owner@vger.kernel.org
+To: "Strashko, Grygorii" <grygorii.strashko@ti.com>, "tony@atomide.com" <tony@atomide.com>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>
+Cc: "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pwm@vger.kernel.org" <linux-pwm@vger.kernel.org>, "sebastian.reichel@collabora.co.uk" <sebastian.reichel@collabora.co.uk>, "ladis@linux-mips.org" <ladis@linux-mips.org>
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On Thursday 26 October 2017 07:47 PM, Tony Lindgren wrote:
-> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [171025 23:31]:
->>
->>
->> On Wednesday 25 October 2017 10:22 PM, Tony Lindgren wrote:
->>> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [171024 01:46]:
->>>> Set powerhold property for tps65917
->>>>
->>>> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->>>
->>> Is this safe to merge separately before the driver changes?
->>
->> This needs to wait till [1] is merged. I should have mentioned this.
->>
->> I will ping on this as soon as the dependent patch is merged.
+On Tuesday 28 November 2017 11:57 PM, Strashko, Grygorii wrote:
 > 
-> OK thanks will untag this patch from my inbox for now then.
-
-Tony,
-
-The dependent driver patch [1] is pulled by Lee Jones.
-So this patch is okay to be applied.
-
-[1] https://patchwork.kernel.org/patch/10023635/
-
-- Keerthy
-
 > 
-> Regards,
-> 
-> Tony
-> 
->> [1] https://marc.info/?l=linux-omap&m=150883331614239&w=2
+> On 11/15/2017 10:23 PM, Keerthy wrote:
+>> Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
 >>
->> Thanks,
->> Keerthy
+>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>> ---
 >>
->>>
->>> Regards,
->>>
->>> Tony
->>>
->>>> ---
->>>>  arch/arm/boot/dts/dra76-evm.dts | 1 +
->>>>  1 file changed, 1 insertion(+)
->>>>
->>>> diff --git a/arch/arm/boot/dts/dra76-evm.dts b/arch/arm/boot/dts/dra76-evm.dts
->>>> index b024a65..f64aab4 100644
->>>> --- a/arch/arm/boot/dts/dra76-evm.dts
->>>> +++ b/arch/arm/boot/dts/dra76-evm.dts
->>>> @@ -148,6 +148,7 @@
->>>>  		compatible = "ti,tps65917";
->>>>  		reg = <0x58>;
->>>>  		ti,system-power-controller;
->>>> +		ti,palmas-override-powerhold;
->>>>  		interrupt-controller;
->>>>  		#interrupt-cells = <2>;
->>>>  
->>>> -- 
->>>> 1.9.1
->>>>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Changes in v3:
+>>
+>>    * Used of_find_platdata_by_node function to fetch platform
+>>      data for timer node.
+>>
+>>   drivers/pwm/pwm-omap-dmtimer.c | 39 ++++++++++++++++++++++-----------------
+>>   1 file changed, 22 insertions(+), 17 deletions(-)
+>>
+>> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+>> index 5ad42f3..2caf46b 100644
+>> --- a/drivers/pwm/pwm-omap-dmtimer.c
+>> +++ b/drivers/pwm/pwm-omap-dmtimer.c
+>> @@ -23,6 +23,7 @@
+>>   #include <linux/mutex.h>
+>>   #include <linux/of.h>
+>>   #include <linux/of_platform.h>
+>> +#include <linux/platform_data/dmtimer-omap.h>
+>>   #include <linux/platform_data/pwm_omap_dmtimer.h>
+>>   #include <linux/platform_device.h>
+>>   #include <linux/pm_runtime.h>
+>> @@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
+>>   	struct pwm_chip chip;
+>>   	struct mutex mutex;
+>>   	pwm_omap_dmtimer *dm_timer;
+>> -	struct pwm_omap_dmtimer_pdata *pdata;
+>> +	struct omap_dm_timer_ops *pdata;
+>>   	struct platform_device *dm_timer_pdev;
+>>   };
+>>   
+>> @@ -242,19 +243,33 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+>>   {
+>>   	struct device_node *np = pdev->dev.of_node;
+>>   	struct device_node *timer;
+>> +	struct platform_device *timer_pdev;
+>>   	struct pwm_omap_dmtimer_chip *omap;
+>> -	struct pwm_omap_dmtimer_pdata *pdata;
+>> +	struct dmtimer_platform_data *timer_pdata;
+>> +	struct omap_dm_timer_ops *pdata;
+>>   	pwm_omap_dmtimer *dm_timer;
+>>   	u32 v;
+>>   	int status;
+>>   
+>> -	pdata = dev_get_platdata(&pdev->dev);
+>> -	if (!pdata) {
+>> -		dev_err(&pdev->dev, "Missing dmtimer platform data\n");
+>> +	timer = of_parse_phandle(np, "ti,timers", 0);
+>> +	if (!timer)
+>> +		return -ENODEV;
+>> +
+>> +	timer_pdev = of_find_device_by_node(timer);
+>> +	if (!timer_pdev) {
+>> +		dev_err(&pdev->dev, "Unable to find Timer pdev\n");
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	timer_pdata = of_find_platdata_by_node(timer);
+>> +	if (!timer_pdata) {
+>> +		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
+>>   		return -EINVAL;
+>>   	}
+> 
+> Huh. I think It might be better if you add smth. like
+> 
+> struct omap_dm_timer *dm_timer = of_omap_dm_timer_get(parent_np, "ti,timers", idx);
+> 
+> struct omap_dm_timer_ops *pdata = omap_dm_timer_get_ops(dm_timer);
+> 
+> so all DT and platdata implementation details will be hidden.
+
+Grygorii,
+
+This driver is already fetching:
+
+omap->dm_timer_pdev = of_find_device_by_node(timer);
+
+It stores dm_timer_pdev in struct pwm_omap_dmtimer_chip.
+So we already need:
+timer = of_parse_phandle(np, "ti,timers", 0);
+and
+omap->dm_timer_pdev = of_find_device_by_node(timer);
+
+So why not just do:
+
+struct omap_dm_timer_ops *pdata =
+omap_dm_timer_get_ops(omap->dm_timer_pdev);
+
+Regards,
+Keerthy
+
+> 
+> 
+>>   
+>> -	if (!pdata->request_by_node ||
+>> +	pdata = timer_pdata->timer_ops;
+>> +
+>> +	if (!pdata || !pdata->request_by_node ||
+>>   	    !pdata->free ||
+>>   	    !pdata->enable ||
+>>   	    !pdata->disable ||
+>> @@ -270,10 +285,6 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+>>   		return -EINVAL;
+>>   	}
+>>   
+>> -	timer = of_parse_phandle(np, "ti,timers", 0);
+>> -	if (!timer)
+>> -		return -ENODEV;
+>> -
+>>   	if (!of_get_property(timer, "ti,timer-pwm", NULL)) {
+>>   		dev_err(&pdev->dev, "Missing ti,timer-pwm capability\n");
+>>   		return -ENODEV;
+>> @@ -291,13 +302,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+>>   
+>>   	omap->pdata = pdata;
+>>   	omap->dm_timer = dm_timer;
+>> -
+>> -	omap->dm_timer_pdev = of_find_device_by_node(timer);
+>> -	if (!omap->dm_timer_pdev) {
+>> -		dev_err(&pdev->dev, "Unable to find timer pdev\n");
+>> -		omap->pdata->free(dm_timer);
+>> -		return -EINVAL;
+>> -	}
+>> +	omap->dm_timer_pdev = timer_pdev;
+
+Here we need timer_pdev anyways.
+
+>>   
+>>   	/*
+>>   	 * Ensure that the timer is stopped before we allow PWM core to call
+>>
+> 
