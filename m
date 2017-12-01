@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 01/11] net: ethernet: ti: cpsw: drop unused var poll from cpsw_update_channels_res
-Date: Thu, 30 Nov 2017 18:21:10 -0600
-Message-ID: <20171201002120.13483-2-grygorii.strashko@ti.com>
+Subject: [PATCH net-next 07/11] net: ethernet: ti: ale: disable ale from stop()
+Date: Thu, 30 Nov 2017 18:21:16 -0600
+Message-ID: <20171201002120.13483-8-grygorii.strashko@ti.com>
 References: <20171201002120.13483-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,37 +12,35 @@ To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Drop unused variable "poll" from cpsw_update_channels_res().
+ALE is enabled from cpsw_ale_start() now, but disabled only from
+cpsw_ale_destroy() which introduces inconsitance as cpsw_ale_start() is
+called when netif[s] is opened, but cpsw_ale_destroy() is called when
+driver is removed. Hence, move ALE disabling in cpsw_ale_stop().
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/net/ethernet/ti/cpsw_ale.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index a73600d..523c110 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -2298,7 +2298,6 @@ static int cpsw_check_ch_settings(struct cpsw_common *cpsw,
- 
- static int cpsw_update_channels_res(struct cpsw_priv *priv, int ch_num, int rx)
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+index fca5c29..5eaaf88 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.c
++++ b/drivers/net/ethernet/ti/cpsw_ale.c
+@@ -870,6 +870,7 @@ EXPORT_SYMBOL_GPL(cpsw_ale_start);
+ void cpsw_ale_stop(struct cpsw_ale *ale)
  {
--	int (*poll)(struct napi_struct *, int);
- 	struct cpsw_common *cpsw = priv->cpsw;
- 	void (*handler)(void *, int, int);
- 	struct netdev_queue *queue;
-@@ -2309,12 +2308,10 @@ static int cpsw_update_channels_res(struct cpsw_priv *priv, int ch_num, int rx)
- 		ch = &cpsw->rx_ch_num;
- 		vec = cpsw->rxv;
- 		handler = cpsw_rx_handler;
--		poll = cpsw_rx_poll;
- 	} else {
- 		ch = &cpsw->tx_ch_num;
- 		vec = cpsw->txv;
- 		handler = cpsw_tx_handler;
--		poll = cpsw_tx_poll;
- 	}
+ 	del_timer_sync(&ale->timer);
++	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
+ }
+ EXPORT_SYMBOL_GPL(cpsw_ale_stop);
  
- 	while (*ch < ch_num) {
+@@ -892,7 +893,6 @@ int cpsw_ale_destroy(struct cpsw_ale *ale)
+ {
+ 	if (!ale)
+ 		return -EINVAL;
+-	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
+ 	kfree(ale);
+ 	return 0;
+ }
 -- 
 2.10.5
