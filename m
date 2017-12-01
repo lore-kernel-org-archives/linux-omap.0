@@ -1,72 +1,44 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v4 6/8] clocksource: dmtimer: Populate the timer ops to the pdata
-Date: Fri, 1 Dec 2017 10:46:35 +0530
-Message-ID: <1512105397-2544-7-git-send-email-j-keerthy@ti.com>
-References: <1512105397-2544-1-git-send-email-j-keerthy@ti.com>
+From: Vignesh R <vigneshr@ti.com>
+Subject: [PATCH 3/4] ARM: dts: dra7: Add DT property to allow unaligned mem access to PCIe RC
+Date: Fri, 1 Dec 2017 11:43:10 +0530
+Message-ID: <20171201061311.16691-4-vigneshr@ti.com>
+References: <20171201061311.16691-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1512105397-2544-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
-Cc: t-kristo@ti.com, linux@armlinux.org.uk, grygorii.strashko@ti.com, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, ladis@linux-mips.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171201061311.16691-1-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Chris Welch <Chris.Welch@viavisolutions.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add the timer ops to the platform data
+Add ti,syscon-unaligned-access property to PCIe RC nodes in order to
+enable workaround for errata i870 in PCIe RC mode as well.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Signed-off-by: Vignesh R <vigneshr@ti.com>
 ---
+ arch/arm/boot/dts/dra7.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Changes in v3:
-
-  * Added Sebastian's Reviewed-by.
-
-Changes in v2:
-
-  * No code changes in this v2 version. Only enhanced patch
-    statistics for renames.
-
- drivers/clocksource/dmtimer.c | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
-
-diff --git a/drivers/clocksource/dmtimer.c b/drivers/clocksource/dmtimer.c
-index afe1dc9..1cbd954 100644
---- a/drivers/clocksource/dmtimer.c
-+++ b/drivers/clocksource/dmtimer.c
-@@ -922,8 +922,33 @@ static int omap_dm_timer_remove(struct platform_device *pdev)
- 	return ret;
- }
- 
-+static struct omap_dm_timer_ops dmtimer_ops = {
-+	.request_by_node = omap_dm_timer_request_by_node,
-+	.request_specific = omap_dm_timer_request_specific,
-+	.request = omap_dm_timer_request,
-+	.set_source = omap_dm_timer_set_source,
-+	.get_irq = omap_dm_timer_get_irq,
-+	.set_int_enable = omap_dm_timer_set_int_enable,
-+	.set_int_disable = omap_dm_timer_set_int_disable,
-+	.free = omap_dm_timer_free,
-+	.enable = omap_dm_timer_enable,
-+	.disable = omap_dm_timer_disable,
-+	.get_fclk = omap_dm_timer_get_fclk,
-+	.start = omap_dm_timer_start,
-+	.stop = omap_dm_timer_stop,
-+	.set_load = omap_dm_timer_set_load,
-+	.set_match = omap_dm_timer_set_match,
-+	.set_pwm = omap_dm_timer_set_pwm,
-+	.set_prescaler = omap_dm_timer_set_prescaler,
-+	.read_counter = omap_dm_timer_read_counter,
-+	.write_counter = omap_dm_timer_write_counter,
-+	.read_status = omap_dm_timer_read_status,
-+	.write_status = omap_dm_timer_write_status,
-+};
-+
- static const struct dmtimer_platform_data omap3plus_pdata = {
- 	.timer_errata = OMAP_TIMER_ERRATA_I103_I767,
-+	.timer_ops = &dmtimer_ops,
- };
- 
- static const struct of_device_id omap_timer_match[] = {
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index ac9216293b7c..e4182f4cc36d 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -314,6 +314,7 @@
+ 						<0 0 0 2 &pcie1_intc 2>,
+ 						<0 0 0 3 &pcie1_intc 3>,
+ 						<0 0 0 4 &pcie1_intc 4>;
++				ti,syscon-unaligned-access = <&scm_conf1 0x14 2>;
+ 				status = "disabled";
+ 				pcie1_intc: interrupt-controller {
+ 					interrupt-controller;
+@@ -367,6 +368,7 @@
+ 						<0 0 0 2 &pcie2_intc 2>,
+ 						<0 0 0 3 &pcie2_intc 3>,
+ 						<0 0 0 4 &pcie2_intc 4>;
++				ti,syscon-unaligned-access = <&scm_conf1 0x14 1>;
+ 				pcie2_intc: interrupt-controller {
+ 					interrupt-controller;
+ 					#address-cells = <0>;
 -- 
-1.9.1
+2.15.0
