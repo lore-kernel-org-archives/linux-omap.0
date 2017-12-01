@@ -1,79 +1,68 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 04/11] net: ethernet: ti: cpsw: move mac_hi/lo defines in cpsw.h
-Date: Thu, 30 Nov 2017 18:21:13 -0600
-Message-ID: <20171201002120.13483-5-grygorii.strashko@ti.com>
-References: <20171201002120.13483-1-grygorii.strashko@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v3 1/4] omapdrm: panel: fix compatible vendor string for
+ td028ttec1
+Date: Thu, 30 Nov 2017 19:57:30 -0600
+Message-ID: <20171201015730.nvw6sblxn566dhhb@rob-hp-laptop>
+References: <cover.1511884135.git.hns@goldelico.com>
+ <6ae8f4b7d794c536650cc99025e5b026089cea30.1511884135.git.hns@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171201002120.13483-1-grygorii.strashko@ti.com>
+Content-Disposition: inline
+In-Reply-To: <6ae8f4b7d794c536650cc99025e5b026089cea30.1511884135.git.hns@goldelico.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
 List-Id: linux-omap@vger.kernel.org
 
-Move mac_hi/lo defines in common header cpsw.h and re-use
-them for netcp_ethss.c.
+On Tue, Nov 28, 2017 at 04:48:54PM +0100, H. Nikolaus Schaller wrote:
+> The vendor name was "toppoly" but other panels and the vendor list
+> have defined it as "tpo". So let's fix it in driver and bindings.
+> 
+> We keep the old definition in parallel to stay compatible with
+> potential older DTB setup.
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+>  .../display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt}      | 4 ++--
+>  drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c               | 3 +++
+>  drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c      | 3 +++
+>  3 files changed, 8 insertions(+), 2 deletions(-)
+>  rename Documentation/devicetree/bindings/display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt} (84%)
+> 
+> diff --git a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
+> similarity index 84%
+> rename from Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
+> rename to Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
+> index 7175dc3740ac..ed34253d9fb1 100644
+> --- a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
+> +++ b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
+> @@ -2,7 +2,7 @@ Toppoly TD028TTEC1 Panel
+>  ========================
+>  
+>  Required properties:
+> -- compatible: "toppoly,td028ttec1"
+> +- compatible: "tpo,td028ttec1"
+>  
+>  Optional properties:
+>  - label: a symbolic name for the panel
+> @@ -14,7 +14,7 @@ Example
+>  -------
+>  
+>  lcd-panel: td028ttec1@0 {
+> -	compatible = "toppoly,td028ttec1";
+> +	compatible = "tpo,td028ttec1";
+>  	reg = <0>;
+>  	spi-max-frequency = <100000>;
+>  	spi-cpol;
+> diff --git a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+> index 0a38a0e8c925..a0dfa14f4fab 100644
+> --- a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+> +++ b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
+> @@ -452,6 +452,8 @@ static int td028ttec1_panel_remove(struct spi_device *spi)
+>  }
+>  
+>  static const struct of_device_id td028ttec1_of_match[] = {
+> +	{ .compatible = "omapdss,tpo,td028ttec1", },
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/net/ethernet/ti/cpsw.c        | 4 ----
- drivers/net/ethernet/ti/cpsw.h        | 4 ++++
- drivers/net/ethernet/ti/netcp_ethss.c | 5 +----
- 3 files changed, 5 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 54c8758..2bf0bda 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -978,10 +978,6 @@ static inline void soft_reset(const char *module, void __iomem *reg)
- 	WARN(readl_relaxed(reg) & 1, "failed to soft-reset %s\n", module);
- }
- 
--#define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |	\
--			 ((mac)[2] << 16) | ((mac)[3] << 24))
--#define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
--
- static void cpsw_set_slave_mac(struct cpsw_slave *slave,
- 			       struct cpsw_priv *priv)
- {
-diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
-index a325f555..cf111db 100644
---- a/drivers/net/ethernet/ti/cpsw.h
-+++ b/drivers/net/ethernet/ti/cpsw.h
-@@ -17,6 +17,10 @@
- #include <linux/if_ether.h>
- #include <linux/phy.h>
- 
-+#define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |	\
-+			 ((mac)[2] << 16) | ((mac)[3] << 24))
-+#define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
-+
- void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave);
- int ti_cm_get_macid(struct device *dev, int slave, u8 *mac_addr);
- 
-diff --git a/drivers/net/ethernet/ti/netcp_ethss.c b/drivers/net/ethernet/ti/netcp_ethss.c
-index e831c49..12765e4 100644
---- a/drivers/net/ethernet/ti/netcp_ethss.c
-+++ b/drivers/net/ethernet/ti/netcp_ethss.c
-@@ -27,6 +27,7 @@
- #include <linux/net_tstamp.h>
- #include <linux/ethtool.h>
- 
-+#include "cpsw.h"
- #include "cpsw_ale.h"
- #include "netcp.h"
- #include "cpts.h"
-@@ -2047,10 +2048,6 @@ static const struct ethtool_ops keystone_ethtool_ops = {
- 	.get_ts_info		= keystone_get_ts_info,
- };
- 
--#define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |	\
--			 ((mac)[2] << 16) | ((mac)[3] << 24))
--#define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
--
- static void gbe_set_slave_mac(struct gbe_slave *slave,
- 			      struct gbe_intf *gbe_intf)
- {
--- 
-2.10.5
+Why the omapdss part?
