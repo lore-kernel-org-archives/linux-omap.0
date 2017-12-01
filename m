@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 06/11] net: ethernet: ti: ale: use proper io apis
-Date: Thu, 30 Nov 2017 18:21:15 -0600
-Message-ID: <20171201002120.13483-7-grygorii.strashko@ti.com>
+Subject: [PATCH net-next 02/11] net: ethernet: ti: cpsw: use proper io apis
+Date: Thu, 30 Nov 2017 18:21:11 -0600
+Message-ID: <20171201002120.13483-3-grygorii.strashko@ti.com>
 References: <20171201002120.13483-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -17,84 +17,127 @@ as it is recommended.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw_ale.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c | 36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index b432a75..fca5c29 100644
---- a/drivers/net/ethernet/ti/cpsw_ale.c
-+++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -150,11 +150,11 @@ static int cpsw_ale_read(struct cpsw_ale *ale, int idx, u32 *ale_entry)
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 523c110..f74a8fd 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -365,12 +365,12 @@ struct cpsw_slave {
  
- 	WARN_ON(idx > ale->params.ale_entries);
- 
--	__raw_writel(idx, ale->params.ale_regs + ALE_TABLE_CONTROL);
-+	writel_relaxed(idx, ale->params.ale_regs + ALE_TABLE_CONTROL);
- 
- 	for (i = 0; i < ALE_ENTRY_WORDS; i++)
--		ale_entry[i] = __raw_readl(ale->params.ale_regs +
--					   ALE_TABLE + 4 * i);
-+		ale_entry[i] = readl_relaxed(ale->params.ale_regs +
-+					     ALE_TABLE + 4 * i);
- 
- 	return idx;
- }
-@@ -166,11 +166,11 @@ static int cpsw_ale_write(struct cpsw_ale *ale, int idx, u32 *ale_entry)
- 	WARN_ON(idx > ale->params.ale_entries);
- 
- 	for (i = 0; i < ALE_ENTRY_WORDS; i++)
--		__raw_writel(ale_entry[i], ale->params.ale_regs +
--			     ALE_TABLE + 4 * i);
-+		writel_relaxed(ale_entry[i], ale->params.ale_regs +
-+			       ALE_TABLE + 4 * i);
- 
--	__raw_writel(idx | ALE_TABLE_WRITE, ale->params.ale_regs +
--		     ALE_TABLE_CONTROL);
-+	writel_relaxed(idx | ALE_TABLE_WRITE, ale->params.ale_regs +
-+		       ALE_TABLE_CONTROL);
- 
- 	return idx;
- }
-@@ -733,9 +733,9 @@ int cpsw_ale_control_set(struct cpsw_ale *ale, int port, int control,
- 	offset = info->offset + (port * info->port_offset);
- 	shift  = info->shift  + (port * info->port_shift);
- 
--	tmp = __raw_readl(ale->params.ale_regs + offset);
-+	tmp = readl_relaxed(ale->params.ale_regs + offset);
- 	tmp = (tmp & ~(mask << shift)) | (value << shift);
--	__raw_writel(tmp, ale->params.ale_regs + offset);
-+	writel_relaxed(tmp, ale->params.ale_regs + offset);
- 
- 	return 0;
- }
-@@ -760,7 +760,7 @@ int cpsw_ale_control_get(struct cpsw_ale *ale, int port, int control)
- 	offset = info->offset + (port * info->port_offset);
- 	shift  = info->shift  + (port * info->port_shift);
- 
--	tmp = __raw_readl(ale->params.ale_regs + offset) >> shift;
-+	tmp = readl_relaxed(ale->params.ale_regs + offset) >> shift;
- 	return tmp & BITMASK(info->bits);
- }
- EXPORT_SYMBOL_GPL(cpsw_ale_control_get);
-@@ -781,7 +781,7 @@ void cpsw_ale_start(struct cpsw_ale *ale)
+ static inline u32 slave_read(struct cpsw_slave *slave, u32 offset)
  {
- 	u32 rev, ale_entries;
+-	return __raw_readl(slave->regs + offset);
++	return readl_relaxed(slave->regs + offset);
+ }
  
--	rev = __raw_readl(ale->params.ale_regs + ALE_IDVER);
-+	rev = readl_relaxed(ale->params.ale_regs + ALE_IDVER);
- 	if (!ale->params.major_ver_mask)
- 		ale->params.major_ver_mask = 0xff;
- 	ale->version =
-@@ -793,8 +793,8 @@ void cpsw_ale_start(struct cpsw_ale *ale)
+ static inline void slave_write(struct cpsw_slave *slave, u32 val, u32 offset)
+ {
+-	__raw_writel(val, slave->regs + offset);
++	writel_relaxed(val, slave->regs + offset);
+ }
  
- 	if (!ale->params.ale_entries) {
- 		ale_entries =
--			__raw_readl(ale->params.ale_regs + ALE_STATUS) &
--				    ALE_STATUS_SIZE_MASK;
-+			readl_relaxed(ale->params.ale_regs + ALE_STATUS) &
-+			ALE_STATUS_SIZE_MASK;
- 		/* ALE available on newer NetCP switches has introduced
- 		 * a register, ALE_STATUS, to indicate the size of ALE
- 		 * table which shows the size as a multiple of 1024 entries.
+ struct cpsw_vector {
+@@ -660,8 +660,8 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
+ 
+ static void cpsw_intr_enable(struct cpsw_common *cpsw)
+ {
+-	__raw_writel(0xFF, &cpsw->wr_regs->tx_en);
+-	__raw_writel(0xFF, &cpsw->wr_regs->rx_en);
++	writel_relaxed(0xFF, &cpsw->wr_regs->tx_en);
++	writel_relaxed(0xFF, &cpsw->wr_regs->rx_en);
+ 
+ 	cpdma_ctlr_int_ctrl(cpsw->dma, true);
+ 	return;
+@@ -669,8 +669,8 @@ static void cpsw_intr_enable(struct cpsw_common *cpsw)
+ 
+ static void cpsw_intr_disable(struct cpsw_common *cpsw)
+ {
+-	__raw_writel(0, &cpsw->wr_regs->tx_en);
+-	__raw_writel(0, &cpsw->wr_regs->rx_en);
++	writel_relaxed(0, &cpsw->wr_regs->tx_en);
++	writel_relaxed(0, &cpsw->wr_regs->rx_en);
+ 
+ 	cpdma_ctlr_int_ctrl(cpsw->dma, false);
+ 	return;
+@@ -949,12 +949,12 @@ static inline void soft_reset(const char *module, void __iomem *reg)
+ {
+ 	unsigned long timeout = jiffies + HZ;
+ 
+-	__raw_writel(1, reg);
++	writel_relaxed(1, reg);
+ 	do {
+ 		cpu_relax();
+-	} while ((__raw_readl(reg) & 1) && time_after(timeout, jiffies));
++	} while ((readl_relaxed(reg) & 1) && time_after(timeout, jiffies));
+ 
+-	WARN(__raw_readl(reg) & 1, "failed to soft-reset %s\n", module);
++	WARN(readl_relaxed(reg) & 1, "failed to soft-reset %s\n", module);
+ }
+ 
+ #define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |	\
+@@ -1015,7 +1015,7 @@ static void _cpsw_adjust_link(struct cpsw_slave *slave,
+ 
+ 	if (mac_control != slave->mac_control) {
+ 		phy_print_status(phy);
+-		__raw_writel(mac_control, &slave->sliver->mac_control);
++		writel_relaxed(mac_control, &slave->sliver->mac_control);
+ 	}
+ 
+ 	slave->mac_control = mac_control;
+@@ -1278,7 +1278,7 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
+ 	soft_reset_slave(slave);
+ 
+ 	/* setup priority mapping */
+-	__raw_writel(RX_PRIORITY_MAPPING, &slave->sliver->rx_pri_map);
++	writel_relaxed(RX_PRIORITY_MAPPING, &slave->sliver->rx_pri_map);
+ 
+ 	switch (cpsw->version) {
+ 	case CPSW_VERSION_1:
+@@ -1304,7 +1304,7 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
+ 	}
+ 
+ 	/* setup max packet size, and mac address */
+-	__raw_writel(cpsw->rx_packet_max, &slave->sliver->rx_maxlen);
++	writel_relaxed(cpsw->rx_packet_max, &slave->sliver->rx_maxlen);
+ 	cpsw_set_slave_mac(slave, priv);
+ 
+ 	slave->mac_control = 0;	/* no link yet */
+@@ -1395,9 +1395,9 @@ static void cpsw_init_host_port(struct cpsw_priv *priv)
+ 	writel(fifo_mode, &cpsw->host_port_regs->tx_in_ctl);
+ 
+ 	/* setup host port priority mapping */
+-	__raw_writel(CPDMA_TX_PRIORITY_MAP,
+-		     &cpsw->host_port_regs->cpdma_tx_pri_map);
+-	__raw_writel(0, &cpsw->host_port_regs->cpdma_rx_chan_map);
++	writel_relaxed(CPDMA_TX_PRIORITY_MAP,
++		       &cpsw->host_port_regs->cpdma_tx_pri_map);
++	writel_relaxed(0, &cpsw->host_port_regs->cpdma_rx_chan_map);
+ 
+ 	cpsw_ale_control_set(cpsw->ale, HOST_PORT_NUM,
+ 			     ALE_PORT_STATE, ALE_PORT_STATE_FORWARD);
+@@ -1514,10 +1514,10 @@ static int cpsw_ndo_open(struct net_device *ndev)
+ 	/* initialize shared resources for every ndev */
+ 	if (!cpsw->usage_count) {
+ 		/* disable priority elevation */
+-		__raw_writel(0, &cpsw->regs->ptype);
++		writel_relaxed(0, &cpsw->regs->ptype);
+ 
+ 		/* enable statistics collection only on all ports */
+-		__raw_writel(0x7, &cpsw->regs->stat_port_en);
++		writel_relaxed(0x7, &cpsw->regs->stat_port_en);
+ 
+ 		/* Enable internal fifo flow control */
+ 		writel(0x7, &cpsw->regs->flow_control);
+@@ -1701,7 +1701,7 @@ static void cpsw_hwtstamp_v2(struct cpsw_priv *priv)
+ 
+ 	slave_write(slave, mtype, CPSW2_TS_SEQ_MTYPE);
+ 	slave_write(slave, ctrl, CPSW2_CONTROL);
+-	__raw_writel(ETH_P_1588, &cpsw->regs->ts_ltype);
++	writel_relaxed(ETH_P_1588, &cpsw->regs->ts_ltype);
+ }
+ 
+ static int cpsw_hwtstamp_set(struct net_device *dev, struct ifreq *ifr)
 -- 
 2.10.5
