@@ -1,44 +1,57 @@
-From: =?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>
-Subject: Re: [PATCH v5 1/5] dt-bindings: define vendor prefix for Wi2Wi, Inc.
-Date: Fri, 1 Dec 2017 15:44:02 +0100
-Message-ID: <85306aff-ecf0-02bb-601b-519a302f1c04@suse.de>
-References: <cover.1512114576.git.hns@goldelico.com>
- <876647948fceb763a0b584b70c3805dec562072e.1512114576.git.hns@goldelico.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] pci: dwc: pci-dra7xx: Make shutdown handler static
+Date: Fri, 1 Dec 2017 16:53:14 +0000
+Message-ID: <20171201165314.GB29985@red-moon>
+References: <20171201050652.13998-1-vigneshr@ti.com>
+ <12f94b3d-5192-d53a-8390-812fe9b7b229@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <876647948fceb763a0b584b70c3805dec562072e.1512114576.git.hns@goldelico.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <12f94b3d-5192-d53a-8390-812fe9b7b229@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@baylibre.com>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-arm-kernel@lists.infradead.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Vignesh R <vigneshr@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-Am 01.12.2017 um 08:49 schrieb H. Nikolaus Schaller:
-> Introduce vendor prefix for Wi2Wi, Inc. for W2SG00x4 GPS modules
-> and W2CBW003 Bluetooth/WiFi combo (CSR/Marvell).
-
-If there's more iterations, maybe you could clarify what the company
-does overall (just these 2?) vs. what specifically you add it for here?
-
+On Fri, Dec 01, 2017 at 10:43:53AM +0530, Keerthy wrote:
 > 
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> Acked-by: Rob Herring <robh@kernel.org>
-> ---
->  Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
->  1 file changed, 1 insertion(+)
+> 
+> On Friday 01 December 2017 10:36 AM, Vignesh R wrote:
+> > Declare dra7xx_pcie_shutdown() as a static function as its not used
+> > elsewhere.
+> 
+> Seems like the below version that had static version was not taken:
+> 
+> https://patchwork.kernel.org/patch/10052579/
 
-Other than that,
+It looks like I can drop the patch above then - let me know if
+that's ok.
 
-Reviewed-by: Andreas Färber <afaerber@suse.de>
+Thanks,
+Lorenzo
 
-Regards,
-Andreas
-
--- 
-SUSE Linux GmbH, Maxfeldstr. 5, 90409 Nürnberg, Germany
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
+> So for this patch:
+> 
+> Reviewed-by: Keerthy <j-keerthy@ti.com>
+> 
+> > 
+> > Signed-off-by: Vignesh R <vigneshr@ti.com>
+> > ---
+> >  drivers/pci/dwc/pci-dra7xx.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> > index 59e8de34cec6..b9db442af793 100644
+> > --- a/drivers/pci/dwc/pci-dra7xx.c
+> > +++ b/drivers/pci/dwc/pci-dra7xx.c
+> > @@ -815,7 +815,7 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+> >  }
+> >  #endif
+> >  
+> > -void dra7xx_pcie_shutdown(struct platform_device *pdev)
+> > +static void dra7xx_pcie_shutdown(struct platform_device *pdev)
+> >  {
+> >  	struct device *dev = &pdev->dev;
+> >  	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+> > 
