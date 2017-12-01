@@ -1,7 +1,7 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH v3 4/4] DTS: Pandora: fix panel compatibility string
-Date: Fri, 1 Dec 2017 10:48:38 +0100
-Message-ID: <0324FA0E-F06A-41F1-84AD-5BC72F6B6BFF@goldelico.com>
+Date: Fri, 1 Dec 2017 12:01:23 +0200
+Message-ID: <a27001ba-5ffd-365d-93e3-06fd1a2e01c2@ti.com>
 References: <cover.1511884135.git.hns@goldelico.com>
  <b6001c7b7fb98e7a3ad4c712084fea9dae9e6b27.1511884135.git.hns@goldelico.com>
  <20171128160437.GD28152@atomide.com>
@@ -10,66 +10,40 @@ References: <cover.1511884135.git.hns@goldelico.com>
  <4EE1E298-6461-48FF-977C-958DD16AD83A@goldelico.com>
  <20171130152430.GM28152@atomide.com> <20171130220633.imkfyeiqtftnw4j4@earth>
  <6ca5f2ea-e725-9a9e-ac02-e16beca4a1a0@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <6ca5f2ea-e725-9a9e-ac02-e16beca4a1a0@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, Julia Lawall <Julia.Lawall@lip6.fr>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@armlinux.org.uk>, David Airlie <airlied@linux.ie>, linux-fbdev@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Sean Paul <seanpaul@chromium.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+ <0324FA0E-F06A-41F1-84AD-5BC72F6B6BFF@goldelico.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <0324FA0E-F06A-41F1-84AD-5BC72F6B6BFF@goldelico.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>, Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Sebastian Reichel <sre@kernel.org>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@armlinux.org.uk>, Julia Lawall <Julia.Lawall@lip6.fr>, Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tomi,
-
-> Am 01.12.2017 um 09:13 schrieb Tomi Valkeinen <tomi.valkeinen@ti.com>:
-> 
-> On 01/12/17 00:06, Sebastian Reichel wrote:
-> 
->>>>> How about let's call it a "typo fix" then? :)
->>>> 
->>>> Well, it is not really a typo.
->>> 
->>> Well what if the stable people pick it into earlier stable series
->>> based on the word fix in the subject? That has happened before.
->>> 
->>> I suggest you update the dts patches to use wording like
->>> "update compatible to use new naming" or something similar.
->> 
->> Patch 4/4 is a Fix and should be applied to stable trees. "omapdss,"
->> prefix was never supposed to be in the DTS files, is not supposed to
->> be in there now and will break some time in the future.
->> 
->> Explanation: The early init of omapdss adds the prefix at runtime,
->> so that the binding can use generic properties and the kernel can
->> use omapdss specific drivers until the generic ones can be used
-> 
-> This is true, but the extra "omapdss" does not cause any issues at the
-> moment, and the time when it causes issues is still many kernel versions
-> in the future.
-> 
-> But, yes, thinking about this, I agree, it's better to pick this one
-> separately as a fix (after rebasing it on top of current maineline so
-> that it doesn't depend on the toppoly name change), and leaving the
-> toppoly->tpo change as a cleanup.
-
-Just a note: there is no toppoly->tpo change for *this* panel and
-Pandora board. Just omapdss removal.
-
-The GTA04 needs a toppoly->tpo change but no omapdss, removal.
-
-So they solve different problems and are independent of each other.
-
-GTA04: change vendor string
-Pandora: remove omapdss, prefix
-
-BR and thanks,
-Nikolaus
+T24gMDEvMTIvMTcgMTE6NDgsIEguIE5pa29sYXVzIFNjaGFsbGVyIHdyb3RlOgoKPiBKdXN0IGEg
+bm90ZTogdGhlcmUgaXMgbm8gdG9wcG9seS0+dHBvIGNoYW5nZSBmb3IgKnRoaXMqIHBhbmVsIGFu
+ZAo+IFBhbmRvcmEgYm9hcmQuIEp1c3Qgb21hcGRzcyByZW1vdmFsLgo+IAo+IFRoZSBHVEEwNCBu
+ZWVkcyBhIHRvcHBvbHktPnRwbyBjaGFuZ2UgYnV0IG5vIG9tYXBkc3MsIHJlbW92YWwuCj4gCj4g
+U28gdGhleSBzb2x2ZSBkaWZmZXJlbnQgcHJvYmxlbXMgYW5kIGFyZSBpbmRlcGVuZGVudCBvZiBl
+YWNoIG90aGVyLgo+IAo+IEdUQTA0OiBjaGFuZ2UgdmVuZG9yIHN0cmluZwo+IFBhbmRvcmE6IHJl
+bW92ZSBvbWFwZHNzLCBwcmVmaXgKCk9oLCByaWdodCwgSSB0b3RhbGx5IG1pc3NlZCB0aGF0LiBJ
+IHRob3VnaHQgdGhleSB3ZXJlIGNoYW5nZXMgdG8gdGhlCnNhbWUgZmlsZS4uLgoKSW4gdGhhdCBj
+YXNlLCBUb255LCBjYW4geW91IHBpY2sgdGhpcyBvbmUgYXMgYSBmaXg/IEknbGwgcGljayB0aGUK
+dG9wcG9seS0+dHBvIHBhdGNoIGFuZCBtZXJnZSB2aWEgZHJtIHRyZWUsIGlmIHlvdSBnaXZlIHRo
+ZSBhY2suCgpGb3IgdGhpczoKCkFja2VkLWJ5OiBUb21pIFZhbGtlaW5lbiA8dG9taS52YWxrZWlu
+ZW5AdGkuY29tPgoKIFRvbWkKCi0tIApUZXhhcyBJbnN0cnVtZW50cyBGaW5sYW5kIE95LCBQb3Jr
+a2FsYW5rYXR1IDIyLCAwMDE4MCBIZWxzaW5raS4KWS10dW5udXMvQnVzaW5lc3MgSUQ6IDA2MTU1
+MjEtNC4gS290aXBhaWtrYS9Eb21pY2lsZTogSGVsc2lua2kKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
+ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
+aWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
