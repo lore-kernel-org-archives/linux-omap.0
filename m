@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 08/11] net: ethernet: ti: ale: optimize ale entry mask bits configuartion
-Date: Thu, 30 Nov 2017 18:21:17 -0600
-Message-ID: <20171201002120.13483-9-grygorii.strashko@ti.com>
+Subject: [PATCH net-next 09/11] net: ethernet: ti: ale: move static initialization in cpsw_ale_create()
+Date: Thu, 30 Nov 2017 18:21:18 -0600
+Message-ID: <20171201002120.13483-10-grygorii.strashko@ti.com>
 References: <20171201002120.13483-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,46 +12,91 @@ To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The ale->params.ale_ports parameter can be used to deriver values for all
-ale entry mask bits: port_mask_bits, port_mask_bits, port_num_bits.
-Hence, calculate above values and drop all hardcoded values. For
-port_num_bits calcualtion use order_base_2() API.
+Move static initialization from cpsw_ale_start() to cpsw_ale_create() as it
+does not make much sence to perform static initializtion in
+cpsw_ale_start() which is called everytime netif[s] is opened.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw_ale.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ drivers/net/ethernet/ti/cpsw_ale.c | 57 +++++++++++++++++++-------------------
+ 1 file changed, 28 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index 5eaaf88..f8c523d 100644
+index f8c523d..53aa721 100644
 --- a/drivers/net/ethernet/ti/cpsw_ale.c
 +++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -816,9 +816,9 @@ void cpsw_ale_start(struct cpsw_ale *ale)
- 		 "ALE Table size %ld\n", ale->params.ale_entries);
+@@ -779,8 +779,36 @@ static void cpsw_ale_timer(struct timer_list *t)
  
- 	/* set default bits for existing h/w */
--	ale->port_mask_bits = 3;
--	ale->port_num_bits = 2;
--	ale->vlan_field_bits = 3;
-+	ale->port_mask_bits = ale->params.ale_ports;
-+	ale->port_num_bits = order_base_2(ale->params.ale_ports);
-+	ale->vlan_field_bits = ale->params.ale_ports;
+ void cpsw_ale_start(struct cpsw_ale *ale)
+ {
++	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 1);
++	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
++
++	timer_setup(&ale->timer, cpsw_ale_timer, 0);
++	if (ale->ageout) {
++		ale->timer.expires = jiffies + ale->ageout;
++		add_timer(&ale->timer);
++	}
++}
++EXPORT_SYMBOL_GPL(cpsw_ale_start);
++
++void cpsw_ale_stop(struct cpsw_ale *ale)
++{
++	del_timer_sync(&ale->timer);
++	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
++}
++EXPORT_SYMBOL_GPL(cpsw_ale_stop);
++
++struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
++{
++	struct cpsw_ale *ale;
+ 	u32 rev, ale_entries;
  
- 	/* Set defaults override for ALE on NetCP NU switch and for version
- 	 * 1R3
-@@ -847,13 +847,6 @@ void cpsw_ale_start(struct cpsw_ale *ale)
- 		ale_controls[ALE_PORT_UNTAGGED_EGRESS].shift = 0;
- 		ale_controls[ALE_PORT_UNTAGGED_EGRESS].offset =
++	ale = kzalloc(sizeof(*ale), GFP_KERNEL);
++	if (!ale)
++		return NULL;
++
++	ale->params = *params;
++	ale->ageout = ale->params.ale_ageout * HZ;
++
+ 	rev = readl_relaxed(ale->params.ale_regs + ALE_IDVER);
+ 	if (!ale->params.major_ver_mask)
+ 		ale->params.major_ver_mask = 0xff;
+@@ -849,35 +877,6 @@ void cpsw_ale_start(struct cpsw_ale *ale)
  					ALE_UNKNOWNVLAN_FORCE_UNTAG_EGRESS;
--		ale->port_mask_bits = ale->params.ale_ports;
--		ale->port_num_bits = ale->params.ale_ports - 1;
--		ale->vlan_field_bits = ale->params.ale_ports;
--	} else if (ale->version == ALE_VERSION_1R3) {
--		ale->port_mask_bits = ale->params.ale_ports;
--		ale->port_num_bits = 3;
--		ale->vlan_field_bits = ale->params.ale_ports;
  	}
  
- 	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 1);
+-	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 1);
+-	cpsw_ale_control_set(ale, 0, ALE_CLEAR, 1);
+-
+-	timer_setup(&ale->timer, cpsw_ale_timer, 0);
+-	if (ale->ageout) {
+-		ale->timer.expires = jiffies + ale->ageout;
+-		add_timer(&ale->timer);
+-	}
+-}
+-EXPORT_SYMBOL_GPL(cpsw_ale_start);
+-
+-void cpsw_ale_stop(struct cpsw_ale *ale)
+-{
+-	del_timer_sync(&ale->timer);
+-	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
+-}
+-EXPORT_SYMBOL_GPL(cpsw_ale_stop);
+-
+-struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
+-{
+-	struct cpsw_ale *ale;
+-
+-	ale = kzalloc(sizeof(*ale), GFP_KERNEL);
+-	if (!ale)
+-		return NULL;
+-
+-	ale->params = *params;
+-	ale->ageout = ale->params.ale_ageout * HZ;
+-
+ 	return ale;
+ }
+ EXPORT_SYMBOL_GPL(cpsw_ale_create);
 -- 
 2.10.5
