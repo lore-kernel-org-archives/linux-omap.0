@@ -1,113 +1,42 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv1 03/14] drm/omap: plane: update fifo size on ovl setup
-Date: Fri, 1 Dec 2017 13:25:02 +0100
-Message-ID: <20171201122502.ynl3aubhsoiatfby@earth>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv1 08/14] drm/omap: panel-dsi-cm: fix driver
+Date: Fri, 1 Dec 2017 14:28:44 +0200
+Message-ID: <1290ca0f-4fc8-89ca-f943-8420f2bdeaff@ti.com>
 References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
- <20170724173311.27170-4-sebastian.reichel@collabora.co.uk>
- <34c2588e-7d7e-219f-fd34-9a441d46e0cc@ti.com>
+ <20170724173311.27170-9-sebastian.reichel@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="loywtm66zg2dfhmr"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <34c2588e-7d7e-219f-fd34-9a441d46e0cc@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170724173311.27170-9-sebastian.reichel@collabora.co.uk>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sebastian.reichel@collabora.co.uk>, Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---loywtm66zg2dfhmr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Tomi,
-
-On Fri, Dec 01, 2017 at 02:10:42PM +0200, Tomi Valkeinen wrote:
->=20
-> On 24/07/17 20:33, Sebastian Reichel wrote:
-> > This is a workaround for a hardware bug occuring on OMAP3
-> > with manually updated panels. Details about the HW bug are
-> > unknown to me, but without this fix the panel refresh does
-> > not work at all on Nokia N950.
-> >=20
-> > Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-> > ---
-> >  drivers/gpu/drm/omapdrm/dss/dispc.c | 16 ++++++++++++++++
-> >  1 file changed, 16 insertions(+)
-> >=20
-> > diff --git a/drivers/gpu/drm/omapdrm/dss/dispc.c b/drivers/gpu/drm/omap=
-drm/dss/dispc.c
-> > index fd7504b37e3b..b6dca5ee34d4 100644
-> > --- a/drivers/gpu/drm/omapdrm/dss/dispc.c
-> > +++ b/drivers/gpu/drm/omapdrm/dss/dispc.c
-> > @@ -1398,6 +1398,18 @@ void dispc_ovl_compute_fifo_thresholds(enum omap=
-_plane_id plane,
-> >  	}
-> >  }
-> > =20
-> > +void dispc_ovl_set_manual_fifo_threshold(enum omap_plane_id plane)
-> > +{
-> > +	u32 fifo_low, fifo_high;
-> > +	bool use_fifo_merge =3D false;
-> > +	bool use_manual_update =3D true;
-> > +
-> > +	dispc_ovl_compute_fifo_thresholds(plane, &fifo_low, &fifo_high,
-> > +					  use_fifo_merge, use_manual_update);
-> > +
-> > +	dispc_ovl_set_fifo_threshold(plane, fifo_low, fifo_high);
-> > +}
-> > +
-> >  static void dispc_ovl_set_mflag(enum omap_plane_id plane, bool enable)
-> >  {
-> >  	int bit;
-> > @@ -2566,6 +2578,10 @@ static int dispc_ovl_setup(enum omap_plane_id pl=
-ane,
-> >  		oi->zorder, oi->pre_mult_alpha, oi->global_alpha,
-> >  		oi->rotation_type, replication, vm, mem_to_mem);
-> > =20
-> > +	/* manual mode needs other fifo thresholds */
-> > +	if (mgr_fld_read(channel, DISPC_MGR_FLD_STALLMODE))
-> > +		dispc_ovl_set_manual_fifo_threshold(plane);
-> > +
-> >  	return r;
-> >  }
->=20
-> We don't have the stallmode for all channels. And on OMAP2 it's for
-> RFBI, and I don't know if that needs different thresholds or not. Also,
-> I'm not sure if OMAP4-5 DSI needs this. And I think it's good to mention
-> the unknown bug in the comment too. And yes, it's unknown to me too, I
-> never figured it out. These thresholds just seemed to work, while the
-> default did not.
->=20
-> So I think we need to check that the platform is OMAP3 and channel is
-> LCD. We can later extend that to cover OMAP4-5 if needed.
-
-Ok. I will have a look at this later today. FWIW I test this
-patchset with OMAP3 (N950) and OMAP4 (Droid 4). OMAP4 works
-without this patch, but also with the changed thresholds.
-
--- Sebastian
-
---loywtm66zg2dfhmr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlohShMACgkQ2O7X88g7
-+ppfBg//ZLhUaDvPQ9RTsu3o1na/8pBM/vTa9vnDHHopzptw00YDS4f+IBoxRInq
-ja4bbPe0JcweGyY2+ZoywAAGS+JH7OR8pv6nbGFyM9R92YPKfANVphPB5kDrKg/+
-h5c+4ogUKu8ezDNtMdcu8ZoD45bk/gTOzYJFhBgpWA8JYBZ2JxBPL918U5OrjySC
-PCO4jLcc+9zjbZiIIjf+14MlUNtdJpUJrasdUVzQS1v2oPpk4lCGiy64wNWtpjAU
-KVVtws/hiCyDpPFD1QNGx+Z0TtKAEyOYaLUJldvtMwzm//+SGuDkg6jmJM9J0wFp
-fIwPfsettkiXMk2yFcsweEBVtaNKDpee8H4xsHMux29qvO+azLv4V7ydYlGqYwsQ
-i3iCklgzAay6uGgp18jQHzVZE9+/dvWIDbhBH7x7hpDyBvriHDTahmMYwHgYl5ig
-LOyET979SiSyYdQIB9Hr9XpcJn9s/dZBLFv2O063EEExDh3JThq02rKId+kpXbmv
-n3iJWzzvucka64GFD8chzWyH58dUCVl/zjYeTQad2e3tYz/suzDesA9Z8l3Xde96
-F8U9315d17yFITUWmnfQN9K+mk2oB+jsZOmR4fHlru6t10+MA9GdCCPgxPmw+BMO
-1pwxa5dYlORvMKKDiaGfwHrNBsMY2PG/XsgwKrI64Lb+Gz7I6O0=
-=eAqg
------END PGP SIGNATURE-----
-
---loywtm66zg2dfhmr--
+SGksCgpPbiAyNC8wNy8xNyAyMDozMywgU2ViYXN0aWFuIFJlaWNoZWwgd3JvdGU6Cj4gRnJvbTog
+VG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KPiAKPiBUaGlzIGFkZHMgc3VwcG9ydCBm
+b3IgZ2V0X3RpbWluZ3MoKSBhbmQgY2hlY2tfdGltaW5ncygpCj4gdG8gZ2V0IHRoZSBkcml2ZXIg
+d29ya2luZyBhbmQgcHJvcGVybHkgaW5pdGlhbGl6ZXMgdGhlCj4gdGltaW5nIGluZm9ybWF0aW9u
+IGZyb20gRFQuCgpJIGRvbid0IGtub3cgaWYgaXQgbWF0dGVycyBtdWNoLCBidXQgdGhlIHRpbWlu
+Z3MgYWRkZWQgdG8gZHRzIGluIHRoZQpmb2xsb3dpbmcgcGF0Y2hlcyBhcmUgbW9zdGx5IG5vdCB1
+c2VkLCBhbmQgZG8gbm90IG1ha2Ugc2Vuc2UgZm9yIERTSQpjb21tYW5kIG1vZGUgcGFuZWwuIE9u
+bHkgaGFjdGl2ZSBhbmQgdmFjdGl2ZSBhcmUgdXNlZC4gQnV0IGlmIGZ1bGwgdmlkZW8KdGltaW5n
+cyBhcmUgcHJlc2VudCBpbiB0aGUgZHRzLCB0aGVuIEkgdGhpbmsgaXQgd291bGQgYmUgZ29vZCB0
+byBoYXZlCnRoZSB0aW1pbmdzIGNvcnJlY3QsIHNvIHRoYXQgYWxzbyBwaXhlbCBjbG9jayBpcyBk
+ZWZpbmVkLCBhbmQgdGhlCnRpbWluZ3Mgd291bGQgcHJvZHVjZSA2MEh6IHJlZnJlc2ggcmF0ZS4K
+CiBUb21pCgotLSAKVGV4YXMgSW5zdHJ1bWVudHMgRmlubGFuZCBPeSwgUG9ya2thbGFua2F0dSAy
+MiwgMDAxODAgSGVsc2lua2kuClktdHVubnVzL0J1c2luZXNzIElEOiAwNjE1NTIxLTQuIEtvdGlw
+YWlra2EvRG9taWNpbGU6IEhlbHNpbmtpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
+ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2RyaS1kZXZlbAo=
