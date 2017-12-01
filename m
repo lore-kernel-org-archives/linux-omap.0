@@ -1,57 +1,68 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] pci: dwc: pci-dra7xx: Make shutdown handler static
-Date: Fri, 1 Dec 2017 16:53:14 +0000
-Message-ID: <20171201165314.GB29985@red-moon>
-References: <20171201050652.13998-1-vigneshr@ti.com>
- <12f94b3d-5192-d53a-8390-812fe9b7b229@ti.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH v3 0/4] Fixes for omapdrm on OpenPandora and GTA04
+Date: Fri, 01 Dec 2017 18:22:11 +0100
+Message-ID: <8663745.l6RXqWc6WO@amdc3058>
+References: <cover.1511884135.git.hns@goldelico.com>
+ <CGME20171130105533epcas3p1839ccb7df2896e613f739e7f07a31f03@epcas3p1.samsung.com>
+ <27b12bc8-2c3a-6caa-c800-158b75f80d3f@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <12f94b3d-5192-d53a-8390-812fe9b7b229@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: Vignesh R <vigneshr@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-reply-to: <27b12bc8-2c3a-6caa-c800-158b75f80d3f@ti.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, Julia Lawall <Julia.Lawall@lip6.fr>, David Airlie <airlied@linux.ie>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, Russell King <linux@armlinux.org.uk>, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, kernel@pyra-handheld.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 01, 2017 at 10:43:53AM +0530, Keerthy wrote:
-> 
-> 
-> On Friday 01 December 2017 10:36 AM, Vignesh R wrote:
-> > Declare dra7xx_pcie_shutdown() as a static function as its not used
-> > elsewhere.
-> 
-> Seems like the below version that had static version was not taken:
-> 
-> https://patchwork.kernel.org/patch/10052579/
-
-It looks like I can drop the patch above then - let me know if
-that's ok.
-
-Thanks,
-Lorenzo
-
-> So for this patch:
-> 
-> Reviewed-by: Keerthy <j-keerthy@ti.com>
-> 
-> > 
-> > Signed-off-by: Vignesh R <vigneshr@ti.com>
-> > ---
-> >  drivers/pci/dwc/pci-dra7xx.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> > index 59e8de34cec6..b9db442af793 100644
-> > --- a/drivers/pci/dwc/pci-dra7xx.c
-> > +++ b/drivers/pci/dwc/pci-dra7xx.c
-> > @@ -815,7 +815,7 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
-> >  }
-> >  #endif
-> >  
-> > -void dra7xx_pcie_shutdown(struct platform_device *pdev)
-> > +static void dra7xx_pcie_shutdown(struct platform_device *pdev)
-> >  {
-> >  	struct device *dev = &pdev->dev;
-> >  	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-> > 
+T24gVGh1cnNkYXksIE5vdmVtYmVyIDMwLCAyMDE3IDEyOjU0OjA3IFBNIFRvbWkgVmFsa2VpbmVu
+IHdyb3RlOgo+IE9uIDI4LzExLzE3IDE3OjQ4LCBILiBOaWtvbGF1cyBTY2hhbGxlciB3cm90ZToK
+PiA+IENoYW5nZXMgVjM6Cj4gPiAqIHN0YXkgY29tcGF0aWJsZSB3aXRoIG9sZCBEVEIgZmlsZXMg
+d2hpY2ggc3RpbGwgdXNlICJ0b3Bwb2x5IiAoc3VnZ2VzdGVkIGJ5IFRvbWkgVmFsa2VpbmVuKQo+
+ID4gKiByZXBsYWNlZCBNT0RVTEVfQUxJQVMgZW50cmllcyBieSBNT0RVTEVfREVWSUNFX1RBQkxF
+IChzdWdnZXN0ZWQgYnkgQW5kcmV3IEYuIERhdmlzKQo+ID4gKiByZW1vdmVkIERTSSBWRERTIHBh
+dGNoIGFzIGl0IGhhcyBhbHJlYWR5IGJlZW4gYWNjZXB0ZWQKPiA+IAo+ID4gMjAxNy0xMS0xNiAw
+OTo1MDoyMjogQ2hhbmdlcyBWMjoKPiA+ICogcmVwbGFjZWQgcGF0Y2ggdG8gZml4IERTSSBWRERT
+IGZvciBPTUFQMyBieSBlcXVpdmFsZW50IHBhdGNoIGZyb20gTGF1cmVudCBQaW5jaGFydAo+ID4g
+KiBrZWVwIHByZXZpb3VzIGNvbXBhdGliaWxpdHkgb3B0aW9uIGluIHBhbmVsIGRyaXZlciB0byBo
+YW5kbGUgb2xkZXIgZGV2aWNlIHRyZWUgYmluYXJpZXMKPiA+IAo+ID4gMjAxNy0xMS0wOCAyMjow
+OTozNjoKPiA+IFRoaXMgcGF0Y2ggc2V0IGZpeGVzIHZlbmRvciBuYW1lcyBvZiB0aGUgcGFuZWxz
+Cj4gPiBhbmQgZml4ZXMgYSBwcm9ibGVtIG9uIG9tYXBkcm0gd2l0aCBlbmFibGluZwo+ID4gVkRE
+X0RTSSBmb3IgT01BUDMgd2hpY2ggaXMgbmVlZGVkIGZvciBkaXNwbGF5aW5nCj4gPiB0aGUgUmVk
+IGFuZCBHcmVlbiBjaGFubmVsIG9uIE9NQVAzNTMwIChQYW5kb3JhKS4KPiA+IAo+ID4gSC4gTmlr
+b2xhdXMgU2NoYWxsZXIgKDQpOgo+ID4gICBvbWFwZHJtOiBwYW5lbDogZml4IGNvbXBhdGlibGUg
+dmVuZG9yIHN0cmluZyBmb3IgdGQwMjh0dGVjMQo+ID4gICBvbWFwZHJtOiBwYW5lbDogdGQwMjh0
+dGVjMTogcmVwbGFjZSBNT0RVTEVfQUxJQVMgYnkKPiA+ICAgICBNT0RVTEVfREVWSUNFX1RBQkxF
+Cj4gPiAgIERUUzogR1RBMDQ6IGZpeCBwYW5lbCBjb21wYXRpYmlsaXR5IHN0cmluZwo+ID4gICBE
+VFM6IFBhbmRvcmE6IGZpeCBwYW5lbCBjb21wYXRpYmlsaXR5IHN0cmluZwo+ID4gCj4gPiAgLi4u
+L3BhbmVsL3t0b3Bwb2x5LHRkMDI4dHRlYzEudHh0ID0+IHRwbyx0ZDAyOHR0ZWMxLnR4dH0gICAg
+fCAgNCArKy0tCj4gPiAgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDMtZ3RhMDQuZHRzaSAgICAgICAg
+ICAgICAgICAgICAgICAgICAgfCAgMiArLQo+ID4gIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLXBh
+bmRvcmEtY29tbW9uLmR0c2kgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiA+ICBkcml2ZXJzL2dw
+dS9kcm0vb21hcGRybS9kaXNwbGF5cy9wYW5lbC10cG8tdGQwMjh0dGVjMS5jICAgICB8IDEzICsr
+KysrKysrKysrKy0KPiA+ICAuLi4vZmJkZXYvb21hcDIvb21hcGZiL2Rpc3BsYXlzL3BhbmVsLXRw
+by10ZDAyOHR0ZWMxLmMgICAgICB8IDEyICsrKysrKysrKysrLQo+ID4gIDUgZmlsZXMgY2hhbmdl
+ZCwgMjcgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKPiA+ICByZW5hbWUgRG9jdW1lbnRh
+dGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2Rpc3BsYXkvcGFuZWwve3RvcHBvbHksdGQwMjh0dGVj
+MS50eHQgPT4gdHBvLHRkMDI4dHRlYzEudHh0fSAoODQlKQo+ID4gCj4gCj4gVGhhbmtzLiBJIGhh
+dmUgcGlja2VkIHVwIHBhdGNoZXMgMSBhbmQgMi4KClRoYW5rcyBmb3IgdGFraW5nIGNhcmUgb2Yg
+dGhlbSAodGhleSBib3RoIGxvb2sgZmluZSB0byBtZSkuCgo+IDMgY2FuIGJlIGFwcGxpZWQgd2hl
+biAxICYgMiBhcmUgaW4uIFRoZSBjaGFuZ2UgaW4gNCBjb3VsZCBiZSBhcHBsaWVkCj4gaW5kZXBl
+bmRlbnRseSwgYnV0IGl0IGNvbmZsaWN0cyB3aXRoIDMuCj4gCj4gVG9ueSwgaG93IGRvIHlvdSB3
+YW50IHRvIGhhbmRsZSAzIGFuZCA0PyBJIHdpbGwgcHVzaCAxIGFuZCAyIHRvIHY0LjE2LiBJCj4g
+ZG9uJ3QgdGhpbmsgdGhleSBhcmUgcmVhbCBpc3N1ZXMsIHNvIEkgZG9uJ3Qgc2VlIGEgcmVhc29u
+IHRvIHB1c2ggdGhlbQo+IGFzIGZpeGVzIHRvIHY0LjE1LiBJIHRoaW5rIHRoZXkgYXJlIG1vc3Rs
+eSBqdXN0IGNsZWFudXBzLCBhbmQgd2UgbWlnaHQKPiBhcyB3ZWxsIHdhaXQgdW50aWwgdjQuMTcs
+IGJ1dCB0aGF0J3MgcXVpdGUgZmFyIGF3YXkuLi4KCkJlc3QgcmVnYXJkcywKLS0KQmFydGxvbWll
+aiBab2xuaWVya2lld2ljegpTYW1zdW5nIFImRCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcgRWxl
+Y3Ryb25pY3MKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpo
+dHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
