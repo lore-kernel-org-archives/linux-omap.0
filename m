@@ -1,73 +1,77 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH 4/4] PCI: dwc: pci-dra7xx: Fix legacy IRQ handling
-Date: Fri, 1 Dec 2017 11:43:11 +0530
-Message-ID: <20171201061311.16691-5-vigneshr@ti.com>
+From: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/4] pci: dwc: pci-dra7xx: Enable errata i870 for both EP and RC mode
+Date: Fri, 1 Dec 2017 11:43:08 +0530
+Message-ID: <20171201061311.16691-2-vigneshr@ti.com>
 References: <20171201061311.16691-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171201061311.16691-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Chris Welch <Chris.Welch@viavisolutions.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vignesh R <vigneshr@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171201061311.16691-1-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Chris Welch <Chris.Welch-ojoHHoaXhABCkLs28/y7ANBPR1lH4CV8@public.gmane.org>
+Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Legacy INTD IRQ handling is broken on dra7xx due to fact that driver
-uses hwirq in range of 1-4 for INTA, INTD whereas IRQ domain is of size
-4 which is numbered 0-3. Therefore when INTD IRQ line is used with
-pci-dra7xx driver following warning is seen:
+Errata i870 is applicable in both EP and RC mode. Therefore rename
+function dra7xx_pcie_ep_unaligned_memaccess(), that implements errata
+workaround, to dra7xx_pcie_unaligned_memaccess() and call it from a
+common place. So, that errata workaround is applied for both modes of
+operation.
 
-       WARNING: CPU: 0 PID: 1 at kernel/irq/irqdomain.c:342 irq_domain_associate+0x12c/0x1c4
-       error: hwirq 0x4 is too large for dummy
-
-Fix this by using pci_irqd_intx_xlate() helper to translate the INTx 1-4
-range into the 0-3 as done in other PCIe drivers.
-
-Also, iterate over all the INTx bits and call their respective IRQ
-handlers before clearing the status register.
-
-Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
-Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
-Signed-off-by: Vignesh R <vigneshr@ti.com>
+Reported-by: Chris Welch <Chris.Welch-ojoHHoaXhABCkLs28/y7ANBPR1lH4CV8@public.gmane.org>
+Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
 ---
- drivers/pci/dwc/pci-dra7xx.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 53f721d1cc40..59e8de34cec6 100644
+index e77a4ceed74c..53f721d1cc40 100644
 --- a/drivers/pci/dwc/pci-dra7xx.c
 +++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -226,6 +226,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
- 
- static const struct irq_domain_ops intx_domain_ops = {
- 	.map = dra7xx_pcie_intx_map,
-+	.xlate = pci_irqd_intx_xlate,
+@@ -546,7 +546,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
  };
  
- static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
-@@ -256,7 +257,8 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
- 	struct dra7xx_pcie *dra7xx = arg;
- 	struct dw_pcie *pci = dra7xx->pci;
- 	struct pcie_port *pp = &pci->pp;
--	u32 reg;
-+	unsigned long reg;
-+	u32 virq, bit;
+ /*
+- * dra7xx_pcie_ep_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
++ * dra7xx_pcie_unaligned_memaccess: workaround for AM572x/AM571x Errata i870
+  * @dra7xx: the dra7xx device where the workaround should be applied
+  *
+  * Access to the PCIe slave port that are not 32-bit aligned will result
+@@ -556,7 +556,7 @@ static const struct of_device_id of_dra7xx_pcie_match[] = {
+  *
+  * To avoid this issue set PCIE_SS1_AXI2OCP_LEGACY_MODE_ENABLE to 1.
+  */
+-static int dra7xx_pcie_ep_unaligned_memaccess(struct device *dev)
++static int dra7xx_pcie_unaligned_memaccess(struct device *dev)
+ {
+ 	int ret;
+ 	struct device_node *np = dev->of_node;
+@@ -703,6 +703,10 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 	if (dra7xx->link_gen < 0 || dra7xx->link_gen > 2)
+ 		dra7xx->link_gen = 2;
  
- 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
++	ret = dra7xx_pcie_unaligned_memaccess(dev);
++	if (ret)
++		goto err_gpio;
++
+ 	switch (mode) {
+ 	case DW_PCIE_RC_TYPE:
+ 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+@@ -715,10 +719,6 @@ static int __init dra7xx_pcie_probe(struct platform_device *pdev)
+ 		dra7xx_pcie_writel(dra7xx, PCIECTRL_TI_CONF_DEVICE_TYPE,
+ 				   DEVICE_TYPE_EP);
  
-@@ -268,8 +270,11 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
- 	case INTB:
- 	case INTC:
- 	case INTD:
--		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
--						    ffs(reg)));
-+		for_each_set_bit(bit, &reg, PCI_NUM_INTX) {
-+			virq = irq_find_mapping(dra7xx->irq_domain, bit);
-+			if (virq)
-+				generic_handle_irq(virq);
-+		}
- 		break;
- 	}
- 
+-		ret = dra7xx_pcie_ep_unaligned_memaccess(dev);
+-		if (ret)
+-			goto err_gpio;
+-
+ 		ret = dra7xx_add_pcie_ep(dra7xx, pdev);
+ 		if (ret < 0)
+ 			goto err_gpio;
 -- 
 2.15.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
