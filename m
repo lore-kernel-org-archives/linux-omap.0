@@ -1,7 +1,7 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v4 8/8] arm: omap: pdata-quirks: Remove unused timer pdata
-Date: Fri, 1 Dec 2017 10:46:37 +0530
-Message-ID: <1512105397-2544-9-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v4 7/8] pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
+Date: Fri, 1 Dec 2017 10:46:36 +0530
+Message-ID: <1512105397-2544-8-git-send-email-j-keerthy@ti.com>
 References: <1512105397-2544-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,82 +12,108 @@ To: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.r
 Cc: t-kristo@ti.com, linux@armlinux.org.uk, grygorii.strashko@ti.com, robh+dt@kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, ladis@linux-mips.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Remove unused timer pdata.
+Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
+
+Changes in v4:
+
+  * Switched to dev_get_platdata.
 
 Changes in v3:
 
-  * Added Sebastian's Reviewed-by.
+  * Used of_find_platdata_by_node function to fetch platform
+    data for timer node.
 
-Changes in v2:
+ drivers/pwm/pwm-omap-dmtimer.c | 39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
 
-  * No code changes in this v2 version. Only enhanced patch
-    statistics for renames.
-
- arch/arm/mach-omap2/pdata-quirks.c | 32 --------------------------------
- 1 file changed, 32 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index ad9df86..e7d7fc7 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -24,10 +24,8 @@
- #include <linux/platform_data/hsmmc-omap.h>
- #include <linux/platform_data/iommu-omap.h>
- #include <linux/platform_data/wkup_m3.h>
--#include <linux/platform_data/pwm_omap_dmtimer.h>
- #include <linux/platform_data/media/ir-rx51.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
--#include <clocksource/dmtimer.h>
- 
- #include "common.h"
- #include "common-board-devices.h"
-@@ -477,33 +475,6 @@ void omap_auxdata_legacy_init(struct device *dev)
- 	dev->platform_data = &twl_gpio_auxdata;
- }
- 
--/* Dual mode timer PWM callbacks platdata */
--#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
--static struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
--	.request_by_node = omap_dm_timer_request_by_node,
--	.request_specific = omap_dm_timer_request_specific,
--	.request = omap_dm_timer_request,
--	.set_source = omap_dm_timer_set_source,
--	.get_irq = omap_dm_timer_get_irq,
--	.set_int_enable = omap_dm_timer_set_int_enable,
--	.set_int_disable = omap_dm_timer_set_int_disable,
--	.free = omap_dm_timer_free,
--	.enable = omap_dm_timer_enable,
--	.disable = omap_dm_timer_disable,
--	.get_fclk = omap_dm_timer_get_fclk,
--	.start = omap_dm_timer_start,
--	.stop = omap_dm_timer_stop,
--	.set_load = omap_dm_timer_set_load,
--	.set_match = omap_dm_timer_set_match,
--	.set_pwm = omap_dm_timer_set_pwm,
--	.set_prescaler = omap_dm_timer_set_prescaler,
--	.read_counter = omap_dm_timer_read_counter,
--	.write_counter = omap_dm_timer_write_counter,
--	.read_status = omap_dm_timer_read_status,
--	.write_status = omap_dm_timer_write_status,
--};
--#endif
--
- static struct ir_rx51_platform_data __maybe_unused rx51_ir_data = {
- 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+index 5ad42f3..3b27aff 100644
+--- a/drivers/pwm/pwm-omap-dmtimer.c
++++ b/drivers/pwm/pwm-omap-dmtimer.c
+@@ -23,6 +23,7 @@
+ #include <linux/mutex.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
++#include <linux/platform_data/dmtimer-omap.h>
+ #include <linux/platform_data/pwm_omap_dmtimer.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
+ 	struct pwm_chip chip;
+ 	struct mutex mutex;
+ 	pwm_omap_dmtimer *dm_timer;
+-	struct pwm_omap_dmtimer_pdata *pdata;
++	struct omap_dm_timer_ops *pdata;
+ 	struct platform_device *dm_timer_pdev;
  };
-@@ -572,9 +543,6 @@ static void __init omap3_mcbsp_init(void) {}
- 	OF_DEV_AUXDATA("ti,am4372-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
- 		       &wkup_m3_data),
- #endif
--#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
--	OF_DEV_AUXDATA("ti,omap-dmtimer-pwm", 0, NULL, &pwm_dmtimer_pdata),
--#endif
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
- 	OF_DEV_AUXDATA("ti,omap4-iommu", 0x4a066000, "4a066000.mmu",
- 		       &omap4_iommu_pdata),
+ 
+@@ -242,19 +243,33 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+ 	struct device_node *timer;
++	struct platform_device *timer_pdev;
+ 	struct pwm_omap_dmtimer_chip *omap;
+-	struct pwm_omap_dmtimer_pdata *pdata;
++	struct dmtimer_platform_data *timer_pdata;
++	struct omap_dm_timer_ops *pdata;
+ 	pwm_omap_dmtimer *dm_timer;
+ 	u32 v;
+ 	int status;
+ 
+-	pdata = dev_get_platdata(&pdev->dev);
+-	if (!pdata) {
+-		dev_err(&pdev->dev, "Missing dmtimer platform data\n");
++	timer = of_parse_phandle(np, "ti,timers", 0);
++	if (!timer)
++		return -ENODEV;
++
++	timer_pdev = of_find_device_by_node(timer);
++	if (!timer_pdev) {
++		dev_err(&pdev->dev, "Unable to find Timer pdev\n");
++		return -ENODEV;
++	}
++
++	timer_pdata = dev_get_platdata(&timer_pdev->dev);
++	if (!timer_pdata) {
++		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!pdata->request_by_node ||
++	pdata = timer_pdata->timer_ops;
++
++	if (!pdata || !pdata->request_by_node ||
+ 	    !pdata->free ||
+ 	    !pdata->enable ||
+ 	    !pdata->disable ||
+@@ -270,10 +285,6 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
+-	timer = of_parse_phandle(np, "ti,timers", 0);
+-	if (!timer)
+-		return -ENODEV;
+-
+ 	if (!of_get_property(timer, "ti,timer-pwm", NULL)) {
+ 		dev_err(&pdev->dev, "Missing ti,timer-pwm capability\n");
+ 		return -ENODEV;
+@@ -291,13 +302,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 
+ 	omap->pdata = pdata;
+ 	omap->dm_timer = dm_timer;
+-
+-	omap->dm_timer_pdev = of_find_device_by_node(timer);
+-	if (!omap->dm_timer_pdev) {
+-		dev_err(&pdev->dev, "Unable to find timer pdev\n");
+-		omap->pdata->free(dm_timer);
+-		return -EINVAL;
+-	}
++	omap->dm_timer_pdev = timer_pdev;
+ 
+ 	/*
+ 	 * Ensure that the timer is stopped before we allow PWM core to call
 -- 
 1.9.1
