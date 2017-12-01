@@ -1,41 +1,79 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 00/11] net: ethernet: ti: cpsw/ale clean up and optimization
-Date: Thu, 30 Nov 2017 18:21:09 -0600
-Message-ID: <20171201002120.13483-1-grygorii.strashko@ti.com>
+Subject: [PATCH net-next 04/11] net: ethernet: ti: cpsw: move mac_hi/lo defines in cpsw.h
+Date: Thu, 30 Nov 2017 18:21:13 -0600
+Message-ID: <20171201002120.13483-5-grygorii.strashko@ti.com>
+References: <20171201002120.13483-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171201002120.13483-1-grygorii.strashko@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is set of non critical clean ups and optimizations for TI
-CPSW and ALE drivers.
+Move mac_hi/lo defines in common header cpsw.h and re-use
+them for netcp_ethss.c.
 
-Rebased on top on net-next.
+Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+---
+ drivers/net/ethernet/ti/cpsw.c        | 4 ----
+ drivers/net/ethernet/ti/cpsw.h        | 4 ++++
+ drivers/net/ethernet/ti/netcp_ethss.c | 5 +----
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-Grygorii Strashko (11):
-  net: ethernet: ti: cpsw: drop unused var poll from
-    cpsw_update_channels_res
-  net: ethernet: ti: cpsw: use proper io apis
-  net: ethernet: ti: cpsw: move platform data struct to .c file
-  net: ethernet: ti: cpsw: move mac_hi/lo defines in cpsw.h
-  net: ethernet: ti: cpsw: fix ale port numbers
-  net: ethernet: ti: ale: use proper io apis
-  net: ethernet: ti: ale: disable ale from stop()
-  net: ethernet: ti: ale: optimize ale entry mask bits configuartion
-  net: ethernet: ti: ale: move static initialization in
-    cpsw_ale_create()
-  net: ethernet: ti: ale: use devm_kzalloc in cpsw_ale_create()
-  net: ethernet: ti: ale: fix port check in cpsw_ale_control_set/get
-
- drivers/net/ethernet/ti/cpsw.c        |  84 +++++++++++++++-----------
- drivers/net/ethernet/ti/cpsw.h        |  23 +------
- drivers/net/ethernet/ti/cpsw_ale.c    | 109 ++++++++++++++--------------------
- drivers/net/ethernet/ti/cpsw_ale.h    |   1 -
- drivers/net/ethernet/ti/netcp_ethss.c |   6 +-
- 5 files changed, 98 insertions(+), 125 deletions(-)
-
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 54c8758..2bf0bda 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -978,10 +978,6 @@ static inline void soft_reset(const char *module, void __iomem *reg)
+ 	WARN(readl_relaxed(reg) & 1, "failed to soft-reset %s\n", module);
+ }
+ 
+-#define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |	\
+-			 ((mac)[2] << 16) | ((mac)[3] << 24))
+-#define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
+-
+ static void cpsw_set_slave_mac(struct cpsw_slave *slave,
+ 			       struct cpsw_priv *priv)
+ {
+diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
+index a325f555..cf111db 100644
+--- a/drivers/net/ethernet/ti/cpsw.h
++++ b/drivers/net/ethernet/ti/cpsw.h
+@@ -17,6 +17,10 @@
+ #include <linux/if_ether.h>
+ #include <linux/phy.h>
+ 
++#define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |	\
++			 ((mac)[2] << 16) | ((mac)[3] << 24))
++#define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
++
+ void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave);
+ int ti_cm_get_macid(struct device *dev, int slave, u8 *mac_addr);
+ 
+diff --git a/drivers/net/ethernet/ti/netcp_ethss.c b/drivers/net/ethernet/ti/netcp_ethss.c
+index e831c49..12765e4 100644
+--- a/drivers/net/ethernet/ti/netcp_ethss.c
++++ b/drivers/net/ethernet/ti/netcp_ethss.c
+@@ -27,6 +27,7 @@
+ #include <linux/net_tstamp.h>
+ #include <linux/ethtool.h>
+ 
++#include "cpsw.h"
+ #include "cpsw_ale.h"
+ #include "netcp.h"
+ #include "cpts.h"
+@@ -2047,10 +2048,6 @@ static const struct ethtool_ops keystone_ethtool_ops = {
+ 	.get_ts_info		= keystone_get_ts_info,
+ };
+ 
+-#define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |	\
+-			 ((mac)[2] << 16) | ((mac)[3] << 24))
+-#define mac_lo(mac)	(((mac)[4] << 0) | ((mac)[5] << 8))
+-
+ static void gbe_set_slave_mac(struct gbe_slave *slave,
+ 			      struct gbe_intf *gbe_intf)
+ {
 -- 
 2.10.5
