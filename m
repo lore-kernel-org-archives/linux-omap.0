@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 11/11] net: ethernet: ti: ale: fix port check in cpsw_ale_control_set/get
-Date: Thu, 30 Nov 2017 18:21:20 -0600
-Message-ID: <20171201002120.13483-12-grygorii.strashko@ti.com>
+Subject: [PATCH net-next 10/11] net: ethernet: ti: ale: use devm_kzalloc in cpsw_ale_create()
+Date: Thu, 30 Nov 2017 18:21:19 -0600
+Message-ID: <20171201002120.13483-11-grygorii.strashko@ti.com>
 References: <20171201002120.13483-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,151 @@ To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-ALE ports number includes the Host port and ext Ports, and
-ALE ports numbering starts from 0, so correct corresponding port
-checks in cpsw_ale_control_set/get().
+Use cpsw_ale_create in cpsw_ale_create(). This also makes
+cpsw_ale_destroy() function nop, so remove it.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw_ale.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c        | 17 +++++++----------
+ drivers/net/ethernet/ti/cpsw_ale.c    | 11 +----------
+ drivers/net/ethernet/ti/cpsw_ale.h    |  1 -
+ drivers/net/ethernet/ti/netcp_ethss.c |  1 -
+ 4 files changed, 8 insertions(+), 22 deletions(-)
 
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 64bdd92..a60a378 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -3087,14 +3087,14 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	cpsw->cpts = cpts_create(cpsw->dev, cpts_regs, cpsw->dev->of_node);
+ 	if (IS_ERR(cpsw->cpts)) {
+ 		ret = PTR_ERR(cpsw->cpts);
+-		goto clean_ale_ret;
++		goto clean_dma_ret;
+ 	}
+ 
+ 	ndev->irq = platform_get_irq(pdev, 1);
+ 	if (ndev->irq < 0) {
+ 		dev_err(priv->dev, "error getting irq resource\n");
+ 		ret = ndev->irq;
+-		goto clean_ale_ret;
++		goto clean_dma_ret;
+ 	}
+ 
+ 	of_id = of_match_device(cpsw_of_mtable, &pdev->dev);
+@@ -3118,7 +3118,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	if (ret) {
+ 		dev_err(priv->dev, "error registering net device\n");
+ 		ret = -ENODEV;
+-		goto clean_ale_ret;
++		goto clean_dma_ret;
+ 	}
+ 
+ 	if (cpsw->data.dual_emac) {
+@@ -3141,7 +3141,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	irq = platform_get_irq(pdev, 1);
+ 	if (irq < 0) {
+ 		ret = irq;
+-		goto clean_ale_ret;
++		goto clean_dma_ret;
+ 	}
+ 
+ 	cpsw->irqs_table[0] = irq;
+@@ -3149,14 +3149,14 @@ static int cpsw_probe(struct platform_device *pdev)
+ 			       0, dev_name(&pdev->dev), cpsw);
+ 	if (ret < 0) {
+ 		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
+-		goto clean_ale_ret;
++		goto clean_dma_ret;
+ 	}
+ 
+ 	/* TX IRQ */
+ 	irq = platform_get_irq(pdev, 2);
+ 	if (irq < 0) {
+ 		ret = irq;
+-		goto clean_ale_ret;
++		goto clean_dma_ret;
+ 	}
+ 
+ 	cpsw->irqs_table[1] = irq;
+@@ -3164,7 +3164,7 @@ static int cpsw_probe(struct platform_device *pdev)
+ 			       0, dev_name(&pdev->dev), cpsw);
+ 	if (ret < 0) {
+ 		dev_err(priv->dev, "error attaching irq (%d)\n", ret);
+-		goto clean_ale_ret;
++		goto clean_dma_ret;
+ 	}
+ 
+ 	cpsw_notice(priv, probe,
+@@ -3177,8 +3177,6 @@ static int cpsw_probe(struct platform_device *pdev)
+ 
+ clean_unregister_netdev_ret:
+ 	unregister_netdev(ndev);
+-clean_ale_ret:
+-	cpsw_ale_destroy(cpsw->ale);
+ clean_dma_ret:
+ 	cpdma_ctlr_destroy(cpsw->dma);
+ clean_dt_ret:
+@@ -3208,7 +3206,6 @@ static int cpsw_remove(struct platform_device *pdev)
+ 	unregister_netdev(ndev);
+ 
+ 	cpts_release(cpsw->cpts);
+-	cpsw_ale_destroy(cpsw->ale);
+ 	cpdma_ctlr_destroy(cpsw->dma);
+ 	cpsw_remove_dt(pdev);
+ 	pm_runtime_put_sync(&pdev->dev);
 diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index e513248..93dc05c 100644
+index 53aa721..e513248 100644
 --- a/drivers/net/ethernet/ti/cpsw_ale.c
 +++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -723,7 +723,7 @@ int cpsw_ale_control_set(struct cpsw_ale *ale, int port, int control,
- 	if (info->port_offset == 0 && info->port_shift == 0)
- 		port = 0; /* global, port is a dont care */
+@@ -802,7 +802,7 @@ struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
+ 	struct cpsw_ale *ale;
+ 	u32 rev, ale_entries;
  
--	if (port < 0 || port > ale->params.ale_ports)
-+	if (port < 0 || port >= ale->params.ale_ports)
- 		return -EINVAL;
+-	ale = kzalloc(sizeof(*ale), GFP_KERNEL);
++	ale = devm_kzalloc(params->dev, sizeof(*ale), GFP_KERNEL);
+ 	if (!ale)
+ 		return NULL;
  
- 	mask = BITMASK(info->bits);
-@@ -754,7 +754,7 @@ int cpsw_ale_control_get(struct cpsw_ale *ale, int port, int control)
- 	if (info->port_offset == 0 && info->port_shift == 0)
- 		port = 0; /* global, port is a dont care */
+@@ -881,15 +881,6 @@ struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params)
+ }
+ EXPORT_SYMBOL_GPL(cpsw_ale_create);
  
--	if (port < 0 || port > ale->params.ale_ports)
-+	if (port < 0 || port >= ale->params.ale_ports)
- 		return -EINVAL;
+-int cpsw_ale_destroy(struct cpsw_ale *ale)
+-{
+-	if (!ale)
+-		return -EINVAL;
+-	kfree(ale);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(cpsw_ale_destroy);
+-
+ void cpsw_ale_dump(struct cpsw_ale *ale, u32 *data)
+ {
+ 	int i;
+diff --git a/drivers/net/ethernet/ti/cpsw_ale.h b/drivers/net/ethernet/ti/cpsw_ale.h
+index 25d24e8..d4fe901 100644
+--- a/drivers/net/ethernet/ti/cpsw_ale.h
++++ b/drivers/net/ethernet/ti/cpsw_ale.h
+@@ -100,7 +100,6 @@ enum cpsw_ale_port_state {
+ #define ALE_ENTRY_WORDS	DIV_ROUND_UP(ALE_ENTRY_BITS, 32)
  
- 	offset = info->offset + (port * info->port_offset);
+ struct cpsw_ale *cpsw_ale_create(struct cpsw_ale_params *params);
+-int cpsw_ale_destroy(struct cpsw_ale *ale);
+ 
+ void cpsw_ale_start(struct cpsw_ale *ale);
+ void cpsw_ale_stop(struct cpsw_ale *ale);
+diff --git a/drivers/net/ethernet/ti/netcp_ethss.c b/drivers/net/ethernet/ti/netcp_ethss.c
+index 12765e4..56dbc0b 100644
+--- a/drivers/net/ethernet/ti/netcp_ethss.c
++++ b/drivers/net/ethernet/ti/netcp_ethss.c
+@@ -3689,7 +3689,6 @@ static int gbe_remove(struct netcp_device *netcp_device, void *inst_priv)
+ 	del_timer_sync(&gbe_dev->timer);
+ 	cpts_release(gbe_dev->cpts);
+ 	cpsw_ale_stop(gbe_dev->ale);
+-	cpsw_ale_destroy(gbe_dev->ale);
+ 	netcp_txpipe_close(&gbe_dev->tx_pipe);
+ 	free_secondary_ports(gbe_dev);
+ 
 -- 
 2.10.5
