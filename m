@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 07/11] net: ethernet: ti: ale: disable ale from stop()
-Date: Thu, 30 Nov 2017 18:21:16 -0600
-Message-ID: <20171201002120.13483-8-grygorii.strashko@ti.com>
+Subject: [PATCH net-next 08/11] net: ethernet: ti: ale: optimize ale entry mask bits configuartion
+Date: Thu, 30 Nov 2017 18:21:17 -0600
+Message-ID: <20171201002120.13483-9-grygorii.strashko@ti.com>
 References: <20171201002120.13483-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,35 +12,46 @@ To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-ALE is enabled from cpsw_ale_start() now, but disabled only from
-cpsw_ale_destroy() which introduces inconsitance as cpsw_ale_start() is
-called when netif[s] is opened, but cpsw_ale_destroy() is called when
-driver is removed. Hence, move ALE disabling in cpsw_ale_stop().
+The ale->params.ale_ports parameter can be used to deriver values for all
+ale entry mask bits: port_mask_bits, port_mask_bits, port_num_bits.
+Hence, calculate above values and drop all hardcoded values. For
+port_num_bits calcualtion use order_base_2() API.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw_ale.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/ti/cpsw_ale.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
-index fca5c29..5eaaf88 100644
+index 5eaaf88..f8c523d 100644
 --- a/drivers/net/ethernet/ti/cpsw_ale.c
 +++ b/drivers/net/ethernet/ti/cpsw_ale.c
-@@ -870,6 +870,7 @@ EXPORT_SYMBOL_GPL(cpsw_ale_start);
- void cpsw_ale_stop(struct cpsw_ale *ale)
- {
- 	del_timer_sync(&ale->timer);
-+	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
- }
- EXPORT_SYMBOL_GPL(cpsw_ale_stop);
+@@ -816,9 +816,9 @@ void cpsw_ale_start(struct cpsw_ale *ale)
+ 		 "ALE Table size %ld\n", ale->params.ale_entries);
  
-@@ -892,7 +893,6 @@ int cpsw_ale_destroy(struct cpsw_ale *ale)
- {
- 	if (!ale)
- 		return -EINVAL;
--	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 0);
- 	kfree(ale);
- 	return 0;
- }
+ 	/* set default bits for existing h/w */
+-	ale->port_mask_bits = 3;
+-	ale->port_num_bits = 2;
+-	ale->vlan_field_bits = 3;
++	ale->port_mask_bits = ale->params.ale_ports;
++	ale->port_num_bits = order_base_2(ale->params.ale_ports);
++	ale->vlan_field_bits = ale->params.ale_ports;
+ 
+ 	/* Set defaults override for ALE on NetCP NU switch and for version
+ 	 * 1R3
+@@ -847,13 +847,6 @@ void cpsw_ale_start(struct cpsw_ale *ale)
+ 		ale_controls[ALE_PORT_UNTAGGED_EGRESS].shift = 0;
+ 		ale_controls[ALE_PORT_UNTAGGED_EGRESS].offset =
+ 					ALE_UNKNOWNVLAN_FORCE_UNTAG_EGRESS;
+-		ale->port_mask_bits = ale->params.ale_ports;
+-		ale->port_num_bits = ale->params.ale_ports - 1;
+-		ale->vlan_field_bits = ale->params.ale_ports;
+-	} else if (ale->version == ALE_VERSION_1R3) {
+-		ale->port_mask_bits = ale->params.ale_ports;
+-		ale->port_num_bits = 3;
+-		ale->vlan_field_bits = ale->params.ale_ports;
+ 	}
+ 
+ 	cpsw_ale_control_set(ale, 0, ALE_ENABLE, 1);
 -- 
 2.10.5
