@@ -1,7 +1,7 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [PATCH net-next 02/11] net: ethernet: ti: cpsw: use proper io apis
-Date: Thu, 30 Nov 2017 18:21:11 -0600
-Message-ID: <20171201002120.13483-3-grygorii.strashko@ti.com>
+Subject: [PATCH net-next 03/11] net: ethernet: ti: cpsw: move platform data struct to .c file
+Date: Thu, 30 Nov 2017 18:21:12 -0600
+Message-ID: <20171201002120.13483-4-grygorii.strashko@ti.com>
 References: <20171201002120.13483-1-grygorii.strashko@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,132 +12,78 @@ To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
 Cc: Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>, Murali Karicheri <m-karicheri2@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Switch to use writel_relaxed/readl_relaxed() IO API instead of raw version
-as it is recommended.
+CPSW platform data struct cpsw_platform_data and struct cpsw_slave_data are
+used only incide cpsw.c module, so move these definitions there.
 
 Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
 ---
- drivers/net/ethernet/ti/cpsw.c | 36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ drivers/net/ethernet/ti/cpsw.c | 21 +++++++++++++++++++++
+ drivers/net/ethernet/ti/cpsw.h | 21 ---------------------
+ 2 files changed, 21 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index 523c110..f74a8fd 100644
+index f74a8fd..54c8758 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -365,12 +365,12 @@ struct cpsw_slave {
+@@ -352,6 +352,27 @@ struct cpsw_hw_stats {
+ 	u32	rxdmaoverruns;
+ };
  
- static inline u32 slave_read(struct cpsw_slave *slave, u32 offset)
- {
--	return __raw_readl(slave->regs + offset);
-+	return readl_relaxed(slave->regs + offset);
- }
++struct cpsw_slave_data {
++	struct device_node *phy_node;
++	char		phy_id[MII_BUS_ID_SIZE];
++	int		phy_if;
++	u8		mac_addr[ETH_ALEN];
++	u16		dual_emac_res_vlan;	/* Reserved VLAN for DualEMAC */
++};
++
++struct cpsw_platform_data {
++	struct cpsw_slave_data	*slave_data;
++	u32	ss_reg_ofs;	/* Subsystem control register offset */
++	u32	channels;	/* number of cpdma channels (symmetric) */
++	u32	slaves;		/* number of slave cpgmac ports */
++	u32	active_slave; /* time stamping, ethtool and SIOCGMIIPHY slave */
++	u32	ale_entries;	/* ale table size */
++	u32	bd_ram_size;  /*buffer descriptor ram size */
++	u32	mac_control;	/* Mac control register */
++	u16	default_vlan;	/* Def VLAN for ALE lookup in VLAN aware mode*/
++	bool	dual_emac;	/* Enable Dual EMAC mode */
++};
++
+ struct cpsw_slave {
+ 	void __iomem			*regs;
+ 	struct cpsw_sliver_regs __iomem	*sliver;
+diff --git a/drivers/net/ethernet/ti/cpsw.h b/drivers/net/ethernet/ti/cpsw.h
+index 6c3037a..a325f555 100644
+--- a/drivers/net/ethernet/ti/cpsw.h
++++ b/drivers/net/ethernet/ti/cpsw.h
+@@ -17,27 +17,6 @@
+ #include <linux/if_ether.h>
+ #include <linux/phy.h>
  
- static inline void slave_write(struct cpsw_slave *slave, u32 val, u32 offset)
- {
--	__raw_writel(val, slave->regs + offset);
-+	writel_relaxed(val, slave->regs + offset);
- }
+-struct cpsw_slave_data {
+-	struct device_node *phy_node;
+-	char		phy_id[MII_BUS_ID_SIZE];
+-	int		phy_if;
+-	u8		mac_addr[ETH_ALEN];
+-	u16		dual_emac_res_vlan;	/* Reserved VLAN for DualEMAC */
+-};
+-
+-struct cpsw_platform_data {
+-	struct cpsw_slave_data	*slave_data;
+-	u32	ss_reg_ofs;	/* Subsystem control register offset */
+-	u32	channels;	/* number of cpdma channels (symmetric) */
+-	u32	slaves;		/* number of slave cpgmac ports */
+-	u32	active_slave; /* time stamping, ethtool and SIOCGMIIPHY slave */
+-	u32	ale_entries;	/* ale table size */
+-	u32	bd_ram_size;  /*buffer descriptor ram size */
+-	u32	mac_control;	/* Mac control register */
+-	u16	default_vlan;	/* Def VLAN for ALE lookup in VLAN aware mode*/
+-	bool	dual_emac;	/* Enable Dual EMAC mode */
+-};
+-
+ void cpsw_phy_sel(struct device *dev, phy_interface_t phy_mode, int slave);
+ int ti_cm_get_macid(struct device *dev, int slave, u8 *mac_addr);
  
- struct cpsw_vector {
-@@ -660,8 +660,8 @@ static void cpsw_ndo_set_rx_mode(struct net_device *ndev)
- 
- static void cpsw_intr_enable(struct cpsw_common *cpsw)
- {
--	__raw_writel(0xFF, &cpsw->wr_regs->tx_en);
--	__raw_writel(0xFF, &cpsw->wr_regs->rx_en);
-+	writel_relaxed(0xFF, &cpsw->wr_regs->tx_en);
-+	writel_relaxed(0xFF, &cpsw->wr_regs->rx_en);
- 
- 	cpdma_ctlr_int_ctrl(cpsw->dma, true);
- 	return;
-@@ -669,8 +669,8 @@ static void cpsw_intr_enable(struct cpsw_common *cpsw)
- 
- static void cpsw_intr_disable(struct cpsw_common *cpsw)
- {
--	__raw_writel(0, &cpsw->wr_regs->tx_en);
--	__raw_writel(0, &cpsw->wr_regs->rx_en);
-+	writel_relaxed(0, &cpsw->wr_regs->tx_en);
-+	writel_relaxed(0, &cpsw->wr_regs->rx_en);
- 
- 	cpdma_ctlr_int_ctrl(cpsw->dma, false);
- 	return;
-@@ -949,12 +949,12 @@ static inline void soft_reset(const char *module, void __iomem *reg)
- {
- 	unsigned long timeout = jiffies + HZ;
- 
--	__raw_writel(1, reg);
-+	writel_relaxed(1, reg);
- 	do {
- 		cpu_relax();
--	} while ((__raw_readl(reg) & 1) && time_after(timeout, jiffies));
-+	} while ((readl_relaxed(reg) & 1) && time_after(timeout, jiffies));
- 
--	WARN(__raw_readl(reg) & 1, "failed to soft-reset %s\n", module);
-+	WARN(readl_relaxed(reg) & 1, "failed to soft-reset %s\n", module);
- }
- 
- #define mac_hi(mac)	(((mac)[0] << 0) | ((mac)[1] << 8) |	\
-@@ -1015,7 +1015,7 @@ static void _cpsw_adjust_link(struct cpsw_slave *slave,
- 
- 	if (mac_control != slave->mac_control) {
- 		phy_print_status(phy);
--		__raw_writel(mac_control, &slave->sliver->mac_control);
-+		writel_relaxed(mac_control, &slave->sliver->mac_control);
- 	}
- 
- 	slave->mac_control = mac_control;
-@@ -1278,7 +1278,7 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
- 	soft_reset_slave(slave);
- 
- 	/* setup priority mapping */
--	__raw_writel(RX_PRIORITY_MAPPING, &slave->sliver->rx_pri_map);
-+	writel_relaxed(RX_PRIORITY_MAPPING, &slave->sliver->rx_pri_map);
- 
- 	switch (cpsw->version) {
- 	case CPSW_VERSION_1:
-@@ -1304,7 +1304,7 @@ static void cpsw_slave_open(struct cpsw_slave *slave, struct cpsw_priv *priv)
- 	}
- 
- 	/* setup max packet size, and mac address */
--	__raw_writel(cpsw->rx_packet_max, &slave->sliver->rx_maxlen);
-+	writel_relaxed(cpsw->rx_packet_max, &slave->sliver->rx_maxlen);
- 	cpsw_set_slave_mac(slave, priv);
- 
- 	slave->mac_control = 0;	/* no link yet */
-@@ -1395,9 +1395,9 @@ static void cpsw_init_host_port(struct cpsw_priv *priv)
- 	writel(fifo_mode, &cpsw->host_port_regs->tx_in_ctl);
- 
- 	/* setup host port priority mapping */
--	__raw_writel(CPDMA_TX_PRIORITY_MAP,
--		     &cpsw->host_port_regs->cpdma_tx_pri_map);
--	__raw_writel(0, &cpsw->host_port_regs->cpdma_rx_chan_map);
-+	writel_relaxed(CPDMA_TX_PRIORITY_MAP,
-+		       &cpsw->host_port_regs->cpdma_tx_pri_map);
-+	writel_relaxed(0, &cpsw->host_port_regs->cpdma_rx_chan_map);
- 
- 	cpsw_ale_control_set(cpsw->ale, HOST_PORT_NUM,
- 			     ALE_PORT_STATE, ALE_PORT_STATE_FORWARD);
-@@ -1514,10 +1514,10 @@ static int cpsw_ndo_open(struct net_device *ndev)
- 	/* initialize shared resources for every ndev */
- 	if (!cpsw->usage_count) {
- 		/* disable priority elevation */
--		__raw_writel(0, &cpsw->regs->ptype);
-+		writel_relaxed(0, &cpsw->regs->ptype);
- 
- 		/* enable statistics collection only on all ports */
--		__raw_writel(0x7, &cpsw->regs->stat_port_en);
-+		writel_relaxed(0x7, &cpsw->regs->stat_port_en);
- 
- 		/* Enable internal fifo flow control */
- 		writel(0x7, &cpsw->regs->flow_control);
-@@ -1701,7 +1701,7 @@ static void cpsw_hwtstamp_v2(struct cpsw_priv *priv)
- 
- 	slave_write(slave, mtype, CPSW2_TS_SEQ_MTYPE);
- 	slave_write(slave, ctrl, CPSW2_CONTROL);
--	__raw_writel(ETH_P_1588, &cpsw->regs->ts_ltype);
-+	writel_relaxed(ETH_P_1588, &cpsw->regs->ts_ltype);
- }
- 
- static int cpsw_hwtstamp_set(struct net_device *dev, struct ifreq *ifr)
 -- 
 2.10.5
