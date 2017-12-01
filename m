@@ -1,7 +1,7 @@
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v5 4/5] DTS: gta04: add uart2 child node for w2sg00x4
-Date: Fri,  1 Dec 2017 08:49:37 +0100
-Message-ID: <1b1c7a8319eaf61a46eebd7a366ea745b7a54634.1512114577.git.hns@goldelico.com>
+Subject: [PATCH v5 1/5] dt-bindings: define vendor prefix for Wi2Wi, Inc.
+Date: Fri,  1 Dec 2017 08:49:34 +0100
+Message-ID: <876647948fceb763a0b584b70c3805dec562072e.1512114576.git.hns@goldelico.com>
 References: <cover.1512114576.git.hns@goldelico.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1512114576.git.hns@goldelico.com>
@@ -12,35 +12,26 @@ To: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?UTF
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-GTA04 has a W2SG0004/84 connected to UART2 of the OMAP3
-processor. A GPIO can pulse the on/off toggle switch.
-
-The VSIM regulator is used to power on/off the LNA of an external
-active GPS antenna so that a driver can turn the LNA off if GPS is
-not needed to save battery energy.
+Introduce vendor prefix for Wi2Wi, Inc. for W2SG00x4 GPS modules
+and W2CBW003 Bluetooth/WiFi combo (CSR/Marvell).
 
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- arch/arm/boot/dts/omap3-gta04.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/devicetree/bindings/vendor-prefixes.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
-index 4504908c23fe..1ad744a25c36 100644
---- a/arch/arm/boot/dts/omap3-gta04.dtsi
-+++ b/arch/arm/boot/dts/omap3-gta04.dtsi
-@@ -477,6 +477,13 @@
- &uart2 {
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&uart2_pins>;
-+
-+	gps: gps {
-+		compatible = "wi2wi,w2sg0004";
-+		lna-supply = <&vsim>;   /* LNA regulator */
-+		/* GPIO_145: trigger for on/off-impulse for w2sg0004 */
-+		enable-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
-+	};
- };
- 
- &uart3 {
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 0994bdd82cd3..879f1d9291cd 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -382,6 +382,7 @@ voipac	Voipac Technologies s.r.o.
+ wd	Western Digital Corp.
+ wetek	WeTek Electronics, limited.
+ wexler	Wexler
++wi2wi	Wi2Wi, Inc.
+ winbond Winbond Electronics corp.
+ winstar	Winstar Display Corp.
+ wlf	Wolfson Microelectronics
 -- 
 2.12.2
