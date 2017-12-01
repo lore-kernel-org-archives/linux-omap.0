@@ -1,68 +1,142 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v3 1/4] omapdrm: panel: fix compatible vendor string for
- td028ttec1
-Date: Thu, 30 Nov 2017 19:57:30 -0600
-Message-ID: <20171201015730.nvw6sblxn566dhhb@rob-hp-laptop>
-References: <cover.1511884135.git.hns@goldelico.com>
- <6ae8f4b7d794c536650cc99025e5b026089cea30.1511884135.git.hns@goldelico.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v3 8/9] pwm: pwm-omap-dmtimer: Adapt driver to utilize
+ dmtimer pdata ops
+Date: Fri, 1 Dec 2017 10:02:15 +0530
+Message-ID: <46717199-3db8-923c-0c66-0d25f5fd871e@ti.com>
+References: <1510806222-22096-1-git-send-email-j-keerthy@ti.com>
+ <1510806222-22096-9-git-send-email-j-keerthy@ti.com>
+ <2c5e3e04-9940-43c3-62b1-8cef7d22c5e1@ti.com>
+ <e632a727-1067-7767-1646-f49ec0f8c2ec@ti.com>
+ <7bfa0a0d-27f6-3797-f96b-eeb975158f78@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6ae8f4b7d794c536650cc99025e5b026089cea30.1511884135.git.hns@goldelico.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>, David Airlie <airlied@linux.ie>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Julia Lawall <Julia.Lawall@lip6.fr>, Sean Paul <seanpaul@chromium.org>, dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, kernel@pyra-handheld.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <7bfa0a0d-27f6-3797-f96b-eeb975158f78@ti.com>
+Content-Language: en-US
+Sender: linux-pwm-owner@vger.kernel.org
+To: Grygorii Strashko <grygorii.strashko@ti.com>, "tony@atomide.com" <tony@atomide.com>, "aaro.koskinen@iki.fi" <aaro.koskinen@iki.fi>, "thierry.reding@gmail.com" <thierry.reding@gmail.com>
+Cc: "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "daniel.lezcano@linaro.org" <daniel.lezcano@linaro.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pwm@vger.kernel.org" <linux-pwm@vger.kernel.org>, "sebastian.reichel@collabora.co.uk" <sebastian.reichel@collabora.co.uk>, "ladis@linux-mips.org" <ladis@linux-mips.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 28, 2017 at 04:48:54PM +0100, H. Nikolaus Schaller wrote:
-> The vendor name was "toppoly" but other panels and the vendor list
-> have defined it as "tpo". So let's fix it in driver and bindings.
-> 
-> We keep the old definition in parallel to stay compatible with
-> potential older DTB setup.
-> 
-> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
-> ---
->  .../display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt}      | 4 ++--
->  drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c               | 3 +++
->  drivers/video/fbdev/omap2/omapfb/displays/panel-tpo-td028ttec1.c      | 3 +++
->  3 files changed, 8 insertions(+), 2 deletions(-)
->  rename Documentation/devicetree/bindings/display/panel/{toppoly,td028ttec1.txt => tpo,td028ttec1.txt} (84%)
-> 
-> diff --git a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
-> similarity index 84%
-> rename from Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
-> rename to Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
-> index 7175dc3740ac..ed34253d9fb1 100644
-> --- a/Documentation/devicetree/bindings/display/panel/toppoly,td028ttec1.txt
-> +++ b/Documentation/devicetree/bindings/display/panel/tpo,td028ttec1.txt
-> @@ -2,7 +2,7 @@ Toppoly TD028TTEC1 Panel
->  ========================
->  
->  Required properties:
-> -- compatible: "toppoly,td028ttec1"
-> +- compatible: "tpo,td028ttec1"
->  
->  Optional properties:
->  - label: a symbolic name for the panel
-> @@ -14,7 +14,7 @@ Example
->  -------
->  
->  lcd-panel: td028ttec1@0 {
-> -	compatible = "toppoly,td028ttec1";
-> +	compatible = "tpo,td028ttec1";
->  	reg = <0>;
->  	spi-max-frequency = <100000>;
->  	spi-cpol;
-> diff --git a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
-> index 0a38a0e8c925..a0dfa14f4fab 100644
-> --- a/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
-> +++ b/drivers/gpu/drm/omapdrm/displays/panel-tpo-td028ttec1.c
-> @@ -452,6 +452,8 @@ static int td028ttec1_panel_remove(struct spi_device *spi)
->  }
->  
->  static const struct of_device_id td028ttec1_of_match[] = {
-> +	{ .compatible = "omapdss,tpo,td028ttec1", },
 
-Why the omapdss part?
+
+On Friday 01 December 2017 04:49 AM, Grygorii Strashko wrote:
+> 
+> 
+> On 11/30/2017 03:36 AM, Keerthy wrote:
+>>
+>>
+>> On Tuesday 28 November 2017 11:57 PM, Strashko, Grygorii wrote:
+>>>
+>>>
+>>> On 11/15/2017 10:23 PM, Keerthy wrote:
+>>>> Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
+>>>>
+>>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>>>> ---
+>>>>
+>>>> Changes in v3:
+>>>>
+>>>>     * Used of_find_platdata_by_node function to fetch platform
+>>>>       data for timer node.
+>>>>
+>>>>    drivers/pwm/pwm-omap-dmtimer.c | 39
+>>>> ++++++++++++++++++++++-----------------
+>>>>    1 file changed, 22 insertions(+), 17 deletions(-)
+>>>>
+>>>> diff --git a/drivers/pwm/pwm-omap-dmtimer.c
+>>>> b/drivers/pwm/pwm-omap-dmtimer.c
+>>>> index 5ad42f3..2caf46b 100644
+>>>> --- a/drivers/pwm/pwm-omap-dmtimer.c
+>>>> +++ b/drivers/pwm/pwm-omap-dmtimer.c
+>>>> @@ -23,6 +23,7 @@
+>>>>    #include <linux/mutex.h>
+>>>>    #include <linux/of.h>
+>>>>    #include <linux/of_platform.h>
+>>>> +#include <linux/platform_data/dmtimer-omap.h>
+>>>>    #include <linux/platform_data/pwm_omap_dmtimer.h>
+>>>>    #include <linux/platform_device.h>
+>>>>    #include <linux/pm_runtime.h>
+>>>> @@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
+>>>>        struct pwm_chip chip;
+>>>>        struct mutex mutex;
+>>>>        pwm_omap_dmtimer *dm_timer;
+>>>> -    struct pwm_omap_dmtimer_pdata *pdata;
+>>>> +    struct omap_dm_timer_ops *pdata;
+>>>>        struct platform_device *dm_timer_pdev;
+>>>>    };
+>>>>    @@ -242,19 +243,33 @@ static int pwm_omap_dmtimer_probe(struct
+>>>> platform_device *pdev)
+>>>>    {
+>>>>        struct device_node *np = pdev->dev.of_node;
+>>>>        struct device_node *timer;
+>>>> +    struct platform_device *timer_pdev;
+>>>>        struct pwm_omap_dmtimer_chip *omap;
+>>>> -    struct pwm_omap_dmtimer_pdata *pdata;
+>>>> +    struct dmtimer_platform_data *timer_pdata;
+>>>> +    struct omap_dm_timer_ops *pdata;
+>>>>        pwm_omap_dmtimer *dm_timer;
+>>>>        u32 v;
+>>>>        int status;
+>>>>    -    pdata = dev_get_platdata(&pdev->dev);
+>>>> -    if (!pdata) {
+>>>> -        dev_err(&pdev->dev, "Missing dmtimer platform data\n");
+>>>> +    timer = of_parse_phandle(np, "ti,timers", 0);
+>>>> +    if (!timer)
+>>>> +        return -ENODEV;
+>>>> +
+>>>> +    timer_pdev = of_find_device_by_node(timer);
+>>>> +    if (!timer_pdev) {
+>>>> +        dev_err(&pdev->dev, "Unable to find Timer pdev\n");
+>>>> +        return -ENODEV;
+>>>> +    }
+>>>> +
+>>>> +    timer_pdata = of_find_platdata_by_node(timer);
+>>>> +    if (!timer_pdata) {
+>>>> +        dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
+>>>>            return -EINVAL;
+>>>>        }
+>>>
+>>> Huh. I think It might be better if you add smth. like
+>>>
+>>> struct omap_dm_timer *dm_timer = of_omap_dm_timer_get(parent_np,
+>>> "ti,timers", idx);
+>>>
+>>> struct omap_dm_timer_ops *pdata = omap_dm_timer_get_ops(dm_timer);
+>>>
+>>> so all DT and platdata implementation details will be hidden.
+>>
+>> Grygorii,
+>>
+>> This driver is already fetching:
+>>
+>> omap->dm_timer_pdev = of_find_device_by_node(timer);
+>>
+>> It stores dm_timer_pdev in struct pwm_omap_dmtimer_chip.
+>> So we already need:
+>> timer = of_parse_phandle(np, "ti,timers", 0);
+>> and
+>> omap->dm_timer_pdev = of_find_device_by_node(timer);
+>>
+>> So why not just do:
+>>
+>> struct omap_dm_timer_ops *pdata =
+>> omap_dm_timer_get_ops(omap->dm_timer_pdev);
+> 
+> if you dont want to do additional optimizations as part of migration
+> might be
+> dev_get_platdata(&omap->dm_timer_pdev->dev);
+> 
+> would be enough.
+
+That is pretty much what i want to do with the migration series.
+
+> 
+> But, again, PWM driver don't need to know so many details about
+> DM timer implementation and internal structure as consumer.
+
+Totally understand that. I will follow up with more clean ups once the
+code is migrated. Hope that is a reasonable approach.
+
+> 
