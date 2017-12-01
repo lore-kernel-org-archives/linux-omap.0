@@ -1,168 +1,57 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH v5 5/5] misc serdev: w2sg0004: add debugging code and Kconfig
-Date: Fri,  1 Dec 2017 08:49:38 +0100
-Message-ID: <5816bfb9e7cab68591c133e20696d6188ebe70de.1512114577.git.hns@goldelico.com>
-References: <cover.1512114576.git.hns@goldelico.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1512114576.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-In-Reply-To: <cover.1512114576.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-References: <cover.1512114576.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, =?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 4/4] DTS: Pandora: fix panel compatibility string
+Date: Fri, 1 Dec 2017 10:13:24 +0200
+Message-ID: <6ca5f2ea-e725-9a9e-ac02-e16beca4a1a0@ti.com>
+References: <cover.1511884135.git.hns@goldelico.com>
+ <b6001c7b7fb98e7a3ad4c712084fea9dae9e6b27.1511884135.git.hns@goldelico.com>
+ <20171128160437.GD28152@atomide.com>
+ <ADAFBBA4-6AC4-4EC4-AB0E-98B59718E12E@goldelico.com>
+ <20171128161834.GE28152@atomide.com>
+ <4EE1E298-6461-48FF-977C-958DD16AD83A@goldelico.com>
+ <20171130152430.GM28152@atomide.com> <20171130220633.imkfyeiqtftnw4j4@earth>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20171130220633.imkfyeiqtftnw4j4@earth>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Sebastian Reichel <sre@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, "H. Nikolaus Schaller" <hns@goldelico.com>, dri-devel@lists.freedesktop.org, Russell King <linux@armlinux.org.uk>, Rob Herring <robh+dt@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Julia Lawall <Julia.Lawall@lip6.fr>, Thierry Reding <thierry.reding@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, =?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, linux-omap <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-This allows to set CONFIG_W2SG0004_DEBUG which will
-make the driver report more activities and it will turn on the
-GPS module during boot while the driver assumes that it
-is off. This can be used to debug the correct functioning of
-the hardware. Therefore we add it as an option to the driver
-because we think it is of general use (and a little tricky to
-add by system testers).
-
-Normally it should be off.
-
-Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
----
- drivers/misc/Kconfig    |  8 ++++++++
- drivers/misc/w2sg0004.c | 37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 45 insertions(+)
-
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index a3b11016ed2b..ad6e60f0cc8c 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -518,4 +518,12 @@ config W2SG0004
- 	  is opened/closed.
- 	  It also provides a rfkill gps name to control the LNA power.
- 
-+config W2SG0004_DEBUG
-+	bool "W2SG0004 on/off debugging"
-+	depends on W2SG0004
-+	help
-+	  Enable driver debugging mode of W2SG0004 GPS. If you say y here
-+	  this will turn on the module and you can check if it is turned
-+	  off by the driver.
-+
- endmenu
-diff --git a/drivers/misc/w2sg0004.c b/drivers/misc/w2sg0004.c
-index 6bfd12eb8e02..82c708fce510 100644
---- a/drivers/misc/w2sg0004.c
-+++ b/drivers/misc/w2sg0004.c
-@@ -26,6 +26,10 @@
-  *
-  */
- 
-+#ifdef CONFIG_W2SG0004_DEBUG
-+#define DEBUG 1
-+#endif
-+
- #include <linux/delay.h>
- #include <linux/err.h>
- #include <linux/interrupt.h>
-@@ -256,6 +260,7 @@ static int w2sg_tty_install(struct tty_driver *driver, struct tty_struct *tty)
- 	pr_debug("%s() tty = %p\n", __func__, tty);
- 
- 	data = w2sg_get_by_minor(tty->index);
-+	pr_debug("%s() data = %p\n", __func__, data);
- 
- 	if (!data)
- 		return -ENODEV;
-@@ -342,6 +347,8 @@ static int w2sg_probe(struct serdev_device *serdev)
- 	if (data == NULL)
- 		return -ENOMEM;
- 
-+	pr_debug("w2sg serdev_device_set_drvdata\n");
-+
- 	serdev_device_set_drvdata(serdev, data);
- 
- 	data->on_off_gpio = of_get_named_gpio_flags(serdev->dev.of_node,
-@@ -375,6 +382,8 @@ static int w2sg_probe(struct serdev_device *serdev)
- 
- 	INIT_DELAYED_WORK(&data->work, toggle_work);
- 
-+	pr_debug("w2sg devm_gpio_request\n");
-+
- 	err = devm_gpio_request(&serdev->dev, data->on_off_gpio,
- 				"w2sg0004-on-off");
- 	if (err < 0)
-@@ -388,6 +397,8 @@ static int w2sg_probe(struct serdev_device *serdev)
- 	serdev_device_set_baudrate(data->uart, 9600);
- 	serdev_device_set_flow_control(data->uart, false);
- 
-+	pr_debug("w2sg rfkill_alloc\n");
-+
- 	rf_kill = rfkill_alloc("GPS", &serdev->dev, RFKILL_TYPE_GPS,
- 				&w2sg0004_rfkill_ops, data);
- 	if (rf_kill == NULL) {
-@@ -395,6 +406,8 @@ static int w2sg_probe(struct serdev_device *serdev)
- 		goto err_rfkill;
- 	}
- 
-+	pr_debug("w2sg register rfkill\n");
-+
- 	err = rfkill_register(rf_kill);
- 	if (err) {
- 		dev_err(&serdev->dev, "Cannot register rfkill device\n");
-@@ -403,6 +416,8 @@ static int w2sg_probe(struct serdev_device *serdev)
- 
- 	data->rf_kill = rf_kill;
- 
-+	pr_debug("w2sg alloc_tty_driver\n");
-+
- 	/* allocate the tty driver */
- 	data->tty_drv = alloc_tty_driver(1);
- 	if (!data->tty_drv)
-@@ -428,6 +443,8 @@ static int w2sg_probe(struct serdev_device *serdev)
- 	 */
- 	tty_set_operations(data->tty_drv, &w2sg_serial_ops);
- 
-+	pr_debug("w2sg tty_register_driver\n");
-+
- 	/* register the tty driver */
- 	err = tty_register_driver(data->tty_drv);
- 	if (err) {
-@@ -443,9 +460,27 @@ static int w2sg_probe(struct serdev_device *serdev)
- 	tty_port_init(&data->port);
- 	data->port.ops = &w2sg_port_ops;
- 
-+	pr_debug("w2sg call tty_port_register_device\n");
-+
- 	data->dev = tty_port_register_device(&data->port,
- 			data->tty_drv, minor, &serdev->dev);
- 
-+	pr_debug("w2sg tty_port_register_device -> %p\n", data->dev);
-+	pr_debug("w2sg port.tty = %p\n", data->port.tty);
-+
-+	pr_debug("w2sg probed\n");
-+
-+#ifdef CONFIG_W2SG0004_DEBUG
-+	pr_debug("w2sg DEBUGGING MODE enabled\n");
-+	/* turn on for debugging rx notifications */
-+	pr_debug("w2sg power gpio ON\n");
-+	gpio_set_value_cansleep(data->on_off_gpio, 1);
-+	mdelay(100);
-+	pr_debug("w2sg power gpio OFF\n");
-+	gpio_set_value_cansleep(data->on_off_gpio, 0);
-+	mdelay(300);
-+#endif
-+
- 	/* keep off until user space requests the device */
- 	w2sg_set_power(data, false);
- 
-@@ -455,6 +490,8 @@ static int w2sg_probe(struct serdev_device *serdev)
- 	rfkill_destroy(rf_kill);
- 	serdev_device_close(data->uart);
- out:
-+	pr_debug("w2sg error %d\n", err);
-+
- 	return err;
- }
- 
--- 
-2.12.2
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gMDEvMTIvMTcgMDA6MDYsIFNlYmFzdGlhbiBSZWljaGVsIHdyb3RlOgoKPj4+PiBIb3cgYWJv
+dXQgbGV0J3MgY2FsbCBpdCBhICJ0eXBvIGZpeCIgdGhlbj8gOikKPj4+Cj4+PiBXZWxsLCBpdCBp
+cyBub3QgcmVhbGx5IGEgdHlwby4KPj4KPj4gV2VsbCB3aGF0IGlmIHRoZSBzdGFibGUgcGVvcGxl
+IHBpY2sgaXQgaW50byBlYXJsaWVyIHN0YWJsZSBzZXJpZXMKPj4gYmFzZWQgb24gdGhlIHdvcmQg
+Zml4IGluIHRoZSBzdWJqZWN0PyBUaGF0IGhhcyBoYXBwZW5lZCBiZWZvcmUuCj4+Cj4+IEkgc3Vn
+Z2VzdCB5b3UgdXBkYXRlIHRoZSBkdHMgcGF0Y2hlcyB0byB1c2Ugd29yZGluZyBsaWtlCj4+ICJ1
+cGRhdGUgY29tcGF0aWJsZSB0byB1c2UgbmV3IG5hbWluZyIgb3Igc29tZXRoaW5nIHNpbWlsYXIu
+Cj4gCj4gUGF0Y2ggNC80IGlzIGEgRml4IGFuZCBzaG91bGQgYmUgYXBwbGllZCB0byBzdGFibGUg
+dHJlZXMuICJvbWFwZHNzLCIKPiBwcmVmaXggd2FzIG5ldmVyIHN1cHBvc2VkIHRvIGJlIGluIHRo
+ZSBEVFMgZmlsZXMsIGlzIG5vdCBzdXBwb3NlZCB0bwo+IGJlIGluIHRoZXJlIG5vdyBhbmQgd2ls
+bCBicmVhayBzb21lIHRpbWUgaW4gdGhlIGZ1dHVyZS4KPiAKPiBFeHBsYW5hdGlvbjogVGhlIGVh
+cmx5IGluaXQgb2Ygb21hcGRzcyBhZGRzIHRoZSBwcmVmaXggYXQgcnVudGltZSwKPiBzbyB0aGF0
+IHRoZSBiaW5kaW5nIGNhbiB1c2UgZ2VuZXJpYyBwcm9wZXJ0aWVzIGFuZCB0aGUga2VybmVsIGNh
+bgo+IHVzZSBvbWFwZHNzIHNwZWNpZmljIGRyaXZlcnMgdW50aWwgdGhlIGdlbmVyaWMgb25lcyBj
+YW4gYmUgdXNlZAoKVGhpcyBpcyB0cnVlLCBidXQgdGhlIGV4dHJhICJvbWFwZHNzIiBkb2VzIG5v
+dCBjYXVzZSBhbnkgaXNzdWVzIGF0IHRoZQptb21lbnQsIGFuZCB0aGUgdGltZSB3aGVuIGl0IGNh
+dXNlcyBpc3N1ZXMgaXMgc3RpbGwgbWFueSBrZXJuZWwgdmVyc2lvbnMKaW4gdGhlIGZ1dHVyZS4K
+CkJ1dCwgeWVzLCB0aGlua2luZyBhYm91dCB0aGlzLCBJIGFncmVlLCBpdCdzIGJldHRlciB0byBw
+aWNrIHRoaXMgb25lCnNlcGFyYXRlbHkgYXMgYSBmaXggKGFmdGVyIHJlYmFzaW5nIGl0IG9uIHRv
+cCBvZiBjdXJyZW50IG1haW5lbGluZSBzbwp0aGF0IGl0IGRvZXNuJ3QgZGVwZW5kIG9uIHRoZSB0
+b3Bwb2x5IG5hbWUgY2hhbmdlKSwgYW5kIGxlYXZpbmcgdGhlCnRvcHBvbHktPnRwbyBjaGFuZ2Ug
+YXMgYSBjbGVhbnVwLgoKLS0gClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxh
+bmthdHUgMjIsIDAwMTgwIEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00
+LiBLb3RpcGFpa2thL0RvbWljaWxlOiBIZWxzaW5raQpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBs
+aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9kcmktZGV2ZWwK
