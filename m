@@ -1,56 +1,72 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v6 0/2] memory: Introduce ti-emif-sram driver
-Date: Sun, 3 Dec 2017 08:36:32 -0800
-Message-ID: <20171203163632.GU28152@atomide.com>
-References: <1512082568-5012-1-git-send-email-d-gerlach@ti.com>
- <179c7668-05eb-09cf-9857-7b6fd2308c3a@oracle.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: Re: omapfb/dss: Delete an error message for a failed memory
+ allocation in three functions
+Date: Sun, 3 Dec 2017 19:20:47 +0100
+Message-ID: <21554e23-e714-3f6f-cd70-4c277823bab3@users.sourceforge.net>
+References: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
+ <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
+ <1511809633.32426.70.camel@perches.com>
+ <d82fbab2-865f-3051-f487-d310ee819cf3@users.sourceforge.net>
+ <1511833514.32426.86.camel@perches.com>
+ <7e7e64cf-dbe5-614a-f1e5-29d7b6cf9297@users.sourceforge.net>
+ <1511856244.19952.14.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <179c7668-05eb-09cf-9857-7b6fd2308c3a-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Keerthy J <j-keerthy-l0cyMroinI0@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1511856244.19952.14.camel@perches.com>
+Content-Language: en-GB
+Sender: linux-doc-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-doc@vger.kernel.org
+Cc: "Andrew F. Davis" <afd@ti.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> [171203 04:03]:
-> 
-> 
-> On 11/30/17 2:56 PM, Dave Gerlach wrote:
-> > This is a resend of v5 of this series found here [1]. It introduces
-> > relocatable PM handlers for the emif that are copied to sram and
-> > run from there during low power mode entry.
-> > 
-> > The patches still have the previous ACKs but have a small change to
-> > accomodate a change made by Tony in commit cd57dc5a2099 ("ARM: dts:
-> > Add missing hwmod related nodes for am33xx"). If there are objections
-> > to this let me know ASAP.
-> > 
-> > Now that a hwmod is present for the am335x EMIF, on probe fail the call to
-> > pm_runtime_put_sync causes the board to hang. In fact, this emif driver should
-> > never alter the PM state of the hardware at all through normal kernel calls, it
-> > is the job of the suspend handlers that are added, that is the whole point of
-> > this driver. Because of this, I have dropped all runtime pm calls, as any
-> > change to the PM state while the kernel is running is dangerous as we may shut
-> > of the memory controller. It makes the most sense just to drop runtime PM from
-> > the driver entirely. Besides that patch is unchanged.
-> > 
-> > This code is required for low-power modes to work on AM335x and AM437x and a
-> > forthcoming PM series for those platforms will depend on this series. After
-> > both this and the PM series are reviewed I will send the necessary device tree
-> > changes for both, but in the meantime all remaining patches for am335x and
-> > am437x PM can be found here [2].
-> > 
-> Applied
+> How many times have I told you to include the reason for your patches
+> in your proposed commit message?
 
-OK, do you have some immutable commit for these I can pull in too for
-the related SoC changes?
+Will it be useful to look again at the involved circumstances?
+
+
+> Too often.
+
+Did I answer any concerns partly?
+
+
+> Many people do not know that a generic kmalloc does a dump_stack() on OOM.
+
+Do you see a need to represent such information better?
+
+Is it expected that the function “devm_kzalloc” has got a similar property?
+
+
+> That information should be part of the commit message.
+
+How do you think about to share it also from any reference documentation
+in a clearer way?
+
+Do we stumble on a target conflict in this case?
+
+I am generally trying to improve the software situation to some degree.
+I prefer then to work with safe information sources.
+Unfortunately, I might have not reached a desired confidence level here
+for a more detailed commit message. I assume that software development
+efforts could increase in significant ways if something should be improved
+further in a direction I hope. But this could mean that time frames will
+grow for corresponding clarifications.
+
+* Does such a situation block progress on the deletion of other remaining
+  questionable error messages?
+
+* Would you like to increase the software development attention anyhow?
+
+
+
+By the way:
+It seems that my update suggestion for the directory “omapfb/dss”
+could be superseded by the patch “omapfb: dss: Do not duplicate features data”
+from Ladislav Michl.
+https://patchwork.kernel.org/patch/10082027/
+https://lkml.kernel.org/r/<20171129123308.GA26578@lenoch>
 
 Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Markus
