@@ -1,72 +1,70 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: omapfb/dss: Delete an error message for a failed memory
- allocation in three functions
-Date: Sun, 3 Dec 2017 19:20:47 +0100
-Message-ID: <21554e23-e714-3f6f-cd70-4c277823bab3@users.sourceforge.net>
-References: <c48a01db-c477-3bd3-5cb4-548e47810ccb@users.sourceforge.net>
- <d29a0bae-7b6f-b8f6-6809-5a097cd5a26a@ti.com>
- <1511809633.32426.70.camel@perches.com>
- <d82fbab2-865f-3051-f487-d310ee819cf3@users.sourceforge.net>
- <1511833514.32426.86.camel@perches.com>
- <7e7e64cf-dbe5-614a-f1e5-29d7b6cf9297@users.sourceforge.net>
- <1511856244.19952.14.camel@perches.com>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: [PATCH] ARM: dts: dra7: Disable USB metastability workaround for USB2
+Date: Mon, 04 Dec 2017 13:40:11 +0200
+Message-ID: <87r2sau3fo.fsf@linux.intel.com>
+References: <1509456360-2638-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1511856244.19952.14.camel@perches.com>
-Content-Language: en-GB
-Sender: linux-doc-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-doc@vger.kernel.org
-Cc: "Andrew F. Davis" <afd@ti.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha512; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1509456360-2638-1-git-send-email-rogerq@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-> How many times have I told you to include the reason for your patches
-> in your proposed commit message?
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Will it be useful to look again at the involved circumstances?
+Roger Quadros <rogerq@ti.com> writes:
 
+> The metastability workaround causes Erratic errors [1]
+> on the HighSpeed USB PHY which can cause upto 2 seconds
+> delay in enumerating to a USB host while in Gadget mode.
+>
+> Disable the Run/Stop metastability workaround to avoid this
+> ill effect. We are aware that this opens up the opportunity
+> for Run/Stop metastability, however this issue has never been
+> observed in TI releases so we think that Run/Stop metastability
+> is a lesser evil than the PHY Erratic errors. So disable it.
+>
+> [1] USB controller trace during gadget enumeration
+>     irq/90-dwc3-969   [000] d...    52.323145: dwc3_event: event (0000090=
+1): Erratic Error [U0]
+>     irq/90-dwc3-969   [000] d...    52.560646: dwc3_event: event (0000090=
+1): Erratic Error [U0]
+>     irq/90-dwc3-969   [000] d...    52.798144: dwc3_event: event (0000090=
+1): Erratic Error [U0]
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-> Too often.
+FWIW:
 
-Did I answer any concerns partly?
+Acked-by: Felipe Balbi <felipe.balbi@linux/intel.com>
 
+I'm taking the dwc3 counterpart to v4.16
 
-> Many people do not know that a generic kmalloc does a dump_stack() on OOM.
+=2D-=20
+balbi
 
-Do you see a need to represent such information better?
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Is it expected that the function “devm_kzalloc” has got a similar property?
+-----BEGIN PGP SIGNATURE-----
 
-
-> That information should be part of the commit message.
-
-How do you think about to share it also from any reference documentation
-in a clearer way?
-
-Do we stumble on a target conflict in this case?
-
-I am generally trying to improve the software situation to some degree.
-I prefer then to work with safe information sources.
-Unfortunately, I might have not reached a desired confidence level here
-for a more detailed commit message. I assume that software development
-efforts could increase in significant ways if something should be improved
-further in a direction I hope. But this could mean that time frames will
-grow for corresponding clarifications.
-
-* Does such a situation block progress on the deletion of other remaining
-  questionable error messages?
-
-* Would you like to increase the software development attention anyhow?
-
-
-
-By the way:
-It seems that my update suggestion for the directory “omapfb/dss”
-could be superseded by the patch “omapfb: dss: Do not duplicate features data”
-from Ladislav Michl.
-https://patchwork.kernel.org/patch/10082027/
-https://lkml.kernel.org/r/<20171129123308.GA26578@lenoch>
-
-Regards,
-Markus
+iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlolNBsACgkQzL64meEa
+mQaJKhAAwrGW59+8FpcvEnzfxnEzF9ANszx6ncYhoBnYaJAGeAPAZOyCiyu7FCqW
+TBcJZLm7dVv5YATAKm6Pg5yO7164A/3A9si6D8UbxVdq702xCU3CLPNH39IoTuvT
+A2x6pHm6MGVcSiQ0yPrEXzv03jeViuXmFwhzqeM1mKwjcfbph4vrg82GzJ6Zv0tF
+BlLuU20EPnKQlKyK+XpwpeYhpyInSOe6BmCKIpEk9F+1vtz1J2b2T/DLv6OYN6Sw
+x7D9wYZ2NpwMtgdMMY9lG6mnA4eO8jjV2/YIa+x1u3+LdUOcd/qOxz6oWwbPhPa1
+PveGgEVTT3ii8kHIHJ5oSPOCfJAuz0RETIdCWoZl98m/Y1yKNeguF90KnMQolIhg
+ob1aBCwT2AbVmJiOucAcuauRDPsbPXbfVBxHoVVSu+lTEww2AzR7IBNGe5xYy3Mn
+zaQ5Qr1zmobJ/qeLwHyZdVHeOyNYWaNtK01P8U4g2THTjGDMajx8zEuCVXLZBagW
+9T+je+AIy8rLJZxj+gfLz8WXMNytggZnW40wC5rYGq58kfJAUn0LCbPqCqp4pF+t
++3AybiNVXD5jdFwsf/JSwim/ocXWttLn8ikESIRY41nE179Buftd1IBxcfnxiZ3E
+cMHU5nHUSOZeA21KFDmtE4x0y+UASvsh4roI0chyDHtZsFf7Gjo=
+=DUWg
+-----END PGP SIGNATURE-----
+--=-=-=--
