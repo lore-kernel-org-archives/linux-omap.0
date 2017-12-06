@@ -1,95 +1,43 @@
-From: Dan Murphy <dmurphy@ti.com>
-Subject: Re: [PATCH] ARM: omap2: hide omap3_save_secure_ram on non-OMAP3
- builds
-Date: Wed, 6 Dec 2017 10:29:59 -0600
-Message-ID: <a055eca0-fa24-a04a-7278-f633a12e6bae@ti.com>
-References: <20171206141517.670032-1-arnd@arndb.de>
- <20171206155714.GY28152@atomide.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpdma: rate is not changed
+ - correct case
+Date: Wed, 06 Dec 2017 16:35:45 -0500 (EST)
+Message-ID: <20171206.163545.906490902377440615.davem@davemloft.net>
+References: <1512571278-13196-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171206155714.GY28152@atomide.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1512571278-13196-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: netdev-owner@vger.kernel.org
+To: ivan.khoronzhuk@linaro.org
+Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Arnd
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Date: Wed,  6 Dec 2017 16:41:18 +0200
 
-On 12/06/2017 09:57 AM, Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [171206 14:18]:
->> In configurations without CONFIG_OMAP3 but with secure RAM support,
->> we now run into a link failure:
->>
->> arch/arm/mach-omap2/omap-secure.o: In function `omap3_save_secure_ram':
->> omap-secure.c:(.text+0x130): undefined reference to `save_secure_ram_context'
->>
->> The omap3_save_secure_ram() function is only called from the OMAP34xx
->> power management code, so we can simply hide that function in the
->> appropriate #ifdef.
->>
->> Fixes: d09220a887f7 ("ARM: OMAP2+: Fix SRAM virt to phys translation for save_secure_ram_context")
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> If rate is the same as set it's correct case.
 > 
-> Thanks for fixing it, want to apply directly to ARM SoC fixes
-> where d09220a887f7 is now? If so:
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> ---
+> Based on net-next/master
 > 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+>  drivers/net/ethernet/ti/davinci_cpdma.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+> index e4d6edf..dbe9167 100644
+> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
+> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+> @@ -841,7 +841,7 @@ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
+>  		return -EINVAL;
+>  
+>  	if (ch->rate == rate)
+> -		return rate;
+> +		return 0;
 
-Found the same issue in our builds.  
-Compile tested the patch against different TI defconfig configurations.
+Looking at the one and only caller of this function, cpsw_ndo_set_tx_maxrate, it
+makes sure this can never, ever, happen.
 
-Tested-by: Dan Murphy <dmurphy@ti.com>
-
-Dan
-
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
->> ---
->>  arch/arm/mach-omap2/omap-secure.c | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
->> index f9303dc631e4..7be95cd8136d 100644
->> --- a/arch/arm/mach-omap2/omap-secure.c
->> +++ b/arch/arm/mach-omap2/omap-secure.c
->> @@ -72,6 +72,7 @@ phys_addr_t omap_secure_ram_mempool_base(void)
->>  	return omap_secure_memblock_base;
->>  }
->>  
->> +#ifdef CONFIG_ARCH_OMAP3
->>  u32 omap3_save_secure_ram(void __iomem *addr, int size)
->>  {
->>  	u32 ret;
->> @@ -90,6 +91,7 @@ u32 omap3_save_secure_ram(void __iomem *addr, int size)
->>  
->>  	return ret;
->>  }
->> +#endif
->>  
->>  /**
->>   * rx51_secure_dispatcher: Routine to dispatch secure PPA API calls
->> -- 
->> 2.9.0
->>
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
--- 
-------------------
-Dan Murphy
+So I would instead remove this check completely since it can never trigger.
