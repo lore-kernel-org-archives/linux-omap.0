@@ -1,83 +1,72 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: [PATCH net-next] net: ethernet: ti: cpdma: correct error handling for chan create
-Date: Wed,  6 Dec 2017 16:54:09 +0200
-Message-ID: <1512572050-13442-1-git-send-email-ivan.khoronzhuk@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: omap2: hide omap3_save_secure_ram on non-OMAP3
+ builds
+Date: Wed, 6 Dec 2017 07:57:14 -0800
+Message-ID: <20171206155714.GY28152@atomide.com>
+References: <20171206141517.670032-1-arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171206141517.670032-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: grygorii.strashko@ti.com
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-It's not correct to return NULL when that is actually an error and
-function returns errors in any other wrong case. In the same time,
-the cpsw driver and davinci emac doesn't check error case while
-creating channel and it can miss actual error. Correct this mess.
+* Arnd Bergmann <arnd@arndb.de> [171206 14:18]:
+> In configurations without CONFIG_OMAP3 but with secure RAM support,
+> we now run into a link failure:
+> 
+> arch/arm/mach-omap2/omap-secure.o: In function `omap3_save_secure_ram':
+> omap-secure.c:(.text+0x130): undefined reference to `save_secure_ram_context'
+> 
+> The omap3_save_secure_ram() function is only called from the OMAP34xx
+> power management code, so we can simply hide that function in the
+> appropriate #ifdef.
+> 
+> Fixes: d09220a887f7 ("ARM: OMAP2+: Fix SRAM virt to phys translation for save_secure_ram_context")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
----
- drivers/net/ethernet/ti/cpsw.c          | 12 +++++++++---
- drivers/net/ethernet/ti/davinci_cpdma.c |  2 +-
- drivers/net/ethernet/ti/davinci_emac.c  |  9 +++++++--
- 3 files changed, 17 insertions(+), 6 deletions(-)
+Thanks for fixing it, want to apply directly to ARM SoC fixes
+where d09220a887f7 is now? If so:
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index a60a378..ee58f48 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -3065,10 +3065,16 @@ static int cpsw_probe(struct platform_device *pdev)
- 	}
- 
- 	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_tx_handler, 0);
-+	if (WARN_ON(IS_ERR(cpsw->txv[0].ch))) {
-+		dev_err(priv->dev, "error initializing tx dma channel\n");
-+		ret = PTR_ERR(cpsw->txv[0].ch);
-+		goto clean_dma_ret;
-+	}
-+
- 	cpsw->rxv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_rx_handler, 1);
--	if (WARN_ON(!cpsw->rxv[0].ch || !cpsw->txv[0].ch)) {
--		dev_err(priv->dev, "error initializing dma channels\n");
--		ret = -ENOMEM;
-+	if (WARN_ON(IS_ERR(cpsw->rxv[0].ch))) {
-+		dev_err(priv->dev, "error initializing rx dma channel\n");
-+		ret = PTR_ERR(cpsw->rxv[0].ch);
- 		goto clean_dma_ret;
- 	}
- 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index dbe9167..a9fab42 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -893,7 +893,7 @@ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
- 	chan_num = rx_type ? rx_chan_num(chan_num) : tx_chan_num(chan_num);
- 
- 	if (__chan_linear(chan_num) >= ctlr->num_chan)
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 
- 	chan = devm_kzalloc(ctlr->dev, sizeof(*chan), GFP_KERNEL);
- 	if (!chan)
-diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
-index f58c0c6..3d4af64 100644
---- a/drivers/net/ethernet/ti/davinci_emac.c
-+++ b/drivers/net/ethernet/ti/davinci_emac.c
-@@ -1870,10 +1870,15 @@ static int davinci_emac_probe(struct platform_device *pdev)
- 
- 	priv->txchan = cpdma_chan_create(priv->dma, EMAC_DEF_TX_CH,
- 					 emac_tx_handler, 0);
-+	if (WARN_ON(IS_ERR(priv->txchan))) {
-+		rc = PTR_ERR(priv->txchan);
-+		goto no_cpdma_chan;
-+	}
-+
- 	priv->rxchan = cpdma_chan_create(priv->dma, EMAC_DEF_RX_CH,
- 					 emac_rx_handler, 1);
--	if (WARN_ON(!priv->txchan || !priv->rxchan)) {
--		rc = -ENOMEM;
-+	if (WARN_ON(IS_ERR(priv->rxchan))) {
-+		rc = PTR_ERR(priv->rxchan);
- 		goto no_cpdma_chan;
- 	}
- 
--- 
-2.7.4
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+Regards,
+
+Tony
+
+
+> ---
+>  arch/arm/mach-omap2/omap-secure.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
+> index f9303dc631e4..7be95cd8136d 100644
+> --- a/arch/arm/mach-omap2/omap-secure.c
+> +++ b/arch/arm/mach-omap2/omap-secure.c
+> @@ -72,6 +72,7 @@ phys_addr_t omap_secure_ram_mempool_base(void)
+>  	return omap_secure_memblock_base;
+>  }
+>  
+> +#ifdef CONFIG_ARCH_OMAP3
+>  u32 omap3_save_secure_ram(void __iomem *addr, int size)
+>  {
+>  	u32 ret;
+> @@ -90,6 +91,7 @@ u32 omap3_save_secure_ram(void __iomem *addr, int size)
+>  
+>  	return ret;
+>  }
+> +#endif
+>  
+>  /**
+>   * rx51_secure_dispatcher: Routine to dispatch secure PPA API calls
+> -- 
+> 2.9.0
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
