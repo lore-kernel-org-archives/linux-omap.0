@@ -1,72 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Dan Murphy <dmurphy@ti.com>
 Subject: Re: [PATCH] ARM: omap2: hide omap3_save_secure_ram on non-OMAP3
  builds
-Date: Wed, 6 Dec 2017 07:57:14 -0800
-Message-ID: <20171206155714.GY28152@atomide.com>
+Date: Wed, 6 Dec 2017 10:29:59 -0600
+Message-ID: <a055eca0-fa24-a04a-7278-f633a12e6bae@ti.com>
 References: <20171206141517.670032-1-arnd@arndb.de>
+ <20171206155714.GY28152@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171206141517.670032-1-arnd@arndb.de>
+In-Reply-To: <20171206155714.GY28152@atomide.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
+To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [171206 14:18]:
-> In configurations without CONFIG_OMAP3 but with secure RAM support,
-> we now run into a link failure:
+Arnd
+
+On 12/06/2017 09:57 AM, Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [171206 14:18]:
+>> In configurations without CONFIG_OMAP3 but with secure RAM support,
+>> we now run into a link failure:
+>>
+>> arch/arm/mach-omap2/omap-secure.o: In function `omap3_save_secure_ram':
+>> omap-secure.c:(.text+0x130): undefined reference to `save_secure_ram_context'
+>>
+>> The omap3_save_secure_ram() function is only called from the OMAP34xx
+>> power management code, so we can simply hide that function in the
+>> appropriate #ifdef.
+>>
+>> Fixes: d09220a887f7 ("ARM: OMAP2+: Fix SRAM virt to phys translation for save_secure_ram_context")
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > 
-> arch/arm/mach-omap2/omap-secure.o: In function `omap3_save_secure_ram':
-> omap-secure.c:(.text+0x130): undefined reference to `save_secure_ram_context'
+> Thanks for fixing it, want to apply directly to ARM SoC fixes
+> where d09220a887f7 is now? If so:
 > 
-> The omap3_save_secure_ram() function is only called from the OMAP34xx
-> power management code, so we can simply hide that function in the
-> appropriate #ifdef.
+> Acked-by: Tony Lindgren <tony@atomide.com>
+
+Found the same issue in our builds.  
+Compile tested the patch against different TI defconfig configurations.
+
+Tested-by: Dan Murphy <dmurphy@ti.com>
+
+Dan
+
 > 
-> Fixes: d09220a887f7 ("ARM: OMAP2+: Fix SRAM virt to phys translation for save_secure_ram_context")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-Thanks for fixing it, want to apply directly to ARM SoC fixes
-where d09220a887f7 is now? If so:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-Regards,
-
-Tony
-
-
-> ---
->  arch/arm/mach-omap2/omap-secure.c | 2 ++
->  1 file changed, 2 insertions(+)
+> Regards,
 > 
-> diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
-> index f9303dc631e4..7be95cd8136d 100644
-> --- a/arch/arm/mach-omap2/omap-secure.c
-> +++ b/arch/arm/mach-omap2/omap-secure.c
-> @@ -72,6 +72,7 @@ phys_addr_t omap_secure_ram_mempool_base(void)
->  	return omap_secure_memblock_base;
->  }
->  
-> +#ifdef CONFIG_ARCH_OMAP3
->  u32 omap3_save_secure_ram(void __iomem *addr, int size)
->  {
->  	u32 ret;
-> @@ -90,6 +91,7 @@ u32 omap3_save_secure_ram(void __iomem *addr, int size)
->  
->  	return ret;
->  }
-> +#endif
->  
->  /**
->   * rx51_secure_dispatcher: Routine to dispatch secure PPA API calls
-> -- 
-> 2.9.0
+> Tony
 > 
 > 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>> ---
+>>  arch/arm/mach-omap2/omap-secure.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
+>> index f9303dc631e4..7be95cd8136d 100644
+>> --- a/arch/arm/mach-omap2/omap-secure.c
+>> +++ b/arch/arm/mach-omap2/omap-secure.c
+>> @@ -72,6 +72,7 @@ phys_addr_t omap_secure_ram_mempool_base(void)
+>>  	return omap_secure_memblock_base;
+>>  }
+>>  
+>> +#ifdef CONFIG_ARCH_OMAP3
+>>  u32 omap3_save_secure_ram(void __iomem *addr, int size)
+>>  {
+>>  	u32 ret;
+>> @@ -90,6 +91,7 @@ u32 omap3_save_secure_ram(void __iomem *addr, int size)
+>>  
+>>  	return ret;
+>>  }
+>> +#endif
+>>  
+>>  /**
+>>   * rx51_secure_dispatcher: Routine to dispatch secure PPA API calls
+>> -- 
+>> 2.9.0
+>>
+>>
+>> _______________________________________________
+>> linux-arm-kernel mailing list
+>> linux-arm-kernel@lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+-- 
+------------------
+Dan Murphy
