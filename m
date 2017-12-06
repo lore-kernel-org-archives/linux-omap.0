@@ -1,13 +1,11 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [GIT PULL] OMAP2+: clkctrl fixes/enhancements for OMAP SoCs for 4.16
- merge
-Date: Tue, 5 Dec 2017 15:02:43 +0200
-Message-ID: <26d92d81-5922-1755-e59c-964e09a7f3c2@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ARM: omap2: hide omap3_save_secure_ram on non-OMAP3 builds
+Date: Wed,  6 Dec 2017 15:15:07 +0100
+Message-ID: <20171206141517.670032-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,58 +15,45 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+In configurations without CONFIG_OMAP3 but with secure RAM support,
+we now run into a link failure:
 
-This pull contains the series posted here [1], it has only been rebased 
-on top of 4.15-rc1. Can be applied separately from the clkctrl driver 
-series. The part missing after this is the DTS series, which I will post 
-later this week (I don't think I have time to post them today, but they 
-are available also under branch 4.15-rc1-clkctrl-dts in my public repo.)
+arch/arm/mach-omap2/omap-secure.o: In function `omap3_save_secure_ram':
+omap-secure.c:(.text+0x130): undefined reference to `save_secure_ram_context'
 
--Tero
+The omap3_save_secure_ram() function is only called from the OMAP34xx
+power management code, so we can simply hide that function in the
+appropriate #ifdef.
 
-[1] http://www.spinics.net/lists/linux-omap/msg139902.html
+Fixes: d09220a887f7 ("ARM: OMAP2+: Fix SRAM virt to phys translation for save_secure_ram_context")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/mach-omap2/omap-secure.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-===
-
-The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
-
-   Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
-
-are available in the git repository at:
-
-   https://github.com/t-kristo/linux-pm.git 4.15-rc1-clkctrl-mach-omap2
-
-for you to fetch changes up to 71d50393ab0186b40860d31468a1b701c97339f6:
-
-   ARM: DM816x: hwmod_data: fix clockdomain name for sata hwmod 
-(2017-12-04 11:35:21 +0200)
-
-----------------------------------------------------------------
-Tero Kristo (7):
-       ARM: OMAP2+: CM: add support for getting phys address for a 
-clkctrl register
-       ARM: OMAP4: CMINST: add support for translating clkctrl addresses
-       ARM: OMAP2+: hwmod: fix clkctrl address translation logic
-       ARM: OMAP2+: clockdomain: remove the obsolete clkdm_xlate_address API
-       ARM: AM33xx: CM: add support for getting physical address for a 
-register
-       ARM: OMAP2+: hwmod: calculate physical register address on am33xx
-       ARM: DM816x: hwmod_data: fix clockdomain name for sata hwmod
-
-  arch/arm/mach-omap2/clockdomain.c          |  8 ----
-  arch/arm/mach-omap2/clockdomain.h          |  2 -
-  arch/arm/mach-omap2/cm.h                   |  3 ++
-  arch/arm/mach-omap2/cm33xx.c               |  6 +++
-  arch/arm/mach-omap2/cm_common.c            | 10 ++++
-  arch/arm/mach-omap2/cminst44xx.c           | 10 ++--
-  arch/arm/mach-omap2/omap_hwmod.c           | 73 
-+++++++++++++++---------------
-  arch/arm/mach-omap2/omap_hwmod_81xx_data.c |  2 +-
-  8 files changed, 59 insertions(+), 55 deletions(-)
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
+index f9303dc631e4..7be95cd8136d 100644
+--- a/arch/arm/mach-omap2/omap-secure.c
++++ b/arch/arm/mach-omap2/omap-secure.c
+@@ -72,6 +72,7 @@ phys_addr_t omap_secure_ram_mempool_base(void)
+ 	return omap_secure_memblock_base;
+ }
+ 
++#ifdef CONFIG_ARCH_OMAP3
+ u32 omap3_save_secure_ram(void __iomem *addr, int size)
+ {
+ 	u32 ret;
+@@ -90,6 +91,7 @@ u32 omap3_save_secure_ram(void __iomem *addr, int size)
+ 
+ 	return ret;
+ }
++#endif
+ 
+ /**
+  * rx51_secure_dispatcher: Routine to dispatch secure PPA API calls
+-- 
+2.9.0
