@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 07/20] ARM: dts: dm816x: add fck under timers1/2
-Date: Thu, 7 Dec 2017 10:46:40 +0200
-Message-ID: <1512636413-25243-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 20/20] ARM: dts: dm816x: add clkctrl nodes
+Date: Thu, 7 Dec 2017 10:46:53 +0200
+Message-ID: <1512636413-25243-21-git-send-email-t-kristo@ti.com>
 References: <1512636413-25243-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,37 +12,53 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add the functional clock definition for timers1/2. This is needed so that
-the clock rate claculations continue to function properly once dm816x
-transitions away from hwmod data and towards the clkctrl clocks.
+Add clkctrl nodes for DM816x SoC. These are going to be acting as
+replacement for part of the existing clock data and the existing
+clkctrl hooks under hwmod data.
 
 Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dm816x.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/dm816x-clocks.dtsi | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/arch/arm/boot/dts/dm816x.dtsi b/arch/arm/boot/dts/dm816x.dtsi
-index 566b2a8..12edb8f 100644
---- a/arch/arm/boot/dts/dm816x.dtsi
-+++ b/arch/arm/boot/dts/dm816x.dtsi
-@@ -331,6 +331,8 @@
- 			interrupts = <67>;
- 			ti,hwmods = "timer1";
- 			ti,timer-alwon;
-+			clocks = <&timer1_fck>;
-+			clock-names = "fck";
- 		};
- 
- 		timer2: timer@48040000 {
-@@ -338,6 +340,8 @@
- 			reg = <0x48040000 0x2000>;
- 			interrupts = <68>;
- 			ti,hwmods = "timer2";
-+			clocks = <&timer2_fck>;
-+			clock-names = "fck";
- 		};
- 
- 		timer3: timer@48042000 {
+diff --git a/arch/arm/boot/dts/dm816x-clocks.dtsi b/arch/arm/boot/dts/dm816x-clocks.dtsi
+index 51865eb..1efd4e2 100644
+--- a/arch/arm/boot/dts/dm816x-clocks.dtsi
++++ b/arch/arm/boot/dts/dm816x-clocks.dtsi
+@@ -248,3 +248,33 @@
+ 		reg = <0x03a8>;
+ 	};
+ };
++
++&prcm {
++	default_cm: default_cm@500 {
++		compatible = "ti,omap4-cm";
++		reg = <0x500 0x100>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x500 0x100>;
++
++		default_clkctrl: clk@0 {
++			compatible = "ti,clkctrl";
++			reg = <0x0 0x5c>;
++			#clock-cells = <2>;
++		};
++	};
++
++	alwon_cm: alwon_cm@1400 {
++		compatible = "ti,omap4-cm";
++		reg = <0x1400 0x300>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1400 0x300>;
++
++		alwon_clkctrl: clk@0 {
++			compatible = "ti,clkctrl";
++			reg = <0x0 0x208>;
++			#clock-cells = <2>;
++		};
++	};
++};
 -- 
 1.9.1
 
