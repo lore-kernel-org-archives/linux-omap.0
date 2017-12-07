@@ -1,32 +1,49 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 00/20] ARM: dts: add omap clkctrl support
-Date: Thu, 7 Dec 2017 13:16:20 -0800
-Message-ID: <20171207211620.GD28152@atomide.com>
-References: <1512636413-25243-1-git-send-email-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] two dts compiler warning fixes for v4.15-rc cycle
+Date: Thu,  7 Dec 2017 13:19:59 -0800
+Message-ID: <pull-1512681573-431149@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1512636413-25243-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [171207 00:49]:
-> Hi,
-> 
-> This series adds the clkctrl support for omap2 family SoCs for am33xx,
-> am43xx, omap4, omap5, dra7 and dm81xx. This series depends on the
-> previously posted drivers/clk [1] + mach-omap2 [2] series for the same.
+From: "Tony Lindgren" <tony@atomide.com>
 
-Looks good to me except the comments I made on patch 14/20 that applies
-to many of these patches.
+The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
 
-Regards,
+  Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.15/fixes-dt-warnings
+
+for you to fetch changes up to c22fe696157dc94a25cc5396b43b29b6d6f4a189:
+
+  ARM: dts: Fix dm814x missing phy-cells property (2017-12-05 08:29:04 -0800)
+
+----------------------------------------------------------------
+Two fixes for dts compiler warnings
+
+These recently started showing up with better dtc checks being
+introduced.
+
+----------------------------------------------------------------
+Tony Lindgren (2):
+      ARM: dts: Fix elm interrupt compiler warning
+      ARM: dts: Fix dm814x missing phy-cells property
+
+ arch/arm/boot/dts/dm814x.dtsi | 1 +
+ arch/arm/boot/dts/omap4.dtsi  | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
