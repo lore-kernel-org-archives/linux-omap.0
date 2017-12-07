@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 08/20] ARM: dts: omap5: add bus functionality to base PRCM nodes
-Date: Thu, 7 Dec 2017 10:46:41 +0200
-Message-ID: <1512636413-25243-9-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 10/20] ARM: dts: dra7: add bus functionality to base PRCM nodes
+Date: Thu, 7 Dec 2017 10:46:43 +0200
+Message-ID: <1512636413-25243-11-git-send-email-t-kristo@ti.com>
 References: <1512636413-25243-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,54 +12,56 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add simple-bus compatibility and ranges properties to cm_core_aon, cm_core
-and prm nodes. This is done in preparation of adding the support for
-clkctrl nodes.
+Add simple-bus compatibility and ranges properties to cm1, cm2 and prm
+nodes. This is done in preparation of adding the support for clkctrl
+nodes.
+
+SPLIT: timer1 fck setup
 
 Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap5.dtsi | 16 +++++++++++++---
+ arch/arm/boot/dts/dra7.dtsi | 16 +++++++++++++---
  1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 404c78f..b0992b8 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -201,8 +201,12 @@
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index c538e2f..5e24cea 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -224,8 +224,12 @@
  			};
  
- 			cm_core_aon: cm_core_aon@4000 {
--				compatible = "ti,omap5-cm-core-aon";
-+				compatible = "ti,omap5-cm-core-aon",
-+					     "simple-bus";
- 				reg = <0x4000 0x2000>;
+ 			cm_core_aon: cm_core_aon@5000 {
+-				compatible = "ti,dra7-cm-core-aon";
++				compatible = "ti,dra7-cm-core-aon",
++					      "simple-bus";
 +				#address-cells = <1>;
 +				#size-cells = <1>;
-+				ranges = <0 0x4000 0x2000>;
+ 				reg = <0x5000 0x2000>;
++				ranges = <0 0x5000 0x2000>;
  
  				cm_core_aon_clocks: clocks {
  					#address-cells = <1>;
-@@ -214,8 +218,11 @@
+@@ -237,8 +241,11 @@
  			};
  
  			cm_core: cm_core@8000 {
--				compatible = "ti,omap5-cm-core";
-+				compatible = "ti,omap5-cm-core", "simple-bus";
- 				reg = <0x8000 0x3000>;
+-				compatible = "ti,dra7-cm-core";
++				compatible = "ti,dra7-cm-core", "simple-bus";
 +				#address-cells = <1>;
 +				#size-cells = <1>;
+ 				reg = <0x8000 0x3000>;
 +				ranges = <0 0x8000 0x3000>;
  
  				cm_core_clocks: clocks {
  					#address-cells = <1>;
-@@ -240,9 +247,12 @@
+@@ -263,9 +270,12 @@
  			};
  
  			prm: prm@6000 {
--				compatible = "ti,omap5-prm";
-+				compatible = "ti,omap5-prm", "simple-bus";
+-				compatible = "ti,dra7-prm";
++				compatible = "ti,dra7-prm", "simple-bus";
  				reg = <0x6000 0x3000>;
- 				interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
+ 				interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL_HIGH>;
 +				#address-cells = <1>;
 +				#size-cells = <1>;
 +				ranges = <0 0x6000 0x3000>;
