@@ -1,7 +1,7 @@
 From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 03/20] ARM: dts: am33xx: add fck under timers1/2
-Date: Thu, 7 Dec 2017 10:46:36 +0200
-Message-ID: <1512636413-25243-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 05/20] ARM: dts: dra7: add fck under timer1
+Date: Thu, 7 Dec 2017 10:46:38 +0200
+Message-ID: <1512636413-25243-6-git-send-email-t-kristo@ti.com>
 References: <1512636413-25243-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,37 +12,28 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add the functional clock definition for timers1/2. This is needed so that
-the clock rate calculations continue to function properly once am33xx
+Add the functional clock definition for timer1. This is needed so that
+the clock rate calculations continue to function properly once dra7
 transitions away from hwmod data and towards the clkctrl clocks.
 
 Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 1b81c4e..a0eb537 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -517,6 +517,8 @@
- 			interrupts = <67>;
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+index ac92162..c538e2f 100644
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -876,6 +876,8 @@
+ 			interrupts = <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
  			ti,hwmods = "timer1";
  			ti,timer-alwon;
-+			clocks = <&timer1_fck>;
 +			clock-names = "fck";
++			clocks = <&timer1_gfclk_mux>;
  		};
  
- 		timer2: timer@48040000 {
-@@ -524,6 +526,8 @@
- 			reg = <0x48040000 0x400>;
- 			interrupts = <68>;
- 			ti,hwmods = "timer2";
-+			clocks = <&timer2_fck>;
-+			clock-names = "fck";
- 		};
- 
- 		timer3: timer@48042000 {
+ 		timer2: timer@48032000 {
 -- 
 1.9.1
 
