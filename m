@@ -1,69 +1,36 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: linux-next on Nokia N900: discharging on charger
-Date: Thu, 7 Dec 2017 12:17:29 +0100
-Message-ID: <20171207111729.GA27036@amd>
-References: <20171202101456.GA1810@amd>
- <20171202111954.4gg43xkb2wf5ebmn@pali>
- <20171207101651.GA23691@amd>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v2] ARM: omap2: hide omap3_save_secure_ram on non-OMAP3 builds
+Date: Thu, 7 Dec 2017 15:45:37 +0100
+Message-ID: <CAK8P3a0JYok7P+Xa89GZKedz_h5z6mmzoZn_myaEt89koU+Btg@mail.gmail.com>
+References: <20171206214916.2856657-1-arnd@arndb.de> <20171206220436.GA28152@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171207101651.GA23691@amd>
+In-Reply-To: <20171206220436.GA28152@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Dec 6, 2017 at 11:04 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Arnd Bergmann <arnd@arndb.de> [171206 21:52]:
+>> In configurations without CONFIG_OMAP3 but with secure RAM support,
+>> we now run into a link failure:
+>>
+>> arch/arm/mach-omap2/omap-secure.o: In function `omap3_save_secure_ram':
+>> omap-secure.c:(.text+0x130): undefined reference to `save_secure_ram_context'
+>>
+>> The omap3_save_secure_ram() function is only called from the OMAP34xx
+>> power management code, so we can simply hide that function in the
+>> appropriate #ifdef.
+>>
+>> Fixes: d09220a887f7 ("ARM: OMAP2+: Fix SRAM virt to phys translation for save_secure_ram_context")
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> ---
+>> v2: also check for CONFIG_PM
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
---vtzGhvizbBRQ85DL
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Applied now
 
-On Thu 2017-12-07 11:16:51, Pavel Machek wrote:
-> On Sat 2017-12-02 12:19:54, Pali Roh=E1r wrote:
-> > On Saturday 02 December 2017 11:14:56 Pavel Machek wrote:
-> > > Hi!
-> > >=20
-> > > next from 2017-12-01 was tested.
-> > >=20
-> > > MMC is detected, but then I see wtl4030_bci: .. battery temperature
-> > > out of range, and machine halts. This is just before userspace would
-> > > be started.
-> > >=20
-> > > 4.15-rc1 seems to work ok on the box.
-> > >=20
-> > > Any ideas?
-> >=20
-> > twl4030_bci is not available on Nokia N900, so we should not try to read
-> > its registers.
->=20
-> Today's git boots on N900; good. What is going on with twl4030_bci I
-> don't have time to investigate at the moment.
-
-Hmm. Today's next boots, but does not charge battery. Battery is less
-than 80%, 3.94V, still status is fill and discharging at 600mA.
-									Pavel
-
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---vtzGhvizbBRQ85DL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlopI0kACgkQMOfwapXb+vKcSACfegPUMMC0dHrWr07osOuDfgU5
-LxgAnRg8JhLUGKH1JppBn5U5FWwZqKnJ
-=QL3w
------END PGP SIGNATURE-----
-
---vtzGhvizbBRQ85DL--
+       Arnd
