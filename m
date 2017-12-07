@@ -1,76 +1,87 @@
-From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-Subject: Re: [PATCH net-next] net: ethernet: ti: cpdma: rate is not changed -
- correct case
-Date: Thu, 7 Dec 2017 22:21:41 +0200
-Message-ID: <20171207202140.GD3022@khorivan>
-References: <20171207194855.GA3022@khorivan>
- <20171207.145024.1434883857028947517.davem@davemloft.net>
- <20171207201005.GC3022@khorivan>
- <20171207.151315.1535972470633975595.davem@davemloft.net>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 14/20] ARM: dts: omap4: add clkctrl nodes
+Date: Thu, 7 Dec 2017 13:14:35 -0800
+Message-ID: <20171207211435.GC28152@atomide.com>
+References: <1512636413-25243-1-git-send-email-t-kristo@ti.com>
+ <1512636413-25243-15-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171207.151315.1535972470633975595.davem@davemloft.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1512636413-25243-15-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 07, 2017 at 03:13:15PM -0500, David Miller wrote:
-> From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> Date: Thu, 7 Dec 2017 22:10:06 +0200
-> 
-> > On Thu, Dec 07, 2017 at 02:50:24PM -0500, David Miller wrote:
-> >> From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> >> Date: Thu, 7 Dec 2017 21:48:56 +0200
-> >> 
-> >> > On Wed, Dec 06, 2017 at 04:35:45PM -0500, David Miller wrote:
-> >> >> From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> >> >> Date: Wed,  6 Dec 2017 16:41:18 +0200
-> >> >> 
-> >> >> > If rate is the same as set it's correct case.
-> >> >> > 
-> >> >> > Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
-> >> >> > ---
-> >> >> > Based on net-next/master
-> >> >> > 
-> >> >> >  drivers/net/ethernet/ti/davinci_cpdma.c | 2 +-
-> >> >> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >> >> > 
-> >> >> > diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-> >> >> > index e4d6edf..dbe9167 100644
-> >> >> > --- a/drivers/net/ethernet/ti/davinci_cpdma.c
-> >> >> > +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-> >> >> > @@ -841,7 +841,7 @@ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
-> >> >> >  		return -EINVAL;
-> >> >> >  
-> >> >> >  	if (ch->rate == rate)
-> >> >> > -		return rate;
-> >> >> > +		return 0;
-> >> >> 
-> >> >> Looking at the one and only caller of this function, cpsw_ndo_set_tx_maxrate, it
-> >> >> makes sure this can never, ever, happen.
-> >> > In current circumstances yes, it will never happen.
-> >> > But I caught it while adding related code and better return 0 if upper caller
-> >> > doesn't have such check. Suppose that cpdma module is responsible for itself
-> >> > and if it's critical I can send this patch along with whole related series.
-> >> 
-> >> You have to decide one way or the other, who is responsible.
-> >> 
-> >> I think checking higher up is better because it's cheaper at that point to
-> >> look at the per-netdev queue rate setting before moving down deeper into the
-> >> driver specific data-structures.
-> > 
-> > No objection, but upper caller not always knows current rate and for doing like
-> > this it needs read it first, and this is also some redundancy.
-> 
-> How can the upper caller not know the current rate?  The rate is
-> always stored in the generic netdev per-queue datastructure.
-> 
-> And that's what existing code checks right now.
-Right now, when generic netdev only caller - yes.
+Hi,
 
--- 
+* Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [171207 08:50]:
+> Add clkctrl nodes for OMAP4 SoC. These are going to be acting as
+> replacement for part of the existing clock data and the existing
+> clkctrl hooks under hwmod data.
+...
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -9,6 +9,7 @@
+>  #include <dt-bindings/gpio/gpio.h>
+>  #include <dt-bindings/interrupt-controller/arm-gic.h>
+>  #include <dt-bindings/pinctrl/omap.h>
+> +#include <dt-bindings/clock/omap4.h>
+
+We have the clkctrl defines above to keep things understandable for
+humans, so let's use them. Otherwise we'll easily get errors deducting
+the TRM register offset value from the 0x20 offset.
+
+And I really like being able to easily verify the values against the
+clockdomain offsets in include/dt-bindings/clock/omap4.h and see that
+a correct clockdomain is being used. And without the preprocessor defines,
+generating these clock nodes will be impossible for anybody except you
+although looks like you've done it for all of the existing ones :)
+
+>  / {
+>  	compatible = "ti,omap4430", "ti,omap4";
+> @@ -683,7 +684,7 @@
+>  			reg-names = "sys", "gdd";
+>  			ti,hwmods = "hsi";
+>  
+> -			clocks = <&hsi_fck>;
+> +			clocks = <&l3_init_clkctrl 0x18 0>;
+>  			clock-names = "hsi_fck";
+>  
+>  			interrupts = <GIC_SPI 71 IRQ_TYPE_LEVEL_HIGH>;
+
+clocks = <&l3_init_clkctrl OMAP4_HSI_CLKCTRL 0>;
+
+> @@ -982,7 +983,7 @@
+>  			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
+>  			ti,hwmods = "timer1";
+>  			ti,timer-alwon;
+> -			clocks = <&dmt1_clk_mux>;
+> +			clocks = <&l4_wkup_clkctrl 0x20 24>;
+>  			clock-names = "fck";
+>  		};
+
+clocks = <&l4_wkup_clkctrl OMAP4_TIMER1_CLKCTRL 24>;
+
+> @@ -1214,7 +1215,7 @@
+>  			reg = <0x58000000 0x80>;
+>  			status = "disabled";
+>  			ti,hwmods = "dss_core";
+> -			clocks = <&dss_dss_clk>;
+> +			clocks = <&l3_dss_clkctrl 0 8>;
+>  			clock-names = "fck";
+>  			#address-cells = <1>;
+>  			#size-cells = <1>;
+
+clocks = <&l3_dss_clkctrl OMAP4_DSS_CORE_CLKCTRL 8>;
+
+And so on.
+
 Regards,
-Ivan Khoronzhuk
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
