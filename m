@@ -1,76 +1,54 @@
-From: Michael Turquette <mturquette@baylibre.com>
-Subject: Re: [GIT PULL] clk: ti: clkctrl driver updates for 4.16 merge window
-Date: Thu, 7 Dec 2017 10:38:55 -0800
-Message-ID: <CAEG3pNAZKVSaU8k6QzPesF9j_ARHGuX7brJ+XzBj=Y7ON+JbYA@mail.gmail.com>
-References: <fe379081-62e6-11c9-285d-234e2d1a61e4@ti.com> <20171207072911.GA4283@codeaurora.org>
- <fd7ff1b4-00c3-ce6b-9415-85799661bf8e@ti.com>
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: Re: [PATCH net-next] net: ethernet: ti: cpdma: rate is not changed -
+ correct case
+Date: Thu, 7 Dec 2017 21:48:56 +0200
+Message-ID: <20171207194855.GA3022@khorivan>
+References: <1512571278-13196-1-git-send-email-ivan.khoronzhuk@linaro.org>
+ <20171206.163545.906490902377440615.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <fd7ff1b4-00c3-ce6b-9415-85799661bf8e@ti.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, linux-clk <linux-clk@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171206.163545.906490902377440615.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tero,
+On Wed, Dec 06, 2017 at 04:35:45PM -0500, David Miller wrote:
+> From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> Date: Wed,  6 Dec 2017 16:41:18 +0200
+> 
+> > If rate is the same as set it's correct case.
+> > 
+> > Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+> > ---
+> > Based on net-next/master
+> > 
+> >  drivers/net/ethernet/ti/davinci_cpdma.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+> > index e4d6edf..dbe9167 100644
+> > --- a/drivers/net/ethernet/ti/davinci_cpdma.c
+> > +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+> > @@ -841,7 +841,7 @@ int cpdma_chan_set_rate(struct cpdma_chan *ch, u32 rate)
+> >  		return -EINVAL;
+> >  
+> >  	if (ch->rate == rate)
+> > -		return rate;
+> > +		return 0;
+> 
+> Looking at the one and only caller of this function, cpsw_ndo_set_tx_maxrate, it
+> makes sure this can never, ever, happen.
+In current circumstances yes, it will never happen.
+But I caught it while adding related code and better return 0 if upper caller
+doesn't have such check. Suppose that cpdma module is responsible for itself
+and if it's critical I can send this patch along with whole related series.
 
-On Thu, Dec 7, 2017 at 12:09 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> On 07/12/17 09:29, Stephen Boyd wrote:
->>
->> On 12/05, Tero Kristo wrote:
->>>
->>> Hi Stephen, Mike,
->>>
->>> This pull request contains the v2 of the series posted
->>> (https://www.spinics.net/lists/linux-omap/msg140042.html), with
->>> Stephen's acks added to the mentioned patches, and just applied on
->>> top of 4.15-rc1. I actually wonder if you wanted to add your acks to
->>> the rest of the patches also, but couldn't find any comment about
->>> this anywhere.
->>>
->>> -Tero
->>>
->>> ====
->>>
->>> The following changes since commit
->>> 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
->>>
->>>    Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
->>>
->>> are available in the git repository at:
->>>
->>>    https://github.com/t-kristo/linux-pm.git 4.15-rc1-clkctrl-driver
->>>
->>> for you to fetch changes up to fe7020e64f042db4b5ca50c358b232e866523447:
->>>
->>>    clk: ti: omap4: clkctrl data fixes for opt-clocks (2017-12-01
->>> 15:18:08 +0200)
->>
->>
->> Pulled into clk-next.
->
->
-> Thanks.
->
->> Did you want to sign a tag instead of
->> sending a plain branch? My ack isn't necessary on anything.
->>
->
-> Just a plain branch. Never signed a tag so far, do you have guidelines
-> someplace if you prefer this in future?
+> 
+> So I would instead remove this check completely since it can never trigger.
 
-"git tag -s" is all you need to know. It's nice to keep that tag on
-your public tree until the next -rc1, but not strictly necessary.
-
-Ideally PRs should used signed tags, as it lets us verify a trusted tree.
-
+-- 
 Regards,
-Mike
-
->
-> -Tero
->
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+Ivan Khoronzhuk
