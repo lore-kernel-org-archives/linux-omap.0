@@ -1,90 +1,63 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] Documentation: dt: memory: ti-emif: add edac support
- under emif
-Date: Thu, 7 Dec 2017 11:03:30 +0200
-Message-ID: <823a5602-52fb-a97f-ae09-c9af343f5bc8@ti.com>
-References: <1510087139-21885-1-git-send-email-t-kristo@ti.com>
- <1510087139-21885-2-git-send-email-t-kristo@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: linux-next on Nokia N900: hang on boot
+Date: Thu, 7 Dec 2017 11:16:51 +0100
+Message-ID: <20171207101651.GA23691@amd>
+References: <20171202101456.GA1810@amd>
+ <20171202111954.4gg43xkb2wf5ebmn@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1510087139-21885-2-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-edac-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org, mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171202111954.4gg43xkb2wf5ebmn@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Rob,
 
-Any comments on this? I guess the series is only pending an ack on this one.
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-(Added devicetree ML to delivery, it seems I missed this on the original 
-post.)
+On Sat 2017-12-02 12:19:54, Pali Roh=E1r wrote:
+> On Saturday 02 December 2017 11:14:56 Pavel Machek wrote:
+> > Hi!
+> >=20
+> > next from 2017-12-01 was tested.
+> >=20
+> > MMC is detected, but then I see wtl4030_bci: .. battery temperature
+> > out of range, and machine halts. This is just before userspace would
+> > be started.
+> >=20
+> > 4.15-rc1 seems to work ok on the box.
+> >=20
+> > Any ideas?
+>=20
+> twl4030_bci is not available on Nokia N900, so we should not try to read
+> its registers.
 
--Tero
+Today's git boots on N900; good. What is going on with twl4030_bci I
+don't have time to investigate at the moment.
 
-On 07/11/17 22:38, Tero Kristo wrote:
-> Certain revisions of the TI EMIF IP contain ECC support in them. Reflect
-> this in the DT binding.
-> 
-> Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Santosh Shilimkar <ssantosh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->   .../devicetree/bindings/memory-controllers/ti/emif.txt   | 16 +++++++++++++++-
->   1 file changed, 15 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
-> index 0db6047..f56a347 100644
-> --- a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
-> +++ b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
-> @@ -3,12 +3,16 @@
->   EMIF - External Memory Interface - is an SDRAM controller used in
->   TI SoCs. EMIF supports, based on the IP revision, one or more of
->   DDR2/DDR3/LPDDR2 protocols. This binding describes a given instance
-> -of the EMIF IP and memory parts attached to it.
-> +of the EMIF IP and memory parts attached to it. Certain revisions
-> +of the EMIF IP controller also contain optional ECC support, which
-> +corrects one bit errors and detects two bit errors.
->   
->   Required properties:
->   - compatible	: Should be of the form "ti,emif-<ip-rev>" where <ip-rev>
->     is the IP revision of the specific EMIF instance.
->   		  For am437x should be ti,emif-am4372.
-> +		  For dra7xx should be ti,emif-dra7xx.
-> +		  For k2x family, should be ti,emif-keystone.
->   
->   - phy-type	: <u32> indicating the DDR phy type. Following are the
->     allowed values
-> @@ -42,6 +46,10 @@ Optional properties:
->   - hw-caps-temp-alert	: Have this property if the controller
->     has capability for generating SDRAM temperature alerts
->   
-> +- interrupts		: A list of interrupt specifiers for memory
-> +  controller interrupts, if available. Required for EMIF instances
-> +  that support ECC.
-> +
->   Example:
->   
->   emif1: emif@0x4c000000 {
-> @@ -54,3 +62,9 @@ emif1: emif@0x4c000000 {
->   	hw-caps-ll-interface;
->   	hw-caps-temp-alert;
->   };
-> +
-> +emif1: emif@4c000000 {
-> +	compatible = "ti,emif-dra7";
-> +	reg = <0x4c000000 0x200>;
-> +	interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
-> +};
-> 
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlopFRMACgkQMOfwapXb+vI14QCgwABhEAYvZVvFixVsmhRx+Wlk
+T0sAoKjRLl7Xb1/p2jJ9CQSxad0O+GAE
+=NV9x
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
