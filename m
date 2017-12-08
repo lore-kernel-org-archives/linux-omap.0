@@ -1,38 +1,28 @@
-From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 00/20] ARM: dts: add omap clkctrl support
-Date: Fri, 8 Dec 2017 08:58:49 +0200
-Message-ID: <9fa461b8-32a5-0841-778f-ebe400cbc7ae@ti.com>
-References: <1512636413-25243-1-git-send-email-t-kristo@ti.com>
- <20171207211620.GD28152@atomide.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2] usb: host: Implement workaround for Erratum A-007463
+Date: Fri, 8 Dec 2017 11:17:39 +0100
+Message-ID: <20171208101739.GA15897@kroah.com>
+References: <20171208094942.46748-1-yinbo.zhu@nxp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171207211620.GD28152-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171208094942.46748-1-yinbo.zhu@nxp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: yinbo.zhu@nxp.com
+Cc: Felipe Balbi <balbi@ti.com>, Mathias Nyman <mathias.nyman@intel.com>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-usb@vger.kernel.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, xiaobo.xie@nxp.com, jerry.huang@nxp.com, ran.wang_1@nxp.com
 List-Id: linux-omap@vger.kernel.org
 
-On 07/12/17 23:16, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org> [171207 00:49]:
->> Hi,
->>
->> This series adds the clkctrl support for omap2 family SoCs for am33xx,
->> am43xx, omap4, omap5, dra7 and dm81xx. This series depends on the
->> previously posted drivers/clk [1] + mach-omap2 [2] series for the same.
-> 
-> Looks good to me except the comments I made on patch 14/20 that applies
-> to many of these patches.
+On Fri, Dec 08, 2017 at 05:49:40PM +0800, yinbo.zhu@nxp.com wrote:
+> From: "yinbo.zhu" <yinbo.zhu@nxp.com>
 
-Ok, let me update my script to use the human readable values for these, 
-I'll repost once done.
+I need a "real name" here, I doubt you sign documents as:
+	"yinbo.zhu"
+right?  :)
 
--Tero
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also, you sent 3 patches, yet no way to know what order to apply them
+in.  Please fix that up by sending a patch series, properly numbered.
+
+thanks,
+
+greg k-h
