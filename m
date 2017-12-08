@@ -1,105 +1,88 @@
-From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCHv1 00/14] omapdrm: DSI command mode panel support
-Date: Fri, 8 Dec 2017 19:01:44 +0100
-Message-ID: <20171208180144.j7lu6jnmathusqen@earth>
-References: <20170724173311.27170-1-sebastian.reichel@collabora.co.uk>
- <5c747b23-c586-4997-cf92-2725483343c5@ti.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH 4/4] PCI: dwc: pci-dra7xx: Fix legacy IRQ handling
+Date: Fri, 8 Dec 2017 18:35:23 +0000
+Message-ID: <20171208183523.GB1885@e107981-ln.cambridge.arm.com>
+References: <20171201061311.16691-1-vigneshr@ti.com>
+ <20171201061311.16691-5-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="7gmqrckmv2cnkimv"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5c747b23-c586-4997-cf92-2725483343c5@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20171201061311.16691-5-vigneshr-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Chris Welch <Chris.Welch-ojoHHoaXhABCkLs28/y7ANBPR1lH4CV8@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Dec 01, 2017 at 11:43:11AM +0530, Vignesh R wrote:
+> Legacy INTD IRQ handling is broken on dra7xx due to fact that driver
+> uses hwirq in range of 1-4 for INTA, INTD whereas IRQ domain is of size
+> 4 which is numbered 0-3. Therefore when INTD IRQ line is used with
+> pci-dra7xx driver following warning is seen:
+> 
+>        WARNING: CPU: 0 PID: 1 at kernel/irq/irqdomain.c:342 irq_domain_associate+0x12c/0x1c4
+>        error: hwirq 0x4 is too large for dummy
+> 
+> Fix this by using pci_irqd_intx_xlate() helper to translate the INTx 1-4
+> range into the 0-3 as done in other PCIe drivers.
+> 
+> Also, iterate over all the INTx bits and call their respective IRQ
+> handlers before clearing the status register.
 
---7gmqrckmv2cnkimv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It seems to me that you are fixing two bugs with one patch and therefore
+I would ask you to split it in two or explain to me why we should
+consider lumping them together.
 
-Hi Tomi,
+Thanks,
+Lorenzo
 
-On Fri, Dec 01, 2017 at 02:58:13PM +0200, Tomi Valkeinen wrote:
-> Hi,
->=20
-> On 24/07/17 20:32, Sebastian Reichel wrote:
-> > Hi,
-> >=20
-> > This adds support for command mode DSI panels to
-> > omapdrm. I tested the patches on Nokia N950 (omap3)
-> > and Motorola Droid 4 (omap4). This is basically
-> > PATCHv3 of my series adding N950 display support,
-> > but I started from scratch without reverting the
-> > removal of manual display update support.
-> >=20
-> > Tested:
-> >  * Framebuffer Console
-> >  * Display blanking
-> >  * kmstest
-> >  * Xorg with omap and modesetting driver
-> >  * No updates send when nothing needs to be sent
-> >=20
-> > Known issues:
-> >  * Proper display rotation support
-> >  * N950 (and N9) has first and last few lines
-> >    covered by plastic, so we should expose a
-> >    smaller screen
-> >=20
-> > I plan to look into these issues once basic support
-> > has been merged.
-> >=20
-> > -- Sebastian
-> >=20
-> > Sebastian Reichel (13):
-> >   [A] drm/omap: remove unused function defines
-> >   [A] drm/omap: drop incorrect comment
-> >   [ ] drm/omap: plane: update fifo size on ovl setup
-> >   [ ] drm/omap: add framedone interrupt support
-> >   [ ] drm/omap: add manual update detection helper
-> >   [ ] drm/omap: add support for manually updated displays
-> >   [A] drm/omap: add support for physical size hints from display drivers
-> >   [A] drm/omap: panel-dsi-cm: add regulator support
-> >   [A] drm/omap: panel-dsi-cm: add physical size support
-> >   [A] drm/omap: panel-dsi-cm: add external backlight support
-> >   [A] drm/omap: panel-dsi-cm: switch to gpiod
-> >   [A] ARM: dts: omap4-droid4: improve LCD description
-> >   [ ] ARM: dts: n950: add display support
-> >=20
-> > Tony Lindgren (1):
-> >   drm/omap: panel-dsi-cm: fix driver
->=20
-> I've also picked patches 7-12.
-
-Thanks. I just wanted to rebase the remaining patches on your
-branch, but I don't see those patches in linux-next and your tree
-does not seem to be updated properly either:
-
-https://git.kernel.org/pub/scm/linux/kernel/git/tomba/linux.git/
-
--- Sebastian
-
---7gmqrckmv2cnkimv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloq04MACgkQ2O7X88g7
-+popFQ/7Bs8bPNtnrFn4lDDR252XBQ1P/p4nf3AhQ9LGx8aBnT9qbSbo09jA/hK2
-7FUjZpsj38qyWzpqYtMwX4FBmUvFilB9uZjTZhjs0u9o6Xg801jLlY/GJ3TkYdaA
-KXkBnc7k+ZmjPbHjMLCOfvwGUGKHUABSYTOxkBHMJNzpRe7b9ibUS4Sug32kCtBR
-ZktWtQoKdi2jKaVTjgFmtTasDo90zP6XHQ3t0q4z1d+V0Rzf2KFby7vty7vBdwhh
-dRtZOjK1IY6S5cEg6MZA3Qmg5FeXg8E7bPm3OU9kneqHk9J6xXD7B6uZnGAiv/MA
-satW66OgzhBgEpjhrKl7gC//8PwT/tZyQkwiltiopvTqdxHDmREhsVAa1Mjqh9NU
-jZOHErwt7oWWU6Fqoil+bWvEjfgXlCKdz3kC1M3sEZ3b99NvSG2sGeYA/WLbGY8C
-QNRA3rCB9w+Kgw6tGRE/08kOgDxXGwvAPVw8d5EyrJzc/yuU+tWWaS6eXT0ln5yU
-HNpN+I8Q79WFwtaiAprc646cNPbXY3JBzqm64BwFlBxX7EDwDgPELeZQzFdDLNwF
-JKQf1VbWSx3K3Z1jyncBY1HdXRaYL4gDUStvXvBMQZKrit8uU6165jPAHmC09Tlv
-1gksmuw2IFoMeEtcOiAM0yZAFjuEIfxkpItwAN5hg0Zn45dxbEo=
-=0djj
------END PGP SIGNATURE-----
-
---7gmqrckmv2cnkimv--
+> Suggested-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> Reported-by: Chris Welch <Chris.Welch-ojoHHoaXhABCkLs28/y7ANBPR1lH4CV8@public.gmane.org>
+> Signed-off-by: Vignesh R <vigneshr-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c | 11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 53f721d1cc40..59e8de34cec6 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -226,6 +226,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
+>  
+>  static const struct irq_domain_ops intx_domain_ops = {
+>  	.map = dra7xx_pcie_intx_map,
+> +	.xlate = pci_irqd_intx_xlate,
+>  };
+>  
+>  static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+> @@ -256,7 +257,8 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>  	struct dra7xx_pcie *dra7xx = arg;
+>  	struct dw_pcie *pci = dra7xx->pci;
+>  	struct pcie_port *pp = &pci->pp;
+> -	u32 reg;
+> +	unsigned long reg;
+> +	u32 virq, bit;
+>  
+>  	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
+>  
+> @@ -268,8 +270,11 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>  	case INTB:
+>  	case INTC:
+>  	case INTD:
+> -		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
+> -						    ffs(reg)));
+> +		for_each_set_bit(bit, &reg, PCI_NUM_INTX) {
+> +			virq = irq_find_mapping(dra7xx->irq_domain, bit);
+> +			if (virq)
+> +				generic_handle_irq(virq);
+> +		}
+>  		break;
+>  	}
+>  
+> -- 
+> 2.15.0
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
