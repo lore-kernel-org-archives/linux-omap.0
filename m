@@ -1,183 +1,105 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Subject: Re: [PATCH v2] usb: host: Implement workaround for Erratum A-009611
-Date: Fri, 8 Dec 2017 11:21:11 +0100
-Message-ID: <20171208102111.GA16245@kroah.com>
-References: <20171208094942.46748-1-yinbo.zhu@nxp.com>
- <20171208094942.46748-2-yinbo.zhu@nxp.com>
+Date: Fri, 08 Dec 2017 12:44:11 +0200
+Message-ID: <87vahhpkhw.fsf@linux.intel.com>
+References: <20171208094942.46748-1-yinbo.zhu@nxp.com> <20171208094942.46748-2-yinbo.zhu@nxp.com> <20171208102111.GA16245@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171208094942.46748-2-yinbo.zhu@nxp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: yinbo.zhu@nxp.com
-Cc: Felipe Balbi <balbi@ti.com>, Mathias Nyman <mathias.nyman@intel.com>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-usb@vger.kernel.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, xiaobo.xie@nxp.com, jerry.huang@nxp.com, ran.wang_1@nxp.com
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha512; protocol="application/pgp-signature"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171208102111.GA16245-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, yinbo.zhu-3arQi8VN3Tc@public.gmane.org
+Cc: Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, xiaobo.xie-3arQi8VN3Tc@public.gmane.org, jerry.huang-3arQi8VN3Tc@public.gmane.org, ran.wang_1-3arQi8VN3Tc@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 08, 2017 at 05:49:41PM +0800, yinbo.zhu@nxp.com wrote:
-> From: "yinbo.zhu" <yinbo.zhu@nxp.com>
-> 
-> Description: This is a occasional problem where the software
-
-No need for a "Description:" word.  That's just assumed here, right?
-
-> issues an End Transfer command while a USB transfer is in progress,
-> resulting in the TxFIFO  being flushed when the lower layer is waiting
-> for data,causing the super speed (SS) transmit to get blocked.
-> If the End Transfer command is issued on an IN endpoint to
-> flush out the pending transfers when the same IN endpoint
-> is doing transfers on the USB, then depending upon the timing
-> of the End Transfer (and the resulting internal FIFO flush),the
-> lower layer (U3PTL/U3MAC) could get stuck waiting for data
-> indefinitely. This blocks the transmission path on the SS, and no
-> DP/ACK/ERDY/DEVNOTIF packets can be sent from the device.
-> Impact: If this issue happens and the transmission gets blocked,
-> then the USB host aborts and resets/re-enumerates the device.
-> This unblocks the transmitt engine and the device functions normally.
-> 
-> Workaround: Software must wait for all existing TRBs to complete before
-> issuing End transfer command.
-> 
-> Configs Affected:
-> LS1088-48A-R1.0, LS2081A-R1.1, LS2088-48A-R1.0, LS2088-48A-R1.1,
-> LX2160-2120-2080A-R1.
-
-What are these Configs?  That doesn't seem to match up with anything
-that is in the kernel tree that I can see.
-
-> 
-> Signed-off-by: yinbo.zhu <yinbo.zhu@nxp.com>
-> ---
->  drivers/usb/dwc3/core.c      |  3 +++
->  drivers/usb/dwc3/core.h      |  3 +++
->  drivers/usb/dwc3/host.c      |  3 +++
->  drivers/usb/host/xhci-plat.c |  4 ++++
->  drivers/usb/host/xhci.c      | 24 ++++++++++++++++++------
->  drivers/usb/host/xhci.h      |  1 +
->  6 files changed, 32 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index 5cb3f6795b0b..071e7cea8cbb 100644
-> --- a/drivers/usb/dwc3/core.c
-> +++ b/drivers/usb/dwc3/core.c
-> @@ -1106,6 +1106,9 @@ static void dwc3_get_properties(struct dwc3 *dwc)
->  
->  	dwc->quirk_reverse_in_out = device_property_read_bool(dev,
->  				"snps,quirk_reverse_in_out");
-> +	dwc->quirk_stop_transfer_in_block = device_property_read_bool(dev,
-> +				"snps,quirk_stop_transfer_in_block");
-
-Have you documented this new DT value somewhere?
-
-> +
->  	dwc->needs_fifo_resize = of_property_read_bool(node, "tx-fifo-resize");
->  
->  	dwc->configure_gfladj =
-> diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-> index 6c530cbedf49..b2425799ecb6 100644
-> --- a/drivers/usb/dwc3/core.h
-> +++ b/drivers/usb/dwc3/core.h
-> @@ -900,6 +900,8 @@ struct dwc3_scratchpad_array {
->   * 	3	- Reserved
->   * @disable_devinit_u1u2_quirk: disable device-initiated U1/U2 request.
->   * @quirk_reverse_in_out: prevent tx fifo reverse the data direction.
-> + * @quirk_stop_transfer_in_block: prevent block transmission from being
-> + *                                interrupted.
->   * @imod_interval: set the interrupt moderation interval in 250ns
->   *                 increments or 0 to disable.
->   */
-> @@ -1063,6 +1065,7 @@ struct dwc3 {
->  	unsigned		tx_de_emphasis:2;
->  	unsigned		disable_devinit_u1u2_quirk:1;
->  	unsigned                quirk_reverse_in_out:1;
-> +	unsigned                quirk_stop_transfer_in_block:1;
->  
->  	u16			imod_interval;
->  };
-> diff --git a/drivers/usb/dwc3/host.c b/drivers/usb/dwc3/host.c
-> index 2cd48633d3fa..a9ccbf1b9871 100644
-> --- a/drivers/usb/dwc3/host.c
-> +++ b/drivers/usb/dwc3/host.c
-> @@ -110,6 +110,9 @@ int dwc3_host_init(struct dwc3 *dwc)
->  	if (dwc->quirk_reverse_in_out)
->  		props[prop_idx++].name = "quirk-reverse-in-out";
->  
-> +	if (dwc->quirk_stop_transfer_in_block)
-> +		props[prop_idx++].name = "quirk-stop-transfer-in-block";
-> +
->  	if (dwc->usb3_lpm_capable)
->  		props[prop_idx++].name = "usb3-lpm-capable";
->  
-> diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-> index d1c1e882e6d7..5721d4ece625 100644
-> --- a/drivers/usb/host/xhci-plat.c
-> +++ b/drivers/usb/host/xhci-plat.c
-> @@ -272,6 +272,10 @@ static int xhci_plat_probe(struct platform_device *pdev)
->  	if (device_property_read_bool(&pdev->dev, "quirk-reverse-in-out"))
->  		xhci->quirks |= XHCI_REVERSE_IN_OUT;
->  
-> +	if (device_property_read_bool(&pdev->dev,
-> +				"quirk-stop-transfer-in-block"))
-> +		xhci->quirks |= XHCI_STOP_TRANSFER_IN_BLOCK;
-> +
->  	if (device_property_read_bool(&pdev->dev, "quirk-broken-port-ped"))
->  		xhci->quirks |= XHCI_BROKEN_PORT_PED;
->  
-> diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-> index 21dd1d98508f..925c8d171c0b 100644
-> --- a/drivers/usb/host/xhci.c
-> +++ b/drivers/usb/host/xhci.c
-> @@ -1515,13 +1515,25 @@ static int xhci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
->  			ret = -ENOMEM;
->  			goto done;
->  		}
-> -		ep->ep_state |= EP_STOP_CMD_PENDING;
-> -		ep->stop_cmd_timer.expires = jiffies +
-> +		/*
-> +		 *A-009611: Issuing an End Transfer command on an IN endpoint.
-> +		 *when a transfer is in progress on USB blocks the transmission
-> +		 *Workaround: Software must wait for all existing TRBs to
-> +		 *complete before issuing End transfer command.
-
-What is "A-009611:" mean?
-
-Also please properly format your comments (look at other ones for
-examples of how to do it.)
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 
-> +		 */
-> +		if ((ep_ring->enqueue == ep_ring->dequeue &&
-> +				(xhci->quirks & XHCI_STOP_TRANSFER_IN_BLOCK)) ||
-> +				!(xhci->quirks & XHCI_STOP_TRANSFER_IN_BLOCK)) {
-> +			ep->ep_state |= EP_STOP_CMD_PENDING;
-> +			ep->stop_cmd_timer.expires = jiffies +
->  			XHCI_STOP_EP_CMD_TIMEOUT * HZ;
-> -		add_timer(&ep->stop_cmd_timer);
-> -		xhci_queue_stop_endpoint(xhci, command, urb->dev->slot_id,
-> -					 ep_index, 0);
-> -		xhci_ring_cmd_db(xhci);
-> +			add_timer(&ep->stop_cmd_timer);
-> +			xhci_queue_stop_endpoint(xhci, command,
-> +					urb->dev->slot_id,
-> +					ep_index, 0);
-> +			xhci_ring_cmd_db(xhci);
-> +		}
-> +
->  	}
->  done:
->  	spin_unlock_irqrestore(&xhci->lock, flags);
-> diff --git a/drivers/usb/host/xhci.h b/drivers/usb/host/xhci.h
-> index 78d14ff0b811..bff47d6582a8 100644
-> --- a/drivers/usb/host/xhci.h
-> +++ b/drivers/usb/host/xhci.h
-> @@ -1836,6 +1836,7 @@ struct xhci_hcd {
->  /* Reserved. It was XHCI_U2_DISABLE_WAKE */
->  #define XHCI_ASMEDIA_MODIFY_FLOWCONTROL	(1 << 28)
->  #define XHCI_HW_LPM_DISABLE	(1 << 29)
-> +#define XHCI_STOP_TRANSFER_IN_BLOCK    (1 << 30)
+Hi,
 
-Meta-comment, why are these not using the BIT() macro?
+Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org> writes:
+> On Fri, Dec 08, 2017 at 05:49:41PM +0800, yinbo.zhu-3arQi8VN3Tc@public.gmane.org wrote:
+>> From: "yinbo.zhu" <yinbo.zhu-3arQi8VN3Tc@public.gmane.org>
+>>=20
+>> Description: This is a occasional problem where the software
+>
+> No need for a "Description:" word.  That's just assumed here, right?
+>
+>> issues an End Transfer command while a USB transfer is in progress,
+>> resulting in the TxFIFO  being flushed when the lower layer is waiting
+>> for data,causing the super speed (SS) transmit to get blocked.
+>> If the End Transfer command is issued on an IN endpoint to
+>> flush out the pending transfers when the same IN endpoint
+>> is doing transfers on the USB, then depending upon the timing
+>> of the End Transfer (and the resulting internal FIFO flush),the
+>> lower layer (U3PTL/U3MAC) could get stuck waiting for data
+>> indefinitely. This blocks the transmission path on the SS, and no
+>> DP/ACK/ERDY/DEVNOTIF packets can be sent from the device.
+>> Impact: If this issue happens and the transmission gets blocked,
+>> then the USB host aborts and resets/re-enumerates the device.
+>> This unblocks the transmitt engine and the device functions normally.
+>>=20
+>> Workaround: Software must wait for all existing TRBs to complete before
+>> issuing End transfer command.
+>>=20
+>> Configs Affected:
+>> LS1088-48A-R1.0, LS2081A-R1.1, LS2088-48A-R1.0, LS2088-48A-R1.1,
+>> LX2160-2120-2080A-R1.
+>
+> What are these Configs?  That doesn't seem to match up with anything
+> that is in the kernel tree that I can see.
+>
+>>=20
+>> Signed-off-by: yinbo.zhu <yinbo.zhu-3arQi8VN3Tc@public.gmane.org>
+>> ---
+>>  drivers/usb/dwc3/core.c      |  3 +++
+>>  drivers/usb/dwc3/core.h      |  3 +++
+>>  drivers/usb/dwc3/host.c      |  3 +++
+>>  drivers/usb/host/xhci-plat.c |  4 ++++
+>>  drivers/usb/host/xhci.c      | 24 ++++++++++++++++++------
+>>  drivers/usb/host/xhci.h      |  1 +
+>>  6 files changed, 32 insertions(+), 6 deletions(-)
+>>=20
+>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> index 5cb3f6795b0b..071e7cea8cbb 100644
+>> --- a/drivers/usb/dwc3/core.c
+>> +++ b/drivers/usb/dwc3/core.c
+>> @@ -1106,6 +1106,9 @@ static void dwc3_get_properties(struct dwc3 *dwc)
+>>=20=20
+>>  	dwc->quirk_reverse_in_out =3D device_property_read_bool(dev,
+>>  				"snps,quirk_reverse_in_out");
 
-thanks,
+This was generated on vendor tree. This quirk doesn't exist in
+dwc3. Also, update your tree and review MAINTAINERS file. It has been
+almost 2 years since I left TI :-)
 
-greg k-h
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAloqbP0ACgkQzL64meEa
+mQZKaQ/8D3bFXoBYZSnDT/+jU7fhrc69cqvg/PiGgkw/TMyv7pK0vP0AZFNwhyY3
+jgW3mXN4F+dhqDonVpUs9c4YbawWJUZCSqbUKPYCP8ag21QHlmJv3h5nKfjx67wC
+zLjpYYyjrUBbD1+RWrYKfpKf1O1tzANbIZ4h0LUIXW3Ts1MJybT6/KdIrC4MGQRO
+1Jc1v73J6zXp4bPfEliiFxtLzJCCeprvayWE7WyTsYveiGENPWv377UR4Bn7OG4R
+hwWoZEUMFkL/r4RXdDhmvjCGdacJLSBmyBAwKo3X+z5ax9EBswMwfECCQ+3akcZG
+/oyFp+5G0ZakS7VNG2AAdWZ0JRGI2zWhz3CU5/GGoamCXmunoGHWMxPHowjbtHWm
+0zf2mZQQr5hbubGT+kW8kjJRLXQbROZlFN2AMA0JzWXzZaxGSxPU/aNmo4TNy7Ze
+/yqv0T5WWn1jn0u8oqiwHJgwUGqbfdj6xn5xFYZoPQ8xieU+UITHMPqAJeTLRHhN
+LYdB2BCZollwM85kD037MAqEpa5RSHfI8+xUTrwMRAJw/oyti+5gSVO+ctjYL+pT
+Y1Q7yCirl169eY+v1SE2kDu7rTc1c736rS3bhPkCgiUjZt51S8lIpkQHKbGcSJbi
+joqyOpB3B0S4O22UmAeuy73FxljgbWjMa0jeeLRaILtZOZgjZQc=
+=DIOf
+-----END PGP SIGNATURE-----
+--=-=-=--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
