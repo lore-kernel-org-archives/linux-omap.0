@@ -1,105 +1,168 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v2] usb: host: Implement workaround for Erratum A-009611
-Date: Fri, 08 Dec 2017 12:44:11 +0200
-Message-ID: <87vahhpkhw.fsf@linux.intel.com>
-References: <20171208094942.46748-1-yinbo.zhu@nxp.com> <20171208094942.46748-2-yinbo.zhu@nxp.com> <20171208102111.GA16245@kroah.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH v4 4/8] arm: OMAP: Move dmtimer driver out of plat-omap to
+ drivers under clocksource
+Date: Fri, 8 Dec 2017 20:01:13 +0530
+Message-ID: <e84d4096-33f9-b23c-d68a-af21c33eacd0@ti.com>
+References: <1512105397-2544-1-git-send-email-j-keerthy@ti.com>
+ <1512105397-2544-5-git-send-email-j-keerthy@ti.com>
+ <e71f4c7b-e5c7-6305-dc1c-274da6fbf07d@linaro.org>
+ <996847a8-d927-638b-3eee-de496d21fe65@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171208102111.GA16245-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, yinbo.zhu-3arQi8VN3Tc@public.gmane.org
-Cc: Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, xiaobo.xie-3arQi8VN3Tc@public.gmane.org, jerry.huang-3arQi8VN3Tc@public.gmane.org, ran.wang_1-3arQi8VN3Tc@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <996847a8-d927-638b-3eee-de496d21fe65@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
+Cc: linux-pwm@vger.kernel.org, grygorii.strashko@ti.com, linux@armlinux.org.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, ladis@linux-mips.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
 
 
-Hi,
+On Friday 08 December 2017 09:25 AM, Keerthy wrote:
+> 
+> 
+> On Thursday 07 December 2017 04:24 PM, Daniel Lezcano wrote:
+>> On 01/12/2017 06:16, Keerthy wrote:
+>>> Move the dmtimer driver out of plat-omap to clocksource.
+>>> So that non-omap devices also could use this.
+>>>
+>>> No Code changes done to the driver file.
+>>>
+>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
+>>> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+>>> ---
+>>>
+>>> Changes in v3:
+>>>
+>>>   * Added Sebastian's Reviewed-by.
+>>>
+>>> Changes in v2:
+>>>
+>>>   * No code changes in this v2 version. Only enhanced patch
+>>>     statistics for renames.
+>>>
+>>>  arch/arm/plat-omap/Kconfig                            | 6 ------
+>>>  arch/arm/plat-omap/Makefile                           | 1 -
+>>>  drivers/clocksource/Kconfig                           | 6 ++++++
+>>>  drivers/clocksource/Makefile                          | 1 +
+>>>  {arch/arm/plat-omap => drivers/clocksource}/dmtimer.c | 0
+>>>  5 files changed, 7 insertions(+), 7 deletions(-)
+>>>  rename {arch/arm/plat-omap => drivers/clocksource}/dmtimer.c (100%)
+>>
+>> Take the opportunity to rename it timer-dm.c
+> 
+> okay.
+> 
+>>
+>>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+>>> index 7276afe..afc1a1d 100644
+>>> --- a/arch/arm/plat-omap/Kconfig
+>>> +++ b/arch/arm/plat-omap/Kconfig
+>>> @@ -106,12 +106,6 @@ config OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
+>>>  	help
+>>>  	  PPA routine service ID for setting L2 auxiliary control register.
+>>>  
+>>> -config OMAP_DM_TIMER
+>>> -	bool "Use dual-mode timer"
+>>> -	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
+>>> -	help
+>>> -	 Select this option if you want to use OMAP Dual-Mode timers.
+>>> -
+>>>  config OMAP_SERIAL_WAKE
+>>>  	bool "Enable wake-up events for serial ports"
+>>>  	depends on ARCH_OMAP1 && OMAP_MUX
+>>> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+>>> index 47e1867..7215ada 100644
+>>> --- a/arch/arm/plat-omap/Makefile
+>>> +++ b/arch/arm/plat-omap/Makefile
+>>> @@ -9,5 +9,4 @@ obj-y := sram.o dma.o counter_32k.o
+>>>  
+>>>  # omap_device support (OMAP2+ only at the moment)
+>>>  
+>>> -obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+>>>  obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
+>>> diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+>>> index c729a88..4da66cf 100644
+>>> --- a/drivers/clocksource/Kconfig
+>>> +++ b/drivers/clocksource/Kconfig
+>>> @@ -46,6 +46,12 @@ config DIGICOLOR_TIMER
+>>>  	help
+>>>  	  Enables the support for the digicolor timer driver.
+>>>  
+>>> +config OMAP_DM_TIMER
+>>> +	bool "Use dual-mode timer"
+>>> +	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
+>>> +	help
+>>> +	 Select this option if you want to use Dual-Mode timers.
+>>> +
+>>
+>> So in the clocksource directory the rule is the following:
+>>
+>> The config option is silent except if COMPILE_TEST is set.
+>>
+>> It is the Kconfig's platform which select the driver so there is no deps
+>> on the ARCH.
+> 
+> Okay understood.
 
-Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org> writes:
-> On Fri, Dec 08, 2017 at 05:49:41PM +0800, yinbo.zhu-3arQi8VN3Tc@public.gmane.org wrote:
->> From: "yinbo.zhu" <yinbo.zhu-3arQi8VN3Tc@public.gmane.org>
->>=20
->> Description: This is a occasional problem where the software
->
-> No need for a "Description:" word.  That's just assumed here, right?
->
->> issues an End Transfer command while a USB transfer is in progress,
->> resulting in the TxFIFO  being flushed when the lower layer is waiting
->> for data,causing the super speed (SS) transmit to get blocked.
->> If the End Transfer command is issued on an IN endpoint to
->> flush out the pending transfers when the same IN endpoint
->> is doing transfers on the USB, then depending upon the timing
->> of the End Transfer (and the resulting internal FIFO flush),the
->> lower layer (U3PTL/U3MAC) could get stuck waiting for data
->> indefinitely. This blocks the transmission path on the SS, and no
->> DP/ACK/ERDY/DEVNOTIF packets can be sent from the device.
->> Impact: If this issue happens and the transmission gets blocked,
->> then the USB host aborts and resets/re-enumerates the device.
->> This unblocks the transmitt engine and the device functions normally.
->>=20
->> Workaround: Software must wait for all existing TRBs to complete before
->> issuing End transfer command.
->>=20
->> Configs Affected:
->> LS1088-48A-R1.0, LS2081A-R1.1, LS2088-48A-R1.0, LS2088-48A-R1.1,
->> LX2160-2120-2080A-R1.
->
-> What are these Configs?  That doesn't seem to match up with anything
-> that is in the kernel tree that I can see.
->
->>=20
->> Signed-off-by: yinbo.zhu <yinbo.zhu-3arQi8VN3Tc@public.gmane.org>
->> ---
->>  drivers/usb/dwc3/core.c      |  3 +++
->>  drivers/usb/dwc3/core.h      |  3 +++
->>  drivers/usb/dwc3/host.c      |  3 +++
->>  drivers/usb/host/xhci-plat.c |  4 ++++
->>  drivers/usb/host/xhci.c      | 24 ++++++++++++++++++------
->>  drivers/usb/host/xhci.h      |  1 +
->>  6 files changed, 32 insertions(+), 6 deletions(-)
->>=20
->> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> index 5cb3f6795b0b..071e7cea8cbb 100644
->> --- a/drivers/usb/dwc3/core.c
->> +++ b/drivers/usb/dwc3/core.c
->> @@ -1106,6 +1106,9 @@ static void dwc3_get_properties(struct dwc3 *dwc)
->>=20=20
->>  	dwc->quirk_reverse_in_out =3D device_property_read_bool(dev,
->>  				"snps,quirk_reverse_in_out");
+Tony,
 
-This was generated on vendor tree. This quirk doesn't exist in
-dwc3. Also, update your tree and review MAINTAINERS file. It has been
-almost 2 years since I left TI :-)
+The driver requirements force me to remove all ARCH specific #ifdef in
+Patch #2. I will reduce that patch to a comment.
 
-=2D-=20
-balbi
+Hope that is okay.
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+Regards,
+Keerthy
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAloqbP0ACgkQzL64meEa
-mQZKaQ/8D3bFXoBYZSnDT/+jU7fhrc69cqvg/PiGgkw/TMyv7pK0vP0AZFNwhyY3
-jgW3mXN4F+dhqDonVpUs9c4YbawWJUZCSqbUKPYCP8ag21QHlmJv3h5nKfjx67wC
-zLjpYYyjrUBbD1+RWrYKfpKf1O1tzANbIZ4h0LUIXW3Ts1MJybT6/KdIrC4MGQRO
-1Jc1v73J6zXp4bPfEliiFxtLzJCCeprvayWE7WyTsYveiGENPWv377UR4Bn7OG4R
-hwWoZEUMFkL/r4RXdDhmvjCGdacJLSBmyBAwKo3X+z5ax9EBswMwfECCQ+3akcZG
-/oyFp+5G0ZakS7VNG2AAdWZ0JRGI2zWhz3CU5/GGoamCXmunoGHWMxPHowjbtHWm
-0zf2mZQQr5hbubGT+kW8kjJRLXQbROZlFN2AMA0JzWXzZaxGSxPU/aNmo4TNy7Ze
-/yqv0T5WWn1jn0u8oqiwHJgwUGqbfdj6xn5xFYZoPQ8xieU+UITHMPqAJeTLRHhN
-LYdB2BCZollwM85kD037MAqEpa5RSHfI8+xUTrwMRAJw/oyti+5gSVO+ctjYL+pT
-Y1Q7yCirl169eY+v1SE2kDu7rTc1c736rS3bhPkCgiUjZt51S8lIpkQHKbGcSJbi
-joqyOpB3B0S4O22UmAeuy73FxljgbWjMa0jeeLRaILtZOZgjZQc=
-=DIOf
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+>>
+>> config OMAP_DM_TIMER
+>> 	bool "Use dual-mode timer" if COMPILE_TEST
+>> 	help
+>> 	 Select this option if you want to use Dual-Mode timers.
+>>
+>> Here you will have to make sure the driver compiles on x86.
+> 
+> Okay. I will check that in my next version.
+> 
+> Thanks for reviewing!
+> 
+>>
+>>>  config DW_APB_TIMER
+>>>  	bool "DW APB timer driver" if COMPILE_TEST
+>>>  	help
+>>> diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
+>>> index 72711f1..b077076 100644
+>>> --- a/drivers/clocksource/Makefile
+>>> +++ b/drivers/clocksource/Makefile
+>>> @@ -16,6 +16,7 @@ obj-$(CONFIG_EM_TIMER_STI)	+= em_sti.o
+>>>  obj-$(CONFIG_CLKBLD_I8253)	+= i8253.o
+>>>  obj-$(CONFIG_CLKSRC_MMIO)	+= mmio.o
+>>>  obj-$(CONFIG_DIGICOLOR_TIMER)	+= timer-digicolor.o
+>>> +obj-$(CONFIG_OMAP_DM_TIMER)	+= dmtimer.o
+>>>  obj-$(CONFIG_DW_APB_TIMER)	+= dw_apb_timer.o
+>>>  obj-$(CONFIG_DW_APB_TIMER_OF)	+= dw_apb_timer_of.o
+>>>  obj-$(CONFIG_FTTMR010_TIMER)	+= timer-fttmr010.o
+>>> diff --git a/arch/arm/plat-omap/dmtimer.c b/drivers/clocksource/dmtimer.c
+>>> similarity index 100%
+>>> rename from arch/arm/plat-omap/dmtimer.c
+>>> rename to drivers/clocksource/dmtimer.c
+>>>
+>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
