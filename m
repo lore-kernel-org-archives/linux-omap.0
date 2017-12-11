@@ -1,79 +1,56 @@
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-Subject: RE: [PATCH v2] usb: host: Implement workaround for Erratum A-009611
-Date: Mon, 11 Dec 2017 10:51:45 +0200
-Message-ID: <87mv2pprz2.fsf@linux.intel.com>
-References: <20171208094942.46748-1-yinbo.zhu@nxp.com> <20171208094942.46748-2-yinbo.zhu@nxp.com> <20171208102111.GA16245@kroah.com> <87vahhpkhw.fsf@linux.intel.com> <VI1PR04MB126210EBD8A147D02D3DD526E9370@VI1PR04MB1262.eurprd04.prod.outlook.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [GIT PULL] omap-gpmc changes for v4.16 merge (immutable for mtd)
+Date: Mon, 11 Dec 2017 16:16:27 +0200
+Message-ID: <b55511ad-6d23-0356-f2d3-8e2b7c6d1ffb@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <VI1PR04MB126210EBD8A147D02D3DD526E9370@VI1PR04MB1262.eurprd04.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinbo Zhu <yinbo.zhu@nxp.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mathias Nyman <mathias.nyman@intel.com>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-usb@vger.kernel.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Xiaobo Xie <xiaobo.xie@nxp.com>, Jerry Huang <jerry.huang@nxp.com>, Ran Wang <ran.wang_1@nxp.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Language: en-GB
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: arm@kernel.org
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Ladislav Michl <ladis@linux-mips.org>, Tony Lindgren <tony@atomide.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi Arnd/Olof,
 
+The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
 
-Hi,
+  Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
 
-(please break your lines at 80-characters)
+are available in the git repository at:
 
-Yinbo Zhu <yinbo.zhu@nxp.com> writes:
->>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c index=20
->>> 5cb3f6795b0b..071e7cea8cbb 100644
->>> --- a/drivers/usb/dwc3/core.c
->>> +++ b/drivers/usb/dwc3/core.c
->>> @@ -1106,6 +1106,9 @@ static void dwc3_get_properties(struct dwc3=20
->>> *dwc)
->>>=20=20
->>>  	dwc->quirk_reverse_in_out =3D device_property_read_bool(dev,
->>>  				"snps,quirk_reverse_in_out");
->
->>This was generated on vendor tree. This quirk doesn't exist in dwc3. Also,
->  >update your tree and review MAINTAINERS file. It has been almost 2 year=
-s since I left TI :-)
->
->>--
->>Balbi
->
-> Hi Balbi,
->
-> The quirk that I had add it in dwc3. Your meaning is that I can't use
-> quirk to enable or disable the erratum, isn't it? The tree is
-> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git, I had
-> updated it.
+  https://github.com/rogerq/linux.git tags/gpmc-omap-for-v4.16-immutable
 
-=2D*- mode: grep; default-directory: "~/workspace/linux/" -*-
-Grep started at Mon Dec 11 10:50:47
+for you to fetch changes up to c18a7ac3398d0cef29749f9568666db8321aa4c9:
 
-git --no-pager grep --color -nH -e quirk_reverse_in_out
+  memory: omap-gpmc: Make 'bank-width' property optional (2017-12-01 15:37:49 +0200)
 
-Grep finished with no matches found at Mon Dec 11 10:50:48
+----------------------------------------------------------------
+OMAP-GPMC: driver updates for v4.16
+* Error out only if both 'bank-width' and 'gpmc,device-width' DT properties are missing.
 
-=2D-=20
-balbi
+----------------------------------------------------------------
+Ladislav Michl (1):
+      memory: omap-gpmc: Make 'bank-width' property optional
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+ drivers/memory/omap-gpmc.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
------BEGIN PGP SIGNATURE-----
+-- 
+cheers,
+-roger
 
-iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlouRyMACgkQzL64meEa
-mQaVOhAAgIGzVWIphsW774HpIjcsrRQWm+dLKJUP/7EwOO4ZJbyVSH2cdGRHnJBw
-ndx6v4ckgLYNE69sam2Pegicc+28qa7NoVWoztK+zystHv2McgVSojjwbAlUGIbb
-7GAJQ1L62v0pxt5GsxmyTl68h2j3K1I4ynFP75jGjBp8UkgUSW5kwKEUavQIRFzC
-JvybuhrK6T6GF35qcOBLjR+Jx7/MGnwEZ/6WDyM3HkW9EgfVMqqcFcpaLqFUd+KW
-bH9s/6wP2E5hmtFXZ8CIq+opkFFDhf8mMoh1IDd1NzUltTy9JDyAaDg7rQ2cbbMx
-7A4Z9CWumm1gRM1DBKGzRJuxsvDVi0VejKx9Dmqy0NuB8+1rZ/BVAe+Vot2LY56J
-Mj+L1tAVLdUkZHSvAuAjzVwEe4lqFimD/qJk8gNI9FX1lAt817ya0xUDhShNnXeN
-JR5XiYYx/oauKq8Kw69pipDcALz8kk67mpgGcRMWpWIJ92nW43P0YS+Fhl3RGmay
-RAkNM7Q+ajYaNuooBdQFSz2yXCkpNynHUhsISjSJWPCYU5CL4ZbxuGecH4Ew6pbb
-ILRo3qUtlXKQeVuaJaw1V9U43qUaJLc/HZyqH0tgFbd2rwpIhZZvJM1XOypnIMJg
-hN9k1LMFyDjPkSsjiC2rEdhHZ4FMksxEqd9YXhSDD2r8CD3whGw=
-=qcvN
------END PGP SIGNATURE-----
---=-=-=--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
