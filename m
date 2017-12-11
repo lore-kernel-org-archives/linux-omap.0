@@ -1,40 +1,57 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] two dts compiler warning fixes for v4.15-rc cycle
-Date: Sat, 9 Dec 2017 20:22:12 -0800
-Message-ID: <20171210042212.7mq7cyvund5fnxlq@localhost>
-References: <pull-1512681573-431149@atomide.com>
+From: Yinbo Zhu <yinbo.zhu-3arQi8VN3Tc@public.gmane.org>
+Subject: RE: [PATCH v2] usb: host: Implement workaround for Erratum A-007463
+Date: Mon, 11 Dec 2017 02:26:02 +0000
+Message-ID: <VI1PR04MB1262B663F3B631E10E12D283E9370@VI1PR04MB1262.eurprd04.prod.outlook.com>
+References: <20171208094942.46748-1-yinbo.zhu@nxp.com>
+ <20171208101739.GA15897@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1512681573-431149@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171208101739.GA15897-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Xiaobo Xie <xiaobo.xie-3arQi8VN3Tc@public.gmane.org>, Jerry Huang <jerry.huang-3arQi8VN3Tc@public.gmane.org>, Ran Wang <ran.wang_1-3arQi8VN3Tc@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 07, 2017 at 01:19:59PM -0800, Tony Lindgren wrote:
-> From: "Tony Lindgren" <tony@atomide.com>
-> 
-> The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
-> 
->   Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
-> 
-> are available in the Git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.15/fixes-dt-warnings
 
 
-Merged, thanks.
+-----Original Message-----
+From: Greg Kroah-Hartman [mailto:gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org]=20
+Sent: Friday, December 08, 2017 6:18 PM
+To: Yinbo Zhu <yinbo.zhu-3arQi8VN3Tc@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>; Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; o=
+pen list:DESIGNWARE USB3 DRD IP DRIVER <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>; open li=
+st:DESIGNWARE USB3 DRD IP DRIVER <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>; open list <l=
+inux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>; Xiaobo Xie <xiaobo.xie-3arQi8VN3Tc@public.gmane.org>; Jerry Huang =
+<jerry.huang-3arQi8VN3Tc@public.gmane.org>; Ran Wang <ran.wang_1-3arQi8VN3Tc@public.gmane.org>
+Subject: Re: [PATCH v2] usb: host: Implement workaround for Erratum A-00746=
+3
 
+On Fri, Dec 08, 2017 at 05:49:40PM +0800, yinbo.zhu-3arQi8VN3Tc@public.gmane.org wrote:
+> From: "yinbo.zhu" <yinbo.zhu-3arQi8VN3Tc@public.gmane.org>
 
--Olof
+>I need a "real name" here, I doubt you sign documents as:
+>	"yinbo.zhu"
+>right?  :)
+
+>Also, you sent 3 patches, yet no way to know what order to apply them in. =
+ Please fix that up by sending a >patch series, properly numbered.
+
+>thanks,
+
+>greg k-h
+
+Hi Greg Kroah-Hartman,
+
+"Yinbo.zhu" is my email address prefix,and it is automatically generated th=
+rough the git command.
+You can follow the order of patch A-007463 A-009611 A-009668 to apply it.
+
+Thanks
+Yinbo.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
