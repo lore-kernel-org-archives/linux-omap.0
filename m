@@ -1,56 +1,59 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [GIT PULL] omap-gpmc changes for v4.16 merge (immutable for mtd)
-Date: Mon, 11 Dec 2017 16:16:27 +0200
-Message-ID: <b55511ad-6d23-0356-f2d3-8e2b7c6d1ffb@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v3 4/4] DTS: Pandora: fix panel compatibility string
+Date: Mon, 11 Dec 2017 07:16:03 -0800
+Message-ID: <20171211151603.GG24344@atomide.com>
+References: <b6001c7b7fb98e7a3ad4c712084fea9dae9e6b27.1511884135.git.hns@goldelico.com>
+ <20171128160437.GD28152@atomide.com>
+ <ADAFBBA4-6AC4-4EC4-AB0E-98B59718E12E@goldelico.com>
+ <20171128161834.GE28152@atomide.com>
+ <4EE1E298-6461-48FF-977C-958DD16AD83A@goldelico.com>
+ <20171130152430.GM28152@atomide.com>
+ <20171130220633.imkfyeiqtftnw4j4@earth>
+ <6ca5f2ea-e725-9a9e-ac02-e16beca4a1a0@ti.com>
+ <0324FA0E-F06A-41F1-84AD-5BC72F6B6BFF@goldelico.com>
+ <a27001ba-5ffd-365d-93e3-06fd1a2e01c2@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-Language: en-GB
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Ladislav Michl <ladis@linux-mips.org>, Tony Lindgren <tony@atomide.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <a27001ba-5ffd-365d-93e3-06fd1a2e01c2-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
+Cc: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>, Sean Paul <seanpaul-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, DTML <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Discussions
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd/Olof,
+* Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org> [171201 02:03]:
+> On 01/12/17 11:48, H. Nikolaus Schaller wrote:
+> 
+> > Just a note: there is no toppoly->tpo change for *this* panel and
+> > Pandora board. Just omapdss removal.
+> > 
+> > The GTA04 needs a toppoly->tpo change but no omapdss, removal.
+> > 
+> > So they solve different problems and are independent of each other.
+> > 
+> > GTA04: change vendor string
+> > Pandora: remove omapdss, prefix
+> 
+> Oh, right, I totally missed that. I thought they were changes to the
+> same file...
+> 
+> In that case, Tony, can you pick this one as a fix? I'll pick the
+> toppoly->tpo patch and merge via drm tree, if you give the ack.
+> 
+> For this:
+> 
+> Acked-by: Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>
 
-The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
+Sorry I've lost track of this thread and what if anything is really
+needed as a fix for v4.16. And now there's newer version of the two
+dts patches in thread "[PATCH v4 0/2] Fixes for omapdrm on
+OpenPandora and GTA04" so let's move the discussion there.
 
-  Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
+Regards,
 
-are available in the git repository at:
-
-  https://github.com/rogerq/linux.git tags/gpmc-omap-for-v4.16-immutable
-
-for you to fetch changes up to c18a7ac3398d0cef29749f9568666db8321aa4c9:
-
-  memory: omap-gpmc: Make 'bank-width' property optional (2017-12-01 15:37:49 +0200)
-
-----------------------------------------------------------------
-OMAP-GPMC: driver updates for v4.16
-* Error out only if both 'bank-width' and 'gpmc,device-width' DT properties are missing.
-
-----------------------------------------------------------------
-Ladislav Michl (1):
-      memory: omap-gpmc: Make 'bank-width' property optional
-
- drivers/memory/omap-gpmc.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
--- 
-cheers,
--roger
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
