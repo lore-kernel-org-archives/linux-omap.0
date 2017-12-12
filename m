@@ -1,85 +1,279 @@
-From: Yinbo Zhu <yinbo.zhu@nxp.com>
-Subject: RE: [PATCH v2] usb: host: Implement workaround for Erratum A-009611
-Date: Tue, 12 Dec 2017 07:09:09 +0000
-Message-ID: <AM3PR04MB1251BBEE0FF48CA0433F91B6E9340@AM3PR04MB1251.eurprd04.prod.outlook.com>
-References: <20171208094942.46748-1-yinbo.zhu@nxp.com>
- <20171208094942.46748-2-yinbo.zhu@nxp.com> <20171208102111.GA16245@kroah.com>
- <87vahhpkhw.fsf@linux.intel.com>
- <VI1PR04MB126210EBD8A147D02D3DD526E9370@VI1PR04MB1262.eurprd04.prod.outlook.com>
- <87mv2pprz2.fsf@linux.intel.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v5 1/8] clocksource: dmtimer: Remove all the exports
+Date: Tue, 12 Dec 2017 08:16:24 +0100
+Message-ID: <20171212071624.GA3453@lenoch>
+References: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
+ <1513059137-21593-2-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87mv2pprz2.fsf@linux.intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mathias Nyman <mathias.nyman@intel.com>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-usb@vger.kernel.org>, "open list:DESIGNWARE USB3 DRD IP DRIVER" <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Xiaobo Xie <xiaobo.xie@nxp.com>, Jerry Huang <jerry.huang@nxp.com>, Ran Wang <ran.wang_1@nxp.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1513059137-21593-2-git-send-email-j-keerthy@ti.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
+Keerthy,
 
+On Tue, Dec 12, 2017 at 11:42:10AM +0530, Keerthy wrote:
+> Remove all the unwanted exports from the driver
 
------Original Message-----
-From: Felipe Balbi [mailto:felipe.balbi@linux.intel.com]=20
-Sent: Monday, December 11, 2017 4:52 PM
-To: Yinbo Zhu <yinbo.zhu@nxp.com>; Greg Kroah-Hartman <gregkh@linuxfoundati=
-on.org>
-Cc: Mathias Nyman <mathias.nyman@intel.com>; open list:DESIGNWARE USB3 DRD =
-IP DRIVER <linux-usb@vger.kernel.org>; open list:DESIGNWARE USB3 DRD IP DRI=
-VER <linux-omap@vger.kernel.org>; open list <linux-kernel@vger.kernel.org>;=
- Xiaobo Xie <xiaobo.xie@nxp.com>; Jerry Huang <jerry.huang@nxp.com>; Ran Wa=
-ng <ran.wang_1@nxp.com>
-Subject: RE: [PATCH v2] usb: host: Implement workaround for Erratum A-00961=
-1
+I'm adding event capture capability to the pwm-omap driver and so far used
+v4.15-rc3 as codebase.
 
+Intended use is an IR receiver; for that I need to measure pulses width and
+spaces between pulses. So DM timer was setup to generate interupt after
+both TCAR1 and TCAR2 are filled, values are passed to IR decoder and
+TCAR_IT_FLAG is cleared.
 
->>Hi,
+Of course, this is just proof of concept and needs to be polished and
+generalized, but to make it at least work I need functions you just
+unexported (plus some new).
 
->>(please break your lines at 80-characters)
+Question is whenever we need this level of indirection (omap_dm_timer_ops)
+or plain exports are enough.
 
->>Yinbo Zhu <yinbo.zhu@nxp.com> writes:
-I had check it. Every line is less than 80-characters.
->>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c index=20
->>> 5cb3f6795b0b..071e7cea8cbb 100644
->>> --- a/drivers/usb/dwc3/core.c
->>> +++ b/drivers/usb/dwc3/core.c
->>> @@ -1106,6 +1106,9 @@ static void dwc3_get_properties(struct dwc3
->>> *dwc)
->>> =20
->>>  	dwc->quirk_reverse_in_out =3D device_property_read_bool(dev,
->>>  				"snps,quirk_reverse_in_out");
->
->>This was generated on vendor tree. This quirk doesn't exist in dwc3.=20
->>Also,
->  >update your tree and review MAINTAINERS file. It has been almost 2=20
-> years since I left TI :-)
->
->>--
->>Balbi
->
-> Hi Balbi,
->
-> The quirk that I had add it in dwc3. Your meaning is that I can't use=20
-> quirk to enable or disable the erratum, isn't it? The tree is=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git, I had=20
-> updated it.
+Thank you,
+	ladis
 
->-*- mode: grep; default-directory: "~/workspace/linux/" -*- Grep started a=
-t Mon Dec 11 10:50:47
-
->git --no-pager grep --color -nH -e quirk_reverse_in_out
-
->Grep finished with no matches found at Mon Dec 11 10:50:48
-
->--
->balbi
-Hi Balbi,
-
-You can't find the quirk that it is normal. There's no one in the previous =
-code.
- The quirk that I added to control the new erratum=20
-Please you note.
-
-Thanks.
-Yinbo.
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+> ---
+> Changes in v3:
+> 
+>   * Added Sebastian's Reviewed-by.
+> 
+> Changes in v2:
+> 
+>   * No code changes in this v2 version. Only enhanced patch
+>     statistics for renames.
+> 
+>  arch/arm/plat-omap/dmtimer.c | 27 ---------------------------
+>  1 file changed, 27 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> index d443e48..72565fc 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -302,7 +302,6 @@ struct omap_dm_timer *omap_dm_timer_request(void)
+>  {
+>  	return _omap_dm_timer_request(REQUEST_ANY, NULL);
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_request);
+>  
+>  struct omap_dm_timer *omap_dm_timer_request_specific(int id)
+>  {
+> @@ -315,7 +314,6 @@ struct omap_dm_timer *omap_dm_timer_request_specific(int id)
+>  
+>  	return _omap_dm_timer_request(REQUEST_BY_ID, &id);
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_request_specific);
+>  
+>  /**
+>   * omap_dm_timer_request_by_cap - Request a timer by capability
+> @@ -330,7 +328,6 @@ struct omap_dm_timer *omap_dm_timer_request_by_cap(u32 cap)
+>  {
+>  	return _omap_dm_timer_request(REQUEST_BY_CAP, &cap);
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_request_by_cap);
+>  
+>  /**
+>   * omap_dm_timer_request_by_node - Request a timer by device-tree node
+> @@ -346,7 +343,6 @@ struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np)
+>  
+>  	return _omap_dm_timer_request(REQUEST_BY_NODE, np);
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_request_by_node);
+>  
+>  int omap_dm_timer_free(struct omap_dm_timer *timer)
+>  {
+> @@ -359,7 +355,6 @@ int omap_dm_timer_free(struct omap_dm_timer *timer)
+>  	timer->reserved = 0;
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_free);
+>  
+>  void omap_dm_timer_enable(struct omap_dm_timer *timer)
+>  {
+> @@ -379,13 +374,11 @@ void omap_dm_timer_enable(struct omap_dm_timer *timer)
+>  		}
+>  	}
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
+>  
+>  void omap_dm_timer_disable(struct omap_dm_timer *timer)
+>  {
+>  	pm_runtime_put_sync(&timer->pdev->dev);
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_disable);
+>  
+>  int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
+>  {
+> @@ -393,7 +386,6 @@ int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
+>  		return timer->irq;
+>  	return -EINVAL;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_get_irq);
+>  
+>  #if defined(CONFIG_ARCH_OMAP1)
+>  #include <mach/hardware.h>
+> @@ -429,7 +421,6 @@ __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
+>  
+>  	return inputmask;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_modify_idlect_mask);
+>  
+>  #else
+>  
+> @@ -439,7 +430,6 @@ struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
+>  		return timer->fclk;
+>  	return NULL;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_get_fclk);
+>  
+>  __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
+>  {
+> @@ -447,7 +437,6 @@ __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
+>  
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_modify_idlect_mask);
+>  
+>  #endif
+>  
+> @@ -461,7 +450,6 @@ int omap_dm_timer_trigger(struct omap_dm_timer *timer)
+>  	omap_dm_timer_write_reg(timer, OMAP_TIMER_TRIGGER_REG, 0);
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_trigger);
+>  
+>  int omap_dm_timer_start(struct omap_dm_timer *timer)
+>  {
+> @@ -482,7 +470,6 @@ int omap_dm_timer_start(struct omap_dm_timer *timer)
+>  	timer->context.tclr = l;
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_start);
+>  
+>  int omap_dm_timer_stop(struct omap_dm_timer *timer)
+>  {
+> @@ -506,7 +493,6 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
+>  	omap_dm_timer_disable(timer);
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
+>  
+>  int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+>  {
+> @@ -569,7 +555,6 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+>  
+>  	return ret;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_set_source);
+>  
+>  int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
+>  			    unsigned int load)
+> @@ -595,7 +580,6 @@ int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
+>  	omap_dm_timer_disable(timer);
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_set_load);
+>  
+>  /* Optimized set_load which removes costly spin wait in timer_start */
+>  int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
+> @@ -625,7 +609,6 @@ int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
+>  	timer->context.tcrr = load;
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_set_load_start);
+>  
+>  int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
+>  			     unsigned int match)
+> @@ -650,7 +633,6 @@ int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
+>  	omap_dm_timer_disable(timer);
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_set_match);
+>  
+>  int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
+>  			   int toggle, int trigger)
+> @@ -676,7 +658,6 @@ int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
+>  	omap_dm_timer_disable(timer);
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_set_pwm);
+>  
+>  int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
+>  {
+> @@ -699,7 +680,6 @@ int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
+>  	omap_dm_timer_disable(timer);
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_set_prescaler);
+>  
+>  int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
+>  				  unsigned int value)
+> @@ -716,7 +696,6 @@ int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
+>  	omap_dm_timer_disable(timer);
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_set_int_enable);
+>  
+>  /**
+>   * omap_dm_timer_set_int_disable - disable timer interrupts
+> @@ -747,7 +726,6 @@ int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask)
+>  	omap_dm_timer_disable(timer);
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_set_int_disable);
+>  
+>  unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
+>  {
+> @@ -762,7 +740,6 @@ unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
+>  
+>  	return l;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_read_status);
+>  
+>  int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
+>  {
+> @@ -773,7 +750,6 @@ int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
+>  
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_write_status);
+>  
+>  unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
+>  {
+> @@ -784,7 +760,6 @@ unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
+>  
+>  	return __omap_dm_timer_read_counter(timer, timer->posted);
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_read_counter);
+>  
+>  int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value)
+>  {
+> @@ -799,7 +774,6 @@ int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value)
+>  	timer->context.tcrr = value;
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timer_write_counter);
+>  
+>  int omap_dm_timers_active(void)
+>  {
+> @@ -816,7 +790,6 @@ int omap_dm_timers_active(void)
+>  	}
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(omap_dm_timers_active);
+>  
+>  static const struct of_device_id omap_timer_match[];
+>  
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
