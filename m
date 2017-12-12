@@ -1,119 +1,82 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v5 7/8] pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
-Date: Tue, 12 Dec 2017 11:42:16 +0530
-Message-ID: <1513059137-21593-8-git-send-email-j-keerthy@ti.com>
-References: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v5 0/8] omap: dmtimer: Move driver out of plat-omap
+Date: Tue, 12 Dec 2017 11:42:09 +0530
+Message-ID: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com, linux@armlinux.org.uk
+Cc: linux-pwm@vger.kernel.org, grygorii.strashko@ti.com, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux@armlinux.org.uk, t-kristo@ti.com, robh+dt@kernel.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
+The series moves dmtimer out of plat-omap to drivers/clocksource.
+The series also does a bunch of changes to pwm-omap-dmtimer code
+to adapt to the driver migration and clean up plat specific
+pdata-quirks and use the dmtimer platform data.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+Boot tested on DRA7-EVM and AM437X-GP-EVM.
+Compile tested omap1_defconfig.
 
-Changes in v4:
+This is based on top of linux-next branch.
 
-  * Switched to dev_get_platdata.
+Changes from v4:
 
-Changes in v3:
+  * Made OMAP_DM_TIMER config option silent.
+  * Changed the driver name to timer-dm.c
 
-  * Used of_find_platdata_by_node function to fetch platform
-    data for timer node.
+Changes from v3:
 
- drivers/pwm/pwm-omap-dmtimer.c | 39 ++++++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+  * Reverted to v2 approach of using dev_get_platdata to fetch dmtimer ops.
 
-diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-index 5ad42f3..3b27aff 100644
---- a/drivers/pwm/pwm-omap-dmtimer.c
-+++ b/drivers/pwm/pwm-omap-dmtimer.c
-@@ -23,6 +23,7 @@
- #include <linux/mutex.h>
- #include <linux/of.h>
- #include <linux/of_platform.h>
-+#include <linux/platform_data/dmtimer-omap.h>
- #include <linux/platform_data/pwm_omap_dmtimer.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-@@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
- 	struct pwm_chip chip;
- 	struct mutex mutex;
- 	pwm_omap_dmtimer *dm_timer;
--	struct pwm_omap_dmtimer_pdata *pdata;
-+	struct omap_dm_timer_ops *pdata;
- 	struct platform_device *dm_timer_pdev;
- };
- 
-@@ -242,19 +243,33 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
- 	struct device_node *timer;
-+	struct platform_device *timer_pdev;
- 	struct pwm_omap_dmtimer_chip *omap;
--	struct pwm_omap_dmtimer_pdata *pdata;
-+	struct dmtimer_platform_data *timer_pdata;
-+	struct omap_dm_timer_ops *pdata;
- 	pwm_omap_dmtimer *dm_timer;
- 	u32 v;
- 	int status;
- 
--	pdata = dev_get_platdata(&pdev->dev);
--	if (!pdata) {
--		dev_err(&pdev->dev, "Missing dmtimer platform data\n");
-+	timer = of_parse_phandle(np, "ti,timers", 0);
-+	if (!timer)
-+		return -ENODEV;
-+
-+	timer_pdev = of_find_device_by_node(timer);
-+	if (!timer_pdev) {
-+		dev_err(&pdev->dev, "Unable to find Timer pdev\n");
-+		return -ENODEV;
-+	}
-+
-+	timer_pdata = dev_get_platdata(&timer_pdev->dev);
-+	if (!timer_pdata) {
-+		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
- 		return -EINVAL;
- 	}
- 
--	if (!pdata->request_by_node ||
-+	pdata = timer_pdata->timer_ops;
-+
-+	if (!pdata || !pdata->request_by_node ||
- 	    !pdata->free ||
- 	    !pdata->enable ||
- 	    !pdata->disable ||
-@@ -270,10 +285,6 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	timer = of_parse_phandle(np, "ti,timers", 0);
--	if (!timer)
--		return -ENODEV;
--
- 	if (!of_get_property(timer, "ti,timer-pwm", NULL)) {
- 		dev_err(&pdev->dev, "Missing ti,timer-pwm capability\n");
- 		return -ENODEV;
-@@ -291,13 +302,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- 
- 	omap->pdata = pdata;
- 	omap->dm_timer = dm_timer;
--
--	omap->dm_timer_pdev = of_find_device_by_node(timer);
--	if (!omap->dm_timer_pdev) {
--		dev_err(&pdev->dev, "Unable to find timer pdev\n");
--		omap->pdata->free(dm_timer);
--		return -EINVAL;
--	}
-+	omap->dm_timer_pdev = timer_pdev;
- 
- 	/*
- 	 * Ensure that the timer is stopped before we allow PWM core to call
+Changes from V2:
+
+  * Wrapped the inline functions in header file under OMAP2PLUS
+  * Added a new of helper function to fetch plat_data from of node.
+
+Keerthy (8):
+  clocksource: dmtimer: Remove all the exports
+  arm: omap: timer: Wrap the inline functions under OMAP2PLUS define
+  arm: omap: Move dmtimer.h out of plat-omap
+  arm: OMAP: Move dmtimer driver out of plat-omap to drivers under
+    clocksource
+  dmtimer: Add timer ops to the platform data structure
+  clocksource: dmtimer: Populate the timer ops to the pdata
+  pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
+  arm: omap: pdata-quirks: Remove unused timer pdata
+
+ arch/arm/mach-omap1/pm.c                           |  2 +-
+ arch/arm/mach-omap1/timer.c                        |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  2 +-
+ arch/arm/mach-omap2/pdata-quirks.c                 | 32 -------------
+ arch/arm/mach-omap2/timer.c                        |  2 +-
+ arch/arm/plat-omap/Kconfig                         |  6 ---
+ arch/arm/plat-omap/Makefile                        |  1 -
+ drivers/clocksource/Kconfig                        |  3 ++
+ drivers/clocksource/Makefile                       |  1 +
+ .../dmtimer.c => drivers/clocksource/timer-dm.c    | 54 +++++++++++-----------
+ drivers/pwm/pwm-omap-dmtimer.c                     | 39 +++++++++-------
+ .../include/plat => include/clocksource}/dmtimer.h |  8 +++-
+ include/linux/platform_data/dmtimer-omap.h         | 38 +++++++++++++++
+ 20 files changed, 108 insertions(+), 96 deletions(-)
+ rename arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-dm.c (95%)
+ rename {arch/arm/plat-omap/include/plat => include/clocksource}/dmtimer.h (97%)
+
 -- 
 1.9.1
