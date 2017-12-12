@@ -1,89 +1,77 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v5 5/8] dmtimer: Add timer ops to the platform data structure
-Date: Tue, 12 Dec 2017 11:42:14 +0530
-Message-ID: <1513059137-21593-6-git-send-email-j-keerthy@ti.com>
-References: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH] ARM: dts: omap3-evm: Fix missing NAND partition
+ information
+Date: Tue, 12 Dec 2017 07:39:30 +0100
+Message-ID: <20171212063930.GA2791@lenoch>
+References: <20171212041213.27436-1-woods.technical@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
+Content-Disposition: inline
+In-Reply-To: <20171212041213.27436-1-woods.technical@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
-Cc: grygorii.strashko@ti.com, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com, linux@armlinux.org.uk
+To: "Derald D. Woods" <woods.technical@gmail.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add timer ops to the platform data structure
+On Mon, Dec 11, 2017 at 10:12:13PM -0600, Derald D. Woods wrote:
+> The partition information was omitted during the conversion to OMAP3430
+> specific data.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
----
+That could be intentional...
 
-Changes in v3:
+> The data added by this commit is consistent with current U-Boot default
+> definitions.
 
-  * Added Sebastian's Reviewed-by.
+What about passing U-Boot partitions information to kernel instead?
 
-Changes in v2:
-
-  * No code changes in this v2 version. Only enhanced patch
-    statistics for renames.
-
- include/linux/platform_data/dmtimer-omap.h | 38 ++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
-
-diff --git a/include/linux/platform_data/dmtimer-omap.h b/include/linux/platform_data/dmtimer-omap.h
-index a19b78d..a3e1794 100644
---- a/include/linux/platform_data/dmtimer-omap.h
-+++ b/include/linux/platform_data/dmtimer-omap.h
-@@ -20,12 +20,50 @@
- #ifndef __PLATFORM_DATA_DMTIMER_OMAP_H__
- #define __PLATFORM_DATA_DMTIMER_OMAP_H__
- 
-+struct omap_dm_timer_ops {
-+	struct omap_dm_timer *(*request_by_node)(struct device_node *np);
-+	struct omap_dm_timer *(*request_specific)(int timer_id);
-+	struct omap_dm_timer *(*request)(void);
-+
-+	int	(*free)(struct omap_dm_timer *timer);
-+
-+	void	(*enable)(struct omap_dm_timer *timer);
-+	void	(*disable)(struct omap_dm_timer *timer);
-+
-+	int	(*get_irq)(struct omap_dm_timer *timer);
-+	int	(*set_int_enable)(struct omap_dm_timer *timer,
-+				  unsigned int value);
-+	int	(*set_int_disable)(struct omap_dm_timer *timer, u32 mask);
-+
-+	struct clk *(*get_fclk)(struct omap_dm_timer *timer);
-+
-+	int	(*start)(struct omap_dm_timer *timer);
-+	int	(*stop)(struct omap_dm_timer *timer);
-+	int	(*set_source)(struct omap_dm_timer *timer, int source);
-+
-+	int	(*set_load)(struct omap_dm_timer *timer, int autoreload,
-+			    unsigned int value);
-+	int	(*set_match)(struct omap_dm_timer *timer, int enable,
-+			     unsigned int match);
-+	int	(*set_pwm)(struct omap_dm_timer *timer, int def_on,
-+			   int toggle, int trigger);
-+	int	(*set_prescaler)(struct omap_dm_timer *timer, int prescaler);
-+
-+	unsigned int (*read_counter)(struct omap_dm_timer *timer);
-+	int	(*write_counter)(struct omap_dm_timer *timer,
-+				 unsigned int value);
-+	unsigned int (*read_status)(struct omap_dm_timer *timer);
-+	int	(*write_status)(struct omap_dm_timer *timer,
-+				unsigned int value);
-+};
-+
- struct dmtimer_platform_data {
- 	/* set_timer_src - Only used for OMAP1 devices */
- 	int (*set_timer_src)(struct platform_device *pdev, int source);
- 	u32 timer_capability;
- 	u32 timer_errata;
- 	int (*get_context_loss_count)(struct device *);
-+	struct omap_dm_timer_ops *timer_ops;
- };
- 
- #endif /* __PLATFORM_DATA_DMTIMER_OMAP_H__ */
--- 
-1.9.1
+> Fixes: 62fe1d337461 ("ARM: dts: omap3-evm: Add OMAP3530 specific device
+> tree processor data")
+> 
+> Signed-off-by: Derald D. Woods <woods.technical@gmail.com>
+> ---
+>  arch/arm/boot/dts/omap3-evm.dts | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+> index 21a3b88aef0c..1220deb47aae 100644
+> --- a/arch/arm/boot/dts/omap3-evm.dts
+> +++ b/arch/arm/boot/dts/omap3-evm.dts
+> @@ -85,5 +85,30 @@
+>  
+>  		#address-cells = <1>;
+>  		#size-cells = <1>;
+> +
+> +		partition@0 {
+> +			label = "spl";
+> +			reg = <0 0x80000>;
+> +		};
+> +		partition@80000 {
+> +			label = "u-boot";
+> +			reg = <0x80000 0x1c0000>;
+> +		};
+> +		partition@240000 {
+> +			label = "dtb";
+> +			reg = <0x240000 0x20000>;
+> +		};
+> +		partition@260000 {
+> +			label = "u-boot-env";
+> +			reg = <0x260000 0x20000>;
+> +		};
+> +		partition@280000 {
+> +			label = "kernel";
+> +			reg = <0x280000 0x600000>;
+> +		};
+> +		partition@880000 {
+> +			label = "rootfs";
+> +			reg = <0x880000 0>;
+> +		};
+>  	};
+>  };
+> -- 
+> 2.15.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
