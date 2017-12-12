@@ -1,42 +1,86 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH] ARM: dts: omap3-evm: Fix missing NAND partition
- information
-Date: Tue, 12 Dec 2017 19:40:52 +0100
-Message-ID: <20171212184052.GA11423@lenoch>
-References: <20171212041213.27436-1-woods.technical@gmail.com>
- <20171212063930.GA2791@lenoch>
- <20171212163125.GA8032@DeraldWoods-PC.wicab.com>
- <20171212165542.GC14441@atomide.com>
- <20171212175054.GA10337@lenoch>
- <20171212180827.GA7404@DeraldWoods-PC.wicab.com>
- <20171212181503.GE14441@atomide.com>
- <20171212182401.GB7404@DeraldWoods-PC.wicab.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171212182401.GB7404@DeraldWoods-PC.wicab.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Derald D. Woods" <woods.technical@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Subject: [PATCH v3 net-next] net: ethernet: ti: cpdma: correct error handling for chan create
+Date: Tue, 12 Dec 2017 23:06:35 +0200
+Message-ID: <1513112795-20045-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: grygorii.strashko@ti.com
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 12, 2017 at 12:24:02PM -0600, Derald D. Woods wrote:
-> On Tue, Dec 12, 2017 at 10:15:03AM -0800, Tony Lindgren wrote:
-> > Well that's good to hear :) My only concern with your patch is what
-> > happens if somebody boots with older u-boot with different partition
-> > sizes?
-> 
-> I agree. The 'bootargs' mechanisms have seen some recent changes that
-> may be a factor in what I am seeing. I had to include the command line
-> in my config to test some NAND partitioning schemes and UBI. I am
-> learning and Hopefully fixing some things as I go.
+It's not correct to return NULL when that is actually an error and
+function returns errors in any other wrong case. In the same time,
+the cpsw driver and davinci emac doesn't check error case while
+creating channel and it can miss actual error. Also remove WARNs
+replacing them on dev_err msgs.
 
-u-boot/board/isee/igep00x0/igep00x0.c is using only two MTD partitions,
-runtime generated. As OMAP's BootROM tries to read from atmost first
-four sectors before it gives up, size of SPL partiton is runtime
-generated according to NAND sector size. The rest of NAND is UBI managed.
-This of course breaks backward compatibility, but is unlikely to break
-in future. Someone needs to decide :)
+Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+---
+ drivers/net/ethernet/ti/cpsw.c          | 12 +++++++++---
+ drivers/net/ethernet/ti/davinci_cpdma.c |  2 +-
+ drivers/net/ethernet/ti/davinci_emac.c  | 11 +++++++++--
+ 3 files changed, 19 insertions(+), 6 deletions(-)
 
-	ladis
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index a60a378..3c85a08 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -3065,10 +3065,16 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_tx_handler, 0);
++	if (IS_ERR(cpsw->txv[0].ch)) {
++		dev_err(priv->dev, "error initializing tx dma channel\n");
++		ret = PTR_ERR(cpsw->txv[0].ch);
++		goto clean_dma_ret;
++	}
++
+ 	cpsw->rxv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_rx_handler, 1);
+-	if (WARN_ON(!cpsw->rxv[0].ch || !cpsw->txv[0].ch)) {
+-		dev_err(priv->dev, "error initializing dma channels\n");
+-		ret = -ENOMEM;
++	if (IS_ERR(cpsw->rxv[0].ch)) {
++		dev_err(priv->dev, "error initializing rx dma channel\n");
++		ret = PTR_ERR(cpsw->rxv[0].ch);
+ 		goto clean_dma_ret;
+ 	}
+ 
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index e4d6edf..6f9173f 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -893,7 +893,7 @@ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
+ 	chan_num = rx_type ? rx_chan_num(chan_num) : tx_chan_num(chan_num);
+ 
+ 	if (__chan_linear(chan_num) >= ctlr->num_chan)
+-		return NULL;
++		return ERR_PTR(-EINVAL);
+ 
+ 	chan = devm_kzalloc(ctlr->dev, sizeof(*chan), GFP_KERNEL);
+ 	if (!chan)
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index f58c0c6..abceea8 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -1870,10 +1870,17 @@ static int davinci_emac_probe(struct platform_device *pdev)
+ 
+ 	priv->txchan = cpdma_chan_create(priv->dma, EMAC_DEF_TX_CH,
+ 					 emac_tx_handler, 0);
++	if (IS_ERR(priv->txchan)) {
++		dev_err(&pdev->dev, "error initializing tx dma channel\n");
++		rc = PTR_ERR(priv->txchan);
++		goto no_cpdma_chan;
++	}
++
+ 	priv->rxchan = cpdma_chan_create(priv->dma, EMAC_DEF_RX_CH,
+ 					 emac_rx_handler, 1);
+-	if (WARN_ON(!priv->txchan || !priv->rxchan)) {
+-		rc = -ENOMEM;
++	if (IS_ERR(priv->rxchan)) {
++		dev_err(&pdev->dev, "error initializing rx dma channel\n");
++		rc = PTR_ERR(priv->rxchan);
+ 		goto no_cpdma_chan;
+ 	}
+ 
+-- 
+2.7.4
