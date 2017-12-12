@@ -1,110 +1,73 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 net-next] net: ethernet: ti: cpdma: correct error
- handling for chan create
-Date: Tue, 12 Dec 2017 12:16:12 -0600
-Message-ID: <e583a159-e873-6f7b-c21e-b4b1cedfbe00@ti.com>
-References: <1513096517-3905-1-git-send-email-ivan.khoronzhuk@linaro.org>
- <871f9995-3442-d07e-a36a-4353042bb860@ti.com>
- <20171212175012.GA27096@khorivan>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 1/8] clocksource: dmtimer: Remove all the exports
+Date: Tue, 12 Dec 2017 10:21:50 -0800
+Message-ID: <20171212182150.GF14441@atomide.com>
+References: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
+ <1513059137-21593-2-git-send-email-j-keerthy@ti.com>
+ <20171212071624.GA3453@lenoch>
+ <c6a407a8-41c5-f0fd-931c-a58e7e627c82@ti.com>
+ <20171212080134.GA9589@lenoch>
+ <9de9b3dc-09f4-d58b-ba5a-60fcb563c665@ti.com>
+ <20171212081923.GA10084@lenoch>
+ <7c92b0c2-8784-9c14-66b0-a19fe68f08ad@ti.com>
+ <20171212170054.GD14441@atomide.com>
+ <20171212180317.GB10337@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171212175012.GA27096@khorivan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org, davem@davemloft.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171212180317.GB10337@lenoch>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, aaro.koskinen@iki.fi, thierry.reding@gmail.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 12/12/2017 11:50 AM, Ivan Khoronzhuk wrote:
-> On Tue, Dec 12, 2017 at 11:08:51AM -0600, Grygorii Strashko wrote:
->>
->>
->> On 12/12/2017 10:35 AM, Ivan Khoronzhuk wrote:
->>> It's not correct to return NULL when that is actually an error and
->>> function returns errors in any other wrong case. In the same time,
->>> the cpsw driver and davinci emac doesn't check error case while
->>> creating channel and it can miss actual error. Also remove WARNs
->>> duplicated dev_err msgs.
->>>
->>> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
->>> ---
->>>    drivers/net/ethernet/ti/cpsw.c          | 12 +++++++++---
->>>    drivers/net/ethernet/ti/davinci_cpdma.c |  2 +-
->>>    drivers/net/ethernet/ti/davinci_emac.c  |  9 +++++++--
->>>    3 files changed, 17 insertions(+), 6 deletions(-)
->>>
->>> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
->>> index a60a378..3c85a08 100644
->>> --- a/drivers/net/ethernet/ti/cpsw.c
->>> +++ b/drivers/net/ethernet/ti/cpsw.c
->>> @@ -3065,10 +3065,16 @@ static int cpsw_probe(struct platform_device *pdev)
->>>    	}
->>>    
->>>    	cpsw->txv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_tx_handler, 0);
->>> +	if (IS_ERR(cpsw->txv[0].ch)) {
->>> +		dev_err(priv->dev, "error initializing tx dma channel\n");
->>> +		ret = PTR_ERR(cpsw->txv[0].ch);
->>> +		goto clean_dma_ret;
->>> +	}
->>> +
->>>    	cpsw->rxv[0].ch = cpdma_chan_create(cpsw->dma, 0, cpsw_rx_handler, 1);
->>> -	if (WARN_ON(!cpsw->rxv[0].ch || !cpsw->txv[0].ch)) {
->>> -		dev_err(priv->dev, "error initializing dma channels\n");
->>> -		ret = -ENOMEM;
->>> +	if (IS_ERR(cpsw->rxv[0].ch)) {
->>> +		dev_err(priv->dev, "error initializing rx dma channel\n");
->>> +		ret = PTR_ERR(cpsw->rxv[0].ch);
->>>    		goto clean_dma_ret;
->>>    	}
->>>    
->>> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
->>> index e4d6edf..6f9173f 100644
->>> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
->>> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
->>> @@ -893,7 +893,7 @@ struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
->>>    	chan_num = rx_type ? rx_chan_num(chan_num) : tx_chan_num(chan_num);
->>>    
->>>    	if (__chan_linear(chan_num) >= ctlr->num_chan)
->>> -		return NULL;
->>> +		return ERR_PTR(-EINVAL);
->>>    
->>>    	chan = devm_kzalloc(ctlr->dev, sizeof(*chan), GFP_KERNEL);
->>>    	if (!chan)
->>> diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
->>> index f58c0c6..3d4af64 100644
->>> --- a/drivers/net/ethernet/ti/davinci_emac.c
->>> +++ b/drivers/net/ethernet/ti/davinci_emac.c
->>> @@ -1870,10 +1870,15 @@ static int davinci_emac_probe(struct platform_device *pdev)
->>>    
->>>    	priv->txchan = cpdma_chan_create(priv->dma, EMAC_DEF_TX_CH,
->>>    					 emac_tx_handler, 0);
->>> +	if (WARN_ON(IS_ERR(priv->txchan))) {
->>
->> So, logically WARN_ON() should be removed in  davinci_emac.c also. Right?
-> It doesn't have dev_err() duplicate, so not very.
-> But would be better to replace them on dev_err() if no objection.
+* Ladislav Michl <ladis@linux-mips.org> [171212 18:06]:
+> On Tue, Dec 12, 2017 at 09:00:54AM -0800, Tony Lindgren wrote:
+> > Hmm what do you mean? We don't want to export tons of custom functions from
+> > the timers in and then be in trouble when at some point we have a Linux
+> > generic hw timer framework. We already had to deal with these custom
+> > exports earlier with conversion to multiarch and then again with
+> > device tree.
+> >
+> > For now, it's best to pass the timer information to the pwm driver in
+> > platform data. In the long run that will be much easier to deal with than
+> > fixing random drivers tinkering with the timer registers directly.
 > 
+> All that register access would happen only in drivers/clocksource/timer-dm.c?
+> So platform data will hold all function pointers needed for event capture
+> and the pwm driver will do only interface to pwm framework.
 
-right.
+Yes please.
 
+> > Ideally the pwm driver would just do a request_irq from the dmtimer code
+> > where dmtimer code would implement an interrupt controller. That would
+> > be already most fo the Linux generic hardware timer framework right there :)
 > 
->>
->>> +		rc = PTR_ERR(priv->txchan);
->>> +		goto no_cpdma_chan;
->>> +	}
->>> +
->>>    	priv->rxchan = cpdma_chan_create(priv->dma, EMAC_DEF_RX_CH,
->>>    					 emac_rx_handler, 1);
->>> -	if (WARN_ON(!priv->txchan || !priv->rxchan)) {
->>> -		rc = -ENOMEM;
->>> +	if (WARN_ON(IS_ERR(priv->rxchan))) {
->>> +		rc = PTR_ERR(priv->rxchan);
->>>    		goto no_cpdma_chan;
->>>    	}
+> I do not follow. Each general-purpose timer module has its own interrupt line,
+> so claiming that irq directly using request_irq seems enough. Could you
+> explain interrupt controller idea a bit more?
 
--- 
-regards,
--grygorii
+Well let's assume we have drivers/clocksource/timer-dm.c implement
+an irq controller. Then the pwm driver would just do:
+
+pwm9: dmtimer-pwm {
+	compatible = "ti,omap-dmtimer-pwm";
+	#pwm-cells = <3>;
+	ti,timers = <&timer9>;
+	ti,clock-source = <0x00>; /* timer_sys_ck */
+	interrupts-extended = <&timer9 IRQ_TYPE_SOMETHING>;
+};
+
+Then you can do whatever you need to in the pwm driver with
+enable_irq/disable_irq + a handler?
+
+If reading the line status is needed.. Then maybe the GPIO framework
+needs to have hardware timer support instead?
+
+Anyways, just thinking out loud how we could have a Linux generic
+hardware timer framework that drivers like pwm could then use.
+
+Regards,
+
+Tony
