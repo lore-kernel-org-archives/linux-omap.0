@@ -1,16 +1,16 @@
 From: alexander.levin@verizon.com
-Subject: [PATCH AUTOSEL for 4.4 20/59] ARM: dts: ti: fix PCI bus dtc warnings
-Date: Wed, 13 Dec 2017 01:58:30 +0000
-Message-ID: <20171213015817.6950-20-alexander.levin@verizon.com>
-References: <20171213015817.6950-1-alexander.levin@verizon.com>
+Subject: [PATCH AUTOSEL for 3.18 12/40] ARM: dts: ti: fix PCI bus dtc warnings
+Date: Wed, 13 Dec 2017 01:59:14 +0000
+Message-ID: <20171213015905.7059-12-alexander.levin@verizon.com>
+References: <20171213015905.7059-1-alexander.levin@verizon.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20171213015817.6950-1-alexander.levin@verizon.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171213015905.7059-1-alexander.levin@verizon.com>
 Content-Language: en-US
-Content-ID: <2C0AD77BBB25FD41ACC317EB5C03578F@vzwcorp.com>
-Sender: stable-owner@vger.kernel.org
+Content-ID: <5B5D258A358D3440BA431AF4B1B9A97C@vzwcorp.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 Cc: Rob Herring <robh@kernel.org>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, alexander.levin@verizon.com
 List-Id: linux-omap@vger.kernel.org
@@ -25,14 +25,14 @@ eSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NClNpZ25lZC1vZmYtYnk6IFNhc2hhIExldmlu
 IDxhbGV4YW5kZXIubGV2aW5AdmVyaXpvbi5jb20+DQotLS0NCiBhcmNoL2FybS9ib290L2R0cy9k
 cmE3LmR0c2kgfCAyICsrDQogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKQ0KDQpkaWZm
 IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMv
-ZHJhNy5kdHNpDQppbmRleCBjMmEwM2M3NDBlNzkuLjAyYmQ2MzEyZDFkOSAxMDA2NDQNCi0tLSBh
+ZHJhNy5kdHNpDQppbmRleCA4YmEwMmNiMjk1NWYuLjY4MDUzY2UyZmQyMiAxMDA2NDQNCi0tLSBh
 L2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcuZHRzaQ0KKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJh
-Ny5kdHNpDQpAQCAtMjI3LDYgKzIyNyw3IEBADQogCQkJCWRldmljZV90eXBlID0gInBjaSI7DQog
+Ny5kdHNpDQpAQCAtMTE4LDYgKzExOCw3IEBADQogCQkJCWRldmljZV90eXBlID0gInBjaSI7DQog
 CQkJCXJhbmdlcyA9IDwweDgxMDAwMDAwIDAgMCAgICAgICAgICAweDAzMDAwIDAgMHgwMDAxMDAw
 MA0KIAkJCQkJICAweDgyMDAwMDAwIDAgMHgyMDAxMzAwMCAweDEzMDAwIDAgMHhmZmVkMDAwPjsN
 CisJCQkJYnVzLXJhbmdlID0gPDB4MDAgMHhmZj47DQogCQkJCSNpbnRlcnJ1cHQtY2VsbHMgPSA8
 MT47DQogCQkJCW51bS1sYW5lcyA9IDwxPjsNCiAJCQkJdGksaHdtb2RzID0gInBjaWUxIjsNCkBA
-IC0yNjIsNiArMjYzLDcgQEANCiAJCQkJZGV2aWNlX3R5cGUgPSAicGNpIjsNCiAJCQkJcmFuZ2Vz
+IC0xNTMsNiArMTU0LDcgQEANCiAJCQkJZGV2aWNlX3R5cGUgPSAicGNpIjsNCiAJCQkJcmFuZ2Vz
 ID0gPDB4ODEwMDAwMDAgMCAwICAgICAgICAgIDB4MDMwMDAgMCAweDAwMDEwMDAwDQogCQkJCQkg
 IDB4ODIwMDAwMDAgMCAweDMwMDEzMDAwIDB4MTMwMDAgMCAweGZmZWQwMDA+Ow0KKwkJCQlidXMt
 cmFuZ2UgPSA8MHgwMCAweGZmPjsNCiAJCQkJI2ludGVycnVwdC1jZWxscyA9IDwxPjsNCiAJCQkJ
