@@ -1,41 +1,82 @@
-From: alexander.levin@verizon.com
-Subject: [PATCH AUTOSEL for 4.9 034/100] ARM: dts: ti: fix PCI bus dtc
- warnings
-Date: Wed, 13 Dec 2017 01:57:30 +0000
-Message-ID: <20171213015722.6722-9-alexander.levin@verizon.com>
-References: <20171213015722.6722-1-alexander.levin@verizon.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Lithium battery protection was Re: [PATCH v4.14] Add support for
+ bq27521 battery monitor
+Date: Wed, 13 Dec 2017 09:39:46 +0100
+Message-ID: <20171213083946.GA26605@amd>
+References: <20171109210615.GA27638@amd>
+ <20171110103937.GA29900@amd>
+ <20171201230649.GA27533@amd>
+ <cfa89227-e08a-849f-c886-723268ae657c@ti.com>
+ <20171208170610.gbmlsgm7xzh2zpyn@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20171213015722.6722-1-alexander.levin@verizon.com>
-Content-Language: en-US
-Content-ID: <05E28880F149C84E819B2FA3858A1939@vzwcorp.com>
-Sender: stable-owner@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
-Cc: Rob Herring <robh@kernel.org>, =?utf-8?B?QmVub8OudCBDb3Vzc29u?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, alexander.levin@verizon.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="rwEMma7ioTxnRzrJ"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171208170610.gbmlsgm7xzh2zpyn@earth>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, clayton-fehKsxFhGzZIf6P1QZMOBw@public.gmane.org, martijn-28JJ9oSIdodmR6Xm/wNWPw@public.gmane.org, sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, kernel-RYWXG+zxWwBdeoIcmNTgJF6hYfS7NtTn@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-RnJvbTogUm9iIEhlcnJpbmcgPHJvYmhAa2VybmVsLm9yZz4NCg0KWyBVcHN0cmVhbSBjb21taXQg
-N2Q3OWY2MDk4ZDgyZjhjMDk5MTRkNzc5OWJjOTY4OTFhZDljM2JhZiBdDQoNCmR0YyByZWNlbnRs
-eSBhZGRlZCBQQ0kgYnVzIGNoZWNrcy4gRml4IHRoZXNlIHdhcm5pbmdzLg0KDQpTaWduZWQtb2Zm
-LWJ5OiBSb2IgSGVycmluZyA8cm9iaEBrZXJuZWwub3JnPg0KQ2M6ICJCZW5vw650IENvdXNzb24i
-IDxiY291c3NvbkBiYXlsaWJyZS5jb20+DQpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRl
-LmNvbT4NCkNjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KU2lnbmVkLW9mZi1ieTogVG9u
-eSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NClNpZ25lZC1vZmYtYnk6IFNhc2hhIExldmlu
-IDxhbGV4YW5kZXIubGV2aW5AdmVyaXpvbi5jb20+DQotLS0NCiBhcmNoL2FybS9ib290L2R0cy9k
-cmE3LmR0c2kgfCAyICsrDQogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKQ0KDQpkaWZm
-IC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvZHJhNy5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMv
-ZHJhNy5kdHNpDQppbmRleCAwNjRkODRmODdlNDUuLmNlNTRhNzBiNzY5NSAxMDA2NDQNCi0tLSBh
-L2FyY2gvYXJtL2Jvb3QvZHRzL2RyYTcuZHRzaQ0KKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvZHJh
-Ny5kdHNpDQpAQCAtMjgyLDYgKzI4Miw3IEBADQogCQkJCWRldmljZV90eXBlID0gInBjaSI7DQog
-CQkJCXJhbmdlcyA9IDwweDgxMDAwMDAwIDAgMCAgICAgICAgICAweDAzMDAwIDAgMHgwMDAxMDAw
-MA0KIAkJCQkJICAweDgyMDAwMDAwIDAgMHgyMDAxMzAwMCAweDEzMDAwIDAgMHhmZmVkMDAwPjsN
-CisJCQkJYnVzLXJhbmdlID0gPDB4MDAgMHhmZj47DQogCQkJCSNpbnRlcnJ1cHQtY2VsbHMgPSA8
-MT47DQogCQkJCW51bS1sYW5lcyA9IDwxPjsNCiAJCQkJbGludXgscGNpLWRvbWFpbiA9IDwwPjsN
-CkBAIC0zMTgsNiArMzE5LDcgQEANCiAJCQkJZGV2aWNlX3R5cGUgPSAicGNpIjsNCiAJCQkJcmFu
-Z2VzID0gPDB4ODEwMDAwMDAgMCAwICAgICAgICAgIDB4MDMwMDAgMCAweDAwMDEwMDAwDQogCQkJ
-CQkgIDB4ODIwMDAwMDAgMCAweDMwMDEzMDAwIDB4MTMwMDAgMCAweGZmZWQwMDA+Ow0KKwkJCQli
-dXMtcmFuZ2UgPSA8MHgwMCAweGZmPjsNCiAJCQkJI2ludGVycnVwdC1jZWxscyA9IDwxPjsNCiAJ
-CQkJbnVtLWxhbmVzID0gPDE+Ow0KIAkJCQlsaW51eCxwY2ktZG9tYWluID0gPDE+Ow0KLS0gDQoy
-LjExLjANCg==
+
+--rwEMma7ioTxnRzrJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > >> This adds basic support for BQ27521 battery monitor, used in Nokia N9
+> > >> and N950. In particular, battery voltage is important to be able to
+> > >> tell when the battery is almost empty. Emptying battery on N950 is
+> > >> pretty painful, as flasher needs to be used to recover phone in such
+> > >> case.
+> > >=20
+> > > Sebastian, ping? This one should not be too controversial.
+> >
+> > Acked-by: Andrew F. Davis <afd-l0cyMroinI0@public.gmane.org>
+>=20
+> Thanks, queued, I dropped the spurious change in twl.h and added the
+> dt-binding from the previous patch version, that was lost somehow.
+
+Thanks!
+
+> > > If you could also apply the "shut down when battery is low", that
+> > > would be nice.
+>=20
+> I only have one with values specific to N900 hardcoded in the
+> driver. That one can't be applied for obvious reasons.
+
+Well... the values are not really N900-specific. They should work well
+on anything with lithium battery, because they basically depend only
+on battery chemistry.
+
+I guess I can simplify patch to work with battery voltage only --
+that's what hardware battery protection does -- and make shutdown
+voltage configurable ...?
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--rwEMma7ioTxnRzrJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlow51IACgkQMOfwapXb+vI65gCfVHpJZZDo/CT/RcbN9geCaYOp
+ISgAnRm8ZFgsCjIjrJT4sd4hTE78eMCA
+=LGBd
+-----END PGP SIGNATURE-----
+
+--rwEMma7ioTxnRzrJ--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
