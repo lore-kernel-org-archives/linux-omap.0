@@ -1,67 +1,28 @@
-From: Dave Gerlach <d-gerlach@ti.com>
-Subject: [PATCH 0/4] PM / OPP: Introduce ti-opp-supply driver
-Date: Wed, 13 Dec 2017 14:33:54 -0600
-Message-ID: <20171213203358.20839-1-d-gerlach@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v3 net-next] net: ethernet: ti: cpdma: correct error
+ handling for chan create
+Date: Wed, 13 Dec 2017 15:51:23 -0500 (EST)
+Message-ID: <20171213.155123.2302738718764109294.davem@davemloft.net>
+References: <1513112795-20045-1-git-send-email-ivan.khoronzhuk@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>, Rob Herring <robh+dt@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Dave Gerlach <d-gerlach@ti.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1513112795-20045-1-git-send-email-ivan.khoronzhuk@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ivan.khoronzhuk@linaro.org
+Cc: grygorii.strashko@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Some SoCs, such as Texas Instruments DRA7 family, have complex requirements for
-scaling voltages and supplies when doing things like DVFS. For example, for
-cpufreq on dra7xx, the cpu-supply must be scaled as is normally done however
-there is also an Adaptive Body Bias (ABB) regulator that should be scaled at
-the same time as the main supply in sequence depending on the transition,
-explained earlier by Nishanth Menon here [1]. In addition to this, each
-possible operating point has a corresponding optimized voltage value stored in
-a register (Adaptive Voltage Scaling Class 0) that can be used instead of the
-nominal value.
+From: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
+Date: Tue, 12 Dec 2017 23:06:35 +0200
 
-The OPP framework is now able to to handle DVFS transitions through the
-provided dev_pm_opp_set_rate API and cpufreq-dt is doing this. Viresh Kumar
-extended this to allow platforms to register a transition helper through the
-use of dev_pm_opp_register_set_opp_helper and has also extended the OPP core to
-support registering multiple regulators. By providing a TI platform specific
-opp_helper function and registering the proepr regulators with the OPP core we
-can meet the above requirements for properly changing DVFS state of the cpu
-device.
+> It's not correct to return NULL when that is actually an error and
+> function returns errors in any other wrong case. In the same time,
+> the cpsw driver and davinci emac doesn't check error case while
+> creating channel and it can miss actual error. Also remove WARNs
+> replacing them on dev_err msgs.
+> 
+> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@linaro.org>
 
-This series introduces a ti-opp-supply driver that overrides the standard
-single regulator DVFS transition handler to handle scaling the ABB regulator in
-sequence with the normal supply and programing AVS voltages through a custom
-opp_helper that is registered. The ti-cpufreq driver is extended to allow
-registering the proper regulators needed for the CPU if the platform supports
-multi regulators and is also changed to a regular driver so that it can defer
-probe if needed as it now may have to if the regulators are not ready.
-
-This series only contains driver changes and binding docs, DT patches will be
-sent later but I have pushed them all here for anyone curious [2].
-
-This series is required to enable the highest 1.5GHz OPP on dra7/am57 platforms
-that support it but all dra7/am57 platforms will make use of this for all OPPs.
-
-Regards,
-Dave
-
-[1] https://marc.info/?l=linux-pm&m=145684495832764&w=2
-[2] https://github.com/dgerlach/linux-pm/tree/upstream/v4.15/ti-multireg-support
-
-Dave Gerlach (4):
-  cpufreq: ti-cpufreq: Convert to module_platform_driver
-  cpufreq: ti-cpufreq: Add support for multiple regulators
-  dt-bindings: opp: Introduce ti-opp-supply bindings
-  PM / OPP: Add ti-opp-supply driver
-
- .../bindings/opp/ti-omap5-opp-supply.txt           |  63 +++
- drivers/cpufreq/ti-cpufreq.c                       |  51 ++-
- drivers/opp/Makefile                               |   1 +
- drivers/opp/ti-opp-supply.c                        | 428 +++++++++++++++++++++
- 4 files changed, 537 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
- create mode 100644 drivers/opp/ti-opp-supply.c
-
--- 
-2.15.1
+Applied.
