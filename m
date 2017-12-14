@@ -1,14 +1,11 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/3] dts changes for omaps for v4.16 merge window
-Date: Thu, 14 Dec 2017 07:58:27 -0800
-Message-ID: <pull-1513266986-900907@atomide.com-3>
-References: <pull-1513266986-900907@atomide.com>
+Subject: [GIT PULL 1/3] soc changes for omaps for v4.16 merge window
+Date: Thu, 14 Dec 2017 07:58:25 -0800
+Message-ID: <pull-1513266986-900907@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1513266986-900907@atomide.com>
-In-Reply-To: <pull-1513266986-900907@atomide.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,79 +21,50 @@ List-Id: linux-omap@vger.kernel.org
 
 From: "Tony Lindgren" <tony@atomide.com>
 
-The following changes since commit bc686442f8a601bccac1f22506ecdb4b0d62cadd:
+The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
 
-  Merge branch 'dts-fixes' into omap-for-v4.15/fixes-dt (2017-11-28 08:12:32 -0800)
+  Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/dt-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/soc-signed
 
-for you to fetch changes up to a38867305203ef5a27f0c9ff1e943a0c2fabdbce:
+for you to fetch changes up to fdf3632938a646c13f7407f2f8c33ff81eed9c76:
 
-  ARM: dts: Move move WiFi bindings to logicpd-torpedo-37xx-devkit (2017-12-11 09:43:53 -0800)
-
-----------------------------------------------------------------
-Dts related changes for omaps for v4.16 merge window
-
-These changes are mostly improvments for various devices.
-Note that these are based on my earlier fixes branch
-omap-for-v4.15/fixes-dt to avoid a pointless merge conflict
-between a fix and removal. The summary of changes is:
-
-- Fix audio codec reset pin for am335x-pepper and n900, this
-  has been always broken and won't get fixed until the related
-  driver changes are also merged in for v4.16, so not urgent
-
-- Fix tps65917 powerhold property for dra76-evm
-
-- Changes to logicpd boards to remove MTD partition information
-  and to add support for omap35xx variants by setting up common
-  dts files for the logicpd boards
-
-- Disable dra7 USB metastability workaround, this won't do
-  anything until the related driver changes are also merged
-  into v4.16, so not urgent
+  Merge branch '4.15-rc1-clkctrl-mach-omap2' of https://github.com/t-kristo/linux-pm into omap-for-v4.16/soc (2017-12-11 07:46:40 -0800)
 
 ----------------------------------------------------------------
-Adam Ford (6):
-      ARM: dts: omap3: logicpd kits: Remove partition information
-      ARM: dts: Move most of logicpd-som-lv-37xx-devkit.dts to logicpd-som-lv-baseboard.dtsi
-      ARM: dts: Add minimal support for LogicPD OMAP35xx SOM-LV devkit
-      ARM: dts: Move most of logicpd-torpedo-37xx-devkit to logicpd-torpedo-baseboard
-      ARM: dts: Add minimal support for LogicPD OMAP35xx Torpedo devkit
-      ARM: dts: Move move WiFi bindings to logicpd-torpedo-37xx-devkit
+SoC changes for omaps for v4.16 merge window
 
-Andrew F. Davis (2):
-      ARM: dts: am335x-pepper: Fix the audio CODEC's reset pin
-      ARM: dts: omap3-n900: Fix the audio CODEC's reset pin
+For most part this is a series from Tero Kristo to prepare things
+for using clkctrl clocks with DTS data. The other changes are to
+make few data structures const.
 
-Keerthy (1):
-      ARM: dts: DRA76-EVM: Set powerhold property for tps65917
+----------------------------------------------------------------
+Bhumika Goyal (2):
+      ARM: OMAP2+: CM: make some pointers and function arguments as const
+      ARM: OMAP2+: CM: make cm_ll_data structures as const
 
-Peter Ujfalusi (1):
-      ARM: dts: dra7: Add missing hdmi audio DMA channel information
-
-Roger Quadros (1):
-      ARM: dts: dra7: Disable USB metastability workaround for USB2
+Tero Kristo (7):
+      ARM: OMAP2+: CM: add support for getting phys address for a clkctrl register
+      ARM: OMAP4: CMINST: add support for translating clkctrl addresses
+      ARM: OMAP2+: hwmod: fix clkctrl address translation logic
+      ARM: OMAP2+: clockdomain: remove the obsolete clkdm_xlate_address API
+      ARM: AM33xx: CM: add support for getting physical address for a register
+      ARM: OMAP2+: hwmod: calculate physical register address on am33xx
+      ARM: DM816x: hwmod_data: fix clockdomain name for sata hwmod
 
 Tony Lindgren (1):
-      Merge branch 'omap-for-v4.15/fixes-dt' into omap-for-v4.16/dt
+      Merge branch '4.15-rc1-clkctrl-mach-omap2' of https://github.com/t-kristo/linux-pm into omap-for-v4.16/soc
 
- arch/arm/boot/dts/am335x-pepper.dts               |   2 +-
- arch/arm/boot/dts/dra7.dtsi                       |   3 +
- arch/arm/boot/dts/dra76-evm.dts                   |   1 +
- arch/arm/boot/dts/logicpd-som-lv-35xx-devkit.dts  |  17 +
- arch/arm/boot/dts/logicpd-som-lv-37xx-devkit.dts  | 249 +------------
- arch/arm/boot/dts/logicpd-som-lv-baseboard.dtsi   | 256 ++++++++++++++
- arch/arm/boot/dts/logicpd-som-lv.dtsi             |  27 --
- arch/arm/boot/dts/logicpd-torpedo-35xx-devkit.dts |  17 +
- arch/arm/boot/dts/logicpd-torpedo-37xx-devkit.dts | 411 +++-------------------
- arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi  | 395 +++++++++++++++++++++
- arch/arm/boot/dts/logicpd-torpedo-som.dtsi        |  84 -----
- arch/arm/boot/dts/omap3-n900.dts                  |   4 +-
- 12 files changed, 735 insertions(+), 731 deletions(-)
- create mode 100644 arch/arm/boot/dts/logicpd-som-lv-35xx-devkit.dts
- create mode 100644 arch/arm/boot/dts/logicpd-som-lv-baseboard.dtsi
- create mode 100644 arch/arm/boot/dts/logicpd-torpedo-35xx-devkit.dts
- create mode 100644 arch/arm/boot/dts/logicpd-torpedo-baseboard.dtsi
+ arch/arm/mach-omap2/clockdomain.c          |  8 ----
+ arch/arm/mach-omap2/clockdomain.h          |  2 -
+ arch/arm/mach-omap2/cm.h                   |  7 ++-
+ arch/arm/mach-omap2/cm2xxx.c               |  2 +-
+ arch/arm/mach-omap2/cm33xx.c               |  8 +++-
+ arch/arm/mach-omap2/cm3xxx.c               |  2 +-
+ arch/arm/mach-omap2/cm_common.c            | 16 +++++--
+ arch/arm/mach-omap2/cminst44xx.c           | 12 ++---
+ arch/arm/mach-omap2/omap_hwmod.c           | 73 +++++++++++++++---------------
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c |  2 +-
+ 10 files changed, 68 insertions(+), 64 deletions(-)
