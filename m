@@ -1,64 +1,86 @@
-From: Felipe Balbi <felipe.balbi-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: RE: [RFC PATCH balbi-usb] usb: renesas_usbhs: usbhs_rcar3_notifier() can be static
-Date: Thu, 14 Dec 2017 09:58:43 +0200
-Message-ID: <87bmj1n3kc.fsf@linux.intel.com>
-References: <201712140134.kYd2nFKY%fengguang.wu@intel.com> <20171213172052.GA27583@lkp-sb04.lkp.intel.com> <TY1PR06MB0992C0FA51F686B96E81628CD80A0@TY1PR06MB0992.apcprd06.prod.outlook.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 03/12] mmc: sdhci-omap: Add custom set_uhs_signaling sdhci_host ops
+Date: Thu, 14 Dec 2017 18:39:32 +0530
+Message-ID: <20171214130941.26666-4-kishon@ti.com>
+References: <20171214130941.26666-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <TY1PR06MB0992C0FA51F686B96E81628CD80A0-/PRLmSCtZ16WJvbLRFYGcG0DtJ1/0DrXvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "kbuild-all@01.org" <kbuild-all-JC7UmRfGjtg@public.gmane.org>, "linux-usb@vger.kernel.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap@vger.kernel.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20171214130941.26666-1-kishon@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>, Adrian Hunter <adrian.hunter@intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+UHS-1 DDR50 and MMC DDR52 mode require DDR bit to be
+set in the configuration register (MMCHS_CON). Add
+sdhci-omap specific set_uhs_signaling ops to set
+this bit. Also while setting the UHSMS bit, clock should be
+disabled.
 
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/mmc/host/sdhci-omap.c | 26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-Hi,
+diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
+index defe4eac020d..8f7239e2edc2 100644
+--- a/drivers/mmc/host/sdhci-omap.c
++++ b/drivers/mmc/host/sdhci-omap.c
+@@ -31,6 +31,7 @@
+ #define SDHCI_OMAP_CON		0x12c
+ #define CON_DW8			BIT(5)
+ #define CON_DMA_MASTER		BIT(20)
++#define CON_DDR			BIT(19)
+ #define CON_CLKEXTFREE		BIT(16)
+ #define CON_PADEN		BIT(15)
+ #define CON_INIT		BIT(1)
+@@ -93,6 +94,9 @@ struct sdhci_omap_host {
+ 	u8			power_mode;
+ };
+ 
++static void sdhci_omap_start_clock(struct sdhci_omap_host *omap_host);
++static void sdhci_omap_stop_clock(struct sdhci_omap_host *omap_host);
++
+ static inline u32 sdhci_omap_readl(struct sdhci_omap_host *host,
+ 				   unsigned int offset)
+ {
+@@ -471,6 +475,26 @@ static void sdhci_omap_init_74_clocks(struct sdhci_host *host, u8 power_mode)
+ 	enable_irq(host->irq);
+ }
+ 
++static void sdhci_omap_set_uhs_signaling(struct sdhci_host *host,
++					 unsigned int timing)
++{
++	u32 reg;
++	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
++	struct sdhci_omap_host *omap_host = sdhci_pltfm_priv(pltfm_host);
++
++	sdhci_omap_stop_clock(omap_host);
++
++	reg = sdhci_omap_readl(omap_host, SDHCI_OMAP_CON);
++	if (timing == MMC_TIMING_UHS_DDR50 || timing == MMC_TIMING_MMC_DDR52)
++		reg |= CON_DDR;
++	else
++		reg &= ~CON_DDR;
++	sdhci_omap_writel(omap_host, SDHCI_OMAP_CON, reg);
++
++	sdhci_set_uhs_signaling(host, timing);
++	sdhci_omap_start_clock(omap_host);
++}
++
+ static struct sdhci_ops sdhci_omap_ops = {
+ 	.set_clock = sdhci_omap_set_clock,
+ 	.set_power = sdhci_omap_set_power,
+@@ -480,7 +504,7 @@ static struct sdhci_ops sdhci_omap_ops = {
+ 	.set_bus_width = sdhci_omap_set_bus_width,
+ 	.platform_send_init_74_clocks = sdhci_omap_init_74_clocks,
+ 	.reset = sdhci_reset,
+-	.set_uhs_signaling = sdhci_set_uhs_signaling,
++	.set_uhs_signaling = sdhci_omap_set_uhs_signaling,
+ };
+ 
+ static int sdhci_omap_set_capabilities(struct sdhci_omap_host *omap_host)
+-- 
+2.11.0
 
-Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org> writes:
-> Hi,
->
->> From: kbuild test robot, Sent: Thursday, December 14, 2017 2:21 AM
->>=20
->> Fixes: 3a7cce26122e ("usb: renesas_usbhs: add extcon notifier to set mod=
-e for non-otg channel")
->> Signed-off-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> Thank you for the patch!
->
-> Acked-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>
-
-amended to patch which introduced the problem, thanks
-
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAloyLzMACgkQzL64meEa
-mQYuRQ/9FOxY9cQ0yT7sbicku24rf3qyvfhsLO2GFNo9kcQRud7s0/XwWOKjtSG8
-pHnF2U3JdcNzZj3ddbvWB5zybeaLynQjV4eJkY3H/dePwtaCWVO+0j3SPccBI5O3
-mnzCkY3z9pVQxH6kfTFm0ezRJmZJJW8+XHPFW8XpYh+NcH/ANrLIddAyg6q/vt35
-buLoi5WMBE40DlFjV9y/nulI7LJsnJHPSaz7cbBJNmSA2fERbL3X24+Jd30IVOLV
-DdAMz9WcfmF5zudRbuD8ftUy2WZGPBM8udsA2Ochm7I0OfLnIFOMrs5z3y/aU6pV
-VBceYjCG77Ke7qIXA9FDHAna20KrkWGdXHwoR7jBCTqMhVI/W766cG6PvZ0qxoAx
-XliTS2583qf7qqOf4G+Sa4+sBsK5KadCBzIom9y4BkweTaPYSGng+pRkmN6Qrqr1
-uWHX52I9g2lh29EOi9djgJTqlp6NPiXBwCwAZpiEHvY7jQmLCsNdxwDyxtJn7wV5
-yhxcgXkylKej1tr8hhOeY78ETji1Unjrl6PyPL6oHcvSEgR2XH5CuNHDD4gTtlg6
-bLm21bvbZEB7Kwp8ngd0qhRse2BwY1L+BOM0vcpHPhW2M+3r1mBDiGnkDUKSMQgE
-gyOqum3GIoAGUJFoxDliNbKKxsNuTsMHGdEGmi9BseIF/LUEqZ4=
-=R+dV
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
