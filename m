@@ -1,166 +1,238 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/9] dt-bindings: ti-sysc: Update binding for timers and capabilities
-Date: Fri, 15 Dec 2017 10:08:52 -0800
-Message-ID: <20171215180900.3243-2-tony@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 7/9] bus: ti-sysc: Handle module quirks based dts configuration
+Date: Fri, 15 Dec 2017 10:08:58 -0800
+Message-ID: <20171215180900.3243-8-tony@atomide.com>
 References: <20171215180900.3243-1-tony@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171215180900.3243-1-tony@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Dave Gerlach <d-gerlach@ti.com>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Matthijs van Duin <matthijsvanduin@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Sakari Ailus <sakari.ailus@iki.fi>, Suman Anna <s-anna@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171215180900.3243-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The ti-sysc binding does not yet describe the capabilities of the
-interconnect target module. So to make the ti-sysc binding usable
-for configuring the interconnect target module, we need to add few
-more properties:
+Let's configure few module quirks via device tree using the
+properties for "ti,no-idle-on-init", "ti,no-reset-on-init"
+and "ti,sysc-delay-us".
 
-1. To detect between omap2 and omap4 timers, let's add compatibles
-   for them for "ti,sysc-omap2-timer" and,sysc-omap4-timer". This
-   makes it easier to pick up the already initialized system timers
-   later on
+Let's also reorder the probe a bit so we have pdata available
+earlier, and move the PM runtime calls to sysc_init_module()
+from sysc_read_revision().
 
-2. Let's add "ti,sysc-mask" for a mask of features supported by the
-   interconnect target module. This describes what we have available
-   in the various SYSCONFIG registers
-
-3. Let's add "ti,sysc-midle" and "ti,sysc-sidle" lists for the master
-   and slave idle modes supported by the interconnect target module.
-   These describe the values available for MIDLE and SIDLE bits in
-   the SYSCONFIG registers
-
-4. Some interconnect target modules need a short delay after reset
-   before they can be accessed, let's use "ti,sysc-delay-us" for
-   that
-
-5. Let's add "ti,syss-mask" bit to describe the optional SYSSTATUS
-   register bits for reset done bits
-
-6. Let's support the two existing custom quirk properties already
-   listed in Documentation/devicetree/bindings/arm/omap/omap.txt for
-   "ti,no-reset-on-init" and "ti,no-idle-on-init"
-
-7. And finally, let's add a header for the binding for the dts
-   files and the driver to use
-
-Cc: Benoît Cousson <bcousson@baylibre.com>
-Cc: Dave Gerlach <d-gerlach@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Suman Anna <s-anna@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- Documentation/devicetree/bindings/bus/ti-sysc.txt | 36 +++++++++++++++++++++++
- include/dt-bindings/bus/ti-sysc.h                 | 22 ++++++++++++++
- 2 files changed, 58 insertions(+)
- create mode 100644 include/dt-bindings/bus/ti-sysc.h
+ drivers/bus/ti-sysc.c                 | 114 ++++++++++++++++++++++++++++------
+ include/linux/platform_data/ti-sysc.h |   6 ++
+ 2 files changed, 102 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/bus/ti-sysc.txt b/Documentation/devicetree/bindings/bus/ti-sysc.txt
---- a/Documentation/devicetree/bindings/bus/ti-sysc.txt
-+++ b/Documentation/devicetree/bindings/bus/ti-sysc.txt
-@@ -26,6 +26,8 @@ Required standard properties:
- 		or one of the following derivative types for hardware
- 		needing special workarounds:
+diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
+--- a/drivers/bus/ti-sysc.c
++++ b/drivers/bus/ti-sysc.c
+@@ -50,6 +50,8 @@ static const char * const clock_names[] = { "fck", "ick", };
+  * @legacy_mode: configured for legacy mode if set
+  * @cap: interconnect target module capabilities
+  * @cfg: interconnect target module configuration
++ * @name: name if available
++ * @revision: interconnect target module revision
+  */
+ struct sysc {
+ 	struct device *dev;
+@@ -61,12 +63,32 @@ struct sysc {
+ 	const char *legacy_mode;
+ 	const struct sysc_capabilities *cap;
+ 	struct sysc_config cfg;
++	const char *name;
++	u32 revision;
+ };
  
-+		"ti,sysc-omap2-timer"
-+		"ti,sysc-omap4-timer"
- 		"ti,sysc-omap3430-sr"
- 		"ti,sysc-omap3630-sr"
- 		"ti,sysc-omap4-sr"
-@@ -49,6 +51,26 @@ Required standard properties:
++static u32 sysc_read(struct sysc *ddata, int offset)
++{
++	if (ddata->cfg.quirks & SYSC_QUIRK_16BIT) {
++		u32 val;
++
++		val = readw_relaxed(ddata->module_va + offset);
++		val |= (readw_relaxed(ddata->module_va + offset + 4) << 16);
++
++		return val;
++	}
++
++	return readl_relaxed(ddata->module_va + offset);
++}
++
+ static u32 sysc_read_revision(struct sysc *ddata)
+ {
+-	return readl_relaxed(ddata->module_va +
+-			     ddata->offsets[SYSC_REVISION]);
++	int offset = ddata->offsets[SYSC_REVISION];
++
++	if (offset < 0)
++		return 0;
++
++	return sysc_read(ddata, offset);
+ }
  
- Optional properties:
+ static int sysc_get_one_clock(struct sysc *ddata,
+@@ -393,22 +415,12 @@ static int sysc_map_and_check_registers(struct sysc *ddata)
+  */
+ static int sysc_show_rev(char *bufp, struct sysc *ddata)
+ {
+-	int error, len;
++	int len;
  
-+- ti,sysc-mask	shall contain mask of supported register bits for the
-+		SYSCONFIG register as documented in the Technical Reference
-+		Manual (TRM) for the interconnect target module
-+
-+- ti,sysc-midle	list of master idle modes supported by the interconnect
-+		target module as documented in the TRM for SYSCONFIG
-+		register MIDLEMODE bits
-+
-+- ti,sysc-sidle	list of slave idle modes supported by the interconnect
-+		target module as documented in the TRM for SYSCONFIG
-+		register SIDLEMODE bits
-+
-+- ti,sysc-delay-us	delay needed after OCP softreset before accssing
-+			SYSCONFIG register again
-+
-+- ti,syss-mask	optional mask of reset done status bits as described in the
-+		TRM for SYSSTATUS registers, typically 1 with some devices
-+		having separate reset done bits for children like OHCI and
-+		EHCI
-+
- - clocks	clock specifier for each name in the clock-names as
- 		specified in the binding documentation for ti-clkctrl,
- 		typically available for all interconnect targets on TI SoCs
-@@ -61,6 +83,9 @@ Optional properties:
- - ti,hwmods	optional TI interconnect module name to use legacy
- 		hwmod platform data
+ 	if (ddata->offsets[SYSC_REVISION] < 0)
+ 		return sprintf(bufp, ":NA");
  
-+- ti,no-reset-on-init	interconnect target module should not be reset at init
-+
-+- ti,no-idle-on-init	interconnect target module should not be idled at init
+-	error = pm_runtime_get_sync(ddata->dev);
+-	if (error < 0) {
+-		pm_runtime_put_noidle(ddata->dev);
+-
+-		return 0;
+-	}
+-
+-	len = sprintf(bufp, ":%08x", sysc_read_revision(ddata));
+-
+-	pm_runtime_mark_last_busy(ddata->dev);
+-	pm_runtime_put_autosuspend(ddata->dev);
++	len = sprintf(bufp, ":%08x", ddata->revision);
  
- Example: Single instance of MUSB controller on omap4 using interconnect ranges
- using offsets from l4_cfg second segment (0x4a000000 + 0x80000 = 0x4a0ab000):
-@@ -74,6 +99,17 @@ using offsets from l4_cfg second segment (0x4a000000 + 0x80000 = 0x4a0ab000):
- 		reg-names = "rev", "sysc", "syss";
- 		clocks = <&l3_init_clkctrl OMAP4_USB_OTG_HS_CLKCTRL 0>;
- 		clock-names = "fck";
-+		ti,sysc-mask = <(SYSC_OMAP2_ENAWAKEUP |
-+				 SYSC_OMAP2_SOFTRESET |
-+				 SYSC_OMAP2_AUTOIDLE)>;
-+		ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+				<SYSC_IDLE_NO>,
-+				<SYSC_IDLE_SMART>;
-+		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
-+				<SYSC_IDLE_NO>,
-+				<SYSC_IDLE_SMART>,
-+				<SYSC_IDLE_SMART_WKUP>;
-+		ti,syss-mask = <1>;
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		ranges = <0 0x2b000 0x1000>;
-diff --git a/include/dt-bindings/bus/ti-sysc.h b/include/dt-bindings/bus/ti-sysc.h
-new file mode 100644
---- /dev/null
-+++ b/include/dt-bindings/bus/ti-sysc.h
-@@ -0,0 +1,22 @@
-+/* TI sysc interconnect target module defines */
+ 	return len;
+ }
+@@ -488,6 +500,66 @@ static const struct dev_pm_ops sysc_pm_ops = {
+ 			   NULL)
+ };
+ 
++/* At this point the module is configured enough to read the revision */
++static int sysc_init_module(struct sysc *ddata)
++{
++	int error;
 +
-+/* Generic sysc found on omap2 and later, also known as type1 */
-+#define SYSC_OMAP2_CLOCKACTIVITY	(3 << 8)
-+#define SYSC_OMAP2_EMUFREE		(1 << 5)
-+#define SYSC_OMAP2_ENAWAKEUP		(1 << 2)
-+#define SYSC_OMAP2_SOFTRESET		(1 << 1)
-+#define SYSC_OMAP2_AUTOIDLE		(1 << 0)
++	error = pm_runtime_get_sync(ddata->dev);
++	if (error < 0) {
++		pm_runtime_put_noidle(ddata->dev);
 +
-+/* Generic sysc found on omap4 and later, also known as type2 */
-+#define SYSC_OMAP4_DMADISABLE		(1 << 16)
-+#define SYSC_OMAP4_FREEEMU		(1 << 1)	/* Also known as EMUFREE */
-+#define SYSC_OMAP4_SOFTRESET		(1 << 0)
++		return 0;
++	}
++	ddata->revision = sysc_read_revision(ddata);
++	pm_runtime_put_sync(ddata->dev);
 +
-+/* SmartReflex sysc found on 36xx and later */
-+#define SYSC_OMAP3_SR_ENAWAKEUP		(1 << 26)
++	return 0;
++}
 +
-+/* SYSCONFIG STANDBYMODE/MIDLEMODE/SIDLEMODE supported by hardware */
-+#define SYSC_IDLE_FORCE			0
-+#define SYSC_IDLE_NO			1
-+#define SYSC_IDLE_SMART			2
-+#define SYSC_IDLE_SMART_WKUP		3
++/* Device tree configured quirks */
++struct sysc_dts_quirk {
++	const char *name;
++	u32 mask;
++};
++
++static const struct sysc_dts_quirk sysc_dts_quirks[] = {
++	{ .name = "ti,no-idle-on-init",
++	  .mask = SYSC_QUIRK_NO_IDLE_ON_INIT, },
++	{ .name = "ti,no-reset-on-init",
++	  .mask = SYSC_QUIRK_NO_RESET_ON_INIT, },
++};
++
++static int sysc_init_dts_quirks(struct sysc *ddata)
++{
++	struct device_node *np = ddata->dev->of_node;
++	const struct property *prop;
++	int i, len, error;
++	u32 val;
++
++	ddata->legacy_mode = of_get_property(np, "ti,hwmods", NULL);
++
++	for (i = 0; i < ARRAY_SIZE(sysc_dts_quirks); i++) {
++		prop = of_get_property(np, sysc_dts_quirks[i].name, &len);
++		if (!prop)
++			break;
++
++		ddata->cfg.quirks |= sysc_dts_quirks[i].mask;
++	}
++
++	error = of_property_read_u32(np, "ti,sysc-delay-us", &val);
++	if (!error) {
++		if (val > 255) {
++			dev_warn(ddata->dev, "bad ti,sysc-delay-us: %i\n",
++				 val);
++		}
++
++		ddata->cfg.srst_udelay = (u8)val;
++	}
++
++	return 0;
++}
++
+ static void sysc_unprepare(struct sysc *ddata)
+ {
+ 	int i;
+@@ -722,7 +794,6 @@ static int sysc_init_match(struct sysc *ddata)
+ 
+ static int sysc_probe(struct platform_device *pdev)
+ {
+-	struct device_node *np = pdev->dev.of_node;
+ 	struct sysc *ddata;
+ 	int error;
+ 
+@@ -731,12 +802,16 @@ static int sysc_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	ddata->dev = &pdev->dev;
+-	ddata->legacy_mode = of_get_property(np, "ti,hwmods", NULL);
++	platform_set_drvdata(pdev, ddata);
+ 
+ 	error = sysc_init_match(ddata);
+ 	if (error)
+ 		return error;
+ 
++	error = sysc_init_dts_quirks(ddata);
++	if (error)
++		goto unprepare;
++
+ 	error = sysc_get_clocks(ddata);
+ 	if (error)
+ 		return error;
+@@ -745,9 +820,12 @@ static int sysc_probe(struct platform_device *pdev)
+ 	if (error)
+ 		goto unprepare;
+ 
+-	platform_set_drvdata(pdev, ddata);
+-
+ 	pm_runtime_enable(ddata->dev);
++
++	error = sysc_init_module(ddata);
++	if (error)
++		goto unprepare;
++
+ 	error = pm_runtime_get_sync(ddata->dev);
+ 	if (error < 0) {
+ 		pm_runtime_put_noidle(ddata->dev);
+diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
+--- a/include/linux/platform_data/ti-sysc.h
++++ b/include/linux/platform_data/ti-sysc.h
+@@ -41,6 +41,10 @@ struct sysc_regbits {
+ 	s8 emufree_shift;
+ };
+ 
++#define SYSC_QUIRK_NO_IDLE_ON_INIT	BIT(6)
++#define SYSC_QUIRK_NO_RESET_ON_INIT	BIT(5)
++#define SYSC_QUIRK_OPT_CLKS_NEEDED	BIT(4)
++#define SYSC_QUIRK_OPT_CLKS_IN_RESET	BIT(3)
+ #define SYSC_QUIRK_16BIT		BIT(2)
+ #define SYSC_QUIRK_UNCACHED		BIT(1)
+ #define SYSC_QUIRK_USE_CLOCKACT		BIT(0)
+@@ -61,9 +65,11 @@ struct sysc_capabilities {
+ 
+ /**
+  * struct sysc_config - configuration for an interconnect target module
++ * @srst_udelay: optional delay needed after OCP soft reset
+  * @quirks: bitmask of enabled quirks
+  */
+ struct sysc_config {
++	u8 srst_udelay;
+ 	u32 quirks;
+ };
+ 
 -- 
 2.15.0
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
