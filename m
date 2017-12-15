@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: am437x-sk-evm: Add phandle for the backlight
+Subject: Re: [PATCH] ARM: dts: am43xx-epos-evm: Add phandle for the backlight
  for the panel
-Date: Fri, 15 Dec 2017 08:42:22 -0800
-Message-ID: <20171215164222.GE3875@atomide.com>
-References: <20171215120941.21638-1-peter.ujfalusi@ti.com>
+Date: Fri, 15 Dec 2017 08:42:47 -0800
+Message-ID: <20171215164247.GF3875@atomide.com>
+References: <20171215120954.21711-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171215120941.21638-1-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20171215120954.21711-1-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
