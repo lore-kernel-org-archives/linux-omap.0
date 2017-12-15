@@ -1,53 +1,66 @@
-From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/2] ARM: dts: am437x-idk-evm: Disable OPP50 for MPU
-Date: Fri, 15 Dec 2017 11:16:42 -0600
-Message-ID: <20171215171643.8345-2-d-gerlach@ti.com>
-References: <20171215171643.8345-1-d-gerlach@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/9] Update ti-sysc driver to use dts for capabilities
+Date: Fri, 15 Dec 2017 10:08:51 -0800
+Message-ID: <20171215180900.3243-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171215171643.8345-1-d-gerlach-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-AM437x IDK has a TPS386000 supply voltage supervisor on the VDD_MPU rail
-set to trigger undervoltage condition at 0.96V. Because of this, OPP50,
-which is normally configured to 300MHz at 0.95V, must be disabled to
-avoid triggering the undervoltage condition. Also mark OPP100 as the
-suspend-opp as it is now our lowest OPP.
+Hi all,
 
-Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am437x-idk-evm.dts | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+Here are patches for review to update ti-sysc binding and driver to
+get interconnect target module capabilities from device tree.
 
-diff --git a/arch/arm/boot/dts/am437x-idk-evm.dts b/arch/arm/boot/dts/am437x-idk-evm.dts
-index 5e364473067f..20132477a871 100644
---- a/arch/arm/boot/dts/am437x-idk-evm.dts
-+++ b/arch/arm/boot/dts/am437x-idk-evm.dts
-@@ -519,3 +519,17 @@
- &cpu {
- 	cpu0-supply = <&tps>;
- };
-+
-+&cpu0_opp_table {
-+	/*
-+	 * Supply voltage supervisor on board will not allow opp50 so
-+	 * disable it and set opp100 as suspend OPP.
-+	 */
-+	opp50@300000000 {
-+		status = "disabled";
-+	};
-+
-+	opp100@600000000 {
-+		opp-suspend;
-+	};
-+};
+After this series I'll be posting another series to dynamically
+allocate struct omap_hwmod_class_sysconfig based on device tree
+data instead of the current platform data.
+
+These patches are against v4.15-rc series with the last patch
+depending on the clkctrl nodes in Linux next.
+
+Regards,
+
+Tony
+
+
+Tony Lindgren (9):
+  dt-bindings: ti-sysc: Update binding for timers and capabilities
+  ARM: dts: Add generic ti,sysc compatible in addition to the custom
+    ones
+  ARM: OMAP2+: Move all omap_hwmod_sysc_fields to
+    omap_hwmod_common_data.c
+  bus: ti-sysc: Make omap_hwmod_sysc_fields into sysc_regbits platform
+    data
+  bus: ti-sysc: Add register bits for interconnect target modules
+  bus: ti-sysc: Detect i2c interconnect target module based on register
+    layout
+  bus: ti-sysc: Handle module quirks based dts configuration
+  bus: ti-sysc: Add parsing of module capabilities
+  ARM: dts: Update ti-sysc data for existing users
+
+ Documentation/devicetree/bindings/bus/ti-sysc.txt |  37 ++
+ arch/arm/boot/dts/dra7.dtsi                       |  30 +-
+ arch/arm/boot/dts/omap4.dtsi                      |  94 ++++-
+ arch/arm/mach-omap2/omap_hwmod.c                  |   2 +
+ arch/arm/mach-omap2/omap_hwmod.h                  |  34 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c        |  21 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c        |  17 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c         |   7 +-
+ arch/arm/mach-omap2/omap_hwmod_common_data.c      |  40 +-
+ drivers/bus/ti-sysc.c                             | 485 ++++++++++++++++++++--
+ include/dt-bindings/bus/ti-sysc.h                 |  22 +
+ include/linux/platform_data/ti-sysc.h             |  86 ++++
+ 12 files changed, 758 insertions(+), 117 deletions(-)
+ create mode 100644 include/dt-bindings/bus/ti-sysc.h
+ create mode 100644 include/linux/platform_data/ti-sysc.h
+
 -- 
-2.15.1
-
+2.15.0
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
