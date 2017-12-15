@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 7/9] bus: ti-sysc: Handle module quirks based dts configuration
-Date: Fri, 15 Dec 2017 10:08:58 -0800
-Message-ID: <20171215180900.3243-8-tony@atomide.com>
+Subject: [PATCH 9/9] ARM: dts: Update ti-sysc data for existing users
+Date: Fri, 15 Dec 2017 10:09:00 -0800
+Message-ID: <20171215180900.3243-10-tony@atomide.com>
 References: <20171215180900.3243-1-tony@atomide.com>
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20171215180900.3243-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -10,226 +10,228 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Let's configure few module quirks via device tree using the
-properties for "ti,no-idle-on-init", "ti,no-reset-on-init"
-and "ti,sysc-delay-us".
+Let's update the existing users with features and clock data.
 
-Let's also reorder the probe a bit so we have pdata available
-earlier, and move the PM runtime calls to sysc_init_module()
-from sysc_read_revision().
+Note that we had few mistakes that did not get noticed as we're still
+probing the SmartReflex driver with legacy platform data and using
+"ti,hwmods" legacy property for ti-sysc driver.
+
+So let's fix the dra7 smartreflex registers as they are different
+from omap4 with no revision register.
+
+And on omap4, the mcasp module has a revision register according to
+the TRM.
 
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/bus/ti-sysc.c                 | 114 ++++++++++++++++++++++++++++------
- include/linux/platform_data/ti-sysc.h |   6 ++
- 2 files changed, 102 insertions(+), 18 deletions(-)
+ arch/arm/boot/dts/dra7.dtsi  | 26 ++++++++++++----
+ arch/arm/boot/dts/omap4.dtsi | 74 ++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 92 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -50,6 +50,8 @@ static const char * const clock_names[] = { "fck", "ick", };
-  * @legacy_mode: configured for legacy mode if set
-  * @cap: interconnect target module capabilities
-  * @cfg: interconnect target module configuration
-+ * @name: name if available
-+ * @revision: interconnect target module revision
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -7,6 +7,8 @@
+  * Based on "omap4.dtsi"
   */
- struct sysc {
- 	struct device *dev;
-@@ -61,12 +63,32 @@ struct sysc {
- 	const char *legacy_mode;
- 	const struct sysc_capabilities *cap;
- 	struct sysc_config cfg;
-+	const char *name;
-+	u32 revision;
- };
  
-+static u32 sysc_read(struct sysc *ddata, int offset)
-+{
-+	if (ddata->cfg.quirks & SYSC_QUIRK_16BIT) {
-+		u32 val;
-+
-+		val = readw_relaxed(ddata->module_va + offset);
-+		val |= (readw_relaxed(ddata->module_va + offset + 4) << 16);
-+
-+		return val;
-+	}
-+
-+	return readl_relaxed(ddata->module_va + offset);
-+}
-+
- static u32 sysc_read_revision(struct sysc *ddata)
- {
--	return readl_relaxed(ddata->module_va +
--			     ddata->offsets[SYSC_REVISION]);
-+	int offset = ddata->offsets[SYSC_REVISION];
-+
-+	if (offset < 0)
-+		return 0;
-+
-+	return sysc_read(ddata, offset);
- }
++#include <dt-bindings/bus/ti-sysc.h>
++#include <dt-bindings/clock/dra7.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
+ #include <dt-bindings/pinctrl/dra.h>
  
- static int sysc_get_one_clock(struct sysc *ddata,
-@@ -393,22 +415,12 @@ static int sysc_map_and_check_registers(struct sysc *ddata)
+@@ -1500,9 +1502,15 @@
+ 		target-module@4a0dd000 {
+ 			compatible = "ti,sysc-omap4-sr", "ti,sysc";
+ 			ti,hwmods = "smartreflex_core";
+-			reg = <0x4a0dd000 0x4>,
+-			      <0x4a0dd008 0x4>;
+-			reg-names = "rev", "sysc";
++			reg = <0x4a0dd038 0x4>;
++			reg-names = "sysc";
++			ti,sysc-mask = <SYSC_OMAP3_SR_ENAWAKEUP>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			clocks = <&coreaon_clkctrl DRA7_SMARTREFLEX_CORE_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0 0x4a0dd000 0x001000>;
+@@ -1513,9 +1521,15 @@
+ 		target-module@4a0d9000 {
+ 			compatible = "ti,sysc-omap4-sr", "ti,sysc";
+ 			ti,hwmods = "smartreflex_mpu";
+-			reg = <0x4a0d9000 0x4>,
+-			      <0x4a0d9008 0x4>;
+-			reg-names = "rev", "sysc";
++			reg = <0x4a0d9038 0x4>;
++			reg-names = "sysc";
++			ti,sysc-mask = <SYSC_OMAP3_SR_ENAWAKEUP>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			clocks = <&coreaon_clkctrl DRA7_SMARTREFLEX_MPU_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0 0x4a0d9000 0x001000>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -6,6 +6,8 @@
+  * published by the Free Software Foundation.
   */
- static int sysc_show_rev(char *bufp, struct sysc *ddata)
- {
--	int error, len;
-+	int len;
  
- 	if (ddata->offsets[SYSC_REVISION] < 0)
- 		return sprintf(bufp, ":NA");
- 
--	error = pm_runtime_get_sync(ddata->dev);
--	if (error < 0) {
--		pm_runtime_put_noidle(ddata->dev);
--
--		return 0;
--	}
--
--	len = sprintf(bufp, ":%08x", sysc_read_revision(ddata));
--
--	pm_runtime_mark_last_busy(ddata->dev);
--	pm_runtime_put_autosuspend(ddata->dev);
-+	len = sprintf(bufp, ":%08x", ddata->revision);
- 
- 	return len;
- }
-@@ -488,6 +500,66 @@ static const struct dev_pm_ops sysc_pm_ops = {
- 			   NULL)
- };
- 
-+/* At this point the module is configured enough to read the revision */
-+static int sysc_init_module(struct sysc *ddata)
-+{
-+	int error;
-+
-+	error = pm_runtime_get_sync(ddata->dev);
-+	if (error < 0) {
-+		pm_runtime_put_noidle(ddata->dev);
-+
-+		return 0;
-+	}
-+	ddata->revision = sysc_read_revision(ddata);
-+	pm_runtime_put_sync(ddata->dev);
-+
-+	return 0;
-+}
-+
-+/* Device tree configured quirks */
-+struct sysc_dts_quirk {
-+	const char *name;
-+	u32 mask;
-+};
-+
-+static const struct sysc_dts_quirk sysc_dts_quirks[] = {
-+	{ .name = "ti,no-idle-on-init",
-+	  .mask = SYSC_QUIRK_NO_IDLE_ON_INIT, },
-+	{ .name = "ti,no-reset-on-init",
-+	  .mask = SYSC_QUIRK_NO_RESET_ON_INIT, },
-+};
-+
-+static int sysc_init_dts_quirks(struct sysc *ddata)
-+{
-+	struct device_node *np = ddata->dev->of_node;
-+	const struct property *prop;
-+	int i, len, error;
-+	u32 val;
-+
-+	ddata->legacy_mode = of_get_property(np, "ti,hwmods", NULL);
-+
-+	for (i = 0; i < ARRAY_SIZE(sysc_dts_quirks); i++) {
-+		prop = of_get_property(np, sysc_dts_quirks[i].name, &len);
-+		if (!prop)
-+			break;
-+
-+		ddata->cfg.quirks |= sysc_dts_quirks[i].mask;
-+	}
-+
-+	error = of_property_read_u32(np, "ti,sysc-delay-us", &val);
-+	if (!error) {
-+		if (val > 255) {
-+			dev_warn(ddata->dev, "bad ti,sysc-delay-us: %i\n",
-+				 val);
-+		}
-+
-+		ddata->cfg.srst_udelay = (u8)val;
-+	}
-+
-+	return 0;
-+}
-+
- static void sysc_unprepare(struct sysc *ddata)
- {
- 	int i;
-@@ -722,7 +794,6 @@ static int sysc_init_match(struct sysc *ddata)
- 
- static int sysc_probe(struct platform_device *pdev)
- {
--	struct device_node *np = pdev->dev.of_node;
- 	struct sysc *ddata;
- 	int error;
- 
-@@ -731,12 +802,16 @@ static int sysc_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	ddata->dev = &pdev->dev;
--	ddata->legacy_mode = of_get_property(np, "ti,hwmods", NULL);
-+	platform_set_drvdata(pdev, ddata);
- 
- 	error = sysc_init_match(ddata);
- 	if (error)
- 		return error;
- 
-+	error = sysc_init_dts_quirks(ddata);
-+	if (error)
-+		goto unprepare;
-+
- 	error = sysc_get_clocks(ddata);
- 	if (error)
- 		return error;
-@@ -745,9 +820,12 @@ static int sysc_probe(struct platform_device *pdev)
- 	if (error)
- 		goto unprepare;
- 
--	platform_set_drvdata(pdev, ddata);
--
- 	pm_runtime_enable(ddata->dev);
-+
-+	error = sysc_init_module(ddata);
-+	if (error)
-+		goto unprepare;
-+
- 	error = pm_runtime_get_sync(ddata->dev);
- 	if (error < 0) {
- 		pm_runtime_put_noidle(ddata->dev);
-diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
---- a/include/linux/platform_data/ti-sysc.h
-+++ b/include/linux/platform_data/ti-sysc.h
-@@ -41,6 +41,10 @@ struct sysc_regbits {
- 	s8 emufree_shift;
- };
- 
-+#define SYSC_QUIRK_NO_IDLE_ON_INIT	BIT(6)
-+#define SYSC_QUIRK_NO_RESET_ON_INIT	BIT(5)
-+#define SYSC_QUIRK_OPT_CLKS_NEEDED	BIT(4)
-+#define SYSC_QUIRK_OPT_CLKS_IN_RESET	BIT(3)
- #define SYSC_QUIRK_16BIT		BIT(2)
- #define SYSC_QUIRK_UNCACHED		BIT(1)
- #define SYSC_QUIRK_USE_CLOCKACT		BIT(0)
-@@ -61,9 +65,11 @@ struct sysc_capabilities {
- 
- /**
-  * struct sysc_config - configuration for an interconnect target module
-+ * @srst_udelay: optional delay needed after OCP soft reset
-  * @quirks: bitmask of enabled quirks
-  */
- struct sysc_config {
-+	u8 srst_udelay;
- 	u32 quirks;
- };
- 
++#include <dt-bindings/bus/ti-sysc.h>
++#include <dt-bindings/clock/omap4.h>
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/interrupt-controller/arm-gic.h>
+ #include <dt-bindings/pinctrl/omap.h>
+@@ -388,6 +390,13 @@
+ 			reg = <0x48076000 0x4>,
+ 			      <0x48076010 0x4>;
+ 			reg-names = "rev", "sysc";
++			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			clocks = <&l4_per_clkctrl OMAP4_SLIMBUS2_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0 0x48076000 0x001000>;
+@@ -461,6 +470,8 @@
+ 			reg = <0x4a0db000 0x4>,
+ 			      <0x4a0db008 0x4>;
+ 			reg-names = "rev", "sysc";
++			clocks = <&l4_ao_clkctrl OMAP4_SMARTREFLEX_IVA_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0 0x4a0db000 0x001000>;
+@@ -478,6 +489,8 @@
+ 			reg = <0x4a0dd000 0x4>,
+ 			      <0x4a0dd008 0x4>;
+ 			reg-names = "rev", "sysc";
++			clocks = <&l4_ao_clkctrl OMAP4_SMARTREFLEX_CORE_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0 0x4a0dd000 0x001000>;
+@@ -495,6 +508,8 @@
+ 			reg = <0x4a0d9000 0x4>,
+ 			      <0x4a0d9008 0x4>;
+ 			reg-names = "rev", "sysc";
++			clocks = <&l4_ao_clkctrl OMAP4_SMARTREFLEX_MPU_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0 0x4a0d9000 0x001000>;
+@@ -715,6 +730,18 @@
+ 			reg = <0x52000000 0x4>,
+ 			      <0x52000010 0x4>;
+ 			reg-names = "rev", "sysc";
++			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
++			ti,sysc-midle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			ti,sysc-delay-us = <2>;
++			clocks = <&iss_clkctrl OMAP4_ISS_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0 0x52000000 0x1000000>;
+@@ -819,8 +846,15 @@
+ 		target-module@40128000 {
+ 			compatible = "ti,sysc-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp";
+-			reg = <0x40128004 0x4>;
+-			reg-names = "sysc";
++			reg = <0x40128000 0x4>,
++			      <0x40128004 0x4>;
++			reg-names = "rev", "sysc";
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			clocks = <&abe_clkctrl OMAP4_MCASP_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x00000000 0x40128000 0x1000>, /* MPU */
+@@ -840,6 +874,13 @@
+ 			reg = <0x4012c000 0x4>,
+ 			      <0x4012c010 0x4>;
+ 			reg-names = "rev", "sysc";
++			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			clocks = <&abe_clkctrl OMAP4_SLIMBUS1_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x00000000 0x4012c000 0x1000>, /* MPU */
+@@ -854,6 +895,15 @@
+ 			reg = <0x401f1000 0x4>,
+ 			      <0x401f1010 0x4>;
+ 			reg-names = "rev", "sysc";
++			ti,sysc-midle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			clocks = <&abe_clkctrl OMAP4_AESS_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0x00000000 0x401f1000 0x1000>, /* MPU */
+@@ -960,6 +1010,16 @@
+ 			reg = <0x4a10a000 0x4>,
+ 			      <0x4a10a010 0x4>;
+ 			reg-names = "rev", "sysc";
++			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
++			ti,sysc-midle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>;
++			ti,sysc-delay-us = <2>;
++			clocks = <&iss_clkctrl OMAP4_FDIF_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0 0x4a10a000 0x1000>;
+@@ -1188,6 +1248,16 @@
+ 			reg = <0x5601fc00 0x4>,
+ 			      <0x5601fc10 0x4>;
+ 			reg-names = "rev", "sysc";
++			ti,sysc-midle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++					<SYSC_IDLE_NO>,
++					<SYSC_IDLE_SMART>,
++					<SYSC_IDLE_SMART_WKUP>;
++			clocks = <&l3_gfx_clkctrl OMAP4_GPU_CLKCTRL 0>;
++			clock-names = "fck";
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 			ranges = <0 0x56000000 0x2000000>;
 -- 
 2.15.0
 --
