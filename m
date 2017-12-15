@@ -1,11 +1,26 @@
-From: Mathieu Malaterre <malat-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 18/25] arm: am3/am4/dra7/omap: dts: Remove leading 0x and 0s from bindings notation
-Date: Fri, 15 Dec 2017 13:46:51 +0100
-Message-ID: <20171215124651.30793-1-malat@debian.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Mathieu Malaterre <malat-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Mathieu Malaterre <malat@debian.org>
+Subject: [PATCH 25/25] arm: ste: dts: Remove leading 0x and 0s from bindings
+ notation
+Date: Fri, 15 Dec 2017 12:16:15 +0100
+Message-ID: <20171215111620.20379-25-malat@debian.org>
+References: <20171214165350.27850-1-malat@debian.org>
+ <20171215111620.20379-1-malat@debian.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171215111620.20379-1-malat@debian.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rob Herring <robh+dt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Andrew Lunn <andrew@lunn.ch>, Heiko Stuebner <heiko@sntech.de>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Matthias Brugger <matthias.bgg@gmail.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-arm-kernel@axis.com, Baoyou Xie <baoyou.xie@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Jesper Nilsson <jesper.nilsson@axis.com>, Florian Fainelli <f.fainelli@gmail.com>, Kevin Hilman <khilman@kernel.org>, Viresh Kumar <vireshk@kernel.org>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, linux-rockchip@lists.infradead.org, Alexandre Torgue <alexandre.torgue@st.com>, Kukjin Kim <kgene@kernel.org>, bcm-kernel-feedback-list@broadcom.com, Niklas Cassel <niklas.cassel@axis.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, devicetree
 List-Id: linux-omap@vger.kernel.org
 
 Improve the DTS files by removing all the leading "0x" and zeros to fix the
@@ -35,218 +50,711 @@ Warning (simple_bus_reg): Node /XXX@<UPPER> simple-bus unit address format error
 
 This is a follow up to commit 4c9847b7375a ("dt-bindings: Remove leading 0x from bindings notation")
 
-Reported-by: David Daney <ddaney-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Suggested-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Signed-off-by: Mathieu Malaterre <malat-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Reported-by: David Daney <ddaney@caviumnetworks.com>
+Suggested-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Mathieu Malaterre <malat@debian.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi           | 4 ++--
- arch/arm/boot/dts/am3517.dtsi           | 4 ++--
- arch/arm/boot/dts/am4372.dtsi           | 4 ++--
- arch/arm/boot/dts/dra62x-j5eco-evm.dts  | 8 ++++----
- arch/arm/boot/dts/dra7.dtsi             | 2 +-
- arch/arm/boot/dts/omap3-cm-t3x.dtsi     | 8 ++++----
- arch/arm/boot/dts/omap3-evm-37xx.dts    | 8 ++++----
- arch/arm/boot/dts/omap3-lilly-a83x.dtsi | 8 ++++----
- 8 files changed, 23 insertions(+), 23 deletions(-)
+ arch/arm/boot/dts/ste-dbx5x0.dtsi          |   2 +-
+ arch/arm/boot/dts/ste-nomadik-stn8815.dtsi | 130 ++++++++++++++---------------
+ arch/arm/boot/dts/ste-u300.dts             |  50 +++++------
+ 3 files changed, 91 insertions(+), 91 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index d37f95025807..6699fcb77509 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -496,7 +496,7 @@
- 			status = "disabled";
+diff --git a/arch/arm/boot/dts/ste-dbx5x0.dtsi b/arch/arm/boot/dts/ste-dbx5x0.dtsi
+index 2310a4e97768..cff985f9fb77 100644
+--- a/arch/arm/boot/dts/ste-dbx5x0.dtsi
++++ b/arch/arm/boot/dts/ste-dbx5x0.dtsi
+@@ -474,7 +474,7 @@
+ 			clocks = <&prcc_pclk 5 0>;
  		};
  
--		mailbox: mailbox@480C8000 {
-+		mailbox: mailbox@480c8000 {
- 			compatible = "ti,omap4-mailbox";
- 			reg = <0x480C8000 0x200>;
- 			interrupts = <77>;
-@@ -991,7 +991,7 @@
- 			dma-names = "tx", "rx";
+-		dma: dma-controller@801C0000 {
++		dma: dma-controller@801c0000 {
+ 			compatible = "stericsson,db8500-dma40", "stericsson,dma40";
+ 			reg = <0x801C0000 0x1000 0x40010000 0x800>;
+ 			reg-names = "base", "lcpa";
+diff --git a/arch/arm/boot/dts/ste-nomadik-stn8815.dtsi b/arch/arm/boot/dts/ste-nomadik-stn8815.dtsi
+index 68aab50a73ab..2970719ed22c 100644
+--- a/arch/arm/boot/dts/ste-nomadik-stn8815.dtsi
++++ b/arch/arm/boot/dts/ste-nomadik-stn8815.dtsi
+@@ -195,7 +195,7 @@
+ 		 * MXTAL "Main Chrystal" is a chrystal oscillator @19.2 MHz
+ 		 * that is parent of TIMCLK, PLL1 and PLL2
+ 		 */
+-		mxtal: mxtal@19.2M {
++		mxtal: mxtal@19.2m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-clock";
+ 			clock-frequency = <19200000>;
+@@ -207,7 +207,7 @@
+ 		 * divided by 8. This clock is used by the timers and
+ 		 * watchdog. See page 105 ff.
+ 		 */
+-		timclk: timclk@2.4M {
++		timclk: timclk@2.4m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			clock-div = <8>;
+@@ -245,21 +245,21 @@
+ 			pll-id = <2>;
+ 			clocks = <&mxtal>;
+ 		};
+-		clk216: clk216@216M {
++		clk216: clk216@216m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			clock-div = <4>;
+ 			clock-mult = <1>;
+ 			clocks = <&pll2>;
+ 		};
+-		clk108: clk108@108M {
++		clk108: clk108@108m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			clock-div = <2>;
+ 			clock-mult = <1>;
+ 			clocks = <&clk216>;
+ 		};
+-		clk72: clk72@72M {
++		clk72: clk72@72m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			/* The data sheet does not say how this is derived */
+@@ -267,7 +267,7 @@
+ 			clock-mult = <1>;
+ 			clocks = <&pll2>;
+ 		};
+-		clk48: clk48@48M {
++		clk48: clk48@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			/* The data sheet does not say how this is derived */
+@@ -275,7 +275,7 @@
+ 			clock-mult = <1>;
+ 			clocks = <&pll2>;
+ 		};
+-		clk27: clk27@27M {
++		clk27: clk27@27m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			clock-div = <4>;
+@@ -284,7 +284,7 @@
  		};
  
--		mcasp1: mcasp@4803C000 {
-+		mcasp1: mcasp@4803c000 {
- 			compatible = "ti,am33xx-mcasp-audio";
- 			ti,hwmods = "mcasp1";
- 			reg = <0x4803C000 0x2000>,
-diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
-index 00da3f2c4072..76994165fb3a 100644
---- a/arch/arm/boot/dts/am3517.dtsi
-+++ b/arch/arm/boot/dts/am3517.dtsi
-@@ -26,7 +26,7 @@
- 			interrupt-names = "mc";
- 		};
+ 		/* This apparently exists as well */
+-		ulpiclk: ulpiclk@60M {
++		ulpiclk: ulpiclk@60m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-clock";
+ 			clock-frequency = <60000000>;
+@@ -295,193 +295,193 @@
+ 		 * peripheral clocking, clock gates.
+ 		 */
  
--		davinci_emac: ethernet@0x5c000000 {
-+		davinci_emac: ethernet@5c000000 {
- 			compatible = "ti,am3517-emac";
- 			ti,hwmods = "davinci_emac";
- 			status = "disabled";
-@@ -41,7 +41,7 @@
- 			local-mac-address = [ 00 00 00 00 00 00 ];
+-		hclkdma0: hclkdma0@48M {
++		hclkdma0: hclkdma0@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <0>;
+ 			clocks = <&hclk>;
  		};
- 
--		davinci_mdio: ethernet@0x5c030000 {
-+		davinci_mdio: ethernet@5c030000 {
- 			compatible = "ti,davinci_mdio";
- 			ti,hwmods = "davinci_mdio";
- 			status = "disabled";
-diff --git a/arch/arm/boot/dts/am4372.dtsi b/arch/arm/boot/dts/am4372.dtsi
-index 4714a59fd86d..5aff7f01a513 100644
---- a/arch/arm/boot/dts/am4372.dtsi
-+++ b/arch/arm/boot/dts/am4372.dtsi
-@@ -325,7 +325,7 @@
- 			status = "disabled";
+-		hclksmc: hclksmc@48M {
++		hclksmc: hclksmc@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <1>;
+ 			clocks = <&hclk>;
  		};
- 
--		mailbox: mailbox@480C8000 {
-+		mailbox: mailbox@480c8000 {
- 			compatible = "ti,omap4-mailbox";
- 			reg = <0x480C8000 0x200>;
- 			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>;
-@@ -936,7 +936,7 @@
- 			dma-names = "tx", "rx";
+-		hclksdram: hclksdram@48M {
++		hclksdram: hclksdram@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <2>;
+ 			clocks = <&hclk>;
  		};
- 
--		mcasp1: mcasp@4803C000 {
-+		mcasp1: mcasp@4803c000 {
- 			compatible = "ti,am33xx-mcasp-audio";
- 			ti,hwmods = "mcasp1";
- 			reg = <0x4803C000 0x2000>,
-diff --git a/arch/arm/boot/dts/dra62x-j5eco-evm.dts b/arch/arm/boot/dts/dra62x-j5eco-evm.dts
-index 155eb32ee213..fee0547f7302 100644
---- a/arch/arm/boot/dts/dra62x-j5eco-evm.dts
-+++ b/arch/arm/boot/dts/dra62x-j5eco-evm.dts
-@@ -74,19 +74,19 @@
- 			label = "X-Loader";
- 			reg = <0 0x80000>;
+-		hclkdma1: hclkdma1@48M {
++		hclkdma1: hclkdma1@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <3>;
+ 			clocks = <&hclk>;
  		};
--		partition@0x80000 {
-+		partition@80000 {
- 			label = "U-Boot";
- 			reg = <0x80000 0x1c0000>;
+-		hclkclcd: hclkclcd@48M {
++		hclkclcd: hclkclcd@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <4>;
+ 			clocks = <&hclk>;
  		};
--		partition@0x1c0000 {
-+		partition@1c0000 {
- 			label = "Environment";
- 			reg = <0x240000 0x40000>;
+-		pclkirda: pclkirda@48M {
++		pclkirda: pclkirda@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <5>;
+ 			clocks = <&pclk>;
  		};
--		partition@0x280000 {
-+		partition@280000 {
- 			label = "Kernel";
- 			reg = <0x280000 0x500000>;
+-		pclkssp: pclkssp@48M {
++		pclkssp: pclkssp@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <6>;
+ 			clocks = <&pclk>;
  		};
--		partition@0x780000 {
-+		partition@780000 {
- 			label = "Filesystem";
- 			reg = <0x780000 0xf880000>;
+-		pclkuart0: pclkuart0@48M {
++		pclkuart0: pclkuart0@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <7>;
+ 			clocks = <&pclk>;
  		};
-diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index ac9216293b7c..f8f5206130d6 100644
---- a/arch/arm/boot/dts/dra7.dtsi
-+++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -1373,7 +1373,7 @@
- 			ranges;
- 			reg = <0x4a090000 0x20>;
- 			ti,hwmods = "ocp2scp3";
--			sata_phy: phy@4A096000 {
-+			sata_phy: phy@4a096000 {
- 				compatible = "ti,phy-pipe3-sata";
- 				reg = <0x4A096000 0x80>, /* phy_rx */
- 				      <0x4A096400 0x64>, /* phy_tx */
-diff --git a/arch/arm/boot/dts/omap3-cm-t3x.dtsi b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
-index ab6003fe5a43..9dcb18d22cde 100644
---- a/arch/arm/boot/dts/omap3-cm-t3x.dtsi
-+++ b/arch/arm/boot/dts/omap3-cm-t3x.dtsi
-@@ -306,19 +306,19 @@
- 			label = "xloader";
- 			reg = <0 0x80000>;
+-		pclksdi: pclksdi@48M {
++		pclksdi: pclksdi@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <8>;
+ 			clocks = <&pclk>;
  		};
--		partition@0x80000 {
-+		partition@80000 {
- 			label = "uboot";
- 			reg = <0x80000 0x1e0000>;
+-		pclki2c0: pclki2c0@48M {
++		pclki2c0: pclki2c0@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <9>;
+ 			clocks = <&pclk>;
  		};
--		partition@0x260000 {
-+		partition@260000 {
- 			label = "uboot environment";
- 			reg = <0x260000 0x40000>;
+-		pclki2c1: pclki2c1@48M {
++		pclki2c1: pclki2c1@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <10>;
+ 			clocks = <&pclk>;
  		};
--		partition@0x2a0000 {
-+		partition@2a0000 {
- 			label = "linux";
- 			reg = <0x2a0000 0x400000>;
+-		pclkuart1: pclkuart1@48M {
++		pclkuart1: pclkuart1@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <11>;
+ 			clocks = <&pclk>;
  		};
--		partition@0x6a0000 {
-+		partition@6a0000 {
- 			label = "rootfs";
- 			reg = <0x6a0000 0x1f880000>;
+-		pclkmsp0: pclkmsp0@48M {
++		pclkmsp0: pclkmsp0@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <12>;
+ 			clocks = <&pclk>;
  		};
-diff --git a/arch/arm/boot/dts/omap3-evm-37xx.dts b/arch/arm/boot/dts/omap3-evm-37xx.dts
-index 5a4ba0aea447..a14303b09ae2 100644
---- a/arch/arm/boot/dts/omap3-evm-37xx.dts
-+++ b/arch/arm/boot/dts/omap3-evm-37xx.dts
-@@ -90,19 +90,19 @@
- 			label = "X-Loader";
- 			reg = <0 0x80000>;
+-		hclkusb: hclkusb@48M {
++		hclkusb: hclkusb@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <13>;
+ 			clocks = <&hclk>;
  		};
--		partition@0x80000 {
-+		partition@80000 {
- 			label = "U-Boot";
- 			reg = <0x80000 0x1c0000>;
+-		hclkdif: hclkdif@48M {
++		hclkdif: hclkdif@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <14>;
+ 			clocks = <&hclk>;
  		};
--		partition@0x1c0000 {
-+		partition@1c0000 {
- 			label = "Environment";
- 			reg = <0x240000 0x40000>;
+-		hclksaa: hclksaa@48M {
++		hclksaa: hclksaa@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <15>;
+ 			clocks = <&hclk>;
  		};
--		partition@0x280000 {
-+		partition@280000 {
- 			label = "Kernel";
- 			reg = <0x280000 0x500000>;
+-		hclksva: hclksva@48M {
++		hclksva: hclksva@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <16>;
+ 			clocks = <&hclk>;
  		};
--		partition@0x780000 {
-+		partition@780000 {
- 			label = "Filesystem";
- 			reg = <0x780000 0x1f880000>;
+-		pclkhsi: pclkhsi@48M {
++		pclkhsi: pclkhsi@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <17>;
+ 			clocks = <&pclk>;
  		};
-diff --git a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
-index 7ada1e93e166..cf7a2a72348d 100644
---- a/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
-+++ b/arch/arm/boot/dts/omap3-lilly-a83x.dtsi
-@@ -405,22 +405,22 @@
- 			reg = <0 0x80000>;
+-		pclkxti: pclkxti@48M {
++		pclkxti: pclkxti@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <18>;
+ 			clocks = <&pclk>;
  		};
- 
--		partition@0x80000 {
-+		partition@80000 {
- 			label = "u-boot";
- 			reg = <0x80000 0x1e0000>;
+-		pclkuart2: pclkuart2@48M {
++		pclkuart2: pclkuart2@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <19>;
+ 			clocks = <&pclk>;
  		};
- 
--		partition@0x260000 {
-+		partition@260000 {
- 			label = "u-boot-environment";
- 			reg = <0x260000 0x20000>;
+-		pclkmsp1: pclkmsp1@48M {
++		pclkmsp1: pclkmsp1@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <20>;
+ 			clocks = <&pclk>;
  		};
- 
--		partition@0x280000 {
-+		partition@280000 {
- 			label = "kernel";
- 			reg = <0x280000 0x500000>;
+-		pclkmsp2: pclkmsp2@48M {
++		pclkmsp2: pclkmsp2@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <21>;
+ 			clocks = <&pclk>;
  		};
- 
--		partition@0x780000 {
-+		partition@780000 {
- 			label = "filesystem";
- 			reg = <0x780000 0xf880000>;
+-		pclkowm: pclkowm@48M {
++		pclkowm: pclkowm@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <22>;
+ 			clocks = <&pclk>;
  		};
+-		hclkhpi: hclkhpi@48M {
++		hclkhpi: hclkhpi@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <23>;
+ 			clocks = <&hclk>;
+ 		};
+-		pclkske: pclkske@48M {
++		pclkske: pclkske@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <24>;
+ 			clocks = <&pclk>;
+ 		};
+-		pclkhsem: pclkhsem@48M {
++		pclkhsem: pclkhsem@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <25>;
+ 			clocks = <&pclk>;
+ 		};
+-		hclk3d: hclk3d@48M {
++		hclk3d: hclk3d@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <26>;
+ 			clocks = <&hclk>;
+ 		};
+-		hclkhash: hclkhash@48M {
++		hclkhash: hclkhash@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <27>;
+ 			clocks = <&hclk>;
+ 		};
+-		hclkcryp: hclkcryp@48M {
++		hclkcryp: hclkcryp@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <28>;
+ 			clocks = <&hclk>;
+ 		};
+-		pclkmshc: pclkmshc@48M {
++		pclkmshc: pclkmshc@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <29>;
+ 			clocks = <&pclk>;
+ 		};
+-		hclkusbm: hclkusbm@48M {
++		hclkusbm: hclkusbm@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <30>;
+ 			clocks = <&hclk>;
+ 		};
+-		hclkrng: hclkrng@48M {
++		hclkrng: hclkrng@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <31>;
+@@ -495,153 +495,153 @@
+ 			clock-id = <36>;
+ 			clocks = <&clk72 &clk48>;
+ 		};
+-		irdaclk: irdaclk@48M {
++		irdaclk: irdaclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <37>;
+ 			clocks = <&clk48>;
+ 		};
+-		sspiclk: sspiclk@48M {
++		sspiclk: sspiclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <38>;
+ 			clocks = <&clk48>;
+ 		};
+-		uart0clk: uart0clk@48M {
++		uart0clk: uart0clk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <39>;
+ 			clocks = <&clk48>;
+ 		};
+-		sdiclk: sdiclk@48M {
++		sdiclk: sdiclk@48m {
+ 			/* Also called MCCLK in some documents */
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <40>;
+ 			clocks = <&clk48>;
+ 		};
+-		i2c0clk: i2c0clk@48M {
++		i2c0clk: i2c0clk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <41>;
+ 			clocks = <&clk48>;
+ 		};
+-		i2c1clk: i2c1clk@48M {
++		i2c1clk: i2c1clk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <42>;
+ 			clocks = <&clk48>;
+ 		};
+-		uart1clk: uart1clk@48M {
++		uart1clk: uart1clk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <43>;
+ 			clocks = <&clk48>;
+ 		};
+-		mspclk0: mspclk0@48M {
++		mspclk0: mspclk0@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <44>;
+ 			clocks = <&clk48>;
+ 		};
+-		usbclk: usbclk@48M {
++		usbclk: usbclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <45>;
+ 			clocks = <&clk48>; /* 48 MHz not ULPI */
+ 		};
+-		difclk: difclk@72M {
++		difclk: difclk@72m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <46>;
+ 			clocks = <&clk72>;
+ 		};
+-		ipi2cclk: ipi2cclk@48M {
++		ipi2cclk: ipi2cclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <47>;
+ 			clocks = <&clk48>; /* Guess */
+ 		};
+-		ipbmcclk: ipbmcclk@48M {
++		ipbmcclk: ipbmcclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <48>;
+ 			clocks = <&clk48>; /* Guess */
+ 		};
+-		hsiclkrx: hsiclkrx@216M {
++		hsiclkrx: hsiclkrx@216m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <49>;
+ 			clocks = <&clk216>;
+ 		};
+-		hsiclktx: hsiclktx@108M {
++		hsiclktx: hsiclktx@108m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <50>;
+ 			clocks = <&clk108>;
+ 		};
+-		uart2clk: uart2clk@48M {
++		uart2clk: uart2clk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <51>;
+ 			clocks = <&clk48>;
+ 		};
+-		mspclk1: mspclk1@48M {
++		mspclk1: mspclk1@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <52>;
+ 			clocks = <&clk48>;
+ 		};
+-		mspclk2: mspclk2@48M {
++		mspclk2: mspclk2@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <53>;
+ 			clocks = <&clk48>;
+ 		};
+-		owmclk: owmclk@48M {
++		owmclk: owmclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <54>;
+ 			clocks = <&clk48>; /* Guess */
+ 		};
+-		skeclk: skeclk@48M {
++		skeclk: skeclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <56>;
+ 			clocks = <&clk48>; /* Guess */
+ 		};
+-		x3dclk: x3dclk@48M {
++		x3dclk: x3dclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <58>;
+ 			clocks = <&clk48>; /* Guess */
+ 		};
+-		pclkmsp3: pclkmsp3@48M {
++		pclkmsp3: pclkmsp3@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <59>;
+ 			clocks = <&pclk>;
+ 		};
+-		mspclk3: mspclk3@48M {
++		mspclk3: mspclk3@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <60>;
+ 			clocks = <&clk48>;
+ 		};
+-		mshcclk: mshcclk@48M {
++		mshcclk: mshcclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <61>;
+ 			clocks = <&clk48>; /* Guess */
+ 		};
+-		usbmclk: usbmclk@48M {
++		usbmclk: usbmclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <62>;
+ 			/* Stated as "48 MHz not ULPI clock" */
+ 			clocks = <&clk48>;
+ 		};
+-		rngcclk: rngcclk@48M {
++		rngcclk: rngcclk@48m {
+ 			#clock-cells = <0>;
+ 			compatible = "st,nomadik-src-clock";
+ 			clock-id = <63>;
+diff --git a/arch/arm/boot/dts/ste-u300.dts b/arch/arm/boot/dts/ste-u300.dts
+index 62ecb6a2fa39..08edee80f022 100644
+--- a/arch/arm/boot/dts/ste-u300.dts
++++ b/arch/arm/boot/dts/ste-u300.dts
+@@ -39,88 +39,88 @@
+ 			compatible = "fixed-clock";
+ 			clock-frequency = <32768>;
+ 		};
+-		pll13: pll13@13M {
++		pll13: pll13@13m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-clock";
+ 			clock-frequency = <13000000>;
+ 		};
+ 		/* Slow bridge clocks under PLL13 */
+-		slow_clk: slow_clk@13M {
++		slow_clk: slow_clk@13m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <0>; /* Slow */
+ 			clock-id = <0>;
+ 			clocks = <&pll13>;
+ 		};
+-		uart0_clk: uart0_clk@13M {
++		uart0_clk: uart0_clk@13m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <0>; /* Slow */
+ 			clock-id = <1>;
+ 			clocks = <&slow_clk>;
+ 		};
+-		gpio_clk: gpio_clk@13M {
++		gpio_clk: gpio_clk@13m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <0>; /* Slow */
+ 			clock-id = <4>;
+ 			clocks = <&slow_clk>;
+ 		};
+-		rtc_clk: rtc_clk@13M {
++		rtc_clk: rtc_clk@13m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <0>; /* Slow */
+ 			clock-id = <6>;
+ 			clocks = <&slow_clk>;
+ 		};
+-		apptimer_clk: app_tmr_clk@13M {
++		apptimer_clk: app_tmr_clk@13m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <0>; /* Slow */
+ 			clock-id = <7>;
+ 			clocks = <&slow_clk>;
+ 		};
+-		acc_tmr_clk@13M {
++		acc_tmr_clk@13m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <0>; /* Slow */
+ 			clock-id = <8>;
+ 			clocks = <&slow_clk>;
+ 		};
+-		pll208: pll208@208M {
++		pll208: pll208@208m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-clock";
+ 			clock-frequency = <208000000>;
+ 		};
+-		app208: app_208_clk@208M {
++		app208: app_208_clk@208m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			clock-div = <1>;
+ 			clock-mult = <1>;
+ 			clocks = <&pll208>;
+ 		};
+-		cpu_clk@208M {
++		cpu_clk@208m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <2>; /* Rest */
+ 			clock-id = <3>;
+ 			clocks = <&app208>;
+ 		};
+-		app104: app_104_clk@104M {
++		app104: app_104_clk@104m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			clock-div = <2>;
+ 			clock-mult = <1>;
+ 			clocks = <&pll208>;
+ 		};
+-		semi_clk@104M {
++		semi_clk@104m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <2>; /* Rest */
+ 			clock-id = <9>;
+ 			clocks = <&app104>;
+ 		};
+-		app52: app_52_clk@52M {
++		app52: app_52_clk@52m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			clock-div = <4>;
+@@ -128,49 +128,49 @@
+ 			clocks = <&pll208>;
+ 		};
+ 		/* AHB subsystem clocks */
+-		ahb_clk: ahb_subsys_clk@52M {
++		ahb_clk: ahb_subsys_clk@52m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <2>; /* Rest */
+ 			clock-id = <10>;
+ 			clocks = <&app52>;
+ 		};
+-		intcon_clk@52M {
++		intcon_clk@52m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <2>; /* Rest */
+ 			clock-id = <12>;
+ 			clocks = <&ahb_clk>;
+ 		};
+-		emif_clk@52M {
++		emif_clk@52m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <2>; /* Rest */
+ 			clock-id = <5>;
+ 			clocks = <&ahb_clk>;
+ 		};
+-		dmac_clk: dmac_clk@52M {
++		dmac_clk: dmac_clk@52m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <2>; /* Rest */
+ 			clock-id = <4>;
+ 			clocks = <&app52>;
+ 		};
+-		fsmc_clk: fsmc_clk@52M {
++		fsmc_clk: fsmc_clk@52m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <2>; /* Rest */
+ 			clock-id = <6>;
+ 			clocks = <&app52>;
+ 		};
+-		xgam_clk: xgam_clk@52M {
++		xgam_clk: xgam_clk@52m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <2>; /* Rest */
+ 			clock-id = <8>;
+ 			clocks = <&app52>;
+ 		};
+-		app26: app_26_clk@26M {
++		app26: app_26_clk@26m {
+ 			#clock-cells = <0>;
+ 			compatible = "fixed-factor-clock";
+ 			clock-div = <2>;
+@@ -178,28 +178,28 @@
+ 			clocks = <&app52>;
+ 		};
+ 		/* Fast bridge  clocks */
+-		fast_clk: fast_clk@26M {
++		fast_clk: fast_clk@26m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <1>; /* Fast */
+ 			clock-id = <0>;
+ 			clocks = <&app26>;
+ 		};
+-		i2c0_clk: i2c0_clk@26M {
++		i2c0_clk: i2c0_clk@26m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <1>; /* Fast */
+ 			clock-id = <1>;
+ 			clocks = <&fast_clk>;
+ 		};
+-		i2c1_clk: i2c1_clk@26M {
++		i2c1_clk: i2c1_clk@26m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <1>; /* Fast */
+ 			clock-id = <2>;
+ 			clocks = <&fast_clk>;
+ 		};
+-		mmc_pclk: mmc_p_clk@26M {
++		mmc_pclk: mmc_p_clk@26m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <1>; /* Fast */
+@@ -211,7 +211,7 @@
+ 			compatible = "stericsson,u300-syscon-mclk";
+ 			clocks = <&mmc_pclk>;
+ 		};
+-		spi_clk: spi_p_clk@26M {
++		spi_clk: spi_p_clk@26m {
+ 			#clock-cells = <0>;
+ 			compatible = "stericsson,u300-syscon-clk";
+ 			clock-type = <1>; /* Fast */
 -- 
 2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
