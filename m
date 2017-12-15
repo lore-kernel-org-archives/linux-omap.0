@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/9] ARM: OMAP2+: Move all omap_hwmod_sysc_fields to
- omap_hwmod_common_data.c
-Date: Fri, 15 Dec 2017 10:08:54 -0800
-Message-ID: <20171215180900.3243-4-tony@atomide.com>
+Subject: [PATCH 2/9] ARM: dts: Add generic ti,
+ sysc compatible in addition to the custom ones
+Date: Fri, 15 Dec 2017 10:08:53 -0800
+Message-ID: <20171215180900.3243-3-tony@atomide.com>
 References: <20171215180900.3243-1-tony@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,195 +22,145 @@ To: linux-omap@vger.kernel.org
 Cc: Nishanth Menon <nm@ti.com>, devicetree@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Dave Gerlach <d-gerlach@ti.com>, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-We want to be able to eventually allocate these dynamically with the
-data for omap_hwmod_class_sysconfig coming from dts.
+Otherwise we cannot use generic OF_DEV_AUXDATA match without listing
+all the compatibles separately for OF_DEV_AUXDATA. Let's also update the
+binding accordingly.
 
-Note that omap_hwmod_sysc_type_smartreflex is the same as the older
-omap36xx_sr_sysc_fields, so let's use the earlier omap36xx_sr_sysc_fields
-instead.
+Let's also fix omap4.dtsi to use "ti,sysc-omap4-sr" compatible as we
+have documented in the binding. This was not noticed earlier as we're
+still probing SmartReflex driver with platform data.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.h             |  6 ++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   | 21 -------------------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   | 17 +--------------
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c    |  7 +------
- arch/arm/mach-omap2/omap_hwmod_common_data.c | 31 ++++++++++++++++++++++++++++
- 5 files changed, 39 insertions(+), 43 deletions(-)
+ Documentation/devicetree/bindings/bus/ti-sysc.txt |  1 +
+ arch/arm/boot/dts/dra7.dtsi                       |  4 ++--
+ arch/arm/boot/dts/omap4.dtsi                      | 20 ++++++++++----------
+ 3 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -40,6 +40,12 @@ struct omap_device;
- extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type1;
- extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2;
- extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
-+extern struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields;
-+extern struct omap_hwmod_sysc_fields omap36xx_sr_sysc_fields;
-+extern struct omap_hwmod_sysc_fields omap3_sham_sysc_fields;
-+extern struct omap_hwmod_sysc_fields omap3xxx_aes_sysc_fields;
-+extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_mcasp;
-+extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_usb_host_fs;
+diff --git a/Documentation/devicetree/bindings/bus/ti-sysc.txt b/Documentation/devicetree/bindings/bus/ti-sysc.txt
+--- a/Documentation/devicetree/bindings/bus/ti-sysc.txt
++++ b/Documentation/devicetree/bindings/bus/ti-sysc.txt
+@@ -19,6 +19,7 @@ Required standard properties:
  
- /*
-  * OCP SYSCONFIG bit shifts/masks TYPE1. These are for IPs compliant
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1190,10 +1190,6 @@ static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod = {
- };
+ - compatible	shall be one of the following generic types:
  
- /* SR common */
--static struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
--	.clkact_shift	= 20,
--};
--
- static struct omap_hwmod_class_sysconfig omap34xx_sr_sysc = {
- 	.sysc_offs	= 0x24,
- 	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_NO_CACHE),
-@@ -1206,11 +1202,6 @@ static struct omap_hwmod_class omap34xx_smartreflex_hwmod_class = {
- 	.rev  = 1,
- };
++		"ti,sysc"
+ 		"ti,sysc-omap2"
+ 		"ti,sysc-omap4"
+ 		"ti,sysc-omap4-simple"
+diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+--- a/arch/arm/boot/dts/dra7.dtsi
++++ b/arch/arm/boot/dts/dra7.dtsi
+@@ -1498,7 +1498,7 @@
+ 		};
  
--static struct omap_hwmod_sysc_fields omap36xx_sr_sysc_fields = {
--	.sidle_shift	= 24,
--	.enwkup_shift	= 26,
--};
--
- static struct omap_hwmod_class_sysconfig omap36xx_sr_sysc = {
- 	.sysc_offs	= 0x38,
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-@@ -2731,12 +2722,6 @@ static struct omap_hwmod_ocp_if omap3xxx_l3_main__gpmc = {
- };
+ 		target-module@4a0dd000 {
+-			compatible = "ti,sysc-omap4-sr";
++			compatible = "ti,sysc-omap4-sr", "ti,sysc";
+ 			ti,hwmods = "smartreflex_core";
+ 			reg = <0x4a0dd000 0x4>,
+ 			      <0x4a0dd008 0x4>;
+@@ -1511,7 +1511,7 @@
+ 		};
  
- /* l4_core -> SHAM2 (SHA1/MD5) (similar to omap24xx) */
--static struct omap_hwmod_sysc_fields omap3_sham_sysc_fields = {
--	.sidle_shift	= 4,
--	.srst_shift	= 1,
--	.autoidle_shift	= 0,
--};
--
- static struct omap_hwmod_class_sysconfig omap3_sham_sysc = {
- 	.rev_offs	= 0x5c,
- 	.sysc_offs	= 0x60,
-@@ -2777,12 +2762,6 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__sham = {
- };
+ 		target-module@4a0d9000 {
+-			compatible = "ti,sysc-omap4-sr";
++			compatible = "ti,sysc-omap4-sr", "ti,sysc";
+ 			ti,hwmods = "smartreflex_mpu";
+ 			reg = <0x4a0d9000 0x4>,
+ 			      <0x4a0d9008 0x4>;
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -383,7 +383,7 @@
+ 		};
  
- /* l4_core -> AES */
--static struct omap_hwmod_sysc_fields omap3xxx_aes_sysc_fields = {
--	.sidle_shift	= 6,
--	.srst_shift	= 1,
--	.autoidle_shift	= 0,
--};
--
- static struct omap_hwmod_class_sysconfig omap3_aes_sysc = {
- 	.rev_offs	= 0x44,
- 	.sysc_offs	= 0x48,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1658,10 +1658,6 @@ static struct omap_hwmod omap44xx_mailbox_hwmod = {
-  */
+ 		target-module@48076000 {
+-			compatible = "ti,sysc-omap4";
++			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			ti,hwmods = "slimbus2";
+ 			reg = <0x48076000 0x4>,
+ 			      <0x48076010 0x4>;
+@@ -456,7 +456,7 @@
+ 		};
  
- /* The IP is not compliant to type1 / type2 scheme */
--static struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_mcasp = {
--	.sidle_shift	= 0,
--};
--
- static struct omap_hwmod_class_sysconfig omap44xx_mcasp_sysc = {
- 	.sysc_offs	= 0x0004,
- 	.sysc_flags	= SYSC_HAS_SIDLEMODE,
-@@ -2403,17 +2399,12 @@ static struct omap_hwmod omap44xx_slimbus2_hwmod = {
-  */
+ 		target-module@4a0db000 {
+-			compatible = "ti,sysc-sr";
++			compatible = "ti,sysc-omap4-sr", "ti,sysc";
+ 			ti,hwmods = "smartreflex_iva";
+ 			reg = <0x4a0db000 0x4>,
+ 			      <0x4a0db008 0x4>;
+@@ -473,7 +473,7 @@
+ 		};
  
- /* The IP is not compliant to type1 / type2 scheme */
--static struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_smartreflex = {
--	.sidle_shift	= 24,
--	.enwkup_shift	= 26,
--};
--
- static struct omap_hwmod_class_sysconfig omap44xx_smartreflex_sysc = {
- 	.sysc_offs	= 0x0038,
- 	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type_smartreflex,
-+	.sysc_fields	= &omap36xx_sr_sysc_fields,
- };
+ 		target-module@4a0dd000 {
+-			compatible = "ti,sysc-sr";
++			compatible = "ti,sysc-omap4-sr", "ti,sysc";
+ 			ti,hwmods = "smartreflex_core";
+ 			reg = <0x4a0dd000 0x4>,
+ 			      <0x4a0dd008 0x4>;
+@@ -490,7 +490,7 @@
+ 		};
  
- static struct omap_hwmod_class omap44xx_smartreflex_hwmod_class = {
-@@ -2844,12 +2835,6 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
-  */
+ 		target-module@4a0d9000 {
+-			compatible = "ti,sysc-sr";
++			compatible = "ti,sysc-omap4-sr", "ti,sysc";
+ 			ti,hwmods = "smartreflex_mpu";
+ 			reg = <0x4a0d9000 0x4>,
+ 			      <0x4a0d9008 0x4>;
+@@ -710,7 +710,7 @@
+ 		};
  
- /* The IP is not compliant to type1 / type2 scheme */
--static struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_usb_host_fs = {
--	.midle_shift	= 4,
--	.sidle_shift	= 2,
--	.srst_shift	= 1,
--};
--
- static struct omap_hwmod_class_sysconfig omap44xx_usb_host_fs_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0210,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_7xx_data.c
-@@ -2055,17 +2055,12 @@ static struct omap_hwmod dra7xx_sata_hwmod = {
-  */
+ 		target-module@52000000 {
+-			compatible = "ti,sysc-omap4";
++			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			ti,hwmods = "iss";
+ 			reg = <0x52000000 0x4>,
+ 			      <0x52000010 0x4>;
+@@ -817,7 +817,7 @@
+ 		};
  
- /* The IP is not compliant to type1 / type2 scheme */
--static struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_smartreflex = {
--	.sidle_shift	= 24,
--	.enwkup_shift	= 26,
--};
--
- static struct omap_hwmod_class_sysconfig dra7xx_smartreflex_sysc = {
- 	.sysc_offs	= 0x0038,
- 	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- 			   SIDLE_SMART_WKUP),
--	.sysc_fields	= &omap_hwmod_sysc_type_smartreflex,
-+	.sysc_fields	= &omap36xx_sr_sysc_fields,
- };
+ 		target-module@40128000 {
+-			compatible = "ti,sysc-mcasp";
++			compatible = "ti,sysc-mcasp", "ti,sysc";
+ 			ti,hwmods = "mcasp";
+ 			reg = <0x40128004 0x4>;
+ 			reg-names = "sysc";
+@@ -835,7 +835,7 @@
+ 		};
  
- static struct omap_hwmod_class dra7xx_smartreflex_hwmod_class = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.c b/arch/arm/mach-omap2/omap_hwmod_common_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_common_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
-@@ -63,3 +63,34 @@ struct omap_dss_dispc_dev_attr omap2_3_dss_dispc_dev_attr = {
- 	.manager_count		= 2,
- 	.has_framedonetv_irq	= 0
- };
-+
-+struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
-+	.clkact_shift	= 20,
-+};
-+
-+struct omap_hwmod_sysc_fields omap36xx_sr_sysc_fields = {
-+	.sidle_shift	= 24,
-+	.enwkup_shift	= 26,
-+};
-+
-+struct omap_hwmod_sysc_fields omap3_sham_sysc_fields = {
-+	.sidle_shift	= 4,
-+	.srst_shift	= 1,
-+	.autoidle_shift	= 0,
-+};
-+
-+struct omap_hwmod_sysc_fields omap3xxx_aes_sysc_fields = {
-+	.sidle_shift	= 6,
-+	.srst_shift	= 1,
-+	.autoidle_shift	= 0,
-+};
-+
-+struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_mcasp = {
-+	.sidle_shift	= 0,
-+};
-+
-+struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_usb_host_fs = {
-+	.midle_shift	= 4,
-+	.sidle_shift	= 2,
-+	.srst_shift	= 1,
-+};
+ 		target-module@4012c000 {
+-			compatible = "ti,sysc-omap4";
++			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			ti,hwmods = "slimbus1";
+ 			reg = <0x4012c000 0x4>,
+ 			      <0x4012c010 0x4>;
+@@ -849,7 +849,7 @@
+ 		};
+ 
+ 		target-module@401f1000 {
+-			compatible = "ti,sysc-omap4";
++			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			ti,hwmods = "aess";
+ 			reg = <0x401f1000 0x4>,
+ 			      <0x401f1010 0x4>;
+@@ -955,7 +955,7 @@
+ 		};
+ 
+ 		target-module@4a10a000 {
+-			compatible = "ti,sysc-omap4";
++			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			ti,hwmods = "fdif";
+ 			reg = <0x4a10a000 0x4>,
+ 			      <0x4a10a010 0x4>;
+@@ -1183,7 +1183,7 @@
+ 		};
+ 
+ 		target-module@56000000 {
+-			compatible = "ti,sysc-omap4";
++			compatible = "ti,sysc-omap4", "ti,sysc";
+ 			ti,hwmods = "gpu";
+ 			reg = <0x5601fc00 0x4>,
+ 			      <0x5601fc10 0x4>;
 -- 
 2.15.0
