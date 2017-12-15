@@ -1,230 +1,166 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 4/9] bus: ti-sysc: Make omap_hwmod_sysc_fields into sysc_regbits platform data
-Date: Fri, 15 Dec 2017 10:08:55 -0800
-Message-ID: <20171215180900.3243-5-tony@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/9] dt-bindings: ti-sysc: Update binding for timers and capabilities
+Date: Fri, 15 Dec 2017 10:08:52 -0800
+Message-ID: <20171215180900.3243-2-tony@atomide.com>
 References: <20171215180900.3243-1-tony@atomide.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171215180900.3243-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171215180900.3243-1-tony@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson@baylibre.com>, Dave Gerlach <d-gerlach@ti.com>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Matthijs van Duin <matthijsvanduin@gmail.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Sakari Ailus <sakari.ailus@iki.fi>, Suman Anna <s-anna@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We want to be able to configure hwmod sysc data from ti-sysc driver using
-platform data callbacks. So let's make struct omap_hwmod_sysc_fields into
-struct sysc_data and have it available for both ti-sysc driver and hwmod
-code.
+The ti-sysc binding does not yet describe the capabilities of the
+interconnect target module. So to make the ti-sysc binding usable
+for configuring the interconnect target module, we need to add few
+more properties:
 
-Note that we can make it use s8 instead of u8 as the hwmod code uses the
-feature flags to check for this field. However, for ti-sysc we can use
--ENODEV to indicate a feature is not supported in the hardware and can
-simplify the code that way.
+1. To detect between omap2 and omap4 timers, let's add compatibles
+   for them for "ti,sysc-omap2-timer" and,sysc-omap4-timer". This
+   makes it easier to pick up the already initialized system timers
+   later on
 
-And let's add also emufree_shift as the dts files will be describing the
-hardware for the SYSCONFIG register capbilities mask.
+2. Let's add "ti,sysc-mask" for a mask of features supported by the
+   interconnect target module. This describes what we have available
+   in the various SYSCONFIG registers
 
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+3. Let's add "ti,sysc-midle" and "ti,sysc-sidle" lists for the master
+   and slave idle modes supported by the interconnect target module.
+   These describe the values available for MIDLE and SIDLE bits in
+   the SYSCONFIG registers
+
+4. Some interconnect target modules need a short delay after reset
+   before they can be accessed, let's use "ti,sysc-delay-us" for
+   that
+
+5. Let's add "ti,syss-mask" bit to describe the optional SYSSTATUS
+   register bits for reset done bits
+
+6. Let's support the two existing custom quirk properties already
+   listed in Documentation/devicetree/bindings/arm/omap/omap.txt for
+   "ti,no-reset-on-init" and "ti,no-idle-on-init"
+
+7. And finally, let's add a header for the binding for the dts
+   files and the driver to use
+
+Cc: Benoît Cousson <bcousson@baylibre.com>
+Cc: Dave Gerlach <d-gerlach@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Matthijs van Duin <matthijsvanduin@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Suman Anna <s-anna@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |  2 ++
- arch/arm/mach-omap2/omap_hwmod.h             | 40 +++++++---------------------
- arch/arm/mach-omap2/omap_hwmod_common_data.c | 21 ++++++++-------
- include/linux/platform_data/ti-sysc.h        | 29 ++++++++++++++++++++
- 4 files changed, 53 insertions(+), 39 deletions(-)
- create mode 100644 include/linux/platform_data/ti-sysc.h
+ Documentation/devicetree/bindings/bus/ti-sysc.txt | 36 +++++++++++++++++++++++
+ include/dt-bindings/bus/ti-sysc.h                 | 22 ++++++++++++++
+ 2 files changed, 58 insertions(+)
+ create mode 100644 include/dt-bindings/bus/ti-sysc.h
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -143,6 +143,8 @@
- #include <linux/of_address.h>
- #include <linux/bootmem.h>
+diff --git a/Documentation/devicetree/bindings/bus/ti-sysc.txt b/Documentation/devicetree/bindings/bus/ti-sysc.txt
+--- a/Documentation/devicetree/bindings/bus/ti-sysc.txt
++++ b/Documentation/devicetree/bindings/bus/ti-sysc.txt
+@@ -26,6 +26,8 @@ Required standard properties:
+ 		or one of the following derivative types for hardware
+ 		needing special workarounds:
  
-+#include <linux/platform_data/ti-sysc.h>
++		"ti,sysc-omap2-timer"
++		"ti,sysc-omap4-timer"
+ 		"ti,sysc-omap3430-sr"
+ 		"ti,sysc-omap3630-sr"
+ 		"ti,sysc-omap4-sr"
+@@ -49,6 +51,26 @@ Required standard properties:
+ 
+ Optional properties:
+ 
++- ti,sysc-mask	shall contain mask of supported register bits for the
++		SYSCONFIG register as documented in the Technical Reference
++		Manual (TRM) for the interconnect target module
 +
- #include <asm/system_misc.h>
- 
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/omap_hwmod.h b/arch/arm/mach-omap2/omap_hwmod.h
---- a/arch/arm/mach-omap2/omap_hwmod.h
-+++ b/arch/arm/mach-omap2/omap_hwmod.h
-@@ -37,15 +37,15 @@
- 
- struct omap_device;
- 
--extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type1;
--extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2;
--extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
--extern struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields;
--extern struct omap_hwmod_sysc_fields omap36xx_sr_sysc_fields;
--extern struct omap_hwmod_sysc_fields omap3_sham_sysc_fields;
--extern struct omap_hwmod_sysc_fields omap3xxx_aes_sysc_fields;
--extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_mcasp;
--extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_usb_host_fs;
-+extern struct sysc_regbits omap_hwmod_sysc_type1;
-+extern struct sysc_regbits omap_hwmod_sysc_type2;
-+extern struct sysc_regbits omap_hwmod_sysc_type3;
-+extern struct sysc_regbits omap34xx_sr_sysc_fields;
-+extern struct sysc_regbits omap36xx_sr_sysc_fields;
-+extern struct sysc_regbits omap3_sham_sysc_fields;
-+extern struct sysc_regbits omap3xxx_aes_sysc_fields;
-+extern struct sysc_regbits omap_hwmod_sysc_type_mcasp;
-+extern struct sysc_regbits omap_hwmod_sysc_type_usb_host_fs;
- 
- /*
-  * OCP SYSCONFIG bit shifts/masks TYPE1. These are for IPs compliant
-@@ -290,26 +290,6 @@ struct omap_hwmod_ocp_if {
- #define CLOCKACT_TEST_ICLK	0x2
- #define CLOCKACT_TEST_NONE	0x3
- 
--/**
-- * struct omap_hwmod_sysc_fields - hwmod OCP_SYSCONFIG register field offsets.
-- * @midle_shift: Offset of the midle bit
-- * @clkact_shift: Offset of the clockactivity bit
-- * @sidle_shift: Offset of the sidle bit
-- * @enwkup_shift: Offset of the enawakeup bit
-- * @srst_shift: Offset of the softreset bit
-- * @autoidle_shift: Offset of the autoidle bit
-- * @dmadisable_shift: Offset of the dmadisable bit
-- */
--struct omap_hwmod_sysc_fields {
--	u8 midle_shift;
--	u8 clkact_shift;
--	u8 sidle_shift;
--	u8 enwkup_shift;
--	u8 srst_shift;
--	u8 autoidle_shift;
--	u8 dmadisable_shift;
--};
--
- /**
-  * struct omap_hwmod_class_sysconfig - hwmod class OCP_SYS* data
-  * @rev_offs: IP block revision register offset (from module base addr)
-@@ -341,7 +321,7 @@ struct omap_hwmod_class_sysconfig {
- 	u32 sysc_offs;
- 	u32 syss_offs;
- 	u16 sysc_flags;
--	struct omap_hwmod_sysc_fields *sysc_fields;
-+	struct sysc_regbits *sysc_fields;
- 	u8 srst_udelay;
- 	u8 idlemodes;
- };
-diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.c b/arch/arm/mach-omap2/omap_hwmod_common_data.c
---- a/arch/arm/mach-omap2/omap_hwmod_common_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
-@@ -16,6 +16,9 @@
-  * data and their integration with other OMAP modules and Linux.
-  */
- 
-+#include <linux/types.h>
-+#include <linux/platform_data/ti-sysc.h>
++- ti,sysc-midle	list of master idle modes supported by the interconnect
++		target module as documented in the TRM for SYSCONFIG
++		register MIDLEMODE bits
 +
- #include "omap_hwmod.h"
++- ti,sysc-sidle	list of slave idle modes supported by the interconnect
++		target module as documented in the TRM for SYSCONFIG
++		register SIDLEMODE bits
++
++- ti,sysc-delay-us	delay needed after OCP softreset before accssing
++			SYSCONFIG register again
++
++- ti,syss-mask	optional mask of reset done status bits as described in the
++		TRM for SYSSTATUS registers, typically 1 with some devices
++		having separate reset done bits for children like OHCI and
++		EHCI
++
+ - clocks	clock specifier for each name in the clock-names as
+ 		specified in the binding documentation for ti-clkctrl,
+ 		typically available for all interconnect targets on TI SoCs
+@@ -61,6 +83,9 @@ Optional properties:
+ - ti,hwmods	optional TI interconnect module name to use legacy
+ 		hwmod platform data
  
- #include "omap_hwmod_common_data.h"
-@@ -27,7 +30,7 @@
-  * if the device ip is compliant with the original PRCM protocol
-  * defined for OMAP2420.
-  */
--struct omap_hwmod_sysc_fields omap_hwmod_sysc_type1 = {
-+struct sysc_regbits omap_hwmod_sysc_type1 = {
- 	.midle_shift	= SYSC_TYPE1_MIDLEMODE_SHIFT,
- 	.clkact_shift	= SYSC_TYPE1_CLOCKACTIVITY_SHIFT,
- 	.sidle_shift	= SYSC_TYPE1_SIDLEMODE_SHIFT,
-@@ -43,7 +46,7 @@ struct omap_hwmod_sysc_fields omap_hwmod_sysc_type1 = {
-  * device ip is compliant with the new PRCM protocol defined for new
-  * OMAP4 IPs.
-  */
--struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2 = {
-+struct sysc_regbits omap_hwmod_sysc_type2 = {
- 	.midle_shift	= SYSC_TYPE2_MIDLEMODE_SHIFT,
- 	.sidle_shift	= SYSC_TYPE2_SIDLEMODE_SHIFT,
- 	.srst_shift	= SYSC_TYPE2_SOFTRESET_SHIFT,
-@@ -54,7 +57,7 @@ struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2 = {
-  * struct omap_hwmod_sysc_type3 - TYPE3 sysconfig scheme.
-  * Used by some IPs on AM33xx
-  */
--struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3 = {
-+struct sysc_regbits omap_hwmod_sysc_type3 = {
- 	.midle_shift	= SYSC_TYPE3_MIDLEMODE_SHIFT,
- 	.sidle_shift	= SYSC_TYPE3_SIDLEMODE_SHIFT,
- };
-@@ -64,32 +67,32 @@ struct omap_dss_dispc_dev_attr omap2_3_dss_dispc_dev_attr = {
- 	.has_framedonetv_irq	= 0
- };
++- ti,no-reset-on-init	interconnect target module should not be reset at init
++
++- ti,no-idle-on-init	interconnect target module should not be idled at init
  
--struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
-+struct sysc_regbits omap34xx_sr_sysc_fields = {
- 	.clkact_shift	= 20,
- };
- 
--struct omap_hwmod_sysc_fields omap36xx_sr_sysc_fields = {
-+struct sysc_regbits omap36xx_sr_sysc_fields = {
- 	.sidle_shift	= 24,
- 	.enwkup_shift	= 26,
- };
- 
--struct omap_hwmod_sysc_fields omap3_sham_sysc_fields = {
-+struct sysc_regbits omap3_sham_sysc_fields = {
- 	.sidle_shift	= 4,
- 	.srst_shift	= 1,
- 	.autoidle_shift	= 0,
- };
- 
--struct omap_hwmod_sysc_fields omap3xxx_aes_sysc_fields = {
-+struct sysc_regbits omap3xxx_aes_sysc_fields = {
- 	.sidle_shift	= 6,
- 	.srst_shift	= 1,
- 	.autoidle_shift	= 0,
- };
- 
--struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_mcasp = {
-+struct sysc_regbits omap_hwmod_sysc_type_mcasp = {
- 	.sidle_shift	= 0,
- };
- 
--struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_usb_host_fs = {
-+struct sysc_regbits omap_hwmod_sysc_type_usb_host_fs = {
- 	.midle_shift	= 4,
- 	.sidle_shift	= 2,
- 	.srst_shift	= 1,
-diff --git a/include/linux/platform_data/ti-sysc.h b/include/linux/platform_data/ti-sysc.h
+ Example: Single instance of MUSB controller on omap4 using interconnect ranges
+ using offsets from l4_cfg second segment (0x4a000000 + 0x80000 = 0x4a0ab000):
+@@ -74,6 +99,17 @@ using offsets from l4_cfg second segment (0x4a000000 + 0x80000 = 0x4a0ab000):
+ 		reg-names = "rev", "sysc", "syss";
+ 		clocks = <&l3_init_clkctrl OMAP4_USB_OTG_HS_CLKCTRL 0>;
+ 		clock-names = "fck";
++		ti,sysc-mask = <(SYSC_OMAP2_ENAWAKEUP |
++				 SYSC_OMAP2_SOFTRESET |
++				 SYSC_OMAP2_AUTOIDLE)>;
++		ti,sysc-midle = <SYSC_IDLE_FORCE>,
++				<SYSC_IDLE_NO>,
++				<SYSC_IDLE_SMART>;
++		ti,sysc-sidle = <SYSC_IDLE_FORCE>,
++				<SYSC_IDLE_NO>,
++				<SYSC_IDLE_SMART>,
++				<SYSC_IDLE_SMART_WKUP>;
++		ti,syss-mask = <1>;
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges = <0 0x2b000 0x1000>;
+diff --git a/include/dt-bindings/bus/ti-sysc.h b/include/dt-bindings/bus/ti-sysc.h
 new file mode 100644
 --- /dev/null
-+++ b/include/linux/platform_data/ti-sysc.h
-@@ -0,0 +1,29 @@
-+#ifndef __TI_SYSC_DATA_H__
-+#define __TI_SYSC_DATA_H__
++++ b/include/dt-bindings/bus/ti-sysc.h
+@@ -0,0 +1,22 @@
++/* TI sysc interconnect target module defines */
 +
-+/**
-+ * struct sysc_regbits - TI OCP_SYSCONFIG register field offsets
-+ * @midle_shift: Offset of the midle bit
-+ * @clkact_shift: Offset of the clockactivity bit
-+ * @sidle_shift: Offset of the sidle bit
-+ * @enwkup_shift: Offset of the enawakeup bit
-+ * @srst_shift: Offset of the softreset bit
-+ * @autoidle_shift: Offset of the autoidle bit
-+ * @dmadisable_shift: Offset of the dmadisable bit
-+ * @emufree_shift; Offset of the emufree bit
-+ *
-+ * Note that 0 is a valid shift, and for ti-sysc.c -ENODEV can be used if a
-+ * feature is not available.
-+ */
-+struct sysc_regbits {
-+	s8 midle_shift;
-+	s8 clkact_shift;
-+	s8 sidle_shift;
-+	s8 enwkup_shift;
-+	s8 srst_shift;
-+	s8 autoidle_shift;
-+	s8 dmadisable_shift;
-+	s8 emufree_shift;
-+};
++/* Generic sysc found on omap2 and later, also known as type1 */
++#define SYSC_OMAP2_CLOCKACTIVITY	(3 << 8)
++#define SYSC_OMAP2_EMUFREE		(1 << 5)
++#define SYSC_OMAP2_ENAWAKEUP		(1 << 2)
++#define SYSC_OMAP2_SOFTRESET		(1 << 1)
++#define SYSC_OMAP2_AUTOIDLE		(1 << 0)
 +
-+#endif	/* __TI_SYSC_DATA_H__ */
++/* Generic sysc found on omap4 and later, also known as type2 */
++#define SYSC_OMAP4_DMADISABLE		(1 << 16)
++#define SYSC_OMAP4_FREEEMU		(1 << 1)	/* Also known as EMUFREE */
++#define SYSC_OMAP4_SOFTRESET		(1 << 0)
++
++/* SmartReflex sysc found on 36xx and later */
++#define SYSC_OMAP3_SR_ENAWAKEUP		(1 << 26)
++
++/* SYSCONFIG STANDBYMODE/MIDLEMODE/SIDLEMODE supported by hardware */
++#define SYSC_IDLE_FORCE			0
++#define SYSC_IDLE_NO			1
++#define SYSC_IDLE_SMART			2
++#define SYSC_IDLE_SMART_WKUP		3
 -- 
 2.15.0
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
