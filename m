@@ -1,29 +1,29 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 10/12] dt-bindings: sdhci-omap: Add K2G specific binding
-Date: Sat, 16 Dec 2017 10:49:42 -0600
-Message-ID: <20171216164942.2t4jvy5j5vkai6pk@rob-hp-laptop>
-References: <20171214130941.26666-1-kishon@ti.com>
- <20171214130941.26666-11-kishon@ti.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 3/4] dt-bindings: opp: Introduce ti-opp-supply bindings
+Date: Sat, 16 Dec 2017 12:01:53 -0600
+Message-ID: <20171216180136.sn4fmf26vcbb56u6@rob-hp-laptop>
+References: <20171215042528.28715-1-d-gerlach@ti.com>
+ <20171215042528.28715-4-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171214130941.26666-11-kishon-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org
+In-Reply-To: <20171215042528.28715-4-d-gerlach@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Dave Gerlach <d-gerlach@ti.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org, devicetree@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 14, 2017 at 06:39:39PM +0530, Kishon Vijay Abraham I wrote:
-> Add binding for the TI's sdhci-omap controller present in K2G.
+On Thu, Dec 14, 2017 at 10:25:27PM -0600, Dave Gerlach wrote:
+> Document the devicetree bindings that describe Texas Instruments
+> opp-supply which allow a platform to describe multiple regulators and
+> additional information, such as registers containing data needed to
+> program aforementioned regulators.
 > 
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
 > ---
->  Documentation/devicetree/bindings/mmc/sdhci-omap.txt | 2 ++
->  1 file changed, 2 insertions(+)
+>  .../bindings/opp/ti-omap5-opp-supply.txt           | 63 ++++++++++++++++++++++
+>  1 file changed, 63 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/opp/ti-omap5-opp-supply.txt
 
-Reviewed-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Rob Herring <robh@kernel.org>
