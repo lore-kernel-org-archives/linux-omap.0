@@ -1,60 +1,40 @@
-From: Haojian Zhuang <haojian.zhuang@linaro.org>
-Subject: Re: [PATCH] pinctrl: single: Remove invalid message
-Date: Mon, 18 Dec 2017 08:21:16 +0800
-Message-ID: <774cac82-775c-134d-66de-3e8964808259@linaro.org>
-References: <20171214165115.27150-1-tony@atomide.com>
- <c51cd2c7-3d36-3dc5-11f8-06c162ca3639@linaro.org>
- <20171217160740.GJ3875@atomide.com>
-Reply-To: haojian.zhuang@linaro.org
+From: Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/3] ARM: am57xx: Add support for am574x-idk
+Date: Mon, 18 Dec 2017 11:50:00 +0530
+Message-ID: <20171218062003.9024-1-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20171217160740.GJ3875@atomide.com>
-Content-Language: en-US
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Device Tree Mailing List <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lokesh Vutla <lokeshvutla-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 2017/12/18 0:07, Tony Lindgren wrote:
-> * Haojian Zhuang <haojian.zhuang@linaro.org> [171217 05:43]:
->> On 2017/12/15 0:51, Tony Lindgren wrote:
->>> Pinctrl single should just show how many pins were found, the physical
->>> address is already in the dev information. So let's remove the wrong
->>> information that claims to show the physical address but really prints
->>> a virtual address that is now hashed.
->>>
->>> Signed-off-by: Tony Lindgren <tony@atomide.com>
->>> ---
->>>    drivers/pinctrl/pinctrl-single.c | 3 +--
->>>    1 file changed, 1 insertion(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
->>> --- a/drivers/pinctrl/pinctrl-single.c
->>> +++ b/drivers/pinctrl/pinctrl-single.c
->>> @@ -1774,8 +1774,7 @@ static int pcs_probe(struct platform_device *pdev)
->>>    			dev_warn(pcs->dev, "initialized with no interrupts\n");
->>>    	}
->>> -	dev_info(pcs->dev, "%i pins at pa %p size %u\n",
->>> -		 pcs->desc.npins, pcs->base, pcs->size);
->>> +	dev_info(pcs->dev, "%i pins, size %u\n", pcs->desc.npins, pcs->size);
->>>    	return pinctrl_enable(pcs->pctl);
->>>
->> Hi Tony,
->>
->> If there's only one pinctrl region in SoC, it's fine to remove the pa part.
->> But there're always multiple pinctrl regions in Hisilicon SoCs. It causes
->> multiple pinctrl register bases are used. Will it cause debug information
->> harder to read when pa parts are removed?
-> 
-> I doubt as for years now we've been printing out the va instead of pa
-> and so far nobody noticed :) We still get the real device pa with the
-> dev_info, size and number of pins.
-> 
+am574x-idk board is similar to am572x-idk with am574x SoC.
+This series adds support for this board.
 
-OK
+Logs: http://pastebin.ubuntu.com/26207045/
 
-Regards
-Haojian
+Lokesh Vutla (3):
+  ARM: dra762: Add support for device package identification
+  ARM: dra762: hwmod: Register package specific hwmod
+  ARM: dts: am57xx: Add support for am574x-idk
 
+ arch/arm/boot/dts/Makefile                |   1 +
+ arch/arm/boot/dts/am572x-idk-common.dtsi  | 100 ++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/am572x-idk.dts          |  93 +--------------------------
+ arch/arm/boot/dts/am574x-idk.dts          |  22 +++++++
+ arch/arm/mach-omap2/id.c                  |  17 ++++-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c |  27 +++++---
+ arch/arm/mach-omap2/soc.h                 |  16 +++++
+ 7 files changed, 174 insertions(+), 102 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am572x-idk-common.dtsi
+ create mode 100644 arch/arm/boot/dts/am574x-idk.dts
+
+-- 
+2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
