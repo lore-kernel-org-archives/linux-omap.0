@@ -1,49 +1,145 @@
-From: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH v5 0/5] misc serdev: new serdev based driver for Wi2Wi w2sg00x4 GPS module
-Date: Mon, 18 Dec 2017 15:52:57 +0100
-Message-ID: <F762F8AC-E75D-426F-9F11-AE4D4D5177A5@goldelico.com>
-References: <cover.1512114576.git.hns@goldelico.com> <01C0DAA8-A2E5-4E42-8726-80937541E231@goldelico.com> <20171218144816.GA31130@kroah.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171218144816.GA31130-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt_Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, =?iso-8859-1?Q?Andreas_F=E4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Andrew F. Davis" <afd-l0cyMroinI0@public.gmane.org>, DTML <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, Linux ARM <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v5 15/18] PCI: dwc: Make cpu_addr_fixup take struct
+ dw_pcie as argument
+Date: Mon, 18 Dec 2017 18:10:58 +0000
+Message-ID: <20171218181058.GC8157@red-moon>
+References: <20171120133222.27771-1-niklas.cassel@axis.com>
+ <20171120133222.27771-16-niklas.cassel@axis.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171120133222.27771-16-niklas.cassel@axis.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Niklas Cassel <niklas.cassel@axis.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklass@axis.com>, Jesper Nilsson <jespern@axis.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Nov 20, 2017 at 02:32:18PM +0100, Niklas Cassel wrote:
+> There is no need to hard code the cpu to bus address fixup mask.
 
-> Am 18.12.2017 um 15:48 schrieb Greg Kroah-Hartman =
-<gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>:
->=20
-> On Mon, Dec 18, 2017 at 09:52:07AM +0100, H. Nikolaus Schaller wrote:
->> Hi,
->> unfortunately I had lost to include Andrew Davis' address who had =
-provided
->> very valuable comments for v5. Sorry, Andrew!
->>=20
->> There has only been one more comment by Andreas F=E4rber in the past =
-14 days.
->>=20
->> So how to proceed? Who is taking care of deciding/merging towards =
-linux-next?
->=20
-> I already have the serdev patches in my tty tree, right?
+There is no need or hardcoding it is broken ? There is a difference
+between those two.
 
-Ok, fine! I just didn't notice.
+> The PCIe controller has a global address on the AXI bus, however,
+> from the perspective of the PCIe controller, its base starts at 0x0,
+> so the local address is 0x0. To get the bus address, simply subtract
+> the global address from the cpu address. The global address is taken
+> from device tree.
 
->  If I have no
-> objections, I can take the rest through that tree as well...
->=20
-> thanks,
->=20
-> greg k-h
+I do not understand this paragraph, I would kindly ask you and Kishon to
+explain please this patch and
 
-BR and thanks,
-Nikolaus
+commit a660083eb06c ("PCI: dwc: designware: Add new *ops* for CPU addr
+fixup")
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What the cpu_addr_fixup() hook is supposed to do ? And what does the
+"addr_space" property represent ?
+
+> Also for ARTPEC-7, hard coding the cpu to bus address fixup mask is
+> not possible, since it uses a High Address Bits Look Up Table, which
+> means that it can, at runtime, map the PCIe window to an arbitrary
+> address in the 32-bit address space.
+
+But you are not changing the ARTPEC-7 mechanism, are you ? I do not
+understand this paragraph - I see no change for ARTPEC-7 in this patch.
+
+> This also fixes a bug for ARTPEC-6, where the cpu to bus address
+> fixup mask previously was off by one (GENMASK(27, 0), rather than
+> GENMASK(28, 0)). This is another reason to calculate the mask by
+> using values from device tree.
+
+What this patch does (and how the cpu_addr_fixup() mechanism works)
+is not clear to me, please explain, we can rewrite the commit log
+with a clear explanation then.
+
+Thanks,
+Lorenzo
+
+> Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c      |  2 +-
+>  drivers/pci/dwc/pcie-artpec6.c    | 18 ++++++++++++++----
+>  drivers/pci/dwc/pcie-designware.c |  2 +-
+>  drivers/pci/dwc/pcie-designware.h |  2 +-
+>  4 files changed, 17 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 224ff8affdce..89d87844abb3 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -110,7 +110,7 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
+>  	writel(value, pcie->base + offset);
+>  }
+>  
+> -static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
+> +static u64 dra7xx_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
+>  {
+>  	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
+>  }
+> diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
+> index e7de4e4649eb..318a2bd0d97e 100644
+> --- a/drivers/pci/dwc/pcie-artpec6.c
+> +++ b/drivers/pci/dwc/pcie-artpec6.c
+> @@ -67,8 +67,6 @@ static const struct of_device_id artpec6_pcie_of_match[];
+>  #define PHY_STATUS			0x118
+>  #define  PHY_COSPLLLOCK			BIT(0)
+>  
+> -#define ARTPEC6_CPU_TO_BUS_ADDR		GENMASK(27, 0)
+> -
+>  static u32 artpec6_pcie_readl(struct artpec6_pcie *artpec6_pcie, u32 offset)
+>  {
+>  	u32 val;
+> @@ -82,9 +80,21 @@ static void artpec6_pcie_writel(struct artpec6_pcie *artpec6_pcie, u32 offset, u
+>  	regmap_write(artpec6_pcie->regmap, offset, val);
+>  }
+>  
+> -static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
+> +static u64 artpec6_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
+>  {
+> -	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
+> +	struct artpec6_pcie *artpec6_pcie = to_artpec6_pcie(pci);
+> +	struct pcie_port *pp = &pci->pp;
+> +	struct dw_pcie_ep *ep = &pci->ep;
+> +
+> +	switch (artpec6_pcie->mode) {
+> +	case DW_PCIE_RC_TYPE:
+> +		return pci_addr - pp->cfg0_base;
+> +	case DW_PCIE_EP_TYPE:
+> +		return pci_addr - ep->phys_base;
+> +	default:
+> +		dev_err(pci->dev, "UNKNOWN device type\n");
+> +	}
+> +	return pci_addr;
+>  }
+>  
+>  static int artpec6_pcie_establish_link(struct dw_pcie *pci)
+> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
+> index 88abdddee2ad..800be7a4f087 100644
+> --- a/drivers/pci/dwc/pcie-designware.c
+> +++ b/drivers/pci/dwc/pcie-designware.c
+> @@ -149,7 +149,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
+>  	u32 retries, val;
+>  
+>  	if (pci->ops->cpu_addr_fixup)
+> -		cpu_addr = pci->ops->cpu_addr_fixup(cpu_addr);
+> +		cpu_addr = pci->ops->cpu_addr_fixup(pci, cpu_addr);
+>  
+>  	if (pci->iatu_unroll_enabled) {
+>  		dw_pcie_prog_outbound_atu_unroll(pci, index, type, cpu_addr,
+> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
+> index 24edac035160..cca5a81c1c74 100644
+> --- a/drivers/pci/dwc/pcie-designware.h
+> +++ b/drivers/pci/dwc/pcie-designware.h
+> @@ -205,7 +205,7 @@ struct dw_pcie_ep {
+>  };
+>  
+>  struct dw_pcie_ops {
+> -	u64	(*cpu_addr_fixup)(u64 cpu_addr);
+> +	u64	(*cpu_addr_fixup)(struct dw_pcie *pcie, u64 cpu_addr);
+>  	u32	(*read_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
+>  			    size_t size);
+>  	void	(*write_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
+> -- 
+> 2.14.2
+> 
