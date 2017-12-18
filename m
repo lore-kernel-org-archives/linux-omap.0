@@ -1,75 +1,63 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v5 0/5] misc serdev: new serdev based driver for Wi2Wi
- w2sg00x4 GPS module
-Date: Mon, 18 Dec 2017 09:52:07 +0100
-Message-ID: <01C0DAA8-A2E5-4E42-8726-80937541E231@goldelico.com>
-References: <cover.1512114576.git.hns@goldelico.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cover.1512114576.git.hns@goldelico.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Nikolaus Schaller <hns@goldelico.com>, Kevin Hilman <khilman@baylibre.com>, =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>, "Andrew F. Davis" <afd@ti.com>
-Cc: DTML <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kernel@pyra-handheld.com, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v5 7/8] pwm: pwm-omap-dmtimer: Adapt driver to utilize
+ dmtimer pdata ops
+Date: Mon, 18 Dec 2017 10:31:53 +0100
+Message-ID: <20171218093153.GA22729@lenoch>
+References: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
+ <1513059137-21593-8-git-send-email-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1513059137-21593-8-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux@armlinux.org.uk
 List-Id: linux-omap@vger.kernel.org
 
-SGksCnVuZm9ydHVuYXRlbHkgSSBoYWQgbG9zdCB0byBpbmNsdWRlIEFuZHJldyBEYXZpcycgYWRk
-cmVzcyB3aG8gaGFkIHByb3ZpZGVkCnZlcnkgdmFsdWFibGUgY29tbWVudHMgZm9yIHY1LiBTb3Jy
-eSwgQW5kcmV3IQoKVGhlcmUgaGFzIG9ubHkgYmVlbiBvbmUgbW9yZSBjb21tZW50IGJ5IEFuZHJl
-YXMgRsOkcmJlciBpbiB0aGUgcGFzdCAxNCBkYXlzLgoKU28gaG93IHRvIHByb2NlZWQ/IFdobyBp
-cyB0YWtpbmcgY2FyZSBvZiBkZWNpZGluZy9tZXJnaW5nIHRvd2FyZHMgbGludXgtbmV4dD8KCkJS
-IGFuZCB0aGFua3MsCk5pa29sYXVzCgo+IEFtIDAxLjEyLjIwMTcgdW0gMDg6NDkgc2NocmllYiBI
-LiBOaWtvbGF1cyBTY2hhbGxlciA8aG5zQGdvbGRlbGljby5jb20+Ogo+IAo+IENoYW5nZXMgVjU6
-Cj4gKiBjbGFyaWZpZWQgdG8ga2VlcCBpdCBpbiBkcml2ZXJzL21pc2MgYW5kIG5vdCBjcmVhdGUg
-YSBuZXcgZ3JvdXAgZHJpdmVycy9ncHMKPiAqIGZpeCBmb3JtYXR0aW5nIG9mIG5ldyBlbnRyeSBp
-biBvbWFwMy1ndGEwNC5kdHNpIChzdWdnZXN0ZWQgYnkgVG9ueSBMaW5kZ3JlbikKPiAqIHJlbW92
-ZWQgTU9EVUxFX0FMSUFTIChzdWdnZXN0ZWQgYnkgQW5kcmV3IEYuIERhdmlzKQo+ICogc29tZSBt
-b3JlIGZvcm1hdHRpbmcsIGNvZGUmc3R5bGUgZml4ZXMgKHN1Z2dlc3RlZCBieSBBbmRyZXcgRi4g
-RGF2aXMpCj4gKiBhcHBseSBfX21heWJlX3VudXNlZCBmb3IgUE0gKHN1Z2dlc3RlZCBieSBBbmRy
-ZXcgRi4gRGF2aXMpCj4gKiBmaXhlZCBjb3B5cmlnaHQgYW5kIGF1dGhvciByZWNvcmRzIChzdWdn
-ZXN0ZWQgYnkgQW5kcmV3IEYuIERhdmlzKQo+IAo+IDIwMTctMTEtMTUgMjI6Mzg6MDE6IENoYW5n
-ZXMgVjQ6Cj4gKiByZW1vdmVkIGFsbCBwZGF0YSByZW1haW5zIChzdWdnZXN0ZWQgYnkgQXJuZCBC
-ZXJnbWFubiBhbmQgUm9iIEhlcnJpbmcpCj4gKiBmaXhlZCBtaW5vciBpc3N1ZXMgYW5kIHN1Ympl
-Y3QvY29tbWl0IG1lc3NhZ2VzIChzdWdnZXN0ZWQgYnkgUm9iIEhlcnJpbmcpCj4gKiBhZGRlZCBv
-bmUgbWlzc2luZyBTaWduZWQtb2ZmLUJ5OiAoc3VnZ2VzdGVkIGJ5IEFuZHJlYXMgRsOkcmJlcikK
-PiAqIGFkZGVkIFNQRFggaGVhZGVyIChzdWdnZXN0ZWQgYnkgUm9iIEhlcnJpbmcpCj4gCj4gMjAx
-Ny0xMS0xNSAxNjoxOToxNzogQ2hhbmdlcyBWMzoKPiAqIHdvcmtlZCBpbiBzdWdnZXN0aW9ucyBi
-eSBrYnVpbGQgdGVzdCByb2JvdAo+ICogYWRkZWQgbWlzYytzZXJkZXYgdG8gdGhlIHN1YmplY3QK
-PiAKPiAyMDE3LTExLTEyIDIyOjAwOjAyOiBDaGFuZ2VzIFYyOgo+ICogcmVkdWNlZCB0byBzdWJt
-aXQgb25seSB3MnNnMDB4NCBHUFMgZHJpdmVyIGNvZGUKPiAqIGFkZCBEVCBub2RlIGZvciBHVEEw
-NCBkZXZpY2UgdG8gbWFrZSB1c2Ugb2YgdGhlIGRyaXZlcgo+ICogc3BsaXQgaW50byBiYXNlIGNv
-ZGUgYW5kIGEgZGVidWdnaW5nIEtjb25maWcgb3B0aW9uIChicmluZ3MgZGV2aWNlIGludG8gZmFs
-c2UgcG93ZXIgc3RhdGUgYWZ0ZXIgYm9vdCkKPiAqIHdvcmtlZCBpbiBjb21tZW50cyBieSBrYnVp
-bGQgcm9ib3QgYW5kIFJvYiBIZXJyaW5nCj4gCj4gMjAxNy0wNS0yMSAxMjo0NDowNzogUkZDIFYx
-Cj4gKiBSRkMgY29uY2VybmluZyBuZXcgc2VyZGV2IGJhc2VkIGRyaXZlcnMgZm9yIFdpMldpIHcy
-c2cwMHg0IEdQUyBtb2R1bGUgYW5kIHcyY2J3MDAzIGJsdWV0b290aAo+IAo+IFllYXJzIGxvbmcg
-aGlzdG9yeSBvZiBnZXR0aW5nIHRoaXMgZGV2aWNlcyBzdXBwb3J0ZWQgKG9yaWdpbmFsIHdvcmsg
-YnkgTmVpbCBCcm93bikuCj4gCj4gSC4gTmlrb2xhdXMgU2NoYWxsZXIgKDUpOgo+ICBkdC1iaW5k
-aW5nczogZGVmaW5lIHZlbmRvciBwcmVmaXggZm9yIFdpMldpLCBJbmMuCj4gIGR0LWJpbmRpbmdz
-OiBncHM6IGFkZCB3MnNnMDB4NCBiaW5kaW5ncyBkb2N1bWVudGF0aW9uIChHUFMgbW9kdWxlIHdp
-dGgKPiAgICBVQVJUKSkKPiAgbWlzYyBzZXJkZXY6IEFkZCB3MnNnMDAwNCAoZ3BzIHJlY2VpdmVy
-KSBwb3dlciBjb250cm9sIGRyaXZlcgo+ICBEVFM6IGd0YTA0OiBhZGQgdWFydDIgY2hpbGQgbm9k
-ZSBmb3IgdzJzZzAweDQKPiAgbWlzYyBzZXJkZXY6IHcyc2cwMDA0OiBhZGQgZGVidWdnaW5nIGNv
-ZGUgYW5kIEtjb25maWcKPiAKPiAuLi4vZGV2aWNldHJlZS9iaW5kaW5ncy9ncHMvd2kyd2ksdzJz
-ZzAwMDQudHh0ICAgICB8ICAyNCArCj4gLi4uL2RldmljZXRyZWUvYmluZGluZ3MvdmVuZG9yLXBy
-ZWZpeGVzLnR4dCAgICAgICAgfCAgIDEgKwo+IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXAzLWd0YTA0
-LmR0c2kgICAgICAgICAgICAgICAgIHwgICA3ICsKPiBkcml2ZXJzL21pc2MvS2NvbmZpZyAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAxOCArCj4gZHJpdmVycy9taXNjL01ha2VmaWxl
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDEgKwo+IGRyaXZlcnMvbWlzYy93MnNn
-MDAwNC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgNTkwICsrKysrKysrKysrKysrKysr
-KysrKwo+IDYgZmlsZXMgY2hhbmdlZCwgNjQxIGluc2VydGlvbnMoKykKPiBjcmVhdGUgbW9kZSAx
-MDA2NDQgRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2dwcy93aTJ3aSx3MnNnMDAw
-NC50eHQKPiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9taXNjL3cyc2cwMDA0LmMKPiAKPiAt
-LSAKPiAyLjEyLjIKPiAKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxp
-c3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9saW51eC1hcm0ta2VybmVsCg==
+Keerthy,
+
+On Tue, Dec 12, 2017 at 11:42:16AM +0530, Keerthy wrote:
+> Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+> 
+> Changes in v4:
+> 
+>   * Switched to dev_get_platdata.
+
+Where do you expect dev.platform_data to be set? PWM driver is failing
+with:
+omap-dmtimer-pwm dmtimer-pwm: dmtimer pdata structure NULL
+omap-dmtimer-pwm: probe of dmtimer-pwm failed with error -22
+
+Which I fixed with patch bellow, to be able to test your patchset.
+
+Also I'm running a bit out of time, so I'll send few clean up
+patches and event capture code to get some feedback early.
+
+Regards,
+	ladis
+
+diff --git a/drivers/clocksource/timer-dm.c b/drivers/clocksource/timer-dm.c
+index 39be39e6a8dd..d3d8a49cae0d 100644
+--- a/drivers/clocksource/timer-dm.c
++++ b/drivers/clocksource/timer-dm.c
+@@ -773,6 +773,7 @@ static int omap_dm_timer_probe(struct platform_device *pdev)
+ 		dev_err(dev, "%s: no platform data.\n", __func__);
+ 		return -ENODEV;
+ 	}
++	dev->platform_data = pdata;
+ 
+ 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (unlikely(!irq)) {
+
+> 
+> Changes in v3:
+> 
+>   * Used of_find_platdata_by_node function to fetch platform
+>     data for timer node.
+> 
+>  drivers/pwm/pwm-omap-dmtimer.c | 39 ++++++++++++++++++++++-----------------
+>  1 file changed, 22 insertions(+), 17 deletions(-)
