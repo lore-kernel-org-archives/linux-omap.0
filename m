@@ -1,145 +1,65 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v5 15/18] PCI: dwc: Make cpu_addr_fixup take struct
- dw_pcie as argument
-Date: Mon, 18 Dec 2017 18:10:58 +0000
-Message-ID: <20171218181058.GC8157@red-moon>
-References: <20171120133222.27771-1-niklas.cassel@axis.com>
- <20171120133222.27771-16-niklas.cassel@axis.com>
+From: Dave Gerlach <d-gerlach@ti.com>
+Subject: Re: [PATCH v2 3/4] dt-bindings: opp: Introduce ti-opp-supply bindings
+Date: Mon, 18 Dec 2017 13:25:00 -0600
+Message-ID: <abe0efc0-6dfc-e9b0-c535-aa1a48bf1a6b@ti.com>
+References: <20171215042528.28715-1-d-gerlach@ti.com>
+ <20171215042528.28715-4-d-gerlach@ti.com>
+ <CAJZ5v0iaYAodhiQm3=7OMhtqP3JXoX_RTrYMRDxVwO=3hTL7Bg@mail.gmail.com>
+ <CAJZ5v0iRg0Sncqt4s3M5+E0h=HJiEDQ4vnB3=6mFhECCv_Lnng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171120133222.27771-16-niklas.cassel@axis.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Niklas Cassel <niklas.cassel@axis.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklass@axis.com>, Jesper Nilsson <jespern@axis.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0iRg0Sncqt4s3M5+E0h=HJiEDQ4vnB3=6mFhECCv_Lnng@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Rob Herring <robh+dt@kernel.org>, linux-arm-kernel@lists.infradead.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 20, 2017 at 02:32:18PM +0100, Niklas Cassel wrote:
-> There is no need to hard code the cpu to bus address fixup mask.
-
-There is no need or hardcoding it is broken ? There is a difference
-between those two.
-
-> The PCIe controller has a global address on the AXI bus, however,
-> from the perspective of the PCIe controller, its base starts at 0x0,
-> so the local address is 0x0. To get the bus address, simply subtract
-> the global address from the cpu address. The global address is taken
-> from device tree.
-
-I do not understand this paragraph, I would kindly ask you and Kishon to
-explain please this patch and
-
-commit a660083eb06c ("PCI: dwc: designware: Add new *ops* for CPU addr
-fixup")
-
-What the cpu_addr_fixup() hook is supposed to do ? And what does the
-"addr_space" property represent ?
-
-> Also for ARTPEC-7, hard coding the cpu to bus address fixup mask is
-> not possible, since it uses a High Address Bits Look Up Table, which
-> means that it can, at runtime, map the PCIe window to an arbitrary
-> address in the 32-bit address space.
-
-But you are not changing the ARTPEC-7 mechanism, are you ? I do not
-understand this paragraph - I see no change for ARTPEC-7 in this patch.
-
-> This also fixes a bug for ARTPEC-6, where the cpu to bus address
-> fixup mask previously was off by one (GENMASK(27, 0), rather than
-> GENMASK(28, 0)). This is another reason to calculate the mask by
-> using values from device tree.
-
-What this patch does (and how the cpu_addr_fixup() mechanism works)
-is not clear to me, please explain, we can rewrite the commit log
-with a clear explanation then.
-
-Thanks,
-Lorenzo
-
-> Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
-> ---
->  drivers/pci/dwc/pci-dra7xx.c      |  2 +-
->  drivers/pci/dwc/pcie-artpec6.c    | 18 ++++++++++++++----
->  drivers/pci/dwc/pcie-designware.c |  2 +-
->  drivers/pci/dwc/pcie-designware.h |  2 +-
->  4 files changed, 17 insertions(+), 7 deletions(-)
+Rafael,
+On 12/16/2017 04:52 AM, Rafael J. Wysocki wrote:
+> On Fri, Dec 15, 2017 at 3:29 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> On Fri, Dec 15, 2017 at 5:25 AM, Dave Gerlach <d-gerlach@ti.com> wrote:
+>>> Document the devicetree bindings that describe Texas Instruments
+>>> opp-supply which allow a platform to describe multiple regulators and
+>>> additional information, such as registers containing data needed to
+>>> program aforementioned regulators.
+>>>
+>>> Signed-off-by: Dave Gerlach <d-gerlach@ti.com>
+>>
+>> I need an ACK from Rob on this one.
 > 
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 224ff8affdce..89d87844abb3 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -110,7 +110,7 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
->  	writel(value, pcie->base + offset);
->  }
->  
-> -static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
-> +static u64 dra7xx_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
->  {
->  	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
->  }
-> diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
-> index e7de4e4649eb..318a2bd0d97e 100644
-> --- a/drivers/pci/dwc/pcie-artpec6.c
-> +++ b/drivers/pci/dwc/pcie-artpec6.c
-> @@ -67,8 +67,6 @@ static const struct of_device_id artpec6_pcie_of_match[];
->  #define PHY_STATUS			0x118
->  #define  PHY_COSPLLLOCK			BIT(0)
->  
-> -#define ARTPEC6_CPU_TO_BUS_ADDR		GENMASK(27, 0)
-> -
->  static u32 artpec6_pcie_readl(struct artpec6_pcie *artpec6_pcie, u32 offset)
->  {
->  	u32 val;
-> @@ -82,9 +80,21 @@ static void artpec6_pcie_writel(struct artpec6_pcie *artpec6_pcie, u32 offset, u
->  	regmap_write(artpec6_pcie->regmap, offset, val);
->  }
->  
-> -static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
-> +static u64 artpec6_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
->  {
-> -	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
-> +	struct artpec6_pcie *artpec6_pcie = to_artpec6_pcie(pci);
-> +	struct pcie_port *pp = &pci->pp;
-> +	struct dw_pcie_ep *ep = &pci->ep;
-> +
-> +	switch (artpec6_pcie->mode) {
-> +	case DW_PCIE_RC_TYPE:
-> +		return pci_addr - pp->cfg0_base;
-> +	case DW_PCIE_EP_TYPE:
-> +		return pci_addr - ep->phys_base;
-> +	default:
-> +		dev_err(pci->dev, "UNKNOWN device type\n");
-> +	}
-> +	return pci_addr;
->  }
->  
->  static int artpec6_pcie_establish_link(struct dw_pcie *pci)
-> diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-> index 88abdddee2ad..800be7a4f087 100644
-> --- a/drivers/pci/dwc/pcie-designware.c
-> +++ b/drivers/pci/dwc/pcie-designware.c
-> @@ -149,7 +149,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
->  	u32 retries, val;
->  
->  	if (pci->ops->cpu_addr_fixup)
-> -		cpu_addr = pci->ops->cpu_addr_fixup(cpu_addr);
-> +		cpu_addr = pci->ops->cpu_addr_fixup(pci, cpu_addr);
->  
->  	if (pci->iatu_unroll_enabled) {
->  		dw_pcie_prog_outbound_atu_unroll(pci, index, type, cpu_addr,
-> diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-> index 24edac035160..cca5a81c1c74 100644
-> --- a/drivers/pci/dwc/pcie-designware.h
-> +++ b/drivers/pci/dwc/pcie-designware.h
-> @@ -205,7 +205,7 @@ struct dw_pcie_ep {
->  };
->  
->  struct dw_pcie_ops {
-> -	u64	(*cpu_addr_fixup)(u64 cpu_addr);
-> +	u64	(*cpu_addr_fixup)(struct dw_pcie *pcie, u64 cpu_addr);
->  	u32	(*read_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
->  			    size_t size);
->  	void	(*write_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
-> -- 
-> 2.14.2
+> Actually, how this (and the next patch) is related to the [1-2/4]?
 > 
+
+The main goal of this series is to add support for scaling the multiple
+regulators needed for the CPU on these TI platforms. The OPP core supports
+multiple regulators but only to the point that it can associate a list of
+regulators to a device. It still by default only scales the normal vdd regulator
+when doing a rate transition. Because of this, we must define our own method of
+doing rate transitions to take the references to our regulators held in the OPP
+core and scale them in the proper sequence depending on what the platform needs.
+
+So to describe the purpose of each patch and their relation to each other:
+
+Patch 1: We must be able to defer the ti-cpufreq driver now that we look for
+regulators during probe as they likely won't be ready when we probe.
+
+Patch 2: Tell the OPP core about regulators needed for TI CPUFreq operation
+using the OPP core. This doesn't actually do anything besides place them in a
+list at this point because the OPP core can't know how TI platforms needs them
+scaled in relation to each other. Placing the regulator definition in ti-cpufreq
+driver ensures they are registered with opp core before cpufreq-dt probes (which
+is triggered at the end of ti-cpufreq probe) and actually makes the opp core get
+the regulators.
+
+Patch 3: Binding doc for patch 4 driver.
+
+Patch 4: TI OPP supply driver which understands how to actually make use of the
+two regulators that the OPP core now has a reference to. This overrides the
+standard opp_set_rate function to let us scale frequency and voltage as needed
+for TI platforms.
+
+Regards,
+Dave
