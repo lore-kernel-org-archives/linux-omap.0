@@ -1,63 +1,33 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v5 0/8] omap: dmtimer: Move driver out of plat-omap
-Date: Mon, 18 Dec 2017 14:14:08 +0100
-Message-ID: <20171218131408.GA24827@lenoch>
-References: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
- <20171218111610.GA16906@lenoch>
- <3b721525-c97d-925d-5904-83515abc4b38@ti.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v5 0/5] misc serdev: new serdev based driver for Wi2Wi
+ w2sg00x4 GPS module
+Date: Mon, 18 Dec 2017 15:48:16 +0100
+Message-ID: <20171218144816.GA31130@kroah.com>
+References: <cover.1512114576.git.hns@goldelico.com>
+ <01C0DAA8-A2E5-4E42-8726-80937541E231@goldelico.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pwm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3b721525-c97d-925d-5904-83515abc4b38@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, linux@armlinux.org.uk
+In-Reply-To: <01C0DAA8-A2E5-4E42-8726-80937541E231@goldelico.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@baylibre.com>, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>, Thierry Reding <treding@nvidia.com>, Jonathan Cameron <jic23@kernel.org>, "Andrew F. Davis" <afd@ti.com>, DTML <devicetree@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, kernel@pyra-handheld.com, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 18, 2017 at 06:24:42PM +0530, Keerthy wrote:
-> On Monday 18 December 2017 04:46 PM, Ladislav Michl wrote:
-> > Keerthy,
-> > 
-> > On Tue, Dec 12, 2017 at 11:42:09AM +0530, Keerthy wrote:
-> >> The series moves dmtimer out of plat-omap to drivers/clocksource.
-> >> The series also does a bunch of changes to pwm-omap-dmtimer code
-> >> to adapt to the driver migration and clean up plat specific
-> >> pdata-quirks and use the dmtimer platform data.
-> > 
-> > thanks for nice work. I'll send two more patches as a reply to this
-> > one. I'd be glad if you could make them part of your serie. One of
-> > them would be nice to have for pwm driver prescaler fix which will
-> > be send independently.
-> > Also, if that helps you can have my
-> > Tested-by: Ladislav Michl <ladis@linux-mips.org>
-> > on IGEPv2 (OMAP3430 based)
+On Mon, Dec 18, 2017 at 09:52:07AM +0100, H. Nikolaus Schaller wrote:
+> Hi,
+> unfortunately I had lost to include Andrew Davis' address who had provided
+> very valuable comments for v5. Sorry, Andrew!
 > 
-> Thanks a bunch! :-). I will take the pwm driver fix along with mine.
+> There has only been one more comment by Andreas Färber in the past 14 days.
 > 
-> should i also take the two patches which you sent:
-> 
-> [PATCH 1/2] clocksource: timer-dm: Make unexported functions static
-> [PATCH 2/2] clocksource: timer-dm: Check prescaler value
+> So how to proceed? Who is taking care of deciding/merging towards linux-next?
 
-It would be great, if you could add those above to your serie.
+I already have the serdev patches in my tty tree, right?  If I have no
+objections, I can take the rest through that tree as well...
 
-> Also what about this:
-> [PATCH] pwm: omap-dmtimer: Fix frequency when using prescaler
+thanks,
 
-This one is independent of your serie, just "[PATCH 2/2] clocksource:
-timer-dm: Check prescaler value" makes it a bit more error prone,
-but there is no compile nor runtime dependency.
-
-Perhaps it could me merged directly via pwm tree after some review?
-
-I have few more patches to add event capture support, based on top
-of those already sent, which I'll send separately.
-
-> Let me know. I plan to send v6 with your Tested-by.
-> 
-> Thanks,
-> Keerthy
-
-Thank you,
-	ladis
+greg k-h
