@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/8] ARM: dts: dra7: Enable 1.5 GHz operation for the CPU
-Date: Tue, 19 Dec 2017 09:24:21 -0600
-Message-ID: <1513697066-27732-4-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 1/8] ARM: dts: dra7: Add vbb-supply to cpu and additional voltages
+Date: Tue, 19 Dec 2017 09:24:19 -0600
+Message-ID: <1513697066-27732-2-git-send-email-d-gerlach@ti.com>
 References: <1513697066-27732-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,32 +12,49 @@ To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-After ti-opp-supply driver is in place to provide AVS Class0 and abb
-regulator scaling support let's enable 1.5GHz for the cpu.
+Add a vbb-supply phandle to the cpus node and also add an additional
+triplet of voltages for each OPP in the operating-points-v2 table to
+make use of the multi regulator support in the OPP core and provide the
+vbb regulator for use by the ti-opp-supply driver.
 
 Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/dra7.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/arm/boot/dts/dra7.dtsi | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
-index 33004e7f1ee9..eb68da74f777 100644
+index ac9216293b7c..d9f60144793b 100644
 --- a/arch/arm/boot/dts/dra7.dtsi
 +++ b/arch/arm/boot/dts/dra7.dtsi
-@@ -116,6 +116,13 @@
- 
- 			opp-supported-hw = <0xFF 0x02>;
- 		};
+@@ -92,6 +92,8 @@
+ 			cooling-min-level = <0>;
+ 			cooling-max-level = <2>;
+ 			#cooling-cells = <2>; /* min followed by max */
 +
-+		opp_high@1500000000 {
-+			opp-hz = /bits/ 64 <1500000000>;
-+			opp-microvolt = <1210000 950000 1250000>,
-+					<1210000 950000 1250000>;
-+			opp-supported-hw = <0xFF 0x04>;
-+		};
++			vbb-supply = <&abb_mpu>;
+ 		};
  	};
  
- 	/*
+@@ -101,14 +103,17 @@
+ 
+ 		opp_nom-1000000000 {
+ 			opp-hz = /bits/ 64 <1000000000>;
+-			opp-microvolt = <1060000 850000 1150000>;
++			opp-microvolt = <1060000 850000 1150000>,
++					<1060000 850000 1150000>;
+ 			opp-supported-hw = <0xFF 0x01>;
+ 			opp-suspend;
+ 		};
+ 
+ 		opp_od-1176000000 {
+ 			opp-hz = /bits/ 64 <1176000000>;
+-			opp-microvolt = <1160000 885000 1160000>;
++			opp-microvolt = <1160000 885000 1160000>,
++					<1160000 885000 1160000>;
++
+ 			opp-supported-hw = <0xFF 0x02>;
+ 		};
+ 	};
 -- 
 2.15.1
 
