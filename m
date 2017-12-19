@@ -1,123 +1,80 @@
 From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH v6 15/18] PCI: dwc: Make cpu_addr_fixup take struct dw_pcie as argument
-Date: Wed, 20 Dec 2017 00:29:36 +0100
-Message-ID: <20171219232940.659-16-niklas.cassel@axis.com>
+Subject: [PATCH v6 05/18] PCI: designware-ep: Remove static keyword from dw_pcie_ep_reset_bar()
+Date: Wed, 20 Dec 2017 00:29:26 +0100
+Message-ID: <20171219232940.659-6-niklas.cassel@axis.com>
 References: <20171219232940.659-1-niklas.cassel@axis.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20171219232940.659-1-niklas.cassel@axis.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Niklas Cassel <niklass@axis.com>, Jesper Nilsson <jespern@axis.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com
+To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
+Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The current cpu addr fixup mask for ARTPEC-6, GENMASK(27, 0), is wrong.
-The correct cpu addr fixup mask for ARTPEC-6 is GENMASK(28, 0).
-
-However, having a hardcoded cpu addr fixup mask in each driver is
-arguably wrong.
-A device tree property called something like "cpu-addr-fixup-mask"
-would have been a better solution.
-Introducing such a property is not needed though, since we already have
-pp->cfg0_base and ep->phys_base, which is derived from already existing
-device tree properties.
-
-It is also worth noting that for ARTPEC-7, hardcoding the cpu addr fixup
-mask is not possible, since it uses a High Address Bits Look Up Table,
-which means that it can, at runtime, map the PCIe window to an arbitrary
-address in the 32-bit address space.
-
-By using pp->cfg0_base and ep->phys_base, we avoid hardcoding a mask
-in each driver. This should work for ARTPEC-6, DRA7xx, and ARTPEC-7.
-I have not changed the code in DRA7xx though, since their existing
-code works, but if they want, they could use the same logic as
-artpec6_pcie_cpu_addr_fixup, and thus remove their hardcoded mask.
-
-The reason why the fixup mask is needed is explained in commit f4c55c5a3f7f
-("PCI: designware: Program ATU with untranslated address").
+Remove the static keyword from dw_pcie_ep_reset_bar() so that
+pci-dra7xx.c does not need its own copy of dw_pcie_ep_reset_bar().
 
 Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/pci/dwc/pci-dra7xx.c      |  2 +-
- drivers/pci/dwc/pcie-artpec6.c    | 18 ++++++++++++++----
- drivers/pci/dwc/pcie-designware.c |  2 +-
- drivers/pci/dwc/pcie-designware.h |  2 +-
- 4 files changed, 17 insertions(+), 7 deletions(-)
+ drivers/pci/dwc/pci-dra7xx.c         | 9 ---------
+ drivers/pci/dwc/pcie-designware-ep.c | 2 +-
+ drivers/pci/dwc/pcie-designware.h    | 5 +++++
+ 3 files changed, 6 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 224ff8affdce..89d87844abb3 100644
+index e77a4ceed74c..d330b7d86ce3 100644
 --- a/drivers/pci/dwc/pci-dra7xx.c
 +++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -110,7 +110,7 @@ static inline void dra7xx_pcie_writel(struct dra7xx_pcie *pcie, u32 offset,
- 	writel(value, pcie->base + offset);
+@@ -337,15 +337,6 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
+ 	return IRQ_HANDLED;
  }
  
--static u64 dra7xx_pcie_cpu_addr_fixup(u64 pci_addr)
-+static u64 dra7xx_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
- {
- 	return pci_addr & DRA7XX_CPU_TO_BUS_ADDR;
- }
-diff --git a/drivers/pci/dwc/pcie-artpec6.c b/drivers/pci/dwc/pcie-artpec6.c
-index e7de4e4649eb..318a2bd0d97e 100644
---- a/drivers/pci/dwc/pcie-artpec6.c
-+++ b/drivers/pci/dwc/pcie-artpec6.c
-@@ -67,8 +67,6 @@ static const struct of_device_id artpec6_pcie_of_match[];
- #define PHY_STATUS			0x118
- #define  PHY_COSPLLLOCK			BIT(0)
- 
--#define ARTPEC6_CPU_TO_BUS_ADDR		GENMASK(27, 0)
+-static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
+-{
+-	u32 reg;
 -
- static u32 artpec6_pcie_readl(struct artpec6_pcie *artpec6_pcie, u32 offset)
+-	reg = PCI_BASE_ADDRESS_0 + (4 * bar);
+-	dw_pcie_writel_dbi2(pci, reg, 0x0);
+-	dw_pcie_writel_dbi(pci, reg, 0x0);
+-}
+-
+ static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
  {
- 	u32 val;
-@@ -82,9 +80,21 @@ static void artpec6_pcie_writel(struct artpec6_pcie *artpec6_pcie, u32 offset, u
- 	regmap_write(artpec6_pcie->regmap, offset, val);
+ 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
+diff --git a/drivers/pci/dwc/pcie-designware-ep.c b/drivers/pci/dwc/pcie-designware-ep.c
+index 8d8019cdff2a..700ed2f4becf 100644
+--- a/drivers/pci/dwc/pcie-designware-ep.c
++++ b/drivers/pci/dwc/pcie-designware-ep.c
+@@ -30,7 +30,7 @@ void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
+ 	pci_epc_linkup(epc);
  }
  
--static u64 artpec6_pcie_cpu_addr_fixup(u64 pci_addr)
-+static u64 artpec6_pcie_cpu_addr_fixup(struct dw_pcie *pci, u64 pci_addr)
+-static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
++void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
  {
--	return pci_addr & ARTPEC6_CPU_TO_BUS_ADDR;
-+	struct artpec6_pcie *artpec6_pcie = to_artpec6_pcie(pci);
-+	struct pcie_port *pp = &pci->pp;
-+	struct dw_pcie_ep *ep = &pci->ep;
-+
-+	switch (artpec6_pcie->mode) {
-+	case DW_PCIE_RC_TYPE:
-+		return pci_addr - pp->cfg0_base;
-+	case DW_PCIE_EP_TYPE:
-+		return pci_addr - ep->phys_base;
-+	default:
-+		dev_err(pci->dev, "UNKNOWN device type\n");
-+	}
-+	return pci_addr;
- }
+ 	u32 reg;
  
- static int artpec6_pcie_establish_link(struct dw_pcie *pci)
-diff --git a/drivers/pci/dwc/pcie-designware.c b/drivers/pci/dwc/pcie-designware.c
-index 88abdddee2ad..800be7a4f087 100644
---- a/drivers/pci/dwc/pcie-designware.c
-+++ b/drivers/pci/dwc/pcie-designware.c
-@@ -149,7 +149,7 @@ void dw_pcie_prog_outbound_atu(struct dw_pcie *pci, int index, int type,
- 	u32 retries, val;
- 
- 	if (pci->ops->cpu_addr_fixup)
--		cpu_addr = pci->ops->cpu_addr_fixup(cpu_addr);
-+		cpu_addr = pci->ops->cpu_addr_fixup(pci, cpu_addr);
- 
- 	if (pci->iatu_unroll_enabled) {
- 		dw_pcie_prog_outbound_atu_unroll(pci, index, type, cpu_addr,
 diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index 24edac035160..cca5a81c1c74 100644
+index 5a1da459eda5..37dfad8d003f 100644
 --- a/drivers/pci/dwc/pcie-designware.h
 +++ b/drivers/pci/dwc/pcie-designware.h
-@@ -205,7 +205,7 @@ struct dw_pcie_ep {
- };
- 
- struct dw_pcie_ops {
--	u64	(*cpu_addr_fixup)(u64 cpu_addr);
-+	u64	(*cpu_addr_fixup)(struct dw_pcie *pcie, u64 cpu_addr);
- 	u32	(*read_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
- 			    size_t size);
- 	void	(*write_dbi)(struct dw_pcie *pcie, void __iomem *base, u32 reg,
+@@ -338,6 +338,7 @@ static inline int dw_pcie_host_init(struct pcie_port *pp)
+ void dw_pcie_ep_linkup(struct dw_pcie_ep *ep);
+ int dw_pcie_ep_init(struct dw_pcie_ep *ep);
+ void dw_pcie_ep_exit(struct dw_pcie_ep *ep);
++void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar);
+ #else
+ static inline void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
+ {
+@@ -351,5 +352,9 @@ static inline int dw_pcie_ep_init(struct dw_pcie_ep *ep)
+ static inline void dw_pcie_ep_exit(struct dw_pcie_ep *ep)
+ {
+ }
++
++static inline void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
++{
++}
+ #endif
+ #endif /* _PCIE_DESIGNWARE_H */
 -- 
 2.14.2
