@@ -1,53 +1,121 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 0/7] ARM: dts: dra7: Enable x2 lane mode support
-Date: Tue, 19 Dec 2017 15:01:26 +0530
-Message-ID: <20171219093133.16565-1-kishon@ti.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v5 15/18] PCI: dwc: Make cpu_addr_fixup take struct
+ dw_pcie as argument
+Date: Tue, 19 Dec 2017 10:48:47 +0000
+Message-ID: <20171219104847.GB18921@red-moon>
+References: <20171120133222.27771-1-niklas.cassel@axis.com>
+ <20171120133222.27771-16-niklas.cassel@axis.com>
+ <20171218181058.GC8157@red-moon>
+ <20171218211542.GA17166@axis.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171218211542.GA17166@axis.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, bcousson@baylibre.com
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-pci@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, kishon@ti.com
+To: Niklas Cassel <niklas.cassel@axis.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jesper Nilsson <jespern@axis.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com
 List-Id: linux-omap@vger.kernel.org
 
-Add properties to enable PCIe x2 lane mode since all dra7
-based SoCs support x2 lane mode.
+On Mon, Dec 18, 2017 at 10:15:43PM +0100, Niklas Cassel wrote:
+> On Mon, Dec 18, 2017 at 06:10:58PM +0000, Lorenzo Pieralisi wrote:
+> > On Mon, Nov 20, 2017 at 02:32:18PM +0100, Niklas Cassel wrote:
+> > > There is no need to hard code the cpu to bus address fixup mask.
+> > 
+> > There is no need or hardcoding it is broken ? There is a difference
+> > between those two.
+> 
+> Well, both :P
+> 
+> The current hardcoding for ARTPEC-6: GENMASK(27, 0), is wrong.
+> Hardcoding the correct mask GENMASK(28, 0) would be sufficient
+> for ARTPEC-6.
+> 
+> However, the ARTPEC-7 is a 32-bit CPU (without LPAE), but has
+> a 64-bit bus. So the ARTPEC-7 can have more devices than fits
+> in the 32-bit range, therefore a lookup table is placed between
+> the bus and the CPU, so you can choose what devices to map.
+> This mapping, which decides what devices to map, is currently
+> done at boot via devicetree.
+> So, on ARTPEC-7, it is not possible to hardcode a CPU_TO_BUS
+> mask, since the PCIe controller's address is only known via DT.
+> 
+> Having a hardcoded value is arguably wrong. It should probably
+> have been a DT property called something like "cpu-bus-fixup-mask".
+> However, this property is not needed since we already have
+> pp->cfg0_base and ep->phys_base, which is derived from already
+> existing DT properties.
+> 
+> By using pp->cfg0_base and ep->phys_base, we avoid hardcoding a mask
+> in the driver. This should work for ARTPEC-6, DRA7xx and ARTPEC-7.
+> I have not changed the code in DRA7xx though, since their existing
+> code works, but if they want, they could use the same logic as
+> artpec6_pcie_cpu_addr_fixup, and thus remove their hardcoded mask.
+> 
+> > 
+> > > The PCIe controller has a global address on the AXI bus, however,
+> > > from the perspective of the PCIe controller, its base starts at 0x0,
+> > > so the local address is 0x0. To get the bus address, simply subtract
+> > > the global address from the cpu address. The global address is taken
+> > > from device tree.
+> > 
+> > I do not understand this paragraph, I would kindly ask you and Kishon to
+> > explain please this patch and
+> > 
+> > commit a660083eb06c ("PCI: dwc: designware: Add new *ops* for CPU addr
+> > fixup")
+> > 
+> > What the cpu_addr_fixup() hook is supposed to do ? And what does the
+> > "addr_space" property represent ?
+> 
+> The ARTPEC-6 and DRA7xx SoCs both has an interconnect configured is a way
+> where the local address of the PCIe controller is 0x0.
+> 
+> For ARTPEC-6 the global address of the PCIe controller is 0xf8050000,
+> so if the CPU writes to address 0xf8050008, from the perspective of the
+> PCIe controller, it will see a write to address 0x8.
+> 
+> This is normally not a problem, but when reading/writing from an endpoint,
+> we go via the outbound iATU. The outbound iATU has to be programmed with
+> a base address (reads/writes in the range [base address + limit] will be
+> subject to translation).
+> 
+> However, since the address the PCIe controller sees, in reality is
+> "0xf8050000 + the address the PCIe controller sees", we need to subtract
+> the global address before programming the base address in the outbound
+> iATU.
+> 
+> Kishon explains the same thing in commit f4c55c5a3f7f68c0.
+> 
+> For this patch, I tried make the commit message understandable,
+> without going into too much detail, but there is probably still
+> room for improvement.
+> 
+> > 
+> > > Also for ARTPEC-7, hard coding the cpu to bus address fixup mask is
+> > > not possible, since it uses a High Address Bits Look Up Table, which
+> > > means that it can, at runtime, map the PCIe window to an arbitrary
+> > > address in the 32-bit address space.
+> > 
+> > But you are not changing the ARTPEC-7 mechanism, are you ? I do not
+> > understand this paragraph - I see no change for ARTPEC-7 in this patch.
+> 
+> Hopefully this is clarified by the comments above.
+> 
+> > 
+> > > This also fixes a bug for ARTPEC-6, where the cpu to bus address
+> > > fixup mask previously was off by one (GENMASK(27, 0), rather than
+> > > GENMASK(28, 0)). This is another reason to calculate the mask by
+> > > using values from device tree.
+> > 
+> > What this patch does (and how the cpu_addr_fixup() mechanism works)
+> > is not clear to me, please explain, we can rewrite the commit log
+> > with a clear explanation then.
+> 
+> Hopefully this is clarified by the comments above.
 
-However only dra76-evm has a slot which can support x2 lane
-cards. Hence only enable x2 lane mode in dra76-evm.
-(am571x-idk can support x2 lane mode but that makes usb port
-not functional so not including the patch to enable
-x2 mode in am571x-idk)
+It is, thank you - it would be good to convert this thread into commit
+log format, you can send it as an update to this patch.
 
-Also included in this series is patch to enable PCIe configs
-(both host and device) in omap2plus_defconfig and
-multi_v7_defconfig
-
-In order to get x2 mode working [1] is required.
-
-However by keeping the older compatible, this series won't
-break functionality if this series is merged before [1]
-
-[1] -> https://lkml.org/lkml/2017/12/19/175
-
-Kishon Vijay Abraham I (7):
-  ARM: dts: dra7: Add properties to enable PCIe x2 lane mode
-  ARM: dts: DRA74x: Use PCIe compatible specific to dra74
-  ARM: dts: DRA72x: Use PCIe compatible specific to dra72
-  ARM: dts: dra76-evm: Enable x2 PCIe lanes
-  ARM: dts: dra7: Remove deprecated PCI compatible string
-  ARM: omap2plus_defconfig: Enable CONFIG_PCI_DRA7XX (Host & Device
-    modes)
-  ARM: multi_v7_defconfig: Enable CONFIG_PCI_DRA7XX (Host & Device
-    modes)
-
- arch/arm/boot/dts/dra7.dtsi          |  9 +++++----
- arch/arm/boot/dts/dra72x.dtsi        | 12 ++++++++++++
- arch/arm/boot/dts/dra74x.dtsi        | 12 ++++++++++++
- arch/arm/boot/dts/dra76-evm.dts      | 16 ++++++++++++++++
- arch/arm/configs/multi_v7_defconfig  |  6 ++++++
- arch/arm/configs/omap2plus_defconfig |  8 ++++++++
- 6 files changed, 59 insertions(+), 4 deletions(-)
-
--- 
-2.11.0
+Thanks,
+Lorenzo
