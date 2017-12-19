@@ -1,117 +1,66 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: Re: [PATCH v5 15/18] PCI: dwc: Make cpu_addr_fixup take struct
- dw_pcie as argument
-Date: Mon, 18 Dec 2017 22:15:43 +0100
-Message-ID: <20171218211542.GA17166@axis.com>
-References: <20171120133222.27771-1-niklas.cassel@axis.com>
- <20171120133222.27771-16-niklas.cassel@axis.com>
- <20171218181058.GC8157@red-moon>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 3/4] dt-bindings: opp: Introduce ti-opp-supply bindings
+Date: Tue, 19 Dec 2017 01:26:06 +0100
+Message-ID: <CAJZ5v0iX9NykEu1yzL4D=iJ29fkd6ejXmu8kS9h4Mk8e1YxFWw@mail.gmail.com>
+References: <20171215042528.28715-1-d-gerlach@ti.com> <20171215042528.28715-4-d-gerlach@ti.com>
+ <CAJZ5v0iaYAodhiQm3=7OMhtqP3JXoX_RTrYMRDxVwO=3hTL7Bg@mail.gmail.com>
+ <CAJZ5v0iRg0Sncqt4s3M5+E0h=HJiEDQ4vnB3=6mFhECCv_Lnng@mail.gmail.com> <abe0efc0-6dfc-e9b0-c535-aa1a48bf1a6b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171218181058.GC8157@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Jesper Nilsson <jespern@axis.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@axis.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <abe0efc0-6dfc-e9b0-c535-aa1a48bf1a6b-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 18, 2017 at 06:10:58PM +0000, Lorenzo Pieralisi wrote:
-> On Mon, Nov 20, 2017 at 02:32:18PM +0100, Niklas Cassel wrote:
-> > There is no need to hard code the cpu to bus address fixup mask.
-> 
-> There is no need or hardcoding it is broken ? There is a difference
-> between those two.
+On Mon, Dec 18, 2017 at 8:25 PM, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> wrote:
+> Rafael,
+> On 12/16/2017 04:52 AM, Rafael J. Wysocki wrote:
+>> On Fri, Dec 15, 2017 at 3:29 PM, Rafael J. Wysocki <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>>> On Fri, Dec 15, 2017 at 5:25 AM, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> wrote:
+>>>> Document the devicetree bindings that describe Texas Instruments
+>>>> opp-supply which allow a platform to describe multiple regulators and
+>>>> additional information, such as registers containing data needed to
+>>>> program aforementioned regulators.
+>>>>
+>>>> Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+>>>
+>>> I need an ACK from Rob on this one.
+>>
+>> Actually, how this (and the next patch) is related to the [1-2/4]?
+>>
+>
+> The main goal of this series is to add support for scaling the multiple
+> regulators needed for the CPU on these TI platforms. The OPP core supports
+> multiple regulators but only to the point that it can associate a list of
+> regulators to a device. It still by default only scales the normal vdd regulator
+> when doing a rate transition. Because of this, we must define our own method of
+> doing rate transitions to take the references to our regulators held in the OPP
+> core and scale them in the proper sequence depending on what the platform needs.
+>
+> So to describe the purpose of each patch and their relation to each other:
+>
+> Patch 1: We must be able to defer the ti-cpufreq driver now that we look for
+> regulators during probe as they likely won't be ready when we probe.
+>
+> Patch 2: Tell the OPP core about regulators needed for TI CPUFreq operation
+> using the OPP core. This doesn't actually do anything besides place them in a
+> list at this point because the OPP core can't know how TI platforms needs them
+> scaled in relation to each other. Placing the regulator definition in ti-cpufreq
+> driver ensures they are registered with opp core before cpufreq-dt probes (which
+> is triggered at the end of ti-cpufreq probe) and actually makes the opp core get
+> the regulators.
+>
+> Patch 3: Binding doc for patch 4 driver.
+>
+> Patch 4: TI OPP supply driver which understands how to actually make use of the
+> two regulators that the OPP core now has a reference to. This overrides the
+> standard opp_set_rate function to let us scale frequency and voltage as needed
+> for TI platforms.
 
-Well, both :P
-
-The current hardcoding for ARTPEC-6: GENMASK(27, 0), is wrong.
-Hardcoding the correct mask GENMASK(28, 0) would be sufficient
-for ARTPEC-6.
-
-However, the ARTPEC-7 is a 32-bit CPU (without LPAE), but has
-a 64-bit bus. So the ARTPEC-7 can have more devices than fits
-in the 32-bit range, therefore a lookup table is placed between
-the bus and the CPU, so you can choose what devices to map.
-This mapping, which decides what devices to map, is currently
-done at boot via devicetree.
-So, on ARTPEC-7, it is not possible to hardcode a CPU_TO_BUS
-mask, since the PCIe controller's address is only known via DT.
-
-Having a hardcoded value is arguably wrong. It should probably
-have been a DT property called something like "cpu-bus-fixup-mask".
-However, this property is not needed since we already have
-pp->cfg0_base and ep->phys_base, which is derived from already
-existing DT properties.
-
-By using pp->cfg0_base and ep->phys_base, we avoid hardcoding a mask
-in the driver. This should work for ARTPEC-6, DRA7xx and ARTPEC-7.
-I have not changed the code in DRA7xx though, since their existing
-code works, but if they want, they could use the same logic as
-artpec6_pcie_cpu_addr_fixup, and thus remove their hardcoded mask.
-
-> 
-> > The PCIe controller has a global address on the AXI bus, however,
-> > from the perspective of the PCIe controller, its base starts at 0x0,
-> > so the local address is 0x0. To get the bus address, simply subtract
-> > the global address from the cpu address. The global address is taken
-> > from device tree.
-> 
-> I do not understand this paragraph, I would kindly ask you and Kishon to
-> explain please this patch and
-> 
-> commit a660083eb06c ("PCI: dwc: designware: Add new *ops* for CPU addr
-> fixup")
-> 
-> What the cpu_addr_fixup() hook is supposed to do ? And what does the
-> "addr_space" property represent ?
-
-The ARTPEC-6 and DRA7xx SoCs both has an interconnect configured is a way
-where the local address of the PCIe controller is 0x0.
-
-For ARTPEC-6 the global address of the PCIe controller is 0xf8050000,
-so if the CPU writes to address 0xf8050008, from the perspective of the
-PCIe controller, it will see a write to address 0x8.
-
-This is normally not a problem, but when reading/writing from an endpoint,
-we go via the outbound iATU. The outbound iATU has to be programmed with
-a base address (reads/writes in the range [base address + limit] will be
-subject to translation).
-
-However, since the address the PCIe controller sees, in reality is
-"0xf8050000 + the address the PCIe controller sees", we need to subtract
-the global address before programming the base address in the outbound
-iATU.
-
-Kishon explains the same thing in commit f4c55c5a3f7f68c0.
-
-For this patch, I tried make the commit message understandable,
-without going into too much detail, but there is probably still
-room for improvement.
-
-> 
-> > Also for ARTPEC-7, hard coding the cpu to bus address fixup mask is
-> > not possible, since it uses a High Address Bits Look Up Table, which
-> > means that it can, at runtime, map the PCIe window to an arbitrary
-> > address in the 32-bit address space.
-> 
-> But you are not changing the ARTPEC-7 mechanism, are you ? I do not
-> understand this paragraph - I see no change for ARTPEC-7 in this patch.
-
-Hopefully this is clarified by the comments above.
-
-> 
-> > This also fixes a bug for ARTPEC-6, where the cpu to bus address
-> > fixup mask previously was off by one (GENMASK(27, 0), rather than
-> > GENMASK(28, 0)). This is another reason to calculate the mask by
-> > using values from device tree.
-> 
-> What this patch does (and how the cpu_addr_fixup() mechanism works)
-> is not clear to me, please explain, we can rewrite the commit log
-> with a clear explanation then.
-
-Hopefully this is clarified by the comments above.
-
-
-Regards,
-Niklas
+Thanks for the explanation, I've applied the series.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
