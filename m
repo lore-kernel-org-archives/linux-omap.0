@@ -1,7 +1,7 @@
 From: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 8/8] ARM: dts: am572x-idk: Add cpu0 vdd supply
-Date: Tue, 19 Dec 2017 09:24:26 -0600
-Message-ID: <1513697066-27732-9-git-send-email-d-gerlach@ti.com>
+Subject: [PATCH 7/8] ARM: dts: am571x-idk: Add cpu0 vdd supply
+Date: Tue, 19 Dec 2017 09:24:25 -0600
+Message-ID: <1513697066-27732-8-git-send-email-d-gerlach@ti.com>
 References: <1513697066-27732-1-git-send-email-d-gerlach@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -16,16 +16,16 @@ Add vdd-supply as smps12_reg for cpu0.
 
 Signed-off-by: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am572x-idk.dts | 4 ++++
+ arch/arm/boot/dts/am571x-idk.dts | 4 ++++
  1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am572x-idk.dts b/arch/arm/boot/dts/am572x-idk.dts
-index a578fe97ba3b..d0daf48346ab 100644
---- a/arch/arm/boot/dts/am572x-idk.dts
-+++ b/arch/arm/boot/dts/am572x-idk.dts
-@@ -127,3 +127,7 @@
- 		status = "okay";
- 	};
+diff --git a/arch/arm/boot/dts/am571x-idk.dts b/arch/arm/boot/dts/am571x-idk.dts
+index debf9464403e..6d3c83743156 100644
+--- a/arch/arm/boot/dts/am571x-idk.dts
++++ b/arch/arm/boot/dts/am571x-idk.dts
+@@ -117,3 +117,7 @@
+ 	pinctrl-1 = <&mmc2_pins_hs>;
+ 	pinctrl-2 = <&mmc2_pins_ddr_rev20 &mmc2_iodelay_ddr_conf>;
  };
 +
 +&cpu0 {
