@@ -1,364 +1,42 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH 1/2] clocksource: timer-dm: Make unexported functions
- static
-Date: Tue, 19 Dec 2017 14:03:47 +0530
-Message-ID: <a1861504-c4d9-c7b5-08a6-60c4cbab3c01@ti.com>
-References: <1513059137-21593-1-git-send-email-j-keerthy@ti.com>
- <20171218111610.GA16906@lenoch> <20171218113056.GA18637@lenoch>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 0/3] PCI: dra7xx: Support PCIe x2 lane mode
+Date: Tue, 19 Dec 2017 14:28:20 +0530
+Message-ID: <20171219085823.8695-1-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20171218113056.GA18637@lenoch>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: linux-pwm@vger.kernel.org, grygorii.strashko@ti.com, aaro.koskinen@iki.fi, tony@atomide.com, daniel.lezcano@linaro.org, linux-kernel@vger.kernel.org, robh+dt@kernel.org, linux@armlinux.org.uk, t-kristo@ti.com, thierry.reding@gmail.com, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh+dt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+Previous version of this series can be found here @ [1]
 
+Patch series adds support to enable x2 lane mode in dra74/dra76 and
+dra72 based boards in pci-dra7xx driver. It introduces new compatible
+strings in order to enable x2 lane mode support.
 
-On Monday 18 December 2017 05:00 PM, Ladislav Michl wrote:
-> As dmtimer no longer exports functions, there is no point
-> to have them non-static. Also delete those not used anywhere.
+Changes from v1:
+*) Added ti prefix to syscon-lane-conf and syscon-lane-sel as
+   suggested to Rob
+*) Merged "PCI: dwc: dra7xx: Add support for SoC specific compatible
+   strings" and "PCI: dwc: pci-dra7xx: Enable x2 mode support" into
+   a single patch.
+*) Fixed $subject as suggested by Bjorn
+*) Added x2 lane mode support for DRA72x
 
-I will refrain from this patch at the moment. I have plans of another
-series to do some more cleanups. For now want to keep the changes minimal.
+The dts changes and phy changes will be sent as a separate series.
 
-Some of the functions that you are removing in this patch might be
-needed and can be added for ops in future.
-So i will let this be separate patch.
+[1] -> https://lkml.org/lkml/2017/10/10/276
 
-Thanks,
-Keerthy
+Kishon Vijay Abraham I (3):
+  dt-bindings: PCI: dra7xx: Add SoC specific compatible strings
+  dt-bindings: PCI: dra7xx: Add properties to enable x2 lane in dra7
+  PCI: dra7xx: Enable x2 mode support for dra74x, dra76x and dra72x
 
-> 
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> ---
->  drivers/clocksource/timer-dm.c | 125 ++++++++---------------------------------
->  include/clocksource/dmtimer.h  |  26 ---------
->  2 files changed, 23 insertions(+), 128 deletions(-)
-> 
-> diff --git a/drivers/clocksource/timer-dm.c b/drivers/clocksource/timer-dm.c
-> index 392978ccd8a6..ec3a28c90c70 100644
-> --- a/drivers/clocksource/timer-dm.c
-> +++ b/drivers/clocksource/timer-dm.c
-> @@ -204,16 +204,6 @@ static inline u32 omap_dm_timer_reserved_systimer(int id)
->  	return (omap_reserved_systimers & (1 << (id - 1))) ? 1 : 0;
->  }
->  
-> -int omap_dm_timer_reserve_systimer(int id)
-> -{
-> -	if (omap_dm_timer_reserved_systimer(id))
-> -		return -ENODEV;
-> -
-> -	omap_reserved_systimers |= (1 << (id - 1));
-> -
-> -	return 0;
-> -}
-> -
->  static struct omap_dm_timer *_omap_dm_timer_request(int req_type, void *data)
->  {
->  	struct omap_dm_timer *timer = NULL, *t;
-> @@ -298,16 +288,16 @@ static struct omap_dm_timer *_omap_dm_timer_request(int req_type, void *data)
->  	return timer;
->  }
->  
-> -struct omap_dm_timer *omap_dm_timer_request(void)
-> +static struct omap_dm_timer *omap_dm_timer_request(void)
->  {
->  	return _omap_dm_timer_request(REQUEST_ANY, NULL);
->  }
->  
-> -struct omap_dm_timer *omap_dm_timer_request_specific(int id)
-> +static struct omap_dm_timer *omap_dm_timer_request_specific(int id)
->  {
->  	/* Requesting timer by ID is not supported when device tree is used */
->  	if (of_have_populated_dt()) {
-> -		pr_warn("%s: Please use omap_dm_timer_request_by_cap/node()\n",
-> +		pr_warn("%s: Please use omap_dm_timer_request_by_node()\n",
->  			__func__);
->  		return NULL;
->  	}
-> @@ -315,20 +305,6 @@ struct omap_dm_timer *omap_dm_timer_request_specific(int id)
->  	return _omap_dm_timer_request(REQUEST_BY_ID, &id);
->  }
->  
-> -/**
-> - * omap_dm_timer_request_by_cap - Request a timer by capability
-> - * @cap:	Bit mask of capabilities to match
-> - *
-> - * Find a timer based upon capabilities bit mask. Callers of this function
-> - * should use the definitions found in the plat/dmtimer.h file under the
-> - * comment "timer capabilities used in hwmod database". Returns pointer to
-> - * timer handle on success and a NULL pointer on failure.
-> - */
-> -struct omap_dm_timer *omap_dm_timer_request_by_cap(u32 cap)
-> -{
-> -	return _omap_dm_timer_request(REQUEST_BY_CAP, &cap);
-> -}
-> -
->  /**
->   * omap_dm_timer_request_by_node - Request a timer by device-tree node
->   * @np:		Pointer to device-tree timer node
-> @@ -336,7 +312,7 @@ struct omap_dm_timer *omap_dm_timer_request_by_cap(u32 cap)
->   * Request a timer based upon a device node pointer. Returns pointer to
->   * timer handle on success and a NULL pointer on failure.
->   */
-> -struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np)
-> +static struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np)
->  {
->  	if (!np)
->  		return NULL;
-> @@ -344,7 +320,7 @@ struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np)
->  	return _omap_dm_timer_request(REQUEST_BY_NODE, np);
->  }
->  
-> -int omap_dm_timer_free(struct omap_dm_timer *timer)
-> +static int omap_dm_timer_free(struct omap_dm_timer *timer)
->  {
->  	if (unlikely(!timer))
->  		return -EINVAL;
-> @@ -424,7 +400,7 @@ __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
->  
->  #else
->  
-> -struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
-> +static struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
->  {
->  	if (timer && !IS_ERR(timer->fclk))
->  		return timer->fclk;
-> @@ -440,18 +416,7 @@ __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
->  
->  #endif
->  
-> -int omap_dm_timer_trigger(struct omap_dm_timer *timer)
-> -{
-> -	if (unlikely(!timer || pm_runtime_suspended(&timer->pdev->dev))) {
-> -		pr_err("%s: timer not available or enabled.\n", __func__);
-> -		return -EINVAL;
-> -	}
-> -
-> -	omap_dm_timer_write_reg(timer, OMAP_TIMER_TRIGGER_REG, 0);
-> -	return 0;
-> -}
-> -
-> -int omap_dm_timer_start(struct omap_dm_timer *timer)
-> +static int omap_dm_timer_start(struct omap_dm_timer *timer)
->  {
->  	u32 l;
->  
-> @@ -471,7 +436,7 @@ int omap_dm_timer_start(struct omap_dm_timer *timer)
->  	return 0;
->  }
->  
-> -int omap_dm_timer_stop(struct omap_dm_timer *timer)
-> +static int omap_dm_timer_stop(struct omap_dm_timer *timer)
->  {
->  	unsigned long rate = 0;
->  
-> @@ -556,8 +521,8 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
->  	return ret;
->  }
->  
-> -int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
-> -			    unsigned int load)
-> +static int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
-> +				  unsigned int load)
->  {
->  	u32 l;
->  
-> @@ -581,37 +546,8 @@ int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
->  	return 0;
->  }
->  
-> -/* Optimized set_load which removes costly spin wait in timer_start */
-> -int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
-> -                            unsigned int load)
-> -{
-> -	u32 l;
-> -
-> -	if (unlikely(!timer))
-> -		return -EINVAL;
-> -
-> -	omap_dm_timer_enable(timer);
-> -
-> -	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-> -	if (autoreload) {
-> -		l |= OMAP_TIMER_CTRL_AR;
-> -		omap_dm_timer_write_reg(timer, OMAP_TIMER_LOAD_REG, load);
-> -	} else {
-> -		l &= ~OMAP_TIMER_CTRL_AR;
-> -	}
-> -	l |= OMAP_TIMER_CTRL_ST;
-> -
-> -	__omap_dm_timer_load_start(timer, l, load, timer->posted);
-> -
-> -	/* Save the context */
-> -	timer->context.tclr = l;
-> -	timer->context.tldr = load;
-> -	timer->context.tcrr = load;
-> -	return 0;
-> -}
-> -
-> -int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
-> -			     unsigned int match)
-> +static int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
-> +				   unsigned int match)
->  {
->  	u32 l;
->  
-> @@ -634,8 +570,8 @@ int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
->  	return 0;
->  }
->  
-> -int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
-> -			   int toggle, int trigger)
-> +static int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
-> +				 int toggle, int trigger)
->  {
->  	u32 l;
->  
-> @@ -659,7 +595,8 @@ int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
->  	return 0;
->  }
->  
-> -int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
-> +static int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer,
-> +					int prescaler)
->  {
->  	u32 l;
->  
-> @@ -681,8 +618,8 @@ int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
->  	return 0;
->  }
->  
-> -int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
-> -				  unsigned int value)
-> +static int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
-> +					unsigned int value)
->  {
->  	if (unlikely(!timer))
->  		return -EINVAL;
-> @@ -704,7 +641,7 @@ int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
->   *
->   * Disables the specified timer interrupts for a timer.
->   */
-> -int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask)
-> +static int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask)
->  {
->  	u32 l = mask;
->  
-> @@ -727,7 +664,7 @@ int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask)
->  	return 0;
->  }
->  
-> -unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
-> +static unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
->  {
->  	unsigned int l;
->  
-> @@ -741,7 +678,7 @@ unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
->  	return l;
->  }
->  
-> -int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
-> +static int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
->  {
->  	if (unlikely(!timer || pm_runtime_suspended(&timer->pdev->dev)))
->  		return -EINVAL;
-> @@ -751,7 +688,7 @@ int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
->  	return 0;
->  }
->  
-> -unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
-> +static unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
->  {
->  	if (unlikely(!timer || pm_runtime_suspended(&timer->pdev->dev))) {
->  		pr_err("%s: timer not iavailable or enabled.\n", __func__);
-> @@ -761,7 +698,7 @@ unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
->  	return __omap_dm_timer_read_counter(timer, timer->posted);
->  }
->  
-> -int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value)
-> +static int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value)
->  {
->  	if (unlikely(!timer || pm_runtime_suspended(&timer->pdev->dev))) {
->  		pr_err("%s: timer not available or enabled.\n", __func__);
-> @@ -775,22 +712,6 @@ int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value)
->  	return 0;
->  }
->  
-> -int omap_dm_timers_active(void)
-> -{
-> -	struct omap_dm_timer *timer;
-> -
-> -	list_for_each_entry(timer, &omap_timer_list, node) {
-> -		if (!timer->reserved)
-> -			continue;
-> -
-> -		if (omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG) &
-> -		    OMAP_TIMER_CTRL_ST) {
-> -			return 1;
-> -		}
-> -	}
-> -	return 0;
-> -}
-> -
->  static const struct of_device_id omap_timer_match[];
->  
->  /**
-> diff --git a/include/clocksource/dmtimer.h b/include/clocksource/dmtimer.h
-> index 862ad62dab9d..63d6ec0747d9 100644
-> --- a/include/clocksource/dmtimer.h
-> +++ b/include/clocksource/dmtimer.h
-> @@ -124,40 +124,14 @@ struct omap_dm_timer {
->  	struct list_head node;
->  };
->  
-> -int omap_dm_timer_reserve_systimer(int id);
-> -struct omap_dm_timer *omap_dm_timer_request(void);
-> -struct omap_dm_timer *omap_dm_timer_request_specific(int timer_id);
-> -struct omap_dm_timer *omap_dm_timer_request_by_cap(u32 cap);
-> -struct omap_dm_timer *omap_dm_timer_request_by_node(struct device_node *np);
-> -int omap_dm_timer_free(struct omap_dm_timer *timer);
->  void omap_dm_timer_enable(struct omap_dm_timer *timer);
->  void omap_dm_timer_disable(struct omap_dm_timer *timer);
->  
->  int omap_dm_timer_get_irq(struct omap_dm_timer *timer);
->  
->  u32 omap_dm_timer_modify_idlect_mask(u32 inputmask);
-> -struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer);
-> -
-> -int omap_dm_timer_trigger(struct omap_dm_timer *timer);
-> -int omap_dm_timer_start(struct omap_dm_timer *timer);
-> -int omap_dm_timer_stop(struct omap_dm_timer *timer);
->  
->  int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source);
-> -int omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload, unsigned int value);
-> -int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload, unsigned int value);
-> -int omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable, unsigned int match);
-> -int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on, int toggle, int trigger);
-> -int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler);
-> -
-> -int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer, unsigned int value);
-> -int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask);
-> -
-> -unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer);
-> -int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value);
-> -unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer);
-> -int omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value);
-> -
-> -int omap_dm_timers_active(void);
->  
->  /*
->   * Do not use the defines below, they are not needed. They should be only
-> 
+ Documentation/devicetree/bindings/pci/ti-pci.txt | 14 +++-
+ drivers/pci/dwc/pci-dra7xx.c                     | 90 ++++++++++++++++++++++++
+ 2 files changed, 102 insertions(+), 2 deletions(-)
+
+-- 
+2.11.0
