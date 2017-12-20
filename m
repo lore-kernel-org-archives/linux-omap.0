@@ -1,80 +1,44 @@
-From: Niklas Cassel <niklas.cassel@axis.com>
-Subject: [PATCH v6 05/18] PCI: designware-ep: Remove static keyword from dw_pcie_ep_reset_bar()
-Date: Wed, 20 Dec 2017 00:29:26 +0100
-Message-ID: <20171219232940.659-6-niklas.cassel@axis.com>
-References: <20171219232940.659-1-niklas.cassel@axis.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171219232940.659-1-niklas.cassel@axis.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Jingoo Han <jingoohan1@gmail.com>, Joao Pinto <Joao.Pinto@synopsys.com>
-Cc: Niklas Cassel <niklass@axis.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Vignesh R <vigneshr@ti.com>
+Subject: Re: [PATCH 1/4] pci: dwc: pci-dra7xx: Enable errata i870 for both EP
+ and RC mode
+Date: Wed, 20 Dec 2017 09:45:45 +0530
+Message-ID: <fa536894-fac6-feea-e973-268ff5a6389d@ti.com>
+References: <20171201061311.16691-1-vigneshr@ti.com>
+ <20171201061311.16691-2-vigneshr@ti.com> <20171219162421.GD21501@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171219162421.GD21501@red-moon>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, KISHON VIJAY ABRAHAM <kishon@ti.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Chris Welch <Chris.Welch@viavisolutions.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Remove the static keyword from dw_pcie_ep_reset_bar() so that
-pci-dra7xx.c does not need its own copy of dw_pcie_ep_reset_bar().
-
-Signed-off-by: Niklas Cassel <niklas.cassel@axis.com>
-Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/pci/dwc/pci-dra7xx.c         | 9 ---------
- drivers/pci/dwc/pcie-designware-ep.c | 2 +-
- drivers/pci/dwc/pcie-designware.h    | 5 +++++
- 3 files changed, 6 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index e77a4ceed74c..d330b7d86ce3 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -337,15 +337,6 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	return IRQ_HANDLED;
- }
- 
--static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
--{
--	u32 reg;
--
--	reg = PCI_BASE_ADDRESS_0 + (4 * bar);
--	dw_pcie_writel_dbi2(pci, reg, 0x0);
--	dw_pcie_writel_dbi(pci, reg, 0x0);
--}
--
- static void dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
- {
- 	struct dw_pcie *pci = to_dw_pcie_from_ep(ep);
-diff --git a/drivers/pci/dwc/pcie-designware-ep.c b/drivers/pci/dwc/pcie-designware-ep.c
-index 8d8019cdff2a..700ed2f4becf 100644
---- a/drivers/pci/dwc/pcie-designware-ep.c
-+++ b/drivers/pci/dwc/pcie-designware-ep.c
-@@ -30,7 +30,7 @@ void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
- 	pci_epc_linkup(epc);
- }
- 
--static void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
-+void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
- {
- 	u32 reg;
- 
-diff --git a/drivers/pci/dwc/pcie-designware.h b/drivers/pci/dwc/pcie-designware.h
-index 5a1da459eda5..37dfad8d003f 100644
---- a/drivers/pci/dwc/pcie-designware.h
-+++ b/drivers/pci/dwc/pcie-designware.h
-@@ -338,6 +338,7 @@ static inline int dw_pcie_host_init(struct pcie_port *pp)
- void dw_pcie_ep_linkup(struct dw_pcie_ep *ep);
- int dw_pcie_ep_init(struct dw_pcie_ep *ep);
- void dw_pcie_ep_exit(struct dw_pcie_ep *ep);
-+void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar);
- #else
- static inline void dw_pcie_ep_linkup(struct dw_pcie_ep *ep)
- {
-@@ -351,5 +352,9 @@ static inline int dw_pcie_ep_init(struct dw_pcie_ep *ep)
- static inline void dw_pcie_ep_exit(struct dw_pcie_ep *ep)
- {
- }
-+
-+static inline void dw_pcie_ep_reset_bar(struct dw_pcie *pci, enum pci_barno bar)
-+{
-+}
- #endif
- #endif /* _PCIE_DESIGNWARE_H */
--- 
-2.14.2
+CgpPbiBUdWVzZGF5IDE5IERlY2VtYmVyIDIwMTcgMDk6NTQgUE0sIExvcmVuem8gUGllcmFsaXNp
+IHdyb3RlOgo+IE9uIEZyaSwgRGVjIDAxLCAyMDE3IGF0IDExOjQzOjA4QU0gKzA1MzAsIFZpZ25l
+c2ggUiB3cm90ZToKPj4gRXJyYXRhIGk4NzAgaXMgYXBwbGljYWJsZSBpbiBib3RoIEVQIGFuZCBS
+QyBtb2RlLiBUaGVyZWZvcmUgcmVuYW1lCj4+IGZ1bmN0aW9uIGRyYTd4eF9wY2llX2VwX3VuYWxp
+Z25lZF9tZW1hY2Nlc3MoKSwgdGhhdCBpbXBsZW1lbnRzIGVycmF0YQo+PiB3b3JrYXJvdW5kLCB0
+byBkcmE3eHhfcGNpZV91bmFsaWduZWRfbWVtYWNjZXNzKCkgYW5kIGNhbGwgaXQgZnJvbSBhCj4+
+IGNvbW1vbiBwbGFjZS4gU28sIHRoYXQgZXJyYXRhIHdvcmthcm91bmQgaXMgYXBwbGllZCBmb3Ig
+Ym90aCBtb2RlcyBvZgo+PiBvcGVyYXRpb24uCj4+IAo+PiBSZXBvcnRlZC1ieTogQ2hyaXMgV2Vs
+Y2ggPENocmlzLldlbGNoQHZpYXZpc29sdXRpb25zLmNvbT4KPj4gU2lnbmVkLW9mZi1ieTogVmln
+bmVzaCBSIDx2aWduZXNockB0aS5jb20+Cj4+IC0tLQo+PsKgIGRyaXZlcnMvcGNpL2R3Yy9wY2kt
+ZHJhN3h4LmMgfCAxMiArKysrKystLS0tLS0KPj7CoCAxIGZpbGUgY2hhbmdlZCwgNiBpbnNlcnRp
+b25zKCspLCA2IGRlbGV0aW9ucygtKQo+IAo+IEkgbmVlZCBLaXNob24ncyBBQ0sgdG8gYXBwbHkg
+aXQsIHRoYW5rcy4KClRoZXJlIGFyZSBzb21lIGVuaGFuY2VtZW50cyB0byB0aGlzIHBhdGNoLiBX
+aWxsIHN1Ym1pdCBhIHYyIHNob3J0bHkuClBsZWFzZSBpZ25vcmUgdGhpcyB2ZXJzaW9uIGZvciBu
+b3cuIFRoYW5rcyEKCgotLSAKUmVnYXJkcwpWaWduZXNoCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdAps
+aW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVh
+ZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
