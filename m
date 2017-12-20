@@ -1,111 +1,65 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [-next PATCH 2/4] treewide: Use DEVICE_ATTR_RW
-Date: Wed, 20 Dec 2017 10:59:26 +0100
-Message-ID: <20171220095926.GA24285@kroah.com>
-References: <cover.1513706701.git.joe@perches.com>
- <cd38f14f06e1f447b3159ffe8c69c0df8241bb6e.1513706701.git.joe@perches.com>
- <20171220083403.GA27231@bitmer.com>
- <1513761884.1234.83.camel@perches.com>
- <20171220093211.GA16177@kroah.com>
- <1513763681.1234.101.camel@perches.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] pci: dwc: pci-dra7xx: Make shutdown handler static
+Date: Wed, 20 Dec 2017 10:29:55 +0000
+Message-ID: <20171220102955.GA941@red-moon>
+References: <20171201050652.13998-1-vigneshr@ti.com>
+ <12f94b3d-5192-d53a-8390-812fe9b7b229@ti.com>
+ <20171201165314.GB29985@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1513763681.1234.101.camel@perches.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Joe Perches <joe@perches.com>
-Cc: linux-fbdev@vger.kernel.org, David Airlie <airlied@linux.ie>, Heiko Carstens <heiko.carstens@de.ibm.com>, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, Jaroslav Kysela <perex@perex.cz>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-s390@vger.kernel.org, linux-omap@vger.kernel.org, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, linux-scsi@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, James Smart <james.smart@broadcom.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, Darren Hart <dvhart@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dick Kennedy <dick.kennedy@broadcom.com>, Mathias Nyman <mathias.nyman@intel.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, intel-gfx@lists.freedesktop
+In-Reply-To: <20171201165314.GB29985@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: Vignesh R <vigneshr@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gV2VkLCBEZWMgMjAsIDIwMTcgYXQgMDE6NTQ6NDFBTSAtMDgwMCwgSm9lIFBlcmNoZXMgd3Jv
-dGU6Cj4gT24gV2VkLCAyMDE3LTEyLTIwIGF0IDEwOjMyICswMTAwLCBHcmVnIEtyb2FoLUhhcnRt
-YW4gd3JvdGU6Cj4gPiBPbiBXZWQsIERlYyAyMCwgMjAxNyBhdCAwMToyNDo0NEFNIC0wODAwLCBK
-b2UgUGVyY2hlcyB3cm90ZToKPiA+ID4gT24gV2VkLCAyMDE3LTEyLTIwIGF0IDEwOjM0ICswMjAw
-LCBKYXJra28gTmlrdWxhIHdyb3RlOgo+ID4gPiA+IE9uIFR1ZSwgRGVjIDE5LCAyMDE3IGF0IDEw
-OjE1OjA3QU0gLTA4MDAsIEpvZSBQZXJjaGVzIHdyb3RlOgo+ID4gPiA+ID4gQ29udmVydCBERVZJ
-Q0VfQVRUUiB1c2VzIHRvIERFVklDRV9BVFRSX1JXIHdoZXJlIHBvc3NpYmxlLgo+ID4gPiAKPiA+
-ID4gW10gCj4gPiA+ID4gPiBkaWZmIC0tZ2l0IGEvc291bmQvc29jL29tYXAvbWNic3AuYyBiL3Nv
-dW5kL3NvYy9vbWFwL21jYnNwLmMKPiA+ID4gCj4gPiA+IFtdCj4gPiA+ID4gPiBAQCAtODU0LDcg
-Kzg1NCw3IEBAIHN0YXRpYyBzc2l6ZV90IGRtYV9vcF9tb2RlX3N0b3JlKHN0cnVjdCBkZXZpY2Ug
-KmRldiwKPiA+ID4gPiA+ICAJcmV0dXJuIHNpemU7Cj4gPiA+ID4gPiAgfQo+ID4gPiA+ID4gIAo+
-ID4gPiA+ID4gLXN0YXRpYyBERVZJQ0VfQVRUUihkbWFfb3BfbW9kZSwgMDY0NCwgZG1hX29wX21v
-ZGVfc2hvdywgZG1hX29wX21vZGVfc3RvcmUpOwo+ID4gPiA+ID4gK3N0YXRpYyBERVZJQ0VfQVRU
-Ul9SVyhkbWFfb3BfbW9kZSk7Cj4gPiA+ID4gPiAgCj4gPiA+ID4gCj4gPiA+ID4gV2hpbGUgSSBj
-YW4gYWNrIHRoaXMgcGFydCBoZXJlIGlmIGl0IGhlbHBzIGdlbmVyaWMgY2xlYW51cCBlZmZvcnQg
-SQo+ID4gPiA+IGRvbid0IHVuZGVyc3RhcnQgd291bGQgaXQgaW1wcm92ZSBjb2RlIHJlYWRhYmls
-aXR5IGluIGdlbmVyYWw/IE1vZGUgNjQ0Cj4gPiA+ID4gaXMgY2xlYXIgYW5kIGRvbid0IG5lZWQg
-YW55IGdyZXBwaW5nIGJ1dCBmb3IgREVWSUNFX0FUVFJfUlcoKSBJIGhhZCB0byBnbwo+ID4gPiA+
-IHRocm91Z2ggYWxsIG9mIHRoZXNlIGZpbGVzIGluIG9yZGVyIHRvIHNlZSB3aGF0IGRvZXMgaXQg
-bWVhbjoKPiA+IAo+ID4gWWVhaCwgNjQ0IGlzICJjbGVhciIsIGJ1dCBfUlcoKSBpcyBldmVuIG1v
-cmUgY2xlYXIuICBJZGVhbGx5IEkgd2FudCB0bwo+ID4gZ2V0IHJpZCBvZiBhbGwgb2YgdGhlICJu
-b24tc3RhbmRhcmQiIHVzZXJzIHRoYXQgc2V0IHJhbmRvbSBtb2RlcyBvZgo+ID4gc3lzZnMgZmls
-ZXMsIGFzIHdlIGdldCBpdCB3cm9uZyB0b28gbWFueSB0aW1lcy4gIFVzaW5nIHRoZSAiZGVmYXVs
-dHMiIGlzCj4gPiBtdWNoIGJldHRlci4KPiA+IAo+ID4gPiBBcmUgeW91IHN1Z2dlc3RpbmcgdGhh
-dCBkZXZpY2UuaCAoYXMgdGhhdCBpcyB3aGVyZQo+ID4gPiBERVZJQ0VfQVRUUiBhbmQgdGhlIG90
-aGVyIERFVklDRV9BVFRSXzxGT08+IHZhcmlhbnRzCj4gPiA+IGFyZSAjZGVmaW5lZCkgc2hvdWxk
-IGhhdmUgYmV0dGVyIGNvbW1lbnRzIGZvciB0aGUKPiA+ID4gXzxGT08+IHZhcmlhbnRzPwo+ID4g
-PiAKPiA+ID4gPiBERVZJQ0VfQVRUUl9SVzogaW5jbHVkZS9saW51eC9kZXZpY2UuaAo+ID4gPiA+
-IF9fQVRUUl9SVzogaW5jbHVkZS9saW51eC9zeXNmcy5oCj4gPiA+ID4gU19JV1VTUjogaW5jbHVk
-ZS91YXBpL2xpbnV4L3N0YXQuaAo+ID4gPiA+IFNfSVJVR086IGluY2x1ZGUvbGludXgvc3RhdC5o
-Cj4gPiA+IAo+ID4gPiBidHc6IHBhdGNoIDEvNCBvZiB0aGUgc2VyaWVzIGRvZXMgcmVtb3ZlIHRo
-ZSB1c2VzIG9mCj4gPiA+IFNfPFBFUk1TPiBmcm9tIHRoZXNlIG1hY3JvcyBpbiBzeXNmcy5oIGFu
-ZCBjb252ZXJ0cwo+ID4gPiB0aGVtIHRvIHNpbXBsZSBvY3RhbCBpbnN0ZWFkLgo+ID4gCj4gPiBX
-aHkgeW91IGRpZG4ndCBzZW5kIHRoYXQgcGF0Y2ggdG8gdGhlIHN5c2ZzIG1haW50YWluZXIgaXMg
-YSBiaXQgb2RkLi4uICA6KQo+IAo+IFNvIGhlcmUncyBhbiBvcHBvcnR1bml0eSBmb3IgeW91Ogo+
-IAo+IFRoZSBzeXNmcyBtYWludGFpbmVyIGhhc24ndCBhZGRlZCBpbmNsdWRlL2xpbnV4L3N5c2Zz
-LmggdG8KPiB0aGUgbGlzdCBvZiBtYWludGFpbmVkIGZpbGVzLi4uCj4gCj4gRFJJVkVSIENPUkUs
-IEtPQkpFQ1RTLCBERUJVR0ZTIEFORCBTWVNGUwo+IE06CUdyZWcgS3JvYWgtSGFydG1hbiA8Z3Jl
-Z2toQGxpbnV4Zm91bmRhdGlvbi5vcmc+Cj4gVDoJZ2l0IGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
-Yi9zY20vbGludXgva2VybmVsL2dpdC9ncmVna2gvZHJpdmVyLWNvcmUuZ2l0Cj4gUzoJU3VwcG9y
-dGVkCj4gRjoJRG9jdW1lbnRhdGlvbi9rb2JqZWN0LnR4dAo+IEY6CWRyaXZlcnMvYmFzZS8KPiBG
-Oglmcy9kZWJ1Z2ZzLwo+IEY6CWZzL3N5c2ZzLwo+IEY6CWluY2x1ZGUvbGludXgvZGVidWdmcy5o
-Cj4gRjoJaW5jbHVkZS9saW51eC9rb2JqKgo+IEY6CWxpYi9rb2JqKgoKSGVoLCBnb29kIHBvaW50
-LCBidXQgdXNpbmcgZ2V0X21haW50YWluZXIucGwgZG9lcyBwdXQgbWUgYXQgdGhlIHRvcCBvZgp0
-aGUgbGlzdCB0aGF0IHlvdSBzaG91bGQgYmUgY2M6aW5nOgoKJCAuL3NjcmlwdHMvZ2V0X21haW50
-YWluZXIucGwgLS1maWxlIGluY2x1ZGUvbGludXgvc3lzZnMuaApHcmVnIEtyb2FoLUhhcnRtYW4g
-PGdyZWdraEBsaW51eGZvdW5kYXRpb24ub3JnPiAoY29tbWl0X3NpZ25lcjozLzM9MTAwJSxhdXRo
-b3JlZDoyLzM9NjclLGFkZGVkX2xpbmVzOjcvOD04OCUpCkthdGUgU3Rld2FydCA8a3N0ZXdhcnRA
-bGludXhmb3VuZGF0aW9uLm9yZz4gKGNvbW1pdF9zaWduZXI6MS8zPTMzJSkKVGhvbWFzIEdsZWl4
-bmVyIDx0Z2x4QGxpbnV0cm9uaXguZGU+IChjb21taXRfc2lnbmVyOjEvMz0zMyUpClBoaWxpcHBl
-IE9tYnJlZGFubmUgPHBvbWJyZWRhbm5lQG5leGIuY29tPiAoY29tbWl0X3NpZ25lcjoxLzM9MzMl
-KQpOaWNrIERlc2F1bG5pZXJzIDxuaWNrLmRlc2F1bG5pZXJzQGdtYWlsLmNvbT4gKGNvbW1pdF9z
-aWduZXI6MS8zPTMzJSxhdXRob3JlZDoxLzM9MzMlLGFkZGVkX2xpbmVzOjEvOD0xMiUscmVtb3Zl
-ZF9saW5lczoxLzE9MTAwJSkKbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZyAob3BlbiBsaXN0
-KQoKQW55d2F5LCBJJ2xsIGdvIGFkZCBzeXNmcy5oIHRvIHRoZSBsaXN0LCB0aGFua3MgZm9yIHBv
-aW50aW5nIGl0IG91dC4KCj4gPiBJIHNob3VsZCBiZSB0YWtpbmcgdGhpcyB3aG9sZSBzZXJpZXMg
-dGhyb3VnaCBteSB0cmVlLiAgSm9lLCB0aGFua3MgZm9yCj4gPiBkb2luZyB0aGlzIGluIGFuIGF1
-dG9tYXRlZCB3YXksIEkndmUgYmVlbiB3YW50aW5nIHRvIHNlZSB0aGlzIGRvbmUgZm9yIGEKPiA+
-IGxvbmcgdGltZS4KPiAKPiBidHc6IHRoZXJlIGFyZSBtYW55IHVzZXMgb2YgYSByZXZlcnNlZCBk
-ZWNsYXJhdGlvbiBzdHlsZSBvZiBERVZJQ0VfQVRUUgo+IAo+IEhlcmUncyBhbm90aGVyIHRoaW5n
-IHRoYXQgY291bGQgYmUgZG9uZSBmb3IgbW9yZSBERVZJQ0VfQVRUUl88Rk9PPiB1c2VzLgo+IAo+
-ID09PQo+IAo+IFNvbWUgREVWSUNFX0FUVFIgZGVmaW5pdGlvbnMgdXNlIGEgcmV2ZXJzZWQgc3Rh
-dGljIGZ1bmN0aW9uIGZvcm0gZnJvbQo+IHRoZSB0eXBpY2FsLiAgQ29udmVydCB0aGVtIHRvIHVz
-ZSB0aGUgbW9yZSBjb21tb24gbWFjcm8gZm9ybSBzbyBpdCBpcwo+IGVhc2llciB0byBncmVwIGZv
-ciB0aGUgc3R5bGUuCj4gCj4gaS5lLjoKPiAgICAgICAgIHN0YXRpYyBzc2l6ZV90IHNob3dfPGZv
-bz4oLi4uKQo+IGFuZAo+ICAgICAgICAgc3RhdGljIHNzaXplX3Qgc3RvcmVfPGZvbz4oLi4uKQo+
-IAo+IHdoZXJlIHRoZSBzdGF0aWMgZnVuY3Rpb24gbmFtZXMgaW4gdGhlIERFVklDRV9BVFRSX1JX
-IG1hY3JvIGFyZSByZXZlcnNlZAo+IAo+ICAgICAgICAgc3RhdGljIHNzaXplX3QgPGZvbz5fc2hv
-dyguLi4pCj4gYW5kCj4gICAgICAgICBzdGF0aWMgc3NpemVfdCA8Zm9vPl9zdG9yZSguLi4pCj4g
-Cj4gRG9uZSB3aXRoIHBlcmwgc2NyaXB0Cj4gCj4gJCBjYXQgZGV2X2F0dHJfcndfYmFja3dhcmRz
-LnBlcmwKPiBsb2NhbCAkLzsKPiB3aGlsZSAoPD4pIHsKPiAgICAgbXkgJGZpbGUgPSAkXzsKPiAg
-ICAgd2hpbGUgKCRmaWxlID1+IG0vXGJERVZJQ0VfQVRUUlxzKlwoXHMqKFx3KylccyosL2cpIHsK
-PiAgICAgICAgIG15ICR2YXIgPSAkMTsKPiAgICAgICAgIGlmICgkZmlsZSA9fiBzL1xiREVWSUNF
-X0FUVFJccypcKFxzKiR7dmFyfVxzKixccypcKD8oXHMqU19JUlVHT1xzKlx8XHMqUwo+ICAgICAg
-ICAgICAgICRmaWxlID1+IHMvXGJzaG93XyR7dmFyfVxiLyR7dmFyfV9zaG93L2c7Cj4gICAgICAg
-ICAgICAgJGZpbGUgPX4gcy9cYnN0b3JlXyR7dmFyfVxiLyR7dmFyfV9zdG9yZS9nOwo+ICAgICAg
-ICAgfQo+ICAgICB9Cj4gICAgIHByaW50ICRmaWxlOwo+IH0KPiAKPiAkIGdpdCBncmVwIC0tbmFt
-ZS1vbmx5IC13IERFVklDRV9BVFRSIHwgXAo+ICAgeGFyZ3MgcGVybCAtaSBkZXZfYXR0cl9yd19i
-YWNrd2FyZHMucGVybAo+IAoKQWgsIG5pY2UsIEkgbG92ZSBwZXJsIDopCgpncmVnIGstaApfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFp
-bGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+On Fri, Dec 01, 2017 at 04:53:14PM +0000, Lorenzo Pieralisi wrote:
+> On Fri, Dec 01, 2017 at 10:43:53AM +0530, Keerthy wrote:
+> > 
+> > 
+> > On Friday 01 December 2017 10:36 AM, Vignesh R wrote:
+> > > Declare dra7xx_pcie_shutdown() as a static function as its not used
+> > > elsewhere.
+> > 
+> > Seems like the below version that had static version was not taken:
+> > 
+> > https://patchwork.kernel.org/patch/10052579/
+> 
+> It looks like I can drop the patch above then - let me know if
+> that's ok.
+
+I would appreciate some feedback; I assume that dropping the patch above
+and applying the patch in $SUBJECT is what you expect, if there is a
+problem with that please manifest yourselves.
+
+Lorenzo
+
+> Thanks,
+> Lorenzo
+> 
+> > So for this patch:
+> > 
+> > Reviewed-by: Keerthy <j-keerthy@ti.com>
+> > 
+> > > 
+> > > Signed-off-by: Vignesh R <vigneshr@ti.com>
+> > > ---
+> > >  drivers/pci/dwc/pci-dra7xx.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> > > index 59e8de34cec6..b9db442af793 100644
+> > > --- a/drivers/pci/dwc/pci-dra7xx.c
+> > > +++ b/drivers/pci/dwc/pci-dra7xx.c
+> > > @@ -815,7 +815,7 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+> > >  }
+> > >  #endif
+> > >  
+> > > -void dra7xx_pcie_shutdown(struct platform_device *pdev)
+> > > +static void dra7xx_pcie_shutdown(struct platform_device *pdev)
+> > >  {
+> > >  	struct device *dev = &pdev->dev;
+> > >  	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+> > > 
