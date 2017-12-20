@@ -1,88 +1,182 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [-next PATCH 2/4] treewide: Use DEVICE_ATTR_RW
-Date: Wed, 20 Dec 2017 14:26:18 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1712201425010.13140@hadrien>
-References: <cover.1513706701.git.joe@perches.com>
- <cd38f14f06e1f447b3159ffe8c69c0df8241bb6e.1513706701.git.joe@perches.com>
- <20171220083403.GA27231@bitmer.com> <1513761884.1234.83.camel@perches.com>
- <20171220093211.GA16177@kroah.com>
- <1513763681.1234.101.camel@perches.com> <20171220095926.GA24285@kroah.com>
- <1513767307.1234.114.camel@perches.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [RFC PATCH 09/12] mmc: sdhci: Use software timer when timeout
+ greater than hardware capablility
+Date: Wed, 20 Dec 2017 16:11:10 +0200
+Message-ID: <74170f0a-329a-2c66-7ad4-a1fedb9747df@intel.com>
+References: <20171214130941.26666-1-kishon@ti.com>
+ <20171214130941.26666-10-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1513767307.1234.114.camel@perches.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Joe Perches <joe@perches.com>
-Cc: linux-fbdev@vger.kernel.org, David Airlie <airlied@linux.ie>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, Jaroslav Kysela <perex@perex.cz>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-s390@vger.kernel.org, linux-omap@vger.kernel.org, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, linux-scsi@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, James Smart <james.smart@broadcom.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, Darren Hart <dvhart@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dick Kennedy <dick.kennedy@broadcom.com>, Mathias Nyman <mathias.nyman@intel.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Peter Oberparleiter <oberp>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20171214130941.26666-10-kishon@ti.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-CgpPbiBXZWQsIDIwIERlYyAyMDE3LCBKb2UgUGVyY2hlcyB3cm90ZToKCj4gT24gV2VkLCAyMDE3
-LTEyLTIwIGF0IDEwOjU5ICswMTAwLCBHcmVnIEtyb2FoLUhhcnRtYW4gd3JvdGU6Cj4gPiA+ID4g
-V2h5IHlvdSBkaWRuJ3Qgc2VuZCB0aGF0IHBhdGNoIHRvIHRoZSBzeXNmcyBtYWludGFpbmVyIGlz
-IGEgYml0IG9kZC4uLiAgOikKPiA+ID4KPiA+ID4gU28gaGVyZSdzIGFuIG9wcG9ydHVuaXR5IGZv
-ciB5b3U6Cj4gPiA+Cj4gPiA+IFRoZSBzeXNmcyBtYWludGFpbmVyIGhhc24ndCBhZGRlZCBpbmNs
-dWRlL2xpbnV4L3N5c2ZzLmggdG8KPiA+ID4gdGhlIGxpc3Qgb2YgbWFpbnRhaW5lZCBmaWxlcy4u
-Lgo+ID4gPgo+ID4gPiBEUklWRVIgQ09SRSwgS09CSkVDVFMsIERFQlVHRlMgQU5EIFNZU0ZTCj4g
-PiA+IE06CUdyZWcgS3JvYWgtSGFydG1hbiA8Z3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5vcmc+Cj4g
-PiA+IFQ6CWdpdCBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQv
-Z3JlZ2toL2RyaXZlci1jb3JlLmdpdAo+ID4gPiBTOglTdXBwb3J0ZWQKPiA+ID4gRjoJRG9jdW1l
-bnRhdGlvbi9rb2JqZWN0LnR4dAo+ID4gPiBGOglkcml2ZXJzL2Jhc2UvCj4gPiA+IEY6CWZzL2Rl
-YnVnZnMvCj4gPiA+IEY6CWZzL3N5c2ZzLwo+ID4gPiBGOglpbmNsdWRlL2xpbnV4L2RlYnVnZnMu
-aAo+ID4gPiBGOglpbmNsdWRlL2xpbnV4L2tvYmoqCj4gPiA+IEY6CWxpYi9rb2JqKgo+ID4KPiA+
-IEhlaCwgZ29vZCBwb2ludCwgYnV0IHVzaW5nIGdldF9tYWludGFpbmVyLnBsIGRvZXMgcHV0IG1l
-IGF0IHRoZSB0b3Agb2YKPiA+IHRoZSBsaXN0IHRoYXQgeW91IHNob3VsZCBiZSBjYzppbmc6Cj4g
-Pgo+ID4gJCAuL3NjcmlwdHMvZ2V0X21haW50YWluZXIucGwgLS1maWxlIGluY2x1ZGUvbGludXgv
-c3lzZnMuaAo+ID4gR3JlZyBLcm9haC1IYXJ0bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9y
-Zz4gKGNvbW1pdF9zaWduZXI6My8zPTEwMCUsYXV0aG9yZWQ6Mi8zPTY3JSxhZGRlZF9saW5lczo3
-Lzg9ODglKQo+ID4gS2F0ZSBTdGV3YXJ0IDxrc3Rld2FydEBsaW51eGZvdW5kYXRpb24ub3JnPiAo
-Y29tbWl0X3NpZ25lcjoxLzM9MzMlKQo+ID4gVGhvbWFzIEdsZWl4bmVyIDx0Z2x4QGxpbnV0cm9u
-aXguZGU+IChjb21taXRfc2lnbmVyOjEvMz0zMyUpCj4gPiBQaGlsaXBwZSBPbWJyZWRhbm5lIDxw
-b21icmVkYW5uZUBuZXhiLmNvbT4gKGNvbW1pdF9zaWduZXI6MS8zPTMzJSkKPiA+IE5pY2sgRGVz
-YXVsbmllcnMgPG5pY2suZGVzYXVsbmllcnNAZ21haWwuY29tPiAoY29tbWl0X3NpZ25lcjoxLzM9
-MzMlLGF1dGhvcmVkOjEvMz0zMyUsYWRkZWRfbGluZXM6MS84PTEyJSxyZW1vdmVkX2xpbmVzOjEv
-MT0xMDAlKQo+ID4gbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZyAob3BlbiBsaXN0KQo+Cj4g
-VGhlIHNjcmlwdCBJIHVzZSB0byBzZW5kIHBhdGNoZXMgYWRkcyAtLW5vZ2l0IC0tbm9naXQtZmFs
-bGJhY2sKPiB0byBjb3B5IG9ubHkgbGlzdGVkIG1haW50YWluZXJzIGJlY2F1c2UgcGVvcGxlIHRo
-YXQgc2VuZCBjbGVhbnVwCj4gcGF0Y2hlcyBkb24ndCBnZW5lcmFsbHkgbGlrZSB0byBnZXQgcmFu
-ZG9tIHBhdGNoZXMuCj4KPiA+ID4gYnR3OiB0aGVyZSBhcmUgbWFueSB1c2VzIG9mIGEgcmV2ZXJz
-ZWQgZGVjbGFyYXRpb24gc3R5bGUgb2YgREVWSUNFX0FUVFIKPiA+ID4KPiA+ID4gSGVyZSdzIGFu
-b3RoZXIgdGhpbmcgdGhhdCBjb3VsZCBiZSBkb25lIGZvciBtb3JlIERFVklDRV9BVFRSXzxGT08+
-IHVzZXMuCj4gPiA+Cj4gPiA+ID09PQo+ID4gPgo+ID4gPiBTb21lIERFVklDRV9BVFRSIGRlZmlu
-aXRpb25zIHVzZSBhIHJldmVyc2VkIHN0YXRpYyBmdW5jdGlvbiBmb3JtIGZyb20KPiA+ID4gdGhl
-IHR5cGljYWwuICBDb252ZXJ0IHRoZW0gdG8gdXNlIHRoZSBtb3JlIGNvbW1vbiBtYWNybyBmb3Jt
-IHNvIGl0IGlzCj4gPiA+IGVhc2llciB0byBncmVwIGZvciB0aGUgc3R5bGUuCj4gW10KPiA+ID4g
-JCBnaXQgZ3JlcCAtLW5hbWUtb25seSAtdyBERVZJQ0VfQVRUUiB8IFwKPiA+ID4gICB4YXJncyBw
-ZXJsIC1pIGRldl9hdHRyX3J3X2JhY2t3YXJkcy5wZXJsCj4gPiBBaCwgbmljZSwgSSBsb3ZlIHBl
-cmwgOgo+Cj4gVGhhdCB3YXMgYSBiYWQgY29weS9wYXN0ZSBvZiB0aGUgc2NyaXB0Lgo+Cj4gVGhl
-IGFjdHVhbCBzY3JpcHQgZm9yIFJXIGlzOgo+Cj4gJCBjYXQgZGV2X2F0dHJfcndfYmFja3dhcmRz
-LnBlcmwKPiBsb2NhbCAkLzsKPiB3aGlsZSAoPD4pIHsKPiAgICAgbXkgJGZpbGUgPSAkXzsKPiAg
-ICAgd2hpbGUgKCRmaWxlID1+IG0vXGJERVZJQ0VfQVRUUlxzKlwoXHMqKFx3KylccyosL2cpIHsK
-PiAJbXkgJHZhciA9ICQxOwo+IAlpZiAoJGZpbGUgPX4gcy9cYkRFVklDRV9BVFRSXHMqXChccyok
-e3Zhcn1ccyosXHMqXCg/KFxzKlNfSVJVR09ccypcfFxzKlNfSVdVU1J8XHMqU19JV1VTUlxzKlx8
-XHMqU19JUlVHT1xzKnxccyowNjQ0XHMqKVwpP1xzKixccypzaG93XyR7dmFyfVxzKixccypzdG9y
-ZV8ke3Zhcn1ccypcKS9ERVZJQ0VfQVRUUl9SVygke3Zhcn0pL2cpIHsKPiAJICAgICRmaWxlID1+
-IHMvXGJzaG93XyR7dmFyfVxiLyR7dmFyfV9zaG93L2c7Cj4gCSAgICAkZmlsZSA9fiBzL1xic3Rv
-cmVfJHt2YXJ9XGIvJHt2YXJ9X3N0b3JlL2c7Cj4gCX0KPiAgICAgfQo+ICAgICBwcmludCAkZmls
-ZTsKPiB9Cj4KPiBUaGVyZSBhcmUgMyBkaWZmZXJlbnQgcGVybCBzY3JpcHRzIGZvciBydywgcm8s
-IGFuZCB3by4KPiBhbmQgdGhlc2Ugc2NyaXB0cywgYmVjYXVzZSBvZiBmdW5jdGlvbiByZW5hbWlu
-ZyBhbmQKPiBwb3NzaWJsZSByZXVzZSBvZiB0aGUgb3JpZ2luYWwgZnVuY3Rpb24gbmFtZXMgYnkg
-b3RoZXIKPiBzdHJpbmcgY29uY2F0ZW5hdGVkIG1hY3JvcywgY3JlYXRlIHNvbWUgYmFkIGNvbnZl
-cnNpb25zCj4gc28gdGhleSBuZWVkIHNvbWUgbWFudWFsIGNsZWFudXBzIHRvby4KPgo+IFBlcmhh
-cHMgY29jY2luZWxsZSBjb3VsZCBkbyBhIGJldHRlciBqb2Igb2YgaXQsIGJ1dAo+IGxpa2VseSBz
-dHJpbmcgY29uY2F0ZW5hdGlvbiBtYWNybyB1c2VzIGFyZSBnb2luZyB0bwo+IGJlIGhhcmQgdG8g
-ZGVhbCB3aXRoIGluIGFueSBjYXNlLgoKSSBtYWRlIGEgcnVsZSBmb3IgdGhpcyBhdCBvbmUgcG9p
-bnQsIGJ1dCB0aGVyZSBhcmUgY2FzZXMgd2hlcmUgdGhlCmZ1bmN0aW9ucyBoYXZlIHRoZSB3cm9u
-ZyBuYW1lcywgYW5kIHRoZW4gdGhlc2UgZnVuY3Rpb25zIG1heSBiZSB1c2VkCmVsc2V3aGVyZS4K
-Cmp1bGlhCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRy
-aS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
-czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+On 14/12/17 15:09, Kishon Vijay Abraham I wrote:
+> Errata i834 in AM572x Sitara Processors Silicon Revision 2.0, 1.1
+> (SPRZ429K July 2014–Revised March 2017 [1]) mentions
+> Under high speed HS200 and SDR104 modes, the functional clock for MMC
+> modules will reach up to 192 MHz. At this frequency, the maximum obtainable
+> timeout (DTO = 0xE) through MMC host controller is (1/192MHz)*2^27 = 700ms.
+> Commands taking longer than 700ms may be affected by this small window
+> frame. Workaround for this errata is use a software timer instead of
+> hardware timer to provide the delay requested by the upper layer.
+> 
+> While this errata is specific to AM572x, it is applicable to all sdhci
+> based controllers when a particular request require timeout greater
+> than hardware capability.
+
+It doesn't work for our controllers.  Even if the data timeout interrupt is
+disabled, it seems like the timeout still "happens" in some fashion - after
+which the host controller starts misbehaving.
+
+So you will need to add a quirk.
+
+> 
+> Re-use the software timer already implemented in sdhci to program the
+> correct timeout value and also disable the hardware timeout when
+> the required timeout is greater than hardware capabiltiy in order to
+> avoid spurious timeout interrupts.
+> 
+> This patch is based on the earlier patch implemented for omap_hsmmc [2]
+> 
+> [1] -> http://www.ti.com/lit/er/sprz429k/sprz429k.pdf
+> [2] -> https://patchwork.kernel.org/patch/9791449/
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/mmc/host/sdhci.c | 41 +++++++++++++++++++++++++++++++++++++++--
+>  drivers/mmc/host/sdhci.h | 11 +++++++++++
+>  2 files changed, 50 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+> index e9290a3439d5..d0655e1d2cc7 100644
+> --- a/drivers/mmc/host/sdhci.c
+> +++ b/drivers/mmc/host/sdhci.c
+> @@ -673,6 +673,27 @@ static void sdhci_adma_table_post(struct sdhci_host *host,
+>  	}
+>  }
+>  
+> +static void sdhci_calc_sw_timeout(struct sdhci_host *host,
+> +				  struct mmc_command *cmd,
+> +				  unsigned int target_timeout)
+> +{
+> +	struct mmc_host *mmc = host->mmc;
+> +	struct mmc_ios *ios = &mmc->ios;
+> +	struct mmc_data *data = cmd->data;
+> +	unsigned long long transfer_time;
+> +
+> +	if (data) {
+> +		transfer_time = MMC_BLOCK_TRANSFER_TIME_MS(data->blksz,
+> +							   ios->bus_width,
+> +							   ios->clock);
+
+If it has a value, actual_clock is better than ios->clock.
+
+> +		/* calculate timeout for the entire data */
+> +		host->data_timeout = (data->blocks * (target_timeout +
+> +						      transfer_time));
+> +	} else if (cmd->flags & MMC_RSP_BUSY) {
+> +		host->data_timeout = cmd->busy_timeout * MSEC_PER_SEC;
+
+Doesn't need MSEC_PER_SEC multiplier.
+
+> +	}
+> +}
+> +
+>  static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
+>  {
+>  	u8 count;
+> @@ -732,8 +753,12 @@ static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
+>  	}
+>  
+>  	if (count >= 0xF) {
+> -		DBG("Too large timeout 0x%x requested for CMD%d!\n",
+> -		    count, cmd->opcode);
+> +		DBG("Too large timeout.. using SW timeout for CMD%d!\n",
+> +		    cmd->opcode);
+> +		sdhci_calc_sw_timeout(host, cmd, target_timeout);
+> +		host->ier &= ~SDHCI_INT_DATA_TIMEOUT;
+> +		sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
+> +		sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
+>  		count = 0xE;
+>  	}
+>  
+> @@ -1198,6 +1223,14 @@ static void sdhci_finish_command(struct sdhci_host *host)
+>  {
+>  	struct mmc_command *cmd = host->cmd;
+>  
+> +	if (host->data_timeout) {
+> +		unsigned long timeout;
+> +
+> +		timeout = jiffies +
+> +			  msecs_to_jiffies(host->data_timeout);
+> +		sdhci_mod_timer(host, host->cmd->mrq, timeout);
+
+cmd could be the sbc or a stop cmd or a command during transfer, so this
+needs more logic.
+
+> +	}
+> +
+>  	host->cmd = NULL;
+>  
+>  	if (cmd->flags & MMC_RSP_PRESENT) {
+> @@ -2341,6 +2374,10 @@ static bool sdhci_request_done(struct sdhci_host *host)
+>  		return true;
+>  	}
+>  
+> +	host->data_timeout = 0;
+> +	host->ier |= SDHCI_INT_DATA_TIMEOUT;
+> +	sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
+> +	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
+
+sdhci can have 2 requests in progress to allow for commands to be sent while
+a data transfer is in progress, so this is not necessarily the data transfer
+request that is done.  Also we want to avoid unnecessary register writes.
+
+>  	sdhci_del_timer(host, mrq);
+>  
+>  	/*
+> diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
+> index 54bc444c317f..e6e0278bea1a 100644
+> --- a/drivers/mmc/host/sdhci.h
+> +++ b/drivers/mmc/host/sdhci.h
+> @@ -332,6 +332,15 @@ struct sdhci_adma2_64_desc {
+>  /* Allow for a a command request and a data request at the same time */
+>  #define SDHCI_MAX_MRQS		2
+>  
+> +/*
+> + * Time taken for transferring one block. It is multiplied by a constant
+> + * factor '2' to account for any errors
+> + */
+> +#define MMC_BLOCK_TRANSFER_TIME_MS(blksz, bus_width, freq)		\
+> +				   ((unsigned long long)		\
+> +				   (2 * (((blksz) * MSEC_PER_SEC *	\
+> +				   (8 / (bus_width))) / (freq))))
+
+I don't think the macro helps make the code more readable.  Might just as
+well write a nice function to calculate the entire data request timeout.
+
+> +
+>  enum sdhci_cookie {
+>  	COOKIE_UNMAPPED,
+>  	COOKIE_PRE_MAPPED,	/* mapped by sdhci_pre_req() */
+> @@ -546,6 +555,8 @@ struct sdhci_host {
+>  	/* Host SDMA buffer boundary. */
+>  	u32			sdma_boundary;
+>  
+> +	unsigned long long	data_timeout;
+
+msecs_to_jiffies() will truncate to 'unsigned int' anyway, so this might as
+well be 'unsigned int'.
+
+> +
+>  	unsigned long private[0] ____cacheline_aligned;
+>  };
+>  
+> 
+
