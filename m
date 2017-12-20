@@ -1,66 +1,29 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [-next PATCH 2/4] treewide: Use DEVICE_ATTR_RW
-Date: Wed, 20 Dec 2017 10:32:11 +0100
-Message-ID: <20171220093211.GA16177@kroah.com>
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+Subject: Re: [-next PATCH 0/4] sysfs and DEVICE_ATTR_<foo>
+Date: Wed, 20 Dec 2017 11:46:06 +0200
+Message-ID: <87r2rppw9t.fsf@linux.intel.com>
 References: <cover.1513706701.git.joe@perches.com>
- <cd38f14f06e1f447b3159ffe8c69c0df8241bb6e.1513706701.git.joe@perches.com>
- <20171220083403.GA27231@bitmer.com>
- <1513761884.1234.83.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1513761884.1234.83.camel@perches.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, James Smart <james.smart@broadcom.com>, Dick Kennedy <dick.kennedy@broadcom.com>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, Mathias Nyman <mathias.nyman@intel.com>, Felipe Balbi <balbi@kernel.org>, "Luis R. Rodriguez" <mcgrof@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <cover.1513706701.git.joe@perches.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Joe Perches <joe@perches.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gfx@lists.freedesktop.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, platform-driver-x86@vger.kernel.org, linux-s390@vger.kernel.org, esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org, linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 20, 2017 at 01:24:44AM -0800, Joe Perches wrote:
-> On Wed, 2017-12-20 at 10:34 +0200, Jarkko Nikula wrote:
-> > On Tue, Dec 19, 2017 at 10:15:07AM -0800, Joe Perches wrote:
-> > > Convert DEVICE_ATTR uses to DEVICE_ATTR_RW where possible.
-> [] 
-> > > diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-> []
-> > > @@ -854,7 +854,7 @@ static ssize_t dma_op_mode_store(struct device *dev,
-> > >  	return size;
-> > >  }
-> > >  
-> > > -static DEVICE_ATTR(dma_op_mode, 0644, dma_op_mode_show, dma_op_mode_store);
-> > > +static DEVICE_ATTR_RW(dma_op_mode);
-> > >  
-> > 
-> > While I can ack this part here if it helps generic cleanup effort I
-> > don't understart would it improve code readability in general? Mode 644
-> > is clear and don't need any grepping but for DEVICE_ATTR_RW() I had to go
-> > through all of these files in order to see what does it mean:
-
-Yeah, 644 is "clear", but _RW() is even more clear.  Ideally I want to
-get rid of all of the "non-standard" users that set random modes of
-sysfs files, as we get it wrong too many times.  Using the "defaults" is
-much better.
-
-> Are you suggesting that device.h (as that is where
-> DEVICE_ATTR and the other DEVICE_ATTR_<FOO> variants
-> are #defined) should have better comments for the
-> _<FOO> variants?
-> 
-> > DEVICE_ATTR_RW: include/linux/device.h
-> > __ATTR_RW: include/linux/sysfs.h
-> > S_IWUSR: include/uapi/linux/stat.h
-> > S_IRUGO: include/linux/stat.h
-> 
-> btw: patch 1/4 of the series does remove the uses of
-> S_<PERMS> from these macros in sysfs.h and converts
-> them to simple octal instead.
-
-Why you didn't send that patch to the sysfs maintainer is a bit odd...  :)
-
-I should be taking this whole series through my tree.  Joe, thanks for
-doing this in an automated way, I've been wanting to see this done for a
-long time.
-
-thanks,
-
-greg k-h
+CkhpLAoKSm9lIFBlcmNoZXMgPGpvZUBwZXJjaGVzLmNvbT4gd3JpdGVzOgo+ICBkcml2ZXJzL3Vz
+Yi9waHkvcGh5LXRhaHZvLmMgICAgICAgICAgICAgICAgICAgICAgICB8ICAyICstCgpBY2tlZC1i
+eTogRmVsaXBlIEJhbGJpIDxmZWxpcGUuYmFsYmlAbGludXguaW50ZWwuY29tPgoKLS0gCmJhbGJp
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdm
+eCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
+c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
