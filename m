@@ -1,182 +1,102 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [RFC PATCH 09/12] mmc: sdhci: Use software timer when timeout
- greater than hardware capablility
-Date: Wed, 20 Dec 2017 16:11:10 +0200
-Message-ID: <74170f0a-329a-2c66-7ad4-a1fedb9747df@intel.com>
-References: <20171214130941.26666-1-kishon@ti.com>
- <20171214130941.26666-10-kishon@ti.com>
+From: Jidong Zhang <jidong.zhang@hotmail.com>
+Subject: Re: [alsa-devel] [-next PATCH 2/4] treewide: Use
+	DEVICE_ATTR_RW
+Date: Wed, 20 Dec 2017 07:19:24 +0000
+Message-ID: <SIXPR0301MB1323F350FB60E7F00FCAF0B59A0C0@SIXPR0301MB1323.apcprd03.prod.outlook.com>
+References: <cover.1513706701.git.joe@perches.com>
+ <cd38f14f06e1f447b3159ffe8c69c0df8241bb6e.1513706701.git.joe@perches.com>
+ <CAHp75VfyvA3kAtGiwJ63BOx43RuVSz-XgdK79WApytoaehOOgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20171214130941.26666-10-kishon@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <CAHp75VfyvA3kAtGiwJ63BOx43RuVSz-XgdK79WApytoaehOOgQ@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Joe Perches <joe@perches.com>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, David Airlie <airlied@linux.ie>, Heiko Carstens <heiko.carstens@de.ibm.com>, ALSA Development Mailing List <alsa-devel@alsa-project.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, linux-scsi <linux-scsi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, James Smart <james.smart@broadcom.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Jiri Slaby <jslaby@suse.com>, Darren Hart <dvhart@infradead.org>, Zhang Rui <rui>
 List-Id: linux-omap@vger.kernel.org
 
-On 14/12/17 15:09, Kishon Vijay Abraham I wrote:
-> Errata i834 in AM572x Sitara Processors Silicon Revision 2.0, 1.1
-> (SPRZ429K July 2014–Revised March 2017 [1]) mentions
-> Under high speed HS200 and SDR104 modes, the functional clock for MMC
-> modules will reach up to 192 MHz. At this frequency, the maximum obtainable
-> timeout (DTO = 0xE) through MMC host controller is (1/192MHz)*2^27 = 700ms.
-> Commands taking longer than 700ms may be affected by this small window
-> frame. Workaround for this errata is use a software timer instead of
-> hardware timer to provide the delay requested by the upper layer.
-> 
-> While this errata is specific to AM572x, it is applicable to all sdhci
-> based controllers when a particular request require timeout greater
-> than hardware capability.
-
-It doesn't work for our controllers.  Even if the data timeout interrupt is
-disabled, it seems like the timeout still "happens" in some fashion - after
-which the host controller starts misbehaving.
-
-So you will need to add a quirk.
-
-> 
-> Re-use the software timer already implemented in sdhci to program the
-> correct timeout value and also disable the hardware timeout when
-> the required timeout is greater than hardware capabiltiy in order to
-> avoid spurious timeout interrupts.
-> 
-> This patch is based on the earlier patch implemented for omap_hsmmc [2]
-> 
-> [1] -> http://www.ti.com/lit/er/sprz429k/sprz429k.pdf
-> [2] -> https://patchwork.kernel.org/patch/9791449/
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/mmc/host/sdhci.c | 41 +++++++++++++++++++++++++++++++++++++++--
->  drivers/mmc/host/sdhci.h | 11 +++++++++++
->  2 files changed, 50 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
-> index e9290a3439d5..d0655e1d2cc7 100644
-> --- a/drivers/mmc/host/sdhci.c
-> +++ b/drivers/mmc/host/sdhci.c
-> @@ -673,6 +673,27 @@ static void sdhci_adma_table_post(struct sdhci_host *host,
->  	}
->  }
->  
-> +static void sdhci_calc_sw_timeout(struct sdhci_host *host,
-> +				  struct mmc_command *cmd,
-> +				  unsigned int target_timeout)
-> +{
-> +	struct mmc_host *mmc = host->mmc;
-> +	struct mmc_ios *ios = &mmc->ios;
-> +	struct mmc_data *data = cmd->data;
-> +	unsigned long long transfer_time;
-> +
-> +	if (data) {
-> +		transfer_time = MMC_BLOCK_TRANSFER_TIME_MS(data->blksz,
-> +							   ios->bus_width,
-> +							   ios->clock);
-
-If it has a value, actual_clock is better than ios->clock.
-
-> +		/* calculate timeout for the entire data */
-> +		host->data_timeout = (data->blocks * (target_timeout +
-> +						      transfer_time));
-> +	} else if (cmd->flags & MMC_RSP_BUSY) {
-> +		host->data_timeout = cmd->busy_timeout * MSEC_PER_SEC;
-
-Doesn't need MSEC_PER_SEC multiplier.
-
-> +	}
-> +}
-> +
->  static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
->  {
->  	u8 count;
-> @@ -732,8 +753,12 @@ static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
->  	}
->  
->  	if (count >= 0xF) {
-> -		DBG("Too large timeout 0x%x requested for CMD%d!\n",
-> -		    count, cmd->opcode);
-> +		DBG("Too large timeout.. using SW timeout for CMD%d!\n",
-> +		    cmd->opcode);
-> +		sdhci_calc_sw_timeout(host, cmd, target_timeout);
-> +		host->ier &= ~SDHCI_INT_DATA_TIMEOUT;
-> +		sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
-> +		sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
->  		count = 0xE;
->  	}
->  
-> @@ -1198,6 +1223,14 @@ static void sdhci_finish_command(struct sdhci_host *host)
->  {
->  	struct mmc_command *cmd = host->cmd;
->  
-> +	if (host->data_timeout) {
-> +		unsigned long timeout;
-> +
-> +		timeout = jiffies +
-> +			  msecs_to_jiffies(host->data_timeout);
-> +		sdhci_mod_timer(host, host->cmd->mrq, timeout);
-
-cmd could be the sbc or a stop cmd or a command during transfer, so this
-needs more logic.
-
-> +	}
-> +
->  	host->cmd = NULL;
->  
->  	if (cmd->flags & MMC_RSP_PRESENT) {
-> @@ -2341,6 +2374,10 @@ static bool sdhci_request_done(struct sdhci_host *host)
->  		return true;
->  	}
->  
-> +	host->data_timeout = 0;
-> +	host->ier |= SDHCI_INT_DATA_TIMEOUT;
-> +	sdhci_writel(host, host->ier, SDHCI_INT_ENABLE);
-> +	sdhci_writel(host, host->ier, SDHCI_SIGNAL_ENABLE);
-
-sdhci can have 2 requests in progress to allow for commands to be sent while
-a data transfer is in progress, so this is not necessarily the data transfer
-request that is done.  Also we want to avoid unnecessary register writes.
-
->  	sdhci_del_timer(host, mrq);
->  
->  	/*
-> diff --git a/drivers/mmc/host/sdhci.h b/drivers/mmc/host/sdhci.h
-> index 54bc444c317f..e6e0278bea1a 100644
-> --- a/drivers/mmc/host/sdhci.h
-> +++ b/drivers/mmc/host/sdhci.h
-> @@ -332,6 +332,15 @@ struct sdhci_adma2_64_desc {
->  /* Allow for a a command request and a data request at the same time */
->  #define SDHCI_MAX_MRQS		2
->  
-> +/*
-> + * Time taken for transferring one block. It is multiplied by a constant
-> + * factor '2' to account for any errors
-> + */
-> +#define MMC_BLOCK_TRANSFER_TIME_MS(blksz, bus_width, freq)		\
-> +				   ((unsigned long long)		\
-> +				   (2 * (((blksz) * MSEC_PER_SEC *	\
-> +				   (8 / (bus_width))) / (freq))))
-
-I don't think the macro helps make the code more readable.  Might just as
-well write a nice function to calculate the entire data request timeout.
-
-> +
->  enum sdhci_cookie {
->  	COOKIE_UNMAPPED,
->  	COOKIE_PRE_MAPPED,	/* mapped by sdhci_pre_req() */
-> @@ -546,6 +555,8 @@ struct sdhci_host {
->  	/* Host SDMA buffer boundary. */
->  	u32			sdma_boundary;
->  
-> +	unsigned long long	data_timeout;
-
-msecs_to_jiffies() will truncate to 'unsigned int' anyway, so this might as
-well be 'unsigned int'.
-
-> +
->  	unsigned long private[0] ____cacheline_aligned;
->  };
->  
-> 
-
+DQpEb2VzIGFueW9uZSBrbm93IGhvdyB0byB1c2UgQ29uZXhhbnQgQ1gyMDkyMSB0byBkZXZlbG9w
+IG91ciBvd24gYXBwbGljYXRpb24uIEkgY2Fubm90IGZpbmQgYW55d2hlcmUgdG8gZG93bmxvYWQg
+dGhlIHNvZnR3YXJlIGFuZCBtYW51YWxzLg0KDQpUaGFua3MgdG8gYWxsDQpKLkQNCg0KLS0tLS1P
+cmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IGFsc2EtZGV2ZWwtYm91bmNlc0BhbHNhLXByb2pl
+Y3Qub3JnIFttYWlsdG86YWxzYS1kZXZlbC1ib3VuY2VzQGFsc2EtcHJvamVjdC5vcmddIE9uIEJl
+aGFsZiBPZiBBbmR5IFNoZXZjaGVua28NClNlbnQ6IDIwMTflubQxMuaciDIw5pelIDI6NDINClRv
+OiBKb2UgUGVyY2hlcyA8am9lQHBlcmNoZXMuY29tPg0KQ2M6IGxpbnV4LWZiZGV2QHZnZXIua2Vy
+bmVsLm9yZzsgRGF2aWQgQWlybGllIDxhaXJsaWVkQGxpbnV4LmllPjsgSm9vbmFzIExhaHRpbmVu
+IDxqb29uYXMubGFodGluZW5AbGludXguaW50ZWwuY29tPjsgSGVpa28gQ2Fyc3RlbnMgPGhlaWtv
+LmNhcnN0ZW5zQGRlLmlibS5jb20+OyBBTFNBIERldmVsb3BtZW50IE1haWxpbmcgTGlzdCA8YWxz
+YS1kZXZlbEBhbHNhLXByb2plY3Qub3JnPjsgZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
+ZzsgUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT47IGxpbnV4LXMzOTBAdmdl
+ci5rZXJuZWwub3JnOyBMaW51eCBPTUFQIE1haWxpbmcgTGlzdCA8bGludXgtb21hcEB2Z2VyLmtl
+cm5lbC5vcmc+OyBKYW1lcyBFLkouIEJvdHRvbWxleSA8amVqYkBsaW51eC52bmV0LmlibS5jb20+
+OyBsaW51eC1zY3NpIDxsaW51eC1zY3NpQHZnZXIua2VybmVsLm9yZz47IFRha2FzaGkgSXdhaSA8
+dGl3YWlAc3VzZS5jb20+OyBTZWJhc3RpYW4gT3R0IDxzZWJvdHRAbGludXgudm5ldC5pYm0uY29t
+PjsgSmFtZXMgU21hcnQgPGphbWVzLnNtYXJ0QGJyb2FkY29tLmNvbT47IENlemFyeSBKYWNraWV3
+aWN6IDxjZXphcnkuamFja2lld2ljekBnbWFpbC5jb20+OyBsaW51eC1zZXJpYWxAdmdlci5rZXJu
+ZWwub3JnOyBKaXJpIFNsYWJ5IDxqc2xhYnlAc3VzZS5jb20+OyBEYXJyZW4gSGFydCA8ZHZoYXJ0
+QGluZnJhZGVhZC5vcmc+OyBaaGFuZyBSdWkgPHJ1aS56aGFuZ0BpbnRlbC5jb20+OyBEaWNrIEtl
+bm5lZHkgPGRpY2sua2VubmVkeUBicm9hZGNvbS5jb20+OyBNYXRoaWFzIE55bWFuIDxtYXRoaWFz
+Lm55bWFuQGludGVsLmNvbT47IEJhcnRsb21pZWogWm9sbmllcmtpZXdpY3ogPGIuem9sbmllcmtp
+ZUBzYW1zdW5nLmNvbT47IFBldGVyIE9iZXJwYXJsZWl0ZXIgPG9iZXJwYXJAbGludXgudm5ldC5p
+Ym0uY29tPjsgaW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZzsgSmFuaSBOaWt1bGEgPGph
+bmkubmlrdWxhQGxpbnV4LmludGVsLmNvbT47IEVkdWFyZG8gVmFsZW50aW4gPGVkdWJlenZhbEBn
+bWFpbC5jb20+OyBNYXJrIEJyb3duIDxicm9vbmllQGtlcm5lbC5vcmc+OyBSb2RyaWdvIFZpdmkg
+PHJvZHJpZ28udml2aUBpbnRlbC5jb20+OyBQbGF0Zm9ybSBEcml2ZXIgPHBsYXRmb3JtLWRyaXZl
+ci14ODZAdmdlci5rZXJuZWwub3JnPjsgRmVsaXBlIEJhbGJpIDxiYWxiaUBrZXJuZWwub3JnPjsg
+TWFydGluIEsuIFBldGVyc2VuIDxtYXJ0aW4ucGV0ZXJzZW5Ab3JhY2xlLmNvbT47IEdyZWcgS3Jv
+YWgtSGFydG1hbiA8Z3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5vcmc+OyBsaW51eC1wbUB2Z2VyLmtl
+cm5lbC5vcmc7IFVTQiA8bGludXgtdXNiQHZnZXIua2VybmVsLm9yZz47IExpYW0gR2lyZHdvb2Qg
+PGxnaXJkd29vZEBnbWFpbC5jb20+OyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBMdWlz
+IFIuIFJvZHJpZ3VleiA8bWNncm9mQGtlcm5lbC5vcmc+OyBBbmR5IFNoZXZjaGVua28gPGFuZHlA
+aW5mcmFkZWFkLm9yZz47IE1hcnRpbiBTY2h3aWRlZnNreSA8c2Nod2lkZWZza3lAZGUuaWJtLmNv
+bT47IEphcmtrbyBOaWt1bGEgPGphcmtrby5uaWt1bGFAYml0bWVyLmNvbT4NClN1YmplY3Q6IFJl
+OiBbYWxzYS1kZXZlbF0gWy1uZXh0IFBBVENIIDIvNF0gdHJlZXdpZGU6IFVzZSBERVZJQ0VfQVRU
+Ul9SVw0KDQpPbiBUdWUsIERlYyAxOSwgMjAxNyBhdCA4OjE1IFBNLCBKb2UgUGVyY2hlcyA8am9l
+QHBlcmNoZXMuY29tPiB3cm90ZToNCj4gQ29udmVydCBERVZJQ0VfQVRUUiB1c2VzIHRvIERFVklD
+RV9BVFRSX1JXIHdoZXJlIHBvc3NpYmxlLg0KPg0KPiBEb25lIHdpdGggcGVybCBzY3JpcHQ6DQo+
+DQo+ICQgZ2l0IGdyZXAgLXcgLS1uYW1lLW9ubHkgREVWSUNFX0FUVFIgfCBcDQo+ICAgeGFyZ3Mg
+cGVybCAtaSAtZSAnbG9jYWwgJC87IHdoaWxlICg8PikgeyBzL1xiREVWSUNFX0FUVFJccypcKFxz
+KihcdyspXHMqLFxzKlwoPyhccypTX0lSVUdPXHMqXHxccypTX0lXVVNSfFxzKlNfSVdVU1Jccypc
+fFxzKlNfSVJVR09ccyp8XHMqMDY0NFxzKilcKT9ccyosXHMqXDFfc2hvd1xzKixccypcMV9zdG9y
+ZVxzKlwpL0RFVklDRV9BVFRSX1JXKFwxKS9nOyBwcmludDt9Jw0KDQo+ICBkcml2ZXJzL3BsYXRm
+b3JtL3g4Ni9jb21wYWwtbGFwdG9wLmMgfCAxOCArKysrKy0tLS0tLS0tLS0NCg0KPiAtLS0gYS9k
+cml2ZXJzL3BsYXRmb3JtL3g4Ni9jb21wYWwtbGFwdG9wLmMNCj4gKysrIGIvZHJpdmVycy9wbGF0
+Zm9ybS94ODYvY29tcGFsLWxhcHRvcC5jDQo+IEBAIC02NzksMTggKzY3OSwxMiBAQCBzdGF0aWMg
+aW50IGJhdF93cml0ZWFibGVfcHJvcGVydHkoc3RydWN0IA0KPiBwb3dlcl9zdXBwbHkgKnBzeSwN
+Cj4gIC8qID09PT09PT09PT09PT09ICovDQo+ICAvKiBEcml2ZXIgR2xvYmFscyAqLw0KPiAgLyog
+PT09PT09PT09PT09PT0gKi8NCj4gLXN0YXRpYyBERVZJQ0VfQVRUUih3YWtlX3VwX3BtZSwNCj4g
+LSAgICAgICAgICAgICAgIDA2NDQsIHdha2VfdXBfcG1lX3Nob3csICAgICAgICAgd2FrZV91cF9w
+bWVfc3RvcmUpOw0KPiAtc3RhdGljIERFVklDRV9BVFRSKHdha2VfdXBfbW9kZW0sDQo+IC0gICAg
+ICAgICAgICAgICAwNjQ0LCB3YWtlX3VwX21vZGVtX3Nob3csICAgICAgIHdha2VfdXBfbW9kZW1f
+c3RvcmUpOw0KPiAtc3RhdGljIERFVklDRV9BVFRSKHdha2VfdXBfbGFuLA0KPiAtICAgICAgICAg
+ICAgICAgMDY0NCwgd2FrZV91cF9sYW5fc2hvdywgd2FrZV91cF9sYW5fc3RvcmUpOw0KPiAtc3Rh
+dGljIERFVklDRV9BVFRSKHdha2VfdXBfd2xhbiwNCj4gLSAgICAgICAgICAgICAgIDA2NDQsIHdh
+a2VfdXBfd2xhbl9zaG93LCAgICAgICAgd2FrZV91cF93bGFuX3N0b3JlKTsNCj4gLXN0YXRpYyBE
+RVZJQ0VfQVRUUih3YWtlX3VwX2tleSwNCj4gLSAgICAgICAgICAgICAgIDA2NDQsIHdha2VfdXBf
+a2V5X3Nob3csIHdha2VfdXBfa2V5X3N0b3JlKTsNCj4gLXN0YXRpYyBERVZJQ0VfQVRUUih3YWtl
+X3VwX21vdXNlLA0KPiAtICAgICAgICAgICAgICAgMDY0NCwgd2FrZV91cF9tb3VzZV9zaG93LCAg
+ICAgICB3YWtlX3VwX21vdXNlX3N0b3JlKTsNCj4gK3N0YXRpYyBERVZJQ0VfQVRUUl9SVyh3YWtl
+X3VwX3BtZSk7DQo+ICtzdGF0aWMgREVWSUNFX0FUVFJfUlcod2FrZV91cF9tb2RlbSk7IHN0YXRp
+YyANCj4gK0RFVklDRV9BVFRSX1JXKHdha2VfdXBfbGFuKTsgc3RhdGljIERFVklDRV9BVFRSX1JX
+KHdha2VfdXBfd2xhbik7IA0KPiArc3RhdGljIERFVklDRV9BVFRSX1JXKHdha2VfdXBfa2V5KTsg
+c3RhdGljIA0KPiArREVWSUNFX0FUVFJfUlcod2FrZV91cF9tb3VzZSk7DQoNCkFja2VkLWJ5OiBB
+bmR5IFNoZXZjaGVua28gPGFuZHkuc2hldmNoZW5rb0BnbWFpbC5jb20+DQoNCmZvciBQRHg4NiBi
+aXRzLg0KDQpIYXZlIHRvIHNheSB0aGF0IHdoaWxlIGl0IGRvZXNuJ3QgY2hhbmdlIHRoZSBhdHRy
+aWJ1dGVzIGhlcmUsIGl0IG1pZ2h0IHJlcXVpcmUgc3RpbGwgdG8gYmUgcmV2aXNpdGVkIGJ5IHNl
+Y3VyaXR5IHBlb3BsZSwgaWYgdGhleSB3aXNoLg0KDQotLQ0KV2l0aCBCZXN0IFJlZ2FyZHMsDQpB
+bmR5IFNoZXZjaGVua28NCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fDQpBbHNhLWRldmVsIG1haWxpbmcgbGlzdA0KQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qu
+b3JnDQpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxz
+YS1kZXZlbA0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+SW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
+dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
