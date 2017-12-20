@@ -1,27 +1,72 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] pinctrl: single: Remove invalid message
-Date: Wed, 20 Dec 2017 12:39:14 +0100
-Message-ID: <CACRpkdaiPgxyqreyYyetNapFsXOaOB496pW2HmGb8Dyj5T90SQ@mail.gmail.com>
-References: <20171214165115.27150-1-tony@atomide.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: [PATCH] pci: dwc: pci-dra7xx: Make shutdown handler static
+Date: Wed, 20 Dec 2017 17:29:44 +0530
+Message-ID: <6d133940-26fd-6e62-77ed-d15c9b437aaa@ti.com>
+References: <20171201050652.13998-1-vigneshr@ti.com>
+ <12f94b3d-5192-d53a-8390-812fe9b7b229@ti.com>
+ <20171201165314.GB29985@red-moon> <20171220102955.GA941@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20171214165115.27150-1-tony@atomide.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, linux-gpio@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171220102955.GA941@red-moon>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Vignesh R <vigneshr@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 14, 2017 at 5:51 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-> Pinctrl single should just show how many pins were found, the physical
-> address is already in the dev information. So let's remove the wrong
-> information that claims to show the physical address but really prints
-> a virtual address that is now hashed.
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Patch applied.
+On Wednesday 20 December 2017 03:59 PM, Lorenzo Pieralisi wrote:
+> On Fri, Dec 01, 2017 at 04:53:14PM +0000, Lorenzo Pieralisi wrote:
+>> On Fri, Dec 01, 2017 at 10:43:53AM +0530, Keerthy wrote:
+>>>
+>>>
+>>> On Friday 01 December 2017 10:36 AM, Vignesh R wrote:
+>>>> Declare dra7xx_pcie_shutdown() as a static function as its not used
+>>>> elsewhere.
+>>>
+>>> Seems like the below version that had static version was not taken:
+>>>
+>>> https://patchwork.kernel.org/patch/10052579/
+>>
+>> It looks like I can drop the patch above then - let me know if
+>> that's ok.
+> 
+> I would appreciate some feedback; I assume that dropping the patch above
+> and applying the patch in $SUBJECT is what you expect, if there is a
+> problem with that please manifest yourselves.
 
-Yours,
-Linus Walleij
+Applying this patch is fine. Thanks.
+
+> 
+> Lorenzo
+> 
+>> Thanks,
+>> Lorenzo
+>>
+>>> So for this patch:
+>>>
+>>> Reviewed-by: Keerthy <j-keerthy@ti.com>
+>>>
+>>>>
+>>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+>>>> ---
+>>>>  drivers/pci/dwc/pci-dra7xx.c | 2 +-
+>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+>>>> index 59e8de34cec6..b9db442af793 100644
+>>>> --- a/drivers/pci/dwc/pci-dra7xx.c
+>>>> +++ b/drivers/pci/dwc/pci-dra7xx.c
+>>>> @@ -815,7 +815,7 @@ static int dra7xx_pcie_resume_noirq(struct device *dev)
+>>>>  }
+>>>>  #endif
+>>>>  
+>>>> -void dra7xx_pcie_shutdown(struct platform_device *pdev)
+>>>> +static void dra7xx_pcie_shutdown(struct platform_device *pdev)
+>>>>  {
+>>>>  	struct device *dev = &pdev->dev;
+>>>>  	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
+>>>>
