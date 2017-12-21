@@ -1,45 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] drop omap3 legacy clock data
-Date: Thu, 21 Dec 2017 07:50:15 -0800
-Message-ID: <20171221155015.GV3875@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/8] ARM: dts: dra7: Add vbb-supply to cpu and additional
+ voltages
+Date: Thu, 21 Dec 2017 07:51:08 -0800
+Message-ID: <20171221155108.GW3875@atomide.com>
+References: <1513697066-27732-1-git-send-email-d-gerlach@ti.com>
+ <1513697066-27732-2-git-send-email-d-gerlach@ti.com>
+ <20171221151536.GR3875@atomide.com>
+ <82512a74-023d-5000-7c8d-e3a681503032@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-clk-owner@vger.kernel.org
-To: Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <82512a74-023d-5000-7c8d-e3a681503032-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit ffb009b24388b896d9ca8b54e39a879302142518:
+* Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [171221 15:42]:
+> On 12/21/2017 09:15 AM, Tony Lindgren wrote:
+> > * Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [171219 15:27]:
+> >> Add a vbb-supply phandle to the cpus node and also add an additional
+> >> triplet of voltages for each OPP in the operating-points-v2 table to
+> >> make use of the multi regulator support in the OPP core and provide the
+> >> vbb regulator for use by the ti-opp-supply driver.
+> > 
+> > Sounds like these depend on the ti-opp-supply being available first?
+> > 
+> 
+> Yes that would be best, but the ti-opp-supply patches are already in linux-next.
 
-  clk: ti: convert retry_init param to use void data type (2017-12-01 15:16:24 +0200)
+OK applying into omap-for-v4.16/dt then thanks.
 
-are available in the Git repository at:
+Regards,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/clk-omap3-legacy-signed
-
-for you to fetch changes up to 7558562a70fbd6b3fa746fa33c76c9333aa0bb32:
-
-  clk: ti: Drop legacy clk-3xxx-legacy code (2017-12-14 08:32:06 -0800)
-
-----------------------------------------------------------------
-Drop unused omap3 clock data
-
-We have been booting omap3 in device tree only mode for a while now,
-so this is all unused now.
-
-----------------------------------------------------------------
-Tony Lindgren (1):
-      clk: ti: Drop legacy clk-3xxx-legacy code
-
- drivers/clk/ti/Makefile          |    4 -
- drivers/clk/ti/clk-3xxx-legacy.c | 4656 --------------------------------------
- drivers/clk/ti/clk.c             |  135 --
- drivers/clk/ti/clock.h           |   68 -
- drivers/clk/ti/composite.c       |   45 -
- drivers/clk/ti/dpll.c            |   90 -
- drivers/clk/ti/gate.c            |   48 -
- drivers/clk/ti/interface.c       |   32 -
- 8 files changed, 5078 deletions(-)
- delete mode 100644 drivers/clk/ti/clk-3xxx-legacy.c
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
