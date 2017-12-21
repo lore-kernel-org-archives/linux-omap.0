@@ -1,41 +1,48 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/8] ARM: dts: dra7: Add vbb-supply to cpu and additional
- voltages
-Date: Thu, 21 Dec 2017 07:51:08 -0800
-Message-ID: <20171221155108.GW3875@atomide.com>
-References: <1513697066-27732-1-git-send-email-d-gerlach@ti.com>
- <1513697066-27732-2-git-send-email-d-gerlach@ti.com>
- <20171221151536.GR3875@atomide.com>
- <82512a74-023d-5000-7c8d-e3a681503032@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL 1/3] soc changes for omaps for v4.16 merge window
+Date: Thu, 21 Dec 2017 17:18:15 +0100
+Message-ID: <CAK8P3a0Fkzqf_uUJAYCfuPBPHMRVn2EaFkbwAWyXcNyW-tjYjw@mail.gmail.com>
+References: <pull-1513266986-900907@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <82512a74-023d-5000-7c8d-e3a681503032-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <pull-1513266986-900907@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [171221 15:42]:
-> On 12/21/2017 09:15 AM, Tony Lindgren wrote:
-> > * Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [171219 15:27]:
-> >> Add a vbb-supply phandle to the cpus node and also add an additional
-> >> triplet of voltages for each OPP in the operating-points-v2 table to
-> >> make use of the multi regulator support in the OPP core and provide the
-> >> vbb regulator for use by the ti-opp-supply driver.
-> > 
-> > Sounds like these depend on the ti-opp-supply being available first?
-> > 
-> 
-> Yes that would be best, but the ti-opp-supply patches are already in linux-next.
+On Thu, Dec 14, 2017 at 4:58 PM, Tony Lindgren <tony@atomide.com> wrote:
+> From: "Tony Lindgren" <tony@atomide.com>
+>
+> The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
+>
+>   Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
+>
+> are available in the Git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/soc-signed
+>
+> for you to fetch changes up to fdf3632938a646c13f7407f2f8c33ff81eed9c76:
+>
+>   Merge branch '4.15-rc1-clkctrl-mach-omap2' of https://github.com/t-kristo/linux-pm into omap-for-v4.16/soc (2017-12-11 07:46:40 -0800)
+>
+> ----------------------------------------------------------------
+> SoC changes for omaps for v4.16 merge window
+>
+> For most part this is a series from Tero Kristo to prepare things
+> for using clkctrl clocks with DTS data. The other changes are to
+> make few data structures const.
 
-OK applying into omap-for-v4.16/dt then thanks.
+Pulled into next/soc, thanks!
 
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+       Arnd
