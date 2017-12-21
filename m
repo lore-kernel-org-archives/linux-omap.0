@@ -1,29 +1,23 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/8] ARM: dts: dra7: Add vbb-supply to cpu and additional
- voltages
-Date: Thu, 21 Dec 2017 07:15:36 -0800
-Message-ID: <20171221151536.GR3875@atomide.com>
-References: <1513697066-27732-1-git-send-email-d-gerlach@ti.com>
- <1513697066-27732-2-git-send-email-d-gerlach@ti.com>
+Subject: Re: [PATCH 1/3] ARM: dts: am335x-boneblue: fix wl1835 IRQ pin
+Date: Thu, 21 Dec 2017 07:18:40 -0800
+Message-ID: <20171221151840.GS3875@atomide.com>
+References: <20171219223242.21386-1-robertcnelson@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1513697066-27732-2-git-send-email-d-gerlach-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20171219223242.21386-1-robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+To: Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Kridner <jkridner-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>, Drew Fustini <drew-hcmAuCOw+vXj4SYmN/TMmA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org> [171219 15:27]:
-> Add a vbb-supply phandle to the cpus node and also add an additional
-> triplet of voltages for each OPP in the operating-points-v2 table to
-> make use of the multi regulator support in the OPP core and provide the
-> vbb regulator for use by the ti-opp-supply driver.
+* Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [171219 14:35]:
+> Use the correct IRQ gpio pin on the BeagleBone Blue to allow the
+> wl1835 wireless module to actually work.
 
-Sounds like these depend on the ti-opp-supply being available first?
-
-Regards,
+Thanks applying all three into omap-for-v4.16/dt.
 
 Tony
 --
