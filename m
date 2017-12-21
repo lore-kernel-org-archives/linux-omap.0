@@ -1,73 +1,69 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH 11/12] mmc: sdhci-omap: Add support for MMC/SD controller
- in k2g SoC
-Date: Thu, 21 Dec 2017 11:15:03 +0200
-Message-ID: <4d04e881-2756-184b-1909-49f9d4a68efd@intel.com>
-References: <20171214130941.26666-1-kishon@ti.com>
- <20171214130941.26666-12-kishon@ti.com>
+From: Joao Pinto <Joao.Pinto@synopsys.com>
+Subject: Re: [PATCH v6 00/18] dwc MSI fixes, ARTPEC-6 EP mode support,
+ ARTPEC-7 SoC support
+Date: Thu, 21 Dec 2017 09:23:44 +0000
+Message-ID: <3aa8d7db-375b-051d-6a9e-16a1d19a7e67@synopsys.com>
+References: <20171219232940.659-1-niklas.cassel@axis.com>
+ <20171220173416.GD1709@red-moon>
+ <32f6e02c-4230-9222-0ee1-54a045e78bd5@synopsys.com>
+ <20171220232251.GA27011@axis.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20171214130941.26666-12-kishon@ti.com>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, Ulf Hansson <ulf.hansson@linaro.org>, Rob Herring <robh+dt@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Russell King <linux@armlinux.org.uk>, linux-mmc@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171220232251.GA27011@axis.com>
+Content-Language: pt-PT
+Sender: linux-kernel-owner@vger.kernel.org
+To: Niklas Cassel <niklas.cassel@axis.com>, Joao Pinto <Joao.Pinto@synopsys.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jingoo Han <jingoohan1@gmail.com>, linux-arm-kernel@axis.com, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, gustavo.pimentel@synopsys.com, kishon@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On 14/12/17 15:09, Kishon Vijay Abraham I wrote:
-> Add support for the new compatible added specifically to support
-> k2g's MMC/SD controller.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Hi Niklas,
 
-Acked-by: Adrian Hunter <adrian.hunter@intel.com>
-
-> ---
->  drivers/mmc/host/sdhci-omap.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
+Às 11:22 PM de 12/20/2017, Niklas Cassel escreveu:
+> On Wed, Dec 20, 2017 at 07:47:41PM +0000, Joao Pinto wrote:
+>>
+>> Hello to all,
+>>
+>> Às 5:34 PM de 12/20/2017, Lorenzo Pieralisi escreveu:
+>>> On Wed, Dec 20, 2017 at 12:29:21AM +0100, Niklas Cassel wrote:
+>>>> This is a series that adds:
+>>>> - PCI endpoint mode support in the ARTPEC-6 driver.
+>>>> - ARTPEC-7 SoC support in the ARTPEC-6 driver (the SoCs are very similar).
+>>>> - Small fixes for MSI in designware-ep and designware-host,
+>>>>   needed to get endpoint mode support working for ARTPEC-6.
+>>>> - Cleanups in pci-dra7xx to better prepare for endpoint mode in other
+>>>>   DWC based PCIe drivers.
+>>>
+>>> Joao, Jingoo,
+>>>
+>>> Gustavo tested the series and Kishon ACK'ed the relevant patches,
+>>> I need your ACKs on designware patches to queue this series for
+>>> v4.16.
+>>>
+>>> I am away from tomorrow (noon) till beginning of January which means
+>>> that either I queue this series tomorrow or at -rc6, please do
+>>> chime in if you can.
+>>
+>> Sorry, I have been a bit tied up! Already checked each patch related to DWC.
+>> Could anyone from artpec finish the revision, since there are some patches
+>> related to that SoC?
 > 
-> diff --git a/drivers/mmc/host/sdhci-omap.c b/drivers/mmc/host/sdhci-omap.c
-> index cddc3ad1331f..5e81e29383d9 100644
-> --- a/drivers/mmc/host/sdhci-omap.c
-> +++ b/drivers/mmc/host/sdhci-omap.c
-> @@ -767,6 +767,10 @@ static const struct sdhci_pltfm_data sdhci_omap_pdata = {
->  	.ops = &sdhci_omap_ops,
->  };
->  
-> +static const struct sdhci_omap_data k2g_data = {
-> +	.offset = 0x200,
-> +};
-> +
->  static const struct sdhci_omap_data dra7_data = {
->  	.offset = 0x200,
->  	.flags	= SDHCI_OMAP_REQUIRE_IODELAY,
-> @@ -774,6 +778,7 @@ static const struct sdhci_omap_data dra7_data = {
->  
->  static const struct of_device_id omap_sdhci_match[] = {
->  	{ .compatible = "ti,dra7-sdhci", .data = &dra7_data },
-> +	{ .compatible = "ti,k2g-sdhci", .data = &k2g_data },
->  	{},
->  };
->  MODULE_DEVICE_TABLE(of, omap_sdhci_match);
-> @@ -882,6 +887,7 @@ static int sdhci_omap_probe(struct platform_device *pdev)
->  	int ret;
->  	u32 offset;
->  	struct device *dev = &pdev->dev;
-> +	struct device_node *node = dev->of_node;
->  	struct sdhci_host *host;
->  	struct sdhci_pltfm_host *pltfm_host;
->  	struct sdhci_omap_host *omap_host;
-> @@ -908,6 +914,9 @@ static int sdhci_omap_probe(struct platform_device *pdev)
->  		return PTR_ERR(host);
->  	}
->  
-> +	if (of_device_is_compatible(node, "ti,k2g-sdhci"))
-> +		host->quirks2 |= SDHCI_QUIRK2_NO_1_8_V;
-> +
->  	pltfm_host = sdhci_priv(host);
->  	omap_host = sdhci_pltfm_priv(pltfm_host);
->  	omap_host->host = host;
+> Thanks for looking at the patches.
 > 
+> Thanks to everyone that has helped in any way.
+> 
+> Since I am the maintainer for pcie-artpec6.c
+> (at least according to MAINTAINERS ;)),
+> I'm supposing that my sign-off will suffice.
 
+You're right :), I didn't remember you were the maintainer.
+Have a Merry Christmas.
+
+Thanks,
+Joao
+
+> 
+> Regards,
+> Niklas
+> 
