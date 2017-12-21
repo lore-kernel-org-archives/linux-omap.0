@@ -1,73 +1,59 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v6 00/18] dwc MSI fixes, ARTPEC-6 EP mode support,
- ARTPEC-7 SoC support
-Date: Thu, 21 Dec 2017 10:02:59 +0000
-Message-ID: <20171221100259.GB23573@red-moon>
-References: <20171219232940.659-1-niklas.cassel@axis.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v5 4/5] DTS: gta04: add uart2 child node for w2sg00x4
+Date: Thu, 21 Dec 2017 06:53:22 -0800
+Message-ID: <20171221145322.GN3875@atomide.com>
+References: <cover.1512114576.git.hns@goldelico.com>
+ <1b1c7a8319eaf61a46eebd7a366ea745b7a54634.1512114577.git.hns@goldelico.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171219232940.659-1-niklas.cassel-VrBV9hrLPhE@public.gmane.org>
+In-Reply-To: <1b1c7a8319eaf61a46eebd7a366ea745b7a54634.1512114577.git.hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Niklas Cassel <niklas.cassel-VrBV9hrLPhE@public.gmane.org>
-Cc: linux-arm-kernel-VrBV9hrLPhE@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niklas Cassel <niklass-VrBV9hrLPhE@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Andreas =?utf-8?Q?F=C3=A4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 20, 2017 at 12:29:21AM +0100, Niklas Cassel wrote:
-> This is a series that adds:
-> - PCI endpoint mode support in the ARTPEC-6 driver.
-> - ARTPEC-7 SoC support in the ARTPEC-6 driver (the SoCs are very similar).
-> - Small fixes for MSI in designware-ep and designware-host,
->   needed to get endpoint mode support working for ARTPEC-6.
-> - Cleanups in pci-dra7xx to better prepare for endpoint mode in other
->   DWC based PCIe drivers.
+* H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org> [171130 23:52]:
+> GTA04 has a W2SG0004/84 connected to UART2 of the OMAP3
+> processor. A GPIO can pulse the on/off toggle switch.
 > 
-> Changes since V5:
-> -Dropped GFP_DMA32 from "PCI: dwc: Use the DMA-API to get the MSI address"
->  so that we use the exact same GFP flags as before.
-> -Rewrote commit message for "PCI: dwc: Make cpu_addr_fixup take struct
-> dw_pcie as argument" to be more detailed.
+> The VSIM regulator is used to power on/off the LNA of an external
+> active GPS antenna so that a driver can turn the LNA off if GPS is
+> not needed to save battery energy.
 > 
-> Niklas Cassel (18):
->   PCI: dwc: Use the DMA-API to get the MSI address
->   PCI: designware-ep: dw_pcie_ep_set_msi() should only set MMC bits
->   PCI: designware-ep: Read-only registers need DBI_RO_WR_EN to be
->     writable
->   PCI: designware-ep: Pre-allocate memory for MSI in dw_pcie_ep_init
->   PCI: designware-ep: Remove static keyword from dw_pcie_ep_reset_bar()
->   PCI: designware-ep: Add generic function for raising MSI irq
->   PCI: dwc: dra7xx: Refactor Kconfig and Makefile handling for host/ep
->     mode
->   PCI: dwc: dra7xx: Assign pp->ops in dra7xx_add_pcie_port() rather than
->     in probe
->   PCI: dwc: dra7xx: Help compiler to remove unused code
->   PCI: dwc: artpec6: Remove unused defines
->   PCI: dwc: artpec6: Use BIT and GENMASK macros
->   PCI: dwc: artpec6: Split artpec6_pcie_establish_link() into smaller
->     functions
->   bindings: PCI: artpec: Add support for endpoint mode
->   PCI: dwc: artpec6: Add support for endpoint mode
->   PCI: dwc: Make cpu_addr_fixup take struct dw_pcie as argument
->   PCI: dwc: artpec6: Deassert the core before waiting for PHY
->   bindings: PCI: artpec: Add support for the ARTPEC-7 SoC
->   PCI: dwc: artpec6: Add support for the ARTPEC-7 SoC
-> 
->  .../devicetree/bindings/pci/axis,artpec6-pcie.txt  |   5 +-
->  drivers/pci/dwc/Kconfig                            |  68 +--
->  drivers/pci/dwc/Makefile                           |   4 +-
->  drivers/pci/dwc/pci-dra7xx.c                       |  27 +-
->  drivers/pci/dwc/pcie-artpec6.c                     | 470 ++++++++++++++++++---
->  drivers/pci/dwc/pcie-designware-ep.c               |  59 ++-
->  drivers/pci/dwc/pcie-designware-host.c             |  15 +-
->  drivers/pci/dwc/pcie-designware.c                  |   2 +-
->  drivers/pci/dwc/pcie-designware.h                  |  22 +-
->  9 files changed, 554 insertions(+), 118 deletions(-)
+> Signed-off-by: H. Nikolaus Schaller <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>
 
-Applied to pci/dwc for v4.16.
+Sounds like Greg's going to take the whole series, so for this
+patch:
 
-Thanks,
-Lorenzo
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+> ---
+>  arch/arm/boot/dts/omap3-gta04.dtsi | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-gta04.dtsi b/arch/arm/boot/dts/omap3-gta04.dtsi
+> index 4504908c23fe..1ad744a25c36 100644
+> --- a/arch/arm/boot/dts/omap3-gta04.dtsi
+> +++ b/arch/arm/boot/dts/omap3-gta04.dtsi
+> @@ -477,6 +477,13 @@
+>  &uart2 {
+>  	pinctrl-names = "default";
+>  	pinctrl-0 = <&uart2_pins>;
+> +
+> +	gps: gps {
+> +		compatible = "wi2wi,w2sg0004";
+> +		lna-supply = <&vsim>;   /* LNA regulator */
+> +		/* GPIO_145: trigger for on/off-impulse for w2sg0004 */
+> +		enable-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
+> +	};
+>  };
+>  
+>  &uart3 {
+> -- 
+> 2.12.2
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
