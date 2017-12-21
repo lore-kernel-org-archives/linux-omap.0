@@ -1,63 +1,45 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 1/9] dt-bindings: ti-sysc: Update binding for timers and
- capabilities
-Date: Thu, 21 Dec 2017 07:29:42 -0800
-Message-ID: <20171221152942.GT3875@atomide.com>
-References: <20171215180900.3243-1-tony@atomide.com>
- <20171215180900.3243-2-tony@atomide.com>
- <20171216183059.ipsftfnvsyamv6fd@rob-hp-laptop>
- <20171216192222.GH3875@atomide.com>
- <20171220181051.eoftsww6463hyak3@rob-hp-laptop>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap-gpmc changes for v4.16 merge (immutable for mtd)
+Date: Thu, 21 Dec 2017 16:24:18 +0100
+Message-ID: <CAK8P3a1-rtV3HyiCbog20FR24oz__f4X=k=0=ND3Mk88CVd_8w@mail.gmail.com>
+References: <b55511ad-6d23-0356-f2d3-8e2b7c6d1ffb@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171220181051.eoftsww6463hyak3@rob-hp-laptop>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Tomi Valkeinen <tomi.valkeinen-l0cyMroinI0@public.gmane.org>, Matthijs van Duin <matthijsvanduin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sakari Ailus <sakari.ailus-X3B1VOXEql0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, =?utf-8?Q?Beno=C3=AEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <b55511ad-6d23-0356-f2d3-8e2b7c6d1ffb@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Ladislav Michl <ladis@linux-mips.org>, Tony Lindgren <tony@atomide.com>, arm-soc <arm@kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Linux ARM Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [171220 18:13]:
-> On Sat, Dec 16, 2017 at 11:22:22AM -0800, Tony Lindgren wrote:
-> > I was planning to have "ti,sysc-delay-us" only in the driver, but
-> > the same IP needs it set on dm814x while not on omap4 for OTG
-> > for example. I could add SoC specific quirks to the driver
-> > for that one if you prefer that instead?
-> 
-> No, I don't have a preference.
+On Mon, Dec 11, 2017 at 3:16 PM, Roger Quadros <rogerq@ti.com> wrote:
+> Hi Arnd/Olof,
+>
+> The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
+>
+>   Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
+>
+> are available in the git repository at:
+>
+>   https://github.com/rogerq/linux.git tags/gpmc-omap-for-v4.16-immutable
+>
+> for you to fetch changes up to c18a7ac3398d0cef29749f9568666db8321aa4c9:
+>
+>   memory: omap-gpmc: Make 'bank-width' property optional (2017-12-01 15:37:49 +0200)
+>
+> ----------------------------------------------------------------
+> OMAP-GPMC: driver updates for v4.16
+> * Error out only if both 'bank-width' and 'gpmc,device-width' DT properties are missing.
 
-OK
+Pulled into next/drivers, thanks!
 
-> > > Are the bits you've defined all of them or there's more?
-> > 
-> > That's it, with this binding I've allocated the data from dts
-> > for the tests I've done. So that should allow us to replace the
-> > static data to start with as seen with the following command:
-> > 
-> > $ git grep -A10 "struct omap_hwmod_class_sysconfig" \
-> > 	arch/arm/*hwmod*data*.c
-> > ...
-> > 
-> > So that's to configure a big pile of different module
-> > configurations we currently have as can be seen with:
-> > 
-> > $ git grep "struct omap_hwmod_class_sysconfig" \
-> > 	arch/arm/*hwmod*data*.c | wc -l
-> > 194
-> > 
-> > I'm sure there's still few duplicates there though..
-> 
-> Okay, then I guess I'm okay with this.
-> 
-> Reviewed-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
-OK thanks for the review.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        Arnd
