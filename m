@@ -1,49 +1,55 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 3/3] dts changes for omaps for v4.16 merge window
-Date: Thu, 21 Dec 2017 17:21:44 +0100
-Message-ID: <CAK8P3a1tYb_asjD3sTZok5g_aE0m2BgTVYML8SZb9t=iku4TCw@mail.gmail.com>
-References: <pull-1513266986-900907@atomide.com>
- <pull-1513266986-900907@atomide.com-3>
+From: Michael Turquette <mturquette@baylibre.com>
+Subject: Re: [GIT PULL] drop omap3 legacy clock data
+Date: Thu, 21 Dec 2017 09:02:42 -0800
+Message-ID: <CAEG3pNCJ_Qn-OUVhL8pzAgka9UJzFEqL9sQR1MvfveJ+ycOwTg@mail.gmail.com>
+References: <20171221155015.GV3875@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <pull-1513266986-900907@atomide.com-3>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <20171221155015.GV3875@atomide.com>
+Sender: linux-clk-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, arm-soc <arm@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>, Tero Kristo <t-kristo@ti.com>, linux-clk <linux-clk@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 14, 2017 at 4:58 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Dts related changes for omaps for v4.16 merge window
->
-> These changes are mostly improvments for various devices.
-> Note that these are based on my earlier fixes branch
-> omap-for-v4.15/fixes-dt to avoid a pointless merge conflict
-> between a fix and removal. The summary of changes is:
->
-> - Fix audio codec reset pin for am335x-pepper and n900, this
->   has been always broken and won't get fixed until the related
->   driver changes are also merged in for v4.16, so not urgent
->
-> - Fix tps65917 powerhold property for dra76-evm
->
-> - Changes to logicpd boards to remove MTD partition information
->   and to add support for omap35xx variants by setting up common
->   dts files for the logicpd boards
->
-> - Disable dra7 USB metastability workaround, this won't do
->   anything until the related driver changes are also merged
->   into v4.16, so not urgent
+Hi Tony,
 
-Pulled into next/dt, thanks!
+On Thu, Dec 21, 2017 at 7:50 AM, Tony Lindgren <tony@atomide.com> wrote:
+> The following changes since commit ffb009b24388b896d9ca8b54e39a879302142518:
+>
+>   clk: ti: convert retry_init param to use void data type (2017-12-01 15:16:24 +0200)
+>
+> are available in the Git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/clk-omap3-legacy-signed
+>
+> for you to fetch changes up to 7558562a70fbd6b3fa746fa33c76c9333aa0bb32:
+>
+>   clk: ti: Drop legacy clk-3xxx-legacy code (2017-12-14 08:32:06 -0800)
 
-         Arnd
+Pulled into clk-omap.
+
+Regards,
+Mike
+
+>
+> ----------------------------------------------------------------
+> Drop unused omap3 clock data
+>
+> We have been booting omap3 in device tree only mode for a while now,
+> so this is all unused now.
+>
+> ----------------------------------------------------------------
+> Tony Lindgren (1):
+>       clk: ti: Drop legacy clk-3xxx-legacy code
+>
+>  drivers/clk/ti/Makefile          |    4 -
+>  drivers/clk/ti/clk-3xxx-legacy.c | 4656 --------------------------------------
+>  drivers/clk/ti/clk.c             |  135 --
+>  drivers/clk/ti/clock.h           |   68 -
+>  drivers/clk/ti/composite.c       |   45 -
+>  drivers/clk/ti/dpll.c            |   90 -
+>  drivers/clk/ti/gate.c            |   48 -
+>  drivers/clk/ti/interface.c       |   32 -
+>  8 files changed, 5078 deletions(-)
+>  delete mode 100644 drivers/clk/ti/clk-3xxx-legacy.c
