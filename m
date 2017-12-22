@@ -1,56 +1,69 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 2/3] dt-bindings: PCI: dra7xx: Add properties to enable
- x2 lane in dra7
-Date: Fri, 22 Dec 2017 11:33:01 +0530
-Message-ID: <94336bfb-221d-95f7-72b2-09219b08099b@ti.com>
-References: <20171219085823.8695-1-kishon@ti.com>
- <20171219085823.8695-3-kishon@ti.com>
- <20171220185715.j5h7dlricom6kuiz@rob-hp-laptop>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] ARM: OMAP2+: hwmod_core: enable optional clocks before main
+ clock
+Date: Fri, 22 Dec 2017 11:26:03 +0200
+Message-ID: <1513934763-23966-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171220185715.j5h7dlricom6kuiz@rob-hp-laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, tony@atomide.com, j-keerthy@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rob,
+The optional clocks must be enabled before the main clock after the
+transition to clkctrl controlled clocks is done. Otherwise the module
+we attempt to enable might be stuck in transition.
 
-On Thursday 21 December 2017 12:27 AM, Rob Herring wrote:
-> On Tue, Dec 19, 2017 at 02:28:22PM +0530, Kishon Vijay Abraham I wrote:
->> Add syscon properties required for configuring PCIe in x2 lane mode.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->> ---
->>  Documentation/devicetree/bindings/pci/ti-pci.txt | 6 ++++++
->>  1 file changed, 6 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
->> index 82cb875e4cec..bfbc77ac7355 100644
->> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
->> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
->> @@ -13,6 +13,12 @@ PCIe DesignWare Controller
->>   - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
->>  	       where <X> is the instance number of the pcie from the HW spec.
->>   - num-lanes as specified in ../designware-pcie.txt
->> + - ti,syscon-lane-conf : phandle/offset pair. Phandle to the system control
->> +			 module and the register offset to specify 1 lane or
->> +			 2 lane.
->> + - ti,syscon-lane-sel : phandle/offset pair. Phandle to the system control
->> +			module and the register offset to specify lane
->> +			selection.
-> 
-> Adding a property for every syscon register doesn't really scale and 
-> doesn't work if the register layout changes.
+Reported-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+Hi Tony,
 
-The register layout doesn't really change between silicon revisions and for new
-SoCs, the phandle and the register offset for that SoC will have to be
-populated again.
+This patch fixes a regression seen in linux-next, where certain peripherals
+fail to enable after the clkctrl changes are in. The case seen has been
+with mcasp3, where it fails to transition to enabled during the audio
+driver probe. Not sure where you want to pick this up, maybe as early
+rc fixes if its too late to push this to linux-next?
 
-Having said that, I'm not aware of any other alternative here.
+ arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Thanks
-Kishon
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 7324048..340d05c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -976,6 +976,9 @@ static int _enable_clocks(struct omap_hwmod *oh)
+ 
+ 	pr_debug("omap_hwmod: %s: enabling clocks\n", oh->name);
+ 
++	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
++		_enable_optional_clocks(oh);
++
+ 	if (oh->_clk)
+ 		clk_enable(oh->_clk);
+ 
+@@ -984,9 +987,6 @@ static int _enable_clocks(struct omap_hwmod *oh)
+ 			clk_enable(os->_clk);
+ 	}
+ 
+-	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
+-		_enable_optional_clocks(oh);
+-
+ 	/* The opt clocks are controlled by the device driver. */
+ 
+ 	return 0;
+-- 
+1.9.1
+
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
