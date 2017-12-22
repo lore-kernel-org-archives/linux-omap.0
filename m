@@ -1,64 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/4] soc changes for omaps for v4.16, part 2
-Date: Fri, 22 Dec 2017 10:14:24 -0800
-Message-ID: <pull-1513966338-859035@atomide.com>
+Subject: Re: [PATCH v2 2/3] dt-bindings: PCI: dra7xx: Add properties to
+ enable x2 lane in dra7
+Date: Fri, 22 Dec 2017 10:24:48 -0800
+Message-ID: <20171222182448.GZ3875@atomide.com>
+References: <20171219085823.8695-1-kishon@ti.com>
+ <20171219085823.8695-3-kishon@ti.com>
+ <20171220185715.j5h7dlricom6kuiz@rob-hp-laptop>
+ <94336bfb-221d-95f7-72b2-09219b08099b@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <94336bfb-221d-95f7-72b2-09219b08099b@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: "Tony Lindgren" <tony@atomide.com>
+* Kishon Vijay Abraham I <kishon@ti.com> [171222 06:06]:
+> Hi Rob,
+> 
+> On Thursday 21 December 2017 12:27 AM, Rob Herring wrote:
+> > On Tue, Dec 19, 2017 at 02:28:22PM +0530, Kishon Vijay Abraham I wrote:
+> >> Add syscon properties required for configuring PCIe in x2 lane mode.
+> >>
+> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> >> ---
+> >>  Documentation/devicetree/bindings/pci/ti-pci.txt | 6 ++++++
+> >>  1 file changed, 6 insertions(+)
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> >> index 82cb875e4cec..bfbc77ac7355 100644
+> >> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+> >> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+> >> @@ -13,6 +13,12 @@ PCIe DesignWare Controller
+> >>   - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
+> >>  	       where <X> is the instance number of the pcie from the HW spec.
+> >>   - num-lanes as specified in ../designware-pcie.txt
+> >> + - ti,syscon-lane-conf : phandle/offset pair. Phandle to the system control
+> >> +			 module and the register offset to specify 1 lane or
+> >> +			 2 lane.
+> >> + - ti,syscon-lane-sel : phandle/offset pair. Phandle to the system control
+> >> +			module and the register offset to specify lane
+> >> +			selection.
+> > 
+> > Adding a property for every syscon register doesn't really scale and 
+> > doesn't work if the register layout changes.
+> 
+> The register layout doesn't really change between silicon revisions and for new
+> SoCs, the phandle and the register offset for that SoC will have to be
+> populated again.
+> 
+> Having said that, I'm not aware of any other alternative here.
 
-The following changes since commit fdf3632938a646c13f7407f2f8c33ff81eed9c76:
+Sorry I did not realize this is still open. Sounds like I need to
+revert commit 4ece93c020e3 ("ARM: dts: dra7: Add properties to
+enable PCIe x2 lane mode"), let me know if that is not the case.
 
-  Merge branch '4.15-rc1-clkctrl-mach-omap2' of https://github.com/t-kristo/linux-pm into omap-for-v4.16/soc (2017-12-11 07:46:40 -0800)
+Regards,
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/soc-pt2-signed
-
-for you to fetch changes up to 234c91d4a350835df8362f6bc968ccf052c60d58:
-
-  ARM: OMAP2+: dra762: Register package specific hwmod (2017-12-21 07:05:15 -0800)
-
-----------------------------------------------------------------
-Second set of SoC changes for omaps for v4.16 merge window
-
-We can now drop some more of legacy platform data for omap3 as
-it's been booting in device tree only mode for quite a while now.
-This clock related data is coming from device tree configured
-clocks now.
-
-The other changes add support for detecting new dra762 SoC variant.
-
-----------------------------------------------------------------
-Lokesh Vutla (2):
-      ARM: OMAP2+: dra762: Add support for device package identification
-      ARM: OMAP2+: dra762: Register package specific hwmod
-
-Tony Lindgren (1):
-      ARM: OMAP2+: Drop unused legacy data for prcm_reg_id and module_bit
-
- arch/arm/mach-omap2/cm-regbits-24xx.h              |  81 -----------
- arch/arm/mach-omap2/cm-regbits-34xx.h              | 162 ---------------------
- arch/arm/mach-omap2/id.c                           |  17 ++-
- arch/arm/mach-omap2/omap_hwmod.h                   |   6 -
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  14 --
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  28 ----
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  64 --------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         | 132 +----------------
- arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  27 +++-
- arch/arm/mach-omap2/soc.h                          |  16 ++
- 10 files changed, 51 insertions(+), 496 deletions(-)
+Tony
