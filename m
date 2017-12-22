@@ -1,15 +1,15 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod_core: enable optional clocks before
- main clock
-Date: Fri, 22 Dec 2017 15:10:22 +0530
-Message-ID: <f9fea9e3-7ebb-9a78-92fc-85b7afe3a525@ti.com>
-References: <1513934763-23966-1-git-send-email-t-kristo@ti.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH] dmaengine: ti-dma-crossbar: Fix event mapping for
+ TPCC_EVT_MUX_60_63
+Date: Fri, 22 Dec 2017 17:48:17 +0530
+Message-ID: <20171222121817.GV18649@localhost>
+References: <20171219105116.24335-1-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1513934763-23966-1-git-send-email-t-kristo@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20171219105116.24335-1-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,58 +19,22 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: dmaengine@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, vigneshr@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Friday 22 December 2017 02:56 PM, Tero Kristo wrote:
-> The optional clocks must be enabled before the main clock after the
-> transition to clkctrl controlled clocks is done. Otherwise the module
-> we attempt to enable might be stuck in transition.
+On Tue, Dec 19, 2017 at 12:51:16PM +0200, Peter Ujfalusi wrote:
+> From: Vignesh R <vigneshr@ti.com>
 > 
-> Reported-by: Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Register layout of a typical TPCC_EVT_MUX_M_N register is such that the
+> lowest numbered event is at the lowest byte address and highest numbered
+> event at highest byte address. But TPCC_EVT_MUX_60_63 register layout is
+> different,  in that the lowest numbered event is at the highest address
+> and highest numbered event is at the lowest address. Therefore, modify
+> ti_am335x_xbar_write() to handle TPCC_EVT_MUX_60_63 register
+> accordingly.
 
-Tested the patch on both DRA7-EVM and DRA72-EVM. I no longer see the issue:
+Applied, thanks
 
-Tested-by: Keerthy <j-keerthy@ti.com>
-
-> ---
-> Hi Tony,
-> 
-> This patch fixes a regression seen in linux-next, where certain peripherals
-> fail to enable after the clkctrl changes are in. The case seen has been
-> with mcasp3, where it fails to transition to enabled during the audio
-> driver probe. Not sure where you want to pick this up, maybe as early
-> rc fixes if its too late to push this to linux-next?
-> 
->  arch/arm/mach-omap2/omap_hwmod.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 7324048..340d05c 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -976,6 +976,9 @@ static int _enable_clocks(struct omap_hwmod *oh)
->  
->  	pr_debug("omap_hwmod: %s: enabling clocks\n", oh->name);
->  
-> +	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
-> +		_enable_optional_clocks(oh);
-> +
->  	if (oh->_clk)
->  		clk_enable(oh->_clk);
->  
-> @@ -984,9 +987,6 @@ static int _enable_clocks(struct omap_hwmod *oh)
->  			clk_enable(os->_clk);
->  	}
->  
-> -	if (oh->flags & HWMOD_OPT_CLKS_NEEDED)
-> -		_enable_optional_clocks(oh);
-> -
->  	/* The opt clocks are controlled by the device driver. */
->  
->  	return 0;
-> 
+-- 
+~Vinod
