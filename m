@@ -1,49 +1,54 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 1/2] pinctrl: single: Delete an error message for a failed
- memory allocation in pcs_probe()
-Date: Mon, 25 Dec 2017 14:06:13 +0100
-Message-ID: <bc8e7af9-6dcb-6f08-388a-31fc1b88cd00@users.sourceforge.net>
+Subject: [PATCH 2/2] pinctrl: single: Delete an unnecessary return statement
+ in pcs_irq_chain_handler()
+Date: Mon, 25 Dec 2017 14:07:48 +0100
+Message-ID: <c736d14b-0293-82ac-27de-a673b62b61d7@users.sourceforge.net>
 References: <6bc679d1-c1ee-52fe-9ece-b28095f653ec@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <6bc679d1-c1ee-52fe-9ece-b28095f653ec@users.sourceforge.net>
 Content-Language: en-GB
-Sender: linux-gpio-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Haojian Zhuang <haojian.zhuang@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 25 Dec 2017 11:27:55 +0100
+Date: Mon, 25 Dec 2017 11:35:44 +0100
 
-Omit an extra message for a memory allocation failure in this function.
+The script "checkpatch.pl" pointed information out like the following.
 
-This issue was detected by using the Coccinelle software.
+WARNING: void function return statements are not generally useful
+
+Thus remove such a statement in the affected function.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/pinctrl/pinctrl-single.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/pinctrl/pinctrl-single.c | 2 --
+ 1 file changed, 2 deletions(-)
 
 diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index e6cd8de793e2..f5ff2111481d 100644
+index f5ff2111481d..16689195e481 100644
 --- a/drivers/pinctrl/pinctrl-single.c
 +++ b/drivers/pinctrl/pinctrl-single.c
-@@ -1646,10 +1646,9 @@ static int pcs_probe(struct platform_device *pdev)
- 		return -EINVAL;
+@@ -1459,8 +1459,6 @@ static void pcs_irq_chain_handler(struct irq_desc *desc)
+ 	pcs_irq_handle(pcs_soc);
+ 	/* REVISIT: export and add handle_bad_irq(irq, desc)? */
+ 	chained_irq_exit(chip, desc);
+-
+-	return;
+ }
  
- 	pcs = devm_kzalloc(&pdev->dev, sizeof(*pcs), GFP_KERNEL);
--	if (!pcs) {
--		dev_err(&pdev->dev, "could not allocate\n");
-+	if (!pcs)
- 		return -ENOMEM;
--	}
-+
- 	pcs->dev = &pdev->dev;
- 	pcs->np = np;
- 	raw_spin_lock_init(&pcs->lock);
+ static int pcs_irqdomain_map(struct irq_domain *d, unsigned int irq,
 -- 
 2.15.1
-
