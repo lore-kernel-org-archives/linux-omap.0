@@ -1,111 +1,69 @@
-From: Shawn Guo <shawnguo@kernel.org>
-Subject: Re: [PATCH 05/25] arm: imx: dts: Remove leading 0x and 0s from
- bindings notation
-Date: Tue, 26 Dec 2017 12:17:34 +0800
-Message-ID: <20171226041733.GE4210@X250>
-References: <20171214165350.27850-1-malat@debian.org>
- <20171215111620.20379-1-malat@debian.org>
- <20171215111620.20379-5-malat@debian.org>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 2/3] dt-bindings: PCI: dra7xx: Add properties to enable
+ x2 lane in dra7
+Date: Tue, 26 Dec 2017 11:46:37 -0600
+Message-ID: <CAL_Jsq+f3u0yvftvESKDiDF76bUiwr9hZED3ZZ75=qMMr6RL1g@mail.gmail.com>
+References: <20171219085823.8695-1-kishon@ti.com> <20171219085823.8695-3-kishon@ti.com>
+ <20171220185715.j5h7dlricom6kuiz@rob-hp-laptop> <94336bfb-221d-95f7-72b2-09219b08099b@ti.com>
+ <20171222182448.GZ3875@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20171215111620.20379-5-malat@debian.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mathieu Malaterre <malat@debian.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Andrew Lunn <andrew@lunn.ch>, Heiko Stuebner <heiko@sntech.de>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Matthias Brugger <matthias.bgg@gmail.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-arm-kernel@axis.com, Baoyou Xie <baoyou.xie@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Jesper Nilsson <jesper.nilsson@axis.com>, Florian Fainelli <f.fainelli@gmail.com>, Kevin Hilman <khilman@kernel.org>, Viresh Kumar <vireshk@kernel.org>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, linux-samsung-soc@vger.kernel.org, Alexandre Torgue <alexandre.torgue@st.com>, Kukjin Kim <kgene@kernel.org>, bcm-kernel-feedback-list@broadcom.com, Niklas Cassel <niklas.cassel@axis.com>, linux-rockchip@lists.infradead.org, Sebastian Hesselbarth <sebastian>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20171222182448.GZ3875@atomide.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Mark Rutland <mark.rutland@arm.com>, linux-omap <linux-omap@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, linux-pci@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 15, 2017 at 12:15:55PM +0100, Mathieu Malaterre wrote:
-> Improve the DTS files by removing all the leading "0x" and zeros to fix the
-> following dtc warnings:
-> 
-> Warning (unit_address_format): Node /XXX unit name should not have leading "0x"
-> 
-> and
-> 
-> Warning (unit_address_format): Node /XXX unit name should not have leading 0s
-> 
-> Converted using the following command:
-> 
-> find . -type f \( -iname *.dts -o -iname *.dtsi \) -exec sed -i -e "s/@\([0-9a-fA-FxX\.;:#]+\)\s*{/@\L\1 {/g" -e "s/@0x\(.*\) {/@\1 {/g" -e "s/@0+\(.*\) {/@\1 {/g" {} +^C
-> 
-> For simplicity, two sed expressions were used to solve each warnings separately.
-> 
-> To make the regex expression more robust a few other issues were resolved,
-> namely setting unit-address to lower case, and adding a whitespace before the
-> the opening curly brace:
-> 
-> https://elinux.org/Device_Tree_Linux#Linux_conventions
-> 
-> This will solve as a side effect warning:
-> 
-> Warning (simple_bus_reg): Node /XXX@<UPPER> simple-bus unit address format error, expected "<lower>"
-> 
-> This is a follow up to commit 4c9847b7375a ("dt-bindings: Remove leading 0x from bindings notation")
-> 
-> Reported-by: David Daney <ddaney@caviumnetworks.com>
-> Suggested-by: Rob Herring <robh@kernel.org>
-> Signed-off-by: Mathieu Malaterre <malat@debian.org>
-> ---
->  arch/arm/boot/dts/imx6q-display5.dtsi | 2 +-
->  arch/arm/boot/dts/imx7d.dtsi          | 2 +-
->  arch/arm/boot/dts/imx7s.dtsi          | 2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/imx6q-display5.dtsi b/arch/arm/boot/dts/imx6q-display5.dtsi
-> index 4084de43d4d9..09085fde3341 100644
-> --- a/arch/arm/boot/dts/imx6q-display5.dtsi
-> +++ b/arch/arm/boot/dts/imx6q-display5.dtsi
-> @@ -255,7 +255,7 @@
->  	pinctrl-0 = <&pinctrl_i2c1>;
->  	status = "okay";
->  
-> -	codec: tfa9879@6C {
-> +	codec: tfa9879@6c {
->  		#sound-dai-cells = <0>;
->  		compatible = "nxp,tfa9879";
->  		reg = <0x6C>;
-> diff --git a/arch/arm/boot/dts/imx7d.dtsi b/arch/arm/boot/dts/imx7d.dtsi
-> index 4d308d17f040..369d5a166b3e 100644
-> --- a/arch/arm/boot/dts/imx7d.dtsi
-> +++ b/arch/arm/boot/dts/imx7d.dtsi
-> @@ -129,7 +129,7 @@
->  		status = "disabled";
->  	};
->  
-> -	pcie: pcie@0x33800000 {
-> +	pcie: pcie@33800000 {
->  		compatible = "fsl,imx7d-pcie", "snps,dw-pcie";
->  		reg = <0x33800000 0x4000>,
->  		      <0x4ff00000 0x80000>;
-> diff --git a/arch/arm/boot/dts/imx7s.dtsi b/arch/arm/boot/dts/imx7s.dtsi
-> index 82ad26e766eb..a00ba897e58d 100644
-> --- a/arch/arm/boot/dts/imx7s.dtsi
-> +++ b/arch/arm/boot/dts/imx7s.dtsi
-> @@ -583,7 +583,7 @@
->  					#address-cells = <1>;
->  					#size-cells = <0>;
->  
-> -					pgc_pcie_phy: pgc-power-domain@IMX7_POWER_DOMAIN_PCIE_PHY {
-> +					pgc_pcie_phy: pgc-power-domain@imx7_power_domain_pcie_phy {
+On Fri, Dec 22, 2017 at 12:24 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Kishon Vijay Abraham I <kishon@ti.com> [171222 06:06]:
+>> Hi Rob,
+>>
+>> On Thursday 21 December 2017 12:27 AM, Rob Herring wrote:
+>> > On Tue, Dec 19, 2017 at 02:28:22PM +0530, Kishon Vijay Abraham I wrote:
+>> >> Add syscon properties required for configuring PCIe in x2 lane mode.
+>> >>
+>> >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> >> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>> >> ---
+>> >>  Documentation/devicetree/bindings/pci/ti-pci.txt | 6 ++++++
+>> >>  1 file changed, 6 insertions(+)
+>> >>
+>> >> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> >> index 82cb875e4cec..bfbc77ac7355 100644
+>> >> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> >> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>> >> @@ -13,6 +13,12 @@ PCIe DesignWare Controller
+>> >>   - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
+>> >>           where <X> is the instance number of the pcie from the HW spec.
+>> >>   - num-lanes as specified in ../designware-pcie.txt
+>> >> + - ti,syscon-lane-conf : phandle/offset pair. Phandle to the system control
+>> >> +                   module and the register offset to specify 1 lane or
+>> >> +                   2 lane.
+>> >> + - ti,syscon-lane-sel : phandle/offset pair. Phandle to the system control
+>> >> +                  module and the register offset to specify lane
+>> >> +                  selection.
+>> >
+>> > Adding a property for every syscon register doesn't really scale and
+>> > doesn't work if the register layout changes.
+>>
+>> The register layout doesn't really change between silicon revisions and for new
+>> SoCs, the phandle and the register offset for that SoC will have to be
+>> populated again.
 
-I think this is broken, as IMX7_POWER_DOMAIN_PCIE_PHY is a define here.
+And what about SoCs that don't exist yet?
 
-Shawn
+>> Having said that, I'm not aware of any other alternative here.
 
->  						#power-domain-cells = <0>;
->  						reg = <IMX7_POWER_DOMAIN_PCIE_PHY>;
->  						power-supply = <&reg_1p0d>;
-> -- 
-> 2.11.0
-> 
+What would you do if you had 20 different syscon registers to
+configure? Add 20 properties? No, you would have per SoC functions in
+the driver to handle the different cases.
+
+> Sorry I did not realize this is still open. Sounds like I need to
+> revert commit 4ece93c020e3 ("ARM: dts: dra7: Add properties to
+> enable PCIe x2 lane mode"), let me know if that is not the case.
+
+It's fine, I guess. Keep adding more syscon phandles and then I'll NAK
+it (if I remember :)).
+
+Rob
