@@ -1,88 +1,89 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 2/3] dt-bindings: PCI: dra7xx: Add properties to
- enable x2 lane in dra7
-Date: Tue, 26 Dec 2017 10:10:09 -0800
-Message-ID: <20171226181009.GE3875@atomide.com>
-References: <20171219085823.8695-1-kishon@ti.com>
- <20171219085823.8695-3-kishon@ti.com>
- <20171220185715.j5h7dlricom6kuiz@rob-hp-laptop>
- <94336bfb-221d-95f7-72b2-09219b08099b@ti.com>
- <20171222182448.GZ3875@atomide.com>
- <CAL_Jsq+f3u0yvftvESKDiDF76bUiwr9hZED3ZZ75=qMMr6RL1g@mail.gmail.com>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv3 RESEND 1/3] Documentation: dt: memory: ti-emif: add
+ edac support under emif
+Date: Tue, 26 Dec 2017 16:48:19 -0600
+Message-ID: <20171226224819.6uekbnbd5tllaxb5@rob-hp-laptop>
+References: <1513959834-27901-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAL_Jsq+f3u0yvftvESKDiDF76bUiwr9hZED3ZZ75=qMMr6RL1g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1513959834-27901-1-git-send-email-t-kristo-l0cyMroinI0@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [171226 17:49]:
-> On Fri, Dec 22, 2017 at 12:24 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> > * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [171222 06:06]:
-> >> Hi Rob,
-> >>
-> >> On Thursday 21 December 2017 12:27 AM, Rob Herring wrote:
-> >> > On Tue, Dec 19, 2017 at 02:28:22PM +0530, Kishon Vijay Abraham I wrote:
-> >> >> Add syscon properties required for configuring PCIe in x2 lane mode.
-> >> >>
-> >> >> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> >> >> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> >> >> ---
-> >> >>  Documentation/devicetree/bindings/pci/ti-pci.txt | 6 ++++++
-> >> >>  1 file changed, 6 insertions(+)
-> >> >>
-> >> >> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> >> >> index 82cb875e4cec..bfbc77ac7355 100644
-> >> >> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
-> >> >> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
-> >> >> @@ -13,6 +13,12 @@ PCIe DesignWare Controller
-> >> >>   - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
-> >> >>           where <X> is the instance number of the pcie from the HW spec.
-> >> >>   - num-lanes as specified in ../designware-pcie.txt
-> >> >> + - ti,syscon-lane-conf : phandle/offset pair. Phandle to the system control
-> >> >> +                   module and the register offset to specify 1 lane or
-> >> >> +                   2 lane.
-> >> >> + - ti,syscon-lane-sel : phandle/offset pair. Phandle to the system control
-> >> >> +                  module and the register offset to specify lane
-> >> >> +                  selection.
-> >> >
-> >> > Adding a property for every syscon register doesn't really scale and
-> >> > doesn't work if the register layout changes.
-> >>
-> >> The register layout doesn't really change between silicon revisions and for new
-> >> SoCs, the phandle and the register offset for that SoC will have to be
-> >> populated again.
+On Fri, Dec 22, 2017 at 06:23:54PM +0200, Tero Kristo wrote:
+> Certain revisions of the TI EMIF IP contain ECC support in them. Reflect
+> this in the DT binding.
+
+"dt-bindings: edac: ..." is the preferred subject prefix.
+
 > 
-> And what about SoCs that don't exist yet?
+> Signed-off-by: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+> Just resending this patch, missed adding devicetree list on this previously
+> and it got lost.
 > 
-> >> Having said that, I'm not aware of any other alternative here.
+>  .../devicetree/bindings/memory-controllers/ti/emif.txt   | 16 +++++++++++++++-
+>  1 file changed, 15 insertions(+), 1 deletion(-)
 > 
-> What would you do if you had 20 different syscon registers to
-> configure? Add 20 properties? No, you would have per SoC functions in
-> the driver to handle the different cases.
+> diff --git a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+> index 0db6047..f56a347 100644
+> --- a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+> +++ b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+> @@ -3,12 +3,16 @@
+>  EMIF - External Memory Interface - is an SDRAM controller used in
+>  TI SoCs. EMIF supports, based on the IP revision, one or more of
+>  DDR2/DDR3/LPDDR2 protocols. This binding describes a given instance
+> -of the EMIF IP and memory parts attached to it.
+> +of the EMIF IP and memory parts attached to it. Certain revisions
+> +of the EMIF IP controller also contain optional ECC support, which
+> +corrects one bit errors and detects two bit errors.
+>  
+>  Required properties:
+>  - compatible	: Should be of the form "ti,emif-<ip-rev>" where <ip-rev>
+>    is the IP revision of the specific EMIF instance.
+>  		  For am437x should be ti,emif-am4372.
+> +		  For dra7xx should be ti,emif-dra7xx.
+> +		  For k2x family, should be ti,emif-keystone.
+>  
+>  - phy-type	: <u32> indicating the DDR phy type. Following are the
+>    allowed values
+> @@ -42,6 +46,10 @@ Optional properties:
+>  - hw-caps-temp-alert	: Have this property if the controller
+>    has capability for generating SDRAM temperature alerts
+>  
+> +- interrupts		: A list of interrupt specifiers for memory
+> +  controller interrupts, if available. Required for EMIF instances
+> +  that support ECC.
 
-Ideally these syscon registers would be managed by some Linux
-generic framework such as clock/regulator/mux/phy.
+Be explicit as to which compatibles have an interrupt. Is it really 
+optional for for those controllers? The interrupt is in the h/w whether 
+you use ECC or not.
 
-But yeah, if that does not work, then setting a SoC specific
-configuration function based on the compatible value makes sense
-to me.
-
-> > Sorry I did not realize this is still open. Sounds like I need to
-> > revert commit 4ece93c020e3 ("ARM: dts: dra7: Add properties to
-> > enable PCIe x2 lane mode"), let me know if that is not the case.
+> +
+>  Example:
+>  
+>  emif1: emif@0x4c000000 {
+> @@ -54,3 +62,9 @@ emif1: emif@0x4c000000 {
+>  	hw-caps-ll-interface;
+>  	hw-caps-temp-alert;
+>  };
+> +
+> +emif1: emif@4c000000 {
+> +	compatible = "ti,emif-dra7";
+> +	reg = <0x4c000000 0x200>;
+> +	interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+> +};
+> -- 
+> 1.9.1
 > 
-> It's fine, I guess. Keep adding more syscon phandles and then I'll NAK
-> it (if I remember :)).
-
-Already reverted, thanks for the comments.
-
-Regards,
-
-Tony
+> --
+> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
