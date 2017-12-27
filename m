@@ -1,28 +1,84 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv3 RESEND 1/3] Documentation: dt: memory: ti-emif: add edac
- support under emif
-Date: Tue, 26 Dec 2017 16:50:18 -0600
-Message-ID: <CAL_Jsq+9=Py6tGgTQSKnBb3xJstPm=3cTP=pqWcCLvMJ83ajyQ@mail.gmail.com>
-References: <1513959834-27901-1-git-send-email-t-kristo@ti.com> <20171226224819.6uekbnbd5tllaxb5@rob-hp-laptop>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 2/3] dt-bindings: PCI: dra7xx: Add properties to enable
+ x2 lane in dra7
+Date: Wed, 27 Dec 2017 12:10:32 +0530
+Message-ID: <a041cce3-48b3-f63c-c161-91579d3af76f@ti.com>
+References: <20171219085823.8695-1-kishon@ti.com>
+ <20171219085823.8695-3-kishon@ti.com>
+ <20171220185715.j5h7dlricom6kuiz@rob-hp-laptop>
+ <94336bfb-221d-95f7-72b2-09219b08099b@ti.com>
+ <20171222182448.GZ3875@atomide.com>
+ <CAL_Jsq+f3u0yvftvESKDiDF76bUiwr9hZED3ZZ75=qMMr6RL1g@mail.gmail.com>
+ <20171226181009.GE3875@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171226224819.6uekbnbd5tllaxb5@rob-hp-laptop>
+In-Reply-To: <20171226181009.GE3875-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-Cc: "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 26, 2017 at 4:48 PM, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Fri, Dec 22, 2017 at 06:23:54PM +0200, Tero Kristo wrote:
->> Certain revisions of the TI EMIF IP contain ECC support in them. Reflect
->> this in the DT binding.
->
-> "dt-bindings: edac: ..." is the preferred subject prefix.
+Hi,
 
-Err, I mean "dt-bindings: memory-controllers: ..."
+On Tuesday 26 December 2017 11:40 PM, Tony Lindgren wrote:
+> * Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> [171226 17:49]:
+>> On Fri, Dec 22, 2017 at 12:24 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+>>> * Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> [171222 06:06]:
+>>>> Hi Rob,
+>>>>
+>>>> On Thursday 21 December 2017 12:27 AM, Rob Herring wrote:
+>>>>> On Tue, Dec 19, 2017 at 02:28:22PM +0530, Kishon Vijay Abraham I wrote:
+>>>>>> Add syscon properties required for configuring PCIe in x2 lane mode.
+>>>>>>
+>>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>>>>>> Signed-off-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+>>>>>> ---
+>>>>>>  Documentation/devicetree/bindings/pci/ti-pci.txt | 6 ++++++
+>>>>>>  1 file changed, 6 insertions(+)
+>>>>>>
+>>>>>> diff --git a/Documentation/devicetree/bindings/pci/ti-pci.txt b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>>>>>> index 82cb875e4cec..bfbc77ac7355 100644
+>>>>>> --- a/Documentation/devicetree/bindings/pci/ti-pci.txt
+>>>>>> +++ b/Documentation/devicetree/bindings/pci/ti-pci.txt
+>>>>>> @@ -13,6 +13,12 @@ PCIe DesignWare Controller
+>>>>>>   - ti,hwmods : Name of the hwmod associated to the pcie, "pcie<X>",
+>>>>>>           where <X> is the instance number of the pcie from the HW spec.
+>>>>>>   - num-lanes as specified in ../designware-pcie.txt
+>>>>>> + - ti,syscon-lane-conf : phandle/offset pair. Phandle to the system control
+>>>>>> +                   module and the register offset to specify 1 lane or
+>>>>>> +                   2 lane.
+>>>>>> + - ti,syscon-lane-sel : phandle/offset pair. Phandle to the system control
+>>>>>> +                  module and the register offset to specify lane
+>>>>>> +                  selection.
+>>>>>
+>>>>> Adding a property for every syscon register doesn't really scale and
+>>>>> doesn't work if the register layout changes.
+>>>>
+>>>> The register layout doesn't really change between silicon revisions and for new
+>>>> SoCs, the phandle and the register offset for that SoC will have to be
+>>>> populated again.
+>>
+>> And what about SoCs that don't exist yet?
+>>
+>>>> Having said that, I'm not aware of any other alternative here.
+>>
+>> What would you do if you had 20 different syscon registers to
+>> configure? Add 20 properties? No, you would have per SoC functions in
+>> the driver to handle the different cases.
+> 
+> Ideally these syscon registers would be managed by some Linux
+> generic framework such as clock/regulator/mux/phy.
+> 
+> But yeah, if that does not work, then setting a SoC specific
+> configuration function based on the compatible value makes sense
+> to me.
 
-Rob
+All right. I'll add a function for syscon configuration in pci-dra7xx.
+
+Thanks
+Kishon
 --
 To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
