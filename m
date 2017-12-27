@@ -1,77 +1,47 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] Device tree binding for Avago APDS990X light sensor
-Date: Wed, 27 Dec 2017 21:01:47 +0100
-Message-ID: <20171227200147.GB16799@amd>
-References: <20171227091828.GA3307@amd>
- <20171227180000.6ejpbqmr736nqx5i@kekkonen.localdomain>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: v4.15: camera problems on n900
+Date: Wed, 27 Dec 2017 22:05:43 +0100
+Message-ID: <20171227210543.GA19719@amd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="8P1HSweYDcXXzwPJ"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171227180000.6ejpbqmr736nqx5i-sGAanXTfQ4777SC2UrCW1FMQynFLKtET@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, clayton-fehKsxFhGzZIf6P1QZMOBw@public.gmane.org, martijn-28JJ9oSIdodmR6Xm/wNWPw@public.gmane.org, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---8P1HSweYDcXXzwPJ
+--xHFwDpU9dbj6ez1V
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi!
 
-> > +Required properties:
-> > +- compatible: "avago,apds990x"
-> > +- reg: address on the I2C bus
-> > +- interrupts: external interrupt line number
-> > +- Vdd-supply: power supply for VDD
-> > +- Vled-supply: power supply for LEDA
->=20
-> AFAIK the custom is to use lower case letters for regulator supplies.
->=20
-> > +- ga: Glass attenuation
-> > +- cf1: Clear channel factor 1
-> > +- irf1: IR channel factor 1
-> > +- cf2: Clear channel factor 2
-> > +- irf2: IR channel factor 2
-> > +- df: Device factor
-> > +- pdrive: IR current, one of APDS_IRLED_CURR_XXXmA values
-> > +- ppcount: Proximity pulse count
->=20
-> Are these device specific? If so, please add the vendor prefix to them.
+In v4.14, back camera on N900 works. On v4.15-rc1.. it works for few
+seconds, but then I get repeated oopses.
 
-Well, whole binding is "vendor specific". Does it make sense to add
-prefix in such case?
+On v4.15-rc0.5 (commit ed30b147e1f6e396e70a52dbb6c7d66befedd786),
+camera does not start.	 =20
 
-> I might not use short abbreviations such as "df" either. I wonder what
-> others think.
-
-I see.
-
-Thanks,
+Any ideas what might be wrong there?
 									Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---8P1HSweYDcXXzwPJ
+--xHFwDpU9dbj6ez1V
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlpD/CsACgkQMOfwapXb+vIY1ACfZyuXhLG/Mq0Ce55yr7fxWBPU
-u+cAoK1n/0Qdvl4c6hGO5xVT5U971PxB
-=JpQS
+iEYEARECAAYFAlpECycACgkQMOfwapXb+vI0YgCgqHBLUzffaVs4g5Yz++KAvhYr
+bcoAoL+VnfbnBle9IebA96tGPcyWuMnR
+=/JnQ
 -----END PGP SIGNATURE-----
 
---8P1HSweYDcXXzwPJ--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--xHFwDpU9dbj6ez1V--
