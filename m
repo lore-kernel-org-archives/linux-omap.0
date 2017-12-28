@@ -1,12 +1,12 @@
 From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: v4.15: camera problems on n900
-Date: Thu, 28 Dec 2017 12:26:21 +0100
-Message-ID: <20171228112621.GA854@amd>
+Date: Thu, 28 Dec 2017 21:24:53 +0100
+Message-ID: <20171228202453.GA20142@amd>
 References: <20171227210543.GA19719@amd>
  <20171227211718.favif66afztygfje@kekkonen.localdomain>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
+        protocol="application/pgp-signature"; boundary="Q68bSM7Ycu6FN28Q"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20171227211718.favif66afztygfje@kekkonen.localdomain>
@@ -16,7 +16,7 @@ Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.
 List-Id: linux-omap@vger.kernel.org
 
 
---uAKRQypu60I7Lcqm
+--Q68bSM7Ycu6FN28Q
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -35,8 +35,10 @@ On Wed 2017-12-27 23:17:19, Sakari Ailus wrote:
 >=20
 > What kind of oopses do you get?
 
-Haven't seen the oopses yet; maybe they are only on linux-next?
-Anyway, bisect so far:
+Hmm. bisect pointed to commit that can't be responsible.... Ideas
+welcome.
+
+										Pavel
 
 # bad: [fb3f95c11904adf26c2bd86fe1b1613c921710b5] Config for v4.15-rc0.5
 # good: [c213cf57c2f15ee226c14dd7157caa334c3ef7c8] Make config similar to n=
@@ -72,6 +74,30 @@ git bisect good ef674997e49760137ca9a90aac41a9922ac399b2
 # good: [b1cb7372fa822af6c06c8045963571d13ad6348b] dvb_frontend: don't use-=
 after-free the frontend struct
 git bisect good b1cb7372fa822af6c06c8045963571d13ad6348b
+# good: [c9fe0f8fa4136c2451dcc012e48fbf4470d6b592] hyper-v: trace vmbus_on_=
+msg_dpc()
+git bisect good c9fe0f8fa4136c2451dcc012e48fbf4470d6b592
+# good: [e20d2b291ba2f5441fd4aacd746c21e60d48b559] nvmem: imx-ocotp: Pass p=
+arameters via a struct
+git bisect good e20d2b291ba2f5441fd4aacd746c21e60d48b559
+# good: [0ff26c662d5f3b26674d5205c8899d901f766acb] driver core: Fix device =
+link deferred probe
+git bisect good 0ff26c662d5f3b26674d5205c8899d901f766acb
+# good: [d4035a8c1ff7288af9e47d6d05384f14c9308ea1] MAINTAINERS: Update VME =
+subsystem tree.
+git bisect good d4035a8c1ff7288af9e47d6d05384f14c9308ea1
+# bad: [e60e1ee60630cafef5e430c2ae364877e061d980] Merge tag 'drm-for-v4.15'=
+ of git://people.freedesktop.org/~airlied/linux
+git bisect bad e60e1ee60630cafef5e430c2ae364877e061d980
+# bad: [5d352e69c60e54b5f04d6e337a1d2bf0dbf3d94a] Merge tag 'media/v4.15-1'=
+ of ssh://gitolite.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media
+git bisect bad 5d352e69c60e54b5f04d6e337a1d2bf0dbf3d94a
+# good: [f2ecc3d0787e05d9145722feed01d4a11ab6bec1] Merge tag 'staging-4.15-=
+rc1' into v4l_for_linus
+git bisect good f2ecc3d0787e05d9145722feed01d4a11ab6bec1
+# first bad commit: [5d352e69c60e54b5f04d6e337a1d2bf0dbf3d94a] Merge tag 'm=
+edia/v4.15-1' of ssh://gitolite.kernel.org/pub/scm/linux/kernel/git/mchehab=
+/linux-media
 
 
 --=20
@@ -79,16 +105,16 @@ git bisect good b1cb7372fa822af6c06c8045963571d13ad6348b
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---uAKRQypu60I7Lcqm
+--Q68bSM7Ycu6FN28Q
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlpE1N0ACgkQMOfwapXb+vIY4gCaA2MvGxQl+WVkQYoRvHIBUyRn
-ekwAoKiOLxULEJQ2U8foUio+LIcfr13+
-=C62V
+iEYEARECAAYFAlpFUxUACgkQMOfwapXb+vKb+QCeOT25hf6CcbXQ29FyZX57Ho76
+VI4An2YNEyTVN4iSi7xYm06CR36zMfPW
+=eDo0
 -----END PGP SIGNATURE-----
 
---uAKRQypu60I7Lcqm--
+--Q68bSM7Ycu6FN28Q--
