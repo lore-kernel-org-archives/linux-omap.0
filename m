@@ -1,104 +1,79 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [PATCH] gpio: omap: Give unique labels to each GPIO bank/chip
-Date: Fri, 29 Dec 2017 15:03:42 +0100
-Message-ID: <20171229140342.GD16993@localhost>
-References: <20171229122812.29743-1-linus.walleij@linaro.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: v4.15: camera problems on n900
+Date: Fri, 29 Dec 2017 17:30:22 +0100
+Message-ID: <20171229163022.GA31142@amd>
+References: <20171227210543.GA19719@amd>
+ <20171227211718.favif66afztygfje@kekkonen.localdomain>
+ <20171228202453.GA20142@amd>
+ <20171229093855.hz44vpssb5mufzop@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171229122812.29743-1-linus.walleij@linaro.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-gpio@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, linux-omap@vger.kernel.org
+In-Reply-To: <20171229093855.hz44vpssb5mufzop@valkosipuli.retiisi.org.uk>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 29, 2017 at 01:28:12PM +0100, Linus Walleij wrote:
-> As we need to add GPIO lookup tables to the OMAP platforms, we
-> need to reference each GPIO chip with a unique label. Use the GPIO
-> base to name each chip, "gpio-0-31", "gpio-32-63" etc. Also fix
-> a small error on the error path of the probe() where the chip
-> would not be free()ed proberly under all circumstances.
 
-Since these two changes appear to be entirely unrelated, I suggest
-splitting this one up into two patches.
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> Cc: Santosh Shilimkar <ssantosh@kernel.org>
-> Cc: Kevin Hilman <khilman@kernel.org>
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-> ---
->  drivers/gpio/gpio-omap.c | 19 +++++++++++++++----
->  1 file changed, 15 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index e136d666f1e5..14fc3fb6f96e 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1059,6 +1059,7 @@ static void omap_gpio_mod_init(struct gpio_bank *bank)
->  static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
->  {
->  	static int gpio;
-> +	const char *label;
->  	int irq_base = 0;
->  	int ret;
->  
-> @@ -1080,7 +1081,11 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
->  			bank->chip.parent = &omap_mpuio_device.dev;
->  		bank->chip.base = OMAP_MPUIO(0);
->  	} else {
-> -		bank->chip.label = "gpio";
-> +		label = devm_kasprintf(bank->chip.parent, GFP_KERNEL, "gpio-%d-%d",
-> +				       gpio, gpio + bank->width - 1);
-> +		if (!label)
-> +			return -ENOMEM;
-> +		bank->chip.label = label;
->  		bank->chip.base = gpio;
->  	}
->  	bank->chip.ngpio = bank->width;
-> @@ -1104,7 +1109,8 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
->  					-1, 0, bank->width, 0);
->  	if (irq_base < 0) {
->  		dev_err(bank->chip.parent, "Couldn't allocate IRQ numbers\n");
-> -		return -ENODEV;
-> +		ret = -ENODEV;
-> +		goto out_err_chip;
->  	}
->  #endif
->  
-> @@ -1123,7 +1129,8 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
->  		dev_err(bank->chip.parent,
->  			"Couldn't add irqchip to gpiochip %d\n", ret);
->  		gpiochip_remove(&bank->chip);
-> -		return -ENODEV;
-> +		ret = -ENODEV;
-> +		goto out_err_chip;
+On Fri 2017-12-29 11:38:55, Sakari Ailus wrote:
+> On Thu, Dec 28, 2017 at 09:24:53PM +0100, Pavel Machek wrote:
+> > On Wed 2017-12-27 23:17:19, Sakari Ailus wrote:
+> > > On Wed, Dec 27, 2017 at 10:05:43PM +0100, Pavel Machek wrote:
+> > > > Hi!
+> > > >=20
+> > > > In v4.14, back camera on N900 works. On v4.15-rc1.. it works for few
+> > > > seconds, but then I get repeated oopses.
+> > > >=20
+> > > > On v4.15-rc0.5 (commit ed30b147e1f6e396e70a52dbb6c7d66befedd786),
+> > > > camera does not start.	 =20
+> > > >=20
+> > > > Any ideas what might be wrong there?
+> > >=20
+> > > What kind of oopses do you get?
+> >=20
+> > Hmm. bisect pointed to commit that can't be responsible.... Ideas
+> > welcome.
+>=20
+> Hi Pavel,
+>=20
+> I tested N9 and capture appears to be working from the CSI-2 receiver
+> (media tree master, i.e. v4.15-rc3 now).
+>=20
+> Which pipeline did you use?
 
-Here it looks like you are now introducing a double free
-(gpiochip_remove) instead.
+I'm using the "main" sensor (5MPx) and am using capture (not preview)
+pipeline.
 
->  	}
->  
->  	gpiochip_set_chained_irqchip(&bank->chip, irqc, bank->irq, NULL);
-> @@ -1132,8 +1139,12 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
->  			       omap_gpio_irq_handler,
->  			       0, dev_name(bank->chip.parent), bank);
->  	if (ret)
-> -		gpiochip_remove(&bank->chip);
-> +		goto out_err_chip;
-> +
-> +	return ret;
+I tested linux-next in the meantime, and that one seems to
+work. (Which is strange, I believe it oopsed before. Perhaps something
+random?) With linux-next working, it should not be hardto figure out
+what is going on.
 
-I'd use "return 0" here for readability reasons.
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
->  
-> +out_err_chip:
+--LQksG6bCIzRHxTLp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-And name this label after what it does, for example, "err_remove_chip".
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> +	gpiochip_remove(&bank->chip);
->  	return ret;
->  }
+iEYEARECAAYFAlpGbZ4ACgkQMOfwapXb+vJtbQCfeJPqx2iNWEXM2acaAkkhCNkU
+cAwAnRTtpQNFlCUiyRdxxF1Dh7QfAepn
+=Nt9b
+-----END PGP SIGNATURE-----
 
-Johan
+--LQksG6bCIzRHxTLp--
