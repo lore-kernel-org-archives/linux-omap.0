@@ -1,55 +1,87 @@
-From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v2 1/2] PCI: dra7xx: Fix legacy INTD IRQ handling
-Date: Fri, 29 Dec 2017 17:11:30 +0530
-Message-ID: <20171229114131.22296-2-vigneshr@ti.com>
-References: <20171229114131.22296-1-vigneshr@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171229114131.22296-1-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: [PATCH] gpio: omap: Give unique labels to each GPIO bank/chip
+Date: Fri, 29 Dec 2017 13:28:12 +0100
+Message-ID: <20171229122812.29743-1-linus.walleij@linaro.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-gpio@vger.kernel.org
+Cc: Linus Walleij <linus.walleij@linaro.org>, Grygorii Strashko <grygorii.strashko@ti.com>, Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Legacy INTD IRQ handling is broken on dra7xx due to fact that driver
-uses hwirq in range of 1-4 for INTA, INTD whereas IRQ domain is of size
-4 which is numbered 0-3. Therefore when INTD IRQ line is used with
-pci-dra7xx driver following warning is seen:
+As we need to add GPIO lookup tables to the OMAP platforms, we
+need to reference each GPIO chip with a unique label. Use the GPIO
+base to name each chip, "gpio-0-31", "gpio-32-63" etc. Also fix
+a small error on the error path of the probe() where the chip
+would not be free()ed proberly under all circumstances.
 
-       WARNING: CPU: 0 PID: 1 at kernel/irq/irqdomain.c:342 irq_domain_associate+0x12c/0x1c4
-       error: hwirq 0x4 is too large for dummy
-
-Fix this by using pci_irqd_intx_xlate() helper to translate the INTx 1-4
-range into the 0-3 as done in other PCIe drivers.
-
-Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
-Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
-Signed-off-by: Vignesh R <vigneshr@ti.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Kevin Hilman <khilman@kernel.org>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- drivers/pci/dwc/pci-dra7xx.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/gpio/gpio-omap.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-index 58aed0896468..892f93910012 100644
---- a/drivers/pci/dwc/pci-dra7xx.c
-+++ b/drivers/pci/dwc/pci-dra7xx.c
-@@ -226,6 +226,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index e136d666f1e5..14fc3fb6f96e 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1059,6 +1059,7 @@ static void omap_gpio_mod_init(struct gpio_bank *bank)
+ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ {
+ 	static int gpio;
++	const char *label;
+ 	int irq_base = 0;
+ 	int ret;
  
- static const struct irq_domain_ops intx_domain_ops = {
- 	.map = dra7xx_pcie_intx_map,
-+	.xlate = pci_irqd_intx_xlate,
- };
+@@ -1080,7 +1081,11 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ 			bank->chip.parent = &omap_mpuio_device.dev;
+ 		bank->chip.base = OMAP_MPUIO(0);
+ 	} else {
+-		bank->chip.label = "gpio";
++		label = devm_kasprintf(bank->chip.parent, GFP_KERNEL, "gpio-%d-%d",
++				       gpio, gpio + bank->width - 1);
++		if (!label)
++			return -ENOMEM;
++		bank->chip.label = label;
+ 		bank->chip.base = gpio;
+ 	}
+ 	bank->chip.ngpio = bank->width;
+@@ -1104,7 +1109,8 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ 					-1, 0, bank->width, 0);
+ 	if (irq_base < 0) {
+ 		dev_err(bank->chip.parent, "Couldn't allocate IRQ numbers\n");
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto out_err_chip;
+ 	}
+ #endif
  
- static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
-@@ -269,7 +270,7 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
- 	case INTC:
- 	case INTD:
- 		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
--						    ffs(reg)));
-+						    ffs(reg) - 1));
- 		break;
+@@ -1123,7 +1129,8 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ 		dev_err(bank->chip.parent,
+ 			"Couldn't add irqchip to gpiochip %d\n", ret);
+ 		gpiochip_remove(&bank->chip);
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto out_err_chip;
  	}
  
+ 	gpiochip_set_chained_irqchip(&bank->chip, irqc, bank->irq, NULL);
+@@ -1132,8 +1139,12 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ 			       omap_gpio_irq_handler,
+ 			       0, dev_name(bank->chip.parent), bank);
+ 	if (ret)
+-		gpiochip_remove(&bank->chip);
++		goto out_err_chip;
++
++	return ret;
+ 
++out_err_chip:
++	gpiochip_remove(&bank->chip);
+ 	return ret;
+ }
+ 
 -- 
-2.15.1
+2.14.3
+
