@@ -1,33 +1,54 @@
 From: Vignesh R <vigneshr@ti.com>
-Subject: [PATCH v2 0/2] pci-dra7xx: Fix legacy IRQ handling
-Date: Fri, 29 Dec 2017 17:11:29 +0530
-Message-ID: <20171229114131.22296-1-vigneshr@ti.com>
+Subject: [PATCH v2 2/2] PCI: dra7xx: Iterate over INTx status bits
+Date: Fri, 29 Dec 2017 17:11:31 +0530
+Message-ID: <20171229114131.22296-3-vigneshr@ti.com>
+References: <20171229114131.22296-1-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20171229114131.22296-1-vigneshr@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Vignesh R <vigneshr@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This series fixes couple of issues wrt PCIe legacy IRQ handling on
-dra7xx platforms.
+It is possible that more than one legacy IRQ may be set at the same
+time, therefore iterate and handle all the pending INTx interrupts
+before clearing the status and exiting the IRQ handler. Otherwise, some
+interrupts would be lost.
 
-Tested on DRA74 EVM.
+Signed-off-by: Vignesh R <vigneshr@ti.com>
+---
+ drivers/pci/dwc/pci-dra7xx.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-Changes in v2:
- * Drop patches related to errata i870 handling. That will be posted
-   separately later.
- * Split INTD IRQ handling into separate patch.
-
-v1: https://lkml.org/lkml/2017/12/1/59
-
-Vignesh R (2):
-  PCI: dra7xx: Fix legacy INTD IRQ handling
-  PCI: dra7xx: Iterate over INTx status bits
-
- drivers/pci/dwc/pci-dra7xx.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+index 892f93910012..48c6ae535847 100644
+--- a/drivers/pci/dwc/pci-dra7xx.c
++++ b/drivers/pci/dwc/pci-dra7xx.c
+@@ -257,7 +257,8 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+ 	struct dra7xx_pcie *dra7xx = arg;
+ 	struct dw_pcie *pci = dra7xx->pci;
+ 	struct pcie_port *pp = &pci->pp;
+-	u32 reg;
++	unsigned long reg;
++	u32 virq, bit;
+ 
+ 	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
+ 
+@@ -269,8 +270,11 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+ 	case INTB:
+ 	case INTC:
+ 	case INTD:
+-		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
+-						    ffs(reg) - 1));
++		for_each_set_bit(bit, &reg, PCI_NUM_INTX) {
++			virq = irq_find_mapping(dra7xx->irq_domain, bit);
++			if (virq)
++				generic_handle_irq(virq);
++		}
+ 		break;
+ 	}
+ 
 -- 
 2.15.1
