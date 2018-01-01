@@ -1,13 +1,13 @@
 From: Bryan O'Donoghue <pure.logic@nexus-software.ie>
-Subject: [PATCH v3 27/34] clk: ti: composite: change clk_pll_round_rate() return logic
-Date: Mon,  1 Jan 2018 19:43:06 +0000
-Message-ID: <1514835793-1104-28-git-send-email-pure.logic@nexus-software.ie>
+Subject: [PATCH v3 28/34] clk: ti: fapll: change round_rate() return logic
+Date: Mon,  1 Jan 2018 19:43:07 +0000
+Message-ID: <1514835793-1104-29-git-send-email-pure.logic@nexus-software.ie>
 References: <1514835793-1104-1-git-send-email-pure.logic@nexus-software.ie>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1514835793-1104-1-git-send-email-pure.logic@nexus-software.ie>
 Sender: linux-kernel-owner@vger.kernel.org
 To: mturquette@baylibre.com, sboyd@codeaurora.org, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org
-Cc: Bryan O'Donoghue <pure.logic@nexus-software.ie>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org
+Cc: Bryan O'Donoghue <pure.logic@nexus-software.ie>, Tero Kristo <t-kristo@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 This patch updates the round_rate() logic here to return zero instead of a
@@ -22,25 +22,41 @@ Signed-off-by: Bryan O'Donoghue <pure.logic@nexus-software.ie>
 Cc: Tero Kristo <t-kristo@ti.com>
 Cc: Michael Turquette <mturquette@baylibre.com>
 Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 Cc: linux-clk@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 ---
- drivers/clk/ti/composite.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clk/ti/fapll.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/clk/ti/composite.c b/drivers/clk/ti/composite.c
-index 2477cf1..0e82b61 100644
---- a/drivers/clk/ti/composite.c
-+++ b/drivers/clk/ti/composite.c
-@@ -38,7 +38,7 @@ static unsigned long ti_composite_round_rate(struct clk_hw *hw,
- 					     unsigned long rate,
- 					     unsigned long *prate)
- {
--	return -EINVAL;
-+	return 0;
- }
+diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
+index 2e74437..f435a8c 100644
+--- a/drivers/clk/ti/fapll.c
++++ b/drivers/clk/ti/fapll.c
+@@ -227,12 +227,12 @@ static unsigned long ti_fapll_round_rate(struct clk_hw *hw, unsigned long rate,
+ 	int error;
  
- static int ti_composite_set_rate(struct clk_hw *hw, unsigned long rate,
+ 	if (!rate)
+-		return -EINVAL;
++		return 0;
+ 
+ 	error = ti_fapll_set_div_mult(rate, *parent_rate,
+ 				      &pre_div_p, &mult_n);
+ 	if (error)
+-		return error;
++		return 0;
+ 
+ 	rate = *parent_rate / pre_div_p;
+ 	rate *= mult_n;
+@@ -414,7 +414,7 @@ static unsigned long ti_fapll_synth_round_rate(struct clk_hw *hw,
+ 	unsigned long r;
+ 
+ 	if (ti_fapll_clock_is_bypass(fd) || !synth->div || !rate)
+-		return -EINVAL;
++		return 0;
+ 
+ 	/* Only post divider m available with no fractional divider? */
+ 	if (!synth->freq) {
 -- 
 2.7.4
