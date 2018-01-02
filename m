@@ -1,59 +1,52 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 2/2] PCI: dra7xx: Iterate over INTx status bits
-Date: Tue, 2 Jan 2018 15:47:50 +0000
-Message-ID: <20180102154750.GA13516@red-moon>
-References: <20171229114131.22296-1-vigneshr@ti.com>
- <20171229114131.22296-3-vigneshr@ti.com>
+From: Aishwarya Pant <aishpant@gmail.com>
+Subject: Re: misc: bh1770glc: move sysfs interace to Documentation/ABI
+Date: Tue, 2 Jan 2018 22:55:16 +0530
+Message-ID: <20180102172516.vfc4uf43mappt3um@mordor.localdomain>
+References: <20171226092957.GA3817@mordor.localdomain>
+ <20180102130636.GA20209@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171229114131.22296-3-vigneshr@ti.com>
+In-Reply-To: <20180102130636.GA20209@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Samu Onkalo <samu.p.onkalo@nokia.com>, julia.lawall@lip6.fr, Jonathan Corbet <corbet@lwn.net>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 29, 2017 at 05:11:31PM +0530, Vignesh R wrote:
-> It is possible that more than one legacy IRQ may be set at the same
-> time, therefore iterate and handle all the pending INTx interrupts
-> before clearing the status and exiting the IRQ handler. Otherwise, some
-> interrupts would be lost.
+On Tue, Jan 02, 2018 at 02:06:36PM +0100, Pavel Machek wrote:
+> Hi!
 > 
-> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> ---
->  drivers/pci/dwc/pci-dra7xx.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
+> > In Documentation/misc-devices/bh1770glc.txt, there is a description of the sysfs
+> > interface which could be moved to Documentation/ABI.
+> > 
+> > Would such a change be useful?
 > 
-> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 892f93910012..48c6ae535847 100644
-> --- a/drivers/pci/dwc/pci-dra7xx.c
-> +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -257,7 +257,8 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
->  	struct dra7xx_pcie *dra7xx = arg;
->  	struct dw_pcie *pci = dra7xx->pci;
->  	struct pcie_port *pp = &pci->pp;
-> -	u32 reg;
-> +	unsigned long reg;
-> +	u32 virq, bit;
->  
->  	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
->  
-> @@ -269,8 +270,11 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
->  	case INTB:
->  	case INTC:
->  	case INTD:
-> -		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
-> -						    ffs(reg) - 1));
-> +		for_each_set_bit(bit, &reg, PCI_NUM_INTX) {
-> +			virq = irq_find_mapping(dra7xx->irq_domain, bit);
-> +			if (virq)
-> +				generic_handle_irq(virq);
-> +		}
->  		break;
->  	}
+> Not at the moment.
+> 
+> > The ABI documentation format looks like the following:
+> > 
+> > What:          (the full sysfs path of the attribute)
+> > Date:          (date of creation)
+> > KernelVersion: (kernel version it first showed up in)
+> > Contact:       (primary contact)
+> > Description:   (long description on usage)
+> > 
+> > I am doing this in an exercise to move sysfs ABI interfaces (which are
+> > documented) to their right place i.e. in Documentation/ABI along with the rest.
+> 
+> The interface should probably be changed to iio one, to be consistent
+> with other sensors such as Apds990x.
+> 
+> If you have the hardware, help would be welcome.
 
-It is not strictly related to this patch but why MSI and INTX are
-handled as mutually exclusive in dra7xx_pcie_msi_irq_handler() ?
+Yes, makes sense for this driver to be with the iio light sensors. I don't have
+the hardware for it. So, I won't move the sysfs interface to ABI.
 
-Lorenzo
+Aishwarya
+
+> 
+>   	      	       	     	   	   		     	   	Pavel
+> -- 
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
