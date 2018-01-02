@@ -1,60 +1,91 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 01/33] clk_ops: change round_rate() to return unsigned long
-Date: Tue, 2 Jan 2018 11:01:59 -0800
-Message-ID: <20180102190159.GH7997@codeaurora.org>
-References: <1514596392-22270-1-git-send-email-pure.logic@nexus-software.ie>
- <1514596392-22270-2-git-send-email-pure.logic@nexus-software.ie>
- <9f4bef5a-8a71-6f30-5cfb-5e8fe133e3d3@kapsi.fi>
- <6d83a5c3-6589-24bc-4ca5-4d1bbca47432@nexus-software.ie>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH] Nokia N9: add support for up/down keys in the dts
+Date: Tue, 2 Jan 2018 20:42:36 +0100
+Message-ID: <20180102194236.ahrhkvnefre2l6gf@earth.universe>
+References: <20180102125948.GA20051@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="w3msx4wwaosk7qlr"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <6d83a5c3-6589-24bc-4ca5-4d1bbca47432@nexus-software.ie>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Bryan O'Donoghue <pure.logic@nexus-software.ie>
-Cc: linux-mips@linux-mips.org, mturquette@baylibre.com, dri-devel@lists.freedesktop.org, linux-clk@vger.kernel.org, linux-rtc@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Mikko Perttunen <cyndis@kapsi.fi>, linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-arm-msm@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-rpi-kernel@lists.infradead.org, linux-tegra@vger.kernel.org, linux-amlogic@lists.infradead.org, linux-omap@vger.kernel.org, linux-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@opensource.cirrus.com, linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, freedreno@lists.freedesktop.org
+In-Reply-To: <20180102125948.GA20051@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, bcousson@baylibre.com, devicetree@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gMTIvMzEsIEJyeWFuIE8nRG9ub2dodWUgd3JvdGU6Cj4gT24gMzAvMTIvMTcgMTY6MzYsIE1p
-a2tvIFBlcnR0dW5lbiB3cm90ZToKPiA+RldJVywgd2UgaGFkIHRoaXMgcHJvYmxlbSBzb21lIHll
-YXJzIGFnbyB3aXRoIHRoZSBUZWdyYSBDUFUgY2xvY2sKPiA+LSB0aGVuIGl0IHdhcyBkZXRlcm1p
-bmVkIHRoYXQgYSBzaW1wbGVyIHNvbHV0aW9uIHdhcyB0byBoYXZlIHRoZQo+ID5kZXRlcm1pbmVf
-cmF0ZSBjYWxsYmFjayBzdXBwb3J0IHVuc2lnbmVkIGxvbmcgcmF0ZXMgLSBzbyBjbG9jawo+ID5k
-cml2ZXJzIHRoYXQgbmVlZCB0byByZXR1cm4gcmF0ZXMgaGlnaGVyIHRoYW4gMl4zMSBjYW4gaW5z
-dGVhZAo+ID5pbXBsZW1lbnQgdGhlIGRldGVybWluZV9yYXRlIGNhbGxiYWNrLiBUaGF0IGlzIHdo
-YXQncyBjdXJyZW50bHkKPiA+aW1wbGVtZW50ZWQuCj4gPgo+ID5NaWtrbwo+IAo+IEdyYW50ZWQg
-d2UgY291bGQgd29yayBhcm91bmQgaXQgYnV0LCBoYXZpbmcgYm90aCB6ZXJvIGFuZCBsZXNzIHRo
-YW4KPiB6ZXJvIGluZGljYXRlIGVycm9yIG1lYW5zIHlvdSBjYW4ndCBzdXBwb3J0IGxhcmdlciB0
-aGFuIExPTkdfTUFYCj4gd2hpY2ggaXMgSSB0aGluayB3b3J0aCBmaXhpbmcuCj4gCgpPay4gQnV0
-IGNhbiB5b3UgaW1wbGVtZW50IHRoZSBkZXRlcm1pbmVfcmF0ZSBvcCBpbnN0ZWFkIG9mIHRoZQpy
-b3VuZF9yYXRlIG9wIGZvciB5b3VyIGNsaz8gSXQncyBub3QgYSB3b3JrLWFyb3VuZCwgaXQncyB0
-aGUKcHJlZmVycmVkIHNvbHV0aW9uLiBUaGF0IHdvdWxkIGFsbG93IHJhdGVzIGxhcmdlciB0aGFu
-IDJeMzEgZm9yCnRoZSBjbGsgd2l0aG91dCBwdXNoaW5nIHRocm91Z2ggYSBjaGFuZ2UgdG8gYWxs
-IHRoZSBkcml2ZXJzIHRvCmV4cHJlc3MgemVybyBhcyAiZXJyb3IiIGFuZCBub24temVybyBhcyB0
-aGUgcm91bmRlZCByYXRlLgoKSSdtIG5vdCBlbnRpcmVseSBvcHBvc2VkIHRvIHRoaXMgYXBwcm9h
-Y2gsIGJlY2F1c2Ugd2UgcHJvYmFibHkKZG9uJ3QgY2FyZSB0byBwYXNzIHRoZSBwYXJ0aWN1bGFy
-IGVycm9yIHZhbHVlIGZyb20gYSBjbGsgcHJvdmlkZXIKdG8gYSBjbGsgY29uc3VtZXIgYWJvdXQg
-d2hhdCB0aGUgZXJyb3IgaXMuIEl0J3MgYWN0dWFsbHkgd2hhdCB3ZQpwcm9wb3NlZCBhcyB0aGUg
-c29sdXRpb24gZm9yIGNsa19yb3VuZF9yYXRlKCkgdG8gcmV0dXJuIHZhbHVlcwpsYXJnZXIgdGhh
-biBMT05HX01BWCB0byBjb25zdW1lcnMuIEJ1dCBkb2luZyB0aGF0IGNvbnN1bWVyIEFQSQpjaGFu
-Z2Ugb3IgdGhpcyBwcm92aWRlciBzaWRlIGNoYW5nZSBpcyBnb2luZyB0byByZXF1aXJlIHVzIHRv
-CmV2YWx1YXRlIGFsbCB0aGUgY29uc3VtZXJzIG9mIHRoZXNlIGNsa3MgdG8gbWFrZSBzdXJlIHRo
-ZXkgZG9uJ3QKY2hlY2sgZm9yIHNvbWUgZXJyb3IgdmFsdWUgdGhhdCdzIGxlc3MgdGhhbiB6ZXJv
-LiBUaGlzIHNlcmllcwpkb2VzIGhhbGYgdGhlIHdvcmssIGJ5IGNoYW5naW5nIHRoZSBwcm92aWRl
-ciBzaWRlLCB3aGlsZSBpZ25vcmluZwp0aGUgY29uc3VtZXIgc2lkZSBhbmQgYW55IHBvdGVudGlh
-bCBmYWxsb3V0IG9mIHRoZSBsZXNzIHRoYW4gemVybwp0byB6ZXJvIHJldHVybiB2YWx1ZSBjaGFu
-Z2UuCgotLSAKUXVhbGNvbW0gSW5ub3ZhdGlvbiBDZW50ZXIsIEluYy4gaXMgYSBtZW1iZXIgb2Yg
-Q29kZSBBdXJvcmEgRm9ydW0sCmEgTGludXggRm91bmRhdGlvbiBDb2xsYWJvcmF0aXZlIFByb2pl
-Y3QKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
-dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--w3msx4wwaosk7qlr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Tue, Jan 02, 2018 at 01:59:48PM +0100, Pavel Machek wrote:
+>=20
+> This adds support for volume up/down keys in the dts.
+>=20
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+
+-- Sebastian
+
+>=20
+> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.=
+dts
+> index 39e35f8..57a6679 100644
+> --- a/arch/arm/boot/dts/omap3-n9.dts
+> +++ b/arch/arm/boot/dts/omap3-n9.dts
+> @@ -11,9 +11,10 @@
+>  /dts-v1/;
+> =20
+>  #include "omap3-n950-n9.dtsi"
+> +#include <dt-bindings/input/input.h>
+> =20
+>  / {
+>  	model =3D "Nokia N9";
+>  	compatible =3D "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
+>  };
+> =20
+> @@ -72,3 +133,9 @@
+>  	st,max-limit-y =3D <46>;
+>  	st,max-limit-z =3D <46>;
+>  };
+> +
+> +&twl_keypad {
+> +	linux,keymap =3D < MATRIX_KEY(6, 8, KEY_VOLUMEUP)
+> +			 MATRIX_KEY(7, 8, KEY_VOLUMEDOWN)
+> +			 >;
+> +};
+>=20
+>=20
+> --=20
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
+log.html
+
+
+
+--w3msx4wwaosk7qlr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlpL4KkACgkQ2O7X88g7
++prlRQ//Y9YXJEp63Ilr687kIxLZrSNSzZD+Brpm2AXN4mjf1YnUqYvzBqwH9oTT
+H29yvC6zrMqc2DMzC/A1jSrj9C0eN7bB3yV8Pc9wFNmW0K5eBapM8MHIDUrQRpEx
+tlxYQRG0stGpiECho6Jto6Wfvz4kPz77/UW3Wg5+Rr03q8Q4YSs7FHnPEW8Dv6ev
+X2gSGkLhzdx54neNzQQhbCGDGXarlyKO0Qf1GE6O+hGBKbGj3+Pg3tWo4OE4bxVM
+bCJysflGti1ZrvPrdBnIfH+hq2yTKDNMvxlQ3VlH4syW9PoCiPujNvsO4igyr3xh
+YecAS/JRMm33NOCi8TeN6anSKCCBhht2mlUwcEIMBCQP2f8DQJFm8gTx3YLQymcx
+FGKYyLKgkot5ILDkf7FWvRiHuxaU8VircVF/KHTkyMrXLgl1oHlTUv2NQ7n7ieNf
+9ALsmQ3WdpySh7SqXgcc5314iI+PgPJjnAKMrsMVvtiqQ2GTkH+3C4Pv8Wngh8Gx
+4UsH/2/wj+q9UvpdB8vTj0IFts/1bTcuHcDzBUIOy0duvAkDCV14OLdVX0gXuvrX
+7HvPT+odS2uk4Wz/8XjNOuhnUTKW5xjSLD3BrUYV9cQLJF08WNyCKFMQEkuvkExz
+lSw5h5Mk20anRku9+apEVy0F/cbzsRpUNww0XzH7ETGPvrf8gbY=
+=mnzd
+-----END PGP SIGNATURE-----
+
+--w3msx4wwaosk7qlr--
