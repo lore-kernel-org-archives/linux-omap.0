@@ -1,45 +1,46 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] ethernet: cpsw-phy-sel: Delete an error message for a failed
- memory allocation in cpsw_phy_sel_probe()
-Date: Tue, 2 Jan 2018 21:48:54 +0100
-Message-ID: <3addaad6-2767-8a2f-cde3-a25148780f36@users.sourceforge.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Language: en-GB
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Daniel Mack <zonque@gmail.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH] ARM: dts: n900: Add aliases for lcd and tvout displays
+Date: Wed,  3 Jan 2018 00:17:14 +0200
+Message-ID: <1514931434-13192-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, bcousson@baylibre.com
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 2 Jan 2018 21:41:25 +0100
+When both lcd and tv are enabled, the order in which they will be probed is
+unknown, so it might happen (and it happens in reality) that tv is
+configured as display0 and lcd as display1, which results in nothing
+displayed on lcd, as display1 is disabled by default.
 
-Omit an extra message for a memory allocation failure in this function.
+Fix that by providing correct aliases for lcd and tv
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- drivers/net/ethernet/ti/cpsw-phy-sel.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/arm/boot/dts/omap3-n900.dts | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/ti/cpsw-phy-sel.c b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-index 18013645e76c..d29bc349bfc4 100644
---- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
-+++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
-@@ -213,10 +213,8 @@ static int cpsw_phy_sel_probe(struct platform_device *pdev)
- 		return -EINVAL;
+diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
+index 669c51c..4b9c3a7 100644
+--- a/arch/arm/boot/dts/omap3-n900.dts
++++ b/arch/arm/boot/dts/omap3-n900.dts
+@@ -35,6 +35,8 @@
+ 		i2c1 = &i2c1;
+ 		i2c2 = &i2c2;
+ 		i2c3 = &i2c3;
++		display0 = &lcd;
++		display1 = &tv;
+ 	};
  
- 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
--	if (!priv) {
--		dev_err(&pdev->dev, "unable to alloc memory for cpsw phy sel\n");
-+	if (!priv)
- 		return -ENOMEM;
--	}
+ 	cpus {
+@@ -965,7 +967,7 @@
+ 		ti,esd-recovery-timeout-ms = <8000>;
+ 	};
  
- 	priv->dev = &pdev->dev;
- 	priv->cpsw_phy_sel = of_id->data;
+-	acx565akm@2 {
++	lcd: acx565akm@2 {
+ 		compatible = "sony,acx565akm";
+ 		spi-max-frequency = <6000000>;
+ 		reg = <2>;
 -- 
-2.15.1
+1.9.1
