@@ -1,48 +1,101 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v6 02/10] arm: omap: timer: Wrap the inline functions under OMAP2PLUS define
-Date: Tue, 2 Jan 2018 15:39:51 +0530
-Message-ID: <1514887799-24605-3-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v6 04/10] arm: OMAP: Move dmtimer driver out of plat-omap to
+ drivers under clocksource
+Date: Tue, 2 Jan 2018 15:39:53 +0530
+Message-ID: <1514887799-24605-5-git-send-email-j-keerthy@ti.com>
 References: <1514887799-24605-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1514887799-24605-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
-Cc: ladis@linux-mips.org, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com
+Cc: linux-pwm@vger.kernel.org, grygorii.strashko@ti.com, j-keerthy@ti.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, ladis@linux-mips.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Wrap the inline functions under OMAP2PLUS/OMAP1 defines.
+Move the dmtimer driver out of plat-omap to clocksource.
+So that non-omap devices also could use this.
+
+No Code changes done to the driver file only renamed to timer-dm.c.
+Also removed the config dependencies for OMAP_DM_TIMER.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 Tested-by: Ladislav Michl <ladis@linux-mips.org>
 ---
- arch/arm/plat-omap/include/plat/dmtimer.h | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/arm/plat-omap/Kconfig                                     | 6 ------
+ arch/arm/plat-omap/Makefile                                    | 1 -
+ drivers/clocksource/Kconfig                                    | 3 +++
+ drivers/clocksource/Makefile                                   | 1 +
+ arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-dm.c | 0
+ 5 files changed, 4 insertions(+), 7 deletions(-)
+ rename arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-dm.c (100%)
 
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index dd79f30..862ad62 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -276,6 +276,12 @@ struct omap_dm_timer {
- #define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
- 		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 7276afe..afc1a1d 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -106,12 +106,6 @@ config OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
+ 	help
+ 	  PPA routine service ID for setting L2 auxiliary control register.
  
-+/*
-+ * The below are inlined to optimize code size for system timers. Other code
-+ * should not need these at all, see
-+ * include/linux/platform_data/pwm_omap_dmtimer.h
-+ */
-+#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2PLUS)
- static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 reg,
- 						int posted)
- {
-@@ -414,5 +420,5 @@ static inline void __omap_dm_timer_write_status(struct omap_dm_timer *timer,
- {
- 	writel_relaxed(value, timer->irq_stat);
- }
+-config OMAP_DM_TIMER
+-	bool "Use dual-mode timer"
+-	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
+-	help
+-	 Select this option if you want to use OMAP Dual-Mode timers.
 -
-+#endif /* CONFIG_ARCH_OMAP1 || CONFIG_ARCH_OMAP2PLUS */
- #endif /* __ASM_ARCH_DMTIMER_H */
+ config OMAP_SERIAL_WAKE
+ 	bool "Enable wake-up events for serial ports"
+ 	depends on ARCH_OMAP1 && OMAP_MUX
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 47e1867..7215ada 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -9,5 +9,4 @@ obj-y := sram.o dma.o counter_32k.o
+ 
+ # omap_device support (OMAP2+ only at the moment)
+ 
+-obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+ obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
+diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+index c729a88..3f799b2 100644
+--- a/drivers/clocksource/Kconfig
++++ b/drivers/clocksource/Kconfig
+@@ -21,6 +21,9 @@ config CLKEVT_I8253
+ config I8253_LOCK
+ 	bool
+ 
++config OMAP_DM_TIMER
++	bool
++
+ config CLKBLD_I8253
+ 	def_bool y if CLKSRC_I8253 || CLKEVT_I8253 || I8253_LOCK
+ 
+diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
+index 72711f1..27b5497 100644
+--- a/drivers/clocksource/Makefile
++++ b/drivers/clocksource/Makefile
+@@ -16,6 +16,7 @@ obj-$(CONFIG_EM_TIMER_STI)	+= em_sti.o
+ obj-$(CONFIG_CLKBLD_I8253)	+= i8253.o
+ obj-$(CONFIG_CLKSRC_MMIO)	+= mmio.o
+ obj-$(CONFIG_DIGICOLOR_TIMER)	+= timer-digicolor.o
++obj-$(CONFIG_OMAP_DM_TIMER)	+= timer-dm.o
+ obj-$(CONFIG_DW_APB_TIMER)	+= dw_apb_timer.o
+ obj-$(CONFIG_DW_APB_TIMER_OF)	+= dw_apb_timer_of.o
+ obj-$(CONFIG_FTTMR010_TIMER)	+= timer-fttmr010.o
+diff --git a/arch/arm/plat-omap/dmtimer.c b/drivers/clocksource/timer-dm.c
+similarity index 100%
+rename from arch/arm/plat-omap/dmtimer.c
+rename to drivers/clocksource/timer-dm.c
 -- 
 1.9.1
