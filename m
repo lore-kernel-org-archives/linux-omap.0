@@ -1,102 +1,60 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] nokia N9: Add support for magnetometer and touchscreen
-Date: Tue, 2 Jan 2018 18:27:20 +0100
-Message-ID: <20180102172720.ghtez4d3d2fgcmj6@earth.universe>
-References: <20180102131722.GA20706@amd>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH 01/33] clk_ops: change round_rate() to return unsigned long
+Date: Tue, 2 Jan 2018 11:01:59 -0800
+Message-ID: <20180102190159.GH7997@codeaurora.org>
+References: <1514596392-22270-1-git-send-email-pure.logic@nexus-software.ie>
+ <1514596392-22270-2-git-send-email-pure.logic@nexus-software.ie>
+ <9f4bef5a-8a71-6f30-5cfb-5e8fe133e3d3@kapsi.fi>
+ <6d83a5c3-6589-24bc-4ca5-4d1bbca47432@nexus-software.ie>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="kjhokxxi55k52kkf"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20180102131722.GA20706@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, bcousson@baylibre.com, devicetree@vger.kernel.org
+In-Reply-To: <6d83a5c3-6589-24bc-4ca5-4d1bbca47432@nexus-software.ie>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Bryan O'Donoghue <pure.logic@nexus-software.ie>
+Cc: linux-mips@linux-mips.org, mturquette@baylibre.com, dri-devel@lists.freedesktop.org, linux-clk@vger.kernel.org, linux-rtc@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Mikko Perttunen <cyndis@kapsi.fi>, linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-arm-msm@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-rpi-kernel@lists.infradead.org, linux-tegra@vger.kernel.org, linux-amlogic@lists.infradead.org, linux-omap@vger.kernel.org, linux-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@opensource.cirrus.com, linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org, freedreno@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-
---kjhokxxi55k52kkf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Tue, Jan 02, 2018 at 02:17:22PM +0100, Pavel Machek wrote:
-> This adds dts support for magnetometer and touchscreen on Nokia N9.
-
-I think it makes sense to have this splitted.
-
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->=20
-> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.=
-dts
-> index 39e35f8..57a6679 100644
-> --- a/arch/arm/boot/dts/omap3-n9.dts
-> +++ b/arch/arm/boot/dts/omap3-n9.dts
-> @@ -36,6 +57,22 @@
->  			};
->  		};
->  	};
-> +
-> +	touch@4b {
-
-touchscreen@
-
-> +		compatible =3D "atmel,maxtouch";
-> +		reg =3D <0x4b>;
-> +		interrupt-parent =3D <&gpio2>;
-> +		interrupts =3D <29 2>; /* gpio_61, IRQF_TRIGGER_FALLING*/
-
-reset-gpios =3D <&gpio3 17 GPIO_ACTIVE_SOMETHING>;
-
-> +		vdd-supply =3D <&vio>;
-> +		avdd-supply =3D <&vaux1>;
-
-Those two are not mentioned in the binding and not supported by the
-driver as far as I can see?
-
-> +	};
-> +};
-
-Touchscreen with the same settings is required for n950, so it
-should be in the shared n950 + n9 file.
-
-> +&i2c3 {
-> +	ak8975@0f {
-> +		compatible =3D "asahi-kasei,ak8975";
-> +		reg =3D <0x0f>;
-> +	};
->  };
-
-Looking at the N9 board file this is missing a rotation matrix. This
-is supported by the binding:
-
-Documentation/devicetree/bindings/iio/magnetometer/ak8975.txt
-
-> =20
->  &isp {
-
--- Sebastian
-
---kjhokxxi55k52kkf
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlpLwPQACgkQ2O7X88g7
-+pqr0Q/+JdAZBW7gGAwKYMTEjWLx/SBatKx3/+CLy6boFFlLzi+ttm3y80hhTrJV
-811TCRpf42qAUgz5Rc9jnFyS8kUkn9d7AeU8YYVXk+i1PcPJm0/XaQwRbbofPcbK
-lzQWalZTjQO0TB8SKZ9fUkFz1IoqWMlKm1CpvrhlA+zRv5hyAOTzceMi9uq9hL5K
-ectxGKuzvAMH8fHtlsYiFeWGbNslddfNBoNhzbkVTUk7N+iTHFe3ClvKkBzA5fRP
-rR1ZDYMiEm9f/ZPd2Z52vC86hkvTH9wl5qjasoHqeX6/9jCsT+cZBIuLrTTZPTjm
-HThiYr+jbs1+90A66t8apm17nIJVxVCPgQM2NVu75LQ2noNxL+JXqJGvCNrHHwU6
-nJ0aWm5/gYCz7KF6MV8VBJuckR6s+jaShj9qPgdu76aQ0szOZGVIqLhDwdVOKf8B
-h1rLPz+X/B25b+WmDLs6GvPuYBYolpKYFqrTJ8wqXCrXhB2qYIenmbyQss/KQ5ld
-Xbn935ELPSt618SU41ZkLABqBYfDjQ8DZDVUb1qwhCmlEMBaKqTYdghc+xhPA/H5
-fFNkKvJUi40oPQAldelWVVvadK++wImRgkvWFjNJvhioRppl6q5mdWbnm3jzGmqN
-UO/cpqB9eRz2q1S91O+eQObQgvu/AjL2JRVwvzCe2QCq0HxrgSg=
-=e6lp
------END PGP SIGNATURE-----
-
---kjhokxxi55k52kkf--
+T24gMTIvMzEsIEJyeWFuIE8nRG9ub2dodWUgd3JvdGU6Cj4gT24gMzAvMTIvMTcgMTY6MzYsIE1p
+a2tvIFBlcnR0dW5lbiB3cm90ZToKPiA+RldJVywgd2UgaGFkIHRoaXMgcHJvYmxlbSBzb21lIHll
+YXJzIGFnbyB3aXRoIHRoZSBUZWdyYSBDUFUgY2xvY2sKPiA+LSB0aGVuIGl0IHdhcyBkZXRlcm1p
+bmVkIHRoYXQgYSBzaW1wbGVyIHNvbHV0aW9uIHdhcyB0byBoYXZlIHRoZQo+ID5kZXRlcm1pbmVf
+cmF0ZSBjYWxsYmFjayBzdXBwb3J0IHVuc2lnbmVkIGxvbmcgcmF0ZXMgLSBzbyBjbG9jawo+ID5k
+cml2ZXJzIHRoYXQgbmVlZCB0byByZXR1cm4gcmF0ZXMgaGlnaGVyIHRoYW4gMl4zMSBjYW4gaW5z
+dGVhZAo+ID5pbXBsZW1lbnQgdGhlIGRldGVybWluZV9yYXRlIGNhbGxiYWNrLiBUaGF0IGlzIHdo
+YXQncyBjdXJyZW50bHkKPiA+aW1wbGVtZW50ZWQuCj4gPgo+ID5NaWtrbwo+IAo+IEdyYW50ZWQg
+d2UgY291bGQgd29yayBhcm91bmQgaXQgYnV0LCBoYXZpbmcgYm90aCB6ZXJvIGFuZCBsZXNzIHRo
+YW4KPiB6ZXJvIGluZGljYXRlIGVycm9yIG1lYW5zIHlvdSBjYW4ndCBzdXBwb3J0IGxhcmdlciB0
+aGFuIExPTkdfTUFYCj4gd2hpY2ggaXMgSSB0aGluayB3b3J0aCBmaXhpbmcuCj4gCgpPay4gQnV0
+IGNhbiB5b3UgaW1wbGVtZW50IHRoZSBkZXRlcm1pbmVfcmF0ZSBvcCBpbnN0ZWFkIG9mIHRoZQpy
+b3VuZF9yYXRlIG9wIGZvciB5b3VyIGNsaz8gSXQncyBub3QgYSB3b3JrLWFyb3VuZCwgaXQncyB0
+aGUKcHJlZmVycmVkIHNvbHV0aW9uLiBUaGF0IHdvdWxkIGFsbG93IHJhdGVzIGxhcmdlciB0aGFu
+IDJeMzEgZm9yCnRoZSBjbGsgd2l0aG91dCBwdXNoaW5nIHRocm91Z2ggYSBjaGFuZ2UgdG8gYWxs
+IHRoZSBkcml2ZXJzIHRvCmV4cHJlc3MgemVybyBhcyAiZXJyb3IiIGFuZCBub24temVybyBhcyB0
+aGUgcm91bmRlZCByYXRlLgoKSSdtIG5vdCBlbnRpcmVseSBvcHBvc2VkIHRvIHRoaXMgYXBwcm9h
+Y2gsIGJlY2F1c2Ugd2UgcHJvYmFibHkKZG9uJ3QgY2FyZSB0byBwYXNzIHRoZSBwYXJ0aWN1bGFy
+IGVycm9yIHZhbHVlIGZyb20gYSBjbGsgcHJvdmlkZXIKdG8gYSBjbGsgY29uc3VtZXIgYWJvdXQg
+d2hhdCB0aGUgZXJyb3IgaXMuIEl0J3MgYWN0dWFsbHkgd2hhdCB3ZQpwcm9wb3NlZCBhcyB0aGUg
+c29sdXRpb24gZm9yIGNsa19yb3VuZF9yYXRlKCkgdG8gcmV0dXJuIHZhbHVlcwpsYXJnZXIgdGhh
+biBMT05HX01BWCB0byBjb25zdW1lcnMuIEJ1dCBkb2luZyB0aGF0IGNvbnN1bWVyIEFQSQpjaGFu
+Z2Ugb3IgdGhpcyBwcm92aWRlciBzaWRlIGNoYW5nZSBpcyBnb2luZyB0byByZXF1aXJlIHVzIHRv
+CmV2YWx1YXRlIGFsbCB0aGUgY29uc3VtZXJzIG9mIHRoZXNlIGNsa3MgdG8gbWFrZSBzdXJlIHRo
+ZXkgZG9uJ3QKY2hlY2sgZm9yIHNvbWUgZXJyb3IgdmFsdWUgdGhhdCdzIGxlc3MgdGhhbiB6ZXJv
+LiBUaGlzIHNlcmllcwpkb2VzIGhhbGYgdGhlIHdvcmssIGJ5IGNoYW5naW5nIHRoZSBwcm92aWRl
+ciBzaWRlLCB3aGlsZSBpZ25vcmluZwp0aGUgY29uc3VtZXIgc2lkZSBhbmQgYW55IHBvdGVudGlh
+bCBmYWxsb3V0IG9mIHRoZSBsZXNzIHRoYW4gemVybwp0byB6ZXJvIHJldHVybiB2YWx1ZSBjaGFu
+Z2UuCgotLSAKUXVhbGNvbW0gSW5ub3ZhdGlvbiBDZW50ZXIsIEluYy4gaXMgYSBtZW1iZXIgb2Yg
+Q29kZSBBdXJvcmEgRm9ydW0sCmEgTGludXggRm91bmRhdGlvbiBDb2xsYWJvcmF0aXZlIFByb2pl
+Y3QKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
+dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
