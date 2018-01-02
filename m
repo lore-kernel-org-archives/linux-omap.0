@@ -1,33 +1,84 @@
-From: Aishwarya Pant <aishpant@gmail.com>
-Subject: Documentation: OMAPDSS: move sysfs documentation to ABI
-Date: Tue, 2 Jan 2018 14:24:36 +0530
-Message-ID: <20180102085436.GA32637@mordor.localdomain>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v6 00/10]  omap: dmtimer: Move driver out of plat-omap
+Date: Tue, 2 Jan 2018 15:39:49 +0530
+Message-ID: <1514887799-24605-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-doc-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jonathan Corbet <corbet@lwn.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>, Greg KH <gregkh@linuxfoundation.org>
+Content-Type: text/plain
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
+Cc: ladis@linux-mips.org, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com, j-keerthy@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+The series moves dmtimer out of plat-omap to drivers/clocksource.
+The series also does a bunch of changes to pwm-omap-dmtimer code
+to adapt to the driver migration and clean up plat specific
+pdata-quirks and use the dmtimer platform data.
 
-In Documentation/arm/OMAP/DSS, there is a description of the DSS and FB sysfs
-interfaces which could be moved to Documentation/ABI.
+Boot tested on DRA7-EVM and AM437X-GP-EVM.
+Compile tested omap1_defconfig.
 
-Would such a change be useful? I can see that the sysfs interface is still in
-testing.
+This is based on top of linux-next branch.
 
-The ABI documentation format looks like the following:
+This is tested on on IGEPv2 (OMAP3430 based) by Ladis.
 
-What:          (the full sysfs path of the attribute)
-Date:          (date of creation)
-KernelVersion: (kernel version it first showed up in)
-Contact:       (primary contact)
-Description:   (long description on usage)
+Changes from V5:
 
-I am doing this in an exercise to move sysfs ABI interfaces (which are
-documented) to their right place i.e. in Documentation/ABI along with the rest.
+  * Added couple of fixes from Ladis for  pwm-dmtimer.
 
-Aishwarya
+Changes from v4:
+
+  * Made OMAP_DM_TIMER config option silent.
+  * Changed the driver name to timer-dm.c
+
+Changes from v3:
+
+  * Reverted to v2 approach of using dev_get_platdata to fetch dmtimer ops.
+
+Changes from V2:
+
+  * Wrapped the inline functions in header file under OMAP2PLUS
+  * Added a new of helper function to fetch plat_data from of node. 
+
+Keerthy (8):
+  clocksource: dmtimer: Remove all the exports
+  arm: omap: timer: Wrap the inline functions under OMAP2PLUS define
+  arm: omap: Move dmtimer.h out of plat-omap
+  arm: OMAP: Move dmtimer driver out of plat-omap to drivers under
+    clocksource
+  dmtimer: Add timer ops to the platform data structure
+  clocksource: dmtimer: Populate the timer ops to the pdata
+  pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
+  arm: omap: pdata-quirks: Remove unused timer pdata
+
+Ladislav Michl (2):
+  clocksource: timer-dm: Hook device platform data if not already
+    assigned
+  clocksource: timer-dm: Check prescaler value
+
+ arch/arm/mach-omap1/pm.c                           |  2 +-
+ arch/arm/mach-omap1/timer.c                        |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  2 +-
+ arch/arm/mach-omap2/pdata-quirks.c                 | 32 -----------
+ arch/arm/mach-omap2/timer.c                        |  2 +-
+ arch/arm/plat-omap/Kconfig                         |  6 --
+ arch/arm/plat-omap/Makefile                        |  1 -
+ drivers/clocksource/Kconfig                        |  3 +
+ drivers/clocksource/Makefile                       |  1 +
+ .../dmtimer.c => drivers/clocksource/timer-dm.c    | 67 +++++++++++-----------
+ drivers/pwm/pwm-omap-dmtimer.c                     | 39 +++++++------
+ .../include/plat => include/clocksource}/dmtimer.h |  8 ++-
+ include/linux/platform_data/dmtimer-omap.h         | 38 ++++++++++++
+ 20 files changed, 117 insertions(+), 100 deletions(-)
+ rename arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-dm.c (94%)
+ rename {arch/arm/plat-omap/include/plat => include/clocksource}/dmtimer.h (97%)
+
+-- 
+1.9.1
