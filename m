@@ -1,33 +1,33 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/2] pinctrl: single: Delete an unnecessary return
- statement in pcs_irq_chain_handler()
-Date: Tue, 2 Jan 2018 09:50:32 +0100
-Message-ID: <CACRpkdbHQAW9gDrCqD0GuxYGMgrRuOe+g_52N+ij=niU5_Z6Yw@mail.gmail.com>
-References: <6bc679d1-c1ee-52fe-9ece-b28095f653ec@users.sourceforge.net> <c736d14b-0293-82ac-27de-a673b62b61d7@users.sourceforge.net>
+From: Aishwarya Pant <aishpant@gmail.com>
+Subject: Documentation: OMAPDSS: move sysfs documentation to ABI
+Date: Tue, 2 Jan 2018 14:24:36 +0530
+Message-ID: <20180102085436.GA32637@mordor.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c736d14b-0293-82ac-27de-a673b62b61d7@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-gpio@vger.kernel.org, Linux-OMAP <linux-omap@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Haojian Zhuang <haojian.zhuang@linaro.org>, Tony Lindgren <tony@atomide.com>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-doc-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Jonathan Corbet <corbet@lwn.net>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>, Greg KH <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 25, 2017 at 2:07 PM, SF Markus Elfring
-<elfring@users.sourceforge.net> wrote:
+Hi
 
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 25 Dec 2017 11:35:44 +0100
->
-> The script "checkpatch.pl" pointed information out like the following.
->
-> WARNING: void function return statements are not generally useful
->
-> Thus remove such a statement in the affected function.
->
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+In Documentation/arm/OMAP/DSS, there is a description of the DSS and FB sysfs
+interfaces which could be moved to Documentation/ABI.
 
-Patch applied.
+Would such a change be useful? I can see that the sysfs interface is still in
+testing.
 
-Yours,
-Linus Walleij
+The ABI documentation format looks like the following:
+
+What:          (the full sysfs path of the attribute)
+Date:          (date of creation)
+KernelVersion: (kernel version it first showed up in)
+Contact:       (primary contact)
+Description:   (long description on usage)
+
+I am doing this in an exercise to move sysfs ABI interfaces (which are
+documented) to their right place i.e. in Documentation/ABI along with the rest.
+
+Aishwarya
