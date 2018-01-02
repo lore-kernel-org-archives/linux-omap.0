@@ -1,91 +1,75 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH] Nokia N9: add support for up/down keys in the dts
-Date: Tue, 2 Jan 2018 20:42:36 +0100
-Message-ID: <20180102194236.ahrhkvnefre2l6gf@earth.universe>
-References: <20180102125948.GA20051@amd>
+From: Bryan O'Donoghue <pure.logic-SyKdqv6vbfZdzvEItQ6vdLNAH6kLmebB@public.gmane.org>
+Subject: Re: [PATCH 01/33] clk_ops: change round_rate() to
+ return unsigned long
+Date: Tue, 2 Jan 2018 20:43:44 +0000
+Message-ID: <c2212d56-a8b5-cba5-46a7-c2c7f66e752b@nexus-software.ie>
+References: <1514596392-22270-1-git-send-email-pure.logic@nexus-software.ie>
+ <1514596392-22270-2-git-send-email-pure.logic@nexus-software.ie>
+ <9f4bef5a-8a71-6f30-5cfb-5e8fe133e3d3@kapsi.fi>
+ <6d83a5c3-6589-24bc-4ca5-4d1bbca47432@nexus-software.ie>
+ <20180102190159.GH7997@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="w3msx4wwaosk7qlr"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180102125948.GA20051@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: pali.rohar@gmail.com, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, bcousson@baylibre.com, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <20180102190159.GH7997-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/freedreno>,
+ <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/freedreno>
+List-Post: <mailto:freedreno-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/freedreno>,
+ <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Freedreno" <freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rtc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mikko Perttunen <cyndis-/1wQRMveznE@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, uclinux-h8-devel-5NWGOfrQmneRv+LV9MX5uooqe+aC9MnS@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rpi-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-yzvPICuk2AA4QjBA90+/kJqQE7yCjDx5@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, freedreno-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-
---w3msx4wwaosk7qlr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Tue, Jan 02, 2018 at 01:59:48PM +0100, Pavel Machek wrote:
->=20
-> This adds support for volume up/down keys in the dts.
->=20
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
->=20
-> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.=
-dts
-> index 39e35f8..57a6679 100644
-> --- a/arch/arm/boot/dts/omap3-n9.dts
-> +++ b/arch/arm/boot/dts/omap3-n9.dts
-> @@ -11,9 +11,10 @@
->  /dts-v1/;
-> =20
->  #include "omap3-n950-n9.dtsi"
-> +#include <dt-bindings/input/input.h>
-> =20
->  / {
->  	model =3D "Nokia N9";
->  	compatible =3D "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
->  };
-> =20
-> @@ -72,3 +133,9 @@
->  	st,max-limit-y =3D <46>;
->  	st,max-limit-z =3D <46>;
->  };
-> +
-> +&twl_keypad {
-> +	linux,keymap =3D < MATRIX_KEY(6, 8, KEY_VOLUMEUP)
-> +			 MATRIX_KEY(7, 8, KEY_VOLUMEDOWN)
-> +			 >;
-> +};
->=20
->=20
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
-
-
-
---w3msx4wwaosk7qlr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlpL4KkACgkQ2O7X88g7
-+prlRQ//Y9YXJEp63Ilr687kIxLZrSNSzZD+Brpm2AXN4mjf1YnUqYvzBqwH9oTT
-H29yvC6zrMqc2DMzC/A1jSrj9C0eN7bB3yV8Pc9wFNmW0K5eBapM8MHIDUrQRpEx
-tlxYQRG0stGpiECho6Jto6Wfvz4kPz77/UW3Wg5+Rr03q8Q4YSs7FHnPEW8Dv6ev
-X2gSGkLhzdx54neNzQQhbCGDGXarlyKO0Qf1GE6O+hGBKbGj3+Pg3tWo4OE4bxVM
-bCJysflGti1ZrvPrdBnIfH+hq2yTKDNMvxlQ3VlH4syW9PoCiPujNvsO4igyr3xh
-YecAS/JRMm33NOCi8TeN6anSKCCBhht2mlUwcEIMBCQP2f8DQJFm8gTx3YLQymcx
-FGKYyLKgkot5ILDkf7FWvRiHuxaU8VircVF/KHTkyMrXLgl1oHlTUv2NQ7n7ieNf
-9ALsmQ3WdpySh7SqXgcc5314iI+PgPJjnAKMrsMVvtiqQ2GTkH+3C4Pv8Wngh8Gx
-4UsH/2/wj+q9UvpdB8vTj0IFts/1bTcuHcDzBUIOy0duvAkDCV14OLdVX0gXuvrX
-7HvPT+odS2uk4Wz/8XjNOuhnUTKW5xjSLD3BrUYV9cQLJF08WNyCKFMQEkuvkExz
-lSw5h5Mk20anRku9+apEVy0F/cbzsRpUNww0XzH7ETGPvrf8gbY=
-=mnzd
------END PGP SIGNATURE-----
-
---w3msx4wwaosk7qlr--
+T24gMDIvMDEvMTggMTk6MDEsIFN0ZXBoZW4gQm95ZCB3cm90ZToKPiBPbiAxMi8zMSwgQnJ5YW4g
+TydEb25vZ2h1ZSB3cm90ZToKPj4gT24gMzAvMTIvMTcgMTY6MzYsIE1pa2tvIFBlcnR0dW5lbiB3
+cm90ZToKPj4+IEZXSVcsIHdlIGhhZCB0aGlzIHByb2JsZW0gc29tZSB5ZWFycyBhZ28gd2l0aCB0
+aGUgVGVncmEgQ1BVIGNsb2NrCj4+PiAtIHRoZW4gaXQgd2FzIGRldGVybWluZWQgdGhhdCBhIHNp
+bXBsZXIgc29sdXRpb24gd2FzIHRvIGhhdmUgdGhlCj4+PiBkZXRlcm1pbmVfcmF0ZSBjYWxsYmFj
+ayBzdXBwb3J0IHVuc2lnbmVkIGxvbmcgcmF0ZXMgLSBzbyBjbG9jawo+Pj4gZHJpdmVycyB0aGF0
+IG5lZWQgdG8gcmV0dXJuIHJhdGVzIGhpZ2hlciB0aGFuIDJeMzEgY2FuIGluc3RlYWQKPj4+IGlt
+cGxlbWVudCB0aGUgZGV0ZXJtaW5lX3JhdGUgY2FsbGJhY2suIFRoYXQgaXMgd2hhdCdzIGN1cnJl
+bnRseQo+Pj4gaW1wbGVtZW50ZWQuCj4+Pgo+Pj4gTWlra28KPj4KPj4gR3JhbnRlZCB3ZSBjb3Vs
+ZCB3b3JrIGFyb3VuZCBpdCBidXQsIGhhdmluZyBib3RoIHplcm8gYW5kIGxlc3MgdGhhbgo+PiB6
+ZXJvIGluZGljYXRlIGVycm9yIG1lYW5zIHlvdSBjYW4ndCBzdXBwb3J0IGxhcmdlciB0aGFuIExP
+TkdfTUFYCj4+IHdoaWNoIGlzIEkgdGhpbmsgd29ydGggZml4aW5nLgo+Pgo+IAo+IE9rLiBCdXQg
+Y2FuIHlvdSBpbXBsZW1lbnQgdGhlIGRldGVybWluZV9yYXRlIG9wIGluc3RlYWQgb2YgdGhlCj4g
+cm91bmRfcmF0ZSBvcCBmb3IgeW91ciBjbGs/CgpEb24ndCBrbm93IC4KCj4gSXQncyBub3QgYSB3
+b3JrLWFyb3VuZCwgaXQncyB0aGUKPiBwcmVmZXJyZWQgc29sdXRpb24uIFRoYXQgd291bGQgYWxs
+b3cgcmF0ZXMgbGFyZ2VyIHRoYW4gMl4zMSBmb3IKPiB0aGUgY2xrIHdpdGhvdXQgcHVzaGluZyB0
+aHJvdWdoIGEgY2hhbmdlIHRvIGFsbCB0aGUgZHJpdmVycyB0bwo+IGV4cHJlc3MgemVybyBhcyAi
+ZXJyb3IiIGFuZCBub24temVybyBhcyB0aGUgcm91bmRlZCByYXRlLgo+IAo+IEknbSBub3QgZW50
+aXJlbHkgb3Bwb3NlZCB0byB0aGlzIGFwcHJvYWNoLCBiZWNhdXNlIHdlIHByb2JhYmx5Cj4gZG9u
+J3QgY2FyZSB0byBwYXNzIHRoZSBwYXJ0aWN1bGFyIGVycm9yIHZhbHVlIGZyb20gYSBjbGsgcHJv
+dmlkZXIKPiB0byBhIGNsayBjb25zdW1lciBhYm91dCB3aGF0IHRoZSBlcnJvciBpcy4KCldoaWNo
+IHdhcyBteSB0aG91Z2h0LiBUaGUgcmV0dXJuIHZhbHVlIG9mIGNsa19vcHMtPnJvdW5kX3JhdGUo
+KSBhcHBlYXJzIApub3QgdG8gZ2V0IHB1c2hlZCB1cCB0aGUgc3RhY2ssIHdoaWNoIGlzIHdoYXQg
+dGhlIGxhc3QgcGF0Y2ggaW4gdGhpcyAKc2VyaWVzIGRlYWxzIHdpdGguCgpbUEFUQ0ggMzMvMzNd
+IGNsazogY2hhbmdlIGhhbmRsaW5nIG9mIHJvdW5kX3JhdGUoKSBzdWNoIHRoYXQgb25seSB6ZXJv
+IAppcyBhbiBlcnJvcgoKPiBJdCdzIGFjdHVhbGx5IHdoYXQgd2UKPiBwcm9wb3NlZCBhcyB0aGUg
+c29sdXRpb24gZm9yIGNsa19yb3VuZF9yYXRlKCkgdG8gcmV0dXJuIHZhbHVlcwo+IGxhcmdlciB0
+aGFuIExPTkdfTUFYIHRvIGNvbnN1bWVycy4gQnV0IGRvaW5nIHRoYXQgY29uc3VtZXIgQVBJCj4g
+Y2hhbmdlIG9yIHRoaXMgcHJvdmlkZXIgc2lkZSBjaGFuZ2UgaXMgZ29pbmcgdG8gcmVxdWlyZSB1
+cyB0bwo+IGV2YWx1YXRlIGFsbCB0aGUgY29uc3VtZXJzIG9mIHRoZXNlIGNsa3MgdG8gbWFrZSBz
+dXJlIHRoZXkgZG9uJ3QKPiBjaGVjayBmb3Igc29tZSBlcnJvciB2YWx1ZSB0aGF0J3MgbGVzcyB0
+aGFuIHplcm8uIFRoaXMgc2VyaWVzCj4gZG9lcyBoYWxmIHRoZSB3b3JrLAoKRG8geW91IG1lYW4g
+dXNlcnMgb2YgY2xrX3JvdW5kYV9yYXRlKCkgPyBJIGhhdmUgYSBzZXQgb2YgcGF0Y2hlcyBmb3Ig
+CnRoYXQgYnV0IHdhbnRlZCB0byBzZXBhcmF0ZSB0aGF0IGZyb20gY2xrX29wcy0+cm91bmRfcmF0
+ZSgpIHNvIGFzIG5vdCB0byAKc2VuZCB+NzAgcGF0Y2hlcyBvdXQgdG8gTEtNTCBhdCBvbmNlIC0g
+ZXZlbiBpZiB0aGV5IGFyZSBpbiB0d28gYmxvY2tzLgoKSWYgc28sIEkgY2FuIHB1Ymxpc2ggdGhh
+dCBzZXQgdG9vIGZvciByZWZlcmVuY2UuCgpBRkFJQ1Qgb24gY2xrX29wcy0+cm91bmRfcmF0ZSB0
+aGUgbGFzdCBwYXRjaCAjMzMgb3VnaHQgdG8gY292ZXIgdGhlIAp1c2FnZSBvZiB0aGUgcmV0dXJu
+IHZhbHVlIG9mIGNsa19vcHMtPnJvdW5kX3JhdGUoKS4KCkhhdmUgSSBtaXNzZWQgc29tZXRoaW5n
+ID8KCj4gYnkgY2hhbmdpbmcgdGhlIHByb3ZpZGVyIHNpZGUsIHdoaWxlIGlnbm9yaW5nCj4gdGhl
+IGNvbnN1bWVyIHNpZGUgYW5kIGFueSBwb3RlbnRpYWwgZmFsbG91dCBvZiB0aGUgbGVzcyB0aGFu
+IHplcm8KPiB0byB6ZXJvIHJldHVybiB2YWx1ZSBjaGFuZ2UuCj4gCgpDYW4geW91IGxvb2sgYXQg
+IzMzID8gSSdtIG5vdCBzdXJlIGlmIHlvdSBzYXcgdGhhdCBvbmUuCgoKLS0tCmJvZApfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpGcmVlZHJlbm8gbWFpbGlu
+ZyBsaXN0CkZyZWVkcmVub0BsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
+ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9mcmVlZHJlbm8K
