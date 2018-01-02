@@ -1,69 +1,68 @@
 From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] Nokia N9: add support for up/down keys in the dts
-Date: Tue, 2 Jan 2018 13:59:48 +0100
-Message-ID: <20180102125948.GA20051@amd>
+Subject: Re: misc: bh1770glc: move sysfs interace to Documentation/ABI
+Date: Tue, 2 Jan 2018 14:06:36 +0100
+Message-ID: <20180102130636.GA20209@amd>
+References: <20171226092957.GA3817@mordor.localdomain>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="82I3+IH0IqGh5yIs"
+        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20171226092957.GA3817@mordor.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pali.rohar@gmail.com, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>, bcousson@baylibre.com, devicetree@vger.kernel.org
+To: Aishwarya Pant <aishpant@gmail.com>, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Samu Onkalo <samu.p.onkalo@nokia.com>, julia.lawall@lip6.fr, Jonathan Corbet <corbet@lwn.net>
 List-Id: linux-omap@vger.kernel.org
 
 
---82I3+IH0IqGh5yIs
+--+QahgC5+KEYLbs62
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
+Hi!
 
-This adds support for volume up/down keys in the dts.
+> In Documentation/misc-devices/bh1770glc.txt, there is a description of th=
+e sysfs
+> interface which could be moved to Documentation/ABI.
+>=20
+> Would such a change be useful?
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Not at the moment.
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index 39e35f8..57a6679 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -11,9 +11,10 @@
- /dts-v1/;
-=20
- #include "omap3-n950-n9.dtsi"
-+#include <dt-bindings/input/input.h>
-=20
- / {
- 	model =3D "Nokia N9";
- 	compatible =3D "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
- };
-=20
-@@ -72,3 +133,9 @@
- 	st,max-limit-y =3D <46>;
- 	st,max-limit-z =3D <46>;
- };
-+
-+&twl_keypad {
-+	linux,keymap =3D < MATRIX_KEY(6, 8, KEY_VOLUMEUP)
-+			 MATRIX_KEY(7, 8, KEY_VOLUMEDOWN)
-+			 >;
-+};
+> The ABI documentation format looks like the following:
+>=20
+> What:          (the full sysfs path of the attribute)
+> Date:          (date of creation)
+> KernelVersion: (kernel version it first showed up in)
+> Contact:       (primary contact)
+> Description:   (long description on usage)
+>=20
+> I am doing this in an exercise to move sysfs ABI interfaces (which are
+> documented) to their right place i.e. in Documentation/ABI along with the=
+ rest.
 
+The interface should probably be changed to iio one, to be consistent
+with other sensors such as Apds990x.
 
+If you have the hardware, help would be welcome.
+
+  	      	       	     	   	   		     	   	Pavel
 --=20
 (english) http://www.livejournal.com/~pavelmachek
 (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
 g.html
 
---82I3+IH0IqGh5yIs
+--+QahgC5+KEYLbs62
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iEYEARECAAYFAlpLgkQACgkQMOfwapXb+vI4QQCgh+ZWUYFWe/812P1CrdqDHPnS
-9vEAoIrY7DxCnIhYVh1onFt5gUcIO72z
-=ajcM
+iEYEARECAAYFAlpLg9wACgkQMOfwapXb+vL3QQCcD5XpTv8BfJEGu2SkrHgyK84d
+nWMAn2mwXdrAFKvDrUbEnc1Cb+Mdm8GH
+=QqDj
 -----END PGP SIGNATURE-----
 
---82I3+IH0IqGh5yIs--
+--+QahgC5+KEYLbs62--
