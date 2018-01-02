@@ -1,75 +1,45 @@
-From: Bryan O'Donoghue <pure.logic-SyKdqv6vbfZdzvEItQ6vdLNAH6kLmebB@public.gmane.org>
-Subject: Re: [PATCH 01/33] clk_ops: change round_rate() to
- return unsigned long
-Date: Tue, 2 Jan 2018 20:43:44 +0000
-Message-ID: <c2212d56-a8b5-cba5-46a7-c2c7f66e752b@nexus-software.ie>
-References: <1514596392-22270-1-git-send-email-pure.logic@nexus-software.ie>
- <1514596392-22270-2-git-send-email-pure.logic@nexus-software.ie>
- <9f4bef5a-8a71-6f30-5cfb-5e8fe133e3d3@kapsi.fi>
- <6d83a5c3-6589-24bc-4ca5-4d1bbca47432@nexus-software.ie>
- <20180102190159.GH7997@codeaurora.org>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] ethernet: cpsw-phy-sel: Delete an error message for a failed
+ memory allocation in cpsw_phy_sel_probe()
+Date: Tue, 2 Jan 2018 21:48:54 +0100
+Message-ID: <3addaad6-2767-8a2f-cde3-a25148780f36@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20180102190159.GH7997-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/freedreno>,
- <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/freedreno>
-List-Post: <mailto:freedreno-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/freedreno>,
- <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Freedreno" <freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, mturquette-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-clk-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rtc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mikko Perttunen <cyndis-/1wQRMveznE@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, uclinux-h8-devel-5NWGOfrQmneRv+LV9MX5uooqe+aC9MnS@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rpi-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-yzvPICuk2AA4QjBA90+/kJqQE7yCjDx5@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-renesas-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, freedreno-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Language: en-GB
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gMDIvMDEvMTggMTk6MDEsIFN0ZXBoZW4gQm95ZCB3cm90ZToKPiBPbiAxMi8zMSwgQnJ5YW4g
-TydEb25vZ2h1ZSB3cm90ZToKPj4gT24gMzAvMTIvMTcgMTY6MzYsIE1pa2tvIFBlcnR0dW5lbiB3
-cm90ZToKPj4+IEZXSVcsIHdlIGhhZCB0aGlzIHByb2JsZW0gc29tZSB5ZWFycyBhZ28gd2l0aCB0
-aGUgVGVncmEgQ1BVIGNsb2NrCj4+PiAtIHRoZW4gaXQgd2FzIGRldGVybWluZWQgdGhhdCBhIHNp
-bXBsZXIgc29sdXRpb24gd2FzIHRvIGhhdmUgdGhlCj4+PiBkZXRlcm1pbmVfcmF0ZSBjYWxsYmFj
-ayBzdXBwb3J0IHVuc2lnbmVkIGxvbmcgcmF0ZXMgLSBzbyBjbG9jawo+Pj4gZHJpdmVycyB0aGF0
-IG5lZWQgdG8gcmV0dXJuIHJhdGVzIGhpZ2hlciB0aGFuIDJeMzEgY2FuIGluc3RlYWQKPj4+IGlt
-cGxlbWVudCB0aGUgZGV0ZXJtaW5lX3JhdGUgY2FsbGJhY2suIFRoYXQgaXMgd2hhdCdzIGN1cnJl
-bnRseQo+Pj4gaW1wbGVtZW50ZWQuCj4+Pgo+Pj4gTWlra28KPj4KPj4gR3JhbnRlZCB3ZSBjb3Vs
-ZCB3b3JrIGFyb3VuZCBpdCBidXQsIGhhdmluZyBib3RoIHplcm8gYW5kIGxlc3MgdGhhbgo+PiB6
-ZXJvIGluZGljYXRlIGVycm9yIG1lYW5zIHlvdSBjYW4ndCBzdXBwb3J0IGxhcmdlciB0aGFuIExP
-TkdfTUFYCj4+IHdoaWNoIGlzIEkgdGhpbmsgd29ydGggZml4aW5nLgo+Pgo+IAo+IE9rLiBCdXQg
-Y2FuIHlvdSBpbXBsZW1lbnQgdGhlIGRldGVybWluZV9yYXRlIG9wIGluc3RlYWQgb2YgdGhlCj4g
-cm91bmRfcmF0ZSBvcCBmb3IgeW91ciBjbGs/CgpEb24ndCBrbm93IC4KCj4gSXQncyBub3QgYSB3
-b3JrLWFyb3VuZCwgaXQncyB0aGUKPiBwcmVmZXJyZWQgc29sdXRpb24uIFRoYXQgd291bGQgYWxs
-b3cgcmF0ZXMgbGFyZ2VyIHRoYW4gMl4zMSBmb3IKPiB0aGUgY2xrIHdpdGhvdXQgcHVzaGluZyB0
-aHJvdWdoIGEgY2hhbmdlIHRvIGFsbCB0aGUgZHJpdmVycyB0bwo+IGV4cHJlc3MgemVybyBhcyAi
-ZXJyb3IiIGFuZCBub24temVybyBhcyB0aGUgcm91bmRlZCByYXRlLgo+IAo+IEknbSBub3QgZW50
-aXJlbHkgb3Bwb3NlZCB0byB0aGlzIGFwcHJvYWNoLCBiZWNhdXNlIHdlIHByb2JhYmx5Cj4gZG9u
-J3QgY2FyZSB0byBwYXNzIHRoZSBwYXJ0aWN1bGFyIGVycm9yIHZhbHVlIGZyb20gYSBjbGsgcHJv
-dmlkZXIKPiB0byBhIGNsayBjb25zdW1lciBhYm91dCB3aGF0IHRoZSBlcnJvciBpcy4KCldoaWNo
-IHdhcyBteSB0aG91Z2h0LiBUaGUgcmV0dXJuIHZhbHVlIG9mIGNsa19vcHMtPnJvdW5kX3JhdGUo
-KSBhcHBlYXJzIApub3QgdG8gZ2V0IHB1c2hlZCB1cCB0aGUgc3RhY2ssIHdoaWNoIGlzIHdoYXQg
-dGhlIGxhc3QgcGF0Y2ggaW4gdGhpcyAKc2VyaWVzIGRlYWxzIHdpdGguCgpbUEFUQ0ggMzMvMzNd
-IGNsazogY2hhbmdlIGhhbmRsaW5nIG9mIHJvdW5kX3JhdGUoKSBzdWNoIHRoYXQgb25seSB6ZXJv
-IAppcyBhbiBlcnJvcgoKPiBJdCdzIGFjdHVhbGx5IHdoYXQgd2UKPiBwcm9wb3NlZCBhcyB0aGUg
-c29sdXRpb24gZm9yIGNsa19yb3VuZF9yYXRlKCkgdG8gcmV0dXJuIHZhbHVlcwo+IGxhcmdlciB0
-aGFuIExPTkdfTUFYIHRvIGNvbnN1bWVycy4gQnV0IGRvaW5nIHRoYXQgY29uc3VtZXIgQVBJCj4g
-Y2hhbmdlIG9yIHRoaXMgcHJvdmlkZXIgc2lkZSBjaGFuZ2UgaXMgZ29pbmcgdG8gcmVxdWlyZSB1
-cyB0bwo+IGV2YWx1YXRlIGFsbCB0aGUgY29uc3VtZXJzIG9mIHRoZXNlIGNsa3MgdG8gbWFrZSBz
-dXJlIHRoZXkgZG9uJ3QKPiBjaGVjayBmb3Igc29tZSBlcnJvciB2YWx1ZSB0aGF0J3MgbGVzcyB0
-aGFuIHplcm8uIFRoaXMgc2VyaWVzCj4gZG9lcyBoYWxmIHRoZSB3b3JrLAoKRG8geW91IG1lYW4g
-dXNlcnMgb2YgY2xrX3JvdW5kYV9yYXRlKCkgPyBJIGhhdmUgYSBzZXQgb2YgcGF0Y2hlcyBmb3Ig
-CnRoYXQgYnV0IHdhbnRlZCB0byBzZXBhcmF0ZSB0aGF0IGZyb20gY2xrX29wcy0+cm91bmRfcmF0
-ZSgpIHNvIGFzIG5vdCB0byAKc2VuZCB+NzAgcGF0Y2hlcyBvdXQgdG8gTEtNTCBhdCBvbmNlIC0g
-ZXZlbiBpZiB0aGV5IGFyZSBpbiB0d28gYmxvY2tzLgoKSWYgc28sIEkgY2FuIHB1Ymxpc2ggdGhh
-dCBzZXQgdG9vIGZvciByZWZlcmVuY2UuCgpBRkFJQ1Qgb24gY2xrX29wcy0+cm91bmRfcmF0ZSB0
-aGUgbGFzdCBwYXRjaCAjMzMgb3VnaHQgdG8gY292ZXIgdGhlIAp1c2FnZSBvZiB0aGUgcmV0dXJu
-IHZhbHVlIG9mIGNsa19vcHMtPnJvdW5kX3JhdGUoKS4KCkhhdmUgSSBtaXNzZWQgc29tZXRoaW5n
-ID8KCj4gYnkgY2hhbmdpbmcgdGhlIHByb3ZpZGVyIHNpZGUsIHdoaWxlIGlnbm9yaW5nCj4gdGhl
-IGNvbnN1bWVyIHNpZGUgYW5kIGFueSBwb3RlbnRpYWwgZmFsbG91dCBvZiB0aGUgbGVzcyB0aGFu
-IHplcm8KPiB0byB6ZXJvIHJldHVybiB2YWx1ZSBjaGFuZ2UuCj4gCgpDYW4geW91IGxvb2sgYXQg
-IzMzID8gSSdtIG5vdCBzdXJlIGlmIHlvdSBzYXcgdGhhdCBvbmUuCgoKLS0tCmJvZApfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpGcmVlZHJlbm8gbWFpbGlu
-ZyBsaXN0CkZyZWVkcmVub0BsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9mcmVlZHJlbm8K
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 2 Jan 2018 21:41:25 +0100
+
+Omit an extra message for a memory allocation failure in this function.
+
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/net/ethernet/ti/cpsw-phy-sel.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/ti/cpsw-phy-sel.c b/drivers/net/ethernet/ti/cpsw-phy-sel.c
+index 18013645e76c..d29bc349bfc4 100644
+--- a/drivers/net/ethernet/ti/cpsw-phy-sel.c
++++ b/drivers/net/ethernet/ti/cpsw-phy-sel.c
+@@ -213,10 +213,8 @@ static int cpsw_phy_sel_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 
+ 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+-	if (!priv) {
+-		dev_err(&pdev->dev, "unable to alloc memory for cpsw phy sel\n");
++	if (!priv)
+ 		return -ENOMEM;
+-	}
+ 
+ 	priv->dev = &pdev->dev;
+ 	priv->cpsw_phy_sel = of_id->data;
+-- 
+2.15.1
