@@ -1,68 +1,55 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: [PATCHv2] nokia N9: Add support for magnetometer
-Date: Wed, 3 Jan 2018 15:12:49 +0100
-Message-ID: <20180103141248.GA18821@amd>
-References: <20180102131722.GA20706@amd>
- <20180102172720.ghtez4d3d2fgcmj6@earth.universe>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [-next PATCH 2/4] treewide: Use DEVICE_ATTR_RW
+Date: Wed, 03 Jan 2018 16:16:08 +0100
+Message-ID: <4624388.pPJCIclP0U@amdc3058>
+References: <cover.1513706701.git.joe@perches.com>
+ <CGME20171219181536epcas2p18d023209dc13ac504457c07b8b2b8965@epcas2p1.samsung.com>
+ <cd38f14f06e1f447b3159ffe8c69c0df8241bb6e.1513706701.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180102172720.ghtez4d3d2fgcmj6-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, clayton-fehKsxFhGzZIf6P1QZMOBw@public.gmane.org, martijn-28JJ9oSIdodmR6Xm/wNWPw@public.gmane.org, sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-reply-to: <cd38f14f06e1f447b3159ffe8c69c0df8241bb6e.1513706701.git.joe@perches.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Joe Perches <joe@perches.com>
+Cc: linux-fbdev@vger.kernel.org, David Airlie <airlied@linux.ie>, Heiko Carstens <heiko.carstens@de.ibm.com>, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, Jaroslav Kysela <perex@perex.cz>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-s390@vger.kernel.org, linux-omap@vger.kernel.org, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, linux-scsi@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, James Smart <james.smart@broadcom.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, Darren Hart <dvhart@infradead.org>, Zhang Rui <rui.zhang@intel.com>, Dick Kennedy <dick.kennedy@broadcom.com>, Mathias Nyman <mathias.nyman@intel.com>, linux-pm@vger.kernel.org, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, intel-gfx@lists.freedesktop.org, Eduardo Valentin <edube>
 List-Id: linux-omap@vger.kernel.org
 
-
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-This adds dts support for magnetometer on Nokia N9.
-
-Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index 39e35f8..af321d8 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -36,6 +57,12 @@
- 			};
- 		};
- 	};
-+
-+&i2c3 {
-+	ak8975@0f {
-+		compatible =3D "asahi-kasei,ak8975";
-+		reg =3D <0x0f>;
-+	};
- };
-=20
- &isp {
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---x+6KMIRAuhnl3hBn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlpM5OAACgkQMOfwapXb+vJlfgCfe3CWbUueH8SY0WtJAuvIcrWz
-fAsAoJ/R/bqRqmggDZjSpyq+XOVQCIfI
-=PzfU
------END PGP SIGNATURE-----
-
---x+6KMIRAuhnl3hBn--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlc2RheSwgRGVjZW1iZXIgMTksIDIwMTcgMTA6MTU6MDcgQU0gSm9lIFBlcmNoZXMgd3Jv
+dGU6Cj4gQ29udmVydCBERVZJQ0VfQVRUUiB1c2VzIHRvIERFVklDRV9BVFRSX1JXIHdoZXJlIHBv
+c3NpYmxlLgo+IAo+IERvbmUgd2l0aCBwZXJsIHNjcmlwdDoKPiAKPiAkIGdpdCBncmVwIC13IC0t
+bmFtZS1vbmx5IERFVklDRV9BVFRSIHwgXAo+ICAgeGFyZ3MgcGVybCAtaSAtZSAnbG9jYWwgJC87
+IHdoaWxlICg8PikgeyBzL1xiREVWSUNFX0FUVFJccypcKFxzKihcdyspXHMqLFxzKlwoPyhccypT
+X0lSVUdPXHMqXHxccypTX0lXVVNSfFxzKlNfSVdVU1JccypcfFxzKlNfSVJVR09ccyp8XHMqMDY0
+NFxzKilcKT9ccyosXHMqXDFfc2hvd1xzKixccypcMV9zdG9yZVxzKlwpL0RFVklDRV9BVFRSX1JX
+KFwxKS9nOyBwcmludDt9Jwo+IAo+IFNpZ25lZC1vZmYtYnk6IEpvZSBQZXJjaGVzIDxqb2VAcGVy
+Y2hlcy5jb20+Cj4gLS0tCj4gIGFyY2gvczM5MC9rZXJuZWwvdG9wb2xvZ3kuYyAgICAgICAgICB8
+ICAzICstLQo+ICBhcmNoL3RpbGUva2VybmVsL3N5c2ZzLmMgICAgICAgICAgICAgfCAgMiArLQo+
+ICBkcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X3N5c2ZzLmMgICAgfCAgNiArKy0tLQo+ICBkcml2
+ZXJzL3BsYXRmb3JtL3g4Ni9jb21wYWwtbGFwdG9wLmMgfCAxOCArKysrKy0tLS0tLS0tLS0KPiAg
+ZHJpdmVycy9zMzkwL2Npby9kZXZpY2UuYyAgICAgICAgICAgIHwgIDIgKy0KPiAgZHJpdmVycy9z
+Y3NpL2xwZmMvbHBmY19hdHRyLmMgICAgICAgIHwgNDMgKysrKysrKysrKysrLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tCj4gIGRyaXZlcnMvdGhlcm1hbC90aGVybWFsX3N5c2ZzLmMgICAgICB8ICA5
+ICsrKystLS0tCj4gIGRyaXZlcnMvdHR5L3NlcmlhbC9zaC1zY2kuYyAgICAgICAgICB8ICAyICst
+Cj4gIGRyaXZlcnMvdXNiL2hvc3QveGhjaS1kYmdjYXAuYyAgICAgICB8ICAyICstCj4gIGRyaXZl
+cnMvdXNiL3BoeS9waHktdGFodm8uYyAgICAgICAgICB8ICAyICstCj4gIGRyaXZlcnMvdmlkZW8v
+ZmJkZXYvYXVvX2sxOTB4LmMgICAgICB8ICA0ICsrLS0KPiAgZHJpdmVycy92aWRlby9mYmRldi93
+MTAwZmIuYyAgICAgICAgIHwgIDQgKystLQo+ICBsaWIvdGVzdF9maXJtd2FyZS5jICAgICAgICAg
+ICAgICAgICAgfCAxNCArKysrKy0tLS0tLS0KPiAgbGliL3Rlc3Rfa21vZC5jICAgICAgICAgICAg
+ICAgICAgICAgIHwgMTQgKysrKystLS0tLS0tCj4gIHNvdW5kL3NvYy9vbWFwL21jYnNwLmMgICAg
+ICAgICAgICAgICB8ICA0ICsrLS0KPiAgMTUgZmlsZXMgY2hhbmdlZCwgNDkgaW5zZXJ0aW9ucygr
+KSwgODAgZGVsZXRpb25zKC0pCgpGb3IgZmJkZXYgY2hhbmdlczoKCkFja2VkLWJ5OiBCYXJ0bG9t
+aWVqIFpvbG5pZXJraWV3aWN6IDxiLnpvbG5pZXJraWVAc2Ftc3VuZy5jb20+CgpCZXN0IHJlZ2Fy
+ZHMsCi0tCkJhcnRsb21pZWogWm9sbmllcmtpZXdpY3oKU2Ftc3VuZyBSJkQgSW5zdGl0dXRlIFBv
+bGFuZApTYW1zdW5nIEVsZWN0cm9uaWNzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9pbnRlbC1nZngK
