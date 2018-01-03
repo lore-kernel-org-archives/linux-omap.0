@@ -1,103 +1,49 @@
-From: =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] nokia N9: Add support for magnetometer and touchscreen
-Date: Wed, 3 Jan 2018 07:55:52 +0100
-Message-ID: <162367f0-7b07-cd8d-1c13-69e34abb0fc6@gmail.com>
-References: <20180102131722.GA20706@amd>
- <20180102172720.ghtez4d3d2fgcmj6@earth.universe>
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH v3 01/34] clk_ops: change round_rate() to return
+ unsigned long
+Date: Wed, 3 Jan 2018 08:07:42 -0200
+Message-ID: <20180103080742.6ad76c2d@vento.lan>
+References: <1514835793-1104-1-git-send-email-pure.logic@nexus-software.ie>
+        <1514835793-1104-2-git-send-email-pure.logic@nexus-software.ie>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180102172720.ghtez4d3d2fgcmj6-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, clayton-fehKsxFhGzZIf6P1QZMOBw@public.gmane.org, martijn-28JJ9oSIdodmR6Xm/wNWPw@public.gmane.org, sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <1514835793-1104-2-git-send-email-pure.logic@nexus-software.ie>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Bryan O'Donoghue <pure.logic@nexus-software.ie>
+Cc: mturquette@baylibre.com, sboyd@codeaurora.org, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@linux-mips.org, linux-rpi-kernel@lists.infradead.org, patches@opensource.cirrus.com, uclinux-h8-devel@lists.sourceforge.jp, linux-amlogic@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-rockchip@lists.infradead.org, linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mediatek@lists.infradead.org, freedreno@lists.freedesktop.org, linux-media@vger.kernel.org, linux-rtc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Em Mon,  1 Jan 2018 19:42:40 +0000
+Bryan O'Donoghue <pure.logic@nexus-software.ie> escreveu:
 
-On 01/02/2018 06:27 PM, Sebastian Reichel wrote:
-> Hi,
+> Right now it is not possible to return a value larger than LONG_MAX on 32
+> bit systems. You can pass a rate of ULONG_MAX but can't return anything
+> past LONG_MAX due to the fact both the rounded_rate and negative error
+> codes are represented in the return value of round_rate().
 > 
-> On Tue, Jan 02, 2018 at 02:17:22PM +0100, Pavel Machek wrote:
->> This adds dts support for magnetometer and touchscreen on Nokia N9.
+> Most implementations either return zero on error or don't return error
+> codes at all. A minority of implementations do return a negative number -
+> typically -EINVAL or -ENODEV.
 > 
-> I think it makes sense to have this splitted.
+> At the higher level then callers of round_rate() typically and rightly
+> check for a value of <= 0.
 > 
->> Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
->>
->> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
->> index 39e35f8..57a6679 100644
->> --- a/arch/arm/boot/dts/omap3-n9.dts
->> +++ b/arch/arm/boot/dts/omap3-n9.dts
->> @@ -36,6 +57,22 @@
->>  			};
->>  		};
->>  	};
->> +
->> +	touch@4b {
+> It is possible then to convert round_rate() to an unsigned long return
+> value and change error code indication for the minority from -ERRORCODE to
+> a simple 0.
 > 
-> touchscreen@
-> 
->> +		compatible = "atmel,maxtouch";
->> +		reg = <0x4b>;
->> +		interrupt-parent = <&gpio2>;
->> +		interrupts = <29 2>; /* gpio_61, IRQF_TRIGGER_FALLING*/
-> 
-> reset-gpios = <&gpio3 17 GPIO_ACTIVE_SOMETHING>;
+> This patch is the first step in making it possible to scale round_rate past
+> LONG_MAX, later patches will change the previously mentioned minority of
+> round_rate() implementations to return zero only on error if those
+> implementations currently return a negative error number. Implementations
+> that do not return an error code of < 0 will be left as-is.
 > 
 
-I'm using reset-gpios = <&gpio3 17 0>;
+>  drivers/media/platform/omap3isp/isp.c           |  4 ++--
 
->> +		vdd-supply = <&vio>;
->> +		avdd-supply = <&vaux1>;
-> 
-> Those two are not mentioned in the binding and not supported by the
-> driver as far as I can see?
-> 
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Right, but vio and vaux1 need to be on - the reason why it's working at
-all is because lis302 uses the same regulators and turns them on. IMHO
-either we add the support for regulators to maxtouch driver or we add
-regulator-always-on to vio and vaux1.
-
->> +	};
->> +};
-> 
-> Touchscreen with the same settings is required for n950, so it
-> should be in the shared n950 + n9 file.
-> 
-
-As a side-note, there is no pinmux mentioned and usually I'd use
-OMAP3_CORE1_IOPAD(0x20c8, PIN_INPUT | MUX_MODE4) /* gpio_61*/
-OMAP3_CORE1_IOPAD(0x20f2, PIN_OUTPUT | MUX_MODE4) /* gpio_81*/
-
-For reasons that I can't explain, first line (gpmc_nbe1->gpio_61) breaks
-it for me, so I've commented it out. Still, if anyone has an idea what
-is wrong with that please let me know.
-
->> +&i2c3 {
->> +	ak8975@0f {
->> +		compatible = "asahi-kasei,ak8975";
->> +		reg = <0x0f>;
->> +	};
->>  };
-> 
-> Looking at the N9 board file this is missing a rotation matrix. This
-> is supported by the binding:
-> 
-> Documentation/devicetree/bindings/iio/magnetometer/ak8975.txt
-> 
->>  
->>  &isp {
-> 
-> -- Sebastian
-> 
-
-Best regards,
-Filip
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Mauro
