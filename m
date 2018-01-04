@@ -1,60 +1,36 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH v2 1/2] PCI: dra7xx: Fix legacy INTD IRQ handling
-Date: Thu, 4 Jan 2018 19:04:30 +0530
-Message-ID: <ebf49e7f-7008-18b8-62d9-9f3dc2de6a54@ti.com>
-References: <20171229114131.22296-1-vigneshr@ti.com>
- <20171229114131.22296-2-vigneshr@ti.com>
- <953c7aac-0429-8fc7-02ce-ace94aa735f3@ti.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH] video: fbdev: omap2: Use PTR_ERR_OR_ZERO()
+Date: Thu, 04 Jan 2018 14:58:15 +0100
+Message-ID: <9921994.QtZC9fnTIs@amdc3058>
+References: <CGME20171129162304epcas5p4874d26ebbc84f3e2a9804548b6deb762@epcas5p4.samsung.com>
+ <1511972570-30240-1-git-send-email-gomonovych@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <953c7aac-0429-8fc7-02ce-ace94aa735f3@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vignesh R <vigneshr@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-reply-to: <1511972570-30240-1-git-send-email-gomonovych@gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Vasyl Gomonovych <gomonovych@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Thursday 04 January 2018 11:38 AM, Kishon Vijay Abraham I wrote:
-> 
-> 
-> On Friday 29 December 2017 05:11 PM, Vignesh R wrote:
->> Legacy INTD IRQ handling is broken on dra7xx due to fact that driver
->> uses hwirq in range of 1-4 for INTA, INTD whereas IRQ domain is of size
->> 4 which is numbered 0-3. Therefore when INTD IRQ line is used with
->> pci-dra7xx driver following warning is seen:
->>
->>        WARNING: CPU: 0 PID: 1 at kernel/irq/irqdomain.c:342 irq_domain_associate+0x12c/0x1c4
->>        error: hwirq 0x4 is too large for dummy
->>
->> Fix this by using pci_irqd_intx_xlate() helper to translate the INTx 1-4
->> range into the 0-3 as done in other PCIe drivers.
->>
->> Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
->> Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
->> Signed-off-by: Vignesh R <vigneshr@ti.com>
-> 
-> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  drivers/pci/dwc/pci-dra7xx.c | 3 ++-
->>  1 file changed, 2 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
->> index 58aed0896468..892f93910012 100644
->> --- a/drivers/pci/dwc/pci-dra7xx.c
->> +++ b/drivers/pci/dwc/pci-dra7xx.c
->> @@ -226,6 +226,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
->>  
->>  static const struct irq_domain_ops intx_domain_ops = {
->>  	.map = dra7xx_pcie_intx_map,
->> +	.xlate = pci_irqd_intx_xlate,
-
-Looking at this again, I think the mapping should be done in device tree using
-the interrupt-map property.
-
-Lorenzo, can you hold merging this patch till we verify using the dt approach?
-
-Thanks
-Kishon
+T24gV2VkbmVzZGF5LCBOb3ZlbWJlciAyOSwgMjAxNyAwNToyMjo0OCBQTSBWYXN5bCBHb21vbm92
+eWNoIHdyb3RlOgo+IEZpeCBwdHJfcmV0LmNvY2NpIHdhcm5pbmdzOgo+IGRyaXZlcnMvdmlkZW8v
+ZmJkZXYvb21hcDIvb21hcGZiL2Rzcy9oZG1pNC5jOjY3NjoxLTM6IFdBUk5JTkc6IFBUUl9FUlJf
+T1JfWkVSTyBjYW4gYmUgdXNlZAo+IAo+IFVzZSBQVFJfRVJSX09SX1pFUk8gcmF0aGVyIHRoYW4g
+aWYoSVNfRVJSKC4uLikpICsgUFRSX0VSUgo+IAo+IEdlbmVyYXRlZCBieTogc2NyaXB0cy9jb2Nj
+aW5lbGxlL2FwaS9wdHJfcmV0LmNvY2NpCj4gCj4gU2lnbmVkLW9mZi1ieTogVmFzeWwgR29tb25v
+dnljaCA8Z29tb25vdnljaEBnbWFpbC5jb20+CgpQYXRjaCBxdWV1ZWQgZm9yIDQuMTYsIHRoYW5r
+cy4KCkJlc3QgcmVnYXJkcywKLS0KQmFydGxvbWllaiBab2xuaWVya2lld2ljegpTYW1zdW5nIFIm
+RCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcgRWxlY3Ryb25pY3MKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJp
+LWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
