@@ -1,59 +1,61 @@
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: Re: Vibrations, audio, charging, radio on N9/N950
-Date: Wed, 3 Jan 2018 17:44:12 +0200
-Message-ID: <ed609880-a587-9ea3-6dbf-c4b3bfa2061f@gmail.com>
-References: <20180103135635.GA17854@amd>
- <64f11661-794d-826e-89fc-08b4c15ee673@gmail.com>
- <20180103154012.ytasvkzyzo7xy35v@pali>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: [PATCH v2 1/2] PCI: dra7xx: Fix legacy INTD IRQ handling
+Date: Thu, 4 Jan 2018 11:38:53 +0530
+Message-ID: <953c7aac-0429-8fc7-02ce-ace94aa735f3@ti.com>
+References: <20171229114131.22296-1-vigneshr@ti.com>
+ <20171229114131.22296-2-vigneshr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180103154012.ytasvkzyzo7xy35v@pali>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>, =?UTF-8?Q?Filip_Matijevi=c4=87?= <filip.matijevic.pz@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, sakari.ailus@linux.intel.com
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20171229114131.22296-2-vigneshr@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On  3.01.2018 17:40, Pali Rohár wrote:
-> On Wednesday 03 January 2018 16:34:15 Filip Matijević wrote:
->> Hi,
->>
->> On 01/03/2018 02:56 PM, Pavel Machek wrote:
->>> Hi!
->>>
->>> Sebasian, you submitted patch to enable vibrations on N950. I am
->>> trying to do the same now on N9... I guess I enabled the dts, but
->>> .. how do I actually ask for vibrations? /dev/input/eventX does not
->>> seem to be present.
->>>
->>> Did anyone get audio to run on N9/N950? It is marked as supported on
->>> https://elinux.org/N950 with dt glue missing...
->>>
->>
->> I have fairly recent patches (for v4.10) here:
->> https://github.com/filippz/pmbootstrap/commit/600473432d8ff61ae80a7e2a198d9442fd3a6f2e
->> (from 0015 trough 0022 w/o 0016). Vibration was working as was audio
->> playback from twl5031 and tvl320dac33 together with tpa6140a2. More
->> details here: http://talk.maemo.org/showpost.php?p=1492590&postcount=112
->> I hope that you can use those patches at least to some degree.
->>
->>> Even more importantly, does battery charging work for someone? It does
->>> not work here :-(. After USB is plugged in, it maybe tries to charge,
->>> but gives up after 30 seconds.
->>>
->>> Maybe least important, but... does anyone have FM radio working? I'd
->>> like to play some music...
->>
->> I haven't used FM radio nor BT (wl1273), so I can't comment on that, but
->> they are in there but probably need some work.
+On Friday 29 December 2017 05:11 PM, Vignesh R wrote:
+> Legacy INTD IRQ handling is broken on dra7xx due to fact that driver
+> uses hwirq in range of 1-4 for INTA, INTD whereas IRQ domain is of size
+> 4 which is numbered 0-3. Therefore when INTD IRQ line is used with
+> pci-dra7xx driver following warning is seen:
 > 
-> IIRC there were some problems with FM chip on N9 or N950... something
-> like chip was not connected to antenna... But do not remember details.
+>        WARNING: CPU: 0 PID: 1 at kernel/irq/irqdomain.c:342 irq_domain_associate+0x12c/0x1c4
+>        error: hwirq 0x4 is too large for dummy
 > 
+> Fix this by using pci_irqd_intx_xlate() helper to translate the INTx 1-4
+> range into the 0-3 as done in other PCIe drivers.
+> 
+> Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
+> Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
 
-I guess you talk about FMTX here, yes, it is not connected AFAIK. But I 
-think they meant FMRX in BT module.
+Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 58aed0896468..892f93910012 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -226,6 +226,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
+>  
+>  static const struct irq_domain_ops intx_domain_ops = {
+>  	.map = dra7xx_pcie_intx_map,
+> +	.xlate = pci_irqd_intx_xlate,
+>  };
+>  
+>  static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+> @@ -269,7 +270,7 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>  	case INTC:
+>  	case INTD:
+>  		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
+> -						    ffs(reg)));
+> +						    ffs(reg) - 1));
+>  		break;
+>  	}
+>  
+> 
