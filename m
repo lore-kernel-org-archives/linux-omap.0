@@ -1,51 +1,62 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v6 10/10] clocksource: timer-dm: Check prescaler value
-Date: Thu, 4 Jan 2018 23:47:13 +0100
-Message-ID: <20180104224713.GA11557@lenoch>
-References: <1514887799-24605-1-git-send-email-j-keerthy@ti.com>
- <1514887799-24605-11-git-send-email-j-keerthy@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/4] soc changes for omaps for v4.16, part 2
+Date: Thu, 4 Jan 2018 22:59:16 -0800
+Message-ID: <20180105065916.snklnojvp5tshpvl@localhost>
+References: <pull-1513966338-859035@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1514887799-24605-11-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, robh+dt@kernel.org, linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, sebastian.reichel@collabora.co.uk, linux-kernel@vger.kernel.org, t-kristo@ti.com
+In-Reply-To: <pull-1513966338-859035@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 02, 2018 at 03:39:59PM +0530, Keerthy wrote:
-> From: Ladislav Michl <ladis@linux-mips.org>
+On Fri, Dec 22, 2017 at 10:14:24AM -0800, Tony Lindgren wrote:
+> From: "Tony Lindgren" <tony@atomide.com>
 > 
-> Invalid prescaler value is silently ignored. Fix that
-> by returning -EINVAL in such case. As invalid value
-> disabled use of the prescaler, use -1 explicitely for
-> that purpose.
+> The following changes since commit fdf3632938a646c13f7407f2f8c33ff81eed9c76:
 > 
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> ---
->  drivers/clocksource/timer-dm.c | 3 +++
->  1 file changed, 3 insertions(+)
+>   Merge branch '4.15-rc1-clkctrl-mach-omap2' of https://github.com/t-kristo/linux-pm into omap-for-v4.16/soc (2017-12-11 07:46:40 -0800)
 > 
-> diff --git a/drivers/clocksource/timer-dm.c b/drivers/clocksource/timer-dm.c
-> index 60db173..01a9cb0 100644
-> --- a/drivers/clocksource/timer-dm.c
-> +++ b/drivers/clocksource/timer-dm.c
-> @@ -672,6 +672,9 @@ int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
->  	if (prescaler >= 0x00 && prescaler <= 0x07) {
->  		l |= OMAP_TIMER_CTRL_PRE;
->  		l |= prescaler << 2;
-> +	} else {
-> +		if (prescaler != -1)
-> +			return -EINVAL;
+> are available in the Git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v4.16/soc-pt2-signed
+> 
+> for you to fetch changes up to 234c91d4a350835df8362f6bc968ccf052c60d58:
+> 
+>   ARM: OMAP2+: dra762: Register package specific hwmod (2017-12-21 07:05:15 -0800)
+> 
+> ----------------------------------------------------------------
+> Second set of SoC changes for omaps for v4.16 merge window
+> 
+> We can now drop some more of legacy platform data for omap3 as
+> it's been booting in device tree only mode for quite a while now.
+> This clock related data is coming from device tree configured
+> clocks now.
+> 
+> The other changes add support for detecting new dra762 SoC variant.
+> 
+> ----------------------------------------------------------------
+> Lokesh Vutla (2):
+>       ARM: OMAP2+: dra762: Add support for device package identification
+>       ARM: OMAP2+: dra762: Register package specific hwmod
+> 
+> Tony Lindgren (1):
+>       ARM: OMAP2+: Drop unused legacy data for prcm_reg_id and module_bit
 
-Argh... This is actually wrong, as it leaves timer enabled.
-I suggest simply dropping this patch and I'll rethink whole
-approach a bit later (and better).
+Nice cleanup. Merged. It had a conflict with an earlier fixes branch, please
+double-check my resolution.
 
->  	}
->  	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
->  
 
-Sorry for the noise,
-	ladis
+-Olof
