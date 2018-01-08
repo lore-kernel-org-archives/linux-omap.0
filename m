@@ -1,82 +1,123 @@
-From: Qi Hou <qi.hou@windriver.com>
-Subject: [PATCH] arm: omap2: timer: fix a kmemleak caused in omap_get_timer_dt
-Date: Mon, 8 Jan 2018 09:08:53 +0800
-Message-ID: <1515373733-3658-1-git-send-email-qi.hou@windriver.com>
+From: Claudiu Beznea <Claudiu.Beznea@microchip.com>
+Subject: Re: [PATCH v6 08/10] pwm: pwm-omap-dmtimer: Adapt driver to utilize
+ dmtimer pdata ops
+Date: Mon, 8 Jan 2018 10:44:16 +0200
+Message-ID: <e9f73341-5262-0d9c-ecb8-f04f18d0bb05@microchip.com>
+References: <1514887799-24605-1-git-send-email-j-keerthy@ti.com>
+ <1514887799-24605-9-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux@armlinux.org.uk
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <1514887799-24605-9-git-send-email-j-keerthy@ti.com>
+Content-Language: en-US
+Sender: linux-pwm-owner@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>, daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
+Cc: linux-pwm@vger.kernel.org, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, ladis@linux-mips.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-When more than one GP timers are used as kernel system timers and the
-corresponding nodes in device-tree are marked with the same "disabled"
-property, then the "attr" field of the property will be initialized
-more than once as the property being added to sys file system via
-__of_add_property_sysfs().
 
-In __of_add_property_sysfs(), the "name" field of pp->attr.attr is set
-directly to the return value of safe_name(), without taking care of
-whether it's already a valid pointer to a memory block. If it is, its
-old value will always be overwritten by the new one and the memory block
-allocated before will a "ghost", then a kmemleak happened.
 
-That the same "disabled" property being added to different nodes of device
-tree would cause that kind of kmemleak overhead, at leat once.
-
-To fix it, allocate the property dynamically, and delete static one.
-
-Signed-off-by: Qi Hou <qi.hou@windriver.com>
----
- arch/arm/mach-omap2/timer.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index ece09c9..0e6109b 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -156,12 +156,6 @@ static struct clock_event_device clockevent_gpt = {
- 	.tick_resume		= omap2_gp_timer_shutdown,
- };
- 
--static struct property device_disabled = {
--	.name = "status",
--	.length = sizeof("disabled"),
--	.value = "disabled",
--};
--
- static const struct of_device_id omap_timer_match[] __initconst = {
- 	{ .compatible = "ti,omap2420-timer", },
- 	{ .compatible = "ti,omap3430-timer", },
-@@ -203,8 +197,17 @@ static struct device_node * __init omap_get_timer_dt(const struct of_device_id *
- 				  of_get_property(np, "ti,timer-secure", NULL)))
- 			continue;
- 
--		if (!of_device_is_compatible(np, "ti,omap-counter32k"))
--			of_add_property(np, &device_disabled);
-+		if (!of_device_is_compatible(np, "ti,omap-counter32k")) {
-+			struct property *prop;
-+
-+			prop = kzalloc(sizeof(*prop), GFP_KERNEL);
-+			if (!prop)
-+				return -ENOMEM;
-+			prop->name = "status";
-+			prop->length = sizeof("disabled");
-+			prop->value = "disabled";
-+			of_add_property(np, prop);
-+		}
- 		return np;
- 	}
- 
--- 
-2.7.4
+On 02.01.2018 12:09, Keerthy wrote:
+> Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> Tested-by: Ladislav Michl <ladis@linux-mips.org>
+> ---
+>  drivers/pwm/pwm-omap-dmtimer.c | 39 ++++++++++++++++++++++-----------------
+>  1 file changed, 22 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+> index 5ad42f3..3b27aff 100644
+> --- a/drivers/pwm/pwm-omap-dmtimer.c
+> +++ b/drivers/pwm/pwm-omap-dmtimer.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/of.h>
+>  #include <linux/of_platform.h>
+> +#include <linux/platform_data/dmtimer-omap.h>
+>  #include <linux/platform_data/pwm_omap_dmtimer.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/pm_runtime.h>
+> @@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
+>  	struct pwm_chip chip;
+>  	struct mutex mutex;
+>  	pwm_omap_dmtimer *dm_timer;
+> -	struct pwm_omap_dmtimer_pdata *pdata;
+> +	struct omap_dm_timer_ops *pdata;
+>  	struct platform_device *dm_timer_pdev;
+>  };
+>  
+> @@ -242,19 +243,33 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+>  {
+>  	struct device_node *np = pdev->dev.of_node;
+>  	struct device_node *timer;
+> +	struct platform_device *timer_pdev;
+>  	struct pwm_omap_dmtimer_chip *omap;
+> -	struct pwm_omap_dmtimer_pdata *pdata;
+> +	struct dmtimer_platform_data *timer_pdata;
+> +	struct omap_dm_timer_ops *pdata;
+>  	pwm_omap_dmtimer *dm_timer;
+>  	u32 v;
+>  	int status;
+>  
+> -	pdata = dev_get_platdata(&pdev->dev);
+> -	if (!pdata) {
+> -		dev_err(&pdev->dev, "Missing dmtimer platform data\n");
+> +	timer = of_parse_phandle(np, "ti,timers", 0);
+of_node_put() should be called when done with device_node pointer returned
+by of_parse_phandle() (you may want to check the return ERROR cases below
+regarding this statement):
+> +	if (!timer)
+> +		return -ENODEV;
+> +
+> +	timer_pdev = of_find_device_by_node(timer);
+> +	if (!timer_pdev) {
+> +		dev_err(&pdev->dev, "Unable to find Timer pdev\n");
+here
+> +		return -ENODEV;
+> +	}
+> +
+> +	timer_pdata = dev_get_platdata(&timer_pdev->dev);
+> +	if (!timer_pdata) {
+> +		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
+here
+>  		return -EINVAL;
+>  	}
+>  
+> -	if (!pdata->request_by_node ||
+> +	pdata = timer_pdata->timer_ops;
+> +
+> +	if (!pdata || !pdata->request_by_node ||
+>  	    !pdata->free ||
+>  	    !pdata->enable ||
+>  	    !pdata->disable ||
+> @@ -270,10 +285,6 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+>  		return -EINVAL;
+>  	}
+>  
+> -	timer = of_parse_phandle(np, "ti,timers", 0);
+> -	if (!timer)
+> -		return -ENODEV;
+> -
+>  	if (!of_get_property(timer, "ti,timer-pwm", NULL)) {
+here
+>  		dev_err(&pdev->dev, "Missing ti,timer-pwm capability\n");
+>  		return -ENODEV;
+> @@ -291,13 +302,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+>  
+>  	omap->pdata = pdata;
+>  	omap->dm_timer = dm_timer;
+> -
+> -	omap->dm_timer_pdev = of_find_device_by_node(timer);
+> -	if (!omap->dm_timer_pdev) {
+> -		dev_err(&pdev->dev, "Unable to find timer pdev\n");
+> -		omap->pdata->free(dm_timer);
+> -		return -EINVAL;
+> -	}
+> +	omap->dm_timer_pdev = timer_pdev;
+>  
+>  	/*
+>  	 * Ensure that the timer is stopped before we allow PWM core to call
+> 
+And all the other return instructions from probe function not listed by git diff
