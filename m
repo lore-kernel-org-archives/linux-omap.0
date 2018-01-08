@@ -1,165 +1,116 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: [PATCH v6 08/10] pwm: pwm-omap-dmtimer: Adapt driver to utilize
- dmtimer pdata ops
-Date: Mon, 8 Jan 2018 21:54:42 +0530
-Message-ID: <422a0b25-570b-adb3-2aa1-d70a547c2715@ti.com>
-References: <1514887799-24605-1-git-send-email-j-keerthy@ti.com>
- <1514887799-24605-9-git-send-email-j-keerthy@ti.com>
- <e9f73341-5262-0d9c-ecb8-f04f18d0bb05@microchip.com>
- <fd544471-63d0-dbf1-cee5-53f05c837cdd@ti.com>
- <3b52c42c-8283-c7b9-6f82-1187766faab1@baylibre.com>
- <eb51e181-8203-0469-d013-dfd40f7da95d@microchip.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 1/2] PCI: dra7xx: Fix legacy INTD IRQ handling
+Date: Mon, 8 Jan 2018 18:24:45 +0000
+Message-ID: <20180108182445.GF2530@red-moon>
+References: <20171229114131.22296-1-vigneshr@ti.com>
+ <20171229114131.22296-2-vigneshr@ti.com>
+ <953c7aac-0429-8fc7-02ce-ace94aa735f3@ti.com>
+ <ebf49e7f-7008-18b8-62d9-9f3dc2de6a54@ti.com>
+ <20180104161202.GB12239@red-moon>
+ <493a4f80-677c-b213-d13a-e922b28c38e0@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <eb51e181-8203-0469-d013-dfd40f7da95d@microchip.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Claudiu Beznea <Claudiu.Beznea@microchip.com>, Neil Armstrong <narmstrong@baylibre.com>, daniel.lezcano@linaro.org, tony@atomide.com, aaro.koskinen@iki.fi, thierry.reding@gmail.com
-Cc: linux-pwm@vger.kernel.org, grygorii.strashko@ti.com, linux-kernel@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, ladis@linux-mips.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <493a4f80-677c-b213-d13a-e922b28c38e0@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On 1/8/2018 8:17 PM, Claudiu Beznea wrote:
+On Mon, Jan 08, 2018 at 07:18:59PM +0530, Vignesh R wrote:
 > 
 > 
-> On 08.01.2018 16:44, Neil Armstrong wrote:
->> On 08/01/2018 15:33, Keerthy wrote:
->>>
->>>
->>> On Monday 08 January 2018 02:14 PM, Claudiu Beznea wrote:
->>>>
->>>>
->>>> On 02.01.2018 12:09, Keerthy wrote:
->>>>> Adapt driver to utilize dmtimer pdata ops instead of pdata-quirks.
->>>>>
->>>>> Signed-off-by: Keerthy <j-keerthy@ti.com>
->>>>> Tested-by: Ladislav Michl <ladis@linux-mips.org>
->>>>> ---
->>>>>   drivers/pwm/pwm-omap-dmtimer.c | 39 ++++++++++++++++++++++-----------------
->>>>>   1 file changed, 22 insertions(+), 17 deletions(-)
->>>>>
->>>>> diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
->>>>> index 5ad42f3..3b27aff 100644
->>>>> --- a/drivers/pwm/pwm-omap-dmtimer.c
->>>>> +++ b/drivers/pwm/pwm-omap-dmtimer.c
->>>>> @@ -23,6 +23,7 @@
->>>>>   #include <linux/mutex.h>
->>>>>   #include <linux/of.h>
->>>>>   #include <linux/of_platform.h>
->>>>> +#include <linux/platform_data/dmtimer-omap.h>
->>>>>   #include <linux/platform_data/pwm_omap_dmtimer.h>
->>>>>   #include <linux/platform_device.h>
->>>>>   #include <linux/pm_runtime.h>
->>>>> @@ -37,7 +38,7 @@ struct pwm_omap_dmtimer_chip {
->>>>>   	struct pwm_chip chip;
->>>>>   	struct mutex mutex;
->>>>>   	pwm_omap_dmtimer *dm_timer;
->>>>> -	struct pwm_omap_dmtimer_pdata *pdata;
->>>>> +	struct omap_dm_timer_ops *pdata;
->>>>>   	struct platform_device *dm_timer_pdev;
->>>>>   };
->>>>>   
->>>>> @@ -242,19 +243,33 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->>>>>   {
->>>>>   	struct device_node *np = pdev->dev.of_node;
->>>>>   	struct device_node *timer;
->>>>> +	struct platform_device *timer_pdev;
->>>>>   	struct pwm_omap_dmtimer_chip *omap;
->>>>> -	struct pwm_omap_dmtimer_pdata *pdata;
->>>>> +	struct dmtimer_platform_data *timer_pdata;
->>>>> +	struct omap_dm_timer_ops *pdata;
->>>>>   	pwm_omap_dmtimer *dm_timer;
->>>>>   	u32 v;
->>>>>   	int status;
->>>>>   
->>>>> -	pdata = dev_get_platdata(&pdev->dev);
->>>>> -	if (!pdata) {
->>>>> -		dev_err(&pdev->dev, "Missing dmtimer platform data\n");
->>>>> +	timer = of_parse_phandle(np, "ti,timers", 0);
->>>> of_node_put() should be called when done with device_node pointer returned
->>>> by of_parse_phandle() (you may want to check the return ERROR cases below
->>>> regarding this statement):
->>>>> +	if (!timer)
->>>>> +		return -ENODEV;
->>>>> +
->>>>> +	timer_pdev = of_find_device_by_node(timer);
->>>>> +	if (!timer_pdev) {
->>>>> +		dev_err(&pdev->dev, "Unable to find Timer pdev\n");
->>>> here
->>>>> +		return -ENODEV;
->>>>> +	}
->>>>> +
->>>>> +	timer_pdata = dev_get_platdata(&timer_pdev->dev);
->>>>> +	if (!timer_pdata) {
->>>>> +		dev_err(&pdev->dev, "dmtimer pdata structure NULL\n");
->>>> here
->>>>>   		return -EINVAL;
->>>>>   	}
->>>>>   
->>>>> -	if (!pdata->request_by_node ||
->>>>> +	pdata = timer_pdata->timer_ops;
->>>>> +
->>>>> +	if (!pdata || !pdata->request_by_node ||
->>>>>   	    !pdata->free ||
->>>>>   	    !pdata->enable ||
->>>>>   	    !pdata->disable ||
->>>>> @@ -270,10 +285,6 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->>>>>   		return -EINVAL;
->>>>>   	}
->>>>>   
->>>>> -	timer = of_parse_phandle(np, "ti,timers", 0);
->>>>> -	if (!timer)
->>>>> -		return -ENODEV;
->>>>> -
->>>>>   	if (!of_get_property(timer, "ti,timer-pwm", NULL)) {
->>>> here
->>>>>   		dev_err(&pdev->dev, "Missing ti,timer-pwm capability\n");
->>>>>   		return -ENODEV;
->>>>> @@ -291,13 +302,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
->>>>>   
->>>>>   	omap->pdata = pdata;
->>>>>   	omap->dm_timer = dm_timer;
->>>>> -
->>>>> -	omap->dm_timer_pdev = of_find_device_by_node(timer);
->>>>> -	if (!omap->dm_timer_pdev) {
->>>>> -		dev_err(&pdev->dev, "Unable to find timer pdev\n");
->>>>> -		omap->pdata->free(dm_timer);
->>>>> -		return -EINVAL;
->>>>> -	}
->>>>> +	omap->dm_timer_pdev = timer_pdev;
->>>>>   
->>>>>   	/*
->>>>>   	 * Ensure that the timer is stopped before we allow PWM core to call
->>>>>
->>>> And all the other return instructions from probe function not listed by git diff
->>>
->>> Thanks for reviewing. I will add the of_node_put call for all the error
->>> paths.
-> After that you can add: Reviwed-by: Claudiu Beznea <claudiu.beznea@microchip.com>
->>>
->>>>
->>>
->>> _______________________________________________
->>> linux-arm-kernel mailing list
->>> linux-arm-kernel@lists.infradead.org
->>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>>
->>
->> Apart the missing of_node_put() :
->>
->> Acked-by: Neil Armstrong <narmstrong@baylibre.com>
+> On Thursday 04 January 2018 09:42 PM, Lorenzo Pieralisi wrote:
+> > On Thu, Jan 04, 2018 at 07:04:30PM +0530, Kishon Vijay Abraham I wrote:
+> >> Hi,
+> >>
+> >> On Thursday 04 January 2018 11:38 AM, Kishon Vijay Abraham I wrote:
+> >>>
+> >>>
+> >>> On Friday 29 December 2017 05:11 PM, Vignesh R wrote:
+> >>>> Legacy INTD IRQ handling is broken on dra7xx due to fact that driver
+> >>>> uses hwirq in range of 1-4 for INTA, INTD whereas IRQ domain is of size
+> >>>> 4 which is numbered 0-3. Therefore when INTD IRQ line is used with
+> >>>> pci-dra7xx driver following warning is seen:
+> >>>>
+> >>>>        WARNING: CPU: 0 PID: 1 at kernel/irq/irqdomain.c:342 irq_domain_associate+0x12c/0x1c4
+> >>>>        error: hwirq 0x4 is too large for dummy
+> >>>>
+> >>>> Fix this by using pci_irqd_intx_xlate() helper to translate the INTx 1-4
+> >>>> range into the 0-3 as done in other PCIe drivers.
+> >>>>
+> >>>> Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
+> >>>> Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
+> >>>> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> >>>
+> >>> Acked-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >>>> ---
+> >>>>  drivers/pci/dwc/pci-dra7xx.c | 3 ++-
+> >>>>  1 file changed, 2 insertions(+), 1 deletion(-)
+> >>>>
+> >>>> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> >>>> index 58aed0896468..892f93910012 100644
+> >>>> --- a/drivers/pci/dwc/pci-dra7xx.c
+> >>>> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> >>>> @@ -226,6 +226,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
+> >>>>  
+> >>>>  static const struct irq_domain_ops intx_domain_ops = {
+> >>>>  	.map = dra7xx_pcie_intx_map,
+> >>>> +	.xlate = pci_irqd_intx_xlate,
+> >>
+> >> Looking at this again, I think the mapping should be done in device tree using
+> >> the interrupt-map property.
+> >>
+> >> Lorenzo, can you hold merging this patch till we verify using the dt approach?
+> > 
+> > Yes and I agree that's a DT mapping bug.
+> 
+> I did some testing by changing interrupt-map property of PCIe node as as
+> below:
+> diff --git a/arch/arm/boot/dts/dra7.dtsi b/arch/arm/boot/dts/dra7.dtsi
+> index 261b5deb2456..2b1a2c5303bb 100644
+> --- a/arch/arm/boot/dts/dra7.dtsi
+> +++ b/arch/arm/boot/dts/dra7.dtsi
+> @@ -332,10 +332,10 @@
+>                                 phys = <&pcie1_phy>;
+>                                 phy-names = "pcie-phy0";
+>                                 interrupt-map-mask = <0 0 0 7>;
+> -                               interrupt-map = <0 0 0 1 &pcie1_intc 1>,
+> -                                               <0 0 0 2 &pcie1_intc 2>,
+> -                                               <0 0 0 3 &pcie1_intc 3>,
+> -                                               <0 0 0 4 &pcie1_intc 4>;
+> +                               interrupt-map = <0 0 0 1 &pcie1_intc 0>,
+> +                                               <0 0 0 2 &pcie1_intc 1>,
+> +                                               <0 0 0 3 &pcie1_intc 2>,
+> +                                               <0 0 0 4 &pcie1_intc 3>;
+> 
+> 
+> Although this eliminates need for xlate, we still need driver change to
+> call the correct handler with above change:
+> 
+> static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+> @@ -269,7 +270,7 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int
+> irq, void *arg)
+>  	case INTC:
+>  	case INTD:
+>  		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
+> -						    ffs(reg)));
+> +						    ffs(reg) - 1));
+>  		break;
+>  	}
+> 
+> 
+> If we merge the driver change then the DT backward compatibility is
+> broken. Right now INTA/B/C keep working even with buggy interrupt-map
+> settings. But, if we fix  interrupt-map and merge above driver change,
+> then we will be *breaking* DT backward compatibility and INTA/B/C will
+> no longer work with older DTs.
+> Therefore, IMO, this patch should be merged in order to keep DT backward
+> compatibility and live with wrong DT representation.
 
-Thanks Neil and Claudiu.
+Yes, this is a mess. I am not fond at all of this fix but I will end
+up merging it for the same reasons you provided - I can't break
+backward DT compatibility.
 
->>
+Lorenzo
