@@ -1,84 +1,101 @@
 From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH v7 9/9] arm: omap: pdata-quirks: Remove unused timer pdata
-Date: Tue, 9 Jan 2018 11:53:07 +0530
-Message-ID: <1515478987-5786-10-git-send-email-j-keerthy@ti.com>
+Subject: [PATCH v7 4/9] arm: OMAP: Move dmtimer driver out of plat-omap to
+ drivers under clocksource
+Date: Tue, 9 Jan 2018 11:53:02 +0530
+Message-ID: <1515478987-5786-5-git-send-email-j-keerthy@ti.com>
 References: <1515478987-5786-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1515478987-5786-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: daniel.lezcano@linaro.org, thierry.reding@gmail.com, tony@atomide.com, aaro.koskinen@iki.fi
-Cc: j-keerthy@ti.com, Claudiu.Beznea@microchip.com, narmstrong@baylibre.com, linux-pwm@vger.kernel.org, ladis@linux-mips.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, grygorii.strashko@ti.com
+Cc: linux-pwm@vger.kernel.org, ladis@linux-mips.org, narmstrong@baylibre.com, j-keerthy@ti.com, linux-kernel@vger.kernel.org, t-kristo@ti.com, robh+dt@kernel.org, sebastian.reichel@collabora.co.uk, grygorii.strashko@ti.com, linux-omap@vger.kernel.org, Claudiu.Beznea@microchip.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove unused timer pdata.
+Move the dmtimer driver out of plat-omap to clocksource.
+So that non-omap devices also could use this.
+
+No Code changes done to the driver file only renamed to timer-dm.c.
+Also removed the config dependencies for OMAP_DM_TIMER.
 
 Signed-off-by: Keerthy <j-keerthy@ti.com>
 Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 Tested-by: Ladislav Michl <ladis@linux-mips.org>
 ---
- arch/arm/mach-omap2/pdata-quirks.c | 32 --------------------------------
- 1 file changed, 32 deletions(-)
+ arch/arm/plat-omap/Kconfig                                     | 6 ------
+ arch/arm/plat-omap/Makefile                                    | 1 -
+ drivers/clocksource/Kconfig                                    | 3 +++
+ drivers/clocksource/Makefile                                   | 1 +
+ arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-dm.c | 0
+ 5 files changed, 4 insertions(+), 7 deletions(-)
+ rename arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-dm.c (100%)
 
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index ad9df86..e7d7fc7 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -24,10 +24,8 @@
- #include <linux/platform_data/hsmmc-omap.h>
- #include <linux/platform_data/iommu-omap.h>
- #include <linux/platform_data/wkup_m3.h>
--#include <linux/platform_data/pwm_omap_dmtimer.h>
- #include <linux/platform_data/media/ir-rx51.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
--#include <clocksource/dmtimer.h>
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 7276afe..afc1a1d 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -106,12 +106,6 @@ config OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
+ 	help
+ 	  PPA routine service ID for setting L2 auxiliary control register.
  
- #include "common.h"
- #include "common-board-devices.h"
-@@ -477,33 +475,6 @@ void omap_auxdata_legacy_init(struct device *dev)
- 	dev->platform_data = &twl_gpio_auxdata;
- }
- 
--/* Dual mode timer PWM callbacks platdata */
--#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
--static struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
--	.request_by_node = omap_dm_timer_request_by_node,
--	.request_specific = omap_dm_timer_request_specific,
--	.request = omap_dm_timer_request,
--	.set_source = omap_dm_timer_set_source,
--	.get_irq = omap_dm_timer_get_irq,
--	.set_int_enable = omap_dm_timer_set_int_enable,
--	.set_int_disable = omap_dm_timer_set_int_disable,
--	.free = omap_dm_timer_free,
--	.enable = omap_dm_timer_enable,
--	.disable = omap_dm_timer_disable,
--	.get_fclk = omap_dm_timer_get_fclk,
--	.start = omap_dm_timer_start,
--	.stop = omap_dm_timer_stop,
--	.set_load = omap_dm_timer_set_load,
--	.set_match = omap_dm_timer_set_match,
--	.set_pwm = omap_dm_timer_set_pwm,
--	.set_prescaler = omap_dm_timer_set_prescaler,
--	.read_counter = omap_dm_timer_read_counter,
--	.write_counter = omap_dm_timer_write_counter,
--	.read_status = omap_dm_timer_read_status,
--	.write_status = omap_dm_timer_write_status,
--};
--#endif
+-config OMAP_DM_TIMER
+-	bool "Use dual-mode timer"
+-	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
+-	help
+-	 Select this option if you want to use OMAP Dual-Mode timers.
 -
- static struct ir_rx51_platform_data __maybe_unused rx51_ir_data = {
- 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
- };
-@@ -572,9 +543,6 @@ static void __init omap3_mcbsp_init(void) {}
- 	OF_DEV_AUXDATA("ti,am4372-wkup-m3", 0x44d00000, "44d00000.wkup_m3",
- 		       &wkup_m3_data),
- #endif
--#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
--	OF_DEV_AUXDATA("ti,omap-dmtimer-pwm", 0, NULL, &pwm_dmtimer_pdata),
--#endif
- #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
- 	OF_DEV_AUXDATA("ti,omap4-iommu", 0x4a066000, "4a066000.mmu",
- 		       &omap4_iommu_pdata),
+ config OMAP_SERIAL_WAKE
+ 	bool "Enable wake-up events for serial ports"
+ 	depends on ARCH_OMAP1 && OMAP_MUX
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 47e1867..7215ada 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -9,5 +9,4 @@ obj-y := sram.o dma.o counter_32k.o
+ 
+ # omap_device support (OMAP2+ only at the moment)
+ 
+-obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+ obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
+diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+index c729a88..3f799b2 100644
+--- a/drivers/clocksource/Kconfig
++++ b/drivers/clocksource/Kconfig
+@@ -21,6 +21,9 @@ config CLKEVT_I8253
+ config I8253_LOCK
+ 	bool
+ 
++config OMAP_DM_TIMER
++	bool
++
+ config CLKBLD_I8253
+ 	def_bool y if CLKSRC_I8253 || CLKEVT_I8253 || I8253_LOCK
+ 
+diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
+index 72711f1..27b5497 100644
+--- a/drivers/clocksource/Makefile
++++ b/drivers/clocksource/Makefile
+@@ -16,6 +16,7 @@ obj-$(CONFIG_EM_TIMER_STI)	+= em_sti.o
+ obj-$(CONFIG_CLKBLD_I8253)	+= i8253.o
+ obj-$(CONFIG_CLKSRC_MMIO)	+= mmio.o
+ obj-$(CONFIG_DIGICOLOR_TIMER)	+= timer-digicolor.o
++obj-$(CONFIG_OMAP_DM_TIMER)	+= timer-dm.o
+ obj-$(CONFIG_DW_APB_TIMER)	+= dw_apb_timer.o
+ obj-$(CONFIG_DW_APB_TIMER_OF)	+= dw_apb_timer_of.o
+ obj-$(CONFIG_FTTMR010_TIMER)	+= timer-fttmr010.o
+diff --git a/arch/arm/plat-omap/dmtimer.c b/drivers/clocksource/timer-dm.c
+similarity index 100%
+rename from arch/arm/plat-omap/dmtimer.c
+rename to drivers/clocksource/timer-dm.c
 -- 
 1.9.1
