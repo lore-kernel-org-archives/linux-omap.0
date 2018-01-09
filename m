@@ -1,124 +1,88 @@
-From: qhou <qi.hou@windriver.com>
-Subject: Re: [PATCH] arm: omap2: timer: fix a kmemleak caused in
- omap_get_timer_dt
-Date: Tue, 9 Jan 2018 09:42:02 +0800
-Message-ID: <674f9bda-01b5-2336-12e8-d1aa03413324@windriver.com>
-References: <1515373733-3658-1-git-send-email-qi.hou@windriver.com>
- <201801090643.8ChygjAc%fengguang.wu@intel.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH v7 0/9] omap: dmtimer: Move driver out of plat-omap
+Date: Tue, 9 Jan 2018 11:52:58 +0530
+Message-ID: <1515478987-5786-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201801090643.8ChygjAc%fengguang.wu@intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, tony@atomide.com, linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pwm-owner@vger.kernel.org>
+Sender: linux-pwm-owner@vger.kernel.org
+To: daniel.lezcano@linaro.org, thierry.reding@gmail.com, tony@atomide.com, aaro.koskinen@iki.fi
+Cc: j-keerthy@ti.com, Claudiu.Beznea@microchip.com, narmstrong@baylibre.com, linux-pwm@vger.kernel.org, ladis@linux-mips.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sebastian.reichel@collabora.co.uk, linux-omap@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
+The series moves dmtimer out of plat-omap to drivers/clocksource.
+The series also does a bunch of changes to pwm-omap-dmtimer code
+to adapt to the driver migration and clean up plat specific
+pdata-quirks and use the dmtimer platform data.
 
+Boot tested on DRA7-EVM and AM437X-GP-EVM.
+Compile tested omap1_defconfig.
 
-On 2018年01月09日 07:13, kbuild test robot wrote:
-> Hi Qi,
->
-> Thank you for the patch! Perhaps something to improve:
->
-> [auto build test WARNING on omap/for-next]
-> [also build test WARNING on v4.15-rc7 next-20180108]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->
-> url:    https://github.com/0day-ci/linux/commits/Qi-Hou/arm-omap2-timer-fix-a-kmemleak-caused-in-omap_get_timer_dt/20180109-033316
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git for-next
-> config: arm-omap2plus_defconfig (attached as .config)
-> compiler: arm-linux-gnueabi-gcc (Debian 7.2.0-11) 7.2.0
-> reproduce:
->          wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->          chmod +x ~/bin/make.cross
->          # save the attached .config to linux build tree
->          make.cross ARCH=arm
->
-> All warnings (new ones prefixed by >>):
->
->     arch/arm/mach-omap2/timer.c: In function 'omap_get_timer_dt':
-> >> arch/arm/mach-omap2/timer.c:205:12: warning: return makes pointer from integer without a cast [-Wint-conversion]
->          return -ENOMEM;
+This is based on top of linux-next branch.
 
-Yes, it's problem.
+This is tested on on IGEPv2 (OMAP3430 based) by Ladis.
 
-I will correct it to "return NULL;".
+Changes from V6:
 
-As omap_get_timer_dt() is called in early time during booting up kernel, 
-that allocating a little size of memory should
+  * Fixed error checking for pwm driver patch.
+  * Removed one of the fixes from Ladis as per request.
 
-always be alright. Return NULL just in case that it fails.
+Changes from V5:
 
---
-best regards,
-Qi Hou
->                 ^
->
-> vim +205 arch/arm/mach-omap2/timer.c
->
->     170	
->     171	/**
->     172	 * omap_get_timer_dt - get a timer using device-tree
->     173	 * @match	- device-tree match structure for matching a device type
->     174	 * @property	- optional timer property to match
->     175	 *
->     176	 * Helper function to get a timer during early boot using device-tree for use
->     177	 * as kernel system timer. Optionally, the property argument can be used to
->     178	 * select a timer with a specific property. Once a timer is found then mark
->     179	 * the timer node in device-tree as disabled, to prevent the kernel from
->     180	 * registering this timer as a platform device and so no one else can use it.
->     181	 */
->     182	static struct device_node * __init omap_get_timer_dt(const struct of_device_id *match,
->     183							     const char *property)
->     184	{
->     185		struct device_node *np;
->     186	
->     187		for_each_matching_node(np, match) {
->     188			if (!of_device_is_available(np))
->     189				continue;
->     190	
->     191			if (property && !of_get_property(np, property, NULL))
->     192				continue;
->     193	
->     194			if (!property && (of_get_property(np, "ti,timer-alwon", NULL) ||
->     195					  of_get_property(np, "ti,timer-dsp", NULL) ||
->     196					  of_get_property(np, "ti,timer-pwm", NULL) ||
->     197					  of_get_property(np, "ti,timer-secure", NULL)))
->     198				continue;
->     199	
->     200			if (!of_device_is_compatible(np, "ti,omap-counter32k")) {
->     201				struct property *prop;
->     202	
->     203				prop = kzalloc(sizeof(*prop), GFP_KERNEL);
->     204				if (!prop)
->   > 205					return -ENOMEM;
+  * Added couple of fixes from Ladis for  pwm-dmtimer.
 
-Correct "return -ENOMEM" to "return NULL;" in case that it fails to 
-allocate a new memory block.
+Changes from v4:
 
---
-Qi Hou
->     206				prop->name = "status";
->     207				prop->length = sizeof("disabled");
->     208				prop->value = "disabled";
->     209				of_add_property(np, prop);
->     210			}
->     211			return np;
->     212		}
->     213	
->     214		return NULL;
->     215	}
->     216	
->
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+  * Made OMAP_DM_TIMER config option silent.
+  * Changed the driver name to timer-dm.c
+
+Changes from v3:
+
+  * Reverted to v2 approach of using dev_get_platdata to fetch dmtimer ops.
+
+Changes from V2:
+
+  * Wrapped the inline functions in header file under OMAP2PLUS
+  * Added a new of helper function to fetch plat_data from of node. 
+
+Keerthy (8):
+  clocksource: dmtimer: Remove all the exports
+  arm: omap: timer: Wrap the inline functions under OMAP2PLUS define
+  arm: omap: Move dmtimer.h out of plat-omap
+  arm: OMAP: Move dmtimer driver out of plat-omap to drivers under
+    clocksource
+  dmtimer: Add timer ops to the platform data structure
+  clocksource: dmtimer: Populate the timer ops to the pdata
+  pwm: pwm-omap-dmtimer: Adapt driver to utilize dmtimer pdata ops
+  arm: omap: pdata-quirks: Remove unused timer pdata
+
+Ladislav Michl (1):
+  clocksource: timer-dm: Hook device platform data if not already
+    assigned
+
+ arch/arm/mach-omap1/pm.c                           |  2 +-
+ arch/arm/mach-omap1/timer.c                        |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_54xx_data.c         |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_7xx_data.c          |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_81xx_data.c         |  2 +-
+ arch/arm/mach-omap2/pdata-quirks.c                 | 32 ----------
+ arch/arm/mach-omap2/timer.c                        |  2 +-
+ arch/arm/plat-omap/Kconfig                         |  6 --
+ arch/arm/plat-omap/Makefile                        |  1 -
+ drivers/clocksource/Kconfig                        |  3 +
+ drivers/clocksource/Makefile                       |  1 +
+ .../dmtimer.c => drivers/clocksource/timer-dm.c    | 64 ++++++++++----------
+ drivers/pwm/pwm-omap-dmtimer.c                     | 68 +++++++++++++---------
+ .../include/plat => include/clocksource}/dmtimer.h |  8 ++-
+ include/linux/platform_data/dmtimer-omap.h         | 38 ++++++++++++
+ 20 files changed, 134 insertions(+), 109 deletions(-)
+ rename arch/arm/plat-omap/dmtimer.c => drivers/clocksource/timer-dm.c (94%)
+ rename {arch/arm/plat-omap/include/plat => include/clocksource}/dmtimer.h (97%)
 
 -- 
-Best regards,
-Qi Hou
-Phone number: +86-10-8477-8608
-Address: Floor 15, Building B, Wangjing Plaza, No.9 Zhong-Huan Nanlu, Chaoyang District
+1.9.1
