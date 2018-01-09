@@ -1,93 +1,100 @@
 From: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Subject: Re: [PATCH v7 2/9] arm: omap: timer: Wrap the inline functions under
- OMAP2PLUS define
-Date: Tue, 9 Jan 2018 10:19:19 +0100
-Message-ID: <20180109091919.m4xx6kgs6ad32nvz@earth.universe>
+Subject: Re: [PATCH v7 7/9] clocksource: timer-dm: Hook device platform data
+ if not already assigned
+Date: Tue, 9 Jan 2018 10:19:46 +0100
+Message-ID: <20180109091946.xxribrhf2ayt3gny@earth.universe>
 References: <1515478987-5786-1-git-send-email-j-keerthy@ti.com>
- <1515478987-5786-3-git-send-email-j-keerthy@ti.com>
+ <1515478987-5786-8-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="nt6qf6agbrchd7hc"
-Return-path: <linux-pwm-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="w6ozopqxpdaejaqk"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1515478987-5786-3-git-send-email-j-keerthy@ti.com>
-Sender: linux-pwm-owner@vger.kernel.org
+In-Reply-To: <1515478987-5786-8-git-send-email-j-keerthy@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Keerthy <j-keerthy@ti.com>
 Cc: daniel.lezcano@linaro.org, thierry.reding@gmail.com, tony@atomide.com, aaro.koskinen@iki.fi, Claudiu.Beznea@microchip.com, narmstrong@baylibre.com, linux-pwm@vger.kernel.org, ladis@linux-mips.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, robh+dt@kernel.org, t-kristo@ti.com, grygorii.strashko@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---nt6qf6agbrchd7hc
+--w6ozopqxpdaejaqk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Jan 09, 2018 at 11:53:00AM +0530, Keerthy wrote:
-> Wrap the inline functions under OMAP2PLUS/OMAP1 defines.
+On Tue, Jan 09, 2018 at 11:53:05AM +0530, Keerthy wrote:
+> From: Ladislav Michl <ladis@linux-mips.org>
 >=20
+> In the case of device tree boot the device platform data is usually
+> NULL so hook the platform data obtained from the match.
+> As part of un-constify the platform_data pointer.
+>=20
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 > Signed-off-by: Keerthy <j-keerthy@ti.com>
-> Tested-by: Ladislav Michl <ladis@linux-mips.org>
 
 Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
 -- Sebastian
 
 > ---
->  arch/arm/plat-omap/include/plat/dmtimer.h | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
+>  drivers/clocksource/timer-dm.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
 >=20
-> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-om=
-ap/include/plat/dmtimer.h
-> index dd79f30..862ad62 100644
-> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
-> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-> @@ -276,6 +276,12 @@ struct omap_dm_timer {
->  #define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
->  		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
+> diff --git a/drivers/clocksource/timer-dm.c b/drivers/clocksource/timer-d=
+m.c
+> index 1cbd954..60db173 100644
+> --- a/drivers/clocksource/timer-dm.c
+> +++ b/drivers/clocksource/timer-dm.c
+> @@ -806,14 +806,16 @@ static int omap_dm_timer_probe(struct platform_devi=
+ce *pdev)
+>  	struct omap_dm_timer *timer;
+>  	struct resource *mem, *irq;
+>  	struct device *dev =3D &pdev->dev;
+> -	const struct of_device_id *match;
+>  	const struct dmtimer_platform_data *pdata;
+>  	int ret;
 > =20
-> +/*
-> + * The below are inlined to optimize code size for system timers. Other =
-code
-> + * should not need these at all, see
-> + * include/linux/platform_data/pwm_omap_dmtimer.h
-> + */
-> +#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2PLUS)
->  static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 =
-reg,
->  						int posted)
->  {
-> @@ -414,5 +420,5 @@ static inline void __omap_dm_timer_write_status(struc=
-t omap_dm_timer *timer,
->  {
->  	writel_relaxed(value, timer->irq_stat);
->  }
-> -
-> +#endif /* CONFIG_ARCH_OMAP1 || CONFIG_ARCH_OMAP2PLUS */
->  #endif /* __ASM_ARCH_DMTIMER_H */
+> -	match =3D of_match_device(of_match_ptr(omap_timer_match), dev);
+> -	pdata =3D match ? match->data : dev->platform_data;
+> +	pdata =3D of_device_get_match_data(dev);
+> +	if (!pdata)
+> +		pdata =3D dev_get_platdata(dev);
+> +	else
+> +		dev->platform_data =3D (void *)pdata;
+> =20
+> -	if (!pdata && !dev->of_node) {
+> +	if (!pdata) {
+>  		dev_err(dev, "%s: no platform data.\n", __func__);
+>  		return -ENODEV;
+>  	}
 > --=20
 > 1.9.1
 >=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---nt6qf6agbrchd7hc
+--w6ozopqxpdaejaqk
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlpUiRMACgkQ2O7X88g7
-+ppgsA/9EDlAx3bEYAy7jDSRgNUdKShddd7WUPxLVUECWJHFhxMVEfV42cWaK0sF
-nNXdsbmQkvMhyVCaxUw06R/e8A0/SaHJZqrTGm4/taD/FQvGsvHvdm5NvzY7CjTD
-fhgt42lU+NHyYXPm/3nnhNnuh+JldnblwWP1sf8n7/15KSo0gS2MQep6Ei9imv1S
-cIjMHxj6AMR5+3HPUClQVtjMBqPqAY0mASi8Rlb6c6rX5QHi0LGAGmM4WI0XwfSG
-PbF6mV+ox4X5/9/eW33BHTOz1O/Z1c9fF7fqpNYhOk8Jzqpqpu5CePryasga/oks
-gtgd2ctcouHS36m1omiQWqDvC/6uCjHXaOpuUxBPvh4tiSa2jzG6fSmluQfZelpV
-/pV6CbRc7AAfLpHRX6WIc9C6iSnuQl+u69ly6PFplhWj6sF2nzj/SC0zfVdWrs3R
-74cbG+e7YXJwfz2tqM1YQaqesvm3ZK8F1xXyjYdDHwNUOE/ZzhUBVFNeQ6yidqCD
-yX/5l4rfBjOLpDgHjQnmS1mJh8laIvfGgQyocRoDcYGIdMEi+NwHArZ4xxMFY4rB
-VY/iqxN6vkeia7o8YlKKsrXQy6Qadkjp6M0BTSWyIB61y0GHGCZ9fczrUrrs1mPo
-I1HEMjNzaHBjnr2faW41ZiDz9mLPPk8fL72m9EnyEg7qC5xU9RE=
-=4iT4
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlpUiTIACgkQ2O7X88g7
++pq/jBAAoq4AGDg38Mi1LutJO/yKzWGNl88yHA4jUM7mPYawg76vVSEIsiCLo3Iw
+8uKmcEGVxsZ4Wtez+dHM8wr3WbLpN0Z7iLcSKtE9MKUyFFKL6qrk2gxUzp/2bJZS
+nndLfYWxCet5c+daMGz4D1KSY5Wo9O/hB+48COopv7JigAcI174iy6QjLBz3QhQy
+dKpha2oUlhKtVgg4IwsQe9OXK1HnMVfU/XFnMr+PqjFYe/OXAGU0g7hZyfPfbzdY
+jmrDvNsR5zuwVmYybVQ3mXJNaodetz+ZPPRylphoE+BWRijQXMGYpl2rmgRm3jA+
+EbQVMUYG2tmAdSC3G2wDJ34K5sf7Gb/PcbfwLOncoqAwWFyYEtJnQItVBYtw2gWP
+pECQ7pfZ2EaQU6ZDao8RcWWOJpKJFpyYB+hvMWbXZCBK7vIV0LS4s/9wi0lIyOmF
+MHFcO0zOGJpHS9B10V3kp56fFkaSvKVqS8hn+624LgbzacRe4BOviBlI6VhouMZ3
+Bddwhw0cAw/wdpTO2wUE5kYrh5CHiR6VrnF7f2OY0lOrLrBzfiHBWZEeCOf5ML2t
+fQp32m0MZScAFsxgnG/2P+Jb6sdt27il8+8wr6d58KwH4Fp5kLAyFETnzK0GOdcx
+9BO87ehn5myiG9vdoRq1hDWOJpgmUGotikU0dzhNdmaZoN14si0=
+=zhlt
 -----END PGP SIGNATURE-----
 
---nt6qf6agbrchd7hc--
+--w6ozopqxpdaejaqk--
