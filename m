@@ -1,7 +1,7 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v7 8/8] dt-bindings: can: can-transceiver: Document new binding
-Date: Wed, 10 Jan 2018 16:25:25 +0530
-Message-ID: <1515581725-29242-9-git-send-email-faiz_abbas@ti.com>
+Subject: [PATCH v7 6/8] can: m_can: Support higher speed CAN-FD bitrates
+Date: Wed, 10 Jan 2018 16:25:23 +0530
+Message-ID: <1515581725-29242-7-git-send-email-faiz_abbas@ti.com>
 References: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,47 +14,103 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Franklin S Cooper Jr <fcooper@ti.com>
 
-Add documentation to describe usage of the new can-transceiver binding.
-This new binding is applicable for any CAN device therefore it exists as
-its own document.
+During test transmitting using CAN-FD at high bitrates (> 2 Mbps)
+would fail. Scoping the signals I noticed that only a single bit
+was being transmitted and with a bit more investigation realized the actual
+MCAN IP would go back to initialization mode automatically.
+
+It appears this issue is due to the MCAN needing to use the Transmitter
+Delay Compensation Mode with the correct value for the transmitter delay
+compensation offset (tdco). What impacts the tdco value isn't 100% clear
+but to calculate it you use an equation defined in the MCAN User's Guide.
+
+The user guide mentions that this register needs to be set based on clock
+values, secondary sample point and the data bitrate. One of the key
+variables that can't automatically be determined is the secondary
+sample point (ssp). This ssp is similar to the sp but is specific to this
+transmitter delay compensation mode. The guidelines for configuring
+ssp is rather vague but via some CAN test it appears for DRA76x that
+putting the value same as data sampling point works.
+
+The CAN-CIA's "Bit Time Requirements for CAN FD" paper presented at
+the International CAN Conference 2013 indicates that this TDC mode is
+only needed for data bit rates above 2.5 Mbps. Therefore, only enable
+this mode when the data bit rate is above 2.5 Mbps.
 
 Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
 Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- .../bindings/net/can/can-transceiver.txt           | 24 ++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/net/can/can-transceiver.txt
+ drivers/net/can/m_can/m_can.c | 46 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 43 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/net/can/can-transceiver.txt b/Documentation/devicetree/bindings/net/can/can-transceiver.txt
-new file mode 100644
-index 0000000..0011f53
---- /dev/null
-+++ b/Documentation/devicetree/bindings/net/can/can-transceiver.txt
-@@ -0,0 +1,24 @@
-+Generic CAN transceiver Device Tree binding
-+------------------------------
+diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
+index f5c5028..ef69d0e 100644
+--- a/drivers/net/can/m_can/m_can.c
++++ b/drivers/net/can/m_can/m_can.c
+@@ -127,6 +127,12 @@ enum m_can_mram_cfg {
+ #define DBTP_DSJW_SHIFT		0
+ #define DBTP_DSJW_MASK		(0xf << DBTP_DSJW_SHIFT)
+ 
++/* Transmitter Delay Compensation Register (TDCR) */
++#define TDCR_TDCO_SHIFT		8
++#define TDCR_TDCO_MASK		(0x7F << TDCR_TDCO_SHIFT)
++#define TDCR_TDCF_SHIFT		0
++#define TDCR_TDCF_MASK		(0x7F << TDCR_TDCF_SHIFT)
 +
-+CAN transceiver typically limits the max speed in standard CAN and CAN FD
-+modes. Typically these limitations are static and the transceivers themselves
-+provide no way to detect this limitation at runtime. For this situation,
-+the "can-transceiver" node can be used.
+ /* Test Register (TEST) */
+ #define TEST_LBCK		BIT(4)
+ 
+@@ -983,13 +989,47 @@ static int m_can_set_bittiming(struct net_device *dev)
+ 	m_can_write(priv, M_CAN_NBTP, reg_btp);
+ 
+ 	if (priv->can.ctrlmode & CAN_CTRLMODE_FD) {
++		reg_btp = 0;
+ 		brp = dbt->brp - 1;
+ 		sjw = dbt->sjw - 1;
+ 		tseg1 = dbt->prop_seg + dbt->phase_seg1 - 1;
+ 		tseg2 = dbt->phase_seg2 - 1;
+-		reg_btp = (brp << DBTP_DBRP_SHIFT) | (sjw << DBTP_DSJW_SHIFT) |
+-			(tseg1 << DBTP_DTSEG1_SHIFT) |
+-			(tseg2 << DBTP_DTSEG2_SHIFT);
 +
-+Required Properties:
-+ max-bitrate:	a positive non 0 value that determines the max
-+		speed that CAN/CAN-FD can run. Any other value
-+		will be ignored.
++		/* TDC is only needed for bitrates beyond 2.5 MBit/s.
++		 * This is mentioned in the "Bit Time Requirements for CAN FD"
++		 * paper presented at the International CAN Conference 2013
++		 */
++		if (dbt->bitrate > 2500000) {
++			u32 tdco, ssp;
 +
-+Examples:
++			/* Use the same value of secondary sampling point
++			 * as the data sampling point
++			 */
++			ssp = dbt->sample_point;
 +
-+Based on Texas Instrument's TCAN1042HGV CAN Transceiver
++			/* Equation based on Bosch's M_CAN User Manual's
++			 * Transmitter Delay Compensation Section
++			 */
++			tdco = (priv->can.clock.freq / 1000) *
++			       ssp / dbt->bitrate;
 +
-+m_can0 {
-+	....
-+	can-transceiver {
-+		max-bitrate = <5000000>;
-+	};
-+	...
-+};
++			/* Max valid TDCO value is 127 */
++			if (tdco > 127) {
++				netdev_warn(dev, "TDCO value of %u is beyond maximum. Using maximum possible value\n",
++					    tdco);
++				tdco = 127;
++			}
++
++			reg_btp |= DBTP_TDC;
++			m_can_write(priv, M_CAN_TDCR,
++				    tdco << TDCR_TDCO_SHIFT);
++		}
++
++		reg_btp |= (brp << DBTP_DBRP_SHIFT) |
++			   (sjw << DBTP_DSJW_SHIFT) |
++			   (tseg1 << DBTP_DTSEG1_SHIFT) |
++			   (tseg2 << DBTP_DTSEG2_SHIFT);
++
+ 		m_can_write(priv, M_CAN_DBTP, reg_btp);
+ 	}
+ 
 -- 
 2.7.4
