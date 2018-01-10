@@ -1,61 +1,178 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
-Date: Wed, 10 Jan 2018 10:20:58 +0100
-Message-ID: <20180110092058.GA25351@lenoch>
-References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
- <20171130111840.41c92d34@bbrezillon>
- <20171130160936.GO28152@atomide.com>
- <434bd733-0ba2-6e75-9de5-017eef905fd2@ti.com>
- <20180109130812.GA338@lenoch>
- <20180109210114.s66rpdg2jjdps5bc@darkstar.musicnaut.iki.fi>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH] dt-bindings: Nokia N9 audio support
+Date: Wed, 10 Jan 2018 11:39:30 +0200
+Message-ID: <20180110093930.wq5darjgtuugc6ad@paasikivi.fi.intel.com>
+References: <20171227091828.GA3307@amd>
+ <20171227180000.6ejpbqmr736nqx5i@kekkonen.localdomain>
+ <20171227200147.GB16799@amd>
+ <20171227211643.nnwtm4j6cyftlm66@kekkonen.localdomain>
+ <20180102124450.GA18659@amd>
+ <20180105160137.nr7oqvpbp2oao5fm@rob-hp-laptop>
+ <20180108222054.GA17452@amd>
+ <20180110085315.GA17841@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180109210114.s66rpdg2jjdps5bc@darkstar.musicnaut.iki.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <20180110085315.GA17841@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Rob Herring <robh@kernel.org>, mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Aaro,
+Hi Pavel,
 
-On Tue, Jan 09, 2018 at 11:01:14PM +0200, Aaro Koskinen wrote:
-> Hi,
+On Wed, Jan 10, 2018 at 09:53:15AM +0100, Pavel Machek wrote:
+> From: Filip Matijević <filip.matijevic.pz@gmail.com>
 > 
-> On Tue, Jan 09, 2018 at 02:08:12PM +0100, Ladislav Michl wrote:
-> > Merge window is really close now and patches seems still to be untested on
-> > n8x0. So unless someone is going to test it soon, I'll pick used N800 on
-> > ebay :-/
+> Add bindings for Nokia N9 audio components.
 > 
-> Today I tried to test them on Nokia N810, and I get:
+> Signed-off-by: Filip Matijević <filip.matijevic.pz@gmail.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
 > 
-> [    0.174804] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
-> [    0.174865] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
-> [    0.177459] omap-gpmc 6800a000.gpmc: /ocp/gpmc@6800a000/onenand@0,0 has no 'bank-width' property
-> [    0.177612] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
-> 
-> With plain v4.15-rc7+ it probes fine.
+> diff --git a/Documentation/devicetree/bindings/media/ti-wl1273.txt b/Documentation/devicetree/bindings/media/ti-wl1273.txt
+> new file mode 100644
+> index 0000000..21db389
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/ti-wl1273.txt
+> @@ -0,0 +1,36 @@
+> +Texas Instruments - wl1273 radio/bluetooth module
+> +
+> +Required properties:
+> +
+> +- compatible - "ti,wl1273-core"
+> +- reg - I2C slave address
+> +- interrupts       - The interrupt output from the device.
+> +- interrupt-parent - The parent interrupt controller.
+> +- power-gpio       - gpio pin to power the device.
+> +
+> +- wl1273radio child - compatible = "ti,wl1273-fm-radio";
 
-Thank you for testing. As stated in cover letter, you need also
-https://patchwork.kernel.org/patch/10043259/
-which can be also found in Roger's branch
-https://github.com/rogerq/linux/commits/for-v4.16/gpmc-omap-immutable
-(see previous replies in this thread and also discussion about OneNAND
-DT node)
+I'd document this under a separate section, as the compatible property for
+the other child node.
 
-Thank you,
-	ladis
+You use "property - description" here but "property: description" in the
+file below. It'd be nice to be consistent, albeit it's separate files.
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+> +
+> +Optional properties:
+> +
+> +- wl1273codec child - compatible = "ti,wl1273codec";
+
+"ti,wl1273-codec"
+
+> +
+> +Example:
+> +
+> +wl1273core: wl1273core@22 {
+> +		compatible = "ti,wl1273-core";
+> +		reg = <0x22>;
+> +
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&wl1273_gpio>;
+> +
+> +		interrupt-parent = <&gpio2>;
+> +		interrupts = <11 2>; /* gpio_43, IRQF_TRIGGER_FALLING */
+> +
+> +		wl1273radio: wl1273radio {
+> +			compatible = "ti,wl1273-fm-radio";
+> +		};
+> +
+> +		wl1273codec: wl1273codec {
+> +			compatible = "ti,wl1273-codec";
+> +		};
+> +	};
+> diff --git a/Documentation/devicetree/bindings/sound/nokia,n9.txt b/Documentation/devicetree/bindings/sound/nokia,n9.txt
+> new file mode 100644
+> index 0000000..230b1eb
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/sound/nokia,n9.txt
+> @@ -0,0 +1,32 @@
+> +* Nokia N9/N950 audio setup
+> +
+
+A small description saying what this really is would be nice.
+
+> +Required properties:
+> +- compatible: "nokia,n9-audio"
+> +
+> +- nokia,twl4030-cpu-dai: phandle for the McBSP node connected to TWL4030
+> +- nokia,tlv320dac33-cpu-dai: phandle for the McBSP node connected to TLV320DAC33
+> +- nokia,wl1273-cpu-dai: phandle for the McBSP node connected to WL1273
+> +
+> +- nokia,twl4030-codec: phandle for the TWL4030 codec
+> +- nokia,tlv320dac33-codec: phandle for the TLV320DAC33 codec
+> +- nokia,wl1273-codec: phandle for the WL1273 codec
+> +- nokia,headphone-amplifier: phandle for the TPA6130A2 node
+> +
+> +- nokia,speaker-amplifier-gpios: GPIO for speaker amplifier
+> +
+> +Example:
+> +
+> +sound: n9-audio {
+> +	compatible = "nokia,n9-audio";
+> +
+> +	nokia,twl4030-cpu-dai = <&mcbsp3>;
+> +	nokia,tlv320dac33-cpu-dai = <&mcbsp2>;
+> +	nokia,wl1273-cpu-dai = <&mcbsp4>;
+> +
+> +	nokia,twl4030-codec = <&twl4030_audio>;
+> +	nokia,tlv320dac33-codec = <&tlv320dac33>;
+> +	nokia,wl1273-codec = <&wl1273codec>;
+> +	nokia,headphone-amplifier = <&tpa6140a2>;
+> +
+> +	nokia,speaker-amplifier-gpios = <&twl_gpio 7 GPIO_ACTIVE_HIGH>;
+> +};
+> diff --git a/Documentation/devicetree/bindings/sound/tlv320dac33.txt b/Documentation/devicetree/bindings/sound/tlv320dac33.txt
+> new file mode 100644
+> index 0000000..8e981f7
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/sound/tlv320dac33.txt
+> @@ -0,0 +1,39 @@
+> +Texas Instruments - tlv320dac33 Codec module
+> +
+> +The tlv320dac33 serial control bus communicates through I2C protocols.
+> +
+> +Required properties:
+> +
+> +- compatible - "ti,tlv320dac33"
+> +- reg - I2C slave address
+> +
+> +Optional properties:
+> +
+> +- power-gpio - gpio pin to power the device
+> +
+> +- avdd-supply, dvdd-supply, iovdd-supply: power supplies for the device as covered
+> +  in Documentation/devicetree/bindings/regulator/regulator.txt
+> +
+> +- interrupts       - The interrupt output from the device.
+> +- interrupt-parent - The parent interrupt controller.
+> +
+> +- ti,keep-bclk 	- Keep the BCLK running in FIFO modes
+> +- ti,burst-bclkdiv - BCLK divider value in burst mode
+> +
+> +Example:
+> +
+> +tlv320dac33: tlv320dac33@19 {
+> +	compatible = "ti,tlv320dac33";
+> +	reg = <0x19>;
+> +
+> +	avdd-supply = <&vaux4>;
+> +	dvdd-supply = <&vio>;
+> +	iovdd-supply = <&vio>;
+> +
+> +	interrupt-parent = <&gpio2>;
+> +	interrupts = <21 1>; /* gpio_53, IRQF_TRIGGER_RISING */
+> +	power-gpio = <&gpio2 28 0>; /* gpio_60 */
+> +
+> +	ti,keep-bclk;
+> +	ti,burst-bclkdiv = /bits/ 8 <3>;
+> +};
+> 
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
