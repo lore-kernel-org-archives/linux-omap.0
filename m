@@ -1,114 +1,169 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] dt-bindings: Nokia N9 audio support
-Date: Wed, 10 Jan 2018 12:31:02 +0100
-Message-ID: <20180110113102.GA26812@amd>
-References: <20171227091828.GA3307@amd>
- <20171227180000.6ejpbqmr736nqx5i@kekkonen.localdomain>
- <20171227200147.GB16799@amd>
- <20171227211643.nnwtm4j6cyftlm66@kekkonen.localdomain>
- <20180102124450.GA18659@amd>
- <20180105160137.nr7oqvpbp2oao5fm@rob-hp-laptop>
- <20180108222054.GA17452@amd>
- <20180110085315.GA17841@amd>
- <20180110093930.wq5darjgtuugc6ad@paasikivi.fi.intel.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [RESEND PATCH 1/3] usb: dwc3: Don't reinitialize core during host
+ bus-suspend/resume
+Date: Wed, 10 Jan 2018 14:48:44 +0200
+Message-ID: <6b0ceec7-7620-3d03-ad43-6dca7cbca3e8@ti.com>
+References: <1506511163-26026-1-git-send-email-mgautam@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="G4iJoqBmSsgzjUCe"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180110093930.wq5darjgtuugc6ad@paasikivi.fi.intel.com>
+In-Reply-To: <1506511163-26026-1-git-send-email-mgautam@codeaurora.org>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Rob Herring <robh@kernel.org>, mark.rutland@arm.com, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, pali.rohar@gmail.com, sre@kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org, aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com, patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com, clayton@craftyguy.net, martijn@brixit.nl, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>
+To: Manu Gautam <mgautam@codeaurora.org>, Felipe Balbi <balbi@kernel.org>
+Cc: linux-arm-msm@vger.kernel.org, linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, open list <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Manu,
 
---G4iJoqBmSsgzjUCe
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 27/09/17 14:19, Manu Gautam wrote:
+> Driver powers-off PHYs and reinitializes DWC3 core and gadget on
+> resume. While this works fine for gadget mode but in host
+> mode there is not re-initialization of host stack. Also, resetting
+> bus as part of bus_suspend/resume is not correct which could affect
+> (or disconnect) connected devices.
+> Fix this by not reinitializing core on suspend/resume in host mode
+> for HOST only and OTG/drd configurations.
+> 
 
-Hi!
+All this seems correct but we (TI) were relying on dwc3_core_exit() to be called
+during dwc3_suspend() to have the lowest power state for our platforms.
 
-> On Wed, Jan 10, 2018 at 09:53:15AM +0100, Pavel Machek wrote:
-> > From: Filip Matijevi=C4=87 <filip.matijevic.pz@gmail.com>
-> >=20
-> > Add bindings for Nokia N9 audio components.
-> >=20
-> > Signed-off-by: Filip Matijevi=C4=87 <filip.matijevic.pz@gmail.com>
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >=20
-> > diff --git a/Documentation/devicetree/bindings/media/ti-wl1273.txt b/Do=
-cumentation/devicetree/bindings/media/ti-wl1273.txt
-> > new file mode 100644
-> > index 0000000..21db389
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/ti-wl1273.txt
-> > @@ -0,0 +1,36 @@
-> > +Texas Instruments - wl1273 radio/bluetooth module
-> > +
-> > +Required properties:
-> > +
-> > +- compatible - "ti,wl1273-core"
-> > +- reg - I2C slave address
-> > +- interrupts       - The interrupt output from the device.
-> > +- interrupt-parent - The parent interrupt controller.
-> > +- power-gpio       - gpio pin to power the device.
-> > +
-> > +- wl1273radio child - compatible =3D "ti,wl1273-fm-radio";
->=20
-> I'd document this under a separate section, as the compatible property for
-> the other child node.
->=20
-> You use "property - description" here but "property: description" in the
-> file below. It'd be nice to be consistent, albeit it's separate
-> files.
+After this patch, DWC3 controller and PHYs won't be turned off thus
+preventing our platform from reaching low power levels.
 
-Heh. If we want to do consistency, it should be consistent in whole
-documentation. I looked at cec-gpio.txt and it uses both
-styles. Sampled few more files, and seems ":" is more common here.
+So this is a regression for us (TI) in v4.15-rc.
 
-> > +
-> > +Optional properties:
-> > +
-> > +- wl1273codec child - compatible =3D "ti,wl1273codec";
->=20
-> "ti,wl1273-codec"
+Felipe, do you agree?
 
-Ok.
+If yes I can send a patch which fixes the regression
+and also makes USB host work after suspend/resume.
 
-> > diff --git a/Documentation/devicetree/bindings/sound/nokia,n9.txt b/Doc=
-umentation/devicetree/bindings/sound/nokia,n9.txt
-> > new file mode 100644
-> > index 0000000..230b1eb
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/sound/nokia,n9.txt
-> > @@ -0,0 +1,32 @@
-> > +* Nokia N9/N950 audio setup
-> > +
->=20
-> A small description saying what this really is would be nice.
 
-I'm actually not sure what to say here. Suggestions?
+> Signed-off-by: Manu Gautam <mgautam@codeaurora.org>
+> ---
+>  drivers/usb/dwc3/core.c | 43 ++++++++++++++++++++-----------------------
+>  1 file changed, 20 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 03474d3..f75613f 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+> @@ -927,6 +927,7 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
+>  
+>  	switch (dwc->dr_mode) {
+>  	case USB_DR_MODE_PERIPHERAL:
+> +		dwc->current_dr_role = DWC3_GCTL_PRTCAP_DEVICE;
+>  		dwc3_set_prtcap(dwc, DWC3_GCTL_PRTCAP_DEVICE);
+>  
+>  		if (dwc->usb2_phy)
+> @@ -942,6 +943,7 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
+>  		}
+>  		break;
+>  	case USB_DR_MODE_HOST:
+> +		dwc->current_dr_role = DWC3_GCTL_PRTCAP_HOST;
+>  		dwc3_set_prtcap(dwc, DWC3_GCTL_PRTCAP_HOST);
+>  
+>  		if (dwc->usb2_phy)
+> @@ -1293,21 +1295,19 @@ static int dwc3_suspend_common(struct dwc3 *dwc)
+>  {
+>  	unsigned long	flags;
+>  
+> -	switch (dwc->dr_mode) {
+> -	case USB_DR_MODE_PERIPHERAL:
+> -	case USB_DR_MODE_OTG:
+> +	switch (dwc->current_dr_role) {
+> +	case DWC3_GCTL_PRTCAP_DEVICE:
+>  		spin_lock_irqsave(&dwc->lock, flags);
+>  		dwc3_gadget_suspend(dwc);
+>  		spin_unlock_irqrestore(&dwc->lock, flags);
+> +		dwc3_core_exit(dwc);
+>  		break;
+> -	case USB_DR_MODE_HOST:
+> +	case DWC3_GCTL_PRTCAP_HOST:
+>  	default:
+>  		/* do nothing */
+>  		break;
+>  	}
+>  
+> -	dwc3_core_exit(dwc);
+> -
+>  	return 0;
+>  }
+>  
+> @@ -1316,18 +1316,17 @@ static int dwc3_resume_common(struct dwc3 *dwc)
+>  	unsigned long	flags;
+>  	int		ret;
+>  
+> -	ret = dwc3_core_init(dwc);
+> -	if (ret)
+> -		return ret;
+> +	switch (dwc->current_dr_role) {
+> +	case DWC3_GCTL_PRTCAP_DEVICE:
+> +		ret = dwc3_core_init(dwc);
+> +		if (ret)
+> +			return ret;
+>  
+> -	switch (dwc->dr_mode) {
+> -	case USB_DR_MODE_PERIPHERAL:
+> -	case USB_DR_MODE_OTG:
+>  		spin_lock_irqsave(&dwc->lock, flags);
+>  		dwc3_gadget_resume(dwc);
+>  		spin_unlock_irqrestore(&dwc->lock, flags);
+> -		/* FALLTHROUGH */
+> -	case USB_DR_MODE_HOST:
+> +		break;
+> +	case DWC3_GCTL_PRTCAP_HOST:
+>  	default:
+>  		/* do nothing */
+>  		break;
+> @@ -1338,7 +1337,7 @@ static int dwc3_resume_common(struct dwc3 *dwc)
+>  
+>  static int dwc3_runtime_checks(struct dwc3 *dwc)
+>  {
+> -	switch (dwc->dr_mode) {
+> +	switch (dwc->current_dr_role) {
+>  	case USB_DR_MODE_PERIPHERAL:
+>  	case USB_DR_MODE_OTG:
+>  		if (dwc->connected)
+> @@ -1381,12 +1380,11 @@ static int dwc3_runtime_resume(struct device *dev)
+>  	if (ret)
+>  		return ret;
+>  
+> -	switch (dwc->dr_mode) {
+> -	case USB_DR_MODE_PERIPHERAL:
+> -	case USB_DR_MODE_OTG:
+> +	switch (dwc->current_dr_role) {
+> +	case DWC3_GCTL_PRTCAP_DEVICE:
+>  		dwc3_gadget_process_pending_events(dwc);
+>  		break;
+> -	case USB_DR_MODE_HOST:
+> +	case DWC3_GCTL_PRTCAP_HOST:
+>  	default:
+>  		/* do nothing */
+>  		break;
+> @@ -1402,13 +1400,12 @@ static int dwc3_runtime_idle(struct device *dev)
+>  {
+>  	struct dwc3     *dwc = dev_get_drvdata(dev);
+>  
+> -	switch (dwc->dr_mode) {
+> -	case USB_DR_MODE_PERIPHERAL:
+> -	case USB_DR_MODE_OTG:
+> +	switch (dwc->current_dr_role) {
+> +	case DWC3_GCTL_PRTCAP_DEVICE:
+>  		if (dwc3_runtime_checks(dwc))
+>  			return -EBUSY;
+>  		break;
+> -	case USB_DR_MODE_HOST:
+> +	case DWC3_GCTL_PRTCAP_HOST:
+>  	default:
+>  		/* do nothing */
+>  		break;
+> 
 
-Thanks,
-									Pavel
+-- 
+cheers,
+-roger
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---G4iJoqBmSsgzjUCe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlpV+XYACgkQMOfwapXb+vI8egCfWctQNJhRkE7/Y6qXth/sj3wB
-TlMAn15ol3CMRAyNXDMyCAHOyfP2nJ85
-=jA5z
------END PGP SIGNATURE-----
-
---G4iJoqBmSsgzjUCe--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
