@@ -1,116 +1,95 @@
 From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v7 6/8] can: m_can: Support higher speed CAN-FD bitrates
-Date: Wed, 10 Jan 2018 16:25:23 +0530
-Message-ID: <1515581725-29242-7-git-send-email-faiz_abbas@ti.com>
+Subject: [PATCH v7 4/8] can: m_can: Move allocation of net device to probe
+Date: Wed, 10 Jan 2018 16:25:21 +0530
+Message-ID: <1515581725-29242-5-git-send-email-faiz_abbas@ti.com>
 References: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: wg@grandegger.com, mkl@pengutronix.de, robh+dt@kernel.org, mark.rutland@arm.com
 Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, faiz_abbas@ti.com, nsekhar@ti.com, fcooper@ti.com, robh@kernel.org, Wenyou.Yang@microchip.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, b29396@freescale.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Franklin S Cooper Jr <fcooper@ti.com>
+With the version no longer required to allocate the net device, it can
+be moved to probe and the alloc_m_can_dev() function can be simplified.
 
-During test transmitting using CAN-FD at high bitrates (> 2 Mbps)
-would fail. Scoping the signals I noticed that only a single bit
-was being transmitted and with a bit more investigation realized the actual
-MCAN IP would go back to initialization mode automatically.
+Therefore, move the allocation of net device to probe and change
+alloc_m_can_dev() to setup_m_can_dev().
 
-It appears this issue is due to the MCAN needing to use the Transmitter
-Delay Compensation Mode with the correct value for the transmitter delay
-compensation offset (tdco). What impacts the tdco value isn't 100% clear
-but to calculate it you use an equation defined in the MCAN User's Guide.
-
-The user guide mentions that this register needs to be set based on clock
-values, secondary sample point and the data bitrate. One of the key
-variables that can't automatically be determined is the secondary
-sample point (ssp). This ssp is similar to the sp but is specific to this
-transmitter delay compensation mode. The guidelines for configuring
-ssp is rather vague but via some CAN test it appears for DRA76x that
-putting the value same as data sampling point works.
-
-The CAN-CIA's "Bit Time Requirements for CAN FD" paper presented at
-the International CAN Conference 2013 indicates that this TDC mode is
-only needed for data bit rates above 2.5 Mbps. Therefore, only enable
-this mode when the data bit rate is above 2.5 Mbps.
-
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
 ---
- drivers/net/can/m_can/m_can.c | 46 ++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 43 insertions(+), 3 deletions(-)
+ drivers/net/can/m_can/m_can.c | 28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
-index f5c5028..ef69d0e 100644
+index 893edbb..07ebe7f 100644
 --- a/drivers/net/can/m_can/m_can.c
 +++ b/drivers/net/can/m_can/m_can.c
-@@ -127,6 +127,12 @@ enum m_can_mram_cfg {
- #define DBTP_DSJW_SHIFT		0
- #define DBTP_DSJW_MASK		(0xf << DBTP_DSJW_SHIFT)
+@@ -1207,25 +1207,20 @@ static bool m_can_niso_supported(const struct m_can_priv *priv)
+ 	return !niso_timeout;
+ }
  
-+/* Transmitter Delay Compensation Register (TDCR) */
-+#define TDCR_TDCO_SHIFT		8
-+#define TDCR_TDCO_MASK		(0x7F << TDCR_TDCO_SHIFT)
-+#define TDCR_TDCF_SHIFT		0
-+#define TDCR_TDCF_MASK		(0x7F << TDCR_TDCF_SHIFT)
-+
- /* Test Register (TEST) */
- #define TEST_LBCK		BIT(4)
+-static struct net_device *alloc_m_can_dev(struct platform_device *pdev,
+-					  void __iomem *addr, u32 tx_fifo_size)
++static int setup_m_can_dev(struct platform_device *pdev, struct net_device *dev,
++			   void __iomem *addr)
+ {
+-	struct net_device *dev;
+ 	struct m_can_priv *priv;
+ 	int m_can_version;
  
-@@ -983,13 +989,47 @@ static int m_can_set_bittiming(struct net_device *dev)
- 	m_can_write(priv, M_CAN_NBTP, reg_btp);
- 
- 	if (priv->can.ctrlmode & CAN_CTRLMODE_FD) {
-+		reg_btp = 0;
- 		brp = dbt->brp - 1;
- 		sjw = dbt->sjw - 1;
- 		tseg1 = dbt->prop_seg + dbt->phase_seg1 - 1;
- 		tseg2 = dbt->phase_seg2 - 1;
--		reg_btp = (brp << DBTP_DBRP_SHIFT) | (sjw << DBTP_DSJW_SHIFT) |
--			(tseg1 << DBTP_DTSEG1_SHIFT) |
--			(tseg2 << DBTP_DTSEG2_SHIFT);
-+
-+		/* TDC is only needed for bitrates beyond 2.5 MBit/s.
-+		 * This is mentioned in the "Bit Time Requirements for CAN FD"
-+		 * paper presented at the International CAN Conference 2013
-+		 */
-+		if (dbt->bitrate > 2500000) {
-+			u32 tdco, ssp;
-+
-+			/* Use the same value of secondary sampling point
-+			 * as the data sampling point
-+			 */
-+			ssp = dbt->sample_point;
-+
-+			/* Equation based on Bosch's M_CAN User Manual's
-+			 * Transmitter Delay Compensation Section
-+			 */
-+			tdco = (priv->can.clock.freq / 1000) *
-+			       ssp / dbt->bitrate;
-+
-+			/* Max valid TDCO value is 127 */
-+			if (tdco > 127) {
-+				netdev_warn(dev, "TDCO value of %u is beyond maximum. Using maximum possible value\n",
-+					    tdco);
-+				tdco = 127;
-+			}
-+
-+			reg_btp |= DBTP_TDC;
-+			m_can_write(priv, M_CAN_TDCR,
-+				    tdco << TDCR_TDCO_SHIFT);
-+		}
-+
-+		reg_btp |= (brp << DBTP_DBRP_SHIFT) |
-+			   (sjw << DBTP_DSJW_SHIFT) |
-+			   (tseg1 << DBTP_DTSEG1_SHIFT) |
-+			   (tseg2 << DBTP_DTSEG2_SHIFT);
-+
- 		m_can_write(priv, M_CAN_DBTP, reg_btp);
+ 	m_can_version = m_can_check_core_release(addr);
+ 	/* return if unsupported version */
+ 	if (!m_can_version) {
+-		dev = NULL;
+-		goto return_dev;
++		dev_err(&pdev->dev, "Unsupported version number: %2d",
++			m_can_version);
++		return -EINVAL;
  	}
  
+-	dev = alloc_candev(sizeof(*priv), tx_fifo_size);
+-	if (!dev) {
+-		dev = NULL;
+-		goto return_dev;
+-	}
+ 	priv = netdev_priv(dev);
+ 	netif_napi_add(dev, &priv->napi, m_can_poll, M_CAN_NAPI_WEIGHT);
+ 
+@@ -1271,12 +1266,10 @@ static struct net_device *alloc_m_can_dev(struct platform_device *pdev,
+ 		free_m_can_dev(dev);
+ 		dev_err(&pdev->dev, "Unsupported version number: %2d",
+ 			priv->version);
+-		dev = NULL;
+-		break;
++		return -EINVAL;
+ 	}
+ 
+-return_dev:
+-	return dev;
++	return 0;
+ }
+ 
+ static int m_can_open(struct net_device *dev)
+@@ -1616,11 +1609,16 @@ static int m_can_plat_probe(struct platform_device *pdev)
+ 	tx_fifo_size = mram_config_vals[7];
+ 
+ 	/* allocate the m_can device */
+-	dev = alloc_m_can_dev(pdev, addr, tx_fifo_size);
++	dev = alloc_candev(sizeof(*priv), tx_fifo_size);
+ 	if (!dev) {
+ 		ret = -ENOMEM;
+ 		goto disable_cclk_ret;
+ 	}
++
++	ret = setup_m_can_dev(pdev, dev, addr);
++	if (ret)
++		goto disable_cclk_ret;
++
+ 	priv = netdev_priv(dev);
+ 	dev->irq = irq;
+ 	priv->device = &pdev->dev;
 -- 
 2.7.4
