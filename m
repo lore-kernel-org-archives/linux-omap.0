@@ -1,67 +1,51 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
-Date: Wed, 10 Jan 2018 19:35:19 +0200
-Message-ID: <20180110173519.xyug4egltni4f3qi@darkstar.musicnaut.iki.fi>
-References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
- <20171130111840.41c92d34@bbrezillon>
- <20171130160936.GO28152@atomide.com>
- <434bd733-0ba2-6e75-9de5-017eef905fd2@ti.com>
- <20180109130812.GA338@lenoch>
- <20180109210114.s66rpdg2jjdps5bc@darkstar.musicnaut.iki.fi>
- <20180110092058.GA25351@lenoch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180110092058.GA25351@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] ARM: dts: Fix smartreflex compatible for omap3 shared mpu-iva instance
+Date: Wed, 10 Jan 2018 10:14:15 -0800
+Message-ID: <20180110181415.29197-1-tony@atomide.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?q?Beno=C3=AEt=20Cousson?= <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+The smartreflex instance for mpu and iva is shared. Let's fix this as I've
+already gotten confused myself few times wondering where the mpu instance
+is. Note that we are still probing the driver using platform data so this
+change is safe to do.
 
-On Wed, Jan 10, 2018 at 10:20:58AM +0100, Ladislav Michl wrote:
-> On Tue, Jan 09, 2018 at 11:01:14PM +0200, Aaro Koskinen wrote:
-> > On Tue, Jan 09, 2018 at 02:08:12PM +0100, Ladislav Michl wrote:
-> > > Merge window is really close now and patches seems still to be untested on
-> > > n8x0. So unless someone is going to test it soon, I'll pick used N800 on
-> > > ebay :-/
-> > 
-> > Today I tried to test them on Nokia N810, and I get:
-> > 
-> > [    0.174804] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
-> > [    0.174865] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
-> > [    0.177459] omap-gpmc 6800a000.gpmc: /ocp/gpmc@6800a000/onenand@0,0 has no 'bank-width' property
-> > [    0.177612] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
-> > 
-> > With plain v4.15-rc7+ it probes fine.
-> 
-> Thank you for testing. As stated in cover letter, you need also
-> https://patchwork.kernel.org/patch/10043259/
-> which can be also found in Roger's branch
-> https://github.com/rogerq/linux/commits/for-v4.16/gpmc-omap-immutable
-> (see previous replies in this thread and also discussion about OneNAND
-> DT node)
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ Documentation/devicetree/bindings/power/ti-smartreflex.txt | 2 +-
+ arch/arm/boot/dts/omap3.dtsi                               | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-I applied it, and now get:
-
-[    0.174987] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
-[    0.175048] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
-[    0.177703] omap-gpmc 6800a000.gpmc: Incompatible OneNAND node: missing compatible
-[    0.177764] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
-
-A.
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+diff --git a/Documentation/devicetree/bindings/power/ti-smartreflex.txt b/Documentation/devicetree/bindings/power/ti-smartreflex.txt
+--- a/Documentation/devicetree/bindings/power/ti-smartreflex.txt
++++ b/Documentation/devicetree/bindings/power/ti-smartreflex.txt
+@@ -7,7 +7,7 @@ Required properties:
+ 
+ compatible: Shall be one of the following:
+ 	    "ti,omap3-smartreflex-core"
+-	    "ti,omap3-smartreflex-iva"
++	    "ti,omap3-smartreflex-mpu-iva"
+ 	    "ti,omap4-smartreflex-core"
+ 	    "ti,omap4-smartreflex-mpu"
+ 	    "ti,omap4-smartreflex-iva"
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -595,7 +595,7 @@
+ 		};
+ 
+ 		smartreflex_mpu_iva: smartreflex@480c9000 {
+-			compatible = "ti,omap3-smartreflex-iva";
++			compatible = "ti,omap3-smartreflex-mpu-iva";
+ 			ti,hwmods = "smartreflex_mpu_iva";
+ 			reg = <0x480c9000 0x400>;
+ 			interrupts = <18>;
+-- 
+2.15.0
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
