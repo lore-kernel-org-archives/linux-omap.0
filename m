@@ -1,116 +1,62 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: Re: AM43x boot broken on linux-next
-Date: Wed, 10 Jan 2018 16:08:16 +0530
-Message-ID: <5f709e77-706b-2b03-3551-b7ad6acf579a@ti.com>
-References: <bf1fc3d2-b882-7850-4afd-c1e753e2a1a7@ti.com>
- <b79af9ad-e238-50ec-ef85-62957b267de8@ti.com>
- <07c3e621-7f4a-0574-a8e9-76ffe519456e@ti.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: [PATCH v7 0/8] Add MCAN Support for Dra76 platform
+Date: Wed, 10 Jan 2018 16:25:17 +0530
+Message-ID: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <07c3e621-7f4a-0574-a8e9-76ffe519456e@ti.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, rmk+kernel@armlinux.org.uk, tony@atomide.com
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, netdev@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>, nm@ti.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: wg@grandegger.com, mkl@pengutronix.de, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, faiz_abbas@ti.com, nsekhar@ti.com, fcooper@ti.com, robh@kernel.org, Wenyou.Yang@microchip.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, b29396@freescale.com
 List-Id: linux-omap@vger.kernel.org
 
+This patch series adds support for M_CAN on the TI Dra76
+platform. Device tree patches will be sent separately.
+A bunch of patches were sent before by
+Franklin Cooper <fcooper@ti.com>. I have clubbed the
+series together and rebased to the latest kernel.
 
+v7 changes:
+Added support for bitrate_max to be read from the netlink
+interface.
+Moved allocation of netdevice to probe. Cleaned up the
+allocator function.
+Moved enabling/disabling of clocks to pm_runtime callbacks.
+Minor format changes.
 
-On Wednesday 10 January 2018 03:47 PM, Keerthy wrote:
-> 
-> 
-> On Tuesday 09 January 2018 03:22 PM, Keerthy wrote:
->> On Tuesday 09 January 2018 02:03 PM, Keerthy wrote:
->>> Hi,
->>
->> Adding netdev@vger.kernel.org
->>
->>>
->>> Seems like AM437x boot is broken on latest linux-next.
->>> Log here:
->>>
->>> https://pastebin.ubuntu.com/26351906/
-> 
-> Git bisect pointed me to this patch:
-> 
-> commit fea23fb591cce99546baca043d2a068228e87a79
-> Author: Russell King <rmk+kernel@armlinux.org.uk>
-> Date:   Tue Jan 2 10:58:58 2018 +0000
-> 
->     net: phy: convert read-modify-write to phy_modify()
-> 
-> I saw that there was a double negation issue there and i moved to
-> Russell's fix patch:
-> 
-> commit f102852f980eac250855504c18f195900616deec
-> Author: Russell King <rmk+kernel@armlinux.org.uk>
-> Date:   Fri Jan 5 16:07:10 2018 +0000
-> 
->     net: phy: fix wrong masks to phy_modify()
-> 
-> Even with this fix commit i am seeing issues.
-> 
-> I reverted the fix and the original patch on linux-next and that solves
-> the issue.
-> 
-> So there is more to fix in the original patch IMHO.
+patch 5 depends on patch 4 which in turn depends on patch 3.
 
-Russell,
+v6 changes:
+Dropped the patches to make hclk optional. Drivers
+which enable hclk as the interface clock using
+pm_runtime calls must still provide a hclk in the
+clocks property.
 
-I found at least one issue with the logic of the original patch here:
+Support higher speed CAN-FD bitrate:
+The community decided that data sampling point be used
+for the secondary sampling point here
+https://patchwork.kernel.org/patch/9909845/
 
-@@ -1368,9 +1368,8 @@ static int genphy_config_eee_advert(struct
-phy_device *phydev)
-  */
- int genphy_setup_forced(struct phy_device *phydev)
- {
--	int ctl = phy_read(phydev, MII_BMCR);
-+	u16 ctl = 0;
+Faiz Abbas (2):
+  can: m_can: Remove check for version when allocating m_can net device
+  can: m_can: Move allocation of net device to probe
 
--	ctl &= BMCR_LOOPBACK | BMCR_ISOLATE | BMCR_PDOWN;
- 	phydev->pause = 0;
- 	phydev->asym_pause = 0;
+Franklin S Cooper Jr (6):
+  can: dev: Add support for limiting configured bitrate
+  can: m_can: Add call to of_can_transceiver
+  can: m_can: Add PM Support
+  can: m_can: Support higher speed CAN-FD bitrates
+  dt-bindings: can: m_can: Document new can transceiver binding
+  dt-bindings: can: can-transceiver: Document new binding
 
-@@ -1382,7 +1381,8 @@ int genphy_setup_forced(struct phy_device *phydev)
- 	if (DUPLEX_FULL == phydev->duplex)
- 		ctl |= BMCR_FULLDPLX;
+ .../bindings/net/can/can-transceiver.txt           |  24 +++
+ .../devicetree/bindings/net/can/m_can.txt          |   9 ++
+ drivers/net/can/dev.c                              |  45 +++++-
+ drivers/net/can/m_can/m_can.c                      | 169 ++++++++++++++-------
+ include/linux/can/dev.h                            |   8 +
+ include/uapi/linux/can/netlink.h                   |   1 +
+ 6 files changed, 202 insertions(+), 54 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/net/can/can-transceiver.txt
 
--	return phy_write(phydev, MII_BMCR, ctl);
-+	return phy_modify(phydev, MII_BMCR,
-+			  BMCR_LOOPBACK | BMCR_ISOLATE | BMCR_PDOWN, ctl);
-
-IMO the original intent of the genphy_setup_forced function was to
-preserve the states of BMCR_LOOPBACK | BMCR_ISOLATE | BMCR_PDOWN bits
-and clear all other bits..
-
-But after your patch we are deliberately clearing those flags.
-
-So the mask here needs to be negated.
-
-return phy_modify(phydev, MII_BMCR, ~(BMCR_LOOPBACK | BMCR_ISOLATE
-    |BMCR_PDOWN), ctl);
-
-This is at least one more fix. Even after this fix boot is still broken.
-So there is more to dig.
-
-Regards,
-Keerthy
-
-> 
->>>
->>> "Unable to handle kernel paging request at virtual address 000013e8
->>> [    2.367045] pgd = c0350bf7
->>> [    2.370019] [000013e8] *pgd=00000000
->>> [    2.373823] Internal error: Oops: 5 [#1] SMP ARM
->>> [    2.378709] Modules linked in:
->>> [    2.381949] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
->>> 4.15.0-rc6-next-20180108-38410-g895c0dd #4
->>> [    2.391242] Hardware name: Generic AM43 (Flattened Device Tree)
->>> [    2.397523] PC is at phy_attached_print+0xc/0x10c
->>> [    2.402506] LR is at cpsw_slave_open+0x16c/0x258"
->>>
->>> Regards,
->>> Keerthy
->>>
+-- 
+2.7.4
