@@ -1,189 +1,90 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: [PATCH] dt-bindings: Nokia N9 audio support
-Date: Wed, 10 Jan 2018 09:53:15 +0100
-Message-ID: <20180110085315.GA17841@amd>
-References: <20171227091828.GA3307@amd>
- <20171227180000.6ejpbqmr736nqx5i@kekkonen.localdomain>
- <20171227200147.GB16799@amd>
- <20171227211643.nnwtm4j6cyftlm66@kekkonen.localdomain>
- <20180102124450.GA18659@amd>
- <20180105160137.nr7oqvpbp2oao5fm@rob-hp-laptop>
- <20180108222054.GA17452@amd>
+From: qhou <qi.hou@windriver.com>
+Subject: Re: [PATCH, v2] arm: omap2: timer: fix a kmemleak caused in
+ omap_get_timer_dt
+Date: Wed, 10 Jan 2018 17:08:12 +0800
+Message-ID: <1458dc6c-bc5f-2a78-2e42-aacfe4328460@windriver.com>
+References: <1515489861-1474-1-git-send-email-qi.hou@windriver.com>
+ <20180109115222.GA28346@lenoch>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180108222054.GA17452@amd>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, clayton-fehKsxFhGzZIf6P1QZMOBw@public.gmane.org, martijn-28JJ9oSIdodmR6Xm/wNWPw@public.gmane.org, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180109115222.GA28346@lenoch>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-=46rom: Filip Matijevi=C4=87 <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-
-Add bindings for Nokia N9 audio components.
-
-Signed-off-by: Filip Matijevi=C4=87 <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-
-diff --git a/Documentation/devicetree/bindings/media/ti-wl1273.txt b/Docume=
-ntation/devicetree/bindings/media/ti-wl1273.txt
-new file mode 100644
-index 0000000..21db389
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/ti-wl1273.txt
-@@ -0,0 +1,36 @@
-+Texas Instruments - wl1273 radio/bluetooth module
-+
-+Required properties:
-+
-+- compatible - "ti,wl1273-core"
-+- reg - I2C slave address
-+- interrupts       - The interrupt output from the device.
-+- interrupt-parent - The parent interrupt controller.
-+- power-gpio       - gpio pin to power the device.
-+
-+- wl1273radio child - compatible =3D "ti,wl1273-fm-radio";
-+
-+Optional properties:
-+
-+- wl1273codec child - compatible =3D "ti,wl1273codec";
-+
-+Example:
-+
-+wl1273core: wl1273core@22 {
-+		compatible =3D "ti,wl1273-core";
-+		reg =3D <0x22>;
-+
-+		pinctrl-names =3D "default";
-+		pinctrl-0 =3D <&wl1273_gpio>;
-+
-+		interrupt-parent =3D <&gpio2>;
-+		interrupts =3D <11 2>; /* gpio_43, IRQF_TRIGGER_FALLING */
-+
-+		wl1273radio: wl1273radio {
-+			compatible =3D "ti,wl1273-fm-radio";
-+		};
-+
-+		wl1273codec: wl1273codec {
-+			compatible =3D "ti,wl1273-codec";
-+		};
-+	};
-diff --git a/Documentation/devicetree/bindings/sound/nokia,n9.txt b/Documen=
-tation/devicetree/bindings/sound/nokia,n9.txt
-new file mode 100644
-index 0000000..230b1eb
---- /dev/null
-+++ b/Documentation/devicetree/bindings/sound/nokia,n9.txt
-@@ -0,0 +1,32 @@
-+* Nokia N9/N950 audio setup
-+
-+Required properties:
-+- compatible: "nokia,n9-audio"
-+
-+- nokia,twl4030-cpu-dai: phandle for the McBSP node connected to TWL4030
-+- nokia,tlv320dac33-cpu-dai: phandle for the McBSP node connected to TLV32=
-0DAC33
-+- nokia,wl1273-cpu-dai: phandle for the McBSP node connected to WL1273
-+
-+- nokia,twl4030-codec: phandle for the TWL4030 codec
-+- nokia,tlv320dac33-codec: phandle for the TLV320DAC33 codec
-+- nokia,wl1273-codec: phandle for the WL1273 codec
-+- nokia,headphone-amplifier: phandle for the TPA6130A2 node
-+
-+- nokia,speaker-amplifier-gpios: GPIO for speaker amplifier
-+
-+Example:
-+
-+sound: n9-audio {
-+	compatible =3D "nokia,n9-audio";
-+
-+	nokia,twl4030-cpu-dai =3D <&mcbsp3>;
-+	nokia,tlv320dac33-cpu-dai =3D <&mcbsp2>;
-+	nokia,wl1273-cpu-dai =3D <&mcbsp4>;
-+
-+	nokia,twl4030-codec =3D <&twl4030_audio>;
-+	nokia,tlv320dac33-codec =3D <&tlv320dac33>;
-+	nokia,wl1273-codec =3D <&wl1273codec>;
-+	nokia,headphone-amplifier =3D <&tpa6140a2>;
-+
-+	nokia,speaker-amplifier-gpios =3D <&twl_gpio 7 GPIO_ACTIVE_HIGH>;
-+};
-diff --git a/Documentation/devicetree/bindings/sound/tlv320dac33.txt b/Docu=
-mentation/devicetree/bindings/sound/tlv320dac33.txt
-new file mode 100644
-index 0000000..8e981f7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/sound/tlv320dac33.txt
-@@ -0,0 +1,39 @@
-+Texas Instruments - tlv320dac33 Codec module
-+
-+The tlv320dac33 serial control bus communicates through I2C protocols.
-+
-+Required properties:
-+
-+- compatible - "ti,tlv320dac33"
-+- reg - I2C slave address
-+
-+Optional properties:
-+
-+- power-gpio - gpio pin to power the device
-+
-+- avdd-supply, dvdd-supply, iovdd-supply: power supplies for the device as=
- covered
-+  in Documentation/devicetree/bindings/regulator/regulator.txt
-+
-+- interrupts       - The interrupt output from the device.
-+- interrupt-parent - The parent interrupt controller.
-+
-+- ti,keep-bclk 	- Keep the BCLK running in FIFO modes
-+- ti,burst-bclkdiv - BCLK divider value in burst mode
-+
-+Example:
-+
-+tlv320dac33: tlv320dac33@19 {
-+	compatible =3D "ti,tlv320dac33";
-+	reg =3D <0x19>;
-+
-+	avdd-supply =3D <&vaux4>;
-+	dvdd-supply =3D <&vio>;
-+	iovdd-supply =3D <&vio>;
-+
-+	interrupt-parent =3D <&gpio2>;
-+	interrupts =3D <21 1>; /* gpio_53, IRQF_TRIGGER_RISING */
-+	power-gpio =3D <&gpio2 28 0>; /* gpio_60 */
-+
-+	ti,keep-bclk;
-+	ti,burst-bclkdiv =3D /bits/ 8 <3>;
-+};
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlpV1HsACgkQMOfwapXb+vIMUgCfQiJowXDCBohzyldvIJ4pLWzp
-i/EAnA2SlDggNUupVR91b8ilJzE6o97d
-=eBwj
------END PGP SIGNATURE-----
-
---a8Wt8u1KmwUX3Y2C--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ck9uIDIwMTjlubQwMeaciDA55pelIDE5OjUyLCBMYWRpc2xhdiBNaWNobCB3cm90ZToKPiBPbiBU
+dWUsIEphbiAwOSwgMjAxOCBhdCAwNToyNDoyMVBNICswODAwLCBRaSBIb3Ugd3JvdGU6Cj4gPiBX
+aGVuIG1vcmUgdGhhbiBvbmUgR1AgdGltZXJzIGFyZSB1c2VkIGFzIGtlcm5lbCBzeXN0ZW0gdGlt
+ZXJzIGFuZCB0aGUKPiA+IGNvcnJlc3BvbmRpbmcgbm9kZXMgaW4gZGV2aWNlLXRyZWUgYXJlIG1h
+cmtlZCB3aXRoIHRoZSBzYW1lICJkaXNhYmxlZCIKPiA+IHByb3BlcnR5LCB0aGVuIHRoZSAiYXR0
+ciIgZmllbGQgb2YgdGhlIHByb3BlcnR5IHdpbGwgYmUgaW5pdGlhbGl6ZWQKPiA+IG1vcmUgdGhh
+biBvbmNlIGFzIHRoZSBwcm9wZXJ0eSBiZWluZyBhZGRlZCB0byBzeXMgZmlsZSBzeXN0ZW0gdmlh
+Cj4gPiBfX29mX2FkZF9wcm9wZXJ0eV9zeXNmcygpLgo+ID4gCj4gPiBJbiBfX29mX2FkZF9wcm9w
+ZXJ0eV9zeXNmcygpLCB0aGUgIm5hbWUiIGZpZWxkIG9mIHBwLT5hdHRyLmF0dHIgaXMgc2V0Cj4g
+PiBkaXJlY3RseSB0byB0aGUgcmV0dXJuIHZhbHVlIG9mIHNhZmVfbmFtZSgpLCB3aXRob3V0IHRh
+a2luZyBjYXJlIG9mCj4gPiB3aGV0aGVyIGl0J3MgYWxyZWFkeSBhIHZhbGlkIHBvaW50ZXIgdG8g
+YSBtZW1vcnkgYmxvY2suIElmIGl0IGlzLCBpdHMKPiA+IG9sZCB2YWx1ZSB3aWxsIGFsd2F5cyBi
+ZSBvdmVyd3JpdHRlbiBieSB0aGUgbmV3IG9uZSBhbmQgdGhlIG1lbW9yeSBibG9jawo+ID4gYWxs
+b2NhdGVkIGJlZm9yZSB3aWxsIGEgImdob3N0IiwgdGhlbiBhIGttZW1sZWFrIGhhcHBlbmVkLgo+
+Cj4gQXMgdGltZXJzIGRvZXMgbm90IHNlZW0gdG8gYmUgZGVhbGxvY2F0ZWQsIHRoaXMgZG9lcyBu
+b3QgbWF0dGVyIGluIHByYWN0aWNlLgo+IEZpeCBlYXRzIGEgYml0IG1vcmUgZnJvbSBoZWFwLgpZ
+ZXMsIHRoZXJlIGlzIG5vIHRpbWVycyBiZWluZyBkZWFsbG9jYXRlZCwgYXMgSSBzZWUuCgpCdXQg
+aXQgaXMgbm90IGVsaWdpYmxlIHRoYXQgc2hhcmluZyB0aGUgc2FtZSBwcm9wZXJ0eSBhbW9uZyBk
+aWZmZXJlbnQgCmRldmljZSBub2Rlcy4KQW5kIGl0ZXhwb3NlcyBrZXJuZWwgaW5mbyB0byB1c2Vy
+cy4gVGhhdCBpcyBub3Qgc2FmZS4KClRoZSBmaXggY2F1c2VzIGEgdGlueSBjb25zdW1wdGlvbiBv
+ZiBoZWFwLCBtYXliZSBpdCdzIHdvcnRoLgoKLS0KYmVzdCByZWdhcmRzLApRaSBIb3UKPgo+ID4g
+VGhhdCB0aGUgc2FtZSAiZGlzYWJsZWQiIHByb3BlcnR5IGJlaW5nIGFkZGVkIHRvIGRpZmZlcmVu
+dCBub2RlcyBvZiBkZXZpY2UKPiA+IHRyZWUgd291bGQgY2F1c2UgdGhhdCBraW5kIG9mIGttZW1s
+ZWFrIG92ZXJoZWFkLCBhdCBsZWF0IG9uY2UuCj4gPiAKPiA+IFRvIGZpeCBpdCwgYWxsb2NhdGUg
+dGhlIHByb3BlcnR5IGR5bmFtaWNhbGx5LCBhbmQgZGVsZXRlIHN0YXRpYyBvbmUuCj4gPgo+ID4g
+U2lnbmVkLW9mZi1ieTogUWkgSG91IDxxaS5ob3VAd2luZHJpdmVyLmNvbT4KPiA+IC0tLQo+ID4g
+IGFyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYyB8IDE5ICsrKysrKysrKysrLS0tLS0tLS0KPiA+
+ICAxIGZpbGUgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgOCBkZWxldGlvbnMoLSkKPiA+IAo+
+ID4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYyBiL2FyY2gvYXJtL21h
+Y2gtb21hcDIvdGltZXIuYwo+ID4gaW5kZXggZWNlMDljOS4uMjA2YWU4ZCAxMDA2NDQKPiA+IC0t
+LSBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYwo+ID4gKysrIGIvYXJjaC9hcm0vbWFjaC1v
+bWFwMi90aW1lci5jCj4gPiBAQCAtMTU2LDEyICsxNTYsNiBAQCBzdGF0aWMgc3RydWN0IGNsb2Nr
+X2V2ZW50X2RldmljZSBjbG9ja2V2ZW50X2dwdCA9IHsKPiA+ICAJLnRpY2tfcmVzdW1lCQk9IG9t
+YXAyX2dwX3RpbWVyX3NodXRkb3duLAo+ID4gIH07Cj4gPiAgCj4gPiAtc3RhdGljIHN0cnVjdCBw
+cm9wZXJ0eSBkZXZpY2VfZGlzYWJsZWQgPSB7Cj4gPiAtCS5uYW1lID0gInN0YXR1cyIsCj4gPiAt
+CS5sZW5ndGggPSBzaXplb2YoImRpc2FibGVkIiksCj4gPiAtCS52YWx1ZSA9ICJkaXNhYmxlZCIs
+Cj4gPiAtfTsKPiA+IC0KPiA+ICBzdGF0aWMgY29uc3Qgc3RydWN0IG9mX2RldmljZV9pZCBvbWFw
+X3RpbWVyX21hdGNoW10gX19pbml0Y29uc3QgPSB7Cj4gPiAgCXsgLmNvbXBhdGlibGUgPSAidGks
+b21hcDI0MjAtdGltZXIiLCB9LAo+ID4gIAl7IC5jb21wYXRpYmxlID0gInRpLG9tYXAzNDMwLXRp
+bWVyIiwgfSwKPiA+IEBAIC0yMDMsOCArMTk3LDE3IEBAIHN0YXRpYyBzdHJ1Y3QgZGV2aWNlX25v
+ZGUgKiBfX2luaXQgb21hcF9nZXRfdGltZXJfZHQoY29uc3Qgc3RydWN0IG9mX2RldmljZV9pZCAq
+Cj4gPiAgCQkJCSAgb2ZfZ2V0X3Byb3BlcnR5KG5wLCAidGksdGltZXItc2VjdXJlIiwgTlVMTCkp
+KQo+ID4gIAkJCWNvbnRpbnVlOwo+ID4gIAo+ID4gLQkJaWYgKCFvZl9kZXZpY2VfaXNfY29tcGF0
+aWJsZShucCwgInRpLG9tYXAtY291bnRlcjMyayIpKQo+ID4gLQkJCW9mX2FkZF9wcm9wZXJ0eShu
+cCwgJmRldmljZV9kaXNhYmxlZCk7Cj4gPiArCQlpZiAoIW9mX2RldmljZV9pc19jb21wYXRpYmxl
+KG5wLCAidGksb21hcC1jb3VudGVyMzJrIikpIHsKPiA+ICsJCQlzdHJ1Y3QgcHJvcGVydHkgKnBy
+b3A7Cj4gPiArCj4gPiArCQkJcHJvcCA9IGt6YWxsb2Moc2l6ZW9mKCpwcm9wKSwgR0ZQX0tFUk5F
+TCk7Cj4gPiArCQkJaWYgKCFwcm9wKQo+ID4gKwkJCQlyZXR1cm4gTlVMTDsKPiA+ICsJCQlwcm9w
+LT5uYW1lID0gInN0YXR1cyI7Cj4gPiArCQkJcHJvcC0+bGVuZ3RoID0gc2l6ZW9mKCJkaXNhYmxl
+ZCIpOwo+ID4gKwkJCXByb3AtPnZhbHVlID0gImRpc2FibGVkIjsKPgo+IEhvdyBhYm91dCAoc2Vl
+IGRyaXZlcnMvb2YvdW5pdHRlc3QuYyk/Cj4gcHJvcC0+dmFsdWUgPSAiZGlzYWJsZWQiOwo+IHBy
+b3AtPmxlbmd0aCA9IHN0cmxlbihwcm9wLT52YWx1ZSk7CgpJdCdzIGJldHRlci4gSSB3aWxsIGRv
+IHRoYXQuCgp0aGFua3MsClFpIEhvdQo+Cj4gPiArCQkJb2ZfYWRkX3Byb3BlcnR5KG5wLCBwcm9w
+KTsKPiA+ICsJCX0KPiA+ICAJCXJldHVybiBucDsKPiA+ICAJfQo+ID4gIAo+ID4gLS0gCj4gPiAy
+LjcuNAo+ID4gCj4gPiAtLQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQg
+dGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9tYXAiIGluCj4gPiB0aGUgYm9keSBvZiBhIG1l
+c3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+ID4gTW9yZSBtYWpvcmRvbW8gaW5m
+byBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCgotLSAKQmVz
+dCByZWdhcmRzLApRaSBIb3UKUGhvbmUgbnVtYmVyOiArODYtMTAtODQ3Ny04NjA4CkFkZHJlc3M6
+IEZsb29yIDE1LCBCdWlsZGluZyBCLCBXYW5namluZyBQbGF6YSwgTm8uOSBaaG9uZy1IdWFuIE5h
+bmx1LCBDaGFveWFuZyBEaXN0cmljdAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
