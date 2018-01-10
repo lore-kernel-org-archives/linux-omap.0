@@ -1,42 +1,55 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v7 2/8] can: m_can: Add call to of_can_transceiver
-Date: Wed, 10 Jan 2018 16:25:19 +0530
-Message-ID: <1515581725-29242-3-git-send-email-faiz_abbas@ti.com>
-References: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
+From: Keerthy <j-keerthy@ti.com>
+Subject: Re: NFSroot regression in next with handle inode->i_version
+Date: Wed, 10 Jan 2018 16:29:22 +0530
+Message-ID: <b58b7309-a897-dd4a-d992-f77b1341298e@ti.com>
+References: <20180109210121.GX3875@atomide.com>
+ <1515532316.3571.20.camel@redhat.com> <20180109212147.GY3875@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, faiz_abbas@ti.com, nsekhar@ti.com, fcooper@ti.com, robh@kernel.org, Wenyou.Yang@microchip.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, b29396@freescale.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180109212147.GY3875@atomide.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Jeff Layton <jlayton@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Franklin S Cooper Jr <fcooper@ti.com>
 
-Add call to new generic functions that provides support via a binding
-to limit the arbitration rate and/or data rate imposed by the physical
-transceiver connected to the MCAN peripheral.
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
----
- drivers/net/can/m_can/m_can.c | 2 ++
- 1 file changed, 2 insertions(+)
+On Wednesday 10 January 2018 02:51 AM, Tony Lindgren wrote:
+> * Jeff Layton <jlayton@redhat.com> [180109 21:14]:
+>> On Tue, 2018-01-09 at 13:01 -0800, Tony Lindgren wrote:
+>>> Commit 4b5bd6a8e7cf ("fs: handle inode->i_version more efficiently")
+>>> causes NFSroot to not boot to login in Linux next on my ARM boxes.
+> 
+>> Krzysztof Kozlowski reported this late last week, and I just pushed an
+>> updated branch earlier this morning that should fix this. It looks like
+>> the current linux-next HEAD has the fixed patchset now too. Let me know
+>> if that doesn't help you.
+> 
+> OK great, thanks for the update. I'll test again tomorrow and will
+> whine again if I'm seeing issues :)
 
-diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
-index f4947a7..f72116e 100644
---- a/drivers/net/can/m_can/m_can.c
-+++ b/drivers/net/can/m_can/m_can.c
-@@ -1649,6 +1649,8 @@ static int m_can_plat_probe(struct platform_device *pdev)
- 
- 	devm_can_led_init(dev);
- 
-+	of_can_transceiver(dev);
-+
- 	dev_info(&pdev->dev, "%s device registered (irq=%d, version=%d)\n",
- 		 KBUILD_MODNAME, dev->irq, priv->version);
- 
--- 
-2.7.4
+This fixes nfs boot for me on dra7-evm.
+
+Regards,
+Keerthy
+
+> 
+> Regards,
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
