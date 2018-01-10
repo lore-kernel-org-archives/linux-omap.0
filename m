@@ -1,90 +1,61 @@
-From: qhou <qi.hou@windriver.com>
-Subject: Re: [PATCH, v2] arm: omap2: timer: fix a kmemleak caused in
- omap_get_timer_dt
-Date: Wed, 10 Jan 2018 17:08:12 +0800
-Message-ID: <1458dc6c-bc5f-2a78-2e42-aacfe4328460@windriver.com>
-References: <1515489861-1474-1-git-send-email-qi.hou@windriver.com>
- <20180109115222.GA28346@lenoch>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
+Date: Wed, 10 Jan 2018 10:20:58 +0100
+Message-ID: <20180110092058.GA25351@lenoch>
+References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
+ <20171130111840.41c92d34@bbrezillon>
+ <20171130160936.GO28152@atomide.com>
+ <434bd733-0ba2-6e75-9de5-017eef905fd2@ti.com>
+ <20180109130812.GA338@lenoch>
+ <20180109210114.s66rpdg2jjdps5bc@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180109115222.GA28346@lenoch>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180109210114.s66rpdg2jjdps5bc@darkstar.musicnaut.iki.fi>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Ck9uIDIwMTjlubQwMeaciDA55pelIDE5OjUyLCBMYWRpc2xhdiBNaWNobCB3cm90ZToKPiBPbiBU
-dWUsIEphbiAwOSwgMjAxOCBhdCAwNToyNDoyMVBNICswODAwLCBRaSBIb3Ugd3JvdGU6Cj4gPiBX
-aGVuIG1vcmUgdGhhbiBvbmUgR1AgdGltZXJzIGFyZSB1c2VkIGFzIGtlcm5lbCBzeXN0ZW0gdGlt
-ZXJzIGFuZCB0aGUKPiA+IGNvcnJlc3BvbmRpbmcgbm9kZXMgaW4gZGV2aWNlLXRyZWUgYXJlIG1h
-cmtlZCB3aXRoIHRoZSBzYW1lICJkaXNhYmxlZCIKPiA+IHByb3BlcnR5LCB0aGVuIHRoZSAiYXR0
-ciIgZmllbGQgb2YgdGhlIHByb3BlcnR5IHdpbGwgYmUgaW5pdGlhbGl6ZWQKPiA+IG1vcmUgdGhh
-biBvbmNlIGFzIHRoZSBwcm9wZXJ0eSBiZWluZyBhZGRlZCB0byBzeXMgZmlsZSBzeXN0ZW0gdmlh
-Cj4gPiBfX29mX2FkZF9wcm9wZXJ0eV9zeXNmcygpLgo+ID4gCj4gPiBJbiBfX29mX2FkZF9wcm9w
-ZXJ0eV9zeXNmcygpLCB0aGUgIm5hbWUiIGZpZWxkIG9mIHBwLT5hdHRyLmF0dHIgaXMgc2V0Cj4g
-PiBkaXJlY3RseSB0byB0aGUgcmV0dXJuIHZhbHVlIG9mIHNhZmVfbmFtZSgpLCB3aXRob3V0IHRh
-a2luZyBjYXJlIG9mCj4gPiB3aGV0aGVyIGl0J3MgYWxyZWFkeSBhIHZhbGlkIHBvaW50ZXIgdG8g
-YSBtZW1vcnkgYmxvY2suIElmIGl0IGlzLCBpdHMKPiA+IG9sZCB2YWx1ZSB3aWxsIGFsd2F5cyBi
-ZSBvdmVyd3JpdHRlbiBieSB0aGUgbmV3IG9uZSBhbmQgdGhlIG1lbW9yeSBibG9jawo+ID4gYWxs
-b2NhdGVkIGJlZm9yZSB3aWxsIGEgImdob3N0IiwgdGhlbiBhIGttZW1sZWFrIGhhcHBlbmVkLgo+
-Cj4gQXMgdGltZXJzIGRvZXMgbm90IHNlZW0gdG8gYmUgZGVhbGxvY2F0ZWQsIHRoaXMgZG9lcyBu
-b3QgbWF0dGVyIGluIHByYWN0aWNlLgo+IEZpeCBlYXRzIGEgYml0IG1vcmUgZnJvbSBoZWFwLgpZ
-ZXMsIHRoZXJlIGlzIG5vIHRpbWVycyBiZWluZyBkZWFsbG9jYXRlZCwgYXMgSSBzZWUuCgpCdXQg
-aXQgaXMgbm90IGVsaWdpYmxlIHRoYXQgc2hhcmluZyB0aGUgc2FtZSBwcm9wZXJ0eSBhbW9uZyBk
-aWZmZXJlbnQgCmRldmljZSBub2Rlcy4KQW5kIGl0ZXhwb3NlcyBrZXJuZWwgaW5mbyB0byB1c2Vy
-cy4gVGhhdCBpcyBub3Qgc2FmZS4KClRoZSBmaXggY2F1c2VzIGEgdGlueSBjb25zdW1wdGlvbiBv
-ZiBoZWFwLCBtYXliZSBpdCdzIHdvcnRoLgoKLS0KYmVzdCByZWdhcmRzLApRaSBIb3UKPgo+ID4g
-VGhhdCB0aGUgc2FtZSAiZGlzYWJsZWQiIHByb3BlcnR5IGJlaW5nIGFkZGVkIHRvIGRpZmZlcmVu
-dCBub2RlcyBvZiBkZXZpY2UKPiA+IHRyZWUgd291bGQgY2F1c2UgdGhhdCBraW5kIG9mIGttZW1s
-ZWFrIG92ZXJoZWFkLCBhdCBsZWF0IG9uY2UuCj4gPiAKPiA+IFRvIGZpeCBpdCwgYWxsb2NhdGUg
-dGhlIHByb3BlcnR5IGR5bmFtaWNhbGx5LCBhbmQgZGVsZXRlIHN0YXRpYyBvbmUuCj4gPgo+ID4g
-U2lnbmVkLW9mZi1ieTogUWkgSG91IDxxaS5ob3VAd2luZHJpdmVyLmNvbT4KPiA+IC0tLQo+ID4g
-IGFyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYyB8IDE5ICsrKysrKysrKysrLS0tLS0tLS0KPiA+
-ICAxIGZpbGUgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgOCBkZWxldGlvbnMoLSkKPiA+IAo+
-ID4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYyBiL2FyY2gvYXJtL21h
-Y2gtb21hcDIvdGltZXIuYwo+ID4gaW5kZXggZWNlMDljOS4uMjA2YWU4ZCAxMDA2NDQKPiA+IC0t
-LSBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYwo+ID4gKysrIGIvYXJjaC9hcm0vbWFjaC1v
-bWFwMi90aW1lci5jCj4gPiBAQCAtMTU2LDEyICsxNTYsNiBAQCBzdGF0aWMgc3RydWN0IGNsb2Nr
-X2V2ZW50X2RldmljZSBjbG9ja2V2ZW50X2dwdCA9IHsKPiA+ICAJLnRpY2tfcmVzdW1lCQk9IG9t
-YXAyX2dwX3RpbWVyX3NodXRkb3duLAo+ID4gIH07Cj4gPiAgCj4gPiAtc3RhdGljIHN0cnVjdCBw
-cm9wZXJ0eSBkZXZpY2VfZGlzYWJsZWQgPSB7Cj4gPiAtCS5uYW1lID0gInN0YXR1cyIsCj4gPiAt
-CS5sZW5ndGggPSBzaXplb2YoImRpc2FibGVkIiksCj4gPiAtCS52YWx1ZSA9ICJkaXNhYmxlZCIs
-Cj4gPiAtfTsKPiA+IC0KPiA+ICBzdGF0aWMgY29uc3Qgc3RydWN0IG9mX2RldmljZV9pZCBvbWFw
-X3RpbWVyX21hdGNoW10gX19pbml0Y29uc3QgPSB7Cj4gPiAgCXsgLmNvbXBhdGlibGUgPSAidGks
-b21hcDI0MjAtdGltZXIiLCB9LAo+ID4gIAl7IC5jb21wYXRpYmxlID0gInRpLG9tYXAzNDMwLXRp
-bWVyIiwgfSwKPiA+IEBAIC0yMDMsOCArMTk3LDE3IEBAIHN0YXRpYyBzdHJ1Y3QgZGV2aWNlX25v
-ZGUgKiBfX2luaXQgb21hcF9nZXRfdGltZXJfZHQoY29uc3Qgc3RydWN0IG9mX2RldmljZV9pZCAq
-Cj4gPiAgCQkJCSAgb2ZfZ2V0X3Byb3BlcnR5KG5wLCAidGksdGltZXItc2VjdXJlIiwgTlVMTCkp
-KQo+ID4gIAkJCWNvbnRpbnVlOwo+ID4gIAo+ID4gLQkJaWYgKCFvZl9kZXZpY2VfaXNfY29tcGF0
-aWJsZShucCwgInRpLG9tYXAtY291bnRlcjMyayIpKQo+ID4gLQkJCW9mX2FkZF9wcm9wZXJ0eShu
-cCwgJmRldmljZV9kaXNhYmxlZCk7Cj4gPiArCQlpZiAoIW9mX2RldmljZV9pc19jb21wYXRpYmxl
-KG5wLCAidGksb21hcC1jb3VudGVyMzJrIikpIHsKPiA+ICsJCQlzdHJ1Y3QgcHJvcGVydHkgKnBy
-b3A7Cj4gPiArCj4gPiArCQkJcHJvcCA9IGt6YWxsb2Moc2l6ZW9mKCpwcm9wKSwgR0ZQX0tFUk5F
-TCk7Cj4gPiArCQkJaWYgKCFwcm9wKQo+ID4gKwkJCQlyZXR1cm4gTlVMTDsKPiA+ICsJCQlwcm9w
-LT5uYW1lID0gInN0YXR1cyI7Cj4gPiArCQkJcHJvcC0+bGVuZ3RoID0gc2l6ZW9mKCJkaXNhYmxl
-ZCIpOwo+ID4gKwkJCXByb3AtPnZhbHVlID0gImRpc2FibGVkIjsKPgo+IEhvdyBhYm91dCAoc2Vl
-IGRyaXZlcnMvb2YvdW5pdHRlc3QuYyk/Cj4gcHJvcC0+dmFsdWUgPSAiZGlzYWJsZWQiOwo+IHBy
-b3AtPmxlbmd0aCA9IHN0cmxlbihwcm9wLT52YWx1ZSk7CgpJdCdzIGJldHRlci4gSSB3aWxsIGRv
-IHRoYXQuCgp0aGFua3MsClFpIEhvdQo+Cj4gPiArCQkJb2ZfYWRkX3Byb3BlcnR5KG5wLCBwcm9w
-KTsKPiA+ICsJCX0KPiA+ICAJCXJldHVybiBucDsKPiA+ICAJfQo+ID4gIAo+ID4gLS0gCj4gPiAy
-LjcuNAo+ID4gCj4gPiAtLQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQg
-dGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9tYXAiIGluCj4gPiB0aGUgYm9keSBvZiBhIG1l
-c3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+ID4gTW9yZSBtYWpvcmRvbW8gaW5m
-byBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCgotLSAKQmVz
-dCByZWdhcmRzLApRaSBIb3UKUGhvbmUgbnVtYmVyOiArODYtMTAtODQ3Ny04NjA4CkFkZHJlc3M6
-IEZsb29yIDE1LCBCdWlsZGluZyBCLCBXYW5namluZyBQbGF6YSwgTm8uOSBaaG9uZy1IdWFuIE5h
-bmx1LCBDaGFveWFuZyBEaXN0cmljdAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Aaro,
+
+On Tue, Jan 09, 2018 at 11:01:14PM +0200, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Tue, Jan 09, 2018 at 02:08:12PM +0100, Ladislav Michl wrote:
+> > Merge window is really close now and patches seems still to be untested on
+> > n8x0. So unless someone is going to test it soon, I'll pick used N800 on
+> > ebay :-/
+> 
+> Today I tried to test them on Nokia N810, and I get:
+> 
+> [    0.174804] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
+> [    0.174865] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
+> [    0.177459] omap-gpmc 6800a000.gpmc: /ocp/gpmc@6800a000/onenand@0,0 has no 'bank-width' property
+> [    0.177612] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
+> 
+> With plain v4.15-rc7+ it probes fine.
+
+Thank you for testing. As stated in cover letter, you need also
+https://patchwork.kernel.org/patch/10043259/
+which can be also found in Roger's branch
+https://github.com/rogerq/linux/commits/for-v4.16/gpmc-omap-immutable
+(see previous replies in this thread and also discussion about OneNAND
+DT node)
+
+Thank you,
+	ladis
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
