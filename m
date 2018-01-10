@@ -1,7 +1,7 @@
-From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
 Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
-Date: Wed, 10 Jan 2018 22:13:25 +0100
-Message-ID: <20180110211325.GA1938@lenoch>
+Date: Wed, 10 Jan 2018 23:27:48 +0200
+Message-ID: <20180110212748.lbwwnktftqv3awzi@darkstar.musicnaut.iki.fi>
 References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
  <20171130111840.41c92d34@bbrezillon>
  <20171130160936.GO28152@atomide.com>
@@ -11,20 +11,27 @@ References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
  <20180110092058.GA25351@lenoch>
  <20180110173519.xyug4egltni4f3qi@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20180110173519.xyug4egltni4f3qi-4/PLUo9XfK9owWHViPbQSXlKr5M7+etX9Sl0XMgJPXI@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20180110173519.xyug4egltni4f3qi@darkstar.musicnaut.iki.fi>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-+Rob and the DT ML
+Hi,
 
 On Wed, Jan 10, 2018 at 07:35:19PM +0200, Aaro Koskinen wrote:
-> Hi,
-> 
 > On Wed, Jan 10, 2018 at 10:20:58AM +0100, Ladislav Michl wrote:
 > > On Tue, Jan 09, 2018 at 11:01:14PM +0200, Aaro Koskinen wrote:
 > > > On Tue, Jan 09, 2018 at 02:08:12PM +0100, Ladislav Michl wrote:
@@ -55,23 +62,12 @@ On Wed, Jan 10, 2018 at 07:35:19PM +0200, Aaro Koskinen wrote:
 > [    0.177703] omap-gpmc 6800a000.gpmc: Incompatible OneNAND node: missing compatible
 > [    0.177764] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
 
-As expected without reading discussion about OneNAND DT node :)
+Crap, I think something is wrong in my kexec. It seems to pass the DTB from an
+old kernel, although the new kernel has a new appended DTB... Need to
+investigate, sorry for noise.
 
-In short, this version expects "ti,omap2-onenand" compatible.
+A.
 
-In earlier version of this patchset there was fixup present, so driver
-worked even without compatible. Later on (17 Oct 2017 11:46:51 +0300)
-Roger objected (https://www.spinics.net/lists/linux-omap/msg139576.html):
-"I don't want to fixup broken DTs like this as they will go silently without
-being fixed. Let's instead just error out after the dev_warn(). This will
-force us to fix all DT nodes."
-So fixup was removed. I know N900 support is under heavy development
-in mainline, but if n8x0 is considered finished and stable, we should
-reintroduce fixup. Thoughts?
-
-Thank you for your patience,
-	ladis
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
