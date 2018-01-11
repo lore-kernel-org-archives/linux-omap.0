@@ -1,96 +1,32 @@
-From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
-Date: Thu, 11 Jan 2018 20:38:56 +0100
-Message-ID: <20180111193856.GA32512@lenoch>
-References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
- <20171130111840.41c92d34@bbrezillon>
- <20171130160936.GO28152@atomide.com>
- <434bd733-0ba2-6e75-9de5-017eef905fd2@ti.com>
- <20180109130812.GA338@lenoch>
- <20180109210114.s66rpdg2jjdps5bc@darkstar.musicnaut.iki.fi>
- <20180110092058.GA25351@lenoch>
- <20180110173519.xyug4egltni4f3qi@darkstar.musicnaut.iki.fi>
- <20180110211325.GA1938@lenoch>
- <20180111192931.vwnpvj2wtgrvkhbe@darkstar.musicnaut.iki.fi>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH v7 7/8] dt-bindings: can: m_can: Document new can
+ transceiver binding
+Date: Thu, 11 Jan 2018 14:20:01 -0600
+Message-ID: <CAL_JsqJs2Xi=LX3A=AYzBiOy3OPZCP0KRi=uHwiMK45fAGtODQ@mail.gmail.com>
+References: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com> <1515581725-29242-8-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180111192931.vwnpvj2wtgrvkhbe-4/PLUo9XfK9owWHViPbQSXlKr5M7+etX9Sl0XMgJPXI@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Boris Brezillon <boris.brezillon-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1515581725-29242-8-git-send-email-faiz_abbas@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faiz Abbas <faiz_abbas@ti.com>
+Cc: Wolfgang Grandegger <wg@grandegger.com>, Marc Kleine-Budde <mkl@pengutronix.de>, Mark Rutland <mark.rutland@arm.com>, linux-can@vger.kernel.org, netdev <netdev@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, "Franklin S Cooper Jr." <fcooper@ti.com>, Wenyou Yang <Wenyou.Yang@microchip.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-omap <linux-omap@vger.kernel.org>, Dong Aisheng <b29396@freescale.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 11, 2018 at 09:29:31PM +0200, Aaro Koskinen wrote:
-> Hi,
-> 
-> On Wed, Jan 10, 2018 at 10:13:25PM +0100, Ladislav Michl wrote:
-> > On Wed, Jan 10, 2018 at 07:35:19PM +0200, Aaro Koskinen wrote:
-> > > On Wed, Jan 10, 2018 at 10:20:58AM +0100, Ladislav Michl wrote:
-> > > > On Tue, Jan 09, 2018 at 11:01:14PM +0200, Aaro Koskinen wrote:
-> > > > > On Tue, Jan 09, 2018 at 02:08:12PM +0100, Ladislav Michl wrote:
-> > > > > > Merge window is really close now and patches seems still to be untested on
-> > > > > > n8x0. So unless someone is going to test it soon, I'll pick used N800 on
-> > > > > > ebay :-/
-> > > > > 
-> > > > > Today I tried to test them on Nokia N810, and I get:
-> > > > > 
-> > > > > [    0.174804] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
-> > > > > [    0.174865] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
-> > > > > [    0.177459] omap-gpmc 6800a000.gpmc: /ocp/gpmc@6800a000/onenand@0,0 has no 'bank-width' property
-> > > > > [    0.177612] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
-> > > > > 
-> > > > > With plain v4.15-rc7+ it probes fine.
-> > > > 
-> > > > Thank you for testing. As stated in cover letter, you need also
-> > > > https://patchwork.kernel.org/patch/10043259/
-> > > > which can be also found in Roger's branch
-> > > > https://github.com/rogerq/linux/commits/for-v4.16/gpmc-omap-immutable
-> > > > (see previous replies in this thread and also discussion about OneNAND
-> > > > DT node)
-> > > 
-> > > I applied it, and now get:
-> > > 
-> > > [    0.174987] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
-> > > [    0.175048] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
-> > > [    0.177703] omap-gpmc 6800a000.gpmc: Incompatible OneNAND node: missing compatible
-> > > [    0.177764] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
-> > 
-> > As expected without reading discussion about OneNAND DT node :)
-> > 
-> > In short, this version expects "ti,omap2-onenand" compatible.
-> 
-> Right. I didn't realize by bootloader was passing the DTB from an old
-> kernel.
-> 
-> So after fixing my boot I got the patches working N800 and N810: I was
-> able to read and write on old JFFS2 file systems without any issues. So
-> you can add for the series:
-> 
-> Tested-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+On Wed, Jan 10, 2018 at 4:55 AM, Faiz Abbas <faiz_abbas@ti.com> wrote:
+> From: Franklin S Cooper Jr <fcooper@ti.com>
+>
+> Add information regarding can-transceiver binding. This is especially
+> important for MCAN since the IP allows CAN FD mode to run significantly
+> faster than what most transceivers are capable of.
+>
+> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> ---
+>  Documentation/devicetree/bindings/net/can/m_can.txt | 9 +++++++++
+>  1 file changed, 9 insertions(+)
 
-Thank you!
+Why did you drop my ack from v6?
 
-> > In earlier version of this patchset there was fixup present, so driver
-> > worked even without compatible. Later on (17 Oct 2017 11:46:51 +0300)
-> > Roger objected (https://www.spinics.net/lists/linux-omap/msg139576.html):
-> > "I don't want to fixup broken DTs like this as they will go silently without
-> > being fixed. Let's instead just error out after the dev_warn(). This will
-> > force us to fix all DT nodes."
-> > So fixup was removed. I know N900 support is under heavy development
-> > in mainline, but if n8x0 is considered finished and stable, we should
-> > reintroduce fixup. Thoughts?
-> 
-> N8x0 support is also "under development", and we are fine with updating
-> and always using latest in-tree DTs.
-
-That makes things simpler :) I'll post v6 based on -next with patches 13 and
-14 squashed.
-
-Thanks to everyone involved for cooperation,
-	ladis
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rob
