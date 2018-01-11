@@ -1,36 +1,97 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] bus: omap: add MODULE_LICENSE tags
-Date: Thu, 11 Jan 2018 08:34:06 -0800
-Message-ID: <14681342-c001-b0cd-ba99-ef6a7e898e4b@oracle.com>
-References: <20180111093707.2615555-1-arnd@arndb.de>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
+Date: Thu, 11 Jan 2018 21:29:31 +0200
+Message-ID: <20180111192931.vwnpvj2wtgrvkhbe@darkstar.musicnaut.iki.fi>
+References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
+ <20171130111840.41c92d34@bbrezillon>
+ <20171130160936.GO28152@atomide.com>
+ <434bd733-0ba2-6e75-9de5-017eef905fd2@ti.com>
+ <20180109130812.GA338@lenoch>
+ <20180109210114.s66rpdg2jjdps5bc@darkstar.musicnaut.iki.fi>
+ <20180110092058.GA25351@lenoch>
+ <20180110173519.xyug4egltni4f3qi@darkstar.musicnaut.iki.fi>
+ <20180110211325.GA1938@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180111093707.2615555-1-arnd@arndb.de>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sricharan R <sricharan@codeaurora.org>, Felipe Balbi <felipe.balbi@linux.intel.com>, linux-kernel@vger.kernel.org
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180110211325.GA1938@lenoch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Rob Herring <robh@kernel.org>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, devicetree@vger.kernel.org, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 1/11/2018 1:36 AM, Arnd Bergmann wrote:
-> linux-4.15 warns about missing MODULE_LICENSE tags such as these
+Hi,
+
+On Wed, Jan 10, 2018 at 10:13:25PM +0100, Ladislav Michl wrote:
+> On Wed, Jan 10, 2018 at 07:35:19PM +0200, Aaro Koskinen wrote:
+> > On Wed, Jan 10, 2018 at 10:20:58AM +0100, Ladislav Michl wrote:
+> > > On Tue, Jan 09, 2018 at 11:01:14PM +0200, Aaro Koskinen wrote:
+> > > > On Tue, Jan 09, 2018 at 02:08:12PM +0100, Ladislav Michl wrote:
+> > > > > Merge window is really close now and patches seems still to be untested on
+> > > > > n8x0. So unless someone is going to test it soon, I'll pick used N800 on
+> > > > > ebay :-/
+> > > > 
+> > > > Today I tried to test them on Nokia N810, and I get:
+> > > > 
+> > > > [    0.174804] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
+> > > > [    0.174865] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
+> > > > [    0.177459] omap-gpmc 6800a000.gpmc: /ocp/gpmc@6800a000/onenand@0,0 has no 'bank-width' property
+> > > > [    0.177612] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
+> > > > 
+> > > > With plain v4.15-rc7+ it probes fine.
+> > > 
+> > > Thank you for testing. As stated in cover letter, you need also
+> > > https://patchwork.kernel.org/patch/10043259/
+> > > which can be also found in Roger's branch
+> > > https://github.com/rogerq/linux/commits/for-v4.16/gpmc-omap-immutable
+> > > (see previous replies in this thread and also discussion about OneNAND
+> > > DT node)
+> > 
+> > I applied it, and now get:
+> > 
+> > [    0.174987] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
+> > [    0.175048] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
+> > [    0.177703] omap-gpmc 6800a000.gpmc: Incompatible OneNAND node: missing compatible
+> > [    0.177764] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
 > 
-> WARNING: modpost: missing MODULE_LICENSE() in drivers/bus/omap_l3_noc.o
-> WARNING: modpost: missing MODULE_LICENSE() in drivers/bus/omap_l3_smx.o
+> As expected without reading discussion about OneNAND DT node :)
 > 
-> For completeness, I'm also adding MODULE_AUTHOR and MODULE_DESCRIPTION
-> tags, but I decided to leave out the email addresses, as all three
-> authors are working for other companies now.
-> 
-> Cc: Sricharan R <sricharan@codeaurora.org>
-> Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-> Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> Unless someone sees a problem here, I'd pick this up into arm-soc
-> directly, either the fixes or drivers branch
-> ---
-Fine by me.
-Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+> In short, this version expects "ti,omap2-onenand" compatible.
+
+Right. I didn't realize by bootloader was passing the DTB from an old
+kernel.
+
+So after fixing my boot I got the patches working N800 and N810: I was
+able to read and write on old JFFS2 file systems without any issues. So
+you can add for the series:
+
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+
+> In earlier version of this patchset there was fixup present, so driver
+> worked even without compatible. Later on (17 Oct 2017 11:46:51 +0300)
+> Roger objected (https://www.spinics.net/lists/linux-omap/msg139576.html):
+> "I don't want to fixup broken DTs like this as they will go silently without
+> being fixed. Let's instead just error out after the dev_warn(). This will
+> force us to fix all DT nodes."
+> So fixup was removed. I know N900 support is under heavy development
+> in mainline, but if n8x0 is considered finished and stable, we should
+> reintroduce fixup. Thoughts?
+
+N8x0 support is also "under development", and we are fine with updating
+and always using latest in-tree DTs.
+
+A.
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
