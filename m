@@ -1,83 +1,86 @@
-From: Qi Hou <qi.hou@windriver.com>
-Subject: [PATCH,
- v3] arm: omap2: timer: fix a kmemleak caused in omap_get_timer_dt
-Date: Thu, 11 Jan 2018 12:54:43 +0800
-Message-ID: <1515646483-24199-1-git-send-email-qi.hou@windriver.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v5 00/16] OMAP2+ OneNAND driver update
+Date: Thu, 11 Jan 2018 10:08:19 +0200
+Message-ID: <5709e23c-a2f1-c890-cf8b-8f52f31d8b73@ti.com>
+References: <20171115162306.2o2w2yrf7wucroxd@lenoch>
+ <20171130111840.41c92d34@bbrezillon> <20171130160936.GO28152@atomide.com>
+ <434bd733-0ba2-6e75-9de5-017eef905fd2@ti.com> <20180109130812.GA338@lenoch>
+ <20180109210114.s66rpdg2jjdps5bc@darkstar.musicnaut.iki.fi>
+ <20180110092058.GA25351@lenoch>
+ <20180110173519.xyug4egltni4f3qi@darkstar.musicnaut.iki.fi>
+ <20180110212748.lbwwnktftqv3awzi@darkstar.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux@armlinux.org.uk
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <20180110212748.lbwwnktftqv3awzi@darkstar.musicnaut.iki.fi>
+Content-Language: en-GB
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, Ladislav Michl <ladis@linux-mips.org>
+Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-When more than one GP timers are used as kernel system timers and the
-corresponding nodes in device-tree are marked with the same "disabled"
-property, then the "attr" field of the property will be initialized
-more than once as the property being added to sys file system via
-__of_add_property_sysfs().
 
-In __of_add_property_sysfs(), the "name" field of pp->attr.attr is set
-directly to the return value of safe_name(), without taking care of
-whether it's already a valid pointer to a memory block. If it is, its
-old value will always be overwritten by the new one and the memory block
-allocated before will a "ghost", then a kmemleak happened.
 
-That the same "disabled" property being added to different nodes of device
-tree would cause that kind of kmemleak overhead, at leat once.
+On 10/01/18 23:27, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Wed, Jan 10, 2018 at 07:35:19PM +0200, Aaro Koskinen wrote:
+>> On Wed, Jan 10, 2018 at 10:20:58AM +0100, Ladislav Michl wrote:
+>>> On Tue, Jan 09, 2018 at 11:01:14PM +0200, Aaro Koskinen wrote:
+>>>> On Tue, Jan 09, 2018 at 02:08:12PM +0100, Ladislav Michl wrote:
+>>>>> Merge window is really close now and patches seems still to be untested on
+>>>>> n8x0. So unless someone is going to test it soon, I'll pick used N800 on
+>>>>> ebay :-/
+>>>>
+>>>> Today I tried to test them on Nokia N810, and I get:
+>>>>
+>>>> [    0.174804] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
+>>>> [    0.174865] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
+>>>> [    0.177459] omap-gpmc 6800a000.gpmc: /ocp/gpmc@6800a000/onenand@0,0 has no 'bank-width' property
+>>>> [    0.177612] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
+>>>>
+>>>> With plain v4.15-rc7+ it probes fine.
+>>>
+>>> Thank you for testing. As stated in cover letter, you need also
+>>> https://patchwork.kernel.org/patch/10043259/
+>>> which can be also found in Roger's branch
+>>> https://github.com/rogerq/linux/commits/for-v4.16/gpmc-omap-immutable
+>>> (see previous replies in this thread and also discussion about OneNAND
+>>> DT node)
+>>
+>> I applied it, and now get:
+>>
+>> [    0.174987] omap-gpmc 6800a000.gpmc: GPMC revision 2.0
+>> [    0.175048] gpmc_mem_init: disabling cs 0 mapped at 0x0-0x1000000
+>> [    0.177703] omap-gpmc 6800a000.gpmc: Incompatible OneNAND node: missing compatible
+>> [    0.177764] omap-gpmc 6800a000.gpmc: failed to probe DT child 'onenand': -22
+> 
+> Crap, I think something is wrong in my kexec. It seems to pass the DTB from an
+> old kernel, although the new kernel has a new appended DTB... Need to
+> investigate, sorry for noise.
+> 
+> A.
+> 
 
-To fix it, allocate the property dynamically, and delete static one.
+Aaro,
 
-Signed-off-by: Qi Hou <qi.hou@windriver.com>
----
- arch/arm/mach-omap2/timer.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+You will still need to add "ti,omap2-onenand" compatible property to the n800/810 onenand node for it to work.
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index ece09c9..d61fbd7 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -156,12 +156,6 @@ static struct clock_event_device clockevent_gpt = {
- 	.tick_resume		= omap2_gp_timer_shutdown,
- };
- 
--static struct property device_disabled = {
--	.name = "status",
--	.length = sizeof("disabled"),
--	.value = "disabled",
--};
--
- static const struct of_device_id omap_timer_match[] __initconst = {
- 	{ .compatible = "ti,omap2420-timer", },
- 	{ .compatible = "ti,omap3430-timer", },
-@@ -203,8 +197,17 @@ static struct device_node * __init omap_get_timer_dt(const struct of_device_id *
- 				  of_get_property(np, "ti,timer-secure", NULL)))
- 			continue;
- 
--		if (!of_device_is_compatible(np, "ti,omap-counter32k"))
--			of_add_property(np, &device_disabled);
-+		if (!of_device_is_compatible(np, "ti,omap-counter32k")) {
-+			struct property *prop;
-+
-+			prop = kzalloc(sizeof(*prop), GFP_KERNEL);
-+			if (!prop)
-+				return NULL;
-+			prop->name = "status";
-+			prop->value = "disabled";
-+			prop->length = strlen(prop->value);
-+			of_add_property(np, prop);
-+		}
- 		return np;
- 	}
- 
 -- 
-2.7.4
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
