@@ -1,60 +1,68 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] bus: omap: add MODULE_LICENSE tags
-Date: Thu, 11 Jan 2018 10:36:51 +0100
-Message-ID: <20180111093707.2615555-1-arnd@arndb.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: arm@kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sricharan R <sricharan@codeaurora.org>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Felipe Balbi <felipe.balbi@linux.intel.com>, linux-kernel@vger.kernel.org
+From: Dinh Nguyen <dinguyen@kernel.org>
+Subject: Re: [PATCH 12/25] arm: socfpga: dts: Remove leading 0x and 0s from
+ bindings notation
+Date: Thu, 11 Jan 2018 08:38:42 -0600
+Message-ID: <a175eb79-56a1-5bad-9cc0-12fdbbadbaa5@kernel.org>
+References: <20171214165350.27850-1-malat@debian.org>
+ <20171215111620.20379-1-malat@debian.org>
+ <20171215111620.20379-12-malat@debian.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171215111620.20379-12-malat@debian.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mathieu Malaterre <malat@debian.org>, Rob Herring <robh+dt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Andrew Lunn <andrew@lunn.ch>, Heiko Stuebner <heiko@sntech.de>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-kernel@vger.kernel.org, Matthias Brugger <matthias.bgg@gmail.com>, Alexandre Belloni <alexandre.belloni@free-electrons.com>, linux-arm-kernel@axis.com, Baoyou Xie <baoyou.xie@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Jesper Nilsson <jesper.nilsson@axis.com>, Florian Fainelli <f.fainelli@gmail.com>, Kevin Hilman <khilman@kernel.org>, Viresh Kumar <vireshk@kernel.org>, Russell King <linux@armlinux.org.uk>, Krzysztof Kozlowski <krzk@kernel.org>, linux-rockchip@lists.infradead.org, Alexandre Torgue <alexandre.torgue@st.com>, Kukjin Kim <kgene@kernel.org>, bcm-kernel-feedback-list@broadcom.com, Niklas Cassel <niklas.cassel@axis.com>, Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>, devicetree
 List-Id: linux-omap@vger.kernel.org
 
-linux-4.15 warns about missing MODULE_LICENSE tags such as these
 
-WARNING: modpost: missing MODULE_LICENSE() in drivers/bus/omap_l3_noc.o
-WARNING: modpost: missing MODULE_LICENSE() in drivers/bus/omap_l3_smx.o
 
-For completeness, I'm also adding MODULE_AUTHOR and MODULE_DESCRIPTION
-tags, but I decided to leave out the email addresses, as all three
-authors are working for other companies now.
+On 12/15/2017 05:16 AM, Mathieu Malaterre wrote:
+> Improve the DTS files by removing all the leading "0x" and zeros to fix the
+> following dtc warnings:
+> 
+> Warning (unit_address_format): Node /XXX unit name should not have leading "0x"
+> 
+> and
+> 
+> Warning (unit_address_format): Node /XXX unit name should not have leading 0s
+> 
+> Converted using the following command:
+> 
+> find . -type f \( -iname *.dts -o -iname *.dtsi \) -exec sed -i -e "s/@\([0-9a-fA-FxX\.;:#]+\)\s*{/@\L\1 {/g" -e "s/@0x\(.*\) {/@\1 {/g" -e "s/@0+\(.*\) {/@\1 {/g" {} +^C
+> 
+> For simplicity, two sed expressions were used to solve each warnings separately.
+> 
+> To make the regex expression more robust a few other issues were resolved,
+> namely setting unit-address to lower case, and adding a whitespace before the
+> the opening curly brace:
+> 
+> https://elinux.org/Device_Tree_Linux#Linux_conventions
+> 
+> This will solve as a side effect warning:
+> 
+> Warning (simple_bus_reg): Node /XXX@<UPPER> simple-bus unit address format error, expected "<lower>"
+> 
+> This is a follow up to commit 4c9847b7375a ("dt-bindings: Remove leading 0x from bindings notation")
+> 
+> Reported-by: David Daney <ddaney@caviumnetworks.com>
+> Suggested-by: Rob Herring <robh@kernel.org>
+> Signed-off-by: Mathieu Malaterre <malat@debian.org>
+> ---
+>  arch/arm/boot/dts/socfpga.dtsi | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
 
-Cc: Sricharan R <sricharan@codeaurora.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-Unless someone sees a problem here, I'd pick this up into arm-soc
-directly, either the fixes or drivers branch
----
- drivers/bus/omap_l3_noc.c | 5 +++++
- drivers/bus/omap_l3_smx.c | 6 ++++++
- 2 files changed, 11 insertions(+)
+Acked-by: Dinh Nguyen <dinguyen@kernel.org>
 
-diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-index 5012e3ad1225..b040447575ad 100644
---- a/drivers/bus/omap_l3_noc.c
-+++ b/drivers/bus/omap_l3_noc.c
-@@ -375,3 +375,8 @@ static void __exit omap_l3_exit(void)
- 	platform_driver_unregister(&omap_l3_driver);
- }
- module_exit(omap_l3_exit);
-+
-+MODULE_AUTHOR("Santosh Shilimkar");
-+MODULE_AUTHOR("Sricharan R");
-+MODULE_DESCRIPTION("OMAP L3 Interconnect error handling driver");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/bus/omap_l3_smx.c b/drivers/bus/omap_l3_smx.c
-index 360a5c0a4ee0..b853a729537a 100644
---- a/drivers/bus/omap_l3_smx.c
-+++ b/drivers/bus/omap_l3_smx.c
-@@ -309,3 +309,9 @@ static void __exit omap3_l3_exit(void)
- 	platform_driver_unregister(&omap3_l3_driver);
- }
- module_exit(omap3_l3_exit);
-+
-+MODULE_AUTHOR("Felipe Balbi");
-+MODULE_AUTHOR("Santosh Shilimkar");
-+MODULE_AUTHOR("Sricharan R");
-+MODULE_DESCRIPTION("OMAP3XXX L3 Interconnect Driver");
-+MODULE_LICENSE("GPL");
--- 
-2.9.0
+Dinh
