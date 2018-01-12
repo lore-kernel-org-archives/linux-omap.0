@@ -1,42 +1,42 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH] bus: omap: add MODULE_LICENSE tags
-Date: Thu, 11 Jan 2018 18:03:22 -0800
-Message-ID: <20180112020322.daf6bh5mx4jfzoul@localhost>
-References: <20180111093707.2615555-1-arnd@arndb.de>
- <14681342-c001-b0cd-ba99-ef6a7e898e4b@oracle.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v7 7/8] dt-bindings: can: m_can: Document new can
+ transceiver binding
+Date: Fri, 12 Jan 2018 11:54:49 +0530
+Message-ID: <1e4ef9d8-4d81-e3d8-4a1e-e497877bbd1b@ti.com>
+References: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
+ <1515581725-29242-8-git-send-email-faiz_abbas@ti.com>
+ <CAL_JsqJs2Xi=LX3A=AYzBiOy3OPZCP0KRi=uHwiMK45fAGtODQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <14681342-c001-b0cd-ba99-ef6a7e898e4b@oracle.com>
+In-Reply-To: <CAL_JsqJs2Xi=LX3A=AYzBiOy3OPZCP0KRi=uHwiMK45fAGtODQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, arm@kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sricharan R <sricharan@codeaurora.org>, Felipe Balbi <felipe.balbi@linux.intel.com>, linux-kernel@vger.kernel.org
+To: Rob Herring <robh+dt@kernel.org>
+Cc: Wolfgang Grandegger <wg@grandegger.com>, Marc Kleine-Budde <mkl@pengutronix.de>, Mark Rutland <mark.rutland@arm.com>, linux-can@vger.kernel.org, netdev <netdev@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, "Franklin S Cooper Jr." <fcooper@ti.com>, Wenyou Yang <Wenyou.Yang@microchip.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-omap <linux-omap@vger.kernel.org>, Dong Aisheng <b29396@freescale.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 11, 2018 at 08:34:06AM -0800, Santosh Shilimkar wrote:
-> On 1/11/2018 1:36 AM, Arnd Bergmann wrote:
-> > linux-4.15 warns about missing MODULE_LICENSE tags such as these
-> > 
-> > WARNING: modpost: missing MODULE_LICENSE() in drivers/bus/omap_l3_noc.o
-> > WARNING: modpost: missing MODULE_LICENSE() in drivers/bus/omap_l3_smx.o
-> > 
-> > For completeness, I'm also adding MODULE_AUTHOR and MODULE_DESCRIPTION
-> > tags, but I decided to leave out the email addresses, as all three
-> > authors are working for other companies now.
-> > 
-> > Cc: Sricharan R <sricharan@codeaurora.org>
-> > Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-> > Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > ---
-> > Unless someone sees a problem here, I'd pick this up into arm-soc
-> > directly, either the fixes or drivers branch
-> > ---
-> Fine by me.
-> Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
+Hi Rob,
 
-Applied to next/drivers.
+On Friday 12 January 2018 01:50 AM, Rob Herring wrote:
+> On Wed, Jan 10, 2018 at 4:55 AM, Faiz Abbas <faiz_abbas@ti.com> wrote:
+>> From: Franklin S Cooper Jr <fcooper@ti.com>
+>>
+>> Add information regarding can-transceiver binding. This is especially
+>> important for MCAN since the IP allows CAN FD mode to run significantly
+>> faster than what most transceivers are capable of.
+>>
+>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/net/can/m_can.txt | 9 +++++++++
+>>  1 file changed, 9 insertions(+)
+> 
+> Why did you drop my ack from v6?
 
+Sorry, I missed it. Will make sure its there in future versions.
 
--Olof
+Thanks,
+Faiz
