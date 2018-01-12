@@ -1,32 +1,56 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: PM regression in next
-Date: Fri, 12 Jan 2018 14:55:26 +0100
-Message-ID: <20180112135526.GC29734@lunn.ch>
-References: <20180112000037.GA3875@atomide.com>
- <20180112013257.GB4059@atomide.com>
- <4913146.sVL6sFxzC8@aspire.rjw.lan>
- <4745593.FguGN2uIkX@aspire.rjw.lan>
- <e7a673e1-b28d-f84e-c6c1-c5b896e92aeb@metafoo.de>
- <20180112131623.GA29734@lunn.ch>
- <20180112135203.GA4821@atomide.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v6 12/14] mtd: onenand: omap2: Decouple DMA enabling from
+ INT pin availability
+Date: Fri, 12 Jan 2018 15:56:55 +0200
+Message-ID: <bed28644-2df3-26e4-2261-6aa96b7f2aa3@ti.com>
+References: <20180112131105.GA13810@lenoch> <20180112131657.GM13810@lenoch>
+ <7d2a452b-3f0e-0ffb-5636-a26d1a903e88@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180112135203.GA4821@atomide.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Stephen Rothwell <sfr@canb.auug.org.au>, Linux PM <linux-pm@vger.kernel.org>, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <7d2a452b-3f0e-0ffb-5636-a26d1a903e88@ti.com>
+Content-Language: en-GB
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-> Thanks that fixes the suspend error. And I was able to confirm
-> that the suspend power consumption is OK.
+
+
+On 12/01/18 15:46, Roger Quadros wrote:
+> On 12/01/18 15:16, Ladislav Michl wrote:
+>> INT pin (gpio_irq) is not really needed for DMA but only for notification
+>> when a command that needs wait has completed. DMA memcpy can be still used
+>> even without gpio_irq available, so enable it unconditionally.
+>>
+>> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+>> Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> Tested-by: Tony Lindgren <tony@atomide.com>
+>> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 > 
-> That still leaves the mystery of the runtime idle power consumption
-> being much higher with commit e130bc1d00a4.
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> 
 
-Did you re-measure the runtime power? Do you have an unused PHY? It
-could be it is not getting shut down. 1G PHYs can be quite power
-hungry.
+oops. sorry.
 
-	Andrew
+Acked-by: Roger Quadros <rogerq@ti.com>
+
+
+-- 
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
