@@ -1,56 +1,40 @@
 From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH, v3] arm: omap2: timer: fix a kmemleak caused in
- omap_get_timer_dt
-Date: Fri, 12 Jan 2018 14:36:04 -0600
-Message-ID: <7dd12934-862c-c7ad-5f43-43e4c6b08199@ti.com>
-References: <1515646483-24199-1-git-send-email-qi.hou@windriver.com>
+Subject: Re: [PATCH v2] gpio: omap: Give unique labels to each GPIO bank/chip
+Date: Fri, 12 Jan 2018 14:43:37 -0600
+Message-ID: <10eba220-e357-5ec2-5134-6da84873ef6d@ti.com>
+References: <20180102103248.15803-1-linus.walleij@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1515646483-24199-1-git-send-email-qi.hou@windriver.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20180102103248.15803-1-linus.walleij@linaro.org>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Qi Hou <qi.hou@windriver.com>, tony@atomide.com, linux@armlinux.org.uk
-Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org
+Cc: Santosh Shilimkar <ssantosh@kernel.org>, Kevin Hilman <khilman@kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
 
-On 01/10/2018 10:54 PM, Qi Hou wrote:
-> When more than one GP timers are used as kernel system timers and the
-> corresponding nodes in device-tree are marked with the same "disabled"
-> property, then the "attr" field of the property will be initialized
-> more than once as the property being added to sys file system via
-> __of_add_property_sysfs().
-> 
-> In __of_add_property_sysfs(), the "name" field of pp->attr.attr is set
-> directly to the return value of safe_name(), without taking care of
-> whether it's already a valid pointer to a memory block. If it is, its
-> old value will always be overwritten by the new one and the memory block
-> allocated before will a "ghost", then a kmemleak happened.
-> 
-> That the same "disabled" property being added to different nodes of device
-> tree would cause that kind of kmemleak overhead, at leat once.
-> 
-> To fix it, allocate the property dynamically, and delete static one.
 
-Does it in sync with Keerthy's work [1]
-
-[1] https://www.spinics.net/lists/linux-omap/msg141100.html
+On 01/02/2018 04:32 AM, Linus Walleij wrote:
+> As we need to add GPIO lookup tables to the OMAP platforms, we
+> need to reference each GPIO chip with a unique label. Use the GPIO
+> base to name each chip, "gpio-0-31", "gpio-32-63" etc.
 > 
-> Signed-off-by: Qi Hou <qi.hou@windriver.com>
+> Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+> Cc: Santosh Shilimkar <ssantosh@kernel.org>
+> Cc: Kevin Hilman <khilman@kernel.org>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 > ---
->   arch/arm/mach-omap2/timer.c | 19 +++++++++++--------
->   1 file changed, 11 insertions(+), 8 deletions(-)
+> ChangeLog v1->v2:
+> - Break out errorpath fix to a separate patch.
+> ---
+>   drivers/gpio/gpio-omap.c | 7 ++++++-
+>   1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+
+Acked-by: Grygorii Strashko <grygorii.strashko@ti.com>
 
 -- 
 regards,
