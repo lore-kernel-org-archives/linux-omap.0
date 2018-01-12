@@ -1,42 +1,51 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: Re: [PATCH v7 7/8] dt-bindings: can: m_can: Document new can
- transceiver binding
-Date: Fri, 12 Jan 2018 11:54:49 +0530
-Message-ID: <1e4ef9d8-4d81-e3d8-4a1e-e497877bbd1b@ti.com>
-References: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
- <1515581725-29242-8-git-send-email-faiz_abbas@ti.com>
- <CAL_JsqJs2Xi=LX3A=AYzBiOy3OPZCP0KRi=uHwiMK45fAGtODQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: PM regression in next
+Date: Fri, 12 Jan 2018 13:23:54 +0100
+Message-ID: <4913146.sVL6sFxzC8@aspire.rjw.lan>
+References: <20180112000037.GA3875@atomide.com> <20180112012019.GA4059@atomide.com> <20180112013257.GB4059@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL_JsqJs2Xi=LX3A=AYzBiOy3OPZCP0KRi=uHwiMK45fAGtODQ@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <20180112013257.GB4059@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>
-Cc: Wolfgang Grandegger <wg@grandegger.com>, Marc Kleine-Budde <mkl@pengutronix.de>, Mark Rutland <mark.rutland@arm.com>, linux-can@vger.kernel.org, netdev <netdev@vger.kernel.org>, "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>, "Franklin S Cooper Jr." <fcooper@ti.com>, Wenyou Yang <Wenyou.Yang@microchip.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, linux-omap <linux-omap@vger.kernel.org>, Dong Aisheng <b29396@freescale.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Linux PM <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rob,
+On Friday, January 12, 2018 2:32:57 AM CET Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [180111 17:20]:
+> > Well I tried to measure suspend power consumption and noticed
+> > that system suspend fails too hand hangs the network device:
+> > 
+> > # echo mem > /sys/power/state
+> > [   32.577850] PM: suspend entry (deep)
+> > [   32.582031] PM: Syncing filesystems ... done.
+> > [   32.598083] Freezing user space processes ... (elapsed 0.002 seconds) done.
+> > [   32.608398] OOM killer disabled.
+> > [   32.611846] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
+> > [   32.622192] Suspending console(s) (use no_console_suspend to debug)
+> > [   32.651123] dpm_run_callback(): mdio_bus_suspend+0x0/0x24 returns 4352
+> > [   32.651428] PM: Device 2c000000.ethernet-ffffffff:01 failed to suspend: error 4352
 
-On Friday 12 January 2018 01:50 AM, Rob Herring wrote:
-> On Wed, Jan 10, 2018 at 4:55 AM, Faiz Abbas <faiz_abbas@ti.com> wrote:
->> From: Franklin S Cooper Jr <fcooper@ti.com>
->>
->> Add information regarding can-transceiver binding. This is especially
->> important for MCAN since the IP allows CAN FD mode to run significantly
->> faster than what most transceivers are capable of.
->>
->> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
->> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
->> ---
->>  Documentation/devicetree/bindings/net/can/m_can.txt | 9 +++++++++
->>  1 file changed, 9 insertions(+)
+This looks totally bogus.
+
+First, "error" should be a negative number and we print it as int.
+
+Second, error codes are not in this range anyway.
+
+> > [   32.653289] PM: Some devices failed to suspend, or early wake event detected
+> > [   32.685455] OOM killer enabled.
+> > [   32.688629] Restarting tasks ... done.
+> > [   32.695983] PM: suspend exit
+> > ash: write error: Bad address
+> > 
+> > That too works just fine at commit 70286688e5ad.
 > 
-> Why did you drop my ack from v6?
+> Suspend fails at commit e2d7fe89e8ae though, so looks like we
+> have two separate issues. I'll try to bisect that separately.
 
-Sorry, I missed it. Will make sure its there in future versions.
+BTW, can you please CC PM bug reports to linux-pm?  That may help sometimes.
 
 Thanks,
-Faiz
+Rafael
