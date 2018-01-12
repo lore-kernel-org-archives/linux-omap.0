@@ -1,61 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 00/14] OMAP2+ OneNAND driver update
-Date: Fri, 12 Jan 2018 06:20:50 -0800
-Message-ID: <20180112142050.GC4821@atomide.com>
-References: <20180112131105.GA13810@lenoch>
- <20180112150315.54214fab@bbrezillon>
+From: Johan Hovold <johan@kernel.org>
+Subject: Re: [Letux-kernel] [PATCH v5 3/5] misc serdev: Add w2sg0004 (gps
+ receiver) power control driver
+Date: Fri, 12 Jan 2018 15:46:47 +0100
+Message-ID: <20180112144647.GA5992@localhost>
+References: <cover.1512114576.git.hns@goldelico.com>
+ <5494ad34b39a6c62601e3747440268dfb3be7d5a.1512114576.git.hns@goldelico.com>
+ <20171222124427.GI3374@localhost>
+ <20180109184347.28ba0a6e@aktux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180112150315.54214fab@bbrezillon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: Ladislav Michl <ladis@linux-mips.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <20180109184347.28ba0a6e@aktux>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: Johan Hovold <johan@kernel.org>, Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Jonathan Cameron <jic23@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "H. Nikolaus Schaller" <hns@goldelico.com>, kernel@pyra-handheld.com, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Thierry Reding <treding@nvidia.com>, Rob Herring <robh+dt@kernel.org>, Kevin Hilman <khilman@baylibre.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber@suse.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Boris Brezillon <boris.brezillon@free-electrons.com> [180112 14:03]:
-> On Fri, 12 Jan 2018 14:11:05 +0100
-> Ladislav Michl <ladis@linux-mips.org> wrote:
+On Tue, Jan 09, 2018 at 06:43:47PM +0100, Andreas Kemnade wrote:
+> On Fri, 22 Dec 2017 13:44:27 +0100
+> Johan Hovold <johan@kernel.org> wrote:
 > 
-> > this patch serie updates OMAP2+ OneNAND driver to the present times, making
-> > it fully DT configurable, using libgpio and dmaengine apis.
+> [...]
+> > I'd suggest reiterating the problem you're trying to solve and
+> > enumerating the previously discussed potential solutions in order to
+> > find a proper abstraction level for this (before getting lost in
+> > implementation details).
 > > 
-> > Please note that unlike previous driver version, which basically ignored
-> > DT specified timings, this one relies on it, so it is important to get
-> > it right in your DT (dumping it from previous kernel version).
-> > 
-> > In case synchronous timings is requested, it is okay to specify timings
-> > for the slowest chip ever used for you board as it is evetually optimized
-> > after chip probe.
-> > 
-> > Original driver used DMA only if user specified INT gpio in platform
-> > data, now DMA is used unconditionally and PIO mode is used as fallback.
-> > 
-> > In case anyone wants to give it a try, few DT related changes are needed:
-> > - onenand node needs 'ti,omap2-onenand' compatible (for mailine boards this is
-> >   done in patch 2)
-> > - to use INT pin, int-gpios needs to be specified.
-> 
-> Roger, Tony, are you happy with this version? If this is the case, I'll
-> queue all patches to my nand/next branch (after merging Roger's
-> immutable branch in).
+> The main point here is in short words: Having a device powered on or off
+> when the uart it is attached to, is used or not used anymore,
+> so the already available userspace applications do not need to be changed.
 
-Yes thanks Aaro for testing, sounds good to me.
+So we'd end up with something in-between a kernel driver and a
+user-space solution. What about devices that need to be (partially)
+powered also when the port isn't open? A pure user-space solution would
+be able to handle all variants.
 
-Regards,
+> I digged out a bit around:
+> alternative aproaches were:
+> adding hooks to the uart/tty layer:
+> https://marc.info/?l=linux-kernel&m=143333222014616&w=2
+> https://marc.info/?l=devicetree&m=143130955414580&w=2
 
-Tony
+Thanks for the pointers, I remember those threads...
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+> I do not find it right now in my archive:
+> adding a virtual gpio for dtr to the omap_serial driver.
+> The driver behind the virtual io would then handle pm. One reason it was
+> rejected was that the devicetree should only contain real hardware and
+> not virtual stuff.
+
+Oh, yeah, I think something like that made it in briefly before getting
+reverted again.
+
+I'll respond to Nikolaus mail as well.
+
+Johan
