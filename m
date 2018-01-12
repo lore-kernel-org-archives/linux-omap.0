@@ -1,60 +1,59 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 1/2] PCI: dra7xx: Fix legacy INTD IRQ handling
-Date: Fri, 12 Jan 2018 18:07:09 +0000
-Message-ID: <20180112180708.GB26438@red-moon>
+Subject: Re: [PATCH v2 2/2] PCI: dra7xx: Iterate over INTx status bits
+Date: Fri, 12 Jan 2018 18:07:41 +0000
+Message-ID: <20180112180741.GC26438@red-moon>
 References: <20171229114131.22296-1-vigneshr@ti.com>
- <20171229114131.22296-2-vigneshr@ti.com>
+ <20171229114131.22296-3-vigneshr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171229114131.22296-2-vigneshr@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20171229114131.22296-3-vigneshr@ti.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Vignesh R <vigneshr@ti.com>
 Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 29, 2017 at 05:11:30PM +0530, Vignesh R wrote:
-> Legacy INTD IRQ handling is broken on dra7xx due to fact that driver
-> uses hwirq in range of 1-4 for INTA, INTD whereas IRQ domain is of size
-> 4 which is numbered 0-3. Therefore when INTD IRQ line is used with
-> pci-dra7xx driver following warning is seen:
+On Fri, Dec 29, 2017 at 05:11:31PM +0530, Vignesh R wrote:
+> It is possible that more than one legacy IRQ may be set at the same
+> time, therefore iterate and handle all the pending INTx interrupts
+> before clearing the status and exiting the IRQ handler. Otherwise, some
+> interrupts would be lost.
 > 
->        WARNING: CPU: 0 PID: 1 at kernel/irq/irqdomain.c:342 irq_domain_associate+0x12c/0x1c4
->        error: hwirq 0x4 is too large for dummy
-> 
-> Fix this by using pci_irqd_intx_xlate() helper to translate the INTx 1-4
-> range into the 0-3 as done in other PCIe drivers.
-> 
-> Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
-> Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
 > Signed-off-by: Vignesh R <vigneshr@ti.com>
 > ---
->  drivers/pci/dwc/pci-dra7xx.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  drivers/pci/dwc/pci-dra7xx.c | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
 
 Applied to pci/dwc for v4.16, thanks.
 
 Lorenzo
 
 > diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> index 58aed0896468..892f93910012 100644
+> index 892f93910012..48c6ae535847 100644
 > --- a/drivers/pci/dwc/pci-dra7xx.c
 > +++ b/drivers/pci/dwc/pci-dra7xx.c
-> @@ -226,6 +226,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
+> @@ -257,7 +257,8 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>  	struct dra7xx_pcie *dra7xx = arg;
+>  	struct dw_pcie *pci = dra7xx->pci;
+>  	struct pcie_port *pp = &pci->pp;
+> -	u32 reg;
+> +	unsigned long reg;
+> +	u32 virq, bit;
 >  
->  static const struct irq_domain_ops intx_domain_ops = {
->  	.map = dra7xx_pcie_intx_map,
-> +	.xlate = pci_irqd_intx_xlate,
->  };
+>  	reg = dra7xx_pcie_readl(dra7xx, PCIECTRL_DRA7XX_CONF_IRQSTATUS_MSI);
 >  
->  static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
-> @@ -269,7 +270,7 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+> @@ -269,8 +270,11 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>  	case INTB:
 >  	case INTC:
 >  	case INTD:
->  		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
-> -						    ffs(reg)));
-> +						    ffs(reg) - 1));
+> -		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
+> -						    ffs(reg) - 1));
+> +		for_each_set_bit(bit, &reg, PCI_NUM_INTX) {
+> +			virq = irq_find_mapping(dra7xx->irq_domain, bit);
+> +			if (virq)
+> +				generic_handle_irq(virq);
+> +		}
 >  		break;
 >  	}
 >  
