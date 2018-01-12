@@ -1,46 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PM regression in next
-Date: Thu, 11 Jan 2018 17:32:57 -0800
-Message-ID: <20180112013257.GB4059@atomide.com>
-References: <20180112000037.GA3875@atomide.com>
- <20180111161837.f1c1d891a1b80d97e30a9b1b@linux-foundation.org>
- <20180112002322.GB3875@atomide.com>
- <20180111164537.79165ac8918e6d38e1837062@linux-foundation.org>
- <20180112012019.GA4059@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH] bus: omap: add MODULE_LICENSE tags
+Date: Thu, 11 Jan 2018 18:03:22 -0800
+Message-ID: <20180112020322.daf6bh5mx4jfzoul@localhost>
+References: <20180111093707.2615555-1-arnd@arndb.de>
+ <14681342-c001-b0cd-ba99-ef6a7e898e4b@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180112012019.GA4059@atomide.com>
+In-Reply-To: <14681342-c001-b0cd-ba99-ef6a7e898e4b@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, arm@kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sricharan R <sricharan@codeaurora.org>, Felipe Balbi <felipe.balbi@linux.intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180111 17:20]:
-> Well I tried to measure suspend power consumption and noticed
-> that system suspend fails too hand hangs the network device:
-> 
-> # echo mem > /sys/power/state
-> [   32.577850] PM: suspend entry (deep)
-> [   32.582031] PM: Syncing filesystems ... done.
-> [   32.598083] Freezing user space processes ... (elapsed 0.002 seconds) done.
-> [   32.608398] OOM killer disabled.
-> [   32.611846] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
-> [   32.622192] Suspending console(s) (use no_console_suspend to debug)
-> [   32.651123] dpm_run_callback(): mdio_bus_suspend+0x0/0x24 returns 4352
-> [   32.651428] PM: Device 2c000000.ethernet-ffffffff:01 failed to suspend: error 4352
-> [   32.653289] PM: Some devices failed to suspend, or early wake event detected
-> [   32.685455] OOM killer enabled.
-> [   32.688629] Restarting tasks ... done.
-> [   32.695983] PM: suspend exit
-> ash: write error: Bad address
-> 
-> That too works just fine at commit 70286688e5ad.
+On Thu, Jan 11, 2018 at 08:34:06AM -0800, Santosh Shilimkar wrote:
+> On 1/11/2018 1:36 AM, Arnd Bergmann wrote:
+> > linux-4.15 warns about missing MODULE_LICENSE tags such as these
+> > 
+> > WARNING: modpost: missing MODULE_LICENSE() in drivers/bus/omap_l3_noc.o
+> > WARNING: modpost: missing MODULE_LICENSE() in drivers/bus/omap_l3_smx.o
+> > 
+> > For completeness, I'm also adding MODULE_AUTHOR and MODULE_DESCRIPTION
+> > tags, but I decided to leave out the email addresses, as all three
+> > authors are working for other companies now.
+> > 
+> > Cc: Sricharan R <sricharan@codeaurora.org>
+> > Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+> > Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > ---
+> > Unless someone sees a problem here, I'd pick this up into arm-soc
+> > directly, either the fixes or drivers branch
+> > ---
+> Fine by me.
+> Acked-by: Santosh Shilimkar <ssantosh@kernel.org>
 
-Suspend fails at commit e2d7fe89e8ae though, so looks like we
-have two separate issues. I'll try to bisect that separately.
+Applied to next/drivers.
 
-Regards,
 
-Tony
+-Olof
