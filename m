@@ -1,78 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: PM regression in next
-Date: Fri, 12 Jan 2018 11:00:46 -0800
-Message-ID: <20180112190046.GD4821@atomide.com>
+Date: Fri, 12 Jan 2018 19:12:51 +0000
+Message-ID: <20180112191251.GE21458@sirena.org.uk>
 References: <20180112000037.GA3875@atomide.com>
  <20180111161837.f1c1d891a1b80d97e30a9b1b@linux-foundation.org>
  <20180112002322.GB3875@atomide.com>
  <20180111164537.79165ac8918e6d38e1837062@linux-foundation.org>
  <20180112012019.GA4059@atomide.com>
+ <20180112190046.GD4821@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="fwqqG+mf3f7vyBCB"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180112012019.GA4059@atomide.com>
+In-Reply-To: <20180112190046.GD4821@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org, Mark Brown <broonie@kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [180112 01:20]:
-> * Andrew Morton <akpm@linux-foundation.org> [180112 00:45]:
-> > On Thu, 11 Jan 2018 16:23:22 -0800 Tony Lindgren <tony@atomide.com> wrote:
-> > 
-> > > * Andrew Morton <akpm@linux-foundation.org> [180112 00:18]:
-> > > > On Thu, 11 Jan 2018 16:01:13 -0800 Tony Lindgren <tony@atomide.com> wrote:
-> > > > 
-> > > > > Hi all,
-> > > > > 
-> > > > > I'm seeing a considerable idle power consumption regression in
-> > > > > Linux next, with power consumption for my idle test system going
-> > > > > to 17.5mW compared to the usual 8mW on my test device.
-> > > > > 
-> > > > > Git bisect points to merge commit e130bc1d00a4 ("Merge branch
-> > > > > 'akpm-current/current'") being the first bad commit.
-> > > > > 
-> > > > > I have also verified that commit 70286688e5ad ("ipc/mqueue.c:
-> > > > > have RT tasks queue in by priority in wq_add()") is good, and
-> > > > > commit e2d7fe89e8ae ("Merge remote-tracking branch
-> > > > > 'init_task/init_task'") is good.
-> > > > 
-> > > > Do you mean that everything up to and including 70286688e5ad
-> > > > ("ipc/mqueue.c: have RT tasks queue in by priority in wq_add()") is
-> > > > good?
-> > > 
-> > > Yes I'm not seeing the regression in your branch at commit
-> > > 70286688e5ad. I'm seeing it only with the merge commit
-> > > e130bc1d00a4.
-> > > 
-> > 
-> > That's weird.  All I'm seeing between 70286688e5ad and end-of-mm is:
-...
 
-> Well there are some changes in merge commit e130bc1d00a4..
+--fwqqG+mf3f7vyBCB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-So it seems that the Makefile changes in Linux next merge commit
-e130bc1d00a4 cause changes with CONFIG_CC_STACKPROTECTOR_AUTO=y.
-With next-20180112 out now, that's now commit  3823b7cc7a5e
-("Merge branch 'akpm-current/current'"). Not sure if that's a
-bug or not..
+On Fri, Jan 12, 2018 at 11:00:46AM -0800, Tony Lindgren wrote:
 
-Anyways, I reran my "bisect boot wait-idle measure" test with
-CONFIG_CC_STACKPROTECTOR_STRONG=y selected to rule out the AUTO
-option, and bisect now points to a different commit that makes
-more sense for my test case.
+> It's commit 3bb0f7c31b1a ("ASoC: don't use snd_soc_write/read
+> on twl4030"). And that is for the PMIC on my test system, so
+> adding Kuninori and Mark to the thread :)
 
-It's commit 3bb0f7c31b1a ("ASoC: don't use snd_soc_write/read
-on twl4030"). And that is for the PMIC on my test system, so
-adding Kuninori and Mark to the thread :)
+> Kuninori, it seems that commit 3bb0f7c31b1a causes higher
+> power consumption on an idle system on omap3 using twl4030.
+> Reverting 3bb0f7c31b1a makes things behave again. My guess
+> is that twl4030_read does not do the same as snd_soc_read
+> in the driver?
 
-Kuninori, it seems that commit 3bb0f7c31b1a causes higher
-power consumption on an idle system on omap3 using twl4030.
-Reverting 3bb0f7c31b1a makes things behave again. My guess
-is that twl4030_read does not do the same as snd_soc_read
-in the driver?
+As far as I can tell it should end up boiling down to the same thing but
+I didn't follow through in detail, they should both bottom out in
+twl_i2c_read_u8() if they hit hardware - all snd_soc_read() did was call
+twl4030_read(), the patch just removes the indirection through assigning
+the pointer.
 
-Regards,
+Could you try deleting the attempt to read from the cache in
+twl4030_read() and always go to hardware?
 
-Tony
+--fwqqG+mf3f7vyBCB
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlpZCLIACgkQJNaLcl1U
+h9BCbAf/faTpWXhY5A8FDrn8KKPw88Vll+1F/y5su4rqWLZV0xbCflYiIsXKDjJU
+hfnsx9L5P02EHG4F12VNvZkIXoOd6M8ljxIuSzsxqehfT7N7uispgqksMurea2oe
+jRB/ucCy0MM7RGISHS4XFC1phL61Pn3BOJwJZ1gR21cZ491q88Ukc5p0LfdXvblz
+HHUm3K51QQX6X2TzfCBWVbHxADhS3oLehQl+7yzv5s35Kk0L9B/NeqIsxuoWWRHw
+xtUtWywS5lDRExMcGTGURaE6Xlp6wlz6WYX2mChhaTOAd0NGz9Pgx9V+TiAV3nCm
+p/ehDA0N+ker0pVrZZsSOtSWJO9UTw==
+=nckl
+-----END PGP SIGNATURE-----
+
+--fwqqG+mf3f7vyBCB--
