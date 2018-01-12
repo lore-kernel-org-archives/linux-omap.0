@@ -1,211 +1,63 @@
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: Re: [PATCH v5 3/5] misc serdev: Add w2sg0004 (gps receiver) power
- control driver
-Date: Fri, 12 Jan 2018 18:59:59 +0100
-Message-ID: <E7ECBBB8-2E88-4F04-AFC3-659332E84CF6@goldelico.com>
-References: <cover.1512114576.git.hns@goldelico.com>
- <5494ad34b39a6c62601e3747440268dfb3be7d5a.1512114576.git.hns@goldelico.com>
- <20171222124427.GI3374@localhost>
- <91850CC3-B280-4701-9D07-96AFF3A79A6F@goldelico.com>
- <90F9A8E4-035A-4A9E-8AAB-757491D63E69@goldelico.com>
- <20180112153903.GB5992@localhost>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180112153903.GB5992@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Johan Hovold <johan@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel@pyra-handheld.com, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, Kevin Hilman <khilman@baylibre.com>, Andreas Kemnade <andreas@kemnade.info>, Thierry Reding <treding@nvidia.com>, =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, Jonathan Cameron <jic23@kernel.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 1/2] PCI: dra7xx: Fix legacy INTD IRQ handling
+Date: Fri, 12 Jan 2018 18:07:09 +0000
+Message-ID: <20180112180708.GB26438@red-moon>
+References: <20171229114131.22296-1-vigneshr@ti.com>
+ <20171229114131.22296-2-vigneshr@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171229114131.22296-2-vigneshr@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vignesh R <vigneshr@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Johan,
-
-> Am 12.01.2018 um 16:39 schrieb Johan Hovold <johan@kernel.org>:
+On Fri, Dec 29, 2017 at 05:11:30PM +0530, Vignesh R wrote:
+> Legacy INTD IRQ handling is broken on dra7xx due to fact that driver
+> uses hwirq in range of 1-4 for INTA, INTD whereas IRQ domain is of size
+> 4 which is numbered 0-3. Therefore when INTD IRQ line is used with
+> pci-dra7xx driver following warning is seen:
 > 
->> Let's restart this discussion and focus on the main roadblock (others
->> are minor details which can be sorted out later).
->> 
->> If it feels like a hack, the key issue seems to me to be the choice of
->> the API to present the GPS data to user space. Right?
+>        WARNING: CPU: 0 PID: 1 at kernel/irq/irqdomain.c:342 irq_domain_associate+0x12c/0x1c4
+>        error: hwirq 0x4 is too large for dummy
 > 
-> Or even more fundamentally, does this belong in the kernel at all?
-
-Yes, that can be questioned of course. It was questioned and discussed
-several times and I thought the answer was a clear yes. But let's reiterate.
-
+> Fix this by using pci_irqd_intx_xlate() helper to translate the INTx 1-4
+> range into the 0-3 as done in other PCIe drivers.
 > 
-> Also it seems at least part of your specific problem is that you have
-> failed to wire up the WAKEUP pin of the W2SG0004/84 properly,
+> Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
+> Reported-by: Chris Welch <Chris.Welch@viavisolutions.com>
+> Signed-off-by: Vignesh R <vigneshr@ti.com>
+> ---
+>  drivers/pci/dwc/pci-dra7xx.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 
-The w2sg0004 has no wakeup pin. At least I can't find one in the data sheet.
+Applied to pci/dwc for v4.16, thanks.
 
-The two pins you refer to from the 0084 data sheet are called BootSelect0/1
-in the 0004 and have a different function.
+Lorenzo
 
-To be clear, we did not fail to wire it up. We did the design before the
-0084 was announced and available. We just had to swap in the 0084 into
-existing PCBs during production because the 0004 became EOL. Otherwise
-we would probably still use the 0004 without WAKEUP output.
-
-To make it worse, we have no documentation for an individual board if
-an 0004 or 0084 chip is installed and there is no means how a software
-can find out which one it is talking to (especially before properly
-powering on). Therefore we can not even provide two different device
-trees or drivers or whatever, unless we ask people to open their device
-and look on the chip. Quite crazy wrt. user-friendlyness of software
-installation in 2018...
-
-Therefore, a driver must be capable to handle both chips in the same way,
-with minimalistic assumptions, even if the 0084 could provide a direct
-signal to make it easier than using serdev to monitor the data stream.
-
->  which then
-> forces you to look at the data stream to determine the power state of
-> the chip. Judging from a quick look at the GTA04 schematics it seems
-> you've even connected the WAKEUP output to the 1V8_OUT output?!
-
-No. You failed to see that this is an optional 0R, which is not installed.
-The 0R on pin 7 (BootSelect1) to GND was removed when we did switch from
-0004 to 0084. Pin 6 (BootSelect0/WAKEUP) was never connected.
-
-> The kernel is probably not the place to be working around issues like
-> that,
-
-You appear to assume this our only motivation is to make a workaround for
-a hardware design flaw but that isn't.
-
-The purpose of the driver is to provide power management for the GPS
-subsystem which happens to be based on a chip with limited functionality.
-
-And the serdev thing is the solution, not the requirement...
-
-> even if serdev at least allows for such hacks to be fairly
-> isolated in drivers (unlike some of the earlier proposals touching core
-> code).
-
-Please tell me why there are so many hacks for hardware issues in certain
-drivers. Any why those are good and this one (if it is one at all) is not.
-
-Some picks random fgrep -iR hack drivers
-
-drivers/char/random.c: * Hack to deal with crazy userspace progams when they are all trying
-drivers/clk/meson/meson8b.c:	 * a new clk_hw, and this hack will no longer work. Releasing the ccr
-drivers/clk/samsung/clk-exynos3250.c:	/* HACK: fin_pll hardcoded to xusbxti until detection is implemented. */
-drivers/gpu/drm/amd/amdkfd/kfd_events.c:	 * This hack is wrong, but nobody is likely to notice.
-drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c:		 * HACK: IGT tests expect that each plane can only have one
-drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c:	/* It's a hack for s3 since in 4.9 kernel filter out cursor buffer
-drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c:		/* TODO This hack should go away */
-drivers/gpu/drm/amd/display/dc/core/dc_link.c:	/* A hack to avoid failing any modes for EDID override feature on
-
-What I can learn from your discussion is that it might be considerable
-to add an optional gpio for the 0084 WAKEUP and add some logic to
-support users who have or will have that pin connected.
-
-But even then we would need a driver to handle this gpio and issue
-an on/off impulse on the other to switch states. It would be a different
-driver (variant - maybe some CONFIG option or handled by code), but not
-"no driver".
-
+> diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> index 58aed0896468..892f93910012 100644
+> --- a/drivers/pci/dwc/pci-dra7xx.c
+> +++ b/drivers/pci/dwc/pci-dra7xx.c
+> @@ -226,6 +226,7 @@ static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
+>  
+>  static const struct irq_domain_ops intx_domain_ops = {
+>  	.map = dra7xx_pcie_intx_map,
+> +	.xlate = pci_irqd_intx_xlate,
+>  };
+>  
+>  static int dra7xx_pcie_init_irq_domain(struct pcie_port *pp)
+> @@ -269,7 +270,7 @@ static irqreturn_t dra7xx_pcie_msi_irq_handler(int irq, void *arg)
+>  	case INTC:
+>  	case INTD:
+>  		generic_handle_irq(irq_find_mapping(dra7xx->irq_domain,
+> -						    ffs(reg)));
+> +						    ffs(reg) - 1));
+>  		break;
+>  	}
+>  
+> -- 
+> 2.15.1
 > 
->> I see three reasonable options how this presentation can be done:
->> 
->> 1. char device
->> 2. tty device
->> 3. some new gps interface API (similar to network, bluetooth interfaces)
->> 4. no driver and use the UART tty directly
->> 
->> Pros and cons:
-> 
->> 4. no driver and use UART directly
->> + a non-solution seems to be attractive
->> - must turn on/off chip by gpio hacks from user-space
-> 
-> I'm not sure that would amount to more of hack then doing it in the
-> kernel would.
-
-It might not be big effort in the user-space code/scripts.
-
-But much effort to convince all the plethora of user-space client maintainers
-to integrate something. And have them roll out. And have distributions take it.
-And have users upgrade to it. 5 years later...
-
-Do you think it is easier to convince them than you? They usually assume a
-power management issue should be solved by the kernel driver.
-
-That is what Andreas did remark as motivation: provide a solution
-for *existing* user spaces.
-
-> 
->> - can not guarantee (!) to power off the chip if the last user-space
->> process using it is killed (which is essential for power-management of
->> a handheld, battery operated device)
-> 
-> That depends on how you implement things (extending gpsd, wrapper
-> script, pty daemon, ...).
-
-No. You can of course cover all standard cases but there is one fundamental
-issue which is IMHO a problem of any user-space implementation:
-
-	How can you guarantee that the chip is powered off if no
-	user-space process is using it or if the last process doing
-	this is killed by *whatever* reason?
-
-E.g. after a kill -9. Or if someone deinstalls gpsd or whatever and assumes
-(and wants a guarantee) that GPS is now turned off and never turned on drawing
-precious milliamps from the battery for no use.
-
-As it is well known, a user-space process can't protect itself against kill -9.
-Or has this recently been changed and I am not aware of?
-
-This is the fundamental reason why we need a kernel driver to provide
-reliable, repeatable and trustable power management of this chip.
-
-It is equally fundamental as a hard disk should spin down after the last
-file is closed. Even if this process ends by a kill -9.
-
-A second almost equally fundamental aspect to be considered is how you want
-to automatically and reliably turn off the chip by pure user-space code when
-entering suspend.
-
-> 
-> 
->> I would clearly prefer 3 over 2 over 1 over 4.
->> 
->> So do you see a chance that the kernel core team provides something useable
->> (not perfect) for variant 3 in reasonable time (let's say 3-6 months)?
-> 
-> No, I'm afraid not. At least not if we're talking about a framework
-> that would replace gpsd.
-
-This confirms my assumption that there is nothing really good to expect
-soon to implement a driver for variant 3.
-
-> 
->> If not, I want to suggest to accept the second-best choice 2. for now and we
->> will update the driver as soon as 3. appears. IMHO it would be a good test case
->> for a new subsystem.
-> 
-> Getting the interface right from the start is quite important, as
-> otherwise we may end up having to support a superseded one for a long
-> time.
-
-This seems to contradict your argument that user-space can very easily
-adapt to everything. If the latter were true there would be no need to
-keep old interfaces supported for a long time.
-
-So can you agree to that a battery powered portable device must have
-reliable and trustable power management? And if it provable can't be
-implemented in user-space (a single counter example suffices) it must
-be a kernel driver?
-
-BR,
-Nikolaus
