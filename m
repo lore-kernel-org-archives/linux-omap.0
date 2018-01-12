@@ -1,247 +1,70 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v6 08/14] mtd: onenand: omap2: Simplify the DMA setup for
- various paths
-Date: Fri, 12 Jan 2018 14:15:25 +0100
-Message-ID: <20180112131525.GI13810@lenoch>
-References: <20180112131105.GA13810@lenoch>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: PM regression in next
+Date: Fri, 12 Jan 2018 14:16:23 +0100
+Message-ID: <20180112131623.GA29734@lunn.ch>
+References: <20180112000037.GA3875@atomide.com>
+ <20180112013257.GB4059@atomide.com>
+ <4913146.sVL6sFxzC8@aspire.rjw.lan>
+ <4745593.FguGN2uIkX@aspire.rjw.lan>
+ <e7a673e1-b28d-f84e-c6c1-c5b896e92aeb@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180112131105.GA13810@lenoch>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <e7a673e1-b28d-f84e-c6c1-c5b896e92aeb@metafoo.de>
+Sender: linux-pm-owner@vger.kernel.org
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Lindgren <tony@atomide.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Linux PM <linux-pm@vger.kernel.org>, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+On Fri, Jan 12, 2018 at 02:01:14PM +0100, Lars-Peter Clausen wrote:
+> On 01/12/2018 01:30 PM, Rafael J. Wysocki wrote:
+> > On Friday, January 12, 2018 1:23:54 PM CET Rafael J. Wysocki wrote:
+> >> On Friday, January 12, 2018 2:32:57 AM CET Tony Lindgren wrote:
+> >>> * Tony Lindgren <tony@atomide.com> [180111 17:20]:
+> >>>> Well I tried to measure suspend power consumption and noticed
+> >>>> that system suspend fails too hand hangs the network device:
+> >>>>
+> >>>> # echo mem > /sys/power/state
+> >>>> [   32.577850] PM: suspend entry (deep)
+> >>>> [   32.582031] PM: Syncing filesystems ... done.
+> >>>> [   32.598083] Freezing user space processes ... (elapsed 0.002 seconds) done.
+> >>>> [   32.608398] OOM killer disabled.
+> >>>> [   32.611846] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
+> >>>> [   32.622192] Suspending console(s) (use no_console_suspend to debug)
+> >>>> [   32.651123] dpm_run_callback(): mdio_bus_suspend+0x0/0x24 returns 4352
+> >>>> [   32.651428] PM: Device 2c000000.ethernet-ffffffff:01 failed to suspend: error 4352
+> >>
+> >> This looks totally bogus.
+> >>
+> >> First, "error" should be a negative number and we print it as int.
+> >>
+> >> Second, error codes are not in this range anyway.
+> >>
+> >>>> [   32.653289] PM: Some devices failed to suspend, or early wake event detected
+> >>>> [   32.685455] OOM killer enabled.
+> >>>> [   32.688629] Restarting tasks ... done.
+> >>>> [   32.695983] PM: suspend exit
+> >>>> ash: write error: Bad address
+> >>>>
+> >>>> That too works just fine at commit 70286688e5ad.
+> >>>
+> >>> Suspend fails at commit e2d7fe89e8ae though, so looks like we
+> >>> have two separate issues. I'll try to bisect that separately.
+> > 
+> > I guess what may happen is that something started to return positive numbers
+> > which confuse things all over when passed along by its callers as error codes.
+> 
+> 
+> I guess it this: https://patchwork.kernel.org/patch/10151763/
 
-We have 4 functions containing almost identical DMA setup code. Create one
-function which can set up the DMA for both read and write and use this in
-place for the setup code in the driver.
-The new function will use wait_for_completion_io_timeout() and it will
-figure out the best data_type to be used for the transfer instead of
-hardwiring 32 or 16 bit data.
+Hi Tony, 
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-Acked-by: Roger Quadros <rogerq@ti.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
+Please try:
 
-Changes in v6: None
-Changes in v5: None
-Changes in v4:
-- new patch
+https://patchwork.ozlabs.org/patch/859297/
 
-Changes in v3: None
-Changes in v2: None
+Hopefully we will get this into net-next soon.
 
- drivers/mtd/onenand/omap2.c | 109 ++++++++++++++++++--------------------------
- 1 file changed, 45 insertions(+), 64 deletions(-)
-
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 0e7772e16d75..d22163271dc9 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -288,6 +288,33 @@ static inline int omap2_onenand_bufferram_offset(struct mtd_info *mtd, int area)
- 	return 0;
- }
- 
-+static inline int omap2_onenand_dma_transfer(struct omap2_onenand *c,
-+					     dma_addr_t src, dma_addr_t dst,
-+					     size_t count)
-+{
-+	int data_type = __ffs((src | dst | count));
-+
-+	if (data_type > OMAP_DMA_DATA_TYPE_S32)
-+		data_type = OMAP_DMA_DATA_TYPE_S32;
-+
-+	omap_set_dma_transfer_params(c->dma_channel, data_type,
-+				     count / BIT(data_type), 1, 0, 0, 0);
-+	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
-+				src, 0, 0);
-+	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
-+				 dst, 0, 0);
-+
-+	reinit_completion(&c->dma_done);
-+	omap_start_dma(c->dma_channel);
-+	if (!wait_for_completion_io_timeout(&c->dma_done,
-+					    msecs_to_jiffies(20))) {
-+		omap_stop_dma(c->dma_channel);
-+		return -ETIMEDOUT;
-+	}
-+
-+	return 0;
-+}
-+
- #if defined(CONFIG_ARCH_OMAP3) || defined(MULTI_OMAP2)
- 
- static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
-@@ -298,10 +325,9 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
- 	struct onenand_chip *this = mtd->priv;
- 	dma_addr_t dma_src, dma_dst;
- 	int bram_offset;
--	unsigned long timeout;
- 	void *buf = (void *)buffer;
- 	size_t xtra;
--	volatile unsigned *done;
-+	int ret;
- 
- 	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
- 	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
-@@ -338,25 +364,10 @@ static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
- 		goto out_copy;
- 	}
- 
--	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
--				     count >> 2, 1, 0, 0, 0);
--	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
--				dma_src, 0, 0);
--	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
--				 dma_dst, 0, 0);
--
--	reinit_completion(&c->dma_done);
--	omap_start_dma(c->dma_channel);
--
--	timeout = jiffies + msecs_to_jiffies(20);
--	done = &c->dma_done.done;
--	while (time_before(jiffies, timeout))
--		if (*done)
--			break;
--
-+	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
- 	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
- 
--	if (!*done) {
-+	if (ret) {
- 		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
- 		goto out_copy;
- 	}
-@@ -376,9 +387,8 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
- 	struct onenand_chip *this = mtd->priv;
- 	dma_addr_t dma_src, dma_dst;
- 	int bram_offset;
--	unsigned long timeout;
- 	void *buf = (void *)buffer;
--	volatile unsigned *done;
-+	int ret;
- 
- 	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
- 	if (bram_offset & 3 || (size_t)buf & 3 || count < 384)
-@@ -409,25 +419,10 @@ static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
- 		return -1;
- 	}
- 
--	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
--				     count >> 2, 1, 0, 0, 0);
--	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
--				dma_src, 0, 0);
--	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
--				 dma_dst, 0, 0);
--
--	reinit_completion(&c->dma_done);
--	omap_start_dma(c->dma_channel);
--
--	timeout = jiffies + msecs_to_jiffies(20);
--	done = &c->dma_done.done;
--	while (time_before(jiffies, timeout))
--		if (*done)
--			break;
--
-+	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
- 	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
- 
--	if (!*done) {
-+	if (ret) {
- 		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
- 		goto out_copy;
- 	}
-@@ -466,7 +461,7 @@ static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
- 	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
- 	struct onenand_chip *this = mtd->priv;
- 	dma_addr_t dma_src, dma_dst;
--	int bram_offset;
-+	int bram_offset, ret;
- 
- 	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
- 	/* DMA is not used.  Revisit PM requirements before enabling it. */
-@@ -488,20 +483,13 @@ static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
- 		return -1;
- 	}
- 
--	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S32,
--				     count / 4, 1, 0, 0, 0);
--	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
--				dma_src, 0, 0);
--	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
--				 dma_dst, 0, 0);
--
--	reinit_completion(&c->dma_done);
--	omap_start_dma(c->dma_channel);
--	wait_for_completion(&c->dma_done);
--
-+	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
- 	dma_unmap_single(&c->pdev->dev, dma_dst, count, DMA_FROM_DEVICE);
- 
--	return 0;
-+	if (ret)
-+		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
-+
-+	return ret;
- }
- 
- static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
-@@ -511,7 +499,7 @@ static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
- 	struct omap2_onenand *c = container_of(mtd, struct omap2_onenand, mtd);
- 	struct onenand_chip *this = mtd->priv;
- 	dma_addr_t dma_src, dma_dst;
--	int bram_offset;
-+	int bram_offset, ret;
- 
- 	bram_offset = omap2_onenand_bufferram_offset(mtd, area) + area + offset;
- 	/* DMA is not used.  Revisit PM requirements before enabling it. */
-@@ -533,20 +521,13 @@ static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
- 		return -1;
- 	}
- 
--	omap_set_dma_transfer_params(c->dma_channel, OMAP_DMA_DATA_TYPE_S16,
--				     count / 2, 1, 0, 0, 0);
--	omap_set_dma_src_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
--				dma_src, 0, 0);
--	omap_set_dma_dest_params(c->dma_channel, 0, OMAP_DMA_AMODE_POST_INC,
--				 dma_dst, 0, 0);
--
--	reinit_completion(&c->dma_done);
--	omap_start_dma(c->dma_channel);
--	wait_for_completion(&c->dma_done);
--
-+	ret = omap2_onenand_dma_transfer(c, dma_src, dma_dst, count);
- 	dma_unmap_single(&c->pdev->dev, dma_src, count, DMA_TO_DEVICE);
- 
--	return 0;
-+	if (ret)
-+		dev_err(&c->pdev->dev, "timeout waiting for DMA\n");
-+
-+	return ret;
- }
- 
- #else
--- 
-2.15.1
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Thanks
+	Andrew
