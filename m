@@ -1,8 +1,7 @@
 From: Ladislav Michl <ladis@linux-mips.org>
-Subject: [PATCH v6 02/14] ARM: dts: OMAP2+: Add compatible property to
- onenand node
-Date: Fri, 12 Jan 2018 14:12:56 +0100
-Message-ID: <20180112131256.GC13810@lenoch>
+Subject: [PATCH v6 03/14] ARM: dts: omap3-igep: Update onenand node timings
+Date: Fri, 12 Jan 2018 14:13:19 +0100
+Message-ID: <20180112131319.GD13810@lenoch>
 References: <20180112131105.GA13810@lenoch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,14 +22,13 @@ To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: Boris Brezillon <boris.brezillon@free-electrons.com>, Aaro Koskinen <aaro.koskinen@iki.fi>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, Roger Quadros <rogerq@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP onenand nodes are missing compatible property, add it.
+Update node timings to be compatible with actual chip used -
+gpmc_cs_show_timings utilized to dump values.
 
 Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Roger Quadros <rogerq@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
 
 Changes in v6: None
@@ -41,60 +39,61 @@ Changes in v4:
 Changes in v3: None
 Changes in v2: None
 
- arch/arm/boot/dts/omap2420-n8x0-common.dtsi | 1 +
- arch/arm/boot/dts/omap3-n900.dts            | 1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi        | 1 +
- arch/arm/boot/dts/omap3430-sdp.dts          | 1 +
- 4 files changed, 4 insertions(+)
+ arch/arm/boot/dts/omap3-igep.dtsi | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-index 1df3ace3af92..63b0b4921e4e 100644
---- a/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-+++ b/arch/arm/boot/dts/omap2420-n8x0-common.dtsi
-@@ -52,6 +52,7 @@
- 	onenand@0,0 {
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-+		compatible = "ti,omap2-onenand";
- 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
- 
+diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+index 4ad7d5565906..f33cc80c9dbc 100644
+--- a/arch/arm/boot/dts/omap3-igep.dtsi
++++ b/arch/arm/boot/dts/omap3-igep.dtsi
+@@ -147,32 +147,32 @@
  		gpmc,sync-read;
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index f5700ff231db..a1e6307ae21e 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -840,6 +840,7 @@
- 	onenand@0,0 {
+ 		gpmc,sync-write;
+ 		gpmc,burst-length = <16>;
+-		gpmc,burst-read;
+ 		gpmc,burst-wrap;
++		gpmc,burst-read;
+ 		gpmc,burst-write;
+ 		gpmc,device-width = <2>; /* GPMC_DEVWIDTH_16BIT */
+ 		gpmc,mux-add-data = <2>; /* GPMC_MUX_AD */
+ 		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <87>;
+-		gpmc,cs-wr-off-ns = <87>;
++		gpmc,cs-rd-off-ns = <96>;
++		gpmc,cs-wr-off-ns = <96>;
+ 		gpmc,adv-on-ns = <0>;
+-		gpmc,adv-rd-off-ns = <10>;
+-		gpmc,adv-wr-off-ns = <10>;
+-		gpmc,oe-on-ns = <15>;
+-		gpmc,oe-off-ns = <87>;
++		gpmc,adv-rd-off-ns = <12>;
++		gpmc,adv-wr-off-ns = <12>;
++		gpmc,oe-on-ns = <18>;
++		gpmc,oe-off-ns = <96>;
+ 		gpmc,we-on-ns = <0>;
+-		gpmc,we-off-ns = <87>;
+-		gpmc,rd-cycle-ns = <112>;
+-		gpmc,wr-cycle-ns = <112>;
+-		gpmc,access-ns = <81>;
+-		gpmc,page-burst-access-ns = <15>;
++		gpmc,we-off-ns = <96>;
++		gpmc,rd-cycle-ns = <114>;
++		gpmc,wr-cycle-ns = <114>;
++		gpmc,access-ns = <90>;
++		gpmc,page-burst-access-ns = <12>;
+ 		gpmc,bus-turnaround-ns = <0>;
+ 		gpmc,cycle2cycle-delay-ns = <0>;
+ 		gpmc,wait-monitoring-ns = <0>;
+-		gpmc,clk-activation-ns = <5>;
++		gpmc,clk-activation-ns = <6>;
+ 		gpmc,wr-data-mux-bus-ns = <30>;
+-		gpmc,wr-access-ns = <81>;
+-		gpmc,sync-clk-ps = <15000>;
++		gpmc,wr-access-ns = <90>;
++		gpmc,sync-clk-ps = <12000>;
+ 
  		#address-cells = <1>;
  		#size-cells = <1>;
-+		compatible = "ti,omap2-onenand";
- 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
- 
- 		gpmc,sync-read;
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 12fbb3da5fce..0d9b85317529 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -367,6 +367,7 @@
- 	onenand@0,0 {
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-+		compatible = "ti,omap2-onenand";
- 		reg = <0 0 0x20000>;	/* CS0, offset 0, IO size 128K */
- 
- 		gpmc,sync-read;
-diff --git a/arch/arm/boot/dts/omap3430-sdp.dts b/arch/arm/boot/dts/omap3430-sdp.dts
-index 908951eb5943..d652708f6bef 100644
---- a/arch/arm/boot/dts/omap3430-sdp.dts
-+++ b/arch/arm/boot/dts/omap3430-sdp.dts
-@@ -154,6 +154,7 @@
- 		linux,mtd-name= "samsung,kfm2g16q2m-deb8";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
-+		compatible = "ti,omap2-onenand";
- 		reg = <2 0 0x20000>;	/* CS2, offset 0, IO size 4 */
- 
- 		gpmc,device-width = <2>;
 -- 
 2.15.1
 
