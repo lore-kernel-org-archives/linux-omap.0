@@ -1,63 +1,57 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: PM regression in next
-Date: Fri, 12 Jan 2018 19:12:51 +0000
-Message-ID: <20180112191251.GE21458@sirena.org.uk>
-References: <20180112000037.GA3875@atomide.com>
- <20180111161837.f1c1d891a1b80d97e30a9b1b@linux-foundation.org>
- <20180112002322.GB3875@atomide.com>
- <20180111164537.79165ac8918e6d38e1837062@linux-foundation.org>
- <20180112012019.GA4059@atomide.com>
- <20180112190046.GD4821@atomide.com>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH, v3] arm: omap2: timer: fix a kmemleak caused in
+ omap_get_timer_dt
+Date: Fri, 12 Jan 2018 14:36:04 -0600
+Message-ID: <7dd12934-862c-c7ad-5f43-43e4c6b08199@ti.com>
+References: <1515646483-24199-1-git-send-email-qi.hou@windriver.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="fwqqG+mf3f7vyBCB"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180112190046.GD4821@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1515646483-24199-1-git-send-email-qi.hou@windriver.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Qi Hou <qi.hou@windriver.com>, tony@atomide.com, linux@armlinux.org.uk
+Cc: Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi
 
---fwqqG+mf3f7vyBCB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 01/10/2018 10:54 PM, Qi Hou wrote:
+> When more than one GP timers are used as kernel system timers and the
+> corresponding nodes in device-tree are marked with the same "disabled"
+> property, then the "attr" field of the property will be initialized
+> more than once as the property being added to sys file system via
+> __of_add_property_sysfs().
+> 
+> In __of_add_property_sysfs(), the "name" field of pp->attr.attr is set
+> directly to the return value of safe_name(), without taking care of
+> whether it's already a valid pointer to a memory block. If it is, its
+> old value will always be overwritten by the new one and the memory block
+> allocated before will a "ghost", then a kmemleak happened.
+> 
+> That the same "disabled" property being added to different nodes of device
+> tree would cause that kind of kmemleak overhead, at leat once.
+> 
+> To fix it, allocate the property dynamically, and delete static one.
 
-On Fri, Jan 12, 2018 at 11:00:46AM -0800, Tony Lindgren wrote:
+Does it in sync with Keerthy's work [1]
 
-> It's commit 3bb0f7c31b1a ("ASoC: don't use snd_soc_write/read
-> on twl4030"). And that is for the PMIC on my test system, so
-> adding Kuninori and Mark to the thread :)
+[1] https://www.spinics.net/lists/linux-omap/msg141100.html
+> 
+> Signed-off-by: Qi Hou <qi.hou@windriver.com>
+> ---
+>   arch/arm/mach-omap2/timer.c | 19 +++++++++++--------
+>   1 file changed, 11 insertions(+), 8 deletions(-)
 
-> Kuninori, it seems that commit 3bb0f7c31b1a causes higher
-> power consumption on an idle system on omap3 using twl4030.
-> Reverting 3bb0f7c31b1a makes things behave again. My guess
-> is that twl4030_read does not do the same as snd_soc_read
-> in the driver?
-
-As far as I can tell it should end up boiling down to the same thing but
-I didn't follow through in detail, they should both bottom out in
-twl_i2c_read_u8() if they hit hardware - all snd_soc_read() did was call
-twl4030_read(), the patch just removes the indirection through assigning
-the pointer.
-
-Could you try deleting the attempt to read from the cache in
-twl4030_read() and always go to hardware?
-
---fwqqG+mf3f7vyBCB
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlpZCLIACgkQJNaLcl1U
-h9BCbAf/faTpWXhY5A8FDrn8KKPw88Vll+1F/y5su4rqWLZV0xbCflYiIsXKDjJU
-hfnsx9L5P02EHG4F12VNvZkIXoOd6M8ljxIuSzsxqehfT7N7uispgqksMurea2oe
-jRB/ucCy0MM7RGISHS4XFC1phL61Pn3BOJwJZ1gR21cZ491q88Ukc5p0LfdXvblz
-HHUm3K51QQX6X2TzfCBWVbHxADhS3oLehQl+7yzv5s35Kk0L9B/NeqIsxuoWWRHw
-xtUtWywS5lDRExMcGTGURaE6Xlp6wlz6WYX2mChhaTOAd0NGz9Pgx9V+TiAV3nCm
-p/ehDA0N+ker0pVrZZsSOtSWJO9UTw==
-=nckl
------END PGP SIGNATURE-----
-
---fwqqG+mf3f7vyBCB--
+-- 
+regards,
+-grygorii
