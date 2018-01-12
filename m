@@ -1,48 +1,79 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v6 13/14] mtd: onenand: omap2: Configure driver from DT
-Date: Fri, 12 Jan 2018 15:47:44 +0200
-Message-ID: <07fd84e9-9df9-bc6f-c8f1-201e088ce807@ti.com>
-References: <20180112131105.GA13810@lenoch> <20180112131725.GN13810@lenoch>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: PM regression in next
+Date: Fri, 12 Jan 2018 05:52:03 -0800
+Message-ID: <20180112135203.GA4821@atomide.com>
+References: <20180112000037.GA3875@atomide.com>
+ <20180112013257.GB4059@atomide.com>
+ <4913146.sVL6sFxzC8@aspire.rjw.lan>
+ <4745593.FguGN2uIkX@aspire.rjw.lan>
+ <e7a673e1-b28d-f84e-c6c1-c5b896e92aeb@metafoo.de>
+ <20180112131623.GA29734@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <20180112131725.GN13810@lenoch>
-Content-Language: en-GB
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Ladislav Michl <ladis@linux-mips.org>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Boris Brezillon <boris.brezillon@free-electrons.com>, Kyungmin Park <kyungmin.park@samsung.com>, Tony Lindgren <tony@atomide.com>, Aaro Koskinen <aaro.koskinen@iki.fi>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180112131623.GA29734@lunn.ch>
+Sender: linux-pm-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Stephen Rothwell <sfr@canb.auug.org.au>, Linux PM <linux-pm@vger.kernel.org>, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/01/18 15:17, Ladislav Michl wrote:
-> Move away from platform data configuration and use pure DT approach.
+* Andrew Lunn <andrew@lunn.ch> [180112 13:16]:
+> On Fri, Jan 12, 2018 at 02:01:14PM +0100, Lars-Peter Clausen wrote:
+> > On 01/12/2018 01:30 PM, Rafael J. Wysocki wrote:
+> > > On Friday, January 12, 2018 1:23:54 PM CET Rafael J. Wysocki wrote:
+> > >> On Friday, January 12, 2018 2:32:57 AM CET Tony Lindgren wrote:
+> > >>> * Tony Lindgren <tony@atomide.com> [180111 17:20]:
+> > >>>> Well I tried to measure suspend power consumption and noticed
+> > >>>> that system suspend fails too hand hangs the network device:
+> > >>>>
+> > >>>> # echo mem > /sys/power/state
+> > >>>> [   32.577850] PM: suspend entry (deep)
+> > >>>> [   32.582031] PM: Syncing filesystems ... done.
+> > >>>> [   32.598083] Freezing user space processes ... (elapsed 0.002 seconds) done.
+> > >>>> [   32.608398] OOM killer disabled.
+> > >>>> [   32.611846] Freezing remaining freezable tasks ... (elapsed 0.002 seconds) done.
+> > >>>> [   32.622192] Suspending console(s) (use no_console_suspend to debug)
+> > >>>> [   32.651123] dpm_run_callback(): mdio_bus_suspend+0x0/0x24 returns 4352
+> > >>>> [   32.651428] PM: Device 2c000000.ethernet-ffffffff:01 failed to suspend: error 4352
+> > >>
+> > >> This looks totally bogus.
+> > >>
+> > >> First, "error" should be a negative number and we print it as int.
+> > >>
+> > >> Second, error codes are not in this range anyway.
+> > >>
+> > >>>> [   32.653289] PM: Some devices failed to suspend, or early wake event detected
+> > >>>> [   32.685455] OOM killer enabled.
+> > >>>> [   32.688629] Restarting tasks ... done.
+> > >>>> [   32.695983] PM: suspend exit
+> > >>>> ash: write error: Bad address
+> > >>>>
+> > >>>> That too works just fine at commit 70286688e5ad.
+> > >>>
+> > >>> Suspend fails at commit e2d7fe89e8ae though, so looks like we
+> > >>> have two separate issues. I'll try to bisect that separately.
+> > > 
+> > > I guess what may happen is that something started to return positive numbers
+> > > which confuse things all over when passed along by its callers as error codes.
+> > 
+> > 
+> > I guess it this: https://patchwork.kernel.org/patch/10151763/
 > 
-> Use generic probe function to deal with OneNAND node and remove now useless
-> gpmc_probe_onenand_child function. Import sync mode timing calculation
-> function from mach-omap2/gpmc-onenand.c
+> Hi Tony, 
 > 
-> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
-> Reviewed-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Tested-by: Tony Lindgren <tony@atomide.com>
-> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Please try:
+> 
+> https://patchwork.ozlabs.org/patch/859297/
+> 
+> Hopefully we will get this into net-next soon.
 
-Acked-by: Roger Quadros <rogerq@ti.com>
+Thanks that fixes the suspend error. And I was able to confirm
+that the suspend power consumption is OK.
 
+That still leaves the mystery of the runtime idle power consumption
+being much higher with commit e130bc1d00a4.
 
--- 
-cheers,
--roger
+Regards,
 
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Tony
