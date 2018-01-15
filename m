@@ -1,56 +1,57 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: [1/3] mfd/omap-usb-tll: Delete two error messages for a failed
- memory allocation in usbtll_omap_probe()
-Date: Mon, 15 Jan 2018 18:06:20 +0100
-Message-ID: <ead577ac-a36b-dfc4-9f2c-3d5f34495d78@users.sourceforge.net>
-References: <c048a681-70e4-ecdd-e0f8-48c8f1bb0ac4@users.sourceforge.net>
- <7719b4e7-1081-6fa4-6f14-f45cf062482d@users.sourceforge.net>
- <20180115134101.GA6711@lenoch>
- <1ebb5ac5-aa4d-7c19-94db-210b518d562f@users.sourceforge.net>
- <20180115160522.GA2672@lenoch>
- <11eaf92d-3928-531f-35e8-fb5a60ff03e3@users.sourceforge.net>
- <20180115163543.GA10657@lenoch>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: PM regression in next
+Date: Mon, 15 Jan 2018 17:19:17 +0000
+Message-ID: <20180115171917.GB12018@sirena.org.uk>
+References: <20180112190046.GD4821@atomide.com>
+ <20180112191251.GE21458@sirena.org.uk>
+ <20180112210706.GE4821@atomide.com>
+ <20180112211535.GH21458@sirena.org.uk>
+ <20180112215010.GG4821@atomide.com>
+ <20180112221126.GK21458@sirena.org.uk>
+ <20180112224959.GH4821@atomide.com>
+ <20180112225947.GL21458@sirena.org.uk>
+ <87wp0jzyig.wl%kuninori.morimoto.gx@renesas.com>
+ <20180115165050.GJ4821@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20180115163543.GA10657@lenoch>
-Content-Language: en-GB
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org
-Cc: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="DKU6Jbt7q3WqK7+M"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180115165050.GJ4821@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
->>> Now, if probe function calls devm_kzalloc two times and one of them fails,
->>> you cannot easily say which one without looking at assembly listing.
->>
->> Will this situation change with any other implementation for such backtraces?
-> 
-> How much that situation changes depends mainly on that very person who is
-> sending bugreport and his/her ability and willigness to eventually change
-> said implementation.
 
-Have you got any more influence on the selection?
+--DKU6Jbt7q3WqK7+M
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Which variant was applied for your example?
+On Mon, Jan 15, 2018 at 08:50:51AM -0800, Tony Lindgren wrote:
+> * Kuninori Morimoto <kuninori.morimoto.gx@renesas.com> [180115 01:46]:
 
+> > I hope your driver will be OK by using regmap.
+> > In worst case, we can back .read/.write, but it will be component driver side.
 
-> In the other words your question (presumably) expects a world of
-> ideal backtraces, which is (so far) rarely the case.
+> Well we have the merge window about to open in a week, so
+> please just revert the known broken patches.
 
-I assume that further software evolution will matter.
+Did anyone actually try testing the fix I posted yet?
 
-Does an article like “The ORCs are coming” (by Jonathan Corbet from 2017-07-20)
-point information out which is also useful for this issue here?
+--DKU6Jbt7q3WqK7+M
+Content-Type: application/pgp-signature; name="signature.asc"
 
-https://lwn.net/Articles/728339/
+-----BEGIN PGP SIGNATURE-----
 
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlpc4pQACgkQJNaLcl1U
+h9BkcAf9Fe8qt2s9ioqJMRDWPnOpV1y3qh/xkGzRBS+uycYKw5uH27xZJRhDfC2X
+Cn3ir3+px6iaZmB2NtSdNZrxJ4rDyKbtcopm/8EE3EiW/g4sccnZxCaHmNjmPbwd
+2VMkBOl6621mRFgSuaMbi/X9dgLM0/AyeKHofYuel4kO7sZQ7Fozd+4+yYDaNjCv
+mNZHW1vnEbXkc9WeLRqdHrrj1CKK4IWhvdtyTMnos0DrSPR7ck4m8qy9BHKdTbvI
+Deh3z8a5RngL8NWfb8ckGVm2NKcSz81YiLbRg83fE4gBWVUnGoHb5oX1sMswrUhv
+YlAB5x7GDBqiNo1lhBvfw0bIxp06ww==
+=zMDt
+-----END PGP SIGNATURE-----
 
-> Anyway, if we agree to change the way we allocate driver data here,
-> the issue this debate is about will no longer exist.
-
-Does your update suggestion contain still any additional error messages for
-memory allocation failures?
-
-Regards,
-Markus
+--DKU6Jbt7q3WqK7+M--
