@@ -1,57 +1,79 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: PM regression in next
-Date: Mon, 15 Jan 2018 17:19:17 +0000
-Message-ID: <20180115171917.GB12018@sirena.org.uk>
-References: <20180112190046.GD4821@atomide.com>
- <20180112191251.GE21458@sirena.org.uk>
- <20180112210706.GE4821@atomide.com>
- <20180112211535.GH21458@sirena.org.uk>
- <20180112215010.GG4821@atomide.com>
- <20180112221126.GK21458@sirena.org.uk>
- <20180112224959.GH4821@atomide.com>
- <20180112225947.GL21458@sirena.org.uk>
- <87wp0jzyig.wl%kuninori.morimoto.gx@renesas.com>
- <20180115165050.GJ4821@atomide.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [1/3] mfd/omap-usb-tll: Delete two error messages for a failed
+ memory allocation in usbtll_omap_probe()
+Date: Mon, 15 Jan 2018 18:41:22 +0100
+Message-ID: <20180115174122.GA20745@lenoch>
+References: <c048a681-70e4-ecdd-e0f8-48c8f1bb0ac4@users.sourceforge.net>
+ <7719b4e7-1081-6fa4-6f14-f45cf062482d@users.sourceforge.net>
+ <20180115134101.GA6711@lenoch>
+ <1ebb5ac5-aa4d-7c19-94db-210b518d562f@users.sourceforge.net>
+ <20180115160522.GA2672@lenoch>
+ <11eaf92d-3928-531f-35e8-fb5a60ff03e3@users.sourceforge.net>
+ <20180115163543.GA10657@lenoch>
+ <ead577ac-a36b-dfc4-9f2c-3d5f34495d78@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="DKU6Jbt7q3WqK7+M"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180115165050.GJ4821@atomide.com>
+In-Reply-To: <ead577ac-a36b-dfc4-9f2c-3d5f34495d78@users.sourceforge.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Jan 15, 2018 at 06:06:20PM +0100, SF Markus Elfring wrote:
+> >>> Now, if probe function calls devm_kzalloc two times and one of them fails,
+> >>> you cannot easily say which one without looking at assembly listing.
+> >>
+> >> Will this situation change with any other implementation for such backtraces?
+> > 
+> > How much that situation changes depends mainly on that very person who is
+> > sending bugreport and his/her ability and willigness to eventually change
+> > said implementation.
+> 
+> Have you got any more influence on the selection?
 
---DKU6Jbt7q3WqK7+M
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+?
 
-On Mon, Jan 15, 2018 at 08:50:51AM -0800, Tony Lindgren wrote:
-> * Kuninori Morimoto <kuninori.morimoto.gx@renesas.com> [180115 01:46]:
+> Which variant was applied for your example?
 
-> > I hope your driver will be OK by using regmap.
-> > In worst case, we can back .read/.write, but it will be component driver side.
+ARM_UNWIND
 
-> Well we have the merge window about to open in a week, so
-> please just revert the known broken patches.
+> > In the other words your question (presumably) expects a world of
+> > ideal backtraces, which is (so far) rarely the case.
+> 
+> I assume that further software evolution will matter.
+> 
+> Does an article like “The ORCs are coming” (by Jonathan Corbet from 2017-07-20)
+> point information out which is also useful for this issue here?
+> 
+> https://lwn.net/Articles/728339/
 
-Did anyone actually try testing the fix I posted yet?
+I'm aware of this article. Please bear in mind which driver you are modifying.
+Not everything is desktop or server machine with almost unlimited resources
+and embedded people are rarely using latest stuff with all that bells and
+whistles.
 
---DKU6Jbt7q3WqK7+M
-Content-Type: application/pgp-signature; name="signature.asc"
+That said, you might end having only fragment of log in only one of thousands
+machines in field. And saying technician he needs to use another kernel
+(upgrade all machines) and wait another several weeks for bug to trigger
+is no way.
 
------BEGIN PGP SIGNATURE-----
+So until evolution reaches ARM land, my point stands unchanged: Make it
+single allocation or leave one of those two messages in place.
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlpc4pQACgkQJNaLcl1U
-h9BkcAf9Fe8qt2s9ioqJMRDWPnOpV1y3qh/xkGzRBS+uycYKw5uH27xZJRhDfC2X
-Cn3ir3+px6iaZmB2NtSdNZrxJ4rDyKbtcopm/8EE3EiW/g4sccnZxCaHmNjmPbwd
-2VMkBOl6621mRFgSuaMbi/X9dgLM0/AyeKHofYuel4kO7sZQ7Fozd+4+yYDaNjCv
-mNZHW1vnEbXkc9WeLRqdHrrj1CKK4IWhvdtyTMnos0DrSPR7ck4m8qy9BHKdTbvI
-Deh3z8a5RngL8NWfb8ckGVm2NKcSz81YiLbRg83fE4gBWVUnGoHb5oX1sMswrUhv
-YlAB5x7GDBqiNo1lhBvfw0bIxp06ww==
-=zMDt
------END PGP SIGNATURE-----
+In practice it probably does not matter if we know which allocation
+failed. We simply run out of memmory.
 
---DKU6Jbt7q3WqK7+M--
+> > Anyway, if we agree to change the way we allocate driver data here,
+> > the issue this debate is about will no longer exist.
+> 
+> Does your update suggestion contain still any additional error messages for
+> memory allocation failures?
+
+Of course not as there will be only one memory allocation in the probe
+function.
+
+Best regards,
+	ladis
