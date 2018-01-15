@@ -1,76 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PM regression in next
-Date: Mon, 15 Jan 2018 08:50:51 -0800
-Message-ID: <20180115165050.GJ4821@atomide.com>
-References: <20180112012019.GA4059@atomide.com>
- <20180112190046.GD4821@atomide.com>
- <20180112191251.GE21458@sirena.org.uk>
- <20180112210706.GE4821@atomide.com>
- <20180112211535.GH21458@sirena.org.uk>
- <20180112215010.GG4821@atomide.com>
- <20180112221126.GK21458@sirena.org.uk>
- <20180112224959.GH4821@atomide.com>
- <20180112225947.GL21458@sirena.org.uk>
- <87wp0jzyig.wl%kuninori.morimoto.gx@renesas.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: Re: [1/3] mfd/omap-usb-tll: Delete two error messages for a failed
+ memory allocation in usbtll_omap_probe()
+Date: Mon, 15 Jan 2018 18:06:20 +0100
+Message-ID: <ead577ac-a36b-dfc4-9f2c-3d5f34495d78@users.sourceforge.net>
+References: <c048a681-70e4-ecdd-e0f8-48c8f1bb0ac4@users.sourceforge.net>
+ <7719b4e7-1081-6fa4-6f14-f45cf062482d@users.sourceforge.net>
+ <20180115134101.GA6711@lenoch>
+ <1ebb5ac5-aa4d-7c19-94db-210b518d562f@users.sourceforge.net>
+ <20180115160522.GA2672@lenoch>
+ <11eaf92d-3928-531f-35e8-fb5a60ff03e3@users.sourceforge.net>
+ <20180115163543.GA10657@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87wp0jzyig.wl%kuninori.morimoto.gx@renesas.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Mark Brown <broonie@kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20180115163543.GA10657@lenoch>
+Content-Language: en-GB
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>, linux-omap@vger.kernel.org
+Cc: Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kuninori Morimoto <kuninori.morimoto.gx@renesas.com> [180115 01:46]:
+>>> Now, if probe function calls devm_kzalloc two times and one of them fails,
+>>> you cannot easily say which one without looking at assembly listing.
+>>
+>> Will this situation change with any other implementation for such backtraces?
 > 
-> Hi all
-> 
-> > > > Most devices have one regmap per device which can be retrieved with
-> > > > dev_get_regmap(), it's the attempt to use that which I suspect is
-> > > > broken.  Like I said snd_soc_codec_init_regmap() ought to fix things if
-> > > > that's the issue.
-> > 
-> > > OK. Adding Peter to loop as it's his driver after all. Not sure
-> > > how well mixing regmap register access to the same module with
-> > > cached twl4030_read() would work :)
-> > 
-> > Yes, that local cache is not a super good idea any more and hopefully
-> > redundant.
-> > 
-> > > Maybe there should also be some big warning happening if
-> > > snd_soc_codec_init_regmap() is now needed and no regmap is
-> > > found?
-> > 
-> > Some devices just plain don't have registers at all (perhaps GPIOs or
-> > just stub drivers providing capability information).  However we should
-> > be screaming loudly about the fact that the I/O we tried to do fails,
-> > that clearly shouldn't be being ignored.
-> 
-> I'm sorry that my patch breaks your drivers.
-> It seems removing .read/.write callback was too much aggressive.
+> How much that situation changes depends mainly on that very person who is
+> sending bugreport and his/her ability and willigness to eventually change
+> said implementation.
 
-No problem, things happen. The thing I'm worried about here
-though is that these patches were "completely untested
-clean-up patches" :) For the next set of changes like this,
-please make sure you Cc the driver authors so they can test
-and ack the changes if you can't test them, OK?
+Have you got any more influence on the selection?
 
-> I hope your driver will be OK by using regmap.
-> In worst case, we can back .read/.write, but it will be component driver side.
+Which variant was applied for your example?
 
-Well we have the merge window about to open in a week, so
-please just revert the known broken patches.
 
-Like I described, it looks all the non-regmap drivers with
-read/write function pointers removed are broken now.
+> In the other words your question (presumably) expects a world of
+> ideal backtraces, which is (so far) rarely the case.
 
-Just adding back the read/write function pointers while
-keeping your other changes seems also risky to me at this
-point. It seems it should work for twl4030 and twl6030
-though, have not checked the other drivers but they seem
-to have more changes.
+I assume that further software evolution will matter.
+
+Does an article like “The ORCs are coming” (by Jonathan Corbet from 2017-07-20)
+point information out which is also useful for this issue here?
+
+https://lwn.net/Articles/728339/
+
+
+> Anyway, if we agree to change the way we allocate driver data here,
+> the issue this debate is about will no longer exist.
+
+Does your update suggestion contain still any additional error messages for
+memory allocation failures?
 
 Regards,
-
-Tony
+Markus
