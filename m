@@ -1,152 +1,112 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [1/3] mfd/omap-usb-tll: Delete two error messages for a failed
- memory allocation in usbtll_omap_probe()
-Date: Mon, 15 Jan 2018 19:30:59 +0100
-Message-ID: <20180115183059.GA30039@lenoch>
-References: <c048a681-70e4-ecdd-e0f8-48c8f1bb0ac4@users.sourceforge.net>
- <7719b4e7-1081-6fa4-6f14-f45cf062482d@users.sourceforge.net>
- <20180115134101.GA6711@lenoch>
- <1ebb5ac5-aa4d-7c19-94db-210b518d562f@users.sourceforge.net>
- <20180115160522.GA2672@lenoch>
- <11eaf92d-3928-531f-35e8-fb5a60ff03e3@users.sourceforge.net>
- <20180115163543.GA10657@lenoch>
- <ead577ac-a36b-dfc4-9f2c-3d5f34495d78@users.sourceforge.net>
- <20180115174122.GA20745@lenoch>
- <cadb0da1-23d0-f629-8dcf-8d2566058812@users.sourceforge.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: PM regression in next
+Date: Mon, 15 Jan 2018 10:55:25 -0800
+Message-ID: <20180115185525.GA4042@atomide.com>
+References: <20180112221126.GK21458@sirena.org.uk>
+ <20180112224959.GH4821@atomide.com>
+ <20180112225947.GL21458@sirena.org.uk>
+ <87wp0jzyig.wl%kuninori.morimoto.gx@renesas.com>
+ <20180115165050.GJ4821@atomide.com>
+ <20180115171917.GB12018@sirena.org.uk>
+ <20180115175220.GK4821@atomide.com>
+ <20180115175626.GC12018@sirena.org.uk>
+ <20180115180626.GL4821@atomide.com>
+ <20180115181352.GD12018@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cadb0da1-23d0-f629-8dcf-8d2566058812@users.sourceforge.net>
+In-Reply-To: <20180115181352.GD12018@sirena.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 15, 2018 at 07:12:37PM +0100, SF Markus Elfring wrote:
-> Thanks for this clarification. - So I hope that your solution approach
-> will be also fine. Will it supersede my proposal?
+* Mark Brown <broonie@kernel.org> [180115 18:14]:
+> On Mon, Jan 15, 2018 at 10:06:26AM -0800, Tony Lindgren wrote:
+> > * Mark Brown <broonie@kernel.org> [180115 17:56]:
+> 
+> > > Sorry, I didn't actually post it - just suggested adding the
+> > > snd_soc_codec_set_regmap() call.
+> 
+> > Oh I see. Yeah that seems like a good long term solution after
+> > the regressions are fixed.
+> 
+> I would like to see us do that sooner rather than later assuming it
+> addresses the issue, it's quicker and simpler.
 
-Who knows, perhaps it would be the best if you could judge yourself...
+Peter, can you take a look at that?
 
-8<--------
+Meanwhile, here's a regression fix for Linux next for twl4030
+and 6040 drivers.
 
-Subject: [PATCH] mfd/omap-usb-tll: Allocate driver data at once
+Regards,
 
-Allocating memory to store clk array together with driver
-data simplifies error unwinding and allows deleting memory
-allocation failure message as there is now only single point
-where allocation could fail.
+Tony
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+8< ---------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Fri, 12 Jan 2018 10:24:36 -0800
+Subject: [PATCH] ASoC: Fix twl4030 and 6040 regression by adding back read
+ and write
+
+Commit 3bb0f7c31b1a ("ASoC: don't use snd_soc_write/read on twl4030")
+caused regressions for both twl4030 and twl6040 as it assumes the
+ASoC driver is using regmap. As a side effect, this also causes a
+considerable increase in idle power consumption omap3 boards using
+twl4030 as the PMIC.
+
+This is because the removal of read and write function pointers
+causes some of the ASoC IO functions to not do anything. For example,
+snd_soc_register_card() calls snd_soc_dapm_new_widgets() that calls
+snd_soc_codec_drv_read() that now does nothing.
+
+A long term solution suggested by Mark Brown <broonie@kernel.org>
+is to make the twl drivers use regmap by adding a call to
+snd_soc_codec_set_regmap(). This however needs more consideration
+as currently the driver internal reads do caching and we would have
+both regmap access and internal read/write access accessing the same
+hardware registers.
+
+So to fix the regression, let's just do a partial revert adding back
+the read and write function pointers. Note that other non-regmap
+ASoC drivers may need similar patches.
+
+Fixes: 3bb0f7c31b1a ("ASoC: don't use snd_soc_write/read on twl4030")
+Fixes: 93a00c467fe9 ("ASoC: don't use snd_soc_write/read on twl6040")
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/mfd/omap-usb-tll.c | 57 +++++++++++++++++++---------------------------
- 1 file changed, 24 insertions(+), 33 deletions(-)
+ sound/soc/codecs/twl4030.c | 2 ++
+ sound/soc/codecs/twl6040.c | 2 ++
+ 2 files changed, 4 insertions(+)
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index 44a5d66314c6..f327fe6d3292 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -108,9 +108,9 @@
- 					 (x) != OMAP_EHCI_PORT_MODE_PHY)
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -2195,6 +2195,8 @@ static int twl4030_soc_remove(struct snd_soc_codec *codec)
+ static const struct snd_soc_codec_driver soc_codec_dev_twl4030 = {
+ 	.probe = twl4030_soc_probe,
+ 	.remove = twl4030_soc_remove,
++	.read = twl4030_read,
++	.write = twl4030_write,
+ 	.set_bias_level = twl4030_set_bias_level,
+ 	.idle_bias_off = true,
  
- struct usbtll_omap {
--	int					nch;	/* num. of channels */
--	struct clk				**ch_clk;
--	void __iomem				*base;
-+	void __iomem	*base;
-+	int		nch;		/* num. of channels */
-+	struct clk	*ch_clk[0];	/* must be the last member */
- };
- 
- /*-------------------------------------------------------------------------*/
-@@ -216,53 +216,50 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 	struct device				*dev =  &pdev->dev;
- 	struct resource				*res;
- 	struct usbtll_omap			*tll;
--	int					ret = 0;
--	int					i, ver;
-+	void __iomem				*base;
-+	int					i, nch, ver;
- 
- 	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
- 
--	tll = devm_kzalloc(dev, sizeof(struct usbtll_omap), GFP_KERNEL);
--	if (!tll) {
--		dev_err(dev, "Memory allocation failed\n");
--		return -ENOMEM;
--	}
--
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	tll->base = devm_ioremap_resource(dev, res);
--	if (IS_ERR(tll->base))
--		return PTR_ERR(tll->base);
-+	base = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(base))
-+		return PTR_ERR(base);
- 
--	platform_set_drvdata(pdev, tll);
- 	pm_runtime_enable(dev);
- 	pm_runtime_get_sync(dev);
- 
--	ver =  usbtll_read(tll->base, OMAP_USBTLL_REVISION);
-+	ver = usbtll_read(base, OMAP_USBTLL_REVISION);
- 	switch (ver) {
- 	case OMAP_USBTLL_REV1:
- 	case OMAP_USBTLL_REV4:
--		tll->nch = OMAP_TLL_CHANNEL_COUNT;
-+		nch = OMAP_TLL_CHANNEL_COUNT;
- 		break;
- 	case OMAP_USBTLL_REV2:
- 	case OMAP_USBTLL_REV3:
--		tll->nch = OMAP_REV2_TLL_CHANNEL_COUNT;
-+		nch = OMAP_REV2_TLL_CHANNEL_COUNT;
- 		break;
- 	default:
--		tll->nch = OMAP_TLL_CHANNEL_COUNT;
-+		nch = OMAP_TLL_CHANNEL_COUNT;
- 		dev_dbg(dev,
- 		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
--			ver, tll->nch);
-+			ver, nch);
- 		break;
- 	}
- 
--	tll->ch_clk = devm_kzalloc(dev, sizeof(struct clk *) * tll->nch,
--						GFP_KERNEL);
--	if (!tll->ch_clk) {
--		ret = -ENOMEM;
--		dev_err(dev, "Couldn't allocate memory for channel clocks\n");
--		goto err_clk_alloc;
-+	tll = devm_kzalloc(dev, sizeof(*tll) + sizeof(tll->ch_clk[nch]),
-+			   GFP_KERNEL);
-+	if (!tll) {
-+		pm_runtime_put_sync(dev);
-+		pm_runtime_disable(dev);
-+		return -ENOMEM;
- 	}
- 
--	for (i = 0; i < tll->nch; i++) {
-+	tll->base = base;
-+	tll->nch = nch;
-+	platform_set_drvdata(pdev, tll);
-+
-+	for (i = 0; i < nch; i++) {
- 		char clkname[] = "usb_tll_hs_usb_chx_clk";
- 
- 		snprintf(clkname, sizeof(clkname),
-@@ -282,12 +279,6 @@ static int usbtll_omap_probe(struct platform_device *pdev)
- 	spin_unlock(&tll_lock);
- 
- 	return 0;
--
--err_clk_alloc:
--	pm_runtime_put_sync(dev);
--	pm_runtime_disable(dev);
--
--	return ret;
- }
- 
- /**
+diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
+--- a/sound/soc/codecs/twl6040.c
++++ b/sound/soc/codecs/twl6040.c
+@@ -1158,6 +1158,8 @@ static int twl6040_remove(struct snd_soc_codec *codec)
+ static const struct snd_soc_codec_driver soc_codec_dev_twl6040 = {
+ 	.probe = twl6040_probe,
+ 	.remove = twl6040_remove,
++	.read = twl6040_read,
++	.write = twl6040_write,
+ 	.set_bias_level = twl6040_set_bias_level,
+ 	.suspend_bias_off = true,
+ 	.ignore_pmdown_time = true,
 -- 
-2.15.1
+2.15.0
