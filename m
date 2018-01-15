@@ -1,8 +1,8 @@
-From: Ladislav Michl <ladis@linux-mips.org>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
 Subject: Re: mfd/omap-usb-tll: Allocate driver data at once in
  usbtll_omap_probe()
-Date: Mon, 15 Jan 2018 20:33:42 +0100
-Message-ID: <20180115193342.GA32536@lenoch>
+Date: Mon, 15 Jan 2018 20:40:39 +0100
+Message-ID: <b2734327-5e60-4ad9-87c5-e1b9099fe3c0@users.sourceforge.net>
 References: <20180115134101.GA6711@lenoch>
  <1ebb5ac5-aa4d-7c19-94db-210b518d562f@users.sourceforge.net>
  <20180115160522.GA2672@lenoch>
@@ -12,36 +12,46 @@ References: <20180115134101.GA6711@lenoch>
  <20180115174122.GA20745@lenoch>
  <cadb0da1-23d0-f629-8dcf-8d2566058812@users.sourceforge.net>
  <20180115183059.GA30039@lenoch>
- <9266b6cb-6b9f-5b76-dab8-8ec36269928f@users.sourceforge.net>
+ <8144f711-b4fd-730c-4e9f-780c42d5e68f@users.sourceforge.net>
+ <20180115192303.GA31762@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <9266b6cb-6b9f-5b76-dab8-8ec36269928f@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180115192303.GA31762@lenoch>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
 Cc: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 15, 2018 at 08:26:00PM +0100, SF Markus Elfring wrote:
-> >  		dev_dbg(dev,
-> >  		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
-> > -			ver, tll->nch);
-> > +			ver, nch);
-> >  		break;
+>> * Would you like to add a tag “link”?
 > 
-> Does this format string need an other indentation when you touch this statement?
+> Are you okay with this one?
+> https://lkml.org/lkml/2018/1/15/411
 
-Well, lets that the chance and make it shorter as well:
+Yes.
 
- 	default:
--		tll->nch = OMAP_TLL_CHANNEL_COUNT;
--		dev_dbg(dev,
--		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
--			ver, tll->nch);
-+		nch = OMAP_TLL_CHANNEL_COUNT;
-+		dev_dbg(dev, "rev 0x%x not recognized, assuming %d channels\n",
-+			ver, nch);
- 		break;
 
-Other proposals? 
+> - resend as v2
+
+I was unsure about your patch handling from the previous replies.
+
+
+> Also, patch contains all your changes, so you should be credited
+> somehow - hence the need for v2 anyway.
+
+Thanks.
+
+
+> What about:
+> [marcus: simplified error unwinding, error message removal]
+      ^
+
+I would prefer my name written as in the other places.
+
+
+Will this software development dialogue evolve in further constructive ways?
+
+Regards,
+Markus
