@@ -1,83 +1,169 @@
-From: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH v7 0/8] Add MCAN Support for Dra76 platform
-Date: Mon, 15 Jan 2018 15:44:54 +0100
-Message-ID: <fa6ed3c7-980f-fc65-e7d0-e085c201a8f9@pengutronix.de>
-References: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 1/3] mfd/omap-usb-tll: Delete two error messages for a
+ failed memory allocation in usbtll_omap_probe()
+Date: Mon, 15 Jan 2018 17:34:43 +0200
+Message-ID: <086fe58c-dfba-5c1d-ab69-0cc0c237943e@ti.com>
+References: <c048a681-70e4-ecdd-e0f8-48c8f1bb0ac4@users.sourceforge.net>
+ <7719b4e7-1081-6fa4-6f14-f45cf062482d@users.sourceforge.net>
+ <20180115134101.GA6711@lenoch>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="BScf6tjhFppgQSnMwIpwgAHu4d7xFcptN"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1515581725-29242-1-git-send-email-faiz_abbas-l0cyMroinI0@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>, wg-5Yr1BZd7O62+XT7JhA+gdA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
-Cc: linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Wenyou.Yang-UWL1GkI3JZL3oGB3hsPCZA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b29396-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180115134101.GA6711@lenoch>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>, SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---BScf6tjhFppgQSnMwIpwgAHu4d7xFcptN
-Content-Type: multipart/mixed; boundary="ZIcM16ZCezMnDgMkMOPFCVPWJkdyktE6p";
- protected-headers="v1"
-From: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-To: Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>, wg-5Yr1BZd7O62+XT7JhA+gdA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org,
- mark.rutland-5wv7dgnIgG8@public.gmane.org
-Cc: linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org,
- fcooper-l0cyMroinI0@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Wenyou.Yang-UWL1GkI3JZL3oGB3hsPCZA@public.gmane.org,
- sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- b29396-KZfg59tc24xl57MIdRCFDg@public.gmane.org
-Message-ID: <fa6ed3c7-980f-fc65-e7d0-e085c201a8f9-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH v7 0/8] Add MCAN Support for Dra76 platform
-References: <1515581725-29242-1-git-send-email-faiz_abbas-l0cyMroinI0@public.gmane.org>
-In-Reply-To: <1515581725-29242-1-git-send-email-faiz_abbas-l0cyMroinI0@public.gmane.org>
-
---ZIcM16ZCezMnDgMkMOPFCVPWJkdyktE6p
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
-
-On 01/10/2018 11:55 AM, Faiz Abbas wrote:
-> This patch series adds support for M_CAN on the TI Dra76
-> platform. Device tree patches will be sent separately.
-> A bunch of patches were sent before by
-> Franklin Cooper <fcooper-l0cyMroinI0@public.gmane.org>. I have clubbed the
-> series together and rebased to the latest kernel.
-
-I've added patches 1-3 to linux-can-next/testing. But stopped at 4, due
-to the problems with the error handling. You can include 1-3 in your
-next posting if you like, otherwise I'll takes the ones I've already
-applied.
-
-Marc
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+Hi Ladislav,
 
 
---ZIcM16ZCezMnDgMkMOPFCVPWJkdyktE6p--
+On 15/01/18 15:41, Ladislav Michl wrote:
+> Marcus,
+> 
+> On Mon, Jan 15, 2018 at 02:15:11PM +0100, SF Markus Elfring wrote:
+>> Omit extra messages for a memory allocation failure in this function.
+>>
+>> This issue was detected by using the Coccinelle software.
+>>
+>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+>> ---
+>>  drivers/mfd/omap-usb-tll.c | 5 +----
+>>  1 file changed, 1 insertion(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+>> index 44a5d66314c6..7945efa0152e 100644
+>> --- a/drivers/mfd/omap-usb-tll.c
+>> +++ b/drivers/mfd/omap-usb-tll.c
+>> @@ -222,10 +222,8 @@ static int usbtll_omap_probe(struct platform_device *pdev)
+>>  	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
+>>  
+>>  	tll = devm_kzalloc(dev, sizeof(struct usbtll_omap), GFP_KERNEL);
+>> -	if (!tll) {
+>> -		dev_err(dev, "Memory allocation failed\n");
+>> +	if (!tll)
+>>  		return -ENOMEM;
+>> -	}
+>>  
+>>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>  	tll->base = devm_ioremap_resource(dev, res);
+>> @@ -258,7 +256,6 @@ static int usbtll_omap_probe(struct platform_device *pdev)
+>>  						GFP_KERNEL);
+>>  	if (!tll->ch_clk) {
+>>  		ret = -ENOMEM;
+>> -		dev_err(dev, "Couldn't allocate memory for channel clocks\n");
+> 
+> I'd either leave this one, just to know which allocation failed or better use
+> something like this (it is pseudo patch only, just to show idea):
+> 
+> diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+> index 44a5d66314c6..d217211d6b8f 100644
+> --- a/drivers/mfd/omap-usb-tll.c
+> +++ b/drivers/mfd/omap-usb-tll.c
+> @@ -108,9 +108,9 @@
+>  					 (x) != OMAP_EHCI_PORT_MODE_PHY)
+>  
+>  struct usbtll_omap {
+> -	int					nch;	/* num. of channels */
+> -	struct clk				**ch_clk;
+>  	void __iomem				*base;
+> +	int					nch;	/* num. of channels */
+> +	struct clk				ch_clk[0];
 
---BScf6tjhFppgQSnMwIpwgAHu4d7xFcptN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+How about putting a comment here that says ch_clk needs to be the last member of this structure?
 
------BEGIN PGP SIGNATURE-----
+>  };
+>  
+>  /*-------------------------------------------------------------------------*/
+> @@ -221,18 +221,11 @@ static int usbtll_omap_probe(struct platform_device *pdev)
+>  
+>  	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
+>  
+> -	tll = devm_kzalloc(dev, sizeof(struct usbtll_omap), GFP_KERNEL);
+> -	if (!tll) {
+> -		dev_err(dev, "Memory allocation failed\n");
+> -		return -ENOMEM;
+> -	}
+> -
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	tll->base = devm_ioremap_resource(dev, res);
+> -	if (IS_ERR(tll->base))
+> -		return PTR_ERR(tll->base);
+> +	base = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(base))
+> +		return PTR_ERR(base);
+>  
+> -	platform_set_drvdata(pdev, tll);
+>  	pm_runtime_enable(dev);
+>  	pm_runtime_get_sync(dev);
+>  
+> @@ -240,27 +233,27 @@ static int usbtll_omap_probe(struct platform_device *pdev)
+>  	switch (ver) {
+>  	case OMAP_USBTLL_REV1:
+>  	case OMAP_USBTLL_REV4:
+> -		tll->nch = OMAP_TLL_CHANNEL_COUNT;
+> +		num = OMAP_TLL_CHANNEL_COUNT;
 
-iQEzBAEBCgAdFiEE4bay/IylYqM/npjQHv7KIOw4HPYFAlpcvmYACgkQHv7KIOw4
-HPZUAQf9FJLjMUT/SVkH10O3O8DStSa3JRUSNJaIzNgxV/qbcOZYD4BQrPq015D7
-UXXHIF8dHpDYYlrX7TVQSc5diCY+WQ8RwSS1JBEJyijsh/h5Bww4/2xnai0yz3CF
-EFhbU8Y/4xUwd6YzwknetoccspRYJXomCld59Woneo1C3looaZs0DtiVaulPTfRN
-vZXUzAyf106BhsdMBWGWJACOpWQVIpaWNGuDbLZ08U+b5c3xynZCuHWWHfw9G849
-1ruQyqfgdZ8vvr3usj9UJvsIjjRyuiddJBnBTfIdmgDh8xzall3EhIUVwuYTztNK
-MxXmlnn3uUxN+gNTQ859nuAT9Kc1jw==
-=sXFh
------END PGP SIGNATURE-----
+need to declare num. Maybe better call it nch instead?
 
---BScf6tjhFppgQSnMwIpwgAHu4d7xFcptN--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  		break;
+>  	case OMAP_USBTLL_REV2:
+>  	case OMAP_USBTLL_REV3:
+> -		tll->nch = OMAP_REV2_TLL_CHANNEL_COUNT;
+> +		num = OMAP_REV2_TLL_CHANNEL_COUNT;
+>  		break;
+>  	default:
+> -		tll->nch = OMAP_TLL_CHANNEL_COUNT;
+> +		num = OMAP_TLL_CHANNEL_COUNT;
+>  		dev_dbg(dev,
+>  		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
+> -			ver, tll->nch);
+> +			ver, num);
+>  		break;
+>  	}
+>  
+> -	tll->ch_clk = devm_kzalloc(dev, sizeof(struct clk *) * tll->nch,
+> -						GFP_KERNEL);
+> -	if (!tll->ch_clk) {
+> -		ret = -ENOMEM;
+> -		dev_err(dev, "Couldn't allocate memory for channel clocks\n");
+> -		goto err_clk_alloc;
+> -	}
+> +	tll = devm_kzalloc(dev, sizeof(struct usbtll_omap) + (num * sizeof(...)), GFP_KERNEL);
+
+num * sizeof(tll->ch_clk[0]) ?
+
+> +	if (!tll)
+> +		return -ENOMEM;
+> +
+> +	tll->nch = num;
+> +	tll->base = base;
+> +	platform_set_drvdata(pdev, tll);
+>  
+>  	for (i = 0; i < tll->nch; i++) {
+>  		char clkname[] = "usb_tll_hs_usb_chx_clk";
+> 
+>>  		goto err_clk_alloc;
+>>  	}
+> 
+> What do you think? I'll prepare proper patch in case there's an agreement
+> on above approach.
+
+I think it is a good approach.
+
+> 
+> Best regards,
+> 	ladis
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+-- 
+cheers,
+-roger
+
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
