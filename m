@@ -1,57 +1,152 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [BISECTED] kexec issue with v4.15-rc on N8x0
-Date: Mon, 15 Jan 2018 10:15:08 -0800
-Message-ID: <20180115181508.GM4821@atomide.com>
-References: <20180111194747.k5qwz66mfntj6v2g@darkstar.musicnaut.iki.fi>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [1/3] mfd/omap-usb-tll: Delete two error messages for a failed
+ memory allocation in usbtll_omap_probe()
+Date: Mon, 15 Jan 2018 19:30:59 +0100
+Message-ID: <20180115183059.GA30039@lenoch>
+References: <c048a681-70e4-ecdd-e0f8-48c8f1bb0ac4@users.sourceforge.net>
+ <7719b4e7-1081-6fa4-6f14-f45cf062482d@users.sourceforge.net>
+ <20180115134101.GA6711@lenoch>
+ <1ebb5ac5-aa4d-7c19-94db-210b518d562f@users.sourceforge.net>
+ <20180115160522.GA2672@lenoch>
+ <11eaf92d-3928-531f-35e8-fb5a60ff03e3@users.sourceforge.net>
+ <20180115163543.GA10657@lenoch>
+ <ead577ac-a36b-dfc4-9f2c-3d5f34495d78@users.sourceforge.net>
+ <20180115174122.GA20745@lenoch>
+ <cadb0da1-23d0-f629-8dcf-8d2566058812@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180111194747.k5qwz66mfntj6v2g@darkstar.musicnaut.iki.fi>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Keerthy <j-keerthy@ti.com>, Russell King <rmk+kernel@armlinux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <cadb0da1-23d0-f629-8dcf-8d2566058812@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, Jan 15, 2018 at 07:12:37PM +0100, SF Markus Elfring wrote:
+> Thanks for this clarification. - So I hope that your solution approach
+> will be also fine. Will it supersede my proposal?
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [180111 11:48]:
-> Hi,
-> 
-> When booting v4.15-rc kernel with kexec (kexec-tools 2.0.16) on N8x0, I get:
-> 
->     Uncompressing Linux... done, booting the kernel.
->     no ATAGS support: can't continue
-> 
-> v4.14 kernel works OK.
-> 
-> I bisected this to:
-> 
-> commit c772568788b5f0cbaac7c8d4111d7173bfc90673
-> Author: Russell King <rmk+kernel@armlinux.org.uk>
-> Date:   Thu Sep 21 18:10:19 2017 +0100
-> 
->     ARM: add additional table to compressed kernel
-> 
-> If I revert the commit, kexec booting starts to work. Interesting,
-> the patch mentions "This is necessary for correct behaviour of kexec.",
-> so I wonder what could be wrong...
+Who knows, perhaps it would be the best if you could judge yourself...
 
-So care to post what you get if you load with kexec -d -l options
-before and after this commit?
+8<--------
 
-Also, I wonder if Linux next commit 55e7cff44c7c ("ARM: verify
-size of zImage") helps here?
+Subject: [PATCH] mfd/omap-usb-tll: Allocate driver data at once
 
-Regards,
+Allocating memory to store clk array together with driver
+data simplifies error unwinding and allows deleting memory
+allocation failure message as there is now only single point
+where allocation could fail.
 
-Tony
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ drivers/mfd/omap-usb-tll.c | 57 +++++++++++++++++++---------------------------
+ 1 file changed, 24 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index 44a5d66314c6..f327fe6d3292 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -108,9 +108,9 @@
+ 					 (x) != OMAP_EHCI_PORT_MODE_PHY)
+ 
+ struct usbtll_omap {
+-	int					nch;	/* num. of channels */
+-	struct clk				**ch_clk;
+-	void __iomem				*base;
++	void __iomem	*base;
++	int		nch;		/* num. of channels */
++	struct clk	*ch_clk[0];	/* must be the last member */
+ };
+ 
+ /*-------------------------------------------------------------------------*/
+@@ -216,53 +216,50 @@ static int usbtll_omap_probe(struct platform_device *pdev)
+ 	struct device				*dev =  &pdev->dev;
+ 	struct resource				*res;
+ 	struct usbtll_omap			*tll;
+-	int					ret = 0;
+-	int					i, ver;
++	void __iomem				*base;
++	int					i, nch, ver;
+ 
+ 	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
+ 
+-	tll = devm_kzalloc(dev, sizeof(struct usbtll_omap), GFP_KERNEL);
+-	if (!tll) {
+-		dev_err(dev, "Memory allocation failed\n");
+-		return -ENOMEM;
+-	}
+-
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	tll->base = devm_ioremap_resource(dev, res);
+-	if (IS_ERR(tll->base))
+-		return PTR_ERR(tll->base);
++	base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(base))
++		return PTR_ERR(base);
+ 
+-	platform_set_drvdata(pdev, tll);
+ 	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+ 
+-	ver =  usbtll_read(tll->base, OMAP_USBTLL_REVISION);
++	ver = usbtll_read(base, OMAP_USBTLL_REVISION);
+ 	switch (ver) {
+ 	case OMAP_USBTLL_REV1:
+ 	case OMAP_USBTLL_REV4:
+-		tll->nch = OMAP_TLL_CHANNEL_COUNT;
++		nch = OMAP_TLL_CHANNEL_COUNT;
+ 		break;
+ 	case OMAP_USBTLL_REV2:
+ 	case OMAP_USBTLL_REV3:
+-		tll->nch = OMAP_REV2_TLL_CHANNEL_COUNT;
++		nch = OMAP_REV2_TLL_CHANNEL_COUNT;
+ 		break;
+ 	default:
+-		tll->nch = OMAP_TLL_CHANNEL_COUNT;
++		nch = OMAP_TLL_CHANNEL_COUNT;
+ 		dev_dbg(dev,
+ 		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
+-			ver, tll->nch);
++			ver, nch);
+ 		break;
+ 	}
+ 
+-	tll->ch_clk = devm_kzalloc(dev, sizeof(struct clk *) * tll->nch,
+-						GFP_KERNEL);
+-	if (!tll->ch_clk) {
+-		ret = -ENOMEM;
+-		dev_err(dev, "Couldn't allocate memory for channel clocks\n");
+-		goto err_clk_alloc;
++	tll = devm_kzalloc(dev, sizeof(*tll) + sizeof(tll->ch_clk[nch]),
++			   GFP_KERNEL);
++	if (!tll) {
++		pm_runtime_put_sync(dev);
++		pm_runtime_disable(dev);
++		return -ENOMEM;
+ 	}
+ 
+-	for (i = 0; i < tll->nch; i++) {
++	tll->base = base;
++	tll->nch = nch;
++	platform_set_drvdata(pdev, tll);
++
++	for (i = 0; i < nch; i++) {
+ 		char clkname[] = "usb_tll_hs_usb_chx_clk";
+ 
+ 		snprintf(clkname, sizeof(clkname),
+@@ -282,12 +279,6 @@ static int usbtll_omap_probe(struct platform_device *pdev)
+ 	spin_unlock(&tll_lock);
+ 
+ 	return 0;
+-
+-err_clk_alloc:
+-	pm_runtime_put_sync(dev);
+-	pm_runtime_disable(dev);
+-
+-	return ret;
+ }
+ 
+ /**
+-- 
+2.15.1
