@@ -1,76 +1,125 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v8 0/5] Add MCAN Support for Dra76 platform
-Date: Tue, 16 Jan 2018 15:12:50 +0100
-Message-ID: <74709ad4-4ee2-2746-7d64-2db084428804@pengutronix.de>
-References: <1516102634-6771-1-git-send-email-faiz_abbas@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] reset: ti-rstctrl: use the reset-simple driver
+Date: Tue, 16 Jan 2018 07:03:14 -0800
+Message-ID: <20180116150314.GC4042@atomide.com>
+References: <20180116011159.1386-1-tony@atomide.com>
+ <1516095054.9022.1.camel@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="oJeuVBnE2j2EU0abIT5fLVjpNWaQm53dX"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1516102634-6771-1-git-send-email-faiz_abbas@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1516095054.9022.1.camel@pengutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>, wg@grandegger.com, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, fcooper@ti.com, robh@kernel.org, Wenyou.Yang@microchip.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, b29396@freescale.com
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, linux-omap@vger.kernel.org, Dave Gerlach <d-gerlach@ti.com>, Mark Rutland <mark.rutland@arm.com>, Nishant Menon <nm@ti.com>, Rob Herring <robh+dt@kernel.org>, Suman Anna <s-anna@ti.com>, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---oJeuVBnE2j2EU0abIT5fLVjpNWaQm53dX
-Content-Type: multipart/mixed; boundary="DEp7qNhuC8uJxZjT8eu4SVRZ9mUvaN0JJ";
- protected-headers="v1"
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-To: Faiz Abbas <faiz_abbas@ti.com>, wg@grandegger.com, robh+dt@kernel.org,
- mark.rutland@arm.com
-Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com,
- fcooper@ti.com, robh@kernel.org, Wenyou.Yang@microchip.com,
- sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org,
- b29396@freescale.com
-Message-ID: <74709ad4-4ee2-2746-7d64-2db084428804@pengutronix.de>
-Subject: Re: [PATCH v8 0/5] Add MCAN Support for Dra76 platform
-References: <1516102634-6771-1-git-send-email-faiz_abbas@ti.com>
-In-Reply-To: <1516102634-6771-1-git-send-email-faiz_abbas@ti.com>
+Hi,
 
---DEp7qNhuC8uJxZjT8eu4SVRZ9mUvaN0JJ
-Content-Type: text/plain; charset=utf-8
-Content-Language: de-DE
-Content-Transfer-Encoding: quoted-printable
+* Philipp Zabel <p.zabel@pengutronix.de> [180116 09:52]:
+> On Mon, 2018-01-15 at 17:11 -0800, Tony Lindgren wrote:
+> > +Example:
+> > +
+> > +	prcm: prcm@200000 {
+> > +		compatible = "ti,am3-prcm", "simple-bus";
+> > +		reg = <0x200000 0x4000>;
+> > +		#address-cells = <1>;
+> > +		#size-cells = <1>;
+> > +		ranges = <0 0x200000 0x4000>;
+> > +
+> > +		prm_gfx: prm@1100 {
+> > +			compatible = "simple-bus";
+> > +			#address-cells = <1>;
+> > +			#size-cells = <1>;
+> > +			ranges = <0 0x1100 0x100>;
+> > +
+> > +			gfx_rstctrl: rstctrl@4 {
+>    			,->
+> > +			|	reg = <0x4 0x4>;
+> > +			|	#reset-cells = <1>;
+> > +			`--	compatible = "ti,rstctrl";
+> 
+> Looks good to me. Can I move the compatible property when applying?
 
-On 01/16/2018 12:37 PM, Faiz Abbas wrote:
-> This patch series adds support for M_CAN on the TI Dra76
-> platform. Device tree patches will be sent separately.
-> A bunch of patches were sent before by
-> Franklin Cooper <fcooper@ti.com>. I have clubbed the
-> series together and rebased to the latest kernel.
+Oops, here's a better version. I also left out the "prcm" part as
+at some point that should have just ranges instead of both reg and
+ranges that it currently has.
 
-Added all remaining patches to linux-can-next/testing.
+Regards,
 
-Marc
+Tony
 
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+8< -----------------------
+>From tony Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 15 Jan 2018 15:25:54 -0800
+Subject: [PATCHv2] reset: ti-rstctrl: use the reset-simple driver
 
+We can support the RSTCTRL reset registers on many TI SoCs with
+reset-simple.
 
---DEp7qNhuC8uJxZjT8eu4SVRZ9mUvaN0JJ--
+Cc: Dave Gerlach <d-gerlach@ti.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Nishant Menon <nm@ti.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Suman Anna <s-anna@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ .../devicetree/bindings/reset/ti-rstctrl.txt         | 20 ++++++++++++++++++++
+ drivers/reset/Kconfig                                |  2 +-
+ drivers/reset/reset-simple.c                         |  1 +
+ 3 files changed, 22 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/reset/ti-rstctrl.txt
 
---oJeuVBnE2j2EU0abIT5fLVjpNWaQm53dX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCgAdFiEE4bay/IylYqM/npjQHv7KIOw4HPYFAlpeCGIACgkQHv7KIOw4
-HPYR1AgAszSO33+zQCHHkdeU5tAOAaisn7wEBvc26TkEYLODnxf3nL9U/fIFmBK5
-FicME4toqgAxjrWIwDLufmxHR+niOSirAm7KyFpcEwhgDj3rzyXoGTg5Ak633hjp
-NUEsTPkl2vZrYuLKiDFE3S5l0DP84bJdHhVF6pCH300P24+hXftOfo11KNwf0BGw
-dECqpCz1Uk2zZryHTKiSC1hzr1FevsipG2nlaXbD03u19d6l1Ldsdfbg8oDtZkWR
-IstVQY+hUwqdp29pS+LTlCc3n38pvsbSiZh7OukrnMCUgwyEjnIaBn7+JFEB6j25
-srntsZiMywScm/KeSAqBTUvPsl2uQQ==
-=+pv+
------END PGP SIGNATURE-----
-
---oJeuVBnE2j2EU0abIT5fLVjpNWaQm53dX--
+diff --git a/Documentation/devicetree/bindings/reset/ti-rstctrl.txt b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+new file mode 100644
+--- /dev/null
++++ b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+@@ -0,0 +1,20 @@
++TI RSTCTRL Reset Controller
++
++Required properties:
++- compatible : "ti,rstctrl"
++- reg : Should contain 1 register ranges(address and length)
++- #reset-cells: 1
++
++Example:
++	prm_gfx: prm@1100 {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x1100 0x100>;
++
++		gfx_rstctrl: rstctrl@4 {
++			compatible = "ti,rstctrl";
++			reg = <0x4 0x4>;
++			#reset-cells = <1>;
++		};
++	};
+diff --git a/drivers/reset/Kconfig b/drivers/reset/Kconfig
+--- a/drivers/reset/Kconfig
++++ b/drivers/reset/Kconfig
+@@ -83,7 +83,7 @@ config RESET_PISTACHIO
+ 
+ config RESET_SIMPLE
+ 	bool "Simple Reset Controller Driver" if COMPILE_TEST
+-	default ARCH_SOCFPGA || ARCH_STM32 || ARCH_STRATIX10 || ARCH_SUNXI || ARCH_ZX
++	default ARCH_OMAP2PLUS || ARCH_SOCFPGA || ARCH_STM32 || ARCH_STRATIX10 || ARCH_SUNXI || ARCH_ZX
+ 	help
+ 	  This enables a simple reset controller driver for reset lines that
+ 	  that can be asserted and deasserted by toggling bits in a contiguous,
+diff --git a/drivers/reset/reset-simple.c b/drivers/reset/reset-simple.c
+--- a/drivers/reset/reset-simple.c
++++ b/drivers/reset/reset-simple.c
+@@ -123,6 +123,7 @@ static const struct of_device_id reset_simple_dt_ids[] = {
+ 	{ .compatible = "st,stm32-rcc", },
+ 	{ .compatible = "allwinner,sun6i-a31-clock-reset",
+ 		.data = &reset_simple_active_low },
++	{ .compatible = "ti,rstctrl", },
+ 	{ .compatible = "zte,zx296718-reset",
+ 		.data = &reset_simple_active_low },
+ 	{ /* sentinel */ },
+-- 
+2.15.0
