@@ -1,65 +1,74 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v8 4/5] can: m_can: Add PM Support
-Date: Tue, 16 Jan 2018 13:57:40 +0100
-Message-ID: <1b879e98-27a9-8117-c159-5473917a20cb@pengutronix.de>
+From: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH v8 3/5] can: m_can: Move allocation of net device to probe
+Date: Tue, 16 Jan 2018 14:03:04 +0100
+Message-ID: <caa11848-3c69-1229-e4b8-09e51cebe739@pengutronix.de>
 References: <1516102634-6771-1-git-send-email-faiz_abbas@ti.com>
- <1516102634-6771-5-git-send-email-faiz_abbas@ti.com>
+ <1516102634-6771-4-git-send-email-faiz_abbas@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
  protocol="application/pgp-signature";
- boundary="fQSy1vzTJjVNAfH6cYSVa7y0OuKculnJY"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1516102634-6771-5-git-send-email-faiz_abbas@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: Faiz Abbas <faiz_abbas@ti.com>, wg@grandegger.com, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, fcooper@ti.com, robh@kernel.org, Wenyou.Yang@microchip.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, b29396@freescale.com
+ boundary="o1aPLotbbMXjHPp2RnqVJj2cKZ75drpM8"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1516102634-6771-4-git-send-email-faiz_abbas-l0cyMroinI0@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>, wg-5Yr1BZd7O62+XT7JhA+gdA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org
+Cc: linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, fcooper-l0cyMroinI0@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Wenyou.Yang-UWL1GkI3JZL3oGB3hsPCZA@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b29396-KZfg59tc24xl57MIdRCFDg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---fQSy1vzTJjVNAfH6cYSVa7y0OuKculnJY
-Content-Type: multipart/mixed; boundary="4OZu2jG835O6G0odgoyMGDSztj1ZXGCuF";
+--o1aPLotbbMXjHPp2RnqVJj2cKZ75drpM8
+Content-Type: multipart/mixed; boundary="zXE1HVfUEdOMgWGlHp6qV7D56LI6xAhSz";
  protected-headers="v1"
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-To: Faiz Abbas <faiz_abbas@ti.com>, wg@grandegger.com, robh+dt@kernel.org,
- mark.rutland@arm.com
-Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org,
- devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com,
- fcooper@ti.com, robh@kernel.org, Wenyou.Yang@microchip.com,
- sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org,
- b29396@freescale.com
-Message-ID: <1b879e98-27a9-8117-c159-5473917a20cb@pengutronix.de>
-Subject: Re: [PATCH v8 4/5] can: m_can: Add PM Support
-References: <1516102634-6771-1-git-send-email-faiz_abbas@ti.com>
- <1516102634-6771-5-git-send-email-faiz_abbas@ti.com>
-In-Reply-To: <1516102634-6771-5-git-send-email-faiz_abbas@ti.com>
+From: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+To: Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>, wg-5Yr1BZd7O62+XT7JhA+gdA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org,
+ mark.rutland-5wv7dgnIgG8@public.gmane.org
+Cc: linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org,
+ fcooper-l0cyMroinI0@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Wenyou.Yang-UWL1GkI3JZL3oGB3hsPCZA@public.gmane.org,
+ sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ b29396-KZfg59tc24xl57MIdRCFDg@public.gmane.org
+Message-ID: <caa11848-3c69-1229-e4b8-09e51cebe739-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH v8 3/5] can: m_can: Move allocation of net device to probe
+References: <1516102634-6771-1-git-send-email-faiz_abbas-l0cyMroinI0@public.gmane.org>
+ <1516102634-6771-4-git-send-email-faiz_abbas-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1516102634-6771-4-git-send-email-faiz_abbas-l0cyMroinI0@public.gmane.org>
 
---4OZu2jG835O6G0odgoyMGDSztj1ZXGCuF
+--zXE1HVfUEdOMgWGlHp6qV7D56LI6xAhSz
 Content-Type: text/plain; charset=utf-8
 Content-Language: de-DE
 Content-Transfer-Encoding: quoted-printable
 
 On 01/16/2018 12:37 PM, Faiz Abbas wrote:
-> Add support for CONFIG_PM which is the new way to handle managing clock=
-s.
->=20
-> Move the clock management to pm_runtime_resume() and pm_runtime_suspend=
-()
-> callbacks for the driver.
->=20
-> CONFIG_PM is required by OMAP based devices to handle clock management.=
+> With the version no longer required to allocate the net device, it can
+> be moved to probe and the alloc_m_can_dev() function can be simplified.=
 
-> Therefore, this allows future Texas Instruments SoCs that have the MCAN=
- IP
-> to work with this driver.
 >=20
-> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+> Therefore, move the allocation of net device to probe and change
+> alloc_m_can_dev() to setup_m_can_dev().
+>=20
+> Signed-off-by: Faiz Abbas <faiz_abbas-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/net/can/m_can/m_can.c | 30 +++++++++++++-----------------
+>  1 file changed, 13 insertions(+), 17 deletions(-)
+>=20
+> diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_ca=
+n.c
+> index 893edbb..ebb74de 100644
+> --- a/drivers/net/can/m_can/m_can.c
+> +++ b/drivers/net/can/m_can/m_can.c
+> @@ -1207,25 +1207,20 @@ static bool m_can_niso_supported(const struct m=
+_can_priv *priv)
+>  	return !niso_timeout;
+>  }
+> =20
+> -static struct net_device *alloc_m_can_dev(struct platform_device *pdev=
+,
+> -					  void __iomem *addr, u32 tx_fifo_size)
+> +static int setup_m_can_dev(struct platform_device *pdev, struct net_de=
+vice *dev,
+> +			   void __iomem *addr)
 
-Fixed this while applying:
-
-drivers/net/can/m_can/m_can.c:1752:5: warning: symbol
-'m_can_runtime_suspend' was not declared. Should it be static?
-drivers/net/can/m_can/m_can.c:1763:5: warning: symbol
-'m_can_runtime_resume' was not declared. Should it be static?
+Renamed to m_can_dev_setup() for consistent namespace.
 
 Marc
 
@@ -70,23 +79,27 @@ Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
 Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
 
---4OZu2jG835O6G0odgoyMGDSztj1ZXGCuF--
+--zXE1HVfUEdOMgWGlHp6qV7D56LI6xAhSz--
 
---fQSy1vzTJjVNAfH6cYSVa7y0OuKculnJY
+--o1aPLotbbMXjHPp2RnqVJj2cKZ75drpM8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAEBCgAdFiEE4bay/IylYqM/npjQHv7KIOw4HPYFAlpd9sQACgkQHv7KIOw4
-HPZA1AgAlnOPlE2m2BYrMFtembhrq6db/OpAeDdbmoJZqz3FHhKXx6dT7YMqfQhE
-/PYFvJOgqScwWOpvx+KCW8B4URx9lQfvqbCGPFpQUu2+R4SvEL/0doLmG9GZZFAf
-pY3fjzuDKOfTzjTjopXFpEzfZiAB4Y2dqdm2X0RuCsfw9odzOCbYzxxKY/JKGgvo
-gxtEA82IzhjBktjRVA774p8+DPR2rVaXaBLE6ZZ+T0Bm0FaOuSUtMN2rAOqlcO/v
-QDmA+CBU7ljsnWRNWchnCWdnZ4Axi5zkv37c0dfMrzmWpzz+UlJjcQWGt6K/+d9C
-0IOsrDxH0JgC+9SvxbSTFhCSZ0sj1A==
-=/3d8
+iQEzBAEBCgAdFiEE4bay/IylYqM/npjQHv7KIOw4HPYFAlpd+AgACgkQHv7KIOw4
+HPaqDAf/bOYg93siMGmH8x6OFZncBB3PXfr0LyBUF45Nz/IbYHE7WCQhEwgsDNi3
+Ionl8CtPmnWjEnfCrDdcXHZVMoGocT5ASV3RJPK+k0qOxWdnOrltbGODhd06HMxf
+HttRQ0DxtBXFbo2gZLkyA6LpFcH5Smr9Ks5MQWuOQawAJguZvmNck9rQexdeVppf
+2WYzbc1+mSVGKYWvLgTaG1t7/JFxlyhPwb6fRf9gZmsNkaYiH4qOeMSDufFI3GhC
+whdW2GDmqVja2Z81blPeId7/T5lITPdRAPStrnOLY9vnsFAnP4SnD11CAOeHzspo
+MNyesZr5VUis4FQw/2+onntuAG3R5A==
+=uwMT
 -----END PGP SIGNATURE-----
 
---fQSy1vzTJjVNAfH6cYSVa7y0OuKculnJY--
+--o1aPLotbbMXjHPp2RnqVJj2cKZ75drpM8--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
