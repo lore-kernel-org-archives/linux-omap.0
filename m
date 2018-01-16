@@ -1,55 +1,33 @@
-From: Faiz Abbas <faiz_abbas@ti.com>
-Subject: [PATCH v8 1/5] dt-bindings: can: m_can: Document new can transceiver binding
-Date: Tue, 16 Jan 2018 17:07:10 +0530
-Message-ID: <1516102634-6771-2-git-send-email-faiz_abbas@ti.com>
-References: <1516102634-6771-1-git-send-email-faiz_abbas@ti.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/4] mfd/tps65910: Adjustments for four function
+ implementations
+Date: Tue, 16 Jan 2018 12:57:45 +0100
+Message-ID: <a524388f-a56d-c2f3-9ec3-fd6343062aad@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1516102634-6771-1-git-send-email-faiz_abbas@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, faiz_abbas@ti.com, nsekhar@ti.com, fcooper@ti.com, robh@kernel.org, Wenyou.Yang@microchip.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, b29396@freescale.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Language: en-GB
+Sender: kernel-janitors-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Tony Lindgren <tony@atomide.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Franklin S Cooper Jr <fcooper@ti.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 16 Jan 2018 12:54:32 +0100
 
-Add information regarding can-transceiver binding. This is especially
-important for MCAN since the IP allows CAN FD mode to run significantly
-faster than what most transceivers are capable of.
+A few update suggestions were taken into account
+from static source code analysis.
 
-Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
-Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
----
- Documentation/devicetree/bindings/net/can/m_can.txt | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Markus Elfring (4):
+  Delete an error message for a failed memory allocation in tps65910_parse_dt()
+  Delete an unnecessary variable initialisation in four functions
+  Delete an unnecessary variable initialisation in tps65910_sleepinit()
+  Move an assignment in tps65910_sleepinit()
 
-diff --git a/Documentation/devicetree/bindings/net/can/m_can.txt b/Documentation/devicetree/bindings/net/can/m_can.txt
-index 63e9042..ed61438 100644
---- a/Documentation/devicetree/bindings/net/can/m_can.txt
-+++ b/Documentation/devicetree/bindings/net/can/m_can.txt
-@@ -43,6 +43,11 @@ Required properties:
- 			  Please refer to 2.4.1 Message RAM Configuration in
- 			  Bosch M_CAN user manual for details.
- 
-+Optional Subnode:
-+- can-transceiver	: Can-transceiver subnode describing maximum speed
-+			  that can be used for CAN/CAN-FD modes. See
-+			  Documentation/devicetree/bindings/net/can/can-transceiver.txt
-+			  for details.
- Example:
- SoC dtsi:
- m_can1: can@20e8000 {
-@@ -63,4 +68,8 @@ Board dts:
- 	pinctrl-names = "default";
- 	pinctrl-0 = <&pinctrl_m_can1>;
- 	status = "enabled";
-+
-+	can-transceiver {
-+		max-bitrate = <5000000>;
-+	};
- };
+ drivers/mfd/tps65910.c | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
+
 -- 
-2.7.4
+2.15.1
+
