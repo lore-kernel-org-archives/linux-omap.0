@@ -1,47 +1,110 @@
-From: Manu Gautam <mgautam@codeaurora.org>
-Subject: Re: [RESEND PATCH 1/3] usb: dwc3: Don't reinitialize core during host
- bus-suspend/resume
-Date: Tue, 16 Jan 2018 12:06:28 +0530
-Message-ID: <05b7a9d6-0b52-5650-1812-359e0b6c5ea4@codeaurora.org>
-References: <1506511163-26026-1-git-send-email-mgautam@codeaurora.org>
- <6b0ceec7-7620-3d03-ad43-6dca7cbca3e8@ti.com>
- <33b22192-1216-a9be-3cb5-d5bc480b4003@codeaurora.org>
- <50a99a20-6c7f-de39-8173-18e5ce4881a1@ti.com>
+From: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] reset: ti-rstctrl: use the reset-simple driver
+Date: Tue, 16 Jan 2018 08:50:52 +0200
+Message-ID: <77e146f7-4431-8ce6-6299-330f052bebe0@ti.com>
+References: <20180116011159.1386-1-tony@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50a99a20-6c7f-de39-8173-18e5ce4881a1@ti.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180116011159.1386-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@kernel.org>
-Cc: linux-arm-msm@vger.kernel.org, linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, open list <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Philipp Zabel <philipp.zabel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Parsons <lost.distance-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishant Menon <nm-l0cyMroinI0@public.gmane.org>, Philipp Zabel <p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Roger,
+On 16/01/18 03:11, Tony Lindgren wrote:
+> We can support the RSTCTRL reset registers on many TI SoCs with
+> reset-simple.
+> 
+> Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
+> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+> Cc: Nishant Menon <nm-l0cyMroinI0@public.gmane.org>
+> Cc: Philipp Zabel <p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
+> Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+> 
+> That's all there is to it :) Naturally this can wait for v4.17
+> if necessary.
 
+Thats pretty neat. :)
 
-On 1/15/2018 9:10 PM, Roger Quadros wrote:
-> Hi Manu,
-[snip]
->> I think it will be better to separate runtime_suspend and pm_suspend handling for
->> host mode in dwc3. Powering offf/on PHYs and dwc3_core_exit/init across system
->> suspend-resume should be ok but doing that for runtime suspend-resume is not
->> correct.
->> Let me know if that sounds ok, I can provide a patch for same instead of
->> reverting this which affects runtime PM with dwc3 host.
->> Also, we need to consider dwc3 in Host mode with dr_mode as DRD/OTG similar to
->> dr_mode as HOST.
->>
->>
-> Are you going to provide a patch for this any time soon?
->
-> FYI, suspend/resume is broken on DRA7x with Dual-role while in host mode.
->
+-Tero
 
-Posted following patch: https://patchwork.kernel.org/patch/10166077/
-Let me know if this works for you.
+> 
+> ---
+>   .../devicetree/bindings/reset/ti-rstctrl.txt       | 29 ++++++++++++++++++++++
+>   drivers/reset/Kconfig                              |  2 +-
+>   drivers/reset/reset-simple.c                       |  1 +
+>   3 files changed, 31 insertions(+), 1 deletion(-)
+>   create mode 100644 Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/reset/ti-rstctrl.txt b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+> new file mode 100644
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
+> @@ -0,0 +1,29 @@
+> +TI RSTCTRL Reset Controller
+> +
+> +Required properties:
+> +- compatible : "ti,rstctrl"
+> +- reg : Should contain 1 register ranges(address and length)
+> +- #reset-cells: 1
+> +
+> +Example:
+> +
+> +	prcm: prcm@200000 {
+> +		compatible = "ti,am3-prcm", "simple-bus";
+> +		reg = <0x200000 0x4000>;
+> +		#address-cells = <1>;
+> +		#size-cells = <1>;
+> +		ranges = <0 0x200000 0x4000>;
+> +
+> +		prm_gfx: prm@1100 {
+> +			compatible = "simple-bus";
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges = <0 0x1100 0x100>;
+> +
+> +			gfx_rstctrl: rstctrl@4 {
+> +				reg = <0x4 0x4>;
+> +				#reset-cells = <1>;
+> +				compatible = "ti,rstctrl";
+> +			};
+> +		};
+> +	};
+> diff --git a/drivers/reset/Kconfig b/drivers/reset/Kconfig
+> --- a/drivers/reset/Kconfig
+> +++ b/drivers/reset/Kconfig
+> @@ -83,7 +83,7 @@ config RESET_PISTACHIO
+>   
+>   config RESET_SIMPLE
+>   	bool "Simple Reset Controller Driver" if COMPILE_TEST
+> -	default ARCH_SOCFPGA || ARCH_STM32 || ARCH_STRATIX10 || ARCH_SUNXI || ARCH_ZX
+> +	default ARCH_OMAP2PLUS || ARCH_SOCFPGA || ARCH_STM32 || ARCH_STRATIX10 || ARCH_SUNXI || ARCH_ZX
+>   	help
+>   	  This enables a simple reset controller driver for reset lines that
+>   	  that can be asserted and deasserted by toggling bits in a contiguous,
+> diff --git a/drivers/reset/reset-simple.c b/drivers/reset/reset-simple.c
+> --- a/drivers/reset/reset-simple.c
+> +++ b/drivers/reset/reset-simple.c
+> @@ -123,6 +123,7 @@ static const struct of_device_id reset_simple_dt_ids[] = {
+>   	{ .compatible = "st,stm32-rcc", },
+>   	{ .compatible = "allwinner,sun6i-a31-clock-reset",
+>   		.data = &reset_simple_active_low },
+> +	{ .compatible = "ti,rstctrl", },
+>   	{ .compatible = "zte,zx296718-reset",
+>   		.data = &reset_simple_active_low },
+>   	{ /* sentinel */ },
+> 
 
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+--
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
