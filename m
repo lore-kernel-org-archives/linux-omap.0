@@ -1,109 +1,161 @@
-From: Philipp Zabel <p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH] reset: ti-rstctrl: use the reset-simple driver
-Date: Tue, 16 Jan 2018 10:30:54 +0100
-Message-ID: <1516095054.9022.1.camel@pengutronix.de>
-References: <20180116011159.1386-1-tony@atomide.com>
+From: Faiz Abbas <faiz_abbas@ti.com>
+Subject: Re: [PATCH v7 5/8] can: m_can: Add PM Support
+Date: Tue, 16 Jan 2018 16:35:31 +0530
+Message-ID: <e451bf68-051e-31dd-c456-7a76aa5c011f@ti.com>
+References: <1515581725-29242-1-git-send-email-faiz_abbas@ti.com>
+ <1515581725-29242-6-git-send-email-faiz_abbas@ti.com>
+ <a94cf10c-b40d-9e2e-a4cd-f7e5d0399530@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180116011159.1386-1-tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Philipp Zabel <philipp.zabel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Parsons <lost.distance-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Nishant Menon <nm-l0cyMroinI0@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <a94cf10c-b40d-9e2e-a4cd-f7e5d0399530@pengutronix.de>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>, wg@grandegger.com, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: linux-can@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, nsekhar@ti.com, fcooper@ti.com, robh@kernel.org, Wenyou.Yang@microchip.com, sergei.shtylyov@cogentembedded.com, linux-omap@vger.kernel.org, b29396@freescale.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi,
 
-On Mon, 2018-01-15 at 17:11 -0800, Tony Lindgren wrote:
-> We can support the RSTCTRL reset registers on many TI SoCs with
-> reset-simple.
+On Monday 15 January 2018 07:25 PM, Marc Kleine-Budde wrote:
+> On 01/10/2018 11:55 AM, Faiz Abbas wrote:
+>> From: Franklin S Cooper Jr <fcooper@ti.com>
+>>
+>> Add support for CONFIG_PM which is the new way to handle managing clocks.
+>>
+>> Move the clock management to pm_runtime_resume() and pm_runtime_suspend()
+>> callbacks for the driver.
+>>
+>> CONFIG_PM is required by OMAP based devices to handle clock management.
+>> Therefore, this allows future Texas Instruments SoCs that have the MCAN IP
+>> to work with this driver.
+>>
+>> Reviewed-by: Suman Anna <s-anna@ti.com>
+>> Signed-off-by: Franklin S Cooper Jr <fcooper@ti.com>
+>> [nsekhar@ti.com: handle pm_runtime_get_sync() failure, fix some bugs]
+>> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+>> Signed-off-by: Faiz Abbas <faiz_abbas@ti.com>
+>> ---
+>>  drivers/net/can/m_can/m_can.c | 95 ++++++++++++++++++++++++++++---------------
+>>  1 file changed, 62 insertions(+), 33 deletions(-)
+>>
+>> diff --git a/drivers/net/can/m_can/m_can.c b/drivers/net/can/m_can/m_can.c
+>> index 07ebe7f..f5c5028 100644
+>> --- a/drivers/net/can/m_can/m_can.c
+>> +++ b/drivers/net/can/m_can/m_can.c
+>> @@ -23,6 +23,7 @@
+>>  #include <linux/of.h>
+>>  #include <linux/of_device.h>
+>>  #include <linux/platform_device.h>
+>> +#include <linux/pm_runtime.h>
+>>  #include <linux/iopoll.h>
+>>  #include <linux/can/dev.h>
+>>  
+>> @@ -625,21 +626,16 @@ static int m_can_clk_start(struct m_can_priv *priv)
+>>  {
+>>  	int err;
+>>  
+>> -	err = clk_prepare_enable(priv->hclk);
+>> -	if (err)
+>> -		return err;
+>> -
+>> -	err = clk_prepare_enable(priv->cclk);
+>> +	err = pm_runtime_get_sync(priv->device);
+>>  	if (err)
+>> -		clk_disable_unprepare(priv->hclk);
+>> +		pm_runtime_put_noidle(priv->device);
+>>  
+>>  	return err;
+>>  }
+>>  
+>>  static void m_can_clk_stop(struct m_can_priv *priv)
+>>  {
+>> -	clk_disable_unprepare(priv->cclk);
+>> -	clk_disable_unprepare(priv->hclk);
+>> +	pm_runtime_put_sync(priv->device);
+>>  }
+>>  
+>>  static int m_can_get_berr_counter(const struct net_device *dev,
+>> @@ -1561,37 +1557,26 @@ static int m_can_plat_probe(struct platform_device *pdev)
+>>  		goto failed_ret;
+>>  	}
+>>  
+>> -	/* Enable clocks. Necessary to read Core Release in order to determine
+>> -	 * M_CAN version
+>> -	 */
+>> -	ret = clk_prepare_enable(hclk);
+>> -	if (ret)
+>> -		goto disable_hclk_ret;
+>> -
+>> -	ret = clk_prepare_enable(cclk);
+>> -	if (ret)
+>> -		goto disable_cclk_ret;
+>> -
+>>  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "m_can");
+>>  	addr = devm_ioremap_resource(&pdev->dev, res);
+>>  	irq = platform_get_irq_byname(pdev, "int0");
+>>  
+>>  	if (IS_ERR(addr) || irq < 0) {
+>>  		ret = -EINVAL;
+>> -		goto disable_cclk_ret;
+>> +		goto failed_ret;
+>>  	}
+>>  
+>>  	/* message ram could be shared */
+>>  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "message_ram");
+>>  	if (!res) {
+>>  		ret = -ENODEV;
+>> -		goto disable_cclk_ret;
+>> +		goto failed_ret;
+>>  	}
+>>  
+>>  	mram_addr = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+>>  	if (!mram_addr) {
+>>  		ret = -ENOMEM;
+>> -		goto disable_cclk_ret;
+>> +		goto failed_ret;
+>>  	}
+>>  
+>>  	/* get message ram configuration */
+>> @@ -1600,7 +1585,7 @@ static int m_can_plat_probe(struct platform_device *pdev)
+>>  					 sizeof(mram_config_vals) / 4);
+>>  	if (ret) {
+>>  		dev_err(&pdev->dev, "Could not get Message RAM configuration.");
+>> -		goto disable_cclk_ret;
+>> +		goto failed_ret;
+>>  	}
+>>  
+>>  	/* Get TX FIFO size
+>> @@ -1612,13 +1597,9 @@ static int m_can_plat_probe(struct platform_device *pdev)
+>>  	dev = alloc_candev(sizeof(*priv), tx_fifo_size);
+>>  	if (!dev) {
+>>  		ret = -ENOMEM;
+>> -		goto disable_cclk_ret;
+>> +		goto failed_ret;
+>>  	}
+>>  
+>> -	ret = setup_m_can_dev(pdev, dev, addr);
+>> -	if (ret)
+>> -		goto disable_cclk_ret;
+>> -
+>>  	priv = netdev_priv(dev);
+>>  	dev->irq = irq;
+>>  	priv->device = &pdev->dev;
+>> @@ -1632,6 +1613,20 @@ static int m_can_plat_probe(struct platform_device *pdev)
+>>  	platform_set_drvdata(pdev, dev);
+>>  	SET_NETDEV_DEV(dev, &pdev->dev);
+>>  
+>> +	/* Enable clocks. Necessary to read Core Release in order to determine
+>> +	 * M_CAN version
+>> +	 */
+>> +	pm_runtime_enable(&pdev->dev);
+>> +	ret = pm_runtime_get_sync(&pdev->dev);
 > 
-> Cc: Dave Gerlach <d-gerlach-l0cyMroinI0@public.gmane.org>
-> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-> Cc: Nishant Menon <nm-l0cyMroinI0@public.gmane.org>
-> Cc: Philipp Zabel <p.zabel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Suman Anna <s-anna-l0cyMroinI0@public.gmane.org>
-> Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
+> Why don't you make use of m_can_clk_start() here?
 > 
-> That's all there is to it :) Naturally this can wait for v4.17
-> if necessary.
-> 
-> ---
->  .../devicetree/bindings/reset/ti-rstctrl.txt       | 29 ++++++++++++++++++++++
->  drivers/reset/Kconfig                              |  2 +-
->  drivers/reset/reset-simple.c                       |  1 +
->  3 files changed, 31 insertions(+), 1 deletion(-)
->  create mode 100644 Documentation/devicetree/bindings/reset/ti-rstctrl.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/reset/ti-rstctrl.txt b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
-> new file mode 100644
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/reset/ti-rstctrl.txt
-> @@ -0,0 +1,29 @@
-> +TI RSTCTRL Reset Controller
-> +
-> +Required properties:
-> +- compatible : "ti,rstctrl"
-> +- reg : Should contain 1 register ranges(address and length)
-> +- #reset-cells: 1
-> +
-> +Example:
-> +
-> +	prcm: prcm@200000 {
-> +		compatible = "ti,am3-prcm", "simple-bus";
-> +		reg = <0x200000 0x4000>;
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +		ranges = <0 0x200000 0x4000>;
-> +
-> +		prm_gfx: prm@1100 {
-> +			compatible = "simple-bus";
-> +			#address-cells = <1>;
-> +			#size-cells = <1>;
-> +			ranges = <0 0x1100 0x100>;
-> +
-> +			gfx_rstctrl: rstctrl@4 {
-   			,->
-> +			|	reg = <0x4 0x4>;
-> +			|	#reset-cells = <1>;
-> +			`--	compatible = "ti,rstctrl";
 
-Looks good to me. Can I move the compatible property when applying?
+Sure. Will replace.
 
-> +			};
-> +		};
-> +	};
-> diff --git a/drivers/reset/Kconfig b/drivers/reset/Kconfig
-> --- a/drivers/reset/Kconfig
-> +++ b/drivers/reset/Kconfig
-> @@ -83,7 +83,7 @@ config RESET_PISTACHIO
->  
->  config RESET_SIMPLE
->  	bool "Simple Reset Controller Driver" if COMPILE_TEST
-> -	default ARCH_SOCFPGA || ARCH_STM32 || ARCH_STRATIX10 || ARCH_SUNXI || ARCH_ZX
-> +	default ARCH_OMAP2PLUS || ARCH_SOCFPGA || ARCH_STM32 || ARCH_STRATIX10 || ARCH_SUNXI || ARCH_ZX
->  	help
->  	  This enables a simple reset controller driver for reset lines that
->  	  that can be asserted and deasserted by toggling bits in a contiguous,
-> diff --git a/drivers/reset/reset-simple.c b/drivers/reset/reset-simple.c
-> --- a/drivers/reset/reset-simple.c
-> +++ b/drivers/reset/reset-simple.c
-> @@ -123,6 +123,7 @@ static const struct of_device_id reset_simple_dt_ids[] = {
->  	{ .compatible = "st,stm32-rcc", },
->  	{ .compatible = "allwinner,sun6i-a31-clock-reset",
->  		.data = &reset_simple_active_low },
-> +	{ .compatible = "ti,rstctrl", },
->  	{ .compatible = "zte,zx296718-reset",
->  		.data = &reset_simple_active_low },
->  	{ /* sentinel */ },
-
-regards
-Philipp
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Faiz
