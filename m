@@ -1,108 +1,49 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: PM regression in next
-Date: Wed, 17 Jan 2018 11:47:19 +0200
-Message-ID: <e168493c-c1db-07e5-a33b-faa447e22f4a@ti.com>
-References: <20180112221126.GK21458@sirena.org.uk>
- <20180112224959.GH4821@atomide.com> <20180112225947.GL21458@sirena.org.uk>
- <87wp0jzyig.wl%kuninori.morimoto.gx@renesas.com>
- <20180115165050.GJ4821@atomide.com> <20180115171917.GB12018@sirena.org.uk>
- <20180115175220.GK4821@atomide.com> <20180115175626.GC12018@sirena.org.uk>
- <20180115180626.GL4821@atomide.com> <20180115181352.GD12018@sirena.org.uk>
- <20180115185525.GA4042@atomide.com>
+From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Subject: [PATCH v2] usb: ehci-omap: don't complain on -EPROBE_DEFER when no
+ PHY found
+Date: Wed, 17 Jan 2018 11:08:19 +0100
+Message-ID: <20180117100819.GA4017@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180115185525.GA4042@atomide.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-SGksCgpPbiAyMDE4LTAxLTE1IDIwOjU1LCBUb255IExpbmRncmVuIHdyb3RlOgo+ICogTWFyayBC
-cm93biA8YnJvb25pZUBrZXJuZWwub3JnPiBbMTgwMTE1IDE4OjE0XToKPj4gT24gTW9uLCBKYW4g
-MTUsIDIwMTggYXQgMTA6MDY6MjZBTSAtMDgwMCwgVG9ueSBMaW5kZ3JlbiB3cm90ZToKPj4+ICog
-TWFyayBCcm93biA8YnJvb25pZUBrZXJuZWwub3JnPiBbMTgwMTE1IDE3OjU2XToKPj4KPj4+PiBT
-b3JyeSwgSSBkaWRuJ3QgYWN0dWFsbHkgcG9zdCBpdCAtIGp1c3Qgc3VnZ2VzdGVkIGFkZGluZyB0
-aGUKPj4+PiBzbmRfc29jX2NvZGVjX3NldF9yZWdtYXAoKSBjYWxsLgo+Pgo+Pj4gT2ggSSBzZWUu
-IFllYWggdGhhdCBzZWVtcyBsaWtlIGEgZ29vZCBsb25nIHRlcm0gc29sdXRpb24gYWZ0ZXIKPj4+
-IHRoZSByZWdyZXNzaW9ucyBhcmUgZml4ZWQuCj4+Cj4+IEkgd291bGQgbGlrZSB0byBzZWUgdXMg
-ZG8gdGhhdCBzb29uZXIgcmF0aGVyIHRoYW4gbGF0ZXIgYXNzdW1pbmcgaXQKPj4gYWRkcmVzc2Vz
-IHRoZSBpc3N1ZSwgaXQncyBxdWlja2VyIGFuZCBzaW1wbGVyLgo+IAo+IFBldGVyLCBjYW4geW91
-IHRha2UgYSBsb29rIGF0IHRoYXQ/CgpTb3JyeSBJIGhhdmUgbWlzc2VkIHRoZSB0aHJlYWQuLi4K
-Cj4gCj4gTWVhbndoaWxlLCBoZXJlJ3MgYSByZWdyZXNzaW9uIGZpeCBmb3IgTGludXggbmV4dCBm
-b3IgdHdsNDAzMAo+IGFuZCA2MDQwIGRyaXZlcnMuCgpUaGUgLnJlYWQgYW5kIHRoZSAud3JpdGUg
-aW4gc25kX3NvY19jb2RlY19kcml2ZXIgaXMgbmVlZGVkLiBXaXRob3V0IGl0CkRBUE0gY2FuIG5v
-dCByZWFkL3dyaXRlIHRvIHJlZ2lzdGVycyB3aGVuIHdlIGhhdmUgY29kZWMgZHJpdmVyIHdoaWNo
-CmRvZXMgbm90IGhhdmUgcmVnbWFwLiB0d2w0MDMwLzYwNDAgaXMgYW4gTUZEIGRldmljZSBhbmQg
-dGhlIHJlZ21hcCBpcwpvd25lZCBieSB0aGUgbWZkIGRyaXZlciwgdGhlIGNvZGVjLCB2aWJyYSwg
-Z3BpbywgY2xrLCBldGMgc3ViIGRldmljZXMKYXJlIHVzaW5nIGNhbGxiYWNrcyB0byBkbyBJTy4K
-Ckkgd2lsbCBsb29rIGF0IHRoZSBsb2NhbCBjYWNoaW5nLCBidXQgYWZhaWsgaXQgd2FzIG5lZWRl
-ZCBhbmQgY2FuIG5vdCBiZQpkb25lIGluIHJlZ21hcCBvciBtZmQgbGV2ZWwuCgpJIHdpbGwgYWxz
-byB0YWtlIGEgbG9vayBhdCB0aGUgZGFjMzMgZHJpdmVyIHRvIHNlZSBpZiBpdCBpcyBicm9rZW4s
-IGJ1dApJIGRvbid0IGhhdmUgTm9raWEgbjkvbjk1MCB3aGVyZSBJIGNvdWxkIHRlc3QgaXQuCgpB
-Y2tlZC1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4KCj4gCj4gUmVn
-YXJkcywKPiAKPiBUb255Cj4gCj4gODwgLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gRnJvbSB0b255
-IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQo+IEZyb206IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRv
-bWlkZS5jb20+Cj4gRGF0ZTogRnJpLCAxMiBKYW4gMjAxOCAxMDoyNDozNiAtMDgwMAo+IFN1Ympl
-Y3Q6IFtQQVRDSF0gQVNvQzogRml4IHR3bDQwMzAgYW5kIDYwNDAgcmVncmVzc2lvbiBieSBhZGRp
-bmcgYmFjayByZWFkCj4gIGFuZCB3cml0ZQo+IAo+IENvbW1pdCAzYmIwZjdjMzFiMWEgKCJBU29D
-OiBkb24ndCB1c2Ugc25kX3NvY193cml0ZS9yZWFkIG9uIHR3bDQwMzAiKQo+IGNhdXNlZCByZWdy
-ZXNzaW9ucyBmb3IgYm90aCB0d2w0MDMwIGFuZCB0d2w2MDQwIGFzIGl0IGFzc3VtZXMgdGhlCj4g
-QVNvQyBkcml2ZXIgaXMgdXNpbmcgcmVnbWFwLiBBcyBhIHNpZGUgZWZmZWN0LCB0aGlzIGFsc28g
-Y2F1c2VzIGEKPiBjb25zaWRlcmFibGUgaW5jcmVhc2UgaW4gaWRsZSBwb3dlciBjb25zdW1wdGlv
-biBvbWFwMyBib2FyZHMgdXNpbmcKPiB0d2w0MDMwIGFzIHRoZSBQTUlDLgo+IAo+IFRoaXMgaXMg
-YmVjYXVzZSB0aGUgcmVtb3ZhbCBvZiByZWFkIGFuZCB3cml0ZSBmdW5jdGlvbiBwb2ludGVycwo+
-IGNhdXNlcyBzb21lIG9mIHRoZSBBU29DIElPIGZ1bmN0aW9ucyB0byBub3QgZG8gYW55dGhpbmcu
-IEZvciBleGFtcGxlLAo+IHNuZF9zb2NfcmVnaXN0ZXJfY2FyZCgpIGNhbGxzIHNuZF9zb2NfZGFw
-bV9uZXdfd2lkZ2V0cygpIHRoYXQgY2FsbHMKPiBzbmRfc29jX2NvZGVjX2Rydl9yZWFkKCkgdGhh
-dCBub3cgZG9lcyBub3RoaW5nLgo+IAo+IEEgbG9uZyB0ZXJtIHNvbHV0aW9uIHN1Z2dlc3RlZCBi
-eSBNYXJrIEJyb3duIDxicm9vbmllQGtlcm5lbC5vcmc+Cj4gaXMgdG8gbWFrZSB0aGUgdHdsIGRy
-aXZlcnMgdXNlIHJlZ21hcCBieSBhZGRpbmcgYSBjYWxsIHRvCj4gc25kX3NvY19jb2RlY19zZXRf
-cmVnbWFwKCkuIFRoaXMgaG93ZXZlciBuZWVkcyBtb3JlIGNvbnNpZGVyYXRpb24KPiBhcyBjdXJy
-ZW50bHkgdGhlIGRyaXZlciBpbnRlcm5hbCByZWFkcyBkbyBjYWNoaW5nIGFuZCB3ZSB3b3VsZCBo
-YXZlCj4gYm90aCByZWdtYXAgYWNjZXNzIGFuZCBpbnRlcm5hbCByZWFkL3dyaXRlIGFjY2VzcyBh
-Y2Nlc3NpbmcgdGhlIHNhbWUKPiBoYXJkd2FyZSByZWdpc3RlcnMuCj4gCj4gU28gdG8gZml4IHRo
-ZSByZWdyZXNzaW9uLCBsZXQncyBqdXN0IGRvIGEgcGFydGlhbCByZXZlcnQgYWRkaW5nIGJhY2sK
-PiB0aGUgcmVhZCBhbmQgd3JpdGUgZnVuY3Rpb24gcG9pbnRlcnMuIE5vdGUgdGhhdCBvdGhlciBu
-b24tcmVnbWFwCj4gQVNvQyBkcml2ZXJzIG1heSBuZWVkIHNpbWlsYXIgcGF0Y2hlcy4KPiAKPiBG
-aXhlczogM2JiMGY3YzMxYjFhICgiQVNvQzogZG9uJ3QgdXNlIHNuZF9zb2Nfd3JpdGUvcmVhZCBv
-biB0d2w0MDMwIikKPiBGaXhlczogOTNhMDBjNDY3ZmU5ICgiQVNvQzogZG9uJ3QgdXNlIHNuZF9z
-b2Nfd3JpdGUvcmVhZCBvbiB0d2w2MDQwIikKPiBDYzogS3VuaW5vcmkgTW9yaW1vdG8gPGt1bmlu
-b3JpLm1vcmltb3RvLmd4QHJlbmVzYXMuY29tPgo+IENjOiBQZXRlciBVamZhbHVzaSA8cGV0ZXIu
-dWpmYWx1c2lAdGkuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRv
-bWlkZS5jb20+Cj4gLS0tCj4gIHNvdW5kL3NvYy9jb2RlY3MvdHdsNDAzMC5jIHwgMiArKwo+ICBz
-b3VuZC9zb2MvY29kZWNzL3R3bDYwNDAuYyB8IDIgKysKPiAgMiBmaWxlcyBjaGFuZ2VkLCA0IGlu
-c2VydGlvbnMoKykKPiAKPiBkaWZmIC0tZ2l0IGEvc291bmQvc29jL2NvZGVjcy90d2w0MDMwLmMg
-Yi9zb3VuZC9zb2MvY29kZWNzL3R3bDQwMzAuYwo+IC0tLSBhL3NvdW5kL3NvYy9jb2RlY3MvdHds
-NDAzMC5jCj4gKysrIGIvc291bmQvc29jL2NvZGVjcy90d2w0MDMwLmMKPiBAQCAtMjE5NSw2ICsy
-MTk1LDggQEAgc3RhdGljIGludCB0d2w0MDMwX3NvY19yZW1vdmUoc3RydWN0IHNuZF9zb2NfY29k
-ZWMgKmNvZGVjKQo+ICBzdGF0aWMgY29uc3Qgc3RydWN0IHNuZF9zb2NfY29kZWNfZHJpdmVyIHNv
-Y19jb2RlY19kZXZfdHdsNDAzMCA9IHsKPiAgCS5wcm9iZSA9IHR3bDQwMzBfc29jX3Byb2JlLAo+
-ICAJLnJlbW92ZSA9IHR3bDQwMzBfc29jX3JlbW92ZSwKPiArCS5yZWFkID0gdHdsNDAzMF9yZWFk
-LAo+ICsJLndyaXRlID0gdHdsNDAzMF93cml0ZSwKPiAgCS5zZXRfYmlhc19sZXZlbCA9IHR3bDQw
-MzBfc2V0X2JpYXNfbGV2ZWwsCj4gIAkuaWRsZV9iaWFzX29mZiA9IHRydWUsCj4gIAo+IGRpZmYg
-LS1naXQgYS9zb3VuZC9zb2MvY29kZWNzL3R3bDYwNDAuYyBiL3NvdW5kL3NvYy9jb2RlY3MvdHds
-NjA0MC5jCj4gLS0tIGEvc291bmQvc29jL2NvZGVjcy90d2w2MDQwLmMKPiArKysgYi9zb3VuZC9z
-b2MvY29kZWNzL3R3bDYwNDAuYwo+IEBAIC0xMTU4LDYgKzExNTgsOCBAQCBzdGF0aWMgaW50IHR3
-bDYwNDBfcmVtb3ZlKHN0cnVjdCBzbmRfc29jX2NvZGVjICpjb2RlYykKPiAgc3RhdGljIGNvbnN0
-IHN0cnVjdCBzbmRfc29jX2NvZGVjX2RyaXZlciBzb2NfY29kZWNfZGV2X3R3bDYwNDAgPSB7Cj4g
-IAkucHJvYmUgPSB0d2w2MDQwX3Byb2JlLAo+ICAJLnJlbW92ZSA9IHR3bDYwNDBfcmVtb3ZlLAo+
-ICsJLnJlYWQgPSB0d2w2MDQwX3JlYWQsCj4gKwkud3JpdGUgPSB0d2w2MDQwX3dyaXRlLAo+ICAJ
-LnNldF9iaWFzX2xldmVsID0gdHdsNjA0MF9zZXRfYmlhc19sZXZlbCwKPiAgCS5zdXNwZW5kX2Jp
-YXNfb2ZmID0gdHJ1ZSwKPiAgCS5pZ25vcmVfcG1kb3duX3RpbWUgPSB0cnVlLAo+IAoKLSBQw6l0
-ZXIKClRleGFzIEluc3RydW1lbnRzIEZpbmxhbmQgT3ksIFBvcmtrYWxhbmthdHUgMjIsIDAwMTgw
-IEhlbHNpbmtpLgpZLXR1bm51cy9CdXNpbmVzcyBJRDogMDYxNTUyMS00LiBLb3RpcGFpa2thL0Rv
-bWljaWxlOiBIZWxzaW5raQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBs
-aXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Don't complain on -EPROBE_DEFER when when no PHY found, the driver
+probe will be retried later.
+
+Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ Changes:
+ - v2: None, just added Tony's ack
+
+ drivers/usb/host/ehci-omap.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 854b146a457d..fd6170962a1a 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -167,8 +167,9 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 				continue;
+ 
+ 			ret = PTR_ERR(phy);
+-			dev_err(dev, "Can't get PHY device for port %d: %d\n",
+-					i, ret);
++			if (ret != -EPROBE_DEFER)
++				dev_err(dev, "Can't get PHY device for port "
++					"%d: %d\n", i, ret);
+ 			goto err_phy;
+ 		}
+ 
+-- 
+2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
