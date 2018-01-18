@@ -1,93 +1,126 @@
-From: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [Letux-kernel] [PATCH v5 3/5] misc serdev: Add w2sg0004 (gps
- receiver) power control driver
-Date: Thu, 18 Jan 2018 17:47:36 +1100
-Message-ID: <20180118064736.GH3286@localhost>
-References: <cover.1512114576.git.hns@goldelico.com>
- <5494ad34b39a6c62601e3747440268dfb3be7d5a.1512114576.git.hns@goldelico.com>
- <20171222124427.GI3374@localhost>
- <20180109184347.28ba0a6e@aktux>
- <20180112144647.GA5992@localhost>
- <20180112194022.7da1e726@kemnade.info>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 15/15] clk: ti: convert to use proper register
+ definition for all accesses
+Date: Thu, 18 Jan 2018 09:34:37 +0200
+Message-ID: <4f0f185a-2890-3747-7060-1f5b5a77022a@ti.com>
+References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
+ <1489236606-24023-16-git-send-email-t-kristo@ti.com>
+ <CAHCN7x+oKEmXBpogy4VOB8UgmTd6+X5fBiP66yzUqXmvDWdqaw@mail.gmail.com>
+ <6b4c5bf2-1260-0e79-0414-9870f21e4a75@ti.com>
+ <CAHCN7xLaP-th=vAzN8C1QXstf3c5SP4JADAZZXTb1Nd6N6QdsQ@mail.gmail.com>
+ <20180117211907.GE4042@atomide.com>
+ <CAHCN7xJ-NaKoeZOqrdc48fFCLNQvm_uRXC0ErtiG+Ac86a14+w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180112194022.7da1e726-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andreas Kemnade <andreas-cLv4Z9ELZ06ZuzBka8ofvg@public.gmane.org>
-Cc: Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Discussions about the Letux Kernel <letux-kernel-S0jZdbWzriLCfDggNXIi3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "H. Nikolaus Schaller" <hns-xXXSsgcRVICgSpxsJD1C4w@public.gmane.org>, kernel-Jl6IXVxNIMRxAtABVqVhTwC/G2K4zDHf@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, =?iso-8859-1?Q?Beno=EEt?= Cousson <bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andreas =?iso-8859-1?Q?F=E4rber?= <afaerber-l3A5Bk7waGM@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <CAHCN7xJ-NaKoeZOqrdc48fFCLNQvm_uRXC0ErtiG+Ac86a14+w@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-clk-owner@vger.kernel.org
+To: Adam Ford <aford173@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-clk@vger.kernel.org, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 12, 2018 at 07:40:35PM +0100, Andreas Kemnade wrote:
-> On Fri, 12 Jan 2018 15:46:47 +0100
-> Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On 17/01/18 23:44, Adam Ford wrote:
+> On Wed, Jan 17, 2018 at 3:19 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Adam Ford <aford173@gmail.com> [180117 15:15]:
+>>> On Wed, Jan 17, 2018 at 8:02 AM, Tero Kristo <t-kristo@ti.com> wrote:
+>>>> On 17/01/18 15:27, Adam Ford wrote:
+>>>>>
+>>>>> On Sat, Mar 11, 2017 at 6:50 AM, Tero Kristo <t-kristo@ti.com> wrote:
+>>>>>>
+>>>>>> Currently, TI clock driver uses an encapsulated struct that is cast into
+>>>>>> a void pointer to store all register addresses. This can be considered
+>>>>>> as rather nasty hackery, and prevents from expanding the register
+>>>>>> address field also. Instead, replace all the code to use proper struct
+>>>>>> in place for this, which contains all the previously used data.
+>>>>>>
+>>>>>> This patch is rather large as it is touching multiple files, but this
+>>>>>> can't be split up as we need to avoid any boot breakage.
+>>>>>>
+>>>>>
+>>>>> I know it's late coming, but according to git bisect, this patch is
+>>>>> causing some problems with Logic PD Torpedo 37xx Dev kit.
+>>>>
+>>>>
+>>>> Oh reporting bugs is never too late, thanks for posting this out.
+>>>>
+>>>>>
+>>>>> It it is a DM3730 that has a WL1283 chipset attached to the SDIO
+>>>>> interface on MMC3.  The driver seems to load properly, but when
+>>>>> loading wpa_supplicant to activate the WL1283, we get a giant crash.
+>>>>> I checked kernel revisions starting at 4.14 and working back to when
+>>>>> it worked, then used git bisect from there.
+>>>>>
+>>>>> I am hoping it might be a simple fix for something that just needs to
+>>>>> get added or tweaked in the device tree.
+>>>>
+>>>>
+>>>> I don't have access to the specific hw, but can you try to dig out which
+>>>> hwmod is causing the crash? Just print out the oh->name from the
+>>>> _wait_softreset_complete. That would help root causing the issue.
+>>>>
+>>>
+>>> With one small patch, I was able to make it work again.
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>>> index 2dbd632..ed1f625 100644
+>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>>> @@ -477,7 +477,7 @@ static int _wait_softreset_complete(struct omap_hwmod *oh)
+>>>          int c = 0;
+>>>
+>>>          sysc = oh->class->sysc;
+>>> -
+>>> +pr_warn("_wait_softreset_complete: %s\n", oh->name);
+>>>          if (sysc->sysc_flags & SYSS_HAS_RESET_STATUS)
+>>>                  omap_test_timeout((omap_hwmod_read(oh, sysc->syss_offs)
+>>>                                     & SYSS_RESETDONE_MASK),
+>>>
+>>>
+>>> This leads me to believe that the omap_test_timeout functions might
+>>> not be working quite right.
+>>
+>> There may be a srst_udelay needed for some module, see commit
+>> ebf244148092 ("ARM: OMAP2+: Use srst_udelay for USB on dm814x")
+>> for example.
+>>
+>> You might be able to find which module it is by commenting out
+>> postcore_initcall_sync(omap3_l3_init) in drivers/bus/omap_l3_smx.c
+>> temporarily as the system will most likely hang right there.
 > 
-> > On Tue, Jan 09, 2018 at 06:43:47PM +0100, Andreas Kemnade wrote:
-> > > On Fri, 22 Dec 2017 13:44:27 +0100
-> > > Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > > 
-> > > [...]  
-> > > > I'd suggest reiterating the problem you're trying to solve and
-> > > > enumerating the previously discussed potential solutions in order to
-> > > > find a proper abstraction level for this (before getting lost in
-> > > > implementation details).
-> > > >   
-> > > The main point here is in short words: Having a device powered on or off
-> > > when the uart it is attached to, is used or not used anymore,
-> > > so the already available userspace applications do not need to be changed.  
-> > 
-> > So we'd end up with something in-between a kernel driver and a
-> > user-space solution. What about devices that need to be (partially)
-> > powered also when the port isn't open? A pure user-space solution would
-> > be able to handle all variants.
-> > 
-> Well partly powered devices are at many places, And they hide that problem
-> from userspace, just get the open()/get() and close()/put() from there and power the
-> device accordingly. 
+> I commented out that line as you suggested, but the system boots as
+> normal and I get the crash (as normal)
 > 
-> So the question still remains why should the kernel hide some things and some
-> it should not.
-> If it all is in userspace, then there is still something needed in the devicetree
-> (if I understand correctly, every information about hardware which cannot be
-> auto-probed belongs into device tree) so that the userspace knows what kind of
-> device is at that port. So there can be a daemon powering on and off devices.
-> But that would break existing applications which just expect that they just need
-> to open/close the device. 
-> 
-> Or you need to have some inotify handler in userspace and attach it there to
-> react on close() and open() of that device.
-> But this thing needs to have two kind of information:
-> 
-> 1. the type of chip available to do the right powerup sequence. 
-> 
-> 2. how the chip is wired up to the cpu. 
-> 
-> So to avoid having hardware information spread all over the table at least
-> these information would need to be in devicetree. But that also all feels
-> like a hack and hard to maintain.
+> I am looking through the DM3730 and OMAP3630 TRM now.  Any thought on
+> a keyword search I should use to see which hwmods might require
+> srst_udelay?
 
-Having the device described in the device tree is certainly desirable,
-not least for chip identification. And with a GPS framework in the
-kernel with a well-defined interface, implementing power management
-would be straight forward.
+Looking at the log you provided, it looks like only mmc1, mmc3 and i2c1 
+are reset during the wlan probe. Based on the prints coming out in the 
+failing case, it looks like the culprit might be mmc3 for some reason.
 
-I'm just not convinced that the proposed tty interface is the right
-interface for this. User space would still rely on gpsd for the GPS
-protocols, and would also ultimately be managing power by killing gpsd
-or whatever daemon that would otherwise be holding the port open.
+[   18.239746] _wait_softreset_complete: mmc3
+[   18.638580] _wait_softreset_complete: mmc3
+[   18.657562] _wait_softreset_complete: mmc1
+[   18.833374] wlcore: firmware booted (Rev 7.3.10.0.141)
 
-Something like the generic power sequences that has been discussed
-elsewhere might be a better fit for this if all you want to do is power
-on and off on port open and close (and on suspend/resume). There really
-isn't anything GPS-specific in the current proposal (besides the
-suggested tty-device name).
+^ the firmware notification above does not come out in the crash.
 
-But sure, that wouldn't be sufficient to deal with the
-unknown-power-state problem with the device in question.
+-Tero
 
-Johan
+> 
+> adam
+> 
+>>
+>> Regards,
+>>
+>> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-clk" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
