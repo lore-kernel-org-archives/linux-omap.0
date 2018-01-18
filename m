@@ -1,23 +1,21 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 15/15] clk: ti: convert to use proper register
- definition for all accesses
-Date: Thu, 18 Jan 2018 15:29:59 +0200
-Message-ID: <cee43b44-1de6-a317-e89a-57f86607df86@ti.com>
-References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
- <1489236606-24023-16-git-send-email-t-kristo@ti.com>
- <CAHCN7x+oKEmXBpogy4VOB8UgmTd6+X5fBiP66yzUqXmvDWdqaw@mail.gmail.com>
- <6b4c5bf2-1260-0e79-0414-9870f21e4a75@ti.com>
- <CAHCN7xLaP-th=vAzN8C1QXstf3c5SP4JADAZZXTb1Nd6N6QdsQ@mail.gmail.com>
- <20180117211907.GE4042@atomide.com>
- <CAHCN7xJ-NaKoeZOqrdc48fFCLNQvm_uRXC0ErtiG+Ac86a14+w@mail.gmail.com>
- <4f0f185a-2890-3747-7060-1f5b5a77022a@ti.com>
- <CAHCN7x+hkCyrj1pH7f5DQia-1QgF3g-idAo0Sd-vY6u8iLufWA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+From: "H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: Re: [PATCH v5 3/5] misc serdev: Add w2sg0004 (gps receiver) power
+ control driver
+Date: Thu, 18 Jan 2018 14:43:03 +0100
+Message-ID: <8B2641B8-E86B-425C-9E79-E9C41E4E623C@goldelico.com>
+References: <cover.1512114576.git.hns@goldelico.com>
+ <5494ad34b39a6c62601e3747440268dfb3be7d5a.1512114576.git.hns@goldelico.com>
+ <20171222124427.GI3374@localhost>
+ <91850CC3-B280-4701-9D07-96AFF3A79A6F@goldelico.com>
+ <90F9A8E4-035A-4A9E-8AAB-757491D63E69@goldelico.com>
+ <20180112153903.GB5992@localhost>
+ <E7ECBBB8-2E88-4F04-AFC3-659332E84CF6@goldelico.com>
+ <20180118061314.GG3286@localhost>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAHCN7x+hkCyrj1pH7f5DQia-1QgF3g-idAo0Sd-vY6u8iLufWA@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <20180118061314.GG3286@localhost>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -27,150 +25,119 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Adam Ford <aford173@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Johan Hovold <johan@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, DTML <devicetree@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Jonathan Cameron <jic23@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@armlinux.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thierry Reding <treding@nvidia.com>, Rob Herring <robh+dt@kernel.org>, Kevin Hilman <khilman@baylibre.com>, =?utf-8?Q?Beno=C3=AEt_Cousson?= <bcousson@baylibre.com>, kernel@pyra-handheld.com, Andreas Kemnade <andreas@kemnade.info>, Discussions about the Letux Kernel <letux-kernel@openphoenux.org>, =?utf-8?Q?Andreas_F=C3=A4rber?= <afaerber@suse.de>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 18/01/18 15:26, Adam Ford wrote:
-> On Thu, Jan 18, 2018 at 1:34 AM, Tero Kristo <t-kristo@ti.com> wrote:
->> On 17/01/18 23:44, Adam Ford wrote:
->>>
->>> On Wed, Jan 17, 2018 at 3:19 PM, Tony Lindgren <tony@atomide.com> wrote:
->>>>
->>>> * Adam Ford <aford173@gmail.com> [180117 15:15]:
->>>>>
->>>>> On Wed, Jan 17, 2018 at 8:02 AM, Tero Kristo <t-kristo@ti.com> wrote:
->>>>>>
->>>>>> On 17/01/18 15:27, Adam Ford wrote:
->>>>>>>
->>>>>>>
->>>>>>> On Sat, Mar 11, 2017 at 6:50 AM, Tero Kristo <t-kristo@ti.com> wrote:
->>>>>>>>
->>>>>>>>
->>>>>>>> Currently, TI clock driver uses an encapsulated struct that is cast
->>>>>>>> into
->>>>>>>> a void pointer to store all register addresses. This can be
->>>>>>>> considered
->>>>>>>> as rather nasty hackery, and prevents from expanding the register
->>>>>>>> address field also. Instead, replace all the code to use proper
->>>>>>>> struct
->>>>>>>> in place for this, which contains all the previously used data.
->>>>>>>>
->>>>>>>> This patch is rather large as it is touching multiple files, but this
->>>>>>>> can't be split up as we need to avoid any boot breakage.
->>>>>>>>
->>>>>>>
->>>>>>> I know it's late coming, but according to git bisect, this patch is
->>>>>>> causing some problems with Logic PD Torpedo 37xx Dev kit.
->>>>>>
->>>>>>
->>>>>>
->>>>>> Oh reporting bugs is never too late, thanks for posting this out.
->>>>>>
->>>>>>>
->>>>>>> It it is a DM3730 that has a WL1283 chipset attached to the SDIO
->>>>>>> interface on MMC3.  The driver seems to load properly, but when
->>>>>>> loading wpa_supplicant to activate the WL1283, we get a giant crash.
->>>>>>> I checked kernel revisions starting at 4.14 and working back to when
->>>>>>> it worked, then used git bisect from there.
->>>>>>>
->>>>>>> I am hoping it might be a simple fix for something that just needs to
->>>>>>> get added or tweaked in the device tree.
->>>>>>
->>>>>>
->>>>>>
->>>>>> I don't have access to the specific hw, but can you try to dig out
->>>>>> which
->>>>>> hwmod is causing the crash? Just print out the oh->name from the
->>>>>> _wait_softreset_complete. That would help root causing the issue.
->>>>>>
->>>>>
->>>>> With one small patch, I was able to make it work again.
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
->>>>> b/arch/arm/mach-omap2/omap_hwmod.c
->>>>> index 2dbd632..ed1f625 100644
->>>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>>>> @@ -477,7 +477,7 @@ static int _wait_softreset_complete(struct
->>>>> omap_hwmod *oh)
->>>>>           int c = 0;
->>>>>
->>>>>           sysc = oh->class->sysc;
->>>>> -
->>>>> +pr_warn("_wait_softreset_complete: %s\n", oh->name);
->>>>>           if (sysc->sysc_flags & SYSS_HAS_RESET_STATUS)
->>>>>                   omap_test_timeout((omap_hwmod_read(oh, sysc->syss_offs)
->>>>>                                      & SYSS_RESETDONE_MASK),
->>>>>
->>>>>
->>>>> This leads me to believe that the omap_test_timeout functions might
->>>>> not be working quite right.
->>>>
->>>>
->>>> There may be a srst_udelay needed for some module, see commit
->>>> ebf244148092 ("ARM: OMAP2+: Use srst_udelay for USB on dm814x")
->>>> for example.
->>>>
->>>> You might be able to find which module it is by commenting out
->>>> postcore_initcall_sync(omap3_l3_init) in drivers/bus/omap_l3_smx.c
->>>> temporarily as the system will most likely hang right there.
->>>
->>>
->>> I commented out that line as you suggested, but the system boots as
->>> normal and I get the crash (as normal)
->>>
->>> I am looking through the DM3730 and OMAP3630 TRM now.  Any thought on
->>> a keyword search I should use to see which hwmods might require
->>> srst_udelay?
->>
->>
->> Looking at the log you provided, it looks like only mmc1, mmc3 and i2c1 are
->> reset during the wlan probe. Based on the prints coming out in the failing
->> case, it looks like the culprit might be mmc3 for some reason.
->>
->> [   18.239746] _wait_softreset_complete: mmc3
->> [   18.638580] _wait_softreset_complete: mmc3
->> [   18.657562] _wait_softreset_complete: mmc1
->> [   18.833374] wlcore: firmware booted (Rev 7.3.10.0.141)
->>
->> ^ the firmware notification above does not come out in the crash.
->>
+Hi Johan,
+
+> Am 18.01.2018 um 07:13 schrieb Johan Hovold <johan@kernel.org>:
 > 
-> I agree with your assessment.  Any ideas why moving the debug
-> statement before the if statement would make it start working?  I
-> added some artificial udelay at around 100, but I still got the crash.
-> It seems like there is some timing issue, but at the same time just
-> adding a delay isn't enough.
+> Hacks are never good, but sometimes needed. But we should try to keep
+> them contained in drivers rather than allow them to spread to core code,
+> was what I was trying to say above.
 
-The pr_warn does more than just delay, it accesses the io-space 
-potentially causing a flush on certain IO ranges. There might be some 
-OCP readback missing for example, in which case a simple udelay may not 
-help.
+Well, aren't we talking here about a well isolated driver? And not about
+core code?
 
--Tero
+Core code already provides everything to build a driver for this chip
+to make us happy with.
+
+It is just not yet providing a generic gps interface API to make everybody
+happy with.
+
+>> That is what Andreas did remark as motivation: provide a solution
+>> for *existing* user spaces.
+> 
+> I understand that this is what you want, but that in itself is not a
+> sufficient reason to put something in the kernel.
+
+Agreed, but it is a secondary (but still strong) motivation, not the primary one.
 
 > 
->> -Tero
->>
+>>>> - can not guarantee (!) to power off the chip if the last user-space
+>>>> process using it is killed (which is essential for power-management of
+>>>> a handheld, battery operated device)
+>>> 
+>>> That depends on how you implement things (extending gpsd, wrapper
+>>> script, pty daemon, ...).
+>> 
+>> No. You can of course cover all standard cases but there is one fundamental
+>> issue which is IMHO a problem of any user-space implementation:
+>> 
+>> 	How can you guarantee that the chip is powered off if no
+>> 	user-space process is using it or if the last process doing
+>> 	this is killed by *whatever* reason?
+>> 
+>> E.g. after a kill -9. Or if someone deinstalls gpsd or whatever and assumes
+>> (and wants a guarantee) that GPS is now turned off and never turned on drawing
+>> precious milliamps from the battery for no use.
 > 
-> adam
-> 
->>>
->>> adam
->>>
->>>>
->>>> Regards,
->>>>
->>>> Tony
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-clk" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->> --
+> Have something run at init to put the device in a low power state.
 
---
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+This does *not* solve the issue how to *guarantee* that it becomes
+powered off if the number of user-space processes goes down to zero
+*after* init.
+
+Please consider that a portable device is rarely booted but might be
+operated over several days with many suspend cycles. And people may
+still expect that the power consumer "GPS" is turned off if their
+personal user-space setup simply kills gpsd.
+
+> 
+>> As it is well known, a user-space process can't protect itself against kill -9.
+>> Or has this recently been changed and I am not aware of?
+>> 
+>> This is the fundamental reason why we need a kernel driver to provide
+>> reliable, repeatable and trustable power management of this chip.
+>> 
+>> It is equally fundamental as a hard disk should spin down after the last
+>> file is closed. Even if this process ends by a kill -9.
+
+Please advise how we should solve this fundamental problem in user-space.
+
+>> 
+>> This seems to contradict your argument that user-space can very easily
+>> adapt to everything. If the latter were true there would be no need to
+>> keep old interfaces supported for a long time.
+> 
+> You probably know that we try hard never to change an interface that
+> would break user space, and that's why we need to get it right.
+
+Yes, I know and agree that it is very important (and difficult to achieve).
+
+But it seems that there are different opinions of what "right" is...
+
+You seem to focus on the "right" API only (where we agree that the "right"
+API does not exist and likely will never come or at least in the near future).
+
+But for us the whole combination of kernel + user-space must behave "right"
+(and use a function split that allows to optimally achieve this goal).
+
+> 
+>> So can you agree to that a battery powered portable device must have
+>> reliable and trustable power management? And if it provable can't be
+>> implemented in user-space (a single counter example suffices) it must
+>> be a kernel driver?
+> 
+> Having a kernel driver would make things easier for user space, sure,
+> but again, that's not a sufficient reason to merge just any kernel
+> implementation.
+
+It is not about "easier" for anyone. Neither for you nor for me. For us
+it would be much easier not to have to run this never-ending discussion
+over and over...
+
+It is about making it technically fully "reliable". And not 99% as per
+quick and dirty user-space hacks.
+
+It is so easy to invent scenarios in user-space to make the device practically
+unusable by unnoticed draining a full battery within less than a day when
+not perfectly turning off the chip power.
+
+So if a kernel driver can better protect users against this situation for
+a portable device with this chip, why shouldn't it do with a handful LOC?
+What requirement is more important than this?
+
+BR and thanks,
+Nikolaus
