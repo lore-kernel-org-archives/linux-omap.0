@@ -1,7 +1,7 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
+From: Ladislav Michl <ladis@linux-mips.org>
 Subject: Re: [PATCH -next] PCI: dra7xx: Fix potential NULL dereference
-Date: Thu, 18 Jan 2018 08:42:24 -0600
-Message-ID: <20180118144224.GF53542@bhelgaas-glaptop.roam.corp.google.com>
+Date: Thu, 18 Jan 2018 15:54:20 +0100
+Message-ID: <20180118145420.GA21163@lenoch>
 References: <1516284037-81537-1-git-send-email-weiyongjun1@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -30,17 +30,11 @@ On Thu, Jan 18, 2018 at 02:00:37PM +0000, Wei Yongjun wrote:
 > ... when != res == NULL
 > e = devm_ioremap(e1, res->start, e2);
 
-This pattern of:
+Well, then it should be replaced with devm_ioremap_resource()
+which already checks for NULL and the right resource type
+(IORESOURCE_MEM).
 
-  platform_get_resource_byname
-  devm_ioremap
-
-is extremely common and could perhaps be factored out.  There are
-already a few private versions, e.g., request_and_map(),
-msm_ioremap(), ssi_get_iomem().
-
-request_and_map() also includes devm_request_mem_region(), which
-probably *should* be included but usually seems to be omitted.
+	ladis
 
 > Fixes: 608793e27b33 ("PCI: dwc: dra7xx: Add EP mode support")
 > Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
@@ -78,3 +72,7 @@ probably *should* be included but usually seems to be omitted.
 >  	if (!pci->dbi_base)
 >  		return -ENOMEM;
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
