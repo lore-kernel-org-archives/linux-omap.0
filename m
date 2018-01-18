@@ -1,126 +1,51 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv2 15/15] clk: ti: convert to use proper register
- definition for all accesses
-Date: Thu, 18 Jan 2018 09:34:37 +0200
-Message-ID: <4f0f185a-2890-3747-7060-1f5b5a77022a@ti.com>
-References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
- <1489236606-24023-16-git-send-email-t-kristo@ti.com>
- <CAHCN7x+oKEmXBpogy4VOB8UgmTd6+X5fBiP66yzUqXmvDWdqaw@mail.gmail.com>
- <6b4c5bf2-1260-0e79-0414-9870f21e4a75@ti.com>
- <CAHCN7xLaP-th=vAzN8C1QXstf3c5SP4JADAZZXTb1Nd6N6QdsQ@mail.gmail.com>
- <20180117211907.GE4042@atomide.com>
- <CAHCN7xJ-NaKoeZOqrdc48fFCLNQvm_uRXC0ErtiG+Ac86a14+w@mail.gmail.com>
+From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Subject: [PATCH v3] usb: ehci-omap: don't complain on -EPROBE_DEFER when no
+ PHY found
+Date: Thu, 18 Jan 2018 09:04:53 +0100
+Message-ID: <20180118080453.GA2205@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-clk-owner@vger.kernel.org>
-In-Reply-To: <CAHCN7xJ-NaKoeZOqrdc48fFCLNQvm_uRXC0ErtiG+Ac86a14+w@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-clk-owner@vger.kernel.org
-To: Adam Ford <aford173@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-clk@vger.kernel.org, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 17/01/18 23:44, Adam Ford wrote:
-> On Wed, Jan 17, 2018 at 3:19 PM, Tony Lindgren <tony@atomide.com> wrote:
->> * Adam Ford <aford173@gmail.com> [180117 15:15]:
->>> On Wed, Jan 17, 2018 at 8:02 AM, Tero Kristo <t-kristo@ti.com> wrote:
->>>> On 17/01/18 15:27, Adam Ford wrote:
->>>>>
->>>>> On Sat, Mar 11, 2017 at 6:50 AM, Tero Kristo <t-kristo@ti.com> wrote:
->>>>>>
->>>>>> Currently, TI clock driver uses an encapsulated struct that is cast into
->>>>>> a void pointer to store all register addresses. This can be considered
->>>>>> as rather nasty hackery, and prevents from expanding the register
->>>>>> address field also. Instead, replace all the code to use proper struct
->>>>>> in place for this, which contains all the previously used data.
->>>>>>
->>>>>> This patch is rather large as it is touching multiple files, but this
->>>>>> can't be split up as we need to avoid any boot breakage.
->>>>>>
->>>>>
->>>>> I know it's late coming, but according to git bisect, this patch is
->>>>> causing some problems with Logic PD Torpedo 37xx Dev kit.
->>>>
->>>>
->>>> Oh reporting bugs is never too late, thanks for posting this out.
->>>>
->>>>>
->>>>> It it is a DM3730 that has a WL1283 chipset attached to the SDIO
->>>>> interface on MMC3.  The driver seems to load properly, but when
->>>>> loading wpa_supplicant to activate the WL1283, we get a giant crash.
->>>>> I checked kernel revisions starting at 4.14 and working back to when
->>>>> it worked, then used git bisect from there.
->>>>>
->>>>> I am hoping it might be a simple fix for something that just needs to
->>>>> get added or tweaked in the device tree.
->>>>
->>>>
->>>> I don't have access to the specific hw, but can you try to dig out which
->>>> hwmod is causing the crash? Just print out the oh->name from the
->>>> _wait_softreset_complete. That would help root causing the issue.
->>>>
->>>
->>> With one small patch, I was able to make it work again.
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->>> index 2dbd632..ed1f625 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>> @@ -477,7 +477,7 @@ static int _wait_softreset_complete(struct omap_hwmod *oh)
->>>          int c = 0;
->>>
->>>          sysc = oh->class->sysc;
->>> -
->>> +pr_warn("_wait_softreset_complete: %s\n", oh->name);
->>>          if (sysc->sysc_flags & SYSS_HAS_RESET_STATUS)
->>>                  omap_test_timeout((omap_hwmod_read(oh, sysc->syss_offs)
->>>                                     & SYSS_RESETDONE_MASK),
->>>
->>>
->>> This leads me to believe that the omap_test_timeout functions might
->>> not be working quite right.
->>
->> There may be a srst_udelay needed for some module, see commit
->> ebf244148092 ("ARM: OMAP2+: Use srst_udelay for USB on dm814x")
->> for example.
->>
->> You might be able to find which module it is by commenting out
->> postcore_initcall_sync(omap3_l3_init) in drivers/bus/omap_l3_smx.c
->> temporarily as the system will most likely hang right there.
-> 
-> I commented out that line as you suggested, but the system boots as
-> normal and I get the crash (as normal)
-> 
-> I am looking through the DM3730 and OMAP3630 TRM now.  Any thought on
-> a keyword search I should use to see which hwmods might require
-> srst_udelay?
+Don't complain on -EPROBE_DEFER when no PHY found, the driver
+probe will be retried later.
 
-Looking at the log you provided, it looks like only mmc1, mmc3 and i2c1 
-are reset during the wlan probe. Based on the prints coming out in the 
-failing case, it looks like the culprit might be mmc3 for some reason.
+Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+---
+ Changes:
+ - v2: None, just added Tony's ack
+ - v3: Fixed commit message typo spotted by Jaejoong Kim, added Roger's ack
 
-[   18.239746] _wait_softreset_complete: mmc3
-[   18.638580] _wait_softreset_complete: mmc3
-[   18.657562] _wait_softreset_complete: mmc1
-[   18.833374] wlcore: firmware booted (Rev 7.3.10.0.141)
+ drivers/usb/host/ehci-omap.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-^ the firmware notification above does not come out in the crash.
-
--Tero
-
-> 
-> adam
-> 
->>
->> Regards,
->>
->> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-clk" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 854b146a457d..fd6170962a1a 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -167,8 +167,9 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 				continue;
+ 
+ 			ret = PTR_ERR(phy);
+-			dev_err(dev, "Can't get PHY device for port %d: %d\n",
+-					i, ret);
++			if (ret != -EPROBE_DEFER)
++				dev_err(dev, "Can't get PHY device for port "
++					"%d: %d\n", i, ret);
+ 			goto err_phy;
+ 		}
+ 
+-- 
+2.15.1
 
 --
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki. Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
