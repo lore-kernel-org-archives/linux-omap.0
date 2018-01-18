@@ -1,112 +1,101 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH -next] PCI: dra7xx: Fix potential NULL dereference
-Date: Thu, 18 Jan 2018 22:34:17 +0100
-Message-ID: <20180118213417.GA30723@lenoch>
-References: <1516284037-81537-1-git-send-email-weiyongjun1@huawei.com>
- <20180118145420.GA21163@lenoch>
- <20180118183525.GG53542@bhelgaas-glaptop.roam.corp.google.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH] Nokia N9: add support for up/down keys in the dts
+Date: Thu, 18 Jan 2018 23:03:48 +0100
+Message-ID: <20180118220348.GD17196@amd>
+References: <20180102125948.GA20051@amd>
+ <20180102194236.ahrhkvnefre2l6gf@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="zS7rBR6csb6tI2e1"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180118183525.GG53542@bhelgaas-glaptop.roam.corp.google.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>, Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <20180102194236.ahrhkvnefre2l6gf-SfvFxonMDyemK9LvCR3Hrw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, clayton-fehKsxFhGzZIf6P1QZMOBw@public.gmane.org, martijn-28JJ9oSIdodmR6Xm/wNWPw@public.gmane.org, sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, bcousson-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 18, 2018 at 12:35:25PM -0600, Bjorn Helgaas wrote:
-> On Thu, Jan 18, 2018 at 03:54:20PM +0100, Ladislav Michl wrote:
-> > On Thu, Jan 18, 2018 at 02:00:37PM +0000, Wei Yongjun wrote:
-> > > platform_get_resource_byname() may fail and return NULL, so we should
-> > > better check it's return value to avoid a NULL pointer dereference a
-> > > bit later in the code.
-> > > 
-> > > This is detected by Coccinelle semantic patch.
-> > > 
-> > > @@
-> > > expression pdev, res, n, t, e, e1, e2;
-> > > @@
-> > > 
-> > > res = platform_get_resource_byname(pdev, t, n);
-> > > + if (!res)
-> > > +   return -EINVAL;
-> > > ... when != res == NULL
-> > > e = devm_ioremap(e1, res->start, e2);
-> > 
-> > Well, then it should be replaced with devm_ioremap_resource()
-> > which already checks for NULL and the right resource type
-> > (IORESOURCE_MEM).
-> 
-> That's probably a better idea.  Maybe we should add a comment like this
-> to help avoid this in the future:
-> 
-> --- a/lib/devres.c
-> +++ b/lib/devres.c
-> @@ -22,6 +22,8 @@ static int devm_ioremap_match(struct device *dev, void *res, void *match_data)
->   * @size: Size of map
->   *
->   * Managed ioremap().  Map is automatically unmapped on driver detach.
-> + *
-> + * When possible, use devm_ioremap_resource() instead.
->   */
->  void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
->  			   resource_size_t size)
 
-Yes, please. It would be nice first patch in the serie converting existing
-users of devm_ioremap into devm_ioremap_resource:
-find drivers -name "*.c" | xargs grep "devm_ioremap(" | grep resource_size | wc -l
-82
-I know, that was dumb, Coccinelle would certainly do better job.
-And from a quick look a lot of
-if (!res) {
-	print error
-	return -EINVAL;
-}
-code blocks could be deleted (and many cases where check for NULL resource
-is missing fixed).
+--zS7rBR6csb6tI2e1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > > Fixes: 608793e27b33 ("PCI: dwc: dra7xx: Add EP mode support")
-> > > Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-> > > ---
-> > >  drivers/pci/dwc/pci-dra7xx.c | 6 ++++++
-> > >  1 file changed, 6 insertions(+)
-> > > 
-> > > diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
-> > > index 8bf7c27..aafded8 100644
-> > > --- a/drivers/pci/dwc/pci-dra7xx.c
-> > > +++ b/drivers/pci/dwc/pci-dra7xx.c
-> > > @@ -409,11 +409,15 @@ static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
-> > >  	ep->ops = &pcie_ep_ops;
-> > >  
-> > >  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics");
-> > > +	if (!res)
-> > > +		return -EINVAL;
-> > >  	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
-> > >  	if (!pci->dbi_base)
-> > >  		return -ENOMEM;
-> > >  
-> > >  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics2");
-> > > +	if (!res)
-> > > +		return -EINVAL;
-> > >  	pci->dbi_base2 = devm_ioremap(dev, res->start, resource_size(res));
-> > >  	if (!pci->dbi_base2)
-> > >  		return -ENOMEM;
-> > > @@ -462,6 +466,8 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
-> > >  		return ret;
-> > >  
-> > >  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "rc_dbics");
-> > > +	if (!res)
-> > > +		return -EINVAL;
-> > >  	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
-> > >  	if (!pci->dbi_base)
-> > >  		return -ENOMEM;
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue 2018-01-02 20:42:36, Sebastian Reichel wrote:
+> Hi,
+>=20
+> On Tue, Jan 02, 2018 at 01:59:48PM +0100, Pavel Machek wrote:
+> >=20
+> > This adds support for volume up/down keys in the dts.
+> >=20
+> > Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+>=20
+> Reviewed-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+
+Tony, ping? Can I get you to apply this one?
+
+[PATCHv2] nokia N9: Add support for magnetometer
+
+should be good to go, too...
+									Pavel
+								=09
+
+> > diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n=
+9.dts
+> > index 39e35f8..57a6679 100644
+> > --- a/arch/arm/boot/dts/omap3-n9.dts
+> > +++ b/arch/arm/boot/dts/omap3-n9.dts
+> > @@ -11,9 +11,10 @@
+> >  /dts-v1/;
+> > =20
+> >  #include "omap3-n950-n9.dtsi"
+> > +#include <dt-bindings/input/input.h>
+> > =20
+> >  / {
+> >  	model =3D "Nokia N9";
+> >  	compatible =3D "nokia,omap3-n9", "ti,omap36xx", "ti,omap3";
+> >  };
+> > =20
+> > @@ -72,3 +133,9 @@
+> >  	st,max-limit-y =3D <46>;
+> >  	st,max-limit-z =3D <46>;
+> >  };
+> > +
+> > +&twl_keypad {
+> > +	linux,keymap =3D < MATRIX_KEY(6, 8, KEY_VOLUMEUP)
+> > +			 MATRIX_KEY(7, 8, KEY_VOLUMEDOWN)
+> > +			 >;
+> > +};
+> >=20
+> >=20
+> > --=20
+> > (english) http://www.livejournal.com/~pavelmachek
+> > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
+>=20
+>=20
+
+
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--zS7rBR6csb6tI2e1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlphGcQACgkQMOfwapXb+vLmFwCfQPDusoIGZ7kx83h9RXdprszs
+hQMAoKFR8TnZwJOgF2T1dGuaDLKjsAtp
+=QyHD
+-----END PGP SIGNATURE-----
+
+--zS7rBR6csb6tI2e1--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
