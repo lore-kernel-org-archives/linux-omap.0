@@ -1,52 +1,112 @@
-From: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Subject: [PATCH v4] usb: ehci-omap: don't complain on -EPROBE_DEFER when no
- PHY found
-Date: Thu, 18 Jan 2018 22:13:18 +0100
-Message-ID: <20180118211317.GA27821@lenoch>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH -next] PCI: dra7xx: Fix potential NULL dereference
+Date: Thu, 18 Jan 2018 22:34:17 +0100
+Message-ID: <20180118213417.GA30723@lenoch>
+References: <1516284037-81537-1-git-send-email-weiyongjun1@huawei.com>
+ <20180118145420.GA21163@lenoch>
+ <20180118183525.GG53542@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20180118183525.GG53542@bhelgaas-glaptop.roam.corp.google.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>, Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Don't complain on -EPROBE_DEFER when no PHY found, the driver
-probe will be retried later.
+On Thu, Jan 18, 2018 at 12:35:25PM -0600, Bjorn Helgaas wrote:
+> On Thu, Jan 18, 2018 at 03:54:20PM +0100, Ladislav Michl wrote:
+> > On Thu, Jan 18, 2018 at 02:00:37PM +0000, Wei Yongjun wrote:
+> > > platform_get_resource_byname() may fail and return NULL, so we should
+> > > better check it's return value to avoid a NULL pointer dereference a
+> > > bit later in the code.
+> > > 
+> > > This is detected by Coccinelle semantic patch.
+> > > 
+> > > @@
+> > > expression pdev, res, n, t, e, e1, e2;
+> > > @@
+> > > 
+> > > res = platform_get_resource_byname(pdev, t, n);
+> > > + if (!res)
+> > > +   return -EINVAL;
+> > > ... when != res == NULL
+> > > e = devm_ioremap(e1, res->start, e2);
+> > 
+> > Well, then it should be replaced with devm_ioremap_resource()
+> > which already checks for NULL and the right resource type
+> > (IORESOURCE_MEM).
+> 
+> That's probably a better idea.  Maybe we should add a comment like this
+> to help avoid this in the future:
+> 
+> --- a/lib/devres.c
+> +++ b/lib/devres.c
+> @@ -22,6 +22,8 @@ static int devm_ioremap_match(struct device *dev, void *res, void *match_data)
+>   * @size: Size of map
+>   *
+>   * Managed ioremap().  Map is automatically unmapped on driver detach.
+> + *
+> + * When possible, use devm_ioremap_resource() instead.
+>   */
+>  void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+>  			   resource_size_t size)
 
-Signed-off-by: Ladislav Michl <ladis-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Acked-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
----
- Changes:
- - v2: None, just added Tony's ack
- - v3: Fixed commit message typo spotted by Jaejoong Kim, added Roger's ack
- - v4: Do not break printk string, Alan's ack. I hope he forgives me
-       changing error message a bit. IMHO shorter with the same meaning.
-       (this patch gained unbelievable lines_changed/versions ratio ;-))
+Yes, please. It would be nice first patch in the serie converting existing
+users of devm_ioremap into devm_ioremap_resource:
+find drivers -name "*.c" | xargs grep "devm_ioremap(" | grep resource_size | wc -l
+82
+I know, that was dumb, Coccinelle would certainly do better job.
+And from a quick look a lot of
+if (!res) {
+	print error
+	return -EINVAL;
+}
+code blocks could be deleted (and many cases where check for NULL resource
+is missing fixed).
 
- drivers/usb/host/ehci-omap.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 854b146a457d..8d8bafc70c1f 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -167,7 +167,8 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 				continue;
- 
- 			ret = PTR_ERR(phy);
--			dev_err(dev, "Can't get PHY device for port %d: %d\n",
-+			if (ret != -EPROBE_DEFER)
-+				dev_err(dev, "Can't get PHY for port %d: %d\n",
- 					i, ret);
- 			goto err_phy;
- 		}
--- 
-2.15.1
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > Fixes: 608793e27b33 ("PCI: dwc: dra7xx: Add EP mode support")
+> > > Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+> > > ---
+> > >  drivers/pci/dwc/pci-dra7xx.c | 6 ++++++
+> > >  1 file changed, 6 insertions(+)
+> > > 
+> > > diff --git a/drivers/pci/dwc/pci-dra7xx.c b/drivers/pci/dwc/pci-dra7xx.c
+> > > index 8bf7c27..aafded8 100644
+> > > --- a/drivers/pci/dwc/pci-dra7xx.c
+> > > +++ b/drivers/pci/dwc/pci-dra7xx.c
+> > > @@ -409,11 +409,15 @@ static int __init dra7xx_add_pcie_ep(struct dra7xx_pcie *dra7xx,
+> > >  	ep->ops = &pcie_ep_ops;
+> > >  
+> > >  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics");
+> > > +	if (!res)
+> > > +		return -EINVAL;
+> > >  	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
+> > >  	if (!pci->dbi_base)
+> > >  		return -ENOMEM;
+> > >  
+> > >  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ep_dbics2");
+> > > +	if (!res)
+> > > +		return -EINVAL;
+> > >  	pci->dbi_base2 = devm_ioremap(dev, res->start, resource_size(res));
+> > >  	if (!pci->dbi_base2)
+> > >  		return -ENOMEM;
+> > > @@ -462,6 +466,8 @@ static int __init dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
+> > >  		return ret;
+> > >  
+> > >  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "rc_dbics");
+> > > +	if (!res)
+> > > +		return -EINVAL;
+> > >  	pci->dbi_base = devm_ioremap(dev, res->start, resource_size(res));
+> > >  	if (!pci->dbi_base)
+> > >  		return -ENOMEM;
+> > > 
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
