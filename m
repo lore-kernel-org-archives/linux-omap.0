@@ -1,95 +1,196 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH -next] PCI: dra7xx: Fix potential NULL dereference
-Date: Fri, 19 Jan 2018 18:06:57 +0100
-Message-ID: <20180119170657.GA27882@lenoch>
-References: <1516284037-81537-1-git-send-email-weiyongjun1@huawei.com>
- <20180118145420.GA21163@lenoch>
- <20180118183525.GG53542@bhelgaas-glaptop.roam.corp.google.com>
- <20180119095857.GA26765@lenoch>
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] dt-bindings: Nokia N9 audio support
+Date: Fri, 19 Jan 2018 14:15:46 -0600
+Message-ID: <20180119201546.v4ua72kejql3w2ro@rob-hp-laptop>
+References: <20171227091828.GA3307@amd>
+ <20171227180000.6ejpbqmr736nqx5i@kekkonen.localdomain>
+ <20171227200147.GB16799@amd>
+ <20171227211643.nnwtm4j6cyftlm66@kekkonen.localdomain>
+ <20180102124450.GA18659@amd>
+ <20180105160137.nr7oqvpbp2oao5fm@rob-hp-laptop>
+ <20180108222054.GA17452@amd>
+ <20180110085315.GA17841@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180119095857.GA26765@lenoch>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>, Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <20180110085315.GA17841@amd>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, mark.rutland-5wv7dgnIgG8@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, aaro.koskinen-X3B1VOXEql0@public.gmane.org, ivo.g.dimitrov.75-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, patrikbachan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, abcloriens-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, clayton-fehKsxFhGzZIf6P1QZMOBw@public.gmane.org, martijn-28JJ9oSIdodmR6Xm/wNWPw@public.gmane.org, Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 19, 2018 at 10:58:57AM +0100, Ladislav Michl wrote:
-> On Thu, Jan 18, 2018 at 12:35:25PM -0600, Bjorn Helgaas wrote:
-> > That's probably a better idea.  Maybe we should add a comment like this
-> > to help avoid this in the future:
+On Wed, Jan 10, 2018 at 09:53:15AM +0100, Pavel Machek wrote:
+> From: Filip Matijević <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > 
-> That seems to spot another a bit more serious problem (given how late
-> release cycle is now).
+> Add bindings for Nokia N9 audio components.
 > 
-> Both devm_ioremap() and devm_ioremap_resource() shares the same release
-> function: devm_ioremap_release(). However this function is not aware of
-> memory region previously requested by devm_request_mem_region() called
-> from devm_ioremap_resource().
+> Signed-off-by: Filip Matijević <filip.matijevic.pz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 > 
-> Bellow is just a quick hack, even untested as looking at devm_ioremap,
-> devm_ioremap_wc and devm_ioremap_wc, there is some room for optimization.
+> diff --git a/Documentation/devicetree/bindings/media/ti-wl1273.txt b/Documentation/devicetree/bindings/media/ti-wl1273.txt
+> new file mode 100644
+> index 0000000..21db389
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/ti-wl1273.txt
+> @@ -0,0 +1,36 @@
+> +Texas Instruments - wl1273 radio/bluetooth module
 
-Okay, forget it, above analysis is not correct, however there is a bug (and
-also in PCI version). To show it, let's make following modification:
+bluetooth chips have a binding location: bindings/net/bluetooth.
 
-diff --git a/lib/devres.c b/lib/devres.c
-index e9aad136f667..193e540eab23 100644
---- a/lib/devres.c
-+++ b/lib/devres.c
-@@ -153,6 +153,10 @@ void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res)
- 		return IOMEM_ERR_PTR(-EBUSY);
- 	}
- 
-+	if (res->start == 0x4809c000 || res->start == 0x480b4000 || res->start == 0x480ad000) {
-+		dev_info(dev, "Setting size to madness\n");
-+		size = 1000000000;
-+	}
- 	dest_ptr = devm_ioremap(dev, res->start, size);
- 	if (!dest_ptr) {
- 		dev_err(dev, "ioremap failed for resource %pR\n", res);
+And we already have a WL1273 binding. Plus there's the one for the Nokia 
+BT which I think can be TI chips with a different firmware and protocol. 
+Is this related?
 
-Above patch will set insane resource size for omap_hsmmc driver which is
-using devm_ioremap_resource() and triggers following error:
+> +
+> +Required properties:
+> +
+> +- compatible - "ti,wl1273-core"
+> +- reg - I2C slave address
+> +- interrupts       - The interrupt output from the device.
+> +- interrupt-parent - The parent interrupt controller.
+> +- power-gpio       - gpio pin to power the device.
+> +
+> +- wl1273radio child - compatible = "ti,wl1273-fm-radio";
 
-vmap allocation for size 1000005632 failed: use vmalloc=<size> to increase size
-omap_hsmmc 4809c000.mmc: ioremap failed for resource [mem 0x4809c000-0x4809c1ff]
-Trying to free nonexistent resource <000000004809c000-0000000083a489ff>
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 92 at kernel/resource.c:1477 __devm_release_region+0x44/0x58
-Modules linked in: omap_aes_driver(+) omap_sham(+) crypto_engine omap_crypto phy_twl4030_usb omap2430(+) omap_hsmmc(+) musb_hdrc omap_mailbox ohci_platform(+) snd_soc_twl4030 ohci_hcd ehci_omap td
-CPU: 0 PID: 92 Comm: systemd-udevd Not tainted 4.15.0-rc8-next-20180118 #42
-Hardware name: Generic OMAP36xx (Flattened Device Tree)
-[<c010d450>] (unwind_backtrace) from [<c010b510>] (show_stack+0x10/0x14)
-[<c010b510>] (show_stack) from [<c0129648>] (__warn+0xd4/0xec)
-[<c0129648>] (__warn) from [<c0129720>] (warn_slowpath_null+0x38/0x44)
-[<c0129720>] (warn_slowpath_null) from [<c012cd4c>] (__devm_release_region+0x44/0x58)
-[<c012cd4c>] (__devm_release_region) from [<c02b9904>] (devm_ioremap_resource+0x118/0x140)
-[<c02b9904>] (devm_ioremap_resource) from [<bf0f9f0c>] (omap_hsmmc_probe+0x15c/0x960 [omap_hsmmc])
-[<bf0f9f0c>] (omap_hsmmc_probe [omap_hsmmc]) from [<c0339204>] (platform_drv_probe+0x50/0x9c)
-[<c0339204>] (platform_drv_probe) from [<c0337c04>] (driver_probe_device+0x330/0x478)
-[<c0337c04>] (driver_probe_device) from [<c0337dec>] (__driver_attach+0xa0/0x104)
-[<c0337dec>] (__driver_attach) from [<c0335fe8>] (bus_for_each_dev+0x54/0x78)
-[<c0335fe8>] (bus_for_each_dev) from [<c0336fbc>] (bus_add_driver+0x1b4/0x22c)
-[<c0336fbc>] (bus_add_driver) from [<c03384bc>] (driver_register+0xa0/0xe0)
-[<c03384bc>] (driver_register) from [<c0102620>] (do_one_initcall+0x124/0x14c)
-[<c0102620>] (do_one_initcall) from [<c016d300>] (do_init_module+0x54/0x1c0)
-[<c016d300>] (do_init_module) from [<c016ca48>] (load_module+0x1e90/0x1fb0)
-[<c016ca48>] (load_module) from [<c016cd80>] (SyS_finit_module+0xb4/0xc4)
-[<c016cd80>] (SyS_finit_module) from [<c0101000>] (ret_fast_syscall+0x0/0x54)
-Exception stack(0xdde2bfa8 to 0xdde2bff0)
-bfa0:                   004f23b0 beb7cdc4 00000007 b6f7e0d8 00000000 004f22f8
-bfc0: 004f23b0 beb7cdc4 beb7cdbc 0000017b 004faec8 00000000 00000000 004fd1d0
-bfe0: beb7cca8 beb7cc98 b6f77cc5 b6edfba2
----[ end trace b8768b734ce0c288 ]---
-omap_hsmmc: probe of 4809c000.mmc failed with error -12
+AIUI, the FM radio is accessed thru the HCI interface aka shared 
+transport via the UART. So it is already covered by the serial device 
+binding for TI chips.
 
-Please note that "Trying to free nonexistent resource" caused by calling
-devm_release_mem_region() twice.
+> +
+> +Optional properties:
+> +
+> +- wl1273codec child - compatible = "ti,wl1273codec";
 
-Fixes will be sent separately.
+This is a codec or just BT audio I2S/PCM interface?
 
-Best regards,
-	ladis
+> +
+> +Example:
+> +
+> +wl1273core: wl1273core@22 {
+> +		compatible = "ti,wl1273-core";
+> +		reg = <0x22>;
+> +
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&wl1273_gpio>;
+> +
+> +		interrupt-parent = <&gpio2>;
+> +		interrupts = <11 2>; /* gpio_43, IRQF_TRIGGER_FALLING */
+> +
+> +		wl1273radio: wl1273radio {
+> +			compatible = "ti,wl1273-fm-radio";
+> +		};
+> +
+> +		wl1273codec: wl1273codec {
+> +			compatible = "ti,wl1273-codec";
+> +		};
+> +	};
+> diff --git a/Documentation/devicetree/bindings/sound/nokia,n9.txt b/Documentation/devicetree/bindings/sound/nokia,n9.txt
+> new file mode 100644
+> index 0000000..230b1eb
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/sound/nokia,n9.txt
+> @@ -0,0 +1,32 @@
+> +* Nokia N9/N950 audio setup
+> +
+> +Required properties:
+> +- compatible: "nokia,n9-audio"
+> +
+> +- nokia,twl4030-cpu-dai: phandle for the McBSP node connected to TWL4030
+> +- nokia,tlv320dac33-cpu-dai: phandle for the McBSP node connected to TLV320DAC33
+> +- nokia,wl1273-cpu-dai: phandle for the McBSP node connected to WL1273
+> +
+> +- nokia,twl4030-codec: phandle for the TWL4030 codec
+> +- nokia,tlv320dac33-codec: phandle for the TLV320DAC33 codec
+> +- nokia,wl1273-codec: phandle for the WL1273 codec
+
+Both dais and codecs should just be lists with a defined order.
+
+> +- nokia,headphone-amplifier: phandle for the TPA6130A2 node
+
+The simple card or graph card binding don't work? At least follow them 
+to the extent that they do work. 
+> +
+> +- nokia,speaker-amplifier-gpios: GPIO for speaker amplifier
+> +
+> +Example:
+> +
+> +sound: n9-audio {
+> +	compatible = "nokia,n9-audio";
+> +
+> +	nokia,twl4030-cpu-dai = <&mcbsp3>;
+> +	nokia,tlv320dac33-cpu-dai = <&mcbsp2>;
+> +	nokia,wl1273-cpu-dai = <&mcbsp4>;
+> +
+> +	nokia,twl4030-codec = <&twl4030_audio>;
+> +	nokia,tlv320dac33-codec = <&tlv320dac33>;
+> +	nokia,wl1273-codec = <&wl1273codec>;
+> +	nokia,headphone-amplifier = <&tpa6140a2>;
+> +
+> +	nokia,speaker-amplifier-gpios = <&twl_gpio 7 GPIO_ACTIVE_HIGH>;
+> +};
+> diff --git a/Documentation/devicetree/bindings/sound/tlv320dac33.txt b/Documentation/devicetree/bindings/sound/tlv320dac33.txt
+> new file mode 100644
+> index 0000000..8e981f7
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/sound/tlv320dac33.txt
+> @@ -0,0 +1,39 @@
+> +Texas Instruments - tlv320dac33 Codec module
+> +
+> +The tlv320dac33 serial control bus communicates through I2C protocols.
+> +
+> +Required properties:
+> +
+> +- compatible - "ti,tlv320dac33"
+> +- reg - I2C slave address
+> +
+> +Optional properties:
+> +
+> +- power-gpio - gpio pin to power the device
+
+power-gpios.
+
+Active high or low?
+
+> +
+> +- avdd-supply, dvdd-supply, iovdd-supply: power supplies for the device as covered
+> +  in Documentation/devicetree/bindings/regulator/regulator.txt
+> +
+> +- interrupts       - The interrupt output from the device.
+> +- interrupt-parent - The parent interrupt controller.
+> +
+> +- ti,keep-bclk 	- Keep the BCLK running in FIFO modes
+> +- ti,burst-bclkdiv - BCLK divider value in burst mode
+> +
+> +Example:
+> +
+> +tlv320dac33: tlv320dac33@19 {
+
+audio-codec@19
+
+> +	compatible = "ti,tlv320dac33";
+> +	reg = <0x19>;
+> +
+> +	avdd-supply = <&vaux4>;
+> +	dvdd-supply = <&vio>;
+> +	iovdd-supply = <&vio>;
+> +
+> +	interrupt-parent = <&gpio2>;
+> +	interrupts = <21 1>; /* gpio_53, IRQF_TRIGGER_RISING */
+> +	power-gpio = <&gpio2 28 0>; /* gpio_60 */
+> +
+> +	ti,keep-bclk;
+> +	ti,burst-bclkdiv = /bits/ 8 <3>;
+> +};
+> 
+> 
+> -- 
+> (english) http://www.livejournal.com/~pavelmachek
+> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
