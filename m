@@ -1,260 +1,95 @@
-From: Adam Ford <aford173@gmail.com>
-Subject: Re: [PATCHv2 15/15] clk: ti: convert to use proper register
- definition for all accesses
-Date: Fri, 19 Jan 2018 10:43:23 -0600
-Message-ID: <CAHCN7xJJ9U9ZS-Qs1MXLuxJzXJtejBmx_P=v+ERfiAehYKP_7w@mail.gmail.com>
-References: <1489236606-24023-1-git-send-email-t-kristo@ti.com>
- <1489236606-24023-16-git-send-email-t-kristo@ti.com>
- <CAHCN7x+oKEmXBpogy4VOB8UgmTd6+X5fBiP66yzUqXmvDWdqaw@mail.gmail.com>
- <6b4c5bf2-1260-0e79-0414-9870f21e4a75@ti.com>
- <CAHCN7xLaP-th=vAzN8C1QXstf3c5SP4JADAZZXTb1Nd6N6QdsQ@mail.gmail.com>
- <20180117211907.GE4042@atomide.com>
- <CAHCN7xJ-NaKoeZOqrdc48fFCLNQvm_uRXC0ErtiG+Ac86a14+w@mail.gmail.com>
- <4f0f185a-2890-3747-7060-1f5b5a77022a@ti.com>
- <CAHCN7x+hkCyrj1pH7f5DQia-1QgF3g-idAo0Sd-vY6u8iLufWA@mail.gmail.com>
- <cee43b44-1de6-a317-e89a-57f86607df86@ti.com>
- <CAHCN7xL0Y8z+QhCQC8GrDeqiiHPQwnemR5mwJYEGMxUPFZfe6Q@mail.gmail.com>
- <5cffb571-f3b0-1632-9f5c-d55e6068ce4f@ti.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH -next] PCI: dra7xx: Fix potential NULL dereference
+Date: Fri, 19 Jan 2018 18:06:57 +0100
+Message-ID: <20180119170657.GA27882@lenoch>
+References: <1516284037-81537-1-git-send-email-weiyongjun1@huawei.com>
+ <20180118145420.GA21163@lenoch>
+ <20180118183525.GG53542@bhelgaas-glaptop.roam.corp.google.com>
+ <20180119095857.GA26765@lenoch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5cffb571-f3b0-1632-9f5c-d55e6068ce4f@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180119095857.GA26765@lenoch>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>, Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-omap@vger.kernel.org, linux-pci@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 19, 2018 at 3:42 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> On 18/01/18 16:12, Adam Ford wrote:
->>
->> On Thu, Jan 18, 2018 at 7:29 AM, Tero Kristo <t-kristo@ti.com> wrote:
->>>
->>> On 18/01/18 15:26, Adam Ford wrote:
->>>>
->>>>
->>>> On Thu, Jan 18, 2018 at 1:34 AM, Tero Kristo <t-kristo@ti.com> wrote:
->>>>>
->>>>>
->>>>> On 17/01/18 23:44, Adam Ford wrote:
->>>>>>
->>>>>>
->>>>>>
->>>>>> On Wed, Jan 17, 2018 at 3:19 PM, Tony Lindgren <tony@atomide.com>
->>>>>> wrote:
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> * Adam Ford <aford173@gmail.com> [180117 15:15]:
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>> On Wed, Jan 17, 2018 at 8:02 AM, Tero Kristo <t-kristo@ti.com>
->>>>>>>> wrote:
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>> On 17/01/18 15:27, Adam Ford wrote:
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> On Sat, Mar 11, 2017 at 6:50 AM, Tero Kristo <t-kristo@ti.com>
->>>>>>>>>> wrote:
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>> Currently, TI clock driver uses an encapsulated struct that is
->>>>>>>>>>> cast
->>>>>>>>>>> into
->>>>>>>>>>> a void pointer to store all register addresses. This can be
->>>>>>>>>>> considered
->>>>>>>>>>> as rather nasty hackery, and prevents from expanding the register
->>>>>>>>>>> address field also. Instead, replace all the code to use proper
->>>>>>>>>>> struct
->>>>>>>>>>> in place for this, which contains all the previously used data.
->>>>>>>>>>>
->>>>>>>>>>> This patch is rather large as it is touching multiple files, but
->>>>>>>>>>> this
->>>>>>>>>>> can't be split up as we need to avoid any boot breakage.
->>>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> I know it's late coming, but according to git bisect, this patch
->>>>>>>>>> is
->>>>>>>>>> causing some problems with Logic PD Torpedo 37xx Dev kit.
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>> Oh reporting bugs is never too late, thanks for posting this out.
->>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> It it is a DM3730 that has a WL1283 chipset attached to the SDIO
->>>>>>>>>> interface on MMC3.  The driver seems to load properly, but when
->>>>>>>>>> loading wpa_supplicant to activate the WL1283, we get a giant
->>>>>>>>>> crash.
->>>>>>>>>> I checked kernel revisions starting at 4.14 and working back to
->>>>>>>>>> when
->>>>>>>>>> it worked, then used git bisect from there.
->>>>>>>>>>
->>>>>>>>>> I am hoping it might be a simple fix for something that just needs
->>>>>>>>>> to
->>>>>>>>>> get added or tweaked in the device tree.
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>> I don't have access to the specific hw, but can you try to dig out
->>>>>>>>> which
->>>>>>>>> hwmod is causing the crash? Just print out the oh->name from the
->>>>>>>>> _wait_softreset_complete. That would help root causing the issue.
->>>>>>>>>
->>>>>>>>
->>>>>>>> With one small patch, I was able to make it work again.
->>>>>>>>
->>>>>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
->>>>>>>> b/arch/arm/mach-omap2/omap_hwmod.c
->>>>>>>> index 2dbd632..ed1f625 100644
->>>>>>>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>>>>>>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>>>>>>> @@ -477,7 +477,7 @@ static int _wait_softreset_complete(struct
->>>>>>>> omap_hwmod *oh)
->>>>>>>>            int c = 0;
->>>>>>>>
->>>>>>>>            sysc = oh->class->sysc;
->>>>>>>> -
->>>>>>>> +pr_warn("_wait_softreset_complete: %s\n", oh->name);
->>>>>>>>            if (sysc->sysc_flags & SYSS_HAS_RESET_STATUS)
->>>>>>>>                    omap_test_timeout((omap_hwmod_read(oh,
->>>>>>>> sysc->syss_offs)
->>>>>>>>                                       & SYSS_RESETDONE_MASK),
->>>>>>>>
->>>>>>>>
->>>>>>>> This leads me to believe that the omap_test_timeout functions might
->>>>>>>> not be working quite right.
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> There may be a srst_udelay needed for some module, see commit
->>>>>>> ebf244148092 ("ARM: OMAP2+: Use srst_udelay for USB on dm814x")
->>>>>>> for example.
->>>>>>>
->>>>>>> You might be able to find which module it is by commenting out
->>>>>>> postcore_initcall_sync(omap3_l3_init) in drivers/bus/omap_l3_smx.c
->>>>>>> temporarily as the system will most likely hang right there.
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> I commented out that line as you suggested, but the system boots as
->>>>>> normal and I get the crash (as normal)
->>>>>>
->>>>>> I am looking through the DM3730 and OMAP3630 TRM now.  Any thought on
->>>>>> a keyword search I should use to see which hwmods might require
->>>>>> srst_udelay?
->>>>>
->>>>>
->>>>>
->>>>>
->>>>> Looking at the log you provided, it looks like only mmc1, mmc3 and i2c1
->>>>> are
->>>>> reset during the wlan probe. Based on the prints coming out in the
->>>>> failing
->>>>> case, it looks like the culprit might be mmc3 for some reason.
->>>>>
->>>>> [   18.239746] _wait_softreset_complete: mmc3
->>>>> [   18.638580] _wait_softreset_complete: mmc3
->>>>> [   18.657562] _wait_softreset_complete: mmc1
->>>>> [   18.833374] wlcore: firmware booted (Rev 7.3.10.0.141)
->>>>>
->>>>> ^ the firmware notification above does not come out in the crash.
->>>>>
->>>>
->>>> I agree with your assessment.  Any ideas why moving the debug
->>>> statement before the if statement would make it start working?  I
->>>> added some artificial udelay at around 100, but I still got the crash.
->>>> It seems like there is some timing issue, but at the same time just
->>>> adding a delay isn't enough.
->>>
->>>
->>>
->>> The pr_warn does more than just delay, it accesses the io-space
->>> potentially
->>> causing a flush on certain IO ranges. There might be some OCP readback
->>> missing for example, in which case a simple udelay may not help.
->>>
->>
->> I am not very familiar with the OCP and/or how the flushing would
->> impact this.  Do you have any suggestions on how I can troubleshoot?
->
->
-> Typically an OCP barrier is inserted in the code as an immediate readback of
-> the register in question, this effectively forces the register write all the
-> way to the IP.
->
-> But, you said that the issue gets fixed with 4.15-rc? You could just simply
-> bisect the issue and see which exact patch fixes it.
->
+On Fri, Jan 19, 2018 at 10:58:57AM +0100, Ladislav Michl wrote:
+> On Thu, Jan 18, 2018 at 12:35:25PM -0600, Bjorn Helgaas wrote:
+> > That's probably a better idea.  Maybe we should add a comment like this
+> > to help avoid this in the future:
+> 
+> That seems to spot another a bit more serious problem (given how late
+> release cycle is now).
+> 
+> Both devm_ioremap() and devm_ioremap_resource() shares the same release
+> function: devm_ioremap_release(). However this function is not aware of
+> memory region previously requested by devm_request_mem_region() called
+> from devm_ioremap_resource().
+> 
+> Bellow is just a quick hack, even untested as looking at devm_ioremap,
+> devm_ioremap_wc and devm_ioremap_wc, there is some room for optimization.
 
-Good idea.  It looks like 3c4d296e58a2 ("ARM: OMAP3: hwmod_data: add
-missing module_offs for MMC3") fixed the problem. I've tested that on
-Linux 4.14.14 and it fixes my issues.  I'll e-mail stable and ask him
-to backport this patch and I'll CC you on it.
+Okay, forget it, above analysis is not correct, however there is a bug (and
+also in PCI version). To show it, let's make following modification:
 
-adam
+diff --git a/lib/devres.c b/lib/devres.c
+index e9aad136f667..193e540eab23 100644
+--- a/lib/devres.c
++++ b/lib/devres.c
+@@ -153,6 +153,10 @@ void __iomem *devm_ioremap_resource(struct device *dev, struct resource *res)
+ 		return IOMEM_ERR_PTR(-EBUSY);
+ 	}
+ 
++	if (res->start == 0x4809c000 || res->start == 0x480b4000 || res->start == 0x480ad000) {
++		dev_info(dev, "Setting size to madness\n");
++		size = 1000000000;
++	}
+ 	dest_ptr = devm_ioremap(dev, res->start, size);
+ 	if (!dest_ptr) {
+ 		dev_err(dev, "ioremap failed for resource %pR\n", res);
 
+Above patch will set insane resource size for omap_hsmmc driver which is
+using devm_ioremap_resource() and triggers following error:
 
-> -Tero
->
->
->>
->> adam
->>
->>> -Tero
->>>
->>>
->>>>
->>>>> -Tero
->>>>>
->>>>
->>>> adam
->>>>
->>>>>>
->>>>>> adam
->>>>>>
->>>>>>>
->>>>>>> Regards,
->>>>>>>
->>>>>>> Tony
->>>>>>
->>>>>>
->>>>>>
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe linux-clk"
->>>>>> in
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>
->>>>>
->>>>> --
->>>
->>>
->>>
->>> --
->
->
-> --
-> Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-> Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+vmap allocation for size 1000005632 failed: use vmalloc=<size> to increase size
+omap_hsmmc 4809c000.mmc: ioremap failed for resource [mem 0x4809c000-0x4809c1ff]
+Trying to free nonexistent resource <000000004809c000-0000000083a489ff>
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 92 at kernel/resource.c:1477 __devm_release_region+0x44/0x58
+Modules linked in: omap_aes_driver(+) omap_sham(+) crypto_engine omap_crypto phy_twl4030_usb omap2430(+) omap_hsmmc(+) musb_hdrc omap_mailbox ohci_platform(+) snd_soc_twl4030 ohci_hcd ehci_omap td
+CPU: 0 PID: 92 Comm: systemd-udevd Not tainted 4.15.0-rc8-next-20180118 #42
+Hardware name: Generic OMAP36xx (Flattened Device Tree)
+[<c010d450>] (unwind_backtrace) from [<c010b510>] (show_stack+0x10/0x14)
+[<c010b510>] (show_stack) from [<c0129648>] (__warn+0xd4/0xec)
+[<c0129648>] (__warn) from [<c0129720>] (warn_slowpath_null+0x38/0x44)
+[<c0129720>] (warn_slowpath_null) from [<c012cd4c>] (__devm_release_region+0x44/0x58)
+[<c012cd4c>] (__devm_release_region) from [<c02b9904>] (devm_ioremap_resource+0x118/0x140)
+[<c02b9904>] (devm_ioremap_resource) from [<bf0f9f0c>] (omap_hsmmc_probe+0x15c/0x960 [omap_hsmmc])
+[<bf0f9f0c>] (omap_hsmmc_probe [omap_hsmmc]) from [<c0339204>] (platform_drv_probe+0x50/0x9c)
+[<c0339204>] (platform_drv_probe) from [<c0337c04>] (driver_probe_device+0x330/0x478)
+[<c0337c04>] (driver_probe_device) from [<c0337dec>] (__driver_attach+0xa0/0x104)
+[<c0337dec>] (__driver_attach) from [<c0335fe8>] (bus_for_each_dev+0x54/0x78)
+[<c0335fe8>] (bus_for_each_dev) from [<c0336fbc>] (bus_add_driver+0x1b4/0x22c)
+[<c0336fbc>] (bus_add_driver) from [<c03384bc>] (driver_register+0xa0/0xe0)
+[<c03384bc>] (driver_register) from [<c0102620>] (do_one_initcall+0x124/0x14c)
+[<c0102620>] (do_one_initcall) from [<c016d300>] (do_init_module+0x54/0x1c0)
+[<c016d300>] (do_init_module) from [<c016ca48>] (load_module+0x1e90/0x1fb0)
+[<c016ca48>] (load_module) from [<c016cd80>] (SyS_finit_module+0xb4/0xc4)
+[<c016cd80>] (SyS_finit_module) from [<c0101000>] (ret_fast_syscall+0x0/0x54)
+Exception stack(0xdde2bfa8 to 0xdde2bff0)
+bfa0:                   004f23b0 beb7cdc4 00000007 b6f7e0d8 00000000 004f22f8
+bfc0: 004f23b0 beb7cdc4 beb7cdbc 0000017b 004faec8 00000000 00000000 004fd1d0
+bfe0: beb7cca8 beb7cc98 b6f77cc5 b6edfba2
+---[ end trace b8768b734ce0c288 ]---
+omap_hsmmc: probe of 4809c000.mmc failed with error -12
+
+Please note that "Trying to free nonexistent resource" caused by calling
+devm_release_mem_region() twice.
+
+Fixes will be sent separately.
+
+Best regards,
+	ladis
