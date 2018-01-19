@@ -1,22 +1,23 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: RE: [PATCH -next] PCI: dra7xx: Fix potential NULL dereference
-Date: Fri, 19 Jan 2018 06:56:55 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1801190655080.3505@hadrien>
-References: <1516284037-81537-1-git-send-email-weiyongjun1@huawei.com> <20180118145420.GA21163@lenoch> <20180118183525.GG53542@bhelgaas-glaptop.roam.corp.google.com> <20180118213417.GA30723@lenoch>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH -next] PCI: dra7xx: Fix potential NULL dereference
+Date: Fri, 19 Jan 2018 08:03:38 +0100
+Message-ID: <20180119070337.GA6079@lenoch>
+References: <1516284037-81537-1-git-send-email-weiyongjun1@huawei.com>
+ <20180118145420.GA21163@lenoch>
+ <20180118183525.GG53542@bhelgaas-glaptop.roam.corp.google.com>
+ <20180118213417.GA30723@lenoch>
  <6AADFAC011213A4C87B956458587ADB401337E23@dggemi507-mbx.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <6AADFAC011213A4C87B956458587ADB401337E23@dggemi507-mbx.china.huawei.com>
 Sender: kernel-janitors-owner@vger.kernel.org
 To: "weiyongjun (A)" <weiyongjun1@huawei.com>
-Cc: Ladislav Michl <ladis@linux-mips.org>, Bjorn Helgaas <helgaas@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-
-
-On Fri, 19 Jan 2018, weiyongjun (A) wrote:
-
+On Fri, Jan 19, 2018 at 01:54:58AM +0000, weiyongjun (A) wrote:
 > > On Thu, Jan 18, 2018 at 12:35:25PM -0600, Bjorn Helgaas wrote:
 > > > On Thu, Jan 18, 2018 at 03:54:20PM +0100, Ladislav Michl wrote:
 > > > > On Thu, Jan 18, 2018 at 02:00:37PM +0000, Wei Yongjun wrote:
@@ -43,21 +44,21 @@ On Fri, 19 Jan 2018, weiyongjun (A) wrote:
 > > >
 > > > That's probably a better idea.  Maybe we should add a comment like this
 > > > to help avoid this in the future:
->
+> 
 > Not all of the place using devm_ioremap() can be replaced with
 > devm_ioremap_resource(), devices share the memory resource for example.
->
+
+That's probably what "when possible" means. Also, how does sharing memory
+resource changes that? As long as 'struct resource' is an argument to
+devm_ioremap, devm_ioremap_resource can be used.
+
 > So maybe you should also add an exception list to the comment, otherwise
 > many people still not know how to use devm_ioremap_resource() or devm_ioremap().
 
-I believe that there is a semantic patch in the kernel to remove the test
-when devm_ioremap_reource is used.  Maybe that should be extended or
-another one should be added to ensure that there is a test when
-devm_ioremap is used, since there seems to be a potential for confusion.
+Care to elaborate how should such an exception list look like?
 
-julia
+Thank you.
 
->
 > > >
 > > > --- a/lib/devres.c
 > > > +++ b/lib/devres.c
@@ -71,7 +72,7 @@ julia
 > > >   */
 > > >  void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
 > > >  			   resource_size_t size)
-> >
+> > 
 > > Yes, please. It would be nice first patch in the serie converting existing
 > > users of devm_ioremap into devm_ioremap_resource:
 > > find drivers -name "*.c" | xargs grep "devm_ioremap(" | grep resource_size
@@ -86,10 +87,4 @@ julia
 > > code blocks could be deleted (and many cases where check for NULL
 > > resource
 > > is missing fixed).
-> >
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> > 
